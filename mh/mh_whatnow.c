@@ -1,0 +1,463 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2003 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#include <mh.h>
+
+/* Valid commands are:
+     ``display''        to list the message being distributed/replied-to on
+                        the terminal
+     ``edit''           to re-edit using the same editor that was used on the
+                        preceding round unless a profile entry
+     ``edit <editor>''  to invoke <editor> for further editing
+     ``list''           to list the draft on the terminal
+     ``push''           to send the message in the background
+     ``quit''           to terminate the session and preserve the draft
+     ``quit -delete''   to terminate, then delete the draft
+     ``refile +folder'' to refile the draft into the given folder
+     ``send''           to send the message
+     ``send -watch''    to cause the delivery process to be monitored
+     ``whom''           to list the addresses that the message will go to
+     ``whom -check''    to list the addresses and verify that they are
+                        acceptable to the transport service */
+
+typedef int (*handler_fp) __PMT((struct mh_whatnow_env *wh,
+				 int argc, char **argv,
+				 int *status));
+
+static void
+display_file (const char *name)
+{
+  char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+
+  if (pager)
+    mh_spawnp (pager, name);
+  else
+    {
+      stream_t stream;
+      int rc;
+      size_t off = 0;
+      size_t n;
+      char buffer[512];
+      
+      rc = file_stream_create (&stream, name, MU_STREAM_READ);
+      if (rc)
+	{
+	  mh_error ("file_stream_create: %s", mu_errstring (rc));
+	  return;
+	}
+      rc = stream_open (stream);
+      if (rc)
+	{
+	  mh_error ("stream_open: %s", mu_errstring (rc));
+	  return;
+	} 
+      
+      while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+	     && n != 0)
+	{
+	  buffer[n] = '\0';
+	  printf ("%s", buffer);
+	  off += n;
+	}
+      stream_destroy (&stream, NULL);
+    }
+}      
+
+
+static int
+display (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  if (!wh->msg)
+    mh_error (_("no alternate message to display"));
+  else
+    display_file (wh->msg);
+  return 0;
+}
+
+static int
+edit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  if (argc == 1)
+    {
+      char *editor;
+      char *name;
+      asprintf (&name, "%s-next", wh->editor);
+      editor = mh_global_profile_get (name, wh->editor);
+      free (name);
+      mh_spawnp (editor, wh->file);
+    }
+  else
+    {
+      int i, rc, status;
+      char **xargv;
+
+      xargv = calloc (argc+1, sizeof (*xargv));
+      if (!xargv)
+	{
+	  mh_error (_("not enough memory"));
+	  return 0;
+	}
+      
+      for (i = 1; i < argc; i++)
+	xargv[i-1] = argv[i];
+      xargv[i++-1] = wh->file;
+      xargv[i++-1] = NULL;
+      rc = mu_spawnvp (xargv[0], (const char **) xargv, &status);
+      free (xargv);
+    }
+      
+  return 0;
+}
+
+static int
+list (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  if (!wh->file)
+    mh_error (_("no draft file to display"));
+  else
+    display_file (wh->file);
+  return 0;
+}
+
+static int
+push (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  return 0;
+}
+
+static int
+quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  *status = 0;
+  return 1;
+}
+
+static int
+refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  return 0;
+}
+
+static int
+send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  return 0;
+}
+
+static void
+print_readable (char *email)
+{
+  for (; *email && *email != '@'; email++)
+    putchar (*email);
+
+  if (!*email)
+    return;
+
+  printf (_(" at %s\n"), email+1);
+}
+  
+
+static int
+whom (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  if (!wh->file)
+    mh_error (_("no draft file to display"));
+  else
+    {
+      mh_context_t *ctx;
+
+      ctx = mh_context_create (wh->file, 1);
+      if (mh_context_read (ctx))
+	{
+	  mh_error(_("malformed message"));
+	}
+      else
+	{
+	  char *to = mh_context_get_value (ctx, MU_HEADER_TO, NULL);
+	  char *cc = mh_context_get_value (ctx, MU_HEADER_CC, NULL);
+	  char *bcc = mh_context_get_value (ctx, MU_HEADER_BCC, NULL);
+	  char *s = to ? to : (cc ? cc : bcc);
+
+	  if (!s)
+	    {
+	      mh_error(_("No recipients"));
+	    }
+	  else
+	    {
+	      address_t addr;
+	      size_t i, count;
+	      
+	      address_create (&addr, s);
+	      if (cc)
+		{
+		  address_t a;
+		  address_create (&a, cc);
+		  address_concatenate (addr, &a);
+		}
+	      if (bcc)
+		{
+		  address_t a;
+		  address_create (&a, bcc);
+		  address_concatenate (addr, &a);
+		}
+
+	      printf ("  %s\n", _("-- Network Recipients --"));
+	      address_get_count (addr, &count);
+	      for (i = 1; i <= count; i++)
+		{
+		  char *buf;
+		  int rc;
+		  rc = address_aget_email (addr, i, &buf);
+		  if (rc)
+		    {
+		      mh_error("address_aget_email: %s", mu_errstring (rc));
+		      continue;
+		    }
+		  printf ("  ");
+		  print_readable (buf);
+		  free (buf);
+		}
+	    }
+
+	  /* Cleanup everything. Note comment to mh_context_get_value! */
+	  free (bcc);
+	  free (cc);
+	  free (to);
+	}
+      free (ctx);
+    }
+  return 0;
+}
+
+struct helpdata {
+  char *name;
+  char *descr;
+} helpdata[] = {
+  { "display [<>]",
+    N_("List the message being distributed/replied-to on the terminal.") },
+  { "edit [<e <>]",
+    N_("Edit the message. If EDITOR is omitted use the one that was used on"
+       " the preceeding round unless the profile entry \"LASTEDITOR-next\""
+       " names an alternate editor.") },
+  { "list [<>]",
+    N_("List the draft on the terminal.") },
+  { "push [<>]",
+    N_("Send the message in the background.") },
+  { "quit [-delete]",
+    N_("Terminate the session. Preserve the draft, inless -delete flag is given.") },
+  { "refile [<>] +",
+    N_("Refile the draft into the given FOLDER.") },
+  { "send [-watch] [<>]",
+    N_("Send the message. The -watch flag causes the delivery process to be "
+       "monitored. SWITCHES are passed to send program verbatim.") },
+  { "whom [-check] [<>]",
+    N_("List the addresses and verify that they are acceptable to the "
+       "transport service.") },
+  { NULL },
+};
+
+#define OPT_DOC_COL  29		/* column in which option text starts */
+#define RMARGIN      79		/* right margin used for wrapping */
+
+static int
+print_short (const char *str)
+{
+  int n;
+  char *s;
+  
+  for (n = 0; *str; str++, n++)
+    {
+      switch (*str)
+	{
+	case '+':
+	  putchar ('+');
+	  s = _("FOLDER");
+	  n += printf ("%s", s);
+	  break;
+
+	case '<':
+	  switch (str[1]) 
+	    {
+	    case '>':
+	      s = _("SWITCHES");
+	      n += printf ("%s", s) - 1;
+	      str++;
+	      break;
+	      
+	    case 'e':
+	      s = _("EDITOR");
+	      n += printf ("%s", s) - 1;
+	      str++;
+	      break;
+
+	    default:
+	      putchar (*str);
+	    }
+	  break;
+
+	default:
+	  putchar (*str);
+	}
+    }
+  return n;
+}
+
+static void
+print_descr (int n, char *s)
+{
+  do
+    {
+      char *p;
+      char *space = NULL;
+      
+      for (; n < OPT_DOC_COL; n++)
+	putchar (' ');
+
+      for (p = s; *p && p < s + (RMARGIN - OPT_DOC_COL); p++)
+	if (isspace (*p))
+	  space = p;
+      
+      if (!space || p < s + (RMARGIN - OPT_DOC_COL))
+	{
+	  printf ("%s", s);
+	  s += strlen (s);
+	}
+      else
+	{
+	  for (; s < space; s++)
+	    putchar (*s);
+	  for (; *s && isspace (*s); s++)
+	    ;
+	}
+      putchar ('\n');
+      n = 1;
+    }
+  while (*s);
+}
+
+static int
+help (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  struct helpdata *p;
+
+  printf ("%s\n", _("Options are:"));
+  if (argc == 0 || argv[0][0] == '?')
+    {
+      /* Short version */
+      for (p = helpdata; p->name; p++)
+	{
+	  printf ("  ");
+	  print_short (p->name);
+	  putchar ('\n');
+	}
+    }
+  else
+    {
+      for (p = helpdata; p->name; p++)
+	{
+	  int n;
+	  
+	  n = printf ("  ");
+	  n += print_short (p->name);
+
+	  print_descr (n+1, _(p->descr));
+	}
+    }
+  return 0;
+}
+
+static handler_fp
+func (const char *name)
+{
+  static struct {
+    char *name;
+    handler_fp fp;
+  } tab[] = {
+    { "help", help },
+    { "?", help },
+    { "display", display },
+    { "edit", edit },
+    { "list", list },
+    { "push", push },
+    { "quit", quit },
+    { "refile", refile },
+    { "send", send },
+    { "whom", whom },
+  }, *p;
+  int len;
+  
+  if (!name)
+    return help;
+
+  len = strlen (name);
+  for (p = tab; p->name; p++)
+    {
+      int min = strlen (p->name);
+      if (min > len)
+	min = len;
+      if (strncmp (p->name, name, min) == 0)
+	return p->fp;
+    }
+
+  mh_error (_("%s is unknown. Hit <CR> for help"), name);
+  return NULL;
+}
+
+int
+mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
+{
+  int rc, status = 0;
+  
+  if (!wh->editor)
+    wh->editor = mh_global_profile_get ("Editor", "prompter");
+  
+  if (initial_edit)
+    mh_spawnp (wh->editor, wh->file);
+
+  if (!wh->prompt)
+    wh->prompt = _("What now?");
+  
+  do
+    {
+      char *line = NULL;
+      size_t size = 0;
+      int argc;
+      char **argv;
+      handler_fp fun;
+      
+      printf ("%s ", wh->prompt);
+      getline (&line, &size, stdin);
+      if (!line)
+	continue;
+      rc = argcv_get (line, "", "#", &argc, &argv);
+      free (line);
+      if (rc)
+	{
+	  argcv_free (argc, argv);
+	  break;
+	}
+
+      fun = func (argv[0]);
+      if (fun)
+	rc = fun (wh, argc, argv, &status);
+      else
+	rc = 0;
+      argcv_free (argc, argv);
+    }
+  while (rc == 0);
+  return status;
+}
