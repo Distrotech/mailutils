@@ -37,6 +37,7 @@ lib/xmalloc.c
 libsieve/actions.c
 libsieve/comparator.c
 libsieve/prog.c
+libsieve/relational.c
 libsieve/require.c
 libsieve/runtime.c
 libsieve/sieve.l
