@@ -51,7 +51,8 @@ struct sieve_machine {
   mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;        /* Current message number */
   message_t msg;          /* Current message */
-
+  int action_count;       /* Number of actions executed over this message */
+			    
   /* User supplied data */
   sieve_parse_error_t parse_error_printer;
   sieve_printf_t error_printer; 
@@ -67,6 +68,17 @@ extern char *sieve_filename;
 extern int sieve_line_num;
 extern sieve_machine_t sieve_machine;
 extern int sieve_error_count; 
+
+#define TAG_LOCALPART   0
+#define TAG_DOMAIN      1
+#define TAG_ALL         2
+#define TAG_COMPARATOR  3
+#define TAG_IS          4
+#define TAG_CONTAINS    5
+#define TAG_MATCHES     6  
+#define TAG_REGEX       7 
+#define TAG_UNDER       8
+#define TAG_OVER        9
 
 void sieve_compile_error __P((const char *filename, int linenum,
 			      const char *fmt, ...));
@@ -90,6 +102,7 @@ void sieve_lex_finish __P((void));
 
 void sieve_register_standard_actions __P((void));
 void sieve_register_standard_tests __P((void));
+void sieve_register_standard_comparators __P((void));
 
 int sieve_code __P((sieve_op_t *op));
 int sieve_code_instr __P((sieve_instr_t instr));
@@ -110,3 +123,4 @@ void instr_branch __P((sieve_machine_t mach));
 void instr_brz __P((sieve_machine_t mach));
 
 int sieve_mark_deleted __P((message_t msg, int deleted));
+int sieve_require_comparator __P((const char *name));
