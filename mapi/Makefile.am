@@ -1,0 +1,29 @@
+# Use automake to process this file -*-Makefile-*-
+
+AUTOMAKE_OPTIONS = ../lib/ansi2knr
+
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include
+
+SUBDIRS = include
+
+lib_LTLIBRARIES = libmapi.la
+
+/* FIXME:  This should be part of the default includes.  */
+EXTRA_DIST = mapi.h
+
+libmapi_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
+
+libmapi_la_SOURCES = \
+ MAPIAddress.c \
+ MAPIDeleteMail.c \
+ MAPIDetails.c \
+ MAPIFindNext.c \
+ MAPIFreeBuffer.c \
+ MAPILogoff.c \
+ MAPILogon.c \
+ MAPIReadMail.c \
+ MAPISaveMail.c \
+ MAPISendDocuments.c \
+ MAPISendMail.c
+
+libmapi_la_LDFLAGS = -version-info 0:0:0
