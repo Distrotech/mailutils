@@ -15,24 +15,42 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url_mailto.h>
+#ifndef _URL_MMDF_H
+#define _URL_MMDF_H	1
 
-struct url_type _url_mailto_type =
-{
-  "mailto:", 6,
-  "mailto:<user>@<hostname>?<query>",
-  (int)&_url_mailto_type,
-  url_mailto_init, url_mailto_destroy
-};
+#include <url.h>
 
-void
-url_mailto_destroy (url_t *purl)
-{
-  return;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*!__P */
+
+/* MMDF */
+extern int  url_mmdf_init    __P ((url_t *, const char *name));
+extern void url_mmdf_destroy __P ((url_t *));
+
+extern struct url_type  _url_mmdf_type;
+
+#ifndef INLINE
+# ifdef __GNUC__
+#  define INLINE __inline__
+# else
+#  define INLINE
+# endif
+#endif
+
+#ifdef MU_URL_MACROS
+#endif /* MU_URL_MACROS */
+
+#ifdef __cplusplus
 }
+#endif
 
-int
-url_mailto_init (url_t *purl, const char *name)
-{
-  return -1;
-}
+#endif /* URL_MMDF_H */
