@@ -8,6 +8,8 @@
 	send the FETCH 1:*.
 	* mailbox/message.c (message_is_modified): Protect against null
 	pointer.
+	* mailbox/mutil.c: Add <errno.h> if we use errno directly.
+	(mu_get_user_email): size not used, nuked.
 
 	* TODO: Some stuff todo 8).
 

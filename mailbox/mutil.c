@@ -410,7 +410,6 @@ getpwnam_virtual (const char *u)
 char *
 mu_get_user_email (char *name)
 {
-  size_t size;
   char hostname[256];
   struct hostent *hp;
   char *domainpart;
@@ -430,7 +429,7 @@ mu_get_user_email (char *name)
   gethostname (hostname, sizeof hostname);
   hostname[sizeof (hostname)-1] = 0;
 
-  if (hp = gethostbyname (hostname))
+  if ((hp = gethostbyname (hostname)))
     domainpart = hp->h_name;
   else
     domainpart = hostname;
