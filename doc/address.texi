@@ -1,12 +1,28 @@
 @code{#include <mailutils/mailbox.h>}
-@deftp {Data Type} address_t
-The @code{address_t} object is used to hold information about a parsed
-RFC822 address list, and is an opaque
-data structure to the user. Functions are provided to retrieve information
-about a address in the address list.
 
-Several address functions have a set of common arguments, which are described
-here to avoid repetition.
+The internet address format is defined in RFC 822. RFC 822 is in the
+process of being updated, and will soon be superceeded by a new RFC
+that makes some corrections and clarifications. References to RFC 822
+here apply equally to the new RFC.
+
+The RFC 822 format is more flexible than many people realize, here
+is a quick summary of the syntax this parser implements, see
+RFC 822 for the details. "[]" pairs mean "optional", "/" means "one or
+the other", and double-quoted characters are literals.
+
+@example
+address-list = address ["," address-list]
+address      = mailbox / group
+mailbox      = addr-spec ["(" personal ")"] /
+               [personal] "<" [route] addr-spec ">"
+addr-spec    = local-part "@" domain
+group        = phrase ":" mailbox-list ";"
+
+mailbox-list = mailbox ["," mailbox-list]
+@end example
+
+Several address functions have a set of common arguments with consistent
+semantics, these are described here to avoid repetition.
 
 Since an address-list may contain multiple addresses, they are accessed
 by a @strong{one-based} index number, @var{no}. The index is one-based
@@ -22,37 +38,43 @@ for the @var{len} of the buffer, in which case the buffer is optional.
 In this case, if @var{n} is provided *@var{n} is assigned the length of
 the component string.
 
-Comments:
+@macro ADDRESSENOMEM
+@item ENOMEM
+Not enough memory to allocate resources.
+@end macro
 
-What happens if @var{no} is past the end of the list? I think you
-just get zero-length output, but it should be an error, maybe EINVAL.
+@macro ADDRESSEPARSE
+@item ENOENT
+Invalid RFC822 syntax, parsing failed.
+@end macro
 
-Musings:
+@macro ADDRESSENOENT
+@item ENOENT
+The index @var{no} is outside of the range of available addresses.
+@end macro
 
-Two problems are domain literals, and non-ascii characters. I
-think domain literals should be parsed from [127.0.0.1] into
-the more commonly groked 127.0.0.1 when somebody does a get_domain()
-on one, and that if somebody wants to provide one as a domain, they
-can.
+@macro ADDRESSEINVAL
+@item EINVAL
+Invalid usage, usually a required argument was @code{nul}.
+@end macro
 
-Non ascii chars are uglier, perhaps a warning? Perhaps a non-strict
-switch that makes it an error, and otherwise if they want umlauts
-and utf-8 in the strings, just allow it? The machinery to encode
-and decode header fields according to the MIME spec doesn't really
-belong here, it's a layer on top of rfc822.
+@deftp {Data Type} address_t
+The @code{address_t} object is used to hold information about a parsed
+RFC822 address list, and is an opaque
+data structure to the user. Functions are provided to retrieve information
+about an address in the address list.
 
 @end deftp
 
 @deftypefun int address_create (address_t *@var{addr}, const char *@var{string})
 This function allocates and initializes @var{addr} by parsing the
-RFC822 address-list @var{string}. Parsing is best effort, if the
-@var{string} isn't a valid RFC822 syntax list of addresses, then
-the results are undefined.
+RFC822 address-list @var{string}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item ENOMEM
-Not enough memory to allocate resources.
+@ADDRESSEINVAL
+@ADDRESSENOMEM
+@ADDRESSEPARSE
 @end table
 @end deftypefun
 
@@ -69,20 +91,23 @@ a contact book entry.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item EINVAL
-@var{addr} is NULL.
+@ADDRESSEINVAL
+@ADDRESSENOENT
 @end table
 @end deftypefun
 
 @deftypefun  int address_get_personal (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
 Acesses the personal phrase describing the @var{no}th email address. This
-phrase is optional, so may not be present.
+personal is optional, so may not be present. If it is not present, but
+there is an RFC822 comment after the address, that comment will be
+returned as the personal phrase, as this is a common usage of the comment
+even though it is not defined in the internet mail standard.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item EINVAL
-@var{addr} is NULL.
+@ADDRESSEINVAL
+@ADDRESSENOENT
 @end table
 @end deftypefun
 
@@ -90,16 +115,65 @@ The return value is @code{0} on success and a code number on error conditions:
 @deftypefun  int address_get_comments (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
 Acesses the comments extracted while parsing the @var{no}th email address.
-These comments have no defined meaning, but in the absence of the personal
-descriptive phrase, may describe the email address.
+These comments have no defined meaning, and are not currently collected.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item EINVAL
-@var{addr} is NULL.
+@ADDRESSEINVAL
+@ADDRESSENOENT
 @end table
 @end deftypefun
 
+
+@deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+
+Acesses the email addr-spec extracted while
+parsing the @var{no}th email address.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_get_local_part (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+
+Acesses the local-part of an email addr-spec extracted while
+parsing the @var{no}th email address.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_get_domain (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+
+Acesses the domain of an email addr-spec extracted while
+parsing the @var{no}th email address.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_get_route (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+
+Acesses the route of an email addr-spec extracted while
+parsing the @var{no}th email address. This is a rarely used RFC822 address
+syntax, but is legal in SMTP as well. The entire route is returned as
+a string, those wishing to parse it should look at <mailutils/parse822.h>.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
 
 @deftypefun  int address_to_string (address_t *@var{addr}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
@@ -108,23 +182,21 @@ list.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item EINVAL
-@var{addr} is NULL.
+@ADDRESSEINVAL
+@ADDRESSENOMEM
 @end table
 @end deftypefun
 
 
-@deftypefun  int address_get_count (address_t *@var{addr}, size_t* @var{no})
+@deftypefun  int address_get_count (address_t @var{addr}, size_t* @var{count})
 
-Returns the number of addresses in the address list.
+Returns a count of the addresses in the address list.
 
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{addr} is NULL.
-@end table
+If @var{addr} is @code{nul}, the count is @code{0}. If @var{count} is
+not @code{nul}, the count will be written to *@var{count}.
+
+The return value is @code{0}.
 @end deftypefun
-
 
 @section Example
 @example
@@ -158,17 +230,17 @@ main(int argc, const char *argv[])
 
         printf("  personal '%s'\n", buf);
 
-        address_get_comments(address, no, buf, sizeof(buf), 0);
+        address_get_local_part(address, no, buf, sizeof(buf), 0);
 
-        printf("  comments '%s'\n", buf);
+        printf("  local_part '%s'\n", buf);
+
+        address_get_domain(address, no, buf, sizeof(buf), 0);
+
+        printf("  domain '%s'\n", buf);
 
         address_get_email(address, no, buf, sizeof(buf), 0);
 
         printf("  email '%s'\n", buf);
-
-        address_to_string(address, buf, sizeof(buf), 0);
-
-        printf("  to_string '%s'\n", buf);
       @}
     @}
     
