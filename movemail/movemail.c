@@ -184,6 +184,16 @@ compatibility_mode (mailbox_t *mbx, char *source_name, char *password,
 }
 
 int
+movemail_error_printer (const char *fmt, va_list ap)
+{
+  int n;
+  n = fprintf (stderr, "%s: ", program_invocation_short_name);
+  n += vfprintf (stderr, fmt, ap);
+  fputc ('\n', stderr);
+  return n + 1;
+}
+
+int
 main (int argc, char **argv)
 {
   int index;
@@ -210,6 +220,8 @@ main (int argc, char **argv)
   }
   /* argument parsing */
 
+  mu_error_set_print (movemail_error_printer);
+  
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
