@@ -348,4 +348,4 @@ void mh_comp_draft __P((char *formfile, char *defformfile, char *draftfile));
 int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
 
 void ali_parse_error __P((char *fmt, ...));
-
+void ali_verbatim __P((int enable));
