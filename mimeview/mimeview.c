@@ -518,7 +518,6 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
 	    {
 	      write (fd, buf, n);
 	    }
-	  free (buf);
 	  close (fd);
 	}
 	
