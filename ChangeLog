@@ -1,3 +1,8 @@
+2004-06-30  Alain Magloire
+
+	* mailbox/list.c (list_get_iterator): Bug fix, wrong size for calloc()
+	(list_data_dup): Copy the elements.
+
 2004-06-30  Sergey Poznyakoff
 
 	* libsieve/extensions/spamd.c (spamd_shutdown): Bugfix
@@ -18,16 +23,16 @@
 	* mailbox/nntp/nntp_newnews.c: New file.
 	* mailbox/nntp/nntp_post.c: New file.
 
-	* mailbox/nntp/nntp_article.c: implemenation.
-	* mailbox/nntp/nntp_body.c: implemenation.
-	* mailbox/nntp/nntp_connect.c: implemenation.
-	* mailbox/nntp/nntp_date.c: implemenation.
-	* mailbox/nntp/nntp_destroy.c: implemenation.
-	* mailbox/nntp/nntp_group.c: implemenation.
-	* mailbox/nntp/nntp_head.c: implemenation.
-	* mailbox/nntp/nntp_list_extensions.c: implemenation.
-	* mailbox/nntp/nntp_stat.c: implemenation.
-	* mailbox/nntp/nntp_stream.c: implemenation.
+	* mailbox/nntp/nntp_article.c: implementation.
+	* mailbox/nntp/nntp_body.c: implementation.
+	* mailbox/nntp/nntp_connect.c: implementation.
+	* mailbox/nntp/nntp_date.c: implementation.
+	* mailbox/nntp/nntp_destroy.c: implementation.
+	* mailbox/nntp/nntp_group.c: implementation.
+	* mailbox/nntp/nntp_head.c: implementation.
+	* mailbox/nntp/nntp_list_extensions.c: implementation.
+	* mailbox/nntp/nntp_stat.c: implementation.
+	* mailbox/nntp/nntp_stream.c: implementation.
 
 	* include/mailutils/nntp.h: Declarations.
 	* include/mailutils/sys/nntp.h: Declarations.
