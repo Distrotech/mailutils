@@ -55,6 +55,8 @@ mu_scm_mime_print (SCM mime_smob, SCM port, scm_print_state * pstate)
   scm_puts ("#<mime ", port);
   scm_intprint (nparts, 10, port);
   scm_putc ('>', port);
+  
+  return 1;
 }
 
 /* Internal calls: */
@@ -125,8 +127,6 @@ SCM_DEFINE (mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 	    "Returns #t if MIME is a multipart object.\n")
 #define FUNC_NAME s_mu_mime_multipart_p
 {
-  mime_t mime;
-  
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   return mime_is_multipart (mu_scm_mime_get (MIME)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
