@@ -11,9 +11,6 @@ IMPORTANT:
   some of the flaws of the old version.
 
 - generalized search interface
-+ support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
-+ probably the AUTH should be allocated on creation, when the url is
-  looked at, and rejected then, for now return ENOTSUP at folder_imap.c:327
 
 [pop3]
 + find out why the pop3 server quits on a signal when the 'quit' command is
@@ -57,12 +54,30 @@ IMPORTANT:
 
 - Maildir mailbox support
 
+- mailbox locking
+  - mutt has a way to lock mailboxes that are symlinks, can mailutils use
+    its algorithm?
+  - could mutt use a setgid external program to do dotlocking?
+  - why does mimetest fail on a symlink, but suceed on a dotlocked file?
+
++ support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
++ probably the AUTH should be allocated on creation, when the url is
+  looked at, and rejected then, for now return ENOTSUP at folder_imap.c:327
+
+[mbox]
+
+- unify the mbox-* and mimetest examples with messages, it would be nice
+  to have a general purpose tool
+
 [sieve]
 
 - bug: imap_fetch() can loop forever when sieve tries fileinto (sr - seen
-    at work against a Domino IMAP server)
+    at work against a Domino IMAP server, the server is buggy, but we
+    still shouldn't busy loop)
 
-* clean up diagnostics
+- clean up diagnostics
+ - fileinto action dies badly when the mailbox lock failed
+ - make log function a callback
 
 The 5 actions:
 
