@@ -29,6 +29,7 @@
 # include <strings.h>
 #endif
 #include <errno.h>
+#include <mailutils/errno.h>
 #include <mu_dbm.h>
 #include <xalloc.h>
 
@@ -46,8 +47,8 @@ mu_fcheck_perm (int fd, int mode)
     }
   if ((st.st_mode & 0777) != mode)
     {
-      errno = EPERM;
-    return 1;
+      errno = MU_ERR_UNSAFE_PERMS;
+      return 1;
     }
   return 0;
 }
@@ -68,8 +69,8 @@ mu_check_perm (const char *name, int mode)
     }
   if ((st.st_mode & 0777) != mode)
     {
-      errno = EPERM;
-    return 1;
+      errno = MU_ERR_UNSAFE_PERMS;
+      return 1;
     }
   return 0;
 }
