@@ -35,7 +35,7 @@ struct mh_machine
   int reg_num;              /* Numeric register */
 
   strobj_t arg_str;         /* String argument */
-  int arg_num;              /* Numeric argument */
+  long arg_num;             /* Numeric argument */
   
   size_t pc;                /* Program counter */
   size_t progsize;          /* Size of allocated program*/
@@ -351,7 +351,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   
 	  /* Convert arg_num to arg_str */
 	case mhop_num_to_str:
-	  snprintf (buf, sizeof buf, "%d", mach.arg_num);
+	  snprintf (buf, sizeof buf, "%l", mach.arg_num);
 	  strobj_free (&mach.arg_str);
 	  strobj_create (&mach.arg_str, buf);
 	  break;
@@ -643,7 +643,9 @@ builtin_cur (struct mh_machine *mach)
 static void
 builtin_size (struct mh_machine *mach)
 {
-  message_size (mach->message, &mach->arg_num);
+  size_t size;
+  if (message_size (mach->message, &size) == 0)
+    mach->arg_num = size;
 }
 
 static void
