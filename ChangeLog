@@ -1,3 +1,8 @@
+2001-03-09  Sam Roberts
+
+	* doc/address.texi: documented all the functions in address.h
+	* doc/url.texi: corrected location or url.h header
+
 2001-03-08  Sam Roberts
 
 	* README-alpha:  Be clearer on how to configure.

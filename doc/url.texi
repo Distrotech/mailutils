@@ -108,7 +108,7 @@ Initialize and parse the @var{url}
 @section Helper functions
 
 @example
-#include <url.h>
+#include <mailutils/url.h>
 #include <stdio.h>
 #include <string.h>
 
