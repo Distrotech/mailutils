@@ -32,7 +32,7 @@ pop3d_capa (const char *arg)
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
 
-  if (state != AUTHORIZATION && state != TRANSACTION)
+  if (state != initial_state && state != TRANSACTION)
     return ERR_WRONG_STATE;
 
   pop3d_outf ("+OK Capability list follows\r\n");
@@ -48,12 +48,15 @@ pop3d_capa (const char *arg)
 #endif /* WITH_TLS */
 
   login_delay_capa ();
-  /* This can be Implemented by setting an header field on the message.  */
+  /* This can be implemented by setting an header field on the message.  */
   if (expire < 0)
     pop3d_outf ("EXPIRE NEVER\r\n");
   else 
     pop3d_outf ("EXPIRE %d\r\n", expire);
 
+  if (state == INITIAL)
+    pop3d_outf ("XTLSREQUIRED\r\n");
+  
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
     pop3d_outf ("IMPLEMENTATION %s\r\n", PACKAGE_STRING);
   pop3d_outf (".\r\n");
