@@ -197,6 +197,11 @@ mail_send0 (struct send_environ *env, int save_to)
 	    fprintf (env->file, "%s\n", buf+1);
 	  else if (buf[1] == '.')
 	    done = 1;
+	  else if (buf[1] == 'x')
+	    {
+	      int_cnt = 2;
+	      done = 1;
+	    }
 	  else
 	    {
 	      int argc;
