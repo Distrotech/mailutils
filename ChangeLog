@@ -1,3 +1,24 @@
+2004-01-22  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/amd.c: Use sorted message array with binary
+	searches/inserts. This speeds up the mh/maildir
+	operations considerably. Testing on a MH  folder
+	with 6000 messages shows the following data:
+
+		       Time of execution
+                    List       Array+Bsearch     %    Speedup (times)
+        scan        24.795     7.526          30.3    3.294
+        refile (to) 10.915     0.068           0.6    160.514
+        rmm         10.893     0.105             1    103.742	
+
+	* mailbox/include/amd.h: Likewise.
+	* mailbox/maildir/mbox.c: Likewise.
+	* mailbox/mh/mbox.c: Likewise.
+	
+	* imap4d/auth_gss.c: Support for GSS. Submitted by
+	Simon Josefsson.
+	* m4/gssapi.m4: Likewise.
+	
 2004-01-20  Wojciech Polak
 
 	* doc/texinfo/*.texi: Major reorganization in the documentation.
