@@ -273,6 +273,8 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
       mbox = get_full_path (mail2);
       free (mail2);
     }
+  else if (mail)
+    mbox = strdup (mail);
 
   /* Search the spooldir.  */
   if (mbox == NULL)

@@ -339,14 +339,21 @@ _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t
 	message_t			msg = body_get_owner(body);
 	struct _mime_part 	*mime_part = message_get_owner(msg);
 	size_t 				read_len;
+	int                 ret = 0;
 
 	if ( nbytes == NULL )
 		return(EINVAL);
 
 	*nbytes = 0;
 	read_len = (int)mime_part->len - (int)off;
-	if ( read_len <= 0 )
-		return 0;
+	if ( read_len <= 0 ) {
+		if ( !stream_is_seekable (mime_part->mime->stream) ) {
+			while( ( ret = stream_read(mime_part->mime->stream, buf, buflen, mime_part->offset + off, nbytes) ) == 0 && *nbytes > 0 )
+			   off += *nbytes;
+			*nbytes = 0;	  
+		}
+		return ret;
+	}
 	read_len = (buflen <= read_len)? buflen : read_len;
 
 	return stream_read(mime_part->mime->stream, buf, read_len, mime_part->offset + off, nbytes );
@@ -665,7 +672,7 @@ int
 mime_get_part(mime_t mime, size_t part, message_t *msg)
 {
 	size_t 				nmtp_parts;
-	int					ret = 0;
+	int					ret = 0, flags = 0;
 	stream_t			stream;
 	body_t				body;
 	struct _mime_part	*mime_part;
@@ -680,7 +687,8 @@ mime_get_part(mime_t mime, size_t part, message_t *msg)
 			if ( !mime_part->body_created && ( ret = body_create(&body, mime_part->msg) ) == 0 ) {
 				body_set_size (body, _mimepart_body_size, mime_part->msg);
 				body_set_lines (body, _mimepart_body_lines, mime_part->msg);
-				if ( ( ret = stream_create(&stream, MU_STREAM_READ, body) ) == 0 ) {
+				stream_get_flags(mime->stream, &flags);
+				if ( ( ret = stream_create(&stream, MU_STREAM_READ | (flags & (MU_STREAM_SEEKABLE|MU_STREAM_NONBLOCK)), body) ) == 0 ) {
 					stream_set_read(stream, _mimepart_body_read, body);
 					stream_set_fd(stream, _mimepart_body_fd, body);
 					body_set_stream(body, stream, mime_part->msg);
