@@ -318,8 +318,8 @@ extern char *strsignal (int);
 ])
 
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strncasecmp \
- strcasecmp strsignal vasprintf)
-AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
+ strcasecmp strsignal vasprintf vsyslog)
+AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim setreuid \
  setresuid seteuid vfork _exit)
 
 AC_FUNC_SETVBUF_REVERSED
