@@ -133,7 +133,6 @@ main (int argc, char **argv)
 
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL);
-  mh_init ();
 
   if (mh_format_parse (format_str, &format))
     {
