@@ -52,7 +52,7 @@ static struct argp_option _tls_argp_options[] = {
   {NULL, 0, NULL, 0, N_("Encryption options"), 0},
   {"ssl-cert", ARG_SSL_CERT, N_("FILE"), 0,
    N_("Specify SSL certificate file"), 0},
-  {"ssl-key", ARG_SSL_KEY, N_("KEY"), 0,
+  {"ssl-key", ARG_SSL_KEY, N_("FILE"), 0,
    N_("Specify SSL certificate key"), 0},
   {"ssl-cafile", ARG_SSL_CAFILE, N_("FILE"), 0,
    N_("Specify trusted CAs file"), 0},
