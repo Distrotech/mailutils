@@ -1538,23 +1538,27 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
-      char *section = NULL;
       int status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
-	return status;
-
-      if (msg_imap->part)
-	section = section_name (msg_imap);
-
+        return status;
       /* We strip the \r, but the offset/size on the imap server is with that
-	 octet so add it in the offset, since it's the number of lines.  */
-      status = imap_writeline (f_imap,
-			       "g%d FETCH %d BODY.PEEK[%s.MIME]<%d.%d>\r\n",
-			       f_imap->seq++, msg_imap->num,
-			       (section) ? section : "",
-			       offset + msg_imap->header_lines, buflen);
-      if (section)
-	free (section);
+         octet so add it in the offset, since it's the number of lines.  */
+      if (msg_imap->part)
+        {
+          char *section = section_name (msg_imap);
+          status = imap_writeline (f_imap,
+                                   "g%d FETCH %d BODY.PEEK[%s.MIME]<%d.%d>\r\n",
+                                   f_imap->seq++, msg_imap->num,
+                                   (section) ? section : "",
+                                   offset + msg_imap->header_lines, buflen);
+          if (section)
+            free (section);
+        }
+      else
+        status = imap_writeline (f_imap,
+                                 "g%d FETCH %d BODY.PEEK[HEADER]<%d.%d>\r\n",
+                                 f_imap->seq++, msg_imap->num,
+                                 offset + msg_imap->header_lines, buflen);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -1636,23 +1640,27 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
-      char *section = NULL;
       status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
-	return status;
-
-      if (msg_imap->part)
-	section = section_name (msg_imap);
-
+        return status;
       /* We strip the \r, but the offset/size on the imap server is with the
-	 octet, so add it since it's the number of lines.  */
-      status = imap_writeline (f_imap,
-			       "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
-			       f_imap->seq++, msg_imap->num,
-			       (section) ? section: "",
-			       offset + msg_imap->body_lines, buflen);
-      if (section)
-	free (section);
+         octet, so add it since it's the number of lines.  */
+      if (msg_imap->part)
+        {
+          char *section = section_name (msg_imap);
+          status = imap_writeline (f_imap,
+                                   "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
+                                   f_imap->seq++, msg_imap->num,
+                                   (section) ? section: "",
+                                   offset + msg_imap->body_lines, buflen);
+          if (section)
+            free (section);
+        }
+      else
+        status = imap_writeline (f_imap,
+                                 "g%d FETCH %d BODY.PEEK[TEXT]<%d.%d>\r\n",
+                                 f_imap->seq++, msg_imap->num,
+                                 offset + msg_imap->body_lines, buflen);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
