@@ -110,6 +110,8 @@ getcols ()
 	ws.ws_col = strtol (columns, NULL, 10);
     }
 
+  if (ws.ws_col == 0)
+    ws.ws_col = 80;
   return ws.ws_col;
 }
 
@@ -137,7 +139,6 @@ ali_print_name_list (list_t list, int off)
   else
     {
       int ncol = getcols ();
-      int nl;
       int n = off;
       
       iterator_first (itr);
@@ -146,14 +147,11 @@ ali_print_name_list (list_t list, int off)
 	{
 	  int len;
 
-	  nl = 0;
 	  iterator_current (itr, (void **)&item);
 	  len = strlen (item) + 2;
 	  if (n + len > ncol)
-	    {
-	      n = printf ("\n ");
-	      nl = 1;
-	    }
+	    n = printf ("\n ");
+
 	  len = printf ("%s", item);
 	  iterator_next (itr);
 	  if (!iterator_is_done (itr))
@@ -162,8 +160,7 @@ ali_print_name_list (list_t list, int off)
 	    break;
 	  n += len;
 	}
-      if (!nl)
-	printf ("\n");
+      printf ("\n");
     }
   iterator_destroy (&itr);
 }
@@ -246,6 +243,8 @@ main (int argc, char **argv)
 		  ali_print_name_list (nl, 0);
 		  list_destroy (&nl);
 		}
+	      else
+		printf ("%s\n", argv[i]);
 	    }
 	}
     }
