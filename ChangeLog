@@ -1,3 +1,31 @@
+2005-01-01  Sergey Poznyakoff
+
+	Generate automatically errno.h and muerrno.c from a single
+	plain text file. This facilitates maintaining of mailutils-
+	specific error codes.
+	
+	* include/mailutils/errno.h: Removed
+	* include/mailutils/errno.hin: New file
+	* include/mailutils/Makefile.am: Generate errno.h
+	* mailbox/muerrno.c: Removed
+	* mailbox/muerrno.cin: New file
+	* mailbox/errors: New file
+	* mailbox/Makefile.am: Generate muerrno.c
+	* scripts/generr.awk: New file
+	* scripts/Makefile.am: Add generr.awk
+
+	Fix a recently spotted problem in the testsuite:
+	
+	* imap4d/testsuite/imap4d/list.exp: Use new -sort flag to
+	avoid dependency on any particular ordering. Also corrected
+	expected outputs due to inclusion of two new mailboxes quite
+	some time ago (went unnoticed so far due to fuzzy matching
+	technique + ordering-dependent output).
+	* imap4d/testsuite/lib/imap4d.exp (imap4d_test): New flag -sort
+	toggles on sorting of untagged responces. Notice that -sort
+	and -re are mutually exclusive.
+	* testsuite/lib/mailutils.exp (mu_test): Upvar expect_out	
+	
 2004-12-28  Wojciech Polak
 
 	Fixed displaying mail headers in different languages.
