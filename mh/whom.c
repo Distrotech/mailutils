@@ -119,7 +119,7 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
 
-  if (!use_draft && argc > 1)
+  if (!use_draft && argc > 0)
     name = argv[0];
 
   if (!draft_folder)
