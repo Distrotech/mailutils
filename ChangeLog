@@ -1,3 +1,19 @@
+2002-05-16  Sergey Poznyakoff
+
+	* guimb/scm/sieve-core.scm (sieve-expand-filename): New function.
+	  Expands ~ in the given pathname, using geteuid.
+	  (action-fileinto): Use sieve-expand-filename. Be more robust
+	  in error handling.
+	* libmu_scm/mu_util.c: Interfaces to functions from mutil.c
+	* libmu_scm/mu_scm.h (mu_scm_mutil_init): Prototype.
+	* libmu_scm/mu_scm.c (mu_scm_init): Init mu_util.c.
+	* libmu_scm/Makefile.am: Added mu_util.c.
+	* mail.local/mail.local.h (switch_user_id): prototype.
+	* mail.local/script.c (mda_catch_body): Switch to the
+	  user's uid and change to his homedir before running his
+	  filtering script. Switch back to root before running
+	  mda().
+	
 2002-05-14  Sergey Poznyakoff  
 
 	* mail.remote/Makefile.am: Removed reference to non-existent
