@@ -55,6 +55,7 @@ folder.c \
 header.c \
 iterator.c \
 list.c \
+locale.c \
 locker.c \
 mailbox.c \
 mailcap.c \
