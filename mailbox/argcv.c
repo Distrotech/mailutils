@@ -117,7 +117,7 @@ argcv_escape_char (int c)
       if (*p == c)
 	return p[-1];
     }
-  return c;
+  return -1;
 }
   
 
@@ -259,7 +259,7 @@ escape_copy (char *dst, const char *src)
 	  else
 	    {
 	      char tmp[4];
-	      snprintf (tmp, sizeof tmp, "%03o", *src);
+	      snprintf (tmp, sizeof tmp, "%03o", *(unsigned char*)src);
 	      memcpy (dst, tmp, 3);
 	      dst += 3;
 	    }
