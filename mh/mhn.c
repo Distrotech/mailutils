@@ -1593,7 +1593,7 @@ stream_getline (stream_t str, char **buf, size_t *bufsize, size_t *pnum)
       numread += n;
       if ((*buf)[numread - 1] != '\n')
 	{
-	  if (numread == *bufsize)
+	  if (numread + 1 == *bufsize)
 	    {
 	      *bufsize += 128;
 	      *buf = xrealloc (*buf, *bufsize);
@@ -1660,9 +1660,10 @@ parse_content_type (struct compose_env *env,
   char *rest = *prest;
   char *sp;
   char *comment = NULL;
-  
+
   while (stop == 0 && status == 0 && *rest)
     {
+      skipws (rest);
       switch (*rest++)
 	{
 	case '(':
@@ -1742,7 +1743,6 @@ parse_content_type (struct compose_env *env,
 	  stop = 1;
 	  break;
 	}
-      skipws (rest);
     }
 
   if (comment)
@@ -1849,7 +1849,7 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
   body_t body;
   stream_t in, out = NULL;
   struct obstack stk;
-  
+
   if (!*msg)
     message_create (msg, NULL);
   
@@ -1883,7 +1883,7 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
     id = mh_create_message_id (env->subpart);
   header_set_value (hdr2, MU_HEADER_CONTENT_ID, id, 1);
   free (id);
-  
+
   header_get_stream (hdr2, &in);
   stream_seek (in, 0, SEEK_SET);
   cat_message (out, in);
