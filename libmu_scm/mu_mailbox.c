@@ -58,18 +58,26 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
 
   scm_puts ("#<mailbox ", port);
 
-  p = url_to_string (url);
-  if (p)
+  if (mailbox_smob == SCM_BOOL_F)
     {
-      char buf[64];
-
-      scm_puts (p, port);
-
-      snprintf (buf, sizeof (buf), " (%d)", count);
-      scm_puts (buf, port);
+      /* mu_mailbox.* functions may return #f */
+      scm_puts ("#f", port);
     }
   else
-    scm_puts ("uninitialized", port);
+    {
+      p = url_to_string (url);
+      if (p)
+	{
+	  char buf[64];
+	  
+	  scm_puts (p, port);
+	  
+	  snprintf (buf, sizeof (buf), " (%d)", count);
+      scm_puts (buf, port);
+	}
+      else
+	scm_puts ("uninitialized", port);
+    }
   scm_puts (">", port);
 
   return 1;
