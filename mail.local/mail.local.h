@@ -65,6 +65,7 @@
 # define INADDR_LOOPBAK 0x7f000001
 #endif
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/error.h>
