@@ -340,6 +340,24 @@ create_message_id (header_t hdr)
   free (p);
 }
 
+static char *
+get_sender_personal ()
+{
+  char *s = mh_global_profile_get ("signature", getenv ("SIGNATURE"));
+  if (!s)
+    {
+      struct passwd *pw = getpwuid (getuid ());
+      if (pw && pw->pw_gecos[0])
+	{
+	  char *p = strchr (pw->pw_gecos, ',');
+	  if (p)
+	    *p = 0;
+	  s = pw->pw_gecos;
+	}
+    }
+  return s;
+}
+
 int
 _action_send (void *item, void *data)
 {
@@ -364,13 +382,10 @@ _action_send (void *item, void *data)
 	{
 	  char *from;
 	  char *email = mu_get_user_email (NULL);
-	  struct passwd *pw = getpwuid (getuid ());
-	  if (pw && pw->pw_gecos[0])
+	  char *pers = get_sender_personal ();
+	  if (pers)
 	    {
-	      char *p = strchr (pw->pw_gecos, ',');
-	      if (p)
-		*p = 0;
-	      asprintf (&from, "\"%s\" <%s>", pw->pw_gecos, email);
+	      asprintf (&from, "\"%s\" <%s>", pers, email);
 	      free (email);
 	    }
 	  else
