@@ -57,7 +57,7 @@ static struct argp_option options[] = {
    N_("* Annotate the message in place")},
   {"noinplace",     ARG_NOINPLACE,     0,          OPTION_HIDDEN, "" },
   {"mime",          ARG_MIME,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Use MIME encapsulation") },
+   N_("Use MIME encapsulation") },
   {"nomime",        ARG_NOMIME,        NULL, OPTION_HIDDEN, "" },
   {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc",   ARG_WHATNOWPROC,   N_("PROG"), 0,
@@ -88,13 +88,19 @@ struct mh_option mh_option[] = {
   {NULL}
 };
 
+enum encap_type {
+  encap_clear,
+  encap_mhl,
+  encap_mime
+};
+
 static char *formfile;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static char *mhl_filter = NULL; /* --filter flag */
 static int build_only = 0;      /* --build flag */
-static int do_format = 0;       /* --format flag */
-static int mime_encap = 0;      /* --mime flag */
+static enum encap_type encap = encap_clear; /* controlled by --format, --form
+					       and --mime flags */
 static int use_draft = 0;       /* --use flag */
 static int width = 80;          /* --width flag */
 
@@ -144,23 +150,31 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_FORMAT:
-      do_format = is_true (arg);
-      break;
-
+      if (is_true (arg))
+	{
+	  encap = encap_mhl;
+	  break;
+	}
+      /*FALLTHRU*/
     case ARG_NOFORMAT:
-      do_format = 0;
+      if (encap == encap_mhl)
+	encap = encap_clear;
       break;
 
     case ARG_FILTER:
-      mhl_filter = arg;
+      encap = encap_mhl;
       break;
 	
     case ARG_MIME:
-      mime_encap = is_true (arg);
-      break;
-
+      if (is_true (arg))
+	{
+	  encap = encap_mime;
+	  break;
+	}
+      /*FALLTHRU*/
     case ARG_NOMIME:
-      mime_encap = 0;
+      if (encap == encap_mime)
+	encap = encap_clear;
       break;
       
     case ARG_ANNOTATE:
@@ -216,7 +230,7 @@ format_message (mailbox_t mbox, message_t msg, size_t num, void *data)
     }
 
   if (fp->format)
-    rc = mhl_format_run (fp->format, width, 0, 0, 0, msg, fp->stream);
+    rc = mhl_format_run (fp->format, width, 0, 0, msg, fp->stream);
   else
     rc = msg_copy (msg, fp->stream);
 }
@@ -258,36 +272,61 @@ finish_draft ()
     }
 
   stream_seek (stream, 0, SEEK_END);
-  
-  str = "\n------- ";
-  rc = stream_sequential_write (stream, str, strlen (str));
 
-  if (msgset.count == 1)
+  if (encap == encap_mime)
     {
-      fd.num = 0;
-      str = _("Forwarded message\n");
+      url_t url;
+      const char *mbox_path;
+      char buf[64];
+      size_t i;
+      
+      mailbox_get_url (mbox, &url);
+      
+      mbox_path = url_to_string (url);
+      if (memcmp (mbox_path, "mh:", 3) == 0)
+	mbox_path += 3;
+      asprintf (&str, "#forw [] +%s", mbox_path);
+      rc = stream_sequential_write (stream, str, strlen (str));
+      free (str);
+      for (i = 0; rc == 0 && i < msgset.count; i++)
+	{
+	  snprintf (buf, sizeof buf, " %lu", (unsigned long) i);
+	  rc = stream_sequential_write (stream, buf, strlen (buf));
+	}
     }
   else
     {
-      fd.num = 1;
-      str = _("Forwarded messages\n");
+      str = "\n------- ";
+      rc = stream_sequential_write (stream, str, strlen (str));
+
+      if (msgset.count == 1)
+	{
+	  fd.num = 0;
+	  str = _("Forwarded message\n");
+	}
+      else
+	{
+	  fd.num = 1;
+	  str = _("Forwarded messages\n");
+	}
+  
+      rc = stream_sequential_write (stream, str, strlen (str));
+      fd.stream = stream;
+      fd.format = format;
+      rc = mh_iterate (mbox, &msgset, format_message, &fd);
+      
+      str = "\n------- ";
+      rc = stream_sequential_write (stream, str, strlen (str));
+      
+      if (msgset.count == 1)
+	str = _("End of Forwarded message");
+      else
+	str = _("End of Forwarded messages");
+      
+      rc = stream_sequential_write (stream, str, strlen (str));
     }
   
-  rc = stream_sequential_write (stream, str, strlen (str));
-  fd.stream = stream;
-  fd.format = format;
-  rc = mh_iterate (mbox, &msgset, format_message, &fd);
-
-  str = "\n------- ";
-  rc = stream_sequential_write (stream, str, strlen (str));
-
-  if (msgset.count == 1)
-    str = _("End of Forwarded message");
-  else
-    str = _("End of Forwarded messages");
-
-  rc = stream_sequential_write (stream, str, strlen (str));
-  
+  rc = stream_sequential_write (stream, "\n\n", 2);
   stream_close (stream);
   stream_destroy (&stream, stream_get_owner (stream));
 }
