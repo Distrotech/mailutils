@@ -741,6 +741,25 @@ util_slist_add (list_t *list, char *value)
   list_append (*list, p);
 }
 
+static int
+comp (const void *item, const void *data)
+{
+  return strcmp ((char*)item, (char*)data);
+}
+
+void
+util_slist_remove (list_t *list, char *value)
+{
+  char *p;
+  list_comparator_t cp;
+  
+  if (!*list)
+    return;
+  cp = list_set_comparator (*list, comp);
+  list_remove (*list, value);
+  list_set_comparator (*list, cp);
+}
+
 void
 util_slist_destroy (list_t *list)
 {
