@@ -1,3 +1,27 @@
+2002-09-19  Sergey Poznyakoff 
+
+	* mailbox/mbx_mh.c (_mh_message_save): Take into account
+	  trailing newline returned by envelope_date (should it
+	  be returned, by the by?)
+	  Output a newline to separate the headers from the body.
+	  (mh_envelope_date): Make sure the returned value is
+	  terminated with a '\n' character (if the buffer space
+	  permits).
+	* mh/inc.c (main): Use mh_open_folder.
+	* mh/mh.h (mh_init2, mh_is_my_name, mh_iterate): Added prototypes.
+	  (mh_open_folder, mh_expand_name): Changed prototypes.
+	* mh/mh_init.c (mh_init2): Fixed generation of the sequence file
+	  name.
+	  (mh_open_folder): Take an extra argument: a flag specifying
+	  whether the folder should be created.
+	  (mh_expand_name): Changed return data type.
+	* mh/mh_msgset.c (mh_msgset_parse): Sort the message set and
+	  remove any duplicates from it.
+	* mh/refile.c: Initial implementation.
+	* mh/rmm.c: Updated mh_open_folder invocations.
+	* mh/scan.c: Likewise.
+	* mh/.cvsignore: Updated.
+	  
 2002-09-18  Sergey Poznyakoff 
 
 	* mailbox/mailbox.c: Include message.h

@@ -6,5 +6,6 @@ mh_fmtgram.c
 scan
 inc
 rmm
-y.output
+refile
+*.output
 .gdbinit
