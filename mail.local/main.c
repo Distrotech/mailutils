@@ -234,7 +234,7 @@ _sieve_action_log (void *user_name,
   if (fmt && strlen (fmt))
     {
       char *diag = NULL;
-      asprintf (&diag, fmt, ap);
+      vasprintf (&diag, fmt, ap);
       syslog (LOG_NOTICE, "(user %s) %s: %s", (char*) user_name, text, diag);
       free (diag);
     }
