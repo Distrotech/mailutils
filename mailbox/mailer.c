@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -32,7 +32,7 @@
 /*
  */
 int
-mailer_create (mailer_t *pmailer, const char *name, int id)
+mailer_create (mailer_t *pmailer, const char *name)
 {
   int status = EINVAL;
   record_t record = NULL;
@@ -42,7 +42,6 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
   iterator_t iterator;
   int found = 0;
 
-  (void)id;
   if (pmailer == NULL)
     return EINVAL;
 

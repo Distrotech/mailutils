@@ -334,8 +334,33 @@ folder_list (folder_t folder, const char *dirname, const char *basename,
 	     struct folder_list *pflist)
 {
   if (folder == NULL || folder->_list == NULL)
-    return ENOSYS;
+    return EINVAL;
   return folder->_list (folder, dirname, basename, pflist);
+}
+
+int
+folder_lsub (folder_t folder, const char *dirname, const char *basename,
+	     struct folder_list *pflist)
+{
+  if (folder == NULL || folder->_lsub == NULL)
+    return ENOSYS;
+  return folder->_lsub (folder, dirname, basename, pflist);
+}
+
+int
+folder_subscribe (folder_t folder, const char *name)
+{
+  if (folder == NULL || folder->_subscribe == NULL)
+    return EINVAL;
+  return folder->_subscribe (folder, name);
+}
+
+int
+folder_unsubscribe (folder_t folder, const char *name)
+{
+  if (folder == NULL || folder->_unsubscribe == NULL)
+    return EINVAL;
+  return folder->_unsubscribe (folder, name);
 }
 
 int
@@ -353,7 +378,10 @@ folder_list_destroy (struct folder_list *pflist)
 	  free (pflist->element[i]);
 	}
     }
-  free (pflist->element);
+  if (i > 0)
+    free (pflist->element);
+  pflist->element = NULL;
+  pflist->num = 0;
   return 0;
 }
 

@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <glob.h>
+#include <fnmatch.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -83,19 +84,27 @@ static struct _record _path_record =
 record_t path_record = &_path_record;
 
 /* lsub/subscribe/unsubscribe are not needed.  */
-static void folder_mbox_destroy __P ((folder_t));
-static int folder_mbox_open     __P ((folder_t, int));
-static int folder_mbox_close    __P ((folder_t));
-static int folder_mbox_delete   __P ((folder_t, const char *));
-static int folder_mbox_rename   __P ((folder_t , const char *, const char *));
-static int folder_mbox_list     __P ((folder_t, const char *, const char *,
-				      struct folder_list *));
+static void folder_mbox_destroy    __P ((folder_t));
+static int folder_mbox_open        __P ((folder_t, int));
+static int folder_mbox_close       __P ((folder_t));
+static int folder_mbox_delete      __P ((folder_t, const char *));
+static int folder_mbox_rename      __P ((folder_t , const char *,
+					 const char *));
+static int folder_mbox_list        __P ((folder_t, const char *, const char *,
+					 struct folder_list *));
+static int folder_mbox_subscribe   __P ((folder_t, const char *));
+static int folder_mbox_unsubscribe __P ((folder_t, const char *));
+static int folder_mbox_lsub        __P ((folder_t, const char *, const char *,
+					 struct folder_list *));
+
 
 static char *get_pathname       __P ((const char *, const char *));
 
 struct _fmbox
 {
   char *dirname;
+  char **subscribe;
+  size_t sublen;
 };
 typedef struct _fmbox *fmbox_t;
 
@@ -126,9 +135,11 @@ _folder_mbox_init (folder_t folder)
   folder->_close = folder_mbox_close;
 
   folder->_list = folder_mbox_list;
+  folder->_lsub = folder_mbox_lsub;
+  folder->_subscribe = folder_mbox_subscribe;
+  folder->_unsubscribe = folder_mbox_unsubscribe;
   folder->_delete = folder_mbox_delete;
   folder->_rename = folder_mbox_rename;
-
   return 0;
 }
 
@@ -140,6 +151,8 @@ folder_mbox_destroy (folder_t folder)
       fmbox_t fmbox = folder->data;
       if (fmbox->dirname)
 	free (fmbox->dirname);
+      if (fmbox->subscribe)
+	free (fmbox->subscribe);
       free (folder->data);
       folder->data = NULL;
     }
@@ -150,7 +163,6 @@ static int
 folder_mbox_open (folder_t folder, int flags)
 {
   (void)(folder);
-
   (void)(flags);
   return 0;
 }
@@ -279,6 +291,84 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
       status = (status == GLOB_NOSPACE) ? ENOMEM : EINVAL;
     }
   return status;
+}
+
+static int
+folder_mbox_lsub (folder_t folder, const char *ref, const char *name,
+		  struct folder_list *pflist)
+{
+  fmbox_t fmbox = folder->data;
+  size_t j = 0;
+
+  if (pflist == NULL)
+    return EINVAL;
+
+  (void)ref;
+  if (name == NULL || *name == '\0')
+    name = "*";
+
+  if (fmbox->sublen > 0)
+    {
+      struct list_response **plist;
+      size_t i;
+      plist = calloc (fmbox->sublen, sizeof (*plist));
+      for (i = 0; i < fmbox->sublen; i++)
+	{
+	  if (fmbox->subscribe[i]
+	      && fnmatch (name, fmbox->subscribe[i], 0) == 0)
+	    {
+	      plist[i] = calloc (1, sizeof (**plist));
+	      if (plist[i] == NULL
+		  || (plist[i]->name = strdup (fmbox->subscribe[i])) == NULL)
+		break;
+	      plist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
+	      plist[i]->separator = '/';
+	      j++;
+	    }
+	}
+      pflist->element = plist;
+    }
+  pflist->num = j;
+  return 0;
+}
+
+static int
+folder_mbox_subscribe (folder_t folder, const char *name)
+{
+  fmbox_t fmbox = folder->data;
+  char **tmp;
+  size_t i;
+  for (i = 0; i < fmbox->sublen; i++)
+    {
+      if (fmbox->subscribe[i] && strcmp (fmbox->subscribe[i], name) == 0)
+	return 0;
+    }
+  tmp = realloc (fmbox->subscribe, (fmbox->sublen + 1) * sizeof (*tmp));
+  if (tmp == NULL)
+    return ENOMEM;
+  fmbox->subscribe = tmp;
+  fmbox->subscribe[fmbox->sublen] = strdup (name);
+  if (fmbox->subscribe[fmbox->sublen] == NULL)
+    return ENOMEM;
+  fmbox->sublen++;
+  return 0;
+}
+
+static int
+folder_mbox_unsubscribe (folder_t folder, const char *name)
+{
+  fmbox_t fmbox = folder->data;
+  size_t i;
+  for (i = 0; i < fmbox->sublen; i++)
+    {
+      if (fmbox->subscribe[i] && strcmp (fmbox->subscribe[i], name) == 0)
+	{
+	  free (fmbox->subscribe[i]);
+	  fmbox->subscribe[i] = NULL;
+	  return 0;
+	}
+    }
+  return ENOENT;
 }
 
 static char *

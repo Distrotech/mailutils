@@ -28,6 +28,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "md5.h"
+
 #include <misc.h>
 #include <message0.h>
 
@@ -152,6 +154,15 @@ void *
 message_get_owner (message_t msg)
 {
   return (msg == NULL) ? NULL : msg->owner;
+}
+
+int
+message_is_modified (message_t msg)
+{
+  int mod = 0;
+  mod |= header_is_modified (msg->header);
+  mod |= attribute_is_modified (msg->attribute);
+  return mod;
 }
 
 int
@@ -400,6 +411,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
   return 0;
 }
 
+/* FIXME: not nonblocking safe.  */
 int
 message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 {
@@ -411,16 +423,19 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
     return EINVAL;
 
   buffer[0] = '\0';
+  /* Try the function overload if error fallback.  */
   if (msg->_get_uid)
-    return msg->_get_uid (msg, buffer, buflen, pwriten);
+    {
+      status = msg->_get_uid (msg, buffer, buflen, pwriten);
+      if (status == 0)
+	return status;
+    }
 
   /* Be compatible with Qpopper ? qppoper saves the UIDL in "X-UIDL".
-     We use "Message-ID" as a fallback.  Is this bad ? should we generate
-     a chksum or do the same as Qpopper save it in the header.  */
+     We generate a chksum and save it in the header.  */
   message_get_header (msg, &header);
-  if ((status = header_get_value (header, "X-UIDL", buffer, buflen, &n)) == 0
-      || (status = header_get_value (header, "Message-ID", buffer,
-				     buflen, &n)) == 0)
+  status = header_get_value (header, "X-UIDL", buffer, buflen, &n);
+  if (status == 0 && n > 0)
     {
       /* FIXME: Is header_get_value suppose to do this ?  */
       /* We need to collapse the header if it was mutiline.  e points to the
@@ -436,6 +451,32 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 	      *e = '\0';
 	    }
 	}
+    }
+  else
+    {
+      struct md5_ctx md5context;
+      stream_t stream = NULL;
+      char buf[1024];
+      off_t offset = 0;
+      unsigned char md5digest[16];
+      char *tmp;
+      n = 0;
+      message_get_stream (msg, &stream);
+      md5_init_ctx (&md5context);
+      while (stream_read (stream, buf, sizeof (buf), offset, &n) == 0
+	     && n > 0)
+	{
+	  md5_process_bytes (buf, n, &md5context);
+	  offset += n;
+	}
+      md5_finish_ctx (&md5context, md5digest);
+      tmp = buf;
+      for (n = 0; n < 16; n++, tmp += 2)
+	sprintf (tmp, "%02x", md5digest[n]);
+      *tmp = '\0';
+      header_set_value (header, "X-UIDL", buf, 1);
+      buflen--; /* leave space for the NULL.  */
+      strncpy (buffer, buf, buflen)[buflen] = '\0';
     }
   return status;
 }

@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#include <fnmatch.h>
 
 #include <imap0.h>
 
@@ -384,17 +385,93 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
+  char *path = NULL;
+
+  /* NOOP.  */
+  if (pflist == NULL)
+    return EINVAL;
 
   if (ref == NULL)
     ref = "";
   if (name == NULL)
     name = "";
 
+  path = strdup ("");
+  if (path == NULL)
+    return ENOMEM;
+
+  /* We break the string to pieces and change the occurences of "*?[" for
+     the imap magic "%" for expansion.  Then reassemble the string:
+     "/home/?/Mail/a*lain*" --> "/usr/%/Mail/%".  */
+  {
+    int done = 0;
+    size_t i;
+    char **node = NULL;
+    size_t nodelen = 0;
+    const char *p = name;
+    /* Disassemble.  */
+    while (!done && *p)
+      {
+	char **n;
+	n = realloc (node, (nodelen + 1) * sizeof (*node));
+	if (n == NULL)
+	  break;
+	node = n;
+	if (*p == '/')
+	  {
+	    node[nodelen] = strdup ("/");
+	    p++;
+	  }
+	else
+	  {
+	    const char *s = strchr (p, '/');
+	    if (s)
+	      {
+		node[nodelen] = calloc (s - p + 1,  sizeof (char));
+		if (node[nodelen])
+		  memcpy (node[nodelen], p, s - p);
+		p = s;
+	      }
+	    else
+	      {
+		node[nodelen] = strdup (p);
+		done = 1;
+	      }
+	    if (node[nodelen] && strpbrk (node[nodelen], "*?["))
+	      {
+		free (node[nodelen]);
+		node[nodelen] = strdup ("%");
+            }
+	  }
+	nodelen++;
+	if (done)
+	  break;
+      }
+    /* Reassemble.  */
+    for (i = 0; i < nodelen; i++)
+      {
+	if (node[i])
+	  {
+	    char *pth;
+	    pth = realloc (path, strlen (path) + strlen (node[i]) + 1);
+	    if (pth)
+	      {
+		path = pth;
+		strcat (path, node[i]);
+	      }
+	    free (node[i]);
+	  }
+      }
+    if (node)
+      free (node);
+  }
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
       status = imap_writeline (f_imap, "g%d LIST \"%s\" \"%s\"\r\n",
-			       f_imap->seq++, ref, name);
+			       f_imap->seq++, ref, path);
+      free (path);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_LIST;
@@ -412,6 +489,39 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
     default:
       break;
     }
+
+  /* Build the folder list.  */
+  if (f_imap->callback.flist.num > 0)
+    {
+      struct list_response **plist = NULL;
+      size_t num = f_imap->callback.flist.num;
+      size_t j = 0;
+      plist = calloc (num, sizeof (*plist));
+      if (plist)
+	{
+	  size_t i;
+	  for (i = 0; i < num; i++)
+	    {
+	      struct list_response *lr = f_imap->callback.flist.element[i];
+	      //printf ("%s --> %s\n", lr->name, name);
+	      if (fnmatch (name, lr->name, 0) == 0)
+		{
+		  plist[i] = calloc (1, sizeof (**plist));
+		  if (plist[i] == NULL
+		      || (plist[i]->name = strdup (lr->name)) == NULL)
+		    {
+		      break;
+		    }
+		  plist[i]->type = lr->type;
+		  plist[i]->separator = lr->separator;
+		  j++;
+		}
+	    }
+	}
+      pflist->element = plist;
+      pflist->num = j;
+    }
+  folder_list_destroy (&(f_imap->callback.flist));
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
@@ -423,10 +533,13 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
   f_imap_t f_imap = folder->data;
   int status = 0;
 
-  if (ref == NULL)
-    ref = "";
-  if (name == NULL)
-    name = "";
+  /* NOOP.  */
+  if (pflist == NULL)
+    return EINVAL;
+
+  if (ref == NULL) ref = "";
+  if (name == NULL) name = "";
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -449,6 +562,37 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
     default:
       break;
     }
+
+  /* Build the folder list.  */
+  if (f_imap->callback.flist.num > 0)
+    {
+      struct list_response **plist = NULL;
+      size_t num = f_imap->callback.flist.num;
+      size_t j = 0;
+      plist = calloc (num, sizeof (*plist));
+      if (plist)
+	{
+	  size_t i;
+	  for (i = 0; i < num; i++)
+	    {
+	      struct list_response *lr = f_imap->callback.flist.element[i];
+	      //printf ("%s --> %s\n", lr->name, name);
+	      plist[i] = calloc (1, sizeof (**plist));
+	      if (plist[i] == NULL
+		  || (plist[i]->name = strdup (lr->name)) == NULL)
+		{
+		  break;
+		}
+	      plist[i]->type = lr->type;
+	      plist[i]->separator = lr->separator;
+	      j++;
+	    }
+	}
+      pflist->element = plist;
+      pflist->num = j;
+      folder_list_destroy (&(f_imap->callback.flist));
+    }
+  f_imap->state = IMAP_NO_STATE;
   f_imap->state = IMAP_NO_STATE;
   return 0;
 }
@@ -755,6 +899,86 @@ imap_string (f_imap_t f_imap)
   return status;
 }
 
+/* FIXME: does not worl for nobloking.  */
+static int
+imap_list (f_imap_t f_imap)
+{
+  char *tok;
+  char *sp = NULL;
+  size_t len = f_imap->nl - f_imap->buffer - 1;
+  char *buffer;
+  struct list_response **plr;
+  struct list_response *lr;
+
+  buffer = alloca (len);
+  memcpy (buffer, f_imap->buffer, len);
+  buffer[len] = '\0';
+  plr = realloc (f_imap->callback.flist.element,
+		 (f_imap->callback.flist.num + 1) * sizeof (*plr));
+  if (plr == NULL)
+    return ENOMEM;
+  f_imap->callback.flist.element = plr;
+  lr = plr[f_imap->callback.flist.num] = calloc (1, sizeof (*lr));
+  if (lr == NULL)
+    return ENOMEM;
+  (f_imap->callback.flist.num)++;
+
+  /* Glob untag.  */
+  tok = strtok_r (buffer, " ", &sp);
+  /* Glob LIST.  */
+  tok = strtok_r (NULL, " ", &sp);
+  /* Get the attibutes.  */
+  tok = strtok_r (NULL, ")", &sp);
+  if (tok)
+    {
+      char *s = NULL;
+      char *p = tok;
+      while ((tok = strtok_r (p, " ()", &s)) != NULL)
+	{
+	  if (strcasecmp (tok, "\\Noselect") == 0)
+	    {
+	    }
+	  else if (strcasecmp (tok, "\\Marked") == 0)
+	    {
+	    }
+	  else if (strcasecmp (tok, "\\Unmarked") == 0)
+	    {
+	    }
+	  else if (strcasecmp (tok, "\\Noinferiors") == 0)
+	    {
+	      lr->type |= MU_FOLDER_ATTRIBUTE_FILE;
+	    }
+	  else
+	    {
+	      lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
+	    }
+	  p = NULL;
+	}
+    }
+  /* Hiearchy delimeter.  */
+  tok = strtok_r (NULL, " ", &sp);
+  if (tok && strlen (tok) > 2)
+    lr->separator = tok[1];
+  /* The path.  */
+  tok = strtok_r (NULL, " ", &sp);
+  if (tok)
+    {
+      char *s = strchr (tok, '{');
+      if (s)
+	{
+	  size_t n = strtoul (s + 1, NULL, 10);
+	  lr->name = calloc (n + 1, sizeof (char));
+	  f_imap->ptr = f_imap->buffer;
+	  imap_readline (f_imap);
+	  memcpy (lr->name, f_imap->buffer, n);
+	  lr->name[n] = '\0';
+	}
+      else
+	lr->name = strdup (tok);
+    }
+  return 0;
+}
+
 /* Helping function to figure out the section name of the message: for example
    a 2 part message with the first part being sub in two will be:
    {1}, {1,1} {1,2}  The first subpart of the message and its sub parts
@@ -803,6 +1027,7 @@ section_name (msg_imap_t msg_imap)
   return section;
 }
 
+/* FIXME: This does not work for nonblocking.  */
 /* Recursive call, to parse the dismay of parentesis "()" in a BODYSTRUCTURE
    call, not we use the short form of BODYSTRUCTURE, BODY with no argument.  */
 static int
@@ -1231,12 +1456,12 @@ imap_parse (f_imap_t f_imap)
       char *tag, *response, *remainder;
       char *buffer;
       status = imap_readline (f_imap);
-      /* Comment out to see all reading traffic.  */
-      //fprintf (stderr, "\t\t%s", f_imap->buffer);
       if (status != 0)
 	{
 	  break;
 	}
+      /* Comment out to see all reading traffic.  */
+      fprintf (stderr, "\t\t%s", f_imap->buffer);
 
       /* We do not want to step over f_imap->buffer since it can be use
 	 further down the chain.  */
@@ -1429,9 +1654,11 @@ imap_parse (f_imap_t f_imap)
 	    }
 	  else if (strcmp (response, "LIST") == 0)
 	    {
+	      status = imap_list (f_imap);
 	    }
 	  else if (strcmp (response, "LSUB") == 0)
 	    {
+	      status = imap_list (f_imap);
 	    }
 	  else if (strcmp (remainder, "RECENT") == 0)
 	    {

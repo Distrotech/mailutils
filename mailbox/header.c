@@ -28,12 +28,14 @@
 #include <mailutils/stream.h>
 #include <header0.h>
 
-static int header_parse (header_t h, const char *blurb, int len);
-static int header_read (stream_t is, char *buf, size_t buflen,
-			off_t off, size_t *pnread);
-static int header_write (stream_t os, const char *buf, size_t buflen,
-			 off_t off, size_t *pnwrite);
-static int fill_blurb (header_t header);
+#define HEADER_MODIFIED 1
+
+static int header_parse    __P ((header_t, const char *, int));
+static int header_read     __P ((stream_t, char *, size_t, off_t, size_t *));
+static int header_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+static int header_write    __P ((stream_t, const char *, size_t, off_t,
+				 size_t *));
+static int fill_blurb      __P ((header_t));
 
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
@@ -77,6 +79,12 @@ void *
 header_get_owner (header_t header)
 {
   return (header) ? header->owner : NULL;
+}
+
+int
+header_is_modified (header_t header)
+{
+  return (header) ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
 /* Parsing is done in a rather simple fashion.
@@ -298,6 +306,7 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     }
   header_parse (header, blurb, len + header->blurb_len);
   free (blurb);
+  header->flags |= HEADER_MODIFIED;
   return 0;
 }
 
@@ -498,23 +507,43 @@ header_set_stream (header_t header, stream_t stream, void *owner)
   return 0;
 }
 
+int
+header_set_fill (header_t header, int
+		 (*_fill) __P ((header_t, char *, size_t, off_t, size_t *)),
+		 void *owner)
+{
+  if (header == NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  header->_fill = _fill;
+  return 0;
+}
+
 static int
 fill_blurb (header_t header)
 {
-  stream_t is;
+  stream_t is = NULL;
   int status;
   char buf[1024];
   char *tbuf;
   size_t nread = 0;
 
-  status = header_get_stream (header, &is);
-  if (status != 0)
-    return status;
+  if (header->_fill == NULL)
+    {
+      status = header_get_stream (header, &is);
+      if (status != 0)
+	return status;
+    }
 
   do
     {
-      status = stream_read (is, buf, sizeof (buf), header->temp_blurb_len,
-			    &nread);
+      if (header->_fill)
+	status = header->_fill (header, buf, sizeof (buf),
+				header->temp_blurb_len, &nread) ;
+      else
+	status = stream_read (is, buf, sizeof (buf),
+			      header->temp_blurb_len, &nread);
       if (status != 0)
 	{
 	  if (status != EAGAIN && status != EINTR)
@@ -572,14 +601,21 @@ header_write (stream_t os, const char *buf, size_t buflen,
 }
 
 static int
-header_read (stream_t is, char *buf, size_t buflen,
-	     off_t off, size_t *pnread)
+header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 {
   header_t header = stream_get_owner (is);
   int len;
 
   if (is == NULL || header == NULL)
     return EINVAL;
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
 
   len = header->blurb_len - off;
   if (len > 0)
@@ -598,6 +634,52 @@ header_read (stream_t is, char *buf, size_t buflen,
   return 0;
 }
 
+static int
+header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
+{
+  header_t header = stream_get_owner (is);
+  int len;
+
+  if (is == NULL || header == NULL)
+    return EINVAL;
+
+  if (buf == NULL || buflen == 0)
+    {
+      if (pn)
+	*pn = 0;
+      return 0;
+    }
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
+
+  buflen--; /* Space for the null.  */
+
+  len = header->blurb_len - off;
+  if (len > 0)
+    {
+      char *nl = memchr (header->blurb + off, '\n', len);
+      if (nl)
+	len = nl - (header->blurb + off) + 1;
+
+      len = (buflen < (size_t)len) ? buflen : len;
+      memcpy (buf, header->blurb + off, len);
+      buf[len] = '\0';
+    }
+  else
+    len = 0;
+
+  if (pn)
+    *pn = len;
+  return 0;
+}
+
+
 int
 header_get_stream (header_t header, stream_t *pstream)
 {
@@ -608,7 +690,8 @@ header_get_stream (header_t header, stream_t *pstream)
       int status = stream_create (&(header->stream), MU_STREAM_RDWR, header);
       if (status != 0)
 	return status;
-      stream_set_read  (header->stream, header_read, header);
+      stream_set_read (header->stream, header_read, header);
+      stream_set_readline (header->stream, header_readline, header);
       stream_set_write (header->stream, header_write, header);
     }
   *pstream = header->stream;

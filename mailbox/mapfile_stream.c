@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -183,15 +183,37 @@ _mapfile_size (stream_t stream, off_t *psize)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
   struct stat stbuf;
+  int err = 0;
 
   if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
   msync (mfs->ptr, mfs->size, MS_SYNC);
   if (fstat(mfs->fd, &stbuf) != 0)
     return errno;
-  if (psize)
-    *psize = stbuf.st_size;
-  return 0;
+  if (mfs->size != (size_t)stbuf.st_size)
+    {
+      if (munmap (mfs->ptr, mfs->size) == 0)
+	{
+	  mfs->size = stbuf.st_size;
+	  mfs->ptr = mmap (0, mfs->size, mfs->flags , MAP_SHARED, mfs->fd, 0);
+	  if (mfs->ptr == MAP_FAILED)
+	    err = errno;
+	}
+      else
+	err = errno;
+    }
+  if (err != 0)
+    {
+      mfs->ptr = NULL;
+      close (mfs->fd);
+      mfs->fd = -1;
+    }
+  else
+    {
+      if (psize)
+	*psize = stbuf.st_size;
+    }
+  return err;
 }
 
 static int
@@ -277,6 +299,7 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
     {
       int err = errno;
       close (mfs->fd);
+      mfs->ptr = NULL;
       return err;
     }
   mfs->flags = mflag;

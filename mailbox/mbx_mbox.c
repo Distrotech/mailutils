@@ -105,7 +105,10 @@ struct _mbox_data
   /* The variables below are use to hold the state when appending messages.  */
   enum mbox_state
   {
-    MBOX_NO_STATE=0, MBOX_STATE_FROM, MBOX_STATE_DATE, MBOX_STATE_APPEND
+    MBOX_NO_STATE = 0,
+    MBOX_STATE_APPEND_SENDER, MBOX_STATE_APPEND_DATE, MBOX_STATE_APPEND_HEADER,
+    MBOX_STATE_APPEND_ATTRIBUTE, MBOX_STATE_APPEND_BODY,
+    MBOX_STATE_APPEND_MESSAGE
   } state ;
   char *sender;
   char *date;
@@ -114,35 +117,47 @@ struct _mbox_data
 };
 
 /* Mailbox concrete implementation.  */
-static int mbox_open             __P ((mailbox_t, int));
-static int mbox_close            __P ((mailbox_t));
-static int mbox_get_message      __P ((mailbox_t, size_t, message_t *));
-static int mbox_append_message   __P ((mailbox_t, message_t));
-static int mbox_messages_count   __P ((mailbox_t, size_t *));
-static int mbox_expunge          __P ((mailbox_t));
-static int mbox_scan             __P ((mailbox_t, size_t, size_t *));
-static int mbox_is_updated       __P ((mailbox_t));
-static int mbox_size             __P ((mailbox_t, off_t *));
-
+static int mbox_open                  __P ((mailbox_t, int));
+static int mbox_close                 __P ((mailbox_t));
+static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
+static int mbox_append_message        __P ((mailbox_t, message_t));
+static int mbox_messages_count        __P ((mailbox_t, size_t *));
+static int mbox_expunge               __P ((mailbox_t));
+static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
+static int mbox_is_updated            __P ((mailbox_t));
+static int mbox_size                  __P ((mailbox_t, off_t *));
 
 /* private stuff */
-static int mbox_scan0            __P ((mailbox_t, size_t, size_t *, int));
-static int mbox_get_header_read  __P ((stream_t, char *, size_t, off_t, size_t *));
-static int mbox_get_hdr_fd       __P ((stream_t, int *));
-static int mbox_get_body_fd      __P ((stream_t, int *));
-static int mbox_get_fd           __P ((mbox_message_t, int *));
-static int mbox_get_attr_flags   __P ((attribute_t, int *));
-static int mbox_set_attr_flags   __P ((attribute_t, int));
-static int mbox_unset_attr_flags __P ((attribute_t, int));
-static int mbox_readstream       __P ((stream_t, char *, size_t, off_t, size_t *));
-static int mbox_header_size      __P ((header_t, size_t *));
-static int mbox_header_lines     __P ((header_t, size_t *));
-static int mbox_body_size        __P ((body_t, size_t *));
-static int mbox_body_lines       __P ((body_t, size_t *));
-static int mbox_envelope_sender  __P ((envelope_t, char *, size_t, size_t *));
-static int mbox_envelope_date    __P ((envelope_t, char *, size_t, size_t *));
+static int mbox_scan0                 __P ((mailbox_t, size_t, size_t *, int));
+static int mbox_append_message0       __P ((mailbox_t, message_t, off_t *,
+					    int));
+static int mbox_header_fill           __P ((header_t, char *, size_t, off_t,
+					    size_t *));
+static int mbox_get_header_readstream __P ((message_t, char *, size_t, off_t,
+					    size_t *, int));
+static int mbox_get_hdr_fd            __P ((stream_t, int *));
+static int mbox_get_body_fd           __P ((stream_t, int *));
+static int mbox_get_fd                __P ((mbox_message_t, int *));
+static int mbox_get_attr_flags        __P ((attribute_t, int *));
+static int mbox_set_attr_flags        __P ((attribute_t, int));
+static int mbox_unset_attr_flags      __P ((attribute_t, int));
+static int mbox_body_read             __P ((stream_t, char *, size_t, off_t,
+					    size_t *));
+static int mbox_body_readline         __P ((stream_t, char *, size_t, off_t,
+					    size_t *));
+static int mbox_body_readstream       __P ((stream_t, char *, size_t, off_t,
+					    size_t *, int));
+static int mbox_header_size           __P ((header_t, size_t *));
+static int mbox_header_lines          __P ((header_t, size_t *));
+static int mbox_body_size             __P ((body_t, size_t *));
+static int mbox_body_lines            __P ((body_t, size_t *));
+static int mbox_envelope_sender       __P ((envelope_t, char *, size_t,
+					    size_t *));
+static int mbox_envelope_date         __P ((envelope_t, char *, size_t,
+					    size_t *));
+static int mbox_tmpfile               __P ((mailbox_t, char **pbox));
 #ifdef WITH_PTHREAD
-static void mbox_cleanup         __P ((void *));
+static void mbox_cleanup              __P ((void *));
 #endif
 
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or
@@ -253,7 +268,9 @@ mbox_open (mailbox_t mailbox, int flags)
     {
       /* FIXME: for small mbox we should try to mmap ().  */
 
-      status = (flags & MU_STREAM_CREAT) || (mailbox->flags & MU_STREAM_APPEND);
+      /* We do not try to mmap for CREAT or APPEND, it is not supported.  */
+      status = (flags & MU_STREAM_CREAT)
+	|| (mailbox->flags & MU_STREAM_APPEND);
       if (status == 0)
 	status = mapfile_stream_create (&(mailbox->stream));
       if (status != 0)
@@ -359,14 +376,12 @@ mbox_is_updated (mailbox_t mailbox)
   return (mud->size == size);
 }
 
-/* FIXME: the use of tmpfile() on some system can lead to race condition, We
-   should use a safer approach.  */
-static FILE *
+/* Try to create an uniq file.  */
+static int
 mbox_tmpfile (mailbox_t mailbox, char **pbox)
 {
   const char *tmpdir;
   int fd;
-  FILE *fp;
   const char *basename;
   mbox_data_t mud = mailbox->data;
 
@@ -375,53 +390,53 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
 #  define P_tmpdir "/tmp"
 #endif
 
-  tmpdir =  getenv ("TEMPDIR") ? getenv ("TEMPDIR") : P_tmpdir;
+  /* FIXME: Use a macro for the separator to be portable.  */
   basename = strrchr (mud->name, '/');
   if (basename)
     basename++;
   else
     basename = mud->name;
-  *pbox = calloc (strlen (tmpdir) + strlen ("MBOX_") +
-		  strlen (basename) + 2/* separator + null */, sizeof (char));
+
+  tmpdir =  getenv ("TMPDIR") ? getenv ("TMPDIR") : P_tmpdir;
+  /* (separator + null) == 2 + XXXXXX == 6 + ... */
+  *pbox = calloc (strlen (tmpdir) + /* '/' */ 1 + /*strlen ("MU_")*/ 3 +
+		  strlen (basename) + /*strlen ("_XXXXXX")*/ 7 + /*null*/1,
+		  sizeof (**pbox));
   if (*pbox == NULL)
-    return NULL;
-  sprintf (*pbox, "%s/%s%s", tmpdir, "MBOX_", basename);
-
-  /* FIXME:  I don't think this is the righ approach, creating an anonymous
-     file would be better ?  no trace left behind.  */
+    return -1;
+  sprintf (*pbox, "%s/MU_%s_XXXXXX", tmpdir, basename);
+#ifdef HAVE_MKSTEMP
+  fd = mkstemp (*pbox);
+#else
   /* Create the file.  It must not exist.  If it does exist, fail.  */
-  fd = open (*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
-  if (fd < 0)
+  if (mktemp (*pbox))
     {
-      fprintf (stderr,"Can't create %s\n", *pbox);
-      fprintf (stderr,"delete file <%s>, Please\n", *pbox);
-      fprintf (stderr, "It was likely due to an error when expunging\n");
-      return NULL;
+      fd = open (*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
     }
-  fp = fdopen (fd, "w+");
-  if (fp == 0)
+  else
     {
-      close(fd);
       free (*pbox);
-      *pbox = NULL;
+      fd = -1;
     }
-
-  /* Really I should just remove the file here.  */
-  /* remove(*pbox); */
-  return fp;
+#endif
+  return fd;
 }
 
 /* For the expunge bits  we took a very cautionnary approach, meaning
-   we create temporary file in the tmpdir copy all the file not mark deleted,
+   we create a temporary mailbox in the tmpdir copy all the message not mark
+   deleted(Actually we copy all the message that may have been modified, we
+   do not have(yet) an api call to tell whether a message was modified)
    and skip the deleted ones, truncate the real mailbox to the desired size
    and overwrite with the tmp mailbox.  The approach to do everyting
-   in core is tempting but require to much memory, it is not rare now
-   a day to have 30 Megs mailbox, also there is danger for filesystems
-   with quotas, or some program may not respect the advisory lock and
-   decide to append a new message while your expunging etc ...
+   in core is tempting but require
+   - to much memory, it is not rare now a day to have 30 Megs mailbox,
+   - also there is danger for filesystems with quotas,
+   - if we run out of disk space everything is lost.
+   - or some program may not respect the advisory lock and decide to append
+   a new message while your expunging etc ...
    The real downside to the approach we take is that when things go wrong
-   the temporary file bay be left in /tmp, which is not all that bad
-   because at least have something to recuparate when failure.  */
+   the temporary file may be left in /tmp, which is not all that bad
+   because at least, we have something to recuparate when failure.  */
 static int
 mbox_expunge (mailbox_t mailbox)
 {
@@ -429,13 +444,12 @@ mbox_expunge (mailbox_t mailbox)
   mbox_message_t mum;
   int status = 0;
   sigset_t signalset;
-  FILE *tempfile;
-  size_t nread;
-  size_t i, j, dirty, first;
+  int tempfile;
+  size_t i, j, dirty;
   off_t marker = 0;
   off_t total = 0;
-  char buffer [BUFSIZ];
-  char *tmpmbox = NULL;
+  char *tmpmboxname = NULL;
+  mailbox_t tmpmailbox = NULL;
 #ifdef WITH_PTHREAD
   int state;
 #endif
@@ -449,57 +463,76 @@ mbox_expunge (mailbox_t mailbox)
   if (mud->messages_count == 0)
     return 0;
 
-  /* Do we have a consistent view of the mailbox.  */
-  if (! mbox_is_updated (mailbox))
-    {
-      fprintf (stderr, "mailbox is not updated, try again.\n");
-      return  EAGAIN;
-    }
-
-  monitor_wrlock (mailbox->monitor);
-
-  /* Mark dirty the first mail with an attribute change.  */
+  /* Mark dirty the first mum(concrete message) with a message pointer.  */
+  /* FIXME: This is not right, the way to really know if a message is modified
+     is by changing the API, we should have an message_is_modified ().  */
   for (dirty = 0; dirty < mud->messages_count; dirty++)
     {
       mum = mud->umessages[dirty];
+#if 0
+      /* No, cheking if the attribute was changed is not enough, for example
+	 They may have modified a header, say adding the X-UIDL field.  Those
+	 changes are not save yet but still in memory part of the header blurb.
+	 So unless we have a message_is_modified() call we should assume that
+	 the message was modified.  */
       if (mum->new_flags &&
 	  ! ATTRIBUTE_IS_EQUAL (mum->old_flags, mum->new_flags))
 	break;
+#else
+      /* Message may have been tampered, break here.  */
+      if (mum->message && message_is_modified (mum->message))
+	break;
+#endif
     }
 
   /* Did something change ?  */
   if (dirty == mud->messages_count)
-    {
-      monitor_unlock (mailbox->monitor);
-      return 0; /* Nothing change, bail out.  */
-    }
+    return 0; /* Nothing change, bail out.  */
 
   /* This is redundant, we go to the loop again.  But it's more secure here
-     since we don't want to be disturb when expunging.  */
+     since we don't want to be disturb when expunging.  Destroy all the
+     messages mark for deletion.  */
   for (j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
-      if (mum && mum->new_flags && ATTRIBUTE_IS_DELETED (mum->new_flags))
+      if (mum && mum->message &&  mum->new_flags &&
+	  ATTRIBUTE_IS_DELETED (mum->new_flags))
 	message_destroy (&(mum->message), mum);
     }
 
-  /* Create a tempory file.  */
-  tempfile = mbox_tmpfile (mailbox, &tmpmbox);
-  if (tempfile == NULL)
+  /* Create a temporary file.  */
+  tempfile = mbox_tmpfile (mailbox, &tmpmboxname);
+  if (tempfile == -1)
     {
-      free (tmpmbox);
-      monitor_unlock (mailbox->monitor);
+      free (tmpmboxname);
       fprintf (stderr, "Failed to create temporary file when expunging.\n");
       return errno;
+    }
+  else
+    {
+      /* strlen ("mbox:") == 5 + strlen (tmpmboxname) + 1 */
+      char *m = alloca (5 + strlen (tmpmboxname) + 1);
+      sprintf (m, "mbox:%s", tmpmboxname);
+      /* Must put create if not the open will try to mmap() the file.  */
+      if ((status = mailbox_create (&tmpmailbox, m)) != 0
+	  || (status
+	      = mailbox_open (tmpmailbox, MU_STREAM_CREAT | MU_STREAM_RDWR)) != 0)
+	{
+	  close (tempfile);
+	  remove (tmpmboxname);
+	  free (tmpmboxname);
+	  return status;
+	}
+      close (tempfile);
     }
 
   /* Get the File lock.  */
   if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) < 0)
     {
-      fclose (tempfile);
-      remove (tmpmbox);
-      free (tmpmbox);
-      monitor_unlock (mailbox->monitor);
+      mailbox_close (tmpmailbox);
+      mailbox_destroy (&tmpmailbox);
+      remove (tmpmboxname);
+      free (tmpmboxname);
       fprintf (stderr, "Failed to grab the lock\n");
       return ENOLCK;
     }
@@ -517,10 +550,11 @@ mbox_expunge (mailbox_t mailbox)
   sigprocmask (SIG_BLOCK, &signalset, 0);
 
   /* Set the marker position.  */
-  total = marker = mud->umessages[dirty]->header_from;
+  marker = mud->umessages[dirty]->header_from;
+  total = 0;
 
   /* Copy to tempfile emails not mark deleted.  */
-  for (first = 1, i = dirty; i < mud->messages_count; i++)
+  for (i = dirty; i < mud->messages_count; i++)
     {
       mum = mud->umessages[i];
 
@@ -528,78 +562,31 @@ mbox_expunge (mailbox_t mailbox)
       if (ATTRIBUTE_IS_DELETED (mum->new_flags))
 	continue;
 
-      /* Add a NL separator between messages.  */
-      if (first)
-	first = 0;
+      if (mum->message)
+	{
+	  status = mbox_append_message0 (tmpmailbox, mum->message, &total, 1);
+	  if (status != 0)
+	    {
+	      fprintf (stderr, "Error expunge:%d: %s", __LINE__,
+		       strerror (status));
+	      goto bailout0;
+	    }
+	}
       else
 	{
-	  fputc ('\n', tempfile);
-	  total++;
-	}
-
-      /* Begining of header copy.  */
-      {
-	off_t current;
-	/* This is done in two parts first we check if the attribute changed,
-	   if yes then we have to update the "Status:" field.  Unfortunately
-	   there is no requirement for the "Status:" to be the last field, so
-	   we take the long approach; Copy up to the Status, update the
-	   Status and copy the rest.  */
-
-	/* Attribute change ?  */
-	if (mum->new_flags
-	    &&! ATTRIBUTE_IS_EQUAL (mum->old_flags, mum->new_flags)
-	    && mum->header_status > mum->header_from)
-	  {
-	    size_t n = 0;
-	    off_t offset = mum->header_from;
-	    size_t len = mum->header_status - mum->header_from;
-	    current = mum->header_status_end;
-	    while (len > 0)
-	      {
-		nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
-		if ((status = stream_read (mailbox->stream, buffer,
-					   nread, offset, &n) != 0)
-		    || fwrite(buffer, sizeof(*buffer), n, tempfile) != n)
-		  {
-		    if (status == 0)
-		      status = errno;
-		    fprintf (stderr, "Error expunge:%d: (%s)\n", __LINE__,
-			     strerror (status));
-		    goto bailout0;
-		  }
-		len -= n;
-		total += n;
-		offset += n;
-	      }
-
-	    /* Put the new attributes.  */
-	    {
-	      char abuf[64];
-	      size_t na = 0;
-	      abuf[0] = '\0';
-	      flags_to_string (mum->new_flags, abuf, sizeof(abuf), &na);
-	      fputs (abuf, tempfile);
-	      total += na;
-	    }
-	  }
-	else /* Attribute did not change.  */
-	  current = mum->header_from;
-
-	/* Copy the rest of header without changes.  */
-	{
-	  size_t n = 0;
-	  off_t offset = current;
-	  size_t len = mum->body - current;
+	  /* Nothing changed copy the message straight.  */
+	  char buffer [1024];
+	  size_t n;
+	  off_t offset = mum->header_from;
+	  size_t len = mum->body_end - mum->header_from;
 	  while (len > 0)
 	    {
-	      nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
-	      if ((status = stream_read (mailbox->stream, buffer, nread,
-					 offset, &n) != 0)
-		  || fwrite(buffer, sizeof(*buffer), n, tempfile) != n)
+	      n = (len < sizeof (buffer)) ? len : sizeof (buffer);
+	      if ((status = stream_read (mailbox->stream, buffer, n, offset,
+					 &n) != 0)
+		  || (status = stream_write (tmpmailbox->stream, buffer, n,
+					     total, &n) != 0))
 		{
-		  if (status == 0)
-		    status = errno;
 		  fprintf (stderr, "Error expunge:%d: %s", __LINE__,
 			   strerror (status));
 		  goto bailout0;
@@ -608,110 +595,102 @@ mbox_expunge (mailbox_t mailbox)
 	      total += n;
 	      offset += n;
 	    }
+	  /* Add the newline separator.  */
+	  status = stream_write (tmpmailbox->stream, "\n", 1, total, &n);
+	  if (status != 0)
+	    {
+	      fprintf (stderr, "Error expunge:%d: %s", __LINE__,
+		       strerror (status));
+	      goto bailout0;
+	    }
+	  total++;
 	}
-      } /* End of header copy.  */
-
-      /* Copy the body.  */
-      {
-	size_t n = 0;
-	off_t offset = mum->body;
-	size_t len = mum->body_end - mum->body;
-	while (len > 0)
-	  {
-	    nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
-	    if ((status = stream_read (mailbox->stream, buffer, nread,
-				       offset, &n) != 0)
-		|| fwrite(buffer, sizeof(*buffer), n, tempfile) != n)
-	      {
-		if (status == 0)
-		  status = errno;
-		fprintf (stderr, "Error expunge:%d: %s", __LINE__,
-			 strerror (status));
-		goto bailout0;
-	      }
-	    len -= n;
-	    total += n;
-	    offset += n;
-	  }
-      } /* End of body copy.  */
     } /* for (;;) */
 
-  /* Caution: before ftruncate()ing the file see if we've receiving new mail
-     Some program may not respect the lock, or the lock was held for too
-     long. */
+  /* Caution: before ftruncate()ing the file see
+     - if we've receive new mails.
+     Some programs may not respect the lock, or the lock was held for too
+     long.
+     - The mailbox may not have been properly updated before expunging.  */
   {
     off_t size = 0;
     if (stream_size (mailbox->stream, &size) == 0)
       {
+	off_t len = size - mud->size;
+	off_t offset = mud->size;
+	char buffer [1024];
 	size_t n = 0;
-	off_t offset = size;
-	size_t len = size - mud->size;
-	while (len > 0)
+	if (len > 0 )
 	  {
-	    nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
-	    if ((status = stream_read (mailbox->stream, buffer, nread,
-				       offset, &n) != 0)
-		|| fwrite(buffer, sizeof(*buffer), n, tempfile) != n)
+	    while ((status = stream_read (mailbox->stream, buffer,
+					  sizeof (buffer), offset, &n)) == 0
+		   && n > 0)
 	      {
-		if (status == 0)
-		  status = errno;
-		fprintf (stderr, "Error expunge:%d: %s", __LINE__,
-			 strerror (status));
-		goto bailout0;
+		status = stream_write (tmpmailbox->stream, buffer, n,
+				       total, &n);
+		if (status != 0)
+		  {
+		    fprintf (stderr, "Error expunge:%d: %s", __LINE__,
+			     strerror (status));
+		    goto bailout0;
+		  }
+		total += n;
+		offset += n;
 	      }
-	    len -= n;
-	    total += n;
-	    offset += n;
+	  }
+	else if (len < 0)
+	  {
+	    /* Corrupted mailbox.  */
+	    fprintf (stderr, "Error expunge:%d: %s", __LINE__,
+		     strerror (status));
+	    goto bailout0;
 	  }
       }
   } /* End of precaution.  */
 
   /* Seek and rewrite it.  */
-  rewind (tempfile);
   if (total > 0)
     {
+      char buffer [1024];
       size_t n = 0;
+      off_t off = 0;
       off_t offset = marker;
-      while ((nread = fread (buffer, sizeof (*buffer),
-			     sizeof (buffer), tempfile)) != 0)
+      while ((status = stream_read (tmpmailbox->stream, buffer,
+				    sizeof (buffer), off, &n)) == 0
+	     && n > 0)
 	{
-	  while (nread)
+	  status = stream_write (mailbox->stream, buffer, n, offset, &n);
+	  if (status != 0)
 	    {
-	      status = stream_write (mailbox->stream, buffer, nread, offset, &n);
-	      if (status != 0)
-		{
-		  fprintf (stderr, "Error expunge:%d: %s\n", __LINE__,
-			   strerror (status));
-		  goto bailout;
-		}
-	      nread -= n;
-	      offset += n;
+	      fprintf (stderr, "Error expunge:%d: %s\n", __LINE__,
+		       strerror (status));
+	      goto bailout;
 	    }
+	  off += n;
+	  offset += n;
 	}
     }
 
-  /* How can I handle error here ??  */
-  clearerr (tempfile);
-
-  /* Flush/truncation.  */
+  /* Flush/truncation. Need to flush before truncate.  */
   stream_flush (mailbox->stream);
-  status = stream_truncate (mailbox->stream, total);
+  status = stream_truncate (mailbox->stream, total + marker);
   if (status != 0)
     {
-      fprintf (stderr, "Error expunging:%d: %s", __LINE__, strerror (status));
+      fprintf (stderr, "Error expunging:%d: %s\n", __LINE__, strerror (status));
       goto bailout;
     }
 
- bailout0:
   /* Don't remove the tmp mbox in case of errors, when writing back.  */
-  remove (tmpmbox);
+ bailout0:
+  remove (tmpmboxname);
 
  bailout:
 
-  free (tmpmbox);
+  free (tmpmboxname);
   /* Release the File lock.  */
   locker_unlock (mailbox->locker);
-  fclose (tempfile);
+  mailbox_close (tmpmailbox);
+  mailbox_destroy (&tmpmailbox);
 #ifdef WITH_PTHREAD
   pthread_setcancelstate (state, &state);
 #endif
@@ -721,6 +700,7 @@ mbox_expunge (mailbox_t mailbox)
   if (status == 0)
     {
       size_t dlast;
+      monitor_wrlock (mailbox->monitor);
       for (j = dirty, dlast = mud->messages_count - 1;
 	   j <= dlast; j++)
 	{
@@ -758,13 +738,11 @@ mbox_expunge (mailbox_t mailbox)
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
 	}
+      monitor_unlock (mailbox->monitor);
       /* This is should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
-      monitor_unlock (mailbox->monitor);
       mbox_scan0 (mailbox, dirty, NULL, 0);
     }
-  else
-    monitor_unlock (mailbox->monitor);
   return status;
 }
 
@@ -834,8 +812,22 @@ mbox_unset_attr_flags (attribute_t attr, int flags)
 }
 
 static int
-mbox_readstream (stream_t is, char *buffer, size_t buflen,
-		 off_t off, size_t *pnread)
+mbox_body_readline (stream_t is, char *buffer, size_t buflen,
+		    off_t off, size_t *pnread)
+{
+  return mbox_body_readstream (is, buffer, buflen, off, pnread, 1);
+}
+
+static int
+mbox_body_read (stream_t is, char *buffer, size_t buflen,
+		off_t off, size_t *pnread)
+{
+  return mbox_body_readstream (is, buffer, buflen, off, pnread, 0);
+}
+
+static int
+mbox_body_readstream (stream_t is, char *buffer, size_t buflen,
+		off_t off, size_t *pnread, int isreadline)
 {
   body_t body = stream_get_owner (is);
   message_t msg = body_get_owner (body);
@@ -866,7 +858,9 @@ mbox_readstream (stream_t is, char *buffer, size_t buflen,
       {
 	nread = ((size_t)ln < buflen) ? ln : buflen;
 	/* Position the file pointer and the buffer.  */
-	status = stream_read (mum->stream, buffer, nread, mum->body + off, &n);
+	status = (isreadline) ?
+	  stream_readline (mum->stream, buffer, nread, mum->body + off, &n) :
+	  stream_read (mum->stream, buffer, nread, mum->body + off, &n);
       }
   }
   monitor_unlock (mum->mud->mailbox->monitor);
@@ -880,11 +874,17 @@ mbox_readstream (stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-mbox_get_header_read (stream_t is, char *buffer, size_t len,
-		      off_t off, size_t *pnread)
+mbox_header_fill (header_t header, char *buffer, size_t len,
+		  off_t off, size_t *pnread)
 {
-  header_t header = stream_get_owner (is);
   message_t msg = header_get_owner (header);
+  return mbox_get_header_readstream (msg, buffer, len, off, pnread, 0);
+}
+
+static int
+mbox_get_header_readstream (message_t msg, char *buffer, size_t len,
+			    off_t off, size_t *pnread, int isreadline)
+{
   mbox_message_t mum = message_get_owner (msg);
   size_t nread = 0;
   int status = 0;
@@ -904,8 +904,11 @@ mbox_get_header_read (stream_t is, char *buffer, size_t len,
     {
       nread = ((size_t)ln < len) ? ln : len;
       /* Position the file pointer and the buffer.  */
-      status = stream_read (mum->stream, buffer, nread,
-			    mum->header_from_end + off, &nread);
+      status = (isreadline) ?
+	stream_readline (mum->stream, buffer, nread,
+			 mum->header_from_end + off, &nread) :
+	stream_read (mum->stream, buffer, nread,
+		     mum->header_from_end + off, &nread);
     }
   monitor_unlock (mum->mud->mailbox->monitor);
 #ifdef WITH_PTHREAD
@@ -966,13 +969,14 @@ mbox_body_lines (body_t body, size_t *plines)
 
 static int
 mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
-			   size_t *pnwrite)
+		    size_t *pnwrite)
 {
   message_t msg = envelope_get_owner (envelope);
   mbox_message_t mum = message_get_owner (msg);
   size_t n = 0;
   int status;
   char buffer[512];
+  char *s;
 
   if (mum == NULL)
     return EINVAL;
@@ -983,30 +987,27 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
     {
       if (pnwrite)
 	*pnwrite = 0;
-      if (buf)
-	*buf = '\0';
       return status;
     }
 
-  if (n > 5)
+  /* Format:  "From [sender] [date]" */
+  /* strlen ("From ") == 5 */
+  if (n > 5 && (s = strchr (buffer + 5, ' ')) != NULL)
     {
-      char *s = strchr (buffer + 5, ' ');
-      if (s)
+      if (buf && len > 0)
 	{
-	  if (buf && len > 0)
-	    {
-	      strncpy (buf, s + 1, len);
-	      buffer [len - 1] = '\0';
-	    }
-	  if (pnwrite)
-	    *pnwrite = strlen (s + 1);
-	  return 0;
+	  len--; /* Leave space for the null.  */
+	  strncpy (buf, s + 1, len)[len] = '\0';
+	  len = strlen (buf);
 	}
+      else
+	len = strlen (s + 1);
     }
+  else
+    len = 0;
+
   if (pnwrite)
-    *pnwrite = 0;
-  if (buf)
-    *buf = '\0';
+    *pnwrite = len;
   return 0;
 }
 
@@ -1019,6 +1020,7 @@ mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
   size_t n = 0;
   int status;
   char buffer[512];
+  char *s;
 
   if (mum == NULL)
     return EINVAL;
@@ -1029,31 +1031,29 @@ mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
     {
       if (pnwrite)
 	*pnwrite = 0;
-      if (buf)
-	*buf = '\0';
       return status;
     }
 
-  if (n > 5)
+  /* Format:  "From [sender] [date]" */
+  /* strlen ("From ") == 5 */
+  if (n > 5 && (s = strchr (buffer + 5, ' ')) != NULL)
     {
-      char *s = strchr (buffer + 5, ' ');
-      if (s)
+      /* Put a NULL to isolate the sender string, make a C string.  */
+      *s = '\0';
+      if (buf && len > 0)
 	{
-	  *s = '\0';
-	  if (buf && len > 0)
-	    {
-	      strncpy (buf, buffer + 5, len);
-	      buffer [len - 1] = '\0';
-	    }
-	  if (pnwrite)
-	    *pnwrite = strlen (buffer + 5);
-	  return 0;
+	  len--; /* leave space for the null */
+	  strncpy (buf, buffer + 5, len)[len] = '\0';
+	  len = strlen (buf);
 	}
+      else
+	len = strlen (buffer + 5);
     }
+  else
+    len = 0;
+
   if (pnwrite)
-    *pnwrite = 0;
-  if (buf)
-    *buf = '\0';
+    *pnwrite = len;
   return 0;
 }
 
@@ -1105,17 +1105,15 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   {
     header_t header = NULL;
     stream_t stream = NULL;
-    if ((status = header_create (&header, NULL, 0, msg)) != 0
-	|| (status = stream_create (&stream, mailbox->flags, header)) != 0)
+    status = header_create (&header, NULL, 0, msg);
+    if (status != 0)
       {
-	stream_destroy (&stream, header);
+	//stream_destroy (&stream, header);
 	header_destroy (&header, msg);
 	message_destroy (&msg, mum);
 	return status;
       }
-    stream_set_read (stream, mbox_get_header_read, header);
-    stream_set_fd (stream, mbox_get_hdr_fd, header);
-    header_set_stream (header, stream, msg);
+    header_set_fill (header, mbox_header_fill, msg);
     header_set_size (header, mbox_header_size, msg);
     header_set_lines (header, mbox_header_lines, msg);
     message_set_header (msg, header, mum);
@@ -1149,7 +1147,8 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 	message_destroy (&msg, mum);
 	return status;
       }
-    stream_set_read (stream, mbox_readstream, body);
+    stream_set_read (stream, mbox_body_read, body);
+    stream_set_readline (stream, mbox_body_readline, body);
     stream_set_fd (stream, mbox_get_body_fd, body);
     body_set_stream (body, stream, msg);
     body_set_size (body, mbox_body_size, msg);
@@ -1179,7 +1178,6 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   return 0;
 }
 
-/* FIXME: We have to generate a Message-ID: if the message have none.  */
 static int
 mbox_append_message (mailbox_t mailbox, message_t msg)
 {
@@ -1190,163 +1188,299 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_append_message (%s)\n",
 		  mud->name);
 
-  monitor_wrlock (mailbox->monitor);
-#ifdef WITH_PTHREAD
-  /* write()/read() are cancellation points.  Since we're doing a potentially
-     long operation.  Lets make sure we clean the state.  */
-  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
-#endif
-  locker_lock (mailbox->locker, MU_LOCKER_WRLOCK);
-  {
-    off_t size;
-    int status;
-    size_t n = 0;
-    char nl = '\n';
+  switch (mud->state)
+    {
+    case MBOX_NO_STATE:
+      locker_lock (mailbox->locker, MU_LOCKER_WRLOCK);
 
-    /* Move to the end of the file, not necesary if _APPEND mode.  */
-    status = stream_size (mailbox->stream, &size);
-    if (status != 0)
+    default:
       {
-	locker_unlock (mailbox->locker);
-	monitor_unlock (mailbox->monitor);
-	return status;
-      }
-
-    switch (mud->state)
-      {
-      case MBOX_NO_STATE:
-	mud->sender = calloc (128, sizeof (char));
-	if (mud->sender == NULL)
+	off_t size;
+	int status;
+	/* Move to the end of the file, not necesary if _APPEND mode.  */
+	if ((status = stream_size (mailbox->stream, &size)) != 0
+	    || (status = mbox_append_message0 (mailbox, msg, &size, 0)) != 0)
 	  {
-	    locker_unlock (mailbox->locker);
-	    monitor_unlock (mailbox->monitor);
-	    return ENOMEM;
+	    if (status != EAGAIN)
+	      locker_unlock (mailbox->locker);
+	    return status;
 	  }
-	mud->date = calloc (128, sizeof (char));
-	if (mud->date == NULL)
-	  {
-	    free (mud->sender);
-	    mud->sender = NULL;
-	    mud->state = MBOX_NO_STATE;
-	    locker_unlock (mailbox->locker);
-	    monitor_unlock (mailbox->monitor);
-	    return ENOMEM;
-	  }
-	mud->off = 0;
-	mud->state = MBOX_STATE_FROM;
-
-      case MBOX_STATE_FROM:
-	/* Generate a "From " separator.  */
-	{
-	  char *s;
-	  size_t len = 0;
-	  envelope_t envelope;
-	  message_get_envelope (msg, &envelope);
-	  status = envelope_sender (envelope, mud->sender, 127, &len);
-	  if (status != 0)
-	    {
-	      if (status != EAGAIN)
-		{
-		  free (mud->sender);
-		  free (mud->date);
-		  mud->date = mud->sender = NULL;
-		  mud->state = MBOX_NO_STATE;
-		  locker_unlock (mailbox->locker);
-		}
-	      monitor_unlock (mailbox->monitor);
-	      return status;
-	    }
-	  /* Nuke trailing newline.  */
-	  s = memchr (mud->sender, nl, len);
-	  if (s)
-	    *s = '\0';
-	  mud->state = MBOX_STATE_DATE;
-	}
-
-      case MBOX_STATE_DATE:
-	/* Generate a date for the "From "  separator.  */
-	{
-	  char *s;
-	  size_t len = 0;
-	  envelope_t envelope;
-	  message_get_envelope (msg, &envelope);
-	  status = envelope_date (envelope, mud->date, 127, &len);
-	  if (status != 0)
-	    {
-	      if (status != EAGAIN)
-		{
-		  free (mud->sender);
-		  free (mud->date);
-		  mud->date = mud->sender = NULL;
-		  mud->state = MBOX_NO_STATE;
-		  locker_unlock (mailbox->locker);
-		}
-	      monitor_unlock (mailbox->monitor);
-	      return status;
-	    }
-	  /* Nuke trailing newline.  */
-	  s = memchr (mud->date, nl, len);
-	  if (s)
-	    *s = '\0';
-	  /* Write the separator to the mailbox.  */
-	  stream_write (mailbox->stream, "From ", 5, size, &n);
-	  size += n;
-	  stream_write (mailbox->stream, mud->sender, strlen (mud->sender), size, &n);
-	  size += n;
-	  stream_write (mailbox->stream, " ", 1, size, &n);
-	  size += n;
-	  stream_write (mailbox->stream, mud->date, strlen (mud->date), size, &n);
-	  size += n;
-	  stream_write (mailbox->stream, &nl , 1, size, &n);
-	  size += n;
-	  free (mud->sender);
-	  free (mud->date);
-	  mud->sender = mud->date = NULL;
-	  mud->state = MBOX_STATE_APPEND;
-	}
-
-      case MBOX_STATE_APPEND:
-	/* Append the Message.  */
-	{
-	  char buffer[BUFSIZ];
-	  size_t nread = 0;
-	  stream_t is;
-	  message_get_stream (msg, &is);
-	  do
-	    {
-	      status = stream_read (is, buffer, sizeof (buffer), mud->off,
-				    &nread);
-	      if (status != 0)
-		{
-		  if (status != EAGAIN)
-		    {
-		      mud->state = MBOX_NO_STATE;
-		      locker_unlock (mailbox->locker);
-		    }
-		  stream_flush (mailbox->stream);
-		  monitor_unlock (mailbox->monitor);
-		  return status;
-		}
-	      stream_write (mailbox->stream, buffer, nread, size, &n);
-	      mud->off += nread;
-	      size += n;
-	    }
-	  while (nread > 0);
-	  stream_write (mailbox->stream, &nl, 1, size, &n);
-	}
-
-      default:
-	break;
       }
-  }
-  stream_flush (mailbox->stream);
-  mud->state = MBOX_NO_STATE;
+    }
   locker_unlock (mailbox->locker);
-  monitor_unlock (mailbox->monitor);
-#ifdef WITH_PTHREAD
-  pthread_cleanup_pop (0);
-#endif
   return 0;
+}
+
+static int
+mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
+		      int is_expunging)
+{
+  mbox_data_t mud = mailbox->data;
+  int status = 0;
+  size_t n = 0;
+  char nl = '\n';
+
+  switch (mud->state)
+    {
+    case MBOX_NO_STATE:
+      /* Allocate memory for the sender/date buffers.  */
+      mud->sender = calloc (128, sizeof (char));
+      if (mud->sender == NULL)
+	return ENOMEM;
+      mud->date = calloc (128, sizeof (char));
+      if (mud->date == NULL)
+	{
+	  free (mud->sender);
+	  mud->sender = NULL;
+	  return ENOMEM;
+	}
+      mud->off = 0;
+      mud->state = MBOX_STATE_APPEND_SENDER;
+
+    case MBOX_STATE_APPEND_SENDER:
+      /* Generate the sender for the "From " separator.  */
+      {
+	char *s;
+	size_t len = 0;
+	envelope_t envelope;
+	message_get_envelope (msg, &envelope);
+	status = envelope_sender (envelope, mud->sender, 128, &len);
+	if (status != 0)
+	  {
+	    if (status != EAGAIN)
+	      {
+		free (mud->sender);
+		free (mud->date);
+		mud->date = mud->sender = NULL;
+		mud->state = MBOX_NO_STATE;
+	      }
+	    return status;
+	  }
+
+	/* Nuke trailing newline.  */
+	s = memchr (mud->sender, nl, len);
+	if (s)
+	  *s = '\0';
+	mud->state = MBOX_STATE_APPEND_DATE;
+      }
+
+    case MBOX_STATE_APPEND_DATE:
+      /* Generate a date for the "From "  separator.  */
+      {
+	char *s;
+	size_t len = 0;
+	envelope_t envelope;
+	message_get_envelope (msg, &envelope);
+	status = envelope_date (envelope, mud->date, 128, &len);
+	if (status != 0)
+	  {
+	    if (status != EAGAIN)
+	      {
+		free (mud->sender);
+		free (mud->date);
+		mud->date = mud->sender = NULL;
+		mud->state = MBOX_NO_STATE;
+	      }
+	    return status;
+	  }
+
+	/* Nuke trailing newline.  */
+	s = memchr (mud->date, nl, len);
+	if (s)
+	  *s = '\0';
+
+	/* Write the separator to the mailbox.  */
+	status = stream_write (mailbox->stream, "From ", 5, *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	/* Write sender.  */
+	status = stream_write (mailbox->stream, mud->sender,
+			       strlen (mud->sender), *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	status = stream_write (mailbox->stream, " ", 1, *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	/* Write date.  */
+	status = stream_write (mailbox->stream, mud->date, strlen(mud->date),
+			       *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	free (mud->sender);
+	free (mud->date);
+	mud->sender = mud->date = NULL;
+	/* If we are not expunging get the message in one block via the stream
+	   message instead of the header/body.  This is good for example for
+	   POP where there is no separtation between header and body.  */
+	if (! is_expunging)
+	  {
+	    mud->state = MBOX_STATE_APPEND_MESSAGE;
+	    break;
+	  }
+	mud->state = MBOX_STATE_APPEND_HEADER;
+      }
+
+    case MBOX_STATE_APPEND_HEADER:
+      /* Append the Header.  */
+      {
+	char buffer[1024];
+	size_t nread = 0;
+	stream_t is;
+	header_t header;
+	message_get_header (msg, &header);
+	header_get_stream (header, &is);
+	do
+	  {
+	    status = stream_readline (is, buffer, sizeof (buffer), mud->off,
+				      &nread);
+	    if (status != 0)
+	      {
+		if (status != EAGAIN)
+		  {
+		    mud->state = MBOX_NO_STATE;
+		    mud->off = 0;
+		  }
+		return status;
+	      }
+	    mud->off += nread;
+	    if (*buffer == '\n')
+	      break;
+
+	    /* FIXME: We have a problem here the header field may not fit the
+	       buffer.  */
+	    /* We do not copy the Status since this is for the attribute.  */
+	    if (strncasecmp (buffer, "Status", 6) == 0
+		|| strncasecmp (buffer, "X-Status", 8) == 0)
+	      continue;
+
+	    status = stream_write (mailbox->stream, buffer, nread,
+				    *psize, &n);
+	    if (status != 0)
+	      break;
+	    *psize += n;
+	  }
+	while (nread > 0);
+	mud->off = 0;
+	mud->state = MBOX_STATE_APPEND_ATTRIBUTE;
+      }
+
+      case MBOX_STATE_APPEND_ATTRIBUTE:
+      /* Put the new attributes.  */
+      {
+	char abuf[64];
+	size_t na = 0;
+	attribute_t attr = NULL;
+	abuf[0] = '\0';
+	message_get_attribute (msg, &attr);
+	attribute_to_string (attr, abuf, sizeof(abuf), &na);
+
+	status = stream_write (mailbox->stream, abuf, na, *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+
+	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	if (status != 0)
+	  break;
+	*psize += n;
+	mud->state = MBOX_STATE_APPEND_BODY;
+      }
+
+    case MBOX_STATE_APPEND_BODY:
+      /* Append the Body.  */
+      {
+	char buffer[1024];
+	size_t nread = 0;
+	stream_t is;
+	body_t body;
+	message_get_body (msg, &body);
+	body_get_stream (body, &is);
+	do
+	  {
+	    status = stream_read (is, buffer, sizeof (buffer), mud->off,
+				  &nread);
+	    if (status != 0)
+	      {
+		if (status != EAGAIN)
+		  {
+		    mud->state = MBOX_NO_STATE;
+		    mud->off = 0;
+		  }
+		return status;
+	      }
+	    mud->off += nread;
+	    status = stream_write (mailbox->stream, buffer, nread, *psize, &n);
+	    if (status != 0)
+	      break;
+	    *psize += n;
+	  }
+	while (nread > 0);
+	mud->off = 0;
+	n = 0;
+	stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	*psize += n;
+      }
+
+    default:
+      break;
+    }
+
+  /* If not expunging we are taking the stream message.  */
+  if (!is_expunging)
+    {
+      switch (mud->state)
+        {
+	case MBOX_STATE_APPEND_MESSAGE:
+	  {
+	    /* Append the Message.  */
+	    char buffer[1024];
+	    size_t nread = 0;
+	    stream_t is;
+	    message_get_stream (msg, &is);
+	    do
+	      {
+		status = stream_read (is, buffer, sizeof (buffer), mud->off,
+				      &nread);
+		if (status != 0)
+		  {
+		    if (status != EAGAIN)
+		      {
+			mud->state = MBOX_NO_STATE;
+			mud->off = 0;
+		      }
+		    stream_flush (mailbox->stream);
+		    return status;
+		  }
+		stream_write (mailbox->stream, buffer, nread, *psize, &n);
+		mud->off += nread;
+		*psize += n;
+	      }
+	    while (nread > 0);
+	    n = 0;
+	    stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	    *psize += n;
+	  }
+
+	default:
+	  break;
+	}
+    } /* is_expunging */
+  mud->state = MBOX_NO_STATE;
+  stream_flush (mailbox->stream);
+  return status;
 }
 
 static int

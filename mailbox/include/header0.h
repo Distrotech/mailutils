@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -61,6 +61,7 @@ struct _header
   size_t blurb_len;
   size_t hdr_count;
   struct _hdr *hdr;
+  int flags;
 
   /* Streams.  */
   stream_t stream;
@@ -68,6 +69,7 @@ struct _header
   int (*_set_value) __P ((header_t, const char *, const char *, int));
   int (*_lines)     __P ((header_t, size_t *));
   int (*_size)      __P ((header_t, size_t *));
+  int (*_fill)      __P ((header_t, char *, size_t, off_t, size_t *));
 };
 
 #ifdef _cplusplus

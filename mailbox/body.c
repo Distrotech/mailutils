@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -307,22 +307,10 @@ body_get_fd (stream_t stream, int *pfd)
 static FILE *
 lazy_create ()
 {
-  FILE *file;
-#ifdef HAVE_MKSTEMP
-  char tmpbuf[L_tmpnam + 1];
-  int fd;
-
-  if (tmpnam (tmpbuf) == NULL ||
-      (fd = mkstemp (tmpbuf)) == -1 ||
-      (file = fdopen(fd, "w+")) == NULL)
-    return NULL;
-  (void)remove(tmpbuf);
-#else
-  file = tmpfile ();
+  FILE *file = tmpfile ();
   //file = fopen ("/tmp/mystuff", "w+");
   /* make sure the mode is right */
   if (file)
     fchmod (fileno (file), 0600);
-#endif
   return file;
 }

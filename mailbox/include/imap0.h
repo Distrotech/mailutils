@@ -121,6 +121,7 @@ struct literal_string
   size_t total;
   msg_imap_t msg_imap;
   enum imap_state type;
+  struct folder_list flist;
   size_t nleft;  /* nleft to read in the literal. */
 };
 

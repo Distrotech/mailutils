@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -39,7 +39,7 @@
  *  Need to prevent re-entry into mime lib, but allow non-blocking re-entry into lib.
  */
 
-static int 
+static int
 _mime_is_multipart_digest(mime_t mime)
 {
 	if ( mime->content_type )
@@ -47,7 +47,7 @@ _mime_is_multipart_digest(mime_t mime)
 	return 0;
 }
 
-static int 
+static int
 _mime_append_part(mime_t mime, message_t msg, int offset, int len, int lines)
 {
 	struct _mime_part	*mime_part, **part_arr;
@@ -131,7 +131,7 @@ char *_strtrim(char *str);
     || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
     || ((c) == ']') )
 
-static void 
+static void
 _mime_munge_content_header(char *field_body )
 {
 	char *p, *e, *str = field_body;
@@ -195,7 +195,7 @@ _mime_get_param(char *field_body, const char *param, int *len)
 	return NULL;
 }
 
-static int 
+static int
 _mime_setup_buffers(mime_t mime)
 {
 	if ( mime->cur_buf == NULL && ( mime->cur_buf = malloc( mime->buf_size ) ) == NULL ) {
@@ -208,7 +208,7 @@ _mime_setup_buffers(mime_t mime)
 	return 0;
 }
 
-static void 
+static void
 _mime_append_header_line(mime_t mime)
 {
 	if ( mime->header_length + mime->line_ndx > mime->header_buf_size) {
@@ -222,7 +222,7 @@ _mime_append_header_line(mime_t mime)
 	mime->header_length += mime->line_ndx;
 }
 
-static int 
+static int
 _mime_parse_mpart_message(mime_t mime)
 {
 	char 		*cp, *cp2;
@@ -323,7 +323,7 @@ _mime_parse_mpart_message(mime_t mime)
 
 /*------ Mime message functions for READING a multipart message -----*/
 
-static int 
+static int
 _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
 {
 	body_t				body = stream_get_owner(stream);
@@ -343,7 +343,7 @@ _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t
 	return stream_read(mime_part->mime->stream, buf, read_len, mime_part->offset + off, nbytes );
 }
 
-static int 
+static int
 _mimepart_body_fd(stream_t stream, int *fd)
 {
 	body_t				body = stream_get_owner(stream);
@@ -353,7 +353,7 @@ _mimepart_body_fd(stream_t stream, int *fd)
 	return stream_get_fd(mime_part->mime->stream, fd);
 }
 
-static int 
+static int
 _mimepart_body_size (body_t body, size_t *psize)
 {
 	message_t 			msg = body_get_owner(body);
@@ -366,7 +366,7 @@ _mimepart_body_size (body_t body, size_t *psize)
 	return 0;
 }
 
-static int 
+static int
 _mimepart_body_lines (body_t body, size_t *plines)
 {
 	message_t			msg = body_get_owner(body);
@@ -380,14 +380,14 @@ _mimepart_body_lines (body_t body, size_t *plines)
 }
 
 /*------ Mime message/header functions for CREATING multipart message -----*/
-static int 
+static int
 _mime_set_content_type(mime_t mime)
 {
 	char content_type[256];
 	char boundary[128];
 	header_t	hdr = NULL;
 	size_t		size;
-	
+
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;
@@ -421,7 +421,7 @@ _mime_set_content_type(mime_t mime)
 
 #define ADD_CHAR(buf, c, offset, buflen, nbytes) {*(buf)++ = c; (offset)++; (nbytes)++;if (--(buflen) == 0) return 0;}
 
-static int 
+static int
 _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
 {
 	body_t		body = stream_get_owner(stream);
@@ -470,7 +470,7 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 					}
 					while(mime->postamble) {
 						mime->postamble--;
-						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);						
+						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);
 					}
 					mime->flags &= ~(MIME_INSERT_BOUNDARY|MIME_ADDING_BOUNDARY);
 					mime->part_offset = 0;
@@ -502,7 +502,7 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 	return ret;
 }
 
-static int 
+static int
 _mime_body_fd(stream_t stream, int *fd)
 {
 	body_t 		body = stream_get_owner(stream);
@@ -516,7 +516,7 @@ _mime_body_fd(stream_t stream, int *fd)
 	return stream_get_fd(msg_stream, fd);
 }
 
-static int 
+static int
 _mime_body_size (body_t body, size_t *psize)
 {
 	message_t	msg = body_get_owner(body);
@@ -541,7 +541,7 @@ _mime_body_size (body_t body, size_t *psize)
 	return 0;
 }
 
-static int 
+static int
 _mime_body_lines (body_t body, size_t *plines)
 {
 	message_t	msg = body_get_owner(body);
@@ -563,7 +563,7 @@ _mime_body_lines (body_t body, size_t *plines)
 	return 0;
 }
 
-int 
+int
 mime_create(mime_t *pmime, message_t msg, int flags)
 {
 	mime_t 	mime = NULL;
@@ -611,7 +611,7 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 	return ret;
 }
 
-void 
+void
 mime_destroy(mime_t *pmime)
 {
 	mime_t mime;
@@ -648,8 +648,8 @@ mime_destroy(mime_t *pmime)
 	}
 }
 
-int 
-mime_get_part(mime_t mime, int part, message_t *msg)
+int
+mime_get_part(mime_t mime, size_t part, message_t *msg)
 {
 	size_t 				nmtp_parts;
 	int					ret = 0;
@@ -681,7 +681,7 @@ mime_get_part(mime_t mime, int part, message_t *msg)
 	return ret;
 }
 
-int 
+int
 mime_get_num_parts(mime_t mime, size_t *nmtp_parts)
 {
 	int 		ret = 0;
@@ -698,11 +698,11 @@ mime_get_num_parts(mime_t mime, size_t *nmtp_parts)
 
 }
 
-int 
+int
 mime_add_part(mime_t mime, message_t msg)
 {
 	int ret;
-	
+
 	if ( mime == NULL || msg == NULL || ( mime->flags & MIME_NEW_MESSAGE ) == 0 )
 		return EINVAL;
 	if ( ( ret = _mime_append_part(mime, msg, 0, 0, 0) ) == 0 )
@@ -710,7 +710,7 @@ mime_add_part(mime_t mime, message_t msg)
 	return ret;
 }
 
-int 
+int
 mime_get_message(mime_t mime, message_t *msg)
 {
 	stream_t body_stream;
@@ -749,7 +749,7 @@ mime_get_message(mime_t mime, message_t *msg)
 	return ret;
 }
 
-int 
+int
 mime_is_multipart(mime_t mime)
 {
 	if ( mime->content_type )

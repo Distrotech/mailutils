@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -24,6 +24,8 @@
 #include <errno.h>
 
 #include <attribute0.h>
+
+static int flags_to_string __P ((int, char *, size_t, size_t *));
 
 int
 attribute_create (attribute_t *pattr, void *owner)
@@ -59,6 +61,12 @@ attribute_get_owner (attribute_t attr)
 }
 
 int
+attribute_is_modified (attribute_t attr)
+{
+  return (attr) ? attr->flags != 0 : 0;
+}
+
+int
 attribute_get_flags (attribute_t attr, int *pflags)
 {
   if (attr == NULL)
@@ -76,7 +84,7 @@ attribute_set_flags (attribute_t attr, int flags)
   if (attr == NULL)
     return EINVAL;
   if (attr->_set_flags)
-    return attr->_set_flags (attr, flags);
+    attr->_set_flags (attr, flags);
   attr->flags |= flags;
   return 0;
 }
@@ -446,7 +454,15 @@ string_to_flags (const char *buffer, int *pflags)
   return 0;
 }
 
- int
+int
+attribute_to_string (attribute_t attr, char *buffer, size_t len, size_t *pn)
+{
+  int flags = 0;;
+  attribute_get_flags (attr, &flags);
+  return flags_to_string (flags, buffer, len, pn);
+}
+
+static int
 flags_to_string (int flags, char *buffer, size_t len, size_t *pn)
 {
   char status[32];
