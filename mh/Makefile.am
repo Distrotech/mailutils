@@ -101,7 +101,8 @@ BUILT_SOURCES= \
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 
 mhlib_DATA = replcomps mhl.format $(LISPSRC)
-EXTRA_DIST = replcomps mhl.format mailutils-mh.eli mh_fmtgram.y pick.y
+EXTRA_DIST = components replcomps mhl.format\
+ mailutils-mh.eli mh_fmtgram.y pick.y
 DISTCLEANFILES = mailutils-mh.el
 
 SUFFIXES = .eli .el
