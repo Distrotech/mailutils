@@ -57,7 +57,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       imap4d_sync ();
     }
 
-  if (strcasecmp (mailbox_name, "INBOX") == 0 && !is_virtual)
+  if (strcasecmp (mailbox_name, "INBOX") == 0 && !mu_virtual_domain)
     {
       pw = getpwuid (getuid ());
       if (pw)

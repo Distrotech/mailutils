@@ -45,7 +45,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
   if (!name || *name == '\0' || !sp || *sp == '\0')
     return util_finish (command, RESP_BAD, "Too few args");
 
-  if (strcasecmp (name, "INBOX") == 0 && !is_virtual)
+  if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
     {
       struct passwd *pw = getpwuid (getuid());
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
