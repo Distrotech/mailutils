@@ -18,17 +18,40 @@
 /*
 Things to consider:
 
-  - A group should create an address node with a group, accessable
-    with address_get_group().
+  - A group should create an address node for a group, accessable
+    with address_get_personal(). Perhaps an is_group() would be
+    useful? Test that a zero-length phrase is rejected! So these
+    are invalid:
+      : a@b ;
+      "" : ;
+
+  - When parsing phrase, should I ignore non-ascii, or replace with a
+    '?' character? Right now parsing fails.
 
   - Make domain optional in addr-spec, for parsing address lists
-    provided to local mail utilities.
+    provided to local mail utilities, but NOT in the addr-spec of a
+    route-addr.
+
+  - Are comments allowed in domain-literals?
+
+  - Need a way to mark the *end* of a group. Maybe add a field to _address,
+    int group_end;, so if you care, you can search for the end of
+    a group with address_is_group_end();
+
+  - Need a way to parse "<>", it's a valid SMTP address...
+
+  - Need a way to parse ",,,", it's a valid address-list, it just doesn't
+    have any addresses.
+
+  - Functions for forming email addresses, quoting display-name, etc.
+
+  - The personal for ""Sam"" <sam@here> is "Sam", and for "'s@b'" <s@b>
+    is 's@b', should I strip those outside parentheses, or is that
+    too intrusive? Maybe an apps business if it wants to?
 
   - Should we do best effort parsing, so parsing "sam@locahost, foo@"
     gets one address, or just say it is or it isn't in RFC format?
     Right now we're strict, we'll see how it goes.
-
-  - quote local-part when generating email field of address_t.
 
   - parse field names and bodies?
   - parse dates?
@@ -37,6 +60,7 @@ Things to consider:
   - test for memory leaks on malloc failure
   - fix the realloc, try a struct _string { char* b, size_t sz };
 
+  - get example mail from drums, and from the perl code.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -499,9 +523,12 @@ static int fill_mb(
     (*a)->comments = comments;
     (*a)->personal = personal;
 
-    /* this is wrong, local must be quoted */
     do {
 	/* loop exists only to break out of */
+        if(!local || !domain) {
+	  /* no email to construct */
+	  break;
+	}
 	if((rc = parse822_quote_local_part(&(*a)->email, local)))
 	    break;
 	if((rc = str_append(&(*a)->email, "@")))
@@ -531,13 +558,20 @@ int parse822_address_list(address_t* a, const char* s)
     int rc = EOK;
     address_t* n = a; /* the next address we'll be creating */
 
-    if((rc = parse822_address(p, e, n)))
+    rc = parse822_address(p, e, n);
+
+    /* A list may start with a leading <,>, we'll find out if
+     * that's not the case at the top of the while, but give
+     * this a conditional OK unless there was some other kind
+     * of error.
+     */
+    if(rc != EOK && rc != EPARSE) {
 	return rc;
-
-    parse822_skip_comments(p, e);
-
+    }
     while(*p < e)
     {
+	parse822_skip_comments(p, e);
+
 	/* An address can contain a group, so an entire
 	 * list of addresses may have been appended, or no
 	 * addresses at all. Walk to the end.
@@ -565,8 +599,6 @@ int parse822_address_list(address_t* a, const char* s)
 	    /* anything else is a fatal error, break out */
 	    break;
 	}
-
-	parse822_skip_comments(p, e);
     }
 
     if(rc) {
@@ -595,12 +627,13 @@ int parse822_group(const char** p, const char* e, address_t* a)
     const char* save = *p;
     address_t* asave = a; /* so we can destroy these if parsing fails */
     int rc;
+    char* phrase = 0;
 
     parse822_skip_comments(p, e);
 
     *p = save;
 
-    if((rc = parse822_phrase(p, e, 0))) {
+    if((rc = parse822_phrase(p, e, &phrase))) {
 	return rc;
     }
 
@@ -611,11 +644,20 @@ int parse822_group(const char** p, const char* e, address_t* a)
 	return rc;
     }
 
+    /* fake up an address node for the group's descriptive phrase, if
+     * it fails, clean-up will happen after the loop
+     */
+    if((rc = fill_mb(a, 0, phrase, 0, 0)) == EOK) {
+      a = &(*a)->next;
+    } else {
+      str_free(&phrase);
+    }
+
     /* Basically, on each loop, we may find a mailbox, but we must find
      * a comma after the mailbox, otherwise we've popped off the end
      * of the list.
      */
-    for(;;) {
+    while(!rc) {
 	parse822_skip_comments(p, e);
 
 	/* it's ok not be a mailbox, but other errors are fatal */

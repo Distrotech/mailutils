@@ -11,14 +11,13 @@ RFC 822 for the details. "[]" pairs mean "optional", "/" means "one or
 the other", and double-quoted characters are literals.
 
 @example
-address-list = address ["," address-list]
-address      = mailbox / group
-mailbox      = addr-spec ["(" personal ")"] /
-               [personal] "<" [route] addr-spec ">"
 addr-spec    = local-part "@" domain
-group        = phrase ":" mailbox-list ";"
-
+mailbox      = addr-spec ["(" display-name ")"] /
+               [display-name] "<" [route] addr-spec ">"
 mailbox-list = mailbox ["," mailbox-list]
+group        = display-name ":" [mailbox-list] ";"
+address      = mailbox / group
+address-list = address ["," address-list]
 @end example
 
 Several address functions have a set of common arguments with consistent
@@ -98,11 +97,17 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_personal (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the personal phrase describing the @var{no}th email address. This
-personal is optional, so may not be present. If it is not present, but
+Acesses the display-name describing the @var{no}th email address. This
+display-name is optional, so may not be present. If it is not present, but
 there is an RFC822 comment after the address, that comment will be
 returned as the personal phrase, as this is a common usage of the comment
 even though it is not defined in the internet mail standard.
+
+A group is a kind of a special case. It has a display-name, followed
+by an optional mailbox-list. The display-name will be allocated an address
+all it's own, but all the other elements (local-part, domain, etc.) will
+be zero-length. So "a group: ;" is valid, will have a count of 1, but
+address_get_email(), and all the rest, will return zero-length output.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -167,6 +172,24 @@ Acesses the route of an email addr-spec extracted while
 parsing the @var{no}th email address. This is a rarely used RFC822 address
 syntax, but is legal in SMTP as well. The entire route is returned as
 a string, those wishing to parse it should look at <mailutils/parse822.h>.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_is_group (address_t *@var{addr}, size_t @var{no}, size_t @var{len}, int* @var{yes})
+
+Sets *@var{yes} to @code{1} if this address is just the name of a group,
+@code{0} otherwise. This is faster than checking if the address has
+a non-zero length personal, and a zero-length local_part and domain.
+
+@var{yes} can be @code{nul}, though that doesn't serve much purpose other
+than determining that @var{no} refers to an address.
+
+Currently, there is no way to determine the end of the group.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code

@@ -1,3 +1,10 @@
+2001-04-14  Sam Roberts
+	* examples/{Makefile,Addrs,addr.c,Addrs.good}: address test f/w.
+	* include/mailutils/address.h,mailbox/{address.c,parse822.c}: now
+	  stuff a group name into an _address, and added a function to do
+	  a quick check if it is a group.
+	* mailbox/parse822.c: fixed bug where ",sam@foo.bar" wasn't valid.
+
 2001-04-14  Alain Magloire
 
 	* mailbox/folder_imap.c: When calling imap_writeline () the

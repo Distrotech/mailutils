@@ -1,4 +1,29 @@
-Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]>
+Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;
+a@b,z@y
+,a@b,z@y
+a@b,z@y,
+,a@b,z@y,
+a@b,,z@y
+a@b,,,z@y
+,,,a@b,,,
+,a@b
+a@b,
+,
+,,
+,,,
+a group: a@b,z@y ;
+a group: ,a@b,z@y ;
+a group: a@b,z@y, ;
+a group: ,a@b,z@y, ;
+a group: a@b,,z@y ;
+a group: a@b,,,z@y ;
+a group: ,,,a@b,,, ;
+a group: ,a@b ;
+a group: a@b, ;
+a group: , ;
+a group: ,, ;
+a group: ,,, ;
+Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;
 Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];
 lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];
 Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo
@@ -15,7 +40,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)
 "'paul@pitbull-productions.com'" <paul@pitbull-productions.com>,
 "'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"
 "'sroberts\@certicom\.ca'" <sroberts@certicom.ca>
-"=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoicees>
+"=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoice.es>
 "Christian Edward Gruber" <christian.edward.gruber@gmx.net>,
 "D. J. Bernstein" <"djb-   "@cr.yp.to>
 "D. J. Bernstein" <djb@cr.yp.to>, drums@cs.utk.edu
@@ -58,9 +83,9 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)
 =?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@cisco.com>
 =?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@cisco.com>,
 =?US-ASCII?Q?gary=5Fc?= <gary_c@cunningham-lee.com>
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidusnet>
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidusnet>,
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?= <0@pervalidusnet>
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>,
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?= <0@pervalidus.net>
 =?iso-8859-1?Q?J=F8rgen_Thomsen?= <jth@postfix.jth.net>
 =?iso-8859-1?Q?Jos=3F_C=2E_Garc=EDa_Sogo?= <jose@jaimedelamo.eu.org>
 =?iso-8859-1?Q?Mikko_H=E4nninen?= <Mikko.Hanninen@dna.fi>

@@ -46,8 +46,7 @@ address_create (address_t *a, const char *s)
   status = parse822_address_list (a, (char*) s);
   if (status == 0)
     {
-      /* There was a group that got parsed correctly, but had
-       * no addresses...
+      /* And address-list may contain 0 addresses but parse correctly.
        */
       if (!*a)
 	return ENOENT;
@@ -220,6 +219,29 @@ address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
   return status;
 }
 
+int
+address_is_group (address_t addr, size_t no, int* yes)
+{
+  size_t j;
+  int status = ENOENT;
+  if(addr == NULL)
+    return EINVAL;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  status = 0;
+	  if(yes)
+	    {
+	       *yes = 0;
+	       if(addr->personal && !addr->local_part && !addr->domain)
+	         *yes = 1;
+	    }
+	  break;
+	}
+    }
+  return status;
+}
 
 int
 address_to_string (address_t addr, char *buf, size_t len, size_t *n)

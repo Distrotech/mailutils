@@ -52,6 +52,9 @@ extern int address_get_comments
 extern int address_get_route
 	__P ((address_t, size_t, char *, size_t, size_t *));
 
+extern int address_is_group
+	__P ((address_t, size_t, int*));
+
 extern int address_to_string __P ((address_t, char *, size_t, size_t *));
 extern int address_get_count __P ((address_t, size_t *));
 
