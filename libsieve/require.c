@@ -57,6 +57,8 @@ sieve_require (list_t slist)
 	}
       else if (strncmp (s, "test-", 5)  == 0) /* GNU extension */
 	{
+	  /* FIXME: test- requires are a GNU extension allowing to
+	     declare user-defined tests */
 	}
       else
 	{
