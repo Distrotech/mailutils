@@ -1,3 +1,8 @@
+2003-10-13  Sergey Poznyakoff
+
+	* NEWS: Updated
+	* pop3d/logindelay.c: Couple of bugfixes.
+
 2003-10-11  Sergey Poznyakoff
 
 	* pop3d/logindelay.c: New file
