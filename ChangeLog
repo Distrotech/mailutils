@@ -1,3 +1,9 @@
+2001-03-03  Sam Roberts
+
+	* README-alpha:  Be clearer on how to configure.
+	* doc/address.texi : New File, description of address_t object.
+	* doc/mailutils.texi : add include address.texi.
+
 2001-03-03  Alain Magloire
 
 	* imap4d/fetch.c (fetch_operation) : HEADER.FIELDS.NOT implemented.
