@@ -30,60 +30,63 @@ mail_test -noprompt "~m"\
 	"Interpolating: 1"\
 	"(continue)"
 
-mail_test "." ""
+mail_test "." 
 
 mu_test_file "$MU_FOLDER_DIR/mta.diag" \
 -re "ENVELOPE FROM: \[^\r\n\]*"\
 "ENVELOPE TO: <foobar@nonexistent.net>,<bar@dontmailme.org>"\
 "   0: To: <foobar@nonexistent.net>,<bar@dontmailme.org>"\
 "   1: Subject: Re: Jabberwocky"\
-"   2: X-Mailer: mail (GNU Mailutils $MU_TOOL_VERSION)"\
-"   3: "\
-"   4: > Received: (from foobar@nonexistent.net)"\
-"   5: 	by nonexistent.net id fBSKI8N04906"\
-"   6: 	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
-"   7: > Date: Fri, 28 Dec 2001 22:18:08 +0200"\
-"   8: > From: Foo Bar <foobar@nonexistent.net>"\
-"   9: > Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
-"  10: > To: Bar <bar@dontmailme.org>"\
-"  11: > Subject: Jabberwocky"\
-"  12: "\
-"  13: > `Twas brillig, and the slithy toves"\
-"  14: > Did gyre and gimble in the wabe;"\
-"  15: > All mimsy were the borogoves,"\
-"  16: > And the mome raths outgrabe."\
-"  17: > "\
-"  18: > `Beware the Jabberwock, my son!"\
-"  19: > The jaws that bite, the claws that catch!"\
-"  20: > Beware the Jujub bird, and shun"\
-"  21: > The frumious Bandersnatch!'"\
-"  22: > "\
-"  23: > He took his vorpal sword in hand:"\
-"  24: > Long time the manxome foe he sought --"\
-"  25: > So rested he by the Tumtum gree,"\
-"  26: > And stood awhile in thought."\
-"  27: > "\
-"  28: > And as in uffish thought he stood,"\
-"  29: > The Jabberwock, with eyes of flame,"\
-"  30: > Came whiffling through the tulgey wook,"\
-"  31: > And burbled as it came!"\
-"  32: > "\
-"  33: > One, two!  One, two!  And through and through"\
-"  34: > The vorpal blade went snicker-snack!"\
-"  35: > He left it dead, and with its head"\
-"  36: > He went galumphing back."\
-"  37: > "\
-"  38: > `And has thou slain the Jabberwock?"\
-"  39: > Come to my arms, my beamish boy!"\
-"  40: > O frabjous day!  Calloh!  Callay!"\
-"  41: > He chortled in his joy."\
-"  42: > "\
-"  43: > `Twas brillig, and the slithy toves"\
-"  44: > Did gyre and gimble in the wabe;"\
-"  45: > All mimsy were the borogoves,"\
-"  46: > And the mome raths outgrabe."\
-"  47: > "\
-"  48: "\
+"   2: In-Reply-To: Your message of Fri, 28 Dec 2001 22:18:08 +0200"\
+"   3: \t<200112282018.fBSKI8N04906@nonexistent.net>"\
+"   4: References: <200112282018.fBSKI8N04906@nonexistent.net>"\
+"   5: X-Mailer: mail (GNU Mailutils $MU_TOOL_VERSION)"\
+"   6: "\
+"   7: > Received: (from foobar@nonexistent.net)"\
+"   8: > 	by nonexistent.net id fBSKI8N04906"\
+"   9: > 	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+"  10: > Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+"  11: > From: Foo Bar <foobar@nonexistent.net>"\
+"  12: > Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
+"  13: > To: Bar <bar@dontmailme.org>"\
+"  14: > Subject: Jabberwocky"\
+"  15: >"\
+"  16: > `Twas brillig, and the slithy toves"\
+"  17: > Did gyre and gimble in the wabe;"\
+"  18: > All mimsy were the borogoves,"\
+"  19: > And the mome raths outgrabe."\
+"  20: > "\
+"  21: > `Beware the Jabberwock, my son!"\
+"  22: > The jaws that bite, the claws that catch!"\
+"  23: > Beware the Jujub bird, and shun"\
+"  24: > The frumious Bandersnatch!'"\
+"  25: > "\
+"  26: > He took his vorpal sword in hand:"\
+"  27: > Long time the manxome foe he sought --"\
+"  28: > So rested he by the Tumtum gree,"\
+"  29: > And stood awhile in thought."\
+"  30: > "\
+"  31: > And as in uffish thought he stood,"\
+"  32: > The Jabberwock, with eyes of flame,"\
+"  33: > Came whiffling through the tulgey wook,"\
+"  34: > And burbled as it came!"\
+"  35: > "\
+"  36: > One, two!  One, two!  And through and through"\
+"  37: > The vorpal blade went snicker-snack!"\
+"  38: > He left it dead, and with its head"\
+"  39: > He went galumphing back."\
+"  40: > "\
+"  41: > `And has thou slain the Jabberwock?"\
+"  42: > Come to my arms, my beamish boy!"\
+"  43: > O frabjous day!  Calloh!  Callay!"\
+"  44: > He chortled in his joy."\
+"  45: > "\
+"  46: > `Twas brillig, and the slithy toves"\
+"  47: > Did gyre and gimble in the wabe;"\
+"  48: > All mimsy were the borogoves,"\
+"  49: > And the mome raths outgrabe."\
+"  50: > "\
+"  51: "\
 "END OF MESSAGE"
 
 # End of send.exp
