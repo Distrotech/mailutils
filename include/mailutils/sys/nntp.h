@@ -35,7 +35,7 @@ enum mu_nntp_state
     MU_NNTP_NO_STATE,
     MU_NNTP_CONNECT, MU_NNTP_GREETINGS,
     MU_NNTP_ARTICLE, MU_NNTP_ARTICLE_ACK, MU_NNTP_ARTICLE_RX,
-    MU_NNTP_HEADER,  MU_NNTP_HEADER_ACK, MU_NNTP_HEADER_RX,
+    MU_NNTP_HEAD,    MU_NNTP_HEAD_ACK,    MU_NNTP_HEAD_RX,
     MU_NNTP_BODY,    MU_NNTP_BODY_ACK, MU_NNTP_BODY_RX,
     MU_NNTP_STAT,    MU_NNTP_STAT_ACK,
     MU_NNTP_STLS,    MU_NNTP_STLS_ACK, MU_NNTP_STLS_CONNECT,
@@ -120,10 +120,10 @@ while (0)
 
 /* Check if we got "2xx". In NNTP protocol and ack of "2xx" means the command was successfull.
  */
-#define MU_NNTP_CHECK_COMPLETE(nntp) \
+#define MU_NNTP_CHECK_OK(nntp) \
 do \
   { \
-     if (nntp->ack.buf[0] == '2') != 0) \
+     if (nntp->ack.buf[0] != '2') \
        { \
           nntp->state = MU_NNTP_NO_STATE; \
           return EACCES; \

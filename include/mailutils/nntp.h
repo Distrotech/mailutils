@@ -45,16 +45,16 @@ extern int  mu_nntp_set_debug    (mu_nntp_t nntp, mu_debug_t debug);
 extern int  mu_nntp_stls         (mu_nntp_t nntp);
 
 
-extern int  mu_nntp_article      (mu_nntp_t nntp, long num, stream_t *stream);
-extern int  mu_nntp_article_id   (mu_nntp_t nntp, const char *id, stream_t *stream);
+extern int  mu_nntp_article      (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_article_id   (mu_nntp_t nntp, const char *id, unsigned long *pnum, char **mid, stream_t *stream);
 
-extern int  mu_nntp_header       (mu_nntp_t nntp, long num, stream_t *stream);
-extern int  mu_nntp_header_id    (mu_nntp_t nntp, const char *name, stream_t *stream);
+extern int  mu_nntp_head         (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_head_id      (mu_nntp_t nntp, const char *name, unsigned long *pnum, char **mid, stream_t *stream);
 
-extern int  mu_nntp_body         (mu_nntp_t nntp, long num, stream_t *stream);
-extern int  mu_nntp_body_id      (mu_nntp_t nntp, const char *name, stream_t *stream);
+extern int  mu_nntp_body         (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_body_id      (mu_nntp_t nntp, const char *name, unsigned long *pnum, char **mid, stream_t *stream);
 
-extern int  mu_nntp_stat         (mu_nntp_t nntp, long num, char **id);
+extern int  mu_nntp_stat         (mu_nntp_t nntp, unsigned long num, char **id);
 extern int  mu_nntp_stat_id      (mu_nntp_t nntp, const char *name, char **id);
 
 extern int  mu_nntp_group        (mu_nntp_t nntp, const char *group, long *total, long *first, long *last, char **name);
