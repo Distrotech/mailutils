@@ -572,11 +572,8 @@ read_rc (const char *progname, const char *name, const char *capa[],
   char* rcfile = mu_tilde_expansion (name, "/", NULL);
 
   if (!rcfile)
-    {
-      fprintf (stderr, _("%s: not enough memory\n"), progname);
-      exit (1);
-    }
-
+    return;
+  
   fp = fopen (rcfile, "r");
   if (!fp)
     {
@@ -717,19 +714,15 @@ mu_create_argcv (const char *capa[],
     struct stat s;
     char* rcdirname = mu_tilde_expansion (MU_USER_CONFIG_FILE, "/", NULL);
 
-    if (!rcdirname)
-      {
-	fprintf (stderr, _("%s: not enough memory\n"), progname);
-	exit (1);
-      }
-    if(stat(rcdirname, &s) == 0 && S_ISDIR(s.st_mode))
+    if (!rcdirname
+	|| (stat(rcdirname, &s) == 0 && S_ISDIR(s.st_mode)))
       rcdir = 1;
 
     free(rcdirname);
   }
 
   /* Add per-user config file. */
-  if(!rcdir)
+  if (!rcdir)
     {
       read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
     }
