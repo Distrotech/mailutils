@@ -21,24 +21,26 @@ mail_start "--file=%mbox1"
 # Delete first and last message and quit
 mail_command "delete 1 4"
 mail_test -noprompt "quit" \
-	  "Held 2 messages in $MU_SPOOL_DIR/mbox1"
+	  "Held 3 messages in $MU_SPOOL_DIR/mbox1"
 
 # Start again using the same mailbox
 mail_start -reuse-spool "--file=%mbox1"
 mail_test "h" \
 	">U   1 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"\
-	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"
+	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"\
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  27/931   Empty MIME Parts"
 
 # Send first message to mbox...
 mail_command "mbox 1"
 mail_test "h" \
 	">M   1 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"\
-	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"
+	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"\
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  27/931   Empty MIME Parts"
 
 # ... and quit
 mail_test -noprompt "quit" \
 	"Saved 1 message in $MU_SPOOL_DIR/mbox" \
-	"Held 1 message in $MU_SPOOL_DIR/mbox1"
+	"Held 2 messages in $MU_SPOOL_DIR/mbox1"
 
 # Now check the mbox contents
 mail_start -reuse-spool "--file=%mbox"

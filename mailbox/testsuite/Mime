@@ -21,9 +21,9 @@ Message: 1
 From: Foo Bar <foobar@nonexistent.net>
 Subject: Jabberwocky
 Number of parts in message - 1
-Total message size - 1255
+Total message size - 1255/44
 Type of part 1 = 
-Message part size - 1255
+Message part size - 1255/44
 Text Message
 Begin
 `Twas brillig, and the slithy toves
@@ -67,9 +67,9 @@ Message: 2
 From: Bar <bar@dontmailme.org>
 Subject: Re: Jabberwocky
 Number of parts in message - 1
-Total message size - 535
+Total message size - 535/13
 Type of part 1 = 
-Message part size - 535
+Message part size - 535/13
 Text Message
 Begin
 It seems very pretty, but it's *rather* hard to understand!'
@@ -82,9 +82,9 @@ Message: 3
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Simple MIME
 Number of parts in message - 2
-Total message size - 1626
+Total message size - 1626/42
 Type of part 1 = text/plain; name="msg.1"; charset="us-ascii"
-Message part size - 372
+Message part size - 372/14
 Text Message
 Begin
 How doth the little crocodile
@@ -100,7 +100,7 @@ With gently smiling jaws!
 
 End
 Type of part 2 = application/octet-stream; name="msg.21"
-Message part size - 646
+Message part size - 646/12
 Attachment - saving [msg.21]
 Begin
 `You are old, Father William,' the young man said,
@@ -119,9 +119,9 @@ Message: 4
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Nested MIME
 Number of parts in message - 2
-Total message size - 3484
+Total message size - 3484/84
 Type of part 1 = text/plain; name="msg.21"; charset="us-ascii"
-Message part size - 497
+Message part size - 497/15
 Text Message
 Begin
 `You are old, Father William,' the young man said,
@@ -138,11 +138,11 @@ Why, I do it again and again.'
 
 End
 Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa1"
-Message part size - 2379
+Message part size - 2379/53
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream; name="msg.22"
-Message part size - 664
+Message part size - 664/13
 Attachment - saving [msg.22]
 Begin
 `You are old,' said the youth, `as I mentioned before,
@@ -157,11 +157,11 @@ Allow me to sell you a couple?'
 
 End
 Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa2"
-Message part size - 1532
+Message part size - 1532/33
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream; name="msg.23"
-Message part size - 669
+Message part size - 669/13
 Attachment - saving [msg.23]
 Begin
 `You are old,' said the youth, `and your jaws are too weak
@@ -176,7 +176,7 @@ Has lasted the rest of my life.'
 
 End
 Type of part 2 = application/octet-stream; name="msg.24"
-Message part size - 680
+Message part size - 680/13
 Attachment - saving [msg.24]
 Begin
 `You are old,' said the youth, `one would hardly suppose
@@ -192,5 +192,23 @@ Be off, or I'll kick you down stairs!'
 End
 
 End
+
+End
+Message: 5
+From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+Subject: Empty MIME Parts
+Number of parts in message - 2
+Total message size - 912/25
+Type of part 1 = text/plain; name="empty"; charset="us-ascii
+Message part size - 143/4
+Text Message
+Begin
+
+End
+Type of part 2 = text/plain; name="single.line"; charset="us-ascii
+Message part size - 156/5
+Text Message
+Begin
+
 
 End

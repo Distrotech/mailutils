@@ -188,7 +188,26 @@ mu_exec -message "readmsg *" -arg "\\\\*" \
 ""\
 -- "------- =_aaaaaaaaaa0--"\
 ""\
+"To: Foo Bar <foobar@nonexistent.net>"\
+"Subject: Empty MIME Parts"\
+"Date: Sat, 13 Jul 2002 00:43:18 +0300"\
+"From: Sergey Poznyakoff <gray@Mirddin.farlep.net>"\
+""\
+-- "------- =_aaaaaaaaaa0"\
+"Content-Type: text/plain; name=\"empty\"; charset=\"us-ascii\""\
+"Content-ID: <5082.1026510189.1@Mirddin.farlep.net>"\
+"Content-Description: Empty part"\
+""\
+-- "------- =_aaaaaaaaaa0"\
+"Content-Type: text/plain; name=\"single.line\"; charset=\"us-ascii\""\
+"Content-ID: <5082.1026510189.2@Mirddin.farlep.net>"\
+"Content-Description: Single line part"\
+""\
+""\
+-- "------- =_aaaaaaaaaa0--"\
+""\
 ""
+
 
 mu_exec -message "readmsg 1 2" -arg 1 -arg 2 \
 "Date: Fri, 28 Dec 2001 22:18:08 +0200"\

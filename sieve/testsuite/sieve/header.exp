@@ -35,6 +35,7 @@ sieve_test -f "$MU_SPOOL_DIR/mbox1" header-mime.sv  -pattern \
 	"IMPLICIT KEEP on msg uid 1"\
 	"IMPLICIT KEEP on msg uid 2"\
 	"DISCARD on msg uid 3: marking as deleted"\
-	"IMPLICIT KEEP on msg uid 4"
+	"IMPLICIT KEEP on msg uid 4"\
+	"IMPLICIT KEEP on msg uid 5"
 
 # end of header.exp

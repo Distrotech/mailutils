@@ -33,10 +33,10 @@ imap4d_start
 imap4d_auth "user!passwd" "guessme"
 
 imap4d_test "SELECT mbox1" \
-"4 EXISTS"\
-"4 RECENT"\
+"5 EXISTS"\
+"5 RECENT"\
 -re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
-"OK \[UIDNEXT 5\] Predicted next uid"\
+"OK \[UIDNEXT 6\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
 "OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
@@ -46,9 +46,11 @@ imap4d_test "STORE 2:* +FLAGS (\\Deleted)"\
 "2 FETCH (FLAGS (\\Deleted \\Recent))"\
 "3 FETCH (FLAGS (\\Deleted \\Recent))"\
 "4 FETCH (FLAGS (\\Deleted \\Recent))"\
+"5 FETCH (FLAGS (\\Deleted \\Recent))"\
 "OK"	
 
 imap4d_test "EXPUNGE"\
+"2 EXPUNGED"\
 "2 EXPUNGED"\
 "2 EXPUNGED"\
 "2 EXPUNGED"\
@@ -60,8 +62,9 @@ imap4d_test "CLOSE"
 
 imap4d_test "SELECT mbox1" \
 "1 EXISTS"\
+"0 RECENT"\
 -re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
-"OK \[UIDNEXT 5\] Predicted next uid"\
+"OK \[UIDNEXT 6\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
 "OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \

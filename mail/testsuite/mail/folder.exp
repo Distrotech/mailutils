@@ -26,7 +26,7 @@ mail_command "set folder=\"$MU_FOLDER_DIR\""
 mail_test "folders" -re "one.*two"
 
 mail_test "file +one" \
- "Held 4 messages in $MU_SPOOL_DIR/mbox1" 
+ "Held 5 messages in $MU_SPOOL_DIR/mbox1" 
 mail_test "sum" \
  "\"$MU_FOLDER_DIR/one\": 1 message 1 new"
 mail_test "headers" \

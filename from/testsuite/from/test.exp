@@ -28,7 +28,8 @@ mu_exec -message "from" \
 "Foo Bar\tJabberwocky"\
 "Bar\tRe: Jabberwocky"\
 "Sergey Poznyakoff\tSimple MIME"\
-"Sergey Poznyakoff\tNested MIME"
+"Sergey Poznyakoff\tNested MIME"\
+"Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -message "from mbox" -arg %mbox \
 "Sergey Poznyakoff\tMBOX"

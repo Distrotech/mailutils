@@ -27,22 +27,25 @@ mu_prepare_spools
 mu_exec -retcode 1 -message "frm" "Foo Bar\tJabberwocky"\
 "Bar\tRe: Jabberwocky"\
 "Sergey Poznyakoff\tSimple MIME"\
-"Sergey Poznyakoff\tNested MIME"
+"Sergey Poznyakoff\tNested MIME"\
+"Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -n" -arg -n \
 "1: Foo Bar\tJabberwocky"\
 "2: Bar\tRe: Jabberwocky"\
 "3: Sergey Poznyakoff\tSimple MIME"\
-"4: Sergey Poznyakoff\tNested MIME"
+"4: Sergey Poznyakoff\tNested MIME"\
+"5: Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -l" -arg -l \
 "(Bar) Foo Bar\tJabberwocky"\
 "(Foo Bar) Bar\tRe: Jabberwocky"\
 "(Foo Bar) Sergey Poznyakoff\tSimple MIME"\
 "(Foo Bar) Sergey Poznyakoff\tNested MIME"\
+"(Foo Bar) Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -qS" -arg -qS \
-"You have 4 messages"
+"You have 5 messages"
 
 mu_exec -retcode 1 -arg %mbox -message "frm %mbox" \
 "Sergey Poznyakoff\tMBOX"
