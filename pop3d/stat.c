@@ -47,7 +47,7 @@ pop3d_stat (const char *arg)
       message_get_attribute (msg, &attr);
       /* rfc1939: Note that messages marked as deleted are not counted in
 	 either total.  */
-      if (!attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+      if (!pop3d_is_deleted (attr))
 	{
 	  message_size (msg, &size);
 	  message_lines (msg, &lines);

@@ -43,7 +43,7 @@ pop3d_list (const char *arg)
 	{
 	  mailbox_get_message (mbox, mesgno, &msg);
 	  message_get_attribute (msg, &attr);
-	  if (!attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+	  if (!pop3d_is_deleted (attr))
 	    {
 	      message_size (msg, &size);
 	      message_lines (msg, &lines);
@@ -58,7 +58,7 @@ pop3d_list (const char *arg)
       if (mailbox_get_message (mbox, mesgno, &msg) != 0)
 	return ERR_NO_MESG;
       message_get_attribute (msg, &attr);
-      if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+      if (pop3d_is_deleted (attr))
 	return ERR_MESG_DELE;
       message_size (msg, &size);
       message_lines (msg, &lines);

@@ -40,7 +40,7 @@ pop3d_uidl (const char *arg)
         {
           mailbox_get_message (mbox, mesgno, &msg);
           message_get_attribute (msg, &attr);
-          if (!attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+          if (!pop3d_is_deleted (attr))
             {
               message_get_uidl (msg, uidl, sizeof (uidl), NULL);
               pop3d_outf ("%d %s\r\n", mesgno, uidl);
@@ -54,7 +54,7 @@ pop3d_uidl (const char *arg)
       if (mailbox_get_message (mbox, mesgno, &msg) != 0)
         return ERR_NO_MESG;
       message_get_attribute (msg, &attr);
-      if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+      if (pop3d_is_deleted (attr))
         return ERR_MESG_DELE;
       message_get_uidl (msg, uidl, sizeof (uidl), NULL);
       pop3d_outf ("+OK %d %s\r\n", mesgno, uidl);

@@ -70,7 +70,7 @@ pop3d_fix_mark ()
        attribute_t attr = NULL;
        mailbox_get_message (mbox, i, &msg);
        message_get_attribute (msg, &attr);
-       if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+       if (pop3d_is_deleted (attr))
           attribute_set_deleted (attr);
     }
 }
