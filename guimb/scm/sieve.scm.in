@@ -949,7 +949,11 @@
      (newline)
      (sieve-usage)))
 
-(define guimb? (string->obarray-symbol #f "mu-mailbox-open" #t))
+(define guimb? (catch #t
+                      (lambda ()
+                        (let ((package mu-package))
+                          package))
+                      (lambda args #f)))
 
 (if (and guimb? (string? user-name))
     (set! filename (sieve-expand-filename filename)))
