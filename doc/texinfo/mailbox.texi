@@ -56,9 +56,12 @@ The concrete mailbox type instantiate is based on the scheme of the url @var{nam
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
+
+@item MU_ERR_OUT_PTR_NULL
+The pointer @var{pmbox} supplied is NULL.
+@item MU_ERR_NO_HANDLER
 The url @var{name} supplied is invalid or not supported.
-@var{pmbox} is NULL.
+@item EINVAL
 @item ENOMEM
 Not enough memory to allocate resources.
 @end table
