@@ -1,3 +1,11 @@
+1999-11-15  Jeff Bailey  <jbailey@nisa.net>
+
+	* lib/ansi2knr*: Add
+
+	* configure.in: Add AM_C_PROTOTYPES
+
+	* libmailbox/Makefile.am: Add ansi2knr handling
+
 1999-11-08  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
 	* cleaned up some of the auto{make,conf} magic for non-Linux 

@@ -1,5 +1,7 @@
 # Use automake to process this file -*-Makefile-*-
 
+AUTOMAKE_OPTIONS = ../lib/ansi2knr
+
 CFLAGS = -Wall -pedantic -g -DTESTING
 
 include_HEADERS = mailbox.h
