@@ -46,8 +46,6 @@ static char args_doc[] = "recipient [recipient ...]";
 
 static struct argp_option options[] = 
 {
-  {NULL, 0, NULL, 0,
-   "mail.local specific switches", 0},
   { "ex-multiple-delivery-success", ARG_MULTIPLE_DELIVERY, NULL, 0,
     "Don't return errors when delivering to multiple recipients", 0 },
   { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
@@ -73,7 +71,6 @@ static struct argp_option options[] =
     "Enable debugging", 0 },
   { "timeout", 't', "NUMBER", 0,
     "Set timeout for acquiring the lockfile" },
-
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -89,8 +86,9 @@ static struct argp argp = {
 };
 
 static const char *argp_capa[] = {
-  "mailutils",
   "auth",
+  "common",
+  "mailbox",
   "logging",
   NULL
 };
