@@ -1,3 +1,11 @@
+2002-02-20 Sam Roberts <sroberts@uniserve.com>
+
+	* frm/Makefile.am, from/Makefile.am, imap4d/Makefile.am,
+	  messages/Makefile.am, readmsg/Makefile.am, sieve/Makefile.am: The
+	  exe_DEPENDENCIES lines prevent the _LDADD lines being used for
+	  dependencies, so the exes dont' get rebuilt when the libraries are
+	  rebuilt, unless explicitly listed.
+
 2002-02-19  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	Use of system getpwuid() in many places of the code
