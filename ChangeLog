@@ -1,5 +1,6 @@
-2004-09-16  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+2004-09-18  Sergey Poznyakoff 
 
+	* configure.ac: Bugfix
 	* mailbox/mime.c (_mime_munge_content_header): Bugfix
 
 2004-08-31  Wojciech Polak
