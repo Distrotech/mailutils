@@ -1,3 +1,20 @@
+2003-02-14  Sergey Poznyakoff  
+
+	* mail/msgset.y: Bugfix. '*' should not select deleted
+	  messages.
+	* mail/next.c: Skip deleted messages.
+	* mail/previous.c: Likewise.
+	* mail/undelete.c (undelete0): Set cursor if it is zero.
+	* mh/pick.c: New file. A framework for pick command
+	* mh/Makefile.am: Added pick.c
+	* mh/.cvsignore: Likewise.
+	* mh/mh_getopt.h: Updated.
+	* mh/mh_init.c (mh_real_install): Create inbox.
+	* mh/refile.c: Fixed copyright year.
+	* mh/send.c: Get personal data from the value of the profile
+	  component "signature" or from the environment variable
+	  SIGNATURE.
+	  
 2003-02-14  Sergey Poznyakoff
 
 	* configure.ac: New option --enable-mh-utils.
