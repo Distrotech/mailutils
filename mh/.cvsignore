@@ -1,5 +1,8 @@
 Makefile
 Makefile.in
+.deps
+.libs
 mh_fmtgram.c
 scan
 inc
+y.output
