@@ -46,9 +46,20 @@ static struct argp_option mu_common_argp_option[] =
 {
   {"maildir", 'm', "URL", 0,
    "use specified URL as a mailspool directory", 0},
+  { "license", 'L', NULL, 0, "print license and exit", 0 },
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+static struct argp_option mu_logging_argp_option[] =
+{
   {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
    "output logs to syslog FACILITY", 0},
-  { "license", 'L', NULL, 0, "print license and exit", 0 },
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+
+static struct argp_option mu_auth_argp_option[] =
+{
 #ifdef USE_LIBPAM
   { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
     "Use STRING as PAM service name", 0},
@@ -87,8 +98,10 @@ static struct argp_option mu_daemon_argp_option[] =
   { NULL,      0, NULL, 0, NULL, 0 }
 };  
 
-static error_t mu_common_argp_parser (int key, char *arg, struct argp_state *state);
-static error_t mu_daemon_argp_parser (int key, char *arg, struct argp_state *state);
+static error_t mu_common_argp_parser __P((int key, char *arg,
+					  struct argp_state *state));
+static error_t mu_daemon_argp_parser __P((int key, char *arg,
+					  struct argp_state *state));
 
 struct argp mu_common_argp =
 {
@@ -101,10 +114,47 @@ struct argp mu_common_argp =
   NULL
 };
 
-struct argp_child mu_common_argp_child[] =
+struct argp_child mu_common_argp_child = {
+  &mu_common_argp,
+  0,
+  "Common mailutils options",
+  1
+};
+
+struct argp mu_auth_argp =
 {
-  {&mu_common_argp, 0, "Common mailutils options", 1},
-  {NULL, 0, NULL, 0}
+  mu_auth_argp_option,
+  mu_common_argp_parser,
+  "",
+  "",
+  NULL,
+  NULL,
+  NULL
+};
+
+struct argp_child mu_auth_argp_child = {
+  &mu_auth_argp,
+  0,
+  "Authentication-relevant options",
+  1
+};
+
+struct argp mu_logging_argp =
+{
+  mu_logging_argp_option,
+  mu_common_argp_parser,
+  "",
+  "",
+  NULL,
+  NULL,
+  NULL
+};
+
+struct argp_child mu_logging_argp_child = {
+  &mu_logging_argp,
+  0,
+  "Logging options",
+  1
 };
 
 struct argp mu_daemon_argp =
@@ -118,11 +168,11 @@ struct argp mu_daemon_argp =
   NULL
 };
 
-struct argp_child mu_daemon_argp_child[] =
-{
-  {&mu_daemon_argp, 0, "Daemon configuration options", 1},
-  {&mu_common_argp, 0, "Common mailutils options", 2},
-  {NULL, 0, NULL, 0}
+struct argp_child mu_daemon_argp_child = {
+  &mu_daemon_argp,
+  0,
+  "Daemon configuration options",
+  1
 };
 
 int log_facility = LOG_FACILITY;
@@ -147,6 +197,7 @@ parse_log_facility (const char *str)
     { "LOCAL5",  LOG_LOCAL5 },
     { "LOCAL6",  LOG_LOCAL6 },
     { "LOCAL7",  LOG_LOCAL7 },
+    { "MAIL",    LOG_MAIL }
   };
 
   if (strncmp (str, "LOG_", 4) == 0)
@@ -310,8 +361,19 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
 # define MU_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
 #endif
 
+static int
+member (const char *array[], const char *text, size_t len)
+{
+  int i;
+  for (i = 0; array[i]; i++)
+    if (strncmp (array[i], text, len) == 0)
+      return 1;
+  return 0;
+}
+
 void
-mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
+mu_create_argcv (const char *capa[],
+		 int argc, char **argv, int *p_argc, char ***p_argv)
 {
   FILE *fp;
   char *progname;
@@ -393,8 +455,9 @@ mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
           for (p = kwp; *p && !isspace (*p); p++)
             len++;
 
-          if (strncmp ("mailutils", kwp, len) == 0
-              || strncmp (progname, kwp, len) == 0)
+          if ((kwp[0] == ':'
+	       && member (capa, kwp+1, len-1))
+	      || strncmp (progname, kwp, len) == 0)
             {
               int n_argc = 0;
               char **n_argv;
@@ -436,4 +499,93 @@ mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
 
   *p_argc = x_argc;
   *p_argv = x_argv;
+}
+
+struct argp_capa {
+  char *capability;
+  struct argp_child *child;
+} mu_argp_capa[] = {
+  {"mailutils", &mu_common_argp_child},
+  {"daemon", &mu_daemon_argp_child},
+  {"auth", &mu_auth_argp_child},
+  {"logging", &mu_logging_argp_child},
+  {NULL,}
+};
+
+static struct argp_child *
+find_argp_child (const char *capa)
+{
+  int i;
+  for (i = 0; mu_argp_capa[i].capability; i++)
+    if (strcmp (mu_argp_capa[i].capability, capa) == 0)
+      return mu_argp_capa[i].child;
+  return NULL;
+}
+
+static struct argp *
+mu_build_argp (const struct argp *template, const char *capa[])
+{
+  int n;
+  struct argp_child *ap;
+  struct argp *argp;
+  
+  /* Count the capabilities */
+  for (n = 0; capa[n]; n++)
+    ;
+  if (template->children)
+    for (; template->children[n].argp; n++)
+      ;
+      
+  ap = calloc (n + 1, sizeof (*ap));
+  if (!ap)
+    {
+      mu_error ("out of memory");
+      abort ();
+    }
+
+  n = 0;
+  if (template->children)
+    for (; template->children[n].argp; n++)
+      ap[n] = template->children[n];
+  
+  for (; capa[n]; n++)
+    {
+      struct argp_child *tmp = find_argp_child (capa[n]);
+      if (!tmp)
+	{
+	  mu_error ("INTERNAL ERROR: requested unknown argp capability %s",
+		    capa[n]);
+	  continue;
+	}
+      ap[n] = *tmp;
+      ap[n].group = n;
+    }
+  ap[n].argp = NULL;
+  argp = malloc (sizeof (*argp));
+  if (!argp)
+    {
+      mu_error ("out of memory");
+      abort ();
+    }
+  memcpy (argp, template, sizeof (*argp));
+  argp->children = ap;
+  return argp;
+}
+
+error_t
+mu_argp_parse(const struct argp *argp, 
+	      int *pargc, char **pargv[],  
+	      unsigned flags,
+	      const char *capa[],
+	      int *arg_index,     
+	      void *input)
+{
+  error_t ret;
+  
+  argp = mu_build_argp (argp, capa);
+  mu_create_argcv (capa, *pargc, *pargv, pargc, pargv);
+  ret = argp_parse (argp, *pargc, *pargv, flags, arg_index, input);
+  free ((void*) argp->children);
+  free ((void*) argp);
+  return ret;
 }

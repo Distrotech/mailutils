@@ -1,3 +1,43 @@
+2002-03-09  Sergey Poznyakoff
+
+	* configure.in: Check for libresolv.
+
+	Based on the discussion with Sam, changed handling of
+	mailutils' command line options. Command line is parsed using
+	mu_argp_parse() call. mu_argp_parse scans global configuration
+	file and processes any options found there before those from
+	the command line. The options are separated by categories
+	(capabilities):
+
+	  mailutils  --maildir, --license
+	  auth       --sql-.* family, --pam-service
+	  logging    --log-facility
+	  daemon     --daemon, --inetd, --port, --timeout
+
+	If a capability name appears in configuration file, it
+	should be prefixed with : to discern it from the utility
+	name.
+	
+	* examples/mailutils.rc: Updated to reflect changes in the syntax.
+
+	* lib/mu_argp.c: New function mu_argp_parse is intended to be used
+	  by all programs in the package in order to do command line parsing.
+	* lib/mu_argp.h: Removed unneeded prototypes. Added prototype for
+	  mu_argp_parse().
+	
+	* comsat/comsat.c: Use mu_argp_parse.
+	* frm/frm.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* mail/mail.c: Likewise.
+	* messages/messages.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	* mail.local/main.c: Likewise.
+	  (deliver): Restored erroneously removed variable sb.
+	
+	* pop3d/apop.c (pop3d_apopuser): Changed scope of auto variable
+	  rc.
+
 2002-03-01 Sam Roberts
 
 	* mailbox/mbx_mboxscan.c: Check return value of locker_lock().
