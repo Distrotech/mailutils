@@ -16,50 +16,213 @@
 @section Sieve Data Types
 
 @deftp {Data Type} sieve_machine_t
+This is an opaque data type representing a pointer to an instance of
+sieve machine. The sieve_machine_t keeps all information necessary
+for compiling and executing the script.
+
+It is created by @code{sieve_machine_create()} and destroyed by
+@code{sieve_machine_destroy()}. The functions for manipulating this data
+type are described in @ref{Manipulating the Sieve Machine}.
 @end deftp
 
 @deftp {Enumeration} sieve_data_type
+This enumeration keeps the possible types of sieve data. These are:
+
+@table @code
+@item SVT_VOID
+No datatype.
+
+@item SVT_NUMBER
+Numeric type.
+
+@item SVT_STRING
+Character string.
+
+@item SVT_STRING_LIST
+A @code{list_t}. Each item in this list represents a character string.
+
+@item SVT_TAG
+A sieve tag. See @code{sieve_runtime_tag_t} below.
+
+@item SVT_IDENT
+A character string representing an identifier. 
+
+@item SVT_VALUE_LIST
+A @code{list_t}. Each item in this list is of @code{sieve_value_t}.
+
+@item SVT_POINTER
+An opaque pointer.
+@end table
 @end deftp
 
 @deftp {Structure} sieve_value_t
+The @code{sieve_value_t} keeps an instance of sieve data. It is defined
+as follows:
+
+@example
+@group
+typedef struct @{
+  sieve_data_type type;        /* Type of the data */
+  union @{
+    char *string;              /* String value or identifier */
+    long number;               /* Numeric value */
+    list_t list;               /* List value */
+    sieve_runtime_tag_t *tag;  /* Tag value */
+    void *ptr;                 /* Pointer value */ 
+  @} v;
+@} sieve_value_t;
+@end group
+@end example
+
+Depending on the value of @code{type} member, following members of the
+union @code{v} keep the actual value:
+
+@table @code
+@item SVT_VOID
+Never appears.
+
+@item SVT_NUMBER
+The numeric value is kept in @code{number} member.
+
+@item SVT_STRING
+The string is kept in @code{string} member.
+
+@item SVT_STRING_LIST
+@itemx SVT_VALUE_LIST
+The list itself is pointed to by @code{list} member
+
+@item SVT_TAG
+The tag value is pointed to by @code{tag} member.
+
+@item SVT_IDENT
+The @code{string} member points to the identifier name.
+
+@item SVT_POINTER
+The data are pointed to by @code{ptr} member.
+@end table
+
 @end deftp
 
 @deftp {Structure} sieve_tag_def_t
+This structure represents a definition of a tagged (optional) argument
+to a sieve action or test. It is defined as follows:
+
+@example
+@group
+typedef struct @{
+  char *name;              /* Tag name */
+  sieve_data_type argtype; /* Type of tag argument. */
+@} sieve_tag_def_t;
+@end group
+@end example
+
+The @code{name} member points to the tag's name @emph{without leading
+colon}. The @code{argtype} is set to @code{SVT_VOID} if the tag does
+not take argument, or to the type of the argument otherwise.
 @end deftp
 
 @deftp {Structure} sieve_runtime_tag_t
+This structure represents the tagged (optional) argument at a runtime.
+It is defined as:
+
+@example
+@group
+struct sieve_runtime_tag @{
+  char *tag;                /* Tag name */
+  sieve_value_t *arg;       /* Tag argument (if any) */
+@};
+@end group
+@end example
+
+The @code{arg} member is @code{NULL} if the tag does not take an argument.
 @end deftp
 
 @deftp {Function Type} sieve_handler_t
+
+This is a pointer to function handler for a sieve action or test.
+It is defined as follows:
 @example
-typedef int (*sieve_handler_t) (sieve_machine_t mach,
-                                list_t args, list_t tags);
+typedef int (*sieve_handler_t) (sieve_machine_t @var{mach},
+                                list_t @var{args}, list_t @var{tags});
 @end example
 @end deftp
 
-@deftp {Function Type} sieve_printf_t                               
+The arguments to the handler have the following meaning:
+
+@table @var
+@item mach
+Sieve machine being processed.
+@item args
+A list of required arguments to the handler
+@item tags
+A list of optional arguments (tags).
+@end table
+
+@deftp {Function Type} sieve_printf_t
+A pointer to a diagnostic output function. It is defined as follows:
 @example
-typedef int (*sieve_printf_t) (void *data, const char *fmt, va_list ap);
+typedef int (*sieve_printf_t) (void *@var{data}, const char *@var{fmt}, va_list @var{ap});
 @end example
 @end deftp
+
+@table @var
+@item data
+A pointer to application specific data. These data are passed as 
+second argument to @code{sieve_machine_init()}.
+@item fmt
+Printf-like format string.
+@item ap
+Other arguments.
+@end table
 
 @deftp {Function Type} sieve_parse_error_t
+This data type is decalred as follows:
 @example
-typedef int (*sieve_parse_error_t) (void *data,
-                                    const char *filename, int lineno,
-                                    const char *fmt, va_list ap);
+typedef int (*sieve_parse_error_t) (void *@var{data},
+                                    const char *@var{filename}, int @var{lineno},
+                                    const char *@var{fmt}, va_list @var{ap});
 @end example
 @end deftp
 
+It is used to declare error handlers for parsing errors. The
+application-specific data are passed in the @var{data}
+argument. Arguments @var{filename} and @var{line} indicate the location
+of the error in the source text, while @var{fmt} and @var{ap} give
+verbose description of the error.
+
 @deftp {Function Type} sieve_action_log_t
+A pointer to the application-specific logging function:
+
 @example
-typedef void (*sieve_action_log_t) (void *data,
-                                    const char *script,
-                                    size_t msgno, message_t msg,
-                                    const char *action,
-                                    const char *fmt, va_list ap);
+typedef void (*sieve_action_log_t) (void *@var{data},
+                                    const char *@var{script},
+                                    size_t @var{msgno}, message_t @var{msg},
+                                    const char *@var{action},
+                                    const char *@var{fmt}, va_list @var{ap});
 @end example
 @end deftp
+
+@table @var
+@item data
+Application-specific data.
+
+@item script
+Name of the sieve script being executed.
+
+@item msgno
+Ordinal number of the message in mailbox, if appropriate. When execution
+is started using @code{sieve_message()}, this argument is zero.
+
+@item msg
+The message this action is executed upon.
+
+@item action
+The name of the action.
+
+@item fmt
+@itemx var
+These two arguments give the detaied description of the action.
+@end table
 
 @deftp {Function Type} sieve_comparator_t
 @example
@@ -194,7 +357,38 @@ sieve_printf_t @var{error_printer})
 @node Memory Allocation
 @section Memory Allocation
 
-@deftypefn {void *} sieve_alloc (size_t @var{size})
+The following functions act as their libc counterparts. The allocated
+memory is associated with the @var{mach} argument and is automatically
+freed upon the call to @code{sieve_machine_destroy (@var{mach})}.
+
+@deftypefn {void *} sieve_malloc (sieve_machine_t @var{mach}, size_t @var{size})
+Allocates @var{size} bytes and returns a pointer to the allocated memory.
+@end deftypefn
+
+@deftypefn {char *} sieve_mstrdup (sieve_machine_t @var{mach}, const char *@var{str})
+This function returns a pointer to a new string  which is a duplicate of the
+string @var{str}.
+@end deftypefn
+
+@deftypefn {void *} sieve_mrealloc (sieve_machine_t @var{mach}, void *@var{ptr}, size_t @var{size})
+Changes the size of the memory block pointed to by @var{ptr} to
+@var{size} bytes.  The contents will be unchanged to the minimum of the
+old and new sizes; newly allocated memory will be uninitialized. If
+@var{ptr} is @code{NULL}, the call is equivalent to
+@code{sieve_malloc(@var{mach}, @var{size})}; if @var{size} is equal to
+zero, the call is equivalent to @code{sieve_mfree(@var{ptr})}. Unless
+@var{ptr} is @code{NULL}, it must have been returned by an earlier
+call to @code{sieve_malloc()} or @code{sieve_mrealloc()}.
+@end deftypefn
+
+@deftypefn void sieve_mfree (sieve_machine_t @var{mach}, void *@var{ptr})
+@code{sieve_mfree()} frees the memory space pointed to by @var{ptr} and
+detaches it from the destructor list of @var{mach}. The @var{ptr} must
+have been returned by a previous call to @code{sieve_malloc()} or
+@code{sieve_mrealloc()}. Otherwise, or if @code{sieve_mfree(@var{ptr})}
+has already been called before, undefined behaviour occurs.
+
+If @var{ptr} is @code{NULL}, no operation is performed.
 @end deftypefn
 
 @node Compiling and Executing the Script

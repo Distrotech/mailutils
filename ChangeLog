@@ -1,3 +1,18 @@
+2002-11-25  Sergey Poznyakoff 
+
+	* doc/texinfo/Makefile.am: Fake configure into including
+	  srcdir to VPATH.
+	* include/mailutils/libsieve.h (sieve_malloc,sieve_mstrdup)
+	  (sieve_mrealloc,sieve_mfree): New functions.
+	* libsieve/util.c: Likewise.
+	* libsieve/comparator.c: Use sieve_m.* memory allocation
+	  functions.
+	* libsieve/prog.c: Likewise.
+	* libsieve/sieve.l: Likewise.
+	* libsieve/sieve.y: Likewise.
+
+	* doc/texinfo/libsieve.texi: Updated
+
 2002-11-25  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/address.c (address_concatenate): cleanup the address
