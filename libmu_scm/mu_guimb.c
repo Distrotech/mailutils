@@ -39,7 +39,6 @@ void
 _scheme_main (void *closure, int argc, char **argv)
 {
   guimb_param_t *param = closure;
-  SCM *scm_loc;
   
   if (param->debug_guile)
     {
