@@ -153,8 +153,8 @@ folder_imap_destroy (folder_t folder)
 }
 
 /* Simple User/pass authentication for imap.  */
-static int
-imap_user (authority_t auth)
+int
+authenticate_imap_login (authority_t auth)
 {
   folder_t folder = authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
@@ -230,6 +230,131 @@ imap_user (authority_t auth)
   return 0;
 }
 
+/*
+The anonymous SASL mechanism is defined in rfc2245.txt as a single
+message from client to server:
+
+message         = [email / token]
+
+So the message is optional.
+
+The command is:
+
+C: <tag> authenticate anonymous
+
+The server responds with a request for continuation data (the "message"
+in the SASL syntax). We respond with no data, which is legal.
+
+S: +
+C: 
+
+The server should then respond with OK on success, or else a failure
+code (NO or BAD).
+
+If OK, then we are authenticated!
+
+So, states are:
+
+AUTH_ANON_REQ
+
+> g%u AUTHENTICATE ANONYMOUS
+
+AUTH_ANON_WAIT_CONT
+
+< +
+
+AUTH_ANON_MSG
+
+>
+
+AUTH_ANON_WAIT_RESP
+
+< NO/BAD/OK
+
+
+
+*/
+
+int
+authenticate_imap_sasl_anon (authority_t auth)
+{
+  folder_t folder = authority_get_owner (auth);
+  f_imap_t f_imap = folder->data;
+  int status = 0;
+
+  assert (f_imap->state == IMAP_AUTH);
+
+  switch (f_imap->auth_state)
+    {
+    case IMAP_AUTH_ANON_REQ_WRITE:
+      {
+	FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u AUTHENTICATE ANONYMOUS\n",
+		       f_imap->seq);
+
+	status = imap_writeline (f_imap, "g%u AUTHENTICATE ANONYMOUS\r\n",
+				 f_imap->seq);
+
+	f_imap->seq++;
+
+	CHECK_ERROR_CLOSE (folder, f_imap, status);
+
+	f_imap->state = IMAP_AUTH_ANON_REQ_SEND;
+      }
+
+    case IMAP_AUTH_ANON_REQ_SEND:
+      status = imap_send (f_imap);
+
+      CHECK_EAGAIN (f_imap, status);
+
+      f_imap->state = IMAP_AUTH_ANON_WAIT_CONT;
+
+    case IMAP_AUTH_ANON_WAIT_CONT:
+      status = imap_parse (f_imap);
+
+      CHECK_EAGAIN (f_imap, status);
+
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+
+      if (strncmp ("+", f_imap->buffer, 2) == 0)
+	{
+	  f_imap->state = IMAP_AUTH_ANON_MSG;
+	}
+      else
+	{
+	  /* something is wrong! */
+	}
+      f_imap->state = IMAP_AUTH_ANON_MSG;
+
+    case IMAP_AUTH_ANON_MSG:
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "\n");
+
+      status = imap_writeline (f_imap, "\r\n");
+
+      CHECK_ERROR_CLOSE (folder, f_imap, status);
+
+      f_imap->state = IMAP_AUTH_ANON_MSG_SEND;
+
+    case IMAP_AUTH_ANON_MSG_SEND:
+      status = imap_send (f_imap);
+
+      CHECK_EAGAIN (f_imap, status);
+
+      f_imap->state = IMAP_AUTH_ANON_WAIT_RESP;
+
+    case IMAP_AUTH_ANON_WAIT_RESP:
+      status = imap_parse (f_imap);
+
+      CHECK_EAGAIN (f_imap, status);
+
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+
+    default:
+      break;			/* We're outta here.  */
+    }
+  CLEAR_STATE (f_imap);
+  return 0;
+}
+
 /* Create/Open the stream for IMAP.  */
 static int
 folder_imap_open (folder_t folder, int flags)
@@ -239,7 +364,6 @@ folder_imap_open (folder_t folder, int flags)
   long port = 143; /* default imap port.  */
   int status = 0;
   size_t len = 0;
-  int preauth = 0; /* Do we have "preauth"orisation ?  */
 
   /* If we are already open for business, noop.  */
   monitor_wrlock (folder->monitor);
@@ -252,7 +376,7 @@ folder_imap_open (folder_t folder, int flags)
     }
   monitor_unlock (folder->monitor);
 
-  /* Fetch the pop server name and the port in the url_t.  */
+  /* Fetch the server name and the port in the url_t.  */
   status = url_get_host (folder->url, NULL, 0, &len);
   if (status != 0)
     return status;
@@ -320,38 +444,22 @@ folder_imap_open (folder_t folder, int flags)
 	/* Are they open for business ?  The server send an untag response
 	   for greeting. Thenically it can be OK/PREAUTH/BYE.  The BYE is
 	   the one that we do not want, server being unfriendly.  */
-	preauth = (strncasecmp (f_imap->buffer, "* PREAUTH", 9) == 0);
-        if (strncasecmp (f_imap->buffer, "* OK", 4) != 0 && ! preauth)
-          {
-            CHECK_ERROR_CLOSE (folder, f_imap, EACCES);
-          }
-
-        if (folder->authority == NULL && !preauth)
-          {
-	    char auth[64] = "";
-	    size_t n = 0;
-            url_get_auth (folder->url, auth, 64, &n);
-            if (n == 0 || strcasecmp (auth, "*") == 0)
-              {
-                authority_create (&(folder->authority), folder->ticket,
-				  folder);
-                authority_set_authenticate (folder->authority, imap_user,
-					    folder);
-              }
-	    else
-              {
-		/* No other type of Authentication is supported yet.  */
-                /* What can we do ? flag an error ?  */
-		CHECK_ERROR_CLOSE (folder, f_imap, ENOSYS);
-              }
-          }
-        f_imap->state = IMAP_AUTH;
+	if (strncasecmp (f_imap->buffer, "* PREAUTH", 9) == 0)
+	  {
+	    f_imap->state = IMAP_AUTH_DONE;
+	  }
+	else
+	  {
+            if (strncasecmp (f_imap->buffer, "* OK", 4) != 0)
+              CHECK_ERROR_CLOSE (folder, f_imap, EACCES);
+            f_imap->state = IMAP_AUTH;
+	  }
       }
 
     case IMAP_AUTH:
     case IMAP_LOGIN:
     case IMAP_LOGIN_ACK:
-      if (!preauth)
+      assert (folder->authority);
 	{
 	  status = authority_authenticate (folder->authority);
 	  CHECK_EAGAIN (f_imap, status);

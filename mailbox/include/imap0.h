@@ -25,6 +25,7 @@
 #include <folder0.h>
 #include <mailbox0.h>
 #include <registrar0.h>
+#include <auth0.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,6 +119,18 @@ enum imap_state
   IMAP_UNSUBSCRIBE, IMAP_UNSUBSCRIBE_ACK
 };
 
+enum imap_auth_state
+{
+  /* ANONYMOUS */
+  IMAP_AUTH_ANON_REQ_WRITE,
+  IMAP_AUTH_ANON_REQ_SEND,
+  IMAP_AUTH_ANON_WAIT_CONT,
+  IMAP_AUTH_ANON_MSG,
+  IMAP_AUTH_ANON_MSG_SEND,
+  IMAP_AUTH_ANON_WAIT_RESP,
+
+};
+
 struct literal_string
 {
   char *buffer;
@@ -169,6 +182,9 @@ struct _f_imap
   /* Login  */
   char *user;
   char *passwd;
+
+  /* AUTHENTICATE states */
+  enum imap_auth_state auth_state;
 };
 
 struct _m_imap
@@ -215,7 +231,10 @@ int imap_write        __P ((f_imap_t));
 int imap_send         __P ((f_imap_t));
 int imap_parse        __P ((f_imap_t));
 int imap_readline     __P ((f_imap_t));
-char *section_name      __P ((msg_imap_t));
+char *section_name    __P ((msg_imap_t));
+
+int authenticate_imap_login     __P ((authority_t auth));
+int authenticate_imap_sasl_anon __P ((authority_t auth));
 
 #ifdef __cplusplus
 }

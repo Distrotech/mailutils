@@ -34,6 +34,8 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <imap0.h>
+#include <url0.h>
+
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
@@ -107,7 +109,13 @@ _mailbox_imap_init (mailbox_t mailbox)
 {
   m_imap_t m_imap;
   size_t name_len = 0;
-  m_imap = mailbox->data = calloc (1, sizeof *m_imap);
+  folder_t folder = NULL;
+
+  assert(mailbox);
+
+  folder = mailbox->folder;
+
+  m_imap = mailbox->data = calloc (1, sizeof (*m_imap));
   if (m_imap == NULL)
     return ENOMEM;
 
@@ -156,6 +164,33 @@ _mailbox_imap_init (mailbox_t mailbox)
     mailbox_get_property (mailbox, &property);
     property_set_value (property, "TYPE", "IMAP4", 1);
   }
+
+  assert(folder);
+  assert(folder->url);
+
+  if (folder->authority == NULL)
+    {
+      const char *auth = folder->url->auth;
+
+      if (auth == NULL || strcasecmp (auth, "*") == 0)
+	{
+	  authority_create (&(folder->authority), folder->ticket, folder);
+	  authority_set_authenticate (folder->authority,
+	      authenticate_imap_login, folder);
+	}
+      else if (strcasecmp (auth, "anon") == 0)
+	{
+	  authority_create (&(folder->authority), folder->ticket, folder);
+	  authority_set_authenticate (folder->authority,
+	      authenticate_imap_sasl_anon, folder);
+	}
+      else
+	{
+	  /* Not a supported authentication mechanism. */
+	  return ENOTSUP;
+	}
+    }
+
   return 0;
 }
 
@@ -759,7 +794,6 @@ imap_expunge (mailbox_t mailbox)
 static int
 imap_append_message (mailbox_t mailbox, message_t msg)
 {
-  size_t total;
   int status = 0;
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
