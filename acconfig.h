@@ -21,6 +21,15 @@
 /* Define if have snprintf() */
 #undef HAVE_SNPRINTF
 
+/* Define if struct tm has a tm_zone member */
+#undef HAVE_TM_ZONE
+
+/* Define if struct tm has a tm_isdst member */
+#undef HAVE_TM_ISDST
+
+/* Define if struct tm has a tm_gmtoff member */
+#undef HAVE_TM_GMTOFF
+
 /* Define if enable Posix Thread */
 #undef WITH_PTHREAD
 
