@@ -1,3 +1,12 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 23:06:33 -0700
+
+  * Added changelog.pl so we can have automated entries
+    set CVS_EMAIL=me@here.com and CVS_FULLNAME="Joe Blow"
+	usage: changelog.pl "added signal.c" or changelog.pl, an editor will
+	then appear (uses $VISUAL and $EDITOR)
+	the format is controlled simply via the format call at the end
+	and the section of perl code directly above it
+
 Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 17:46:31 -0700
 	
 	* added pop3d/signal.c -- contains pop3_sigchld() currently
