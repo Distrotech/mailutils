@@ -91,7 +91,7 @@ WS [ \t]*
   prev_state = YYSTATE;
   BEGIN(HEX);
 }
-<INITIAL>[^ \t<\\\n)+&]/[ \t\\\n)+&] {
+<INITIAL>[^ \t<\\\n)+,&]/[ \t\\\n)+,&] {
   obstack_grow (&stack, yytext, yyleng);
   yylval.string.len = obstack_object_size (&stack);
   obstack_1grow (&stack, 0);
@@ -124,7 +124,7 @@ WS [ \t]*
 "&&"  return '+';
 "||"  return ',';
   /* Operators */
-"!"|"+"|"("|")"|"/"  return yytext[0];
+"!"|"+"|","|"("|")"|"/"  return yytext[0];
 <ARGS>","        return yytext[0];
 <ARGS>")"        { BEGIN(INITIAL); return yytext[0]; }
 <INITIAL,ARGS,HEX>. {
