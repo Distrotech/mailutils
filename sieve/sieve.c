@@ -218,6 +218,7 @@ static const char *sieve_argp_capa[] =
   "license",
   "logging",
   "mailer",
+  "sieve",
   NULL
 };
 
@@ -304,6 +305,7 @@ main (int argc, char *argv[])
   struct options opts = {0};
   int (*debugfp) __P ((mu_debug_t, size_t level, const char *, va_list));
     
+  sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);
 

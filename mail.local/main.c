@@ -102,6 +102,7 @@ static const char *argp_capa[] = {
   "logging",
   "mailbox",
   "mailer",
+  "sieve",
   NULL
 };
 
@@ -275,6 +276,7 @@ main (int argc, char *argv[])
 
   mu_argp_error_code = EX_CONFIG;
   MU_AUTH_REGISTER_ALL_MODULES();
+  sieve_argp_init ();
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   
   openlog ("mail.local", LOG_PID, log_facility);
