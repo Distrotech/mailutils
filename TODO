@@ -31,13 +31,16 @@ IMPORTANT:
 
 [imap4d]
 
+- support of mailspools in user home directory, particularly when
+  they are in maildir format (I think qmail does this).
+
 - Check interaction with imap clients.
 
 - Better support of multi-access mailbox
 
 - implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
-- implement AUTHENTICATE KERBEROS_V4 and SKEY
+- implement AUTHENTICATE KERBEROS_V4 and SKEY and CRAM-MD5 and SRP?
 
 [mail]
 
@@ -45,11 +48,21 @@ IMPORTANT:
 
 [mailbox]
 
+- lib/argcv.c should unescape strings as well as unquote them
+
+- need to dotlock with an external program, a gnu_dotlock equivalent
+  to mutt_dotlock. I can't save mail to my spool!
+
+- write a fnmatch() that doesn't respect []
+
+- select needed
+
 - mailboxes don't remember whether or not they've been opened
 
 - print errors to a debug object, by default
 
-- the debug object should pass the error level onto the callback
++ the debug object should pass the error level onto the callback,
+  and I want an error level to string convertor.
 
 - does IMAP do an EXAMINE instead of a select if the mailbox is being
   opened readonly? Does list return whether a mailbox is readonly?
@@ -58,7 +71,7 @@ IMPORTANT:
 - mu_cpystr - the size_t* size outputs only give strlen(), not the
   actual length?
 
-- finish mh mailboxe support (they don't have a folder yet)
+- finish mh mailbox support (they don't have a folder yet)
 
 - need code to find a "real" envelope from... an actual email address
   that DSNs can be sent to.
@@ -78,7 +91,7 @@ IMPORTANT:
 
 - Mime.types API
 
-- A ticket file format allowing specification of different authentication
++ A ticket file format allowing specification of different authentication
   information for different mailboxes.
 
 - imap4 client login referals
@@ -94,8 +107,6 @@ IMPORTANT:
   - why does mimetest fail on a symlink, but suceed on a dotlocked file?
 
 + support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
-+ probably the AUTH should be allocated on creation, when the url is
-  looked at, and rejected then, for now return ENOTSUP at folder_imap.c:327
 
 [examples]
 
@@ -104,11 +115,9 @@ IMPORTANT:
 
 [sieve]
 
-- make sure there's a SV_DBG_ERR, so REAL info on errors gets printed
++ make sure there's a SV_DBG_ERR, so REAL info on errors gets printed
 
 - add copyrights, including CMUs to the docs
-
-- ensure implicit keep works
 
 + argp
 
