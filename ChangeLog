@@ -1,5 +1,15 @@
+2003-02-18  Sergey Poznyakoff 
+
+	* configure.ac: Provide a replacement for vsyslog
+	* lib/vsyslog.c: New file.
+	* lib/Makefile.am: Add vsyslog.c
+	* mh/README: Minor changes.
+	* mh/TODO: Minor changes.
+
 2003-02-16  Sergey Poznyakoff  
 
+	The sources up to here are tagged rel_0_3.
+	
 	* libmu_scm/Makefile.am: Use $< only in implicit rules. Non-gnu
 	  implementation of make expand it to a null string if used
 	  within an explicit rule.
