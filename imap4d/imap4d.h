@@ -150,11 +150,6 @@ extern int is_virtual;
 extern struct daemon_param daemon_param;
 extern struct mu_auth_data *auth_data; 
 
-#ifdef WITH_TLS
-extern int tls_available;
-extern int tls_done;
-#endif /* WITH_TLS */
-
 extern int login_disabled;
 
 #ifndef HAVE_STRTOK_R
@@ -190,6 +185,7 @@ extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
 extern int  imap4d_select_status __P((void));
 #ifdef WITH_TLS
 extern int  imap4d_starttls __P ((struct imap4d_command *, char *));
+extern void starttls_init __P((void));
 #endif /* WITH_TLS */
 extern int  imap4d_status __P ((struct imap4d_command *, char *));
 extern int  imap4d_store __P ((struct imap4d_command *, char *));
@@ -275,10 +271,30 @@ void util_setio __P((FILE*, FILE*));
 void util_flush_output __P((void));
 int util_is_master __P((void));
 void util_bye __P((void));  
+void util_atexit __P((void (*fp) __PMT((void))));
+
 #ifdef WITH_TLS
 int imap4d_init_tls_server __P((void));
 #endif /* WITH_TLS */
 
+typedef int (*imap4d_auth_handler_fp) __PMT((struct imap4d_command *,
+					     char *, char *, char **));
+  
+extern void auth_add __P((char *name, imap4d_auth_handler_fp handler));
+extern void auth_remove __P((char *name));
+
+#ifdef WITH_GSSAPI  
+extern void auth_gssapi_init __P((void));
+#else
+# define auth_gssapi_init()  
+#endif
+
+#ifdef WITH_GSASL
+extern void auth_gsasl_init __P((void));
+#else
+# define auth_gsasl_init()
+#endif
+  
 #ifdef __cplusplus
 }
 #endif
