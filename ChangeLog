@@ -1,5 +1,37 @@
 2002-11-13  Sergey Poznyakoff  
 
+	* include/mailutils/libsieve.h: (sieve_vprintf_t): Removed.
+	  (sieve_parse_error_t): New data type.
+	  (sieve_compile): Changed prototype declaration.
+	  (sieve_get_data,sieve_get_message,sieve_get_message_num)
+	  (sieve_get_debug_level,sieve_mailbox,sieve_disass)
+	  (sieve_machine_init,sieve_machine_set_error)
+	  (sieve_machine_set_parse_error): New functions.
+	* libsieve/README: Replaced BNZ with BZ.
+	* libsieve/actions.c (fileinto_args): Fileinto takes string,
+	  not string-list.
+	* libsieve/prog.c (sieve_code_command): Implemented implicit
+	  typecast from string to string-list.
+	* libsieve/require.c: Use sieve_compile_error() to report parse
+	  errors.
+	* libsieve/sieve.l: Likewise.
+	* libsieve/util.c: Likewise.
+	* libsieve/runtime.c: Verbose debugging.
+	  (instr_branch, instr_brz): New functions.
+	  (sieve_get_data,sieve_get_message,sieve_get_message_num)
+	  (sieve_get_debug_level,sieve_disass,sieve_mailbox): New
+	  functions
+	* libsieve/sieve.h (sieve_op_t): New member `pc'.
+	  (struct sieve_machine): New members: errbuf,mailbox,msgno,
+	  msg,parse_error_printer.
+	  (sieve_error,sieve_debug): Removed prototype.
+	  (sieve_compile_error,instr_branch,instr_brz): New function.
+	* libsieve/sieve.y: Implemented conditional blocks. The grammar
+	  is complete.
+	* libsieve/sv.c: Modified to reflect changes in the API.
+	
+2002-11-13  Sergey Poznyakoff  
+
 	* mail/util.c (util_do_command): Interpret empty line as "next"
 	  command only when in interactive mode.
 
