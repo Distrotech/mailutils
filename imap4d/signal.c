@@ -25,8 +25,8 @@ imap4d_sigchld (int signo)
   pid_t pid;
   int status;
 
-  while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
-      --children;
+  while ((pid = waitpid (-1, &status, WNOHANG)) > 0)
+    --children;
 #ifndef HAVE_SIGACTION
   /* On some system, signal implements the unreliable semantic and
      has to be rearm.  */
@@ -43,22 +43,19 @@ imap4d_signal (int signo)
   /* Master process.  */
   if (!ofile)
     {
-       syslog (LOG_CRIT, "MASTER: exiting on signal");
-       exit (1); /* abort(); */
+      syslog (LOG_CRIT, "MASTER: exiting on signal");
+      exit (1);			/* abort(); */
     }
 
   switch (signo)
     {
     case SIGALRM:
-    imap4d_bye (ERR_TIMEOUT);
+      imap4d_bye (ERR_TIMEOUT);
 
     case SIGPIPE:
       exit (0);
 
     default:
-  imap4d_bye (ERR_SIGNAL);
+      imap4d_bye (ERR_SIGNAL);
+    }
 }
-}
-
-
-
