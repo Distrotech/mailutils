@@ -93,7 +93,7 @@ mu_scm_is_mailbox (SCM scm)
   return SCM_NIMP (scm) && SCM_CAR (scm) == mailbox_tag;
 }
 
-/* ************************************************************************** */
+/* ************************************************************************* */
 /* Guile primitives */
 
 SCM_DEFINE (mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
@@ -168,6 +168,28 @@ SCM_DEFINE (mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   mailbox_get_url (mum->mbox, &url);
   return scm_makfrom0str (url_to_string (url));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
+	    (SCM MBOX, SCM MODE),
+	    "Returns a port associated with the contents of the MBOX.\n"
+	    "MODE is a string defining operation mode of the stream. It may\n"
+	    "contain any of the two characters: \"r\" for reading, \"w\" for\n"
+	    "writing.\n")
+#define FUNC_NAME s_mu_mailbox_get_port
+{
+  struct mu_mailbox *mum;
+  stream_t stream;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
+	      MODE, SCM_ARG2, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  if (mailbox_get_stream (mum->mbox, &stream))
+    return SCM_BOOL_F;
+  return mu_port_make_from_stream (MBOX, stream,
+				   scm_mode_bits (SCM_CHARS (MODE)));    
 }
 #undef FUNC_NAME
 
