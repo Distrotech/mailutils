@@ -462,7 +462,7 @@ sieve_register_standard_actions (sieve_machine_t mach)
   sieve_register_action (mach, "keep", sieve_action_keep, NULL, NULL, 1);
   sieve_register_action (mach, "discard", sieve_action_discard, NULL, NULL, 1);
   sieve_register_action (mach, "fileinto", sieve_action_fileinto,
-			 fileinto_args, NULL, 1);
+			 fileinto_args, NULL, 0);
   sieve_register_action (mach, "reject", sieve_action_reject, fileinto_args,
 			 NULL, 0);
   sieve_register_action (mach, "redirect", sieve_action_redirect, 
