@@ -22,7 +22,7 @@
 int
 pop3_rset (const char *arg)
 {
-  int i;
+  int i = 0, total = 0;
 
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -30,8 +30,10 @@ pop3_rset (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  for (i = 0; i < mbox->messages; i++)
-    mbox_undelete (mbox, i);
+  mailbox_messages_count (mbox, &total);
+
+  for (i = 1; i <= total; i++)
+    /* FIXME: undelete message i */ ;
 
   fprintf (ofile, "+OK\r\n");
   return OK;

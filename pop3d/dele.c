@@ -30,8 +30,8 @@ pop3_dele (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  num = atoi (arg) - 1;
-  if (mbox_delete(mbox, num) != 0)
+  num = atoi (arg);
+  if (/* FIXME: mailbox_delete (mbox, num) != */ 0)
     return ERR_NO_MESG;
 
   fprintf (ofile, "+OK Message %d marked\r\n", num + 1);

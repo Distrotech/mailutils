@@ -166,28 +166,18 @@ pop3_user (const char *arg)
       openlog ("gnu-pop3d", LOG_PID, LOG_MAIL);
 #endif /* USE_LIBPAM */
 
-#ifdef MAILSPOOLHOME
-      if (pw != NULL)
-	{
-	  chdir (pw->pw_dir);
-	  mbox = mbox_open (MAILSPOOLHOME);
-	}
-      else
-	mbox = NULL;
 
-      if (mbox == NULL)		/* We should check errno here... */
+      if (mailbox_create_default (&mbox, arg) != 0)
 	{
-	  chdir (_PATH_MAILDIR);
-#endif /* MAILSPOOLHOME */
-	  mbox = mbox_open (arg);
-	  if (mbox == NULL)	/* And here */
-	    {
-		state = AUTHORIZATION;
-		return ERR_MBOX_LOCK;
-	    }
-#ifdef MAILSPOOLHOME
+	  state = AUTHORIZATION;
+	  return ERR_UNKNOWN;
 	}
-#endif
+      else if (mailbox_open (mbox, 0) != 0)
+	{
+	  state = AUTHORIZATION;
+	  return ERR_MBOX_LOCK;
+	}
+
       username = strdup (arg);
       if (username == NULL)
 	pop3_abquit (ERR_NO_MEM);
@@ -196,11 +186,10 @@ pop3_user (const char *arg)
       if (pw != NULL && pw->pw_uid > 1)
 	setuid (pw->pw_uid);
 
-      mbox_lock (mbox, MO_RLOCK | MO_WLOCK);
-      
       fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
+      /* FIXME: mailbox name */
       syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'", username,
-	      mbox->name);
+	      NULL);
       return OK;
     }
   else if (strcasecmp (cmd, "QUIT") == 0)

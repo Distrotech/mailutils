@@ -22,8 +22,8 @@
 int
 pop3_retr (const char *arg)
 {
-  unsigned int mesg, size;
-  char *buf;
+  unsigned int mesg, size, read = 0;
+  char buf[BUFFERSIZE];
   message_t msg;
   header_t hdr;
   body_t body;
@@ -35,12 +35,7 @@ pop3_retr (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  mesg = atoi (arg) - 1;
-
-#ifdef OLD_API
-  if (mesg >= mbox->messages || mbox_is_deleted(mbox, mesg))
-    return ERR_NO_MESG;
-#endif
+  mesg = atoi (arg);
 
   if (mailbox_get_message (mbox, mesg, &msg) != 0)
     return ERR_NO_MESG;
@@ -49,20 +44,27 @@ pop3_retr (const char *arg)
   message_get_body (msg, &body);
 
   /* Header */
+  fprintf (ofile, "+OK\r\n");
   header_get_stream (hdr, &stream);
   header_size (hdr, &size);
-  buf = malloc (size);
-  stream_read (stream, buf, size, 0, NULL);
-  fprintf (ofile, "+OK\r\n%s", buf);
-  free(buf);
+  while (read < size)
+    {
+      stream_read (stream, buf, BUFFERSIZE, 0, NULL);
+      fprintf (ofile, "%s", buf);
+      read += BUFFERSIZE;
+    }
+
 
   /* body */
   body_get_stream (body, &stream);
   body_lines (body, &size);
-  buf = malloc (size);
-  stream_read (stream, buf, size, 0, NULL);
-  fprintf (ofile, "%s.\r\n", buf);
-  free (buf);
+  while (read < size)
+    {
+      stream_read (stream, buf, BUFFERSIZE, 0, NULL);
+      fprintf (ofile, "%s", buf);
+      read += BUFFERSIZE;
+    }
+  fprintf (ofile, ".\r\n");
 
   return OK;
 }

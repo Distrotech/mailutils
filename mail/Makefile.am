@@ -10,4 +10,4 @@ mail_SOURCES = alias.c alt.c bang.c cd.c copy.c delete.c discard.c dp.c \
 	headers.c help.c hold.c if.c list.c mail.c mail.h mbox.c next.c pipe.c \
 	previous.c print.c printall.c quit.c relist.c reply.c retain.c save.c \
 	send.c set.c shell.c size.c source.c top.c touch.c unalias.c \
-	undelete.c unset.c util.c visual.c write.c z.c
+	undelete.c unset.c util.c visual.c write.c z.c table.h

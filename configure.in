@@ -71,7 +71,7 @@ AC_CHECK_FUNC(socket, [true],
     AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
 
 dnl Output Makefiles
-AC_OUTPUT(Makefile include/Makefile include/mailutils/Makefile m4/Makefile doc/Makefile
- lib/Makefile mailbox/Makefile mailbox/include/Makefile libmailbox/Makefile
- from/Makefile mail/Makefile pop3d/Makefile)
+AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
+ m4/Makefile doc/Makefile lib/Makefile mailbox/Makefile
+ mailbox/include/Makefile from/Makefile mail/Makefile pop3d/Makefile)
 

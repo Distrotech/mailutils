@@ -169,46 +169,23 @@ pop3_apop (const char *arg)
       return ERR_BAD_LOGIN;
     }
 
-#ifdef MAILSPOOLHOME
-  if (pw != NULL)
+  if (mailbox_create_default (&mbox, username) != 0)
     {
-      chdir (pw->pw_dir);
-      mbox = mbox_open (MAILSPOOLHOME);
+      free (username);
+      state = AUTHORIZATION;
+      return ERR_UNKNOWN;
     }
-  else
-    mbox = NULL;
-      
-  if (mbox == NULL)
+  else if (mailbox_open (mbox, 0) != 0)
     {
-      chdir (_PATH_MAILDIR);
-#endif /* MAILSPOOLHOME */
-      mbox = mbox_open (username);
-      if (mbox == NULL)
-	{
-	  state = AUTHORIZATION;
-	  return ERR_MBOX_LOCK;
-	}
-#ifdef MAILSPOOLHOME
+      free (username);
+      state = AUTHORIZATION;
+      return ERR_MBOX_LOCK;
     }
-#endif
-
-#if 0
-  if ((pw->pw_uid < 1)
-#ifdef MAILSPOOLHOME
-  /* Drop mail group for home dirs */
-      || setgid (pw->pw_gid) == -1
-#endif
-      || setuid (pw->pw_uid) == -1)
-    {
-      pop3_unlock ();
-      free (mailbox);
-      return ERR_BAD_LOGIN;
-    }
-#endif /* 0 */
 
   state = TRANSACTION;
   fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
-  syslog (LOG_INFO, "User %s logged in with mailbox %s", username, mbox->name);
+  /* FIXME: how to get mailbox name? */
+  syslog (LOG_INFO, "User %s logged in with mailbox %s", username, NULL);
   return OK;
 }
 

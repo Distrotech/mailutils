@@ -38,18 +38,13 @@ pop3_top (const char *arg)
 
   mesgc = pop3_cmd (arg);
   linesc = pop3_args (arg);
-  mesg = atoi (mesgc) - 1;
+  mesg = atoi (mesgc);
   lines = strlen (linesc) > 0 ? atoi (linesc) : -1;
   free (mesgc);
   free (linesc);
 
   if (lines < 0)
     return ERR_BAD_ARGS;
-
-#ifdef OLD_API
-  if (mesg > mbox->messages || mbox_is_deleted(mbox, mesg))
-    return ERR_NO_MESG;
-#endif
 
   if (mailbox_get_message (mbox, mesg, &msg) != 0)
     return ERR_NO_MESG;

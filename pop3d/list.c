@@ -22,7 +22,8 @@
 int
 pop3_list (const char *arg)
 {
-  int mesg = 0;
+  int mesg = 0, size = 0;
+  message_t msg;
 
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
@@ -30,20 +31,29 @@ pop3_list (const char *arg)
   if (strchr (arg, ' ') != NULL)
     return ERR_BAD_ARGS;
 
+  /* FIXME: how to find if mailbox is deleted, how to get size */
+
   if (strlen (arg) == 0)
     {
+      int total;
+      mailbox_messages_count (mbox, &total);
       fprintf (ofile, "+OK\r\n");
-      for (mesg = 0; mesg < mbox->messages ; mesg++)
-	if (!mbox_is_deleted(mbox, mesg))
-	  fprintf (ofile, "%d %d\r\n", mesg + 1, mbox->sizes[mesg]);
+      for (mesg = 1; mesg <= total; mesg++)
+	{
+	  mailbox_get_message (mbox, &msg, mesg);
+	  /* if ! deleted */
+	  /* message_get_size (msg, &size); */
+	  fprintf (ofile, "%d %d\r\n", mesg, size);
+	}
       fprintf (ofile, ".\r\n");
     }
   else
     {
-      mesg = atoi (arg) - 1;
-      if (mesg > mbox->messages || mbox_is_deleted(mbox, mesg))
+      mesg = atoi (arg);
+      if (mailbox_get_message (mbox, &msg, mesg) != 0)
 	return ERR_NO_MESG;
-      fprintf (ofile, "+OK %d %d\r\n", mesg + 1, mbox->sizes[mesg]);
+      /* message_get_size (msg, &size); */
+      fprintf (ofile, "+OK %d %d\r\n", mesg, size);
     }
 
   return OK;

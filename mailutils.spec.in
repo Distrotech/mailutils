@@ -1,0 +1,113 @@
+# -*- Shell-script -*-
+%define ver	@VERSION@
+%define RELEASE	1
+%define prefix	/usr
+
+Summary: GNU mail utilities
+Name: mailutils
+Version: %ver
+Release: %rel
+Copyright: GPL
+Source: ftp://ftp.gnu.org/pub/mailutils/mailutils-%{ver}.tar.gz
+BuildRoot: /var/tmp/mailutils-%{PACKAGE_VERSION}-root
+Packager: Jakob 'sparky' Kaivo <jkaivo@gnu.org>
+URL: http://www.gnu.org/software/mailutils/mailutils.html
+Group: Console/Mail
+
+%description
+GNU mail utilities
+
+%package libmailbox
+Summary: GNU mail utilities mailbox access library
+Copyright: LGPL
+Group: Development/Libraries
+
+%description libmailbox
+The runtime library libmailbox. This library contains various mailbox
+access routines and support for a number of mailbox types, such as
+mbox, Maildir, POP3, and IMAP4.
+
+%package libmailbox-devel
+Summary: GNU mail utilities mailbox access library development
+Copyright: LGPL
+Requires: libmailbox
+Group: Development/Libraries
+
+%description libmailbox-devel
+The static library and header files for libmailbox. API documentation
+is in mailutils-doc.
+
+%package doc
+Summary: GNU mail utitlies documentation
+Prereq: /sbin/install-info
+Group: Development/Libraries
+
+%description doc
+API reference for libmailbox and user documentation for the rest of
+the GNU mail utilities.
+
+%package mail
+Summary: GNU mail utilties mail(x) replacement
+Requires: libmailbox
+Group: Console/Mail
+
+%description mail
+A replacement for /bin/mail(x) conforming to the UNIX98 specification
+for mailx.
+
+%package pop3d
+Summary: GNU mail utilites POP3 daemon
+Requires: libmailbox
+Group: Networking/Daemons
+
+%description pop3d
+The GNU POP3 daemon. Uses libmailbox to support different styles of
+mailboxes.
+
+%prep
+%setup
+
+%build
+./configure --prefix=%prefix
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install-strip
+gzip -9n $RPM_BUILD_ROOT%{prefix}/info/*
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post libmailbox -p /sbin/ldconfig
+
+%postun libmailbox -p /sbin/ldconfig
+
+%post doc
+/sbin/install-info %{prefix}/info/mailutils.info.gz %{prefix}/info/dir
+
+%preun doc
+/sbin/install-info --delete %{prefix}/info/mailutils.info.gz \
+    %{prefix}/info/dif
+
+%files libmailbox
+%defattr(-, root, root)
+%{prefix}/lib/libmailbox.so.*
+
+%files libmailbox-devel
+%defattr(-, root, root)
+%{prefix}/lib/lib*.so
+%{prefix}/lib/*a
+
+%files doc
+%defattr(-, root, root)
+%doc AUTHORS COPYING ChangeLog NEWS README THANKS TODO
+%{prefix}/info/*
+
+%files mail
+%defattr(-, root, root)
+%{prefix}/bin/mail
+
+%files pop3d
+%defattr(-, root, root)
+%{prefix}/sbin/pop3d

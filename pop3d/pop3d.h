@@ -64,6 +64,9 @@
 /* Longest legal POP command */
 #define POP_MAXCMDLEN	255
 
+/* Buffer size to use for output */
+#define BUFFERSIZE	1024
+
 #define _GNU_SOURCE
 #include <stdarg.h>
 #include <stdio.h>
@@ -136,6 +139,7 @@
 #define ERR_FILE        12
 #define ERR_NO_OFILE    13
 #define ERR_TIMEOUT	14
+#define ERR_UNKNOWN	15
 
 mailbox_t mbox;
 
