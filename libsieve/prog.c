@@ -35,8 +35,8 @@ sieve_code (sieve_op_t *op)
 					    sizeof sieve_machine->prog[0]);
       if (!newprog)
 	{
-	  sieve_error ("%s:%d: out of memory!",
-		       sieve_filename, sieve_line_num);
+	  sieve_compile_error (sieve_filename, sieve_line_num, 
+                               "out of memory!");
 	  return 1;
 	}
       sieve_machine->prog = newprog;
@@ -124,9 +124,9 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 
       if (rc)
 	{
-	  sieve_error ("%s:%d: can't create iterator: %s",
-		       sieve_filename, sieve_line_num,
-		       mu_errstring (rc));
+	  sieve_compile_error (sieve_filename, sieve_line_num,
+                               "can't create iterator: %s",
+  		               mu_errstring (rc));
 	  return 1;
 	}
   
@@ -142,8 +142,8 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string);
 	      if (!tag)
 		{
-		  sieve_error ("%s:%d: invalid tag name `%s' for `%s'",
-			       sieve_filename, sieve_line_num,
+		  sieve_compile_error (sieve_filename, sieve_line_num,
+                               "invalid tag name `%s' for `%s'",
 			       val->v.string, reg->name);
 		  err = 1;
 		  break;
@@ -151,9 +151,9 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      
 	      if (!tag_list && (rc = list_create (&tag_list)))
 		{
-		  sieve_error ("%s:%d: can't create tag list: %s",
-			       sieve_filename, sieve_line_num,
-			       mu_errstring (rc));
+		  sieve_compile_error (sieve_filename, sieve_line_num,
+                                       "%s:%d: can't create tag list: %s",
+			               mu_errstring (rc));
 		  err = 1;
 		  break;
 		}
@@ -174,28 +174,45 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	    }
 	  else if (*exp_arg == SVT_VOID)
 	    {
-	      sieve_error ("%s:%d: too many arguments in call to `%s'",
-			   sieve_filename, sieve_line_num,
-			   reg->name);
-	      err = 1;
-	      break;
-	    }
-	  else if (*exp_arg != val->type)
-	    {
-	      sieve_error ("%s:%d: type mismatch in argument %d to `%s'",
-			   sieve_filename, sieve_line_num,
-			   exp_arg - reg->req_args + 1,
-			   reg->name);
+	      sieve_compile_error (sieve_filename, sieve_line_num,
+                                   "too many arguments in call to `%s'",
+ 			           reg->name);
 	      err = 1;
 	      break;
 	    }
 	  else
 	    {
+	      if (*exp_arg != val->type)
+		{
+		  if (*exp_arg == SVT_STRING_LIST && val->type == SVT_STRING)
+		    {
+		      list_t list;
+
+		      list_create (&list);
+		      list_append (list, val->v.string);
+		      sieve_pfree (&sieve_machine->memory_pool, val);
+		      val = sieve_value_create (SVT_STRING_LIST, list);
+		    }
+		  else
+		    {
+		      sieve_compile_error (sieve_filename, sieve_line_num,
+                                      "type mismatch in argument %d to `%s'",
+				      exp_arg - reg->req_args + 1,
+				      reg->name);
+		      sieve_compile_error (sieve_filename, sieve_line_num,
+                                      "Expected %s but passed %s",
+				      sieve_type_str (*exp_arg),
+				      sieve_type_str (val->type));
+		      err = 1;
+		      break;
+		    }
+		}
+
 	      if (!arg_list && (rc = list_create (&arg_list)))
 		{
-		  sieve_error ("%s:%d: can't create arg list: %s",
-			       sieve_filename, sieve_line_num,
-			       mu_errstring (rc));
+		  sieve_compile_error (sieve_filename, sieve_line_num,
+                                       "can't create arg list: %s",
+			               mu_errstring (rc));
 		  err = 1;
 		  break;
 		}
@@ -211,9 +228,9 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
     {
       if (*exp_arg != SVT_VOID)
 	{
-	  sieve_error ("%s:%d: too few arguments in call to `%s'",
-			   sieve_filename, sieve_line_num,
-			   reg->name);
+	  sieve_compile_error (sieve_filename, sieve_line_num, 
+                               "too few arguments in call to `%s'",
+			       reg->name);
 	  err = 1;
 	}
     }
