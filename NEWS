@@ -36,6 +36,9 @@ ANYOF
 
 *** more extensive diagnostics for APOP authentications
 
+*** Save headers even if the session was aborted. This ensures
+the persistence of message unique-ids as required by RFC 1939.
+
 *** popauth: new option --create.
 
 ** mail

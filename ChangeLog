@@ -1,5 +1,12 @@
 2003-08-18  Sergey Poznyakoff 
 
+	* mail/mail.h (ml_readline_with_intr): New function.
+	* mail/mailline.c: Likewise.
+	* mail/send.c: Use ml_readline_with_intr() when prompting
+	for header fields.
+	
+2003-08-18  Sergey Poznyakoff 
+
 	* pop3d/extra.c (pop3d_abquit): Flush message headers.
 	* NEWS: Updated.
 	* mail/mail.c (main): If the send mode was interrupted by
