@@ -155,7 +155,7 @@ mail_send0 (struct send_environ *env, int save_to)
   while (!done)
     {
       char *buf;
-      buf = readline (NULL);
+      buf = readline (" \b");
 
       if (ml_got_interrupt ())
 	{
