@@ -730,6 +730,64 @@ SCM_DEFINE (mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_message_multipart_p, "mu-message-multipart?", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns #t if MESG is a multipart MIME message.")
+#define FUNC_NAME s_mu_message_multipart_p
+{
+  message_t msg;
+  int ismime = 0;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  message_is_multipart (msg, &ismime);
+  return ismime ? SCM_BOOL_T : SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns number of parts in a multipart MIME message. Returns\n"
+            "#f if the argument is not a multipart message.")
+#define FUNC_NAME s_mu_message_get_num_parts
+{
+  message_t msg;
+  int ismime = 0;
+  size_t nparts = 0;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  message_is_multipart (msg, &ismime);
+  if (!ismime)
+    return SCM_BOOL_F;
+
+  message_get_num_parts (msg, &nparts);
+  return scm_makenum (nparts);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_get_part, "mu-message-get-part", 2, 0, 0,
+	    (SCM MESG, SCM PART),
+	    "Returns part number PART from a multipart MIME message.")
+#define FUNC_NAME s_mu_message_get_part
+{
+  message_t msg, submsg;
+  int ismime = 0;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_IMP (PART) && SCM_INUMP (PART), PART, SCM_ARG2, FUNC_NAME);
+
+  msg = mu_scm_message_get (MESG);
+  message_is_multipart (msg, &ismime);
+  if (!ismime)
+    return SCM_BOOL_F;
+
+  if (message_get_part (msg, SCM_INUM (PART), &submsg))
+    return SCM_BOOL_F;
+  return mu_scm_message_create (MESG, submsg);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
 	    (SCM MESG, SCM MAILER, SCM FROM, SCM TO),
 	    "Sends the message MESG. Optional MAILER overrides default\n"
