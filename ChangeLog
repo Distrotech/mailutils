@@ -1,5 +1,11 @@
 2001-08-02  Sam Roberts
 
+	* folder_imap.c: don't pretend to be authorized if we are not, it
+	only leads to confusion
+	* mailbox.c: mailbox created the folder, it should set it's
+	folder's debug object when it's is set, otherwise there is no way
+	to get debug messages from a mailbox's folder (I was getting all
+	the pop protocol traces but not the imap ones)
 	* TODO: updated
 	* sieve/: script.c, sieve.c: Fixed bug, I was deleting a message
 	after a fileinto, which was wrong.  Tweaked the logging, it's
