@@ -363,7 +363,7 @@ mu_getpwnam (const char *name)
 
 int mu_virtual_domain;
 
-#ifdef USE_VIRTUAL_DOMAINS
+#ifdef ENABLE_VIRTUAL_DOMAINS
 
 struct passwd *
 getpwnam_virtual (const char *u)

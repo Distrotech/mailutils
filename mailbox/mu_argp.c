@@ -256,9 +256,6 @@ static char *mu_conf_option[] = {
 #ifdef USE_LIBPAM
   "USE_LIBPAM",
 #endif
-#ifdef USE_VIRTUAL_DOMAINS
-  "USE_VIRTUAL_DOMAINS",
-#endif
 #ifdef WITH_BDB2
   "WITH_BDB2",
 #endif
@@ -285,6 +282,9 @@ static char *mu_conf_option[] = {
 #endif
 #ifdef HAVE_MYSQL
   "HAVE_MYSQL",
+#endif
+#ifdef ENABLE_VIRTUAL_DOMAINS
+  "ENABLE_VIRTUAL_DOMAINS",
 #endif
 #ifdef ENABLE_IMAP
   "ENABLE_IMAP",

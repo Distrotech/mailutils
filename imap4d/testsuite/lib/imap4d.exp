@@ -20,7 +20,7 @@ source $top_srcdir/testsuite/lib/mailutils.exp
     
 mu_init "--authentication generic --authorization virtdomain"
 mu_version
-if ![mu_check_capability USE_VIRTUAL_DOMAINS] {
+if ![mu_check_capability ENABLE_VIRTUAL_DOMAINS] {
     clone_output "WARNING: Support for virtual domains not compiled in"
     clone_output "WARNING: Skipping tests for imap4d"
     exit 0
