@@ -375,7 +375,8 @@ mhl_format_destroy (list_t *fmt)
 #define B_ADDRFIELD       9
 #define B_DATEFIELD      10
 #define B_DECODE         12
-#define B_MAX            13
+#define B_DISABLE_BODY   13
+#define B_MAX            14
 		      
 /* String variables */
 #define S_OVERFLOWTEXT   0
@@ -667,6 +668,9 @@ eval_body (struct eval_env *env)
   size_t n;
   body_t body = NULL;
 
+  if (env->bvar[B_DISABLE_BODY])
+    return 0;
+  
   env->prefix = env->svar[S_COMPONENT];
 
   message_get_body (env->msg, &body);
@@ -809,6 +813,7 @@ mhl_format_run (list_t fmt,
   env.bvar[B_CLEARSCREEN] = flags & MHL_CLEARSCREEN;
   env.bvar[B_BELL] = flags & MHL_BELL;
   env.bvar[B_DECODE] = flags & MHL_DECODE;
+  env.bvar[B_DISABLE_BODY] = flags & MHL_DISABLE_BODY;
   env.pos = 0;
   env.nlines = 0;
   env.msg = msg;
