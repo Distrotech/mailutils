@@ -303,3 +303,24 @@ list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
     return EINVAL;
   list->destroy_item = destroy_item;
 }
+
+int
+list_to_array (list_t list, void **array, size_t count, size_t *pcount)
+{
+  size_t total = 0;
+
+  if (list != NULL)
+    {
+      size_t i;
+      struct list_data *current;
+      total = (count < list->count) ? count : list->count;
+      for (i = 0, current = list->head.next; i < total && current != &(list->head); current = current->next)
+        {
+          if (array)
+            array[i] = current->item;
+        }
+    }
+  if (pcount)
+    *pcount = total; 
+  return 0;
+}
