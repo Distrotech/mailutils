@@ -62,7 +62,8 @@ imap4d_status (struct imap4d_command *command, char *arg)
   mailbox_t smbox = NULL;
   int status;
   int count = 0;
-
+  char *err_msg = NULL;
+  
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
 
@@ -76,13 +77,14 @@ imap4d_status (struct imap4d_command *command, char *arg)
       struct passwd *pw = mu_getpwuid (getuid());
       if (!pw)
 	return util_finish (command, RESP_NO, "Cannot map UID to username");
-      mailbox_name = malloc (strlen (maildir) + strlen (pw->pw_name) + 1);
+      mailbox_name = malloc (strlen (mu_path_maildir) +
+			     strlen (pw->pw_name) + 1);
       if (!mailbox_name)
 	{
 	  syslog (LOG_ERR, "Not enough memory");
 	  return util_finish (command, RESP_NO, "Not enough memory");
 	}
-      sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
+      sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
     }
   else
     mailbox_name = namespace_getfullpath (name, delim);
@@ -113,7 +115,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	      fun = status_get_handler (item);
 	      if (!fun)
 		{
-		  count = -1;
+		  err_msg = "Invalid flag in list";
 		  break;
 		}
 		  
@@ -123,7 +125,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	      if (!fun (smbox))
 		util_send (" ");
 	    }
-	  if (count)
+	  if (count > 0)
 	    util_send (")\r\n");
 	  mailbox_close (smbox);
 	}
@@ -131,12 +133,15 @@ imap4d_status (struct imap4d_command *command, char *arg)
     }
   free (mailbox_name);
 
-  if (count == 0)
-    return util_finish (command, RESP_BAD, "Too few args (empty list)");
-  else if (count == -1)
-    return util_finish (command, RESP_BAD, "Invalid flag in list");
-  else if (status == 0)
-    return util_finish (command, RESP_OK, "Completed");
+  if (status == 0)
+    {
+      if (count == 0)
+	return util_finish (command, RESP_BAD, "Too few args (empty list)");
+      else if (err_msg)
+	return util_finish (command, RESP_BAD, err_msg);
+      return util_finish (command, RESP_OK, "Completed");
+    }
+  
   return util_finish (command, RESP_NO, "Error opening mailbox");
 }
 
