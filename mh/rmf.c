@@ -1,0 +1,138 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 2002 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* MH rmf command */
+
+#include <mh.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include <dirent.h>
+
+const char *argp_program_version = "rmf (" PACKAGE_STRING ")";
+static char doc[] = "GNU MH rmf";
+static char args_doc[] = "[+folder]";
+
+/* GNU options */
+static struct argp_option options[] = {
+  {"folder",  'f', "FOLDER", 0, "Specify the folder to delete"},
+  {"interactive", 'i', "BOOL", OPTION_ARG_OPTIONAL, "Interactive mode: ask for confirmation before removing each folder"},
+  {"recursive", 'r', NULL, 0, "Recursively delete all subfolders"},
+  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
+  { 0 }
+};
+
+/* Traditional MH options */
+struct mh_option mh_option[] = {
+  {"interactive", 1, 'i', MH_OPT_BOOL, NULL},
+  { 0 }
+};
+
+int explicit_folder; /* Was the folder explicitly given */
+int interactive; /* Ask for confirmation before deleting */
+int recurse;     /* Recursively process all the sub-directories */
+
+static int
+opt_handler (int key, char *arg, void *unused)
+{
+  switch (key)
+    {
+    case '+':
+    case 'f':
+      explicit_folder = 1;
+      current_folder = arg;
+      break;
+
+    case 'i':
+      interactive = is_true (arg);
+      break;
+
+    case 'r':
+      recurse = is_true (arg);
+      break;
+      
+    default:
+      return 1;
+    }
+  return 0;
+}
+
+static void
+rmf (const char *name)
+{
+  DIR *dir;
+  struct dirent *entry;
+    
+  dir = opendir (name);
+
+  if (!dir)
+    {
+      mh_error ("can't scan folder %s: %s", name, strerror (errno));
+      return;
+    }
+
+  if (interactive && !mh_getyn ("Remove folder %s", name))
+    exit (0);
+  
+  while ((entry = readdir (dir)))
+    {
+      char *p;
+      struct stat st;
+
+      if (strcmp (entry->d_name, ".") == 0
+	  || strcmp (entry->d_name, "..") == 0)
+	continue;
+      
+      asprintf (&p, "%s/%s", name, entry->d_name);
+      if (stat (p, &st) < 0)
+	{
+	  mh_error ("can't stat %s: %s", p, strerror (errno));
+	}
+      else if (S_ISDIR (st.st_mode))
+	{
+	  if (recurse)
+	    rmf (p);
+	}
+      else
+	{
+	  if (unlink (p))
+	    mh_error ("can't unlink %s: %s", p, strerror (errno));
+	}
+      free (p);
+    }
+  closedir (dir);
+  rmdir (name);
+}
+
+int
+main (int argc, char **argv)
+{
+  char *name;
+  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+		 opt_handler, NULL, NULL);
+  if (!explicit_folder)
+    interactive = 1;
+
+  name = mh_expand_name (current_folder, 0);
+  rmf (name);
+  return 0;
+}
