@@ -1,3 +1,19 @@
+2002-11-12  Sergey Poznyakoff
+
+	* libsieve/prog.c: New file. Code generator functions.
+	* libsieve/runtime.c: New file. Runtime support.
+	* libsieve/Makefile.am: Added prog.c and runtime.c.
+	* include/mailutils/libsieve.h: Added basic code generation and
+	  debugging (conditional blocks still not implemented).
+	* libsieve/actions.c: Likewise.
+	* libsieve/register.c: Likewise.
+	* libsieve/sieve.h: Likewise.
+	* libsieve/sieve.l: Likewise.
+	* libsieve/sieve.y: Likewise.
+	* libsieve/sv.c: Likewise.
+	* libsieve/tests.c: Likewise.
+	* libsieve/util.c: Likewise.
+	
 2002-11-08  Sergey Poznyakoff 
 
 	* include/mailutils/libsieve.h: New file.
