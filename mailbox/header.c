@@ -475,6 +475,17 @@ header_get_value (header_t header, const char *name, char *buffer,
 	  strncasecmp (header->hdr[i].fn, name, fn_len) == 0)
 	{
 	  fv_len = (header->hdr[i].fv_end - header->hdr[i].fv);
+	  /* FIXME:FIXME:PLEASE: hack, add a space/nl separator  */
+	  if (total && (threshold - 2) > 0)
+	    {
+	      if (buffer)
+		{
+		  *buffer++ = '\n';
+		  *buffer++ = ' ';
+		}
+	      threshold -= 2;
+	      total += 2;
+	    }
 	  total += fv_len;
 	  /* Can everything fit in the buffer.  */
 	  if (buffer && threshold > 0)
