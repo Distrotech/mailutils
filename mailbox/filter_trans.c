@@ -472,6 +472,12 @@ qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
 		  consumed += 2;
 		}
 	    }
+	  else if (c == '_')
+	    {
+	      *optr++ = ' ';
+	      (*nbytes)++;
+	      consumed++;
+	    }
 	  else
 	    {
 	      *optr++ = c;
