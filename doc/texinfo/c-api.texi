@@ -11,7 +11,6 @@
 * Maildir::   Maildir
 * SMTP::      SMTP
 * Sendmail::  Sendmail
-* NNTP::      NNTP
 * Parse822::  Parse822
 @end menu
 
@@ -56,12 +55,6 @@
 @section Sendmail
 @cindex Sendmail
 @include sendmail.texi
-
-@node NNTP
-@comment  node-name,  next,  previous,  up
-@section NNTP
-@cindex NNTP
-@include nntp.texi
 
 @node Parse822
 @comment  node-name,  next,  previous,  up
