@@ -725,3 +725,11 @@ mh_annotate (message_t msg, char *field, char *text, int date)
   attribute_set_modified (attr);
 }
 
+char *
+mh_draft_name ()
+{
+  char *draftfolder = mh_global_profile_get ("Draft-Folder",
+					     mu_path_folder_dir);
+  return mh_expand_name (draftfolder, "draft", 0);
+}
+
