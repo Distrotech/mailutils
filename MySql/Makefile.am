@@ -1,4 +1,5 @@
-noinst_LIBRARIES = libmailMysql.a
+noinst_LIBRARIES = @BUILD_LIBMYSQL@
+EXTRA_LIBRARIES = libmailMysql.a
 
 libmailMysql_a_SOURCES = MySql.c
 
