@@ -211,6 +211,10 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (SCM_NIMP (HEADER) && SCM_STRINGP (HEADER),
 	      HEADER, SCM_ARG2, FUNC_NAME);
+
+  if (SCM_IMP (VALUE) && SCM_BOOLP (VALUE))
+    return SCM_UNSPECIFIED;
+  
   SCM_ASSERT (SCM_NIMP (VALUE) && SCM_STRINGP (VALUE),
 	      VALUE, SCM_ARG2, FUNC_NAME);
   if (!SCM_UNBNDP (REPLACE))
@@ -621,6 +625,47 @@ SCM_DEFINE (mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_message_get_port, "mu-message-get-port", 2, 1, 0,
+	    (SCM MESG, SCM MODE, SCM FULL),
+	    "Returns a port associated with the given MESG. MODE is a string\n"
+	    "defining operation mode of the stream. It may contain any of the\n"
+	    "two characters: \"r\" for reading, \"w\" for writing.\n"
+	    "If optional FULL argument specified, it should be a boolean value.\n"
+	    "If it is #t then the returned port will allow access to any\n"
+	    "part of the message (including headers). If it is #f then the port\n"
+	    "accesses only the message body (the default).\n")
+#define FUNC_NAME s_mu_message_get_port
+{
+  message_t msg;
+  stream_t stream = NULL;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
+	      MODE, SCM_ARG2, FUNC_NAME);
+
+  msg = mu_scm_message_get (MESG);
+
+  if (!SCM_UNBNDP (FULL))
+    {
+      SCM_ASSERT (SCM_IMP (FULL) && SCM_BOOLP (FULL),
+		  FULL, SCM_ARG3, FUNC_NAME);
+      if (FULL == SCM_BOOL_T && message_get_stream (msg, &stream))
+	return SCM_BOOL_F;
+    }
+
+  if (!stream)
+    {
+      body_t body = NULL;
+
+      if (message_get_body (msg, &body)
+	  || body_get_stream (body, &stream))
+	return SCM_BOOL_F;
+    }
+  
+  return mu_port_make_from_stream (MESG, stream,
+				   scm_mode_bits (SCM_CHARS (MODE)));    
+}
+#undef FUNC_NAME
   
 
 SCM_DEFINE (mu_message_get_body, "mu-message-get-body", 1, 0, 0,
