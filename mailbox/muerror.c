@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ mu_syslog_error_printer (const char *fmt, va_list ap)
   vsyslog (LOG_CRIT, fmt, ap);
 #else
   char buf[128];
-  snprintf (buf, sizeof buf, fmt, ap);
+  vsnprintf (buf, sizeof buf, fmt, ap);
   syslog (LOG_CRIT, "%s", buf);
 #endif
   return 0;
