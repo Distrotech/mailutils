@@ -1,3 +1,57 @@
+2002-11-04  Sergey Poznyakoff
+
+	* auth/virtual.c (mu_auth_virt_domain_by_name): Bugfix. Didn't
+	  allocate enough storage for mailbox_name.
+
+	* mh/mh_format.c (print_string): Pad right if necessary.
+	* m4/enable.m4: Translate dot to underscore in variable names.
+	* configure.ac: Use MU_ENABLE_SUPPORT for virtual-domains. 
+	* imap4d/testsuite/lib/imap4d.exp: Use ENABLE_VIRTUAL_DOMAINS
+	* pop3d/testsuite/lib/pop3d.exp: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+	* mailbox2/mutil.c: Likewise.
+
+	* README: Documented new --disable options.
+	* doc/texinfo/message.texi: correct the prototype of
+	  message_is_multipart() (patch by Olivier Bornet).
+	* examples/http.c: Removed include <sys/select.h>
+
+	* pop3d/pop3d.c (main): Improved check for debugging mode.
+	* imap4d/imap4d.c: Likewise.
+
+	* pop3d/testsuite/Makefile.am: Added config to test_dirs.
+	* imap4d/testsuite/Makefile.am: Likewise.
+	
+	* testsuite/lib/mailutils.exp (mailer_test): New procedure for
+	  testing mailers.
+	  (mu_init): New option -noflags skips the default initialization
+	  of MU_TOOL_FLAGS.
+	* mail.remote/testsuite/lib/mail.remote.exp: Invoke mu_init with
+	  -noflags.
+	* mail.remote/testsuite/lib/mail.remote.exp (mailer_remote_test):
+	  Use mailer_test.
+
+	* mail.local/mail.local.h (switch_user_id): Changed prototype
+	  to honour mu_auth_data->change_uid member.
+	* mail.local/main.c: Likewise.
+	* mail.local/script.c: Likewise.
+
+	* mail.remote/testsuite/mail.remote/send.exp: Broke long lines.
+	
+	Added testsute framework for mail.local:
+	
+	* mail.local/Makefile.am: Added SUBDIRS.
+	* mail.local/testsuite: New directory
+	* mail.local/testsuite/Makefile.am: New file
+	* mail.local/testsuite/.cvsignore: New file
+	* mail.local/testsuite/Data: New file
+	* mail.local/testsuite/lib: New directory
+	* mail.local/testsuite/lib/mail.local.exp: New file
+	* mail.local/testsuite/lib/DISTFILES: New file
+	* mail.local/testsuite/mail.local: New directory
+	* mail.local/testsuite/mail.local/deliver.exp: New file
+	* mail.local/testsuite/mail.local/DISTFILES: New file
+	  
 2002-11-04  Sergey Poznyakoff 
 
 	* examples/mta.c: include <mailutils/argp.h>
