@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -14,15 +14,16 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program; if not, write to the Free Software
-##   Foundation, Inc.
-##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
+ -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+
 SUBDIRS = testsuite
 
 bin_PROGRAMS = readmsg
-
 readmsg_SOURCES = readmsg.c msglist.c readmsg.h
+
 readmsg_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\

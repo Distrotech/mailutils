@@ -29,8 +29,8 @@ Group: System Environment/Libraries
 %description -n libmailutils
 The runtime library libmailbox contains various mailbox access
 routines and support for a number of mailbox types, such as mbox,
-mh, POP3, and IMAP4. It also supports MIME message handling,
-and sending mail via SMTP and /sbin/sendmail.
+maildir, mh, POP3, and IMAP4. It also supports MIME message
+handling, and sending mail via SMTP and /sbin/sendmail.
 
 %package -n libmailutils-dev
 Summary: GNU Mailutils: mailbox access library development.
@@ -129,12 +129,13 @@ make distclean
 
 %files -n mailutils
 %defattr(-, root, root)
-%{prefix}/bin/mail
-%{prefix}/bin/guimb
 %{prefix}/bin/dotlock
 %{prefix}/bin/frm
 %{prefix}/bin/from
+%{prefix}/bin/guimb
+%{prefix}/bin/mail
 %{prefix}/bin/messages
+%{prefix}/bin/movemail
 %{prefix}/bin/readmsg
 %{prefix}/libexec/*
 
@@ -177,7 +178,10 @@ make distclean
 %{prefix}/bin/sieve*
 %{prefix}/lib/libsieve.so.*
 %{prefix}/lib/libsieve.*a
+%{prefix}/lib/mailutils/list*
 %{prefix}/lib/mailutils/numaddr*
+%{prefix}/lib/mailutils/spamd*
+%{prefix}/lib/mailutils/timestamp*
 %{prefix}/share/mailutils/*.scm
 
 %files -n mailutils-mh
