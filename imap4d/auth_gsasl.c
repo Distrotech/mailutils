@@ -22,12 +22,14 @@
 static Gsasl_ctx *ctx;   
 static Gsasl_session_ctx *sess_ctx; 
 
+static void auth_gsasl_capa_init __P((int disable));
+
 static int
-create_gsasl_stream (stream_t *newstr, stream_t str, int flags)
+create_gsasl_stream (stream_t *newstr, int fd, int flags)
 {
   int rc;
   
-  rc = gsasl_stream_create (newstr, str, sess_ctx, flags);
+  rc = gsasl_stream_create (newstr, fd, sess_ctx, flags);
   if (rc)
     {
       syslog (LOG_ERR, _("cannot create SASL stream: %s"),
@@ -47,7 +49,7 @@ create_gsasl_stream (stream_t *newstr, stream_t str, int flags)
   return RESP_OK;
 }
 
-void
+int
 gsasl_replace_streams (void *self, void *data)
 {
   stream_t *s = data;
@@ -60,13 +62,36 @@ gsasl_replace_streams (void *self, void *data)
   return 0;
 }
 
+#define AUTHBUFSIZE 512
+
+static int
+auth_step_base64(Gsasl_session_ctx *sess_ctx, char *input,
+		 char **output, size_t *output_len)
+{
+  int rc;
+
+  while (1)
+    {
+      rc = gsasl_server_step_base64 (sess_ctx, input, *output, *output_len);
+
+      if (rc == GSASL_TOO_SMALL_BUFFER)
+	{
+	  *output_len += AUTHBUFSIZE;
+	  *output = realloc(*output, *output_len);
+	  if (output)
+	    continue; 
+	}
+      break;
+    }
+  return rc;
+}
 
 static int
 auth_gsasl (struct imap4d_command *command,
 	     char *auth_type, char *arg, char **username)
 {
   char *input = NULL;
-  char output[512];
+  char *output;
   size_t output_len;
   char *s;
   int rc;
@@ -84,21 +109,32 @@ auth_gsasl (struct imap4d_command *command,
 
   gsasl_server_application_data_set (sess_ctx, username);
 
-  output[0] = '\0';
-  output_len = sizeof (output);
+  output_len = AUTHBUFSIZE;
+  output = malloc (output_len);
+  if (!output)
+    imap4d_bye (ERR_NO_MEM);
 
-  while ((rc = gsasl_server_step_base64 (sess_ctx, input, output, output_len))
+  output[0] = '\0';
+
+  while ((rc = auth_step_base64 (sess_ctx, input, &output, &output_len))
 	 == GSASL_NEEDS_MORE)
     {
       util_send ("+ %s\r\n", output);
       input = imap4d_readline_ex ();
     }
-
+  
   if (rc != GSASL_OK)
     {
       syslog (LOG_NOTICE, _("GSASL error: %s"), gsasl_strerror (rc));
+      free (output);
       return RESP_NO;
     }
+
+  /* Some SASL mechanisms output data when GSASL_OK is returned */
+  if (output[0])
+    util_send ("+ %s\r\n", output);
+  
+  free (output);
 
   if (*username == NULL)
     {
