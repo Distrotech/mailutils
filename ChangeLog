@@ -1,3 +1,48 @@
+2002-11-15  Sergey Poznyakoff 
+
+	* mailbox/list.c (list_replace): New function.
+	* include/mailutils/list.h: Likewise.
+	* mailbox/address.c (address_aget_local_part,address_aget_domain):
+	  New functions.
+	* include/mailutils/address.h: Likewise.
+	* mail.local/main.c (parse_opt): Use argp_error to report
+	  diagnostics.
+
+	* include/mailutils/libsieve.h (sieve_retrieve_t): Extra argument.
+	  (sieve_destructor_t,sieve_tag_checker_t): New types.
+	  (sieve_value_t): New member v.ptr.
+	  (sieve_tag_def_t): Removed num member.
+	  (sieve_tag_group_t): New data type.
+	  (sieve_runtime_tag): Changed type of tag member to char *.
+	  (sieve_register_t): Removed unused members. Changed type of
+	  tags member.
+	  (sieve_register_test,sieve_register_action): Changed type of
+	  fourth argument (tags).
+	  (sieve_machine_destroy,sieve_machine_add_destructor): New
+	  functions.
+
+	* libsieve/comparator.c: Added support for :regex matching type.
+	* libsieve/prog.c: More thorough checking of tags.
+	* libsieve/register.c (sieve_register_test)
+	  (sieve_register_action): Changed type of fourth argument (tags).
+	* libsieve/require.c (sieve_require): Commented unimplemented
+	  parts of code.
+	* libsieve/runtime.c (instr_run): Do not run the handler when
+	  in disassemble mode.
+	* libsieve/sieve.h (struct sieve_machine): New member destr_list.
+	  (sieve_match_part_checker): New function.
+	* libsieve/sieve.y (sieve_machine_init): Fixed return value.
+	  (sieve_machine_add_destructor,sieve_machine_destroy): New
+	  functions.
+
+	* libsieve/tests.c: Implemented the rest of required sieve tests
+	  (address and envelope).
+	* libsieve/util.c (sieve_value_create,sieve_type_str)
+	  (sieve_print_value): Handle SVT_POINTER data type.
+	  (sieve_print_value_list) tag member is now char *.
+	  (_comp_action): Call cp->retr continuously until it returns
+	  non-zero.
+	  
 2002-11-14  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* include/mailutils/address.h: added declaration of address_dup.
