@@ -1579,12 +1579,13 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
       header_t hdr;
       char *val;
 
-      if (message_get_header (msg, &hdr) == 0
-	  && header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
+      if (message_get_header (msg, &hdr) == 0)
 	{
 	  int argc;
 	  char **argv;
 
+	  if (header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
+	    {
 	  if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
 	    {
 	      int i;
@@ -1603,6 +1604,30 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 	      argcv_free (argc, argv);
 	    }
 	  free (val);
+	    }
+
+	  if (!name
+	      && header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0) {
+	    if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
+	      {
+		int i;
+
+		for (i = 0; i < argc; i++)
+		  {
+		    if ((strcmp (argv[i], "filename") == 0
+			 || strcmp (argv[i], "name") == 0)
+			&& ++i < argc
+			&& argv[i][0] == '='
+			&& ++i < argc)
+		      {
+			name = normalize_path (dir, argv[i]);
+			break;
+		      }
+		  }
+		argcv_free (argc, argv);
+	      }
+	    free (val);
+	  }
 	}
     }
 
