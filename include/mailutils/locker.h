@@ -68,6 +68,13 @@ extern "C" {
   
 #define MU_LOCKER_DEFAULT  (MU_LOCKER_RETRY)
 
+/* Use these flags for as the default locker flags (the default defaults
+ * to MU_LOCKER_DEFAULT). A flags of 0 resets the flags back to the
+ * the default.
+ */
+extern int locker_set_default_flags __P((int flags));
+
+/* A flags of 0 means that the default will be used. */
 extern int locker_create __P ((locker_t *, const char *filename, int flags));
 extern void locker_destroy __P ((locker_t *));
 

@@ -87,6 +87,18 @@ static int _locker_unlock_dotlock __P((locker_t lock));
 static int _locker_lock_kernel __P((locker_t lock)); 
 static int _locker_unlock_kernel __P((locker_t lock));
 
+static int locker_default_flags = MU_LOCKER_DEFAULT;
+
+int locker_set_default_flags(int flags)
+{
+  if(flags == 0)
+    flags = MU_LOCKER_DEFAULT;
+
+  locker_default_flags = flags;
+
+  return 0;
+}
+
 int
 locker_create (locker_t *plocker, const char *filename, int flags)
 {
@@ -102,8 +114,9 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   if (l == NULL)
     return ENOMEM;
 
-  /* Should make l->file be the resulting of following the symlinks. */
-  l->file = strdup (filename);
+  /* Should make l->file be the result of following the symlinks. */
+  l->file = strdup(filename);
+
   if (l->file == NULL)
     {
       free (l);
@@ -115,14 +128,14 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   else if (flags)
     l->flags = flags;
   else
-    l->flags = MU_LOCKER_DEFAULT;
+    l->flags = locker_default_flags;
 
   l->expire_time = MU_LOCKER_EXPIRE_TIME;
   l->retries = MU_LOCKER_RETRIES;
   l->retry_sleep = MU_LOCKER_RETRY_SLEEP;
 
   /* Initialize locker-type-specific data */
-  if (flags & MU_LOCKER_EXTERNAL)
+  if (l->flags & MU_LOCKER_EXTERNAL)
     {
       if (!(l->data.external.name = strdup (MU_LOCKER_EXTERNAL_PROGRAM)))
 	{
@@ -130,7 +143,7 @@ locker_create (locker_t *plocker, const char *filename, int flags)
 	  return ENOMEM;
 	}
     }
-  else if (!(flags & MU_LOCKER_KERNEL))
+  else if (!(l->flags & MU_LOCKER_KERNEL))
     {
       l->data.dot.dotlock = malloc (strlen (l->file)
 				    + 5 /*strlen(".lock")*/ + 1);
@@ -799,6 +812,7 @@ lock_external (locker_t l, int lock)
 	  break;
 	case MU_DL_EX_OK:
 	  err = 0;
+	  l->refcnt = lock;
 	  break;
 	case MU_DL_EX_NEXIST:
 	  err = MU_ERR_LOCK_NOT_HELD;
