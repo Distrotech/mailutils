@@ -48,7 +48,7 @@ display_status_1 (char *m, OM_uint32 code, int type)
     {
       maj_stat = gss_display_status (&min_stat, code,
 				     type, GSS_C_NULL_OID, &msg_ctx, &msg);
-      syslog (LOG_ERR, _("GSS-API error %s: %s\n"), m, (char *) msg.value);
+      syslog (LOG_ERR, _("GSS-API error %s: %s"), m, (char *) msg.value);
       gss_release_buffer (&min_stat, &msg);
     }
   while (msg_ctx);
