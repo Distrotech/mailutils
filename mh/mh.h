@@ -224,9 +224,10 @@ int mh_getyn __P((const char *fmt, ...));
 int mh_check_folder __P((char *pathname, int confirm));
 
 int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
-		   char *buffer, size_t bufsize));
+		   size_t width, char **pret));
 void mh_format_dump __P((mh_format_t *fmt));
 int mh_format_parse __P((char *format_str, mh_format_t *fmt));
+void mh_format_debug __P((int val));
 void mh_format_free __P((mh_format_t *fmt));
 mh_builtin_t *mh_lookup_builtin __P((char *name, int *rest));
 
