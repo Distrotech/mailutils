@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003,
+   2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -171,7 +172,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
     property_set_value (property, "TYPE", "MBOX", 1);
   }
 
-  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init(%s)\n", mud->name);
+  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init (%s)\n", mud->name);
   return 0; /* okdoke */
 }
 
@@ -264,7 +265,7 @@ mbox_open (mailbox_t mailbox, int flags)
 	return status;
     }
 
-  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, 0x%x)\n",
+  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open (%s, 0x%x)\n",
 		  mud->name, mailbox->flags);
 
   if (mailbox->locker == NULL)
@@ -281,7 +282,7 @@ mbox_close (mailbox_t mailbox)
   if (mud == NULL)
     return EINVAL;
 
-  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,  "mbox_close(%s)\n", mud->name);
+  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,  "mbox_close (%s)\n", mud->name);
 
   /* Make sure that we do not hold any file locking.  */
   locker_unlock (mailbox->locker);
@@ -327,7 +328,7 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
   size_t i;
   mbox_data_t mud = mailbox->data;
-  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_scan(%s)\n", mud->name);
+  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_scan (%s)\n", mud->name);
   if (! mbox_is_updated (mailbox))
     return mbox_scan0 (mailbox, msgno, pcount, 1);
   /* Since the mailbox is already updated fake the scan. */
@@ -1194,7 +1195,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
       return 0;
     }
 
-  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_get_message(%s, %d)\n",
+  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_get_message (%s, %d)\n",
 		  mud->name, msgno);
 
   /* Get an empty message struct.  */
