@@ -1,4 +1,4 @@
-This is the GNU mailutils package
+This is the GNU Mailutils package
 =================================
 
 This package contains a series of useful mail clients, servers, and
@@ -41,7 +41,7 @@ specific configuration options:
 
     --enable-debug
 
-	Compile mailutils with debugging support. This disables compiler
+	Compile Mailutils with debugging support. This disables compiler
 	optimizations and adds debugging information to the binaries.
 
     --enable-experimental
@@ -133,12 +133,12 @@ specific configuration options:
 			       method.
 	
 If you wish to use APOP authentication in POP3 daemon, you will have
-to enable DBM support in mailutils. To do so, use one of the following
+to enable DBM support in Mailutils. To do so, use one of the following
 options:
 
     --with-gdbm
 
-	Use GDBM
+	Use GNU DBM
 
     --with-db2
 
