@@ -1,4 +1,4 @@
-#include <argp.h>
+#include <mailutils/argp.h>
 
 #define MH_OPT_BOOL 1
 #define MH_OPT_ARG  2

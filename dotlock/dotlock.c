@@ -25,8 +25,7 @@
 #endif
 #include <unistd.h>
 
-#include <argp.h>
-
+#include <mailutils/argp.h>
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
 
