@@ -85,6 +85,13 @@ _file_read (stream_t stream, char *optr, size_t osize,
       fs->offset = offset;
     }
 
+  if (feof (fs->file))
+    {
+      if (nbytes)
+	*nbytes = 0;
+      return 0;
+    }
+  
   n = fread (optr, sizeof(char), osize, fs->file);
   if (n == 0)
     {
@@ -120,6 +127,13 @@ _file_readline (stream_t stream, char *optr, size_t osize,
       if (fseek (fs->file, offset, SEEK_SET) != 0)
 	return errno;
       fs->offset = offset;
+    }
+
+  if (feof (fs->file))
+    {
+      if (nbytes)
+	*nbytes = 0;
+      return 0;
     }
 
   if (fgets (optr, osize, fs->file) != NULL)
