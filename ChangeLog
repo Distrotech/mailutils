@@ -1,4 +1,16 @@
-2002-01-15  Sergey Poznyakoff  
+2002-01-15 Sam Roberts
+
+	* sieve/: sieve.c, sv.h, svcb.c, svctx.c, svutil.c,
+	examples/Makefile, examples/Test, examples/mbox.complex,
+	examples/t-complex.sv, examples/t-mailutils.sv: More testing and
+	resultant polishing, -k switch to sieve to keep on going after an
+	error sieving a message, don't discard a message unless the script
+	completed all the actions sucesfully on a message, better error
+	reporting and logging, workarounds around problems/differences
+	between mailbox types, and a test script that exercises sieve on an
+	mbox.
+
+2002-01-15  Sergey Poznyakoff
 
 	* imap4d/imap4d.c: New command line option --maildir (-m).
 	  Register mbox_record at startup.
