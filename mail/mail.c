@@ -170,6 +170,7 @@ static struct argp argp = {
 static const char *mail_capa[] = {
 	"common",
 	"license",
+	"mailbox",
 	 NULL 
 };
 			     
