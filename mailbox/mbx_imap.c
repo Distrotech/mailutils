@@ -503,14 +503,11 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   int status = 0;
 
   /* FIXME: It is debatable if we should reconnect when the connection
-     timeout or die.  For timeout client should ping i.e. send
+     timeout or die.  Probably for timeout client should ping i.e. send
      a NOOP via imap_is_updated() function to keep the connection alive.  */
-  if (!f_imap->isopen)
-    {
-      status = folder_open (mailbox->folder, mailbox->flags);
-      if (status != 0)
-	return status;
-    }
+  status = folder_open (mailbox->folder, mailbox->flags);
+  if (status != 0)
+    return status;
 
   /* Are we already selected ? */
   if (m_imap == (f_imap->selected))
@@ -760,6 +757,14 @@ imap_append_message (mailbox_t mailbox, message_t msg)
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
 
+
+  /* FIXME: It is debatable if we should reconnect when the connection
+   timeout or die.  For timeout client should ping i.e. send
+   a NOOP via imap_is_updated() function to keep the connection alive.  */
+  status = folder_open (mailbox->folder, mailbox->flags);
+  if (status != 0)
+    return status;
+
   /* FIXME: Can we append to self.  */
 
   /* Check to see if we are selected. If the message was not modified
@@ -905,6 +910,13 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
   msg_imap_t msg_imap = message_get_owner (msg);
   int status = 0;
 
+  /* FIXME: It is debatable if we should reconnect when the connection
+   timeout or die.  For timeout client should ping i.e. send
+   a NOOP via imap_is_updated() function to keep the connection alive.  */
+  status = folder_open (mailbox->folder, mailbox->flags);
+  if (status != 0)
+    return status;
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -974,13 +986,14 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
   if (offset == 0)
     msg_imap->message_lines = 0;
 
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
       char *section = NULL;
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-	return status;
 
       if (msg_imap->part)
 	section = section_name (msg_imap);
@@ -1034,7 +1047,6 @@ imap_submessage_size (msg_imap_t msg_imap, size_t *psize)
 	  size_t i, size;
 	  for (size = i = 0; i < msg_imap->num_parts; i++, size = 0)
 	    {
-
 	      if (msg_imap->parts[i])
 		imap_submessage_size (msg_imap->parts[i], &size);
 	      *psize += size;
@@ -1055,6 +1067,10 @@ imap_message_size (message_t msg, size_t *psize)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;;
 
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   /* If there is a parent it means it is a sub message, IMAP does not give
      the full size of mime messages, so the message_size retrieved from
      doing a bodystructure represents rather the body_size.  */
@@ -1066,9 +1082,6 @@ imap_message_size (message_t msg, size_t *psize)
       /* Select first.  */
       if (f_imap->state == IMAP_NO_STATE)
 	{
-	  status = imap_messages_count (m_imap->mailbox, NULL);
-	  if (status != 0)
-	    return status;
 	  /* We strip the \r, but the offset/size on the imap server is with
 	     that octet so add it in the offset, since it's the number of
 	     lines.  */
@@ -1100,7 +1113,12 @@ imap_message_uid (message_t msg, size_t *puid)
 
   if (puid)
     return 0;
+
   /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   if (f_imap->state == IMAP_NO_STATE)
     {
       if (msg_imap->uid)
@@ -1108,9 +1126,6 @@ imap_message_uid (message_t msg, size_t *puid)
 	  *puid = msg_imap->uid;
 	  return 0;
 	}
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-	return status;
       status = imap_writeline (f_imap, "g%d FETCH %d UID\r\n",
 			       f_imap->seq++, msg_imap->num);
       CHECK_ERROR (f_imap, status);
@@ -1142,6 +1157,10 @@ imap_is_multipart (message_t msg, int *ismulti)
   int status;
 
   /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   if (f_imap->state == IMAP_NO_STATE)
     {
       if (msg_imap->num_parts || msg_imap->part)
@@ -1150,9 +1169,6 @@ imap_is_multipart (message_t msg, int *ismulti)
 	    *ismulti = (msg_imap->num_parts > 1);
 	  return 0;
 	}
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-	return status;
       status = imap_writeline (f_imap,
 			       "g%d FETCH %d BODYSTRUCTURE\r\n",
 			       f_imap->seq++, msg_imap->num);
@@ -1281,17 +1297,17 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   char datebuf[] = "mm-dd-yyyy hh:mm:ss +0000";
   const char* date = datebuf;
   const char** datep = &date;
-    /* reserve as much space as we need for internal-date */
+  /* reserve as much space as we need for internal-date */
   int status;
 
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
   if (msg_imap->internal_date == NULL)
     {
       if (f_imap->state == IMAP_NO_STATE)
 	{
-	  /* Select first.  */
-	  status = imap_messages_count (m_imap->mailbox, NULL);
-	  if (status != 0)
-	    return status;
 	  status = imap_writeline (f_imap,
 				   "g%d FETCH %d INTERNALDATE\r\n",
 				   f_imap->seq++, msg_imap->num);
@@ -1359,6 +1375,11 @@ imap_attr_get_flags (attribute_t attribute, int *pflags)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   /* Did we retrieve it alread ?  */
   if (msg_imap->flags != 0)
     {
@@ -1392,6 +1413,11 @@ imap_attr_set_flags (attribute_t attribute, int flag)
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
+
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
 
   /* If already set don't bother.  */
   if (msg_imap->flags & flag)
@@ -1439,6 +1465,11 @@ imap_attr_unset_flags (attribute_t attribute, int flag)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   /* The delete FLAG is not pass yet but only on the expunge.  */
   if (flag & MU_ATTRIBUTE_DELETED)
     {
@@ -1484,6 +1515,11 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
   int status;
   size_t len = 0;
   char *value;
+
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
 
   /* Hack, if buffer == NULL they want to know how big is the field value,
      Unfortunately IMAP does not say, so we take a guess hoping that the
@@ -1560,6 +1596,11 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
   size_t len = 0;
   char *value;
 
+  /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   /* Do we all ready have the headers.  */
   if (msg_imap->fheader)
     return header_get_value (msg_imap->fheader, field, buffer, buflen, plen);
@@ -1626,11 +1667,12 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
     msg_imap->header_lines = 0;
 
   /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   if (f_imap->state == IMAP_NO_STATE)
     {
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-        return status;
       /* We strip the \r, but the offset/size on the imap server is with that
          octet so add it in the offset, since it's the number of lines.  */
       if (msg_imap->part)
@@ -1734,11 +1776,12 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
     }
 
   /* Select first.  */
+  status = imap_messages_count (m_imap->mailbox, NULL);
+  if (status != 0)
+    return status;
+
   if (f_imap->state == IMAP_NO_STATE)
     {
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-        return status;
       /* We strip the \r, but the offset/size on the imap server is with the
          octet, so add it since it's the number of lines.  */
       if (msg_imap->part)

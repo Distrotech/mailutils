@@ -38,6 +38,14 @@
 #include <imap0.h>
 #include <mailutils/error.h>
 
+/* For dbg purposes set to one to see different level of traffic.  */
+/* Print to stderr the command sent to the IMAP server.  */
+#define DEBUG_SHOW_COMMAND 0
+/* Print to stderr the responses received from the IMAP server.  */
+#define DEBUG_SHOW_RESPONSE 0
+/* Print to stderr the literal/quoted string received from the IMAP server.  */
+#define DEBUG_SHOW_DATA 0
+
 /* Variable use for the registrar.  */
 static struct _record _imap_record =
 {
@@ -262,7 +270,7 @@ folder_imap_open (folder_t folder, int flags)
 	     in IMAP. We start with 255, which is quite reasonnable and grow
 	     as we go along.  */
           f_imap->buflen = 255;
-          f_imap->buffer = calloc (f_imap->buflen + 1, sizeof (char));
+          f_imap->buffer = calloc (f_imap->buflen + 1, 1);
           if (f_imap->buffer == NULL)
             {
               CHECK_ERROR (f_imap, ENOMEM);
@@ -463,6 +471,11 @@ folder_imap_delete (folder_t folder, const char *name)
 
   if (name == NULL)
     return EINVAL;
+
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -505,6 +518,10 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
   if (pflist == NULL)
     return EINVAL;
 
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
+
   if (ref == NULL)
     ref = "";
   if (name == NULL)
@@ -541,7 +558,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 	    const char *s = strchr (p, '/');
 	    if (s)
 	      {
-		node[nodelen] = calloc (s - p + 1,  sizeof (char));
+		node[nodelen] = calloc (s - p + 1, 1);
 		if (node[nodelen])
 		  memcpy (node[nodelen], p, s - p);
 		p = s;
@@ -651,6 +668,10 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
   if (pflist == NULL)
     return EINVAL;
 
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
+
   if (ref == NULL) ref = "";
   if (name == NULL) name = "";
 
@@ -719,6 +740,10 @@ folder_imap_rename (folder_t folder, const char *oldpath, const char *newpath)
   if (oldpath == NULL || newpath == NULL)
     return EINVAL;
 
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -750,6 +775,10 @@ folder_imap_subscribe (folder_t folder, const char *name)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
+
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
 
   if (name == NULL)
     return EINVAL;
@@ -784,6 +813,10 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
+
+  status = folder_open (folder, folder->flags);
+  if (status != 0)
+    return status;
 
   if (name == NULL)
     return EINVAL;
@@ -827,7 +860,8 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
   for (len0 = len = total = 0; total < f_imap->string.nleft; total += (len + 1))
     {
       status = imap_readline (f_imap);
-      /*fprintf (stderr, "%d: %s", strlen (f_imap->buffer), f_imap->buffer);*/
+      if (DEBUG_SHOW_DATA)
+	fprintf (stderr, "%s", f_imap->buffer);
       if (status != 0)
 	{
 	  /* Return what we got so far.  */
@@ -919,6 +953,8 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
   f_imap->string.offset += len;
   if (**ptr == '"')
     (*ptr)++;
+  if (DEBUG_SHOW_DATA)
+    fprintf (stderr, "%.*s", len, bquote);
   return 0;
 }
 
@@ -1030,7 +1066,7 @@ imap_list (f_imap_t f_imap)
       if (s)
 	{
 	  size_t n = strtoul (s + 1, NULL, 10);
-	  lr->name = calloc (n + 1, sizeof (char));
+	  lr->name = calloc (n + 1, 1);
 	  f_imap->ptr = f_imap->buffer;
 	  imap_readline (f_imap);
 	  memcpy (lr->name, f_imap->buffer, n);
@@ -1060,7 +1096,7 @@ section_name (msg_imap_t msg_imap)
 	  char *tmp;
 	  char part[64];
 	  size_t partlen;
-	  snprintf (part, sizeof (partlen), "%u", msg_imap->part);
+	  snprintf (part, sizeof part, "%u", msg_imap->part);
 	  partlen = strlen (part);
 	  tmp = realloc (section, sectionlen + partlen + 2);
 	  if (tmp == NULL)
@@ -1397,7 +1433,7 @@ static int
 imap_uid (f_imap_t f_imap, char **ptr)
 {
   char token[128];
-  imap_token (token, sizeof (token), ptr);
+  imap_token (token, sizeof token, ptr);
   if (f_imap->string.msg_imap)
     f_imap->string.msg_imap->uid = strtoul (token, NULL, 10);
   return 0;
@@ -1417,7 +1453,7 @@ static int
 imap_rfc822_size (f_imap_t f_imap, char **ptr)
 {
   char token[128];
-  imap_token (token, sizeof (token), ptr);
+  imap_token (token, sizeof token, ptr);
   if (f_imap->string.msg_imap)
     f_imap->string.msg_imap->message_size = strtoul (token, NULL, 10);
   return 0;
@@ -1477,12 +1513,12 @@ imap_fetch (f_imap_t f_imap)
   sp = f_imap->buffer;
 
   /* Skip untag '*'.  */
-  imap_token (token, sizeof (token), &sp);
+  imap_token (token, sizeof token, &sp);
   /* Get msgno.  */
-  imap_token (token, sizeof (token), &sp);
+  imap_token (token, sizeof token, &sp);
   msgno = strtol (token, NULL,  10);
   /* Skip FETCH .  */
-  imap_token (token, sizeof (token), &sp);
+  imap_token (token, sizeof token, &sp);
 
   /* It is actually possible, but higly unlikely that we do not have the
      message yet, for example a "FETCH (FLAGS (\Recent))" notification
@@ -1508,7 +1544,7 @@ imap_fetch (f_imap_t f_imap)
   while (*sp && *sp != ')')
     {
       /* Get the token.  */
-      imap_token (token, sizeof (token), &sp);
+      imap_token (token, sizeof token, &sp);
 
       if (strncmp (token, "FLAGS", 5) == 0)
 	{
@@ -1534,7 +1570,7 @@ imap_fetch (f_imap_t f_imap)
 	  if (*sp == '.')
 	    {
 	      sp++;
-	      imap_token (token, sizeof (token), &sp);
+	      imap_token (token, sizeof token, &sp);
 	      if (strcasecmp (token, "SIZE") == 0)
 		{
 		  status = imap_rfc822_size (f_imap, &sp);
@@ -1589,6 +1625,9 @@ imap_expunge (f_imap_t f_imap, unsigned msgno)
 }
 
 
+/* This function will advance ptr to the next character that IMAP
+   recognise as special: " .()[]<>" and put the result in buf which
+   is of size len.  */
 static int
 imap_token (char *buf, size_t len, char **ptr)
 {
@@ -1649,6 +1688,9 @@ imap_writeline (f_imap_t f_imap, const char *format, ...)
   while (!done);
   va_end(ap);
   f_imap->ptr = f_imap->buffer + len;
+
+  if (DEBUG_SHOW_COMMAND)
+    fprintf (stderr, "%s", f_imap->buffer);
   return 0;
 }
 
@@ -1801,10 +1843,9 @@ imap_parse (f_imap_t f_imap)
 	{
 	  break;
 	}
-#if 0
       /* Comment out to see all reading traffic.  */
-      mu_error ("\t\t%s", f_imap->buffer);
-#endif
+      if (DEBUG_SHOW_RESPONSE)
+	mu_error ("\t\t%s", f_imap->buffer);
 
       /* We do not want to step over f_imap->buffer since it can be use
 	 further down the chain.  */
