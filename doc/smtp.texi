@@ -1,0 +1,92 @@
+@example
+@code{/* Prefix @emph{smtp_} is reserve */}
+@code{#include <mailutils/smtp.h>}
+
+@end example
+
+Simple Mail Transfer Protocol. Not implemented.
+
+@subsection Commands
+@cindex smtp_t
+
+@subsubsection Initialisation
+@cindex SMTP Initialisation
+@deftypefun int smtp_create (smtp_t *)
+@end deftypefun
+
+@deftypefun void smtp_destroy (smtp_t *)
+@end deftypefun
+
+@deftypefun int smtp_open (smtp_t, const char *@var{host}, unsigned int @var{port}, int @var{flags})
+@end deftypefun
+
+
+@subsubsection Data
+@cindex SMTP Data
+@deftypefun int smtp_data (smtp_t, stream_t @var{stream})
+@end deftypefun
+
+@subsubsection Helo
+@cindex SMTP Helo
+@deftypefun int smtp_helo (smtp_t, const char *@var{domain})
+@end deftypefun
+
+@deftypefun int smtp_ehlo (smtp_t, const char *@var{domain})
+@end deftypefun
+
+@subsubsection Expn
+@cindex SMTP Expn
+@deftypefun int smtp_expn (smtp_t, const char *@var{list}, iterator_t *)
+@end deftypefun
+
+@subsubsection Help
+@cindex SMTP Help
+@deftypefun int smtp_help (smtp_t, const char *@var{help}, iterator_t *)
+@end deftypefun
+
+@subsubsection Mail From
+@cindex SMTP Mail From
+@deftypefun int smtp_mail_from (smtp_t, const char *@var{address}, const char *@var{param})
+@end deftypefun
+
+@subsubsection Noop
+@cindex SMTP Noop
+@deftypefun int smtp_noop (smtp_t)
+@end deftypefun
+
+@subsubsection Quit
+@cindex SMTP Quit
+@deftypefun int smtp_quit (smtp_t)
+@end deftypefun
+
+@subsubsection Recpt To
+@cindex SMTP Recpt To
+@deftypefun int smtp_rcpt_to (smtp_t, const char *@var{address}, const char *@var{param})
+@end deftypefun
+
+@subsubsection Reset
+@cindex SMTP Reset
+@deftypefun int smtp_reset (smtp_t)
+@end deftypefun
+
+@subsubsection Verify
+@cindex SMTP Verify
+@deftypefun int smtp_verify (smtp_t, const char *@var{user})
+@end deftypefun
+
+@subsubsection Help functions
+@cindex SMTP Help functions
+@deftypefun extern int smtp_readline (smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
+@end deftypefun
+
+@deftypefun extern int smtp_response (smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
+@end deftypefun
+
+@deftypefun extern int smtp_writeline (smtp_t, const char *@var{format}, @var{...})
+@end deftypefun
+
+@deftypefun extern int smtp_sendline (smtp_t, const char *@var{line})
+@end deftypefun
+
+@deftypefun extern int smtp_send (smtp_t
+@end deftypefun

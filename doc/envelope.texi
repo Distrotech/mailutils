@@ -1,0 +1,26 @@
+@example
+@code{/* Prefix @emph{envelope_} is reserve */}
+@code{#include <mailutils/envelope.h>}
+
+@end example
+
+@deftypefun int envelope_create (envelope_t *, void *);
+@end deftypefun
+
+@deftypefun void envelope_destroy (envelope_t *, void *);
+@end deftypefun
+
+@deftypefun int envelope_get_message (envelope_t, message_t *);
+@end deftypefun
+
+@deftypefun int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
+@end deftypefun
+
+@deftypefun int envelope_sender (envelope_t, char *, size_t, size_t *);
+@end deftypefun
+
+@deftypefun int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t, size_t *)), void *);
+@end deftypefun
+
+@deftypefun int envelope_date (envelope_t, char *, size_t, size_t *);
+@end deftypefun

@@ -1,0 +1,7 @@
+@example
+@code{/* Prefix @emph{mbox_} is reserve */}
+@code{#include <mailutils/mbox.h>}
+
+@end example
+
+Standard Unix Mailbox.  Not implemented.

@@ -1,4 +1,8 @@
+@example
+@code{/* Prefix @emph{locker_} is reserve */}
 @code{#include <mailutils/locker.h>}
+
+@end example
 
 @deftypefun int locker_create (locker_t * @var{plocker}, char *@var{filename}, size_t @var{len}, int @var{flags})
 @end deftypefun

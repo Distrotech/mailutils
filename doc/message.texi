@@ -1,4 +1,8 @@
+@example
 @code{#include <mailutils/message.h>}
+@code{/* Prefix @emph{message_} is reserve */}
+
+@end example
 
 The @code{message_t} object is a convenient way to manipulate messages.  It
 encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.

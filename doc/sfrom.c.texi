@@ -74,13 +74,3 @@ main (int argc, const char **argv)
     mailbox_destroy (&mbox);
     return 0;
 @}
-
-@example
-@cartouche
-% MAIL=pop://alain@@localhost ./sfrom
-Passwd: xxxx
-Jim Meyering <meyering@@foo.org>      fetish(shellutils) beta
-Fran@,{c}ois Pinard <pinard@@bar.org> recode new alpha
-@dots{}
-@end cartouche
-@end example

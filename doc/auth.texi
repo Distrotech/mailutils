@@ -1,3 +1,9 @@
+@example
+@code{/* Prefix @emph{auth_} is reserve */}
+@code{#include <mailutils/auth.h>}
+
+@end example
+
 There are many ways to authenticate to a server, to be flexible the
 authentication process is provided by two objects @code{auth_t} and
 @code{ticket_t}.  The @code{auth_t} can implement different protocol like

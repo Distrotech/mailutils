@@ -62,7 +62,7 @@ by the Foundation.
 @setchapternewpage off
 
 @titlepage
-@title mailutils, library API.
+@title mailutils, SDK.
 @subtitle version @value{VERSION}, @value{UPDATED}
 @author Alain Magloire et al.
 
@@ -92,6 +92,8 @@ by the Foundation.
 @end titlepage
 @page
 
+@summarycontents
+@page
 
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
@@ -102,26 +104,17 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @end ifinfo
 @menu
 * Introduction::                GNU @sc{mailutils}
-* Mailbox::                     Mailbox API.
-* Mailer::                      Protocol Used to Send Mail.
-* Message::                     Message API.
-* Headers::                     Headers API.
-* Body::                        Body API.
-* Attribute::                   Attribute.
-* Stream::                      Stream API.
-* Authenticator::               Authenticator.
-* Address::                     Address.
-* Locker::                      Locker.
-* Encoding::                    Encoding API.
-* URL::                         Unified Ressource Locator.
+* C API::                       C API.
+* Framework::                   Framework.
+* Programs::                    Programs.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
-* Concept Index ::
-* Index::                       All @sc{Mailutils} Functions.
+* Concept Index::                All @sc{Mailutils} Functions.
+* Index::
 
 @end menu
 
-@node Introduction, Mailbox, Top, Top
+@node Introduction, C API, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex Introduction
@@ -130,127 +123,122 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 provide a rich set of functions for accessing different mailbox formats and
 mailers.
 
-@example
-@group
+@section References
 
-                             mailbox_t                   url_t
-  -/var/mail-    +---//---->+-----------------+    +-->+------------+
- (  alain   )    |          |   url_t       *-|----+   |   port     |
-  -----------    |          |-----------------|        |   hostname |
- (  jakob *-)----+          |   auth_t      *-|----+   |   file     |
-  -----------               |-----------------|    |   |   ...      |
- (  jeff    )               |   locker_t    *-|--+ |   +------------+
-  -----------               |-----------------|  | |
- (  shaleh  )               |   stream_t      |  | |    auth_t
-  ----------                |-----------------|  | +-->+------------+
-                        +---|-* message_t[]   |  |     |   ticket_t |
-  message_t             |   +-----------------+  |     +------------+
- +----------------+<----+                        |
- |   envelope_t   |                              |
- |----------------|              header_t        |      locker_t
- |   header_t   *-|------------>+--------------+ +---->+------+
- |----------------|             |   stream_t   |       +------+
- |   body_t     *-|----+        +--------------+
- +----------------+    |    body_t
-                       +---+--------------+
-                           |   stream_t   |
-                           +--------------+
-@end group
-@end example
+For more information on,
 
-For example writing a simple @code{from} command that will list the
-@emph{From} and @emph{Subject} headers of every mail in a folder.
+@itemize @bullet
+@item
+SMTP RFCs:
 
-@example
-@include sfrom.c.texi
-@end example
+@itemize @minus
+@item
+@cite{RFC 2821: Simple Mail Transfer Protocol}
 
-@node Mailbox, Mailer, Introduction, Top
+@item
+@cite{RFC 2822: Internet Message Format}
+
+@item
+@cite{RFC 2368: The mailto URL scheme}
+@end itemize
+
+@item
+on POP3
+
+@itemize @minus
+@item
+@cite{RFC 1734: POP3 AUTHentication command}
+
+@item
+@cite{RFC 1957: Some Observations on Implementations of the Post Office
+Protocol (POP3)}
+
+@item
+@cite{RFC 1939: Post Office Protocol - Version 3}
+
+@item
+@cite{RFC 2449: POP3 Extension Mechanism}
+
+@item
+@cite{RFC 2384: POP URL Scheme}
+@end itemize
+
+@item
+On IMAP4
+
+@itemize @minus
+@item
+@cite{RFC 2088: IMAP4 non-synchronizing literals}
+
+@item
+@cite{RFC 2193: IMAP4 Mailbox Referrals}
+
+@item
+@cite{RFC 2221: IMAP4 Login Referrals}
+
+@item
+@cite{RFC 2342: IMAP4 Namespace}
+
+@item
+@cite{RFC 1738: Uniform Resource Locators (URL)}
+
+@item
+@cite{RFC 2192: IMAP URL Scheme}
+@end itemize
+
+@item
+On MIME
+
+@itemize @minus
+@item
+@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
+
+@item
+@cite{RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One:
+Format of Internet Message Bodies}
+
+@item
+@cite{RFC 2047: MIME (Multipurpose Internet Mail Extensions) Part Three:
+Message Header Extensions for Non-ASCII Text}
+
+@item
+@cite{RFC 2049: Multipurpose Internet Mail Extensions (MIME) Part Five:
+Conformance Criteria and Examples}
+
+@item
+@cite{RFC 2111: Content-ID and Message-ID Uniform Resource Locators}
+@end itemize
+
+@item
+Misc
+@cite{RFC 3028: Sieve: A Mail Filtering Language}
+
+@item
+@cite{Internet Email Protocols a Developer's Guide by Kevin Johnson}
+@end itemize
+
+@node C API, Framework, Introduction, Top
 @comment  node-name,  next,  previous,  up
-@chapter Mailbox
-@cindex Mailbox
+@chapter C API
+@cindex C API
 
-@include mailbox.texi
+@include c-api.texi
 
-@node Mailer, Message, Mailbox, Top
+@node Framework, Programs, C API, Top
 @comment  node-name,  next,  previous,  up
-@chapter Mailer
-@cindex Mailer
+@chapter Framework
+@cindex Framework
 
-@include mailer.texi
+@include framework.texi
 
-@node Message, Headers , Mailer, Top
+@node Programs, Reporting Bugs, Framework, Top
 @comment  node-name,  next,  previous,  up
-@chapter Message
-@cindex Message
+@chapter Programs
+@cindex Programs
 
-@include message.texi
+@include programs.texi
 
-@node Headers , Body, Message, Top
-@comment  node-name,  next,  previous,  up
-@chapter Headers
-@cindex Headers
-
-@include headers.texi
-
-@node Body, Attribute, Headers, Top
-@comment  node-name,  next,  previous,  up
-@chapter Body
-@cindex Body
-
-@include body.texi
-
-@node Attribute, Stream, Body, Top
-@comment  node-name,  next,  previous,  up
-@chapter Attribute
-@cindex Attribute
-
-@include attribute.texi
-
-@node Stream, Authenticator, Attribute, Top
-@comment  node-name,  next,  previous,  up
-@chapter Stream
-@cindex Stream
-
-@include stream.texi
-
-@node Authenticator, Address, Stream, Top
-@comment  node-name,  next,  previous,  up
-@chapter Authenticator
-@cindex Authenticator
-
-@include auth.texi
-
-@node Address, Locker, Authenticator, Top
-@comment  node-name,  next,  previous,  up
-@chapter Address
-@cindex Address
-
-@include address.texi
-
-@node Locker, Encoding, Address, Top
-@comment  node-name,  next,  previous,  up
-@chapter Locker
-@cindex Locker
-
-@include locker.texi
-
-@node Encoding, URL, Locker , Top
-@comment  node-name,  next,  previous,  up
-@chapter Encoding
-@cindex Encoding
-
-@include encoding.texi
-
-@node URL, Reporting Bugs, Encoding, Top
-@comment  node-name,  next,  previous,  up
-@chapter URL
-@cindex URL
-
-@include url.texi
-
-
-@node Reporting Bugs, Acknowledgement, URL, Top
+@node Reporting Bugs, Acknowledgement, Programs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex Reporting Bugs
@@ -266,14 +254,16 @@ Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
 In no particular order,
 Jakob Kaivo @email{jkaivo@@ndn.net},
 Jeff Bailey @email{jbailey@@gnu.org},
-Sean 'Shaleh' Perry @email{shaleh@@debian.org},
+Sean Perry @email{shaleh@@debian.org},
 Thomas Fletcher @email{thomasf@@qnx.com},
 Dave Inglis @email{dinglis@@qnx.com},
 Brian Edmond @email{briane@@qnx.com},
-Sam Roberts @email{sroberts@@uniserve.com}.
-
+Sam Roberts @email{sroberts@@uniserve.com},
+Sergey Poznyakoff @email{gray@@Mirddin.farlep.net},
+Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
 @page
-@node Concept Index , Index, Acknowledgement, Top
+
+@node Concept Index, Index, Acknowledgement, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Concept Index
 
@@ -282,7 +272,8 @@ This is a general index of all issues discussed in this manual
 @printindex cp
 @page
 
-@node Index,  , Concept Index , Top
+@node Index,  , Concept Index, Top
+@comment node-name,  next,  previous,  up
 @unnumbered Index
 
 This is an alphabetical list of all @sc{mailutils} functions.

@@ -1,4 +1,8 @@
+@example
+@code{/* Prefix @emph{attribute_} is reserve */}
 @code{#include <mailutils/attribute.h>}
+
+@end example
 
 @deftypefun int attribute_create (attribute_t *@var{pattribute})
 @end deftypefun

@@ -26,7 +26,9 @@ EXTRA_DIST = \
 ## Sam, the examples dir is not part of the distribution so this will not work
 ## but we should probably have a "addrmsg" program and reenable this.
 ## Alain.
-#ex-address.texi: ${top_srcdir}/examples/addr.c
+#ex-address.texi: ${top_srcdir}/doc/examples/addr.c
+#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
+#sfrom.texi: ${top_srcdir}/doc/examples/sfrom.c
 #	sed -es/{/@{/g -e s/}/@}/g < $< > $@
 
 #mailutils.info: mailutils.texi version.texi ex-address.texi

@@ -1,4 +1,8 @@
+@example
+@code{/* Prefix @emph{body_} is reserve */}
 @code{#include <mailutils/body.h>}
+
+@end example
 
 @deftypefun int body_create (body_t *@var{body}, void *@var{owner})
 Initialize an object @var{bdy}.

@@ -1,5 +1,8 @@
+@example
+@code{/* Prefix @emph{address_} is reserve */}
 @code{#include <mailutils/address.h>}
 
+@end example
 The internet address format is defined in RFC 822. RFC 822 has been
 updated, and is now superceeded by RFC 2822, which
 makes some corrections and clarifications. References to RFC 822
