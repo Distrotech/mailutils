@@ -62,6 +62,29 @@
    sieve-mailbox-list)
   (set! sieve-mailbox-list '()))
 
+(define (sieve-expand-filename filename)
+  (case (string-ref filename 0)
+    ((#\~)
+     (let ((pw (mu_getpwuid (geteuid))))
+	(if (and (vector? pw)
+		 (let ((dir (vector-ref pw 5)))
+		   (and
+		    (access? dir W_OK)
+		    (eq? (vector-ref (stat (vector-ref pw 5)) 13) 'directory))))
+	    (string-append (vector-ref pw 5) 
+			   (substring filename
+				      1 (string-length filename)))
+	    #f)))
+    ((#\/)
+      filename)
+    (else
+     (let ((pw (getpwuid (geteuid))))
+	(if (vector? pw)
+	    (string-append (vector-ref pw 5)
+			   "/"
+			   filename)
+	    filename)))))
+
 ;;; Comparators
 (cond
  (sieve-parser
@@ -80,11 +103,18 @@
 ;;; fileinto
 
 (define (action-fileinto filename)
-  (let ((outbox (sieve-mailbox-open filename "cw")))
-    (cond
-     (outbox
-      (mu-mailbox-append-message outbox sieve-current-message)
-      (mu-message-delete sieve-current-message)))))
+  (let ((name (sieve-expand-filename filename)))
+    (if (string? name)
+	(let ((outbox (sieve-mailbox-open name "cw")))
+	  (cond
+	   (outbox
+	    (mu-mailbox-append-message outbox sieve-current-message)
+	    (mu-message-delete sieve-current-message))
+	   (else
+	    (runtime-message SIEVE-ERROR
+			     "Could not open mailbox " name))))
+	(runtime-message SIEVE-ERROR
+			 "Could not expand mailbox name " filename))))
 
 ;;; redirect is defined in redirect.scm
 
