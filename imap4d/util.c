@@ -373,7 +373,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	{
 	  long tmp = low;
 	  tmp -= 2;
-	  if (tmp <= 0 || val == 0)
+	  if (tmp < 0 || val == 0)
 	    {
 	      free (set);
 	      *n = 0;
