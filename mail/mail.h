@@ -254,9 +254,11 @@ extern msgset_t *msgset_append __P ((msgset_t *one, msgset_t *two));
 extern msgset_t *msgset_range __P ((int low, int high));
 extern msgset_t *msgset_expand __P ((msgset_t *set, msgset_t *expand_by));
 extern msgset_t *msgset_dup __P ((const msgset_t *set));
-extern int msgset_parse __P ((const int argc, char **argv, msgset_t **mset));
+extern int msgset_parse __P ((const int argc, char **argv,
+			      int flags, msgset_t **mset));
 extern int msgset_member __P ((msgset_t *set, size_t n));
 extern msgset_t *msgset_negate __P((msgset_t *set));
+extern size_t msgset_count __P((msgset_t *set));
 
 extern int util_do_command __P ((const char *cmd, ...));
 
@@ -281,7 +283,7 @@ extern int util_getenv __P ((void *ptr, const char *variable,
 extern int util_printenv __P ((int set));
 extern int util_setenv __P ((const char *name, void *value,
 			     mail_env_data_t type, int overwrite));
-extern int util_isdeleted __P ((message_t msg));
+extern int util_isdeleted __P ((size_t msgno));
 extern char *util_get_homedir __P ((void));
 extern char *util_fullpath __P ((const char *inpath));
 extern char *util_folder_path __P((const char *name));
@@ -307,7 +309,7 @@ extern int util_get_hdr_value __P ((header_t hdr, const char *name, char **value
 extern int util_merge_addresses __P((char **addr_str, const char *value));
 extern int util_header_expand __P((header_t *hdr));
 extern int util_get_message __P((mailbox_t mbox, size_t msgno,
-				 message_t *msg, int flag));
+				 message_t *msg));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));
