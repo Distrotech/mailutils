@@ -1,3 +1,9 @@
+2003-03-26  Sergey Poznyakof
+
+        * mailbox/mu_auth.c (mu_auth_data_alloc): Fixed COPY macro.
+	* mh/mhn.c (main): Ignore sighups.
+	* mh/mh_format.c (builtin_formataddr): Bugfix.
+		
 2003-03-26  Sergey Poznyakoff 
 
 	* include/mailutils/errno.h (MU_ERR_FAILURE): New macro
