@@ -291,16 +291,19 @@ AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
+AC_SUBST(LIBMU_SCM)
 AC_SUBST(GUILE_PROCEDURES_TXT)
 AC_SUBST(GUILE_BUILT_SOURCES)
 if test x"$useguile" = x"yes"; then
 	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
 	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])
 	if test x$GUILE_CONFIG != xno; then
+		AC_DEFINE(WITH_GUILE)
   		GUILE_INCLUDES=`guile-config compile`
   		GUILE_LIBS=`guile-config link`
 		GUIMB=guimb
 		MU_SCM=libmu_scm.a
+		LIBMU_SCM=../libmu_scm/libmu_scm.a
 		GUILE_PROCEDURES_TXT=guile-procedures.txt
 		GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
 	fi
@@ -322,4 +325,4 @@ AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  frm/Makefile sieve/Makefile messages/Makefile scripts/Makefile
  libmu_scm/Makefile guimb/Makefile guimb/scm/Makefile
  readmsg/Makefile
- MySql/Makefile mh/Makefile comsat/Makefile)
+ MySql/Makefile mh/Makefile comsat/Makefile mail.local/Makefile)
