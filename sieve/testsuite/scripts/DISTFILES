@@ -33,6 +33,7 @@ i-octet-regex.sv
 keep.sv
 not.sv
 null.sv
+numaddr.sv
 redirect.sv
 reject.sv
 size1.sv
