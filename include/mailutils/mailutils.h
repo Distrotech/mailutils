@@ -28,7 +28,6 @@
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>
-#include <mailutils/gsasl.h>
 #include <mailutils/guile.h>
 #include <mailutils/header.h>
 #include <mailutils/iterator.h>
