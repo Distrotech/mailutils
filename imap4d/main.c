@@ -8,7 +8,6 @@
 #include "imap.h"
 #include "imap_commands.h"
 #include "command.h"
-#include "readline.h"
 
 static void init(void);
 static int mainloop(void);
@@ -71,11 +70,12 @@ static void greeting(void) {
 
 static int mainloop(void) {
 
-	char *client_string;
+	char *client_string = NULL;
+	size_t len = 0;
 	Command *command;
 	STATUS status;
 
-	while( (client_string = read_a_line(input)) != NULL ) {
+	while( getline(&client_string, &len, input) != -1 ) {
 		command = parse_command(client_string);
 		status = action(command);
 
@@ -83,11 +83,11 @@ static int mainloop(void) {
 				command->cmd, status_code[status]);
 
 		free_command(command);
-		free(client_string);
 
 		if( state == LOGOUT ) /* all done, let's go */
 			break;
 	}
+	free(client_string);
 
 	return 1;
 }
