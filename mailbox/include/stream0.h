@@ -45,10 +45,12 @@ struct _stream
   int flags;
   int state;
 
-  /* Read space.  */
-  off_t roff;
+  /* Read space */
   struct rbuffer rbuffer;
-
+  
+  /* Stream pointer for sequential offset.  */
+  off_t offset;
+  
   void (*_destroy) __P ((stream_t));
   int (*_open)     __P ((stream_t));
   int (*_close)    __P ((stream_t));
@@ -60,6 +62,7 @@ struct _stream
   int (*_size)     __P ((stream_t, off_t *));
   int (*_flush)    __P ((stream_t));
   int (*_setbufsiz)__P ((stream_t, size_t));
+  int (*_strerror) __P ((stream_t, const char **));
 };
 
 #ifdef __cplusplus
