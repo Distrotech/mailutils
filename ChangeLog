@@ -1,3 +1,30 @@
+2002-02-07  Sergey Poznyakoff  
+
+	* acconfig.h: Added WITH_GSSAPI define.
+	* configure.in: New option: --with-gssapi
+	* imap4d/auth_gss.c: (new)  GSSAPI authentication.
+	* imap4d/Makefile.am: Added auth_gss.c
+	* imap4d/append.c (imap4d_append0): Added missing call to
+	  stream_open().
+	* imap4d/authenticate.c: Basic framework for AUTHENTICATE command.
+	  Added auth_gssapi hook.
+	* imap4d/capability.c: AUTH=GSSAPI if supported.
+	* imap4d/imap4d.c: ifile should be global as well as ofile. It
+	  will be needed by authentication handlers.
+	* imap4d/imap4d.h: Added new protos.
+	* imap4d/util.c: Base64 encoding/decoding functions. filter_trans
+          can't be used for this purpose, since its encoder inserts
+          newlines after each 76 characters of output.
+ 
+	* m4/gssapi.m4: (new) Check for gssapi libraries and header files.
+	* m4/Makefile.am: Added gssapi.m4
+
+	* mail/mail.c (main): Fixed 'No mail for...' reporting.
+	* mailbox/filter_trans.c (trans_read): Control number of
+          bytes read by stream_read().
+
+	* TODO: Updated.
+
 2002-02-07  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* guimb/.cvsignore: Add .libs
