@@ -245,6 +245,7 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
       return ENOMEM; /* errno set by calloc() */
     }
 
+  /* FIXME: what does the next comment mean? */
   /* binary copy of the function */
   *mbox = unixmbox;
 
@@ -381,7 +382,7 @@ mailbox_unix_open (mailbox_t mbox, int flags)
   /* handle CREAT with care, not to follow symlinks */
   if (flags & MU_MB_CREAT)
     {
-      /* firts see if the file already exists */
+      /* first see if the file already exists */
       fd = open(mbox->name, flg);
       if (fd == -1)
 	{
@@ -527,6 +528,7 @@ mailbox_unix_get_name (mailbox_t mbox, int *id, char *name,
 /* passwd */
 /* We don't care */
 
+/* FIXME: hmmm, all of the files i check lack a timezone field */
 /* FIXME: a little weak, we should do full reconnaissance of the
    the "From " header :
    From email weekday month day time timezone year
@@ -603,6 +605,7 @@ mailbox_unix_scan (mailbox_t mbox, size_t *msgs)
   struct stat st;
 
   mailbox_unix_ilock (mbox, MU_MB_WRLOCK);
+  /* FIXME: please clarify next comment */
   /* FIXME:  I should also block signals since
      We can affor to be intr */
   flockfile (mud->file);
@@ -622,7 +625,7 @@ mailbox_unix_scan (mailbox_t mbox, size_t *msgs)
       /* header */
       if ((header && mailbox_unix_is_from (buf)))
 	{
-	  /* FIXME: What happen if some mailer violates the rfc8222 and the
+	  /* FIXME: What happen if some mailer violates the rfc822 and the
 	     "From " field contains a NULL byte */
 	  int over = strlen (buf);
 	  count++;
