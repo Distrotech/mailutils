@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#include <string.h>
 #include <mailutils/mailutils.h>
 
 int

@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
@@ -46,7 +47,7 @@ parse (const char *str)
     }
   else
     {
-      printf ("%s=> pcount %d\n", str, pcount);
+      printf ("%s=> pcount %lu\n", str, (unsigned long) pcount);
     }
 
   for (no = 1; no <= pcount; no++)
@@ -56,7 +57,7 @@ parse (const char *str)
 
       address_is_group (address, no, &isgroup);
 
-      printf ("%d ", no);
+      printf ("%lu ", (unsigned long) no);
 
       if (isgroup)
         {
