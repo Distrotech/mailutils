@@ -15,6 +15,7 @@ pkginclude_HEADERS = \
  error.h \
  filter.h \
  folder.h \
+ guile.h \
  header.h \
  iterator.h \
  libsieve.h \
