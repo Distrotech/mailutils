@@ -1,0 +1,7 @@
+@example
+@code{/* Prefix @emph{maildir_} is reserved */}
+@code{#include <mailutils/maildir.h>}
+
+@end example
+
+QMail mailbox format. Not implemented.

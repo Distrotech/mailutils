@@ -1,0 +1,88 @@
+@example
+@code{/* Prefix @emph{attribute_} is reserved */}
+@code{#include <mailutils/attribute.h>}
+
+@end example
+
+@deftypefun int attribute_create (attribute_t *@var{pattribute})
+@end deftypefun
+
+@deftypefun void attribute_destroy (attribute_t *@var{pattribute})
+@end deftypefun
+
+@deftypefun int attribute_is_seen (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_answered (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_flagged (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_deleted (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_draft (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_recent (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_read (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_seen (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_answered (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_flagged (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_deleted (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_draft (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_recent (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_set_read (attribute_t @var{attribute})
+@end deftypefun
+
+
+@deftypefun int attribute_unset_seen (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_answered (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_flagged (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_deleted (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_draft (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_recent (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_unset_read (attribute_t @var{attribute})
+@end deftypefun
+
+@deftypefun int attribute_is_equal (attribute_t @var{att1}, attribute_t @var{att2})
+@end deftypefun
+
+@deftypefun int attribute_copy (attribute_t @var{dst}, attribute_t @var{src})
+@end deftypefun
+
+@deftypefun int string_to_attribute (const char *@var{buf}, attribute_t *@var{pattr})
+@end deftypefun
+
+@deftypefun int attribute_to_string (attribute_t @var{attr}, char *@var{buf}, size_t @var{len}, size_t *@var{pwriten})
+@end deftypefun
+

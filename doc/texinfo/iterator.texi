@@ -1,0 +1,24 @@
+@example
+@code{/* Prefix @emph{iterator_} is reserved */}
+@code{#include <mailutils/iterator.h>}
+
+@end example
+
+@deftypefun int iterator_create (iterator_t *)
+@end deftypefun
+
+@deftypefun void iterator_destroy (iterator_t *)
+@end deftypefun
+
+@deftypefun int iterator_first (iterator_t)
+@end deftypefun
+
+@deftypefun int iterator_next (iterator_t)
+@end deftypefun
+
+@deftypefun int iterator_current (iterator_t, void **pitem)
+@end deftypefun
+
+@deftypefun int iterator_is_done (iterator_t)
+@end deftypefun
+

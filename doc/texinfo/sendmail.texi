@@ -1,0 +1,7 @@
+@example
+@code{/* Prefix @emph{sendmail_} is reserved */}
+@code{#include <mailutils/sendmail.h>}
+
+@end example
+
+Spawning Sendmail daemon to deliver mail. Not implemented.

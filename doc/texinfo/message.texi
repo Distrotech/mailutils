@@ -1,0 +1,98 @@
+@example
+@code{#include <mailutils/message.h>}
+@code{/* Prefix @emph{message_} is reserve */}
+
+@end example
+
+The @code{message_t} object is a convenient way to manipulate messages.  It
+encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
+
+@example
+@group
+    mailbox_t
+    __________                   message_t
+   (message[1])        +------>+-----------------------+
+    ----------         |       |  envelope_t           |
+   (message[2])        |       |-----------------------|
+    ----------         |       |  header_t             |
+   (message[3])--------+       |-----------------------|
+    ----------                 |  body_t               |
+   (message[n])                |-----------------------|
+    ----------                 |  attribute_t          |
+                               |-----------------------|
+                               |  stream_t             |
+                               +-----------------------+
+@end group
+@end example
+
+@deftypefun void message_create (message_t *@var{msg}, void *@var{owner})
+@end deftypefun
+
+@deftypefun void message_destroy (message_t *@var{msg}, void *@var{owner})
+The resources allocate for @var{msg} are freed.
+@end deftypefun
+
+@deftypefun int message_get_header (message_t @var{msg}, header_t *@var{pheader})
+Retrieve @var{msg} header.
+@end deftypefun
+
+@deftypefun int message_set_header (message_t @var{msg}, header_t @var{header}, void *@var{owner})
+@end deftypefun
+
+@deftypefun int message_get_body (message_t @var{msg}, body_t *@var{pbody})
+@end deftypefun
+
+@deftypefun int message_set_body (message_t @var{msg}, body_t @var{body}, void *@var{owner})
+@end deftypefun
+
+@deftypefun int message_is_multipart (message_t @var{msg})
+Return non-zero value if message is multi-part.
+@end deftypefun
+
+@deftypefun int message_get_num_parts (message_t @var{msg}, size_t *nparts)
+@end deftypefun
+
+@deftypefun int message_get_part (message_t @var{msg}, size_t part, message_t *msg)
+@end deftypefun
+
+@deftypefun int message_get_stream (message_t @var{msg}, stream_t *@var{pstream})
+@end deftypefun
+
+@deftypefun int message_set_stream (message_t @var{msg}, stream_t @var{stream},void *@var{owner} )
+@end deftypefun
+
+@deftypefun int message_get_attribute (message_t @var{msg}, attribute_t *@var{pattribute})
+@end deftypefun
+
+@deftypefun int message_set_attribute (message_t @var{msg}, attribute_t @var{attribute}, void *owner)
+@end deftypefun
+
+@deftypefun int message_get_envelope (message_t @var{msg}, envelope_t *penvelope)
+@end deftypefun
+
+@deftypefun int message_set_envelope (message_t @var{msg}, envelope_t envelope, void *@var{owner})
+@end deftypefun
+
+@deftypefun int message_get_uid (message_t @var{msg}, size_t *@var{uid})
+@end deftypefun
+
+@deftypefun int message_get_uidl (message_t @var{msg}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{pwriten})
+@end deftypefun
+
+@deftypefun int message_set_uidl (message_t @var{msg}, int (*@var{_get_uidl})(message_t, char *, size_t, size_t *), void *@var{owner})
+@end deftypefun
+
+@deftypefun int message_get_observable (message_t @var{msg}, observable_t *@var{observable})
+@end deftypefun
+
+@deftypefun int message_create_attachment (const char *@var{content_type}, const char *@var{encoding}, const char *@var{filename}, message_t *@var{newmsg})
+@end deftypefun
+
+@deftypefun int message_save_attachment (message_t @var{msg}, const char *@var{filename}, void **@var{data})
+@end deftypefun
+
+@deftypefun int message_encapsulate (message_t @var{msg}, message_t *@var{newmsg}, void **@var{data})
+@end deftypefun
+
+@deftypefun int message_unencapsulate (message_t @var{msg}, message_t *@var{newmsg}, void **@var{data});
+@end deftypefun

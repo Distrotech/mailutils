@@ -1,0 +1,63 @@
+@example
+@code{/* Prefix @emph{auth_} is reserved */}
+@code{#include <mailutils/auth.h>}
+
+@end example
+
+There are many ways to authenticate to a server.  To be flexible the
+authentication process is provided by two objects @code{auth_t} and
+@code{ticket_t}.  The @code{auth_t} can implement different protocol like
+APOP, MD5-AUTH, One Time Passwd etc .. By default if a mailbox
+does not understand or know how to authenticate it falls back to
+user/passwd authentication.  The @code{ticket_t} is a way for
+Mailboxes and Mailers provide a way to authenticate when the URL does not
+contain enough information.  The default action is to call the function
+@code{auth_authenticate} which will get the @emph{user} and @emph{passwd}
+if not set, this function can be overridden by a custom method.
+
+@deftypefun int auth_create (auth_t *@var{pauth}, void *@var{owner})
+@end deftypefun
+
+@deftypefun void auth_destroy (auth_t *@var{pauth}, void *@var{owner})
+@end deftypefun
+
+@deftypefun int auth_prologue (auth_t @var{auth})
+@end deftypefun
+
+@deftypefun int auth_authenticate (auth_t @var{auth}, char **@var{user}, char **@var{passwd})
+@end deftypefun
+
+@deftypefun int auth_epilogue (auth_t @var{auth})
+@end deftypefun
+
+A simple example of an authenticate function:
+@example
+#include <mailutils/auth.h>
+#include <stdio.h>
+#include <string.h>
+
+int
+my_authenticate (auth_t auth, char **user, char **passwd)
+@{
+  char u[128] = "";
+  char p[128] = "";
+
+  /* prompt the user name */
+  printf ("User: ");
+  fflush (stdout);
+  fgets (u, sizeof (u), stdin);
+  u[strlen (u) - 1] = '\0'; /* nuke the trailing NL */
+
+  /* prompt the passwd */
+  printf ("Passwd: "); fflush (stdout);
+  echo_off ();
+  fgets (p, sizeof(p), stdin);
+  echo_on ();
+  p[strlen (p) - 1] = '\0';
+
+  /* duplicate */
+  *user = strdup (u);
+  *passwd = strdup (p);
+  return 0;
+@}
+@end example

@@ -1,0 +1,1770 @@
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+@c See file mailutils.texi for copying conditions.
+@comment *******************************************************************
+
+GNU Mailutils provides a set of programs for handling the email.  
+
+@menu
+* imap4d::      IMAP4 daemon.
+* pop3d::       POP3 daemon.
+* frm::         List headers from a mailbox.
+* mail::        Send and receive mail.
+* messages::    Count the number of messages in a mailbox.
+* readmsg::     Extract messages from a folder.
+* sieve::       Filter a mailbox.
+* guimb::       Mailbox scanning and processing language.
+@end menu
+
+@node imap4d
+@section IMAP4 daemon
+
+imap4d has two operation modes:
+
+@table @asis
+@item Inetd
+The server is started from @file{/etc/inetd.conf} file:
+
+@example
+imap4  stream tcp nowait  root  /usr/local/sbin/imap4d imap4d
+@end example
+
+This is the default operation mode.
+
+@item Standalone
+The server runs as daemon, forking a child for each new connection. This
+mode is triggered by @samp{-d} command line switch.
+@end table
+
+@subheading Command line options
+
+@table @samp
+@item -d[NUMBER]
+@itemx --daemon[=NUMBER]
+Run in standalone mode. An optional NUMBER specifies the maximum number
+of child processes the daemon is allowed to fork. When it is omitted,
+it defaults to 20 processes.
+@emph{Please note}, that there should be no whitespace between the
+@samp{-d} and its parameter.
+@item -h
+@itemx --help
+Display short help message and exit.
+@item -i
+@itemx --inetd
+Run in inetd mode. 
+@item -p NUMBER
+@itemx --port NUMBER
+Listen on given port NUMBER. This option is meaningful only in
+standalone mode. It defaults to port 143.
+@item -t NUMBER
+@itemx --timeout NUMBER
+Set idle timeout to given NUMBER of seconds. Default is 1800 seconds (30
+minutes).  The daemon breaks the connection if it receives no commands
+from the client within that number of seconds.
+@item -v
+@itemx --version
+Display program version and exit.
+@end table
+
+@node pop3d
+@section POP3 daemon
+
+The @file{pop3d} daemon implements the Post Office Protocol server.
+
+pop3d has two operation modes:
+
+@table @asis
+@item Inetd
+The server is started from @file{/etc/inetd.conf} file:
+
+@example
+pop3  stream tcp nowait  root  /usr/local/sbin/pop3d pop3d
+@end example
+
+This is the default operation mode.
+
+@item Standalone
+The server runs as daemon, forking a child for each new connection. This
+mode is triggered by @samp{-d} command line switch.
+@end table
+
+@subheading Command line options
+
+@table @samp
+@item -d[NUMBER]
+@itemx --daemon[=NUMBER]
+Run in standalone mode. An optional NUMBER specifies the maximum number
+of child processes the daemon is allowed to fork. When it is omitted,
+it defaults to 10 processes.
+@emph{Please note}, that there should be no whitespace between the
+@samp{-d} and its parameter.
+@item -h
+@itemx --help
+Display short help message and exit.
+@item -i
+@itemx --inetd
+Run in inetd mode. 
+@item -p NUMBER
+@itemx --port NUMBER
+Listen on given port NUMBER. This option is meaningful only in
+standalone mode. It defaults to port 110.
+@item -t NUMBER
+@itemx --timeout NUMBER
+Set idle timeout to given NUMBER of seconds. Default is 600 seconds (10
+minutes).  The daemon breaks the connection if it receives no commands
+from the client within that number of seconds.
+@item -v
+@itemx --version
+Display program version and exit.
+@end table
+
+@node frm
+@section frm --- List headers from a mailbox.
+
+The @file{frm} command outputs a header information of
+the selected messages in a mailbox. By default, @file{frm} reads the
+user's system mailbox and outputs the contents of @code{From} and
+@code{Subject} headers for each message. If a folder is specified in
+the command line, the program reads that folder rather than the default
+mailbox.
+
+The following command line options alter the behavior of the program:
+
+@table @samp
+@item -h
+@itemx --help
+Display short help message and exit.
+@item -f STRING
+@item --field STRING
+Display the header named by STRING instead of @code{From} @code{Subject} pair.
+@item -l
+@itemx --to
+Include the contents of @code{To} header to the output. The output field
+order is then: @code{To} @code{From} @code{Subject}.
+@item -n
+@itemx --number
+Prefix each line with corresponding message number.
+@item -Q
+@itemx --Quiet
+Be very quiet. Nothing is output except error messages. This is useful
+in shell scripts where only the return status of the program is
+important.
+@item -q
+@itemx --query
+Print a message only if there are unread messages in the mailbox.
+@item -S
+@itemx --summary
+Print a summary line.
+@item -s ATTR
+@itemx --status ATTR
+Only display headers from messages with the given status.
+ATTR may be one of the following: @samp{new}, @samp{read},
+@samp{unread}. It is sufficient to specify only first letter of
+an ATTR. Multiple @samp{-s} options are allowed.
+@item -t
+@itemx --align
+Tidy mode. Currently is not implemented. Included for compatibility with
+@file{frm} program from Elm package.
+@item -v
+@itemx --version
+Display version information and exit
+@end table
+
+@node mail
+@section mail ---  send and receive mail.
+
+@code{Mail} is an enhanced version of standard @file{/bin/mail} program.
+As well as its predecessor, it can be used either in sending mode or
+in reading mode. @code{Mail} enters sending mode when one or more
+email addresses were specified in this command line. In this mode the
+program waits until user finishes composing the message, then attempts
+to send it to the specified addresses and exits.
+See @xref{Composing Mail}, for a detailed description of this behavior.
+
+If the command line contained no email addresses, @code{mail} switches
+to reading mode. In this mode it allows to read and manipulate the
+contents of a mailbox. The URL of the mailbox to operate upon is
+taken from the argument of @samp{--file} command line option. If it
+is not specified, the user's system mailbox is assumed. @xref{Reading
+Mail} for more detail.
+
+@menu
+* Invoking Mail::            Command line options.
+* Specifying Messages::      How to specify message sets.
+* Composing Mail::           Composing mail.
+* Reading Mail::             Reading mail.
+* Mail Variables::           How to alter the behavior of mail.
+* Mail Configuration Files:: Personal and system-wide configuration files.
+@end menu
+
+@node Invoking Mail
+@subsection Command line options
+
+General usage of @file{mail} program is:
+
+@example
+      mail [OPTION...] [address...]
+@end example
+@noindent
+If [address...] part is present, @file{mail} switches to mail sending
+mode, otherwise it operates in mail reading mode.
+
+@file{Mail} understands following command line options:
+
+@table @samp
+@item -e
+@itemx --exist
+Return true if the mailbox contains some messages. Return false
+otherwise.
+This is useful for writing shell scripts.
+@item -f[FILE]
+@itemx --file[=FILE]
+Operate on mailbox FILE. If this option is not specified, the default
+is user's system mailbox. If it is specified without argument, the
+default is $HOME/mbox.
+@emph{Please note}, that there should be no whitespace between the
+short variant of the option (@samp{-f}), and its parameter. Similarly,
+when using long option (@samp{--file}), its argument must be preceded by
+equal sign.
+@item -F
+@itemx --byname
+Save messages according to sender. Currently this option is not implemented.
+@item -H
+@itemx --headers
+Print header summary to stdout and exit.
+@item -i
+@itemx --ignore
+Ignore interrupts.
+@item -n
+@itemx --norc
+Do not read the system-wide mailrc file. @xref{Mail Configuration Files}.
+@item -N
+@itemx --nosum
+Do not display initial header summary.
+@item -p
+@itemx --print
+@itemx -r
+@itemx --read
+Print all mail to standard output. It is equivalent to issuing following
+commands after starting @samp{mail -N}:
+
+@example
+ print *
+ quit
+@end example
+@item -q
+@itemx --quit
+Cause interrupts to terminate program.
+@item -s SUBJ
+@itemx --subject=SUBJ
+Send a message with a Subject of SUBJ. Valid only in sending mode.
+@item -t
+@itemx --to
+Switch to sending mode.
+@item -u USER
+@itemx --user=USER
+Operate on USER's mailbox. This is equivalent to:
+
+@example
+        mail -f/@var{spool_path}/USER
+@end example
+@noindent
+with @var{spool_path} being the full path to your mailspool directory
+(@file{/var/spool/mail} or @file{/var/mail} on most systems).
+@item -?
+@itemx --help
+Display a help message.
+@itemx --usage
+Display a short usage summary.
+@item -V
+@itemx --version
+Print program version and exit.
+@end table
+
+@node Specifying Messages
+@subsection How to specify message sets
+
+Many mail commands such as print and delete can be given a @dfn{message list}
+to operate upon. Wherever the message list is omitted, the command
+operates on the current message.
+
+The @dfn{message list} in its simplest form is one of:
+
+@table @asis
+@item .
+Selects current message. It is equivalent to empty message list.
+@item *
+Selects all messages in the mailbox.
+@item ^
+Selects first non-deleted message.
+@item $
+Selects last non-deleted message.
+@end table
+
+In its complex form, the @dfn{message list} is a comma or whitespace-separated
+list of @dfn{message specifiers}. A @dfn{message specifier} is one
+of
+
+@table @asis
+@item Message Number
+This specifier addresses the message with the given ordinal number
+in the mailbox.
+@item Message range
+@dfn{Message range} is specified as two message numbers separated by
+a dash. It selects all messages with the number lying within that range.
+@item Attribute specifier
+An @dfn{Attribute specifier} is a colon followed by a single
+letter. The @dfn{Attribute specifier} addresses all messages in the
+mailbox that have the given attribute. These are the valid attribute
+specifiers:
+
+@table @samp
+@item :d
+Selects all deleted messages.
+@item :n
+Selects all recent messages, i.e. the messages that have not been
+neither read not seen so far.
+@item :o
+Selects all messages that have been seen.
+@item :r
+Selects all messages that have been read.
+@item :u
+Selects all messages that have @emph{not} been read.
+@item :t
+Selects all tagged messages (@pxref{Marking Messages}).
+@item :T
+Selects all untagged messages.
+@end table
+@item Header match
+The @dfn{header match} is a string in the form:
+
+@example
+[@var{header}:]/@var{string}/
+@end example
+@noindent
+
+It selects all messages that contain header field @var{header}
+matching given @var{regexp}. If the variable @code{regexp} is set,
+the @var{string} is assumed to be a POSIX regexp. Otherwise, a
+header is considered to match @var{string} if the latter constitutes
+a substring of the former (comparison is case-insensitive).
+
+If @var{header}: part is omitted, it is assumed to be @samp{Subject:}.
+@item Message body match
+The @dfn{message body match} is a string in the form:
+
+@example
+:/@var{string}/
+@end example
+@noindent
+
+It selects all messages whose body matches the string. The matching
+rules are the same as described under ``Header match''.
+
+@end table
+
+A @dfn{message specifier} can be followed by @dfn{message part
+specifier}, enclosed in a pair of brackets. A @dfn{message part
+specifier} controls which part of a message should be operated upon.
+It is meaningful only for multipart messages. A @dfn{message part
+specifier} is a comma or whitespace - separated list of part numbers
+or ranges. Each part number can in turn be @dfn{message part specifier},
+thus allowing for operating upon multiply-encoded messages.
+
+The following are the examples of valid message lists:
+
+
+
+@node Composing Mail
+@subsection Composing mail
+
+You can compose the message by simply typing the contents of it, line
+by line. But usually this is not enough, you would need to edit
+your text, to quote some messages, etc. @file{Mail} provides these
+capabilities through @dfn{compose escapes}. The @dfn{compose escapes}
+are single-character commands, preceded by special @dfn{escape character},
+which defaults to @samp{~}. The combination @code{escape character + command}
+is recognized as a compose escape only if it occurs at the beginning of
+a line. If the escape character must appear at the beginning of a
+line, enter it twice. 
+The actual escape character may be changed by setting the value of
+@code{escape} mail variable (@pxref{Mail Variables}).
+
+@menu
+* Quitting Compose Mode::
+* Getting Help on Compose Escapes::
+* Editing the Message::
+* Modifying the Headers::
+* Enclosing Another Message::
+* Adding a File to the Message::
+* Printing And Saving the Message::
+* Signing the Message::
+* Printing Another Message::
+* Inserting Value of a Mail Variable::
+* Executing Other Mail Commands::
+* Executing Shell Commands::
+@end menu
+
+@node Quitting Compose Mode
+@subsubsection Quitting Compose Mode
+
+There are several commands allowing you to quit the compose mode.
+
+Typing the end-of-file character (@samp{C-D}) on a line alone finishes
+compose mode and sends the message to its destination. The @samp{C-D}
+character looses its special meaning if @code{ignoreeof} mail variable
+is set.
+
+If mail variable @code{dot} is set, typing dot (@samp{.}) on a line
+alone achieves the same effect as @samp{C-D} above.
+
+Finally, using @samp{~.} escape always quits compose mode and sends
+out the composed message.
+
+To abort composing of a message without sending it, type interrupt
+character (by default, @samp{C-C}) twice. This behavior is disabled
+when mail variable @code{ignore} is set. In this case, you can use
+@samp{~x} escape to achieve the same effect.
+
+@node Getting Help on Compose Escapes
+@subsubsection Getting Help on Compose Escapes: ~?
+
+The @samp{~?} escape prints on screen a brief summary of the available
+compose escapes. @emph{Please note}, that @samp{~h} escape prompts
+for changing the header values, and does @emph{not} give help.
+
+@node Editing the Message
+@subsubsection Editing the Message: ~e and ~v.
+
+If you are not satisfied with the message as it is, you can edit it
+using a text editor specified either by @code{EDITOR} or by
+@code{VISUAL} environment variables. The @samp{~e} uses the former,
+and @samp{~v} uses the latter.
+
+@emph{Please note}, that both commands allow you to edit the body of the
+message, and not its headers. To change message headers, see
+@ref{Modifying the Headers}.
+
+@node Modifying the Headers
+@subsubsection Modifying the Headers: ~h, ~t, ~c, ~b, ~s
+
+To add new addresses to the list of message recipients, use @samp{~t}
+command, e.g.:
+
+@example
+~t name1@@domain.net name2
+@end example
+
+To add addresses to @code{Cc} or @code{Bcc}, use @samp{~c} or @samp{~b}
+escapes respectively.
+
+To change the @code{Subject} header, use @samp{~s} escape, e.g.:
+
+@example
+~s "Re: your message"
+@end example
+
+Finally, to edit all headers, type @samp{~h} escape. This will present
+you with the values of @code{To}, @code{Cc}, @code{Bcc}, and
+@code{Subject} headers allowing to edit them with normal text editing
+commands. 
+
+@node Enclosing Another Message
+@subsubsection Enclosing Another Message: ~m and ~M
+
+If you are sending mail from within mail command mode, you can enclose
+the contents of any message sent to you by using @samp{~m} or @samp{~M}
+commands. Typing @samp{~m} alone will enclose the contents of the
+current message, typing @samp{~m 12} will enclose the contents of
+message #12 and so on.
+
+The @samp{~m} uses retained and ignored lists when enclosing headers,
+the @samp{~M} encloses all header fields
+(@pxref{Controlling Header Display}).
+
+In both cases, the contents of @code{indentprefix} mail variable is
+prepended to each line enclosed.
+
+@node Adding a File to the Message
+@subsubsection Adding a File to the Message: ~r and ~d
+
+To append the contents of file @var{filename} to the message, type
+
+@example
+~r @var{filename}
+@end example
+@noindent
+or
+
+@example
+~< @var{filename}
+@end example
+@noindent
+
+The @samp{~d} escape is a shorthand for
+
+@example
+~r dead.letter
+@end example
+
+@node Printing And Saving the Message
+@subsubsection Printing And Saving the Message
+
+The @samp{~p} escape types the contents of the message entered so far,
+including headers, on your terminal. You can save the message to
+an arbitrary file using @samp{~w} escape. It takes the filename as its
+argument.
+
+@node Signing the Message
+@subsubsection Signing the Message: ~a and ~A
+
+To save you the effort of typing your signature at the end of each
+message, you can use @samp{~a} or @samp{~A} escapes. If your signature
+occupies one line only, save it to the variable @code{sign} and use
+@samp{~a} escape to insert it. Otherwise, if it is longer than one
+line, save it to a file, store the name of this file in the
+variable @code{Sign}, and use @samp{~A} escape to insert it into
+the message.
+
+@node Printing Another Message
+@subsubsection Printing Another Message: ~f and ~F
+
+Sometimes it is necessary to view the contents of another message,
+while composing. These two escapes allow it. Both take the message
+list as their argument. If they are used without argument, the
+contents of the current message is printed. The difference between
+@samp{~f} and @samp{~F} is that the former uses ignored and retained
+lists to select headers to be displayed, whereas the latter prints
+all headers (@pxref{Controlling Header Display}).
+
+@node Inserting Value of a Mail Variable
+@subsubsection Inserting Value of a Mail Variable: ~i
+
+The @samp{~i} escape enters the value of the named mail variable into
+the body of the message being composed.
+
+@node Executing Other Mail Commands
+@subsubsection Executing Other Mail Commands: ~: and ~-
+
+You can execute a mail command from within compose mode using @samp{~:}
+or @samp{~-} escapes. For example, typing
+
+@example
+~: from :t
+@end example
+@noindent
+
+will display the from lines of all tagged messages. Note, that executing
+mail-sending commands (@pxref{Replying}) from within the compose mode is
+not allowed. An attempt to execute such a command will result in
+diagnostic message ``Command not allowed in an escape sequence'' being
+displayed. Also, when starting compose mode immediately from the shell
+(e.g. running @samp{mail address@@domain}), most mail commands are
+meaningless, since there is no mailbox to operate upon. In this case,
+the only commands that can reasonably be used are: @code{alias},
+@code{unalias}, @code{alternate}, @code{set}, and @code{unset}.
+
+
+@node Executing Shell Commands
+@subsubsection Executing Shell Commands: ~! and ~|
+
+The @samp{~!} escape executes specified command and returns you to
+@file{mail} compose mode without altering your message. When used without
+arguments, it starts your login shell. The @samp{~|} escape pipes the
+message composed so far through the given shell command and replaces the
+message with the output the command produced. If the command produced
+no output, @file{mail} assumes that something went wrong and retains
+the old contents of your message.
+
+@c *********************************************************************
+
+@node Reading Mail
+@subsection Reading mail
+
+To read messages from a given mailbox, use one of the following ways of
+invoking @file{mail}:
+
+@table @code
+@item mail
+To read messages from your system mailbox.
+@item mail --file
+To read messages from your mailbox ($HOME/mbox).
+@item mail --file=@var{path_to_mailbox}
+To read messages from the specified mailbox.
+@item mail --user=@var{user}
+To read messages from the system mailbox belonging to @var{user}.
+@end table
+
+@emph{Please note}, that usual mailbox permissions won't allow you
+to use the last variant of invocation, unless you are a super-user.
+Similarly, the last but one variant is also greatly affected by the
+permissions the target mailbox has.
+
+Unless you have started mail with @samp{--norc} command line option,
+it will read the contents of the system-wide configuration file.
+Then it reads the contents of user configuration file, if any.
+@xref{Mail Configuration Files} for detailed description of these
+files.
+After this initial setup, @file{mail} displays the first page of header
+lines and enters interactive mode. In interactive mode, @file{mail}
+displays its prompt (@samp{?}, if not set otherwise) and executes the
+commands the user enters.
+
+@menu
+* Quitting the Program::
+* Obtaining Online Help::
+* Moving Within a Mailbox::
+* Changing mailbox/directory::
+* Controlling Header Display::
+* Displaying Information::
+* Displaying Messages::
+* Marking Messages::
+* Disposing of Messages::
+* Saving Messages::
+* Editing Messages::
+* Scripting::
+* Aliasing::
+* Replying::
+* Incorporating New Mail::
+* Shell Escapes::
+@end menu
+
+@c **********************************
+@node Quitting the Program
+@subsubsection Quitting the program
+
+Following commands quit the program:
+
+@table @samp
+@item quit
+Terminates the session. If @file{mail} was operating upon user's system
+mailbox, then all undeleted and unsaved messages that have been read and
+are not marked with hold flag are saved to the user's mbox file
+(@file{$HOME/mbox}). The messages, marked with @code{delete} are removed.
+The program exits to the Shell, unless saving the mailbox fails, in
+which case user can escape with the exit command.
+
+@item exit
+@itemx ex
+@itemx xit
+Program exits to the Shell without modifying the mailbox it operates
+upon.
+@end table
+
+Typing EOF (@samp{C-D}) alone is equivalent to @samp{quit}.
+
+@node Obtaining Online Help
+@subsubsection Obtaining online help
+
+Following commands can be used during the session to request online
+help:
+
+@table @samp
+@item help [@var{command}] 
+@itemx hel [@var{command}]
+@itemx ? [@var{command}]
+Display detailed command synopsis. If no @var{command} is given, help for
+all available commands is displayed.
+@item list
+@itemx *
+Print a list of available commands.
+@item version
+@itemx ve
+Display program version.
+@item warranty
+@itemx wa
+Display program warranty statement.
+@end table
+
+@node Moving Within a Mailbox
+@subsubsection Moving within a mailbox
+
+@table @samp
+@item next
+@itemx n
+Move to the next message.
+@item previous
+@itemx prev
+Move to the previous message.
+@end table
+
+@node Changing mailbox/directory
+@subsubsection Changing mailbox/directory
+
+@table @samp
+@item cd [@var{dir}]
+@itemx chdir [@var{dir}]
+@itemx ch [@var{dir}]
+Change to the specified directory. If @var{dir} is omitted, $HOME is
+assumed.
+@item file [@var{mailbox}]
+@itemx fi [@var{mailbox}]
+@itemx folder [@var{mailbox}]
+@itemx fold [@var{mailbox}]
+Read in the contents of the specified @var{mailbox}. The current mailbox
+is updated as if @code{quit} command has been issued.
+If @var{mailbox} is omitted, the command prints the current mailbox
+name followed by the summary information regarding it, e.g.:
+
+@example
+& fold
+"/var/spool/mail/gray": 23 messages 22 unread
+@end example
+@end table
+
+@node Controlling Header Display
+@subsubsection Controlling header display
+
+To control which headers in the message should be displayed, @file{mail}
+keeps two lists: a @dfn{retained} header list and an @dfn{ignored}
+header list. If @dfn{retained} header list is not empty, only the
+header fields listed in it are displayed when printing the message.
+Otherwise, if @dfn{ignored} header list is not empty, only the headers
+@emph{not listed} in this list are displayed. The uppercase variants
+of message-displaying commands can be used to print all the headers.
+
+The following commands modify and display the contents of both lists.
+
+@table @samp
+@item discard [@var{header-field-list}]
+@itemx di [@var{header-field-list}]
+@itemx ignore [@var{header-field-list}]
+@itemx ig [@var{header-field-list}]
+Add @var{header-field-list} to the ignored list. When used without
+arguments, this command prints the contents of ignored list.
+@item retain [@var{header-field-list}]
+@itemx ret [@var{header-field-list}]
+Add @var{header-field-list} to the retained list. When used without
+arguments, this command prints the contents of retained list.
+@end table
+
+@node Displaying Information
+@subsubsection Displaying information
+
+@table @samp
+@item =
+Displays the current message number.
+@item headers [@var{msglist}]
+@itemx h [@var{msglist}]
+Lists the current pageful of headers.
+@item from [@var{msglist}]
+@itemx f [@var{msglist}]
+Lists the contents of @samp{From} headers for a given set of messages.
+@item z [@var{arg}]
+Presents message headers in pagefuls as described for @code{headers}
+command. When @var{arg} is @samp{.}, it is generally equivalent to
+@code{headers}. When @var{arg} is omitted or is @samp{+}, the next
+pageful of headers is displayed. If @var{arg} is @samp{-}, the
+previous pageful of headers is displayed. The latter two forms
+of @code{z} command may also take a numerical argument meaning the
+number of pages to skip before displaying the headers. For
+example:
+
+@example
+& z +2
+@end example
+@noindent
+will skip two pages of messages before displaying the header summary.
+@item size [@var{msglist}]
+@itemx si [@var{msglist}]
+Lists the message number and message size in bytes for each message in
+@var{msglist}.
+@item folders
+Displays the value of @code{folder} variable.
+@item summary
+@itemx su
+Displays current mailbox summary. E.g.:
+
+@example
+& summary
+"/var/spool/mail/gray": 23 messages 22 unread
+@end example
+@end table
+
+@node Displaying Messages
+@subsubsection Displaying messages
+
+@table @samp
+@item print [@var{msglist}]
+@itemx p [@var{msglist}]
+@item type [@var{msglist}]
+@itemx t [@var{msglist}]
+Prints out the messages from @var{msglist}. If the variable @code{crt}
+is set and the number of lines in the message is greater than the number
+of lines on screen, the message is piped through pager command specified
+by environment variable @code{PAGER}. The number of lines on screen is
+controlled by @code{screen} variable.
+@item Print [@var{msglist}]
+@itemx P [@var{msglist}]
+@itemx Type [@var{msglist}]
+@itemx T [@var{msglist}]
+Like print but also prints out ignored header fields.
+@xref{Controlling Header Display} for detailed description of ignored
+header lists.
+@item decode [@var{msglist}]
+@itemx dec [@var{msglist}]
+Print a multipart message. The @code{decode} command decodes and prints
+out specified message parts. E.g.
+@example
+& decode 15[2]
++---------------------------------------
+| Message=15[2] 
+| Type=message/delivery-status
+| encoding=7bit
++---------------------------------------
+Content-Type: message/delivery-status
+...
+@end example
+@item top [@var{msglist}]
+@itemx to [@var{msglist}]
+Prints the top few lines of each message in @var{msglist}.  The number
+of lines printed is controlled by the variable @code{toplines} and
+defaults to five.
+@item pipe [@var{msglist}] [@var{shell-command}]
+@itemx | [@var{msglist}] [@var{shell-command}]
+Pipe the contents of specified messages through @var{shell-command}. If
+@var{shell-command} is empty but the string variable @code{cmd} is set,
+the value of this variable is used as a command name.
+@end table
+
+@node Marking Messages
+@subsubsection Marking messages
+
+@table @samp
+@item tag [@var{msglist}]
+@itemx ta [@var{msglist}]
+Tag messages. The tagged messages can be referred to in message list
+using @samp{:t} notation.
+@item untag [@var{msglist}]
+@itemx unt [@var{msglist}]
+Clear tags from specified messages. To untag all messages tagged so far
+type
+@example
+& untag :t
+@end example
+@item hold [@var{msglist}]
+@itemx ho [@var{msglist}]
+@itemx preserve [@var{msglist}]
+@itemx pre [@var{msglist}]
+Marks each message to be held in user's system mailbox. This command
+does not override the effect of @code{delete} command.
+@end table
+
+@node Disposing of Messages
+@subsubsection Disposing of messages
+
+@table @samp
+@item delete [@var{msglist}]
+@itemx d [@var{msglist}]
+Mark messages as deleted. Upon exiting with @code{quit} command these
+messages will be deleted from the mailbox. Until the end of current
+session the deleted messages can be referred to in message lists using
+:d notation.
+@item undelete [@var{msglist}]
+@itemx u [@var{msglist}]
+Clear delete mark from the specified messages.
+@item dp [@var{msglist}]
+@itemx dt [@var{msglist}]
+Deletes the current message and prints the next message. If
+@var{msglist} is specified, deletes all messages from the list and
+prints the message, immediately following last deleted one.
+@end table
+
+@node Saving Messages
+@subsubsection Saving messages
+
+@table @samp
+@item save [[@var{msglist}] @var{file}]
+@itemx s [[@var{msglist}] @var{file}]
+Takes a message list and a file name and appends each message in turn to
+the end of the file. The name of file and number of characters appended
+to it is echoed on the terminal. Each saved message is marked for
+deletion as if with @code{delete} command, unless the variable
+@code{keepsave} is set.
+@item Save [@var{msglist}]
+@itemx S [@var{msglist}]
+Like @code{save}, but the file to append messages to is named after the
+sender of the first message in @var{msglist}. For example:
+
+@example
+& from 14 15
+ U  14 smith@@noldor.arda.org Fri Jun 30 18:11  14/358   The Save c
+ U  15 gray@@noldor.arda.org  Fri Jun 30 18:30  8/245    Re: The Sa
+& Save 14 15
+"smith" 22/603
+@end example
+@noindent
+
+i.e., 22 characters (603 lines) have been appended to the file ``smith''.
+If the file does not exist, it is created.
+
+@item write [[@var{msglist}] @var{file}]
+@itemx w [[@var{msglist}] @var{file}]
+Similar to @code{save}, except that only message body (without the
+header) is saved.
+@item Write [@var{msglist}]
+@itemx W [@var{msglist}]
+Similar to @code{Save}, except that only message body (without the
+header) is saved.
+@item mbox [@var{msglist}]
+@itemx mb [@var{msglist}]
+@itemx touch [@var{msglist}]
+@itemx tou [@var{msglist}]
+Mark list of messages to be saved in the user's mailbox ($HOME/mbox)
+upon exiting via @code{quit} command. This is the default action for
+all read messages, unless you have variable @code{hold} set.
+@item copy [[@var{msglist}] @var{file}]
+@itemx c [[@var{msglist}] @var{file}]
+Similar to @code{save}, except that saved messages are not marked for
+deletion.
+@item Copy [@var{msglist}]
+@itemx C [@var{msglist}]
+Similar to @code{Save}, except that saved messages are not marked for
+deletion.
+@end table
+
+@node Editing Messages
+@subsubsection Editing messages
+
+These command allow to edit messages in a mailbox. @emph{Please note},
+that modified messages currently do not replace original ones. i.e.
+you have to save them explicitly using your editor's @code{save}
+command if you do not want the effects of your editing to be lost.
+
+@table @samp
+@item edit [@var{msglist}]
+@itemx e [@var{msglist}]
+Edits each message in @var{msglist} with the editor, specified in
+@code{EDITOR} environment variable.
+@item visual [@var{msglist}]
+@itemx v [@var{msglist}]
+Edits each message in @var{msglist} with the editor, specified in
+@code{VISUAL} environment variable.
+@end table
+
+@node Scripting
+@subsubsection Scripting
+
+@subheading Comments
+The @samp{#} character introduces an end-of-line comment. All characters
+until and including the end of line are ignored.
+
+@subheading Displaying arbitrary text
+The @samp{echo} (@samp{ec}) command prints its arguments to stdout.
+
+@subheading Sourcing external command files
+The command @samp{source @var{filename}} reads commands from the named
+file. Its minimal abbreviation is @samp{so}.
+
+@subheading Setting and unsetting the variables.
+
+The mail variables may be set using @samp{set} (@samp{se}) command. The
+command takes a list of assignments. The syntax of an assignment is
+
+@table @samp
+@item @var{name}=@var{string}
+Assign a string value to the variable. If @var{string} contains
+whitespace characters it must be enclosed in a pair of
+double-quote characters (@samp{"})
+@item @var{name}=@var{number}
+Assign a numeric value to the variable.
+@item @var{name}
+Assign boolean @code{True} value.
+@item no@var{name}
+Assign boolean @code{False} value.
+@end table
+
+Example:
+
+@example
+& set askcc nocrt indentprefix="> "
+@end example
+@noindent
+
+This statement sets @code{askcc} to @code{True}, @code{crt} to
+@code{False}, and @code{indentprefix} to ``> ''.
+
+To unset mail variables use @samp{unset}(@samp{uns}) command. The
+command takes a list of variable names to unset.
+
+Example:
+To undo the effect of the previous example, do:
+
+@example
+& unset askcc crt indentprefix
+@end example
+
+@subheading Conditional statements
+
+The conditional statement allows to execute a set of mail commands
+depending on the mode the @file{mail} program is in. The conditional
+statement is:
+
+@example
+if @var{cond}
+...
+else
+...
+endif
+@end example
+@noindent
+
+where @samp{...} represents the set of commands to be executed in each
+branch of the statement. @var{cond} can be one of the following:
+
+@table @samp
+@item s
+True if @file{mail} is operating in mail sending mode.
+@item r
+True if @file{mail} is operating in mail reading mode.
+@item t
+True if stdout is a terminal device (as opposed to a regular file).
+@end table
+
+The conditional statements can be nested to arbitrary depth. The minimal
+abbreviations for @samp{if}, @samp{else} and @samp{endif} commands are
+@samp{i}, @samp{el} and @samp{en}.
+
+Example:
+
+@example
+if t
+set crt prompt="& "
+else
+unset prompt
+endif
+if s
+alt gray@@farlep.net gray@@mirddin.farlep.net
+set 
+@end example
+
+@node Aliasing
+@subsubsection Aliasing
+
+@table @samp
+@item alias [alias [address...]]
+@itemx a [alias [address...]]
+@itemx group [alias [address...]]
+@itemx g [alias [address...]]
+With no arguments, prints out all currently-defined aliases.
+With one argument, prints out that alias.
+With more than one argument, creates a new alias or changes an old one.
+@item unalias [alias...]
+@itemx una [alias...]
+Takes a list of names defined by alias commands and discards the
+remembered groups of users.  The alias names no longer have any
+significance.
+@item alternates name...
+@itemx alt name...
+The alternates command is useful if you have accounts on several
+machines. It can be used to inform mail that the listed addresses are
+really you.  When you reply to messages, mail will not send a copy of
+the message to any of the addresses listed on the alternates list.
+If the alternates command is given with no argument, the current set of
+alternate names is displayed.
+@end table
+
+@node Replying
+@subsubsection Replying
+
+@table @samp
+@item mail [address...]
+@itemx m [address...]
+Switches to compose mode. After composing the message, sends messages to
+the specified addresses.
+
+@item reply [@var{msglist}]
+@itemx respond [@var{msglist}]
+@itemx r [@var{msglist}]
+
+For each message in @var{msglist}, switches to compose mode and sends
+the composed message to the sender and all recipients of the message.
+
+@item Reply [@var{msglist}]
+@itemx Respond [@var{msglist}]
+@itemx R [@var{msglist}]
+
+Like @code{reply}, except that the composed message is sent only to
+originators of the specified messages.
+
+@item followup [@var{msglist}]
+@itemx fo [@var{msglist}]
+
+Switches to compose mode. After composing, sends the message to the
+originators and recipients of all messages in @var{msglist}.
+
+@item Followup [@var{msglist}]
+@itemx F [@var{msglist}]
+
+Similar to @code{followup}, but reply message is sent only to
+originators of messages in @var{msglist}.
+@end table
+
+@node Incorporating New Mail
+@subsubsection Incorporating new mail
+
+The @code{incorporate} (@code{inc}) command incorporates newly arrived
+messages to the displayed list of messages. This is done automatically
+before returning to @file{mail} command prompt if the variable
+@code{autoinc} is set.
+
+@node Shell Escapes
+@subsubsection Shell escapes
+
+To run arbitrary shell command from @file{mail} command prompt, use
+@code{shell} (@code{sh}) command. If no arguments are specified, the
+command starts the user login shell. Otherwise, it uses its first
+argument as a file name to execute and all subsequent arguments are
+passed as positional parameters to this command. The @code{shell}
+command can also be spelled as @code{!}.
+
+@c **********************************
+
+@node Mail Variables
+@subsection How to alter the behavior of mail
+
+Following variables control the behavior of GNU @file{mail}:
+
+@table @code
+@item Sign
+@*Type: String.
+@*Default: Unset.
+
+Contains the filename holding users signature. The contents of this
+file is appended to the end of a message being composed by @code{~A}
+escape.
+@item appenddeadletter
+@*Type: Boolean.
+@*Default: False.
+
+If this variable is @code{True}, the contents of canceled letter is
+appended to the user's @file{dead.letter} file. Otherwise it overwrites
+its contents.
+
+@item askbcc
+@*Type: Boolean.
+@*Default: False.
+
+When set to @code{True} the user will be prompted to enter @code{Bcc}
+field before composing the message.
+
+@item askcc
+@*Type: Boolean.
+@*Default: True.
+
+When set to @code{True} the user will be prompted to enter @code{Cc}
+field before composing the message.
+
+@item asksub
+@*Type: Boolean.
+@*Default: True in interactive mode, False otherwise.
+
+When set to @code{True} the user will be prompted to enter @code{Subject}
+field before composing the message.
+
+@item autoinc
+@*Type: Boolean.
+@*Default: True.
+
+Automatically incorporate newly arrived messages.
+
+@item autoprint
+@*Type: Boolean.
+@*Default: False.
+
+Causes the delete command to behave like dp - thus, after deleting a
+message, the next one will be typed automatically.
+
+@item cmd
+@*Type: String.
+@*Default: Unset.
+
+Contains default shell command for @code{pipe}.
+
+@item columns
+@*Type: Numeric.
+@*Default: Detected at startup by querying the terminal device. If this
+fails, the value of environment variable @code{COLUMNS} is used.
+
+This variable contains the number of columns on terminal screen.
+
+@item crt
+@*Type: Boolean.
+@*Default: True in interactive mode, False otherwise.
+
+If @code{True}, any messages with number of lines greater than number of
+lines on terminal screen (as determined by @code{screen} variable) will
+be printed using program set in the environment variable @code{ENVIRON}.
+
+@item dot
+@*Type: Boolean.
+@*Default: False.
+
+If @code{True}, causes @file{mail} to interpret a period alone on a line as the
+terminator of a message you are sending.
+
+@item escape
+@*Type: String.
+@*Default: ~
+
+If defined, the first character of this option gives the character to
+denoting escapes.
+
+@item folder
+@*Type: String.
+@*Default: Unset.
+
+The name of the directory to use for storing folders of messages. If
+unset, $HOME is assumed.
+                   
+@item header
+@*Type: Boolean.
+@*Default: True, unless started with @samp{--nosum} (@samp{-N}) option.
+
+Whether to run @code{headers} command automatically after entering
+interactive mode.
+
+@item hold
+@*Type: Boolean.
+@*Default: False.
+
+When set to @code{True}, the read or saved messages will be stored in
+user's mailbox (@file{$HOME/mbox}). Otherwise, they will be held in
+system mailbox also. This option is in effect only when operating
+upon user's system mailbox.
+
+@item ignore
+@*Type: Boolean.
+@*Default: False.
+
+When set to @code{True}, @file{mail} will ignore keyboard interrupts
+when composing messages. Otherwise an interrupt will be taken as a
+signal to abort composing.
+
+@item ignoreeof
+@*Type: Boolean.
+@*Default: False.
+
+Controls whether typing EOF character terminates the letter being
+composed.
+
+@item indentprefix
+@*Type: String.
+@*Default: "\t" (a tab character).
+
+String used by the @code{~m} tilde escape for indenting quoted messages.
+
+@item keepsave
+@*Type: Boolean.
+@*Default: False.
+
+Controls whether saved messages should be kept in system mailbox too.
+This variable is in effect only when operating upon a user's system
+mailbox.
+
+@item metoo
+@*Type: Boolean.
+@*Default: False.
+
+Usually, when an alias is expanded that contains the sender, the sender
+is removed from the expansion.  Setting this option causes the sender to
+be included in the group.
+
+@item mode
+@*Type: String.
+@*Default: The name of current operation mode.
+
+Setting this variable does not affect the operation mode of the program.
+
+@item noregex
+@*Type: Boolean.
+@*Default: False.
+
+Setting this to @code{True} enables use of regular expressions in
+@samp{/.../} message specifications.
+
+@item outfolder
+@*Type: String.
+@*Default: Unset.
+
+Contains the directory in which files created by @code{save},
+@code{write}, etc. commands will be stored. When unset, current
+directory is assumed.
+
+@item page
+@*Type: Boolean.
+@*Default: False.
+
+If set to @code{True}, the @code{pipe} command will emit a linefeed
+character after printing each message.
+
+@item prompt
+@*Type: String.
+@*Default: "? "
+
+Contains the command prompt sequence.
+
+@item quiet
+@*Type: Boolean.
+@*Default: False.
+
+When set, suppresses the output of the startup banner.
+
+@item quit
+@*Type: Boolean.
+@*Default: False, unless started with @samp{--quit} (@samp{-q}) option.
+
+When set, causes keyboard interrupts to terminate the program.
+
+@item rc
+@*Type: Boolean.
+@*Default: True, unless started with @samp{--norc} (@samp{-N}) option.
+
+When this variable is set, @file{mail} will read the system-wide
+configuration file upon startup. See @ref{Mail Configuration Files}.
+
+@item record
+@*Type: String.
+@*Default: Unset.
+
+When set, any outgoing message will be saved to the named file.
+
+@item save
+@*Type: Boolean.
+@*Default: True.
+
+When set, the aborted messages will be stored in the user's
+@file{dead.file}. See also @code{appenddeadletter}.
+
+@item screen
+@*Type: Numeric.
+@*Default: Detected at startup by querying the terminal device. If this
+fails, the value of environment variable @code{LINES} is used.
+
+This variable contains the number of lines on terminal screen.
+
+@item sendmail
+@*Type: String.
+@*Default: sendmail:/usr/lib/sendmail
+
+Contains the URL of mail transport agent.
+
+@item sign
+@*Type: String.
+@*Default: Unset.
+
+Contains the user's signature. The contents of this variable is appended
+to the end of a message being composed by @code{~a} escape. Use
+@code{Sign} variable, if your signature occupies more than one line.
+
+@item subject
+@*Type: String.
+@*Default: Unset.
+
+Contains default subject line. This will be used when @code{asksub} is
+off.
+
+@item toplines
+@*Type: Numeric.
+@*Default: 5
+
+Number of lines to be displayed by @code{top} and @code{Top} commands.
+
+@item verbose
+@*Type: Boolean.
+@*Default: False.
+
+When set, the actual delivery of messages is displayed on the user's terminal.
+@end table
+
+@node Mail Configuration Files
+@subsection Personal and system-wide configuration files
+
+Upon startup, @file{mail} reads the contents of the two command files:
+the system-wide configuration file, and the user's configuration
+file. Each line read from these files is processed like a usual
+@file{mail} command.
+
+When run with @samp{--norc} (@samp{-N}) option, @file{mail} does
+not read the contents of system-wide configuration file. The user's
+file, if it exists, is always processed.
+
+The user's configuration file is located in the user's home
+directory and is named @file{.mailrc}. The location and name of
+the system-wide configuration file is determined when configuring the
+package via @samp{--with-mail-rc} option. It defaults to
+@file{@var{sysconfdir}/mail.rc}.
+
+@node messages
+@section messages --- Count the number of messages in a mailbox.
+
+@code{Messages} prints on standard output the number of messages
+contained in each folder specified in command line. If no folders
+are specified, it operates upon user's system mailbox. For each
+folder, the following output line is produced:
+
+@example
+     Number of messages in @var{folder}: @var{number}
+@end example
+@noindent
+where @var{folder} represents the folder name, @var{number} represents
+the number of messages.
+
+The program accepts following command line options:
+
+@table @samp
+@item -q
+@itemx --quite
+@itemx -s
+@itemx --silent
+Be quiet. Display only number of messages per mailbox, without leading text.
+@item -?
+@itemx --help
+Output help message and exit.
+@item --usage
+Output short usage summary and exit.
+@item -V
+@itemx --version
+Output program version and exit.
+@end table
+
+@node readmsg
+@section readmsg --- Extract messages from a folder.
+
+The program is currently in development
+
+@node sieve
+@section sieve
+
+The program is currently in development
+
+@node guimb
+@section guimb --- A mailbox scanning and processing language.
+
+@file{Guimb} is for mailboxes what @file{awk} is for text files.
+It processes mailboxes, applying the user-supplied scheme procedures
+to each of them in turn and saves the resulting output in mailbox
+format.
+
+@menu
+* Specifying Scheme Program to Execute::
+* Specifying Mailboxes to Operate Upon::
+* Passing Options to Scheme::
+* Guimb Invocation Summary::    
+* Scheme Procedures and Variables::
+@end menu
+
+@node Specifying Scheme Program to Execute
+@subsection Specifying Scheme Program to Execute
+
+The Scheme program or expression to be executed is passed to
+@file{guimb} via the following options:
+
+@table @samp
+@item -e
+@itemx --expression EXPR
+Execute scheme expression.
+@item -f
+@itemx --file PROGFILE
+Read and execute program from PROGFILE.
+@end table
+
+You can specify both of them. In this case, the PROGFILE is executed
+first.
+
+@node Specifying Mailboxes to Operate Upon
+@subsection Specifying Mailboxes to Operate Upon
+
+There are four basic ways of passing mailboxes to @file{guimb}.
+
+@table @code
+@item guimb [OPTIONS] [mailbox...]
+The resulting mailbox is not saved, unless the user-supplied
+scheme program saves it.
+@item guimb [OPTIONS] --mailbox DEFMBOX
+The contents of DEFMBOX is processed and is replaced with the resulting
+mailbox contents. Useful for applying filters to user's mailbox.
+@item guimb [OPTIONS] --mailbox DEFMBOX mailbox [mailbox...]
+The contents of specified mailboxes is processed, and the resulting
+mailbox contents is appended to DEFMBOX.
+@item guimb [OPTIONS] --user USER [mailbox...]
+The contents of specified mailboxes is processed, and the resulting
+mailbox contents is appended to the user's system mailbox. This allows
+to use @file{guimb} as a mail delivery agent.
+@end table
+
+If no mailboxes are specified in the command line, @file{guimb} reads
+and processes its standard input.
+
+@node Passing Options to Scheme
+@subsection Passing Options to Scheme
+
+Sometimes it is necessary to pass some command line options to the
+scheme procedure. This can be done via @samp{-g}
+(@samp{--guile-command}) command line option. For example:
+
+@example
+guimb --guile-command -opt --guile-command 24 --file progfile
+@end example
+
+In this example, the scheme procedure will see the following command line:
+
+@example
+progfile -opt 24
+@end example
+
+If there are many arguments to be passed to Scheme, it is more
+convenient to enclose them in @samp{-@{} and @samp{-@}} escapes:
+
+@example
+guimb -@{ -opt 24 -@} --file progfile
+@end example
+
+All arguments enclosed between @samp{-@{} and @samp{-@}} are not processed
+by @file{guimb}, they are instead passed to the Scheme program verbatim.
+
+@node Guimb Invocation Summary
+@subsection Guimb Invocation Summary
+
+This is a short summary of the command line options available to
+@file{guimb}.
+
+@table @samp
+@item -d
+@itemx --debug
+Start with debugging evaluator and backtraces.
+@item -e EXPR
+@itemx --expression EXPR
+Execute given Scheme expression.
+@item -f PROGFILE
+@itemx --file PROGFILE
+Read Scheme program from PROGFILE.
+@item -g ARG
+@itemx --guile-command ARG
+Append ARG to the command line passed to Scheme program.
+@item -@{ ... -@}
+Pass all command line options enclosed between @samp{-@{} and @samp{-@}}
+to Scheme program.
+@item -m
+@itemx --mailbox MBOX
+Set default mailbox name.
+@item -u
+@itemx --user NAME
+Act as local MDA for user NAME.
+@item -h
+@itemx --help
+Display help message.
+@item  -v
+@itemx --version
+Display program version.
+@end table
+
+@node Scheme Procedures and Variables
+@subsection Scheme Procedures and Variables
+
+@menu
+* Address Functions::
+* Mailbox Functions::
+* Message Functions::
+* MIME Functions::
+* Log Functions::
+@end menu
+
+
+@node Address Functions
+@subsubsection Address Functions
+
+@deffn mu-address-get-personal ADDRESS NUM
+Return personal part of an email address.
+@end deffn
+
+@deffn mu-address-get-comments ADDRESS NUM
+@end deffn
+
+@deffn mu-address-get-email ADDRESS NUM
+Return email part of an email address.
+@end deffn
+
+@deffn mu-address-get-domain ADDRESS NUM
+Return domain part of an email address
+@end deffn
+
+@deffn mu-address-get-local ADDRESS NUM
+Return local part of an email address.
+@end deffn
+
+@deffn mu-address-get-count ADDRESS
+Return number of parts in email address.
+@end deffn
+
+@node Mailbox Functions
+@subsubsection Mailbox Functions
+
+@deffn mu-mailbox-open URL MODE
+Opens a mailbox specified by URL.
+@end deffn
+
+@deffn mu-mailbox-close MBOX
+Closes mailbox MBOX
+@end deffn
+
+@deffn mu-mailbox-get-url MBOX
+Returns the URL of the mailbox.
+@end deffn
+
+@deffn mu-mailbox-get-port MBOX MODE
+Returns a port associated with the contents of the MBOX.
+MODE is a string defining operation mode of the stream. It may
+contain any of the two characters: @samp{r} for reading, @samp{w} for
+writing.
+@end deffn
+
+@deffn mu-mailbox-get-message MBOX MSGNO
+Retrieve from MBOX message # MSGNO.
+@end deffn
+
+@deffn mu-mailbox-messages-count MBOX
+Returns number of messages in the mailbox.
+@end deffn
+
+@deffn mu-mailbox-expunge MBOX
+Expunges deleted messages from the mailbox.
+@end deffn
+
+@deffn mu-mailbox-url MBOX
+Returns the URL of the mailbox
+@end deffn
+
+@deffn mu-mailbox-append-message MBOX MESG
+Appends the message to the mailbox
+@end deffn
+
+@node Message Functions
+@subsubsection Message Functions
+
+@deffn mu-message-copy MESG
+Creates the copy of the given message.
+@end deffn
+
+@deffn mu-message-set-header MESG HEADER VALUE REPLACE
+Sets new VALUE to the header HEADER of the message MESG.
+If the HEADER is already present in the message its value
+is replaced with the supplied one if the optional REPLACE is
+#t. Otherwise new header is created and appended.
+@end deffn
+
+@deffn mu-message-get-size MESG
+Returns the size of the given message.
+@end deffn
+
+@deffn mu-message-get-lines MESG
+Returns number of lines in the given message.
+@end deffn
+
+@deffn mu-message-get-sender MESG
+Returns the sender email address for the message MESG.
+@end deffn
+
+@deffn mu-message-get-header MESG HEADER
+Returns the header value of the HEADER in the MESG.
+@end deffn
+
+@deffn mu-message-get-header-fields MESG HEADERS
+Returns the list of headers in the MESG. If optional HEADERS is
+specified it should be a list of header names to restrict return
+value to.
+@end deffn
+
+@deffn mu-message-set-header-fields MESG LIST REPLACE
+Set the headers in the message MESG from LIST
+LIST is a list of (cons HEADER VALUE)
+Optional parameter REPLACE specifies whether the new header
+values should replace the headers already present in the
+message.
+@end deffn
+
+@deffn mu-message-delete MESG FLAG
+Mark given message as deleted. Optional FLAG allows to toggle deleted mark
+The message is deleted if it is #t and undeleted if it is #f
+@end deffn
+
+@deffn mu-message-get-flag MESG FLAG
+Return value of the attribute FLAG.
+@end deffn
+
+@deffn mu-message-set-flag MESG FLAG VALUE
+Set the given attribute of the message. If optional VALUE is #f, the
+attribute is unset.
+@end deffn
+
+@deffn mu-message-get-user-flag MESG FLAG
+Returns value of the user attribute FLAG.
+@end deffn
+
+@deffn mu-message-set-user-flag MESG FLAG VALUE
+Set the given user attribute of the message. If optional VALUE is
+#f, the attribute is unset.
+@end deffn
+
+@deffn mu-message-get-port MESG MODE FULL
+Returns a port associated with the given MESG. MODE is a string
+defining operation mode of the stream. It may contain any of the
+two characters: @samp{r} for reading, @samp{w} for writing.
+If optional FULL argument specified, it should be a boolean value.
+If it is #t then the returned port will allow access to any
+part of the message (including headers). If it is #f then the port
+accesses only the message body (the default).
+@end deffn
+
+@deffn mu-message-get-body MESG
+Returns the message body for the message MESG.
+@end deffn
+
+@deffn mu-message-send MESG MAILER
+Sends the message MESG. Optional MAILER overrides default
+mailer settings in mu-mailer.
+@end deffn
+
+@node MIME Functions
+@subsubsection MIME Functions
+
+@deffn mu-mime-create FLAGS MESG
+Creates a new MIME object.
+@end deffn
+
+@deffn mu-mime-multipart? MIME
+Returns #t if MIME is a multipart object.
+@end deffn
+
+@deffn mu-mime-get-num-parts MIME
+Returns number of parts in a MIME object.
+@end deffn
+
+@deffn mu-mime-get-part MIME PART
+Returns part number PART from a MIME object.
+@end deffn
+
+@deffn mu-mime-add-part MIME MESG
+Adds MESG to the MIME object.
+@end deffn
+
+@deffn mu-mime-get-message MIME
+Converts MIME object to a message.
+@end deffn
+
+@node Log Functions
+@subsubsection Log Functions
+
+@deffn mu-openlog IDENT OPTION FACILITY
+Opens a connection to the system logger for Guile program.
+@end deffn
+
+@deffn mu-logger PRIO TEXT
+Generates a log message to be distributed via syslogd.
+@end deffn
+
+@deffn mu-closelog
+Closes the channel to the system logger open by mu-openlog.
+@end deffn
+
+
