@@ -1,3 +1,17 @@
+2001-09-18 Sergey Poznyakoff
+
+	* mailbox/mbx_mh.c: Optimized for speed.
+	_mh_message_save(): scan the message while saving it. If expunge==0,
+	do not create temporary, operate directly on the message file instead.
+	mh_append_message(): Do not rescan appended message.
+	mh_scan_message(): Do not rescan the message if it's not changed
+	since last scan.
+	* mh/.cvsignore: Updated.
+	* mh/mh_argp.c: Pass '+' key when handling +folder option.
+	* mh/mh_getopt.c: Handle +folder.
+	* mh/inc.c: Handle '+' key.
+	* mh/scan.c: Likewise.
+
 2001-09-17  Alain Magloire
 
 	Pop3 now has a debug object, mu_debug_t, to follow the protocol
