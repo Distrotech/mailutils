@@ -32,6 +32,7 @@
 #include <mailutils/stream.h>
 
 #include <gsasl.h>
+#include <lbuf.h>
 
 char *gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
 
@@ -87,45 +88,15 @@ struct _gsasl_stream {
   int last_err;        /* Last Gsasl error code */
   
   int fd;              /* File descriptor */
-
-  char *buffer;        /* Line buffer */
-  size_t size;         /* Allocated size */
-  size_t level;        /* Current filling level */
+  struct _line_buffer *lb; 
 };
 
 static void
 _gsasl_destroy (stream_t stream)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
-  free (s->buffer);
+  _auth_lb_destroy (&s->lb);
   s->buffer = NULL;
-}
-
-#define buffer_drop(s) s->level = 0
-
-int
-buffer_grow (struct _gsasl_stream *s, const char *ptr, size_t size)
-{
-  if (!s->buffer)
-    {
-      s->buffer = malloc (size);
-      s->size = size;
-      s->level = 0;
-    }
-  else if (s->size - s->level < size)
-    {
-      size_t newsize = s->size + size;
-      s->buffer = realloc (s->buffer, newsize);
-      if (s->buffer)
-	s->size = newsize;
-    }
-
-  if (!s->buffer)
-    return ENOMEM;
-  
-  memcpy (s->buffer + s->level, ptr, size);
-  s->level += size;
-  return 0;
 }
 
 static int
@@ -137,15 +108,10 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   size_t len, sz;
   char *bufp;
   
-  if (s->level)
+  if (_auth_lb_level (&s->lb))
     {
-      len = s->level > osize ? osize : s->level;
-      memcpy (optr, s->buffer, len);
-      if (s->level > len)
-	{
-	  memmove (s->buffer, s->buffer + len, s->level - len);
-	  s->level -= len;
-	}
+      len = _auth_lb_readline (s->lb, optr, osize-1);
+      optr[len] = 0;
       if (nbytes)
 	*nbytes = len;
       return 0;
@@ -164,7 +130,7 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
 	  return errno;
 	}
 
-      rc = buffer_grow (s, buf, sz);
+      rc = _auth_lb_grow (s, buf, sz);
       if (rc)
 	return rc;
 
@@ -182,7 +148,8 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   bufp = malloc (len + 1);
   if (!bufp)
     return ENOMEM;
-  rc = gsasl_decode (s->sess_ctx, s->buffer, s->level, bufp, &len);
+  rc = gsasl_decode (s->sess_ctx,
+		     _auth_lb_data (s->lb), _auth_lb_level (s->lb), bufp, &len);
   if (rc != GSASL_OK)
     {
       s->last_err = rc;
@@ -195,13 +162,13 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   if (len > osize)
     {
       memcpy (optr, bufp, osize);
-      buffer_drop (s);
-      buffer_grow (s, bufp + osize, len - osize);
+      _auth_lb_drop (s);
+      _auth_lb_grow (s, bufp + osize, len - osize);
       len = osize;
     }
   else
     {
-      buffer_drop (s);
+      _auth_lb_drop (s);
       memcpy (optr, bufp, len);
     }
   
@@ -257,7 +224,7 @@ _gsasl_write (stream_t stream, const char *iptr, size_t isize,
   int rc;
   struct _gsasl_stream *s = stream_get_owner (stream);
   
-  rc = buffer_grow (s, iptr, isize);
+  rc = _auth_lb_grow (s, iptr, isize);
   if (rc)
     return rc;
 
@@ -377,6 +344,8 @@ gsasl_stream_create (stream_t *stream, int fd,
   else
     stream_set_write (*stream, _gsasl_write, s);
 
+  _auth_lb_create (&s->lb);
+  
   return 0;
 }
   
