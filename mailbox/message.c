@@ -810,8 +810,6 @@ message_write (stream_t os, const char *buf, size_t buflen,
       if ((status = message_get_body (msg, &body)) != 0 ||
 	  (status = body_get_stream (msg->body, &bs)) != 0)
 	{
-	  free (msg->hdr_buf);
-	  msg->hdr_buf = NULL;
 	  msg->hdr_buflen = msg->hdr_done = 0;
 	  return status;
 	}

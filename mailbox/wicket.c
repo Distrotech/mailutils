@@ -21,6 +21,7 @@
 
 #include <errno.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,13 +35,15 @@ struct myticket_data
 {
   char *user;
   char *pass;
+  char *filename;
 };
 
 static char * stripwhite __P ((char *));
-static int myticket_create __P ((ticket_t *, const char *, const char *));
+static int myticket_create __P ((ticket_t *, const char *, const char *, const char *));
 static void myticket_destroy __P ((ticket_t));
-static int _get_ticket __P ((ticket_t *, const char *, const char *));
-static int myticket_pop __P ((ticket_t, const char *, char **));
+static int myticket_pop __P ((ticket_t, url_t, const char *, char **));
+static char * get_pass __P ((url_t, const char *, const char *));
+static char * get_user __P ((url_t, const char *));
 
 int
 wicket_create (wicket_t *pwicket, const char *filename)
@@ -111,7 +114,7 @@ int
 wicket_get_ticket (wicket_t wicket, ticket_t *pticket, const char *user,
 		   const char *type)
 {
-  if (wicket == NULL || pticket == NULL || user == NULL)
+  if (wicket == NULL || pticket == NULL)
     return EINVAL;
 
   if (wicket->filename == NULL)
@@ -119,86 +122,11 @@ wicket_get_ticket (wicket_t wicket, ticket_t *pticket, const char *user,
 
   if (wicket->_get_ticket)
     return wicket->_get_ticket (wicket, user, type, pticket);
-  return _get_ticket (pticket, wicket->filename, user);
-}
-
-/* FIXME: This is a proof of concept ... write a more intelligent parser.  */
-static int
-_get_ticket (ticket_t *pticket, const char *filename, const char *user)
-{
-  FILE *fp;
-  char *buf;
-  size_t buflen;
-  int status = ENOENT;
-
-  fp = fopen (filename, "r");
-  if (fp == NULL)
-    return errno;
-
-  buflen = 128;
-  buf = malloc (buflen);
-  if (buf)
-    {
-      char *ptr = buf;
-      while (fgets (ptr, buflen, fp) != NULL)
-	{
-	  size_t len = strlen (buf);
-	  char *sep;
-	  /* Check if a complete line.  */
-	  if (len && buf[len - 1] != '\n')
-	    {
-	      char *tmp =  realloc (buf, 2*buflen);
-	      if (tmp == NULL)
-		{
-		  status = ENOMEM;
-		  break;
-		}
-	      buf = tmp;
-	      ptr = buf + len;
-	      continue;
-	    }
-
-	  ptr = buf;
-
-	  /* Comments.  */
-	  if (*ptr == '#')
-	    continue;
-
-	  /* Skip leading spaces.  */
-	  while (isspace (*ptr))
-	    {
-	      ptr++;
-	      len--;
-	    }
-
-	  /* user:passwd.  Separator maybe ": \t" */
-	  if (len && ((sep = memchr (ptr, ':', len)) != NULL
-		      || (sep = memchr (ptr, ' ', len)) != NULL
-		      || (sep = memchr (ptr, '\t', len)) != NULL))
-	    {
-	      *sep++ = '\0';
-	      ptr = stripwhite (ptr);
-	      if (strcmp (ptr, user) == 0)
-		{
-		  sep = stripwhite (sep);
-		  status = myticket_create (pticket, ptr, sep);
-		  break;
-		}
-	    }
-	  ptr = buf;
-	}
-    }
-  else
-    status = ENOMEM;
-
-  if (buf)
-    free (buf);
-  fclose (fp);
-  return status;
+  return myticket_create (pticket, user, NULL, wicket->filename);
 }
 
 static int
-myticket_create (ticket_t *pticket, const char *user, const char *pass)
+myticket_create (ticket_t *pticket, const char *user, const char *pass, const char *filename)
 {
   struct myticket_data *mdata;
   int status = ticket_create (pticket, NULL);
@@ -207,29 +135,63 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass)
 
   mdata = calloc (1, sizeof *mdata);
   if (mdata == NULL)
-    ticket_destroy (pticket, NULL);
+    {
+      ticket_destroy (pticket, NULL);
+      return ENOMEM;
+    }
+
   ticket_set_destroy (*pticket, myticket_destroy, NULL);
   ticket_set_pop (*pticket, myticket_pop, NULL);
   ticket_set_data (*pticket, mdata, NULL);
-  if ((mdata->user = strdup (user)) == NULL
-      || (mdata->pass = strdup (pass)) == NULL)
+
+  if (filename)
     {
-      status = ENOMEM;
-      ticket_destroy (pticket, NULL);
+      mdata->filename = strdup (filename);
+      if (mdata->filename == NULL)
+	{
+	  ticket_destroy (pticket, NULL);
+	  status = ENOMEM;
+	  return status;
+	}
     }
-  return status;
+
+  if (user)
+    {
+      mdata->user = strdup (user);
+      if (mdata->user == NULL)
+	{
+	  ticket_destroy (pticket, NULL);
+	  status = ENOMEM;
+	  return status;
+	}
+      if (!pass)
+	mdata->pass = get_pass (NULL, user, filename);
+    }
+
+  if (pass)
+    {
+      mdata->pass = strdup (pass);
+      if (mdata->pass == NULL)
+	{
+	  ticket_destroy (pticket, NULL);
+	  status = ENOMEM;
+	  return status;
+	}
+    }
+
+  return 0;
 }
 
 static int
-myticket_pop (ticket_t ticket, const char *challenge, char **parg)
+myticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
   struct myticket_data *mdata = NULL;
   ticket_get_data (ticket, (void **)&mdata);
   if (challenge && (strstr (challenge, "ass") != NULL
 		    || strstr (challenge, "ASS") != NULL))
-    *parg = strdup (mdata->pass);
+    *parg = (mdata->pass) ? strdup (mdata->pass) : get_pass (url, mdata->user, mdata->filename);
   else
-    *parg = strdup (mdata->user);
+    *parg = (mdata->user) ? strdup (mdata->user) : get_user (url, mdata->filename);
   return 0;
 }
 
@@ -244,6 +206,8 @@ myticket_destroy (ticket_t ticket)
 	free (mdata->user);
       if (mdata->pass)
 	free (mdata->pass);
+      if (mdata->filename)
+	free (mdata->filename);
       free (mdata);
     }
 }
@@ -267,4 +231,113 @@ stripwhite (char *string)
   *++t = '\0';
 
   return s;
+}
+
+static char *
+get_user (url_t url, const char *filename)
+{
+  struct passwd *pw;
+  char *u = (char *)"";
+  if (url)
+    {
+      size_t n = 0;
+      url_get_user (url, NULL, 0, &n);
+      u = calloc (1, n + 1);
+      url_get_user (url, u, n + 1, NULL);
+      return u;
+    }
+  else if (filename)
+    {
+      /* do something.  */
+    }
+  pw = getpwuid (getuid ());
+  if (pw)
+    u = pw->pw_name;
+  return strdup (u);
+}
+
+static char *
+get_pass (url_t url, const char *u, const char *filename)
+{
+  char *user = NULL;
+  char *pass = NULL;
+
+  if (u)
+    user = strdup (u);
+  else if (url)
+    {
+      size_t n = 0;
+      url_get_user (url, NULL, 0, &n);
+      user = calloc (1, n + 1);
+      url_get_user (url, user, n + 1, NULL);
+    }
+  else
+    user = get_user (NULL, filename);
+
+  if (filename && user)
+    {
+      FILE *fp;
+      fp = fopen (filename, "r");
+      if (fp)
+	{
+	  char *buf;
+	  size_t buflen;
+
+	  buflen = 128;
+	  buf = malloc (buflen);
+	  if (buf)
+	    {
+	      char *ptr = buf;
+	      while (fgets (ptr, buflen, fp) != NULL)
+		{
+		  size_t len = strlen (buf);
+		  char *sep;
+		  /* Check if a complete line.  */
+		  if (len && buf[len - 1] != '\n')
+		    {
+		      char *tmp =  realloc (buf, 2*buflen);
+		      if (tmp == NULL)
+			break;
+		      buf = tmp;
+		      ptr = buf + len;
+		      continue;
+		    }
+
+		  ptr = buf;
+
+		  /* Comments.  */
+		  if (*ptr == '#')
+		    continue;
+
+		  /* Skip leading spaces.  */
+		  while (isspace (*ptr))
+		    {
+		      ptr++;
+		      len--;
+		    }
+
+		  /* user:passwd.  Separator maybe ": \t" */
+		  if (len && ((sep = memchr (ptr, ':', len)) != NULL
+			      || (sep = memchr (ptr, ' ', len)) != NULL
+			      || (sep = memchr (ptr, '\t', len)) != NULL))
+		    {
+		      *sep++ = '\0';
+		      ptr = stripwhite (ptr);
+		      if (strcmp (ptr, user) == 0)
+			{
+			  pass = strdup (stripwhite (sep));
+			  break;
+			}
+		    }
+		  ptr = buf;
+		}
+	    }
+
+	  if (buf)
+	    free (buf);
+	  fclose (fp);
+	}
+    }
+  free (user);
+  return pass;
 }

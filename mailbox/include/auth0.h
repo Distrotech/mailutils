@@ -42,7 +42,7 @@ struct _ticket
   void *owner;
   char *challenge;
   void *data;
-  int  (*_pop)      __P ((ticket_t, const char *challenge, char **));
+  int  (*_pop)      __P ((ticket_t, url_t, const char *challenge, char **));
   void (*_destroy)  __P ((ticket_t));
 };
 

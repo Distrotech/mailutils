@@ -225,7 +225,7 @@ authenticate_imap_login (authority_t auth)
 	/* Was it in the URL?  */
 	status = url_get_user (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
-	  ticket_pop (ticket, "Imap User: ",  &f_imap->user);
+	  ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
 	else
 	  {
 	    f_imap->user = calloc (1, n + 1);
@@ -234,7 +234,7 @@ authenticate_imap_login (authority_t auth)
 	/* Was it in the URL?  */
 	status = url_get_passwd (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
-	  ticket_pop (ticket, "Imap Passwd: ",  &f_imap->passwd);
+	  ticket_pop (ticket, folder->url, "Imap Passwd: ",  &f_imap->passwd);
 	else
 	  {
 	    f_imap->passwd = calloc (1, n + 1);

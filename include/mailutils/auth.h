@@ -19,6 +19,7 @@
 #define _MAILUTILS_AUTH_H
 
 #include <sys/types.h>
+#include <mailutils/url.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -42,8 +43,9 @@ extern int  ticket_set_destroy     __P ((ticket_t, void (*)
 					 __P ((ticket_t)), void *owner));
 extern void *ticket_get_owner      __P ((ticket_t));
 
-extern int ticket_set_pop          __P ((ticket_t, int (*_pop) __P ((ticket_t, const char *, char **)), void *));
-extern int ticket_pop              __P ((ticket_t, const char *, char **));
+extern int ticket_set_pop          __P ((ticket_t, int (*_pop)
+					 __P ((ticket_t, url_t, const char *, char **)), void *));
+extern int ticket_pop              __P ((ticket_t, url_t, const char *, char **));
 extern int ticket_set_data         __P ((ticket_t, void *, void *owner));
 extern int ticket_get_data         __P ((ticket_t, void **));
 

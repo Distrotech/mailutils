@@ -1858,7 +1858,7 @@ pop_get_user (authority_t auth)
   /* Was it in the URL? */
   status = url_get_user (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
-    ticket_pop (ticket, "Pop User: ",  &mpd->user);
+    ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
   else
     {
       mpd->user = calloc (1, n + 1);
@@ -1888,7 +1888,7 @@ pop_get_passwd (authority_t auth)
   /* Was it in the URL? */
   status = url_get_passwd (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
-    ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
+    ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
   else
     {
       mpd->passwd = calloc (1, n + 1);

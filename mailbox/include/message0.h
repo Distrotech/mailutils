@@ -62,7 +62,6 @@ struct _message
   int ref;
 
   /* Holder for message_write. */
-  char *hdr_buf;
   size_t hdr_buflen;
   int hdr_done;
 

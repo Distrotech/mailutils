@@ -1,3 +1,101 @@
+2001-11-17  Alain Magloire
+
+	* mailbox/folder_imap.c (authenticate_imap_login): Pass the
+	url in  ticket_pop.
+	* mailbox/mbx_pop.c (pop_get_user): Pass the url in ticket_pop()
+	* mailbox/mbx_pop.c (pop_get_passwd): Pass the url in ticket_pop()
+	* mailbox/ticket.c (ticket_set_pop): Change the prototype.
+	(ticket_pop): Change the prototype.
+	* mailbox/wicket.c (get_pass): New function get passwd.
+	(get_user): New function get user.
+	(myticket_create): Take filenanme as argument and
+	save the information.
+	(_get_ticket): Removed.
+	(myticket_pop): Take an url in argument.
+	* mailbox/include/auth0.h: field _pop() prototype changed.
+	* include/mailutils/auth.h: ticket_pop and ticket_set_pop
+	proptotype changed, add url. Include <mailutils/url.h>
+
+2001-11-17  Alain Magloire
+
+	Move util_cpystr() in the mu_ namespace.
+
+	* include/mailutils/mutil.h: util_cpystr() to mu_cpystr().
+	* mailbox/address.c: util_cpystr() to mu_cpystr().
+	* mailbox/url.c: util_cpystr() to mu_cpystr().
+	* mailbox/mutil.c: util_cpystr() to mu_cpystr().
+	* mailbox/wicket.c: util_cpystr() to mu_cpystr().
+
+2001-11-15  Alain Magloire
+
+	After exchange with Sam Roberts, it should be possible to
+	set a stream on the message and have the message_t do
+	the rfc822 parsing.
+	{
+	  message_t mesg = NULL;
+	  header_t header = NULL;
+	  stream_t stream = NULL;
+	  char buffer[512];
+	  off_t off = 0;
+	  size_t n = 0;
+
+	  message_create (mesg, NULL);
+	  file_stream_crete (&stream, "/home/user/mh/mesg_1");
+	  message_set_stream (mesg, stream, NULL);
+
+	  stream = NULL;
+	  message_get_header (mesg, &header);
+	  header_get_stream (header, &stream);
+	  while (stream_readline (stream, buffer, sizeof buffer, off, &n) == 0
+	          && n > 0) {
+	    printf ("%s", buffer);
+	    off += n;
+	  }
+	  message_destroy (&mesg, NULL);
+	}
+
+	* mailbox/message.c (message_header_fill): New
+	function implements a header if there was a stream set on the message.
+	(message_body_read): Implements the stream_read of body_t of
+	a message if there were a stream set.
+	(message_is_modified): Check if an object was set to message_t
+	and flag it as modified.
+	(message_get_body): If a stream was set on the message create a
+	temporary stream for the body.
+	(message_set_body): Set the message modified.
+	(message_set_header): Set the message modified.
+	(message_set_envelope): Set the message modified.
+	(message_set_attribute): Set the message modified.
+	* mailbox/include/message0.h: field hdr_buf removed.
+
+	* mailbox/wicket.c (wicket_destroy): return void.
+	* include/mailutils/auth.h: wicket_destroy ()
+	should return void.
+	* mailbox/body.c (body_is_modified): Implemented.
+	(body_clear_modified): Implemented.
+	(_body_get_size0): New function.
+	(_body_get_lines0): New function.
+	(body_get_lines): Call _body_get_lines0().
+	(body_get_size): Call _body_get_size0().
+	(body_lines): Fall back on the stream and iterate
+	the entire stream to find the  line numbers.
+	(body_size):  Fall back on the stream for the size.
+
+	* mailbox/folder_imap.c: Check if memory_stream_create()
+	succeed and bailout if not.
+
+	* mailbox/header.c (header_destroy): Free header->mstream.
+	(fill_blurb): Remove redundant code, header_free_cache was
+	doing the same.  Implement the code in term of a memory
+	stream to hold the temporary header blurb.
+	(header_write): Implemented.
+	* mailbox/include/header0.h: Remove fields temp_blurb and
+	temp_blurb_len, we use mstream a memory stream and stream_len.
+
+	* mailbox/memory_stream.c (_memory_read): Cast the offset to size_t
+	(_memory_readline): Cast the offset to size_t.
+	(_memory_write): Cast the offset to size_t.
+
 2001-11-15  Sergey Poznyakoff
 
 	* imap4d/append.c: Removed mailbox_destroy_folder kludge. It is

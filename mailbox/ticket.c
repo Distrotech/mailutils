@@ -96,7 +96,7 @@ ticket_get_owner (ticket_t ticket)
 
 int
 ticket_set_pop (ticket_t ticket,
-		int (*_pop) __P ((ticket_t, const char *, char **)),
+		int (*_pop) __P ((ticket_t, url_t, const char *, char **)),
 		void *owner)
 {
   if (ticket == NULL)
@@ -108,12 +108,12 @@ ticket_set_pop (ticket_t ticket,
 }
 
 int
-ticket_pop (ticket_t ticket, const char *challenge, char **parg)
+ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
   if (ticket == NULL || parg == NULL)
     return EINVAL;
   if (ticket->_pop)
-    return ticket->_pop (ticket, challenge, parg);
+    return ticket->_pop (ticket, url, challenge, parg);
   else
     {
       char arg[256];
