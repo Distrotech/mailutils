@@ -35,6 +35,7 @@ extern int list_remove   __P ((list_t, void *item));
 extern int list_replace  __P ((list_t list, void *old_item, void *new_item));  
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
 extern int list_to_array __P ((list_t list, void **array, size_t count, size_t *pcount));
+extern int list_locate   __P ((list_t list, void *item, void **ret_item));
 
 typedef int list_action_t __PMT ((void* item, void* cbdata));
   

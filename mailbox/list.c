@@ -156,6 +156,32 @@ def_comp (const void *item, const void *value)
 }
 
 int
+list_locate (list_t list, void *item, void **ret_item)
+{
+  struct list_data *current, *previous;
+  list_comparator_t comp;
+  int status = ENOENT;
+  
+  if (list == NULL)
+    return EINVAL;
+  comp = list->comp ? list->comp : def_comp;
+  monitor_wrlock (list->monitor);
+  for (previous = &(list->head), current = list->head.next;
+       current != &(list->head); previous = current, current = current->next)
+    {
+      if (comp (current->item, item) == 0)
+	{
+	  if (ret_item)
+	    *ret_item = current->item;
+	  status = 0;
+	  break;
+	}
+    }
+  monitor_unlock (list->monitor);
+  return status;
+}
+
+int
 list_insert (list_t list, void *item, void *new_item)
 {
   struct list_data *current;
