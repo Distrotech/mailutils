@@ -111,11 +111,13 @@ ticket_set_pop (ticket_t ticket,
 int
 ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
+  int rc = -1;
+  
   if (ticket == NULL || parg == NULL)
     return EINVAL;
   if (ticket->_pop)
-    return ticket->_pop (ticket, url, challenge, parg);
-  else
+    rc = ticket->_pop (ticket, url, challenge, parg);
+  if (rc != 0 && isatty (fileno (stdin)))
     {
       char arg[256];
       struct termios stored_settings;
@@ -138,8 +140,9 @@ ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 	}
       arg [strlen (arg) - 1] = '\0'; /* nuke the trailing line.  */
       *parg = strdup (arg);
+      rc = 0;
     }
-  return 0;
+  return rc;
 }
 
 int
