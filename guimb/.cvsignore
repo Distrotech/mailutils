@@ -2,5 +2,6 @@ Makefile.in
 Makefile
 guimb
 guile-procedures.txt
+.deps
 *.doc
 *.x
