@@ -1,0 +1,76 @@
+;;;; GNU mailutils - a suite of utilities for electronic mail
+;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this program; if not, write to the Free Software
+;;;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
+
+;;; This is a simple Guile program that generates automatic reply to 
+;;; incoming mail messages.
+;;;
+;;; usage: to your /etc/aliases add:
+;;;
+;;;   username: "|/usr/local/bin/guimb -f <path>/reply.scm"
+;;;
+;;; and adjust variables below to your liking.
+;;; Any message to the address username@your.host will be responded
+;;; and (optionally) saved in a mailbox.
+
+(define indent-prefix "> ")
+(define save-mailbox #f)
+(define reply-text
+  "Sorry, I am not here to attend your message. I will do\n\
+it as soon as I come back.\n\n\
+Kind regards\n")
+
+;; Reply to the incoming message
+(define (reply in-msg)
+  (let* ((out-msg (mu-message-create))
+	 (inbody (mu-message-get-body in-msg))
+	 (outbody (mu-message-get-body out-msg)))
+    (mu-message-set-header out-msg "To"
+			   (mu-message-get-header in-msg "From"))
+    (mu-message-set-header out-msg "Cc"
+			   (mu-message-get-header in-msg "Cc"))
+    (mu-message-set-header out-msg "Subject"
+			   (string-append
+			    "Re: "
+			    (mu-message-get-header in-msg "Subject")))
+
+    (mu-body-write outbody reply-text)
+    
+    (mu-body-write outbody "\n\nOriginal message:\n")
+    (do ((hdr (mu-message-get-header-fields in-msg) (cdr hdr)))
+	 ((null? hdr) #f)
+	(let ((s (car hdr)))
+	  (mu-body-write outbody (string-append indent-prefix
+						(car s) ": " (cdr s) "\n"))))
+    (mu-body-write outbody (string-append indent-prefix "\n"))
+    (do ((line (mu-body-read-line inbody) (mu-body-read-line inbody)))
+	((eof-object? line) #f)
+      (mu-body-write outbody (string-append indent-prefix line)))
+ 	
+    (mu-message-send out-msg)))
+
+;;; Upon receiving a message, store it away in the save mailbox and
+;;; reply to the sender.
+(let ((mbox (and save-mailbox (mu-mailbox-open save-mailbox "cw")))
+      (msg (mu-mailbox-get-message current-mailbox 1)))
+  (cond
+   (mbox
+    (mu-mailbox-append-message mbox msg)
+    (mu-mailbox-close mbox)))
+  (reply msg))	
+    
+    
+	
