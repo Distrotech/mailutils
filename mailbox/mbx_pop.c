@@ -86,7 +86,7 @@ static int mailbox_pop_body_size (body_t, size_t *psize);
 struct _bio
 {
 #define POP_BUFSIZ 512
-  int fd;
+  stream_t stream;
   size_t maxlen;
   size_t len;
   char *current;
@@ -97,7 +97,7 @@ struct _bio
 
 typedef struct _bio *bio_t;
 
-static int bio_create (bio_t *, int);
+static int bio_create (bio_t *, stream_t);
 static void bio_destroy (bio_t *);
 static int bio_readline (bio_t);
 static int bio_read (bio_t);
@@ -132,7 +132,6 @@ struct _mailbox_pop_data
   pthread_mutex_t mutex;
 #endif
   int flags;
-  int fd;
   bio_t bio;
   int is_updated;
   char *user;
@@ -185,7 +184,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
     }
 
   /* Allocate the struct for buffered I/O.  */
-  status = bio_create (&(mpd->bio), -1);
+  status = bio_create (&(mpd->bio), NULL);
   if (status != 0)
     {
       mailbox_pop_destroy (&mbox);
@@ -235,9 +234,10 @@ mailbox_pop_destroy (mailbox_t *pmbox)
 {
   if (pmbox && *pmbox)
     {
-      if ((*pmbox)->data)
+      mailbox_t mbox = *pmbox;
+      if (mbox->data)
 	{
-	  mailbox_pop_data_t mpd = (*pmbox)->data;
+	  mailbox_pop_data_t mpd = mbox->data;
 	  size_t i;
 	  for (i = 0; i < mpd->pmessages_count; i++)
 	    {
@@ -252,10 +252,12 @@ mailbox_pop_destroy (mailbox_t *pmbox)
 	  free (mpd->pmessages);
 	  free (mpd);
 	}
-      free ((*pmbox)->name);
-      free ((*pmbox)->event);
-      if ((*pmbox)->url)
-	url_destroy (&((*pmbox)->url));
+      free (mbox->name);
+      free (mbox->event);
+      stream_destroy (&(mbox->stream), mbox);
+      auth_destroy (&(mbox->auth), mbox);
+      if (mbox->url)
+	url_destroy (&(mbox->url));
       *pmbox = NULL;
     }
 }
@@ -324,7 +326,6 @@ mailbox_pop_open (mailbox_t mbox, int flags)
   int status;
   bio_t bio;
   void *func = (void *)mailbox_pop_open;
-  int fd;
   char host[256]  ;
   long port;
 
@@ -333,16 +334,25 @@ mailbox_pop_open (mailbox_t mbox, int flags)
     return EINVAL;
 
   /* Create the networking stack.  */
-  if (!mbox->stream)
+  if (mbox->stream == NULL)
     {
-      if ((status = url_get_host (mbox->url, host, sizeof(host), NULL)) != 0 ||
-	  (status = url_get_port (mbox->url, &port)) != 0 ||
-	  (status = tcp_stream_create (&(mbox->stream))) != 0)
-	{
-	  mpd->func = NULL;
-	  mpd->state = 0;
-	  return status;
-	}
+      status = tcp_stream_create (&(mbox->stream));
+      if (status != 0)
+	return status;
+    }
+
+  if ((status = url_get_host (mbox->url, host, sizeof(host), NULL)) != 0 ||
+      (status = url_get_port (mbox->url, &port)) != 0)
+    return status;
+
+  /* Dealing whith Authentication.  */
+  /* So far only normal user/pass supported.  */
+  if (mbox->auth == NULL)
+    {
+      status = auth_create (&(mbox->auth), mbox);
+      if (status != 0)
+	return status;
+      auth_set_authenticate (mbox->auth, pop_authenticate, mbox);
     }
 
   /* Flag busy.  */
@@ -351,15 +361,14 @@ mailbox_pop_open (mailbox_t mbox, int flags)
   mpd->func = func;
   bio = mpd->bio;
 
-  /* Spawn the prologue.  */
-  if (mbox->auth)
-    auth_prologue (mbox->auth);
-
   /* Enter the state machine.  */
   switch (mpd->state)
     {
       /* Establish the connection.  */
     case 0:
+      /* Spawn auth prologue.  */
+      auth_prologue (mbox->auth);
+
       status = stream_open (mbox->stream, host, port, flags);
       if (status != 0)
 	{
@@ -370,9 +379,10 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	    }
 	  return status;
 	}
-      /* Get the fd.  */
-      stream_get_fd (mbox->stream, &fd);
-      mpd->bio->fd = mpd->fd = fd;
+      /* Set the Buffer I/O.  */
+      bio->stream = mbox->stream;
+      bio->ptr = bio->buffer;
+      bio->nl = NULL;
       mpd->state = 1;
       /* Glob the greetings.  */
     case 1:
@@ -390,22 +400,9 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	{
 	  mpd->func = NULL;
 	  mpd->state = 0;
-	  close (mpd->fd);
-	  mpd->bio->fd = -1;
+	  stream_close (bio->stream);
+	  bio->stream = NULL;
 	  return EACCES;
-	}
-      /* Dealing whith Authentication.  */
-      /* So far only normal user/pass supported.  */
-      if (mbox->auth == NULL)
-	{
-	  status = auth_create (&(mbox->auth), mbox);
-	  if (status != 0)
-	    {
-	      mpd->func = NULL;
-	      mpd->state = 0;
-	      return status;
-	    }
-	  auth_set_authenticate (mbox->auth, pop_authenticate, mbox);
 	}
 
       auth_authenticate (mbox->auth, &mpd->user, &mpd->passwd);
@@ -483,11 +480,10 @@ mailbox_pop_open (mailbox_t mbox, int flags)
     }/* Swith state. */
 
   /* Spawn cleanup functions.  */
-  if (mbox->auth)
-    auth_epilogue (mbox->auth);
+  auth_epilogue (mbox->auth);
 
   /* Clear any state.  */
-  mpd->func = NULL;
+  mpd->id = mpd->func = NULL;
   mpd->state = 0;
 
   return 0;
@@ -510,7 +506,7 @@ mailbox_pop_close (mailbox_t mbox)
   mpd->func = func;
   bio = mpd->bio;
 
-  if (mpd->fd != -1)
+  if (bio->stream != NULL)
     {
       switch (mpd->state)
 	{
@@ -545,8 +541,8 @@ mailbox_pop_close (mailbox_t mbox)
 	  if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	    return EINVAL;
 	case 3:
-	  close (mpd->fd);
-	  mpd->fd = -1;
+	  stream_close (bio->stream);
+	  bio->stream = NULL;
 	}
     }
 
@@ -767,8 +763,8 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     message_set_header ((mpd->mpm->message), header, mpd->mpm);
   }
 
-  /* Reallocate the working buffer.  */
-  bio_create (&(mpd->mpm->bio), mpd->fd);
+  /* Reallocate the working I/O buffer.  */
+  bio_create (&(mpd->mpm->bio), bio->stream);
 
   /* Create the attribute.  */
   {
@@ -1074,9 +1070,7 @@ mailbox_pop_getfd (stream_t stream, int *pfd)
   mailbox_pop_message_t mpm;
   if (stream == NULL || (mpm = stream->owner) == NULL)
     return EINVAL;
-  if (pfd)
-    *pfd = mpm->bio->fd;
-  return 0;
+  return stream_get_fd (mpm->bio->stream, pfd);
 }
 
 static int
@@ -1220,7 +1214,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-bio_create (bio_t *pbio, int fd)
+bio_create (bio_t *pbio, stream_t stream)
 {
   bio_t bio;
   bio = calloc (1, sizeof (*bio));
@@ -1233,7 +1227,7 @@ bio_create (bio_t *pbio, int fd)
       free (bio);
       return ENOMEM;
     }
-  bio->fd = fd;
+  bio->stream = stream;
   *pbio = bio;
   return 0;
 }
@@ -1253,13 +1247,14 @@ bio_destroy (bio_t *pbio)
 static int
 bio_write (bio_t bio)
 {
-  int nwritten;
+  size_t nwritten = 0;
+  int status;
 
   while (bio->len > 0)
     {
-      nwritten = write (bio->fd, bio->ptr, bio->len);
-      if (nwritten < 0)
-	return errno;
+      status = stream_write (bio->stream, bio->ptr, bio->len, 0, &nwritten);
+      if (status != 0)
+	return status;
       bio->len -= nwritten;
       bio->ptr += nwritten;
     }
@@ -1271,12 +1266,13 @@ bio_write (bio_t bio)
 static int
 bio_read (bio_t bio)
 {
-  int nread, len;
+  size_t nread = 0;
+  int status, len;
 
   len = bio->maxlen - (bio->ptr - bio->buffer) - 1;
-  nread = read (bio->fd, bio->ptr, len);
-  if (nread < 0)
-    return errno;
+  status = stream_read (bio->stream, bio->ptr, len, 0, &nread);
+  if (status != 0)
+    return status;
   else if (nread == 0)
     { /* EOF ???? We got a situation here ??? */
       bio->buffer[0] = '.';

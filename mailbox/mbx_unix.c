@@ -333,9 +333,9 @@ mailbox_unix_destroy (mailbox_t *pmbox)
       if  (mbox->locker)
 	locker_destroy (&(mbox->locker));
       if (mbox->auth)
-	auth_destroy (&(mbox->auth), (*pmbox));
+	auth_destroy (&(mbox->auth), mbox);
       if(mbox->stream)
-	stream_destroy (&(mbox->stream), *pmbox);
+	stream_destroy (&(mbox->stream), mbox);
       mailbox_unix_iunlock (mbox);
 #ifdef HAVE_PTHREAD_H
       if (mbox->mutex)
@@ -879,8 +879,7 @@ mailbox_unix_getfd (stream_t is, int *pfd)
   if (is == NULL || (mum = is->owner) == NULL)
     return EINVAL;
 
-  stream_get_fd (mum->stream, pfd);
-  return 0;
+  return stream_get_fd (mum->stream, pfd);
 }
 
 static int
