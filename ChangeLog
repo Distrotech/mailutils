@@ -1,3 +1,30 @@
+2004-01-13  Sergey Poznyakoff
+
+	Implemented 'file:' URLs
+	
+	* include/mailutils/registrar.h: Removed file_record
+	* mailbox/include/registrar0.h: Likewise
+	* examples/mimetest.c: Likewise 
+	* mailbox/mbox/folder.c: Likewise
+	
+	* include/mailutils/mutil.h (mu_scheme_autodetect_p): New function
+	* mailbox/mutil.c: Likewise
+
+	* mailbox/amd.c (amd_url_init): Use mu_scheme_autodetect_p().
+	* mailbox/maildir/folder.c (_maildir_is_scheme): Likewise.
+	* mailbox/mh/folder.c (_mh_is_scheme): Likewise.
+	
+	* mailbox/url_file.c: Removed. File not needed anymore.
+	* mailbox/url_path.c: Likewise.	
+	* mailbox/Makefile.am (url_file.c,url_path.c): Removed
+
+	* mailbox/mbox/url.c (_url_path_init): Moved from ../url_path.c 
+	* mailbox/mbox/file.c: Removed. File not needed anymore.
+	* mailbox/mbox/Makefile.am (file.c): Removed
+	
+	* frm/frm.c: Improved handling of --select option
+	* from/from.c: Include missing headers
+	
 2004-01-13  Wojciech Polak
 
 	* from/from.c: Use mu_error() where appropriate.
