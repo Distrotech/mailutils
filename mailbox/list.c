@@ -31,7 +31,7 @@ list_create (list_t *plist)
 {
   list_t list;
   int status;
-  
+
   if (plist == NULL)
     return MU_ERR_OUT_PTR_NULL;
   list = calloc (sizeof (*list), 1);
@@ -57,7 +57,7 @@ list_destroy (list_t *plist)
       list_t list = *plist;
       struct list_data *current;
       struct list_data *previous;
-      
+
       monitor_wrlock (list->monitor);
       for (current = list->head.next; current != &(list->head);)
 	{
@@ -79,7 +79,7 @@ list_append (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *last;
-  
+
   if (list == NULL)
     return EINVAL;
   last = list->head.prev;
@@ -102,7 +102,7 @@ list_prepend (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *first;
-  
+
   if (list == NULL)
     return EINVAL;
   first = list->head.next;
@@ -124,7 +124,7 @@ int
 list_is_empty (list_t list)
 {
   size_t n = 0;
-  
+
   list_count (list, &n);
   return (n == 0);
 }
@@ -144,13 +144,13 @@ list_comparator_t
 list_set_comparator (list_t list, list_comparator_t comp)
 {
   list_comparator_t old_comp;
-  
+
   if (list == NULL)
     return NULL;
   old_comp = list->comp;
   list->comp = comp;
   return old_comp;
-}  
+}
 
 static int
 def_comp (const void *item, const void *value)
@@ -164,7 +164,7 @@ list_locate (list_t list, void *item, void **ret_item)
   struct list_data *current, *previous;
   list_comparator_t comp;
   int status = MU_ERR_NOENT;
-  
+
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
@@ -190,7 +190,7 @@ list_insert (list_t list, void *item, void *new_item)
   struct list_data *current;
   list_comparator_t comp;
   int status = MU_ERR_NOENT;
-  
+
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
@@ -205,7 +205,7 @@ list_insert (list_t list, void *item, void *new_item)
 	  struct list_data *ldata = calloc (sizeof (*ldata), 1);
 	  if (ldata == NULL)
 	    return ENOMEM;
-	  
+
 	  ldata->item = new_item;
 	  ldata->next = current->next;
 	  ldata->prev = current;
@@ -218,7 +218,7 @@ list_insert (list_t list, void *item, void *new_item)
 	    current = list->head.next = ldata;
 	  else
 	    current->next = ldata;
-	  
+
 	  list->count++;
 	  status = 0;
 	  break;
@@ -234,7 +234,7 @@ list_remove (list_t list, void *item)
   struct list_data *current, *previous;
   list_comparator_t comp;
   int status = MU_ERR_NOENT;
-  
+
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
@@ -263,7 +263,7 @@ list_replace (list_t list, void *old_item, void *new_item)
   struct list_data *current, *previous;
   list_comparator_t comp;
   int status = MU_ERR_NOENT;
-  
+
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
@@ -288,7 +288,7 @@ list_get (list_t list, size_t indx, void **pitem)
   struct list_data *current;
   size_t count;
   int status = MU_ERR_NOENT;
-  
+
   if (list == NULL)
     return EINVAL;
   if (pitem == NULL)
@@ -313,7 +313,7 @@ list_do (list_t list, list_action_t * action, void *cbdata)
 {
   iterator_t itr;
   int status = 0;
-  
+
   if (list == NULL || action == NULL)
     return EINVAL;
   status = list_get_iterator(list, &itr);
@@ -346,20 +346,20 @@ list_to_array (list_t list, void **array, size_t count, size_t *pcount)
 
   if (!list)
     return EINVAL;
-  
+
   total = (count < list->count) ? count : list->count;
 
   if (array)
     {
       size_t i;
       struct list_data *current;
-      
+
       for (i = 0, current = list->head.next;
 	   i < total && current != &(list->head); current = current->next)
 	array[i] = current->item;
     }
   if (pcount)
-    *pcount = total; 
+    *pcount = total;
   return 0;
 }
 
@@ -420,10 +420,15 @@ curitem_p (void *owner, void *item)
 }
 
 static int
-list_data_dup (void **ptr, void *data)
+list_data_dup (void **ptr, void *owner)
 {
-  *ptr = malloc (sizeof (struct list_iterator *));
-  memcpy (*ptr, data, sizeof (struct list_iterator *));
+  struct list_iterator *itr = owner;
+  struct list_iterator *clone;
+  clone = malloc (sizeof (sizeof *itr));
+  if (clone == NULL)
+    return ENOMEM;
+  /* let the assignement operator copy the elements.  */
+  *clone = *itr;
   return 0;
 }
 
@@ -436,16 +441,19 @@ list_get_iterator (list_t list, iterator_t *piterator)
 
   if (!list)
     return EINVAL;
-      
-  itr = calloc (1, sizeof (struct list_iterator *));
+
+  itr = calloc (1, sizeof *itr);
   if (!itr)
     return ENOMEM;
   itr->list = list;
   itr->cur = NULL;
-  
+
   status = iterator_create (&iterator, itr);
   if (status)
-    return status;
+    {
+      free (itr);
+      return status;
+    }
 
   iterator_set_first (iterator, first);
   iterator_set_next (iterator, next);
@@ -454,10 +462,9 @@ list_get_iterator (list_t list, iterator_t *piterator)
   iterator_set_curitem_p (iterator, curitem_p);
   iterator_set_destroy (iterator, destroy);
   iterator_set_dup (iterator, list_data_dup);
-  
+
   iterator_attach (&list->itr, iterator);
-  
+
   *piterator = iterator;
   return 0;
 }
-
