@@ -62,9 +62,11 @@
 #define ARG_PAM_SERVICE 10
 #define ARG_LOCK_FLAGS 11
 
+const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
+
 static struct argp_option mu_common_argp_options[] = 
 {
-  { NULL, 0, NULL, 0, "Common options:", 0},
+  { NULL, 0, NULL, 0, "Common options", 0},
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
