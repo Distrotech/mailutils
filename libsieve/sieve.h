@@ -36,7 +36,8 @@ struct sieve_machine {
   /* Static data */
   char *filename;         /* Name of the source script */
   list_t memory_pool;     /* Pool of allocated memory objects */
-
+  list_t destr_list;      /* List of destructor functions */
+  
   size_t progsize;        /* Number of allocated program cells */
   sieve_op_t *prog;       /* Compiled program */
 
@@ -124,3 +125,5 @@ void instr_brz __P((sieve_machine_t mach));
 
 int sieve_mark_deleted __P((message_t msg, int deleted));
 int sieve_require_comparator __P((const char *name));
+
+int sieve_match_part_checker __P((const char *name, list_t tags, list_t args));
