@@ -1613,6 +1613,33 @@ builtin_unre (struct mh_machine *mach)
     }
 }  
 
+int
+mh_decode_rcpt_flag (const char *arg)
+{
+  if (strcmp (arg, "to") == 0)
+    return RCPT_TO;
+  else if (strcmp (arg, "cc") == 0)
+    return RCPT_CC;
+  else if (strcmp (arg, "me") == 0)
+    return RCPT_ME;
+  else if (strcmp (arg, "all") == 0)
+    return RCPT_ALL;
+
+  return RCPT_NONE;
+}
+
+static void
+builtin_rcpt (struct mh_machine *mach)
+{
+  int rc = mh_decode_rcpt_flag (strobj_ptr (&mach->arg_str));
+  if (rc == RCPT_NONE)
+    {
+      mh_error (_("Invalid recipient mask"));
+      /* try to continue anyway */
+    }
+  mach->arg_num = rc & rcpt_mask;
+}
+
 /* Builtin function table */
 
 mh_builtin_t builtin_tab[] = {
@@ -1689,6 +1716,7 @@ mh_builtin_t builtin_tab[] = {
   { "formataddr", builtin_formataddr, mhtype_none, mhtype_str, 1 },
   { "putaddr",  builtin_putaddr,  mhtype_none, mhtype_str },
   { "unre",     builtin_unre,     mhtype_str,  mhtype_str },
+  { "rcpt",     builtin_rcpt,     mhtype_num,  mhtype_str },
   { 0 }
 };
 
