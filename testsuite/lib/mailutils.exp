@@ -287,13 +287,19 @@ proc mu_test { args } {
 
     set result 0
     for {set i 0} {$i < [llength $pattern]} {incr i} {
+	set regexp 0
+	switch -regexp -- "[lindex ${pattern} $i]" {
+	    ^-re.*$	{ set regexp 1; incr i }
+	    ^--          { incr i }
+	}
+
 	regsub "\[ \t\]*$" [lindex ${pattern} $i] "" pat
 	verbose "i=$i, pat=$pat" 2
 
-	if [regexp -- "-re.*$" $pat] {
+	if {$regexp} {
 	   verbose "REGEX for $pat / [llength $pat] " 3
 	   mu_expect $tmt {
-	       $pat { }
+	       -re $pat { }
 	       default {
 		   set result 1
 		   break
@@ -316,21 +322,6 @@ proc mu_test { args } {
 		       set result 1
 		       break
 		   }
-		   mu_expect $tmt {
-		       -re "\[ \t]*\r\n" { }
-		       default {
-			   set result 1
-			   break
-		       }
-		       timeout {
-			   set result -2
-			   break
-		       }
-		       eof {
-			   set result -3
-			   break
-		       }
-		   }
 	       }
  	       default {
 		   set result 1
@@ -346,6 +337,14 @@ proc mu_test { args } {
 	       }
 	   }
        }
+       if {$result == 0} {
+	   mu_expect $tmt {
+	       -re "\[ \t]*\r\n" { }
+	       default { set result 1 }
+	       timeout { set result -2 }
+	       eof { set result -3 }
+           }
+	}
     }
     return $result
 }
