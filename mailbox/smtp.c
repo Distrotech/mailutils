@@ -175,7 +175,8 @@ static void
 smtp_destroy(mailer_t mailer)
 {
   smtp_t smtp = mailer->data;
-  smtp_close (mailer);
+  /* Not our responsability to close.  */
+  /* smtp_close (mailer); */
   if (smtp->mailhost)
     free (smtp->mailhost);
   if (smtp->localhost)

@@ -64,6 +64,10 @@
 # include <strings.h>
 #endif
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>
@@ -73,6 +77,10 @@
 #include <mailutils/filter.h>
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
+
+#ifndef _PATH_MAILDIR
+# define _PATH_MAILDIR "/usr/spool/mail"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -175,13 +183,15 @@ extern int imap4d_bye __P ((int));
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));
 extern int  util_send __P ((const char *, ...));
-extern int  util_send_string __P ((const char *));
+extern int  util_send_qstring __P ((const char *));
+extern int  util_send_literal __P ((const char *));
 extern int  util_start __P ((char *));
 extern int  util_finish __P ((struct imap4d_command *, int, const char *, ...));
 extern int  util_getstate __P ((void));
 extern int  util_do_command __P ((char *));
 extern char *imap4d_readline __P ((FILE*));
 extern char *util_getword __P ((char *, char **));
+extern char *util_getitem __P ((char *, const char *, char **));
 extern int  util_token __P ((char *, size_t, char **));
 extern void util_unquote __P ((char **));
 extern char *util_tilde_expansion __P ((const char *, const char *));

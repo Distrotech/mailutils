@@ -137,5 +137,6 @@ imap4d_login (struct imap4d_command *command, char *arg)
   homedir = strdup (pw->pw_dir);
   /* FIXME: Check for errors.  */
   chdir (homedir);
+  syslog (LOG_INFO, "User '%s' logged in", username);
   return util_finish (command, RESP_OK, "Completed");
 }

@@ -26,7 +26,13 @@ static const char *sc2string __P ((int));
 char *
 util_getword (char *s, char **save)
 {
-  /* Take care of words between double quotes.  */
+  return util_getitem (s, " \r\n", save);
+}
+
+/* Take care of words between double quotes.  */
+char *
+util_getitem (char *s, const char *delim, char **save)
+{
   {
     char *p;
     if ((p = s) || (p = *save))
@@ -47,7 +53,7 @@ util_getword (char *s, char **save)
 	  }
       }
   }
-  return strtok_r (s, " \r\n", save);
+  return strtok_r (s, delim, save);
 }
 
 /* Stop a the first char that IMAP4 represent as a special characters.  */
@@ -85,11 +91,13 @@ util_token (char *buf, size_t len, char **ptr)
 }
 
 /* Remove the surrounding double quotes.  */
+/* FIXME:  Check if the quote was escaped and ignore it.  */
 void
 util_unquote (char **ptr)
 {
   char *s = *ptr;
-  if (s && *s == '"')
+  size_t len;
+  if (s && *s == '"' && (len = strlen (s)) > 1 && s[len - 1] == '"')
     {
       char *p = ++s;
       while (*p && *p != '"')
@@ -331,16 +339,33 @@ util_send (const char *format, ...)
   return status;
 }
 
-/* Send NIL if empty string, a literal if the string contains double quotes
-   or the string surrounded by double quotes.  */
+/* Send NIL if empty string, change the quoted string to a literal if the
+   string contains: double quotes, CR, LF, and '/'.  CR, LF will be change
+   to spaces.  */
 int
-util_send_string (const char *buffer)
+util_send_qstring (const char *buffer)
 {
-  if (*buffer == '\0')
+  if (buffer == NULL || *buffer == '\0')
     return util_send ("NIL");
-  if (strchr (buffer, '"'))
-    return util_send ("{%u}\r\n%s", strlen (buffer), buffer);
+  if (strchr (buffer, '"') || strchr (buffer, '\r') || strchr (buffer, '\n')
+      || strchr (buffer, '\\'))
+    {
+      char *s;
+      int ret;
+      char *b = strdup (buffer);
+      while ((s = strchr (b, '\n')) || (s = strchr (b, '\r')))
+	*s = ' ';
+      ret = util_send_literal (b);
+      free (b);
+      return ret;
+    }
   return util_send ("\"%s\"", buffer);
+}
+
+int
+util_send_literal (const char *buffer)
+{
+  return util_send ("{%u}\r\n%s", strlen (buffer), buffer);
 }
 
 /* Send an unsolicited response.  */
@@ -410,7 +435,7 @@ imap4d_readline (FILE *fp)
       alarm (0);
 
       len = strlen (buffer);
-      /* If we were in a litteral substract. We have to do here since the CR
+      /* If we were in a litteral substract. We have to do it here since the CR
 	 is part of the count in a literal.  */
       if (number)
         number -= len;
@@ -431,13 +456,23 @@ imap4d_readline (FILE *fp)
 
       total = strlen (line);
 
-      /* Check if the client try to send a literal and we are not already
-         retrieving a litera.  */
+      /* I observe some client requesting long FETCH operations since, I did
+	 not see any limit in the command length in the RFC, catch things
+	 here.  */
+      /* Check that we do have a terminated NL line and we are not retrieving
+	 a literal. If we don't continue the read.  */
+      if (number <= 0 && total && line[total - 1] != '\n')
+	continue;
+
+      /* Check if the client try to send a literal and make sure we are not
+	 already retrieving a literal.  */
       if (number <= 0 && len > 2)
         {
           size_t n = total - 1; /* C arrays are 0-based.  */
+	  /* A literal is this "{number}\n".  The CR is already strip.  */
           if (line[n] == '\n' && line[n - 1] == '}')
             {
+	      /* Search for the matching bracket.  */
               while (n && line[n] != '{') n--;
               if (line [n] == '{')
                 {
@@ -454,7 +489,7 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0);
-  syslog (LOG_INFO, "readline: %s", line);
+  /* syslog (LOG_INFO, "readline: %s", line); */
   return line;
 }
 

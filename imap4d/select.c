@@ -32,6 +32,7 @@ int
 imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 {
   char *mailbox_name, *sp = NULL;
+  int status;
   struct passwd *pw;
 
   /* FIXME: Check state.  */
@@ -57,16 +58,26 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
     {
       pw = getpwuid (getuid ());
       if (pw)
-	mailbox_name = pw->pw_name;
+	{
+	  mailbox_name  = calloc (strlen (_PATH_MAILDIR) + 1
+				  + strlen (pw->pw_name) + 1, 1);
+	  sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+	}
+      else
+	mailbox_name = strdup ("/dev/null");
     }
+  else
+    mailbox_name = util_getfullpath (mailbox_name, "/");
 
-  if (mailbox_create_default (&mbox, mailbox_name) == 0
+  if (mailbox_create (&mbox, mailbox_name) == 0
       && mailbox_open (mbox, flags) == 0)
     {
       const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
       const char *pflags = "\\Answered \\Deleted \\Seen";
       unsigned long uidvalidity = 0;
       size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
+
+      free (mailbox_name);
 
       mailbox_uidvalidity (mbox, &uidvalidity);
       mailbox_uidnext (mbox, &uidnext);
@@ -94,5 +105,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 			(MU_STREAM_READ == flags) ?
 			"READ-ONLY" : "READ-WRITE", command->name);
     }
-  return util_finish (command, RESP_NO, "Couldn't open %s", mailbox_name);
+  status = util_finish (command, RESP_NO, "Couldn't open %s", mailbox_name);
+  free (mailbox_name);
+  return status;
 }

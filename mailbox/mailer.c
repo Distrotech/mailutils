@@ -127,8 +127,8 @@ mailer_destroy (mailer_t *pmailer)
 
       if (mailer->stream)
 	{
-	  /* FIXME: Should we close this?  */
-	  stream_close (mailer->stream);
+	  /* FIXME: Should be the client responsability to close this?  */
+	  /* stream_close (mailer->stream); */
 	  stream_destroy (&(mailer->stream), mailer);
 	}
 

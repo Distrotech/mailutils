@@ -1,3 +1,20 @@
+2001-05-13  Alain Magloire
+
+	* imap4d/fetch.c:  Lots of bug fixing.  To many to enumerate.
+	* imap4d/imap4d.h: New prototypes.
+	* imap4d/login.c: syslog() the user.
+	* imap4d/select.c: Remove the call to mailbox_create_default.
+	* imap4d/util.c (util_getitem): New function.
+	(util_send_qstring): New function.
+	(util_send_literal): New function.
+
+	* mailbox/address.c:  Parse822 can not handle '\n' inside
+	the buffer, prune them out before.
+	* mailbox/mime.c (_mime_parse_mpart_message): The mime->stream
+	was destroy when doing mime_get_part () better get it every time.
+	(_mime_body_fd): Likewised.
+	* mailbox/smtp.c: Do not close the stream on destroy.
+
 2001-05-11  Alain Magloire
 
 	* imap4d/fetch.c: More cleanup in the bodystructure code,

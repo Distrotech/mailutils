@@ -145,9 +145,9 @@ mailbox_destroy (mailbox_t *pmbox)
       /* Close the stream and nuke it */
       if (mbox->stream)
 	{
-	  /* FIXME:  Is this right, should be the client responsabilty to
+	  /* FIXME:  Is this right, should be the client responsabilty to close
 	     the stream?  */
-	  stream_close (mbox->stream);
+	  /* stream_close (mbox->stream); */
 	  stream_destroy (&(mbox->stream), mbox);
 	}
 

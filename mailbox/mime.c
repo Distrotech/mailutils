@@ -235,6 +235,8 @@ _mime_parse_mpart_message(mime_t mime)
 	char 		*cp, *cp2;
 	int 		blength, mb_length, mb_offset, mb_lines, ret;
 	size_t		nbytes;
+	body_t body;
+	stream_t stream;
 
 	if ( !(mime->flags & MIME_PARSER_ACTIVE) ) {
 		char *boundary;
@@ -257,7 +259,11 @@ _mime_parse_mpart_message(mime_t mime)
 	mb_offset = mime->body_offset;
 	mb_lines = mime->body_lines;
 
-	while ( ( ret = stream_read(mime->stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
+	body = NULL;
+	stream = NULL;
+	message_get_body (mime->msg, &body);
+	body_get_stream (body, &stream);
+	while ( ( ret = stream_read(stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
 		cp = mime->cur_buf;
 		while ( nbytes ) {
 			mime->cur_line[mime->line_ndx] = *cp;
@@ -347,7 +353,11 @@ _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t
 		return 0;
 	read_len = (buflen <= read_len)? buflen : read_len;
 
-	return stream_read(mime_part->mime->stream, buf, read_len, mime_part->offset + off, nbytes );
+	body = NULL;
+	stream = NULL;
+	message_get_body (mime_part->mime->msg, &body);
+	body_get_stream (body, &stream);
+	return stream_read(stream, buf, read_len, mime_part->offset + off, nbytes );
 }
 
 static int
@@ -357,7 +367,11 @@ _mimepart_body_fd(stream_t stream, int *fd)
 	message_t			msg = body_get_owner(body);
 	struct _mime_part 	*mime_part = message_get_owner(msg);
 
-	return stream_get_fd(mime_part->mime->stream, fd);
+	body = NULL;
+	stream = NULL;
+	message_get_body (mime_part->mime->msg, &body);
+	body_get_stream (body, &stream);
+	return stream_get_fd(stream, fd);
 }
 
 static int
@@ -580,7 +594,6 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 	mime_t 	mime = NULL;
 	int 	ret = 0;
 	size_t 	size;
-	body_t	body;
 
 	if (pmime == NULL)
 		return EINVAL;
@@ -602,8 +615,6 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 			if  (ret == 0 ) {
 				mime->msg = msg;
 				mime->buf_size = MIME_DFLT_BUF_SIZE;
-				message_get_body(msg, &body);
-				body_get_stream(body, &(mime->stream));
 			}
 		}
 	}

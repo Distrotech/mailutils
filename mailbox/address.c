@@ -33,16 +33,27 @@
 
 /* Get email address from rfc822 address.  */
 int
-address_create (address_t *a, const char *s)
+address_create (address_t *a, const char *p)
 {
   /* 'paddress' must exist, and can't already have been initialized
    */
   int status;
+  char *s; /* FIXME: Remove when done, see below */
 
   if (!a)
     return EINVAL;
 
   *a = NULL;
+
+  /* FIXME: parse822 does not seem to like '\n' in the field body
+     take care of it here until the proper fix.  */
+  s = strdup (p);
+  {
+    char *nl = s;
+    while ((nl = strchr (nl, '\n')))
+      *nl++ = ' ';
+  }
+
   status = parse822_address_list (a, (char*) s);
   if (status == 0)
     {
@@ -58,6 +69,8 @@ address_create (address_t *a, const char *s)
 	  return ENOMEM;
         }
     }
+  /* FIXME: part of the hack/fix above remove when done.  */
+  free (s);
   return status;
 }
 
