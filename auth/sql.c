@@ -257,7 +257,7 @@ mu_auth_sql_by_uid (void *return_data, void *key,
     }
 
   snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
-  query_str = sql_expand_query (sql_getpwnam_query, uidstr);
+  query_str = sql_expand_query (sql_getpwuid_query, uidstr);
 
   if (!query_str)
     {
