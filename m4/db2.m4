@@ -20,7 +20,7 @@ AH_TEMPLATE(BDB2_CURSOR_LASTARG,
             [Last argument to the cursor member of Berkeley 2 DB structure])
 
 dnl The cursor member of DB structure used to take three arguments in older
-dnl implementations of Berkeley DB. Newer versions (db.h >= 11.238) declare
+dnl implementations of Berkeley DB. Newer versions (>= 4.0) declare
 dnl it as taking four arguments.
 dnl This macro checks which of the variants we have.
 AC_DEFUN(MU_DB2_CURSOR,
