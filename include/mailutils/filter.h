@@ -41,7 +41,7 @@ struct _filter_record
 
   /* Stub function return the fields.  */
   int (*_is_filter)  __P ((filter_record_t, const char *));
-  int (*_get_filter) __P ((filter_record_t, int (*(*_filter)) __P ((filter_t))));
+  int (*_get_filter) __P ((filter_record_t, int (*(*_filter)) __PMT ((filter_t))));
 };
 
 
