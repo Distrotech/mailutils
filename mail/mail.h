@@ -129,6 +129,7 @@ int mail_alias __P((int argc, char **argv));
 int mail_alt __P((int argc, char **argv));	/* command alternates */
 int mail_cd __P((int argc, char **argv));
 int mail_copy __P((int argc, char **argv));
+int mail_decode __P((int argc, char **argv));
 int mail_delete __P((int argc, char **argv));
 int mail_discard __P((int argc, char **argv));
 int mail_dp __P((int argc, char **argv));

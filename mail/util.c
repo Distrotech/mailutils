@@ -225,6 +225,24 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	    current = util_ll_add (current, x);
 	  free (arg);
 	}
+      else if (strchr (argv[i], '[') != NULL)
+	{
+	  /* attachments - GNU extension */
+	  /*
+	   * This is a general extension to the msglist format. Basicallay,
+	   * it adds C-like array subscripting to msg numbers to allow access
+	   * to just a single part of a MIME multipart message. I.e.:
+	   * print 7[1],8[1-2]
+	   * should print the first attachment of message 7 and the first
+	   * and second attachments of message 8. The format inside the
+	   * brackets is the same as a msglist, so we should be able to 
+	   * reuse this function for its expansion. This will primarily
+	   * be used by the new decode command, which needs discussion on
+	   * the mailing list to nail its syntax down (should it default to
+	   * saving to a file, printing to stdout, or piping?)
+	   * -- sparky
+	   */
+	}
       else
 	{
 	  /* Single message.  */
