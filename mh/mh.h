@@ -185,6 +185,8 @@ typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
 #define RCPT_ME   0x0004
 #define RCPT_ALL  (RCPT_TO|RCPT_CC|RCPT_ME)
 
+#define RCPT_DEFAULT RCPT_NONE
+
 struct mh_whatnow_env {   /* An environment for whatnow shell */
   char *file;             /* The file being processed */
   char *msg;              /* The original message (if any) */
