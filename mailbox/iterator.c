@@ -108,7 +108,7 @@ iterator_get_list (iterator_t iterator, list_t *plist)
   if (!iterator)
     return EINVAL;
     *plist = iterator->list;
-  return NULL;
+  return 0;
 }
 
 void
