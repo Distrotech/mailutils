@@ -32,11 +32,13 @@ typedef union {
   long number;
   char *string;
   size_t pc;
+  size_t line;
 } sieve_op_t;
 
 struct sieve_machine {
   /* Static data */
-  char *filename;         /* Name of the source script */
+  sieve_locus_t locus;    /* Approximate location in the code */
+
   list_t memory_pool;     /* Pool of allocated memory objects */
   list_t destr_list;      /* List of destructor functions */
 
@@ -44,7 +46,8 @@ struct sieve_machine {
   list_t test_list;       /* Tests */
   list_t action_list;     /* Actions */
   list_t comp_list;       /* Comparators */
-
+  list_t source_list;     /* Source names (for diagnostics) */
+  
   size_t progsize;        /* Number of allocated program cells */
   sieve_op_t *prog;       /* Compiled program */
 
@@ -55,7 +58,7 @@ struct sieve_machine {
 
   int debug_level;        /* Debugging level */
   jmp_buf errbuf;         /* Target location for non-local exits */
-
+  
   mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;        /* Current message number */
   message_t msg;          /* Current message */
@@ -113,9 +116,11 @@ int sieve_code_list __P((list_t list));
 int sieve_code_number __P((long num));
 int sieve_code_test __P((sieve_register_t *reg, list_t arglist));
 int sieve_code_action __P((sieve_register_t *reg, list_t arglist));
-void sieve_code_anyof (size_t start);
-void sieve_code_allof (size_t start);
-     
+void sieve_code_anyof __P((size_t start));
+void sieve_code_allof __P((size_t start));
+int sieve_code_source __P((const char *name));
+int sieve_code_line __P((size_t line));
+
 void instr_action __P((sieve_machine_t mach));
 void instr_test __P((sieve_machine_t mach));
 void instr_push __P((sieve_machine_t mach));
@@ -125,6 +130,8 @@ void instr_branch __P((sieve_machine_t mach));
 void instr_brz __P((sieve_machine_t mach));
 void instr_brnz __P((sieve_machine_t mach));
 void instr_nop __P((sieve_machine_t mach));
+void instr_source __P((sieve_machine_t mach));
+void instr_line __P((sieve_machine_t mach));
 
 int sieve_mark_deleted __P((message_t msg, int deleted));
 
