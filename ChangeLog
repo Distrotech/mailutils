@@ -1,3 +1,24 @@
+2001-07-18 Sam Roberts
+
+	* include/mailutils/url.h: New api functions for parsing.
+	* doc/: Makefile.am, framework.texi, url.texi: Updated and
+	  corrected URL documentation.
+	* doc/ex-url.texi: The url api example. Derived from
+	  ../example/url-parse by a perl script.
+	* mailbox/url.c: Added a function to do generalized URL parsing.
+	* mailbox/: url_imap.c, url_pop.c: Use the url_parse() function to
+	  parse the URL.
+	* mailbox/mbx_pop.c: Added checks for low-memory conditions, and
+	  look for passwd in url before prompting user.
+	* mailbox/folder_imap.c: Look for passwd in the url before
+	  prompting.
+	* examples/: .cvsignore, Makefile, Urls, url-parse.c: Added example
+	  of URL parsing, and test for parsing.
+	* examples/Urls.good: Added test for % decoding.
+	* mailbox/mbx_mbox.c: Needed <stdlib.h> on QNX6.
+	* mailbox/include/: registrar0.h, url0.h: Comment on schemes, and
+	  removed comment on encoding.
+
 2001-07-18 Alain Magloire
 
 	* mailbox/mbx_mbox.c (mbox_messages_count): This function does
