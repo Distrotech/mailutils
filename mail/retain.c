@@ -19,6 +19,27 @@
 
 static list_t retained_headers = NULL;
 static list_t ignored_headers = NULL;
+static list_t unfolded_headers = NULL;
+
+static int
+process_list (int argc, char **argv,
+	      list_t *list,
+	      void (*fun) (list_t *, char *),
+	      char *msg)
+{
+  if (argc == 1)
+    {
+      if (list_is_empty (*list))
+	fprintf (ofile, _(msg));
+      else
+	util_slist_print (*list, 1);
+      return 0;
+    }
+
+  while (--argc)
+    fun (list, *++argv);
+  return 0;
+}
 
 /*
  * ret[ain] [heder-field...]
@@ -27,18 +48,9 @@ static list_t ignored_headers = NULL;
 int
 mail_retain (int argc, char **argv)
 {
-  if (argc == 1)
-    {
-      if (!retained_headers)
-	fprintf (ofile, _("No fields are currently being retained\n"));
-      else
-	util_slist_print (retained_headers, 1);
-      return 0;
-    }
-
-  while (--argc)
-    util_slist_add (&retained_headers, *++argv);
-  return 0;
+  return process_list (argc, argv, &retained_headers,
+		       util_slist_add,
+		       N_("No fields are currently being retained\n"));
 }
 
 /*
@@ -49,20 +61,41 @@ mail_retain (int argc, char **argv)
 int
 mail_discard (int argc, char **argv)
 {
-  if (argc == 1)
-    {
-      if (!ignored_headers)
-	fprintf (ofile, _("No fields are currently being ignored\n"));
-      else
-	util_slist_print (ignored_headers, 1);
-      return 0;
-    }
-
-  while (--argc)
-    util_slist_add (&ignored_headers, *++argv);
+  return process_list (argc, argv, &ignored_headers,
+		       util_slist_add,
+		       N_("No fields are currently being ignored\n"));
   return 0;
 }
 
+/*
+ * unfold [header-field...]
+ */
+
+int
+mail_unfold (int argc, char **argv)
+{
+  return process_list (argc, argv, &unfolded_headers,
+		       util_slist_add,
+		       N_("No fields are currently being unfolded\n"));
+}
+
+/*
+ * nounfold [header-field...]
+ */
+
+int
+mail_nounfold (int argc, char **argv)
+{
+  return process_list (argc, argv, &unfolded_headers,
+		       util_slist_remove,
+		       N_("No fields are currently being unfolded\n"));
+}
+
+int
+mail_header_is_unfoldable (char *str)
+{
+  return util_slist_lookup (unfolded_headers, str);
+}
 
 int
 mail_header_is_visible (char *str)
