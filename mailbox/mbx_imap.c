@@ -533,8 +533,14 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
   if (mailbox->observable == NULL)
     return 0;
   for (i = msgno; i <= *pcount; i++)
-    if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
-      break;
+    {
+      if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+	break;
+      if (((i + 1) % 10) == 0)
+	{
+	  observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	}
+    }
   return 0;
 }
 
