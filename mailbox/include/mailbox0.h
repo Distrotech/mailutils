@@ -22,11 +22,6 @@
 #  include <dmalloc.h>
 #endif
 
-#ifdef HAVE_PTHREAD_H
-#  define __USE_UNIX98 /* ?? */
-#  include <pthread.h>
-#endif
-
 #include <sys/types.h>
 #include <stdio.h>
 

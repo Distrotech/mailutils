@@ -95,7 +95,7 @@ static int pop_top (stream_t, char *, size_t, off_t, size_t *);
 static int pop_retr (pop_message_t, char *, size_t, off_t, size_t *);
 static int pop_get_fd (pop_message_t, int *);
 static int pop_attr_flags (attribute_t, int *);
-static int pop_uidl (message_t, char *, size_t, size_t *);
+static int pop_uid (message_t, char *, size_t, size_t *);
 static int fill_buffer (pop_data_t, char *, size_t);
 static int pop_readline (pop_data_t);
 static int pop_read_ack (pop_data_t);
@@ -695,7 +695,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   }
 
   /* Set the UIDL call on the message. */
-  message_set_uidl (msg, pop_uidl, mpm);
+  message_set_uid (msg, pop_uid, mpm);
 
   /* Add it to the list.  */
   monitor_wrlock (mbox->monitor);
@@ -958,7 +958,7 @@ pop_message_size (message_t msg, size_t *psize)
 
     default:
       /*
-	fprintf (stderr, "pop_uidl state\n");
+	fprintf (stderr, "pop_uid state\n");
       */
       break;
     }
@@ -1073,14 +1073,14 @@ pop_get_fd (pop_message_t mpm, int *pfd)
    FIXME:  We should check this with CAPA and fall back to md5 scheme ?
    Or maybe check for "X-UIDL" a la Qpopper ?  */
 static int
-pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
+pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   int status = 0;
-  void *func = (void *)pop_uidl;
+  void *func = (void *)pop_uid;
   size_t num;
-  /* According to the RFC uidl's are no longer then 70 chars.  */
+  /* According to the RFC uid's are no longer then 70 chars.  */
   char uniq[128];
 
   if (mpm == NULL)
@@ -1115,7 +1115,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
     default:
       /*
-	fprintf (stderr, "pop_uidl state\n");
+	fprintf (stderr, "pop_uid state\n");
       */
       break;
     }

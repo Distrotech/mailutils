@@ -15,37 +15,44 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* Tell GLIBC that we want UNIX98 pthread_rwlock_xx() functions.  */
+#define _XOPEN_SOURCE   500
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#ifdef WITH_PTHREAD
+#  ifdef HAVE_PTHREAD_H
+#    include <pthread.h>
+#  endif
+#endif
 #include <errno.h>
 #include <stdlib.h>
-
-#ifdef HAVE_PTHREAD_H
-#  define __USE_UNIX98
-#  include <pthread.h>
-#endif
 
 #include <monitor0.h>
 
 
 #ifdef WITH_PTHREAD
 pthread_mutex_t monitor_lock = PTHREAD_MUTEX_INITIALIZER;
-#define STATIC_LOCK(m) pthread_mutex_lock(m)
-#define STATIC_UNLOCK(m) pthread_mutex_unlock(m)
+#  define STATIC_LOCK(m) pthread_mutex_lock(m)
+#  define STATIC_UNLOCK(m) pthread_mutex_unlock(m)
 #else
-#define STATIC_LOCK(m) 0
-#define STATIC_UNLOCK(m) 0
+#  define STATIC_LOCK(m) 0
+#  define STATIC_UNLOCK(m) 0
 int monitor_lock;
 #endif
 
 union _p_lock
 {
 #ifdef WITH_PTHREAD
-#  ifdef USE_RWLOCK
-  pthread_rwlock_t mutex;
+#  ifdef HAVE_PTHREAD_RWLOCK_INIT
+     pthread_rwlock_t mutex;
 #  else
-  pthread_mutex_t mutex;
+     pthread_mutex_t mutex;
 #  endif
-#endif
+#else
   int dummy;
+#endif
 };
 
 typedef union _p_lock *p_lock_t;
@@ -198,17 +205,8 @@ monitor_notify (monitor_t monitor)
 
 /* Concrete Implementation of pthread base on rwlocks.  */
 
-#define USE_RWLOCK
 #ifdef WITH_PTHREAD
-#  ifdef USE_RWLOCK
-#    define RWLOCK_INIT(rwl, attr)  pthread_mutex_init (rwl, attr)
-#    define RWLOCK_DESTROY(rwl)     pthread_mutex_destroy (rwl)
-#    define RWLOCK_RDLOCK(rwl)      pthread_mutex_lock (rwl)
-#    define RWLOCK_TRYRDLOCK(rwl)   pthread_mutex_trylock (rwl)
-#    define RWLOCK_WRLOCK(rwl)      pthread_mutex_lock (rwl)
-#    define RWLOCK_TRYWRLOCK(rwl)   pthread_mutex_trylock (rwl)
-#    define RWLOCK_UNLOCK(rwl)      pthread_mutex_unlock (rwl)
-#  else
+#  ifdef HAVE_PTHREAD_RWLOCK_INIT
 #    define RWLOCK_INIT(rwl, attr)  pthread_rwlock_init (rwl, attr)
 #    define RWLOCK_DESTROY(rwl)     pthread_rwlock_destroy (rwl)
 #    define RWLOCK_RDLOCK(rwl)      pthread_rwlock_rdlock (rwl)
@@ -216,6 +214,14 @@ monitor_notify (monitor_t monitor)
 #    define RWLOCK_WRLOCK(rwl)      pthread_rwlock_wrlock (rwl)
 #    define RWLOCK_TRYWRLOCK(rwl)   pthread_rwlock_trywrlock (rwl)
 #    define RWLOCK_UNLOCK(rwl)      pthread_rwlock_unlock (rwl)
+#  else
+#    define RWLOCK_INIT(rwl, attr)  pthread_mutex_init (rwl, attr)
+#    define RWLOCK_DESTROY(rwl)     pthread_mutex_destroy (rwl)
+#    define RWLOCK_RDLOCK(rwl)      pthread_mutex_lock (rwl)
+#    define RWLOCK_TRYRDLOCK(rwl)   pthread_mutex_trylock (rwl)
+#    define RWLOCK_WRLOCK(rwl)      pthread_mutex_lock (rwl)
+#    define RWLOCK_TRYWRLOCK(rwl)   pthread_mutex_trylock (rwl)
+#    define RWLOCK_UNLOCK(rwl)      pthread_mutex_unlock (rwl)
 #  endif
 #else
 #  define RWLOCK_INIT(rwl, attr)    0

@@ -418,7 +418,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
 }
 
 int
-message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
+message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 {
   header_t header = NULL;
   size_t n = 0;
@@ -428,8 +428,8 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
     return EINVAL;
 
   buffer[0] = '\0';
-  if (msg->_get_uidl)
-    return msg->_get_uidl (msg, buffer, buflen, pwriten);
+  if (msg->_get_uid)
+    return msg->_get_uid (msg, buffer, buflen, pwriten);
 
   /* Be compatible with Qpopper ? qppoper saves the UIDL in "X-UIDL".
      We use "Message-ID" as a fallback.  Is this bad ? should we generate
@@ -458,14 +458,14 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 }
 
 int
-message_set_uidl (message_t msg, int (* _get_uidl)
+message_set_uid (message_t msg, int (* _get_uid)
 		  __P ((message_t, char *, size_t, size_t *)), void *owner)
 {
   if (msg == NULL)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  msg->_get_uidl = _get_uidl;
+  msg->_get_uid = _get_uid;
   return 0;
 }
 

@@ -34,6 +34,7 @@
 #include <limits.h>
 #include <errno.h>
 #ifdef HAVE_PTHREAD_H
+#  define _XOPEN_SOURCE  500
 #  include <pthread.h>
 #endif
 
@@ -140,7 +141,9 @@ static int mbox_body_size (body_t, size_t *);
 static int mbox_body_lines (body_t, size_t *);
 static int mbox_envelope_sender (envelope_t, char *, size_t, size_t *);
 static int mbox_envelope_date (envelope_t, char *, size_t, size_t *);
+#ifdef WITH_PTHREAD
 static void mbox_cleanup (void *);
+#endif
 
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or
    even test for existence.  However we do strip any leading "mbox:" part of
@@ -1367,6 +1370,7 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
   return 0;
 }
 
+#ifdef WITH_PTHREAD
 static void
 mbox_cleanup (void *arg)
 {
@@ -1374,3 +1378,4 @@ mbox_cleanup (void *arg)
   monitor_unlock (mailbox->monitor);
   locker_unlock (mailbox->locker);
 }
+#endif

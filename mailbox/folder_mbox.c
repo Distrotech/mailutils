@@ -26,6 +26,7 @@
 #include <string.h>
 #include <glob.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <folder0.h>
 #include <registrar0.h>
