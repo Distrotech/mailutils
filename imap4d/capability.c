@@ -19,11 +19,20 @@
 
 static list_t capa_list;
 
+static int
+comp (const void *item, const void *data)
+{
+  return strcmp ((char*)item, (char*)data);
+}
+
 void
 imap4d_capability_add (const char *str)
 {
   if (!capa_list)
-    list_create (&capa_list);
+    {
+      list_create (&capa_list);
+      list_set_comparator (capa_list, comp);
+    }
   list_append (capa_list, (void*)str);
 }
 
@@ -58,8 +67,6 @@ print_capa (void *item, void *data)
 int
 imap4d_capability (struct imap4d_command *command, char *arg)
 {
-  int i;
-
   (void) arg;
   util_send ("* CAPABILITY");
 
