@@ -51,10 +51,12 @@ static struct argp_option options[] = {
   {"filter", ARG_FILTER, N_("MHL-FILTER"), 0,
    N_("Set the mhl filter to preprocess the body of the message being replied")},
   {"form",   ARG_FORM, N_("FILE"), 0, N_("Read format from given file")},
+  {"format", ARG_FORMAT, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Include a copy of the message being replied. The message will be processed either using the default filter \"mhl.reply\", or using the filter specified by --filter option.") },
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Annotate the message in place")},
   {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Query for addresses to place in To: and Cc: lists")},
+   N_("Query for addresses to place in To: and Cc: lists")},
   {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("* Set the replacement for whatnow program")},
@@ -81,6 +83,7 @@ struct mh_option mh_option[] = {
   {"noedit",      3, },
   {"fcc",         1, MH_OPT_ARG, "folder"},
   {"filter",      2, MH_OPT_ARG, "program"},
+  {"format",      2, MH_OPT_BOOL },
   {"inplace",     1, MH_OPT_BOOL },
   {"query",       1, MH_OPT_BOOL },
   {"whatnowproc", 2, MH_OPT_ARG, "program"},
@@ -192,6 +195,16 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       
     case ARG_FILTER:
       mhl_filter = arg;
+      break;
+
+    case ARG_FORMAT:
+      if (is_true (arg))
+	{
+	  if (!mhl_filter)
+	    mhl_filter = mh_expand_name (MHLIBDIR, "mhl.repl", 0);
+	}
+      else
+	mhl_filter = NULL;
       break;
       
     case ARG_ANNOTATE:
