@@ -803,9 +803,9 @@ deliver (mailbox_t imbx, char *name)
 	  if (rc)
 	    mailer_err (_("error writing to mailbox: %s. Mailbox NOT truncated: %s"),
 			mu_strerror (status), mu_strerror (rc));
-	    
-	  mailer_err (_("error writing to mailbox: %s"),
-		      mu_strerror (status));
+	  else  
+	    mailer_err (_("error writing to mailbox: %s"),
+	  	        mu_strerror (status));
 	}
     }
 
