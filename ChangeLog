@@ -1,3 +1,28 @@
+2002-01-26 Sam Roberts
+
+	* mailbox/folder_imap.c:
+	  folder_imap_create() - removed, code now in mailbox_imap_open().
+	   imap_mailbox_name_match() - new function, uses strcasecmp() for
+	   INBOX, since INBOX is itself in any case combination, and
+	   fnmatch() otherwise.
+	  imap_list() - mailbox name (an ASTRING) wasn't being unquoted.
+	  folder_imap_list() - always failed to match it's name arg against
+	    the mailbox name (imap_list needed to unquote the name, and the
+	    name comparison needed to treat INBOX specially).
+	* mailbox/mbx_imap.c: Moved the mailbox creation functionality of
+	  folder_imap_create() into mailbox_imap_open(). Now
+	  mailbox_imap_open() will fail if the mailbox doesn't exist, or
+	  can't be created despite creation being requested (like the other
+	  types of mailbox).
+	* mailbox/include/imap0.h: m_imap_t - added state to keep track of
+	  which folder function is in progress when a mailbox function calls
+	  several folder functions.
+
+2002-01-25 Sam Roberts
+
+	* doc/rfc/rfc2060.txt: LIST section was 6.3..8., not 6.3.8, made it
+	  hard to search for!
+
 2002-01-23  Sergey Poznyakoff
 
 	* mail.local/mail.local.h: Define correct EX_ values if

@@ -45,6 +45,21 @@ IMPORTANT:
 
 [mailbox]
 
+- mu_cpystr - the size_t* size outputs only give strlen(), not the
+  actual length?
+
+- finish mh mailboxe support (they don't have a folder yet)
+
+- need code to find a "real" envelope from... an actual email address
+  that DSNs can be sent to.
+
+- mailer_t: the SMTP mailer isn't as fully implemented as the sendmail
+  mailer.
+
+- header_get_value() returns the newline?
+
+- implement a header_field_unfold()?
+
 - finish rewrite 8-)
 
 - pipe_open_stream() - implemented with popen()
@@ -54,6 +69,9 @@ IMPORTANT:
 - Mailcap API
 
 - Mime.types API
+
+- A ticket file format allowing specification of different authentication
+  information for different mailboxes.
 
 - imap4 client login referals
 
@@ -78,13 +96,24 @@ IMPORTANT:
 
 [sieve]
 
-- bug: imap_fetch() can loop forever when sieve tries fileinto (sr - seen
-    at work against a Domino IMAP server, the server is buggy, but we
-    still shouldn't busy loop)
+- argp
 
 - clean up diagnostics
  - fileinto action dies badly when the mailbox lock failed
- - make log function a callback
+ + make log function a callback
+ - get rid of the awful xalloc()
+
+- need user contexts, and for the action_log to be only if verbose
+
+- uid isn't good to identify messages, use message-id?
+
+- also need to provide context to the sv_*() functions (I could tuck
+  message number in it, and mailbox name).
+
+- run as daemon, sieveing mail on arrival (need interface for notification
+  of message arrival, this is supported by imap, but we'll have to fake
+  for pop and local spools my polling, why can't you select() on a unix
+  file?)
 
 The 5 actions:
 
@@ -94,25 +123,26 @@ The 5 actions:
 
 + discard
 
-- redirect (need to modify mail sending interface to control envelope
-    addresses)
++ redirect
 
-- reject (need to from MDNs)
+- reject (need to form MDNs)
 
-- run as daemon, sieveing mail on arrival (need interface for notification
-  of message arrival, this is supported by imap, but we'll have to fake
-  for pop and local spools my polling, why can't you select() on a unix
-  file?)
+Extention actions:
+
+- REGEX
+
+- vacation
 
 [utilities]
 
 - forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
 
 - utility to move all mail from one mailbox to another, like mbox to
-  IMAP, preserving all flags that are possible. can sieve do this?
+  IMAP, preserving all flags that are possible. can sieve do this, or do
+  I need a mbox-copy() utility?
 
 - file viewer, based on the mimetypes api. I want to do a "v foo.blah",
-  have it look up .blah in mime.types, and do the action speced in mailcap.
+  have it look up .blah in mime.types, and do the action spec'ed in mailcap.
 
 [all]
 
