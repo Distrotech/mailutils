@@ -1,3 +1,14 @@
+2003-08-11  Sergey Poznyakoff 
+
+	* mh/mh.h (enum mh_opcode): New opcode mhop_nop.
+	* mh/mh_fmtgram.y (fi production): Preserve the
+	result of the last comparison.
+	* mh/mh_format.c (mh_format): Count the newline as output
+	character (for compatibility with other implementations).
+	Set arg_num whe evaluating headers.
+	(mh_format,mh_format_dump): Handle mhop_nop.
+	* mh/repl.c: New option --format.
+
 2003-08-10  Sergey Poznyakoff  
 
 	* mh/inc.c (opt_handler): Added missing support for
