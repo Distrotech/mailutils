@@ -38,6 +38,8 @@ static scm_sizet
 mu_scm_message_free (SCM message_smob)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
+  if (message_get_owner (mum->msg) == NULL)
+    message_destroy (&mum->msg, NULL);
   free (mum);
   return sizeof (struct mu_message);
 }
@@ -226,6 +228,19 @@ SCM_DEFINE (mu_message_copy, "mu-message-copy", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_message_destroy, "mu-message-destroy", 1, 0, 0,
+	    (SCM MESG),
+	    "Destroys the message.")
+#define FUNC_NAME s_mu_message_destroy
+{
+  struct mu_message *mum;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_message *) SCM_CDR (MESG);
+  message_destroy (&mum->msg, message_get_owner (mum->msg));
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 	    (SCM MESG, SCM HEADER, SCM VALUE, SCM REPLACE),
