@@ -341,7 +341,17 @@ main (int argc, char **argv)
       /* open the mailbox */
       if (args.file == NULL)
 	{
-	  if ((rc = mailbox_create_default (&mbox, args.user)) != 0)
+	  if (args.user)
+	    {
+	      char *p = xmalloc (strlen (args.user) + 2);
+	      p[0] = '%';
+	      strcpy (p + 1, args.user);
+	      rc = mailbox_create_default (&mbox, p);
+	      free (p);
+	    }
+	  else
+	    rc = mailbox_create_default (&mbox, NULL);
+	  if (rc != 0)
 	    {
 	      util_error ("Can not create mailbox for %s: %s", args.user,
 			  mu_errstring (rc));
