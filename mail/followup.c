@@ -69,8 +69,8 @@ mail_followup (int argc, char **argv)
 
   msgset_free (msglist);
 
-  fprintf (ofile, _("To: %s\n"), compose_header_get (&env, MU_HEADER_TO, ""));
-  fprintf (ofile, _("Subject: %s\n\n"),
+  fprintf (ofile, "To: %s\n", compose_header_get (&env, MU_HEADER_TO, ""));
+  fprintf (ofile, "Subject: %s\n\n",
 	   compose_header_get (&env, MU_HEADER_SUBJECT, ""));
 
   status = mail_send0 (&env, isupper (argv[0][0]));
