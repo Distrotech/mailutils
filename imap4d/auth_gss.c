@@ -80,8 +80,9 @@ imap4d_gss_userok (gss_buffer_t client_name, char *name)
   return rc;
 }
 
-int
-auth_gssapi (struct imap4d_command *command, char **username)
+static int
+auth_gssapi (struct imap4d_command *command,
+	     char *auth_type_unused, char *arg_unused, char **username)
 {
   gss_buffer_desc tokbuf, outbuf;
   OM_uint32 maj_stat, min_stat, min_stat2;
@@ -115,8 +116,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("import name", maj_stat, min_stat);
-      util_finish (command, RESP_NO, "GSSAPI authentication not available");
-      return 1;
+      return RESP_NO;
     }
 
   maj_stat = gss_acquire_cred (&min_stat, server_name, 0,
@@ -127,14 +127,14 @@ auth_gssapi (struct imap4d_command *command, char **username)
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("acquire credentials", maj_stat, min_stat);
-      util_finish (command, RESP_NO, "GSSAPI authentication not available");
-      return 1;
+      return RESP_NO;
     }
 
   /* Start the dialogue */
 
   util_send ("+ GO AHEAD\r\n");
-
+  util_flush_output ();
+  
   context = GSS_C_NO_CONTEXT;
 
   for (;;)
@@ -173,8 +173,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
       display_status ("accept context", maj_stat, min_stat);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
-      util_finish (command, RESP_NO, "GSSAPI authentication failed");
-      return 1;
+      return RESP_NO;
     }
 
   if (outbuf.length)
@@ -217,9 +216,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
-      util_finish (command, RESP_NO,
-		   "GSSAPI authentication failed: unsupported protection mechanism");
-      return 1;
+      return RESP_NO;
     }
   protection_mech = mech;
   client_buffer_size = sec_level & 0x00ffffffff;
@@ -234,22 +231,18 @@ auth_gssapi (struct imap4d_command *command, char **username)
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
       free (*username);
-      util_finish (command, RESP_NO, "GSSAPI authentication failed");
-      return 1;
+      return RESP_NO;
     }
 
   if (imap4d_gss_userok (&client_name, *username))
     {
       syslog (LOG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
 	      (char *) client_name.value, *username);
-      util_finish (command, RESP_NO,
-		   "GSSAPI user %s is NOT authorized as %s",
-		   client_name.value, *username);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
       gss_release_buffer (&min_stat, &client_name);
       free (*username);
-      return 1;
+      return RESP_NO;
     }
   else
     {
@@ -260,6 +253,13 @@ auth_gssapi (struct imap4d_command *command, char **username)
   gss_release_buffer (&min_stat, &client_name);
   maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
   gss_release_buffer (&min_stat, &outbuf);
-  util_finish (command, RESP_OK, "GSSAPI authentication successful");
-  return 0;
+  return RESP_OK;
 }
+
+void
+auth_gssapi_init ()
+{
+  auth_add ("GSSAPI", auth_gssapi);
+}
+    
+  
