@@ -274,7 +274,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 
       if (!mail)
         {
-          if (status = user_mailbox_name (NULL, &tmp_mbox))
+          if ((status = user_mailbox_name (NULL, &tmp_mbox)))
             return status;
           mail = tmp_mbox;
         }

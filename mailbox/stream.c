@@ -166,7 +166,7 @@ stream_read (stream_t is, char *buf, size_t count,
   else
     {
       size_t residue = count;
-      int r;
+      size_t r;
 
       /* If the amount requested is bigger than the buffer cache size,
 	 bypass it.  Do no waste time and let it through.  */

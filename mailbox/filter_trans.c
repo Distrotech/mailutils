@@ -316,7 +316,7 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
   int pad = 0;
   const char *b64 =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  const unsigned char* ptr = iptr;
+  const unsigned char* ptr = (const unsigned char*) iptr;
 	
   *nbytes = 0;
   if (isize <= 3)

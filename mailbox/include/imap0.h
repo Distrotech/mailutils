@@ -144,7 +144,7 @@ struct _f_imap
 
   size_t seq; /* Sequence number to build a tag.  */
   char *capa; /* Cabilities of the server.  */
-  size_t flags;
+  int flags;
 
   /* IO use to hold the literal and quoted strings send by
      the IMAP server.  */

@@ -258,7 +258,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	else
 	  {
 	    int i = 1;
-	    int count = 0;
+	    size_t count = 0;
 
 	    address_get_count (to, &count);
 

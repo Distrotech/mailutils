@@ -49,15 +49,17 @@
 # include <strings.h>
 #endif
 
+#include <mailbox0.h>
+#include <registrar0.h>
+
+#include <mailutils/attribute.h>
+#include <mailutils/body.h>
 #include <mailutils/errno.h>
+#include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/locker.h>
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
-#include <mailutils/body.h>
-#include <mailutils/header.h>
-#include <mailutils/attribute.h>
-#include <mailutils/error.h>
-#include <registrar0.h>
-#include <mailbox0.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)

@@ -1183,7 +1183,7 @@ imap_list (f_imap_t f_imap)
 	}
       else if ((status = imap_string (f_imap, &tok)) == 0)
 	{
-	  size_t sz = 0;
+	  off_t sz = 0;
 
 	  stream_size (f_imap->string.stream, &sz);
 	  lr->name = calloc (sz + 1, 1);

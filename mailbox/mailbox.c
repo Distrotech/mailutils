@@ -25,6 +25,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
+#include <mailutils/locker.h>
 #include <mailutils/registrar.h>
 #include <mailbox0.h>
 
