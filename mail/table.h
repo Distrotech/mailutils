@@ -117,6 +117,7 @@ static struct mail_command_entry mail_command_table[] = {
   { "z",	"",		mail_z,		"z[+|-]" },
   { "!",	"",		mail_bang,	"!command" },
   { "=",	"=",		mail_eq,	"=" },
+  { "#",	"#",		NULL,		"# comment" },
   { 0, 0, 0, 0,}
 };
 

@@ -16,14 +16,43 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
+#include "table.h"
 
 /*
  * l[ist]
+ * *
  */
 
 int
 mail_list (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  int i = 0, pos = 0, columns = 80, len = 0;
+  char *cmd;
+  char *col = getenv ("COLUMNS");
+
+  if (col)
+    columns = strtol (col, NULL, 10);
+    
+  for (i=0; mail_command_table[i].shortname != 0; i++)
+    {
+      len = strlen (mail_command_table[i].longname);
+      if (len < 1)
+	{
+	  cmd = mail_command_table[i].shortname;
+	  len = strlen (cmd);
+	}
+      else
+	cmd = mail_command_table[i].longname;
+
+      pos += len + 1;
+
+      if (pos >= columns)
+	{
+	  pos = 0;
+	  printf ("\n");
+	}
+      printf ("%s ", cmd);
+    }
+  printf ("\n");
+  return 0;
 }

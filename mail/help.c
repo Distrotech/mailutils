@@ -16,16 +16,54 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
+#include "table.h"
 
 /*
- * hel[p]
- * ?
- * *
+ * hel[p] [command]
+ * ? [command]
  */
 
 int
 mail_help (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc < 2)
+    {
+      int i = 0;
+      while (mail_command_table[i].synopsis != 0)
+	printf ("%s\n", mail_command_table[i++].synopsis);
+      return 0;
+    }
+  else
+    {
+      int status = 0;
+      int command = 0;
+      while (++command < argc)
+	{
+	  char *cmd = argv[command];
+	  int i = 0, printed = 0, sl = 0, ll = 0, len = strlen (cmd);
+	  while (mail_command_table[i].shortname != 0 && printed == 0)
+	    {
+	      sl = strlen (mail_command_table[i].shortname);
+	      ll = strlen (mail_command_table[i].longname);
+	      if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
+		{
+		  printed = 1;
+		  printf ("%s\n", mail_command_table[i].synopsis);
+		}
+	      else if (sl < len && !strncmp (mail_command_table[i].longname,
+					     cmd, len))
+		{
+		  printed = 1;
+		  printf ("%s\n", mail_command_table[i].synopsis);
+		}
+	      i++;
+	    }
+	  if (printed == 0)
+	    {
+	      printf ("Unknown command: %s\n", cmd);
+	      status = 1;
+	    }
+	}
+    }
   return 1;
 }
