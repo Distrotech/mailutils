@@ -61,7 +61,7 @@ iterator_set_next (iterator_t itr, int (*next) (void *))
 }
 
 int
-iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
+iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void * const *))
 {
   if (!itr)
     return EINVAL;
@@ -173,7 +173,7 @@ iterator_next (iterator_t iterator)
 }
 
 int
-iterator_current (iterator_t iterator, void **pitem)
+iterator_current (iterator_t iterator, void * const *pitem)
 {
   return iterator->getitem (iterator->owner, pitem);
 }
