@@ -950,7 +950,7 @@ mailbox_pop_expunge (mailbox_t mbox)
   mpd->func = func;
   bio = mpd->bio;
 
-  for (i = (int)mpd->id; i < mpd->messages_count; mpd->id = (void *)++i)
+  for (i = (int)mpd->id; i < mpd->pmessages_count; mpd->id = (void *)++i)
     {
       if (message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
 	{
