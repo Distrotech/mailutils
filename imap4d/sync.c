@@ -16,6 +16,7 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "imap4d.h"
+#include <mailutils/observer.h>
 
 /*
 
@@ -271,6 +272,38 @@ imap4d_sync_flags (size_t msgno)
   return 0;
 }
 
+static int mailbox_corrupt;
+
+static int
+action (observer_t observer, size_t type)
+{
+  switch (type)
+    {
+    case MU_EVT_MAILBOX_CORRUPT:
+      mailbox_corrupt = 1;
+      break;
+
+    case MU_EVT_MAILBOX_DESTROY:
+      mailbox_corrupt = 0;
+      break;
+    }
+  return 0;
+}
+
+void
+imap4d_set_observer (mailbox_t mbox)
+{
+  observer_t observer;
+  observable_t observable;
+      
+  observer_create (&observer, mbox);
+  observer_set_action (observer, action, mbox);
+  mailbox_get_observable (mbox, &observable);
+  observable_attach (observable, MU_EVT_MAILBOX_CORRUPT|MU_EVT_MAILBOX_DESTROY,
+		     observer);
+  mailbox_corrupt = 0;
+}
+
 int
 imap4d_sync (void)
 {
@@ -280,7 +313,25 @@ imap4d_sync (void)
   if (mbox == NULL)
     free_uids ();
   else if (!uid_table_loaded || !mailbox_is_updated (mbox))
-    notify ();
+    {
+      if (mailbox_corrupt)
+	{
+	  /* Some messages have been deleted from the mailbox by some other
+	     party */
+	  int status = mailbox_close (mbox);
+	  if (status)
+	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
+	  status = mailbox_open (mbox, MU_STREAM_RDWR);
+	  if (status)
+	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
+	  imap4d_set_observer (mbox);
+	  free_uids ();
+	  mailbox_corrupt = 0;
+	  util_out (RESP_NONE,
+		    "OK [ALERT] Mailbox modified by another program");
+	}
+      notify ();
+    }
   else
     {
       size_t count = 0;
