@@ -29,29 +29,26 @@
 int
 mail_headers (int argc, char **argv)
 {
-  int low = 1, high = total, *list = NULL, i = 0;
+  int low = 1, high = total, *list = NULL;
   int lines = util_screen_lines ();
   int num = util_expand_msglist (argc, argv, &list);
 
   lines = (lines / num) - 2;
 
-  for (i = 0; i < num; i++)
+  if (lines < total)
     {
-      if (lines < total)
+      low = list[0] - (lines / 2);
+      if (low < 1)
+	low = 1;
+      high = low + lines;
+      if (high > total)
 	{
-	  low = list[i] - (lines / 2);
-	  if (low < 1)
-	    low = 1;
-	  high = low + lines;
-	  if (high > total)
-	    {
-	      high = total;
-	      low = high - lines;
-	    }
+	  high = total;
+	  low = high - lines;
 	}
-
-      util_do_command ("from %d-%d", low, high);
     }
+
+  util_do_command ("from %d-%d", low, high);
 
   free (list);
   return 0;

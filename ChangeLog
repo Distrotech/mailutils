@@ -10,10 +10,10 @@
 		util_outfolder_name().
 		util_save_outgoing()
 	* mail/z.c: removed z_lines() in favor of util_screen_lines().
-	* mail/headers.c: use util_screen_lines(). 
+	* mail/headers.c: use util_screen_lines().
 	* mail/touch.c: Initial implementation. Simply calls mail_mbox.
 		Maybe the table.c entry should point to mail_mbox instead?
-	* mail/write.c: use util_fullpath(). 
+	* mail/write.c: use util_fullpath().
 	* mail/send.c: call util_save_outgoing() to preserve sent message.
 		Set umask 077 before calling mkstemp().
 	* mail/folders.c: Use $LISTER.
@@ -21,6 +21,16 @@
 	* mail/from.c: Changed output format.
 	* mail/mbox.c: move mail_mbox_commit to quit.c.
 	* mail/quit.c: Likewise. Honour "keepsave" variable.
+
+2001-06-25  Alain Magloire
+
+	* mail/header.c: We were looping forever in here.  The loop
+	is not need it, header only prints one page that includes
+	the message specified i.e. the header command only takes
+	a message number as an argument that will serve as a reference
+	to display a screen full.
+
+	* mail/help.c: Use the pager code, the help is long.
 
 2001-06-25  Alain Magloire
 

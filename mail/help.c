@@ -28,13 +28,23 @@ mail_help (int argc, char **argv)
   if (argc < 2)
     {
       int i = 0;
+      FILE *out = ofile;
+
+      if ((util_find_env("crt"))->set)
+	out = popen (getenv("PAGER"), "w");
+
       while (mail_command_table[i].synopsis != 0)
-	fprintf (ofile, "%s\n", mail_command_table[i++].synopsis);
+	fprintf (out, "%s\n", mail_command_table[i++].synopsis);
+
+      if (out != ofile)
+	pclose (out);
+
       return 0;
     }
   else
     {
       int status = 0, cmd = 0;
+
       while (++cmd < argc)
 	{
 	  struct mail_command_entry entry = util_find_entry (argv[cmd]);
