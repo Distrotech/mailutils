@@ -5,12 +5,19 @@
 	i.e POP3, IMAP4, the entire message may not have been dowloaded yet.
 	IMAP is very susceptible on the size, example:
 	 A003 APPEND saved-messages (\Seen) {310}
+	 Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
+	 From: Fred Foobar <foobar@Blurdybloop.COM>
+	 Subject: afternoon meeting
+	 To: mooch@owatagu.siam.edu
+	 Message-Id: <B27397-0100000@Blurdybloop.COM>
+	 MIME-Version: 1.0
+	 ......
 	(1) If the IMAP4 server does not get the right size advertise in the
 	string literal, it will misbehave.
 	(2) Since we are assuming that the message will be in (unix)native
 	file system format meaning ending with NEWLINE, we will have
 	to do some calculations about the RFC822.SIZE of the message.
-	(3) As pointed about, it is not possible to rely on message_size()
+	(3) As pointed above, it is not possible to rely on message_size()
 	nor message_lines() to return the right count and even missing by
 	one can be deadly.
 	So we download the message to a floating message to guaranty that
