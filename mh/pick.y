@@ -1,0 +1,399 @@
+%{
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2003 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+
+#include <mh.h>
+#include <regex.h>  
+#include <pick.h>
+
+static node_t *pick_node_create (node_type type, void *a, void *b);
+static void set_cflags (char *str);
+ 
+static regex_t *
+regex_dup (regex_t *re)
+{
+  regex_t *rp = xmalloc (sizeof (*rp));
+  *rp = *re;
+  return rp;
+}
+
+static node_t *parse_tree;
+static int nesting_level;
+static int reg_flags = REG_EXTENDED|REG_ICASE;
+%}
+
+%token <string> T_COMP T_DATEFIELD  T_STRING T_CFLAGS
+%token T_LBRACE T_RBRACE T_BEFORE T_AFTER T_CFLAGS
+%left T_OR
+%left T_AND
+%left T_NOT
+
+%union {
+  char *string;
+  node_t *node;
+  regex_t regex;
+};
+
+%type <node> expr exprlist
+%type <regex> regex
+
+%%
+
+input    : /* empty */
+           {
+	     parse_tree = NULL;
+	   }
+         | exprlist
+           {
+	     parse_tree = $1;
+	   }
+         ;
+
+exprlist : expr
+         | exprlist expr
+           {
+	     $$ = pick_node_create (node_and, $1, $2);
+	   }
+         ;
+
+cflags   : /* empty */
+         | T_CFLAGS
+           {
+	     set_cflags ($1);
+	   }
+         ;
+
+regex    : cflags T_STRING
+           {
+	     int rc = regcomp (&$$, $2, reg_flags|REG_NOSUB);
+	     if (rc)
+	       {
+		 char errbuf[512];
+		 regerror (rc, &$$, errbuf, sizeof (errbuf));
+		 mh_error ("error compiling regex \"%s\": %s",
+			   $2, errbuf);
+		 YYERROR;
+	       }
+	   }
+         ;
+
+expr     : lbrace exprlist rbrace
+           {
+	     $$ = $2;
+	   }
+         | cflags T_COMP regex
+           {
+	     $$ = pick_node_create (node_regex, $2, regex_dup (&$3));
+	   }		      
+         | regex
+           {
+	     $$ = pick_node_create (node_regex, NULL, regex_dup (&$1));
+	   }		      
+         | T_DATEFIELD
+           {
+	     $$ = pick_node_create (node_datefield, $1, NULL);
+	   }
+         | T_BEFORE T_STRING
+           {
+	     mh_error (_("--before is not yet supported"));
+	     YYERROR;
+	   }
+         | T_AFTER T_STRING
+           {
+	     mh_error (_("--after is not yet supported"));
+	     YYERROR;
+	   }
+         | expr T_AND expr
+           {
+	     $$ = pick_node_create (node_and, $1, $3);
+	   }
+         | expr T_OR expr
+           {
+	     $$ = pick_node_create (node_or, $1, $3);
+	   }
+	 | T_NOT expr
+           {
+	     $$ = pick_node_create (node_not, $2, NULL);
+	   }
+         ;
+
+lbrace   : T_LBRACE
+           {
+	     nesting_level++;
+	   }
+         ;
+
+rbrace   : T_RBRACE
+           {
+	     nesting_level--;
+	   }
+         ;
+
+%%
+
+/* Lexical analizer */
+
+struct token
+{
+  int tok;
+  char *val;
+};
+
+static iterator_t iterator;
+
+int
+yylex ()
+{
+  struct token *tok;
+  
+  if (iterator_is_done (iterator))
+    return 0;
+  iterator_current (iterator, (void **)&tok);
+  iterator_next (iterator);
+  yylval.string = tok->val;
+  return tok->tok;
+}
+
+static char *
+tokname (int tok)
+{
+  switch (tok)
+    {
+    case T_DATEFIELD:
+      return "--datefield";
+      
+    case T_BEFORE:
+      return "--before";
+      
+    case T_AFTER:
+      return "--after";
+      
+    case T_LBRACE:
+      return "--lbrace";
+      
+    case T_RBRACE:
+      return "--rbrace";
+      
+    case T_OR:
+      return "--or";
+      
+    case T_AND:
+      return "--and";
+      
+    case T_NOT:
+      return "--not";
+    }
+  return NULL;
+}
+
+int
+yyerror (char *s)
+{
+  int tok = yylex ();
+  char *str;
+  
+  if (!tok)
+    str = _("end of input");
+  else if (yylval.string)
+    str = yylval.string;
+  else
+    str = tokname (tok);
+
+  if (nesting_level)
+    mh_error (_("%s near %s (missing closing brace?)"), s, str);
+  else
+    mh_error (_("%s near %s"), s, str);
+  return 0;
+}
+  
+void
+pick_add_token (list_t *list, int tok, char *val)
+{
+  struct token *tp;
+  int rc;
+  
+  if (!*list && (rc = list_create (list)))
+    {
+      mh_error(_("cannot create list: %s"), mu_strerror (rc));
+      exit (1);
+    }
+  tp = xmalloc (sizeof (*tp));
+  tp->tok = tok;
+  tp->val = val;
+  list_append (*list, tp);
+}
+
+/* Main entry point */
+int
+pick_parse (list_t toklist)
+{
+  int rc;
+  
+  if (!toklist)
+    {
+      parse_tree = NULL;
+      return 0;
+    }
+
+  if (iterator_create (&iterator, toklist))
+    return -1;
+  iterator_first (iterator);
+  rc = yyparse ();
+  iterator_destroy (&iterator);
+  return rc;
+}
+
+
+/* Parse tree functions */
+
+node_t *
+pick_node_create (node_type type, void *a, void *b)
+{
+  node_t *node;
+
+  node = xmalloc (sizeof (*node));
+  node->type = type;
+  node->v.gen.a = a;
+  node->v.gen.b = b;
+  return node;
+}
+
+struct eval_env
+{
+  message_t msg;
+  char *datefield;
+};
+
+static int
+match_header (message_t msg, char *comp, regex_t *regex)
+{
+  size_t i, count;
+  header_t hdr = NULL;
+  char buf[128];
+  
+  message_get_header (msg, &hdr);
+  header_get_field_count (hdr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      if (strcasecmp (buf, comp) == 0)
+	{
+	  header_get_field_value (hdr, i, buf, sizeof buf, NULL);
+	  if (regexec (regex, buf, 0, NULL, 0) == 0)
+	    return 1;
+	}
+    }
+  return 0;
+}
+
+static int
+match_message (message_t msg, regex_t *regex)
+{
+  stream_t str = NULL;
+  char buf[128];
+  size_t n;
+  
+  message_get_stream (msg, &str);
+  stream_seek (str, 0, SEEK_SET);
+  while (stream_sequential_readline (str, buf, sizeof buf, &n) == 0
+	 && n > 0)
+    {
+      buf[n] = 0;
+      if (regexec (regex, buf, 0, NULL, 0) == 0)
+	return 1;
+    }
+  return 0;
+}
+
+static int
+pick_eval_node (node_t *node, struct eval_env *env)
+{
+  switch (node->type)
+    {
+    case node_and:
+      if (!pick_eval_node (node->v.op.larg, env))
+	return 0;
+      return pick_eval_node (node->v.op.rarg, env);
+	
+    case node_or:
+      if (pick_eval_node (node->v.op.larg, env))
+	return 1;
+      return pick_eval_node (node->v.op.rarg, env);
+
+    case node_not:
+      return !pick_eval_node (node->v.op.larg, env);
+      
+    case node_regex:
+      if (node->v.re.comp)
+	return match_header (env->msg, node->v.re.comp, node->v.re.regex);
+      else
+	return match_message (env->msg, node->v.re.regex);
+      
+    case node_datefield:
+      env->datefield = node->v.df.datefield;
+      return 1;
+    }
+  /*NOTREACHED*/
+  return 0;
+}
+
+int
+pick_eval (message_t msg)
+{
+  struct eval_env env;
+  
+  if (!parse_tree)
+    return 1;
+  env.msg = msg;
+  env.datefield = "date";
+  return pick_eval_node (parse_tree, &env);
+}
+
+void
+set_cflags (char *str)
+{
+  reg_flags = 0;
+  for (; *str; str++)
+    {
+      switch (*str)
+	{
+	case 'b':
+	case 'B':
+	  reg_flags &= ~REG_EXTENDED;
+	  break;
+
+	case 'e':
+	case 'E':
+	  reg_flags |= REG_EXTENDED;
+	  break;
+
+	case 'c':
+	case 'C':
+	  reg_flags &= ~REG_ICASE;
+	  break;
+	  
+	case 'i':
+	case 'I':
+	  reg_flags |= REG_ICASE;
+	  break;
+
+	default:
+	  mh_error (_("Invalid regular expression flag: %c"), *str);
+	  exit (1);
+	}
+    }
+}
