@@ -1,3 +1,22 @@
+2002-02-07  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* guimb/.cvsignore: Add .libs
+
+	* .cvsignore: Add stamp-h1
+
+	* sieve/Makefile.am: Add sieve.h for make dist.
+
+	* doc/texinfo/programs.texi: Put break between @end itemize and }
+	to quiet error from texi2dvi.
+
+	* doc/texinfo/mailer.texi: Add space to quiet error from makeinfo.
+
+	* readmsg/.cvsignore: New File
+
+	* doc/man/popauth.1: New file.
+
+	* doc/man/Makefile.am: Add popauth.1
+
 2002-02-05  Sergey Poznyakoff 
 
 	Use argp_ functions instead of getopt to parse command

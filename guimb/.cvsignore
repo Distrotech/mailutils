@@ -5,3 +5,4 @@ guile-procedures.txt
 .deps
 *.doc
 *.x
+.libs

@@ -1,4 +1,4 @@
-@c This is part of the GNU Mailutils manual.
+             @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
@@ -39,7 +39,8 @@ are:
 @item pop3d
 @item mail.local
 @item comsatd
-@end itemize}
+@end itemize
+}
 
 The @file{mailutils.rc} has a simple line-oriented syntax. Upon
 startup, each mailutils program scans this file for a line that

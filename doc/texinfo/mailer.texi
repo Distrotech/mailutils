@@ -18,7 +18,7 @@ The API is still changing.
 @deftypefun int mailer_close (mailer_t)
 @end deftypefun
 
-@deftypefun int mailer_send_message(mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
+@deftypefun int mailer_send_message (mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
 
 If from is not @var{NULL}, it must containg a single fully qualified
 RFC2822 email address which will be used as the envelope from

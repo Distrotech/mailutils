@@ -46,6 +46,7 @@ HDR = \
   message.h \
   parseaddr.h \
   script.h \
+  sieve.h \
   sieve_err.h \
   sieve_interface.h \
   svfield.h \
