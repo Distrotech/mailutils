@@ -31,14 +31,17 @@
 #include <mailutils/stream.h>
 #include <body0.h>
 
-static int lazy_create __P ((body_t));
-static int _body_flush __P ((stream_t));
-static int _body_get_fd __P ((stream_t, int *));
-static int _body_read __P ((stream_t, char *, size_t, off_t, size_t *));
+static int lazy_create    __P ((body_t));
+static int _body_flush    __P ((stream_t));
+static int _body_get_fd   __P ((stream_t, int *));
+static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
-static int _body_write __P ((stream_t, const char *, size_t, off_t, size_t *));
 static int _body_truncate __P ((stream_t, off_t));
-static int _body_size __P ((stream_t, off_t *));
+static int _body_size     __P ((stream_t, off_t *));
+static int _body_lines    __P ((stream_t, size_t *));
+static int _body_write    __P ((stream_t, const char *, size_t, off_t, size_t *));
+static int _body_get_size  __P ((body_t, size_t *));
+static int _body_get_lines __P ((body_t, size_t *));
 
 int
 body_create (body_t *pbody, void *owner)
@@ -158,6 +161,9 @@ body_get_stream (body_t body, stream_t *pstream)
       stream_set_truncate (body->stream, _body_truncate, body);
       stream_set_size (body->stream, _body_size, body);
       stream_set_flush (body->stream, _body_flush, body);
+      /* Override the defaults.  */
+      body->_lines = _body_get_lines;
+      body->_size = _body_get_size;
     }
   *pstream = body->stream;
   return 0;
@@ -202,39 +208,13 @@ body_lines (body_t body, size_t *plines)
 int
 body_size (body_t body, size_t *psize)
 {
-  int status = 0;
   if (body == NULL)
     return EINVAL;
-
-  /* Check to see if they want to doit themselves,
-   * it was probably not a floating message */
   if (body->_size)
     return body->_size (body, psize);
-
-  /* ok we should handle this */
-  if (body->stream)
-    {
-      off_t off = 0;
-      status = stream_size (body->stream, &off);
-      if (status == 0)
-	if (psize)
-	  *psize = off;
-    }
-  else if (body->filename)
-    {
-      struct stat st;
-      if (stat (body->filename, &st) == 0)
-	{
-	  if (psize)
-	    *psize = st.st_size;
-	}
-      else
-	status = errno;
-    }
-  else if (psize)
+  if (psize)
     *psize = 0;
-
-  return status;
+  return 0;
 }
 
 int
@@ -295,6 +275,39 @@ _body_flush (stream_t stream)
 {
   body_t body = stream_get_owner (stream);
   return stream_flush (body->fstream);
+}
+
+static int
+_body_get_size (body_t body, size_t *plines)
+{
+  off_t off = 0;
+  int status = _body_size (body->stream, &off);
+  if (plines)
+    *plines = off;
+  return status;
+}
+
+static int
+_body_get_lines (body_t body, size_t *plines)
+{
+  int status =  stream_flush (body->fstream);
+  size_t lines = 0;
+  if (status == 0)
+    {
+      char buf[128];
+      size_t n = 0;
+      off_t off = 0;
+      while ((status = stream_readline (body->fstream, buf, sizeof buf,
+					off, &n)) == 0 && n > 0)
+	{
+	  if (buf[n - 1] == '\n')
+	    lines++;
+	  off += n;
+	}
+    }
+  if (plines)
+    *plines = lines;
+  return status;
 }
 
 #ifndef P_tmpdir

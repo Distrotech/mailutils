@@ -233,6 +233,10 @@ mailbox_imap_close (mailbox_t mailbox)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* If we are not the selected mailbox, just close the stream.  */
+  if (m_imap != f_imap->selected)
+    return folder_close (mailbox->folder);
+
   /* Select first.  */
   status = imap_messages_count (mailbox, NULL);
   if (status != 0)
@@ -582,6 +586,10 @@ imap_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
   if (status != 0)
     return status;
 
+  /* No need to scan, there is no messages. */
+  if (count == 0)
+    return 0;
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -792,18 +800,18 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 	  status = flags_to_string (&abuf, flags);
 	  if (status != 0)
 	    return status;
-	  if (*abuf != '\0')
-	    {
-	      char *tmp = calloc (strlen (abuf) + 3, 1);
-	      if (tmp == NULL)
-		{
-		  free (abuf);
-		  return ENOMEM;
-		}
-	      sprintf (tmp, "(%s)", abuf);
-	      free (abuf);
-	      abuf = tmp;
-	    }
+	  /* Put the surrounding parenthesis, wu-IMAP is sensible to this.  */
+	  {
+	    char *tmp = calloc (strlen (abuf) + 3, 1);
+	    if (tmp == NULL)
+	      {
+		free (abuf);
+		return ENOMEM;
+	      }
+	    sprintf (tmp, "(%s)", abuf);
+	    free (abuf);
+	    abuf = tmp;
+	  }
 	}
 
 	/* Get the mailbox filepath.  */

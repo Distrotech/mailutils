@@ -23,9 +23,13 @@ IMPORTANT:
 
 + crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
 
+- SSL support
+
 [imap4d]
 
 - Check interaction with imap clients.
+
+- Better support of multi-access mailbox
 
 - implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
@@ -34,6 +38,22 @@ IMPORTANT:
 [mail]
 
 - Add MIME support.
+
+[mailbox]
+
+- finish rewrite 8-)
+
+- Configuration API
+
+- Mailcap API
+
+- Mime.types API
+
+- imap4 client login referals
+
+- imap4 client mailbox referals
+
+- Maildir mailbox support
 
 [sieve]
 

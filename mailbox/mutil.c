@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <netdb.h>
+#include <errno.h>
 
 #include <mailutils/mutil.h>
 #include <mailutils/iterator.h>
@@ -414,7 +415,7 @@ mu_get_user_email (char *name)
   struct hostent *hp;
   char *domainpart;
   char *email;
-  
+
   if (!name)
     {
       struct passwd *pw = getpwuid (getuid ());

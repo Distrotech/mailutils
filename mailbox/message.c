@@ -163,9 +163,12 @@ int
 message_is_modified (message_t msg)
 {
   int mod = 0;
-  mod |= header_is_modified (msg->header);
-  mod |= attribute_is_modified (msg->attribute);
-  mod |= body_is_modified (msg->body);
+  if (msg)
+    {
+      mod |= header_is_modified (msg->header);
+      mod |= attribute_is_modified (msg->attribute);
+      mod |= body_is_modified (msg->body);
+    }
   return mod;
 }
 

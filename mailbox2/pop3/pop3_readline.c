@@ -50,10 +50,10 @@ pop3_getline (pop3_t pop3)
 	}
 
       status = stream_readline (pop3->carrier, pop3->io.buf + total,
-				pop3->io.len - total, pop3->offset, &n);
+				pop3->io.len - total, pop3->io.offset, &n);
       if (status != 0)
 	return status;
-      pop3->offset += n;
+      pop3->io.offset += n;
 
       /* The server went away:  It maybe a timeout and some pop server
 	 does not send the -ERR.  Consider this like an error.  */

@@ -78,16 +78,18 @@ struct work_buf
   char *ptr;
   char *nl;
   size_t len;
+  off_t offset;  /* To synchronise with the buffering.  */
 };
 
 /* Structure to hold things general to POP3 mailbox, like its state, etc ... */
 struct _pop3
 {
-  /* Working I/O buffers.  */
+  /* Working I/O buffer.  */
   /* io.buf: Working io buffer.  */
   /* io.ptr: Points to the end of the buffer, the non consume chars.  */
   /* io.nl: Points to the '\n' char in the string.  */
   /* io.len: Len of io_buf.  */
+  /* io.offset;  full the stream_t implementation.  */
   struct work_buf io;
 
   /* Holds the first line response of the last command, i.e the ACK.  */
@@ -102,7 +104,6 @@ struct _pop3
 
   enum pop3_state state;
   stream_t carrier; /* TCP Connection.  */
-  off_t offset;  /* To synchronise with the buffering.  */
   mu_debug_t debug; /* Send the debug info.  */
 };
 

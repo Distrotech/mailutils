@@ -1,3 +1,16 @@
+2001-10-23  Alain Magloire
+
+	* mailbox/body.c: body_lines () nd body_size () were not
+	properly overriden given the wrong size and line number, fixed.
+	* mailbox/mbx_imap.c (mailbox_imap_close): Not to send another SELECT
+	but rather just close the mailbox if not selected.
+	(imap_scan0): If there is no messages in the mailbox no need to
+	send the FETCH 1:*.
+	* mailbox/message.c (message_is_modified): Protect against null
+	pointer.
+
+	* TODO: Some stuff todo 8).
+
 2001-10-23  Sergey Poznyakoff
 
 	* mailbox/mutil.c: New function mu_get_user_email.
@@ -23,7 +36,7 @@
 	of hardcoded ones.
 	* mh/inc.c: Do not call mh_init() explicitly.
 	* mh/scan.c: Likewise.
-	
+
 2001-10-22  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* doc/texinfo/Makefile.am: Remove version.texi, it's implied.
