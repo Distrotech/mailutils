@@ -1,3 +1,10 @@
+2003-01-15  Wojciech Polak
+
+	* auth/tls.c: Fixed typo.
+	* pop3d/pop3d.h (pop3d_init_tls_server): Added prototype.
+	  (pop3d_deinit_tls_server): Likewise.
+	* pop3d/pop3d.c: Fixed TLS cleanup.
+
 2003-01-15  Sergey Poznyakoff
 
 	* m4/db2.m4: Fixed version reference in the comment.
