@@ -86,7 +86,7 @@ main (int argc, char **argv)
 
   mailbox_messages_count (mbox, &total);
   mailbox_get_url (mbox, &url);
-  mhdir = url_to_string (url);
+  mhdir = (char*) url_to_string (url);
   if (strncmp (mhdir, "mh:", 3) == 0)
     mhdir += 3;
 
@@ -113,14 +113,14 @@ main (int argc, char **argv)
       
       mailbox_get_message (mbox, total, &msg);
       mh_message_number (msg, &num);
-      printf ("%s/%lu\n", mhdir, num + 1);
+      printf ("%s/%lu\n", mhdir, (unsigned long)(num + 1));
       exit (0);
     }
       
   /* Mhpath  expands  and  sorts  the  message  list `msgs' and
      writes the full pathnames of the messages to the  standard
      output separated by newlines. */
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
+  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   status = mh_iterate (mbox, &msgset, mhpath, mhdir);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
