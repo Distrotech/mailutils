@@ -15,6 +15,11 @@
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
+#ifndef _MAILUTILS_MU_AUTH_H
+#define _MAILUTILS_MU_AUTH_H
+
+#include <mailutils/types.h>
+
 typedef int (*mu_auth_fp) __P((void *return_data,
 			       void *key,
 			       void *func_data,
@@ -94,3 +99,5 @@ extern struct mu_auth_module mu_auth_virtual_module;
   mu_auth_register_module (&mu_auth_sql_module);\
   mu_auth_register_module (&mu_auth_virtual_module);\
   mu_auth_init (); } while (0)
+
+#endif
