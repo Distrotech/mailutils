@@ -1,7 +1,21 @@
 2002-12-28  Sergey Poznyakoff 
 
 	* doc/texinfo/Makefile.am: Added fdl.texi
+	
+	* include/mailutils/stream.h: New flag MU_STREAM_ALLOW_LINKS:
+	  allow links on a file. Needed for MH.
+	* mailbox/file_stream.c: Handle MU_STREAM_ALLOW_LINKS.
+	* mailbox/mbx_mh.c: Create message stream with
+	  MU_STREAM_ALLOW_LINKS bit set.
+	
+	* libsieve/actions.c: Use X-Loop-Prevention header instead
+	  of X-Sender.
 
+	* mail/followup.c: Bugfix: do not translate header names 
+	* mail/from.c: Bugfix: date field has always fixed length.
+	* mailbox/argp-help.c: include mailutils/nls.h. Otherwise
+	  i18n is disabled.
+	
 2002-12-28  Wojciech Polak <polak@gnu.org>
 
 	* doc/texinfo/mailutils.texi: Fixed copyright (FDL).
