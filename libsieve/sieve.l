@@ -282,8 +282,9 @@ int
 pop_source ()
 {
   struct buffer_ctx *ctx;
-  
-  fclose (yyin);
+
+  if (yyin)
+    fclose (yyin);
 #ifndef FLEX_SCANNER
   lex_delete_buffer (current_buffer);
 #endif
@@ -402,9 +403,16 @@ sieve_include ()
 }
 
 int
-sieve_open_source (const char *name)
+sieve_lex_begin (const char *name)
 {
   return push_source (name);
+}
+
+void
+sieve_lex_finish ()
+{
+  while (pop_source () == 0)
+    ;
 }
   
 int
@@ -434,7 +442,7 @@ number ()
 int
 string ()
 {
-  yylval.string = sieve_alloc (yyleng - 1);
+  yylval.string = sieve_palloc (&sieve_machine->memory_pool, yyleng - 1);
   memcpy (yylval.string, yytext + 1, yyleng - 2);
   yylval.string[yyleng - 2] = 0;
   return STRING; 
@@ -486,7 +494,7 @@ multiline_finish ()
     }
 
   /* Copy the contents */
-  yylval.string = sieve_alloc (length + 1);
+  yylval.string = sieve_palloc (&sieve_machine->memory_pool, length + 1);
   p = yylval.string;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {

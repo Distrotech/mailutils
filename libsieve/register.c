@@ -35,7 +35,7 @@ sieve_lookup (list_t list, const char *name)
   sieve_register_t *reg;
 
   if (!list || iterator_create (&itr, list))
-    return;
+    return NULL;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -63,7 +63,7 @@ sieve_action_lookup (const char *name)
      
 static int
 sieve_register (list_t *list,
-		const char *name, sieve_instr_t instr,
+		const char *name, sieve_handler_t handler,
 		sieve_data_type *arg_types,
 		sieve_tag_def_t *tags, int required)
 {
@@ -73,7 +73,7 @@ sieve_register (list_t *list,
   if (!reg)
     return ENOMEM;
   reg->name = name;
-  reg->instr = instr;
+  reg->handler = handler;
 
   if (arg_types)
     {
@@ -111,17 +111,17 @@ sieve_register (list_t *list,
 
 
 int
-sieve_register_test (const char *name, sieve_instr_t instr,
+sieve_register_test (const char *name, sieve_handler_t handler,
 		     sieve_data_type *arg_types,
 		     sieve_tag_def_t *tags, int required)
 {
-  return sieve_register (&test_list, name, instr, arg_types, tags, required);
+  return sieve_register (&test_list, name, handler, arg_types, tags, required);
 }
 
 int
-sieve_register_action (const char *name, sieve_instr_t instr,
+sieve_register_action (const char *name, sieve_handler_t handler,
 		       sieve_data_type *arg_types,
 		       sieve_tag_def_t *tags, int required)
 {
-  return sieve_register (&action_list, name, instr, arg_types, tags, required);
+  return sieve_register (&action_list, name, handler, arg_types, tags, required);
 }

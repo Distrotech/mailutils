@@ -26,33 +26,39 @@
 #include <sieve.h>
 
 int
-sieve_action_stop (sieve_machine_t *mach, list_t *args)
+sieve_action_stop (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_action_keep (sieve_machine_t *mach, list_t *args)
+sieve_action_keep (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_action_discard (sieve_machine_t *mach, list_t *args)
+sieve_action_discard (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_action_fileinto (sieve_machine_t *mach, list_t *args)
+sieve_action_fileinto (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_action_reject (sieve_machine_t *mach, list_t *args)
+sieve_action_reject (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_action_redirect (sieve_machine_t *mach, list_t *args)
+sieve_action_redirect (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 sieve_data_type fileinto_args[] = {

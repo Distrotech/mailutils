@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <sieve.h>
+
+sieve_machine_t *sieve_machine;
+int sieve_error_count; 
 %}
 
 %union {
@@ -31,6 +34,7 @@
   sieve_instr_t instr;
   sieve_value_t *value;
   list_t list;
+  size_t pc;
   struct {
     char *ident;
     list_t args;
@@ -45,11 +49,14 @@
 %type <value> arg
 %type <list> slist stringlist arglist maybe_arglist
 %type <command> command
+%type <number> testlist
+%type <pc> action test statement list
 
 %%
 
 input        : /* empty */
              | list
+               { /* to placate bison */ }
              ;
 
 list         : statement
@@ -59,10 +66,15 @@ list         : statement
 statement    : REQUIRE stringlist ';'
                {
 		 sieve_require ($2);
-		 sieve_slist_destroy ($2);
+		 sieve_slist_destroy (&$2);
+		 $$ = sieve_machine->pc;
 	       }
              | action ';'
              | IF cond block maybe_elsif maybe_else
+               {
+		 /* FIXME!! */
+		 $$ = sieve_machine->pc;
+	       }
              ;
 
 maybe_elsif  : /* empty */
@@ -82,18 +94,45 @@ block        : '{' list '}'
 
 
 testlist     : cond
+               {
+		 if (sieve_code_instr (instr_push))
+		   YYERROR;
+		 $$ = 1;
+	       }
              | testlist ',' cond
+               {
+		 if (sieve_code_instr (instr_push))
+		   YYERROR;
+		 $$ = $1 + 1;
+	       }
              ;
 
 cond         : test
+               { /* to placate bison */ }
              | ANYOF '(' testlist ')'
+               {
+		 if (sieve_code_instr (instr_anyof)
+		     || sieve_code_number ($3))
+		   YYERROR;
+	       }
              | ALLOF '(' testlist ')'
+               {
+		 if (sieve_code_instr (instr_allof)
+		     || sieve_code_number ($3))
+		   YYERROR;
+	       }
              | NOT cond
+               {
+		 if (sieve_code_instr (instr_not))
+		   YYERROR;
+	       }
              ;
 
 test         : command
                {
 		 sieve_register_t *reg = sieve_test_lookup ($1.ident);
+		 $$ = sieve_machine->pc;
+
 		 if (!reg)
 		   sieve_error ("%s:%d: unknown test: %s",
 				sieve_filename, sieve_line_num,
@@ -102,7 +141,8 @@ test         : command
 		   sieve_error ("%s:%d: test `%s' has not been required",
 				sieve_filename, sieve_line_num,
 				$1.ident);
-		 /*free unneeded memory */
+		 if (sieve_code_test (reg, $1.args))
+		   YYERROR;
 	       }
              ;
 
@@ -116,6 +156,8 @@ command      : IDENT maybe_arglist
 action       : command
                {
 		 sieve_register_t *reg = sieve_action_lookup ($1.ident);
+		 
+		 $$ = sieve_machine->pc;
 		 if (!reg)
 		   sieve_error ("%s:%d: unknown action: %s",
 				sieve_filename, sieve_line_num,
@@ -124,7 +166,8 @@ action       : command
 		   sieve_error ("%s:%d: action `%s' has not been required",
 				sieve_filename, sieve_line_num,
 				$1.ident);
-		 /*free unneeded memory */
+		 if (sieve_code_action (reg, $1.args))
+		   YYERROR;
 	       }
              ;
 
@@ -138,11 +181,11 @@ maybe_arglist: /* empty */
 arglist      : arg
                {
 		 list_create (&$$);
-		 list_append ($$, &$1);
+		 list_append ($$, $1);
 	       }		 
              | arglist arg
                {
-		 list_append ($1, &$2);
+		 list_append ($1, $2);
 		 $$ = $1;
 	       }
              ;
@@ -197,12 +240,42 @@ yyerror (char *s)
   return 0;
 }
 
-int
-sieve_parse (const char *name)
+/* FIXME: When posix thread support is added, sieve_machine_begin() should
+   aquire the global mutex, locking the current compilation session, and
+   sieve_machine_finish() should release it */
+void
+sieve_machine_begin (sieve_machine_t *mach, sieve_printf_t err, void *data)
 {
+  memset (mach, 0, sizeof (*mach));
+
+  mach->error_printer = err ? err : _sieve_default_error_printer;
+  mach->data = data;
+  sieve_machine = mach;
+  sieve_error_count = 0;
+  sieve_code_instr (NULL);
+}
+
+void
+sieve_machine_finish (sieve_machine_t *mach)
+{
+  sieve_code_instr (NULL);
+}
+
+int
+sieve_compile (sieve_machine_t *mach, const char *name,
+	       void *extra_data, sieve_printf_t err)
+{
+  int rc;
+  
+  sieve_machine_begin (mach, err, extra_data);
   sieve_register_standard_actions ();
   sieve_register_standard_tests ();
-  sieve_open_source (name);
-  return yyparse ();
+  sieve_lex_begin (name);
+  rc = yyparse ();
+  sieve_lex_finish ();
+  sieve_machine_finish (mach);
+  if (sieve_error_count)
+    rc = 1;
+  return rc;
 }
 

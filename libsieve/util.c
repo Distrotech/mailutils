@@ -21,12 +21,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <sieve.h>
 
 void *
 sieve_alloc (size_t size)
 {
-  char *p = malloc (size);
+  void *p = malloc (size);
   if (!p)
     {
       mu_error ("not enough memory");
@@ -34,6 +35,70 @@ sieve_alloc (size_t size)
     }
   return p;
 }
+
+void *
+sieve_palloc (list_t *pool, size_t size)
+{
+  void *p = malloc (size);
+  if (p)
+    {
+      if (!*pool && list_create (pool))
+	{
+	  free (p);
+	  return NULL;
+	}
+      list_append (*pool, p);
+    }
+  return p;
+}
+
+char *
+sieve_pstrdup (list_t *pool, const char *str)
+{
+  size_t len;
+  char *p;
+  
+  if (!str)
+    return NULL;
+  len = strlen (str);
+  p = sieve_palloc (pool, len + 1);
+  if (p)
+    {
+      memcpy (p, str, len);
+      p[len] = 0;
+    }
+  return p;
+}
+
+void *
+sieve_prealloc (list_t *pool, void *ptr, size_t size)
+{
+  void *newptr;
+  
+  if (*pool)
+    list_remove (*pool, ptr);
+
+  newptr = realloc (ptr, size);
+  if (newptr)
+    {
+      if (!*pool && list_create (pool))
+	{
+	  free (newptr);
+	  return NULL;
+	}
+      list_append (*pool, newptr);
+    }
+  return newptr;
+}
+
+void
+sieve_pfree (list_t *pool, void *ptr)
+{
+
+  if (*pool)
+    list_remove (*pool, ptr);
+  free (ptr);
+}  
 
 void
 sieve_slist_destroy (list_t *plist)
@@ -85,3 +150,164 @@ sieve_value_create (sieve_data_type type, void *data)
   return val;
 }
     
+void
+sieve_error (const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  sieve_error_count++;
+  sieve_machine->error_printer (sieve_machine->data, fmt, ap);
+  va_end (ap);
+}
+
+void
+sieve_debug_internal (sieve_printf_t printer, void *data, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  printer (data, fmt, ap);
+  va_end (ap);
+}
+
+void
+sieve_debug (sieve_machine_t *mach, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  mach->debug_printer (mach->data, fmt, ap);
+  va_end (ap);
+}
+
+int
+_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
+{
+  return mu_verror (fmt, ap);
+}
+
+char *
+sieve_type_str (sieve_data_type type)
+{
+  switch (type)
+    {
+    case SVT_VOID:
+      return "void";
+      
+    case SVT_NUMBER:
+      return "number";
+      
+    case SVT_STRING:
+      return "string";
+
+    case SVT_STRING_LIST:
+      return "string-list";
+      
+    case SVT_TAG:
+      return "tag";
+
+    case SVT_IDENT:
+      return "ident";
+
+    case SVT_VALUE_LIST:
+      return "value-list";
+    }
+
+  return "unknown";
+}
+
+struct debug_data {
+  sieve_printf_t printer;
+  void *data;
+};
+
+static int
+string_printer (char *s, struct debug_data *dbg)
+{
+  sieve_debug_internal (dbg->printer, dbg->data, "\"%s\" ", s);
+  return 0;
+}
+
+static int
+value_printer (sieve_value_t *val, struct debug_data *dbg)
+{
+  sieve_print_value (val, dbg->printer, dbg->data);
+  sieve_debug_internal (dbg->printer, dbg->data, " ");
+  return 0;
+}
+
+void
+sieve_print_value (sieve_value_t *val, sieve_printf_t printer, void *data)
+{
+  struct debug_data dbg;
+
+  dbg.printer = printer;
+  dbg.data = data;
+
+  sieve_debug_internal (printer, data, "%s(", sieve_type_str (val->type));
+  switch (val->type)
+    {
+    case SVT_VOID:
+      break;
+      
+    case SVT_NUMBER:
+      sieve_debug_internal (printer, data, "%ld", val->v.number);
+      break;
+      
+    case SVT_TAG:
+    case SVT_IDENT:
+    case SVT_STRING:
+      sieve_debug_internal (printer, data, "%s", val->v.string);
+      break;
+      
+    case SVT_STRING_LIST:
+      list_do (val->v.list, (list_action_t*) string_printer, &dbg);
+      break;
+
+    case SVT_VALUE_LIST:
+      list_do (val->v.list, (list_action_t*) value_printer, &dbg);
+    }
+  sieve_debug_internal (printer, data, ")");
+} 
+
+void
+sieve_print_value_list (list_t list, sieve_printf_t printer, void *data)
+{
+  sieve_value_t val;
+  
+  val.type = SVT_VALUE_LIST;
+  val.v.list = list;
+  sieve_print_value (&val, printer, data);
+}
+
+static int
+tag_printer (sieve_runtime_tag_t *val, struct debug_data *dbg)
+{
+  sieve_debug_internal (dbg->printer, dbg->data, "%d", val->tag);
+  if (val->arg)
+    {
+      sieve_debug_internal (dbg->printer, dbg->data, "(");
+      sieve_print_value (val->arg, dbg->printer, dbg->data);
+      sieve_debug_internal (dbg->printer, dbg->data, ")");
+    }
+  sieve_debug_internal (dbg->printer, dbg->data, " ");
+}
+
+void
+sieve_print_tag_list (list_t list, sieve_printf_t printer, void *data)
+{
+  struct debug_data dbg;
+
+  dbg.printer = printer;
+  dbg.data = data;
+  list_do (list, (list_action_t*) tag_printer, &dbg);
+}
+
+void
+sieve_set_debug (sieve_machine_t *mach, sieve_printf_t debug, int level)
+{
+  mach->debug_printer = debug;
+  mach->debug_level = level;
+}
+  

@@ -16,20 +16,78 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mailutils/libsieve.h>
+#include <setjmp.h>
+
+#define SIEVE_CODE_INCR 128
+
+typedef void (*sieve_instr_t) __P((sieve_machine_t *mach));
 
 typedef union {
   sieve_instr_t instr;
-  sieve_value_t val;
+  sieve_handler_t handler;
+  sieve_value_t *val;
+  list_t list;
+  long number;
+  char *string;
 } sieve_op_t;
 
 struct sieve_machine {
-  size_t progsize;
-  sieve_op_t *prog;
+  list_t memory_pool;     /* Pool of allocated memory objects */
+
+  size_t progsize;        /* Number of allocated program cells */
+  size_t pc;              /* Current program counter */
+  sieve_op_t *prog;       /* Compiled program */
+
+  long reg;               /* Numeric register */
+  list_t stack;           /* Runtime stack */
+
+  int debug_level;
+
+  sieve_printf_t error_printer;
+  sieve_printf_t debug_printer;
+
+  void *data;
+  
+  jmp_buf errbuf;
 };
 
 extern char *sieve_filename;
 extern int sieve_line_num;
 extern int sieve_yydebug;
+extern sieve_machine_t *sieve_machine;
+extern int sieve_error_count; 
 
-#define sieve_error mu_error
+void sieve_error __P((const char *fmt, ...));
+void sieve_debug_internal __P((sieve_printf_t printer, void *data,
+			       const char *fmt, ...));
+void sieve_debug __P((sieve_machine_t *mach, const char *fmt, ...));
+void sieve_print_value __P((sieve_value_t *val, sieve_printf_t printer,
+			    void *data));
+void sieve_print_value_list __P((list_t list, sieve_printf_t printer,
+				 void *data));
+void sieve_print_tag_list __P((list_t list, sieve_printf_t printer,
+			       void *data));
 
+int _sieve_default_error_printer __P((void*data, const char *fmt, va_list ap));
+
+int sieve_lex_begin __P((const char *name));
+void sieve_lex_finish __P((void));
+
+void sieve_register_standard_actions __P((void));
+void sieve_register_standard_tests __P((void));
+
+int sieve_code __P((sieve_op_t *op));
+int sieve_code_instr __P((sieve_instr_t instr));
+int sieve_code_handler __P((sieve_handler_t handler));
+int sieve_code_list __P((list_t list));
+int sieve_code_number __P((long num));
+int sieve_code_test __P((sieve_register_t *reg, list_t arglist));
+int sieve_code_action __P((sieve_register_t *reg, list_t arglist));
+     
+void instr_action __P((sieve_machine_t *mach));
+void instr_test __P((sieve_machine_t *mach));
+void instr_push __P((sieve_machine_t *mach));
+void instr_pop __P((sieve_machine_t *mach));
+void instr_allof __P((sieve_machine_t *mach));
+void instr_anyof __P((sieve_machine_t *mach));
+void instr_not __P((sieve_machine_t *mach));

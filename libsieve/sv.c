@@ -24,18 +24,34 @@
 #include <sieve.h>
 
 int
+debug_printer (void *unused, const char *fmt, va_list ap)
+{
+  return vfprintf (stderr, fmt, ap);
+}
+
+int
 main (int argc, char **argv)
 {
-  int n;
+  int n, rc, debug = 0;
+  sieve_machine_t mach;
   
   assert (argc > 1);
   if (strcmp (argv[1], "-d") == 0)
     {
       sieve_yydebug++;
       n = 2;
+      debug++;
       assert (argc > 2);
     }
   else
     n = 1;
-  return sieve_parse (argv[n]);
+
+  rc = sieve_compile (&mach, argv[n], NULL, NULL);
+  if (rc == 0)
+    {
+      if (debug)
+	sieve_set_debug (&mach, debug_printer, 100);
+      sieve_run (&mach);
+    }
+  return rc;
 }

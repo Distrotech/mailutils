@@ -37,38 +37,45 @@
 #define TAG_OVER        9
 
 int
-sieve_test_address (sieve_machine_t *mach, list_t *args)
+sieve_test_address (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_header (sieve_machine_t *mach, list_t *args)
+sieve_test_header (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_envelope (sieve_machine_t *mach, list_t *args)
+sieve_test_envelope (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_size (sieve_machine_t *mach, list_t *args)
+sieve_test_size (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_true (sieve_machine_t *mach, list_t *args)
+sieve_test_true (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_false (sieve_machine_t *mach, list_t *args)
+sieve_test_false (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 int
-sieve_test_exists (sieve_machine_t *mach, list_t *args)
+sieve_test_exists (sieve_machine_t *mach, list_t args, list_t tags)
 {
+  return 0;
 }
 
 #define ADDRESS_PART \
