@@ -345,7 +345,7 @@ main (int argc, char **argv)
   mh_msgset_t msgset;
   int flags;
 
-  flags = isatty (0) ? 0 : ARGP_NO_ERRS;
+  flags = mh_interactive_mode_p () ? 0 : ARGP_NO_ERRS;
   mu_init_nls ();
   mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, flags, options, mh_option,
