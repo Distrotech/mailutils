@@ -419,7 +419,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 
 	default:
-	  mh_error (_("Unknown opcode: %x"), opcode);
+	  mh_error (_("INTERNAL ERROR: Unknown opcode: %x"), opcode);
 	  abort ();
 	}
     }

@@ -52,13 +52,13 @@ sieve_require (list_t slist)
 	{
 	  name += 11;
 	  reqfn = sieve_require_comparator;
-	  text = "comparator";
+	  text = _("required comparator");
 	}
       else if (strncmp (name, "test-", 5)  == 0) /* GNU extension */
 	{
 	  name += 5;
 	  reqfn = sieve_require_test;
-	  text = "test";
+	  text = _("required test");
 	}
       else if (strcmp (name, "relational") == 0) /* RFC 3431 */
 	{
@@ -68,13 +68,13 @@ sieve_require (list_t slist)
       else
 	{
 	  reqfn = sieve_require_action;
-	  text = "action";
+	  text = _("required action");
 	}
 
       if (reqfn (sieve_machine, name))
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
-			       _("source for the required %s %s is not available"),
+			       _("source for the %s %s is not available"),
 			       text,
 			       name);
 	}

@@ -124,7 +124,7 @@ pop3d_abquit (int reason)
 
     default:
       pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
-      syslog (LOG_ERR, _("Unknown quit"));
+      syslog (LOG_ERR, _("Quitting (numeric reason %d)"));
       break;
     }
 

@@ -481,7 +481,8 @@ parse_equiv_key (struct parsebuf *pb)
   if (parse_search_key_list (pb))
     {
       /* shouldn't happen */
-      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR"), __FILE__, __LINE__);
+      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+	     __FILE__, __LINE__);
       abort (); 
     }
   
@@ -568,7 +569,8 @@ parse_simple_key (struct parsebuf *pb)
 	      put_code (pb, (inst_t) parse_regmem (pb, set));
 	      break;
 	    default:
-	      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR"), __FILE__, __LINE__);
+	      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+		     __FILE__, __LINE__);
 	      abort (); /* should never happen */
 	    }
 	}  
@@ -635,7 +637,7 @@ _search_pop (struct parsebuf *pb)
 {
   if (pb->tos == 0)
     {
-      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR"), __FILE__, __LINE__);
+      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"), __FILE__, __LINE__);
       abort (); /* shouldn't happen */
     }
   return pb->stack[--pb->tos];

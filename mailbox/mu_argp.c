@@ -438,7 +438,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
 	{
-	  argp_error (state, _("badly formed maildir: %s"), mu_path_maildir);
+	  argp_error (state, _("badly formed mailspool path: %s"), mu_path_maildir);
 	}
       mu_path_maildir = p;
       break;
@@ -838,7 +838,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
       struct argp_child *child = find_argp_child (capa[n]);
       if (!child)
 	{
-	  mu_error (_("INTERNAL ERROR: requested unknown argp capability %s"),
+	  mu_error (_("INTERNAL ERROR: requested unknown argp capability %s (please report)"),
 		    capa[n]);
 	  abort ();
 	}
@@ -891,7 +891,7 @@ mu_auth_init ()
   extern struct argp_child mu_auth_argp_child;
   if (mu_register_capa ("auth", &mu_auth_argp_child))
     {
-      mu_error (_("INTERNAL ERROR: cannot register argp capability auth"));
+      mu_error (_("INTERNAL ERROR: cannot register argp capability auth (please report)"));
       abort ();
     }
 }

@@ -95,7 +95,7 @@ pitem     : item
 		  break;
 		  
 		default:
-		  yyerror (_("UNEXPECTED item TYPE"));
+		  yyerror (_("INTERNAL ERROR: unexpected item type (please report)"));
 		  abort ();
 		}
 	      $$ = pc;
@@ -620,7 +620,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 		  break;
 		  
 		default:
-		  yyerror (_("UNKNOWN ARGTYPE"));
+		  yyerror (_("INTERNAL ERROR: unknown argtype (please report)"));
 		  abort ();
 		}
 	    }
