@@ -424,7 +424,7 @@ list_data_dup (void **ptr, void *owner)
 {
   struct list_iterator *itr = owner;
   struct list_iterator *clone;
-  clone = malloc (sizeof (sizeof *itr));
+  clone = malloc (sizeof *itr);
   if (clone == NULL)
     return ENOMEM;
   /* let the assignement operator copy the elements.  */
