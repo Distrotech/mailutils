@@ -40,18 +40,8 @@ char mh_list_format[] =
 void
 mh_init ()
 {
-  list_t bookie;
-
-  /* Register mailbox formats */
-  registrar_get_list (&bookie);
-  list_append (bookie, mh_record);
-  list_append (bookie, mbox_record);
-  list_append (bookie, path_record);
-  list_append (bookie, pop_record);
-  list_append (bookie, imap_record);
-  /* Possible supported mailers.  */
-  list_append (bookie, sendmail_record);
-  list_append (bookie, smtp_record);
+  /* Register all mailbox and mailer formats */
+  mu_register_all_formats ();
 
   /* Read user's profile */
   mh_read_profile ();
