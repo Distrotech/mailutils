@@ -323,3 +323,20 @@ sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
   
   return rc;
 }
+
+int
+sieve_message (sieve_machine_t mach, message_t msg)
+{
+  int rc;
+  
+  if (!mach || !msg)
+    return EINVAL;
+
+  mach->msgno = 1;
+  mach->msg = msg;
+  mach->mailbox = NULL;
+  rc = sieve_run (mach);
+  mach->msg = NULL;
+  
+  return rc;
+}
