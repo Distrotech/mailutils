@@ -99,13 +99,6 @@ main (int argc, char **argv)
   mu_create_argcv (argc, argv, &argc, &argv);
   argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
 
-  maildir = mu_normalize_maildir (maildir);
-  if (!maildir)
-    {
-      mu_error ("Badly formed maildir: %s", maildir);
-      exit (1);
-    }
-
 #ifdef USE_LIBPAM
   if (!pam_service)
     pam_service = "gnu-imap4d";

@@ -128,13 +128,6 @@ main(int argc, char **argv)
   mu_create_argcv (argc, argv, &argc, &argv);
   argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
 
-  maildir = mu_normalize_maildir (maildir);
-  if (!maildir)
-    {
-      mu_error ("Badly formed maildir: %s", maildir);
-      exit (1);
-    }
-
   if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
     {
       fprintf (stderr, "--timeout and --daemon are incompatible\n");

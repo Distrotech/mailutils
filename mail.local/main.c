@@ -168,6 +168,7 @@ main (int argc, char *argv[])
   close_fds ();
   umask (0077);
 
+  mu_argp_error_code = EX_CONFIG; 
   mu_create_argcv (argc, argv, &argc, &argv);
   argp_parse (&argp, argc, argv, 0, &arg_index, NULL);
   
@@ -185,13 +186,6 @@ main (int argc, char *argv[])
       return EX_USAGE;
     }
 
-  maildir = mu_normalize_maildir (maildir);
-  if (!maildir)
-    {
-      mu_error ("Badly formed maildir: %s", maildir);
-      return EX_CONFIG;
-    }
-	
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
   mu_register_getpwuid (getMpwuid);
