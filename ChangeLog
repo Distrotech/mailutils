@@ -1,3 +1,8 @@
+2003-02-21  Sergey Poznyakoff
+
+	* mail/testsuite/mail/folder.exp: Reflect changes to mailbox/date.c
+	* mail/testsuite/mail/write.exp: Likewise
+
 2003-02-21  Sergey Poznyakoff 
 
 	* configure.ac: New option --with-mh-bindir sets installation
