@@ -29,10 +29,8 @@ static char args_doc[] = N_("[arg...]");
 static struct argp_option options[] = {
   {"compile", 'c', NULL,   0, N_("print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
-   N_("print libraries to link with. Up to two args can be given. Arguments are: "
-   "auth, to display libraries needed for linking against libmuauth, and "
-   "guile, to display libraries needed for linking against libmu_scm. "
-   "Both can be given simultaneously"), 0},
+   N_("print libraries to link with. Possible arguments are: auth, guile, all,"
+      "mbox, mh, maildir, imap, pop"), 0},
   {"info", 'i', NULL, 0,
    N_("print a list of configuration options used to build mailutils. If arguments "
    "are given, they are interpreted as a list of configuration options to check "
@@ -89,6 +87,72 @@ static const char *argp_capa[] = {
   NULL
 };
 
+#ifdef WITH_TLS
+# define TLSAUTH 1
+#else
+# define TLSAUTH 0
+#endif
+
+struct lib_descr {
+  char *name;
+  char *libname;
+  int needauth;
+} lib_descr[] = {
+  { "mbox",   "mu_mbox", 0 },
+  { "mh",     "mu_mh",   0 },
+  { "maildir","mu_maildir", 0 },
+  { "imap",   "mu_imap", TLSAUTH },
+  { "pop",    "mu_pop",  TLSAUTH },
+  { NULL }
+};
+
+struct lib_entry {
+  int level;
+  char *ptr;
+} lib_entry[10];
+
+int nentry;
+
+void
+add_entry (int level, char *ptr)
+{
+  int i;
+  if (nentry >= sizeof(lib_entry)/sizeof(lib_entry[0]))
+    {
+      mu_error (_("Too many arguments"));
+      exit (1);
+    }
+  
+  for (i = 0; i < nentry; i++)
+    if (strcmp (lib_entry[i].ptr, ptr) == 0)
+      return;
+  lib_entry[nentry].level = level;
+  lib_entry[nentry].ptr = ptr;
+  nentry++;
+}
+
+/* Sort the entires by their level. */
+void
+sort_entries ()
+{
+  int j;
+
+  for (j = 0; j < nentry; j++)
+    {
+      int i;
+	      
+      for (i = j; i < nentry; i++)
+	if (lib_entry[j].level > lib_entry[i].level)
+	  {
+	    struct lib_entry tmp;
+	    tmp = lib_entry[i];
+	    lib_entry[i] = lib_entry[j];
+	    lib_entry[j] = tmp;
+	  }
+      
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -111,71 +175,73 @@ main (int argc, char **argv)
 
     case MODE_LINK:
 	{
-	  int n = 0, j;
-	  struct entry {
-	    int level;
-	    char *ptr;
-	  } entry[4];
-
-	  entry[n].level = 1;
-	  asprintf (&entry[n].ptr, "%s -lmailbox", LINK_FLAGS);
-	  n++;
+	  int j;
+	  char *ptr;
+	  
+	  add_entry (-1, LINK_FLAGS);
+	  add_entry (1, "-lmailbox");
 #ifdef ENABLE_NLS
 	  if (sizeof (I18NLIBS) > 1)
-	    {
-	      entry[n].level = 10;
-	      asprintf (&entry[n].ptr, I18NLIBS);
-	      n++;
-	    }
+	    add_entry (10, I18NLIBS);
 #endif
-	  for (; n < sizeof(entry)/sizeof(entry[0]) && argc > 0;
-	       argc--, argv++, n++)
+
+	  for ( ; argc > 0; argc--, argv++)
 	    {
 	      if (strcmp (argv[0], "auth") == 0)
 		{
-		  entry[n].level = 2;
-		  asprintf (&entry[n].ptr, "-lmuauth %s", AUTHLIBS);
+		  add_entry (2, "-lmuauth " AUTHLIBS);
 		}
 #ifdef WITH_GUILE	      
 	      else if (strcmp (argv[0], "guile") == 0)
 		{
-		  entry[n].level = -1;
-		  asprintf (&entry[n].ptr, "-lmu_scm %s", GUILE_LIBS);
+		  add_entry (-1, "-lmu_scm " GUILE_LIBS);
 		}
 #endif
+	      else if (strcmp (argv[0], "all") == 0)
+		{
+		  struct lib_descr *p;
+		  
+		  for (p = lib_descr; p->name; p++)
+		    {
+		      asprintf (&ptr, "-l%s", p->libname);
+		      add_entry (0, ptr);
+		      if (p->needauth)
+			add_entry (2, "-lmuauth " AUTHLIBS);
+		    }
+		}
 	      else
 		{
-		  argp_help (&argp, stdout, ARGP_HELP_USAGE,
-			     program_invocation_short_name);
-		  return 1;
+		  struct lib_descr *p;
+		  
+		  for (p = lib_descr; p->name; p++)
+		    if (strcasecmp (p->name, argv[0]) == 0)
+		      break;
+
+		  if (p->name)
+		    {
+		      asprintf (&ptr, "-l%s", p->libname);
+		      add_entry (0, ptr);
+		      if (p->needauth)
+			add_entry (2, "-lmuauth " AUTHLIBS);
+		    }
+		  else
+		    {
+		      argp_help (&argp, stdout, ARGP_HELP_USAGE,
+				 program_invocation_short_name);
+		      return 1;
+		    }
 		}
 	    }
-
-	  /* Sort the entires by their level. */
-	  for (j = 0; j < n; j++)
-	    {
-	      int i;
-	      
-	      for (i = j; i < n; i++)
-		if (entry[j].level > entry[i].level)
-		  {
-		    struct entry tmp;
-		    tmp = entry[i];
-		    entry[i] = entry[j];
-		    entry[j] = tmp;
-		  }
-	      
-	    }
-
+	  
+	  sort_entries ();
+	  
 	  /* At least one entry is always present */
-	  printf ("%s", entry[0].ptr);
+	  printf ("%s", lib_entry[0].ptr);
 
 	  /* Print the rest of them separated by a space */
-	  for (j = 1; j < n; j++)
+	  for (j = 1; j < nentry; j++)
 	    {
-	      if (entry[j].level == entry[j-1].level)
-		continue;
-	      printf (" %s", entry[j].ptr);
+	      printf (" %s", lib_entry[j].ptr);
 	    }
 	  printf ("\n");
 	  return 0;
