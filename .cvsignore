@@ -8,7 +8,10 @@ aclocal.m4
 config.h
 config.h.in
 config.log
+config.status
 configure
 mailutils.spec
 autom4te.cache
 intl
+libtool
+stamp-h1
