@@ -18,7 +18,7 @@
 
 sieve_test envelope1.sv -pattern \
 "DISCARD on msg uid 1: marking as deleted"\
-"KEEP on msg uid 2"\
-"KEEP on msg uid 3"
+"IMPLICIT KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 3"
 
 # end of envelope.exp

@@ -17,9 +17,9 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 
 sieve_test anyof00.sv -pattern \
-"KEEP on msg uid 1"\
-"KEEP on msg uid 2"\
-"KEEP on msg uid 3"
+"IMPLICIT KEEP on msg uid 1"\
+"IMPLICIT KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 3"
 
 sieve_test anyof01.sv -pattern \
 "DISCARD on msg uid 1: marking as deleted"\

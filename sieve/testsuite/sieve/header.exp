@@ -18,17 +18,17 @@
 
 sieve_test header1.sv -pattern \
 "DISCARD on msg uid 1: marking as deleted"\
-"KEEP on msg uid 2"\
-"KEEP on msg uid 3"
+"IMPLICIT KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 3"
 
 sieve_test header2.sv -pattern \
 "DISCARD on msg uid 1: marking as deleted"\
-"KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 2"\
 "DISCARD on msg uid 3: marking as deleted"
 
 sieve_test header3.sv -pattern \
-"KEEP on msg uid 1"\
+"IMPLICIT KEEP on msg uid 1"\
 "DISCARD on msg uid 2: marking as deleted"\
-"KEEP on msg uid 3"
+"IMPLICIT KEEP on msg uid 3"
 
 # end of header.exp

@@ -17,13 +17,13 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 
 sieve_test size1.sv -pattern \
-"KEEP on msg uid 1"\
-"KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 1"\
+"IMPLICIT KEEP on msg uid 2"\
 "DISCARD on msg uid 3: marking as deleted"
 
 sieve_test size2.sv -pattern \
 "DISCARD on msg uid 1: marking as deleted"\
 "DISCARD on msg uid 2: marking as deleted"\
-"KEEP on msg uid 3"
+"IMPLICIT KEEP on msg uid 3"
 
 # end of size.exp
