@@ -1,3 +1,11 @@
+1999-10-10  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* pop3d/Makefile.am: Deal with libsrc to lib rename
+
+	* Makefile.am: Deal with libsrc to lib rename
+
+	* libsrc/: Rename to lib/
+
 1999-10-09  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
   * Made changelog.pl output in approved format -- I miss the time stamp
