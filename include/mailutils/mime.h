@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -41,6 +41,10 @@ int mime_add_part	__P ((mime_t mime, message_t msg));
 
 int mime_get_message	__P ((mime_t mime, message_t *msg));
 
+int rfc2047_decode      __P((const char *tocode, const char *fromstr,
+			     char **ptostr));
+
+  
 #ifdef __cplusplus
 }
 #endif
