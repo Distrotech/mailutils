@@ -295,6 +295,7 @@ mbox_open (mailbox_t mailbox, int flags)
       /* All failed, bail out.  */
       if (status != 0)
 	return status;
+      stream_setbufsiz (mailbox->stream, BUFSIZ);
     }
   else
     {
@@ -1376,11 +1377,13 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    if (*buffer == '\n')
 	      break;
 
-	    /* FIXME: We have a problem here the header field may not fit the
-	       buffer.  */
-	    /* We do not copy the Status since this is for the attribute.  */
-	    if (strncasecmp (buffer, "Status", 6) == 0
-		|| strncasecmp (buffer, "X-Status", 8) == 0)
+	    /* We do not copy the Status since it is rewritten by the
+	       attribute code below.  */
+	    /* FIXME:  - We have a problem here the header field may not fit
+	       the buffer.
+	       - Should  we skip the IMAP "X-Status"?
+	       strncasecmp (buffer, "X-Status", 8) == 0)  */
+	    if (strncasecmp (buffer, "Status", 6) == 0)
 	      continue;
 
 	    status = stream_write (mailbox->stream, buffer, nread,

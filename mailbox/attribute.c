@@ -63,7 +63,7 @@ attribute_get_owner (attribute_t attr)
 int
 attribute_is_modified (attribute_t attr)
 {
-  return (attr) ? attr->flags != 0 : 0;
+  return (attr) ? attr->flags & MU_ATTRIBUTE_MODIFIED : 0;
 }
 
 int
@@ -144,7 +144,7 @@ attribute_set_seen (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_SEEN);
-  attr->flags |= MU_ATTRIBUTE_SEEN;
+  attr->flags |= MU_ATTRIBUTE_SEEN | MU_ATTRIBUTE_MODIFIED;
   return status;
 }
 
@@ -156,7 +156,7 @@ attribute_set_answered (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_ANSWERED);
-  attr->flags |= MU_ATTRIBUTE_ANSWERED;
+  attr->flags |= MU_ATTRIBUTE_ANSWERED | MU_ATTRIBUTE_MODIFIED;
   return status;
 }
 
@@ -168,7 +168,7 @@ attribute_set_flagged (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_FLAGGED);
-  attr->flags |= MU_ATTRIBUTE_FLAGGED;
+  attr->flags |= MU_ATTRIBUTE_FLAGGED | MU_ATTRIBUTE_MODIFIED;
   return status;
 }
 
@@ -180,7 +180,7 @@ attribute_set_read (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_READ);
-  attr->flags |= MU_ATTRIBUTE_READ;
+  attr->flags |= MU_ATTRIBUTE_READ | MU_ATTRIBUTE_MODIFIED;
   return status;
 }
 
@@ -192,7 +192,7 @@ attribute_set_deleted (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_DELETED);
-  attr->flags |= MU_ATTRIBUTE_DELETED;
+  attr->flags |= MU_ATTRIBUTE_DELETED | MU_ATTRIBUTE_MODIFIED;
   return 0;
 }
 
@@ -204,7 +204,7 @@ attribute_set_draft (attribute_t attr)
     return EINVAL;
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_DRAFT);
-  attr->flags |= MU_ATTRIBUTE_DRAFT;
+  attr->flags |= MU_ATTRIBUTE_DRAFT | MU_ATTRIBUTE_MODIFIED;
   return status;
 }
 

@@ -161,8 +161,9 @@ stream_read (stream_t is, char *buf, size_t count,
       int r;
 
       /* Fill the buffer, do not want to start empty hand.  */
-      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset
-	  || offset > (is->rbuffer.offset + is->rbuffer.count))
+      //      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset
+      //  || offset > (is->rbuffer.offset + is->rbuffer.count))
+      if (is->rbuffer.count <= 0 || offset != is->rbuffer.offset)
 	{
 	  status = refill (is, offset);
 	  if (status != 0)
@@ -238,7 +239,8 @@ stream_readline (stream_t is, char *buf, size_t count,
       return 0;
     }
 
-  if (is->_readline != NULL)
+  /* Use the provided readline.  */
+  if (is->rbuffer.bufsiz == 0 &&  is->_readline != NULL)
     status = is->_readline (is, buf, count, offset, pnread);
   else if (is->rbuffer.bufsiz == 0) /* No Buffering.  */
     {
@@ -277,10 +279,10 @@ stream_readline (stream_t is, char *buf, size_t count,
 
       count--;  /* Leave space for the null.  */
 
-      //fprintf (stderr, "OFFSET %d %d\n", offset, is->rbuffer.offset);
       /* If out of range refill.  */
-      if ((offset < is->rbuffer.offset
-	   || offset > (is->rbuffer.offset + is->rbuffer.count)))
+      //      if ((offset < is->rbuffer.offset
+      //	   || offset > (is->rbuffer.offset + is->rbuffer.count)))
+      if (offset != is->rbuffer.offset)
 	{
 	  status = refill (is, offset);
 	  if (status != 0)

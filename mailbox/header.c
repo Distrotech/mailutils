@@ -160,7 +160,7 @@ header_parse (header_t header, const char *blurb, int len)
 
       /* Treats unix "From " specially.  */
       if ((header_end - header_start >= 5)
-	  && strncmp (header_start, "From ", 5) == 0)
+      	  && strncmp (header_start, "From ", 5) == 0)
 	{
 	  fn = header_start;
 	  fn_end = header_start + 5;

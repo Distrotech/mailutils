@@ -306,10 +306,6 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
       free (fs);
       return ret;
     }
-#if BUFSIZ <= 1024
-  /* Give us some room to breath, for OS with two small stdio buffers.  */
-  setvbuf (fs->file, NULL, _IOFBF, 8192);
-#endif
   stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;
 }
@@ -344,7 +340,5 @@ file_stream_create (stream_t *stream)
   stream_set_size (*stream, _file_size, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
-  /* Make sure we do not use the stream internal buffering.  */
-  stream_setbufsiz (*stream, 0);
   return 0;
 }

@@ -329,7 +329,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         return status;
       }
     /* We want the buffering.  */
-    stream_setbufsiz (stream, BUFSIZ);
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_message_read, msg);
     stream_set_fd (stream, imap_message_fd, msg);
     message_set_stream (msg, stream, msg_imap);
@@ -387,7 +387,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         return status;
       }
     /* We want the buffering.  */
-    stream_setbufsiz (stream, BUFSIZ);
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_body_read, body);
     stream_set_fd (stream, imap_body_fd, body);
     body_set_size (body, imap_body_size, msg);

@@ -695,6 +695,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	free (mpm);
 	return status;
       }
+    /* Help for the readline()s  */
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, pop_message_read, msg);
     stream_set_fd (stream, pop_message_fd, msg);
     message_set_stream (msg, stream, mpm);
@@ -747,6 +749,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	free (mpm);
 	return status;
       }
+    /* Helps for the readline()s  */
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, pop_body_read, body);
     stream_set_fd (stream, pop_body_fd, body);
     body_set_size (body, pop_body_size, msg);
