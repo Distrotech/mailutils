@@ -49,7 +49,8 @@
 		   (lambda (val lim)
 		     (< val lim)))
 		  (else
-		   (runtime-error LOG_CRIT "test-numaddr: unknown comparator "
+		   (runtime-message SIEVE-ERROR
+                                  "test-numaddr: unknown comparator "
 				  comp)))))
     (call-with-current-continuation
      (lambda (exit)

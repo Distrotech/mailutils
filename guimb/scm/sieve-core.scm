@@ -27,6 +27,10 @@
 ;;; If #f, it will be set by sieve-main
 (define sieve-my-email #f)
 
+(define SIEVE-WARNING "Warning")
+(define SIEVE-ERROR "Error")
+(define SIEVE-NOTICE "Notice")
+  
 ;;; List of open mailboxes.
 ;;; Each entry is: (list MAILBOX-NAME OPEN-FLAGS MBOX)
 (define sieve-mailbox-list '())
@@ -227,7 +231,7 @@
 				 ((#:matches)
 				  (if (regexp-exec rx addr)
 				      (exit #t))))
-			       (runtime-error LOG_NOTICE
+			       (runtime-message SIEVE-NOTICE
 				"Can't get address parts for message "
 				sieve-current-message))))))))
 	     header-fields)))
@@ -244,7 +248,7 @@
      ((eq? (car comp) #:under)
       (< size key-size))
      (else
-      (runtime-error LOG_CRIT "test-size: unknown comparator " comp)))))
+      (runtime-message SIEVE-ERROR  "test-size: unknown comparator " comp)))))
 
 (define (test-envelope part-list key-list . opt-args)
   (let ((comp (find-comp opt-args))
@@ -262,8 +266,8 @@
 		     (exit #t)))
 	       key-list)))
 	   (else
-	    ;; Should we issue a warning?
-	    ;;(runtime-error LOG_ERR "Envelope part " part " not supported")
+	    (runtime-message SIEVE-ERROR
+			     "Envelope part " part " not supported")
 	    #f)))
 	part-list)
        #f))))
@@ -348,15 +352,20 @@
   (sieve-register-test "false" #f '() '())
   (sieve-register-test "true"  #t '() '())))
 
-;;; runtime-error
+;;; runtime-message
 
-(define (runtime-error level . text)
-  (display (string-append "RUNTIME ERROR in " sieve-source ": "))
-  (for-each
-   (lambda (s)
-     (display s))
-   text)
-  (newline))
+(define (runtime-message level . text)
+  (let ((msg (apply string-append
+		    (map (lambda (x)
+			   (format #f "~A" x))
+			 (append
+			  (list "(in " sieve-source ") ")
+			  text)))))
+    (mu-message-set-header sieve-current-message
+			   (string-append "X-Sieve-" level)
+			   msg)
+       (if (isatty? (current-output-port))
+	   (display (string-append level ": " msg "\n")))))
 
 ;;; Sieve-main
 (define sieve-current-message #f)

@@ -25,13 +25,13 @@
 
 (define (sent-from-me? msg)
   (call-with-current-continuation
-   (lambda (x)
+   (lambda (exit)
      (for-each
       (lambda (hdr)
-	(if (and (string=? (car hdr) "X-Sender")
-		 (string=? (mu-address-get-email (cdr hdr))
+	(if (and (string-ci=? (car hdr) "X-Sender")
+		 (string-ci=? (mu-address-get-email (cdr hdr))
 			   sieve-my-email))
-	    (x #t)))
+	    (exit #t))) 
       (mu-message-get-header-fields sieve-current-message))
      #f)))
 
@@ -40,9 +40,10 @@
   (if sieve-my-email
       (cond
        ((sent-from-me? sieve-current-message)
-	(runtime-error LOG_ERR "redirect: Loop detected"))
+	(runtime-message SIEVE-WARNING "Redirection loop detected"))
        (else
-	(let ((out-msg (mu-message-copy sieve-current-message)))
+	(let ((out-msg (mu-message-copy sieve-current-message))
+              (sender (mu-message-get-sender sieve-current-message)))
 	  (mu-message-set-header out-msg "X-Sender" sieve-my-email)
 	  (mu-message-send out-msg #f sender address)
 	  (mu-message-destroy out-msg))
