@@ -1,3 +1,31 @@
+2001-08-02  Sam Roberts
+
+	* TODO: updated
+	* sieve/: script.c, sieve.c: Fixed bug, I was deleting a message
+	after a fileinto, which was wrong.  Tweaked the logging, it's
+	little cleaner and more useful.
+	* sieve/COPYING: Removed the RCS keyword in the imported copyright
+	notice.
+	* sieve/: sieve-gram.y, sieve-lex.l: Now using xmalloc() from
+	../lib.
+	* examples/mbox-explode.c: Don't mkdir unless the mailbox can be
+	opened, and better cleanup on error detection.
+	* sieve/examples/: Test, test.out: Commiting my example/test sieve
+	scripts so I can maintain them with cvs (I use them at work and
+	home).
+	* mail/util.c: Not all systems have <sys/fcntl.h>, changed to use
+	HAVE_FCNTL_H.
+	* mailbox/mbx_pop.c: imap logged the passwd in protocol traces, pop
+	didn't, so I made them both be the same (the way that is most
+	useful when debugging protocol traces)
+	* sieve/examples/: INBOX.orig, Makefile, box.sv, ex-1.10.2.sv,
+	ex-2.3a.sv, ex-2.5.1.sv, ex-2.7.3.sv, ex-3.1a.sv, ex-3.1b.sv,
+	ex-3.2.sv, ex-4.1.sv, ex-4.2.sv, ex-4.4a.sv, ex-4.4b.sv, ex-4.5.sv,
+	ex-5.1.sv, ex-5.7.sv, ex-9.sv, ex-null.sv, ex-save-all.sv,
+	example.sv, exn-2.3b.sv, exn-5.4.sv, t-exists.sv, t-fileinto.sv,
+	t-mailutils.sv: Commiting my example/test sieve scripts so I can
+	maintain them with cvs (I use them at work and home).
+
 2001-08-01  Alain Magloire
 
 	* mailbox2/header.c: Put the stubs.
@@ -755,7 +783,7 @@
 		 util_parse_rfc822_date -> util_parse_ctime_date
 	  include <ctype.h>
 
-2001-06-14 23:01  sroberts
+2001-06-14 23:01  Sam Roberts
 
 	* mailbox/parse822.c: I think timezone info is now placed in struct
 	tm correctly.

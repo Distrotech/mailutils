@@ -1,4 +1,5 @@
 Makefile.in
+.deps
 Makefile
 libmu_scm.a
 guile-procedures.txt
