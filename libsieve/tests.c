@@ -31,7 +31,7 @@ static int
 _get_address_part (void *item, void *data)
 {
   sieve_runtime_tag_t *t = item;
-  address_aget_t ret;
+  address_aget_t ret = NULL;
   
   if (strcmp (t->tag, "all") == 0)
     ret =  address_aget_email;
@@ -39,8 +39,12 @@ _get_address_part (void *item, void *data)
     ret =  address_aget_domain;
   else if (strcmp (t->tag, "localpart") == 0)
     ret = address_aget_local_part;
-  *(address_aget_t*)data = ret;
-  return ret != NULL;
+  if (ret)
+    {	  
+      *(address_aget_t*)data = ret;
+      return 1; /* break the loop */
+    }  
+  return 0; /* continue */
 }
 
 address_aget_t
