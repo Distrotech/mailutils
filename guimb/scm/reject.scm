@@ -84,7 +84,7 @@
 
 ;;; Register action
 (if sieve-parser
-    (sieve-register-action "reject" action-reject 'string))
+    (sieve-register-action "reject" action-reject (list 'string) '()))
       
       
 

@@ -79,5 +79,5 @@
 (if sieve-parser
     (sieve-register-test "mimeheader"
 			 test-mimeheader
-			 (append comparator match-type)
-			 (list 'string-list 'string-list)))
+			 (list 'string-list 'string-list)
+			 (append comparator match-type)))

@@ -69,5 +69,5 @@
 (if sieve-parser
     (sieve-register-test "numaddr"
 			 test-numaddr
-			 size-comp
-			 (list 'string-list 'number)))
+			 (list 'string-list 'number)
+			 size-comp))

@@ -51,7 +51,7 @@
 
 ;;; Register action
 (if sieve-parser
-    (sieve-register-action "redirect" action-redirect 'string))
+    (sieve-register-action "redirect" action-redirect (list 'string) '()))
 
 
 
