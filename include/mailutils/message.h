@@ -121,6 +121,9 @@ extern int message_encapsulate __P ((message_t msg, message_t *newmsg,
 extern int message_unencapsulate __P ((message_t msg, message_t *newmsg,
 				       void **data));
 
+extern int message_get_attachment_name __P ((message_t, char *name, size_t bufsz, size_t* sz));
+extern int message_aget_attachment_name __P ((message_t, char **name));
+
 #ifdef __cplusplus
 }
 #endif

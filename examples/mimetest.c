@@ -19,19 +19,21 @@
 # include <config.h>
 #endif
 
-#include <sys/types.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
-#include <limits.h>
+
+#include <sys/types.h>
 
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
 
-void message_display_parts(message_t msg, char *indent);
+void message_display_parts(message_t msg, const char *indent);
 
 char from[256];
 char subject[256];
@@ -43,20 +45,24 @@ main (int argc, char **argv)
   int ret;
   size_t i;
   size_t count = 0;
-  char *mailbox_name = NULL;
+  char *mailbox_name = argv[1];
+  int debug = 0;
 
-  /* have an argument */
-  if (argc > 1)
-    mailbox_name = argv[1];
+  if (strcmp("-d", mailbox_name) == 0)
+    {
+      debug = 1;
+      mailbox_name = argv[2];
+    }
 
   /* Registration.  */
   {
     list_t bookie;
     registrar_get_list (&bookie);
+    list_append (bookie, file_record);
+    list_append (bookie, imap_record);
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
     list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
   }
 
   if ((ret = mailbox_create_default (&mbox, mailbox_name)) != 0)
@@ -65,8 +71,8 @@ main (int argc, char **argv)
       exit (2);
     }
 
-  /* Debuging Trace.  */
-  if (0)
+  /* Debugging trace. */
+  if (debug)
     {
       mu_debug_t debug;
       mailbox_get_debug (mbox, &debug);
@@ -76,12 +82,13 @@ main (int argc, char **argv)
   /* Open the mailbox for reading only.  */
   if ((ret = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
-      fprintf (stderr, "could not open - %s\n", strerror (ret));
+      fprintf (stderr, "mailbox open - %s\n", strerror (ret));
       exit (2);
     }
 
-  /* Iterator through the entire message set.  */
+  /* Iterate through the entire message set.  */
   mailbox_messages_count (mbox, &count);
+
   for (i = 1; i <= count; ++i)
     {
       message_t msg;
@@ -107,7 +114,10 @@ main (int argc, char **argv)
       header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
       header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
 			NULL);
-      printf ("From: %s\tSubject: %s\n", from, subject);
+      printf ("-- Message: %d\n", i);
+      printf ("-- From: %s\n", from);
+      printf ("-- Subject: %s\n", subject);
+
       if ((ret = message_get_num_parts (msg, &nparts)) != 0)
 	{
 	  fprintf (stderr, "message_get_num_parts - %s\n", strerror (ret));
@@ -115,7 +125,7 @@ main (int argc, char **argv)
 	}
       printf ("-- Number of parts in message - %d\n", nparts);
       printf ("-- Total message size - %d\n", msize);
-      message_display_parts (msg, "\t");
+      message_display_parts (msg, "  ");
     }
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
@@ -125,7 +135,7 @@ main (int argc, char **argv)
 char buf[2048];
 
 void
-message_display_parts (message_t msg, char *indent)
+message_display_parts (message_t msg, const char *indent)
 {
   int ret, j;
   size_t msize, nparts, nsubparts;
@@ -138,7 +148,7 @@ message_display_parts (message_t msg, char *indent)
   int offset, ismulti;
   size_t nbytes;
 
-  /* How many part those the message has?  */
+  /* How many parts does the message has? */
   if ((ret = message_get_num_parts (msg, &nparts)) != 0)
     {
       fprintf (stderr, "message_get_num_parts - %s\n", strerror (ret));
@@ -146,8 +156,8 @@ message_display_parts (message_t msg, char *indent)
     }
 
   /* Iterate through all the parts.
-     Treat type "message/rfc822" differently, since it is a message of is own
-     that can have other subparts(recursive).  */
+     Treat type "message/rfc822" differently, since it is a message of
+     its own that can have other subparts(recursive). */
   for (j = 1; j <= nparts; j++)
     {
       if ((ret = message_get_part (msg, j, &part)) != 0)
@@ -233,11 +243,9 @@ message_display_parts (message_t msg, char *indent)
 	}
       else
 	{
-#if 1
-
 	  /* Save the attachements.  */
-	  char *fname;
-	  message_attachment_filename (part, &fname);
+	  char *fname = NULL;
+	  message_aget_attachment_name (part, &fname);
 	  if (fname == NULL)
 	    {
 	      char buffer[PATH_MAX + 1];
@@ -247,11 +255,9 @@ message_display_parts (message_t msg, char *indent)
 	  printf
 	    ("%s-------------------------------------------------------------------\n",
 	     indent);
-	  /* FIXME:  Somethings is not quite correct with this function.
-	     Please fix.  */
-	  message_save_attachment (part, fname, NULL);
+	  /*FIXME: What is the 'data' argument for? */
+	  message_save_attachment (part, NULL, NULL);
 	  free (fname);
-#endif
 	}
       printf
 	("\n%s End -------------------------------------------------------------------\n",

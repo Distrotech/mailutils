@@ -45,9 +45,6 @@
 #define MAX_HDR_LEN 256
 #define BUF_SIZE	2048
 
-/* FIXME: this should be in a public header.  */
-extern int message_attachment_filename __P ((message_t, const char **filename));
-
 struct _msg_info
 {
   char *buf;
@@ -227,8 +224,9 @@ _header_get_param (char *field_body, const char *param, size_t * len)
   return NULL;
 }
 
+#if 0
 int
-message_attachment_filename (message_t msg, const char **filename)
+message_get_attachment_name (message_t msg, char *name, size_t bufsz, size_t *sz)
 {
   char *pTmp, *fname = NULL;
   header_t hdr;
@@ -270,6 +268,90 @@ message_attachment_filename (message_t msg, const char **filename)
     }
   return ret;
 }
+#endif
+
+int message_aget_attachment_name(message_t msg, char** name)
+{
+  size_t sz = 0;
+  int ret = 0;
+
+  if(name == NULL)
+    return EINVAL;
+
+  if((ret = message_get_attachment_name(msg, NULL, 0, &sz)) != 0)
+    return ret;
+
+  *name = malloc(sz + 1);
+
+  if((ret = message_get_attachment_name(msg, *name, sz + 1, NULL)) != 0)
+  {
+    free(*name);
+    *name = NULL;
+  }
+
+  return ret;
+}
+
+int
+message_get_attachment_name (message_t msg, char *buf, size_t bufsz, size_t *sz)
+{
+  int ret = EINVAL;
+  header_t hdr;
+  char *value = NULL;
+  char *name = NULL;
+  size_t namesz = 0;
+
+  if(!msg)
+    return ret;
+
+  if ((ret = message_get_header (msg, &hdr)) != 0)
+    return ret;
+
+  ret = header_aget_value (hdr, "Content-Disposition", &value);
+
+  /* If the header wasn't there, we'll fall back to Content-Type, but
+     other errors are fatal. */
+  if(ret != 0 && ret != ENOENT)
+    return ret;
+
+  if(ret == 0 && value != NULL)
+  {
+    /* FIXME: this is cheezy, it should check the value of the
+       Content-Disposition field, not strstr it. */
+
+      if (strstr (value, "attachment") != NULL)
+	name = _header_get_param (value, "filename", &namesz);
+  }
+
+  /* If we didn't get the name, we fall back on the Content-Type name
+     parameter. */
+
+  if (name == NULL)
+    {
+      if(value)
+	free(value);
+
+      ret = header_aget_value (hdr, "Content-Type", &value);
+      name = _header_get_param (value, "name", &namesz);
+    }
+
+  if (name)
+    {
+      ret = 0;
+
+      name[namesz] = '\0';
+
+      if(sz)
+	*sz = namesz;
+
+      if(buf)
+	strncpy(buf, name, bufsz);
+    }
+  else
+    ret = ENOENT;
+
+  return ret;
+}
 
 int
 message_save_attachment (message_t msg, const char *filename, void **data)
@@ -282,8 +364,9 @@ message_save_attachment (message_t msg, const char *filename, void **data)
   header_t hdr;
   char *content_encoding;
   const char *fname = NULL;
+  char *partname = NULL;
 
-  if (msg == NULL || filename == NULL)
+  if (msg == NULL)
     return EINVAL;
 
   if ((ret = _attachment_setup (&info, msg, &istream, data)) != 0)
@@ -292,7 +375,11 @@ message_save_attachment (message_t msg, const char *filename, void **data)
   if (ret == 0 && (ret = message_get_header (msg, &hdr)) == 0)
     {
       if (filename == NULL)
-	ret = message_attachment_filename (msg, &fname);
+      {
+	ret = message_aget_attachment_name (msg, &partname);
+	if(partname)
+	  fname = partname;
+      }
       else
 	fname = filename;
       if (fname
@@ -349,6 +436,11 @@ message_save_attachment (message_t msg, const char *filename, void **data)
       stream_destroy (&info->fstream, NULL);
       _attachment_free (info, ret);
     }
+
+  /* Free fname if we allocated it. */
+  if(partname)
+    free(partname);
+
   return ret;
 }
 
