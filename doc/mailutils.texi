@@ -129,14 +129,11 @@ For more information on,
 
 @itemize @bullet
 @item
-SMTP RFCs:
+on SMTP
 
 @itemize @minus
 @item
 @cite{RFC 2821: Simple Mail Transfer Protocol}
-
-@item
-@cite{RFC 2822: Internet Message Format}
 
 @item
 @cite{RFC 2368: The mailto URL scheme}
@@ -147,14 +144,14 @@ on POP3
 
 @itemize @minus
 @item
+@cite{RFC 1939: Post Office Protocol - Version 3}
+
+@item
 @cite{RFC 1734: POP3 AUTHentication command}
 
 @item
 @cite{RFC 1957: Some Observations on Implementations of the Post Office
 Protocol (POP3)}
-
-@item
-@cite{RFC 1939: Post Office Protocol - Version 3}
 
 @item
 @cite{RFC 2449: POP3 Extension Mechanism}
@@ -164,9 +161,12 @@ Protocol (POP3)}
 @end itemize
 
 @item
-On IMAP4
+on IMAP4
 
 @itemize @minus
+@item
+@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
+
 @item
 @cite{RFC 2088: IMAP4 non-synchronizing literals}
 
@@ -180,25 +180,26 @@ On IMAP4
 @cite{RFC 2342: IMAP4 Namespace}
 
 @item
-@cite{RFC 1738: Uniform Resource Locators (URL)}
-
-@item
 @cite{RFC 2192: IMAP URL Scheme}
 @end itemize
 
 @item
-On MIME
+on message formats
 
 @itemize @minus
 @item
-@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
+@cite{RFC 2822: Internet Message Format}
 
 @item
 @cite{RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One:
 Format of Internet Message Bodies}
 
 @item
-@cite{RFC 2047: MIME (Multipurpose Internet Mail Extensions) Part Three:
+@cite{RFC 2046: Multipurpose Internet Mail Extensions (MIME) Part Two:
+Media Types}
+
+@item
+@cite{RFC 2047: Multipurpose Internet Mail Extensions (MIME) Part Three:
 Message Header Extensions for Non-ASCII Text}
 
 @item
@@ -210,11 +211,23 @@ Conformance Criteria and Examples}
 @end itemize
 
 @item
-Misc
+on miscellaneous related topics
+
+@itemize @minus
+@item
 @cite{RFC 3028: Sieve: A Mail Filtering Language}
 
 @item
-@cite{Internet Email Protocols a Developer's Guide by Kevin Johnson}
+@cite{RFC 2298: An Extensible Message Format for Message Disposition
+Notifications}
+
+@item
+@cite{RFC 1738: Uniform Resource Locators (URL)}
+
+@item
+@cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
+@end itemize
+
 @end itemize
 
 @node Concrete API, Framework, Introduction, Top
