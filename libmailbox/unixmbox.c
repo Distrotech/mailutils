@@ -233,37 +233,59 @@ int
 unixmbox_expunge (mailbox * mbox)
 {
   unixmbox_data *data;
-  int i = 0, size = 0;
+  int i = 0;
+  ssize_t size = 0, size_read = 0;
   char *buf = NULL;
-  fpos_t lastpos;
+  int file;
+  int deletion_needed = 0; /* true when a deleted message has been found */
+  size_t buff_size = 0;
+  size_t tmp = 0;
 
   if (mbox == NULL)
     {
       errno = EINVAL;
 	  return -1;
     }
-  data = mbox->_data;
-  data->file = freopen (mbox->name, "r+", data->file);
-  if (data->file == NULL)
-    {
-      /* error handling */
-    }
-  fgetpos (data->file, &lastpos);
+  if (mbox->num_deleted)
+  {
+    data = mbox->_data;
+    fclose(data->file);
+    /* error handling */
+    data->file = NULL;
+    file = open(mbox->name, O_RDWR);
+    /* error handling */
 
   for (i = 0; i < mbox->messages; i++)
     {
       if (data->messages[i].deleted == 0)
 	{
-	  fgetpos (data->file, &lastpos);
-	  fsetpos (data->file, &(data->messages[i].header));
-	  read (fileno (data->file), buf,
-		data->messages[i + 1].header - data->messages[i].header);
-	  fprintf (data->file, "%s", buf);
-	  size += strlen (buf);
-	  free (buf);
+      if (deletion_needed)
+      {
+        tmp = data->messages[i + 1].header - data->messages[i].header;
+		if (tmp > buff_size)
+          {
+            buff_size = tmp;
+            buf = realloc (buf, tmp);
+			/* error checking */
+          }
+        lseek (file, data->messages[i].header, SEEK_SET);
+        size_read = read (file, buf, tmp);
+		/* error checking */
+		lseek (file, size, SEEK_SET);
+        write (file, buf, size_read);
+		/* error checking */
+      	size += size_read;
+      }
 	}
+	  else
+    {
+        deletion_needed = 1;
     }
-  ftruncate (fileno (data->file), size);
+    }
+    close (file);
+    truncate (mbox->name, size);
+    free (buf);
+  }
   return 0;
 }
 
@@ -280,6 +302,8 @@ unixmbox_is_deleted (mailbox * mbox, unsigned int num)
       errno = EINVAL;
       return -1;
     }
+  if (mbox->num_deleted == 0)
+    return 0;
   data = mbox->_data;
   return (data->messages[num].deleted == 1);
 }

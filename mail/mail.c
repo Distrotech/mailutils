@@ -19,6 +19,7 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <mailbox.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +87,11 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
     }
 
   mbox = mbox_open (mboxname);
+  if (mbox == NULL)
+    {
+      fprintf (stderr, "Ack, %s, reading %s\n", strerror(errno), mboxname);
+	  exit (1);
+    }
   printf ("Number of messages: %d\n", mbox->messages);
   while (1)
     {

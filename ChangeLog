@@ -1,3 +1,10 @@
+1999-11-06  Sean 'Shaleh' Perry  <shaleh@debian.org>
+
+	* libmailbox/unixmbox.*: work on expunge
+	    use read/write along with lseek
+		still blows up -- getting there
+	* mail/mail.c: check return value of mbox_open()
+
 1999-10-23  Alain Magloire
 
 	* ChangeLog: Cleanup according to GNU std, and remove

@@ -42,6 +42,10 @@
 #include <strings.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 typedef struct _unixmbox_message
   {
     off_t header;

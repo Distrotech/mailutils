@@ -5,14 +5,13 @@
 
 * autogen.sh (libtool) complains about libmailbox.la in noinst (JB Oct 08/99)
 
-+ libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
-  what to do (Shaleh Oct 07/99)
-  
+- added more includes to libmailbox, make sure autoconf finds them
+
 - libmailbox needs an interface to set flags for each message
 
 - libmailbox needs an interface to set and create values in the header
 
-+ crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
+- clean up 'mail''s compilation
 
 - find out why the pop3 server quits on a signal when the 'quit' command is
   given
@@ -21,10 +20,16 @@
 
 - test network code
 
-+ add imap server code (JB && Shaleh Oct 11/99)
-
 - add more features
 
 - optimize everything
 
 - test everything
+
++ libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
+  what to do (Shaleh Oct 07/99)
+  
++ crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
+
++ add imap server code (JB && Shaleh Oct 11/99)
+
