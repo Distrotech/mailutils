@@ -1,3 +1,8 @@
+2002-12-26  Wojciech Polak <polak@gnu.org>
+
+	* po/POTFILES.in: Updated.
+	* sieve/sieve.c: Enabled NLS.
+
 2002-12-25  Wojciech Polak <polak@gnu.org>
 
 	* po/POTFILES.in: Updated.
