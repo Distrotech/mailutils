@@ -337,19 +337,25 @@ MU_CHECK_FUNCS(strtok_r getline strndup strnlen strchrnul)
 MU_CHECK_UTMP
 
 dnl Check for libraries
-AC_CHECK_FUNCS(argp_parse, :,
-               [
-	       MU_LIBOBJ(argp-ba)
-	       MU_LIBOBJ(argp-eexst)
-	       MU_LIBOBJ(argp-fmtstream)
-	       MU_LIBOBJ(argp-fs-xinl)
-	       MU_LIBOBJ(argp-help)
-	       MU_LIBOBJ(argp-parse)
-	       MU_LIBOBJ(argp-pv)
-	       MU_LIBOBJ(argp-pvh)
-	       MU_LIBOBJ(argp-xinl)
-               MU_LIBOBJ(pin)
-	       ])
+USE_INCLUDED_ARGP=
+AC_ARG_WITH([included-argp],
+            AC_HELP_STRING([--with-included-argp],
+                           [Use included argp library]),
+            [USE_INCLUDED_ARGP=${withval}],
+            [AC_CHECK_FUNCS(argp_parse, :, [USE_INCLUDED_ARGP=yes])])
+
+if test $USE_INCLUDED_ARGP = yes; then
+       MU_LIBOBJ(argp-ba)
+       MU_LIBOBJ(argp-eexst)
+       MU_LIBOBJ(argp-fmtstream)
+       MU_LIBOBJ(argp-fs-xinl)
+       MU_LIBOBJ(argp-help)
+       MU_LIBOBJ(argp-parse)
+       MU_LIBOBJ(argp-pv)
+       MU_LIBOBJ(argp-pvh)
+       MU_LIBOBJ(argp-xinl)
+       MU_LIBOBJ(pin)
+fi
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
 AC_TRY_COMPILE([#include <argp.h>
