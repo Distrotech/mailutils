@@ -1,3 +1,38 @@
+2002-12-27  Sergey Poznyakoff
+
+	* auth/Makefile.am: Added NLS support.
+	* auth/pam.c: Likewise.
+	* auth/sql.c: Likewise.
+	* auth/virtual.c: Likewise.
+	
+	* mail/reply.c: The To: and Cc: needn't be translated.
+	
+	* dotlock/dotlock.c: Added missing N_() markers.
+	* frm/frm.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* libsieve/argp.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* mail.remote/mail.remote.c: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+	* mailbox/mu_auth.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* readmsg/readmsg.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	* pop3d/popauth.c: Likewise.
+	* comsat/comsat.c: Likewise.
+	
+	* po/POTFILES.in: Updated
+	
 2002-12-27  Jordi Mallach  <jordi@gnu.org>
 
 	* mh/inc.c: Fixed typo.

@@ -3,6 +3,10 @@
 # Copyright (C) 2002 Free Software Foundation, Inc.
 #
 
+auth/pam.c
+auth/sql.c
+auth/virtual.c
+
 comsat/action.c
 comsat/cfg.c
 comsat/comsat.c
@@ -76,6 +80,7 @@ mailbox/file_stream.c
 mailbox/mailutils-config.c
 mailbox/message.c
 mailbox/mu_argp.c
+mailbox/mu_auth.c
 mailbox/muerrno.c
 
 messages/messages.c
