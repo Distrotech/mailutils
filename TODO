@@ -1,172 +1,148 @@
-+ --> fixed/done
-- --> pending
-= --> on hold
-* --> in progress
 
-[docs]
+* Documentation
 
-[mailbox or mailbox2]
+* mailbox 
 
-IMPORTANT:
-  There is currently a rewrite of the mailbox called mailbox2 to address
-  some of the flaws of the old version.
+** Generic search interface
 
-- generalized search interface
+** Maildir support
 
-[mail.local]
+** iterator_t is very ineffective. Traversing the list from iterator_first()
+till iterator_is_done() takes O(n*(n+1)/2) time units, where n is
+number of elements in the list. To reduce this to O(n), iterator_t
+must keep the address of the last visited item in the list.
 
-- can it append to an imap mailbox?
+** Locking
 
-[pop3]
+*** Implement a read/write locker_lock() flag so that when MU_LOCKER_WRONLY
+is set in the locker flags, only write locks actually lock the file,
+read locks don't do anything.
 
-- pop3d_readline - should this use select(), avoid the race condition,
-  and touch the lockfile in time intervals smaller than
-  MU_LOCKER_EXPIRE_TIME?
+*** implement mailbox_lock() and mailbox_unlock() shortcut functions.
 
-[imap4d]
+*** what kind of locking should mh use? See FIXME in mbx_mh.c
 
-- support of mailspools in user home directory, particularly when
-  they are in maildir format (I think qmail does this).
+*** why does mimetest fail on a symlink, but suceed on a dotlocked file?
 
-- Check interaction with various imap clients. Currently tested with:
-  mail (from mailutils itself), mutt, pine, netscape, mozilla.
+*** implement a force unlock mode... so that when a mailbox
+is closed or destroyed it can make sure that the lock
+is definitely gone.
 
-- Better support of multi-access mailbox
+** argcv.c should unescape strings as well as unquote them
 
-- implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
+** write a fnmatch() that doesn't respect []
 
-- implement AUTHENTICATE KERBEROS_V4 and SKEY and CRAM-MD5 and SRP?
+** select needed
 
-[mail]
+** mailboxes don't remember whether or not they've been opened
 
-- Add support for /etc/mailcap.
+** print errors to a debug object, by default
 
-[mailbox]
+** does IMAP do an EXAMINE instead of a select if the mailbox is being
+opened readonly? Does list return whether a mailbox is readonly?
+Check against CMUs anon server, it is a read-only mailbox.
 
-- iterator_t is very ineffective. Traversing the list from iterator_first()
-  till iterator_is_done() takes O(n*(n+1)/2), where n is number of elements
-  in the list. To reduce this to O(n), iterator_t must keep the address
-  of the last visited item in the list.
+** mu_cpystr - the size_t* size outputs only give strlen(), not the
+actual length?
 
-- locking:
+** need code to find a "real" envelope from... an actual email address
+that DSNs can be sent to.
 
-  - implement a read/write locker_lock() flag so that when MU_LOCKER_WRONLY
-    is set in the locker flags, only write locks actually lock the file,
-    read locks don't do anything.
+** need to be able to map some addresses (like mail to "root") to a
+user for the box, a la nullmailer, perhaps
 
-  - implement mailbox_lock() and mailbox_unlock() shortcut functions.
+** mailer_t: the SMTP mailer isn't as fully implemented as the sendmail
+mailer.
 
-  - what kind of locking should mh use? See FIXME in mbx_mh.c
+** make the smtp mailer calls usable standalone, as well as url based,
+and use them in mail.remote.
 
-  - why does mimetest fail on a symlink, but suceed on a dotlocked file?
+** header_get_value() returns the newline?
 
-  - implement a force unlock mode... so that when a mailbox
-    is closed or destroyed it can make sure that the lock
-    is definitely gone.
+** implement a header_field_unfold()?
 
-- lib/argcv.c should unescape strings as well as unquote them
+** pipe_open_stream() - implemented with popen()
 
-- write a fnmatch() that doesn't respect []
+** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
-- select needed
+* pop3
 
-- mailboxes don't remember whether or not they've been opened
+** pop3d_readline - should this use select(), avoid the race condition,
+and touch the lockfile in time intervals smaller than MU_LOCKER_EXPIRE_TIME?
 
-- print errors to a debug object, by default
+* imap4d
 
-- does IMAP do an EXAMINE instead of a select if the mailbox is being
-  opened readonly? Does list return whether a mailbox is readonly?
-  Check against CMUs anon server, it is a read-only mailbox.
+** Check interaction with various imap clients. Currently tested with:
+mail (from mailutils itself), mutt, pine, netscape, mozilla.
 
-- mu_cpystr - the size_t* size outputs only give strlen(), not the
-  actual length?
+** Better support of multi-access mailbox
 
-- finish mh mailbox support (they don't have a folder yet)
+** implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
-- need code to find a "real" envelope from... an actual email address
-  that DSNs can be sent to.
+** implement AUTHENTICATE KERBEROS_V4 and SKEY and CRAM-MD5 and SRP?
 
-- need to be able to map some addresses (like mail to "root") to a
-  user for the box, a la nullmailer, perhaps
+* mail
 
-- mailer_t: the SMTP mailer isn't as fully implemented as the sendmail
-  mailer.
+** Add support for /etc/mailcap
 
-- make the smtp mailer calls useable standalone, as well as url based,
-  and use them in mail.remote.
+* Mailcap API
 
-- header_get_value() returns the newline?
+The framework is implemented. Needs extensive testing.
 
-- implement a header_field_unfold()?
+* Mime.types API
 
-- pipe_open_stream() - implemented with popen()
+* libmuauth
 
-+ Configuration API
+** First argument to mu_auth_fp (and second one to mu_auth_runlist) should
+be struct mu_auth_data ** instead of void *.
 
-- Mailcap API
+* examples
 
-- Mime.types API
+** unify the mbox-* and mimetest examples with messages, it would be nice
+to have a general purpose tool
 
-+ A ticket file format allowing specification of different authentication
-  information for different mailboxes.
+* mh -- see mh/TODO
 
-- imap4 client login referals
+* sieve
 
-- imap4 client mailbox referals
+** Implement boolean shortcut evaluation for `allof' and `anyof'
 
-- Maildir mailbox support
+** uid isn't good to identify messages, use message-id?
 
-+ support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
+** run as daemon, sieveing mail on arrival (need interface for notification
+of message arrival, this is supported by imap, but we'll have to fake
+for pop and local spools my polling, why can't you select() on a unix
+file?)
 
-[libmuauth]
+NOTE: Do we need it? mail.local already provides this functionality.
 
-- First argument to mu_auth_fp (and second one to mu_auth_runlist) should
-  be struct mu_auth_data ** instead of void *.
+* utilities
 
-[examples]
+** forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
 
-- unify the mbox-* and mimetest examples with messages, it would be nice
-  to have a general purpose tool
+** utility to move all mail from one mailbox to another, like mbox to
+IMAP, preserving all flags that are possible. can sieve do this, or do
+I need a mbox-copy() utility?
 
-[mh]
+** file viewer, based on the mimetypes api. I want to do a "v foo.blah",
+have it look up .blah in mime.types, and do the action spec'ed in mailcap.
 
-- see mh/TODO
+** all
 
-[sieve]
+* add nightly build
 
-- Implement boolean shortcut evaluation for `allof' and `anyof'
+* add more features
 
-- uid isn't good to identify messages, use message-id?
+* optimize everything
 
-- run as daemon, sieveing mail on arrival (need interface for notification
-  of message arrival, this is supported by imap, but we'll have to fake
-  for pop and local spools my polling, why can't you select() on a unix
-  file?)
-  Do we need it? mail.local already provides this functionality.
+* test everything
 
-[utilities]
+* util_strcasestr() from mail/util.c provides the same functionality
+as i_ascii_casemap_contains() from libsieve/comparator. Merge both
+versions.
 
-- forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
-
-- utility to move all mail from one mailbox to another, like mbox to
-  IMAP, preserving all flags that are possible. can sieve do this, or do
-  I need a mbox-copy() utility?
-
-- file viewer, based on the mimetypes api. I want to do a "v foo.blah",
-  have it look up .blah in mime.types, and do the action spec'ed in mailcap.
-
-[all]
-
-- add nightly build
-
-- add more features
-
-- optimize everything
-
-- test everything
-
-+ add imap server code (JB && Shaleh Oct 11/99)
-
-- util_strcasestr() from mail/util.c provides the same functionality
-  as i_ascii_casemap_contains() from libsieve/comparator. Merge both
-  versions.
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
