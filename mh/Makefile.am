@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ##
 ##   GNU Mailtuils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -17,8 +17,8 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp
-EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp
+PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp send
+EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp send
 
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
@@ -57,6 +57,7 @@ fmtcheck_LDADD = $(mh_LIBS)
 repl_LDADD = $(mh_LIBS)
 comp_LDADD = $(mh_LIBS)
 whatnow_LDADD = $(mh_LIBS)
+send_LDADD = $(mh_LIBS)
 
 AM_YFLAGS=-vt
 

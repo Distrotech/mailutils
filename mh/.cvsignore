@@ -14,5 +14,6 @@ fmtcheck
 repl
 whatnow
 comp
+send
 *.output
 .gdbinit
