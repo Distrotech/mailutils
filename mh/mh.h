@@ -211,6 +211,9 @@ struct mh_whatnow_env {   /* An environment for whatnow shell */
 typedef int (*mh_context_iterator) __PMT((char *field,
 					  char *value, char *data));
 
+#define SEQ_PRIVATE 1
+#define SEQ_ZERO    2
+
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
@@ -303,3 +306,7 @@ int mhl_format_run __P((list_t fmt, int width, int length,
 			int clearscreen, int bell,
 			message_t msg, stream_t output));
 void mhl_format_destroy (list_t *fmt);
+
+void mh_seq_add __P((char *name, mh_msgset_t *mset, int flags));
+int mh_seq_delete __P((char *name, mh_msgset_t *mset, int flags));
+char *mh_seq_read __P((char *name, int flags));
