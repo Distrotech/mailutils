@@ -6,6 +6,9 @@
 	if the call fails no memory should be allocated and the return status
 	should be return i.e. status != 0.
 
+	* imap4d/fetch.c (fetch_bodystructure0):  Check for sp != NULL.
+	* imap4d/fetch.c (send_parameter_list):  Check for sp != NULL.
+
 2001-08-23 Sergey Poznyakoff
 
 	* mail/msgset.y: Fixed erroneous call to msgset_select

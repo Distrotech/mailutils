@@ -362,7 +362,7 @@ fetch_internaldate (struct fetch_command *command, char **arg)
   envelope_t env = NULL;
   struct tm *tptr;
   time_t env_time;
-  
+
   (void)arg; /* No arguments.  */
   message_get_envelope (command->msg, &env);
   date[0] = '\0';
@@ -678,9 +678,9 @@ fetch_bodystructure0 (message_t message, int extension)
       /* The extension data for multipart. */
       if (extension)
         {
-	  while (*sp && isspace ((unsigned)*sp)) sp++;
+	  while (sp && *sp && isspace ((unsigned)*sp)) sp++;
 	  /* body parameter parenthesized list: Content-type parameter list. */
-	  if (*sp)
+	  if (sp && *sp)
 	    {
 	      util_send (" (");
 	      {
@@ -1471,8 +1471,8 @@ send_parameter_list (char *buffer)
       util_send ("(");
       s = strtok_r (buffer, " \t\r\n;", &sp);
       util_send_qstring (s);
-      while (*sp && isspace ((unsigned)*sp)) sp++;
-      if (*sp)
+      while (sp && *sp && isspace ((unsigned)*sp)) sp++;
+      if (sp && *sp)
 	{
 	  int space = 0;
 	  util_send (" (");
@@ -1502,5 +1502,3 @@ send_parameter_list (char *buffer)
     util_send ("NIL");
   return 0;
 }
-
-
