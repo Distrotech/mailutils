@@ -173,6 +173,21 @@ options:
 	Don't compile regex; this is the default on systems with version
 	2 of the GNU C library (use with caution on other systems)
 
+    --disable-nls
+
+        Do not use Native Language Support
+
+    --with-included-gettext
+
+       Use the GNU gettext library included in the Mailutils distribution.
+
+    --with-included-argp
+
+        Use the argp library supplied with the package, instead of the
+        one from your libc. You will need this option if the libc library
+        on your system was compiled without NLS support.
+
+
 Use following options to disable support for particular protocols or
 features:
 
