@@ -627,16 +627,10 @@ _prog_waitpid (void *item, void *data ARG_UNUSED)
 }
 
 static void
-_prog_stream_wait (struct _prog_stream *stream)
+_prog_stream_wait (struct _prog_stream *fs)
 {
-  list_do (prog_stream_list, _prog_waitpid, NULL);
-  if (stream->pid > 0)
-    {
-      kill (stream->pid, SIGTERM);
-      kill (stream->pid, SIGKILL);
-      kill (stream->writer_pid, SIGKILL);
-      list_do (prog_stream_list, _prog_waitpid, NULL);
-    }
+  if (fs->pid > 0)
+    waitpid (fs->pid, &fs->status, 0);
 }
 
 #if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
@@ -646,16 +640,22 @@ _prog_stream_wait (struct _prog_stream *stream)
 #else
 # define getmaxfd() 64
 #endif
-     
+
+#define REDIRECT_STDIN_P(f) ((f) & (MU_STREAM_WRITE|MU_STREAM_RDWR))
+#define REDIRECT_STDOUT_P(f) ((f) & (MU_STREAM_READ|MU_STREAM_RDWR))
+
 static int
-start_program_filter (pid_t *pid, int *p, int argc, char **argv, char *errfile)
+start_program_filter (pid_t *pid, int *p, int argc, char **argv,
+		      char *errfile, int flags)
 {
   int rightp[2], leftp[2];
   int i;
   int rc = 0;
   
-  pipe (leftp);
-  pipe (rightp);
+  if (REDIRECT_STDIN_P (flags))
+    pipe (leftp);
+  if (REDIRECT_STDOUT_P (flags))
+    pipe (rightp);
   
   switch (*pid = fork ())
     {
@@ -664,21 +664,27 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv, char *errfile)
       /* attach the pipes */
 
       /* Right-end */
-      if (rightp[1] != 1)
+      if (REDIRECT_STDOUT_P (flags))
 	{
-	  close (1);
-	  dup2 (rightp[1], 1);
+	  if (rightp[1] != 1)
+	    {
+	      close (1);
+	      dup2 (rightp[1], 1);
+	    }
+	  close (rightp[0]);
 	}
-      close (rightp[0]); 
 
       /* Left-end */
-      if (leftp[0] != 0)
+      if (REDIRECT_STDIN_P (flags))
 	{
-	  close (0);
-	  dup2 (leftp[0], 0);
+	  if (leftp[0] != 0)
+	    {
+	      close (0);
+	      dup2 (leftp[0], 0);
+	    }
+	  close (leftp[1]);
 	}
-      close (leftp[1]);
-
+      
       /* Error output */
       if (errfile)
 	{
@@ -709,18 +715,34 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv, char *errfile)
       /* Fork has failed */
       /* Restore things */
       rc = errno;
-      close (rightp[0]);
-      close (rightp[1]);
-      close (leftp[0]);
-      close (leftp[1]);
+      if (REDIRECT_STDOUT_P (flags))
+	{
+	  close (rightp[0]);
+	  close (rightp[1]);
+	}
+      if (REDIRECT_STDIN_P (flags))
+	{
+	  close (leftp[0]);
+	  close (leftp[1]);
+	}
       break;
 		
     default:
-      p[0] = rightp[0];
-      close (rightp[1]);
-		
-      p[1] = leftp[1];
-      close (leftp[0]);
+      if (REDIRECT_STDOUT_P (flags))
+	{
+	  p[0] = rightp[0];
+	  close (rightp[1]);
+	}
+      else
+	p[0] = -1;
+
+      if (REDIRECT_STDIN_P (flags))
+	{
+	  p[1] = leftp[1];
+	  close (leftp[0]);
+	}
+      else
+	p[1] = -1;
     }
   return rc;
 }
@@ -734,6 +756,15 @@ _prog_destroy (stream_t stream)
     stream_destroy (&fs->in, stream_get_owner (fs->in));
   if (fs->out)
     stream_destroy (&fs->out, stream_get_owner (fs->out));
+  if (fs->pid > 0)
+    {
+      kill (fs->pid, SIGTERM);
+      list_do (prog_stream_list, _prog_waitpid, NULL);
+      kill (fs->pid, SIGKILL);
+      if (fs->writer_pid > 0)
+	kill (fs->writer_pid, SIGKILL);
+      list_do (prog_stream_list, _prog_waitpid, NULL);
+    }
   _prog_stream_unregister (fs);
 }
 
@@ -748,13 +779,13 @@ _prog_close (stream_t stream)
   if (fs->pid <= 0)
     return 0;
 
+  stream_close (fs->out);
+  stream_destroy (&fs->out, stream_get_owner (fs->out));
+
   _prog_stream_wait (fs);
   
   stream_close (fs->in);
   stream_destroy (&fs->in, stream_get_owner (fs->in));
-
-  stream_close (fs->out);
-  stream_destroy (&fs->out, stream_get_owner (fs->out));
 
   if (WIFEXITED (fs->status))
     {
@@ -812,7 +843,6 @@ _prog_open (stream_t stream)
   int pfd[2];
   int flags;
   int seekable_flag;
-  sigset_t chldmask;
   
   if (!fs || fs->argc == 0)
     return EINVAL;
@@ -825,16 +855,14 @@ _prog_open (stream_t stream)
   stream_get_flags (stream, &flags);
   seekable_flag = (flags & MU_STREAM_SEEKABLE);
   
-  sigemptyset (&chldmask);	/* now block SIGCHLD */
-  sigaddset (&chldmask, SIGCHLD);
-  
-  rc = start_program_filter (&fs->pid, pfd, fs->argc, fs->argv, NULL);
+  rc = start_program_filter (&fs->pid, pfd, fs->argc, fs->argv, NULL, flags);
   if (rc)
     return rc;
 
-  if (flags & (MU_STREAM_READ|MU_STREAM_RDWR))
+  if (REDIRECT_STDOUT_P (flags))
     {
       FILE *fp = fdopen (pfd[0], "r");
+      setvbuf (fp, NULL, _IONBF, 0);
       rc = stdio_stream_create (&fs->in, fp, MU_STREAM_READ|seekable_flag);
       if (rc)
 	{
@@ -848,12 +876,11 @@ _prog_open (stream_t stream)
 	  return rc;
 	}
     }
-  else
-    close (pfd[0]);
   
-  if (flags & (MU_STREAM_WRITE|MU_STREAM_RDWR))
+  if (REDIRECT_STDIN_P (flags))
     {
       FILE *fp = fdopen (pfd[1], "w");
+      setvbuf (fp, NULL, _IONBF, 0);
       rc = stdio_stream_create (&fs->out, fp, MU_STREAM_WRITE|seekable_flag);
       if (rc)
 	{
@@ -867,8 +894,6 @@ _prog_open (stream_t stream)
 	  return rc;
 	}
     }
-  else
-    close (pfd[1]);
 
   _prog_stream_register (fs);
   if (fs->input)
