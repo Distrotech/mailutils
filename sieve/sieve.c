@@ -308,7 +308,7 @@ main (int argc, char *argv[])
   int (*debugfp) __P ((mu_debug_t, size_t level, const char *, va_list));
 
   /* Native Language Support */
-  /* mu_init_nls (); */
+  mu_init_nls ();
 
   sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
