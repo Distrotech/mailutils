@@ -25,7 +25,7 @@ mailbox_t mbox;
 unsigned int timeout;
 int state;
 char *username;
-char *maildir = _PATH_MAILDIR;
+char *maildir = MU_PATH_MAILDIR;
 FILE *ifile;
 FILE *ofile;
 char *md5shared;

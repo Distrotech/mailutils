@@ -34,10 +34,6 @@
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
 
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/usr/spool/mail"
-#endif
-
 /* Is this a security risk?  */
 #define USE_ENVIRON 1
 
@@ -281,6 +277,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
   if (mbox == NULL)
     {
       const char *user = NULL;
+      int len;
 #ifdef USE_ENVIRON
       user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
 #endif
@@ -296,10 +293,10 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 	      return EINVAL;
 	    }
 	}
-      mbox = malloc (strlen (user) + strlen (_PATH_MAILDIR) + 2);
+      mbox = malloc (strlen (user) + strlen (MU_PATH_MAILDIR) + 2);
       if (mbox == NULL)
 	return ENOMEM;
-      sprintf (mbox, "%s/%s", _PATH_MAILDIR, user);
+      sprintf (mbox, "%s%s", MU_PATH_MAILDIR, user);
     }
   status = mailbox_create (pmbox, mbox);
   free (mbox);

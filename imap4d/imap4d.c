@@ -25,7 +25,7 @@ FILE *ofile;
 unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
 char *homedir;
-char *maildir = _PATH_MAILDIR;
+char *maildir = MU_PATH_MAILDIR;
 int state = STATE_NONAUTH;
 
 /* Number of child processes.  */

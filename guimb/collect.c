@@ -16,13 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "guimb.h"
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
-
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/var/spool/mail"
-#endif
 
 char *temp_filename;
 FILE *temp_file;
@@ -32,7 +25,16 @@ void
 collect_open_default ()
 {
   size_t nmesg;
-  
+
+  if (!default_mailbox)
+    {
+      asprintf (&default_mailbox, "%s%s", maildir, user_name);
+      if (!default_mailbox)
+	{
+	  util_error ("not enough memory");
+	  exit (1);
+	}
+    }
   if (mailbox_create (&mbox, default_mailbox) != 0
       || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
@@ -137,18 +139,6 @@ collect_output ()
       return 0;
     }
 
-  if (!default_mailbox)
-    {
-      if (!user_name)
-	return 0;
-      asprintf (&default_mailbox, "%s/%s", _PATH_MAILDIR, user_name);
-      if (!default_mailbox)
-	{
-	  fprintf (stderr, "guimb: not enough memory\n");
-	  return 1;
-	}
-    }
-
   if (user_name)
     saved_umask = umask (077);
   
@@ -196,4 +186,19 @@ collect_drop_mailbox ()
       unlink (temp_filename);
       free (temp_filename);
     }
+}
+
+int
+guimb_catch_handler (void *unused, SCM tag, SCM throw_args)
+{
+  collect_drop_mailbox ();
+  return scm_handle_by_message ("guimb", tag, throw_args);
+}
+
+int
+guimb_exit (void *unused1, mailbox_t unused2)
+{
+  int rc = collect_output ();
+  collect_drop_mailbox ();
+  return rc;
 }
