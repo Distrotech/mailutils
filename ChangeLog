@@ -1,3 +1,18 @@
+2003-12-23  Sergey Poznyakoff 
+
+	* examples/pop3client.c: Added typecasts
+	* include/mailutils/errno.h: New error codes
+	* mailbox/muerrno.c: Likewise
+	* mail.remote/testsuite/Data: Updated to synchronize
+	with the changes dated 2003-12-04
+	* mailbox/file_stream.c: Rewritten support for program
+	streams.
+	(filter_prog_stream_create): New function.
+	* include/mailutils/stream.h (filter_prog_stream_create): New
+	function.
+	* examples/murun.c: New file
+	* examples/Makefile.am: Added murun.c
+	
 2003-12-17  Wojciech Polak
 
 	* configure.ac: Set AM_GNU_GETTEXT_VERSION(0.13).
