@@ -91,7 +91,7 @@ stream_open (stream_t stream, const char *name, int port, int flags)
   if (stream == NULL)
     return EINVAL;
   stream->state = MU_STREAM_STATE_OPEN;
-  stream->flags = flags;
+  stream->flags |= flags;
   if (stream->_open)
     return stream->_open (stream, name, port, flags);
   return  0;
