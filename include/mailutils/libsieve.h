@@ -201,6 +201,7 @@ ticket_t sieve_get_ticket __P((sieve_machine_t mach));
 mailer_t sieve_get_mailer __P((sieve_machine_t mach));
 int sieve_get_locus __P((sieve_machine_t mach, sieve_locus_t *));
 char *sieve_get_daemon_email __P((sieve_machine_t mach));
+const char *sieve_get_identifier __P((sieve_machine_t mach));
        
 void sieve_set_error __P((sieve_machine_t mach, sieve_printf_t error_printer));
 void sieve_set_parse_error __P((sieve_machine_t mach, sieve_parse_error_t p));
@@ -222,7 +223,8 @@ void sieve_log_action __P((sieve_machine_t mach, const char *action,
 			   const char *fmt, ...));
 void sieve_abort __P((sieve_machine_t mach));
 int stream_printf __P((stream_t stream, size_t *off, const char *fmt, ...));
-
+void sieve_arg_error __P((sieve_machine_t mach, int n));
+  
 int sieve_is_dry_run __P((sieve_machine_t mach));
 const char *sieve_type_str __P((sieve_data_type type));
 
