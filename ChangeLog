@@ -1,3 +1,46 @@
+1999-09-22  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* mail/mail.c (main): added 'f' and 'F' to test mbox_header_line
+
+	* pop3d/apop.c (pop3_apop): cleanup, partial rewrite for libmailbox
+
+	* pop3d/retr.c (pop3_retr): fixed a potential segfault
+
+	* pop3d/user.c (pop3_user): cleanup and use mbox_lock
+
+	* libmailbox/mailbox.c (mbox_header_line): new function
+	(mbox_body_lines): new function
+
+	* mail/Makefile.am (mail_DEPENDENCIES): added libmailbox.la
+
+	* pop3d/top.c (pop3_top): made it work with libmailbox
+
+	* libmailbox/unixmbox.c (unixmbox_open): added check to see if it's
+	actually an mbox file
+	(unixmbox_open): Set mbox->_lock to unixmbox_lock
+	(unixmbox_lock): new function
+
+	* libmailbox/unixmbox.h: Added prototype for locking
+
+	* libmailbox/mailbox.c: Add dummy initializer for locking
+
+	* libmailbox/mailbox.h: Added interface for locking
+	Added interfaces for mbox_header_line and mbox_body_lines
+
+	* pop3d/*.[ch]: changed copyright info to FSF
+
+	* libmailbox/*.[ch]: added copyright/licensing info
+
+1999-09-21  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* pop3d/Makefile.am (pop3d_LDADD): add $(AUTHLIBS)
+
+	* configure.in: Added libsrc/Makefile to AC_OUTPUT (duh, Jake!)
+	fixed the PAM and crypt checks
+
+	* README: actually put something here, noted necessary tools to build
+	from CVS
+
 1999-09-14  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* pop3d/pop3d.c (main): moved setgid() call to after option parsing
@@ -42,3 +85,7 @@
 
 	* */*: Accomidate directory rearrange
 
+
+
+
+	

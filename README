@@ -1,0 +1,6 @@
+This is the GNU mailutils package.
+
+This is a *pre-release* version, and not ready for production use yet. If you
+are taking source from CVS, you will need to have libtool, automake, and autoconf
+installed to help contribute. See the file 'INSTALL' for (generic) installation
+instructions.

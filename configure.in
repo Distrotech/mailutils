@@ -24,19 +24,25 @@ AC_CHECK_HEADERS(string.h strings.h, break)
 
 dnl Check for libraries
 if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
-	AC_CHECK_LIB(pam, pam_authenticate,
-		[LIBS="$LIBS -ldl -lpam"; AC_DEFINE(USE_LIBPAM)],, -ldl)
+	AC_CHECK_LIB(pam, pam_start, AUTHLIBS="-lpam -ldl",, -ldl)
+	AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 ##fi
 ##if test x"$ac_cv_have_libpam" != x"yes"; then
 else
 	AC_CHECK_FUNCS(crypt)
 	if test x"$ac_cv_func_crypt" = x"no"; then
-		AC_CHECK_LIB(crypt, crypt,
-			[LIBS="$LIBS -lcrypt"],, -lcrypt)
+		AC_CHECK_LIB(crypt, crypt, AUTHLIBS="-lcrypt",, -lcrypt)
 	fi
 fi
 
 dnl Output Makefiles
-AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile pop3d/Makefile)
+AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile pop3d/Makefile
+	libsrc/Makefile)
+
+
+
+
+
+
 
 
