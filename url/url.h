@@ -94,24 +94,18 @@ extern void url_mbox_destroy __P ((url_t *));
 extern int url_create __P ((url_t *, const char *name));
 extern void url_destroy __P ((url_t *));
 
-#ifdef __GNUC__
-#define INLINE __inline__
-#else
-#define INLINE
-#endif
-
-extern INLINE int url_get_scheme  (const url_t, char *, unsigned int);
-extern INLINE int url_get_user    (const url_t , char *, unsigned int);
-extern INLINE int url_get_passwd  (const url_t, char *, unsigned int);
-extern INLINE int url_get_host    (const url_t, char *, unsigned int);
-extern INLINE int url_get_port    (const url_t, long *);
-extern INLINE int url_get_path    (const url_t, char *, unsigned int);
-extern INLINE int url_get_query   (const url_t, char *, unsigned int);
-extern INLINE int url_is_pop      (const url_t);
-extern INLINE int url_is_imap     (const url_t);
-extern INLINE int url_is_unixmbox (const url_t);
+extern int url_get_scheme  (const url_t, char *, unsigned int);
+extern int url_get_user    (const url_t , char *, unsigned int);
+extern int url_get_passwd  (const url_t, char *, unsigned int);
+extern int url_get_host    (const url_t, char *, unsigned int);
+extern int url_get_port    (const url_t, long *);
+extern int url_get_path    (const url_t, char *, unsigned int);
+extern int url_get_query   (const url_t, char *, unsigned int);
+extern int url_is_pop      (const url_t);
+extern int url_is_imap     (const url_t);
+extern int url_is_unixmbox (const url_t);
 /* pop*/
-extern INLINE int url_pop_get_auth (const url_t, char *, unsigned int);
+extern int url_pop_get_auth (const url_t, char *, unsigned int);
 
 #ifdef URL_MACROS
 # define url_get_scheme(url, prot, n)		url->_get_scheme(url, prot, n)
