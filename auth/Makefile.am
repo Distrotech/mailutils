@@ -18,7 +18,8 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${top_srcdir}/lib @INTLINCS@
-AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
+AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
+            -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
 
 lib_LTLIBRARIES = libmuauth.la
 
