@@ -1,5 +1,33 @@
 2001-10-16  Sergey Poznyakoff
-	
+
+	According to rfc2060 the minimum timeout is 30 minutes.  But
+	it is not unusual to see server with a shorter timeout.  When
+	the timeout occurs, the server sends a BYE.  To catch this
+	all functions in folder_imap.c and mbx_imap.c use a proloque
+	folder_open() or imap_messages_count to check if the server
+	timedout and reconnect.  This is not bullet proof since the
+	"* BYE" will be act upon on the second request, the first
+	is where we catch "* BYE".  On mailbox2 this behaviour will
+	be disable/enable with a property and make more reliable,
+	so client set the property "AUTORECONNECT".
+
+	* mailbox/folder_imap.c: Prologue to must functions calling
+	folder_open().
+	* mailbox/mbx_imap.c: Proloque to must functions calling
+	folder_open() or imap_messages_count.
+	(section_name): Buglet passed the wrong argument to sizeof().
+
+	For debugging purposes, to see the traffic
+	* mailbox/folder_imap.c:
+	Print to stderr the command sent to the IMAP server.
+	#define DEBUG_SHOW_COMMAND 1
+	Print to stderr the responses received from the IMAP server.
+	#define DEBUG_SHOW_RESPONSE 1
+	Print to stderr the literal/quoted string received from the IMAP
+	server. #define DEBUG_SHOW_DATA 1
+
+2001-10-16  Sergey Poznyakoff
+
 	* doc/texinfo/mailutils.texi: Eliminated overfull \hboxes in printed
 	output.
 	* doc/texinfo/programs.texi: Likewise. Use @ref instead of @xref
