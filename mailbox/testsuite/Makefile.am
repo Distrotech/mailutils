@@ -7,7 +7,7 @@ DEJATOOL = mailbox
 RUNTESTFLAGS = 
 CLEANFILES = *.log
 test_dirs = lib mailbox
-EXTRA_DIST = Addrs Mime Urls
+EXTRA_DIST = Addrs Mime Urls Encode Decode
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
