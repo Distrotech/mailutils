@@ -3,7 +3,7 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-noinst_PROGRAMS = addr url-parse sfrom mimetest muemail msg-send
+noinst_PROGRAMS = addr url-parse sfrom mimetest muemail msg-send http
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib
 AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la 
