@@ -64,6 +64,7 @@ extern "C" {
 #define MU_HEADER_X_IMAPBASE                "X-IMAPbase"
 #define MU_HEADER_ENV_SENDER                "X-Envelope-Sender"
 #define MU_HEADER_ENV_DATE                  "X-Envelope-Date"
+#define MU_HEADER_FCC                       "Fcc"
 
 /* Mime support header attribute */
 
