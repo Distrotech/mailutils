@@ -4,7 +4,9 @@ dnl MU_CHECK_GSSAPI(PREFIX)
 dnl Search for a GSSAPI implementation in the standard locations plus PREFIX,
 dnl if it is set and not "yes".
 dnl Defines GSSAPI_CFLAGS and GSSAPI_LIBS if found.
-dnl Defines GSSAPI_IMPL to "Heimdal", "MIT", or "OldMIT", or "none" if not found
+dnl Defines GSSAPI_IMPL to "GSS", "Heimdal", "MIT", or "OldMIT", or
+dnl "none" if not found
+
 AC_DEFUN([MU_CHECK_GSSAPI],
 [
  if test "x$mu_cv_lib_gssapi_libs" = x; then
@@ -18,7 +20,25 @@ AC_DEFUN([MU_CHECK_GSSAPI],
     krb5_path="$PATH"
   fi
   AC_PATH_PROG(KRB5CFGPATH, krb5-config, none, $krb5_path)
-  if test "$KRB5CFGPATH" != "none"; then
+  AC_CHECK_HEADER(gss.h, [wantgss=yes], [wantgss=no])
+  if test $wantgss != no; then
+    save_LIBS=$LIBS
+    AC_CHECK_LIB(gss, gss_check_version, [GSSAPI_LIBS=-lgss], [wantgss=no])
+    if test $wantgss != no; then
+      LIBS="$LIBS $GSSAPI_LIBS"
+      AC_TRY_RUN([
+#include <gss.h>
+int main() { return gss_check_version ("0.0.9") == (char*) 0; }],
+                 [:],
+                 [wantgss=no],
+                 [wantgss=no])
+    fi
+    LIBS=$save_LIBS
+  fi
+  if test $wantgss != no; then
+    GSSAPI_IMPL="GSS"
+    AC_DEFINE(WITH_GSS,1,[Define if mailutils is using GSS library for GSSAPI])
+  elif test "$KRB5CFGPATH" != "none"; then
     GSSAPI_CFLAGS="$CPPFLAGS `$KRB5CFGPATH --cflags gssapi`"
     GSSAPI_LIBS="`$KRB5CFGPATH --libs gssapi`"
     GSSAPI_IMPL="Heimdal"
@@ -66,6 +86,30 @@ AC_DEFUN([MU_CHECK_GSSAPI],
     LDFLAGS="$saved_LDFLAGS"
     LIBS="$saved_LIBS"
   fi
+
+  saved_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $GSSAPI_CFLAGS"
+  AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h gssapi/gssapi_generic.h)
+  AC_CHECK_DECL(GSS_C_NT_HOSTBASED_SERVICE,, [
+                AC_DEFINE(GSS_C_NT_HOSTBASED_SERVICE,
+                          gss_nt_service_name,
+                          [Work around buggy MIT library])],[
+#ifdef WITH_GSS
+# include <gss.h>
+#else
+# ifdef HAVE_GSSAPI_H
+#  include <gssapi.h>
+# else
+#  ifdef HAVE_GSSAPI_GSSAPI_H
+#   include <gssapi/gssapi.h>
+#  endif
+#  ifdef HAVE_GSSAPI_GSSAPI_GENERIC_H
+#   include <gssapi/gssapi_generic.h>
+#  endif
+# endif
+#endif
+])    
+  CPPFLAGS="$saved_CPPFLAGS"
 
   mu_cv_lib_gssapi_cflags="$GSSAPI_CFLAGS"
   mu_cv_lib_gssapi_libs="$GSSAPI_LIBS"

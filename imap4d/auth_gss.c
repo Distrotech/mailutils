@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,9 +23,21 @@
 
 #include <netinet/in.h>
 
-#include <krb5.h>
-#include <gssapi/gssapi.h>
-#include <gssapi/gssapi_generic.h>
+#ifdef WITH_GSS
+# include <gss.h>
+#else
+# include <krb5.h>
+# ifdef HAVE_GSSAPI_H
+#  include <gssapi.h>
+# else
+#  ifdef HAVE_GSSAPI_GSSAPI_H
+#   include <gssapi/gssapi.h>
+#  endif
+#  ifdef HAVE_GSSAPI_GSSAPI_GENERIC_H
+#   include <gssapi/gssapi_generic.h>
+#  endif
+# endif
+#endif
 
 #define GSS_AUTH_P_NONE      1
 #define GSS_AUTH_P_INTEGRITY 2
@@ -47,11 +59,23 @@ display_status_1 (char *m, OM_uint32 code, int type)
   do
     {
       maj_stat = gss_display_status (&min_stat, code,
-				     type, GSS_C_NULL_OID, &msg_ctx, &msg);
-      syslog (LOG_ERR, _("GSS-API error %s: %s"), m, (char *) msg.value);
-      gss_release_buffer (&min_stat, &msg);
+				     type, GSS_C_NO_OID, &msg_ctx, &msg);
+      if (GSS_ERROR (maj_stat))
+	{
+	  asprintf ((char**)&msg.value, "code %d", code);
+	  msg.length = strlen (msg.value);
+	}
+
+      syslog (LOG_ERR, _("GSS-API error %s (%s): %.*s"),
+	      m, type == GSS_C_GSS_CODE ? _("major") : _("minor"),
+	      (int) msg.length, (char *) msg.value);
+
+      if (GSS_ERROR (maj_stat))
+	free (msg.value);
+      else
+        gss_release_buffer (&min_stat, &msg);
     }
-  while (msg_ctx);
+  while (!GSS_ERROR (maj_stat) && msg_ctx);
 }
 
 static void
@@ -61,6 +85,7 @@ display_status (char *msg, OM_uint32 maj_stat, OM_uint32 min_stat)
   display_status_1 (msg, min_stat, GSS_C_MECH_CODE);
 }
 
+#ifndef WITH_GSS
 static int
 imap4d_gss_userok (gss_buffer_t client_name, char *name)
 {
@@ -79,6 +104,7 @@ imap4d_gss_userok (gss_buffer_t client_name, char *name)
   krb5_free_principal (kcontext, p);
   return rc;
 }
+#endif
 
 static int
 auth_gssapi (struct imap4d_command *command,
@@ -98,6 +124,7 @@ auth_gssapi (struct imap4d_command *command,
   gss_qop_t quality;
   gss_name_t client;
   gss_buffer_desc client_name;
+  int baduser;
 
   /* Obtain server credentials. RFC 1732 states, that 
      "The server must issue a ready response with no data and pass the
@@ -112,7 +139,7 @@ auth_gssapi (struct imap4d_command *command,
   tokbuf.value = tmp;
   tokbuf.length = strlen (tokbuf.value) + 1;
   maj_stat = gss_import_name (&min_stat, &tokbuf,
-			      gss_nt_service_name, &server_name);
+			      GSS_C_NT_HOSTBASED_SERVICE, &server_name);
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("import name", maj_stat, min_stat);
@@ -257,7 +284,13 @@ auth_gssapi (struct imap4d_command *command,
       return RESP_NO;
     }
 
-  if (imap4d_gss_userok (&client_name, *username))
+#ifdef WITH_GSS
+  baduser = !gss_userok (client, *username);
+#else
+  baduser = imap4d_gss_userok (&client_name, *username);
+#endif
+
+  if (baduser)
     {
       syslog (LOG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
 	      (char *) client_name.value, *username);
