@@ -581,7 +581,7 @@ message_write (ostream_t os, const char *buf, size_t buflen,
   /* Probably being lazy, then create a body for the stream */
   if (msg->body == NULL)
     {
-      int status = body_init (&body, msg->owner);
+      int status = body_init (&body, msg);
       if (status != 0 )
         return status;
       msg->body = body;

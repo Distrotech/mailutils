@@ -842,10 +842,10 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
       /* notification MBX_PROGRESS
        * We do not want to fire up the progress notification
        * every line, it will be too expensive, so we do it
-       * arbitrarely every 100 Lines.
+       * arbitrarely every 10 000 Lines.
        * FIXME: maybe this should be configurable.
        */
-      if ((++progress_counter % 100) == 0)
+      if ((++progress_counter % 10000) == 0)
       {
 	off_t where = ftell (mud->file);
 	funlockfile (mud->file);

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-static int header_parse (header_t h, const char *blurb, int len);
+static int header_parse (header_t h, char *blurb, int len);
 static int header_read (istream_t is, char *buf, size_t buflen,
 			off_t off, size_t *pnread);
 static int header_write (ostream_t os, const char *buf, size_t buflen,
@@ -52,8 +52,6 @@ struct _header
   istream_t is;
   ostream_t os;
 
-  size_t num;
-
   /* owner ? */
   void *owner;
   int ref_count;
@@ -69,9 +67,12 @@ header_init (header_t *ph, const char *blurb, size_t len, void *owner)
     return ENOMEM;
   h->owner = owner;
 
-  status = header_parse (h, blurb, len);
+  status = header_parse (h, (char *)blurb, len);
   if (status != 0)
-    free (h);
+    {
+      free (h);
+      return status;
+    }
 
   status = istream_init (&(h->is), header_read, h);
   if (status != 0)
@@ -100,8 +101,8 @@ header_destroy (header_t *ph, void *owner)
 	  (h->owner == NULL && h->ref_count <= 0))
 	{
 	  /* io */
-	  istream_destroy (&(h->is), owner);
-	  ostream_destroy (&(h->os), owner);
+	  istream_destroy (&(h->is), h);
+	  ostream_destroy (&(h->os), h);
 
 	  free (h->hdr);
 	  free (h->blurb);
@@ -113,38 +114,45 @@ header_destroy (header_t *ph, void *owner)
 
 /*
  * Parsing is done in a rather simple fashion.
- * meaning we just  consider an entry to be
+ * meaning we just consider an entry to be
  * a field-name an a field-value.  So they
  * maybe duplicate of field-name like "Received"
  * they are just put in the array, see _get_value()
  * on how to handle the case.
+ * in the case of error .i.e a bad header construct
+ * we do a full stop and return what we have so far.
  */
 static int
-header_parse (header_t header, const char *blurb, int len)
+header_parse (header_t header, char *blurb, int len)
 {
   char *header_end;
   char *header_start;
   char *header_start2;
   struct _hdr *hdr;
 
-  if (header == NULL || blurb == NULL || len == 0)
-    return EINVAL;
+  /* nothing to parse */
+  if (blurb == NULL || len == 0)
+    return 0;
 
-  header->blurb = calloc (1, len);
-  if (header->blurb == NULL)
-    {
-      free (header);
-      return ENOMEM;
-    }
   header->blurb_len = len;
-  memcpy (header->blurb, blurb, len);
+  header->blurb = calloc (1, header->blurb_len);
+  if (header->blurb == NULL)
+    return ENOMEM;
+  memcpy (header->blurb, blurb, header->blurb_len);
 
   for (header_start = header->blurb;; header_start = ++header_end)
     {
+      char *fn, *fn_end, *fv, *fv_end;
       /* get a header, a header is :
        * field-name ':'  ' ' field-value '\r' '\n'
        * [ (' ' | '\t') field-value '\r' '\n' ]
        */
+
+      if (header_start[0] == ' ' ||
+	  header_start[0] == '\t' ||
+	  header_start[0]== '\n')
+	break;
+
       for (header_start2 = header_start;;header_start2 = ++header_end)
 	{
 	  header_end = memchr (header_start2, '\n', len);
@@ -162,49 +170,59 @@ header_parse (header_t header, const char *blurb, int len)
 		  && header_end[1] != '\t')
 		break; /* new header break the inner for */
 	    }
-	  /* *header_end = ' ';  smash LF */
+	  /* *header_end = ' ';  smash LF ? NO */
 	}
 
       if (header_end == NULL)
 	break; /* bail out */
 
+      /* Treats unix "From " specially */
+      if ((header_end - header_start >= 5)
+	  && strncmp (header_start, "From ", 5) == 0)
+	{
+	  fn = header_start;
+	  fn_end = header_start + 5;
+	  fv = header_start + 5;
+	  fv_end = header_end;
+	}
+      else
+	{
+	  char *colon = memchr (header_start, ':', header_end - header_start);
+
+	  /* Houston we have a problem */
+	  if (colon == NULL)
+	    break; /* disregard the rest and bailout */
+
+	  fn = header_start;
+	  fn_end = colon;
+	  /* skip leading spaces */
+	  while (*(++colon) == ' ');
+	  fv = colon;
+	  fv_end = header_end;
+	}
+
+      /* allocate a new slot for the field:value */
       hdr = realloc (header->hdr, (header->hdr_count + 1) * sizeof (*hdr));
       if (hdr == NULL)
 	{
 	  free (header->blurb);
 	  free (header->hdr);
-	  free (header);
 	  return ENOMEM;
 	}
       header->hdr = hdr;
+      header->hdr[header->hdr_count].fn = fn;
+      header->hdr[header->hdr_count].fn_end = fn_end;
+      header->hdr[header->hdr_count].fv = fv;
+      header->hdr[header->hdr_count].fv_end = fv_end;
       header->hdr_count++;
-      /* Treats unix "From " specially */
-      if ((header_end - header_start >= 5)
-	  && strncmp (header_start, "From ", 5) == 0)
-	{
-	  header->hdr[header->hdr_count - 1].fn = header_start;
-	  header->hdr[header->hdr_count - 1].fn_end = header_start + 4;
-	  header->hdr[header->hdr_count - 1].fv = header_start + 5;
-	  header->hdr[header->hdr_count - 1].fv_end = header_end;
-	}
-      else
-	{
-	  char *colon = memchr (header_start, ':', header_end - header_start);
-	  if (colon == NULL)
-	    {
-	      /* Houston we have a problem */
-	      free (header->blurb);
-	      free (header->hdr);
-	      free (header);
-	      return EINVAL;
-	    }
-	  header->hdr[header->hdr_count - 1].fn = header_start;
-	  header->hdr[header->hdr_count - 1].fn_end = colon;
-	  /* skip leading spaces */
-	  while (*(++colon) == ' ');
-	  header->hdr[header->hdr_count - 1].fv = colon;
-	  header->hdr[header->hdr_count - 1].fv_end = header_end;
-	}
+    } /* for (header_start ...) */
+
+  header->blurb_len -= len;
+  if (header->blurb_len <= 0)
+    {
+      free (header->blurb);
+      free (header->hdr);
+      return EINVAL;
     }
   return 0;
 }
@@ -279,7 +297,11 @@ int
 header_entry_count (header_t header, size_t *pnum)
 {
   if (header == NULL)
+    {
+      if (pnum)
+	*pnum = 0;
       return EINVAL;
+    }
   if (pnum)
     *pnum = header->hdr_count;
   return 0;
