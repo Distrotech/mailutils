@@ -103,7 +103,7 @@ extern char * mu_getcwd __P((void));
   
 extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
 
-typedef void *(*mu_retrieve_fp) __P((void *));
+typedef void *(*mu_retrieve_fp) __PMT((void *));
 extern void mu_register_retriever __P((list_t *pflist, mu_retrieve_fp fun));
 extern void * mu_retrieve __P((list_t flist, void *data));
 

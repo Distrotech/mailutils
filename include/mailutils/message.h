@@ -60,35 +60,35 @@ extern int message_get_observable   __P ((message_t, observable_t *));
 
 extern int message_is_multipart     __P ((message_t, int *));
 extern int message_set_is_multipart __P ((message_t, int (*_is_multipart)
-					  __P ((message_t, int *)), void *));
+					  __PMT ((message_t, int *)), void *));
 
 extern int message_size             __P ((message_t, size_t *));
 extern int message_set_size         __P ((message_t, int (*_size)
-					  __P ((message_t, size_t *)),
+					  __PMT ((message_t, size_t *)),
 					   void *owner));
 
 extern int message_lines            __P ((message_t, size_t *));
 extern int message_set_lines        __P ((message_t, int (*_lines)
-					  __P ((message_t, size_t *)),
+					  __PMT ((message_t, size_t *)),
 					  void *owner));
 
 extern int message_get_num_parts    __P ((message_t, size_t *nparts));
 extern int message_set_get_num_parts __P ((message_t, int (*_get_num_parts)
-					   __P ((message_t, size_t *)),
+					   __PMT ((message_t, size_t *)),
 					   void *owner));
 
 extern int message_get_part         __P ((message_t, size_t, message_t *));
 extern int message_set_get_part     __P ((message_t, int (*_get_part)
-					  __P ((message_t, size_t,
-						message_t *)), void *owner));
+					  __PMT ((message_t, size_t,
+						  message_t *)), void *owner));
 
 extern int message_get_uidl         __P ((message_t, char *, size_t, size_t *));
 extern int message_set_uidl         __P ((message_t, int (*_get_uidl)
-					  __P ((message_t, char *, size_t,
-						size_t *)), void *owner));
+					  __PMT ((message_t, char *, size_t,
+					  	  size_t *)), void *owner));
 extern int message_get_uid          __P ((message_t, size_t *));
 extern int message_set_uid          __P ((message_t, int (*_get_uid)
-					  __P ((message_t, size_t *)),
+					  __PMT ((message_t, size_t *)),
 					  void *owner));
 
 /* misc functions */

@@ -95,37 +95,37 @@ extern int header_lines __P ((header_t, size_t *));
 
 
 extern int header_set_set_value __P ((header_t,
-				      int (*_set_value) __P ((header_t,
-							      const char *,
-							      const char *,
-							      int)), void *));
+				      int (*_set_value) __PMT ((header_t,
+							        const char *,
+							        const char *,
+							        int)), void *));
 
 extern int header_set_get_value __P ((header_t,
-				      int (*_get_value) __P ((header_t,
-							      const char *,
-							      char *,
-							      size_t,
-							      size_t *)),
+				      int (*_get_value) __PMT ((header_t,
+							        const char *,
+							        char *,
+							        size_t,
+							        size_t *)),
 				      void *));
 extern int header_set_get_fvalue __P ((header_t,
-				       int (*_get_value) __P ((header_t,
-							       const char *,
-							       char *,
-							       size_t,
-							       size_t *)),
+				       int (*_get_value) __PMT ((header_t,
+							         const char *,
+							         char *,
+							         size_t,
+							         size_t *)),
 				       void *));
 
 extern int header_set_size __P ((header_t, int (*_size)
-				 __P ((header_t, size_t *)), void *));
+				 __PMT ((header_t, size_t *)), void *));
 
 extern int header_set_lines __P ((header_t,
-				  int (*_lines) __P ((header_t,
-						      size_t *)), void *));
+				  int (*_lines) __PMT ((header_t,
+						        size_t *)), void *));
 
 extern int header_set_fill __P ((header_t,
-				 int (*_fill) __P ((header_t, char *,
-						    size_t, off_t,
-						    size_t *)), void *owner));
+				 int (*_fill) __PMT ((header_t, char *,
+						      size_t, off_t,
+						      size_t *)), void *owner));
 
 #ifdef __cplusplus
 }

@@ -37,10 +37,10 @@ extern int body_get_filename   __P ((body_t, char *, size_t, size_t *));
 
 extern int body_size           __P ((body_t, size_t*));
 extern int body_set_size       __P ((body_t, int (*_size)
-				     __P ((body_t, size_t*)), void *owner));
+				     __PMT ((body_t, size_t*)), void *owner));
 extern int body_lines          __P ((body_t, size_t *));
 extern int body_set_lines      __P ((body_t, int (*_lines)
-				     __P ((body_t, size_t*)), void *owner));
+				     __PMT ((body_t, size_t*)), void *owner));
 
 #ifdef __cplusplus
 }

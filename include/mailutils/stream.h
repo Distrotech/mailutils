@@ -83,34 +83,34 @@ extern int stream_set_property __P ((stream_t, property_t, void *));
 extern int stream_get_state    __P ((stream_t, int *pstate));
 
 extern int stream_set_destroy  __P ((stream_t,
-      void (*_destroy) __P ((stream_t)), void *owner));
+      void (*_destroy) __PMT ((stream_t)), void *owner));
 
 extern int stream_set_open     __P ((stream_t,
-      int (*_open) __P ((stream_t)), void *owner));
+      int (*_open) __PMT ((stream_t)), void *owner));
 
 extern int stream_set_close    __P ((stream_t,
-      int (*_close) __P ((stream_t)), void *owner));
+      int (*_close) __PMT ((stream_t)), void *owner));
 
 extern int stream_set_fd       __P ((stream_t,
-      int (*_get_fd)(stream_t, int *), void *owner));
+      int (*_get_fd) __PMT ((stream_t, int *)), void *owner));
 
 extern int stream_set_read     __P ((stream_t,
-      int (*_read) __P ((stream_t, char *, size_t, off_t, size_t *)), void *owner));
+      int (*_read) __PMT ((stream_t, char *, size_t, off_t, size_t *)), void *owner));
 
 extern int stream_set_readline __P ((stream_t,
-      int (*_readline) __P ((stream_t, char *, size_t, off_t, size_t *)), void *owner));
+      int (*_readline) __PMT ((stream_t, char *, size_t, off_t, size_t *)), void *owner));
 
 extern int stream_set_size     __P ((stream_t,
-      int (*_size) __P ((stream_t, off_t *)), void *owner));
+      int (*_size) __PMT ((stream_t, off_t *)), void *owner));
 
 extern int stream_set_truncate __P ((stream_t,
-      int (*_truncate) __P ((stream_t, off_t)), void *owner));
+      int (*_truncate) __PMT ((stream_t, off_t)), void *owner));
 
 extern int stream_set_write    __P ((stream_t,
-      int (*_write) __P ((stream_t, const char *, size_t, off_t, size_t *)), void *owner));
+      int (*_write) __PMT ((stream_t, const char *, size_t, off_t, size_t *)), void *owner));
 
 extern int stream_set_flush    __P ((stream_t,
-      int (*_flush) __P ((stream_t)), void *owner));
+      int (*_flush) __PMT ((stream_t)), void *owner));
 
 #ifdef __cplusplus
 }

@@ -40,8 +40,10 @@ extern int observer_create      __P ((observer_t *, void *owner));
 extern void observer_destroy    __P ((observer_t *, void *owner));
 extern void * observer_get_owner  __P ((observer_t));
 extern int observer_action      __P ((observer_t, size_t type));
-extern int observer_set_action  __P ((observer_t, int (*_action) __P ((observer_t, size_t)), void *owner));
-extern int observer_set_destroy __P ((observer_t, int (*_destroy) __P((observer_t)), void *owner));
+extern int observer_set_action  __P ((observer_t, 
+                                      int (*_action) __PMT ((observer_t, size_t)), void *owner));
+extern int observer_set_destroy __P ((observer_t, 
+                                      int (*_destroy) __PMT((observer_t)), void *owner));
 extern int observer_set_flags   __P ((observer_t, int flags));
 
 extern int observable_create    __P ((observable_t *, void *owner));

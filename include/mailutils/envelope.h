@@ -24,13 +24,15 @@
 extern "C" { /*}*/
 #endif
 
-int envelope_create (envelope_t *, void *);
-void envelope_destroy (envelope_t *, void *);
-void * envelope_get_owner (envelope_t);
-int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
-int envelope_sender (envelope_t, char *, size_t, size_t *);
-int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t , size_t *)), void *);
-int envelope_date (envelope_t, char *, size_t, size_t *);
+int envelope_create __P((envelope_t *, void *));
+void envelope_destroy __P((envelope_t *, void *));
+void * envelope_get_owner __P((envelope_t));
+int envelope_set_sender __P((envelope_t, 
+                             int (*_sender) __PMT ((envelope_t, char *, size_t, size_t*)), void *));
+int envelope_sender __P((envelope_t, char *, size_t, size_t *));
+int envelope_set_date __P((envelope_t, 
+                           int (*_date) __PMT ((envelope_t, char *, size_t , size_t *)), void *));
+int envelope_date __P((envelope_t, char *, size_t, size_t *));
 
 #ifdef __cplusplus
 }

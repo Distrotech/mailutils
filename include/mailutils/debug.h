@@ -39,7 +39,8 @@ extern int mu_debug_print     __P ((mu_debug_t debug, size_t level,
 				 const char *format, ...));
 extern int mu_debug_printv    __P ((mu_debug_t debug, size_t level,
 				 const char *format, va_list argp));
-extern int mu_debug_set_print __P ((mu_debug_t, int (*_print) __P ((mu_debug_t, size_t level, const char *, va_list)), void *owner));
+extern int mu_debug_set_print __P ((mu_debug_t, 
+                                    int (*_print) __PMT ((mu_debug_t, size_t level, const char *, va_list)), void *owner));
 
 #ifdef __cplusplus
 }

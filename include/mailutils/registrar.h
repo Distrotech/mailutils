@@ -29,18 +29,18 @@ struct _record
 {
   /* Should not be access directly but rather by the stub functions.  */
   const char *scheme;
-  int (*_url)     __P ((url_t));
-  int (*_mailbox) __P ((mailbox_t));
-  int (*_mailer)  __P ((mailer_t));
-  int (*_folder)  __P ((folder_t));
+  int (*_url)     __PMT ((url_t));
+  int (*_mailbox) __PMT ((mailbox_t));
+  int (*_mailer)  __PMT ((mailer_t));
+  int (*_folder)  __PMT ((folder_t));
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The defaut is to return the fields.  */
-  int (*_is_scheme)   __P ((record_t, const char *));
-  int (*_get_url)     __P ((record_t, int (*(*_url)) __PMT ((url_t))));
-  int (*_get_mailbox) __P ((record_t, int (*(*_mailbox)) __PMT ((mailbox_t))));
-  int (*_get_mailer)  __P ((record_t, int (*(*_mailer)) __PMT ((mailer_t))));
-  int (*_get_folder)  __P ((record_t, int (*(*_folder)) __PMT ((folder_t))));
+  int (*_is_scheme)   __PMT ((record_t, const char *));
+  int (*_get_url)     __PMT ((record_t, int (*(*_url)) __PMT ((url_t))));
+  int (*_get_mailbox) __PMT ((record_t, int (*(*_mailbox)) __PMT ((mailbox_t))));
+  int (*_get_mailer)  __PMT ((record_t, int (*(*_mailer)) __PMT ((mailer_t))));
+  int (*_get_folder)  __PMT ((record_t, int (*(*_folder)) __PMT ((folder_t))));
 };
 
 /* Registration.  */
@@ -52,7 +52,7 @@ extern int unregistrar_record     __P ((record_t));
 extern int record_is_scheme       __P ((record_t, const char *));
 extern int record_set_scheme      __P ((record_t, const char *));
 extern int record_set_is_scheme   __P ((record_t, int (*_is_scheme)
-					__P ((record_t, const char *))));
+					__PMT ((record_t, const char *))));
 
 /* Url.  */
 extern int record_get_url         __P ((record_t, int (*(*)) __PMT ((url_t))));
