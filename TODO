@@ -47,6 +47,8 @@ IMPORTANT:
 
 - finish rewrite 8-)
 
+- pipe_open_stream() - implemented with popen()
+
 - Configuration API
 
 - Mailcap API
@@ -69,7 +71,7 @@ IMPORTANT:
 + probably the AUTH should be allocated on creation, when the url is
   looked at, and rejected then, for now return ENOTSUP at folder_imap.c:327
 
-[mbox]
+[examples]
 
 - unify the mbox-* and mimetest examples with messages, it would be nice
   to have a general purpose tool
