@@ -24,7 +24,5 @@
 int
 mail_touch (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  return mail_mbox (argc, argv);
 }
