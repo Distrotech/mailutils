@@ -20,7 +20,7 @@
 static int is_virtual = 0;
 
 #ifdef HAVE_MYSQL
-#include "../MySql/MySql.h"
+# include "../MySql/MySql.h"
 #endif
 
 #ifdef USE_VIRTUAL_DOMAINS
@@ -172,11 +172,7 @@ pop3d_user (const char *arg)
 	}
 #endif
 
-      pw = getpwnam (arg);
-#ifdef HAVE_MYSQL
-      if (pw == NULL)
-	pw = getMpwnam (arg);
-#endif /* HAVE_MYSQL */
+      pw = mu_getpwnam (arg);
 
 #ifdef USE_VIRTUAL_DOMAINS
       if (pw == NULL)

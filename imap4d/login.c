@@ -138,13 +138,8 @@ imap4d_login (struct imap4d_command *command, char *arg)
   else if (util_getword (NULL, &sp))
     return util_finish (command, RESP_NO, "Too many args");
 
-  pw = getpwnam (username);
+  pw = mu_getpwnam (username);
   if (pw == NULL)
-#ifdef HAVE_MYSQL
-    pw = getMpwnam (username);
-
-  if (pw == NULL)
-#endif /* HAVE_MYSQL */
 #ifdef USE_VIRTUAL_DOMAINS
     pw = imap4d_virtual (username);
 
