@@ -51,7 +51,7 @@ struct mh_option mh_option[] = {
   {"draftfolder",   6, 0, "folder" },
   {"draftmessage",  6, 0, "message"},
   {"nodraftfolder", 3, 0, NULL },
-  {"check",         1, 0, MH_OPT_BOOL, NULL},
+  {"check",         1, MH_OPT_BOOL, NULL},
   {NULL}
 };
 
