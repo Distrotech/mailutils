@@ -1,3 +1,7 @@
+2003-08-17  Sergey Poznyakoff
+
+	* mail/send.c (mail_send0): Fixed typo in variable name.
+
 2003-08-13  Sergey Poznyakoff 
 
 	* mh/mh_sequence.c (mh_seq_add): Update current_message
