@@ -31,11 +31,12 @@ AC_DEFUN(MU_CHECK_TLS,
                      [WITH_GNUTLS=no])
      if test "$WITH_GNUTLS" != "no"; then
        saved_LIBS=$LIBS
-       AC_CHECK_LIB(gnutls, gnutls_global_init,
-                    [TLS_LIBS="-lgnutls"],
-                    [WITH_GNUTLS=no])
        AC_CHECK_LIB(gcrypt, main,
-                    [TLS_LIBS="$TLS_LIBS -lgcrypt"],
+                    [TLS_LIBS="-lgcrypt"],
+                    [WITH_GNUTLS=no])
+       LIBS="$LIBS $TLS_LIBS"
+       AC_CHECK_LIB(gnutls, gnutls_global_init,
+                    [TLS_LIBS="-lgnutls $TLS_LIBS"],
                     [WITH_GNUTLS=no])
        LIBS=$saved_LIBS
      fi
