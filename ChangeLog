@@ -3,6 +3,8 @@
 	* mh/mh_msgset.c (mh_msgset_uids): New function.
 	* mh/mh.h: Likewise.
 	* mh/mark.c (main): Convert msgset to uids.
+	* mh/scan.c (list_message): Output an extra newline only
+	if the formatted buffer does not ends with one.
 
 2003-08-12  Sergey Poznyakoff  
 
