@@ -117,6 +117,11 @@ void *sieve_prealloc __P((list_t *pool, void *ptr, size_t size));
 void sieve_pfree __P((list_t *pool, void *ptr));
 char *sieve_pstrdup __P((list_t *pool, const char *str));
 
+void *sieve_malloc __P((sieve_machine_t mach, size_t size));
+char *sieve_mstrdup __P((sieve_machine_t mach, const char *str));
+void *sieve_mrealloc __P((sieve_machine_t mach, void *ptr, size_t size));
+void sieve_mfree __P((sieve_machine_t mach, void *ptr));
+
 sieve_value_t *sieve_value_create __P((sieve_data_type type, void *data));
 void sieve_slist_destroy __P((list_t *plist));
 

@@ -100,6 +100,30 @@ sieve_pfree (list_t *pool, void *ptr)
   free (ptr);
 }  
 
+void *
+sieve_malloc (sieve_machine_t mach, size_t size)
+{
+  return sieve_palloc (&mach->memory_pool, size);
+}
+
+char *
+sieve_mstrdup (sieve_machine_t mach, const char *str)
+{
+  return sieve_pstrdup (&mach->memory_pool, str);
+}
+
+void *
+sieve_mrealloc (sieve_machine_t mach, void *ptr, size_t size)
+{
+  return sieve_prealloc (&mach->memory_pool, ptr, size);
+}
+
+void
+sieve_mfree (sieve_machine_t mach, void *ptr)
+{
+  sieve_pfree (&mach->memory_pool, ptr);
+}  
+
 static int
 _destroy_item (void *item, void *data)
 {
