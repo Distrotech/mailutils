@@ -40,31 +40,33 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/* forward declaration */
 struct _message
 {
+  /* Who is the owner.  */
+  void *owner;
+
   header_t header;
   stream_t stream;
   body_t body;
   attribute_t attribute;
   mime_t mime;
 
-  /* who is the owner */
-  void *owner;
-
   event_t event;
   size_t event_num;
 
-  /* for message_write */
+  /* Holder for message_write. */
   char *hdr_buf;
   size_t hdr_buflen;
   int hdr_done;
 
-  int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
-  int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
-  int (*_get_uidl)       __P ((message_t msg, char *, size_t, size_t *));
-  int (*_get_num_parts)  __P ((message_t, size_t *nparts));
-  int (*_get_part)       __P ((message_t, size_t part, message_t *msg));
+  int (*_from)           __P ((message_t, char *, size_t, size_t *));
+  int (*_received)       __P ((message_t, char *, size_t, size_t *));
+  int (*_get_uidl)       __P ((message_t, char *, size_t, size_t *));
+  int (*_get_num_parts)  __P ((message_t, size_t *));
+  int (*_get_part)       __P ((message_t, size_t, message_t *));
+  int (*_is_multipart)   __P ((message_t, int *));
+  int (*_lines)          __P ((message_t, size_t *));
+  int (*_size)           __P ((message_t, size_t *));
 };
 
 #ifdef _cplusplus

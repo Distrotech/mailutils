@@ -35,6 +35,7 @@ extern "C" {
 struct _attribute
 {
   void *owner;
+
   int flags;
   int (*_get_flags)   __P ((attribute_t, int *));
   int (*_set_flags)   __P ((attribute_t, int));

@@ -50,6 +50,7 @@ struct _header
 {
   /* Owner.  */
   void *owner;
+
   /* Data.  */
   char *temp_blurb;
   size_t temp_blurb_len;
@@ -62,6 +63,8 @@ struct _header
   stream_t stream;
   int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
   int (*_set_value) __P ((header_t, const char *, const char *, int));
+  int (*_lines)     __P ((header_t, size_t *));
+  int (*_size)      __P ((header_t, size_t *));
 };
 
 #ifdef _cplusplus

@@ -36,6 +36,7 @@ extern "C" {
 struct _auth
 {
   void *owner;
+
   int (*_prologue) (auth_t);
   int (*_authenticate) (auth_t, char **user, char **passwd);
   int (*_epilogue) (auth_t);
