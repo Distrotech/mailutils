@@ -1,3 +1,10 @@
+2004-01-12  Wojciech Polak
+
+	* frm/frm.c (frm_rfc2047_decode): New function.
+	(get_personal): Call the frm_rfc2047_decode().
+	* mail/util.c (util_rfc2047_decode): Test LANG
+	if LC_ALL is null.
+
 2004-01-12  Sergey Poznyakoff
 
 	* include/mailutils/mailutils.h: Removed gsasl.h (reverses part
