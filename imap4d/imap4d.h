@@ -54,7 +54,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "getopt.h"
 #include <ctype.h>
 
 #ifdef HAVE_ALLOCA_H

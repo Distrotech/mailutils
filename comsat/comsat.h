@@ -36,7 +36,6 @@
 #include <string.h>
 #include <pwd.h>
 #include <ctype.h>
-#include <getopt.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>

@@ -104,7 +104,6 @@
 #include <syslog.h>
 #include <ctype.h>
 #include "md5.h"
-#include "getopt.h"
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
