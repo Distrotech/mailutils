@@ -22,7 +22,7 @@ long message_tag;
 struct mu_message
 {
   message_t msg;       /* Message itself */
-  SCM mbox;            /* Mailbox it belong to */
+  SCM mbox;            /* Mailbox it belongs to */
 };
 
 /* SMOB functions: */
@@ -39,8 +39,6 @@ mu_scm_message_free (SCM message_smob)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
   free (mum);
-  /* NOTE: Currently there is no way for this function to return the
-     amount of memory *actually freed* by mailbox_destroy */
   return sizeof (struct mu_message);
 }
 
@@ -120,6 +118,33 @@ mu_scm_message_create (SCM owner, message_t msg)
   mum->msg = msg;
   mum->mbox = owner;
   SCM_RETURN_NEWSMOB (message_tag, mum);
+}
+
+void
+mu_scm_message_add_owner (SCM MESG, SCM owner)
+{
+  struct mu_message *mum = (struct mu_message *) SCM_CDR (MESG);
+  SCM cell;
+
+  if (SCM_IMP (mum->mbox) && SCM_BOOLP (mum->mbox))
+    {
+      mum->mbox = owner;
+      return;
+    }
+  
+  SCM_NEWCELL (cell);
+  SCM_SETCAR (cell, owner);
+  if (SCM_NIMP (mum->mbox) && SCM_CONSP (mum->mbox))
+    SCM_SETCDR (cell, mum->mbox);
+  else
+    {
+      SCM scm;
+      SCM_NEWCELL (scm);
+      SCM_SETCAR (scm, mum->mbox);
+      SCM_SETCDR (scm, SCM_EOL);
+      SCM_SETCDR (cell, scm);
+    }
+  mum->mbox = cell;
 }
 
 const message_t
@@ -330,7 +355,7 @@ SCM_DEFINE (mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 
   message_t msg;
   header_t hdr = NULL;
   SCM scm_first = SCM_EOL, scm_last;
-  SCM headers = NULL;
+  SCM headers = SCM_EOL;
     
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
@@ -349,7 +374,7 @@ SCM_DEFINE (mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 
       char *name, *value;
       
       header_aget_field_name (hdr, i, &name);
-      if (headers && string_sloppy_member (headers, name) == 0)
+      if (headers != SCM_EOL && string_sloppy_member (headers, name) == 0)
 	continue;
       header_aget_field_value (hdr, i, &value);
 
