@@ -140,7 +140,7 @@ list_remove (list_t list, void *item)
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
-      if ((int)current->item == (int)item)
+      if (current->item == item)
 	{
 	  previous->next = current->next;
 	  current->next->prev = previous;

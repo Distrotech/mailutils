@@ -195,7 +195,7 @@ observable_detach (observable_t observable, observer_t observer)
     {
       event = NULL;
       iterator_current (iterator, (void **)&event);
-      if (event && (int)(event->observer) == (int)observer)
+      if (event && event->observer == observer)
         {
           found = 1;
           break;
