@@ -1,4 +1,4 @@
-sdnl Process this file with autoconf to procude a configure script.
+dnl Process this file with autoconf to procude a configure script.
 AC_INIT([GNU Mailutils], [0.0.9d], [bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
@@ -59,7 +59,7 @@ if test "x$WITH_GSSAPI" != "xno"; then
     AUTHLIBS="$AUTHLIBS $GSSAPI_LIBS"
     AUTHINCS="$AUTHINCS $GSSAPI_CFLAGS"
     AUTHOBJS="$AUTHOBJS auth_gss.o"
-    AC_DEFINE(WITH_GSSAPI)
+    AC_DEFINE(WITH_GSSAPI,1,[Define if mailutils is using GSSAPI])
   fi
 fi
 AC_SUBST(AUTHOBJS)
@@ -92,8 +92,25 @@ AC_ARG_WITH(mail-spool,
   esac])
 
 if test "x$MU_CONF_MAILDIR" != x; then
-  AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR)
+  AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR,
+                     [Pathname of the configuration directory])
 fi
+AH_BOTTOM([
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+#ifndef _PATH_MAILDIR
+# if (defined(sun) && defined(__svr4__)) || defined(__SVR4)
+#  define _PATH_MAILDIR "/var/mail"
+# else
+#  define _PATH_MAILDIR "/usr/spool/mail"
+# endif
+#endif
+#ifdef MU_CONF_MAILDIR
+# define MU_PATH_MAILDIR MU_CONF_MAILDIR
+#else
+# define MU_PATH_MAILDIR _PATH_MAILDIR "/"
+#endif])
 
 use_dbm=no
 AC_ARG_WITH(gdbm,
@@ -134,7 +151,8 @@ AC_ARG_WITH(log-facility,
  [  --with-log-facility=facility   enable logging to the given facility],
  AC_TRY_COMPILE([#include <syslog.h>], int lf = $withval,
 	log_facility=$withval))
-AC_DEFINE_UNQUOTED(LOG_FACILITY, $log_facility)
+AC_DEFINE_UNQUOTED(LOG_FACILITY, $log_facility,
+                   [Default syslog facility to use])
 AC_MSG_RESULT($log_facility)
 
 dnl Check for headers
@@ -159,9 +177,12 @@ AC_DECL_SYS_SIGLIST
 AC_STRUCT_TIMEZONE
 AC_CHECK_TYPE(ino_t, unsigned long)
 AC_CHECK_TYPE(dev_t, unsigned long)
-sr_STRUCT_TM_ZONE
-sr_STRUCT_TM_GMTOFF
-sr_STRUCT_TM_ISDST
+
+AC_STRUCT_TM
+AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
+                 ,,
+                 [#include <sys/types.h>
+#include <$ac_cv_struct_tm>])
 
 dnl Check for working functions
 
@@ -201,9 +222,16 @@ AC_MSG_CHECKING(whether extern program_invocation_name is present)
 AC_TRY_COMPILE([#include <argp.h>
 #include <errno.h>],
 [ program_invocation_name = "test"; ],
-[AC_DEFINE(PROGRAM_INVOCATION_NAME_DECLARED)
+[AC_DEFINE(PROGRAM_INVOCATION_NAME_DECLARED,1,
+           [Define if program_invocation_name is declared in argp.h])
  AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)])
+
+AH_BOTTOM([
+#ifndef PROGRAM_INVOCATION_NAME_DECLARED
+extern char *program_invocation_short_name;
+extern char *program_invocation_name;
+#endif])
 
 
 AC_MSG_CHECKING(whether program_invocation_name is declared)
@@ -215,12 +243,13 @@ AC_TRY_COMPILE([#include <argp.h>
 #endif
 	program_invocation_name = "test";
 ],
-[AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME)
+[AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
+           [Define if the variable program_invocation_name exists])
  AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)])
 
 AC_CHECK_FUNCS(_obstack_begin,
-               [AC_DEFINE(HAVE_OBSTACK)],
+               [AC_DEFINE(HAVE_OBSTACK,1,[Define if GNU obstack is present])],
                [AC_LIBOBJ(obstack)])
 
 dnl check if mysql support was added
@@ -231,13 +260,13 @@ if test x"$use_mysql" = x"yes"; then
 	AC_CHECK_HEADER(mysql/mysql.h,
 	[AUTHLIBS="$AUTHLIBS -lmailMysql -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql -L../MySql/"
         BUILD_LIBMYSQL=libmailMysql.a
-	AC_DEFINE(HAVE_MYSQL)])
+	AC_DEFINE(HAVE_MYSQL,1,[Define this if you have mysql libraries])])
 fi
 
 dnl Virtual domain support, at least for pop3d
 AC_ARG_ENABLE(virtual-domains, [  --enable-virtual-domains  enable virtual domain support (default no)], [use_virtual_domains="yes"],,)
 if test x"$use_virtual_domains" = x"yes"; then
-   AC_DEFINE(USE_VIRTUAL_DOMAINS)
+   AC_DEFINE(USE_VIRTUAL_DOMAINS,1,[Enable use of virtual domains])
    AC_SUBST(SITE_VIRTUAL_PWDDIR)
    AC_ARG_WITH(virtual-pwddir,
     [  --with-virtual-pwddir=DIR   use DIR instead of \$sysconfdir/domain],
@@ -255,7 +284,7 @@ if test x"$testpam" = x"yes"; then
 		AC_CHECK_LIB(dl, dlopen, [LDL=-ldl], [LDL=])
 		AC_CHECK_LIB(pam, pam_start,
 			AUTHLIBS="$AUTHLIBS -lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
-		AC_DEFINE(USE_LIBPAM)
+		AC_DEFINE(USE_LIBPAM,1,[Enable use of PAM])
 		AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 	fi
 fi
@@ -278,16 +307,19 @@ if test x"$usepthread" = x"yes"; then
 	AC_CHECK_LIB(pthread, pthread_cancel, have_libpthread=yes,
 		 have_libpthread=no)
         if test x"$have_libpthread" = x"yes"; then
-		AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
+		AC_CHECK_HEADERS(pthread.h,
+                                 AC_DEFINE(WITH_PTHREAD,1,
+                                           [Define this to enable POSIX threads safety]))
 			LIBS="$LIBS -lpthread"
-			AC_DEFINE(_REENTRANT)
+			AC_DEFINE(_REENTRANT,1,[Reentrant calls])
 			AC_CHECK_FUNCS(pthread_rwlock_init)
 	else
 		AC_SEARCH_LIBS(pthread_cancel, pthread,
 			[AC_CHECK_FUNCS(pthread_rwlock_init)
 				AC_CHECK_HEADERS(pthread.h,
-					AC_DEFINE(WITH_PTHREAD))
-					AC_DEFINE(_REENTRANT)])
+					AC_DEFINE(WITH_PTHREAD,1,
+                                                  [Define this to enable POSIX threads safety]))
+					AC_DEFINE(_REENTRANT,1,[Reentrant calls])])
 	fi
 fi
 
@@ -319,7 +351,7 @@ if test x"$usereadline" = x"yes"; then
 	
 	if test x"$mu_have_readline" = x"yes"; then
 		AC_CHECK_HEADERS(readline/readline.h,
-			AC_DEFINE(WITH_READLINE))
+			AC_DEFINE(WITH_READLINE,1,[Enable use of readline]))
 			READLINE_LIBS="-lreadline $CURSES_LIBS"
 			saved_LIBS=$LIBS
 			LIBS="$LIBS $READLINE_LIBS"
@@ -330,6 +362,11 @@ if test x"$usereadline" = x"yes"; then
 	fi
 
 fi
+AH_BOTTOM([
+/* Newer versions of readline have rl_completion_matches */
+#ifndef HAVE_RL_COMPLETION_MATCHES
+# define rl_completion_matches completion_matches
+#endif])
 
 dnl Check for DBM
 
@@ -337,22 +374,30 @@ AC_SUBST(POPAUTH)
 case "$use_dbm" in
 GDBM)
 	AC_CHECK_LIB(gdbm, gdbm_open,
-                     [AC_CHECK_HEADERS(gdbm.h, AC_DEFINE(WITH_GDBM))
+                     [AC_CHECK_HEADERS(gdbm.h,
+                                       AC_DEFINE(WITH_GDBM,1,
+                                                 [Enable use of GNU DBM library]))
                      LIBS="$LIBS -lgdbm"
                      POPAUTH=popauth]);;
 BDB2)
 	AC_CHECK_LIB(db, db_open,
-                     [AC_CHECK_HEADERS(db.h, AC_DEFINE(WITH_BDB2))
+                     [AC_CHECK_HEADERS(db.h,
+                                       AC_DEFINE(WITH_BDB2,1,
+                                                 [Enable use of Berkeley DB]))
                      LIBS="$LIBS -ldb"
 		     POPAUTH=popauth]);;
 NDBM)
 	AC_CHECK_LIB(ndbm, dbm_open,
-                     [AC_CHECK_HEADERS(ndbm.h, AC_DEFINE(WITH_NDBM))
+                     [AC_CHECK_HEADERS(ndbm.h,
+                                       AC_DEFINE(WITH_NDBM,1,
+                                                 [Enable use of NDBM]))
                      LIBS="$LIBS -lndbm"
 		     POPAUTH=popauth]);;
 ODBM)
 	AC_CHECK_LIB(dbm, dbminit,
-                     [AC_CHECK_HEADERS(dbm.h, AC_DEFINE(WITH_OLD_DBM))
+                     [AC_CHECK_HEADERS(dbm.h,
+                                       AC_DEFINE(WITH_OLD_DBM,1,
+                                                 [Enable use of old DBM library]))
                      LIBS="$LIBS -ldbm"
 		     POPAUTH=popauth]);;
 esac
@@ -369,7 +414,7 @@ if test x"$useguile" = x"yes"; then
 	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
 	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])
 	if test x$GUILE_CONFIG != xno; then
-		AC_DEFINE(WITH_GUILE)
+		AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
   		GUILE_INCLUDES=`guile-config compile`
   		GUILE_LIBS=`guile-config link`
 		GUIMB=guimb
@@ -386,6 +431,14 @@ dnl to build tests, but this relies on being run in make to
 dnl get sysconfdir expanded.
 
 CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
+
+# This is necessary so that .o files in LIBOBJS are also built via
+# the ANSI2KNR-filtering rules.
+LIB@&t@OBJS=`echo "$LIB@&t@OBJS" |
+                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+LTLIBOBJS=`echo "$LIB@&t@OBJS" |
+                sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
+AC_SUBST(LTLIBOBJS)
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile mailutils.spec
