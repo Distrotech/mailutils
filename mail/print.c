@@ -27,7 +27,6 @@
 int
 mail_print (int argc, char **argv)
 {
-
   if (argc > 1)
     return util_msglist_command (mail_print, argc, argv);
   else
@@ -54,18 +53,22 @@ mail_print (int argc, char **argv)
 
       if (islower (argv[0][0]))
 	{
+	  size_t i, num = 0;
+	  char buffer[512];
+	  
 	  message_get_header (mesg, &hdr);
-	  if (header_get_value (hdr, MU_HEADER_FROM, buffer, sizeof (buffer),
-				NULL) == 0)
+	  header_get_field_count (hdr, &num);
+
+	  for (i = 1; i <= num; i++)
 	    {
-	      fprintf (out, "From: %s\n", buffer);
-	      /* free (buf); */
-	    }
-	  if (header_get_value (hdr, MU_HEADER_SUBJECT, buffer,
-				sizeof (buffer), NULL) == 0)
-	    {
-	      fprintf (out, "Subject: %s\n", buffer);
-	      /* free (buf); */
+	      header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
+	      if (mail_header_is_visible (buffer))
+		{
+		  fprintf (out, "%s: ", buffer);
+		  header_get_field_value (hdr, i, buffer, sizeof(buffer),
+					  NULL);
+		  fprintf (out, "%s\n", buffer);
+		}
 	    }
 	  fprintf (out, "\n");
 	  message_get_body (mesg, &body);
@@ -83,6 +86,7 @@ mail_print (int argc, char **argv)
         }
       if (out != ofile)
 	pclose (out);
+
       return 0;
     }
   return 1;
