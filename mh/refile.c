@@ -28,7 +28,7 @@ static struct argp_option options[] = {
   {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon"},
   {"draft",   'd', NULL, 0, "Use <mh-dir>/draft as the source message"},
   {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL, "Preserve the source folder copy"},
-  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL, "Do not preserve the source folder copy (default)"},
+  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL, "Try to preserve message sequence numbers"},
   {"source", 's', "FOLDER", 0, "Specify source folder. FOLDER will became the current folder after the program exits."},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
   {"file", 'F', "FILE", 0, "Use FILE as the source message"},
@@ -49,33 +49,38 @@ struct mh_option mh_option[] = {
 int link_flag = 1;
 int preserve_flag = 0;
 char *source_file = NULL;
-list_t out_folder_list = NULL;
+list_t folder_name_list = NULL;
+list_t folder_mbox_list = NULL;
 
 void
 add_folder (const char *folder)
 {
-  char *p;
-  
-  if (!out_folder_list && list_create (&out_folder_list))
+  if (!folder_name_list && list_create (&folder_name_list))
     {
       mh_error ("can't create folder list");
       exit (1);
     }
-  if ((p = strdup (folder)) == NULL)
-    {
-      mh_error("not enough memory");
-      exit (1);
-    }
-  list_append (out_folder_list, p);
+  list_append (folder_name_list, strdup (folder));
 }
 
 void
-enumerate_folders (void (*f) __P((void *, char *)), void *data)
+open_folders ()
 {
   iterator_t itr;
-  int rc = 0;
 
-  if (iterator_create (&itr, out_folder_list))
+  if (!folder_name_list)
+    {
+      mh_error ("no folder specified");
+      exit (1);
+    }
+
+  if (list_create (&folder_mbox_list))
+    {
+      mh_error ("can't create folder list");
+      exit (1);
+    }
+
+  if (iterator_create (&itr, folder_name_list))
     {
       mh_error ("can't create iterator");
       exit (1);
@@ -83,9 +88,34 @@ enumerate_folders (void (*f) __P((void *, char *)), void *data)
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
-      char *name;
+      char *name = NULL;
+      mailbox_t mbox;
+      
       iterator_current (itr, (void **)&name);
-      (*f) (data, name);
+      mbox = mh_open_folder (name, 1);
+      list_append (folder_mbox_list, mbox);
+      free (name);
+    }
+  iterator_destroy (&itr);
+  list_destroy (&folder_name_list);
+}
+
+void
+enumerate_folders (void (*f) __P((void *, mailbox_t)), void *data)
+{
+  iterator_t itr;
+
+  if (iterator_create (&itr, folder_mbox_list))
+    {
+      mh_error ("can't create iterator");
+      exit (1);
+    }
+
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      mailbox_t mbox;
+      iterator_current (itr, (void **)&mbox);
+      (*f) (data, mbox);
     }
   iterator_destroy (&itr);
 }
@@ -127,11 +157,43 @@ opt_handler (int key, char *arg, void *unused)
   return 0;
 }
 
+void
+_close_folder (void *unuses, mailbox_t mbox)
+{
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+}
+
+void
+refile_folder (void *data, mailbox_t mbox)
+{
+  message_t msg = data;
+  int rc;
+  
+  rc = mailbox_append_message (mbox, msg);
+  if (rc)
+    {
+      mh_error ("error appending message: %s", mu_errstring (rc));
+      exit (1);
+    }
+}
+
+void
+refile (mailbox_t mbox, message_t msg, size_t num, void *data)
+{
+  enumerate_folders (refile_folder, msg);
+  if (!link_flag)
+    {
+      attribute_t attr;
+      message_get_attribute (msg, &attr);
+      attribute_set_deleted (attr);
+    }
+}
 
 int
 main (int argc, char **argv)
 {
-  int i, index;
+  int index;
   mh_msgset_t msgset;
   mailbox_t mbox;
   int status;
@@ -139,9 +201,19 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder (current_folder);
+  if (source_file && index < argc)
+    {
+      mh_error ("both message set and source file given");
+      exit (1);
+    }
+  
+  open_folders ();
+
+  mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
-  //  status = refile (mbox, &msgset);
+  status = mh_iterate (mbox, &msgset, refile, NULL);
+ 
+  enumerate_folders (_close_folder, NULL);
   mailbox_expunge (mbox);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
