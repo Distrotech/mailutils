@@ -769,7 +769,8 @@ mh_expunge (mailbox_t mailbox)
 	    }
 	  _mh_message_delete (mhd, mhm);
 	}
-      else if (mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+      else if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	       || (mhm->message && message_is_modified (mhm->message)))
 	{
 	  _mh_attach_message (mailbox, mhm, NULL);
 	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
@@ -796,9 +797,8 @@ mh_save_attributes (mailbox_t mailbox)
   /* Find the first dirty(modified) message.  */
   for (mhm = mhd->msg_head; mhm; mhm = mhm->next)
     {
-      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
-	  (mhm->attr_flags & MU_ATTRIBUTE_DELETED) ||
-	  (mhm->message && message_is_modified (mhm->message)))
+      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	  || (mhm->message && message_is_modified (mhm->message)))
 	break;
     }
 
@@ -809,7 +809,8 @@ mh_save_attributes (mailbox_t mailbox)
     {
       struct _mh_message *next = mhm->next;
 
-      if (mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	  || (mhm->message && message_is_modified (mhm->message)))
 	{
 	  _mh_attach_message (mailbox, mhm, NULL);
 	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
