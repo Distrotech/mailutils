@@ -32,4 +32,7 @@ int envelope_sender (envelope_t, char *, size_t, size_t *);
 int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t , size_t *)), void *);
 int envelope_date (envelope_t, char *, size_t, size_t *);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _MAILUTILS_ENVELOPE_H */
