@@ -53,7 +53,7 @@ notify_flag (size_t msgno, attribute_t oattr)
   mailbox_get_message (mbox, msgno, &msg);
   message_get_attribute (msg, &nattr);
   status = attribute_is_equal (oattr, nattr);
-  //if (!attribute_is_equal (oattr, nattr))
+
   if (status == 0)
     {
       char *abuf = malloc (1);;
@@ -103,18 +103,26 @@ notify_flag (size_t msgno, attribute_t oattr)
     }
 }
 
+/* The EXPUNGE response reports that the specified message sequence
+   number has been permanently removed from the mailbox.  The message
+   sequence number for each successive message in the mailbox is
+   immediately decremented by 1, and this decrement is reflected in
+   message sequence numbers in subsequent responses (including other
+   untagged EXPUNGE responses). */
 static void
 notify_deleted (void)
 {
   if (uid_table)
     {
       size_t i;
+      size_t decr = 0;
       for (i = 0; i < uid_table_count; i++)
 	{
 	  if (!(uid_table[i].notify))
 	    {
-	      util_out (RESP_NONE, "%d EXPUNGED", uid_table[i].msgno);
+	      util_out (RESP_NONE, "%d EXPUNGED", uid_table[i].msgno-decr);
 	      uid_table[i].notify = 1;
+	      decr++;
 	    }
 	}
     }
@@ -143,12 +151,22 @@ notify_uid (size_t uid)
 static void
 notify (void)
 {
+  size_t total = 0;
+  int reset = 0;
+  
+  mailbox_messages_count (mbox, &total);
+
+  if (!uid_table)
+    {
+      reset = 1;
+      reset_uids ();
+    }
+  
   if (uid_table)
     {
-      size_t total = 0;
       size_t i;
       size_t recent = 0;
-      mailbox_messages_count (mbox, &total);
+
       for (i = 1; i <= total; i++)
 	{
 	  message_t msg = NULL;
@@ -158,11 +176,16 @@ notify (void)
 	  if (!notify_uid (uid))
 	    recent++;
 	}
+      notify_deleted ();
       util_out (RESP_NONE, "%d EXISTS", total);
       if (recent)
 	util_out (RESP_NONE, "%d RECENT", recent);
-      notify_deleted ();
     }
+
+  if (!reset)
+    reset_uids ();
+  else
+    reset_notify ();
 }
 
 static void
@@ -180,12 +203,20 @@ free_uids (void)
 }
 
 static void
+reset_notify (void)
+{
+  size_t i;
+
+  for (i = 0; i < uid_table_count; i++)
+    uid_table[i].notify = 0;
+}
+
+static void
 reset_uids (void)
 {
   size_t total = 0;
   size_t i;
 
-  notify ();
   free_uids ();
 
   mailbox_messages_count (mbox, &total);
@@ -246,13 +277,13 @@ imap4d_sync (void)
   if (mbox == NULL)
     free_uids ();
   else if (uid_table == NULL || !mailbox_is_updated (mbox))
-    reset_uids ();
+    notify ();
   else
     {
       size_t count = 0;
       mailbox_messages_count (mbox, &count);
       if (count != uid_table_count)
-	reset_uids ();
+	notify ();
     }
   return 0;
 }
