@@ -1,5 +1,6 @@
 address.exp
 base64.exp
+list.exp
 mailcap.exp
 mime.exp
 rfc2047.exp
