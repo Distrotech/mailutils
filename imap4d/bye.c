@@ -32,7 +32,7 @@ imap4d_bye (int reason)
   switch (reason)
     {
     case ERR_NO_MEM:
-      util_out (RESP_BYE, "Server terminating no more ressources.");
+      util_out (RESP_BYE, "Server terminating no more resources.");
       syslog (LOG_ERR, "Out of memory");
       break;
 
