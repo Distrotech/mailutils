@@ -25,7 +25,8 @@ lib_LTLIBRARIES = libmu_maildir.la
 
 libmu_maildir_la_SOURCES = \
  folder.c \
- mbox.c \
- url.c
+ maildir.h \
+ mbox.c 
+
 
 
