@@ -129,18 +129,37 @@ list_count (list_t list, size_t *pcount)
   return 0;
 }
 
+list_comparator_t
+list_set_comparator (list_t list, list_comparator_t comp)
+{
+  list_comparator_t old_comp;
+  if (list == NULL)
+    return EINVAL;
+  old_comp = list->comp;
+  list->comp = comp;
+  return old_comp;
+}  
+
+static int
+def_comp (const void *item, const void *value)
+{
+  return item != value;
+}
+
 int
 list_remove (list_t list, void *item)
 {
   struct list_data *current, *previous;
+  list_comparator_t comp;
   int status = ENOENT;
   if (list == NULL)
     return EINVAL;
+  comp = list->comp ? list->comp : def_comp;
   monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
-      if (current->item == item)
+      if (comp (current->item, item) == 0)
 	{
 	  previous->next = current->next;
 	  current->next->prev = previous;
@@ -158,14 +177,17 @@ int
 list_replace (list_t list, void *old_item, void *new_item)
 {
   struct list_data *current, *previous;
+  list_comparator_t comp;
   int status = ENOENT;
+  
   if (list == NULL)
     return EINVAL;
+  comp = list->comp ? list->comp : def_comp;
   monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
-      if (current->item == old_item)
+      if (comp (current->item, old_item) == 0)
 	{
 	  current->item = new_item;
 	  status = 0;
