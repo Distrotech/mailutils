@@ -11,6 +11,10 @@ Version 0.3.2:
 ** Fixed improper use of size_t instead of off_t which caused
 coredumps on systems where the two types have different sizes.
 
+** iterator_t is rewritten to make list traversal more effective.
+Traversing the list of n elements takes O(n), instead of O(n*(n+1)/2)
+time units.
+
 ** Fixed memory allocation bug in mailbox/mu_auth.c
 
 * New features.

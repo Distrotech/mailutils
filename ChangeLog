@@ -1,3 +1,24 @@
+2003-07-16  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* TODO: Updated
+	* examples/listop.c: New file. A test shell for list operations.
+	* examples/Makefile.am: Added listop.c
+	* include/mailutils/iterator.h (iterator_get_list): New function.
+	* mailbox/iterator.c: Rewritten to reduce the time of list
+	traversal.
+	* mailbox/list.c (list_remove): Call iterator_advance.
+	* mailbox/include/iterator0.h (struct _iterator): Rewritten
+	(iterator_advance): New function.
+	* mailbox/include/list0.h (struct _list): Keep the linked list
+	of associated iterators.
+	* mailbox/testsuite/lib/mailbox.exp (mailbox_prog_start)
+	(mailbox_prog_command,mailbox_prog_stop,mailbox_prog_test): New
+	functions.
+	* mailbox/testsuite/mailbox/list.exp: New file. Tests generic list
+	operations.
+	* mailbox/testsuite/mailbox/DISTFILES: Added list.exp
+
 2003-07-08  Sergey Poznyakoff
 
 	* configure.ac: Raised version number
