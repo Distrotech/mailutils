@@ -1,6 +1,6 @@
 #
 # List of source files containing translatable strings.
-# Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 #
 
 sql/mysql.c
@@ -18,8 +18,8 @@ comsat/comsat.c
 dotlock/dotlock.c
 
 frm/frm.c
-
-from/from.c
+frm/from.c
+frm/common.c
 
 guimb/collect.c
 guimb/main.c

@@ -4,6 +4,8 @@
 	* frm/frm.c: Moved part of code to be shared between `frm' and
 	`from' to common.c
 	* frm/common.c: New file
+	* frm/from.c: New file
+	* frm/frm.h: New file
 	* mail/quit.c: Save messages that were marked for saving to mbox
 	and then deleted
 	* mailbox/mbox/mbox.c (mbox_scan): Store the number of messages
