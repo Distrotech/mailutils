@@ -513,20 +513,20 @@ _mh_tempfile(struct _mh_data *mhd, char **namep)
 
 #ifdef HAVE_MKSTEMP
   {
-    int save_mask = umask(077);
+    int save_mask = umask (077);
     fd = mkstemp (filename);
     umask (save_mask);
   }
 #else
   if (mktemp (filename))
-    fd = open(filename, O_CREAT|O_EXCL|O_RDWR, 0600);
+    fd = open (filename, O_CREAT|O_EXCL|O_RDWR, 0600);
   else
     fd = -1;
 #endif
 
   if (fd == -1)
     {
-      free(filename);
+      free (filename);
       return NULL;
     }
 
@@ -1003,7 +1003,7 @@ mh_pool_lookup (struct _mh_message *mhm)
     {
       if (mhd->msg_pool[i] == mhm)
 	return 1;
-      if (++i > MAX_OPEN_STREAMS)
+      if (++i == MAX_OPEN_STREAMS)
 	i = 0;
     }
   return 0;
@@ -1019,11 +1019,12 @@ mh_pool_open (struct _mh_message *mhm)
     return 0;
   if (mh_pool_open_count(mhd) == MAX_OPEN_STREAMS)
     {
-      mh_message_stream_close (mhd->msg_pool[mhd->pool_first]);
-      mhd->pool_first++;
+      mh_message_stream_close (mhd->msg_pool[mhd->pool_first++]);
+      mhd->pool_first %= MAX_OPEN_STREAMS;
     }
   mh_message_stream_open (mhm);
   mhd->msg_pool[mhd->pool_last++] = mhm;
+  mhd->pool_last %= MAX_OPEN_STREAMS;
 }
 
 /* Attach a stream to a given message structure. The latter is supposed
