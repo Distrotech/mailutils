@@ -122,6 +122,7 @@ static int mbox_close                 __P ((mailbox_t));
 static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
 static int mbox_append_message        __P ((mailbox_t, message_t));
 static int mbox_messages_count        __P ((mailbox_t, size_t *));
+static int mbox_recent_count          __P ((mailbox_t, size_t *));
 static int mbox_expunge               __P ((mailbox_t));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
 static int mbox_is_updated            __P ((mailbox_t));
@@ -209,6 +210,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_get_message = mbox_get_message;
   mailbox->_append_message = mbox_append_message;
   mailbox->_messages_count = mbox_messages_count;
+  mailbox->_recent_count = mbox_recent_count;
   mailbox->_expunge = mbox_expunge;
 
   mailbox->_scan = mbox_scan;
@@ -1531,6 +1533,25 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
   if (pcount)
     *pcount = mud->messages_count;
 
+  return 0;
+}
+
+static int
+mbox_recent_count (mailbox_t mailbox, size_t *pcount)
+{
+  mbox_data_t mud = mailbox->data;
+  mbox_message_t mum;
+  size_t j, total;
+
+  if (pcount)
+    return EINVAL;
+  for (total = j = 0; j < mud->messages_count; j++)
+    {
+      mum = mud->umessages[j];
+      if (mum && mum->new_flags == 0)
+	total++;
+    }
+  *pcount = total;
   return 0;
 }
 

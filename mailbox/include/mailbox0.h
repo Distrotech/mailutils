@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -69,6 +69,7 @@ struct _mailbox
   int  (*_get_message)     __P ((mailbox_t, size_t msgno, message_t *msg));
   int  (*_append_message)  __P ((mailbox_t, message_t msg));
   int  (*_messages_count)  __P ((mailbox_t, size_t *num));
+  int  (*_recent_count)    __P ((mailbox_t, size_t *num));
   int  (*_expunge)         __P ((mailbox_t));
 
   int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));

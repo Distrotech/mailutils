@@ -220,6 +220,14 @@ mailbox_messages_count (mailbox_t mbox, size_t *num)
 }
 
 int
+mailbox_recent_count (mailbox_t mbox, size_t *num)
+{
+  if (mbox && mbox->_recent_count)
+    return mbox->_recent_count (mbox, num);
+  return mailbox_messages_count (mbox, num);
+}
+
+int
 mailbox_expunge (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
