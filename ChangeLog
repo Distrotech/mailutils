@@ -1,3 +1,13 @@
+2002-05-10 09:02  sroberts
+
+	* examples/: Addrs, Addrs.good, Makefile, mbox-check.c,
+	  mbox-dates.c, mbox-explode.c, mimetest.c, msg-send.c: Tweaked
+	  header files to build without errors.
+	* examples/muemail.c: Test program for current email address
+	  completion configuration.
+	* mailbox/parse822.c: Group names no longer appearing in address
+	  lists (still parsed correctly).
+
 2002-05-08  Sam Roberts
 
 	* mailbox/: smtp.c, include/mailer0.h: Implemented correct
