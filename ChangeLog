@@ -1,3 +1,9 @@
+2005-02-26  Sergey Poznyakoff
+
+	* sql/mysql.c: Do not use any libmysql functions to
+	scramble passwords: mysql people are evidently
+	unable to keep this API stable.
+
 2005-02-25  Sergey Poznyakoff 
 
 	* NEWS: Updated
