@@ -78,7 +78,11 @@ mime_context_fill (struct mime_context *ctx, const char *file,
   
   list_create (&ctx->values);
   while ((p = strtok_r (NULL, ";", &sp)))
-    list_append (ctx->values, p);
+    {
+      while (*p && isspace (*p))
+	p++;
+      list_append (ctx->values, p);
+    }
   
   if (no_ask)
     {
@@ -86,7 +90,11 @@ mime_context_fill (struct mime_context *ctx, const char *file,
       list_create (&ctx->no_ask_types);
       for (p = strtok_r (ctx->no_ask_str, ",", &sp); p;
 	   p = strtok_r (NULL, ",", &sp))
-	list_append (ctx->no_ask_types, p);
+	{
+	  while (*p && isspace (*p))
+	    p++;
+	  list_append (ctx->no_ask_types, p);
+	}
     }
 }
 
@@ -147,13 +155,14 @@ mime_context_get_input (struct mime_context *ctx, stream_t *pinput)
   *pinput = ctx->input;
 }
 
-static void
+static int
 mime_context_get_content_type_value (struct mime_context *ctx,
 				     char *name, size_t len,
 				     char **ptr, size_t *plen)
 {
   iterator_t itr = NULL;
-      
+  int rc = 1;
+  
   list_get_iterator (ctx->values, &itr);
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -163,6 +172,7 @@ mime_context_get_content_type_value (struct mime_context *ctx,
       p = strchr (item, '=');
       if (p - item == len && strncasecmp (item, name, len) == 0)
 	{
+	  rc = 0;
 	  *ptr = ++p;
 	  *plen = strlen (*ptr);
 	  if (**ptr == '"')
@@ -174,6 +184,7 @@ mime_context_get_content_type_value (struct mime_context *ctx,
 	}
     }
   iterator_destroy (&itr);
+  return rc;
 }
 
 static void
@@ -239,11 +250,16 @@ expand_string (struct mime_context *ct, char **pstr)
 	      case '{':
 		{
 		  size_t n;
-		  char *q = ++p;
+		  char *q;
+		  
+		  p += 2;
+		  q = p;
 		  while (*p && *p != '}')
 		    p++;
-		  mime_context_get_content_type_value (ct, q, p-q, &s, &n);
-		  obstack_grow (&expand_stack, s, n);
+		  if (mime_context_get_content_type_value (ct,
+							   q, p-q,
+							   &s, &n) == 0)
+		    obstack_grow (&expand_stack, s, n);
 		  if (*p)
 		    p++;
 		  break;
