@@ -44,7 +44,7 @@
 # include <paths.h>
 #endif
 
-#include <argp.h>
+#include <mu_argp.h>
 #include <xalloc.h>
 
 #ifdef HAVE_READLINE_READLINE_H
