@@ -351,7 +351,7 @@ fetch_internaldate (struct fetch_command *command, char **arg)
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
   p = date;
-  mu_parse_ctime_date_time (&p, &tm, &tz);
+  mu_parse_ctime_date_time ((const char **) &p, &tm, &tz);
   strftime (date, sizeof (date), "%d-%b-%Y %X", &tm);
   util_send ("%s", command->name);
   util_send (" \"%s +0000\"", date);
