@@ -1,3 +1,39 @@
+2004-12-05  Sergey Poznyakoff  
+
+	* Makefile.am: Added sql/
+	* configure.ac: Rewritten sql-related part. Allow to specify
+	several SQL libraries simultaneously.
+
+	* sql: New directory
+	* sql/Makefile.am: New file
+	* sql/.cvsignore: New file
+	* sql/sql.c: New file
+	* sql/mysql.c: New file
+	* sql/postgres.c: New file
+	
+	* auth/mysql.c: Removed
+	* auth/pgsql.c: Removed
+	* auth/sql.c: Rewritten using general SQL interface.
+	* auth/Makefile.am: Removed mysql.c and pgsql.c
+	* include/mailutils/sql.h: New file
+	* include/mailutils/Makefile.am: Added sql.h
+
+	* include/mailutils/errno.h: Added new error codes.
+	* mailbox/muerrno.c: Likewise.
+	
+	* mail.local/mail.local.h (quota_query): New variable
+	* mail.local/mailquota.c: Retrieve quotas from SQL database
+	* mail.local/main.c: New option --quota-query
+
+	* scripts/sqlmod.sh: New file
+	* scripts/Makefile.am: Added sqlmod.sh
+
+	* doc/texinfo/programs.texi: Documented mailbox quotas
+
+	* NEWS: Updated
+	* README: Updated
+	* po/POTFILES.in: Updated
+
 2004-12-02  Sergey Poznyakoff
 
 	* doc/texinfo/programs.texi: Documented movemail.

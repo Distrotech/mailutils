@@ -13,7 +13,7 @@ Version 0.5.1:
 The option disables any authentication commands until the client party
 establishes TLS connection with the server.
 
-** Pop3d server accepts new option `--disable-expired'.
+** Pop3d server accepts new option `--delete-expired'.
 
 This option is to be used together with `--expire'. It enables
 automatic deletion of expired messages before closing the
@@ -21,7 +21,13 @@ mailbox. Previous versions of pop3d relied on a cron job that
 was supposed to purge users' mailboxes, but such usage is extremely
 ineffective for mail servers with considerable number of users.
 
-* Mainly bug fixes
+** The package can be compiled with support for both MySQL and PostgreSQL
+simultaneously. Which of the interfaces to use is defined at run time
+by --sql-interface option.
+
+** Mail.local is able to retrieve mailbox quotas from SQL database.
+
+* Bug fixes
 
 
 Version 0.5:
