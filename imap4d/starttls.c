@@ -32,6 +32,7 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Too many args");
 
   status = util_finish (command, RESP_OK, "Begin TLS negotiation");
+  util_flush_output ();
   tls_done = imap4d_init_tls_server ();
 
   return status;
