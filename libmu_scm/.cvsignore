@@ -1,8 +1,12 @@
 Makefile.in
-.deps
 Makefile
-libmu_scm.a
+.deps
+.libs
+*.lo
+*.inc
+*.la
 guile-procedures.txt
 *.doc
 *.x
 .gdbinit
+mailutils.scm
