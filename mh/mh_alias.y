@@ -49,6 +49,9 @@ static list_t unix_group_to_list __P((char *name));
 static list_t unix_gid_to_list __P((char *name));
 static list_t unix_passwd_to_list __P((void));
 
+int yyerror __P((char *s));
+int yylex __P((void));
+
 %}
 
 %union {
@@ -213,10 +216,10 @@ _insert_list (list_t list, void *prev, list_t new_list)
 }
 
 static int mh_alias_get_internal __P((char *name, iterator_t start,
-				      list_t *return_list));
+				      list_t *return_list, int *inclusive));
 
 int
-alias_expand_list (list_t name_list, iterator_t orig_itr)
+alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)
 {
   iterator_t itr;
 
@@ -228,7 +231,7 @@ alias_expand_list (list_t name_list, iterator_t orig_itr)
       list_t exlist;
       
       iterator_current (itr, (void **)&name);
-      if (mh_alias_get_internal (name, orig_itr, &exlist) == 0)
+      if (mh_alias_get_internal (name, orig_itr, &exlist, inclusive) == 0)
 	{
 	  _insert_list (name_list, name, exlist);
 	  list_remove (name_list, name);
@@ -242,7 +245,8 @@ alias_expand_list (list_t name_list, iterator_t orig_itr)
 /* Look up the named alias. If found, return the list of recipient
    names associated with it */
 static int
-mh_alias_get_internal (char *name, iterator_t start, list_t *return_list) 
+mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
+		       int *inclusive) 
 {
   iterator_t itr;
   int rc = 1;
@@ -263,10 +267,12 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list)
     {
       struct mh_alias *alias;
       iterator_current (itr, (void **)&alias);
+      if (inclusive)
+	*inclusive |= alias->inclusive;
       if (aliascmp (alias->name, name) == 0)
 	{
 	  *return_list = ali_list_dup (alias->rcpt_list);
-	  alias_expand_list (*return_list, itr);
+	  alias_expand_list (*return_list, itr, inclusive);
 	  rc = 0;
 	  break;
 	}
@@ -279,16 +285,17 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list)
 int
 mh_alias_get (char *name, list_t *return_list)
 {
-  return mh_alias_get_internal (name, NULL, return_list);
+  return mh_alias_get_internal (name, NULL, return_list, NULL);
 }
 
 int
-mh_alias_get_address (char *name, address_t *paddr)
+mh_alias_get_address (char *name, address_t *paddr, int *incl)
 {
   iterator_t itr;
   list_t list;
-
-  if (mh_alias_get (name, &list))
+  const char *domain = NULL;
+  
+  if (mh_alias_get_internal (name, NULL, &list, incl))
     return 1;
   if (list_is_empty (list))
     {
@@ -302,8 +309,21 @@ mh_alias_get_address (char *name, address_t *paddr)
 	{
 	  char *item;
 	  address_t a;
-	  
+	  char *ptr = NULL; 
+
 	  iterator_current (itr, (void **)&item);
+	  if (incl && *incl)
+	    {
+	      if (strchr (item, '@') == 0)
+		{
+		  if (!domain)
+		    mu_get_user_email_domain (&domain);
+		  asprintf (&ptr, "\"%s\" <%s@%s>", name, item, domain);
+		}
+	      else
+		asprintf (&ptr, "\"%s\" <%s>", name, item);
+	      item = ptr;
+	    }
 	  if (address_create (&a, item))
 	    {
 	      mh_error (_("Error expanding aliases -- invalid address `%s'"),
@@ -314,6 +334,8 @@ mh_alias_get_address (char *name, address_t *paddr)
 	      address_union (paddr, a);
 	      address_destroy (&a);
 	    }
+	  if (ptr)
+	    free (ptr);
 	}
       iterator_destroy (&itr);
     }
@@ -366,7 +388,7 @@ mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
       iterator_current (itr, (void **)&alias);
 
       tmp = ali_list_dup (alias->rcpt_list);
-      alias_expand_list (tmp, itr);
+      alias_expand_list (tmp, itr, NULL);
 
       rc = fun (alias->name, tmp, data);
       list_destroy (&tmp);
