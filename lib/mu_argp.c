@@ -51,7 +51,7 @@
 #define ARG_PAM_SERVICE 10
 
 static struct argp_option mu_common_argp_option[] = {
-  {"maildir", 'm', "URL", 0,
+  {"mail-spool", 'm', "URL", 0,
    "use specified URL as a mailspool directory", 0},
   { "license", 'L', NULL, 0, "print license and exit", 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
@@ -459,8 +459,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
       else
 	p = kwp; /* Use the whole line. */
 
-      if (
-	  progname == NULL
+      if (progname == NULL
 	  || (kwp[0] == ':' && member (capa, kwp+1, len-1))
 	  || strncmp (progname, kwp, len) == 0
 	  )
