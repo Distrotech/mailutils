@@ -40,6 +40,8 @@
                 is "localhost".
    MTA_DIAG     Sets the name of the output diagnostic file. By default,
                 the diagnostics goes to stderr.
+   MTA_APPEND   When set to any non-empty value, directs mta to append
+                to the diagnostics file, not to overwrite it. 
 
 */
 
@@ -130,7 +132,8 @@ main (int argc, char **argv)
       char *name = getenv ("MTA_DIAG");
       if (name)
 	{
-	  diag = fopen (name, "w");
+	  char *mode = getenv ("MTA_APPEND") ? "a" : "w";
+	  diag = fopen (name, mode);
 	  if (!diag)
 	    {
 	      mu_error ("%s: can't open diagnostic output: %s",
