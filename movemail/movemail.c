@@ -31,8 +31,9 @@ static char args_doc[] = N_("inbox destfile [POP-password]");
 
 static struct argp_option options[] = {
   { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
+  { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
   { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
-    
+  
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
