@@ -1735,6 +1735,17 @@ Automatically incorporate newly arrived messages.
 Causes the delete command to behave like dp - thus, after deleting a
 message, the next one will be typed automatically.
 
+@item charset
+@*Type: string
+@*Default: @samp{auto}
+
+The value of this variable controls the output character set for the
+header fields encoding using RFC 2047. If the variable is unset, no
+decoding is performed and the fields are printed as they are. If the
+variable is set to @samp{auto}, @command{mail} tries to deduce the
+name of the character set from the value of @code{LC_ALL} environment
+variable. Otherwise, its value is taken as the name of the charset.
+
 @item cmd
 @*Type: String.
 @*Default: Unset.
