@@ -1652,6 +1652,110 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
 #define isdelim(c) (isspace (c) || strchr (";<[(", c))
 #define skipws(ptr) do { while (*ptr && isspace (*ptr)) ptr++; } while (0)
 
+int
+parse_content_type (struct compose_env *env,
+		    struct obstack *stk, char **prest, char **id, char **descr)
+{
+  int status = 0, stop = 0;
+  char *rest = *prest;
+  char *sp;
+  char *comment = NULL;
+  
+  while (stop == 0 && status == 0 && *rest)
+    {
+      switch (*rest++)
+	{
+	case '(':
+	  if (comment)
+	    {
+	      mh_error (_("%s:%lu: comment redefined"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  status = parse_brace (&comment, &rest, ')', env);
+	  break;
+
+	case '[':
+	  if (!descr)
+	    {
+	      mh_error (_("%s:%lu: syntax error"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	    
+	  if (*descr)
+	    {
+	      mh_error (_("%s:%lu: description redefined"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  status = parse_brace (descr, &rest, ']', env);
+	  break;
+	  
+	case '<':
+	  if (*id)
+	    {
+	      mh_error (_("%s:%lu: content id redefined"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  status = parse_brace (id, &rest, '>', env);
+	  break;
+
+	case ';':
+	  obstack_1grow (stk, ';');
+	  obstack_1grow (stk, ' ');
+	  skipws (rest);
+	  sp = rest;
+	  for (; *rest && !isspace (*rest) && *rest != '='; rest++)
+	    obstack_1grow (stk, *rest);
+	  skipws (rest);
+	  if (*rest != '=')
+	    {
+	      mh_error (_("%s:%lu: syntax error"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  rest++;
+	  obstack_1grow (stk, '=');
+	  skipws (rest);
+	  for (; *rest; rest++)
+	    {
+	      if (isdelim (*rest))
+		break;
+	      obstack_1grow (stk, *rest);
+	    }
+	  break;
+	    
+	default:
+	  rest--;
+	  stop = 1;
+	  break;
+	}
+      skipws (rest);
+    }
+
+  if (comment)
+    {
+      obstack_grow (stk, " (", 2);
+      obstack_grow (stk, comment, strlen (comment));
+      obstack_1grow (stk, ')');
+      free (comment);
+    }
+  *prest = rest;
+  return status;
+}
+
 /* cmd is:  type "/" subtype
             0*(";" attribute "=" value)
             [ "(" comment ")" ]
@@ -1661,11 +1765,11 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
 int
 parse_type_command (char **pcmd, struct compose_env *env, header_t hdr)
 {
-  int status = 0, stop = 0;
+  int status = 0;
   char *sp, c;
   char *type = NULL;
   char *subtype = NULL;
-  char *comment = NULL, *descr = NULL, *id = NULL;
+  char *descr = NULL, *id = NULL;
   struct obstack stk;
   char *rest = *pcmd;
   
@@ -1690,91 +1794,9 @@ parse_type_command (char **pcmd, struct compose_env *env, header_t hdr)
   obstack_grow (&stk, type, strlen (type));
   obstack_1grow (&stk, '/');
   obstack_grow (&stk, subtype, strlen (subtype));
-  
-  while (stop == 0 && status == 0 && *rest)
-    {
-      switch (*rest++)
-	{
-	case '(':
-	  if (comment)
-	    {
-	      mh_error (_("%s:%lu: comment redefined"),
-			input_file,
-			(unsigned long) mhn_error_loc (env));
-	      status = 1;
-	      break;
-	    }
-	  status = parse_brace (&comment, &rest, ')', env);
-	  break;
-
-	case '[':
-	  if (descr)
-	    {
-	      mh_error (_("%s:%lu: description redefined"),
-			input_file,
-			(unsigned long) mhn_error_loc (env));
-	      status = 1;
-	      break;
-	    }
-	  status = parse_brace (&descr, &rest, ']', env);
-	  break;
-	  
-	case '<':
-	  if (id)
-	    {
-	      mh_error (_("%s:%lu: content id redefined"),
-			input_file,
-			(unsigned long) mhn_error_loc (env));
-	      status = 1;
-	      break;
-	    }
-	  status = parse_brace (&id, &rest, '>', env);
-	  break;
-
-	case ';':
-	  obstack_1grow (&stk, ';');
-	  obstack_1grow (&stk, ' ');
-	  skipws (rest);
-	  sp = rest;
-	  for (; *rest && !isspace (*rest) && *rest != '='; rest++)
-	    obstack_1grow (&stk, *rest);
-	  skipws (rest);
-	  if (*rest != '=')
-	    {
-	      mh_error (_("%s:%lu: syntax error"),
-			input_file,
-			(unsigned long) mhn_error_loc (env));
-	      status = 1;
-	      break;
-	    }
-	  rest++;
-	  obstack_1grow (&stk, '=');
-	  skipws (rest);
-	  for (; *rest; rest++)
-	    {
-	      if (isdelim (*rest))
-		break;
-	      obstack_1grow (&stk, *rest);
-	    }
-	  break;
-	    
-	default:
-	  rest--;
-	  stop = 1;
-	  break;
-	}
-      skipws (rest);
-    }
-
-  if (comment)
-    {
-      obstack_grow (&stk, " (", 2);
-      obstack_grow (&stk, comment, strlen (comment));
-      obstack_1grow (&stk, ')');
-      free (comment);
-    }
-    
+  status = parse_content_type (env, &stk, &rest, &id, &descr);
   obstack_1grow (&stk, 0);
+  
   header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
   obstack_free (&stk, NULL);
 
@@ -1815,9 +1837,60 @@ finish_msg (struct compose_env *env, message_t *msg)
   *msg = NULL;
 }
 
+#define EXTCONTENT "message/external-body"
+
 int
 edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
 {
+  int rc;
+  char *rest;
+  char *id = NULL;
+  header_t hdr, hdr2;
+  body_t body;
+  stream_t in, out = NULL;
+  struct obstack stk;
+  
+  if (!*msg)
+    message_create (msg, NULL);
+  
+  if ((rc = header_create (&hdr2, NULL, 0, NULL)) != 0)
+    {
+      mh_error (_("cannot create header: %s"),
+		mu_strerror (rc));
+      return 1;
+    }
+
+  rest = cmd;
+  rc = parse_type_command (&rest, env, hdr2);
+
+  message_get_header (*msg, &hdr);
+
+  obstack_init (&stk);
+  obstack_grow (&stk, EXTCONTENT, sizeof (EXTCONTENT) - 1);
+  *--rest = ';'; /* FIXME */
+  rc = parse_content_type (env, &stk, &rest, &id, NULL);
+  obstack_1grow (&stk, 0);
+  header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
+  obstack_free (&stk, NULL);
+  if (rc)
+    return 1;
+
+  message_get_body (*msg, &body);
+  body_get_stream (body, &out);
+  stream_seek (out, 0, SEEK_SET);
+
+  if (!id)
+    id = mh_create_message_id (env->subpart);
+  header_set_value (hdr2, MU_HEADER_CONTENT_ID, id, 1);
+  free (id);
+  
+  header_get_stream (hdr2, &in);
+  stream_seek (in, 0, SEEK_SET);
+  cat_message (out, in);
+  stream_close (out);
+  header_destroy (&hdr2, header_get_owner (hdr2));
+
+  finish_msg (env, msg);
   return 0;
 }
 
