@@ -2,6 +2,6 @@
 
 aclocal
 libtoolize --copy --automake
-automake --add-missing --copy --gnu
 autoheader
+automake --add-missing --copy --gnu
 autoconf
