@@ -133,6 +133,18 @@ struct regex_data {
   list_t list;
 };
 
+#ifndef FNM_CASEFOLD
+static int
+_pattern_upcase (void *item, void *data)
+{
+  char *p;
+
+  for (p = item; *p; p++)
+    *p = toupper (*p);
+  return 0;
+}
+#endif
+
 static int
 _regex_compile (void *item, void *data)
 {
@@ -285,6 +297,20 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
       newval = sieve_value_create (SVT_STRING_LIST, rd.list);
       list_replace (args, val, newval);
     }
+#ifndef FNM_CASEFOLD
+  else if (matchtype == MU_SIEVE_MATCH_MATCHES
+	   && strcmp (compname, "i;ascii-casemap") == 0)
+    {
+      int rc;
+      sieve_value_t *val;
+
+      if (list_get (args, 1, (void**)&val))
+	return 0;
+      rc = sieve_vlist_do (val, _pattern_upcase, NULL);
+      if (rc)
+	return rc;
+    }
+#endif
   return 0;
 }
 
@@ -337,7 +363,7 @@ i_ascii_casemap_contains (const char *pattern, const char *text)
   
   haystack = (const unsigned char *)text;
 
-  if ((b = U (*(needle= (const unchar*)text))))
+  if ((b = U (*(needle = (const unchar*)pattern))))
     {
       haystack--;		
       do
@@ -406,14 +432,39 @@ ret0:
 static int
 i_ascii_casemap_matches (const char *pattern, const char *text)
 {
-  /* Compile time should do the rest: */
-  return fnmatch (pattern, text, 0) == 0;
+#ifdef FNM_CASEFOLD
+  return fnmatch (pattern, text, FNM_CASEFOLD) == 0;
+#else
+  int rc;
+  char *p = strdup (text);
+  _pattern_upcase (p, NULL);
+  rc = fnmatch (pattern, text, 0) == 0;
+  free (p);
+  return rc;
+#endif
 }
 
 static int
 i_ascii_casemap_regex (const char *pattern, const char *text)
 {
   return regexec ((regex_t *) pattern, text, 0, NULL, 0) == 0;
+}
+
+/* :comparator i;ascii-numeric */
+static int
+i_ascii_numeric_is (const char *pattern, const char *text)
+{
+  if (isdigit ((int) *pattern))
+    {
+      if (isdigit ((int) *text))
+	return strtol (pattern, NULL, 10) == strtol (text, NULL, 10);
+      else 
+	return 0;
+    }
+  else if (isdigit ((int) *text))
+    return 0;
+  else
+    return 1;
 }
 
 void
@@ -431,4 +482,10 @@ sieve_register_standard_comparators ()
 			     i_ascii_casemap_contains,
 			     i_ascii_casemap_matches,
 			     i_ascii_casemap_regex);
+  sieve_register_comparator ("i;ascii-numeric",
+			     0,
+			     i_ascii_numeric_is,
+			     NULL,
+			     NULL,
+			     NULL);
 }
