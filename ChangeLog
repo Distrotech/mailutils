@@ -1,3 +1,13 @@
+2003-01-12  Sergey Poznyakoff 
+
+	* imap4d/fetch.c: Properly quote return strings.
+	  In envelope responses emit a single NIL to represent
+	  a non-existent envelope structures.
+	  Thanks Nic Ferrier <nferrier@tapsellferrier.co.uk> for
+	  reporting the bug.
+	* imap4d/testsuite/imap4d/fetch.exp: Test new fetch responces.
+	* imap4d/testsuite/imap4d/create.exp: Likewise.
+
 2003-01-11  Sergey Poznyakoff  
 
 	* mailbox/mbx_mh.c (mh_scan0): Do not actually read 
