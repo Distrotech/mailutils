@@ -588,8 +588,8 @@ fetch_envelope0 (message_t msg)
 
   /* From:  */
   header_aget_value (header, "From", &from);
-  fetch_send_address (from);
   util_send (" ");
+  fetch_send_address (from);
 
   fetch_send_header_address (header, "Sender", from, 1);
   fetch_send_header_address (header, "Reply-to", from, 1);
