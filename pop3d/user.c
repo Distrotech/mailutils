@@ -145,6 +145,9 @@ pop3d_user (const char *arg)
 
   pop3d_outf ("+OK opened mailbox for %s\r\n", username);
 
+  if (undelete_on_startup)
+    pop3d_undelete_all ();
+  
   /* mailbox name */
   {
     url_t url = NULL;
