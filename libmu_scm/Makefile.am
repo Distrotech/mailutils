@@ -12,15 +12,15 @@ libmu_scm_a_SOURCES=\
  mu_mime.c\
  mu_logger.c\
  mu_port.c\
- mu_util.c\
  mu_scm.c\
+ mu_util.c\
  mu_scm.h
 
 pkgdata_DATA=@GUILE_PROCEDURES_TXT@
 DOT_X_FILES=mu_address.x mu_body.x mu_guimb.x mu_mailbox.x mu_message.x mu_mime.x\
- mu_logger.x mu_port.x mu_scm.x 
+ mu_logger.x mu_port.x mu_scm.x mu_util.x
 DOT_DOC_FILES=mu_address.doc mu_body.doc mu_guimb.doc mu_mailbox.doc mu_message.doc \
- mu_mime.doc mu_logger.doc mu_port.doc mu_scm.doc  
+ mu_mime.doc mu_logger.doc mu_port.doc mu_scm.doc mu_util.doc 
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
 
 DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_PROCEDURES_TXT@
