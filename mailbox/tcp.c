@@ -232,7 +232,7 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   struct _tcp_instance *tcp;
   int ret;
 
-  if (tcp->host == NULL || tcp->port < 1)
+  if (host == NULL || port < 1)
     return EINVAL;
 
   if ((tcp = malloc (sizeof (*tcp))) == NULL)
