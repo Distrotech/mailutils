@@ -1,3 +1,8 @@
+2002-04-04  Sergey Poznyakoff 
+
+	* imap4d/lsub.c (imap4d_lsub): Return OK response, unless
+   	  something grave has happened.
+
 2002-03-28  Sergey Poznyakoff  
 
 	Several bugfixes:
