@@ -21,7 +21,7 @@ noinst_LTLIBRARIES = libmailutils.la
 
 SUBDIRS = posix
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/include/mailutils/gnu
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/include/mailutils/gnu @INTLINCS@
 libmailutils_la_SOURCES = basename.c daemon.c getopt.c getopt1.c md5.c \
                          mu_dbm.c xstrdup.c xmalloc.c 
 
