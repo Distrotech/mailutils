@@ -28,15 +28,15 @@ sieve_test -f $MU_SPOOL_DIR/relational.mbox rel-address.sv -pattern \
 "DISCARD on msg uid 9: marking as deleted"
 
 sieve_test -f $MU_SPOOL_DIR/relational.mbox rel-hairy.sv -pattern \
-"FILEINTO on msg uid 1: delivering into From_A-M"\
-"FILEINTO on msg uid 2: delivering into From_N-Z"\
-"FILEINTO on msg uid 3: delivering into Priority"\
-"FILEINTO on msg uid 4: delivering into Priority"\
-"FILEINTO on msg uid 5: delivering into Priority"\
-"FILEINTO on msg uid 6: delivering into From_A-M"\
-"FILEINTO on msg uid 7: delivering into From_A-M"\
-"FILEINTO on msg uid 8: delivering into From_A-M"\
-"FILEINTO on msg uid 8: delivering into Only_me"\
-"FILEINTO on msg uid 9: delivering into SPAM"
+"FILEINTO on msg uid 1: delivering into %From_A-M"\
+"FILEINTO on msg uid 2: delivering into %From_N-Z"\
+"FILEINTO on msg uid 3: delivering into %Priority"\
+"FILEINTO on msg uid 4: delivering into %Priority"\
+"FILEINTO on msg uid 5: delivering into %Priority"\
+"FILEINTO on msg uid 6: delivering into %From_A-M"\
+"FILEINTO on msg uid 7: delivering into %From_A-M"\
+"FILEINTO on msg uid 8: delivering into %From_A-M"\
+"FILEINTO on msg uid 8: delivering into %Only_me"\
+"FILEINTO on msg uid 9: delivering into %SPAM"
 
 # End of relational.exp
