@@ -4,6 +4,26 @@ See the end for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
+Version 0.3.2:
+
+* Bug fixes:
+
+** Fixed improper use of size_t instead of off_t which caused
+coredumps on systems where the two types have different sizes.
+
+** Fixed memory allocation bug in mailbox/mu_auth.c
+
+* New features.
+
+** pop3d
+
+*** more extensive diagnostics for APOP authentications
+
+*** popauth: new option --create.
+
+The option allows to convert a plaintext file into DBM database.
+
+
 Version 0.3.1:
 
 This version is a maintenance release over the previous one.
