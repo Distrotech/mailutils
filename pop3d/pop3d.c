@@ -17,6 +17,10 @@
 
 #include "pop3d.h"
 
+#ifdef HAVE_MYSQL
+# include "../MySql/MySql.h"
+#endif
+
 mailbox_t mbox;
 size_t timeout;
 int state;
@@ -38,7 +42,7 @@ static struct option long_options[] =
   {0, 0, 0, 0}
 };
 
-const char *short_options ="d::hip:t:v";
+const char *short_options = "d::hip:t:v";
 
 static int syslog_error_printer __P ((const char *fmt, va_list ap));
 static int pop3d_mainloop       __P ((int, int));
@@ -125,6 +129,10 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
   }
 
+#ifdef HAVE_MYSQL
+  mu_register_getpwnam (getMpwnam);
+#endif
+  
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);
   signal (SIGQUIT, pop3d_signal);
@@ -135,7 +143,7 @@ main (int argc, char **argv)
   signal (SIGTERM, pop3d_signal);
   signal (SIGSTOP, pop3d_signal);
   signal (SIGPIPE, pop3d_signal);
-  signal (SIGABRT, pop3d_signal);
+  signal (SIGABRT, pop3d_signal); 
 
   if (mode == DAEMON)
     pop3d_daemon_init ();
@@ -281,7 +289,7 @@ pop3d_mainloop (int infile, int outfile)
 
   /* Lets boogie.  */
   fprintf (ofile, "+OK POP3 Ready %s\r\n", md5shared);
-
+  
   while (state != UPDATE)
     {
       char *buf, *arg, *cmd;
@@ -388,7 +396,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   pid_t pid;
   int listenfd, connfd;
   size_t size;
-
+  
   listenfd = socket (AF_INET, SOCK_STREAM, 0);
   if (listenfd == -1)
     {
@@ -429,7 +437,8 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
           if (errno == EINTR)
 	    continue;
           syslog (LOG_ERR, "accept: %s", strerror (errno));
-          exit (EXIT_FAILURE);
+          continue;
+          /*exit (EXIT_FAILURE);*/
         }
 
       pid = fork ();

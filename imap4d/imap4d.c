@@ -17,6 +17,10 @@
 
 #include "imap4d.h"
 
+#ifdef HAVE_MYSQL
+# include "../MySql/MySql.h"
+#endif
+
 FILE *ofile;
 unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
@@ -136,7 +140,11 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
   }
 
- /* Set the signal handlers.  */
+#ifdef HAVE_MYSQL
+  mu_register_getpwnam (getMpwnam);
+#endif
+
+  /* Set the signal handlers.  */
   signal (SIGINT, imap4d_signal);
   signal (SIGQUIT, imap4d_signal);
   signal (SIGILL, imap4d_signal);
