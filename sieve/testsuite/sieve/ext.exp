@@ -21,9 +21,7 @@ if ![mu_check_capability HAVE_LIBLTDL] {
     exit 0
 }
 
-set env(LTDL_LIBRARY_PATH) "${top_builddir}/examples"
-
-sieve_test -f ${MU_SPOOL_DIR}/bigto.mbox  numaddr.sv -pattern \
+sieve_test -L "${top_builddir}/examples" -f ${MU_SPOOL_DIR}/bigto.mbox numaddr.sv -pattern \
 	"DISCARD on msg uid 1: marking as deleted"
 
 # End of ext.exp
