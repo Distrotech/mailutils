@@ -1,3 +1,36 @@
+2001-09-17 Sergey Poznyakoff
+
+	* mail/mailline.c: fixed declaration of ml_reread, it did not
+	match the changed proto.
+
+	* acconfig.h: Added HAVE_OBSTACK
+
+	* mailbox/mbx_mbox.c: _mh_next_seq(): add 1 to the last used
+	sequence number. mh_append_message(): missed assignment to
+	mhd member of struct _mh_data.
+	mh_message_number(): new function. It is the only way to get
+	the message sequence number.
+
+	Further changes to mh/: Implemented inc command. Added missing
+	options to scan.
+
+	* mh/Makefile.am: Added inc.c. Restructured .*_LDADD assignments.
+	* mh/mh.h: Extern declarations for current_folder, current_message,
+	mh_list_format, etc.	
+	* mh/mh_format.c: builtin_msg(): return sequence number of the
+	message, not its ordinal number in mailbox.
+	builtin_cur(): implemented.
+
+	* mh/mh_init.c: New globals: current_folder, current_message,
+	mh_list_format, etc.	
+	mh_init(): initialize current_folder and current message.
+	mh_read_context_file(), mh_read_formfile(): new functions.
+	* mh/scan.c: Changed initialization of format_str. Removed
+	scan_folder: use current_folder instead. Implemented
+	-form and -header options. Use \f to clear screen if
+	stdout is not a tty.
+	* mh/inc.c: (new) Implementation of inc command.
+	
 2001-09-16  Alain Magloire
 
 	* doc/mbox.texi: Starts to document the concrete Unix mbox
