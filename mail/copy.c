@@ -45,24 +45,20 @@ mail_copy0 (int argc, char **argv, int mark)
   else
     filename = strdup ("mbox");
 
-  if (!filename)
-    return 1;
-  
   if (msgset_parse (argc, argv, &msglist))
     {
       if (filename)
-          free (filename);
+	free (filename);
       return 1;
     }
 
   if (sender)
+    filename = util_outfolder_name (util_get_sender (msglist->msg_part[0], 1));
+
+  if (!filename)
     {
-      filename = util_get_sender(msglist->msg_part[0], 1);
-      if (!filename)
-	{
-	  msgset_free (msglist);
-	  return 1;
-	}
+      msgset_free (msglist);
+      return 1;
     }
 
   if (mailbox_create_default (&mbx, filename)
