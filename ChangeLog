@@ -1,3 +1,13 @@
+2002-05-24  Walter J. Mack <wmack@componentsw.com>
+
+	* include/mailutils/types.h: Include definition for __PMT
+	* include/mailutils/list.h: use __PMT in typedef
+	* include/mailutils/registrar.h: change all callback function
+	  specs from __P to __PMT
+	* include/mailutils/filter.h: Likewise.
+	* include/mailutils/envelope.h: Add coditional closing bracket
+	  to balance earlier extern "C" {
+
 2002-05-16  Sergey Poznyakoff
 
 	* guimb/scm/sieve-core.scm (sieve-expand-filename): New function.
