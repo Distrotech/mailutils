@@ -22,7 +22,7 @@
 static int
 open_stat_db (DBM_FILE *db, int mode)
 {
-  int rc = mu_dbm_open (login_stat_file, db, mode, 0600);
+  int rc = mu_dbm_open (login_stat_file, db, mode, 0660);
   if (rc)
     {
       if (rc == -1)
@@ -47,18 +47,19 @@ check_login_delay (char *username)
     return 0;
   
   time (&now);
-  if (open_stat_db (&db, MU_STREAM_READ))
+  if (open_stat_db (&db, MU_STREAM_RDWR))
     return 0;
   
+  memset (&key, 0, sizeof key);
   MU_DATUM_PTR(key) = username;
   MU_DATUM_SIZE(key) = strlen (username);
   memset (&data, 0, sizeof data);
 
   rc = mu_dbm_fetch (db, key, &data);
-  mu_dbm_close (db);
   if (rc)
     {
       syslog (LOG_ERR, _("Can't fetch APOP data: %s"), mu_strerror (rc));
+      mu_dbm_close (db);
       return 0;
     }
 
@@ -66,11 +67,13 @@ check_login_delay (char *username)
     {
       syslog (LOG_ERR, _("Invalid entry for '%s': wrong timestamp size"),
 	      username);
+      mu_dbm_close (db);
       return 0;
     }
 
   memcpy (text, MU_DATUM_PTR(data), MU_DATUM_SIZE(data));
   text[MU_DATUM_SIZE(data)] = 0;
+  mu_dbm_close (db);
 
   prev_time = strtoul (text, &p, 0);
   if (*p)
@@ -98,6 +101,8 @@ update_login_delay (char *username)
   if (open_stat_db (&db, MU_STREAM_RDWR))
     return;
   
+  memset(&key, 0, sizeof(key));
+  memset(&data, 0, sizeof(data));
   MU_DATUM_PTR(key) = username;
   MU_DATUM_SIZE(key) = strlen (username);
   snprintf (text, sizeof text, "%lu", (unsigned long) now);
