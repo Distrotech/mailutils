@@ -887,6 +887,7 @@ mbox_expunge (mailbox_t mailbox)
       mum = mud->umessages[dirty];
       /* Message may have been tampered, break here.  */
       if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
+	  (mum->attr_flags & MU_ATTRIBUTE_DELETED) ||
 	  (mum->message && message_is_modified (mum->message)))
 	break;
     }
