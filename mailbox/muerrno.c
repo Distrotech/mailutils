@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,6 +33,8 @@
 const char*
 mu_errname (int e)
 {
+  static char buf[128];
+  
   switch (e)
     {
 #define EN(x)  case x: return #x
@@ -90,17 +93,25 @@ mu_errname (int e)
       EN(MU_ERR_PROCESS_EXITED);
       EN(MU_ERR_PROCESS_SIGNALED);
       EN(MU_ERR_PROCESS_UNKNOWN_FAILURE);
+
+      EN(MU_ERR_CONN_CLOSED);
+      EN(MU_ERR_PARSE);
+      EN(MU_ERR_NOENT);
     }
 
-  return "SYSTEM ERROR";
+  snprintf (buf, sizeof buf, _("Error %d"), e);
+  return buf;
 }
 
 const char *
 mu_strerror (int e)
 {
+  const char *msg = NULL;
+  char *p;
+  
   switch (e)
     {
-#define ES(x, d)  case x: return d
+#define ES(x, d)  case x: msg = d; break;
       ES(EOK,                     _("Success"));
       
       ES(MU_ERR_FAILURE,          _("Operation failed"));
@@ -151,8 +162,11 @@ mu_strerror (int e)
       ES(MU_ERR_PROCESS_SIGNALED, _("Process exited on signal"));
       ES(MU_ERR_PROCESS_UNKNOWN_FAILURE,
 	 _("Unknown failure while executing subprocess"));
+      ES(MU_ERR_CONN_CLOSED,      _("Connection closed by remote host"));
+      ES(MU_ERR_PARSE,            _("Parse error"));
+      ES(MU_ERR_NOENT,            _("Requested item not found"));
     }
 
-  return strerror (e);
+  return msg ? msg : strerror (e);
 }
 

@@ -88,6 +88,13 @@ extern "C" {
 
 #define MU_ERR_PROCESS_UNKNOWN_FAILURE (MU_ERR_BASE + 36)
   /* Unknown failure while executing subprocess */
+
+#define MU_ERR_CONN_CLOSED	    (MU_ERR_BASE + 37)
+  /* Connection closed by remote host */
+#define MU_ERR_PARSE		    (MU_ERR_BASE + 38)
+  /* Parse error */
+#define MU_ERR_NOENT                (MU_ERR_BASE + 39)  
+  /* Requested item not found */
   
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));
