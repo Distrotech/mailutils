@@ -62,7 +62,7 @@ _url_pop_init (url_t url)
     return EINVAL;
 
   /* not valid in a pop url */
-  if (url->path || url->query)
+  if (url->path || url->query || !url->host)
     return EINVAL;
 
   if (url->port == 0)

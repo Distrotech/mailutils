@@ -57,6 +57,9 @@ _url_imap_init (url_t url)
   if (status)
     return status;
 
+  if(!url->host || url->query)
+    return EINVAL;
+
   /* is it pop? */
   if (strcmp ("imap", url->scheme) != 0)
     return EINVAL;
