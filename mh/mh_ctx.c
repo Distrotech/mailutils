@@ -138,3 +138,24 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
     }
   return header_set_value (ctx->header, name, value, 1);
 }
+
+int
+mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
+{
+  size_t i, nfields;
+  int rc = 0;
+  
+  header_get_field_count (ctx->header, &nfields);
+  for (i = 1; i <= nfields && rc == 0; i++)
+    {
+      char *name, *value;
+      
+      header_aget_field_name (ctx->header, i, &name);
+      header_aget_field_value (ctx->header, i, &value);
+      rc = fp (name, value, data);
+      free (name);
+      free (data);
+    }
+
+  return rc;
+}
