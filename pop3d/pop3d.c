@@ -17,10 +17,6 @@
 
 #include "pop3d.h"
 
-#ifdef HAVE_MYSQL
-# include "../MySql/MySql.h"
-#endif
-
 mailbox_t mbox;
 int state;
 char *username;
@@ -91,6 +87,7 @@ main (int argc, char **argv)
   struct group *gr;
   int status = OK;
 
+  MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
@@ -126,16 +123,6 @@ main (int argc, char **argv)
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
   }
-
-#ifdef HAVE_MYSQL
-  mu_register_getpwnam (getMpwnam);
-  mu_register_getpwuid (getMpwuid);
-#endif
-#ifdef USE_VIRTUAL_DOMAINS
-  mu_register_getpwnam (getpwnam_virtual);
-  mu_register_getpwnam (getpwnam_ip_virtual);
-  mu_register_getpwnam (getpwnam_host_virtual);
-#endif
 
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);

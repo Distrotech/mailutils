@@ -176,7 +176,7 @@ main (int argc, char *argv[])
   umask (0077);
 
   mu_argp_error_code = EX_CONFIG;
-  
+  MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   
   openlog ("mail.local", LOG_PID, log_facility);
@@ -192,16 +192,6 @@ main (int argc, char *argv[])
       mu_error ("Missing arguments. Try --help for more info");
       return EX_USAGE;
     }
-
-#ifdef HAVE_MYSQL
-  mu_register_getpwnam (getMpwnam);
-  mu_register_getpwuid (getMpwuid);
-#endif
-#ifdef USE_VIRTUAL_DOMAINS
-  mu_register_getpwnam (getpwnam_virtual);
-  mu_register_getpwnam (getpwnam_ip_virtual);
-  mu_register_getpwnam (getpwnam_host_virtual);
-#endif
 
   /* Register local mbox formats. */
   {
@@ -308,11 +298,12 @@ make_tmp (const char *from, char **tempfile)
       {
 	if (memcmp (buf, "From ", 5))
 	  {
+	    struct mu_auth_data *auth;
 	    if (!from)
 	      {
-		struct passwd *pw = mu_getpwuid (uid);
-		if (pw)
-		  from = pw->pw_name;
+		auth = mu_get_auth_by_uid (uid);
+		if (auth)
+		  from = auth->name;
 	      }
 	    if (from)
 	      {
@@ -324,6 +315,8 @@ make_tmp (const char *from, char **tempfile)
 		mailer_err ("Can't determine sender address");
 		exit (EX_UNAVAILABLE);
 	      }
+	    if (auth)
+	      mu_auth_data_free (auth);
 	  }
       }
     else if (!memcmp (buf, "From ", 5))
@@ -353,7 +346,7 @@ deliver (FILE *fp, char *name)
   url_t url = NULL;
   size_t n = 0;
   locker_t lock;
-  struct passwd *pw;
+  struct mu_auth_data *auth;
   int status;
   stream_t stream;
   size_t size;
@@ -362,15 +355,15 @@ deliver (FILE *fp, char *name)
   struct stat sb;
 #endif  
   
-  pw = mu_getpwnam (name);
-  if (!pw)
+  auth = mu_get_auth_by_name (name);
+  if (!auth)
     {
       mailer_err ("%s: no such user", name);
       exit_code = EX_UNAVAILABLE;
       return;
     }
   
-  path = malloc (strlen (mu_path_maildir) + strlen (name) + 1);
+  path = strdup (auth->mailbox);
   if (!path)
     {
       mailer_err ("Out of memory");
@@ -393,7 +386,7 @@ deliver (FILE *fp, char *name)
   /* Actually open the mailbox. Switch to the user's euid to make
      sure the maildrop file will have right privileges, in case it
      will be created */
-  if (switch_user_id (pw->pw_uid))
+  if (switch_user_id (auth->uid))
     return;
   status = mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if (switch_user_id (0))
@@ -463,7 +456,7 @@ deliver (FILE *fp, char *name)
     }
 #endif
   
-  if (!failed && switch_user_id (pw->pw_uid) == 0)
+  if (!failed && switch_user_id (auth->uid) == 0)
     {
       off_t off = size;
       size_t nwr;
@@ -490,6 +483,7 @@ deliver (FILE *fp, char *name)
 
   locker_unlock (lock);
 
+  mu_auth_data_free (auth);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
 }

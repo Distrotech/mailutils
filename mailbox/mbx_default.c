@@ -34,6 +34,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
+#include <mailutils/mu_auth.h>
 
 const char *mu_path_maildir = MU_PATH_MAILDIR; 
 
@@ -93,12 +94,13 @@ static const char *
 get_homedir (const char *user)
 {
   const char *homedir = NULL;
-  struct passwd *pw = NULL;
+  struct mu_auth_data *auth = NULL;
+  
   if (user)
     {
-      pw = mu_getpwnam (user);
-      if (pw)
-        homedir = pw->pw_dir;
+      auth = mu_get_auth_by_name (user);
+      if (auth)
+        homedir = auth->dir;
     }
   else
     {
@@ -107,16 +109,20 @@ get_homedir (const char *user)
       homedir = getenv ("HOME");
       if (homedir == NULL)
         {
-          pw = mu_getpwuid (getuid ());
-          if (pw)
-            homedir = pw->pw_dir;
+	  auth = mu_get_auth_by_name (user);
+	  if (auth)
+	    homedir = auth->dir;
         }
 #else
-      pw = mu_getpwuid (getuid ());
-      if (pw)
-        homedir = pw->pw_dir;
+      auth = mu_get_auth_by_name (user);
+      if (auth)
+	homedir = auth->dir;
 #endif
     }
+
+  if (homedir)
+    homedir = strdup (homedir);
+  mu_auth_data_free (auth);
   return homedir;
 }
 
@@ -136,22 +142,27 @@ user_mailbox_name (const char *user, char **mailbox_name)
   if (!user)
     user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
 #endif
-  if (user == NULL)
+
+  if (user)
     {
-      struct passwd *pw;
-      pw = mu_getpwuid (getuid ());
-      if (pw)
-        user = pw->pw_name;
-      else
+      *mailbox_name = malloc (strlen (user) + strlen (mu_path_maildir) + 2);
+      if (*mailbox_name == NULL)
+	return ENOMEM;
+      sprintf (*mailbox_name, "%s%s", mu_path_maildir, user);
+    }
+  else
+    {
+      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+
+      if (!auth)
         {
           mu_error ("Who am I ?\n");
           return EINVAL;
         }
+      *mailbox_name = strdup (auth->mailbox);
+      mu_auth_data_free (auth);
     }
-  *mailbox_name = malloc (strlen (user) + strlen (mu_path_maildir) + 2);
-  if (*mailbox_name == NULL)
-    return ENOMEM;
-  sprintf (*mailbox_name, "%s%s", mu_path_maildir, user);
+
   return 0;
 }
 
@@ -188,6 +199,7 @@ plus_expand (const char *file, char **buf)
   (*buf)[len-1] = 0;
   free (user);
   free (path);
+  free (home);
   return 0;
 }
 

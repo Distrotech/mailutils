@@ -16,9 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
-#ifdef HAVE_MYSQL
-# include "../MySql/MySql.h"
-#endif
 
 FILE *ifile;
 FILE *ofile;
@@ -26,6 +23,7 @@ mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
 int debug_mode = 0;
+struct mu_auth_data *auth_data; 
 
 struct daemon_param daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
@@ -104,9 +102,10 @@ main (int argc, char **argv)
 {
   struct group *gr;
   int status = EXIT_SUCCESS;
-
+ 
   state = STATE_NONAUTH; /* Starting state in non-auth.  */
 
+  MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
@@ -144,14 +143,6 @@ main (int argc, char **argv)
     list_append (bookie, mbox_record); 
     list_append (bookie, path_record);
   }
-
-#ifdef HAVE_MYSQL
-  mu_register_getpwnam (getMpwnam);
-  mu_register_getpwuid (getMpwuid);
-#endif
-#ifdef USE_VIRTUAL_DOMAINS
-  mu_register_getpwnam (getpwnam_virtual);
-#endif
 
   /* Set the signal handlers.  */
   signal (SIGINT, imap4d_signal);

@@ -585,27 +585,19 @@ change_user (const char *user)
 char *
 mailbox_path (const char *user)
 {
-  struct passwd *pw;
+  struct mu_auth_data *auth;
   char *mailbox_name;
 
-  pw = mu_getpwnam (user);
-  if (!pw)
+  auth = mu_get_auth_by_name (user);
+
+  if (!auth)
     {
       syslog (LOG_ALERT, "user nonexistent: %s", user);
       return NULL;
     }
 
-  if (!mu_virtual_domain)
-    {
-      mailbox_name = calloc (strlen (mu_path_maildir) + 1 +
-			     strlen (pw->pw_name) + 1, 1);
-      sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
-    }
-  else
-    {
-      mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX"), 1);
-      sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
-    }
+  mailbox_name = strdup (auth->mailbox);
+  mu_auth_data_free (auth);
   return mailbox_name;
 }
 

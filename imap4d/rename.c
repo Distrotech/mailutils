@@ -68,8 +68,9 @@ imap4d_rename (struct imap4d_command *command, char *arg)
   if (strcasecmp (oldname, "INBOX") == 0)
     {
       mailbox_t newmbox = NULL;
+      mailbox_t inbox = NULL;
       char *name;
-      struct passwd *pw;
+
       if (S_ISDIR(newst.st_mode))
 	{
 	  free (newname);
@@ -86,31 +87,27 @@ imap4d_rename (struct imap4d_command *command, char *arg)
 	}
       free (name);
       free (newname);
-      pw = mu_getpwuid (getuid ());
-      if (pw)
+
+      if (mailbox_create_default (&inbox, auth_data->name) == 0 &&
+	  mailbox_open (inbox, MU_STREAM_RDWR) == 0)
 	{
-	  mailbox_t inbox = NULL;
-	  if (mailbox_create_default (&inbox, pw->pw_name) == 0 &&
-	      mailbox_open (inbox, MU_STREAM_RDWR) == 0)
+	  size_t no;
+	  size_t total = 0;
+	  mailbox_messages_count (inbox, &total);
+	  for (no = 1; no <= total; no++)
 	    {
-	      size_t no;
-	      size_t total = 0;
-	      mailbox_messages_count (inbox, &total);
-	      for (no = 1; no <= total; no++)
+	      message_t message;
+	      if (mailbox_get_message (inbox, no, &message) == 0)
 		{
-		  message_t message;
-		  if (mailbox_get_message (inbox, no, &message) == 0)
-		    {
-		      attribute_t attr = NULL;
-		      mailbox_append_message (newmbox, message);
-		      message_get_attribute (message, &attr);
-		      attribute_set_deleted (attr);
-		    }
+		  attribute_t attr = NULL;
+		  mailbox_append_message (newmbox, message);
+		  message_get_attribute (message, &attr);
+		  attribute_set_deleted (attr);
 		}
-	      mailbox_expunge (inbox);
-	      mailbox_close (inbox);
-	      mailbox_destroy (&inbox);
 	    }
+	  mailbox_expunge (inbox);
+	  mailbox_close (inbox);
+	  mailbox_destroy (&inbox);
 	}
       mailbox_close (newmbox);
       mailbox_destroy (&newmbox);

@@ -47,6 +47,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
+#include <mailutils/mu_auth.h>
 
 #define MESSAGE_MODIFIED 0x10000;
 
@@ -971,18 +972,18 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
   /* oops! We are still here */
   {
-    struct passwd *pw;
-    const char *sender;
-    pw = mu_getpwuid (getuid ());
-    sender = (pw) ? pw->pw_name : "unknown";
+    struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+    const char *sender = auth ? auth->name : "unknown";
     n = strlen (sender);
     if (buf && len > 0)
       {
 	len--; /* One for the null.  */
 	n = (n < len) ? n : len;
-	memcpy (buf, pw->pw_name, n);
+	memcpy (buf, auth->name, n);
 	buf[n] = '\0';
       }
+    if (auth)
+      mu_auth_data_free (auth);
   }
 
   if (pnwrite)

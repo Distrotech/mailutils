@@ -27,10 +27,7 @@ imap4d_bye (int reason)
 int
 imap4d_bye0 (int reason, struct imap4d_command *command)
 {
-  struct passwd *pw = mu_getpwuid (getuid ());
-  const char *username;
   int status = EXIT_FAILURE;
-  username = (pw) ? pw->pw_name : "Unknown";
 
   if (mbox)
     {
@@ -57,7 +54,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       if (state == STATE_NONAUTH)
         syslog (LOG_INFO, "Session timed out for no user");
       else
-	syslog (LOG_INFO, "Session timed out for user: %s", username);
+	syslog (LOG_INFO, "Session timed out for user: %s", auth_data->name);
       break;
 
     case ERR_NO_OFILE:
@@ -69,7 +66,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       if (state == STATE_NONAUTH)
 	syslog (LOG_INFO, "Session terminating");
       else
-	syslog (LOG_INFO, "Session terminating for user: %s", username);
+	syslog (LOG_INFO, "Session terminating for user: %s", auth_data->name);
       status = EXIT_SUCCESS;
       break;
 

@@ -30,6 +30,7 @@
 
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
+#include <mailutils/mu_auth.h>
 
 #include <auth0.h>
 #include <url0.h>
@@ -399,10 +400,11 @@ get_user (url_t url, const char *filename, char **user)
     }
   else
     {
-      struct passwd *pw = mu_getpwuid (getuid ());
-      if (pw && pw->pw_name)
+      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+      if (auth)
 	{
-	  u = strdup (pw->pw_name);
+	  u = strdup (auth->name);
+	  mu_auth_data_free (auth);
 	  if (!u)
 	    return ENOMEM;
 	}

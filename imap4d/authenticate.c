@@ -29,7 +29,7 @@ struct imap_auth {
   { NULL, NULL }
 };
 
-int
+void
 imap4d_auth_capability ()
 {
   struct imap_auth *ap;
@@ -59,18 +59,18 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
 
   if (username)
     {
-      struct passwd *pw = mu_getpwnam (username);
-      if (pw == NULL)
+      auth_data = mu_get_auth_by_name (username);
+      if (auth_data == NULL)
 	return util_finish (command, RESP_NO,
 			    "User name or passwd rejected");
 
-      if (pw->pw_uid > 0 && !mu_virtual_domain)
-	setuid (pw->pw_uid);
+      if (auth_data->change_uid)
+	setuid (auth_data->uid);
 
-      homedir = mu_normalize_path (strdup (pw->pw_dir), "/");
+      homedir = mu_normalize_path (strdup (auth_data->dir), "/");
       /* FIXME: Check for errors.  */
       chdir (homedir);
-      namespace_init(pw->pw_dir);
+      namespace_init (homedir);
       syslog (LOG_INFO, "User '%s' logged in", username);
       return 0;
     }

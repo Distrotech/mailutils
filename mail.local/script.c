@@ -73,15 +73,16 @@ mda_init (void *data)
 static void
 mda_switch_to_user (struct mda_data *md)
 {
-  struct passwd *pw = NULL;
+  struct mu_auth_data *auth = NULL;
   
   if (md && *md->argv != NULL)
-    pw = mu_getpwnam (*md->argv);
+    auth = mu_get_auth_by_name (*md->argv);
 
-  if (pw)
+  if (auth)
     {
-      switch_user_id (pw->pw_uid);
-      chdir (pw->pw_dir);
+      switch_user_id (auth->uid);
+      chdir (auth->dir);
+      mu_auth_data_free (auth);
     }
   else
     {
