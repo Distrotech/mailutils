@@ -1,0 +1,91 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Library Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/**
+* Parses syntatic elements defined in RFC 822.
+*/
+
+#ifndef _MAILUTILS_PARSE822_H
+#define _MAILUTILS_PARSE822_H
+
+#include <mailutils/address.h>
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+* Reads an RFC822 defined lexical token from an input. If some of
+* the names seem strange, they are taken from the names as defined
+* in the extended BNF of the RFC.
+*/
+
+/* From RFC 822, 3.3 Lexical Tokens */
+
+extern int parse822_is_char        __P ((char c));
+extern int parse822_is_digit       __P ((char c));
+extern int parse822_is_ctl         __P ((char c));
+extern int parse822_is_space       __P ((char c));
+extern int parse822_is_htab        __P ((char c));
+extern int parse822_is_lwsp_char   __P ((char c));
+extern int parse822_is_special     __P ((char c));
+extern int parse822_is_atom_char   __P ((char c));
+extern int parse822_is_q_text      __P ((char c));
+extern int parse822_is_d_text      __P ((char c));
+extern int parse822_is_smtp_q      __P ((char c));
+
+extern int parse822_skip_ws        __P ((const char** p, const char* e));
+extern int parse822_skip_comments  __P ((const char** p, const char* e));
+
+extern int parse822_digits         __P ((const char** p, const char* e, int min, int max, int* digits));
+extern int parse822_special        __P ((const char** p, const char* e, char c));
+extern int parse822_comment        __P ((const char** p, const char* e, char** comment));
+extern int parse822_atom           __P ((const char** p, const char* e, char** atom));
+extern int parse822_quoted_pair    __P ((const char** p, const char* e, char** qpair));
+extern int parse822_quoted_string  __P ((const char** p, const char* e, char** qstr));
+extern int parse822_word           __P ((const char** p, const char* e, char** word));
+extern int parse822_phrase         __P ((const char** p, const char* e, char** phrase));
+
+/* From RFC 822, 6.1 Address Specification Syntax */
+
+extern int parse822_address_list   __P ((address_t* a, const char* s));
+extern int parse822_mail_box       __P ((const char** p, const char* e, address_t* a));
+extern int parse822_group          __P ((const char** p, const char* e, address_t* a));
+extern int parse822_address        __P ((const char** p, const char* e, address_t* a));
+extern int parse822_route_addr     __P ((const char** p, const char* e, address_t* a));
+extern int parse822_route          __P ((const char** p, const char* e, char** route));
+extern int parse822_addr_spec      __P ((const char** p, const char* e, address_t* a));
+extern int parse822_local_part     __P ((const char** p, const char* e, char** local_part));
+extern int parse822_domain         __P ((const char** p, const char* e, char** domain));
+extern int parse822_sub_domain     __P ((const char** p, const char* e, char** sub_domain));
+extern int parse822_domain_ref     __P ((const char** p, const char* e, char** domain_ref));
+extern int parse822_domain_literal __P ((const char** p, const char* e, char** domain_literal));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _MAILUTILS_PARSE822_H */
+
