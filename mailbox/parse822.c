@@ -1486,7 +1486,9 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm)
     tm->tm_min  = min;
     tm->tm_sec  = sec;
 
-    /* TZ ? */
+    tm->tm_isdst = -1; /* unknown whether it's dst or not */
+    tm->tm_gmtoff = tz;
+    tm->tm_zone = tzname;
   }
 
   return EOK;
