@@ -17,9 +17,58 @@
 
 #include "imap4d.h"
 
-/*
- *
- */
+struct scan_data
+{
+  int result;
+  char *name;
+  FILE *tmp;
+};
+
+static int
+scan_mailbox_list (char *filename,
+		   int (*handler) (struct scan_data *data, char *name),
+		   struct scan_data *data)
+{
+  FILE *fp;
+  char buffer[124];
+
+  fp = fopen (filename, "r");
+  if (!fp)
+    return -1;
+    
+  while (fgets (buffer, sizeof (buffer), fp))
+    {
+      size_t n = strlen (buffer);
+      if (n && buffer[n - 1] == '\n')
+	buffer[n - 1] = '\0';
+      if (handler (data, buffer))
+	break;
+    }
+  fclose (fp);
+  return 0;
+}
+
+static int
+scan_only (struct scan_data *data, char *name)
+{
+  if (strcmp (data->name, name) == 0)
+    {
+      data->result = 1;
+      return 1;
+    }
+  return 0;
+}
+
+static int
+unsubscribe (struct scan_data *data, char *name)
+{
+  if (strcmp (data->name, name))
+    {
+      fputs (name, data->tmp);
+      fputs ("\n", data->tmp);
+    }
+  return 0;
+}
 
 int
 imap4d_unsubscribe (struct imap4d_command *command, char *arg)
@@ -27,62 +76,42 @@ imap4d_unsubscribe (struct imap4d_command *command, char *arg)
   char *sp = NULL;
   char *name;
   char *file;
-  FILE *fp;
-
+  struct scan_data sd;
+  int rc;
+  
   name = util_getword (arg, &sp);
   util_unquote (&name);
   if (!name || *name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
 
   asprintf (&file, "%s/.mailboxlist", homedir);
-  fp = fopen (file, "r");
-  free (file);
-  if (fp)
+  sd.result = 0;
+  sd.name = name;
+
+  rc = scan_mailbox_list (file, scan_only, &sd); 
+  if (rc == 0)
     {
-      char buffer[124];
-      int found = 0;
-      while (fgets (buffer, sizeof (buffer), fp))
+      if (sd.result)
 	{
-	  size_t n = strlen (buffer);
-	  if (n && buffer[n - 1] == '\n')
-	    buffer[n - 1] = '\0';
-	  if (strcmp (buffer, name) == 0)
+	  char *tmpname = NULL;
+	  asprintf (&tmpname, "%s.%d", file, getpid ());
+	  sd.tmp = fopen (tmpname, "a");
+	  if (!sd.tmp)
+	    rc = -1;
+	  else
 	    {
-	      found = 1;
-	      break;
+	      rc = scan_mailbox_list (file, unsubscribe, &sd);
+	      fclose (sd.tmp);
+	      if (rc == 0)
+		rename (tmpname, file);
 	    }
+	  free (tmpname);
 	}
-      if (found)
-	{
-	  FILE *fp2;
-	  asprintf (&file, "%s/.mailboxlist.%d", homedir, getpid ());
-	  fp2 = fopen (file, "a");
-	  if (fp2)
-	    {
-	      rewind (fp);
-	      while (fgets (buffer, sizeof (buffer), fp))
-		{
-		  size_t n = strlen (buffer);
-		  if (n && buffer[n - 1] == '\n')
-		    buffer[n - 1] = '\0';
-		  if (strcmp (buffer, name) == 0)
-		    continue;
-		  fputs (buffer, fp2);
-		  fputs ("\n", fp2);
-		}
-	      fclose (fp2);
-	      remove (file);
-	    }
-	  free (file);
-	}
-      else
-	{
-	  fclose (fp);
-	  return util_finish (command, RESP_NO, "Can not unsubscribe");
-	}
-      fclose (fp);
     }
-  else
+
+  free (file);
+  if (rc)
     return util_finish (command, RESP_NO, "Can not unsubscribe");
+
   return util_finish (command, RESP_OK, "Completed");
 }
