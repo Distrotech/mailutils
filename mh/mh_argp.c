@@ -97,10 +97,7 @@ mh_argp_parse (int argc, char **argv,
       _argc = argc + xargc;
       _argv = calloc (_argc+1, sizeof *_argv);
       if (!_argv)
-	{
-	  mh_error (_("not enough memory"));
-	  abort ();
-	}
+        mh_err_memory (1);
 
       i = 0;
       _argv[i++] = argv[0];

@@ -290,8 +290,8 @@ edit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 
       xargv = calloc (argc+2, sizeof (*xargv));
       if (!xargv)
-	{
-	  mh_error (_("not enough memory"));
+        {
+          mh_err_memory (0);
 	  return 0;
 	}
 

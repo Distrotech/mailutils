@@ -27,20 +27,14 @@ mh_context_create (char *name, int copy)
   mh_context_t *ctx;
   ctx = malloc (sizeof (*ctx));
   if (!ctx)
-    {
-      mu_error (_("not enough memory"));
-      abort ();
-    }
+    mh_err_memory (1);
   if (copy)
     ctx->name = name;
   else
     {
       ctx->name = strdup (name);
       if (!ctx->name)
-	{
-	  mu_error (_("not enough memory"));
-	  abort ();
-	}
+        mh_err_memory (1);
     }
   ctx->header = NULL;
   return ctx;

@@ -31,10 +31,7 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
   *msgcnt += inc;
   *msglist = realloc (*msglist, (*msgcnt)*sizeof(**msglist));
   if (!*msglist)
-    {
-      mh_error (_("not enough memory"));
-      abort ();
-    }
+    mh_err_memory (1);
 }
 
 /* Fatal error handler */ 
@@ -589,10 +586,7 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   mailbox_messages_count (mbox, &total);
   list = calloc (total, sizeof (list[0]));
   if (!list)
-    {
-      mh_error (_("not enough memory"));
-      abort ();
-    }
+    mh_err_memory (1);
 
   for (i = 1, msgno = 0; i <= total; i++)
     {
