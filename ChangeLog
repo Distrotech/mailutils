@@ -1,3 +1,44 @@
+2002-08-22  Sergey Poznyakoff 
+
+	* configure.ac: Create imap4d/testsuite/Makefile
+	* imap4d/Makefile.am: Added testsuite
+	* imap4d/testsuite: Added to repository
+	* imap4d/testsuite/Makefile.am: Likewise.
+	* imap4d/testsuite/config: Likewise.
+	* imap4d/testsuite/config/DISTFILES: Likewise.
+	* imap4d/testsuite/config/unix.exp: Likewise.
+	* imap4d/testsuite/lib: Likewise.
+	* imap4d/testsuite/lib/DISTFILES: Likewise.
+	* imap4d/testsuite/lib/imap4d.exp: Likewise. 
+	* imap4d/testsuite/imap4d: Likewise.
+	* imap4d/testsuite/imap4d/DISTFILES: Likewise.
+	* imap4d/testsuite/imap4d/anystate.exp: Likewise.
+	* imap4d/testsuite/imap4d/examine.exp: Likewise. 
+	* imap4d/testsuite/imap4d/list.exp: Likewise.
+	
+	* imap4d/util.c (util_uidvalidity): New function. A wrapper
+	  around mailbox_uidvalidity. When a mailbox is selected whose
+	  first message does not keep X-UIDVALIDITY value, the uidvalidity
+	  is computed based on the return of time(). Now, if we call
+	  "EXAMINE mailbox" or "STATUS mailbox (UIDVALIDITY)" the same
+          mailbox is opened second time and the uidvalidity recalculated.
+	  Thus each subsequent call to EXAMINE or STATUS upon an already
+	  selected mailbox will return different uidvalidity value. To
+	  avoid this, util_uidvalidity() first sees if it is asked to
+	  operate upon an already opened mailbox and if so, returns
+	  previously computed value. 
+
+	* imap4d/imap4d.h (util_uidvalidity): New function
+	* imap4d/select.c (imap4d_select_status): Use util_uidvalidity.
+	* imap4d/status.c (status_uidvalidity): Likewise.
+	* imap4d/list.c (imap4d_list): Added comment describing
+	  when INBOX should be output.
+
+	* frm/frm.c: Fixed coredump when MAIL environment variable
+	  has an empty value.
+	* mailbox/mutil.c (mu_tilde_expansion): Bugfix. Was freeing
+	  passed homedir, which caused grief later.
+
 2002-08-21  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* README: Make this a bit more current.
