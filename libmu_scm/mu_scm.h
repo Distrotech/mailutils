@@ -34,6 +34,11 @@
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
 #include <mailutils/mutil.h>
+#include <mailutils/stream.h>
+#include <mailutils/debug.h>
+#include <mailutils/attribute.h>
+#include <mailutils/mailer.h>
+#include <mailutils/envelope.h>
 
 #include <libguile.h>
 
