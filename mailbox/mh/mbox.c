@@ -224,7 +224,6 @@ mh_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
       if (amd->uidvalidity == 0)
 	{
 	  amd->uidvalidity = (unsigned long)time (NULL);
-	  /* FIXME amd->uidnext = amd->msg_count + 1;*/
 	  /* Tell that we have been modified for expunging.  */
 	  if (amd->msg_head)
 	    {
