@@ -192,6 +192,8 @@ imap4d_mainloop (int infile, int outfile)
   if (!ofile || !ifile)
     imap4d_bye (ERR_NO_OFILE);
 
+  setvbuf(ofile, NULL, _IOLBF, 0);
+  
   syslog (LOG_INFO, "Incoming connection opened");
 
   /* log information on the connecting client */
