@@ -61,5 +61,5 @@ AC_CHECK_FUNC(socket, [true],
 
 dnl Output Makefiles
 AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile pop3d/Makefile
-	imap4d/Makefile lib/Makefile doc/Makefile)
+	imap4d/Makefile lib/Makefile doc/Makefile m4/Makefile)
 
