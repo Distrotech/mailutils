@@ -2,10 +2,10 @@
 
 	* mailbox/folder_imap.c (imap_flags): Bailout at the matching
 	LPAREN.
-	* mailbox/header.c (header_get_fvalue): Return 0 in the
-	number of byte return argument even when no header is found.
+	* mailbox/header.c (header_get_fvalue): Return 0 as the
+	number of byte returned by the last  argument, even when no header
+	field matched.
 	(header_get_value): Likewised.
-
 	* mailbox/mbx_imap.c (imap_header_get_fvalue): Also cache
 	the message size and the FLAGS.
 	(imap_message_size): If we already have the size do not request
