@@ -39,7 +39,7 @@
 int
 main(int argc, char **argv)
 {
-  mailbox_t mbox;
+  mailbox_t mbox = NULL;
   size_t i;
   size_t count = 0;
   char *mailbox_name = NULL;

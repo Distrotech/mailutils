@@ -98,7 +98,6 @@ main (int argc, char **argv)
     registrar_get_list (&bookie);
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
-    list_append (bookie, pop_record);
   }
 
   /* Set the signal handlers */

@@ -104,6 +104,8 @@ mailbox_create (mailbox_t *pmbox, const char *name, int id)
       else
 	*pmbox = mbox;
     }
+  else
+    status = ENOENT;
 
   return status;
 }

@@ -364,11 +364,11 @@ pop_user (authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
-      CHECK_ERROR_CLOSE (mbox, mpd, status);
       /* We have to nuke the passwd.  */
       memset (mpd->passwd, 0, strlen (mpd->passwd));
       free (mpd->passwd);
       mpd->passwd = NULL;
+      CHECK_ERROR_CLOSE (mbox, mpd, status);
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
       mpd->state = POP_AUTH_PASS;
 
@@ -497,9 +497,12 @@ pop_open (mailbox_t mbox, int flags)
       }
 
     case POP_AUTH:
+    case POP_AUTH_USER:
+    case POP_AUTH_USER_ACK:
+    case POP_AUTH_PASS:
+    case POP_AUTH_PASS_ACK:
       status = authority_authenticate (mbox->authority);
-      if (status != 0)
-	return status;
+      CHECK_EAGAIN (mpd, status);
 
     case POP_AUTH_DONE:
       break;
