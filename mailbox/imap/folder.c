@@ -180,18 +180,16 @@ authenticate_imap_login (authority_t auth)
 	  }
 
 	if (f_imap->user == NULL)
-	  {
-	    CHECK_ERROR_CLOSE (folder, f_imap, MU_ERR_NOUSERNAME);
-	  }
+	  return MU_ERR_NOUSERNAME;
+	  
 	if (f_imap->passwd == NULL)
-	  {
-	    CHECK_ERROR_CLOSE (folder, f_imap, MU_ERR_NOPASSWORD);
-	  }
-	status = imap_writeline (f_imap, "g%u LOGIN %s \"%s\"\r\n",
+	  return MU_ERR_NOPASSWORD;
+	  
+	status = imap_writeline (f_imap, "g%u LOGIN \"%s\" \"%s\"\r\n",
 				 f_imap->seq, f_imap->user, f_imap->passwd);
 	CHECK_ERROR_CLOSE(folder, f_imap, status);
 	FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "g%u LOGIN %s *\n",
-	    f_imap->seq, f_imap->user);
+		       f_imap->seq, f_imap->user);
 	f_imap->seq++;
 	free (f_imap->user);
 	f_imap->user = NULL;
@@ -213,7 +211,8 @@ authenticate_imap_login (authority_t auth)
     case IMAP_LOGIN_ACK:
       /* Get the login ack.  */
       status = imap_parse (f_imap);
-      CHECK_EAGAIN (f_imap, status);
+      if (status)
+	return status;
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_AUTH_DONE;
 
@@ -369,11 +368,16 @@ find_auth_method (const char *name)
 static int
 authenticate_imap_select (authority_t auth)
 {
+  folder_t folder = authority_get_owner (auth);
+  f_imap_t f_imap = folder->data;
   struct auth_tab *p;
-  int status;
+  int status = MU_ERR_AUTH_FAILURE;
   
   for (p = auth_tab; status && p->name; p++)
-    status = p->method (auth);
+    {
+      f_imap->state = IMAP_AUTH;
+      status = p->method (auth);
+    }
 
   return status;
 }
@@ -2457,9 +2461,11 @@ imap_parse (f_imap_t f_imap)
 		  observable_t observable = NULL;
 		  folder_get_observable (f_imap->folder, &observable);
 		  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+		  status = MU_ERR_AUTH_FAILURE;
 		}
+	      else
+		status = EINVAL;
 	      mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
-	      status = EINVAL;
 	    }
 	}
       f_imap->ptr = f_imap->buffer;
