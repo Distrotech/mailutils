@@ -476,9 +476,9 @@ The program uses following option groups: @xref{mailbox}.
 The following command line options alter the behavior of the program:
 
 @table @option
-@item -f STRING
-@itemx --field STRING
-Display the header named by @var{STRING} instead of @code{From} @code{Subject} pair.
+@item -f @var{string}
+@itemx --field @var{string}
+Display the header named by @var{string} instead of @code{From} @code{Subject} pair.
 @item -l
 @itemx --to
 Include the contents of @code{To} header to the output. The output field
@@ -497,12 +497,12 @@ Print a message only if there are unread messages in the mailbox.
 @item -S
 @itemx --summary
 Print a summary line.
-@item -s ATTR
-@itemx --status ATTR
+@item -s @var{attr}
+@itemx --status @var{atrr}
 Only display headers from messages with the given status.
-@var{ATTR} may be one of the following: @samp{new}, @samp{read},
+@var{Attr} may be one of the following: @samp{new}, @samp{read},
 @samp{unread}. It is sufficient to specify only first letter of
-an @var{ATTR}. Multiple @option{-s} options are allowed.
+an @var{attr}. Multiple @option{-s} options are allowed.
 @item -t
 @itemx --align
 Tidy mode. Currently is not implemented. Included for compatibility with
@@ -545,11 +545,11 @@ detail, see @ref{Reading Mail}.
 General usage of @command{mail} program is:
 
 @smallexample
-      mail [OPTION...] [address...]
+      mail [@var{option}...] [@var{address}...]
 @end smallexample
 @noindent
-If [address...] part is present, @command{mail} switches to mail sending
-mode, otherwise it operates in mail reading mode.
+If [@var{address}...] part is present, @command{mail} switches to
+mail sending mode, otherwise it operates in mail reading mode.
 
 The program uses following option groups: @xref{mailbox}.
 
@@ -561,9 +561,9 @@ The program uses following option groups: @xref{mailbox}.
 Return true if the mailbox contains some messages. Return false
 otherwise.
 This is useful for writing shell scripts.
-@item -f[FILE]
-@itemx --file[=FILE]
-Operate on mailbox @var{FILE}. If this option is not specified, the default
+@item -f[@var{file}]
+@itemx --file[=@var{file}]
+Operate on mailbox @var{file}. If this option is not specified, the default
 is user's system mailbox. If it is specified without argument, the
 default is @file{$HOME/mbox}.
 @emph{Please note}, that there should be no whitespace between the
@@ -603,18 +603,18 @@ quit
 @item -q
 @itemx --quit
 Cause interrupts to terminate program.
-@item -s SUBJ
-@itemx --subject=SUBJ
-Send a message with a Subject of @var{SUBJ}. Valid only in sending mode.
+@item -s @var{subj}
+@itemx --subject=@var{subj}
+Send a message with a Subject of @var{subj}. Valid only in sending mode.
 @item -t
 @itemx --to
 Switch to sending mode.
-@item -u USER
-@itemx --user=USER
-Operate on @var{USER}'s mailbox. This is equivalent to:
+@item -u @var{user}
+@itemx --user=@var{user}
+Operate on @var{user}'s mailbox. This is equivalent to:
 
 @smallexample
-mail -f/@var{spool_path}/USER
+mail -f/@var{spool_path}/@var{user}
 @end smallexample
 
 @noindent
@@ -720,7 +720,6 @@ or ranges. Each part number can in turn be @dfn{message part specifier},
 thus allowing for operating upon multiply-encoded messages.
 
 The following are the examples of valid message lists:
-
 
 @node Composing Mail
 @subsection Composing Mail
@@ -1302,20 +1301,20 @@ Edits each message in @var{msglist} with the editor, specified in
 @subsubheading Aliasing
 
 @table @samp
-@item alias [alias [address...]]
-@itemx a [alias [address...]]
-@itemx group [alias [address...]]
-@itemx g [alias [address...]]
+@item alias [alias [@var{address}...]]
+@itemx a [alias [@var{address}...]]
+@itemx group [alias [@var{address}...]]
+@itemx g [alias [@var{address}...]]
 With no arguments, prints out all currently-defined aliases.
 With one argument, prints out that alias.
 With more than one argument, creates a new alias or changes an old one.
-@item unalias [alias...]
-@itemx una [alias...]
+@item unalias [@var{alias}...]
+@itemx una [@var{alias}...]
 Takes a list of names defined by alias commands and discards the
 remembered groups of users.  The alias names no longer have any
 significance.
-@item alternates name...
-@itemx alt name...
+@item alternates @var{name}...
+@itemx alt @var{name}...
 The alternates command is useful if you have accounts on several
 machines. It can be used to inform mail that the listed addresses are
 really you.  When you reply to messages, mail will not send a copy of
@@ -1328,8 +1327,8 @@ alternate names is displayed.
 @subsubheading Replying
 
 @table @samp
-@item mail [address...]
-@itemx m [address...]
+@item mail [@var{address}...]
+@itemx m [@var{address}...]
 Switches to compose mode. After composing the message, sends messages to
 the specified addresses.
 
@@ -1918,8 +1917,8 @@ by default only the first one is presented.
 @itemx --debug
 Display mailbox debugging information.
 
-@item -f @var{MAILBOX}
-@itemx --folder=@var{MAILBOX}
+@item -f @var{mailbox}
+@itemx --folder=@var{mailbox}
 Specified the default mailbox.
 
 @item -h
@@ -2123,7 +2122,7 @@ following search paths (in the order given):
 @item Mailutils module directory. By default it is
 @file{$prefix/lib/mailutils}.
 
-@item The value of the environment variable LTDL_LIBRARY_PATH.
+@item The value of the environment variable @env{LTDL_LIBRARY_PATH}.
 
 @item Additional search directories specified with the
 @code{#searchpath} directive.
@@ -2131,12 +2130,11 @@ following search paths (in the order given):
 @item System library search path: The system dependent library
 search path (e.g. on Linux it is set by the contents of the file
 @file{/etc/ld.so.conf} and the value of the environment variable
-LD_LIBRARY_PATH).
-
+@env{LD_LIBRARY_PATH}).
 @end enumerate
 
-The value of LTDL_LIBRARY_PATH and LD_LIBRARY_PATH must be a
-colon-separated list of absolute directories, for example,
+The value of @env{LTDL_LIBRARY_PATH} and @env{LD_LIBRARY_PATH} must be
+a colon-separated list of absolute directories, for example,
 @samp{"/usr/lib/mypkg:/lib/foo"}.
 
 In any of these directories, @command{sieve} first attempts to find
@@ -2264,10 +2262,10 @@ scheme program saves it.
 @item guimb [@var{options}] --mailbox @var{defmbox}
 The contents of @var{defmbox} is processed and is replaced with the resulting
 mailbox contents. Useful for applying filters to user's mailbox.
-@item guimb [@var{options}] --mailbox @var{defmbox} mailbox [mailbox...]
+@item guimb [@var{options}] --mailbox @var{defmbox} @var{mailbox} [@var{mailbox}...]
 The contents of specified mailboxes is processed, and the resulting
 mailbox contents is appended to @var{defmbox}.
-@item guimb [@var{options}] --user @var{username} [mailbox...]
+@item guimb [@var{options}] --user @var{username} [@var{mailbox}...]
 The contents of specified mailboxes is processed, and the resulting
 mailbox contents is appended to the user's system mailbox. This allows
 to use @command{guimb} as a mail delivery agent.
@@ -2302,7 +2300,7 @@ the additional arguments may be passed to the Scheme program @option{-g}
 (@option{--guile-arg}) command line option. For example:
 
 @smallexample
-guimb --guile-arg -opt --guile-arg 24 --file progfile
+guimb --guile-arg -opt --guile-arg 24 --file @var{progfile}
 @end smallexample
 
 In this example, the scheme procedure will see the following command line:
@@ -2315,7 +2313,7 @@ Finally, if there are many arguments to be passed to Scheme, it is more
 convenient to enclose them in @option{-@{} and @option{-@}} escapes:
 
 @smallexample
-guimb -@{ -opt 24 -@} --file progfile
+guimb -@{ -opt 24 -@} --file @var{progfile}
 @end smallexample
 
 @node Command Line Option Summary
@@ -2328,27 +2326,27 @@ This is a short summary of the command line options available to
 @item -d
 @itemx --debug
 Start with debugging evaluator and backtraces.
-@item -e EXPR
-@itemx --expression EXPR
+@item -e @var{expr}
+@itemx --expression @var{expr}
 Execute given Scheme expression.
 @item -m @var{path}
 @itemx --mail-spool=@var{path}
 Set path to the mailspool directory
-@item -f PROGFILE
-@itemx --file PROGFILE
-Read Scheme program from @var{PROGFILE}.
-@item -g ARG
-@itemx --guile-command ARG
-Append @var{ARG} to the command line passed to Scheme program.
+@item -f @var{progfile}
+@itemx --file @var{progfile}
+Read Scheme program from @var{progfile}.
+@item -g @var{arg}
+@itemx --guile-command @var{arg}
+Append @var{arg} to the command line passed to Scheme program.
 @item -@{ ... -@}
 Pass all command line options enclosed between @option{-@{} and @option{-@}}
 to Scheme program.
 @item -m
-@itemx --mailbox MBOX
+@itemx --mailbox @var{mbox}
 Set default mailbox name.
 @item -u
-@itemx --user NAME
-Act as local MDA for user @var{NAME}.
+@itemx --user @var{name}
+Act as local MDA for user @var{name}.
 @item -h
 @itemx --help
 Display help message.
@@ -2379,13 +2377,12 @@ and appends the received data to the local mailboxes.
 General usage of @command{mail.local} program is:
                                                                                 
 @smallexample
-      mail.local [OPTION...] recipient [recipient ...]
+      mail.local [@var{option}...] @var{recipient} [@var{recipient} ...]
 @end smallexample
 
 @noindent
 If recipient part is present is a FQDN, @command{mail.local} 
 will attempt to deliver to a virtual host.
-
                                                                                 
 The program uses following option groups: @xref{mailbox}, @xref{auth},
 @xref{logging}, @xref{sieve}.
@@ -2443,13 +2440,13 @@ Start with guile debugging evaluator and backtraces. This is convenient
 for debugging user-defined filters (@pxref{Scheme Filters}).
 
 @item T
-Enable libmailutil traces (MU_DEBUG_TRACE).
+Enable libmailutil traces (@code{MU_DEBUG_TRACE}).
 
 @item P
-Enable network protocol traces (MU_DEBUG_PROT)
+Enable network protocol traces (@code{MU_DEBUG_PROT})
 
 @item t
-Enable sieve trace (MU_SIEVE_DEBUG_TRACE)
+Enable sieve trace (@code{MU_SIEVE_DEBUG_TRACE})
 
 @item l
 Enable sieve action logs
