@@ -136,6 +136,33 @@ SCM_DEFINE (mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_username_to_email, "mu-username->email", 0, 1, 0,
+	    (SCM NAME),
+	    "Deduce the email from the username. If NAME is omitted, current username\n"
+	    "is assumed\n")
+#define FUNC_NAME s_mu_username_to_email
+{
+  char *name;
+  char *email;
+  SCM ret;
+  
+  if (SCM_UNBNDP (NAME))
+    name = NULL;
+  else {
+    SCM_ASSERT (SCM_NIMP (NAME) && SCM_STRINGP (NAME),
+		NAME, SCM_ARG1, FUNC_NAME);
+    name = SCM_CHARS (NAME);
+  }
+
+  email = mu_get_user_email (name);
+  if (!email)
+    return SCM_BOOL_F;
+  ret = scm_makfrom0str (email);
+  free (email);
+  return ret;
+}
+#undef FUNC_NAME
+
 void
 mu_scm_address_init ()
 {
