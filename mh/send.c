@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -364,7 +364,7 @@ expand_aliases (message_t msg)
 {
   header_t hdr;
   size_t i, num;
-  char buf[16];
+  char *buf;
   address_t addr_to = NULL,
             addr_cc = NULL,
             addr_bcc = NULL;
@@ -373,25 +373,28 @@ expand_aliases (message_t msg)
   header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, MU_HEADER_TO) == 0
-	  || strcasecmp (buf, MU_HEADER_CC) == 0
-	  || strcasecmp (buf, MU_HEADER_BCC) == 0)
+      if (header_aget_field_name (hdr, i, &buf) == 0)
 	{
-	  char *value;
-	  address_t addr = NULL;
-	  int incl;
-	  
-	  header_aget_field_value_unfold (hdr, i, &value);
-      
-	  mh_alias_expand (value, &addr, &incl);
-	  free (value);
-	  if (strcasecmp (buf, MU_HEADER_TO) == 0)
-	    address_union (&addr_to, addr);
-	  else if (strcasecmp (buf, MU_HEADER_CC) == 0)
-	    address_union (&addr_cc, addr);
-	  else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
-	    address_union (&addr_bcc, addr);
+	  if (strcasecmp (buf, MU_HEADER_TO) == 0
+	      || strcasecmp (buf, MU_HEADER_CC) == 0
+	      || strcasecmp (buf, MU_HEADER_BCC) == 0)
+	    {
+	      char *value;
+	      address_t addr = NULL;
+	      int incl;
+	      
+	      header_aget_field_value_unfold (hdr, i, &value);
+	      
+	      mh_alias_expand (value, &addr, &incl);
+	      free (value);
+	      if (strcasecmp (buf, MU_HEADER_TO) == 0)
+		address_union (&addr_to, addr);
+	      else if (strcasecmp (buf, MU_HEADER_CC) == 0)
+		address_union (&addr_cc, addr);
+	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
+		address_union (&addr_bcc, addr);
+	    }
+	  free (buf);
 	}
     }
 
