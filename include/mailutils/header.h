@@ -67,6 +67,7 @@ extern "C" {
 #define MU_HEADER_FCC                       "Fcc"
 #define MU_HEADER_DELIVERY_DATE             "Delivery-date"
 #define MU_HEADER_ENVELOPE_TO               "Envelope-to"
+#define MU_HEADER_X_EXPIRE_TIMESTAMP        "X-Expire-Timestamp"
   
 /* Mime support header attribute */
 
