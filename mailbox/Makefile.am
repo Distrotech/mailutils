@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -14,10 +14,12 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program; if not, write to the Free Software
-##   Foundation, Inc.
-##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
+ -I${top_srcdir}/mailbox/include -I${top_builddir}/include/mailutils/gnu \
+ @INTLINCS@
+
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
@@ -36,7 +38,7 @@ EXTRA_DIST = strtok_r.c \
  argp-pvh.c argp-xinl.c getline.c getline.h parsedate.y pin.c regex.c \
  fgetpwent.c getopt.c getopt1.c 
 
-noinst_HEADERS=argp-fmtstream.h argp-namefrob.h md5.h
+noinst_HEADERS = argp-fmtstream.h argp-namefrob.h md5.h
 
 libmailbox_la_SOURCES = \
 address.c \
@@ -46,6 +48,7 @@ attachment.c \
 attribute.c \
 auth.c \
 body.c \
+daemon.c \
 date.c \
 debug.c \
 envelope.c \
