@@ -1,5 +1,5 @@
-/* rpl_malloc.c -- a replacement for malloc that don't accept 0 size
-   Copyright (C) 2001 Free Software Foundation, Inc.
+/* malloc() function that is glibc compatible.
+   Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,12 +15,22 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
+/* written by Jim Meyering */
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+#undef malloc
+
 #include <stdlib.h>
 
+/* Allocate an N-byte block of memory from the heap.
+   If N is zero, allocate a 1-byte block.  */
+
 void *
-rpl_malloc(size_t size)
+rpl_malloc (size_t n)
 {
-	if (!size)
-		size++;
-	return malloc(size);
+  if (n == 0)
+    n = 1;
+  return malloc (n);
 }

@@ -1,5 +1,5 @@
-/* rpl_realloc.c -- a replacement for broken realloc implementations
-   Copyright (C) 2001 Free Software Foundation, Inc.
+/* realloc() function that is glibc compatible.
+   Copyright (C) 1997, 2003, 2004 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,18 +15,32 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
+/* written by Jim Meyering */
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+#undef realloc
+
 #include <stdlib.h>
 
+/* Change the size of an allocated block of memory P to N bytes,
+   with error checking.  If N is zero, change it to 1.  If P is NULL,
+   use malloc.  */
+
 void *
-rpl_realloc(void *ptr, size_t size)
+rpl_realloc (void *p, size_t n)
 {
-  if (!ptr)
-    return malloc(size);
-  if (!size)
+  if (n == 0)
     {
-      if (ptr)
-        free(ptr);
-      return malloc(size);
+      n = 1;
+
+      /* In theory realloc might fail, so don't rely on it to free.  */
+      free (p);
+      p = NULL;
     }
-  return realloc(ptr, size);
+
+  if (p == NULL)
+    return malloc (n);
+  return realloc (p, n);
 }
