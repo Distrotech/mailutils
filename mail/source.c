@@ -48,21 +48,21 @@ mail_source (int argc, char **argv)
   
   if (argc != 2)
     {
-      fprintf(ofile, "source requires an argument\n");
+      util_error("source requires an argument");
       return 1;
     }
   
   fp = fopen (argv[1], "r");
   if (!fp)
     {
-      fprintf(ofile, "can't open `%s': %s\n", argv[1], strerror(errno));
+      util_error("can't open `%s': %s", argv[1], strerror(errno));
       return 1;
     }
 
-  save_term = mail_is_terminal();
-  mail_set_is_terminal(0);
+  save_term = interactive;
+  interactive = 0;
   mail_mainloop(source_readline, fp, 0);
-  mail_set_is_terminal(save_term);
+  interactive = save_term;
   fclose (fp);
   return 0;
 }

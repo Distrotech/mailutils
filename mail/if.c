@@ -17,8 +17,6 @@
 
 #include "mail.h"
 
-static int is_terminal;
-
 #define COND_STK_SIZE 64
 #define COND_STK_INCR 16
 static int *_cond_stack;     /* Stack of conditions */
@@ -54,7 +52,7 @@ _cond_push(int val)
   
   if (!_cond_stack)
     {
-      fprintf(ofile, "not enough memeory");
+      util_error("not enough memory");
       exit (EXIT_FAILURE);
     }
   _cond_stack[_cond_level++] = val;
@@ -65,7 +63,7 @@ _cond_pop()
 {
   if (_cond_level == 0)
     {
-      fprintf(ofile, "internal error: condition stack underflow\n");
+      util_error("internal error: condition stack underflow");
       abort();
     }
   return _cond_stack[--_cond_level];
@@ -87,13 +85,13 @@ mail_if (int argc, char **argv)
 
   if (argc != 2)
     {
-      fprintf(ofile, "if requires an argument: s | r | t\n");
+      util_error("if requires an argument: s | r | t");
       return 1;
     }
 
   if (argv[1][1] != 0)
     {
-      fprintf(ofile, "valid if arguments are: s | r | t\n");
+      util_error("valid if arguments are: s | r | t");
       return 1;
     }
 
@@ -117,10 +115,10 @@ mail_if (int argc, char **argv)
 	  cond = strcmp(mode->value, "send") != 0;
 	  break;
 	case 't': /* Reading from a terminal */
-	  cond = is_terminal;
+	  cond = interactive;
 	  break;
 	default:
-	  fprintf(ofile, "valid if arguments are: s | r | t\n");
+	  util_error("valid if arguments are: s | r | t");
 	  return 1;
 	}
     }
@@ -135,7 +133,7 @@ mail_else (int argc, char **argv)
   int cond;
   if (_cond_level == 0)
     {
-      fprintf(ofile, "else without matching if\n");
+      util_error("else without matching if");
       return 1;
     }
   cond = _cond_pop();
@@ -150,21 +148,11 @@ mail_endif (int argc, char **argv)
 {
   if (_cond_level == 0)
     {
-      fprintf(ofile, "endif without matching if\n");
+      util_error("endif without matching if");
       return 1;
     }
   _cond_pop();
   return 1;
 }
 
-void
-mail_set_is_terminal(int val)
-{
-  is_terminal = val;
-}
 
-int
-mail_is_terminal(void)
-{
-  return is_terminal;
-}
