@@ -1,3 +1,24 @@
+2002-08-26  Sergey Poznyakoff
+
+	* frm/frm.c: Don't bail out if the mailbox does not exist.
+	* imap4d/append.c (imap4d_append0): Skip leading whitespace.
+	* imap4d/fetch.c (fetch_envelope0): Emit whitespace before
+	  "from" header.
+	* imap4d/util.c: Fixed typo in comment.
+	* imap4d/testsuite/imap4d/append.exp: New file 
+	* imap4d/testsuite/imap4d/create.exp: New file 
+	* imap4d/testsuite/imap4d/expunge.exp: New file
+	* imap4d/testsuite/imap4d/examine.exp: Replaced
+	  [imap4d_uidvalidity] with simple regexp.
+	* imap4d/testsuite/imap4d/fetch.exp: Likewise.
+	* imap4d/testsuite/lib/imap4d.exp (imap4d_test): Added new
+	  options: -long to emit long IMAP4D literal after the command,
+	  -silent to be silent about the results of the testcase.
+	
+	* imap4d/testsuite/imap4d/DISTFILES: Added new files.
+
+	* testsuite/lib/mailutils.exp (mu_expect_list): New procedure
+	
 2002-08-23  Sergey Poznyakoff 
 
 	* configure.ac: Added check for socklen_t.
