@@ -184,8 +184,10 @@ main (int argc, char *argv[])
   locker_destroy (&locker);
 
   if (debug && err)
-    fprintf (stderr, _("%s %s failed: %s\n"),
-	     unlock ? _("unlocking") : _("locking"), file, mu_strerror (err));
+    fprintf (stderr,
+	     unlock ? _("unlocking the file %s failed: %s\n") :
+	              _("locking the file %s failed: %s\n"),
+	     file, mu_strerror (err));
 
   switch (err)
     {
