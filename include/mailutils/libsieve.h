@@ -43,6 +43,8 @@ typedef void (*sieve_action_log_t) __PMT((void *data,
 					  const char *action,
 					  const char *fmt, va_list ap));
 
+typedef int (*sieve_relcmp_t) __PMT((int, int));  
+typedef int (*sieve_relcmpn_t) __PMT((size_t, size_t));  
 typedef int (*sieve_comparator_t) __PMT((const char *, const char *));
 typedef int (*sieve_retrieve_t) __PMT((void *item, void *data, int idx, char **pval));
 typedef void (*sieve_destructor_t) __PMT((void *data));
@@ -100,7 +102,8 @@ typedef struct {
 #define MU_SIEVE_MATCH_CONTAINS  2
 #define MU_SIEVE_MATCH_MATCHES   3
 #define MU_SIEVE_MATCH_REGEX     4
-#define MU_SIEVE_MATCH_LAST      5
+#define MU_SIEVE_MATCH_EQ        5
+#define MU_SIEVE_MATCH_LAST      6
 
 /* Debugging levels */
 #define MU_SIEVE_DEBUG_TRACE  0x0001 
@@ -146,10 +149,12 @@ int sieve_register_comparator __P((sieve_machine_t mach,
 				   sieve_comparator_t is,
 				   sieve_comparator_t contains,
 				   sieve_comparator_t matches,
-				   sieve_comparator_t regex));
+				   sieve_comparator_t regex,
+				   sieve_comparator_t eq));
 int sieve_require_action __P((sieve_machine_t mach, const char *name));
 int sieve_require_test __P((sieve_machine_t mach, const char *name));
 int sieve_require_comparator __P((sieve_machine_t mach, const char *name));
+int sieve_require_relational __P((sieve_machine_t mach, const char *name));
   
 sieve_comparator_t sieve_comparator_lookup __P((sieve_machine_t mach,
 						const char *name,
@@ -157,6 +162,9 @@ sieve_comparator_t sieve_comparator_lookup __P((sieve_machine_t mach,
 
 sieve_comparator_t sieve_get_comparator __P((sieve_machine_t mach,
 					     list_t tags));
+int sieve_str_to_relcmp __P((const char *str,
+			     sieve_relcmp_t *test, sieve_relcmpn_t *stest));
+sieve_relcmp_t sieve_get_relcmp __P((sieve_machine_t mach, list_t tags));
   
 void sieve_require __P((list_t slist));
 int sieve_tag_lookup __P((list_t taglist, char *name, sieve_value_t **arg));
@@ -166,8 +174,10 @@ int sieve_load_ext __P((sieve_machine_t mach, const char *name));
 sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
 int sieve_vlist_do __P((sieve_value_t *val, list_action_t *ac, void *data));
 int sieve_vlist_compare __P((sieve_value_t *a, sieve_value_t *b,
-			     sieve_comparator_t comp, sieve_retrieve_t ac,
-			     void *data));
+			     sieve_comparator_t comp, sieve_relcmp_t test,
+			     sieve_retrieve_t ac,
+			     void *data,
+			     size_t *count));
 
 /* Functions to create and destroy sieve machine */
 int sieve_machine_init __P((sieve_machine_t *mach, void *data));
