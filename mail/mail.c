@@ -24,6 +24,8 @@ size_t total;
 FILE *ofile;
 int interactive;
 
+static list_t command_list;
+
 const char *program_version = "mail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mail -- the standard /bin/mail interface");
 static char args_doc[] = N_("[address...]");
@@ -67,7 +69,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'e':
-      util_do_command ("set mode=exist");
+      util_cache_command (&command_list, "set mode=exist");
       break;
       
     case 'f':
@@ -86,23 +88,23 @@ parse_opt (int key, char *arg, struct argp_state *state)
       
     case 'p':
     case 'r':
-      util_do_command ("set mode=print");
+      util_cache_command (&command_list, "set mode=print");
       break;
       
     case 'q':
-      util_do_command ("set quit");
+      util_cache_command (&command_list, "set quit");
       break;
       
     case 't':
-      util_do_command ("set mode=send");
+      util_cache_command (&command_list, "set mode=send");
       break;
       
     case 'H':
-      util_do_command ("set mode=headers");
+      util_cache_command (&command_list, "set mode=headers");
       break;
       
     case 'i':
-      util_do_command ("set ignore");
+      util_cache_command (&command_list, "set ignore");
       break;
       
     case 'n':
@@ -110,13 +112,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'N':
-      util_do_command ("set noheader");
+      util_cache_command (&command_list, "set noheader");
       break;
       
     case 's':
-      util_do_command ("set mode=send");
-      util_do_command ("set noasksub");
-      util_do_command ("set subject=\"%s\"", arg);
+      util_cache_command (&command_list, "set mode=send");
+      util_cache_command (&command_list, "set noasksub");
+      util_cache_command (&command_list, "set subject=\"%s\"", arg);
       break;
       
     case 'u':
@@ -124,7 +126,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'F':
-      util_do_command ("set byname");
+      util_cache_command (&command_list, "set byname");
       break;
       
     case ARGP_KEY_ARG:
@@ -146,7 +148,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 				sizeof (char *) * (state->arg_num + 2));
 	  args->args[state->arg_num] = arg;
 	  args->args[state->arg_num + 1] = NULL;
-	  util_do_command ("set mode=send");
+	  util_cache_command (&command_list, "set mode=send");
 	}
       break;
       
@@ -303,6 +305,9 @@ main (int argc, char **argv)
   util_do_command ("set toplines=5");
   util_do_command ("set autoinc");
   util_do_command ("set regex");
+  /* Start in mail reading mode */
+  util_do_command ("set mode=read");
+  util_do_command ("set noquit");
   
   /* Set the default mailer to sendmail.  */
   {
@@ -312,11 +317,6 @@ main (int argc, char **argv)
     util_setenv ("sendmail", mailer_name, Mail_env_string, 1);
   }
 
-  /* GNU extensions to the environment, for sparky's sanity */
-  util_do_command ("set mode=read");
-  util_do_command ("set nobyname");
-  util_do_command ("set rc");
-  util_do_command ("set noquit");
 
   args.args = NULL;
   args.file = NULL;
@@ -331,6 +331,9 @@ main (int argc, char **argv)
   if (util_getenv (NULL, "rc", Mail_env_boolean, 0) == 0)
     util_do_command ("source %s", SITE_MAIL_RC);
   util_do_command ("source %s", getenv ("MAILRC"));
+
+  util_run_cached_commands (&command_list);
+  
   if (!interactive)
     {
       util_do_command ("set nocrt");
