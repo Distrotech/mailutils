@@ -138,10 +138,10 @@ typedef struct message_set msgset_t;
 
 struct message_set
 {
-  msgset_t *next;        /* Link to the next message set */
-  unsigned int npart;    /* Number of parts in this set */
-  unsigned int *msg_part;/* Array of part numbers: msg_part[0] is the message
-			    number */
+  msgset_t *next;       /* Link to the next message set */
+  unsigned int npart;   /* Number of parts in this set */
+  size_t *msg_part;     /* Array of part numbers: msg_part[0] is the 
+                           message number */
 };
 
 typedef int (*msg_handler_t) __P((msgset_t *mp, message_t mesg, void *data));
