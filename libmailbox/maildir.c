@@ -49,7 +49,7 @@ maildir_open (mailbox * mbox)
   alloced = 10;
   
   /* process the new directory */
-  while ((entry = readdir (data->new)) && (entry != NULL))
+  while (entry = readdir (data->new))
     {
       /* no dot files */
       if (entry->d_name[0] != '.')
@@ -71,7 +71,7 @@ maildir_open (mailbox * mbox)
     }
   
   /* then the cur directory */
-  while ((entry = readdir (data->cur)) && (entry != NULL))
+  while (entry = readdir (data->cur))
     {
       if (entry->d_name[0] != '.')
 	{

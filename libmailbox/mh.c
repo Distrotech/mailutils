@@ -28,6 +28,7 @@ int
 mh_open (mailbox * mbox)
 {
   int i;
+  unsigned long seq_num = 0;
   struct dirent *entry;
   mh_data *data;
 
@@ -42,9 +43,10 @@ mh_open (mailbox * mbox)
   /* process directory */
   while (entry = readdir (data->dir))
     {
-      unsigned long seq_num;
       char *foo = NULL;
       char fname[PATH_MAX];
+      char line[80];
+      FILE *fp;
       if (entry->d_name[0] == '.')
 	{
 	  if (strcmp(entry->d_name, ".mh_sequences") == 0)
@@ -58,10 +60,26 @@ mh_open (mailbox * mbox)
       seq_num = strtoul (entry->d_name, &foo, 10);
       if (*foo != '\0') /* invalid sequence number */
 	continue; /* TODO: handle this better? */
-      printf ("message: %ld\r", seq_num);
+      sprintf(fname, "%s/%ld", mbox->name, seq_num);
+      if ((fp = fopen(fname, "r")) == NULL)
+	continue; /* TODO: handle the error */
+      /* TODO: handle corrupt files */
+      while (fgets (line, 80, fp))
+	{
+	  if ((line[0] == '\r' && line[1] == '\n') || line[0] == '\n')
+	    {
+	      /* TODO: handle marking the message body */;
+	      break;
+	    }
+	}
+      fclose (fp);
+      /* TODO: create message structure */
       mbox->messages++;
     }
   
+  /* store next sequence number to use */
+  data->sequence = seq_num + 1;
+
   mbox->_data = data;
 #if 0
   mbox->_close = mh_close;
@@ -74,9 +92,6 @@ mh_open (mailbox * mbox)
   mbox->_get_body = mh_get_body;
   mbox->_get_header = mh_get_header;
 #endif
-  chdir(old_dir);
-
-  fprintf(stderr, "\r\n%d messages read\n", mbox->messages);
 
   return 0;
 }
