@@ -31,33 +31,52 @@
 int
 mail_send (int argc, char **argv)
 {
-  char *to = NULL, *cc = NULL, *bcc = NULL, *subj = NULL;
+  struct send_environ env;
+  int status;
 
+  env.to = env.cc = env.bcc = env.subj = NULL;
+  
   if (argc < 2)
-    to = readline ("To: ");
+    env.to = readline ("To: ");
   else
     {
       while (--argc)
 	{
 	  char *p = alias_expand (*++argv);
-	  if (to)
-	    util_strcat(&to, ",");
-	  util_strcat(&to, p);
+	  if (env.to)
+	    util_strcat(&env.to, ",");
+	  util_strcat(&env.to, p);
 	  free (p);
 	}
     }
 
   if ((util_find_env ("askcc"))->set)
-    cc = readline ("Cc: ");
+    env.cc = readline ("Cc: ");
   if ((util_find_env ("askbcc"))->set)
-    bcc = readline ("Bcc: ");
+    env.bcc = readline ("Bcc: ");
 
   if ((util_find_env ("asksub"))->set)
-    subj = readline ("Subject: ");
+    env.subj = readline ("Subject: ");
   else
-    subj = (util_find_env ("subject"))->value;
+    env.subj = (util_find_env ("subject"))->value;
 
-  return mail_send0 (to, cc, bcc, subj, isupper(argv[0][0]));
+  status = mail_send0 (&env, isupper(argv[0][0]));
+  free_env_headers (&env);
+  return status;
+}
+
+
+void
+free_env_headers (struct send_environ *env)
+{
+  if (env->to)
+    free (env->to);
+  if (env->cc)
+    free (env->cc);
+  if (env->bcc)
+    free (env->bcc);
+  if (env->subj)
+    free (env->subj);
 }
 
 /* mail_send0(): shared between mail_send() and mail_reply();
@@ -65,12 +84,10 @@ mail_send (int argc, char **argv)
    If the variable "record" is set, the outgoing message is
    saved after being sent. If "save_to" argument is non-zero,
    the name of the save file is derived from "to" argument. Otherwise,
-   it is taken from the value of "record" variable.
-   
-   NOTE: arguments must be allocated dynamically. They will be freed
-   before exit */
+   it is taken from the value of "record" variable. */
+
 int
-mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
+mail_send0 (struct send_environ *env, int save_to)
 {
   char *buf = NULL;
   size_t n = 0;
@@ -78,168 +95,81 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
   int fd;
   char *filename;
   FILE *file;
-  const char *tmpdir;
   char *savefile = NULL;
-  
-  /* We have to be extra careful about opening temporary files, since we
-     may be running with extra privilege i.e setgid().  */
-  tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";
-  filename = alloca (strlen (tmpdir) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
-  sprintf (filename, "%s/muXXXXXX", tmpdir);
-#ifdef HAVE_MKSTEMP
-  {
-    int save_mask = umask(077);
-    fd = mkstemp (filename);
-    umask(save_mask);
-  }
-#else
-  if (mktemp (filename))
-    fd = open(filename, O_CREAT|O_EXCL|O_RDWR, 0600);
-  else
-    fd = -1;
-#endif
+  int int_cnt;
+
+  fd = util_tempfile(&filename);
 
   if (fd == -1)
     {
-      fprintf (stderr, "Can not open temporary file");
+      util_error("Can not open temporary file");
       return 1;
     }
 
-  file = fdopen (fd, "w+");
-
-  while (getline (&buf, &n, stdin) >= 0 && !done)
+  /* Prepare environment */
+  env = env;
+  env->filename = filename;
+  env->file = fdopen (fd, "w+");
+  env->ofile = ofile;
+  
+  ml_clear_interrupt();
+  int_cnt = 0;
+  while (!done)
     {
+      buf = readline(NULL);
+      
+      if (ml_got_interrupt())
+	{
+	  if (++int_cnt == 2)
+	    break;
+	  util_error("(Interrupt -- one more to kill letter)");
+	  if (buf)
+	    free (buf);
+	  continue;
+	}
+
+      if (!buf)
+	break;
+      int_cnt = 0;
+      
       if (buf[0] == (util_find_env("escape"))->value[0])
 	{
-	  FILE *ostdout = ofile;
-	  ofile = file;
-	  buf[strlen(buf)-1] = '\0';
-	  switch (buf[1])
+	  int argc;
+	  char **argv;
+	  int status;
+
+	  ofile = env->file;
+	  
+	  if (argcv_get (buf+1, "", &argc, &argv) == 0)
 	    {
-	    case '!':
-	      util_do_command ("!%s", &buf[2]);
-	      break;
-	    case '.':
-	      done = 1;
-	      break;
-	    case ':':
-	    case '-':
-	      util_do_command ("%s", &buf[2]);
-	      break;
-	    case '?':
-	      /* escape help */
-	      break;
-	    case 'A':
-	      fprintf (ofile, "%s", (util_find_env("Sign"))->value);
-	      break;
-	    case 'a':
-	      fprintf (ofile, "%s", (util_find_env("sign"))->value);
-	      break;
-	    case 'b':
-	      bcc = realloc (bcc, (strlen(bcc) + strlen(buf) - 1) *
-			     sizeof(char));
-	      strcat (bcc, ", ");
-	      strcat (bcc, &buf[3]);
-	      break;
-	    case 'c':
-	      cc = realloc (cc, (strlen(cc) + strlen(buf) - 1) *
-			    sizeof (char));
-	      strcat (cc, ", ");
-	      strcat (cc, &buf[3]);
-	      break;
-	    case 'd':
-	      {
-		FILE *dead = fopen (getenv("DEAD"), "r");
-		char c;
-		while ((c = fgetc(dead)))
-		  fputc (c, file);
-		fclose (dead);
-	      }
-	      break;
-	    case 'e':
-	      fclose (file);
-	      ofile = ostdout;
-	      util_do_command ("!%s %s", getenv("EDITOR"), filename);
-	      file = fopen (filename, "a");
-	      ofile = file;
-	      break;
-	    case 'f':
-	      util_do_command ("print %s", &buf[3]);
-	      break;
-	    case 'F':
-	      util_do_command ("Print %s", &buf[3]);
-	      break;
-	    case 'h':
-	      /* reget Bcc, Cc, To, and Subject */
-	      break;
-	    case 'i':
-	      fprintf (file, "%s", (util_find_env(&buf[3]))->value);
-	      break;
-	    case 'm':
-	      /* quote messages */
-	      break;
-	    case 'M':
-	      /* same as m with no headers ignored */
-	      break;
-	    case 'p':
-	      fclose (file);
-	      ofile = ostdout;
-	      if (/* numlines (filename) > */ util_getlines())
-		util_do_command ("!%s %s", getenv("PAGER"), filename);
+	      struct mail_command_entry entry;
+	      entry = util_find_entry (mail_escape_table, argv[0]);
+
+	      if (entry.func)
+		status = (*entry.func)(argc, argv, env);
 	      else
-		/* dump filename */;
-	      file = fopen (filename, "a");
-	      ofile = file;
-	      break;
-	    case 'q':
-	      fclose (file);
-	      rename (filename, getenv("DEAD"));
-	      util_do_command ("quit");
-	      break;
-	    case 'r':
-	    case '<':
-	      /* read in a file */
-	      break;
-	    case 's':
-	      free (subj);
-	      subj = strdup (&buf[3]);
-	      break;
-	    case 't':
-	      to = realloc (to, (strlen(to) + strlen(buf) - 1) *
-			    sizeof (char));
-	      strcat (to, ", ");
-	      strcat (to, &buf[3]);
-	      break;
-	    case 'v':
-	      fclose (file);
-	      ofile = ostdout;
-	      util_do_command ("!%s %s", getenv("VISUAL"), filename);
-	      file = fopen (filename, "a");
-	      ofile = file;
-	      break;
-	    case 'w':
-	      {
-		FILE *f2 = fopen (&buf[3], "a");
-		/* read this file and output to f2 */
-		fclose (f2);
-	      }
-	      break;
-	    case 'x':
-	      util_do_command ("quit");
-	      break;
-	    case '|':
-	      /* pipe to &buf[3] */
-	      break;
-	    default:
-	      fprintf (stderr, "Unknown escape %c\n", buf[0]);
-	      break;
+		util_error("Unknown escape %s", argv[0]);
 	    }
-	  ofile = ostdout;
+	  else
+	    {
+	      util_error("can't parse escape sequence");
+	    }
+	  argcv_free (argc, argv);
+	  
+	  ofile =  env->ofile;
 	}
       else
-	fprintf (file, "%s", buf);
-      fflush (file);
-      /* free (buf); */
+	fprintf (env->file, "%s", buf);
+      fflush (env->file);
+      free (buf); 
+    }
+
+  fclose (env->file);
+  if (int_cnt)
+    {
+      remove (filename);
+      free (filename);
+      return 1;
     }
 
   file = fopen (filename, "r");
@@ -254,8 +184,9 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
       if ((status = mailer_create (&mailer, mailer_name)) != 0
           || (status = mailer_open (mailer, MU_STREAM_RDWR)) != 0)
         {
-          fprintf (stderr, "%s: %s\n", mailer_name, strerror (status));
+          util_error("%s: %s", mailer_name, strerror (status));
 	  remove (filename);
+	  free (filename);
           return 1;
         }
       message_create (&msg, NULL);
@@ -264,14 +195,14 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
       {
 	header_t header = NULL;
 	message_get_header (msg, &header);
-	if (to && *to != '\0')
-	  header_set_value (header, MU_HEADER_TO, to, 0);
-	if (cc && *cc != '\0')
-	  header_set_value (header, MU_HEADER_CC, cc, 0);
-	if (bcc && *bcc != '\0')
-	  header_set_value (header, MU_HEADER_BCC , bcc, 0);
-	if (subj && *subj != '\0')
-	  header_set_value (header, MU_HEADER_SUBJECT, subj, 1);
+	if (env->to && *env->to != '\0')
+	  header_set_value (header, MU_HEADER_TO, strdup (env->to), 0);
+	if (env->cc && *env->cc != '\0')
+	  header_set_value (header, MU_HEADER_CC, strdup (env->cc), 0);
+	if (env->bcc && *env->bcc != '\0')
+	  header_set_value (header, MU_HEADER_BCC , strdup (env->bcc), 0);
+	if (env->subj && *env->subj != '\0')
+	  header_set_value (header, MU_HEADER_SUBJECT, strdup (env->subj), 1);
       }
 
       /* Fill the body.  */
@@ -286,9 +217,12 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
 	    size_t len = strlen (buf);
 	    stream_write (stream, buf, len, offset, &n);
 	    offset += len;
-	    free (buf);
-	    buf = NULL;
 	  }
+
+	if (offset == 0)
+	  util_error("Null message body; hope that's ok\n");
+	if (buf)
+	    free (buf);
       }
 
       fclose (file);
@@ -296,7 +230,7 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
       /* Save outgoing message */
       if (save_to)
 	{
-	  savefile = strdup (to);
+	  savefile = strdup (env->to);
 	  if (savefile)
 	    {
 	      char *p = strchr(savefile, '@');
@@ -313,9 +247,11 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
       message_destroy (&msg, NULL);
       mailer_destroy (&mailer);
       remove (filename);
+      free (filename);
       return 0;
     }
 
   remove (filename);
+  free (filename);
   return 1;
 }
