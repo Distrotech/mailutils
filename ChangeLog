@@ -1,3 +1,40 @@
+2002-08-08  Sergey Poznyakoff
+
+	* .cvsignore: Updated
+
+	* mail/testsuite/.cvsignore: Updated
+	* mail/testsuite/lib/mail.exp (default_mail_test): Ignore trailing
+	  whitespace.
+	* mail/testsuite/mail/alias.exp: Remove trailing whitespace from
+	  the patterns.
+	* mail/testsuite/mail/read.exp: Likewise.
+	* mail/testsuite/mail/tag.exp: Likewise.
+	* mail/testsuite/mail/write.exp: Likewise.
+
+	* mailbox/mu_argp.c: Initialize argp_program_bug_address.
+	* comsat/comsat.c: Removed argp_program_bug_address. Use
+	  PACKAGE_STRING, provided by the new autoconf.
+	* dotlock/dotlock.c: Likewise.
+	* frm/frm.c: Likewise.
+	* from/from.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* mail.remote/mail.remote.c: Likewise.
+	* messages/messages.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/scan.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	* pop3d/capa.c: Likewise.
+	* pop3d/pop3d.c: Likewise. Imply debug mode if the input stream is
+	  connected to a tty. Don't try to switch to "mail" group id in
+	  debug mode.
+
+	* pop3d/popauth.c: Parse arguments using mu_argp instead of
+	  getopt_long.
+	* readmsg/readmsg.c: Likewise.
+	
 2002-08-07  Sergey Poznyakoff 
 
 	* mail/mail.h (struct mail_env_entry): Reorganized. Added
