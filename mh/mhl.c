@@ -62,8 +62,8 @@ struct mh_option mh_option[] = {
 };
 
 static int interactive;  /* Using interactive output */
-static int bell = 1;     /* Ring the bell after each page of output */
-static int clear = 0;    /* Clear the screen after each page of output */
+static int mhl_fmt_flags; /* MHL format flags. Controlled by --bell 
+                             and --clear */
 static int length = 40;  /* Length of output page */
 static int width = 80;   /* Width of output page */
 static char *formfile = MHLIBDIR "/mhl.format";
@@ -82,19 +82,21 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_BELL:
-      bell = is_true (arg);
+      if (is_true (arg))
+        mhl_fmt_flags |= MHL_BELL;
       break;
       
     case ARG_NOBELL:
-      bell = 0;
+      mhl_fmt_flags &= ~MHL_BELL;
       break;
       
     case ARG_CLEAR:
-      clear = is_true (arg);
+      if (is_true (arg))
+        mhl_fmt_flags |= MHL_CLEARSCREEN;
       break;
       
     case ARG_NOCLEAR:
-      clear = 0;
+      mhl_fmt_flags &= ~MHL_CLEARSCREEN;
       break;
       
     case ARG_FORM:
@@ -197,7 +199,7 @@ list_message (char *name, stream_t output)
     }
   else
     {
-      mhl_format_run (format, width, length, clear, bell, msg, output);
+      mhl_format_run (format, width, length, mhl_fmt_flags, msg, output);
       message_unref (msg);
     }
 }
@@ -225,7 +227,7 @@ main (int argc, char **argv)
     nomoreproc = 1;
 
   if (!interactive)
-    bell = 0;
+    mhl_fmt_flags &= ~MHL_BELL;
   
   output = open_output ();
   

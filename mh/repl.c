@@ -282,7 +282,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  list_t filter = mhl_format_compile (mhl_filter);
 	  if (!filter)
 	    exit (1);
-	  mhl_format_run (filter, width, 0, 0, 0, msg, str);
+	  mhl_format_run (filter, width, 0, 0, msg, str);
 	  mhl_format_destroy (&filter);
 	}
 
