@@ -487,18 +487,22 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  imap4d/Makefile
  imap4d/testsuite/Makefile
  from/Makefile
+ from/testsuite/Makefile
  mail/Makefile
  mail/testsuite/Makefile
  pop3d/Makefile
  pop3d/testsuite/Makefile
  frm/Makefile
+ frm/testsuite/Makefile
  sieve/Makefile
  messages/Makefile
+ messages/testsuite/Makefile
  scripts/Makefile
  libmu_scm/Makefile
  guimb/Makefile
  guimb/scm/Makefile
  readmsg/Makefile
+ readmsg/testsuite/Makefile
  comsat/Makefile
  mail.local/Makefile
  mail.remote/Makefile

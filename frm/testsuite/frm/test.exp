@@ -1,0 +1,53 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+source $top_srcdir/testsuite/lib/mailutils.exp
+
+mu_init 
+set env(MAIL) $MU_SPOOL_DIR/mbox1
+
+mu_prepare_spools
+
+mu_exec -retcode 1 -message "frm" "Foo Bar\tJabberwocky"\
+"Bar\tRe: Jabberwocky"\
+"Sergey Poznyakoff\tSimple MIME"\
+"Sergey Poznyakoff\tNested MIME"
+
+mu_exec -retcode 1 -message "frm -n" -arg -n \
+"1: Foo Bar\tJabberwocky"\
+"2: Bar\tRe: Jabberwocky"\
+"3: Sergey Poznyakoff\tSimple MIME"\
+"4: Sergey Poznyakoff\tNested MIME"
+
+mu_exec -retcode 1 -message "frm -l" -arg -l \
+"(Bar) Foo Bar\tJabberwocky"\
+"(Foo Bar) Bar\tRe: Jabberwocky"\
+"(Foo Bar) Sergey Poznyakoff\tSimple MIME"\
+"(Foo Bar) Sergey Poznyakoff\tNested MIME"\
+
+mu_exec -retcode 1 -message "frm -qS" -arg -qS \
+"You have 4 messages"
+
+mu_exec -retcode 1 -arg %mbox -message "frm %mbox" \
+"Sergey Poznyakoff\tMBOX"
+
+mu_exec -retcode 1 -arg -q -message "frm -q" 
+
+mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" 
+
+#end of test.exp
