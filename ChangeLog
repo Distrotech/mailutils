@@ -1,3 +1,8 @@
+2004-01-04  Wojciech Polak
+
+	* mail/send.c (mail_send): Bugfix. Removed free(p)
+	and prevent from later segmentation fault.
+
 2004-01-03  Wojciech Polak
 
 	* auth/tls.c (generate_dh_params): Adapt to GnuTLS >= 1.0.0.
