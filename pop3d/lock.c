@@ -23,14 +23,16 @@ pop3d_lock ()
   url_t url = NULL;
   locker_t lock = NULL;
   const char *name;
+  int status;
 
   mailbox_get_url (mbox, &url);
   name = url_to_string (url);
   mailbox_get_locker (mbox, &lock);
-  if (locker_lock (lock, MU_LOCKER_WRLOCK))
+  locker_set_flags (lock, MU_LOCKER_PID);
+  if ((status = locker_lock (lock)))
     {
-      syslog (LOG_NOTICE, "mailbox '%s' locked by another session",
-	      (name) ? name : "?");
+      syslog (LOG_NOTICE, "mailbox '%s' lock failed: %s",
+	      (name) ? name : "?", mu_errstring(status));
       return ERR_MBOX_LOCK;
     }
   return 0;
