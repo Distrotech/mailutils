@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ pop3_daemon_init (void)
     }
   else if (pid > 0)
       exit (0);			/* parent exits */
-  
+
   setsid ();			/* become session leader */
 
   signal (SIGHUP, SIG_IGN);	/* ignore SIGHUP */
@@ -159,7 +159,7 @@ pop3_daemon_init (void)
     }
   else if (pid > 0)
       exit (0);			/* parent exits */
-  
+
   /* close inherited file descriptors */
   for (i = 0; i < MAXFD; ++i)
       close(i);
@@ -282,7 +282,7 @@ pop3_mainloop (int infile, int outfile)
   return OK;
 }
 
-/* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port 
+/* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port
    (default 110) then executes a pop3_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
    connections */
@@ -301,12 +301,12 @@ pop3_daemon (unsigned int maxchildren)
 	  exit (-1);
     }
   size = 1; /* use size here to avoid making a new variable */
-  setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));  
+  setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
   size = sizeof(server);
   memset (&server, 0, size);
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = htonl (INADDR_ANY);
-  server.sin_port = htonl (port);
+  server.sin_port = htons (port);
 
   if (bind(listenfd, (SA *) &server, size) == -1 )
     {
@@ -319,7 +319,7 @@ pop3_daemon (unsigned int maxchildren)
       syslog(LOG_ERR, "listen: %s", strerror(errno));
 	  exit(-1);
     }
-  
+
   for ( ; ; )
     {
       if (children > maxchildren)
