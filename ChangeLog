@@ -1,3 +1,7 @@
+2004-08-06  Sergey Poznyakoff
+
+	* include/mailutils/daemon.h: Include types.h
+
 2004-07-07  Sergey Poznyakoff
 
 	* libsieve/extensions/spamd.c (decode_float): Return
