@@ -183,6 +183,7 @@ extern mailbox_t mbox;
 extern unsigned int timeout;
 extern int state;
 extern char *username;
+extern char *maildir;
 extern FILE *ifile;
 extern FILE *ofile;
 extern char *md5shared;

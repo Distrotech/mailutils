@@ -148,6 +148,7 @@ extern unsigned int timeout;
 extern mailbox_t mbox;
 extern char *homedir;
 extern char *rootdir;
+extern char *maildir;  
 extern int state;
 extern volatile size_t children;
 extern int is_virtual;
@@ -234,7 +235,7 @@ extern int util_parse_822_date __P((char *date, time_t *timep));
 extern int util_parse_ctime_date __P((const char *date, time_t *timep));
 extern char *util_strcasestr __P((const char *haystack, const char *needle));
 extern int util_parse_attributes __P((char *items, char **save, int *flags));
-  
+
 #ifdef __cplusplus
 }
 #endif
