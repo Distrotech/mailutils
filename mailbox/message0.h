@@ -42,13 +42,16 @@ typedef struct _body * body_t;
 /* forward declaration */
 struct _message
 {
+  /* whos is the owner, only mailbox can own messages */
   mailbox_t mailbox;
   header_t header;
-  message_t *parts;
-  size_t part_num;
+  istream_t is;
+  ostream_t os;
   body_t body;
   size_t num;
   attribute_t attribute;
+  char *header_buffer;
+  off_t header_offset;
 
   int (*_get_header)  __P ((message_t msg, header_t *hdr));
   int (*_set_header)  __P ((message_t msg, header_t hdr));
@@ -56,9 +59,10 @@ struct _message
   int (*_get_attribute)  __P ((message_t msg, attribute_t *attr));
   int (*_set_attribute)  __P ((message_t msg, attribute_t attr));
 
-  int (*_get_content) __P ((message_t msg, char *buf, size_t len,
-			    size_t *nread, off_t offset));
-  int (*_set_content) __P ((message_t msg, char *buf, size_t len));
+  int (*_get_istream) __P ((message_t msg, istream_t *));
+  int (*_set_istream) __P ((message_t msg, istream_t));
+  int (*_get_ostream) __P ((message_t msg, ostream_t *));
+  int (*_set_ostream) __P ((message_t msg, ostream_t));
 
   int (*_size)        __P ((message_t msg, size_t *size));
 

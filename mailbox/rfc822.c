@@ -35,8 +35,9 @@ static int rfc822_entry_name (header_t h, size_t num, char *buf,
 			      size_t buflen, size_t *total);
 static int rfc822_entry_value (header_t h, size_t num, char *buf,
 			       size_t buflen, size_t *total);
-static ssize_t rfc822_get_data (header_t h, char *buf, size_t buflen,
-				off_t off, int *err);
+static int rfc822_get_istream (header_t h, istream_t *pis);
+static int rfc822_get_ostream (header_t h, ostream_t *pos);
+static ssize_t rfc822_read (istream_t is, char *buf, size_t buflen, off_t off);
 
 struct _rfc822
 {
@@ -65,7 +66,8 @@ rfc822_init (header_t *ph, const char *blurb, size_t len)
   h->_entry_count = rfc822_entry_count;
   h->_entry_name = rfc822_entry_name;
   h->_entry_value = rfc822_entry_value;
-  h->_get_data = rfc822_get_data;
+  h->_get_istream = rfc822_get_istream;
+  h->_get_ostream = rfc822_get_ostream;
 
   status = h->_parse (h, blurb, len);
   if (status != 0)
@@ -86,6 +88,18 @@ rfc822_destroy (header_t *ph)
 	  *ph = NULL;
 	  return;
 	}
+      /* is the istream own by us */
+      if (h->is && h->is->owner == h)
+        {
+          h->is->owner = NULL;
+          istream_destroy (&(h->is));
+        }
+      /* is the ostream own by us */
+      if (h->os && h->os->owner == h)
+        {
+          h->os->owner = NULL;
+          ostream_destroy (&(h->os));
+        }
       if (h->data)
 	{
 	  rfc822_t rfc = (rfc822_t)h->data;
@@ -329,15 +343,16 @@ rfc822_entry_value (header_t h, size_t num, char *buf,
 }
 
 static ssize_t
-rfc822_get_data (header_t h, char *buf, size_t buflen, off_t off, int *err)
+rfc822_read (istream_t is, char *buf, size_t buflen, off_t off)
 {
-  rfc822_t rfc;
+  header_t h;
+  rfc822_t rfc = NULL;
   ssize_t len;
 
-  if (h == NULL || (rfc = (rfc822_t)h->data) == NULL)
+  if (is == NULL || (h = (header_t)is->owner) == NULL ||
+      (rfc = (rfc822_t)h->data) == NULL)
     {
-      if (err)
-	*err = EINVAL;
+      errno = EINVAL;
       return -1;
     }
 
@@ -354,4 +369,32 @@ rfc822_get_data (header_t h, char *buf, size_t buflen, off_t off, int *err)
     len = 0;
 
   return len;
+}
+
+int
+rfc822_get_istream (header_t h, istream_t *pis)
+{
+  int err;
+  if (h == NULL || pis == NULL)
+    return EINVAL;
+  /* already done */
+  if  (h->is)
+    *pis = h->is;
+
+  err = istream_init (&(h->is));
+  if (err != 0)
+    return err;
+  /* tell the world this is ours */
+  h->is->owner = h;
+  h->is->_read = rfc822_read;
+  *pis = h->is;
+  return 0;
+}
+
+int
+rfc822_get_ostream (header_t h, ostream_t *pos)
+{
+  if (h == NULL || pos == NULL)
+    return EINVAL;
+  return ENOSYS;
 }

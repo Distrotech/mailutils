@@ -19,6 +19,7 @@
 #define _HEADER_H
 
 #include <sys/types.h>
+#include <io.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -80,6 +81,8 @@ extern int header_entry_name   __P ((header_t, size_t num, char *buf,
 				     size_t buflen, size_t *total));
 extern int header_entry_value  __P ((header_t, size_t num, char *buf,
 				     size_t buflen, size_t *total));
+extern int header_get_istream  __P ((header_t, istream_t *pis));
+extern int header_get_ostream  __P ((header_t, ostream_t *pos));
 #ifdef _cpluscplus
 }
 #endif

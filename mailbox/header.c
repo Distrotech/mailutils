@@ -85,10 +85,18 @@ header_entry_count (header_t h, size_t *num)
   return h->_entry_count (h, num);
 }
 
-ssize_t
-header_get_data (header_t h, char *data, size_t len, off_t off, int *err)
+int
+header_get_istream (header_t h, istream_t *pis)
 {
-  if (h == NULL || h->_get_data)
+  if (h == NULL || pis == NULL || h->_get_istream == NULL)
     return EINVAL;
-  return h->_get_data (h, data, len, off, err);
+  return h->_get_istream (h, pis);
+}
+
+int
+header_get_ostream (header_t h, ostream_t *pos)
+{
+  if (h == NULL || pos == NULL || h->_get_ostream == NULL)
+    return EINVAL;
+  return h->_get_ostream (h, pos);
 }

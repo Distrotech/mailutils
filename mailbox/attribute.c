@@ -40,9 +40,11 @@ attribute_destroy (attribute_t *pattr)
   if (pattr && *pattr)
     {
       attribute_t attr = *pattr;
-      /* no owner we can free */
+      /* no owner we really can free it */
       if (! attr->message)
 	free (*pattr);
+      /* loose the link */
+      *pattr = NULL;
     }
   return;
 }

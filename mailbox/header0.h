@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <header.h>
+#include <io0.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -49,26 +50,26 @@ struct _header
   void *data;
   /* owner ? */
   void *message;
+  /* streams */
+  istream_t is;
+  ostream_t os;
 
   /* Functions */
-  int (*_init)         __P ((header_t *, const char *, size_t));
-  void (*_destroy)     __P ((header_t *));
-  int (*_set_value)    __P ((header_t, const char *fn, const char *fv,
+  int (*_init)        __P ((header_t *, const char *, size_t));
+  void (*_destroy)    __P ((header_t *));
+  int (*_set_value)   __P ((header_t, const char *fn, const char *fv,
 			     size_t n, int replace));
-  int (*_get_value)    __P ((header_t, const char *fn, char *fv,
-			     size_t len, size_t *n));
-  int (*_entry_count)      __P ((header_t, size_t *));
-  int (*_entry_name)    __P ((header_t, size_t num, char *buf,
-			      size_t buflen, size_t *nwritten));
-  int (*_entry_value)    __P ((header_t, size_t num, char *buf,
-			       size_t buflen, size_t *nwritten));
-  ssize_t (*_get_data) __P ((header_t h, char *data, size_t len,
-			     off_t off, int *err));
-  int (*_parse)        __P ((header_t, const char *blurb, size_t len));
+  int (*_get_value)   __P ((header_t, const char *fn, char *fv,
+			    size_t len, size_t *n));
+  int (*_entry_count) __P ((header_t, size_t *));
+  int (*_entry_name)  __P ((header_t, size_t num, char *buf,
+			    size_t buflen, size_t *nwritten));
+  int (*_entry_value) __P ((header_t, size_t num, char *buf,
+			    size_t buflen, size_t *nwritten));
+  int (*_get_istream) __P ((header_t h, istream_t *is));
+  int (*_get_ostream) __P ((header_t h, ostream_t *os));
+  int (*_parse)       __P ((header_t, const char *blurb, size_t len));
 };
-
-extern ssize_t header_get_data __P ((header_t h, char *data,
-				     size_t len, off_t off, int *err));
 
 /* rfc822 */
 extern int rfc822_init __P ((header_t *ph, const char *blurb, size_t len));

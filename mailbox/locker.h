@@ -35,11 +35,18 @@ extern "C" {
 struct _locker;
 typedef struct _locker *locker_t;
 
-extern int locker_init      __P ((locker_t *, char *filename, size_t len));
+extern int locker_init      __P ((locker_t *, char *filename,
+				  size_t len, int flags));
 extern void locker_destroy  __P ((locker_t *));
 
 #define MU_LOCKER_RDLOCK 0
 #define MU_LOCKER_WRLOCK 1
+
+/* locking flags */
+#define MU_LOCKER_PID    1
+#define MU_LOCKER_FCNTL  2
+#define MU_LOCKER_TIME   4
+
 extern int locker_lock      __P ((locker_t, int flag));
 extern int locker_touchlock __P ((locker_t));
 extern int locker_unlock    __P ((locker_t));

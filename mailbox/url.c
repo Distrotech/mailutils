@@ -20,7 +20,7 @@
 #endif
 
 #include <url0.h>
-#include <registrar.h>
+#include <registrar0.h>
 #include <cpystr.h>
 
 #include <string.h>
@@ -44,7 +44,6 @@ url_init (url_t * purl, const char *name)
   int status = EINVAL;
   struct url_registrar *ureg;
   struct mailbox_registrar *mreg;
-  registrar_t reg = NULL;
   size_t name_len;
   int id;
   size_t i, entry_count = 0;

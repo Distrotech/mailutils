@@ -59,9 +59,11 @@ mailbox_init (mailbox_t *pmbox, const char *name, int id)
 	status = mreg->_init (pmbox, name);
     }
 
-  /* if things went ok set mreg for mailbox_destroy and the URL */
+  /* set the URL */
   if (status == 0)
     (*pmbox)->url = url;
+  else
+    url_destroy (&url);
   return status;
 }
 

@@ -20,6 +20,7 @@
 
 #include <header.h>
 #include <attribute.h>
+#include <io.h>
 
 #include <sys/types.h>
 
@@ -45,19 +46,19 @@ extern void message_destroy    __P ((message_t *));
 extern int message_get_header  __P ((message_t, header_t *));
 extern int message_set_header  __P ((message_t, header_t));
 
-extern ssize_t message_get_content __P ((message_t, char *,
-					 size_t, off_t, int *));
-extern int message_set_content __P ((message_t, char *, size_t));
+extern int message_get_istream __P ((message_t, istream_t *));
+extern int message_set_istream __P ((message_t, istream_t *));
+extern int message_get_ostream __P ((message_t, ostream_t *));
+extern int message_set_ostream __P ((message_t, ostream_t *));
 
 extern int message_is_multipart __P ((message_t));
-extern int message_get_part_count __P ((message_t, size_t *));
-extern int message_get_part     __P ((message_t, size_t, message_t *));
-extern int message_add_part     __P ((message_t, message_t));
 
 extern int message_get_size     __P ((message_t, size_t *));
 
 extern int message_get_attribute __P ((message_t, attribute_t *));
 extern int message_set_attribute __P ((message_t, attribute_t));
+
+extern int message_clone __P ((message_t, message_t *));
 
 #ifdef _cpluscplus
 }
