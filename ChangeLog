@@ -1,3 +1,8 @@
+2003-01-30  Sergey Poznyakoff 
+
+	* mailbox/rfc2047.c (rfc2047_decode): Bugfix.
+	* imap4d/idle.c: Fixed wording of OK message.
+
 2003-01-29  Sergey Poznyakoff
 
 	* imap4d/idle.c: Do not wait for 'DONE' command longer than
