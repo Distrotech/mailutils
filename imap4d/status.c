@@ -41,12 +41,8 @@ imap4d_status (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
 
   name = util_getword (arg, &sp);
-  if (!name || !sp)
-    return util_finish (command, RESP_BAD, "Too few args");
-
   util_unquote (&name);
-
-  if (*name == '\0' || *sp == '\0')
+  if (!name || *name == '\0' || !sp || *sp == '\0')
     return util_finish (command, RESP_BAD, "Too few args");
 
   if (strcasecmp (name, "INBOX") == 0)

@@ -102,6 +102,17 @@ attribute_set_flags (attribute_t attr, int flags)
 }
 
 int
+attribute_unset_flags (attribute_t attr, int flags)
+{
+  if (attr == NULL)
+    return EINVAL;
+  if (attr->_unset_flags)
+    attr->_unset_flags (attr, flags);
+  attr->flags &= ~flags;
+  return 0;
+}
+
+int
 attribute_set_get_flags (attribute_t attr, int (*_get_flags)
 			 (attribute_t, int *), void *owner)
 {

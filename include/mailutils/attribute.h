@@ -79,6 +79,7 @@ extern int attribute_unset_read      __P ((attribute_t));
 
 extern int attribute_get_flags       __P ((attribute_t, int *));
 extern int attribute_set_flags       __P ((attribute_t, int));
+extern int attribute_unset_flags     __P ((attribute_t, int));
 
 extern int attribute_set_set_flags   __P ((attribute_t, int (*_set_flags)
 					   __P ((attribute_t, int)), void *));
