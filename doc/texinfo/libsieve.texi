@@ -1140,7 +1140,7 @@ The effect of this action is to preserve the current message in the
 mailbox. This action is executed if no other action has been executed.
 @end deffn
 
-@deffn discard
+@deffn Action discard
 
 @code{Discard} silently throws away the current message. No notification
 is returned to the sender, the message is deleted from the mailbox.

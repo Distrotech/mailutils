@@ -1,5 +1,10 @@
 2002-12-11  Sergey Poznyakoff 
 
+	* examples/numaddr.c: Fixed malformed comment.
+	* doc/texinfo/libsieve.texi: Updated.
+
+2002-12-11  Sergey Poznyakoff 
+
 	* configure.ac: Added --enable-experimental option to enable
 	  building of experimental/unfinished utilities. Currently it
 	  controls mh utils.
