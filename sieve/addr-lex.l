@@ -55,6 +55,8 @@ int addrinput(char *buf, int max_size)
     extern char *addrptr;	/* current position in address string */
     int n;			/* number of characters to read from string */
 
+    (void) addrunput;
+
     n = strlen(addrptr) < max_size ? strlen(addrptr) : max_size;
     if (n > 0) {
 	memcpy(buf, addrptr, n);

@@ -133,6 +133,9 @@ static char *fixstr(char *str)
 {
     char *r, *s = (char *) xmalloc(sizeof(char) * strlen(str));
 
+    (void) yy_flex_realloc;
+    (void) yyunput;
+
     r = s;
     str++; /* skip open " */
     while (*str != '"') {
