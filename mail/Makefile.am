@@ -5,7 +5,7 @@ AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
 
-mail_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.a \
+mail_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.la \
              @READLINE_LIBS@
 
 EXTRA_DIST = msgset.c

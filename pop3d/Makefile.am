@@ -9,7 +9,7 @@ pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
  list.c lock.c noop.c quit.c retr.c rset.c stat.c signal.c top.c uidl.c \
  user.c virtual.c
 
-pop3d_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la @AUTHLIBS@ ../lib/libmailutils.a 
+pop3d_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la @AUTHLIBS@ ../lib/libmailutils.la 
 
 popauth_SOURCES = popauth.c
-popauth_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
+popauth_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la

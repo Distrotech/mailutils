@@ -11,7 +11,7 @@ lib_LTLIBRARIES = libmapi.la
 /* FIXME:  This should be part of the default includes.  */
 EXTRA_DIST = mapi.h
 
-libmapi_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
+libmapi_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la
 
 libmapi_la_SOURCES = \
  MAPIAddress.c \

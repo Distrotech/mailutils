@@ -1,3 +1,40 @@
+2002-02-13  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+        This change permits linking on systems that don't support
+	interlibrary dependancies inherently like SCO Openserver.
+
+	* sieve/Makefile.am: Link in libtool-based libmailutils.
+
+	* readmsg/Makefile.am: Link in libtool-based libmailutils.
+
+	* pop3d/Makefile.am: Link in libtool-based libmailutils.
+
+	* mh/Makefile.am: Link in libtool-based libmailutils.
+
+	* messages/Makefile.am: Link in libtool-based libmailutils.
+
+	* mapi/Makefile.am: Link in libtool-based libmailutils.
+
+	* mail.local/Makefile.am: Link in libtool-based libmailutils.
+
+	* mail/Makefile.am: Link in libtool-based libmailutils.
+
+	* lib/Makefile.am: Generate libtool-based libmailutils.
+
+	* lib/.cvsignore: Add files that libtool generates
+
+	* imap4d/Makefile.am: Link in libtool-based libmailutils.
+
+	* guimb/Makefile.am: Link in libtool-based libmailutils.
+
+	* from/Makefile.am: Link in libtool-based libmailutils.
+
+	* frm/Makefile.am: Link in libtool-based libmailutils.
+
+	* argp/Makefile.am: Use libtool
+
+	* configure.in: Build libtool ARGP libraries
+
 2002-02-11  Sergey Poznyakoff 
 
 	* imap4d/auth_gss.c (auth_gssapi): Use imap4d_gss_userok() to

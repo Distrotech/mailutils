@@ -1,10 +1,10 @@
 AUTOMAKE_OPTIONS = ansi2knr
-noinst_LIBRARIES = libmailutils.a
+noinst_LTLIBRARIES = libmailutils.la
 
 SUBDIRS = posix
 
 INCLUDES = -I${top_srcdir}/include @ARGPINCS@
-libmailutils_a_SOURCES = basename.c daemon.c getopt.c getopt1.c md5.c \
+libmailutils_la_SOURCES = basename.c daemon.c getopt.c getopt1.c md5.c \
                          mu_dbm.c getline.c xstrdup.c xmalloc.c argcv.c \
                          mu_argp.c
 
@@ -15,5 +15,5 @@ EXTRA_DIST = alloca.c fnmatch.c fgetpwent.c getpass.c malloc.c obstack.c \
 noinst_HEADERS = argcv.h error.h fnmatch.h getline.h getopt.h md5.h mu_dbm.h\
  regex.h snprintf.h xalloc.h xstrtol.h obstack.h mu_argp.h
 
-libmailutils_a_LIBADD = @LIBOBJS@ @ALLOCA@
+libmailutils_la_LIBADD = @LIBOBJS@ @ALLOCA@
 
