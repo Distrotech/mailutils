@@ -30,17 +30,21 @@ extern "C" {
 
 struct _iterator
 {
-  struct _iterator *next;   /* Next iterator in the chain */
-  list_t list;              /* Owner list */
-  struct list_data *cur;    /* Current list item */
-  int is_advanced;          /* Is the item already advanced */   
-};
+  struct _iterator *next_itr; /* Next iterator in the chain */
+  void *owner;                /* Object whose contents is being iterated */
+  int is_advanced;            /* Is the iterator already advanced */
 
+  int (*dup) (void **ptr, void *owner);
+  int (*destroy) (iterator_t itr, void *owner);
+  int (*first) (void *owner);
+  int (*next) (void *owner);
+  int (*getitem) (void *owner, void **pret);
+  int (*curitem_p) (void *owner, void *item);
+  int (*finished_p) (void *owner);
+};
 
 #ifdef __cplusplus
 }
 #endif
-
-extern void iterator_advance(iterator_t iterator, struct list_data *e);
 
 #endif /* _ITERATOR0_H */
