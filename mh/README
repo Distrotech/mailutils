@@ -50,6 +50,48 @@ from its argument. Useful for creating subjects in reply messages:
 
 	%<{subject}Subject: Re: %(unre{subject})\\n%>
 
+*** reply_regex
+Argument: string
+Return: none
+
+Sets the regular expression used to recognize reply messages. The
+argument should be a POSIX extended regular expression. The matching
+is case insensitive. 
+
+For example, the following invocation
+
+%(reply_regex ^\(re|aw|ang|odp\)\(\\[[0-9]+\\]\)?:[[:blank:]])
+
+corresponds to the English "Re", Polish "Odp", Norwegian "Aw" or
+German "Ang", optionally followed by a number in brackets, followed
+by colon and any amount of whitespace. Notice the quoting of the
+regex metacharacters.
+
+See also `Reply-Regex' and `isreply' below.
+
+*** isreply
+Argument: [OPTIONAL] string
+Return: boolean
+
+If argument is not given, the value of Subject: header is taken.
+
+The function returns true if its argument matches the "reply subject"
+regular expression. This expression is set via the global profile variable
+Reply-Regex or via the format function %(reply_regex).
+
+This function is useful for creating Subject: headers in reply
+messages. For example, consider the following construction:
+
+%<{subject}%(lit)%<(isreply)%?\
+(profile reply-prefix)%(concat)%|%(concat Re:)%>\
+%(concat{subject})%(printhdr Subject: )\n%>
+
+If the Subject: header already contained reply prefix, this construct
+leaves it unchanged. Otherwise it prepends to it the value of
+Reply-Prefix profile variable, or, if it is unset, the string "Re:".
+
+This expression is used in default replcomps and replgroupcomps files.
+
 *** rcpt
 Argument: string, one of "to", "cc", "me", "all"
 Return: boolean
@@ -78,7 +120,6 @@ argument. The output is formatted as RFC 822 header, i.e.
 it is split at whitespace characters nearest to the width boundary
 and each subsequent segment is prefixed with horizontal tabulation.
 
-
 *** in_reply_to
 Argument: none
 Return: string
@@ -90,6 +131,23 @@ Argument: none
 Return: string
 
 Generates the value for the References: header according to RFC 2822.
+
+* New profile variables:
+
+** Reply-Regex
+
+Sets the regular expression used to recognize reply messages. The
+argument should be a POSIX extended regular expression. The matching
+is case insensitive. 
+
+For example, setting in your .mh_profile:
+
+Reply-Regex: ^(re|aw|ang|odp)(\[[0-9]+\])?:[[:blank:]]
+
+will make the default replcomps and replgroupcomps formats recognize
+usual English, Norwiegian, German and Polish reply subject prefixes.
+
+See also format functions `reply_regex' and `isreply'.
 
 * rmm
 

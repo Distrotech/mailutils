@@ -20,11 +20,7 @@
 
 #include <mailutils/types.h>
 
-#ifdef HAVE_ARGP_H
-# include <argp.h>
-#else
-# include <mailutils/gnu/argp.h>
-#endif
+#include <argp.h>
 
 #define MODE_INTERACTIVE 0
 #define MODE_DAEMON 1

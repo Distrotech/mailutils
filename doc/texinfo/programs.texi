@@ -1913,6 +1913,33 @@ configuration file upon startup. See @ref{Mail Configuration Files}.
 
 When set, any outgoing message will be saved to the named file.
 
+@item replyprefix
+@*Type: String
+@*Default: @samp{Re: }
+
+Sets the prefix that will be used when constructing the subject line
+of a reply message.
+
+@item replyregex
+@*Type: String
+@*Default: @samp{^re: *}
+
+Sets the regular expression used to recognize subjects of reply
+messages. If the @code{Subject} header of the message matches this
+expression, the value of @code{replyprefix} will not be prepended to
+it before replying. The expression should be a POSIX extended regular
+expression. The comparison is case-insensitive.
+
+For example, to recognize usual English, Polish, Norwegian and German
+reply subject styles, use:
+
+@example
+set replyregex="^(re|odp|aw|ang)(\\[[0-9]+\\])?:[[:blank:]]"
+@end example
+
+@noindent
+(Notice the quoting of backslash characters).
+
 @item save
 @*Type: Boolean.
 @*Default: True.

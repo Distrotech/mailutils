@@ -3,4 +3,5 @@ Makefile.in
 getopt.h 
 argp.h
 regex.h 
+posix
 posix/regex.h

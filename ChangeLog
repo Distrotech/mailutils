@@ -1,3 +1,89 @@
+2003-09-20  Sergey Poznyakoff 
+
+	Install under mailutils/gnu only those headers which are
+	missing on the system.
+	Include regex to libmailbox if the system's libc lacks it.
+	Add new functions for handling reply subject headers.
+	
+	* Makefile.am: Added headers
+	* m4/mu_libobj.m4 (MU_HEADER,MU_FINISH_LINKS): New macros
+	* configure.ac: Use MU_HEADER and MU_FINISH_LINKS where needed
+	* m4/regex.m4: Likewise
+	
+	* dotlock/Makefile.am: Fixed INCLUDES
+	* lib/Makefile.am: Updated
+	* mailbox/Makefile.am: Likewise.
+	* examples/Makefile.am: Likewise.
+	* frm/Makefile.am: Likewise.
+	* guimb/Makefile.am: Likewise.
+	* imap4d/Makefile.am: Likewise.
+	* include/mailutils/gnu/Makefile.am: Likewise.
+	* libsieve/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* mail.remote/Makefile.am: Likewise.
+	* mailbox/imap/Makefile.am: Likewise.
+	* mailbox/maildir/Makefile.am: Likewise.
+	* mailbox/mbox/Makefile.am: Likewise.
+	* mailbox/mh/Makefile.am: Likewise.
+	* mailbox/pop/Makefile.am: Likewise.
+	* messages/Makefile.am: Likewise.
+	* mh/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	* readmsg/Makefile.am: Likewise.
+	* sieve/Makefile.am: Likewise.
+	* from/Makefile.am: Likewise.
+	* comsat/Makefile.am: Likewise.
+	* auth/Makefile.am: Likewise.
+	
+        * headers: New directory
+        * headers/Makefile.am: New file
+        * headers/posix/Makefile.am: New file
+	
+	* include/mailutils/gnu/argp.h: Moved to ...
+	* headers/argp.h: ... here
+	* include/mailutils/gnu/getopt.h: Moved to ...
+	* headers/getopt.h: ... here
+
+	* lib/regex.h: Moved to ...	
+	* headers/regex.h: ... here
+	* lib/posix/regex.h: Moved to ...
+	* headers/posix/regex.h: ... here
+	* lib/posix/Makefile.am: Removed
+	* lib/posix/.cvsignore: Removed
+	* lib/posix: Removed
+	
+	* lib/regex.c: Moved to ...
+	* mailbox/regex.c: ... here
+	
+	* include/mailutils/gnu/.cvsignore: Updated
+
+	* mailbox/munre.c: New file
+	* include/mailutils/mutil.h (munre_set_regex)
+	(munre_subject): New functions.
+
+	* mail/followup.c: Use munre_subject() and util_reply_prefix().
+	* mail/reply.c: Likewise
+	* mail/mail.c (struct argp_option options): Removed irrelevant
+	OPTION_DOC.
+	(main): Set default replyprefix
+	* mail/mail.h (util_reply_prefix): New function
+	* mail/util.c: Likewise
+	(util_setenv): A hack to properly handle "replyregex".
+	* mail/var.c (run_editor): Fixed return type.
+	
+	* mh/mh_format.c (builtin_unre): Use munre_subject()
+	(builtin_isreply,builtin_reply_regex): New functions
+	* mh/mh.h (mh_set_reply_regex): New function.
+	* mh/mh_init.c: Likewise.
+	* mh/mh_global.c (mh_read_profile): Read Reply-Regex
+	
+	* mh/README: Updated
+	* mh/replcomps: Updated
+	* mh/replgroupcomps: Updated
+	
+	* doc/texinfo/programs.texi: Updated
+	
 2003-09-18  Sergey Poznyakoff 
 
 	* mailbox/mh/mbox.c (_mh_message_delete): Zero out the
