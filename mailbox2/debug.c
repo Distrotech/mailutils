@@ -23,6 +23,7 @@
 
 #include <mailutils/sys/debug.h>
 #include <mailutils/error.h>
+#include <mailutils/debug.h>
 
 int
 mu_debug_ref (mu_debug_t debug)
