@@ -77,7 +77,7 @@ check_quota (char *name, size_t size, size_t *rest)
       rc = mu_dbm_fetch (db, named, &contentd);
       if (rc)
 	{
-	  //mu_error("can't fetch data: %s", strerror (rc));
+	  /*mu_error("can't fetch data: %s", strerror (rc));*/
 	  return DEFRETVAL;
 	}
       if (!MU_DATUM_PTR (contentd))
