@@ -49,7 +49,7 @@ mu_pop3_send (mu_pop3_t pop3)
       if (pop3->timeout)
 	{
 	  int ready = mu_pop3_carrier_is_ready (pop3->carrier,
-						MU_STREAM_READY_RD,
+						MU_STREAM_READY_WR,
 						pop3->timeout);
 	  if (ready == 0)
 	    return ETIMEDOUT;
