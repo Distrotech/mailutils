@@ -40,7 +40,8 @@ mail_print (int argc, char **argv)
       size_t n = 0, lines = 0;
       FILE *out = ofile;
       attribute_t attr;
-
+      int pagelines = util_get_crt ();
+      
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
 	return 1;
 
@@ -48,11 +49,12 @@ mail_print (int argc, char **argv)
         return 1;
 
       message_lines (mesg, &lines);
-      /* If it is POP or IMAP the lines number is not known try
+
+      /* If it is POP or IMAP the lines number is not known, so try
 	 to be smart about it.  */
       if (lines == 0)
 	{
-	  if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+	  if (pagelines)
 	    {
 	      size_t col = (size_t)util_getcols ();
 	      if (col)
@@ -64,9 +66,8 @@ mail_print (int argc, char **argv)
 	    }
 	}
 
-      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0
-          && lines > (size_t)util_getlines ())
-	    out = popen (getenv ("PAGER"), "w");
+      if (pagelines && lines > pagelines)
+	out = popen (getenv ("PAGER"), "w");
 
       if (islower (argv[0][0]))
 	{

@@ -57,14 +57,14 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
   FILE *out;
   size_t lines = 0;
   struct decode_closure *closure = arg;
+  int pagelines = util_get_crt ();
 
   if (util_isdeleted (msgset->msg_part[0]))
     return 1;
 
   message_lines (mesg, &lines);
-  if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0
-      && (int)lines > util_getlines ())
-    out = popen (getenv("PAGER"), "w");
+  if (pagelines && lines > pagelines)
+    out = popen (getenv ("PAGER"), "w");
   else
     out = ofile;
 
