@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mail.local.h>
@@ -77,7 +77,7 @@ check_quota (char *name, size_t size, size_t *rest)
       rc = mu_dbm_fetch (db, named, &contentd);
       if (rc)
 	{
-	  /*mu_error("can't fetch data: %s", strerror (rc));*/
+	  /*mu_error (_("can't fetch data: %s"), strerror (rc));*/
 	  return DEFRETVAL;
 	}
       if (!MU_DATUM_PTR (contentd))
@@ -90,7 +90,7 @@ check_quota (char *name, size_t size, size_t *rest)
       unlimited = 1;
   else if (MU_DATUM_SIZE (contentd) > sizeof(buffer)-1)
     {
-      mu_error ("mailbox quota for `%s' is too big: %d digits",
+      mu_error (_("mailbox quota for `%s' is too big: %d digits"),
 		name, MU_DATUM_SIZE (contentd));
       quota = groupquota;
     }
@@ -103,7 +103,7 @@ check_quota (char *name, size_t size, size_t *rest)
       quota = strtoul (buffer, &p, 0);
       if (get_size (buffer, &quota, &p))
 	{
-	  mu_error ("bogus mailbox quota for `%s' (near `%s')", name, p);
+	  mu_error (_("bogus mailbox quota for `%s' (near `%s')"), name, p);
 	  quota = groupquota;
 	}
     }

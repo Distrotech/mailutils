@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mail.local.h>
@@ -43,7 +43,7 @@ void notify_biff __P((mailbox_t mbox, char *name, size_t size));
 
 const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
-"GNU mail.local -- the local MDA"
+N_("GNU mail.local -- the local MDA"
 "\v"
 "Debug flags are:\n"
 "  g - guimb stack traces\n"
@@ -51,9 +51,9 @@ static char doc[] =
 "  P - network protocols (MU_DEBUG_PROT)\n"
 "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
 "  l - sieve action logs\n"
-"  0-9 - Set mail.local debugging level\n";
+"  0-9 - Set mail.local debugging level\n");
 
-static char args_doc[] = "recipient [recipient ...]";
+static char args_doc[] = N_("recipient [recipient ...]");
 
 #define ARG_MULTIPLE_DELIVERY 1
 #define ARG_QUOTA_TEMPFAIL 2
@@ -61,26 +61,26 @@ static char args_doc[] = "recipient [recipient ...]";
 static struct argp_option options[] = 
 {
   { "ex-multiple-delivery-success", ARG_MULTIPLE_DELIVERY, NULL, 0,
-    "Don't return errors when delivering to multiple recipients", 0 },
+    N_("Don't return errors when delivering to multiple recipients"), 0 },
   { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
-    "Return temporary failure if disk or mailbox quota is exceeded", 0 },
+    N_("Return temporary failure if disk or mailbox quota is exceeded"), 0 },
   { "from", 'f', "EMAIL", 0,
-    "Specify the sender's name" },
+    N_("Specify the sender's name") },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
 #ifdef USE_DBM
   { "quota-db", 'q', "FILE", 0,
-    "Specify path to quota database", 0 },
+    N_("Specify path to quota database"), 0 },
 #endif
   { "sieve", 'S', "PATTERN", 0,
-    "Set name pattern for user-defined sieve mail filters", 0 },
+    N_("Set name pattern for user-defined sieve mail filters"), 0 },
 #ifdef WITH_GUILE
   { "source", 's', "PATTERN", 0,
-    "Set name pattern for user-defined mail filters", 0 },
+    N_("Set name pattern for user-defined mail filters"), 0 },
 #endif
   { "debug", 'x', "FLAGS", 0,
-    "Enable debugging", 0 },
+    N_("Enable debugging"), 0 },
   { "timeout", 't', "NUMBER", 0,
-    "Set timeout for acquiring the lockfile" },
+    N_("Set timeout for acquiring the lockfile") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -129,7 +129,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'f':
       if (from != NULL)
 	{
-	  argp_error (state, "multiple --from options");
+	  argp_error (state, _("multiple --from options"));
 	  return EX_USAGE;
 	}
       from = arg;
@@ -188,7 +188,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	      if (isdigit (*optarg))
 		debug_level = *optarg - '0';
 	      else
-		argp_error (state, "%c is not a valid debug flag", *arg);
+		argp_error (state, _("%c is not a valid debug flag"), *arg);
 	      break;
 	    }
 	}
@@ -230,16 +230,16 @@ _sieve_action_log (void *user_name,
   
   message_get_uid (msg, &uid);
 
-  asprintf (&text, "%s on msg uid %d", action, uid);
+  asprintf (&text, _("%s on msg uid %d"), action, uid);
   if (fmt && strlen (fmt))
     {
       char *diag = NULL;
       vasprintf (&diag, fmt, ap);
-      syslog (LOG_NOTICE, "(user %s) %s: %s", (char*) user_name, text, diag);
+      syslog (LOG_NOTICE, _("(user %s) %s: %s"), (char*) user_name, text, diag);
       free (diag);
     }
   else
-    syslog (LOG_NOTICE, "(user %s) %s", (char*) user_name, text);
+    syslog (LOG_NOTICE, _("(user %s) %s"), (char*) user_name, text);
   free (text);
 }
 
@@ -257,7 +257,7 @@ _sieve_parse_error (void *user_name, const char *filename, int lineno,
       free (loc);
     }
   else
-    syslog (LOG_ERR, "(user %s) %s", (char*)user_name, text);
+    syslog (LOG_ERR, _("(user %s) %s"), (char*)user_name, text);
   free (text);
   return 0;
 }
@@ -286,18 +286,18 @@ main (int argc, char *argv[])
       
       if ((rc = mu_debug_create (&mudebug, NULL)))
 	{
-	  mu_error ("mu_debug_create failed: %s\n", mu_errstring (rc));
+	  mu_error (_("mu_debug_create failed: %s\n"), mu_errstring (rc));
 	  exit (EX_TEMPFAIL);
 	}
       if ((rc = mu_debug_set_level (mudebug, debug_flags)))
 	{
-	  mu_error ("mu_debug_set_level failed: %s\n",
+	  mu_error (_("mu_debug_set_level failed: %s\n"),
 		    mu_errstring (rc));
 	  exit (EX_TEMPFAIL);
 	}
       if ((rc = mu_debug_set_print (mudebug, _mu_debug_printer, NULL)))
 	{
-	  mu_error ("mu_debug_set_print failed: %s\n",
+	  mu_error (_("mu_debug_set_print failed: %s\n"),
 		    mu_errstring (rc));
 	  exit (EX_TEMPFAIL);
 	}
@@ -310,7 +310,7 @@ main (int argc, char *argv[])
 
   if (!argc)
     {
-      mu_error ("Missing arguments. Try --help for more info");
+      mu_error (_("Missing arguments. Try --help for more info."));
       return EX_USAGE;
     }
 
@@ -362,7 +362,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
   if (access (progfile, R_OK))
     {
       if (debug_level > 2)
-	syslog (LOG_DEBUG, "access to %s failed: %m", progfile);
+	syslog (LOG_DEBUG, _("access to %s failed: %m"), progfile);
     }
   else
     {
@@ -370,7 +370,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
       rc = sieve_machine_init (&mach, auth->name);
       if (rc)
 	{
-	  mu_error ("can't initialize sieve machine: %s",
+	  mu_error (_("can't initialize sieve machine: %s"),
 		    mu_errstring (rc));
 	}
       else
@@ -491,13 +491,13 @@ make_tmp (const char *from, mailbox_t *mbox)
   tempfile = mu_tempname (NULL);
   if ((status = file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
     {
-      mailer_err ("unable to open temporary file: %s", mu_errstring (status));
+      mailer_err (_("unable to open temporary file: %s"), mu_errstring (status));
       exit (exit_code);
     }
 
   if ((status = stream_open (stream)))
     {
-      mailer_err ("unable to open temporary file: %s", mu_errstring (status));
+      mailer_err (_("unable to open temporary file: %s"), mu_errstring (status));
       exit (exit_code);
     }
   
@@ -528,7 +528,7 @@ make_tmp (const char *from, mailbox_t *mbox)
 		}
 	      else
 		{
-		  mailer_err ("Can't determine sender address");
+		  mailer_err (_("Can't determine sender address"));
 		  exit (EX_UNAVAILABLE);
 		}
 	      if (auth)
@@ -546,7 +546,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       
       if (status)
 	{
-	  mailer_err ("temporary file write error: %s", mu_errstring (status));
+	  mailer_err (_("temporary file write error: %s"), mu_errstring (status));
 	  stream_destroy (&stream, stream_get_owner (stream));
 	  return status;
 	}
@@ -563,7 +563,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err ("temporary file write error: %s", mu_errstring (status));
+      mailer_err (_("temporary file write error: %s"), mu_errstring (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -573,7 +573,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       || (status = mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mailbox_set_stream (*mbox, stream)))
     {
-      mailer_err ("temporary file open error: %s", mu_errstring (status));
+      mailer_err (_("temporary file open error: %s"), mu_errstring (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -582,7 +582,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err ("temporary message creation error: %s",
+      mailer_err (_("temporary message creation error: %s"),
 		  mu_errstring (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
@@ -607,7 +607,7 @@ deliver (mailbox_t imbx, char *name)
   auth = mu_get_auth_by_name (name);
   if (!auth)
     {
-      mailer_err ("%s: no such user", name);
+      mailer_err (_("%s: no such user"), name);
       exit_code = EX_UNAVAILABLE;
       return;
     }
@@ -621,14 +621,14 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = mailbox_get_stream (imbx, &istream)) != 0)
     {
-      mailer_err ("can't get input message stream: %s", mu_errstring (status));
+      mailer_err (_("can't get input message stream: %s"), mu_errstring (status));
       mu_auth_data_free (auth);
       return;
     }
   
   if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
     {
-      mailer_err ("can't open mailbox %s: %s",
+      mailer_err (_("can't open mailbox %s: %s"),
 		  auth->mailbox, mu_errstring (status));
       mu_auth_data_free (auth);
       return;
@@ -647,7 +647,7 @@ deliver (mailbox_t imbx, char *name)
     return;
   if (status != 0)
     {
-      mailer_err ("can't open mailbox %s: %s", path, mu_errstring (status));
+      mailer_err (_("can't open mailbox %s: %s"), path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -660,7 +660,7 @@ deliver (mailbox_t imbx, char *name)
 
   if (status)
     {
-      mailer_err ("cannot lock mailbox '%s': %s", path, mu_errstring (status));
+      mailer_err (_("cannot lock mailbox '%s': %s"), path, mu_errstring (status));
       mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
@@ -668,7 +668,7 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = mailbox_get_stream (mbox, &ostream)))
     {
-      mailer_err ("can't get stream for mailbox %s: %s",
+      mailer_err (_("can't get stream for mailbox %s: %s"),
 		  path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
@@ -676,7 +676,7 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = stream_size (ostream, (off_t *) &size)))
     {
-      mailer_err ("can't get stream size (mailbox %s): %s",
+      mailer_err (_("can't get stream size (mailbox %s): %s"),
 		  path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
@@ -689,7 +689,7 @@ deliver (mailbox_t imbx, char *name)
     switch (check_quota (name, size, &n))
       {
       case MQUOTA_EXCEEDED:
-	mailer_err ("%s: mailbox quota exceeded for this recipient", name);
+	mailer_err (_("%s: mailbox quota exceeded for this recipient"), name);
 	exit_code = EX_QUOTA();
 	failed++;
 	break;
@@ -700,14 +700,14 @@ deliver (mailbox_t imbx, char *name)
       default:
 	if ((status = stream_size (istream, (off_t *) &isize)))
 	  {
-	    mailer_err ("can't get stream size (input message): %s",
+	    mailer_err (_("can't get stream size (input message): %s"),
 			path, mu_errstring (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
 	  }
 	else if (isize > n)
 	  {
-	    mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
+	    mailer_err (_("%s: message would exceed maximum mailbox size for this recipient"),
 			name);
 	    exit_code = EX_QUOTA();
 	    failed++;
@@ -756,7 +756,7 @@ deliver (mailbox_t imbx, char *name)
 
       if (status)
 	{
-	  mailer_err ("error writing to mailbox: %s",
+	  mailer_err (_("error writing to mailbox: %s"),
 		      mu_errstring (status));
 	}
     }
@@ -920,8 +920,4 @@ guess_retval (int ec)
       }
   exit_code = EX_UNAVAILABLE;
 }
-
-
-
-
 
