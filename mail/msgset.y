@@ -18,8 +18,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_REGEXEC
+#include <regex.h>
+#endif
 
-#include <xalloc.h>  
+#include <xalloc.h>
 #include <mail.h>
 
 static msgset_t *msgset_select (int (*sel)(), void *closure, int rev,
@@ -28,7 +31,7 @@ static int select_subject (message_t msg, void *closure);
 static int select_type (message_t msg, void *closure);
 static int select_sender (message_t msg, void *closure);
 static int select_deleted (message_t msg, void *closure);
- 
+
 static msgset_t *result;
 %}
 
@@ -102,8 +105,7 @@ msgspec  : msg
 
 msg      : REGEXP /* /.../ */
            {
-	     util_strupper ($1);
-	     $$ = msgset_select (select_subject, &$1, 0, 0);
+	     $$ = msgset_select (select_subject, (void *)$1, 0, 0);
 	     free ($1);
 	   }
          | TYPE  /* :n, :d, etc */
@@ -113,11 +115,11 @@ msg      : REGEXP /* /.../ */
 		 yyerror ("unknown message type");
 		 YYERROR;
 	       }
-	     $$ = msgset_select (select_type, &$1, 0, 0);
+	     $$ = msgset_select (select_type, (void *)$1, 0, 0);
 	   }
          | IDENT /* Sender name */
            {
-	     $$ = msgset_select (select_sender, &$1, 0, 0);
+	     $$ = msgset_select (select_sender, (void *)$1, 0, 0);
 	     free ($1);
 	   }
          ;
@@ -224,7 +226,7 @@ yylex()
     {
       char *p = cur_p;
       int len;
-      
+
       while (*cur_p && *cur_p != ',' && *cur_p != '-')
 	cur_p++;
       len = cur_p - p + 1;
@@ -238,7 +240,7 @@ yylex()
     {
       char *p = ++cur_p;
       int len;
-      
+
       while (*cur_p && *cur_p != '/')
 	cur_p++;
       len = cur_p - p + 1;
@@ -248,14 +250,14 @@ yylex()
       yylval.string[len-1] = 0;
       return REGEXP;
     }
-  
+
   if (*cur_p == ':')
     {
       cur_p++;
       yylval.type = *cur_p++;
       return TYPE;
     }
-  
+
   return *cur_p++;
 }
 
@@ -279,7 +281,7 @@ msgset_free (msgset_t *msg_set)
 {
   int i;
   msgset_t *next;
-  
+
   if (!msg_set)
     return;
   while (msg_set)
@@ -339,7 +341,7 @@ msgset_range (int low, int high)
 
   if (low == high)
     return msgset_make_1 (low);
-  
+
   if (low >= high)
     {
       yyerror ("range error");
@@ -357,13 +359,13 @@ msgset_range (int low, int high)
     }
   return first;
 }
-  
+
 msgset_t *
 msgset_expand (msgset_t *set, msgset_t *expand_by)
 {
   msgset_t *i, *j;
   msgset_t *first = NULL, *last, *mp;
-  
+
   for (i = set; i; i = i->next)
     for (j = expand_by; j; j = j->next)
       {
@@ -431,7 +433,7 @@ msgset_select (int (*sel)(), void *closure, int rev, int max_matches)
 	}
     }
   return first;
-}  
+}
 
 int
 select_subject (message_t msg, void *closure)
@@ -442,13 +444,28 @@ select_subject (message_t msg, void *closure)
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject) == 0)
     {
+#ifdef HAVE_REGEXEC
+      /* Match string against the extended regular expression(ignoring
+	 case) in pattern, treating errors as no match.
+	 Return 1 for match, 0 for no match.
+      */
+      regex_t re;
+      int status;
+      if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
+	return 0;
+      status = regexec (&re, subject, 0, NULL, 0);
+      if (status != 0)
+	return 0;
+      return status == 0;
+#else
       int rc;
       util_strupper (subject);
       rc = strstr (subject, expr) != NULL;
       free (subject);
       return rc;
+#endif
     }
-  return 0; 
+  return 0;
 }
 
 int
@@ -458,7 +475,7 @@ select_sender (message_t msg, void *closure)
 	  /* FIXME: all messages from sender argv[i] */
 	  /* Annoying we can use address_create() for that
 	     but to compare against what? The email ?  */
-  return 0; 
+  return 0;
 }
 
 int
@@ -490,7 +507,7 @@ select_deleted (message_t msg, void *closure)
 {
   attribute_t attr= NULL;
   int rc;
-  
+
   message_get_attribute (msg, &attr);
   rc = attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;
