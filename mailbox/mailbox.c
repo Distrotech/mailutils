@@ -109,23 +109,15 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 
       /* Create the folder before initializing the concrete mailbox.
 	 The mailbox needs it's back pointer. */
-      {
-	folder_t folder;
-	if (folder_create (&folder, name) == 0)
-	  mbox->folder = folder;
-      }
+      status = folder_create (&mbox->folder, name);
 
-      /* Create the concrete mailbox type.  */
-      status = m_init (mbox);
+      if (status == 0)
+	status = m_init (mbox);   /* Create the concrete mailbox type.  */
+
       if (status != 0)
-	{
-	  mailbox_destroy (&mbox);
-	}
+	mailbox_destroy (&mbox);
       else
-	{
-	  *pmbox = mbox;
-	}
-
+	*pmbox = mbox;
     }
   else
     status = MU_ERR_NO_HANDLER;
