@@ -423,7 +423,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 }
 
 /* Clients are allowed to send literal string to the servers.  this
-   mean that it can me everywhere where a string is allowed.
+   means that it can occur everywhere where a string is allowed.
    A literal is a sequence of zero or more octets (including CR and LF)
    prefix-quoted with an octet count in the form of an open brace ("{"),
    the number of octets, close brace ("}"), and CRLF.
@@ -504,7 +504,7 @@ imap4d_readline (FILE *fp)
                   number = strtoul (line + n + 1, &sp, 10);
 		  /* Client can ask for non synchronise literal,
 		   if a '+' is append to the octet count. */
-                  if (*sp != '+')
+                  if (*sp != '+') 
                     util_send ("+ GO AHEAD\r\n");
                 }
             }
