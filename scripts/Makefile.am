@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -18,5 +18,5 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 SUBDIRS = guile-1.4 guile-1.6
-EXTRA_DIST = ylwrap mailutils.spec mailutils.spec.in texify.sed sqlmod.sh
+EXTRA_DIST = ylwrap mailutils.spec mailutils.spec.in texify.sed sqlmod.sh generr.awk
 
