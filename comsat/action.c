@@ -79,22 +79,6 @@ act_getline (FILE *fp, char **sptr, size_t *size)
   return used;
 }
 
-/* Convert second character of a backslash sequence to its ASCII
-   value: */
-static int
-backslash(int c)
-{
-  static char transtab[] = "a\ab\bf\fn\nr\rt\t";
-  char *p;
-
-  for (p = transtab; *p; p += 2)
-    {
-      if (*p == c)
-	return p[1];
-    }
-  return c;
-}
-
 static int
 expand_escape (char **pp, message_t msg, struct obstack *stk)
 {
@@ -213,7 +197,7 @@ expand_line (const char *str, message_t msg)
 	  p++;
 	  if (*p)
 	    {
-	      c = backslash (*p);
+	      c = argcv_unescape_char (*p);
 	      obstack_1grow (&stk, c);
 	    }
 	  break;
