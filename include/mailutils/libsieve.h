@@ -109,6 +109,8 @@ typedef struct {
 #define MU_SIEVE_DRY_RUN      0x0008
 
 extern int sieve_yydebug;
+extern list_t sieve_include_path;
+extern list_t sieve_library_path;
 
 /* Memory allocation functions */
 void *sieve_alloc __P((size_t size));
@@ -212,6 +214,9 @@ int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
 int sieve_message __P((sieve_machine_t mach, message_t message));
 int sieve_disass __P((sieve_machine_t mach));
 
+/* Command line handling */  
+  
+extern void sieve_argp_init __P((void));
   
 #ifdef __cplusplus
 }
