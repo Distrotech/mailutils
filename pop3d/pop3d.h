@@ -149,6 +149,8 @@
 #endif
 
 
+#define POP3_ATTRIBUTE_DELE 0x0001
+
 #define AUTHORIZATION	0
 #define TRANSACTION	1
 #define UPDATE		2

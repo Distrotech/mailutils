@@ -38,7 +38,7 @@ pop3d_dele (const char *arg)
     return ERR_NO_MESG;
 
   message_get_attribute (msg, &attr);
-  attribute_set_deleted (attr);
+  attribute_set_userflag (attr, POP3_ATTRIBUTE_DELE);
   pop3d_outf ("+OK Message %d marked\r\n", num);
   return OK;
 }

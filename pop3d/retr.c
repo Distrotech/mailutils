@@ -42,7 +42,7 @@ pop3d_retr (const char *arg)
     return ERR_NO_MESG;
 
   message_get_attribute (msg, &attr);
-  if (attribute_is_deleted (attr))
+  if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
     return ERR_MESG_DELE;
 
   message_get_stream (msg, &stream);

@@ -39,8 +39,8 @@ pop3d_rset (const char *arg)
       attribute_t attr = NULL;
       mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
-      if (attribute_is_deleted (attr))
-	attribute_unset_deleted (attr);
+      if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+	attribute_unset_userflag (attr, POP3_ATTRIBUTE_DELE);
     }
   pop3d_outf ("+OK\r\n");
   return OK;

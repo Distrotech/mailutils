@@ -23,6 +23,8 @@
    then releases any exclusive-access lock on the maildrop
    and closes the TCP connection.  */
 
+static void pop3d_fix_mark ();
+
 int
 pop3d_quit (const char *arg)
 {
@@ -33,6 +35,8 @@ pop3d_quit (const char *arg)
   if (state == TRANSACTION)
     {
       pop3d_unlock ();
+      pop3d_fix_mark ();
+
       if (mailbox_flush (mbox, 1) != 0)
 	err = ERR_FILE;
       if (mailbox_close (mbox) != 0) 
@@ -50,4 +54,23 @@ pop3d_quit (const char *arg)
   if (err == OK)
     pop3d_outf ("+OK\r\n");
   return err;
+}
+
+static void
+pop3d_fix_mark ()
+{
+  size_t i;
+  size_t total = 0;
+
+  mailbox_messages_count (mbox, &total);
+
+  for (i = 1; i <= total; i++)
+    {
+       message_t msg = NULL;
+       attribute_t attr = NULL;
+       mailbox_get_message (mbox, i, &msg);
+       message_get_attribute (msg, &attr);
+       if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+          attribute_set_deleted (attr);
+    }
 }

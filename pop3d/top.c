@@ -55,7 +55,7 @@ pop3d_top (const char *arg)
     return ERR_NO_MESG;
 
   message_get_attribute (msg, &attr);
-  if (attribute_is_deleted (attr))
+  if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
     return ERR_MESG_DELE;
 
   pop3d_outf ("+OK\r\n");
