@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -167,17 +168,7 @@ main (int argc, char *argv[])
     }
     
   /* Register the desired formats. */
-  {
-    list_t lst;
-    registrar_get_list (&lst);
-    list_append (lst, mbox_record);
-    list_append (lst, path_record);
-    list_append (lst, pop_record);
-    list_append (lst, imap_record);
-    /* Possible supported mailers.  */
-    list_append (lst, sendmail_record);
-    list_append (lst, smtp_record);
-  }
+  mu_register_all_formats ();
 
   if (!argv[optind])
     {
