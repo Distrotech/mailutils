@@ -11,6 +11,9 @@ AM_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
 
+dnl Check for libraries
+AC_CHECK_LIB(resolv, res_query)
+
 MU_DEBUG_MODE
 
 dnl Check for arguments
