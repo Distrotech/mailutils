@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002, 2005, Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -424,7 +424,7 @@ mail_test -message "Addressing parts of a MIME message (2)" \
 
 mail_test -message "Addressing non-existent MIME part" \
 	"decode 4\[3\]" \
-	"no such (sub)part in the message: 3"
+	"No such (sub)part in the message: 3"
 
 
 ###########################################################################
