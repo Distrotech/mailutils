@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AUTOMAKE_OPTIONS = gnits 1.8 dist-bzip2 std-options
+AUTOMAKE_OPTIONS = gnits 1.8.5 dist-bzip2 std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = headers include intl po lib testsuite mailbox libsieve doc \
