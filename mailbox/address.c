@@ -284,6 +284,11 @@ address_create (address_t *paddress, const char *addr)
       last = t->next;
       free (t);
     }
+  for (t = start_comments; t; t = last)
+    {
+      last = t->next;
+      free (t);
+    }
 
   return status;
 }
