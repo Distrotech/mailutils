@@ -177,7 +177,7 @@ static int
 _stdin_file_read (stream_t stream, char *optr, size_t osize,
 		  off_t offset, size_t *pnbytes)
 {
-  int status;
+  int status = 0;
   size_t nbytes;
   struct _file_stream *fs = stream_get_owner (stream);
   int fs_offset = fs->offset;
@@ -212,6 +212,11 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
       if (status)
 	return status;
     }
+  
+  if (feof (fs->file))
+    nbytes = 0;
+  else
+    {
   status = _file_read (stream, optr, osize, fs_offset, &nbytes);
   if (status == 0 && nbytes)
     {
@@ -222,6 +227,7 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
 	return status;
       if (k != nbytes)
 	return EIO;
+      }
     }
   if (pnbytes)
     *pnbytes = nbytes;
