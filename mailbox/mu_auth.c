@@ -47,7 +47,11 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
 
-#define DEBUG(c) do { printf c; printf("\n"); } while (0)
+/*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
+#define DEBUG(c)
+
+static void mu_auth_begin_setup __P((void));
+static void mu_auth_finish_setup __P((void));
 
 /* memory allocation */
 int 
@@ -150,8 +154,8 @@ mu_auth_nosupport (void *usused_return_data, void *unused_key,
 
 /* II. Authorization: retrieving information about user */
 
-static list_t mu_auth_by_name_list;
-static list_t mu_auth_by_uid_list;
+static list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
+static list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
 
 struct mu_auth_data *
 mu_get_auth_by_name (const char *username)
@@ -159,6 +163,8 @@ mu_get_auth_by_name (const char *username)
   struct mu_auth_data *auth = NULL;
 
   DEBUG(("mu_get_auth_by_name"));
+  if (!mu_auth_by_name_list)
+    mu_auth_begin_setup ();
   mu_auth_runlist (mu_auth_by_name_list, &auth, username, NULL);
   return auth;
 }
@@ -169,26 +175,24 @@ mu_get_auth_by_uid (uid_t uid)
   struct mu_auth_data *auth = NULL;
 
   DEBUG(("mu_get_auth_by_uid"));
+  if (!mu_auth_by_uid_list)
+    mu_auth_begin_setup ();
   mu_auth_runlist (mu_auth_by_uid_list, &auth, &uid, NULL);
   return auth;
 }
 
 /* III. Authentication: determining the authenticity of a user */
 
-static list_t mu_authenticate_list;
+static list_t mu_authenticate_list, _tmp_authenticate_list;
 
 int
 mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 {
   DEBUG(("mu_authenticate"));
+  if (!mu_authenticate_list)
+    mu_auth_begin_setup ();
   return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, pass);
 }
-
-/* IV. Implementation functions */
-
-/* IV a. Authorization */
-
-
 
 /* Modules & configuration */
 
@@ -220,13 +224,15 @@ struct argp_child mu_auth_argp_child = {
   0
 };
 
-static void mu_auth_finish_setup __P((void));
-
 static error_t
 mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
+    case ARGP_KEY_FINI:
+      mu_auth_finish_setup ();
+      break;
+
       /* authentication */
     case ARG_AUTHORIZATION:
       mu_authorization_add_module_list (arg);
@@ -236,10 +242,6 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
       mu_authentication_add_module_list (arg);
       break;
       
-    case ARGP_KEY_FINI:
-      mu_auth_finish_setup ();
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -369,8 +371,8 @@ mu_authorization_add_module (const char *name)
       errno = ENOENT;
       return 1;
     }
-  mu_insert_stack_entry (&mu_auth_by_name_list, &mod->auth_by_name);
-  mu_insert_stack_entry (&mu_auth_by_uid_list, &mod->auth_by_uid);
+  mu_insert_stack_entry (&_tmp_auth_by_name_list, &mod->auth_by_name);
+  mu_insert_stack_entry (&_tmp_auth_by_uid_list, &mod->auth_by_uid);
   return 0;
 }
 
@@ -390,7 +392,7 @@ mu_authentication_add_module (const char *name)
       errno = ENOENT;
       return 1;
     }
-  mu_insert_stack_entry (&mu_authenticate_list, &mod->authenticate);
+  mu_insert_stack_entry (&_tmp_authenticate_list, &mod->authenticate);
   return 0;
 }
 
@@ -400,14 +402,28 @@ mu_authentication_add_module_list (const char *modlist)
   _add_module_list (modlist, mu_authentication_add_module);
 }
 
-
 /* ************************************************************************ */
 
+/* Setup functions. Note that:
+   1) If libmuath is not linked in, then "generic" and "system" modules
+      are used unconditionally. This provides compatibility with the
+      standard getpw.* functions.
+   2) --authentication and --authorization modify only temporary lists,
+      which get flushed to the main ones when mu_auth_finish_setup() is
+      run. Thus, the default "generic:system" remain in force until
+      argp_parse() exits. */ 
+   
 void
-mu_auth_finish_setup ()
+mu_auth_begin_setup ()
 {
   iterator_t itr;
 
+  if (!module_handler_list)
+    {
+      mu_auth_register_module (&mu_auth_generic_module); 
+      mu_auth_register_module (&mu_auth_system_module);
+    }
+  
   if (!mu_authenticate_list)
     {
       if (iterator_create (&itr, module_handler_list) == 0)
@@ -441,6 +457,23 @@ mu_auth_finish_setup ()
 	  iterator_destroy (&itr);
 	}
     }
+}
+
+void
+mu_auth_finish_setup ()
+{
+  list_destroy (&mu_authenticate_list);
+  list_destroy (&mu_auth_by_name_list);
+  list_destroy (&mu_auth_by_uid_list);
+  
+  mu_authenticate_list = _tmp_authenticate_list;
+  _tmp_authenticate_list = NULL;
+  mu_auth_by_name_list = _tmp_auth_by_name_list;
+  _tmp_auth_by_name_list = NULL;
+  mu_auth_by_uid_list = _tmp_auth_by_uid_list;
+  _tmp_auth_by_uid_list = NULL;
+  
+  mu_auth_begin_setup ();
 }
 
 void
