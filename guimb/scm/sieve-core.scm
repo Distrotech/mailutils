@@ -142,6 +142,8 @@
     #:contains)
    ((member #:matches opt-args)
     #:matches)
+   ((member #:regex opt-args)
+    #:regex)
    (else
     #:is)))
 
@@ -198,9 +200,24 @@
 	  (set! cl (append (list ch #\\) cl)))
 	 (else
 	  (set! cl (append (list ch) cl))))))))
-		  
-;;;; Standard tests:
 
+
+(define (get-regex match key comp)
+  (case match
+    ((#:matches)
+     (make-regexp (sieve-regexp-to-posix key)
+		  (if (eq? comp string-ci=?)
+		      regexp/icase
+		      '())))
+    ((#:regex)
+     (make-regexp key
+		  (if (eq? comp string-ci=?)
+		      regexp/icase
+		      '())))
+    (else
+     #f)))
+
+;;;; Standard tests:
 
 (define (test-address header-list key-list . opt-args)
   (let ((comp (find-comp opt-args))
@@ -219,12 +236,7 @@
 	  (let ((header-fields (mu-message-get-header-fields
 				sieve-current-message
 				header-list))
-		(rx (if (eq? match #:matches)
-			(make-regexp (sieve-regexp-to-posix key)
-				     (if (eq? comp string-ci=?)
-					 regexp/icase
-					 '()))
-			#f)))
+		(rx (get-regex match key comp)))
 	    (for-each
 	     (lambda (h)
 	       (let ((hdr (cdr h)))
@@ -247,7 +259,7 @@
 				 ((#:contains)
 				  (if (sieve-str-str addr key comp)
 				      (exit #t)))
-				 ((#:matches)
+				 ((#:matches #:regex)
 				  (if (regexp-exec rx addr)
 				      (exit #t))))
 			       (runtime-message SIEVE-NOTICE
@@ -311,12 +323,7 @@
 	  (let ((header-fields (mu-message-get-header-fields
 				sieve-current-message
 				header-list))
-		(rx (if (eq? match #:matches)
-			(make-regexp (sieve-regexp-to-posix key)
-				     (if (eq? comp string-ci=?)
-					 regexp/icase
-					 '()))
-			#f)))
+		(rx (get-regex match key comp)))
 	    (for-each
 	     (lambda (h)
 	       (let ((hdr (cdr h)))
@@ -328,7 +335,7 @@
 		       ((#:contains)
 			(if (sieve-str-str hdr key comp)
 			    (exit #t)))
-		       ((#:matches)
+		       ((#:matches #:regex)
 			(if (regexp-exec rx hdr)
 			    (exit #t)))))))
 	     header-fields)))
@@ -341,7 +348,8 @@
 			   (cons "all" #f)))
 (define match-type   (list (cons "is" #f)
 			   (cons "contains" #f)
-			   (cons "matches" #f)))
+			   (cons "matches" #f)
+			   (cons "regex" #f)))
 (define size-comp    (list (cons "under" #f)
 			   (cons "over" #f)))
 (define comparator   (list (cons "comparator" 'string)))
