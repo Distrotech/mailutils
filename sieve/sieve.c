@@ -38,6 +38,7 @@ sieve script interpreter.
 #include <argp.h>
 
 #include "sieve.h"
+#include "sieve_interface.h"
 
 #include <mailutils/argp.h>
 #include <mailutils/auth.h>
@@ -57,6 +58,8 @@ static char doc[] =
   "GNU sieve -- a mail filtering tool\n"
   "\v"
   "Debug flags:\n"
+  "  a - address parser traces\n"
+  "  g - main parser traces\n"
   "  T - mailutil traces (MU_DEBUG_TRACE)\n"
   "  P - network protocols (MU_DEBUG_PROT)\n"
   "  t - sieve trace (SV_DEBUG_TRACE)\n"
@@ -150,18 +153,31 @@ parser (int key, char *arg, struct argp_state *state)
 	    case 'T':
 	      opts->debug_level |= MU_DEBUG_TRACE;
 	      break;
+	      
 	    case 'P':
 	      opts->debug_level |= MU_DEBUG_PROT;
 	      break;
+	      
 	    case 't':
 	      opts->debug_level |= SV_DEBUG_TRACE;
 	      break;
+	      
 	    case 'h':
 	      opts->debug_level |= SV_DEBUG_HDR_FILL;
 	      break;
+	      
 	    case 'q':
 	      opts->debug_level |= SV_DEBUG_MSG_QUERY;
 	      break;
+	      
+	    case 'g':
+	      yydebug = 1;
+	      break;
+	      
+	    case 'a':
+	      addrdebug = 1;
+	      break;
+	      
 	    default:
 	      argp_error (state, "%c is not a valid debug flag", *arg);
 	      break;
@@ -191,6 +207,27 @@ static struct argp argp = {
   "SCRIPT",
   doc
 };
+
+static const char *sieve_argp_capa[] = {
+  "common",
+  "mailbox",
+  "license",
+  NULL
+};
+
+char *sieve_license_text =
+"   Copyright 1999 by Carnegie Mellon University\n"
+"   Copyright 1999,2001,2002 by Free Software Foundation\n"
+"\n"
+"   Permission to use, copy, modify, and distribute this software and its\n"
+"   documentation for any purpose and without fee is hereby granted,\n"
+"   provided that the above copyright notice appear in all copies and that\n"
+"   both that copyright notice and this permission notice appear in\n"
+"   supporting documentation, and that the name of Carnegie Mellon\n"
+"   University not be used in advertising or publicity pertaining to\n"
+"   distribution of the software without specific, written prior\n"
+"   permission.\n";
+
 
 static void
 parse_error (const char *script, int lineno, const char *errmsg)
@@ -248,16 +285,18 @@ main (int argc, char *argv[])
   mailbox_t mbox = 0;
 
   struct options opts = { 0 };
-/*const char* capa[] = { 0 };*/
 
   size_t count = 0;
   int msgno = 0;
 
   int rc = 0;
 
-  rc = mu_argp_parse(&argp, &argc, &argv, ARGP_IN_ORDER, 0, 0, &opts);
+  /* Override license text: */
+  mu_license_text = sieve_license_text;
+  rc = mu_argp_parse(&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
+		     0, &opts);
 
-  if(rc) {
+  if (rc) {
       fprintf (stderr, "arg parsing failed: %s\n", sv_strerror (rc));
       return 1;
   }
