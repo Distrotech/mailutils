@@ -46,7 +46,7 @@ ARGIND == 2 && $1 == "$MESSAGE_STRINGS" {
   match($0, "[ \\t]+")
   for (i = 0; i < defno; i++) {
     printf "%*.*scase %s:\n", RLENGTH, RLENGTH, "", def[i]
-    printf "%*.*sreturn _(\"%s\");\n\n", RLENGTH+2,RLENGTH+2,"", text[i] 
+    printf "%*.*sreturn %s;\n\n", RLENGTH+2,RLENGTH+2,"", text[i] 
   }
   next
 }
