@@ -3,7 +3,7 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-GNU Mailutils provides a set of programs for handling the email.  
+GNU Mailutils provides a set of programs for handling the email.
 
 @menu
 * imap4d::      IMAP4 daemon.
@@ -54,7 +54,7 @@ it defaults to 20 processes.
 Display short help message and exit.
 @item -i
 @itemx --inetd
-Run in inetd mode. 
+Run in inetd mode.
 @item -p NUMBER
 @itemx --port NUMBER
 Listen on given port NUMBER. This option is meaningful only in
@@ -108,7 +108,7 @@ it defaults to 10 processes.
 Display short help message and exit.
 @item -i
 @itemx --inetd
-Run in inetd mode. 
+Run in inetd mode.
 @item -p NUMBER
 @itemx --port NUMBER
 Listen on given port NUMBER. This option is meaningful only in
@@ -395,7 +395,7 @@ are single-character commands, preceded by special @dfn{escape character},
 which defaults to @samp{~}. The combination @code{escape character + command}
 is recognized as a compose escape only if it occurs at the beginning of
 a line. If the escape character must appear at the beginning of a
-line, enter it twice. 
+line, enter it twice.
 The actual escape character may be changed by setting the value of
 @code{escape} mail variable (@pxref{Mail Variables}).
 
@@ -476,7 +476,7 @@ To change the @code{Subject} header, use @samp{~s} escape, e.g.:
 Finally, to edit all headers, type @samp{~h} escape. This will present
 you with the values of @code{To}, @code{Cc}, @code{Bcc}, and
 @code{Subject} headers allowing to edit them with normal text editing
-commands. 
+commands.
 
 @node Enclosing Another Message
 @subsubsection Enclosing Another Message: ~m and ~M
@@ -668,7 +668,7 @@ Following commands can be used during the session to request online
 help:
 
 @table @samp
-@item help [@var{command}] 
+@item help [@var{command}]
 @itemx hel [@var{command}]
 @itemx ? [@var{command}]
 Display detailed command synopsis. If no @var{command} is given, help for
@@ -815,7 +815,7 @@ out specified message parts. E.g.
 @example
 & decode 15[2]
 +---------------------------------------
-| Message=15[2] 
+| Message=15[2]
 | Type=message/delivery-status
 | encoding=7bit
 +---------------------------------------
@@ -1044,7 +1044,7 @@ unset prompt
 endif
 if s
 alt gray@@farlep.net gray@@mirddin.farlep.net
-set 
+set
 @end example
 
 @node Aliasing
@@ -1225,7 +1225,7 @@ denoting escapes.
 
 The name of the directory to use for storing folders of messages. If
 unset, $HOME is assumed.
-                   
+
 @item header
 @*Type: Boolean.
 @*Default: True, unless started with @samp{--nosum} (@samp{-N}) option.
@@ -1444,7 +1444,71 @@ Output program version and exit.
 @section readmsg --- Extract messages from a folder.
 @pindex readmsg
 
-The program is currently in development
+The program, readmsg, extracts with the selection argument messages from
+a mailbox.  Selection can be specify by:
+
+@enumerate
+
+@item
+A lone ``*'' means select all messages in the mailbox.
+
+@item
+A list of message numbers may be specified.  Values
+of  ``0''  and ``$'' in the list both mean the last
+message in the mailbox.  For example:
+@example
+     readmsg 1 3 0
+@end example
+extracts  three messages from the folder:  the first, the third, and the last.
+
+@item
+Finally, the selection may be some text to match.  This  will  select  a  mail
+message which exactly matches the specified text.  For example,
+@example
+     readmsg staff meeting
+@end example
+extracts the message which contains the words ``staff meeting.''  Note that it
+will not match a message containing ``Staff Meeting'' - the matching  is  case
+sensitive.   Normally only the first message which matches the pattern will be
+printed.
+
+@end enumerate
+
+@subheading Command line options
+
+@table @samp
+
+@item -a
+@itemx --show-all
+If a pattern is use for selection show all messages that match pattern
+by default only the first one is presented.
+
+@item -d
+@itemx --debug
+Display mailbox debuging information.
+
+@item -f @var{MAILBOX}
+@itemx --folder=@var{MAILBOX}
+Specified the default mailbox.
+
+@item -h
+@itemx --header
+Show the entire header and ignore the weedlist.
+
+@item -n
+@itemx --no-header
+Do not print the message header.
+
+@item -p
+@itemx --form-feed
+Put form-feed (Control-L) between messages instead of newline.
+
+@item  -w @var{weedlist}
+@itemx --weedlist=@var{weedlist}
+A whitespace or coma separated list of header names to show per message.
+Default is --weedlist=''From Subject Date To CC Apparently-''
+
+@end table
 
 @page
 @node sieve
@@ -1467,7 +1531,7 @@ format.
 * Specifying Scheme Program to Execute::
 * Specifying Mailboxes to Operate Upon::
 * Passing Options to Scheme::
-* Guimb Invocation Summary::    
+* Guimb Invocation Summary::
 * Scheme Procedures and Variables::
 @end menu
 
@@ -1816,7 +1880,7 @@ The server is started from @file{/etc/inetd.conf} file:
 
 @example
 comsat dgram  udp wait  root  /usr/sbin/comsatd \
-comsatd -c /etc/comsat.conf 
+comsatd -c /etc/comsat.conf
 @end example
 
 This is the default operation mode.
@@ -1868,7 +1932,7 @@ it is enabled.
 @subsubsection Security Settings
 
 These statements control the way @file{comsatd} fights possible
-flooding attacks. 
+flooding attacks.
 
 @table @asis
 @item max-requests @var{number}
@@ -1886,7 +1950,7 @@ within @var{number} seconds, the overflow-delay-time is doubled.
 @subsubsection Access Control Lists
 
 Access control lists determine from which addresses @file{comsatd}
-will receive mail notification messages. 
+will receive mail notification messages.
 
 The access control lists are introduced in configuration file using
 keyword @samp{acl}. General format for an ACL rule is

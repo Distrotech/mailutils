@@ -22,9 +22,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
+#include <getopt.h>
 
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
@@ -32,7 +34,13 @@
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
 
-extern mailbox_t mbox;
-extern size_t total;
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
 
+int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
 #endif

@@ -20,31 +20,220 @@
 #endif
 
 #include "readmsg.h"
+#define WEEDLIST_SEPARATOR  " :,"
 
-mailbox_t mbox;
-size_t total;
+static void usage __P ((int, const char *));
+static void print_header __P ((message_t, int no_header, int all_header, const char *weedlst));
+static void print_body __P ((message_t));
+static int  string_starts_with __P ((const char * s1, const char *s2));
 
-static char from[256];
-static char subject[256];
+const char *short_options = "adnhpf:w:";
+static struct option long_options[] =
+{
+  {"debug", no_argument, 0, 'd'},
+  {"header", no_argument, 0, 'h'},
+  {"weedlist", required_argument, 0, 'w'},
+  {"folder", no_argument, 0, 'f'},
+  {"no-header", no_argument, 0, 'n'},
+  {"form-feeds", no_argument, 0, 'p'},
+  {"show-all-match", required_argument, 0, 'a'},
+  {"help", no_argument, 0, '&'},
+  {"version", no_argument, 0, 'v'},
+  {0, 0, 0, 0}
+};
 
-static void display_parts (message_t, const char *indent);
+static int
+string_starts_with (const char * s1, const char *s2)
+{
+  const unsigned char * p1 = (const unsigned char *) s1;
+  const unsigned char * p2 = (const unsigned char *) s2;
+  int n = 0;
+
+  /* Sanity.  */
+  if (s1 == NULL || s2 == NULL)
+    return n;
+
+  while (*p1 && *p2)
+    {
+      if ((n = toupper (*p1++) - toupper (*p2++)) != 0)
+	break;
+    }
+  return (n == 0);
+}
+
+static void
+print_header (message_t message, int no_header, int all_headers, const char *weedlist)
+{
+  header_t header = NULL;
+
+  if (no_header)
+    return;
+
+  message_get_header (message, &header);
+
+  if (all_headers)
+    {
+      stream_t stream = NULL;
+      off_t offset = 0;
+      size_t len = 0;
+      char buf[128];
+
+      header_get_stream (header, &stream);
+      while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0 && len != 0)
+	{
+	  buf[len] ='\0';
+	  printf ("%s", buf);
+	  offset += len;
+	}
+    }
+  else
+    {
+      size_t count = 0;
+      const char *delim = WEEDLIST_SEPARATOR;
+      size_t i;
+
+      header_get_field_count (header, &count);
+
+      for (i = 1; i < count; i++)
+	{
+	  char *name = NULL;
+	  char *value = NULL;
+	  char *token = strdup (weedlist);
+	  char *p = token;
+
+	  header_aget_field_name (header, i, &name);
+	  header_aget_field_value (header, i, &value);
+	  for (; (token = strtok (token, delim)) != NULL; token = NULL)
+	    {
+	      if (string_starts_with (name, token))
+		{
+		  /* Check if header_aget_value return an empty string.  */
+		  if (value && *value)
+		    printf ("%s: %s\n", name, value);
+		}
+	    }
+	  free (value);
+	  free (name);
+	  free (p);
+	}
+      putchar ('\n');
+    }
+}
+
+static void
+print_body (message_t message)
+{
+  char buf[128];
+  body_t body = NULL;
+  stream_t stream = NULL;
+  off_t offset = 0;
+  size_t len = 0;
+  message_get_body (message, &body);
+  body_get_stream (body, &stream);
+  while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0 && len != 0)
+    {
+      buf[len] ='\0';
+      printf ("%s", buf);
+      offset += len;
+    }
+}
+
+static void
+usage (int status, const char *prognam)
+{
+  if (status == 0)
+    {
+      printf ("GNU Mailutils.\n");
+      printf ("Usage: %s [OPTIONS]\n\n", prognam);
+      printf ("  -d, --debug              display debuging information\n");
+      printf ("  -h, --header             display the entire header\n");
+      printf ("  -f, --folder=FILE        folder to use\n");
+      printf ("  -w, --weelist=LIST       list of header names separated by whitespace or commas\n");
+      printf ("  -n, --no-header          exclude all headers\n");
+      printf ("  -p, --form-feeds         put form-feeds between messages instead of newline\n");
+      printf ("  -a, --show-all-match     print all message matching PATTERN\n");
+      printf ("      --help               display this help and exit\n");
+      printf ("  -v, --version            display version information and exit\n");
+      printf ("\nReport bugs to bug-mailutils@gnu.org\n");
+    }
+  else
+    {
+      printf ("Try: %s --help\n", prognam);
+    }
+  exit (status);
+}
+
 
 /* This is still work in progress  */
+/* FIXME: Parse options:  See readmsg(1) part of elm:
+   readmsg 1 3 0
+   extracts three messages from the folder: the first, the third, and
+   the last. */
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   int status;
   int *set = NULL;
   int n = 0;
-  size_t i;
-  char *mailbox_name = NULL;
+  int i;
+  int c;
+  int dbug = 0;
+  const char *mailbox_name = NULL;
+  const char *weedlist = NULL;
+  int no_header = 0;
+  int all_header = 0;
+  int form_feed = 0;
+  int show_all = 0;
+  mailbox_t mbox = NULL;
 
-  /* FIXME: Parse options:  See readmsg(1) part of elm:
-     readmsg 1 3 0
-     extracts three messages from the folder: the first, the third, and
-     the last. */
+  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
+         != -1)
+    {
+      switch (c)
+        {
+        case 'd':
+          dbug++;
+          break;
 
-  /* Check this in the option --folder.  */
+        case 'h':
+          all_header = 1;
+          break;
+
+        case 'f':
+          mailbox_name = optarg;
+          break;
+
+        case 'w':
+          weedlist = optarg;
+          break;
+
+        case 'n':
+          no_header = 1;
+          break;
+
+        case 'p':
+          form_feed = 1;
+          break;
+
+        case 'a':
+          show_all = 1;
+          break;
+
+        case '&':
+          usage (0, argv[0]);
+          break;
+
+        case 'v':
+          printf ("Mailutils 0.0.0: readmsg\n");
+          exit (0);
+          break;
+
+        default:
+          usage (1, argv[0]);
+          break;
+        }
+    }
+
 
   /* Registration.  */
   {
@@ -64,7 +253,7 @@ main(int argc, char **argv)
     }
 
   /* Debuging Trace.  */
-  if ( 0 )
+  if (dbug)
     {
       mu_debug_t debug;
       mailbox_get_debug (mbox, &debug);
@@ -74,26 +263,21 @@ main(int argc, char **argv)
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, "could not open - %s\n", strerror(status));
+      fprintf (stderr, "mailbox open - %s\n", strerror(status));
       exit (2);
     }
 
-  mailbox_messages_count (mbox, &total);
+  if (weedlist == NULL)
+    weedlist = "Date To Cc Subject From Apparently-";
 
   /* Build an array containing the message number.  */
-  if (argc > 1)
-    msgset (argc - 1, &argv[1], &set, &n);
-  else
-    {
-      const char *av[] = { "*" };
-      msgset (1, av, &set, &n);
-    }
+  argc -= optind;
+  if (argc > 0)
+    msglist (mbox, show_all, argc, &argv[optind], &set, &n);
 
   for (i = 0; i < n; ++i)
     {
-      message_t msg;
-      header_t hdr;
-      size_t msize;
+      message_t msg = NULL;
 
       status = mailbox_get_message (mbox, set[i], &msg);
       if (status != 0)
@@ -102,201 +286,15 @@ main(int argc, char **argv)
 	  exit (2);
 	}
 
-      status = message_get_header (msg, &hdr);
-      if (status != 0)
-	{
-	  fprintf (stderr, "message_get_header - %s\n", strerror(status));
-	  exit(2);
-	}
-
-      header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-      header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
-			NULL);
-      fprintf(stdout, "From: %s\tSubject: %s\n", from, subject);
-
-      status = message_size (msg, &msize);
-      if (status != 0)
-	{
-	  fprintf (stderr, "message_size - %s\n", strerror(status));
-	  exit(2);
-	}
-      fprintf (stdout, "-- Total message size - %d\n", msize);
-
-      display_parts (msg, "\t");
+      print_header (msg, no_header, all_header, weedlist);
+      print_body (msg);
+      if (form_feed)
+	putchar ('\f');
+      else
+	putchar ('\n');
     }
+  putchar ('\n');
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
   return 0;
-}
-
-static char buf[2048];
-
-static void
-display_parts (message_t message, const char *indent)
-{
-  int status, j;
-  size_t msize, nparts;
-  message_t msg;
-  header_t hdr;
-  char type[256];
-  char encoding[256];
-  int is_multi = 0;
-  char *nl;
-
-  status = message_get_num_parts (message, &nparts);
-  if (status != 0)
-    {
-      fprintf (stderr, "message_get_num_parts - %s\n", strerror (status));
-      exit (2);
-    }
-  fprintf(stdout, "%s-- Number of parts in message - %d\n", indent, nparts);
-
-  for (j = 1; j <= nparts; j++)
-    {
-      status = message_get_part (message, j, &msg);
-      if (status != 0 )
-	{
-	  fprintf (stderr, "message_get_part - %s\n", strerror (status));
-	  exit (2);
-	}
-
-      status = message_get_header (msg, &hdr);
-      if (status != 0)
-	{
-	  fprintf (stderr, "message_get_header - %s\n", strerror (status));
-	  exit (2);
-	}
-
-      type[0] = '\0';
-      header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
-			NULL);
-
-      nl = strchr (type, '\n');
-      while ((nl = strchr (type, '\n')) != NULL)
-	{
-	  *nl = ' ';
-	}
-      fprintf(stdout, "%sType of part %d = %s\n", indent, j, type);
-
-      status = message_size (msg, &msize);
-      if (status != 0)
-	{
-	  fprintf (stderr, "message_size - %s\n", strerror (status));
-	  exit (2);
-	}
-      fprintf(stdout, "%sMessage part size - %d\n",indent, msize);
-
-      encoding[0] = '\0';
-      header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
-			sizeof (encoding), NULL);
-
-      if (type[0] && strncasecmp (type, "message/rfc822", strlen (type)) == 0)
-	{
-	  message_t submsg = NULL;
-	  char tmp[10];
-	  tmp[0] = '\0';
-
-	  status = message_unencapsulate (msg, &submsg, NULL);
-	  if (status != 0)
-	    {
-	      fprintf (stderr, "message_unencapsulate - %s\n", strerror (status));
-	      exit (2);
-	    }
-
-	  status = message_get_header (submsg, &hdr);
-	  if (status != 0)
-	    {
-	      fprintf (stderr, "message_get_header - %s\n", strerror (status));
-	      exit (2);
-	    }
-
-	  header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-	  header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
-			    NULL);
-	  fprintf (stdout, "%sEncapsulated message : %s\t%s\n", indent, from,
-		   subject);
-	  fprintf (stdout, "%s----------------------------------------------\
----------------------\n", indent);
-
-	  strcpy (tmp, indent);
-	  strcat (tmp,"\t");
-	  display_parts (submsg, tmp);
-	  message_destroy (&submsg, NULL);
-	}
-      else if ((strncasecmp (type, "text/plain", strlen ("text/plain")) == 0)
-	       || (strncasecmp (type, "text/html", strlen ("text/html")) == 0))
-	{
-	  stream_t d_stream = NULL;
-	  stream_t b_stream = NULL;
-	  body_t body;
-	  size_t nbytes = 0;
-	  int offset = 0;
-	  fprintf (stdout, "%sText Message\n",indent);
-	  fprintf (stdout, "%s-------------------------------------------------------------------\n", indent);
-	  message_get_body (msg, &body);
-	  body_get_stream (body, &b_stream);
-	  //d_stream = b_stream;
-	  //status = decoder_stream_create(&d_stream, b_stream, encoding);
-	  status = filter_create (&d_stream, b_stream, encoding, 0, 0);
-	  stream_setbufsiz (d_stream, 128);
-	  if (status != 0)
-	    {
-	      d_stream = b_stream;
-	    }
-	  while (stream_readline (d_stream, buf, sizeof (buf),
-				  offset, &nbytes ) == 0 && nbytes )
-	    {
-	      fprintf (stdout, "%s%s", indent, buf);
-	      offset += nbytes;
-	    }
-	  if (status == 0)
-	    stream_destroy(&d_stream, NULL);
-	}
-    else
-      {
-	message_is_multipart (msg, &is_multi);
-	if (is_multi)
-	  {
-	    char tmp[24];
-	    memset (tmp, '\0', sizeof (tmp));
-	    strcpy(tmp, indent);
-	    strcat(tmp,"\t");
-	    display_parts (msg, tmp);
-	  }
-	else
-	  {
-	    body_t body = NULL;
-	    stream_t stream = NULL;
-	    size_t nbytes = 0;
-	    int offset = 0;
-	    message_get_body (msg, &body);
-	    body_get_stream (body, &stream);
-#if 0
-	    while (stream_readline (stream, buf, sizeof (buf),
-				    offset, &nbytes ) == 0 && nbytes )
-	      {
-		fprintf (stdout, "%s%s", indent, buf);
-		offset += nbytes;
-	      }
-#endif
-	  }
-#if 0
-	{
-	  char *fname;
-	  message_attachment_filename ( msg, &fname);
-	  if ( fname == NULL )
-	    {
-	      char buffer[PATH_MAX+1];
-	      fname = tempnam (getcwd(buffer, PATH_MAX), "msg-" );
-	    }
-	  fprintf (stdout, "%sAttachment - saving [%s]\n",indent, fname);
-	  fprintf (stdout, "%s-------------------------------------------------------------------\n", indent);
-	  message_save_attachment (msg, fname, NULL);
-	  free (fname);
-	}
-#endif
-
-      }
-      fprintf(stdout, "\n%s End -------------------------------------------------------------------\n", indent);
-    }
 }

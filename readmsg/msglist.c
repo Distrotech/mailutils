@@ -37,74 +37,104 @@ addset (int **set, int *n, unsigned val)
   return 0;
 }
 
-int
-msgset (const int argc, char **argv, int **set, int *n)
+static int
+isnumber (const char *s)
 {
-  int i = 0, lc = 0;
-  int undelete = 0;
-  int *ret = NULL;
+  int is_number = 1;
+  if (*s == '\0')
+    is_number = 0;
+  for (; *s; s++)
+    {
+      if (!isdigit ((unsigned char)*s))
+	{
+	  is_number = 0;
+	  break;
+	}
+    }
+  return is_number;
+}
+
+/*
+  According to ELM readmsg(1):
+
+  1.     A lone ``*'' means select all messages in the mailbox.
+
+  2.     A list of message numbers may be specified.  Values of ``0'' and ``$'' in  the
+  list both mean the last message in the mailbox.  For example:
+
+  readmsg 1 3 0
+
+  extracts  three messages from the folder:  the first, the third, and the last.
+
+  3.     Finally, the selection may be some text to match.  This  will  select  a  mail
+  message which exactly matches the specified text.  For example,
+
+  readmsg staff meeting
+
+  extracts the message which contains the words ``staff meeting.''  Note that it
+  will not match a message containing ``Staff Meeting'' - the matching  is  case
+  sensitive.   Normally only the first message which matches the pattern will be
+  printed.  The -a option discussed in a moment changes this.
+*/
+
+int
+msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
+{
+  int i = 0;
+  size_t total = 0;
+
+  mailbox_messages_count (mbox, &total);
 
   for (i = 0; i < argc; i++)
     {
-      /* Last message */
-      if (!strcmp (argv[i], "$") || !strcmp (argv[i], "0"))
+      /* 1.     A lone ``*'' means select all messages in the mailbox. */
+      if (!strcmp (argv[i], "*"))
 	{
-	  addset (set, n, total);
-	}
-      else if (!strcmp (argv[i], "*"))
-	{
+	  size_t j;
 	  /* all messages */
-	  for (i = 1; i <= total; i++)
-	    addset (set, n, i);
-	  i = argc + 1;
+	  for (j = 1; j <= total; j++)
+	    addset (set, n, j);
+	  j = argc + 1;
 	}
-      else if (argv[i][0] == '/')
+      /* 2.     A list of message numbers may be specified.  Values of ``0'' and ``$'' in  the
+	 list both mean the last message in the mailbox.  */
+      else if (!strcmp (argv[i], "$") || !strcmp (argv[i], "0"))
 	{
-	  /* FIXME: all messages with pattern following / in
-	     the subject line, case insensitive */
-	  /* This currently appears to be quit b0rked */
-	  message_t msg;
-	  header_t hdr;
-	  char subj[128];
-	  int j = 1, k = 0, len2 = 0;
-	  int len = strlen (&argv[i][1]);
+	  size_t j;
+	  mailbox_messages_count (mbox, &total);
+	  for (j = 1; j < total; j++)
+	    addset (set, n, j);
+	}
+      /* 3.     Finally, the selection may be some text to match.  This  will  select  a  mail
+	 message which exactly matches the specified text.  */
+      else if (!isnumber(argv[i]))
+	{
+	  size_t j;
+	  int found = 0;
 	  for (j = 1; j <= total; j++)
 	    {
+	      char buf[128];
+	      size_t len = 0;
+	      off_t offset = 0;
+	      message_t msg = NULL;
+	      stream_t stream = NULL;
 	      mailbox_get_message (mbox, j, &msg);
-	      message_get_header (msg, &hdr);
-	      header_get_value (hdr, MU_HEADER_SUBJECT, subj, 128, NULL);
-	      len2 = strlen (subj);
-	      for (k = 0; i < strlen (subj); k++)
+	      message_get_stream (msg, &stream);
+	      while (stream_readline (stream, buf, sizeof buf, offset, &len) == 0 && len > 0)
 		{
-		  if (len2 - k >= len
-		      && !strncasecmp (&argv[i][1], &subj[k], len))
+		  if (strstr (buf, argv[i]) != NULL)
 		    {
 		      addset (set, n, j);
-		      k = 128;
+		      found = 1;
+		      break;
 		    }
+		  offset += len;
 		}
+	      if (found && !show_all)
+		break;
 	    }
 	}
-      else if (isalpha(argv[i][0]))
-	{
-	  /* FIXME: all messages from sender argv[i] */
-	}
-      else if (strchr (argv[i], '-') != NULL)
-	{
-	  /* message range */
-	  int j, x, y;
-	  char *arg = strdup (argv[i]);
-	  for (j = 0; j < strlen (arg); j++)
-	    if (arg[j] == '-')
-	      break;
-	  arg[j] = '\0';
-	  x = strtol (arg, NULL, 10);
-	  y = strtol (&(arg[j + 1]), NULL, 10);
-	  for (; x <= y; x++)
-	    addset (set, n, x);
-	  free (arg);
-	}
-      else
+      else if (isdigit (argv[i][0]))
 	{
 	  /* single message */
 	  addset (set, n, strtol (argv[i], NULL, 10));
