@@ -22,6 +22,7 @@
 	* mail/mail.c (main): Fixed 'No mail for...' reporting.
 	* mailbox/filter_trans.c (trans_read): Control number of
           bytes read by stream_read().
+	* mailbox/memory_stream.c (_memory_truncate): Bugfix.
 
 	* TODO: Updated.
 

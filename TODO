@@ -37,7 +37,7 @@ IMPORTANT:
 
 - implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
-- implement AUTHENTICATE command (at least kerberos?)
+- implement AUTHENTICATE KERBEROS_V4 and SKEY
 
 [mail]
 
