@@ -33,6 +33,7 @@ EXTRA_DIST = \
  rfc2060-errata \
  rfc2088.txt \
  rfc2111.txt \
+ rfc2177.txt \
  rfc2192.txt \
  rfc2193.txt \
  rfc2221.txt \
