@@ -66,4 +66,5 @@ main (int argc, char *argv[])
       putchar ('\n');
       free (p);
     }      
+    return 0;
 }
