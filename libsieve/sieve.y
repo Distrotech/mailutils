@@ -218,7 +218,8 @@ begin        : /* empty */
 
 test         : command
                {
-		 sieve_register_t *reg = sieve_test_lookup ($1.ident);
+		 sieve_register_t *reg = sieve_test_lookup (sieve_machine,
+							    $1.ident);
 		 $$ = sieve_machine->pc;
 
 		 if (!reg)
@@ -243,7 +244,8 @@ command      : IDENT maybe_arglist
 
 action       : command
                {
-		 sieve_register_t *reg = sieve_action_lookup ($1.ident);
+		 sieve_register_t *reg = sieve_action_lookup (sieve_machine,
+							      $1.ident);
 		 
 		 $$ = sieve_machine->pc;
 		 if (!reg)
@@ -407,7 +409,12 @@ mailer_t
 sieve_get_mailer (sieve_machine_t mach)
 {
   if (!mach->mailer)
-    mailer_create (&mach->mailer, NULL);
+    {
+      mailer_create (&mach->mailer, NULL);
+      if (mach->mu_debug)
+	mailer_set_debug (mach->mailer, mach->mu_debug);
+    }
+
   return mach->mailer;
 }
 
@@ -480,6 +487,9 @@ sieve_machine_destroy (sieve_machine_t *pmach)
   mailer_destroy (&mach->mailer);
   list_do (mach->destr_list, _run_destructor, NULL);
   list_destroy (&mach->destr_list);
+  list_destroy (&mach->action_list);
+  list_destroy (&mach->test_list);
+  list_destroy (&mach->comp_list);
   sieve_slist_destroy (&mach->memory_pool);
   free (mach);
   *pmach = NULL;
@@ -494,6 +504,9 @@ sieve_machine_begin (sieve_machine_t mach)
   sieve_machine = mach;
   sieve_error_count = 0;
   sieve_code_instr (NULL);
+  sieve_register_standard_actions (mach);
+  sieve_register_standard_tests (mach);
+  sieve_register_standard_comparators (mach);
 }
 
 void
@@ -508,16 +521,13 @@ sieve_compile (sieve_machine_t mach, const char *name)
   int rc;
   
   sieve_machine_begin (mach);
-  sieve_register_standard_actions ();
-  sieve_register_standard_tests ();
-  sieve_register_standard_comparators ();
   
   if (sieve_lex_begin (name) == 0)
     {
       sieve_machine->filename = sieve_pstrdup (&sieve_machine->memory_pool,
 					       name);
-  rc = yyparse ();
-  sieve_lex_finish ();
+      rc = yyparse ();
+      sieve_lex_finish ();
     }
   else
     rc = 1;

@@ -48,7 +48,7 @@ sieve_require (list_t slist)
 
       if (strncmp (s, "comparator-", 11) == 0)
 	{
-	  if (sieve_require_comparator (s + 11))
+	  if (sieve_require_comparator (sieve_machine, s + 11))
 	    {
 	      sieve_compile_error (sieve_filename, sieve_line_num,
 				   "source for the required comparator %s is not available",
@@ -63,7 +63,7 @@ sieve_require (list_t slist)
       else
 	{
 	  sieve_register_t *reg;
-	  reg = sieve_action_lookup (s);
+	  reg = sieve_action_lookup (sieve_machine, s);
 	  if (!reg)
 	    {
 	      sieve_compile_error (sieve_filename, sieve_line_num,
