@@ -39,6 +39,8 @@ pop3d_sigchld (int signo)
 RETSIGTYPE
 pop3d_signal (int signo)
 {
+  int code;
+  
   syslog (LOG_CRIT, _("got signal %s"), strsignal (signo));
 
   /* Master process.  */
@@ -48,7 +50,18 @@ pop3d_signal (int signo)
        exit (EXIT_FAILURE); 
     }
 
-  if (signo == SIGALRM)
-    pop3d_abquit (ERR_TIMEOUT);
-  pop3d_abquit (ERR_SIGNAL);
+  switch (signo)
+    {
+    case SIGALRM:
+      code = ERR_TIMEOUT;
+      break;
+      
+    case SIGPIPE:
+      code = ERR_NO_OFILE;
+      break;
+      
+    default:
+      code = ERR_SIGNAL;
+    }
+  pop3d_abquit (code);
 }
