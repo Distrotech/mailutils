@@ -10,7 +10,9 @@ struct daemon_param {
   unsigned int timeout;
 };
 
-
+#ifdef USE_LIBPAM
+extern char *pam_service;
+#endif
 extern char *maildir;
 extern int log_facility;
 extern struct argp_child mu_common_argp_child[];
