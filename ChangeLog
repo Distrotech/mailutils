@@ -1,5 +1,10 @@
 2001-01-25  Alain Magloire
 
+	* frm/frm.c : Forget to add --summary option and fix return status.
+	When being very quiet just freopen(/dev/null, w, stdout).
+
+2001-01-25  Alain Magloire
+
 	* pop3d/capa.c : Add UIDL in the capability list.
 	and update Copyrigth.
 	* pop3d/pop3d.c : Remove mbox_record register, only need path_record.
