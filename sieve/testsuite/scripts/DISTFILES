@@ -19,6 +19,7 @@ fileinto.sv
 header1.sv
 header2.sv
 header3.sv
+header-mime.sv
 i-casemap-contains.sv
 i-casemap-is.sv
 i-casemap-matches.sv
