@@ -31,13 +31,19 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_LIBTOOL_DLOPEN
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
 
 dnl Internationalization macros.
-AM_GNU_GETTEXT
+AM_GNU_GETTEXT(use-libtool)
 AM_GNU_GETTEXT_VERSION(0.11.5)
+AC_SUBST(INTLINCS)
+if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
+        AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
+                  [Define if the included libintl is used])
+	INTLINCS='-I${top_srcdir}/intl'
+fi
 
 dnl Check for libraries
 AC_CHECK_LIB(resolv, res_query)
@@ -216,7 +222,6 @@ AC_MSG_RESULT($log_facility)
 dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AM_C_PROTOTYPES
 AC_CHECK_HEADERS(argp.h errno.h fcntl.h getopt.h inttypes.h libgen.h limits.h\
  malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
  stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
