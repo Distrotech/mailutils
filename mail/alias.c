@@ -135,14 +135,9 @@ alias_lookup_or_install(char *name, int install)
 
   pos = hash(name);
 
-  for (i = pos;;)
+  for (i = pos; aliases[i].name;)
     {
-      if (aliases[i].name == NULL)
-	{
-	  if (!slot && install)
-	    slot = &aliases[i];
-	}
-      else if (strcmp(aliases[i].name, name) == 0)
+      if (strcmp(aliases[i].name, name) == 0)
 	return &aliases[i];
       if (++i >= hash_size[hash_num])
 	i = 0;
@@ -153,8 +148,8 @@ alias_lookup_or_install(char *name, int install)
   if (!install)
     return NULL;
 
-  if (slot)
-    return slot;
+  if (aliases[i].name == NULL)
+    return &aliases[i];
   
   if (alias_rehash())
     return NULL;
@@ -236,12 +231,29 @@ alias_print_group(char *name, list_t list)
 void
 alias_destroy(char *name)
 {
+  int i, j, r;
   alias_t *alias = alias_lookup_or_install(name, 0);
   if (!alias)
     return;
   free(alias->name);
-  alias->name = NULL;
   util_slist_destroy(&alias->list);
+
+  for (i = alias - aliases;;)
+    {
+      aliases[i].name = NULL;
+      j = i;
+
+      do
+	{
+	  if (++i >= hash_size[hash_num])
+	    i = 0;
+	  if (!aliases[i].name)
+	    return;
+	  r = hash(aliases[i].name);
+	} while ((j < r && r <= i) || (i < j && j < r) || (r <= i && i < j));
+
+      aliases[j] = aliases[i];
+    }
 }
 
 char *
