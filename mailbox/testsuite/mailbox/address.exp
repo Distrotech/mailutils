@@ -18,7 +18,7 @@
 
 mailbox_run ${top_builddir}/examples/addr
 
-set chan [open ${objdir}/Addrs r]
+set chan [open ${srcdir}/Addrs r]
 
 set command ""
 for {gets $chan line} {![eof $chan]} {gets $chan line} {

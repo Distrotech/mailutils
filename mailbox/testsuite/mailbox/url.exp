@@ -18,7 +18,7 @@
 
 mailbox_run ${top_builddir}/examples/url-parse
 
-set chan [open ${objdir}/Urls r]
+set chan [open ${srcdir}/Urls r]
 
 set command ""
 for {gets $chan line} {![eof $chan]} {gets $chan line} {

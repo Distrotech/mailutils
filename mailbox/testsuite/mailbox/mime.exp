@@ -21,7 +21,7 @@ set MU_TOOL_FLAGS "-i 0 -p $MU_SPOOL_DIR/mbox1"
 
 mu_prepare_spools
 
-set chan [open ${objdir}/Mime r]
+set chan [open ${srcdir}/Mime r]
 
 set pattern [list]
 for {gets $chan line} {![eof $chan]} {gets $chan line} {
