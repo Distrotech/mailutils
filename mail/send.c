@@ -380,12 +380,18 @@ mail_send0 (compose_env_t * env, int save_to)
 	      if (argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
 		{
 		  struct mail_command_entry entry;
-		  entry = util_find_entry (mail_escape_table, argv[0]);
 
-		  if (entry.escfunc)
-		    status = (*entry.escfunc) (argc, argv, env);
+		  if (argc > 0)
+		    {
+		      entry = util_find_entry (mail_escape_table, argv[0]);
+
+		      if (entry.escfunc)
+			status = (*entry.escfunc) (argc, argv, env);
+		      else
+			util_error (_("Unknown escape %s"), argv[0]);
+		    }
 		  else
-		    util_error (_("Unknown escape %s"), argv[0]);
+		    util_error (_("Unfinished escape"));
 		}
 	      else
 		{
