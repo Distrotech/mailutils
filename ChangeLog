@@ -4,7 +4,7 @@
 
 	* configure.in: Create imap4d/Makefile
 
-	* pop3d/Makefile.am: Add warnings
+	* pop3d/Makefile.am: Add warnings, remove unneeded variable
 
         * TODO: Update
         
