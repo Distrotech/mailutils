@@ -35,6 +35,7 @@
 #include <mailutils/error.h>
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
+#include <mu_asprintf.h>
 
 #include <libguile.h>
 #include <mu_scm.h>
