@@ -257,9 +257,6 @@ mh_vgetyn (const char *fmt, va_list ap)
       if (len > 0 && p[len-1] == '\n')
 	p[len--] = 0;
 
-      while (*p && isspace (*p))
-	p++;
-
       rc = mu_true_answer_p (p);
 
       if (rc >= 0)
