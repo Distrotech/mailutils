@@ -874,44 +874,16 @@ comparator `i;ascii-numeric' is incompatible with match type `:matches'
 in call to `header'
 @end example
 
-@menu
-* false:Sieve test false.
-* true:Sieve test true.
-* address:Sieve test address.
-* size:Sieve test size.
-* envelope:Sieve test envelope.
-* exists:Sieve test exists.
-* header:Sieve test header.
-* numaddr:Sieve test numaddr.
-@end menu
-
-@node Sieve test false
-@subsubsection Sieve test false
-
-@example
-Syntax: false
-@end example
-
+@deffn Test false
 This test always evaluates to ``false''.
+@end deffn
 
-@node Sieve test true
-@subsubsection Sieve test true
-
-@example
-Syntax: true
-@end example
-
+@deffn Test true
 This test always evaluates to ``true''.
+@end deffn
 
-@node Sieve test address
-@subsubsection Sieve test address
+@deffn Test address [@var{address-part}][@var{comparator}][@var{match-type}] @var{header-names} @var{key-list}
 
-@example
-Syntax: address [@var{address-part}][@var{comparator}][@var{match-type}]
-                @var{header-names} @var{key-list}
-@end example
-@sp 1
-@noindent
 Tagged arguments:
 
 @table @var
@@ -960,13 +932,9 @@ if address :is :all "from" "tim@@example.com"
      discard;
   @} 
 @end example
+@end deffn
 
-@node Sieve test size
-@subsubsection Sieve test size
-
-@example
-Syntax: size [:over|:under] @var{number}
-@end example
+@deffn Test size [:over|:under] @var{number}
 @sp 1
 @noindent
 The @code{size} test deals with the size of a message. The required
@@ -992,19 +960,13 @@ If the argument is @samp{:under}, and the size of the message is less than
 the @var{number}, the test is true; otherwise, it is false.
 
 Otherwise, the test is true only if the size of the message equals
-exactly @var{number}. This is a GNU extension 
+exactly @var{number}. This is a GNU extension.
 
 The size of a message is defined to be the number of octets from the
 initial header until the last character in the message body.
+@end deffn
 
-
-@node Sieve test envelope
-@subsubsection Sieve test envelope
-
-@example
-Syntax:   envelope [@var{address-part}][@var{comparator}][@var{match-type}]
-                   @var{envelope-part} @var{key-list}
-@end example
+@deffn Test envelope [@var{address-part}][@var{comparator}][@var{match-type}] @var{envelope-part} @var{key-list}
 @sp 1
 @noindent
 Tagged arguments:
@@ -1044,13 +1006,17 @@ then matching occurs against the FROM address used in the
 @emph{Notice}, that due to the limitations imposed by @sc{smtp} envelope
 structure the use of any other values in @var{envelope-parts} header is
 meaningless.
+@end deffn
 
-@node Sieve test exists
-@subsubsection Sieve test exists
+@deffn Test exists @var{header-names}
+@sp 1
+@noindent
+Required arguments:
 
-@example
-Syntax:   exists @var{header-names}
-@end example
+@table @var
+@item header-names
+List of message header names.
+@end table
 @sp 1
 @noindent
 
@@ -1067,15 +1033,10 @@ if not exists ["From","Date"]
      discard;
   @}
 @end example
+@end deffn
 
-@node Sieve test header
-@subsubsection Sieve test header
-
-@example
-Syntax:  header [@var{comparator}] [@var{match-type}] [:mime]
-                @var{header-names} @var{key-list}
-@end example
-
+@deffn header [@var{comparator}] [@var{match-type}] [:mime] @var{header-names} @var{key-list}
+@sp 1
 @noindent
 Tagged arguments:
 
@@ -1126,16 +1087,9 @@ these tests on that header evaluate as follows:
 header :is ["X-Caffeine"] [""] @result{} false
 header :contains ["X-Caffeine"] [""] @result{} true
 @end example
+@end deffn
 
-@node Sieve test numaddr
-@subsubsection Sieve test numaddr
-
-@example
-Syntax: require "test-numaddr";
-        numaddr [:over|:under] @var{header-names} @var{number}
-@end example
-@sp 1
-@noindent
+@deffn Test numaddr [:over|:under] @var{header-names} @var{number}
 
 This test is provided as an example of loadable extension tests. You
 must use @samp{require "test-numaddr"} statement before actually using
@@ -1152,10 +1106,213 @@ If the tagged argument is @samp{:under} and the number of addresses is
 less than @var{number}, the test is true; otherwise, it is false.
 
 If the tagged argument is not given, @samp{:over} is assumed. 
+@end deffn
         
 @node Actions
 @subsection Actions
 
+The GNU libsieve supports the following default actions:
+
+@itemize
+@item stop
+@item keep
+@item discard
+@item fileinto
+@item reject
+@item redirect
+@end itemize
+
+Among them the first three actions do not need to be explicitly required
+by a @code{require} statement, while the others do.
+
+These actions are described in detail below.
+
+@deffn Action stop
+
+The @code{stop} action ends all processing. If no actions have been
+executed, then the @code{keep} action is taken.
+@end deffn
+
+@deffn Action keep
+
+The effect of this action is to preserve the current message in the
+mailbox. This action is executed if no other action has been executed.
+@end deffn
+
+@deffn discard
+
+@code{Discard} silently throws away the current message. No notification
+is returned to the sender, the message is deleted from the mailbox.
+
+Example:
+@example
+if header :contains ["from"] ["idiot@@example.edu"]
+  @{
+    discard;
+  @}
+@end example
+@end deffn
+
+@deffn Action fileinto @var{folder}
+@noindent
+@sp 1
+Required arguments:
+
+@table @var
+@item folder
+A string representing the folder name
+@end table
+
+The @code{fileinto} action delivers the message into the specified folder.
+@end deffn
+
+@deffn Action reject @var{reason}
+
+The optional @code{reject} action refuses delivery of a message by sending
+back a message delivery notification to the sender. It resends the
+message to the sender, wrapping it in a ``reject'' form, noting that it
+was rejected by the recipient. The required argument @var{reason} is
+a string specifying the reason for rejecting the message.
+
+Example:
+
+If the message contained
+@example
+Date: Tue, 1 Apr 1997 09:06:31 -0800 (PST)
+From: coyote@@desert.example.org
+To: roadrunner@@acme.example.com
+Subject: I have a present for you
+
+I've got some great birdseed over here at my place.
+Want to buy it?
+@end example
+@noindent
+@sp 1
+and the user's script contained:
+
+@example
+if header :contains "from" "coyote@@desert.example.org"
+  @{
+    reject "I am not taking mail from you, and I don't want
+            your birdseed, either!";
+  @}
+@end example
+@noindent
+then the original sender <coyote@@desert.example.org> would receive the
+following notification:
+
+@example
+To: <coyote@@desert.example.org>
+X-Authentication-Warning: roadrunner set sender using -f flag
+Content-Type: multipart/mixed; boundary=----- =_aaaaaaaaaa0
+MIME-Version: 1.0
+----- =_aaaaaaaaaa0
+The original message was received at
+Tue, 1 Apr 1997 09:07:15 -0800 from
+coyote@@desert.example.org.
+Message was refused by recipient's mail filtering program.
+Reason given was as follows:
+
+I am not taking mail from you, and I don't want your birdseed, either!
+
+----- =_aaaaaaaaaa0
+Content-Type: message/delivery-status
+
+Reporting-UA: sieve; GNU Mailutils 0.1.3
+Arrival-Date: Tue, 1 Apr 1997 09:07:15 -0800
+Final-Recipient: RFC822; roadrunner@@acme.example.com
+Action: deleted
+Disposition: automatic-action/MDN-sent-automatically;deleted
+Last-Attempt-Date: Tue, 1 Apr 1997 09:07:15 -0800
+
+----- =_aaaaaaaaaa0
+Content-Type: message/rfc822
+
+From: coyote@@desert.example.org
+To: roadrunner@@acme.example.com
+Subject: I have a present for you
+
+I've got some great birdseed over here at my place.
+Want to buy it?
+----- =_aaaaaaaaaa0
+@end example
+
+If the @var{reason} argument is rather long, the common approach is
+to use the combination of the @code{text:} and @code{#include} keywords,
+e.g.:
+
+@example
+if header :mime :matches "Content-Type"
+          [ "*application/msword;*", "*audio/x-midi*" ]
+  @{
+    reject text:
+#include "nomsword.txt"
+    .
+    ;
+  @}
+@end example      
+
+@end deffn
+
+@deffn Action redirect @var{address}
+The @code{redirect} action is used to send the message to another user at
+a supplied @var{address}, as a mail forwarding feature does.  This action
+makes no changes to the message body or existing headers, but it may add
+new headers. It also modifies the envelope recipient.
+
+The @code{redirect} command performs an MTA-style ``forward'' --- that
+is, what you get from a @file{.forward} file using @code{sendmail} under
+@sc{unix}.  The address on the SMTP envelope is replaced with the one on
+the @code{redirect} command and the message is sent back
+out. @emph{Notice}, that it differs from the MUA-style forward, which
+creates a new message with a different sender and message ID, wrapping
+the old message in a new one.
+@end deffn
+
 @node Extensions
 @section Extensions
+
+This section summarizes the GNU extensions to the sieve language
+
+@enumerate 1
+
+@item Handling of the @code{require} statement.
+
+@itemize
+@item According to the RFC an error must occur if a @code{require} appears
+after a command other than @code{require}. The GNU sieve library allows
+interspersing the @code{require} and other statements. The only
+requirement is that @code{require} must occur before a statement that is
+using the required capability (@pxref{Require Statement}).
+
+@item Prefixing the required capability with ``test'' requires the use
+of an extension test.
+@end itemize
+
+@item @code{header} test
+
+The @code{header} takes an optional argument @code{:mime}, meaning to
+scan the headers from each part of a multipart message.
+
+@item @code{size} test
+
+The @code{size} test allows to omit the optional argument
+(:over|:under). In this case exact equality is assumed.
+
+@item @code{envelope} test
+
+The only value that can be meaningfully used as the first required
+argument of an @code{envelope} test is @samp{from}. This limitation
+may disappear from the subsequent releases.
+
+@item Match type optional argument.
+
+Along with the usual @code{:is}, @code{:matches} and @code{contains}
+matching type, GNU sieve library understands @code{:regex} type. This
+matching type toggles POSIX Extended Regular Expression matching.
+
+@end enumerate
+
+
+
 

@@ -1,3 +1,14 @@
+2002-12-10  Sergey Poznyakoff 
+
+	* mailbox/filter_trans.c (qp_decode): Bugfix: extend chr to
+	  accomodate three characters and terminate it with zero.
+	* libsieve/comparator.c (i_octet_regex): Removed misleading
+	  comment.
+	* mail/mail.h: Include mu_asprintf.h
+	
+	* TODO: Updated
+	* doc/texinfo/libsieve.texi: Likewise.
+
 2002-12-10  Sergey Poznyakoff
 
 	* configure.ac: Define and export SIEVE_MODDIR.

@@ -155,3 +155,6 @@ IMPORTANT:
 
 + add imap server code (JB && Shaleh Oct 11/99)
 
+- util_strcasestr() from mail/util.c provides the same functionality
+  as i_ascii_casemap_contains() from libsieve/comparator. Merge both
+  versions.
