@@ -110,7 +110,11 @@ _file_readline (stream_t stream, char *optr, size_t osize,
       char *tmp = optr;
       while (*tmp) tmp++; /* strlen(optr) */
       n = tmp - optr;
-      fs->offset += n;
+      /* !!!!! WTF ??? */
+      if (n == 0)
+	n++;
+      else
+	fs->offset += n;
     }
   else
     {

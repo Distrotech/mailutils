@@ -1,4 +1,3 @@
-SUBDIR = mailutils
 pkginclude_HEADERS = \
  address.h \
  attribute.h \

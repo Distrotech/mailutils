@@ -34,6 +34,10 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <imap0.h>
+#undef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+
+#define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
 
 /* Functions to overload the mailbox_t API.  */
 static void mailbox_imap_destroy __P ((mailbox_t));
@@ -217,7 +221,7 @@ mailbox_imap_close (mailbox_t mailbox)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
- /* Select first.  */
+  /* Select first.  */
   status = imap_messages_count (mailbox, NULL);
   if (status != 0)
     return status;
@@ -279,7 +283,7 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   int status = 0;
   size_t i;
 
-  if (pmsg == NULL)
+  if (pmsg == NULL || msgno == 0 || msgno > m_imap->messages_count)
     return EINVAL;
 
   monitor_rdlock (mailbox->monitor);
@@ -535,6 +539,8 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
   int status;
   size_t i;
   size_t count = 0;
+  m_imap_t m_imap = mailbox->data;
+  f_imap_t f_imap = m_imap->f_imap;
 
   /* Selected.  */
   status = imap_messages_count (mailbox, &count);
@@ -542,8 +548,38 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
     *pcount = count;
   if (status != 0)
     return status;
+
+  switch (f_imap->state)
+    {
+    case IMAP_NO_STATE:
+      status = imap_writeline (f_imap,
+			       "g%d FETCH 1:* (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
+			       f_imap->seq++, MU_IMAP_CACHE_HEADERS);
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      f_imap->state = IMAP_SCAN;
+
+    case IMAP_SCAN:
+      status = imap_send (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      f_imap->state = IMAP_SCAN_ACK;
+
+    case IMAP_SCAN_ACK:
+      status = imap_parse (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+
+    default:
+      CHECK_EAGAIN (f_imap, status);
+      return status;
+    }
+
+  f_imap->state = IMAP_NO_STATE;
+
+  /* If no callbacks bail out early.  */
   if (mailbox->observable == NULL)
     return 0;
+
   for (i = msgno; i <= *pcount; i++)
     {
       if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
@@ -1591,7 +1627,6 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
       status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
         return status;
-#define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
       status = imap_writeline (f_imap,
                                "g%d FETCH %d (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
                                f_imap->seq++, msg_imap->num,
@@ -1800,9 +1835,12 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
       /* Set the callback,  we want the results.  */
-      f_imap->callback.buffer = buffer;
-      f_imap->callback.buflen = buflen;
+      if (f_imap->callback.buffer)
+	free (f_imap->callback.buffer);
+      f_imap->callback.buffer = NULL;
+      f_imap->callback.buflen = 0;
       f_imap->callback.total = 0;
+      f_imap->callback.nleft = 0;
       f_imap->callback.msg_imap = msg_imap;
       f_imap->state = IMAP_FETCH_ACK;
 
@@ -1816,15 +1854,22 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
     default:
       break;
     }
-  if (plen)
-    *plen = f_imap->callback.total;
 
   if (status == 0 && f_imap->isopen == 0 && f_imap->callback.total == 0)
     status = EBADF;
+
   /* Clear the callback.  */
+  buflen = min (buflen, f_imap->callback.total);
+  if (buffer && f_imap->callback.buffer)
+    memcpy (buffer, f_imap->callback.buffer, buflen);
+  if (plen)
+    *plen = buflen;
+  if (f_imap->callback.buffer)
+    free (f_imap->callback.buffer);
   f_imap->callback.buffer = NULL;
   f_imap->callback.buflen = 0;
   f_imap->callback.total = 0;
+  f_imap->callback.nleft = 0;
   f_imap->callback.type = 0;
   f_imap->callback.msg_imap = NULL;
   f_imap->state = IMAP_NO_STATE;

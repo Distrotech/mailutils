@@ -1,5 +1,32 @@
 2001-10-11 Alain Magloire
 
+	In order to boost performance, when doing the scan we use
+	the approach of downloading part of the header of the total
+	set of messages.  The it was done before is that the headers
+	were ask one by one per message.  This was causing performance
+	delay because we were doing a lot of small transaction on
+	the TCP/IP stack.  By bundling the entire thing in one request
+	there was much less transcation and the speed was increase
+	by a factor of 10++.
+	The Imap code folder_imap.c and mbx_imap.c is now messy.
+	The rewrite in mailbox2 should clean this up though.
+
+	* mailbox/folder_imap.c (imap_quoted_string): Allocated the
+	memory instead.
+	(imap_body): If we were doing the scan free the memory and create
+	the cache header.
+	(imap_fetch): Create the message if was not done, important for
+	the scan.
+	* mailbox/mbx_imap.c (imap_scan): Bundle one big request to
+	fetch as much information as possible.
+	(message_operation): Free the buffer when done.
+	* mailbox/include/imap0.h: Add IMAP_SCAN states.
+
+	* mailbox/file_stream.c (_file_readline): It seems that fgets() can
+	not handle binary data.  Try to do our best.
+
+2001-10-11 Alain Magloire
+
 	* mailbox/header.c (header_get_fvalue): When it fails set the number
 	of byte written to 0.
 	(header_get_value): Likewised.

@@ -912,6 +912,8 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
       (*ptr)++;
     }
   f_imap->callback.total = *ptr - bquote;
+  f_imap->callback.buffer = calloc (f_imap->callback.total + 1, 1);
+  f_imap->callback.buflen = f_imap->callback.total;
   /* Fill the call back buffer. The if is redundant there should always
      be enough room since the request is base on the buffer size.  */
   if (f_imap->callback.total <= f_imap->callback.buflen
@@ -940,6 +942,8 @@ imap_string (f_imap_t f_imap, char **ptr)
 	{
 	  (*ptr)++;
 	  /* Reset the buffer to the beginning.  */
+	  f_imap->callback.buffer = calloc (f_imap->callback.nleft + 1, 1);
+	  f_imap->callback.buflen = f_imap->callback.nleft;
 	  f_imap->ptr = f_imap->buffer;
 	  status = imap_literal_string (f_imap, ptr);
 	}
@@ -1333,26 +1337,22 @@ imap_body (f_imap_t f_imap, char **ptr)
 	  strncpy (section, *ptr, len);
 	  section[len] = '\0';
 	  /* strupper.  */
-	  for (; *p; p++)
+	  for (; *p; p++) if (isupper((unsigned)*p)) *p = toupper ((unsigned)*p);
+	  /* Set the callback type to update the correct line count.  */
+	  //if (!strstr (section, "FIELD"))
 	    {
-	      if (isalpha((unsigned)*p))
-		*p = toupper ((unsigned)*p);
-	    }
-	  /* Check to see the callback type to update the line count.  */
-	  if (!strstr (section, "FIELD"))
-	    {
-	      if (strstr (section, "MIME") || (strstr (section, "HEADER")))
-		{
-		  f_imap->callback.type = IMAP_HEADER;
-		}
-	      else if (strstr (section, "TEXT") || len > 0)
-		{
-		  f_imap->callback.type = IMAP_BODY;
-		}
-	      else if (len == 0) /* body[]  */
-		{
-		  f_imap->callback.type = IMAP_MESSAGE;
-		}
+              if (strstr (section, "MIME") || (strstr (section, "HEADER")))
+                {
+                  f_imap->callback.type = IMAP_HEADER;
+                }
+              else if (strstr (section, "TEXT") || len > 0)
+                {
+                  f_imap->callback.type = IMAP_BODY;
+                }
+              else if (len == 0) /* body[]  */
+                {
+                  f_imap->callback.type = IMAP_MESSAGE;
+                }
 	    }
 	  sep++; /* Move pass the ']'  */
 	  *ptr = sep;
@@ -1370,7 +1370,17 @@ imap_body (f_imap_t f_imap, char **ptr)
 	}
     }
   status = imap_string (f_imap, ptr);
-  f_imap->callback.type = IMAP_MESSAGE;
+  if (f_imap->state == IMAP_SCAN_ACK && f_imap->callback.total)
+    {
+      status = header_create (&f_imap->callback.msg_imap->fheader,
+			      f_imap->callback.buffer, f_imap->callback.total,
+			      NULL);
+      free (f_imap->callback.buffer);
+      f_imap->callback.buffer = NULL;
+      f_imap->callback.buflen = 0;
+      f_imap->callback.total = 0;
+      f_imap->callback.nleft = 0;
+    }
   return status;
 }
 
@@ -1479,6 +1489,8 @@ imap_fetch (f_imap_t f_imap)
     {
       /* Find the imap mesg struct.  */
       size_t i;
+      message_t msg = NULL;
+      mailbox_get_message (m_imap->mailbox, msgno, &msg);
       for (i = 0; i < m_imap->imessages_count; i++)
 	{
 	  if (m_imap->imessages[i] && m_imap->imessages[i]->num == msgno)
@@ -1487,6 +1499,7 @@ imap_fetch (f_imap_t f_imap)
 	      break;
 	    }
 	}
+      /* message_destroy (&msg);  */
     }
 
   while (*sp && *sp != ')')
@@ -1781,7 +1794,6 @@ imap_parse (f_imap_t f_imap)
       /* Is the response untagged ?  */
       if (tag && tag[0] == '*')
 	{
-
 	  /* Is it a Status Response.  */
 	  if (strcasecmp (response, "OK") == 0)
 	    {
@@ -1923,6 +1935,7 @@ imap_parse (f_imap_t f_imap)
 	    }
 	  else if (strcasecmp (response, "PREAUTH") == 0)
 	    {
+	      /* Should we be dealing with this?  */
 	    }
 	  else if (strcasecmp (response, "BYE") == 0)
 	    {
