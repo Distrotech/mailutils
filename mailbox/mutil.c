@@ -351,6 +351,7 @@ char *
 mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 {
   char *p = strdup (ref);
+  char *home = NULL;
 
   if (*p == '~')
     {
@@ -360,16 +361,16 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 	  char *s;
 	  if (!homedir)
 	    {
-	      homedir = mu_get_homedir ();
-	      if (!homedir)
+	      home = mu_get_homedir ();
+	      if (!home)
 		return NULL;
+	      homedir = home;
 	    }
 	  s = calloc (strlen (homedir) + strlen (p) + 1, 1);
           strcpy (s, homedir);
           strcat (s, p);
           free (--p);
           p = s;
-	  free (homedir);
         }
       else
         {
@@ -397,6 +398,8 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
             p--;
         }
     }
+  if (home)
+    free (home);
   return p;
 }
 
