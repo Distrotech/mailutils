@@ -8,17 +8,25 @@
 @menu
 * configuration::     Common Configuration File.
 * authentication::    Authorization and Authentication Principles.
-      
-* imap4d::            IMAP4 Daemon.
-* pop3d::             POP3 Daemon.
+
 * frm::               List Headers from a Mailbox.
 * mail::              Send and Receive Mail.
-* mail.local::        Deliver Mail to the Local Mailbox.
 * messages::          Count the Number of Messages in a Mailbox.
+* movemail::          Moves Mail from the User Maildrop to the Local File.
 * readmsg::           Extract Messages from a Folder.
+
 * sieve::             Mail Filtering Utility.
 * guimb::             Mailbox Scanning and Processing Language.
+
+* mail.local::        Deliver Mail to the Local Mailbox.
+* mail.remote::       Pseudo-Sendmail Interface for Mail Delivery.
+
+* pop3d::             POP3 Daemon.
+* imap4d::            IMAP4 Daemon.
 * comsatd::           Comsat Daemon.
+
+* mh::                The MH Message Handling System.
+
 * mailutils-config::  Get the Information about the Mailutils Build.
 @end menu
 
@@ -450,201 +458,6 @@ the list of authorization modules is:
 @smallexample
 system:sql:virtdomains
 @end smallexample
-
-@page
-@node imap4d
-@section IMAP4 Daemon
-@pindex imap4d
-
-@sc{gnu} @command{imap4d} is a daemon implementing @sc{imap4} rev1 protocol
-for accessing and handling electronic mail messages on a server. It can
-be run either as a standalone program or from @file{inetd.conf} file.
-
-@menu
-* Namespace::       Namespace.
-* Starting imap4d:: Invocation Options.
-@end menu
-
-@node Namespace
-@subsection Namespace
-@cindex namespace
-@cindex IMAP4 namespace
-
-@sc{gnu} @command{imap4d} supports a notion of @dfn{namespaces} defined
-in RFC 2342. A namespace is a set of directories upon which the user
-has certain permissions. It should be understood that these permissions
-apply only if the underlying filesystem allows them.
-
-The three namespaces supported by @command{imap4d} are:
-
-@table @asis
-@item Personal Namespace
-A namespace that is within the personal scope of the authenticated user
-on a particular connection. The user has all permissions on this namespace.
-
-@item Other Users' Namespace
-A namespace that consists of mailboxes from the ``Personal Namespaces''
-of other users. The user can read and list mailboxes from this
-namespace. However, he is not allowed to use @samp{%} and @samp{*}
-wildcards with @command{LIST} command, that is he can access a
-mailbox only if he knows exactly its location.
-
-@item Shared Namespace
-A namespace that consists of mailboxes that are intended to be shared
-amongst users and do not exist within a user's Personal Namespace.
-The user has all permissions on this namespace.
-@end table
-
-@noindent
-By default, @command{imap4d} starts with the following namespaces:
-
-@table @asis
-@item Personal Namespace
-The home directory of the user, if exists.
-
-@item Other Users' Namespace
-Empty
-
-@item Shared Namespace
-Empty
-@end table
-
-@emph{Note}, that this means that by default, a user won't be able to
-see or otherwise access mailboxes residing in the directories other than
-his own home.
-
-To change these defaults, use @option{--shared-namespace} and
-@option{--other-namespace} options.
-
-@node Starting imap4d
-@subsection Starting @command{imap4d}
-
-@command{imap4d} may run either in @dfn{standalone} or in @dfn{inetd}
-operation modes. When run in ``standalone'' mode, the server disconnects
-from the terminal and runs as a daemon, forking a child for each new
-connection.
-
-The ``inetd'' mode allows to start the server from
-@file{/etc/inetd.conf} file. This is the default operation mode. 
-
-@smallexample
-imap4  stream tcp nowait  root  /usr/local/sbin/imap4d imap4d
-@end smallexample
-
-The program uses following option groups: @xref{mailbox},
-@xref{daemon}, @xref{logging}, @xref{auth}.
-
-@subheading Command Line Options
-
-@table @option
-@item -d[@var{number}]
-@itemx --daemon[=@var{number}]
-Run in standalone mode. An optional @var{number} specifies the maximum number
-of child processes the daemon is allowed to fork. When it is omitted,
-it defaults to 20 processes.
-@emph{Please note}, that there should be no whitespace between the
-@option{-d} and its parameter.
-@item -h
-@itemx --help
-Display short help message and exit.
-@item -i
-@itemx --inetd
-Run in inetd mode.
-@item -m @var{path}
-@itemx --mail-spool=@var{path}
-Set path to the mailspool directory
-@item -O @var{pathlist}
-@itemx --other-namespace=@var{pathlist}
-Set the list of directories forming the ``Other User's'' namespace.
-@var{pathlist} is a list of directory names separated by colons.
-@item -p @var{number}
-@itemx --port @var{number}
-Listen on given port @var{number}. This option is meaningful only in
-standalone mode. It defaults to port 143.
-@item -S @var{pathlist}
-@itemx --shared-namespace=@var{pathlist}
-Set the list of directories, forming the ``Shared''
-namespace. @var{pathlist} is a list of directory names separated by colons.
-@item -t @var{number}
-@itemx --timeout @var{number}
-Set idle timeout to given @var{number} of seconds. Default is 1800 seconds (30
-minutes).  The daemon breaks the connection if it receives no commands
-from the client within that number of seconds.
-@item -v
-@itemx --version
-Display program version and exit.
-@end table
-
-@page
-@node pop3d
-@section POP3 Daemon
-@pindex pop3d
-
-The @command{pop3d} daemon implements the Post Office Protocol
-Version 3 server.
-
-@command{pop3d} has two operation modes:
-
-@table @asis
-@item Inetd
-The server is started from @file{/etc/inetd.conf} file:
-
-@smallexample
-pop3  stream tcp nowait  root  /usr/local/sbin/pop3d pop3d
-@end smallexample
-
-This is the default operation mode.
-
-@item Standalone
-The server runs as daemon, forking a child for each new connection. This
-mode is triggered by @option{-d} command line switch.
-@end table
-
-The program uses following option groups: @xref{mailbox},
-@xref{daemon}, @xref{logging}, @xref{auth}.
-
-@subheading Command line options
-
-@table @option
-@item -d[@var{number}]
-@itemx --daemon[=@var{number}]
-Run in standalone mode. An optional @var{number} specifies the maximum number
-of child processes the daemon is allowed to fork. When it is omitted,
-it defaults to 10 processes.
-@emph{Please note}, that there should be no whitespace between the
-@option{-d} and its parameter.
-@item -h
-@itemx --help
-Display short help message and exit.
-@item -i
-@itemx --inetd
-Run in inetd mode.
-@item -m @var{path}
-@itemx --mail-spool=@var{path}
-Set path to the mailspool directory
-@item -p @var{number}
-@itemx --port @var{number}
-Listen on given port @var{number}. This option is meaningful only in
-standalone mode. It defaults to port 110.
-@item -t @var{number}
-@itemx --timeout @var{number}
-Set idle timeout to given @var{number} of seconds. Default is 600 seconds (10
-minutes).  The daemon breaks the connection if it receives no commands
-from the client within that number of seconds.
-@item -v
-@itemx --version
-Display program version and exit.
-@item --undelete
-Remove all deletion marks from the messages after opening the mailbox.
-@item --login-delay=@var{seconds}
-Sets the minimum allowed delay between closing a pop3d session and
-opening it again with the same user name.
-@item --stat-file=@var{filename}
-Sets the name of the login timestamp database, used with
-@option{--login-delay}. By default, these data are kept in
-@file{/var/run/pop3-login}. Be sure to specify the file name
-@emph{without} DBM-specific suffix.
-@end table
 
 @page
 @node frm
@@ -2016,204 +1829,6 @@ package via @option{--with-mail-rc} option. It defaults to
 @file{@var{sysconfdir}/mail.rc}.
 
 @page
-@node mail.local
-@section @command{mail.local} --- Deliver Mail to the Local Mailbox
-@pindex mail.local
-
-@command{mail.local} reads the standard input up to an end-of-file
-and appends the received data to the local mailboxes.
-
-@menu
-* Invocation::     Mail.local options
-* MTA::            Using mail.local with various MTAs
-* Mailbox Quotas:: Setting up mailbox quotas.
-* Sieve Filters::  Implementing user-defined Sieve mail filters.
-* Scheme Filters:: Implementing user-defined Scheme mail filters. 
-@end menu
-
-@node Invocation
-@subsection Invoking @command{mail.local}
-
-General usage of @command{mail.local} program is:
-                                                                                
-@smallexample
-      mail.local [OPTION...] recipient [recipient ...]
-@end smallexample
-
-@noindent
-If recipient part is present is a FQDN, @command{mail.local} 
-will attempt to deliver to a virtual host.
-
-                                                                                
-The program uses following option groups: @xref{mailbox}, @xref{auth},
-@xref{logging}, @xref{sieve}.
-
-@table @option
-@item -f @var{addr}
-@itemx --from @var{addr}
-Specify the sender's name. This option forces @command{mail.local} to
-add @samp{From } envelope to the beginning of the message. If it is
-not specified, @command{mail.local} first looks into the first line
-from the standard input. If it starts with @samp{From }, it is assumed
-to contain a valid envelope. If it does not, @command{mail.local}
-creates the envelope by using current user name and date.
-@item -h
-@itemx --help
-Display this help and exit.
-@item -L
-@itemx --license
-Display @sc{gnu} General Public License and exit.
-@item -m @var{path}
-@itemx --mail-spool @var{path}
-Specify path to mailspool directory.
-@item -q
-@itemx --quota-db @var{file}
-Specify path to mailbox quota database (@pxref{Mailbox Quotas}). 
-@item -s @var{pattern}
-@itemx --source @var{pattern}
-Set name pattern for user-defined mail filters written in Scheme
-(@pxref{Scheme Filters}). The
-metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
-the current recipient user name and home directory correspondingly.
-
-This option is available only if the package has been configured to
-use Guile extension language.
-@item -S @var{pattern}
-@itemx --sieve @var{pattern}
-Set name pattern for user-defined mail filters written is Sieve
-(@pxref{Sieve Filters}). The
-metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
-the current recipient user name and home directory correspondingly.
-@item -t @var{number}
-@itemx --timeout @var{number}
-Wait @var{number} seconds for acquiring the lockfile. If it doesn't
-become available after that amount of time, return failure. The timeout
-defaults to 5 minutes.
-@item -x @var{flags}
-@itemx --debug @var{flags}
-Enable debugging. The debugging information will be output using syslog.
-The @var{flags} is a string consisting of the following flags:
-Debug flags are:
-
-@table @samp
-@item g
-Start with guile debugging evaluator and backtraces. This is convenient
-for debugging user-defined filters (@pxref{Scheme Filters}).
-
-@item T
-Enable libmailutil traces (MU_DEBUG_TRACE).
-
-@item P
-Enable network protocol traces (MU_DEBUG_PROT)
-
-@item t
-Enable sieve trace (MU_SIEVE_DEBUG_TRACE)
-
-@item l
-Enable sieve action logs
-@end table
-
-The digits in the range @samp{0} -- @samp{9} used in @var{flags} set
-@command{mail.local} debugging level.
-@item -v
-@itemx --version
-Display program version and exit.
-@item --ex-multiple-delivery-success
-Don't return errors when delivering to multiple recipients.
-@item --ex-quota-tempfail
-Return temporary failure if disk or mailbox quota is exceeded. By
-default, 'service unavailable' is returned if the message exceeds
-the mailbox quota.
-@end table
-
-@node MTA
-@subsection Using @command{mail.local} with Various MTAs
-
-This section explains how to invoke @command{mail.local} from
-configuration files of various Mail Transport Agents.
-
-All examples in this section suppose that @command{mail.local}
-must receive following command line switches:
-
-@smallexample
--s %h/.filter.scm -q /etc/mail/userquota
-@end smallexample
-
-@menu
-* Sendmail::    Using @command{mail.local} with Sendmail.
-* Exim::        Using @command{mail.local} with Exim.
-@end menu
-
-@node Sendmail
-@subsubheading Using @command{mail.local} with Sendmail
-
-The @command{mail.local} must be invoked from the local mailer
-definition in the @file{sendmail.cf} file. It must have the
-following flags set @samp{lswS}, meaning the mailer is local,
-the quote characters should be stripped off the address before
-invoking the mailer, the user must have a valid account on this
-machine and the userid should not be reset before calling the
-mailer. Additionally, @samp{fn} flags may be specified to allow
-@command{mail.local} to generate usual @samp{From } envelope
-instead of the one supplied by sendmail.
-
-If you wish to use mail.local with SQL authentication, you may
-wish to remove the @samp{w} flag, since in that case the user is
-not required to have a valid account on the machine that runs
-@command{sendmail}.
-
-Here is an example of mailer definition in @file{sendmail.cf}
-
-@smallexample 
-Mlocal, P=/usr/local/libexec/mail.local,
-        F=lsDFMAw5:/|@@qSPfhn9,
-        S=EnvFromL/HdrFromL, R=EnvToL/HdrToL,
-        T=DNS/RFC822/X-Unix,
-        A=mail -s %h/.filter.scm -q /etc/mail/userquota $u
-@end smallexample
-
-To define local mailer in @samp{mc} source file, it will suffice to
-set:
-
-@smallexample
-define(`LOCAL_MAILER_PATH', `/usr/local/libexec/mail.local')
-define(`LOCAL_MAILER_ARGS',
-       `mail -s %h/.filter.scm -q /etc/mail/userquota $u')
-@end smallexample
-
-@node Exim
-@subsubheading Using @command{mail.local} with Exim
-
-Using @command{mail.local} with Exim is quite straightforward. The
-following example illustrates the definition of appropriate transport
-and director in @file{exim.conf}:
-
-@smallexample
-# transport
-mail_local_pipe:
-  driver = pipe
-  command = /usr/local/libexec/mail.local -s %h/.filter.scm \
-              -q /etc/mail/userquota $local_part
-  return_path_add
-  delivery_date_add
-  envelope_to_add
-  
-# director
-mail_local:
-  driver = localuser
-  transport = mail_local_pipe
-@end smallexample
-
-@node Mailbox Quotas
-@subsection Setting up Mailbox Quotas
-
-@node Sieve Filters
-@subsection Implementing User-defined Sieve Mail Filters
-
-@node Scheme Filters
-@subsection Implementing User-defined Scheme Mail Filters
-
-@page
 @node messages
 @section @command{messages} --- Count the Number of Messages in a Mailbox
 @pindex messages
@@ -2252,6 +1867,13 @@ Output program version and exit.
 @end table
 
 @page
+@node movemail
+@section @command{movemail} --- Moves Mail from the User Maildrop to the Local File
+@pindex movemail
+
+[FIXME]
+
+@page
 @node readmsg
 @section @command{readmsg} --- Extract Messages from a Folder
 @pindex readmsg
@@ -2260,7 +1882,6 @@ The program, readmsg, extracts with the selection argument messages from
 a mailbox.  Selection can be specify by:
 
 @enumerate
-
 @item A lone ``*'' means select all messages in the mailbox.
 
 @item
@@ -2317,7 +1938,6 @@ Put form-feed (Control-L) between messages instead of newline.
 @itemx --weedlist=@var{weedlist}
 A whitespace or coma separated list of header names to show per message.
 Default is --weedlist=''From Subject Date To CC Apparently-''
-
 @end table
 
 @page
@@ -2738,6 +2358,406 @@ Display program version.
 @end table
 
 @page
+@node mail.local
+@section @command{mail.local} --- Deliver Mail to the Local Mailbox
+@pindex mail.local
+
+@command{mail.local} reads the standard input up to an end-of-file
+and appends the received data to the local mailboxes.
+
+@menu
+* Invocation::     Mail.local options
+* MTA::            Using mail.local with various MTAs
+* Mailbox Quotas:: Setting up mailbox quotas.
+* Sieve Filters::  Implementing user-defined Sieve mail filters.
+* Scheme Filters:: Implementing user-defined Scheme mail filters. 
+@end menu
+
+@node Invocation
+@subsection Invoking @command{mail.local}
+
+General usage of @command{mail.local} program is:
+                                                                                
+@smallexample
+      mail.local [OPTION...] recipient [recipient ...]
+@end smallexample
+
+@noindent
+If recipient part is present is a FQDN, @command{mail.local} 
+will attempt to deliver to a virtual host.
+
+                                                                                
+The program uses following option groups: @xref{mailbox}, @xref{auth},
+@xref{logging}, @xref{sieve}.
+
+@table @option
+@item -f @var{addr}
+@itemx --from @var{addr}
+Specify the sender's name. This option forces @command{mail.local} to
+add @samp{From } envelope to the beginning of the message. If it is
+not specified, @command{mail.local} first looks into the first line
+from the standard input. If it starts with @samp{From }, it is assumed
+to contain a valid envelope. If it does not, @command{mail.local}
+creates the envelope by using current user name and date.
+@item -h
+@itemx --help
+Display this help and exit.
+@item -L
+@itemx --license
+Display @sc{gnu} General Public License and exit.
+@item -m @var{path}
+@itemx --mail-spool @var{path}
+Specify path to mailspool directory.
+@item -q
+@itemx --quota-db @var{file}
+Specify path to mailbox quota database (@pxref{Mailbox Quotas}). 
+@item -s @var{pattern}
+@itemx --source @var{pattern}
+Set name pattern for user-defined mail filters written in Scheme
+(@pxref{Scheme Filters}). The
+metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
+the current recipient user name and home directory correspondingly.
+
+This option is available only if the package has been configured to
+use Guile extension language.
+@item -S @var{pattern}
+@itemx --sieve @var{pattern}
+Set name pattern for user-defined mail filters written is Sieve
+(@pxref{Sieve Filters}). The
+metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
+the current recipient user name and home directory correspondingly.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Wait @var{number} seconds for acquiring the lockfile. If it doesn't
+become available after that amount of time, return failure. The timeout
+defaults to 5 minutes.
+@item -x @var{flags}
+@itemx --debug @var{flags}
+Enable debugging. The debugging information will be output using syslog.
+The @var{flags} is a string consisting of the following flags:
+Debug flags are:
+
+@table @samp
+@item g
+Start with guile debugging evaluator and backtraces. This is convenient
+for debugging user-defined filters (@pxref{Scheme Filters}).
+
+@item T
+Enable libmailutil traces (MU_DEBUG_TRACE).
+
+@item P
+Enable network protocol traces (MU_DEBUG_PROT)
+
+@item t
+Enable sieve trace (MU_SIEVE_DEBUG_TRACE)
+
+@item l
+Enable sieve action logs
+@end table
+
+The digits in the range @samp{0} -- @samp{9} used in @var{flags} set
+@command{mail.local} debugging level.
+@item -v
+@itemx --version
+Display program version and exit.
+@item --ex-multiple-delivery-success
+Don't return errors when delivering to multiple recipients.
+@item --ex-quota-tempfail
+Return temporary failure if disk or mailbox quota is exceeded. By
+default, 'service unavailable' is returned if the message exceeds
+the mailbox quota.
+@end table
+
+@node MTA
+@subsection Using @command{mail.local} with Various MTAs
+
+This section explains how to invoke @command{mail.local} from
+configuration files of various Mail Transport Agents.
+
+All examples in this section suppose that @command{mail.local}
+must receive following command line switches:
+
+@smallexample
+-s %h/.filter.scm -q /etc/mail/userquota
+@end smallexample
+
+@menu
+* Sendmail::    Using @command{mail.local} with Sendmail.
+* Exim::        Using @command{mail.local} with Exim.
+@end menu
+
+@node Sendmail
+@subsubheading Using @command{mail.local} with Sendmail
+
+The @command{mail.local} must be invoked from the local mailer
+definition in the @file{sendmail.cf} file. It must have the
+following flags set @samp{lswS}, meaning the mailer is local,
+the quote characters should be stripped off the address before
+invoking the mailer, the user must have a valid account on this
+machine and the userid should not be reset before calling the
+mailer. Additionally, @samp{fn} flags may be specified to allow
+@command{mail.local} to generate usual @samp{From } envelope
+instead of the one supplied by sendmail.
+
+If you wish to use mail.local with SQL authentication, you may
+wish to remove the @samp{w} flag, since in that case the user is
+not required to have a valid account on the machine that runs
+@command{sendmail}.
+
+Here is an example of mailer definition in @file{sendmail.cf}
+
+@smallexample 
+Mlocal, P=/usr/local/libexec/mail.local,
+        F=lsDFMAw5:/|@@qSPfhn9,
+        S=EnvFromL/HdrFromL, R=EnvToL/HdrToL,
+        T=DNS/RFC822/X-Unix,
+        A=mail -s %h/.filter.scm -q /etc/mail/userquota $u
+@end smallexample
+
+To define local mailer in @samp{mc} source file, it will suffice to
+set:
+
+@smallexample
+define(`LOCAL_MAILER_PATH', `/usr/local/libexec/mail.local')
+define(`LOCAL_MAILER_ARGS',
+       `mail -s %h/.filter.scm -q /etc/mail/userquota $u')
+@end smallexample
+
+@node Exim
+@subsubheading Using @command{mail.local} with Exim
+
+Using @command{mail.local} with Exim is quite straightforward. The
+following example illustrates the definition of appropriate transport
+and director in @file{exim.conf}:
+
+@smallexample
+# transport
+mail_local_pipe:
+  driver = pipe
+  command = /usr/local/libexec/mail.local -s %h/.filter.scm \
+              -q /etc/mail/userquota $local_part
+  return_path_add
+  delivery_date_add
+  envelope_to_add
+  
+# director
+mail_local:
+  driver = localuser
+  transport = mail_local_pipe
+@end smallexample
+
+@node Mailbox Quotas
+@subsection Setting up Mailbox Quotas
+
+@node Sieve Filters
+@subsection Implementing User-defined Sieve Mail Filters
+
+@node Scheme Filters
+@subsection Implementing User-defined Scheme Mail Filters
+
+@page
+@node mail.remote
+@section @command{mail.remote} --- Pseudo-Sendmail Interface for Mail Delivery
+@pindex mail.remote
+
+[FIXME]
+
+@page
+@node pop3d
+@section POP3 Daemon
+@pindex pop3d
+
+The @command{pop3d} daemon implements the Post Office Protocol
+Version 3 server.
+
+@command{pop3d} has two operation modes:
+
+@table @asis
+@item Inetd
+The server is started from @file{/etc/inetd.conf} file:
+
+@smallexample
+pop3  stream tcp nowait  root  /usr/local/sbin/pop3d pop3d
+@end smallexample
+
+This is the default operation mode.
+
+@item Standalone
+The server runs as daemon, forking a child for each new connection. This
+mode is triggered by @option{-d} command line switch.
+@end table
+
+The program uses following option groups: @xref{mailbox},
+@xref{daemon}, @xref{logging}, @xref{auth}.
+
+@subheading Command line options
+
+@table @option
+@item -d[@var{number}]
+@itemx --daemon[=@var{number}]
+Run in standalone mode. An optional @var{number} specifies the maximum number
+of child processes the daemon is allowed to fork. When it is omitted,
+it defaults to 10 processes.
+@emph{Please note}, that there should be no whitespace between the
+@option{-d} and its parameter.
+@item -h
+@itemx --help
+Display short help message and exit.
+@item -i
+@itemx --inetd
+Run in inetd mode.
+@item -m @var{path}
+@itemx --mail-spool=@var{path}
+Set path to the mailspool directory
+@item -p @var{number}
+@itemx --port @var{number}
+Listen on given port @var{number}. This option is meaningful only in
+standalone mode. It defaults to port 110.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Set idle timeout to given @var{number} of seconds. Default is 600 seconds (10
+minutes).  The daemon breaks the connection if it receives no commands
+from the client within that number of seconds.
+@item -v
+@itemx --version
+Display program version and exit.
+@item --undelete
+Remove all deletion marks from the messages after opening the mailbox.
+@item --login-delay=@var{seconds}
+Sets the minimum allowed delay between closing a pop3d session and
+opening it again with the same user name.
+@item --stat-file=@var{filename}
+Sets the name of the login timestamp database, used with
+@option{--login-delay}. By default, these data are kept in
+@file{/var/run/pop3-login}. Be sure to specify the file name
+@emph{without} DBM-specific suffix.
+@end table
+
+@page
+@node imap4d
+@section IMAP4 Daemon
+@pindex imap4d
+
+@sc{gnu} @command{imap4d} is a daemon implementing @sc{imap4} rev1 protocol
+for accessing and handling electronic mail messages on a server. It can
+be run either as a standalone program or from @file{inetd.conf} file.
+
+@menu
+* Namespace::       Namespace.
+* Starting imap4d:: Invocation Options.
+@end menu
+
+@node Namespace
+@subsection Namespace
+@cindex namespace
+@cindex IMAP4 namespace
+
+@sc{gnu} @command{imap4d} supports a notion of @dfn{namespaces} defined
+in RFC 2342. A namespace is a set of directories upon which the user
+has certain permissions. It should be understood that these permissions
+apply only if the underlying filesystem allows them.
+
+The three namespaces supported by @command{imap4d} are:
+
+@table @asis
+@item Personal Namespace
+A namespace that is within the personal scope of the authenticated user
+on a particular connection. The user has all permissions on this namespace.
+
+@item Other Users' Namespace
+A namespace that consists of mailboxes from the ``Personal Namespaces''
+of other users. The user can read and list mailboxes from this
+namespace. However, he is not allowed to use @samp{%} and @samp{*}
+wildcards with @command{LIST} command, that is he can access a
+mailbox only if he knows exactly its location.
+
+@item Shared Namespace
+A namespace that consists of mailboxes that are intended to be shared
+amongst users and do not exist within a user's Personal Namespace.
+The user has all permissions on this namespace.
+@end table
+
+@noindent
+By default, @command{imap4d} starts with the following namespaces:
+
+@table @asis
+@item Personal Namespace
+The home directory of the user, if exists.
+
+@item Other Users' Namespace
+Empty
+
+@item Shared Namespace
+Empty
+@end table
+
+@emph{Note}, that this means that by default, a user won't be able to
+see or otherwise access mailboxes residing in the directories other than
+his own home.
+
+To change these defaults, use @option{--shared-namespace} and
+@option{--other-namespace} options.
+
+@node Starting imap4d
+@subsection Starting @command{imap4d}
+
+@command{imap4d} may run either in @dfn{standalone} or in @dfn{inetd}
+operation modes. When run in ``standalone'' mode, the server disconnects
+from the terminal and runs as a daemon, forking a child for each new
+connection.
+
+The ``inetd'' mode allows to start the server from
+@file{/etc/inetd.conf} file. This is the default operation mode. 
+
+@smallexample
+imap4  stream tcp nowait  root  /usr/local/sbin/imap4d imap4d
+@end smallexample
+
+The program uses following option groups: @xref{mailbox},
+@xref{daemon}, @xref{logging}, @xref{auth}.
+
+@subheading Command Line Options
+
+@table @option
+@item -d[@var{number}]
+@itemx --daemon[=@var{number}]
+Run in standalone mode. An optional @var{number} specifies the maximum number
+of child processes the daemon is allowed to fork. When it is omitted,
+it defaults to 20 processes.
+@emph{Please note}, that there should be no whitespace between the
+@option{-d} and its parameter.
+@item -h
+@itemx --help
+Display short help message and exit.
+@item -i
+@itemx --inetd
+Run in inetd mode.
+@item -m @var{path}
+@itemx --mail-spool=@var{path}
+Set path to the mailspool directory
+@item -O @var{pathlist}
+@itemx --other-namespace=@var{pathlist}
+Set the list of directories forming the ``Other User's'' namespace.
+@var{pathlist} is a list of directory names separated by colons.
+@item -p @var{number}
+@itemx --port @var{number}
+Listen on given port @var{number}. This option is meaningful only in
+standalone mode. It defaults to port 143.
+@item -S @var{pathlist}
+@itemx --shared-namespace=@var{pathlist}
+Set the list of directories, forming the ``Shared''
+namespace. @var{pathlist} is a list of directory names separated by colons.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Set idle timeout to given @var{number} of seconds. Default is 1800 seconds (30
+minutes).  The daemon breaks the connection if it receives no commands
+from the client within that number of seconds.
+@item -v
+@itemx --version
+Display program version and exit.
+@end table
+
+@page
 @node comsatd
 @section Comsat Daemon
 @pindex comsatd
@@ -2980,6 +3000,12 @@ $B(,5)\
 ---\n"
 @end group
 @end smallexample
+
+@page
+@node mh
+@section @acronym{MH} --- The MH Message Handling System
+
+[FIXME]
 
 @page
 @node mailutils-config
