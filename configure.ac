@@ -321,7 +321,7 @@ extern char *strsignal (int);
 #endif
 ])
 
-AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strncasecmp \
+AC_REPLACE_FUNCS(getpass setenv snprintf strncasecmp \
  strcasecmp strsignal vasprintf vsyslog)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim setreuid \
  setresuid seteuid vfork _exit)
@@ -335,7 +335,7 @@ AH_BOTTOM([
 #endif
 ])
 
-MU_CHECK_FUNCS(strtok_r getline strndup strnlen strchrnul)
+MU_CHECK_FUNCS(fgetpwent strtok_r getline strndup strnlen strchrnul)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
