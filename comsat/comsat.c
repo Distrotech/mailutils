@@ -585,9 +585,9 @@ mailbox_path (const char *user)
 
   if (!mu_virtual_domain)
     {
-      mailbox_name = calloc (strlen (maildir) + 1
-			     + strlen (pw->pw_name) + 1, 1);
-      sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
+      mailbox_name = calloc (strlen (mu_path_maildir) + 1 +
+			     strlen (pw->pw_name) + 1, 1);
+      sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
     }
   else
     {

@@ -28,7 +28,7 @@ collect_open_default ()
 
   if (!default_mailbox)
     {
-      asprintf (&default_mailbox, "%s%s", maildir, user_name);
+      asprintf (&default_mailbox, "%s%s", mu_path_maildir, user_name);
       if (!default_mailbox)
 	{
 	  util_error ("not enough memory");

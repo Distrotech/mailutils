@@ -125,7 +125,6 @@ struct argp_child mu_daemon_argp_child[] =
   {NULL, 0, NULL, 0}
 };
 
-char *maildir = MU_PATH_MAILDIR;
 int log_facility = LOG_FACILITY;
 int mu_argp_error_code = 1;
 
@@ -198,7 +197,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'm':
-      maildir = arg;
+      mu_path_maildir = arg;
       break;
 
     case 'L':
@@ -255,13 +254,13 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       
 #endif
     case ARGP_KEY_FINI:
-      p = mu_normalize_maildir (maildir);
+      p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
 	{
-	  mu_error ("Badly formed maildir: %s", maildir);
+	  mu_error ("Badly formed maildir: %s", mu_path_maildir);
 	  exit (mu_argp_error_code);
 	}
-      maildir = p;
+      mu_path_maildir = p;
       break;
       
     default:

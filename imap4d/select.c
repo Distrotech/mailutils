@@ -62,13 +62,14 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       pw = mu_getpwuid (getuid ());
       if (pw)
 	{
-	  mailbox_name = malloc (strlen (maildir) + strlen (pw->pw_name) + 1);
+	  mailbox_name = malloc (strlen (mu_path_maildir) +
+				 strlen (pw->pw_name) + 1);
 	  if (!mailbox_name)
 	    {
 	      syslog (LOG_ERR, "Not enough memory");
 	      return util_finish (command, RESP_NO, "Not enough memory");
 	    }
-	  sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
+	  sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
 	}
       else
 	mailbox_name = strdup ("/dev/null");

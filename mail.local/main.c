@@ -447,13 +447,13 @@ deliver (FILE *fp, char *name)
       return;
     }
   
-  path = malloc (strlen (maildir) + strlen (name) + 1);
+  path = malloc (strlen (mu_path_maildir) + strlen (name) + 1);
   if (!path)
     {
       mailer_err ("Out of memory");
       return;
     }
-  sprintf (path, "%s%s", maildir, name);
+  sprintf (path, "%s%s", mu_path_maildir, name);
 
   if ((status = mailbox_create (&mbox, path)) != 0)
     {

@@ -197,13 +197,14 @@ pop3d_user (const char *arg)
       if (pw->pw_uid > 0 && !mu_virtual_domain)
 	{
 	  setuid (pw->pw_uid);
-	  mailbox_name = malloc (strlen (maildir) + strlen (pw->pw_name) + 1);
+	  mailbox_name = malloc (strlen (mu_path_maildir) +
+				 strlen (pw->pw_name) + 1);
 	  if (!mailbox_name)
 	    {
 	      syslog (LOG_ERR, "Not enough memory");
 	      return ERR_UNKNOWN;
 	    }
-	  sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
+	  sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
 	}
       else if (mu_virtual_domain)
 	{
