@@ -145,7 +145,12 @@ struct imap4d_command
 #define WCARD_NOMATCH        0
 #define WCARD_MATCH          1
 #define WCARD_RECURSE_MATCH  2
-       
+
+/*  IMAP4D capability names */
+#define IMAP_CAPA_STARTTLS       "STARTTLS"
+#define IMAP_CAPA_LOGINDISABLED  "LOGINDISABLED"
+#define IMAP_CAPA_XTLSREQUIRED   "XTLSREQUIRED"  
+  
 extern struct imap4d_command imap4d_command_table[];
 extern mailbox_t mbox;
 extern char *homedir;
@@ -157,6 +162,7 @@ extern struct daemon_param daemon_param;
 extern struct mu_auth_data *auth_data; 
 
 extern int login_disabled;
+extern int tls_required;
 
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
