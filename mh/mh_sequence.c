@@ -69,7 +69,7 @@ mh_seq_add (char *name, mh_msgset_t *mset, int flags)
   char *new_value, *p;
   char buf[64];
   size_t i, len;
-  
+
   delete_sequence (name, !(flags & SEQ_PRIVATE));
 
   if (flags & SEQ_ZERO)
@@ -100,6 +100,9 @@ mh_seq_add (char *name, mh_msgset_t *mset, int flags)
     }
   *p = 0;
   write_sequence (name, new_value, flags & SEQ_PRIVATE);
+  if (strcasecmp (name, "cur") == 0)
+    current_message = strtoul (new_value, NULL, 0);
+  free (new_value);
 }
 
 static int
