@@ -1,3 +1,17 @@
+2002-04-15  Sergey Poznyakoff
+
+	* acconfig.h: Added placeholders for
+	  PROGRAM_INVOCATION_NAME_DECLARED and
+	  HAVE_PROGRAM_INVOCATION_NAME.
+	  (@BOTTOM@): Provide external declarations for
+	  program_invocation_.*name if necessary. 
+	* configure.in: Check if program_invocation_.*name are
+	  declared and/or defined.
+	* lib/Makefile.am: Always compile pin.c
+	* lib/pin.c: include <config.h>
+
+	* libmu_scm/mu_scm.h: include <mailutils/url.h>
+	
 2002-04-15  Sergey Poznyakoff 
 
 	* imap4d/namespace.c (namespace_getfullpath): Translate
