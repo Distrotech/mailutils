@@ -26,14 +26,6 @@
 #include <string.h>
 #include <mailutils/argcv.h>
 
-struct mh_argp_data
-{
-  struct mh_option *mh_option;
-  int (*handler)();
-  void *closure;
-  char *doc;
-};
-
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -41,14 +33,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      while ((key = mh_getopt (state->argc, state->argv, data->mh_option,
-			       data->doc))
-	     != EOF
-	     && key != '?')
-	{
-	  data->handler (key, mh_optarg, data->closure);
-	}
-      state->next = mh_optind;
       break;
 
     case ARGP_KEY_ARG:
@@ -125,6 +109,7 @@ mh_argp_parse (int argc, char **argv,
       for (j = 1; i < _argc; i++, j++)
 	_argv[i] = argv[j];
       _argv[i] = NULL;
+      mh_argv_preproc (_argc, _argv, &data);
       argp_parse (&argp, _argc, _argv, 0, &index, &data);
       free (_argv);
       extra = index < _argc;
@@ -134,6 +119,7 @@ mh_argp_parse (int argc, char **argv,
     }
   else
     {
+      mh_argv_preproc (argc, argv, &data);
       argp_parse (&argp, argc, argv, 0, &index, &data);
       extra = index < argc;
     }
