@@ -62,6 +62,10 @@
 
 #define MAX_OPEN_STREAMS 16
 
+/* Note: In this particular implementation the message sequence number
+   serves also as its UID. This allows to avoid many problems related
+   to keeping the uids in the headers of the messages. */
+
 struct _mh_data;
 struct _mh_message
 {
@@ -70,10 +74,9 @@ struct _mh_message
 
   stream_t stream;          /* Associated file stream */
   off_t body_start;         /* Offset of body start in the message file */
-  off_t body_end;           /* Offset of body end (size of file, effectively */
+  off_t body_end;           /* Offset of body end (size of file, effectively)*/
 
   size_t seq_number;        /* message sequence number */
-  size_t uid;               /* IMAP uid. */
 
   int attr_flags;           /* Attribute flags */
   int deleted;              /* Was the message originally deleted */
@@ -94,7 +97,6 @@ struct _mh_data
   struct _mh_message *msg_tail;  /* Last */
 
   unsigned long uidvalidity;
-  size_t uidnext;                /* Next available UID */
 
   char *name;                    /* Directory name */
 
@@ -517,7 +519,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
-	    || strncasecmp (buf, "x-iud:", 6) == 0))
+	    || strncasecmp (buf, "x-uid:", 6) == 0))
 	fprintf (fp, "%s", buf);
       off += n;
     }
@@ -527,16 +529,12 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
-    fprintf (fp, "X-IMAPbase: %lu %u\n", mhd->uidvalidity, mhd->uidnext);
+    fprintf (fp, "X-IMAPbase: %lu %u\n", mhd->uidvalidity, _mh_next_seq(mhd));
 
   /* Add status */
   message_get_attribute (msg, &attr);
   attribute_to_string (attr, buf, bsize, &n);
   fprintf (fp, "%s", buf);
-
-  /* Add UID */
-  fprintf (fp, "X-UID: %d\n", mhm->uid);
-  fprintf (fp, "\n");
 
   /* Copy message body */
 
@@ -587,7 +585,6 @@ mh_append_message (mailbox_t mailbox, message_t msg)
 
   mhm->mhd = mhd;
   mhm->seq_number = _mh_next_seq (mhd);
-  mhm->uid = mhd->uidnext++;
   mhm->message = msg;
   status = _mh_message_save (mhd, mhm, 0);
   mhm->message = NULL;
@@ -763,7 +760,7 @@ mh_uidnext (mailbox_t mailbox, size_t *puidnext)
 	return status;
     }
    if (puidnext)
-     *puidnext = mhd->uidnext;
+     *puidnext = _mh_next_seq(mhd);
   return 0;
 }
 
@@ -774,34 +771,6 @@ mh_cleanup (void *arg)
   mailbox_t mailbox = arg;
   monitor_unlock (mailbox->monitor);
   locker_unlock (mailbox->locker);
-}
-
-/* Reset the IMAP uids, if necessary. UID according to IMAP RFC is a 32 bit
-   ascending number for each messages  */
-static void
-mh_reset_imap_uids (struct _mh_data *mhd)
-{
-  size_t uid;
-  size_t ouid;
-  struct _mh_message *msg;
-
-  for (uid = ouid = 0, msg = mhd->msg_head; msg; msg = msg->next)
-    {
-      uid = msg->uid;
-      if (uid <= ouid)
-	{
-	  uid = ouid + 1;
-	  msg->uid = ouid = uid;
-	  msg->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-	}
-      else
-	ouid = uid;
-    }
-  if (mhd->msg_count > 0 && uid >= mhd->uidnext)
-    {
-      mhd->uidnext = uid + 1;
-      mhd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-    }
 }
 
 /* Insert message msg into the message list on the appropriate position */
@@ -911,11 +880,7 @@ mh_scan_message (struct _mh_message *mhm)
 	    {
 	      char *p;
 	      mhm->mhd->uidvalidity = strtoul (buf + 11, &p, 10);
-	      mhm->mhd->uidnext = strtoul (p, NULL, 10);
-	    }
-	  else if (strncasecmp (buf, "x-uid:", 6) == 0)
-	    {
-	      mhm->uid = strtoul (buf + 6, NULL, 10);
+	      /* second number is next uid. Ignored */
 	    }
 	}
       else
@@ -1030,14 +995,12 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
       if (mhd->uidvalidity == 0)
 	{
 	  mhd->uidvalidity = (unsigned long)time (NULL);
-	  mhd->uidnext = mhd->msg_count + 1;
+	  //FIXME mhd->uidnext = mhd->msg_count + 1;
 	  /* Tell that we have been modified for expunging.  */
 	  if (mhd->msg_head)
 	    mhd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}
     }
-
-  mh_reset_imap_uids (mhd);
 
   /* Clean up the things */
 
@@ -1292,7 +1255,7 @@ mh_message_uid (message_t msg, size_t *puid)
 {
   struct _mh_message *mhm = message_get_owner (msg);
   if (puid)
-    *puid = mhm->uid;
+    *puid = mhm->seq_number;
   return 0;
 }
 
@@ -1432,8 +1395,7 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 
   mh_pool_open (mhm);
 
-  status = stream_readline (mhm->stream, buffer, sizeof(buffer),
-			    0, &n);
+  status = stream_readline (mhm->stream, buffer, sizeof(buffer), 0, &n);
   if (status != 0)
     {
       if (psize)
@@ -1464,11 +1426,4 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
   return 0;
 }
 
-int
-mh_message_number (message_t msg, size_t *pnum)
-{
-  struct _mh_message *mhm = message_get_owner (msg);
-  if (pnum)
-    *pnum = mhm->seq_number;
-  return 0;
-}
+
