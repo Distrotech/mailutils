@@ -1,3 +1,10 @@
+2003-03-19  Sergey Poznyakoff 
+
+	* mh/mhn.c: Added framework for compose mode.
+	* mh/mh.h (mh_create_message_id): New function.
+	* mh/mh_init.c: Likewise.
+	* mh/send.c: Use mh_create_message_id().
+
 2003-03-17  Sergey Poznyakoff
 
 	* mh/mh.h (MHL_DISABLE_BODY): New flag.
