@@ -22,6 +22,7 @@ EXTRA_DIST = \
  debug.m4 \
  enable.m4 \
  gssapi.m4 \
+ getopt.m4 \
  guile.m4 \
  lib.m4 \
  mu_libobj.m4 \
