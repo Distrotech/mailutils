@@ -147,7 +147,7 @@ main (int argc, char **argv)
   mh_format_t format;
   
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
-		 opt_handler, NULL);
+		 opt_handler, NULL, NULL);
 
   if (!quiet && mh_format_parse (format_str, &format))
     {

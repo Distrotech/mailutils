@@ -128,10 +128,8 @@ opt_handler (int key, char *arg, void *unused)
 int
 main (int argc, char **argv)
 {
-  mailbox_t mbox = NULL;
-
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
-		 opt_handler, NULL);
+		 opt_handler, NULL, NULL);
 
   if (mh_format_parse (format_str, &format))
     {
@@ -139,19 +137,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  if (mailbox_create_default (&mbox, current_folder))
-    {
-      mh_error ("Can't create mailbox %s: %s", current_folder, strerror (errno));
-      exit (1);
-    }
-
-  if (mailbox_open (mbox, MU_STREAM_READ))
-    {
-      mh_error ("Can't open mailbox %s: %s", current_folder, strerror (errno));
-      exit (1);
-    }
-
-  return scan (mbox);
+  return scan (mh_open_folder ());
 }
 
 #ifdef HAVE_TERMCAP_H
