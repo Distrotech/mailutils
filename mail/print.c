@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
   FILE *out = ofile;
   attribute_t attr;
   int pagelines = util_get_crt ();
-      
+  
   message_lines (mesg, &lines);
 
   /* If it is POP or IMAP the lines number is not known, so try
@@ -105,6 +105,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
   
   message_get_attribute (mesg, &attr);
   attribute_set_read (attr);
+  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
 
   cursor = mspec->msg_part[0];
   
