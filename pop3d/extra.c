@@ -153,14 +153,9 @@ int
 pop3d_init_tls_server ()
 {
   stream_t stream;
-  int in_fd;
-  int out_fd;
   int rc;
-  
-  if (stream_get_fd (istream, &in_fd)
-      || stream_get_fd (ostream, &out_fd))
-    return 0;
-  rc = tls_stream_create (&stream, in_fd, out_fd, 0);
+ 
+  rc = tls_stream_create (&stream, istream, ostream, 0);
   if (rc)
     return 0;
 
@@ -172,8 +167,6 @@ pop3d_init_tls_server ()
       return 0;
     }
   
-  stream_destroy (&istream, stream_get_owner (istream));
-  stream_destroy (&ostream, stream_get_owner (ostream));
   istream = ostream = stream;
   return 1;
 }
