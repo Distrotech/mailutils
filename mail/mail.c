@@ -45,11 +45,7 @@ static struct argp_option options[] = {
   {"subject", 's', N_("SUBJ"), 0, N_("Send a message with a Subject of SUBJ"), 0},
   {"to",      't', 0,      0, N_("Precede message by a list of addresses"), 0},
   {"user",    'u', N_("USER"), 0, N_("Operate on USER's mailbox"), 0},
-  {NULL,      0,  NULL,    OPTION_DOC,
-   N_("Note: Argument to --file (-f) option is optional. If it is present, "
-   "it must follow the short option immediately, without any intervening "
-   "whitespace. If it is used with the long option, it must be separated "
-   "from it by an equal sign, with no intervening whitespace."), 0},
+
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -128,7 +124,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'F':
       util_cache_command (&command_list, "set byname");
       break;
-      
+
     case ARGP_KEY_ARG:
       /* People often tend to separate -f option from its argument
 	 with a whitespace. This heuristics tries to catch the
@@ -304,6 +300,7 @@ main (int argc, char **argv)
   util_do_command ("set toplines=5");
   util_do_command ("set autoinc");
   util_do_command ("set regex");
+  util_do_command ("set replyprefix=\"Re: \"");
   /* Start in mail reading mode */
   util_do_command ("set mode=read");
   util_do_command ("set noquit");
