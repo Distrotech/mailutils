@@ -58,6 +58,7 @@ proc default_pop3d_start {args} {
     global MU_TOOL
     global MU_TOOL_FLAGS
     global expect_out
+    global pop3d_spawn_id
     
     mu_version
 
@@ -81,8 +82,8 @@ proc default_pop3d_start {args} {
     set pop3d_cmd "$MU_TOOL $sw"
     verbose "Spawning $pop3d_cmd"
 
-    set res [remote_spawn host $pop3d_cmd]
-    if { $res < 0 || $res == "" } {
+    set pop3d_spawn_id [remote_spawn host $pop3d_cmd]
+    if { $pop3d_spawn_id < 0 || $pop3d_spawn_id == "" } {
 	perror "Spawning $pop3d_cmd failed."
 	return 1;
     }
@@ -100,9 +101,16 @@ proc default_pop3d_start {args} {
 }
 
 proc default_pop3d_stop {} {
-
-    verbose "Stopping pop3d"
-
+    set res [pop3d_send "quit\n"]
+    mu_expect 360 {
+	-re "\\+OK.*$"  { }
+	default {
+	    perror "quit failed"
+	    exit 1
+	}
+    }
+    remote_close host
+    return res
 }
 
 proc pop3d_start {args} {
@@ -133,7 +141,11 @@ proc pop3d_start {args} {
 }
     
 proc pop3d_stop {} {
-    return [default_pop3d_stop];
+    global pop3d_spawn_id
+    if {[info exists pop3d_spawn_id] && $pop3d_spawn_id > 0} {
+	default_pop3d_stop
+	unset pop3d_spawn_id
+    }
 }
 
 ##
@@ -147,15 +159,7 @@ proc pop3d_command { cmd } {
 }
 
 proc pop3d_exit {} {
-    set res [pop3d_send "quit\n"]
-    mu_expect 360 {
-	-re "\\+OK.*$"  { }
-	default {
-	    perror "quit failed"
-	    exit 1
-	}
-    }
-    return res
+    pop3d_stop
 }
 
 proc pop3d_auth {args} {
