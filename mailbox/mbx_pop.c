@@ -1003,6 +1003,8 @@ mailbox_pop_expunge (mailbox_t mbox)
     } /* for */
   mpd->func = mpd->id = NULL;
   mpd->state = 0;
+  /* invalidate */
+  mpd->is_updated = 0;
 
   return 0;
 }
