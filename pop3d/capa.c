@@ -47,6 +47,7 @@ pop3d_capa (const char *arg)
     pop3d_outf ("STLS\r\n");
 #endif /* WITH_TLS */
 
+  login_delay_capa ();
   /* This can be Implemented by setting an header field on the message.  */
   if (expire < 0)
     pop3d_outf ("EXPIRE NEVER\r\n");
