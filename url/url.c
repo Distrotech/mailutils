@@ -1,197 +1,239 @@
-#include <url.h>
-#include <url0.h>
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Library Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#include <url_mbox.h>
+#include <url_pop.h>
+#include <url_imap.h>
+#include <url_mailto.h>
+
+#include <cpystr.h>
 #include <string.h>
+#include <stdlib.h>
+#include <errno.h>
 
-/* forward declaration */
-static int get_scheme (const url_t, char *, unsigned int);
-static int get_user (const url_t, char *, unsigned int);
-static int get_passwd (const url_t, char *, unsigned int);
-static int get_host (const url_t, char *, unsigned int);
-static int get_port (const url_t, long *);
-static int get_path (const url_t, char *, unsigned int);
-static int get_query (const url_t, char *, unsigned int);
-static int is_pop (const url_t);
-static int is_imap (const url_t);
+/* Forward prototypes */
+static int get_scheme (const url_t, char *, int);
+static int get_user   (const url_t, char *, int);
+static int get_passwd (const url_t, char *, int);
+static int get_host   (const url_t, char *, int);
+static int get_port   (const url_t, long *);
+static int get_path   (const url_t, char *, int);
+static int get_query  (const url_t, char *, int);
+static int get_id     (const url_t, int *id);
 
-static struct _supported_scheme
+/*
+  Builtin url types.
+  We are using a simple circular list to hold the builtin type. */
+static struct url_builtin
 {
-    char * scheme;
-    char len;
-    int (*_create) __P ((url_t *, const char *name));
-    void (*_destroy) __P ((url_t *));
-} _supported_scheme[] = {
-    { "mailto:", 7, url_mailto_create, url_mailto_destroy },
-    { "pop://", 6, url_pop_create, url_pop_destroy },
-    { "imap://", 7, url_imap_create, url_imap_destroy },
-    { "file://", 7, url_mbox_create, url_mbox_destroy },
-    { "/", 1, url_mbox_create, url_mbox_destroy },         /* hack ? */
-    { NULL, NULL, NULL, NULL }
+  const struct url_type *utype;
+  int is_malloc;
+  struct url_builtin * next;
+} url_builtin [] = {
+  { NULL, 0,         &url_builtin[1] }, /* Sentinel, head list */
+  { &_url_mbox_type, 0,   &url_builtin[2] },
+  { &_url_pop_type, 0,    &url_builtin[3] },
+  { &_url_imap_type, 0,   &url_builtin[4] },
+  { &_url_mailto_type, 0, &url_builtin[0] },
 };
 
-static int
-get_scheme (const url_t u, char * s, unsigned int n)
+/*
+  FIXME: Proper locking is not done when accessing the list
+  this code is not thread-safe .. TODO */
+int
+url_add_type (struct url_type *utype)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr (u->scheme, s, n);
+  struct url_builtin *current = malloc (sizeof (*current));
+  if (current == NULL)
+    return -1;
+  utype->id = (int)utype; /* It just has to be uniq */
+  current->utype = utype;
+  current->is_malloc = 1;
+  current->next = url_builtin->next;
+  url_builtin->next = current;
+  return 0;
+}
+
+int
+url_remove_type (const struct url_type *utype)
+{
+  struct url_builtin *current, *previous;
+  for (previous = url_builtin, current = url_builtin->next;
+       current != url_builtin;
+       previous = current, current = current->next)
+    {
+      if (current->utype == utype)
+	{
+	  previous->next = current->next;
+	  if (current->is_malloc)
+	    free (current);
+	  return 0;;
+	}
+    }
+  return -1;
+}
+
+int
+url_list_type (struct url_type *list, int n)
+{
+  struct url_builtin *current;
+  int i;
+  for (i = 0, current = url_builtin->next; current != url_builtin;
+       current = current->next, i++)
+    {
+      if (list)
+	if (i < n)
+	  list[i] = *(current->utype);
+    }
+  return i;
+}
+
+int
+url_list_mtype (struct url_type **mlist, int *n)
+{
+  struct url_type *utype;
+  int i;
+
+  if ((i = url_list_type (NULL, 0)) <= 0 || (utype = malloc (i)) == NULL)
+    {
+      return -1;
+    }
+
+  *mlist = utype;
+  return *n = url_list_type (utype, i);
+}
+
+int
+url_init (url_t * purl, const char *name)
+{
+  int status = -1;
+  const struct url_type *utype;
+  struct url_builtin *ub;
+
+  /* Sanity checks */
+  if (name == NULL || *name == '\0')
+    {
+      return status;
+    }
+
+  /* Search for a known scheme */
+  for (ub = url_builtin->next; ub != url_builtin; ub = ub->next)
+    {
+      utype = ub->utype;
+      if (strncasecmp (name, utype->scheme, utype->len) == 0)
+	{
+	  status = 0;
+	  break;
+	}
+    }
+
+  /* Found one initialize it */
+  if (status == 0)
+    {
+      status = utype->_init (purl, name);
+      if (status == 0)
+	{
+	  url_t url = *purl;
+	  if (url->utype == NULL)
+	    url->utype = utype;
+	  if (url->_get_scheme == NULL)
+	    url->_get_scheme = get_scheme;
+	  if (url->_get_user == NULL)
+	    url->_get_user = get_user;
+	  if (url->_get_passwd == NULL)
+	    url->_get_passwd = get_passwd;
+	  if (url->_get_host == NULL)
+	    url->_get_host = get_host;
+	  if (url->_get_port == NULL)
+	    url->_get_port = get_port;
+	  if (url->_get_path == NULL)
+	    url->_get_path = get_path;
+	  if (url->_get_query == NULL)
+	    url->_get_query = get_query;
+	  if (url->_get_id == NULL)
+	    url->_get_id = get_id;
+	}
+    }
+  return status;
+}
+
+void
+url_destroy (url_t *purl)
+{
+  if (purl && *purl)
+    {
+      const struct url_type *utype = (*purl)->utype;
+      utype->_destroy(purl);
+      (*purl) = NULL;
+    }
+}
+
+
+/* Simple stub functions they all call _cpystr */
+
+static int
+get_scheme (const url_t u, char * s, int n)
+{
+  return _cpystr (u->scheme, s, n);
 }
 
 static int
-get_user (const url_t u, char * s, unsigned int n)
+get_user (const url_t u, char * s, int n)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr (u->user, s, n);
+  return _cpystr (u->user, s, n);
 }
 
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
 static int
-get_passwd (const url_t u, char * s, unsigned int n)
+get_passwd (const url_t u, char * s, int n)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr (u->passwd, s, n);
+  return _cpystr (u->passwd, s, n);
 }
 
 static int
-get_host (const url_t u, char * s, unsigned int n)
+get_host (const url_t u, char * s, int n)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr (u->host, s, n);
+  return _cpystr (u->host, s, n);
 }
 
 static int
 get_port (const url_t u, long * p)
 {
-    if (u == NULL)
-	return -1;
-    return *p = u->port;
+  *p = u->port;
+  return 0;
 }
 
 static int
-get_path (const url_t u, char * s, unsigned int n)
+get_path (const url_t u, char * s, int n)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr(u->path, s, n);
+  return _cpystr(u->path, s, n);
 }
 
 static int
-get_query (const url_t u, char * s, unsigned int n)
+get_query (const url_t u, char * s, int n)
 {
-    if (u == NULL)
-	return -1;
-    return _cpystr(u->query, s, n);
+  return _cpystr(u->query, s, n);
 }
 
 static int
-is_pop (const url_t u)
+get_id (const url_t u, int *id)
 {
-    return u->type & URL_POP;
-}
-
-static int
-is_imap (const url_t u)
-{
-    return u->type & URL_IMAP;
-}
-
-static int
-is_unixmbox (const url_t u)
-{
-    return u->type & URL_MBOX;
-}
-
-int
-url_create (url_t * url, const char * name)
-{
-    int status = -1, i ;
-    
-    /* sanity checks */
-    if (name == NULL || *name == '\0')
-      {
-	return status;
-      }
-
-    /* scheme://scheme-specific-part */
-    for (i = 0; _supported_scheme[i].scheme; i++)
-      {
-	if (strncasecmp (name, _supported_scheme[i].scheme,
-		    strlen(_supported_scheme[i].scheme)) == 0)
-	  {
-	    status = 1;
-	    break;
-	  }
-      }
-    
-    if (status == 1)
-      {
-	status =_supported_scheme[i]._create(url, name);
-	if (status == 0)
-	  {
-	    url_t u = *url;
-	    if (u->_get_scheme == NULL)
-	      {
-		u->_get_scheme = get_scheme;
-	      }
-	    if (u->_get_user == NULL)
-	      {
-		u->_get_user = get_user;
-	      }
-	    if (u->_get_passwd == NULL)
-	      {
-		u->_get_passwd = get_passwd;
-	      }
-	    if (u->_get_host == NULL)
-	      {
-		u->_get_host = get_host;
-	      }
-	    if (u->_get_port == NULL)
-	      {
-		u->_get_port = get_port;
-	      }
-	    if (u->_get_path == NULL)
-	      {
-		u->_get_path = get_path;
-	      }
-	    if (u->_get_query == NULL)
-	      {
-		u->_get_query = get_query;
-	      }
-	    if (u->_is_pop == NULL)
-	      {
-		u->_is_pop = is_pop;
-	      }
-	    if (u->_is_imap == NULL)
-	      {
-		u->_is_imap = is_imap;
-	      }
-	    if (u->_is_unixmbox == NULL)
-	      {
-		u->_is_unixmbox = is_unixmbox;
-	      }
-	    if (u->_create == NULL)
-	      {
-		u->_create = _supported_scheme[i]._create;
-	      }
-	    if (u->_destroy == NULL)
-	      {
-		u->_destroy= _supported_scheme[i]._destroy;
-	      }
-	  }
-      }
-    return status;
-}
-
-void
-url_destroy (url_t * url)
-{
-    if (url && *url)
-      {
-	url_t u = *url;
-	u->_destroy(url);
-	u = NULL;
-      }
+  const struct url_type *utype = u->utype;
+  *id = utype->id;
+  return 0;
 }

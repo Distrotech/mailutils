@@ -2,11 +2,11 @@
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
-CFLAGS = -Wall -pedantic -g 
+CFLAGS = -Wall -pedantic -g
 
-include_HEADERS = url.h
+include_HEADERS = url.h url_mbox.h url_pop.h url_imap.h url_mailto.h
 
-noinst_HEADERS = url0.h
+noinst_HEADERS = cpystr.h
 
 base_sources = _cpystr.c url.c urli.c url_imap.c url_mailto.c \
  url_mbox.c url_pop.c
