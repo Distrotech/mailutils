@@ -34,6 +34,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/attribute.h>
+#include <mailutils/message.h>
 
 #include <mailbox0.h>
 
