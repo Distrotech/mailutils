@@ -399,10 +399,11 @@ _mimepart_body_lines (body_t body, size_t *plines)
 static int
 _mime_set_content_type(mime_t mime)
 {
-	char content_type[256];
+	char content_type[256], * content_te;
 	char boundary[128];
 	header_t	hdr = NULL;
 	size_t		size;
+	int             ret;
 
 	/* Delayed the creation of the header 'til they create the final message via
 	   mime_get_message()  */
@@ -424,6 +425,8 @@ _mime_set_content_type(mime_t mime)
 		strcat(content_type, mime->boundary);
 		strcat(content_type, "\"");
 		mime->flags |= MIME_ADDED_MULTIPART_CT;
+
+		ret = header_set_value(mime->hdrs, MU_HEADER_CONTENT_TYPE, content_type, 1);
 	} else {
 		if ( (mime->flags & (MIME_ADDED_CT|MIME_ADDED_MULTIPART_CT)) == MIME_ADDED_CT )
 			return 0;
@@ -434,9 +437,25 @@ _mime_set_content_type(mime_t mime)
 			strcpy(content_type, "text/plain; charset=us-ascii");
 		else
 			header_get_value(hdr, MU_HEADER_CONTENT_TYPE, content_type, sizeof(content_type), &size);
+
+		ret = header_set_value(mime->hdrs, MU_HEADER_CONTENT_TYPE, content_type, 1);
+		if (ret) return ret;
+
+		/* if the only part contains a transfer-encoding
+		   field, set it on the message header too */
+		if (hdr && 
+		    header_aget_value (hdr, 
+				       MU_HEADER_CONTENT_TRANSFER_ENCODING, 
+				       & content_te) == 0) 
+		  {
+		    ret = header_set_value (mime->hdrs, 
+					    MU_HEADER_CONTENT_TRANSFER_ENCODING, 
+					    content_te, 1);
+		    free (content_te);
+		  }
 	}
 	mime->flags |= MIME_ADDED_CT;
-	return header_set_value(mime->hdrs, MU_HEADER_CONTENT_TYPE, content_type, 1);
+	return ret;
 }
 
 #define ADD_CHAR(buf, c, offset, buflen, nbytes) {*(buf)++ = c; (offset)++; (nbytes)++;if (--(buflen) == 0) return 0;}

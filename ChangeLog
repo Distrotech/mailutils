@@ -2,6 +2,10 @@
 
 	* mailbox/filter_trans.c (qp_encode): fixed quoted-printable
 	encoding.
+
+	* mailbox/mime.c (_mime_set_content_type): when a MIME message has
+	only one part, set the Content-transfer-encoding of the message to
+	be the one of the part.
 	
 2002-11-27  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
