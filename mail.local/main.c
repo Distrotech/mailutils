@@ -732,7 +732,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
 
-#if defined(USE_DBM)
+#if defined(USE_MAILBOX_QUOTAS)
   {
     size_t n;
     off_t isize;
