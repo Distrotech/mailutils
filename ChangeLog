@@ -1,5 +1,11 @@
 2002-05-10 Sam Roberts
 
+	* mailbox/tcp.c: Not a good day, second typo in a row in
+	  tcp_stream_create.
+	* include/mailutils/errno.h, mailbox/muerrno.c, mailbox/tcp.c:
+	  tcp_stream_create now has more informative errors for no host or
+	  port
+	* from/from.c: From now uses mu_argp, and has a debug flag.
 	* mailbox/tcp.c: The arg check I added was checking floating data
 	  instead of actual args, serious error, fixed.
 	* examples/: Addrs, Addrs.good, Makefile, mbox-check.c,
