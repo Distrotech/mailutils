@@ -18,7 +18,10 @@
 /* MH message sets. */
 
 #include <mh.h>
+#include <mailutils/argcv.h>
 
+/* Expand a message set (msgcnt;msglist) to accomodate `inc' more
+   elements */
 static void
 _expand (size_t *msgcnt, size_t **msglist, size_t inc)
 {
@@ -34,12 +37,15 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
     }
 }
 
+/* Fatal error handler */ 
 static void
 msgset_abort (const char *arg)
 {
   mh_error ("bad message list `%s'", arg);
   exit (1);
 }
+
+/* Handlers for expansion of the reserved message names */
 
 static int
 msgset_first (mailbox_t mbox, size_t *pnum)
@@ -135,11 +141,16 @@ static struct msgset_keyword {
   { NULL },
 };
 
+/* Preprocess a part of a complex message designation. Returns
+   a pointer to the allocated memory containing expanded part of
+   the designation. Pointer to the beginning of the not expanded
+   part (in arg) is placed into *rest */
 static char *
 msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 {
   struct msgset_keyword *p;
-
+  char *cp;
+  
   for (p = keywords; p->name; p++)
     if (strncmp (arg, p->name, strlen (p->name)) == 0)
       {
@@ -161,16 +172,29 @@ msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 	*rest = arg + strlen (p->name);
 	return ret;
       }
+  cp = strchr (arg, '-');
+  if (cp)
+    {
+      char *ret;
+
+      *rest = cp;
+      ret = xmalloc (cp - arg + 1);
+      memcpy (ret, arg, cp - arg);
+      ret[cp - arg] = 0;
+      return ret;
+    }
+
   *rest = arg + strlen (arg);
   return strdup (arg);
 }
 
+/* Preprocess (expand) a single message designation */
 static char *
 msgset_preproc (mailbox_t mbox, char *arg)
 {
   char *buf, *tail;
   
-  if (strcmp (arg, "all") == 0)
+  if (strcmp (arg, "all") == 0 || strcmp (arg, ".") == 0)
     {
       /* Special case */
       arg = "first-last";
@@ -207,21 +231,91 @@ comp_mesg (const void *a, const void *b)
   return 0;
 }
 
+static int _mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
+				 int argc, char **argv));
+
+/* Treat arg as a name of user-defined sequence and attempt to
+   expand it. Return 0 if succeeded, non-zero otherwise. */
 int
-mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
+expand_user_seq (mailbox_t mbox, mh_msgset_t *msgset, char *arg)
+{
+  int argc;
+  char **argv;
+  char *p, *listp;
+  int rc = 1;
+  int negate = 0;
+  
+  p = strchr (arg, ':');
+  if (p)
+    *p++ = 0;
+  listp = mh_global_sequences_get (arg, NULL);
+  if (!listp)
+    {
+      int len;
+      char *neg = mh_global_profile_get ("Sequence-Negation", NULL);
+      if (!neg)
+	return 1;
+      len = strlen (neg);
+      if (strncmp (arg, neg, len))
+	return 1;
+      negate = 1;
+      listp = mh_global_sequences_get (arg + len, NULL);
+      if (!listp)
+	return 1;
+    }
+  
+  if (argcv_get (listp, "", NULL, &argc, &argv) == 0)
+    rc = _mh_msgset_parse (mbox, msgset, argc, argv);
+  argcv_free (argc, argv);
+  if (rc)
+    return rc;
+
+  if (negate)
+    mh_msgset_negate (mbox, msgset);
+  
+  if (p)
+    {
+      int first, num;
+      
+      num = strtoul (p, &p, 0);
+      if (*p)
+	{
+	  mh_msgset_free (msgset);
+	  return 1;
+	}
+      if (num < 0)
+	{
+	  first = num + msgset->count;
+	  num = - num;
+	}
+      else
+	first = 0;
+      if (num > msgset->count)
+	{
+	  mh_msgset_free (msgset);
+	  return 1;
+	}
+
+      if (first > 0)
+	memmove (msgset->list, &msgset->list[first],
+		 sizeof (msgset->list[0]) * num);
+      msgset->count = num;
+    }
+  
+  return rc;
+}
+
+/* Parse a message specification from (argc;argv). Returned msgset is
+   not sorted nor optimised */
+int
+_mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 {
   size_t msgcnt;
   size_t *msglist;
-  char *xargv[2];
   size_t i, msgno;
   
   if (argc == 0)
-    {
-      argc = 1;
-      argv = xargv;
-      argv[0] = "cur";
-      argv[1] = NULL;
-    }
+    return 1;
   
   msgcnt = argc;
   msglist = calloc (msgcnt, sizeof(*msglist));
@@ -232,94 +326,142 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
       size_t msg_first, n;
       long num;
       char *arg = msgset_preproc (mbox, argv[i]);
-      start = strtoul (arg, &p, 0);
-      switch (*p)
+
+      if (!isdigit (arg[0]))
 	{
-	case 0:
-	  n = mh_get_message (mbox, start, NULL);
-	  if (!n)
+	  int j;
+	  mh_msgset_t m;
+	  
+	  if (expand_user_seq (mbox, &m, arg))
 	    {
-	      mh_error ("message %d does not exist", start);
+	      mh_error ("message set %s does not exist", arg);
 	      exit (1);
 	    }
-	  msglist[msgno++] = n;
-	  break;
-	  
-	case '-':
-	  end = strtoul (p+1, &p, 0);
-	  if (*p || end == start)
-	    msgset_abort (argv[i]);
-	  if (end < start)
+	  _expand (&msgcnt, &msglist, m.count);
+	  for (j = 0; j < m.count; j++)
+	    msglist[msgno++] = m.list[j];
+	  mh_msgset_free (&m);
+	}
+      else
+	{
+	  start = strtoul (arg, &p, 0);
+	  switch (*p)
 	    {
-	      size_t t = start;
-	      start = end;
-	      end = t;
-	    }
-	  _expand (&msgcnt, &msglist, end - start);
-	  msg_first  = msgno;
-	  for (; start <= end; start++)
-	    {
+	    case 0:
 	      n = mh_get_message (mbox, start, NULL);
-	      if (n)
-		msglist[msgno++] = n;
+	      if (!n)
+		{
+		  mh_error ("message %d does not exist", start);
+		  exit (1);
+		}
+	      msglist[msgno++] = n;
+	      break;
+	      
+	    case '-':
+	      end = strtoul (p+1, &p, 0);
+	      if (*p || end == start)
+		msgset_abort (argv[i]);
+	      if (end < start)
+		{
+		  size_t t = start;
+		  start = end;
+		  end = t;
+		}
+	      _expand (&msgcnt, &msglist, end - start);
+	      msg_first  = msgno;
+	      for (; start <= end; start++)
+		{
+		  n = mh_get_message (mbox, start, NULL);
+		  if (n)
+		    msglist[msgno++] = n;
+		}
+	      if (msgno == msg_first)
+		{
+		  mh_error ("no messages in range %s", argv[i]);
+		  exit (1);
+		}
+	      break;
+	      
+	    case ':':
+	      num = strtoul (p+1, &p, 0);
+	      if (*p)
+		msgset_abort (argv[i]);
+	      end = start + num;
+	      if (end < start)
+		{
+		  size_t t = start;
+		  start = end + 1;
+		  end = t;
+		}
+	      else
+		end--;
+	      _expand (&msgcnt, &msglist, end - start);
+	      msg_first  = msgno;
+	      for (; start <= end; start++)
+		{
+		  n = mh_get_message (mbox, start, NULL);
+		  if (n)
+		    msglist[msgno++] = n;
+		}
+	      if (msgno == msg_first)
+		{
+		  mh_error ("no messages in range %s", argv[i]);
+		  exit (1);
+		}
+	      break;
+	      
+	    default:
+	      msgset_abort (argv[i]);
 	    }
-	  if (msgno == msg_first)
-	    {
-	      mh_error ("no messages in range %s", argv[i]);
-	      exit (1);
-	    }
-	  break;
-	  
-	case ':':
-	  num = strtoul (p+1, &p, 0);
-	  if (*p)
-	    msgset_abort (argv[i]);
-	  end = start + num;
-	  if (end < start)
-	    {
-	      size_t t = start;
-	      start = end + 1;
-	      end = t;
-	    }
-	  else
-	    end--;
-	  _expand (&msgcnt, &msglist, end - start);
-	  msg_first  = msgno;
-	  for (; start <= end; start++)
-	    {
-	      n = mh_get_message (mbox, start, NULL);
-	      if (n)
-		msglist[msgno++] = n;
-	    }
-	  if (msgno == msg_first)
-	    {
-	      mh_error ("no messages in range %s", argv[i]);
-	      exit (1);
-	    }
-	  break;
-	  
-	default:
-	  msgset_abort (argv[i]);
 	}
       free (arg);
     }
 
-  msgcnt = msgno;
-  
-  /* Sort the resulting message set */
-  qsort (msglist, msgcnt, sizeof (*msglist), comp_mesg);
-
-  /* Remove duplicates. */
-  for (i = 0, msgno = 1; i < msgcnt; i++)
-    if (msglist[msgno-1] != msglist[i])
-      msglist[msgno++] = msglist[i];
-  msgcnt = msgno;
-  
-  msgset->count = msgcnt;
+  msgset->count = msgno;
   msgset->list = msglist;
   return 0;
 }
 
+/* Parse a message specification from (argc;argv). Returned msgset is
+   sorted and optimised (i.e. it does not contain duplicate message
+   numbers) */
+int
+mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset,
+		 int argc, char **argv, char *def)
+{
+  char *xargv[2];
+  int rc;
+  
+  if (argc == 0)
+    {
+      argc = 1;
+      argv = xargv;
+      argv[0] = def ? def : "cur";
+      argv[1] = NULL;
+    }
+  
+  rc = _mh_msgset_parse (mbox, msgset, argc, argv);
+
+  if (rc == 0)
+    {
+      size_t i, msgno;
+      size_t msgcnt = msgset->count;
+      size_t *msglist = msgset->list;
+      
+      /* Sort the resulting message set */
+      qsort (msglist, msgcnt, sizeof (*msgset->list), comp_mesg);
+
+      /* Remove duplicates. */
+      for (i = 0, msgno = 1; i < msgset->count; i++)
+	if (msglist[msgno-1] != msglist[i])
+	  msglist[msgno++] = msglist[i];
+      msgset->count = msgno;
+    }
+  return rc;
+}
+
+/* Check if message with ordinal number `num' is contained in the
+   message set. */
 int
 mh_msgset_member (mh_msgset_t *msgset, size_t num)
 {
@@ -400,3 +542,75 @@ mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg)
   return mh_search_message (mbox, 1, count, seqno, mesg);
 }
 
+/* Reverse the order of messages in the message set */
+void
+mh_msgset_reverse (mh_msgset_t *msgset)
+{
+  int head, tail;
+
+  for (head = 0, tail = msgset->count-1; head < tail; head++, tail--)
+    {
+      size_t val = msgset->list[head];
+      msgset->list[head] = msgset->list[tail];
+      msgset->list[tail] = val;
+    }
+}
+
+/* Set the current message to that contained at position `index'
+   in the given message set */
+int
+mh_msgset_current (mailbox_t mbox, mh_msgset_t *msgset, int index)
+{
+  message_t msg = NULL;
+  if (mailbox_get_message (mbox, msgset->list[index], &msg))
+    return 1;
+  return mh_message_number (msg, &current_message);
+}
+
+/* Free memory allocated for the message set. Note, that the msgset
+   itself is supposed to reside in the statically allocated memory and
+   therefore is not freed */
+void
+mh_msgset_free (mh_msgset_t *msgset)
+{
+  if (msgset->count)
+    free (msgset->list);
+}
+
+/* Negate the message set: on return `msgset' consists of the messages
+   _not contained_ in the input message set. Any memory associated with
+   the input message set is freed */
+void
+mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
+{
+  size_t i, total = 0, msgno;
+  size_t *list;
+
+  mailbox_messages_count (mbox, &total);
+  list = calloc (total, sizeof (list[0]));
+  if (!list)
+    {
+      mh_error ("not enough memory");
+      abort ();
+    }
+
+  for (i = 1, msgno = 0; i <= total; i++)
+    {
+      if (!mh_msgset_member (msgset, i))
+	list[msgno++] = i;
+    }
+
+  list = realloc (list, sizeof (list[0]) * msgno);
+  if (!list)
+    {
+      mh_error ("not enough memory");
+      abort ();
+    }
+  mh_msgset_free (msgset);
+  msgset->count = msgno;
+  msgset->list = list;
+}
+
+  
+  
+	
