@@ -31,6 +31,7 @@ libsieve_la_SOURCES = \
  load.c\
  prog.c\
  register.c\
+ relational.c\
  require.c\
  runtime.c\
  sieve-gram.c\
