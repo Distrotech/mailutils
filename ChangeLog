@@ -1,3 +1,10 @@
+2003-02-12  Sergey Poznyakoff  
+
+	* mh/mh_format.c (builtin_formataddr): Do not include
+	  own email unless RCPT_ME is set.
+	* mh/mh_init.c (mh_is_my_name): Honor Alternate-Mailboxes
+	  variable, use wildcard matching.
+
 2003-02-10  Wojciech Polak
 
 	* */*: Fixed and/or updated copyrights.
