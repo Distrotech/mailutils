@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <stdlib.h>
 #include <string.h>
-#include <md5-rsa.h>
+#include <md5.h>
 #include <ctype.h>
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
@@ -108,7 +108,7 @@ int script_require(sieve_script_t *s, char *req)
 }
 
 /* given an interpretor and a script, produce an executable script */
-int sieve_script_parse(sieve_interp_t *interp, FILE *script,
+int sieve_script_parse(sieve_interp_t *interp, FILE *script, 
 		       void *script_context, sieve_script_t **ret)
 {
     sieve_script_t *s;
@@ -811,14 +811,14 @@ const char * sieve_errname (int e)
 
 static int makehash(unsigned char hash[HASHSIZE], char *s1, char *s2)
 {
-    MD5_CTX ctx;
+  struct md5_ctx ctx;
 
-    MD5Init(&ctx);
-    MD5Update(&ctx, (unsigned char*) s1, strlen(s1));
-    MD5Update(&ctx, (unsigned char*) s2, strlen(s2));
-    MD5Final(hash, &ctx);
+  md5_init_ctx (&ctx);
+  md5_process_bytes (s1, strlen(s1), &ctx);
+  md5_process_bytes (s2, strlen(s2), &ctx);
+  md5_finish_ctx (&ctx, hash);
 
-    return SIEVE_OK;
+  return SIEVE_OK;
 }
 
 /* execute a script on a message, producing side effects via callbacks.
