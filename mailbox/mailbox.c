@@ -314,23 +314,34 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
     return EINVAL;
-  /* The stream is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_set_stream (mbox->folder, stream);
   if (mbox->stream)
     stream_destroy (&(mbox->stream), mbox);
   mbox->stream = stream;
   return 0;
 }
 
+/* FIXME: This is a problem.  We provide a mailbox_get_stream ()
+   and this stream is special it should, in theory, represent
+   a "view" of a flow of messages.  But providing this perspective
+   may make sense for local mailboxes but downright impossible
+   for a remote mailbox, short on downloading the entire mailbox
+   locally.
+   The question is : should this function be removed?
+   So far it as been used on local mailboxes to get offsets.  */
 int
 mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
   if (mbox == NULL || pstream == NULL)
     return EINVAL;
-  /* The stream is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_get_stream (mbox->folder, pstream);
+
+  /* If null two cases:
+     - it is no open yet.
+     - it a remote stream and the socket stream is on the folder.  */
+  if (mbox->stream == NULL)
+    {
+      if (mbox->folder)
+	return folder_get_stream (mbox->folder, pstream);
+    }
   *pstream = mbox->stream;
   return 0;
 }
