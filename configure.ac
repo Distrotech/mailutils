@@ -242,10 +242,12 @@ AH_BOTTOM([
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
 #endif])
 
-AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
- strcasecmp strsignal vasprintf strndup strnlen strchrnul)
+AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strncasecmp \
+ strcasecmp strsignal vasprintf)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
  setresuid seteuid vfork _exit)
+
+MU_CHECK_FUNCS(strtok_r getline strndup strnlen strchrnul)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
@@ -253,15 +255,15 @@ MU_CHECK_UTMP
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse, :,
                [
-	       AC_LIBOBJ(argp-ba)
-	       AC_LIBOBJ(argp-eexst)
-	       AC_LIBOBJ(argp-fmtstream)
-	       AC_LIBOBJ(argp-fs-xinl)
-	       AC_LIBOBJ(argp-help)
-	       AC_LIBOBJ(argp-parse)
-	       AC_LIBOBJ(argp-pv)
-	       AC_LIBOBJ(argp-pvh)
-	       AC_LIBOBJ(argp-xinl)
+	       MU_LIBOBJ(argp-ba)
+	       MU_LIBOBJ(argp-eexst)
+	       MU_LIBOBJ(argp-fmtstream)
+	       MU_LIBOBJ(argp-fs-xinl)
+	       MU_LIBOBJ(argp-help)
+	       MU_LIBOBJ(argp-parse)
+	       MU_LIBOBJ(argp-pv)
+	       MU_LIBOBJ(argp-pvh)
+	       MU_LIBOBJ(argp-xinl)
 	       ])
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
@@ -461,7 +463,7 @@ AC_SUBST(GUILE_SNARF_VERSION)
 AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
 AC_SUBST(LIBMU_SCM)
-AC_SUBST(GUILE_PROCEDURES_TXT)
+AC_SUBST(GUILE_PKGDATA)
 AC_SUBST(GUILE_BUILT_SOURCES)
 
 if test x"$useguile" = x"yes"; then
@@ -470,9 +472,9 @@ if test x"$useguile" = x"yes"; then
             GUILE_INCLUDES=`guile-config compile`
   	    GUILE_LIBS=`guile-config link`
 	    GUIMB=guimb
-	    MU_SCM=libmu_scm.a
-	    LIBMU_SCM=../libmu_scm/libmu_scm.a
-	    GUILE_PROCEDURES_TXT=guile-procedures.txt
+            MU_SCM=libmu_scm.la
+            LIBMU_SCM=../libmu_scm/libmu_scm.la
+            GUILE_PKGDATA="guile-procedures.txt mailutils.scm"
 	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
             case "$GUILE_VERSION" in
 	      14) GUILE_SNARF_VERSION="1.4";;
@@ -496,6 +498,12 @@ LIB@&t@OBJS=`echo "$LIB@&t@OBJS" |
 LTLIBOBJS=`echo "$LIB@&t@OBJS" |
                 sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(LTLIBOBJS)
+
+S=`echo "$MU_LIBOBJS" |
+                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+MU_LTLIBOBJS=`echo "$S" |
+                sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
+AC_SUBST(MU_LTLIBOBJS)
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile mailutils.spec
