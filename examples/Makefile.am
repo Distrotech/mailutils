@@ -33,7 +33,12 @@ noinst_PROGRAMS = \
  mailcap\
  pop3client
 
-noinst_LTLIBRARIES = numaddr.la
+## NOTE: Numaddr must be an installable target, otherwise libtool
+## will not create a shared library and `make check' will fail in
+## sieve. Pity.
+## -Sergey
+moddir=@SIEVE_MODDIR@
+mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I$(top_builddir)/include/mailutils/gnu\
