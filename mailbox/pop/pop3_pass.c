@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2003 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -42,6 +42,8 @@ mu_pop3_pass (mu_pop3_t pop3, const char *passwd)
     case MU_POP3_PASS:
       status = mu_pop3_send (pop3);
       MU_POP3_CHECK_EAGAIN (pop3, status);
+      /* Obscure the passwd.  */
+      memset (pop3->io.buf, '\0', pop3->io.len);
       pop3->acknowledge = 0;
       pop3->state = MU_POP3_PASS_ACK;
 

@@ -69,6 +69,8 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
 	*tmp = '\0';
 
 	status = mu_pop3_writeline (pop3, "APOP %s %s\r\n", user, digest);
+	/* Obscure the digest, for security reasons.  */
+	memset (digest, '\0', sizeof digest);
 	MU_POP3_CHECK_ERROR (pop3, status);
 	mu_pop3_debug_cmd (pop3);
 	pop3->state = MU_POP3_APOP;
@@ -77,6 +79,8 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
     case MU_POP3_APOP:
       status = mu_pop3_send (pop3);
       MU_POP3_CHECK_EAGAIN (pop3, status);
+      /* Obscure the digest, for security reasons.  */
+      memset (pop3->io.buf, '\0', pop3->io.len);
       pop3->acknowledge = 0;
       pop3->state = MU_POP3_APOP_ACK;
 
