@@ -47,3 +47,6 @@
 
 /* Define HAVE_MYSQL when using mysql */
 #undef HAVE_MYSQL
+
+/* Define if virtual domain support is enabled */
+#undef USE_VIRTUAL_DOMAINS
