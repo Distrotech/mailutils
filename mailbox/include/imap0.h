@@ -144,7 +144,7 @@ struct _f_imap
 
   size_t seq; /* Sequence number to build a tag.  */
   char **capav; /* Cabilities of the server.  */
-  size_t capac; /* Number of capabilities in the above array */
+  int capac;    /* Number of capabilities in the above array */
   int flags;
 
   /* IO use to hold the literal and quoted strings send by
