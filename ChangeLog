@@ -10,7 +10,7 @@
 
 2004-04-14  Jordi Mallach
 
-	* examples/pop3client (pop_completion): Use rl_completion_matches.
+	* examples/pop3client.c (pop_completion): Use rl_completion_matches.
 	Fixes potential crash on 64-bit architectures.
 
 2004-04-08  Sergey Poznyakoff  
