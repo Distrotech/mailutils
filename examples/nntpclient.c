@@ -797,7 +797,6 @@ int
 com_newgroups (char *arg)
 {
   iterator_t iterator = NULL;
-  struct tm stime;
   int status;
   int year, month, day, hour, min, sec, is_gmt;
   year = month = day = hour = min = sec = is_gmt = 0;
@@ -853,7 +852,6 @@ int
 com_newnews (char *arg)
 {
   iterator_t iterator = NULL;
-  struct tm stime;
   char *wildmat;
   char gmt[4];
   int year, month, day, hour, min, sec, is_gmt;
