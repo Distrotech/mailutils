@@ -38,6 +38,7 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/header.h>
 
 #include <mailer0.h>
 #include <registrar0.h>
@@ -346,8 +347,35 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	size_t len = 0;
 	int rc;
 	size_t offset = 0;
+	header_t hdr;
 	
 	message_get_stream (msg, &stream);
+
+	if (message_get_header (msg, &hdr)
+	    && header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL) == 0)
+	  {
+	    while ((status = stream_readline (stream, buffer, sizeof (buffer),
+					      offset, &len)) == 0
+		   && len != 0)
+	      {
+		if (strncasecmp (buffer, MU_HEADER_FCC,
+				 sizeof (MU_HEADER_FCC) - 1) == 0)
+		  continue;
+
+		if (write (sendmail->fd, buffer, len) == -1)
+		  {
+		    status = errno;
+
+		    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+				   "write() failed: %s\n", strerror (status));
+		    
+		    break;
+		  }
+		offset += len;
+		sendmail->offset += len;
+	      }
+	  }
+	
 	while ((status = stream_read (stream, buffer, sizeof (buffer),
 				      offset, &len)) == 0
 	       && len != 0)

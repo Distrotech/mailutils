@@ -713,14 +713,15 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 		status = smtp_writeline (smtp, ".%s\r\n", data);
 		CHECK_ERROR (smtp, status);
 	      }
-	    else
+	    else if (strncasecmp (data, MU_HEADER_FCC,
+				  sizeof (MU_HEADER_FCC) - 1))
 	      {
 		status = smtp_writeline (smtp, "%s\r\n", data);
 		CHECK_ERROR (smtp, status);
+		status = smtp_write (smtp);
+		CHECK_EAGAIN (smtp, status);
 	      }
 	    smtp->offset += n;
-	    status = smtp_write (smtp);
-	    CHECK_EAGAIN (smtp, status);
 	  }
 	smtp->offset = 0;
 	status = smtp_writeline (smtp, ".\r\n");
