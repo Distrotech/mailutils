@@ -64,7 +64,7 @@ mail_mbox_commit ()
     {
       if (mailbox_get_message (mbox, i, &msg))
 	{
-	  fprintf (ofile, "%d: can't get message\n", i);
+	  util_error("%d: can't get message", i);
 	  return 1;
 	}
       message_get_attribute (msg, &attr);
@@ -78,7 +78,7 @@ mail_mbox_commit ()
 		  || mailbox_open (dest_mbox,
 				   MU_STREAM_WRITE | MU_STREAM_CREAT))
 		{
-		  fprintf (ofile, "can't create mailbox %s\n", name);
+		  util_error("can't create mailbox %s", name);
 		  return 1;
 		}
 	    }

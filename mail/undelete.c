@@ -32,7 +32,7 @@ mail_undelete (int argc, char **argv)
       attribute_t attr;
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
         {
-	  fprintf (stderr, "Meessage %d does not exist\n", cursor);
+	  util_error("Message %d does not exist", cursor);
           return 1;
         }
       message_get_attribute (msg, &attr);

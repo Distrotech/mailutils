@@ -27,16 +27,17 @@ mail_followup (int argc, char **argv)
 {
   message_t msg;
   header_t hdr;
-  char *to = NULL, *subj = NULL;
   char *str;
   int i, num, *msglist;
-  char *savefile = NULL;
+  struct send_environ env;
+  int status;
   
+  env.to = env.cc = env.bcc = env.subj = NULL;
   num = util_expand_msglist (argc, argv, &msglist);
   
   if (mailbox_get_message(mbox, cursor, &msg))
     {
-      fprintf(ofile, "%d: can't get message\n", cursor);
+      util_error("%d: can't get message", cursor);
       free(msglist);
       return 1;
     }
@@ -44,22 +45,24 @@ mail_followup (int argc, char **argv)
   /* Create subject value */
   message_get_header(msg, &hdr);
   header_aget_value(hdr, MU_HEADER_SUBJECT, &str);
-  util_strcat(&subj, "Re: ");
-  util_strcat(&subj, str);
+  util_strcat(&env.subj, "Re: ");
+  util_strcat(&env.subj, str);
   free(str);
 
   /* Generate "to" list */
-  to = util_get_sender(cursor, 0);
+  env.to = util_get_sender(cursor, 0);
 
   /* Add authors of the subsequent messages to the to list
      (or should it be cc?)*/
   for (i = 1; i < num; i++)
-    util_strcat(&to, util_get_sender(msglist[i], 0));
+    util_strcat(&env.to, util_get_sender(msglist[i], 0));
 
   free(msglist);
 
-  fprintf(ofile, "To: %s\n", to);
-  fprintf(ofile, "Subject: %s\n\n", subj);
+  fprintf(ofile, "To: %s\n", env.to);
+  fprintf(ofile, "Subject: %s\n\n", env.subj);
       
-  return mail_send0(to, NULL, NULL, subj, isupper(argv[0][0]));
+  status = mail_send0(&env, isupper(argv[0][0]));
+  free_env_headers (&env);
+  return status;
 }

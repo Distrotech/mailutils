@@ -60,7 +60,7 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
 	 dir = D_NONE;
 	 break;
        default:
-	 fprintf(ofile, "Bad arguments for the scrolling command\n");
+	 util_error("Bad arguments for the scrolling command");
 	 return 1;
        }
 
@@ -75,7 +75,7 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
  
       if (argc > 1)
 	{
-	  fprintf(ofile, "Too many arguments for the scrolling command\n");
+	  util_error("Too many arguments for the scrolling command");
 	  return 1;
 	}
       
@@ -83,13 +83,13 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
 	{
 	  if (dir == D_NONE)
 	    {
-	      fprintf(ofile, "argument no applicable for z.\n");
+	      util_error("argument not applicable for z.");
 	      return 1;
 	    }
 
 	  if ((mul = atoi(argp)) == 0)
 	    {
-	      fprintf(ofile, "Bad number of pages\n");
+	      util_error("Bad number of pages");
 	      return 1;
 	    }
 	}

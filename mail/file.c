@@ -56,13 +56,13 @@ mail_file (int argc, char **argv)
 	    name = NULL; /* our system mailbox */
 	  else
 	    {
-	      fprintf (ofile, "%%user not supported\n");
+	      util_error("%%user not supported");
 	      return 1;
 	    }
 	  break;
 	  
 	case '#':
-	  fprintf (ofile, "# notation not supported\n");
+	  util_error("# notation not supported");
 	  return 1;
 	  
 	case '&':
@@ -102,7 +102,7 @@ mail_file (int argc, char **argv)
     }
   else
     {
-      fprintf (ofile, "%s takes only one arg\n", argv[0]);
+      util_error("%s takes only one arg", argv[0]);
     }
   return 1;
 }

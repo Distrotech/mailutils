@@ -26,7 +26,7 @@ mail_unalias (int argc, char **argv)
 {
   if (argc == 1)
     {
-      fprintf (ofile, "unalias requires at least one argument\n");
+      util_error("unalias requires at least one argument");
       return 1;
     }
   while (--argc)

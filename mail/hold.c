@@ -34,7 +34,7 @@ mail_hold (int argc, char **argv)
     {
       if (mailbox_get_message (mbox, cursor, &msg))
 	{
-	  fprintf (ofile, "%d: can't get message\n", cursor);
+	  util_error("%d: can't get message", cursor);
 	  return 1;
 	}
 

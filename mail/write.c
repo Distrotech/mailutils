@@ -37,7 +37,7 @@ mail_write (int argc, char **argv)
   int *msglist = NULL;
   int num = 0, i = 0;
   int sender = 0;
-  size_t total_size, total_lines, size;
+  size_t total_size = 0, total_lines = 0, size;
   
   if (isupper (argv[0][0]))
     sender = 1;
@@ -63,7 +63,7 @@ mail_write (int argc, char **argv)
   output = fopen (filename, "a");
   if (!output)
     {
-      fprintf (ofile, "can't open %s: %s\n", filename, strerror (errno));
+      util_error("can't open %s: %s", filename, strerror (errno));
       free (filename);
       fclose (output);
       free (msglist);

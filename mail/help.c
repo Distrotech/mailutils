@@ -26,36 +26,14 @@ int
 mail_help (int argc, char **argv)
 {
   if (argc < 2)
-    {
-      int i = 0;
-      FILE *out = ofile;
-
-      if ((util_find_env("crt"))->set)
-	out = popen (getenv("PAGER"), "w");
-
-      while (mail_command_table[i].synopsis != 0)
-	fprintf (out, "%s\n", mail_command_table[i++].synopsis);
-
-      if (out != ofile)
-	pclose (out);
-
-      return 0;
-    }
+    return util_help (mail_command_table, NULL);
   else
     {
-      int status = 0, cmd = 0;
+      int status = 0;
 
-      while (++cmd < argc)
-	{
-	  struct mail_command_entry entry = util_find_entry (argv[cmd]);
-	  if (entry.synopsis != NULL)
-	    fprintf (ofile, "%s\n", entry.synopsis);
-	  else
-	    {
-	      status = 1;
-	      fprintf (ofile, "Unknown command: %s\n", argv[cmd]);
-	    }
-	}
+      while (--argc)
+	status |= util_help (mail_command_table, *++argv);
+
       return status;
     }
   return 1;

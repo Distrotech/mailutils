@@ -29,7 +29,7 @@ mail_folders (int argc, char **argv)
 
   if (!env->set)
     {
-      fprintf(ofile, "No value set for \"folder\"\n");
+      util_error("No value set for \"folder\"");
       return 1;
     }
 

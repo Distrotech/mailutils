@@ -95,7 +95,7 @@ alias_rehash()
   
   if (++hash_num >= max_rehash)
     {
-      fprintf(ofile, "alias hash table full\n");
+      util_error("alias hash table full");
       return 1;
     }
 
@@ -196,7 +196,7 @@ alias_print(char *name)
 
       if (!alias_lookup(name, &list))
 	{
-	  fprintf (ofile, "\"%s\": not a group\n", name);
+	  util_error("\"%s\": not a group", name);
 	  return;
 	}
       alias_print_group(name, list);

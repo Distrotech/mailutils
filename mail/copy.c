@@ -60,7 +60,7 @@ mail_copy0 (int argc, char **argv, int mark)
   if (mailbox_create_default (&mbx, filename)
       || mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT))
     {
-      fprintf (ofile, "can't create mailbox %s\n", filename);
+      util_error ("can't create mailbox %s", filename);
       free (filename);
       free (msglist);
       return 1;

@@ -33,18 +33,21 @@ mail_reply(int argc, char **argv)
     {
       message_t msg;
       header_t hdr;
-      char *to = NULL, *cc = NULL, *subj = NULL;
+      struct send_environ env;
+      int status;
       char *str;
+
+      env.to = env.cc = env.bcc = env.subj = NULL;
       
       if (mailbox_get_message(mbox, cursor, &msg))
 	{
-	  fprintf(ofile, "%d: can't get message\n", cursor);
+	  util_error("%d: can't get message", cursor);
 	  return 1;
 	}
 
       message_get_header(msg, &hdr);
 
-      to = util_get_sender(cursor, 0);
+      env.to = util_get_sender(cursor, 0);
       if (islower(argv[0][0]))
 	{
 	  /* Add all recepients of the originate letter */
@@ -63,28 +66,30 @@ mail_reply(int argc, char **argv)
 	  for (i = 1; i <= count; i++)
 	    {
 	      address_get_email(addr, i, buf, sizeof(buf), NULL);
-	      if (!mail_is_alt_name(buf))
+	      if (!mail_is_my_name(buf))
 		{
-		  util_strcat(&to, " ");
-		  util_strcat(&to, buf);
+		  util_strcat(&env.to, " ");
+		  util_strcat(&env.to, buf);
 		}
 	    }
 
 	  /* Finally, add any Ccs */
-	  header_aget_value(hdr, MU_HEADER_CC, &cc);
+	  header_aget_value(hdr, MU_HEADER_CC, &env.cc);
 	}
 
       header_aget_value(hdr, MU_HEADER_SUBJECT, &str);
-      util_strcat(&subj, "Re: ");
-      util_strcat(&subj, str);
+      util_strcat(&env.subj, "Re: ");
+      util_strcat(&env.subj, str);
       free(str);
 
-      fprintf(ofile, "To: %s\n", to);
-      if (cc)
-	fprintf(ofile, "Cc: %s\n", cc);
-      fprintf(ofile, "Subject: %s\n\n", subj);
+      fprintf(ofile, "To: %s\n", env.to);
+      if (env.cc)
+	fprintf(ofile, "Cc: %s\n", env.cc);
+      fprintf(ofile, "Subject: %s\n\n", env.subj);
       
-      return mail_send0(to, cc, NULL, subj, 0);
+      status = mail_send0(&env, 0);
+      free_env_headers (&env);
+      return status;
     }
   return 1;
 }

@@ -32,7 +32,7 @@ mail_size (int argc, char **argv)
       message_t msg;
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
 	{
-	  fprintf (stderr, "Could not read message %d\n", cursor);
+	  util_error("Could not read message %d", cursor);
 	  return 1;
 	}
       message_size (msg, &s);
