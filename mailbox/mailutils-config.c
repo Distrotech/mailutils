@@ -104,6 +104,7 @@ struct lib_descr {
   { "maildir","mu_maildir", 0 },
   { "imap",   "mu_imap", TLSAUTH },
   { "pop",    "mu_pop",  TLSAUTH },
+  { "nntp",   "mu_nntp", 0 },
   { NULL }
 };
 
