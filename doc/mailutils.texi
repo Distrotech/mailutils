@@ -26,7 +26,7 @@
 
 @ifinfo
 @direntry
-* mailutils: (libmailutils).         The GNU mailutils library API. 
+* mailutils: (libmailutils).         The GNU mailutils library API.
 @end direntry
 This file documents @sc{mailutils},  library API.
 
@@ -68,7 +68,7 @@ by the Foundation.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
 
 @sp 2
 Published by the Free Software Foundation, @*
@@ -105,7 +105,6 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Introduction::              GNU @sc{Mailutils}  Programmer's manual.
 * Mailbox::                   Mailbox API.
 * Mailer::                    Protocol Use to Send Mail.
-* Maildrop::                  Creating a Maildrop.
 * URL::                       Unified Ressource Locator.
 * Headers::                   Headers API.
 * Mime::                      Mime API.
@@ -129,7 +128,7 @@ For example writing a simple from command that will list @var{From} and
 @example
 @include sfrom.c.texi
 @end example
- 
+
 @node Mailbox, Mailer, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Mailbox
@@ -137,21 +136,14 @@ For example writing a simple from command that will list @var{From} and
 
 @include mailbox.texi
 
-@node Mailer, Maildrop , Mailbox, Top
+@node Mailer, URL , Mailbox, Top
 @comment  node-name,  next,  previous,  up
 @chapter Mailer
 @cindex Mailer
 
 @include mailer.texi
 
-@node Maildrop , URL, Mailer, Top
-@comment  node-name,  next,  previous,  up
-@chapter Maildrop
-@cindex Maildrop
-
-@include maildrop.texi
-
-@node URL, Headers , Maildrop, Top
+@node URL, Headers , Mailer, Top
 @comment  node-name,  next,  previous,  up
 @chapter URL
 @cindex URL
