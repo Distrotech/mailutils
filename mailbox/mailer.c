@@ -34,6 +34,9 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/header.h>
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
 
 #include <mailer0.h>
 
@@ -259,8 +262,45 @@ mailer_check_to (address_t to)
   return 0;
 }
 
+static void
+save_fcc (message_t msg)
+{
+  header_t hdr;
+  size_t count = 0, i;
+  char buf[512];
+  
+  if (message_get_header (msg, &hdr))
+    return;
+
+  if (header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL))
+    return;
+  
+  header_get_field_count (hdr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      mailbox_t mbox;
+      
+      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      if (strcasecmp (buf, MU_HEADER_FCC) == 0)
+	{
+	  if (header_get_field_value (hdr, i, buf, sizeof buf, NULL))
+	    continue;
+	  if (mailbox_create_default (&mbox, buf))
+	    continue; /*FIXME: error message?? */
+	  if (mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT|MU_STREAM_APPEND) == 0)
+	    {
+	      mailbox_append_message (mbox, msg);
+	      mailbox_flush (mbox, 0);
+	    }
+	  mailbox_close (mbox);
+	  mailbox_destroy (&mbox);
+	}
+    }
+}
+
 int
-mailer_send_message (mailer_t mailer, message_t msg, address_t from, address_t to)
+mailer_send_message (mailer_t mailer, message_t msg,
+		     address_t from, address_t to)
 {
   int status;
 
@@ -282,7 +322,8 @@ mailer_send_message (mailer_t mailer, message_t msg, address_t from, address_t t
       if ((status = mailer_check_to (to)) != 0)
 	return status;
     }
-
+  
+  save_fcc (msg);
   return mailer->_send_message (mailer, msg, from, to);
 }
 
