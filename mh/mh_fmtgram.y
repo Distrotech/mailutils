@@ -35,7 +35,7 @@ static size_t mh_code_string (char *string);
 static size_t mh_code_number (int num);
 static size_t mh_code_builtin (mh_builtin_t *bp, int argtype);
 static void branch_fixup (size_t pc, size_t tgt); 
- 
+
   /* Lexical tie-ins */
 static int in_escape;       /* Set when inside an escape sequence */
 static int want_function;   /* Set when expecting function name */ 
@@ -61,12 +61,15 @@ static int want_function;   /* Set when expecting function name */
 %token BOGUS
 %type <type> cond_expr component funcall item argument escape literal
 %type <elif_list> elif_part elif_list fi
-%type <pc> cond end else elif else_part 
+%type <pc> cond end else elif else_part zlist list pitem 
 %type <builtin> function
 
 %%
 
 input     : list
+            {
+	      /* nothing: to shut bison up */
+	    }
           ;
 
 list      : pitem 
@@ -94,6 +97,7 @@ pitem     : item
 		  yyerror ("UNEXPECTED item TYPE");
 		  abort ();
 		}
+	      $$ = pc;
 	    }
           ;
 
@@ -211,8 +215,8 @@ argument  : /* empty */
 	  | escape
           ;
 
-/*           1   2    3   4      5         6     7 */
-cntl      : if cond list end elif_part else_part fi
+/*           1   2    3    4      5         6     7 */
+cntl      : if cond zlist end elif_part else_part fi
             {
 	      size_t start_pc = 0, end_pc = 0;
 
@@ -242,6 +246,13 @@ cntl      : if cond list end elif_part else_part fi
 	      branch_fixup (start_pc, $7.end);
 	      MHI_NUM(format.prog[start_pc]) = $7.end - start_pc;
 	    }
+          ;
+
+zlist     : /* empty */
+            {
+	      $$ = pc;
+	    }
+          | list
           ;
 
 if        : IF
@@ -305,13 +316,13 @@ elif_part : /* empty */
 	    }
           ;
 
-elif_list : elif cond list
+elif_list : elif cond zlist
             {
 	      $$.cond = $1;
 	      MHI_NUM(format.prog[$2]) = pc - $2 + 2;
 	      $$.end = 0;
 	    }
-          | elif_list end elif cond list
+          | elif_list end elif cond zlist
             {
 	      MHI_NUM(format.prog[$4]) = pc - $4 + 2;
 	      $$.cond = $1.cond;
@@ -356,6 +367,8 @@ static int backslash(int c);
 int
 yylex ()
 {
+  if (yydebug)
+    fprintf (stderr, "[lex at %10.10s]\n", curp);
   if (*curp == '%')
     {
       curp++;
@@ -458,6 +471,8 @@ yylex ()
 	{
 	  curp -= rest;
 	  yylval.builtin = bp;
+	  while (*curp && isspace(*curp))
+	    curp++;
 	  return FUNCTION;
 	}
     }
@@ -469,7 +484,10 @@ int
 mh_format_parse (char *format_str, mh_format_t *fmt)
 {
   int rc;
-  
+  char *p = getenv ("MHFORMAT_DEBUG");
+
+  if (p)
+    yydebug = 1;
   start = curp = format_str;
   obstack_init (&stack);
   format.progsize = 0;
@@ -512,7 +530,7 @@ branch_fixup (size_t epc, size_t tgt)
   if (!prev)
     return;
   branch_fixup (prev, tgt);
-  MHI_NUM(format.prog[prev]) = tgt - prev - 1;
+  MHI_NUM(format.prog[prev]) = tgt - prev;
 }
 
 
@@ -587,9 +605,14 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 		case mhtype_num:
 		  mh_code_op (mhop_num_to_arg);
 		  break;
+		  
 		case mhtype_str:
-		  mh_code_op (mhop_str_to_arg);
+		  /* mhtype_none means that the argument was an escape,
+		     which has left its string value (if any) in the
+		     arg_str register. Therefore, there's no need to
+		     code mhop_str_to_arg */
 		  break;
+		  
 		default:
 		  yyerror ("UNKNOWN ARGTYPE");
 		  abort ();
@@ -608,15 +631,18 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	    case mhtype_none:
 	      mh_error ("extra arguments to %s", bp->name);
 	      return 0;
+	      
 	    case mhtype_num:
 	      mh_code_op (mhop_str_to_num);
 	      break;
+	      
 	    case mhtype_str:
 	      mh_code_op (mhop_num_to_str);
 	      break;
 	    }
 	}
     }
+
   mh_code_op (mhop_call);
   MHI_BUILTIN(instr) = bp->fun;
   mh_code (&instr);
