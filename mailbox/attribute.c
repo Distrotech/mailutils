@@ -101,8 +101,16 @@ int
 attribute_set_flags (attribute_t attr, int flags)
 {
   int status = 0;
+  int oflags = 0;
+  
   if (attr == NULL)
     return EINVAL;
+
+  /* If the required bits are already set, do not modify anything */
+  attribute_get_flags (attr, &oflags);
+  if ((oflags & flags) == flags)
+    return 0;
+  
   if (attr->_set_flags)
     status = attr->_set_flags (attr, flags);
   else
@@ -116,8 +124,16 @@ int
 attribute_unset_flags (attribute_t attr, int flags)
 {
   int status = 0;
+  int oflags = 0;
+
   if (attr == NULL)
     return EINVAL;
+
+  /* If the required bits are already cleared, do not modify anything */
+  attribute_get_flags (attr, &oflags);
+  if ((oflags & flags) == 0)
+    return 0;
+
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, flags);
   else
@@ -286,11 +302,7 @@ attribute_is_recent (attribute_t attr)
 {
   int flags = 0;
   if (attribute_get_flags (attr, &flags) == 0)
-    {
-      /* something is recent when it is not read and not seen.  */
-      return (flags == 0 || ! ((flags & MU_ATTRIBUTE_SEEN)
-			       || (flags & MU_ATTRIBUTE_READ)));
-    }
+    return MU_ATTRIBUTE_IS_UNSEEN(flags);
   return 0;
 }
 
