@@ -265,12 +265,12 @@ int util_type_to_attribute __P((int type, char **attr_str));
 int util_attribute_matches_flag __P((attribute_t attr, const char *item));
 int util_uidvalidity __P((mailbox_t smbox, unsigned long *uidvp));
 
-void util_setio __P((int, int));
+void util_setio __P((FILE*, FILE*));
 void util_flush_output __P((void));
-FILE *util_is_ofile __P((void));
+int util_is_master __P((void));
+void util_bye __P((void));  
 #ifdef WITH_TLS
 int imap4d_init_tls_server __P((void));
-void imap4d_deinit_tls_server __P((void));
 #endif /* WITH_TLS */
 
 #ifdef __cplusplus
