@@ -1,6 +1,15 @@
 2002-06-27  Sergey Poznyakoff
 
 	* libmu_scm/mu_message.c (mu_message_set_header_fields): Bugfix.
+	* imap4d/login.c (imap4d_login): Removed FIXME note: the user
+	  need not have a homedir at all.
+	* mail.local/main.c (make_progfile_name): moved to ...
+	* mailbox/mutil.c (mu_expand_path_pattern): ... there.
+	* mail.local/mail.local.h (make_progfile_name): Removed
+	  prototype.
+	* include/mailutils/mutil.h (mu_expand_path_pattern): new
+	  prototype.
+	* mail.local/script.c (mda_init,mda_next): use mu_expand_path_pattern.
 
 2002-05-24  Walter J. Mack <wmack@componentsw.com>
 
