@@ -67,6 +67,9 @@ extern int address_get_unix_mailbox_count __P ((address_t, size_t *));
 extern int address_contains_email __P((address_t addr, const char *email));
 extern int address_union __P((address_t *a, address_t b));
   
+extern size_t address_format_string __P((address_t addr, char *buf,
+					 size_t buflen));
+  
 #ifdef __cplusplus
 }
 #endif
