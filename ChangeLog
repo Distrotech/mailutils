@@ -1,3 +1,20 @@
+2004-01-15  Sergey Poznyakoff
+
+	* imap4d/util.c (util_base64_encode): Bugfix. Patch submitted
+	by Simon Josefsson.
+
+	* imap4d/Makefile.am: Added local folder format support.
+	* pop3d/Makefile.am: Likewise.
+	* imap4d/imap4d.c (main): Call mu_register_local_mbox_formats().
+	* pop3d/pop3d.c: Likewise.
+	* imap4d/namespace.c (namespace_checkfullpath): Preserve an
+	eventual URL scheme specification.
+	Fixed indentation.
+	* include/mailutils/registrar.h (mu_register_local_mbox_formats)
+	(mu_register_remote_mbox_formats): New macros.
+	* mailbox/maildir/mbox.c: Added UID support.
+	* mailbox/mh/mbox.c (mh_scan0): Removed misleading comment
+	
 2004-01-15  Wojciech Polak
 
 	* mailbox/mbox/mbox.c: Minor. Use only one printing style
