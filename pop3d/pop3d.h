@@ -180,8 +180,10 @@ extern char *md5shared;
 extern volatile size_t children;
 extern struct daemon_param daemon_param;
 extern int debug_mode;
+#ifdef WITH_TLS
 extern int tls_available;
 extern int tls_done;
+#endif /* WITH_TLS */
 
 extern int pop3d_abquit         __P ((int));
 extern int pop3d_apop           __P ((const char *));
@@ -215,5 +217,10 @@ extern char *pop3d_readline     __P ((char *, size_t));
 extern void pop3d_flush_output  __P ((void));
 
 extern int pop3d_is_master      __P ((void));
-     
+
+#ifdef WITH_TLS
+extern int pop3d_init_tls_server    __P ((void));
+extern void pop3d_deinit_tls_server __P ((void));
+#endif /* WITH_TLS */
+
 #endif /* _POP3D_H */
