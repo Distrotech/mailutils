@@ -1,4 +1,25 @@
-2001-10-16  Sergey Poznyakoff
+2001-10-17  Sergey Poznyakoff
+	
+	After discussion with Jeff, removed maintainer-mode quirks
+	and introduced --enable-debug switch.
+
+	* configure.in: Use MU_DEBUG_MODE.
+	* m4/maintainer.m4: removed.
+	* m4/debug.m4: (new) Handle --enable-debug option. When
+	the option is specified, adds -ggdb to the invocation of
+	gcc, and removes any optimization directives from CFLAGS.
+	* m4/Makefile.am: Removed maintainer.m4, added debug.m4
+	and regex.m4 (committed earlier, but apparently forgotten
+	to add).
+	* guimb/Makefile.am: Removed MAINTAINER_MODE conditionals.
+	* libmu_scm/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+
+	* imap4d/imap4d.h: Added proto for strtok_r.
+
+	* .cvsignore: Updated (config.sub, ltconfig, etc.)
+
+2001-10-16  Alain Magloire
 
 	According to rfc2060 the minimum timeout is 30 minutes.  But
 	it is not unusual to see server with a shorter timeout.  When
