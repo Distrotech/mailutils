@@ -17,9 +17,11 @@
 
 #ifndef _POP3D_H
 #define _POP3D_H	1
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+# include <config.h>
 #endif
+#include <mu_dbm.h>
 
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"
@@ -58,7 +60,13 @@
 
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
-#define APOP_PASSFILE	SYSCONFDIR"/apop"
+#define APOP_PASSFILE_NAME "apop"
+
+#ifdef USE_DBM
+# define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME
+#else
+# define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME ".passwd"
+#endif
 
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
@@ -69,7 +77,9 @@
 /* Buffer size to use for output */
 #define BUFFERSIZE	1024
 
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+#endif
 #define _QNX_SOURCE
 #include <stdarg.h>
 #include <stdio.h>
@@ -104,8 +114,8 @@
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/registrar.h>
-#include <mailutils/mutil.h>
 #include <mailutils/error.h>
+#include <mailutils/mutil.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

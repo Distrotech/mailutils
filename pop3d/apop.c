@@ -41,76 +41,73 @@
 
 /* Check if a username exists in APOP password file
    returns pointer to password if found, otherwise NULL */
+
 char *
 pop3d_apopuser (const char *user)
 {
   char *password;
+  int rc;
   char buf[POP_MAXCMDLEN];
-  struct stat st;
-
-  /* Check the mode, for security reasons.  */
-#ifdef WITH_BDB2
-  if (stat (APOP_PASSFILE ".db", &st) != -1)
-#else
-  if (stat (APOP_PASSFILE ".passwd", &st) != -1)
-#endif
-    if ((st.st_mode & 0777) != 0600)
-      {
-	syslog (LOG_INFO, "Bad permissions on APOP password file");
-	return NULL;
-      }
-
-#ifdef WITH_BDB2
+    
+#ifdef USE_DBM
   {
-    int status;
-    DB *dbp;
-    DBT key, data;
-    status = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600, NULL,
-		      NULL, &dbp);
-    if (status != 0)
+    DBM_FILE db;
+    DBM_DATUM key, data;
+
+    rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
+    if (rc)
       {
-	syslog (LOG_ERR, "Unable to open APOP db: %s", strerror (status));
+	if (rc == -1)
+	  syslog (LOG_INFO, "Bad permissions on APOP password db");
+	else
+	  syslog (LOG_ERR, "Unable to open APOP db: %s",
+		  strerror (rc));
 	return NULL;
       }
-
-    memset (&key, 0, sizeof DBT);
-    memset (&data, 0, sizeof DBT);
+      
+    memset (&key, 0, sizeof key);
+    memset (&data, 0, sizeof data);
 
     strncpy (buf, user, sizeof buf);
     /* strncpy () is lame and does not NULL terminate.  */
     buf[sizeof (buf) - 1] = '\0';
-    key.data = buf;
-    key.size = strlen (buf);
-    status = dbp->get (dbp, NULL, &key, &data, 0);
-    if (status != 0)
+    MU_DATUM_PTR(key) = buf;
+    MU_DATUM_SIZE(key) = strlen (buf);
+
+    rc = mu_dbm_fetch (db, key, &data);
+    mu_dbm_close (db);
+    if (rc)
       {
-	syslog (LOG_ERR, "db_get error: %s", strerror (status));
-	dbp->close (dbp, 0);
+	syslog (LOG_ERR, "Can't fetch APOP data: %s", strerror (rc));
 	return NULL;
       }
-
-    password = calloc (data.size + 1, sizeof (*password));
+    password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));
     if (password == NULL)
-      {
-	dbp->close (dbp, 0);
-	return NULL;
-      }
+      return NULL;
 
-    sprintf (password, "%.*s", (int) data.size, (char *) data.data);
-    dbp->close (dbp, 0);
+    sprintf (password, "%.*s", (char*) MU_DATUM_SIZE(data),
+	     (int) MU_DATUM_PTR(data));
     return password;
   }
-#else /* !WITH_BDBD2 */
+#else /* !USE_DBM */
   {
     char *tmp;
     FILE *apop_file;
-    apop_file = fopen (APOP_PASSFILE ".passwd", "r");
+
+    if (mu_check_perm (APOP_PASSFILE, 0600))
+      {
+	syslog (LOG_INFO, "Bad permissions on APOP password file");
+	return NULL;
+    }
+
+    apop_file = fopen (APOP_PASSFILE, "r");
     if (apop_file == NULL)
       {
-	syslog (LOG_INFO, "Unable to open APOP password file");
+	syslog (LOG_INFO, "Unable to open APOP password file %s",
+		strerror (errno));
 	return NULL;
       }
-
+    
     password = calloc (APOP_DIGEST, sizeof (*password));
     if (password == NULL)
       {
@@ -146,7 +143,7 @@ pop3d_apopuser (const char *user)
 
     return password;
   }
-#endif /* WITH_BDB2 */
+#endif 
 }
 
 int
