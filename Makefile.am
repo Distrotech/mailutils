@@ -10,4 +10,4 @@ release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
 rpm: dist
-	rpm -ta --clean gdbc-$(VERSION).tar.gz
+	rpm -ta --clean mailutils-$(VERSION).tar.gz
