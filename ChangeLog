@@ -1,3 +1,23 @@
+2003-12-30  Sergey Poznyakoff
+
+	* examples/murun.c: Close output stream
+	* include/mailutils/locker.h (enum mu_locker_set_mode): New
+	data type
+	(locker_set_default_flags): Changed declaration
+	(locker_set_default_retry_timeout)
+	(locker_set_default_retry_count)
+	(locker_set_default_expire_timeout)
+	(locker_set_default_external_program): New functions
+	* mailbox/locker.c: Likewise
+	* mailbox/mu_argp.c: New locker options
+	* mail.local/main.c: Adapt for new locker functions.
+
+	* mailbox/file_stream.c (prog_stream_wait,start_program_filter)
+	(_prog_close,_prog_open): Bugfixes
+
+	* mh/mhl.c: Minor fix
+	* movemail/movemail.c: --keep-messages option (an alias for -p)
+	
 2003-12-29  Sergey Poznyakoff  
 
 	* comsat/comsat.c (main): Minor fix (do not use hardcoded
