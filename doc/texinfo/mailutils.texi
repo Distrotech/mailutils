@@ -26,30 +26,23 @@
 @ifinfo
 @dircategory GNU libraries
 @direntry
-* mailutils: (mailutils).            API for mailboxes and mail protocols
+* mailutils: (mailutils).            API for mailboxes and mail protocols.
 @end direntry
 @dircategory GNU utilities
 @direntry
-* comsatd: (mailutils)comsatd.       Comsat daemon
-* frm: (mailutils)frm.               List headers from a mailbox
-* guimb: (mailutils)guimb.           Mailbox scanning and processing language
-* imap4d: (mailutils)imap4d.         IMAP4 daemon
-* mail.local: (mailutils)mail.local. Deliver mail to the local mailbox
-* mail: (mailutils)mail.             Send and receive mail
-* messages: (mailutils)messages.     Count the number of messages in a mailbox
-* pop3d: (mailutils)pop3d.           POP3 daemon
-* readmsg: (mailutils)readmsg.       Extract messages from a folder
-* sieve: (mailutils)sieve.           Mail filtering utility
+* comsatd: (mailutils)comsatd.       Comsat daemon.
+* frm: (mailutils)frm.               List headers from a mailbox.
+* guimb: (mailutils)guimb.           Mailbox scanning and processing language.
+* imap4d: (mailutils)imap4d.         IMAP4 daemon.
+* mail.local: (mailutils)mail.local. Deliver mail to the local mailbox.
+* mail: (mailutils)mail.             Send and receive mail.
+* messages: (mailutils)messages.     Count the number of messages in a mailbox.
+* pop3d: (mailutils)pop3d.           POP3 daemon.
+* readmsg: (mailutils)readmsg.       Extract messages from a folder.
+* sieve: (mailutils)sieve.           Mail filtering utility.
 * mailutils-config: (mailutils)mailutils-config. Get the information about the Mailutils build.
 @end direntry
 @end ifinfo
-
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-@end ignore
 
 @copying
 Published by the Free Software Foundation,
@@ -58,19 +51,16 @@ Boston, MA 02111-1307, USA
 
 Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
 
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by the Foundation.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 @end copying
 
 @titlepage
@@ -106,6 +96,10 @@ documents GNU Mailutils Version @value{VERSION}.
 * News::                    Where to get information about @sc{gnu} Mailutils.
 * Acknowledgement::         Thanks and Credits.
 
+Appendices
+
+* GNU FDL::                 This manual is under the GNU Free
+                            Documentation License.
 Indices
 * Function Index::          All Mailutils Functions.
 * Program Index::           All Mailutils Programs.
@@ -303,7 +297,7 @@ project page at @url{http://savannah.gnu.org/projects/mailutils}.
 The updated versions of this manual are available online from
 @url{http://www.gnu.org/software/mailutils/manual}.
 
-@node Acknowledgement, Function Index , News, Top
+@node Acknowledgement, GNU FDL, News, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgement
 @cindex Acknowledgement
@@ -336,7 +330,13 @@ Wojciech Polak @email{polak@@gnu.org}
 @end itemize
 @page
 
-@node Function Index, Program Index, Acknowledgement, Top
+
+@node GNU FDL, Function Index, Acknowledgement, Top
+@comment node-name,  next,  previous,  up
+@include fdl.texi
+
+
+@node Function Index, Program Index, GNU FDL, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Function Index
 
