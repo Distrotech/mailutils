@@ -1,12 +1,66 @@
-GNU mailutils NEWS -- history of user-visible changes.  2002-09-02
-Copyright (C) 2002 Free Software Foundation, Inc.
+GNU mailutils NEWS -- history of user-visible changes.  2003-02-12
+Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
+Version 0.3:
+
+* General:
+
+** Added NLS support. Currently Catalan and Spanish translations
+are available.
+
+** Fixed compilation with the newer versions of Berkeley DB.
+
+* libmailbox:
+
+** Functions for generating References: and In-Reply-To: headers as
+per RFC 2822.
+
+** A set of functions for sequential access to streams.
+
+** The function mu_errstring is renamed to mu_strerror for consistency
+with the usual practice.
+
+** Added initial implementation of message header encoding and decoding
+functions (RFC 2047).
+
+* libsieve:
+
+** The syntax of multiline strings is extended. It is possible
+to use arbitrary ending delimiter instead of the default dot,
+and to strip off the leading tabs, which allows for natural
+indentation of the multiline strings.
+
+** Added support for relational tests according to RFC 3431.
+
+** Fixed incorrect handling of multiple addresses in `address'
+tests.
+
+* imap4d:
+
+** The untagged output was fixed to conform to the RFC 2060. Specifically,
+the output of STORE command is corrected in accordance with the
+rfc2060-errata document; the EXIST and RECENT untagged are always
+returned by EXAMINE, SELECT, and NOOP.
+
+** Added support for TLS and GSASL.
+
+** Implemented LOGINDISABLED capability.
+
+** Implemented IDLE command (RFC 2177).
+
+* pop3d: Added TLS support.
+
+* mail: Fixed error diagnostics and removed startup banner.
+
+* mh: Initial implementation. 
+
+
 Version 0.2:
 
-* libmailbox: Several bugfixes. The configuration testsute allows
+* libmailbox: Several bugfixes. The configuration suite allows
   to disable support for any protocol or mailbox format to reduce
   the size of the library.
 
