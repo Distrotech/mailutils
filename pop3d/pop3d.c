@@ -75,7 +75,7 @@ static struct argp_option options[] = {
    N_("Name of login statistics file"), 0},
 #endif
   {"expire", OPT_EXPIRE, N_("DAYS"), 0,
-   N_("Minimum retention period for messages in the maildrop, default -1 means NEVER"), 0},
+   N_("Maximum retention period for messages in the maildrop, default -1 means NEVER"), 0},
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
