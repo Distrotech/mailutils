@@ -1,3 +1,50 @@
+2004-11-17  Wojciech Polak
+
+	Added initial version of `libmu_cpp',
+	a C++ wrapper for Mailutils.
+
+	* libmu_cpp: Added new directory.
+	* libmu_cpp/address.cc: New file.
+	* libmu_cpp/filter.cc: Likewise.
+	* libmu_cpp/iterator.cc: Likewise.
+	* libmu_cpp/mailbox.cc: Likewise.
+	* libmu_cpp/mailer.cc: Likewise.
+	* libmu_cpp/message.cc: Likewise.
+	* libmu_cpp/stream.cc: Likewise.
+	* libmu_cpp/header.cc: Likewise.
+	* libmu_cpp/list.cc: Likewise.
+	* libmu_cpp/mailcap.cc: Likewise.
+	* libmu_cpp/pop3.cc: Likewise.
+	* libmu_cpp/url.cc: Likewise.
+	* libmu_cpp/Makefile.am: Likewise.
+
+	* include/mailutils/cpp: Added new directory.
+	* include/mailutils/cpp/address.h: New file.
+	* include/mailutils/cpp/error.h: Likewise.
+	* include/mailutils/cpp/header.h: Likewise.
+	* include/mailutils/cpp/list.h: Likewise.
+	* include/mailutils/cpp/mailcap.h: Likewise.
+	* include/mailutils/cpp/mailutils.h: Likewise.
+	* include/mailutils/cpp/message.h: Likewise.
+	* include/mailutils/cpp/stream.h: Likewise.
+	* include/mailutils/cpp/filter.h: Likewise.
+	* include/mailutils/cpp/iterator.h: Likewise.
+	* include/mailutils/cpp/mailbox.h: Likewise.
+	* include/mailutils/cpp/mailer.h: Likewise.
+	* include/mailutils/cpp/pop3.h: Likewise.
+	* include/mailutils/cpp/url.h: Likewise.
+	* include/mailutils/cpp/Makefile.am: Likewise.
+
+	* examples/cpp/addr.cc: New file.
+	* examples/cpp/http.cc: Likewise.
+	* examples/cpp/listop.cc: Likewise.
+	* examples/cpp/sfrom.cc: Likewise.
+	* examples/cpp/iconv.cc: Likewise.
+	* examples/cpp/mailcap.cc: Likewise.
+	* examples/cpp/murun.cc: Likewise.
+	* examples/cpp/url-parse.cc: Likewise.
+	* examples/cpp/Makefile.am: Likewise.
+	
 2004-11-15  Wojciech Polak
 
 	* examples/config: New directory.
