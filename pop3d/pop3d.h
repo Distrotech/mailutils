@@ -88,7 +88,11 @@
 #include <ctype.h>
 #include "md5.h"
 #include "getopt.h"
-#include "mailbox.h"
+
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
+#include <mailutils/header.h>
+#include <mailutils/body.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef BDB2
@@ -133,7 +137,7 @@
 #define ERR_NO_OFILE    13
 #define ERR_TIMEOUT	14
 
-mailbox *mbox;
+mailbox_t mbox;
 
 unsigned int port;
 unsigned int timeout;

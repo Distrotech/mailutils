@@ -25,6 +25,16 @@
 int
 mail_next (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc < 2)
+    {
+      cursor++;
+      realcursor++;
+      return 0;
+    }
+  else if (argc == 2)
+    {
+      printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+      return 1;
+    }
   return 1;
 }

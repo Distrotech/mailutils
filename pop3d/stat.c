@@ -22,8 +22,8 @@
 int
 pop3_stat (const char *arg)
 {
-  int size = 0;
-  int i;
+  unsigned int mesgs = 0;
+  off_t size = 0;
 
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -31,10 +31,9 @@ pop3_stat (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  for (i = 0; i < mbox->messages ; i++)
-    if (!mbox_is_deleted (mbox, i))
-      size += mbox->sizes[i];
+  mailbox_size (mbox, &size);
+  mailbox_messages_count (mbox, &mesgs);
 
-  fprintf (ofile, "+OK %d %d\r\n", mbox->messages - mbox->num_deleted, size);
+  fprintf (ofile, "+OK %d %d\r\n", mesgs, (int)size);
   return OK;
 }

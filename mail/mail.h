@@ -35,10 +35,10 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <mailbox.h>
-#include <message.h>
-#include <header.h>
-#include <body.h>
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
+#include <mailutils/header.h>
+#include <mailutils/body.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +55,7 @@ extern "C" {
 /* Global variables */
 mailbox_t mbox;
 unsigned int cursor;
+unsigned int realcursor;
 unsigned int total;
 
 /* Functions */
@@ -106,8 +107,11 @@ int mail_bang __P((int argc, char **argv));	/* command ! */
 int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_get_argcv __P((const char *command, int *argc, char ***argv));
-int util_expand_msglist __P((const int argc, const char **argv, int **list));
+int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd));
+int util_msglist_command __P((int (*func)(int, char**), int argc, char **argv));
+int* util_command_get __P((char *cmd));
+int util_free_argv __P((int argc, char **argv));
 
 #ifdef __cplusplus
 }

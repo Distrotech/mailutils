@@ -26,15 +26,7 @@ mail_delete (int argc, char **argv)
 {
   if (argc > 1)
     {
-      int i;
-      int *list;
-      int total = util_expand_msglist (argc, argv, &list);
-      for (i = 0; i < total; i++)
-	{
-	  /* if (mailbox_delete (mbox, list[i]) != 0)
-	   return 1;*/
-	}
-      return 0;
+      return util_msglist_command (mail_delete, argc, argv);
     }
   else if (/* mailbox_delete (mbox, list[cursor]) == */ 0)
     return 0;

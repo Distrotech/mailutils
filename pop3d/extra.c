@@ -86,7 +86,8 @@ pop3_cmd (const char *cmd)
 int
 pop3_abquit (int reason)
 {
-  mbox_close(mbox);
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
   
   switch (reason)
     {

@@ -22,8 +22,12 @@
 int
 pop3_retr (const char *arg)
 {
-  int mesg;
+  unsigned int mesg, size;
   char *buf;
+  message_t msg;
+  header_t hdr;
+  body_t body;
+  stream_t stream;
 
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -33,15 +37,33 @@ pop3_retr (const char *arg)
 
   mesg = atoi (arg) - 1;
 
+#ifdef OLD_API
   if (mesg >= mbox->messages || mbox_is_deleted(mbox, mesg))
     return ERR_NO_MESG;
+#endif
 
-  buf = mbox_get_header (mbox, mesg);
-  fprintf (ofile, "+OK\r\n%s\r\n", buf);
-  free (buf);
-  buf = mbox_get_body (mbox, mesg);
+  if (mailbox_get_message (mbox, mesg, &msg) != 0)
+    return ERR_NO_MESG;
+
+  message_get_header (msg, &hdr);
+  message_get_body (msg, &body);
+
+  /* Header */
+  header_get_stream (hdr, &stream);
+  header_size (hdr, &size);
+  buf = malloc (size);
+  stream_read (stream, buf, size, 0, NULL);
+  fprintf (ofile, "+OK\r\n%s", buf);
+  free(buf);
+
+  /* body */
+  body_get_stream (body, &stream);
+  body_lines (body, &size);
+  buf = malloc (size);
+  stream_read (stream, buf, size, 0, NULL);
   fprintf (ofile, "%s.\r\n", buf);
   free (buf);
+
   return OK;
 }
 

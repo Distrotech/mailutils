@@ -1,5 +1,5 @@
 CFLAGS = -Wall -pedantic -g -DTESTING
-INCLUDES = -I${top_srcdir}/mailbox/include/public -I${top_srcdir}/lib
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib
 
 bin_PROGRAMS = mail
 

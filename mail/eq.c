@@ -24,6 +24,6 @@
 int
 mail_eq (int argc, char **argv)
 {
-  printf ("%d\n", cursor);
+  printf ("%d\n", realcursor);
   return 0;
 }

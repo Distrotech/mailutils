@@ -25,8 +25,14 @@
 int
 mail_print (int argc, char **argv)
 {
-#ifdef OLD_WAY
-  if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+  message_t mesg;
+  header_t hdr;
+  body_t body;
+  stream_t stream;
+
+  if (argc > 1)
+    return util_msglist_command (mail_print, argc, argv);
+  else if (mailbox_get_message (mbox, cursor, &mesg) != 0)
     printf ("Couldn't read message %d\n", cursor);
   else if (message_get_header (mesg, &hdr) != 0)
     printf ("Couldn't read message header on message %d\n", cursor);
@@ -56,6 +62,7 @@ mail_print (int argc, char **argv)
       stream_read (stream, buf, len, 0, NULL);
       printf ("\n%s\n", buf);
       free (buf);
-#endif
+    }
+
   return 1;
 }

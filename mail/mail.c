@@ -114,9 +114,11 @@ int
 main (int argc, char **argv)
 {
   char *command = NULL;
+  char *from[] = { "from", "*" };
   struct arguments args;
 
   cursor = 1;
+  realcursor = cursor;
 
   args.exist = 0;
   args.print = 0;
@@ -155,10 +157,16 @@ main (int argc, char **argv)
 	exit (0);
     }
 
+  /* mail_from (2, from); */
+  /* FIXME: this is bad form */
+  for (cursor=1; cursor < total; cursor++)
+    mail_from (1, from);
+  cursor = realcursor;
+
   while (1)
     {
       free (command);
-      command = readline ("mail> ");
+      command = readline ("? ");
       util_do_command (command);
       add_history (command);
     }

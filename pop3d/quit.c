@@ -27,8 +27,9 @@ pop3_quit (const char *arg)
 
   if (state == TRANSACTION)
     {
-      mbox_expunge (mbox);
-      mbox_close (mbox);
+      mailbox_expunge (mbox);
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
       syslog (LOG_INFO, "Session ended for user: %s", username);
     }
   else
@@ -41,3 +42,7 @@ pop3_quit (const char *arg)
   fprintf (ofile, "+OK\r\n");
   return OK;
 }
+
+
+
+
