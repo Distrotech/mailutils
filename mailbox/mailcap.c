@@ -312,7 +312,7 @@ mu_mailcap_entry_needsterminal (mu_mailcap_entry_t entry, int *on)
 }
 
 int
-mu_mailcap_entry_coupiousoutput (mu_mailcap_entry_t entry, int *on)
+mu_mailcap_entry_copiousoutput (mu_mailcap_entry_t entry, int *on)
 {
   int status = 0;
   int found = 0;
