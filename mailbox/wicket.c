@@ -52,8 +52,18 @@ static int   get_user         __P ((url_t, const char *, char **));
 int
 wicket_create (wicket_t *pwicket, const char *filename)
 {
+  struct stat st;
+
   if (pwicket == NULL)
     return EINVAL;
+
+  if (filename)
+    {
+      if (stat (filename, &st) == -1)
+	return errno;
+      if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
+	return MU_ERR_UNSAFE_PERMS;
+    }
 
   *pwicket = calloc (1, sizeof (**pwicket));
   if (*pwicket == NULL)
@@ -249,15 +259,9 @@ get_ticket (url_t url, const char *user, const char *filename, url_t * ticket)
   FILE *fp = NULL;
   size_t buflen = 128;
   char *buf = NULL;
-  struct stat st;
 
   if (!filename || !url)
     return EINVAL;
-
-  if (stat (filename, &st) == -1)
-    return errno;
-  if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
-    return MU_ERR_UNSAFE_PERMS;
 
   fp = fopen (filename, "r");
 
