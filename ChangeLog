@@ -15,6 +15,7 @@
 	  to mailer_send_message() and mu-message-send provide all the
           required functionality.
 
+	* libmu_scm/mu_message.c: Optional parameters may be #f.
 	* pop3d/popauth.c: Reset the user privileges in case popauth is
 	  installed setuid.
 
