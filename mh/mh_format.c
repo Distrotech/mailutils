@@ -241,7 +241,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    strobj_free (&mach.arg_str);
 	    if (value)
 	      {
-		int len = strlen (value);
+		size_t len = strlen (value);
 		mach.arg_str.size = len + 1;
       		compress_ws (value, &len);
 		mach.arg_str.ptr = value;
