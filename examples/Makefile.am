@@ -12,7 +12,7 @@ noinst_PROGRAMS = \
  http\
  mta
 
-moddir=$(datadir)
+moddir=$(libdir)/$(PACKAGE)
 mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib
