@@ -254,7 +254,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 
   /* Other utilities may not understand GNU mailutils url namespace, so
      use FOLDER instead, to not confuse others by using MAIL.  */
-  if (mail == NULL)
+  if (mail == NULL || *mail == '\0')
     mail = getenv ("FOLDER");
 
   /* Fallback to wellknown environment.  */
