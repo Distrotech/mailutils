@@ -69,6 +69,8 @@ instr_run (sieve_machine_t mach)
   list_t tag_list = SIEVE_ARG (mach, 2, list);
   int rc = 0;
   
+  SIEVE_ADJUST(mach, 4);
+
   if (INSTR_DEBUG (mach))
     {
       sieve_debug (mach, "Arguments: ");
@@ -80,7 +82,6 @@ instr_run (sieve_machine_t mach)
 
   if (!INSTR_DISASS(mach))
     rc = han (mach, arg_list, tag_list);
-  SIEVE_ADJUST(mach, 4);
   return rc;
 }
 
