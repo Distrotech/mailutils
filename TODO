@@ -19,8 +19,6 @@ IMPORTANT:
 
 [pop3]
 
-- SSL support
-
 - pop3d_readline - should this use select(), avoid the race condition,
   and touch the lockfile in time intervals smaller than
   MU_LOCKER_EXPIRE_TIME?

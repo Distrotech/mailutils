@@ -1,7 +1,11 @@
 2003-01-14  Wojciech Polak
 
-	doc/rfc/Makefile.am: Added rfc2595.txt
-	TODO: Updated.
+	* pop3d/pop3d.h (ERR_TLS_ACTIVE, TLS_ACTIVE): New defines.
+	* pop3d/pop3d.c: Added support for ERR_TLS_ACTIVE.
+	* pop3d/stls.c: Likewise.
+
+	* doc/rfc/Makefile.am: Added rfc2595.txt
+	* TODO: Updated.
 
 2003-01-13  Wojciech Polak
 
