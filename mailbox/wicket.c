@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -144,7 +145,7 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass, const ch
     }
 
   ticket_set_destroy (*pticket, myticket_destroy, NULL);
-  ticket_set_pop (*pticket, myticket_pop, NULL);
+  status = ticket_set_pop (*pticket, myticket_pop, NULL);
   ticket_set_data (*pticket, mdata, NULL);
 
   if (filename)
@@ -248,10 +249,15 @@ get_ticket (url_t url, const char *user, const char *filename, url_t * ticket)
   FILE *fp = NULL;
   size_t buflen = 128;
   char *buf = NULL;
-
+  struct stat st;
 
   if (!filename || !url)
     return EINVAL;
+
+  if (stat (filename, &st) == -1)
+    return errno;
+  if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
+    return MU_ERR_UNSAFE_PERMS;
 
   fp = fopen (filename, "r");
 
