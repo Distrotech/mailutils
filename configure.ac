@@ -426,7 +426,8 @@ AC_SUBST(BUILD_MH_EXEC_HOOK)
 
 MU_ENABLE_SUPPORT(mh,
                   [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
-                   BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
+                   BUILD_MH_LIBRARIES='$(LIBRARIES_MH)';
+                   BUILD_MH_EXEC_HOOK=mh_finish_install])
 
 dnl AC_ARG_ENABLE([experimental],
 dnl               AC_HELP_STRING([--enable-experimental],
@@ -440,11 +441,20 @@ AC_ARG_ENABLE([mh-utils],
               [MU_BUILD_MH="${enableval}"],
               [MU_BUILD_MH=no])
 
+AC_SUBST(MH_BIN_DIR)
 if test ".$MU_BUILD_MH" = ".no"; then
 	BUILD_MH_PROGRAMS=
 	BUILD_MH_LIBRARIES=
+	BUILD_MH_EXEC_HOOK=
 else
-        BUILD_MH_EXEC_HOOK=mh_finish_install
+	AC_ARG_WITH([mh-bindir],
+		    AC_HELP_STRING([--with-mh-bindir],
+                                   [Set the directory where to install the MH binaries. If it starts with '/' it is taken as an absolute path specification, otherwise ${prefix} is prepended to it. (Default: ${exec_prefix}/bin/mu-mh)]),
+		    [case "${withval}" in
+		     /*)  MH_BIN_DIR=${withval};;
+                     *)   MH_BIN_DIR="\${prefix}/${withval}";;
+                     esac],
+                    [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
 fi
 
 if test x"$testpam" = x"yes"; then
