@@ -21,6 +21,8 @@
 * mail.local::        Deliver Mail to the Local Mailbox.
 * mail.remote::       Pseudo-Sendmail Interface for Mail Delivery.
 
+* mimeview::          Universal File Viewer.
+
 * pop3d::             POP3 Daemon.
 * imap4d::            IMAP4 Daemon.
 * comsatd::           Comsat Daemon.
@@ -1479,6 +1481,12 @@ the composed message to the sender and all recipients of the message.
 Like @code{reply}, except that the composed message is sent only to
 originators of the specified messages.
 
+Notice, that setting mail variable @code{flipr} (@pxref{Mail
+Variables}) swaps the meanings of the two above commands,
+so that @code{reply} sends the message to the sender and all
+recipients of the message, whereas @code{Reply} sends it to
+originators only.
+
 @item followup [@var{msglist}]
 @itemx fo [@var{msglist}]
 
@@ -1762,14 +1770,6 @@ set
 Following variables control the behavior of @sc{gnu} @command{mail}:
 
 @table @code
-@item Sign
-@*Type: String.
-@*Default: Unset.
-@vrindex Sign, mail variable
-
-Contains the filename holding users signature. The contents of this
-file is appended to the end of a message being composed by @code{~A}
-escape.
 @item appenddeadletter
 @*Type: Boolean.
 @*Default: False.
@@ -1817,6 +1817,14 @@ Automatically incorporate newly arrived messages.
 
 Causes the delete command to behave like dp - thus, after deleting a
 message, the next one will be typed automatically.
+
+@item bang
+@*Type: Boolean.
+@*Default: False.
+@vrindex bang, mail variable
+
+When set, every occurrence of @code{!} in arguments to @code{!}
+command is replaced with the last executed command.
 
 @item datefield
 @*Type: Boolean.
@@ -1925,6 +1933,14 @@ the headers.
 If defined, the first character of this option gives the character to
 denoting escapes.
 
+@item flipr
+@*Type: Boolean
+@*Default: Unset
+@vrindex flipr, mail variable
+
+The variable @code{flipr} if set swaps the meanings of @code{reply}
+and @code{Reply} commands (@pxref{Replying}).
+
 @item folder
 @*Type: String.
 @*Default: Unset.
@@ -2003,6 +2019,21 @@ will exit with zero status. By default it exits with zero status only
 if the message was sent successfully.
 @end itemize
 
+@item metamail
+@*Type: String.
+@*Default: Unset.
+@vrindex metamail, mail variable
+
+This variable controls operation of @code{decode} command. When
+it is set, @code{decode} it contains the command line of
+@command{metamail} command that is to be used to display parts of
+a multipart message. For example:
+
+@smallexample
+set metamail="metamail -m mail -p"
+@end smallexample
+
+
 @item metoo
 @*Type: Boolean.
 @*Default: False.
@@ -2018,14 +2049,6 @@ be included in the group.
 @vrindex mode, mail variable
 
 Setting this variable does not affect the operation mode of the program.
-
-@item regex
-@*Type: Boolean.
-@*Default: True.
-@vrindex regex, mail variable
-
-Setting this to @code{True} enables use of regular expressions in
-@samp{/.../} message specifications.
 
 @item outfolder
 @*Type: String.
@@ -2072,6 +2095,14 @@ configuration file upon startup. See @ref{Mail Configuration Files}.
 @vrindex record, mail variable
 
 When set, any outgoing message will be saved to the named file.
+
+@item regex
+@*Type: Boolean.
+@*Default: True.
+@vrindex regex, mail variable
+
+Setting this to @code{True} enables use of regular expressions in
+@samp{/.../} message specifications.
 
 @item replyprefix
 @*Type: String
@@ -2125,6 +2156,15 @@ This variable contains the number of lines on terminal screen.
 
 Contains the URL of mail transport agent.
 
+@item Sign
+@*Type: String.
+@*Default: Unset.
+@vrindex Sign, mail variable
+
+Contains the filename holding users signature. The contents of this
+file is appended to the end of a message being composed by @code{~A}
+escape.
+
 @item sign
 @*Type: String.
 @*Default: Unset.
@@ -2133,6 +2173,15 @@ Contains the URL of mail transport agent.
 Contains the user's signature. The contents of this variable is appended
 to the end of a message being composed by @code{~a} escape. Use
 @code{Sign} variable, if your signature occupies more than one line.
+
+@item showto
+@*Type: Boolean
+@*Default: unset
+@vrindex showto, mail variable
+
+If this variable is set, @command{mail} will show @code{To:} addresses
+instead of @code{From:} for all messages that come from the user that
+invoked the program.
 
 @item subject
 @*Type: String.
@@ -3245,6 +3294,13 @@ To summarize this, here is a working @file{mailutils.rc} entry for
 @pindex mail.remote
 
 [FIXME]
+
+@page
+@node mimeview
+@section mimeview
+@pindex mimeview
+
+FIXME
 
 @page
 @node pop3d
