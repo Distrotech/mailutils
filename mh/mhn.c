@@ -1555,8 +1555,6 @@ normalize_path (char *cwd, char *path)
   len = strlen (cwd);
   if (strlen (path) < len || memcmp (path, cwd, len))
     sfree (&path);
-  else
-    memmove (path, path + len + 1, strlen (path) - len);
   free (pcwd);
   return path;
 }
