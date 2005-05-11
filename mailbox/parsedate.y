@@ -128,7 +128,7 @@ struct pd_date
   int ordinal;
 };
 
-#define DATE_INIT(date) date.mask = 0
+#define DATE_INIT(date) memset(&(date), 0, sizeof(date))
 #define DATE_SET(date, memb, m, val) \
  do { date . memb = val; date.mask |= m; } while (0)
 
