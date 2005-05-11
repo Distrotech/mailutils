@@ -1,3 +1,9 @@
+2005-05-11  Sergey Poznyakoff 
+
+	* mailbox/parsedate.y (DATE_INIT): Bugfix. Several fields in
+	struct pd_date are used regardless of .mask, so it is better to
+	zero out the entire structure.
+
 2005-03-25  Sergey Poznyakoff 
 
 	* NEWS: Updated
