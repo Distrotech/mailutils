@@ -1,0 +1,44 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2005, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+# Mailutils versions prior to 0.6.1 allowed to use any numbers in message
+# sets, even those greater than the maximum id (message number or uid),
+# available in the mailbox.
+# Reported: by idefense.com on Thu, 12 May 2005 13:30:06 -0400
+# References: <FB24803D1DF2A34FA59FC157B77C9705043322C1@IDSERV04.idef.com>
+
+imap4d_start 
+imap4d_auth "user!passwd" "guessme"
+
+imap4d_test "SELECT mbox1" \
+"5 EXISTS"\
+"5 RECENT"\
+-re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
+"OK \[UIDNEXT 6\] Predicted next uid"\
+"OK \[UNSEEN 1\] first unseen messsage"\
+"FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
+"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
+"OK"
+
+imap4d_test "FETCH 1:4294967294 FLAGS" \
+"BAD FETCH Bogus number set"
+
+imap4d_test "UID FETCH 1:4294967294 FLAGS" \
+"BAD UID FETCH Bogus number set"
+
+# End of IDEF0955.exp
