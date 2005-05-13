@@ -16,6 +16,10 @@
 	(IDEF0957).
 
 	* doc/texinfo/sieve.texi: Fix typo
+
+	* imap4d/testsuite/imap4d/IDEF0955.exp: New test
+	* imap4d/testsuite/imap4d/IDEF0956.exp: New test
+	* imap4d/testsuite/imap4d/DISTFILES: Add new files
 	
 2005-05-11  Sergey Poznyakoff 
 
