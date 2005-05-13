@@ -1,3 +1,22 @@
+2005-05-13  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* imap4d/fetch.c (imap4d_fetch0): Reduce memory consumption within
+	the mailbox scanning loop. Break the loop when an invalid msgno is
+	encountered or the message cannot be retrieved.
+	(fetch_io): Check for integer overflow (IDEF0956).
+	(fetch_full,fetch_rfc822_header,fetch_rfc822_text)
+	(fetch_operation): Propagate return value back to the caller.
+	
+	* imap4d/util.c (util_finish): Fix potential vulnerability
+	(IDEF0954).
+	(util_msgset): Do not allow values greater than the maximum id
+	number (either message number or UID) in the mailbox. Fixes (IDEF0955).
+	
+	* mailbox/header.c (header_get_field_name): Fix buffer overflow
+	(IDEF0957).
+
+	* doc/texinfo/sieve.texi: Fix typo
+	
 2005-05-11  Sergey Poznyakoff 
 
 	* mailbox/parsedate.y (DATE_INIT): Bugfix. Several fields in
