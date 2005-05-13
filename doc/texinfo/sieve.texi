@@ -726,7 +726,7 @@ The number is expressed in kilobytes.
 @itemx M
 The number is expressed in megabytes.
 @item g
-@item G
+@itemx G
 The number is expressed in gigabytes.
 @end table
 
