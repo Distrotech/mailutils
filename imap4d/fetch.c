@@ -136,7 +136,7 @@ int
 imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 {
   struct fetch_command *fcmd = NULL;
-  int rc = RESP_NO;
+  int rc = RESP_OK;
   char *sp = NULL;
   char *msgset;
   size_t *set = NULL;
@@ -159,25 +159,29 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
       return RESP_BAD;
     }
 
-  for (i = 0; i < n; i++)
+  /* Prepare status code. It will be replaced if an error occurs in the
+     loop below */
+  snprintf (resp, resplen, "Completed");
+  
+  for (i = 0; i < n && rc == RESP_OK; i++)
     {
-      char item[32];
-      char *items = strdup (sp);
-      char *p = items;
-      size_t msgno;
-      int space = 0;
+      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
       message_t msg = NULL;
 
-      msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
       if (msgno && mailbox_get_message (mbox, msgno, &msg) == 0)
 	{
+	  char item[32];
+	  char *items = strdup (sp);
+	  char *p = items;
+	  int space = 0;
+
 	  fcmd = NULL;
 	  util_send ("* %d FETCH (", msgno);
 	  item[0] = '\0';
 	  /* Server implementations MUST implicitly
-	     include the UID message data item as part of any FETCH response
-	     caused by a UID command, regardless of whether a UID was specified
-	     as a message data item to the FETCH. */
+	     include the UID message data item as part of any FETCH
+	     response caused by a UID command, regardless of whether
+	     a UID was specified as a message data item to the FETCH. */
 	  if (isuid)
 	    {
 	      fcmd = &fetch_command_table[F_UID];
@@ -190,7 +194,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 	      util_token (item, sizeof (item), &items);
 	      /* Do not send the UID again.  */
 	      if (isuid && strcasecmp (item, "UID") == 0)
-		  continue;
+		continue;
 	      if (fcmd)
 		space = 1;
 	      /* Search in the table.  */
@@ -207,12 +211,18 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 		}
 	    }
 	  util_send (")\r\n");
+	  free (p);
 	}
-      free (p);
+      else
+	{
+	  snprintf (resp, resplen,
+		    "Bogus message set: message number out of range");
+	  rc = RESP_BAD;
+	  break;
+	}
     }
   free (set);
-  snprintf (resp, resplen, "Completed");
-  return RESP_OK;
+  return rc;
 }
 
 /* ALL:
@@ -240,8 +250,7 @@ fetch_full (struct fetch_command *command, char **arg)
   fetch_all (command, arg);
   util_send (" ");
   c_body.msg = command->msg;
-  fetch_body (&c_body, arg);
-  return RESP_OK;
+  return fetch_body (&c_body, arg);
 }
 
 /* FAST:
@@ -372,8 +381,7 @@ fetch_rfc822_header (struct fetch_command *command, char **arg ARG_UNUSED)
   char *p = buffer;
 
   strcpy (buffer, ".PEEK[HEADER]");
-  fetch_body (command, &p);
-  return RESP_OK;
+  return fetch_body (command, &p);
 }
 
 /* RFC822.TEXT:
@@ -386,8 +394,7 @@ fetch_rfc822_text (struct fetch_command *command, char **arg ARG_UNUSED)
   char *p = buffer;
 
   strcpy (buffer, "[TEXT]");
-  fetch_body (command, &p);
-  return RESP_OK;
+  return fetch_body (command, &p);
 }
 
 /* The [RFC-822] size of the message.  */
@@ -955,7 +962,8 @@ fetch_operation (message_t msg, char **arg, int silent)
   unsigned long end = ULONG_MAX; /* No limit. */
   char *section; /* Hold the section number string.  */
   char *partial = strchr (*arg, '<');
-
+  int rc;
+  
   /* Check for section specific offset.  */
   if (partial)
     {
@@ -1009,13 +1017,15 @@ fetch_operation (message_t msg, char **arg, int silent)
   else
     section = calloc (1, 1);
 
+  rc = RESP_OK;
+  
   /* Choose the right fetch attribute.  */
   if (*section == '\0' && **arg == ']')
     {
       if (!silent)
 	util_send ("[]");
       (*arg)++;
-      fetch_message (msg, start, end);
+      rc = fetch_message (msg, start, end);
     }
   else if (strncasecmp (*arg, "HEADER]", 7) == 0)
     {
@@ -1029,7 +1039,7 @@ fetch_operation (message_t msg, char **arg, int silent)
 	  util_send ("[%sHEADER]", section);
 	}
       (*arg) += 7;
-      fetch_header (msg, start, end);
+      rc = fetch_header (msg, start, end);
     }
   else if (strncasecmp (*arg, "MIME]", 5) == 0)
     {
@@ -1041,7 +1051,7 @@ fetch_operation (message_t msg, char **arg, int silent)
 	    util_send ("[%s", *arg);
 	}
       (*arg) += 5;
-      fetch_header (msg, start, end);
+      rc = fetch_header (msg, start, end);
     }
   else if (strncasecmp (*arg, "HEADER.FIELDS.NOT", 17) == 0)
     {
@@ -1052,7 +1062,7 @@ fetch_operation (message_t msg, char **arg, int silent)
       else
 	util_send ("[");
       (*arg) += 17;
-      fetch_header_fields_not (msg, arg, start, end);
+      rc = fetch_header_fields_not (msg, arg, start, end);
     }
   else if (strncasecmp (*arg, "HEADER.FIELDS", 13) == 0)
     {
@@ -1063,7 +1073,7 @@ fetch_operation (message_t msg, char **arg, int silent)
       else
 	util_send ("[");
       (*arg) += 13;
-      fetch_header_fields (msg, arg, start, end);
+      rc = fetch_header_fields (msg, arg, start, end);
     }
 
   else if (strncasecmp (*arg, "TEXT]", 5) == 0)
@@ -1076,19 +1086,22 @@ fetch_operation (message_t msg, char **arg, int silent)
 	    util_send ("[TEXT]");
 	}
       (*arg) += 5;
-      fetch_body_content (msg, start, end);
+      rc = fetch_body_content (msg, start, end);
     }
   else if (**arg == ']')
     {
       if (!silent)
 	util_send ("[%s]", section);
       (*arg)++;
-      fetch_body_content (msg, start, end);
+      rc = fetch_body_content (msg, start, end);
     }
   else
-    util_send (" \"\"");/*FIXME: ERROR Message!*/
+    {
+      util_send (" \"\"");/*FIXME: ERROR Message!*/
+      rc = RESP_BAD;
+    }
   free (section);
-  return RESP_OK;
+  return rc;
 }
 
 static int
@@ -1155,6 +1168,10 @@ fetch_io (stream_t stream, unsigned long start, unsigned long end,
 	}
       else
 	util_send (" \"\"");
+    }
+  else if (end + 2 < end) /* Check for integer overflow */
+    {
+      return RESP_BAD;
     }
   else
     {
