@@ -710,7 +710,7 @@ header_get_field_name (header_t header, size_t num, char *buf,
     {
       /* save one for the null */
       --buflen;
-      len = (len > buflen) ? len : len;
+      len = (len > buflen) ? buflen : len;
       memcpy (buf, header->hdr[num].fn, len);
       buf[len] = '\0';
     }
