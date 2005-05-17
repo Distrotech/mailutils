@@ -13,7 +13,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA */
 
 /* Coexistence between GNU long options, traditional UNIX-style short
    options and traditional MH long options. */
@@ -194,9 +195,12 @@ mh_license (const char *name)
     "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
     "   GNU General Public License for more details.\n"
     "\n"
-    "   You should have received a copy of the GNU General Public License\n"
-    "   along with GNU Mailutils; if not, write to the Free Software\n"
-    "   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n\n"));
+    "   You should have received a copy of the GNU General Public License along\n"
+    "   with GNU Mailutils; if not, write to the Free Software Foundation,\n"
+    "   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA\n"
+    "\n"
+    "\n"
+));
 
   exit (0);
 }

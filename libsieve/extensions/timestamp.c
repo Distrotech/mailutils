@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License
-   along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with GNU Mailutils; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 /*  Syntax:   timestamp [":before"/":after"] <header-name: string>
               <date: datestring>
@@ -36,7 +37,7 @@
     Example:  timestamp :before "X-Expire-Timestamp" "now - 5 days"
 
     This test will return true, if the date in X-Expire-Timestamp is
-    more than 5 days older than the current date. */  
+    more than 5 days older than the current date. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>

@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 #if HAVE_CONFIG_H
 # include <config.h>
@@ -781,7 +782,7 @@ mu_unroll_symlink (char *out, size_t outsz, const char *in)
    ---------+------------
 
    Allocates memory. 
-*/   
+*/
 char *
 mu_expand_path_pattern (const char *pattern, const char *username)
 {

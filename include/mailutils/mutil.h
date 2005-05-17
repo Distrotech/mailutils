@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 #ifndef _MAILUTILS_MUTIL_H
 #define _MAILUTILS_MUTIL_H
@@ -61,13 +62,13 @@ extern char * mu_tilde_expansion __P ((const char *ref, const char *delim, const
 extern size_t mu_cpystr __P ((char *dst, const char *src, size_t size));
 
 /* Get the host name, doing a gethostbyname() if possible.
- *
+ *  
  * It is the caller's responsibility to free host.
  */
 extern int mu_get_host_name __P((char **host));
 
 /* Set the default user email address.
- *
+ *  
  * Subsequent calls to mu_get_user_email() with a NULL name will return this
  * email address.  email is parsed to determine that it consists of a a valid
  * rfc822 address, with one valid addr-spec, i.e, the address must be
@@ -76,7 +77,7 @@ extern int mu_get_host_name __P((char **host));
 extern int mu_set_user_email __P ((const char *email));
 
 /* Set the default user email address domain.
- *
+ *  
  * Subsequent calls to mu_get_user_email() with a non-null name will return
  * email addresses in this domain (name@domain). It should be fully
  * qualified, but this isn't (and can't) be enforced.
@@ -89,7 +90,7 @@ extern int mu_get_user_email_domain __P ((const char** domain));
 /*
  * Get the default email address for user name. A NULL name is taken
  * to mean the current user.
- *
+ *  
  * The result must be freed by the caller after use.
  */
 extern char *mu_get_user_email __P ((const char *name));

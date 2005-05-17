@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA.  */
 
 #ifndef _STDBOOL_H
 #define _STDBOOL_H
@@ -71,7 +72,7 @@
    (see ISO C 99 6.3.1.1.(2)).  So we add a negative value to the
    enum; this ensures that '_Bool' promotes to 'int'.  */
 #if !(defined __cplusplus || defined __BEOS__)
-# if !0
+# if !1
 #  if defined __SUNPRO_C && (__SUNPRO_C < 0x550 || __STDC__ == 1)
     /* Avoid stupid "warning: _Bool is a keyword in ISO C99".  */
 #   define _Bool signed char

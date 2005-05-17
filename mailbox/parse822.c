@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 /*
 
@@ -177,7 +178,7 @@ str_free (char **s)
  * Character Classification - could be rewritten in a C library
  * independent way, my system's C library matches the RFC
  * definitions. I don't know if that's guaranteed.
- *
+ *  
  * Note that all return values are:
  *   1 -> TRUE
  *   0 -> FALSE
@@ -657,7 +658,7 @@ parse822_word (const char **p, const char *e, char **word)
 
 /* Some mailers do not quote personal part even if it contains dot.
    Try to be smart about it.
-*/	
+*/
 	
 int
 parse822_word_dot (const char **p, const char *e, char **word)

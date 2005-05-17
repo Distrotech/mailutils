@@ -13,7 +13,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA */
 
 /* MH send command */
 
@@ -431,6 +432,7 @@ fix_fcc (message_t msg)
       memmove (val + 1, val, strlen (val) + 1);
       val[0] = '+';
       header_set_value (hdr, MU_HEADER_FCC, val, 1);
+      WATCH ((_("Fixed Fcc: %s"), val));
       free (val);
     }  
 }

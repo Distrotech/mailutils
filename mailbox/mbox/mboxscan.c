@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 /* Mailbox Parsing. */
 
@@ -38,7 +39,7 @@
    The approach is to detect the "From " as start of a new message, give the
    position of the header and scan until "\n" then set header_end, set body
    position, scan until we it another "From " and set body_end.
-   ************************************
+   ************************************                                       
    This is a classic case of premature optimisation being the root of all
    Evil(Donald E. Knuth).  But I'm under "pressure" ;-) to come with
    something "faster".  I think it's wastefull * to spend time to gain a few
@@ -54,7 +55,7 @@
 /* From the C-Client, part of pine */
 /* You are not expected to understand this macro, but read the next page if
  * you are not faint of heart.
- *
+ *  
  * Known formats to the VALID macro are:
  *              From user Wed Dec  2 05:53 1992
  * BSD          From user Wed Dec  2 05:53:22 1992
@@ -66,7 +67,7 @@
  *              From user Wed Dec  2 05:53:22 1992 PST
  *              From user Wed Dec  2 05:53 1992 -0700
  * Solaris      From user Wed Dec  2 05:53:22 1992 -0700
- *
+ *  
  * Plus all of the above with `` remote from xxx'' after it. Thank you very
  * much, smail and Solaris, for making my life considerably more complicated.
  */
@@ -74,7 +75,7 @@
  * What?  You want to understand the VALID macro anyway?  Alright, since you
  * insist.  Actually, it isn't really all that difficult, provided that you
  * take it step by step.
- *
+ *  
  * Line 1       Initializes the return ti value to failure (0);
  * Lines 2-3    Validates that the 1st-5th characters are ``From ''.
  * Lines 4-6    Validates that there is an end of line and points x at it.
@@ -113,11 +114,11 @@ a
 ,
  *              and one eleven characters back (in front of the day of week).
  *              ti is set to be the offset of the space before the time.
- *
+ *  
  * Why a macro?  It gets invoked a *lot* in a tight loop.  On some of the
  * newer pipelined machines it is faster being open-coded than it would be if
  * subroutines are called.
- *
+ *  
  * Why does it scan backwards from the end of the line, instead of doing the
  * much easier forward scan?  There is no deterministic way to parse the
  * ``user'' field, because it may contain unquoted spaces!  Yes, I tested it t

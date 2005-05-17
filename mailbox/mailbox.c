@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -150,8 +151,8 @@ mailbox_destroy (mailbox_t *pmbox)
       /* Close the stream and nuke it */
       if (mbox->stream)
 	{
-	  /* FIXME:  Is this right, should be the client responsabilty to close
-	     the stream?  */
+	  /* FIXME: Is this right, should the client be responsible
+	     for closing the stream?  */
 	  /* stream_close (mbox->stream); */
 	  stream_destroy (&(mbox->stream), mbox);
 	}

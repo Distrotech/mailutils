@@ -11,9 +11,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -416,7 +417,7 @@ mu_authentication_add_module_list (const char *modlist)
    2) --authentication and --authorization modify only temporary lists,
       which get flushed to the main ones when mu_auth_finish_setup() is
       run. Thus, the default "generic:system" remain in force until
-      argp_parse() exits. */ 
+      argp_parse() exits. */
    
 void
 mu_auth_begin_setup ()
