@@ -1,32 +1,23 @@
-# Ukrainian messages for GNU mailutils -*- mode: po; buffer-file-coding-system: utf-8; default-input-method: cyrillic-translit -*-
+# Ukrainian messages for GNU mailutils
 # Copyright (C) 2005 Free Software Foundation, Inc.
 # Sergey Poznyakoff <gray@gnu.org>, 2005.
 #
-# Local Variables:
-# Local IspellDict: ukrainian
-# End:
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.1\n"
+"Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2005-05-17 15:23+0300\n"
-"PO-Revision-Date: 2005-03-15 02:17+0200\n"
+"PO-Revision-Date: 2005-05-19 11:54+0300\n"
 "Last-Translator: Sergey Poznyakoff <gray@gnu.org>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: config/mailutils-config.c:28
-msgid ""
-"GNU mailutils-config -- Display compiler and loader options needed for "
-"building a program with mailutils"
-msgstr ""
-"GNU mailutils-config -- Виводить опції компілятора та завантажувача "
-"необхідні для використання mailutils в іншій програмі"
+msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
+msgstr "GNU mailutils-config -- Виводить опції компілятора та завантажувача необхідні для використання mailutils в іншій програмі"
 
 #: config/mailutils-config.c:29
 msgid "[arg...]"
@@ -37,26 +28,12 @@ msgid "Print C compiler flags to compile with"
 msgstr "Виводить опції компілятора C"
 
 #: config/mailutils-config.c:35
-msgid ""
-"Print libraries to link with. Possible arguments are: auth, guile, all, "
-"mbox, mh, maildir, imap, pop"
-msgstr ""
-"Виводить опції завантажувача та потрібні бібліотеки. Дозволені аргументи: "
-"auth, guile, all, mbox, mh, maildir, imap, pop"
+msgid "Print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
+msgstr "Виводить опції завантажувача та потрібні бібліотеки. Дозволені аргументи: auth, guile, all, mbox, mh, maildir, imap, pop"
 
 #: config/mailutils-config.c:38
-msgid ""
-"Print a list of configuration options used to build mailutils. If arguments "
-"are given, they are interpreted as a list of configuration options to check "
-"for. In this case the program prints those options from this list that have "
-"been defined. It exits with zero status if all of the specified options are "
-"defined. Otherwise, the exit status is 1."
-msgstr ""
-"Виводить перелік конфігураційних опцій, використаних під час компіляції "
-"mailutils. Аргументи, якщо вони вказані, трактуються як список опцій що "
-"треба перевірити. У такому разі програма виводить такі опції з цього списку, "
-"що були визначені під час компіляції. Програма повертає код 0 якщо усі "
-"вказані опції були визначені. Інакше повертається код 1."
+msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
+msgstr "Виводить перелік конфігураційних опцій, використаних під час компіляції mailutils. Аргументи, якщо вони вказані, трактуються як список опцій що треба перевірити. У такому разі програма виводить такі опції з цього списку, що були визначені під час компіляції. Програма повертає код 0 якщо усі вказані опції були визначені. Інакше повертається код 1."
 
 #: config/mailutils-config.c:126 frm/from.c:129 mh/folder.c:568
 msgid "Too many arguments"
@@ -129,12 +106,8 @@ msgid "Port to use"
 msgstr "Порт SQL"
 
 #: auth/sql.c:203
-msgid ""
-"Type of password returned by --sql-getpass query. STRING is one of: plain, "
-"hash, scrambled"
-msgstr ""
-"Тип паролю що його повертає запит --sql-getpass. РЯДОК є одним з: plain, "
-"hash, scrambled"
+msgid "Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"
+msgstr "Тип паролю що його повертає запит --sql-getpass. РЯДОК є одним з: plain, hash, scrambled"
 
 #: auth/sql.c:215
 #, c-format
@@ -417,14 +390,8 @@ msgstr "Користувач не існує: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: dotlock/dotlock.c:38
-msgid ""
-"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
-"file fails because it's already locked, and 1 if some other kind of error "
-"occurred."
-msgstr ""
-"GNU dotlock -- блокує поштові скринькиПовертає 0 у випадку успішного "
-"завершення операції, 3 якщо скриньку вже заблоковано і 1 якщо сталася якась "
-"помилка."
+msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
+msgstr "GNU dotlock -- блокує поштові скринькиПовертає 0 у випадку успішного завершення операції, 3 якщо скриньку вже заблоковано і 1 якщо сталася якась помилка."
 
 #: dotlock/dotlock.c:47
 msgid "Unlock"
@@ -436,9 +403,7 @@ msgstr "ХВИЛИНИ"
 
 #: dotlock/dotlock.c:50
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr ""
-"Скасувати існуюче блокування якщо його створено пізніше за вказану кількість "
-"хвилин"
+msgstr "Скасувати існуюче блокування якщо його створено пізніше за вказану кількість хвилин"
 
 #: dotlock/dotlock.c:52
 msgid "RETRIES"
@@ -516,14 +481,8 @@ msgstr "прочитане"
 #. differ by the first letter.
 #.
 #: frm/frm.c:62
-msgid ""
-"Select messages with the specific attribute. STATUS is one of the following: "
-"new, unread, old (same as unread) or read. Any unambiguous abbreviation of "
-"those is also accepted."
-msgstr ""
-"Вибрати повідомлення, що мають вказаний стан. Стан є одним з наступних: "
-"нове, непрочитане, старе (те ж саме, що непрочитане), прочитане, або будь-"
-"яке однозначне скорочення цих слів."
+msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
+msgstr "Вибрати повідомлення, що мають вказаний стан. Стан є одним з наступних: нове, непрочитане, старе (те ж саме, що непрочитане), прочитане, або будь-яке однозначне скорочення цих слів."
 
 #: frm/frm.c:127
 #, c-format
@@ -633,9 +592,7 @@ msgstr "В цій теці немає повідомлень!\n"
 
 #: frm/from.c:26
 msgid "GNU from -- display from and subject"
-msgstr ""
-"GNU from -- виводить адреси відправника (заголовок From) і теми (заголовок "
-"Subject) повідомлень"
+msgstr "GNU from -- виводить адреси відправника (заголовок From) і теми (заголовок Subject) повідомлень"
 
 #: frm/from.c:29
 msgid "Just print a count of messages and exit"
@@ -647,9 +604,7 @@ msgstr "АДРЕСА"
 
 #: frm/from.c:31
 msgid "Print only mail from addresses containing the supplied string"
-msgstr ""
-"Виводити лише такі повідомлення, що надійшли з адрес які містять вказаний "
-"рядок"
+msgstr "Виводити лише такі повідомлення, що надійшли з адрес які містять вказаний рядок"
 
 #: frm/from.c:33
 msgid "Read mail from FILE"
@@ -746,9 +701,7 @@ msgstr "Неможливо відкрити вхідну скриньку %s: %s
 msgid ""
 "The following switches stop argument processing, and pass all\n"
 "remaining arguments as the value of (command-line):"
-msgstr ""
-"Подальші опції зупиняють обробку аргументів. Решта аргументів передається "
-"програмі через значення (command-line):"
+msgstr "Подальші опції зупиняють обробку аргументів. Решта аргументів передається програмі через значення (command-line):"
 
 #: guimb/main.c:59 guimb/main.c:64
 msgid "EXPR"
@@ -795,12 +748,8 @@ msgid "Act as local MDA for user NAME"
 msgstr "Режим локального MDA для вказаного користувача"
 
 #: guimb/main.c:126
-msgid ""
-"GNU guimb -- Process the contents of the specified mailboxes using a Scheme "
-"program or expression."
-msgstr ""
-"GNU guimb -- Оброблює вміст поштових скриньок використовуючи програму або "
-"вираз Scheme."
+msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
+msgstr "GNU guimb -- Оброблює вміст поштових скриньок використовуючи програму або вираз Scheme."
 
 #: guimb/main.c:128 messages/messages.c:35
 msgid "[mailbox...]"
@@ -808,9 +757,7 @@ msgstr "[скринька...]"
 
 #: guimb/main.c:170
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr ""
-"Необхідно вказати принаймні одну з опцій `-fecs'. Спробуйте `guimb --help' "
-"щоб отримати більш детальний опис."
+msgstr "Необхідно вказати принаймні одну з опцій `-fecs'. Спробуйте `guimb --help' щоб отримати більш детальний опис."
 
 #: guimb/util.c:51 guimb/util.c:58 mail/util.c:687 mail/util.c:694
 #, c-format
@@ -1536,8 +1483,7 @@ msgstr "Пошти для %s немає\n"
 #: mail/mail.c:537
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU Mailutils -- набір знарядь для електронної пошти\n"
@@ -1546,7 +1492,7 @@ msgstr ""
 "\n"
 
 #: mail/mail.c:541 mailbox/mu_argp.c:254 mh/mh_argp.c:188
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
 "   it under the terms of the GNU General Public License as published by\n"
@@ -1576,8 +1522,10 @@ msgstr ""
 "\n"
 "   Разом з GNU mailutils ви повинні були отримати копію GNU General\n"
 "   Public License; якщо це не так, напишіть до Free Software\n"
-"   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, "
-"USA.\n"
+"   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,\n"
+"   USA\n"
+"\n"
+"\n"
 
 #: mail/mailline.c:402 mail/mailline.c:430 mail/mailline.c:477
 #: mail/mailline.c:513
@@ -1793,8 +1741,7 @@ msgstr "Неможливо відкрити файл реєстрації вих
 
 #: mail/util.c:954
 msgid "Not enough memory for creating save file"
-msgstr ""
-"Недостатньо пам'яті для створення файлу реєстрації вихідних повідомлень"
+msgstr "Недостатньо пам'яті для створення файлу реєстрації вихідних повідомлень"
 
 #: mail/util.c:1039
 #, c-format
@@ -1971,8 +1918,7 @@ msgstr "Не повертати код помилки під час достав
 
 #: mail.local/main.c:78
 msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr ""
-"Повертати код тимчасової помилки якщо перевищено обмеження розміру скриньки"
+msgstr "Повертати код тимчасової помилки якщо перевищено обмеження розміру скриньки"
 
 #: mail.local/main.c:79 mailbox/mu_argp.c:90
 msgid "EMAIL"
@@ -1999,11 +1945,8 @@ msgid "Set name pattern for user-defined Sieve mail filters"
 msgstr "Шаблон назв поштових фільтрів користувачів у форматі sieve"
 
 #: mail.local/main.c:93
-msgid ""
-"Identify messages by the value of this header when logging Sieve actions"
-msgstr ""
-"Використовувати значення цього заголовка для розрізнення повідомлень під час "
-"протоколювання дій Sieve"
+msgid "Identify messages by the value of this header when logging Sieve actions"
+msgstr "Використовувати значення цього заголовка для розрізнення повідомлень під час протоколювання дій Sieve"
 
 #: mail.local/main.c:96
 msgid "Set name pattern for user-defined Scheme mail filters"
@@ -2064,8 +2007,7 @@ msgstr "mu_debug_set_print не вдалася: %s\n"
 
 #: mail.local/main.c:371
 msgid "Missing arguments. Try --help for more info."
-msgstr ""
-"Не вистачає аргументів. Спробуйте --help щоб отримати більш детальний опис."
+msgstr "Не вистачає аргументів. Спробуйте --help щоб отримати більш детальний опис."
 
 #: mail.local/main.c:423 mail.local/script.c:94
 #, c-format
@@ -2134,9 +2076,7 @@ msgstr "Не вдається встановити розмір потоку (в
 #: mail.local/main.c:768
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr ""
-"%s: доставка повідомлення перевищила-б обмеження розміру скриньки для цього "
-"одержувача"
+msgstr "%s: доставка повідомлення перевищила-б обмеження розміру скриньки для цього одержувача"
 
 #: mail.local/main.c:821
 #, c-format
@@ -2197,15 +2137,13 @@ msgid ""
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 msgstr ""
 "GNU mail.remote -- інтерфейс доставки пошти сумісний з sendmail\n"
-"Ця програма призначена для доставки пошти безпосередньо до віддаленого "
-"сервера SMTP. Її можна використовувати як просту заміну sendmail.\n"
+"Ця програма призначена для доставки пошти безпосередньо до віддаленого сервера SMTP. Її можна використовувати як просту заміну sendmail.\n"
 "Програма вимагає вказання відправника через опцію --mailer (найкраще\n"
 "зробить це у Вашому конфігураційному файлі).\n"
 "\n"
 "Приклади:\n"
 "\n"
-"Доставити повідомлення до серверу \"mail.exemple.com\". Прочитати адреси "
-"одержувачів з заголовків повідомлення.\n"
+"Доставити повідомлення до серверу \"mail.exemple.com\". Прочитати адреси одержувачів з заголовків повідомлення.\n"
 "\n"
 "   mail.remote --mailer smtp://mail.example.com -t\n"
 "\n"
@@ -2213,8 +2151,7 @@ msgstr ""
 "\n"
 "   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
 "\n"
-"Доставити повідомлення до \"devnull@foo.bar\" а також до одержувачів "
-"вказаних у заголовках повідомлення:\n"
+"Доставити повідомлення до \"devnull@foo.bar\" а також до одержувачів вказаних у заголовках повідомлення:\n"
 "\n"
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 
@@ -2231,12 +2168,8 @@ msgid "Read message for recipients."
 msgstr "Отримати адреси одержувачів з заголовків повідомлення"
 
 #: mail.remote/mail.remote.c:77
-msgid ""
-"Print envelope commands in the SMTP protocol transaction. If specified more "
-"than once, the data part of the protocol transaction will also be printed."
-msgstr ""
-"Виводити команди пересилання конверту під час трансакції SMTP. Вказана більш "
-"ніж один раз, ця опція вмикає також вивід трансакції даних."
+msgid "Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed."
+msgstr "Виводити команди пересилання конверту під час трансакції SMTP. Вказана більш ніж один раз, ця опція вмикає також вивід трансакції даних."
 
 #: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
 msgid "OPT"
@@ -2365,11 +2298,8 @@ msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Хибні дані в ARGP_HELP_FMT: %s"
 
 #: mailbox/argp-help.c:1195
-msgid ""
-"Mandatory or optional arguments to long options are also mandatory or "
-"optional for any corresponding short options."
-msgstr ""
-"Аргументи, обов'язкові для довгих ключів, є обов'язковими й для коротких."
+msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
+msgstr "Аргументи, обов'язкові для довгих ключів, є обов'язковими й для коротких."
 
 #: mailbox/argp-help.c:1582
 msgid "Usage:"
@@ -2386,8 +2316,7 @@ msgstr " [ОПЦІЯ...]"
 #: mailbox/argp-help.c:1625
 #, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
-msgstr ""
-"Спробуйте `%s --help' або `%s --usage' для отримання докладнішого опису.\n"
+msgstr "Спробуйте `%s --help' або `%s --usage' для отримання докладнішого опису.\n"
 
 #: mailbox/argp-help.c:1653
 #, c-format
@@ -2493,8 +2422,7 @@ msgstr "URL системного поштового каталогу"
 
 #: mailbox/mu_argp.c:76
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
-msgstr ""
-"Типові ознаки блокування (E=зовнішня, R=повторення спроб, T=час, P=pid)"
+msgstr "Типові ознаки блокування (E=зовнішня, R=повторення спроб, T=час, P=pid)"
 
 #: mailbox/mu_argp.c:77 mailbox/mu_argp.c:81 mh/send.c:67 pop3d/pop3d.c:77
 msgid "SECONDS"
@@ -2510,8 +2438,7 @@ msgstr "Встановити обмеження кількості спроб б
 
 #: mailbox/mu_argp.c:82
 msgid "Number of seconds after which the lock expires"
-msgstr ""
-"Встановити кількість секунд, протягом якої файл блокування вважається дійсним"
+msgstr "Встановити кількість секунд, протягом якої файл блокування вважається дійсним"
 
 #: mailbox/mu_argp.c:83
 msgid "PATH"
@@ -2551,9 +2478,7 @@ msgstr "Переказувати протоколи до устаткуванн�
 
 #: mailbox/mu_argp.c:115
 msgid "Runs in daemon mode with a maximum of NUMBER children"
-msgstr ""
-"Запуститися у фоновому режимі з вказаним обмеженням кількості процесів-"
-"нащадків"
+msgstr "Запуститися у фоновому режимі з вказаним обмеженням кількості процесів-нащадків"
 
 #: mailbox/mu_argp.c:117
 msgid "Run in inetd mode"
@@ -2631,14 +2556,11 @@ msgstr "%s: недостатньо пам'яті\n"
 #: mailbox/mu_argp.c:892
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
-msgstr ""
-"ВНУТРІШНЯ ПОМИЛКА: вимагання невідомої можливості %s (будь ласка повідомте)"
+msgstr "ВНУТРІШНЯ ПОМИЛКА: вимагання невідомої можливості %s (будь ласка повідомте)"
 
 #: mailbox/mu_argp.c:955
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr ""
-"ВНУТРІШНЯ ПОМИЛКА: не вдається зареєструвати можливість argp auth (будь "
-"ласка повідомте)"
+msgstr "ВНУТРІШНЯ ПОМИЛКА: не вдається зареєструвати можливість argp auth (будь ласка повідомте)"
 
 #: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
 msgid "MODLIST"
@@ -2965,8 +2887,7 @@ msgstr "Назва компоненту: "
 #. in this message
 #: mh/fmtcheck.c:26
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH fmtcheckВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH fmtcheckВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
 #: mh/scan.c:45
@@ -3001,8 +2922,7 @@ msgstr "Недійсний рядок формату"
 #. in this message
 #: mh/folder.c:39
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH folderВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH folderВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/folder.c:41
 msgid "[action] [msg]"
@@ -3021,15 +2941,8 @@ msgid "List the contents of the folder stack"
 msgstr "Вивести вміст стеку тек"
 
 #: mh/folder.c:50
-msgid ""
-"Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
-"Otherwise, if a folder is given in the command line (via + or --folder), it "
-"is pushed on stack. Otherwise, the current folder and the top of the folder "
-"stack are exchanged"
-msgstr ""
-"Покласти на стек теку, що її вказано через аргумент ТЕКА або у командному "
-"рядку (через + або --folder). Якщо теку не вказано, поміняти місцями теку на "
-"вершині стеку з поточною"
+msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
+msgstr "Покласти на стек теку, що її вказано через аргумент ТЕКА або у командному рядку (через + або --folder). Якщо теку не вказано, поміняти місцями теку на вершині стеку з поточною"
 
 # Вірші...
 #: mh/folder.c:55
@@ -3090,12 +3003,8 @@ msgstr "(інші)"
 # Вирівнювання
 #: mh/folder.c:449
 #, c-format
-msgid ""
-"Folder                  # of messages     (  range  )  cur msg   (other "
-"files)\n"
-msgstr ""
-"Тека                    Кількість повідомлень     ( діапазон)  поточне   "
-"(інші)\n"
+msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
+msgstr "Тека                    Кількість повідомлень     ( діапазон)  поточне   (інші)\n"
 
 #: mh/folder.c:455
 msgid "TOTAL"
@@ -3129,8 +3038,7 @@ msgstr ""
 
 #: mh/forw.c:34 mh/repl.c:37
 msgid "* Add Replied: header to the message being replied to"
-msgstr ""
-"* Додати заголовок Replied: до повідомлення, на яке висилається відповідь"
+msgstr "* Додати заголовок Replied: до повідомлення, на яке висилається відповідь"
 
 #: mh/forw.c:36
 msgid "Build the draft and quit immediately"
@@ -3195,9 +3103,7 @@ msgstr "* Використовує вказану програму заміст�
 
 #: mh/forw.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
-msgstr ""
-"* Ігнорування змінної `whatnowproc'. Використовує стандартну програму "
-"`whatnow'"
+msgstr "* Ігнорування змінної `whatnowproc'. Використовує стандартну програму `whatnow'"
 
 #: mh/forw.c:71 mh/repl.c:70
 msgid "Use draft file preserved after the last session"
@@ -3297,10 +3203,8 @@ msgstr "%d: помилка додання повідомлення: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/install-mh.c:24
-msgid ""
-"GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH install-mhВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH install-mhВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/install-mh.c:30
 msgid "Do not ask for anything"
@@ -3310,8 +3214,7 @@ msgstr "Не запитувати нічого"
 #. in this message
 #: mh/mark.c:24
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH markВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH markВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/mark.c:33
 msgid "Specify sequence name to operate upon"
@@ -3513,11 +3416,7 @@ msgid ""
 "to direct certain MH operations.  The only item which is required\n"
 "is the path to use for all MH folder operations.  The suggested MH\n"
 "path for you is %s...\n"
-msgstr ""
-"Для використання MH Ваш домашній каталог (%s) повинен містити файл ."
-"mh_profile з необхідною для роботи MH інформацією. Єдиним обов'язковим "
-"елементом цього файлу є шлях до каталогу в якому містяться усі теки MH. "
-"Запропонований шлях: %s...\n"
+msgstr "Для використання MH Ваш домашній каталог (%s) повинен містити файл .mh_profile з необхідною для роботи MH інформацією. Єдиним обов'язковим елементом цього файлу є шлях до каталогу в якому містяться усі теки MH. Запропонований шлях: %s...\n"
 
 #: mh/mh_init.c:628
 msgid "Do you need help"
@@ -3557,8 +3456,7 @@ msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
 "Please remove it and try again"
 msgstr ""
-"Ви вже маєте файл %s, але він не є звичайним файлом або символічним "
-"посиланням.\n"
+"Ви вже маєте файл %s, але він не є звичайним файлом або символічним посиланням.\n"
 "Будь ласка, зітріть його та спробуйте ще раз"
 
 #: mh/mh_list.c:139
@@ -3663,14 +3561,8 @@ msgid "List the message being distributed/replied-to on the terminal."
 msgstr "Вивести поточне повідомлення на термінал."
 
 #: mh/mh_whatnow.c:394
-msgid ""
-"Edit the message. If EDITOR is omitted use the one that was used on the "
-"preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
-"alternate editor."
-msgstr ""
-"Редагувати повідомлення. Якщо РЕДАКТОРА не вказано, використати назву "
-"редактора зі змінної \"LASTEDITOR-next\". Якщо цю змінну не вказано, "
-"повернутися до редактора, якого було використано востаннє."
+msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
+msgstr "Редагувати повідомлення. Якщо РЕДАКТОРА не вказано, використати назву редактора зі змінної \"LASTEDITOR-next\". Якщо цю змінну не вказано, повернутися до редактора, якого було використано востаннє."
 
 #: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
 msgid "List the draft on the terminal."
@@ -3681,30 +3573,20 @@ msgid "Send the message in the background."
 msgstr "Відіслати повідомлення у фоновому режимі."
 
 #: mh/mh_whatnow.c:402
-msgid ""
-"Terminate the session. Preserve the draft, unless -delete flag is given."
-msgstr ""
-"Закінчити сесію. Якщо не вказано опцію -delete, зберегти чорновий файл."
+msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr "Закінчити сесію. Якщо не вказано опцію -delete, зберегти чорновий файл."
 
 #: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
 msgid "Refile the draft into the given FOLDER."
 msgstr "Перемістити чорновий файл у вказану теку."
 
 #: mh/mh_whatnow.c:406
-msgid ""
-"Send the message. The -watch flag causes the delivery process to be "
-"monitored. SWITCHES are passed to send program verbatim."
-msgstr ""
-"Надіслати повідомлення. Опція -watch вмикає трасування процесу доставки. "
-"ОПЦІЇ передаються програмі `send' дослівно."
+msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
+msgstr "Надіслати повідомлення. Опція -watch вмикає трасування процесу доставки. ОПЦІЇ передаються програмі `send' дослівно."
 
 #: mh/mh_whatnow.c:409
-msgid ""
-"List the addresses and verify that they are acceptable to the transport "
-"service."
-msgstr ""
-"Видати перелік адрес і перевірити можливість їх прийняття транспортним "
-"сервісом."
+msgid "List the addresses and verify that they are acceptable to the transport service."
+msgstr "Видати перелік адрес і перевірити можливість їх прийняття транспортним сервісом."
 
 #: mh/mh_whatnow.c:425
 msgid "Terminate the session. Preserve the draft."
@@ -4055,8 +3937,7 @@ msgstr "додатні аргументи"
 #. in this message
 #: mh/mhpath.c:26
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH mhpathВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH mhpathВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
 msgid "[+folder] [msgs]"
@@ -4089,19 +3970,8 @@ msgid "A pattern to look for"
 msgstr "Шукати вказаний шаблон"
 
 #: mh/pick.c:49
-msgid ""
-"Flags controlling the type of regular expressions. STRING must consist of "
-"one or more of the following letters: B=basic, E=extended, I=ignore case, "
-"C=case sensitive. Default is \"EI\". The flags remain in effect until the "
-"next occurrence of --cflags option. The option must occur right before --"
-"pattern or --component option (or its alias)."
-msgstr ""
-"Ознаки що контролюють тип регулярних виразів. РЯДОК може містити одну або "
-"більше з наступних літер: B=базові регулярні вирази, E=розширені регулярні "
-"вирази, I=ігнорування відмінностей у регістрі символів, C=врахування "
-"відмінностей у регістрі. Типове значення \"EI\". Ознаки залишаються у дії до "
-"наступного з'явлення опції --cflags. Опція повинна з'являтися безпосередньо "
-"перед опціями --pattern, --component, або їх еквівалентами."
+msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
+msgstr "Ознаки що контролюють тип регулярних виразів. РЯДОК може містити одну або більше з наступних літер: B=базові регулярні вирази, E=розширені регулярні вирази, I=ігнорування відмінностей у регістрі символів, C=врахування відмінностей у регістрі. Типове значення \"EI\". Ознаки залишаються у дії до наступного з'явлення опції --cflags. Опція повинна з'являтися безпосередньо перед опціями --pattern, --component, або їх еквівалентами."
 
 #: mh/pick.c:51
 msgid "Same as --component cc --pattern STRING"
@@ -4212,9 +4082,7 @@ msgid "* Try to preserve message sequence numbers"
 msgstr "* Намагатися зберегти нумерацію повідомлень"
 
 #: mh/refile.c:48
-msgid ""
-"Specify source folder. FOLDER will become the current folder after the "
-"program exits"
+msgid "Specify source folder. FOLDER will become the current folder after the program exits"
 msgstr "Вказує джерельну теку. ТЕКА стане поточною після завершення програми"
 
 #: mh/refile.c:50
@@ -4282,19 +4150,11 @@ msgstr "ФІЛЬТР"
 
 #: mh/repl.c:57
 msgid "Set the mhl filter to preprocess the body of the message being replied"
-msgstr ""
-"Перетворити тіло повідомлення, для якого створюється відповідь, "
-"використовуючи вказаний фільтр mhl"
+msgstr "Перетворити тіло повідомлення, для якого створюється відповідь, використовуючи вказаний фільтр mhl"
 
 #: mh/repl.c:60
-msgid ""
-"Include a copy of the message being replied. The message will be processed "
-"using either the default filter \"mhl.reply\", or the filter specified by --"
-"filter option"
-msgstr ""
-"Включити до повідомлення копію вихідного повідомлення. Перетворити його "
-"використовуючи фільтр вказаний через опцію --filter або типовий фільтр `mhl."
-"reply'"
+msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option"
+msgstr "Включити до повідомлення копію вихідного повідомлення. Перетворити його використовуючи фільтр вказаний через опцію --filter або типовий фільтр `mhl.reply'"
 
 #: mh/repl.c:64
 msgid "Query for addresses to place in To: and Cc: lists"
@@ -4302,9 +4162,7 @@ msgstr "Запитати про адреси одержувачів То: і Cc:
 
 #: mh/repl.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr ""
-"* Ігнорування змінної `whatnowproc'. Використовує стандартну програму "
-"`whatnow'"
+msgstr "* Ігнорування змінної `whatnowproc'. Використовує стандартну програму `whatnow'"
 
 # "Опція %s", тому ж.р.
 #: mh/repl.c:131
@@ -4351,8 +4209,7 @@ msgstr "Вказує теку для видалення"
 
 #: mh/rmf.c:44
 msgid "Interactive mode: ask for confirmation before removing each folder"
-msgstr ""
-"Інтерактивний режим: запитувати підтвердження перед видаленням кожної теки"
+msgstr "Інтерактивний режим: запитувати підтвердження перед видаленням кожної теки"
 
 #: mh/rmf.c:47
 msgid "Recursively delete all subfolders"
@@ -4378,8 +4235,7 @@ msgstr "GNU MH rmmВикористовуйте -help щоб отримати о
 #. in this message
 #: mh/scan.c:33
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH scanВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH scanВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/scan.c:40
 msgid "Specify folder to scan"
@@ -4450,12 +4306,8 @@ msgid "* Reformat To: and Cc: addresses"
 msgstr "* Переформатувати адреси To: і Cc:"
 
 #: mh/send.c:56
-msgid ""
-"* In case of failure forward the draft along with the failure notice to the "
-"sender"
-msgstr ""
-"* У разі помилки повернути чернетку разом з повідомленням про помилку до "
-"відправника"
+msgid "* In case of failure forward the draft along with the failure notice to the sender"
+msgstr "* У разі помилки повернути чернетку разом з повідомленням про помилку до відправника"
 
 #: mh/send.c:59
 msgid "* Use MIME encapsulation"
@@ -4470,11 +4322,8 @@ msgid "Run in the backround."
 msgstr "Виконання у фоновому режимі."
 
 #: mh/send.c:68
-msgid ""
-"* Split the draft into several partial messages and send them with SECONDS "
-"interval"
-msgstr ""
-"* Розділити чернетку на кілька частин та вислати їх через вказаний інтервал"
+msgid "* Split the draft into several partial messages and send them with SECONDS interval"
+msgstr "* Розділити чернетку на кілька частин та вислати їх через вказаний інтервал"
 
 #: mh/send.c:70
 msgid "Print the transcript of interactions with the transport system"
@@ -4517,9 +4366,9 @@ msgid "Cannot open mailer `%s'"
 msgstr "Не вдається відкрити відправника `%s'"
 
 #: mh/send.c:435
-#, fuzzy, c-format
+#, c-format
 msgid "Fixed Fcc: %s"
-msgstr "Помилка: %s"
+msgstr "Виправлений Fcc: %s"
 
 #: mh/send.c:449
 msgid "Getting message"
@@ -4560,8 +4409,7 @@ msgstr "Встановити текст запрошення"
 #. in this message
 #: mh/whom.c:24
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH whomВикористовуйте -help щоб отримати опис традиційних опцій MH."
+msgstr "GNU MH whomВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
 #: mh/whom.c:41
 msgid "Check if addresses are deliverable"
@@ -4721,9 +4569,7 @@ msgstr "Після запуску скасувати ознаку видален
 
 #: pop3d/pop3d.c:78
 msgid "Allowed delay between the two successive logins"
-msgstr ""
-"Дозволений найменший інтервал між завершенням попередньої й початком "
-"наступної сесії"
+msgstr "Дозволений найменший інтервал між завершенням попередньої й початком наступної сесії"
 
 #: pop3d/pop3d.c:79
 msgid "FILENAME"
@@ -4949,9 +4795,7 @@ msgstr "Можлива перевірка існування рахунку `%s'
 #: pop3d/user.c:107
 #, c-format
 msgid "User `%s' tried to log in within the minimum allowed delay"
-msgstr ""
-"Користувач `%s' намагався відкрити скриньку до закінчення терміну "
-"бездіяльності між двома входами"
+msgstr "Користувач `%s' намагався відкрити скриньку до закінчення терміну бездіяльності між двома входами"
 
 #: pop3d/user.c:169
 #, c-format
@@ -5053,8 +4897,7 @@ msgstr "СКРИНЬКА"
 
 #: sieve/sieve.c:81
 msgid "Mailbox to sieve (defaults to user's mail spool)"
-msgstr ""
-"Просівати вказану скриньку (типово системну поштову скриньку користувача)"
+msgstr "Просівати вказану скриньку (типово системну поштову скриньку користувача)"
 
 #: sieve/sieve.c:83
 msgid "TICKET"
@@ -5078,8 +4921,7 @@ msgstr "Протоколювати усі дії"
 
 #: sieve/sieve.c:93
 msgid "Print source location along with action logs (default)"
-msgstr ""
-"Реєструвати назву джерела та номер рядку що викликали виконання дії (типово)"
+msgstr "Реєструвати назву джерела та номер рядку що викликали виконання дії (типово)"
 
 #: sieve/sieve.c:96
 msgid "Override user email address"
@@ -5184,12 +5026,8 @@ msgstr "Неможливо видалити повідомлення з типо
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mimeview/mimeview.c:31
-msgid ""
-"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
-"file is "
-msgstr ""
-"GNU mimeview -- відображає файли, за допомогою механізму \"mailcap\".Типовим "
-"файлом mime.types є "
+msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
+msgstr "GNU mimeview -- відображає файли, за допомогою механізму \"mailcap\".Типовим файлом mime.types є "
 
 #: mimeview/mimeview.c:33
 msgid ""
@@ -5212,14 +5050,8 @@ msgid "TYPE-LIST"
 msgstr "ПЕРЕЛІК-ТИПІВ"
 
 #: mimeview/mimeview.c:42
-msgid ""
-"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
-"do not ask for confirmation before displaying such files whose MIME type "
-"matches one of the patterns from TYPE-LIST"
-msgstr ""
-"Не запитувати підтвердження перед відображенням файлу. Якщо вказано ПЕРЕЛІК-"
-"ТИПІВ, не запитувати підтвердження перед відображенням таких файлів, що їх "
-"тип MIME співпадає з одним з шаблонів вказаних у переліку"
+msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
+msgstr "Не запитувати підтвердження перед відображенням файлу. Якщо вказано ПЕРЕЛІК-ТИПІВ, не запитувати підтвердження перед відображенням таких файлів, що їх тип MIME співпадає з одним з шаблонів вказаних у переліку"
 
 #: mimeview/mimeview.c:44
 msgid "Disable interactive mode"
@@ -5348,8 +5180,7 @@ msgstr "невірний тип аргументу %d у виклику `%s'"
 #~ msgstr "%d: reject - не вдається відкрити відправника %s: %s\n"
 
 #~ msgid "%d: redirect - parsing to `%s' failed: %s\n"
-#~ msgstr ""
-#~ "%d: redirect - не вдається проаналізувати адресу одержувача `%s': %s\n"
+#~ msgstr "%d: redirect - не вдається проаналізувати адресу одержувача `%s': %s\n"
 
 #~ msgid "%d: redirect - can't create from address <%s>: %s\n"
 #~ msgstr "%d: redirect - не вдається створити адресу відправника <%s>: %s\n"

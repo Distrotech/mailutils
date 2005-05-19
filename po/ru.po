@@ -1,31 +1,23 @@
-# Russian messages for GNU Mailutils -*- mode: po; buffer-file-coding-system: koi8-r; default-input-method: cyrillic-yawerty -*-
+# Russian messages for GNU Mailutils
 # Copyright (C) 2005 Free Software Foundation, Inc.
 # Sergey Poznyakoff <gray@gnu.org>, 2003,2004,2005.
 #
-# Local Variables:
-# Local IspellDict: russian
-# End:
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.1\n"
+"Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2005-05-17 15:23+0300\n"
-"PO-Revision-Date: 2005-03-15 02:01+0200\n"
+"PO-Revision-Date: 2005-05-19 12:01+0300\n"
 "Last-Translator: Sergey Poznyakoff <gray@gnu.org>\n"
 "Language-Team: Russian <ru@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=KOI8-R\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: config/mailutils-config.c:28
-msgid ""
-"GNU mailutils-config -- Display compiler and loader options needed for "
-"building a program with mailutils"
-msgstr ""
-"GNU mailutils-config -- Выдает опции компилятора и загрузчика, необходимые "
-"для подключения mailutils к программе"
+msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
+msgstr "GNU mailutils-config -- Выдает опции компилятора и загрузчика, необходимые для подключения mailutils к программе"
 
 #: config/mailutils-config.c:29
 msgid "[arg...]"
@@ -36,26 +28,12 @@ msgid "Print C compiler flags to compile with"
 msgstr "Вывести флаги компилятора C"
 
 #: config/mailutils-config.c:35
-msgid ""
-"Print libraries to link with. Possible arguments are: auth, guile, all, "
-"mbox, mh, maildir, imap, pop"
-msgstr ""
-"Вывести опции загрузчика. Допустимые аргументы: auth, guile, all, mbox, mh, "
-"maildir, imap, pop"
+msgid "Print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
+msgstr "Вывести опции загрузчика. Допустимые аргументы: auth, guile, all, mbox, mh, maildir, imap, pop"
 
 #: config/mailutils-config.c:38
-msgid ""
-"Print a list of configuration options used to build mailutils. If arguments "
-"are given, they are interpreted as a list of configuration options to check "
-"for. In this case the program prints those options from this list that have "
-"been defined. It exits with zero status if all of the specified options are "
-"defined. Otherwise, the exit status is 1."
-msgstr ""
-"Вывести список опций, использованных при компиляции mailutils. Если заданы "
-"аргументы, они рассматриваются как список опций для проверки. В этом случае "
-"программа печатает те опции из этого списка, которые были определены при "
-"компиляции. Программа завершается с кодом 0 если все из указанных опций были "
-"определены. В противном случае возвращается код 1."
+msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
+msgstr "Вывести список опций, использованных при компиляции mailutils. Если заданы аргументы, они рассматриваются как список опций для проверки. В этом случае программа печатает те опции из этого списка, которые были определены при компиляции. Программа завершается с кодом 0 если все из указанных опций были определены. В противном случае возвращается код 1."
 
 #: config/mailutils-config.c:126 frm/from.c:129 mh/folder.c:568
 msgid "Too many arguments"
@@ -87,8 +65,7 @@ msgstr "ЗАПРОС"
 
 #: auth/sql.c:187
 msgid "SQL query to retrieve a passwd entry based on username"
-msgstr ""
-"Запрос SQL, возвращающий структуру passwd для заданного имени пользователя."
+msgstr "Запрос SQL, возвращающий структуру passwd для заданного имени пользователя."
 
 #: auth/sql.c:189
 msgid "SQL query to retrieve a passwd entry based on UID"
@@ -129,12 +106,8 @@ msgid "Port to use"
 msgstr "Номер порта"
 
 #: auth/sql.c:203
-msgid ""
-"Type of password returned by --sql-getpass query. STRING is one of: plain, "
-"hash, scrambled"
-msgstr ""
-"Тип пароля, возвращаемого запросом --sql-getpass. СТРОКА может быть одной "
-"из: plain, hash, scrambled"
+msgid "Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"
+msgstr "Тип пароля, возвращаемого запросом --sql-getpass. СТРОКА может быть одной из: plain, hash, scrambled"
 
 #: auth/sql.c:215
 #, c-format
@@ -417,13 +390,8 @@ msgstr "Пользователь не существует: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: dotlock/dotlock.c:38
-msgid ""
-"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
-"file fails because it's already locked, and 1 if some other kind of error "
-"occurred."
-msgstr ""
-"GNU dotlock -- блокирует почтовые ящикиВозвращает 0 при успешном завершении, "
-"3 - если ящик уже заблокирован, 1 - в случае ошибки."
+msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
+msgstr "GNU dotlock -- блокирует почтовые ящикиВозвращает 0 при успешном завершении, 3 - если ящик уже заблокирован, 1 - в случае ошибки."
 
 #: dotlock/dotlock.c:47
 msgid "Unlock"
@@ -436,8 +404,7 @@ msgstr "МИНУТЫ"
 #: dotlock/dotlock.c:50
 msgid "Forcibly break an existing lock older than a certain time"
 msgstr ""
-"Удалять существующую блокировку если она создана раньше, чем указанное "
-"количество\n"
+"Удалять существующую блокировку если она создана раньше, чем указанное количество\n"
 " МИНУТ назад"
 
 #: dotlock/dotlock.c:52
@@ -516,14 +483,8 @@ msgstr "прочтенное"
 #. differ by the first letter.
 #.
 #: frm/frm.c:62
-msgid ""
-"Select messages with the specific attribute. STATUS is one of the following: "
-"new, unread, old (same as unread) or read. Any unambiguous abbreviation of "
-"those is also accepted."
-msgstr ""
-"Выбрать сообщения с указанным состоянием. СОСТОЯНИЕ должно быть одним из "
-"следующих: новое, старое (т.е. непрочтенное), прочтенное. Допускаются также "
-"любые однозначные сокращения этих слов."
+msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
+msgstr "Выбрать сообщения с указанным состоянием. СОСТОЯНИЕ должно быть одним из следующих: новое, старое (т.е. непрочтенное), прочтенное. Допускаются также любые однозначные сокращения этих слов."
 
 #: frm/frm.c:127
 #, c-format
@@ -645,9 +606,7 @@ msgstr "АДРЕС"
 
 #: frm/from.c:31
 msgid "Print only mail from addresses containing the supplied string"
-msgstr ""
-"Выводить только такие сообщения, у которых адрес отправителя содержит "
-"указанную строку "
+msgstr "Выводить только такие сообщения, у которых адрес отправителя содержит указанную строку "
 
 #: frm/from.c:33
 msgid "Read mail from FILE"
@@ -745,8 +704,7 @@ msgid ""
 "The following switches stop argument processing, and pass all\n"
 "remaining arguments as the value of (command-line):"
 msgstr ""
-"После следующих опций обработка аргументов прекращается. Все следующие за "
-"ними\n"
+"После следующих опций обработка аргументов прекращается. Все следующие за ними\n"
 "аргументы могут быть получены из Guile с помощью вызова (command-line):"
 
 #: guimb/main.c:59 guimb/main.c:64
@@ -794,12 +752,8 @@ msgid "Act as local MDA for user NAME"
 msgstr "Действовать как локальный MDA для заданного пользователя"
 
 #: guimb/main.c:126
-msgid ""
-"GNU guimb -- Process the contents of the specified mailboxes using a Scheme "
-"program or expression."
-msgstr ""
-"GNU guimb -- Обрабатывает содержимое заданных почтовых ящиков, используя "
-"Scheme-программу или выражение"
+msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
+msgstr "GNU guimb -- Обрабатывает содержимое заданных почтовых ящиков, используя Scheme-программу или выражение"
 
 #: guimb/main.c:128 messages/messages.c:35
 msgid "[mailbox...]"
@@ -1309,8 +1263,7 @@ msgstr "%d: невозможно открыть `%s': %s"
 #: libsieve/extensions/vacation.c:311
 #, c-format
 msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr ""
-"%d: vacation скомпилирована без поддержки DBM. Игнорируется ярлык :days"
+msgstr "%d: vacation скомпилирована без поддержки DBM. Игнорируется ярлык :days"
 
 #: libsieve/extensions/vacation.c:507
 msgid "cannot get text!"
@@ -1536,8 +1489,7 @@ msgstr "Нет почты для %s\n"
 #: mail/mail.c:537
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU Mailutils -- набор утилит для электронной почты\n"
@@ -1546,7 +1498,7 @@ msgstr ""
 "\n"
 
 #: mail/mail.c:541 mailbox/mu_argp.c:254 mh/mh_argp.c:188
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
 "   it under the terms of the GNU General Public License as published by\n"
@@ -1564,21 +1516,22 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
-"  GNU Mailutils является свободно распространяемой; Вы можете\n"
-"  распространять и/или изменять ее, соблюдая условия Всеобщей\n"
-"  Общественной Лицензии GNU, опубликованного Фондом Свободного\n"
+"  GNU Mailutils -- свободное программное обеспечение; Вы можете\n"
+"  распространять и/или изменять его, соблюдая условия Всеобщей\n"
+"  Общественной Лицензии GNU, опубликованной Фондом Свободного\n"
 "  Программного Обеспечения в версии 2, либо (на Ваше усмотрение)\n"
 "  любой позднейшей версии.\n"
 "\n"
-"  GNU Mailutils распространяется в надежде на то, что она окажется\n"
-"  полезной, однако без предоставления КАКИХ-ЛИБО ГАРАНТИЙ, включая\n"
+"  GNU Mailutils распространяется в надежде на то, что он принесёт\n"
+"  пользу, однако без предоставления КАКИХ-ЛИБО ГАРАНТИЙ, включая\n"
 "  подразумеваемую гарантию КАЧЕСТВА или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ\n"
 "  ЦЕЛЕЙ. Подробнее см. текст Всеобщей Общественной Лицензии GNU\n"
 "\n"
 "  Вместе с GNU Mailutils распространяется экземпляр Всеобщей\n"
-"  Общественной Лицензии GNU. Если Вы его не получили, сообщите\n"
-"  об этом по адресу Free Software Foundation, Inc.,\n"
-"  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.\n"
+"  Общественной Лицензии GNU. Если Вы его не получили, отправьте\n"
+"  письмо по адресу Free Software Foundation, Inc.,\n"
+"  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA\n"
+"\n"
 "\n"
 
 #: mail/mailline.c:402 mail/mailline.c:430 mail/mailline.c:477
@@ -1972,9 +1925,7 @@ msgstr "Не возвращать код ошибки при доставке многим получателям"
 
 #: mail.local/main.c:78
 msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr ""
-"Возвращать код временной ошибки при превышении квоты на диск или почтовый "
-"ящик"
+msgstr "Возвращать код временной ошибки при превышении квоты на диск или почтовый ящик"
 
 #: mail.local/main.c:79 mailbox/mu_argp.c:90
 msgid "EMAIL"
@@ -2001,11 +1952,8 @@ msgid "Set name pattern for user-defined Sieve mail filters"
 msgstr "Установить шаблон имен пользовательских файлов с фильтрами Sieve"
 
 #: mail.local/main.c:93
-msgid ""
-"Identify messages by the value of this header when logging Sieve actions"
-msgstr ""
-"При регистрации выполненных действий Sieve маркировать сообщения значением "
-"указанного заголовка"
+msgid "Identify messages by the value of this header when logging Sieve actions"
+msgstr "При регистрации выполненных действий Sieve маркировать сообщения значением указанного заголовка"
 
 #: mail.local/main.c:96
 msgid "Set name pattern for user-defined Scheme mail filters"
@@ -2066,8 +2014,7 @@ msgstr "ошибка mu_debug_set_print: %s\n"
 
 #: mail.local/main.c:371
 msgid "Missing arguments. Try --help for more info."
-msgstr ""
-"Недостаточно аргументов. Попробуйте --help чтобы получить больше информации."
+msgstr "Недостаточно аргументов. Попробуйте --help чтобы получить больше информации."
 
 #: mail.local/main.c:423 mail.local/script.c:94
 #, c-format
@@ -2136,9 +2083,7 @@ msgstr "Невозможно получить размер (входящее сообщение): %s"
 #: mail.local/main.c:768
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr ""
-"%s: прием сообщения превысил бы максимальный размер почтового ящика для "
-"этого адресата"
+msgstr "%s: прием сообщения превысил бы максимальный размер почтового ящика для этого адресата"
 
 #: mail.local/main.c:821
 #, c-format
@@ -2199,26 +2144,21 @@ msgid ""
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 msgstr ""
 "GNU mail.remote -- заменитель sendmail для удалённой доставки\n"
-"Эта программа является простым заменителем sendmail и предназначается для "
-"отправки сообщений на удалённый сервер SMTP.\n"
+"Эта программа является простым заменителем sendmail и предназначается для отправки сообщений на удалённый сервер SMTP.\n"
 "\n"
-"Обязательно укажите адрес сервера, используя опцию --mailer (удобнее всего "
-"это сделать в конфигурационном файле).\n"
+"Обязательно укажите адрес сервера, используя опцию --mailer (удобнее всего это сделать в конфигурационном файле).\n"
 "\n"
 "Примеры:\n"
 "\n"
-"* Отослать сообщение через сервер \"mail.example.com\". Адреса получателей "
-"выбираются из заголовков сообщения:\n"
+"* Отослать сообщение через сервер \"mail.example.com\". Адреса получателей выбираются из заголовков сообщения:\n"
 "   \n"
 "        mail.remote --mailer smtp://mail.example.com -t\n"
 "        \n"
-"* Отослать сообщение через сервер \"mail.example.com\" на адрес <devnull@foo."
-"bar>\n"
+"* Отослать сообщение через сервер \"mail.example.com\" на адрес <devnull@foo.bar>\n"
 "  \n"
 "        mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
 "        \n"
-"* Отослать сообщение через сервер \"mail.example.com\" на адрес <devnull@foo."
-"bar> а также на все адреса, указанные в заголовках сообщения:\n"
+"* Отослать сообщение через сервер \"mail.example.com\" на адрес <devnull@foo.bar> а также на все адреса, указанные в заголовках сообщения:\n"
 "  \n"
 "        mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 
@@ -2235,12 +2175,8 @@ msgid "Read message for recipients."
 msgstr "Выбрать адреса получателей из заголовков сообщения."
 
 #: mail.remote/mail.remote.c:77
-msgid ""
-"Print envelope commands in the SMTP protocol transaction. If specified more "
-"than once, the data part of the protocol transaction will also be printed."
-msgstr ""
-"Выводить команды использованные в транзакции конверта SMTP. Будучи указана "
-"несколько раз, эта опция включает также печать транзакции передачи данных."
+msgid "Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed."
+msgstr "Выводить команды использованные в транзакции конверта SMTP. Будучи указана несколько раз, эта опция включает также печать транзакции передачи данных."
 
 #: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
 msgid "OPT"
@@ -2369,12 +2305,8 @@ msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Мусор в ARGP_HELP_FMT: %s"
 
 #: mailbox/argp-help.c:1195
-msgid ""
-"Mandatory or optional arguments to long options are also mandatory or "
-"optional for any corresponding short options."
-msgstr ""
-"Обязательные или необязательные аргументы к длинным опциям остаются таковыми "
-"и к соответствующим коротким опциям."
+msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
+msgstr "Обязательные или необязательные аргументы к длинным опциям остаются таковыми и к соответствующим коротким опциям."
 
 #: mailbox/argp-help.c:1582
 msgid "Usage:"
@@ -2391,8 +2323,7 @@ msgstr " [ОПЦИЯ...]"
 #: mailbox/argp-help.c:1625
 #, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
-msgstr ""
-"Попробуй `%s --help' или `%s --usage' для получения подробной информации.\n"
+msgstr "Попробуй `%s --help' или `%s --usage' для получения подробной информации.\n"
 
 #: mailbox/argp-help.c:1653
 #, c-format
@@ -2534,8 +2465,7 @@ msgstr "ДОМЕН"
 
 #: mailbox/mu_argp.c:93
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr ""
-"Задает домен для неполных адресов (по умолчанию -- название самой машины)"
+msgstr "Задает домен для неполных адресов (по умолчанию -- название самой машины)"
 
 #: mailbox/mu_argp.c:99
 msgid "MAILER"
@@ -2633,15 +2563,11 @@ msgstr "%s: недостаточно памяти\n"
 #: mailbox/mu_argp.c:892
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
-msgstr ""
-"ВНУТРЕННЯЯ ОШИБКА: затребовано неизвестное свойство argp %s (сообщите "
-"авторам)"
+msgstr "ВНУТРЕННЯЯ ОШИБКА: затребовано неизвестное свойство argp %s (сообщите авторам)"
 
 #: mailbox/mu_argp.c:955
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr ""
-"ВНУТРЕННЯЯ ОШИБКА: затребовано неизвестное свойство argp auth (сообщите "
-"авторам)"
+msgstr "ВНУТРЕННЯЯ ОШИБКА: затребовано неизвестное свойство argp auth (сообщите авторам)"
 
 #: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
 msgid "MODLIST"
@@ -2969,9 +2895,7 @@ msgstr "Имя компонента: "
 #. in this message
 #: mh/fmtcheck.c:26
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH fmtcheckИспользуйте опцию -help для получения списка традиционных "
-"опций MH."
+msgstr "GNU MH fmtcheckИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
 #: mh/scan.c:45
@@ -3006,9 +2930,7 @@ msgstr "Неверная строка формата"
 #. in this message
 #: mh/folder.c:39
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH folderИспользуйте опцию -help для получения списка традиционных опций "
-"MH."
+msgstr "GNU MH folderИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/folder.c:41
 msgid "[action] [msg]"
@@ -3027,17 +2949,8 @@ msgid "List the contents of the folder stack"
 msgstr "Показать содержимое стека каталогов"
 
 #: mh/folder.c:50
-msgid ""
-"Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
-"Otherwise, if a folder is given in the command line (via + or --folder), it "
-"is pushed on stack. Otherwise, the current folder and the top of the folder "
-"stack are exchanged"
-msgstr ""
-"Затолкать название каталога в вершину стека. Если КАТАЛОГ задан, "
-"заталкивается его имя. В противном случае, если каталог задан в командной "
-"строке (при помощи + или --folder), имя этого каталога заталкивается на "
-"стек. В противном случае, меняются местами текущий каталог и каталог в "
-"вершине стека."
+msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
+msgstr "Затолкать название каталога в вершину стека. Если КАТАЛОГ задан, заталкивается его имя. В противном случае, если каталог задан в командной строке (при помощи + или --folder), имя этого каталога заталкивается на стек. В противном случае, меняются местами текущий каталог и каталог в вершине стека."
 
 #: mh/folder.c:55
 msgid "Pop the folder off the folder stack"
@@ -3096,12 +3009,8 @@ msgstr "(другие)"
 
 #: mh/folder.c:449
 #, c-format
-msgid ""
-"Folder                  # of messages     (  range  )  cur msg   (other "
-"files)\n"
-msgstr ""
-"Каталог                 к-во сообщений    (диапазон )  тек.сооб. (др. "
-"файлы)\n"
+msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
+msgstr "Каталог                 к-во сообщений    (диапазон )  тек.сооб. (др. файлы)\n"
 
 #: mh/folder.c:455
 msgid "TOTAL"
@@ -3200,9 +3109,7 @@ msgstr "* Использовать ПРОГРАММУ вместо whatnow"
 
 #: mh/forw.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
-msgstr ""
-"* Игнорировать переменную whatnowproc. Использовать стандартную программу "
-"`whatnow'"
+msgstr "* Игнорировать переменную whatnowproc. Использовать стандартную программу `whatnow'"
 
 #: mh/forw.c:71 mh/repl.c:70
 msgid "Use draft file preserved after the last session"
@@ -3241,8 +3148,7 @@ msgstr "Конец перенаправленных сообщений"
 #. in this message
 #: mh/inc.c:26
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH incИспользуйте опцию -help для получения списка традиционных опций MH."
+msgstr "GNU MH incИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/inc.c:28 mh/rmf.c:37
 msgid "[+folder]"
@@ -3303,11 +3209,8 @@ msgstr "%d: ошибка при добавлении сообщения: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/install-mh.c:24
-msgid ""
-"GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH install-mhИспользуйте опцию -help для получения списка традиционных "
-"опций MH."
+msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH install-mhИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/install-mh.c:30
 msgid "Do not ask for anything"
@@ -3317,9 +3220,7 @@ msgstr "Не спрашивать ни о чем"
 #. in this message
 #: mh/mark.c:24
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH markИспользуйте опцию -help для получения списка традиционных опций "
-"MH."
+msgstr "GNU MH markИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/mark.c:33
 msgid "Specify sequence name to operate upon"
@@ -3522,11 +3423,7 @@ msgid ""
 "to direct certain MH operations.  The only item which is required\n"
 "is the path to use for all MH folder operations.  The suggested MH\n"
 "path for you is %s...\n"
-msgstr ""
-"Перед использованием MH, в вашем домашнем каталоге (%s) будет создан файл с "
-"именем .mh_profile, который будет содержать информацию, управляющую "
-"некоторыми операциями MH. Единственный обязательный элемент в этом файле -- "
-"путь к главному почтовому каталогу MH. Предлагаемый путь: %s...\n"
+msgstr "Перед использованием MH, в вашем домашнем каталоге (%s) будет создан файл с именем .mh_profile, который будет содержать информацию, управляющую некоторыми операциями MH. Единственный обязательный элемент в этом файле -- путь к главному почтовому каталогу MH. Предлагаемый путь: %s...\n"
 
 # Знак вопроса добавляется программой
 #: mh/mh_init.c:628
@@ -3559,8 +3456,7 @@ msgstr "Создание стандартного пути MH.\n"
 
 #: mh/mh_init.c:710
 msgid "You already have an MH profile, use an editor to modify it"
-msgstr ""
-"У вас уже есть .mh_profile, модифицируйте его с помощью текстового редактора"
+msgstr "У вас уже есть .mh_profile, модифицируйте его с помощью текстового редактора"
 
 #: mh/mh_init.c:715
 #, c-format
@@ -3671,20 +3567,11 @@ msgstr "черновик оставлен в \"%s\".\n"
 
 #: mh/mh_whatnow.c:392
 msgid "List the message being distributed/replied-to on the terminal."
-msgstr ""
-"Вывести на терминал текст сообщения, которое отправляется или на которое "
-"пишется ответ."
+msgstr "Вывести на терминал текст сообщения, которое отправляется или на которое пишется ответ."
 
 #: mh/mh_whatnow.c:394
-msgid ""
-"Edit the message. If EDITOR is omitted use the one that was used on the "
-"preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
-"alternate editor."
-msgstr ""
-"Редактировать сообщение. Если РЕДАКТОР не указан, используется название "
-"редактора из переменной \"LASTEDITOR-next\", где LASTEDITOR обозначает "
-"название редактора, использованного в последний раз. Если эта переменная не "
-"установлена, используется название последнего использованного редактора."
+msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
+msgstr "Редактировать сообщение. Если РЕДАКТОР не указан, используется название редактора из переменной \"LASTEDITOR-next\", где LASTEDITOR обозначает название редактора, использованного в последний раз. Если эта переменная не установлена, используется название последнего использованного редактора."
 
 #: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
 msgid "List the draft on the terminal."
@@ -3695,8 +3582,7 @@ msgid "Send the message in the background."
 msgstr "Отослать сообщение в фоновом режиме."
 
 #: mh/mh_whatnow.c:402
-msgid ""
-"Terminate the session. Preserve the draft, unless -delete flag is given."
+msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr "Завершить сессию. Если не указана опция -delete, сохранить черновик."
 
 #: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
@@ -3704,19 +3590,12 @@ msgid "Refile the draft into the given FOLDER."
 msgstr "Сохранить черновик в заданном КАТАЛОГЕ."
 
 #: mh/mh_whatnow.c:406
-msgid ""
-"Send the message. The -watch flag causes the delivery process to be "
-"monitored. SWITCHES are passed to send program verbatim."
-msgstr ""
-"Отослать сообщение. Если указана опция -watch, выдается подробная информация "
-"о процессе доставки. ОПЦИИ передаются программе отсылки без изменений."
+msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
+msgstr "Отослать сообщение. Если указана опция -watch, выдается подробная информация о процессе доставки. ОПЦИИ передаются программе отсылки без изменений."
 
 #: mh/mh_whatnow.c:409
-msgid ""
-"List the addresses and verify that they are acceptable to the transport "
-"service."
-msgstr ""
-"Вывести список адресов и проверить их допустимость для транспортного сервиса."
+msgid "List the addresses and verify that they are acceptable to the transport service."
+msgstr "Вывести список адресов и проверить их допустимость для транспортного сервиса."
 
 #: mh/mh_whatnow.c:425
 msgid "Terminate the session. Preserve the draft."
@@ -4069,9 +3948,7 @@ msgstr "дополнительные аргументы"
 #. in this message
 #: mh/mhpath.c:26
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH mhpathИспользуйте опцию -help для получения списка традиционных опций "
-"MH."
+msgstr "GNU MH mhpathИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
 msgid "[+folder] [msgs]"
@@ -4104,20 +3981,8 @@ msgid "A pattern to look for"
 msgstr "Шаблон поиска"
 
 #: mh/pick.c:49
-msgid ""
-"Flags controlling the type of regular expressions. STRING must consist of "
-"one or more of the following letters: B=basic, E=extended, I=ignore case, "
-"C=case sensitive. Default is \"EI\". The flags remain in effect until the "
-"next occurrence of --cflags option. The option must occur right before --"
-"pattern or --component option (or its alias)."
-msgstr ""
-"Флаги, определяющие тип регулярного выражения. СТРОКА должна состоять из "
-"одного или нескольких из следующих символов: B=базовое регулярное выражение, "
-"Е=расширенное регулярное выражение, I=игнорировать регистр символов, "
-"C=учитывать регистр символов. По умолчанию принимается \"EI\". Флаги "
-"остаются в силе, пока они не будут переопределены следующей опцией --cflags. "
-"Опция должна использоваться либо перед опцией --pattern, либо перед опцией --"
-"component (или одного из ее псевдонимов)."
+msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
+msgstr "Флаги, определяющие тип регулярного выражения. СТРОКА должна состоять из одного или нескольких из следующих символов: B=базовое регулярное выражение, Е=расширенное регулярное выражение, I=игнорировать регистр символов, C=учитывать регистр символов. По умолчанию принимается \"EI\". Флаги остаются в силе, пока они не будут переопределены следующей опцией --cflags. Опция должна использоваться либо перед опцией --pattern, либо перед опцией --component (или одного из ее псевдонимов)."
 
 #: mh/pick.c:51
 msgid "Same as --component cc --pattern STRING"
@@ -4227,12 +4092,8 @@ msgid "* Try to preserve message sequence numbers"
 msgstr "* Пытаться сохранить номера сообщений"
 
 #: mh/refile.c:48
-msgid ""
-"Specify source folder. FOLDER will become the current folder after the "
-"program exits"
-msgstr ""
-"Использовать заданный исходный каталог. После выхода из программы, КАТАЛОГ "
-"станет текущим."
+msgid "Specify source folder. FOLDER will become the current folder after the program exits"
+msgstr "Использовать заданный исходный каталог. После выхода из программы, КАТАЛОГ станет текущим."
 
 #: mh/refile.c:50
 msgid "Use FILE as the source message"
@@ -4302,13 +4163,8 @@ msgid "Set the mhl filter to preprocess the body of the message being replied"
 msgstr "Пропускать текст исходного сообщения через заданный фильтр"
 
 #: mh/repl.c:60
-msgid ""
-"Include a copy of the message being replied. The message will be processed "
-"using either the default filter \"mhl.reply\", or the filter specified by --"
-"filter option"
-msgstr ""
-"Включить в текст копию исходного сообщения. Копия обрабатывается фильтром "
-"\"mhl.reply\" либо фильтром, указанным в опции --filter"
+msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option"
+msgstr "Включить в текст копию исходного сообщения. Копия обрабатывается фильтром \"mhl.reply\" либо фильтром, указанным в опции --filter"
 
 #: mh/repl.c:64
 msgid "Query for addresses to place in To: and Cc: lists"
@@ -4316,9 +4172,7 @@ msgstr "Запрашивать, какие из адресов добавлять в заголовки To: и Cc:"
 
 #: mh/repl.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr ""
-"* Игнорировать переменную whatnowproc. Использовать стандартную программу "
-"'whatnow'"
+msgstr "* Игнорировать переменную whatnowproc. Использовать стандартную программу 'whatnow'"
 
 #: mh/repl.c:131
 #, c-format
@@ -4356,8 +4210,7 @@ msgstr "только одно сообщение за раз!"
 #. in this message
 #: mh/rmf.c:35
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH rmfИспользуйте опцию -help для получения списка традиционных опций MH."
+msgstr "GNU MH rmfИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/rmf.c:42
 msgid "Specify the folder to delete"
@@ -4365,9 +4218,7 @@ msgstr "Удалить заданный каталог"
 
 #: mh/rmf.c:44
 msgid "Interactive mode: ask for confirmation before removing each folder"
-msgstr ""
-"Интерактивный режим: запрашивать подтверждение перед удалением каждого "
-"каталога"
+msgstr "Интерактивный режим: запрашивать подтверждение перед удалением каждого каталога"
 
 #: mh/rmf.c:47
 msgid "Recursively delete all subfolders"
@@ -4387,16 +4238,13 @@ msgstr "Невозможно удалить %s: %s"
 #. in this message
 #: mh/rmm.c:26
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH rmmИспользуйте опцию -help для получения списка традиционных опций MH."
+msgstr "GNU MH rmmИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/scan.c:33
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH scanИспользуйте опцию -help для получения списка традиционных опций "
-"MH."
+msgstr "GNU MH scanИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/scan.c:40
 msgid "Specify folder to scan"
@@ -4467,12 +4315,8 @@ msgid "* Reformat To: and Cc: addresses"
 msgstr "* Переформатировать адреса To: и Cc:"
 
 #: mh/send.c:56
-msgid ""
-"* In case of failure forward the draft along with the failure notice to the "
-"sender"
-msgstr ""
-"* В случае неудачи, выслать отправителю черновик вместе с извещением об "
-"ошибке"
+msgid "* In case of failure forward the draft along with the failure notice to the sender"
+msgstr "* В случае неудачи, выслать отправителю черновик вместе с извещением об ошибке"
 
 #: mh/send.c:59
 msgid "* Use MIME encapsulation"
@@ -4487,11 +4331,8 @@ msgid "Run in the backround."
 msgstr "Запуск в фоновом режиме."
 
 #: mh/send.c:68
-msgid ""
-"* Split the draft into several partial messages and send them with SECONDS "
-"interval"
-msgstr ""
-"* Разбить черновик на несколько частей и отсылать их с заданным интервалом."
+msgid "* Split the draft into several partial messages and send them with SECONDS interval"
+msgstr "* Разбить черновик на несколько частей и отсылать их с заданным интервалом."
 
 #: mh/send.c:70
 msgid "Print the transcript of interactions with the transport system"
@@ -4534,9 +4375,9 @@ msgid "Cannot open mailer `%s'"
 msgstr "Невозможно открыть отсыльщик `%s'"
 
 #: mh/send.c:435
-#, fuzzy, c-format
+#, c-format
 msgid "Fixed Fcc: %s"
-msgstr "Ошибка: %s"
+msgstr "Исправленный Fcc: %s"
 
 #: mh/send.c:449
 msgid "Getting message"
@@ -4577,9 +4418,7 @@ msgstr "Установить текст приглашения"
 #. in this message
 #: mh/whom.c:24
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH whomИспользуйте опцию -help для получения списка традиционных опций "
-"MH."
+msgstr "GNU MH whomИспользуйте опцию -help для получения списка традиционных опций MH."
 
 #: mh/whom.c:41
 msgid "Check if addresses are deliverable"
@@ -4740,9 +4579,7 @@ msgstr "После открытия сессии восстановить сообщения, помеченные для удаления."
 
 #: pop3d/pop3d.c:78
 msgid "Allowed delay between the two successive logins"
-msgstr ""
-"Наименьшее допустимое время между завершением предыдущей и началом следующей "
-"сессий"
+msgstr "Наименьшее допустимое время между завершением предыдущей и началом следующей сессий"
 
 #: pop3d/pop3d.c:79
 msgid "FILENAME"
@@ -4968,20 +4805,15 @@ msgstr "Возможное зондирование счета `%s'"
 #: pop3d/user.c:107
 #, c-format
 msgid "User `%s' tried to log in within the minimum allowed delay"
-msgstr ""
-"Пользователь `%s' попытался подсоединится не выдержав минимально допустимой "
-"задержки логина"
+msgstr "Пользователь `%s' попытался подсоединится не выдержав минимально допустимой задержки логина"
 
 #: pop3d/user.c:169
 #, c-format
 msgid "User `%s' logged in with mailbox `%s' (%d message)"
 msgid_plural "User `%s' logged in with mailbox `%s' (%d messages)"
-msgstr[0] ""
-"Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщение)"
-msgstr[1] ""
-"Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщения)"
-msgstr[2] ""
-"Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщений)"
+msgstr[0] "Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщение)"
+msgstr[1] "Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщения)"
+msgstr[2] "Пользователь `%s' начал работу с почтовым ящиком `%s' (%d сообщений)"
 
 #: readmsg/readmsg.c:34
 msgid "GNU readmsg -- print messages"
@@ -5001,8 +4833,7 @@ msgstr "СПИСОК"
 
 #: readmsg/readmsg.c:43
 msgid "List of header names separated by whitespace or commas"
-msgstr ""
-"Список названий заголовков, разделенных пробельными символами или запятыми"
+msgstr "Список названий заголовков, разделенных пробельными символами или запятыми"
 
 #: readmsg/readmsg.c:44
 msgid "Folder to use"
@@ -5018,9 +4849,7 @@ msgstr "Выдавать символ 'подача листа' между сообщениями"
 
 #: readmsg/readmsg.c:48
 msgid "Print all messages matching pattern, not just the first"
-msgstr ""
-"Выводить все сообщения, удовлетворяющие критерию поиска, не только первое из "
-"них"
+msgstr "Выводить все сообщения, удовлетворяющие критерию поиска, не только первое из них"
 
 #: readmsg/readmsg.c:250
 #, c-format
@@ -5071,8 +4900,7 @@ msgstr "Скомпилировать скрипт и закончить программу"
 
 #: sieve/sieve.c:78
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
-msgstr ""
-"Скомпилировать скрипт, вывести полученный код на терминал и закончить работу"
+msgstr "Скомпилировать скрипт, вывести полученный код на терминал и закончить работу"
 
 #: sieve/sieve.c:80
 msgid "MBOX"
@@ -5080,9 +4908,7 @@ msgstr "ПОЧТОВЫЙ-ЯЩИК"
 
 #: sieve/sieve.c:81
 msgid "Mailbox to sieve (defaults to user's mail spool)"
-msgstr ""
-"Фильтровать сообщения в заданном почтовом ящике (по умолчанию -- системный "
-"почтовый ящик пользователя)"
+msgstr "Фильтровать сообщения в заданном почтовом ящике (по умолчанию -- системный почтовый ящик пользователя)"
 
 #: sieve/sieve.c:83
 msgid "TICKET"
@@ -5106,9 +4932,7 @@ msgstr "Вести протокол всех действий"
 
 #: sieve/sieve.c:93
 msgid "Print source location along with action logs (default)"
-msgstr ""
-"В журнале выполненных действий указывать место в исходном файле, откуда "
-"вызвалось действие (включено по умолчанию)"
+msgstr "В журнале выполненных действий указывать место в исходном файле, откуда вызвалось действие (включено по умолчанию)"
 
 #: sieve/sieve.c:96
 msgid "Override user email address"
@@ -5213,12 +5037,8 @@ msgstr "Ошибка очистки стандартного почтового ящика: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mimeview/mimeview.c:31
-msgid ""
-"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
-"file is "
-msgstr ""
-"GNU mimeview -- показывает содержимое файлов, используя механизм mailcap.По "
-"умолчанию используется файл "
+msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
+msgstr "GNU mimeview -- показывает содержимое файлов, используя механизм mailcap.По умолчанию используется файл "
 
 #: mimeview/mimeview.c:33
 msgid ""
@@ -5241,14 +5061,8 @@ msgid "TYPE-LIST"
 msgstr "СПИСОК-ТИПОВ"
 
 #: mimeview/mimeview.c:42
-msgid ""
-"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
-"do not ask for confirmation before displaying such files whose MIME type "
-"matches one of the patterns from TYPE-LIST"
-msgstr ""
-"Не запрашивать подтверждения перед выводом файлов. Если указан СПИСОК-ТИПОВ, "
-"не запрашивать подтверждения перед выводом тех из файлов, у которых тип MIME "
-"совпадает с одним из шаблонов из списка"
+msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
+msgstr "Не запрашивать подтверждения перед выводом файлов. Если указан СПИСОК-ТИПОВ, не запрашивать подтверждения перед выводом тех из файлов, у которых тип MIME совпадает с одним из шаблонов из списка"
 
 #: mimeview/mimeview.c:44
 msgid "Disable interactive mode"
@@ -5374,8 +5188,7 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ msgstr "Память исчерпана"
 
 #~ msgid "Set name pattern for user-defined mail filters"
-#~ msgstr ""
-#~ "Установить шаблон имен пользовательских файлов с почтовыми фильтрами"
+#~ msgstr "Установить шаблон имен пользовательских файлов с почтовыми фильтрами"
 
 #~ msgid "cannot store SQL result: %s"
 #~ msgstr "MySQL: невозможно сохранить результат: %s"
@@ -5603,12 +5416,8 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ msgstr[1] "запрос вернул %d поля: %s"
 #~ msgstr[2] "запрос вернул %d полей: %s"
 
-#~ msgid ""
-#~ "Maximum retention period for messages in the maildrop, default -1 means "
-#~ "NEVER"
-#~ msgstr ""
-#~ "Максимальное время сохранения сообщений в почтовом ящике. По умолчанию -"
-#~ "1, то есть \"НАВСЕГДА\""
+#~ msgid "Maximum retention period for messages in the maildrop, default -1 means NEVER"
+#~ msgstr "Максимальное время сохранения сообщений в почтовом ящике. По умолчанию -1, то есть \"НАВСЕГДА\""
 
 #~ msgid "%s %s failed: %s\n"
 #~ msgstr "неудачная %s файла %s: %s\n"
@@ -5620,9 +5429,7 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ msgstr "блокировка"
 
 #~ msgid "Select message with the specific attribute: [n]ew, [r]ead, [u]nread."
-#~ msgstr ""
-#~ "Выбрать сообщения с заданным атрибутом: n - новые, r - прочитанные, u - "
-#~ "непрочитанные"
+#~ msgstr "Выбрать сообщения с заданным атрибутом: n - новые, r - прочитанные, u - непрочитанные"
 
 #~ msgid "could not open mailbox %s: %s\n"
 #~ msgstr "невозможно открыть почтовый ящик %s: %s\n"
@@ -5654,19 +5461,16 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ "with a line such as:\n"
 #~ "  :mailer --mailer=smtp://mail.example.com\n"
 #~ "\n"
-#~ "If not explicitly specified, the default from address is derived from "
-#~ "the\n"
+#~ "If not explicitly specified, the default from address is derived from the\n"
 #~ "\"From:\" field in the message, if present, or the default user's email\n"
 #~ "address if not present.\n"
 #~ "\n"
-#~ "If not explicitly specified, the default to addresses are derived from "
-#~ "the\n"
+#~ "If not explicitly specified, the default to addresses are derived from the\n"
 #~ "\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n"
 #~ "\n"
 #~ "If --debug is specified, the envelope commands in the SMTP protocol\n"
 #~ "transaction will be printed to stdout. If specified more than once,\n"
-#~ "the data part of the protocol transaction will also be printed to "
-#~ "stdout.\n"
+#~ "the data part of the protocol transaction will also be printed to stdout.\n"
 #~ msgstr ""
 #~ "GNU mail.remote -- интерфейс типа sendmail для отправки почты\n"
 #~ "\n"
@@ -5675,13 +5479,10 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ "использоваться как замена /bin/sendmail для тех машин которые нуждаются\n"
 #~ "только в отправке почты через удаленный концентратор.\n"
 #~ "\n"
-#~ "Тип отправки почты \"sendmail:\" не поддерживается этой утилитой, "
-#~ "поскольку\n"
+#~ "Тип отправки почты \"sendmail:\" не поддерживается этой утилитой, поскольку\n"
 #~ "она предназначена для использования в тех случаях, когда на машине нет\n"
-#~ "работающего sendmail-а. Укажите ваш почтовый концентратор с помощью "
-#~ "опции\n"
-#~ "--mailer, например: --mailer \"smtp://mail.example.com\". Обычно это "
-#~ "стоит\n"
+#~ "работающего sendmail-а. Укажите ваш почтовый концентратор с помощью опции\n"
+#~ "--mailer, например: --mailer \"smtp://mail.example.com\". Обычно это стоит\n"
 #~ "добавить в ваш файл конфигурации (~/.mailutils/mailer.remote) или в\n"
 #~ "системный файл конфигурации (/etc/mailutils.rc). Например:\n"
 #~ "\n"
@@ -5691,8 +5492,7 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ "из заголовка From:, а если такого заголовка нет, то используется адрес\n"
 #~ "пользователя по умолчанию.\n"
 #~ "\n"
-#~ "Адреса получателей выбираются либо из командной строки, либо из "
-#~ "заголовков\n"
+#~ "Адреса получателей выбираются либо из командной строки, либо из заголовков\n"
 #~ "To:, Cc: и Bcc.\n"
 #~ "\n"
 #~ "Если указана опция --debug, утилита будет выводить на экран команды\n"

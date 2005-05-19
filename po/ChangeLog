@@ -1,3 +1,10 @@
+2005-05-19  Jordi Mallach  <jordi@gnu.org>
+
+	* LINGUAS: Added rw.
+	* rw.po: New Kinyarwanda translation by Steve Murphy.
+	* pl.po, ru.po, uk.po: Updated Polish, Russian and Ukrainian
+	translations by Sergey Poznyakoff.
+
 2005-04-05  Jordi Mallach  <jordi@gnu.org>
 
 	* fr.po: Updated French translation by Michel Robitaille.
