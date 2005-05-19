@@ -72,10 +72,11 @@ sql_escape_string (const char *ustr)
   char *str, *q;
   const unsigned char *p;
   size_t len = strlen (ustr);
+#define ESCAPABLE_CHAR "\\'\""
   
   for (p = (const unsigned char *) ustr; *p; p++)
     {
-      if (strchr ("'\"", *p))
+      if (strchr (ESCAPABLE_CHAR, *p))
 	len++;
     }
 
@@ -85,7 +86,7 @@ sql_escape_string (const char *ustr)
 
   for (p = (const unsigned char *) ustr, q = str; *p; p++)
     {
-      if (strchr ("'\"", *p))
+      if (strchr (ESCAPABLE_CHAR, *p))
 	*q++ = '\\';
       *q++ = *p;
     }
