@@ -64,7 +64,7 @@ static int fetch_header_fields     __P ((message_t, char **, unsigned long, unsi
 static int fetch_header_fields_not __P ((message_t, char **, unsigned long, unsigned long));
 static int fetch_send_address      __P ((const char *));
 
-static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command[]));
+static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command*));
 
 struct fetch_command
 {
@@ -105,7 +105,7 @@ struct fetch_command
 /* Go through the fetch array sub command and returns the the structure.  */
 
 static struct fetch_command *
-fetch_getcommand (char *cmd, struct fetch_command command_table[])
+fetch_getcommand (char *cmd, struct fetch_command *command_table)
 {
   size_t i, len = strlen (cmd);
 
