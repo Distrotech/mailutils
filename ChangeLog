@@ -1,3 +1,8 @@
+2005-05-20  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* imap4d/fetch.c (fetch_getcommand): Changed proto to make gcc 4.0
+	happy. 
+
 2005-05-19  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* auth/sql.c (sql_escape_string): Escape backslashes.
