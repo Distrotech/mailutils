@@ -1,3 +1,16 @@
+2005-05-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/mutil.c: include <sys/select.h>
+	* lib/mailcap.c: Provide a replacement for FNM_CASEFOLD
+	Reported by Jerry Heyman <heymanj@acm.org>.
+
+	* configure.ac: Compute the value of ULONG_MAX for use in the
+	testsute.
+	* imap4d/testsuite/Makefile.am (site.exp): Set MU_ULONG_MAX
+	* imap4d/testsuite/imap4d/IDEF0955.exp: Compute upper limit for
+	the message set spec based on the value of MU_ULONG_MAX.
+	* imap4d/testsuite/imap4d/IDEF0956.exp: Likewise
+
 2005-05-20  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* imap4d/fetch.c (fetch_getcommand): Changed proto to make gcc 4.0
