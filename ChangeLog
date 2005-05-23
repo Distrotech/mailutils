@@ -1,5 +1,11 @@
+2005-05-23  Kidong Lee  <briankdlee@yahoo.com>
+
+	* mailbox/rfc2047.c (rfc2047_encode): Rewritten using filters
+	and streams.
+
 2005-05-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
+	
 	* mailbox/mutil.c: include <sys/select.h>
 	* lib/mailcap.c: Provide a replacement for FNM_CASEFOLD
 	Reported by Jerry Heyman <heymanj@acm.org>.
