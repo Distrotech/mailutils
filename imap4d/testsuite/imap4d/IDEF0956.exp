@@ -22,20 +22,26 @@
 # Reported: by idefense.com on Thu, 12 May 2005 13:30:04 -0400
 # References: <FB24803D1DF2A34FA59FC157B77C9705043322C0@IDSERV04.idef.com>
 
-imap4d_start 
-imap4d_auth "user!passwd" "guessme"
+if { $MU_ULONG_MAX > 0 } {
+    imap4d_start 
+    imap4d_auth "user!passwd" "guessme"
 
-imap4d_test "SELECT mbox1" \
-"5 EXISTS"\
-"5 RECENT"\
--re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
-"OK \[UIDNEXT 6\] Predicted next uid"\
-"OK \[UNSEEN 1\] first unseen messsage"\
-"FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
-"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
-"OK"
+    imap4d_test "SELECT mbox1" \
+	"5 EXISTS"\
+	"5 RECENT"\
+	-re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
+	"OK \[UIDNEXT 6\] Predicted next uid"\
+	"OK \[UNSEEN 1\] first unseen messsage"\
+	"FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
+	"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
+	"OK"
 
-imap4d_test "FETCH 1 BODY\[TEXT\]<0.4294967294>" \
-"BAD FETCH Completed"
-
+    set limit [expr $MU_ULONG_MAX - 1]
+    verbose "LIMIT is $limit"
+    
+    imap4d_test "FETCH 1 BODY\[TEXT\]<0.$limit>" \
+	"BAD FETCH Completed"
+} else {
+    unsupported "IDEF0956"
+}
 # End of IDEF0956.exp
