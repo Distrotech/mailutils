@@ -28,6 +28,12 @@
 #include <sys/wait.h>
 #include <ctype.h>
 
+/* FNM_CASEFOLD is a GNU extension. Provide a replacement for systems 
+   lacking it. */
+#ifndef FNM_CASEFOLD
+# define FNM_CASEFOLD 0
+#endif
+
 /* Default mailcap path, the $HOME/.mailcap: entry is prepended to it */
 #define DEFAULT_MAILCAP \
  "/usr/local/etc/mailcap:"\
