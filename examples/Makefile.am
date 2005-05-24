@@ -22,20 +22,21 @@ SUBDIRS = config cpp scheme
 noinst_PROGRAMS = \
  addr\
  base64\
- listop\
- url-parse\
- sfrom\
- iconv\
- mimetest\
- murun\
- muemail\
- msg-send\
- http\
- mta\
  decode2047\
+ encode2047\
+ http\
+ iconv\
+ listop\
  mailcap\
+ mimetest\
+ msg-send\
+ mta\
+ muemail\
+ murun\
+ nntpclient\
  pop3client \
- nntpclient
+ sfrom\
+ url-parse
 
 ## NOTE: Numaddr must be an installable target, otherwise libtool
 ## will not create a shared library and `make check' will fail in
