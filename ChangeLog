@@ -1,10 +1,31 @@
+2005-05-24  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* examples/Makefile.am (noinst_PROGRAMS): Add encode2047. Sorted
+	alphabetically.
+	* examples/encode2047.c: New file.
+	* examples/base64.c (main): Add option -E (encoding). The program
+	can now be used to test any encoder/decoder filters, so its name
+	is kind of misnomer.
+	* mailbox/errors (MU_ERR_BAD_2047_ENCODING): New error code.
+	* mailbox/filter_trans.c (qp_encode): Do not keep track of the
+	whitespace. Proposed by Amit Jhawar <ajhawar@frontbridge.com>.
+	(Q_printable_char_p): TAB is not a printable char.
+	(Q_encode): Bugfix: 0x20 is represented by underscore, not vice
+	versa.
+	* mailbox/rfc2047.c (rfc2047_encode): Bugfix. Use proper encoding
+	types. Convert "base64" to "B" and "quoted-printable" to
+	"Q". Check return values from stream creation functions. Do not
+	destroy input_stream if output_stream was destroyed (prevents
+	coredump).
+	* scripts/config.rpath: Removed automatically generated file.
+	* THANKS: Added Kidong Lee and Amit Jhawar.
+	
 2005-05-23  Kidong Lee  <briankdlee@yahoo.com>
 
 	* mailbox/rfc2047.c (rfc2047_encode): Rewritten using filters
 	and streams.
 
 2005-05-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
-
 	
 	* mailbox/mutil.c: include <sys/select.h>
 	* lib/mailcap.c: Provide a replacement for FNM_CASEFOLD
