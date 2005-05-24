@@ -19,6 +19,7 @@
 	coredump).
 	* scripts/config.rpath: Removed automatically generated file.
 	* THANKS: Added Kidong Lee and Amit Jhawar.
+	* examples/.cvsignore: Add encode2047. Sort entries.
 	
 2005-05-23  Kidong Lee  <briankdlee@yahoo.com>
 
