@@ -35,8 +35,9 @@ main (int argc, char * argv [])
   size_t size, total = 0;
   int mode = MU_FILTER_ENCODE;
   char *input = NULL, *output = NULL;
-
-  while ((c = getopt (argc, argv, "dehi:o:pv")) != EOF)
+  char *encoding = "base64";
+    
+  while ((c = getopt (argc, argv, "deE:hi:o:pv")) != EOF)
     switch (c)
       {
       case 'i':
@@ -49,6 +50,10 @@ main (int argc, char * argv [])
 	
       case 'd':
 	mode = MU_FILTER_DECODE;
+	break;
+
+      case 'E':
+	encoding = optarg;
 	break;
 	
       case 'e':
@@ -64,7 +69,7 @@ main (int argc, char * argv [])
 	break;
 
       case 'h':
-	printf ("usage: base64 [-vpde][-i infile][-o outfile]\n");
+	printf ("usage: base64 [-vpde][-E encoding][-i infile][-o outfile]\n");
 	exit (0);
 	  
       default:
@@ -76,7 +81,7 @@ main (int argc, char * argv [])
   else
     c = stdio_stream_create (&in, stdin, 0);
   assert (c == 0);
-  assert (filter_create (&flt, in, "base64", mode, MU_STREAM_READ) == 0);
+  assert (filter_create (&flt, in, encoding, mode, MU_STREAM_READ) == 0);
   assert (stream_open (in) == 0);
 
   if (output)
