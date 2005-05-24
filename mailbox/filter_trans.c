@@ -285,7 +285,6 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 {
   unsigned int c;
   size_t consumed = 0;
-  size_t wscount = 0;
 
   *nbytes = 0;
 
@@ -319,9 +318,6 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	  *line_len = 0;
 	}
 	  
-      if (ISWS (c))
-	wscount++;
-	
       if (simple_char)
 	{
 	  /* a non-quoted character uses up one byte */
@@ -335,9 +331,6 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	  iptr++;
 	  consumed++;
 
-	  if (!ISWS (c))
-	    wscount = 0;
-	  
 	  if (c == '\n')
 	    *line_len = 0;
 	}
@@ -357,13 +350,9 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	  /* we've actuall used up one byte of input */
 	  iptr++;
 	  consumed++;
-	  wscount = 0;
 	}
     }
-  if (wscount)
-    wscount--;
-  (*nbytes) -= wscount;
-  return consumed - wscount;
+  return consumed;
 }
 
 static int
@@ -619,6 +608,7 @@ Q_printable_char_p (unsigned c)
     case '?':
     case '_':
     case ' ':
+    case '\t':
       return 0;
     default:
       return 1;
@@ -650,9 +640,13 @@ Q_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	  iptr++;
 	  consumed++;
 	}
-      else if (c == '_')
+      else if (c == 0x20)
 	{
-	  *optr++ = ' ';
+	  /* RFC2047, 4.2.2:
+	     Note that the "_"
+	     always represents hexadecimal 20, even if the SPACE character
+	     occupies a different code position in the character set in use. */
+	  *optr++ = '_';
 	  (*nbytes)++;
 	  (*line_len)++;
 	  iptr++;
