@@ -228,51 +228,56 @@ rfc2047_encode (const char *charset, const char *encoding,
 {
   stream_t input_stream;
   stream_t output_stream;
-  char encoding_char = '\0';
   int rc;
   
   if (charset == NULL || encoding == NULL || text == NULL)
     return MU_ERR_BAD_2047_INPUT;
 
-  if (strcasecmp (encoding, "base64") == 0)
-    encoding_char = 'B';
-  else if (strcasecmp (encoding, "quoted-printable") == 0)
-    encoding_char = 'Q';
-  else
-    return MU_ERR_BAD_2047_INPUT;
+  if (strcmp (encoding, "base64") == 0)
+    encoding = "B";
+  else if (strcmp (encoding, "quoted-printable") == 0)
+    encoding = "Q";
+  else if (encoding[1] || !strchr ("BQ", encoding[0]))
+    return MU_ERR_BAD_2047_ENCODING;
 
-  memory_stream_create (&input_stream, 0, 0);
+  rc = memory_stream_create (&input_stream, 0, 0);
+  if (rc)
+    return rc;
+  
   stream_sequential_write (input_stream, text, strlen (text));
 
-  filter_create (&output_stream, input_stream, encoding, MU_FILTER_ENCODE,
-		 MU_STREAM_READ);
-
-  /* Assume strlen(qp_encoded_text) <= strlen(text) * 3 */
-  /* malloced length is composed of:
-      "=?"  
-      charset 
-      "?"
-      B or Q
-      "?" 
-      encoded_text
-      "?="
-      zero terminator */
-  
-  *result = malloc (2 + strlen (charset) + 3 + strlen (text) * 3 + 3);
-  if (*result)
+  rc = filter_create (&output_stream, input_stream,
+		      encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+  if (rc == 0)
     {
-      sprintf (*result, "=?%s?%c?", charset, encoding_char);
+      /* Assume strlen(qp_encoded_text) <= strlen(text) * 3 */
+      /* malloced length is composed of:
+	 "=?"  
+	 charset 
+	 "?"
+	 B or Q
+	 "?" 
+	 encoded_text
+	 "?="
+	 zero terminator */
+      
+      *result = malloc (2 + strlen (charset) + 3 + strlen (text) * 3 + 3);
+      if (*result)
+	{
+	  sprintf (*result, "=?%s?%s?", charset, encoding);
+	  
+	  rc = stream_sequential_read (output_stream,
+				       *result + strlen (*result),
+				       strlen (text) * 3, NULL);
 
-      rc = stream_sequential_read (output_stream, *result + strlen (*result),
-				   strlen (text) * 3, NULL);
-
-      strcat (*result, "?=");
+	  strcat (*result, "?=");
+	}
+      else
+	rc = ENOMEM;
+      stream_destroy (&output_stream, NULL);
     }
   else
-    rc = ENOMEM;
-  
-  stream_destroy (&input_stream, NULL);
-  stream_destroy (&output_stream, NULL);
+    stream_destroy (&input_stream, NULL);
 
   return rc;
 }
