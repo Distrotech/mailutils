@@ -1,4 +1,4 @@
-# Mensajes en español para mailutils 0.6.1.
+# Mensajes en español para mailutils 0.6.90.
 # Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 # This file is distributed under the same license as the mailutils package.
 # Cristian Othón Martínez Vera <cfuga@itam.mx>, 2003, 2004, 2005.
@@ -8,10 +8,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.1\n"
+"Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2005-05-17 15:23+0300\n"
-"PO-Revision-Date: 2005-03-15 08:22-0600\n"
+"PO-Revision-Date: 2005-05-23 18:04-0500\n"
 "Last-Translator: Cristian Othón Martínez Vera <cfuga@itam.mx>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -20,12 +20,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: config/mailutils-config.c:28
-msgid ""
-"GNU mailutils-config -- Display compiler and loader options needed for "
-"building a program with mailutils"
-msgstr ""
-"GNU mailutils-config -- Muestra las opciones necesarias para el compilador y "
-"el cargador para construir un programa con mailutils"
+msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
+msgstr "GNU mailutils-config -- Muestra las opciones necesarias para el compilador y el cargador para construir un programa con mailutils"
 
 #: config/mailutils-config.c:29
 msgid "[arg...]"
@@ -36,27 +32,12 @@ msgid "Print C compiler flags to compile with"
 msgstr "Muestra las banderas del compilador de C para compilar"
 
 #: config/mailutils-config.c:35
-msgid ""
-"Print libraries to link with. Possible arguments are: auth, guile, all, "
-"mbox, mh, maildir, imap, pop"
-msgstr ""
-"Muestra las bibliotecas a enlazar. Los argumentos posibles son: auth, guile, "
-"all, mbox, mh, maildir, imap, pop"
+msgid "Print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
+msgstr "Muestra las bibliotecas a enlazar. Los argumentos posibles son: auth, guile, all, mbox, mh, maildir, imap, pop"
 
 #: config/mailutils-config.c:38
-msgid ""
-"Print a list of configuration options used to build mailutils. If arguments "
-"are given, they are interpreted as a list of configuration options to check "
-"for. In this case the program prints those options from this list that have "
-"been defined. It exits with zero status if all of the specified options are "
-"defined. Otherwise, the exit status is 1."
-msgstr ""
-"Muestra una lista de opciones de compilación utilizadas para construir "
-"mailutils. Si se dan argumentos, se interpretan como una lista de opciones "
-"de configuración para revisar. En este caso el programa muestra aquellas "
-"opciones de esta lista que estén definidas. Termina con estado cero si todas "
-"las opciones especificadas están definidas. De otra manera, el estado de "
-"salida es 1."
+msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
+msgstr "Muestra una lista de opciones de compilación utilizadas para construir mailutils. Si se dan argumentos, se interpretan como una lista de opciones de configuración para revisar. En este caso el programa muestra aquellas opciones de esta lista que estén definidas. Termina con estado cero si todas las opciones especificadas están definidas. De otra manera, el estado de salida es 1."
 
 #: config/mailutils-config.c:126 frm/from.c:129 mh/folder.c:568
 msgid "Too many arguments"
@@ -96,9 +77,7 @@ msgstr "PETICIÓN"
 
 #: auth/sql.c:187
 msgid "SQL query to retrieve a passwd entry based on username"
-msgstr ""
-"Petición SQL para obtener una entrada de contraseña basada en el nombre de "
-"usuario"
+msgstr "Petición SQL para obtener una entrada de contraseña basada en el nombre de usuario"
 
 #: auth/sql.c:189
 msgid "SQL query to retrieve a passwd entry based on UID"
@@ -139,12 +118,8 @@ msgid "Port to use"
 msgstr "Puerto a utilizar"
 
 #: auth/sql.c:203
-msgid ""
-"Type of password returned by --sql-getpass query. STRING is one of: plain, "
-"hash, scrambled"
-msgstr ""
-"Tipo de contraseña devuelto por la consulta --sql-getpass. CADENA es una de: "
-"plain, hash, scramble"
+msgid "Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"
+msgstr "Tipo de contraseña devuelto por la consulta --sql-getpass. CADENA es una de: plain, hash, scramble"
 
 #: auth/sql.c:215
 #, c-format
@@ -345,9 +320,7 @@ msgstr "Reiniciando"
 
 #: comsat/comsat.c:186
 msgid "Cannot restart: program must be invoked using absolute pathname"
-msgstr ""
-"No se puede reiniciar: el programa se debe invocar con el nombre de ruta "
-"absoluto"
+msgstr "No se puede reiniciar: el programa se debe invocar con el nombre de ruta absoluto"
 
 # Si no tuviera el original no lo entendería. Yo pondría tal vez algo así:
 # "Fallo al convertirse en demonio". sv
@@ -451,14 +424,8 @@ msgstr "El usuario no existe: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: dotlock/dotlock.c:38
-msgid ""
-"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
-"file fails because it's already locked, and 1 if some other kind of error "
-"occurred."
-msgstr ""
-"GNU dotlock -- bloquea los ficheros de la cola de correosDevuelve 0 en caso "
-"de éxito, 3 si falla el bloqueo del fichero porque ya está bloqueado, y 1 si "
-"sucede cualquier otro tipo de error."
+msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
+msgstr "GNU dotlock -- bloquea los ficheros de la cola de correosDevuelve 0 en caso de éxito, 3 si falla el bloqueo del fichero porque ya está bloqueado, y 1 si sucede cualquier otro tipo de error."
 
 #: dotlock/dotlock.c:47
 msgid "Unlock"
@@ -473,8 +440,7 @@ msgstr "MINUTOS"
 # Sí, era fuerza. "rotura" no me gusta mucho, creo que queda mejor así. cfuga
 #: dotlock/dotlock.c:50
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr ""
-"Fuerza la interrupción de un bloqueo existente más antiguo que cierto tiempo"
+msgstr "Fuerza la interrupción de un bloqueo existente más antiguo que cierto tiempo"
 
 #: dotlock/dotlock.c:52
 msgid "RETRIES"
@@ -488,8 +454,7 @@ msgstr "Reintenta el bloqueo unas veces más"
 # Lo ponemos así. cfuga
 #: dotlock/dotlock.c:56
 msgid "Print details of failure reasons to stderr"
-msgstr ""
-"Muestra detalles de las razones del fallo en la salida de error estándar"
+msgstr "Muestra detalles de las razones del fallo en la salida de error estándar"
 
 # "Mayor que", no "mayor a". sv
 # Ups. Cierto. cfuga
@@ -557,14 +522,8 @@ msgstr "leído"
 #. differ by the first letter.
 #.
 #: frm/frm.c:62
-msgid ""
-"Select messages with the specific attribute. STATUS is one of the following: "
-"new, unread, old (same as unread) or read. Any unambiguous abbreviation of "
-"those is also accepted."
-msgstr ""
-"Selecciona mensajes con el atributo especificado. ESTADO es uno de los "
-"siguientes: nuevo, sin leer, antiguo (igual que sin leer) o leído. También "
-"se acepta cualquier abreviatura que no sea ambigua."
+msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
+msgstr "Selecciona mensajes con el atributo especificado. ESTADO es uno de los siguientes: nuevo, sin leer, antiguo (igual que sin leer) o leído. También se acepta cualquier abreviatura que no sea ambigua."
 
 #: frm/frm.c:127
 #, c-format
@@ -689,8 +648,7 @@ msgstr "DIRECCIÓN"
 
 #: frm/from.c:31
 msgid "Print only mail from addresses containing the supplied string"
-msgstr ""
-"Muestra sólo el correo de direcciones que contienen la cadena proporcionada"
+msgstr "Muestra sólo el correo de direcciones que contienen la cadena proporcionada"
 
 #: frm/from.c:33
 msgid "Read mail from FILE"
@@ -702,8 +660,7 @@ msgstr "[OPCIONES] [USUARIO]"
 
 #: frm/from.c:136
 msgid "Both --from option and user name are specified"
-msgstr ""
-"Se especificaron la opción --from y el nombre de usuario al mismo tiempo"
+msgstr "Se especificaron la opción --from y el nombre de usuario al mismo tiempo"
 
 #: frm/from.c:151
 #, c-format
@@ -811,8 +768,7 @@ msgstr "Carga código fuente Scheme de FICHPROG, y termina"
 
 #: guimb/main.c:63
 msgid "The following options do not change the order of options parsing:"
-msgstr ""
-"Las siguientes opciones no cambian el orden de la decodificación de opciones:"
+msgstr "Las siguientes opciones no cambian el orden de la decodificación de opciones:"
 
 #: guimb/main.c:67
 msgid "Other options:"
@@ -841,12 +797,8 @@ msgid "Act as local MDA for user NAME"
 msgstr "Actúa como un MDA local para el usuario NOMBRE"
 
 #: guimb/main.c:126
-msgid ""
-"GNU guimb -- Process the contents of the specified mailboxes using a Scheme "
-"program or expression."
-msgstr ""
-"GNU guimb -- Procesa el contenido de los buzones especificados utilizando un "
-"programa o una expresión Scheme."
+msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
+msgstr "GNU guimb -- Procesa el contenido de los buzones especificados utilizando un programa o una expresión Scheme."
 
 #: guimb/main.c:128 messages/messages.c:35
 msgid "[mailbox...]"
@@ -854,9 +806,7 @@ msgstr "[buzón...]"
 
 #: guimb/main.c:170
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr ""
-"Al menos se debe usar uno de -fecs. Pruebe `guimb --help' para obtener más "
-"información."
+msgstr "Al menos se debe usar uno de -fecs. Pruebe `guimb --help' para obtener más información."
 
 #: guimb/util.c:51 guimb/util.c:58 mail/util.c:687 mail/util.c:694
 #, c-format
@@ -1208,9 +1158,7 @@ msgstr "coincidencia relacional `%s' inválida en la llamada a `%s'"
 #: libsieve/comparator.c:322
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr ""
-"el comparador `%s' es incompatible con el tipo de coincidencia `%s' en la "
-"llamada a `%s'"
+msgstr "el comparador `%s' es incompatible con el tipo de coincidencia `%s' en la llamada a `%s'"
 
 #: libsieve/prog.c:39
 msgid "out of memory!"
@@ -1369,8 +1317,7 @@ msgstr "%d: no se puede abrir `%s': %s"
 #: libsieve/extensions/vacation.c:311
 #, c-format
 msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr ""
-"%d: vacation se compiló sin soporte para DBM. Se ignora la etiqueta :days"
+msgstr "%d: vacation se compiló sin soporte para DBM. Se ignora la etiqueta :days"
 
 #: libsieve/extensions/vacation.c:507
 msgid "cannot get text!"
@@ -1597,17 +1544,15 @@ msgstr "No hay correo para %s\n"
 #: mail/mail.c:537
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU Mailutils -- un conjunto de utilidades para el correo electrónico\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
 "\n"
 
 #: mail/mail.c:541 mailbox/mu_argp.c:254 mh/mh_argp.c:188
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
 "   it under the terms of the GNU General Public License as published by\n"
@@ -1637,7 +1582,8 @@ msgstr ""
 "\n"
 "   Debió recibir una copia de la Licencia Pública General GNU junto\n"
 "   con GNU Mailutils; si no es así, escriba a la Free Software\n"
-"   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n"
+"   Foundation, Inc., 51 Franklin Street, Quinto Piso, Boston, MA 02110-1301 USA\n"
+"\n"
 "\n"
 
 #: mail/mailline.c:402 mail/mailline.c:430 mail/mailline.c:477
@@ -2049,22 +1995,15 @@ msgstr "PATRÓN"
 
 #: mail.local/main.c:91
 msgid "Set name pattern for user-defined Sieve mail filters"
-msgstr ""
-"Establece el nombre del patrón para los filtros de correo Sieve definidos "
-"por el usuario"
+msgstr "Establece el nombre del patrón para los filtros de correo Sieve definidos por el usuario"
 
 #: mail.local/main.c:93
-msgid ""
-"Identify messages by the value of this header when logging Sieve actions"
-msgstr ""
-"Identifica mensajes por el valor de este encabezado al registrar las "
-"acciones Sieve"
+msgid "Identify messages by the value of this header when logging Sieve actions"
+msgstr "Identifica mensajes por el valor de este encabezado al registrar las acciones Sieve"
 
 #: mail.local/main.c:96
 msgid "Set name pattern for user-defined Scheme mail filters"
-msgstr ""
-"Establece el nombre del patrón para los filtros de correo Scheme definidos "
-"por el usuario"
+msgstr "Establece el nombre del patrón para los filtros de correo Scheme definidos por el usuario"
 
 #: mail.local/main.c:98 mailbox/mu_argp.c:75 sieve/sieve.c:86
 #: mimeview/mimeview.c:46
@@ -2190,8 +2129,7 @@ msgstr "No se puede obtener el tamaño del flujo (mensaje de entrada): %s"
 #: mail.local/main.c:768
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr ""
-"%s: el mensaje excedería el tamaño máximo del buzón para este destinatario"
+msgstr "%s: el mensaje excedería el tamaño máximo del buzón para este destinatario"
 
 #: mail.local/main.c:821
 #, c-format
@@ -2251,8 +2189,7 @@ msgid ""
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 msgstr ""
 "GNU mail.remote -- interfaz seudo-sendmail para entrega de correo\n"
-"Este es un reemplazo simple de sendmail para reenviar el correo "
-"directamente\n"
+"Este es un reemplazo simple de sendmail para reenviar el correo directamente\n"
 "a una pasarela SMTP.\n"
 "Siempre se debe especificar su pasarela SMTP utilizando la opción --mailer\n"
 "(el mejor lugar para hacerlo es en su fichero de configuración).\n"
@@ -2286,13 +2223,8 @@ msgid "Read message for recipients."
 msgstr "Lee el mensaje por destinatarios."
 
 #: mail.remote/mail.remote.c:77
-msgid ""
-"Print envelope commands in the SMTP protocol transaction. If specified more "
-"than once, the data part of the protocol transaction will also be printed."
-msgstr ""
-"Muestra las órdenes de sobre en la transacción del protocolo SMTP. Si se "
-"especifica más de una vez, también se mostrará la parte de datos de la "
-"transacción del protocolo."
+msgid "Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed."
+msgstr "Muestra las órdenes de sobre en la transacción del protocolo SMTP. Si se especifica más de una vez, también se mostrará la parte de datos de la transacción del protocolo."
 
 #: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
 msgid "OPT"
@@ -2421,12 +2353,8 @@ msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Basura en ARGP_HELP_FMT: %s"
 
 #: mailbox/argp-help.c:1195
-msgid ""
-"Mandatory or optional arguments to long options are also mandatory or "
-"optional for any corresponding short options."
-msgstr ""
-"Los argumentos obligatorios u opcionales para las opciones largas también "
-"son obligatorios u opcionales para cualquier opción corta correspondiente."
+msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
+msgstr "Los argumentos obligatorios u opcionales para las opciones largas también son obligatorios u opcionales para cualquier opción corta correspondiente."
 
 #: mailbox/argp-help.c:1582
 msgid "Usage:"
@@ -2549,8 +2477,7 @@ msgstr "Usa el URL especificado como un directorio de cola de correo"
 
 #: mailbox/mu_argp.c:76
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
-msgstr ""
-"Opciones por defecto de bloqueo (E=externa, R=reintentar, T=tiempo, P=pid)"
+msgstr "Opciones por defecto de bloqueo (E=externa, R=reintentar, T=tiempo, P=pid)"
 
 #: mailbox/mu_argp.c:77 mailbox/mu_argp.c:81 mh/send.c:67 pop3d/pop3d.c:77
 msgid "SECONDS"
@@ -2562,9 +2489,7 @@ msgstr "Establece un tiempo de expiración para adquirir el fichero de bloqueo"
 
 #: mailbox/mu_argp.c:80
 msgid "Set the maximum number of times to retry acquiring the lockfile"
-msgstr ""
-"Establece el número máximo de veces para reintentar adquirir el fichero de "
-"bloqueo"
+msgstr "Establece el número máximo de veces para reintentar adquirir el fichero de bloqueo"
 
 #: mailbox/mu_argp.c:82
 msgid "Number of seconds after which the lock expires"
@@ -2580,9 +2505,7 @@ msgstr "Establece la ruta completa al programa de bloqueo externo"
 
 #: mailbox/mu_argp.c:91
 msgid "Set current user's email address (default is loginname@defaultdomain)"
-msgstr ""
-"Establece el correo electrónica del usuario actual (por defecto es "
-"nombreentrada@dominioporomision)"
+msgstr "Establece el correo electrónica del usuario actual (por defecto es nombreentrada@dominioporomision)"
 
 #: mailbox/mu_argp.c:92
 msgid "DOMAIN"
@@ -2590,9 +2513,7 @@ msgstr "DOMINIO"
 
 #: mailbox/mu_argp.c:93
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr ""
-"Establece el dominio para los nombres de usuario no calificados (por defecto "
-"es este anfitrión)"
+msgstr "Establece el dominio para los nombres de usuario no calificados (por defecto es este anfitrión)"
 
 #: mailbox/mu_argp.c:99
 msgid "MAILER"
@@ -2690,15 +2611,11 @@ msgstr "%s: memoria insuficiente\n"
 #: mailbox/mu_argp.c:892
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
-msgstr ""
-"ERROR INTERNO: capacidad solicitada %s de argp desconocida (reporte por "
-"favor)"
+msgstr "ERROR INTERNO: capacidad solicitada %s de argp desconocida (reporte por favor)"
 
 #: mailbox/mu_argp.c:955
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr ""
-"ERROR INTERNO: no se puede registrar la capacidad auth de argp (reporte por "
-"favor)"
+msgstr "ERROR INTERNO: no se puede registrar la capacidad auth de argp (reporte por favor)"
 
 #: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
 msgid "MODLIST"
@@ -2969,8 +2886,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH annoLas opciones marcadas con `*' aún no están implementadas.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH."
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH."
 
 #: mh/anno.c:29
 msgid "[msg [msg...]]"
@@ -3026,9 +2942,7 @@ msgstr "Nombre del componente: "
 #. in this message
 #: mh/fmtcheck.c:26
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH fmtcheckUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH fmtcheckUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
 #: mh/scan.c:45
@@ -3063,9 +2977,7 @@ msgstr "Cadena de formato errónea"
 #. in this message
 #: mh/folder.c:39
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH folderUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH folderUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/folder.c:41
 msgid "[action] [msg]"
@@ -3084,16 +2996,8 @@ msgid "List the contents of the folder stack"
 msgstr "Enlista los contenidos de la pila de carpetas"
 
 #: mh/folder.c:50
-msgid ""
-"Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
-"Otherwise, if a folder is given in the command line (via + or --folder), it "
-"is pushed on stack. Otherwise, the current folder and the top of the folder "
-"stack are exchanged"
-msgstr ""
-"Agrega la carpeta a la pila de carpeta. Si se especifica la CARPETA, se "
-"agrega. De otra forma, si se da una carpeta en la línea de órdenes (a través "
-"de + ó --folder), se agrega a la pila. De otra forma, se intercambian la "
-"carpeta actual y la carpeta del tope de la pila"
+msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
+msgstr "Agrega la carpeta a la pila de carpeta. Si se especifica la CARPETA, se agrega. De otra forma, si se da una carpeta en la línea de órdenes (a través de + ó --folder), se agrega a la pila. De otra forma, se intercambian la carpeta actual y la carpeta del tope de la pila"
 
 #: mh/folder.c:55
 msgid "Pop the folder off the folder stack"
@@ -3151,12 +3055,8 @@ msgstr "(otros)"
 
 #: mh/folder.c:449
 #, c-format
-msgid ""
-"Folder                  # of messages     (  range  )  cur msg   (other "
-"files)\n"
-msgstr ""
-"Carpeta                 # de mensajes     (  rango  )  msg act   (otros "
-"fich)\n"
+msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
+msgstr "Carpeta                 # de mensajes     (  rango  )  msg act   (otros fich)\n"
 
 #: mh/folder.c:455
 msgid "TOTAL"
@@ -3184,8 +3084,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH forwLas opciones marcadas con `*' aún no están implementadas.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH."
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH."
 
 #: mh/forw.c:34 mh/repl.c:37
 msgid "* Add Replied: header to the message being replied to"
@@ -3254,9 +3153,7 @@ msgstr "* Establece el reemplazo para el programa whatnow"
 
 #: mh/forw.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
-msgstr ""
-"* Ignora la variable whatnowproc. Utilice `whatnow' estándar de shell en su "
-"lugar"
+msgstr "* Ignora la variable whatnowproc. Utilice `whatnow' estándar de shell en su lugar"
 
 #: mh/forw.c:71 mh/repl.c:70
 msgid "Use draft file preserved after the last session"
@@ -3295,9 +3192,7 @@ msgstr "Final de los Mensajes reenviados"
 #. in this message
 #: mh/inc.c:26
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH incUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH."
+msgstr "GNU MH incUtilice la opción -help para obtener la lista de las opciones tradicionales de MH."
 
 #: mh/inc.c:28 mh/rmf.c:37
 msgid "[+folder]"
@@ -3358,11 +3253,8 @@ msgstr "%d: error al agregar el mensaje: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/install-mh.c:24
-msgid ""
-"GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH install-mhUtilice la opción -help para obtener la lista de las "
-"opciones tradicionales de MH. "
+msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH install-mhUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/install-mh.c:30
 msgid "Do not ask for anything"
@@ -3372,9 +3264,7 @@ msgstr "No preguntar por nada"
 #. in this message
 #: mh/mark.c:24
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH markUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH markUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/mark.c:33
 msgid "Specify sequence name to operate upon"
@@ -3622,8 +3512,7 @@ msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
 "Please remove it and try again"
 msgstr ""
-"Ya tiene el fichero %s el cual no es un fichero regular o un enlace "
-"simbólico.\n"
+"Ya tiene el fichero %s el cual no es un fichero regular o un enlace simbólico.\n"
 "Por favor bórrelo e intente de nuevo"
 
 #: mh/mh_list.c:139
@@ -3725,18 +3614,11 @@ msgstr "se dejó el borrador en \"%s\".\n"
 
 #: mh/mh_whatnow.c:392
 msgid "List the message being distributed/replied-to on the terminal."
-msgstr ""
-"Muestra la lista que se está distribuyendo/respondiendo a en la terminal."
+msgstr "Muestra la lista que se está distribuyendo/respondiendo a en la terminal."
 
 #: mh/mh_whatnow.c:394
-msgid ""
-"Edit the message. If EDITOR is omitted use the one that was used on the "
-"preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
-"alternate editor."
-msgstr ""
-"Edita el mensaje. Si se omite EDITOR se usa el que se utilizó en la sesión "
-"anterior, a menos que la entrada del perfil \"LASTEDITOR-next\" nombre un "
-"editor alternativo"
+msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
+msgstr "Edita el mensaje. Si se omite EDITOR se usa el que se utilizó en la sesión anterior, a menos que la entrada del perfil \"LASTEDITOR-next\" nombre un editor alternativo"
 
 #: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
 msgid "List the draft on the terminal."
@@ -3747,30 +3629,20 @@ msgid "Send the message in the background."
 msgstr "Envía el mensaje en el fondo."
 
 #: mh/mh_whatnow.c:402
-msgid ""
-"Terminate the session. Preserve the draft, unless -delete flag is given."
-msgstr ""
-"Termina la sesión. Conserva el borrador, a menos que se de la opción -delete."
+msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr "Termina la sesión. Conserva el borrador, a menos que se de la opción -delete."
 
 #: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
 msgid "Refile the draft into the given FOLDER."
 msgstr "Conserva el borrador en la CARPETA dada."
 
 #: mh/mh_whatnow.c:406
-msgid ""
-"Send the message. The -watch flag causes the delivery process to be "
-"monitored. SWITCHES are passed to send program verbatim."
-msgstr ""
-"Envía el mensaje. La opción -watch causa que el proceso de entrega sea "
-"monitorizado. Las OPCIONES se pasan al programa de envío textualmente."
+msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
+msgstr "Envía el mensaje. La opción -watch causa que el proceso de entrega sea monitorizado. Las OPCIONES se pasan al programa de envío textualmente."
 
 #: mh/mh_whatnow.c:409
-msgid ""
-"List the addresses and verify that they are acceptable to the transport "
-"service."
-msgstr ""
-"Muestra las direcciones y verifica que sean aceptables para el servicio de "
-"transporte."
+msgid "List the addresses and verify that they are acceptable to the transport service."
+msgstr "Muestra las direcciones y verifica que sean aceptables para el servicio de transporte."
 
 #: mh/mh_whatnow.c:425
 msgid "Terminate the session. Preserve the draft."
@@ -3840,9 +3712,7 @@ msgstr "No hay destinatarios"
 #. in this message
 #: mh/mhl.c:28
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH mhlUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH mhlUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/mhl.c:30
 msgid "[files]"
@@ -3905,8 +3775,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH mhnLas opciones marcadas con `*' aún no están implementadas.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH."
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH."
 
 #: mh/mhn.c:40
 msgid "Specify file to operate upon"
@@ -4124,9 +3993,7 @@ msgstr "argumentos extra"
 #. in this message
 #: mh/mhpath.c:26
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH mhpathUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH mhpathUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
 msgid "[+folder] [msgs]"
@@ -4140,8 +4007,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH pickLas opciones marcadas con `*' no se han implementado aún.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH. "
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/pick.c:35
 msgid "[messages]"
@@ -4160,19 +4026,8 @@ msgid "A pattern to look for"
 msgstr "Un patrón a buscar"
 
 #: mh/pick.c:49
-msgid ""
-"Flags controlling the type of regular expressions. STRING must consist of "
-"one or more of the following letters: B=basic, E=extended, I=ignore case, "
-"C=case sensitive. Default is \"EI\". The flags remain in effect until the "
-"next occurrence of --cflags option. The option must occur right before --"
-"pattern or --component option (or its alias)."
-msgstr ""
-"Las opciones que controlan el tipo de las expresiones regulares. La CADENA "
-"debe consistir de una o más de las siguientes letras: B=básico E=extendido "
-"I=ignorar mayúsculas/minúsculas C=diferenciar mayúsculas/minúsculas. Por "
-"defecto es \"EI\". Las opciones permanecen hasta la siguente aparición de la "
-"opción --cflags. La opción debe estar justo antes de la opción --pattern ó --"
-"component (o sus sinónimos)."
+msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
+msgstr "Las opciones que controlan el tipo de las expresiones regulares. La CADENA debe consistir de una o más de las siguientes letras: B=básico E=extendido I=ignorar mayúsculas/minúsculas C=diferenciar mayúsculas/minúsculas. Por defecto es \"EI\". Las opciones permanecen hasta la siguente aparición de la opción --cflags. La opción debe estar justo antes de la opción --pattern ó --component (o sus sinónimos)."
 
 #: mh/pick.c:51
 msgid "Same as --component cc --pattern STRING"
@@ -4200,8 +4055,7 @@ msgstr "Opciones de restricción de fecha:"
 
 #: mh/pick.c:63
 msgid "Search in the named date header field (default is `Date:')"
-msgstr ""
-"Busca en el campo de encabezado de fecha nombrado (por defecto es `Date:')"
+msgstr "Busca en el campo de encabezado de fecha nombrado (por defecto es `Date:')"
 
 #: mh/pick.c:64 mh/pick.c:66
 msgid "DATE"
@@ -4264,8 +4118,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH refileLas opciones marcadas con `*' no se han implementado aún.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH. "
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/refile.c:34
 msgid "messages folder [folder...]"
@@ -4284,12 +4137,8 @@ msgid "* Try to preserve message sequence numbers"
 msgstr "* Intenta preservar la secuencia de números de mensajes"
 
 #: mh/refile.c:48
-msgid ""
-"Specify source folder. FOLDER will become the current folder after the "
-"program exits"
-msgstr ""
-"Especifica la carpeta fuente. La CARPETA será la carpeta actual después de "
-"que el programa termine"
+msgid "Specify source folder. FOLDER will become the current folder after the program exits"
+msgstr "Especifica la carpeta fuente. La CARPETA será la carpeta actual después de que el programa termine"
 
 #: mh/refile.c:50
 msgid "Use FILE as the source message"
@@ -4324,8 +4173,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH replLas opciones marcadas con `*' no se han implementado aún.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH. "
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/repl.c:31
 msgid "[+folder] [msg]"
@@ -4357,19 +4205,11 @@ msgstr "FILTRO-MHL"
 
 #: mh/repl.c:57
 msgid "Set the mhl filter to preprocess the body of the message being replied"
-msgstr ""
-"Establece el filtro mhl para preprocesar el cuerpo del mensaje que se está "
-"respondiendo"
+msgstr "Establece el filtro mhl para preprocesar el cuerpo del mensaje que se está respondiendo"
 
 #: mh/repl.c:60
-msgid ""
-"Include a copy of the message being replied. The message will be processed "
-"using either the default filter \"mhl.reply\", or the filter specified by --"
-"filter option"
-msgstr ""
-"Incluye una copia del mensaje que se está contestando. El mensaje se "
-"procesará usando el filtro por defecto \"mhl.reply\", o el filtro "
-"especificado por la opción --filter"
+msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option"
+msgstr "Incluye una copia del mensaje que se está contestando. El mensaje se procesará usando el filtro por defecto \"mhl.reply\", o el filtro especificado por la opción --filter"
 
 #: mh/repl.c:64
 msgid "Query for addresses to place in To: and Cc: lists"
@@ -4377,9 +4217,7 @@ msgstr "Pregunta por direcciones a colocar en las listas Para: y Cc:"
 
 #: mh/repl.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr ""
-"* Ignora la variable whatnowproc. Utilice `whatnow' estándar de shell en su "
-"lugar."
+msgstr "* Ignora la variable whatnowproc. Utilice `whatnow' estándar de shell en su lugar."
 
 #: mh/repl.c:131
 #, c-format
@@ -4416,9 +4254,7 @@ msgstr "¡Sólo un mensaje a la vez!"
 #. in this message
 #: mh/rmf.c:35
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH rmfUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH rmfUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/rmf.c:42
 msgid "Specify the folder to delete"
@@ -4446,17 +4282,13 @@ msgstr "No se puede borrar %s: %s"
 #. in this message
 #: mh/rmm.c:26
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH rmmUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH rmmUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/scan.c:33
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH scanUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH scanUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/scan.c:40
 msgid "Specify folder to scan"
@@ -4496,8 +4328,7 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH sendLas opciones marcadas con `*' aún no están implementadas.\n"
-"Utilice la opción -help para obtener la lista de las opciones tradicionales "
-"de MH."
+"Utilice la opción -help para obtener la lista de las opciones tradicionales de MH."
 
 #: mh/send.c:33
 msgid "file [file...]"
@@ -4513,8 +4344,7 @@ msgstr "Utiliza el borrador preparado"
 
 #: mh/send.c:45 mh/whom.c:37
 msgid "Treat the arguments as a list of messages from the draftfolder"
-msgstr ""
-"Trata los argumentos como una lista de mensajes de la carpeta de borradores"
+msgstr "Trata los argumentos como una lista de mensajes de la carpeta de borradores"
 
 #: mh/send.c:49
 msgid "* Use filter FILE to preprocess the body of the message"
@@ -4530,12 +4360,8 @@ msgid "* Reformat To: and Cc: addresses"
 msgstr "* Reformatea las direcciones To: y Cc:"
 
 #: mh/send.c:56
-msgid ""
-"* In case of failure forward the draft along with the failure notice to the "
-"sender"
-msgstr ""
-"* En caso de fallo reenvía el borrador junto con la notificación de fallo al "
-"remitente"
+msgid "* In case of failure forward the draft along with the failure notice to the sender"
+msgstr "* En caso de fallo reenvía el borrador junto con la notificación de fallo al remitente"
 
 #: mh/send.c:59
 msgid "* Use MIME encapsulation"
@@ -4551,12 +4377,8 @@ msgstr "Ejecuta en el fondo."
 
 # continuar aqui
 #: mh/send.c:68
-msgid ""
-"* Split the draft into several partial messages and send them with SECONDS "
-"interval"
-msgstr ""
-"* Divide el borrador en varios mensajes parciales y los envía en intervalos "
-"de SEGUNDOS"
+msgid "* Split the draft into several partial messages and send them with SECONDS interval"
+msgstr "* Divide el borrador en varios mensajes parciales y los envía en intervalos de SEGUNDOS"
 
 #: mh/send.c:70
 msgid "Print the transcript of interactions with the transport system"
@@ -4568,8 +4390,7 @@ msgstr "Monitoriza la entrega de correo"
 
 #: mh/send.c:76
 msgid "* Make header fields no longer than NUMBER columns"
-msgstr ""
-"* Hace que los campos de encabezados no sean más largos que NÚMERO columnas"
+msgstr "* Hace que los campos de encabezados no sean más largos que NÚMERO columnas"
 
 #: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135 pop3d/pop3d.c:149
 msgid "Invalid number"
@@ -4600,9 +4421,9 @@ msgid "Cannot open mailer `%s'"
 msgstr "No se puede abrir el programa de correo `%s'"
 
 #: mh/send.c:435
-#, fuzzy, c-format
+#, c-format
 msgid "Fixed Fcc: %s"
-msgstr "Fallo: %s"
+msgstr "Fcc Fijo: %s"
 
 #: mh/send.c:449
 msgid "Getting message"
@@ -4643,9 +4464,7 @@ msgstr "Establece el prompt"
 #. in this message
 #: mh/whom.c:24
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr ""
-"GNU MH whomUtilice la opción -help para obtener la lista de las opciones "
-"tradicionales de MH. "
+msgstr "GNU MH whomUtilice la opción -help para obtener la lista de las opciones tradicionales de MH. "
 
 #: mh/whom.c:41
 msgid "Check if addresses are deliverable"
@@ -5058,8 +4877,7 @@ msgstr "LISTA"
 
 #: readmsg/readmsg.c:43
 msgid "List of header names separated by whitespace or commas"
-msgstr ""
-"Lista de nombres de encabezados separados por espacios en blanco o comas"
+msgstr "Lista de nombres de encabezados separados por espacios en blanco o comas"
 
 #: readmsg/readmsg.c:44
 msgid "Folder to use"
@@ -5075,8 +4893,7 @@ msgstr "Caracteres 'formfeed' de salida entre mensajes"
 
 #: readmsg/readmsg.c:48
 msgid "Print all messages matching pattern, not just the first"
-msgstr ""
-"Muestra todos los mensajes que coincidan con el patrón, no sólo el primero"
+msgstr "Muestra todos los mensajes que coincidan con el patrón, no sólo el primero"
 
 #: readmsg/readmsg.c:250
 #, c-format
@@ -5127,8 +4944,7 @@ msgstr "Compilar el guión y terminar"
 
 #: sieve/sieve.c:78
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
-msgstr ""
-"Compilar el guión, volcar el código sieve desensamblado a la terminal y salir"
+msgstr "Compilar el guión, volcar el código sieve desensamblado a la terminal y salir"
 
 #: sieve/sieve.c:80
 msgid "MBOX"
@@ -5160,8 +4976,7 @@ msgstr "Registrar todas las acciones"
 
 #: sieve/sieve.c:93
 msgid "Print source location along with action logs (default)"
-msgstr ""
-"Mostrar la ubicación fuente junto con los registros de acciones (por defecto)"
+msgstr "Mostrar la ubicación fuente junto con los registros de acciones (por defecto)"
 
 #: sieve/sieve.c:96
 msgid "Override user email address"
@@ -5266,12 +5081,8 @@ msgstr "Falló al vaciar el buzón por defecto: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mimeview/mimeview.c:31
-msgid ""
-"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
-"file is "
-msgstr ""
-"GNU mimeview -- muestra ficheros, usando el mecanismo mailcap.El fichero "
-"mime.types por defecto es "
+msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
+msgstr "GNU mimeview -- muestra ficheros, usando el mecanismo mailcap.El fichero mime.types por defecto es "
 
 #: mimeview/mimeview.c:33
 msgid ""
@@ -5294,14 +5105,8 @@ msgid "TYPE-LIST"
 msgstr "LISTA-TIPOS"
 
 #: mimeview/mimeview.c:42
-msgid ""
-"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
-"do not ask for confirmation before displaying such files whose MIME type "
-"matches one of the patterns from TYPE-LIST"
-msgstr ""
-"No solicitar confirmación antes de mostrar ficheros. Si se da la LISTA-"
-"TIPOS, no solicitar confirmación antes de mostrar aquellos archivos cuyo "
-"tipo MIME coincida con uno de los patrones de LISTA-TIPOS"
+msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
+msgstr "No solicitar confirmación antes de mostrar ficheros. Si se da la LISTA-TIPOS, no solicitar confirmación antes de mostrar aquellos archivos cuyo tipo MIME coincida con uno de los patrones de LISTA-TIPOS"
 
 #: mimeview/mimeview.c:44
 msgid "Disable interactive mode"
@@ -5460,9 +5265,7 @@ msgstr "el argumentos %d es de tipo incorrecto en la llamada a `%s'"
 #~ msgstr "no se puede abrir %s: %s\n"
 
 #~ msgid "Set name pattern for user-defined mail filters"
-#~ msgstr ""
-#~ "Establece el nombre del patrón para los filtros de correo definidos por "
-#~ "el usuario"
+#~ msgstr "Establece el nombre del patrón para los filtros de correo definidos por el usuario"
 
 #~ msgid "temporary file write error: %s"
 #~ msgstr "error al escribir al fichero temporal: %s"
@@ -5539,12 +5342,8 @@ msgstr "el argumentos %d es de tipo incorrecto en la llamada a `%s'"
 #~ msgstr[0] "la petición devolvió %d campo: %s"
 #~ msgstr[1] "la petición devolvió %d campos: %s"
 
-#~ msgid ""
-#~ "Maximum retention period for messages in the maildrop, default -1 means "
-#~ "NEVER"
-#~ msgstr ""
-#~ "Periodo máximo de retención para los mensajes en el buzón de entrada, el "
-#~ "valor por defecto -1 significa NUNCA"
+#~ msgid "Maximum retention period for messages in the maildrop, default -1 means NEVER"
+#~ msgstr "Periodo máximo de retención para los mensajes en el buzón de entrada, el valor por defecto -1 significa NUNCA"
 
 #~ msgid "%s %s failed: %s\n"
 #~ msgstr "Falló el %s de %s: %s\n"
@@ -5557,9 +5356,7 @@ msgstr "el argumentos %d es de tipo incorrecto en la llamada a `%s'"
 
 # No hay opción de traducción para [n]ew, [r]ead, y [u]nread. cfuga
 #~ msgid "Select message with the specific attribute: [n]ew, [r]ead, [u]nread."
-#~ msgstr ""
-#~ "Selecciona los mensajes con los atributos específicos: [n]uevo, [r]"
-#~ "evisado, [u](sin revisar)."
+#~ msgstr "Selecciona los mensajes con los atributos específicos: [n]uevo, [r]evisado, [u](sin revisar)."
 
 #~ msgid "You have %d message.\n"
 #~ msgid_plural "You have %d messages.\n"
@@ -5587,48 +5384,39 @@ msgstr "el argumentos %d es de tipo incorrecto en la llamada a `%s'"
 #~ "with a line such as:\n"
 #~ "  :mailer --mailer=smtp://mail.example.com\n"
 #~ "\n"
-#~ "If not explicitly specified, the default from address is derived from "
-#~ "the\n"
+#~ "If not explicitly specified, the default from address is derived from the\n"
 #~ "\"From:\" field in the message, if present, or the default user's email\n"
 #~ "address if not present.\n"
 #~ "\n"
-#~ "If not explicitly specified, the default to addresses are derived from "
-#~ "the\n"
+#~ "If not explicitly specified, the default to addresses are derived from the\n"
 #~ "\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n"
 #~ "\n"
 #~ "If --debug is specified, the envelope commands in the SMTP protocol\n"
 #~ "transaction will be printed to stdout. If specified more than once,\n"
-#~ "the data part of the protocol transaction will also be printed to "
-#~ "stdout.\n"
+#~ "the data part of the protocol transaction will also be printed to stdout.\n"
 #~ msgstr ""
 #~ "GNU mail.remote -- interfaz de pseudo-sendmail para entrega de correo\n"
 #~ "\n"
 #~ "Se lee un mensaje con formato RFC2822 de entrada estándar y se entrega\n"
-#~ "utilizando el programa de correo. Esta utilidad se puede utilizar como "
-#~ "un\n"
-#~ "reemplazo automático para /bin/sendmail para reenviar el correo "
-#~ "directamente\n"
+#~ "utilizando el programa de correo. Esta utilidad se puede utilizar como un\n"
+#~ "reemplazo automático para /bin/sendmail para reenviar el correo directamente\n"
 #~ "a una compuerta SMTP.\n"
 #~ "\n"
 #~ "El programa de correo por defecto es \"sendmail:\", el cual no está\n"
 #~ "soportado por esta utilidad (está pensada para usarse cuando no se tiene\n"
 #~ "un sendmail funcional). Debe especificar su compuerta SMTP especificando\n"
-#~ "un --mailer con algo como \"smtp://correo.ejemplo.com\". Esto "
-#~ "normalmente\n"
+#~ "un --mailer con algo como \"smtp://correo.ejemplo.com\". Esto normalmente\n"
 #~ "se agrega al fichero de configuración específico del usuario,\n"
 #~ "  ~/.mailutils/mailutils,\n"
 #~ "o al fichero de configuración global,\n"
 #~ "  /etc/mailutils.rc,\n"
 #~ "con una línea como:  :mailer --mailer=smtp://correo.ejemplo.com\n"
 #~ "\n"
-#~ "Si no se especifica explícitamente, la dirección de por defecto se "
-#~ "deriva\n"
-#~ "del campo \"From:\" del mensaje, si está presente, o la dirección de "
-#~ "correo\n"
+#~ "Si no se especifica explícitamente, la dirección de por defecto se deriva\n"
+#~ "del campo \"From:\" del mensaje, si está presente, o la dirección de correo\n"
 #~ "electrónico por defecto del usuario si no está presente.\n"
 #~ "\n"
-#~ "Si no se especifica explícitamente, la dirección para por defecto se "
-#~ "deriva\n"
+#~ "Si no se especifica explícitamente, la dirección para por defecto se deriva\n"
 #~ "de los campos \"To:\", \"Cc:\", y \"Bcc:\" del mensaje.\n"
 #~ "\n"
 #~ "Si se especifica --debug, los comandos del sobre de la transacción\n"
@@ -5642,39 +5430,21 @@ msgstr "el argumentos %d es de tipo incorrecto en la llamada a `%s'"
 #~ msgid "could not create mailbox: %s"
 #~ msgstr "no se puede crear el buzón: %s"
 
-#~ msgid ""
-#~ "Note: Argument to --file (-f) option is optional. If it is present, it "
-#~ "must follow the short option immediately, without any intervening "
-#~ "whitespace. If it is used with the long option, it must be separated from "
-#~ "it by an equal sign, with no intervening whitespace."
-#~ msgstr ""
-#~ "Nota: El argumento para --file (-f) es opcional. Si está presente, debe "
-#~ "estar a continuación de la opción corta inmediatamente, sin ningún "
-#~ "espacio intermedio. Si se utiliza con la opción larga, debe estar "
-#~ "separado de ella por un signoigual, sin ningún espacio intermedio."
+#~ msgid "Note: Argument to --file (-f) option is optional. If it is present, it must follow the short option immediately, without any intervening whitespace. If it is used with the long option, it must be separated from it by an equal sign, with no intervening whitespace."
+#~ msgstr "Nota: El argumento para --file (-f) es opcional. Si está presente, debe estar a continuación de la opción corta inmediatamente, sin ningún espacio intermedio. Si se utiliza con la opción larga, debe estar separado de ella por un signoigual, sin ningún espacio intermedio."
 
 #~ msgid ""
-#~ "Usage error: --file takes an optional argument, it must follow the "
-#~ "option\n"
+#~ "Usage error: --file takes an optional argument, it must follow the option\n"
 #~ "without any intervening whitespace."
 #~ msgstr ""
-#~ "Error de modo de empleo: --file toma un argumento opcional, debe seguir a "
-#~ "la\n"
+#~ "Error de modo de empleo: --file toma un argumento opcional, debe seguir a la\n"
 #~ "opción sin ningún espacio intermedio."
 
 #~ msgid "Run mail --help for more info."
 #~ msgstr "Ejecute mail --help para más información."
 
-#~ msgid ""
-#~ "print libraries to link with. Up to two args can be given. Arguments are: "
-#~ "auth, to display libraries needed for linking against libmuauth, and "
-#~ "guile, to display libraries needed for linking against libmu_scm. Both "
-#~ "can be given simultaneously"
-#~ msgstr ""
-#~ "muestra las bibliotecas para enlazar. Se pueden dar hasta dos argumentos. "
-#~ "Los argumentos son: auth, para mostrar las bibliotecas necesarias para "
-#~ "enlazar con libmuauth, y guile, para mostrar las bibliotecas necesarias "
-#~ "para enlazar con libmu_scm. Se pueden dar ambas simultáneamente"
+#~ msgid "print libraries to link with. Up to two args can be given. Arguments are: auth, to display libraries needed for linking against libmuauth, and guile, to display libraries needed for linking against libmu_scm. Both can be given simultaneously"
+#~ msgstr "muestra las bibliotecas para enlazar. Se pueden dar hasta dos argumentos. Los argumentos son: auth, para mostrar las bibliotecas necesarias para enlazar con libmuauth, y guile, para mostrar las bibliotecas necesarias para enlazar con libmu_scm. Se pueden dar ambas simultáneamente"
 
 #~ msgid "waiting for debug"
 #~ msgstr "esperando la depuración"

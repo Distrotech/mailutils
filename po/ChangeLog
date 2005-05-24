@@ -1,3 +1,9 @@
+2005-05-24  Jordi Mallach  <jordi@gnu.org>
+
+	* ca.po: Updated Catalan translation.
+	* es.po: Updated Spanish translation by
+	Christian Othón Martínez Vera.
+
 2005-05-19  Jordi Mallach  <jordi@gnu.org>
 
 	* LINGUAS: Added rw.
