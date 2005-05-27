@@ -1410,7 +1410,7 @@ amd_envelope_date (envelope_t envelope, char *buf, size_t len,
   message_t msg = envelope_get_owner (envelope);
   struct _amd_message *mhm = message_get_owner (msg);
   header_t hdr = NULL;
-  char *from;
+  char *date;
   int status;
   
   if (mhm == NULL)
@@ -1418,25 +1418,38 @@ amd_envelope_date (envelope_t envelope, char *buf, size_t len,
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &from)
-      && header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &from))
-    return ENOSYS;
+  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &date))
+    {
+      time_t t;
+      int rc;
+      
+      if (header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
+	return MU_ERR_NOENT;
+      /* Convert to ctime format */
+      rc = mu_parse_date (date, &t, NULL); /* FIXME: TZ info is lost */
+      free (date);
+      if (rc)
+	return MU_ERR_NOENT;
+      date = strdup (ctime (&t)); 
+    }
 
   /* Format:  "sender date" */
   if (buf && len > 0)
     {
       len--; /* Leave space for the null.  */
-      strncpy (buf, from, len);
-      if (strlen (from) < len)
+      strncpy (buf, date, len);
+      if (strlen (date) < len)
 	{
 	  len = strlen (buf);
-	  buf[len++] = '\n';
+	  if (buf[len-1] != '\n')
+	    buf[len++] = '\n';
 	}
       buf[len] = '\0';
     }
   else
     len = 0;
-
+  free (date);
+  
   if (psize)
     *psize = len;
   return 0;
@@ -1456,8 +1469,8 @@ amd_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from))
-    return ENOSYS;
+  if (status = header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from))
+    return status;
 
   if (buf && len > 0)
     {
