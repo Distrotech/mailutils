@@ -1330,6 +1330,79 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   return 0;
 }
 
+int
+restore_sender (message_t msg, mbox_data_t mud)
+{
+  header_t hdr;
+  char *from = NULL;
+  int rc = 0;
+  
+  if (message_get_header (msg, &hdr) == 0)
+    header_aget_value (hdr, MU_HEADER_FROM, &from);
+
+  if (from)
+    {
+      int status;
+      address_t addr;
+      
+      status = address_create (&addr, from);
+      free (from);
+      from = NULL;
+      if (status == 0)
+	address_aget_email (addr, 1, &from);
+      address_destroy (&addr);
+    }
+
+  if (!from)
+    {
+      from = strdup (PACKAGE);
+      if (!from) 
+	return ENOMEM;
+    }
+
+  mud->sender = strdup (from);
+  if (!mud->sender)
+    rc = ENOMEM;
+  free (from);
+  return rc;
+}
+
+int
+restore_date (message_t msg, mbox_data_t mud)
+{
+  header_t hdr;
+  char *date = NULL;
+  time_t t;
+  int rc = 0;
+  
+  if (message_get_header (msg, &hdr) == 0)
+    header_aget_value (hdr, MU_HEADER_DATE, &date);
+
+  if (date && mu_parse_date (date, &t, NULL))
+    {
+      char datebuf[25];
+      
+      /* FIXME: 1. Preserve TZ info */
+      /* FIXME: 2. Do not depend on LC */
+      strftime (datebuf, sizeof datebuf, "%a %b %d %H:%M:%S %Y",
+		localtime (&t));
+      free (date);
+      date = strdup (datebuf);
+    }
+  else
+    {
+      time (&t);
+      free (date);
+      date = strdup (ctime (&t));
+    }
+
+  mud->date = strdup (date);
+  if (!mud->date)
+    rc = ENOMEM;
+  free (date);
+  return rc;
+}
+
 /* FIXME: We need to escape body line that begins with "From ", this
    will required to read the body by line instead of by chuncks hurting
    perfomance big time when expunging.  But should not this be the
@@ -1369,17 +1442,29 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	envelope_t envelope = NULL;
 	message_get_envelope (msg, &envelope);
 	status = envelope_sender (envelope, mud->sender, 128, &len);
-	if (status != 0)
-	  {
-	    if (status != EAGAIN)
-	      {
-		free (mud->sender);
-		free (mud->date);
-		mud->date = mud->sender = NULL;
-		mud->state = MBOX_NO_STATE;
-	      }
-	    return status;
-	  }
+	switch (status) {
+	case 0:
+	  break;
+	  
+	case EAGAIN:
+	  return status;
+
+	case MU_ERR_NOENT: /* Envelope headers not found: try to guess */
+	  free (mud->sender);
+	  status = restore_sender (msg, mud);
+	  if (status == 0)
+	    {
+	      len = strlen (mud->sender);
+	      break;
+	    }
+	  
+	default:
+	  free (mud->sender);
+	  free (mud->date);
+	  mud->date = mud->sender = NULL;
+	  mud->state = MBOX_NO_STATE;
+	  return status;
+	}
 
 	/* Nuke trailing newline.  */
 	s = memchr (mud->sender, nl, len);
@@ -1397,17 +1482,29 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	char buffer[1024];
 	message_get_envelope (msg, &envelope);
 	status = envelope_date (envelope, mud->date, 128, &len);
-	if (status != 0)
-	  {
-	    if (status != EAGAIN)
-	      {
-		free (mud->sender);
-		free (mud->date);
-		mud->date = mud->sender = NULL;
-		mud->state = MBOX_NO_STATE;
-	      }
-	    return status;
-	  }
+	switch (status) {
+	case 0:
+	  break;
+	  
+	case EAGAIN:
+	  return status;
+
+	case MU_ERR_NOENT: /* Envelope headers not found: try to guess */
+	  free (mud->date);
+	  status = restore_date (msg, mud);
+	  if (status == 0)
+	    {
+	      len = strlen (mud->date);
+	      break;
+	    }
+	  
+	default:
+	  free (mud->sender);
+	  free (mud->date);
+	  mud->date = mud->sender = NULL;
+	  mud->state = MBOX_NO_STATE;
+	  return status;
+	}
 
 	/* Nuke trailing newline.  */
 	s = memchr (mud->date, nl, len);
