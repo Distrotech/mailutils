@@ -211,13 +211,13 @@ move_message (mailbox_t src, mailbox_t dst, size_t msgno)
 
   if ((rc = mailbox_get_message (src, msgno, &msg)) != 0)
     {
-      fprintf (stderr, _("Cannot read message %lu: %s"),
+      fprintf (stderr, _("Cannot read message %lu: %s\n"),
 	       (unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
   if ((rc = mailbox_append_message (dst, msg)) != 0)
     {
-      fprintf (stderr, _("Cannot append message %lu: %s"),
+      fprintf (stderr, _("Cannot append message %lu: %s\n"),
 	       (unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
