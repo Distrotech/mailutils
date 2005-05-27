@@ -1,3 +1,15 @@
+2005-05-27  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/amd.c (amd_envelope_date): Reformat Delivery-Date value
+	to standart ctime format. Fix memory leak.
+	(amd_envelope_sender): Propagate return from header_aget_value()
+	back to the caller.
+	* mailbox/mbox/mbox.c (restore_sender,restore_date): New
+	functions.
+	(mbox_append_message0): Use above functions to create sender/date
+	values if these are not supplied.
+	* movemail/movemail.c (move_message): Fix error diagnostics format.
+
 2005-05-24  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* examples/Makefile.am (noinst_PROGRAMS): Add encode2047. Sorted
