@@ -1,3 +1,7 @@
+2005-05-31  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/maildir/mbox.c (maildir_uniq): Fix memory overwrite.
+
 2005-05-27  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mailbox/amd.c (amd_envelope_date): Reformat Delivery-Date value
