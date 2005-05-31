@@ -314,7 +314,7 @@ maildir_uniq (struct _amd_data *amd, int fd)
   FMT ("%lu", tv.tv_sec);
   COPY (".");
 
-  if (read_random (&n, 32))
+  if (read_random (&n, sizeof (unsigned long))) /* FIXME: 32 bits */
     PFX ('R', "%lX", n);
 
   if (fd > 0 && fstat (fd, &st) == 0)
