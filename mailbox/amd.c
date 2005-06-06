@@ -1418,13 +1418,14 @@ amd_envelope_date (envelope_t envelope, char *buf, size_t len,
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &date))
+  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &date)
+      && header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
+    return MU_ERR_NOENT;
+  else
     {
       time_t t;
       int rc;
       
-      if (header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
-	return MU_ERR_NOENT;
       /* Convert to ctime format */
       rc = mu_parse_date (date, &t, NULL); /* FIXME: TZ info is lost */
       free (date);
