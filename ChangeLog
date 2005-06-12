@@ -1,3 +1,7 @@
+2005-06-12  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* frm/common.c (get_charset): Make sure output_charset is not NULL.
+
 2005-06-06  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mailbox/amd.c (amd_envelope_date): Always convert date to ctime
