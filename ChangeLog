@@ -1,3 +1,8 @@
+2005-06-13  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mail/util.c (util_save_outgoing): Rewritten using mailbox
+	functions. `set record' can now point to any valid mailbox type.
+
 2005-06-12  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* frm/common.c (get_charset): Make sure output_charset is not NULL.
