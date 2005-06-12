@@ -928,56 +928,34 @@ util_save_outgoing (message_t msg, char *savefile)
   
   if (util_getenv (&record, "record", Mail_env_string, 0) == 0)
     {
-      FILE *outfile;
+      int rc;
+      mailbox_t outbox;
       char *filename = util_outfolder_name (savefile ? savefile : record);
 
-      outfile = fopen (filename, "a");
-      if (!outfile)
+      rc = mailbox_create_default (&outbox, filename);
+      if (rc)
 	{
-	  util_error(_("Cannot open save file %s: %s"),
-		     filename, strerror (errno));
+	  util_error (_("Cannot create output mailbox `%s': %s"),
+		      filename, strerror (rc));
+	  free (filename);
+	  return;
 	}
+
+      rc = mailbox_open (outbox, MU_STREAM_WRITE | MU_STREAM_CREAT);
+      if (rc)
+	util_error (_("Cannot open output mailbox `%s': %s"),
+		    filename, strerror (rc));
       else
 	{
-	  char *buf = NULL;
-	  size_t bsize = 0;
-
-	  message_size (msg, &bsize);
-
-	  /* Try to allocate large buffer */
-	  for (; bsize > 1; bsize /= 2)
-	    if ((buf = malloc (bsize)))
-	      break;
-
-	  if (!bsize)
-	    {
-	      util_error(_("Not enough memory for creating save file"));
-	    }
-	  else
-	    {
-	      stream_t stream;
-	      size_t n, off = 0;
-	      time_t t;
-	      struct tm *tm;
-	      char date[64];
-
-	      time(&t);
-	      tm = gmtime(&t);
-	      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
-	      fprintf (outfile, "From %s %s\n", mail_whoami(), date);
-
-	      message_get_stream (msg, &stream);
-	      while (stream_read (stream, buf, bsize, off, &n) == 0
-		     && n != 0)
-		{
-		  fwrite (buf, 1, n, outfile);
-		  off += n;
-		}
-	      free (buf);
-	      fprintf (outfile, "\n");
-	    }
-	  fclose (outfile);
+	  rc = mailbox_append_message (outbox, msg);
+	  if (rc)
+	    util_error (_("Cannot append message to `%s': %s"),
+			filename, strerror (rc));
 	}
+
+      mailbox_close (outbox);
+      mailbox_destroy (&outbox);
+      
       free (filename);
     }
 }
