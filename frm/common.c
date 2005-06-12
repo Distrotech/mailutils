@@ -92,10 +92,10 @@ get_charset ()
 	    output_charset = xstrdup (output_charset);
 	  else
 	    output_charset = mu_charset_lookup (lang, terr);
-
-	  if (!output_charset)
-	    output_charset = "ASCII";
 	}
+      
+      if (!output_charset)
+	output_charset = "ASCII";
     }
   return output_charset;
 }
