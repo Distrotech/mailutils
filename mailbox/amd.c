@@ -820,13 +820,18 @@ amd_expunge (mailbox_t mailbox)
 	{
 	  if (!mhm->deleted)
 	    {
-	      char *old_name, *new_name;
-	      /* Rename original message */
-	      old_name = amd->msg_file_name (mhm, 0);
-	      new_name = amd->msg_file_name (mhm, 1);
-	      rename (old_name, new_name);
+	      char *old_name = amd->msg_file_name (mhm, 0);
+	      char *new_name = amd->msg_file_name (mhm, 1);
+	      if (new_name)
+		{
+		  /* Rename original message */
+		  rename (old_name, new_name);
+		  free (new_name);
+		}
+	      else
+		/* Unlink original file */
+		unlink (old_name);
 	      free (old_name);
-	      free (new_name);
 	    }
 	  _amd_message_delete (amd, mhm);
 	  /* Do not increase i! */
