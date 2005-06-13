@@ -1,8 +1,13 @@
 2005-06-13  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
+	* mailbox/amd.c (amd_expunge): Unlink the message file if
+	msg_file_name returns NULL.
+	* mailbox/maildir/mbox.c (maildir_message_name): Return NULL for
+	deleted messages.
+
 	* mailbox/include/stream0.h (struct rbuffer.count): Changed type
 	to size_t. Reported by Joseph Caputo <caputo@qedinfo.com>
-	* mailbox/stream.c (refill): Removed useless typecase
+	* mailbox/stream.c (refill): Removed useless typecast
 
 	* mail/util.c (util_save_outgoing): Rewritten using mailbox
 	functions. `set record' can now point to any valid mailbox type.
