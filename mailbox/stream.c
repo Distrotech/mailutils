@@ -819,7 +819,7 @@ refill (stream_t stream, off_t offset)
       stream->rbuffer.count = 0;
       status = stream->_read (stream, stream->rbuffer.ptr,
 			      stream->rbuffer.bufsiz, offset,
-			      (size_t *)&(stream->rbuffer.count));
+			      &stream->rbuffer.count);
       return status;
     }
   return ENOSYS;
