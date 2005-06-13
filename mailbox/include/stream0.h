@@ -33,7 +33,7 @@ struct rbuffer
 {
   char *base;
   char *ptr;
-  int  count;
+  size_t count;
   size_t bufsiz;
   off_t offset;
 };
