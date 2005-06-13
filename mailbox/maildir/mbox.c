@@ -338,7 +338,12 @@ char *
 maildir_message_name (struct _amd_message *amsg, int deleted)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amsg;
-  return maildir_mkfilename (amsg->amd->name, msg->newflag ? NEWSUF : CURSUF, msg->file_name);
+  if (deleted)
+    return NULL; /* Force amd.c to unlink the file.
+		    FIXME: We could also add a 'T' info to it. Should
+		    we have an option deciding which approach to take? */
+  return maildir_mkfilename (amsg->amd->name,
+			     msg->newflag ? NEWSUF : CURSUF, msg->file_name);
 }
 
 static void
