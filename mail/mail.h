@@ -258,9 +258,18 @@ extern int var_write __P ((int argc, char **argv, compose_env_t *env));
 extern int var_exit __P ((int argc, char **argv, compose_env_t *env));
 extern int var_pipe __P ((int argc, char **argv, compose_env_t *env));
 
+/* Cursor */
+extern void set_cursor __P ((unsigned value));
+extern size_t get_cursor __P ((void));
+extern void page_reset __P ((int hard));
+extern void cond_page_reset (size_t value);
+extern void page_do __P ((msg_handler_t func, void *data));
+extern size_t page_move __P ((off_t offset));
+extern int is_current_message __P ((size_t n));
+
 /* msgsets */
 extern void msgset_free __P ((msgset_t *msg_set));
-extern msgset_t *msgset_make_1 __P ((int number));
+extern msgset_t *msgset_make_1 __P ((size_t number));
 extern msgset_t *msgset_append __P ((msgset_t *one, msgset_t *two));
 extern msgset_t *msgset_range __P ((int low, int high));
 extern msgset_t *msgset_expand __P ((msgset_t *set, msgset_t *expand_by));
@@ -275,8 +284,8 @@ extern int util_do_command __P ((const char *cmd, ...));
 
 extern int util_foreach_msg __P((int argc, char **argv, int flags,
 				 msg_handler_t func, void *data));
-extern int util_range_msg __P((size_t low, size_t high, int flags, 
-			       msg_handler_t func, void *data));
+extern size_t util_range_msg __P((size_t low, size_t high, int flags, 
+				  msg_handler_t func, void *data));
 
 extern function_t* util_command_get __P ((const char *cmd));
 extern char *util_stripwhite __P ((char *string));
@@ -367,6 +376,7 @@ extern char *readline __P ((char *prompt));
 #define MSG_ALL       0
 #define MSG_NODELETED 0x0001
 #define MSG_SILENT    0x0002
+#define MSG_COUNT     0x0004
 
 /* Message attributes */
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
