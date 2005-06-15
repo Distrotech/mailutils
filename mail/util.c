@@ -193,17 +193,31 @@ util_foreach_msg (int argc, char **argv, int flags,
   return status;
 }
 
-int
+size_t
 util_range_msg (size_t low, size_t high, int flags, 
 		msg_handler_t func, void *data)
 {
   msgset_t msgspec = { 0 };
-  int count = 0;
+  size_t count, expect_count;
   
   msgspec.next = NULL;
   msgspec.npart = 0;
   msgspec.msg_part = &low;
-  for (; low <= high; low++)
+  if (!func)
+    flags |= MSG_SILENT;
+
+  if (low > total)
+    return 0;
+  if (!(flags & MSG_COUNT))
+    {
+      if (high < low)
+	return 0;
+      expect_count = high - low + 1;
+    }
+  else
+    expect_count = high;
+
+  for (count = 0; count < expect_count && low <= total; low++)
     {
      message_t mesg;
 
@@ -218,7 +232,8 @@ util_range_msg (size_t low, size_t high, int flags,
      if (util_get_message (mbox, low, &mesg) == 0)
        {
 	 count ++;
-	 func (&msgspec, mesg, data) ;
+	 if (func)
+	   func (&msgspec, mesg, data) ;
 	 /* Bail out if we receive an interrupt.  */
 	 if (ml_got_interrupt () != 0)
 	   break;
@@ -545,27 +560,6 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 	  
 	case Mail_env_string:
 	  ep->value.string = strdup (value);
-	  if (strcmp (variable, "replyregex") == 0)
-	    { 
-	      int rc;
-	      char *err;
-	      
-	      if (rc = munre_set_regex (value, 0, &err))
-		{
-		  fprintf (stderr, "%s", mu_strerror (rc));
-		  if (err)
-		    {
-		      fprintf (stderr, "%s", err);
-		      free (err);
-		    }
-		  fprintf (stderr, "\n");
-		}
-	    }
-	  else if (strcmp (variable, "decode-fallback") == 0)
-	    {
-	      if (mu_set_default_fallback (value))
-		mu_error (_("Incorrect value for decode-fallback"));
-	    }
 	  break;
 	  
 	case Mail_env_boolean:
@@ -576,6 +570,31 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 	}
     }
 
+  /* Special handling for some variables */
+  if (strcmp (variable, "replyregex") == 0)
+    { 
+      int rc;
+      char *err;
+	      
+      if (rc = munre_set_regex (value, 0, &err))
+	{
+	  fprintf (stderr, "%s", mu_strerror (rc));
+	  if (err)
+	    {
+	      fprintf (stderr, "%s", err);
+	      free (err);
+	    }
+	  fprintf (stderr, "\n");
+	}
+    }
+  else if (strcmp (variable, "decode-fallback") == 0)
+    {
+      if (mu_set_default_fallback (value))
+	mu_error (_("Incorrect value for decode-fallback"));
+    }
+  else if (strcmp (variable, "screen") == 0)
+    page_invalidate (1);
+  
   return 0;
 }
 

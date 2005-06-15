@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005
+   Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,11 +74,11 @@ static msgset_t *result;
 
 input    : /* empty */
            {
-	     result = msgset_make_1 (cursor);
+	     result = msgset_make_1 (get_cursor ());
 	   }
          | '.'
            {
-	     result = msgset_make_1 (cursor);
+	     result = msgset_make_1 (get_cursor ());
 	   }
          | msgset
            {
@@ -390,7 +391,7 @@ msgset_count (msgset_t *set)
 
 /* Create a message set consisting of a single msg_num and no subparts */
 msgset_t *
-msgset_make_1 (int number)
+msgset_make_1 (size_t number)
 {
   msgset_t *mp;
 

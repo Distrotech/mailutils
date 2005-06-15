@@ -20,13 +20,13 @@
 #include "mail.h"
 
 /* Global variables and constants*/
-mailbox_t mbox;
-unsigned int cursor;
-size_t total;
-FILE *ofile;
-int interactive;
+mailbox_t mbox;               /* Mailbox being operated upon */
+size_t total;                 /* Total number of messages in the mailbox */
+FILE *ofile;                  /* Output file */
+int interactive;              /* Is the session interactive */  
 
-static list_t command_list;
+static list_t command_list;   /* List of commands to be executed after parsing
+				 command line */
 
 const char *program_version = "mail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mail -- the standard /bin/mail interface");
@@ -286,7 +286,7 @@ main (int argc, char **argv)
   int i, rc;
   
   ofile = stdout;
-  cursor = 1;
+  set_cursor (1);
 
   /* Native Language Support */
   mu_init_nls ();
@@ -495,9 +495,11 @@ main (int argc, char **argv)
 
 
 void
-mail_mainloop (char *(*input) __P((void *, int)), void *closure, int do_history)
+mail_mainloop (char *(*input) __P((void *, int)),
+	       void *closure, int do_history)
 {
   char *command, *cmd;
+
   while ((command = (*input)(closure, 0)) != NULL)
     {
       int len = strlen (command);
@@ -558,3 +560,4 @@ mail_warranty (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 
   return 0;
 }
+

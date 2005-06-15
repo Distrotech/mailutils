@@ -34,8 +34,8 @@ mail_next (int argc, char **argv)
       int rc;
       attribute_t attr = NULL;
       
-      rc = util_get_message (mbox, cursor, &msg);
-      if (rc)
+      n = get_cursor ();
+      if (n == 0 || util_get_message (mbox, n, &msg))
 	{
 	  util_error (_("No applicable message"));
 	  return 1;
@@ -49,7 +49,7 @@ mail_next (int argc, char **argv)
 	}
       
       rc = 1;
-      for (n = cursor + 1; n <= total; n++)
+      while (++n <= total)
 	{
 	  if (util_isdeleted (n))
 	    continue;
@@ -81,7 +81,7 @@ mail_next (int argc, char **argv)
 	  return 1;
 	}
     }
-  cursor = n;
+  set_cursor (n);
   util_do_command ("print");
   return 0;
 }

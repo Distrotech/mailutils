@@ -144,7 +144,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   fromp = from ? from : "";
   subjp = subj ? subj : fromp;
   fprintf (ofile, "%c%c%4d %-18.18s %-16.16s %s %.*s\n",
-	   mspec->msg_part[0] == cursor ? '>' : ' ', cflag,
+	   is_current_message (mspec->msg_part[0]) ? '>' : ' ', cflag,
 	   mspec->msg_part[0],
 	   fromp, date, st, (subjl < 0) ? 0 : subjl, subjp);
   

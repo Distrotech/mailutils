@@ -31,7 +31,7 @@ mbox0 (msgset_t *mspec, message_t msg, void *data)
   attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
   util_mark_read (msg);
   
-  cursor = mspec->msg_part[0];
+  set_cursor (mspec->msg_part[0]);
   
   return 0;
 }

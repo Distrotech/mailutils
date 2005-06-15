@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 /* Simple summary dysplaying a blurb on the name of the
    mailbox and how many new:deleted:read messages.
-   The side effect is that is set the cursor/cursor
+   The side effect is that it sets the cursor
    to the newest or read message number.  */
 int
 mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
@@ -73,7 +73,7 @@ mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
   printf("\n");
 
   /* Set the cursor.  */
-  cursor =  (first_new == 0) ? ((first_unread == 0) ?
-				    1 : first_unread) : first_new ;
+  set_cursor ((first_new == 0) ? ((first_unread == 0) ?
+				    1 : first_unread) : first_new) ;
   return 0;
 }

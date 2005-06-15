@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,8 +42,14 @@ mail_write (int argc, char **argv)
     filename = util_outfolder_name (argv[--argc]);
   else
     {
+      size_t n = get_cursor ();
       char *p = NULL;
-      asprintf (&p, "%d", cursor);
+      if (n == 0)
+        {
+          util_error (_("No applicable message"));
+          return 1;
+        }
+      asprintf (&p, "%u", n);
       filename = util_outfolder_name (p);
       free (p);
     }

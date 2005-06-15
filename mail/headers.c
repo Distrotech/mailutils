@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,39 +31,9 @@
 int
 mail_headers (int argc, char **argv)
 {
-  int low = 1, high = total;
-  msgset_t *list = NULL, *mp;
-  int lines = util_screen_lines ();
-  int num;
-
-  if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list))
-     return 1;
-
-  num = 0;
-  for (mp = list; mp; mp = mp->next)
-     num++;
-
-  if (num == 0)
-     return 0;
-  lines = (lines / num) - 2;
-  if (lines < 0)
-    lines = util_screen_lines ();
-
-  if ((unsigned int)lines < total)
-    {
-      low = list->msg_part[0] - (lines / 2);
-      if (low < 1)
-	low = 1;
-      high = low + util_screen_lines ();
-      if ((unsigned int)high > total)
-	{
-	  high = total;
-	  low = high - lines;
-	}
-    }
-
-  util_range_msg (low, high, MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
-
-  msgset_free (list);
+  if (argc > 1)
+    return mail_from (argc, argv);
+  
+  page_do (mail_from0, NULL);
   return 0;
 }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,50 +29,15 @@ mail_delete_msg (msgset_t *mspec, message_t msg, void *data)
 
   message_get_attribute (msg, &attr);
   attribute_set_deleted (attr);
-
-  if (cursor == mspec->msg_part[0])
-    {
-      /* deleting current message. let the caller know */
-      *(int *)data = 1;
-    }
+  cond_page_invalidate (mspec->msg_part[0]);
   return 0;
 }
 
 int
 mail_delete (int argc, char **argv)
 {
-  int reset_cursor = 0;
   int rc = util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT,
-			     mail_delete_msg, &reset_cursor);
-  
-  /* Readjust the cursor not to point to the deleted messages.  */
-  if (reset_cursor)
-    {
-      unsigned int here;
-      for (here = cursor; here <= total; here++)
-	{
-	  message_t msg = NULL;
-	  attribute_t attr = NULL;
-	  
-	  mailbox_get_message (mbox, here, &msg);
-	  message_get_attribute (msg, &attr);
-	  if (!attribute_is_deleted (attr))
-	    break;
-	}
-
-      if (here > total)
-	for (here = cursor; here > 0; here--)
-	  {
-	    message_t msg = NULL;
-	    attribute_t attr = NULL;
-	  
-	    mailbox_get_message (mbox, here, &msg);
-	    message_get_attribute (msg, &attr);
-	    if (!attribute_is_deleted (attr))
-	      break;
-	  }
-      cursor = here;
-    }
+			     mail_delete_msg, NULL);
 
   if (util_getenv (NULL, "autoprint", Mail_env_boolean, 0) == 0)
     util_do_command("print");

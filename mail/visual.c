@@ -36,7 +36,7 @@ visual0 (msgset_t *mspec, message_t msg, void *data)
   /* Mark as read */
   util_mark_read (msg);
 
-  cursor = mspec->msg_part[0];
+  set_cursor (mspec->msg_part[0]);
   
   return 0;
 }

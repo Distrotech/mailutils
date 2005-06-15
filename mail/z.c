@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -107,46 +107,27 @@ z_parse_args(int argc, char **argv,
 int
 mail_z (int argc, char **argv)
 {
-  unsigned int i, nlines;
-  unsigned int pagelines = util_screen_lines();
   unsigned int count;
   int dir;
-  int crs, end;
-  
+  unsigned int pagelines = util_screen_lines ();
+
   if (z_parse_args(argc, argv, &count, &dir))
     return 1;
 
-  nlines = pagelines;
-
   count *= pagelines;
-  crs = cursor;
+
   switch (dir)
     {
     case D_BWD:
-      if (crs < nlines)
+      if (page_move (-count) == 0)
 	{
 	  fprintf (stdout, _("On first screenful of messages\n"));
 	  return 0;
 	}
-      if (crs < count)
-	crs = 1;
-      else
-	crs -= count;
       break;
 
     case D_FWD:
-      if (crs + pagelines > total)
-	{
-	  fprintf (stdout, _("On last screenful of messages\n"));
-	  return 0;
-	}
-
-      crs += count;
-
-      if (crs + nlines > total)
-	nlines = total - crs + 1;
-
-      if (nlines <= 0)
+      if (page_move (count) == 0)
 	{
 	  fprintf (stdout, _("On last screenful of messages\n"));
 	  return 0;
@@ -160,43 +141,13 @@ mail_z (int argc, char **argv)
 	   of the last message.  This behaviour is used on startup
 	   when displaying the summary and the headers, new messages
 	   are last but we want to display a screenful with the
-	   real crs set by summary() to the new message.  */
-
-	/* Find the start of the last screen page.  */
-	int lastpage =  total - pagelines + 1;
-	if (lastpage <= 0)
-	  lastpage = 1;
-
-	if (crs > (unsigned int)lastpage)
-	  {
-	    crs = lastpage;
-
-	    if (crs + nlines > total)
-	      nlines = total - crs;
-
-	    util_range_msg (crs, crs + nlines,
-			    MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
-	    return 1;
-	  }
-	else if (crs + nlines > total)
-	  nlines = total - crs + 1;
-      }
-      break;
-    }
-
-  cursor = crs;
-  end = cursor + nlines - 1;
-  i = 0;
-  do
-    {
-      int cnt = util_range_msg (crs, end,
-				MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
-      if (cnt == 0)
+	   real crs set by summary() to the new message.
+	   FIXME: Basically it's the same as headers now. Do we need
+	   it still? */
 	break;
-      i += cnt;
-      crs += nlines;
+      }
     }
-  while (i < nlines && crs <= total);
 
-  return 1;
+  page_do (mail_from0, NULL);
+  return 0;
 }

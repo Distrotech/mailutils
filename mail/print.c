@@ -35,7 +35,6 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
   off_t off = 0;
   size_t n = 0, lines = 0;
   FILE *out = ofile;
-  attribute_t attr;
   int pagelines = util_get_crt ();
   
   message_lines (mesg, &lines);
@@ -106,7 +105,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
   
   util_mark_read (mesg);
 
-  cursor = mspec->msg_part[0];
+  set_cursor (mspec->msg_part[0]);
   
   return 0;
 }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,12 +32,20 @@ mail_followup (int argc, char **argv)
   msgset_t *msglist, *mp;
   compose_env_t env;
   int status;
+  size_t n;
 
   compose_init (&env);
   if (msgset_parse (argc, argv, MSG_NODELETED, &msglist))
     return 1;
 
-  if (util_get_message (mbox, cursor, &msg))
+  n = get_cursor ();
+  if (n == 0)
+    {
+      util_error (_("No applicable message"));
+      return 1;
+    }
+
+  if (util_get_message (mbox, n, &msg))
     {
       msgset_free (msglist);
       return 1;
@@ -58,7 +66,7 @@ mail_followup (int argc, char **argv)
     }
 
   /* Generate "to" list */
-  compose_header_set (&env, MU_HEADER_TO, util_get_sender (cursor, 0),
+  compose_header_set (&env, MU_HEADER_TO, util_get_sender (get_cursor (), 0),
 		      COMPOSE_SINGLE_LINE);
 
   /* Add authors of the subsequent messages to the to list
