@@ -1,3 +1,25 @@
+2005-06-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* examples/mta.c (mta_smtp): Fixed race condition between printing
+	the port number, which will be used by the testsuite, and actually
+	starting to listen on that port.
+	* mail/page.c: New file. Implements an abstract output page.
+	* mail/Makefile.am (mail_SOURCES): Add page.c. Alphabetized
+	sources.
+	
+	* mail/delete.c, mail/edit.c, mail/eq.c, mail/file.c,
+	mail/followup.c, mail/from.c, mail/headers.c, mail/hold.c,
+	mail/mail.c, mail/mailline.c, mail/mbox.c, mail/msgset.y,
+	mail/next.c, mail/previous.c, mail/print.c, mail/reply.c,
+	mail/size.c, mail/summary.c, mail/top.c, mail/touch.c,
+	mail/undelete.c, mail/util.c, mail/visual.c, mail/write.c,
+	mail/z.c: Use new pager functions.
+	
+	* mail/mail.h: New declarations
+
+	* mail/testsuite/mail/z.exp: Fixed tests to match our improved
+	output. 
+
 2005-06-13  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mailbox/amd.c (amd_expunge): Unlink the message file if
