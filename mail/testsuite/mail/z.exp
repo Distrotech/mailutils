@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002, 2005, Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ mail_test "headers" \
 " N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
 " N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
 " N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
-" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"\
+" N  10 Alice              Mon Jul 29 22:00  10/313   Re: Riddle"
 
 mail_test "z." \
 ">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
@@ -40,7 +41,8 @@ mail_test "z." \
 " N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
 " N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
 " N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
-" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"\
+" N  10 Alice              Mon Jul 29 22:00  10/313   Re: Riddle"
 
 mail_test "z" \
 ">N  11 March Hare         Mon Jul 29 22:00  10/348   Re: Riddle"\
@@ -63,7 +65,8 @@ mail_test "z-" \
 " N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
 " N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
 " N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
-" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"\
+" N  10 Alice              Mon Jul 29 22:00  10/313   Re: Riddle"    
 
 mail_test "z +3" \
 ">N  31 Dormouse           Mon Jul 29 22:00  11/364   Re: Remark"\
@@ -90,6 +93,11 @@ mail_test "z -2" \
 " N  20 Alice              Mon Jul 29 22:00  10/297   Re: Watch"
 
 mail_test "z +8" \
+" N  86 Hatter             Mon Jul 29 22:01  12/401   Re: Story"\
+" N  87 Alice              Mon Jul 29 22:01  10/317   Re: Story"\
+" N  88 Dormouse           Mon Jul 29 22:01  10/322   Re: Story"\
+" N  89 Dormouse           Mon Jul 29 22:01  11/390   Re: Story"\
+" N  90 Alice              Mon Jul 29 22:01  10/306   Re: Story"\
 ">N  91 Dormouse           Mon Jul 29 22:01  10/300   Re: Story"\
 " N  92 Dormouse           Mon Jul 29 22:01  13/487   Re: Story"\
 " N  93 Alice              Mon Jul 29 22:01  10/331   Re: Story"\
@@ -100,6 +108,7 @@ mail_test "z +8" \
 mail_test "z" "On last screenful of messages"
 
 mail_test "headers" \
+" N  86 Hatter             Mon Jul 29 22:01  12/401   Re: Story"\
 " N  87 Alice              Mon Jul 29 22:01  10/317   Re: Story"\
 " N  88 Dormouse           Mon Jul 29 22:01  10/322   Re: Story"\
 " N  89 Dormouse           Mon Jul 29 22:01  11/390   Re: Story"\
@@ -111,15 +120,16 @@ mail_test "headers" \
 " N  95 Alice              Mon Jul 29 22:01  11/379   Thoughts"
 
 mail_test "z -9" \
-">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
+" N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
 " N   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"\
 " N   3 March Hare         Mon Jul 29 22:00  10/306   Re: Invitation"\
 " N   4 Alice              Mon Jul 29 22:00  10/335   Re: Invitation"\
 " N   5 March Hare         Mon Jul 29 22:00  10/352   Re: Invitation"\
-" N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
+">N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
 " N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
 " N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
-" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal" \
+" N  10 Alice              Mon Jul 29 22:00  10/313   Re: Riddle"
 
 mail_test "z-" "On first screenful of messages"
 
