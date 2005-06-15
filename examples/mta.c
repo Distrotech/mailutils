@@ -763,11 +763,11 @@ mta_smtp (int argc, char **argv)
 	  status = bind (fd, (struct sockaddr *) &address, sizeof (address));
 	}
       while (status < 0);
-      printf ("%d\n", port);
-      fclose (stdout);
     }
 
   listen (fd, 5);
+  printf ("%d\n", port);
+  fclose (stdout);
   while (1)
     {
       fd_set rfds;
