@@ -356,6 +356,17 @@ mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 }
 
 int
+mailbox_get_flags (mailbox_t mbox, int *flags)
+{
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (!*flags)
+    return MU_ERR_OUT_NULL;
+  *flags = mbox->flags;
+  return 0;
+}
+
+int
 mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
