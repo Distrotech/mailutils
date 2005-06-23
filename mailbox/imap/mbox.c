@@ -119,6 +119,8 @@ static int  flags_to_string       __P ((char **, int));
 static int  delete_to_string      __P ((m_imap_t, char **));
 static int  is_same_folder        __P ((mailbox_t, message_t));
 
+#define MBX_WRITABLE(mbx) ((mbx)->flags & (MU_STREAM_WRITE|MU_STREAM_RDWR|MU_STREAM_CREAT))
+
 /* Initialize the concrete object mailbox_t by overloading the function of the
    structure.  */
 int
@@ -672,8 +674,10 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d SELECT %s\r\n",
-			       f_imap->seq++, m_imap->name);
+      status = imap_writeline (f_imap, "g%d %s %s\r\n",
+			       f_imap->seq++, 
+                               MBX_WRITABLE(mailbox) ? "SELECT" : "EXAMINE",
+                               m_imap->name);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_SELECT;
@@ -845,6 +849,9 @@ imap_expunge (mailbox_t mailbox)
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
 
+  if (!MBX_WRITABLE(mailbox))
+    return EACCES;
+       
   /* Select first.  */
   status = imap_messages_count (mailbox, NULL);
   if (status != 0)
