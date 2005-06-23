@@ -261,8 +261,8 @@ extern int var_pipe __P ((int argc, char **argv, compose_env_t *env));
 /* Cursor */
 extern void set_cursor __P ((unsigned value));
 extern size_t get_cursor __P ((void));
-extern void page_reset __P ((int hard));
-extern void cond_page_reset (size_t value);
+extern void page_invalidate __P ((int hard));
+extern void cond_page_invalidate (size_t value);
 extern void page_do __P ((msg_handler_t func, void *data));
 extern size_t page_move __P ((off_t offset));
 extern int is_current_message __P ((size_t n));

@@ -1,5 +1,6 @@
 2005-06-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
+	* NEWS: Updated
 	* README-alpha: Updated
 	* include/mailutils/mailbox.h
 	(mu_path_maildir,mu_path_folder_dir): Removed

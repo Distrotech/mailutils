@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-05-17
+GNU mailutils NEWS -- history of user-visible changes.  2005-06-23
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -19,6 +19,8 @@ passwords, `scrambled' for passwords hashed using MySQL algorithm and
 `hash' for MD5 or DES hashed passwords (default).
 
 * mail
+
+** Improved output of the commands `headers' and `z'
 
 ** Improved POSIX compatibility.
 In particular, `next' command now works as described by
@@ -60,6 +62,9 @@ Whenever available, `frm' uses BIDI algorithm for display. This
 allows for correct display of subject lines written in languages
 with right to left script orientation (Arabic, Hebrew).
 
+* Maildir support
+Implemented removal of messages.
+
 * New SQL driver: odbc
 
 * Ukrainian localization
@@ -72,6 +77,11 @@ with right to left script orientation (Arabic, Hebrew).
 ** SQL authentication: prevent sql injection attacks
 ** Fixed bug in the default syslog diagnostic printer
 ** Fixed potential vulnerabilities: IDEF0954, IDEF0955, IDEF0956, IDEF0957
+** `Imap:' mailboxes (remote mailboxes opened via imap interface) honor
+read-only mode.
+** Fixed date support in maildir (header fields Date, Envelope-Date and
+Delivery-Date). 
+** Fixed RFC 2047 encoding.
 
 
 Version 0.6:
