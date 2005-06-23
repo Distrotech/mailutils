@@ -77,3 +77,5 @@ MU_ERR_NO_QUERY             _("No query was yet executed")
 MU_ERR_BAD_COLUMN           _("Bad column address")
 MU_ERR_NO_RESULT            _("No result from the previous query available")
 MU_ERR_NO_INTERFACE         _("No such interface")
+
+MU_ERR_BAD_FILENAME         _("Badly formed file or directory name")
