@@ -109,7 +109,6 @@ int
 main (int argc, char **argv)
 {
   int c;
-  int status = 0;
   size_t total;
   
   /* Native Language Support */
