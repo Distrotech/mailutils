@@ -137,7 +137,7 @@ set_cursor (unsigned value)
       top_of_page = value;
       cursor = 0;
       page_avail = 0;
-      fill_page_map ();
+      page_move (0);
     }
   else
     cursor = n - 1;
@@ -178,7 +178,6 @@ page_do (msg_handler_t func, void *data)
 size_t
 page_move (off_t offset)
 {
-  unsigned n;
   size_t start;
   size_t count = 0;
   
