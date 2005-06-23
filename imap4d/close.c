@@ -28,11 +28,18 @@ int
 imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
 {
   const char *msg = NULL;
-  int status = mailbox_flush (mbox, 1);
-  if (status)
+  int status, flags;
+  
+  mailbox_get_flags (mbox, &flags);
+  if ((flags & MU_STREAM_READ) == 0)
     {
-      syslog (LOG_ERR, _("flushing mailbox failed: %s"), mu_strerror (status));
-      msg = "flushing mailbox failed";
+      status = mailbox_flush (mbox, 1);
+      if (status)
+	{
+	  syslog (LOG_ERR,
+		  _("flushing mailbox failed: %s"), mu_strerror (status));
+	  msg = "flushing mailbox failed";
+	}
     }
   
   /* No messages are removed, and no error is given, if the mailbox is
@@ -46,6 +53,6 @@ imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
   mailbox_destroy (&mbox);
 
   if (msg)
-    util_finish (command, RESP_NO, msg);
+    return util_finish (command, RESP_NO, msg);
   return util_finish (command, RESP_OK, "Completed");
 }
