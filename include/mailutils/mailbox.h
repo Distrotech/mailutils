@@ -27,9 +27,12 @@
 extern "C" {
 #endif
 
-extern const char *mu_path_maildir;
-extern const char *mu_path_folder_dir;
-
+int mu_set_mail_directory __P ((const char *p));
+void mu_set_folder_directory __P ((const char *p));
+const char *mu_mail_directory __P ((void));
+const char *mu_folder_directory __P ((void));
+int mu_construct_user_mailbox_url __P ((char **pout, const char *name));
+  
 /* Constructor/destructor and possible types.  */
 extern int  mailbox_create          __P ((mailbox_t *, const char *));
 extern void mailbox_destroy         __P ((mailbox_t *));
@@ -66,6 +69,7 @@ extern int  mailbox_get_locker      __P ((mailbox_t, locker_t *));
 extern int  mailbox_set_locker      __P ((mailbox_t, locker_t));
 
 /* Property.  */
+extern int  mailbox_get_flags       __P ((mailbox_t, int *));
 extern int  mailbox_get_property    __P ((mailbox_t, property_t *));
 
 /* URL.  */

@@ -37,8 +37,53 @@
 #include <mailutils/errno.h>
 #include <mailutils/mu_auth.h>
 
-const char *mu_path_maildir = MU_PATH_MAILDIR; 
-const char *mu_path_folder_dir = "Mail";
+static char *_default_mail_dir = MU_PATH_MAILDIR;
+static char *_mu_mail_dir;
+static char *_default_folder_dir = "Mail";
+static char *_mu_folder_dir;
+
+int
+mu_set_mail_directory (const char *p)
+{
+  if (_mu_mail_dir != _default_mail_dir)
+    free (_mu_mail_dir);
+  return mu_normalize_mailbox_url (&_mu_mail_dir, p);
+}
+
+void
+mu_set_folder_directory (const char *p)
+{
+  if (_mu_folder_dir != _default_folder_dir)
+    free (_mu_folder_dir);
+  _mu_folder_dir = strdup (p);
+}
+
+const char *
+mu_mail_directory ()
+{
+  if (!_mu_mail_dir)
+    _mu_mail_dir = _default_mail_dir;
+  return _mu_mail_dir;
+}
+
+const char *
+mu_folder_directory ()
+{
+  if (!_mu_folder_dir)
+    _mu_folder_dir = _default_folder_dir;
+  return _mu_folder_dir;
+}
+
+int
+mu_construct_user_mailbox_url (char **pout, const char *name)
+{
+  const char *p = mu_mail_directory ();
+  *pout = malloc (strlen (p) + strlen (name) + 1);
+  if (!*pout)
+    return errno;
+  strcat (strcpy (*pout, p), name);
+  return 0;
+}
 
 /* Is this a security risk?  */
 #define USE_ENVIRON 1
@@ -141,11 +186,12 @@ static int
 user_mailbox_name (const char *user, char **mailbox_name)
 {
   char *p;
+  const char *url = mu_mail_directory ();
 
-  p = strchr (mu_path_maildir, ':');
-  if (p && strncmp (mu_path_maildir, "mbox", p - mu_path_maildir))
+  p = strchr (url, ':');
+  if (p && strncmp (url, "mbox", p - url))
     {
-      *mailbox_name = strdup (mu_path_maildir);
+      *mailbox_name = strdup (url);
       return 0;
     }
   
@@ -156,10 +202,9 @@ user_mailbox_name (const char *user, char **mailbox_name)
 
   if (user)
     {
-      *mailbox_name = malloc (strlen (user) + strlen (mu_path_maildir) + 2);
-      if (*mailbox_name == NULL)
-	return ENOMEM;
-      sprintf (*mailbox_name, "%s%s", mu_path_maildir, user);
+      int rc = mu_construct_user_mailbox_url (mailbox_name, user);
+      if (rc)
+	return rc;
     }
   else
     {
@@ -183,6 +228,7 @@ plus_expand (const char *file, char **buf)
   char *user = NULL;
   char *path = NULL;
   char *home;
+  const char *folder_dir = mu_folder_directory ();
   int status, len;
   
   if ((status = split_shortcut (file, "+=", &path, &user)))
@@ -202,17 +248,17 @@ plus_expand (const char *file, char **buf)
       return ENOENT;
     }
 
-  if (mu_path_folder_dir[0] == '/' || is_proto (mu_path_folder_dir))
+  if (folder_dir[0] == '/' || is_proto (folder_dir))
     {
-      len = strlen (mu_path_folder_dir) + strlen (path) + 2;
+      len = strlen (folder_dir) + strlen (path) + 2;
       *buf = malloc (len);
-      sprintf (*buf, "%s/%s", mu_path_folder_dir, path);
+      sprintf (*buf, "%s/%s", folder_dir, path);
     }
   else
     {
-      len = strlen (home) + strlen (mu_path_folder_dir) + strlen (path) + 3;
+      len = strlen (home) + strlen (folder_dir) + strlen (path) + 3;
       *buf = malloc (len);
-      sprintf (*buf, "%s/%s/%s", home, mu_path_folder_dir, path);
+      sprintf (*buf, "%s/%s/%s", home, folder_dir, path);
     }
   (*buf)[len-1] = 0;
   
