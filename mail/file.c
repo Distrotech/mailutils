@@ -95,7 +95,8 @@ mail_file (int argc, char **argv)
 	}
 
       free (name); /* won't need it any more */
-
+      page_invalidate (1); /* Invalidate current page map */
+      
       mailbox_get_url (mbox, &url);
       pname = strdup (url_to_string (url));
       if (mail_mbox_close ())
