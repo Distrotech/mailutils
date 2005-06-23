@@ -104,6 +104,36 @@ mu_scm_is_mailbox (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
+SCM_DEFINE (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
+	    (SCM URL), 
+            "")
+#define FUNC_NAME s_scm_mu_mail_directory
+{
+  if (!SCM_UNBNDP (URL))
+    {
+      SCM_ASSERT (SCM_NIMP (URL) && SCM_STRINGP (URL),
+		  URL, SCM_ARG1, FUNC_NAME);
+      mu_set_mail_directory (SCM_STRING_CHARS (URL));
+    }
+  return scm_makfrom0str (mu_mail_directory ());
+}
+#undef FUNC_NAME 
+
+SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
+	    (SCM URL), 
+            "")
+#define FUNC_NAME s_scm_mu_folder_directory
+{
+  if (!SCM_UNBNDP (URL))
+    {
+      SCM_ASSERT (SCM_NIMP (URL) && SCM_STRINGP (URL),
+		  URL, SCM_ARG1, FUNC_NAME);
+      mu_set_folder_directory (SCM_STRING_CHARS (URL));
+    }
+  return scm_makfrom0str (mu_folder_directory ());
+}
+#undef FUNC_NAME 
+
 SCM_DEFINE (mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 	    (SCM URL, SCM MODE), 
             "Opens a mailbox specified by URL.")
