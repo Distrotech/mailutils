@@ -96,7 +96,7 @@ extern int mu_get_user_email_domain __P ((const char** domain));
 extern char *mu_get_user_email __P ((const char *name));
 
 extern char *mu_normalize_path __P ((char *path, const char *delim));
-extern char *mu_normalize_maildir __P ((const char *dir));
+extern int mu_normalize_mailbox_url __P ((char **out, const char *dir));
 extern int mu_tempfile __P ((const char *tmpdir, char **namep));
 extern char *mu_tempname __P ((const char *tmpdir));
 
