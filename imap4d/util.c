@@ -408,7 +408,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   int new_state;
   int status = 0;
   va_list ap;
-  char *sc = sc2string (rc);
+  const char *sc = sc2string (rc);
   
   va_start (ap, format);
   vasprintf (&tempbuf, format, ap);

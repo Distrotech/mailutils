@@ -864,7 +864,8 @@ notify_biff (mailbox_t mbox, char *name, size_t size)
     return;
   
   mailbox_get_url (mbox, &url);
-  asprintf (&buf, "%s@%ld:%s", name, size, url_to_string (url));
+  asprintf (&buf, "%s@%lu:%s", name,
+	    (unsigned long) size, url_to_string (url));
   if (buf)
     {
       sendto (fd, buf, strlen (buf), 0, (struct sockaddr *)&inaddr,

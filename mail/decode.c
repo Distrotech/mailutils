@@ -143,7 +143,7 @@ display_message0 (message_t mesg, const msgset_t *msgset,
 {
   size_t nparts = 0;
   header_t hdr = NULL;
-  const char *type;
+  char *type;
   char *encoding;
   int ismime = 0;
   char *tmp;
