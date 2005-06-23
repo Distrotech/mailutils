@@ -372,7 +372,7 @@ main (int argc, char **argv)
   
   if (!wh_env.draftfolder)
     wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						mu_path_folder_dir);
+						mu_folder_directory ());
 
   wh_env.file = mh_expand_name (wh_env.draftfolder, "forw", 0);
   if (!wh_env.draftfile)

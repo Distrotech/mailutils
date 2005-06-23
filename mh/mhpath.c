@@ -91,7 +91,7 @@ main (int argc, char **argv)
      can be useful is shell scripts. */
   if (current_folder[0] == 0)
     {
-      printf ("%s\n", mu_path_folder_dir);
+      printf ("%s\n", mu_folder_directory ());
       exit (0);
     }
   

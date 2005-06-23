@@ -347,7 +347,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
     }
   else
     {
-      char *mailbox_name;
+      char *mailbox_name = NULL;
       char *name;
       
       mu_sql_get_column (conn, 0, 0, &name);
@@ -360,10 +360,8 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 	}
       else
 	{
-	  mailbox_name = malloc (strlen (mu_path_maildir) +
-				 strlen (name) + 1);
-	  if (mailbox_name)
-	    sprintf (mailbox_name, "%s%s", mu_path_maildir, name);
+	  mu_construct_user_mailbox_url (&mailbox_name, name);
+	  /* FIXME: Error code is lost */
 	}
       
       if (mailbox_name)
@@ -481,7 +479,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
   else
     {
       char *name;
-      char *mailbox_name;
+      char *mailbox_name = NULL;
       
       mu_sql_get_column (conn, 0, 0, &name);
   
@@ -493,10 +491,8 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 	}
       else
 	{
-	  mailbox_name = malloc (strlen (mu_path_maildir) +
-				 strlen (name) + 1);
-	  if (mailbox_name)
-	    sprintf (mailbox_name, "%s%s", mu_path_maildir, name);
+          mu_construct_user_mailbox_url (&mailbox_name, name);      
+          /* FIXME: Error code is lost */
 	}
       
       if (mailbox_name)

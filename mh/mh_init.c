@@ -310,7 +310,7 @@ mh_audit_open (char *name, mailbox_t mbox)
     {
       char *p = NULL;
 
-      asprintf (&p, "%s/%s", mu_path_folder_dir, namep);
+      asprintf (&p, "%s/%s", mu_folder_directory (), namep);
       if (!p)
 	{
 	  mh_error (_("Not enough memory"));
@@ -422,7 +422,7 @@ mh_expand_name (const char *base, const char *name, int is_folder)
     namep = tmp;
   
   if (!base)
-    base = mu_path_folder_dir;
+    base = mu_folder_directory ();
   if (is_folder)
     {
       if (namep[0] == '/')
@@ -749,7 +749,7 @@ char *
 mh_draft_name ()
 {
   char *draftfolder = mh_global_profile_get ("Draft-Folder",
-					     mu_path_folder_dir);
+					     mu_folder_directory ());
   return mh_expand_name (draftfolder, "draft", 0);
 }
 

@@ -261,7 +261,7 @@ main (int argc, char **argv)
 	  mh_error (_("Both message set and source file given"));
 	  exit (1);
 	}
-      msg = mh_file_to_message (mu_path_folder_dir, source_file);
+      msg = mh_file_to_message (mu_folder_directory (), source_file);
       refile (msg);
       if (!link_flag)
 	unlink (source_file);

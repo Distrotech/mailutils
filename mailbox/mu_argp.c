@@ -378,7 +378,6 @@ static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
   int err = 0;
-  char *p;
 
   switch (key)
     {
@@ -394,7 +393,10 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       
       /* mailbox */
     case 'm':
-      mu_path_maildir = arg;
+      err = mu_set_mail_directory (arg);
+      if (err)
+	argp_error (state, _("Cannot set mail directory name: %s"),
+		    mu_strerror (err));
       break;
 
     case ARG_LOCK_FLAGS:
@@ -462,7 +464,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       if ((err = mu_set_user_email(arg)) != 0)
 	  {
 	    argp_error (state, _("Invalid email address `%s': %s"),
-		arg, mu_strerror(err));
+			arg, mu_strerror(err));
 	  }
       break;
 
@@ -489,12 +491,6 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_FINI:
-      p = mu_normalize_maildir (mu_path_maildir);
-      if (!p)
-	{
-	  argp_error (state, _("Badly formed mailspool path: %s"), mu_path_maildir);
-	}
-      mu_path_maildir = p;
       break;
 
     default:

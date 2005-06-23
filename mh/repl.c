@@ -376,7 +376,7 @@ main (int argc, char **argv)
 
   if (!wh_env.draftfolder)
     wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						mu_path_folder_dir);
+						mu_folder_directory ());
   
   mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");

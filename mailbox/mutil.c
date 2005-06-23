@@ -518,25 +518,33 @@ mu_normalize_path (char *path, const char *delim)
   return path;
 }
 
-char *
-mu_normalize_maildir (const char *dir)
+int
+mu_normalize_mailbox_url (char **pout, const char *dir)
 {
-  int len = strlen (dir);
+  int len;
+
+  if (!pout)
+    return MU_ERR_OUT_PTR_NULL;
+      
+  len = strlen (dir);
   if (dir[len-1] == '/')
-    return strdup (dir);
+    *pout = strdup (dir);
   else if (strncasecmp (dir, "mbox:", 5) == 0 && dir[len-1] == '=')
     {
       if (len > 5 && strcmp (dir + len - 5, "user=") == 0)
-	return strdup (dir);
+	*pout = strdup (dir);
       else
-	return NULL;
+	return MU_ERR_BAD_FILENAME;
     }
   else
     {
-      char *p = malloc (strlen (dir) + 2);
-      strcat (strcpy (p, dir), "/");
-      return p;
+      *pout = malloc (strlen (dir) + 2);
+      if (*pout)
+	strcat (strcpy (*pout, dir), "/");
     }
+
+  /* Final check */
+  return (*pout == NULL) ? errno : 0;
 }
 
 /* Create and open a temporary file. Be very careful about it, since we

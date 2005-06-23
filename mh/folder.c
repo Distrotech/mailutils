@@ -417,10 +417,11 @@ print_fast ()
 static int
 action_print ()
 {
+  char *folder_dir = mu_folder_directory ();
   mh_seq_name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
 
-  name_prefix_len = strlen (mu_path_folder_dir);
-  if (mu_path_folder_dir[name_prefix_len - 1] == '/')
+  name_prefix_len = strlen (folder_dir);
+  if (folder_dir[name_prefix_len - 1] == '/')
     name_prefix_len++;
   name_prefix_len++;  /* skip past the slash */
 
@@ -428,7 +429,7 @@ action_print ()
 
   if (show_all)
     {
-      _scan (mu_path_folder_dir, 0);
+      _scan (folder_dir, 0);
     }
   else
     {

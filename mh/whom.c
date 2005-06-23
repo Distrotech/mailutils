@@ -86,7 +86,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_DRAFTMESSAGE:
       if (!draft_folder)
 	draft_folder = mh_global_profile_get ("Draft-Folder",
-					      mu_path_folder_dir);
+					      mu_folder_directory ());
       break;
 
     case ARG_CHECK:
@@ -127,7 +127,7 @@ main (int argc, char **argv)
 
   if (!draft_folder)
     draft_folder = mh_global_profile_get ("Draft-Folder",
-					  mu_path_folder_dir);
+					  mu_folder_directory ());
 
   
   return mh_whom (mh_expand_name (draft_folder, name, 0), check_recipients) ?

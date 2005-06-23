@@ -53,12 +53,9 @@ mu_auth_system (struct mu_auth_data **return_data, const struct passwd *pw)
   if (!pw)
     return 1;
 
-  mailbox_name = malloc (strlen (mu_path_maildir) +
-			 strlen (pw->pw_name) + 1);
-  if (!mailbox_name)
-    return 1;
-
-  sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
+  rc = mu_construct_user_mailbox_url (&mailbox_name, pw->pw_name);
+  if (rc)
+    return 1; /* FIXME: Return code is lost */
   
   rc = mu_auth_data_alloc (return_data,
 			   pw->pw_name,

@@ -2551,7 +2551,7 @@ main (int argc, char **argv)
 	  mh_error (_("extra arguments"));
 	  return 1;
 	}
-      message = mh_file_to_message (mu_path_folder_dir, input_file);
+      message = mh_file_to_message (mu_folder_directory (), input_file);
       if (!message)
 	return 1;
     }
@@ -2563,7 +2563,7 @@ main (int argc, char **argv)
 	  return 1;
 	}
       input_file = argc == 1 ? argv[0] : "draft";
-      message = mh_file_to_message (mu_path_folder_dir, input_file);
+      message = mh_file_to_message (mu_folder_directory (), input_file);
       if (!message)
 	return 1;
     }
@@ -2578,7 +2578,7 @@ main (int argc, char **argv)
     case mode_compose:
       /* Prepare filename for diagnostic purposes */
       if (input_file[0] != '/')
-	asprintf (&input_file, "%s/%s",  mu_path_folder_dir, input_file);
+	asprintf (&input_file, "%s/%s", mu_folder_directory (), input_file);
       rc = mhn_compose ();
       break;
       

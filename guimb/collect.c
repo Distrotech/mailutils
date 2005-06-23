@@ -29,10 +29,11 @@ collect_open_default ()
 
   if (!default_mailbox)
     {
-      asprintf (&default_mailbox, "%s%s", mu_path_maildir, user_name);
-      if (!default_mailbox)
+      int rc = mu_construct_user_mailbox_url (&default_mailbox, user_name);
+      if (rc)
 	{
-	  util_error (_("Not enough memory"));
+	  util_error (_("Cannot construct default mailbox URL: %s"),
+                      mu_strerror (rc));
 	  exit (1);
 	}
     }

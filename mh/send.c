@@ -148,7 +148,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_DRAFTMESSAGE:
       if (!draft_folder)
 	draft_folder = mh_global_profile_get ("Draft-Folder",
-					      mu_path_folder_dir);
+					      mu_folder_directory ());
       break;
       
     case ARG_FILTER:
@@ -524,8 +524,9 @@ send (int argc, char **argv)
 
   /* Prepend url specifier to the folder dir. We won't need this
      when the default format becomes configurable */
-  asprintf (&p, "mh:%s", mu_path_folder_dir);
-  mu_path_folder_dir = p;
+  asprintf (&p, "mh:%s", mu_folder_directory ());
+  mu_set_folder_directory (p);
+  free (p);
   
   /* Finally, do the work */
   rc = list_do (mesg_list, _action_send, NULL);
