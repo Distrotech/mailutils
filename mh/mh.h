@@ -236,7 +236,7 @@ message_t mh_file_to_message (char *folder, char *file_name);
 message_t mh_stream_to_message (stream_t stream);
 void mh_install __P((char *name, int automode));
 
-char *mh_global_profile_get __P((char *name, char *defval));
+char *mh_global_profile_get __P((char *name, const char *defval));
 int mh_global_profile_set __P((const char *name, const char *value));
 char *mh_global_context_get __P((const char *name, const char *defval));
 int mh_global_context_set __P((const char *name, const char *value));

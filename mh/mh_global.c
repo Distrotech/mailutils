@@ -31,7 +31,7 @@ int mh_auto_install = 1;
 /* Global profile */
 
 char *
-mh_global_profile_get (char *name, char *defval)
+mh_global_profile_get (char *name, const char *defval)
 {
   return mh_context_get_value (profile, name, defval);
 }
@@ -86,7 +86,7 @@ _mh_init_global_context ()
   
   if (context)
     return;
-  mu_path_folder_dir = mh_get_dir ();
+  mu_set_folder_directory (mh_get_dir ());
   p = getenv ("CONTEXT");
   if (!p)
     p = MH_CONTEXT_FILE;
