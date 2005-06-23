@@ -1,3 +1,62 @@
+2005-06-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* README-alpha: Updated
+	* include/mailutils/mailbox.h
+	(mu_path_maildir,mu_path_folder_dir): Removed
+	(mu_set_mail_directory,mu_set_folder_directory)
+	(mu_mail_directory,mu_folder_directory)
+	(mu_construct_user_mailbox_url,mailbox_get_flags): New functions.
+	* mailbox/mbx_default.c: Likewise.
+	* include/mailutils/mutil.h (mu_normalize_maildir): Renamed to
+	(mu_normalize_mailbox_url)
+	* libmu_scm/mu_mailbox.c (scm_mu_mail_directory)
+	(scm_mu_folder_directory): New function
+	* libmu_scm/mu_scm.c (_mu_scm_path_maildir)
+	(_mu_scm_path_folder_dir): Removed
+	
+	* auth/sql.c: Use mu_mail_directory, mu_folder_directory and
+	related calls.
+	* guimb/collect.c: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+	* mailbox/mutil.c: Likewise.
+	* mailbox/system.c: Likewise.
+	* mh/comp.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/forw.c: Likewise.
+	* mh/mh_init.c: Likewise.
+	* mh/mhn.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/send.c: Likewise.
+	* mh/whom.c: Likewise.
+	
+	* mh/mh.h (mh_global_profile_get): Changed prototype.
+	* mh/mh_global.c: Likewise.
+	
+	* mailbox/imap/mbox.c (imap_messages_count): Use SELECT or EXAMINE
+	depending on the mailbox status.
+	(imap_expunge): Return EACCES if the mailbox is read-only
+
+	* examples/http.c: Accept up to two arguments: hostname to connect
+	to and URL of the page to get.
+
+	* imap4d/close.c: Do not attempt to flush a mailbox opened in
+	read-only mode.
+
+	* mail/file.c (mail_file): Invalidate current page map.
+	* mail/mail.h: Updated
+	* mail/page.c (set_cursor): Use page_move(0) to correctly update
+	the map.
+
+	* mailbox/errors (MU_ERR_BAD_FILENAME): New error code.
+	* mailbox/mailbox.c (mailbox_get_flags): New function
+	
+	* imap4d/util.c: Minor correction
+	* mail/decode.c: Likewise
+	* mail.local/main.c: Likewise
+	* frm/from.c: Removed unused variable
+
 2005-06-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* examples/mta.c (mta_smtp): Fixed race condition between printing
