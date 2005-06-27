@@ -21,6 +21,7 @@ SUBDIRS = config cpp scheme
 
 noinst_PROGRAMS = \
  addr\
+ argcv\
  base64\
  decode2047\
  encode2047\
@@ -50,6 +51,10 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I$(top_srcdir)/mailbox @INTLINCS@
 
 AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
+
+argcv_LDADD =\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la
