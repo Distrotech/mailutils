@@ -1,6 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005
+   Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -728,7 +729,7 @@ str_unescape (char *text, size_t len)
 {
   char *str = sieve_alloc (len);
   memcpy (str, text, len - 2);
-  str[len - 2] = argcv_unescape_char (text[len - 1]);
+  str[len - 2] = argcv_unquote_char (text[len - 1]);
   str[len - 1] = 0;
   return str;
 }
