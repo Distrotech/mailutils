@@ -1,3 +1,28 @@
+2005-06-27  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* include/mailutils/argcv.h (argcv_unescape_char): Renamed to
+	argcv_unquote_char
+	(argcv_escape_char): Renamed to argcv_quote_char.
+	(argcv_quoted_length,argcv_quote_copy): New functions
+	* mailbox/argcv.c (argcv_scan,xtonum): Improved parser
+	(argcv_unescape_char): Renamed to
+	argcv_unquote_char
+	(argcv_escape_char): Renamed to argcv_quote_char.
+	(argcv_quoted_length,argcv_quote_copy): New functions
+	(argcv_unquote_copy): (ex. unescape_copy): Fixed handling of
+	escaped sequences.
+	(argcv_get,argcv_free,argcv_string): Standardized return value.
+
+	* comsat/action.c: argcv_unescape_char renamed to argcv_unquote_char
+	* libsieve/sieve.l: Likewise
+
+	* examples/argcv.c: New file
+	* examples/Makefile.am: Add argcv.c
+
+	* mailbox/testsuite/Argcv: New file
+	* mailbox/testsuite/mailbox/argcv.exp: New test
+	* mailbox/testsuite/mailbox/DISTFILES: Add argcv.exp
+	
 2005-06-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* NEWS: Updated
