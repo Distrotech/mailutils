@@ -90,6 +90,8 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	      else
 		i++; /* skip the escaped character */
 	    }
+	  if (expect_delim)
+	    i--;
 	  i--;
 	  break;
 	}
@@ -177,7 +179,7 @@ argcv_quoted_length (const char *str, int *quote)
 	  len++;
 	  *quote = 1;
 	}
-      else if (*str == '"')
+      else if (*str == '"' || *str == '\'')
 	{
 	  len += 2;
 	  *quote = 1;
@@ -195,21 +197,32 @@ argcv_quoted_length (const char *str, int *quote)
 void
 argcv_unquote_copy (char *dst, const char *src, size_t n)
 {
-  int i;
+  int i = 0;
   int c;
-  int expect_delim = 0;
-  
-  for (i = 0; i < n; )
+  int expect_delim = 0; 
+    
+  while (i < n)
     {
       switch (src[i])
 	{
 	case '\'':
 	case '"':
-	  ++i;
-	  if (expect_delim)
-	    expect_delim = 0;
+	  if (!expect_delim)
+	    {
+	      char *p;
+	      
+	      for (p = src+i+1; *p && *p != src[i]; p++)
+		if (*p == '\\')
+		  p++;
+	      if (*p)
+		expect_delim = src[i++];
+	      else
+		*dst++ = src[i++];
+	    }
+	  else if (expect_delim == src[i])
+	    ++i;
 	  else
-	    expect_delim = src[i];
+	    *dst++ = src[i++];
 	  break;
 	  
 	case '\\':
@@ -274,10 +287,10 @@ argcv_quote_copy (char *dst, const char *src)
 {
   for (; *src; src++)
     {
-      if (*src == '"')
+      if (*src == '"' || *src == '\'')
 	{
 	  *dst++ = '\\';
-	  *dst++ = '"';
+	  *dst++ = *src;
 	}
       else if (*src != '\t' && *src != '\\' && isprint(*src))
 	*dst++ = *src;      
