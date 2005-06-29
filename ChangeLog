@@ -1,5 +1,8 @@
 2005-06-29  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
+	* mailbox/argcv.c (argcv_scan): Improved scanning.
+	* mailbox/testsuite/Argcv: New tests
+
 	* mailbox/argcv.c (argcv_scan,argcv_quoted_length)
 	(argcv_quote_copy): Fixed handling of unmatched quotes.
 
