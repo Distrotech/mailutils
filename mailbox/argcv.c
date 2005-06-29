@@ -40,7 +40,6 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	    int *start, int *end, int *save)
 {
   int i = 0;
-  int expect_delim;
   
   for (;;)
     {
@@ -54,46 +53,35 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	i++;
       *start = i;
 
-      switch (command[i])
+      if (!isdelim (command[i], delim))
 	{
-	case '"':
-	case '\'':
-	  while (++i < len
-		 && (command[i] != command[*start]
-		     || command[i-1] == '\\'))
-	    ;
-	  if (i < len)		/* found matching quote */
-	    break;
-	 /*FALLTHRU*/ default:
-	  if (isdelim (command[i], delim))
-	    break;
-	  /* Skip until next whitespace character or end of line. Honor
-	     escaped whitespace. */
-	  expect_delim = 0;
-	  while (++i < len)
+	  while (i < len)
 	    {
-	      if (expect_delim)
+	      if (command[i] == '\\')
 		{
-		  if (command[i-1] != '\\' && command[i] == expect_delim)
-		    expect_delim = 0;
-		  else
-		    continue;
+		  if (++i == len)
+		    break;
+		  i++;
+		  continue;
 		}
 	      
-	      if (command[i-1] != '\\')
+	      if (command[i] == '\'' || command[i] == '"')
 		{
-		  if (command[i] == '\'' || command[i] == '"')
-		    expect_delim = command[i];
-		  else if (isws (command[i]) || isdelim (command[i], delim))
-		    break;
+		  int j;
+		  for (j = i+1; j < len && command[j] != command[i]; j++)
+		    if (command[j] == '\\')
+		      j++;
+		  if (j < len)
+		    i = j+1;
+		  else
+		    i++;
 		}
+	      else if (isws (command[i]) || isdelim (command[i], delim))
+		break;
 	      else
 		i++; /* skip the escaped character */
 	    }
-	  if (expect_delim)
-	    i--;
 	  i--;
-	  break;
 	}
 
       *end = i;
