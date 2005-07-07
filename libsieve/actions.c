@@ -113,14 +113,23 @@ sieve_get_message_sender (message_t msg, char **ptext)
     return rc;
   
   rc = envelope_sender (envelope, NULL, 0, &size);
-  if (rc)
-    return rc;
+  if (rc == 0)
+    {
+      if (!(text = malloc (size + 1)))
+	return ENOMEM;
+      envelope_sender (envelope, text, size + 1, NULL);
+    }
+  else
+    {
+      header_t hdr = NULL;
+      message_get_header (msg, &hdr);
+      if (rc = header_aget_value (hdr, MU_HEADER_SENDER, &text))
+	rc = header_aget_value (hdr, MU_HEADER_FROM, &text);
+    }
 
-  if (!(text = malloc (size + 1)))
-    return ENOMEM;
-  envelope_sender (envelope, text, size + 1, NULL);
-  *ptext = text;
-  return 0;
+  if (rc == 0)
+    *ptext = text;
+  return rc;
 }
 
 static int
