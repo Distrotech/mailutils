@@ -1,3 +1,8 @@
+2005-07-07  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* libsieve/actions.c: Fall back to "Sender:" and "From:" headers
+	(in that order), if the envelope sender is not available.
+
 2005-06-29  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mailbox/argcv.c (argcv_scan): Improved scanning.
