@@ -198,7 +198,7 @@ static char *
 _mime_get_param (char *field_body, const char *param, int *len)
 {
   char *str, *p, *v, *e;
-  int quoted = 0, was_quoted = 0;
+  int quoted = 0, was_quoted;
 
   if (len == NULL || (str = field_body) == NULL)
     return NULL;
@@ -211,6 +211,7 @@ _mime_get_param (char *field_body, const char *param, int *len)
 	break;
       *len = 0;
       v = e = v + 1;
+      was_quoted = 0;
       while (*e
 	     && (quoted
 		 || (!_ISSPECIAL (*e) && !isspace ((unsigned char) *e))))
