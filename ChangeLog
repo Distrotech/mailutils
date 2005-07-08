@@ -1,3 +1,8 @@
+2005-07-08  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/mime.c (_mime_get_param): Initialize was_quoted to
+	0. Problem reported by Shashank Kavishwar <s_kavishwar@hotmail.com>.
+	
 2005-07-07  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* libsieve/actions.c: Fall back to "Sender:" and "From:" headers
