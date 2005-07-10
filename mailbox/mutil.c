@@ -103,7 +103,7 @@ mu_get_homedir (void)
     homedir = strdup (homedir);
   else
     {
-      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+      struct mu_auth_data *auth = mu_get_auth_by_uid (geteuid ());
       if (!auth)
 	return NULL;
       homedir = strdup (auth->dir);
