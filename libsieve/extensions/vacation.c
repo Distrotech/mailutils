@@ -36,9 +36,7 @@
 #include <string.h>
 #include <signal.h>
 #include <regex.h>
-#ifdef USE_DBM
-# include <mu_dbm.h>
-#endif
+#include <mu_dbm.h>
 #include <mailutils/libsieve.h>
 #include <mailutils/mu_auth.h>
 
