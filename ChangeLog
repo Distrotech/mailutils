@@ -1,3 +1,8 @@
+2005-07-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/locker.c (locker_lock): Allow for non-absolute file
+	names. 
+
 2005-07-10  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/extensions/vacation.c: Unconditionally include mu_dbm.h
