@@ -1,3 +1,7 @@
+2005-07-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/rfc2047.c (rfc2047_encode): Bugfix.
+
 2005-07-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/locker.c (locker_lock): Allow for non-absolute file
