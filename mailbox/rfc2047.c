@@ -264,13 +264,16 @@ rfc2047_encode (const char *charset, const char *encoding,
       *result = malloc (2 + strlen (charset) + 3 + strlen (text) * 3 + 3);
       if (*result)
 	{
-	  sprintf (*result, "=?%s?%s?", charset, encoding);
+	  char *p = *result;
+	  size_t s;
+	  
+	  p += sprintf (p, "=?%s?%s?", charset, encoding);
 	  
 	  rc = stream_sequential_read (output_stream,
-				       *result + strlen (*result),
-				       strlen (text) * 3, NULL);
+				       p,
+				       strlen (text) * 3, &s);
 
-	  strcat (*result, "?=");
+	  strcpy (p + s, "?=");
 	}
       else
 	rc = ENOMEM;
