@@ -425,9 +425,15 @@ locker_lock (locker_t lock)
 
       strcpy (tmp, lock->file);
       p = strrchr (tmp, '/');
-      /* A '/' must be present, if not we'll coredump, and that's
-	 correct! */
-      *p = 0; 
+      if (!p)
+	{
+	  free (tmp);
+	  tmp = strdup (".");
+	  if (!tmp)
+	    return ENOMEM;
+	}
+      else
+	*p = 0; 
 
       if (access (tmp, W_OK))
 	{
