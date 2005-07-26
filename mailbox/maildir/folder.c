@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,6 +96,7 @@ _maildir_url_init (url_t url)
 
 static struct _record _maildir_record =
 {
+  MU_MAILDIR_PRIO,
   MU_MAILDIR_SCHEME,
   _maildir_url_init, /* Url init.  */
   _mailbox_maildir_init, /* Mailbox init.  */

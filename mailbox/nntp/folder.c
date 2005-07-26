@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,7 @@
 
 static struct _record _nntp_record =
 {
+  MU_NNTP_PRIO,
   MU_NNTP_URL_SCHEME,
   _nntp_url_init, /* Url init.  */
   _nntp_mailbox_init, /* Mailbox init.  */

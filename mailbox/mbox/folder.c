@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,6 +46,7 @@
 
 static struct _record _mbox_record =
 {
+  MU_MBOX_PRIO,
   MU_MBOX_SCHEME,
   _url_mbox_init, /* Mailbox init.  */
   _mailbox_mbox_init, /* Mailbox init.  */
@@ -83,6 +84,7 @@ _path_is_scheme (record_t record, const char *url)
 
 static struct _record _path_record =
 {
+  MU_PATH_PRIO,
   MU_PATH_SCHEME,
   _url_path_init,     /* Mailbox init.  */
   _mailbox_mbox_init, /* Mailbox init.  */
@@ -184,22 +186,20 @@ folder_mbox_destroy (folder_t folder)
 
 /* Noop. */
 static int
-folder_mbox_open (folder_t folder, int flags)
+folder_mbox_open (folder_t folder, int flags ARG_UNUSED)
 {
   fmbox_t fmbox = folder->data;
   if (flags & MU_STREAM_CREAT)
     {
       return (mkdir (fmbox->dirname, S_IRWXU) == 0) ? 0 : errno;
     }
-  (void)(flags);
   return 0;
 }
 
 /*  Noop.  */
 static int
-folder_mbox_close (folder_t folder)
+folder_mbox_close (folder_t folder ARG_UNUSED)
 {
-  (void)(folder);
   return 0;
 }
 
