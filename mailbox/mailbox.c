@@ -40,6 +40,23 @@
 
 #include <mailbox0.h>
 
+int
+mailbox_folder_create (folder_t *pfolder, const char *name)
+{
+  int rc;
+  char *p, *fname = strdup (name);
+
+  if (!fname)
+    return ENOMEM;
+  
+  p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
+  if (p)
+    *p = 0;
+  rc = folder_create (pfolder, fname);
+  free (fname);
+  return rc;
+}
+
 /* The Mailbox Factory.
    Create an iterator for registrar and see if any url scheme match,
    Then we call the mailbox's url_create() to parse the URL. Last
@@ -52,7 +69,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (registrar_lookup (name, &record) == 0)
+  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
     {
       int (*m_init) __P ((mailbox_t)) = NULL;
       int (*u_init) __P ((url_t)) = NULL;
@@ -91,7 +108,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 	  
 	  /* Create the folder before initializing the concrete mailbox.
 	     The mailbox needs it's back pointer. */
-	  status = folder_create (&mbox->folder, name);
+	  status = mailbox_folder_create (&mbox->folder, name);
 	  
 	  if (status == 0)
 	    status = m_init (mbox);   /* Create the concrete mailbox type.  */
