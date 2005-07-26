@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -82,16 +82,7 @@ mailer_get_url_default (const char **url)
 int
 mailer_create (mailer_t * pmailer, const char *name)
 {
-  int status = EINVAL;
-  url_t url = NULL;
-  mailer_t mailer = NULL;
-
-  record_t record = NULL;
-  int (*m_init) __P ((mailer_t)) = NULL;
-  int (*u_init) __P ((url_t)) = NULL;
-  list_t list = NULL;
-  iterator_t iterator;
-  int found = 0;
+  record_t record;
 
   if (pmailer == NULL)
     return MU_ERR_OUT_PTR_NULL;
@@ -99,60 +90,52 @@ mailer_create (mailer_t * pmailer, const char *name)
   if (name == NULL)
     mailer_get_url_default (&name);
 
-  registrar_get_list (&list);
-  status = list_get_iterator (list, &iterator);
-  if (status != 0)
-    return status;
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+  if (registrar_lookup (name, &record) == 0)
     {
-      iterator_current (iterator, (void **) &record);
-      if (record_is_scheme (record, name))
-	{
-	  record_get_mailer (record, &m_init);
-	  record_get_url (record, &u_init);
-	  if (m_init && u_init)
+      int (*m_init) __P ((mailer_t)) = NULL;
+      int (*u_init) __P ((url_t)) = NULL;
+
+      record_get_mailer (record, &m_init);
+      record_get_url (record, &u_init);
+      if (m_init && u_init)
+        {
+	  int status;
+	  url_t url;
+	  mailer_t mailer;
+	  
+	  /* Allocate memory for mailer.  */
+	  mailer = calloc (1, sizeof (*mailer));
+	  if (mailer == NULL)
+	    return ENOMEM;
+
+	  status = monitor_create (&mailer->monitor, 0, mailer);
+	  if (status)
 	    {
-	      found = 1;
-	      break;
+	      mailer_destroy (&mailer);
+	      return status;
 	    }
+
+	  /* Parse the url, it may be a bad one and we should bail out if this
+	     failed.  */
+	  if ((status = url_create (&url, name)) != 0
+	      || (status = u_init (url)) != 0)
+	    {
+	      mailer_destroy (&mailer);
+	      return status;
+	    }
+	  mailer->url = url;
+
+	  status = m_init (mailer);
+	  if (status)
+	    mailer_destroy (&mailer);
+	  else
+	    *pmailer = mailer;
+
+	  return status;
 	}
     }
-  iterator_destroy (&iterator);
 
-  if (!found)
     return MU_ERR_MAILER_BAD_URL;
-
-  /* Allocate memory for mailer.  */
-  mailer = calloc (1, sizeof (*mailer));
-  if (mailer == NULL)
-    return ENOMEM;
-
-  status = monitor_create (&(mailer->monitor), 0, mailer);
-  if (status != 0)
-    {
-      mailer_destroy (&mailer);
-      return status;
-    }
-
-  /* Parse the url, it may be a bad one and we should bail out if this
-     failed.  */
-  if ((status = url_create (&url, name)) != 0 || (status = u_init (url)) != 0)
-    {
-      mailer_destroy (&mailer);
-      return status;
-    }
-  mailer->url = url;
-
-  status = m_init (mailer);
-  if (status != 0)
-    {
-      mailer_destroy (&mailer);
-    }
-  else
-    *pmailer = mailer;
-
-  return status;
 }
 
 void
