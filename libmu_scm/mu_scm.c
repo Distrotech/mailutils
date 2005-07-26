@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -82,24 +82,18 @@ static int
 register_format (const char *name)
 {
   int status = 0;
-  list_t reglist = NULL;
-  
-  status = registrar_get_list (&reglist);
-  if (status)
-    return status;
   
   if (!name)
     {
       struct format_record *table;
       for (table = format_table; table->name; table++)
-	list_append (reglist, *table->record);
-      status = 0;
+	registrar_record (*table->record);
     }
   else
     {
       record_t *record = find_format (format_table, name);
       if (record)
-	status = list_append (reglist, *record);
+	status = registrar_record (*record);
       else
 	status = EINVAL;
     }
@@ -165,7 +159,6 @@ void
 mu_scm_init ()
 {
   int i;
-  list_t lst;
 
   _mu_scm_mailer = scm_makfrom0str ("sendmail:" _PATH_SENDMAIL);
   mu_set_variable ("mu-mailer", _mu_scm_mailer);
@@ -196,6 +189,5 @@ mu_scm_init ()
   mu_scm_mime_init ();
 #include "mu_scm.x"
 
-  registrar_get_list (&lst);
-  list_append (lst, path_record);
+  registrar_record (path_record);
 }

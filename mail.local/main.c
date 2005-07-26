@@ -373,15 +373,11 @@ main (int argc, char *argv[])
     }
 
   /* Register local mbox formats. */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record); 
-    list_append (bookie, path_record);
-    /* Possible supported mailers.  */
-    list_append (bookie, sendmail_record);
-    list_append (bookie, smtp_record);
-  }
+  registrar_record (mbox_record); 
+  registrar_record (path_record);
+  /* Possible supported mailers.  */
+  registrar_record (sendmail_record);
+  registrar_record (smtp_record);
 
   if (make_tmp (from, &mbox))
     exit (exit_code);

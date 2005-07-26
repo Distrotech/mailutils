@@ -251,12 +251,9 @@ make_tmp (FILE *input, const char *from, char **tempfile)
 void
 register_handlers ()
 {
-  list_t bookie;
-
-  registrar_get_list (&bookie);
-  list_append (bookie, path_record);
-  list_append (bookie, sendmail_record);
-  list_append (bookie, smtp_record);
+  registrar_record (path_record);
+  registrar_record (sendmail_record);
+  registrar_record (smtp_record);
 }
 
 int

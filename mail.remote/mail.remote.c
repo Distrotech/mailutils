@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, 
+   Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -159,11 +160,7 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   /* Register mailers. */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, smtp_record);
-  }
+  registrar_record (smtp_record);
 
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);

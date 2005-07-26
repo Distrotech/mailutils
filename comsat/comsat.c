@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -193,11 +193,7 @@ sig_hup (int sig)
 void
 comsat_init ()
 {
-  list_t bookie;
-
-  registrar_get_list (&bookie);
-  /* list_append (bookie, mbox_record); */
-  list_append (bookie, path_record);
+  registrar_record (path_record);
 
   gethostname (hostname, sizeof hostname);
 
