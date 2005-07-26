@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -127,6 +127,42 @@ prep (list_t list, int argc, char **argv)
 }
 
 void
+ins (list_t list, int argc, char **argv)
+{
+  int rc;
+  char *item;
+  char *new_item;
+  
+  if (argc < 3 || argc > 4)
+    {
+      fprintf (stderr, "ins [before] item new_item?\n");
+      return;
+    }
+
+  if (argc == 4)
+    {
+      if (strcmp (argv[1], "before"))
+	{
+	  fprintf (stderr, "ins before item new_item?\n");
+	  return;
+	}
+	
+      item = argv[2];
+      new_item = argv[3];
+    }
+  else
+    {
+      item = argv[1];
+      new_item = argv[2];
+    }
+  
+  rc = list_insert (list, item, strdup (new_item), argc == 4);
+  if (rc)
+    fprintf (stderr, "list_insert: %s\n", mu_strerror (rc));
+}
+
+
+void
 repl (list_t list, int argc, char **argv)
 {
   int rc;
@@ -207,6 +243,7 @@ help ()
   printf ("add item [item...]\n");
   printf ("prep item [item...]\n");
   printf ("repl old_item new_item\n");
+  printf ("ins [before] item new_item\n");
   printf ("print\n");
   printf ("quit\n");
   printf ("iter num\n");
@@ -261,6 +298,8 @@ shell (list_t list)
 	    add (list, argc, argv);
 	  else if (strcmp (argv[0], "prep") == 0)
 	    prep (list, argc, argv);
+	  else if (strcmp (argv[0], "ins") == 0)
+	    ins (list, argc, argv);
 	  else if (strcmp (argv[0], "repl") == 0)
 	    repl (list, argc, argv);
 	  else if (strcmp (argv[0], "print") == 0)
