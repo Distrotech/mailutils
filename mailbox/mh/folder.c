@@ -87,15 +87,16 @@ mh_dir_p (const char *name)
 }
 
 static int
-_mh_is_scheme (record_t record, const char *url)
+_mh_is_scheme (record_t record, const char *url, int flags)
 {
   const char *path;
+  int rc = 0;
   
   if (!url || !record->scheme)
     return 0;
 
   if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
-    return 1;
+    return MU_FOLDER_ATTRIBUTE_ALL & flags;
 
   if (mu_scheme_autodetect_p (url, &path))
     {
@@ -103,12 +104,15 @@ _mh_is_scheme (record_t record, const char *url)
       struct stat st;
       
       if (stat (path, &st) < 0)
-	return 1; /* mailbox_open will complain */
+	return 0; /* mailbox_open will complain*/
 
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      return mh_dir_p (path);
+      rc |= (MU_FOLDER_ATTRIBUTE_DIRECTORY & flags);
+      
+      if ((flags & MU_FOLDER_ATTRIBUTE_FILE) && mh_dir_p (path))
+        return rc | MU_FOLDER_ATTRIBUTE_FILE;
     }
 
   return 0;

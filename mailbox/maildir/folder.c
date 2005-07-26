@@ -56,7 +56,7 @@ dir_exists (const char *name, const char *suf)
 }
 
 static int
-_maildir_is_scheme (record_t record, const char *url)
+_maildir_is_scheme (record_t record, const char *url, int flags)
 {
   const char *path;
   
@@ -64,22 +64,27 @@ _maildir_is_scheme (record_t record, const char *url)
     return 0;
 
   if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
-    return 1;
+    return MU_FOLDER_ATTRIBUTE_ALL & flags; 
 
   if (mu_scheme_autodetect_p (url, &path))
     {
       /* Attemp auto-detection */
       struct stat st;
+      int rc = 0;
       
       if (stat (path, &st) < 0)
-	return 1; /* mailbox_open will complain */
+	return 0; 
 
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      return dir_exists (path, TMPSUF)
+      rc |= (MU_FOLDER_ATTRIBUTE_DIRECTORY & flags);
+      
+      if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
+	  && dir_exists (path, TMPSUF)
 	     && dir_exists (path, CURSUF)
- 	     && dir_exists (path, NEWSUF);
+ 	     && dir_exists (path, NEWSUF))
+        return rc | MU_FOLDER_ATTRIBUTE_FILE;
     }
   return 0;
 }

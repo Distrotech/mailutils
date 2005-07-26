@@ -62,24 +62,30 @@ static struct _record _mbox_record =
 record_t mbox_record = &_mbox_record;
 
 static int
-_path_is_scheme (record_t record, const char *url)
+_path_is_scheme (record_t record, const char *url, int flags)
 {
+  int rc = 0;
   const char *path;
   
-  if (!url || !record->scheme)
-    return 0;
-
-  if (mu_scheme_autodetect_p (url, &path))
- /* implies if (strncmp (record->scheme, url, strlen(record->scheme)) == 0)*/
+  if (url && record->scheme)
     {
-      struct stat st;
-      
-      if (stat (path, &st) < 0)
-	return 1; /* mailbox_open will complain */
+      if (mu_scheme_autodetect_p (url, &path))
+	/* implies if (strncmp (record->scheme, url, strlen(record->scheme)) == 0)*/
+	{
+	  struct stat st;
+	  
+	  if (stat (path, &st) < 0)
+	    return MU_FOLDER_ATTRIBUTE_ALL; /* mailbox_open will complain */
 
-      return S_ISREG (st.st_mode) || S_ISCHR (st.st_mode); 
+	  if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
+	      && (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode)))
+	    rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	  if ((flags & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+	      && S_ISDIR (st.st_mode))
+	    rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
+	}
     }
-  return 0;
+  return rc;
 }
 
 static struct _record _path_record =
@@ -301,10 +307,10 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 		    }
 		  if (stat (gl.gl_pathv[i], &stbuf) == 0)
 		    {
-		      if (S_ISDIR(stbuf.st_mode))
-			plist[i]->type = MU_FOLDER_ATTRIBUTE_DIRECTORY;
-		      if (S_ISREG(stbuf.st_mode))
-			plist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
+		      record_t record;
+		      plist[i]->type = registrar_lookup (gl.gl_pathv[i],
+							 &record,
+						      MU_FOLDER_ATTRIBUTE_ALL);
 		    }
 		  plist[i]->separator = '/';
 		}
@@ -316,7 +322,28 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
     }
   else
     {
-      status = (status == GLOB_NOSPACE) ? ENOMEM : EINVAL;
+      switch (status)
+	{
+	case GLOB_NOSPACE:
+	  status = ENOMEM;
+	  break;
+
+	case GLOB_ABORTED:
+	  status = MU_READ_ERROR;
+	  break;
+
+	case GLOB_NOMATCH:
+	  status = MU_ERR_NOENT;
+	  break;
+
+	case GLOB_NOSYS:
+	  status = ENOSYS;
+	  break;
+	  
+	default:
+	  status = MU_ERR_FAILURE;
+	  break;
+	}
     }
   return status;
 }
@@ -402,6 +429,14 @@ static char *
 get_pathname (const char *dirname, const char *basename)
 {
   char *pathname = NULL;
+
+  /* Skip eventual protocol designator.
+     FIXME: Actually, any valid URL spec should be allowed as dirname ... */
+  if (strncmp (dirname, MU_MBOX_SCHEME, MU_MBOX_SCHEME_LEN) == 0)
+    dirname += MU_MBOX_SCHEME_LEN;
+  else if (strncmp (dirname, MU_FILE_SCHEME, MU_FILE_SCHEME_LEN) == 0)
+    dirname += MU_FILE_SCHEME_LEN;
+  
   /* null basename gives dirname.  */
   if (basename == NULL)
     pathname = (dirname) ? strdup (dirname) : strdup (".");

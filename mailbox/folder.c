@@ -61,7 +61,7 @@ folder_create (folder_t *pfolder, const char *name)
 
   /* Look in the registrar list(iterator), for a possible concrete mailbox
      implementation that could match the URL.  */
-  if (registrar_lookup (name, &record) == 0)
+  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_DIRECTORY))
     {
       int (*f_init) __P ((folder_t)) = NULL;
       int (*u_init) __P ((url_t)) = NULL;

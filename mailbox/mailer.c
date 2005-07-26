@@ -90,7 +90,7 @@ mailer_create (mailer_t * pmailer, const char *name)
   if (name == NULL)
     mailer_get_url_default (&name);
 
-  if (registrar_lookup (name, &record) == 0)
+  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
     {
       int (*m_init) __P ((mailer_t)) = NULL;
       int (*u_init) __P ((url_t)) = NULL;
