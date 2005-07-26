@@ -79,3 +79,4 @@ MU_ERR_NO_RESULT            _("No result from the previous query available")
 MU_ERR_NO_INTERFACE         _("No such interface")
 
 MU_ERR_BAD_FILENAME         _("Badly formed file or directory name")
+MU_READ_ERROR               _("Read error")
