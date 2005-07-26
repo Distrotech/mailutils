@@ -63,10 +63,18 @@ mail_copy0 (int argc, char **argv, int mark)
       return 1;
     }
 
-  if (mailbox_create_default (&mbx, filename)
-      || mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT))
+  if ((status = mailbox_create_default (&mbx, filename)) != 0)
     {
-      util_error (_("Cannot create mailbox %s"), filename);
+      util_error (_("Cannot create mailbox %s: %s"), filename, 
+                   mu_strerror (status));
+      free (filename);
+      msgset_free (msglist);
+      return 1;
+    }
+  if ((status = mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT)) != 0)
+    {
+      util_error (_("Cannot open mailbox %s: %s"), filename, 
+                   mu_strerror (status));
       free (filename);
       msgset_free (msglist);
       return 1;

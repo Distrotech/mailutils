@@ -88,7 +88,8 @@ main (int argc, char **argv)
 
   if ((ret = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
-      fprintf (stderr, "could not create - %s\n", mu_strerror (ret));
+      fprintf (stderr, "could not create %s: %s\n",
+	       mailbox_name, mu_strerror (ret));
       exit (2);
     }
 

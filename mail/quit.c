@@ -105,12 +105,18 @@ mail_mbox_commit ()
 	  if (!dest_mbox)
 	    {
 	      char *name = getenv ("MBOX");
-
-	      if (mailbox_create_default (&dest_mbox, name)
-		  || mailbox_open (dest_mbox,
-				   MU_STREAM_WRITE | MU_STREAM_CREAT))
+	       
+	      if ((status = mailbox_create_default (&dest_mbox, name)) != 0)
 		{
-		  util_error (_("Cannot create mailbox %s"), name);
+		  util_error (_("Cannot create mailbox %s: %s"), name,
+                              mu_strerror (status));
+		  return 1;
+		}
+              if ((status = mailbox_open (dest_mbox,
+			   	          MU_STREAM_WRITE | MU_STREAM_CREAT))!=0)
+		{
+		  util_error (_("Cannot open mailbox %s: %s"), name,
+                              mu_strerror (status));
 		  return 1;
 		}
 	    }

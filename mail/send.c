@@ -539,7 +539,8 @@ mail_send0 (compose_env_t * env, int save_to)
 			  mailbox_destroy (&mbx);
 			}
 		      if (status)
-			util_error (_("Cannot create mailbox %s"), env->outfiles[i]);
+			util_error (_("Cannot create mailbox %s: %s"), 
+                                    env->outfiles[i], mu_strerror (status));
 		    }
 		}
 	    }
