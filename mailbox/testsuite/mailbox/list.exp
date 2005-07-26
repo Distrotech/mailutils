@@ -146,6 +146,36 @@ mailbox_prog_test "print" \
 	"to" \
 	"fem"
 
+mailbox_prog_command "ins before 3 1"
+mailbox_prog_test "print" \
+        "1" \
+	"3" \
+	"dwa" \
+        "zero" \
+	"jeden" \
+        "cero" \
+        "un" \
+        "dos" \
+	"en" \
+	"to" \
+	"fem"
+
+mailbox_prog_command "ins before 3 2"
+mailbox_prog_test "print" \
+        "1" \
+        "2" \
+	"3" \
+	"dwa" \
+        "zero" \
+	"jeden" \
+        "cero" \
+        "un" \
+        "dos" \
+	"en" \
+	"to" \
+	"fem"
+
+
 mailbox_prog_send "quit"
 mailbox_prog_stop
 
