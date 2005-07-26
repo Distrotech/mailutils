@@ -25,11 +25,9 @@
 extern "C" {
 #endif
 
-#define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
-#define MU_FOLDER_ATTRIBUTE_FILE      0x002
 struct list_response
 {
-  int type;
+  int type;             /* MU_FOLDER_ATTRIBUTE_.* flags */
   int separator;
   char *name;
 };
