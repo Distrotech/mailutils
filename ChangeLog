@@ -2,6 +2,58 @@
 
 	* mailbox/rfc2047.c (rfc2047_encode): Bugfix.
 
+	* mail/page.c (page_move): Fix start msg calculation
+	
+	* include/mailutils/list.h (list_insert): Accept additional
+	argument indicating whether to insert item before or after the
+	reference one.
+	* mailbox/list.c: Likewise
+	* examples/listop.c (ins): New option 'before' allows to insert an
+	item before another one.
+	* mailbox/testsuite/mailbox/list.exp: Test new list operations.
+	* mh/mh_alias.y: Updated list_insert invocations
+	* mh/mh_format.c (builtin_putnum): Minor fix
+	 
+	* comsat/comsat.c: Use registrar_record instead of directly
+	accessing registrar list.
+	* examples/mimetest.c: Likewise
+	* examples/msg-send.c: Likewise
+	* examples/mta.c: Likewise
+	* libmu_scm/mu_scm.c: Likewise
+	* mail.local/main.c: Likewise
+	* mail.remote/mail.remote.c: Likewise
+
+	* mailbox/registrar.c (registrar_get_list): Split into two
+	calls. The registrar_get_list proper is deprecated.
+	(registrar_get_iterator,registrar_lookup): New functions
+	(registrar_record,unregistrar_record): Use _registrar_get_list
+
+	* mailbox/folder.c (folder_create): Rewritten using
+	registrar_lookup()
+	* mailbox/mailbox.c (mailbox_create): Likewise
+	* mailbox/mailer.c (mailer_create): Likewise
+
+	* mailbox/sendmail.c: Updated declarations of struct _record
+	objects.
+	* mailbox/smtp.c: Likewise
+	* mailbox/imap/folder.c: Likewise
+	* mailbox/maildir/folder.c: Likewise
+	* mailbox/mbox/folder.c: Likewise
+	* mailbox/mh/folder.c: Likewise
+	* mailbox/nntp/folder.c: Likewise
+	* mailbox/pop/folder.c: Likewise
+	
+	* include/mailutils/registrar.h (struct _record.priority): New
+	member.
+	(registrar_get_list): Mark as deprecated
+	(registrar_get_iterator,registrar_lookup): New function
+	(MU_IMAP_PRIO etc): New defines
+	(mu_register_all_mbox_formats,mu_register_local_mbox_formats)
+	(mu_register_remote_mbox_formats,mu_register_all_mailer_formats)
+	(mu_register_extra_formats): Use registrar_record
+
+	* include/mailutils/types.h: Minor stylistic fix
+
 2005-07-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/locker.c (locker_lock): Allow for non-absolute file
