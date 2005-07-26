@@ -99,6 +99,11 @@ typedef struct _ticket *ticket_t;
 typedef struct _url *url_t;
 typedef struct _wicket *wicket_t;
 typedef void *mu_transport_t;
+
+#define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
+#define MU_FOLDER_ATTRIBUTE_FILE      0x002
+#define MU_FOLDER_ATTRIBUTE_ALL \
+          (MU_FOLDER_ATTRIBUTE_DIRECTORY|MU_FOLDER_ATTRIBUTE_FILE)
   
 #ifdef __cplusplus
 }
