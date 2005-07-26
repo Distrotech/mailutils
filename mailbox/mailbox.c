@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,84 +47,65 @@
 int
 mailbox_create (mailbox_t *pmbox, const char *name)
 {
-  int status = EINVAL;
   record_t record = NULL;
-  int (*m_init) __P ((mailbox_t)) = NULL;
-  int (*u_init) __P ((url_t)) = NULL;
-  iterator_t iterator;
-  list_t list;
-  int found = 0;
 
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  /* Look in the registrar, for a match  */
-  registrar_get_list (&list);
-  status = list_get_iterator (list, &iterator);
-  if (status != 0)
-    return status;
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+  if (registrar_lookup (name, &record) == 0)
     {
-      iterator_current (iterator, (void **)&record);
-      if (record_is_scheme (record, name))
-	{
-	  record_get_mailbox (record, &m_init);
-	  record_get_url (record, &u_init);
-	  if (m_init && u_init)
+      int (*m_init) __P ((mailbox_t)) = NULL;
+      int (*u_init) __P ((url_t)) = NULL;
+      
+      record_get_mailbox (record, &m_init);
+      record_get_url (record, &u_init);
+      if (m_init && u_init)
+        {
+	  int status;
+	  url_t url;
+	  mailbox_t mbox;
+
+	  /* Allocate memory for mbox.  */
+	  mbox = calloc (1, sizeof (*mbox));
+	  if (mbox == NULL)
+	    return ENOMEM;
+
+	  /* Initialize the internal lock now, so the concrete mailbox
+	     could use it. */
+	  status = monitor_create (&mbox->monitor, 0, mbox);
+	  if (status != 0)
 	    {
-	      found = 1;
-	      break;
+	      mailbox_destroy (&mbox);
+	      return status;
 	    }
-	}
-    }
-  iterator_destroy (&iterator);
 
-  if (found)
-    {
-      url_t url = NULL;
-      mailbox_t mbox;
+	  /* Parse the url, it may be a bad one and we should bailout if this
+	     failed.  */
+	  if ((status = url_create (&url, name)) != 0
+	      || (status = u_init (url)) != 0)
+	    {
+	      mailbox_destroy (&mbox);
+	      return status;
+	    }
+	  mbox->url = url;
+	  
+	  /* Create the folder before initializing the concrete mailbox.
+	     The mailbox needs it's back pointer. */
+	  status = folder_create (&mbox->folder, name);
+	  
+	  if (status == 0)
+	    status = m_init (mbox);   /* Create the concrete mailbox type.  */
 
-      /* Allocate memory for mbox.  */
-      mbox = calloc (1, sizeof (*mbox));
-      if (mbox == NULL)
-	return ENOMEM;
+	  if (status != 0)
+	    mailbox_destroy (&mbox);
+	  else
+	    *pmbox = mbox;
 
-      /* Initialize the internal lock now, so the concrete mailbox
-	 could use it. */
-      status = monitor_create (&(mbox->monitor), 0, mbox);
-      if (status != 0)
-	{
-	  mailbox_destroy (&mbox);
 	  return status;
 	}
-
-      /* Parse the url, it may be a bad one and we should bailout if this
-	 failed.  */
-      if ((status = url_create (&url, name)) != 0
-	  || (status = u_init (url)) != 0)
-	{
-	  mailbox_destroy (&mbox);
-	  return status;
-	}
-      mbox->url = url;
-
-      /* Create the folder before initializing the concrete mailbox.
-	 The mailbox needs it's back pointer. */
-      status = folder_create (&mbox->folder, name);
-
-      if (status == 0)
-	status = m_init (mbox);   /* Create the concrete mailbox type.  */
-
-      if (status != 0)
-	mailbox_destroy (&mbox);
-      else
-	*pmbox = mbox;
     }
-  else
-    status = MU_ERR_NO_HANDLER;
 
-  return status;
+  return MU_ERR_NO_HANDLER;
 }
 
 void
