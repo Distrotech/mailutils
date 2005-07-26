@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -54,104 +54,85 @@ static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
 int
 folder_create (folder_t *pfolder, const char *name)
 {
-  int status = EINVAL;
-  record_t record = NULL;
-  int (*f_init) __P ((folder_t)) = NULL;
-  int (*u_init) __P ((url_t)) = NULL;
-  iterator_t iterator;
-  list_t list;
-  int found = 0;
+  record_t record;
 
   if (pfolder == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   /* Look in the registrar list(iterator), for a possible concrete mailbox
-     implementatio that could match the URL.  */
-  registrar_get_list (&list);
-  status = list_get_iterator (list, &iterator);
-  if (status != 0)
-    return status;
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+     implementation that could match the URL.  */
+  if (registrar_lookup (name, &record) == 0)
     {
-      iterator_current (iterator, (void **)&record);
-      if (record_is_scheme (record, name))
+      int (*f_init) __P ((folder_t)) = NULL;
+      int (*u_init) __P ((url_t)) = NULL;
+      
+      record_get_folder (record, &f_init);
+      record_get_url (record, &u_init);
+      if (f_init && u_init)
         {
-          record_get_folder (record, &f_init);
-          record_get_url (record, &u_init);
-          if (f_init && u_init)
+	  int status;
+	  url_t url;
+	  folder_t folder;
+
+	  /* Parse the url, it may be a bad one and we should bailout if this
+	     failed.  */
+	  if ((status = url_create (&url, name) != 0)
+	      || (status = u_init (url)) != 0)
+	    return status;
+
+	  monitor_wrlock (&folder_lock);
+
+	  /* Check if we already have the same URL folder.  */
+	  if (is_known_folder (url, &folder))
 	    {
-	      found = 1;
-	      break;
+	      folder->ref++;
+	      *pfolder = folder;
+	      url_destroy (&url);
+	      monitor_unlock (&folder_lock);
+	      return  0;
 	    }
-        }
-    }
-  iterator_destroy (&iterator);
+	  else
+	    monitor_unlock (&folder_lock);
+	  
+	  /* Create a new folder.  */
 
-  if (found)
-    {
-      url_t url = NULL;
-      folder_t folder = NULL;
-
-      /* Parse the url, it may be a bad one and we should bailout if this
-	 failed.  */
-      if ((status = url_create (&url, name) != 0)
-          || (status = u_init (url)) != 0)
-	return status;
-
-      monitor_wrlock (&folder_lock);
-
-      /* Check if we already have the same URL folder.  */
-      if (is_known_folder (url, &folder))
-	{
-	  folder->ref++;
-	  *pfolder = folder;
-	  url_destroy (&url);
-	  monitor_unlock (&folder_lock);
-	  return  0;
-	}
-      else
-	monitor_unlock (&folder_lock);
-
-      /* Create a new folder.  */
-
-      /* Allocate memory for folder.  */
-      folder = calloc (1, sizeof (*folder));
-      if (folder != NULL)
-	{
-	  folder->url = url;
-	  /* Initialize the internal foilder lock, now so the concrete folder
-	     could use it.  */
-	  status = monitor_create (&(folder->monitor), 0, folder);
-	  if (status == 0)
+	  /* Allocate memory for folder.  */
+	  folder = calloc (1, sizeof (*folder));
+	  if (folder != NULL)
 	    {
-	      /* Create the concrete folder type.  */
-	      status = f_init (folder);
+	      folder->url = url;
+	      /* Initialize the internal foilder lock, now so the
+		 concrete folder could use it.  */
+	      status = monitor_create (&(folder->monitor), 0, folder);
 	      if (status == 0)
 		{
-		  *pfolder = folder;
-		  folder->ref++;
-		  /* Put on the internal list of known folders.  */
-		  if (known_folder_list == NULL)
-		    list_create (&known_folder_list);
-		  list_append (known_folder_list, folder);
+		  /* Create the concrete folder type.  */
+		  status = f_init (folder);
+		  if (status == 0)
+		    {
+		      *pfolder = folder;
+		      folder->ref++;
+		      /* Put on the internal list of known folders.  */
+		      if (known_folder_list == NULL)
+			list_create (&known_folder_list);
+		      list_append (known_folder_list, folder);
+		    }
+		}
+	      /* Something went wrong, destroy the object. */
+	      if (status)
+		{
+		  if (folder->monitor)
+		    monitor_destroy (&(folder->monitor), folder);
+		  if (folder->url)
+		    url_destroy (&(folder->url));
+		  free (folder);
 		}
 	    }
-	  /* Something went wrong, destroy the object. */
-	  if (status != 0)
-	    {
-	      if (folder->monitor)
-		monitor_destroy (&(folder->monitor), folder);
-	      if (folder->url)
-		url_destroy (&(folder->url));
-	      free (folder);
-	    }
+	  return status;
 	}
     }
-  else
-    status = MU_ERR_NOENT;
 
-  return status;
+  return MU_ERR_NOENT;
 }
 
 /* The folder is destroy if it is the last reference.  */
