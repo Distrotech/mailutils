@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -185,8 +185,50 @@ list_locate (list_t list, void *item, void **ret_item)
   return status;
 }
 
+static int
+_insert_item(list_t list, struct list_data *current, void *new_item,
+	     int insert_before)
+{
+  struct list_data *ldata = calloc (sizeof (*ldata), 1);
+  if (ldata == NULL)
+    return ENOMEM;
+
+  ldata->item = new_item;
+  if (insert_before)
+    {
+      ldata->prev = current->prev;
+      ldata->next = current;
+      if (current->prev)
+	current->prev->next = ldata;
+      else
+	list->head.next = ldata;
+
+      if (current == list->head.prev)
+	list->head.prev = ldata;
+      else
+	current->prev = ldata;
+    }
+  else
+    {
+      ldata->next = current->next;
+      ldata->prev = current;
+      if (current->next)
+	current->next->prev = ldata;
+      else
+	list->head.prev = ldata;
+      
+      if (current == list->head.next)
+	list->head.next = ldata;
+      else
+	current->next = ldata;
+    }
+  
+  list->count++;
+  return 0;
+}
+
 int
-list_insert (list_t list, void *item, void *new_item)
+list_insert (list_t list, void *item, void *new_item, int insert_before)
 {
   struct list_data *current;
   list_comparator_t comp;
@@ -203,25 +245,7 @@ list_insert (list_t list, void *item, void *new_item)
     {
       if (comp (current->item, item) == 0)
 	{
-	  struct list_data *ldata = calloc (sizeof (*ldata), 1);
-	  if (ldata == NULL)
-	    return ENOMEM;
-
-	  ldata->item = new_item;
-	  ldata->next = current->next;
-	  ldata->prev = current;
-	  if (current->next)
-	    current->next->prev = ldata;
-	  else
-	    list->head.prev = ldata;
-
-	  if (current == list->head.next)
-	    current = list->head.next = ldata;
-	  else
-	    current->next = ldata;
-
-	  list->count++;
-	  status = 0;
+	  status = _insert_item (list, current, new_item, insert_before);
 	  break;
 	}
     }

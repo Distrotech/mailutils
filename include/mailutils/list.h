@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,8 @@ extern int list_create   __P ((list_t *));
 extern void list_destroy __P ((list_t *));
 extern int list_append   __P ((list_t, void *item));
 extern int list_prepend  __P ((list_t, void *item));
-extern int list_insert   __P ((list_t list, void *item, void *new_item));
+extern int list_insert   __P ((list_t list, void *item, void *new_item, 
+                               int insert_before));
 extern int list_is_empty __P ((list_t));
 extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
