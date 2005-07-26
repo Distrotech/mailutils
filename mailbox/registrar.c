@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,18 +31,21 @@
 #include <mailutils/list.h>
 #include <mailutils/monitor.h>
 #include <mailutils/errno.h>
+#include <mailutils/nls.h>
+#include <mailutils/error.h>
 
 #include <registrar0.h>
 
 /* NOTE: We will leak here since the monitor and the registrar will never
-   be release.  That's ok we can leave with this, it's only done once.  */
+   be released. That's ok we can live with this, it's only done once.  */
 static list_t registrar_list;
 struct _monitor registrar_monitor = MU_MONITOR_INITIALIZER;
 
-int
-registrar_get_list (list_t *plist)
+static int
+_registrar_get_list (list_t *plist)
 {
   int status = 0;
+
   if (plist == NULL)
     return MU_ERR_OUT_PTR_NULL;
   monitor_wrlock (&registrar_monitor);
@@ -53,19 +56,93 @@ registrar_get_list (list_t *plist)
   return status;
 }
 
+/* Provided for backward compatibility */
+int
+registrar_get_list (list_t *plist)
+{
+  static int warned;
+
+  if (!warned)
+    {
+      mu_error (_("Program uses registrar_get_list(), which is deprecated"));
+      warned = 1;
+    }
+  return _registrar_get_list (plist);
+}
+
+int
+registrar_get_iterator (iterator_t *pitr)
+{
+  int status = 0;
+  if (pitr == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  monitor_wrlock (&registrar_monitor);
+  if (registrar_list == NULL)
+    {
+      status = list_create (&registrar_list);
+      if (status)
+	return status;
+    }
+  status = list_get_iterator (registrar_list, pitr);
+  monitor_unlock (&registrar_monitor);
+  return status;
+}
+
+int
+registrar_lookup (const char *name, record_t *precord)
+{
+  iterator_t iterator;
+  int status = registrar_get_iterator (&iterator);
+  if (status != 0)
+    return status;
+  status = MU_ERR_NOENT;
+  for (iterator_first (iterator); status != 0 && !iterator_is_done (iterator);
+       iterator_next (iterator))
+    {
+      record_t record;
+      iterator_current (iterator, (void **)&record);
+      if (record_is_scheme (record, name))
+	{
+	  status = 0;
+	  *precord = record;
+	}
+    }
+  iterator_destroy (&iterator);
+  return status;
+}
+
+
+static int
+_compare_prio (const void *item, const void *value)
+{
+  const record_t a = item;
+  const record_t b = value;
+  if (a->priority > b->priority)
+    return 0;
+  return -1;
+}
+
 int
 registrar_record (record_t record)
 {
+  int status;
   list_t list;
-  registrar_get_list (&list);
-  return list_append (list, record);
+  list_comparator_t comp;
+  
+  _registrar_get_list (&list);
+  comp = list_set_comparator (list, _compare_prio);
+  status = list_insert (list, record, record, 1);
+  if (status == MU_ERR_NOENT)
+    status = list_append (list, record);
+  list_set_comparator (list, comp);
+  return status;
 }
 
 int
 unregistrar_record (record_t record)
 {
   list_t list;
-  registrar_get_list (&list);
+  _registrar_get_list (&list);
   list_remove (list, record);
   return 0;
 }
