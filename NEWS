@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-06-23
+GNU mailutils NEWS -- history of user-visible changes.  2005-07-26
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -82,6 +82,7 @@ read-only mode.
 ** Fixed date support in maildir (header fields Date, Envelope-Date and
 Delivery-Date). 
 ** Fixed RFC 2047 encoding.
+** Fixed folder_list() function.
 
 
 Version 0.6:

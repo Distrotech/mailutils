@@ -1,5 +1,35 @@
 2005-07-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Updated
+	
+	* examples/mimetest.c: Produce more detailed diagnostics
+	* mail/copy.c: Likewise
+	* mail/quit.c: Likewise
+	* mail/send.c: Likewise
+	* mail/page.c (cond_page_invalidate): Bugfix
+
+	* mailbox/errors (MU_READ_ERROR): New error code
+	
+	* include/mailutils/folder.h: Moved MU_FOLDER_ATTRIBUTE_.* to
+	types.h
+	* include/mailutils/types.h (MU_FOLDER_ATTRIBUTE_FILE)
+	(MU_FOLDER_ATTRIBUTE_DIRECTORY): New defines
+	* include/mailutils/registrar.h (_is_scheme, registrar_lookup):
+	Take three arguments. All callers updated
+	Raised path_record priority to 1000.
+	* mailbox/registrar.c: Likewise
+	* mailbox/folder.c: Updated calls to registrar_lookup and
+	declarations of _is_scheme methods
+	* mailbox/mailer.c: Likewise
+	* mailbox/maildir/folder.c: Likewise
+	* mailbox/mbox/folder.c: Likewise
+	* mailbox/mh/folder.c: Likewise
+	
+	* mailbox/list.c (_insert_item): Bugfix
+	* mailbox/testsuite/mailbox/list.exp: New tests
+	* mailbox/mailbox.c (mailbox_folder_create): New function
+	(mailbox_create): Use mailbox_folder_create.
+
 	* mailbox/rfc2047.c (rfc2047_encode): Bugfix.
 
 	* mail/page.c (page_move): Fix start msg calculation
