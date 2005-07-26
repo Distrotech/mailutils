@@ -86,7 +86,7 @@ cond_page_invalidate (size_t value)
 
   if (page_map == NULL || page_avail == 0)
     return;
-  for (i = 0; i < page_avail-1; i++)
+  for (i = 0; i < page_avail; i++)
     if (page_map[i] >= value && value <= page_map[i+1])
       {
 	page_invalidate (0);
