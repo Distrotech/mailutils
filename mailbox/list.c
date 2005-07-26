@@ -198,29 +198,24 @@ _insert_item(list_t list, struct list_data *current, void *new_item,
     {
       ldata->prev = current->prev;
       ldata->next = current;
-      if (current->prev)
+      if (current->prev != &list->head)
 	current->prev->next = ldata;
       else
 	list->head.next = ldata;
 
-      if (current == list->head.prev)
-	list->head.prev = ldata;
-      else
-	current->prev = ldata;
+      current->prev = ldata;
     }
   else
     {
       ldata->next = current->next;
       ldata->prev = current;
-      if (current->next)
+      
+      if (current->next != &list->head)
 	current->next->prev = ldata;
       else
 	list->head.prev = ldata;
-      
-      if (current == list->head.next)
-	list->head.next = ldata;
-      else
-	current->next = ldata;
+
+      current->next = ldata;
     }
   
   list->count++;
