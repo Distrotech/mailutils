@@ -36,8 +36,8 @@ struct _record
   int (*_folder)  __PMT ((folder_t));
   void *data; /* back pointer.  */
 
-  /* Stub functions to override. The defaut is to return the fields.  */
-  int (*_is_scheme)   __PMT ((record_t, const char *));
+  /* Stub functions to override. The default is to return the fields.  */
+  int (*_is_scheme)   __PMT ((record_t, const char *, int));
   int (*_get_url)     __PMT ((record_t, int (*(*_url)) __PMT ((url_t))));
   int (*_get_mailbox) __PMT ((record_t, int (*(*_mailbox)) __PMT ((mailbox_t))));
   int (*_get_mailer)  __PMT ((record_t, int (*(*_mailer)) __PMT ((mailer_t))));
@@ -48,15 +48,16 @@ struct _record
 extern int registrar_get_iterator __P ((iterator_t *));
 extern int registrar_get_list __P ((list_t *)) __attribute__ ((deprecated));
   
-extern int registrar_lookup       __P ((const char *name, record_t *precord));
+extern int registrar_lookup       __P ((const char *name, record_t *precord,
+					int flags));
 extern int registrar_record       __P ((record_t));
 extern int unregistrar_record     __P ((record_t));
 
 /* Scheme.  */
-extern int record_is_scheme       __P ((record_t, const char *));
+extern int record_is_scheme       __P ((record_t, const char *, int flags));
 extern int record_set_scheme      __P ((record_t, const char *));
 extern int record_set_is_scheme   __P ((record_t, int (*_is_scheme)
-					__PMT ((record_t, const char *))));
+					__PMT ((record_t, const char *, int))));
 
 /* Url.  */
 extern int record_get_url         __P ((record_t, int (*(*)) __PMT ((url_t))));
@@ -110,7 +111,7 @@ extern record_t maildir_record;
 #define MU_MH_PRIO         400
 #define MU_MAILDIR_PRIO    500 
 #define MU_NNTP_PRIO       600
-#define MU_PATH_PRIO       0
+#define MU_PATH_PRIO       1000
 
 #define MU_SMTP_PRIO       10000
 #define MU_SENDMAIL_PRIO   10000

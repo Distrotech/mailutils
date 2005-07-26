@@ -89,23 +89,21 @@ registrar_get_iterator (iterator_t *pitr)
 }
 
 int
-registrar_lookup (const char *name, record_t *precord)
+registrar_lookup (const char *name, record_t *precord, int flags)
 {
   iterator_t iterator;
   int status = registrar_get_iterator (&iterator);
   if (status != 0)
     return status;
-  status = MU_ERR_NOENT;
-  for (iterator_first (iterator); status != 0 && !iterator_is_done (iterator);
+  status = 0;
+  for (iterator_first (iterator); status == 0 && !iterator_is_done (iterator);
        iterator_next (iterator))
     {
       record_t record;
       iterator_current (iterator, (void **)&record);
-      if (record_is_scheme (record, name))
-	{
-	  status = 0;
-	  *precord = record;
-	}
+      status = record_is_scheme (record, name, flags);
+      if (status)
+	*precord = record;
     }
   iterator_destroy (&iterator);
   return status;
@@ -148,19 +146,19 @@ unregistrar_record (record_t record)
 }
 
 int
-record_is_scheme (record_t record, const char *scheme)
+record_is_scheme (record_t record, const char *scheme, int flags)
 {
   if (record == NULL)
     return 0;
 
   /* Overload.  */
   if (record->_is_scheme)
-    return record->_is_scheme (record, scheme);
+    return record->_is_scheme (record, scheme, flags);
 
   if (scheme
       && record->scheme
       && strncasecmp (record->scheme, scheme, strlen (record->scheme)) == 0)
-    return 1;
+    return MU_FOLDER_ATTRIBUTE_ALL;
 
   return 0;
 }
@@ -176,7 +174,7 @@ record_set_scheme (record_t record, const char *scheme)
 
 int
 record_set_is_scheme (record_t record, int (*_is_scheme)
-		      __P ((record_t, const char *)))
+		      __P ((record_t, const char *, int)))
 {
   if (record == NULL)
     return EINVAL;
