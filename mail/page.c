@@ -183,12 +183,10 @@ page_move (off_t offset)
   
   check_page_map ();
 
-  if (offset > 0)
-    start = page_map[cursor] + offset;
-  else if (-offset > page_map[cursor])
+  if (offset < 0 && -offset > page_map[0])
     start = 1;
   else
-    start = page_map[cursor] + offset;
+    start = page_map[0] + offset;
   
   util_range_msg (start, page_size,
 		  MSG_COUNT|MSG_NODELETED|MSG_SILENT, _fill_map, &count);
