@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ extern "C" {
 /* Public Interface, to allow static initialization.  */
 struct _record
 {
-  /* Should not be access directly but rather by the stub functions.  */
+  int priority;    /* Higher priority records are scanned first */
   const char *scheme;
   int (*_url)     __PMT ((url_t));
   int (*_mailbox) __PMT ((mailbox_t));
@@ -45,7 +45,10 @@ struct _record
 };
 
 /* Registration.  */
-extern int registrar_get_list     __P ((list_t *));
+extern int registrar_get_iterator __P ((iterator_t *));
+extern int registrar_get_list __P ((list_t *)) __attribute__ ((deprecated));
+  
+extern int registrar_lookup       __P ((const char *name, record_t *precord));
 extern int registrar_record       __P ((record_t));
 extern int unregistrar_record     __P ((record_t));
 
@@ -101,50 +104,51 @@ extern record_t mh_record;
 /* Maildir, "maildir:" */
 extern record_t maildir_record;
 
+#define MU_IMAP_PRIO       100
+#define MU_POP_PRIO        200
+#define MU_MBOX_PRIO       300 
+#define MU_MH_PRIO         400
+#define MU_MAILDIR_PRIO    500 
+#define MU_NNTP_PRIO       600
+#define MU_PATH_PRIO       0
+
+#define MU_SMTP_PRIO       10000
+#define MU_SENDMAIL_PRIO   10000
+  
 /* SMTP mailer, "smtp://"  */
 extern record_t smtp_record;
 /* Sendmail, "sendmail:"  */
 extern record_t sendmail_record;
 
 #define mu_register_all_mbox_formats() do {\
-  list_t bookie = 0;\
-  registrar_get_list (&bookie);\
-  list_append (bookie, path_record);\
-  list_append (bookie, mbox_record);\
-  list_append (bookie, pop_record);\
-  list_append (bookie, imap_record);\
-  list_append (bookie, mh_record);\
-  list_append (bookie, maildir_record);\
+  registrar_record (path_record);\
+  registrar_record (mbox_record);\
+  registrar_record (pop_record);\
+  registrar_record (imap_record);\
+  registrar_record (mh_record);\
+  registrar_record (maildir_record);\
 } while (0)
 
 #define mu_register_local_mbox_formats() do {\
-  list_t bookie = 0;\
-  registrar_get_list (&bookie);\
-  list_append (bookie, path_record);\
-  list_append (bookie, mbox_record);\
-  list_append (bookie, mh_record);\
-  list_append (bookie, maildir_record);\
+  registrar_record (path_record);\
+  registrar_record (mbox_record);\
+  registrar_record (mh_record);\
+  registrar_record (maildir_record);\
 } while (0)
 
 #define mu_register_remote_mbox_formats() do {\
-  list_t bookie = 0;\
-  registrar_get_list (&bookie);\
-  list_append (bookie, pop_record);\
-  list_append (bookie, imap_record);\
-  list_append (bookie, nntp_record);\
+  registrar_record (pop_record);\
+  registrar_record (imap_record);\
+  registrar_record (nntp_record);\
 } while (0)
 
 #define mu_register_all_mailer_formats() do {\
-  list_t bookie = 0;\
-  registrar_get_list (&bookie);\
-  list_append (bookie, sendmail_record);\
-  list_append (bookie, smtp_record);\
+  registrar_record (sendmail_record);\
+  registrar_record (smtp_record);\
 } while (0)
 
 #define mu_register_extra_formats() do {\
-  list_t bookie = 0;\
-  registrar_get_list (&bookie);\
-  list_append (bookie, nntp_record);\
+  registrar_record (nntp_record);\
 } while (0)
 
 #define mu_register_all_formats() do {\
