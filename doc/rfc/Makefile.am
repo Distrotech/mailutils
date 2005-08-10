@@ -49,4 +49,5 @@ EXTRA_DIST = \
  rfc2822.txt \
  rfc3028.txt \
  rfc3206.txt \
- rfc3431.txt
+ rfc3431.txt \
+ rfc3501.txt
