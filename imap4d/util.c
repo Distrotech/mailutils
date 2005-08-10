@@ -168,7 +168,9 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
   size_t max = 0;
   size_t *tmp;
   int i, j;
-
+  unsigned long invalid_uid = 0; /* For UID mode only: have we 
+				    encountered an uid > max uid? */
+  
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
     return status;
@@ -200,8 +202,20 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	  {
 	    errno = 0;
 	    val = strtoul (s, &s, 10);
-	    if ((val == ULONG_MAX && errno == ERANGE) || val > max)
+	    if (val == ULONG_MAX && errno == ERANGE)
 	      {
+		if (*set)
+		  free (*set);
+		*n = 0;
+		return EINVAL;
+	      }
+	    else if (val > max)
+	      {
+		if (isuid)
+		  {
+		    invalid_uid = 1;
+		    continue;
+		  }
 		if (*set)
 		  free (*set);
 		*n = 0;
@@ -286,6 +300,16 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	break;
     }				/* while */
 
+  /* For message sets in form X:Y where Y is a not-existing UID,
+     replace it with the last UID in the mailbox */
+  if (*n == 1 && invalid_uid)
+    {
+      val = max;
+      status = add2set (set, n, val);
+      if (status != 0)
+	return status;
+    }
+  
   if (low)
     {
       /* Reverse it. */
