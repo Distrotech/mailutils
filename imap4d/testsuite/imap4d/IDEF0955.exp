@@ -43,7 +43,7 @@ if { $MU_ULONG_MAX > 0 } {
 	"BAD FETCH Bogus number set"
 
     imap4d_test "UID FETCH 1:$limit FLAGS" \
-	"BAD UID FETCH Bogus number set"
+	"OK"
 } else {
     unsupported "IDEF0955";
 }
