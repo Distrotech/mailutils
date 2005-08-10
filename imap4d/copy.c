@@ -93,8 +93,8 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 	    {
 	      message_t msg = NULL;
 	      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-	      mailbox_get_message (mbox, msgno, &msg);
-	      mailbox_append_message (cmbox, msg);
+	      if (msgno && mailbox_get_message (mbox, msgno, &msg) == 0)
+		mailbox_append_message (cmbox, msg);
 	    }
 	  mailbox_close (cmbox);
 	}

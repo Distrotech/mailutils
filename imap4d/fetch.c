@@ -214,7 +214,9 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 	  util_send (")\r\n");
 	  free (p);
 	}
-      else
+      else if (!isuid)
+	/* According to RFC 3501, "A non-existent unique identifier is
+	   ignored without any error message generated." */
 	{
 	  snprintf (resp, resplen,
 		    "Bogus message set: message number out of range");
