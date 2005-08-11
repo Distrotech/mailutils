@@ -37,7 +37,10 @@ mail_expand_name (const char *name)
     {
     case '#':
       if (!prev_name)
-	util_error (_("No previous file"));
+	{
+	  util_error (_("No previous file"));
+	  return NULL;
+	}
       else
 	name = xstrdup (prev_name);
       break;
@@ -128,3 +131,4 @@ mail_file (int argc, char **argv)
     }
   return 1;
 }
+
