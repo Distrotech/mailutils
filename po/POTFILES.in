@@ -57,6 +57,7 @@ libsieve/extensions/timestamp.c
 
 mail/alias.c
 mail/alt.c
+mail/cd.c
 mail/copy.c
 mail/decode.c
 mail/file.c
