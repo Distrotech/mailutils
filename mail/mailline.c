@@ -17,6 +17,7 @@
    MA 02110-1301 USA */
 
 #include "mail.h"
+#include <mailutils/folder.h>
 
 #ifdef WITH_READLINE
 static char **ml_command_completion __P((char *cmd, int start, int end));
@@ -226,11 +227,35 @@ ml_reread (const char *prompt, char **text)
  * readline tab completion
  */
 char **
-ml_command_completion (char *cmd, int start ARG_UNUSED, int end ARG_UNUSED)
+ml_command_completion (char *cmd, int start, int end)
 {
-  if (start == 0)
-    return rl_completion_matches (cmd, ml_command_generator);
-  return NULL;
+  int argc;
+  char **argv;
+  char **ret;
+  char *p;
+
+  for (p = rl_line_buffer; p < rl_line_buffer + start && isspace (*p); p++)
+    ;
+  
+  if (argcv_get_n (p, end, NULL, NULL, &argc, &argv))
+    return NULL;
+  rl_completion_append_character = ' ';
+  
+  if (argc <= 1 && strlen (argv[0]) <= end - start)
+    {
+      ret = rl_completion_matches (cmd, ml_command_generator);
+      rl_attempted_completion_over = 1;
+    }
+  else
+    {
+      const struct mail_command_entry *entry = mail_find_command (argv[0]);
+      if (entry && entry->command_completion)
+	ret = entry->command_completion (argc, argv, start == end);
+      else
+	ret = NULL;
+    }
+  argcv_free (argc, argv);
+  return ret;
 }
 
 /*
@@ -241,23 +266,289 @@ ml_command_generator (const char *text, int state)
 {
   static int i, len;
   const char *name;
-
+  const struct mail_command *cp;
+  
   if (!state)
     {
       i = 0;
       len = strlen (text);
     }
 
-  while ((name = mail_command_table[i].longname))
+  while ((cp = mail_command_name (i)))
     {
-      if (strlen (mail_command_table[i].shortname) > strlen(name))
-	name = mail_command_table[i].shortname;
+      name = cp->longname;
+      if (strlen (cp->shortname) > strlen (name))
+	name = cp->shortname;
       i++;
       if (strncmp (name, text, len) == 0)
-	return (strdup(name));
+	return strdup (name);
     }
 
   return NULL;
+}
+
+void
+ml_set_completion_append_character (int c)
+{
+  rl_completion_append_character = c;
+}
+
+void
+ml_attempted_completion_over ()
+{
+  rl_attempted_completion_over = 1;
+}
+
+
+/* Completion functions */
+char **
+no_compl (int argc ARG_UNUSED, char **argv ARG_UNUSED, int ws ARG_UNUSED)
+{
+  ml_attempted_completion_over ();
+  return NULL;
+}
+
+char **
+msglist_compl (int argc, char **argv, int ws)
+{
+  /* FIXME */
+  ml_attempted_completion_over ();
+  return NULL;
+}
+
+char **
+msglist_file_compl (int argc, char **argv, int ws ARG_UNUSED)
+{
+  if (argc == 1)
+    ml_attempted_completion_over ();
+  return NULL;
+}
+
+char **
+command_compl (int argc, char **argv, int ws)
+{
+  ml_set_completion_append_character (0);
+  if (ws)
+    return NULL;
+  return rl_completion_matches (argv[argc-1], ml_command_generator);
+}
+
+static char *
+file_generator (const char *text, int state, char *path, size_t pathlen,
+		char repl,
+		int flags)
+{
+  static struct folder_list list;
+  static int i;
+  
+  if (!state)
+    {
+      char *wcard;
+      folder_t folder;
+  
+      wcard = xmalloc (strlen (text) + 2);
+      strcat (strcpy (wcard, text), "*");
+
+      folder_create (&folder, path);
+      folder_list (folder, path, wcard, &list);
+      free (wcard);
+      folder_destroy (&folder);
+
+      if (list.num == 0)
+	return NULL;
+      else if (list.num == 1)
+	ml_set_completion_append_character (0);
+
+      i = 0;
+    }
+
+  while (i < list.num)
+    {
+      if (list.element[i]->type & flags)
+	{
+	  char *ret;
+	  if (repl)
+	    {
+	      int len = strlen (list.element[i]->name + pathlen);
+	      ret = xmalloc (len + 2);
+	      ret[0] = repl;
+	      memcpy (ret + 1, list.element[i]->name + pathlen, len);
+	      ret[len+1] = 0;
+	    }
+	  else
+	    ret = xstrdup (list.element[i]->name);
+	  i++;
+	  return ret;
+	}
+      i++;
+    }
+  
+  folder_list_destroy (&list);
+  return NULL;
+}
+
+static char *
+folder_generator (const char *text, int state)
+{
+  char *ret;
+  static size_t pathlen;
+  
+  if (!state)
+    {
+      char *path = util_folder_path ("");
+      if (!path)
+	return NULL;
+      
+      pathlen = strlen (path);
+      ret = file_generator (text, state, path, pathlen, '+',
+			    MU_FOLDER_ATTRIBUTE_ALL);
+      free (path);
+    }
+  else
+    ret = file_generator (text, state, NULL, pathlen, '+',
+			  MU_FOLDER_ATTRIBUTE_ALL);
+  return ret;
+}
+
+char **
+file_compl (int argc, char **argv, int ws)
+{
+  char *text;
+
+  if (ws)
+    {
+      ml_set_completion_append_character (0);
+      ml_attempted_completion_over ();
+      return NULL;
+    }
+  
+  text = argv[argc-1];
+  switch (text[0])
+    {
+    case '+':
+      text++;
+      break;
+
+    case '#':
+    case '&':
+      ml_attempted_completion_over ();
+      return NULL;
+      
+    default:
+      return NULL; /* Will be expanded by readline itself */
+    }
+  
+  return rl_completion_matches (text, folder_generator);
+}
+
+static char *
+dir_generator (const char *text, int state)
+{
+  char *ret;
+  static size_t pathlen;
+  static int repl;
+
+  if (!state)
+    {
+      char *path;
+      switch (text[0])
+	{
+	case '+':
+	  text++;
+	  repl = '+';
+	  path = util_folder_path (text);
+	  pathlen = strlen (path) - strlen (text);
+	  break;
+
+	case '~':
+	  repl = '~';
+	  if (text[1] == '/')
+	    {
+	      path = mu_get_homedir ();
+	      text += 2;
+	      pathlen = strlen (path);
+	      break;
+	    }
+	  /* else FIXME! */
+
+	default:
+	  path = strdup (text);
+	  pathlen = 0;
+	  repl = 0;
+	}
+      
+      ret = file_generator (text, state, path, pathlen, repl,
+			    MU_FOLDER_ATTRIBUTE_DIRECTORY);
+      free (path);
+    }
+  else
+    ret = file_generator (text, state, NULL, pathlen, repl,
+			  MU_FOLDER_ATTRIBUTE_DIRECTORY);
+  return ret;
+}
+
+char **
+dir_compl (int argc, char **argv, int ws)
+{
+  ml_attempted_completion_over ();
+  if (ws)
+    {
+      ml_set_completion_append_character (0);
+      return NULL;
+    }
+  return rl_completion_matches (argv[argc-1], dir_generator);
+}
+
+static char *
+alias_generator (const char *text, int state)
+{
+  static alias_iterator_t itr;
+  const char *p;
+  
+  if (!state)
+    p = alias_iterate_first (text, &itr);
+  else
+    p = alias_iterate_next (itr);
+
+  if (!p)
+    {
+      alias_iterate_end (&itr);
+      return NULL;
+    }
+  return strdup (p);
+}
+
+char **
+alias_compl (int argc, char **argv, int ws)
+{
+  ml_attempted_completion_over ();
+  return rl_completion_matches (ws ? "" : argv[argc-1], alias_generator);
+}
+
+static char *
+var_generator (const char *text, int state)
+{
+  static var_iterator_t itr;
+  const char *p;
+  
+  if (!state)
+    p = var_iterate_first (text, &itr);
+  else
+    p = var_iterate_next (itr);
+
+  if (!p)
+    {
+      var_iterate_end (&itr);
+      return NULL;
+    }
+  return strdup (p);
+}
+
+char **
+var_compl (int argc, char **argv, int ws)
+{
+  ml_attempted_completion_over ();
+  return rl_completion_matches (ws ? "" : argv[argc-1], var_generator);
 }
 
 #else
@@ -549,5 +840,16 @@ readline (char *prompt)
 
   return ml_readline_internal ();
 }
+
+void
+ml_set_completion_append_character (int c ARG_UNUSED)
+{
+}
+
+void
+ml_attempted_completion_over ()
+{
+}
+
 #endif
 
