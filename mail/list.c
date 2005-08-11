@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,31 +26,6 @@
 int
 mail_list (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  const char *cmd = NULL;
-  int i = 0, pos = 0, len = 0;
-  int cols = util_getcols ();
-
-  for (i=0; mail_command_table[i].shortname != 0; i++)
-    {
-      len = strlen (mail_command_table[i].longname);
-      if (len < 1)
-	{
-	  cmd = mail_command_table[i].shortname;
-	  len = strlen (cmd);
-	}
-      else
-	cmd = mail_command_table[i].longname;
-
-      pos += len + 1;
-
-      if (pos >= cols)
-	{
-	  pos = len + 1;
-	  fprintf (ofile, "\n%s ", cmd);
-	}
-      else
-        fprintf (ofile, "%s ", cmd);
-    }
-  fprintf (ofile, "\n");
+  mail_command_list ();
   return 0;
 }
