@@ -34,48 +34,7 @@
 #endif
 #include <mu_asprintf.h>
 
-typedef struct _node {
-  /* for the msglist expander */
-  int data;
-  /* for the environment table */
-  struct mail_env_entry env_entry;
-  struct _node *next;
-} node;
-
-static node *environment = NULL;
-
-/*
- * add a new node to the list
- */
-static node *
-util_ll_add (node *c, int data)
-{
-  c->next = xmalloc (sizeof (node));
-  c->data = data;
-  c->next->env_entry.var = NULL;
-  c->next->env_entry.set = 0;
-  c->next->env_entry.value.number = 0;
-  c->next->next = NULL;
-  return c->next;
-}
-
-/*
- * free a linked list
- * Unused so far
- */
-#if 0
-static void
-util_ll_free (node *c)
-{
-  node *t = c;
-  while (t != NULL)
-    {
-      c = t;
-      t = t->next;
-      free (c);
-    }
-}
-#endif
+list_t environment = NULL;
 
 /*
  * expands command into its command and arguments, then runs command
@@ -124,7 +83,7 @@ util_do_command (const char *c, ...)
 
       if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
 	{
-	  struct mail_command_entry entry;
+	  struct mail_command_entry *entry;
 	  char *p;
 
 	  /* Special case: a number alone implies "print" */
@@ -136,10 +95,9 @@ util_do_command (const char *c, ...)
 	      free (p);
 	    }
 
-	  entry = util_find_entry (mail_command_table, argv[0]);
-	  command = entry.func;
+	  command = util_command_get (argv[0]);
 	  /* Make sure we are not in any if/else */
-	  exec = !(if_cond () == 0 && (entry.flags & EF_FLOW) == 0);
+	  exec = !(if_cond () == 0 && (entry->flags & EF_FLOW) == 0);
 	}
       free (cmd);
     }
@@ -248,32 +206,109 @@ util_range_msg (size_t low, size_t high, int flags,
 function_t *
 util_command_get (const char *cmd)
 {
-  struct mail_command_entry entry = util_find_entry (mail_command_table, cmd);
-  return entry.func;
+  const struct mail_command_entry *entry = mail_find_command (cmd);
+  return entry ? entry->func : NULL;
 }
 
 /*
  * returns the mail_command_entry structure for the command matching cmd
  */
-struct mail_command_entry
-util_find_entry (const struct mail_command_entry *table, const char *cmd)
+void *
+util_find_entry (void *table, size_t nmemb, size_t size, const char *cmd)
 {
-  int i = 0, ll = 0, sl = 0;
+  int i;
   int len = strlen (cmd);
-
-  while (table[i].shortname != 0)
+  char *p;
+  
+  for (p = table, i = 0; i < nmemb; i++, p += size)
     {
-      sl = strlen (table[i].shortname);
-      ll = strlen (table[i].longname);
-      if (sl > ll && !strncmp (table[i].shortname, cmd, sl))
-	return table[i];
-      else if (sl == len && !strcmp (table[i].shortname, cmd))
-	return table[i];
-      else if (sl < len && !strncmp (table[i].longname, cmd, len))
-	return table[i];
-      i++;
+      struct mail_command *cp = (struct mail_command *)p;
+      int ll = strlen (cp->longname);
+      int sl = strlen (cp->shortname);
+      
+      if (sl > ll && !strncmp (cp->shortname, cmd, sl))
+	return p;
+      else if (sl == len && !strcmp (cp->shortname, cmd))
+	return p;
+      else if (sl < len && !strncmp (cp->longname, cmd, len))
+	return p;
     }
-  return table[i];
+  return NULL;
+}
+
+int
+util_help (void *table, size_t nmemb, size_t size, const char *word)
+{
+  if (!word)
+    {
+      int i = 0;
+      FILE *out = stdout;
+      char *p;
+
+      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+	out = popen (getenv ("PAGER"), "w");
+
+  
+      for (p = table, i = 0; i < nmemb; i++, p += size)
+	{
+	  struct mail_command *cp = (struct mail_command *)p;
+	  fprintf (out, "%s\n", cp->synopsis);
+	}
+      
+      if (out != stdout)
+	pclose (out);
+
+      return 0;
+    }
+  else
+    {
+      int status = 0;
+      struct mail_command *cp = util_find_entry (table, nmemb, size, word);
+      if (cp)
+	fprintf (stdout, "%s\n", cp->synopsis);
+      else
+	{
+	  status = 1;
+	  fprintf (stdout, _("Unknown command: %s\n"), word);
+	}
+      return status;
+    }
+  return 1;
+}
+
+int
+util_command_list (void *table, size_t nmemb, size_t size)
+{
+  int i;
+  char *p;
+  int cols = util_getcols ();
+  int pos;
+  
+  for (p = table, i = 0; i < nmemb; i++, p += size)
+    {
+      const char *cmd;
+      struct mail_command *cp = (struct mail_command *)p;
+      int len = strlen (cp->longname);
+      if (len < 1)
+	{
+	  cmd = cp->shortname;
+	  len = strlen (cmd);
+	}
+      else
+	cmd = cp->longname;
+
+      pos += len + 1;
+
+      if (pos >= cols)
+	{
+	  pos = len + 1;
+	  fprintf (ofile, "\n%s ", cmd);
+	}
+      else
+        fprintf (ofile, "%s ", cmd);
+    }
+  fprintf (ofile, "\n");
+  return 0;
 }
 
 /*
@@ -426,85 +461,141 @@ util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
   return 0;
 }
 
+static int
+env_comp (const void *a, const void *b)
+{
+  const struct mail_env_entry *epa = a;
+  const struct mail_env_entry *epb = b;
+
+  return strcmp (epa->var, epb->var);
+}
+
 /* Find environment entry var. If not found and CREATE is not null, then
    create the (unset and untyped) variable */
 struct mail_env_entry *
-util_find_env (const char *variable, int create)
+util_find_env (const char *var, int create)
 {
-  node *ep;
-  /* Annoying, variable "ask" is equivalent to "asksub".  */
-  static const char *asksub = "asksub";
-  const char *var = variable;
-  size_t len = strlen (var);
-  node *t;
+  struct mail_env_entry entry, *p;
 
-  if (len < 1)
-    return NULL;
-
-  /* Catch "ask" --> "asksub".  */
-  if (len == strlen ("ask") && !strcmp ("ask", var))
-    {
-      var = asksub;
-      len = strlen (var);
-    }
-
+  if (strcmp (var, "ask") == 0)
+    entry.var = "asksub";
+  else
+    entry.var = var;
+  
   if (environment == NULL)
+    {
+      list_create (&environment);
+      list_set_comparator (environment, env_comp);
+    }
+  
+  if (list_locate (environment, &entry, (void**)&p))
     {
       if (!create)
 	return 0;
-      environment = xmalloc (sizeof (node));
-      environment->env_entry.var = NULL;
-      environment->env_entry.set = 0;
-      environment->env_entry.value.number = 0;
-      environment->next = NULL;
+	
+      p = xmalloc (sizeof *p);
+      p->var = xstrdup (entry.var);
+      list_prepend (environment, p);
+      p->set = 0;
+      p->type = Mail_env_whatever;
+      p->value.number = 0;
     }
 
-  for (ep = environment; ep->next; ep = ep->next)
+  return p;
+}
+
+struct var_iterator
+{
+  const char *prefix;
+  int prefixlen;
+  iterator_t itr;
+};
+  
+const char *
+var_iterate_next (var_iterator_t itr)
+{
+  struct mail_env_entry *ep;
+  
+  while (!iterator_is_done (itr->itr))
     {
-      if (strlen (ep->env_entry.var) == len &&
-	  !strcmp (var, ep->env_entry.var))
-	return &ep->env_entry;
+      if (iterator_current (itr->itr, (void **)&ep))
+	return NULL;
+      iterator_next (itr->itr);
+  
+      if (strlen (ep->var) >= itr->prefixlen
+	  && strncmp (ep->var, itr->prefix, itr->prefixlen) == 0)
+	return ep->var;
     }
+  return NULL;
+}
 
-  ep->env_entry.var = strdup (var);
-  ep->env_entry.set = 0;
-  ep->env_entry.type = Mail_env_whatever;
-  ep->env_entry.value.number = 0;
-  t = ep;
-  ep = util_ll_add (ep, 0);
-  return &t->env_entry;
+const char *
+var_iterate_first (const char *prefix, var_iterator_t *pitr)
+{
+  if (environment)
+    {
+      var_iterator_t itr = xmalloc (sizeof *itr);
+      itr->prefix = prefix;
+      itr->prefixlen = strlen (prefix);
+      list_get_iterator (environment, &itr->itr);
+      iterator_first (itr->itr);
+      *pitr = itr;
+      return var_iterate_next (itr);
+    }
+  *pitr = NULL;
+  return NULL;
+}
+
+void
+var_iterate_end (var_iterator_t *itr)
+{
+  iterator_destroy (&(*itr)->itr);
+  free (*itr);
+  *itr = NULL;
 }
 
 /* print the environment */
+static int
+envp_comp (const void *a, const void *b)
+{
+  const struct mail_env_entry **epa = a;
+  const struct mail_env_entry **epb = b;
+
+  return strcmp ((*epa)->var, (*epb)->var);
+}
+
 int
 util_printenv (int set)
 {
-  node *ep;
-  for (ep = environment; ep != NULL; ep = ep->next)
+  struct mail_env_entry **ep;
+  size_t i, count = 0;
+  
+  list_count (environment, &count);
+  ep = xcalloc (count, sizeof *ep);
+  list_to_array (environment, ep, count, NULL);
+  qsort (ep, count, sizeof *ep, envp_comp);
+  for (i = 0; i < count; i++)
     {
-      if (ep->env_entry.set == set)
+      fprintf (ofile, "%s", ep[i]->var);
+      switch (ep[i]->type)
 	{
-	  fprintf (ofile, "%s", ep->env_entry.var);
-	  switch (ep->env_entry.type)
-	    {
-	    case Mail_env_number:
-	      fprintf (ofile, "=%d", ep->env_entry.value.number);
-	      break;
-	      
-	    case Mail_env_string:
-	      fprintf (ofile, "=\"%s\"", ep->env_entry.value.string);
-	      break;
-	      
-	    case Mail_env_boolean:
-	      break;
-	      
-	    case Mail_env_whatever:
-	      fprintf (ofile, _("oops?"));
-	    }
-	  fprintf (ofile, "\n");
+	case Mail_env_number:
+	  fprintf (ofile, "=%d", ep[i]->value.number);
+	  break;
+	  
+	case Mail_env_string:
+	  fprintf (ofile, "=\"%s\"", ep[i]->value.string);
+	  break;
+	  
+	case Mail_env_boolean:
+	  break;
+	  
+	case Mail_env_whatever:
+	  fprintf (ofile, _("oops?"));
 	}
+      fprintf (ofile, "\n");
     }
-  return 0;
+  free (ep);
 }
 
 /* Initialize environment entry: clear set indicator and free any memory
@@ -576,7 +667,7 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
       int rc;
       char *err;
 	      
-      if (rc = munre_set_regex (value, 0, &err))
+      if ((rc = munre_set_regex (value, 0, &err)))
 	{
 	  fprintf (stderr, "%s", mu_strerror (rc));
 	  if (err)
@@ -658,7 +749,8 @@ util_folder_path (const char *name)
 {
   char *folder;
   char *tmp;
-
+  char *p;
+  
   if (util_getenv (&folder, "folder", Mail_env_string, 1))
     return NULL;
       
@@ -667,7 +759,7 @@ util_folder_path (const char *name)
   if (name[0] == '+')
     name++;
   
-  if (folder[0] != '/' && folder[1] != '~')
+  if (folder[0] != '/' && folder[0] != '~')
     {
       char *home = mu_get_homedir ();
       tmp  = xmalloc (strlen (home) + 1 +
@@ -681,9 +773,10 @@ util_folder_path (const char *name)
 		      strlen (name) + 1);
       sprintf (tmp, "%s/%s", folder, name);
     }
-  name = tmp;
-
-  return (char*) name;
+  p = util_fullpath (tmp);
+  free (tmp);
+  
+  return p;
 }
 
 char *
@@ -1003,41 +1096,6 @@ util_error (va_alist)
   fprintf (stderr, "\n");
 
   va_end(ap);
-}
-
-int
-util_help (const struct mail_command_entry *table, char *word)
-{
-  if (!word)
-    {
-      int i = 0;
-      FILE *out = stdout;
-
-      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
-	out = popen (getenv ("PAGER"), "w");
-
-      while (table[i].synopsis != 0)
-	fprintf (out, "%s\n", table[i++].synopsis);
-
-      if (out != stdout)
-	pclose (out);
-
-      return 0;
-    }
-  else
-    {
-      int status = 0;
-      struct mail_command_entry entry = util_find_entry(table, word);
-      if (entry.synopsis != NULL)
-	fprintf (stdout, "%s\n", entry.synopsis);
-      else
-	{
-	  status = 1;
-	  fprintf (stdout, _("Unknown command: %s\n"), word);
-	}
-      return status;
-    }
-  return 1;
 }
 
 static int
