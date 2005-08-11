@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,20 +32,20 @@ int
 mail_alias (int argc, char **argv)
 {
   if (argc == 1)
-      alias_print(NULL);
+    alias_print (NULL);
   else if (argc == 2)
-      alias_print(argv[1]);
+    alias_print (argv[1]);
   else
     {
       list_t list;
 
-      if (alias_create(argv[1], &list))
+      if (alias_create (argv[1], &list))
 	return 1;
 
       argc --;
       argv ++;
       while (--argc)
-	util_slist_add(&list, *++argv);
+	util_slist_add (&list, *++argv);
     }
   return 0;
 }
@@ -77,7 +77,7 @@ static alias_t *alias_lookup_or_install __P((char *name, int install));
 static void alias_print_group __P((char *name, list_t list));
 
 unsigned
-hash(char *name)
+hash (char *name)
 {
     unsigned i;
 
@@ -89,7 +89,7 @@ hash(char *name)
 }
 
 int
-alias_rehash()
+alias_rehash ()
 {
   alias_t *old_aliases = aliases;
   alias_t *ap;
@@ -97,18 +97,18 @@ alias_rehash()
 
   if (++hash_num >= max_rehash)
     {
-      util_error("alias hash table full");
+      util_error (_("alias hash table full"));
       return 1;
     }
 
-  aliases = xcalloc(hash_size[hash_num], sizeof (aliases[0]));
+  aliases = xcalloc (hash_size[hash_num], sizeof (aliases[0]));
   if (old_aliases)
     {
       for (i = 0; i < hash_size[hash_num-1]; i++)
 	{
 	  if (old_aliases[i].name)
 	    {
-	      ap = alias_lookup_or_install(old_aliases[i].name, 1);
+	      ap = alias_lookup_or_install (old_aliases[i].name, 1);
 	      ap->name = old_aliases[i].name;
 	      ap->list = old_aliases[i].list;
 	    }
@@ -119,7 +119,7 @@ alias_rehash()
 }
 
 alias_t *
-alias_lookup_or_install(char *name, int install)
+alias_lookup_or_install (char *name, int install)
 {
   unsigned i, pos;
 
@@ -127,14 +127,14 @@ alias_lookup_or_install(char *name, int install)
     {
       if (install)
 	{
-	  if (alias_rehash())
+	  if (alias_rehash ())
 	    return NULL;
 	}
       else
 	return NULL;
     }
 
-  pos = hash(name);
+  pos = hash (name);
 
   for (i = pos; aliases[i].name;)
     {
@@ -152,16 +152,16 @@ alias_lookup_or_install(char *name, int install)
   if (aliases[i].name == NULL)
     return &aliases[i];
 
-  if (alias_rehash())
+  if (alias_rehash ())
     return NULL;
 
-  return alias_lookup_or_install(name, install);
+  return alias_lookup_or_install (name, install);
 }
 
 static int
-alias_lookup(char *name, list_t *plist)
+alias_lookup (char *name, list_t *plist)
 {
-  alias_t *ap = alias_lookup_or_install(name, 0);
+  alias_t *ap = alias_lookup_or_install (name, 0);
   if (ap)
     {
       *plist = ap->list;
@@ -171,7 +171,7 @@ alias_lookup(char *name, list_t *plist)
 }
 
 void
-alias_print(char *name)
+alias_print (char *name)
 {
   if (!name)
     {
@@ -183,35 +183,35 @@ alias_print(char *name)
       for (i = 0; i < hash_size[hash_num]; i++)
 	{
 	  if (aliases[i].name)
-	    alias_print_group(aliases[i].name, aliases[i].list);
+	    alias_print_group (aliases[i].name, aliases[i].list);
 	}
     }
   else
     {
       list_t list;
 
-      if (!alias_lookup(name, &list))
+      if (!alias_lookup (name, &list))
 	{
-	  util_error(_("\"%s\": not a group"), name);
+	  util_error (_("\"%s\": not a group"), name);
 	  return;
 	}
-      alias_print_group(name, list);
+      alias_print_group (name, list);
     }
 }
 
 int
-alias_create(char *name, list_t *plist)
+alias_create (char *name, list_t *plist)
 {
-  alias_t *ap = alias_lookup_or_install(name, 1);
+  alias_t *ap = alias_lookup_or_install (name, 1);
   if (!ap)
     return 1;
 
   if (!ap->name)
     {
       /* new entry */
-      if (list_create(&ap->list))
+      if (list_create (&ap->list))
 	return 1;
-      ap->name = strdup(name);
+      ap->name = strdup (name);
       if (!ap->name)
 	return 1;
     }
@@ -222,22 +222,22 @@ alias_create(char *name, list_t *plist)
 }
 
 void
-alias_print_group(char *name, list_t list)
+alias_print_group (char *name, list_t list)
 {
-  fprintf(ofile, "%s    ", name);
-  util_slist_print(list, 0);
-  fprintf(ofile, "\n");
+  fprintf (ofile, "%s    ", name);
+  util_slist_print (list, 0);
+  fprintf (ofile, "\n");
 }
 
 void
-alias_destroy(char *name)
+alias_destroy (char *name)
 {
   unsigned int i, j, r;
-  alias_t *alias = alias_lookup_or_install(name, 0);
+  alias_t *alias = alias_lookup_or_install (name, 0);
   if (!alias)
     return;
-  free(alias->name);
-  util_slist_destroy(&alias->list);
+  free (alias->name);
+  util_slist_destroy (&alias->list);
 
   for (i = alias - aliases;;)
     {
@@ -251,18 +251,67 @@ alias_destroy(char *name)
 	  if (!aliases[i].name)
 	    return;
 	  r = hash(aliases[i].name);
-	} while ((j < r && r <= i) || (i < j && j < r) || (r <= i && i < j));
+	}
+      while ((j < r && r <= i) || (i < j && j < r) || (r <= i && i < j));
 
       aliases[j] = aliases[i];
     }
 }
 
 char *
-alias_expand(char *name)
+alias_expand (char *name)
 {
   list_t list;
 
-  if (!alias_lookup(name, &list))
+  if (!alias_lookup (name, &list))
     return NULL;
-  return util_slist_to_string(list, ",");
+  return util_slist_to_string (list, ",");
+}
+
+struct alias_iterator
+{
+  const char *prefix;
+  int prefixlen;
+  int pos;
+};
+
+const char *
+alias_iterate_next (alias_iterator_t itr)
+{
+  int i;
+  for (i = itr->pos; i < hash_size[hash_num]; i++)
+    if (aliases[i].name
+	&& strlen (aliases[i].name) >= itr->prefixlen
+	&& strncmp (aliases[i].name, itr->prefix, itr->prefixlen) == 0)
+      {
+	itr->pos = i + 1;
+	return aliases[i].name;
+      }
+  return NULL;
+}
+
+const char *
+alias_iterate_first (const char *prefix, alias_iterator_t *pc)
+{
+  struct alias_iterator *itr;
+
+  if (!aliases)
+    {
+      *pc = NULL;
+      return NULL;
+    }
+  
+  itr = xmalloc (sizeof *itr);
+  itr->prefix = prefix;
+  itr->prefixlen = strlen (prefix);
+  itr->pos = 0;
+  *pc = itr;
+  return alias_iterate_next (itr);
+}
+
+void
+alias_iterate_end (alias_iterator_t *pc)
+{
+  free (*pc);
+  *pc = NULL;
 }
