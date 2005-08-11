@@ -1,5 +1,5 @@
 /* argcv.c - simple functions for parsing input based on whitespace
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -91,7 +91,7 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
          to the newline and restart the token search. */
       if (*save <= len)
 	{
-	  if (cmnt && strchr (cmnt, command[*start]) != NULL)
+	  if (strchr (cmnt, command[*start]) != NULL)
 	    {
 	      i = *save;
 	      while (i < len && command[i] != '\n')
@@ -300,10 +300,9 @@ argcv_quote_copy (char *dst, const char *src)
 }
 
 int
-argcv_get (const char *command, const char *delim, const char *cmnt,
-	   int *argc, char ***argv)
+argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
+	     int *argc, char ***argv)
 {
-  int len = strlen (command);
   int i = 0;
   int start, end, save;
 
@@ -313,6 +312,11 @@ argcv_get (const char *command, const char *delim, const char *cmnt,
   *argc = 0;
   save = 0;
 
+  if (!delim)
+    delim = "";
+  if (!cmnt)
+    cmnt = "";
+  
   while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) <= len)
       (*argc)++;
 
@@ -343,6 +347,14 @@ argcv_get (const char *command, const char *delim, const char *cmnt,
   (*argv)[i] = NULL;
   return 0;
 }
+
+int
+argcv_get (const char *command, const char *delim, const char *cmnt,
+	   int *argc, char ***argv)
+{
+  return argcv_get_n (command, strlen (command), delim, cmnt, argc, argv);
+}
+
 
 /*
  * frees all elements of an argv array

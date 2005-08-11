@@ -39,6 +39,10 @@ extern "C" {
 extern int argcv_get    __P ((const char *command, const char *delim,
 			      const char* cmnt,
 			      int *argc, char ***argv));
+extern int argcv_get_n __P((const char *command, int len,
+			    const char *delim, const char *cmnt,
+			    int *argc, char ***argv));
+  
 extern int argcv_string __P ((int argc, char **argv, char **string));
 extern int argcv_free   __P ((int argc, char **argv));
 extern int argcv_unquote_char __P((int c));
