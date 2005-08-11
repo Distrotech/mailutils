@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,13 +27,13 @@ int
 mail_help (int argc, char **argv)
 {
   if (argc < 2)
-    return util_help (mail_command_table, NULL);
+    return mail_command_help (NULL);
   else
     {
       int status = 0;
 
       while (--argc)
-	status |= util_help (mail_command_table, *++argv);
+	status |= mail_command_help (*++argv);
 
       return status;
     }
