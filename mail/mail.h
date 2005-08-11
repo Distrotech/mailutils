@@ -109,30 +109,52 @@ typedef struct compose_env
   int nfiles;        /* Number of output files */
 } compose_env_t;
 
-struct mail_command_entry {
+#define MAIL_COMMAND_COMMON_MEMBERS \
+  const char *shortname;\
+  const char *longname;\
+  const char *synopsis
+  
+struct mail_command
+{
+  MAIL_COMMAND_COMMON_MEMBERS;
+};
+
+struct mail_command_entry
+{
+  MAIL_COMMAND_COMMON_MEMBERS;
+  int flags;
+  int (*func)    __PMT ((int, char **));
+  char **(*command_completion) __PMT((int argc, char **argv, int ws));
+};
+
+struct mail_escape_entry
+{
   const char *shortname;
   const char *longname;
   const char *synopsis;
-  int flags;
-  int (*func)    __P ((int, char **));
-  int (*escfunc) __P ((int, char **, compose_env_t *));
+  int (*escfunc) __PMT ((int, char **, compose_env_t *));
 };
 
-typedef enum {
-  Mail_env_whatever,
-  Mail_env_number,
-  Mail_env_string,
-  Mail_env_boolean
-} mail_env_data_t;
-  
-struct mail_env_entry {
-  char *var;
+typedef enum
+  {
+    Mail_env_whatever,
+    Mail_env_number,
+    Mail_env_string,
+    Mail_env_boolean
+  }
+mail_env_data_t;
+
+struct mail_env_entry
+{
+  const char *var;
   mail_env_data_t type;
   int set;
-  union {
+  union
+  {
     char *string;
     int number;
-  } value;
+  }
+  value;
 };
 
 #define mail_env_entry_is_set(ep) ((ep) && (ep)->set)
@@ -155,8 +177,6 @@ extern unsigned int cursor;
 extern size_t total;
 extern FILE *ofile;
 extern int interactive;
-extern const struct mail_command_entry mail_command_table[];
-extern const struct mail_command_entry mail_escape_table[];
 
 /* Functions */
 extern int mail_alias __P ((int argc, char **argv));
@@ -289,7 +309,19 @@ extern size_t util_range_msg __P((size_t low, size_t high, int flags,
 
 extern function_t* util_command_get __P ((const char *cmd));
 extern char *util_stripwhite __P ((char *string));
-extern struct mail_command_entry util_find_entry __P ((const struct mail_command_entry *table, const char *cmd));
+
+extern void *util_find_entry __P((void *table, size_t nmemb, size_t size,
+				  const char *cmd));
+extern int util_help __P((void *table, size_t nmemb, size_t size, const char *word));
+extern int util_command_list __P((void *table, size_t nmemb, size_t size));
+
+extern const struct mail_command_entry *mail_find_command __P((const char *cmd));
+extern const struct mail_escape_entry *mail_find_escape __P((const char *cmd));
+extern int mail_command_help __P((const char *command));
+extern int mail_escape_help __P((const char *command));
+extern void mail_command_list __P((void));
+extern const struct mail_command *mail_command_name __P((int i));
+
 extern int util_getcols __P ((void));
 extern int util_getlines __P ((void));
 extern int util_screen_lines __P ((void));
@@ -323,7 +355,6 @@ extern void util_save_outgoing __P ((message_t msg, char *savefile));
 extern void util_error __P ((const char *format, ...));
 extern int util_error_range __P ((size_t msgno));
 extern void util_noapp __P ((void));
-extern int util_help __P ((const struct mail_command_entry *table, char *word));
 extern int util_tempfile __P ((char **namep));
 extern void util_msgset_iterate __P ((msgset_t *msgset, int (*fun) __P ((message_t, msgset_t *, void *)), void *closure));
 extern int util_get_content_type __P ((header_t hdr, char **value));
@@ -349,9 +380,20 @@ extern char *ml_readline_with_intr __P((char *prompt));
 extern char *alias_expand __P ((char *name));
 extern void alias_destroy __P ((char *name));
 
+typedef struct alias_iterator *alias_iterator_t;
+extern char *alias_find_first __P ((const char *prefix, alias_iterator_t *itr));
+extern const char *alias_iterate_next __P ((alias_iterator_t itr));
+extern const char *alias_iterate_first __P ((const char *p, alias_iterator_t *itr));
+extern void alias_iterate_end __P ((alias_iterator_t *itr));
+
 extern int mail_sender    __P ((int argc, char **argv));
 extern int mail_nosender  __P ((int argc, char **argv));
 extern address_t get_sender_address __P((message_t msg));
+
+typedef struct var_iterator *var_iterator_t;
+extern const char *var_iterate_next __P ((var_iterator_t itr));
+extern const char *var_iterate_first __P ((const char *prefix, var_iterator_t *pitr));
+extern void var_iterate_end __P ((var_iterator_t *itr));
 
 #define COMPOSE_APPEND      0
 #define COMPOSE_REPLACE     1
@@ -383,6 +425,26 @@ extern char *readline __P ((char *prompt));
 #define MAIL_ATTRIBUTE_SAVED    0x0002
 #define MAIL_ATTRIBUTE_TAGGED   0x0004
 #define MAIL_ATTRIBUTE_SHOWN    0x0008
+
+#ifdef WITH_READLINE
+extern char **file_compl (int argc, char **argv, int ws);
+extern char **no_compl (int argc, char **argv, int ws);
+extern char **msglist_compl (int argc, char **argv, int ws);
+extern char **msglist_file_compl (int argc, char **argv, int ws);
+extern char **dir_compl (int argc, char **argv, int ws);
+extern char **command_compl (int argc, char **argv, int ws);
+extern char **alias_compl (int argc, char **argv, int ws);
+extern char **var_compl (int argc, char **argv, int ws);
+#else
+# define file_compl NULL
+# define no_compl NULL
+# define msglist_compl NULL
+# define msglist_file_compl NULL
+# define dir_compl NULL
+# define command_compl NULL
+# define alias_compl NULL
+# define var_compl NULL
+#endif
 
 #ifdef __cplusplus
 }
