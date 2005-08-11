@@ -1,3 +1,69 @@
+2005-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/argcv.h (argcv_get_n): New function
+	* mailbox/argcv.c: Likewise
+	
+	* mail/alias.c (alias_iterate_first,alias_iterate_next)
+	(alias_iterate_end): New functions for readline completion
+	support. 
+	* mail/cd.c (mail_cd): Check chdir return value
+	* mail/file.c (mail_expand_name): Do not proceed to opening the
+	mailbox if failed to get its name
+	* mail/help.c (mail_help): Use mail_command_help()
+	* mail/list.c (mail_list): Use mail_command_list()
+	* mail/mail.h (mail_command_entry): Rewritten
+	(mail_escape_entry,struct mail_command): New data type
+	(mail_command_table,mail_escape_table): Variables removed
+	(util_find_entry): Change prototype
+	(util_help,util_command_list)
+	(mail_find_command,mail_find_escape,mail_command_help)
+	(mail_escape_help,mail_command_list): New functions
+	(util_help): Removed
+	(alias_iterate_first,alias_iterate_next,alias_iterate_end)
+	(var_iterate_first,var_iterate_next,var_iterate_end): New functions
+	(file_compl,no_compl,msglist_compl,msglist_file_compl,dir_compl
+	(command_compl,alias_compl,var_compl): New functions for readline
+	completion support
+	* mail/mailline.c (file_compl,no_compl,msglist_compl)
+	(msglist_file_compl,dir_compl)
+	(command_compl,alias_compl,var_compl): New functions for readline
+	completion support
+	* mail/send.c: Use mail_find_escape()
+	* mail/table.c (mail_command_table,mail_escape_table): Changed
+	data type
+	(mail_find_command,mail_command_help,mail_command_list)
+	(mail_command_name,mail_find_escape,mail_escape_help): New
+	functions
+	* mail/util.c: Rewritten mail variables support using list_t.
+	(util_find_entry,util_help): Rewritten to work with opaque data
+	tables
+	(util_command_list): New function
+	(var_iterate_first,var_iterate_next,var_iterate_end): New
+	functions
+	(util_folder_path): Convert folder to full name
+	* mail/var.c: Use mail_find_command() and mail_escape_help().
+	* mailbox/mbox/folder.c (get_pathname): Make sure no extra slash
+	is inserted.
+	* mailbox/list.c (list_to_array): Bugfix. The counter was not
+	incremented.
+	
+	* po/POTFILES.in: Add mail/cd.c
+
+2005-08-10  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/rfc/rfc3501.txt: New file
+	* doc/rfc/Makefile.am: Add rfc3501.txt
+
+	* imap4d/copy.c (imap4d_copy0): Minor improvement
+	* imap4d/fetch.c (imap4d_fetch0): Ignore non-existing uids instead
+	of diagnosing an error. This complies to RFC 3501.
+	* imap4d/util.c (util_msgset): For message sets in form X:Y where
+	Y is a not-existing UID greater than maximum UID value in the
+	mailbox, replace Y with the latter.
+
+	* imap4d/testsuite/imap4d/IDEF0955.exp: Synchronize with the
+	recent changes.
+
 2005-07-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Updated
