@@ -1,5 +1,15 @@
 2005-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mail/var.c: Renamed to ...
+	* mail/escape.c: ... to fix a long-standing historical
+	inconsistency. 
+	(var_shell,var_command,var_help,var_sign,var_bcc) 
+	(var_cc,var_deadletter,var_editor,var_print,var_headers)
+	(var_insert,var_quote,var_type_input,var_read,var_subj) 
+	(var_to,var_visual,var_write,var_exit,var_pipe): Renamed:
+	s/var_/escape_/. All callers updated
+	* mail/Makefile.am,mail/mail.h,mail/table.c: Likewise
+
 	* include/mailutils/argcv.h (argcv_get_n): New function
 	* mailbox/argcv.c: Likewise
 	
