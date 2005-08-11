@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -380,14 +380,13 @@ mail_send0 (compose_env_t * env, int save_to)
 
 	      if (argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
 		{
-		  struct mail_command_entry entry;
-
 		  if (argc > 0)
 		    {
-		      entry = util_find_entry (mail_escape_table, argv[0]);
+		      const struct mail_escape_entry *entry = 
+			            mail_find_escape (argv[0]);
 
-		      if (entry.escfunc)
-			status = (*entry.escfunc) (argc, argv, env);
+		      if (entry)
+			status = (*entry->escfunc) (argc, argv, env);
 		      else
 			util_error (_("Unknown escape %s"), argv[0]);
 		    }
