@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -187,27 +187,27 @@ var_shell (int argc, char **argv, compose_env_t *env)
 int
 var_command (int argc, char **argv, compose_env_t *env)
 {
-  struct mail_command_entry entry;
+  struct mail_command_entry *entry;
   int status;
 
   if (var_check_args (argc, argv))
     return 1;
   if (argv[1][0] == '#')
     return 0;
-  entry = util_find_entry (mail_command_table, argv[1]);
-  if (!entry.func)
+  entry = mail_find_command (argv[1]);
+  if (!entry)
     {
       util_error (_("Unknown command: %s"), argv[1]);
       return 1;
     }
-  if (entry.flags & (EF_FLOW | EF_SEND))
+  if (entry->flags & (EF_FLOW | EF_SEND))
     {
       util_error (_("Command not allowed in an escape sequence\n"));
       return 1;
     }
 
   ofile = env->ofile;
-  status = (*entry.func) (argc - 1, argv + 1);
+  status = (*entry->func) (argc - 1, argv + 1);
   ofile = env->file;
   return status;
 }
@@ -217,13 +217,13 @@ int
 var_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
   if (argc < 2)
-    return util_help (mail_escape_table, NULL);
+    return mail_escape_help (NULL);
   else
     {
       int status = 0;
 
       while (--argc)
-	status |= util_help (mail_escape_table, *++argv);
+	status |= mail_escape_help (*++argv);
 
       return status;
     }
