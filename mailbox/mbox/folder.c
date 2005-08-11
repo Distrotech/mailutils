@@ -446,10 +446,17 @@ get_pathname (const char *dirname, const char *basename)
   /* Relative.  */
   else
     {
-      size_t len = strlen (basename);
-      pathname = calloc (strlen (dirname) + len + 2, sizeof (char));
+      size_t baselen = strlen (basename);
+      size_t dirlen = strlen (dirname);
+      while (dirlen > 0 && dirname[dirlen-1] == '/')
+	dirlen--;
+      pathname = calloc (dirname + baselen + 2, sizeof (char));
       if (pathname)
-	sprintf (pathname, "%s/%s", dirname, basename);
+	{
+	  memcpy (pathname, dirname, dirlen);
+	  pathname[dirlen] = '/';
+	  strcpy (pathname + dirlen + 1, basename);
+	}
     }
   return pathname;
 }
