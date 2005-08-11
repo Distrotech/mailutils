@@ -152,13 +152,13 @@ parse_headers (FILE *fp, compose_env_t *env)
 }
 
 static void
-var_continue (void)
+escape_continue (void)
 {
   fprintf (stdout, _("(continue)\n"));
 }
 
 static int 
-var_check_args (int argc, char **argv)
+escape_check_args (int argc, char **argv)
 {
   if (argc == 1)
     {
@@ -172,7 +172,7 @@ var_check_args (int argc, char **argv)
 
 /* ~![shell-command] */
 int
-var_shell (int argc, char **argv, compose_env_t *env)
+escape_shell (int argc, char **argv, compose_env_t *env)
 {
   int status;
   ofile = env->ofile;
@@ -185,12 +185,12 @@ var_shell (int argc, char **argv, compose_env_t *env)
 /* ~:[mail-command] */
 /* ~-[mail-command] */
 int
-var_command (int argc, char **argv, compose_env_t *env)
+escape_command (int argc, char **argv, compose_env_t *env)
 {
   struct mail_command_entry *entry;
   int status;
 
-  if (var_check_args (argc, argv))
+  if (escape_check_args (argc, argv))
     return 1;
   if (argv[1][0] == '#')
     return 0;
@@ -214,26 +214,22 @@ var_command (int argc, char **argv, compose_env_t *env)
 
 /* ~? */
 int
-var_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
+  int status;
   if (argc < 2)
-    return mail_escape_help (NULL);
+    status = mail_escape_help (NULL);
   else
-    {
-      int status = 0;
-
-      while (--argc)
-	status |= mail_escape_help (*++argv);
-
-      return status;
-    }
-  return 1;
+    while (--argc)
+      status |= mail_escape_help (*++argv);
+  escape_continue ();
+  return status;
 }
 
 /* ~A */
 /* ~a */
 int
-var_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
+escape_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
 {
   char *p;
 
@@ -263,14 +259,14 @@ var_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
 	}
       else
 	fprintf (ofile, "%s", p);
-      var_continue ();
+      escape_continue ();
     }
   return 0;
 }
 
 /* ~b[bcc-list] */
 int
-var_bcc (int argc, char **argv, compose_env_t *env)
+escape_bcc (int argc, char **argv, compose_env_t *env)
 {
   while (--argc)
     compose_header_set (env, MU_HEADER_BCC, *++argv, COMPOSE_SINGLE_LINE);
@@ -279,7 +275,7 @@ var_bcc (int argc, char **argv, compose_env_t *env)
 
 /* ~c[cc-list] */
 int
-var_cc (int argc, char **argv, compose_env_t *env)
+escape_cc (int argc, char **argv, compose_env_t *env)
 {
   while (--argc)
     compose_header_set (env, MU_HEADER_CC, *++argv, COMPOSE_SINGLE_LINE);
@@ -288,7 +284,7 @@ var_cc (int argc, char **argv, compose_env_t *env)
 
 /* ~d */
 int
-var_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
+escape_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
                 compose_env_t *env ARG_UNUSED)
 {
   FILE *dead = fopen (getenv ("DEAD"), "r");
@@ -312,7 +308,7 @@ run_editor (char *ed, char *arg)
 }
 
 static int
-var_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
+escape_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
 {
   if (!util_getenv (NULL, "editheaders", Mail_env_boolean, 0))
     {
@@ -360,28 +356,28 @@ var_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
   env->file = fopen (env->filename, "a+");
   ofile = env->file;
       
-  var_continue ();
+  escape_continue ();
   return 0;
 }
 
 /* ~e */
 int
-var_editor (int argc, char **argv, compose_env_t *env)
+escape_editor (int argc, char **argv, compose_env_t *env)
 {
-  return var_run_editor (getenv ("EDITOR"), argc, argv, env);
+  return escape_run_editor (getenv ("EDITOR"), argc, argv, env);
 }
 
 /* ~v */
 int
-var_visual (int argc, char **argv, compose_env_t *env)
+escape_visual (int argc, char **argv, compose_env_t *env)
 {
-  return var_run_editor (getenv ("VISUAL"), argc, argv, env);
+  return escape_run_editor (getenv ("VISUAL"), argc, argv, env);
 }
 
 /* ~f[mesg-list] */
 /* ~F[mesg-list] */
 int
-var_print (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_print (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
   return mail_print (argc, argv);
 }
@@ -398,23 +394,23 @@ reread_header (compose_env_t *env, char *hdr, char *prompt)
 
 /* ~h */
 int
-var_headers (int argc, char **argv, compose_env_t *env)
+escape_headers (int argc, char **argv, compose_env_t *env)
 {
   reread_header (env, MU_HEADER_TO, "To: ");
   reread_header (env, MU_HEADER_CC, "Cc: ");
   reread_header (env, MU_HEADER_BCC, "Bcc: ");
   reread_header (env, MU_HEADER_SUBJECT, "Subject: ");
-  var_continue ();
+  escape_continue ();
   return 0;
 }
 
 /* ~i[var-name] */
 int
-var_insert (int argc, char **argv, compose_env_t *send_env ARG_UNUSED)
+escape_insert (int argc, char **argv, compose_env_t *send_env ARG_UNUSED)
 {
   struct mail_env_entry *env;
 
-  if (var_check_args (argc, argv))
+  if (escape_check_args (argc, argv))
     return 1;
   env = util_find_env (argv[1], 0);
   if (env)
@@ -506,17 +502,17 @@ quote0 (msgset_t *mspec, message_t mesg, void *data)
 }
 
 int
-var_quote (int argc, char **argv, compose_env_t *env)
+escape_quote (int argc, char **argv, compose_env_t *env)
 {
   int lower = islower (argv[0][0]);
   util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT, quote0, &lower);
-  var_continue ();
+  escape_continue ();
   return 0;
 }
 
 /* ~p */
 int
-var_type_input (int argc, char **argv, compose_env_t *env)
+escape_type_input (int argc, char **argv, compose_env_t *env)
 {
   char buffer[512];
 
@@ -528,21 +524,21 @@ var_type_input (int argc, char **argv, compose_env_t *env)
   while (fgets (buffer, sizeof (buffer), env->file))
     fputs (buffer, env->ofile);
 
-  var_continue ();
+  escape_continue ();
 
   return 0;
 }
 
 /* ~r[filename] */
 int
-var_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
   char *filename;
   FILE *inf;
   size_t size, lines;
   char buf[512];
 
-  if (var_check_args (argc, argv))
+  if (escape_check_args (argc, argv))
     return 1;
   filename = util_fullpath (argv[1]);
   inf = fopen (filename, "r");
@@ -569,9 +565,9 @@ var_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 
 /* ~s[string] */
 int
-var_subj (int argc, char **argv, compose_env_t *env)
+escape_subj (int argc, char **argv, compose_env_t *env)
 {
-  if (var_check_args (argc, argv))
+  if (escape_check_args (argc, argv))
     return 1;
   compose_header_set (env, MU_HEADER_SUBJECT, argv[1], COMPOSE_REPLACE);
   return 0;
@@ -579,7 +575,7 @@ var_subj (int argc, char **argv, compose_env_t *env)
 
 /* ~t[name-list] */
 int
-var_to (int argc, char **argv, compose_env_t *env)
+escape_to (int argc, char **argv, compose_env_t *env)
 {
   while (--argc)
     compose_header_set (env, MU_HEADER_TO, *++argv, COMPOSE_SINGLE_LINE);
@@ -588,14 +584,14 @@ var_to (int argc, char **argv, compose_env_t *env)
 
 /* ~w[filename] */
 int
-var_write (int argc, char **argv, compose_env_t *env)
+escape_write (int argc, char **argv, compose_env_t *env)
 {
   char *filename;
   FILE *fp;
   size_t size, lines;
   char buf[512];
 
-  if (var_check_args (argc, argv))
+  if (escape_check_args (argc, argv))
     return 1;
 
   filename = util_fullpath (argv[1]);
@@ -625,7 +621,7 @@ var_write (int argc, char **argv, compose_env_t *env)
 
 /* ~|[shell-command] */
 int
-var_pipe (int argc, char **argv, compose_env_t *env)
+escape_pipe (int argc, char **argv, compose_env_t *env)
 {
   int p[2];
   pid_t pid;

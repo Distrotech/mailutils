@@ -47,6 +47,7 @@ mail_SOURCES = \
  echo.c\
  edit.c\
  eq.c\
+ escape.c\
  exit.c\
  file.c\
  folders.c\
@@ -87,7 +88,6 @@ mail_SOURCES = \
  undelete.c\
  unset.c\
  util.c\
- var.c\
  version.c\
  visual.c\
  write.c\
