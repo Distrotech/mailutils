@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,11 +26,19 @@
 int
 mail_cd (int argc, char **argv)
 {
+  char *dir;
+  
   if (argc > 2)
     return 1;
-  else if (argc == 2 && (chdir (argv[1]) != 0))
-    return 1;
-  else if (argc < 2 && chdir (getenv ("HOME")) != 0)
-    return 1;
+  else if (argc == 2)
+    dir = argv[1];
+  else 
+    dir = getenv ("HOME");
+
+  if (chdir (dir))
+    {
+      mu_error (_("cannot change to '%s': %s"), dir, mu_strerror (errno));
+      return 1;
+    }
   return 0;
 }
