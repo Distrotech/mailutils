@@ -376,7 +376,7 @@ list_to_array (list_t list, void **array, size_t count, size_t *pcount)
 
       for (i = 0, current = list->head.next;
 	   i < total && current != &(list->head); current = current->next)
-	array[i] = current->item;
+	array[i++] = current->item;
     }
   if (pcount)
     *pcount = total;
