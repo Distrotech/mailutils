@@ -111,7 +111,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	      if (p)
 		{
 		  *p++ = 0;
-		  while (*p && isspace(*p))
+		  while (*p && isspace (*p))
 		    p++;
 		  value = strdup (p);
 		  name = strdup (buf);
@@ -245,7 +245,7 @@ escape_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
 
 	  if (!fp)
 	    {
-	      util_error (_("Cannot open %s: %s"), name, strerror (errno));
+	      util_error (_("Cannot open %s: %s"), name, mu_strerror (errno));
 	      free (name);
 	    }
 
@@ -285,7 +285,7 @@ escape_cc (int argc, char **argv, compose_env_t *env)
 /* ~d */
 int
 escape_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
-                compose_env_t *env ARG_UNUSED)
+		   compose_env_t *env ARG_UNUSED)
 {
   FILE *dead = fopen (getenv ("DEAD"), "r");
   int c;
@@ -544,7 +544,7 @@ escape_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
   inf = fopen (filename, "r");
   if (!inf)
     {
-      util_error (_("Cannot open %s: %s"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s"), filename, mu_strerror (errno));
       free (filename);
       return 1;
     }
@@ -599,7 +599,7 @@ escape_write (int argc, char **argv, compose_env_t *env)
 
   if (!fp)
     {
-      util_error (_("Cannot open %s: %s"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s"), filename, mu_strerror (errno));
       free (filename);
       return 1;
     }
@@ -636,7 +636,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
 
   if (pipe (p))
     {
-      util_error ("pipe: %s", strerror (errno));
+      util_error ("pipe: %s", mu_strerror (errno));
       return 1;
     }
 
@@ -649,7 +649,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
       close (p[0]);
       close (p[1]);
       close (fd);
-      util_error ("fork: %s", strerror (errno));
+      util_error ("fork: %s", mu_strerror (errno));
       return 1;
     }
   else if (pid == 0)
@@ -674,7 +674,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
 	xargv[i] = argv[i + 1];
       xargv[i] = NULL;
       execvp (xargv[0], xargv);
-      util_error (_("Cannot exec process `%s': %s"), xargv[0], strerror (errno));
+      util_error (_("Cannot exec process `%s': %s"), xargv[0], mu_strerror (errno));
       exit (1);
     }
   else
@@ -714,7 +714,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
 	  struct stat st;
 	  if (fstat (fd, &st))
 	    {
-	      util_error (_("Cannot stat output file: %s"), strerror (errno));
+	      util_error (_("Cannot stat output file: %s"), mu_strerror (errno));
 	    }
 	  else if (st.st_size > 0)
 	    rc = 0;
