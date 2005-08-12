@@ -1,5 +1,5 @@
 dnl This file is part of GNU mailutils.
-dnl Copyright (C) 2002 Free Software Foundation, Inc.
+dnl Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -34,12 +34,13 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
                       [mu_cache_var=yes])
 
 	if test x"[$]mu_cache_var" = x"yes"; then
-		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
-		ifelse([$2],,,$2)
+		ifelse([$2],,:,[$2])
 	ifelse([$3],,,else
-                $3)
+               [$3])
 	fi
-
+	if test x"[$]mu_cache_var" = x"yes"; then
+		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
+        fi
 	popdef([mu_upcase])
 	popdef([mu_cache_var])
 ])
