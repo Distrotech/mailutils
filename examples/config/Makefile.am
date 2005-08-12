@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2004 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -17,6 +17,11 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
+EXTRA_DIST = \
+ comsat.conf\
+ dot.biffrc\
+ gnu-imap4d.pam\
+ gnu-pop3d.pam\
+ mailutils.dict\
  mailutils.rc
 
