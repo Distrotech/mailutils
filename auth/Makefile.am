@@ -25,11 +25,12 @@ lib_LTLIBRARIES = libmuauth.la
 
 libmuauth_la_SOURCES = \
 gsasl.c \
-pam.c \
-sql.h \
-sql.c \
-lbuf.h \
 lbuf.c \
+lbuf.h \
+pam.c \
+radius.c \
+sql.c \
+sql.h \
 tls.c \
 virtual.c 
 
