@@ -1,5 +1,18 @@
 2005-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Add -lgnuradius to AUTHLIBS
+	* auth/radius.c (mu_radius_argp_parser): Only run init() if radius
+	auth is really required.
+	(mu_radius_authenticate,mu_auth_radius_user_by_name)
+	(mu_auth_radius_user_by_uid): Fail if the module was not
+	initialized
+	* mail/escape.c: Use strerror uniformly
+	
+	* mailbox/argcv.c: Make handling of quotes consistent with shell
+	rules. In particular, single quotes need not be quoted, and are
+	not removed when appearing within a doubly-quoted string.
+	* mailbox/testsuite/Argcv: Adapt to the modified argcv.c
+
 	* auth/radius.c: New file. Radius authentication/authorization.
 	* auth/Makefile.am (libmuauth_la_SOURCES): Add radius.c. Sorted
 	sources alphabetically
