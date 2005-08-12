@@ -93,6 +93,7 @@ extern struct mu_auth_module mu_auth_generic_module;
 extern struct mu_auth_module mu_auth_pam_module;
 extern struct mu_auth_module mu_auth_sql_module;
 extern struct mu_auth_module mu_auth_virtual_module;
+extern struct mu_auth_module mu_auth_radius_module;
 
 #define MU_AUTH_REGISTER_ALL_MODULES() do {\
   mu_auth_register_module (&mu_auth_generic_module); \
@@ -100,6 +101,7 @@ extern struct mu_auth_module mu_auth_virtual_module;
   mu_auth_register_module (&mu_auth_pam_module);\
   mu_auth_register_module (&mu_auth_sql_module);\
   mu_auth_register_module (&mu_auth_virtual_module);\
+  mu_auth_register_module (&mu_auth_radius_module);\
   mu_auth_init (); } while (0)
 
 #endif
