@@ -1,3 +1,27 @@
+2005-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/radius.c: New file. Radius authentication/authorization.
+	* auth/Makefile.am (libmuauth_la_SOURCES): Add radius.c. Sorted
+	sources alphabetically
+
+	* examples/config/mailutils.dict: New file. 
+	* examples/config/Makefile.am (EXTRA_DIST): Add mailutils.dict.
+	Sorted files alphabetically
+	
+	* NEWS: Updated
+	* configure.ac: Raised version number to 0.6.91.
+	Check for libgnuradius (new option --disable/--enable-radius)
+	At the end of configuration display the summary of enabled
+	features.
+
+	* include/mailutils/mu_auth.h (mu_auth_radius_module): New module
+	(MU_AUTH_REGISTER_ALL_MODULES): Register radius
+	* m4/enable.m4 (MU_ENABLE_SUPPORT): Fixed quoting error. Allow
+	action-if-true to disable the feature.
+	* mailbox/mu_argp.c (mu_conf_option): Reflect radius capability.
+
+	* po/POTFILES.in: Updated
+
 2005-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/var.c: Renamed to ...

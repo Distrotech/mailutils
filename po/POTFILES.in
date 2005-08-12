@@ -60,6 +60,7 @@ mail/alt.c
 mail/cd.c
 mail/copy.c
 mail/decode.c
+mail/escape.c
 mail/file.c
 mail/folders.c
 mail/followup.c
@@ -79,7 +80,6 @@ mail/source.c
 mail/summary.c
 mail/unalias.c
 mail/util.c
-mail/var.c
 mail/z.c
 
 mail.local/main.c

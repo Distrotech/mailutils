@@ -4,7 +4,7 @@ See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
-Version 0.6.90:
+Version 0.6.91:
 
 * libsieve: New action 'vacation'
 
@@ -66,6 +66,8 @@ with right to left script orientation (Arabic, Hebrew).
 Implemented removal of messages.
 
 * New SQL driver: odbc
+
+* New authentication method: radius
 
 * Ukrainian localization
 
