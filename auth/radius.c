@@ -71,6 +71,15 @@ static grad_avp_t *getpwnam_request;
 static char *getpwuid_request_str;
 static grad_avp_t *getpwuid_request;
 
+/* Assume radius support is needed if any of the above requests is
+   defined. Actually, all of them should be, but it is the responsibility
+   of init to check for consistency of the configuration */
+
+#define NEED_RADIUS_P() \
+  (auth_request_str||getpwnam_request_str||getpwuid_request_str)
+
+static int radius_auth_enabled;
+
 static int MU_User_Name;		
 static int MU_UID;		
 static int MU_GID;		
@@ -180,6 +189,8 @@ init (struct argp_state *state)
   parse_pairlist (&auth_request, auth_request_str, state);
   parse_pairlist (&getpwnam_request, getpwnam_request_str, state);
   parse_pairlist (&getpwuid_request, getpwuid_request_str, state);
+
+  radius_auth_enabled = 1;
 }  
 
 static error_t
@@ -204,7 +215,8 @@ mu_radius_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      init (state);
+      if (NEED_RADIUS_P())
+	init (state);
       break;
 
     default:
@@ -443,6 +455,12 @@ mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
   grad_request_t *reply;
   const struct mu_auth_data *auth_data = key;
 
+  if (!radius_auth_enabled)
+    {
+      errno = ENOSYS;
+      return 1;
+    }
+  
   if (!auth_request)
     {
       mu_error (_("--radius-auth-request is not specified"));
@@ -464,6 +482,12 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
   int rc = 1;
   grad_request_t *reply;
   
+  if (!radius_auth_enabled)
+    {
+      errno = ENOSYS;
+      return 1;
+    }
+
   if (!getpwnam_request)
     {
       mu_error (_("--radius-getpwnam-request is not specified"));
@@ -492,6 +516,12 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
   grad_request_t *reply;
   char uidstr[64];
   
+  if (!radius_auth_enabled)
+    {
+      errno = ENOSYS;
+      return 1;
+    }
+
   if (!key)
     {
       errno = EINVAL;
