@@ -38,10 +38,10 @@ message: ASCII upper part
 3: \327\305\322\310\316\321\321 \320\317\314\317\327\311\316\301 \324\301\302\314\311\303\331
 
 messed        up'quotations     ' in "a  single'" "command" lin"e
-6: messed "upquotations     " in "a  single\'" command "lin\"e"
+6: messed "upquotations     " in "a  single'" command "lin\"e"
 
 'unbalanced "quote
-2: "\'unbalanced" "\"quote"
+2: 'unbalanced "\"quote"
 
 unbalanced "quote
 2: unbalanced "\"quote"
