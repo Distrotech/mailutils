@@ -16,7 +16,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-AC_INIT([GNU Mailutils], [0.6.90], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.6.91], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -34,6 +34,17 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
+
+## Predefine several variables used to display configuration status
+status_pam=no
+status_ltdl=no
+status_bdb2=no
+status_ndbm=no
+status_dbm=no
+status_gdbm=no
+status_gsasl=no
+status_mysql=no
+status_pgsql=no
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT(no-libtool, need-ngettext)
@@ -66,6 +77,7 @@ if test "$enable_shared" = yes; then
     AC_DEFINE(HAVE_LIBLTDL,
 	      1,
 	      [Define to 1 if you have the `ltdl' library (-lltdl).])
+    status_ltdl=yes
     LTDL_LIB=-lltdl
     _USE_LOADABLE_MODULES=yes], # FIXME: Remove leading _ when ltd support
                                 # is added to SQL.
@@ -144,7 +156,8 @@ fi
 MU_CHECK_GSASL(0.2.3, [
     AC_DEFINE(WITH_GSASL,1,[Define if mailutils is using GNU SASL])
     AUTHLIBS="$AUTHLIBS $GSASL_LIBS"
-    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"])
+    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"
+    status_gsasl=yes])
 
 AC_SUBST(SITE_CRAM_MD5_PWD)
 SITE_CRAM_MD5_PWD="\$(sysconfdir)/cram-md5.pwd"
@@ -499,7 +512,8 @@ mysql_init() {
 	       [-lm],
                [ AC_DEFINE(USE_SQL)
                  AC_DEFINE(HAVE_MYSQL)
-	         MU_SQL_LDADD(MYSQLLIBS, $mu_cv_lib_mysqlclient) ],
+	         MU_SQL_LDADD(MYSQLLIBS, $mu_cv_lib_mysqlclient)
+                 status_mysql=yes ],
 	       [ AC_MSG_FAILURE([The requested library libmysqlclient is not found or is unusable])],
                [/usr/local/lib/mysql /usr/lib/mysql])
 }
@@ -522,7 +536,8 @@ postgres_init() {
   MU_CHECK_LIB(pq, PQconnectStart, [],
 	       [ AC_DEFINE(USE_SQL)
                  AC_DEFINE(HAVE_PGSQL)
-	         MU_SQL_LDADD(POSTGRESLIBS, $mu_cv_lib_pq)],
+	         MU_SQL_LDADD(POSTGRESLIBS, $mu_cv_lib_pq)
+                 status_pgsql=yes ],
 	       [ AC_MSG_FAILURE([The requested library libpq is not found or is unusable])],
                [/usr/local/pgsql/lib /usr/pgsql/lib])
 }
@@ -649,7 +664,6 @@ AC_ARG_WITH([virtual-pwddir],
 		*)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
 	     esac],
              [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
-
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
 MU_ENABLE_SUPPORT(nntp)
@@ -669,6 +683,14 @@ MU_ENABLE_SUPPORT(mh,
                    BUILD_MH_LIBRARIES='$(LIBRARIES_MH)';
                    BUILD_MH_EXEC_HOOK=mh_finish_install])
 MU_ENABLE_SUPPORT(maildir)
+
+MU_ENABLE_SUPPORT(radius,
+                  [AC_CHECK_HEADERS([radius/radius.h],,
+                                    [mu_cv_enable_radius=no])
+                   if test $mu_cv_enable_radius = yes; then
+		       AC_CHECK_LIB(gnuradius, grad_dict_init,,
+                                    [mu_cv_enable_radius=no])
+                   fi])
 
 dnl AC_ARG_ENABLE([experimental],
 dnl               AC_HELP_STRING([--enable-experimental],
@@ -706,6 +728,7 @@ if test x"$testpam" = x"yes"; then
 			[AUTHLIBS="$AUTHLIBS -lpam $LDL"
                          ac_cv_have_libpam="yes"],, $LDL)
 		AC_DEFINE(USE_LIBPAM,1,[Enable use of PAM])
+		status_pam=yes
 	fi
 fi
 
@@ -804,7 +827,8 @@ GDBM)
                                        AC_DEFINE(WITH_GDBM,1,
                                                  [Enable use of GNU DBM library]))
                      LIBS="$LIBS -lgdbm"
-                     POPAUTH=popauth]);;
+                     POPAUTH=popauth
+                     status_gdbm=yes]);;
 BDB2)
 	AC_CHECK_LIB(db, db_open,
                      [AC_CHECK_HEADERS(db.h,
@@ -812,21 +836,24 @@ BDB2)
                                                  [Enable use of Berkeley DB]))
                      LIBS="$LIBS -ldb"
                      MU_DB2_CURSOR
-		     POPAUTH=popauth]);;
+		     POPAUTH=popauth
+                     status_bdb2=yes]);;
 NDBM)
 	AC_CHECK_LIB(ndbm, dbm_open,
                      [AC_CHECK_HEADERS(ndbm.h,
                                        AC_DEFINE(WITH_NDBM,1,
                                                  [Enable use of NDBM]))
                      LIBS="$LIBS -lndbm"
-		     POPAUTH=popauth]);;
+		     POPAUTH=popauth
+                     status_ndbm=yes]);;
 ODBM)
 	AC_CHECK_LIB(dbm, dbminit,
                      [AC_CHECK_HEADERS(dbm.h,
                                        AC_DEFINE(WITH_OLD_DBM,1,
                                                  [Enable use of old DBM library]))
                      LIBS="$LIBS -ldbm"
-		     POPAUTH=popauth]);;
+		     POPAUTH=popauth
+                     status_dbm=yes]);;
 esac
 
 dnl Check for Guile
@@ -915,6 +942,73 @@ SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
 
 AC_SUBST(MU_COMMON_LIBRARIES)
 MU_COMMON_LIBRARIES='$(LTLIBINTL) $(LTLIBICONV)'
+
+### Display the status
+
+AC_CONFIG_COMMANDS([status],[
+cat <<EOF
+
+*******************************************************************
+GNU Mailutils configured with the following settings:
+
+Use PAM........................ $status_pam
+Use -ltdl...................... $status_ltdl
+Use Berkeley DB2............... $status_bdb2
+Use NDBM....................... $status_ndbm
+Use DBM........................ $status_dbm
+Use GDBM....................... $status_gdbm
+Use GNU TLS.................... $status_gnutls
+Use GSASL...................... $status_gsasl
+Use GSSAPI..................... $status_gssapi
+Use Guile...................... $status_guile
+Pthread support................ $status_pthread
+Readline support............... $status_readline
+MySQL support.................. $status_mysql
+PostgreSQL support............. $status_pgsql
+Radius support................. $status_radius
+Support for virtual domains.... $status_virtual_domains
+
+Protocols:
+
+IMAP........................... $status_imap
+POP............................ $status_pop
+MH............................. $status_mh
+maildir........................ $status_maildir
+
+Mailers:
+
+SMTP........................... $status_smtp
+Sendmail....................... $status_sendmail
+
+
+*******************************************************************
+
+Before proceeding, verify if these satisfy your requirements. 
+EOF
+],
+[status_pam=$status_pam
+status_ltdl=$status_ltdl
+status_bdb2=$status_bdb2
+status_ndbm=$status_ndbm
+status_dbm=$status_dbm
+status_gdbm=$status_gdbm
+status_gnutls=$WITH_GNUTLS
+status_gsasl=$status_gsasl
+status_gssapi=$WITH_GSSAPI
+status_guile=$useguile
+status_pthread=$usepthread
+status_readline=$usereadline
+status_mysql=$status_mysql
+status_pgsql=$status_pgsql
+status_radius=$mu_cv_enable_radius
+status_virtual_domains=$mu_cv_enable_virtual_domains
+status_imap=$mu_cv_enable_imap
+status_pop=$mu_cv_enable_pop
+status_mh=$mu_cv_enable_mh
+status_maildir=$mu_cv_enable_maildir
+status_smtp=$mu_cv_enable_smtp
+status_sendmail=$mu_cv_enable_sendmail
+])
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
