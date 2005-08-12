@@ -688,7 +688,8 @@ MU_ENABLE_SUPPORT(radius,
                   [AC_CHECK_HEADERS([radius/radius.h],,
                                     [mu_cv_enable_radius=no])
                    if test $mu_cv_enable_radius = yes; then
-		       AC_CHECK_LIB(gnuradius, grad_dict_init,,
+		       AC_CHECK_LIB(gnuradius, grad_dict_init,
+                                    [AUTHLIBS="$AUTHLIBS -lgnuradius"],
                                     [mu_cv_enable_radius=no])
                    fi])
 
