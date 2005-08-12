@@ -167,7 +167,7 @@ argcv_quoted_length (const char *str, int *quote)
 	  len++;
 	  *quote = 1;
 	}
-      else if (*str == '"' || *str == '\'')
+      else if (*str == '"')
 	{
 	  len += 2;
 	  *quote = 1;
@@ -275,7 +275,7 @@ argcv_quote_copy (char *dst, const char *src)
 {
   for (; *src; src++)
     {
-      if (*src == '"' || *src == '\'')
+      if (*src == '"')
 	{
 	  *dst++ = '\\';
 	  *dst++ = *src;
@@ -329,6 +329,8 @@ argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
   for (i = 0; i < *argc; i++)
     {
       int n;
+      int unquote;
+      
       argcv_scan (len, command, delim, cmnt, &start, &end, &save);
 
       if ((command[start] == '"' || command[end] == '\'')
@@ -336,12 +338,19 @@ argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
 	{
 	  start++;
 	  end--;
+	  unquote = 0;
 	}
+      else
+	unquote = 1;
+      
       n = end - start + 1;
       (*argv)[i] = calloc (n+1,  sizeof (char));
       if ((*argv)[i] == NULL)
 	return ENOMEM;
-      argcv_unquote_copy ((*argv)[i], &command[start], n);
+      if (unquote)
+	argcv_unquote_copy ((*argv)[i], &command[start], n);
+      else
+	memcpy ((*argv)[i], &command[start], n);
       (*argv)[i][n] = 0;
     }
   (*argv)[i] = NULL;
