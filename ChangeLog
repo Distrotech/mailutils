@@ -1,3 +1,9 @@
+2005-08-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/mhn.c (has_nonascii,finish_text_msg): New functions
+	(mhn_edit): Use quoted-printable encoding if the text contains
+	non-ascii characters.
+
 2005-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Add -lgnuradius to AUTHLIBS
