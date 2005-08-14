@@ -2002,6 +2002,42 @@ finish_msg (struct compose_env *env, message_t *msg)
   *msg = NULL;
 }
 
+void
+finish_text_msg (struct compose_env *env, message_t *msg, int ascii)
+{
+  if (!ascii)
+    {
+      int rc;
+      message_t newmsg;
+      header_t hdr;
+      body_t body;
+      stream_t input, output, fstr;
+      
+      message_create (&newmsg, NULL);
+      message_get_header (newmsg, &hdr);
+      header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+			"quoted-printable", 0);
+      
+      message_get_body (newmsg, &body);
+      body_get_stream (body, &output);
+      stream_seek (output, 0, SEEK_SET);
+
+      message_get_body (*msg, &body);
+      body_get_stream (body, &input);
+      rc = filter_create (&fstr, input, "quoted-printable",
+			  MU_FILTER_ENCODE, MU_STREAM_READ);
+      if (rc == 0)
+	{
+	  cat_message (output, fstr);
+	  message_unref (*msg);
+	  *msg = newmsg;
+	}
+      else
+	message_destroy (&newmsg, NULL);
+    }
+  finish_msg (env, msg);
+}
+
 #define EXTCONTENT "message/external-body"
 
 int
@@ -2289,6 +2325,16 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
   return rc;
 }
 
+static int
+has_nonascii (char *buf, size_t n)
+{
+  size_t i;
+  for (i = 0; i < n; i++)
+    if (!isascii (buf[i]))
+      return 1;
+  return 0;
+}
+
 int
 mhn_edit (struct compose_env *env, int level)
 {
@@ -2299,6 +2345,7 @@ mhn_edit (struct compose_env *env, int level)
   stream_t output;
   message_t msg = NULL;
   size_t line_count = 0;
+  int ascii_buf;
   
   while (status == 0
 	 && stream_getline (env->input, &buf, &bufsize, &n) == 0 && n > 0)
@@ -2314,6 +2361,7 @@ mhn_edit (struct compose_env *env, int level)
 	  body_get_stream (body, &output);
 	  stream_seek (output, 0, SEEK_SET);
 	  line_count = 0;
+	  ascii_buf = 1; /* Suppose it is ascii */
 	  env->subpart++;
 	}
       
@@ -2348,7 +2396,7 @@ mhn_edit (struct compose_env *env, int level)
 	      stream_close (output);
 	      if (line_count)
 		/* Close and append the previous part */
-		finish_msg (env, &msg);
+		finish_text_msg (env, &msg, ascii_buf);
 	      
 	      /* Execute the directive */
 	      tok = sp = buf;
@@ -2410,6 +2458,8 @@ mhn_edit (struct compose_env *env, int level)
 	}
       else if (line_count > 0 || buf[0] != '\n')
 	{
+	  if (ascii_buf && has_nonascii (buf, n))
+	    ascii_buf = 0;
 	  stream_sequential_write (output, buf, n);
 	  line_count++;
 	}
@@ -2420,7 +2470,7 @@ mhn_edit (struct compose_env *env, int level)
     {
       stream_close (output);
       if (line_count)
-	finish_msg (env, &msg);
+	finish_text_msg (env, &msg, ascii_buf);
       else
 	message_unref (msg);
     }
