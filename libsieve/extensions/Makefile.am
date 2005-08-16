@@ -24,7 +24,7 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I$(top_builddir)/include/mailutils/gnu\
  -I$(top_srcdir)/mailbox @INTLINCS@
 
-AM_LDFLAGS = ../../mailbox/libmailbox.la ../../lib/libmailutils.la
+AM_LDFLAGS = ../../mailbox/libmailutils.la ../../lib/libmuaux.la
 
 timestamp_la_SOURCES = timestamp.c
 timestamp_la_LIBADD = ../libsieve.la 

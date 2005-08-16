@@ -67,8 +67,8 @@ imap4d_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la\
  @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@
 
 ## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS
@@ -80,7 +80,7 @@ imap4d_DEPENDENCIES = \
  @IMAP_AUTHOBJS@\
  @AUTHLIBS_DEPENDENCY@\
  ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la
 
 EXTRA_DIST=auth_gss.c auth_gsasl.c

@@ -130,8 +130,8 @@ mh_LIBS = \
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@

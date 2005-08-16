@@ -6,14 +6,14 @@
 # in corresponding directory. The file is processed by scripts/gnulib-sync
 # to synchronize mailtutils tree with gnulib.
 
-:mailbox
+:mailutils
 argp
 getline
 regex
 strtok_r
 md5
 
-:lib
+:muaux
 xalloc
 alloca
 fnmatch

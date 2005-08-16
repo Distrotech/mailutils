@@ -27,14 +27,14 @@ AM_YFLAGS=-vt
 
 SUBDIRS = include mbox pop nntp imap mh maildir testsuite 
 
-lib_LTLIBRARIES = libmailbox.la
+lib_LTLIBRARIES = libmailutils.la
 
 localedir = $(datadir)/locale
 DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 
 EXTRA_DIST = errors muerrno.cin parsedate.y pin.c fgetpwent.c
 
-libmailbox_la_SOURCES = \
+libmailutils_la_SOURCES = \
 address.c \
 amd.c \
 argcv.c \
@@ -101,9 +101,9 @@ parsedate.c: $(srcdir)/parsedate.y
 muerrno.c: errors muerrno.cin
 	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
 
-libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
-libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
-libmailbox_la_LDFLAGS = -version-info 0:0:0
+libmailutils_la_DEPENDENCIES = @MU_LTLIBOBJS@
+libmailutils_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
+libmailutils_la_LDFLAGS = -version-info 0:0:0
 
 ##:## EOF marker for gnulib-sync script. Please, do not remove ##:##
 ## Do not change anything below this line ##
@@ -113,24 +113,24 @@ EXTRA_DIST += alloca_.h
 
 # We need the following in order to create an <alloca.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailbox_la_OBJECTS): $(ALLOCA_H)
+all-local $(libmailutils_la_OBJECTS): $(ALLOCA_H)
 alloca.h: alloca_.h
 	cp $(srcdir)/alloca_.h $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += alloca.h alloca.h-t
 
-libmailbox_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
+libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-fmtstream.c argp-fmtstream.h argp-fs-xinl.c argp-help.c \
            argp-namefrob.h argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c
 
-libmailbox_la_SOURCES += getline.h
+libmailutils_la_SOURCES += getline.h
 EXTRA_DIST += getndelim2.h getndelim2.c
 
-libmailbox_la_SOURCES += regex.h
+libmailutils_la_SOURCES += regex.h
 
-libmailbox_la_SOURCES += strtok_r.h
+libmailutils_la_SOURCES += strtok_r.h
 
-libmailbox_la_SOURCES += md5.h md5.c
+libmailutils_la_SOURCES += md5.h md5.c
 
 
 BUILT_SOURCES += $(GETOPT_H)
@@ -138,41 +138,41 @@ EXTRA_DIST += getopt_.h getopt_int.h
 
 # We need the following in order to create an <getopt.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailbox_la_OBJECTS): $(GETOPT_H)
+all-local $(libmailutils_la_OBJECTS): $(GETOPT_H)
 getopt.h: getopt_.h
 	cp $(srcdir)/getopt_.h $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += getopt.h getopt.h-t
 
-libmailbox_la_SOURCES += gettext.h
+libmailutils_la_SOURCES += gettext.h
 
 
-libmailbox_la_SOURCES += minmax.h
+libmailutils_la_SOURCES += minmax.h
 
 
-libmailbox_la_SOURCES += strcase.h
+libmailutils_la_SOURCES += strcase.h
 
-libmailbox_la_SOURCES += strchrnul.h
+libmailutils_la_SOURCES += strchrnul.h
 
-libmailbox_la_SOURCES += strndup.h
+libmailutils_la_SOURCES += strndup.h
 
 
 EXTRA_DIST += sysexit_.h
 
 # We need the following in order to create a <sysexits.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailbox_la_OBJECTS): $(SYSEXITS_H)
+all-local $(libmailutils_la_OBJECTS): $(SYSEXITS_H)
 sysexits.h: sysexit_.h
 	cp $(srcdir)/sysexit_.h sysexits.h-t
 	mv sysexits.h-t sysexits.h
 MOSTLYCLEANFILES += sysexits.h sysexits.h-t
 
-libmailbox_la_SOURCES += unlocked-io.h
+libmailutils_la_SOURCES += unlocked-io.h
 
-libmailbox_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
+libmailutils_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
 
-libmailbox_la_SOURCES += vsnprintf.h
+libmailutils_la_SOURCES += vsnprintf.h
 
-libmailbox_la_SOURCES += xsize.h
+libmailutils_la_SOURCES += xsize.h
 
 EXTRA_DIST += regex.c getline.c getline.c getndelim2.c getndelim2.c getopt.c getopt1.c mempcpy.c mempcpy.h mempcpy.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c

@@ -3,4 +3,4 @@ Makefile
 .deps
 .libs
 *.lo
-libmailutils.la
+libmuaux.la

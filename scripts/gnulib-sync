@@ -112,7 +112,7 @@ get_modules() {
     \#*)	;;
     :*)	variable=`echo $NAME | cut -c2-`
 	case $variable in
-	lib|mailbox)	;;
+	muaux|mailutils)	;;
 	*) echo "Unknown variable $variable" >&2
 	   exit 1;;
 	esac;;
@@ -159,9 +159,15 @@ do_copy() {
   echo $2 >> $CVSFILES
 }			
 
-# copy_files dir
+# copy_files dir libname
 copy_files() {
-  eval list="\$${1}_modules"
+  if [ $# -eq 1 ]; then
+    libname=$1
+  else
+    libname=$2
+  fi
+  eval list="\$${libname}_modules"
+  libname=lib$libname
   files=`$GNULIB_SRCDIR/gnulib-tool --extract-filelist $list | sort -u`
 	
   echo "$files" | sed 's,/[^/]*$,,' | sort -u |
@@ -197,17 +203,13 @@ copy_files() {
      esac
 
      rm -f $dest &&
-       do_copy $GNULIB_SRCDIR/$file $dest $2
+       do_copy $GNULIB_SRCDIR/$file $dest $3
      done
 }	
 
 create_m4_wrapper() {
   (eval list="\$${1}_modules"
-   if [ $# -eq 1 ]; then
-     libname=lib$1
-   else
-     libname=$2
-   fi
+   libname=lib$libname
    echo "AC_DEFUN([${libname}_GNULIB],["
    for module in $list
    do
@@ -217,13 +219,15 @@ create_m4_wrapper() {
    echo "])") | sed '/AM_GNU_GETTEXT/d'
 }				
 
+# update_makefile_am dir [libname]
 update_makefile_am() {
-  eval list="\$${1}_modules"
   if [ $# -eq 1 ]; then
-    libname=lib$1
+    libname=$1
   else
     libname=$2
   fi
+  eval list="\$${libname}_modules"
+  libname=lib$libname
   cat $1/Makefile.am | sed '/##:##.*##:##/,$d'
   echo "##:## EOF marker for gnulib-sync script. Please, do not remove ##:##"
   echo "## Do not change anything below this line ##"
@@ -291,12 +295,12 @@ trap cleanup 1 2 13 15
 get_modules gnulib.modules
 
 expand_modules lib_modules
-expand_modules mailbox_modules
+expand_modules mailutils_modules
 
 MODLIST=
 for mod in $lib_modules
 do
-  if echo "$mailbox_modules" | grep -q " $mod " -; then
+  if echo "$mailutils_modules" | grep -q " $mod " -; then
     :
   else
     MODLIST="$MODLIST $mod"
@@ -304,23 +308,23 @@ do
 done      
 
 lib_modules=`echo $MODLIST | sort -u`
-mailbox_modules=`echo $mailbox_modules | sort -u`
+mailutils_modules=`echo $mailutils_modules | sort -u`
 
-copy_files lib
-copy_files mailbox 's/AC_LIBSOURCES/MU_LIBSOURCES/;s/AC_REPLACE_FUNCS/MU_REPLACE_FUNCS/;s/AC_LIBOBJ/MU_LIBOBJ/'
+copy_files lib muaux
+copy_files mailbox mailutils 's/AC_LIBSOURCES/MU_LIBSOURCES/;s/AC_REPLACE_FUNCS/MU_REPLACE_FUNCS/;s/AC_LIBOBJ/MU_LIBOBJ/'
 
 if [ -n "$DRY_RUN" ]; then
   echo "-----BEGIN gnulib.m4 FILE-----"
-  create_m4_wrapper lib mailutils
-  create_m4_wrapper mailbox
+  create_m4_wrapper muaux
+  create_m4_wrapper mailutils
   echo "-----END gnulib.m4 FILE-----"
   echo ""
   echo "-----BEGIN lib/Makefile.am FILE-----"
-  update_makefile_am lib libmailutils
+  update_makefile_am lib muaux
   echo "-----END lib/Makefile.am FILE-----"
   echo ""
   echo "-----BEGIN mailbox/Makefile.am FILE-----"
-  update_makefile_am mailbox
+  update_makefile_am mailbox mailutils
   update_extra_dist mailbox m4/*.m4
   echo "-----END mailbox/Makefile.am FILE-----"
   echo "-----BEGIN CVS COMMANDS-----"
@@ -333,15 +337,15 @@ else
   verbose "Creating gnulib.m4"
   (echo "# This file is generated automatically. Please, do not edit."
    echo "#"
-   create_m4_wrapper lib libmailutils
-   create_m4_wrapper mailbox) > m4/gnulib.m4
+   create_m4_wrapper muaux
+   create_m4_wrapper mailutils) > m4/gnulib.m4
 
   verbose "Creating lib/Makefile.am"
-  update_makefile_am lib libmailutils > lib/Makefile.am.$$
+  update_makefile_am lib muaux > lib/Makefile.am.$$
   mv lib/Makefile.am.$$ lib/Makefile.am
     
   verbose "Creating mailbox/Makefile.am"
-  (update_makefile_am mailbox
+  (update_makefile_am mailbox mailutils
    update_extra_dist mailbox m4/*.m4) > mailbox/Makefile.am.$$
   mv mailbox/Makefile.am.$$ mailbox/Makefile.am
 

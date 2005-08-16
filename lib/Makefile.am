@@ -17,10 +17,10 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-noinst_LTLIBRARIES = libmailutils.la
+noinst_LTLIBRARIES = libmuaux.la
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_builddir}/include/mailutils/gnu @INTLINCS@
-libmailutils_la_SOURCES = \
+libmuaux_la_SOURCES = \
  daemon.c\
  mailcap.c\
  mu_dbm.c\
@@ -32,59 +32,59 @@ noinst_HEADERS =\
  mu_dbm.h\
  mu_asprintf.h
 
-libmailutils_la_LIBADD = @LTLIBOBJS@
+libmuaux_la_LIBADD = @LTLIBOBJS@
 
 BUILT_SOURCES=
 MOSTLYCLEANFILES=
 
 ##:## EOF marker for gnulib-sync script. Please, do not remove ##:##
 ## Do not change anything below this line ##
-libmailutils_la_SOURCES += allocsa.h allocsa.c
+libmuaux_la_SOURCES += allocsa.h allocsa.c
 EXTRA_DIST += allocsa.valgrind
 
 
-libmailutils_la_SOURCES += exit.h
+libmuaux_la_SOURCES += exit.h
 
-libmailutils_la_SOURCES += exitfail.h exitfail.c
+libmuaux_la_SOURCES += exitfail.h exitfail.c
 
 BUILT_SOURCES += $(STDBOOL_H)
 EXTRA_DIST += stdbool_.h
 
 # We need the following in order to create an <stdbool.h> when the system
 # doesn't have one that works.
-all-local $(libmailutils_la_OBJECTS): $(STDBOOL_H)
+all-local $(libmuaux_la_OBJECTS): $(STDBOOL_H)
 stdbool.h: stdbool_.h
 	sed -e 's/@''HAVE__BOOL''@/$(HAVE__BOOL)/g' < $(srcdir)/stdbool_.h > $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += stdbool.h stdbool.h-t
 
-libmailutils_la_SOURCES += xalloc.h xmalloc.c
+libmuaux_la_SOURCES += xalloc.h xmalloc.c
 
 BUILT_SOURCES += $(FNMATCH_H)
 EXTRA_DIST += fnmatch_.h fnmatch_loop.c
 
 # We need the following in order to create an <fnmatch.h> when the system
 # doesn't have one that supports the required API.
-all-local $(libmailutils_la_OBJECTS): $(FNMATCH_H)
+all-local $(libmuaux_la_OBJECTS): $(FNMATCH_H)
 fnmatch.h: fnmatch_.h
 	cp $(srcdir)/fnmatch_.h $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 
-libmailutils_la_SOURCES += getpass.h
+libmuaux_la_SOURCES += getpass.h
 
 
-libmailutils_la_SOURCES += mbswidth.h mbswidth.c
+libmuaux_la_SOURCES += mbswidth.h mbswidth.c
 
 
 
-libmailutils_la_SOURCES += setenv.h
+libmuaux_la_SOURCES += setenv.h
 
-libmailutils_la_SOURCES += snprintf.h
+libmuaux_la_SOURCES += snprintf.h
 
-libmailutils_la_SOURCES += xstrtol.h xstrtol.c xstrtoul.c
+libmuaux_la_SOURCES += xstrtol.h xstrtol.c xstrtoul.c
 
-libmailutils_la_SOURCES += vasprintf.h
+libmuaux_la_SOURCES += vasprintf.h
 
-libmailutils_la_SOURCES += xsize.h
+libmuaux_la_SOURCES += xsize.h
 

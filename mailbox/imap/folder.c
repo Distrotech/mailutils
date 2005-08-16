@@ -82,7 +82,7 @@ static struct _record _imap_record =
    via the register entry/record.  */
 record_t imap_record = &_imap_record;
 
-#ifndef HAVE_STRTOK_R
+#ifndef HAVE_DECL_STRTOK_R
 char *strtok_r                      (char *, const char *, char **);
 #endif
 

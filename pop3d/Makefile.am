@@ -33,16 +33,16 @@ pop3d_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la\
  @MU_COMMON_LIBRARIES@
 
 popauth_SOURCES = popauth.c
-popauth_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
+popauth_LDADD = ../mailbox/libmailutils.la ../lib/libmuaux.la @MU_COMMON_LIBRARIES@
 pop3d_DEPENDENCIES = \
  @AUTHLIBS_DEPENDENCY@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la

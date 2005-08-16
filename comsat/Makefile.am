@@ -25,6 +25,6 @@ comsatd_SOURCES = action.c cfg.c comsat.c comsat.h
 
 comsatd_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la\
  @MU_COMMON_LIBRARIES@

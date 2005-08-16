@@ -93,8 +93,8 @@ Now set your breakpoints and proceed as usual.
 * Importing gnulib files
 
     Mailutils imports several source files from gnulib. These go
-mainly to the conventional library libmailutils (directory lib/), but
-several of them are incorporated into the main library libmailbox
+mainly to the conventional library libmuaux (directory lib/), but
+several of them are incorporated into the main library libmailutils
 (directory mailbox/). The imported sources are kept in the CVS
 repository to avoid using eventually unstable versions appearing in
 the main gnulib CVS. Once in a time we update the sources. The update
@@ -115,9 +115,9 @@ CVS.
 
     If you need to add more gnulib modules to mailutils, add their
 names to gnulib.modules file, following the instructions in its
-heading comment. Please avoid placing modules in :mailbox section, as
+heading comment. Please avoid placing modules in :mailutils section, as
 this may lead to unwanted name clashes when linking user programs with
-libmailbox. 
+libmailutils. 
 
 * Copyright information:
 

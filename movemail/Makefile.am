@@ -27,6 +27,6 @@ movemail_LDADD = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
+ ../mailbox/libmailutils.la\
+ ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@
