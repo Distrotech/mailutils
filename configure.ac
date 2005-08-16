@@ -356,13 +356,13 @@ AC_DEFUN([AC_REPLACE_FUNCS],
 [AC_CHECK_FUNCS([$1], , [MU_LIBOBJ($ac_func)])
 ])
 
-libmailbox_GNULIB
+libmailutils_GNULIB
 
 dnl Restore overridden defuns
 m4_copy([MU_SAVE_AC_REPLACE_FUNCS],[AC_REPLACE_FUNCS])
 m4_copy([MU_SAVE_AC_LIBOBJ],[AC_LIBOBJ])
 
-libmailutils_GNULIB
+libmuaux_GNULIB
 
 AC_FUNC_MMAP
 

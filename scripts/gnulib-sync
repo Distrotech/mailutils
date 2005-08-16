@@ -298,7 +298,7 @@ expand_modules muaux_modules
 expand_modules mailutils_modules
 
 MODLIST=
-for mod in $lib_modules
+for mod in $muaux_modules
 do
   if echo "$mailutils_modules" | grep -q " $mod " -; then
     :
