@@ -1,5 +1,180 @@
 2005-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/sql.h: Avoid redefinition of _XOPEN_SOURCE
+	* mailbox/imap/folder.c: Likewise
+	* mailbox/maildir/mbox.c: Likewise
+	* mailbox/mbox/mbox0.h: Likewise
+	* mailbox/mh/mbox.c: Likewise
+
+	* lib/Makefile.am: Updated
+	* mailbox/Makefile.am: Updated
+	
+	Update by gnulib-sync:
+
+	* lib/allocsa.c: Updated
+	* lib/allocsa.h: Updated
+	* lib/allocsa.valgrind: Updated
+	* lib/asprintf.c: Updated
+	* lib/error.c: Updated
+	* lib/error.h: Updated
+	* lib/exit.h: Updated
+	* lib/exitfail.c: Updated
+	* lib/exitfail.h: Updated
+	* lib/fnmatch.c: Updated
+	* lib/fnmatch_.h: Updated
+	* lib/fnmatch_loop.c: Updated
+	* lib/getpass.c: Updated
+	* lib/getpass.h: Updated
+	* lib/intprops.h: Added to the repository
+	* lib/malloc.c: Updated
+	* lib/mbswidth.c: Updated
+	* lib/mbswidth.h: Updated
+	* lib/obstack.c: Updated
+	* lib/obstack.h: Updated
+	* lib/realloc.c: Updated
+	* lib/setenv.c: Updated
+	* lib/setenv.h: Updated
+	* lib/snprintf.c: Updated
+	* lib/snprintf.h: Updated
+	* lib/unsetenv.c: Updated
+	* lib/vasprintf.c: Updated
+	* lib/vasprintf.h: Updated
+	* lib/xalloc-die.c: Added to the repository
+	* lib/xalloc.h: Updated
+	* lib/xmalloc.c: Updated
+	* lib/xsize.h: Updated
+	* lib/xstrtol.c: Updated
+	* lib/xstrtol.h: Updated
+	* lib/xstrtoul.c: Updated
+	* m4/alloca.m4: Updated
+	* m4/allocsa.m4: Updated
+	* m4/argp.m4: Updated
+	* m4/eealloc.m4: Updated
+	* m4/eoverflow.m4: Updated
+	* m4/error.m4: Updated
+	* m4/exitfail.m4: Updated
+	* m4/extensions.m4: Updated
+	* m4/fnmatch.m4: Updated
+	* m4/getdelim.m4: Added to the repository
+	* m4/getline.m4: Updated
+	* m4/getopt.m4: Updated
+	* m4/getpass.m4: Updated
+	* m4/intmax_t.m4: Updated
+	* m4/intmax_t.m4: Updated
+	* m4/inttypes_h_gl.m4: Updated
+	* m4/inttypes_h_gl.m4: Updated
+	* m4/longdouble.m4: Updated
+	* m4/longdouble.m4: Updated
+	* m4/longlong_gl.m4: Updated
+	* m4/longlong_gl.m4: Updated
+	* m4/mbchar.m4: Added to the repository
+	* m4/mbrtowc.m4: Updated
+	* m4/mbrtowc.m4: Updated
+	* m4/mbstate_t.m4: Updated
+	* m4/mbswidth.m4: Updated
+	* m4/md5.m4: Updated
+	* m4/memchr.m4: Added to the repository
+	* m4/mempcpy.m4: Updated
+	* m4/minmax.m4: Added to the repository
+	* m4/obstack.m4: Updated
+	* m4/onceonly.m4: Updated
+	* m4/onceonly.m4: Updated
+	* m4/regex.m4: Updated
+	* m4/restrict.m4: Updated
+	* m4/setenv.m4: Updated
+	* m4/signed.m4: Updated
+	* m4/size_max.m4: Updated
+	* m4/snprintf.m4: Updated
+	* m4/stdbool.m4: Updated
+	* m4/stdint_h_gl.m4: Updated
+	* m4/stdint_h_gl.m4: Updated
+	* m4/strcase.m4: Updated
+	* m4/strchrnul.m4: Updated
+	* m4/strerror_r.m4: Updated
+	* m4/strndup.m4: Updated
+	* m4/strnlen.m4: Updated
+	* m4/strtok_r.m4: Updated
+	* m4/sysexits.m4: Updated
+	* m4/uint32_t.m4: Updated
+	* m4/uintmax_t_gl.m4: Updated
+	* m4/ulonglong_gl.m4: Updated
+	* m4/unlocked-io.m4: Updated
+	* m4/vasnprintf.m4: Updated
+	* m4/vasprintf.m4: Updated
+	* m4/vsnprintf.m4: Updated
+	* m4/wchar_t.m4: Updated
+	* m4/wint_t.m4: Updated
+	* m4/xalloc.m4: Updated
+	* m4/xsize.m4: Updated
+	* m4/xsize.m4: Updated
+	* m4/xstrtol.m4: Updated
+	* mailbox/alloca.c: Updated
+	* mailbox/alloca_.h: Updated
+	* mailbox/argp-ba.c: Updated
+	* mailbox/argp-eexst.c: Updated
+	* mailbox/argp-fmtstream.c: Updated
+	* mailbox/argp-fmtstream.h: Updated
+	* mailbox/argp-fs-xinl.c: Updated
+	* mailbox/argp-help.c: Updated
+	* mailbox/argp-namefrob.h: Updated
+	* mailbox/argp-parse.c: Updated
+	* mailbox/argp-pv.c: Updated
+	* mailbox/argp-pvh.c: Updated
+	* mailbox/argp-xinl.c: Updated
+	* mailbox/argp.h: Updated
+	* mailbox/asnprintf.c: Updated
+	* mailbox/getdelim.c: Added to the repository
+	* mailbox/getdelim.h: Added to the repository
+	* mailbox/getline.c: Updated
+	* mailbox/getline.h: Updated
+	* mailbox/getopt.c: Updated
+	* mailbox/getopt1.c: Updated
+	* mailbox/getopt_.h: Updated
+	* mailbox/getopt_int.h: Updated
+	* mailbox/gettext.h: Updated
+	* mailbox/mbchar.c: Added to the repository
+	* mailbox/mbchar.h: Added to the repository
+	* mailbox/md5.c: Updated
+	* mailbox/md5.h: Updated
+	* mailbox/memchr.c: Added to the repository
+	* mailbox/mempcpy.c: Updated
+	* mailbox/mempcpy.h: Updated
+	* mailbox/minmax.h: Updated
+	* mailbox/printf-args.c: Updated
+	* mailbox/printf-args.h: Updated
+	* mailbox/printf-parse.c: Updated
+	* mailbox/printf-parse.h: Updated
+	* mailbox/regcomp.c: Added to the repository
+	* mailbox/regex.c: Updated
+	* mailbox/regex.h: Updated
+	* mailbox/regex_internal.c: Added to the repository
+	* mailbox/regex_internal.h: Added to the repository
+	* mailbox/regexec.c: Added to the repository
+	* mailbox/size_max.h: Added to the repository
+	* mailbox/stdbool_.h: Added to the repository
+	* mailbox/strcase.h: Updated
+	* mailbox/strcasecmp.c: Updated
+	* mailbox/strchrnul.c: Updated
+	* mailbox/strchrnul.h: Updated
+	* mailbox/strncasecmp.c: Updated
+	* mailbox/strndup.c: Updated
+	* mailbox/strndup.h: Updated
+	* mailbox/strnlen.c: Updated
+	* mailbox/strnlen.h: Added to the repository
+	* mailbox/strnlen1.c: Added to the repository
+	* mailbox/strnlen1.h: Added to the repository
+	* mailbox/strtok_r.c: Updated
+	* mailbox/strtok_r.h: Updated
+	* mailbox/sysexit_.h: Updated
+	* mailbox/unlocked-io.h: Updated
+	* mailbox/vasnprintf.c: Updated
+	* mailbox/vasnprintf.h: Updated
+	* mailbox/vsnprintf.c: Updated
+	* mailbox/vsnprintf.h: Updated
+	* mailbox/xsize.h: Updated
+
+	End of gnulib update
+	
 	* README-alpha,gnulib.modules,comsat/Makefile.am,
 	config/Makefile.am,config/mailutils-config.c,dotlock/Makefile.am,
 	examples/Makefile.am,frm/Makefile.am,guimb/Makefile.am,
