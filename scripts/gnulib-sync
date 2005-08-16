@@ -209,7 +209,7 @@ copy_files() {
 
 create_m4_wrapper() {
   (eval list="\$${1}_modules"
-   libname=lib$libname
+   libname=lib$1
    echo "AC_DEFUN([${libname}_GNULIB],["
    for module in $list
    do
