@@ -294,7 +294,7 @@ trap cleanup 1 2 13 15
 
 get_modules gnulib.modules
 
-expand_modules lib_modules
+expand_modules muaux_modules
 expand_modules mailutils_modules
 
 MODLIST=
@@ -307,7 +307,7 @@ do
   fi
 done      
 
-lib_modules=`echo $MODLIST | sort -u`
+muaux_modules=`echo $MODLIST | sort -u`
 mailutils_modules=`echo $mailutils_modules | sort -u`
 
 copy_files lib muaux
