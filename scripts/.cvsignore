@@ -13,3 +13,4 @@ mkinstalldirs
 texinfo.tex
 ltmain.sh
 mailutils.spec
+elisp-comp
