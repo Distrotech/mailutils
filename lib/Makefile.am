@@ -23,8 +23,7 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_builddir}/inc
 libmuaux_la_SOURCES = \
  daemon.c\
  mailcap.c\
- mu_dbm.c\
- xalloc_die.c
+ mu_dbm.c
 
 EXTRA_DIST = utmp.c 
 
@@ -45,33 +44,19 @@ EXTRA_DIST += allocsa.valgrind
 
 libmuaux_la_SOURCES += exit.h
 
-libmuaux_la_SOURCES += exitfail.h exitfail.c
 
-BUILT_SOURCES += $(STDBOOL_H)
-EXTRA_DIST += stdbool_.h
 
-# We need the following in order to create an <stdbool.h> when the system
-# doesn't have one that works.
-all-local $(libmuaux_la_OBJECTS): $(STDBOOL_H)
-stdbool.h: stdbool_.h
-	sed -e 's/@''HAVE__BOOL''@/$(HAVE__BOOL)/g' < $(srcdir)/stdbool_.h > $@-t
-	mv $@-t $@
-MOSTLYCLEANFILES += stdbool.h stdbool.h-t
-
-libmuaux_la_SOURCES += xalloc.h xmalloc.c
 
 BUILT_SOURCES += $(FNMATCH_H)
 EXTRA_DIST += fnmatch_.h fnmatch_loop.c
 
-# We need the following in order to create an <fnmatch.h> when the system
+# We need the following in order to create <fnmatch.h> when the system
 # doesn't have one that supports the required API.
-all-local $(libmuaux_la_OBJECTS): $(FNMATCH_H)
 fnmatch.h: fnmatch_.h
 	cp $(srcdir)/fnmatch_.h $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 
-libmuaux_la_SOURCES += getpass.h
 
 
 libmuaux_la_SOURCES += mbswidth.h mbswidth.c
@@ -82,9 +67,10 @@ libmuaux_la_SOURCES += setenv.h
 
 libmuaux_la_SOURCES += snprintf.h
 
-libmuaux_la_SOURCES += xstrtol.h xstrtol.c xstrtoul.c
 
 libmuaux_la_SOURCES += vasprintf.h
+
+libmuaux_la_SOURCES += xalloc-die.c
 
 libmuaux_la_SOURCES += xsize.h
 

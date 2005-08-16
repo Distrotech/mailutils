@@ -13,9 +13,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; see the file COPYING.  If not, write to
-   the Free Software Foundation, 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA.  */
+   along with this program; see the file COPYING.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #if HAVE_CONFIG_H
 # include <config.h>

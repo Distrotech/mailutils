@@ -1,5 +1,5 @@
 /* Split string into tokens
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004-2005 Free Software Foundation, Inc.
    Written by Simon Josefsson.
 
    This program is free software; you can redistribute it and/or modify
@@ -12,10 +12,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifndef STRTOK_R_H
 #define STRTOK_R_H
@@ -36,7 +35,7 @@
    This is a variant of strtok() that is multithread-safe.
 
    For the POSIX documentation for this function, see:
-   http://www.opengroup.org/onlinepubs/009695399/functions/strtok.html
+   http://www.opengroup.org/susv3xsh/strtok.html
 
    Caveat: It modifies the original string.
    Caveat: These functions cannot be used on constant strings.

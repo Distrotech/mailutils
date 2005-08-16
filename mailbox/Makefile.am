@@ -111,9 +111,8 @@ libmailutils_la_LDFLAGS = -version-info 0:0:0
 BUILT_SOURCES += $(ALLOCA_H)
 EXTRA_DIST += alloca_.h
 
-# We need the following in order to create an <alloca.h> when the system
+# We need the following in order to create <alloca.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailutils_la_OBJECTS): $(ALLOCA_H)
 alloca.h: alloca_.h
 	cp $(srcdir)/alloca_.h $@-t
 	mv $@-t $@
@@ -123,22 +122,18 @@ libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-fmtstream.c argp-fmtstream.h argp-fs-xinl.c argp-help.c \
            argp-namefrob.h argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c
 
-libmailutils_la_SOURCES += getline.h
-EXTRA_DIST += getndelim2.h getndelim2.c
 
-libmailutils_la_SOURCES += regex.h
 
 libmailutils_la_SOURCES += strtok_r.h
 
-libmailutils_la_SOURCES += md5.h md5.c
+
 
 
 BUILT_SOURCES += $(GETOPT_H)
 EXTRA_DIST += getopt_.h getopt_int.h
 
-# We need the following in order to create an <getopt.h> when the system
+# We need the following in order to create <getopt.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailutils_la_OBJECTS): $(GETOPT_H)
 getopt.h: getopt_.h
 	cp $(srcdir)/getopt_.h $@-t
 	mv $@-t $@
@@ -146,28 +141,42 @@ MOSTLYCLEANFILES += getopt.h getopt.h-t
 
 libmailutils_la_SOURCES += gettext.h
 
+libmailutils_la_SOURCES += mbchar.h mbchar.c
+
+
 
 libmailutils_la_SOURCES += minmax.h
 
+
+
+BUILT_SOURCES += $(STDBOOL_H)
+EXTRA_DIST += stdbool_.h
+
+# We need the following in order to create <stdbool.h> when the system
+# doesn't have one that works.
+stdbool.h: stdbool_.h
+	sed -e 's/@''HAVE__BOOL''@/$(HAVE__BOOL)/g' < $(srcdir)/stdbool_.h > $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += stdbool.h stdbool.h-t
 
 libmailutils_la_SOURCES += strcase.h
 
 libmailutils_la_SOURCES += strchrnul.h
 
-libmailutils_la_SOURCES += strndup.h
 
 
+libmailutils_la_SOURCES += strnlen1.h strnlen1.c
+
+BUILT_SOURCES += $(SYSEXITS_H)
 EXTRA_DIST += sysexit_.h
 
-# We need the following in order to create a <sysexits.h> when the system
+# We need the following in order to create <sysexits.h> when the system
 # doesn't have one that works with the given compiler.
-all-local $(libmailutils_la_OBJECTS): $(SYSEXITS_H)
 sysexits.h: sysexit_.h
 	cp $(srcdir)/sysexit_.h sysexits.h-t
 	mv sysexits.h-t sysexits.h
 MOSTLYCLEANFILES += sysexits.h sysexits.h-t
 
-libmailutils_la_SOURCES += unlocked-io.h
 
 libmailutils_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
 
@@ -175,4 +184,4 @@ libmailutils_la_SOURCES += vsnprintf.h
 
 libmailutils_la_SOURCES += xsize.h
 
-EXTRA_DIST += regex.c getline.c getline.c getndelim2.c getndelim2.c getopt.c getopt1.c mempcpy.c mempcpy.h mempcpy.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c
+EXTRA_DIST += getdelim.c getdelim.h getdelim.c getopt.c getopt1.c md5.c md5.h md5.c memchr.c mempcpy.c mempcpy.h mempcpy.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c getline.c getline.c getline.h getline.c getndelim2.c vsnprintf.c unlocked-io.h strchrnul.c regex.c strcasecmp.c strncasecmp.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c

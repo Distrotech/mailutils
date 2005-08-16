@@ -1,4 +1,4 @@
-/* Copyright (C) 1996, 1997, 1998, 2000, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1996, 1997, 1998, 2000, 2003, 2005 Free Software Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C Library.
    Bugs can be reported to bug-glibc@prep.ai.mit.edu.
@@ -13,10 +13,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA.  */
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software Foundation,
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -25,12 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef HAVE_DECL_STRNLEN
-"this configure-time declaration test was not run"
-#endif
-#if !HAVE_DECL_STRNLEN
-size_t strnlen ();
-#endif
+/* Get strnlen. */
+#include "strnlen.h"
 
 #undef __strndup
 #undef strndup
