@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 , 
    2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
@@ -30,11 +30,11 @@ struct decode_closure
   int select_hdr;
 };
 
-static int print_stream __P ((stream_t, FILE *));
-static int display_message __P ((message_t, msgset_t *msgset, void *closure));
-static int display_message0 __P ((message_t, const msgset_t *, int));
-static int get_content_encoding __P ((header_t hdr, char **value));
-static void run_metamail __P((const char *mailcap, message_t mesg));
+static int print_stream (stream_t, FILE *);
+static int display_message (message_t, msgset_t *msgset, void *closure);
+static int display_message0 (message_t, const msgset_t *, int);
+static int get_content_encoding (header_t hdr, char **value);
+static void run_metamail (const char *mailcap, message_t mesg);
 
 int
 mail_decode (int argc, char **argv)

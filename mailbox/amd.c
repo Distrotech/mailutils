@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
    2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -70,49 +70,49 @@
 #include <url0.h>
 #include <amd.h>
 
-static void amd_destroy __P((mailbox_t mailbox));
-static int amd_open __P ((mailbox_t, int));
-static int amd_close __P ((mailbox_t));
-static int amd_get_message __P ((mailbox_t, size_t, message_t *));
-static int amd_append_message __P ((mailbox_t, message_t));
-static int amd_messages_count __P ((mailbox_t, size_t *));
-static int amd_messages_recent __P ((mailbox_t, size_t *));
-static int amd_message_unseen __P ((mailbox_t, size_t *));
-static int amd_expunge __P ((mailbox_t));
-static int amd_save_attributes __P ((mailbox_t));
-static int amd_uidnext __P((mailbox_t mailbox, size_t *puidnext));
-static int amd_uidvalidity __P ((mailbox_t, unsigned long *));
-static int amd_scan __P ((mailbox_t, size_t, size_t *));
-static int amd_is_updated __P ((mailbox_t));
-static int amd_get_size __P ((mailbox_t, off_t *));
+static void amd_destroy (mailbox_t mailbox);
+static int amd_open (mailbox_t, int);
+static int amd_close (mailbox_t);
+static int amd_get_message (mailbox_t, size_t, message_t *);
+static int amd_append_message (mailbox_t, message_t);
+static int amd_messages_count (mailbox_t, size_t *);
+static int amd_messages_recent (mailbox_t, size_t *);
+static int amd_message_unseen (mailbox_t, size_t *);
+static int amd_expunge (mailbox_t);
+static int amd_save_attributes (mailbox_t);
+static int amd_uidnext (mailbox_t mailbox, size_t *puidnext);
+static int amd_uidvalidity (mailbox_t, unsigned long *);
+static int amd_scan (mailbox_t, size_t, size_t *);
+static int amd_is_updated (mailbox_t);
+static int amd_get_size (mailbox_t, off_t *);
 
-static int amd_body_read __P ((stream_t, char *, size_t, off_t, size_t *));
-static int amd_body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
-static int amd_stream_size __P ((stream_t stream, off_t *psize));
+static int amd_body_read (stream_t, char *, size_t, off_t, size_t *);
+static int amd_body_readline (stream_t, char *, size_t, off_t, size_t *);
+static int amd_stream_size (stream_t stream, off_t *psize);
 
-static int amd_body_size __P ((body_t body, size_t *psize));
-static int amd_body_lines __P ((body_t body, size_t *plines));
+static int amd_body_size (body_t body, size_t *psize);
+static int amd_body_lines (body_t body, size_t *plines);
 
-static int amd_header_fill __P((header_t header, char *buffer, size_t len,
-			       off_t off, size_t *pnread));
-static int amd_header_size __P((header_t header, size_t *psize));
-static int amd_header_lines __P((header_t header, size_t *plines));
+static int amd_header_fill (header_t header, char *buffer, size_t len,
+			    off_t off, size_t *pnread);
+static int amd_header_size (header_t header, size_t *psize);
+static int amd_header_lines (header_t header, size_t *plines);
 
-static int amd_get_attr_flags __P((attribute_t attr, int *pflags));
-static int amd_set_attr_flags __P((attribute_t attr, int flags));
-static int amd_unset_attr_flags __P((attribute_t attr, int flags));
+static int amd_get_attr_flags (attribute_t attr, int *pflags);
+static int amd_set_attr_flags (attribute_t attr, int flags);
+static int amd_unset_attr_flags (attribute_t attr, int flags);
 
-static void _amd_message_delete __P((struct _amd_data *amd,
-				    struct _amd_message *msg));
-static int amd_pool_open __P((struct _amd_message *mhm));
-static int amd_pool_open_count __P((struct _amd_data *amd));
+static void _amd_message_delete (struct _amd_data *amd,
+				 struct _amd_message *msg);
+static int amd_pool_open (struct _amd_message *mhm);
+static int amd_pool_open_count (struct _amd_data *amd);
 static void amd_pool_flush (struct _amd_data *amd);
-static struct _amd_message **amd_pool_lookup __P((struct _amd_message *mhm));
+static struct _amd_message **amd_pool_lookup (struct _amd_message *mhm);
 
-static int amd_envelope_date __P((envelope_t envelope, char *buf, size_t len,
-				  size_t *psize));
-static int amd_envelope_sender __P((envelope_t envelope, char *buf, size_t len,
-				   size_t *psize));
+static int amd_envelope_date (envelope_t envelope, char *buf, size_t len,
+			      size_t *psize);
+static int amd_envelope_sender (envelope_t envelope, char *buf, size_t len,
+			        size_t *psize);
 
 /* Operations on message array */
 

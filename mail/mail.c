@@ -495,7 +495,7 @@ main (int argc, char **argv)
 
 
 void
-mail_mainloop (char *(*input) __P((void *, int)),
+mail_mainloop (char *(*input) (void *, int),
 	       void *closure, int do_history)
 {
   char *command, *cmd;

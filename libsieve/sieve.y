@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 sieve_machine_t sieve_machine;
 int sieve_error_count;
 
-static void branch_fixup __P((size_t start, size_t end));
+static void branch_fixup (size_t start, size_t end);
 int yyerror (char *s);
 int yylex (); 
 %}

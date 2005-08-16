@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ ticket_destroy (ticket_t *pticket, void *owner)
 }
 
 int
-ticket_set_destroy (ticket_t ticket, void (*_destroy) __P ((ticket_t)),
+ticket_set_destroy (ticket_t ticket, void (*_destroy) (ticket_t),
 		    void *owner)
 {
   if (ticket == NULL)
@@ -100,7 +100,7 @@ ticket_get_owner (ticket_t ticket)
 
 int
 ticket_set_pop (ticket_t ticket,
-		int (*_pop) __P ((ticket_t, url_t, const char *, char **)),
+		int (*_pop) (ticket_t, url_t, const char *, char **),
 		void *owner)
 {
   if (ticket == NULL)

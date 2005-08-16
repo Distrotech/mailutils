@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002,2003,2004 Free Software Foundation, Inc.
+   Copyright (C) 2002,2003,2004,2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ open_folders ()
 }
 
 void
-enumerate_folders (void (*f) __P((void *, mailbox_t)), void *data)
+enumerate_folders (void (*f) (void *, mailbox_t), void *data)
 {
   iterator_t itr;
 

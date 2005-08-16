@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,34 +58,34 @@
 
 
 /*  Functions/Methods that implements the mailbox_t API.  */
-static void nntp_mailbox_destroy         __P ((mailbox_t));
-static int  nntp_mailbox_open            __P ((mailbox_t, int));
-static int  nntp_mailbox_close           __P ((mailbox_t));
-static int  nntp_mailbox_get_message     __P ((mailbox_t, size_t, message_t *));
-static int  nntp_mailbox_messages_count  __P ((mailbox_t, size_t *));
-static int  nntp_mailbox_scan            __P ((mailbox_t, size_t, size_t *));
+static void nntp_mailbox_destroy         (mailbox_t);
+static int  nntp_mailbox_open            (mailbox_t, int);
+static int  nntp_mailbox_close           (mailbox_t);
+static int  nntp_mailbox_get_message     (mailbox_t, size_t, message_t *);
+static int  nntp_mailbox_messages_count  (mailbox_t, size_t *);
+static int  nntp_mailbox_scan            (mailbox_t, size_t, size_t *);
 /* FIXME
-   static int  nntp_mailbox_get_size        __P ((mailbox_t, off_t *)); */
+   static int  nntp_mailbox_get_size        (mailbox_t, off_t *); */
 
-static int  nntp_message_get_transport2  __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int  nntp_message_read            __P ((stream_t, char *, size_t, off_t, size_t *));
-static int  nntp_message_size            __P ((message_t, size_t *));
+static int  nntp_message_get_transport2  (stream_t, mu_transport_t *, mu_transport_t *);
+static int  nntp_message_read            (stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_message_size            (message_t, size_t *);
 /* FIXME
-   static int  nntp_message_line            __P ((message_t, size_t *)); */
-static int  nntp_message_uidl            __P ((message_t, char *, size_t, size_t *));
-static int  nntp_message_uid             __P ((message_t, size_t *));
+   static int  nntp_message_line            (message_t, size_t *); */
+static int  nntp_message_uidl            (message_t, char *, size_t, size_t *);
+static int  nntp_message_uid             (message_t, size_t *);
 
 /* FIXME
-   static int  nntp_header_get_transport2   __P ((header_t, char *,
-                                                  size_t, off_t, size_t *)); */
-static int  nntp_header_fill             __P ((header_t, char *, size_t, off_t, size_t *));
+   static int  nntp_header_get_transport2   (header_t, char *,
+                                             size_t, off_t, size_t *); */
+static int  nntp_header_fill             (header_t, char *, size_t, off_t, size_t *);
 
-static int  nntp_body_get_transport2     __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int  nntp_body_read               __P ((stream_t, char *, size_t, off_t, size_t *));
-static int  nntp_body_size               __P ((body_t, size_t *));
-static int  nntp_body_lines              __P ((body_t, size_t *));
+static int  nntp_body_get_transport2     (stream_t, mu_transport_t *, mu_transport_t *);
+static int  nntp_body_read               (stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_body_size               (body_t, size_t *);
+static int  nntp_body_lines              (body_t, size_t *);
 
-static int  nntp_get_transport2          __P ((msg_nntp_t, mu_transport_t *, mu_transport_t *));
+static int  nntp_get_transport2          (msg_nntp_t, mu_transport_t *, mu_transport_t *);
 
 int
 _nntp_mailbox_init (mailbox_t mbox)

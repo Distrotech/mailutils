@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -117,7 +117,7 @@ struct auth_cb
 static int
 try_auth (void *item, void *data)
 {
-  int (*authenticate) __P ((authority_t)) = item;
+  int (*authenticate) (authority_t) = item;
   struct auth_cb *cb = data;
   if (authenticate (cb->authority) == 0)
     {
@@ -143,7 +143,7 @@ authority_authenticate (authority_t authority)
 
 int
 authority_set_authenticate (authority_t authority,
-			    int (*_authenticate) __P ((authority_t)),
+			    int (*_authenticate) (authority_t),
 			    void *owner)
 {
   if (authority == NULL)

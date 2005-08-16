@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -223,12 +223,12 @@ struct _msg_imap
   size_t header_lines;
 };
 
-int imap_writeline    __P ((f_imap_t,  const char *format, ...));
-int imap_write        __P ((f_imap_t));
-int imap_send         __P ((f_imap_t));
-int imap_parse        __P ((f_imap_t));
-int imap_readline     __P ((f_imap_t));
-char *section_name    __P ((msg_imap_t));
+int imap_writeline    (f_imap_t,  const char *format, ...);
+int imap_write        (f_imap_t);
+int imap_send         (f_imap_t);
+int imap_parse        (f_imap_t);
+int imap_readline     (f_imap_t);
+char *section_name    (msg_imap_t);
 
 #ifdef __cplusplus
 }

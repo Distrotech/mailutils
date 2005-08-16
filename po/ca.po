@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-05-17 15:23+0300\n"
+"POT-Creation-Date: 2005-08-16 13:23+0300\n"
 "PO-Revision-Date: 2005-05-21 04:10+0200\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
@@ -17,8 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n!=1;\n"
 
 #: config/mailutils-config.c:28
-msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
-msgstr "GNU mailutils-config -- Mostra les opcions del compilador i carregador necessitades per a construir un programa amb mailutils"
+msgid ""
+"GNU mailutils-config -- Display compiler and loader options needed for "
+"building a program with mailutils"
+msgstr ""
+"GNU mailutils-config -- Mostra les opcions del compilador i carregador "
+"necessitades per a construir un programa amb mailutils"
 
 #: config/mailutils-config.c:29
 msgid "[arg...]"
@@ -29,21 +33,35 @@ msgid "Print C compiler flags to compile with"
 msgstr "Mostra les senyals del compilador de C en les quals compilar"
 
 #: config/mailutils-config.c:35
-msgid "Print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
-msgstr "Mostra les biblioteques amb les quals lincar. Els arguments possibles són: auth, guile, all, mbox, mh, maildir, imap, pop"
+msgid ""
+"Print libraries to link with. Possible arguments are: auth, guile, all, "
+"mbox, mh, maildir, imap, pop"
+msgstr ""
+"Mostra les biblioteques amb les quals lincar. Els arguments possibles són: "
+"auth, guile, all, mbox, mh, maildir, imap, pop"
 
 #: config/mailutils-config.c:38
-msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
-msgstr "Mostra una llista de opcions de compilació usades per construir mailutils. Si es donen arguments, s'interpreten com una llista d'opcions de compilació a ser comprovades. En aquest cas, el programa mostra les opcions d'aquesta llista que estan definides. Ix amb estat zero si totes les opcions especificades estan definides. Si no, l'estat d'eixida és 1."
+msgid ""
+"Print a list of configuration options used to build mailutils. If arguments "
+"are given, they are interpreted as a list of configuration options to check "
+"for. In this case the program prints those options from this list that have "
+"been defined. It exits with zero status if all of the specified options are "
+"defined. Otherwise, the exit status is 1."
+msgstr ""
+"Mostra una llista de opcions de compilació usades per construir mailutils. "
+"Si es donen arguments, s'interpreten com una llista d'opcions de compilació "
+"a ser comprovades. En aquest cas, el programa mostra les opcions d'aquesta "
+"llista que estan definides. Ix amb estat zero si totes les opcions "
+"especificades estan definides. Si no, l'estat d'eixida és 1."
 
-#: config/mailutils-config.c:126 frm/from.c:129 mh/folder.c:568
+#: config/mailutils-config.c:126 frm/from.c:128 mh/folder.c:569
 msgid "Too many arguments"
 msgstr "S'han donat massa arguments"
 
-#: auth/pam.c:153 auth/sql.c:196 auth/sql.c:198 auth/sql.c:202
+#: auth/pam.c:153 auth/sql.c:197 auth/sql.c:199 auth/sql.c:203
 #: mail.local/main.c:87 mail.local/main.c:92 mh/anno.c:43 mh/pick.c:45
 #: mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54 mh/pick.c:56
-#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:84
+#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:83
 msgid "STRING"
 msgstr "CADENA"
 
@@ -51,86 +69,92 @@ msgstr "CADENA"
 msgid "Use STRING as PAM service name"
 msgstr "Usa CADENA com el nom del servei PAM"
 
-#: auth/sql.c:184 auth/sql.c:194 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
+#: auth/sql.c:185 auth/sql.c:195 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
 #: mh/mark.c:32 mh/pick.c:87
 msgid "NAME"
 msgstr "NOM"
 
-#: auth/sql.c:185
+#: auth/sql.c:186
 msgid "Type of SQL interface to use"
 msgstr "Tipus d'interfície SQL a utilitzar"
 
-#: auth/sql.c:186 auth/sql.c:188 auth/sql.c:190
+#: auth/sql.c:187 auth/sql.c:189 auth/sql.c:191
 msgid "QUERY"
 msgstr "CONSULTA"
 
-#: auth/sql.c:187
+#: auth/sql.c:188
 msgid "SQL query to retrieve a passwd entry based on username"
-msgstr "Consulta SQL per a obtindre una entrada de contrasenya basada en el nom d'usuari"
+msgstr ""
+"Consulta SQL per a obtindre una entrada de contrasenya basada en el nom "
+"d'usuari"
 
-#: auth/sql.c:189
+#: auth/sql.c:190
 msgid "SQL query to retrieve a passwd entry based on UID"
 msgstr "Consulta SQL per a obtindre una entrada de contrasenya basada en l'UID"
 
-#: auth/sql.c:191
+#: auth/sql.c:192
 msgid "SQL query to retrieve a password from the database"
 msgstr "Consulta SQL per a obtindre una contrasenya de la base de dades"
 
-#: auth/sql.c:192
+#: auth/sql.c:193
 msgid "HOSTNAME"
 msgstr "SERVIDOR"
 
-#: auth/sql.c:193
+#: auth/sql.c:194
 msgid "Name or IP of MySQL server to connect to"
 msgstr "Nom o IP del servidor MySQL al que connectar"
 
-#: auth/sql.c:195
+#: auth/sql.c:196
 msgid "SQL user name"
 msgstr "Nom d'usuari SQL"
 
-#: auth/sql.c:197
+#: auth/sql.c:198
 msgid "SQL connection password"
 msgstr "Contrasenya de connexió SQL"
 
-#: auth/sql.c:199
+#: auth/sql.c:200
 msgid "Name of the database to connect to"
 msgstr "Nom de la base de dades a la qual connectar"
 
-#: auth/sql.c:200 mailbox/mu_argp.c:79 mailbox/mu_argp.c:114
-#: mailbox/mu_argp.c:120 mh/forw.c:65 mh/inc.c:50 mh/mhl.c:44 mh/mhl.c:46
+#: auth/sql.c:201 mailbox/mu_argp.c:80 mailbox/mu_argp.c:115
+#: mailbox/mu_argp.c:121 mh/forw.c:65 mh/inc.c:50 mh/mhl.c:44 mh/mhl.c:46
 #: mh/repl.c:65 mh/scan.c:50 mh/send.c:75
 msgid "NUMBER"
 msgstr "NÚMERO"
 
-#: auth/sql.c:201
+#: auth/sql.c:202
 msgid "Port to use"
 msgstr "Port a usar"
 
-#: auth/sql.c:203
-msgid "Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"
-msgstr "El tipus de contrasenya tornat per la consulta --sql-getpass. CADENA és una de: plan, hash, scrambled"
+#: auth/sql.c:204
+msgid ""
+"Type of password returned by --sql-getpass query. STRING is one of: plain, "
+"hash, scrambled"
+msgstr ""
+"El tipus de contrasenya tornat per la consulta --sql-getpass. CADENA és una "
+"de: plan, hash, scrambled"
 
-#: auth/sql.c:215
+#: auth/sql.c:216
 #, c-format
 msgid "Unknown SQL interface `%s'"
 msgstr "La interfície SQL «%s» no és coneguda"
 
-#: auth/sql.c:258
+#: auth/sql.c:259
 #, c-format
 msgid "Unknown password type `%s'"
 msgstr "El tipus de contrasenya «%s» no és conegut"
 
-#: auth/sql.c:324 auth/sql.c:456 auth/sql.c:577 mail.local/mailquota.c:191
+#: auth/sql.c:325 auth/sql.c:455 auth/sql.c:574 mail.local/mailquota.c:191
 #, c-format
 msgid "SQL Query failed: %s"
 msgstr "la consulta SQL ha fallat: %s"
 
-#: auth/sql.c:335 auth/sql.c:467 auth/sql.c:588 mail.local/mailquota.c:202
+#: auth/sql.c:336 auth/sql.c:466 auth/sql.c:585 mail.local/mailquota.c:202
 #, c-format
 msgid "Cannot store SQL result: %s"
 msgstr "No es pot emmagatzemar el resultat SQL: %s"
 
-#: auth/sql.c:598
+#: auth/sql.c:595
 #, c-format
 msgid "Cannot get password from SQL: %s"
 msgstr "No es pot obtenir la contrasenya des d'SQL: %s"
@@ -141,10 +165,10 @@ msgstr "Opcions de xifrat"
 
 #: auth/tls.c:59 auth/tls.c:61 auth/tls.c:63 comsat/comsat.c:59
 #: dotlock/dotlock.c:43 frm/from.c:32 mail.local/main.c:83
-#: mailbox/mu_argp.c:124 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
+#: mailbox/mu_argp.c:125 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
 #: mh/inc.c:32 mh/inc.c:36 mh/inc.c:43 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
 #: mh/refile.c:50 mh/repl.c:58 mh/scan.c:44 mh/scan.c:55 mh/send.c:38
-#: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:82 pop3d/popauth.c:83
+#: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:81 pop3d/popauth.c:82
 #: mimeview/mimeview.c:48 mimeview/mimeview.c:52
 msgid "FILE"
 msgstr "FITXER"
@@ -295,92 +319,94 @@ msgstr "S'està reiniciant"
 
 #: comsat/comsat.c:186
 msgid "Cannot restart: program must be invoked using absolute pathname"
-msgstr "No es pot reiniciar: el programa s'ha d'invocar utilitzant un camí absolut"
+msgstr ""
+"No es pot reiniciar: el programa s'ha d'invocar utilitzant un camí absolut"
 
-#: comsat/comsat.c:220
+#: comsat/comsat.c:216
 msgid "Failed to become a daemon"
 msgstr "No s'ha pogut convertir en dimoni"
 
-#: comsat/comsat.c:264
+#: comsat/comsat.c:260
 msgid "GNU comsat started"
 msgstr "s'ha iniciat GNU comsat"
 
-#: comsat/comsat.c:292
+#: comsat/comsat.c:288
 #, c-format
 msgid "Too many requests: pausing for %u second"
 msgid_plural "Too many requests: pausing for %u seconds"
 msgstr[0] "Hi ha massa peticions: es pausarà durant %u segon"
 msgstr[1] "Hi ha massa peticions: es pausarà durant %u segons"
 
-#: comsat/comsat.c:347
+#: comsat/comsat.c:343
 #, c-format
 msgid "DENIED attempt to connect from %s"
 msgstr "S'ha DENEGAT l'intent de connexió des de %s"
 
-#: comsat/comsat.c:353
+#: comsat/comsat.c:349
 #, c-format
 msgid "Received %d byte from %s"
 msgid_plural "Received %d bytes from %s"
 msgstr[0] "S'ha rebut %d octet des de %s"
 msgstr[1] "S'ha rebut %d octets des de %s"
 
-#: comsat/comsat.c:363
+#: comsat/comsat.c:359
 #, c-format
 msgid "Malformed input: %s"
 msgstr "Entrada malformada: %s"
 
-#: comsat/comsat.c:378
+#: comsat/comsat.c:374
 #, c-format
 msgid "Malformed input: %s@%s (near %s)"
 msgstr "Entrada malformada: %s@%s (prop de %s)"
 
-#: comsat/comsat.c:444
+#: comsat/comsat.c:440
 #, c-format
 msgid "Cannot open device %s: %m"
 msgstr "No es pot obrir el dispositiu %s: %m"
 
-#: comsat/comsat.c:460 mail/file.c:92 mail/mail.c:438 mail.local/main.c:690
-#: mail.local/main.c:709 mh/inc.c:218 mh/mh_init.c:379 pop3d/apop.c:240
+#: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:438
+#: mail/quit.c:118 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:218
+#: mh/mh_init.c:379 pop3d/apop.c:240
 #, c-format
 msgid "Cannot open mailbox %s: %s"
 msgstr "No es pot obrir la bústia %s: %s"
 
-#: comsat/comsat.c:467 mail.local/main.c:728
+#: comsat/comsat.c:463 mail.local/main.c:724
 #, c-format
 msgid "Cannot get stream for mailbox %s: %s"
 msgstr "No es pot obtindre el flux per a la bústia %s: %s"
 
-#: comsat/comsat.c:474 mail.local/main.c:736
+#: comsat/comsat.c:470 mail.local/main.c:732
 #, c-format
 msgid "Cannot get stream size (mailbox %s): %s"
 msgstr "No es pot obtindre la mida del flux (bústia %s): %s"
 
-#: comsat/comsat.c:491 pop3d/apop.c:230
+#: comsat/comsat.c:487 pop3d/apop.c:230
 #, c-format
 msgid "Cannot create temporary mailbox: %s"
 msgstr "No es pot crear una bústia temporal: %s"
 
-#: comsat/comsat.c:498
+#: comsat/comsat.c:494
 #, c-format
 msgid "Cannot create temporary stream: %s"
 msgstr "No es pot crear un flux temporal: %s"
 
-#: comsat/comsat.c:545
+#: comsat/comsat.c:541
 #, c-format
 msgid "Bad line name in utmp record: %s"
 msgstr "Línia de nom errònia en el registre utmp: %s"
 
-#: comsat/comsat.c:553
+#: comsat/comsat.c:549
 #, c-format
 msgid "Not a character device: %s"
 msgstr "No és un dispositiu de caràcter: %s"
 
-#: comsat/comsat.c:586 pop3d/popauth.c:309 pop3d/popauth.c:546
+#: comsat/comsat.c:582 pop3d/popauth.c:308 pop3d/popauth.c:545
 #, c-format
 msgid "No such user: %s"
 msgstr "No existeix l'usuari: %s"
 
-#: comsat/comsat.c:606
+#: comsat/comsat.c:602
 #, c-format
 msgid "User nonexistent: %s"
 msgstr "No existeix l'usuari: %s"
@@ -388,8 +414,14 @@ msgstr "No existeix l'usuari: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: dotlock/dotlock.c:38
-msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
-msgstr "GNU dotlock -- bloca fitxers de cues de correuTorna 0 en èxit, 3 si el blocatge del fitxer falla perquè ja està blocat, i 1 si ha ocorregut qualsevol altra clase d'error."
+msgid ""
+"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
+"file fails because it's already locked, and 1 if some other kind of error "
+"occurred."
+msgstr ""
+"GNU dotlock -- bloca fitxers de cues de correuTorna 0 en èxit, 3 si el "
+"blocatge del fitxer falla perquè ja està blocat, i 1 si ha ocorregut "
+"qualsevol altra clase d'error."
 
 #: dotlock/dotlock.c:47
 msgid "Unlock"
@@ -481,8 +513,14 @@ msgstr "llegit"
 #. differ by the first letter.
 #.
 #: frm/frm.c:62
-msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
-msgstr "Seleccioneu missatges amb l'atribut específic. ESTAT és un dels següents: nou, no llegit, vell (el mateix que no llegit) o llegit. Qualsevol abrevació no ambigua d'aquestes també s'accepta."
+msgid ""
+"Select messages with the specific attribute. STATUS is one of the following: "
+"new, unread, old (same as unread) or read. Any unambiguous abbreviation of "
+"those is also accepted."
+msgstr ""
+"Seleccioneu missatges amb l'atribut específic. ESTAT és un dels següents: "
+"nou, no llegit, vell (el mateix que no llegit) o llegit. Qualsevol abrevació "
+"no ambigua d'aquestes també s'accepta."
 
 #: frm/frm.c:127
 #, c-format
@@ -601,7 +639,8 @@ msgstr "ADREÇA"
 
 #: frm/from.c:31
 msgid "Print only mail from addresses containing the supplied string"
-msgstr "Mostra només els correus d'adreces que continguen la cadena suministrada"
+msgstr ""
+"Mostra només els correus d'adreces que continguen la cadena suministrada"
 
 #: frm/from.c:33
 msgid "Read mail from FILE"
@@ -611,11 +650,11 @@ msgstr "Llegeix el correu des de FITXER"
 msgid "[OPTIONS] [USER]"
 msgstr "[OPCIONS] [USUARI]"
 
-#: frm/from.c:136
+#: frm/from.c:135
 msgid "Both --from option and user name are specified"
 msgstr "S'especifica tant l'opció --from com el nom d'usuari"
 
-#: frm/from.c:151
+#: frm/from.c:150
 #, c-format
 msgid "There is %lu message in your incoming mailbox.\n"
 msgid_plural "There are %lu messages in your incoming mailbox.\n"
@@ -627,7 +666,7 @@ msgstr[1] "Hi ha %lu missatges a la vostra bústia d'entrada.\n"
 msgid "fribidi failed to recognize charset `%s'"
 msgstr "fribidi no ha reconegut el joc de caràcters «%s»"
 
-#: frm/common.c:374 mail/util.c:1398
+#: frm/common.c:374 mail/util.c:1453
 #, c-format
 msgid "Cannot decode line `%s': %s"
 msgstr "No es pot decodificar la línia «%s»: %s"
@@ -659,36 +698,41 @@ msgstr "No s'ha pogut obrir la bústia «%s»: %s"
 msgid "Could not scan mailbox `%s': %s."
 msgstr "No s'ha pogut analitzar la bústia «%s»: %s."
 
-#: guimb/collect.c:35 guimb/main.c:45 imap4d/auth_gss.c:267
-#: libsieve/sieve.l:131 libsieve/sieve.l:602 libsieve/sieve.l:666
-#: libsieve/sieve.l:720 mail/folders.c:38 mail/if.c:56 mail/util.c:761
-#: mh/mh_init.c:111 mh/mh_init.c:316 mh/mh_msgset.c:606
-msgid "Not enough memory"
-msgstr "No hi ha memòria suficient"
+#: guimb/collect.c:35
+#, fuzzy, c-format
+msgid "Cannot construct default mailbox URL: %s"
+msgstr "No es pot obrir la bústia per defecte %s: %s"
 
-#: guimb/collect.c:42
+#: guimb/collect.c:43
 #, c-format
 msgid "Cannot open default mailbox %s: %s"
 msgstr "No es pot obrir la bústia per defecte %s: %s"
 
-#: guimb/collect.c:86
+#: guimb/collect.c:87
 #, c-format
 msgid "Cannot open input file %s: %s"
 msgstr "No es pot obrir el fitxer d'entrada %s: %s"
 
-#: guimb/collect.c:114
+#: guimb/collect.c:115
 #, c-format
 msgid "Cannot create temp mailbox %s: %s"
 msgstr "No es pot crear una bústia temporal %s: %s"
 
-#: guimb/collect.c:125
+#: guimb/collect.c:126
 msgid "Input format not recognized"
 msgstr "El format d'entrada no és reconegut"
 
-#: guimb/collect.c:150
+#: guimb/collect.c:151
 #, c-format
 msgid "Cannot open output mailbox %s: %s\n"
 msgstr "No es pot obrir la bústia d'eixida %s: %s\n"
+
+#: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
+#: libsieve/sieve.l:603 libsieve/sieve.l:667 libsieve/sieve.l:721
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:873 mh/mh_init.c:111
+#: mh/mh_init.c:316 mh/mh_msgset.c:606
+msgid "Not enough memory"
+msgstr "No hi ha memòria suficient"
 
 #. TRANSLATORS: (command-line) is the name of Guile function. Do not
 #. translate it.
@@ -746,8 +790,12 @@ msgid "Act as local MDA for user NAME"
 msgstr "Actua com un MDA local per a l'usuari NOM"
 
 #: guimb/main.c:126
-msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
-msgstr "GNU guimb -- Processa els continguts de les bústies especificades utilitzant un programa o expressió Scheme."
+msgid ""
+"GNU guimb -- Process the contents of the specified mailboxes using a Scheme "
+"program or expression."
+msgstr ""
+"GNU guimb -- Processa els continguts de les bústies especificades utilitzant "
+"un programa o expressió Scheme."
 
 #: guimb/main.c:128 messages/messages.c:35
 msgid "[mailbox...]"
@@ -755,9 +803,10 @@ msgstr "[bústia...]"
 
 #: guimb/main.c:170
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr "Al menys una de -fecs s'ha d'usar. Proveu guimp --help per a més informació."
+msgstr ""
+"Al menys una de -fecs s'ha d'usar. Proveu guimp --help per a més informació."
 
-#: guimb/util.c:51 guimb/util.c:58 mail/util.c:687 mail/util.c:694
+#: guimb/util.c:51 guimb/util.c:58 mail/util.c:799 mail/util.c:806
 #, c-format
 msgid "Cannot determine sender name (msg %d)"
 msgstr "No es pot determinar el nom del remitent (msg %d)"
@@ -819,19 +868,19 @@ msgstr "Inhabilita l'ordre LOGIN"
 msgid "Always require STARTTLS before entering authentication phase"
 msgstr "Requereix sempre STARTTLS abans d'iniciar la fase d'autenticació"
 
-#: imap4d/imap4d.c:175 pop3d/pop3d.c:202
+#: imap4d/imap4d.c:175 pop3d/pop3d.c:201
 msgid "Error getting mail group"
 msgstr "S'ha produït un error a l'obtindre el grup mail"
 
-#: imap4d/imap4d.c:181 pop3d/pop3d.c:208
+#: imap4d/imap4d.c:181 pop3d/pop3d.c:207
 msgid "Error setting mail group"
 msgstr "S'ha produït un error a l'establir el grup mail"
 
-#: imap4d/imap4d.c:260 pop3d/pop3d.c:299
+#: imap4d/imap4d.c:260 pop3d/pop3d.c:298
 msgid "Incoming connection opened"
 msgstr "Connexió entrant oberta"
 
-#: imap4d/imap4d.c:262 pop3d/pop3d.c:311
+#: imap4d/imap4d.c:262 pop3d/pop3d.c:310
 #, c-format
 msgid "Cannot obtain IP address of client: %s"
 msgstr "No es pot obtindre l'adreça IP del client: %s"
@@ -841,7 +890,7 @@ msgstr "No es pot obtindre l'adreça IP del client: %s"
 msgid "Connect from %s"
 msgstr "Connexió des de %s"
 
-#: imap4d/imap4d.c:270 pop3d/pop3d.c:304
+#: imap4d/imap4d.c:270 pop3d/pop3d.c:303
 msgid "Started in debugging mode"
 msgstr "S'ha iniciat en mode de depuració"
 
@@ -894,7 +943,7 @@ msgid "Quitting (numeric reason %d)"
 msgstr "S'està eixint (raó numèrica %d)"
 
 #: imap4d/list.c:247 mh/folder.c:326 mh/mh_init.c:225 mh/mh_init.c:704
-#: mh/rmf.c:147 pop3d/popauth.c:247
+#: mh/rmf.c:147 pop3d/popauth.c:246
 #, c-format
 msgid "Cannot stat %s: %s"
 msgstr "No es pot fer «stat» de %s: %s"
@@ -923,70 +972,70 @@ msgstr "S'ha rebut el senyal %s"
 msgid "MASTER: exiting on signal"
 msgstr "MESTRE: s'està eixint en el senyal"
 
-#: imap4d/util.c:485
+#: imap4d/util.c:509
 msgid "Unexpected eof on input"
 msgstr "eof inesperat en l'entrada"
 
-#: imap4d/util.c:494
+#: imap4d/util.c:518
 #, c-format
 msgid "Error reading from input file: %s"
 msgstr "Error en llegir des del fitxer d'entrada: %s"
 
-#: imap4d/util.c:981
+#: imap4d/util.c:1005
 msgid "Cannot find out my own hostname"
 msgstr "No es pot trobar el nostre propi nom de l'ordinador"
 
-#: imap4d/util.c:1128
+#: imap4d/util.c:1152
 #, c-format
 msgid "Cannot poll input stream: %s"
 msgstr "No es pot sondejar el flux d'entrada: %s"
 
-#: imap4d/util.c:1162
+#: imap4d/util.c:1186
 #, c-format
 msgid "Cannot open TLS stream: %s"
 msgstr "No es pot obrir el flux de TLS: %s"
 
-#: lib/mailcap.c:331
+#: lib/mailcap.c:337
 #, c-format
 msgid "Run `%s'?"
 msgstr "Voleu executar «%s»?"
 
-#: lib/mailcap.c:367
+#: lib/mailcap.c:373
 #, c-format
 msgid "cannot retrieve field %lu: %s"
 msgstr "no es pot obtenir el camp %lu: %s"
 
-#: lib/mailcap.c:439
+#: lib/mailcap.c:445
 #, c-format
 msgid "Cannot execute `%s': %s"
 msgstr "No es pot executar «%s»: %s"
 
-#: lib/mailcap.c:456
+#: lib/mailcap.c:462
 #, c-format
 msgid "Command exited with status %d\n"
 msgstr "L'ordre ha sortit amb l'estat %d\n"
 
-#: lib/mailcap.c:458
+#: lib/mailcap.c:464
 #, c-format
 msgid "Command terminated on signal %d\n"
 msgstr "L'ordre ha eixit en rebre el senyal %d\n"
 
-#: lib/mailcap.c:460
+#: lib/mailcap.c:466
 #, c-format
 msgid "Command terminated\n"
 msgstr "L'ordre ha finalitzat\n"
 
-#: lib/mailcap.c:544 mimeview/mimeview.c:201
+#: lib/mailcap.c:550 mimeview/mimeview.c:201
 #, c-format
 msgid "Executing %s...\n"
 msgstr "S'està executant %s...\n"
 
-#: lib/mailcap.c:587
+#: lib/mailcap.c:593
 #, c-format
 msgid "Trying %s...\n"
 msgstr "S'està provant %s...\n"
 
-#: lib/mailcap.c:629
+#: lib/mailcap.c:635
 #, c-format
 msgid "Found in %s\n"
 msgstr "S'ha trobat en %s\n"
@@ -1009,57 +1058,57 @@ msgstr "s'està repartint en %s"
 msgid "cannot save to mailbox: %s"
 msgstr "no es pot desar en una bústia temporal: %s"
 
-#: libsieve/actions.c:243
+#: libsieve/actions.c:252
 msgid "reject: cannot get text!"
 msgstr "reject: no es pot obtindre text!"
 
-#: libsieve/actions.c:259 libsieve/extensions/vacation.c:445
+#: libsieve/actions.c:268 libsieve/extensions/vacation.c:443
 #, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d: no es pot crear l'adreça del destinatari <%s>: %s"
 
-#: libsieve/actions.c:271 libsieve/actions.c:400
+#: libsieve/actions.c:280 libsieve/actions.c:409
 #, c-format
 msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d: no es pot crear l'adreça de procedència <%s>: %s"
 
-#: libsieve/actions.c:285 libsieve/actions.c:440
-#: libsieve/extensions/vacation.c:480
+#: libsieve/actions.c:294 libsieve/actions.c:449
+#: libsieve/extensions/vacation.c:478
 #, c-format
 msgid "%d: cannot open mailer %s: %s"
 msgstr "%d: no es pot obrir el servidor de correu %s: %s"
 
-#: libsieve/actions.c:360
+#: libsieve/actions.c:369
 msgid "cannot get address!"
 msgstr "no es pot obtindre l'adreça"
 
-#: libsieve/actions.c:368
+#: libsieve/actions.c:377
 #, c-format
 msgid "%d: parsing recipient address `%s' failed: %s"
 msgstr "%d: l'anàlisi de l'adreça de destinatari «%s» ha fallat: %s"
 
-#: libsieve/actions.c:374
+#: libsieve/actions.c:383
 #, c-format
 msgid "to %s"
 msgstr "a %s"
 
-#: libsieve/actions.c:381
+#: libsieve/actions.c:390
 #, c-format
 msgid "%d: Redirection loop detected"
 msgstr "%d: s'ha detectat un bucle de redirecció"
 
 # Val, una merda de traducció, però de què collons parla? jm
-#: libsieve/actions.c:390
+#: libsieve/actions.c:399
 #, c-format
 msgid "%d: cannot get envelope sender: %s"
 msgstr "%d: no es pot obtindre l'enviador del sobre: %s"
 
-#: libsieve/actions.c:413
+#: libsieve/actions.c:422
 #, c-format
 msgid "%d: cannot copy message: %s"
 msgstr "%d: no es pot copiar el missatge: %s"
 
-#: libsieve/actions.c:428
+#: libsieve/actions.c:437
 #, c-format
 msgid "%d: cannot get my email address"
 msgstr "%d: no es pot determinar la nostra adreça de correu"
@@ -1076,7 +1125,8 @@ msgstr "Error d'expreg"
 #: libsieve/comparator.c:238
 #, c-format
 msgid "match type specified twice in call to `%s'"
-msgstr "s'ha especificat dos vegades el tipus de coincidència en la crida a «%s»"
+msgstr ""
+"s'ha especificat dos vegades el tipus de coincidència en la crida a «%s»"
 
 #. TRANSLATORS: Do not translate ':count'. It is the name of a Sieve tag
 #: libsieve/comparator.c:275
@@ -1100,7 +1150,9 @@ msgstr "coincidència relacional «%s» no vàlida en la crida a «%s»"
 #: libsieve/comparator.c:322
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr "el comparador «%s» és incompatible amb el tipus de coincidència «%s» en la crida a «%s»"
+msgstr ""
+"el comparador «%s» és incompatible amb el tipus de coincidència «%s» en la "
+"crida a «%s»"
 
 #: libsieve/prog.c:39
 msgid "out of memory!"
@@ -1182,35 +1234,35 @@ msgstr "pila buida"
 msgid "mailbox_scan: %s"
 msgstr "mailbox_scan: %s"
 
-#: libsieve/sieve.l:233
+#: libsieve/sieve.l:234
 #, c-format
 msgid "cannot stat `%s': %s"
 msgstr "no es pot fer «stat» de «%s»: %s"
 
-#: libsieve/sieve.l:239 libsieve/sieve.l:244
+#: libsieve/sieve.l:240 libsieve/sieve.l:245
 msgid "recursive inclusion"
 msgstr "inclusió recursiva"
 
-#: libsieve/sieve.l:247
+#: libsieve/sieve.l:248
 #, c-format
 msgid "`%s' already included here"
 msgstr "«%s» ja està inclòs ací"
 
-#: libsieve/sieve.l:251
+#: libsieve/sieve.l:252
 #, c-format
 msgid "`%s' already included at top level"
 msgstr "«%s» ja està inclòs en el nivell superior"
 
-#: libsieve/sieve.l:260
+#: libsieve/sieve.l:261
 #, c-format
 msgid "cannot open `%s': %s"
 msgstr "no es pot obrir «%s»: %s"
 
-#: libsieve/sieve.l:438
+#: libsieve/sieve.l:439
 msgid "preprocessor syntax"
 msgstr "sintaxi de preprocessador"
 
-#: libsieve/sieve.l:447
+#: libsieve/sieve.l:448
 msgid "missing closing quote in preprocessor statement"
 msgstr "falten les comilles finals en la sentència de preprocessador"
 
@@ -1243,28 +1295,30 @@ msgstr "tipus de dades invàlid"
 msgid "cannot retrieve argument %d"
 msgstr "no es pot obtenir l'argument %d"
 
-#: libsieve/extensions/vacation.c:257
+#: libsieve/extensions/vacation.c:255
 #, c-format
 msgid "%d: cannot build db file name"
 msgstr "%d: no es pot construir el nom del fitxer db"
 
-#: libsieve/extensions/vacation.c:268
+#: libsieve/extensions/vacation.c:266
 #, c-format
 msgid "%d: cannot open `%s': %s"
 msgstr "%d: no es pot obrir «%s»: %s"
 
 #. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
 #. Do not translate them!
-#: libsieve/extensions/vacation.c:311
+#: libsieve/extensions/vacation.c:309
 #, c-format
 msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr "%d: vacation ha estat compilat sense suport per a DBM. S'està ignorant l'etiqueta :days"
+msgstr ""
+"%d: vacation ha estat compilat sense suport per a DBM. S'està ignorant "
+"l'etiqueta :days"
 
-#: libsieve/extensions/vacation.c:507
+#: libsieve/extensions/vacation.c:505
 msgid "cannot get text!"
 msgstr "no es pot obtindre text!"
 
-#: libsieve/extensions/vacation.c:524
+#: libsieve/extensions/vacation.c:522
 #, c-format
 msgid "%d: cannot get sender address"
 msgstr "%d: no es pot determinar l'adreça de correu del remitent"
@@ -1273,6 +1327,10 @@ msgstr "%d: no es pot determinar l'adreça de correu del remitent"
 #, c-format
 msgid "cannot parse date specification (%s)"
 msgstr "no es pot analitzar l'especificació de la data (%s)"
+
+#: mail/alias.c:100
+msgid "alias hash table full"
+msgstr ""
 
 #: mail/alias.c:195
 #, c-format
@@ -1288,12 +1346,18 @@ msgstr "No es pot determinar el nostre nom d'usuari"
 msgid "Cannot determine my email address: %s"
 msgstr "No es pot determinar la nostra adreça de correu: %s"
 
-#: mail/copy.c:69 mail/quit.c:113 mail/send.c:542
-#, c-format
-msgid "Cannot create mailbox %s"
-msgstr "No es pot crear la bústia %s"
+#: mail/cd.c:40
+#, fuzzy, c-format
+msgid "cannot change to '%s': %s"
+msgstr "no es pot fer «stat» de «%s»: %s"
 
-#: mail/copy.c:84 mail/quit.c:120 mail/send.c:535
+#: mail/copy.c:68 mail/mail.c:421 mail/quit.c:111 mail/send.c:541 mh/inc.c:209
+#: mh/mh_init.c:369
+#, c-format
+msgid "Cannot create mailbox %s: %s"
+msgstr "No es pot crear la bústia %s: %s"
+
+#: mail/copy.c:92 mail/quit.c:126 mail/send.c:534
 #, c-format
 msgid "Cannot append message: %s"
 msgstr "No es pot agregar el missatge: %s"
@@ -1313,7 +1377,7 @@ msgstr "| Tipus=%s\n"
 msgid "| Encoding=%s\n"
 msgstr "| Codificació=%s\n"
 
-#: mail/decode.c:267 mail/print.c:97
+#: mail/decode.c:267 mail/print.c:96
 msgid ""
 "\n"
 "Interrupt"
@@ -1321,18 +1385,103 @@ msgstr ""
 "\n"
 "Interrupció"
 
-#: mail/file.c:40
+#: mail/escape.c:59 mail/send.c:225 mh/mhn.c:2059 mimeview/mimeview.c:217
+#, c-format
+msgid "Cannot create header: %s"
+msgstr "No es pot crear la capçalera: %s"
+
+#: mail/escape.c:95 mail/escape.c:121
+#, c-format
+msgid "%d: not a header line"
+msgstr "%d: no és una línia de capçalera"
+
+#: mail/escape.c:142
+msgid "Edit again?"
+msgstr "Editar de nou?"
+
+#: mail/escape.c:157
+#, c-format
+msgid "(continue)\n"
+msgstr "(continua)\n"
+
+#: mail/escape.c:167
+#, c-format
+msgid "%c%s requires an argument"
+msgstr "%c%s requereix un argument"
+
+#: mail/escape.c:200 mail/util.c:115
+#, c-format
+msgid "Unknown command: %s"
+msgstr "Ordre desconeguda: %s"
+
+#: mail/escape.c:205
+msgid "Command not allowed in an escape sequence\n"
+msgstr "L'ordre no està permessa en una seqüència d'escapada\n"
+
+#: mail/escape.c:248 mail/escape.c:547 mail/escape.c:602 pop3d/popauth.c:284
+#: pop3d/popauth.c:355 pop3d/popauth.c:429
+#, c-format
+msgid "Cannot open %s: %s"
+msgstr "No es pot obrir %s: %s"
+
+#: mail/escape.c:252
+#, c-format
+msgid "Reading %s\n"
+msgstr "S'està llegint %s\n"
+
+#: mail/escape.c:451
+#, c-format
+msgid "Interpolating: %d\n"
+msgstr "S'està interpolant: %d\n"
+
+#: mail/escape.c:519
+#, c-format
+msgid "Message contains:\n"
+msgstr "El missatge conté:\n"
+
+#. TRANSLATORS: 'pipe' is a command name. Do not translate it!
+#: mail/escape.c:633
+msgid "pipe: no command specified"
+msgstr "pipe: no s'ha especificat cap ordre"
+
+#: mail/escape.c:677
+#, c-format
+msgid "Cannot exec process `%s': %s"
+msgstr "No es pot executar el procés «%s»: %s"
+
+#: mail/escape.c:710
+#, c-format
+msgid "Child terminated abnormally: %d"
+msgstr "El fill ha terminat anormalment: %d"
+
+#: mail/escape.c:717
+#, c-format
+msgid "Cannot stat output file: %s"
+msgstr "No es pot fer «stat» del fitxer d'eixida: %s"
+
+#: mail/escape.c:727
+#, c-format
+msgid "no lines out\n"
+msgstr "no hi ha línies d'eixida\n"
+
+#: mail/file.c:41
 msgid "No previous file"
 msgstr "Cap fitxer anterior"
 
-#: mail/file.c:48
+#: mail/file.c:51
 msgid "MBOX environment variable not set"
 msgstr "La variable d'entorn MBOX no està fixada"
 
-#: mail/file.c:126
+#: mail/file.c:130
 #, c-format
 msgid "%s takes only one argument"
 msgstr "%s només accepta un argument"
+
+# Urgh, què malsonant... "on aplicar". jm
+#: mail/followup.c:44 mail/next.c:40 mail/next.c:63 mail/next.c:80
+#: mail/previous.c:49 mail/previous.c:66
+msgid "No applicable message"
+msgstr "No hi ha missatges on aplicar"
 
 #: mail/if.c:67
 msgid "Internal error: condition stack underflow"
@@ -1379,7 +1528,7 @@ msgstr "[adreça...]"
 msgid "Return true if mail exists"
 msgstr "Torna vertader si existeix correu"
 
-#: mail/mail.c:37 mailbox/mu_argp.c:73
+#: mail/mail.c:37 mailbox/mu_argp.c:74
 msgid "URL"
 msgstr "URL"
 
@@ -1460,11 +1609,6 @@ msgstr "Useu «quit» per a eixir."
 msgid "Cannot create mailbox for %s: %s"
 msgstr "No es pot crear la bústia per a %s: %s"
 
-#: mail/mail.c:421 mh/inc.c:209 mh/mh_init.c:369
-#, c-format
-msgid "Cannot create mailbox %s: %s"
-msgstr "No es pot crear la bústia %s: %s"
-
 #: mail/mail.c:452
 #, c-format
 msgid "Cannot read mailbox %s: %s"
@@ -1480,17 +1624,19 @@ msgstr "%s: 0 missatges\n"
 msgid "No mail for %s\n"
 msgstr "No hi ha correu per a %s\n"
 
-#: mail/mail.c:537
+#: mail/mail.c:539
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
+"Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU mailutils -- una col·lecció d'eines pel correu electrònic\n"
-"Copyright © 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
+"Copyright © 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
+"Foundation, Inc.\n"
 "\n"
 
-#: mail/mail.c:541 mailbox/mu_argp.c:254 mh/mh_argp.c:188
+#: mail/mail.c:543 mailbox/mu_argp.c:255 mh/mh_argp.c:188
 #, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
@@ -1526,39 +1672,33 @@ msgstr ""
 "   Boston, MA 02110-1301 USA\n"
 "\n"
 
-#: mail/mailline.c:402 mail/mailline.c:430 mail/mailline.c:477
-#: mail/mailline.c:513
+#: mail/mailline.c:694 mail/mailline.c:722 mail/mailline.c:769
+#: mail/mailline.c:805
 msgid "Not enough memory to edit the line"
 msgstr "No hi ha suficient memòria per a editar la línia"
 
-#: mail/msgset.y:163
+#: mail/msgset.y:164
 msgid "unknown message type"
 msgstr "el tipus de missatge és desconegut"
 
-#: mail/msgset.y:248 mail/msgset.y:253
+#: mail/msgset.y:249 mail/msgset.y:254
 #, c-format
 msgid " near end"
 msgstr " prop del final"
 
-#: mail/msgset.y:255 mail/msgset.y:258
+#: mail/msgset.y:256 mail/msgset.y:259
 #, c-format
 msgid " near %s"
 msgstr " prop de %s"
 
-#: mail/msgset.y:473
+#: mail/msgset.y:474
 msgid "range error"
 msgstr "error en el rang"
 
-#: mail/msgset.y:736 mail/util.c:213
+#: mail/msgset.y:737 mail/util.c:185
 #, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
 msgstr "%lu: missatge inapropiat (s'ha eliminat)"
-
-# Urgh, què malsonant... "on aplicar". jm
-#: mail/next.c:40 mail/next.c:63 mail/next.c:80 mail/previous.c:46
-#: mail/previous.c:63
-msgid "No applicable message"
-msgstr "No hi ha missatges on aplicar"
 
 #: mail/quit.c:51
 #, c-format
@@ -1567,7 +1707,7 @@ msgid_plural "Held %d messages in %s\n"
 msgstr[0] "S'ha mantingut %d missatge en %s\n"
 msgstr[1] "S'han mantingut %d missatges en %s\n"
 
-#: mail/quit.c:141
+#: mail/quit.c:147
 #, c-format
 msgid "Saved %d message in %s\n"
 msgid_plural "Saved %d messages in %s\n"
@@ -1601,11 +1741,6 @@ msgstr "No es pot crear la llista de capçaleres: %s"
 msgid "Invalid header: %s"
 msgstr "La capçalera és invàlida: %s"
 
-#: mail/send.c:225 mail/var.c:59 mh/mhn.c:2023 mimeview/mimeview.c:217
-#, c-format
-msgid "Cannot create header: %s"
-msgstr "No es pot crear la capçalera: %s"
-
 #: mail/send.c:308
 msgid "Cannot open temporary file"
 msgstr "No es pot obrir un fitxer temporal"
@@ -1626,25 +1761,25 @@ msgstr "Useu «.» per a finalitzar la carta."
 msgid "Use \"~.\" to terminate letter."
 msgstr "Useu «~.» per a finalitzar la carta."
 
-#: mail/send.c:392
+#: mail/send.c:391
 #, c-format
 msgid "Unknown escape %s"
 msgstr "L'escapada %s no és coneguda."
 
-#: mail/send.c:395
+#: mail/send.c:394
 msgid "Unfinished escape"
 msgstr "L'escapada no està acabada"
 
-#: mail/send.c:399
+#: mail/send.c:398
 msgid "Cannot parse escape sequence"
 msgstr "No es pot analitzar la seqüència d'escapada"
 
-#: mail/send.c:424 mh/mh_init.c:668 mh/mh_list.c:264
+#: mail/send.c:423 mh/mh_init.c:668 mh/mh_list.c:264
 #, c-format
 msgid "Cannot open file %s: %s"
 msgstr "No es pot obrir el fitxer %s: %s"
 
-#: mail/send.c:485
+#: mail/send.c:484
 msgid "Null message body; hope that's ok\n"
 msgstr "El cos del missatge és nul, s'espera que siga correcte\n"
 
@@ -1702,159 +1837,91 @@ msgstr[1] " %d eliminats"
 msgid "unalias requires at least one argument"
 msgstr "unalias requereix al menys un argument"
 
-#: mail/util.c:157 mail/var.c:200
-#, c-format
-msgid "Unknown command: %s"
-msgstr "Ordre desconeguda: %s"
-
-#: mail/util.c:159
+#: mail/util.c:117
 msgid "Invalid command"
 msgstr "L'ordre és invàlida"
 
-#: mail/util.c:389
-#, c-format
-msgid "No value set for \"%s\""
-msgstr "No hi ha cap valor establit per a «%s»"
-
-#: mail/util.c:487
-#, c-format
-msgid "oops?"
-msgstr "oops?"
-
-#: mail/util.c:567
-msgid "Incorrect value for decode-fallback"
-msgstr "El valor per decode-fallback és incorrecte"
-
-#: mail/util.c:625
-msgid "Cannot get homedir"
-msgstr "No es pot obtindre el directori personal"
-
-#: mail/util.c:937
-#, c-format
-msgid "Cannot open save file %s: %s"
-msgstr "No es pot obrir el fitxer on desar %s: %s"
-
-#: mail/util.c:954
-msgid "Not enough memory for creating save file"
-msgstr "No hi ha memòria suficient per a crear un fitxer on desar"
-
-#: mail/util.c:1039
+#: mail/util.c:272
 #, c-format
 msgid "Unknown command: %s\n"
 msgstr "Ordre desconeguda: %s\n"
 
+#: mail/util.c:439
+#, c-format
+msgid "No value set for \"%s\""
+msgstr "No hi ha cap valor establit per a «%s»"
+
+#: mail/util.c:594
+#, c-format
+msgid "oops?"
+msgstr "oops?"
+
+#: mail/util.c:684
+msgid "Incorrect value for decode-fallback"
+msgstr "El valor per decode-fallback és incorrecte"
+
+#: mail/util.c:735
+msgid "Cannot get homedir"
+msgstr "No es pot obtindre el directori personal"
+
+#: mail/util.c:1050
+#, fuzzy, c-format
+msgid "Cannot create output mailbox `%s': %s"
+msgstr "No es pot crear una bústia temporal %s: %s"
+
+#: mail/util.c:1058
+#, fuzzy, c-format
+msgid "Cannot open output mailbox `%s': %s"
+msgstr "No es pot obrir la bústia d'eixida %s: %s\n"
+
 #: mail/util.c:1064
+#, fuzzy, c-format
+msgid "Cannot append message to `%s': %s"
+msgstr "No es pot agregar el missatge %lu: %s"
+
+#: mail/util.c:1119
 msgid "Cannot unencapsulate message/part"
 msgstr "No es pot desencapsular el missatge o part"
 
-#: mail/util.c:1073
+#: mail/util.c:1128
 #, c-format
 msgid "No such (sub)part in the message: %d"
 msgstr "No hi ha una (sub)part semblant en el missatge: %d"
 
-#: mail/util.c:1080
+#: mail/util.c:1135
 #, c-format
 msgid "Cannot get (sub)part from the message: %d"
 msgstr "No es pot obtindre la (sub)part del missatge: %d"
 
-#: mail/util.c:1204
+#: mail/util.c:1259
 #, c-format
 msgid "Cannot create temporary header: %s"
 msgstr "No es pot crear la capçalera temporal: %s"
 
-#: mail/util.c:1245
+#: mail/util.c:1300
 #, c-format
 msgid "Cannot parse address `%s' (while expanding `%s'): %s"
 msgstr "No es pot analitzar l'adreça «%s» (a l'expandir «%s»): %s"
 
-#: mail/util.c:1248
+#: mail/util.c:1303
 #, c-format
 msgid "Cannot parse address `%s': %s"
 msgstr "No es pot analitzar l'adreça «%s»: %s"
 
-#: mail/util.c:1301
+#: mail/util.c:1356
 #, c-format
 msgid "Cannot get message %lu: %s"
 msgstr "No es pot obtenir el missatge %lu: %s"
 
-#: mail/util.c:1312
+#: mail/util.c:1367
 #, c-format
 msgid "%d: invalid message number"
 msgstr "%d: el número de missatge no és vàlid"
 
 # Urgh, què malsonant... "on aplicar". jm
-#: mail/util.c:1319
+#: mail/util.c:1374
 msgid "No applicable messages"
 msgstr "No hi ha missatges on aplicar"
-
-#: mail/var.c:95 mail/var.c:121
-#, c-format
-msgid "%d: not a header line"
-msgstr "%d: no és una línia de capçalera"
-
-#: mail/var.c:142
-msgid "Edit again?"
-msgstr "Editar de nou?"
-
-#: mail/var.c:157
-#, c-format
-msgid "(continue)\n"
-msgstr "(continua)\n"
-
-#: mail/var.c:167
-#, c-format
-msgid "%c%s requires an argument"
-msgstr "%c%s requereix un argument"
-
-#: mail/var.c:205
-msgid "Command not allowed in an escape sequence\n"
-msgstr "L'ordre no està permessa en una seqüència d'escapada\n"
-
-#: mail/var.c:252 mail/var.c:551 mail/var.c:606 pop3d/popauth.c:285
-#: pop3d/popauth.c:356 pop3d/popauth.c:430
-#, c-format
-msgid "Cannot open %s: %s"
-msgstr "No es pot obrir %s: %s"
-
-#: mail/var.c:256
-#, c-format
-msgid "Reading %s\n"
-msgstr "S'està llegint %s\n"
-
-#: mail/var.c:455
-#, c-format
-msgid "Interpolating: %d\n"
-msgstr "S'està interpolant: %d\n"
-
-#: mail/var.c:523
-#, c-format
-msgid "Message contains:\n"
-msgstr "El missatge conté:\n"
-
-#. TRANSLATORS: 'pipe' is a command name. Do not translate it!
-#: mail/var.c:637
-msgid "pipe: no command specified"
-msgstr "pipe: no s'ha especificat cap ordre"
-
-#: mail/var.c:681
-#, c-format
-msgid "Cannot exec process `%s': %s"
-msgstr "No es pot executar el procés «%s»: %s"
-
-#: mail/var.c:714
-#, c-format
-msgid "Child terminated abnormally: %d"
-msgstr "El fill ha terminat anormalment: %d"
-
-#: mail/var.c:721
-#, c-format
-msgid "Cannot stat output file: %s"
-msgstr "No es pot fer «stat» del fitxer d'eixida: %s"
-
-#: mail/var.c:731
-#, c-format
-msgid "no lines out\n"
-msgstr "no hi ha línies d'eixida\n"
 
 #: mail/z.c:65
 msgid "Bad arguments for the scrolling command"
@@ -1872,12 +1939,12 @@ msgstr "L'argument no és aplicable per a z"
 msgid "Bad number of pages"
 msgstr "Número erroni de pàgines"
 
-#: mail/z.c:128
+#: mail/z.c:124
 #, c-format
 msgid "On first screenful of messages\n"
 msgstr "En la primera pantalla de missatges\n"
 
-#: mail/z.c:140 mail/z.c:151
+#: mail/z.c:132
 #, c-format
 msgid "On last screenful of messages\n"
 msgstr "En la última pantalla de missatges\n"
@@ -1916,7 +1983,7 @@ msgstr "No tornes errors quan s'envie a múltiples destinataris"
 msgid "Return temporary failure if disk or mailbox quota is exceeded"
 msgstr "Torna un error temporal si la quota de disc o bústia s'ha excedit"
 
-#: mail.local/main.c:79 mailbox/mu_argp.c:90
+#: mail.local/main.c:79 mailbox/mu_argp.c:91
 msgid "EMAIL"
 msgstr "CORREU-E"
 
@@ -1938,17 +2005,23 @@ msgstr "PATRÓ"
 
 #: mail.local/main.c:91
 msgid "Set name pattern for user-defined Sieve mail filters"
-msgstr "Estableix el patró de noms per filtres de correu de Sieve definits per l'usuari"
+msgstr ""
+"Estableix el patró de noms per filtres de correu de Sieve definits per "
+"l'usuari"
 
 #: mail.local/main.c:93
-msgid "Identify messages by the value of this header when logging Sieve actions"
-msgstr "Identifica missatges pel valor d'aquesta capçalera quan es registren accions Sieve"
+msgid ""
+"Identify messages by the value of this header when logging Sieve actions"
+msgstr ""
+"Identifica missatges pel valor d'aquesta capçalera quan es registren accions "
+"Sieve"
 
 #: mail.local/main.c:96
 msgid "Set name pattern for user-defined Scheme mail filters"
-msgstr "Estableix el patró de noms per filtres de correu Scheme definits per l'usuari"
+msgstr ""
+"Estableix el patró de noms per filtres de correu Scheme definits per l'usuari"
 
-#: mail.local/main.c:98 mailbox/mu_argp.c:75 sieve/sieve.c:86
+#: mail.local/main.c:98 mailbox/mu_argp.c:76 sieve/sieve.c:86
 #: mimeview/mimeview.c:46
 msgid "FLAGS"
 msgstr "SENYALADORS"
@@ -2006,81 +2079,84 @@ msgstr "mu_debug_set_print ha fallat: %s\n"
 msgid "Missing arguments. Try --help for more info."
 msgstr "Manquen arguments. Proveu --help per a obtindre més informació."
 
-#: mail.local/main.c:423 mail.local/script.c:94
+#: mail.local/main.c:419 mail.local/script.c:94
 #, c-format
 msgid "Access to %s failed: %m"
 msgstr "No s'ha pogut accedir a %s: %m"
 
-#: mail.local/main.c:431 sieve/sieve.c:375
+#: mail.local/main.c:427 sieve/sieve.c:375
 #, c-format
 msgid "Cannot initialize sieve machine: %s"
 msgstr "No es pot iniciar la màquina de sieve: %s"
 
-#: mail.local/main.c:552
+#: mail.local/main.c:548
 #, c-format
 msgid "Unable to open temporary file: %s"
 msgstr "No es pot obrir un fitxer temporal: %s"
 
-#: mail.local/main.c:558
+#: mail.local/main.c:554
 #, c-format
 msgid "unable to open temporary file: %s"
 msgstr "no es pot obrir un fitxer temporal: %s"
 
-#: mail.local/main.c:589
+#: mail.local/main.c:585
 msgid "Cannot determine sender address"
 msgstr "No es pot determinar el nom del remitent"
 
-#: mail.local/main.c:607 mail.local/main.c:624
+#: mail.local/main.c:603 mail.local/main.c:620
 #, c-format
 msgid "Error writing temporary file: %s"
 msgstr "S'ha produït un error a l'escriure un fitxer temporal: %s"
 
-#: mail.local/main.c:634
+#: mail.local/main.c:630
 #, c-format
 msgid "Error opening temporary file: %s"
 msgstr "S'ha produït un error en obrir un fitxer temporal: %s"
 
-#: mail.local/main.c:643
+#: mail.local/main.c:639
 #, c-format
 msgid "Error creating temporary message: %s"
 msgstr "S'ha produït un error en crear un missatge temporal: %s"
 
-#: mail.local/main.c:668
+#: mail.local/main.c:664
 #, c-format
 msgid "%s: no such user"
 msgstr "%s: no existeix l'usuari"
 
-#: mail.local/main.c:682
+#: mail.local/main.c:678
 #, c-format
 msgid "Cannot get input message stream: %s"
 msgstr "No es pot obtindre el flux de missatge d'entrada: %s"
 
-#: mail.local/main.c:720
+#: mail.local/main.c:716
 #, c-format
 msgid "Cannot lock mailbox `%s': %s"
 msgstr "No es pot blocar la bústia «%s»: %s"
 
-#: mail.local/main.c:750
+#: mail.local/main.c:746
 #, c-format
 msgid "%s: mailbox quota exceeded for this recipient"
 msgstr "%s: s'ha excedit la quota de bústia per a aquest destinatari"
 
-#: mail.local/main.c:761
+#: mail.local/main.c:757
 #, c-format
 msgid "Cannot get stream size (input message): %s"
 msgstr "No es pot obtindre la mida del flux (missatge d'entrada): %s"
 
-#: mail.local/main.c:768
+#: mail.local/main.c:764
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr "%s: el missatge excediria la mida màxima de bústia per a aquest destinatari"
+msgstr ""
+"%s: el missatge excediria la mida màxima de bústia per a aquest destinatari"
 
-#: mail.local/main.c:821
+#: mail.local/main.c:817
 #, c-format
 msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
-msgstr "S'ha produït un error a l'escriure en la bústia: %s. La bústia NO s'ha truncat: %s"
+msgstr ""
+"S'ha produït un error a l'escriure en la bústia: %s. La bústia NO s'ha "
+"truncat: %s"
 
-#: mail.local/main.c:824
+#: mail.local/main.c:820
 #, c-format
 msgid "Error writing to mailbox: %s"
 msgstr "S'ha produït un error l'escriure en la bústia: %s"
@@ -2108,7 +2184,7 @@ msgstr "No es pot obtenir la quota de bústia des de SQL: %s"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mail.remote/mail.remote.c:51
+#: mail.remote/mail.remote.c:52
 msgid ""
 "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
 "This is a simple drop-in replacement for sendmail to forward mail directly\n"
@@ -2133,7 +2209,8 @@ msgid ""
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 msgstr ""
 "GNU mail.remote -- intefície pseudo-sendmail per al lliurament de correu\n"
-"Aquest és un reemplaç simple per a sendmail per a reenviar correu directament\n"
+"Aquest és un reemplaç simple per a sendmail per a reenviar correu "
+"directament\n"
 "a una pasarel·la SMTP.\n"
 "Sempre haurieu d'especificar la pasarel·la SMTP utilitzant l'opció --mailer\n"
 "(el millor lloc per a fer això és al vostre fitxer de configuració).\n"
@@ -2154,74 +2231,79 @@ msgstr ""
 "\n"
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 
-#: mail.remote/mail.remote.c:75
+#: mail.remote/mail.remote.c:76
 msgid "ADDR"
 msgstr "ADREÇA"
 
-#: mail.remote/mail.remote.c:75
+#: mail.remote/mail.remote.c:76
 msgid "Override the default from address"
 msgstr "Substitueix l'adreça del remitent per defecte"
 
-#: mail.remote/mail.remote.c:76
+#: mail.remote/mail.remote.c:77
 msgid "Read message for recipients."
 msgstr "Llig el missatge per a obtenir els destinataris."
 
-#: mail.remote/mail.remote.c:77
-msgid "Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed."
-msgstr "Imprimeix les ordres de sobre en la transacció del protocol SMTP. Si s'especifica més d'una vegada, les parts de dades de la transacció del protocol també s'imprimiran."
+#: mail.remote/mail.remote.c:78
+msgid ""
+"Print envelope commands in the SMTP protocol transaction. If specified more "
+"than once, the data part of the protocol transaction will also be printed."
+msgstr ""
+"Imprimeix les ordres de sobre en la transacció del protocol SMTP. Si "
+"s'especifica més d'una vegada, les parts de dades de la transacció del "
+"protocol també s'imprimiran."
 
-#: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
+#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
 msgid "OPT"
 msgstr "OPC"
 
-#: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
-#: mail.remote/mail.remote.c:80
+#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
+#: mail.remote/mail.remote.c:81
 msgid "Ignored for sendmail compatibility"
 msgstr "S'ignora per compatibilitat amb sendmail"
 
-#: mail.remote/mail.remote.c:119
+#: mail.remote/mail.remote.c:120
 msgid "[TO-ADDR]..."
 msgstr "[ADREÇA-DEST]..."
 
-#: mail.remote/mail.remote.c:176
+#: mail.remote/mail.remote.c:173
 #, c-format
 msgid "Parsing from addresses failed: %s"
 msgstr "L'anàlisi de les adreces de remitent ha fallat: %s"
 
-#: mail.remote/mail.remote.c:186
+#: mail.remote/mail.remote.c:183
 #, c-format
 msgid "Parsing recipient addresses failed: %s"
 msgstr "L'anàlisi de les adreces de destinatari ha fallat: %s"
 
-#: mail.remote/mail.remote.c:194 mail.remote/mail.remote.c:206
-#: mail.remote/mail.remote.c:212
+#: mail.remote/mail.remote.c:191 mail.remote/mail.remote.c:203
+#: mail.remote/mail.remote.c:209
 #, c-format
 msgid "Failed: %s"
 msgstr "Ha fallat: %s"
 
-#: mail.remote/mail.remote.c:200
+#: mail.remote/mail.remote.c:197
 #, c-format
 msgid "Opening stdin failed: %s"
 msgstr "L'obertura de l'entrada estàndard ha fallat: %s"
 
 # Peh. En aquesta, "mailer" = "servidor de correu" no funciona,
 # així que caldrà canviar-los tots. jm
-#: mail.remote/mail.remote.c:220
+#: mail.remote/mail.remote.c:217
 #, c-format
 msgid "Creating mailer `%s' failed: %s"
 msgstr "La creació de l'enviador «%s» ha fallat: %s"
 
-#: mail.remote/mail.remote.c:247
+#: mail.remote/mail.remote.c:244
 #, c-format
 msgid "Opening mailer `%s' failed: %s"
 msgstr "L'obertura de l'enviador «%s» ha fallat: %s"
 
-#: mail.remote/mail.remote.c:254
+#: mail.remote/mail.remote.c:251
 #, c-format
 msgid "Sending message failed: %s"
 msgstr "L'enviament del missatge ha fallat: %s"
 
-#: mail.remote/mail.remote.c:260
+#: mail.remote/mail.remote.c:257
 #, c-format
 msgid "Closing mailer failed: %s"
 msgstr "El tancament de l'enviador de correu ha fallat: %s"
@@ -2300,8 +2382,12 @@ msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Hi ha escombraries en ARGP_HELP_FMT: %s"
 
 #: mailbox/argp-help.c:1195
-msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
-msgstr "Els arguments necessaris o opcionals per a les opcions llargues també són necessaris o opcionals per a qualsevol opció curta corresponent."
+msgid ""
+"Mandatory or optional arguments to long options are also mandatory or "
+"optional for any corresponding short options."
+msgstr ""
+"Els arguments necessaris o opcionals per a les opcions llargues també són "
+"necessaris o opcionals per a qualsevol opció curta corresponent."
 
 #: mailbox/argp-help.c:1582
 msgid "Usage:"
@@ -2386,136 +2472,144 @@ msgstr "S'ha produït un error d'iconv: %s"
 msgid "Stream is closed"
 msgstr "El flux està tancat"
 
-#: mailbox/message.c:1089
+#: mailbox/message.c:1092
 #, c-format
 msgid "mailbox_create_default (%s) failed: %s\n"
 msgstr "mailbox_create_default (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1120
+#: mailbox/message.c:1123
 #, c-format
 msgid "mailbox_open (%s) failed: %s\n"
 msgstr "mailbox_open (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1128
+#: mailbox/message.c:1131
 #, c-format
 msgid "mailbox_append_message (%s) failed: %s\n"
 msgstr "mailbox_append_message (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1140
+#: mailbox/message.c:1143
 #, c-format
 msgid "mailbox_close (%s) failed: %s\n"
 msgstr "mailbox_close (%s) ha fallat: %s\n"
 
-#: mailbox/mu_argp.c:59
+#: mailbox/mu_argp.c:60
 msgid "Common options"
 msgstr "Opcions comuns"
 
-#: mailbox/mu_argp.c:61
+#: mailbox/mu_argp.c:62
 msgid "Show compilation options"
 msgstr "Mostra les opcions de compilació"
 
-#: mailbox/mu_argp.c:67
+#: mailbox/mu_argp.c:68
 msgid "Print license and exit"
 msgstr "Mostra la llicència i ix"
 
-#: mailbox/mu_argp.c:74
+#: mailbox/mu_argp.c:75
 msgid "Use specified URL as a mailspool directory"
 msgstr "Utilitza la URL especificada com el directori de bústies de correu"
 
-#: mailbox/mu_argp.c:76
+#: mailbox/mu_argp.c:77
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
-msgstr "Senyals per defecte del programa blocador (E=extern, R=reintenta, T=temps, P=pid)"
+msgstr ""
+"Senyals per defecte del programa blocador (E=extern, R=reintenta, T=temps, "
+"P=pid)"
 
-#: mailbox/mu_argp.c:77 mailbox/mu_argp.c:81 mh/send.c:67 pop3d/pop3d.c:77
+#: mailbox/mu_argp.c:78 mailbox/mu_argp.c:82 mh/send.c:67 pop3d/pop3d.c:76
 msgid "SECONDS"
 msgstr "SEGONS"
 
-#: mailbox/mu_argp.c:78
+#: mailbox/mu_argp.c:79
 msgid "Set timeout for acquiring the lockfile"
 msgstr "Estableix el temps d'espera per a adquirir el blocatge"
 
-#: mailbox/mu_argp.c:80
+#: mailbox/mu_argp.c:81
 msgid "Set the maximum number of times to retry acquiring the lockfile"
-msgstr "Estableix el màxim nombre de vegades a reintentar l'adquisició del fitxer de blocatge"
+msgstr ""
+"Estableix el màxim nombre de vegades a reintentar l'adquisició del fitxer de "
+"blocatge"
 
-#: mailbox/mu_argp.c:82
+#: mailbox/mu_argp.c:83
 msgid "Number of seconds after which the lock expires"
 msgstr "Nombre de segons després dels quals expira el blocatge"
 
-#: mailbox/mu_argp.c:83
+#: mailbox/mu_argp.c:84
 msgid "PATH"
 msgstr "CAMÍ"
 
-#: mailbox/mu_argp.c:84
+#: mailbox/mu_argp.c:85
 msgid "Set full path to the external locker program"
 msgstr "Estableix el camí sencer al programa de blocatge extern"
 
-#: mailbox/mu_argp.c:91
-msgid "Set current user's email address (default is loginname@defaultdomain)"
-msgstr "Estableix l'adreça de correu de l'usuari actual (per defecte és usuari@domini)"
-
 #: mailbox/mu_argp.c:92
+msgid "Set current user's email address (default is loginname@defaultdomain)"
+msgstr ""
+"Estableix l'adreça de correu de l'usuari actual (per defecte és "
+"usuari@domini)"
+
+#: mailbox/mu_argp.c:93
 msgid "DOMAIN"
 msgstr "DOMINI"
 
-#: mailbox/mu_argp.c:93
+#: mailbox/mu_argp.c:94
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr "Estableix el domini per a noms d'usuari no qualificats (per defecte és aquesta màquina)"
+msgstr ""
+"Estableix el domini per a noms d'usuari no qualificats (per defecte és "
+"aquesta màquina)"
 
-#: mailbox/mu_argp.c:99
+#: mailbox/mu_argp.c:100
 msgid "MAILER"
 msgstr "ENVIADOR"
 
-#: mailbox/mu_argp.c:100
+#: mailbox/mu_argp.c:101
 msgid "Use specified URL as the default mailer"
 msgstr "Usa la URL especificada com l'enviador de correu per defecte"
 
-#: mailbox/mu_argp.c:106
+#: mailbox/mu_argp.c:107
 msgid "FACILITY"
 msgstr "EQUIPAMENT"
 
-#: mailbox/mu_argp.c:107
+#: mailbox/mu_argp.c:108
 msgid "Output logs to syslog FACILITY"
 msgstr "Mostra els logs en l'EQUIPAMENT de syslog"
 
-#: mailbox/mu_argp.c:115
+#: mailbox/mu_argp.c:116
 msgid "Runs in daemon mode with a maximum of NUMBER children"
 msgstr "S'executa en mode dimoni amb un màxim de NÚMERO fills"
 
-#: mailbox/mu_argp.c:117
+#: mailbox/mu_argp.c:118
 msgid "Run in inetd mode"
 msgstr "S'executa en mode inetd"
 
-#: mailbox/mu_argp.c:118
+#: mailbox/mu_argp.c:119
 msgid "PORT"
 msgstr "PORT"
 
-#: mailbox/mu_argp.c:119
+#: mailbox/mu_argp.c:120
 msgid "Listen on specified port number"
 msgstr "Escolta en el número de port especificat"
 
-#: mailbox/mu_argp.c:121
+#: mailbox/mu_argp.c:122
 msgid "Set idle timeout value to NUMBER seconds"
 msgstr "Estableix el valor de temps d'espera d'inactivitat a NÚMERO segons"
 
-#: mailbox/mu_argp.c:123
+#: mailbox/mu_argp.c:124
 msgid "Output session transcript via syslog"
 msgstr "Mostra la transcripció de la sessió a través de syslog"
 
-#: mailbox/mu_argp.c:125
+#: mailbox/mu_argp.c:126
 msgid "Set PID file"
 msgstr "Estableix el fitxer PID"
 
-#: mailbox/mu_argp.c:214
+#: mailbox/mu_argp.c:215
 msgid "Daemon configuration options"
 msgstr "Opcions de configuració del dimoni"
 
-#: mailbox/mu_argp.c:249
+#: mailbox/mu_argp.c:250
 #, c-format
 msgid "Unknown facility `%s'\n"
 msgstr "Equipament «%s» desconegut\n"
 
-#: mailbox/mu_argp.c:387
+#: mailbox/mu_argp.c:390
 #, c-format
 msgid ""
 "License for %s:\n"
@@ -2524,30 +2618,30 @@ msgstr ""
 "Llicència per a %s:\n"
 "\n"
 
-#: mailbox/mu_argp.c:424
+#: mailbox/mu_argp.c:402
+#, fuzzy, c-format
+msgid "Cannot set mail directory name: %s"
+msgstr "No es pot crear el directori %s: %s"
+
+#: mailbox/mu_argp.c:430
 #, c-format
 msgid "Invalid lock flag `%c'"
 msgstr "Senyal de blocatge «%c» no vàlid"
 
-#: mailbox/mu_argp.c:464
+#: mailbox/mu_argp.c:470
 #, c-format
 msgid "Invalid email address `%s': %s"
 msgstr "Adreça de correu-e «%s» no vàlida: %s"
 
-#: mailbox/mu_argp.c:472
+#: mailbox/mu_argp.c:478
 #, c-format
 msgid "Invalid email domain `%s': %s"
 msgstr "Domini de correu-e «%s» no vàlid: %s"
 
-#: mailbox/mu_argp.c:481
+#: mailbox/mu_argp.c:487
 #, c-format
 msgid "Invalid mailer URL `%s': %s"
 msgstr "URL de l'enviador de correu «%s» no vàlida: %s"
-
-#: mailbox/mu_argp.c:495
-#, c-format
-msgid "Badly formed mailspool path: %s"
-msgstr "Camí de bústia de correu malformat: %s"
 
 #: mailbox/mu_argp.c:631 mailbox/mu_argp.c:670 mailbox/mu_argp.c:710
 #: mailbox/mu_argp.c:753 mailbox/mu_argp.c:782
@@ -2558,11 +2652,15 @@ msgstr "%s: no hi ha memòria suficient\n"
 #: mailbox/mu_argp.c:892
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
-msgstr "ERROR INTERN: s'ha sol·licitat una capacitat d'argp «%s» desconeguda (si us plau, informeu)"
+msgstr ""
+"ERROR INTERN: s'ha sol·licitat una capacitat d'argp «%s» desconeguda (si us "
+"plau, informeu)"
 
 #: mailbox/mu_argp.c:955
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr "ERROR INTERN: no es pot registrar la capacitat d'argp auth (si us plau, informeu)"
+msgstr ""
+"ERROR INTERN: no es pot registrar la capacitat d'argp auth (si us plau, "
+"informeu)"
 
 #: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
 msgid "MODLIST"
@@ -2576,200 +2674,213 @@ msgstr "Estableix una llista de mòduls a utilitzar per a l'autenticació"
 msgid "Set list of modules to be used for authorization"
 msgstr "Estableix una llista de mòduls a utilitzar per a l'autorització"
 
-#: mailbox/errors:18
+#: mailbox/errors:19
 msgid "Operation failed"
 msgstr "L'operació ha fallat"
 
-#: mailbox/errors:20
+#: mailbox/errors:21
 msgid "No registered handler"
 msgstr "No hi ha cap gestor registrat"
 
-#: mailbox/errors:21
+#: mailbox/errors:22
 msgid "Empty virtual function"
 msgstr "La funció virtual està buida"
 
-#: mailbox/errors:23
+#: mailbox/errors:24
 msgid "Pointer to output null"
 msgstr "El punter a l'eixida és nul"
 
-#: mailbox/errors:24
+#: mailbox/errors:25
 msgid "Pointer to output pointer null"
 msgstr "El punter al punter d'eixida és nul"
 
-#: mailbox/errors:26
+#: mailbox/errors:27
 msgid "Mailbox null"
 msgstr "Bústia nula"
 
-#: mailbox/errors:28
+#: mailbox/errors:29
 msgid "Format of RFC822 object is bad"
 msgstr "El format de l'objecte RFC822 és erroni"
 
-#: mailbox/errors:29
+#: mailbox/errors:30
 msgid "Address contains no addr specs"
 msgstr "L'adreça no conté cap especificació d'adreça"
 
-#: mailbox/errors:31
+#: mailbox/errors:32
 msgid "Locker null"
 msgstr "El programa blocador és nul"
 
-#: mailbox/errors:32
+#: mailbox/errors:33
 msgid "Conflict with previous locker"
 msgstr "Conflicte amb el programa blocador previ"
 
-#: mailbox/errors:33
+#: mailbox/errors:34
 msgid "Lock file check failed"
 msgstr "La comprovació del fitxer de blocatge ha fallat"
 
-#: mailbox/errors:34
+#: mailbox/errors:35
 msgid "File check failed"
 msgstr "La comprovació del fitxer ha fallat"
 
 # Hrm... jm
-#: mailbox/errors:35
+#: mailbox/errors:36
 msgid "Lock not held on file"
 msgstr "El fitxer no està blocat"
 
-#: mailbox/errors:36
+#: mailbox/errors:37
 msgid "Failed to exec external locker"
 msgstr "No s'ha pogut executar el programa blocador extern"
 
-#: mailbox/errors:37
+#: mailbox/errors:38
 msgid "External locker failed"
 msgstr "El programa blocador extern ha fallat"
 
-#: mailbox/errors:38
+#: mailbox/errors:39
 msgid "External locker killed"
 msgstr "S'ha matat el programa blocador extern"
 
-#: mailbox/errors:40
+#: mailbox/errors:41
 msgid "No such user name"
 msgstr "No existeix l'usuari"
 
-#: mailbox/errors:42
+#: mailbox/errors:43
 msgid "DNS name resolution failed"
 msgstr "La resolució de noms DNS ha fallat"
 
-#: mailbox/errors:43
+#: mailbox/errors:44
 msgid "State busy must resume operation"
 msgstr "Estat ocupat, s'ha de resumir l'operació"
 
-#: mailbox/errors:44
+#: mailbox/errors:45
 msgid "Not a valid mailer from address"
 msgstr "No és una adreça de remitent de l'enviador de correu vàlida"
 
-#: mailbox/errors:45
+#: mailbox/errors:46
 msgid "Not a valid mailer to address"
 msgstr "No és una adreça de destinatari de l'enviador de correu vàlida"
 
-#: mailbox/errors:46
+#: mailbox/errors:47
 msgid "No receipt addresses found"
 msgstr "No s'han trobat adreces de rebut"
 
-#: mailbox/errors:47
+#: mailbox/errors:48
 msgid "Malformed or unsupported mailer URL"
 msgstr "URL de l'enviador de correu malformada o no implementada"
 
-#: mailbox/errors:48
+#: mailbox/errors:49
 msgid "SMTP rcpt to command failed"
 msgstr "L'ordre SMTP rcpt to ha fallat"
 
-#: mailbox/errors:49
+#: mailbox/errors:50
 msgid "Tcp connections need a host"
 msgstr "Les connexions Tcp necessiten una màquina"
 
-#: mailbox/errors:50
+#: mailbox/errors:51
 msgid "Tcp connections need a postive port"
 msgstr "Les connexions Tcp necessiten un port positiu"
 
-#: mailbox/errors:52
+#: mailbox/errors:53
 msgid "Input string is not RFC 2047 encoded"
 msgstr "El flux d'entrada no està codificat segons RFC 2047"
 
 #: mailbox/errors:54
+msgid "Not a valid RFC 2047 encoding"
+msgstr ""
+
+#: mailbox/errors:56
 msgid "User name is not supplied"
 msgstr "No s'ha donat el nom d'usuari"
 
-#: mailbox/errors:55
+#: mailbox/errors:57
 msgid "User password is not supplied"
 msgstr "No s'ha donat la contrasenya de l'usuari"
 
-#: mailbox/errors:57
+#: mailbox/errors:59
 msgid "Unsafe file permissions. Set 0600"
 msgstr "Permisos de fitxer insegurs en %s. Establiu 0600"
 
-#: mailbox/errors:58
+#: mailbox/errors:60
 msgid "Unsupported authentication scheme"
 msgstr "L'esquema de autenticació no és suportat"
 
-#: mailbox/errors:59
+#: mailbox/errors:61
 msgid "Authentication failed"
 msgstr "Ha fallat l'autentificació"
 
-#: mailbox/errors:61
+#: mailbox/errors:63
 msgid "Cannot execute"
 msgstr "No es pot executar"
 
-#: mailbox/errors:62
+#: mailbox/errors:64
 msgid "Process exited with a non-zero status"
 msgstr "El procés ha eixit amb un estat no-zero"
 
-#: mailbox/errors:63
+#: mailbox/errors:65
 msgid "Process exited on signal"
 msgstr "El procés ha eixit en el senyal"
 
-#: mailbox/errors:64
+#: mailbox/errors:66
 msgid "Unknown failure while executing subprocess"
 msgstr "S'ha produït una fallada desconeguda mentre s'executava el subprocés"
 
-#: mailbox/errors:65
+#: mailbox/errors:67
 msgid "Connection closed by remote host"
 msgstr "El servidor remot ha tallat la connexió"
 
-#: mailbox/errors:66
+#: mailbox/errors:68
 msgid "Parse error"
 msgstr "S'ha produït un error d'anàlisi"
 
-#: mailbox/errors:67
+#: mailbox/errors:69
 msgid "Requested item not found"
 msgstr "No es troba l'element sol·licitat"
 
-#: mailbox/errors:68
+#: mailbox/errors:70
 msgid "Not enough buffer space"
 msgstr "No hi ha espai de búfer suficient"
 
-#: mailbox/errors:70
+#: mailbox/errors:72
 msgid "SQL error"
 msgstr "S'ha produït un error d'SQL"
 
-#: mailbox/errors:71
+#: mailbox/errors:73
 msgid "Already connected to the database"
 msgstr "Està connectat a la base de dades"
 
-#: mailbox/errors:72
+#: mailbox/errors:74
 msgid "Not connected to the database"
 msgstr "No està connectat a la base de dades"
 
-#: mailbox/errors:73
+#: mailbox/errors:75
 msgid "Result of the previous query is not released"
 msgstr "No s'ha publicat el resultat de la consulta anterior"
 
-#: mailbox/errors:74
+#: mailbox/errors:76
 msgid "No query was yet executed"
 msgstr "No s'ha executat cap consulta"
 
-#: mailbox/errors:75
+#: mailbox/errors:77
 msgid "Bad column address"
 msgstr "L'adreça de la columna és errònia"
 
-#: mailbox/errors:76
+#: mailbox/errors:78
 msgid "No result from the previous query available"
 msgstr "No hi ha resultats disponibles de l'anterior consulta SQL"
 
-#: mailbox/errors:77
+#: mailbox/errors:79
 msgid "No such interface"
 msgstr "No existeix eixa interfície"
 
-#: mailbox/mutil.c:581
+#: mailbox/errors:81
+msgid "Badly formed file or directory name"
+msgstr ""
+
+#: mailbox/errors:82
+#, fuzzy
+msgid "Read error"
+msgstr "Error d'expreg"
+
+#: mailbox/mutil.c:590
 #, c-format
 msgid "Cannot open temporary file: %s"
 msgstr "No es pot obrir un fitxer temporal: %s"
@@ -2780,7 +2891,7 @@ msgstr "No es pot obrir un fitxer temporal: %s"
 #.
 #. msgstr "yYbB";
 #.
-#: mailbox/mutil.c:1166
+#: mailbox/mutil.c:1175
 msgid "yY"
 msgstr "yYsS"
 
@@ -2790,7 +2901,7 @@ msgstr "yYsS"
 #.
 #. msgstr "nNeE";
 #.
-#: mailbox/mutil.c:1175
+#: mailbox/mutil.c:1184
 msgid "nN"
 msgstr "nN"
 
@@ -2834,7 +2945,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH annoLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/anno.c:29
 msgid "[msg [msg...]]"
@@ -2844,7 +2956,7 @@ msgstr "[msg [msg...]]"
 #: mh/inc.c:34 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
 #: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
 #: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:39 mh/send.c:42
-#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:44
+#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:43
 msgid "FOLDER"
 msgstr "CARPETA"
 
@@ -2890,7 +3002,9 @@ msgstr "Nom del component: "
 #. in this message
 #: mh/fmtcheck.c:26
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH fmtcheckUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH fmtcheckUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
 #: mh/scan.c:45
@@ -2925,13 +3039,15 @@ msgstr "La cadena de format és errònia"
 #. in this message
 #: mh/folder.c:39
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH folderUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH folderUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/folder.c:41
 msgid "[action] [msg]"
 msgstr "[acció] [msg]"
 
-#: mh/folder.c:44 pop3d/popauth.c:69
+#: mh/folder.c:44 pop3d/popauth.c:68
 msgid "Actions are:"
 msgstr "Les accions són:"
 
@@ -2944,14 +3060,22 @@ msgid "List the contents of the folder stack"
 msgstr "Llista els continguts de la pila de carpetes"
 
 #: mh/folder.c:50
-msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
-msgstr "Empila la carpeta en la pila de carpetes. Si s'especifica CARPETA, s'empila. D'altra manera, si es dóna una carpeta en la línia d'ordres (mitjançant + o --folder), s'empila en la pila. Si no, s'intercanvien la carpeta actual i l'últim element de la pila de carpetes."
+msgid ""
+"Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
+"Otherwise, if a folder is given in the command line (via + or --folder), it "
+"is pushed on stack. Otherwise, the current folder and the top of the folder "
+"stack are exchanged"
+msgstr ""
+"Empila la carpeta en la pila de carpetes. Si s'especifica CARPETA, s'empila. "
+"D'altra manera, si es dóna una carpeta en la línia d'ordres (mitjançant + o "
+"--folder), s'empila en la pila. Si no, s'intercanvien la carpeta actual i "
+"l'últim element de la pila de carpetes."
 
 #: mh/folder.c:55
 msgid "Pop the folder off the folder stack"
 msgstr "Desempila la carpeta de la pila de carpetes"
 
-#: mh/folder.c:57 mh/mh_whatnow.c:153 pop3d/popauth.c:81
+#: mh/folder.c:57 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr "Les opcions són:"
 
@@ -3001,23 +3125,27 @@ msgstr " no té missatges"
 msgid "(others)"
 msgstr "(altres)"
 
-#: mh/folder.c:449
+#: mh/folder.c:450
 #, c-format
-msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
-msgstr "Carpeta                 # de missatges    ( rang )   mis act  (altres fitxers)\n"
+msgid ""
+"Folder                  # of messages     (  range  )  cur msg   (other "
+"files)\n"
+msgstr ""
+"Carpeta                 # de missatges    ( rang )   mis act  (altres "
+"fitxers)\n"
 
-#: mh/folder.c:455
+#: mh/folder.c:456
 msgid "TOTAL"
 msgstr "TOTAL"
 
-#: mh/folder.c:456
+#: mh/folder.c:457
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
 msgstr[0] "%4lu missatge"
 msgstr[1] "%4lu missatges"
 
-#: mh/folder.c:459
+#: mh/folder.c:460
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
@@ -3032,7 +3160,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH forwLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/forw.c:34 mh/repl.c:37
 msgid "* Add Replied: header to the message being replied to"
@@ -3101,7 +3230,9 @@ msgstr "* Estableix el reemplaç per al programa whatnow"
 
 #: mh/forw.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
-msgstr "* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» en el seu lloc"
+msgstr ""
+"* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» "
+"en el seu lloc"
 
 #: mh/forw.c:71 mh/repl.c:70
 msgid "Use draft file preserved after the last session"
@@ -3140,7 +3271,9 @@ msgstr "Final dels missatges reenviats"
 #. in this message
 #: mh/inc.c:26
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH incUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH incUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/inc.c:28 mh/rmf.c:37
 msgid "[+folder]"
@@ -3201,8 +3334,11 @@ msgstr "%d: s'ha produït un error en agregar el missatge: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/install-mh.c:24
-msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH install-mhUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgid ""
+"GNU MH install-mhUse -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH install-mhUtilitzeu el commutador -help per a obtindre la llista de "
+"les opcions tradicionals d'MH."
 
 #: mh/install-mh.c:30
 msgid "Do not ask for anything"
@@ -3212,7 +3348,9 @@ msgstr "No preguntes res"
 #. in this message
 #: mh/mark.c:24
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH markUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH markUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/mark.c:33
 msgid "Specify sequence name to operate upon"
@@ -3395,12 +3533,12 @@ msgstr "Error d'escriptura en «%s»: %s"
 msgid "Cannot stat file %s: %s"
 msgstr "No es pot fer «stat» del fitxer %s: %s"
 
-#: mh/mh_init.c:585 mh/mhn.c:2231
+#: mh/mh_init.c:585 mh/mhn.c:2267
 #, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "No es pot crear un flux d'entrada (fitxer %s): %s"
 
-#: mh/mh_init.c:592 mh/mhn.c:2238
+#: mh/mh_init.c:592 mh/mhn.c:2274
 #, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "No es pot obrir el flux d'entrada (fitxer %s): %s"
@@ -3563,8 +3701,14 @@ msgid "List the message being distributed/replied-to on the terminal."
 msgstr "Llista el missatge que està sent distribuït/contestat en el terminal."
 
 #: mh/mh_whatnow.c:394
-msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
-msgstr "Edita el missatge. Si s'omet EDITOR, usa el que es va usar en la ronda anterior a no ser que l'entrada «LASTEDITOR-next» del perfil nombre un editor alternatiu."
+msgid ""
+"Edit the message. If EDITOR is omitted use the one that was used on the "
+"preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
+"alternate editor."
+msgstr ""
+"Edita el missatge. Si s'omet EDITOR, usa el que es va usar en la ronda "
+"anterior a no ser que l'entrada «LASTEDITOR-next» del perfil nombre un "
+"editor alternatiu."
 
 #: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
 msgid "List the draft on the terminal."
@@ -3575,20 +3719,32 @@ msgid "Send the message in the background."
 msgstr "Envia el missatge en segon pla."
 
 #: mh/mh_whatnow.c:402
-msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
-msgstr "Finalitza la sessió. Preserva l'esborrany, si no s'ha donat el senyalador -delete."
+msgid ""
+"Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr ""
+"Finalitza la sessió. Preserva l'esborrany, si no s'ha donat el senyalador -"
+"delete."
 
 #: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
 msgid "Refile the draft into the given FOLDER."
 msgstr "Torna a desar l'esborrany en la CARPETA donada."
 
 #: mh/mh_whatnow.c:406
-msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
-msgstr "Envia el missatge. El senyalador -watch fa que el procés d'enviament es monitoritze. Els COMMUTADORS es passen al programa d'enviament sense modificació."
+msgid ""
+"Send the message. The -watch flag causes the delivery process to be "
+"monitored. SWITCHES are passed to send program verbatim."
+msgstr ""
+"Envia el missatge. El senyalador -watch fa que el procés d'enviament es "
+"monitoritze. Els COMMUTADORS es passen al programa d'enviament sense "
+"modificació."
 
 #: mh/mh_whatnow.c:409
-msgid "List the addresses and verify that they are acceptable to the transport service."
-msgstr "Llista les adreces i verifica que siguen acceptables per al servei de transport."
+msgid ""
+"List the addresses and verify that they are acceptable to the transport "
+"service."
+msgstr ""
+"Llista les adreces i verifica que siguen acceptables per al servei de "
+"transport."
 
 #: mh/mh_whatnow.c:425
 msgid "Terminate the session. Preserve the draft."
@@ -3658,7 +3814,9 @@ msgstr "Cap destinatari"
 #. in this message
 #: mh/mhl.c:28
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhlUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH mhlUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/mhl.c:30
 msgid "[files]"
@@ -3721,7 +3879,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH mhnLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/mhn.c:40
 msgid "Specify file to operate upon"
@@ -3802,7 +3961,8 @@ msgstr "CONTINGUT"
 
 #: mh/mhn.c:83
 msgid "Operate on message part with given multipart content"
-msgstr "Opera en la part del missatge amb el contingut de múltiples parts donat"
+msgstr ""
+"Opera en la part del missatge amb el contingut de múltiples parts donat"
 
 #: mh/mhn.c:85
 msgid "Print additional information"
@@ -3872,12 +4032,12 @@ msgstr "s'està desant el missatge %lu, part %s en el fitxer %s\n"
 msgid "File %s already exists. Rewrite"
 msgstr "El fitxer %s ja existeix. Reescriure"
 
-#: mh/mhn.c:1680 mh/mhn.c:2497
+#: mh/mhn.c:1680 mh/mhn.c:2547
 #, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr "No es pot crear un flux d'eixida (fitxer %s): %s"
 
-#: mh/mhn.c:1688 mh/mhn.c:2505
+#: mh/mhn.c:1688 mh/mhn.c:2555
 #, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr "No es pot obrir el flux d'eixida (fitxer %s): %s"
@@ -3892,17 +4052,17 @@ msgstr "%s:%lu: manca %c"
 msgid "%s:%lu: comment redefined"
 msgstr "%s:%lu: el comentari està redefinit"
 
-#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2115
+#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2151
 #, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu: error de sintaxi"
 
-#: mh/mhn.c:1858 mh/mhn.c:2082
+#: mh/mhn.c:1858 mh/mhn.c:2118
 #, c-format
 msgid "%s:%lu: description redefined"
 msgstr "%s:%lu: la descripció està redefinida"
 
-#: mh/mhn.c:1870 mh/mhn.c:2094
+#: mh/mhn.c:1870 mh/mhn.c:2130
 #, c-format
 msgid "%s:%lu: content id redefined"
 msgstr "%s:%lu: l'id del contingut està redefinit"
@@ -3912,27 +4072,27 @@ msgstr "%s:%lu: l'id del contingut està redefinit"
 msgid "%s:%lu: missing subtype"
 msgstr "%s:%lu: manca el subtipus"
 
-#: mh/mhn.c:2129
+#: mh/mhn.c:2165
 #, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu no existeix el missatge: %lu"
 
-#: mh/mhn.c:2220
+#: mh/mhn.c:2256
 #, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu: manca el nom del fitxer"
 
-#: mh/mhn.c:2276
+#: mh/mhn.c:2312
 #, c-format
 msgid "Cannot open filter stream: %s"
 msgstr "No es pot obrir el flux de filtre: %s"
 
-#: mh/mhn.c:2397
+#: mh/mhn.c:2445
 #, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu: #end no emparellat"
 
-#: mh/mhn.c:2551 mh/mhn.c:2562
+#: mh/mhn.c:2601 mh/mhn.c:2612
 msgid "extra arguments"
 msgstr "arguments extra"
 
@@ -3940,7 +4100,9 @@ msgstr "arguments extra"
 #. in this message
 #: mh/mhpath.c:26
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhpathUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH mhpathUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
 msgid "[+folder] [msgs]"
@@ -3954,7 +4116,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH pickLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/pick.c:35
 msgid "[messages]"
@@ -3974,8 +4137,19 @@ msgid "A pattern to look for"
 msgstr "Un patró pel qual cercar"
 
 #: mh/pick.c:49
-msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
-msgstr "Els senyaladors que controlen el tipus de les expressions regulars. CADENA ha de consistir d'una o més de les següents lletres: B=bàsica, E=extesa, I=no distingeix entre majúscules i minúscules, C=distingeix entre majúscules i minúscules. El valor per defecte és «EI». Els senyaladors tenen efecte fins la següent ocurrència d'una opció --cflags. L'opció ha de tindre lloc just abans d'una opció --pattern o --component (o els seus àlies)."
+msgid ""
+"Flags controlling the type of regular expressions. STRING must consist of "
+"one or more of the following letters: B=basic, E=extended, I=ignore case, "
+"C=case sensitive. Default is \"EI\". The flags remain in effect until the "
+"next occurrence of --cflags option. The option must occur right before --"
+"pattern or --component option (or its alias)."
+msgstr ""
+"Els senyaladors que controlen el tipus de les expressions regulars. CADENA "
+"ha de consistir d'una o més de les següents lletres: B=bàsica, E=extesa, "
+"I=no distingeix entre majúscules i minúscules, C=distingeix entre majúscules "
+"i minúscules. El valor per defecte és «EI». Els senyaladors tenen efecte "
+"fins la següent ocurrència d'una opció --cflags. L'opció ha de tindre lloc "
+"just abans d'una opció --pattern o --component (o els seus àlies)."
 
 #: mh/pick.c:51
 msgid "Same as --component cc --pattern STRING"
@@ -4004,7 +4178,8 @@ msgstr "Operacions de restricció de data:"
 
 #: mh/pick.c:63
 msgid "Search in the named date header field (default is `Date:')"
-msgstr "Cerca en el camp de capçalera de data esmentada (per defecte és «Date:»)"
+msgstr ""
+"Cerca en el camp de capçalera de data esmentada (per defecte és «Date:»)"
 
 #: mh/pick.c:64 mh/pick.c:66
 msgid "DATE"
@@ -4067,7 +4242,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH refileLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/refile.c:34
 msgid "messages folder [folder...]"
@@ -4086,8 +4262,12 @@ msgid "* Try to preserve message sequence numbers"
 msgstr "* Tracta de preservar la numeració de la seqüència dels missatges"
 
 #: mh/refile.c:48
-msgid "Specify source folder. FOLDER will become the current folder after the program exits"
-msgstr "Especifica la carpeta d'origen. CARPETA es convertirà en la carpeta actual després de l'eixida del programa"
+msgid ""
+"Specify source folder. FOLDER will become the current folder after the "
+"program exits"
+msgstr ""
+"Especifica la carpeta d'origen. CARPETA es convertirà en la carpeta actual "
+"després de l'eixida del programa"
 
 #: mh/refile.c:50
 msgid "Use FILE as the source message"
@@ -4122,7 +4302,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH replLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/repl.c:31
 msgid "[+folder] [msg]"
@@ -4154,11 +4335,19 @@ msgstr "FILTRE-MHL"
 
 #: mh/repl.c:57
 msgid "Set the mhl filter to preprocess the body of the message being replied"
-msgstr "Estableix el filtre mhl per a preprocessar el cos del missatge al que s'està responent"
+msgstr ""
+"Estableix el filtre mhl per a preprocessar el cos del missatge al que s'està "
+"responent"
 
 #: mh/repl.c:60
-msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option"
-msgstr "Inclou una còpia del missatge al que s'està responent. El missatge serà processat utilitzant el filtre per defecte «mhl.reply», o el filtre especificat per l'opció --filter"
+msgid ""
+"Include a copy of the message being replied. The message will be processed "
+"using either the default filter \"mhl.reply\", or the filter specified by --"
+"filter option"
+msgstr ""
+"Inclou una còpia del missatge al que s'està responent. El missatge serà "
+"processat utilitzant el filtre per defecte «mhl.reply», o el filtre "
+"especificat per l'opció --filter"
 
 #: mh/repl.c:64
 msgid "Query for addresses to place in To: and Cc: lists"
@@ -4166,7 +4355,9 @@ msgstr "Consulta les adreces a ficar en les llistes To: i Cc:"
 
 #: mh/repl.c:69
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr "* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» en el seu lloc."
+msgstr ""
+"* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» "
+"en el seu lloc."
 
 #: mh/repl.c:131
 #, c-format
@@ -4180,7 +4371,7 @@ msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
 msgstr[0] "L'esborrany «%s» existeix (%lu byte).\n"
 msgstr[1] "L'esborrany «%s» existeix (%lu bytes).\n"
 
-#: mh/repl.c:298 movemail/movemail.c:214
+#: mh/repl.c:298
 #, c-format
 msgid "Cannot read message %lu: %s"
 msgstr "No es pot llegir el missatge %lu: %s"
@@ -4203,7 +4394,9 @@ msgstr "només un missatge a l'hora!"
 #. in this message
 #: mh/rmf.c:35
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmfUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH rmfUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/rmf.c:42
 msgid "Specify the folder to delete"
@@ -4231,13 +4424,17 @@ msgstr "No es pot desenllaçar %s: %s"
 #. in this message
 #: mh/rmm.c:26
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmmUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH rmmUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/scan.c:33
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH scanUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH scanUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/scan.c:40
 msgid "Specify folder to scan"
@@ -4277,7 +4474,8 @@ msgid ""
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH sendLes opcions marcades amb «*» encara no estan implementades.\n"
-"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions "
+"tradicionals d'MH."
 
 #: mh/send.c:33
 msgid "file [file...]"
@@ -4293,7 +4491,8 @@ msgstr "Utilitza l'esborrany preparat"
 
 #: mh/send.c:45 mh/whom.c:37
 msgid "Treat the arguments as a list of messages from the draftfolder"
-msgstr "Tracta els arguments com una llista de missatges de la carpeta d'esborranys"
+msgstr ""
+"Tracta els arguments com una llista de missatges de la carpeta d'esborranys"
 
 #: mh/send.c:49
 msgid "* Use filter FILE to preprocess the body of the message"
@@ -4308,8 +4507,12 @@ msgid "* Reformat To: and Cc: addresses"
 msgstr "* Reformata les adreces To: i Cc:"
 
 #: mh/send.c:56
-msgid "* In case of failure forward the draft along with the failure notice to the sender"
-msgstr "* En cas de fallada, reenvia l'esborrany junt amb la nota de la fallada al remitent"
+msgid ""
+"* In case of failure forward the draft along with the failure notice to the "
+"sender"
+msgstr ""
+"* En cas de fallada, reenvia l'esborrany junt amb la nota de la fallada al "
+"remitent"
 
 #: mh/send.c:59
 msgid "* Use MIME encapsulation"
@@ -4324,8 +4527,12 @@ msgid "Run in the backround."
 msgstr "Executa-ho en segon pla."
 
 #: mh/send.c:68
-msgid "* Split the draft into several partial messages and send them with SECONDS interval"
-msgstr "* Divideix l'esborrany en diversos missatges parcials i envial's en un intervals de SEGONS"
+msgid ""
+"* Split the draft into several partial messages and send them with SECONDS "
+"interval"
+msgstr ""
+"* Divideix l'esborrany en diversos missatges parcials i envial's en un "
+"intervals de SEGONS"
 
 #: mh/send.c:70
 msgid "Print the transcript of interactions with the transport system"
@@ -4337,9 +4544,11 @@ msgstr "Monitoritza l'enviament de correu"
 
 #: mh/send.c:76
 msgid "* Make header fields no longer than NUMBER columns"
-msgstr "* Fes que els camps de les capçaleres no siguen més llargs que NÚMERO columnes"
+msgstr ""
+"* Fes que els camps de les capçaleres no siguen més llargs que NÚMERO "
+"columnes"
 
-#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135 pop3d/pop3d.c:149
+#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:134 pop3d/pop3d.c:148
 msgid "Invalid number"
 msgstr "El número no és vàlid"
 
@@ -4396,7 +4605,7 @@ msgstr "S'està destruint l'enviador"
 msgid "Cannot switch to background: %s"
 msgstr "No es pot canviar al segon pla: %s"
 
-#: mh/send.c:559
+#: mh/send.c:560
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "no es pot fer «stat» de %s: %s"
@@ -4413,7 +4622,9 @@ msgstr "Estableix l'indicatiu"
 #. in this message
 #: mh/whom.c:24
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH whomUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+msgstr ""
+"GNU MH whomUtilitzeu el commutador -help per a obtindre la llista de les "
+"opcions tradicionals d'MH."
 
 #: mh/whom.c:41
 msgid "Check if addresses are deliverable"
@@ -4473,9 +4684,14 @@ msgstr "authority_set_ticket ha fallat"
 msgid "Cannot open"
 msgstr "No es pot obrir"
 
+#: movemail/movemail.c:214
+#, fuzzy, c-format
+msgid "Cannot read message %lu: %s\n"
+msgstr "No es pot llegir el missatge %lu: %s"
+
 #: movemail/movemail.c:220
-#, c-format
-msgid "Cannot append message %lu: %s"
+#, fuzzy, c-format
+msgid "Cannot append message %lu: %s\n"
 msgstr "No es pot agregar el missatge %lu: %s"
 
 #: movemail/movemail.c:251
@@ -4563,60 +4779,60 @@ msgstr "eof inesperat en l'entrada"
 msgid "Locking mailbox `%s' failed: %s"
 msgstr "Ha fallat l'obertura de «%s»: %s"
 
-#: pop3d/pop3d.c:65
+#: pop3d/pop3d.c:64
 msgid "GNU pop3d -- the POP3 daemon"
 msgstr "GNU pop4d -- el dimoni POP3"
 
-#: pop3d/pop3d.c:75
+#: pop3d/pop3d.c:74
 msgid "Undelete all messages on startup"
 msgstr "Lleva la marca d'eliminació de tots els missatges en iniciar"
 
-#: pop3d/pop3d.c:78
+#: pop3d/pop3d.c:77
 msgid "Allowed delay between the two successive logins"
 msgstr "Retard permés entre les dos entrades consecutives"
 
-#: pop3d/pop3d.c:79
+#: pop3d/pop3d.c:78
 msgid "FILENAME"
 msgstr "FITXER"
 
-#: pop3d/pop3d.c:80
+#: pop3d/pop3d.c:79
 msgid "Name of login statistics file"
 msgstr "Nom del fitxer d'estadístiques d'entrades"
 
-#: pop3d/pop3d.c:82
+#: pop3d/pop3d.c:81
 msgid "DAYS"
 msgstr "DIES"
 
-#: pop3d/pop3d.c:83
+#: pop3d/pop3d.c:82
 msgid "Expire read messages after the given number of days"
 msgstr "Fes caducar els missatges llegits posteriors a la data donada"
 
-#: pop3d/pop3d.c:85
+#: pop3d/pop3d.c:84
 msgid "Delete expired messages upon closing the mailbox"
 msgstr "Elimina els missatges caducats quan es tanca la bústia"
 
-#: pop3d/pop3d.c:88
+#: pop3d/pop3d.c:87
 msgid "Always require STLS before entering authentication phase"
 msgstr "Requereix sempre STLS abans d'iniciar la fase d'autenticació"
 
-#: pop3d/pop3d.c:278
+#: pop3d/pop3d.c:277
 msgid "Failed to become a daemon:"
 msgstr "No s'ha pogut convertir en dimoni:"
 
-#: pop3d/pop3d.c:314
+#: pop3d/pop3d.c:313
 #, c-format
 msgid "connect from %s"
 msgstr "connexió des de %s"
 
-#: pop3d/pop3d.c:438
+#: pop3d/pop3d.c:437
 msgid "Session terminated"
 msgstr "La sessió ha finalitzat"
 
-#: pop3d/pop3d.c:524
+#: pop3d/pop3d.c:523
 msgid "GNU pop3d started"
 msgstr "S'ha iniciat el GNU comsat"
 
-#: pop3d/pop3d.c:531
+#: pop3d/pop3d.c:530
 #, c-format
 msgid "too many children (%lu)"
 msgstr "massa fills (%lu)"
@@ -4625,27 +4841,27 @@ msgstr "massa fills (%lu)"
 msgid "GNU popauth -- manage pop3 authentication database"
 msgstr "GNU popauth -- gestiona la base de dades d'autentificació de pop3"
 
-#: pop3d/popauth.c:70
+#: pop3d/popauth.c:69
 msgid "Add user"
 msgstr "Afegeix un usuari"
 
-#: pop3d/popauth.c:71
+#: pop3d/popauth.c:70
 msgid "Modify user's record (change password)"
 msgstr "Modifica el registre d'un usuari (canvia la contrasenya)"
 
-#: pop3d/popauth.c:72
+#: pop3d/popauth.c:71
 msgid "Delete user's record"
 msgstr "Elimina el registre d'un usuari"
 
-#: pop3d/popauth.c:73
+#: pop3d/popauth.c:72
 msgid "List the contents of DBM file"
 msgstr "Llista els continguts del fitxer DBM"
 
-#: pop3d/popauth.c:74
+#: pop3d/popauth.c:73
 msgid "Create the DBM from a plaintext file"
 msgstr "Crea la DBM des d'un fitxer de text pla"
 
-#: pop3d/popauth.c:77
+#: pop3d/popauth.c:76
 msgid ""
 "Default action is:\n"
 "  For the file owner: --list\n"
@@ -4655,119 +4871,119 @@ msgstr ""
 "  Per al propietari del fitxer: --list\n"
 "  Per a un usuari: --modify --username <nom d'usuari>\n"
 
-#: pop3d/popauth.c:82
+#: pop3d/popauth.c:81
 msgid "Read input from FILE (default stdin)"
 msgstr "Llig l'entrada des de FITXER (per defecte l'entrada estàndard)"
 
-#: pop3d/popauth.c:83
+#: pop3d/popauth.c:82
 msgid "Direct output to file"
 msgstr "Eixida directa a un fitxer"
 
-#: pop3d/popauth.c:84
+#: pop3d/popauth.c:83
 msgid "Specify user's password"
 msgstr "Especifica la contrasenya de l'usuari"
 
-#: pop3d/popauth.c:85
+#: pop3d/popauth.c:84
 msgid "USERNAME"
 msgstr "NOM D'USUARI"
 
-#: pop3d/popauth.c:85
+#: pop3d/popauth.c:84
 msgid "Specify user name"
 msgstr "Especifica el nom de l'usuari"
 
-#: pop3d/popauth.c:86
+#: pop3d/popauth.c:85
 msgid "PERM"
 msgstr "PERM"
 
-#: pop3d/popauth.c:86
+#: pop3d/popauth.c:85
 msgid "Force given permissions on the database"
 msgstr "Força els permisos donats en la base de dades"
 
-#: pop3d/popauth.c:116
+#: pop3d/popauth.c:115
 #, c-format
 msgid "Invalid octal number: %s"
 msgstr "El número octal és invàlid: %s"
 
-#: pop3d/popauth.c:216
+#: pop3d/popauth.c:215
 msgid "You may not specify more than one `-aldp' option"
 msgstr "No podeu especificar més d'una opció «-aldp»"
 
-#: pop3d/popauth.c:238 pop3d/popauth.c:294 pop3d/popauth.c:370
+#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:369
 #, c-format
 msgid "Cannot create %s: %s"
 msgstr "No es pot crear %s: %s"
 
-#: pop3d/popauth.c:258
+#: pop3d/popauth.c:257
 msgid "Only the file owner can use --username"
 msgstr "Només el propietari del fitxer pot usar --username"
 
-#: pop3d/popauth.c:264
+#: pop3d/popauth.c:263
 msgid "Operation not allowed"
 msgstr "L'operació no es permet"
 
-#: pop3d/popauth.c:400
+#: pop3d/popauth.c:399
 #, c-format
 msgid "%s:%d: malformed line"
 msgstr "%s:%d: línia mal formada"
 
-#: pop3d/popauth.c:413
+#: pop3d/popauth.c:412
 #, c-format
 msgid "%s:%d: cannot store datum"
 msgstr "%s:%d: no es pot desar la dada"
 
-#: pop3d/popauth.c:446
+#: pop3d/popauth.c:445
 msgid "Password:"
 msgstr "Contrasenya:"
 
 #. TRANSLATORS: Please try to format this string so that it has
 #. the same length as the translation of 'Password:' above
-#: pop3d/popauth.c:452
+#: pop3d/popauth.c:451
 msgid "Confirm :"
 msgstr "Confirmació:"
 
-#: pop3d/popauth.c:455
+#: pop3d/popauth.c:454
 msgid "Passwords differ. Please retry."
 msgstr "Les contrasenyes no són iguals. Si us plau, proveu de nou."
 
-#: pop3d/popauth.c:470
+#: pop3d/popauth.c:469
 msgid "Missing username to add"
 msgstr "Manca el nom d'usuari a afegir"
 
-#: pop3d/popauth.c:488
+#: pop3d/popauth.c:487
 msgid "Cannot store datum"
 msgstr "No es pot emmagatzemar la dada"
 
-#: pop3d/popauth.c:503
+#: pop3d/popauth.c:502
 msgid "Missing username to delete"
 msgstr "Manca el nom d'usuari a eliminar"
 
-#: pop3d/popauth.c:515
+#: pop3d/popauth.c:514
 #, c-format
 msgid "Cannot remove record for %s"
 msgstr "No es pot eliminar el registre per a %s"
 
-#: pop3d/popauth.c:535
+#: pop3d/popauth.c:534
 msgid "Missing username"
 msgstr "Manca el nom d'usuari"
 
-#: pop3d/popauth.c:557
+#: pop3d/popauth.c:556
 msgid "Old Password:"
 msgstr "Contrasenya antiga:"
 
-#: pop3d/popauth.c:562
+#: pop3d/popauth.c:561
 msgid "Sorry"
 msgstr "Ho sentim"
 
-#: pop3d/popauth.c:573
+#: pop3d/popauth.c:572
 msgid "Cannot replace datum"
 msgstr "No es pot reemplaçar la dada"
 
-#: pop3d/popauth.c:592
+#: pop3d/popauth.c:591
 #, c-format
 msgid "Database format: %s\n"
 msgstr "Format de la base de dades: %s\n"
 
-#: pop3d/popauth.c:593
+#: pop3d/popauth.c:592
 #, c-format
 msgid "Database location: %s\n"
 msgstr "Localització de la base de dades: %s\n"
@@ -4814,49 +5030,50 @@ msgstr[1] "L'usuari «%s» ha entrat amb la bústia «%s» (%d missatges)"
 msgid "GNU readmsg -- print messages"
 msgstr "GNU readmsg -- mostra missatges"
 
-#: readmsg/readmsg.c:40
+#: readmsg/readmsg.c:39
 msgid "Display debugging information"
 msgstr "Mostra informació de depuració"
 
-#: readmsg/readmsg.c:41
+#: readmsg/readmsg.c:40
 msgid "Display entire header"
 msgstr "Mostra les capçaleres senceres"
 
-#: readmsg/readmsg.c:42
+#: readmsg/readmsg.c:41
 msgid "LIST"
 msgstr "LLISTA"
 
-#: readmsg/readmsg.c:43
+#: readmsg/readmsg.c:42
 msgid "List of header names separated by whitespace or commas"
 msgstr "Llista de noms de capçalera separades per espais en blanc o comas"
 
-#: readmsg/readmsg.c:44
+#: readmsg/readmsg.c:43
 msgid "Folder to use"
 msgstr "Carpeta a utilitzar"
 
-#: readmsg/readmsg.c:45
+#: readmsg/readmsg.c:44
 msgid "Exclude all headers"
 msgstr "Exclou totes les capçaleres"
 
-#: readmsg/readmsg.c:46
+#: readmsg/readmsg.c:45
 msgid "Output formfeeds between messages"
 msgstr "Separa els missatges amb un salt de pàgina"
 
-#: readmsg/readmsg.c:48
+#: readmsg/readmsg.c:47
 msgid "Print all messages matching pattern, not just the first"
-msgstr "Mostra tots els missatges que coincideixen amb un patró, no només el primer"
+msgstr ""
+"Mostra tots els missatges que coincideixen amb un patró, no només el primer"
 
-#: readmsg/readmsg.c:250
+#: readmsg/readmsg.c:249
 #, c-format
 msgid "Could not create mailbox `%s': %s\n"
 msgstr "No s'ha pogut crear la bústia «%s»: %s\n"
 
-#: readmsg/readmsg.c:254
+#: readmsg/readmsg.c:253
 #, c-format
 msgid "Could not create default mailbox: %s\n"
 msgstr "No es pot crear la bústia per defecte: %s\n"
 
-#: readmsg/readmsg.c:273
+#: readmsg/readmsg.c:272
 #, c-format
 msgid "Could not open mailbox `%s': %s\n"
 msgstr "No s'ha pogut obrir la bústia «%s»: %s\n"
@@ -4895,7 +5112,8 @@ msgstr "Compila l'script i ix"
 
 #: sieve/sieve.c:78
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
-msgstr "Compila l'script, bolca el codi de sieve desassemblat en el terminal i ix"
+msgstr ""
+"Compila l'script, bolca el codi de sieve desassemblat en el terminal i ix"
 
 #: sieve/sieve.c:80
 msgid "MBOX"
@@ -5033,8 +5251,12 @@ msgstr "Ha fallat l'eliminació a la bústia per defecte: %s"
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mimeview/mimeview.c:31
-msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
-msgstr "GNU mimeview -- mostra fitxers, utilitzant el mecanisme mailcap.El fitxer mime.type és "
+msgid ""
+"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
+"file is "
+msgstr ""
+"GNU mimeview -- mostra fitxers, utilitzant el mecanisme mailcap.El fitxer "
+"mime.type és "
 
 #: mimeview/mimeview.c:33
 msgid ""
@@ -5057,8 +5279,14 @@ msgid "TYPE-LIST"
 msgstr "LLISTA-TIPUS"
 
 #: mimeview/mimeview.c:42
-msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
-msgstr "No demanes confirmació abans de mostrar els fitxers. Si es dóna LLISTA-TIPUS, no demanes conformació abans de mostrar els fitxers amb un tipus MIME que coincidisca amb els patrons de LLISTA-TIPUS"
+msgid ""
+"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
+"do not ask for confirmation before displaying such files whose MIME type "
+"matches one of the patterns from TYPE-LIST"
+msgstr ""
+"No demanes confirmació abans de mostrar els fitxers. Si es dóna LLISTA-"
+"TIPUS, no demanes conformació abans de mostrar els fitxers amb un tipus MIME "
+"que coincidisca amb els patrons de LLISTA-TIPUS"
 
 #: mimeview/mimeview.c:44
 msgid "Disable interactive mode"
@@ -5103,6 +5331,18 @@ msgstr "%s: la funció és desconeguda"
 #, c-format
 msgid "argument %d has wrong type in call to `%s'"
 msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
+
+#~ msgid "Cannot create mailbox %s"
+#~ msgstr "No es pot crear la bústia %s"
+
+#~ msgid "Cannot open save file %s: %s"
+#~ msgstr "No es pot obrir el fitxer on desar %s: %s"
+
+#~ msgid "Not enough memory for creating save file"
+#~ msgstr "No hi ha memòria suficient per a crear un fitxer on desar"
+
+#~ msgid "Badly formed mailspool path: %s"
+#~ msgstr "Camí de bústia de correu malformat: %s"
 
 #~ msgid "out of memory"
 #~ msgstr "memòria exhaurida"
@@ -5218,7 +5458,8 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ msgstr "no es pot obrir %s: %s\n"
 
 #~ msgid "Set name pattern for user-defined mail filters"
-#~ msgstr "Estableix el patró de noms per filtres de correu definits per l'usuari"
+#~ msgstr ""
+#~ "Estableix el patró de noms per filtres de correu definits per l'usuari"
 
 #~ msgid "temporary file write error: %s"
 #~ msgstr "s'ha produït un error d'escriptura en un fitxer temporal: %s"
@@ -5293,8 +5534,12 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ msgstr[0] "la consulta ha tornat %d camp: %s"
 #~ msgstr[1] "la consulta ha tornat %d camps: %s"
 
-#~ msgid "Maximum retention period for messages in the maildrop, default -1 means NEVER"
-#~ msgstr "Màxim periode de retenció per als missatges en la bústia, per defecte -1 vol dir MAI"
+#~ msgid ""
+#~ "Maximum retention period for messages in the maildrop, default -1 means "
+#~ "NEVER"
+#~ msgstr ""
+#~ "Màxim periode de retenció per als missatges en la bústia, per defecte -1 "
+#~ "vol dir MAI"
 
 #~ msgid "%s %s failed: %s\n"
 #~ msgstr "%s %s ha fallat: %s\n"
@@ -5306,7 +5551,9 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ msgstr "s'està blocant"
 
 #~ msgid "Select message with the specific attribute: [n]ew, [r]ead, [u]nread."
-#~ msgstr "Selecciona missatges amb atributs específics: n: nou, r: llegits, u: no llegits."
+#~ msgstr ""
+#~ "Selecciona missatges amb atributs específics: n: nou, r: llegits, u: no "
+#~ "llegits."
 
 #~ msgid "You have %d message.\n"
 #~ msgid_plural "You have %d messages.\n"
@@ -5334,28 +5581,38 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ "with a line such as:\n"
 #~ "  :mailer --mailer=smtp://mail.example.com\n"
 #~ "\n"
-#~ "If not explicitly specified, the default from address is derived from the\n"
+#~ "If not explicitly specified, the default from address is derived from "
+#~ "the\n"
 #~ "\"From:\" field in the message, if present, or the default user's email\n"
 #~ "address if not present.\n"
 #~ "\n"
-#~ "If not explicitly specified, the default to addresses are derived from the\n"
+#~ "If not explicitly specified, the default to addresses are derived from "
+#~ "the\n"
 #~ "\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n"
 #~ "\n"
 #~ "If --debug is specified, the envelope commands in the SMTP protocol\n"
 #~ "transaction will be printed to stdout. If specified more than once,\n"
-#~ "the data part of the protocol transaction will also be printed to stdout.\n"
+#~ "the data part of the protocol transaction will also be printed to "
+#~ "stdout.\n"
 #~ msgstr ""
-#~ "GNU mail.remote -- interfície pareguda a sendmail per a l'enviament de correu\n"
+#~ "GNU mail.remote -- interfície pareguda a sendmail per a l'enviament de "
+#~ "correu\n"
 #~ "\n"
-#~ "Un missatge formatat segons RFC2822 es llig des de la entrada estàndard i\n"
+#~ "Un missatge formatat segons RFC2822 es llig des de la entrada estàndard "
+#~ "i\n"
 #~ "repartit usant l'enviador de correu. Aquesta utilitat es pot usar com un\n"
-#~ "reemplaç de /bin/sendmail per a reenviar correu directament a una passarel·la\n"
+#~ "reemplaç de /bin/sendmail per a reenviar correu directament a una "
+#~ "passarel·la\n"
 #~ "SMTP.\n"
 #~ "\n"
-#~ "L'enviador de correu per defecte és «sendmail:», que no està suportat per\n"
-#~ "aquesta utilitat (la intenció és que s'utilitze quan no teniu un sendmail\n"
-#~ "funcional). Hauríeu d'especificar la vostra passarel·la SMTP amb --mailer i\n"
-#~ "algo similar a «smtp://mail.exemple.com». Normalment, açò s'afegiria a la\n"
+#~ "L'enviador de correu per defecte és «sendmail:», que no està suportat "
+#~ "per\n"
+#~ "aquesta utilitat (la intenció és que s'utilitze quan no teniu un "
+#~ "sendmail\n"
+#~ "funcional). Hauríeu d'especificar la vostra passarel·la SMTP amb --mailer "
+#~ "i\n"
+#~ "algo similar a «smtp://mail.exemple.com». Normalment, açò s'afegiria a "
+#~ "la\n"
 #~ "vostra configuració específica d'usuari,\n"
 #~ "  ~/.mailutils/mailutils,\n"
 #~ "o el fitxer de configuració global,\n"
@@ -5363,16 +5620,22 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ "amb una línia similar a:\n"
 #~ "  :mailer --mailer=smtp://mail.exemple.com\n"
 #~ "\n"
-#~ "Si no s'especifica explícitament, l'adreça del remitent per defecte deriva del\n"
-#~ "camp «From:» del missatge, si està present, o l'adreça per defecte de l'usuari\n"
+#~ "Si no s'especifica explícitament, l'adreça del remitent per defecte "
+#~ "deriva del\n"
+#~ "camp «From:» del missatge, si està present, o l'adreça per defecte de "
+#~ "l'usuari\n"
 #~ "si no està present.\n"
 #~ "\n"
-#~ "Si no s'especifica explícitament, les adreces de destinatari deriven dels\n"
+#~ "Si no s'especifica explícitament, les adreces de destinatari deriven "
+#~ "dels\n"
 #~ "camps «To:», «Cc:» i «Bcc:» del missatge.\n"
 #~ "\n"
-#~ "Si s'especifica --debug, es mostraran les ordres del sobre en la transacció\n"
-#~ "del protocol SMTP en l'eixida estàndard. Si s'especifica més d'una vegada,\n"
-#~ "la part de les dades de la transacció del protocol també es mostraran en la\n"
+#~ "Si s'especifica --debug, es mostraran les ordres del sobre en la "
+#~ "transacció\n"
+#~ "del protocol SMTP en l'eixida estàndard. Si s'especifica més d'una "
+#~ "vegada,\n"
+#~ "la part de les dades de la transacció del protocol també es mostraran en "
+#~ "la\n"
 #~ "eixida.\n"
 
 #~ msgid "Couldn't create mailbox %s.\n"
@@ -5381,19 +5644,39 @@ msgstr "l'argument %d té el tipus incorrecte en la crida a «%s»"
 #~ msgid "could not create mailbox: %s"
 #~ msgstr "no s'ha pogut crear la bústia: %s"
 
-#~ msgid "Note: Argument to --file (-f) option is optional. If it is present, it must follow the short option immediately, without any intervening whitespace. If it is used with the long option, it must be separated from it by an equal sign, with no intervening whitespace."
-#~ msgstr "Nota: L'argument per a l'opció --file (-f) és opcional. Si està present, ha d'anar després de l'opció curta immediatament, sense cap espai en blanc en mig. Si 'usa amb l'opció llarga, ha d'estar separada d'aquesta amb un signe d'igualtat, sense cap espai en blanc."
+#~ msgid ""
+#~ "Note: Argument to --file (-f) option is optional. If it is present, it "
+#~ "must follow the short option immediately, without any intervening "
+#~ "whitespace. If it is used with the long option, it must be separated from "
+#~ "it by an equal sign, with no intervening whitespace."
+#~ msgstr ""
+#~ "Nota: L'argument per a l'opció --file (-f) és opcional. Si està present, "
+#~ "ha d'anar després de l'opció curta immediatament, sense cap espai en "
+#~ "blanc en mig. Si 'usa amb l'opció llarga, ha d'estar separada d'aquesta "
+#~ "amb un signe d'igualtat, sense cap espai en blanc."
 
 #~ msgid ""
-#~ "Usage error: --file takes an optional argument, it must follow the option\n"
+#~ "Usage error: --file takes an optional argument, it must follow the "
+#~ "option\n"
 #~ "without any intervening whitespace."
-#~ msgstr "Error d'ús: --file accepta un argument opcional, però ha de anar després de l'opció sense cap espai en mig."
+#~ msgstr ""
+#~ "Error d'ús: --file accepta un argument opcional, però ha de anar després "
+#~ "de l'opció sense cap espai en mig."
 
 #~ msgid "Run mail --help for more info."
 #~ msgstr "Executeu mail --help per a obtindre més informació."
 
-#~ msgid "print libraries to link with. Up to two args can be given. Arguments are: auth, to display libraries needed for linking against libmuauth, and guile, to display libraries needed for linking against libmu_scm. Both can be given simultaneously"
-#~ msgstr "mostra les biblioteques en les qual lincar. Es poden donar fins a dos arguments. Els arguments són: auth, per a mostrar les biblioteques que es necessiten per a lincar amb libmuauth, i guile, per a mostrar les biblioteques que es necessiten per a lincar amb libmu_scm. Totes dos es poden donar simultàniament. "
+#~ msgid ""
+#~ "print libraries to link with. Up to two args can be given. Arguments are: "
+#~ "auth, to display libraries needed for linking against libmuauth, and "
+#~ "guile, to display libraries needed for linking against libmu_scm. Both "
+#~ "can be given simultaneously"
+#~ msgstr ""
+#~ "mostra les biblioteques en les qual lincar. Es poden donar fins a dos "
+#~ "arguments. Els arguments són: auth, per a mostrar les biblioteques que es "
+#~ "necessiten per a lincar amb libmuauth, i guile, per a mostrar les "
+#~ "biblioteques que es necessiten per a lincar amb libmu_scm. Totes dos es "
+#~ "poden donar simultàniament. "
 
 #~ msgid "waiting for debug"
 #~ msgstr "s'està esperant a la depuració"

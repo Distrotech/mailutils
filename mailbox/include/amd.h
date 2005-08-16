@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -88,15 +88,13 @@ struct _amd_data
 };
 
 
-int amd_init_mailbox __P((mailbox_t mailbox, size_t mhd_size,
-			  struct _amd_data **pmhd));
-int _amd_message_insert __P((struct _amd_data *mhd,
-			     struct _amd_message *msg));
-int amd_message_stream_open __P((struct _amd_message *mhm));
-void amd_message_stream_close __P((struct _amd_message *mhm));
+int amd_init_mailbox (mailbox_t mailbox, size_t mhd_size,
+		      struct _amd_data **pmhd);
+int _amd_message_insert (struct _amd_data *mhd, struct _amd_message *msg);
+int amd_message_stream_open (struct _amd_message *mhm);
+void amd_message_stream_close (struct _amd_message *mhm);
 void amd_cleanup (void *arg);
 int amd_url_init (url_t url, const char *scheme);
-struct _amd_message *_amd_get_message __P((struct _amd_data *amd,
-					   size_t msgno));
-int amd_msg_lookup __P((struct _amd_data *amd, struct _amd_message *msg,
-			size_t *pret));
+struct _amd_message *_amd_get_message (struct _amd_data *amd, size_t msgno);
+int amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
+		    size_t *pret);

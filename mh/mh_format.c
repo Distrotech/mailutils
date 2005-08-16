@@ -59,7 +59,7 @@ struct mh_machine
   size_t msgno;             /* Its number */
 };
 
-static char *_get_builtin_name __P((mh_builtin_fp ptr));
+static char *_get_builtin_name (mh_builtin_fp ptr);
 
 /* Functions for handling string objects. */
 

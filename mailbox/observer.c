@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -73,8 +73,8 @@ observer_action (observer_t observer, size_t type)
 }
 
 int
-observer_set_action (observer_t observer, int (*_action)
-		     __P ((observer_t, size_t)), void *owner)
+observer_set_action (observer_t observer,
+		     int (*_action) (observer_t, size_t), void *owner)
 {
   if (observer == NULL)
     return EINVAL;
@@ -85,7 +85,7 @@ observer_set_action (observer_t observer, int (*_action)
 }
 
 int
-observer_set_destroy (observer_t observer, int (*_destroy) __P((observer_t)),
+observer_set_destroy (observer_t observer, int (*_destroy) (observer_t),
 		      void *owner)
 {
   if (observer == NULL)

@@ -21,22 +21,6 @@
 
 #include <sys/types.h>
 
-#ifndef __P
-# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
-#  define __P(Args) Args
-# else
-#  define __P(Args) ()
-# endif
-#endif
-
-#ifndef __PMT
-# if defined PROTOTYPES || (defined __STDC__ && STDC__)
-#  define __PMT(Args) Args
-# else
-#  define __PMT(Args) ()
-# endif
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

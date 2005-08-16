@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,22 +31,22 @@
 extern "C" {
 #endif
 
-int mime_create		__P ((mime_t *pmime, message_t msg, int flags));
-void mime_destroy	__P ((mime_t *pmime));
-int mime_is_multipart	__P ((mime_t mime));
-int mime_get_num_parts	__P ((mime_t mime, size_t *nparts));
+int mime_create		(mime_t *pmime, message_t msg, int flags);
+void mime_destroy	(mime_t *pmime);
+int mime_is_multipart	(mime_t mime);
+int mime_get_num_parts	(mime_t mime, size_t *nparts);
 
-int mime_get_part	__P ((mime_t mime, size_t part, message_t *msg));
+int mime_get_part	(mime_t mime, size_t part, message_t *msg);
 
-int mime_add_part	__P ((mime_t mime, message_t msg));
+int mime_add_part	(mime_t mime, message_t msg);
 
-int mime_get_message	__P ((mime_t mime, message_t *msg));
+int mime_get_message	(mime_t mime, message_t *msg);
 
-int rfc2047_decode      __P((const char *tocode, const char *fromstr,
-			     char **ptostr));
+int rfc2047_decode      (const char *tocode, const char *fromstr, 
+                         char **ptostr);
 
-int rfc2047_encode      __P((const char *charset, const char *encoding, 
-			     const char *text, char **result));
+int rfc2047_encode      (const char *charset, const char *encoding, 
+			 const char *text, char **result);
   
 #ifdef __cplusplus
 }

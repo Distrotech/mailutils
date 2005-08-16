@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #include "imap4d.h"
 
 /*FIXME: should be global? */
-typedef int (*nsfp_t) __P ((void *closure, int ns, char *path, int delim));
+typedef int (*nsfp_t) (void *closure, int ns, char *path, int delim);
 
 struct namespace_t
 {

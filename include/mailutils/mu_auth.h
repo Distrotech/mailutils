@@ -35,10 +35,10 @@ struct mu_auth_data {
   int     change_uid;
 };
 
-typedef int (*mu_auth_fp) __P((struct mu_auth_data **data,
-			       const void *key,
-			       void *func_data,
-			       void *call_data));
+typedef int (*mu_auth_fp) (struct mu_auth_data **data,
+			   const void *key,
+			   void *func_data,
+			   void *call_data);
 
 struct mu_auth_module {
   char           *name;
@@ -51,41 +51,41 @@ struct mu_auth_module {
   void           *auth_by_uid_data;
 };
 
-extern int mu_auth_runlist __P((list_t flist,
-				struct mu_auth_data **return_data,
-				const void *key, void *data));
+extern int mu_auth_runlist (list_t flist,
+			    struct mu_auth_data **return_data,
+			    const void *key, void *data);
 extern struct mu_auth_data *
-mu_get_auth_by_name __P ((const char *username));
+mu_get_auth_by_name (const char *username);
 
 extern struct mu_auth_data *
-mu_get_auth_by_uid __P((uid_t uid));
+mu_get_auth_by_uid (uid_t uid);
 
 extern int
-mu_authenticate __P((struct mu_auth_data *auth_data, char *pass));
+mu_authenticate (struct mu_auth_data *auth_data, char *pass);
 
-extern int mu_auth_nosupport __P((struct mu_auth_data **return_data,
-				  const void *key,
-				  void *func_data,
-				  void *call_data));
+extern int mu_auth_nosupport (struct mu_auth_data **return_data,
+			      const void *key,
+			      void *func_data,
+			      void *call_data);
 
 
-extern void mu_auth_register_module __P((struct mu_auth_module *mod));
+extern void mu_auth_register_module (struct mu_auth_module *mod);
 
-extern void mu_authorization_add_module_list __P((const char *modlist));
-extern void mu_authentication_add_module_list __P((const char *modlist));
+extern void mu_authorization_add_module_list (const char *modlist);
+extern void mu_authentication_add_module_list (const char *modlist);
 
-extern void mu_auth_init __P((void));
-extern int mu_auth_data_alloc __P((struct mu_auth_data **ptr,
-				   const char *name,
-				   const char *passwd,
-				   uid_t uid,
-				   gid_t gid,
-				   const char *gecos,
-				   const char *dir,
-				   const char *shell,
-				   const char *mailbox,
-				   int change_uid));
-extern void mu_auth_data_free __P((struct mu_auth_data *ptr));
+extern void mu_auth_init (void);
+extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
+			       const char *name,
+			       const char *passwd,
+			       uid_t uid,
+			       gid_t gid,
+			       const char *gecos,
+			       const char *dir,
+		   	       const char *shell,
+			       const char *mailbox,
+			       int change_uid);
+extern void mu_auth_data_free (struct mu_auth_data *ptr);
 
 
 extern struct mu_auth_module mu_auth_system_module;

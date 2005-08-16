@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,22 +37,23 @@ extern "C" {
 
 #define MU_OBSERVER_NO_CHECK 1
 
-extern int observer_create      __P ((observer_t *, void *owner));
-extern void observer_destroy    __P ((observer_t *, void *owner));
-extern void * observer_get_owner  __P ((observer_t));
-extern int observer_action      __P ((observer_t, size_t type));
-extern int observer_set_action  __P ((observer_t, 
-                                      int (*_action) __PMT ((observer_t, size_t)), void *owner));
-extern int observer_set_destroy __P ((observer_t, 
-                                      int (*_destroy) __PMT((observer_t)), void *owner));
-extern int observer_set_flags   __P ((observer_t, int flags));
+extern int observer_create      (observer_t *, void *owner);
+extern void observer_destroy    (observer_t *, void *owner);
+extern void * observer_get_owner  (observer_t);
+extern int observer_action      (observer_t, size_t type);
+extern int observer_set_action  (observer_t, 
+                                 int (*_action) (observer_t, size_t), 
+                                 void *owner);
+extern int observer_set_destroy (observer_t, 
+                                 int (*_destroy) (observer_t), void *owner);
+extern int observer_set_flags   (observer_t, int flags);
 
-extern int observable_create    __P ((observable_t *, void *owner));
-extern void observable_destroy  __P ((observable_t *, void *owner));
-extern void * observable_get_owner __P ((observable_t));
-extern int observable_attach    __P ((observable_t, size_t type, observer_t observer));
-extern int observable_detach    __P ((observable_t, observer_t observer));
-extern int observable_notify    __P ((observable_t, int type));
+extern int observable_create    (observable_t *, void *owner);
+extern void observable_destroy  (observable_t *, void *owner);
+extern void * observable_get_owner (observable_t);
+extern int observable_attach    (observable_t, size_t type, observer_t observer);
+extern int observable_detach    (observable_t, observer_t observer);
+extern int observable_notify    (observable_t, int type);
 
 #ifdef __cplusplus
 }

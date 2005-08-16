@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,10 +40,10 @@ struct _filter
   int direction;
   int type;
   void *data;
-  int  (*_read)     __P ((filter_t, char *, size_t, off_t, size_t *));
-  int  (*_readline) __P ((filter_t, char *, size_t, off_t, size_t *));
-  int  (*_write)    __P ((filter_t, const char *, size_t, off_t, size_t *));
-  void (*_destroy)  __P ((filter_t));
+  int  (*_read)     (filter_t, char *, size_t, off_t, size_t *);
+  int  (*_readline) (filter_t, char *, size_t, off_t, size_t *);
+  int  (*_write)    (filter_t, const char *, size_t, off_t, size_t *);
+  void (*_destroy)  (filter_t);
 };
 
 #ifdef __cplusplus

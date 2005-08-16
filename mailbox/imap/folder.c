@@ -83,59 +83,59 @@ static struct _record _imap_record =
 record_t imap_record = &_imap_record;
 
 #ifndef HAVE_STRTOK_R
-char *strtok_r                      __P ((char *, const char *, char **));
+char *strtok_r                      (char *, const char *, char **);
 #endif
 
 /* Concrete folder_t IMAP implementation.  */
-static int  folder_imap_open        __P ((folder_t, int));
-static int  folder_imap_close       __P ((folder_t));
-static void folder_imap_destroy     __P ((folder_t));
-static int  folder_imap_delete      __P ((folder_t, const char *));
-static int  folder_imap_list        __P ((folder_t, const char *, const char *,
-					  struct folder_list *));
-static int  folder_imap_lsub        __P ((folder_t, const char *, const char *,
-					  struct folder_list *));
-static int  folder_imap_rename      __P ((folder_t, const char *,
-					  const char *));
-static int  folder_imap_subscribe   __P ((folder_t, const char *));
-static int  folder_imap_unsubscribe __P ((folder_t, const char *));
-static int  folder_imap_get_authority __P ((folder_t, authority_t *));
+static int  folder_imap_open        (folder_t, int);
+static int  folder_imap_close       (folder_t);
+static void folder_imap_destroy     (folder_t);
+static int  folder_imap_delete      (folder_t, const char *);
+static int  folder_imap_list        (folder_t, const char *, const char *,
+				     struct folder_list *);
+static int  folder_imap_lsub        (folder_t, const char *, const char *,
+				     struct folder_list *);
+static int  folder_imap_rename      (folder_t, const char *,
+				     const char *);
+static int  folder_imap_subscribe   (folder_t, const char *);
+static int  folder_imap_unsubscribe (folder_t, const char *);
+static int  folder_imap_get_authority (folder_t, authority_t *);
 
 /* FETCH  */
-static int  imap_fetch              __P ((f_imap_t));
-static int  imap_rfc822             __P ((f_imap_t, char **));
-static int  imap_rfc822_size        __P ((f_imap_t, char **));
-static int  imap_rfc822_header      __P ((f_imap_t, char **));
-static int  imap_rfc822_text        __P ((f_imap_t, char **));
-static int  imap_fetch_flags        __P ((f_imap_t, char **));
-static int  imap_permanentflags     __P ((f_imap_t, char **));
-static int  imap_flags              __P ((char **, int *));
-static int  imap_bodystructure      __P ((f_imap_t, char **));
-static int  imap_body               __P ((f_imap_t, char **));
-static int  imap_internaldate       __P ((f_imap_t, char **));
+static int  imap_fetch              (f_imap_t);
+static int  imap_rfc822             (f_imap_t, char **);
+static int  imap_rfc822_size        (f_imap_t, char **);
+static int  imap_rfc822_header      (f_imap_t, char **);
+static int  imap_rfc822_text        (f_imap_t, char **);
+static int  imap_fetch_flags        (f_imap_t, char **);
+static int  imap_permanentflags     (f_imap_t, char **);
+static int  imap_flags              (char **, int *);
+static int  imap_bodystructure      (f_imap_t, char **);
+static int  imap_body               (f_imap_t, char **);
+static int  imap_internaldate       (f_imap_t, char **);
 
-static int  imap_uid                __P ((f_imap_t, char **));
-static int  imap_status             __P ((f_imap_t));
-static int  imap_expunge            __P ((f_imap_t, unsigned int));
-static int  imap_search             __P ((f_imap_t));
+static int  imap_uid                (f_imap_t, char **);
+static int  imap_status             (f_imap_t);
+static int  imap_expunge            (f_imap_t, unsigned int);
+static int  imap_search             (f_imap_t);
 
 /* String.  */
-static int  imap_literal_string     __P ((f_imap_t, char **));
-static int  imap_string             __P ((f_imap_t, char **));
-static int  imap_quoted_string      __P ((f_imap_t, char **));
-static int  imap_mailbox_name_match __P ((const char* pattern, const char* mailbox));
+static int  imap_literal_string     (f_imap_t, char **);
+static int  imap_string             (f_imap_t, char **);
+static int  imap_quoted_string      (f_imap_t, char **);
+static int  imap_mailbox_name_match (const char* pattern, const char* mailbox);
 
-static int  imap_token              __P ((char *, size_t, char **));
+static int  imap_token              (char *, size_t, char **);
 
 /* Capability */
-static int  parse_capa              __P ((f_imap_t f_imap, char *str));
-static int  read_capa               __P ((f_imap_t f_imap, int force));
-static int  check_capa              __P ((f_imap_t f_imap, char *capa));
+static int  parse_capa              (f_imap_t f_imap, char *str);
+static int  read_capa               (f_imap_t f_imap, int force);
+static int  check_capa              (f_imap_t f_imap, char *capa);
 
 
 /* Authentication methods */
 
-typedef int (*auth_method_t) __P((authority_t));
+typedef int (*auth_method_t) (authority_t);
 
 /* Simple User/pass authentication for imap.  */
 static int

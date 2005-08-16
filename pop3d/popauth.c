@@ -40,13 +40,13 @@ struct action_data {
 };
 
 void check_action(int action);
-int action_create __P((struct action_data *ap));
-int action_add __P((struct action_data *ap));
-int action_delete __P((struct action_data *ap));
-int action_list __P((struct action_data *ap));
-int action_chpass __P((struct action_data *ap));
+int action_create (struct action_data *ap);
+int action_add (struct action_data *ap);
+int action_delete (struct action_data *ap);
+int action_list (struct action_data *ap);
+int action_chpass (struct action_data *ap);
 
-int (*ftab[]) __P((struct action_data *)) = {
+int (*ftab[]) (struct action_data *) = {
   action_create,
   action_add,
   action_delete,
@@ -56,12 +56,11 @@ int (*ftab[]) __P((struct action_data *)) = {
 
 const char *program_version = "popauth (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU popauth -- manage pop3 authentication database");
-static error_t popauth_parse_opt  __P((int key, char *arg,
-				       struct argp_state *astate));
+static error_t popauth_parse_opt  (int key, char *arg,
+				   struct argp_state *astate);
 
-void popauth_version __P((FILE *stream, struct argp_state *state));
-void (*argp_program_version_hook) __P((FILE *stream,
-				       struct argp_state *state)) =
+void popauth_version (FILE *stream, struct argp_state *state);
+void (*argp_program_version_hook) (FILE *stream, struct argp_state *state) =
                                    popauth_version;
 
 static struct argp_option options[] = 

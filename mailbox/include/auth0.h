@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,21 +36,21 @@ struct _ticket
   void *owner;
   char *challenge;
   void *data;
-  int  (*_pop)      __P ((ticket_t, url_t, const char *challenge, char **));
-  void (*_destroy)  __P ((ticket_t));
+  int  (*_pop)      (ticket_t, url_t, const char *challenge, char **);
+  void (*_destroy)  (ticket_t);
 };
 
 struct _authority
 {
   void *owner;
   ticket_t ticket;
-  list_t auth_methods; /* list of int (*_authenticate) __P ((authority_t))s; */
+  list_t auth_methods; /* list of int (*_authenticate) (authority_t)s; */
 };
 
 struct _wicket
 {
   char *filename;
-  int (*_get_ticket) __P ((wicket_t, const char *, const char *, ticket_t *));
+  int (*_get_ticket) (wicket_t, const char *, const char *, ticket_t *);
 };
 
 

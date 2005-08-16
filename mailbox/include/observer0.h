@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,8 +33,8 @@ struct _observer
 {
   int flags;
   void *owner;
-  int (*_action)  __P ((observer_t, size_t));
-  int (*_destroy) __P ((observer_t));
+  int (*_action)  (observer_t, size_t);
+  int (*_destroy) (observer_t);
 };
 
 struct _observable

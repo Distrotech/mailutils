@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -56,8 +56,8 @@ struct _trans_stream
   int w_whd;       /* Working buffer write ahead */
   char w_buf[MU_TRANS_BSIZE]; /* working source/dest buffer */
 
-  int (*transcoder) __P ((const char *iptr, size_t isize, char *optr,
-			  size_t osize, size_t *nbytes, int *line_len));
+  int (*transcoder) (const char *iptr, size_t isize, char *optr,
+		     size_t osize, size_t *nbytes, int *line_len);
 };
 
 static void

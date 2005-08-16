@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -53,22 +53,22 @@
 
 #define MESSAGE_MODIFIED 0x10000;
 
-static int message_read   __P ((stream_t is, char *buf, size_t buflen,
-				off_t off, size_t *pnread ));
-static int message_write  __P ((stream_t os, const char *buf, size_t buflen,
-				off_t off, size_t *pnwrite));
-static int message_get_transport2 __P ((stream_t stream, mu_transport_t *pin, 
-                                       mu_transport_t *pout));
-static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
-				size_t *pnwrite));
-static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
-				size_t *pnwrite));
-static int message_stream_size __P((stream_t stream, off_t *psize));
-static int message_header_fill __P ((header_t header, char *buffer,
-				     size_t buflen, off_t off,
-				     size_t * pnread));
-static int message_body_read __P ((stream_t stream,  char *buffer,
-				   size_t n, off_t off, size_t *pn));
+static int message_read   (stream_t is, char *buf, size_t buflen,
+			   off_t off, size_t *pnread );
+static int message_write  (stream_t os, const char *buf, size_t buflen,
+			   off_t off, size_t *pnwrite);
+static int message_get_transport2 (stream_t stream, mu_transport_t *pin, 
+                                   mu_transport_t *pout);
+static int message_sender (envelope_t envelope, char *buf, size_t len,
+			   size_t *pnwrite);
+static int message_date   (envelope_t envelope, char *buf, size_t len,
+			   size_t *pnwrite);
+static int message_stream_size (stream_t stream, off_t *psize);
+static int message_header_fill (header_t header, char *buffer,
+			        size_t buflen, off_t off,
+				size_t * pnread);
+static int message_body_read (stream_t stream,  char *buffer,
+			      size_t n, off_t off, size_t *pn);
 
 /*  Allocate ressources for the message_t.  */
 int
@@ -646,7 +646,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 }
 
 int
-message_set_uid (message_t msg, int (*_get_uid) __P ((message_t, size_t *)),
+message_set_uid (message_t msg, int (*_get_uid) (message_t, size_t *),
 		 void *owner)
 {
   if (msg == NULL)
@@ -658,8 +658,9 @@ message_set_uid (message_t msg, int (*_get_uid) __P ((message_t, size_t *)),
 }
 
 int
-message_set_uidl (message_t msg, int (* _get_uidl)
-		  __P ((message_t, char *, size_t, size_t *)), void *owner)
+message_set_uidl (message_t msg,
+		  int (* _get_uidl) (message_t, char *, size_t, size_t *),
+		  void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -670,8 +671,9 @@ message_set_uidl (message_t msg, int (* _get_uidl)
 }
 
 int
-message_set_is_multipart (message_t msg, int (*_is_multipart)
-			  __P ((message_t, int *)), void *owner)
+message_set_is_multipart (message_t msg,
+			  int (*_is_multipart) (message_t, int *),
+			  void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -718,8 +720,9 @@ message_get_num_parts (message_t msg, size_t *pparts)
 }
 
 int
-message_set_get_num_parts (message_t msg, int (*_get_num_parts)
-			   __P ((message_t, size_t *)), void *owner)
+message_set_get_num_parts (message_t msg,
+			   int (*_get_num_parts) (message_t, size_t *),
+			   void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -750,7 +753,7 @@ message_get_part (message_t msg, size_t part, message_t *pmsg)
 
 int
 message_set_get_part (message_t msg, int (*_get_part)
-		      __P ((message_t, size_t, message_t *)),
+		      (message_t, size_t, message_t *),
 		      void *owner)
 {
   if (msg == NULL)

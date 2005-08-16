@@ -71,8 +71,8 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 
   if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
     {
-      int (*m_init) __P ((mailbox_t)) = NULL;
-      int (*u_init) __P ((url_t)) = NULL;
+      int (*m_init) (mailbox_t) = NULL;
+      int (*u_init) (url_t) = NULL;
       
       record_get_mailbox (record, &m_init);
       record_get_url (record, &u_init);

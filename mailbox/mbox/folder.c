@@ -106,24 +106,22 @@ static struct _record _path_record =
 record_t path_record = &_path_record;
 
 /* lsub/subscribe/unsubscribe are not needed.  */
-static void folder_mbox_destroy    __P ((folder_t));
-static int folder_mbox_open        __P ((folder_t, int));
-static int folder_mbox_close       __P ((folder_t));
-static int folder_mbox_delete      __P ((folder_t, const char *));
-static int folder_mbox_rename      __P ((folder_t , const char *,
-					 const char *));
-static int folder_mbox_list        __P ((folder_t, const char *, const char *,
-					 struct folder_list *));
-static int folder_mbox_subscribe   __P ((folder_t, const char *));
-static int folder_mbox_unsubscribe __P ((folder_t, const char *));
-static int folder_mbox_lsub        __P ((folder_t, const char *, const char *,
-					 struct folder_list *));
+static void folder_mbox_destroy    (folder_t);
+static int folder_mbox_open        (folder_t, int);
+static int folder_mbox_close       (folder_t);
+static int folder_mbox_delete      (folder_t, const char *);
+static int folder_mbox_rename      (folder_t , const char *, const char *);
+static int folder_mbox_list        (folder_t, const char *, const char *,
+				    struct folder_list *);
+static int folder_mbox_subscribe   (folder_t, const char *);
+static int folder_mbox_unsubscribe (folder_t, const char *);
+static int folder_mbox_lsub        (folder_t, const char *, const char *,
+				    struct folder_list *);
 
 
-static char *get_pathname       __P ((const char *, const char *));
+static char *get_pathname       (const char *, const char *);
 
-static int folder_mbox_get_authority __P ((folder_t folder,
-					   authority_t * pauth));
+static int folder_mbox_get_authority (folder_t folder, authority_t * pauth);
 
 struct _fmbox
 {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,13 +25,13 @@
 extern "C" {
 #endif
 
-extern int iterator_create   __P ((iterator_t *, void *));
-extern int iterator_dup      __P ((iterator_t *piterator, iterator_t orig));
-extern void iterator_destroy __P ((iterator_t *));
-extern int iterator_first    __P ((iterator_t));
-extern int iterator_next     __P ((iterator_t));
-extern int iterator_current  __P ((iterator_t, void * const *pitem));
-extern int iterator_is_done  __P ((iterator_t));
+extern int iterator_create   (iterator_t *, void *);
+extern int iterator_dup      (iterator_t *piterator, iterator_t orig);
+extern void iterator_destroy (iterator_t *);
+extern int iterator_first    (iterator_t);
+extern int iterator_next     (iterator_t);
+extern int iterator_current  (iterator_t, void * const *pitem);
+extern int iterator_is_done  (iterator_t);
 
 extern int iterator_attach (iterator_t *root, iterator_t iterator);
 extern int iterator_detach (iterator_t *root, iterator_t iterator);

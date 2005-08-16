@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -142,8 +142,7 @@ struct _mbox_data
   mailbox_t mailbox; /* Back pointer. */
 };
 
-int mbox_scan0 __P((mailbox_t mailbox, size_t msgno, size_t *pcount,
-		    int do_notif));
+int mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif);
 #ifdef WITH_PTHREAD
-void mbox_cleanup __P((void *arg));
+void mbox_cleanup (void *arg);
 #endif

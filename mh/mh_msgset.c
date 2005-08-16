@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -129,7 +129,7 @@ msgset_next (mailbox_t mbox, size_t *pnum)
 
 static struct msgset_keyword {
   char *name;
-  int (*handler) __P((mailbox_t mbox, size_t *pnum));
+  int (*handler) (mailbox_t mbox, size_t *pnum);
 } keywords[] = {
   { "first", msgset_first },
   { "last", msgset_last },
@@ -229,8 +229,8 @@ comp_mesg (const void *a, const void *b)
   return 0;
 }
 
-static int _mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
-				 int argc, char **argv));
+static int _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset,
+			     int argc, char **argv);
 
 /* Treat arg as a name of user-defined sequence and attempt to
    expand it. Return 0 if succeeded, non-zero otherwise. */

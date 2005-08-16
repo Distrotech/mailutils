@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
    2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
@@ -25,15 +25,14 @@
 
 #define WEEDLIST_SEPARATOR " :,"
 
-static void print_header __P ((message_t, int no_header,
-			       int all_header, const char *weedlst));
-static void print_body __P ((message_t));
-static int  string_starts_with __P ((const char * s1, const char *s2));
+static void print_header (message_t, int no_header,
+			  int all_header, const char *weedlst);
+static void print_body (message_t);
+static int  string_starts_with (const char * s1, const char *s2);
 
 const char *program_version = "readmsg (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU readmsg -- print messages");
-static error_t readmsg_parse_opt  __P((int key, char *arg,
-				       struct argp_state *astate));
+static error_t readmsg_parse_opt  (int key, char *arg, struct argp_state *astate);
 
 static struct argp_option options[] = 
 {

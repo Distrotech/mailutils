@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,10 +32,10 @@ struct _mu_refcount
   monitor_t lock;
 };
 
-extern int  mu_refcount_create  __P ((mu_refcount_t *));
-extern void mu_refcount_destroy __P ((mu_refcount_t *));
-extern int  mu_refcount_inc     __P ((mu_refcount_t));
-extern int  mu_refcount_dec     __P ((mu_refcount_t));
+extern int  mu_refcount_create  (mu_refcount_t *);
+extern void mu_refcount_destroy (mu_refcount_t *);
+extern int  mu_refcount_inc     (mu_refcount_t);
+extern int  mu_refcount_dec     (mu_refcount_t);
 
 #ifdef __cplusplus
 }

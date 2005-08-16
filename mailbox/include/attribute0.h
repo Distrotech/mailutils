@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,9 +36,9 @@ struct _attribute
   int flags;
   int user_flags;
 
-  int (*_get_flags)   __P ((attribute_t, int *));
-  int (*_set_flags)   __P ((attribute_t, int));
-  int (*_unset_flags) __P ((attribute_t, int));
+  int (*_get_flags)   (attribute_t, int *);
+  int (*_set_flags)   (attribute_t, int);
+  int (*_unset_flags) (attribute_t, int);
 };
 
 #ifdef __cplusplus

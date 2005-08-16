@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,20 +27,20 @@
 extern "C" {
 #endif
 
-extern int tls_stream_create __P((stream_t *stream, 
-                                  stream_t strin, stream_t strout, int flags));
-extern int tls_stream_create_client __P((stream_t *stream,
-					 stream_t strin, stream_t strout,
-					 int flags));
-extern int tls_stream_create_client_from_tcp __P((stream_t *stream,
-						  stream_t tcp_str,
-						  int flags));
+extern int tls_stream_create (stream_t *stream, 
+                              stream_t strin, stream_t strout, int flags);
+extern int tls_stream_create_client (stream_t *stream,
+				     stream_t strin, stream_t strout,
+				     int flags);
+extern int tls_stream_create_client_from_tcp (stream_t *stream,
+					      stream_t tcp_str,
+					      int flags);
 
-extern int mu_check_tls_environment __P((void));
-extern int mu_init_tls_libs __P((void));
-extern void mu_deinit_tls_libs __P((void));
-extern void mu_tls_init_argp __P((void));
-extern void mu_tls_init_client_argp __P((void));
+extern int mu_check_tls_environment (void);
+extern int mu_init_tls_libs (void);
+extern void mu_deinit_tls_libs (void);
+extern void mu_tls_init_argp (void);
+extern void mu_tls_init_client_argp (void);
 
 extern int mu_tls_enable;
   

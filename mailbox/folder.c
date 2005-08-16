@@ -39,7 +39,7 @@
 
 /* Internal folder list.  */
 static list_t known_folder_list;
-static int is_known_folder __P ((url_t, folder_t *));
+static int is_known_folder (url_t, folder_t *);
 
 /* Static folder lock.  */
 static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
@@ -63,8 +63,8 @@ folder_create (folder_t *pfolder, const char *name)
      implementation that could match the URL.  */
   if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_DIRECTORY))
     {
-      int (*f_init) __P ((folder_t)) = NULL;
-      int (*u_init) __P ((url_t)) = NULL;
+      int (*f_init) (folder_t) = NULL;
+      int (*u_init) (url_t) = NULL;
       
       record_get_folder (record, &f_init);
       record_get_url (record, &u_init);

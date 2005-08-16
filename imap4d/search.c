@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,32 +38,32 @@
    search queries. */
 
 struct parsebuf;
-typedef void (*inst_t) __P((struct parsebuf *pb));
+typedef void (*inst_t) (struct parsebuf *pb);
 
-static void cond_and __P((struct parsebuf *pb));
-static void cond_or __P((struct parsebuf *pb));
-static void cond_not __P((struct parsebuf *pb));
+static void cond_and (struct parsebuf *pb);
+static void cond_or (struct parsebuf *pb);
+static void cond_not (struct parsebuf *pb);
 
-static void cond_all __P((struct parsebuf *pb));                      
-static void cond_msgset __P((struct parsebuf *pb));                      
-static void cond_bcc __P((struct parsebuf *pb));                      
-static void cond_before __P((struct parsebuf *pb));                   
-static void cond_body __P((struct parsebuf *pb));                     
-static void cond_cc __P((struct parsebuf *pb));                       
-static void cond_from __P((struct parsebuf *pb));                     
-static void cond_header __P((struct parsebuf *pb));                   
-static void cond_keyword __P((struct parsebuf *pb));                  
-static void cond_larger __P((struct parsebuf *pb));                   
-static void cond_on __P((struct parsebuf *pb));                       
-static void cond_sentbefore __P((struct parsebuf *pb));               
-static void cond_senton __P((struct parsebuf *pb));                   
-static void cond_sentsince __P((struct parsebuf *pb));                
-static void cond_since __P((struct parsebuf *pb));                    
-static void cond_smaller __P((struct parsebuf *pb));                  
-static void cond_subject __P((struct parsebuf *pb));                  
-static void cond_text __P((struct parsebuf *pb));                     
-static void cond_to __P((struct parsebuf *pb));                       
-static void cond_uid __P((struct parsebuf *pb));                      
+static void cond_all (struct parsebuf *pb);                      
+static void cond_msgset (struct parsebuf *pb);                      
+static void cond_bcc (struct parsebuf *pb);                      
+static void cond_before (struct parsebuf *pb);                   
+static void cond_body (struct parsebuf *pb);                     
+static void cond_cc (struct parsebuf *pb);                       
+static void cond_from (struct parsebuf *pb);                     
+static void cond_header (struct parsebuf *pb);                   
+static void cond_keyword (struct parsebuf *pb);                  
+static void cond_larger (struct parsebuf *pb);                   
+static void cond_on (struct parsebuf *pb);                       
+static void cond_sentbefore (struct parsebuf *pb);               
+static void cond_senton (struct parsebuf *pb);                   
+static void cond_sentsince (struct parsebuf *pb);                
+static void cond_since (struct parsebuf *pb);                    
+static void cond_smaller (struct parsebuf *pb);                  
+static void cond_subject (struct parsebuf *pb);                  
+static void cond_text (struct parsebuf *pb);                     
+static void cond_to (struct parsebuf *pb);                       
+static void cond_uid (struct parsebuf *pb);                      
 
 /* A basic condition structure */
 struct cond
@@ -178,16 +178,16 @@ struct parsebuf
   message_t msg;                /* Current message */ 
 };
 
-static void put_code __P((struct parsebuf *pb, inst_t inst));
-static void parse_free_mem __P((struct parsebuf *pb));
-static void *parse_regmem __P((struct parsebuf *pb, void *mem));
-static char *parse_strdup __P((struct parsebuf *pb, char *s));
-static void *parse_alloc __P((struct parsebuf *pb, size_t size));
-static int parse_search_key_list __P((struct parsebuf *pb));
-static int parse_search_key __P((struct parsebuf *pb));
-static int parse_gettoken __P((struct parsebuf *pb, int req));
-static int search_run __P((struct parsebuf *pb));
-static void do_search __P((struct parsebuf *pb));
+static void put_code (struct parsebuf *pb, inst_t inst);
+static void parse_free_mem (struct parsebuf *pb);
+static void *parse_regmem (struct parsebuf *pb, void *mem);
+static char *parse_strdup (struct parsebuf *pb, char *s);
+static void *parse_alloc (struct parsebuf *pb, size_t size);
+static int parse_search_key_list (struct parsebuf *pb);
+static int parse_search_key (struct parsebuf *pb);
+static int parse_gettoken (struct parsebuf *pb, int req);
+static int search_run (struct parsebuf *pb);
+static void do_search (struct parsebuf *pb);
 
 int
 imap4d_search (struct imap4d_command *command, char *arg)

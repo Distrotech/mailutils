@@ -46,20 +46,20 @@ extern char *mu_license_text;
 extern "C" {
 #endif
 
-extern void mu_argp_init __P ((const char *vers, const char *bugaddr));
+extern void mu_argp_init (const char *vers, const char *bugaddr);
   
-extern void mu_create_argcv __P ((const char *capa[],
-				  int argc, char **argv,
-				  int *p_argc, char ***p_argv));
-extern error_t mu_argp_parse __P ((const struct argp * argp,
-				   int *p_argc, char ***p_argv,
-				   unsigned flags,
-				   const char *capa[],
-				   int *arg_index, void *input));
-extern int mu_register_capa __P((const char *name, struct argp_child *child));
+extern void mu_create_argcv (const char *capa[],
+			     int argc, char **argv,
+		   	     int *p_argc, char ***p_argv);
+extern error_t mu_argp_parse (const struct argp * argp,
+			      int *p_argc, char ***p_argv,
+			      unsigned flags,
+			      const char *capa[],
+			      int *arg_index, void *input);
+extern int mu_register_capa (const char *name, struct argp_child *child);
 
-extern void mu_print_options __P((void));
-extern const char *mu_check_option __P((char *name));
+extern void mu_print_options (void);
+extern const char *mu_check_option (char *name);
 
 #ifdef __cplusplus
 }

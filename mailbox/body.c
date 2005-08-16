@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,19 +36,19 @@
 
 #define BODY_MODIFIED 0x10000
 
-static int _body_flush    __P ((stream_t));
-static int _body_get_transport2 __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
-static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
-static int _body_truncate __P ((stream_t, off_t));
-static int _body_size     __P ((stream_t, off_t *));
-static int _body_write    __P ((stream_t, const char *, size_t, off_t, size_t *));
+static int _body_flush    (stream_t);
+static int _body_get_transport2 (stream_t, mu_transport_t *, mu_transport_t *);
+static int _body_read     (stream_t, char *, size_t, off_t, size_t *);
+static int _body_readline (stream_t, char *, size_t, off_t, size_t *);
+static int _body_truncate (stream_t, off_t);
+static int _body_size     (stream_t, off_t *);
+static int _body_write    (stream_t, const char *, size_t, off_t, size_t *);
 
 /* Our own defaults for the body.  */
-static int _body_get_size   __P ((body_t, size_t *));
-static int _body_get_lines  __P ((body_t, size_t *));
-static int _body_get_size0  __P ((stream_t, size_t *));
-static int _body_get_lines0 __P ((stream_t, size_t *));
+static int _body_get_size   (body_t, size_t *);
+static int _body_get_lines  (body_t, size_t *);
+static int _body_get_size0  (stream_t, size_t *);
+static int _body_get_lines0 (stream_t, size_t *);
 
 int
 body_create (body_t *pbody, void *owner)
@@ -193,7 +193,7 @@ body_set_stream (body_t body, stream_t stream, void *owner)
 }
 
 int
-body_set_lines (body_t body, int (*_lines)__P ((body_t, size_t *)), void *owner)
+body_set_lines (body_t body, int (*_lines) (body_t, size_t *), void *owner)
 {
   if (body == NULL)
     return EINVAL;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,14 +66,14 @@ typedef datum DBM_DATUM;
 #ifdef USE_DBM
 struct stat;
 int mu_dbm_stat (char *name, struct stat *sb);
-int mu_dbm_open __P((char *name, DBM_FILE *db, int flags, int mode));
-int mu_dbm_close __P((DBM_FILE db));
-int mu_dbm_fetch __P((DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret));
-int mu_dbm_insert __P((DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace));
+int mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode);
+int mu_dbm_close (DBM_FILE db);
+int mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret);
+int mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace);
 int mu_dbm_delete (DBM_FILE db, DBM_DATUM key);
-DBM_DATUM mu_dbm_firstkey __P((DBM_FILE db));
-DBM_DATUM mu_dbm_nextkey __P((DBM_FILE db, DBM_DATUM key));
+DBM_DATUM mu_dbm_firstkey (DBM_FILE db);
+DBM_DATUM mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key);
 #endif
 
-int mu_fcheck_perm __P((int fd, int mode));
-int mu_check_perm __P((const char *name, int mode));
+int mu_fcheck_perm (int fd, int mode);
+int mu_check_perm (const char *name, int mode);

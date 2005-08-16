@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,7 +85,7 @@ struct mhl_stmt
   } v;
 };
 
-static mhl_variable_t *variable_lookup __P((char *name));
+static mhl_variable_t *variable_lookup (char *name);
 
 static mhl_stmt_t *
 stmt_alloc (enum mhl_type type)

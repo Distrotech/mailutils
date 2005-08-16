@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,9 +27,9 @@ typedef struct _nntp_folder *f_nntp_t;
 typedef struct _nntp_mailbox *m_nntp_t;
 typedef struct _nntp_message *msg_nntp_t;
 
-extern int _nntp_url_init          __P ((url_t));
-extern int _nntp_mailbox_init      __P ((mailbox_t));
-extern int _nntp_folder_init       __P ((folder_t));
+extern int _nntp_url_init          (url_t);
+extern int _nntp_mailbox_init      (mailbox_t);
+extern int _nntp_folder_init       (folder_t);
 
 struct _nntp_folder
 {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,11 +58,11 @@ extern message_t current_message;
 extern int debug_guile;
 extern char *maildir;
 
-void collect_open_default __P((void));
-void collect_open_mailbox_file __P ((void));
-int collect_append_file __P ((char *name));
-void collect_create_mailbox __P ((void));
-void collect_drop_mailbox __P ((void));
+void collect_open_default (void);
+void collect_open_mailbox_file (void);
+int collect_append_file (char *name);
+void collect_create_mailbox (void);
+void collect_drop_mailbox (void);
 int collect_output (void);
 
 void util_error (char *fmt, ...);

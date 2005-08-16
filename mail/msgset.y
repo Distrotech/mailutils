@@ -40,18 +40,18 @@ struct header_data
   char *expr;
 };
 
-static msgset_t *msgset_select __P ((int (*sel) __P ((message_t, void *)),
+static msgset_t *msgset_select (int (*sel) (message_t, void *),
 				     void *closure, int rev,
-				     unsigned int max_matches));
-static int select_header __P ((message_t msg, void *closure));
-static int select_body __P ((message_t msg, void *closure));
-static int select_type __P ((message_t msg, void *closure));
-static int select_sender __P ((message_t msg, void *closure));
-static int select_deleted __P ((message_t msg, void *closure));
-static int check_set __P ((msgset_t **pset));
+				     unsigned int max_matches);
+static int select_header (message_t msg, void *closure);
+static int select_body (message_t msg, void *closure);
+static int select_type (message_t msg, void *closure);
+static int select_sender (message_t msg, void *closure);
+static int select_deleted (message_t msg, void *closure);
+static int check_set (msgset_t **pset);
  
-int yyerror __P ((const char *));
-int yylex  __P ((void));
+int yyerror (const char *);
+int yylex  (void);
 
 static int msgset_flags = MSG_NODELETED;
 static msgset_t *result;
@@ -514,7 +514,7 @@ msgset_expand (msgset_t *set, msgset_t *expand_by)
 }
 
 msgset_t *
-msgset_select (int (*sel) __P ((message_t, void *)), void *closure, int rev,
+msgset_select (int (*sel) (message_t, void *), void *closure, int rev,
 	       unsigned int max_matches)
 {
   size_t i, match_count = 0;

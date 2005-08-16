@@ -110,52 +110,52 @@ enum pop_state
 #define CAPA_STLS            0x00000100
 #define CAPA_IMPLEMENTATION  0x00000200
 
-static void pop_destroy        __P ((mailbox_t));
-static int pop_capa            __P ((mailbox_t));
-static int pop_stls            __P ((mailbox_t));
+static void pop_destroy        (mailbox_t);
+static int pop_capa            (mailbox_t);
+static int pop_stls            (mailbox_t);
 
 /*  Functions/Methods that implements the mailbox_t API.  */
-static int pop_open            __P ((mailbox_t, int));
-static int pop_close           __P ((mailbox_t));
-static int pop_get_message     __P ((mailbox_t, size_t, message_t *));
-static int pop_messages_count  __P ((mailbox_t, size_t *));
-static int pop_messages_recent __P ((mailbox_t, size_t *));
-static int pop_message_unseen  __P ((mailbox_t, size_t *));
-static int pop_expunge         __P ((mailbox_t));
-static int pop_scan            __P ((mailbox_t, size_t, size_t *));
-static int pop_is_updated      __P ((mailbox_t));
+static int pop_open            (mailbox_t, int);
+static int pop_close           (mailbox_t);
+static int pop_get_message     (mailbox_t, size_t, message_t *);
+static int pop_messages_count  (mailbox_t, size_t *);
+static int pop_messages_recent (mailbox_t, size_t *);
+static int pop_message_unseen  (mailbox_t, size_t *);
+static int pop_expunge         (mailbox_t);
+static int pop_scan            (mailbox_t, size_t, size_t *);
+static int pop_is_updated      (mailbox_t);
 
 /* The implementation of message_t */
-int _pop_user            __P ((authority_t));
-int _pop_apop            __P ((authority_t));
-static int pop_get_size        __P ((mailbox_t, off_t *));
+int _pop_user            (authority_t);
+int _pop_apop            (authority_t);
+static int pop_get_size        (mailbox_t, off_t *);
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
-static int pop_body_transport  __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int pop_body_size       __P ((body_t, size_t *));
-static int pop_body_lines      __P ((body_t, size_t *));
-static int pop_body_read       __P ((stream_t, char *, size_t, off_t, size_t *));
-static int pop_message_read    __P ((stream_t, char *, size_t, off_t, size_t *));
-static int pop_message_size    __P ((message_t, size_t *));
-static int pop_message_transport __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int pop_top             __P ((header_t, char *, size_t, off_t, size_t *));
-static int pop_retr            __P ((pop_message_t, char *, size_t, off_t, size_t *));
-static int pop_get_transport2   __P ((pop_message_t, mu_transport_t *, mu_transport_t *));
-static int pop_get_attribute   __P ((attribute_t, int *));
-static int pop_set_attribute   __P ((attribute_t, int));
-static int pop_unset_attribute __P ((attribute_t, int));
-static int pop_uidl            __P ((message_t, char *, size_t, size_t *));
-static int pop_uid             __P ((message_t, size_t *));
-static int fill_buffer         __P ((pop_data_t, char *, size_t));
-static int pop_sleep           __P ((int));
-static int pop_readline        __P ((pop_data_t));
-static int pop_read_ack        __P ((pop_data_t));
-static int pop_writeline       __P ((pop_data_t, const char *, ...));
-static int pop_write           __P ((pop_data_t));
-static int pop_get_user        __P ((authority_t));
-static int pop_get_passwd      __P ((authority_t));
-static char *pop_get_timestamp __P ((pop_data_t));
-static int pop_get_md5         __P ((pop_data_t));
+static int pop_body_transport  (stream_t, mu_transport_t *, mu_transport_t *);
+static int pop_body_size       (body_t, size_t *);
+static int pop_body_lines      (body_t, size_t *);
+static int pop_body_read       (stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_read    (stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_size    (message_t, size_t *);
+static int pop_message_transport (stream_t, mu_transport_t *, mu_transport_t *);
+static int pop_top             (header_t, char *, size_t, off_t, size_t *);
+static int pop_retr            (pop_message_t, char *, size_t, off_t, size_t *);
+static int pop_get_transport2   (pop_message_t, mu_transport_t *, mu_transport_t *);
+static int pop_get_attribute   (attribute_t, int *);
+static int pop_set_attribute   (attribute_t, int);
+static int pop_unset_attribute (attribute_t, int);
+static int pop_uidl            (message_t, char *, size_t, size_t *);
+static int pop_uid             (message_t, size_t *);
+static int fill_buffer         (pop_data_t, char *, size_t);
+static int pop_sleep           (int);
+static int pop_readline        (pop_data_t);
+static int pop_read_ack        (pop_data_t);
+static int pop_writeline       (pop_data_t, const char *, ...);
+static int pop_write           (pop_data_t);
+static int pop_get_user        (authority_t);
+static int pop_get_passwd      (authority_t);
+static char *pop_get_timestamp (pop_data_t);
+static int pop_get_md5         (pop_data_t);
 
 /* This structure holds the info for a message. The pop_message_t
    type, will serve as the owner of the message_t and contains the command to

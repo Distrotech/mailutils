@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,11 +44,11 @@ struct myticket_data
   char *filename;
 };
 
-static int   myticket_create  __P ((ticket_t *, const char *, const char *, const char *));
-static void  myticket_destroy __P ((ticket_t));
-static int   myticket_pop     __P ((ticket_t, url_t, const char *, char **));
-static int   get_pass         __P ((url_t, const char *, const char *, char**));
-static int   get_user         __P ((url_t, const char *, char **));
+static int   myticket_create  (ticket_t *, const char *, const char *, const char *);
+static void  myticket_destroy (ticket_t);
+static int   myticket_pop     (ticket_t, url_t, const char *, char **);
+static int   get_pass         (url_t, const char *, const char *, char**);
+static int   get_user         (url_t, const char *, char **);
 
 int
 wicket_create (wicket_t *pwicket, const char *filename)
@@ -116,7 +116,7 @@ wicket_set_filename (wicket_t wicket, const char *filename)
 
 int
 wicket_set_ticket (wicket_t wicket, int get_ticket
-		   __P ((wicket_t, const char *, const char *, ticket_t *)))
+		   (wicket_t, const char *, const char *, ticket_t *))
 {
   if (wicket == NULL)
     return EINVAL;

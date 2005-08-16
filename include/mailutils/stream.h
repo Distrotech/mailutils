@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -42,125 +42,119 @@ extern "C" { /*}*/
   
 /* Functions useful to users of the pre-defined stream types. */
 
-extern int file_stream_create    __P ((stream_t *stream, const char* filename,
-				       int flags));
-extern int tcp_stream_create     __P ((stream_t *stream, const char* host,
-				       int port, int flags));
-extern int mapfile_stream_create __P ((stream_t *stream, const char* filename,
-				       int flags));
-extern int memory_stream_create  __P ((stream_t *stream, const char* filename,
-				       int flags));
-extern int encoder_stream_create __P ((stream_t *stream, stream_t iostream,
-				       const char *encoding));
-extern int decoder_stream_create __P ((stream_t *stream, stream_t iostream,
-				       const char *encoding));
-extern int stdio_stream_create   __P ((stream_t *stream, FILE* stdio,
-				       int flags));
-extern int prog_stream_create    __P ((stream_t *stream, const char *progname,
-				       int flags));
-int filter_prog_stream_create    __P ((stream_t *stream, const char *progname,
-				       stream_t input));
+extern int file_stream_create    (stream_t *stream, const char* filename,
+				  int flags);
+extern int tcp_stream_create     (stream_t *stream, const char* host,
+				  int port, int flags);
+extern int mapfile_stream_create (stream_t *stream, const char* filename,
+				  int flags);
+extern int memory_stream_create  (stream_t *stream, const char* filename,
+				  int flags);
+extern int encoder_stream_create (stream_t *stream, stream_t iostream,
+				  const char *encoding);
+extern int decoder_stream_create (stream_t *stream, stream_t iostream,
+				  const char *encoding);
+extern int stdio_stream_create   (stream_t *stream, FILE* stdio,
+				  int flags);
+extern int prog_stream_create    (stream_t *stream, const char *progname,
+				  int flags);
+int filter_prog_stream_create    (stream_t *stream, const char *progname,
+				  stream_t input);
   
-extern void stream_destroy    __P ((stream_t *, void *owner));
+extern void stream_destroy    (stream_t *, void *owner);
 
-extern int stream_open        __P ((stream_t));
-extern int stream_close       __P ((stream_t));
-extern int stream_is_seekable __P ((stream_t));
-extern int stream_get_transport2 __P ((stream_t stream,
-				       mu_transport_t *pt,
-				       mu_transport_t *pt2));
-extern int stream_get_transport __P ((stream_t stream,
-				      mu_transport_t *pt));
+extern int stream_open        (stream_t);
+extern int stream_close       (stream_t);
+extern int stream_is_seekable (stream_t);
+extern int stream_get_transport2 (stream_t stream, mu_transport_t *pt,
+				  mu_transport_t *pt2);
+  extern int stream_get_transport (stream_t stream, mu_transport_t *pt);
 
-extern int stream_read        __P ((stream_t, char *, size_t, off_t,
-				    size_t *));
-extern int stream_readline    __P ((stream_t, char *, size_t, off_t,
-				    size_t *));
-extern int stream_size        __P ((stream_t, off_t *));
-extern int stream_truncate    __P ((stream_t, off_t));
-extern int stream_write       __P ((stream_t, const char *, size_t, off_t,
-				    size_t *));
-extern int stream_setbufsiz   __P ((stream_t stream, size_t size));
-extern int stream_flush       __P ((stream_t));
+extern int stream_read        (stream_t, char *, size_t, off_t, size_t *);
+extern int stream_readline    (stream_t, char *, size_t, off_t, size_t *);
+extern int stream_size        (stream_t, off_t *);
+extern int stream_truncate    (stream_t, off_t);
+extern int stream_write       (stream_t, const char *, size_t, off_t,
+			       size_t *);
+extern int stream_setbufsiz   (stream_t stream, size_t size);
+extern int stream_flush       (stream_t);
 
 #define MU_STREAM_READY_RD 0x1
 #define MU_STREAM_READY_WR 0x2
 struct timeval;  /* Needed for the following declaration */ 
 
-extern int stream_wait        __P((stream_t stream, int *pflags,
-				   struct timeval *));
+extern int stream_wait        (stream_t stream, int *pflags, struct timeval *);
 
 /* Functions useful to implementors of new stream types. */
 
-extern int stream_create       __P ((stream_t *stream, int flags,
-				     void* owner));
+extern int stream_create       (stream_t *stream, int flags, void *owner);
 
-extern void* stream_get_owner  __P ((stream_t));
-extern void stream_set_owner   __P ((stream_t, void* owner));
+extern void* stream_get_owner  (stream_t);
+extern void stream_set_owner   (stream_t, void* owner);
 
-extern int stream_get_flags    __P ((stream_t, int *pflags));
-extern int stream_set_flags    __P ((stream_t, int flags));
+extern int stream_get_flags    (stream_t, int *pflags);
+extern int stream_set_flags    (stream_t, int flags);
 
-extern int stream_get_property __P ((stream_t, property_t *));
-extern int stream_set_property __P ((stream_t, property_t, void *));
+extern int stream_get_property (stream_t, property_t *);
+extern int stream_set_property (stream_t, property_t, void *);
 
 #define MU_STREAM_STATE_OPEN  1
 #define MU_STREAM_STATE_READ  2
 #define MU_STREAM_STATE_WRITE 4
 #define MU_STREAM_STATE_CLOSE 8
-extern int stream_get_state    __P ((stream_t, int *pstate));
+extern int stream_get_state    (stream_t, int *pstate);
 
-extern int stream_set_destroy  __P ((stream_t,
-      void (*_destroy) __PMT ((stream_t)), void *owner));
+extern int stream_set_destroy  (stream_t,
+      void (*_destroy) (stream_t), void *owner);
 
-extern int stream_set_open     __P ((stream_t,
-      int (*_open) __PMT ((stream_t)), void *owner));
+extern int stream_set_open     (stream_t,
+      int (*_open) (stream_t), void *owner);
 
-extern int stream_set_close    __P ((stream_t,
-      int (*_close) __PMT ((stream_t)), void *owner));
+extern int stream_set_close    (stream_t,
+      int (*_close) (stream_t), void *owner);
 
-extern int stream_set_get_transport2  __P ((stream_t,
-      int (*_get_fd) __PMT ((stream_t, mu_transport_t *, mu_transport_t *)),
-      void *owner));
+extern int stream_set_get_transport2  (stream_t,
+      int (*_get_fd) (stream_t, mu_transport_t *, mu_transport_t *),
+      void *owner);
 
-extern int stream_set_read     __P ((stream_t,
-      int (*_read) __PMT ((stream_t, char *, size_t, off_t, size_t *)),
-			   void *owner));
+extern int stream_set_read     (stream_t,
+      int (*_read) (stream_t, char *, size_t, off_t, size_t *),
+			        void *owner);
 
-extern int stream_set_readline __P ((stream_t,
-      int (*_readline) __PMT ((stream_t, char *, size_t, off_t, size_t *)),
-			       void *owner));
+extern int stream_set_readline (stream_t, 
+      int (*_readline) (stream_t, char *, size_t, off_t, size_t *),
+			        void *owner);
 
-extern int stream_set_size     __P ((stream_t,
-      int (*_size) __PMT ((stream_t, off_t *)), void *owner));
+extern int stream_set_size     (stream_t,
+      int (*_size) (stream_t, off_t *), void *owner);
 
-extern int stream_set_truncate __P ((stream_t,
-      int (*_truncate) __PMT ((stream_t, off_t)), void *owner));
+extern int stream_set_truncate (stream_t,
+      int (*_truncate) (stream_t, off_t), void *owner);
 
-extern int stream_set_write    __P ((stream_t,
-      int (*_write) __PMT ((stream_t, const char *, size_t, off_t, size_t *)),
-			    void *owner));
+extern int stream_set_write    (stream_t,
+      int (*_write) (stream_t, const char *, size_t, off_t, size_t *),
+			    void *owner);
 
-extern int stream_set_flush    __P ((stream_t,
-      int (*_flush) __PMT ((stream_t)), void *owner));
+extern int stream_set_flush    (stream_t,
+      int (*_flush) (stream_t), void *owner);
 
-extern int stream_set_strerror __P ((stream_t stream,
-      int (*fp) (stream_t, const char **), void *owner));
+extern int stream_set_strerror (stream_t stream,
+      int (*fp) (stream_t, const char **), void *owner);
 
-extern int stream_set_wait __P ((stream_t stream,
-      int (*wait) (stream_t, int *, struct timeval *), void *owner));
+extern int stream_set_wait (stream_t stream,
+      int (*wait) (stream_t, int *, struct timeval *), void *owner);
   
-extern int stream_sequential_read __P((stream_t stream,
-      char *buf, size_t size, size_t *nbytes));
+extern int stream_sequential_read (stream_t stream,
+      char *buf, size_t size, size_t *nbytes);
   
-extern int stream_sequential_readline __P((stream_t stream,
-      char *buf, size_t size, size_t *nbytes));
+extern int stream_sequential_readline (stream_t stream,
+      char *buf, size_t size, size_t *nbytes);
   
-extern int stream_sequential_write __P((stream_t stream,
-					const char *buf, size_t size));
-extern int stream_seek __P((stream_t stream, off_t off, int whence));
+extern int stream_sequential_write (stream_t stream,
+				    const char *buf, size_t size);
+extern int stream_seek (stream_t stream, off_t off, int whence);
   
-extern int stream_strerror __P((stream_t stream, const char **p));
+extern int stream_strerror (stream_t stream, const char **p);
   
 #ifdef __cplusplus
 }

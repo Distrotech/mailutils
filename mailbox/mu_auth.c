@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -53,8 +53,8 @@
 /*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
 #define DEBUG(c)
 
-static void mu_auth_begin_setup __P((void));
-static void mu_auth_finish_setup __P((void));
+static void mu_auth_begin_setup (void);
+static void mu_auth_finish_setup (void);
 
 /* memory allocation */
 int 
@@ -206,8 +206,8 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 #define ARG_AUTHORIZATION 1
 #define ARG_AUTHENTICATION 2
 
-static error_t mu_auth_argp_parser __P((int key, char *arg,
-					struct argp_state *state));
+static error_t mu_auth_argp_parser (int key, char *arg,
+				    struct argp_state *state);
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {

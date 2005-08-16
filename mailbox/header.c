@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,13 +38,12 @@
 
 #define HEADER_MODIFIED 1
 
-static int header_parse    __P ((header_t, const char *, int));
-static int header_read     __P ((stream_t, char *, size_t, off_t, size_t *));
-static int header_readline __P ((stream_t, char *, size_t, off_t, size_t *));
-static int header_write    __P ((stream_t, const char *, size_t, off_t,
-				 size_t *));
-static int fill_blurb      __P ((header_t));
-static void header_free_cache __P ((header_t));
+static int header_parse    (header_t, const char *, int);
+static int header_read     (stream_t, char *, size_t, off_t, size_t *);
+static int header_readline (stream_t, char *, size_t, off_t, size_t *);
+static int header_write    (stream_t, const char *, size_t, off_t, size_t *);
+static int fill_blurb      (header_t);
+static void header_free_cache (header_t);
 
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
@@ -894,9 +893,9 @@ header_size (header_t header, size_t *psize)
 }
 
 int
-header_set_get_fvalue (header_t header, int (*_get_fvalue)
-		       __P ((header_t, const char *, char *, size_t,
-			     size_t *)), void *owner)
+header_set_get_fvalue (header_t header, 
+       int (*_get_fvalue) (header_t, const char *, char *, size_t, size_t *), 
+                       void *owner)
 {
   if (header == NULL)
     return EINVAL;
@@ -908,7 +907,7 @@ header_set_get_fvalue (header_t header, int (*_get_fvalue)
 
 int
 header_set_get_value (header_t header, int (*_get_value)
-		     __P ((header_t, const char *, char *, size_t, size_t *)),
+		     (header_t, const char *, char *, size_t, size_t *),
 		     void *owner)
 {
   if (header == NULL)
@@ -945,7 +944,7 @@ header_set_stream (header_t header, stream_t stream, void *owner)
 
 int
 header_set_fill (header_t header, int
-		 (*_fill) __P ((header_t, char *, size_t, off_t, size_t *)),
+		 (*_fill) (header_t, char *, size_t, off_t, size_t *),
 		 void *owner)
 {
   if (header == NULL)

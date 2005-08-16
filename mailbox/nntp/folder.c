@@ -59,10 +59,10 @@ static struct _record _nntp_record =
 };
 record_t nntp_record = &_nntp_record;
 
-static int  nntp_folder_open    __P ((folder_t, int));
-static int  nntp_folder_close   __P ((folder_t));
-static void nntp_folder_destroy __P ((folder_t folder));
-static int  nntp_folder_list    __P ((folder_t folder, const char *ref, const char *name, struct folder_list *pflist));
+static int  nntp_folder_open    (folder_t, int);
+static int  nntp_folder_close   (folder_t);
+static void nntp_folder_destroy (folder_t folder);
+static int  nntp_folder_list    (folder_t folder, const char *ref, const char *name, struct folder_list *pflist);
 
 int
 _nntp_folder_init (folder_t folder)

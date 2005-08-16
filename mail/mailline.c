@@ -20,8 +20,8 @@
 #include <mailutils/folder.h>
 
 #ifdef WITH_READLINE
-static char **ml_command_completion __P((char *cmd, int start, int end));
-static char *ml_command_generator __P((const char *text, int state));
+static char **ml_command_completion (char *cmd, int start, int end);
+static char *ml_command_generator (const char *text, int state);
 #endif
 
 static volatile int _interrupted;

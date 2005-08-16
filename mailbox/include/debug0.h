@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ struct _debug
   char *buffer;
   size_t buflen;
   void *owner;
-  int (*_print) __P ((mu_debug_t, size_t level, const char *, va_list));
+  int (*_print) (mu_debug_t, size_t level, const char *, va_list);
 };
 
 #ifdef __cplusplus

@@ -19,9 +19,9 @@
 
 #ifndef __P
 # if defined PROTOTYPES || (defined __STDC__ && __STDC__)
-#  define __P(args) args
+#  define args args
 # else
-#  define __P(args) ()
+#  define args) (
 # endif
 #endif /*__P */
 
@@ -29,11 +29,11 @@
 #include <stdio.h>
 
 #if !HAVE_DECL_VASPRINTF
-extern int vasprintf __P((char **result, const char *format, va_list args));
+extern int vasprintf (char **result, const char *format, va_list args);
 #endif
 #if !HAVE_DECL_ASPRINTF
 #if __STDC__
-extern int asprintf __P((char **result, const char *format, ...));
+extern int asprintf (char **result, const char *format, ...);
 #else
 extern int asprintf ();
 #endif

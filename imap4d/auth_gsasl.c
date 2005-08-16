@@ -26,7 +26,7 @@
 static Gsasl_ctx *ctx;   
 static Gsasl_session_ctx *sess_ctx; 
 
-static void auth_gsasl_capa_init __P((int disable));
+static void auth_gsasl_capa_init (int disable);
 
 static int
 create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)

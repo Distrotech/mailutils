@@ -41,12 +41,12 @@ mu_debug_t mudebug;        /* Mailutils debugging object */
 #define MAXFD 64
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
-void close_fds __P((void));
-int make_tmp __P((const char *from, mailbox_t *mbx));
-void deliver __P((mailbox_t msg, char *name));
-void guess_retval __P((int ec));
-void mailer_err __P((char *fmt, ...));
-void notify_biff __P((mailbox_t mbox, char *name, size_t size));
+void close_fds (void);
+int make_tmp (const char *from, mailbox_t *mbx);
+void deliver (mailbox_t msg, char *name);
+void guess_retval (int ec);
+void mailer_err (char *fmt, ...);
+void notify_biff (mailbox_t mbox, char *name, size_t size);
 
 const char *program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =

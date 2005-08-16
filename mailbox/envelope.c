@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ envelope_get_owner (envelope_t envelope)
 
 int
 envelope_set_sender (envelope_t envelope,
-		   int (*_sender) __P ((envelope_t, char *, size_t, size_t*)),
+		   int (*_sender) (envelope_t, char *, size_t, size_t*),
 		   void *owner)
 {
   if (envelope == NULL)
@@ -89,7 +89,7 @@ envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
 int
 envelope_set_date (envelope_t envelope,
-		   int (*_date) __P ((envelope_t, char *, size_t , size_t *)),
+		   int (*_date) (envelope_t, char *, size_t , size_t *),
 		   void *owner)
 {
   if (envelope == NULL)

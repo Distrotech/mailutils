@@ -30,8 +30,8 @@
 #endif
 
 #ifndef HAVE_GETUTENT_CALLS
-extern void setutent __P((void));
-extern struct utmp *getutent __P((void));
+extern void setutent (void);
+extern struct utmp *getutent (void);
 #endif
 
 #ifdef UTMPX

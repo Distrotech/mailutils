@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -56,68 +56,67 @@
 #define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
 
 /* mailbox_t API.  */
-static void mailbox_imap_destroy  __P ((mailbox_t));
-static int  mailbox_imap_open     __P ((mailbox_t, int));
-static int  mailbox_imap_close    __P ((mailbox_t));
-static int  imap_uidvalidity      __P ((mailbox_t, unsigned long *));
-static int  imap_uidnext          __P ((mailbox_t, size_t *));
-static int  imap_expunge          __P ((mailbox_t));
-static int  imap_get_message      __P ((mailbox_t, size_t, message_t *));
-static int  imap_messages_count   __P ((mailbox_t, size_t *));
-static int  imap_messages_recent  __P ((mailbox_t, size_t *));
-static int  imap_message_unseen   __P ((mailbox_t, size_t *));
-static int  imap_scan             __P ((mailbox_t, size_t, size_t *));
-static int  imap_scan0            __P ((mailbox_t, size_t, size_t *, int));
-static int  imap_is_updated       __P ((mailbox_t));
-static int  imap_append_message   __P ((mailbox_t, message_t));
-static int  imap_append_message0  __P ((mailbox_t, message_t));
-static int  imap_copy_message     __P ((mailbox_t, message_t));
+static void mailbox_imap_destroy  (mailbox_t);
+static int  mailbox_imap_open     (mailbox_t, int);
+static int  mailbox_imap_close    (mailbox_t);
+static int  imap_uidvalidity      (mailbox_t, unsigned long *);
+static int  imap_uidnext          (mailbox_t, size_t *);
+static int  imap_expunge          (mailbox_t);
+static int  imap_get_message      (mailbox_t, size_t, message_t *);
+static int  imap_messages_count   (mailbox_t, size_t *);
+static int  imap_messages_recent  (mailbox_t, size_t *);
+static int  imap_message_unseen   (mailbox_t, size_t *);
+static int  imap_scan             (mailbox_t, size_t, size_t *);
+static int  imap_scan0            (mailbox_t, size_t, size_t *, int);
+static int  imap_is_updated       (mailbox_t);
+static int  imap_append_message   (mailbox_t, message_t);
+static int  imap_append_message0  (mailbox_t, message_t);
+static int  imap_copy_message     (mailbox_t, message_t);
 
 /* message_t API.  */
-static int  imap_submessage_size  __P ((msg_imap_t, size_t *));
-static int  imap_message_size     __P ((message_t, size_t *));
-static int  imap_message_lines    __P ((message_t, size_t *));
-static int  imap_message_get_transport2  __P ((stream_t, mu_transport_t *pin, 
-                                              mu_transport_t *pout));
-static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
-static int  imap_message_uid      __P ((message_t, size_t *));
+static int  imap_submessage_size  (msg_imap_t, size_t *);
+static int  imap_message_size     (message_t, size_t *);
+static int  imap_message_lines    (message_t, size_t *);
+static int  imap_message_get_transport2  (stream_t, mu_transport_t *pin, 
+                                          mu_transport_t *pout);
+static int  imap_message_read     (stream_t , char *, size_t, off_t, size_t *);
+static int  imap_message_uid      (message_t, size_t *);
 
 /* mime_t API.  */
-static int  imap_is_multipart     __P ((message_t, int *));
-static int  imap_get_num_parts    __P ((message_t, size_t *));
-static int  imap_get_part         __P ((message_t, size_t, message_t *));
+static int  imap_is_multipart     (message_t, int *);
+static int  imap_get_num_parts    (message_t, size_t *);
+static int  imap_get_part         (message_t, size_t, message_t *);
 
 /* envelope_t API  */
-static int  imap_envelope_sender  __P ((envelope_t, char *, size_t, size_t *));
-static int  imap_envelope_date    __P ((envelope_t, char *, size_t, size_t *));
+static int  imap_envelope_sender  (envelope_t, char *, size_t, size_t *);
+static int  imap_envelope_date    (envelope_t, char *, size_t, size_t *);
 
 /* attribute_t API  */
-static int  imap_attr_get_flags   __P ((attribute_t, int *));
-static int  imap_attr_set_flags   __P ((attribute_t, int));
-static int  imap_attr_unset_flags __P ((attribute_t, int));
+static int  imap_attr_get_flags   (attribute_t, int *);
+static int  imap_attr_set_flags   (attribute_t, int);
+static int  imap_attr_unset_flags (attribute_t, int);
 
 /* header_t API.  */
-static int  imap_header_read      __P ((header_t, char*, size_t, off_t, size_t *));
-static int  imap_header_get_value __P ((header_t, const char*, char *, size_t, size_t *));
-static int  imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, size_t *));
+static int  imap_header_read      (header_t, char*, size_t, off_t, size_t *);
+static int  imap_header_get_value (header_t, const char*, char *, size_t, size_t *);
+static int  imap_header_get_fvalue (header_t, const char*, char *, size_t, size_t *);
 
 /* body_t API.  */
-static int  imap_body_read        __P ((stream_t, char *, size_t, off_t,
-					size_t *));
-static int  imap_body_size        __P ((body_t, size_t *));
-static int  imap_body_lines       __P ((body_t, size_t *));
-static int  imap_body_get_transport2 __P ((stream_t, mu_transport_t *pin, mu_transport_t *pout));
+static int  imap_body_read        (stream_t, char *, size_t, off_t, size_t *);
+static int  imap_body_size        (body_t, size_t *);
+static int  imap_body_lines       (body_t, size_t *);
+static int  imap_body_get_transport2 (stream_t, mu_transport_t *pin, mu_transport_t *pout);
 
 /* Helpers.  */
-static int  imap_get_transport2    __P ((msg_imap_t msg_imap, 
-                                        mu_transport_t *pin,
-                                        mu_transport_t *pout));
-static int  imap_get_message0     __P ((msg_imap_t, message_t *));
-static int  fetch_operation       __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
-static void free_subparts         __P ((msg_imap_t));
-static int  flags_to_string       __P ((char **, int));
-static int  delete_to_string      __P ((m_imap_t, char **));
-static int  is_same_folder        __P ((mailbox_t, message_t));
+static int  imap_get_transport2    (msg_imap_t msg_imap, 
+                                    mu_transport_t *pin,
+                                    mu_transport_t *pout);
+static int  imap_get_message0     (msg_imap_t, message_t *);
+static int  fetch_operation       (f_imap_t, msg_imap_t, char *, size_t, size_t *);
+static void free_subparts         (msg_imap_t);
+static int  flags_to_string       (char **, int);
+static int  delete_to_string      (m_imap_t, char **);
+static int  is_same_folder        (mailbox_t, message_t);
 
 #define MBX_WRITABLE(mbx) ((mbx)->flags & (MU_STREAM_WRITE|MU_STREAM_RDWR|MU_STREAM_CREAT))
 

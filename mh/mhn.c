@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -111,16 +111,16 @@ struct mh_option mh_option[] = {
 
 typedef struct _msg_part *msg_part_t;
 
-static msg_part_t msg_part_create __P((size_t num));
-static void msg_part_destroy __P((msg_part_t p));
-static int msg_part_eq __P((msg_part_t a, msg_part_t b));
-static void msg_part_incr __P((msg_part_t p));
-static void msg_part_decr __P((msg_part_t p));
-static void msg_part_set_subpart __P((msg_part_t p, size_t subpart));
-static void msg_part_print __P((msg_part_t p, int width));
-static msg_part_t msg_part_parse __P((char *str));
-static int msg_part_level __P((msg_part_t p));
-static size_t msg_part_subpart __P((msg_part_t p, int level));
+static msg_part_t msg_part_create (size_t num);
+static void msg_part_destroy (msg_part_t p);
+static int msg_part_eq (msg_part_t a, msg_part_t b);
+static void msg_part_incr (msg_part_t p);
+static void msg_part_decr (msg_part_t p);
+static void msg_part_set_subpart (msg_part_t p, size_t subpart);
+static void msg_part_print (msg_part_t p, int width);
+static msg_part_t msg_part_parse (char *str);
+static int msg_part_level (msg_part_t p);
+static size_t msg_part_subpart (msg_part_t p, int level);
 
 enum mhn_mode {
   mode_compose,

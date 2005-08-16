@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,10 +51,10 @@ struct _mailer
   void *data;
 
   /* Public methods.  */
-  void (*_destroy)     __P ((mailer_t));
-  int (*_open)         __P ((mailer_t, int flags));
-  int (*_close)        __P ((mailer_t));
-  int (*_send_message) __P ((mailer_t, message_t, address_t, address_t));
+  void (*_destroy)     (mailer_t);
+  int (*_open)         (mailer_t, int flags);
+  int (*_close)        (mailer_t);
+  int (*_send_message) (mailer_t, message_t, address_t, address_t);
 };
 
 #define MAILER_NOTIFY(mailer, type) \

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,19 +52,19 @@ struct _stream
   /* Stream pointer for sequential offset.  */
   off_t offset;
   
-  void (*_destroy) __P ((stream_t));
-  int (*_open)     __P ((stream_t));
-  int (*_close)    __P ((stream_t));
-  int (*_get_transport2) __P ((stream_t, mu_transport_t *, mu_transport_t *));
-  int (*_read)     __P ((stream_t, char *, size_t, off_t, size_t *));
-  int (*_readline) __P ((stream_t, char *, size_t, off_t, size_t *));
-  int (*_write)    __P ((stream_t, const char *, size_t, off_t, size_t *));
-  int (*_truncate) __P ((stream_t, off_t));
-  int (*_size)     __P ((stream_t, off_t *));
-  int (*_flush)    __P ((stream_t));
-  int (*_setbufsiz)__P ((stream_t, size_t));
-  int (*_strerror) __P ((stream_t, const char **));
-  int (*_wait)     __P((stream_t, int *pflags, struct timeval *tvp));
+  void (*_destroy) (stream_t);
+  int (*_open)     (stream_t);
+  int (*_close)    (stream_t);
+  int (*_get_transport2) (stream_t, mu_transport_t *, mu_transport_t *);
+  int (*_read)     (stream_t, char *, size_t, off_t, size_t *);
+  int (*_readline) (stream_t, char *, size_t, off_t, size_t *);
+  int (*_write)    (stream_t, const char *, size_t, off_t, size_t *);
+  int (*_truncate) (stream_t, off_t);
+  int (*_size)     (stream_t, off_t *);
+  int (*_flush)    (stream_t);
+  int (*_setbufsiz)(stream_t, size_t);
+  int (*_strerror) (stream_t, const char **);
+  int (*_wait)     (stream_t, int *pflags, struct timeval *tvp);
 };
 
 #ifdef __cplusplus

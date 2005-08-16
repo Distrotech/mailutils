@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -163,7 +163,7 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
 {
   iterator_t iterator = NULL;
   filter_record_t filter_record = NULL;
-  int  (*f_init)  __P ((filter_t))  = NULL;
+  int  (*f_init)  (filter_t)  = NULL;
   int found = 0;
   int status;
   list_t list = NULL;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -176,14 +176,13 @@ struct mh_argp_data
 #define ARG_WIDTH		391 
 #define ARG_ZERO		392 
 
-void mh_argv_preproc __P((int argc, char **argv, struct mh_argp_data *data));
-int mh_getopt __P((int argc, char **argv, struct mh_option *mh_opt,
-		   const char *doc));
-int mh_argp_parse __P((int *argc, char **argv[],
-		       int flags,
-		       struct argp_option *option,
-		       struct mh_option *mh_option,
-		       char *argp_doc, char *doc,
-		       int (*handler)(), void *closure, int *index));
-void mh_help __P((struct mh_option *mh_option, const char *doc));
-void mh_license __P((const char *name));
+void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);
+int mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc);
+int mh_argp_parse (int *argc, char **argv[],
+		   int flags,
+		   struct argp_option *option,
+		   struct mh_option *mh_option,
+		   char *argp_doc, char *doc,
+		   int (*handler)(), void *closure, int *index);
+void mh_help (struct mh_option *mh_option, const char *doc);
+void mh_license (const char *name);

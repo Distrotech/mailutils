@@ -25,30 +25,30 @@
 extern "C" {
 #endif
 
-extern int list_create   __P ((list_t *));
-extern void list_destroy __P ((list_t *));
-extern int list_append   __P ((list_t, void *item));
-extern int list_prepend  __P ((list_t, void *item));
-extern int list_insert   __P ((list_t list, void *item, void *new_item, 
-                               int insert_before));
-extern int list_is_empty __P ((list_t));
-extern int list_count    __P ((list_t, size_t *pcount));
-extern int list_remove   __P ((list_t, void *item));
-extern int list_replace  __P ((list_t list, void *old_item, void *new_item));  
-extern int list_get      __P ((list_t, size_t _index, void **pitem));
-extern int list_to_array __P ((list_t list, void **array, size_t count, size_t *pcount));
-extern int list_locate   __P ((list_t list, void *item, void **ret_item));
-extern int list_get_iterator __P ((list_t, iterator_t *));
+extern int list_create   (list_t *);
+extern void list_destroy (list_t *);
+extern int list_append   (list_t, void *item);
+extern int list_prepend  (list_t, void *item);
+extern int list_insert   (list_t list, void *item, void *new_item, 
+                          int insert_before);
+extern int list_is_empty (list_t);
+extern int list_count    (list_t, size_t *pcount);
+extern int list_remove   (list_t, void *item);
+extern int list_replace  (list_t list, void *old_item, void *new_item);  
+extern int list_get      (list_t, size_t _index, void **pitem);
+extern int list_to_array (list_t list, void **array, size_t count, size_t *pcount);
+extern int list_locate   (list_t list, void *item, void **ret_item);
+extern int list_get_iterator (list_t, iterator_t *);
 
-typedef int list_action_t __PMT ((void* item, void* cbdata));
+typedef int list_action_t (void* item, void* cbdata);
   
-extern int list_do       __P ((list_t list, list_action_t * action, void *cbdata));
+extern int list_do       (list_t list, list_action_t * action, void *cbdata);
 
-typedef int (*list_comparator_t) __PMT((const void*, const void*));
+typedef int (*list_comparator_t) (const void*, const void*);
 
-extern list_comparator_t list_set_comparator __P((list_t, list_comparator_t));
+extern list_comparator_t list_set_comparator (list_t, list_comparator_t);
 
-extern int list_set_destroy_item __P ((list_t list, void (*destoy_item) __PMT((void *))));
+extern int list_set_destroy_item (list_t list, void (*destoy_item) (void *));
 
   
 #ifdef __cplusplus

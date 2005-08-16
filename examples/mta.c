@@ -75,9 +75,9 @@ int dot = 1;             /* Message is terminated by a lone dot on a line */
 address_t recipients = NULL;
 char *progname;
 
-int mta_stdin __P((int argc, char **argv));
-int mta_smtp __P((int argc, char **argv));
-void register_handlers __P((void));
+int mta_stdin (int argc, char **argv);
+int mta_smtp (int argc, char **argv);
+void register_handlers (void);
 
 int
 main (int argc, char **argv)

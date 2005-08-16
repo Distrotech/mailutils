@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,8 +33,8 @@
 extern "C" {
 #endif
 
-extern unsigned long mu_hex2ul __P ((char hex));
-extern size_t mu_hexstr2ul __P ((unsigned long* ul, const char* hex, size_t len));
+extern unsigned long mu_hex2ul (char hex);
+extern size_t mu_hexstr2ul (unsigned long* ul, const char* hex, size_t len);
 
 struct mu_timezone
 {
@@ -48,24 +48,24 @@ struct mu_timezone
 
 typedef struct mu_timezone mu_timezone;
 
-int mu_parse_date __P ((const char *p, time_t *rettime, const time_t *now));
-extern int mu_parse_imap_date_time __P ((const char **p, struct tm * tm,
-					 mu_timezone * tz));
-extern int mu_parse_ctime_date_time __P ((const char **p, struct tm * tm,
-					 mu_timezone * tz));
+int mu_parse_date (const char *p, time_t *rettime, const time_t *now);
+extern int mu_parse_imap_date_time (const char **p, struct tm * tm,
+				    mu_timezone * tz);
+extern int mu_parse_ctime_date_time (const char **p, struct tm * tm,
+				     mu_timezone * tz);
 
-extern time_t mu_utc_offset __P ((void));
-extern time_t mu_tm2time __P ((struct tm * timeptr, mu_timezone * tz));
-extern char * mu_get_homedir __P ((void));
-extern char * mu_tilde_expansion __P ((const char *ref, const char *delim, const char *homedir));
+extern time_t mu_utc_offset (void);
+extern time_t mu_tm2time (struct tm * timeptr, mu_timezone * tz);
+extern char * mu_get_homedir (void);
+extern char * mu_tilde_expansion (const char *ref, const char *delim, const char *homedir);
 
-extern size_t mu_cpystr __P ((char *dst, const char *src, size_t size));
+extern size_t mu_cpystr (char *dst, const char *src, size_t size);
 
 /* Get the host name, doing a gethostbyname() if possible.
  *  
  * It is the caller's responsibility to free host.
  */
-extern int mu_get_host_name __P((char **host));
+extern int mu_get_host_name (char **host);
 
 /* Set the default user email address.
  *  
@@ -74,7 +74,7 @@ extern int mu_get_host_name __P((char **host));
  * rfc822 address, with one valid addr-spec, i.e, the address must be
  * qualified.
  */
-extern int mu_set_user_email __P ((const char *email));
+extern int mu_set_user_email (const char *email);
 
 /* Set the default user email address domain.
  *  
@@ -82,10 +82,10 @@ extern int mu_set_user_email __P ((const char *email));
  * email addresses in this domain (name@domain). It should be fully
  * qualified, but this isn't (and can't) be enforced.
  */
-extern int mu_set_user_email_domain __P ((const char *domain));
+extern int mu_set_user_email_domain (const char *domain);
 
 /* Return the currently set user email domain, or NULL if not set. */
-extern int mu_get_user_email_domain __P ((const char** domain));
+extern int mu_get_user_email_domain (const char** domain);
 
 /*
  * Get the default email address for user name. A NULL name is taken
@@ -93,53 +93,52 @@ extern int mu_get_user_email_domain __P ((const char** domain));
  *  
  * The result must be freed by the caller after use.
  */
-extern char *mu_get_user_email __P ((const char *name));
+extern char *mu_get_user_email (const char *name);
 
-extern char *mu_normalize_path __P ((char *path, const char *delim));
-extern int mu_normalize_mailbox_url __P ((char **out, const char *dir));
-extern int mu_tempfile __P ((const char *tmpdir, char **namep));
-extern char *mu_tempname __P ((const char *tmpdir));
+extern char *mu_normalize_path (char *path, const char *delim);
+extern int mu_normalize_mailbox_url (char **out, const char *dir);
+extern int mu_tempfile (const char *tmpdir, char **namep);
+extern char *mu_tempname (const char *tmpdir);
 
-extern char * mu_get_full_path __P((const char *file));
-extern char * mu_getcwd __P((void));
+extern char * mu_get_full_path (const char *file);
+extern char * mu_getcwd (void);
   
 extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
 
-typedef void *(*mu_retrieve_fp) __PMT((void *));
-extern void mu_register_retriever __P((list_t *pflist, mu_retrieve_fp fun));
-extern void * mu_retrieve __P((list_t flist, void *data));
+typedef void *(*mu_retrieve_fp) (void *);
+extern void mu_register_retriever (list_t *pflist, mu_retrieve_fp fun);
+extern void * mu_retrieve (list_t flist, void *data);
 
-extern int mu_unroll_symlink __P((char *out, size_t outsz, const char *in));
+extern int mu_unroll_symlink (char *out, size_t outsz, const char *in);
 
-extern char * mu_expand_path_pattern __P((const char *pattern,
-					  const char *username));
+extern char * mu_expand_path_pattern (const char *pattern, const char *username);
 
-extern int mu_rfc2822_references __P((message_t msg, char **pstr));
-extern int mu_rfc2822_in_reply_to __P((message_t msg, char **pstr));
+extern int mu_rfc2822_references (message_t msg, char **pstr);
+extern int mu_rfc2822_in_reply_to (message_t msg, char **pstr);
 
 /* Find NEEDLE in the HAYSTACK. Case insensitive comparison */
-extern char *mu_strcasestr __P((const char *haystack, const char *needle));
+extern char *mu_strcasestr (const char *haystack, const char *needle);
 
-extern int mu_string_unfold __P((char *text, size_t *plen));
+extern int mu_string_unfold (char *text, size_t *plen);
 
-extern int munre_set_regex __P((char *str, int caseflag, char **errp));
-extern int munre_subject  __P((const char *subject, const char **new_subject));
+extern int munre_set_regex (char *str, int caseflag, char **errp);
+extern int munre_subject  (const char *subject, const char **new_subject);
 
-extern char *mu_charset_lookup __P((char *lang, char *terr));
+extern char *mu_charset_lookup (char *lang, char *terr);
 
-extern int mu_true_answer_p __P((const char *p));
-extern int mu_scheme_autodetect_p __P((const char *scheme, const char **path));
+extern int mu_true_answer_p (const char *p);
+extern int mu_scheme_autodetect_p (const char *scheme, const char **path);
 
 struct timeval; 
   
-extern int mu_fd_wait __P((int fd, int *pflags, struct timeval *tvp));
+extern int mu_fd_wait (int fd, int *pflags, struct timeval *tvp);
 
-extern int mu_decode_filter __P((stream_t *pfilter, stream_t input,
-				 const char *filter_type,
-				 const char *fromcode, const char *tocode));
+extern int mu_decode_filter (stream_t *pfilter, stream_t input,
+			     const char *filter_type,
+			     const char *fromcode, const char *tocode);
 
 extern enum mu_iconv_fallback_mode mu_default_fallback_mode;
-extern int mu_set_default_fallback __P((const char *str));
+extern int mu_set_default_fallback (const char *str);
   
 #ifdef __cplusplus
 }

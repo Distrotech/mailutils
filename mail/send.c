@@ -23,8 +23,8 @@
 
 #include "mail.h"
 
-static int isfilename __P ((const char *));
-static void msg_to_pipe __P ((const char *cmd, message_t msg));
+static int isfilename (const char *);
+static void msg_to_pipe (const char *cmd, message_t msg);
 
 
 /* Additional message headers */

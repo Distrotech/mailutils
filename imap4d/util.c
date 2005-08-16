@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 static stream_t istream;
 static stream_t ostream;
 
-static int add2set __P ((size_t **, int *, unsigned long));
-static const char *sc2string __P ((int));
+static int add2set (size_t **, int *, unsigned long);
+static const char *sc2string (int);
 
 /* Get the next space/CR/NL separated word, some words are between double
    quotes, strtok() can not handle it.  */

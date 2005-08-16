@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,27 +51,27 @@ struct _mailbox
 
   /* Public methods */
 
-  void (*_destroy)         __P ((mailbox_t));
+  void (*_destroy)         (mailbox_t);
 
-  int  (*_open)            __P ((mailbox_t, int));
-  int  (*_close)           __P ((mailbox_t));
+  int  (*_open)            (mailbox_t, int);
+  int  (*_close)           (mailbox_t);
 
   /* messages */
-  int  (*_get_message)     __P ((mailbox_t, size_t, message_t *));
-  int  (*_append_message)  __P ((mailbox_t, message_t));
-  int  (*_messages_count)  __P ((mailbox_t, size_t *));
-  int  (*_messages_recent) __P ((mailbox_t, size_t *));
-  int  (*_message_unseen)  __P ((mailbox_t, size_t *));
-  int  (*_expunge)         __P ((mailbox_t));
-  int  (*_save_attributes) __P ((mailbox_t));
-  int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *));
-  int  (*_uidnext)         __P ((mailbox_t, size_t *));
-  int  (*_get_property)    __P ((mailbox_t, property_t *));
+  int  (*_get_message)     (mailbox_t, size_t, message_t *);
+  int  (*_append_message)  (mailbox_t, message_t);
+  int  (*_messages_count)  (mailbox_t, size_t *);
+  int  (*_messages_recent) (mailbox_t, size_t *);
+  int  (*_message_unseen)  (mailbox_t, size_t *);
+  int  (*_expunge)         (mailbox_t);
+  int  (*_save_attributes) (mailbox_t);
+  int  (*_uidvalidity)     (mailbox_t, unsigned long *);
+  int  (*_uidnext)         (mailbox_t, size_t *);
+  int  (*_get_property)    (mailbox_t, property_t *);
 
-  int  (*_scan)            __P ((mailbox_t, size_t, size_t *));
-  int  (*_is_updated)      __P ((mailbox_t));
+  int  (*_scan)            (mailbox_t, size_t, size_t *);
+  int  (*_is_updated)      (mailbox_t);
 
-  int  (*_get_size)        __P ((mailbox_t, off_t *));
+  int  (*_get_size)        (mailbox_t, off_t *);
 
 };
 

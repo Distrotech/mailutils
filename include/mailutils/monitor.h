@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,15 +38,15 @@ typedef struct _monitor *monitor_t;
 #define MU_MONITOR_INITIALIZER {0, 0, 0, 0}
 
 
-extern int monitor_create      __P ((monitor_t *, int flags, void *owner));
-extern void monitor_destroy    __P ((monitor_t *, void *owner));
-extern void *monitor_get_owner __P ((monitor_t));
+extern int monitor_create      (monitor_t *, int flags, void *owner);
+extern void monitor_destroy    (monitor_t *, void *owner);
+extern void *monitor_get_owner (monitor_t);
 
-extern int monitor_rdlock      __P ((monitor_t));
-extern int monitor_wrlock      __P ((monitor_t));
-extern int monitor_unlock      __P ((monitor_t));
-extern int monitor_wait        __P ((monitor_t));
-extern int monitor_notify      __P ((monitor_t));
+extern int monitor_rdlock      (monitor_t);
+extern int monitor_wrlock      (monitor_t);
+extern int monitor_unlock      (monitor_t);
+extern int monitor_wait        (monitor_t);
+extern int monitor_notify      (monitor_t);
 
 #ifdef __cplusplus
 }

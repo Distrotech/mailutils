@@ -58,11 +58,11 @@ static struct _record _pop_record =
 };
 record_t pop_record = &_pop_record;
 
-static int folder_pop_open  __P ((folder_t, int));
-static int folder_pop_close __P ((folder_t));
-static int folder_pop_get_authority __P ((folder_t, authority_t *));
-extern int _pop_user         __P ((authority_t));
-extern int _pop_apop         __P ((authority_t));
+static int folder_pop_open  (folder_t, int);
+static int folder_pop_close (folder_t);
+static int folder_pop_get_authority (folder_t, authority_t *);
+extern int _pop_user         (authority_t);
+extern int _pop_apop         (authority_t);
 
 /* XXX: The way, the POP folder is handled is not clean at all.
    the I/O functions should have been here on folder, not in  mbx_pop.c  */

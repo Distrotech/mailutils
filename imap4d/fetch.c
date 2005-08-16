@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,40 +36,40 @@
 
 struct fetch_command;
 
-static int fetch_all               __P ((struct fetch_command *, char**));
-static int fetch_full              __P ((struct fetch_command *, char**));
-static int fetch_fast              __P ((struct fetch_command *, char**));
-static int fetch_envelope          __P ((struct fetch_command *, char**));
-static int fetch_flags             __P ((struct fetch_command *, char**));
-static int fetch_internaldate      __P ((struct fetch_command *, char**));
-static int fetch_rfc822_header     __P ((struct fetch_command *, char**));
-static int fetch_rfc822_size       __P ((struct fetch_command *, char**));
-static int fetch_rfc822_text       __P ((struct fetch_command *, char**));
-static int fetch_rfc822            __P ((struct fetch_command *, char**));
-static int fetch_bodystructure     __P ((struct fetch_command *, char**));
-static int fetch_body              __P ((struct fetch_command *, char**));
-static int fetch_uid               __P ((struct fetch_command *, char**));
+static int fetch_all               (struct fetch_command *, char**);
+static int fetch_full              (struct fetch_command *, char**);
+static int fetch_fast              (struct fetch_command *, char**);
+static int fetch_envelope          (struct fetch_command *, char**);
+static int fetch_flags             (struct fetch_command *, char**);
+static int fetch_internaldate      (struct fetch_command *, char**);
+static int fetch_rfc822_header     (struct fetch_command *, char**);
+static int fetch_rfc822_size       (struct fetch_command *, char**);
+static int fetch_rfc822_text       (struct fetch_command *, char**);
+static int fetch_rfc822            (struct fetch_command *, char**);
+static int fetch_bodystructure     (struct fetch_command *, char**);
+static int fetch_body              (struct fetch_command *, char**);
+static int fetch_uid               (struct fetch_command *, char**);
 
 /* Helper functions.  */
-static int fetch_envelope0         __P ((message_t));
-static int fetch_bodystructure0    __P ((message_t, int));
-static int bodystructure           __P ((message_t, int));
-static void send_parameter_list    __P ((const char *));
-static int fetch_operation         __P ((message_t, char **, int));
-static int fetch_message           __P ((message_t, unsigned long, unsigned long));
-static int fetch_header            __P ((message_t, unsigned long, unsigned long));
-static int fetch_body_content      __P ((message_t, unsigned long, unsigned long));
-static int fetch_io                __P ((stream_t, unsigned long, unsigned long, unsigned long));
-static int fetch_header_fields     __P ((message_t, char **, unsigned long, unsigned long));
-static int fetch_header_fields_not __P ((message_t, char **, unsigned long, unsigned long));
-static int fetch_send_address      __P ((const char *));
+static int fetch_envelope0         (message_t);
+static int fetch_bodystructure0    (message_t, int);
+static int bodystructure           (message_t, int);
+static void send_parameter_list    (const char *);
+static int fetch_operation         (message_t, char **, int);
+static int fetch_message           (message_t, unsigned long, unsigned long);
+static int fetch_header            (message_t, unsigned long, unsigned long);
+static int fetch_body_content      (message_t, unsigned long, unsigned long);
+static int fetch_io                (stream_t, unsigned long, unsigned long, unsigned long);
+static int fetch_header_fields     (message_t, char **, unsigned long, unsigned long);
+static int fetch_header_fields_not (message_t, char **, unsigned long, unsigned long);
+static int fetch_send_address      (const char *);
 
-static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command*));
+static struct fetch_command* fetch_getcommand (char *, struct fetch_command*);
 
 struct fetch_command
 {
   const char *name;
-  int (*func) __P ((struct fetch_command *, char **));
+  int (*func) (struct fetch_command *, char **);
   message_t msg;
 } fetch_command_table [] =
 {

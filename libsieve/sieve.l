@@ -41,20 +41,20 @@ static list_t string_list;
 static char *multiline_delimiter;
 static int strip_tabs; 
 
-static int number __P ((void));
-static int string __P ((void));
-static void line_begin __P ((void));
-static void line_add __P((char *text, size_t len));
-static void line_finish __P ((void));
-static void multiline_begin __P ((void));
-static void multiline_add __P ((char *));
-static void multiline_finish __P ((void));
-static char *multiline_strip_tabs __P((char *text));
-static void ident __P((const char *text));
-static void sieve_include __P((void));
-static void sieve_searchpath __P((void));
-static char *str_unescape __P((char *text, size_t len));
-static int isemptystr __P((char *text));
+static int number (void);
+static int string (void);
+static void line_begin (void);
+static void line_add (char *text, size_t len);
+static void line_finish (void);
+static void multiline_begin (void);
+static void multiline_add (char *);
+static void multiline_finish (void);
+static char *multiline_strip_tabs (char *text);
+static void ident (const char *text);
+static void sieve_include (void);
+static void sieve_searchpath (void);
+static char *str_unescape (char *text, size_t len);
+static int isemptystr (char *text);
  
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
@@ -82,10 +82,10 @@ static int isemptystr __P((char *text));
 #else
 /* AT&T Lex */
                                                
-static void lex_set_buffer __P((FILE *fp));
-static void lex_delete_buffer __P((LEX_BUFFER_STATE buf));
-static int xinput __P((void)); 
-static int xunput __P((void));
+static void lex_set_buffer (FILE *fp);
+static void lex_delete_buffer (LEX_BUFFER_STATE buf);
+static int xinput (void); 
+static int xunput (void);
         
 #undef unput
 #define unput(c) xunput(c)
@@ -206,9 +206,9 @@ struct buffer_ctx {
 
 static struct buffer_ctx *context_stack;
 
-static struct buffer_ctx *ctx_lookup __P((ino_t ino));
-static int push_source __P((const char *name));
-static int pop_source __P((void));
+static struct buffer_ctx *ctx_lookup (ino_t ino);
+static int push_source (const char *name);
+static int pop_source (void);
 
 struct buffer_ctx *
 ctx_lookup (ino_t ino)

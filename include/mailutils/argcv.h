@@ -28,28 +28,20 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-extern int argcv_get    __P ((const char *command, const char *delim,
-			      const char* cmnt,
-			      int *argc, char ***argv));
-extern int argcv_get_n __P((const char *command, int len,
-			    const char *delim, const char *cmnt,
-			    int *argc, char ***argv));
+extern int argcv_get    (const char *command, const char *delim,
+			 const char* cmnt,
+			 int *argc, char ***argv);
+extern int argcv_get_n (const char *command, int len,
+		        const char *delim, const char *cmnt,
+			int *argc, char ***argv);
   
-extern int argcv_string __P ((int argc, char **argv, char **string));
-extern int argcv_free   __P ((int argc, char **argv));
-extern int argcv_unquote_char __P((int c));
-extern int argcv_quote_char   __P((int c));
-extern size_t argcv_quoted_length __P((const char *str, int *quote));
-extern void argcv_unquote_copy __P((char *dst, const char *src, size_t n));
-extern void argcv_quote_copy __P((char *dst, const char *src));
+extern int argcv_string (int argc, char **argv, char **string);
+extern int argcv_free   (int argc, char **argv);
+extern int argcv_unquote_char (int c);
+extern int argcv_quote_char   (int c);
+extern size_t argcv_quoted_length (const char *str, int *quote);
+extern void argcv_unquote_copy (char *dst, const char *src, size_t n);
+extern void argcv_quote_copy (char *dst, const char *src);
   
 #ifdef __cplusplus
 }

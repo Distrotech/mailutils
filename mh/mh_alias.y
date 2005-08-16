@@ -87,12 +87,12 @@ ali_list_to_string (list_t *plist)
   return string;
 }
 
-static list_t unix_group_to_list __P((char *name));
-static list_t unix_gid_to_list __P((char *name));
-static list_t unix_passwd_to_list __P((void));
+static list_t unix_group_to_list (char *name);
+static list_t unix_gid_to_list (char *name);
+static list_t unix_passwd_to_list (void);
 
-int yyerror __P((char *s));
-int yylex __P((void));
+int yyerror (char *s);
+int yylex (void);
 
 %}
 
@@ -281,8 +281,8 @@ _insert_list (list_t list, void *prev, list_t new_list)
   return 0;
 }
 
-static int mh_alias_get_internal __P((char *name, iterator_t start,
-				      list_t *return_list, int *inclusive));
+static int mh_alias_get_internal (char *name, iterator_t start,
+				  list_t *return_list, int *inclusive);
 
 int
 alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)

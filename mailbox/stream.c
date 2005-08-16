@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -605,7 +605,7 @@ stream_set_readline (stream_t stream, int (*_readline)
 
 int
 stream_set_write (stream_t stream, int (*_write)
-		  __P ((stream_t, const char *, size_t, off_t, size_t *)),
+		  (stream_t, const char *, size_t, off_t, size_t *),
 		  void *owner)
 {
   if (stream == NULL)

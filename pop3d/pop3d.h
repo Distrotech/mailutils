@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
    2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
@@ -83,9 +83,9 @@
 # define LOGIN_STAT_FILE "/var/run/pop3-login"
 extern time_t login_delay;
 extern char *login_stat_file;
-extern int check_login_delay __P((char *username));
-extern void update_login_delay __P((char *username));
-extern void login_delay_capa __P((void));
+extern int check_login_delay (char *username);
+extern void update_login_delay (char *username);
+extern void login_delay_capa (void);
 #else
 # define check_login_delay(u) 0
 # define update_login_delay(u)
@@ -219,57 +219,57 @@ extern int tls_done;
 #endif /* WITH_TLS */
 extern int undelete_on_startup;
 
-extern void pop3d_bye           __P ((void));
-extern int pop3d_abquit         __P ((int));
-extern int pop3d_apop           __P ((const char *));
-extern char *pop3d_apopuser     __P ((const char *));
-extern char *pop3d_args         __P ((const char *));
-extern int pop3d_auth           __P ((const char *));
-extern int pop3d_capa           __P ((const char *));
-extern char *pop3d_cmd          __P ((const char *));
-extern int pop3d_dele           __P ((const char *));
-extern int pop3d_list           __P ((const char *));
-extern int pop3d_lock           __P ((void));
-extern int pop3d_noop           __P ((const char *));
-extern int pop3d_quit           __P ((const char *));
-extern int pop3d_retr           __P ((const char *));
-extern int pop3d_rset           __P ((const char *));
-extern void process_cleanup     __P ((void));
+extern void pop3d_bye           (void);
+extern int pop3d_abquit         (int);
+extern int pop3d_apop           (const char *);
+extern char *pop3d_apopuser     (const char *);
+extern char *pop3d_args         (const char *);
+extern int pop3d_auth           (const char *);
+extern int pop3d_capa           (const char *);
+extern char *pop3d_cmd          (const char *);
+extern int pop3d_dele           (const char *);
+extern int pop3d_list           (const char *);
+extern int pop3d_lock           (void);
+extern int pop3d_noop           (const char *);
+extern int pop3d_quit           (const char *);
+extern int pop3d_retr           (const char *);
+extern int pop3d_rset           (const char *);
+extern void process_cleanup     (void);
 
-extern RETSIGTYPE pop3d_sigchld __P ((int));
-extern RETSIGTYPE pop3d_signal  __P ((int));
-extern int pop3d_stat           __P ((const char *));
+extern RETSIGTYPE pop3d_sigchld (int);
+extern RETSIGTYPE pop3d_signal  (int);
+extern int pop3d_stat           (const char *);
 #ifdef WITH_TLS
-extern int pop3d_stls           __P ((const char *));
+extern int pop3d_stls           (const char *);
 #endif /* WITH_TLS */
-extern int pop3d_top            __P ((const char *));
-extern int pop3d_touchlock      __P ((void));
-extern int pop3d_uidl           __P ((const char *));
-extern int pop3d_user           __P ((const char *));
-extern int pop3d_unlock         __P ((void));
-extern void pop3d_outf          __P ((const char *fmt, ...));
+extern int pop3d_top            (const char *);
+extern int pop3d_touchlock      (void);
+extern int pop3d_uidl           (const char *);
+extern int pop3d_user           (const char *);
+extern int pop3d_unlock         (void);
+extern void pop3d_outf          (const char *fmt, ...);
 
-extern void pop3d_setio         __P ((FILE *in, FILE *out));
-extern char *pop3d_readline     __P ((char *, size_t));
-extern void pop3d_flush_output  __P ((void));
+extern void pop3d_setio         (FILE *in, FILE *out);
+extern char *pop3d_readline     (char *, size_t);
+extern void pop3d_flush_output  (void);
 
-extern int pop3d_is_master      __P ((void));
+extern int pop3d_is_master      (void);
 
-extern void pop3d_mark_deleted __P((attribute_t attr));
-extern int pop3d_is_deleted __P((attribute_t attr));
-extern void pop3d_unset_deleted __P((attribute_t attr));
-void pop3d_undelete_all __P((void));
+extern void pop3d_mark_deleted (attribute_t attr);
+extern int pop3d_is_deleted (attribute_t attr);
+extern void pop3d_unset_deleted (attribute_t attr);
+void pop3d_undelete_all (void);
 
 #ifdef WITH_TLS
-extern int pop3d_init_tls_server    __P ((void));
-extern void pop3d_deinit_tls_server __P ((void));
+extern int pop3d_init_tls_server    (void);
+extern void pop3d_deinit_tls_server (void);
 #endif /* WITH_TLS */
 
-extern void pop3d_mark_retr __P((attribute_t attr));
-extern int pop3d_is_retr __P((attribute_t attr));
-extern void pop3d_unmark_retr __P((attribute_t attr));
+extern void pop3d_mark_retr (attribute_t attr);
+extern int pop3d_is_retr (attribute_t attr);
+extern void pop3d_unmark_retr (attribute_t attr);
 
-extern void expire_mark_message __P((message_t msg, char **value));
+extern void expire_mark_message (message_t msg, char **value);
 
 
 #endif /* _POP3D_H */

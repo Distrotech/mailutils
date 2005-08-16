@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,10 +96,10 @@ yyerror (char *s)
 #else
 /* AT&T Lex */
                                                
-static void lex_set_buffer __P((FILE *fp));
-static void lex_delete_buffer __P((LEX_BUFFER_STATE buf));
-static int xinput __P((void)); 
-static int xunput __P((void));
+static void lex_set_buffer (FILE *fp);
+static void lex_delete_buffer (LEX_BUFFER_STATE buf);
+static int xinput (void); 
+static int xunput (void);
         
 #undef unput
 #define unput(c) xunput(c)
@@ -335,7 +335,7 @@ pop_source ()
   return 0;
 }
 
-extern int yyparse __P((void));
+extern int yyparse (void);
 
 %}
 WS [ \t]+

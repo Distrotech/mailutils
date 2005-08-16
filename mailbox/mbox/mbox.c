@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003,
+   Copyright (C) 1999, 2000, 2001, 2003, 
    2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -56,52 +56,45 @@ const char *fhdr_table[HDRSIZE] =
 };
 
 /* Mailbox concrete implementation.  */
-static int mbox_open                  __P ((mailbox_t, int));
-static int mbox_close                 __P ((mailbox_t));
-static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
-/* static int mbox_get_message_by_uid    __P ((mailbox_t, size_t, message_t *)); */
-static int mbox_append_message        __P ((mailbox_t, message_t));
-static int mbox_messages_count        __P ((mailbox_t, size_t *));
-static int mbox_messages_recent       __P ((mailbox_t, size_t *));
-static int mbox_message_unseen        __P ((mailbox_t, size_t *));
-static int mbox_expunge0              __P ((mailbox_t, int));
-static int mbox_expunge               __P ((mailbox_t));
-static int mbox_save_attributes       __P ((mailbox_t));
-static int mbox_uidvalidity           __P ((mailbox_t, unsigned long *));
-static int mbox_uidnext               __P ((mailbox_t, size_t *));
-static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
-static int mbox_is_updated            __P ((mailbox_t));
-static int mbox_get_size              __P ((mailbox_t, off_t *));
+static int mbox_open                  (mailbox_t, int);
+static int mbox_close                 (mailbox_t);
+static int mbox_get_message           (mailbox_t, size_t, message_t *);
+/* static int mbox_get_message_by_uid    (mailbox_t, size_t, message_t *); */
+static int mbox_append_message        (mailbox_t, message_t);
+static int mbox_messages_count        (mailbox_t, size_t *);
+static int mbox_messages_recent       (mailbox_t, size_t *);
+static int mbox_message_unseen        (mailbox_t, size_t *);
+static int mbox_expunge0              (mailbox_t, int);
+static int mbox_expunge               (mailbox_t);
+static int mbox_save_attributes       (mailbox_t);
+static int mbox_uidvalidity           (mailbox_t, unsigned long *);
+static int mbox_uidnext               (mailbox_t, size_t *);
+static int mbox_scan                  (mailbox_t, size_t, size_t *);
+static int mbox_is_updated            (mailbox_t);
+static int mbox_get_size              (mailbox_t, off_t *);
 
 /* private stuff */
-static int mbox_append_message0       __P ((mailbox_t, message_t, off_t *,
-					    int, int));
-static int mbox_message_uid           __P ((message_t, size_t *));
-static int mbox_header_fill           __P ((header_t, char *, size_t, off_t,
-					    size_t *));
-static int mbox_get_body_transport    __P ((stream_t, mu_transport_t *, mu_transport_t *));
-static int mbox_get_transport2         __P ((mbox_message_t, mu_transport_t *, mu_transport_t *));
-static int mbox_get_attr_flags        __P ((attribute_t, int *));
-static int mbox_set_attr_flags        __P ((attribute_t, int));
-static int mbox_unset_attr_flags      __P ((attribute_t, int));
-static int mbox_body_read             __P ((stream_t, char *, size_t, off_t,
-					    size_t *));
-static int mbox_body_readline         __P ((stream_t, char *, size_t, off_t,
-					    size_t *));
-static int mbox_readstream            __P ((mbox_message_t, char *, size_t,
-					    off_t, size_t *, int, off_t,
-					    off_t));
-static int mbox_stream_size           __P((stream_t stream, off_t *psize));
+static int mbox_append_message0       (mailbox_t, message_t, off_t *, int, int);
+static int mbox_message_uid           (message_t, size_t *);
+static int mbox_header_fill           (header_t, char *, size_t, off_t, size_t *);
+static int mbox_get_body_transport    (stream_t, mu_transport_t *, mu_transport_t *);
+static int mbox_get_transport2         (mbox_message_t, mu_transport_t *, mu_transport_t *);
+static int mbox_get_attr_flags        (attribute_t, int *);
+static int mbox_set_attr_flags        (attribute_t, int);
+static int mbox_unset_attr_flags      (attribute_t, int);
+static int mbox_body_read             (stream_t, char *, size_t, off_t, size_t *);
+static int mbox_body_readline         (stream_t, char *, size_t, off_t, size_t *);
+static int mbox_readstream            (mbox_message_t, char *, size_t,
+				       off_t, size_t *, int, off_t, off_t);
+static int mbox_stream_size           (stream_t stream, off_t *psize);
 
-static int mbox_header_size           __P ((header_t, size_t *));
-static int mbox_header_lines          __P ((header_t, size_t *));
-static int mbox_body_size             __P ((body_t, size_t *));
-static int mbox_body_lines            __P ((body_t, size_t *));
-static int mbox_envelope_sender       __P ((envelope_t, char *, size_t,
-					    size_t *));
-static int mbox_envelope_date         __P ((envelope_t, char *, size_t,
-					    size_t *));
-static int mbox_tmpfile               __P ((mailbox_t, char **pbox));
+static int mbox_header_size           (header_t, size_t *);
+static int mbox_header_lines          (header_t, size_t *);
+static int mbox_body_size             (body_t, size_t *);
+static int mbox_body_lines            (body_t, size_t *);
+static int mbox_envelope_sender       (envelope_t, char *, size_t, size_t *);
+static int mbox_envelope_date         (envelope_t, char *, size_t, size_t *);
+static int mbox_tmpfile               (mailbox_t, char **pbox);
 
 /* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
    parsing on the name or even test for existence.  However we do strip any

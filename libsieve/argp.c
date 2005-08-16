@@ -26,8 +26,7 @@
 list_t sieve_include_path = NULL;
 list_t sieve_library_path = NULL;
 
-static error_t sieve_argp_parser __P((int key, char *arg,
-					struct argp_state *state));
+static error_t sieve_argp_parser (int key, char *arg, struct argp_state *state);
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option sieve_argp_option[] = {

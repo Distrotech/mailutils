@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,15 +25,17 @@
 extern "C" { /*}*/
 #endif
 
-int envelope_create __P((envelope_t *, void *));
-void envelope_destroy __P((envelope_t *, void *));
-void * envelope_get_owner __P((envelope_t));
-int envelope_set_sender __P((envelope_t, 
-                             int (*_sender) __PMT ((envelope_t, char *, size_t, size_t*)), void *));
-int envelope_sender __P((envelope_t, char *, size_t, size_t *));
-int envelope_set_date __P((envelope_t, 
-                           int (*_date) __PMT ((envelope_t, char *, size_t , size_t *)), void *));
-int envelope_date __P((envelope_t, char *, size_t, size_t *));
+int envelope_create (envelope_t *, void *);
+void envelope_destroy (envelope_t *, void *);
+void * envelope_get_owner (envelope_t);
+int envelope_set_sender (envelope_t, 
+                         int (*_sender) (envelope_t, char *, size_t, size_t*), 
+                         void *);
+int envelope_sender (envelope_t, char *, size_t, size_t *);
+int envelope_set_date (envelope_t, 
+                       int (*_date) (envelope_t, char *, size_t , size_t *), 
+                       void *);
+int envelope_date (envelope_t, char *, size_t, size_t *);
 
 #ifdef __cplusplus
 }

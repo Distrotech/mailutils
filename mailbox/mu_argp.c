@@ -127,10 +127,10 @@ static struct argp_option mu_daemon_argp_option[] = {
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-static error_t mu_common_argp_parser __P((int key, char *arg,
-					  struct argp_state *state));
-static error_t mu_daemon_argp_parser __P((int key, char *arg,
-					  struct argp_state *state));
+static error_t mu_common_argp_parser (int key, char *arg,
+				      struct argp_state *state);
+static error_t mu_daemon_argp_parser (int key, char *arg,
+				      struct argp_state *state);
 
 struct argp mu_common_argp = {
   mu_common_argp_options,

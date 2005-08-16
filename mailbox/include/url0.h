@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -45,17 +45,17 @@ struct _url
 
   void  *data;
 
-  void  (*_destroy)    __P ((url_t url));
+  void  (*_destroy)    (url_t url);
 
   /* Methods */
-  int   (*_get_scheme) __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_user)   __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_passwd) __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_auth)   __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_host)   __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_port)   __P ((const url_t, long *));
-  int   (*_get_path)   __P ((const url_t, char *, size_t, size_t *));
-  int   (*_get_query)  __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_scheme) (const url_t, char *, size_t, size_t *);
+  int   (*_get_user)   (const url_t, char *, size_t, size_t *);
+  int   (*_get_passwd) (const url_t, char *, size_t, size_t *);
+  int   (*_get_auth)   (const url_t, char *, size_t, size_t *);
+  int   (*_get_host)   (const url_t, char *, size_t, size_t *);
+  int   (*_get_port)   (const url_t, long *);
+  int   (*_get_path)   (const url_t, char *, size_t, size_t *);
+  int   (*_get_query)  (const url_t, char *, size_t, size_t *);
 };
 
 

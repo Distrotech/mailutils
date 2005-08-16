@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-extern void mu_init_nls __P((void));
+extern void mu_init_nls (void);
 
 #ifdef __cplusplus
 }

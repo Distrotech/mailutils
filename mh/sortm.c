@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -109,11 +109,11 @@ static char *format_str = mh_list_format;
 static mh_format_t format;
 
 typedef int (*compfun) __PMT((void *, void *));
-static void addop __P((char *field, compfun comp));
-static void remop __P((compfun comp));
-static int comp_text __P((void *a, void *b));
-static int comp_date __P((void *a, void *b));
-static int comp_number __P((void *a, void *b));
+static void addop (char *field, compfun comp);
+static void remop (compfun comp);
+static int comp_text (void *a, void *b);
+static int comp_date (void *a, void *b);
+static int comp_number (void *a, void *b);
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)

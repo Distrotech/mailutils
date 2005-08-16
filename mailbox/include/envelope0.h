@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,9 +32,9 @@ extern "C" {
 struct _envelope
 {
   void *owner;
-  int (*_destroy) __P ((envelope_t));
-  int (*_sender)    __P ((envelope_t, char *, size_t, size_t*));
-  int (*_date)    __P ((envelope_t, char *, size_t , size_t *));
+  int (*_destroy) (envelope_t);
+  int (*_sender)    (envelope_t, char *, size_t, size_t*);
+  int (*_date)    (envelope_t, char *, size_t , size_t *);
 };
 
 #endif /* _ENVELOPE0_H */

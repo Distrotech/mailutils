@@ -174,7 +174,7 @@ record_set_scheme (record_t record, const char *scheme)
 
 int
 record_set_is_scheme (record_t record, int (*_is_scheme)
-		      __P ((record_t, const char *, int)))
+		      (record_t, const char *, int))
 {
   if (record == NULL)
     return EINVAL;
@@ -183,7 +183,7 @@ record_set_is_scheme (record_t record, int (*_is_scheme)
 }
 
 int
-record_get_url (record_t record, int (*(*_purl)) __P ((url_t)))
+record_get_url (record_t record, int (*(*_purl)) (url_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -197,7 +197,7 @@ record_get_url (record_t record, int (*(*_purl)) __P ((url_t)))
 }
 
 int
-record_set_url (record_t record, int (*_url) __P ((url_t)))
+record_set_url (record_t record, int (*_url) (url_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -207,7 +207,7 @@ record_set_url (record_t record, int (*_url) __P ((url_t)))
 
 int
 record_set_get_url (record_t record, int (*_get_url)
-		    __P ((record_t, int (*(*)) __P ((url_t)))))
+		    (record_t, int (*(*)) (url_t)))
 {
   if (record == NULL)
     return EINVAL;
@@ -216,7 +216,7 @@ record_set_get_url (record_t record, int (*_get_url)
 }
 
 int
-record_get_mailbox (record_t record, int (*(*_pmailbox)) __P ((mailbox_t)))
+record_get_mailbox (record_t record, int (*(*_pmailbox)) (mailbox_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -230,7 +230,7 @@ record_get_mailbox (record_t record, int (*(*_pmailbox)) __P ((mailbox_t)))
 }
 
 int
-record_set_mailbox (record_t record, int (*_mailbox) __P ((mailbox_t)))
+record_set_mailbox (record_t record, int (*_mailbox) (mailbox_t))
 {
   if (record)
     return EINVAL;
@@ -239,8 +239,8 @@ record_set_mailbox (record_t record, int (*_mailbox) __P ((mailbox_t)))
 }
 
 int
-record_set_get_mailbox (record_t record, int (*_get_mailbox)
-			__P ((record_t, int (*(*)) __P((mailbox_t)))))
+record_set_get_mailbox (record_t record, 
+     int (*_get_mailbox) (record_t, int (*(*)) (mailbox_t)))
 {
   if (record)
     return EINVAL;
@@ -249,7 +249,7 @@ record_set_get_mailbox (record_t record, int (*_get_mailbox)
 }
 
 int
-record_get_mailer (record_t record, int (*(*_pmailer)) __P ((mailer_t)))
+record_get_mailer (record_t record, int (*(*_pmailer)) (mailer_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -263,7 +263,7 @@ record_get_mailer (record_t record, int (*(*_pmailer)) __P ((mailer_t)))
 }
 
 int
-record_set_mailer (record_t record, int (*_mailer) __P ((mailer_t)))
+record_set_mailer (record_t record, int (*_mailer) (mailer_t))
 {
   if (record)
     return EINVAL;
@@ -272,8 +272,8 @@ record_set_mailer (record_t record, int (*_mailer) __P ((mailer_t)))
 }
 
 int
-record_set_get_mailer (record_t record, int (*_get_mailer)
-		       __P ((record_t, int (*(*)) __P ((mailer_t)))))
+record_set_get_mailer (record_t record, 
+  int (*_get_mailer) (record_t, int (*(*)) (mailer_t)))
 {
   if (record == NULL)
     return EINVAL;
@@ -282,7 +282,7 @@ record_set_get_mailer (record_t record, int (*_get_mailer)
 }
 
 int
-record_get_folder (record_t record, int (*(*_pfolder)) __P ((folder_t)))
+record_get_folder (record_t record, int (*(*_pfolder)) (folder_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -296,7 +296,7 @@ record_get_folder (record_t record, int (*(*_pfolder)) __P ((folder_t)))
 }
 
 int
-record_set_folder (record_t record, int (*_folder) __P ((folder_t)))
+record_set_folder (record_t record, int (*_folder) (folder_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -305,8 +305,8 @@ record_set_folder (record_t record, int (*_folder) __P ((folder_t)))
 }
 
 int
-record_set_get_folder (record_t record, int (*_get_folder)
-		       __P ((record_t, int (*(*)) __P ((folder_t)))))
+record_set_get_folder (record_t record, 
+   int (*_get_folder) (record_t, int (*(*)) (folder_t)))
 {
   if (record == NULL)
     return EINVAL;

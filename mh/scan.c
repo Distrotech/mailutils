@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,9 +84,9 @@ static mh_format_t format;
 
 static mh_msgset_t msgset;
 
-void list_message __P((mailbox_t mbox, message_t msg, size_t num, void *data));
-void print_header __P((mailbox_t mbox));
-void clear_screen __P((void));
+void list_message (mailbox_t mbox, message_t msg, size_t num, void *data);
+void print_header (mailbox_t mbox);
+void clear_screen (void);
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)

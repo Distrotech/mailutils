@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
    2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
@@ -1146,7 +1146,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 
 void
 util_msgset_iterate (msgset_t *msgset,
-		     int (*fun) __P ((message_t, msgset_t *, void *)),
+		     int (*fun) (message_t, msgset_t *, void *),
 		     void *closure)
 {
   for (; msgset; msgset = msgset->next)

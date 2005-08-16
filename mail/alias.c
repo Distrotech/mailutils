@@ -18,10 +18,10 @@
 
 #include "mail.h"
 
-static void alias_print __P ((char *name));
-static void alias_print_group __P ((char *name, list_t list));
-static int  alias_create __P ((char *name, list_t *plist));
-static int  alias_lookup __P ((char *name, list_t *plist));
+static void alias_print (char *name);
+static void alias_print_group (char *name, list_t list);
+static int  alias_create (char *name, list_t *plist);
+static int  alias_lookup (char *name, list_t *plist);
 
 /*
  * a[lias] [alias [address...]]
@@ -71,10 +71,10 @@ static unsigned int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
 static alias_t *aliases; /* Table of aliases */
 static unsigned int hash_num;  /* Index to hash_size table */
 
-static unsigned int hash __P((char *name));
-static int alias_rehash __P((void));
-static alias_t *alias_lookup_or_install __P((char *name, int install));
-static void alias_print_group __P((char *name, list_t list));
+static unsigned int hash (char *name);
+static int alias_rehash (void);
+static alias_t *alias_lookup_or_install (char *name, int install);
+static void alias_print_group (char *name, list_t list);
 
 unsigned
 hash (char *name)

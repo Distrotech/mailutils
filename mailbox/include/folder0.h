@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,18 +51,18 @@ struct _folder
 
   /* Public methods */
 
-  void (*_destroy)     __P ((folder_t));
+  void (*_destroy)     (folder_t);
 
-  int  (*_open)        __P ((folder_t, int flag));
-  int  (*_close)       __P ((folder_t));
-  int  (*_list)        __P ((folder_t, const char *, const char *,
-			     struct folder_list *));
-  int  (*_lsub)        __P ((folder_t, const char *, const char *,
-			     struct folder_list *));
-  int  (*_delete)      __P ((folder_t, const char *));
-  int  (*_rename)      __P ((folder_t, const char *, const char *));
-  int  (*_subscribe)   __P ((folder_t, const char *));
-  int  (*_unsubscribe) __P ((folder_t, const char *));
+  int  (*_open)        (folder_t, int flag);
+  int  (*_close)       (folder_t);
+  int  (*_list)        (folder_t, const char *, const char *,
+		        struct folder_list *);
+  int  (*_lsub)        (folder_t, const char *, const char *,
+		        struct folder_list *);
+  int  (*_delete)      (folder_t, const char *);
+  int  (*_rename)      (folder_t, const char *, const char *);
+  int  (*_subscribe)   (folder_t, const char *);
+  int  (*_unsubscribe) (folder_t, const char *);
 };
 
 /* Moro(?)ic kluge.  */

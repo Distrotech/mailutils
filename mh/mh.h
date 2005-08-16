@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@
 #include <getline.h>
 
 #if !HAVE_DECL_STRCHRNUL
-extern char *strchrnul __P((const char *s, int c_in));
+extern char *strchrnul (const char *s, int c_in);
 #endif
 
 #define MH_FMT_RALIGN 0x1000
@@ -140,7 +140,7 @@ enum mh_type
 typedef enum mh_opcode mh_opcode_t;
 
 struct mh_machine;
-typedef void (*mh_builtin_fp) __P((struct mh_machine *));
+typedef void (*mh_builtin_fp) (struct mh_machine *);
 
 typedef union {
   mh_opcode_t opcode;
@@ -191,8 +191,8 @@ typedef struct
   size_t *list;
 } mh_msgset_t;
 
-typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
-				    size_t num, void *data));
+typedef void (*mh_iterator_fp) (mailbox_t mbox, message_t msg,
+			        size_t num, void *data);
 
 /* Recipient masks */
 #define RCPT_NONE 0
@@ -217,8 +217,7 @@ struct mh_whatnow_env {   /* An environment for whatnow shell */
 #define DISP_USE 1
 #define DISP_REPLACE 2
 
-typedef int (*mh_context_iterator) __PMT((char *field,
-					  char *value, char *data));
+typedef int (*mh_context_iterator) (char *field, char *value, char *data);
 
 #define SEQ_PRIVATE 1
 #define SEQ_ZERO    2
@@ -228,128 +227,126 @@ extern size_t current_message;
 extern char mh_list_format[];
 extern int rcpt_mask;
 
-void mh_init __P((void));
-void mh_init2 __P((void));
-void mh_read_profile __P((void));
-int mh_read_formfile __P((char *name, char **pformat));
+void mh_init (void);
+void mh_init2 (void);
+void mh_read_profile (void);
+int mh_read_formfile (char *name, char **pformat);
 message_t mh_file_to_message (char *folder, char *file_name);
 message_t mh_stream_to_message (stream_t stream);
-void mh_install __P((char *name, int automode));
+void mh_install (char *name, int automode);
 
-char *mh_global_profile_get __P((char *name, const char *defval));
-int mh_global_profile_set __P((const char *name, const char *value));
-char *mh_global_context_get __P((const char *name, const char *defval));
-int mh_global_context_set __P((const char *name, const char *value));
-char *mh_current_folder __P((void));
-char *mh_global_sequences_get __P((const char *name, const char *defval));
-int mh_global_sequences_set __P((const char *name, const char *value));
-void mh_global_save_state __P((void));
-int mh_global_profile_iterate __P((mh_context_iterator fp, void *data));
-int mh_global_context_iterate __P((mh_context_iterator fp, void *data));
-int mh_global_sequences_iterate __P((mh_context_iterator fp, void *data));
-void mh_global_sequences_drop __P((void));
+char *mh_global_profile_get (char *name, const char *defval);
+int mh_global_profile_set (const char *name, const char *value);
+char *mh_global_context_get (const char *name, const char *defval);
+int mh_global_context_set (const char *name, const char *value);
+char *mh_current_folder (void);
+char *mh_global_sequences_get (const char *name, const char *defval);
+int mh_global_sequences_set (const char *name, const char *value);
+void mh_global_save_state (void);
+int mh_global_profile_iterate (mh_context_iterator fp, void *data);
+int mh_global_context_iterate (mh_context_iterator fp, void *data);
+int mh_global_sequences_iterate (mh_context_iterator fp, void *data);
+void mh_global_sequences_drop (void);
 
-int mh_interactive_mode_p __P((void));
-int mh_getyn __P((const char *fmt, ...));
-int mh_getyn_interactive __P((const char *fmt, ...));
-int mh_check_folder __P((char *pathname, int confirm));
+int mh_interactive_mode_p (void);
+int mh_getyn (const char *fmt, ...);
+int mh_getyn_interactive (const char *fmt, ...);
+int mh_check_folder (char *pathname, int confirm);
 
-int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
-		   size_t width, char **pret));
-int mh_format_str __P((mh_format_t *fmt, char *str, size_t width, char **pret));
-void mh_format_dump __P((mh_format_t *fmt));
-int mh_format_parse __P((char *format_str, mh_format_t *fmt));
-void mh_format_debug __P((int val));
-void mh_format_free __P((mh_format_t *fmt));
-mh_builtin_t *mh_lookup_builtin __P((char *name, int *rest));
+int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
+	       size_t width, char **pret);
+int mh_format_str (mh_format_t *fmt, char *str, size_t width, char **pret);
+void mh_format_dump (mh_format_t *fmt);
+int mh_format_parse (char *format_str, mh_format_t *fmt);
+void mh_format_debug (int val);
+void mh_format_free (mh_format_t *fmt);
+mh_builtin_t *mh_lookup_builtin (char *name, int *rest);
 
-void mh_error __P((const char *fmt, ...));
-void mh_err_memory __P((int fatal));
+void mh_error (const char *fmt, ...);
+void mh_err_memory (int fatal);
 
-FILE *mh_audit_open __P((char *name, mailbox_t mbox));
-void mh_audit_close __P((FILE *fp));
+FILE *mh_audit_open (char *name, mailbox_t mbox);
+void mh_audit_close (FILE *fp);
 
-mh_context_t *mh_context_create __P((char *name, int copy));
-int mh_context_read __P((mh_context_t *ctx));
-int mh_context_write __P((mh_context_t *ctx));
-char *mh_context_get_value __P((mh_context_t *ctx, const char *name,
-				const char *defval));
-int mh_context_set_value __P((mh_context_t *ctx, const char *name,
-			      const char *value));
-int mh_context_iterate __P((mh_context_t *ctx,
-			    mh_context_iterator fp, void *data));
+mh_context_t *mh_context_create (char *name, int copy);
+int mh_context_read (mh_context_t *ctx);
+int mh_context_write (mh_context_t *ctx);
+char *mh_context_get_value (mh_context_t *ctx, const char *name,
+			    const char *defval);
+int mh_context_set_value (mh_context_t *ctx, const char *name,
+			  const char *value);
+int mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data);
 
-int mh_message_number __P((message_t msg, size_t *pnum));
+int mh_message_number (message_t msg, size_t *pnum);
 
-mailbox_t mh_open_folder __P((const char *folder, int create));
+mailbox_t mh_open_folder (const char *folder, int create);
 
-int mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
-			 int argc, char **argv, char *def));
-int mh_msgset_member __P((mh_msgset_t *msgset, size_t num));
-void mh_msgset_reverse __P((mh_msgset_t *msgset));
-void mh_msgset_negate __P((mailbox_t mbox, mh_msgset_t *msgset));
-int mh_msgset_current __P((mailbox_t mbox, mh_msgset_t *msgset, int index));
-void mh_msgset_free __P((mh_msgset_t *msgset));
-void mh_msgset_uids __P((mailbox_t mbox, mh_msgset_t *msgset));
+int mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset,
+		     int argc, char **argv, char *def);
+int mh_msgset_member (mh_msgset_t *msgset, size_t num);
+void mh_msgset_reverse (mh_msgset_t *msgset);
+void mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset);
+int mh_msgset_current (mailbox_t mbox, mh_msgset_t *msgset, int index);
+void mh_msgset_free (mh_msgset_t *msgset);
+void mh_msgset_uids (mailbox_t mbox, mh_msgset_t *msgset);
 
-char *mh_get_dir __P((void));
-char *mh_expand_name __P((const char *base, const char *name, int is_folder));
+char *mh_get_dir (void);
+char *mh_expand_name (const char *base, const char *name, int is_folder);
 
-int mh_is_my_name __P((char *name));
-char * mh_my_email __P((void));
+int mh_is_my_name (char *name);
+char * mh_my_email (void);
 
-int mh_iterate __P((mailbox_t mbox, mh_msgset_t *msgset,
-		    mh_iterator_fp itr, void *data));
+int mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
+	        mh_iterator_fp itr, void *data);
 
-size_t mh_get_message __P((mailbox_t mbox, size_t seqno, message_t *mesg));
+size_t mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg);
 
-int mh_decode_rcpt_flag __P((const char *arg));
+int mh_decode_rcpt_flag (const char *arg);
 
-void *xmalloc __P((size_t));
-void *xrealloc __P((void *, size_t));
+void *xmalloc (size_t);
+void *xrealloc (void *, size_t);
      
-int mh_spawnp __P((const char *prog, const char *file));
-int mh_whatnow __P((struct mh_whatnow_env *wh, int initial_edit));
-int mh_disposition __P((const char *filename));
-int mh_usedraft __P((const char *filename));
-int mh_file_copy __P((const char *from, const char *to));
-char *mh_draft_name __P((void));
-char *mh_create_message_id __P((int));
-int mh_whom __P((char *filename, int check));
-void mh_set_reply_regex __P((const char *str));
-int mh_decode_2047 __P((char *text, char **decoded_text));
+int mh_spawnp (const char *prog, const char *file);
+int mh_whatnow (struct mh_whatnow_env *wh, int initial_edit);
+int mh_disposition (const char *filename);
+int mh_usedraft (const char *filename);
+int mh_file_copy (const char *from, const char *to);
+char *mh_draft_name (void);
+char *mh_create_message_id (int);
+int mh_whom (char *filename, int check);
+void mh_set_reply_regex (const char *str);
+int mh_decode_2047 (char *text, char **decoded_text);
 
-int mh_alias_read __P((char *name, int fail));
-int mh_alias_get __P((char *name, list_t *return_list));
-int mh_alias_get_address __P((char *name, address_t *addr, int *incl));
-int mh_alias_get_alias __P((char *uname, list_t *return_list));
-int mh_read_aliases __P((void));
-int mh_alias_expand __P((char *str, address_t *paddr, int *incl));
+int mh_alias_read (char *name, int fail);
+int mh_alias_get (char *name, list_t *return_list);
+int mh_alias_get_address (char *name, address_t *addr, int *incl);
+int mh_alias_get_alias (char *uname, list_t *return_list);
+int mh_read_aliases (void);
+int mh_alias_expand (char *str, address_t *paddr, int *incl);
 
-typedef int (*mh_alias_enumerator_t) __PMT((char *alias, list_t names,
-					    void *data));
-void mh_alias_enumerate __P((mh_alias_enumerator_t fun, void *data));
+typedef int (*mh_alias_enumerator_t) (char *alias, list_t names, void *data);
+void mh_alias_enumerate (mh_alias_enumerator_t fun, void *data);
 
 
-void mh_annotate __P((message_t msg, char *field, char *text, int date));
+void mh_annotate (message_t msg, char *field, char *text, int date);
 
 #define MHL_DECODE       1
 #define MHL_CLEARSCREEN  2
 #define MHL_BELL         4
 #define MHL_DISABLE_BODY 8
 
-list_t mhl_format_compile __P((char *name));
-int mhl_format_run __P((list_t fmt, int width, int length, int flags,
-			message_t msg, stream_t output));
+list_t mhl_format_compile (char *name);
+int mhl_format_run (list_t fmt, int width, int length, int flags,
+		    message_t msg, stream_t output);
 void mhl_format_destroy (list_t *fmt);
 
-void mh_seq_add __P((char *name, mh_msgset_t *mset, int flags));
-int mh_seq_delete __P((char *name, mh_msgset_t *mset, int flags));
-char *mh_seq_read __P((char *name, int flags));
+void mh_seq_add (char *name, mh_msgset_t *mset, int flags);
+int mh_seq_delete (char *name, mh_msgset_t *mset, int flags);
+char *mh_seq_read (char *name, int flags);
 
-void mh_comp_draft __P((char *formfile, char *defformfile, char *draftfile));
-int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
+void mh_comp_draft (char *formfile, char *defformfile, char *draftfile);
+int check_draft_disposition (struct mh_whatnow_env *wh, int use_draft);
 
-void ali_parse_error __P((char *fmt, ...));
-void ali_verbatim __P((int enable));
+void ali_parse_error (char *fmt, ...);
+void ali_verbatim (int enable);
 

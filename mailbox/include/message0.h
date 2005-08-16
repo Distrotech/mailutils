@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,13 +58,13 @@ struct _message
   size_t hdr_buflen;
   int hdr_done;
 
-  int (*_get_uidl)       __P ((message_t, char *, size_t, size_t *));
-  int (*_get_uid)        __P ((message_t, size_t *));
-  int (*_get_num_parts)  __P ((message_t, size_t *));
-  int (*_get_part)       __P ((message_t, size_t, message_t *));
-  int (*_is_multipart)   __P ((message_t, int *));
-  int (*_lines)          __P ((message_t, size_t *));
-  int (*_size)           __P ((message_t, size_t *));
+  int (*_get_uidl)       (message_t, char *, size_t, size_t *);
+  int (*_get_uid)        (message_t, size_t *);
+  int (*_get_num_parts)  (message_t, size_t *);
+  int (*_get_part)       (message_t, size_t, message_t *);
+  int (*_is_multipart)   (message_t, int *);
+  int (*_lines)          (message_t, size_t *);
+  int (*_size)           (message_t, size_t *);
 };
 
 #ifdef __cplusplus

@@ -30,62 +30,55 @@ struct _record
 {
   int priority;    /* Higher priority records are scanned first */
   const char *scheme;
-  int (*_url)     __PMT ((url_t));
-  int (*_mailbox) __PMT ((mailbox_t));
-  int (*_mailer)  __PMT ((mailer_t));
-  int (*_folder)  __PMT ((folder_t));
+  int (*_url) (url_t);
+  int (*_mailbox) (mailbox_t);
+  int (*_mailer) (mailer_t);
+  int (*_folder) (folder_t);
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The default is to return the fields.  */
-  int (*_is_scheme)   __PMT ((record_t, const char *, int));
-  int (*_get_url)     __PMT ((record_t, int (*(*_url)) __PMT ((url_t))));
-  int (*_get_mailbox) __PMT ((record_t, int (*(*_mailbox)) __PMT ((mailbox_t))));
-  int (*_get_mailer)  __PMT ((record_t, int (*(*_mailer)) __PMT ((mailer_t))));
-  int (*_get_folder)  __PMT ((record_t, int (*(*_folder)) __PMT ((folder_t))));
+  int (*_is_scheme) (record_t, const char *, int);
+  int (*_get_url) (record_t, int (*(*_url)) (url_t));
+  int (*_get_mailbox) (record_t, int (*(*_mailbox)) (mailbox_t));
+  int (*_get_mailer) (record_t, int (*(*_mailer)) (mailer_t));
+  int (*_get_folder) (record_t, int (*(*_folder)) (folder_t));
 };
 
 /* Registration.  */
-extern int registrar_get_iterator __P ((iterator_t *));
-extern int registrar_get_list __P ((list_t *)) __attribute__ ((deprecated));
+extern int registrar_get_iterator (iterator_t *);
+extern int registrar_get_list (list_t *) __attribute__ ((deprecated));
   
-extern int registrar_lookup       __P ((const char *name, record_t *precord,
-					int flags));
-extern int registrar_record       __P ((record_t));
-extern int unregistrar_record     __P ((record_t));
+extern int registrar_lookup (const char *name, record_t *precord, int flags);
+extern int registrar_record       (record_t);
+extern int unregistrar_record     (record_t);
 
 /* Scheme.  */
-extern int record_is_scheme       __P ((record_t, const char *, int flags));
-extern int record_set_scheme      __P ((record_t, const char *));
-extern int record_set_is_scheme   __P ((record_t, int (*_is_scheme)
-					__PMT ((record_t, const char *, int))));
+extern int record_is_scheme       (record_t, const char *, int flags);
+extern int record_set_scheme      (record_t, const char *);
+extern int record_set_is_scheme   (record_t, 
+                      int (*_is_scheme) (record_t, const char *, int));
 
 /* Url.  */
-extern int record_get_url         __P ((record_t, int (*(*)) __PMT ((url_t))));
-extern int record_set_url         __P ((record_t, int (*) __PMT ((url_t))));
-extern int record_set_get_url     __P ((record_t, int (*_get_url)
-					__PMT ((record_t,
-					      int (*(*)) __PMT ((url_t))))));
+extern int record_get_url         (record_t, int (*(*)) (url_t));
+extern int record_set_url         (record_t, int (*) (url_t));
+extern int record_set_get_url     (record_t, 
+                      int (*_get_url) (record_t, int (*(*)) (url_t)));
 /*  Mailbox. */
-extern int record_get_mailbox     __P ((record_t, int (*(*))
-					__PMT ((mailbox_t))));
-extern int record_set_mailbox     __P ((record_t, int (*) __PMT ((mailbox_t))));
-extern int record_set_get_mailbox __P ((record_t, int (*_get_mailbox)
-					__PMT ((record_t,
-					      int (*(*)) __PMT((mailbox_t))))));
+extern int record_get_mailbox     (record_t, int (*(*)) (mailbox_t));
+extern int record_set_mailbox     (record_t, int (*) (mailbox_t));
+extern int record_set_get_mailbox (record_t, 
+                 int (*_get_mailbox) (record_t, int (*(*)) (mailbox_t)));
 /* Mailer.  */
-extern int record_get_mailer      __P ((record_t,
-					int (*(*)) __PMT ((mailer_t))));
-extern int record_set_mailer      __P ((record_t, int (*) __PMT ((mailer_t))));
-extern int record_set_get_mailer  __P ((record_t, int (*_get_mailer)
-				       __PMT ((record_t,
-					     int (*(*)) __PMT ((mailer_t))))));
+extern int record_get_mailer      (record_t,
+				   int (*(*)) (mailer_t));
+extern int record_set_mailer      (record_t, int (*) (mailer_t));
+extern int record_set_get_mailer  (record_t, 
+        int (*_get_mailer) (record_t, int (*(*)) (mailer_t)));
 /* Folder.  */
-extern int record_get_folder      __P ((record_t,
-					int (*(*)) __PMT ((folder_t))));
-extern int record_set_folder      __P ((record_t, int (*) __PMT ((folder_t))));
-extern int record_set_get_folder  __P ((record_t, int (*_get_folder)
-					__PMT ((record_t,
-					      int (*(*)) __PMT ((folder_t))))));
+extern int record_get_folder      (record_t, int (*(*)) (folder_t));
+extern int record_set_folder      (record_t, int (*) (folder_t));
+extern int record_set_get_folder  (record_t, 
+         int (*_get_folder) (record_t, int (*(*)) (folder_t)));
 
 /* Records provided by the library.  */
 

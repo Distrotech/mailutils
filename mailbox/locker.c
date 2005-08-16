@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -79,14 +79,14 @@ struct _locker
  */
 #define INVARIANT(l) assert((l)->refcnt >= 0);
 
-static void expire_stale_lock __P((locker_t lock));
-static int stat_check __P((const char *file, int fd, int links));
-static int check_file_permissions __P((const char *file));
-static int lock_external __P((locker_t l, int lock)); 
-static int _locker_lock_dotlock __P((locker_t lock));
-static int _locker_unlock_dotlock __P((locker_t lock));
-static int _locker_lock_kernel __P((locker_t lock)); 
-static int _locker_unlock_kernel __P((locker_t lock));
+static void expire_stale_lock (locker_t lock);
+static int stat_check (const char *file, int fd, int links);
+static int check_file_permissions (const char *file);
+static int lock_external (locker_t l, int lock); 
+static int _locker_lock_dotlock (locker_t lock);
+static int _locker_unlock_dotlock (locker_t lock);
+static int _locker_lock_kernel (locker_t lock); 
+static int _locker_unlock_kernel (locker_t lock);
 
 static int mu_locker_default_flags = MU_LOCKER_DEFAULT;
 static time_t mu_locker_retry_timeout = MU_LOCKER_RETRY_SLEEP;

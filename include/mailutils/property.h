@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,19 +27,18 @@
 extern "C" {
 #endif
 
-extern int  property_create   __P ((property_t *, void *));
-extern void property_destroy __P ((property_t *, void *));
-extern void *property_get_owner __P ((property_t));
+extern int  property_create   (property_t *, void *);
+extern void property_destroy (property_t *, void *);
+extern void *property_get_owner (property_t);
 
-extern int  property_set_value __P ((property_t, const char *,
-				     const char *, int));
-extern int property_get_value __P ((property_t, const char *, char *,
-				    size_t, size_t *));
+extern int  property_set_value (property_t, const char *, const char *, int);
+extern int property_get_value (property_t, const char *, char *, size_t, 
+                               size_t *);
 
 /* Helper functions.  */
-extern int property_set  __P ((property_t, const char *));
-extern int property_unset __P ((property_t, const char *));
-extern int property_is_set __P ((property_t, const char *));
+extern int property_set  (property_t, const char *);
+extern int property_unset (property_t, const char *);
+extern int property_is_set (property_t, const char *);
 
 #ifdef __cplusplus
 }

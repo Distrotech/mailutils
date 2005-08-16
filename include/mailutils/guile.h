@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -59,35 +59,35 @@ typedef struct
 extern "C" {
 #endif
 
-extern SCM scm_makenum __P((unsigned long val));
-extern void mu_set_variable __P((const char *name, SCM value));
-extern void mu_scm_init __P((void));
+extern SCM scm_makenum (unsigned long val);
+extern void mu_set_variable (const char *name, SCM value);
+extern void mu_scm_init (void);
 
-extern void mu_scm_mailbox_init __P((void));
-extern SCM mu_scm_mailbox_create __P((mailbox_t mbox));
-extern int mu_scm_is_mailbox __P((SCM scm));
+extern void mu_scm_mailbox_init (void);
+extern SCM mu_scm_mailbox_create (mailbox_t mbox);
+extern int mu_scm_is_mailbox (SCM scm);
 
-extern void mu_scm_message_init __P((void));
-extern SCM mu_scm_message_create __P((SCM owner, message_t msg));
-extern int mu_scm_is_message __P((SCM scm));
-extern const message_t mu_scm_message_get __P((SCM MESG));
+extern void mu_scm_message_init (void);
+extern SCM mu_scm_message_create (SCM owner, message_t msg);
+extern int mu_scm_is_message (SCM scm);
+extern const message_t mu_scm_message_get (SCM MESG);
 
-extern int mu_scm_is_body __P((SCM scm));
-extern void mu_scm_body_init __P((void));
-extern SCM mu_scm_body_create __P((SCM mesg, body_t body));
+extern int mu_scm_is_body (SCM scm);
+extern void mu_scm_body_init (void);
+extern SCM mu_scm_body_create (SCM mesg, body_t body);
 
-extern void mu_scm_address_init __P((void));
-extern void mu_scm_logger_init __P((void));
+extern void mu_scm_address_init (void);
+extern void mu_scm_logger_init (void);
 
-extern void mu_scm_port_init __P((void));
-extern SCM mu_port_make_from_stream __P((SCM msg, stream_t stream, long mode));
+extern void mu_scm_port_init (void);
+extern SCM mu_port_make_from_stream (SCM msg, stream_t stream, long mode);
 
-extern void mu_scm_mime_init __P((void));
-extern void mu_scm_message_add_owner __P((SCM MESG, SCM owner));
+extern void mu_scm_mime_init (void);
+extern void mu_scm_message_add_owner (SCM MESG, SCM owner);
 
-extern void mu_process_mailbox __P((int argc, char *argv[], guimb_param_t *param));
+extern void mu_process_mailbox (int argc, char *argv[], guimb_param_t *param);
 
-extern void mu_scm_mutil_init __P((void));
+extern void mu_scm_mutil_init (void);
 
 #ifdef __cplusplus
 }

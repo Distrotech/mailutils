@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,12 +54,11 @@ char *login_stat_file = LOGIN_STAT_FILE;
 time_t expire = EXPIRE_NEVER; /* Expire messages after this number of days */
 int expire_on_exit = 0;       /* Delete expired messages on exit */
 
-static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
-static void pop3d_daemon_init   __P ((void));
-static void pop3d_daemon        __P ((unsigned int, unsigned int));
-static error_t pop3d_parse_opt  __P((int key, char *arg,
-				     struct argp_state *astate));
-static void pop3d_log_connection __P((int fd));
+static int pop3d_mainloop       (int fd, FILE *, FILE *);
+static void pop3d_daemon_init   (void);
+static void pop3d_daemon        (unsigned int, unsigned int);
+static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
+static void pop3d_log_connection (int fd);
 
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
