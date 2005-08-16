@@ -50,7 +50,8 @@
 	mh/mh_alias.l,mh/mh_alias.y,mh/mh_format.c,mh/mh_getopt.h,
 	mh/mh_list.c,mh/mh_msgset.c,mh/mhn.c,mh/pick.h,mh/refile.c,
 	mh/scan.c,mh/sortm.c,readmsg/readmsg.c,readmsg/readmsg.h,
-	sieve/sieve.c: Remove __P() and __PMT() wrappers.
+	sieve/sieve.c,include/mailutils/errno.hin: Remove __P() and
+	__PMT() wrappers. 
 
 2005-08-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
