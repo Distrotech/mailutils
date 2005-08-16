@@ -30,8 +30,8 @@ extern "C" {
 
 $MESSAGE_DEFS
   
-const char *mu_errname __P((int e));
-const char *mu_strerror __P((int e));
+const char *mu_errname (int e);
+const char *mu_strerror (int e);
 
 #ifdef __cplusplus
 }
