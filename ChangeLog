@@ -10,7 +10,7 @@
 	messages/Makefile.am,mh/Makefile.am,mimeview/Makefile.am,
 	movemail/Makefile.am,readmsg/Makefile.am,scripts/gnulib-sync,
 	sieve/Makefile.am: Rename libmailbox to libmailutils. Rename
-	the convenience library (lib/libmailutils) to libmuaux
+	the convenience library (lib/libmailutils) to libmuaux.
 
 	* auth/lbuf.h,comsat/comsat.c,examples/mta.c,guimb/guimb.h,
 	imap4d/auth_gsasl.c,imap4d/fetch.c,imap4d/imap4d.c,
