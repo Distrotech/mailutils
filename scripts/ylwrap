@@ -2,7 +2,6 @@
 # ylwrap - wrapper for lex/yacc invocations.
 # Copyright 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 # Written by Tom Tromey <tromey@cygnus.com>.
-# -yy modification by Sergey Poznyakoff <gray@farlep.net>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,6 +71,7 @@ input_dir="`echo $input | sed -e 's,/[^/]*$,,'`"
 input_rx="`echo $input_dir | sed -e 's,\.,\\\.,g'`"
 
 pairlist=
+defout=$1
 while test "$#" -ne 0; do
    if test "$1" = "--"; then
       shift
@@ -81,16 +81,26 @@ while test "$#" -ne 0; do
    shift
 done
 
+STDOUT=""
 if [ $# -ne 0 ]; then
-    if [ "x$1" = "x-yy" ]; then
-	shift
-	if [ $# -eq 0 ]; then 
+    while test "$#" -ne 0; do
+	case "x$1" in
+	x-yy)
+	    shift
+	    if [ $# -eq 0 ]; then
 		echo "ylwrap: -yy requires an argument"
 		exit 1 
-	fi
-	YYREPL=$1
-	shift
-    fi
+	    fi
+	    YYREPL=$1
+	    shift;;
+	x-stdout)
+	    shift
+	    STDOUT=$defout
+	    ;;
+	*)
+	    break;;
+	esac
+    done     	
 fi    
 
 # FIXME: add hostname here for parallel makes that run commands on
@@ -101,7 +111,11 @@ mkdir $dirname || exit 1
 
 cd $dirname
 
-$prog ${1+"$@"} "$input"
+if [ -n "$STDOUT" ]; then
+    $prog ${1+"$@"} "$input" > $STDOUT
+else
+    $prog ${1+"$@"} "$input"
+fi
 status=$?
 
 if test $status -eq 0; then
@@ -140,7 +154,8 @@ if test $status -eq 0; then
 	 # resulting debug information to point at an absolute srcdir;
 	 # it is better for it to just mention the .y file with no
 	 # path.
-	 EXPR="/^#/ s,$input_rx/,,"
+	 T=`basename $target`
+	 EXPR="/^#/ s,$input_rx/,,;s,\"$from\",\"$T\","
 	 if [ ! -z "$YYREPL" ]; then
 	    EXPR="$EXPR;s/yy/$YYREPL/g"
 	 fi
@@ -167,4 +182,3 @@ cd ..
 rm -rf $dirname
 
 exit $status
-
