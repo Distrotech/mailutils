@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,8 +97,8 @@ main (int argc, char **argv)
   
   mbox = mh_open_folder (current_folder, 0);
 
-  mailbox_messages_count (mbox, &total);
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_messages_count (mbox, &total);
+  mu_mailbox_get_url (mbox, &url);
   mhdir = (char*) url_to_string (url);
   if (strncmp (mhdir, "mh:", 3) == 0)
     mhdir += 3;
@@ -124,7 +124,7 @@ main (int argc, char **argv)
       message_t msg = NULL;
       size_t num;
       
-      mailbox_get_message (mbox, total, &msg);
+      mu_mailbox_get_message (mbox, total, &msg);
       mh_message_number (msg, &num);
       printf ("%s/%lu\n", mhdir, (unsigned long)(num + 1));
       exit (0);
@@ -135,7 +135,7 @@ main (int argc, char **argv)
      output separated by newlines. */
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   status = mh_iterate (mbox, &msgset, mhpath, mhdir);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return status;
 }

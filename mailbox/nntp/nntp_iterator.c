@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -58,19 +58,19 @@ mu_nntp_iterator_create (mu_nntp_t nntp, iterator_t *piterator)
   nntp_iterator->done = 0;
   nntp_iterator->nntp= nntp;
 
-  status = iterator_create (&iterator, nntp_iterator);
+  status = mu_iterator_create (&iterator, nntp_iterator);
   if (status != 0)
     {
       free (nntp_iterator);
       return status;
     }
-  iterator_set_first (iterator, nntp_itr_first);
-  iterator_set_next (iterator, nntp_itr_next);
-  iterator_set_getitem (iterator, nntp_itr_getitem);
-  iterator_set_finished_p (iterator, nntp_itr_finished_p);
-  iterator_set_curitem_p (iterator, nntp_itr_curitem_p);
-  iterator_set_destroy (iterator, nntp_itr_destroy);
-  iterator_set_dup (iterator, nntp_itr_dup);
+  mu_iterator_set_first (iterator, nntp_itr_first);
+  mu_iterator_set_next (iterator, nntp_itr_next);
+  mu_iterator_set_getitem (iterator, nntp_itr_getitem);
+  mu_iterator_set_finished_p (iterator, nntp_itr_finished_p);
+  mu_iterator_set_curitem_p (iterator, nntp_itr_curitem_p);
+  mu_iterator_set_destroy (iterator, nntp_itr_destroy);
+  mu_iterator_set_dup (iterator, nntp_itr_dup);
 
   *piterator = iterator;
   return 0;

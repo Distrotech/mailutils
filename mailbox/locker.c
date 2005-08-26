@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -95,11 +95,11 @@ static time_t mu_locker_expire_timeout = MU_LOCKER_EXPIRE_TIME;
 static char *mu_locker_external_program = NULL;
 
 int
-locker_set_default_flags (int flags, enum mu_locker_set_mode mode)
+mu_locker_set_default_flags (int flags, enum mu_locker_set_mode mode)
 {
   switch (mode)
     {
-    case mu_locker_set_flags:
+    case mu_locker_assign:
       mu_locker_default_flags = flags;
       break;
 
@@ -118,32 +118,32 @@ locker_set_default_flags (int flags, enum mu_locker_set_mode mode)
 }
 
 void
-locker_set_default_retry_timeout (time_t to)
+mu_locker_set_default_retry_timeout (time_t to)
 {
   mu_locker_retry_timeout = to;
 }
 
 void
-locker_set_default_retry_count (size_t n)
+mu_locker_set_default_retry_count (size_t n)
 {
   mu_locker_retry_count = n;
 }
 
 void
-locker_set_default_expire_timeout (time_t t)
+mu_locker_set_default_expire_timeout (time_t t)
 {
   mu_locker_expire_timeout = t;
 }
 
 void
-locker_set_default_external_program (char *path)
+mu_locker_set_default_external_program (char *path)
 {
   free (mu_locker_external_program);
   mu_locker_external_program = strdup (path);
 }
 
 int
-locker_create (locker_t *plocker, const char *filename_, int flags)
+mu_locker_create (locker_t *plocker, const char *filename_, int flags)
 {
   locker_t l;
   char filename[_POSIX_PATH_MAX];
@@ -189,7 +189,7 @@ locker_create (locker_t *plocker, const char *filename_, int flags)
 					    mu_locker_external_program :
 					    MU_LOCKER_EXTERNAL_PROGRAM)))
 	{
-	  locker_destroy (&l);
+	  mu_locker_destroy (&l);
 	  return ENOMEM;
 	}
     }
@@ -235,7 +235,7 @@ _locker_destroy_private (locker_t locker)
 }
 
 void
-locker_destroy (locker_t *plocker)
+mu_locker_destroy (locker_t *plocker)
 {
   if (plocker && *plocker)
     {
@@ -246,7 +246,8 @@ locker_destroy (locker_t *plocker)
     }
 }
 
-int locker_set_flags (locker_t locker, int flags)
+int
+mu_locker_set_flags (locker_t locker, int flags)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -257,7 +258,7 @@ int locker_set_flags (locker_t locker, int flags)
 }
 
 int
-locker_set_expire_time (locker_t locker, int etime)
+mu_locker_set_expire_time (locker_t locker, int etime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -271,7 +272,7 @@ locker_set_expire_time (locker_t locker, int etime)
 }
 
 int
-locker_set_retries (locker_t locker, int retries)
+mu_locker_set_retries (locker_t locker, int retries)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -285,7 +286,7 @@ locker_set_retries (locker_t locker, int retries)
 }
 
 int
-locker_set_retry_sleep (locker_t locker, int retry_sleep)
+mu_locker_set_retry_sleep (locker_t locker, int retry_sleep)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -299,7 +300,7 @@ locker_set_retry_sleep (locker_t locker, int retry_sleep)
 }
 
 int
-locker_set_external (locker_t locker, const char* program)
+mu_locker_set_external (locker_t locker, const char* program)
 {
   char* p = NULL;
 
@@ -323,7 +324,7 @@ locker_set_external (locker_t locker, const char* program)
 }
 
 int
-locker_get_flags (locker_t locker, int *flags)
+mu_locker_get_flags (locker_t locker, int *flags)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -337,7 +338,7 @@ locker_get_flags (locker_t locker, int *flags)
 }
 
 int
-locker_get_expire_time (locker_t locker, int *ptime)
+mu_locker_get_expire_time (locker_t locker, int *ptime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -351,7 +352,7 @@ locker_get_expire_time (locker_t locker, int *ptime)
 }
 
 int
-locker_get_retries (locker_t locker, int *retries)
+mu_locker_get_retries (locker_t locker, int *retries)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -365,7 +366,7 @@ locker_get_retries (locker_t locker, int *retries)
 }
 
 int
-locker_get_retry_sleep (locker_t locker, int *retry_sleep)
+mu_locker_get_retry_sleep (locker_t locker, int *retry_sleep)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -379,7 +380,7 @@ locker_get_retry_sleep (locker_t locker, int *retry_sleep)
 }
 
 int
-locker_lock (locker_t lock)
+mu_locker_lock (locker_t lock)
 {
   int rc;
   int retries = 1;
@@ -469,7 +470,7 @@ locker_lock (locker_t lock)
 }
 
 int
-locker_touchlock (locker_t lock)
+mu_locker_touchlock (locker_t lock)
 {
   if (!lock)
     return MU_ERR_LOCKER_NULL;
@@ -484,7 +485,7 @@ locker_touchlock (locker_t lock)
 }
 
 int
-locker_unlock (locker_t lock)
+mu_locker_unlock (locker_t lock)
 {
   int rc = 0;
 
@@ -522,7 +523,7 @@ locker_unlock (locker_t lock)
 }
 
 int
-locker_remove_lock (locker_t lock)
+mu_locker_remove_lock (locker_t lock)
 {
   int err;
 
@@ -534,7 +535,7 @@ locker_remove_lock (locker_t lock)
 
   /* Force the reference count to 1 to unlock the file. */
   lock->refcnt = 1;
-  err = locker_unlock (lock);
+  err = mu_locker_unlock (lock);
 
   return err;
 }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ msgset_last (mailbox_t mbox, size_t *pnum)
   int rc;
   size_t count = 0;
 
-  rc = mailbox_messages_count (mbox, &count);
+  rc = mu_mailbox_messages_count (mbox, &count);
   if (rc)
     {
       mh_error (_("Cannot get last message: %s"), mu_strerror (rc));
@@ -80,13 +80,13 @@ msgset_cur (mailbox_t mbox, size_t *pnum)
       return 0;
     }
   
-  mailbox_messages_count (mbox, &count);
+  mu_mailbox_messages_count (mbox, &count);
   for (i = 1; i <= count; i++)
     {
       message_t msg = NULL;
       size_t uid = 0;
       
-      mailbox_get_message (mbox, i, &msg);
+      mu_mailbox_get_message (mbox, i, &msg);
       mh_message_number (msg, &uid);
       if (uid == current_message)
 	{
@@ -117,7 +117,7 @@ msgset_next (mailbox_t mbox, size_t *pnum)
 {
   size_t cur_n = 0, total = 0;
   msgset_cur (mbox, &cur_n);
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
   if (cur_n + 1 > total)
     {
       mh_error (_("no next message"));
@@ -159,7 +159,7 @@ msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 	
 	if (p->handler (mbox, &num))
 	  msgset_abort (arg);
-	rc = mailbox_get_message (mbox, num, &msg);
+	rc = mu_mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
 	    mh_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
@@ -262,9 +262,9 @@ expand_user_seq (mailbox_t mbox, mh_msgset_t *msgset, char *arg)
 	return 1;
     }
   
-  if (argcv_get (listp, "", NULL, &argc, &argv) == 0)
+  if (mu_argcv_get (listp, "", NULL, &argc, &argv) == 0)
     rc = _mh_msgset_parse (mbox, msgset, argc, argv);
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   if (rc)
     return rc;
 
@@ -487,7 +487,7 @@ mh_search_message (mailbox_t mbox, size_t start, size_t stop,
   size_t num = 0, middle;
 
   middle = (start + stop) / 2;
-  if (mailbox_get_message (mbox, middle, &mid_msg)
+  if (mu_mailbox_get_message (mbox, middle, &mid_msg)
       || mh_message_number (mid_msg, &num))
     return 0;
 
@@ -518,7 +518,7 @@ mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg)
   size_t num, count;
   message_t msg;
 
-  if (mailbox_get_message (mbox, 1, &msg)
+  if (mu_mailbox_get_message (mbox, 1, &msg)
       || mh_message_number (msg, &num))
     return 0;
   if (seqno < num)
@@ -530,8 +530,8 @@ mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg)
       return 1;
     }
 
-  if (mailbox_messages_count (mbox, &count)
-      || mailbox_get_message (mbox, count, &msg)
+  if (mu_mailbox_messages_count (mbox, &count)
+      || mu_mailbox_get_message (mbox, count, &msg)
       || mh_message_number (msg, &num))
     return 0;
   if (seqno > num)
@@ -566,7 +566,7 @@ int
 mh_msgset_current (mailbox_t mbox, mh_msgset_t *msgset, int index)
 {
   message_t msg = NULL;
-  if (mailbox_get_message (mbox, msgset->list[index], &msg))
+  if (mu_mailbox_get_message (mbox, msgset->list[index], &msg))
     return 1;
   return mh_message_number (msg, &current_message);
 }
@@ -590,7 +590,7 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   size_t i, total = 0, msgno;
   size_t *list;
 
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
   list = calloc (total, sizeof (list[0]));
   if (!list)
     mh_err_memory (1);
@@ -618,7 +618,7 @@ mh_msgset_uids (mailbox_t mbox, mh_msgset_t *msgset)
   for (i = 0; i < msgset->count; i++)
     {
       message_t msg;
-      mailbox_get_message (mbox, msgset->list[i], &msg);
+      mu_mailbox_get_message (mbox, msgset->list[i], &msg);
       mh_message_number (msg, &msgset->list[i]);
     }
 }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,39 +33,39 @@
 #define INSTR_DISASS(m) ((m)->debug_level & MU_SIEVE_DEBUG_DISAS)
 
 void
-instr_nop (sieve_machine_t mach)
+instr_nop (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: NOP\n",
+    mu_sieve_debug (mach, "%4lu: NOP\n",
 		 (unsigned long) (mach->pc - 1));
 }
 
 void
-instr_source (sieve_machine_t mach)
+instr_source (mu_sieve_machine_t mach)
 {
   mach->locus.source_file = SIEVE_ARG (mach, 0, string);
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: SOURCE %s\n",
+    mu_sieve_debug (mach, "%4lu: SOURCE %s\n",
 		 (unsigned long) (mach->pc - 1),
 		 mach->locus.source_file);
   SIEVE_ADJUST (mach, 1);
 }
 		 
 void
-instr_line (sieve_machine_t mach)
+instr_line (mu_sieve_machine_t mach)
 {
   mach->locus.source_line = SIEVE_ARG (mach, 0, line);
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: LINE %lu\n",
+    mu_sieve_debug (mach, "%4lu: LINE %lu\n",
 		 (unsigned long) (mach->pc - 1),
 		 (unsigned long) mach->locus.source_line);
   SIEVE_ADJUST (mach, 1);
 }
 		 
 static int
-instr_run (sieve_machine_t mach)
+instr_run (mu_sieve_machine_t mach)
 {
-  sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
+  mu_sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
   list_t arg_list = SIEVE_ARG (mach, 1, list);
   list_t tag_list = SIEVE_ARG (mach, 2, list);
   int rc = 0;
@@ -74,11 +74,11 @@ instr_run (sieve_machine_t mach)
 
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "Arguments: ");
+      mu_sieve_debug (mach, "Arguments: ");
       sieve_print_value_list (arg_list, mach->debug_printer, mach->data);
-      sieve_debug (mach, "\nTags:");
+      mu_sieve_debug (mach, "\nTags:");
       sieve_print_tag_list (tag_list, mach->debug_printer, mach->data);
-      sieve_debug (mach, "\n");
+      mu_sieve_debug (mach, "\n");
     }
 
   if (!INSTR_DISASS(mach))
@@ -87,11 +87,11 @@ instr_run (sieve_machine_t mach)
 }
 
 void
-instr_action (sieve_machine_t mach)
+instr_action (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: ACTION: %s\n",
+    mu_sieve_debug (mach, "%4lu: ACTION: %s\n",
 		 (unsigned long) (mach->pc - 1),
 		 mach->identifier);
   mach->action_count++;
@@ -100,11 +100,11 @@ instr_action (sieve_machine_t mach)
 }
 
 void
-instr_test (sieve_machine_t mach)
+instr_test (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: TEST: %s\n",
+    mu_sieve_debug (mach, "%4lu: TEST: %s\n",
 		 (unsigned long) (mach->pc - 1),
 		 mach->identifier);
   mach->reg = instr_run (mach);
@@ -112,48 +112,48 @@ instr_test (sieve_machine_t mach)
 }
 
 void
-instr_push (sieve_machine_t mach)
+instr_push (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: PUSH\n", (unsigned long)(mach->pc - 1));
+      mu_sieve_debug (mach, "%4lu: PUSH\n", (unsigned long)(mach->pc - 1));
       if (INSTR_DISASS (mach))
 	return;
     }
   
-  if (!mach->stack && list_create (&mach->stack))
+  if (!mach->stack && mu_list_create (&mach->stack))
     {
-      sieve_error (mach, _("cannot create stack"));
-      sieve_abort (mach);
+      mu_sieve_error (mach, _("cannot create stack"));
+      mu_sieve_abort (mach);
     }
-  list_prepend (mach->stack, (void*) mach->reg);
+  mu_list_prepend (mach->stack, (void*) mach->reg);
 }
 
 void
-instr_pop (sieve_machine_t mach)
+instr_pop (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: POP\n", (unsigned long)(mach->pc - 1));
+      mu_sieve_debug (mach, "%4lu: POP\n", (unsigned long)(mach->pc - 1));
       if (INSTR_DISASS (mach))
 	return;
     }
 
-  if (!mach->stack || list_is_empty (mach->stack))
+  if (!mach->stack || mu_list_is_empty (mach->stack))
     {
-      sieve_error (mach, _("stack underflow"));
-      sieve_abort (mach);
+      mu_sieve_error (mach, _("stack underflow"));
+      mu_sieve_abort (mach);
     }
-  list_get (mach->stack, 0, (void **)&mach->reg);
-  list_remove (mach->stack, (void *)mach->reg);
+  mu_list_get (mach->stack, 0, (void **)&mach->reg);
+  mu_list_remove (mach->stack, (void *)mach->reg);
 }
 
 void
-instr_not (sieve_machine_t mach)
+instr_not (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: NOT\n", (unsigned long)(mach->pc - 1));
+      mu_sieve_debug (mach, "%4lu: NOT\n", (unsigned long)(mach->pc - 1));
       if (INSTR_DISASS (mach))
 	return;
     }
@@ -161,14 +161,14 @@ instr_not (sieve_machine_t mach)
 }
 
 void
-instr_branch (sieve_machine_t mach)
+instr_branch (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
 
   SIEVE_ADJUST (mach, 1);
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: BRANCH %lu\n",
+      mu_sieve_debug (mach, "%4lu: BRANCH %lu\n",
 		   (unsigned long)(mach->pc-2),
 		   (unsigned long)(mach->pc + num));
       if (INSTR_DISASS (mach))
@@ -179,14 +179,14 @@ instr_branch (sieve_machine_t mach)
 }
 
 void
-instr_brz (sieve_machine_t mach)
+instr_brz (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
   SIEVE_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: BRZ %lu\n",
+      mu_sieve_debug (mach, "%4lu: BRZ %lu\n",
 		   (unsigned long)(mach->pc-2),
 		   (unsigned long)(mach->pc + num));
       if (INSTR_DISASS (mach))
@@ -198,14 +198,14 @@ instr_brz (sieve_machine_t mach)
 }
   
 void
-instr_brnz (sieve_machine_t mach)
+instr_brnz (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
   SIEVE_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
     {
-      sieve_debug (mach, "%4lu: BRNZ %lu\n",
+      mu_sieve_debug (mach, "%4lu: BRNZ %lu\n",
 		   (unsigned long)(mach->pc-2),
 		   (unsigned long)(mach->pc + num));
       if (INSTR_DISASS (mach))
@@ -217,19 +217,19 @@ instr_brnz (sieve_machine_t mach)
 }
   
 void
-sieve_abort (sieve_machine_t mach)
+mu_sieve_abort (mu_sieve_machine_t mach)
 {
   longjmp (mach->errbuf, 1);
 }
 
 void *
-sieve_get_data (sieve_machine_t mach)
+mu_sieve_get_data (mu_sieve_machine_t mach)
 {
   return mach->data;
 }
 
 int
-sieve_get_locus (sieve_machine_t mach, sieve_locus_t *loc)
+mu_sieve_get_locus (mu_sieve_machine_t mach, mu_sieve_locus_t *loc)
 {
   if (mach->source_list)
     {
@@ -240,39 +240,39 @@ sieve_get_locus (sieve_machine_t mach, sieve_locus_t *loc)
 }
 
 message_t
-sieve_get_message (sieve_machine_t mach)
+mu_sieve_get_message (mu_sieve_machine_t mach)
 {
   if (!mach->msg)
-    mailbox_get_message (mach->mailbox, mach->msgno, &mach->msg);
+    mu_mailbox_get_message (mach->mailbox, mach->msgno, &mach->msg);
   return mach->msg;
 }
 
 size_t
-sieve_get_message_num (sieve_machine_t mach)
+mu_sieve_get_message_num (mu_sieve_machine_t mach)
 {
   return mach->msgno;
 }
 
 int
-sieve_get_debug_level (sieve_machine_t mach)
+mu_sieve_get_debug_level (mu_sieve_machine_t mach)
 {
   return mach->debug_level;
 }
 
 const char *
-sieve_get_identifier (sieve_machine_t mach)
+mu_sieve_get_identifier (mu_sieve_machine_t mach)
 {
   return mach->identifier;
 }
 
 int
-sieve_is_dry_run (sieve_machine_t mach)
+mu_sieve_is_dry_run (mu_sieve_machine_t mach)
 {
   return mach->debug_level & MU_SIEVE_DRY_RUN;
 }
 
 int
-sieve_run (sieve_machine_t mach)
+sieve_run (mu_sieve_machine_t mach)
 {
   if (setjmp (mach->errbuf))
     return 1;
@@ -283,16 +283,16 @@ sieve_run (sieve_machine_t mach)
     (*mach->prog[mach->pc++].instr) (mach);
 
   if (mach->action_count == 0)
-    sieve_log_action (mach, "IMPLICIT KEEP", NULL);
+    mu_sieve_log_action (mach, "IMPLICIT KEEP", NULL);
   
   if (INSTR_DEBUG (mach))
-    sieve_debug (mach, "%4lu: STOP\n", mach->pc);
+    mu_sieve_debug (mach, "%4lu: STOP\n", mach->pc);
   
   return 0;
 }
 
 int
-sieve_disass (sieve_machine_t mach)
+mu_sieve_disass (mu_sieve_machine_t mach)
 {
   int level = mach->debug_level;
   int rc;
@@ -306,20 +306,20 @@ sieve_disass (sieve_machine_t mach)
 static int
 _sieve_action (observer_t obs, size_t type)
 {
-  sieve_machine_t mach;
+  mu_sieve_machine_t mach;
   
   if (type != MU_EVT_MESSAGE_ADD)
     return 0;
 
   mach = observer_get_owner (obs);
   mach->msgno++;
-  mailbox_get_message (mach->mailbox, mach->msgno, &mach->msg);
+  mu_mailbox_get_message (mach->mailbox, mach->msgno, &mach->msg);
   sieve_run (mach);
   return 0;
 }
 
 int
-sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
+mu_sieve_mailbox (mu_sieve_machine_t mach, mailbox_t mbox)
 {
   int rc;
   size_t total;
@@ -331,14 +331,14 @@ sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
 
   observer_create (&observer, mach);
   observer_set_action (observer, _sieve_action, mach);
-  mailbox_get_observable (mbox, &observable);
+  mu_mailbox_get_observable (mbox, &observable);
   observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
   
   mach->mailbox = mbox;
   mach->msgno = 0;
-  rc = mailbox_scan (mbox, 1, &total);
+  rc = mu_mailbox_scan (mbox, 1, &total);
   if (rc)
-    sieve_error (mach, _("mailbox_scan: %s"), mu_strerror (errno));
+    mu_sieve_error (mach, _("mu_mailbox_scan: %s"), mu_strerror (errno));
 
   observable_detach (observable, observer);
   observer_destroy (&observer, mach);
@@ -349,7 +349,7 @@ sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
 }
 
 int
-sieve_message (sieve_machine_t mach, message_t msg)
+mu_sieve_message (mu_sieve_machine_t mach, message_t msg)
 {
   int rc;
   

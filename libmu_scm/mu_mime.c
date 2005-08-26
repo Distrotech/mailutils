@@ -88,10 +88,10 @@ mu_scm_is_mime (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
-SCM_DEFINE (mu_mime_create, "mu-mime-create", 0, 2, 0,
+SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 	    (SCM FLAGS, SCM MESG),
 	    "Creates a new MIME object.")
-#define FUNC_NAME s_mu_mime_create
+#define FUNC_NAME s_scm_mu_mime_create
 {
   message_t msg = NULL;
   mime_t mime;
@@ -122,20 +122,20 @@ SCM_DEFINE (mu_mime_create, "mu-mime-create", 0, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
+SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 	    (SCM MIME),
 	    "Returns #t if MIME is a multipart object.\n")
-#define FUNC_NAME s_mu_mime_multipart_p
+#define FUNC_NAME s_scm_mu_mime_multipart_p
 {
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   return mime_is_multipart (mu_scm_mime_get (MIME)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
+SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 	    (SCM MIME),
 	    "Returns number of parts in a MIME object.")
-#define FUNC_NAME s_mu_mime_get_num_parts
+#define FUNC_NAME s_scm_mu_mime_get_num_parts
 {
   mime_t mime;
   size_t nparts;
@@ -144,14 +144,14 @@ SCM_DEFINE (mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
   mime = mu_scm_mime_get (MIME);
   if (mime_get_num_parts (mime, &nparts))
     return SCM_BOOL_F;
-  return scm_makenum (nparts);
+  return mu_scm_makenum (nparts);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
+SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 	    (SCM MIME, SCM PART),
 	    "Returns part number PART from a MIME object.")
-#define FUNC_NAME s_mu_mime_get_part
+#define FUNC_NAME s_scm_mu_mime_get_part
 {
   message_t msg = NULL;
 
@@ -165,10 +165,10 @@ SCM_DEFINE (mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
+SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 	    (SCM MIME, SCM MESG),
 	    "Adds MESG to the MIME object.")
-#define FUNC_NAME s_mu_mime_add_part
+#define FUNC_NAME s_scm_mu_mime_add_part
 {
   mime_t mime;
   message_t msg;
@@ -187,10 +187,10 @@ SCM_DEFINE (mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
+SCM_DEFINE (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
 	    (SCM MIME),
 	    "Converts MIME object to a message.\n")
-#define FUNC_NAME s_mu_mime_get_message
+#define FUNC_NAME s_scm_mu_mime_get_message
 {
   mime_t mime;
   message_t msg;

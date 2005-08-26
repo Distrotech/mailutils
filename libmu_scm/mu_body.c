@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,10 +58,10 @@ mu_scm_body_print (SCM body_smob, SCM port, scm_print_state * pstate)
   size_t b_size = 0, b_lines = 0, len = 0;
   char buffer[512];
 
-  body_size (mbp->body, &b_size);
-  body_lines (mbp->body, &b_lines);
+  mu_body_size (mbp->body, &b_size);
+  mu_body_lines (mbp->body, &b_lines);
   buffer[0] = 0;
-  body_get_filename (mbp->body, buffer, sizeof (buffer), &len);
+  mu_body_get_filename (mbp->body, buffer, sizeof (buffer), &len);
 
   scm_puts ("#<body \"", port);
   scm_puts (buffer, port);
@@ -101,10 +101,10 @@ mu_scm_body_create (SCM msg, body_t body)
 /* ************************************************************************* */
 /* Guile primitives */
 
-SCM_DEFINE (mu_body_read_line, "mu-body-read-line", 1, 0, 0,
+SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 	    (SCM BODY), 
 	    "Read next line from the BODY.")
-#define FUNC_NAME s_mu_body_read_line
+#define FUNC_NAME s_scm_mu_body_read_line
 {
   struct mu_body *mbp;
   int n, nread;
@@ -114,7 +114,7 @@ SCM_DEFINE (mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 
   if (!mbp->stream)
     {
-      if (body_get_stream (mbp->body, &mbp->stream))
+      if (mu_body_get_stream (mbp->body, &mbp->stream))
 	return SCM_BOOL_F;
     }
 
@@ -156,10 +156,10 @@ SCM_DEFINE (mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_body_write, "mu-body-write", 2, 0, 0,
+SCM_DEFINE (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 	    (SCM BODY, SCM TEXT),
 	    "Append TEXT to message BODY.")
-#define FUNC_NAME s_mu_body_write
+#define FUNC_NAME s_scm_mu_body_write
 {
   char *ptr;
   size_t len, n;
@@ -172,7 +172,7 @@ SCM_DEFINE (mu_body_write, "mu-body-write", 2, 0, 0,
   
   if (!mbp->stream)
     {
-      if (body_get_stream (mbp->body, &mbp->stream))
+      if (mu_body_get_stream (mbp->body, &mbp->stream))
 	return SCM_BOOL_F;
     }
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
       size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
       message_t msg = NULL;
 
-      if (msgno && mailbox_get_message (mbox, msgno, &msg) == 0)
+      if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
 	{
 	  char item[32];
 	  char *items = strdup (sp);
@@ -356,7 +356,7 @@ fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
 
   message_get_envelope (command->msg, &env);
   date[0] = '\0';
-  if (envelope_date (env, date, sizeof (date), NULL) == 0)
+  if (mu_envelope_date (env, date, sizeof (date), NULL) == 0)
     {
       char *p = date;
       if (mu_parse_ctime_date_time ((const char **) &p, &tm, &tz) == 0)
@@ -498,10 +498,10 @@ fetch_body (struct fetch_command *command, char **arg)
     {
       attribute_t attr = NULL;
       message_get_attribute (command->msg, &attr);
-      if (!attribute_is_read (attr))
+      if (!mu_attribute_is_read (attr))
 	{
 	  util_send ("FLAGS (\\Seen) ");
-	  attribute_set_read (attr);
+	  mu_attribute_set_read (attr);
 	}
     }
   else if (strncasecmp (*arg,".PEEK", 5) == 0)
@@ -534,7 +534,7 @@ fetch_send_header_value (header_t header, const char *name,
   
   if (space)
     util_send (" ");
-  if (header_aget_value (header, name, &buffer) == 0)
+  if (mu_header_aget_value (header, name, &buffer) == 0)
     {
       util_send_qstring (buffer);
       free (buffer);
@@ -553,7 +553,7 @@ fetch_send_header_list (header_t header, const char *name,
   
   if (space)
     util_send (" ");
-  if (header_aget_value (header, name, &buffer) == 0)
+  if (mu_header_aget_value (header, name, &buffer) == 0)
     {
       send_parameter_list (buffer);
       free (buffer);
@@ -572,7 +572,7 @@ fetch_send_header_address (header_t header, const char *name,
   
   if (space)
     util_send (" ");
-  if (header_aget_value (header, name, &buffer) == 0)
+  if (mu_header_aget_value (header, name, &buffer) == 0)
     {
       fetch_send_address (buffer);
       free (buffer);
@@ -603,7 +603,7 @@ fetch_envelope0 (message_t msg)
   fetch_send_header_value (header, "Subject", NULL, 1);
 
   /* From:  */
-  header_aget_value (header, "From", &from);
+  mu_header_aget_value (header, "From", &from);
   util_send (" ");
   fetch_send_address (from);
 
@@ -670,13 +670,13 @@ fetch_bodystructure0 (message_t message, int extension)
 
 
       /* The subtype.  */
-      if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
+      if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
 	{
 	  int argc = 0;
 	  char **argv;
 	  char *s;
 	  
-	  argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+	  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
 
 	  s = strchr (argv[0], '/');
 	  if (s)
@@ -733,7 +733,7 @@ fetch_bodystructure0 (message_t message, int extension)
 	    }
 	  else
 	    util_send (" NIL");
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
           free (buffer);
 	}
       else
@@ -807,13 +807,13 @@ bodystructure (message_t msg, int extension)
 
   message_get_header (msg, &header);
 
-  if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
+  if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
     {
       int argc = 0;
       char **argv;
       char *s, *p;
 	  
-      argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+      mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
 
       if (strcasecmp (argv[0], "MESSAGE/RFC822") == 0)
         message_rfc822 = 1;
@@ -890,7 +890,7 @@ bodystructure (message_t msg, int extension)
 	}
       else
 	util_send (" NIL");
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
       free (buffer);
     }
   else
@@ -914,8 +914,8 @@ bodystructure (message_t msg, int extension)
     size_t size = 0;
     body_t body = NULL;
     message_get_body (msg, &body);
-    body_size (body, &size);
-    body_lines (body, &blines);
+    mu_body_size (body, &size);
+    mu_body_lines (body, &blines);
     util_send (" %d", size + blines);
   }
 
@@ -1125,9 +1125,9 @@ fetch_header (message_t msg, unsigned long start, unsigned long end)
   stream_t stream = NULL;
   size_t size = 0, lines = 0;
   message_get_header (msg, &header);
-  header_size (header, &size);
-  header_lines (header, &lines);
-  header_get_stream (header, &stream);
+  mu_header_size (header, &size);
+  mu_header_lines (header, &lines);
+  mu_header_get_stream (header, &stream);
   return fetch_io (stream, start, end, size + lines);
 }
 
@@ -1138,9 +1138,9 @@ fetch_body_content (message_t msg, unsigned long start, unsigned long end)
   stream_t stream = NULL;
   size_t size = 0, lines = 0;
   message_get_body (msg, &body);
-  body_size (body, &size);
-  body_lines (body, &lines);
-  body_get_stream (body, &stream);
+  mu_body_size (body, &size);
+  mu_body_lines (body, &lines);
+  mu_body_get_stream (body, &stream);
   return fetch_io (stream, start, end, size + lines);
 }
 
@@ -1152,7 +1152,7 @@ fetch_io (stream_t stream, unsigned long start, unsigned long end,
   size_t n = 0;
   off_t offset;
 
-  filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
+  mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
 
   if (start == ULONG_MAX || end == ULONG_MAX)
     {
@@ -1254,7 +1254,7 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
       {
 	char *value = NULL;
 	size_t n = 0;
-	if (header_aget_value (header, array[j], &value))
+	if (mu_header_aget_value (header, array[j], &value))
 	    continue;
 
 	n = asprintf (&buffer, "%s: %s\n", array[j], value);
@@ -1349,7 +1349,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
     header_t header = NULL;
     size_t count = 0;
     message_get_header (msg, &header);
-    header_get_field_count (header, &count);
+    mu_header_get_field_count (header, &count);
     for (i = 1; i <= count; i++)
       {
 	char *name = NULL;
@@ -1358,7 +1358,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 	size_t ignore = 0;
 
 	/* Get the field name.  */
-	status = header_aget_field_name (header, i, &name);
+	status = mu_header_aget_field_name (header, i, &name);
 	if (*name == '\0')
 	  {
 	    free (name);
@@ -1383,7 +1383,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 	    }
 	}
 
-	if (header_aget_field_value (header, i, &value) == 0)
+	if (mu_header_aget_field_value (header, i, &value) == 0)
 	  {
 	    char *nl;
 	    
@@ -1448,8 +1448,8 @@ fetch_send_address (const char *addr)
       return RESP_OK;
     }
 
-  address_create (&address, addr);
-  address_get_count (address, &count);
+  mu_address_create (&address, addr);
+  mu_address_get_count (address, &count);
 
   /* We failed: can't parse.  */
   if (count == 0)
@@ -1466,13 +1466,13 @@ fetch_send_address (const char *addr)
       util_send ("(");
 
       *buf = '\0';
-      address_get_personal (address, i, buf, sizeof (buf), NULL);
+      mu_address_get_personal (address, i, buf, sizeof (buf), NULL);
       util_send_qstring (buf);
 
       util_send (" ");
 
       *buf = '\0';
-      address_get_route (address, i, buf, sizeof (buf), NULL);
+      mu_address_get_route (address, i, buf, sizeof (buf), NULL);
       util_send_qstring (buf);
 
       util_send (" ");
@@ -1481,18 +1481,18 @@ fetch_send_address (const char *addr)
       {
 	int is_group = 0;
 
-	address_is_group (address, i, &is_group);
+	mu_address_is_group (address, i, &is_group);
 	if (is_group)
-	  address_get_personal (address, i, buf, sizeof (buf), NULL);
+	  mu_address_get_personal (address, i, buf, sizeof (buf), NULL);
 	else
-	  address_get_local_part (address, i, buf, sizeof (buf), NULL);
+	  mu_address_get_local_part (address, i, buf, sizeof (buf), NULL);
       }
       util_send_qstring (buf);
 
       util_send (" ");
 
       *buf = '\0';
-      address_get_domain (address, i, buf, sizeof (buf), NULL);
+      mu_address_get_domain (address, i, buf, sizeof (buf), NULL);
       util_send_qstring (buf);
 
       util_send (")");
@@ -1514,7 +1514,7 @@ send_parameter_list (const char *buffer)
       return;
     }
 
-  argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
   
   if (argc == 0)
     util_send ("NIL");
@@ -1575,7 +1575,7 @@ send_parameter_list (const char *buffer)
 	util_send (" NIL");
       util_send (")");
     }
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
 }
 	  
 

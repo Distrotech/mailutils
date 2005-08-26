@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -332,7 +333,7 @@ mh_audit_open (char *name, mailbox_t mbox)
   time (&t);
   tm = localtime (&t);
   strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   
   fprintf (fp, "<<%s>> %s %s\n",
 	   program_invocation_short_name,
@@ -364,7 +365,7 @@ mh_open_folder (const char *folder, int create)
   if (create && mh_check_folder (name, 1))
     exit (0);
     
-  if (mailbox_create_default (&mbox, name))
+  if (mu_mailbox_create_default (&mbox, name))
     {
       mh_error (_("Cannot create mailbox %s: %s"),
 		name, strerror (errno));
@@ -374,7 +375,7 @@ mh_open_folder (const char *folder, int create)
   if (create)
     flags |= MU_STREAM_CREAT;
   
-  if (mailbox_open (mbox, flags))
+  if (mu_mailbox_open (mbox, flags))
     {
       mh_error (_("Cannot open mailbox %s: %s"), name, strerror (errno));
       exit (1);
@@ -452,7 +453,7 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
       size_t num;
 
       num = msgset->list[i];
-      if ((rc = mailbox_get_message (mbox, num, &msg)) != 0)
+      if ((rc = mu_mailbox_get_message (mbox, num, &msg)) != 0)
 	{
 	  mh_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
 	  return 1;
@@ -470,10 +471,10 @@ mh_spawnp (const char *prog, const char *file)
   int argc, i, rc, status;
   char **argv, **xargv;
 
-  if (argcv_get (prog, "", "#", &argc, &argv))
+  if (mu_argcv_get (prog, "", "#", &argc, &argv))
     {
       mh_error (_("Cannot split line %s"), prog);
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
       return 1;
     }
 
@@ -481,7 +482,7 @@ mh_spawnp (const char *prog, const char *file)
   if (!xargv)
     {
       mh_err_memory (0);
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
       return 1;
     }
 
@@ -493,7 +494,7 @@ mh_spawnp (const char *prog, const char *file)
   rc = mu_spawnvp (xargv[0], (const char**) xargv, &status);
 
   free (xargv);
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
 
   return rc;
 }
@@ -736,13 +737,13 @@ mh_annotate (message_t msg, char *field, char *text, int date)
       tm = localtime (&t);
       strftime (datebuf, sizeof datebuf, "%a, %d %b %Y %H:%M:%S %Z", tm);
 
-      header_set_value (hdr, field, datebuf, 0);
+      mu_header_set_value (hdr, field, datebuf, 0);
     }
 
   if (text)
-    header_set_value (hdr, field, text, 0);
+    mu_header_set_value (hdr, field, text, 0);
   message_get_attribute (msg, &attr);
-  attribute_set_modified (attr);
+  mu_attribute_set_modified (attr);
 }
 
 char *

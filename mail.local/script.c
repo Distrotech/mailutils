@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ int
 prog_mda (struct mda_data *data)
 {
   char *x_argv[2];
-  guimb_param_t param;
+  mu_guimb_param_t param;
   
   x_argv[0] = "mail.local";
   x_argv[1] = NULL;
@@ -99,9 +99,9 @@ mda_catch_body (void *data, mailbox_t mbox)
       scm_primitive_load (scm_makfrom0str (md->progfile));
     }
   
-  mailbox_get_message (mbox, 1, &mesg);
+  mu_mailbox_get_message (mbox, 1, &mesg);
   message_get_attribute (mesg, &attr);
-  if (attribute_is_deleted (attr))
+  if (mu_attribute_is_deleted (attr))
     return SCM_BOOL_F;
 
   mda_switch_to_user (NULL);
@@ -130,9 +130,9 @@ mda_next (void *data, mailbox_t mbox)
     free (md->progfile);
   md->progfile = mu_expand_path_pattern (md->progfile_pattern, *md->argv);
 
-  mailbox_get_message (mbox, 1, &mesg);
+  mu_mailbox_get_message (mbox, 1, &mesg);
   message_get_attribute (mesg, &attr);
-  attribute_unset_deleted (attr);
+  mu_attribute_unset_deleted (attr);
   
   return md->progfile != NULL;
 }

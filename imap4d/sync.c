@@ -53,9 +53,9 @@ notify_flag (size_t msgno, attribute_t oattr)
   message_t msg = NULL;
   attribute_t nattr = NULL;
   int status ;
-  mailbox_get_message (mbox, msgno, &msg);
+  mu_mailbox_get_message (mbox, msgno, &msg);
   message_get_attribute (msg, &nattr);
-  status = attribute_is_equal (oattr, nattr);
+  status = mu_attribute_is_equal (oattr, nattr);
 
   if (status == 0)
     {
@@ -63,41 +63,41 @@ notify_flag (size_t msgno, attribute_t oattr)
       if (!abuf)
 	imap4d_bye (ERR_NO_MEM);
       *abuf = '\0';
-      if (attribute_is_seen (nattr) && attribute_is_read (nattr))
-	if (!attribute_is_seen (oattr) && !attribute_is_read (oattr))
+      if (mu_attribute_is_seen (nattr) && mu_attribute_is_read (nattr))
+	if (!mu_attribute_is_seen (oattr) && !mu_attribute_is_read (oattr))
 	  {
-	    attribute_set_seen (oattr);
-	    attribute_set_read (oattr);
+	    mu_attribute_set_seen (oattr);
+	    mu_attribute_set_read (oattr);
 	    add_flag (&abuf, "\\Seen");
 	  }
-      if (attribute_is_answered (nattr))
-	if (!attribute_is_answered (oattr))
+      if (mu_attribute_is_answered (nattr))
+	if (!mu_attribute_is_answered (oattr))
 	  {
-	    attribute_set_answered (oattr);
+	    mu_attribute_set_answered (oattr);
 	    add_flag (&abuf, "\\Answered");
 	  }
-      if (attribute_is_flagged (nattr))
-	if (!attribute_is_flagged (oattr))
+      if (mu_attribute_is_flagged (nattr))
+	if (!mu_attribute_is_flagged (oattr))
 	  {
-	    attribute_set_flagged (oattr);
+	    mu_attribute_set_flagged (oattr);
 	    add_flag (&abuf, "\\Flagged");
 	  }
-      if (attribute_is_deleted (nattr))
-	if (!attribute_is_deleted (oattr))
+      if (mu_attribute_is_deleted (nattr))
+	if (!mu_attribute_is_deleted (oattr))
 	  {
-	    attribute_set_deleted (oattr);
+	    mu_attribute_set_deleted (oattr);
 	    add_flag (&abuf, "\\Deleted");
 	  }
-      if (attribute_is_draft (nattr))
-	if (!attribute_is_draft (oattr))
+      if (mu_attribute_is_draft (nattr))
+	if (!mu_attribute_is_draft (oattr))
 	  {
-	    attribute_set_draft (oattr);
+	    mu_attribute_set_draft (oattr);
 	    add_flag (&abuf, "\\Draft");
 	  }
-      if (attribute_is_recent (nattr))
-	if (!attribute_is_recent (oattr))
+      if (mu_attribute_is_recent (nattr))
+	if (!mu_attribute_is_recent (oattr))
 	  {
-	    attribute_set_recent (oattr);
+	    mu_attribute_set_recent (oattr);
 	    add_flag (&abuf, "\\Recent");
 	  }
       if (*abuf)
@@ -158,7 +158,7 @@ free_uids (void)
     {
       size_t i;
       for (i = 0; i < uid_table_count; i++)
-	attribute_destroy (&(uid_table[i].attr), NULL);
+	mu_attribute_destroy (&(uid_table[i].attr), NULL);
       free (uid_table);
       uid_table = NULL;
     }
@@ -183,7 +183,7 @@ reset_uids (void)
 
   free_uids ();
 
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
   for (i = 1; i <= total; i++)
     {
       message_t msg = NULL;
@@ -193,14 +193,14 @@ reset_uids (void)
 			   (uid_table_count + 1));
       if (!uid_table)
 	imap4d_bye (ERR_NO_MEM);
-      mailbox_get_message (mbox, i, &msg);
+      mu_mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
       message_get_uid (msg, &uid);
       uid_table[uid_table_count].uid = uid;
       uid_table[uid_table_count].msgno = i;
       uid_table[uid_table_count].notify = 0;
-      attribute_create (&(uid_table[uid_table_count].attr), NULL);
-      attribute_copy (uid_table[uid_table_count].attr, attr);
+      mu_attribute_create (&(uid_table[uid_table_count].attr), NULL);
+      mu_attribute_copy (uid_table[uid_table_count].attr, attr);
       uid_table_count++;
     }
   uid_table_loaded = 1;
@@ -213,7 +213,7 @@ notify (void)
   int reset = 0;
   size_t recent = 0;
   
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
 
   if (!uid_table)
     {
@@ -229,12 +229,12 @@ notify (void)
 	{
 	  message_t msg = NULL;
 	  size_t uid = 0;
-	  mailbox_get_message (mbox, i, &msg);
+	  mu_mailbox_get_message (mbox, i, &msg);
 	  message_get_uid (msg, &uid);
 	  notify_uid (uid);
 	}
       notify_deleted ();
-      mailbox_messages_recent (mbox, &recent);
+      mu_mailbox_messages_recent (mbox, &recent);
     }
 
   util_out (RESP_NONE, "%d EXISTS", total);
@@ -265,9 +265,9 @@ imap4d_sync_flags (size_t msgno)
       {
 	message_t msg = NULL;
 	attribute_t attr = NULL;
-	mailbox_get_message (mbox, msgno, &msg);
+	mu_mailbox_get_message (mbox, msgno, &msg);
 	message_get_attribute (msg, &attr);
-	attribute_copy (uid_table[i].attr, attr);
+	mu_attribute_copy (uid_table[i].attr, attr);
 	break;
       }
   return 0;
@@ -299,7 +299,7 @@ imap4d_set_observer (mailbox_t mbox)
       
   observer_create (&observer, mbox);
   observer_set_action (observer, action, mbox);
-  mailbox_get_observable (mbox, &observable);
+  mu_mailbox_get_observable (mbox, &observable);
   observable_attach (observable, MU_EVT_MAILBOX_CORRUPT|MU_EVT_MAILBOX_DESTROY,
 		     observer);
   mailbox_corrupt = 0;
@@ -313,16 +313,16 @@ imap4d_sync (void)
      If it was a close we do not send any notification.  */
   if (mbox == NULL)
     free_uids ();
-  else if (!uid_table_loaded || !mailbox_is_updated (mbox))
+  else if (!uid_table_loaded || !mu_mailbox_is_updated (mbox))
     {
       if (mailbox_corrupt)
 	{
 	  /* Some messages have been deleted from the mailbox by some other
 	     party */
-	  int status = mailbox_close (mbox);
+	  int status = mu_mailbox_close (mbox);
 	  if (status)
 	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
-	  status = mailbox_open (mbox, MU_STREAM_RDWR);
+	  status = mu_mailbox_open (mbox, MU_STREAM_RDWR);
 	  if (status)
 	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
 	  imap4d_set_observer (mbox);
@@ -336,7 +336,7 @@ imap4d_sync (void)
   else
     {
       size_t count = 0;
-      mailbox_messages_count (mbox, &count);
+      mu_mailbox_messages_count (mbox, &count);
       if (count != uid_table_count)
 	notify ();
     }

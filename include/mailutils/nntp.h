@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ extern int  mu_nntp_stls            (mu_nntp_t nntp);
 extern int  mu_nntp_mode_reader     (mu_nntp_t nntp);
 
 /* An iterator is return with the multi-line answer. It is the responsibility
-   of the caller to call iterator_destroy() to dispose of the iterator.  */
+   of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_list_extensions (mu_nntp_t nntp, iterator_t *iterator);
 
 extern int  mu_nntp_quit            (mu_nntp_t nntp);
@@ -112,7 +112,7 @@ extern int  mu_nntp_help            (mu_nntp_t nntp, stream_t *stream);
 
 
 /* An iterator is return with the multi-line answer. It is the responsibility
-   of the caller to call iterator_destroy() to dispose of the iterator.  */
+   of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_newgroups       (mu_nntp_t nntp, unsigned int year,
 				     unsigned int month, unsigned int day,
 				     unsigned int hour, unsigned int minute,
@@ -120,7 +120,7 @@ extern int  mu_nntp_newgroups       (mu_nntp_t nntp, unsigned int year,
 				     iterator_t *iterator);
   
 /* A iterator is return with the multi-line answer. It is the responsibility
-   of the caller to call iterator_destroy() to dispose of the iterator.  */
+   of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_newnews       (mu_nntp_t nntp, const char *wildmat,
 				   unsigned int year, unsigned int month,
 				   unsigned int day, unsigned int hour,
@@ -133,7 +133,7 @@ extern int  mu_nntp_ihave           (mu_nntp_t nntp, const char *mid,
 
 
 /* A iterator is return with the multi-line answer. It is the responsibility
-   of the caller to call iterator_destroy() to dispose of the iterator.  */
+   of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_list_active     (mu_nntp_t nntp, const char *wildmat,
 				     iterator_t *iterator);
 extern int  mu_nntp_list_active_times      (mu_nntp_t nntp,

@@ -101,14 +101,14 @@ main (int argc, char *argv[])
 
   if (optfrom)
     {
-      C (address_create (&from, optfrom));
+      C (mu_address_create (&from, optfrom));
     }
 
   if (argv[optind])
     {
       char **av = argv + optind;
 
-      C (address_createv (&to, (const char **) av, -1));
+      C (mu_address_createv (&to, (const char **) av, -1));
     }
 
   C (stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));

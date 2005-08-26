@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,12 +28,12 @@
 #include <sieve.h>
 
 void
-sieve_require (list_t slist)
+mu_sieve_require (list_t slist)
 {
   int status;
   iterator_t itr;
   
-  status = list_get_iterator (slist, &itr);
+  status = mu_list_get_iterator (slist, &itr);
   if (status)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
@@ -41,34 +42,34 @@ sieve_require (list_t slist)
       return;
     }
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *name;
-      int (*reqfn) __PMT ((sieve_machine_t mach, const char *name)) = NULL;
+      int (*reqfn) (mu_sieve_machine_t mach, const char *name) = NULL;
       char *text = NULL;
       
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
 
       if (strncmp (name, "comparator-", 11) == 0)
 	{
 	  name += 11;
-	  reqfn = sieve_require_comparator;
+	  reqfn = mu_sieve_require_comparator;
 	  text = _("required comparator");
 	}
       else if (strncmp (name, "test-", 5)  == 0) /* GNU extension */
 	{
 	  name += 5;
-	  reqfn = sieve_require_test;
+	  reqfn = mu_sieve_require_test;
 	  text = _("required test");
 	}
       else if (strcmp (name, "relational") == 0) /* RFC 3431 */
 	{
-	  reqfn = sieve_require_relational;
+	  reqfn = mu_sieve_require_relational;
 	  text = "";
 	}
       else
 	{
-	  reqfn = sieve_require_action;
+	  reqfn = mu_sieve_require_action;
 	  text = _("required action");
 	}
 
@@ -80,6 +81,6 @@ sieve_require (list_t slist)
 			       name);
 	}
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
      

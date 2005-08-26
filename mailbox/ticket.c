@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@ echo_on(struct termios *stored_settings)
 }
 
 int
-ticket_create (ticket_t *pticket, void *owner)
+mu_ticket_create (ticket_t *pticket, void *owner)
 {
   ticket_t ticket;
   if (pticket == NULL)
@@ -63,7 +63,7 @@ ticket_create (ticket_t *pticket, void *owner)
 }
 
 void
-ticket_destroy (ticket_t *pticket, void *owner)
+mu_ticket_destroy (ticket_t *pticket, void *owner)
 {
   if (pticket && *pticket)
     {
@@ -81,7 +81,7 @@ ticket_destroy (ticket_t *pticket, void *owner)
 }
 
 int
-ticket_set_destroy (ticket_t ticket, void (*_destroy) (ticket_t),
+mu_ticket_set_destroy (ticket_t ticket, void (*_destroy) (ticket_t),
 		    void *owner)
 {
   if (ticket == NULL)
@@ -93,13 +93,13 @@ ticket_set_destroy (ticket_t ticket, void (*_destroy) (ticket_t),
 }
 
 void *
-ticket_get_owner (ticket_t ticket)
+mu_ticket_get_owner (ticket_t ticket)
 {
   return (ticket) ? ticket->owner : NULL;
 }
 
 int
-ticket_set_pop (ticket_t ticket,
+mu_ticket_set_pop (ticket_t ticket,
 		int (*_pop) (ticket_t, url_t, const char *, char **),
 		void *owner)
 {
@@ -112,7 +112,7 @@ ticket_set_pop (ticket_t ticket,
 }
 
 int
-ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
+mu_ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
   int rc = -1;
   
@@ -151,7 +151,7 @@ ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 }
 
 int
-ticket_get_data (ticket_t ticket, void **data)
+mu_ticket_get_data (ticket_t ticket, void **data)
 {
   if (ticket == NULL)
     return EINVAL;
@@ -162,7 +162,7 @@ ticket_get_data (ticket_t ticket, void **data)
 }
 
 int
-ticket_set_data (ticket_t ticket, void *data, void *owner)
+mu_ticket_set_data (ticket_t ticket, void *data, void *owner)
 {
   if (ticket == NULL)
     return EINVAL;

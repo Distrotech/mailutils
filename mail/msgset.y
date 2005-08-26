@@ -528,7 +528,7 @@ msgset_select (int (*sel) (message_t, void *), void *closure, int rev,
     {
       for (i = total; i > 0; i--)
 	{
-	  mailbox_get_message (mbox, i, &msg);
+	  mu_mailbox_get_message (mbox, i, &msg);
 	  if ((*sel)(msg, closure))
 	    {
 	      mp = msgset_make_1 (i);
@@ -546,7 +546,7 @@ msgset_select (int (*sel) (message_t, void *), void *closure, int rev,
     {
       for (i = 1; i <= total; i++)
 	{
-	  mailbox_get_message (mbox, i, &msg);
+	  mu_mailbox_get_message (mbox, i, &msg);
 	  if ((*sel)(msg, closure))
 	    {
 	      mp = msgset_make_1 (i);
@@ -572,7 +572,7 @@ select_header (message_t msg, void *closure)
   const char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
 
   message_get_header (msg, &hdr);
-  if (header_aget_value (hdr, header, &contents) == 0)
+  if (mu_header_aget_value (hdr, header, &contents) == 0)
     {
       if (util_getenv (NULL, "regex", Mail_env_boolean, 0) == 0)
 	{
@@ -628,9 +628,9 @@ select_body (message_t msg, void *closure)
     return 0;
 
   message_get_body (msg, &body);
-  body_size (body, &size);
-  body_lines (body, &lines);
-  body_get_stream (body, &stream);
+  mu_body_size (body, &size);
+  mu_body_lines (body, &lines);
+  mu_body_get_stream (body, &stream);
   status = 0;
   while (status == 0
 	 && stream_readline (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
@@ -657,7 +657,7 @@ select_sender (message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
 {
   /* char *sender = (char*) closure; */
   /* FIXME: all messages from sender argv[i] */
-  /* Annoying we can use address_create() for that
+  /* Annoying we can use mu_address_create() for that
      but to compare against what? The email ?  */
   return 0;
 }
@@ -673,19 +673,19 @@ select_type (message_t msg, void *closure)
   switch (type)
     {
     case 'd':
-      return attribute_is_deleted (attr);
+      return mu_attribute_is_deleted (attr);
     case 'n':
-      return attribute_is_recent (attr);
+      return mu_attribute_is_recent (attr);
     case 'o':
-      return attribute_is_seen (attr);
+      return mu_attribute_is_seen (attr);
     case 'r':
-      return attribute_is_read (attr);
+      return mu_attribute_is_read (attr);
     case 'u':
-      return !attribute_is_read (attr);
+      return !mu_attribute_is_read (attr);
     case 't':
-      return attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
+      return mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
     case 'T':
-      return !attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
+      return !mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
     }
   return 0;
 }
@@ -697,7 +697,7 @@ select_deleted (message_t msg, void *closure ARG_UNUSED)
   int rc;
 
   message_get_attribute (msg, &attr);
-  rc = attribute_is_deleted (attr);
+  rc = mu_attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;
 }
 

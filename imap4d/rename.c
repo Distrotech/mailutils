@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,8 +79,8 @@ imap4d_rename (struct imap4d_command *command, char *arg)
 	}
       name = calloc (strlen ("mbox:") + strlen (newname) + 1, 1);
       sprintf (name, "mbox:%s", newname);
-      if (mailbox_create (&newmbox, newname) != 0
-	  || mailbox_open (newmbox, MU_STREAM_CREAT | MU_STREAM_RDWR) != 0)
+      if (mu_mailbox_create (&newmbox, newname) != 0
+	  || mu_mailbox_open (newmbox, MU_STREAM_CREAT | MU_STREAM_RDWR) != 0)
 	{
 	  free (name);
 	  free (newname);
@@ -89,29 +89,29 @@ imap4d_rename (struct imap4d_command *command, char *arg)
       free (name);
       free (newname);
 
-      if (mailbox_create_default (&inbox, auth_data->name) == 0 &&
-	  mailbox_open (inbox, MU_STREAM_RDWR) == 0)
+      if (mu_mailbox_create_default (&inbox, auth_data->name) == 0 &&
+	  mu_mailbox_open (inbox, MU_STREAM_RDWR) == 0)
 	{
 	  size_t no;
 	  size_t total = 0;
-	  mailbox_messages_count (inbox, &total);
+	  mu_mailbox_messages_count (inbox, &total);
 	  for (no = 1; no <= total; no++)
 	    {
 	      message_t message;
-	      if (mailbox_get_message (inbox, no, &message) == 0)
+	      if (mu_mailbox_get_message (inbox, no, &message) == 0)
 		{
 		  attribute_t attr = NULL;
-		  mailbox_append_message (newmbox, message);
+		  mu_mailbox_append_message (newmbox, message);
 		  message_get_attribute (message, &attr);
-		  attribute_set_deleted (attr);
+		  mu_attribute_set_deleted (attr);
 		}
 	    }
-	  mailbox_expunge (inbox);
-	  mailbox_close (inbox);
-	  mailbox_destroy (&inbox);
+	  mu_mailbox_expunge (inbox);
+	  mu_mailbox_close (inbox);
+	  mu_mailbox_destroy (&inbox);
 	}
-      mailbox_close (newmbox);
-      mailbox_destroy (&newmbox);
+      mu_mailbox_close (newmbox);
+      mu_mailbox_destroy (&newmbox);
       return util_finish (command, RESP_OK, "Already exist");
     }
 

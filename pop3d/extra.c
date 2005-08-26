@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -92,9 +92,9 @@ pop3d_abquit (int reason)
   if (state != AUTHORIZATION)
     {
       pop3d_unlock ();
-      mailbox_flush (mbox, 0);
-      mailbox_close (mbox);
-      mailbox_destroy (&mbox);
+      mu_mailbox_flush (mbox, 0);
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox);
     }
 
   switch (reason)
@@ -270,21 +270,21 @@ pop3d_readline (char *buffer, size_t size)
 void
 pop3d_mark_deleted (attribute_t attr)
 {
-  attribute_set_userflag (attr, POP3_ATTRIBUTE_DELE);
+  mu_attribute_set_userflag (attr, POP3_ATTRIBUTE_DELE);
 }
 
 int
 pop3d_is_deleted (attribute_t attr)
 {
-  return attribute_is_deleted (attr)
-         || attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE);
+  return mu_attribute_is_deleted (attr)
+         || mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE);
 }
 
 void
 pop3d_unset_deleted (attribute_t attr)
 {
-  if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
-    attribute_unset_userflag (attr, POP3_ATTRIBUTE_DELE);
+  if (mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+    mu_attribute_unset_userflag (attr, POP3_ATTRIBUTE_DELE);
 }
 
 void
@@ -293,14 +293,14 @@ pop3d_undelete_all ()
   size_t i;
   size_t total = 0;
 
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
 
   for (i = 1; i <= total; i++)
     {
        message_t msg = NULL;
        attribute_t attr = NULL;
-       mailbox_get_message (mbox, i, &msg);
+       mu_mailbox_get_message (mbox, i, &msg);
        message_get_attribute (msg, &attr);
-       attribute_unset_deleted (attr);
+       mu_attribute_unset_deleted (attr);
     }
 }

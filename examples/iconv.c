@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ main (int argc, char **argv)
   rc = stdio_stream_create (&in, stdin, 0);
   assert (rc == 0);
   assert (stream_open (in) == 0);
-  assert (filter_iconv_create (&cvt, in, argv[1], argv[2], 0, mu_fallback_none) == 0);
+  assert (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 0, mu_fallback_none) == 0);
   assert (stream_open (cvt) == 0);
   
   rc = stdio_stream_create (&out, stdout, 0);

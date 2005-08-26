@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -131,7 +131,7 @@ struct literal_string
   size_t total;
   msg_imap_t msg_imap;
   enum imap_state type;
-  struct folder_list flist;
+  struct mu_folder_list flist;
   size_t nleft;  /* nleft to read in the literal. */
 };
 
@@ -160,7 +160,7 @@ struct _f_imap
   } string;
 
   /* Use for LIST and LSUB.  */
-  struct folder_list flist;
+  struct mu_folder_list flist;
 
   int isopen;
 

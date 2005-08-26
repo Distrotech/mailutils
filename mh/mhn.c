@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ split_content (const char *content, char **type, char **subtype)
 int
 _get_hdr_value (header_t hdr, const char *name, char **value)
 {
-  int status = header_aget_value (hdr, name, value);
+  int status = mu_header_aget_value (hdr, name, value);
   if (status == 0)
     {
       /* Remove the newlines.  */
@@ -752,7 +752,7 @@ mhn_show_command (message_t msg, msg_part_t part, int *flags, char **tempfile)
 	      
 	    case 'd':
 	      /* content description */
-	      if (header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+	      if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
 				     &tmp) == 0)
 		{
 		  obstack_grow (&stk, tmp, strlen (tmp));
@@ -845,7 +845,7 @@ mhn_store_command (message_t msg, msg_part_t part, char *name)
 	      
 	    case 'd':
 	      /* content description */
-	      if (header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+	      if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
 				     &tmp) == 0)
 		{
 		  obstack_grow (&stk, tmp, strlen (tmp));
@@ -898,7 +898,7 @@ _message_is_external_body (message_t msg, char ***env)
     {
       int argc;
       char **argv;
-      if (argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
+      if (mu_argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
 	{
 	  int i, j;
 	  
@@ -955,7 +955,7 @@ get_extbody_params (message_t msg, char **content, char **descr)
   size_t n;
 	
   message_get_body (msg, &body);
-  body_get_stream (body, &stream);
+  mu_body_get_stream (body, &stream);
   stream_seek (stream, 0, SEEK_SET);
 
   while (rc == 0
@@ -998,9 +998,9 @@ get_extbody_params (message_t msg, char **content, char **descr)
 /* ************************** Message iterators *************************** */
 
 
-typedef int (*msg_handler_t) __PMT((message_t msg, msg_part_t part,
-				    char *type, char *encoding,
-				    void *data));
+typedef int (*msg_handler_t) (message_t msg, msg_part_t part,
+			      char *type, char *encoding,
+			      void *data);
 
 int
 match_content (char *content)
@@ -1098,7 +1098,7 @@ mhn_message_size (message_t msg, size_t *psize)
     {
       stream_t dstr = NULL, bstr = NULL;
 
-      if (body_get_stream (body, &bstr) == 0)
+      if (mu_body_get_stream (body, &bstr) == 0)
 	{
 	  header_t hdr;
 	  char *encoding;
@@ -1108,7 +1108,7 @@ mhn_message_size (message_t msg, size_t *psize)
 	  message_get_header (msg, &hdr);
 	  _get_content_encoding (hdr, &encoding);
 
-	  rc = filter_create(&dstr, bstr, encoding,
+	  rc = mu_filter_create(&dstr, bstr, encoding,
 			     MU_FILTER_DECODE, MU_STREAM_READ);
 	  free (encoding);
 	  if (rc == 0)
@@ -1127,7 +1127,7 @@ mhn_message_size (message_t msg, size_t *psize)
 	}
     }
 
-  return body_size (body, psize);
+  return mu_body_size (body, psize);
 }
 
 
@@ -1161,7 +1161,7 @@ list_handler (message_t msg, msg_part_t part, char *type, char *encoding,
   if (message_get_header (msg, &hdr) == 0)
     {
       char *descr;
-      if (header_aget_value (hdr, "Content-Description", &descr) == 0)
+      if (mu_header_aget_value (hdr, "Content-Description", &descr) == 0)
 	{
 	  printf (" %s", descr);
 	  free (descr);
@@ -1257,8 +1257,8 @@ show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
 		mu_strerror (rc));
       return 0;
     }
-  body_get_stream (body, &bstr);
-  rc = filter_create(&dstr, bstr, encoding,
+  mu_body_get_stream (body, &bstr);
+  rc = mu_filter_create(&dstr, bstr, encoding,
 		     MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc == 0)
     bstr = dstr;
@@ -1320,7 +1320,7 @@ mhn_run_command (message_t msg, msg_part_t part,
       char **argv;
       stream_t tmp;
       
-      if (argcv_get (cmd, "", "#", &argc, &argv))
+      if (mu_argcv_get (cmd, "", "#", &argc, &argv))
 	{
 	  mh_error (_("Cannot parse command line `%s'"), cmd);
 	  return ENOSYS;
@@ -1331,7 +1331,7 @@ mhn_run_command (message_t msg, msg_part_t part,
 	{
 	  mh_error (_("Cannot create temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  return rc;
 	}
       rc = stream_open (tmp);
@@ -1340,7 +1340,7 @@ mhn_run_command (message_t msg, msg_part_t part,
 	  mh_error (_("Cannot open temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
 	  stream_destroy (&tmp, stream_get_owner (tmp));
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  return rc;
 	}
       show_internal (msg, part, encoding, tmp);      
@@ -1348,7 +1348,7 @@ mhn_run_command (message_t msg, msg_part_t part,
       rc = mu_spawnvp (argv[0], argv, &status);
       if (status)
 	rc = status;
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
   else
     rc = exec_internal (msg, part, encoding, cmd, flags);
@@ -1589,9 +1589,9 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 	  int argc;
 	  char **argv;
 
-	  if (header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
+	  if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
 	    {
-	      if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
+	      if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
 		{
 		  int i;
 
@@ -1606,14 +1606,14 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 			  break;
 			}
 		    }
-		  argcv_free (argc, argv);
+		  mu_argcv_free (argc, argv);
 		}
 	      free (val);
 	    }
 
 	  if (!name
-	      && header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0) {
-	    if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
+	      && mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0) {
+	    if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
 	      {
 		int i;
 
@@ -1629,7 +1629,7 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 			break;
 		      }
 		  }
-		argcv_free (argc, argv);
+		mu_argcv_free (argc, argv);
 	      }
 	    free (val);
 	  }
@@ -1785,7 +1785,7 @@ mhn_error_loc (struct compose_env *env)
   header_t hdr = NULL;
   size_t n = 0;
   message_get_header (message, &hdr);
-  header_lines (hdr, &n);
+  mu_header_lines (hdr, &n);
   return n + 1 + env->line;
 }
 
@@ -1962,18 +1962,18 @@ parse_type_command (char **pcmd, struct compose_env *env, header_t hdr)
   status = parse_content_type (env, &stk, &rest, &id, &descr);
   obstack_1grow (&stk, 0);
   
-  header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
   obstack_free (&stk, NULL);
 
   if (!id)
     id = mh_create_message_id (env->subpart);
 
-  header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
   free (id);
 
   if (descr)
     {
-      header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
       free (descr);
     }
       
@@ -1989,12 +1989,12 @@ finish_msg (struct compose_env *env, message_t *msg)
   if (!msg || !*msg)
     return;
   message_get_header (*msg, &hdr);
-  if (header_get_value (hdr, MU_HEADER_CONTENT_TYPE, NULL, 0, NULL))
-    header_set_value (hdr, MU_HEADER_CONTENT_TYPE, "text/plain", 1);
-  if (header_get_value (hdr, MU_HEADER_CONTENT_ID, NULL, 0, NULL))
+  if (mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE, NULL, 0, NULL))
+    mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, "text/plain", 1);
+  if (mu_header_get_value (hdr, MU_HEADER_CONTENT_ID, NULL, 0, NULL))
     {
       char *p = mh_create_message_id (env->subpart);
-      header_set_value (hdr, MU_HEADER_CONTENT_ID, p, 1);
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_ID, p, 1);
       free (p);
     }
   mime_add_part (env->mime, *msg);
@@ -2015,16 +2015,16 @@ finish_text_msg (struct compose_env *env, message_t *msg, int ascii)
       
       message_create (&newmsg, NULL);
       message_get_header (newmsg, &hdr);
-      header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
 			"quoted-printable", 0);
       
       message_get_body (newmsg, &body);
-      body_get_stream (body, &output);
+      mu_body_get_stream (body, &output);
       stream_seek (output, 0, SEEK_SET);
 
       message_get_body (*msg, &body);
-      body_get_stream (body, &input);
-      rc = filter_create (&fstr, input, "quoted-printable",
+      mu_body_get_stream (body, &input);
+      rc = mu_filter_create (&fstr, input, "quoted-printable",
 			  MU_FILTER_ENCODE, MU_STREAM_READ);
       if (rc == 0)
 	{
@@ -2054,7 +2054,7 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
   if (!*msg)
     message_create (msg, NULL);
   
-  if ((rc = header_create (&hdr2, NULL, 0, NULL)) != 0)
+  if ((rc = mu_header_create (&hdr2, NULL, 0, NULL)) != 0)
     {
       mh_error (_("Cannot create header: %s"),
 		mu_strerror (rc));
@@ -2071,25 +2071,25 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
   *--rest = ';'; /* FIXME */
   rc = parse_content_type (env, &stk, &rest, &id, NULL);
   obstack_1grow (&stk, 0);
-  header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
   obstack_free (&stk, NULL);
   if (rc)
     return 1;
 
   message_get_body (*msg, &body);
-  body_get_stream (body, &out);
+  mu_body_get_stream (body, &out);
   stream_seek (out, 0, SEEK_SET);
 
   if (!id)
     id = mh_create_message_id (env->subpart);
-  header_set_value (hdr2, MU_HEADER_CONTENT_ID, id, 1);
+  mu_header_set_value (hdr2, MU_HEADER_CONTENT_ID, id, 1);
   free (id);
 
-  header_get_stream (hdr2, &in);
+  mu_header_get_stream (hdr2, &in);
   stream_seek (in, 0, SEEK_SET);
   cat_message (out, in);
   stream_close (out);
-  header_destroy (&hdr2, header_get_owner (hdr2));
+  mu_header_destroy (&hdr2, mu_header_get_owner (hdr2));
 
   finish_msg (env, msg);
   return 0;
@@ -2146,7 +2146,7 @@ edit_forw (char *cmd, struct compose_env *env, message_t *pmsg, int level)
   if (status)
     return status;
 
-  if (argcv_get (cmd, "\n", NULL, &argc, &argv))
+  if (mu_argcv_get (cmd, "\n", NULL, &argc, &argv))
     {
       mh_error (_("%s:%lu: syntax error"),
 		input_file,
@@ -2173,7 +2173,7 @@ edit_forw (char *cmd, struct compose_env *env, message_t *pmsg, int level)
 	break;
       mime_add_part (mime, msg);
     }
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
 
   if (*pmsg)
     {
@@ -2183,24 +2183,24 @@ edit_forw (char *cmd, struct compose_env *env, message_t *pmsg, int level)
   
   mime_get_message (mime, &msg);
   message_get_header (msg, &hdr);
-  header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
+  mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
   sp = strchr (val, ';');
   if (!sp)
     abort ();
   asprintf (&newval, "multipart/digest%s", sp);
-  header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
   free (val);
   free (newval);
 
   if (!id)
     id = mh_create_message_id (env->subpart);
 
-  header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
   free (id);
 
   if (descr)
     {
-      header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
       free (descr);
     }
   
@@ -2292,13 +2292,13 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
 	encoding = strdup ("quoted-printable");
       else
 	encoding = strdup ("base64");
-      header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding, 1);
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding, 1);
       free (typestr);
       free (type);
       free (subtype);
     }
 
-  rc = filter_create (&fstr, in, encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+  rc = mu_filter_create (&fstr, in, encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
   if (rc)
     {
       fstr = in;
@@ -2315,7 +2315,7 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
     }
   
   message_get_body (*msg, &body);
-  body_get_stream (body, &out);
+  mu_body_get_stream (body, &out);
   cat_message (out, fstr);
 
   stream_close (out);
@@ -2358,7 +2358,7 @@ mhn_edit (struct compose_env *env, int level)
 	  message_create (&msg, NULL);
 	  message_get_header (msg, &hdr);
 	  message_get_body (msg, &body);
-	  body_get_stream (body, &output);
+	  mu_body_get_stream (body, &output);
 	  stream_seek (output, 0, SEEK_SET);
 	  line_count = 0;
 	  ascii_buf = 1; /* Suppose it is ascii */
@@ -2487,7 +2487,7 @@ copy_header (message_t msg, stream_t stream)
   size_t bufsize = 0, n = 0;
   
   message_get_header (msg, &hdr);
-  header_get_stream (hdr, &in);
+  mu_header_get_stream (hdr, &in);
   stream_seek (in, 0, SEEK_SET);
   while (stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
     {
@@ -2512,7 +2512,7 @@ mhn_compose ()
   mime_create (&mime, NULL, 0);
 
   message_get_body (message, &body);
-  body_get_stream (body, &stream);
+  mu_body_get_stream (body, &stream);
   stream_seek (stream, 0, SEEK_SET);
 
   env.mime = mime;

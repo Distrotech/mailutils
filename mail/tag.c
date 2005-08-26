@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,9 +29,9 @@ tag_message (message_t mesg, msgset_t *msgset ARG_UNUSED, void *arg)
 
   message_get_attribute (mesg, &attr);
   if (*action)
-    attribute_set_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
+    mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
   else
-    attribute_unset_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
+    mu_attribute_unset_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
   return 0;
 }
 

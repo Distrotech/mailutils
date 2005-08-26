@@ -37,28 +37,28 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   size_t m_size = 0, m_lines = 0;
 
   message_get_header (msg, &hdr);
-  if (header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
+  if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
     {
       address_t address = NULL;
-      if (address_create (&address, from) == 0)
+      if (mu_address_create (&address, from) == 0)
 	{
 	  char name[128];
 	  size_t len;
 	  char *email;
 	  
-	  if (address_aget_email (address, 1, &email) == 0)
+	  if (mu_address_aget_email (address, 1, &email) == 0)
 	    {
 	      if (util_getenv (NULL, "showto", Mail_env_boolean, 0) == 0
 		  && mail_is_my_name (email))
 		{
 		  char *tmp;
 
-		  if (header_aget_value_unfold (hdr, MU_HEADER_TO, &tmp) == 0)
+		  if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, &tmp) == 0)
 		    {
 		      address_t addr_to;
-		      if (address_create (&addr_to, tmp) == 0)
+		      if (mu_address_create (&addr_to, tmp) == 0)
 			{
-			  address_destroy (&address);
+			  mu_address_destroy (&address);
 			  address = addr_to;
 			}
 		      free (tmp);
@@ -69,42 +69,42 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 	      
 	  len = strlen (from) + 1;
 	  *name = '\0';
-	  address_get_personal (address, 1, name, sizeof name, NULL);
+	  mu_address_get_personal (address, 1, name, sizeof name, NULL);
 	  if (*name && len)
 	    {
 	      strncpy (from, name, len - 1);
 	      from[len - 1] = '\0';
 	    }
 	  else
-	    address_get_email (address, 1, from, len, NULL);
-	  address_destroy (&address);
+	    mu_address_get_email (address, 1, from, len, NULL);
+	  mu_address_destroy (&address);
 	}
     }
   util_rfc2047_decode (&from);
 
-  header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
+  mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
   util_rfc2047_decode (&subj);
   
   message_get_attribute (msg, &attr);
   
-  if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
+  if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
     cflag = 'M';
-  else if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+  else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
     cflag = '*';
-  else if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED))
+  else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED))
     cflag = 'T';
-  else if (attribute_is_read (attr))
+  else if (mu_attribute_is_read (attr))
     cflag = 'R';
-  else if (attribute_is_seen (attr))
+  else if (mu_attribute_is_seen (attr))
     cflag = 'U';
-  else if (attribute_is_recent (attr))
+  else if (mu_attribute_is_recent (attr))
     cflag = 'N';
   else
     cflag = ' ';
 
   date[0] = 0;
   if (util_getenv (NULL, "datefield", Mail_env_boolean, 0) == 0
-      && header_get_value (hdr, MU_HEADER_DATE, date, sizeof (date), NULL) == 0)
+      && mu_header_get_value (hdr, MU_HEADER_DATE, date, sizeof (date), NULL) == 0)
     {
       time_t t;
       if (mu_parse_date (date, &t, NULL) == 0)
@@ -122,7 +122,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
       mu_timezone tz;
 
       message_get_envelope (msg, &env);
-      envelope_date (env, date, sizeof (date), NULL);
+      mu_envelope_date (env, date, sizeof (date), NULL);
       p = date;
       if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
 	strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);

@@ -31,9 +31,9 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
   if (mbox)
     {
-      mailbox_flush (mbox, 0);
-      mailbox_close (mbox);
-      mailbox_destroy (&mbox);
+      mu_mailbox_flush (mbox, 0);
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox);
     }
 
   switch (reason)

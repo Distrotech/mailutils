@@ -21,7 +21,7 @@
 static void _scheme_main (void *closure, int argc, char **argv);
 
 void
-mu_process_mailbox (int argc, char *argv[], guimb_param_t *param)
+mu_process_mailbox (int argc, char *argv[], mu_guimb_param_t *param)
 {
   scm_boot_guile (argc, argv, _scheme_main, param);
 }
@@ -32,14 +32,14 @@ SCM _user_name;
 static SCM
 catch_body (void *closure)
 {
-  guimb_param_t *param = closure;
+  mu_guimb_param_t *param = closure;
   return param->catch_body (param->data, param->mbox);
 }
 
 void
 _scheme_main (void *closure, int argc, char **argv)
 {
-  guimb_param_t *param = closure;
+  mu_guimb_param_t *param = closure;
   
   if (param->debug_guile)
     {

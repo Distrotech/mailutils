@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,46 +27,46 @@
 #include <string.h>  
 #include <sieve.h>
 
-static sieve_register_t *
+static mu_sieve_register_t *
 reg_lookup (list_t list, const char *name)
 {
   iterator_t itr;
-  sieve_register_t *reg;
+  mu_sieve_register_t *reg;
 
-  if (!list || list_get_iterator (list, &itr))
+  if (!list || mu_list_get_iterator (list, &itr))
     return NULL;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&reg);
+      mu_iterator_current (itr, (void **)&reg);
       if (strcmp (reg->name, name) == 0)
 	break;
       else
 	reg = NULL;
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return reg;
 }
 
-sieve_register_t *
-sieve_test_lookup (sieve_machine_t mach, const char *name)
+mu_sieve_register_t *
+mu_sieve_test_lookup (mu_sieve_machine_t mach, const char *name)
 {
   return reg_lookup (mach->test_list, name);
 }
 
-sieve_register_t *
-sieve_action_lookup (sieve_machine_t mach, const char *name)
+mu_sieve_register_t *
+mu_sieve_action_lookup (mu_sieve_machine_t mach, const char *name)
 {
   return reg_lookup (mach->action_list, name);
 }
 
 static int
-reg_require (sieve_machine_t mach, list_t list, const char *name)
+reg_require (mu_sieve_machine_t mach, list_t list, const char *name)
 {
-  sieve_register_t *reg = reg_lookup (list, name);
+  mu_sieve_register_t *reg = reg_lookup (list, name);
   if (!reg)
     {
-      if (!(sieve_load_ext (mach, name) == 0
+      if (!(mu_sieve_load_ext (mach, name) == 0
 	    && (reg = reg_lookup (list, name)) != NULL))
 	return 1;
     }
@@ -74,13 +75,13 @@ reg_require (sieve_machine_t mach, list_t list, const char *name)
 }
 
 int
-sieve_require_action (sieve_machine_t mach, const char *name)
+mu_sieve_require_action (mu_sieve_machine_t mach, const char *name)
 {
   return reg_require (mach, mach->action_list, name);
 }
 
 int
-sieve_require_test (sieve_machine_t mach, const char *name)
+mu_sieve_require_test (mu_sieve_machine_t mach, const char *name)
 {
   return reg_require (mach, mach->test_list, name);
 }
@@ -89,11 +90,11 @@ sieve_require_test (sieve_machine_t mach, const char *name)
 static int
 sieve_register (list_t *pool,
 		list_t *list,
-		const char *name, sieve_handler_t handler,
-		sieve_data_type *arg_types,
-		sieve_tag_group_t *tags, int required)
+		const char *name, mu_sieve_handler_t handler,
+		mu_sieve_data_type *arg_types,
+		mu_sieve_tag_group_t *tags, int required)
 {
-  sieve_register_t *reg = sieve_palloc (pool, sizeof (*reg));
+  mu_sieve_register_t *reg = mu_sieve_palloc (pool, sizeof (*reg));
 
   if (!reg)
     return ENOMEM;
@@ -106,7 +107,7 @@ sieve_register (list_t *pool,
   
   if (!*list)
     {
-      int rc = list_create (list);
+      int rc = mu_list_create (list);
       if (rc)
 	{
 	  free (reg);
@@ -114,15 +115,15 @@ sieve_register (list_t *pool,
 	}
     }
   
-  return list_append (*list, reg);
+  return mu_list_append (*list, reg);
 }
 
 
 int
-sieve_register_test (sieve_machine_t mach,
-		     const char *name, sieve_handler_t handler,
-		     sieve_data_type *arg_types,
-		     sieve_tag_group_t *tags, int required)
+mu_sieve_register_test (mu_sieve_machine_t mach,
+		     const char *name, mu_sieve_handler_t handler,
+		     mu_sieve_data_type *arg_types,
+		     mu_sieve_tag_group_t *tags, int required)
 {
   return sieve_register (&mach->memory_pool,
 			 &mach->test_list, name, handler,
@@ -130,10 +131,10 @@ sieve_register_test (sieve_machine_t mach,
 }
 
 int
-sieve_register_action (sieve_machine_t mach,
-		       const char *name, sieve_handler_t handler,
-		       sieve_data_type *arg_types,
-		       sieve_tag_group_t *tags, int required)
+mu_sieve_register_action (mu_sieve_machine_t mach,
+		       const char *name, mu_sieve_handler_t handler,
+		       mu_sieve_data_type *arg_types,
+		       mu_sieve_tag_group_t *tags, int required)
 {
   return sieve_register (&mach->memory_pool,
 			 &mach->action_list, name, handler,

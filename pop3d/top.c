@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ pop3d_top (const char *arg)
   if (lines < 0)
     return ERR_BAD_ARGS;
 
-  if (mailbox_get_message (mbox, mesgno, &msg) != 0)
+  if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
     return ERR_NO_MESG;
 
   message_get_attribute (msg, &attr);
@@ -63,7 +63,7 @@ pop3d_top (const char *arg)
 
   /* Header.  */
   message_get_header (msg, &hdr);
-  header_get_stream (hdr, &stream);
+  mu_header_get_stream (hdr, &stream);
   buf = malloc (buflen * sizeof (*buf));
   if (buf == NULL)
     pop3d_abquit (ERR_NO_MEM);
@@ -86,7 +86,7 @@ pop3d_top (const char *arg)
   if (lines)
     {
       message_get_body (msg, &body);
-      body_get_stream (body, &stream);
+      mu_body_get_stream (body, &stream);
       n = off = 0;
       while (stream_readline (stream, buf, buflen, off, &n) == 0
 	     && n > 0 && lines > 0)

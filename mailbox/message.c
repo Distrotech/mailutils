@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -119,19 +120,19 @@ message_destroy (message_t *pmsg, void *owner)
 
 	  /* Envelope.  */
 	  if (msg->envelope)
-	    envelope_destroy (&(msg->envelope), msg);
+	    mu_envelope_destroy (&(msg->envelope), msg);
 
 	  /* Header.  */
 	  if (msg->header)
-	    header_destroy (&(msg->header), msg);
+	    mu_header_destroy (&(msg->header), msg);
 
 	  /* Body.  */
 	  if (msg->body)
-	    body_destroy (&(msg->body), msg);
+	    mu_body_destroy (&(msg->body), msg);
 
 	  /* Attribute.  */
 	  if (msg->attribute)
-	    attribute_destroy (&(msg->attribute), msg);
+	    mu_attribute_destroy (&(msg->attribute), msg);
 
 	  /* Stream.  */
 	  if (msg->stream)
@@ -151,7 +152,7 @@ message_destroy (message_t *pmsg, void *owner)
 	     althought the semantics about this is still flaky we our
 	     making some provisions here for it.
 	     if (msg->floating_mailbox && msg->mailbox)
-	     mailbox_destroy (&(msg->mailbox));
+	     mu_mailbox_destroy (&(msg->mailbox));
 	  */
 
 	  if (msg->ref == 0)
@@ -226,9 +227,9 @@ message_is_modified (message_t msg)
   int mod = 0;
   if (msg)
     {
-      mod |= header_is_modified (msg->header);
-      mod |= attribute_is_modified (msg->attribute);
-      mod |= body_is_modified (msg->body);
+      mod |= mu_header_is_modified (msg->header);
+      mod |= mu_attribute_is_modified (msg->attribute);
+      mod |= mu_body_is_modified (msg->body);
       mod |= msg->flags;
     }
   return mod;
@@ -240,11 +241,11 @@ message_clear_modified (message_t msg)
   if (msg)
     {
       if (msg->header)
-	header_clear_modified (msg->header);
+	mu_header_clear_modified (msg->header);
       if (msg->attribute)
-	attribute_clear_modified (msg->attribute);
+	mu_attribute_clear_modified (msg->attribute);
       if (msg->body)
-	body_clear_modified (msg->body);
+	mu_body_clear_modified (msg->body);
       msg->flags &= ~MESSAGE_MODIFIED;
     }
   return 0;
@@ -284,7 +285,7 @@ message_get_header (message_t msg, header_t *phdr)
   if (msg->header == NULL)
     {
       header_t header;
-      int status = header_create (&header, NULL, 0, msg);
+      int status = mu_header_create (&header, NULL, 0, msg);
       if (status != 0)
 	return status;
       if (msg->stream)
@@ -292,7 +293,7 @@ message_get_header (message_t msg, header_t *phdr)
 	  /* Was it created by us?  */
 	  message_t mesg = stream_get_owner (msg->stream);
 	  if (mesg != msg)
-	    header_set_fill (header, message_header_fill, msg);
+	    mu_header_set_fill (header, message_header_fill, msg);
 	}
       msg->header = header;
     }
@@ -310,7 +311,7 @@ message_set_header (message_t msg, header_t hdr, void *owner)
   /* Make sure we destroy the old if it was own by the mesg */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->header)
-    header_destroy (&(msg->header), msg);
+    mu_header_destroy (&(msg->header), msg);
   msg->header = hdr;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -328,7 +329,7 @@ message_get_body (message_t msg, body_t *pbody)
   if (msg->body == NULL)
     {
       body_t body;
-      int status = body_create (&body, msg);
+      int status = mu_body_create (&body, msg);
       if (status != 0)
 	return status;
       /* If a stream is already set use it to create the body stream.  */
@@ -343,12 +344,12 @@ message_get_body (message_t msg, body_t *pbody)
 	      stream_get_flags (msg->stream, &flags);
 	      if ((status = stream_create (&stream, flags, body)) != 0)
 		{
-		  body_destroy (&body, msg);
+		  mu_body_destroy (&body, msg);
 		  return status;
 		}
 	      stream_set_read (stream, message_body_read, body);
 	      stream_setbufsiz (stream, 128);
-	      body_set_stream (body, stream, msg);
+	      mu_body_set_stream (body, stream, msg);
 	    }
 	}
       msg->body = body;
@@ -367,7 +368,7 @@ message_set_body (message_t msg, body_t body, void *owner)
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->body)
-    body_destroy (&(msg->body), msg);
+    mu_body_destroy (&(msg->body), msg);
   msg->body = body;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -442,8 +443,8 @@ message_lines (message_t msg, size_t *plines)
   if (plines)
     {
       hlines = blines = 0;
-      if ( ( ret = header_lines (msg->header, &hlines) ) == 0 )
-	      ret = body_lines (msg->body, &blines);
+      if ( ( ret = mu_header_lines (msg->header, &hlines) ) == 0 )
+	      ret = mu_body_lines (msg->body, &blines);
       *plines = hlines + blines;
     }
   return ret;
@@ -480,8 +481,8 @@ message_size (message_t msg, size_t *psize)
       hsize = bsize = 0;
       message_get_header (msg, &hdr);
       message_get_body (msg, &body);
-      if ( ( ret = header_size (hdr, &hsize) ) == 0 )
-	ret = body_size (body, &bsize);
+      if ( ( ret = mu_header_size (hdr, &hsize) ) == 0 )
+	ret = mu_body_size (body, &bsize);
       *psize = hsize + bsize;
     }
   return ret;
@@ -498,11 +499,11 @@ message_get_envelope (message_t msg, envelope_t *penvelope)
   if (msg->envelope == NULL)
     {
       envelope_t envelope;
-      int status = envelope_create (&envelope, msg);
+      int status = mu_envelope_create (&envelope, msg);
       if (status != 0)
 	return status;
-      envelope_set_sender (envelope, message_sender, msg);
-      envelope_set_date (envelope, message_date, msg);
+      mu_envelope_set_sender (envelope, message_sender, msg);
+      mu_envelope_set_date (envelope, message_date, msg);
       msg->envelope = envelope;
     }
   *penvelope = msg->envelope;
@@ -517,7 +518,7 @@ message_set_envelope (message_t msg, envelope_t envelope, void *owner)
   if (msg->owner != owner)
     return EACCES;
   if (msg->envelope)
-    envelope_destroy (&(msg->envelope), msg);
+    mu_envelope_destroy (&(msg->envelope), msg);
   msg->envelope = envelope;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -533,7 +534,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
   if (msg->attribute == NULL)
     {
       attribute_t attribute;
-      int status = attribute_create (&attribute, msg);
+      int status = mu_attribute_create (&attribute, msg);
       if (status != 0)
 	return status;
       msg->attribute = attribute;
@@ -550,7 +551,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
   if (msg->owner != owner)
     return EACCES;
   if (msg->attribute)
-    attribute_destroy (&(msg->attribute), owner);
+    mu_attribute_destroy (&(msg->attribute), owner);
   msg->attribute = attribute;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -589,7 +590,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
   /* Be compatible with Qpopper ? qppoper saves the UIDL in "X-UIDL".
      We generate a chksum and save it in the header.  */
   message_get_header (msg, &header);
-  status = header_get_value (header, "X-UIDL", buffer, buflen, &n);
+  status = mu_header_get_value (header, "X-UIDL", buffer, buflen, &n);
   if (status == 0 && n > 0)
     {
       /* FIXME: Is this necessary ? I did not see so far a x-uidl message
@@ -638,7 +639,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       /* POP3 rfc says that an UID should not be longer than 70.  */
       snprintf (buf + 32, 70, ".%lu.%u", (unsigned long)time (NULL), uid);
 
-      header_set_value (header, "X-UIDL", buf, 1);
+      mu_header_set_value (header, "X-UIDL", buf, 1);
       buflen--; /* leave space for the NULL.  */
       strncpy (buffer, buf, buflen)[buflen] = '\0';
     }
@@ -795,8 +796,8 @@ message_read (stream_t is, char *buf, size_t buflen,
   bsize = hsize = bread = hread = 0;
   his = bis = NULL;
 
-  header_size (msg->header, &hsize);
-  body_size (msg->body, &bsize);
+  mu_header_size (msg->header, &hsize);
+  mu_body_size (msg->body, &bsize);
 
   /* On some remote sever (POP) the size of the header and body is not known
      until you start reading them.  So by checking hsize == bsize == 0,
@@ -804,12 +805,12 @@ message_read (stream_t is, char *buf, size_t buflen,
      header.  */
   if ((size_t)off < hsize || (hsize == 0 && bsize == 0))
     {
-      header_get_stream (msg->header, &his);
+      mu_header_get_stream (msg->header, &his);
       stream_read (his, buf, buflen, off, &hread);
     }
   else
     {
-      body_get_stream (msg->body, &bis);
+      mu_body_get_stream (msg->body, &bis);
       stream_read (bis, buf, buflen, off - hsize, &bread);
     }
 
@@ -845,7 +846,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       header_t header = NULL;
       stream_t hstream = NULL;
       message_get_header (msg, &header);
-      header_get_stream (header, &hstream);
+      mu_header_get_stream (header, &hstream);
       while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
 	{
 	  len = nl - buf + 1;
@@ -868,7 +869,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       header_t header = NULL;
       stream_t hstream = NULL;
       message_get_header (msg, &header);
-      header_get_stream (header, &hstream);
+      mu_header_get_stream (header, &hstream);
       status = stream_write (hstream, buf, buflen, msg->hdr_buflen, NULL);
       if (status != 0)
 	return status;
@@ -881,7 +882,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       body_t body;
       size_t written = 0;
       if ((status = message_get_body (msg, &body)) != 0 ||
-	  (status = body_get_stream (msg->body, &bs)) != 0)
+	  (status = mu_body_get_stream (msg->body, &bs)) != 0)
 	{
 	  msg->hdr_buflen = msg->hdr_done = 0;
 	  return status;
@@ -913,7 +914,7 @@ message_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *po
   /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)
     {
-      int status = body_create (&body, msg);
+      int status = mu_body_create (&body, msg);
       if (status != 0 )
 	return status;
       msg->body = body;
@@ -921,7 +922,7 @@ message_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *po
   else
       body = msg->body;
 
-  body_get_stream (body, &is);
+  mu_body_get_stream (body, &is);
   return stream_get_transport2 (is, pin, pout);
 }
 
@@ -936,7 +937,7 @@ message_stream_size (stream_t stream, off_t *psize)
 static int
 message_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   time_t t;
   size_t n;
 
@@ -967,7 +968,7 @@ message_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 static int
 message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   header_t header = NULL;
   size_t n = 0;
   int status;
@@ -977,7 +978,7 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
   /* Can it be extracted from the From:  */
   message_get_header (msg, &header);
-  status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
+  status = mu_header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
   if (status == 0 && n != 0)
     {
       char *sender;
@@ -985,11 +986,11 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
       sender = calloc (1, n + 1);
       if (sender == NULL)
 	return ENOMEM;
-      header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
-      if (address_create (&address, sender) == 0)
-	address_get_email (address, 1, buf, n + 1, pnwrite);
+      mu_header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
+      if (mu_address_create (&address, sender) == 0)
+	mu_address_get_email (address, 1, buf, n + 1, pnwrite);
       free (sender);
-      address_destroy (&address);
+      mu_address_destroy (&address);
       return 0;
     }
   else if (status == EAGAIN)
@@ -1021,7 +1022,7 @@ message_header_fill (header_t header, char *buffer, size_t buflen,
 		     off_t off, size_t * pnread)
 {
   int status = 0;
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   stream_t stream = NULL;
   size_t nread = 0;
 
@@ -1060,7 +1061,7 @@ message_body_read (stream_t stream,  char *buffer, size_t n, off_t off,
 		   size_t *pn)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   size_t nread = 0;
   header_t header = NULL;
   stream_t bstream = NULL;
@@ -1068,7 +1069,7 @@ message_body_read (stream_t stream,  char *buffer, size_t n, off_t off,
   int status;
 
   message_get_header (msg, &header);
-  status = header_size (msg->header, &size);
+  status = mu_header_size (msg->header, &size);
   if (status == 0)
     {
       message_get_stream (msg, &bstream);
@@ -1086,49 +1087,49 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
   int rc = 0;
   mailbox_t to = 0;
 
-  if ((rc = mailbox_create_default (&to, toname)))
+  if ((rc = mu_mailbox_create_default (&to, toname)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mailbox_create_default (%s) failed: %s\n"), toname,
+		      _("mu_mailbox_create_default (%s) failed: %s\n"), toname,
 		      mu_strerror (rc));
       goto end;
     }
 
-  if (debug && (rc = mailbox_set_debug (to, debug)))
+  if (debug && (rc = mu_mailbox_set_debug (to, debug)))
 	goto end;
 
   if (ticket)
     {
       folder_t folder = NULL;
 
-      if ((rc = mailbox_get_folder (to, &folder)))
+      if ((rc = mu_mailbox_get_folder (to, &folder)))
 	goto end;
 
       /* FIXME: not all mailboxes have folders, thus this hack. */
       if (folder)
 	{
 	  authority_t auth = NULL;
-	  if ((rc = folder_get_authority (folder, &auth)))
+	  if ((rc = mu_folder_get_authority (folder, &auth)))
 	    goto end;
 
 	  /* FIXME: not all folders have authentication, thus this hack. */
-	  if (auth && (rc = authority_set_ticket (auth, ticket)))
+	  if (auth && (rc = mu_authority_set_ticket (auth, ticket)))
 	    goto end;
 	}
     }
 
-  if ((rc = mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
+  if ((rc = mu_mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mailbox_open (%s) failed: %s\n"), toname,
+		      _("mu_mailbox_open (%s) failed: %s\n"), toname,
 		      mu_strerror (rc));
       goto end;
     }
 
-  if ((rc = mailbox_append_message (to, msg)))
+  if ((rc = mu_mailbox_append_message (to, msg)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mailbox_append_message (%s) failed: %s\n"), toname,
+		      _("mu_mailbox_append_message (%s) failed: %s\n"), toname,
 		      mu_strerror (rc));
       goto end;
     }
@@ -1137,19 +1138,19 @@ end:
 
   if (!rc)
     {
-      if ((rc = mailbox_close (to)))
+      if ((rc = mu_mailbox_close (to)))
 	{
 	  mu_debug_print (debug, MU_DEBUG_TRACE,
-			  _("mailbox_close (%s) failed: %s\n"), toname,
+			  _("mu_mailbox_close (%s) failed: %s\n"), toname,
 			  mu_strerror (rc));
 	}
     }
   else
     {
-      mailbox_close (to);
+      mu_mailbox_close (to);
     }
 
-  mailbox_destroy (&to);
+  mu_mailbox_destroy (&to);
 
   return rc;
 }

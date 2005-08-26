@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -58,10 +58,10 @@ EXTRA_DIST = sieve.y sieve.l
 sieve-lex.c: $(srcdir)/sieve.l sieve-gram.h
 	$(YLWRAP) "$(LEX) $(AM_LEXFLAGS) $(LEXFLAGS)" \
                   $(srcdir)/sieve.l lex.yy.c sieve-lex.c \
-                  -- -yy sieve_yy
+                  -- -yy mu_sieve_yy
 
 sieve-gram.c sieve-gram.h: $(srcdir)/sieve.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) $(YFLAGS)" $(srcdir)/sieve.y \
 	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h y.output y.output \
-                  -- -yy sieve_yy
+                  -- -yy mu_sieve_yy
 

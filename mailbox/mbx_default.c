@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -333,7 +334,7 @@ percent_expand (const char *file, char **mbox)
 }
 
 /* We are trying to be smart about the location of the mail.
-   mailbox_create() is not doing this.
+   mu_mailbox_create() is not doing this.
    %           --> system mailbox for the real uid
    %user       --> system mailbox for the given user
    ~/file      --> /home/user/file
@@ -342,7 +343,7 @@ percent_expand (const char *file, char **mbox)
    =file       --> /home/user/Mail/file
 */
 int
-mailbox_create_default (mailbox_t *pmbox, const char *mail)
+mu_mailbox_create_default (mailbox_t *pmbox, const char *mail)
 {
   char *mbox = NULL;
   char *tmp_mbox = NULL;
@@ -407,7 +408,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
   if (status)
     return status;
   
-  status = mailbox_create (pmbox, mbox);
+  status = mu_mailbox_create (pmbox, mbox);
   free (mbox);
   return status;
 }

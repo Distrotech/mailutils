@@ -73,7 +73,7 @@ mime_context_fill (struct mime_context *ctx, const char *file,
   memset (ctx, 0, sizeof *ctx);
   ctx->input = input;
   ctx->hdr = hdr;
-  if (header_aget_value (hdr, MU_HEADER_CONTENT_TYPE,
+  if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE,
 			 &ctx->content_type_buffer))
     return 1;
   ctx->content_type = strtok_r (ctx->content_type_buffer, ";", &sp);
@@ -86,24 +86,24 @@ mime_context_fill (struct mime_context *ctx, const char *file,
     ctx->flags |= FLAGS_DRY_RUN;
   ctx->debug_level = debug_level;
   
-  list_create (&ctx->values);
+  mu_list_create (&ctx->values);
   while ((p = strtok_r (NULL, ";", &sp)))
     {
       while (*p && isspace (*p))
 	p++;
-      list_append (ctx->values, p);
+      mu_list_append (ctx->values, p);
     }
   
   if (no_ask)
     {
       ctx->no_ask_str = xstrdup (no_ask);
-      list_create (&ctx->no_ask_types);
+      mu_list_create (&ctx->no_ask_types);
       for (p = strtok_r (ctx->no_ask_str, ",", &sp); p;
 	   p = strtok_r (NULL, ",", &sp))
 	{
 	  while (*p && isspace (*p))
 	    p++;
-	  list_append (ctx->no_ask_types, p);
+	  mu_list_append (ctx->no_ask_types, p);
 	}
     }
   return 0;
@@ -116,9 +116,9 @@ mime_context_release (struct mime_context *ctx)
   if (ctx->unlink_temp_file)
     unlink (ctx->temp_file);
   free (ctx->temp_file);
-  list_destroy (&ctx->values);
+  mu_list_destroy (&ctx->values);
   free (ctx->no_ask_str);
-  list_destroy (&ctx->no_ask_types);
+  mu_list_destroy (&ctx->no_ask_types);
 }
 
 static int
@@ -129,15 +129,15 @@ mime_context_do_not_ask (struct mime_context *ctx)
   if (ctx->no_ask_types)
     {
       iterator_t itr;
-      list_get_iterator (ctx->no_ask_types, &itr);
-      for (iterator_first (itr); !rc && !iterator_is_done (itr);
-	   iterator_next (itr))
+      mu_list_get_iterator (ctx->no_ask_types, &itr);
+      for (mu_iterator_first (itr); !rc && !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
 	  char *p;
-	  iterator_current (itr, (void**)&p);
+	  mu_iterator_current (itr, (void**)&p);
 	  rc = fnmatch (p, ctx->content_type, FNM_CASEFOLD) == 0;
 	}
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
   return rc;
 }
@@ -174,12 +174,12 @@ mime_context_get_content_type_value (struct mime_context *ctx,
   iterator_t itr = NULL;
   int rc = 1;
   
-  list_get_iterator (ctx->values, &itr);
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  mu_list_get_iterator (ctx->values, &itr);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *item, *p;
 
-      iterator_current (itr, (void**) &item);
+      mu_iterator_current (itr, (void**) &item);
       p = strchr (item, '=');
       if (p - item == len && strncasecmp (item, name, len) == 0)
 	{
@@ -194,7 +194,7 @@ mime_context_get_content_type_value (struct mime_context *ctx,
 	  break;
 	}
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return rc;
 }
 
@@ -427,7 +427,7 @@ create_filter (char *cmd, int outfd, int *infd)
 	  argv[3] = NULL;
 	}
       else
-	argcv_get (cmd, "", NULL, &argc, &argv);
+	mu_argcv_get (cmd, "", NULL, &argc, &argv);
       
       /* Create input channel: */
       if (infd)
@@ -497,12 +497,12 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
       mu_mailcap_entry_get_test (entry, str, size + 1, NULL);
 
       expand_string (ctx, &str);
-      argcv_get (str, "", NULL, &argc, &argv);
+      mu_argcv_get (str, "", NULL, &argc, &argv);
       free (str);
       
       if (mu_spawnvp (argv[0], argv, &status))
 	status = 1;
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
   return status;
 }

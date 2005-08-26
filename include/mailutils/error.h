@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,11 +27,11 @@
 extern "C" {
 #endif
 
-typedef int (*error_pfn_t) __PMT ((const char *fmt, va_list ap));
+typedef int (*mu_error_pfn_t) (const char *fmt, va_list ap);
 
 extern int mu_verror (const char *fmt, va_list ap);
 extern int mu_error (const char *fmt, ...);
-extern void mu_error_set_print (error_pfn_t);
+extern void mu_error_set_print (mu_error_pfn_t);
 
 int mu_default_error_printer (const char *fmt, va_list ap);
 int mu_syslog_error_printer (const char *fmt, va_list ap);

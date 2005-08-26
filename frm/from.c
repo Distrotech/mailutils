@@ -92,7 +92,7 @@ from_select (size_t index, message_t msg)
       char *sender;
       message_get_header (msg, &hdr);
 
-      if (header_aget_value_unfold (hdr, MU_HEADER_FROM, &sender) == 0)
+      if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &sender) == 0)
 	{
 	  if (strstr (sender, sender_option))
 	    rc = 1;

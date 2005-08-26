@@ -123,7 +123,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
       memcpy (namep, start, len);
       namep[len] = 0;
       if (message_get_header (msg, &hdr) == 0
-	  && header_aget_value (hdr, namep, &sval) == 0)
+	  && mu_header_aget_value (hdr, namep, &sval) == 0)
 	{
 	  len = strlen (sval);
 	  obstack_grow (stk, sval, len);
@@ -148,7 +148,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
       if (lncount == 0)
 	lncount = maxlines;
       if (message_get_body (msg, &body) == 0
-	  && body_get_stream (body, &stream) == 0)
+	  && mu_body_get_stream (body, &stream) == 0)
 	{
 	  size_t nread;
 	  char *buf = malloc (size+1);
@@ -198,7 +198,7 @@ expand_line (const char *str, message_t msg)
 	  p++;
 	  if (*p)
 	    {
-	      c = argcv_unquote_char (*p);
+	      c = mu_argcv_unquote_char (*p);
 	      obstack_1grow (&stk, c);
 	    }
 	  break;
@@ -353,12 +353,12 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	  str = expand_line (stmt, msg);
 	  if (!str)
 	    continue;
-	  if (argcv_get (str, "", NULL, &argc, &argv)
+	  if (mu_argcv_get (str, "", NULL, &argc, &argv)
 	      || argc == 0
 	      || argv[0][0] == '#')
 	    {
 	      free (str);
-	      argcv_free (argc, argv);
+	      mu_argcv_free (argc, argv);
 	      continue;
 	    }
 

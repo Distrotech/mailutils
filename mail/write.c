@@ -93,12 +93,12 @@ mail_write (int argc, char **argv)
 
       message_get_body (msg, &bod);
 
-      body_size (bod, &size);
+      mu_body_size (bod, &size);
       total_size += size;
-      body_lines (bod, &size);
+      mu_body_lines (bod, &size);
       total_lines += size;
 
-      body_get_stream (bod, &stream);
+      mu_body_get_stream (bod, &stream);
       /* should there be a separator? */
       while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
 	     && n != 0)
@@ -111,7 +111,7 @@ mail_write (int argc, char **argv)
       /* mark as saved. */
 
       message_get_attribute (msg, &attr);
-      attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
+      mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
     }
 
   fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);

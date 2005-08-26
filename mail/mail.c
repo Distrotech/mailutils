@@ -192,9 +192,9 @@ mail_cmdline(void *closure, int cont ARG_UNUSED)
   while (1)
     {
       if (util_getenv (NULL, "autoinc", Mail_env_boolean, 0) == 0
-          && !mailbox_is_updated (mbox))
+          && !mu_mailbox_is_updated (mbox))
 	{
-	  mailbox_messages_count (mbox, &total);
+	  mu_mailbox_messages_count (mbox, &total);
 	  fprintf (ofile, _("New mail has arrived.\n"));
 	}
 
@@ -389,7 +389,7 @@ main (int argc, char **argv)
       if (args.args != NULL)
 	while (args.args[num] != NULL)
 	  num++;
-      argcv_string (num, args.args, &buf);
+      mu_argcv_string (num, args.args, &buf);
       rc = util_do_command ("mail %s", buf);
       return util_getenv (NULL, "mailx", Mail_env_boolean, 0) ? rc : 0;
     }
@@ -404,11 +404,11 @@ main (int argc, char **argv)
 	      char *p = xmalloc (strlen (args.user) + 2);
 	      p[0] = '%';
 	      strcpy (p + 1, args.user);
-	      rc = mailbox_create_default (&mbox, p);
+	      rc = mu_mailbox_create_default (&mbox, p);
 	      free (p);
 	    }
 	  else
-	    rc = mailbox_create_default (&mbox, NULL);
+	    rc = mu_mailbox_create_default (&mbox, NULL);
 	  if (rc != 0)
 	    {
 	      util_error (_("Cannot create mailbox for %s: %s"), args.user,
@@ -416,7 +416,7 @@ main (int argc, char **argv)
 	      exit (EXIT_FAILURE);
 	    }
 	}
-      else if ((rc = mailbox_create_default (&mbox, args.file)) != 0)
+      else if ((rc = mu_mailbox_create_default (&mbox, args.file)) != 0)
 	{
 	  util_error (_("Cannot create mailbox %s: %s"), args.file,
 		      mu_strerror (rc));
@@ -427,17 +427,17 @@ main (int argc, char **argv)
       if (0)
 	{
 	  mu_debug_t debug = NULL;
-	  mailbox_get_debug (mbox, &debug);
+	  mu_mailbox_get_debug (mbox, &debug);
 	  mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
 	}
 
-      if ((rc = mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)
+      if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)
 	{
 	  url_t url = NULL;
-	  mailbox_get_url (mbox, &url);
+	  mu_mailbox_get_url (mbox, &url);
 	  util_error (_("Cannot open mailbox %s: %s"),
 		      url_to_string (url), mu_strerror (rc));
-	  mailbox_destroy (&mbox);
+	  mu_mailbox_destroy (&mbox);
 	  exit (EXIT_FAILURE);
 	}
 
@@ -445,10 +445,10 @@ main (int argc, char **argv)
 	total = 0;
       else
 	{
-	  if ((rc = mailbox_scan (mbox, 1, &total)) != 0)
+	  if ((rc = mu_mailbox_scan (mbox, 1, &total)) != 0)
 	    {
 	      url_t url = NULL;
-	      mailbox_get_url (mbox, &url);
+	      mu_mailbox_get_url (mbox, &url);
 	      util_error (_("Cannot read mailbox %s: %s"),
 			  url_to_string (url), mu_strerror (rc));
 	      exit (EXIT_FAILURE);

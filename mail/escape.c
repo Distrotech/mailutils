@@ -28,7 +28,7 @@ dump_headers (FILE *fp, compose_env_t *env)
   stream_t stream = NULL;
   size_t off = 0, n;
   
-  header_get_stream (env->header, &stream);
+  mu_header_get_stream (env->header, &stream);
   while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
@@ -54,7 +54,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   size_t n = 0;
   int errcnt = 0, line = 0;
   
-  if ((status = header_create (&header, NULL, 0, NULL)) != 0)
+  if ((status = mu_header_create (&header, NULL, 0, NULL)) != 0)
     {
       util_error (_("Cannot create header: %s"), mu_strerror (status));
       return 1;
@@ -102,7 +102,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	      
 	      if (name)
 		{
-		  header_set_value (header, name, value[0] ? value : NULL, 0);
+		  mu_header_set_value (header, name, value[0] ? value : NULL, 0);
 		  free (name);
 		  free (value);
 		  name = value = NULL;
@@ -129,7 +129,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   free (buf);
   if (name)
     {
-      header_set_value (header, name, value, 0);
+      mu_header_set_value (header, name, value, 0);
       free (name);
       free (value);
     }     
@@ -138,7 +138,7 @@ parse_headers (FILE *fp, compose_env_t *env)
     {
       char *p;
       
-      header_destroy (&header, NULL);
+      mu_header_destroy (&header, NULL);
       p = ml_readline (_("Edit again?"));
       if (mu_true_answer_p (p) == 1)
 	return -1;
@@ -146,7 +146,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	return 1;
     }
 
-  header_destroy (&env->header, NULL);
+  mu_header_destroy (&env->header, NULL);
   env->header = header;
   return 0;
 }
@@ -458,17 +458,17 @@ quote0 (msgset_t *mspec, message_t mesg, void *data)
       char buf[512];
 
       message_get_header (mesg, &hdr);
-      header_get_field_count (hdr, &num);
+      mu_header_get_field_count (hdr, &num);
 
       for (i = 1; i <= num; i++)
 	{
-	  header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+	  mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
 	  if (mail_header_is_visible (buf))
 	    {
 	      char *value;
 	      
 	      fprintf (ofile, "%s%s: ", prefix, buf);
-	      if (header_aget_value (hdr, buf, &value) == 0)
+	      if (mu_header_aget_value (hdr, buf, &value) == 0)
 		{
 		  int i;
 		  char *p, *s;
@@ -486,7 +486,7 @@ quote0 (msgset_t *mspec, message_t mesg, void *data)
 	}
       fprintf (ofile, "%s\n", prefix);
       message_get_body (mesg, &body);
-      body_get_stream (body, &stream);
+      mu_body_get_stream (body, &stream);
     }
   else
     message_get_stream (mesg, &stream);

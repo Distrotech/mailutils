@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,16 +44,16 @@ auth_add (char *name, imap4d_auth_handler_fp handler)
   p->handler = handler;
   if (!imap_auth_list)
     {
-      list_create (&imap_auth_list);
-      list_set_comparator (imap_auth_list, comp);
+      mu_list_create (&imap_auth_list);
+      mu_list_set_comparator (imap_auth_list, comp);
     }
-  list_append (imap_auth_list, (void*)p);
+  mu_list_append (imap_auth_list, (void*)p);
 }
 
 void
 auth_remove (char *name)
 {
-  list_remove (imap_auth_list, (void*) name);
+  mu_list_remove (imap_auth_list, (void*) name);
 }
 
 static int
@@ -90,7 +90,7 @@ _auth_try (void *item, void *data)
 void
 imap4d_auth_capability ()
 {
-  list_do (imap_auth_list, _auth_capa, NULL);
+  mu_list_do (imap_auth_list, _auth_capa, NULL);
 }
 
 int
@@ -113,7 +113,7 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
   adata.arg = sp;
   adata.username = NULL;
 
-  if (list_do (imap_auth_list, _auth_try, &adata) == 0)
+  if (mu_list_do (imap_auth_list, _auth_try, &adata) == 0)
     return util_finish (command, RESP_NO,
 			"Authentication mechanism not supported");
   

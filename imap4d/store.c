@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
       msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
       if (msgno)
 	{
-	  mailbox_get_message (mbox, msgno, &msg);
+	  mu_mailbox_get_message (mbox, msgno, &msg);
 	  message_get_attribute (msg, &attr);
 
 	  /* Get the fetch command names.  */
@@ -123,19 +123,19 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 	      if (!util_attribute_to_type (item, &type))
 		{
 		  if (how == STORE_ADD )
-		    attribute_set_flags (attr, type);
+		    mu_attribute_set_flags (attr, type);
 		  else if (how == STORE_UNSET )
-		    attribute_unset_flags (attr, type);
+		    mu_attribute_unset_flags (attr, type);
 		  else if (how == STORE_SET )
 		    {
 		      if (first)
 			{
-			  attribute_set_flags (attr, 0);
+			  mu_attribute_set_flags (attr, 0);
 			  first = 0;
 			}
-		      attribute_set_flags (attr, type);
+		      mu_attribute_set_flags (attr, type);
 		    }
-		  attribute_set_flags (attr, MU_ATTRIBUTE_MODIFIED);
+		  mu_attribute_set_flags (attr, MU_ATTRIBUTE_MODIFIED);
 		}
 	    }
 	}

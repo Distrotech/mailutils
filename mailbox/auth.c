@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -35,17 +35,17 @@ _authenticate_null (authority_t auth ARG_UNUSED)
 }
 
 int
-authority_create_null (authority_t *pauthority, void *owner)
+mu_authority_create_null (authority_t *pauthority, void *owner)
 {
-  int rc = authority_create(pauthority, NULL, owner);
+  int rc = mu_authority_create(pauthority, NULL, owner);
   if (rc)
     return rc;
-  authority_set_authenticate (*pauthority, _authenticate_null,  owner);
+  mu_authority_set_authenticate (*pauthority, _authenticate_null,  owner);
   return 0;
 }
 
 int
-authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
+mu_authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
 {
   authority_t authority;
   if (pauthority == NULL)
@@ -60,14 +60,14 @@ authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
 }
 
 void
-authority_destroy (authority_t *pauthority, void *owner)
+mu_authority_destroy (authority_t *pauthority, void *owner)
 {
   if (pauthority && *pauthority)
     {
       authority_t authority = *pauthority;
       if (authority->owner == owner)
 	{
-	  ticket_destroy (&(authority->ticket), authority);
+	  mu_ticket_destroy (&(authority->ticket), authority);
 	  free (authority);
 	}
       *pauthority = NULL;
@@ -75,24 +75,24 @@ authority_destroy (authority_t *pauthority, void *owner)
 }
 
 void *
-authority_get_owner (authority_t authority)
+mu_authority_get_owner (authority_t authority)
 {
   return (authority) ? authority->owner : NULL;
 }
 
 int
-authority_set_ticket (authority_t authority, ticket_t ticket)
+mu_authority_set_ticket (authority_t authority, ticket_t ticket)
 {
   if (authority == NULL)
     return EINVAL;
   if (authority->ticket)
-    ticket_destroy (&(authority->ticket), authority);
+    mu_ticket_destroy (&(authority->ticket), authority);
   authority->ticket = ticket;
   return 0;
 }
 
 int
-authority_get_ticket (authority_t authority, ticket_t *pticket)
+mu_authority_get_ticket (authority_t authority, ticket_t *pticket)
 {
   if (authority == NULL)
     return EINVAL;
@@ -100,7 +100,7 @@ authority_get_ticket (authority_t authority, ticket_t *pticket)
     return MU_ERR_OUT_PTR_NULL;
   if (authority->ticket == NULL)
     {
-      int status = ticket_create (&(authority->ticket), authority);
+      int status = mu_ticket_create (&(authority->ticket), authority);
       if (status != 0)
 	return status;
     }
@@ -128,21 +128,21 @@ try_auth (void *item, void *data)
 }
 
 int
-authority_authenticate (authority_t authority)
+mu_authority_authenticate (authority_t authority)
 {
   if (authority && authority->auth_methods)
     {
       struct auth_cb cb;
       cb.status = MU_ERR_AUTH_FAILURE;
       cb.authority = authority;
-      list_do (authority->auth_methods, try_auth, &cb);
+      mu_list_do (authority->auth_methods, try_auth, &cb);
       return cb.status;
     }
   return EINVAL;
 }
 
 int
-authority_set_authenticate (authority_t authority,
+mu_authority_set_authenticate (authority_t authority,
 			    int (*_authenticate) (authority_t),
 			    void *owner)
 {
@@ -153,10 +153,10 @@ authority_set_authenticate (authority_t authority,
     return EACCES;
   if (!authority->auth_methods)
     {
-      int rc = list_create (&authority->auth_methods);
+      int rc = mu_list_create (&authority->auth_methods);
       if (rc)
 	return rc;
     }
-  list_append (authority->auth_methods, _authenticate);
+  mu_list_append (authority->auth_methods, _authenticate);
   return 0;
 }

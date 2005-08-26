@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002,2003,2004,2005  Free Software Foundation, Inc.
+   Copyright (C) 2002,2003,2004,2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,12 +72,12 @@ list_t folder_mbox_list = NULL;
 void
 add_folder (const char *folder)
 {
-  if (!folder_name_list && list_create (&folder_name_list))
+  if (!folder_name_list && mu_list_create (&folder_name_list))
     {
       mh_error (_("Cannot create folder list"));
       exit (1);
     }
-  list_append (folder_name_list, strdup (folder));
+  mu_list_append (folder_name_list, strdup (folder));
 }
 
 void
@@ -91,30 +91,30 @@ open_folders ()
       exit (1);
     }
 
-  if (list_create (&folder_mbox_list))
+  if (mu_list_create (&folder_mbox_list))
     {
       mh_error (_("Cannot create folder list"));
       exit (1);
     }
 
-  if (list_get_iterator (folder_name_list, &itr))
+  if (mu_list_get_iterator (folder_name_list, &itr))
     {
       mh_error (_("Cannot create iterator"));
       exit (1);
     }
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *name = NULL;
       mailbox_t mbox;
       
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       mbox = mh_open_folder (name, 1);
-      list_append (folder_mbox_list, mbox);
+      mu_list_append (folder_mbox_list, mbox);
       free (name);
     }
-  iterator_destroy (&itr);
-  list_destroy (&folder_name_list);
+  mu_iterator_destroy (&itr);
+  mu_list_destroy (&folder_name_list);
 }
 
 void
@@ -122,26 +122,26 @@ enumerate_folders (void (*f) (void *, mailbox_t), void *data)
 {
   iterator_t itr;
 
-  if (list_get_iterator (folder_mbox_list, &itr))
+  if (mu_list_get_iterator (folder_mbox_list, &itr))
     {
       mh_error (_("Cannot create iterator"));
       exit (1);
     }
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       mailbox_t mbox;
-      iterator_current (itr, (void **)&mbox);
+      mu_iterator_current (itr, (void **)&mbox);
       (*f) (data, mbox);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
   
 void
 _close_folder (void *unused, mailbox_t mbox)
 {
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
 }
 
 void
@@ -195,7 +195,7 @@ refile_folder (void *data, mailbox_t mbox)
   message_t msg = data;
   int rc;
   
-  rc = mailbox_append_message (mbox, msg);
+  rc = mu_mailbox_append_message (mbox, msg);
   if (rc)
     {
       mh_error (_("Error appending message: %s"), mu_strerror (rc));
@@ -217,7 +217,7 @@ refile_iterator (mailbox_t mbox, message_t msg, size_t num, void *data)
     {
       attribute_t attr;
       message_get_attribute (msg, &attr);
-      attribute_set_deleted (attr);
+      mu_attribute_set_deleted (attr);
     }
 }
 
@@ -274,9 +274,9 @@ main (int argc, char **argv)
 
       status = mh_iterate (mbox, &msgset, refile_iterator, NULL);
  
-      mailbox_expunge (mbox);
-      mailbox_close (mbox);
-      mailbox_destroy (&mbox);
+      mu_mailbox_expunge (mbox);
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox);
     }
 
   close_folders ();

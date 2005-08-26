@@ -88,14 +88,14 @@ static int
 folder_pop_open (folder_t folder, int flags)
 {
   mailbox_t mbox = folder->data;
-  return mailbox_open (mbox, flags);
+  return mu_mailbox_open (mbox, flags);
 }
 
 static int
 folder_pop_close (folder_t folder)
 {
   mailbox_t mbox = folder->data;
-  return mailbox_close (mbox);
+  return mu_mailbox_close (mbox);
 }
 
 static int
@@ -111,8 +111,8 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
       if (folder->url->auth == NULL
 	  || strcasecmp (folder->url->auth, "*") == 0)
 	{
-	  status = authority_create (&folder->authority, NULL, folder);
-	  authority_set_authenticate (folder->authority, _pop_user, folder);
+	  status = mu_authority_create (&folder->authority, NULL, folder);
+	  mu_authority_set_authenticate (folder->authority, _pop_user, folder);
 	}
       /*
 	"+apop" could be supported.
@@ -121,8 +121,8 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
       */
       else if (strcasecmp (folder->url->auth, "+APOP") == 0)
 	{
-	  status = authority_create (&folder->authority, NULL, folder);
-	  authority_set_authenticate (folder->authority, _pop_apop, folder);
+	  status = mu_authority_create (&folder->authority, NULL, folder);
+	  mu_authority_set_authenticate (folder->authority, _pop_apop, folder);
 	}
       else
 	{

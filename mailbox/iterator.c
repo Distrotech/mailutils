@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 #include <mailutils/errno.h>
 
 int
-iterator_create (iterator_t *piterator, void *owner)
+mu_iterator_create (iterator_t *piterator, void *owner)
 {
   iterator_t iterator;
   if (piterator == NULL)
@@ -44,7 +44,7 @@ iterator_create (iterator_t *piterator, void *owner)
 }
 
 int
-iterator_set_first (iterator_t itr, int (*first) (void *))
+mu_iterator_set_first (iterator_t itr, int (*first) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -53,7 +53,7 @@ iterator_set_first (iterator_t itr, int (*first) (void *))
 }
 
 int
-iterator_set_next (iterator_t itr, int (*next) (void *))
+mu_iterator_set_next (iterator_t itr, int (*next) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -62,7 +62,7 @@ iterator_set_next (iterator_t itr, int (*next) (void *))
 }
 
 int
-iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
+mu_iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
 {
   if (!itr)
     return EINVAL;
@@ -71,7 +71,7 @@ iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
 }
 
 int
-iterator_set_finished_p (iterator_t itr, int (*finished_p) (void *))
+mu_iterator_set_finished_p (iterator_t itr, int (*finished_p) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -80,7 +80,7 @@ iterator_set_finished_p (iterator_t itr, int (*finished_p) (void *))
 }
 
 int
-iterator_set_curitem_p (iterator_t itr,
+mu_iterator_set_curitem_p (iterator_t itr,
 			int (*curitem_p) (void *, void *))
 {
   if (!itr)
@@ -90,7 +90,7 @@ iterator_set_curitem_p (iterator_t itr,
 }
 
 int
-iterator_set_destroy (iterator_t itr, int (destroy) (iterator_t, void *))
+mu_iterator_set_destroy (iterator_t itr, int (destroy) (iterator_t, void *))
 {
   if (!itr)
     return EINVAL;
@@ -99,7 +99,7 @@ iterator_set_destroy (iterator_t itr, int (destroy) (iterator_t, void *))
 }
 
 int
-iterator_set_dup (iterator_t itr, int (dup) (void **ptr, void *data))
+mu_iterator_set_dup (iterator_t itr, int (dup) (void **ptr, void *data))
 {
   if (!itr)
     return EINVAL;
@@ -110,7 +110,7 @@ iterator_set_dup (iterator_t itr, int (dup) (void **ptr, void *data))
 
 
 int
-iterator_dup (iterator_t *piterator, iterator_t orig)
+mu_iterator_dup (iterator_t *piterator, iterator_t orig)
 {
   iterator_t iterator;
   int status;
@@ -120,7 +120,7 @@ iterator_dup (iterator_t *piterator, iterator_t orig)
   if (orig == NULL)
     return EINVAL;
 
-  status = iterator_create (&iterator, orig->owner);
+  status = mu_iterator_create (&iterator, orig->owner);
   if (status)
     return status;
 
@@ -144,7 +144,7 @@ iterator_dup (iterator_t *piterator, iterator_t orig)
 }
 
 void
-iterator_destroy (iterator_t *piterator)
+mu_iterator_destroy (iterator_t *piterator)
 {
   if (!piterator || !*piterator)
     return;
@@ -157,14 +157,14 @@ iterator_destroy (iterator_t *piterator)
 }
 
 int
-iterator_first (iterator_t iterator)
+mu_iterator_first (iterator_t iterator)
 {
   iterator->is_advanced = 0;
   return iterator->first (iterator->owner);
 }
 
 int
-iterator_next (iterator_t iterator)
+mu_iterator_next (iterator_t iterator)
 {
   int status = 0;
   if (!iterator->is_advanced)
@@ -174,13 +174,13 @@ iterator_next (iterator_t iterator)
 }
 
 int
-iterator_current (iterator_t iterator, void * const *pitem)
+mu_iterator_current (iterator_t iterator, void * const *pitem)
 {
   return iterator->getitem (iterator->owner, (void**)pitem);
 }
 
 int
-iterator_is_done (iterator_t iterator)
+mu_iterator_is_done (iterator_t iterator)
 {
   if (iterator == NULL)
     return 1;
@@ -199,7 +199,7 @@ iterator_get_owner (iterator_t iterator, void **powner)
 }
 
 void
-iterator_advance (iterator_t iterator, void *e)
+mu_iterator_advance (iterator_t iterator, void *e)
 {
   for (; iterator; iterator = iterator->next_itr)
     {
@@ -212,7 +212,7 @@ iterator_advance (iterator_t iterator, void *e)
 }
 
 int
-iterator_attach (iterator_t *root, iterator_t iterator)
+mu_iterator_attach (iterator_t *root, iterator_t iterator)
 {
   iterator->next_itr = *root;
   *root = iterator;
@@ -220,7 +220,7 @@ iterator_attach (iterator_t *root, iterator_t iterator)
 }
 
 int
-iterator_detach (iterator_t *root, iterator_t iterator)
+mu_iterator_detach (iterator_t *root, iterator_t iterator)
 {
   iterator_t itr, prev;
   

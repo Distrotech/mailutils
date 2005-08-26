@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -171,14 +172,14 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
   unsigned long invalid_uid = 0; /* For UID mode only: have we 
 				    encountered an uid > max uid? */
   
-  status = mailbox_messages_count (mbox, &max);
+  status = mu_mailbox_messages_count (mbox, &max);
   if (status != 0)
     return status;
   /* If it is a uid sequence, override max with the UID.  */
   if (isuid)
     {
       message_t msg = NULL;
-      mailbox_get_message (mbox, max, &msg);
+      mu_mailbox_get_message (mbox, max, &msg);
       message_get_uid (msg, &max);
     }
 
@@ -839,7 +840,7 @@ util_print_flags (attribute_t attr)
   int flags = 0;
   int space = 0;
 
-  attribute_get_flags (attr, &flags);
+  mu_attribute_get_flags (attr, &flags);
   for (i = 0; i < _imap4d_nattr; i++)
     if (flags & _imap4d_attrlist[i].flag)
       {
@@ -863,7 +864,7 @@ util_attribute_matches_flag (attribute_t attr, const char *item)
 {
   int flags = 0, mask = 0;
 
-  attribute_get_flags (attr, &flags);
+  mu_attribute_get_flags (attr, &flags);
   util_attribute_to_type (item, &mask);
   if (mask == MU_ATTRIBUTE_RECENT)
     return MU_ATTRIBUTE_IS_UNSEEN (flags);
@@ -1088,11 +1089,11 @@ util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
   url_t mbox_url = NULL;
   url_t smbox_url = NULL;
 
-  mailbox_get_url (mbox, &mbox_url);
-  mailbox_get_url (smbox, &smbox_url);
+  mu_mailbox_get_url (mbox, &mbox_url);
+  mu_mailbox_get_url (smbox, &smbox_url);
   if (strcmp (url_to_string (mbox_url), url_to_string (smbox_url)) == 0)
     smbox = mbox;
-  return mailbox_uidvalidity (smbox, uidvp);
+  return mu_mailbox_uidvalidity (smbox, uidvp);
 }
 
 
@@ -1198,8 +1199,8 @@ void
 util_atexit (void (*fp) (void))
 {
   if (!atexit_list)
-    list_create (&atexit_list);
-  list_append (atexit_list, (void*)fp);
+    mu_list_create (&atexit_list);
+  mu_list_append (atexit_list, (void*)fp);
 }
 
 static int
@@ -1223,13 +1224,13 @@ util_bye ()
       stream_destroy (&ostream, stream_get_owner (ostream));
     }
       
-  list_do (atexit_list, atexit_run, 0);
+  mu_list_do (atexit_list, atexit_run, 0);
 }
 
 struct state_event {
   int old_state;
   int new_state;
-  list_action_t *action;
+  mu_list_action_t *action;
   void *data;
 };
 
@@ -1237,7 +1238,7 @@ static list_t event_list;
 
 void
 util_register_event (int old_state, int new_state,
-		     list_action_t *action, void *data)
+		     mu_list_action_t *action, void *data)
 {
   struct state_event *evp = malloc (sizeof (*evp));
   if (!evp)
@@ -1247,14 +1248,14 @@ util_register_event (int old_state, int new_state,
   evp->action = action;
   evp->data = data;
   if (!event_list)
-    list_create (&event_list);
-  list_append (event_list, (void*)evp);
+    mu_list_create (&event_list);
+  mu_list_append (event_list, (void*)evp);
 }
 
 void
 util_event_remove (void *id)
 {
-  list_remove (event_list, id);
+  mu_list_remove (event_list, id);
 }
 
 static int
@@ -1277,15 +1278,15 @@ util_run_events (int old_state, int new_state)
       ev.old_state = old_state;
       ev.new_state = new_state;
 
-      list_get_iterator (event_list, &itr);
-      for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+      mu_list_get_iterator (event_list, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  struct state_event *p;
-	  iterator_current (itr, (void **)&p);
+	  mu_iterator_current (itr, (void **)&p);
 	  if (event_exec (p, &ev))
 	    break;
 	}
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
 }
   

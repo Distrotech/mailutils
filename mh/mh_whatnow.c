@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 
 #include <mh.h>
 
-typedef int (*handler_fp) __PMT((struct mh_whatnow_env *wh,
-				 int argc, char **argv,
-				 int *status));
+typedef int (*handler_fp) (struct mh_whatnow_env *wh,
+			   int argc, char **argv,
+			   int *status);
 
 /* ********************* Auxiliary functions *********************** */
 /* Auxiliary function for option comparisons */
@@ -268,11 +268,11 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
       getline (&line, &size, stdin);
       if (!line)
 	continue;
-      rc = argcv_get (line, "", "#", &argc, &argv);
+      rc = mu_argcv_get (line, "", "#", &argc, &argv);
       free (line);
       if (rc)
 	{
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  break;
 	}
 
@@ -281,7 +281,7 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
 	rc = fun (wh, argc, argv, &status);
       else
 	rc = 0;
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
   while (rc == 0);
   return status;

@@ -84,7 +84,7 @@ mail_execute (int shell, int argc, char **argv)
     }
 
   /* Construct command line and save it to gnu-last-command variable */
-  argcv_string (argc, argv, &buf);
+  mu_argcv_string (argc, argv, &buf);
   util_setenv ("gnu-last-command", buf, Mail_env_string, 1);
 
   /* Do actual work */
@@ -120,7 +120,7 @@ mail_execute (int shell, int argc, char **argv)
     }
   else
     {
-      if (argv0) /* Restore argv[0], else argcv_free will coredump */
+      if (argv0) /* Restore argv[0], else mu_argcv_free will coredump */
 	argv[0] = argv0;
       free (buf);
       if (pid > 0)

@@ -172,7 +172,7 @@ static int
 store_result (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
-  list_create (&dp->result);
+  mu_list_create (&dp->result);
   return 0;
 }
 
@@ -187,8 +187,8 @@ static int
 release_result (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
-  list_do (dp->result, free_char_data, NULL);
-  list_destroy (&dp->result);
+  mu_list_do (dp->result, free_char_data, NULL);
+  mu_list_destroy (&dp->result);
   return 0;
 }
 
@@ -243,7 +243,7 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
     }
   
   *pdata = strdup (buffer);
-  list_append (dp->result, *pdata);
+  mu_list_append (dp->result, *pdata);
   return 0;
 }
 

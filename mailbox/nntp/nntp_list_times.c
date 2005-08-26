@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 
 /*
   LIST EXTENSIONS command, return an iterator that contains the result.
-  It is the responsability of the caller to destroy the iterator(iterator_destroy).
+  It is the responsability of the caller to destroy the iterator(mu_iterator_destroy).
  */
 int
 mu_nntp_list_active_times (mu_nntp_t nntp, const char *wildmat, iterator_t *piterator)

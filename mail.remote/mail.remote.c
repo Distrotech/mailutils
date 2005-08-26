@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, 
-   Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -138,8 +138,8 @@ stream_t in;         /* Input stream */
 void
 mr_exit (int status)
 {
-  address_destroy (&from);
-  address_destroy (&to);
+  mu_address_destroy (&from);
+  mu_address_destroy (&to);
   stream_destroy (&in, NULL);
   mailer_destroy (&mailer);
 
@@ -168,7 +168,7 @@ main (int argc, char **argv)
 
   if (optfrom)
     {
-      if ((status = address_create (&from, optfrom)))
+      if ((status = mu_address_create (&from, optfrom)))
 	{
 	  mu_error (_("Parsing from addresses failed: %s"),
 		    mu_strerror (status));
@@ -178,7 +178,7 @@ main (int argc, char **argv)
 
   if (argv[optind])
     {
-      if ((status = address_createv (&to, (const char **) (argv + optind), -1)))
+      if ((status = mu_address_createv (&to, (const char **) (argv + optind), -1)))
 	{
 	  mu_error (_("Parsing recipient addresses failed: %s"),
 		    mu_strerror (status));

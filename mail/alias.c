@@ -209,7 +209,7 @@ alias_create (char *name, list_t *plist)
   if (!ap->name)
     {
       /* new entry */
-      if (list_create (&ap->list))
+      if (mu_list_create (&ap->list))
 	return 1;
       ap->name = strdup (name);
       if (!ap->name)

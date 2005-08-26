@@ -120,7 +120,7 @@ parse_pairlist (grad_avp_t **plist, const char *input,
   if (!input)
     return 1;
   
-  if ((rc = argcv_get (input, ",", NULL, &argc, &argv)))
+  if ((rc = mu_argcv_get (input, ",", NULL, &argc, &argv)))
     argp_error (argp_state, _("Cannot parse input `%s': %s"),
 		input, mu_strerror (rc));
 
@@ -163,7 +163,7 @@ parse_pairlist (grad_avp_t **plist, const char *input,
   if (state != state_delim && state != state_delim)
     argp_error (argp_state, _("malformed radius A/V list"));
   
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   return 0;
 }
 

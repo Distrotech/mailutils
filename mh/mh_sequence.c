@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ mh_seq_delete (char *name, mh_msgset_t *mset, int flags)
   if (!value)
     return 0;
 
-  if (argcv_get (value, "", NULL, &argc, &argv))
+  if (mu_argcv_get (value, "", NULL, &argc, &argv))
     return 0;
 
   for (i = 0; i < argc; i++)
@@ -163,7 +163,7 @@ mh_seq_delete (char *name, mh_msgset_t *mset, int flags)
     }
   *p = 0;
   write_sequence (name, count > 0 ? value : NULL, flags & SEQ_PRIVATE);
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   
   return 0;
 }

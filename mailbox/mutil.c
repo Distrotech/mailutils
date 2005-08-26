@@ -257,9 +257,9 @@ mu_cpystr (char *dst, const char *src, size_t size)
 void
 mu_register_retriever (list_t *pflist, mu_retrieve_fp fun)
 {
-  if (!*pflist && list_create (pflist))
+  if (!*pflist && mu_list_create (pflist))
     return;
-  list_append (*pflist, fun);
+  mu_list_append (*pflist, fun);
 }
 
 void *
@@ -268,17 +268,17 @@ mu_retrieve (list_t flist, void *data)
   void *p = NULL;
   iterator_t itr;
 
-  if (list_get_iterator (flist, &itr) == 0)
+  if (mu_list_get_iterator (flist, &itr) == 0)
     {
       mu_retrieve_fp fun;
-      for (iterator_first (itr); !p && !iterator_is_done (itr);
-	   iterator_next (itr))
+      for (mu_iterator_first (itr); !p && !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  iterator_current (itr, (void **)&fun);
+	  mu_iterator_current (itr, (void **)&fun);
 	  p = (*fun) (data);
 	}
 
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
   return p;
 }
@@ -323,10 +323,10 @@ mu_set_user_email (const char *candidate)
   char *email = NULL;
   char *domain = NULL;
   
-  if ((err = address_create (&addr, candidate)) != 0)
+  if ((err = mu_address_create (&addr, candidate)) != 0)
     return err;
 
-  if ((err = address_get_email_count (addr, &emailno)) != 0)
+  if ((err = mu_address_get_email_count (addr, &emailno)) != 0)
     goto cleanup;
 
   if (emailno != 1)
@@ -335,7 +335,7 @@ mu_set_user_email (const char *candidate)
       goto cleanup;
     }
 
-  if ((err = address_aget_email (addr, 1, &email)) != 0)
+  if ((err = mu_address_aget_email (addr, 1, &email)) != 0)
     goto cleanup;
 
   if (mu_user_email)
@@ -343,12 +343,12 @@ mu_set_user_email (const char *candidate)
 
   mu_user_email = email;
 
-  address_aget_domain (addr, 1, &domain);
+  mu_address_aget_domain (addr, 1, &domain);
   mu_set_user_email_domain (domain);
   free (domain);
   
 cleanup:
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 
   return err;
 }
@@ -926,7 +926,7 @@ int
 get_msgid_header (header_t hdr, const char *name, char **val)
 {
   char *p;
-  int status = header_aget_value (hdr, name, &p);
+  int status = mu_header_aget_value (hdr, name, &p);
   if (status)
     return status;
   status = strip_message_id (p, val);
@@ -1015,14 +1015,14 @@ mu_rfc2822_in_reply_to (message_t msg, char **pstr)
   if (rc)
     return rc;
   
-  if (header_aget_value (hdr, MU_HEADER_DATE, &value))
+  if (mu_header_aget_value (hdr, MU_HEADER_DATE, &value))
     {
       envelope_t envelope = NULL;
       value = malloc (DATEBUFSIZE);
       if (value)
 	{
 	  message_get_envelope (msg, &envelope);
-	  envelope_date (envelope, value, DATEBUFSIZE, NULL);
+	  mu_envelope_date (envelope, value, DATEBUFSIZE, NULL);
 	}
     }
 
@@ -1036,7 +1036,7 @@ mu_rfc2822_in_reply_to (message_t msg, char **pstr)
 	return ENOMEM;
     }
   
-  if (header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
+  if (mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
     {
       s2 = malloc (strlen (value) + 3);
       if (s2)
@@ -1265,7 +1265,7 @@ mu_decode_filter (stream_t *pfilter, stream_t input,
 {
   stream_t filter;
   
-  int status = filter_create (&filter, input, filter_type,
+  int status = mu_filter_create (&filter, input, filter_type,
 			      MU_FILTER_DECODE, MU_STREAM_READ);
   if (status)
     return status;
@@ -1273,7 +1273,7 @@ mu_decode_filter (stream_t *pfilter, stream_t input,
   if (fromcode && tocode && strcasecmp (fromcode, tocode))
     {
       stream_t cvt;
-      status = filter_iconv_create (&cvt, filter, fromcode, tocode,
+      status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,
 				    MU_STREAM_NO_CLOSE,
 				    mu_default_fallback_mode);
       if (status == 0)

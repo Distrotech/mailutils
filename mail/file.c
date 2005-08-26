@@ -25,7 +25,7 @@ static char *prev_name;
  * &	    the current mbox
  * +file    the file named in the folder directory (set folder=foo)
  * Note 1) The followig notations are left intact, since they are
- * handled by mailbox_create_default:
+ * handled by mu_mailbox_create_default:
  * %	    system mailbox
  * %user    system mailbox of the user 
  * Note 2) Allocates memory
@@ -88,10 +88,10 @@ mail_file (int argc, char **argv)
       if (!name)
 	return 1;
       
-      if ((status = mailbox_create_default (&newbox, name)) != 0 
-	  || (status = mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
+      if ((status = mu_mailbox_create_default (&newbox, name)) != 0 
+	  || (status = mu_mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
 	{
-	  mailbox_destroy (&newbox);
+	  mu_mailbox_destroy (&newbox);
 	  util_error(_("Cannot open mailbox %s: %s"), name, mu_strerror (status));
 	  free (name);
 	  return 1;
@@ -100,14 +100,14 @@ mail_file (int argc, char **argv)
       free (name); /* won't need it any more */
       page_invalidate (1); /* Invalidate current page map */
       
-      mailbox_get_url (mbox, &url);
+      mu_mailbox_get_url (mbox, &url);
       pname = strdup (url_to_string (url));
       if (mail_mbox_close ())
 	{
 	  if (pname)
 	    free (pname);
-	  mailbox_close (newbox);
-	  mailbox_destroy (&newbox);
+	  mu_mailbox_close (newbox);
+	  mu_mailbox_destroy (&newbox);
 	  return 1;
 	}
       
@@ -116,7 +116,7 @@ mail_file (int argc, char **argv)
       prev_name = pname;
       
       mbox = newbox;
-      mailbox_messages_count (mbox, &total);
+      mu_mailbox_messages_count (mbox, &total);
       set_cursor (1);
       if (util_getenv (NULL, "header", Mail_env_boolean, 0) == 0)
 	{

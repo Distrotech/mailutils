@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ mail_copy0 (int argc, char **argv, int mark)
       return 1;
     }
 
-  if ((status = mailbox_create_default (&mbx, filename)) != 0)
+  if ((status = mu_mailbox_create_default (&mbx, filename)) != 0)
     {
       util_error (_("Cannot create mailbox %s: %s"), filename, 
                    mu_strerror (status));
@@ -71,7 +71,7 @@ mail_copy0 (int argc, char **argv, int mark)
       msgset_free (msglist);
       return 1;
     }
-  if ((status = mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT)) != 0)
+  if ((status = mu_mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT)) != 0)
     {
       util_error (_("Cannot open mailbox %s: %s"), filename, 
                    mu_strerror (status));
@@ -86,7 +86,7 @@ mail_copy0 (int argc, char **argv, int mark)
       if (status)
         break;
 
-      status = mailbox_append_message (mbx, msg);
+      status = mu_mailbox_append_message (mbx, msg);
       if (status)
 	{
 	  util_error (_("Cannot append message: %s"), mu_strerror (status));
@@ -102,15 +102,15 @@ mail_copy0 (int argc, char **argv, int mark)
  	{
 	  attribute_t attr;
 	  message_get_attribute (msg, &attr);
-	  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
+	  mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
 	}
     }
 
   if (status == 0)
     fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
 
-  mailbox_close (mbx);
-  mailbox_destroy (&mbx);
+  mu_mailbox_close (mbx);
+  mu_mailbox_destroy (&mbx);
 
   free (filename);
   msgset_free (msglist);

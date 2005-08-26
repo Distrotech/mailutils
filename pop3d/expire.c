@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,20 +38,20 @@
 void
 pop3d_mark_retr (attribute_t attr)
 {
-  attribute_set_userflag (attr, POP3_ATTRIBUTE_RETR);
+  mu_attribute_set_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
  
 int
 pop3d_is_retr (attribute_t attr)
 {
-  return attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR);
+  return mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
  
 void
 pop3d_unmark_retr (attribute_t attr)
 {
-  if (attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR))
-    attribute_unset_userflag (attr, POP3_ATTRIBUTE_RETR);
+  if (mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR))
+    mu_attribute_unset_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
 
 static int
@@ -63,7 +63,7 @@ header_is_expired (header_t hdr)
   
   if (!expire_on_exit)
     return 0;
-  if (header_get_value (hdr, MU_HEADER_X_EXPIRE_TIMESTAMP,
+  if (mu_header_get_value (hdr, MU_HEADER_X_EXPIRE_TIMESTAMP,
 			buf, sizeof buf, NULL))
     return 0;
   timestamp = strtoul (buf, &p, 0);
@@ -98,9 +98,9 @@ expire_mark_message (message_t msg, char **value)
       message_get_attribute (msg, &attr);
 	  
       if (pop3d_is_retr (attr))
-	header_set_value (header, MU_HEADER_X_EXPIRE_TIMESTAMP, *value, 0);
+	mu_header_set_value (header, MU_HEADER_X_EXPIRE_TIMESTAMP, *value, 0);
       
       if (header_is_expired (header))
-	attribute_set_deleted (attr);
+	mu_attribute_set_deleted (attr);
     }
 }

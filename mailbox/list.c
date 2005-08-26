@@ -28,7 +28,7 @@
 #include <mailutils/errno.h>
 
 int
-list_create (list_t *plist)
+mu_list_create (list_t *plist)
 {
   list_t list;
   int status;
@@ -51,7 +51,7 @@ list_create (list_t *plist)
 }
 
 void
-list_destroy (list_t *plist)
+mu_list_destroy (list_t *plist)
 {
   if (plist && *plist)
     {
@@ -76,7 +76,7 @@ list_destroy (list_t *plist)
 }
 
 int
-list_append (list_t list, void *item)
+mu_list_append (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *last;
@@ -99,7 +99,7 @@ list_append (list_t list, void *item)
 }
 
 int
-list_prepend (list_t list, void *item)
+mu_list_prepend (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *first;
@@ -122,16 +122,16 @@ list_prepend (list_t list, void *item)
 }
 
 int
-list_is_empty (list_t list)
+mu_list_is_empty (list_t list)
 {
   size_t n = 0;
 
-  list_count (list, &n);
+  mu_list_count (list, &n);
   return (n == 0);
 }
 
 int
-list_count (list_t list, size_t *pcount)
+mu_list_count (list_t list, size_t *pcount)
 {
   if (list == NULL)
     return EINVAL;
@@ -141,10 +141,10 @@ list_count (list_t list, size_t *pcount)
   return 0;
 }
 
-list_comparator_t
-list_set_comparator (list_t list, list_comparator_t comp)
+mu_list_comparator_t
+mu_list_set_comparator (list_t list, mu_list_comparator_t comp)
 {
-  list_comparator_t old_comp;
+  mu_list_comparator_t old_comp;
 
   if (list == NULL)
     return NULL;
@@ -160,10 +160,10 @@ def_comp (const void *item, const void *value)
 }
 
 int
-list_locate (list_t list, void *item, void **ret_item)
+mu_list_locate (list_t list, void *item, void **ret_item)
 {
   struct list_data *current, *previous;
-  list_comparator_t comp;
+  mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
   if (list == NULL)
@@ -223,10 +223,10 @@ _insert_item(list_t list, struct list_data *current, void *new_item,
 }
 
 int
-list_insert (list_t list, void *item, void *new_item, int insert_before)
+mu_list_insert (list_t list, void *item, void *new_item, int insert_before)
 {
   struct list_data *current;
-  list_comparator_t comp;
+  mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
   if (list == NULL)
@@ -249,10 +249,10 @@ list_insert (list_t list, void *item, void *new_item, int insert_before)
 }
 
 int
-list_remove (list_t list, void *item)
+mu_list_remove (list_t list, void *item)
 {
   struct list_data *current, *previous;
-  list_comparator_t comp;
+  mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
   if (list == NULL)
@@ -264,7 +264,7 @@ list_remove (list_t list, void *item)
     {
       if (comp (current->item, item) == 0)
 	{
-	  iterator_advance (list->itr, current);
+	  mu_iterator_advance (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
 	  free (current);
@@ -278,10 +278,10 @@ list_remove (list_t list, void *item)
 }
 
 int
-list_replace (list_t list, void *old_item, void *new_item)
+mu_list_replace (list_t list, void *old_item, void *new_item)
 {
   struct list_data *current, *previous;
-  list_comparator_t comp;
+  mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
   if (list == NULL)
@@ -303,7 +303,7 @@ list_replace (list_t list, void *old_item, void *new_item)
 }
 
 int
-list_get (list_t list, size_t indx, void **pitem)
+mu_list_get (list_t list, size_t indx, void **pitem)
 {
   struct list_data *current;
   size_t count;
@@ -329,29 +329,29 @@ list_get (list_t list, size_t indx, void **pitem)
 }
 
 int
-list_do (list_t list, list_action_t * action, void *cbdata)
+mu_list_do (list_t list, mu_list_action_t * action, void *cbdata)
 {
   iterator_t itr;
   int status = 0;
 
   if (list == NULL || action == NULL)
     return EINVAL;
-  status = list_get_iterator(list, &itr);
+  status = mu_list_get_iterator(list, &itr);
   if (status)
     return status;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       void *item;
-      iterator_current (itr, &item);
+      mu_iterator_current (itr, &item);
       if ((status = action (item, cbdata)))
 	break;
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return status;
 }
 
 int
-list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
+mu_list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
 {
   if (list == NULL)
     return EINVAL;
@@ -360,7 +360,7 @@ list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
 }
 
 int
-list_to_array (list_t list, void **array, size_t count, size_t *pcount)
+mu_list_to_array (list_t list, void **array, size_t count, size_t *pcount)
 {
   size_t total = 0;
 
@@ -427,7 +427,7 @@ static int
 destroy (iterator_t iterator, void *data)
 {
   struct list_iterator *itr = data;
-  iterator_detach (&itr->list->itr, iterator);
+  mu_iterator_detach (&itr->list->itr, iterator);
   free (data);
   return 0;
 }
@@ -450,7 +450,7 @@ list_data_dup (void **ptr, void *owner)
 }
 
 int
-list_get_iterator (list_t list, iterator_t *piterator)
+mu_list_get_iterator (list_t list, iterator_t *piterator)
 {
   iterator_t iterator;
   int status;
@@ -465,22 +465,22 @@ list_get_iterator (list_t list, iterator_t *piterator)
   itr->list = list;
   itr->cur = NULL;
 
-  status = iterator_create (&iterator, itr);
+  status = mu_iterator_create (&iterator, itr);
   if (status)
     {
       free (itr);
       return status;
     }
 
-  iterator_set_first (iterator, first);
-  iterator_set_next (iterator, next);
-  iterator_set_getitem (iterator, getitem);
-  iterator_set_finished_p (iterator, finished_p);
-  iterator_set_curitem_p (iterator, curitem_p);
-  iterator_set_destroy (iterator, destroy);
-  iterator_set_dup (iterator, list_data_dup);
+  mu_iterator_set_first (iterator, first);
+  mu_iterator_set_next (iterator, next);
+  mu_iterator_set_getitem (iterator, getitem);
+  mu_iterator_set_finished_p (iterator, finished_p);
+  mu_iterator_set_curitem_p (iterator, curitem_p);
+  mu_iterator_set_destroy (iterator, destroy);
+  mu_iterator_set_dup (iterator, list_data_dup);
 
-  iterator_attach (&list->itr, iterator);
+  mu_iterator_attach (&list->itr, iterator);
 
   *piterator = iterator;
   return 0;

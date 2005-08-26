@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004 Free Software Foundation, Inc.
+   2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,38 +36,38 @@ main (int argc, const char **argv)
   /* Register the formats. */
   mu_register_all_mbox_formats ();
 
-  status = mailbox_create_default (&mbox, argv[1]);
+  status = mu_mailbox_create_default (&mbox, argv[1]);
   if (status != 0)
     {
-      mu_error ("mailbox_create: %s", mu_strerror (status));
+      mu_error ("mu_mailbox_create: %s", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
-  status = mailbox_open (mbox, MU_STREAM_READ);
+  status = mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      mu_error ("mailbox_open: %s", mu_strerror (status));
+      mu_error ("mu_mailbox_open: %s", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
 
   for (msgno = 1; msgno <= total; msgno++)
     {
       message_t msg;
       header_t hdr;
 
-      if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0
+      if ((status = mu_mailbox_get_message (mbox, msgno, &msg)) != 0
           || (status = message_get_header (msg, &hdr)) != 0)
         {
           mu_error ("Error message: %s", mu_strerror (status));
           exit (EXIT_FAILURE);
         }
 
-      if (header_aget_value (hdr, MU_HEADER_FROM, &from))
+      if (mu_header_aget_value (hdr, MU_HEADER_FROM, &from))
         from = strdup ("(NO FROM)");
 
-      if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject))
+      if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &subject))
         subject = strdup ("(NO SUBJECT)");
 
       printf ("%s\t%s\n", from, subject);
@@ -75,13 +75,13 @@ main (int argc, const char **argv)
       free (subject);
     }
 
-  status = mailbox_close (mbox);
+  status = mu_mailbox_close (mbox);
   if (status != 0)
     {
-      mu_error ("mailbox_close: %s", mu_strerror (status));
+      mu_error ("mu_mailbox_close: %s", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
-  mailbox_destroy (&mbox);
+  mu_mailbox_destroy (&mbox);
   return 0;
 }

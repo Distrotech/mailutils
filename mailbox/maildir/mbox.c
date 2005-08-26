@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004 Free Software Foundation, Inc.
+   2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -691,7 +691,7 @@ _mailbox_maildir_init (mailbox_t mailbox)
   /* Set our properties.  */
   {
     property_t property = NULL;
-    mailbox_get_property (mailbox, &property);
+    mu_mailbox_get_property (mailbox, &property);
     property_set_value (property, "TYPE", "MAILDIR", 1);
   }
 

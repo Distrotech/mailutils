@@ -53,12 +53,12 @@ retrieve_next_header (struct header_closure *hc, char *name, char **pval)
   size_t n;
 
   cleanup (hc);
-  while (!header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
+  while (!mu_header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
     {
       int i = hc->index++;
       if (strcasecmp (buf, name) == 0)
 	{
-	  if (header_aget_field_value (hc->header, i, &hc->value))
+	  if (mu_header_aget_field_value (hc->header, i, &hc->value))
 	    return 1;
 	  *pval = strtok_r (hc->value, hc->delim, &hc->save);
 	  if (*pval == NULL)
@@ -127,43 +127,43 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
 */
 
 static int
-list_test (sieve_machine_t mach, list_t args, list_t tags)
+list_test (mu_sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_value_t *h, *v, *arg;
-  sieve_comparator_t comp = sieve_get_comparator (mach, tags);
+  mu_sieve_value_t *h, *v, *arg;
+  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
   struct header_closure clos;
   int result;
 
-  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      sieve_locus_t locus;
-      sieve_get_locus (mach, &locus);
-      sieve_debug (mach, "%s:%lu: LIST\n",
+      mu_sieve_locus_t locus;
+      mu_sieve_get_locus (mach, &locus);
+      mu_sieve_debug (mach, "%s:%lu: LIST\n",
 		   locus.source_file,
 		   (unsigned long) locus.source_line);
     }
   
   memset (&clos, 0, sizeof clos);
-  if (sieve_tag_lookup (tags, "delim", &arg))
+  if (mu_sieve_tag_lookup (tags, "delim", &arg))
     clos.delim = arg->v.string;
   else
     clos.delim = ",";
   
-  h = sieve_value_get (args, 0);
+  h = mu_sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_arg_error (mach, 1);
-      sieve_abort (mach);
+      mu_sieve_arg_error (mach, 1);
+      mu_sieve_abort (mach);
     }
-  v = sieve_value_get (args, 1);
+  v = mu_sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_arg_error (mach, 2);
-      sieve_abort (mach);
+      mu_sieve_arg_error (mach, 2);
+      mu_sieve_abort (mach);
     }
 
-  message_get_header (sieve_get_message (mach), &clos.header);
-  result = sieve_vlist_compare (h, v, comp, sieve_get_relcmp (mach, tags),
+  message_get_header (mu_sieve_get_message (mach), &clos.header);
+  result = mu_sieve_vlist_compare (h, v, comp, mu_sieve_get_relcmp (mach, tags),
 				list_retrieve_header,
 				&clos, NULL) > 0;
   cleanup (&clos);
@@ -174,13 +174,13 @@ list_test (sieve_machine_t mach, list_t args, list_t tags)
 /* Initialization */
 
 /* Required arguments: */
-static sieve_data_type list_req_args[] = {
+static mu_sieve_data_type list_req_args[] = {
   SVT_STRING_LIST,
   SVT_STRING_LIST,
   SVT_VOID
 };
 
-static sieve_tag_def_t match_part_tags[] = {
+static mu_sieve_tag_def_t match_part_tags[] = {
   { "is", SVT_VOID },
   { "contains", SVT_VOID },
   { "matches", SVT_VOID },
@@ -191,22 +191,22 @@ static sieve_tag_def_t match_part_tags[] = {
   { NULL }
 };
 
-static sieve_tag_def_t delim_part_tags[] = {
+static mu_sieve_tag_def_t delim_part_tags[] = {
   { "delim", SVT_STRING },
   { NULL }
 };
 
-static sieve_tag_group_t list_tag_groups[] = {
-  { match_part_tags, sieve_match_part_checker },
+static mu_sieve_tag_group_t list_tag_groups[] = {
+  { match_part_tags, mu_sieve_match_part_checker },
   { delim_part_tags, NULL },
   { NULL }
 };
 
 /* Initialization function. */
 int
-SIEVE_EXPORT(list,init) (sieve_machine_t mach)
+SIEVE_EXPORT(list,init) (mu_sieve_machine_t mach)
 {
-  return sieve_register_test (mach, "list", list_test,
+  return mu_sieve_register_test (mach, "list", list_test,
                               list_req_args, list_tag_groups, 1);
 }
 

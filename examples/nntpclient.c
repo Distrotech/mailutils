@@ -2,7 +2,7 @@
    GNU Mailutils nntp functions.  This application interactively allows users
    to contact a nntp server.
 
-   Copyright (C) 2003, 2004 Free Software Foundation
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -570,14 +570,14 @@ com_list_extensions (char *arg ARG_UNUSED)
   if (status == 0)
     {
       printf ("List Extension:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *extension = NULL;
-	  iterator_current (iterator, (void **) &extension);
+	  mu_iterator_current (iterator, (void **) &extension);
 	  printf (" %s\n", extension);
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -591,15 +591,15 @@ com_list_active (char *arg)
   if (status == 0)
     {
       printf ("List Active:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  char *group = NULL;
 	  unsigned long high;
 	  unsigned long low;
 	  char stat;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_list_active (buffer, &group, &high, &low, &stat);
 	  if (group)
 	    {
@@ -608,7 +608,7 @@ com_list_active (char *arg)
 	    }
 	  printf (" high(%ld) low(%ld) status(%c)\n", high, low, stat);
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -622,14 +622,14 @@ com_list_active_times (char *arg)
   if (status == 0)
     {
       printf ("List Active.Times:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  char *group = NULL;
 	  char *creator = NULL;
 	  unsigned long time = 0;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_list_active_times (buffer, &group, &time, &creator);
 	  if (group)
 	    {
@@ -655,7 +655,7 @@ com_list_active_times (char *arg)
 	    }
 	  printf ("\n");
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -669,13 +669,13 @@ com_list_distributions (char *arg ARG_UNUSED)
   if (status == 0)
     {
       printf ("List Distributions:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  char *key = NULL;
 	  char *value = NULL;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_list_distributions (buffer, &key, &value);
 	  if (key)
 	    {
@@ -689,7 +689,7 @@ com_list_distributions (char *arg ARG_UNUSED)
 	    }
 	  printf ("\n");
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -703,14 +703,14 @@ com_list_distrib_pats (char *arg ARG_UNUSED)
   if (status == 0)
     {
       printf ("List Distrib Pats:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  unsigned long weight = 0;
 	  char *wildmat = NULL;
 	  char *distrib = NULL;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_list_distrib_pats (buffer, &weight, &wildmat, &distrib);
 	  printf (" weight(%ld)", weight);
 	  if (wildmat)
@@ -725,7 +725,7 @@ com_list_distrib_pats (char *arg ARG_UNUSED)
 	    }
 	  printf ("\n");
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -739,13 +739,13 @@ com_list_newsgroups (char *arg)
   if (status == 0)
     {
       printf ("Newsgroups:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  char *group = NULL;
 	  char *desc = NULL;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_list_newsgroups (buffer, &group, &desc);
 	  if (group)
 	    {
@@ -759,7 +759,7 @@ com_list_newsgroups (char *arg)
 	    }
 	  printf ("\n");
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -827,15 +827,15 @@ com_newgroups (char *arg)
   if (status == 0)
     {
       printf ("New Groups:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *buffer = NULL;
 	  char *group = NULL;
 	  unsigned long high = 0;
 	  unsigned long low = 0;
 	  char stat = 0;
-	  iterator_current (iterator, (void **) &buffer);
+	  mu_iterator_current (iterator, (void **) &buffer);
 	  mu_nntp_parse_newgroups (buffer, &group, &high, &low, &stat);
 	  if (group)
 	    {
@@ -844,7 +844,7 @@ com_newgroups (char *arg)
 	    }
 	  printf (" hig(%lu) low(%lu) status(%c)\n", high, low, stat);
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -884,14 +884,14 @@ com_newnews (char *arg)
   if (status == 0)
     {
       printf ("New News:\n");
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *mid = NULL;
-	  iterator_current (iterator, (void **) &mid);
+	  mu_iterator_current (iterator, (void **) &mid);
 	  printf (" %s\n", mid);
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }

@@ -53,7 +53,7 @@ mail_followup (int argc, char **argv)
 
   /* Create subject value */
   message_get_header (msg, &hdr);
-  if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
+  if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
     {
       char *p = NULL;
 

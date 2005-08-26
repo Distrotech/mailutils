@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -238,11 +238,11 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
 	{
 	  address_t addr;
 	  
-	  address_create (&addr, from);
+	  mu_address_create (&addr, from);
 	  if (!addr
-	      || address_aget_email (addr, 1, &env_from))
+	      || mu_address_aget_email (addr, 1, &env_from))
 	    env_from = strdup ("GNU-MH");
-	  address_destroy (&addr);
+	  mu_address_destroy (&addr);
 	}
       else
 	env_from = strdup ("GNU-MH");
@@ -282,7 +282,7 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
 static int
 _env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   struct _mhdraft_message *env = message_get_owner (msg);
   
   if (!env || !env->date)
@@ -295,7 +295,7 @@ _env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 static int
 _env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   struct _mhdraft_message *env = message_get_owner (msg);
   
   if (!env || !env->from)
@@ -308,7 +308,7 @@ _env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 static int
 _body_size (body_t body, size_t *size)
 {
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
 
   if (size)
@@ -321,7 +321,7 @@ _body_read (stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
   stream_t str;
 
@@ -334,7 +334,7 @@ _body_readline (stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
   stream_t str;
 
@@ -346,7 +346,7 @@ static int
 _body_stream_size (stream_t stream, off_t *psize)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
   
   if (psize)
@@ -387,21 +387,21 @@ mh_stream_to_message (stream_t instream)
   
   message_set_stream (msg, draftstream, mp);
   
-  if (envelope_create (&env, msg))
+  if (mu_envelope_create (&env, msg))
     return NULL;
   
-  envelope_set_date (env, _env_msg_date, msg);
-  envelope_set_sender (env, _env_msg_sender, msg);
+  mu_envelope_set_date (env, _env_msg_date, msg);
+  mu_envelope_set_sender (env, _env_msg_sender, msg);
   message_set_envelope (msg, env, mp);
 
-  body_create (&body, msg);
+  mu_body_create (&body, msg);
   stream_create (&bstream,  MU_STREAM_RDWR | MU_STREAM_SEEKABLE, body);
 
   stream_set_read (bstream, _body_read, body);
   stream_set_readline (bstream, _body_readline, body);
   stream_set_size (bstream, _body_stream_size, body);
-  body_set_stream (body, bstream, msg);
-  body_set_size (body, _body_size, msg);
+  mu_body_set_stream (body, bstream, msg);
+  mu_body_set_size (body, _body_size, msg);
   message_set_body (msg, body, mp);
   
   return msg;

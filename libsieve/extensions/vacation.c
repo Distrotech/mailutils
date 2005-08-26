@@ -61,11 +61,11 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
 
   message_create (&newmsg, NULL);
   message_get_body (newmsg, &body);
-  header_create (&hdr, header, strlen (header), newmsg);
+  mu_header_create (&hdr, header, strlen (header), newmsg);
   message_set_header (newmsg, hdr, NULL);
-  body_get_stream (body, &stream);
+  mu_body_get_stream (body, &stream);
 
-  stream_printf (stream, &off, "%s", text);
+  mu_stream_printf (stream, &off, "%s", text);
   stream_close (stream);
   mime_add_part (mime, newmsg);
   message_unref (newmsg);
@@ -79,19 +79,19 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
 
 /* Produce diagnostic output. */
 static int
-diag (sieve_machine_t mach)
+diag (mu_sieve_machine_t mach)
 {
-  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      sieve_locus_t locus;
-      sieve_get_locus (mach, &locus);
-      sieve_debug (mach, "%s:%lu: VACATION\n",
+      mu_sieve_locus_t locus;
+      mu_sieve_get_locus (mach, &locus);
+      mu_sieve_debug (mach, "%s:%lu: VACATION\n",
 		   locus.source_file,
 		   (unsigned long) locus.source_line);
     }
 
-  sieve_log_action (mach, "VACATION", NULL);
-  return sieve_is_dry_run (mach);
+  mu_sieve_log_action (mach, "VACATION", NULL);
+  return mu_sieve_is_dry_run (mach);
 }
 
 
@@ -104,7 +104,7 @@ static int
 _compare (void *item, void *data)
 {
   struct addr_data *ad = data;
-  int rc = address_contains_email (ad->addr, item);
+  int rc = mu_address_contains_email (ad->addr, item);
   if (rc)
     ad->my_address = item;
   return rc;
@@ -114,29 +114,29 @@ _compare (void *item, void *data)
    of the originating mail. Return non-zero if so and store a pointer
    to the matching address to *MY_ADDRESS. */
 static int
-match_addresses (header_t hdr, sieve_value_t *addresses, char **my_address)
+match_addresses (header_t hdr, mu_sieve_value_t *addresses, char **my_address)
 {
   int match = 0;
   char *str;
   struct addr_data ad;
 
   ad.my_address = NULL;
-  if (header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
+  if (mu_header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
     {
-      if (!address_create (&ad.addr, str))
+      if (!mu_address_create (&ad.addr, str))
 	{
-	  match += sieve_vlist_do (addresses, _compare, &ad);
-	  address_destroy (&ad.addr);
+	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	  mu_address_destroy (&ad.addr);
 	}
       free (str);
     }
 
-  if (!match && header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
+  if (!match && mu_header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
     {
-      if (!address_create (&ad.addr, str))
+      if (!mu_address_create (&ad.addr, str))
 	{
-	  match += sieve_vlist_do (addresses, _compare, &ad);
-	  address_destroy (&ad.addr);
+	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	  mu_address_destroy (&ad.addr);
 	}
       free (str);
     }
@@ -146,7 +146,7 @@ match_addresses (header_t hdr, sieve_value_t *addresses, char **my_address)
 
 
 struct regex_data {
-  sieve_machine_t mach;
+  mu_sieve_machine_t mach;
   char *email;
 };
 
@@ -160,9 +160,9 @@ regex_comparator (void *item, void *data)
   if (regcomp (&preg, item,
 	       REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE))
     {
-      sieve_error (d->mach,
+      mu_sieve_error (d->mach,
 		   ("%d: cannot compile regular expression \"%s\"\n"),
-		   sieve_get_message_num (d->mach),
+		   mu_sieve_get_message_num (d->mach),
 		   item);
       return 0;
     }
@@ -174,10 +174,10 @@ regex_comparator (void *item, void *data)
 /* Decide whether EMAIL address should not be responded to.
  */
 static int
-noreply_address_p (sieve_machine_t mach, list_t tags, char *email)
+noreply_address_p (mu_sieve_machine_t mach, list_t tags, char *email)
 {
   int i, rc = 0;
-  sieve_value_t *arg;
+  mu_sieve_value_t *arg;
   struct regex_data rd;
   static char *noreply_sender[] = {
     ".*-REQUEST@.*",
@@ -196,8 +196,8 @@ noreply_address_p (sieve_machine_t mach, list_t tags, char *email)
   for (i = 0; rc == 0 && noreply_sender[i]; i++)
     rc = regex_comparator (noreply_sender[i], &rd);
 
-  if (!rc && sieve_tag_lookup (tags, "addresses", &arg))
-    rc = sieve_vlist_do (arg, regex_comparator, &rd);
+  if (!rc && mu_sieve_tag_lookup (tags, "addresses", &arg))
+    rc = mu_sieve_vlist_do (arg, regex_comparator, &rd);
   
   return rc;
 }
@@ -209,7 +209,7 @@ bulk_precedence_p (header_t hdr)
 {
   int rc = 0;
   char *str;
-  if (header_aget_value (hdr, MU_HEADER_PRECEDENCE, &str) == 0)
+  if (mu_header_aget_value (hdr, MU_HEADER_PRECEDENCE, &str) == 0)
     {
       rc = strcasecmp (str, "bulk") == 0
 	   || strcasecmp (str, "junk") == 0;
@@ -225,7 +225,7 @@ bulk_precedence_p (header_t hdr)
 /* Check and updated vacation database. Return 0 if the mail should
    be answered. */
 static int
-check_db (sieve_machine_t mach, list_t tags, char *from)
+check_db (mu_sieve_machine_t mach, list_t tags, char *from)
 {
 #ifdef USE_DBM
   DBM_FILE db;
@@ -233,11 +233,11 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
   time_t now;
   char buffer[64];
   char *file, *home;
-  sieve_value_t *arg;
+  mu_sieve_value_t *arg;
   unsigned int days;
   int rc;
   
-  if (sieve_tag_lookup (tags, "days", &arg))
+  if (mu_sieve_tag_lookup (tags, "days", &arg))
     {
       days = arg->v.number;
       if (days < DAYS_MIN)
@@ -252,22 +252,22 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
 
   if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
     {
-      sieve_error (mach, _("%d: cannot build db file name"),
-		   sieve_get_message_num (mach));
+      mu_sieve_error (mach, _("%d: cannot build db file name"),
+		   mu_sieve_get_message_num (mach));
       free (home);
-      sieve_abort (mach);
+      mu_sieve_abort (mach);
     }
   free (home);
   
   rc = mu_dbm_open (file, &db, MU_STREAM_RDWR, 0600);
   if (rc)
     {
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   _("%d: cannot open `%s': %s"),
-		   sieve_get_message_num (mach), file,
+		   mu_sieve_get_message_num (mach), file,
 		   mu_strerror (rc));
       free (file);
-      sieve_abort (mach);
+      mu_sieve_abort (mach);
     }
   free (file);
 
@@ -303,11 +303,11 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
   mu_dbm_close (db);
   return 0;
 #else
-  sieve_error (mach,
+  mu_sieve_error (mach,
 	       /* TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
 		  Do not translate them! */
 	       _("%d: vacation compiled without DBM support. Ignoring :days tag"),
-	       sieve_get_message_num (mach));
+	       mu_sieve_get_message_num (mach));
   return 0;
 #endif
 }
@@ -319,13 +319,13 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
    "reply_prefix" tag.
  */
 static void
-re_subject (sieve_machine_t mach, list_t tags, char **psubject)
+re_subject (mu_sieve_machine_t mach, list_t tags, char **psubject)
 {
   char *subject;
-  sieve_value_t *arg;
+  mu_sieve_value_t *arg;
   char *prefix = "Re";
   
-  if (sieve_tag_lookup (tags, "reply_prefix", &arg))
+  if (mu_sieve_tag_lookup (tags, "reply_prefix", &arg))
     {
       prefix = arg->v.string;
     }
@@ -333,9 +333,9 @@ re_subject (sieve_machine_t mach, list_t tags, char **psubject)
   subject = malloc (strlen (*psubject) + strlen (prefix) + 3);
   if (!subject)
     {
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   ("%d: not enough memory"),
-		   sieve_get_message_num (mach));
+		   mu_sieve_get_message_num (mach));
       return;
     }
   
@@ -353,22 +353,22 @@ re_subject (sieve_machine_t mach, list_t tags, char **psubject)
    Otherwise, reply_prefix is prepended to it. */
 
 static void
-vacation_subject (sieve_machine_t mach, list_t tags,
+vacation_subject (mu_sieve_machine_t mach, list_t tags,
 		  message_t msg, header_t newhdr)
 {
-  sieve_value_t *arg;
+  mu_sieve_value_t *arg;
   char *value;
   char *subject;
   int subject_allocated;
   header_t hdr;
   
-  if (sieve_tag_lookup (tags, "subject", &arg))
+  if (mu_sieve_tag_lookup (tags, "subject", &arg))
     {
       subject =  arg->v.string;
       subject_allocated = 0;
     }
   else if (message_get_header (msg, &hdr) == 0
-	   && header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &value) == 0)
+	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &value) == 0)
     {
       char *p;
       
@@ -385,16 +385,16 @@ vacation_subject (sieve_machine_t mach, list_t tags,
 	  subject = p;
 	}
 
-      if (sieve_tag_lookup (tags, "reply_regex", &arg))
+      if (mu_sieve_tag_lookup (tags, "reply_regex", &arg))
 	{
 	  char *err = NULL;
 	  
 	  rc = munre_set_regex (arg->v.string, 0, &err);
 	  if (rc)
 	    {
-	      sieve_error (mach,
+	      mu_sieve_error (mach,
 			   ("%d: vacation - cannot compile reply prefix regexp: %s: %s"),
-			   sieve_get_message_num (mach),
+			   mu_sieve_get_message_num (mach),
 			   mu_strerror (rc),
 			   err ? err : "");
 	    }
@@ -408,10 +408,10 @@ vacation_subject (sieve_machine_t mach, list_t tags,
 
   if (rfc2047_encode ("iso-8859-1", "quoted-printable",
 		      subject, &value))
-    header_set_value (newhdr, MU_HEADER_SUBJECT, subject, 0);
+    mu_header_set_value (newhdr, MU_HEADER_SUBJECT, subject, 0);
   else
     {
-      header_set_value (newhdr, MU_HEADER_SUBJECT, value, 0);
+      mu_header_set_value (newhdr, MU_HEADER_SUBJECT, value, 0);
       free (value);
     }
 
@@ -421,7 +421,7 @@ vacation_subject (sieve_machine_t mach, list_t tags,
 
 /* Generate and send the reply message */
 static int
-vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
+vacation_reply (mu_sieve_machine_t mach, list_t tags, message_t msg,
 		char *text, char *to, char *from)
 {
   mime_t mime = NULL;
@@ -436,22 +436,22 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
   mime_get_message (mime, &newmsg);
   message_get_header (newmsg, &newhdr);
 
-  rc = address_create (&to_addr, to);
+  rc = mu_address_create (&to_addr, to);
   if (rc)
     {
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   _("%d: cannot create recipient address <%s>: %s"),
-		   sieve_get_message_num (mach), from, mu_strerror (rc));
+		   mu_sieve_get_message_num (mach), from, mu_strerror (rc));
       return -1;
     }
 
-  header_set_value (newhdr, MU_HEADER_TO, to, 0);
+  mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
   
   vacation_subject (mach, tags, msg, newhdr);
     
   if (from)
     {
-      if (address_create (&from_addr, from))
+      if (mu_address_create (&from_addr, from))
 	from_addr = NULL;
     }
   else
@@ -460,23 +460,23 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
     }
   
   mu_rfc2822_in_reply_to (msg, &value);
-  header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
+  mu_header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
   free (value);
   
   mu_rfc2822_references (msg, &value);
-  header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
+  mu_header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
   free (value);
   
-  mailer = sieve_get_mailer (mach);
+  mailer = mu_sieve_get_mailer (mach);
   rc = mailer_open (mailer, 0);
   if (rc)
     {
       url_t url = NULL;
       mailer_get_url (mailer, &url);
       
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   _("%d: cannot open mailer %s: %s"),
-		   sieve_get_message_num (mach),
+		   mu_sieve_get_message_num (mach),
 		   url_to_string (url), mu_strerror (rc));
       return -1;
     }
@@ -487,44 +487,44 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
 }
 
 int
-sieve_action_vacation (sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_vacation (mu_sieve_machine_t mach, list_t args, list_t tags)
 {
   int rc;
   char *text, *from;
-  sieve_value_t *val;
+  mu_sieve_value_t *val;
   message_t msg;
   header_t hdr;
-  char *my_address = sieve_get_daemon_email (mach);
+  char *my_address = mu_sieve_get_daemon_email (mach);
   
   if (diag (mach))
     return 0;
   
-  val = sieve_value_get (args, 0);
+  val = mu_sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, _("cannot get text!"));
-      sieve_abort (mach);
+      mu_sieve_error (mach, _("cannot get text!"));
+      mu_sieve_abort (mach);
     }
   else
     text = val->v.string;
 
-  msg = sieve_get_message (mach);
+  msg = mu_sieve_get_message (mach);
   message_get_header (msg, &hdr);
 
-  if (sieve_tag_lookup (tags, "sender", &val))
+  if (mu_sieve_tag_lookup (tags, "sender", &val))
     {
       /* Debugging hook: :sender sets fake reply address */
       from = strdup (val->v.string);
     }
-  else if (sieve_get_message_sender (msg, &from))
+  else if (mu_sieve_get_message_sender (msg, &from))
     {
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   _("%d: cannot get sender address"),
-		   sieve_get_message_num (mach));
-      sieve_abort (mach);
+		   mu_sieve_get_message_num (mach));
+      mu_sieve_abort (mach);
     }
 
-  if (sieve_tag_lookup (tags, "aliases", &val)
+  if (mu_sieve_tag_lookup (tags, "aliases", &val)
       && match_addresses (hdr, val, &my_address) == 0)
     return 0;
 
@@ -539,12 +539,12 @@ sieve_action_vacation (sieve_machine_t mach, list_t args, list_t tags)
   rc = vacation_reply (mach, tags, msg, text, from, my_address);
   free (from);
   if (rc == -1)
-    sieve_abort (mach);
+    mu_sieve_abort (mach);
   return rc;
 }
 
 /* Tagged arguments: */
-static sieve_tag_def_t vacation_tags[] = {
+static mu_sieve_tag_def_t vacation_tags[] = {
   {"days", SVT_NUMBER},
   {"subject", SVT_STRING},
   {"aliases", SVT_STRING_LIST},
@@ -554,19 +554,19 @@ static sieve_tag_def_t vacation_tags[] = {
   {NULL}
 };
 
-static sieve_tag_group_t vacation_tag_groups[] = {
+static mu_sieve_tag_group_t vacation_tag_groups[] = {
   {vacation_tags, NULL},
   {NULL}
 };
 
 /* Required arguments: */
-static sieve_data_type vacation_args[] = {
+static mu_sieve_data_type vacation_args[] = {
   SVT_STRING,			/* message text */
   SVT_VOID
 };
 
-int SIEVE_EXPORT (vacation, init) (sieve_machine_t mach)
+int SIEVE_EXPORT (vacation, init) (mu_sieve_machine_t mach)
 {
-  return sieve_register_action (mach, "vacation", sieve_action_vacation,
+  return mu_sieve_register_action (mach, "vacation", sieve_action_vacation,
 				vacation_args, vacation_tag_groups, 1);
 }

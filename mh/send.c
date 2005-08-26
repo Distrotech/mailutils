@@ -262,13 +262,13 @@ check_file (char *name)
   msg = mh_file_to_message (draft_folder, name);
   if (!msg)
     return 1;
-  if (!mesg_list && list_create (&mesg_list))
+  if (!mesg_list && mu_list_create (&mesg_list))
     {
       mh_error (_("Cannot create message list"));
       return 1;
     }
   
-  return list_append (mesg_list, msg);
+  return mu_list_append (mesg_list, msg);
 }
 
 void
@@ -328,7 +328,7 @@ static void
 create_message_id (header_t hdr)
 {
   char *p = mh_create_message_id (0);
-  header_set_value (hdr, MU_HEADER_MESSAGE_ID, p, 1);
+  mu_header_set_value (hdr, MU_HEADER_MESSAGE_ID, p, 1);
   free (p);
 }
 
@@ -353,10 +353,10 @@ get_sender_personal ()
 static void
 set_address_header (header_t hdr, char *name, address_t addr)
 {
-  size_t s = address_format_string (addr, NULL, 0);
+  size_t s = mu_address_format_string (addr, NULL, 0);
   char *value = xmalloc (s + 1);
-  address_format_string (addr, value, s);
-  header_set_value (hdr, name, value, 1);
+  mu_address_format_string (addr, value, s);
+  mu_header_set_value (hdr, name, value, 1);
   free (value);
 }
 
@@ -371,10 +371,10 @@ expand_aliases (message_t msg)
             addr_bcc = NULL;
   
   message_get_header (msg, &hdr);
-  header_get_field_count (hdr, &num);
+  mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      if (header_aget_field_name (hdr, i, &buf) == 0)
+      if (mu_header_aget_field_name (hdr, i, &buf) == 0)
 	{
 	  if (strcasecmp (buf, MU_HEADER_TO) == 0
 	      || strcasecmp (buf, MU_HEADER_CC) == 0
@@ -384,16 +384,16 @@ expand_aliases (message_t msg)
 	      address_t addr = NULL;
 	      int incl;
 	      
-	      header_aget_field_value_unfold (hdr, i, &value);
+	      mu_header_aget_field_value_unfold (hdr, i, &value);
 	      
 	      mh_alias_expand (value, &addr, &incl);
 	      free (value);
 	      if (strcasecmp (buf, MU_HEADER_TO) == 0)
-		address_union (&addr_to, addr);
+		mu_address_union (&addr_to, addr);
 	      else if (strcasecmp (buf, MU_HEADER_CC) == 0)
-		address_union (&addr_cc, addr);
+		mu_address_union (&addr_cc, addr);
 	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
-		address_union (&addr_bcc, addr);
+		mu_address_union (&addr_bcc, addr);
 	    }
 	  free (buf);
 	}
@@ -402,19 +402,19 @@ expand_aliases (message_t msg)
   if (addr_to)
     {
       set_address_header (hdr, MU_HEADER_TO, addr_to);
-      address_destroy (&addr_to);
+      mu_address_destroy (&addr_to);
     }
 
   if (addr_cc)
     {
       set_address_header (hdr, MU_HEADER_CC, addr_cc);
-      address_destroy (&addr_cc);
+      mu_address_destroy (&addr_cc);
     }
 
   if (addr_bcc)
     {
       set_address_header (hdr, MU_HEADER_BCC, addr_bcc);
-      address_destroy (&addr_bcc);
+      mu_address_destroy (&addr_bcc);
     }
 }
 
@@ -425,13 +425,13 @@ fix_fcc (message_t msg)
   char *val;
   
   message_get_header (msg, &hdr);
-  if (header_aget_value (hdr, MU_HEADER_FCC, &val) == 0
+  if (mu_header_aget_value (hdr, MU_HEADER_FCC, &val) == 0
       && strchr ("+%~/=", val[0]) == NULL)
     {
       val = realloc (val, strlen (val) + 2);
       memmove (val + 1, val, strlen (val) + 1);
       val[0] = '+';
-      header_set_value (hdr, MU_HEADER_FCC, val, 1);
+      mu_header_set_value (hdr, MU_HEADER_FCC, val, 1);
       WATCH ((_("Fixed Fcc: %s"), val));
       free (val);
     }  
@@ -455,9 +455,9 @@ _action_send (void *item, void *data)
       struct tm *tm = localtime (&t);
       
       strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
-      header_set_value (hdr, MU_HEADER_DATE, date, 1);
+      mu_header_set_value (hdr, MU_HEADER_DATE, date, 1);
 
-      if (header_get_value (hdr, MU_HEADER_FROM, NULL, 0, &n))
+      if (mu_header_get_value (hdr, MU_HEADER_FROM, NULL, 0, &n))
 	{
 	  char *from;
 	  char *email = mu_get_user_email (NULL);
@@ -470,12 +470,12 @@ _action_send (void *item, void *data)
 	  else
 	    from = email;
 
-	  header_set_value (hdr, MU_HEADER_FROM, from, 1);
+	  mu_header_set_value (hdr, MU_HEADER_FROM, from, 1);
 	  free (from);
 	}
 	  
       if (append_msgid
-	  && header_get_value (hdr, MU_HEADER_MESSAGE_ID, NULL, 0, &n))
+	  && mu_header_get_value (hdr, MU_HEADER_MESSAGE_ID, NULL, 0, &n))
 	create_message_id (hdr);
     }
 
@@ -529,7 +529,7 @@ send (int argc, char **argv)
   free (p);
   
   /* Finally, do the work */
-  rc = list_do (mesg_list, _action_send, NULL);
+  rc = mu_list_do (mesg_list, _action_send, NULL);
   return rc;
 }
 	  

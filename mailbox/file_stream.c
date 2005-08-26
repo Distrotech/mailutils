@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -627,17 +628,17 @@ _prog_stream_register (struct _prog_stream *stream)
 {
   if (!prog_stream_list)
     {
-      int rc = list_create (&prog_stream_list);
+      int rc = mu_list_create (&prog_stream_list);
       if (rc)
 	return rc;
     }
-  return list_append (prog_stream_list, stream);
+  return mu_list_append (prog_stream_list, stream);
 }
 
 static void
 _prog_stream_unregister (struct _prog_stream *stream)
 {
-  list_remove (prog_stream_list, stream);
+  mu_list_remove (prog_stream_list, stream);
 }
 
 static int
@@ -780,7 +781,7 @@ static void
 _prog_destroy (stream_t stream)
 {
   struct _prog_stream *fs = stream_get_owner (stream);
-  argcv_free (fs->argc, fs->argv);
+  mu_argcv_free (fs->argc, fs->argv);
   if (fs->in)
     stream_destroy (&fs->in, stream_get_owner (fs->in));
   if (fs->out)
@@ -788,11 +789,11 @@ _prog_destroy (stream_t stream)
   if (fs->pid > 0)
     {
       kill (fs->pid, SIGTERM);
-      list_do (prog_stream_list, _prog_waitpid, NULL);
+      mu_list_do (prog_stream_list, _prog_waitpid, NULL);
       kill (fs->pid, SIGKILL);
       if (fs->writer_pid > 0)
 	kill (fs->writer_pid, SIGKILL);
-      list_do (prog_stream_list, _prog_waitpid, NULL);
+      mu_list_do (prog_stream_list, _prog_waitpid, NULL);
     }
   _prog_stream_unregister (fs);
 }
@@ -997,9 +998,9 @@ _prog_stream_create (struct _prog_stream **pfs,
   fs = calloc (1, sizeof (*fs));
   if (fs == NULL)
     return ENOMEM;
-  if (argcv_get (progname, "", "#", &fs->argc, &fs->argv))
+  if (mu_argcv_get (progname, "", "#", &fs->argc, &fs->argv))
     {
-      argcv_free (fs->argc, fs->argv);
+      mu_argcv_free (fs->argc, fs->argv);
       free (fs);
       return ENOMEM;
     }
@@ -1007,7 +1008,7 @@ _prog_stream_create (struct _prog_stream **pfs,
   ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
-      argcv_free (fs->argc, fs->argv);
+      mu_argcv_free (fs->argc, fs->argv);
       free (fs);
       return ret;
     }

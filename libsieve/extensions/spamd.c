@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -39,23 +39,23 @@
 /* Auxiliary functions */
 
 static int
-spamd_connect_tcp (sieve_machine_t mach, stream_t *stream,
+spamd_connect_tcp (mu_sieve_machine_t mach, stream_t *stream,
 		   char *host, int port)
 {
   int rc = tcp_stream_create (stream, host, port, 0);
   if (rc)
     {
-      sieve_error (mach, "tcp_stream_create: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "tcp_stream_create: %s", mu_strerror (rc));
       return rc;
     }
   rc = stream_open (*stream);
   if (rc)
-    sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
+    mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
   return rc;
 }
 
 static int
-spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
+spamd_connect_socket (mu_sieve_machine_t mach, stream_t *stream, char *path)
 {
   /* FIXME: A library deficiency: we cannot create a unix socket stream */
   int fd, rc;
@@ -64,7 +64,7 @@ spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
   
   if ((fd = socket (PF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      sieve_error (mach, "socket: %s", mu_strerror (errno));
+      mu_sieve_error (mach, "socket: %s", mu_strerror (errno));
       return errno;
     }
 
@@ -74,7 +74,7 @@ spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
   addr.sun_path[sizeof addr.sun_path - 1] = 0;
   if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)))
     {
-      sieve_error (mach, "connect: %s", mu_strerror (errno));
+      mu_sieve_error (mach, "connect: %s", mu_strerror (errno));
       close (fd);
       return errno;
     }
@@ -83,7 +83,7 @@ spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
   rc = stdio_stream_create (stream, fp, MU_STREAM_RDWR);
   if (rc)
     {
-      sieve_error (mach, "stdio_stream_create: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "stdio_stream_create: %s", mu_strerror (rc));
       fclose (fp);
       return rc;
     }
@@ -91,7 +91,7 @@ spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
   rc = stream_open (*stream);
   if (rc)
     {
-      sieve_error (mach, "stream_open: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "stream_open: %s", mu_strerror (rc));
       stream_destroy (stream, stream_get_owner (*stream));
     }
   return rc;
@@ -153,7 +153,7 @@ spamd_send_message (stream_t stream, message_t msg)
 }
 
 static size_t
-spamd_read_line (sieve_machine_t mach, stream_t stream,
+spamd_read_line (mu_sieve_machine_t mach, stream_t stream,
 		 char *buffer, size_t size, size_t *pn)
 {
   size_t n = 0;
@@ -165,8 +165,8 @@ spamd_read_line (sieve_machine_t mach, stream_t stream,
       while (n > 0 && (buffer[n-1] == '\r' || buffer[n-1] == '\n'))
 	n--;
       buffer[n] = 0;
-      if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-	sieve_debug (mach, ">> %s\n", buffer);
+      if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+	mu_sieve_debug (mach, ">> %s\n", buffer);
     }
   return rc;
 }
@@ -243,11 +243,11 @@ set_signal_handler (int sig, signal_handler h)
 }
 
 void
-spamd_abort (sieve_machine_t mach, stream_t *stream, signal_handler handler)
+spamd_abort (mu_sieve_machine_t mach, stream_t *stream, signal_handler handler)
 {
   spamd_destroy (stream);
   set_signal_handler (SIGPIPE, handler);
-  sieve_abort (mach);
+  mu_sieve_abort (mach);
 }
 
 static int got_sigpipe;
@@ -285,7 +285,7 @@ sigpipe_handler (int sig ARG_UNUSED)
 */
 
 static int
-spamd_test (sieve_machine_t mach, list_t args, list_t tags)
+spamd_test (mu_sieve_machine_t mach, list_t args, list_t tags)
 {
   char buffer[512];
   char version_str[19];
@@ -295,7 +295,7 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   int result;
   long score, threshold, limit;
   stream_t stream = NULL;
-  sieve_value_t *arg;
+  mu_sieve_value_t *arg;
   message_t msg;
   size_t m_size, m_lines, size;
   struct mu_auth_data *auth;
@@ -303,31 +303,31 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   char *host;
   header_t hdr;
 
-  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      sieve_locus_t locus;
-      sieve_get_locus (mach, &locus);
-      sieve_debug (mach, "%s:%lu: spamd_test %lu\n",
+      mu_sieve_locus_t locus;
+      mu_sieve_get_locus (mach, &locus);
+      mu_sieve_debug (mach, "%s:%lu: spamd_test %lu\n",
 		   locus.source_file,
 		   (unsigned long) locus.source_line,
-		   (u_long) sieve_get_message_num (mach));
+		   (u_long) mu_sieve_get_message_num (mach));
     }
   
-  if (sieve_tag_lookup (tags, "host", &arg))
+  if (mu_sieve_tag_lookup (tags, "host", &arg))
     host = arg->v.string;
   else
     host = "127.0.0.1";
   
-  if (sieve_tag_lookup (tags, "port", &arg))
+  if (mu_sieve_tag_lookup (tags, "port", &arg))
     result = spamd_connect_tcp (mach, &stream, host, arg->v.number);
-  else if (sieve_tag_lookup (tags, "socket", &arg))
+  else if (mu_sieve_tag_lookup (tags, "socket", &arg))
     result = spamd_connect_socket (mach, &stream, arg->v.string);
   else
     result = spamd_connect_tcp (mach, &stream, host, DEFAULT_SPAMD_PORT);
   if (result) /* spamd_connect_ already reported error */
-    sieve_abort (mach);
+    mu_sieve_abort (mach);
 
-  msg = sieve_get_message (mach);
+  msg = mu_sieve_get_message (mach);
   message_size (msg, &m_size);
   message_lines (msg, &m_lines);
 
@@ -349,20 +349,20 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
 
   if (got_sigpipe)
     {
-      sieve_error (mach, "remote side has closed connection");
+      mu_sieve_error (mach, "remote side has closed connection");
       spamd_abort (mach, &stream, handler);
     }
 
   if (sscanf (buffer, "SPAMD/%18s %d %*s", version_str, &response) != 2)
     {
-      sieve_error (mach, "spamd responded with bad string '%s'", buffer);
+      mu_sieve_error (mach, "spamd responded with bad string '%s'", buffer);
       spamd_abort (mach, &stream, handler);
     }
   
   decode_float (&version, version_str, 1);
   if (version < 10)
     {
-      sieve_error (mach, "unsupported SPAMD version: %s", version_str);
+      mu_sieve_error (mach, "unsupported SPAMD version: %s", version_str);
       spamd_abort (mach, &stream, handler);
     }
 
@@ -375,7 +375,7 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   if (sscanf (buffer, "Spam: %5s ; %20s / %20s",
 	      spam_str, score_str, threshold_str) != 3)
     {
-      sieve_error (mach, "spamd responded with bad Spam header '%s'", buffer);
+      mu_sieve_error (mach, "spamd responded with bad Spam header '%s'", buffer);
       spamd_abort (mach, &stream, handler);
     }
 
@@ -386,12 +386,12 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
 
   if (!result)
     {
-      if (sieve_tag_lookup (tags, "over", &arg))
+      if (mu_sieve_tag_lookup (tags, "over", &arg))
 	{
 	  decode_float (&limit, arg->v.string, 3);
 	  result = score >= limit;
 	}
-      else if (sieve_tag_lookup (tags, "over", &arg))
+      else if (mu_sieve_tag_lookup (tags, "over", &arg))
 	{
 	  decode_float (&limit, arg->v.string, 3);
 	  result = score <= limit;	  
@@ -406,14 +406,14 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   rc = message_get_header (msg, &hdr);
   if (rc)
     {
-      sieve_error (mach, "cannot get message header: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "cannot get message header: %s", mu_strerror (rc));
       spamd_abort (mach, &stream, handler);
     }
 
-  header_set_value (hdr, "X-Spamd-Status", spam_str, 1);
-  header_set_value (hdr, "X-Spamd-Score", score_str, 1);
-  header_set_value (hdr, "X-Spamd-Threshold", threshold_str, 1);
-  header_set_value (hdr, "X-Spamd-Keywords", buffer, 1);
+  mu_header_set_value (hdr, "X-Spamd-Status", spam_str, 1);
+  mu_header_set_value (hdr, "X-Spamd-Score", score_str, 1);
+  mu_header_set_value (hdr, "X-Spamd-Threshold", threshold_str, 1);
+  mu_header_set_value (hdr, "X-Spamd-Keywords", buffer, 1);
 
   while (spamd_read_line (mach, stream, buffer, sizeof buffer, &size) == 0
 	 && size > 0)
@@ -429,12 +429,12 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
 /* Initialization */
    
 /* Required arguments: */
-static sieve_data_type spamd_req_args[] = {
+static mu_sieve_data_type spamd_req_args[] = {
   SVT_VOID
 };
 
 /* Tagged arguments: */
-static sieve_tag_def_t spamd_tags[] = {
+static mu_sieve_tag_def_t spamd_tags[] = {
   { "host", SVT_STRING },
   { "port", SVT_NUMBER },
   { "socket", SVT_STRING },
@@ -443,7 +443,7 @@ static sieve_tag_def_t spamd_tags[] = {
   { NULL }
 };
 
-static sieve_tag_group_t spamd_tag_groups[] = {
+static mu_sieve_tag_group_t spamd_tag_groups[] = {
   { spamd_tags, NULL },
   { NULL }
 };
@@ -451,9 +451,9 @@ static sieve_tag_group_t spamd_tag_groups[] = {
 
 /* Initialization function. */
 int
-SIEVE_EXPORT(spamd,init) (sieve_machine_t mach)
+SIEVE_EXPORT(spamd,init) (mu_sieve_machine_t mach)
 {
-  return sieve_register_test (mach, "spamd", spamd_test,
+  return mu_sieve_register_test (mach, "spamd", spamd_test,
                               spamd_req_args, spamd_tag_groups, 1);
 }
    

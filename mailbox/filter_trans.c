@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -378,7 +378,7 @@ qp_init (filter_t filter)
   return 0;
 }
 
-static struct _filter_record _qp_filter =
+static struct mu_filter_record _qp_filter =
 {
   "quoted-printable",
   qp_init,
@@ -510,7 +510,7 @@ base64_init (filter_t filter)
   return 0;
 }
 
-static struct _filter_record _base64_filter =
+static struct mu_filter_record _base64_filter =
 {
   "base64",
   base64_init,
@@ -696,7 +696,7 @@ Q_init (filter_t filter)
   return 0;
 }
 
-static struct _filter_record _Q_filter =
+static struct mu_filter_record _Q_filter =
 {
   "Q",
   Q_init,
@@ -708,7 +708,7 @@ static struct _filter_record _Q_filter =
 
 /* Pass-through encodings */
 
-static struct _filter_record _bit8_filter =
+static struct mu_filter_record _bit8_filter =
 {
   "8bit",
   NULL,
@@ -717,7 +717,7 @@ static struct _filter_record _bit8_filter =
   NULL
 };
 
-static struct _filter_record _bit7_filter =
+static struct mu_filter_record _bit7_filter =
 {
   "7bit",
   NULL,
@@ -726,7 +726,7 @@ static struct _filter_record _bit7_filter =
   NULL
 };
 
-static struct _filter_record _binary_filter =
+static struct mu_filter_record _binary_filter =
 {
   "binary",
   NULL,
@@ -738,12 +738,12 @@ static struct _filter_record _binary_filter =
 
 
 /* Export.  */
-filter_record_t qp_filter = &_qp_filter;
-filter_record_t base64_filter = &_base64_filter;
-filter_record_t binary_filter = &_binary_filter;
-filter_record_t bit8_filter = &_bit8_filter;
-filter_record_t bit7_filter = &_bit7_filter;
-filter_record_t rfc_2047_Q_filter = &_Q_filter;
+filter_record_t mu_qp_filter = &_qp_filter;
+filter_record_t mu_base64_filter = &_base64_filter;
+filter_record_t mu_binary_filter = &_binary_filter;
+filter_record_t mu_bit8_filter = &_bit8_filter;
+filter_record_t mu_bit7_filter = &_bit7_filter;
+filter_record_t mu_rfc_2047_Q_filter = &_Q_filter;
 
 
 

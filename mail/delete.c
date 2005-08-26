@@ -28,7 +28,7 @@ mail_delete_msg (msgset_t *mspec, message_t msg, void *data)
   attribute_t attr;
 
   message_get_attribute (msg, &attr);
-  attribute_set_deleted (attr);
+  mu_attribute_set_deleted (attr);
   cond_page_invalidate (mspec->msg_part[0]);
   return 0;
 }

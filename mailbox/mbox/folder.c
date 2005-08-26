@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -75,7 +76,7 @@ _path_is_scheme (record_t record, const char *url, int flags)
 	  struct stat st;
 	  
 	  if (stat (path, &st) < 0)
-	    return MU_FOLDER_ATTRIBUTE_ALL; /* mailbox_open will complain */
+	    return MU_FOLDER_ATTRIBUTE_ALL; /* mu_mailbox_open will complain */
 
 	  if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
 	      && (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode)))
@@ -112,11 +113,11 @@ static int folder_mbox_close       (folder_t);
 static int folder_mbox_delete      (folder_t, const char *);
 static int folder_mbox_rename      (folder_t , const char *, const char *);
 static int folder_mbox_list        (folder_t, const char *, const char *,
-				    struct folder_list *);
+				    struct mu_folder_list *);
 static int folder_mbox_subscribe   (folder_t, const char *);
 static int folder_mbox_unsubscribe (folder_t, const char *);
 static int folder_mbox_lsub        (folder_t, const char *, const char *,
-				    struct folder_list *);
+				    struct mu_folder_list *);
 
 
 static char *get_pathname       (const char *, const char *);
@@ -261,7 +262,7 @@ folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
    The full pathname so it can be use to create other folders.  */
 static int
 folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
-		  struct folder_list *pflist)
+		  struct mu_folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
   char *pathname = NULL;
@@ -288,7 +289,7 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
     {
       if (pflist)
 	{
-	  struct list_response **plist;
+	  struct mu_list_response **plist;
 	  plist = calloc (num, sizeof (*plist));
 	  if (plist)
 	    {
@@ -348,7 +349,7 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 
 static int
 folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
-		  struct folder_list *pflist)
+		  struct mu_folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
   size_t j = 0;
@@ -361,7 +362,7 @@ folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
 
   if (fmbox->sublen > 0)
     {
-      struct list_response **plist;
+      struct mu_list_response **plist;
       size_t i;
       plist = calloc (fmbox->sublen, sizeof (*plist));
       for (i = 0; i < fmbox->sublen; i++)
@@ -465,7 +466,7 @@ folder_mbox_get_authority (folder_t folder, authority_t *pauth)
   int status = 0;
   if (folder->authority == NULL)
     {
-	status = authority_create_null (&folder->authority, folder);
+	status = mu_authority_create_null (&folder->authority, folder);
     }
   if (!status && pauth)
     *pauth = folder->authority;

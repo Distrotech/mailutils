@@ -104,7 +104,7 @@ _mh_is_scheme (record_t record, const char *url, int flags)
       struct stat st;
       
       if (stat (path, &st) < 0)
-	return 0; /* mailbox_open will complain*/
+	return 0; /* mu_mailbox_open will complain*/
 
       if (!S_ISDIR (st.st_mode))
 	return 0;

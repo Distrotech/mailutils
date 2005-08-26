@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, 
-   Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -92,9 +92,9 @@ static int  folder_imap_close       (folder_t);
 static void folder_imap_destroy     (folder_t);
 static int  folder_imap_delete      (folder_t, const char *);
 static int  folder_imap_list        (folder_t, const char *, const char *,
-				     struct folder_list *);
+				     struct mu_folder_list *);
 static int  folder_imap_lsub        (folder_t, const char *, const char *,
-				     struct folder_list *);
+				     struct mu_folder_list *);
 static int  folder_imap_rename      (folder_t, const char *,
 				     const char *);
 static int  folder_imap_subscribe   (folder_t, const char *);
@@ -141,7 +141,7 @@ typedef int (*auth_method_t) (authority_t);
 static int
 authenticate_imap_login (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   ticket_t ticket;
   int status = 0;
@@ -158,7 +158,7 @@ authenticate_imap_login (authority_t auth)
       {
 	/* Grab the User and Passwd information.  */
 	size_t n = 0;
-	authority_get_ticket (auth, &ticket);
+	mu_authority_get_ticket (auth, &ticket);
 	if (f_imap->user)
 	  free (f_imap->user);
 	if (f_imap->passwd)
@@ -166,7 +166,7 @@ authenticate_imap_login (authority_t auth)
 	/* Was it in the URL?  */
 	status = url_get_user (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
-	  ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
+	  mu_ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
 	else
 	  {
 	    f_imap->user = calloc (1, n + 1);
@@ -175,7 +175,7 @@ authenticate_imap_login (authority_t auth)
 	/* Was it in the URL?  */
 	status = url_get_passwd (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
-	  ticket_pop (ticket, folder->url, "Imap Passwd: ",  &f_imap->passwd);
+	  mu_ticket_pop (ticket, folder->url, "Imap Passwd: ",  &f_imap->passwd);
 	else
 	  {
 	    f_imap->passwd = calloc (1, n + 1);
@@ -272,7 +272,7 @@ authenticate_imap_login (authority_t auth)
 static int
 authenticate_imap_sasl_anon (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   int status = 0;
 
@@ -372,7 +372,7 @@ find_auth_method (const char *name)
 static int
 authenticate_imap_select (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   struct auth_tab *p;
   int status = ENOSYS;
@@ -436,7 +436,7 @@ folder_imap_destroy (folder_t folder)
       if (f_imap->buffer)
 	free (f_imap->buffer);
       if (f_imap->capav)
-	argcv_free (f_imap->capac, f_imap->capav);
+	mu_argcv_free (f_imap->capac, f_imap->capav);
       free (f_imap);
       folder->data = NULL;
     }
@@ -447,11 +447,11 @@ folder_set_auth_method (folder_t folder, auth_method_t method)
 {
   if (!folder->authority)
     {
-      int status = authority_create (&folder->authority, NULL, folder);
+      int status = mu_authority_create (&folder->authority, NULL, folder);
       if (status)
 	return status;
     }
-  return authority_set_authenticate (folder->authority, method, folder);
+  return mu_authority_set_authenticate (folder->authority, method, folder);
 }
 
 static int
@@ -500,8 +500,8 @@ static int
 parse_capa (f_imap_t f_imap, char *str)
 {
   if (f_imap->capav)
-    argcv_free (f_imap->capac, f_imap->capav);
-  return argcv_get (str, "", NULL, &f_imap->capac, &f_imap->capav);
+    mu_argcv_free (f_imap->capac, f_imap->capav);
+  return mu_argcv_get (str, "", NULL, &f_imap->capac, &f_imap->capav);
 }
 
 static int
@@ -511,7 +511,7 @@ read_capa (f_imap_t f_imap, int force)
   
   if (force)
     {
-      argcv_free (f_imap->capac, f_imap->capav);
+      mu_argcv_free (f_imap->capac, f_imap->capav);
       f_imap->capac = 0;
       f_imap->capav = NULL;
     }
@@ -681,7 +681,7 @@ folder_imap_open (folder_t folder, int flags)
     case IMAP_LOGIN_ACK:
       assert (folder->authority);
       {
-	status = authority_authenticate (folder->authority);
+	status = mu_authority_authenticate (folder->authority);
 	if (status)
 	  {
 	    /* Fake folder_imap_close into closing the folder.
@@ -762,7 +762,7 @@ folder_imap_delete (folder_t folder, const char *name)
   if (name == NULL)
     return EINVAL;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -798,7 +798,7 @@ folder_imap_delete (folder_t folder, const char *name)
    branch for '%' and do the matching ourself with fnmatch().  */
 static int
 folder_imap_list (folder_t folder, const char *ref, const char *name,
-		  struct folder_list *pflist)
+		  struct mu_folder_list *pflist)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -808,7 +808,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
   if (pflist == NULL)
     return MU_ERR_OUT_NULL;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -914,7 +914,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
   /* Build the folder list.  */
   if (f_imap->flist.num > 0)
     {
-      struct list_response **plist = NULL;
+      struct mu_list_response **plist = NULL;
       size_t num = f_imap->flist.num;
       size_t j = 0;
       plist = calloc (num, sizeof (*plist));
@@ -923,7 +923,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 	  size_t i;
 	  for (i = 0; i < num; i++)
 	    {
-	      struct list_response *lr = f_imap->flist.element[i];
+	      struct mu_list_response *lr = f_imap->flist.element[i];
 	      if (imap_mailbox_name_match (name, lr->name) == 0)
 		{
 		  /*
@@ -950,14 +950,14 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
       pflist->element = plist;
       pflist->num = j;
     }
-  folder_list_destroy (&(f_imap->flist));
+  mu_folder_list_destroy (&(f_imap->flist));
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
 
 static int
 folder_imap_lsub (folder_t folder, const char *ref, const char *name,
-		  struct folder_list *pflist)
+		  struct mu_folder_list *pflist)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -966,7 +966,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
   if (pflist == NULL)
     return MU_ERR_OUT_NULL;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -999,7 +999,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
   /* Build the folder list.  */
   if (f_imap->flist.num > 0)
     {
-      struct list_response **plist = NULL;
+      struct mu_list_response **plist = NULL;
       size_t num = f_imap->flist.num;
       size_t j = 0;
       plist = calloc (num, sizeof (*plist));
@@ -1008,7 +1008,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 	  size_t i;
 	  for (i = 0; i < num; i++)
 	    {
-	      struct list_response *lr = f_imap->flist.element[i];
+	      struct mu_list_response *lr = f_imap->flist.element[i];
 	      /* printf ("%s --> %s\n", lr->name, name); */
 	      plist[i] = calloc (1, sizeof (**plist));
 	      if (plist[i] == NULL
@@ -1023,7 +1023,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 	}
       pflist->element = plist;
       pflist->num = j;
-      folder_list_destroy (&(f_imap->flist));
+      mu_folder_list_destroy (&(f_imap->flist));
     }
   f_imap->state = IMAP_NO_STATE;
   f_imap->state = IMAP_NO_STATE;
@@ -1039,7 +1039,7 @@ folder_imap_rename (folder_t folder, const char *oldpath, const char *newpath)
   if (oldpath == NULL || newpath == NULL)
     return EINVAL;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -1075,7 +1075,7 @@ folder_imap_subscribe (folder_t folder, const char *name)
   f_imap_t f_imap = folder->data;
   int status = 0;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -1113,7 +1113,7 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
   f_imap_t f_imap = folder->data;
   int status = 0;
 
-  status = folder_open (folder, folder->flags);
+  status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
@@ -1337,8 +1337,8 @@ imap_list (f_imap_t f_imap)
   char *sp = NULL;
   size_t len = f_imap->nl - f_imap->buffer - 1;
   char *buffer;
-  struct list_response **plr;
-  struct list_response *lr;
+  struct mu_list_response **plr;
+  struct mu_list_response *lr;
   int status = 0;
 
   buffer = alloca (len);
@@ -1771,11 +1771,11 @@ imap_body (f_imap_t f_imap, char **ptr)
       char *buffer;
       off_t total = 0;
       if (f_imap->string.msg_imap && f_imap->string.msg_imap->fheader)
-	header_destroy (&f_imap->string.msg_imap->fheader, NULL);
+	mu_header_destroy (&f_imap->string.msg_imap->fheader, NULL);
       stream_size (f_imap->string.stream, &total);
       buffer = malloc (total + 1);
       stream_read (f_imap->string.stream, buffer, total, 0, NULL);
-      status = header_create (&f_imap->string.msg_imap->fheader,
+      status = mu_header_create (&f_imap->string.msg_imap->fheader,
 			      buffer, total, NULL);
       free (buffer);
       stream_truncate (f_imap->string.stream, 0);
@@ -1891,7 +1891,7 @@ imap_fetch (f_imap_t f_imap)
       /* Find the imap mesg struct.  */
       size_t i;
       message_t msg = NULL;
-      mailbox_get_message (m_imap->mailbox, msgno, &msg);
+      mu_mailbox_get_message (m_imap->mailbox, msgno, &msg);
       for (i = 0; i < m_imap->imessages_count; i++)
 	{
 	  if (m_imap->imessages[i] && m_imap->imessages[i]->num == msgno)
@@ -2473,7 +2473,7 @@ imap_parse (f_imap_t f_imap)
 	      if (strncasecmp (remainder, "LOGIN", 5) == 0)
 		{
 		  observable_t observable = NULL;
-		  folder_get_observable (f_imap->folder, &observable);
+		  mu_folder_get_observable (f_imap->folder, &observable);
 		  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 		  status = MU_ERR_AUTH_FAILURE;
 		}

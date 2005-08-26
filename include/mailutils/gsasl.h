@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,12 +21,12 @@
 
 #include <gsasl.h>
 
-int gsasl_stream_create (stream_t *stream, stream_t transport,
+int mu_gsasl_stream_create (stream_t *stream, stream_t transport,
 			 Gsasl_session_ctx *ctx,
 			 int flags);
 
 void mu_gsasl_init_argp (void);
 
-extern char *gsasl_cram_md5_pwd;
+extern char *mu_gsasl_cram_md5_pwd;
 
 #endif /* not _MAILUTILS_GSASL_H */

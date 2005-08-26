@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ parse (const char *str)
   address_t address = NULL;
 
   mu_set_user_email_domain ("localhost");
-  status = address_create (&address, str);
-  address_get_count (address, &pcount);
+  status = mu_address_create (&address, str);
+  mu_address_get_count (address, &pcount);
 
   if (status)
     {
@@ -54,45 +54,45 @@ parse (const char *str)
       size_t got = 0;
       int isgroup;
 
-      address_is_group (address, no, &isgroup);
+      mu_address_is_group (address, no, &isgroup);
       printf ("%lu ", (unsigned long) no);
 
       if (isgroup)
         {
-          address_get_personal (address, no, buf, sizeof (buf), &got);
+          mu_address_get_personal (address, no, buf, sizeof (buf), &got);
           printf ("group <%s>\n", buf);
         }
       else
         {
-          address_get_email (address, no, buf, sizeof (buf), 0);
+          mu_address_get_email (address, no, buf, sizeof (buf), 0);
           printf ("email <%s>\n", buf);
         }
 
-      address_get_personal (address, no, buf, sizeof (buf), &got);
+      mu_address_get_personal (address, no, buf, sizeof (buf), &got);
       if (got && !isgroup)
         printf ("   personal <%s>\n", buf);
 
-      address_get_comments (address, no, buf, sizeof (buf), &got);
+      mu_address_get_comments (address, no, buf, sizeof (buf), &got);
       if (got)
         printf ("   comments <%s>\n", buf);
 
-      address_get_local_part (address, no, buf, sizeof (buf), &got);
+      mu_address_get_local_part (address, no, buf, sizeof (buf), &got);
       if (got)
         {
           printf ("   local-part <%s>", buf);
 
-          address_get_domain (address, no, buf, sizeof (buf), &got);
+          mu_address_get_domain (address, no, buf, sizeof (buf), &got);
           if (got)
             printf (" domain <%s>", buf);
 
           printf ("\n");
         }
 
-      address_get_route (address, no, buf, sizeof (buf), &got);
+      mu_address_get_route (address, no, buf, sizeof (buf), &got);
       if (got)
         printf ("   route <%s>\n", buf);
     }
-  address_destroy (&address);
+  mu_address_destroy (&address);
 
   printf ("\n");
   return 0;

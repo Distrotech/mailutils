@@ -224,8 +224,8 @@ struct _pop_data
    Let see a concrete example:
    {
      mailbox_t mbox; message_t msg; stream_t stream; char buffer[105];
-     mailbox_create (&mbox, "pop://qnx.com");
-     mailbox_get_message (mbox, 1, &msg);
+     mu_mailbox_create (&mbox, "pop://qnx.com");
+     mu_mailbox_get_message (mbox, 1, &msg);
      message_get_stream (msg, &stream);
      while (stream_readline (stream, buffer, sizeof(buffer), NULL) != 0) { ..}
    }
@@ -354,7 +354,7 @@ _mailbox_pop_init (mailbox_t mbox)
   /* Set our properties.  */
   {
     property_t property = NULL;
-    mailbox_get_property (mbox, &property);
+    mu_mailbox_get_property (mbox, &property);
     property_set_value (property, "TYPE", "POP3", 1);
   }
 
@@ -463,7 +463,7 @@ pop_capa (mailbox_t mbox)
 int
 _pop_user (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   int status;
@@ -501,7 +501,7 @@ _pop_user (authority_t auth)
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  observable_t observable = NULL;
-	  mailbox_get_observable (mbox, &observable);
+	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
@@ -539,7 +539,7 @@ _pop_user (authority_t auth)
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  observable_t observable = NULL;
-	  mailbox_get_observable (mbox, &observable);
+	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  return MU_ERR_AUTH_FAILURE;
@@ -557,7 +557,7 @@ _pop_user (authority_t auth)
 int
 _pop_apop (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   int status;
@@ -611,7 +611,7 @@ _pop_apop (authority_t auth)
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
         {
           observable_t observable = NULL;
-          mailbox_get_observable (mbox, &observable);
+          mu_mailbox_get_observable (mbox, &observable);
           CLEAR_STATE (mpd);
           observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
           CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
@@ -778,7 +778,7 @@ pop_open (mailbox_t mbox, int flags)
     case POP_APOP:
     case POP_APOP_ACK:
       /* Authenticate.  */
-      status = authority_authenticate (mbox->folder->authority);
+      status = mu_authority_authenticate (mbox->folder->authority);
       CHECK_EAGAIN (mpd, status);
 
     case POP_AUTH_DONE:
@@ -941,29 +941,29 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   /* Create the header.  */
   {
     header_t header = NULL;
-    if ((status = header_create (&header, NULL, 0,  msg)) != 0)
+    if ((status = mu_header_create (&header, NULL, 0,  msg)) != 0)
       {
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    header_set_fill (header, pop_top, msg);
+    mu_header_set_fill (header, pop_top, msg);
     message_set_header (msg, header, mpm);
   }
 
   /* Create the attribute.  */
   {
     attribute_t attribute;
-    status = attribute_create (&attribute, msg);
+    status = mu_attribute_create (&attribute, msg);
     if (status != 0)
       {
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    attribute_set_get_flags (attribute, pop_get_attribute, msg);
-    attribute_set_set_flags (attribute, pop_set_attribute, msg);
-    attribute_set_unset_flags (attribute, pop_unset_attribute, msg);
+    mu_attribute_set_get_flags (attribute, pop_get_attribute, msg);
+    mu_attribute_set_set_flags (attribute, pop_set_attribute, msg);
+    mu_attribute_set_unset_flags (attribute, pop_unset_attribute, msg);
     message_set_attribute (msg, attribute, mpm);
   }
 
@@ -971,10 +971,10 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   {
     body_t body = NULL;
     stream_t stream = NULL;
-    if ((status = body_create (&body, msg)) != 0
+    if ((status = mu_body_create (&body, msg)) != 0
 	|| (status = stream_create (&stream, mbox->flags, body)) != 0)
       {
-	body_destroy (&body, msg);
+	mu_body_destroy (&body, msg);
 	stream_destroy (&stream, body);
 	message_destroy (&msg, mpm);
 	free (mpm);
@@ -984,9 +984,9 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, pop_body_read, body);
     stream_set_get_transport2 (stream, pop_body_transport, body);
-    body_set_size (body, pop_body_size, msg);
-    body_set_lines (body, pop_body_lines, msg);
-    body_set_stream (body, stream, msg);
+    mu_body_set_size (body, pop_body_size, msg);
+    mu_body_set_lines (body, pop_body_lines, msg);
+    mu_body_set_stream (body, stream, msg);
     message_set_body (msg, body, mpm);
   }
 
@@ -1177,7 +1177,7 @@ pop_expunge (mailbox_t mbox)
     {
       if (message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
 	{
-	  if (attribute_is_deleted (attr))
+	  if (mu_attribute_is_deleted (attr))
 	    {
 	      switch (mpd->state)
 		{
@@ -1210,7 +1210,7 @@ pop_expunge (mailbox_t mbox)
 		  /* mu_error ("pop_expunge: unknow state\n"); */
 		  break;
 		} /* switch (state) */
-	    } /* if attribute_is_deleted() */
+	    } /* if mu_attribute_is_deleted() */
 	} /* message_get_attribute() */
     } /* for */
   CLEAR_STATE (mpd);
@@ -1322,7 +1322,7 @@ pop_message_size (message_t msg, size_t *psize)
 static int
 pop_body_size (body_t body, size_t *psize)
 {
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   pop_message_t mpm = message_get_owner (msg);
 
   if (mpm == NULL)
@@ -1348,7 +1348,7 @@ pop_body_size (body_t body, size_t *psize)
 static int
 pop_body_lines (body_t body, size_t *plines)
 {
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   pop_message_t mpm = message_get_owner (msg);
   if (mpm == NULL)
     return EINVAL;
@@ -1359,7 +1359,7 @@ pop_body_lines (body_t body, size_t *plines)
 
 /* Pop does not have any command for this, We fake by reading the "Status: "
    header.  But this is hackish some POP server(Qpopper) skip it.  Also
-   because we call header_get_value the function may return EAGAIN... uncool.
+   because we call mu_header_get_value the function may return EAGAIN... uncool.
    To put it another way, many servers simply remove the "Status:" header
    field, when you dowload a message, so a message will always look like
    new even if you already read it.  There is also no way to set an attribute
@@ -1371,7 +1371,7 @@ pop_body_lines (body_t body, size_t *plines)
 static int
 pop_get_attribute (attribute_t attr, int *pflags)
 {
-  message_t msg = attribute_get_owner (attr);
+  message_t msg = mu_attribute_get_owner (attr);
   pop_message_t mpm = message_get_owner (msg);
   char hdr_status[64];
   header_t header = NULL;
@@ -1382,8 +1382,8 @@ pop_get_attribute (attribute_t attr, int *pflags)
     {
       hdr_status[0] = '\0';
       message_get_header (mpm->message, &header);
-      header_get_value (header, "Status", hdr_status, sizeof hdr_status, NULL);
-      string_to_flags (hdr_status, &(mpm->attr_flags));
+      mu_header_get_value (header, "Status", hdr_status, sizeof hdr_status, NULL);
+      mu_string_to_flags (hdr_status, &(mpm->attr_flags));
     }
   *pflags = mpm->attr_flags;
   return 0;
@@ -1392,7 +1392,7 @@ pop_get_attribute (attribute_t attr, int *pflags)
 static int
 pop_set_attribute (attribute_t attr, int flags)
 {
-  message_t msg = attribute_get_owner (attr);
+  message_t msg = mu_attribute_get_owner (attr);
   pop_message_t mpm = message_get_owner (msg);
 
   if (mpm == NULL)
@@ -1404,7 +1404,7 @@ pop_set_attribute (attribute_t attr, int flags)
 static int
 pop_unset_attribute (attribute_t attr, int flags)
 {
-  message_t msg = attribute_get_owner (attr);
+  message_t msg = mu_attribute_get_owner (attr);
   pop_message_t mpm = message_get_owner (msg);
 
   if (mpm == NULL)
@@ -1418,7 +1418,7 @@ static int
 pop_body_transport (stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   pop_message_t mpm = message_get_owner (msg);
   return pop_get_transport2 (mpm, ptr, ptr2);
 }
@@ -1561,7 +1561,7 @@ static int
 pop_top (header_t header, char *buffer, size_t buflen,
 	 off_t offset, size_t *pnread)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   size_t nread = 0;
@@ -1665,7 +1665,7 @@ static int
 pop_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 		 size_t *pnread)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_header_read;
@@ -1698,7 +1698,7 @@ pop_body_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 	       size_t *pnread)
 {
   body_t body = stream_get_owner (is);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_body_read;
@@ -1925,7 +1925,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
 	    if (!mpm->skip_body)
 	      {
 		/* If we did not skip the header, it means that we are
-		   downloading the entire message and the header_size should be
+		   downloading the entire message and the mu_header_size should be
 		   part of the offset count.  */
 		ssize_t pos = offset - (mpm->body_size + ((mpm->skip_header) ?
 					0 : mpm->header_size));
@@ -1979,7 +1979,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
 static int
 pop_get_user (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   ticket_t ticket = NULL;
@@ -1987,7 +1987,7 @@ pop_get_user (authority_t auth)
   /*  Fetch the user from them.  */
   size_t n = 0;
 
-  authority_get_ticket (auth, &ticket);
+  mu_authority_get_ticket (auth, &ticket);
   if (mpd->user)
     {
       free (mpd->user);
@@ -1996,7 +1996,7 @@ pop_get_user (authority_t auth)
   /* Was it in the URL? */
   status = url_get_user (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
-    ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
+    mu_ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
   else
     {
       mpd->user = calloc (1, n + 1);
@@ -2009,7 +2009,7 @@ pop_get_user (authority_t auth)
 static int
 pop_get_passwd (authority_t auth)
 {
-  folder_t folder = authority_get_owner (auth);
+  folder_t folder = mu_authority_get_owner (auth);
   mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   ticket_t ticket = NULL;
@@ -2017,7 +2017,7 @@ pop_get_passwd (authority_t auth)
   /*  Fetch the user from them.  */
   size_t n = 0;
 
-  authority_get_ticket (auth, &ticket);
+  mu_authority_get_ticket (auth, &ticket);
   if (mpd->passwd)
     {
       free (mpd->passwd);
@@ -2026,7 +2026,7 @@ pop_get_passwd (authority_t auth)
   /* Was it in the URL? */
   status = url_get_passwd (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
-    ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
+    mu_ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
   else
     {
       mpd->passwd = calloc (1, n + 1);

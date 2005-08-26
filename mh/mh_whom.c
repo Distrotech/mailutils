@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,12 +33,12 @@ addrcp (list_t *list, char *addr, int isbcc)
   struct recipient *p = xmalloc (sizeof (*p));
   p->addr = addr;
   p->isbcc = isbcc;
-  if (!*list && (rc = list_create (list)))
+  if (!*list && (rc = mu_list_create (list)))
     {
       mh_error (_("Cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
-  list_append (*list, p);
+  mu_list_append (*list, p);
 }
 
 static int
@@ -60,7 +60,7 @@ mh_alias_expand (char *str, address_t *paddr, int *incl)
   char *buf;
   address_t exaddr = NULL;
   
-  argcv_get (str, ",", NULL, &argc, &argv);
+  mu_argcv_get (str, ",", NULL, &argc, &argv);
   for (i = 0; i < argc;)
     {
       if (i + 1 == argc)
@@ -102,16 +102,16 @@ mh_alias_expand (char *str, address_t *paddr, int *incl)
   if (argc)
     {
       int status;
-      argcv_string (argc, argv, &buf);
-      if (status = address_create (paddr, buf))
+      mu_argcv_string (argc, argv, &buf);
+      if (status = mu_address_create (paddr, buf))
 	mh_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
       free (buf);
     }
 
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   
-  address_union (paddr, exaddr);
-  address_destroy (&exaddr);
+  mu_address_union (paddr, exaddr);
+  mu_address_destroy (&exaddr);
   return 0;
 }
 
@@ -129,17 +129,17 @@ scan_addrs (char *str, int isbcc)
 
   mh_alias_expand (str, &addr, NULL);
     
-  if (addr == NULL || address_get_count (addr, &count))
+  if (addr == NULL || mu_address_get_count (addr, &count))
     return;
     
   for (i = 1; i <= count; i++)
     {
       char *p;
 
-      rc = address_aget_email (addr, i, &buf);
+      rc = mu_address_aget_email (addr, i, &buf);
       if (rc)
 	{
-	  mh_error ("address_aget_email: %s", mu_strerror (rc));
+	  mh_error ("mu_address_aget_email: %s", mu_strerror (rc));
 	  continue;
 	}
 
@@ -150,7 +150,7 @@ scan_addrs (char *str, int isbcc)
       else
 	addrcp (&network_rcp, buf, isbcc);
     }
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
   free (str); /* FIXME: This will disappear. Note comment to
 		 mh_context_get_value! */
 }
@@ -169,8 +169,8 @@ destroy_addrs (list_t *list)
 {
   if (!*list)
     return;
-  list_do (*list, _destroy_recipient, NULL);
-  list_destroy (list);
+  mu_list_do (*list, _destroy_recipient, NULL);
+  mu_list_destroy (list);
 }
 
 /* Print an email in more readable form: localpart + "at" + domain */
@@ -239,13 +239,13 @@ mh_whom (char *filename, int check)
       if (local_rcp)
 	{
 	  printf ("  %s\n", _("-- Local Recipients --"));
-	  list_do (local_rcp, _print_local_recipient, &count);
+	  mu_list_do (local_rcp, _print_local_recipient, &count);
 	}
 
       if (network_rcp)
 	{
 	  printf ("  %s\n", _("-- Network Recipients --"));
-	  list_do (network_rcp, _print_recipient, &count);
+	  mu_list_do (network_rcp, _print_recipient, &count);
 	}
 
       if (count == 0)

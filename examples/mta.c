@@ -262,10 +262,10 @@ add_recipient (const char *name)
   address_t addr;
   int status;
     
-  status = address_create (&addr, name);
+  status = mu_address_create (&addr, name);
   if (status == 0)
-    status = address_union (&recipients, addr);
-  address_destroy (&addr);
+    status = mu_address_union (&recipients, addr);
+  mu_address_destroy (&addr);
   return status;
 }
 
@@ -277,12 +277,12 @@ address_email_string (address_t addr)
   size_t count, i, n, length;
   char *value, *p;
   
-  address_get_email_count (addr, &count);
+  mu_address_get_email_count (addr, &count);
   length = 0;
   for (i = 1; i <= count; i++)
     {
       char *str;
-      address_aget_email (recipients, i, &str);
+      mu_address_aget_email (recipients, i, &str);
       length += strlen (str) + 3;
       free (str);
     }
@@ -297,7 +297,7 @@ address_email_string (address_t addr)
   for (i = 1; i <= count; i++)
     {
       *p++ = '<';
-      address_get_email (recipients, i, p, length - (p - value), &n);
+      mu_address_get_email (recipients, i, p, length - (p - value), &n);
       p += n;
       *p++ = '>';
       if (i + 1 <= count)
@@ -373,11 +373,11 @@ message_finalize (message_t msg, int warn)
 	  return 1;
 	}
       sprintf (warn, "%s %s", pwd->pw_name, SENDER_WARNING);
-      header_set_value (header, "X-Authentication-Warning", warn, 0);
+      mu_header_set_value (header, "X-Authentication-Warning", warn, 0);
       free (warn);
     }
   
-  have_to = header_aget_value (header, MU_HEADER_TO, &value) == 0;
+  have_to = mu_header_aget_value (header, MU_HEADER_TO, &value) == 0;
   
   if (read_recipients)
     {
@@ -391,7 +391,7 @@ message_finalize (message_t msg, int warn)
 	  free (value);
 	}
 	  
-      if (header_aget_value (header, MU_HEADER_CC, &value) == 0)
+      if (mu_header_aget_value (header, MU_HEADER_CC, &value) == 0)
 	{
 	  if (add_recipient (value))
 	    {
@@ -401,7 +401,7 @@ message_finalize (message_t msg, int warn)
 	  free (value);
 	}  
 	  
-      if (header_aget_value (header, MU_HEADER_BCC, &value) == 0)
+      if (mu_header_aget_value (header, MU_HEADER_BCC, &value) == 0)
 	{
 	  if (add_recipient (value))
 	    {
@@ -409,7 +409,7 @@ message_finalize (message_t msg, int warn)
 	      return 1;
 	    }
 	  free (value);
-	  header_set_value (header, MU_HEADER_BCC, NULL, 1);
+	  mu_header_set_value (header, MU_HEADER_BCC, NULL, 1);
 	}  
     }
 
@@ -418,10 +418,10 @@ message_finalize (message_t msg, int warn)
       size_t n;
       int c;
       
-      c = address_to_string (recipients, NULL, 0, &n);
+      c = mu_address_to_string (recipients, NULL, 0, &n);
       if (c)
 	{
-	  mu_error ("%s: address_to_string failure: %s",
+	  mu_error ("%s: mu_address_to_string failure: %s",
 		    progname, mu_strerror (c));
 	  return 1;
 	}
@@ -432,8 +432,8 @@ message_finalize (message_t msg, int warn)
 	  return 1;
 	}
 
-      address_to_string (recipients, value, n + 1, &n);
-      header_set_value (header, MU_HEADER_TO, value, 1);
+      mu_address_to_string (recipients, value, n + 1, &n);
+      mu_header_set_value (header, MU_HEADER_TO, value, 1);
       free (value);
     }
   return 0;
@@ -457,7 +457,7 @@ mta_stdin (int argc, char **argv)
     }
 
   make_tmp (stdin, from_person, &tempfile);
-  if ((c = mailbox_create_default (&mbox, tempfile)) != 0)
+  if ((c = mu_mailbox_create_default (&mbox, tempfile)) != 0)
     {
       mu_error ("%s: can't create mailbox %s: %s",
 		progname, tempfile, mu_strerror (c));
@@ -465,7 +465,7 @@ mta_stdin (int argc, char **argv)
       return 1;
     }
 
-  if ((c = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+  if ((c = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mu_error ("%s: can't open mailbox %s: %s",
 		progname, tempfile, mu_strerror (c));
@@ -473,7 +473,7 @@ mta_stdin (int argc, char **argv)
       return 1;
     }
 
-  mailbox_get_message (mbox, 1, &msg);
+  mu_mailbox_get_message (mbox, 1, &msg);
   if (message_finalize (msg, 1))
     return 1;
 
@@ -573,7 +573,7 @@ smtp (int fd)
 	len --;
       buf[len] = 0;
       
-      if (argcv_get (buf, "", NULL, &argc, &argv))
+      if (mu_argcv_get (buf, "", NULL, &argc, &argv))
 	exit (1);
 
       kw = smtp_kw (argv[0]);
@@ -581,7 +581,7 @@ smtp (int fd)
 	{
 	  smtp_reply (221, "Done");
 	  state = STATE_QUIT;
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  continue;
 	}
       
@@ -668,7 +668,7 @@ smtp (int fd)
 	      smtp_reply (354,
 			  "Enter mail, end with \".\" on a line by itself");
 	      make_tmp (in, from_person, &tempfile);
-	      if ((c = mailbox_create_default (&mbox, tempfile)) != 0)
+	      if ((c = mu_mailbox_create_default (&mbox, tempfile)) != 0)
 		{
 		  mu_error ("%s: can't create mailbox %s: %s",
 			    progname,
@@ -677,7 +677,7 @@ smtp (int fd)
 		  exit (1);
 		}
 
-	      if ((c = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+	      if ((c = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
 		{
 		  mu_error ("%s: can't open mailbox %s: %s",
 			    progname, 
@@ -686,14 +686,14 @@ smtp (int fd)
 		  exit (1);
 		}
 
-	      mailbox_get_message (mbox, 1, &msg);
+	      mu_mailbox_get_message (mbox, 1, &msg);
 	      if (message_finalize (msg, 0) == 0)
 		mta_send (msg);
 	      else
 		smtp_reply (501, "can't send message"); /*FIXME: code?*/
 	      unlink (tempfile);
 
-	      address_destroy (&recipients);
+	      mu_address_destroy (&recipients);
 	      from_person = NULL;
 	      
 	      smtp_reply (250, "Message accepted for delivery");
@@ -707,7 +707,7 @@ smtp (int fd)
 	  break;
 
 	}
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
     
   close (fd);

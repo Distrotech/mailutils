@@ -430,37 +430,37 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		argp_error (state, _("Invalid lock flag `%c'"), *arg);
 	      }
 	  }
-	locker_set_default_flags (flags, mu_locker_set_flags);
+	mu_locker_set_default_flags (flags, mu_locker_assign);
       }
       break;
 
     case ARG_LOCK_RETRY_COUNT:
       {
 	size_t t = strtoul (arg, NULL, 0);
-	locker_set_default_retry_count (t);
-	locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
+	mu_locker_set_default_retry_count (t);
+	mu_locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
       }
       break;
 	  
     case ARG_LOCK_RETRY_TIMEOUT:
       {
 	time_t t = strtoul (arg, NULL, 0);
-	locker_set_default_retry_timeout (t);
-	locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
+	mu_locker_set_default_retry_timeout (t);
+	mu_locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
       }
       break;
 
     case ARG_LOCK_EXPIRE_TIMEOUT:
       {
 	time_t t = strtoul (arg, NULL, 0);
-	locker_set_default_expire_timeout (t);
-	locker_set_default_flags (MU_LOCKER_EXTERNAL, mu_locker_set_bit);
+	mu_locker_set_default_expire_timeout (t);
+	mu_locker_set_default_flags (MU_LOCKER_EXTERNAL, mu_locker_set_bit);
       }
       break;
 
     case ARG_LOCK_EXTERNAL_PROGRAM:
-      locker_set_default_external_program (arg);
-      locker_set_default_flags (MU_LOCKER_TIME, mu_locker_set_bit);
+      mu_locker_set_default_external_program (arg);
+      mu_locker_set_default_flags (MU_LOCKER_TIME, mu_locker_set_bit);
       break;
       
       /* address */
@@ -655,9 +655,9 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	  int i, n_argc = 0;
 	  char **n_argv;
               
-	  if (argcv_get (p, "", NULL, &n_argc, &n_argv))
+	  if (mu_argcv_get (p, "", NULL, &n_argc, &n_argv))
 	    {
-	      argcv_free (n_argc, n_argv);
+	      mu_argcv_free (n_argc, n_argv);
 	      if (linebuf)
 		free (linebuf);
 	      linebuf = NULL;

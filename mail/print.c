@@ -65,15 +65,15 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
       char *tmp;
       
       message_get_header (mesg, &hdr);
-      header_get_field_count (hdr, &num);
+      mu_header_get_field_count (hdr, &num);
 
       for (i = 1; i <= num; i++)
 	{
-	  header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+	  mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
 	  if (mail_header_is_visible (buf))
 	    {
 	      fprintf (out, "%s: ", buf);
-	      header_aget_field_value (hdr, i, &tmp);
+	      mu_header_aget_field_value (hdr, i, &tmp);
 	      if (mail_header_is_unfoldable (buf))
 		mu_string_unfold (tmp, NULL);
 	      util_rfc2047_decode (&tmp);
@@ -83,7 +83,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
 	}
       fprintf (out, "\n");
       message_get_body (mesg, &body);
-      body_get_stream (body, &stream);
+      mu_body_get_stream (body, &stream);
     }
   else
     message_get_stream (mesg, &stream);

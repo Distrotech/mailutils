@@ -42,20 +42,20 @@ print (list_t list)
   iterator_t itr;
   int rc;
   
-  rc = list_get_iterator (list, &itr);
+  rc = mu_list_get_iterator (list, &itr);
   if (rc)
-    lperror ("list_get_iterator", rc);
+    lperror ("mu_list_get_iterator", rc);
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *text;
 
-      rc = iterator_current (itr, (void**) &text);
+      rc = mu_iterator_current (itr, (void**) &text);
       if (rc)
-	lperror ("iterator_current", rc);
+	lperror ("mu_iterator_current", rc);
       printf ("%s\n", text);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
 
 void
@@ -66,7 +66,7 @@ next (iterator_t itr, char *arg)
   if (skip == 0)
     fprintf (stderr, "next arg?\n");
   while (skip--)
-    iterator_next (itr);
+    mu_iterator_next (itr);
 }
 
 void
@@ -82,9 +82,9 @@ delete (list_t list, int argc, char **argv)
 
   while (--argc)
     {
-      rc = list_remove (list, strdup (*++argv));
+      rc = mu_list_remove (list, strdup (*++argv));
       if (rc)
-	fprintf (stderr, "list_remove(%s): %s\n", *argv, mu_strerror (rc));
+	fprintf (stderr, "mu_list_remove(%s): %s\n", *argv, mu_strerror (rc));
     }
 }
 
@@ -101,9 +101,9 @@ add (list_t list, int argc, char **argv)
 
   while (--argc)
     {
-      rc = list_append (list, strdup (*++argv));
+      rc = mu_list_append (list, strdup (*++argv));
       if (rc)
-	fprintf (stderr, "list_append: %s\n", mu_strerror (rc));
+	fprintf (stderr, "mu_list_append: %s\n", mu_strerror (rc));
     }
 }
 
@@ -120,9 +120,9 @@ prep (list_t list, int argc, char **argv)
 
   while (--argc)
     {
-      rc = list_prepend (list, strdup (*++argv));
+      rc = mu_list_prepend (list, strdup (*++argv));
       if (rc)
-	fprintf (stderr, "list_append: %s\n", mu_strerror (rc));
+	fprintf (stderr, "mu_list_append: %s\n", mu_strerror (rc));
     }
 }
 
@@ -156,9 +156,9 @@ ins (list_t list, int argc, char **argv)
       new_item = argv[2];
     }
   
-  rc = list_insert (list, item, strdup (new_item), argc == 4);
+  rc = mu_list_insert (list, item, strdup (new_item), argc == 4);
   if (rc)
-    fprintf (stderr, "list_insert: %s\n", mu_strerror (rc));
+    fprintf (stderr, "mu_list_insert: %s\n", mu_strerror (rc));
 }
 
 
@@ -173,9 +173,9 @@ repl (list_t list, int argc, char **argv)
       return;
     }
 
-  rc = list_replace (list, argv[1], strdup (argv[2]));
+  rc = mu_list_replace (list, argv[1], strdup (argv[2]));
   if (rc)
-    fprintf (stderr, "list_replace: %s\n", mu_strerror (rc));
+    fprintf (stderr, "mu_list_replace: %s\n", mu_strerror (rc));
 }
 
 #define NITR 4
@@ -211,23 +211,23 @@ find (iterator_t itr, char *arg)
       return;
     }
 
-  iterator_current (itr, (void**)&text);
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  mu_iterator_current (itr, (void**)&text);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *item;
 
-      iterator_current (itr, (void**)&item);
+      mu_iterator_current (itr, (void**)&item);
       if (strcmp (arg, item) == 0)
 	return;
     }
 
   fprintf (stderr, "%s not in list\n", arg);
   
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *item;
 
-      iterator_current (itr, (void**)&item);
+      mu_iterator_current (itr, (void**)&item);
       if (strcmp (text, item) == 0)
 	return;
     }
@@ -260,10 +260,10 @@ shell (list_t list)
 
   for (num = 0; num < NITR; num++)
     {
-      rc = list_get_iterator (list, &itr[num]);
+      rc = mu_list_get_iterator (list, &itr[num]);
       if (rc)
-	lperror ("list_get_iterator", rc);
-      iterator_first (itr[num]);
+	lperror ("mu_list_get_iterator", rc);
+      mu_iterator_first (itr[num]);
     }
 
   num = 0;
@@ -274,24 +274,24 @@ shell (list_t list)
       int argc;
       char **argv;
       
-      rc = iterator_current (itr[num], (void**) &text);
+      rc = mu_iterator_current (itr[num], (void**) &text);
       if (rc)
-	lperror ("iterator_current", rc);
+	lperror ("mu_iterator_current", rc);
 
       printf ("%d:(%s)> ", num, text ? text : "NULL");
       if (fgets (buf, sizeof buf, stdin) == NULL)
 	return;
 
-      rc = argcv_get (buf, "", "#", &argc, &argv);
+      rc = mu_argcv_get (buf, "", "#", &argc, &argv);
       if (rc)
-	lperror ("argcv_get", rc);
+	lperror ("mu_argcv_get", rc);
 
       if (argc > 0)
 	{
 	  if (strcmp (argv[0], "next") == 0)
 	    next (itr[num], argv[1]);
 	  else if (strcmp (argv[0], "first") == 0)
-	    iterator_first (itr[num]);
+	    mu_iterator_first (itr[num]);
 	  else if (strcmp (argv[0], "del") == 0)
 	    delete (list, argc, argv);
 	  else if (strcmp (argv[0], "add") == 0)
@@ -320,9 +320,9 @@ shell (list_t list)
 		fprintf (stderr, "?\n");
 	      else
 		{
-		  rc = list_get (list, n, (void**) &text);
+		  rc = mu_list_get (list, n, (void**) &text);
 		  if (rc)
-		    fprintf (stderr, "list_get: %s\n", mu_strerror (rc));
+		    fprintf (stderr, "mu_list_get: %s\n", mu_strerror (rc));
 		  else
 		    printf ("%s\n", text);
 		}
@@ -330,7 +330,7 @@ shell (list_t list)
 	  else
 	    fprintf (stderr, "?\n");
 	}
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
 }
 
@@ -359,16 +359,16 @@ main (int argc, char **argv)
   argc -= optind;
   argv += optind;
 
-  rc = list_create (&list);
+  rc = mu_list_create (&list);
   if (rc)
-    lperror ("list_create", rc);
-  list_set_comparator (list, string_comp);
+    lperror ("mu_list_create", rc);
+  mu_list_set_comparator (list, string_comp);
 
   while (argc--)
     {
-      rc = list_append (list, *argv++);
+      rc = mu_list_append (list, *argv++);
       if (rc)
-	lperror ("list_append", rc);
+	lperror ("mu_list_append", rc);
     }
 
   shell (list);

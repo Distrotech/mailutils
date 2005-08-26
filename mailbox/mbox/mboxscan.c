@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -492,7 +492,7 @@ do \
     { \
       if (pcount) \
         *pcount = (mud)->messages_count; \
-      locker_unlock (mbox->locker); \
+      mu_locker_unlock (mbox->locker); \
       return EINTR; \
     } \
   monitor_wrlock (mbox->monitor); \
@@ -517,7 +517,7 @@ do \
 	{ \
 	  if (pcount) \
 	    *pcount = (mud)->messages_count; \
-          locker_unlock (mbox->locker); \
+          mu_locker_unlock (mbox->locker); \
 	  return EINTR; \
 	} \
       mud->messages_count++; \
@@ -537,7 +537,7 @@ do \
     m = realloc ((mud)->umessages, num * sizeof (*m)); \
     if (m == NULL) \
       { \
-        locker_unlock (mbox->locker); \
+        mu_locker_unlock (mbox->locker); \
         monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
@@ -545,7 +545,7 @@ do \
     (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
     if ((mud)->umessages[num - 1] == NULL) \
       { \
-        locker_unlock (mbox->locker); \
+        mu_locker_unlock (mbox->locker); \
         monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
@@ -594,7 +594,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       return status;
     }
 
-  if((status = locker_lock (mailbox->locker)))
+  if((status = mu_locker_lock (mailbox->locker)))
     {
       monitor_unlock (mailbox->monitor);
       return status;
@@ -803,7 +803,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 
       /* Every 100 mesgs update the lock, it should be every minute.  */
       if ((mud->messages_count % 100) == 0)
-	locker_touchlock (mailbox->locker);
+	mu_locker_touchlock (mailbox->locker);
 
       /* Ping them every 1000 lines. Should be tunable.  */
       if (do_notif)
@@ -831,7 +831,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     }
   if (pcount)
     *pcount = mud->messages_count;
-  locker_unlock (mailbox->locker);
+  mu_locker_unlock (mailbox->locker);
   monitor_unlock (mailbox->monitor);
 
   /* Reset the uidvalidity.  */

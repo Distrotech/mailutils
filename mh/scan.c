@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -161,7 +162,7 @@ action (observer_t o, size_t type)
     {
       mbox = observer_get_owner (o);
       counter++;
-      mailbox_get_message (mbox, counter, &msg);
+      mu_mailbox_get_message (mbox, counter, &msg);
       mh_message_number (msg, &num);
       list_message (mbox, msg, num, NULL);
     }
@@ -203,14 +204,14 @@ main (int argc, char **argv)
       
       observer_create (&observer, mbox);
       observer_set_action (observer, action, mbox);
-      mailbox_get_observable (mbox, &observable);
+      mu_mailbox_get_observable (mbox, &observable);
       observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
 
-      status = mailbox_scan (mbox, 1, &total);
+      status = mu_mailbox_scan (mbox, 1, &total);
     }
   else
     {
-      mailbox_messages_count (mbox, &total);
+      mu_mailbox_messages_count (mbox, &total);
       mh_msgset_parse (mbox, &msgset, argc, argv, "all");
 
       if (reverse)
@@ -224,7 +225,7 @@ main (int argc, char **argv)
     {
       url_t url = NULL;
 
-      mailbox_get_url (mbox, &url);
+      mu_mailbox_get_url (mbox, &url);
       mh_error (_("no messages in %s"), url_to_string (url));
     }
 
@@ -243,7 +244,7 @@ print_header (mailbox_t mbox)
       char datestr[64];
       time_t t;
 	  
-      mailbox_get_url (mbox, &url);
+      mu_mailbox_get_url (mbox, &url);
       time (&t);
       strftime (datestr, sizeof datestr, "%c", localtime (&t));
       printf (_("Folder %s  %s\n"), url_to_string (url), datestr);

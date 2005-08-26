@@ -382,22 +382,22 @@ action_create (struct action_data *ap)
 	buf[--len] = 0;
       
       line++;
-      if (argcv_get (buf, ":", NULL, &argc, &argv))
+      if (mu_argcv_get (buf, ":", NULL, &argc, &argv))
 	{
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  continue;
 	}
 
       if (argc == 0 || argv[0][0] == '#')
 	{
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  continue;
 	}
       
       if (argc != 3 || argv[1][0] != ':' || argv[1][1] != 0)
 	{
 	  mu_error (_("%s:%d: malformed line"), ap->input_name, line);
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  continue;
 	}
 
@@ -411,7 +411,7 @@ action_create (struct action_data *ap)
       if (mu_dbm_insert (db, key, contents, 1))
 	mu_error (_("%s:%d: cannot store datum"), ap->input_name, line);
 
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
   mu_dbm_close (db);
   fclose (fp);

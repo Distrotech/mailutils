@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,10 +75,10 @@ imap4d_status (struct imap4d_command *command, char *arg)
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Error opening mailbox");
 
-  status = mailbox_create_default (&smbox, mailbox_name);
+  status = mu_mailbox_create_default (&smbox, mailbox_name);
   if (status == 0)
     {
-      status = mailbox_open (smbox, MU_STREAM_READ);
+      status = mu_mailbox_open (smbox, MU_STREAM_READ);
       if (status == 0)
 	{
 	  char item[32];
@@ -110,9 +110,9 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	    }
 	  if (count > 0)
 	    util_send (")\r\n");
-	  mailbox_close (smbox);
+	  mu_mailbox_close (smbox);
 	}
-      mailbox_destroy (&smbox);
+      mu_mailbox_destroy (&smbox);
     }
   free (mailbox_name);
 
@@ -132,7 +132,7 @@ static int
 status_messages (mailbox_t smbox)
 {
   size_t total = 0;
-  mailbox_messages_count (smbox, &total);
+  mu_mailbox_messages_count (smbox, &total);
   util_send ("MESSAGES %u", total);
   return 0;
 }
@@ -141,7 +141,7 @@ static int
 status_recent (mailbox_t smbox)
 {
   size_t recent = 0;
-  mailbox_messages_recent (smbox, &recent);
+  mu_mailbox_messages_recent (smbox, &recent);
   util_send ("RECENT %u", recent);
   return 0;
 }
@@ -150,7 +150,7 @@ static int
 status_uidnext (mailbox_t smbox)
 {
   size_t uidnext = 1;
-  mailbox_uidnext (smbox, &uidnext);
+  mu_mailbox_uidnext (smbox, &uidnext);
   util_send ("UIDNEXT %u", uidnext);
   return 0;
 }
@@ -173,14 +173,14 @@ status_unseen (mailbox_t smbox)
   size_t total = 0;
   size_t unseen = 0;
   size_t i;
-  mailbox_messages_count (smbox, &total);
+  mu_mailbox_messages_count (smbox, &total);
   for (i = 1; i <= total; i++)
     {
       message_t msg = NULL;
       attribute_t attr = NULL;
-      mailbox_get_message (smbox, i, &msg);
+      mu_mailbox_get_message (smbox, i, &msg);
       message_get_attribute (msg, &attr);
-      if (!attribute_is_seen (attr) && !attribute_is_read (attr))
+      if (!mu_attribute_is_seen (attr) && !mu_attribute_is_read (attr))
 	unseen++;
     }
   util_send ("UNSEEN %d", unseen);

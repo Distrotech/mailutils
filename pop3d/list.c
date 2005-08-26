@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,10 +39,10 @@ pop3d_list (const char *arg)
     {
       size_t total = 0;
       pop3d_outf ("+OK\r\n");
-      mailbox_messages_count (mbox, &total);
+      mu_mailbox_messages_count (mbox, &total);
       for (mesgno = 1; mesgno <= total; mesgno++)
 	{
-	  mailbox_get_message (mbox, mesgno, &msg);
+	  mu_mailbox_get_message (mbox, mesgno, &msg);
 	  message_get_attribute (msg, &attr);
 	  if (!pop3d_is_deleted (attr))
 	    {
@@ -56,7 +56,7 @@ pop3d_list (const char *arg)
   else
     {
       mesgno = strtoul (arg, NULL, 10);
-      if (mailbox_get_message (mbox, mesgno, &msg) != 0)
+      if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
 	return ERR_NO_MESG;
       message_get_attribute (msg, &attr);
       if (pop3d_is_deleted (attr))

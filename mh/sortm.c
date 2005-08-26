@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ static int action = ACTION_REORDER;
 static char *format_str = mh_list_format;
 static mh_format_t format;
 
-typedef int (*compfun) __PMT((void *, void *));
+typedef int (*compfun) (void *, void *);
 static void addop (char *field, compfun comp);
 static void remop (compfun comp);
 static int comp_text (void *a, void *b);
@@ -214,14 +214,14 @@ addop (char *field, compfun comp)
 {
   struct comp_op *op = xmalloc (sizeof (*op));
   
-  if (!oplist && list_create (&oplist))
+  if (!oplist && mu_list_create (&oplist))
     {
       mh_error (_("can't create operation list"));
       exit (1);
     }
   op->field = field;
   op->comp = comp;
-  list_append (oplist, op);
+  mu_list_append (oplist, op);
 }
 
 struct rem_data {
@@ -245,8 +245,8 @@ remop (compfun comp)
   struct rem_data d;
   d.comp = comp;
   d.op = NULL;
-  list_do (oplist, rem_action, &d);
-  list_remove (oplist, d.op);
+  mu_list_do (oplist, rem_action, &d);
+  mu_list_remove (oplist, d.op);
   free (d.op);
 }
 
@@ -264,11 +264,11 @@ compare_action (void *item, void *data)
   header_t h;
   
   if (message_get_header (dp->m[0], &h)
-      || header_aget_value (h, op->field, &a))
+      || mu_header_aget_value (h, op->field, &a))
     return 0;
 
   if (message_get_header (dp->m[1], &h)
-      || header_aget_value (h, op->field, &b))
+      || mu_header_aget_value (h, op->field, &b))
     {
       free (a);
       return 0;
@@ -299,7 +299,7 @@ compare_messages (message_t a, message_t b)
   d.r = 0;
   d.m[0] = a;
   d.m[1] = b;
-  list_do (oplist, compare_action, &d);
+  mu_list_do (oplist, compare_action, &d);
   if (verbose > 1)
     fprintf (stderr, "%d\n", d.r);
   return d.r;
@@ -372,8 +372,8 @@ comp0 (size_t na, size_t nb)
 {
   message_t a, b;
 
-  if (mailbox_get_message (mbox, na, &a)
-      || mailbox_get_message (mbox, nb, &b))
+  if (mu_mailbox_get_message (mbox, na, &a)
+      || mu_mailbox_get_message (mbox, nb, &b))
     return 0;
   if (verbose > 1)
     fprintf (stderr,
@@ -433,7 +433,7 @@ list_message (size_t num)
 {
   message_t msg = NULL;
   char *buffer;
-  mailbox_get_message (mbox, num, &msg);
+  mu_mailbox_get_message (mbox, num, &msg);
   mh_format (&format, msg, num, 76, &buffer);
   printf ("%s\n", buffer);
   free (buffer);
@@ -520,9 +520,9 @@ sort ()
 	      size_t old_num, new_num;
 	      message_t msg;
 
-	      mailbox_get_message (mbox, oldlist[i], &msg);
+	      mu_mailbox_get_message (mbox, oldlist[i], &msg);
 	      mh_message_number (msg, &old_num);
-	      mailbox_get_message (mbox, msgset.list[i], &msg);
+	      mu_mailbox_get_message (mbox, msgset.list[i], &msg);
 	      mh_message_number (msg, &new_num);
 	      transpose (i, oldlist[i]);
 	      if (verbose)
@@ -559,7 +559,7 @@ main (int argc, char **argv)
     }
   
   mbox = mh_open_folder (current_folder, 0);
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   mbox_path = url_to_string (url);
   if (memcmp (mbox_path, "mh:", 3) == 0)
     mbox_path += 3;

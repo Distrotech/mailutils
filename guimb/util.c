@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,29 +38,29 @@ util_get_sender (int msgno)
   message_t msg = NULL;
   char buffer[512];
 
-  mailbox_get_message (mbox, msgno, &msg);
+  mu_mailbox_get_message (mbox, msgno, &msg);
   message_get_header (msg, &header);
-  if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof (buffer), NULL)
-      || address_create (&addr, buffer))
+  if (mu_header_get_value (header, MU_HEADER_FROM, buffer, sizeof (buffer), NULL)
+      || mu_address_create (&addr, buffer))
     {
       envelope_t env = NULL;
       message_get_envelope (msg, &env);
-      if (envelope_sender (env, buffer, sizeof (buffer), NULL)
-	  || address_create (&addr, buffer))
+      if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
+	  || mu_address_create (&addr, buffer))
 	{
 	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
-  if (address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
+  if (mu_address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
     {
       util_error (_("Cannot determine sender name (msg %d)"), msgno);
-      address_destroy (&addr);
+      mu_address_destroy (&addr);
       return NULL;
     }
 
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
   return strdup (buffer);
 }
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,22 +25,22 @@
 extern "C" {
 #endif
 
-extern int body_create         (body_t *, void *owner);
-extern void body_destroy       (body_t *, void *owner);
-extern void * body_get_owner   (body_t);
-extern int body_is_modified    (body_t);
-extern int body_clear_modified (body_t);
+extern int mu_body_create         (body_t *, void *owner);
+extern void mu_body_destroy       (body_t *, void *owner);
+extern void * mu_body_get_owner   (body_t);
+extern int mu_body_is_modified    (body_t);
+extern int mu_body_clear_modified (body_t);
 
-extern int body_get_stream     (body_t, stream_t *);
-extern int body_set_stream     (body_t, stream_t, void *owner);
+extern int mu_body_get_stream     (body_t, stream_t *);
+extern int mu_body_set_stream     (body_t, stream_t, void *owner);
 
-extern int body_get_filename   (body_t, char *, size_t, size_t *);
+extern int mu_body_get_filename   (body_t, char *, size_t, size_t *);
 
-extern int body_size           (body_t, size_t*);
-extern int body_set_size       (body_t,
+extern int mu_body_size           (body_t, size_t*);
+extern int mu_body_set_size       (body_t,
 				int (*_size) (body_t, size_t*), void *owner);
-extern int body_lines          (body_t, size_t *);
-extern int body_set_lines      (body_t,
+extern int mu_body_lines          (body_t, size_t *);
+extern int mu_body_set_lines      (body_t,
 				int (*_lines) (body_t, size_t*), void *owner);
 
 #ifdef __cplusplus

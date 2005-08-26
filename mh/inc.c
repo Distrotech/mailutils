@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -159,7 +160,7 @@ list_message (mh_format_t *format, mailbox_t mbox, size_t msgno, size_t width)
   message_t msg;
   char *buf = NULL;
 
-  mailbox_get_message (mbox, msgno, &msg);
+  mu_mailbox_get_message (mbox, msgno, &msg);
   mh_format (format, msg, msgno, width, &buf);
   printf ("%s\n", buf);
   if (audit_fp)
@@ -195,7 +196,7 @@ main (int argc, char **argv)
   /* Select and open input mailbox */
   if (input_file == NULL)
     {
-      if ((rc = mailbox_create_default (&input, NULL)) != 0)
+      if ((rc = mu_mailbox_create_default (&input, NULL)) != 0)
 	{
 	  mh_error (_("Cannot create default mailbox"),
 		    mu_strerror (rc));
@@ -204,31 +205,31 @@ main (int argc, char **argv)
       f_truncate = 1;
       f_changecur = 1;
     }
-  else if ((rc = mailbox_create_default (&input, input_file)) != 0)
+  else if ((rc = mu_mailbox_create_default (&input, input_file)) != 0)
     {
       mh_error (_("Cannot create mailbox %s: %s"),
 		input_file, mu_strerror (rc));
       exit (1);
     }
 
-  if ((rc = mailbox_open (input, MU_STREAM_RDWR)) != 0)
+  if ((rc = mu_mailbox_open (input, MU_STREAM_RDWR)) != 0)
     {
       url_t url;
-      mailbox_get_url (input, &url);
+      mu_mailbox_get_url (input, &url);
       mh_error (_("Cannot open mailbox %s: %s"),
 		url_to_string (url),
 		mu_strerror (errno));
       exit (1);
     }
 
-  if ((rc = mailbox_messages_count (input, &total)) != 0)
+  if ((rc = mu_mailbox_messages_count (input, &total)) != 0)
     {
       mh_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
       exit (1);
     }
 
   output = mh_open_folder (append_folder, 1);
-  if ((rc = mailbox_messages_count (output, &lastmsg)) != 0)
+  if ((rc = mu_mailbox_messages_count (output, &lastmsg)) != 0)
     {
       mh_error (_("Cannot read output mailbox: %s"),
 		mu_strerror (errno));
@@ -249,14 +250,14 @@ main (int argc, char **argv)
     {
       message_t imsg;
       
-      if ((rc = mailbox_get_message (input, n, &imsg)) != 0)
+      if ((rc = mu_mailbox_get_message (input, n, &imsg)) != 0)
 	{
 	  mh_error (_("%d: cannot get message: %s"),
 		    n, mu_strerror (errno));
 	  continue;
 	}
 
-      if ((rc = mailbox_append_message (output, imsg)) != 0)
+      if ((rc = mu_mailbox_append_message (output, imsg)) != 0)
 	{
 	  mh_error (_("%d: error appending message: %s"),
 		    n, mu_strerror (errno));
@@ -267,7 +268,7 @@ main (int argc, char **argv)
 	{
 	  message_t msg = NULL;
       
-	  mailbox_get_message (output, lastmsg+1, &msg);
+	  mu_mailbox_get_message (output, lastmsg+1, &msg);
 	  mh_message_number (msg, &current_message);
 	}
 	  
@@ -278,20 +279,20 @@ main (int argc, char **argv)
 	{
 	  attribute_t attr;
 	  message_get_attribute (imsg, &attr);
-	  attribute_set_deleted (attr);
+	  mu_attribute_set_deleted (attr);
 	}
     }
 
   if (changecur)
     mh_global_save_state ();
   
-  mailbox_close (output);
-  mailbox_destroy (&output);
+  mu_mailbox_close (output);
+  mu_mailbox_destroy (&output);
 
   if (truncate_source)
-    mailbox_expunge (input);
-  mailbox_close (input);
-  mailbox_destroy (&input);
+    mu_mailbox_expunge (input);
+  mu_mailbox_close (input);
+  mu_mailbox_destroy (&input);
 
   if (audit_fp)
     mh_audit_close (audit_fp);

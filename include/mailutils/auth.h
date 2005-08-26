@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,36 +25,36 @@
 extern "C" {
 #endif
 
-extern int  ticket_create          (ticket_t *, void *owner);
-extern void ticket_destroy         (ticket_t *, void *owner);
-extern int  ticket_set_destroy     (ticket_t, void (*) (ticket_t), void *);
-extern void *ticket_get_owner      (ticket_t);
+extern int  mu_ticket_create          (ticket_t *, void *owner);
+extern void mu_ticket_destroy         (ticket_t *, void *owner);
+extern int  mu_ticket_set_destroy     (ticket_t, void (*) (ticket_t), void *);
+extern void *mu_ticket_get_owner      (ticket_t);
 
-extern int ticket_set_pop          (ticket_t, 
+extern int mu_ticket_set_pop          (ticket_t, 
                                     int (*_pop) (ticket_t, url_t, const char *, char **), void *);
-extern int ticket_pop              (ticket_t, url_t, const char *, char **);
-extern int ticket_set_data         (ticket_t, void *, void *owner);
-extern int ticket_get_data         (ticket_t, void **);
+extern int mu_ticket_pop              (ticket_t, url_t, const char *, char **);
+extern int mu_ticket_set_data         (ticket_t, void *, void *owner);
+extern int mu_ticket_get_data         (ticket_t, void **);
 
-extern int authority_create           (authority_t *, ticket_t, void *);
-extern void authority_destroy         (authority_t *, void *);
-extern void *authority_get_owner      (authority_t);
-extern int authority_set_ticket       (authority_t, ticket_t);
-extern int authority_get_ticket       (authority_t, ticket_t *);
-extern int authority_authenticate     (authority_t);
-extern int authority_set_authenticate (authority_t, 
+extern int mu_authority_create           (authority_t *, ticket_t, void *);
+extern void mu_authority_destroy         (authority_t *, void *);
+extern void *mu_authority_get_owner      (authority_t);
+extern int mu_authority_set_ticket       (authority_t, ticket_t);
+extern int mu_authority_get_ticket       (authority_t, ticket_t *);
+extern int mu_authority_authenticate     (authority_t);
+extern int mu_authority_set_authenticate (authority_t, 
                                             int (*_authenticate) (authority_t), void *);
 
-extern int authority_create_null      (authority_t *pauthority, void *owner);
+extern int mu_authority_create_null      (authority_t *pauthority, void *owner);
 
-extern int  wicket_create       (wicket_t *, const char *);
-extern void wicket_destroy      (wicket_t *);
-extern int  wicket_set_filename (wicket_t, const char *);
-extern int  wicket_get_filename (wicket_t, char *, size_t, size_t *);
-extern int  wicket_set_ticket   (wicket_t, 
+extern int  mu_wicket_create       (wicket_t *, const char *);
+extern void mu_wicket_destroy      (wicket_t *);
+extern int  mu_wicket_set_filename (wicket_t, const char *);
+extern int  mu_wicket_get_filename (wicket_t, char *, size_t, size_t *);
+extern int  mu_wicket_set_ticket   (wicket_t, 
                                  int (*) (wicket_t, const char *,
 			         const char *, ticket_t *));
-extern int  wicket_get_ticket   (wicket_t, ticket_t *, const char *, const char *);
+extern int  mu_wicket_get_ticket   (wicket_t, ticket_t *, const char *, const char *);
 
 #ifdef __cplusplus
 }

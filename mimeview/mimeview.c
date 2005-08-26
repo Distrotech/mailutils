@@ -197,7 +197,7 @@ display_file (const char *type)
       if (debug_level)
 	{
 	  char *string;
-	  argcv_string (6, argv, &string);
+	  mu_argcv_string (6, argv, &string);
 	  printf (_("Executing %s...\n"), string);
 	  free (string);
 	}
@@ -212,7 +212,7 @@ display_file (const char *type)
       char *text;
 
       asprintf (&text, "Content-Type: %s\n", type);
-      status = header_create (&hdr, text, strlen (text), NULL);
+      status = mu_header_create (&hdr, text, strlen (text), NULL);
       if (status)
 	mu_error (_("Cannot create header: %s"), mu_strerror (status));
       else
@@ -228,7 +228,7 @@ display_file (const char *type)
 	  stream_close (stream);
 	  stream_destroy (&stream, stream_get_owner (stream));
 
-	  header_destroy (&hdr, header_get_owner (hdr));
+	  mu_header_destroy (&hdr, mu_header_get_owner (hdr));
 	}
     }
 }

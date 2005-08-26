@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
 int
 mail_inc (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  if (!mailbox_is_updated (mbox))
+  if (!mu_mailbox_is_updated (mbox))
     {
-      mailbox_messages_count (mbox, &total);
+      mu_mailbox_messages_count (mbox, &total);
       fprintf (ofile, _("New mail has arrived.\n"));
     }
   else

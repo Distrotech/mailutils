@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -400,13 +401,13 @@ addr_cmp (void *item, void *data)
   size_t i, count;
   int rc = 0;
   
-  address_get_count (a, &count);
+  mu_address_get_count (a, &count);
   for (i = 1; rc == 0 && i <= count; i++)
     {
       char *str;
-      if (address_aget_email (a, i, &str))
+      if (mu_address_aget_email (a, i, &str))
 	continue;
-      rc = address_contains_email (b, str);
+      rc = mu_address_contains_email (b, str);
       free (str);
     }
   return rc;
@@ -415,22 +416,22 @@ addr_cmp (void *item, void *data)
 static int
 addrlist_lookup (list_t list, address_t addr)
 {
-  return list_do (list, addr_cmp, addr);
+  return mu_list_do (list, addr_cmp, addr);
 }
 
 static int
 addr_free (void *item, void *data)
 {
   address_t addr = item;
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
   return 0;
 }
 
 static void
 addrlist_destroy (list_t *list)
 {
-  list_do (*list, addr_free, NULL);
-  list_destroy (list);
+  mu_list_do (*list, addr_free, NULL);
+  mu_list_destroy (list);
 }
 
 /* Execute pre-compiled format on message msg with number msgno.
@@ -452,7 +453,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   mach.width = width - 1; /* Count the newline */
   mach.pc = 1;
   obstack_init (&mach.stk);
-  list_create (&mach.addrlist);
+  mu_list_create (&mach.addrlist);
 
   reset_fmt_defaults (&mach);
   
@@ -515,7 +516,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    header_t hdr = NULL;
 	    char *value = NULL;
 	    message_get_header (mach.message, &hdr);
-	    header_aget_value_unfold (hdr, strobj_ptr (&mach.arg_str), &value);
+	    mu_header_aget_value_unfold (hdr, strobj_ptr (&mach.arg_str), &value);
 	    strobj_free (&mach.arg_str);
 	    if (value)
 	      {
@@ -539,8 +540,8 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 
 	    strobj_free (&mach.arg_str);
 	    message_get_body (mach.message, &body);
-	    body_size (body, &size);
-	    body_get_stream (body, &stream);
+	    mu_body_size (body, &size);
+	    mu_body_get_stream (body, &stream);
 	    if (size == 0 || !stream)
 	      break;
 	    if (size > rest)
@@ -627,7 +628,7 @@ mh_format_str (mh_format_t *fmt, char *str, size_t width, char **pret)
   if (message_create (&msg, NULL))
     return -1;
   message_get_header (msg, &hdr);
-  header_set_value (hdr, "text", str, 1);
+  mu_header_set_value (hdr, "text", str, 1);
   rc = mh_format (fmt, msg, 1, width, pret);
   message_destroy (&msg, NULL);
   return rc;
@@ -1515,14 +1516,14 @@ builtin_addr (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     strobj_create (&mach->arg_str, buf);
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     pers       addr     string   the personal name**/
@@ -1534,12 +1535,12 @@ builtin_pers (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_personal (addr, 1, buf, sizeof buf, &n) == 0
+  if (mu_address_get_personal (addr, 1, buf, sizeof buf, &n) == 0
       && n > 1)
     {
       char *p;
@@ -1547,10 +1548,10 @@ builtin_pers (struct mh_machine *mach)
       strobj_create (&mach->arg_str, p);
       free (p);
     }
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
-/* FIXME: address_get_comments never returns any comments. */
+/* FIXME: mu_address_get_comments never returns any comments. */
 /*     note       addr     string   commentary text*/
 static void
 builtin_note (struct mh_machine *mach)
@@ -1560,14 +1561,14 @@ builtin_note (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_comments (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_comments (addr, 1, buf, sizeof buf, &n) == 0)
     strobj_create (&mach->arg_str, buf);
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     mbox       addr     string   the local mailbox**/
@@ -1579,19 +1580,19 @@ builtin_mbox (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     {
       char *p = strchr (buf, '@');
       if (p)
 	*p = 0;
       strobj_create (&mach->arg_str, p);
     }
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     mymbox     addr     integer  the user's addresses? (0=no,1=yes)*/
@@ -1603,12 +1604,12 @@ builtin_mymbox (struct mh_machine *mach)
   char buf[80];
   
   mach->arg_num = 0;
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  if (mu_address_create (&addr, strobj_ptr (&mach->arg_str)))
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     mach->arg_num = mh_is_my_name (buf);
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     host       addr     string   the host domain**/
@@ -1620,18 +1621,18 @@ builtin_host (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     {
       char *p = strchr (buf, '@');
       if (p)
 	strobj_create (&mach->arg_str, p+1);
     }
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     nohost     addr     integer  no host was present**/
@@ -1643,16 +1644,16 @@ builtin_nohost (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     mach->arg_num = strchr (buf, '@') != NULL;
   else
     mach->arg_num = 0;
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     type       addr     integer  host type* (0=local,1=network,
@@ -1665,12 +1666,12 @@ builtin_type (struct mh_machine *mach)
   char buf[80];
   int rc;
 
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
 
-  if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
+  if (mu_address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     {
       if (strchr (buf, '@'))
 	mach->arg_num = 1;
@@ -1681,7 +1682,7 @@ builtin_type (struct mh_machine *mach)
     }
   else
     mach->arg_num = 2;
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     path       addr     string   any leading host route**/
@@ -1693,13 +1694,13 @@ builtin_path (struct mh_machine *mach)
   char buf[80];
   int rc;
   
-  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
   strobj_free (&mach->arg_str);
   if (rc)
     return;
-  if (address_get_route (addr, 1, buf, sizeof buf, &n))
+  if (mu_address_get_route (addr, 1, buf, sizeof buf, &n))
     strobj_create (&mach->arg_str, buf);
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
 }
 
 /*     ingrp      addr     integer  address was inside a group**/
@@ -1731,41 +1732,41 @@ builtin_formataddr (struct mh_machine *mach)
   
   if (strobj_len (&mach->reg_str) == 0)
     dest = NULL;
-  else if (address_create (&dest, strobj_ptr (&mach->reg_str)))
+  else if (mu_address_create (&dest, strobj_ptr (&mach->reg_str)))
     return;
     
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  if (mu_address_create (&addr, strobj_ptr (&mach->arg_str)))
     {
-      address_destroy (&dest);
+      mu_address_destroy (&dest);
       return;
     }
 
-  address_get_count (addr, &num);
+  mu_address_get_count (addr, &num);
   for (i = 1; i <= num; i++)
     {
-      if (address_aget_email (addr, i, &buf) == 0)
+      if (mu_address_aget_email (addr, i, &buf) == 0)
 	{
 	  if ((rcpt_mask & RCPT_ME) || !mh_is_my_name (buf))
 	    {
 	      address_t subaddr;
-	      address_get_nth (addr, i, &subaddr);
+	      mu_address_get_nth (addr, i, &subaddr);
 	      if (!addrlist_lookup (mach->addrlist, subaddr))
 		{
-		  list_append (mach->addrlist, subaddr);
-		  address_union (&dest, subaddr);
+		  mu_list_append (mach->addrlist, subaddr);
+		  mu_address_union (&dest, subaddr);
 		}
 	      else
-		address_destroy (&subaddr);
+		mu_address_destroy (&subaddr);
 	    }
 	  free (buf);
 	}
     }
 
-  if (address_to_string (dest, NULL, 0, &size) == 0)
+  if (mu_address_to_string (dest, NULL, 0, &size) == 0)
     {
       strobj_realloc (&mach->reg_str, size + 1);
-      address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
-      address_destroy (&dest);
+      mu_address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
+      mu_address_destroy (&dest);
     }
 }
 
@@ -1812,7 +1813,7 @@ builtin_isreply (struct mh_machine *mach)
       char *value = NULL;
       message_get_header (mach->message, &hdr);
       
-      header_aget_value (hdr, MU_HEADER_SUBJECT, &value);
+      mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &value);
       rc = munre_subject (value, NULL);
       free (value);
     }

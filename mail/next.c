@@ -42,7 +42,7 @@ mail_next (int argc, char **argv)
 	}
 
       message_get_attribute (msg, &attr);
-      if (!attribute_is_userflag (attr, MAIL_ATTRIBUTE_SHOWN))
+      if (!mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SHOWN))
 	{
 	  util_do_command ("print");
 	  return 0;

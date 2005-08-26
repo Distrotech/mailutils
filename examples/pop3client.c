@@ -2,7 +2,7 @@
    GNU Mailutils pop3 functions.  This application interactively allows users
    to contact a pop3 server.
 
-   Copyright (C) 2003, 2004 Free Software Foundation
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -406,14 +406,14 @@ com_capa (char *arg ARG_UNUSED)
 
   if (status == 0)
     {
-      for (iterator_first (iterator);
-	   !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+	   !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
 	{
 	  char *capa = NULL;
-	  iterator_current (iterator, (void **) &capa);
+	  mu_iterator_current (iterator, (void **) &capa);
 	  printf ("Capa: %s\n", (capa) ? capa : "");
 	}
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -428,15 +428,15 @@ com_uidl (char *arg)
       status = mu_pop3_uidl_all (pop3, &uidl_iterator);
       if (status == 0)
 	{
-	  for (iterator_first (uidl_iterator);
-	       !iterator_is_done (uidl_iterator);
-	       iterator_next (uidl_iterator))
+	  for (mu_iterator_first (uidl_iterator);
+	       !mu_iterator_is_done (uidl_iterator);
+	       mu_iterator_next (uidl_iterator))
 	    {
 	      char *uidl = NULL;
-	      iterator_current (uidl_iterator, (void **) &uidl);
+	      mu_iterator_current (uidl_iterator, (void **) &uidl);
 	      printf ("UIDL: %s\n", (uidl) ? uidl : "");
 	    }
-	  iterator_destroy (&uidl_iterator);
+	  mu_iterator_destroy (&uidl_iterator);
 	}
     }
   else
@@ -461,15 +461,15 @@ com_list (char *arg)
       status = mu_pop3_list_all (pop3, &list_iterator);
       if (status == 0)
 	{
-	  for (iterator_first (list_iterator);
-	       !iterator_is_done (list_iterator);
-	       iterator_next (list_iterator))
+	  for (mu_iterator_first (list_iterator);
+	       !mu_iterator_is_done (list_iterator);
+	       mu_iterator_next (list_iterator))
 	    {
 	      char *list = NULL;
-	      iterator_current (list_iterator, (void **) &list);
+	      mu_iterator_current (list_iterator, (void **) &list);
 	      printf ("LIST: %s\n", (list) ? list : "");
 	    }
-	  iterator_destroy (&list_iterator);
+	  mu_iterator_destroy (&list_iterator);
 	}
     }
   else

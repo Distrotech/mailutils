@@ -1,5 +1,6 @@
 /* argcv.c - simple functions for parsing input based on whitespace
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +24,17 @@
 #include <ctype.h>
 #include <errno.h>
 #include <mailutils/argcv.h>
+
+/* Keep mailutils namespace clean */
+#define argcv_get            mu_argcv_get 
+#define argcv_get_n          mu_argcv_get_n 
+#define argcv_string         mu_argcv_string
+#define argcv_free           mu_argcv_free  
+#define argcv_unquote_char   mu_argcv_unquote_char
+#define argcv_quote_char     mu_argcv_quote_char  
+#define argcv_quoted_length  mu_argcv_quoted_length
+#define argcv_unquote_copy   mu_argcv_unquote_copy 
+#define argcv_quote_copy     mu_argcv_quote_copy     
 
 /*
  * takes a string and splits it into several strings, breaking at ' '

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,7 +52,7 @@ static int   get_pass         (url_t, const char *, const char *, char**);
 static int   get_user         (url_t, const char *, char **);
 
 int
-wicket_create (wicket_t *pwicket, const char *filename)
+mu_wicket_create (wicket_t *pwicket, const char *filename)
 {
   struct stat st;
 
@@ -76,7 +77,7 @@ wicket_create (wicket_t *pwicket, const char *filename)
 }
 
 void
-wicket_destroy (wicket_t *pwicket)
+mu_wicket_destroy (wicket_t *pwicket)
 {
   if (pwicket && *pwicket)
     {
@@ -89,7 +90,7 @@ wicket_destroy (wicket_t *pwicket)
 }
 
 int
-wicket_get_filename (wicket_t wicket, char *filename, size_t len,
+mu_wicket_get_filename (wicket_t wicket, char *filename, size_t len,
 		     size_t *pwriten)
 {
  size_t n;
@@ -102,7 +103,7 @@ wicket_get_filename (wicket_t wicket, char *filename, size_t len,
 }
 
 int
-wicket_set_filename (wicket_t wicket, const char *filename)
+mu_wicket_set_filename (wicket_t wicket, const char *filename)
 {
   if (wicket == NULL)
     return EINVAL;
@@ -115,7 +116,7 @@ wicket_set_filename (wicket_t wicket, const char *filename)
 }
 
 int
-wicket_set_ticket (wicket_t wicket, int get_ticket
+mu_wicket_set_ticket (wicket_t wicket, int get_ticket
 		   (wicket_t, const char *, const char *, ticket_t *))
 {
   if (wicket == NULL)
@@ -126,7 +127,7 @@ wicket_set_ticket (wicket_t wicket, int get_ticket
 }
 
 int
-wicket_get_ticket (wicket_t wicket, ticket_t *pticket, const char *user,
+mu_wicket_get_ticket (wicket_t wicket, ticket_t *pticket, const char *user,
 		   const char *type)
 {
   if (wicket == NULL || pticket == NULL)
@@ -144,27 +145,27 @@ static int
 myticket_create (ticket_t *pticket, const char *user, const char *pass, const char *filename)
 {
   struct myticket_data *mdata;
-  int status = ticket_create (pticket, NULL);
+  int status = mu_ticket_create (pticket, NULL);
   if (status != 0)
     return status;
 
   mdata = calloc (1, sizeof *mdata);
   if (mdata == NULL)
     {
-      ticket_destroy (pticket, NULL);
+      mu_ticket_destroy (pticket, NULL);
       return ENOMEM;
     }
 
-  ticket_set_destroy (*pticket, myticket_destroy, NULL);
-  ticket_set_pop (*pticket, myticket_pop, NULL);
-  ticket_set_data (*pticket, mdata, NULL);
+  mu_ticket_set_destroy (*pticket, myticket_destroy, NULL);
+  mu_ticket_set_pop (*pticket, myticket_pop, NULL);
+  mu_ticket_set_data (*pticket, mdata, NULL);
 
   if (filename)
     {
       mdata->filename = strdup (filename);
       if (mdata->filename == NULL)
 	{
-	  ticket_destroy (pticket, NULL);
+	  mu_ticket_destroy (pticket, NULL);
 	  status = ENOMEM;
 	  return status;
 	}
@@ -175,7 +176,7 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass, const ch
       mdata->user = strdup (user);
       if (mdata->user == NULL)
 	{
-	  ticket_destroy (pticket, NULL);
+	  mu_ticket_destroy (pticket, NULL);
 	  status = ENOMEM;
 	  return status;
 	}
@@ -186,7 +187,7 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass, const ch
       mdata->pass = strdup (pass);
       if (mdata->pass == NULL)
 	{
-	  ticket_destroy (pticket, NULL);
+	  mu_ticket_destroy (pticket, NULL);
 	  status = ENOMEM;
 	  return status;
 	}
@@ -201,7 +202,7 @@ myticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
   struct myticket_data *mdata = NULL;
   int e = 0;
 
-  ticket_get_data (ticket, (void **)&mdata);
+  mu_ticket_get_data (ticket, (void **)&mdata);
   if (challenge &&
     (
       strstr (challenge, "ass") != NULL ||
@@ -240,7 +241,7 @@ static void
 myticket_destroy (ticket_t ticket)
 {
   struct myticket_data *mdata = NULL;
-  ticket_get_data (ticket, (void **)&mdata);
+  mu_ticket_get_data (ticket, (void **)&mdata);
   if (mdata)
     {
       if (mdata->user)

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,17 +122,17 @@ ali_print_name_list (list_t list, int off)
   iterator_t itr;
   char *item;
   
-  list_get_iterator (list, &itr);
+  mu_list_get_iterator (list, &itr);
   
   if (list_mode)
     {
-      iterator_first (itr);
-      iterator_current (itr, (void **)&item);
+      mu_iterator_first (itr);
+      mu_iterator_current (itr, (void **)&item);
       printf ("%s\n", item);
-      for (iterator_next (itr); !iterator_is_done (itr); iterator_next (itr))
+      for (mu_iterator_next (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  int len;
-	  iterator_current (itr, (void **)&item);
+	  mu_iterator_current (itr, (void **)&item);
 	  len = off + strlen (item);
 	  printf ("%*.*s\n", len, len, item);
 	}
@@ -142,20 +142,20 @@ ali_print_name_list (list_t list, int off)
       int ncol = getcols ();
       int n = off;
       
-      iterator_first (itr);
+      mu_iterator_first (itr);
 
       for (;;)
 	{
 	  int len;
 
-	  iterator_current (itr, (void **)&item);
+	  mu_iterator_current (itr, (void **)&item);
 	  len = strlen (item) + 2;
 	  if (n + len > ncol)
 	    n = printf ("\n ");
 
 	  len = printf ("%s", item);
-	  iterator_next (itr);
-	  if (!iterator_is_done (itr))
+	  mu_iterator_next (itr);
+	  if (!mu_iterator_is_done (itr))
 	    len += printf (", ");
 	  else
 	    break;
@@ -163,7 +163,7 @@ ali_print_name_list (list_t list, int off)
 	}
       printf ("\n");
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
 
 static int
@@ -218,7 +218,7 @@ main (int argc, char **argv)
 	      if (mh_alias_get (argv[i], &al) == 0)
 		{
 		  ali_print_alias (NULL, al, NULL);
-		  list_destroy (&al);
+		  mu_list_destroy (&al);
 		}
 	      else
 		ali_print_name (argv[i]);
@@ -242,7 +242,7 @@ main (int argc, char **argv)
 	      if (mh_alias_get_alias (argv[i], &nl) == 0)
 		{
 		  ali_print_name_list (nl, 0);
-		  list_destroy (&nl);
+		  mu_list_destroy (&nl);
 		}
 	      else
 		printf ("%s\n", argv[i]);

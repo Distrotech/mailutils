@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 
+   2005  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -218,7 +219,7 @@ main (int argc, char **argv)
 
   if (daemon_param.pidfile)
     {
-      daemon_create_pidfile (daemon_param.pidfile);
+      mu_daemon_create_pidfile (daemon_param.pidfile);
     }
 
   /* Check TLS environment, i.e. cert and key files */

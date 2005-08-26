@@ -48,9 +48,9 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
      currently selected mailbox without doing an expunge.  */
   if (mbox)
     {
-      mailbox_save_attributes (mbox);
-      mailbox_close (mbox);
-      mailbox_destroy (&mbox);
+      mu_mailbox_save_attributes (mbox);
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox);
       /* Destroy the old uid table.  */
       imap4d_sync ();
     }
@@ -60,8 +60,8 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Couldn't open mailbox");
 
-  if ((status = mailbox_create (&mbox, mailbox_name)) == 0
-      && (status = mailbox_open (mbox, flags)) == 0)
+  if ((status = mu_mailbox_create (&mbox, mailbox_name)) == 0
+      && (status = mu_mailbox_open (mbox, flags)) == 0)
     {
       select_flags = flags;
       state = STATE_SEL;
@@ -97,10 +97,10 @@ imap4d_select_status ()
     return 0; /* FIXME: this should be something! */
 
   if ((status = util_uidvalidity (mbox, &uidvalidity))
-      || (status = mailbox_uidnext (mbox, &uidnext))
-      || (status = mailbox_messages_count (mbox, &count))
-      || (status = mailbox_messages_recent (mbox, &recent))
-      || (status = mailbox_message_unseen (mbox, &unseen)))
+      || (status = mu_mailbox_uidnext (mbox, &uidnext))
+      || (status = mu_mailbox_messages_count (mbox, &count))
+      || (status = mu_mailbox_messages_recent (mbox, &recent))
+      || (status = mu_mailbox_message_unseen (mbox, &unseen)))
     return status;
 
   /* This outputs EXISTS and RECENT responses */

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@ imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
   const char *msg = NULL;
   int status, flags;
   
-  mailbox_get_flags (mbox, &flags);
+  mu_mailbox_get_flags (mbox, &flags);
   if ((flags & MU_STREAM_READ) == 0)
     {
-      status = mailbox_flush (mbox, 1);
+      status = mu_mailbox_flush (mbox, 1);
       if (status)
 	{
 	  syslog (LOG_ERR,
@@ -44,13 +44,13 @@ imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
   
   /* No messages are removed, and no error is given, if the mailbox is
      selected by an EXAMINE command or is otherwise selected read-only.  */
-  status = mailbox_close (mbox);
+  status = mu_mailbox_close (mbox);
   if (status)
     {
       syslog (LOG_ERR, _("closing mailbox failed: %s"), mu_strerror (status));
       msg = "closing mailbox failed";
     }
-  mailbox_destroy (&mbox);
+  mu_mailbox_destroy (&mbox);
 
   if (msg)
     return util_finish (command, RESP_NO, msg);

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ die (mailbox_t mbox, char *msg, int status)
 {
   url_t url = NULL;
   
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   if (emacs_mode)
     mu_error (_("%s:mailbox `%s': %s: %s"),
 	      mu_errname (status),
@@ -121,7 +121,7 @@ lock_mailbox (mailbox_t mbox)
   locker_t lock;
   int status;
   
-  status = mailbox_get_locker (mbox, &lock);
+  status = mu_mailbox_get_locker (mbox, &lock);
   if (status)
     die (mbox, _("Cannot retrieve locker"), status);
       
@@ -129,7 +129,7 @@ lock_mailbox (mailbox_t mbox)
     /* Remote mailboxes have no lockers */
     return;
 
-  status = locker_lock (lock);
+  status = mu_locker_lock (lock);
 
   if (status)
     die (mbox, _("Cannot lock"), status);
@@ -140,14 +140,14 @@ lock_mailbox (mailbox_t mbox)
 void
 password_destroy (ticket_t t)
 {
-  char *p = ticket_get_owner (t);
+  char *p = mu_ticket_get_owner (t);
   free (p);
 }
 
 int
 password_pop (ticket_t t, url_t u, const char *challenge, char **ppwd)
 {
-  char *p = ticket_get_owner (t);
+  char *p = mu_ticket_get_owner (t);
   *ppwd = strdup (p);
   return 0;
 }
@@ -161,18 +161,18 @@ attach_passwd_ticket (mailbox_t mbx, char *passwd)
   ticket_t t;
   int rc;
   
-  ticket_create (&t, p);
-  ticket_set_destroy (t, password_destroy, p);
-  ticket_set_pop (t, password_pop, p);
+  mu_ticket_create (&t, p);
+  mu_ticket_set_destroy (t, password_destroy, p);
+  mu_ticket_set_pop (t, password_pop, p);
 
-  if ((rc = mailbox_get_folder (mbx, &folder)))
-    die (mbx, _("mailbox_get_folder failed"), rc);
+  if ((rc = mu_mailbox_get_folder (mbx, &folder)))
+    die (mbx, _("mu_mailbox_get_folder failed"), rc);
 
-  if ((rc = folder_get_authority (folder, &auth)))
-    die (mbx, _("folder_get_authority failed"), rc);
+  if ((rc = mu_folder_get_authority (folder, &auth)))
+    die (mbx, _("mu_folder_get_authority failed"), rc);
 
-  if (auth && (rc = authority_set_ticket (auth, t)))
-    die (mbx, _("authority_set_ticket failed"), rc);
+  if (auth && (rc = mu_authority_set_ticket (auth, t)))
+    die (mbx, _("mu_authority_set_ticket failed"), rc);
 }
 
 
@@ -181,7 +181,7 @@ attach_passwd_ticket (mailbox_t mbx, char *passwd)
 void
 open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 {
-  int status = mailbox_create_default (mbx, name);
+  int status = mu_mailbox_create_default (mbx, name);
 
   if (status)
     {
@@ -197,7 +197,7 @@ open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 
   if (passwd)
     attach_passwd_ticket (*mbx, passwd);
-  status = mailbox_open (*mbx, flags);
+  status = mu_mailbox_open (*mbx, flags);
   if (status)
     die (*mbx, _("Cannot open"), status);
   lock_mailbox (*mbx);
@@ -209,13 +209,13 @@ move_message (mailbox_t src, mailbox_t dst, size_t msgno)
   int rc;
   message_t msg;
 
-  if ((rc = mailbox_get_message (src, msgno, &msg)) != 0)
+  if ((rc = mu_mailbox_get_message (src, msgno, &msg)) != 0)
     {
       fprintf (stderr, _("Cannot read message %lu: %s\n"),
 	       (unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
-  if ((rc = mailbox_append_message (dst, msg)) != 0)
+  if ((rc = mu_mailbox_append_message (dst, msg)) != 0)
     {
       fprintf (stderr, _("Cannot append message %lu: %s\n"),
 	       (unsigned long) msgno, mu_strerror (rc));
@@ -225,7 +225,7 @@ move_message (mailbox_t src, mailbox_t dst, size_t msgno)
     {
       attribute_t attr;
       message_get_attribute (msg, &attr);
-      attribute_set_deleted (attr);
+      mu_attribute_set_deleted (attr);
     }
   return rc;
 }
@@ -302,7 +302,7 @@ main (int argc, char **argv)
   
   open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
   
-  mailbox_messages_count (source, &total);
+  mu_mailbox_messages_count (source, &total);
   if (reverse_order)
     {
       for (i = total; rc == 0 && i > 0; i--)
@@ -315,10 +315,10 @@ main (int argc, char **argv)
     }
   if (rc)
     return rc;
-  mailbox_flush (source, 1);
-  mailbox_close (source);
-  mailbox_destroy (&source);
-  mailbox_close (dest);
-  mailbox_destroy (&dest);
+  mu_mailbox_flush (source, 1);
+  mu_mailbox_close (source);
+  mu_mailbox_destroy (&source);
+  mu_mailbox_close (dest);
+  mu_mailbox_destroy (&dest);
   return 0;
 }

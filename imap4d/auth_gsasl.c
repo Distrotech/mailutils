@@ -33,7 +33,7 @@ create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
 {
   int rc;
   
-  rc = gsasl_stream_create (newstr, transport, sess_ctx, flags);
+  rc = mu_gsasl_stream_create (newstr, transport, sess_ctx, flags);
   if (rc)
     {
       syslog (LOG_ERR, _("cannot create SASL stream: %s"),
@@ -269,9 +269,9 @@ cb_retrieve (Gsasl_session_ctx *ctx,
   if (username && *username == 0 && authentication_id)
     *username = strdup (authentication_id);
 
-  if (gsasl_cram_md5_pwd && access (gsasl_cram_md5_pwd, R_OK) == 0)
+  if (mu_gsasl_cram_md5_pwd && access (mu_gsasl_cram_md5_pwd, R_OK) == 0)
     {
-      int rc = gsasl_md5pwd_get_password (gsasl_cram_md5_pwd,
+      int rc = gsasl_md5pwd_get_password (mu_gsasl_cram_md5_pwd,
 					  authentication_id,
 					  key, keylen);
       if (rc == GSASL_OK)

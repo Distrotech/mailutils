@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -143,32 +143,32 @@ main (int argc, char *argv[])
   argp_err_exit_status = MU_DL_EX_ERROR;
   argp_parse (&argp, argc, argv, 0, NULL, NULL);
 
-  if ((err = locker_create (&locker, file, flags)))
+  if ((err = mu_locker_create (&locker, file, flags)))
     {
       if (debug)
 	fprintf (stderr, _("Creating locker failed: %s\n"), mu_strerror (err));
       return MU_DL_EX_ERROR;
     }
 
-  locker_set_flags (locker, flags);
+  mu_locker_set_flags (locker, flags);
 
   if (force != 0)
-    locker_set_expire_time (locker, force);
+    mu_locker_set_expire_time (locker, force);
 
   if (retries != 0)
-    locker_set_retries (locker, retries);
+    mu_locker_set_retries (locker, retries);
 
   if (setegid (mailgid) < 0)
     return MU_DL_EX_ERROR;
 
   if (unlock)
-    err = locker_remove_lock (locker);
+    err = mu_locker_remove_lock (locker);
   else
-    err = locker_lock (locker);
+    err = mu_locker_lock (locker);
 
   setegid(usergid);
 
-  locker_destroy (&locker);
+  mu_locker_destroy (&locker);
 
   if (debug && err)
     fprintf (stderr,

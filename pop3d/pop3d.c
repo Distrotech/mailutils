@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -242,7 +243,7 @@ main (int argc, char **argv)
 
   if (daemon_param.pidfile)
     {
-      daemon_create_pidfile (daemon_param.pidfile);
+      mu_daemon_create_pidfile (daemon_param.pidfile);
     }
 
   /* Check TLS environment, i.e. cert and key files */
@@ -383,11 +384,11 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	 the lock may be stale because downloading on slow modem.
 	 We rely on the size of the mailbox for the check and bail if out
 	 of sync.  */
-      if (state == TRANSACTION && !mailbox_is_updated (mbox))
+      if (state == TRANSACTION && !mu_mailbox_is_updated (mbox))
 	{
 	  static off_t mailbox_size;
 	  off_t newsize = 0;
-	  mailbox_get_size (mbox, &newsize);
+	  mu_mailbox_get_size (mbox, &newsize);
 	  /* Did we shrink?  First time save the size.  */
 	  if (!mailbox_size)
 	    mailbox_size = newsize;

@@ -274,12 +274,12 @@ do_search (struct parsebuf *pb)
 {
   size_t count = 0;
   
-  mailbox_messages_count (mbox, &count);
+  mu_mailbox_messages_count (mbox, &count);
 
   util_send ("* SEARCH");
   for (pb->msgno = 1; pb->msgno <= count; pb->msgno++)
     {
-      if (mailbox_get_message (mbox, pb->msgno, &pb->msg) == 0
+      if (mu_mailbox_get_message (mbox, pb->msgno, &pb->msg) == 0
 	  && search_run (pb))
 	{
 	  if (pb->isuid)
@@ -665,7 +665,7 @@ _scan_header (struct parsebuf *pb, char *name, char *value)
   header_t header = NULL;
   
   message_get_header (pb->msg, &header);
-  if (!header_get_value (header, name, buffer, sizeof(buffer), NULL))
+  if (!mu_header_get_value (header, name, buffer, sizeof(buffer), NULL))
     {
       return util_strcasestr (buffer, value) != NULL;
     }
@@ -680,7 +680,7 @@ _header_date (struct parsebuf *pb, time_t *timep)
   header_t header = NULL;
   
   message_get_header (pb->msg, &header);
-  if (!header_get_value (header, "Date", buffer, sizeof(buffer), NULL)
+  if (!mu_header_get_value (header, "Date", buffer, sizeof(buffer), NULL)
       && util_parse_822_date (buffer, timep))
     return 0;
   return 1;
@@ -696,10 +696,10 @@ _scan_header_all (struct parsebuf *pb, char *text)
   int i, rc;
 
   message_get_header (pb->msg, &header);
-  header_get_field_count (header, &fcount);
+  mu_header_get_field_count (header, &fcount);
   for (i = rc = 0; i < fcount; i++)
     {
-      if (header_get_field_value (header, i, buffer, sizeof(buffer), NULL))
+      if (mu_header_get_field_value (header, i, buffer, sizeof(buffer), NULL))
 	rc = util_strcasestr (buffer, text) != NULL;
     }
   return rc;
@@ -718,9 +718,9 @@ _scan_body (struct parsebuf *pb, char *text)
   int rc;
   
   message_get_body (pb->msg, &body);
-  body_size (body, &size);
-  body_lines (body, &lines);
-  body_get_stream (body, &stream);
+  mu_body_size (body, &size);
+  mu_body_lines (body, &lines);
+  mu_body_get_stream (body, &stream);
   rc = 0;
   while (rc == 0
 	 && stream_read (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
@@ -794,7 +794,7 @@ cond_before (struct parsebuf *pb)
   envelope_t env;
   
   message_get_envelope (pb->msg, &env);
-  envelope_date (env, buffer, sizeof (buffer), NULL);
+  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time < t);
 }                   
@@ -820,7 +820,7 @@ cond_from (struct parsebuf *pb)
   int rc = 0;
   
   message_get_envelope (pb->msg, &env);
-  if (envelope_sender (env, buffer, sizeof (buffer), NULL) == 0)
+  if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL) == 0)
     rc = util_strcasestr (buffer, s) != NULL;
   _search_push (pb, _scan_header (pb, "from", s));
 }                     
@@ -863,7 +863,7 @@ cond_on (struct parsebuf *pb)
   envelope_t env;
   
   message_get_envelope (pb->msg, &env);
-  envelope_date (env, buffer, sizeof (buffer), NULL);
+  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
 }                       
@@ -907,7 +907,7 @@ cond_since (struct parsebuf *pb)
   envelope_t env;
   
   message_get_envelope (pb->msg, &env);
-  envelope_date (env, buffer, sizeof (buffer), NULL);
+  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time >= t);
 }                    

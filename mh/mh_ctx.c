@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,7 +70,7 @@ mh_context_read (mh_context_t *ctx)
   fread (blurb, st.st_size, 1, fp);
   fclose (fp);
   
-  if ((status = header_create (&ctx->header, blurb, st.st_size, NULL)) != 0) 
+  if ((status = mu_header_create (&ctx->header, blurb, st.st_size, NULL)) != 0) 
     free (blurb);
 
   return status;
@@ -94,7 +95,7 @@ mh_context_write (mh_context_t *ctx)
       return MU_ERR_FAILURE;
     }
   
-  header_get_stream (ctx->header, &stream);
+  mu_header_get_stream (ctx->header, &stream);
 
   while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
@@ -124,7 +125,7 @@ mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 {
   char *p;
 
-  if (!ctx || header_aget_value (ctx->header, name, &p))
+  if (!ctx || mu_header_aget_value (ctx->header, name, &p))
     p = (char *) defval; 
   return p;
 }
@@ -137,7 +138,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
   if (!ctx->header)
     {
       int rc;
-      if ((rc = header_create (&ctx->header, NULL, 0, NULL)) != 0)
+      if ((rc = mu_header_create (&ctx->header, NULL, 0, NULL)) != 0)
 	{
 	  mh_error (_("Cannot create context %s: %s"),
 		    ctx->name,
@@ -145,7 +146,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
 	  return 1;
 	}
     }
-  return header_set_value (ctx->header, name, value, 1);
+  return mu_header_set_value (ctx->header, name, value, 1);
 }
 
 int
@@ -156,13 +157,13 @@ mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
   
   if (!ctx)
     return EINVAL;
-  header_get_field_count (ctx->header, &nfields);
+  mu_header_get_field_count (ctx->header, &nfields);
   for (i = 1; i <= nfields && rc == 0; i++)
     {
       char *name, *value;
       
-      header_aget_field_name (ctx->header, i, &name);
-      header_aget_field_value (ctx->header, i, &value);
+      mu_header_aget_field_name (ctx->header, i, &name);
+      mu_header_aget_field_value (ctx->header, i, &value);
       rc = fp (name, value, data);
       free (name);
       free (data);

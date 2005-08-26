@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -826,7 +826,7 @@ parse822_address_list (address_t * a, const char *s)
 
   if (rc)
     {
-      address_destroy (a);
+      mu_address_destroy (a);
     }
 
   return rc;
@@ -934,7 +934,7 @@ parse822_group (const char **p, const char *e, address_t * a)
     {
       *p = save;
 
-      address_destroy (asave);
+      mu_address_destroy (asave);
     }
 
   return rc;
@@ -969,7 +969,7 @@ parse822_mail_box (const char **p, const char *e, address_t * a)
       /* but if something else is wrong, destroy the address */
       if (rc)
 	{
-	  address_destroy (a);
+	  mu_address_destroy (a);
 	  *p = save;
 	}
 
@@ -1048,7 +1048,7 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
     {
       *p = save;
 
-      address_destroy (a);
+      mu_address_destroy (a);
 
       return rc;
     }

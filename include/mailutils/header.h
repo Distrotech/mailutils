@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -72,64 +72,64 @@ extern "C" {
   
 /* Mime support header attribute */
 
-extern int header_create (header_t *, const char *, size_t, void *);
-extern void header_destroy (header_t *, void *);
-extern void *header_get_owner (header_t);
+extern int mu_header_create (header_t *, const char *, size_t, void *);
+extern void mu_header_destroy (header_t *, void *);
+extern void *mu_header_get_owner (header_t);
 
-extern int header_is_modified (header_t);
-extern int header_clear_modified (header_t);
+extern int mu_header_is_modified (header_t);
+extern int mu_header_clear_modified (header_t);
 
 /* Set and get field values by field name. */
-extern int header_set_value (header_t, const char *, const char *, int);
-extern int header_get_value (header_t, const char *, char *, size_t, size_t *);
-extern int header_aget_value (header_t, const char *, char **);
+extern int mu_header_set_value (header_t, const char *, const char *, int);
+extern int mu_header_get_value (header_t, const char *, char *, size_t, size_t *);
+extern int mu_header_aget_value (header_t, const char *, char **);
 
 /* Get field values as an address_t. */
-extern int header_get_address (header_t, const char *, address_t *);
+extern int mu_header_get_address (header_t, const char *, address_t *);
 
 /* Set and get field values by field index (1-based). */
-extern int header_get_field_count (header_t, size_t *count);
-extern int header_get_field_value (header_t, size_t index, char *, size_t, size_t *);
-extern int header_get_field_name (header_t, size_t index, char *, size_t, size_t *);
-extern int header_aget_field_value (header_t, size_t index, char **);
-extern int header_aget_field_name (header_t, size_t index, char **);
+extern int mu_header_get_field_count (header_t, size_t *count);
+extern int mu_header_get_field_value (header_t, size_t index, char *, size_t, size_t *);
+extern int mu_header_get_field_name (header_t, size_t index, char *, size_t, size_t *);
+extern int mu_header_aget_field_value (header_t, size_t index, char **);
+extern int mu_header_aget_field_name (header_t, size_t index, char **);
 
-extern int header_get_value_unfold (header_t header, const char *name,
+extern int mu_header_get_value_unfold (header_t header, const char *name,
 			  	    char *buffer, size_t buflen,
 				    size_t *pn);
-extern int header_aget_value_unfold (header_t header, const char *name,
+extern int mu_header_aget_value_unfold (header_t header, const char *name,
 				     char **pvalue);
-extern int header_get_field_value_unfold (header_t header, size_t num,
+extern int mu_header_get_field_value_unfold (header_t header, size_t num,
 					  char *buf, size_t buflen,
 					  size_t *nwritten);
-extern int header_aget_field_value_unfold (header_t header, size_t num,
+extern int mu_header_aget_field_value_unfold (header_t header, size_t num,
 					   char **pvalue);
 
-extern int header_get_stream (header_t, stream_t *);
-extern int header_set_stream (header_t, stream_t, void *);
+extern int mu_header_get_stream (header_t, stream_t *);
+extern int mu_header_set_stream (header_t, stream_t, void *);
 
-extern int header_size (header_t, size_t *);
-extern int header_lines (header_t, size_t *);
+extern int mu_header_size (header_t, size_t *);
+extern int mu_header_lines (header_t, size_t *);
 
 
-extern int header_set_set_value (header_t,
+extern int mu_header_set_set_value (header_t,
 	      int (*_set_value) (header_t, const char *, const char *, int), 
               void *);
 
-extern int header_set_get_value (header_t,
+extern int mu_header_set_get_value (header_t,
       int (*_get_value) (header_t, const char *, char *, size_t, size_t *),
 				 void *);
-extern int header_set_get_fvalue (header_t,
+extern int mu_header_set_get_fvalue (header_t,
       int (*_get_value) (header_t, const char *, char *, size_t, size_t *),
 				       void *);
 
-extern int header_set_size (header_t, 
+extern int mu_header_set_size (header_t, 
       int (*_size) (header_t, size_t *), void *);
 
-extern int header_set_lines (header_t,
+extern int mu_header_set_lines (header_t,
       int (*_lines) (header_t, size_t *), void *);
 
-extern int header_set_fill (header_t,
+extern int mu_header_set_fill (header_t,
       int (*_fill) (header_t, char *, size_t, off_t, size_t *), void *owner);
 
   

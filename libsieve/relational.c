@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,8 +40,8 @@ DCL(le,<=)
 
 static struct reltest_tab {
   char *name;
-  sieve_relcmp_t test;
-  sieve_relcmpn_t stest;
+  mu_sieve_relcmp_t test;
+  mu_sieve_relcmpn_t stest;
 } testtab[] = {
 #define DEF(name) { #name, CAT2(op_,name), CAT3(op_,name,_size_t) }
 
@@ -65,8 +65,8 @@ _relcmp_lookup (const char *str)
 }
 
 int
-sieve_str_to_relcmp (const char *str,
-		      sieve_relcmp_t *test, sieve_relcmpn_t *stest)
+mu_sieve_str_to_relcmp (const char *str,
+		      mu_sieve_relcmp_t *test, mu_sieve_relcmpn_t *stest)
 {
   struct reltest_tab *t = _relcmp_lookup (str);
   if (t)
@@ -80,20 +80,20 @@ sieve_str_to_relcmp (const char *str,
   return 1;
 }
 
-sieve_relcmp_t
-sieve_get_relcmp (sieve_machine_t mach, list_t tags)
+mu_sieve_relcmp_t
+mu_sieve_get_relcmp (mu_sieve_machine_t mach, list_t tags)
 {
-  sieve_value_t *arg;
-  sieve_relcmp_t test = NULL;
+  mu_sieve_value_t *arg;
+  mu_sieve_relcmp_t test = NULL;
   
-  if (sieve_tag_lookup (tags, "value", &arg) == 0)
+  if (mu_sieve_tag_lookup (tags, "value", &arg) == 0)
     return op_ne;
-  sieve_str_to_relcmp (arg->v.string, &test, NULL);
+  mu_sieve_str_to_relcmp (arg->v.string, &test, NULL);
   return test;
 }
 
 int
-sieve_require_relational (sieve_machine_t mach, const char *name)
+mu_sieve_require_relational (mu_sieve_machine_t mach, const char *name)
 {
   /* noop */
   return 0;

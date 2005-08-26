@@ -23,7 +23,7 @@
 #endif
 
 SCM
-scm_makenum (unsigned long val)
+mu_scm_makenum (unsigned long val)
 #ifndef HAVE_SCM_LONG2NUM
 {
   if (SCM_FIXABLE ((long) val))
@@ -101,7 +101,7 @@ register_format (const char *name)
 }
     
 
-SCM_DEFINE (mu_register_format, "mu-register-format", 0, 0, 1,
+SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 	    (SCM REST),
 "Registers desired mailutils formats. Takes any number of arguments.\n"
 "Allowed arguments are:\n"
@@ -113,7 +113,7 @@ SCM_DEFINE (mu_register_format, "mu-register-format", 0, 0, 1,
 "  \"smtp\"       smtp mailer\n"
 "\n"
 "If called without arguments, registers all available formats\n")
-#define FUNC_NAME s_mu_register_format
+#define FUNC_NAME s_scm_mu_register_format
 {
   SCM status;
 
@@ -163,7 +163,7 @@ mu_scm_init ()
   _mu_scm_mailer = scm_makfrom0str ("sendmail:" _PATH_SENDMAIL);
   mu_set_variable ("mu-mailer", _mu_scm_mailer);
 
-  _mu_scm_debug = scm_makenum(0);
+  _mu_scm_debug = mu_scm_makenum(0);
   mu_set_variable ("mu-debug", _mu_scm_debug);
 
   _mu_scm_package = scm_makfrom0str (PACKAGE);

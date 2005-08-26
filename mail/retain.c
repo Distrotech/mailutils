@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ process_list (int argc, char **argv,
 {
   if (argc == 1)
     {
-      if (list_is_empty (*list))
+      if (mu_list_is_empty (*list))
 	fprintf (ofile, _(msg));
       else
 	util_slist_print (*list, 1);
@@ -145,21 +145,21 @@ get_sender_address (message_t msg)
   if (message_get_header (msg, &header))
     return NULL;
   
-  if (!sender_headers || list_get_iterator (sender_headers, &itr))
+  if (!sender_headers || mu_list_get_iterator (sender_headers, &itr))
     return NULL;
 
-  for (iterator_first (itr); !addr && !iterator_is_done (itr);
-       iterator_next (itr))
+  for (mu_iterator_first (itr); !addr && !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       char *name;
       char *buf = NULL;
       
-      iterator_current (itr, (void **)&name);
-      if (header_aget_value (header, name, &buf) == 0)
-	address_create (&addr, buf);
+      mu_iterator_current (itr, (void **)&name);
+      if (mu_header_aget_value (header, name, &buf) == 0)
+	mu_address_create (&addr, buf);
       free (buf);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return addr;
 }
   

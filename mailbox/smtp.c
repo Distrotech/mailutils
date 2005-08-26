@@ -148,11 +148,11 @@ CLEAR_STATE (smtp_t smtp)
     }
 
   if (smtp->rcpt_to != smtp->argto)
-    address_destroy (&smtp->rcpt_to);
+    mu_address_destroy (&smtp->rcpt_to);
 
   smtp->rcpt_to = NULL;
 
-  address_destroy (&smtp->rcpt_bcc);
+  mu_address_destroy (&smtp->rcpt_bcc);
 
   smtp->rcpt_to_count = 0;
   smtp->rcpt_bcc_count = 0;
@@ -484,7 +484,7 @@ message_set_header_value (message_t msg, const char *field, const char *value)
   if ((status = message_get_header (msg, &hdr)))
     return status;
 
-  if ((status = header_set_value (hdr, field, value, 1)))
+  if ((status = mu_header_set_value (hdr, field, value, 1)))
     return status;
 
   return status;
@@ -500,7 +500,7 @@ message_has_bcc (message_t msg)
   if ((status = message_get_header (msg, &header)))
     return status;
 
-  status = header_get_value (header, MU_HEADER_BCC, NULL, 0, &bccsz);
+  status = mu_header_get_value (header, MU_HEADER_BCC, NULL, 0, &bccsz);
 
   /* MU_ERR_NOENT, or there was a Bcc: field. */
   return status == MU_ERR_NOENT ? 0 : 1;
@@ -630,7 +630,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 
 	if (smtp->bccing)
 	  addr = smtp->rcpt_bcc;
-	status = address_aget_email (addr, smtp->rcpt_index, &to);
+	status = mu_address_aget_email (addr, smtp->rcpt_index, &to);
 
 	CHECK_ERROR (smtp, status);
 
@@ -709,7 +709,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	CHECK_EAGAIN (smtp, status);
 
 	message_get_header (smtp->msg, &hdr);
-	header_get_stream (hdr, &stream);
+	mu_header_get_stream (hdr, &stream);
 	while ((status = stream_readline (stream, data, sizeof (data),
 					  smtp->offset, &n)) == 0 && n > 0)
 	  {
@@ -750,7 +750,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	  }
 	
 	message_get_body (smtp->msg, &body);
-	body_get_stream (body, &stream);
+	mu_body_get_stream (body, &stream);
 	smtp->offset = 0;
 	while ((status = stream_readline (stream, data, sizeof (data) - 1,
 					  smtp->offset, &n)) == 0 && n > 0)
@@ -825,7 +825,7 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
 	  return status;
 	}
 
-      if ((status = address_aget_email (from, 1, &mail_from)) != 0)
+      if ((status = mu_address_aget_email (from, 1, &mail_from)) != 0)
 	return status;
     }
   else
@@ -835,7 +835,7 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
       if ((status = message_get_header (msg, &header)) != 0)
 	return status;
 
-      status = header_aget_value (header, MU_HEADER_FROM, &from_hdr);
+      status = mu_header_aget_value (header, MU_HEADER_FROM, &from_hdr);
 
       switch (status)
 	{
@@ -851,7 +851,7 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
 			   "mailer_send_message(): using From: %s\n",
 			   from_hdr);
 
-	    if ((status = address_create (&fromaddr, from_hdr)) != 0)
+	    if ((status = mu_address_create (&fromaddr, from_hdr)) != 0)
 	      {
 		free (from_hdr);
 		return status;
@@ -859,20 +859,20 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
 	    if ((status = mailer_check_from (fromaddr)) != 0)
 	      {
 		free (from_hdr);
-		address_destroy (&fromaddr);
+		mu_address_destroy (&fromaddr);
 		MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_ERROR,
 			       "mailer_send_message(): from field %s not valid\n",
 			       from_hdr);
 		return status;
 	      }
-	    if ((status = address_aget_email (fromaddr, 1, &mail_from)) != 0)
+	    if ((status = mu_address_aget_email (fromaddr, 1, &mail_from)) != 0)
 	      {
 		free (from_hdr);
-		address_destroy (&fromaddr);
+		mu_address_destroy (&fromaddr);
 		return status;
 	      }
 	    free (from_hdr);
-	    address_destroy (&fromaddr);
+	    mu_address_destroy (&fromaddr);
 	  }
 	  break;
 
@@ -917,11 +917,11 @@ smtp_address_add (address_t *paddr, const char *value)
   address_t addr = NULL;
   int status;
 
-  status = address_create (&addr, value);
+  status = mu_address_create (&addr, value);
   if (status)
     return status;
-  status = address_union (paddr, addr);
-  address_destroy (&addr);
+  status = mu_address_union (paddr, addr);
+  mu_address_destroy (&addr);
   return status;
 }
 
@@ -953,7 +953,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	  return status;
 	}
       smtp->rcpt_to = to;
-      address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
+      mu_address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
 
       if (status)
 	return status;
@@ -964,7 +964,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
       if ((status = message_get_header (msg, &header)))
 	return status;
 
-      status = header_aget_value (header, MU_HEADER_TO, &value);
+      status = mu_header_aget_value (header, MU_HEADER_TO, &value);
 
       if (status == 0)
 	{
@@ -974,7 +974,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
       else if (status != MU_ERR_NOENT)
 	goto end;
 
-      status = header_aget_value (header, MU_HEADER_CC, &value);
+      status = mu_header_aget_value (header, MU_HEADER_CC, &value);
 
       if (status == 0)
 	{
@@ -984,7 +984,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
       else if (status != MU_ERR_NOENT)
 	goto end;
 
-      status = header_aget_value (header, MU_HEADER_BCC, &value);
+      status = mu_header_aget_value (header, MU_HEADER_BCC, &value);
       if (status == 0)
 	{
 	  smtp_address_add (&smtp->rcpt_bcc, value);
@@ -1005,16 +1005,16 @@ end:
 
   if (status)
     {
-      address_destroy (&smtp->rcpt_to);
-      address_destroy (&smtp->rcpt_bcc);
+      mu_address_destroy (&smtp->rcpt_to);
+      mu_address_destroy (&smtp->rcpt_bcc);
     }
   else
     {
       if (smtp->rcpt_to)
-	address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
+	mu_address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
 
       if (smtp->rcpt_bcc)
-	address_get_count (smtp->rcpt_bcc, &smtp->rcpt_bcc_count);
+	mu_address_get_count (smtp->rcpt_bcc, &smtp->rcpt_bcc_count);
 
       if (smtp->rcpt_to_count + smtp->rcpt_bcc_count == 0)
 	status = MU_ERR_MAILER_NO_RCPT_TO;

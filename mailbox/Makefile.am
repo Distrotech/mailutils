@@ -103,7 +103,7 @@ muerrno.c: errors muerrno.cin
 
 libmailutils_la_DEPENDENCIES = @MU_LTLIBOBJS@
 libmailutils_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
-libmailutils_la_LDFLAGS = -version-info 0:0:0
+libmailutils_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
 ##:## EOF marker for gnulib-sync script. Please, do not remove ##:##
 ## Do not change anything below this line ##

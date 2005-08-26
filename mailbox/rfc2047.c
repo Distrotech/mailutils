@@ -246,7 +246,7 @@ rfc2047_encode (const char *charset, const char *encoding,
   
   stream_sequential_write (input_stream, text, strlen (text));
 
-  rc = filter_create (&output_stream, input_stream,
+  rc = mu_filter_create (&output_stream, input_stream,
 		      encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
   if (rc == 0)
     {

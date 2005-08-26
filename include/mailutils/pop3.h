@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,7 +51,7 @@ extern int  mu_pop3_apop         (mu_pop3_t pop3, const char *name, const char *
 
 extern int  mu_pop3_stls         (mu_pop3_t pop3);
 
-/* It is the responsability of the caller to call iterator_destroy() when done
+/* It is the responsability of the caller to call mu_iterator_destroy() when done
    with the iterator.  The items return by the iterator are of type "const char *",
    no processing is done on the item except the removal of the trailing newline.  */
 extern int  mu_pop3_capa         (mu_pop3_t pop3, iterator_t *iterator);
@@ -60,7 +61,7 @@ extern int  mu_pop3_dele         (mu_pop3_t pop3, unsigned int mesgno);
 extern int  mu_pop3_list         (mu_pop3_t pop3, unsigned int mesgno, size_t *mesg_octet);
 
 /* An iterator is return with the multi-line answer.  It is the responsability of
-   the caller to call iterator_destroy() to dispose of the iterator.  */
+   the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_pop3_list_all     (mu_pop3_t pop3, iterator_t *piterator);
 
 extern int  mu_pop3_noop         (mu_pop3_t pop3);
@@ -85,7 +86,7 @@ extern int  mu_pop3_top          (mu_pop3_t pop3, unsigned int mesgno, unsigned 
    to free() the uild when done.  */
 extern int  mu_pop3_uidl         (mu_pop3_t pop3, unsigned int mesgno, char **puidl);
 /* An iterator is return with the multi-line answer.  It is the responsability of
-   the caller to call iterator_destroy() to dispose of the iterator.  */
+   the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_pop3_uidl_all     (mu_pop3_t pop3, iterator_t *piterator);
 
 extern int  mu_pop3_user         (mu_pop3_t pop3, const char *user);

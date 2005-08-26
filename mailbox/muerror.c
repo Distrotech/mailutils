@@ -51,7 +51,7 @@ mu_syslog_error_printer (const char *fmt, va_list ap)
   return 0;
 }
 
-static error_pfn_t mu_error_printer = mu_default_error_printer;
+static mu_error_pfn_t mu_error_printer = mu_default_error_printer;
 
 int
 mu_verror (const char *fmt, va_list ap)
@@ -76,7 +76,7 @@ mu_error (const char *fmt, ...)
 }
 
 void
-mu_error_set_print (error_pfn_t pfn)
+mu_error_set_print (mu_error_pfn_t pfn)
 {
   mu_error_printer = pfn;
 }

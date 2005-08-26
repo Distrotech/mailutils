@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@
 #include <sieve.h>
 
 void *
-sieve_alloc (size_t size)
+mu_sieve_alloc (size_t size)
 {
   void *p = malloc (size);
   if (!p)
@@ -38,23 +38,23 @@ sieve_alloc (size_t size)
 }
 
 void *
-sieve_palloc (list_t *pool, size_t size)
+mu_sieve_palloc (list_t *pool, size_t size)
 {
   void *p = malloc (size);
   if (p)
     {
-      if (!*pool && list_create (pool))
+      if (!*pool && mu_list_create (pool))
 	{
 	  free (p);
 	  return NULL;
 	}
-      list_append (*pool, p);
+      mu_list_append (*pool, p);
     }
   return p;
 }
 
 char *
-sieve_pstrdup (list_t *pool, const char *str)
+mu_sieve_pstrdup (list_t *pool, const char *str)
 {
   size_t len;
   char *p;
@@ -62,7 +62,7 @@ sieve_pstrdup (list_t *pool, const char *str)
   if (!str)
     return NULL;
   len = strlen (str);
-  p = sieve_palloc (pool, len + 1);
+  p = mu_sieve_palloc (pool, len + 1);
   if (p)
     {
       memcpy (p, str, len);
@@ -72,57 +72,57 @@ sieve_pstrdup (list_t *pool, const char *str)
 }
 
 void *
-sieve_prealloc (list_t *pool, void *ptr, size_t size)
+mu_sieve_prealloc (list_t *pool, void *ptr, size_t size)
 {
   void *newptr;
   
   if (*pool)
-    list_remove (*pool, ptr);
+    mu_list_remove (*pool, ptr);
 
   newptr = realloc (ptr, size);
   if (newptr)
     {
-      if (!*pool && list_create (pool))
+      if (!*pool && mu_list_create (pool))
 	{
 	  free (newptr);
 	  return NULL;
 	}
-      list_append (*pool, newptr);
+      mu_list_append (*pool, newptr);
     }
   return newptr;
 }
 
 void
-sieve_pfree (list_t *pool, void *ptr)
+mu_sieve_pfree (list_t *pool, void *ptr)
 {
 
   if (*pool)
-    list_remove (*pool, ptr);
+    mu_list_remove (*pool, ptr);
   free (ptr);
 }  
 
 void *
-sieve_malloc (sieve_machine_t mach, size_t size)
+mu_sieve_malloc (mu_sieve_machine_t mach, size_t size)
 {
-  return sieve_palloc (&mach->memory_pool, size);
+  return mu_sieve_palloc (&mach->memory_pool, size);
 }
 
 char *
-sieve_mstrdup (sieve_machine_t mach, const char *str)
+mu_sieve_mstrdup (mu_sieve_machine_t mach, const char *str)
 {
-  return sieve_pstrdup (&mach->memory_pool, str);
+  return mu_sieve_pstrdup (&mach->memory_pool, str);
 }
 
 void *
-sieve_mrealloc (sieve_machine_t mach, void *ptr, size_t size)
+mu_sieve_mrealloc (mu_sieve_machine_t mach, void *ptr, size_t size)
 {
-  return sieve_prealloc (&mach->memory_pool, ptr, size);
+  return mu_sieve_prealloc (&mach->memory_pool, ptr, size);
 }
 
 void
-sieve_mfree (sieve_machine_t mach, void *ptr)
+mu_sieve_mfree (mu_sieve_machine_t mach, void *ptr)
 {
-  sieve_pfree (&mach->memory_pool, ptr);
+  mu_sieve_pfree (&mach->memory_pool, ptr);
 }  
 
 static int
@@ -133,18 +133,18 @@ _destroy_item (void *item, void *data)
 }
 
 void
-sieve_slist_destroy (list_t *plist)
+mu_sieve_slist_destroy (list_t *plist)
 {
   if (!plist)
     return;
-  list_do (*plist, _destroy_item, NULL);
-  list_destroy (plist);
+  mu_list_do (*plist, _destroy_item, NULL);
+  mu_list_destroy (plist);
 }
 
-sieve_value_t *
-sieve_value_create (sieve_data_type type, void *data)
+mu_sieve_value_t *
+mu_sieve_value_create (mu_sieve_data_type type, void *data)
 {
-  sieve_value_t *val = sieve_alloc (sizeof (*val));
+  mu_sieve_value_t *val = mu_sieve_alloc (sizeof (*val));
 
   val->type = type;
   switch (type)
@@ -179,11 +179,11 @@ sieve_value_create (sieve_data_type type, void *data)
   return val;
 }
 
-sieve_value_t *
-sieve_value_get (list_t vlist, size_t index)
+mu_sieve_value_t *
+mu_sieve_value_get (list_t vlist, size_t index)
 {
-  sieve_value_t *val = NULL;
-  list_get (vlist, index, (void **)&val);
+  mu_sieve_value_t *val = NULL;
+  mu_list_get (vlist, index, (void **)&val);
   return val;
 }
 
@@ -200,7 +200,7 @@ sieve_compile_error (const char *filename, int linenum, const char *fmt, ...)
 }
 
 void
-sieve_error (sieve_machine_t mach, const char *fmt, ...)
+mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
   
@@ -226,13 +226,13 @@ sieve_error (sieve_machine_t mach, const char *fmt, ...)
 }
 
 void
-sieve_arg_error (sieve_machine_t mach, int n)
+mu_sieve_arg_error (mu_sieve_machine_t mach, int n)
 {
-  sieve_error (mach, _("cannot retrieve argument %d"), n);
+  mu_sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
 
 void
-sieve_debug_internal (sieve_printf_t printer, void *data, const char *fmt, ...)
+sieve_debug_internal (mu_sieve_printf_t printer, void *data, const char *fmt, ...)
 {
   va_list ap;
 
@@ -242,7 +242,7 @@ sieve_debug_internal (sieve_printf_t printer, void *data, const char *fmt, ...)
 }
 
 void
-sieve_debug (sieve_machine_t mach, const char *fmt, ...)
+mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
 
@@ -252,7 +252,7 @@ sieve_debug (sieve_machine_t mach, const char *fmt, ...)
 }
 
 void
-sieve_log_action (sieve_machine_t mach, const char *action,
+mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 		  const char *fmt, ...)
 {
   va_list ap;
@@ -284,7 +284,7 @@ _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 }
 
 const char *
-sieve_type_str (sieve_data_type type)
+mu_sieve_type_str (mu_sieve_data_type type)
 {
   switch (type)
     {
@@ -317,7 +317,7 @@ sieve_type_str (sieve_data_type type)
 }
 
 struct debug_data {
-  sieve_printf_t printer;
+  mu_sieve_printf_t printer;
   void *data;
 };
 
@@ -329,7 +329,7 @@ string_printer (char *s, struct debug_data *dbg)
 }
 
 static int
-value_printer (sieve_value_t *val, struct debug_data *dbg)
+value_printer (mu_sieve_value_t *val, struct debug_data *dbg)
 {
   sieve_print_value (val, dbg->printer, dbg->data);
   sieve_debug_internal (dbg->printer, dbg->data, " ");
@@ -337,14 +337,14 @@ value_printer (sieve_value_t *val, struct debug_data *dbg)
 }
 
 void
-sieve_print_value (sieve_value_t *val, sieve_printf_t printer, void *data)
+sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer, void *data)
 {
   struct debug_data dbg;
 
   dbg.printer = printer;
   dbg.data = data;
 
-  sieve_debug_internal (printer, data, "%s(", sieve_type_str (val->type));
+  sieve_debug_internal (printer, data, "%s(", mu_sieve_type_str (val->type));
   switch (val->type)
     {
     case SVT_VOID:
@@ -361,11 +361,11 @@ sieve_print_value (sieve_value_t *val, sieve_printf_t printer, void *data)
       break;
       
     case SVT_STRING_LIST:
-      list_do (val->v.list, (list_action_t*) string_printer, &dbg);
+      mu_list_do (val->v.list, (mu_list_action_t*) string_printer, &dbg);
       break;
 
     case SVT_VALUE_LIST:
-      list_do (val->v.list, (list_action_t*) value_printer, &dbg);
+      mu_list_do (val->v.list, (mu_list_action_t*) value_printer, &dbg);
 
     case SVT_POINTER:
       sieve_debug_internal (printer, data, "%p", val->v.ptr);
@@ -374,9 +374,9 @@ sieve_print_value (sieve_value_t *val, sieve_printf_t printer, void *data)
 } 
 
 void
-sieve_print_value_list (list_t list, sieve_printf_t printer, void *data)
+sieve_print_value_list (list_t list, mu_sieve_printf_t printer, void *data)
 {
-  sieve_value_t val;
+  mu_sieve_value_t val;
   
   val.type = SVT_VALUE_LIST;
   val.v.list = list;
@@ -384,7 +384,7 @@ sieve_print_value_list (list_t list, sieve_printf_t printer, void *data)
 }
 
 static int
-tag_printer (sieve_runtime_tag_t *val, struct debug_data *dbg)
+tag_printer (mu_sieve_runtime_tag_t *val, struct debug_data *dbg)
 {
   sieve_debug_internal (dbg->printer, dbg->data, "%s", val->tag);
   if (val->arg)
@@ -398,20 +398,20 @@ tag_printer (sieve_runtime_tag_t *val, struct debug_data *dbg)
 }
 
 void
-sieve_print_tag_list (list_t list, sieve_printf_t printer, void *data)
+sieve_print_tag_list (list_t list, mu_sieve_printf_t printer, void *data)
 {
   struct debug_data dbg;
 
   dbg.printer = printer;
   dbg.data = data;
-  list_do (list, (list_action_t*) tag_printer, &dbg);
+  mu_list_do (list, (mu_list_action_t*) tag_printer, &dbg);
 }
 
 static int
 tag_finder (void *item, void *data)
 {
-  sieve_runtime_tag_t *val = item;
-  sieve_runtime_tag_t *target = data;
+  mu_sieve_runtime_tag_t *val = item;
+  mu_sieve_runtime_tag_t *target = data;
 
   if (strcmp (val->tag, target->tag) == 0)
     {
@@ -422,12 +422,12 @@ tag_finder (void *item, void *data)
 }
 
 int
-sieve_tag_lookup (list_t taglist, char *name, sieve_value_t **arg)
+mu_sieve_tag_lookup (list_t taglist, char *name, mu_sieve_value_t **arg)
 {
-  sieve_runtime_tag_t t;
+  mu_sieve_runtime_tag_t t;
 
   t.tag = name;
-  if (taglist && list_do (taglist, tag_finder, &t))
+  if (taglist && mu_list_do (taglist, tag_finder, &t))
     {
       if (arg)
 	*arg = t.arg;
@@ -447,22 +447,22 @@ sieve_mark_deleted (message_t msg, int deleted)
   if (!rc)
     {
       if (deleted)
-	rc = attribute_set_deleted (attr);
+	rc = mu_attribute_set_deleted (attr);
       else
-	rc = attribute_unset_deleted (attr);
+	rc = mu_attribute_unset_deleted (attr);
     }
 
   return rc;
 }
 
 int
-sieve_vlist_do (sieve_value_t *val, list_action_t *ac, void *data)
+mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t *ac, void *data)
 {
   switch (val->type)
     {
     case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
-      return list_do (val->v.list, ac, data);
+      return mu_list_do (val->v.list, ac, data);
       
     default:
       return -1;
@@ -470,18 +470,18 @@ sieve_vlist_do (sieve_value_t *val, list_action_t *ac, void *data)
 }
 
 struct comp_data {
-  sieve_value_t *val;
-  sieve_comparator_t comp;
-  sieve_relcmp_t test;
-  sieve_retrieve_t retr;
+  mu_sieve_value_t *val;
+  mu_sieve_comparator_t comp;
+  mu_sieve_relcmp_t test;
+  mu_sieve_retrieve_t retr;
   void *data;
   size_t count;
 };
 
 struct comp_data2 {
   char *sample;
-  sieve_comparator_t comp;
-  sieve_relcmp_t test;
+  mu_sieve_comparator_t comp;
+  mu_sieve_relcmp_t test;
 };
 
 int
@@ -505,16 +505,16 @@ _comp_action (void *item, void *data)
     if (d.sample)
       {
 	cp->count++;
-        rc = sieve_vlist_do (cp->val, _comp_action2, &d);
+        rc = mu_sieve_vlist_do (cp->val, _comp_action2, &d);
         free (d.sample);
       }
   return rc;
 }
 
 int
-sieve_vlist_compare (sieve_value_t *a, sieve_value_t *b,
-		     sieve_comparator_t comp, sieve_relcmp_t test,
-		     sieve_retrieve_t retr,
+mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
+		     mu_sieve_comparator_t comp, mu_sieve_relcmp_t test,
+		     mu_sieve_retrieve_t retr,
 		     void *data, size_t *count)
 {
   struct comp_data d;
@@ -526,7 +526,7 @@ sieve_vlist_compare (sieve_value_t *a, sieve_value_t *b,
   d.data = data;
   d.val = b;
   d.count = 0;
-  rc = sieve_vlist_do (a, _comp_action, &d);
+  rc = mu_sieve_vlist_do (a, _comp_action, &d);
   if (count)
     *count = d.count;
   return rc;

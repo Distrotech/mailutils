@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ static char *pidfile;
 static pid_t current_pid;
 
 int
-daemon_create_pidfile (const char *filename)
+mu_daemon_create_pidfile (const char *filename)
 {
   char pid_string[10]; /* 32bit PID */
   int fd;
@@ -62,12 +62,12 @@ daemon_create_pidfile (const char *filename)
   write (fd, pid_string, strlen (pid_string));
   close (fd);
   
-  atexit (daemon_remove_pidfile);
+  atexit (mu_daemon_remove_pidfile);
   return 0;
 }
 
 void
-daemon_remove_pidfile (void)
+mu_daemon_remove_pidfile (void)
 {
   if (getpid () == current_pid)
     {

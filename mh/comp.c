@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -156,7 +156,7 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
   char *buffer;
   size_t bufsize, rdsize;
   
-  mailbox_get_message (mbox, n, &msg);
+  mu_mailbox_get_message (mbox, n, &msg);
   message_size (msg, &size);
 
   for (bufsize = size; bufsize > 0 && (buffer = malloc (bufsize)) == 0;

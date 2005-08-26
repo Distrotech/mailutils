@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -193,7 +194,7 @@ parser (int key, char *arg, struct argp_state *state)
 	      break;
 
 	    case 'g':
-	      sieve_yydebug = 1;
+	      mu_sieve_yydebug = 1;
 	      break;
 
 	    case 't':
@@ -289,7 +290,7 @@ syslog_debug_print (mu_debug_t unused, size_t level, const char *fmt,
 
 static void
 stdout_action_log (void *unused,
-		   const sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
@@ -313,7 +314,7 @@ stdout_action_log (void *unused,
 
 static void
 syslog_action_log (void *unused,
-		   const sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
@@ -343,7 +344,7 @@ syslog_action_log (void *unused,
 int
 main (int argc, char *argv[])
 {
-  sieve_machine_t mach;
+  mu_sieve_machine_t mach;
   wicket_t wicket = 0;
   ticket_t ticket = 0;
   mu_debug_t debug = 0;
@@ -359,7 +360,7 @@ main (int argc, char *argv[])
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
 #endif
-  sieve_argp_init ();
+  mu_sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);
 
@@ -369,7 +370,7 @@ main (int argc, char *argv[])
   mu_register_all_formats ();
 
   /* Sieve interpreter setup. */
-  rc = sieve_machine_init (&mach, NULL);
+  rc = mu_sieve_machine_init (&mach, NULL);
   if (rc)
     {
       mu_error (_("Cannot initialize sieve machine: %s"), mu_strerror (rc));
@@ -380,20 +381,20 @@ main (int argc, char *argv[])
     {
       openlog ("sieve", LOG_PID, log_facility);
       mu_error_set_print (mu_syslog_error_printer);
-      sieve_set_debug (mach, sieve_syslog_debug_printer);
+      mu_sieve_set_debug (mach, sieve_syslog_debug_printer);
       if (opts.verbose)
-	sieve_set_logger (mach, syslog_action_log);
+	mu_sieve_set_logger (mach, syslog_action_log);
       debugfp = syslog_debug_print;
     }
   else
     {
-      sieve_set_debug (mach, sieve_stderr_debug_printer);
+      mu_sieve_set_debug (mach, sieve_stderr_debug_printer);
       if (opts.verbose)
-	sieve_set_logger (mach, stdout_action_log);
+	mu_sieve_set_logger (mach, stdout_action_log);
       debugfp = stderr_debug_print;
     }
   
-  rc = sieve_compile (mach, opts.script);
+  rc = mu_sieve_compile (mach, opts.script);
   if (rc)
     return 1;
 
@@ -401,16 +402,16 @@ main (int argc, char *argv[])
   if (opts.compile_only)
     {
       if (opts.compile_only == 2)
-	sieve_disass (mach);
+	mu_sieve_disass (mach);
       return 0;
     }
 
   /* Create a ticket, if we can. */
   if (opts.tickets)
     {
-      if ((rc = wicket_create (&wicket, opts.tickets)) == 0)
+      if ((rc = mu_wicket_create (&wicket, opts.tickets)) == 0)
         {
-          if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
+          if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
             {
               mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
               goto cleanup;
@@ -418,12 +419,12 @@ main (int argc, char *argv[])
         }
       else if (!(opts.tickets_default && errno == ENOENT))
         {
-          mu_error (_("wicket_create `%s' failed: %s"),
+          mu_error (_("mu_wicket_create `%s' failed: %s"),
                     opts.tickets, mu_strerror (rc));
           goto cleanup;
         }
       if (ticket)
-        sieve_set_ticket (mach, ticket);
+        mu_sieve_set_ticket (mach, ticket);
     }
 
   /* Create a debug object, if needed. */
@@ -448,10 +449,10 @@ main (int argc, char *argv[])
 	}
     }
   
-  sieve_set_debug_level (mach, debug, opts.sieve_debug);
+  mu_sieve_set_debug_level (mach, debug, opts.sieve_debug);
     
   /* Create, give a ticket to, and open the mailbox. */
-  if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
+  if ((rc = mu_mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
       if (opts.mbox)
 	mu_error (_("Could not create mailbox `%s': %s"),
@@ -462,9 +463,9 @@ main (int argc, char *argv[])
       goto cleanup;
     }
 
-  if (debug && (rc = mailbox_set_debug (mbox, debug)))
+  if (debug && (rc = mu_mailbox_set_debug (mbox, debug)))
     {
-      mu_error (_("mailbox_set_debug failed: %s"), mu_strerror (rc));
+      mu_error (_("mu_mailbox_set_debug failed: %s"), mu_strerror (rc));
       goto cleanup;
     }
 
@@ -473,24 +474,24 @@ main (int argc, char *argv[])
       folder_t folder = NULL;
       authority_t auth = NULL;
 
-      if ((rc = mailbox_get_folder (mbox, &folder)))
+      if ((rc = mu_mailbox_get_folder (mbox, &folder)))
 	{
-	  mu_error (_("mailbox_get_folder failed: %s"),
+	  mu_error (_("mu_mailbox_get_folder failed: %s"),
 		   mu_strerror (rc));
 	  goto cleanup;
 	}
 
-      if ((rc = folder_get_authority (folder, &auth)))
+      if ((rc = mu_folder_get_authority (folder, &auth)))
 	{
-	  mu_error (_("folder_get_authority failed: %s"),
+	  mu_error (_("mu_folder_get_authority failed: %s"),
 		   mu_strerror (rc));
 	  goto cleanup;
 	}
 
       /* Authentication-less folders don't have authorities. */
-      if (auth && (rc = authority_set_ticket (auth, ticket)))
+      if (auth && (rc = mu_authority_set_ticket (auth, ticket)))
 	{
-	  mu_error (_("authority_set_ticket failed: %s"),
+	  mu_error (_("mu_authority_set_ticket failed: %s"),
 		   mu_strerror (rc));
 	  goto cleanup;
 	}
@@ -498,9 +499,9 @@ main (int argc, char *argv[])
 
   /* Open the mailbox read-only if we aren't going to modify it. */
   if (opts.sieve_debug & MU_SIEVE_DRY_RUN)
-    rc = mailbox_open (mbox, MU_STREAM_READ);
+    rc = mu_mailbox_open (mbox, MU_STREAM_READ);
   else
-    rc = mailbox_open (mbox, MU_STREAM_RDWR);
+    rc = mu_mailbox_open (mbox, MU_STREAM_RDWR);
 
   if (rc != 0)
     {
@@ -510,12 +511,12 @@ main (int argc, char *argv[])
       else
 	mu_error (_("Opening default mailbox failed: %s"),
 		  mu_strerror (rc));
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       goto cleanup;
     }
 
   /* Process the mailbox */
-  rc = sieve_mailbox (mach, mbox);
+  rc = mu_sieve_mailbox (mach, mbox);
 
 cleanup:
   if (mbox && !(opts.sieve_debug & MU_SIEVE_DRY_RUN))
@@ -526,7 +527,7 @@ cleanup:
          succesfully on it, so we always do an expunge, it will delete
          any messages that were marked DELETED even if execution failed
          on a later message. */
-      if ((e = mailbox_expunge (mbox)) != 0)
+      if ((e = mu_mailbox_expunge (mbox)) != 0)
 	{
 	  if (opts.mbox)
 	    mu_error (_("Expunge on mailbox `%s' failed: %s"),
@@ -540,9 +541,9 @@ cleanup:
 	rc = e;
     }
 
-  sieve_machine_destroy (&mach);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_sieve_machine_destroy (&mach);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   mu_debug_destroy (&debug, mach);
 
   return rc ? 1 : 0;

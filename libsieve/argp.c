@@ -23,8 +23,8 @@
 #include <mailutils/argp.h>
 #include <string.h>
 
-list_t sieve_include_path = NULL;
-list_t sieve_library_path = NULL;
+list_t mu_sieve_include_path = NULL;
+list_t mu_sieve_library_path = NULL;
 
 static error_t sieve_argp_parser (int key, char *arg, struct argp_state *state);
 
@@ -57,22 +57,22 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'I':
-      plist = &sieve_include_path;
+      plist = &mu_sieve_include_path;
       break;
 
     case 'L':
-      plist = &sieve_library_path;
+      plist = &mu_sieve_library_path;
       break;
 
     case ARGP_KEY_INIT:
 #ifdef SIEVE_MODDIR
-      plist = &sieve_library_path;
+      plist = &mu_sieve_library_path;
       arg = SIEVE_MODDIR;
 #endif
       break;
       
     case ARGP_KEY_FINI:
-      sieve_load_add_path (sieve_library_path);
+      sieve_load_add_path (mu_sieve_library_path);
       break;
 			   
     default:
@@ -83,7 +83,7 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
     {
       if (!*plist)
 	{
-	  int rc = list_create (plist);
+	  int rc = mu_list_create (plist);
 	  if (rc)
 	    {
 	      argp_error (state, "can't create list: %s",
@@ -91,14 +91,14 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
 	      exit (1);
 	    }
 	}
-      list_append (*plist, strdup (arg));
+      mu_list_append (*plist, strdup (arg));
     }
 	  
   return 0;
 }
 
 void
-sieve_argp_init ()
+mu_sieve_argp_init ()
 {
   if (mu_register_capa ("sieve", &sieve_argp_child))
     {

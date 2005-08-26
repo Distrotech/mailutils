@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -179,7 +180,7 @@ _mailbox_imap_init (mailbox_t mailbox)
   /* Set our properties.  */
   {
     property_t property = NULL;
-    mailbox_get_property (mailbox, &property);
+    mu_mailbox_get_property (mailbox, &property);
     property_set_value (property, "TYPE", "IMAP4", 1);
   }
 
@@ -202,7 +203,7 @@ free_subparts (msg_imap_t msg_imap)
   if (msg_imap->parts)
     free (msg_imap->parts);
   if (msg_imap->fheader)
-    header_destroy (&msg_imap->fheader, NULL);
+    mu_header_destroy (&msg_imap->fheader, NULL);
   if (msg_imap->internal_date)
     free (msg_imap->internal_date);
   free(msg_imap);
@@ -251,7 +252,7 @@ mailbox_imap_open (mailbox_t mailbox, int flags)
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
   folder_t folder = f_imap->folder;
-  struct folder_list folders = { 0, 0 };
+  struct mu_folder_list folders = { 0, 0 };
 
   /* m_imap must have been created during mailbox initialization. */
   assert (mailbox->data);
@@ -259,7 +260,7 @@ mailbox_imap_open (mailbox_t mailbox, int flags)
 
   mailbox->flags = flags;
 
-  if ((status = folder_open (mailbox->folder, flags)))
+  if ((status = mu_folder_open (mailbox->folder, flags)))
     return status;
 
   /* We might not have to SELECT the mailbox, but we need to know it
@@ -273,7 +274,7 @@ mailbox_imap_open (mailbox_t mailbox, int flags)
       m_imap->state = IMAP_LIST;
 
     case IMAP_LIST:
-      status = folder_list (folder, NULL, m_imap->name, &folders);
+      status = mu_folder_list (folder, NULL, m_imap->name, &folders);
       if (status != 0)
 	{
 	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
@@ -373,7 +374,7 @@ mailbox_imap_close (mailbox_t mailbox)
 
   /* If we are not the selected mailbox, just close the stream.  */
   if (m_imap != f_imap->selected)
-    return folder_close (mailbox->folder);
+    return mu_folder_close (mailbox->folder);
 
   /* Select first.  */
   status = imap_messages_count (mailbox, NULL);
@@ -433,7 +434,7 @@ mailbox_imap_close (mailbox_t mailbox)
   f_imap->selected = NULL;
 
   f_imap->state = IMAP_NO_STATE;
-  return folder_close (mailbox->folder);
+  return mu_folder_close (mailbox->folder);
 }
 
 /* Construction of the message_t, nothing else is done then this setup.  To
@@ -534,29 +535,29 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   /* Create the header.  */
   {
     header_t header = NULL;
-    if ((status = header_create (&header, NULL, 0,  msg)) != 0)
+    if ((status = mu_header_create (&header, NULL, 0,  msg)) != 0)
       {
         message_destroy (&msg, msg_imap);
         return status;
       }
-    header_set_fill (header, imap_header_read, msg);
-    header_set_get_value (header, imap_header_get_value, msg);
-    header_set_get_fvalue (header, imap_header_get_fvalue, msg);
+    mu_header_set_fill (header, imap_header_read, msg);
+    mu_header_set_get_value (header, imap_header_get_value, msg);
+    mu_header_set_get_fvalue (header, imap_header_get_fvalue, msg);
     message_set_header (msg, header, msg_imap);
   }
 
   /* Create the attribute.  */
   {
     attribute_t attribute;
-    status = attribute_create (&attribute, msg);
+    status = mu_attribute_create (&attribute, msg);
     if (status != 0)
       {
         message_destroy (&msg, msg_imap);
         return status;
       }
-    attribute_set_get_flags (attribute, imap_attr_get_flags, msg);
-    attribute_set_set_flags (attribute, imap_attr_set_flags, msg);
-    attribute_set_unset_flags (attribute, imap_attr_unset_flags, msg);
+    mu_attribute_set_get_flags (attribute, imap_attr_get_flags, msg);
+    mu_attribute_set_set_flags (attribute, imap_attr_set_flags, msg);
+    mu_attribute_set_unset_flags (attribute, imap_attr_unset_flags, msg);
     message_set_attribute (msg, attribute, msg_imap);
   }
 
@@ -564,10 +565,10 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   {
     body_t body = NULL;
     stream_t stream = NULL;
-    if ((status = body_create (&body, msg)) != 0
+    if ((status = mu_body_create (&body, msg)) != 0
         || (status = stream_create (&stream, mailbox->flags, body)) != 0)
       {
-        body_destroy (&body, msg);
+        mu_body_destroy (&body, msg);
         stream_destroy (&stream, body);
         message_destroy (&msg, msg_imap);
         return status;
@@ -575,23 +576,23 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_body_read, body);
     stream_set_get_transport2 (stream, imap_body_get_transport2, body);
-    body_set_size (body, imap_body_size, msg);
-    body_set_lines (body, imap_body_lines, msg);
-    body_set_stream (body, stream, msg);
+    mu_body_set_size (body, imap_body_size, msg);
+    mu_body_set_lines (body, imap_body_lines, msg);
+    mu_body_set_stream (body, stream, msg);
     message_set_body (msg, body, msg_imap);
   }
 
   /* Set the envelope.  */
   {
     envelope_t envelope= NULL;
-    status = envelope_create (&envelope, msg);
+    status = mu_envelope_create (&envelope, msg);
     if (status != 0)
       {
         message_destroy (&msg, msg_imap);
         return status;
       }
-    envelope_set_sender (envelope, imap_envelope_sender, msg);
-    envelope_set_date (envelope, imap_envelope_date, msg);
+    mu_envelope_set_sender (envelope, imap_envelope_sender, msg);
+    mu_envelope_set_date (envelope, imap_envelope_date, msg);
     message_set_envelope (msg, envelope, msg_imap);
   }
 
@@ -655,7 +656,7 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   /* FIXME: It is debatable if we should reconnect when the connection
      timeout or die.  Probably for timeout client should ping i.e. send
      a NOOP via imap_is_updated() function to keep the connection alive.  */
-  status = folder_open (mailbox->folder, mailbox->flags);
+  status = mu_folder_open (mailbox->folder, mailbox->flags);
   if (status != 0)
     return status;
 
@@ -925,7 +926,7 @@ imap_append_message (mailbox_t mailbox, message_t msg)
   /* FIXME: It is debatable if we should reconnect when the connection
    timeout or die.  For timeout client should ping i.e. send
    a NOOP via imap_is_updated() function to keep the connection alive.  */
-  status = folder_open (mailbox->folder, mailbox->flags);
+  status = mu_folder_open (mailbox->folder, mailbox->flags);
   if (status != 0)
     return status;
 
@@ -984,7 +985,7 @@ imap_append_message0 (mailbox_t mailbox, message_t msg)
 	  attribute_t attribute = NULL;
 	  int flags = 0;
 	  message_get_attribute (msg, &attribute);
-	  attribute_get_flags (attribute, &flags);
+	  mu_attribute_get_flags (attribute, &flags);
 	  status = flags_to_string (&abuf, flags);
 	  if (status != 0)
 	    return status;
@@ -1026,7 +1027,7 @@ imap_append_message0 (mailbox_t mailbox, message_t msg)
 	    }
 	}
 
-	/* FIXME: we need to get the envelope_date and use it.
+	/* FIXME: we need to get the mu_envelope_date and use it.
 	   currently it is ignored.  */
 
 	/* Get the total size, assuming that it is in UNIX format.  */
@@ -1115,7 +1116,7 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
   /* FIXME: It is debatable if we should reconnect when the connection
    timeout or die.  For timeout client should ping i.e. send
    a NOOP via imap_is_updated() function to keep the connection alive.  */
-  status = folder_open (mailbox->folder, mailbox->flags);
+  status = mu_folder_open (mailbox->folder, mailbox->flags);
   if (status != 0)
     return status;
 
@@ -1236,7 +1237,7 @@ imap_message_lines (message_t msg, size_t *plines)
 
 /* Sometimes a message is just a place container for other sub parts.
    In those cases imap bodystructure does not set the message_size aka
-   the body_size.  But we can calculate it since the message_size
+   the mu_body_size.  But we can calculate it since the message_size
    is the sum of its subparts.  */
 static int
 imap_submessage_size (msg_imap_t msg_imap, size_t *psize)
@@ -1275,7 +1276,7 @@ imap_message_size (message_t msg, size_t *psize)
 
   /* If there is a parent it means it is a sub message, IMAP does not give
      the full size of mime messages, so the message_size retrieved from
-     doing a bodystructure represents rather the body_size.  */
+     doing a bodystructure represents rather the mu_body_size.  */
   if (msg_imap->parent)
     return imap_submessage_size (msg_imap, psize);
 
@@ -1432,7 +1433,7 @@ imap_get_part (message_t msg, size_t partno, message_t *pmsg)
 	    {
 	      header_t header;
 	      message_get_header (message, &header);
-	      header_set_get_value (header, NULL, message);
+	      mu_header_set_get_value (header, NULL, message);
 	      message_set_stream (message, NULL, msg_imap->parts[partno - 1]);
 	      /* message_set_size (message, NULL, msg_imap->parts[partno - 1]); */
 	      msg_imap->parts[partno - 1]->message = message;
@@ -1454,7 +1455,7 @@ static int
 imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
 		      size_t *plen)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   header_t header;
   int status;
 
@@ -1462,18 +1463,18 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
     return 0;
 
   message_get_header (msg, &header);
-  status = header_get_value (header, MU_HEADER_SENDER, buffer, buflen, plen);
+  status = mu_header_get_value (header, MU_HEADER_SENDER, buffer, buflen, plen);
   if (status == EAGAIN)
     return status;
   else if (status != 0)
-    status = header_get_value (header, MU_HEADER_FROM, buffer, buflen, plen);
+    status = mu_header_get_value (header, MU_HEADER_FROM, buffer, buflen, plen);
   if (status == 0)
     {
       address_t address;
-      if (address_create (&address, buffer) == 0)
+      if (mu_address_create (&address, buffer) == 0)
 	{
-	  address_get_email (address, 1, buffer, buflen, plen);
-	  address_destroy (&address);
+	  mu_address_get_email (address, 1, buffer, buflen, plen);
+	  mu_address_destroy (&address);
 	}
     }
   else if (status != EAGAIN)
@@ -1489,7 +1490,7 @@ static int
 imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 		    size_t *plen)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1571,7 +1572,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 static int
 imap_attr_get_flags (attribute_t attribute, int *pflags)
 {
-  message_t msg = attribute_get_owner (attribute);
+  message_t msg = mu_attribute_get_owner (attribute);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1610,7 +1611,7 @@ imap_attr_get_flags (attribute_t attribute, int *pflags)
 static int
 imap_attr_set_flags (attribute_t attribute, int flag)
 {
-  message_t msg = attribute_get_owner (attribute);
+  message_t msg = mu_attribute_get_owner (attribute);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1661,7 +1662,7 @@ imap_attr_set_flags (attribute_t attribute, int flag)
 static int
 imap_attr_unset_flags (attribute_t attribute, int flag)
 {
-  message_t msg = attribute_get_owner (attribute);
+  message_t msg = mu_attribute_get_owner (attribute);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1710,7 +1711,7 @@ static int
 imap_header_get_value (header_t header, const char *field, char * buffer,
 		       size_t buflen, size_t *plen)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1790,7 +1791,7 @@ static int
 imap_header_get_fvalue (header_t header, const char *field, char * buffer,
 			size_t buflen, size_t *plen)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1805,7 +1806,7 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
 
   /* Do we all ready have the headers.  */
   if (msg_imap->fheader)
-    return header_get_value (msg_imap->fheader, field, buffer, buflen, plen);
+    return mu_header_get_value (msg_imap->fheader, field, buffer, buflen, plen);
 
   /* We are caching the must use headers.  */
   if (f_imap->state == IMAP_NO_STATE)
@@ -1830,9 +1831,9 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
   status = fetch_operation (f_imap, msg_imap, value, len, &len);
   if (status == 0)
     {
-      status = header_create (&msg_imap->fheader, value, len, NULL);
+      status = mu_header_create (&msg_imap->fheader, value, len, NULL);
       if (status == 0)
-	status =  header_get_value (msg_imap->fheader, field, buffer,
+	status =  mu_header_get_value (msg_imap->fheader, field, buffer,
 				    buflen, plen);
     }
   free (value);
@@ -1843,7 +1844,7 @@ static int
 imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 		  size_t *plen)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -1908,13 +1909,13 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 static int
 imap_body_size (body_t body, size_t *psize)
 {
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
   if (psize && msg_imap)
     {
       /* If there is a parent it means it is a sub message, IMAP does not give
 	 the full size of mime messages, so the message_size was retrieve from
-	 doing a bodystructure and represents rather the body_size.  */
+	 doing a bodystructure and represents rather the mu_body_size.  */
       if (msg_imap->parent)
 	{
 	  *psize = msg_imap->message_size - msg_imap->message_lines;
@@ -1936,7 +1937,7 @@ imap_body_size (body_t body, size_t *psize)
 static int
 imap_body_lines (body_t body, size_t *plines)
 {
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
   if (plines && msg_imap)
     *plines = msg_imap->body_lines;
@@ -1949,7 +1950,7 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
 		size_t *plen)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
@@ -2018,7 +2019,7 @@ imap_body_get_transport2 (stream_t stream, mu_transport_t *pin,
                          mu_transport_t *pout)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
   return imap_get_transport2 (msg_imap, pin, pout);
 }

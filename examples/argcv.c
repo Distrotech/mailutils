@@ -38,13 +38,13 @@ main(int argc, char **argv)
       char **v;
       char *s;
 
-      status = argcv_get (buf, delim, comment, &c, &v);
+      status = mu_argcv_get (buf, delim, comment, &c, &v);
       if (status)
 	{
 	  fprintf (stderr, "cannot parse: %s\n", mu_strerror (status));
 	  continue;
 	}
-      status = argcv_string (c, v, &s);
+      status = mu_argcv_string (c, v, &s);
       if (status)
 	fprintf (stderr, "cannot create string: %s\n", mu_strerror (status));
       else
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 	  printf ("%d: %s\n", c, s);
 	  free (s);
 	}
-      argcv_free (c, v);
+      mu_argcv_free (c, v);
     } 
   free (buf);
   exit (0);

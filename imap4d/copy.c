@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -81,11 +81,11 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 
   /* If the destination mailbox does not exist, a server should return
      an error.  */
-  status = mailbox_create_default (&cmbox, mailbox_name);
+  status = mu_mailbox_create_default (&cmbox, mailbox_name);
   if (status == 0)
     {
       /* It SHOULD NOT automatifcllly create the mailbox. */
-      status = mailbox_open (cmbox, MU_STREAM_RDWR);
+      status = mu_mailbox_open (cmbox, MU_STREAM_RDWR);
       if (status == 0)
 	{
 	  size_t i;
@@ -93,12 +93,12 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 	    {
 	      message_t msg = NULL;
 	      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-	      if (msgno && mailbox_get_message (mbox, msgno, &msg) == 0)
-		mailbox_append_message (cmbox, msg);
+	      if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
+		mu_mailbox_append_message (cmbox, msg);
 	    }
-	  mailbox_close (cmbox);
+	  mu_mailbox_close (cmbox);
 	}
-      mailbox_destroy (&cmbox);
+      mu_mailbox_destroy (&cmbox);
     }
   free (set);
   free (mailbox_name);

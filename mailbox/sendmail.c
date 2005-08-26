@@ -213,7 +213,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 	if (from)
 	  {
-	    if ((status = address_aget_email (from, 1, &emailfrom)) != 0)
+	    if ((status = mu_address_aget_email (from, 1, &emailfrom)) != 0)
 	      goto OPEN_STATE_CLEANUP;
 
 	    if (!emailfrom)
@@ -233,7 +233,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	
 	if (to)
 	  {
-	    status = address_get_email_count (to, &tocount);
+	    status = mu_address_get_email_count (to, &tocount);
 
 	    assert (!status);
 	    assert (tocount);
@@ -286,12 +286,12 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	    int i = 1;
 	    size_t count = 0;
 
-	    address_get_count (to, &count);
+	    mu_address_get_count (to, &count);
 
 	    for (; i <= count; i++)
 	      {
 		char *email = 0;
-		if ((status = address_aget_email (to, i, &email)) != 0)
+		if ((status = mu_address_aget_email (to, i, &email)) != 0)
 		  goto OPEN_STATE_CLEANUP;
 		if (!email)
 		  {
@@ -371,7 +371,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	int exit_status;
 	
 	message_get_header (msg, &hdr);
-	header_get_stream (hdr, &stream);
+	mu_header_get_stream (hdr, &stream);
 
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending headers...\n");
 	while ((status = stream_readline (stream, buffer, sizeof (buffer),
@@ -409,7 +409,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	  }
 	
 	message_get_body (msg, &body);
-	body_get_stream (body, &stream);
+	mu_body_get_stream (body, &stream);
 
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending body...\n");
 	offset = 0;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@ struct _msg_info
   size_t nbytes;
   char *header_buf;
   int header_len;
-  int header_size;
+  int mu_header_size;
   header_t hdr;
   message_t msg;
   int ioffset;
@@ -102,7 +102,7 @@ message_create_attachment (const char *content_type, const char *encoding,
 	    {
 	      sprintf (header, MSG_HDR, content_type, name, encoding, name);
 	      if ((ret =
-		   header_create (&hdr, header, strlen (header),
+		   mu_header_create (&hdr, header, strlen (header),
 				  *newmsg)) == 0)
 		{
 		  message_get_body (*newmsg, &body);
@@ -113,11 +113,11 @@ message_create_attachment (const char *content_type, const char *encoding,
 		      if ((ret = stream_open (fstream)) == 0)
 			{
 			  if ((ret =
-			       filter_create (&tstream, fstream, encoding,
+			       mu_filter_create (&tstream, fstream, encoding,
 					      MU_FILTER_ENCODE,
 					      MU_STREAM_READ)) == 0)
 			    {
-			      body_set_stream (body, tstream, *newmsg);
+			      mu_body_set_stream (body, tstream, *newmsg);
 			      message_set_header (*newmsg, hdr, NULL);
 			    }
 			}
@@ -131,7 +131,7 @@ message_create_attachment (const char *content_type, const char *encoding,
       if (*newmsg)
 	message_destroy (newmsg, NULL);
       if (hdr)
-	header_destroy (&hdr, NULL);
+	mu_header_destroy (&hdr, NULL);
       if (fstream)
 	stream_destroy (&fstream, NULL);
       if (fname)
@@ -149,7 +149,7 @@ _attachment_setup (struct _msg_info **info, message_t msg, stream_t * stream,
   body_t body;
 
   if ((ret = message_get_body (msg, &body)) != 0 ||
-      (ret = body_get_stream (body, stream)) != 0)
+      (ret = mu_body_get_stream (body, stream)) != 0)
     return ret;
   stream_get_flags (*stream, &sfl);
   if (data == NULL && (sfl & MU_STREAM_NONBLOCK))
@@ -181,7 +181,7 @@ _attachment_free (struct _msg_info *info, int free_message)
       if (info->msg)
 	message_destroy (&(info->msg), NULL);
       else if (info->hdr)
-	header_destroy (&(info->hdr), NULL);
+	mu_header_destroy (&(info->hdr), NULL);
     }
   free (info);
 }
@@ -242,24 +242,24 @@ message_get_attachment_name (message_t msg, char *name, size_t bufsz, size_t *sz
   if (filename != NULL && (ret = message_get_header (msg, &hdr)) == 0)
     {
       *filename = NULL;
-      header_get_value (hdr, "Content-Disposition", NULL, 0, &size);
+      mu_header_get_value (hdr, "Content-Disposition", NULL, 0, &size);
       if (size)
 	{
 	  if ((pTmp = alloca (size + 1)) == NULL)
 	    ret = ENOMEM;
-	  header_get_value (hdr, "Content-Disposition", pTmp, size + 1, 0);
+	  mu_header_get_value (hdr, "Content-Disposition", pTmp, size + 1, 0);
 	  if (strstr (pTmp, "attachment") != NULL)
 	    fname = _header_get_param (pTmp, "filename", &size);
 	}
       if (fname == NULL)
 	{
 	  size = 0;
-	  header_get_value (hdr, "Content-Type", NULL, 0, &size);
+	  mu_header_get_value (hdr, "Content-Type", NULL, 0, &size);
 	  if (size)
 	    {
 	      if ((pTmp = alloca (size + 1)) == NULL)
 		ret = ENOMEM;
-	      header_get_value (hdr, "Content-Type", pTmp, size + 1, 0);
+	      mu_header_get_value (hdr, "Content-Type", pTmp, size + 1, 0);
 	      fname = _header_get_param (pTmp, "name", &size);
 	    }
 	}
@@ -313,7 +313,7 @@ message_get_attachment_name (message_t msg, char *buf, size_t bufsz, size_t *sz)
   if ((ret = message_get_header (msg, &hdr)) != 0)
     return ret;
 
-  ret = header_aget_value (hdr, "Content-Disposition", &value);
+  ret = mu_header_aget_value (hdr, "Content-Disposition", &value);
 
   /* If the header wasn't there, we'll fall back to Content-Type, but
      other errors are fatal. */
@@ -337,7 +337,7 @@ message_get_attachment_name (message_t msg, char *buf, size_t bufsz, size_t *sz)
       if(value)
 	free(value);
 
-      ret = header_aget_value (hdr, "Content-Type", &value);
+      ret = mu_header_aget_value (hdr, "Content-Type", &value);
       name = _header_get_param (value, "name", &namesz);
     }
 
@@ -395,19 +395,19 @@ message_save_attachment (message_t msg, const char *filename, void **data)
 	{
 	  if ((ret = stream_open (info->fstream)) == 0)
 	    {
-	      header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
+	      mu_header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
 				&size);
 	      if (size)
 		{
 		  if ((content_encoding = alloca (size + 1)) == NULL)
 		    ret = ENOMEM;
-		  header_get_value (hdr, "Content-Transfer-Encoding",
+		  mu_header_get_value (hdr, "Content-Transfer-Encoding",
 				    content_encoding, size + 1, 0);
 		}
 	      else
 		content_encoding = (char *) "7bit";
 	      ret =
-		filter_create (&info->stream, istream, content_encoding,
+		mu_filter_create (&info->stream, istream, content_encoding,
 			       MU_FILTER_DECODE, MU_STREAM_READ);
 	    }
 	}
@@ -473,13 +473,13 @@ message_encapsulate (message_t msg, message_t * newmsg, void **data)
       header =
 	"Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
       if ((ret =
-	   header_create (&(info->hdr), header, strlen (header), msg)) == 0)
+	   mu_header_create (&(info->hdr), header, strlen (header), msg)) == 0)
 	ret = message_set_header (info->msg, info->hdr, NULL);
     }
   if (ret == 0 && (ret = message_get_stream (msg, &istream)) == 0)
     {
       if ((ret = message_get_body (info->msg, &body)) == 0 &&
-	  (ret = body_get_stream (body, &ostream)) == 0)
+	  (ret = mu_body_get_stream (body, &ostream)) == 0)
 	{
 	  if (info->nbytes)
 	    memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
@@ -528,12 +528,12 @@ message_unencapsulate (message_t msg, message_t * newmsg, void **data)
   if ((data == NULL || *data == NULL)
       && (ret = message_get_header (msg, &hdr)) == 0)
     {
-      header_get_value (hdr, "Content-Type", NULL, 0, &size);
+      mu_header_get_value (hdr, "Content-Type", NULL, 0, &size);
       if (size)
 	{
 	  if ((content_type = alloca (size + 1)) == NULL)
 	    return ENOMEM;
-	  header_get_value (hdr, "Content-Type", content_type, size + 1, 0);
+	  mu_header_get_value (hdr, "Content-Type", content_type, size + 1, 0);
 	  if (strncasecmp
 	      (content_type, "message/rfc822",
 	       strlen ("message/rfc822")) != 0)

@@ -183,7 +183,7 @@ xunput (int c)
     {
       char *putback;
       current_buffer.pb_size += LEX_PUTBACK_SIZE;
-      putback = sieve_alloc (current_buffer.pb_size);
+      putback = mu_sieve_alloc (current_buffer.pb_size);
       memcpy (putback, current_buffer.putback,
 	      current_buffer.pb_level);
       free (current_buffer.putback);
@@ -265,7 +265,7 @@ push_source (const char *name)
   /* Push current context */
   if (sieve_filename)
     {
-      ctx = sieve_alloc (sizeof (*ctx));
+      ctx = mu_sieve_alloc (sizeof (*ctx));
       ctx->filename = sieve_filename;
       ctx->line = sieve_line_num;
       ctx->i_node = sieve_source_inode;
@@ -450,7 +450,7 @@ get_file_name (char *p, char *endp, int *usepath)
     }
   
   n = p - startp;
-  name = sieve_alloc (n + 1);
+  name = mu_sieve_alloc (n + 1);
   memcpy (name, startp, n);
   name[n] = 0;
   return name;
@@ -491,7 +491,8 @@ sieve_include ()
   if (usepath && name[0] != '/' && memcmp (name, "..", 2))
     {
       char *p = name;
-      if (sieve_include_path && list_do (sieve_include_path, _try_include, &p))
+      if (mu_sieve_include_path
+	  && mu_list_do (mu_sieve_include_path, _try_include, &p))
 	{
 	  push_source (p);
 	  free (name);
@@ -567,7 +568,7 @@ number ()
 int
 string ()
 {
-  yylval.string = sieve_malloc (sieve_machine, yyleng - 1);
+  yylval.string = mu_sieve_malloc (sieve_machine, yyleng - 1);
   memcpy (yylval.string, yytext + 1, yyleng - 2);
   yylval.string[yyleng - 2] = 0;
   return STRING; 
@@ -605,7 +606,7 @@ line_add (char *text, size_t len)
     }
   memcpy (s, text, len);
   s[len] = 0;
-  list_append (string_list, s);
+  mu_list_append (string_list, s);
 }
 
 void
@@ -622,12 +623,12 @@ line_begin ()
   int status;
 
   if (string_list)
-    sieve_slist_destroy (&string_list);
-  status = list_create (&string_list);
+    mu_sieve_slist_destroy (&string_list);
+  status = mu_list_create (&string_list);
   if (status)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-                           "list_create: %s", mu_strerror (status));
+                           "mu_list_create: %s", mu_strerror (status));
       exit (1);
     }
 }
@@ -655,7 +656,7 @@ multiline_begin ()
 	  break;
 
       len = endp - p;
-      multiline_delimiter = sieve_alloc (len + 1);
+      multiline_delimiter = mu_sieve_alloc (len + 1);
       memcpy (multiline_delimiter, p, len);
       multiline_delimiter[len] = 0;
     }
@@ -679,31 +680,31 @@ line_finish ()
   int length = 0;
   char *p;
   
-  if (!string_list || list_get_iterator (string_list, &itr))
+  if (!string_list || mu_list_get_iterator (string_list, &itr))
     return;
 
   /* Count number of characters in the multiline */
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *s;
-      iterator_current (itr, (void **)&s);
+      mu_iterator_current (itr, (void **)&s);
       length += strlen (s);
     }
 
   /* Copy the contents */
-  yylval.string = sieve_malloc (sieve_machine, length + 1);
+  yylval.string = mu_sieve_malloc (sieve_machine, length + 1);
   p = yylval.string;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *s;
-      iterator_current (itr, (void **)&s);
+      mu_iterator_current (itr, (void **)&s);
       strcpy (p, s);
       p += strlen (s);
       free (s);
     }
   *p = 0;
-  iterator_destroy (&itr);
-  list_destroy (&string_list);
+  mu_iterator_destroy (&itr);
+  mu_list_destroy (&string_list);
 }
 
 void
@@ -727,9 +728,9 @@ ident (const char *text)
 char *
 str_unescape (char *text, size_t len)
 {
-  char *str = sieve_alloc (len);
+  char *str = mu_sieve_alloc (len);
   memcpy (str, text, len - 2);
-  str[len - 2] = argcv_unquote_char (text[len - 1]);
+  str[len - 2] = mu_argcv_unquote_char (text[len - 1]);
   str[len - 1] = 0;
   return str;
 }

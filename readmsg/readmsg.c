@@ -150,7 +150,7 @@ print_header (message_t message, int no_header, int all_headers,
       size_t len = 0;
       char buf[128];
 
-      header_get_stream (header, &stream);
+      mu_header_get_stream (header, &stream);
       while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	     && len != 0)
 	{
@@ -165,7 +165,7 @@ print_header (message_t message, int no_header, int all_headers,
       const char *delim = WEEDLIST_SEPARATOR;
       size_t i;
 
-      header_get_field_count (header, &count);
+      mu_header_get_field_count (header, &count);
 
       for (i = 1; i <= count; i++)
 	{
@@ -174,14 +174,14 @@ print_header (message_t message, int no_header, int all_headers,
 	  char *weedcopy = strdup (weedlist);
 	  char *token, *s;
 
-	  header_aget_field_name (header, i, &name);
-	  header_aget_field_value (header, i, &value);
+	  mu_header_aget_field_name (header, i, &name);
+	  mu_header_aget_field_value (header, i, &value);
 	  for (token = strtok_r (weedcopy, delim, &s); token;
 	       token = strtok_r (NULL, delim, &s)) 
 	    {
 	      if (string_starts_with (name, token))
 		{
-		  /* Check if header_aget_value return an empty string.  */
+		  /* Check if mu_header_aget_value return an empty string.  */
 		  if (value && *value)
 		    printf ("%s: %s\n", name, value);
 		}
@@ -203,7 +203,7 @@ print_body (message_t message)
   off_t offset = 0;
   size_t len = 0;
   message_get_body (message, &body);
-  body_get_stream (body, &stream);
+  mu_body_get_stream (body, &stream);
 
   while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	 && len != 0)
@@ -242,7 +242,7 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
   mu_register_extra_formats ();
 
-  status = mailbox_create_default (&mbox, mailbox_name);
+  status = mu_mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
       if (mailbox_name)
@@ -259,16 +259,16 @@ main (int argc, char **argv)
   if (dbug)
     {
       mu_debug_t debug;
-      mailbox_get_debug (mbox, &debug);
+      mu_mailbox_get_debug (mbox, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
     }
 
-  status = mailbox_open (mbox, MU_STREAM_READ);
+  status = mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
       url_t url = NULL;
 
-      mailbox_get_url (mbox, &url);
+      mu_mailbox_get_url (mbox, &url);
       fprintf (stderr, _("Could not open mailbox `%s': %s\n"),
 	       url_to_string (url), mu_strerror(status));
       exit (2);
@@ -286,10 +286,10 @@ main (int argc, char **argv)
     {
       message_t msg = NULL;
 
-      status = mailbox_get_message (mbox, set[i], &msg);
+      status = mu_mailbox_get_message (mbox, set[i], &msg);
       if (status != 0)
 	{
-	  mu_error ("mailbox_get_message: %s",
+	  mu_error ("mu_mailbox_get_message: %s",
 		    mu_strerror (status));
 	  exit (2);
 	}
@@ -304,7 +304,7 @@ main (int argc, char **argv)
 
   putchar ('\n');
 
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return 0;
 }

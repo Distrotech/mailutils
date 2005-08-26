@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
   int i = 0;
   size_t total = 0;
 
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
 
   for (i = 0; i < argc; i++)
     {
@@ -102,7 +102,7 @@ msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
       else if (!strcmp (argv[i], "$") || !strcmp (argv[i], "0"))
 	{
 	  size_t j;
-	  mailbox_messages_count (mbox, &total);
+	  mu_mailbox_messages_count (mbox, &total);
 	  for (j = 1; j < total; j++)
 	    addset (set, n, j);
 	}
@@ -119,7 +119,7 @@ msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
 	      off_t offset = 0;
 	      message_t msg = NULL;
 	      stream_t stream = NULL;
-	      mailbox_get_message (mbox, j, &msg);
+	      mu_mailbox_get_message (mbox, j, &msg);
 	      message_get_stream (msg, &stream);
 	      while (stream_readline (stream, buf, sizeof buf, offset, &len) == 0 && len > 0)
 		{

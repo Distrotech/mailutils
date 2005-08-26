@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <sieve.h>
 
-sieve_machine_t sieve_machine;
+mu_sieve_machine_t sieve_machine;
 int sieve_error_count;
 
 static void branch_fixup (size_t start, size_t end);
@@ -37,7 +37,7 @@ int yylex ();
   char *string;
   size_t number;
   sieve_instr_t instr;
-  sieve_value_t *value;
+  mu_sieve_value_t *value;
   list_t list;
   size_t pc;
   struct {
@@ -80,10 +80,10 @@ list         : statement
 
 statement    : REQUIRE stringorlist ';'
                {
-		 sieve_require ($2);
+		 mu_sieve_require ($2);
 		 /*  All the items in $2 are registered in memory_pool,
 		     so we don't free them */
-		 list_destroy (&$2);
+		 mu_list_destroy (&$2);
 		 $$ = sieve_machine->pc;
 	       }
              | action ';'
@@ -226,7 +226,7 @@ begin        : /* empty */
 
 test         : command
                {
-		 sieve_register_t *reg = sieve_test_lookup (sieve_machine,
+		 mu_sieve_register_t *reg = mu_sieve_test_lookup (sieve_machine,
 							    $1.ident);
 		 $$ = sieve_machine->pc;
 
@@ -252,7 +252,7 @@ command      : IDENT maybe_arglist
 
 action       : command
                {
-		 sieve_register_t *reg = sieve_action_lookup (sieve_machine,
+		 mu_sieve_register_t *reg = mu_sieve_action_lookup (sieve_machine,
 							      $1.ident);
 		 
 		 $$ = sieve_machine->pc;
@@ -278,42 +278,42 @@ maybe_arglist: /* empty */
 
 arglist      : arg
                {
-		 list_create (&$$);
-		 list_append ($$, $1);
+		 mu_list_create (&$$);
+		 mu_list_append ($$, $1);
 	       }		 
              | arglist arg
                {
-		 list_append ($1, $2);
+		 mu_list_append ($1, $2);
 		 $$ = $1;
 	       }
              ;
 
 arg          : stringlist
                {
-		 $$ = sieve_value_create (SVT_STRING_LIST, $1);
+		 $$ = mu_sieve_value_create (SVT_STRING_LIST, $1);
 	       }
              | STRING
                {
-		 $$ = sieve_value_create (SVT_STRING, $1);
+		 $$ = mu_sieve_value_create (SVT_STRING, $1);
                } 
              | MULTILINE
                {
-		 $$ = sieve_value_create (SVT_STRING, $1);
+		 $$ = mu_sieve_value_create (SVT_STRING, $1);
 	       }
              | NUMBER
                {
-		 $$ = sieve_value_create (SVT_NUMBER, &$1);
+		 $$ = mu_sieve_value_create (SVT_NUMBER, &$1);
 	       }
              | TAG
                {
-		 $$ = sieve_value_create (SVT_TAG, $1);
+		 $$ = mu_sieve_value_create (SVT_TAG, $1);
 	       }
              ;
 
 stringorlist : STRING
                {
-		 list_create (&$$);
-		 list_append ($$, $1);
+		 mu_list_create (&$$);
+		 mu_list_append ($$, $1);
 	       }
              | stringlist
              ;
@@ -326,12 +326,12 @@ stringlist   : '[' slist ']'
 
 slist        : STRING
                {
-		 list_create (&$$);
-		 list_append ($$, $1);
+		 mu_list_create (&$$);
+		 mu_list_append ($$, $1);
 	       }
              | slist ',' STRING
                {
-		 list_append ($1, $3);
+		 mu_list_append ($1, $3);
 		 $$ = $1;
 	       }
              ;
@@ -346,16 +346,16 @@ yyerror (char *s)
 }
 
 int
-sieve_machine_init (sieve_machine_t *pmach, void *data)
+mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
 {
   int rc;
-  sieve_machine_t mach;
+  mu_sieve_machine_t mach;
   
   mach = malloc (sizeof (*mach));
   if (!mach)
     return ENOMEM;
   memset (mach, 0, sizeof (*mach));
-  rc = list_create (&mach->memory_pool);
+  rc = mu_list_create (&mach->memory_pool);
   if (rc)
     {
       free (mach);
@@ -370,64 +370,64 @@ sieve_machine_init (sieve_machine_t *pmach, void *data)
 }
 
 void
-sieve_set_error (sieve_machine_t mach, sieve_printf_t error_printer)
+mu_sieve_set_error (mu_sieve_machine_t mach, mu_sieve_printf_t error_printer)
 {
   mach->error_printer = error_printer ?
                            error_printer : _sieve_default_error_printer;
 }
 
 void
-sieve_set_parse_error (sieve_machine_t mach, sieve_parse_error_t p)
+mu_sieve_set_parse_error (mu_sieve_machine_t mach, mu_sieve_parse_error_t p)
 {
   mach->parse_error_printer = p ? p : _sieve_default_parse_error;
 }
 
 void
-sieve_set_debug (sieve_machine_t mach, sieve_printf_t debug)
+mu_sieve_set_debug (mu_sieve_machine_t mach, mu_sieve_printf_t debug)
 {
   mach->debug_printer = debug;
 }
 
 void
-sieve_set_debug_level (sieve_machine_t mach, mu_debug_t dbg, int level)
+mu_sieve_set_debug_level (mu_sieve_machine_t mach, mu_debug_t dbg, int level)
 {
-  mach->mu_debug = dbg;
+  mach->debug = dbg;
   mach->debug_level = level;
 }
 
 void
-sieve_set_logger (sieve_machine_t mach, sieve_action_log_t logger)
+mu_sieve_set_logger (mu_sieve_machine_t mach, mu_sieve_action_log_t logger)
 {
   mach->logger = logger;
 }
 
 void
-sieve_set_ticket (sieve_machine_t mach, ticket_t ticket)
+mu_sieve_set_ticket (mu_sieve_machine_t mach, ticket_t ticket)
 {
   mach->ticket = ticket;
 }
 
 ticket_t
-sieve_get_ticket (sieve_machine_t mach)
+mu_sieve_get_ticket (mu_sieve_machine_t mach)
 {
   return mach->ticket;
 }
 
 mailer_t
-sieve_get_mailer (sieve_machine_t mach)
+mu_sieve_get_mailer (mu_sieve_machine_t mach)
 {
   if (!mach->mailer)
     {
       mailer_create (&mach->mailer, NULL);
-      if (mach->mu_debug)
-	mailer_set_debug (mach->mailer, mach->mu_debug);
+      if (mach->debug)
+	mailer_set_debug (mach->mailer, mach->debug);
     }
 
   return mach->mailer;
 }
 
 void
-sieve_set_mailer (sieve_machine_t mach, mailer_t mailer)
+mu_sieve_set_mailer (mu_sieve_machine_t mach, mailer_t mailer)
 {
   mailer_destroy (&mach->mailer);
   mach->mailer = mailer;
@@ -436,14 +436,14 @@ sieve_set_mailer (sieve_machine_t mach, mailer_t mailer)
 #define MAILER_DAEMON_PFX "MAILER-DAEMON@"
 
 char *
-sieve_get_daemon_email (sieve_machine_t mach)
+mu_sieve_get_daemon_email (mu_sieve_machine_t mach)
 {
   if (!mach->daemon_email)
     {
       const char *domain = NULL;
       
       mu_get_user_email_domain (&domain);
-      mach->daemon_email = sieve_malloc (mach,
+      mach->daemon_email = mu_sieve_malloc (mach,
 					 sizeof(MAILER_DAEMON_PFX) +
 					 strlen (domain));
       sprintf (mach->daemon_email, "%s%s", MAILER_DAEMON_PFX, domain);
@@ -452,32 +452,32 @@ sieve_get_daemon_email (sieve_machine_t mach)
 }
 
 void
-sieve_set_daemon_email (sieve_machine_t mach, const char *email)
+mu_sieve_set_daemon_email (mu_sieve_machine_t mach, const char *email)
 {
-  sieve_mfree (mach, (void *)mach->daemon_email);
-  mach->daemon_email = sieve_mstrdup (mach, email);
+  mu_sieve_mfree (mach, (void *)mach->daemon_email);
+  mach->daemon_email = mu_sieve_mstrdup (mach, email);
 }
 
 struct sieve_destr_record
 {
-  sieve_destructor_t destr;
+  mu_sieve_destructor_t destr;
   void *ptr;
 };
 
 int
-sieve_machine_add_destructor (sieve_machine_t mach, sieve_destructor_t destr,
+mu_sieve_machine_add_destructor (mu_sieve_machine_t mach, mu_sieve_destructor_t destr,
 			      void *ptr)
 {
   struct sieve_destr_record *p;
 
-  if (!mach->destr_list && list_create (&mach->destr_list))
+  if (!mach->destr_list && mu_list_create (&mach->destr_list))
     return 1;
-  p = sieve_malloc (mach, sizeof (*p));
+  p = mu_sieve_malloc (mach, sizeof (*p));
   if (!p)
     return 1;
   p->destr = destr;
   p->ptr = ptr;
-  return list_prepend (mach->destr_list, p);
+  return mu_list_prepend (mach->destr_list, p);
 }
 
 static int
@@ -489,17 +489,17 @@ _run_destructor (void *data, void *unused)
 }
 
 void
-sieve_machine_destroy (sieve_machine_t *pmach)
+mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
-  sieve_machine_t mach = *pmach;
+  mu_sieve_machine_t mach = *pmach;
   mailer_destroy (&mach->mailer);
-  list_do (mach->destr_list, _run_destructor, NULL);
-  list_destroy (&mach->destr_list);
-  list_destroy (&mach->action_list);
-  list_destroy (&mach->test_list);
-  list_destroy (&mach->comp_list);
-  list_destroy (&mach->source_list);
-  sieve_slist_destroy (&mach->memory_pool);
+  mu_list_do (mach->destr_list, _run_destructor, NULL);
+  mu_list_destroy (&mach->destr_list);
+  mu_list_destroy (&mach->action_list);
+  mu_list_destroy (&mach->test_list);
+  mu_list_destroy (&mach->comp_list);
+  mu_list_destroy (&mach->source_list);
+  mu_sieve_slist_destroy (&mach->memory_pool);
   free (mach);
   *pmach = NULL;
 }
@@ -511,14 +511,14 @@ string_comp (const void *item, const void *value)
 }
 
 void
-sieve_machine_begin (sieve_machine_t mach, const char *file)
+mu_sieve_machine_begin (mu_sieve_machine_t mach, const char *file)
 {
   sieve_machine = mach;
   sieve_error_count = 0;
   sieve_code_instr (NULL);
 
-  list_create (&mach->source_list);
-  list_set_comparator (mach->source_list, string_comp);
+  mu_list_create (&mach->source_list);
+  mu_list_set_comparator (mach->source_list, string_comp);
   
   sieve_register_standard_actions (mach);
   sieve_register_standard_tests (mach);
@@ -526,17 +526,17 @@ sieve_machine_begin (sieve_machine_t mach, const char *file)
 }
 
 void
-sieve_machine_finish (sieve_machine_t mach)
+mu_sieve_machine_finish (mu_sieve_machine_t mach)
 {
   sieve_code_instr (NULL);
 }
 
 int
-sieve_compile (sieve_machine_t mach, const char *name)
+mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
 {
   int rc;
   
-  sieve_machine_begin (mach, name);
+  mu_sieve_machine_begin (mach, name);
 
   if (sieve_lex_begin (name) == 0)
     {
@@ -548,9 +548,9 @@ sieve_compile (sieve_machine_t mach, const char *name)
   else
     rc = 1;
   
-  sieve_machine_finish (mach);
+  mu_sieve_machine_finish (mach);
   if (rc)
-    sieve_machine_destroy (&mach);
+    mu_sieve_machine_destroy (&mach);
   return rc;
 }
 

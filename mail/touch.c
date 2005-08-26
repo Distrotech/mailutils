@@ -30,9 +30,9 @@ touch0 (msgset_t *mspec, message_t msg, void *data)
   attribute_t attr = NULL;
   
   message_get_attribute (msg, &attr);
-  if (!attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+  if (!mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
     {
-      attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+      mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
       util_mark_read (msg);
     }
   

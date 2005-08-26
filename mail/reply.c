@@ -72,17 +72,17 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
       size_t i, count = 0;
       char buf[512];
 
-      if (header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
+      if (mu_header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
 	{
-	  address_create (&addr, str);
+	  mu_address_create (&addr, str);
 	  free (str);
-	  address_get_count (addr, &count);
+	  mu_address_get_count (addr, &count);
 	}
 
       /* Make sure we do not include our alternate names */
       for (i = 1; i <= count; i++)
 	{
-	  address_get_email (addr, i, buf, sizeof (buf), NULL);
+	  mu_address_get_email (addr, i, buf, sizeof (buf), NULL);
 	  if ((util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
 	      || !mail_is_my_name (buf))
 	    compose_header_set (&env, MU_HEADER_TO,
@@ -91,11 +91,11 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
 	}
       
       /* Finally, add any Ccs */
-      if (header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
+      if (mu_header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
 	compose_header_set (&env, MU_HEADER_TO, str, COMPOSE_SINGLE_LINE);
     }
 
-  if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
+  if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
     {
       char *p = NULL;
       

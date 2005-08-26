@@ -48,90 +48,90 @@
 
 /* Handler for the timestamp test */
 static int
-timestamp_test (sieve_machine_t mach, list_t args, list_t tags)
+timestamp_test (mu_sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_value_t *h, *v;
+  mu_sieve_value_t *h, *v;
   header_t hdr;
   char *val;
   time_t now = time (NULL);
   time_t tlimit, tval;
   int rc;
   
-  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      sieve_locus_t locus;
-      sieve_get_locus (mach, &locus);
-      sieve_debug (mach, "%s:%lu: TIMESTAMP\n",
+      mu_sieve_locus_t locus;
+      mu_sieve_get_locus (mach, &locus);
+      mu_sieve_debug (mach, "%s:%lu: TIMESTAMP\n",
 		   locus.source_file,
 		   (unsigned long) locus.source_line);
     }
 
   /* Retrieve required arguments: */
   /* First argument: header name */
-  h = sieve_value_get (args, 0);
+  h = mu_sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_arg_error (mach, 1);
-      sieve_abort (mach);
+      mu_sieve_arg_error (mach, 1);
+      mu_sieve_abort (mach);
     }
   /* Second argument: date displacement */
-  v = sieve_value_get (args, 1);
+  v = mu_sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_arg_error (mach, 2);
-      sieve_abort (mach);
+      mu_sieve_arg_error (mach, 2);
+      mu_sieve_abort (mach);
     }
 
   if (mu_parse_date (v->v.string, &tlimit, &now))
     {
-      sieve_error (mach, _("cannot parse date specification (%s)"),
+      mu_sieve_error (mach, _("cannot parse date specification (%s)"),
 		   v->v.string);
-      sieve_abort (mach);
+      mu_sieve_abort (mach);
     }
 
-  rc = message_get_header (sieve_get_message (mach), &hdr);
+  rc = message_get_header (mu_sieve_get_message (mach), &hdr);
   if (rc)
     {
-      sieve_error (mach, "message_get_header: %s", mu_strerror (rc));
-      sieve_abort (mach);
+      mu_sieve_error (mach, "message_get_header: %s", mu_strerror (rc));
+      mu_sieve_abort (mach);
     }
   
-  if (header_aget_value (hdr, h->v.string, &val))
+  if (mu_header_aget_value (hdr, h->v.string, &val))
     return 0;
 
   if (mu_parse_date (val, &tval, &now))
     {
-      sieve_error (mach,
+      mu_sieve_error (mach,
 		   "cannot parse header date specification (%s)",
 		   val);
       free (val);
-      sieve_abort (mach);
+      mu_sieve_abort (mach);
     }
   free (val);
 
   rc = tval > tlimit;
     
-  if (sieve_tag_lookup (tags, "before", NULL))
+  if (mu_sieve_tag_lookup (tags, "before", NULL))
     rc = !rc;  
 
   return rc;
 }
 
 /* Required arguments: */
-static sieve_data_type timestamp_req_args[] = {
+static mu_sieve_data_type timestamp_req_args[] = {
   SVT_STRING,
   SVT_STRING,
   SVT_VOID
 };
 
 /* Tagged arguments: */
-static sieve_tag_def_t timestamp_tags[] = {
+static mu_sieve_tag_def_t timestamp_tags[] = {
   { "after", SVT_VOID },
   { "before", SVT_VOID },
   { NULL }
 };
 
-static sieve_tag_group_t timestamp_tag_groups[] = {
+static mu_sieve_tag_group_t timestamp_tag_groups[] = {
   { timestamp_tags, NULL },
   { NULL }
 };
@@ -139,8 +139,8 @@ static sieve_tag_group_t timestamp_tag_groups[] = {
 /* Initialization function. It is the only function exported from this
    module. */
 int
-SIEVE_EXPORT(timestamp,init) (sieve_machine_t mach)
+SIEVE_EXPORT(timestamp,init) (mu_sieve_machine_t mach)
 {
-  return sieve_register_test (mach, "timestamp", timestamp_test,
+  return mu_sieve_register_test (mach, "timestamp", timestamp_test,
                               timestamp_req_args, timestamp_tag_groups, 1);
 }

@@ -81,7 +81,7 @@ util_do_command (const char *c, ...)
 	    return 0;
 	}
 
-      if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
+      if (mu_argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
 	{
 	  struct mail_command_entry *entry;
 	  char *p;
@@ -90,8 +90,8 @@ util_do_command (const char *c, ...)
 	  if (argc == 1 && strtoul (argv[0], &p, 10) > 0 && *p == 0)
 	    {
 	      asprintf (&p, "print %s", argv[0]);
-	      argcv_free (argc, argv);
-	      argcv_get (p, delim, NULL, &argc, &argv);
+	      mu_argcv_free (argc, argv);
+	      mu_argcv_get (p, delim, NULL, &argc, &argv);
 	      free (p);
 	    }
 
@@ -119,7 +119,7 @@ util_do_command (const char *c, ...)
     }
       
 
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   return status;
 }
 
@@ -484,18 +484,18 @@ util_find_env (const char *var, int create)
   
   if (environment == NULL)
     {
-      list_create (&environment);
-      list_set_comparator (environment, env_comp);
+      mu_list_create (&environment);
+      mu_list_set_comparator (environment, env_comp);
     }
   
-  if (list_locate (environment, &entry, (void**)&p))
+  if (mu_list_locate (environment, &entry, (void**)&p))
     {
       if (!create)
 	return 0;
 	
       p = xmalloc (sizeof *p);
       p->var = xstrdup (entry.var);
-      list_prepend (environment, p);
+      mu_list_prepend (environment, p);
       p->set = 0;
       p->type = Mail_env_whatever;
       p->value.number = 0;
@@ -516,11 +516,11 @@ var_iterate_next (var_iterator_t itr)
 {
   struct mail_env_entry *ep;
   
-  while (!iterator_is_done (itr->itr))
+  while (!mu_iterator_is_done (itr->itr))
     {
-      if (iterator_current (itr->itr, (void **)&ep))
+      if (mu_iterator_current (itr->itr, (void **)&ep))
 	return NULL;
-      iterator_next (itr->itr);
+      mu_iterator_next (itr->itr);
   
       if (strlen (ep->var) >= itr->prefixlen
 	  && strncmp (ep->var, itr->prefix, itr->prefixlen) == 0)
@@ -537,8 +537,8 @@ var_iterate_first (const char *prefix, var_iterator_t *pitr)
       var_iterator_t itr = xmalloc (sizeof *itr);
       itr->prefix = prefix;
       itr->prefixlen = strlen (prefix);
-      list_get_iterator (environment, &itr->itr);
-      iterator_first (itr->itr);
+      mu_list_get_iterator (environment, &itr->itr);
+      mu_iterator_first (itr->itr);
       *pitr = itr;
       return var_iterate_next (itr);
     }
@@ -549,7 +549,7 @@ var_iterate_first (const char *prefix, var_iterator_t *pitr)
 void
 var_iterate_end (var_iterator_t *itr)
 {
-  iterator_destroy (&(*itr)->itr);
+  mu_iterator_destroy (&(*itr)->itr);
   free (*itr);
   *itr = NULL;
 }
@@ -570,9 +570,9 @@ util_printenv (int set)
   struct mail_env_entry **ep;
   size_t i, count = 0;
   
-  list_count (environment, &count);
+  mu_list_count (environment, &count);
   ep = xcalloc (count, sizeof *ep);
-  list_to_array (environment, ep, count, NULL);
+  mu_list_to_array (environment, ep, count, NULL);
   qsort (ep, count, sizeof *ep, envp_comp);
   for (i = 0; i < count; i++)
     {
@@ -710,9 +710,9 @@ util_isdeleted (size_t n)
   message_t msg = NULL;
   attribute_t attr = NULL;
 
-  mailbox_get_message (mbox, n, &msg);
+  mu_mailbox_get_message (mbox, n, &msg);
   message_get_attribute (msg, &attr);
-  return attribute_is_deleted (attr);
+  return mu_attribute_is_deleted (attr);
 }
 
 void
@@ -721,8 +721,8 @@ util_mark_read (message_t msg)
   attribute_t attr;
 
   message_get_attribute (msg, &attr);
-  attribute_set_read (attr);
-  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
+  mu_attribute_set_read (attr);
+  mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
 }
 
 char *
@@ -786,25 +786,25 @@ util_get_sender (int msgno, int strip)
   address_t addr = NULL;
   char *buf = NULL, *p;
 
-  mailbox_get_message (mbox, msgno, &msg);
+  mu_mailbox_get_message (mbox, msgno, &msg);
   addr = get_sender_address (msg);
   if (!addr)
     {
       envelope_t env = NULL;
       char buffer[512];
       message_get_envelope (msg, &env);
-      if (envelope_sender (env, buffer, sizeof (buffer), NULL)
-	  || address_create (&addr, buffer))
+      if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
+	  || mu_address_create (&addr, buffer))
 	{
 	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
-  if (address_aget_email (addr, 1, &buf))
+  if (mu_address_aget_email (addr, 1, &buf))
     {
       util_error (_("Cannot determine sender name (msg %d)"), msgno);
-      address_destroy (&addr);
+      mu_address_destroy (&addr);
       return NULL;
     }
 
@@ -815,7 +815,7 @@ util_get_sender (int msgno, int strip)
 	*p = 0;
     }
 
-  address_destroy (&addr);
+  mu_address_destroy (&addr);
   return buf;
 }
 
@@ -825,16 +825,16 @@ util_slist_print (list_t list, int nl)
   iterator_t itr;
   char *name;
 
-  if (!list || list_get_iterator (list, &itr))
+  if (!list || mu_list_get_iterator (list, &itr))
     return;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
 
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
 
 int
@@ -844,19 +844,19 @@ util_slist_lookup (list_t list, char *str)
   char *name;
   int rc = 0;
 
-  if (!list || list_get_iterator (list, &itr))
+  if (!list || mu_list_get_iterator (list, &itr))
     return 0;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       if (strcasecmp (name, str) == 0)
 	{
 	  rc = 1;
 	  break;
 	}
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return rc;
 }
 
@@ -865,7 +865,7 @@ util_slist_add (list_t *list, char *value)
 {
   char *p;
 
-  if (!*list && list_create (list))
+  if (!*list && mu_list_create (list))
     return;
 
   if ((p = strdup(value)) == NULL)
@@ -873,7 +873,7 @@ util_slist_add (list_t *list, char *value)
       util_error(_("Not enough memory"));
       return;
     }
-  list_append (*list, p);
+  mu_list_append (*list, p);
 }
 
 static int
@@ -885,13 +885,13 @@ comp (const void *item, const void *data)
 void
 util_slist_remove (list_t *list, char *value)
 {
-  list_comparator_t cp;
+  mu_list_comparator_t cp;
   
   if (!*list)
     return;
-  cp = list_set_comparator (*list, comp);
-  list_remove (*list, value);
-  list_set_comparator (*list, cp);
+  cp = mu_list_set_comparator (*list, comp);
+  mu_list_remove (*list, value);
+  mu_list_set_comparator (*list, cp);
 }
 
 void
@@ -900,16 +900,16 @@ util_slist_destroy (list_t *list)
   iterator_t itr;
   char *name;
 
-  if (!*list || list_get_iterator (*list, &itr))
+  if (!*list || mu_list_get_iterator (*list, &itr))
     return;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       free (name);
     }
-  iterator_destroy (&itr);
-  list_destroy (list);
+  mu_iterator_destroy (&itr);
+  mu_list_destroy (list);
 }
 
 char *
@@ -919,17 +919,17 @@ util_slist_to_string (list_t list, const char *delim)
   char *name;
   char *str = NULL;
 
-  if (!list || list_get_iterator (list, &itr))
+  if (!list || mu_list_get_iterator (list, &itr))
     return NULL;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       if (str && delim)
 	util_strcat(&str, delim);
       util_strcat(&str, name);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return str;
 }
 
@@ -1044,7 +1044,7 @@ util_save_outgoing (message_t msg, char *savefile)
       mailbox_t outbox;
       char *filename = util_outfolder_name (savefile ? savefile : record);
 
-      rc = mailbox_create_default (&outbox, filename);
+      rc = mu_mailbox_create_default (&outbox, filename);
       if (rc)
 	{
 	  util_error (_("Cannot create output mailbox `%s': %s"),
@@ -1053,20 +1053,20 @@ util_save_outgoing (message_t msg, char *savefile)
 	  return;
 	}
 
-      rc = mailbox_open (outbox, MU_STREAM_WRITE | MU_STREAM_CREAT);
+      rc = mu_mailbox_open (outbox, MU_STREAM_WRITE | MU_STREAM_CREAT);
       if (rc)
 	util_error (_("Cannot open output mailbox `%s': %s"),
 		    filename, strerror (rc));
       else
 	{
-	  rc = mailbox_append_message (outbox, msg);
+	  rc = mu_mailbox_append_message (outbox, msg);
 	  if (rc)
 	    util_error (_("Cannot append message to `%s': %s"),
 			filename, strerror (rc));
 	}
 
-      mailbox_close (outbox);
-      mailbox_destroy (&outbox);
+      mu_mailbox_close (outbox);
+      mu_mailbox_destroy (&outbox);
       
       free (filename);
     }
@@ -1153,7 +1153,7 @@ util_msgset_iterate (msgset_t *msgset,
     {
       message_t mesg;
 
-      if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) != 0)
+      if (mu_mailbox_get_message (mbox, msgset->msg_part[0], &mesg) != 0)
 	return;
 
       if (util_descend_subparts (mesg, msgset, &mesg) == 0)
@@ -1179,7 +1179,7 @@ util_get_content_type (header_t hdr, char **value)
 int
 util_get_hdr_value (header_t hdr, const char *name, char **value)
 {
-  int status = header_aget_value (hdr, name, value);
+  int status = mu_header_aget_value (hdr, name, value);
   if (status == 0)
     {
       /* Remove the newlines.  */
@@ -1198,21 +1198,21 @@ util_merge_addresses (char **addr_str, const char *value)
   address_t addr, new_addr;
   int rc;
 
-  if ((rc = address_create (&new_addr, value)) != 0)
+  if ((rc = mu_address_create (&new_addr, value)) != 0)
     return rc;
       
-  if ((rc = address_create (&addr, *addr_str)) != 0)
+  if ((rc = mu_address_create (&addr, *addr_str)) != 0)
     {
-      address_destroy (&new_addr);
+      mu_address_destroy (&new_addr);
       return rc;
     }
 
-  rc = address_union (&addr, new_addr);
+  rc = mu_address_union (&addr, new_addr);
   if (rc == 0)
     {
       size_t n;
 
-      rc = address_to_string (addr, NULL, 0, &n);
+      rc = mu_address_to_string (addr, NULL, 0, &n);
       if (rc == 0)
 	{
 	  free (*addr_str);
@@ -1220,12 +1220,12 @@ util_merge_addresses (char **addr_str, const char *value)
 	  if (!*addr_str)
 	    rc = ENOMEM;
 	  else
-	    address_to_string (addr, *addr_str, n + 1, &n);
+	    mu_address_to_string (addr, *addr_str, n + 1, &n);
 	}
     }
 
-  address_destroy (&addr);
-  address_destroy (&new_addr);
+  mu_address_destroy (&addr);
+  mu_address_destroy (&new_addr);
   return rc;
 }
 
@@ -1253,22 +1253,22 @@ util_header_expand (header_t *phdr)
   header_t hdr;
   int errcnt = 0, rc;
   
-  rc = header_create (&hdr, "", 0, NULL);
+  rc = mu_header_create (&hdr, "", 0, NULL);
   if (rc)
     {
       util_error (_("Cannot create temporary header: %s"), mu_strerror (rc));
       return 1;
     }
       
-  header_get_field_count (*phdr, &nfields);
+  mu_header_get_field_count (*phdr, &nfields);
   for (i = 1; i <= nfields; i++)
     {
       char *name, *value;
       
-      if (header_aget_field_name (*phdr, i, &name))
+      if (mu_header_aget_field_name (*phdr, i, &name))
 	continue;
 
-      if (header_aget_field_value (*phdr, i, &value))
+      if (mu_header_aget_field_value (*phdr, i, &value))
 	{
 	  free (name);
 	  continue;
@@ -1279,9 +1279,9 @@ util_header_expand (header_t *phdr)
 	  char *p, *s, *exp;
 	  address_t addr = NULL;
 
-	  if (header_aget_value (hdr, name, &exp) == 0)
+	  if (mu_header_aget_value (hdr, name, &exp) == 0)
 	    {
-	      address_create (&addr, exp);
+	      mu_address_create (&addr, exp);
 	      free (exp);
 	    }
 	  
@@ -1292,7 +1292,7 @@ util_header_expand (header_t *phdr)
 	      while (*p && isspace (*p))
 		p++;
 	      exp = alias_expand (p);
-	      rc = address_create (&new_addr, exp ? exp : p);
+	      rc = mu_address_create (&new_addr, exp ? exp : p);
 	      if (rc)
 		{
 		  errcnt++;
@@ -1305,8 +1305,8 @@ util_header_expand (header_t *phdr)
 		}
 	      
 	      free (exp);
-	      address_union (&addr, new_addr);
-	      address_destroy (&new_addr);
+	      mu_address_union (&addr, new_addr);
+	      mu_address_destroy (&new_addr);
 	    }
 	  
 	  if (addr)
@@ -1314,15 +1314,15 @@ util_header_expand (header_t *phdr)
 	      size_t n = 0;
 	      
 	      free (value);
-	      address_to_string (addr, NULL, 0, &n);
+	      mu_address_to_string (addr, NULL, 0, &n);
 	      value = xmalloc (n + 1);
-	      address_to_string (addr, value, n + 1, NULL);
-	      address_destroy (&addr);
-	      header_set_value (hdr, name, value, 1);
+	      mu_address_to_string (addr, value, n + 1, NULL);
+	      mu_address_destroy (&addr);
+	      mu_header_set_value (hdr, name, value, 1);
 	    }
 	}
       else
-	header_set_value (hdr, name, value, 0);
+	mu_header_set_value (hdr, name, value, 0);
       
       free (value);
       free (name);
@@ -1330,11 +1330,11 @@ util_header_expand (header_t *phdr)
 
   if (errcnt == 0)
     {
-      header_destroy (phdr, NULL);
+      mu_header_destroy (phdr, NULL);
       *phdr = hdr;
     }
   else
-    header_destroy (&hdr, NULL);
+    mu_header_destroy (&hdr, NULL);
 
   return errcnt;
 }
@@ -1350,7 +1350,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
       return MU_ERR_NOENT;
     }
   
-  status = mailbox_get_message (mbox, msgno, msg);
+  status = mu_mailbox_get_message (mbox, msgno, msg);
   if (status)
     {
       util_error (_("Cannot get message %lu: %s"),
@@ -1385,9 +1385,9 @@ util_cache_command (list_t *list, const char *fmt, ...)
   va_end (ap);
 
   if (!*list)
-    list_create (list);
+    mu_list_create (list);
 
-  list_append (*list, cmd);
+  mu_list_append (*list, cmd);
 }
 
 static int
@@ -1401,8 +1401,8 @@ _run_and_free (void *item, void *data)
 void
 util_run_cached_commands (list_t *list)
 {
-  list_do (*list, _run_and_free, NULL);
-  list_destroy (list);
+  mu_list_do (*list, _run_and_free, NULL);
+  mu_list_destroy (list);
 }
 
 void

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
 #include <envelope0.h>
 
 int
-envelope_create (envelope_t *penvelope, void *owner)
+mu_envelope_create (envelope_t *penvelope, void *owner)
 {
   envelope_t envelope;
   if (penvelope == NULL)
@@ -39,7 +39,7 @@ envelope_create (envelope_t *penvelope, void *owner)
 }
 
 void
-envelope_destroy (envelope_t *penvelope, void *owner)
+mu_envelope_destroy (envelope_t *penvelope, void *owner)
 {
   if (penvelope && *penvelope)
     {
@@ -55,13 +55,13 @@ envelope_destroy (envelope_t *penvelope, void *owner)
 }
 
 void *
-envelope_get_owner (envelope_t envelope)
+mu_envelope_get_owner (envelope_t envelope)
 {
   return (envelope) ? envelope->owner : NULL;
 }
 
 int
-envelope_set_sender (envelope_t envelope,
+mu_envelope_set_sender (envelope_t envelope,
 		   int (*_sender) (envelope_t, char *, size_t, size_t*),
 		   void *owner)
 {
@@ -74,7 +74,7 @@ envelope_set_sender (envelope_t envelope,
 }
 
 int
-envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+mu_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   if (envelope == NULL)
     return EINVAL;
@@ -88,7 +88,7 @@ envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 }
 
 int
-envelope_set_date (envelope_t envelope,
+mu_envelope_set_date (envelope_t envelope,
 		   int (*_date) (envelope_t, char *, size_t , size_t *),
 		   void *owner)
 {
@@ -101,7 +101,7 @@ envelope_set_date (envelope_t envelope,
 }
 
 int
-envelope_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+mu_envelope_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   if (envelope == NULL)
     return EINVAL;

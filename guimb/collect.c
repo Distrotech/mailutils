@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ collect_open_default ()
 	  exit (1);
 	}
     }
-  if (mailbox_create (&mbox, default_mailbox) != 0
-      || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
+  if (mu_mailbox_create (&mbox, default_mailbox) != 0
+      || mu_mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
       util_error (_("Cannot open default mailbox %s: %s"),
 		  default_mailbox, mu_strerror (errno));
@@ -46,7 +46,7 @@ collect_open_default ()
     }
 
   /* Suck in the messages */
-  mailbox_messages_count (mbox, &nmesg);
+  mu_mailbox_messages_count (mbox, &nmesg);
 }
 
 /* Open temporary file for collecting incoming messages */
@@ -109,8 +109,8 @@ collect_create_mailbox ()
   
   fclose (temp_file);
 
-  if (mailbox_create (&mbox, temp_filename) != 0
-      || mailbox_open (mbox, MU_STREAM_READ) != 0)
+  if (mu_mailbox_create (&mbox, temp_filename) != 0
+      || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
       util_error (_("Cannot create temp mailbox %s: %s"),
 		  temp_filename, strerror (errno));
@@ -119,7 +119,7 @@ collect_create_mailbox ()
     }
 
   /* Suck in the messages */
-  mailbox_messages_count (mbox, &nmesg);
+  mu_mailbox_messages_count (mbox, &nmesg);
 
   if (nmesg == 0)
     {
@@ -137,39 +137,39 @@ collect_output ()
 
   if (!temp_filename)
     {
-      mailbox_expunge (mbox);
+      mu_mailbox_expunge (mbox);
       return 0;
     }
 
   if (user_name)
     saved_umask = umask (077);
   
-  if (mailbox_create_default (&outbox, default_mailbox) != 0
-      || mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
+  if (mu_mailbox_create_default (&outbox, default_mailbox) != 0
+      || mu_mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
     {
-      mailbox_destroy (&outbox);
+      mu_mailbox_destroy (&outbox);
       fprintf (stderr, _("Cannot open output mailbox %s: %s\n"),
 	       default_mailbox, strerror (errno));
       return 1;
     }
 
-  mailbox_messages_count (mbox, &count);
+  mu_mailbox_messages_count (mbox, &count);
   for (i = 1; i <= count; i++)
     {
       message_t msg = NULL;
       attribute_t attr = NULL;
 
-      mailbox_get_message (mbox, i, &msg);
+      mu_mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
-      if (!attribute_is_deleted (attr))
+      if (!mu_attribute_is_deleted (attr))
 	{
-	  attribute_set_recent (attr);
-	  mailbox_append_message (outbox, msg);
+	  mu_attribute_set_recent (attr);
+	  mu_mailbox_append_message (outbox, msg);
 	}
     }
 
-  mailbox_close (outbox);
-  mailbox_destroy (&outbox);
+  mu_mailbox_close (outbox);
+  mu_mailbox_destroy (&outbox);
 
   if (user_name)
     umask (saved_umask);
@@ -181,8 +181,8 @@ collect_output ()
 void
 collect_drop_mailbox ()
 {
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   if (temp_filename)
     {
       unlink (temp_filename);

@@ -138,15 +138,15 @@ rule_line: /* empty */
            {
 	     struct rule_tab *p = mimetypes_malloc (sizeof (*p));
 	     if (!rule_list)
-	       list_create (&rule_list);
+	       mu_list_create (&rule_list);
 	     p->type = $1.ptr;
 	     p->node = $2;
-	     list_append (rule_list, p);
+	     mu_list_append (rule_list, p);
 	   }
 	 | error eol
            {
 	     if (arg_list)
-	       list_destroy (&arg_list);
+	       mu_list_destroy (&arg_list);
 	     arg_list = NULL;
 	     reset_lex ();
 	   }
@@ -207,13 +207,13 @@ function : IDENT_L arglist ')'
 
 arglist  : arg
            {
-	     list_create (&arg_list);
+	     mu_list_create (&arg_list);
 	     $$ = arg_list;
-	     list_append ($$, mimetypes_string_dup (&$1));
+	     mu_list_append ($$, mimetypes_string_dup (&$1));
 	   }
          | arglist ',' arg
            {
-	     list_append ($1, mimetypes_string_dup (&$3));
+	     mu_list_append ($1, mimetypes_string_dup (&$3));
 	     $$ = $1;
 	   }
          ;
@@ -544,7 +544,7 @@ make_functional_node (char *ident, list_t list)
 	break;
     }
 
-  list_count (list, &count);
+  mu_list_count (list, &count);
   i = strlen (p->args);
 
   if (count < i)
@@ -566,14 +566,14 @@ make_functional_node (char *ident, list_t list)
 
   args = mimetypes_malloc (count * sizeof *args);
   
-  list_get_iterator (list, &itr);
-  for (i = 0, iterator_first (itr); !iterator_is_done (itr);
-       iterator_next (itr), i++)
+  mu_list_get_iterator (list, &itr);
+  for (i = 0, mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr), i++)
     {
       struct mimetypes_string *data;
       char *tmp;
       
-      iterator_current (itr, (void **)&data);
+      mu_iterator_current (itr, (void **)&data);
       switch (p->args[i])
 	{
 	case 'd':
@@ -685,7 +685,7 @@ const char *
 get_file_type ()
 {
   const char *type = NULL;
-  list_do (rule_list, evaluate, &type);
+  mu_list_do (rule_list, evaluate, &type);
   return type;
 }
     

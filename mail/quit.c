@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,18 +42,18 @@ mail_mbox_close ()
       if (mail_mbox_commit ())
 	return 1;
 
-      mailbox_flush (mbox, 1);
+      mu_mailbox_flush (mbox, 1);
     }
   
-  mailbox_get_url (mbox, &url);
-  mailbox_messages_count (mbox, &held_count);
+  mu_mailbox_get_url (mbox, &url);
+  mu_mailbox_messages_count (mbox, &held_count);
   fprintf (ofile, 
            ngettext ("Held %d message in %s\n",
                      "Held %d messages in %s\n",
                      held_count),
            held_count, url_to_string (url));
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return 0;
 }
 
@@ -70,21 +70,21 @@ mail_mbox_commit ()
   url_t url;
   int is_user_mbox;
 
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   is_user_mbox = strcmp (url_to_string (url), getenv ("MBOX")) == 0;
 
   {
     mailbox_t mb;
     url_t u;
-    mailbox_create_default (&mb, NULL);
-    mailbox_get_url (mb, &u);
+    mu_mailbox_create_default (&mb, NULL);
+    mu_mailbox_get_url (mb, &u);
     if (strcmp (url_to_string (u), url_to_string (url)) != 0)
       {
 	/* The mailbox we are closing is not a system one (%). Raise
 	   hold flag */
 	hold = 1;
       }
-    mailbox_destroy (&mb);
+    mu_mailbox_destroy (&mb);
   }
 
   for (i = 1; i <= total; i++)
@@ -95,10 +95,10 @@ mail_mbox_commit ()
       message_get_attribute (msg, &attr);
 
       if (!is_user_mbox
-	  && (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
+	  && (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
 	      || (!hold
-		  && !attribute_is_deleted (attr)
-		  && attribute_is_read (attr))))
+		  && !mu_attribute_is_deleted (attr)
+		  && mu_attribute_is_read (attr))))
 	{
 	  int status;
 	  
@@ -106,13 +106,13 @@ mail_mbox_commit ()
 	    {
 	      char *name = getenv ("MBOX");
 	       
-	      if ((status = mailbox_create_default (&dest_mbox, name)) != 0)
+	      if ((status = mu_mailbox_create_default (&dest_mbox, name)) != 0)
 		{
 		  util_error (_("Cannot create mailbox %s: %s"), name,
                               mu_strerror (status));
 		  return 1;
 		}
-              if ((status = mailbox_open (dest_mbox,
+              if ((status = mu_mailbox_open (dest_mbox,
 			   	          MU_STREAM_WRITE | MU_STREAM_CREAT))!=0)
 		{
 		  util_error (_("Cannot open mailbox %s: %s"), name,
@@ -121,35 +121,35 @@ mail_mbox_commit ()
 		}
 	    }
 
-	  status = mailbox_append_message (dest_mbox, msg);
+	  status = mu_mailbox_append_message (dest_mbox, msg);
 	  if (status)
 	    util_error (_("Cannot append message: %s"), mu_strerror (status));
 	  else
 	    {
-	      attribute_set_deleted (attr);
+	      mu_attribute_set_deleted (attr);
 	      saved_count++;
 	    }
 	}
-      else if (attribute_is_deleted (attr))
+      else if (mu_attribute_is_deleted (attr))
 	/* Skip this one */;
-      else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
-	attribute_set_deleted (attr);
-      else if (attribute_is_read (attr))
-	attribute_set_seen (attr);
+      else if (!keepsave && mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+	mu_attribute_set_deleted (attr);
+      else if (mu_attribute_is_read (attr))
+	mu_attribute_set_seen (attr);
     }
 
   if (saved_count)
     {
       url_t u = NULL;
 
-      mailbox_get_url (dest_mbox, &u);
+      mu_mailbox_get_url (dest_mbox, &u);
       fprintf(ofile, 
               ngettext ("Saved %d message in %s\n",
                         "Saved %d messages in %s\n",
 			saved_count),
               saved_count, url_to_string (u));
-      mailbox_close (dest_mbox);
-      mailbox_destroy (&dest_mbox);
+      mu_mailbox_close (dest_mbox);
+      mu_mailbox_destroy (&dest_mbox);
     }
   return 0;
 }

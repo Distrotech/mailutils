@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -115,7 +115,7 @@ observable_create (observable_t *pobservable, void *owner)
   observable = calloc (sizeof (*observable), 1);
   if (observable == NULL)
     return ENOMEM;
-  status = list_create (&(observable->list));
+  status = mu_list_create (&(observable->list));
   if (status != 0 )
     {
       free (observable);
@@ -135,24 +135,24 @@ observable_destroy (observable_t *pobservable, void *owner)
       observable_t observable = *pobservable;
       if (observable->owner == owner)
 	{
-	  int status = list_get_iterator (observable->list, &iterator);
+	  int status = mu_list_get_iterator (observable->list, &iterator);
 	  if (status == 0)
 	    {
 	      event_t event = NULL;
-	      for (iterator_first (iterator); !iterator_is_done (iterator);
-		   iterator_next (iterator))
+	      for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+		   mu_iterator_next (iterator))
 		{
 		  event = NULL;
-		  iterator_current (iterator, (void **)&event);
+		  mu_iterator_current (iterator, (void **)&event);
 		  if (event != NULL)
 		    {
 		      observer_destroy (&(event->observer), NULL);
 		      free (event);
 		    }
 		}
-	      iterator_destroy (&iterator);
+	      mu_iterator_destroy (&iterator);
 	    }
-	  list_destroy (&((*pobservable)->list));
+	  mu_list_destroy (&((*pobservable)->list));
 	  free (*pobservable);
 	}
       *pobservable = NULL;
@@ -176,7 +176,7 @@ observable_attach (observable_t observable, size_t type,  observer_t observer)
     return ENOMEM;
   event->type = type;
   event->observer = observer;
-  return list_append (observable->list, event);
+  return mu_list_append (observable->list, event);
 }
 
 int
@@ -188,24 +188,24 @@ observable_detach (observable_t observable, observer_t observer)
   event_t event = NULL;
   if (observable == NULL || observer == NULL)
     return EINVAL;
-  status = list_get_iterator (observable->list, &iterator);
+  status = mu_list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
     {
       event = NULL;
-      iterator_current (iterator, (void **)&event);
+      mu_iterator_current (iterator, (void **)&event);
       if (event && event->observer == observer)
         {
           found = 1;
           break;
         }
     }
-  iterator_destroy (&iterator);
+  mu_iterator_destroy (&iterator);
   if (found)
     {
-      status = list_remove (observable->list, event);
+      status = mu_list_remove (observable->list, event);
       free (event);
     }
   else
@@ -221,19 +221,19 @@ observable_notify (observable_t observable, int type)
   int status = 0;
   if (observable == NULL)
     return EINVAL;
-  status = list_get_iterator (observable->list, &iterator);
+  status = mu_list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
     {
       event = NULL;
-      iterator_current (iterator, (void **)&event);
+      mu_iterator_current (iterator, (void **)&event);
       if (event && event->type & type)
         {
 	  status |= observer_action (event->observer, type);
         }
     }
-  iterator_destroy (&iterator);
+  mu_iterator_destroy (&iterator);
   return status;
 }

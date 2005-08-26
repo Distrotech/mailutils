@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -132,24 +132,24 @@ static list_t filter_list;
 struct _monitor filter_monitor = MU_MONITOR_INITIALIZER;
 
 int
-filter_get_list (list_t *plist)
+mu_filter_get_list (list_t *plist)
 {
   if (plist == NULL)
     return MU_ERR_OUT_PTR_NULL;
   monitor_wrlock (&filter_monitor);
   if (filter_list == NULL)
     {
-      int status = list_create (&filter_list);
+      int status = mu_list_create (&filter_list);
       if (status != 0)
 	return status;
       /* Default filters.  */
-      list_append (filter_list, base64_filter);
-      list_append (filter_list, qp_filter);
-      list_append (filter_list, binary_filter);
-      list_append (filter_list, bit8_filter);
-      list_append (filter_list, bit7_filter);
-      list_append (filter_list, rfc822_filter);
-      list_append (filter_list, rfc_2047_Q_filter);
+      mu_list_append (filter_list, mu_base64_filter);
+      mu_list_append (filter_list, mu_qp_filter);
+      mu_list_append (filter_list, mu_binary_filter);
+      mu_list_append (filter_list, mu_bit8_filter);
+      mu_list_append (filter_list, mu_bit7_filter);
+      mu_list_append (filter_list, mu_rfc822_filter);
+      mu_list_append (filter_list, mu_rfc_2047_Q_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
@@ -158,7 +158,7 @@ filter_get_list (list_t *plist)
 }
 
 int
-filter_create (stream_t *pstream, stream_t stream, const char *name,
+mu_filter_create (stream_t *pstream, stream_t stream, const char *name,
 	       int type, int direction)
 {
   iterator_t iterator = NULL;
@@ -173,15 +173,15 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
   if (stream == NULL || name == NULL)
     return EINVAL;
 
-  filter_get_list (&list);
-  status = list_get_iterator (list, &iterator);
+  mu_filter_get_list (&list);
+  status = mu_list_get_iterator (list, &iterator);
   if (status != 0)
     return status;
 
-  for (iterator_first (iterator); !iterator_is_done (iterator);
-       iterator_next (iterator))
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
     {
-      iterator_current (iterator, (void **)&filter_record);
+      mu_iterator_current (iterator, (void **)&filter_record);
       if ((filter_record->_is_filter
 	   && filter_record->_is_filter (filter_record, name))
 	  || (strcasecmp (filter_record->name, name) == 0))
@@ -194,7 +194,7 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
 	  break;
         }
     }
-  iterator_destroy (&iterator);
+  mu_iterator_destroy (&iterator);
 
   if (found)
     {

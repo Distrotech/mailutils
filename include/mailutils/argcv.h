@@ -28,20 +28,20 @@
 extern "C" {
 #endif
 
-extern int argcv_get    (const char *command, const char *delim,
+extern int mu_argcv_get    (const char *command, const char *delim,
 			 const char* cmnt,
 			 int *argc, char ***argv);
-extern int argcv_get_n (const char *command, int len,
+extern int mu_argcv_get_n (const char *command, int len,
 		        const char *delim, const char *cmnt,
 			int *argc, char ***argv);
   
-extern int argcv_string (int argc, char **argv, char **string);
-extern int argcv_free   (int argc, char **argv);
-extern int argcv_unquote_char (int c);
-extern int argcv_quote_char   (int c);
-extern size_t argcv_quoted_length (const char *str, int *quote);
-extern void argcv_unquote_copy (char *dst, const char *src, size_t n);
-extern void argcv_quote_copy (char *dst, const char *src);
+extern int mu_argcv_string (int argc, char **argv, char **string);
+extern int mu_argcv_free   (int argc, char **argv);
+extern int mu_argcv_unquote_char (int c);
+extern int mu_argcv_quote_char   (int c);
+extern size_t mu_argcv_quoted_length (const char *str, int *quote);
+extern void mu_argcv_unquote_copy (char *dst, const char *src, size_t n);
+extern void mu_argcv_quote_copy (char *dst, const char *src);
   
 #ifdef __cplusplus
 }

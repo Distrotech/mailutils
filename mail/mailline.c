@@ -237,7 +237,7 @@ ml_command_completion (char *cmd, int start, int end)
   for (p = rl_line_buffer; p < rl_line_buffer + start && isspace (*p); p++)
     ;
   
-  if (argcv_get_n (p, end, NULL, NULL, &argc, &argv))
+  if (mu_argcv_get_n (p, end, NULL, NULL, &argc, &argv))
     return NULL;
   rl_completion_append_character = ' ';
   
@@ -254,7 +254,7 @@ ml_command_completion (char *cmd, int start, int end)
       else
 	ret = NULL;
     }
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
   return ret;
 }
 
@@ -338,7 +338,7 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
 		char repl,
 		int flags)
 {
-  static struct folder_list list;
+  static struct mu_folder_list list;
   static int i;
   
   if (!state)
@@ -349,10 +349,10 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
       wcard = xmalloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");
 
-      folder_create (&folder, path);
-      folder_list (folder, path, wcard, &list);
+      mu_folder_create (&folder, path);
+      mu_folder_list (folder, path, wcard, &list);
       free (wcard);
-      folder_destroy (&folder);
+      mu_folder_destroy (&folder);
 
       if (list.num == 0)
 	return NULL;
@@ -383,7 +383,7 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
       i++;
     }
   
-  folder_list_destroy (&list);
+  mu_folder_list_destroy (&list);
   return NULL;
 }
 

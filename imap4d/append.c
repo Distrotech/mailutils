@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,17 +41,17 @@ imap4d_append (struct imap4d_command *command, char *arg)
   if (!mboxname)
     return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
 
-  status = mailbox_create_default (&dest_mbox, mboxname);
+  status = mu_mailbox_create_default (&dest_mbox, mboxname);
   if (status == 0)
     {
       /* It SHOULD NOT automatifcllly create the mailbox. */
-      status = mailbox_open (dest_mbox, MU_STREAM_RDWR);
+      status = mu_mailbox_open (dest_mbox, MU_STREAM_RDWR);
       if (status == 0)
 	{
 	  status = imap4d_append0 (dest_mbox, flags, sp);
-	  mailbox_close (dest_mbox);
+	  mu_mailbox_close (dest_mbox);
 	}
-      mailbox_destroy (&dest_mbox);
+      mu_mailbox_destroy (&dest_mbox);
     }
   
   free (mboxname);
@@ -64,7 +64,7 @@ imap4d_append (struct imap4d_command *command, char *arg)
 static int
 _append_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = envelope_get_owner (envelope);
+  message_t msg = mu_envelope_get_owner (envelope);
   struct tm **tm = message_get_owner (msg);
 
   strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
@@ -119,19 +119,19 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   stream_write (stream, text, strlen (text), len, &len);
   message_set_stream (msg, stream, &tm);
 
-  envelope_create (&env, msg);
-  envelope_set_date (env, _append_date, msg);
-  envelope_set_sender (env, _append_sender, msg);
+  mu_envelope_create (&env, msg);
+  mu_envelope_set_date (env, _append_date, msg);
+  mu_envelope_set_sender (env, _append_sender, msg);
   message_set_envelope (msg, env, &tm);
-  rc = mailbox_append_message (mbox, msg);
+  rc = mu_mailbox_append_message (mbox, msg);
   if (rc == 0 && flags)
     {
       size_t num = 0;
       attribute_t attr = NULL;
-      mailbox_messages_count (mbox, &num);
-      mailbox_get_message (mbox, num, &msg);
+      mu_mailbox_messages_count (mbox, &num);
+      mu_mailbox_get_message (mbox, num, &msg);
       message_get_attribute (msg, &attr);
-      attribute_set_flags (attr, flags);
+      mu_attribute_set_flags (attr, flags);
     }
 
   message_destroy (&msg, &tm);

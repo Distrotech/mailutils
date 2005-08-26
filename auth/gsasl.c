@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
 #include <gsasl.h>
 #include <lbuf.h>
 
-char *gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
+char *mu_gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
 
 #define ARG_CRAM_PASSWD 1
 
@@ -53,7 +53,7 @@ _gsasl_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARG_CRAM_PASSWD:
-      gsasl_cram_md5_pwd = arg;
+      mu_gsasl_cram_md5_pwd = arg;
       break;
 
     default:
@@ -271,7 +271,7 @@ _gsasl_wait (stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 int
-gsasl_stream_create (stream_t *stream, stream_t transport,
+mu_gsasl_stream_create (stream_t *stream, stream_t transport,
 		     Gsasl_session_ctx *ctx, int flags)
 {
   struct _gsasl_stream *s;

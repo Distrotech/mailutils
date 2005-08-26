@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,19 +47,19 @@ typedef struct
   int debug_guile;
   mailbox_t mbox;
   char *user_name;
-  int (*init) __PMT ((void *data));
-  SCM (*catch_body) __PMT ((void *data, mailbox_t mbox));
-  SCM (*catch_handler) __PMT ((void *data, SCM tag, SCM throw_args));
-  int (*next) __PMT ((void *data, mailbox_t mbox));
-  int (*exit) __PMT ((void *data, mailbox_t mbox));
+  int (*init) (void *data);
+  SCM (*catch_body) (void *data, mailbox_t mbox);
+  SCM (*catch_handler) (void *data, SCM tag, SCM throw_args);
+  int (*next) (void *data, mailbox_t mbox);
+  int (*exit) (void *data, mailbox_t mbox);
   void *data;
-} guimb_param_t;
+} mu_guimb_param_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern SCM scm_makenum (unsigned long val);
+extern SCM mu_scm_makenum (unsigned long val);
 extern void mu_set_variable (const char *name, SCM value);
 extern void mu_scm_init (void);
 
@@ -85,7 +85,7 @@ extern SCM mu_port_make_from_stream (SCM msg, stream_t stream, long mode);
 extern void mu_scm_mime_init (void);
 extern void mu_scm_message_add_owner (SCM MESG, SCM owner);
 
-extern void mu_process_mailbox (int argc, char *argv[], guimb_param_t *param);
+extern void mu_process_mailbox (int argc, char *argv[], mu_guimb_param_t *param);
 
 extern void mu_scm_mutil_init (void);
 

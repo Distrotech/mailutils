@@ -31,7 +31,7 @@ do \
     { \
       if (pcount) \
         *pcount = (mhd)->msg_count; \
-      locker_unlock (mbox->locker); \
+      mu_locker_unlock (mbox->locker); \
       return EINTR; \
     } \
   monitor_wrlock (mbox->monitor); \
@@ -51,7 +51,7 @@ struct _amd_message
   size_t header_lines;      /* Number of lines in the header part */
   size_t body_lines;        /* Number of lines in the body */
 
-  message_t message; /* Corresponding message_t */
+  message_t message;        /* Corresponding message_t */
   struct _amd_data *amd;    /* Back pointer.  */
 };
 

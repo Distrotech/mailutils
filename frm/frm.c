@@ -244,16 +244,16 @@ frm_select (size_t index, message_t msg)
   message_get_attribute (msg, &attr);
   message_get_header (msg, &hdr);
 
-  if (attribute_is_read (attr))
+  if (mu_attribute_is_read (attr))
     counter.read++;
-  else if (attribute_is_seen (attr))
+  else if (mu_attribute_is_seen (attr))
     counter.unread++;
-  else if (attribute_is_recent (attr))
+  else if (mu_attribute_is_recent (attr))
     counter.new++;
 
-  if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
-      || ((select_attribute & IS_NEW) && (!attribute_is_recent (attr)))
-      || ((select_attribute & IS_OLD) && (!attribute_is_seen (attr))))
+  if (((select_attribute & IS_READ) && (!mu_attribute_is_read (attr)))
+      || ((select_attribute & IS_NEW) && (!mu_attribute_is_recent (attr)))
+      || ((select_attribute & IS_OLD) && (!mu_attribute_is_seen (attr))))
     return 0;
   
   if (select_attribute)
@@ -265,7 +265,7 @@ frm_select (size_t index, message_t msg)
 
 /* This is a clone of the elm program call "frm".  It is a good example on
    how to use the observable(callback) of libmailbox.  "frm" has to
-   be very interactive, it is not possible to call mailbox_messages_count()
+   be very interactive, it is not possible to call mu_mailbox_messages_count()
    and wait for the scanning to finish before displaying.  As soon as the scan
    finds a new message we want to know about it. This is done by registering
    an observable type MU_MAILBOX_MSG_ADD. The rest is formatting code.  */

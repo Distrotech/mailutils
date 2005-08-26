@@ -50,7 +50,7 @@ _registrar_get_list (list_t *plist)
     return MU_ERR_OUT_PTR_NULL;
   monitor_wrlock (&registrar_monitor);
   if (registrar_list == NULL)
-    status = list_create (&registrar_list);
+    status = mu_list_create (&registrar_list);
   *plist = registrar_list;
   monitor_unlock (&registrar_monitor);
   return status;
@@ -79,11 +79,11 @@ registrar_get_iterator (iterator_t *pitr)
   monitor_wrlock (&registrar_monitor);
   if (registrar_list == NULL)
     {
-      status = list_create (&registrar_list);
+      status = mu_list_create (&registrar_list);
       if (status)
 	return status;
     }
-  status = list_get_iterator (registrar_list, pitr);
+  status = mu_list_get_iterator (registrar_list, pitr);
   monitor_unlock (&registrar_monitor);
   return status;
 }
@@ -96,16 +96,16 @@ registrar_lookup (const char *name, record_t *precord, int flags)
   if (status != 0)
     return status;
   status = 0;
-  for (iterator_first (iterator); status == 0 && !iterator_is_done (iterator);
-       iterator_next (iterator))
+  for (mu_iterator_first (iterator); status == 0 && !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
     {
       record_t record;
-      iterator_current (iterator, (void **)&record);
+      mu_iterator_current (iterator, (void **)&record);
       status = record_is_scheme (record, name, flags);
       if (status)
 	*precord = record;
     }
-  iterator_destroy (&iterator);
+  mu_iterator_destroy (&iterator);
   return status;
 }
 
@@ -125,14 +125,14 @@ registrar_record (record_t record)
 {
   int status;
   list_t list;
-  list_comparator_t comp;
+  mu_list_comparator_t comp;
   
   _registrar_get_list (&list);
-  comp = list_set_comparator (list, _compare_prio);
-  status = list_insert (list, record, record, 1);
+  comp = mu_list_set_comparator (list, _compare_prio);
+  status = mu_list_insert (list, record, record, 1);
   if (status == MU_ERR_NOENT)
-    status = list_append (list, record);
-  list_set_comparator (list, comp);
+    status = mu_list_append (list, record);
+  mu_list_set_comparator (list, comp);
   return status;
 }
 
@@ -141,7 +141,7 @@ unregistrar_record (record_t record)
 {
   list_t list;
   _registrar_get_list (&list);
-  list_remove (list, record);
+  mu_list_remove (list, record);
   return 0;
 }
 

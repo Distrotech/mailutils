@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ static int fill_blurb      (header_t);
 static void header_free_cache (header_t);
 
 int
-header_create (header_t *ph, const char *blurb, size_t len, void *owner)
+mu_header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
   header_t header;
   int status = 0;
@@ -84,7 +84,7 @@ header_free_cache (header_t header)
 }
 
 void
-header_destroy (header_t *ph, void *owner)
+mu_header_destroy (header_t *ph, void *owner)
 {
   if (ph && *ph)
     {
@@ -113,19 +113,19 @@ header_destroy (header_t *ph, void *owner)
 }
 
 void *
-header_get_owner (header_t header)
+mu_header_get_owner (header_t header)
 {
   return (header) ? header->owner : NULL;
 }
 
 int
-header_is_modified (header_t header)
+mu_header_is_modified (header_t header)
 {
   return (header) ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
 int
-header_clear_modified (header_t header)
+mu_header_clear_modified (header_t header)
 {
   if (header)
     header->flags &= ~HEADER_MODIFIED;
@@ -260,7 +260,7 @@ header_parse (header_t header, const char *blurb, int len)
 /* FIXME: grossly inneficient, to many copies and reallocating.
    This all header business need a good rewrite.  */
 int
-header_set_value (header_t header, const char *fn, const char *fv,
+mu_header_set_value (header_t header, const char *fn, const char *fv,
 		  int replace)
 {
   char *blurb;
@@ -445,7 +445,7 @@ header_set_fvalue (header_t header, const char *name, char *buffer)
 
 /* For the cache header if the field exist but with no corresponding
    value, it is a permanent failure i.e.  the field does not exist
-   in the header return EINVAL to notify header_get_value().  */
+   in the header return EINVAL to notify mu_header_get_value().  */
 static int
 header_get_fvalue (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
@@ -487,7 +487,7 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
 }
 
 int
-header_get_value (header_t header, const char *name, char *buffer,
+mu_header_get_value (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
 {
   size_t i = 0;
@@ -608,10 +608,10 @@ header_get_value (header_t header, const char *name, char *buffer,
 }
 
 int
-header_get_value_unfold (header_t header, const char *name, char *buffer,
+mu_header_get_value_unfold (header_t header, const char *name, char *buffer,
 			 size_t buflen, size_t *pn)
 {
-  int rc = header_get_value (header, name, buffer, buflen, pn);
+  int rc = mu_header_get_value (header, name, buffer, buflen, pn);
 
   if (rc == 0)
     mu_string_unfold (buffer, pn);
@@ -619,17 +619,17 @@ header_get_value_unfold (header_t header, const char *name, char *buffer,
 }
 
 int
-header_aget_value (header_t header, const char *name, char **pvalue)
+mu_header_aget_value (header_t header, const char *name, char **pvalue)
 {
   char *value;
   size_t n = 0;
-  int status = header_get_value (header, name, NULL, 0, &n);
+  int status = mu_header_get_value (header, name, NULL, 0, &n);
   if (status == 0)
     {
       value = calloc (n + 1, 1);
       if (value == NULL)
         return ENOMEM;
-      header_get_value (header, name, value, n + 1, NULL);
+      mu_header_get_value (header, name, value, n + 1, NULL);
       *pvalue = value;
     }
 
@@ -637,24 +637,24 @@ header_aget_value (header_t header, const char *name, char **pvalue)
 }
 
 int
-header_aget_value_unfold (header_t header, const char *name, char **pvalue)
+mu_header_aget_value_unfold (header_t header, const char *name, char **pvalue)
 {
-  int rc = header_aget_value (header, name, pvalue);
+  int rc = mu_header_aget_value (header, name, pvalue);
   if (rc == 0)
     mu_string_unfold (*pvalue, NULL);
   return rc;
 }
 
 int
-header_get_address (header_t header, const char *name, address_t *addr)
+mu_header_get_address (header_t header, const char *name, address_t *addr)
 {
   char* value = NULL;
-  int status = header_aget_value(header, name, &value);
+  int status = mu_header_aget_value(header, name, &value);
 
   if(status)
     return status;
 
-  status = address_create(addr, value);
+  status = mu_address_create(addr, value);
 
   free(value);
 
@@ -662,7 +662,7 @@ header_get_address (header_t header, const char *name, address_t *addr)
 }
 
 int
-header_get_field_count (header_t header, size_t *pcount)
+mu_header_get_field_count (header_t header, size_t *pcount)
 {
   if (header == NULL)
     {
@@ -685,7 +685,7 @@ header_get_field_count (header_t header, size_t *pcount)
 }
 
 int
-header_get_field_name (header_t header, size_t num, char *buf,
+mu_header_get_field_name (header_t header, size_t num, char *buf,
 		       size_t buflen, size_t *nwriten)
 {
   size_t len;
@@ -720,17 +720,17 @@ header_get_field_name (header_t header, size_t num, char *buf,
 }
 
 int
-header_aget_field_name (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_name (header_t header, size_t num, char **pvalue)
 {
   char *value;
   size_t n = 0;
-  int status = header_get_field_name (header, num, NULL, 0, &n);
+  int status = mu_header_get_field_name (header, num, NULL, 0, &n);
   if (status == 0)
     {
       value = calloc (n + 1, 1);
       if (value == NULL)
         return ENOMEM;
-      header_get_field_name (header, num, value, n + 1, NULL);
+      mu_header_get_field_name (header, num, value, n + 1, NULL);
       *pvalue = value;
     }
   else
@@ -739,7 +739,7 @@ header_aget_field_name (header_t header, size_t num, char **pvalue)
 }
 
 int
-header_get_field_value (header_t header, size_t num, char *buf,
+mu_header_get_field_value (header_t header, size_t num, char *buf,
 			size_t buflen, size_t *nwritten)
 {
   size_t len;
@@ -775,27 +775,27 @@ header_get_field_value (header_t header, size_t num, char *buf,
 }
 
 int
-header_get_field_value_unfold (header_t header, size_t num, char *buf,
+mu_header_get_field_value_unfold (header_t header, size_t num, char *buf,
 			       size_t buflen, size_t *nwritten)
 {
-  int rc = header_get_field_value (header, num, buf, buflen, nwritten);
+  int rc = mu_header_get_field_value (header, num, buf, buflen, nwritten);
   if (rc == 0)
     mu_string_unfold (buf, nwritten);
   return rc;
 }
 
 int
-header_aget_field_value (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_value (header_t header, size_t num, char **pvalue)
 {
   char *value;
   size_t n = 0;
-  int status = header_get_field_value (header, num, NULL, 0, &n);
+  int status = mu_header_get_field_value (header, num, NULL, 0, &n);
   if (status == 0)
     {
       value = calloc (n + 1, 1);
       if (value == NULL)
         return ENOMEM;
-      header_get_field_value (header, num, value, n + 1, NULL);
+      mu_header_get_field_value (header, num, value, n + 1, NULL);
       *pvalue = value;
     }
   else
@@ -804,16 +804,16 @@ header_aget_field_value (header_t header, size_t num, char **pvalue)
 }
 
 int
-header_aget_field_value_unfold (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_value_unfold (header_t header, size_t num, char **pvalue)
 {
-  int rc = header_aget_field_value (header, num, pvalue);
+  int rc = mu_header_aget_field_value (header, num, pvalue);
   if (rc == 0)
     mu_string_unfold (*pvalue, NULL);
   return rc;
 }
 
 int
-header_set_lines (header_t header, int (*_lines)
+mu_header_set_lines (header_t header, int (*_lines)
 		 (header_t, size_t *), void *owner)
 {
   if (header ==  NULL)
@@ -825,7 +825,7 @@ header_set_lines (header_t header, int (*_lines)
 }
 
 int
-header_lines (header_t header, size_t *plines)
+mu_header_lines (header_t header, size_t *plines)
 {
   int n;
   size_t lines = 0;
@@ -858,7 +858,7 @@ header_lines (header_t header, size_t *plines)
 }
 
 int
-header_set_size (header_t header, int (*_size)
+mu_header_set_size (header_t header, int (*_size)
 		 (header_t, size_t *), void *owner)
 {
   if (header ==  NULL)
@@ -870,7 +870,7 @@ header_set_size (header_t header, int (*_size)
 }
 
 int
-header_size (header_t header, size_t *psize)
+mu_header_size (header_t header, size_t *psize)
 {
   if (header == NULL)
       return EINVAL;
@@ -893,7 +893,7 @@ header_size (header_t header, size_t *psize)
 }
 
 int
-header_set_get_fvalue (header_t header, 
+mu_header_set_get_fvalue (header_t header, 
        int (*_get_fvalue) (header_t, const char *, char *, size_t, size_t *), 
                        void *owner)
 {
@@ -906,7 +906,7 @@ header_set_get_fvalue (header_t header,
 }
 
 int
-header_set_get_value (header_t header, int (*_get_value)
+mu_header_set_get_value (header_t header, int (*_get_value)
 		     (header_t, const char *, char *, size_t, size_t *),
 		     void *owner)
 {
@@ -919,7 +919,7 @@ header_set_get_value (header_t header, int (*_get_value)
 }
 
 int
-header_set_set_value (header_t header, int (*_set_value)
+mu_header_set_set_value (header_t header, int (*_set_value)
 		      (header_t , const char *, const char *, int),
 		      void *owner)
 {
@@ -932,7 +932,7 @@ header_set_set_value (header_t header, int (*_set_value)
 }
 
 int
-header_set_stream (header_t header, stream_t stream, void *owner)
+mu_header_set_stream (header_t header, stream_t stream, void *owner)
 {
   if (header == NULL)
     return EINVAL;
@@ -943,7 +943,7 @@ header_set_stream (header_t header, stream_t stream, void *owner)
 }
 
 int
-header_set_fill (header_t header, int
+mu_header_set_fill (header_t header, int
 		 (*_fill) (header_t, char *, size_t, off_t, size_t *),
 		 void *owner)
 {
@@ -1197,7 +1197,7 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 }
 
 int
-header_get_stream (header_t header, stream_t *pstream)
+mu_header_get_stream (header_t header, stream_t *pstream)
 {
   if (header == NULL)
     return EINVAL;

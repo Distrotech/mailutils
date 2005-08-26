@@ -167,7 +167,7 @@ page_do (msg_handler_t func, void *data)
       set.next = NULL;
       set.npart = 1;
       set.msg_part = page_map + i;
-      mailbox_get_message (mbox, page_map[i], &msg);
+      mu_mailbox_get_message (mbox, page_map[i], &msg);
       func (&set, msg, data);
     }
 }

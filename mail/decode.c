@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 , 
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
    2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
@@ -60,13 +60,13 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
   attribute_t attr = NULL;
 
   message_get_attribute (mesg, &attr);
-  if (attribute_is_deleted (attr))
+  if (mu_attribute_is_deleted (attr))
     return 1;
 
   display_message0 (mesg, msgset, closure->select_hdr);
 
   /* Mark enclosing message as read */
-  if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) == 0)
+  if (mu_mailbox_get_message (mbox, msgset->msg_part[0], &mesg) == 0)
     util_mark_read (mesg);
 
   return 0;
@@ -86,15 +86,15 @@ display_headers (FILE *out, message_t mesg, const msgset_t *msgset ARG_UNUSED,
       char buffer[512];
 
       message_get_header (mesg, &hdr);
-      header_get_field_count (hdr, &num);
+      mu_header_get_field_count (hdr, &num);
       for (i = 1; i <= num; i++)
 	{
 	  buffer[0] = '\0';
-	  header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
+	  mu_header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
 	  if (mail_header_is_visible (buffer))
 	    {
 	      fprintf (out, "%s: ", buffer);
-	      header_get_field_value (hdr, i, buffer, sizeof(buffer), NULL);
+	      mu_header_get_field_value (hdr, i, buffer, sizeof(buffer), NULL);
 	      fprintf (out, "%s\n", buffer);
 	    }
 	}
@@ -104,7 +104,7 @@ display_headers (FILE *out, message_t mesg, const msgset_t *msgset ARG_UNUSED,
     {
       stream_t stream = NULL;
       if (message_get_header (mesg, &hdr) == 0
-	  && header_get_stream (hdr, &stream) == 0)
+	  && mu_header_get_stream (hdr, &stream) == 0)
 	print_stream (stream, out);
     }
 }
@@ -196,10 +196,10 @@ display_message0 (message_t mesg, const msgset_t *msgset,
       
       message_get_body (mesg, &body);
       message_get_header (mesg, &hdr);
-      body_get_stream (body, &b_stream);
+      mu_body_get_stream (body, &b_stream);
 
       /* Can we decode.  */
-      if (filter_create(&d_stream, b_stream, encoding,
+      if (mu_filter_create(&d_stream, b_stream, encoding,
 			MU_FILTER_DECODE, MU_STREAM_READ) == 0)
 	stream = d_stream;
       else

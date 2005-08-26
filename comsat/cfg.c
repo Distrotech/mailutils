@@ -1,4 +1,4 @@
-/* Copyright (C) 1998, 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Inetutils.
 
@@ -160,11 +160,11 @@ read_config (const char *config_file)
       if (!*ptr || *ptr == '#')
 	continue;
 
-      argcv_get (ptr, "", NULL, &argc, &argv);
+      mu_argcv_get (ptr, "", NULL, &argc, &argv);
       if (argc < 2)
 	{
 	  syslog (LOG_ERR, _("%s:%d: too few fields"), config_file, line);
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 	  continue;
 	}
 
@@ -196,7 +196,7 @@ read_config (const char *config_file)
 	  else
 	    {
 	      syslog (LOG_ERR, _("%s:%d: unknown keyword"), config_file, line);
-	      argcv_free (argc, argv);
+	      mu_argcv_free (argc, argv);
 	      continue;
 	    }
 
@@ -217,7 +217,7 @@ read_config (const char *config_file)
 	      tail = cur;
 	    }
 
-	  argcv_free (argc, argv);
+	  mu_argcv_free (argc, argv);
 
 	  acl = malloc (sizeof *acl);
 	  if (!acl)

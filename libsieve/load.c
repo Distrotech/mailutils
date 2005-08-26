@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 #include <sieve.h>
 #include <ltdl.h>
 
-typedef int (*sieve_module_init_t) __PMT((sieve_machine_t mach));
+typedef int (*sieve_module_init_t) (mu_sieve_machine_t mach);
 
 static void
 _free_loaded_module (void *data)
@@ -38,7 +38,7 @@ _free_loaded_module (void *data)
 }
 
 static lt_dlhandle
-load_module (sieve_machine_t mach, const char *name)
+load_module (mu_sieve_machine_t mach, const char *name)
 {
   lt_dlhandle handle;
 
@@ -53,7 +53,7 @@ load_module (sieve_machine_t mach, const char *name)
       if (init)
 	{
 	  init (mach);
-	  sieve_machine_add_destructor (mach, _free_loaded_module, handle);
+	  mu_sieve_machine_add_destructor (mach, _free_loaded_module, handle);
 	  return handle;
 	}
       else
@@ -65,7 +65,7 @@ load_module (sieve_machine_t mach, const char *name)
 
   if (!handle)
     {
-      sieve_error (mach, "%s", lt_dlerror ());
+      mu_sieve_error (mach, "%s", lt_dlerror ());
       lt_dlexit ();
     }
   return handle;
@@ -83,7 +83,7 @@ fix_module_name (char *name)
 }
 
 int
-sieve_load_ext (sieve_machine_t mach, const char *name)
+mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 {
   lt_dlhandle handle;
   char *modname;
@@ -108,15 +108,15 @@ sieve_load_add_path (list_t path)
 {
   if (lt_dlinit ())
     return 1;
-  return list_do (path, _load_dir, NULL);
+  return mu_list_do (path, _load_dir, NULL);
 }
 
 int
-sieve_load_add_dir (sieve_machine_t mach, const char *name)
+sieve_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
   if (lt_dlinit ())
     return 1;
-  sieve_machine_add_destructor (mach, (sieve_destructor_t) lt_dlexit, NULL);
+  mu_sieve_machine_add_destructor (mach, (mu_sieve_destructor_t) lt_dlexit, NULL);
   return lt_dladdsearchdir (name);
 }
 
@@ -124,7 +124,7 @@ sieve_load_add_dir (sieve_machine_t mach, const char *name)
 #include <sieve.h>
 
 int
-sieve_load_ext (sieve_machine_t mach, const char *name)
+mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 {
   return 1;
 }
@@ -136,7 +136,7 @@ sieve_load_add_path (list_t path)
 }
 
 int
-sieve_load_add_dir (sieve_machine_t mach, const char *name)
+sieve_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
   return 1;
 }

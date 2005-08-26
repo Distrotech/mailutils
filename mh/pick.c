@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -136,12 +136,12 @@ static size_t msgno_count;       /* Number of items on the stack */
 static void
 add_sequence (char *name)
 {
-  if (!seq_list && list_create (&seq_list))
+  if (!seq_list && mu_list_create (&seq_list))
     {
       mh_error (_("Cannot create sequence list"));
       exit (1);
     }
-  list_append (seq_list, name);
+  mu_list_append (seq_list, name);
 }
 
 static int
@@ -372,7 +372,7 @@ main (int argc, char **argv)
       mh_msgset_t msgset;
       msgset.count = msgno_count;
       msgset.list = obstack_finish (&msgno_stk);
-      list_do (seq_list, action_add, (void*) &msgset);
+      mu_list_do (seq_list, action_add, (void*) &msgset);
     }
 
   mh_global_save_state ();

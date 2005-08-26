@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -296,7 +296,7 @@ finish_draft ()
       char buf[64];
       size_t i;
       
-      mailbox_get_url (mbox, &url);
+      mu_mailbox_get_url (mbox, &url);
       
       mbox_path = url_to_string (url);
       if (memcmp (mbox_path, "mh:", 3) == 0)
@@ -309,7 +309,7 @@ finish_draft ()
           message_t msg;
 	  size_t num;
 		  
-	  mailbox_get_message (mbox, msgset.list[i], &msg);
+	  mu_mailbox_get_message (mbox, msgset.list[i], &msg);
 	  mh_message_number (msg, &num);
 	  snprintf (buf, sizeof buf, " %lu", (unsigned long) num);
           rc = stream_sequential_write (stream, buf, strlen (buf));

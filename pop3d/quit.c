@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,11 +38,11 @@ pop3d_quit (const char *arg)
       pop3d_unlock ();
       pop3d_fix_mark ();
 
-      if (mailbox_flush (mbox, 1) != 0)
+      if (mu_mailbox_flush (mbox, 1) != 0)
 	err = ERR_FILE;
-      if (mailbox_close (mbox) != 0) 
+      if (mu_mailbox_close (mbox) != 0) 
 	err = ERR_FILE;
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       syslog (LOG_INFO, _("Session ended for user: %s"), username);
     }
   else
@@ -66,18 +66,18 @@ pop3d_fix_mark ()
   size_t total = 0;
   char *value = NULL;
   
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
 
   for (i = 1; i <= total; i++)
     {
       message_t msg = NULL;
       attribute_t attr = NULL;
        
-      mailbox_get_message (mbox, i, &msg);
+      mu_mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
       
       if (pop3d_is_deleted (attr))
-	attribute_set_deleted (attr);
+	mu_attribute_set_deleted (attr);
 
       expire_mark_message (msg, &value);
     }

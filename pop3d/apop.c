@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -217,15 +217,15 @@ pop3d_apop (const char *arg)
       return ERR_BAD_LOGIN;
     }
 
-  if ((status = mailbox_create (&mbox, auth->mailbox)) != 0
-      || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0
+      || (status = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       /* For non existent mailbox, we fake.  */
       if (status == ENOENT)
 	{
-	  if (mailbox_create (&mbox, "/dev/null") != 0
-	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
+	  if (mu_mailbox_create (&mbox, "/dev/null") != 0
+	      || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
 	      syslog (LOG_ERR, _("Cannot create temporary mailbox: %s"),
 		      mu_strerror (status));
@@ -250,8 +250,8 @@ pop3d_apop (const char *arg)
   if (lockit && pop3d_lock())
     {
       mu_auth_data_free (auth);
-      mailbox_close(mbox);
-      mailbox_destroy(&mbox);
+      mu_mailbox_close(mbox);
+      mu_mailbox_destroy(&mbox);
       state = AUTHORIZATION;
       return ERR_MBOX_LOCK;
     }
@@ -266,7 +266,7 @@ pop3d_apop (const char *arg)
   /* mailbox name */
   {
     url_t url = NULL;
-    mailbox_get_url (mbox, &url);
+    mu_mailbox_get_url (mbox, &url);
     syslog (LOG_INFO, _("User `%s' logged in with mailbox `%s'"),
             username, url_to_string (url));
   }

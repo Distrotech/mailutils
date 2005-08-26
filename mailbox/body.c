@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ static int _body_get_size0  (stream_t, size_t *);
 static int _body_get_lines0 (stream_t, size_t *);
 
 int
-body_create (body_t *pbody, void *owner)
+mu_body_create (body_t *pbody, void *owner)
 {
   body_t body;
 
@@ -70,7 +70,7 @@ body_create (body_t *pbody, void *owner)
 }
 
 void
-body_destroy (body_t *pbody, void *owner)
+mu_body_destroy (body_t *pbody, void *owner)
 {
   if (pbody && *pbody)
     {
@@ -100,21 +100,21 @@ body_destroy (body_t *pbody, void *owner)
 }
 
 void *
-body_get_owner (body_t body)
+mu_body_get_owner (body_t body)
 {
   return (body) ? body->owner : NULL;
 }
 
 /* FIXME: not implemented.  */
 int
-body_is_modified (body_t body)
+mu_body_is_modified (body_t body)
 {
   return (body) ? (body->flags & BODY_MODIFIED) : 0;
 }
 
 /* FIXME: not implemented.  */
 int
-body_clear_modified (body_t body)
+mu_body_clear_modified (body_t body)
 {
   if (body)
     body->flags &= ~BODY_MODIFIED;
@@ -122,7 +122,7 @@ body_clear_modified (body_t body)
 }
 
 int
-body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
+mu_body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
 {
   int n = 0;
   if (body == NULL)
@@ -142,7 +142,7 @@ body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
 }
 
 int
-body_get_stream (body_t body, stream_t *pstream)
+mu_body_get_stream (body_t body, stream_t *pstream)
 {
   if (body == NULL)
     return EINVAL;
@@ -179,7 +179,7 @@ body_get_stream (body_t body, stream_t *pstream)
 }
 
 int
-body_set_stream (body_t body, stream_t stream, void *owner)
+mu_body_set_stream (body_t body, stream_t stream, void *owner)
 {
   if (body == NULL)
    return EINVAL;
@@ -193,7 +193,7 @@ body_set_stream (body_t body, stream_t stream, void *owner)
 }
 
 int
-body_set_lines (body_t body, int (*_lines) (body_t, size_t *), void *owner)
+mu_body_set_lines (body_t body, int (*_lines) (body_t, size_t *), void *owner)
 {
   if (body == NULL)
     return EINVAL;
@@ -204,7 +204,7 @@ body_set_lines (body_t body, int (*_lines) (body_t, size_t *), void *owner)
 }
 
 int
-body_lines (body_t body, size_t *plines)
+mu_body_lines (body_t body, size_t *plines)
 {
   if (body == NULL)
     return EINVAL;
@@ -219,7 +219,7 @@ body_lines (body_t body, size_t *plines)
 }
 
 int
-body_size (body_t body, size_t *psize)
+mu_body_size (body_t body, size_t *psize)
 {
   if (body == NULL)
     return EINVAL;
@@ -234,7 +234,7 @@ body_size (body_t body, size_t *psize)
 }
 
 int
-body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
+mu_body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
 {
   if (body == NULL)
     return EINVAL;

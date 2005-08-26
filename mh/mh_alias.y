@@ -37,7 +37,7 @@ list_create_or_die ()
   int status;
   list_t list;
 
-  status = list_create (&list);
+  status = mu_list_create (&list);
   if (status)
     {
       ali_parse_error (_("can't create list: %s"), mu_strerror (status));
@@ -52,38 +52,38 @@ ali_list_to_string (list_t *plist)
   size_t n;
   char *string;
   
-  list_count (*plist, &n);
+  mu_list_count (*plist, &n);
   if (n == 1)
     {
-      list_get (*plist, 0, (void **)&string);
+      mu_list_get (*plist, 0, (void **)&string);
     }
   else
     {
       char *p;
       size_t length = 0;
       iterator_t itr;
-      list_get_iterator (*plist, &itr);
-      for (iterator_first (itr); !iterator_is_done (itr); iterator_next(itr))
+      mu_list_get_iterator (*plist, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next(itr))
 	{
 	  char *s;
-	  iterator_current (itr, (void**) &s);
+	  mu_iterator_current (itr, (void**) &s);
 	  length += strlen (s) + 1;
 	}
   
       string = xmalloc (length + 1);
       p = string;
-      for (iterator_first (itr); !iterator_is_done (itr); iterator_next(itr))
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next(itr))
 	{
 	  char *s;
-	  iterator_current (itr, (void**) &s);
+	  mu_iterator_current (itr, (void**) &s);
 	  strcpy (p, s);
 	  p += strlen (s);
 	  *p++ = ' ';
 	}
       *--p = 0;
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
-  list_destroy (plist);
+  mu_list_destroy (plist);
   return string;
 }
 
@@ -120,11 +120,11 @@ alias_list   : alias
                {
 		 if (!alias_list)
 		   alias_list = list_create_or_die ();
-		 list_append (alias_list, $1);
+		 mu_list_append (alias_list, $1);
 	       }
              | alias_list nl alias
                {
-		 list_append (alias_list, $3);
+		 mu_list_append (alias_list, $3);
 	       }
              ;
 
@@ -170,11 +170,11 @@ address_group: address_list
 address_list : address
                {
 		 $$ = list_create_or_die ();
-		 list_append ($$, $1);
+		 mu_list_append ($$, $1);
 	       }
              | address_list ',' address
                {
-		 list_append ($1, $3);
+		 mu_list_append ($1, $3);
 		 $$ = $1;
 	       }
              ;
@@ -187,12 +187,12 @@ address      : string_list
 
 string_list  : STRING
                {
-		 list_create(&$$);
-		 list_append($$, $1);
+		 mu_list_create(&$$);
+		 mu_list_append($$, $1);
 	       }
              | string_list STRING
                {
-		 list_append($1, $2);
+		 mu_list_append($1, $2);
 		 $$ = $1;
 	       }
              ;
@@ -205,22 +205,22 @@ ali_list_dup (list_t src)
   list_t dst;
   iterator_t itr;
 
-  if (list_create (&dst))
+  if (mu_list_create (&dst))
     return NULL;
 
-  if (list_get_iterator (src, &itr))
+  if (mu_list_get_iterator (src, &itr))
     {
-      list_destroy (&dst);
+      mu_list_destroy (&dst);
       return NULL;
     }
   
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       void *data;
-      iterator_current (itr, (void **)&data);
-      list_append (dst, data);
+      mu_iterator_current (itr, (void **)&data);
+      mu_list_append (dst, data);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return dst;
 }
 
@@ -230,24 +230,24 @@ ali_member (list_t list, char *name)
   iterator_t itr;
   int found = 0;
 
-  if (list_get_iterator (list, &itr))
+  if (mu_list_get_iterator (list, &itr))
     return 0;
-  for (iterator_first (itr); !found && !iterator_is_done (itr);
-       iterator_next (itr))
+  for (mu_iterator_first (itr); !found && !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       char *item;
       address_t tmp;
       
-      iterator_current (itr, (void **)&item);
+      mu_iterator_current (itr, (void **)&item);
       if (strcmp (item, name) == 0)
 	found = 1;
-      else if (address_create (&tmp, item) == 0)
+      else if (mu_address_create (&tmp, item) == 0)
 	{
-	  found = address_contains_email (tmp, name);
-	  address_destroy (&tmp);
+	  found = mu_address_contains_email (tmp, name);
+	  mu_address_destroy (&tmp);
 	}
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return found;
 }
 
@@ -267,17 +267,17 @@ _insert_list (list_t list, void *prev, list_t new_list)
 {
   iterator_t itr;
 
-  if (list_get_iterator (new_list, &itr))
+  if (mu_list_get_iterator (new_list, &itr))
     return 1;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       void *item;
       
-      iterator_current (itr, &item);
-      list_insert (list, prev, item, 0);
+      mu_iterator_current (itr, &item);
+      mu_list_insert (list, prev, item, 0);
       prev = item;
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return 0;
 }
 
@@ -289,22 +289,22 @@ alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)
 {
   iterator_t itr;
 
-  if (list_get_iterator (name_list, &itr))
+  if (mu_list_get_iterator (name_list, &itr))
     return 1;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *name;
       list_t exlist;
       
-      iterator_current (itr, (void **)&name);
+      mu_iterator_current (itr, (void **)&name);
       if (mh_alias_get_internal (name, orig_itr, &exlist, inclusive) == 0)
 	{
 	  _insert_list (name_list, name, exlist);
-	  list_remove (name_list, name);
-	  list_destroy (&exlist);
+	  mu_list_remove (name_list, name);
+	  mu_list_destroy (&exlist);
 	}
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return 0;
 }  
 
@@ -319,20 +319,20 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
 
   if (!start)
     {
-      if (list_get_iterator (alias_list, &itr))
+      if (mu_list_get_iterator (alias_list, &itr))
 	return 1;
-      iterator_first (itr);
+      mu_iterator_first (itr);
     }
   else
     {
-      iterator_dup (&itr, start);
-      iterator_next (itr);
+      mu_iterator_dup (&itr, start);
+      mu_iterator_next (itr);
     }
 	
-  for (; !iterator_is_done (itr); iterator_next (itr))
+  for (; !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       struct mh_alias *alias;
-      iterator_current (itr, (void **)&alias);
+      mu_iterator_current (itr, (void **)&alias);
       if (inclusive)
 	*inclusive |= alias->inclusive;
       if (aliascmp (alias->name, name) == 0)
@@ -344,7 +344,7 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
 	}
     }
   
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return rc;
 }
 
@@ -363,21 +363,21 @@ mh_alias_get_address (char *name, address_t *paddr, int *incl)
   
   if (mh_alias_get_internal (name, NULL, &list, incl))
     return 1;
-  if (list_is_empty (list))
+  if (mu_list_is_empty (list))
     {
-      list_destroy (&list);
+      mu_list_destroy (&list);
       return 1;
     }
   
-  if (list_get_iterator (list, &itr) == 0)
+  if (mu_list_get_iterator (list, &itr) == 0)
     {
-      for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  char *item;
 	  address_t a;
 	  char *ptr = NULL; 
 
-	  iterator_current (itr, (void **)&item);
+	  mu_iterator_current (itr, (void **)&item);
 	  if (incl && *incl)
 	    {
 	      if (strchr (item, '@') == 0)
@@ -390,22 +390,22 @@ mh_alias_get_address (char *name, address_t *paddr, int *incl)
 		asprintf (&ptr, "\"%s\" <%s>", name, item);
 	      item = ptr;
 	    }
-	  if (address_create (&a, item))
+	  if (mu_address_create (&a, item))
 	    {
 	      mh_error (_("Error expanding aliases -- invalid address `%s'"),
 			item);
 	    }
 	  else
 	    {
-	      address_union (paddr, a);
-	      address_destroy (&a);
+	      mu_address_union (paddr, a);
+	      mu_address_destroy (&a);
 	    }
 	  if (ptr)
 	    free (ptr);
 	}
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
-  list_destroy (&list);
+  mu_list_destroy (&list);
   return 0;
 }
 
@@ -417,22 +417,22 @@ mh_alias_get_alias (char *uname, list_t *return_list)
   iterator_t itr;
   int rc = 1;
   
-  if (list_get_iterator (alias_list, &itr))
+  if (mu_list_get_iterator (alias_list, &itr))
     return 1;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       struct mh_alias *alias;
-      iterator_current (itr, (void **)&alias);
+      mu_iterator_current (itr, (void **)&alias);
       if (ali_member (alias->rcpt_list, uname))
 	{
-	  if (*return_list == NULL && list_create (return_list))
+	  if (*return_list == NULL && mu_list_create (return_list))
 	    break;
-	  list_append (*return_list, alias->name);
+	  mu_list_append (*return_list, alias->name);
 	  rc = 0;
 	}
     }
   
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return rc;
 }
 
@@ -442,24 +442,24 @@ mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
   iterator_t itr;
   int rc = 0;
   
-  if (list_get_iterator (alias_list, &itr))
+  if (mu_list_get_iterator (alias_list, &itr))
     return ;
-  for (iterator_first (itr);
-       rc == 0 && !iterator_is_done (itr);
-       iterator_next (itr))
+  for (mu_iterator_first (itr);
+       rc == 0 && !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       struct mh_alias *alias;
       list_t tmp;
       
-      iterator_current (itr, (void **)&alias);
+      mu_iterator_current (itr, (void **)&alias);
 
       tmp = ali_list_dup (alias->rcpt_list);
       alias_expand_list (tmp, itr, NULL);
 
       rc = fun (alias->name, tmp, data);
-      list_destroy (&tmp);
+      mu_list_destroy (&tmp);
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 }
 
 static list_t
@@ -473,7 +473,7 @@ unix_group_to_list (char *name)
       char **p;
 
       for (p = grp->gr_mem; *p; p++)
-	list_append (lst, strdup (*p));
+	mu_list_append (lst, strdup (*p));
     }      
   
   return lst;
@@ -492,7 +492,7 @@ unix_gid_to_list (char *name)
       while ((pw = getpwent ()))
 	{
 	  if (pw->pw_gid == grp->gr_gid)
-	    list_append (lst, strdup (pw->pw_name));
+	    mu_list_append (lst, strdup (pw->pw_name));
 	}
       endpwent();
     }
@@ -509,7 +509,7 @@ unix_passwd_to_list ()
   while ((pw = getpwent ()))
     {
       if (pw->pw_uid > 200)
-	list_append (lst, strdup (pw->pw_name));
+	mu_list_append (lst, strdup (pw->pw_name));
     }
   endpwent();
   return lst;

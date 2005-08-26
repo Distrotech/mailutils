@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,16 +31,16 @@ imap4d_capability_add (const char *str)
 {
   if (!capa_list)
     {
-      list_create (&capa_list);
-      list_set_comparator (capa_list, comp);
+      mu_list_create (&capa_list);
+      mu_list_set_comparator (capa_list, comp);
     }
-  list_append (capa_list, (void*)str);
+  mu_list_append (capa_list, (void*)str);
 }
 
 void
 imap4d_capability_remove (const char *str)
 {
-  list_remove (capa_list, (void*)str);
+  mu_list_remove (capa_list, (void*)str);
 }
 
 void
@@ -71,7 +71,7 @@ imap4d_capability (struct imap4d_command *command, char *arg ARG_UNUSED)
 {
   util_send ("* CAPABILITY");
 
-  list_do (capa_list, print_capa, NULL);
+  mu_list_do (capa_list, print_capa, NULL);
   
   imap4d_auth_capability ();
   util_send ("\r\n");

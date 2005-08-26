@@ -28,7 +28,7 @@ mbox0 (msgset_t *mspec, message_t msg, void *data)
   attribute_t attr;
 
   message_get_attribute (msg, &attr);
-  attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+  mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
   util_mark_read (msg);
   
   set_cursor (mspec->msg_part[0]);

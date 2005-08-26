@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004 Free Software Foundation, Inc.
+   2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ messages_count (const char *box)
   size_t count;
   int status = 0;
 
-  status =  mailbox_create_default (&mbox, box);
+  status =  mu_mailbox_create_default (&mbox, box);
   if (status != 0)
     {
       if (box)
@@ -147,10 +147,10 @@ messages_count (const char *box)
       return -1;
     }
 
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   box = url_to_string (url);
 
-  status =  mailbox_open (mbox, MU_STREAM_READ);
+  status =  mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
       mu_error (_("Could not open mailbox `%s': %s"),
@@ -158,7 +158,7 @@ messages_count (const char *box)
       return -1;
     }
 
-  status = mailbox_messages_count (mbox, &count);
+  status = mu_mailbox_messages_count (mbox, &count);
   if (status != 0)
     {
       mu_error (_("Could not count messages in mailbox `%s': %s"),
@@ -171,7 +171,7 @@ messages_count (const char *box)
   else
     printf (_("Number of messages in %s: %d\n"), box, count);
 
-  status = mailbox_close (mbox);
+  status = mu_mailbox_close (mbox);
   if (status != 0)
     {
       mu_error (_("Could not close `%s': %s"),
@@ -179,6 +179,6 @@ messages_count (const char *box)
       return -1;
     }
 
-  mailbox_destroy (&mbox);
+  mu_mailbox_destroy (&mbox);
   return count;
 }

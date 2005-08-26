@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -64,12 +64,12 @@ _count_items (void *item, void *data)
   address_t addr;
   size_t count = 0;
   
-  if (header_aget_value (vp->hdr, name, &val))
+  if (mu_header_aget_value (vp->hdr, name, &val))
     return 0;
-  if (address_create (&addr, val) == 0)
+  if (mu_address_create (&addr, val) == 0)
     {
-      address_get_count (addr, &count);
-      address_destroy (&addr);
+      mu_address_get_count (addr, &count);
+      mu_address_destroy (&addr);
       vp->count += count;
     }
   free (val);
@@ -78,48 +78,48 @@ _count_items (void *item, void *data)
 
 /* Handler for the numaddr test */
 static int
-numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
+numaddr_test (mu_sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_value_t *h, *v;
+  mu_sieve_value_t *h, *v;
   struct val_ctr vc;
   int rc;
   
-  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      sieve_locus_t locus;
-      sieve_get_locus (mach, &locus);
-      sieve_debug (mach, "%s:%lu: NUMADDR\n",
+      mu_sieve_locus_t locus;
+      mu_sieve_get_locus (mach, &locus);
+      mu_sieve_debug (mach, "%s:%lu: NUMADDR\n",
 		   locus.source_file,
 		   (unsigned long) locus.source_line);
     }
 
   /* Retrieve required arguments: */
   /* First argument: list of header names */
-  h = sieve_value_get (args, 0);
+  h = mu_sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, "numaddr: can't get argument 1");
-      sieve_abort (mach);
+      mu_sieve_error (mach, "numaddr: can't get argument 1");
+      mu_sieve_abort (mach);
     }
   /* Second argument: Limit on the number of addresses */
-  v = sieve_value_get (args, 1);
+  v = mu_sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, "numaddr: can't get argument 2");
-      sieve_abort (mach);
+      mu_sieve_error (mach, "numaddr: can't get argument 2");
+      mu_sieve_abort (mach);
     }
 
   /* Fill in the val_ctr structure */
-  message_get_header (sieve_get_message (mach), &vc.hdr);
+  message_get_header (mu_sieve_get_message (mach), &vc.hdr);
   vc.count = 0;
   vc.limit = v->v.number;
 
   /* Count the addresses */
-  rc = sieve_vlist_do (h, _count_items, &vc);
+  rc = mu_sieve_vlist_do (h, _count_items, &vc);
 
   /* Here rc >= 1 iff the counted number of addresses is greater or equal
      to vc.limit. If `:under' tag was given we reverse the return value */
-  if (sieve_tag_lookup (tags, "under", NULL))
+  if (mu_sieve_tag_lookup (tags, "under", NULL))
     rc = !rc;
   return rc;
 }
@@ -127,20 +127,20 @@ numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
 /* Syntactic definitions for the numaddr test */
 
 /* Required arguments: */
-static sieve_data_type numaddr_req_args[] = {
+static mu_sieve_data_type numaddr_req_args[] = {
   SVT_STRING_LIST,
   SVT_NUMBER,
   SVT_VOID
 };
 
 /* Tagged arguments: */
-static sieve_tag_def_t numaddr_tags[] = {
+static mu_sieve_tag_def_t numaddr_tags[] = {
   { "over", SVT_VOID },
   { "under", SVT_VOID },
   { NULL }
 };
 
-static sieve_tag_group_t numaddr_tag_groups[] = {
+static mu_sieve_tag_group_t numaddr_tag_groups[] = {
   { numaddr_tags, NULL },
   { NULL }
 };
@@ -148,8 +148,8 @@ static sieve_tag_group_t numaddr_tag_groups[] = {
 /* Initialization function. It is the only function exported from this
    module. */
 int
-SIEVE_EXPORT(numaddr,init) (sieve_machine_t mach)
+SIEVE_EXPORT(numaddr,init) (mu_sieve_machine_t mach)
 {
-  return sieve_register_test (mach, "numaddr", numaddr_test,
+  return mu_sieve_register_test (mach, "numaddr", numaddr_test,
                               numaddr_req_args, numaddr_tag_groups, 1);
 }

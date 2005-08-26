@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -173,10 +173,10 @@ yylex ()
 {
   struct token *tok;
   
-  if (iterator_is_done (iterator))
+  if (mu_iterator_is_done (iterator))
     return 0;
-  iterator_current (iterator, (void **)&tok);
-  iterator_next (iterator);
+  mu_iterator_current (iterator, (void **)&tok);
+  mu_iterator_next (iterator);
   yylval.string = tok->val;
   return tok->tok;
 }
@@ -239,7 +239,7 @@ pick_add_token (list_t *list, int tok, char *val)
   struct token *tp;
   int rc;
   
-  if (!*list && (rc = list_create (list)))
+  if (!*list && (rc = mu_list_create (list)))
     {
       mh_error(_("cannot create list: %s"), mu_strerror (rc));
       exit (1);
@@ -247,7 +247,7 @@ pick_add_token (list_t *list, int tok, char *val)
   tp = xmalloc (sizeof (*tp));
   tp->tok = tok;
   tp->val = val;
-  list_append (*list, tp);
+  mu_list_append (*list, tp);
 }
 
 /* Main entry point */
@@ -262,11 +262,11 @@ pick_parse (list_t toklist)
       return 0;
     }
 
-  if (list_get_iterator (toklist, &iterator))
+  if (mu_list_get_iterator (toklist, &iterator))
     return -1;
-  iterator_first (iterator);
+  mu_iterator_first (iterator);
   rc = yyparse ();
-  iterator_destroy (&iterator);
+  mu_iterator_destroy (&iterator);
   return rc;
 }
 
@@ -299,13 +299,13 @@ match_header (message_t msg, char *comp, regex_t *regex)
   char buf[128];
   
   message_get_header (msg, &hdr);
-  header_get_field_count (hdr, &count);
+  mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
-      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
       if (strcasecmp (buf, comp) == 0)
 	{
-	  header_get_field_value (hdr, i, buf, sizeof buf, NULL);
+	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
 	  if (regexec (regex, buf, 0, NULL, 0) == 0)
 	    return 1;
 	}
@@ -340,7 +340,7 @@ get_date_field (struct eval_env *env, time_t *t)
   
   if (message_get_header (env->msg, &hdr))
     return 1;
-  if (header_get_value (hdr, env->datefield, buf, sizeof buf, NULL))
+  if (mu_header_get_value (hdr, env->datefield, buf, sizeof buf, NULL))
     return 1;
   return mu_parse_date (buf, t, NULL);
 }

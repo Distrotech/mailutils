@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -118,9 +118,9 @@ struct auth_stack_entry {
 void
 mu_insert_stack_entry (list_t *pflist, struct auth_stack_entry *entry)
 {
-  if (!*pflist && list_create (pflist))
+  if (!*pflist && mu_list_create (pflist))
     return;
-  list_append (*pflist, entry);
+  mu_list_append (*pflist, entry);
 }
 
 int
@@ -130,20 +130,20 @@ mu_auth_runlist (list_t flist, struct mu_auth_data **return_data,
   int rc = 1;
   iterator_t itr;
 
-  if (list_get_iterator (flist, &itr) == 0)
+  if (mu_list_get_iterator (flist, &itr) == 0)
     {
       struct auth_stack_entry *ep;
       
-      for (iterator_first (itr); rc && !iterator_is_done (itr);
-	   iterator_next (itr))
+      for (mu_iterator_first (itr); rc && !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  iterator_current (itr, (void **)&ep);
+	  mu_iterator_current (itr, (void **)&ep);
 	  DEBUG(("trying %s", ep->name));
 	  rc = ep->fun (return_data, key, ep->func_data, data);
 	  DEBUG(("Result: %d", rc));
 	}
 
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
   return rc;
 }
@@ -302,7 +302,7 @@ mu_auth_register_module (struct mu_auth_module *mod)
       cp->argp = NULL;
     }
 
-  if (!module_handler_list && list_create (&module_handler_list))
+  if (!module_handler_list && mu_list_create (&module_handler_list))
     abort ();
 
   entry = malloc (sizeof (*entry));
@@ -321,7 +321,7 @@ mu_auth_register_module (struct mu_auth_module *mod)
   entry->auth_by_uid.fun = mod->auth_by_uid;
   entry->auth_by_uid.func_data = mod->auth_by_uid_data;
     
-  list_append (module_handler_list, entry);
+  mu_list_append (module_handler_list, entry);
   
 }
 
@@ -331,19 +331,19 @@ _locate (const char *name)
   struct _module_handler *rp = NULL;
   iterator_t itr;
 
-  if (list_get_iterator (module_handler_list, &itr) == 0)
+  if (mu_list_get_iterator (module_handler_list, &itr) == 0)
     {
       struct _module_handler *p;
       
-      for (iterator_first (itr); !rp && !iterator_is_done (itr);
-	   iterator_next (itr))
+      for (mu_iterator_first (itr); !rp && !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  iterator_current (itr, (void **)&p);
+	  mu_iterator_current (itr, (void **)&p);
 	  if (strcmp (p->authenticate.name, name) == 0)
 	    rp = p;
 	}
 
-      iterator_destroy (&itr);
+      mu_iterator_destroy (&itr);
     }
   return rp;
 }
@@ -432,35 +432,35 @@ mu_auth_begin_setup ()
   
   if (!mu_authenticate_list)
     {
-      if (list_get_iterator (module_handler_list, &itr) == 0)
+      if (mu_list_get_iterator (module_handler_list, &itr) == 0)
 	{
 	  struct _module_handler *mod;
 	  
-	  for (iterator_first (itr); !iterator_is_done (itr);
-	       iterator_next (itr))
+	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	       mu_iterator_next (itr))
 	    {
-	      iterator_current (itr, (void **)&mod);
+	      mu_iterator_current (itr, (void **)&mod);
 	      mu_insert_stack_entry (&mu_authenticate_list,
 				     &mod->authenticate);
 	    }
-	  iterator_destroy (&itr);
+	  mu_iterator_destroy (&itr);
 	}
     }
 
   if (!mu_auth_by_name_list)
     {
-      if (list_get_iterator (module_handler_list, &itr) == 0)
+      if (mu_list_get_iterator (module_handler_list, &itr) == 0)
 	{
 	  struct _module_handler *mod;
 	  
-	  for (iterator_first (itr); !iterator_is_done (itr);
-	       iterator_next (itr))
+	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	       mu_iterator_next (itr))
 	    {
-	      iterator_current (itr, (void **)&mod);
+	      mu_iterator_current (itr, (void **)&mod);
 	      mu_insert_stack_entry (&mu_auth_by_name_list, &mod->auth_by_name);
 	      mu_insert_stack_entry (&mu_auth_by_uid_list, &mod->auth_by_uid);
 	    }
-	  iterator_destroy (&itr);
+	  mu_iterator_destroy (&itr);
 	}
     }
 }
@@ -468,9 +468,9 @@ mu_auth_begin_setup ()
 void
 mu_auth_finish_setup ()
 {
-  list_destroy (&mu_authenticate_list);
-  list_destroy (&mu_auth_by_name_list);
-  list_destroy (&mu_auth_by_uid_list);
+  mu_list_destroy (&mu_authenticate_list);
+  mu_list_destroy (&mu_auth_by_name_list);
+  mu_list_destroy (&mu_auth_by_uid_list);
   
   mu_authenticate_list = _tmp_authenticate_list;
   _tmp_authenticate_list = NULL;

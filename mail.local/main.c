@@ -246,7 +246,7 @@ _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 
 static void
 _sieve_action_log (void *user_name,
-		   const sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   char *text = NULL;
@@ -256,8 +256,8 @@ _sieve_action_log (void *user_name,
       header_t hdr = NULL;
       char *val = NULL;
       message_get_header (msg, &hdr);
-      if (header_aget_value (hdr, message_id_header, &val) == 0
-	  || header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
+      if (mu_header_aget_value (hdr, message_id_header, &val) == 0
+	  || mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
 	{
 	  asprintf (&text, _("%s:%lu: %s on msg %s"),
 		    locus->source_file,
@@ -322,17 +322,17 @@ main (int argc, char *argv[])
   mu_init_nls ();
 
   /* Default locker settings */
-  locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,
-			    mu_locker_set_flags);
-  locker_set_default_retry_timeout (1);
-  locker_set_default_retry_count (300);
+  mu_locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,
+			    mu_locker_assign);
+  mu_locker_set_default_retry_timeout (1);
+  mu_locker_set_default_retry_count (300);
 
   /* Default error code for command line errors */
   mu_argp_error_code = EX_CONFIG;
   /* Register needed modules */
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
-  sieve_argp_init ();
+  mu_sieve_argp_init ();
   /* Parse command line */
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   
@@ -420,8 +420,8 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
     }
   else
     {
-      sieve_machine_t mach;
-      rc = sieve_machine_init (&mach, auth->name);
+      mu_sieve_machine_t mach;
+      rc = mu_sieve_machine_init (&mach, auth->name);
       if (rc)
 	{
 	  mu_error (_("Cannot initialize sieve machine: %s"),
@@ -429,33 +429,33 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
 	}
       else
 	{
-	  sieve_set_debug (mach, _sieve_debug_printer);
-	  sieve_set_debug_level (mach, mudebug, sieve_debug_flags);
-	  sieve_set_parse_error (mach, _sieve_parse_error);
+	  mu_sieve_set_debug (mach, _sieve_debug_printer);
+	  mu_sieve_set_debug_level (mach, mudebug, sieve_debug_flags);
+	  mu_sieve_set_parse_error (mach, _sieve_parse_error);
 	  if (sieve_enable_log)
-	    sieve_set_logger (mach, _sieve_action_log);
+	    mu_sieve_set_logger (mach, _sieve_action_log);
 	  
-	  rc = sieve_compile (mach, progfile);
+	  rc = mu_sieve_compile (mach, progfile);
 	  if (rc == 0)
 	    {
 	      attribute_t attr;
 	      message_t msg = NULL;
 		
-	      mailbox_get_message (mbx, 1, &msg);
+	      mu_mailbox_get_message (mbx, 1, &msg);
 	      message_get_attribute (msg, &attr);
-	      attribute_unset_deleted (attr);
+	      mu_attribute_unset_deleted (attr);
 	      if (switch_user_id (auth, 1) == 0)
 		{
 		  chdir (auth->dir);
 		
-		  rc = sieve_message (mach, msg);
+		  rc = mu_sieve_message (mach, msg);
 		  if (rc == 0)
-		    rc = attribute_is_deleted (attr) == 0;
+		    rc = mu_attribute_is_deleted (attr) == 0;
 
 		  switch_user_id (auth, 0);
 		  chdir ("/");
 		}
-	      sieve_machine_destroy (&mach);
+	      mu_sieve_machine_destroy (&mach);
 	    }
 	}
     }
@@ -623,16 +623,16 @@ make_tmp (const char *from, mailbox_t *mbox)
     }
 
   stream_flush (stream);
-  if ((status = mailbox_create (mbox, "/dev/null")) 
-      || (status = mailbox_open (*mbox, MU_STREAM_READ))
-      || (status = mailbox_set_stream (*mbox, stream)))
+  if ((status = mu_mailbox_create (mbox, "/dev/null")) 
+      || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
+      || (status = mu_mailbox_set_stream (*mbox, stream)))
     {
       mailer_err (_("Error opening temporary file: %s"), mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
 
-  status = mailbox_messages_count (*mbox, &n);
+  status = mu_mailbox_messages_count (*mbox, &n);
   if (status)
     {
       errno = status;
@@ -673,7 +673,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
 
-  if ((status = mailbox_get_stream (imbx, &istream)) != 0)
+  if ((status = mu_mailbox_get_stream (imbx, &istream)) != 0)
     {
       mailer_err (_("Cannot get input message stream: %s"),
 		  mu_strerror (status));
@@ -681,7 +681,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
   
-  if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
+  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
     {
       mailer_err (_("Cannot open mailbox %s: %s"),
 		  auth->mailbox, mu_strerror (status));
@@ -689,7 +689,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
 
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   path = (char*) url_to_string (url);
 
   /* Actually open the mailbox. Switch to the user's euid to make
@@ -697,33 +697,33 @@ deliver (mailbox_t imbx, char *name)
      will be created */
   if (switch_user_id (auth, 1))
     return;
-  status = mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT);
+  status = mu_mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if (switch_user_id (auth, 0))
     return;
   if (status != 0)
     {
       mailer_err (_("Cannot open mailbox %s: %s"), path, mu_strerror (status));
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       return;
     }
   
-  mailbox_get_locker (mbox, &lock);
+  mu_mailbox_get_locker (mbox, &lock);
 
-  status = locker_lock (lock);
+  status = mu_locker_lock (lock);
 
   if (status)
     {
       mailer_err (_("Cannot lock mailbox `%s': %s"), path, mu_strerror (status));
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
     }
 
-  if ((status = mailbox_get_stream (mbox, &ostream)))
+  if ((status = mu_mailbox_get_stream (mbox, &ostream)))
     {
       mailer_err (_("Cannot get stream for mailbox %s: %s"),
 		  path, mu_strerror (status));
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       return;
     }
 
@@ -731,7 +731,7 @@ deliver (mailbox_t imbx, char *name)
     {
       mailer_err (_("Cannot get stream size (mailbox %s): %s"),
 		  path, mu_strerror (status));
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       return;
     }
 
@@ -825,11 +825,11 @@ deliver (mailbox_t imbx, char *name)
   if (!failed)
     notify_biff (mbox, name, size);
 
-  locker_unlock (lock);
+  mu_locker_unlock (lock);
 
   mu_auth_data_free (auth);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
 }
 
 void
@@ -859,7 +859,7 @@ notify_biff (mailbox_t mbox, char *name, size_t size)
   if (fd < 0)
     return;
   
-  mailbox_get_url (mbox, &url);
+  mu_mailbox_get_url (mbox, &url);
   asprintf (&buf, "%s@%lu:%s", name,
 	    (unsigned long) size, url_to_string (url));
   if (buf)

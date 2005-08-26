@@ -209,10 +209,10 @@ mailer_check_from (address_t from)
   if (!from)
     return EINVAL;
 
-  if (address_get_count (from, &n) || n != 1)
+  if (mu_address_get_count (from, &n) || n != 1)
     return MU_ERR_MAILER_BAD_FROM;
 
-  if (address_get_email_count (from, &n) || n == 0)
+  if (mu_address_get_email_count (from, &n) || n == 0)
     return MU_ERR_MAILER_BAD_FROM;
 
   return 0;
@@ -228,16 +228,16 @@ mailer_check_to (address_t to)
   if (!to)
     return EINVAL;
 
-  if (address_get_count (to, &count))
+  if (mu_address_get_count (to, &count))
     return MU_ERR_MAILER_BAD_TO;
 
-  if (address_get_email_count (to, &emails))
+  if (mu_address_get_email_count (to, &emails))
     return MU_ERR_MAILER_BAD_TO;
 
   if (emails == 0)
     return MU_ERR_MAILER_NO_RCPT_TO;
 
-  if (address_get_group_count (to, &groups))
+  if (mu_address_get_group_count (to, &groups))
     return MU_ERR_MAILER_BAD_TO;
 
   if (count - emails - groups != 0)
@@ -257,28 +257,28 @@ save_fcc (message_t msg)
   if (message_get_header (msg, &hdr))
     return;
 
-  if (header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL))
+  if (mu_header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL))
     return;
   
-  header_get_field_count (hdr, &count);
+  mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
       mailbox_t mbox;
       
-      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
       if (strcasecmp (buf, MU_HEADER_FCC) == 0)
 	{
-	  if (header_get_field_value (hdr, i, buf, sizeof buf, NULL))
+	  if (mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL))
 	    continue;
-	  if (mailbox_create_default (&mbox, buf))
+	  if (mu_mailbox_create_default (&mbox, buf))
 	    continue; /*FIXME: error message?? */
-	  if (mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT|MU_STREAM_APPEND) == 0)
+	  if (mu_mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT|MU_STREAM_APPEND) == 0)
 	    {
-	      mailbox_append_message (mbox, msg);
-	      mailbox_flush (mbox, 0);
+	      mu_mailbox_append_message (mbox, msg);
+	      mu_mailbox_flush (mbox, 0);
 	    }
-	  mailbox_close (mbox);
-	  mailbox_destroy (&mbox);
+	  mu_mailbox_close (mbox);
+	  mu_mailbox_destroy (&mbox);
 	}
     }
 }

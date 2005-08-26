@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,7 +68,7 @@ add_header (char *name, char *value, int mode)
   
   if (!add_header_list)
     {
-      int rc = list_create (&add_header_list);
+      int rc = mu_list_create (&add_header_list);
       if (rc)
 	{
 	  util_error (_("Cannot create header list: %s"), mu_strerror (rc));
@@ -79,7 +80,7 @@ add_header (char *name, char *value, int mode)
   hp->mode = mode;
   hp->name = name;
   hp->value = value;
-  list_append (add_header_list, hp);
+  mu_list_append (add_header_list, hp);
 }
 
 void
@@ -115,13 +116,13 @@ int
 mail_sendheader (int argc, char **argv)
 {
   if (argc == 1)
-    list_do (add_header_list, list_headers, NULL);
+    mu_list_do (add_header_list, list_headers, NULL);
   else if (argc == 2)
     {
       if (strchr (argv[1], ':'))
 	send_append_header (argv[1]);
       else
-	list_do (add_header_list, list_headers, argv[1]);
+	mu_list_do (add_header_list, list_headers, argv[1]);
     }
   else
     {
@@ -210,7 +211,7 @@ void
 compose_init (compose_env_t * env)
 {
   memset (env, 0, sizeof (*env));
-  list_do (add_header_list, seed_headers, env);
+  mu_list_do (add_header_list, seed_headers, env);
 }
 
 int
@@ -220,7 +221,7 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
   char *old_value;
 
   if (!env->header
-      && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
+      && (status = mu_header_create (&env->header, NULL, 0, NULL)) != 0)
     {
       util_error (_("Cannot create header: %s"), mu_strerror (status));
       return status;
@@ -230,23 +231,23 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
     {
     case COMPOSE_REPLACE:
     case COMPOSE_APPEND:
-      status = header_set_value (env->header, name, value, mode);
+      status = mu_header_set_value (env->header, name, value, mode);
       break;
 
     case COMPOSE_SINGLE_LINE:
       if (!value || value[0] == 0)
 	return EINVAL;
 
-      if (header_aget_value (env->header, name, &old_value) == 0
+      if (mu_header_aget_value (env->header, name, &old_value) == 0
 	  && old_value[0])
 	{
 	  status = util_merge_addresses (&old_value, value);
 	  if (status == 0)
-	    status = header_set_value (env->header, name, old_value, 1);
+	    status = mu_header_set_value (env->header, name, old_value, 1);
 	  free (old_value);
 	}
       else
-	status = header_set_value (env->header, name, value, 1);
+	status = mu_header_set_value (env->header, name, value, 1);
     }
 
   return status;
@@ -257,7 +258,7 @@ compose_header_get (compose_env_t * env, char *name, char *defval)
 {
   char *p;
 
-  if (header_aget_value (env->header, name, &p))
+  if (mu_header_aget_value (env->header, name, &p))
     p = defval;
   return p;
 }
@@ -265,7 +266,7 @@ compose_header_get (compose_env_t * env, char *name, char *defval)
 void
 compose_destroy (compose_env_t * env)
 {
-  header_destroy (&env->header, NULL);
+  mu_header_destroy (&env->header, NULL);
   if (env->outfiles)
     {
       int i;
@@ -378,7 +379,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
 	      ofile = env->file;
 
-	      if (argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
+	      if (mu_argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
 		{
 		  if (argc > 0)
 		    {
@@ -397,7 +398,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		{
 		  util_error (_("Cannot parse escape sequence"));
 		}
-	      argcv_free (argc, argv);
+	      mu_argcv_free (argc, argv);
 
 	      ofile = env->ofile;
 	    }
@@ -450,7 +451,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
   /* Prepare the header */
   if (util_getenv (NULL, "xmailer", Mail_env_boolean, 0) == 0)
-    header_set_value (env->header, "X-Mailer", argp_program_version, 1);
+    mu_header_set_value (env->header, "X-Mailer", argp_program_version, 1);
 
   if (util_header_expand (&env->header) == 0)
     {
@@ -472,7 +473,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	    char *buf = NULL;
 	    size_t n = 0;
 	    message_get_body (msg, &body);
-	    body_get_stream (body, &stream);
+	    mu_body_get_stream (body, &stream);
 	    while (getline (&buf, &n, file) >= 0)
 	      {
 		size_t len = strlen (buf);
@@ -494,9 +495,9 @@ mail_send0 (compose_env_t * env, int save_to)
 	      char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
 	      address_t addr = NULL;
 	      
-	      address_create (&addr, tmp);
-	      address_aget_email (addr, 1, &savefile);
-	      address_destroy (&addr);
+	      mu_address_create (&addr, tmp);
+	      mu_address_aget_email (addr, 1, &savefile);
+	      mu_address_destroy (&addr);
 	      if (savefile)
 		{
 		  char *p = strchr (savefile, '@');
@@ -522,20 +523,20 @@ mail_send0 (compose_env_t * env, int save_to)
 		    {
 		      int status;
 		      mailbox_t mbx = NULL;
-		      status = mailbox_create_default (&mbx, env->outfiles[i]);
+		      status = mu_mailbox_create_default (&mbx, env->outfiles[i]);
 		      if (status == 0)
 			{
-			  status = mailbox_open (mbx, MU_STREAM_WRITE
+			  status = mu_mailbox_open (mbx, MU_STREAM_WRITE
 						 | MU_STREAM_CREAT);
 			  if (status == 0)
 			    {
-			      status = mailbox_append_message (mbx, msg);
+			      status = mu_mailbox_append_message (mbx, msg);
 			      if (status)
 				util_error (_("Cannot append message: %s"),
 					    mu_strerror (status));
-			      mailbox_close (mbx);
+			      mu_mailbox_close (mbx);
 			    }
-			  mailbox_destroy (&mbx);
+			  mu_mailbox_destroy (&mbx);
 			}
 		      if (status)
 			util_error (_("Cannot create mailbox %s: %s"), 

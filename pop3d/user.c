@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -114,15 +114,15 @@ pop3d_user (const char *arg)
   if (auth_data->change_uid)
     setuid (auth_data->uid);
   
-  if ((status = mailbox_create (&mbox, auth_data->mailbox)) != 0
-      || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+  if ((status = mu_mailbox_create (&mbox, auth_data->mailbox)) != 0
+      || (status = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
-      mailbox_destroy (&mbox);
+      mu_mailbox_destroy (&mbox);
       /* For non existent mailbox, we fake.  */
       if (status == ENOENT)
 	{
-	  if (mailbox_create (&mbox, "/dev/null") != 0
-	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
+	  if (mu_mailbox_create (&mbox, "/dev/null") != 0
+	      || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
 	      state = AUTHORIZATION;
 	      mu_auth_data_free (auth_data);
@@ -140,8 +140,8 @@ pop3d_user (const char *arg)
   
   if (lockit && pop3d_lock ())
     {
-      mailbox_close (mbox);
-      mailbox_destroy (&mbox); 
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox); 
       mu_auth_data_free (auth_data);
       state = AUTHORIZATION;
       return ERR_MBOX_LOCK;
@@ -163,8 +163,8 @@ pop3d_user (const char *arg)
   {
     url_t url = NULL;
     size_t total = 0;
-    mailbox_get_url (mbox, &url);
-    mailbox_messages_count (mbox, &total);
+    mu_mailbox_get_url (mbox, &url);
+    mu_mailbox_messages_count (mbox, &total);
     syslog (LOG_INFO,
 	    ngettext ("User `%s' logged in with mailbox `%s' (%d message)",
 		      "User `%s' logged in with mailbox `%s' (%d messages)",

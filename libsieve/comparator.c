@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,28 +32,28 @@
 typedef struct {
   const char *name;
   int required;
-  sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
+  mu_sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
 } sieve_comparator_record_t;
 
 int
-sieve_register_comparator (sieve_machine_t mach,
+mu_sieve_register_comparator (mu_sieve_machine_t mach,
 			   const char *name,
 			   int required,
-			   sieve_comparator_t is, sieve_comparator_t contains,
-			   sieve_comparator_t matches,
-			   sieve_comparator_t regex,
-			   sieve_comparator_t eq)
+			   mu_sieve_comparator_t is, mu_sieve_comparator_t contains,
+			   mu_sieve_comparator_t matches,
+			   mu_sieve_comparator_t regex,
+			   mu_sieve_comparator_t eq)
 {
   sieve_comparator_record_t *rp;
 
   if (!mach->comp_list)
     {
-      int rc = list_create (&mach->comp_list);
+      int rc = mu_list_create (&mach->comp_list);
       if (rc)
 	return rc;
     }
 
-  rp = sieve_malloc (mach, sizeof (*rp));
+  rp = mu_sieve_malloc (mach, sizeof (*rp));
   rp->required = required;
   rp->name = name;
   rp->comp[MU_SIEVE_MATCH_IS] = is;       
@@ -61,7 +62,7 @@ sieve_register_comparator (sieve_machine_t mach,
   rp->comp[MU_SIEVE_MATCH_REGEX] = regex;    
   rp->comp[MU_SIEVE_MATCH_EQ] = eq;    
 
-  return list_append (mach->comp_list, rp);
+  return mu_list_append (mach->comp_list, rp);
 }
 
 sieve_comparator_record_t *
@@ -70,28 +71,28 @@ _lookup (list_t list, const char *name)
   iterator_t itr;
   sieve_comparator_record_t *reg;
 
-  if (!list || list_get_iterator (list, &itr))
+  if (!list || mu_list_get_iterator (list, &itr))
     return NULL;
 
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      iterator_current (itr, (void **)&reg);
+      mu_iterator_current (itr, (void **)&reg);
       if (strcmp (reg->name, name) == 0)
 	break;
       else
 	reg = NULL;
     }
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
   return reg;
 }
     
 int
-sieve_require_comparator (sieve_machine_t mach, const char *name)
+mu_sieve_require_comparator (mu_sieve_machine_t mach, const char *name)
 {
   sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (!reg)
     {
-      if (!(sieve_load_ext (mach, name) == 0
+      if (!(mu_sieve_load_ext (mach, name) == 0
 	    && (reg = _lookup (mach->comp_list, name)) != NULL))
 	return 1;
     }
@@ -100,8 +101,8 @@ sieve_require_comparator (sieve_machine_t mach, const char *name)
   return 0;
 }
 
-sieve_comparator_t 
-sieve_comparator_lookup (sieve_machine_t mach, const char *name, int matchtype)
+mu_sieve_comparator_t 
+mu_sieve_comparator_lookup (mu_sieve_machine_t mach, const char *name, int matchtype)
 {
   sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (reg && reg->comp[matchtype])
@@ -112,23 +113,23 @@ sieve_comparator_lookup (sieve_machine_t mach, const char *name, int matchtype)
 static int
 _find_comparator (void *item, void *data)
 {
-  sieve_runtime_tag_t *tag = item;
+  mu_sieve_runtime_tag_t *tag = item;
 
   if (strcmp (tag->tag, TAG_COMPFUN) == 0)
     {
-      *(sieve_comparator_t*)data = tag->arg->v.ptr;
+      *(mu_sieve_comparator_t*)data = tag->arg->v.ptr;
       return 1;
     }
   return 0;
 }
 
-sieve_comparator_t
-sieve_get_comparator (sieve_machine_t mach, list_t tags)
+mu_sieve_comparator_t
+mu_sieve_get_comparator (mu_sieve_machine_t mach, list_t tags)
 {
-  sieve_comparator_t comp = NULL;
+  mu_sieve_comparator_t comp = NULL;
 
-  list_do (tags, _find_comparator, &comp);
-  return comp ? comp : sieve_comparator_lookup (mach,
+  mu_list_do (tags, _find_comparator, &comp);
+  return comp ? comp : mu_sieve_comparator_lookup (mach,
 						"i;ascii-casemap",
 						MU_SIEVE_MATCH_IS);
 }
@@ -157,7 +158,7 @@ _regex_compile (void *item, void *data)
 {
   struct regex_data *rd = data;
   int rc;
-  regex_t *preg = sieve_malloc (sieve_machine, sizeof (*preg));
+  regex_t *preg = mu_sieve_malloc (sieve_machine, sizeof (*preg));
   
   rc = regcomp (preg, (char*)item, rd->flags);
   if (rc)
@@ -177,7 +178,7 @@ _regex_compile (void *item, void *data)
       return rc;
     }
 
-  list_append (rd->list, preg);
+  mu_list_append (rd->list, preg);
   
   return 0;
 }
@@ -193,8 +194,8 @@ static void
 _free_reglist (void *data)
 {
   list_t list = data;
-  list_do (list, _free_regex, NULL);
-  list_destroy (&list);
+  mu_list_do (list, _free_regex, NULL);
+  mu_list_destroy (&list);
 }
 
 static int
@@ -204,26 +205,26 @@ comp_false (const char *pattern, const char *text)
 }
 
 int
-sieve_match_part_checker (const char *name, list_t tags, list_t args)
+mu_sieve_match_part_checker (const char *name, list_t tags, list_t args)
 {
   iterator_t itr;
-  sieve_runtime_tag_t *match = NULL;
-  sieve_runtime_tag_t *comp = NULL;
-  sieve_runtime_tag_t *tmp;
-  sieve_comparator_t compfun = NULL;
+  mu_sieve_runtime_tag_t *match = NULL;
+  mu_sieve_runtime_tag_t *comp = NULL;
+  mu_sieve_runtime_tag_t *tmp;
+  mu_sieve_comparator_t compfun = NULL;
   char *compname = "false";
   
   int matchtype;
   int err = 0;
   
-  if (!tags || list_get_iterator (tags, &itr))
+  if (!tags || mu_list_get_iterator (tags, &itr))
     return 0;
 
-  for (iterator_first (itr); !err && !iterator_is_done (itr);
-       iterator_next (itr))
+  for (mu_iterator_first (itr); !err && !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
-      sieve_runtime_tag_t *t;
-      iterator_current (itr, (void **)&t);
+      mu_sieve_runtime_tag_t *t;
+      mu_iterator_current (itr, (void **)&t);
       
       if (strcmp (t->tag, "is") == 0
 	  || strcmp (t->tag, "contains") == 0
@@ -246,7 +247,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 	comp = t;
     }
 
-  iterator_destroy (&itr);
+  mu_iterator_destroy (&itr);
 
   if (err)
     return 1;
@@ -264,7 +265,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
       char *str = match->arg->v.string;
       if (strcmp (match->tag, "count") == 0)
 	{
-	  sieve_value_t *val;
+	  mu_sieve_value_t *val;
 	  char *str;
 	  size_t count;
 	  
@@ -280,18 +281,18 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 
           matchtype = MU_SIEVE_MATCH_LAST; /* to not leave it undefined */
 	  compfun = comp_false;
-	  val = sieve_value_get (args, 1);
+	  val = mu_sieve_value_get (args, 1);
 	  if (!val)
 	    return 1; /* shouldn't happen */
 	  /* NOTE: Type of v is always SVT_STRING_LIST */
-	  list_count (val->v.list, &count);
+	  mu_list_count (val->v.list, &count);
 	  if (count > 1)
 	    {
 	      sieve_compile_error (sieve_filename, sieve_line_num,
 			_("second argument must be a list of one element"));
 	      return 1;
 	    }
-	  list_get (val->v.list, 0, (void **) &str);
+	  mu_list_get (val->v.list, 0, (void **) &str);
 	  count = strtoul (str, &str, 10);
 	  if (*str)
 	    {
@@ -303,7 +304,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
       else
 	matchtype = MU_SIEVE_MATCH_EQ;
 
-      if (sieve_str_to_relcmp (str, NULL, NULL))
+      if (mu_sieve_str_to_relcmp (str, NULL, NULL))
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
 			       _("invalid relational match `%s' in call to `%s'"),
@@ -315,7 +316,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
   if (!compfun)
     {
       compname = comp ? comp->arg->v.string : "i;ascii-casemap";
-      compfun = sieve_comparator_lookup (sieve_machine, compname, matchtype);
+      compfun = mu_sieve_comparator_lookup (sieve_machine, compname, matchtype);
       if (!compfun)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
@@ -325,47 +326,47 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 	}
     }
 
-  tmp = sieve_malloc (sieve_machine, sizeof (*tmp));
+  tmp = mu_sieve_malloc (sieve_machine, sizeof (*tmp));
   tmp->tag = TAG_COMPFUN;
-  tmp->arg = sieve_value_create (SVT_POINTER, compfun);
-  list_append (tags, tmp);
+  tmp->arg = mu_sieve_value_create (SVT_POINTER, compfun);
+  mu_list_append (tags, tmp);
   
   if (matchtype == MU_SIEVE_MATCH_REGEX)
     {
       /* To speed up things, compile all patterns at once.
 	 Notice that it is supposed that patterns are in arg 2 */
-      sieve_value_t *val, *newval;
+      mu_sieve_value_t *val, *newval;
       struct regex_data rd;
       int rc;
       
-      if (list_get (args, 1, (void**)&val))
+      if (mu_list_get (args, 1, (void**)&val))
 	return 0;
 
       rd.flags = REG_EXTENDED;
       if (strcmp (compname, "i;ascii-casemap") == 0)
 	rd.flags |= REG_ICASE;
 
-      list_create (&rd.list);
+      mu_list_create (&rd.list);
       
-      rc = sieve_vlist_do (val, _regex_compile, &rd);
+      rc = mu_sieve_vlist_do (val, _regex_compile, &rd);
 
-      sieve_machine_add_destructor (sieve_machine, _free_reglist, rd.list);
+      mu_sieve_machine_add_destructor (sieve_machine, _free_reglist, rd.list);
 
       if (rc)
 	return rc;
-      newval = sieve_value_create (SVT_STRING_LIST, rd.list);
-      list_replace (args, val, newval);
+      newval = mu_sieve_value_create (SVT_STRING_LIST, rd.list);
+      mu_list_replace (args, val, newval);
     }
 #ifndef FNM_CASEFOLD
   else if (matchtype == MU_SIEVE_MATCH_MATCHES
 	   && strcmp (compname, "i;ascii-casemap") == 0)
     {
       int rc;
-      sieve_value_t *val;
+      mu_sieve_value_t *val;
 
-      if (list_get (args, 1, (void**)&val))
+      if (mu_list_get (args, 1, (void**)&val))
 	return 0;
-      rc = sieve_vlist_do (val, _pattern_upcase, NULL);
+      rc = mu_sieve_vlist_do (val, _pattern_upcase, NULL);
       if (rc)
 	return rc;
     }
@@ -487,9 +488,9 @@ i_ascii_numeric_eq (const char *pattern, const char *text)
 }
 
 void
-sieve_register_standard_comparators (sieve_machine_t mach)
+sieve_register_standard_comparators (mu_sieve_machine_t mach)
 {
-  sieve_register_comparator (mach,
+  mu_sieve_register_comparator (mach,
 			     "i;octet",
 			     1,
 			     i_octet_is,
@@ -497,7 +498,7 @@ sieve_register_standard_comparators (sieve_machine_t mach)
 			     i_octet_matches,
 			     i_octet_regex,
 			     i_octet_eq);
-  sieve_register_comparator (mach,
+  mu_sieve_register_comparator (mach,
 			     "i;ascii-casemap",
 			     1,
 			     i_ascii_casemap_is,
@@ -505,7 +506,7 @@ sieve_register_standard_comparators (sieve_machine_t mach)
 			     i_ascii_casemap_matches,
 			     i_ascii_casemap_regex,
 			     i_ascii_casemap_eq);
-  sieve_register_comparator (mach,
+  mu_sieve_register_comparator (mach,
 			     "i;ascii-numeric",
 			     0,
 			     i_ascii_numeric_is,

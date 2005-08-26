@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002,2003 Free Software Foundation, Inc.
+   Copyright (C) 2002,2003,2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -292,7 +292,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     }
 
   
-  rc = mailbox_get_message (mbox, msgset.list[0], &msg);
+  rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
       mh_error (_("Cannot read message %lu: %s"),
@@ -343,7 +343,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     size_t num;
     char *msgname, *p;
     
-    mailbox_get_url (mbox, &url);
+    mu_mailbox_get_url (mbox, &url);
     mh_message_number (msg, &num);
     asprintf (&msgname, "%s/%lu", url_to_string (url), (unsigned long) num);
     p = strchr (msgname, ':');

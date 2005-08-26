@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,12 +40,12 @@ extern "C" {
 
 enum mu_locker_set_mode
   {
-    mu_locker_set_flags,
+    mu_locker_assign,
     mu_locker_set_bit,
     mu_locker_clear_bit
   };
     
-/* locker_create() flags */
+/* mu_locker_create() flags */
 
 #define MU_LOCKER_SIMPLE   0x00
   /* Just try and dotlock the file, not the default because its usually
@@ -80,34 +80,34 @@ enum mu_locker_set_mode
  * to MU_LOCKER_DEFAULT). A flags of 0 resets the flags back to the
  * the default.
  */
-extern int locker_set_default_flags (int flags, enum mu_locker_set_mode mode);
-extern void locker_set_default_retry_timeout (time_t to);
-extern void locker_set_default_retry_count (size_t n);
-extern void locker_set_default_expire_timeout (time_t t);
-extern void locker_set_default_external_program (char *path);
+extern int mu_locker_set_default_flags (int flags, enum mu_locker_set_mode mode);
+extern void mu_locker_set_default_retry_timeout (time_t to);
+extern void mu_locker_set_default_retry_count (size_t n);
+extern void mu_locker_set_default_expire_timeout (time_t t);
+extern void mu_locker_set_default_external_program (char *path);
 
 /* A flags of 0 means that the default will be used. */
-extern int locker_create (locker_t *, const char *filename, int flags);
-extern void locker_destroy (locker_t *);
+extern int mu_locker_create (locker_t *, const char *filename, int flags);
+extern void mu_locker_destroy (locker_t *);
 
 /* Time is measured in seconds. */
 
-extern int locker_set_flags (locker_t, int);
-extern int locker_set_expire_time (locker_t, int);
-extern int locker_set_retries (locker_t, int);
-extern int locker_set_retry_sleep (locker_t, int);
-extern int locker_set_external (locker_t, const char* program);
+extern int mu_locker_set_flags (locker_t, int);
+extern int mu_locker_set_expire_time (locker_t, int);
+extern int mu_locker_set_retries (locker_t, int);
+extern int mu_locker_set_retry_sleep (locker_t, int);
+extern int mu_locker_set_external (locker_t, const char* program);
 
-extern int locker_get_flags (locker_t, int*);
-extern int locker_get_expire_time (locker_t, int*);
-extern int locker_get_retries (locker_t, int*);
-extern int locker_get_retry_sleep (locker_t, int*);
-extern int locker_get_external (locker_t, char**);
+extern int mu_locker_get_flags (locker_t, int*);
+extern int mu_locker_get_expire_time (locker_t, int*);
+extern int mu_locker_get_retries (locker_t, int*);
+extern int mu_locker_get_retry_sleep (locker_t, int*);
+extern int mu_locker_get_external (locker_t, char**);
 
-extern int locker_lock          (locker_t);
-extern int locker_touchlock     (locker_t);
-extern int locker_unlock        (locker_t);
-extern int locker_remove_lock   (locker_t);
+extern int mu_locker_lock          (locker_t);
+extern int mu_locker_touchlock     (locker_t);
+extern int mu_locker_unlock        (locker_t);
+extern int mu_locker_remove_lock   (locker_t);
 
 #ifdef __cplusplus
 }

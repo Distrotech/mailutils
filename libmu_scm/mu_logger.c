@@ -20,10 +20,10 @@
 
 #include <syslog.h>
 
-SCM_DEFINE(mu_openlog, "mu-openlog", 3, 0, 0,
+SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 	   (SCM IDENT, SCM OPTION, SCM FACILITY),
 	   "Opens a connection to the system logger for Guile program.")
-#define FUNC_NAME s_mu_openlog
+#define FUNC_NAME s_scm_mu_openlog
 {
   char *ident;
   int option, facility;
@@ -56,10 +56,10 @@ SCM_DEFINE(mu_openlog, "mu-openlog", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_logger, "mu-logger", 2, 0, 0,
+SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 	   (SCM PRIO, SCM TEXT),
 	   "Generates a log message to be distributed via syslogd.")
-#define FUNC_NAME s_mu_logger
+#define FUNC_NAME s_scm_mu_logger
 {
   int prio;
 
@@ -79,10 +79,10 @@ SCM_DEFINE (mu_logger, "mu-logger", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_closelog, "mu-closelog", 0, 0, 0,
+SCM_DEFINE (scm_mu_closelog, "mu-closelog", 0, 0, 0,
 	   (),
 	   "Closes the channel to the system logger open by mu-openlog.")
-#define FUNC_NAME s_mu_closelog
+#define FUNC_NAME s_scm_mu_closelog
 {
   closelog ();
   return SCM_UNSPECIFIED;

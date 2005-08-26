@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ imap4d_expunge (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_NO, "Too many args");
 
   /* FIXME: check for errors.  */
-  mailbox_expunge (mbox);
+  mu_mailbox_expunge (mbox);
 
   imap4d_sync ();
   return util_finish (command, RESP_OK, "Completed");

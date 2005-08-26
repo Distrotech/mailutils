@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ parse_cleartext (locus_t *loc, list_t formlist, char *str)
   len = strlen (stmt->v.cleartext);
   if (len > 0 && stmt->v.cleartext[len-1] == '\n')
     stmt->v.cleartext[len-1] = 0;
-  list_append (formlist, stmt);
+  mu_list_append (formlist, stmt);
 }
 
 static void
@@ -134,7 +134,7 @@ parse_component (locus_t *loc, list_t formlist, char *compname, char *str)
 {
   mhl_stmt_t *stmt = stmt_alloc (stmt_component);
   stmt->v.component.name = compname;
-  if (list_create (&stmt->v.component.format))
+  if (mu_list_create (&stmt->v.component.format))
     {
       mh_error (_("%s:%d: cannot create list"),
 		loc->filename,
@@ -142,7 +142,7 @@ parse_component (locus_t *loc, list_t formlist, char *compname, char *str)
       exit (1); /* FIXME */
     }
   parse_variable (loc, stmt->v.component.format, str);
-  list_append (formlist, stmt);
+  mu_list_append (formlist, stmt);
 }
 
 static void
@@ -153,7 +153,7 @@ parse_variable (locus_t *loc, list_t formlist, char *str)
   char **argv;
   mh_format_t fmt;
   
-  if (argcv_get (str, ",=", NULL, &argc, &argv))
+  if (mu_argcv_get (str, ",=", NULL, &argc, &argv))
     {
       mh_error (_("%s:%d: cannot split string %s"),
 		loc->filename,
@@ -222,7 +222,7 @@ parse_variable (locus_t *loc, list_t formlist, char *str)
 	  break;
 	}
       stmt->v.variable.id = var;
-      list_append (formlist, stmt);
+      mu_list_append (formlist, stmt);
 
       i++;
       if (i < argc && argv[i][0] != ',')
@@ -232,7 +232,7 @@ parse_variable (locus_t *loc, list_t formlist, char *str)
 	}
     }
 
-  argcv_free (argc, argv);
+  mu_argcv_free (argc, argv);
 }
 
 static int
@@ -265,7 +265,7 @@ mhl_format_compile (char *name)
       return NULL;
     }
 
-  if (list_create (&formlist))
+  if (mu_list_create (&formlist))
     {
       fclose (fp);
       mh_error (_("Cannot create list"));
@@ -349,8 +349,8 @@ _destroy_stmt (void *item, void *data)
 void
 mhl_format_destroy (list_t *fmt)
 {
-  list_do (*fmt, _destroy_stmt, NULL);
-  list_destroy (fmt);
+  mu_list_do (*fmt, _destroy_stmt, NULL);
+  mu_list_destroy (fmt);
 }
 
 
@@ -467,7 +467,7 @@ _comp_name (void *item, void *date)
 int
 header_is_printed (struct eval_env *env, char *name)
 {
-  return list_do (env->printed_fields, _comp_name, name) == 1;
+  return mu_list_do (env->printed_fields, _comp_name, name) == 1;
 }
 
 int
@@ -658,10 +658,10 @@ eval_component (struct eval_env *env, char *name)
   char *val;
   
   message_get_header (env->msg, &hdr);
-  if (header_aget_value (hdr, name, &val))
+  if (mu_header_aget_value (hdr, name, &val))
     return 0;
 
-  list_append (env->printed_fields, name);
+  mu_list_append (env->printed_fields, name);
   print_header_value (env, val);
   free (val);
   return 0;
@@ -682,7 +682,7 @@ eval_body (struct eval_env *env)
   env->prefix = env->svar[S_COMPONENT];
 
   message_get_body (env->msg, &body);
-  body_get_stream (body, &input);
+  mu_body_get_stream (body, &input);
 
   if (env->bvar[B_DECODE])
     {
@@ -690,10 +690,10 @@ eval_body (struct eval_env *env)
       char *encoding = NULL;
 
       message_get_header (env->msg, &hdr);
-      header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
+      mu_header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
       if (encoding)
 	{
-	  int rc = filter_create(&dstr, input, encoding,
+	  int rc = mu_filter_create(&dstr, input, encoding,
 				 MU_FILTER_DECODE, MU_STREAM_READ);
 	  if (rc == 0)
 	    input = dstr;
@@ -721,17 +721,17 @@ eval_extras (struct eval_env *env)
   char buf[512];
 
   message_get_header (env->msg, &hdr);
-  header_get_field_count (hdr, &num);
+  mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
       if (want_header (env, buf)
 	  && !header_is_printed (env, buf))
 	{
 	  goto_offset (env, env->ivar[I_OFFSET]);
 	  print (env, buf, 0);
 	  print (env, ":", 0);
-	  header_get_field_value (hdr, i, buf, sizeof buf, NULL);
+	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
 	  print_header_value (env, buf);
 	  if (env->bvar[B_NEWLINE])
 	    newline (env);
@@ -745,7 +745,7 @@ eval_comp (struct eval_env *env, char *compname, list_t format)
 {
   struct eval_env lenv = *env;
   
-  list_do (format, eval_stmt, &lenv);
+  mu_list_do (format, eval_stmt, &lenv);
 
   goto_offset (&lenv, lenv.ivar[I_OFFSET]);
 
@@ -815,7 +815,7 @@ mhl_format_run (list_t fmt,
   memset (&env, 0, sizeof (env));
 
   env.bvar[B_NEWLINE] = 1;
-  list_create (&env.printed_fields);
+  mu_list_create (&env.printed_fields);
   env.ivar[I_WIDTH] = width;
   env.ivar[I_LENGTH] = length;
   env.bvar[B_CLEARSCREEN] = flags & MHL_CLEARSCREEN;
@@ -826,7 +826,7 @@ mhl_format_run (list_t fmt,
   env.nlines = 0;
   env.msg = msg;
   env.output = output;
-  rc = list_do (fmt, eval_stmt, &env);
-  list_destroy (&env.printed_fields);
+  rc = mu_list_do (fmt, eval_stmt, &env);
+  mu_list_destroy (&env.printed_fields);
   return rc;
 }

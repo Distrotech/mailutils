@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -144,7 +144,7 @@ _nntp_mailbox_init (mailbox_t mbox)
   /* Set our properties.  */
   {
     property_t property = NULL;
-    mailbox_get_property (mbox, &property);
+    mu_mailbox_get_property (mbox, &property);
     property_set_value (property, "TYPE", "NNTP", 1);
   }
 
@@ -209,7 +209,7 @@ nntp_mailbox_open (mailbox_t mbox, int flags)
   mbox->flags = flags;
 
   /* make sure the connection is up.  */
-  if ((status = folder_open (f_nntp->folder, flags)))
+  if ((status = mu_folder_open (f_nntp->folder, flags)))
     return status;
 
   mu_nntp_set_debug (f_nntp->nntp, mbox->debug);
@@ -219,14 +219,14 @@ nntp_mailbox_open (mailbox_t mbox, int flags)
   status = mu_nntp_list_active (f_nntp->nntp, m_nntp->name, &iterator);
   if (status == 0)
     {
-      for (iterator_first (iterator);
-           !iterator_is_done (iterator); iterator_next (iterator))
+      for (mu_iterator_first (iterator);
+           !mu_iterator_is_done (iterator); mu_iterator_next (iterator))
         {
           char *buffer = NULL;
-          iterator_current (iterator, (void **) &buffer);
+          mu_iterator_current (iterator, (void **) &buffer);
           mu_nntp_parse_list_active (buffer, NULL, &m_nntp->high, &m_nntp->low, &m_nntp->status);
         }
-      iterator_destroy (&iterator);
+      mu_iterator_destroy (&iterator);
     }
   return status;
 }
@@ -267,7 +267,7 @@ nntp_mailbox_close (mailbox_t mailbox)
     f_nntp->selected = NULL;
 
   /* Decrement the ref count. */
-  return folder_close (mailbox->folder);
+  return mu_folder_close (mailbox->folder);
 }
 
 static int
@@ -329,13 +329,13 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   /* Create the header.  */
   {
     header_t header = NULL;
-    if ((status = header_create (&header, NULL, 0,  msg)) != 0)
+    if ((status = mu_header_create (&header, NULL, 0,  msg)) != 0)
       {
 	message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
 	return status;
       }
-    header_set_fill (header, nntp_header_fill, msg);
+    mu_header_set_fill (header, nntp_header_fill, msg);
     message_set_header (msg, header, msg_nntp);
   }
 
@@ -343,10 +343,10 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   {
     body_t body = NULL;
     stream_t stream = NULL;
-    if ((status = body_create (&body, msg)) != 0
+    if ((status = mu_body_create (&body, msg)) != 0
 	|| (status = stream_create (&stream, mbox->flags, body)) != 0)
       {
-	body_destroy (&body, msg);
+	mu_body_destroy (&body, msg);
 	stream_destroy (&stream, body);
 	message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
@@ -355,9 +355,9 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     /* Helps for the readline()s  */
     stream_set_read (stream, nntp_body_read, body);
     stream_set_get_transport2 (stream, nntp_body_get_transport2, body);
-    body_set_size (body, nntp_body_size, msg);
-    body_set_lines (body, nntp_body_lines, msg);
-    body_set_stream (body, stream, msg);
+    mu_body_set_size (body, nntp_body_size, msg);
+    mu_body_set_lines (body, nntp_body_lines, msg);
+    mu_body_set_stream (body, stream, msg);
     message_set_body (msg, body, msg_nntp);
   }
 
@@ -398,7 +398,7 @@ nntp_mailbox_messages_count (mailbox_t mbox, size_t *pcount)
   f_nntp_t f_nntp = m_nntp->f_nntp;
   int status = 0;
 
-  status = folder_open (mbox->folder, mbox->flags);
+  status = mu_folder_open (mbox->folder, mbox->flags);
   if (status != 0)
     return status;
 
@@ -488,7 +488,7 @@ static int
 nntp_body_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_nntp_t msg_nntp = message_get_owner (msg);
   return nntp_get_transport2 (msg_nntp, pin, pout);
 }
@@ -614,7 +614,7 @@ static int
 nntp_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
 {
   body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
+  message_t msg = mu_body_get_owner (body);
   msg_nntp_t msg_nntp = message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   f_nntp_t f_nntp = m_nntp->f_nntp;
@@ -652,7 +652,7 @@ nntp_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size
 static int
 nntp_header_fill (header_t header, char *buffer, size_t buflen, off_t offset, size_t *plen)
 {
-  message_t msg = header_get_owner (header);
+  message_t msg = mu_header_get_owner (header);
   msg_nntp_t msg_nntp = message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   f_nntp_t f_nntp = m_nntp->f_nntp;

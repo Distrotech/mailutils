@@ -86,7 +86,7 @@ main (int argc, char **argv)
   registrar_record (path_record);
   registrar_record (pop_record);
 
-  if ((ret = mailbox_create_default (&mbox, mailbox_name)) != 0)
+  if ((ret = mu_mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
       fprintf (stderr, "could not create %s: %s\n",
 	       mailbox_name, mu_strerror (ret));
@@ -97,19 +97,19 @@ main (int argc, char **argv)
   if (debug)
     {
       mu_debug_t debug;
-      mailbox_get_debug (mbox, &debug);
+      mu_mailbox_get_debug (mbox, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
     }
 
   /* Open the mailbox for reading only.  */
-  if ((ret = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+  if ((ret = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       fprintf (stderr, "mailbox open - %s\n", mu_strerror (ret));
       exit (2);
     }
 
   /* Iterate through the entire message set.  */
-  mailbox_messages_count (mbox, &count);
+  mu_mailbox_messages_count (mbox, &count);
 
   for (i = 1; i <= count; ++i)
     {
@@ -118,9 +118,9 @@ main (int argc, char **argv)
       size_t nparts;
       size_t msize, nlines;
 
-      if ((ret = mailbox_get_message (mbox, i, &msg)) != 0)
+      if ((ret = mu_mailbox_get_message (mbox, i, &msg)) != 0)
         {
-          fprintf (stderr, "mailbox_get_message - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_mailbox_get_message - %s\n", mu_strerror (ret));
           exit (2);
         }
       if ((ret = message_size (msg, &msize)) != 0)
@@ -138,8 +138,8 @@ main (int argc, char **argv)
           fprintf (stderr, "message_get_header - %s\n", mu_strerror (ret));
           exit (2);
         }
-      header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-      header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
+      mu_header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
+      mu_header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
                         NULL);
       printf ("Message: %lu\n", (unsigned long) i);
       printf ("From: %s\n", from);
@@ -156,8 +156,8 @@ main (int argc, char **argv)
 	      (unsigned long) msize, (unsigned long) nlines);
       message_display_parts (msg, 0);
     }
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return 0;
 }
 
@@ -209,13 +209,13 @@ message_display_parts (message_t msg, int indent)
           fprintf (stderr, "message_get_header - %s\n", mu_strerror (ret));
           exit (2);
         }
-      header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
+      mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
                         NULL);
       printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
       printf ("%*.*sMessage part size - %lu/%lu\n", indent, indent, "",
 	      (unsigned long) msize, (unsigned long) nlines);
       encoding[0] = '\0';
-      header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
+      mu_header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
                         sizeof (encoding), NULL);
       ismulti = 0;
       if ((type[0]
@@ -236,8 +236,8 @@ message_display_parts (message_t msg, int indent)
                        mu_strerror (ret));
               exit (2);
             }
-          header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-          header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
+          mu_header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
+          mu_header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
                             NULL);
           printf ("%*.*sEncapsulated message : %s\t%s\n",
                   indent, indent, "", from, subject);
@@ -260,8 +260,8 @@ message_display_parts (message_t msg, int indent)
           printf ("%*.*sText Message\n", indent, indent, "");
           printf ("%*.*sBegin\n", indent, indent, "");
           message_get_body (part, &body);
-          body_get_stream (body, &str);
-          filter_create (&str, str, encoding, 0, 0);
+          mu_body_get_stream (body, &str);
+          mu_filter_create (&str, str, encoding, 0, 0);
           offset = 0;
           while (stream_readline (str, buf, sizeof (buf), offset, &nbytes) ==
                  0 && nbytes)
