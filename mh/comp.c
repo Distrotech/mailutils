@@ -146,18 +146,18 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
   
 int
-copy_message (mailbox_t mbox, size_t n, const char *file)
+copy_message (mu_mailbox_t mbox, size_t n, const char *file)
 {
-  message_t msg;
-  stream_t in;
-  stream_t out;
+  mu_message_t msg;
+  mu_stream_t in;
+  mu_stream_t out;
   int rc;
   size_t size;
   char *buffer;
   size_t bufsize, rdsize;
   
   mu_mailbox_get_message (mbox, n, &msg);
-  message_size (msg, &size);
+  mu_message_size (msg, &size);
 
   for (bufsize = size; bufsize > 0 && (buffer = malloc (bufsize)) == 0;
        bufsize /= 2)
@@ -166,11 +166,11 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
   if (!bufsize)
     mh_err_memory (1);
 
-  message_get_stream (msg, &in);
+  mu_message_get_stream (msg, &in);
   
-  if ((rc = file_stream_create (&out,
+  if ((rc = mu_file_stream_create (&out,
 				file, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
-      || (rc = stream_open (out)))
+      || (rc = mu_stream_open (out)))
     {
       mh_error (_("cannot open output file \"%s\": %s"),
 		file, mu_strerror (rc));
@@ -179,10 +179,10 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
     }
 
   while (size > 0
-	 && (rc = stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
+	 && (rc = mu_stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
 	 && rdsize > 0)
     {
-      if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
+      if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
 	  mh_error (_("error writing to \"%s\": %s"),
 		    file, mu_strerror (rc));
@@ -191,8 +191,8 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
       size -= rdsize;
     }
 
-  stream_close (out);
-  stream_destroy (&out, stream_get_owner (out));
+  mu_stream_close (out);
+  mu_stream_destroy (&out, mu_stream_get_owner (out));
   
   return rc;
 }
@@ -233,7 +233,7 @@ main (int argc, char **argv)
       if (index < argc)
 	{
 	  static mh_msgset_t msgset;
-	  static mailbox_t mbox;
+	  static mu_mailbox_t mbox;
 	  
 	  mbox = mh_open_folder (current_folder, 0);
 	  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");

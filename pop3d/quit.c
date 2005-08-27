@@ -70,11 +70,11 @@ pop3d_fix_mark ()
 
   for (i = 1; i <= total; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
        
       mu_mailbox_get_message (mbox, i, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       
       if (pop3d_is_deleted (attr))
 	mu_attribute_set_deleted (attr);

@@ -40,103 +40,103 @@ First draft: Alain Magloire.
 #include <mailutils/errno.h>
 
 static void
-filter_destroy (stream_t stream)
+filter_destroy (mu_stream_t stream)
 {
-  filter_t filter = stream_get_owner (stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_destroy)
     filter->_destroy (filter);
   if (filter->property)
-    property_destroy (&(filter->property), filter);
+    mu_property_destroy (&(filter->property), filter);
   free (filter);
 }
 
 static int
-filter_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
+filter_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset,
 	     size_t *nbytes)
 {
-  filter_t filter = stream_get_owner (stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_read && (filter->direction & MU_STREAM_READ
 		      || filter->direction & MU_STREAM_RDWR))
     return filter->_read (filter, buffer, buflen, offset, nbytes);
-  return stream_read (filter->stream, buffer, buflen, offset, nbytes);
+  return mu_stream_read (filter->stream, buffer, buflen, offset, nbytes);
 }
 
 static int
-filter_readline (stream_t stream, char *buffer, size_t buflen,
+filter_readline (mu_stream_t stream, char *buffer, size_t buflen,
 		 off_t offset, size_t *nbytes)
 {
-  filter_t filter = stream_get_owner (stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_readline && (filter->direction & MU_STREAM_READ
 			  || filter->direction & MU_STREAM_RDWR))
     return filter->_readline (filter, buffer, buflen, offset, nbytes);
-  return stream_readline (filter->stream, buffer, buflen, offset, nbytes);
+  return mu_stream_readline (filter->stream, buffer, buflen, offset, nbytes);
 }
 
 static int
-filter_write (stream_t stream, const char *buffer, size_t buflen,
+filter_write (mu_stream_t stream, const char *buffer, size_t buflen,
 	      off_t offset, size_t *nbytes)
 {
-  filter_t filter = stream_get_owner (stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_write && (filter->direction & MU_STREAM_WRITE
 		       || filter->direction & MU_STREAM_RDWR))
     return filter->_write (filter, buffer, buflen, offset, nbytes);
-  return stream_write (filter->stream, buffer, buflen, offset, nbytes);
+  return mu_stream_write (filter->stream, buffer, buflen, offset, nbytes);
 }
 
 static int
-filter_open (stream_t stream)
+filter_open (mu_stream_t stream)
 {
-  filter_t filter = stream_get_owner (stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
 
-  return stream_open (filter->stream);
+  return mu_stream_open (filter->stream);
 }
 
 static int
-filter_truncate (stream_t stream, off_t len)
+filter_truncate (mu_stream_t stream, off_t len)
 {
-  filter_t filter = stream_get_owner (stream);
-  return stream_truncate (filter->stream, len);
+  mu_filter_t filter = mu_stream_get_owner (stream);
+  return mu_stream_truncate (filter->stream, len);
 }
 
 static int
-filter_size (stream_t stream, off_t *psize)
+filter_size (mu_stream_t stream, off_t *psize)
 {
-  filter_t filter = stream_get_owner (stream);
-  return stream_size (filter->stream, psize);
+  mu_filter_t filter = mu_stream_get_owner (stream);
+  return mu_stream_size (filter->stream, psize);
 }
 
 static int
-filter_flush (stream_t stream)
+filter_flush (mu_stream_t stream)
 {
-  filter_t filter = stream_get_owner(stream);
-  return stream_flush (filter->stream);
+  mu_filter_t filter = mu_stream_get_owner(stream);
+  return mu_stream_flush (filter->stream);
 }
 
 static int
-filter_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+filter_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  filter_t filter = stream_get_owner (stream);
-  return stream_get_transport2 (filter->stream, pin, pout);
+  mu_filter_t filter = mu_stream_get_owner (stream);
+  return mu_stream_get_transport2 (filter->stream, pin, pout);
 }
 
 static int
-filter_close (stream_t stream)
+filter_close (mu_stream_t stream)
 {
-  filter_t filter = stream_get_owner (stream);
-  return stream_close (filter->stream);
+  mu_filter_t filter = mu_stream_get_owner (stream);
+  return mu_stream_close (filter->stream);
 }
 
 /* NOTE: We will leak here since the monitor of the filter will never
    be release.  That's ok we can leave with this, it's only done once.  */
-static list_t filter_list;
-struct _monitor filter_monitor = MU_MONITOR_INITIALIZER;
+static mu_list_t filter_list;
+struct mu__monitor filter_monitor = MU_MONITOR_INITIALIZER;
 
 int
-mu_filter_get_list (list_t *plist)
+mu_filter_get_list (mu_list_t *plist)
 {
   if (plist == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  monitor_wrlock (&filter_monitor);
+  mu_monitor_wrlock (&filter_monitor);
   if (filter_list == NULL)
     {
       int status = mu_list_create (&filter_list);
@@ -153,20 +153,20 @@ mu_filter_get_list (list_t *plist)
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
-  monitor_unlock (&filter_monitor);
+  mu_monitor_unlock (&filter_monitor);
   return 0;
 }
 
 int
-mu_filter_create (stream_t *pstream, stream_t stream, const char *name,
+mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 	       int type, int direction)
 {
-  iterator_t iterator = NULL;
-  filter_record_t filter_record = NULL;
-  int  (*f_init)  (filter_t)  = NULL;
+  mu_iterator_t iterator = NULL;
+  mu_filter_record_t filter_record = NULL;
+  int  (*f_init)  (mu_filter_t)  = NULL;
   int found = 0;
   int status;
-  list_t list = NULL;
+  mu_list_t list = NULL;
 
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
@@ -199,14 +199,14 @@ mu_filter_create (stream_t *pstream, stream_t stream, const char *name,
   if (found)
     {
       int flags = 0;
-      filter_t filter;
+      mu_filter_t filter;
 
       filter = calloc (1, sizeof (*filter));
       if (filter == NULL)
 	return ENOMEM;
 
-      stream_get_flags (stream, &flags);
-      status = stream_create (pstream, flags | MU_STREAM_NO_CHECK, filter);
+      mu_stream_get_flags (stream, &flags);
+      status = mu_stream_create (pstream, flags | MU_STREAM_NO_CHECK, filter);
       if (status != 0)
 	{
 	  free (filter);
@@ -218,41 +218,41 @@ mu_filter_create (stream_t *pstream, stream_t stream, const char *name,
       filter->direction = (direction == 0) ? MU_STREAM_READ : direction;
       filter->type = type;
 
-      status = property_create (&(filter->property), filter);
+      status = mu_property_create (&(filter->property), filter);
       if (status != 0)
 	{
-	  stream_destroy (pstream, filter);
+	  mu_stream_destroy (pstream, filter);
 	  free (filter);
 	  return status;
 	}
-      property_set_value (filter->property, "DIRECTION",
+      mu_property_set_value (filter->property, "DIRECTION",
 			  ((filter->direction == MU_STREAM_WRITE) ? "WRITE":
 			   (filter->direction == MU_STREAM_RDWR) ? "RDWR" :
 			   "READ"), 1);
-      property_set_value (filter->property, "TYPE", filter_record->name, 1);
-      stream_set_property (*pstream, filter->property, filter);
+      mu_property_set_value (filter->property, "TYPE", filter_record->name, 1);
+      mu_stream_set_property (*pstream, filter->property, filter);
 
       if (f_init != NULL)
 	{
 	  status = f_init (filter);
 	  if (status != 0)
 	    {
-	      stream_destroy (pstream, filter);
+	      mu_stream_destroy (pstream, filter);
 	      free (filter);
 	      return status;
 	    }
         }
 
-      stream_set_open (*pstream, filter_open, filter );
-      stream_set_close (*pstream, filter_close, filter );
-      stream_set_read (*pstream, filter_read, filter);
-      stream_set_readline (*pstream, filter_readline, filter);
-      stream_set_write (*pstream, filter_write, filter);
-      stream_set_get_transport2 (*pstream, filter_get_transport2, filter );
-      stream_set_truncate (*pstream, filter_truncate, filter );
-      stream_set_size (*pstream, filter_size, filter );
-      stream_set_flush (*pstream, filter_flush, filter );
-      stream_set_destroy (*pstream, filter_destroy, filter);
+      mu_stream_set_open (*pstream, filter_open, filter );
+      mu_stream_set_close (*pstream, filter_close, filter );
+      mu_stream_set_read (*pstream, filter_read, filter);
+      mu_stream_set_readline (*pstream, filter_readline, filter);
+      mu_stream_set_write (*pstream, filter_write, filter);
+      mu_stream_set_get_transport2 (*pstream, filter_get_transport2, filter );
+      mu_stream_set_truncate (*pstream, filter_truncate, filter );
+      mu_stream_set_size (*pstream, filter_size, filter );
+      mu_stream_set_flush (*pstream, filter_flush, filter );
+      mu_stream_set_destroy (*pstream, filter_destroy, filter);
     }
   else
     status = MU_ERR_NOENT;

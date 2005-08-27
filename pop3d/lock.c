@@ -21,13 +21,13 @@
 int
 pop3d_lock ()
 {
-  url_t url = NULL;
-  locker_t lock = NULL;
+  mu_url_t url = NULL;
+  mu_locker_t lock = NULL;
   const char *name;
   int status;
 
   mu_mailbox_get_url (mbox, &url);
-  name = url_to_string (url);
+  name = mu_url_to_string (url);
   mu_mailbox_get_locker (mbox, &lock);
   mu_locker_set_flags (lock, MU_LOCKER_PID);
   if ((status = mu_locker_lock (lock)))
@@ -42,7 +42,7 @@ pop3d_lock ()
 int
 pop3d_touchlock ()
 {
-  locker_t lock = NULL;
+  mu_locker_t lock = NULL;
   mu_mailbox_get_locker (mbox, &lock);
   mu_locker_touchlock (lock);
   return 0;
@@ -51,7 +51,7 @@ pop3d_touchlock ()
 int
 pop3d_unlock ()
 {
-  locker_t lock = NULL;
+  mu_locker_t lock = NULL;
   mu_mailbox_get_locker (mbox, &lock);
   mu_locker_unlock (lock);
   return 0;

@@ -45,13 +45,13 @@ struct _mu_mailcap
 };
 
 
-static int mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream);
+static int mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream);
 static int mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer);
 static char * stripwhite (char *string);
 static char * tokenize (char *s, char **save_ptr);
 
 int
-mu_mailcap_create (mu_mailcap_t * pmailcap, stream_t stream)
+mu_mailcap_create (mu_mailcap_t * pmailcap, mu_stream_t stream)
 {
   mu_mailcap_t mailcap;
   int status = 0;
@@ -522,7 +522,7 @@ application/pgp; gpg < %s | metamail; needsterminal; \
  test=test %{encapsulation}=entity ; copiousoutput
  */
 static int
-mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream)
+mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
 {
   off_t off;
   int status;
@@ -548,7 +548,7 @@ mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream)
    * prepended to the buffer.
    */
   for (previous = NULL, off = n = 0;
-       (status = stream_readline (stream, buffer, buflen, off, &n)) == 0
+       (status = mu_stream_readline (stream, buffer, buflen, off, &n)) == 0
 	 && n > 0;
        off += n)
     {
@@ -682,13 +682,13 @@ mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream)
 #ifdef STANDALONE_TEST
 int main()
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status = 0;
 
-  status = file_stream_create (&stream, "/home/alain/mailcap", MU_STREAM_READ);
+  status = mu_file_stream_create (&stream, "/home/alain/mailcap", MU_STREAM_READ);
   if (status == 0)
     {
-      status = stream_open(stream);
+      status = mu_stream_open(stream);
       if (status == 0)
 	{
 	  mu_mailcap_t mailcap;

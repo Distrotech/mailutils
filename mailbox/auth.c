@@ -29,13 +29,13 @@
 #include <auth0.h>
 
 static int
-_authenticate_null (authority_t auth ARG_UNUSED)
+_authenticate_null (mu_authority_t auth ARG_UNUSED)
 {
   return 0;
 }
 
 int
-mu_authority_create_null (authority_t *pauthority, void *owner)
+mu_authority_create_null (mu_authority_t *pauthority, void *owner)
 {
   int rc = mu_authority_create(pauthority, NULL, owner);
   if (rc)
@@ -45,9 +45,9 @@ mu_authority_create_null (authority_t *pauthority, void *owner)
 }
 
 int
-mu_authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
+mu_authority_create (mu_authority_t *pauthority, mu_ticket_t ticket, void *owner)
 {
-  authority_t authority;
+  mu_authority_t authority;
   if (pauthority == NULL)
     return MU_ERR_OUT_PTR_NULL;
   authority = calloc (1, sizeof (*authority));
@@ -60,11 +60,11 @@ mu_authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
 }
 
 void
-mu_authority_destroy (authority_t *pauthority, void *owner)
+mu_authority_destroy (mu_authority_t *pauthority, void *owner)
 {
   if (pauthority && *pauthority)
     {
-      authority_t authority = *pauthority;
+      mu_authority_t authority = *pauthority;
       if (authority->owner == owner)
 	{
 	  mu_ticket_destroy (&(authority->ticket), authority);
@@ -75,13 +75,13 @@ mu_authority_destroy (authority_t *pauthority, void *owner)
 }
 
 void *
-mu_authority_get_owner (authority_t authority)
+mu_authority_get_owner (mu_authority_t authority)
 {
   return (authority) ? authority->owner : NULL;
 }
 
 int
-mu_authority_set_ticket (authority_t authority, ticket_t ticket)
+mu_authority_set_ticket (mu_authority_t authority, mu_ticket_t ticket)
 {
   if (authority == NULL)
     return EINVAL;
@@ -92,7 +92,7 @@ mu_authority_set_ticket (authority_t authority, ticket_t ticket)
 }
 
 int
-mu_authority_get_ticket (authority_t authority, ticket_t *pticket)
+mu_authority_get_ticket (mu_authority_t authority, mu_ticket_t *pticket)
 {
   if (authority == NULL)
     return EINVAL;
@@ -111,13 +111,13 @@ mu_authority_get_ticket (authority_t authority, ticket_t *pticket)
 struct auth_cb
 {
   int status;
-  authority_t authority;
+  mu_authority_t authority;
 };
 
 static int
 try_auth (void *item, void *data)
 {
-  int (*authenticate) (authority_t) = item;
+  int (*authenticate) (mu_authority_t) = item;
   struct auth_cb *cb = data;
   if (authenticate (cb->authority) == 0)
     {
@@ -128,7 +128,7 @@ try_auth (void *item, void *data)
 }
 
 int
-mu_authority_authenticate (authority_t authority)
+mu_authority_authenticate (mu_authority_t authority)
 {
   if (authority && authority->auth_methods)
     {
@@ -142,8 +142,8 @@ mu_authority_authenticate (authority_t authority)
 }
 
 int
-mu_authority_set_authenticate (authority_t authority,
-			    int (*_authenticate) (authority_t),
+mu_authority_set_authenticate (mu_authority_t authority,
+			    int (*_authenticate) (mu_authority_t),
 			    void *owner)
 {
   if (authority == NULL)

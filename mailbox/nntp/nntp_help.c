@@ -25,7 +25,7 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_help (mu_nntp_t nntp, stream_t *pstream)
+mu_nntp_help (mu_nntp_t nntp, mu_stream_t *pstream)
 {
   int status;
 

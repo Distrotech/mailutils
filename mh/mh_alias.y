@@ -25,17 +25,17 @@
 struct mh_alias
 {
   char *name;
-  list_t rcpt_list;
+  mu_list_t rcpt_list;
   int inclusive;
 };
 
-static list_t alias_list;
+static mu_list_t alias_list;
 
-static list_t
+static mu_list_t
 list_create_or_die ()
 {
   int status;
-  list_t list;
+  mu_list_t list;
 
   status = mu_list_create (&list);
   if (status)
@@ -47,7 +47,7 @@ list_create_or_die ()
 }
 
 static char *
-ali_list_to_string (list_t *plist)
+ali_list_to_string (mu_list_t *plist)
 {
   size_t n;
   char *string;
@@ -61,7 +61,7 @@ ali_list_to_string (list_t *plist)
     {
       char *p;
       size_t length = 0;
-      iterator_t itr;
+      mu_iterator_t itr;
       mu_list_get_iterator (*plist, &itr);
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next(itr))
 	{
@@ -87,9 +87,9 @@ ali_list_to_string (list_t *plist)
   return string;
 }
 
-static list_t unix_group_to_list (char *name);
-static list_t unix_gid_to_list (char *name);
-static list_t unix_passwd_to_list (void);
+static mu_list_t unix_group_to_list (char *name);
+static mu_list_t unix_gid_to_list (char *name);
+static mu_list_t unix_passwd_to_list (void);
 
 int yyerror (char *s);
 int yylex (void);
@@ -98,7 +98,7 @@ int yylex (void);
 
 %union {
   char *string;
-  list_t list;
+  mu_list_t list;
   struct mh_alias *alias;
 }
 
@@ -199,11 +199,11 @@ string_list  : STRING
 
 %%
 
-static list_t
-ali_list_dup (list_t src)
+static mu_list_t
+ali_list_dup (mu_list_t src)
 {
-  list_t dst;
-  iterator_t itr;
+  mu_list_t dst;
+  mu_iterator_t itr;
 
   if (mu_list_create (&dst))
     return NULL;
@@ -225,9 +225,9 @@ ali_list_dup (list_t src)
 }
 
 static int
-ali_member (list_t list, char *name)
+ali_member (mu_list_t list, char *name)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int found = 0;
 
   if (mu_list_get_iterator (list, &itr))
@@ -236,7 +236,7 @@ ali_member (list_t list, char *name)
        mu_iterator_next (itr))
     {
       char *item;
-      address_t tmp;
+      mu_address_t tmp;
       
       mu_iterator_current (itr, (void **)&item);
       if (strcmp (item, name) == 0)
@@ -263,9 +263,9 @@ aliascmp (char *pattern, char *name)
 
 
 int
-_insert_list (list_t list, void *prev, list_t new_list)
+_insert_list (mu_list_t list, void *prev, mu_list_t new_list)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (new_list, &itr))
     return 1;
@@ -281,20 +281,20 @@ _insert_list (list_t list, void *prev, list_t new_list)
   return 0;
 }
 
-static int mh_alias_get_internal (char *name, iterator_t start,
-				  list_t *return_list, int *inclusive);
+static int mh_alias_get_internal (char *name, mu_iterator_t start,
+				  mu_list_t *return_list, int *inclusive);
 
 int
-alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)
+alias_expand_list (mu_list_t name_list, mu_iterator_t orig_itr, int *inclusive)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (name_list, &itr))
     return 1;
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *name;
-      list_t exlist;
+      mu_list_t exlist;
       
       mu_iterator_current (itr, (void **)&name);
       if (mh_alias_get_internal (name, orig_itr, &exlist, inclusive) == 0)
@@ -311,10 +311,10 @@ alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)
 /* Look up the named alias. If found, return the list of recipient
    names associated with it */
 static int
-mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
+mh_alias_get_internal (char *name, mu_iterator_t start, mu_list_t *return_list,
 		       int *inclusive) 
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int rc = 1;
 
   if (!start)
@@ -349,16 +349,16 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
 }
 
 int
-mh_alias_get (char *name, list_t *return_list)
+mh_alias_get (char *name, mu_list_t *return_list)
 {
   return mh_alias_get_internal (name, NULL, return_list, NULL);
 }
 
 int
-mh_alias_get_address (char *name, address_t *paddr, int *incl)
+mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 {
-  iterator_t itr;
-  list_t list;
+  mu_iterator_t itr;
+  mu_list_t list;
   const char *domain = NULL;
   
   if (mh_alias_get_internal (name, NULL, &list, incl))
@@ -374,7 +374,7 @@ mh_alias_get_address (char *name, address_t *paddr, int *incl)
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  char *item;
-	  address_t a;
+	  mu_address_t a;
 	  char *ptr = NULL; 
 
 	  mu_iterator_current (itr, (void **)&item);
@@ -412,9 +412,9 @@ mh_alias_get_address (char *name, address_t *paddr, int *incl)
 /* Look up the given user name in the aliases. Return the list of
    alias names this user is member of */
 int
-mh_alias_get_alias (char *uname, list_t *return_list)
+mh_alias_get_alias (char *uname, mu_list_t *return_list)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int rc = 1;
   
   if (mu_list_get_iterator (alias_list, &itr))
@@ -439,7 +439,7 @@ mh_alias_get_alias (char *uname, list_t *return_list)
 void
 mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int rc = 0;
   
   if (mu_list_get_iterator (alias_list, &itr))
@@ -449,7 +449,7 @@ mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
        mu_iterator_next (itr))
     {
       struct mh_alias *alias;
-      list_t tmp;
+      mu_list_t tmp;
       
       mu_iterator_current (itr, (void **)&alias);
 
@@ -462,11 +462,11 @@ mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
   mu_iterator_destroy (&itr);
 }
 
-static list_t
+static mu_list_t
 unix_group_to_list (char *name)
 {
   struct group *grp = getgrnam (name);
-  list_t lst = list_create_or_die ();
+  mu_list_t lst = list_create_or_die ();
   
   if (grp)
     {
@@ -479,11 +479,11 @@ unix_group_to_list (char *name)
   return lst;
 }
 
-static list_t
+static mu_list_t
 unix_gid_to_list (char *name)
 {
   struct group *grp = getgrnam (name);
-  list_t lst = list_create_or_die ();
+  mu_list_t lst = list_create_or_die ();
 
   if (grp)
     {
@@ -499,10 +499,10 @@ unix_gid_to_list (char *name)
   return lst;
 }
 
-static list_t
+static mu_list_t
 unix_passwd_to_list ()
 {
-  list_t lst = list_create_or_die ();
+  mu_list_t lst = list_create_or_die ();
   struct passwd *pw;
 
   setpwent();

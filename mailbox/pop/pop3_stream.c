@@ -33,9 +33,9 @@ struct mu_pop3_stream
 };
 
 static void
-mu_pop3_stream_destroy (stream_t stream)
+mu_pop3_stream_destroy (mu_stream_t stream)
 {
-  struct mu_pop3_stream *pop3_stream = stream_get_owner (stream);
+  struct mu_pop3_stream *pop3_stream = mu_stream_get_owner (stream);
   if (pop3_stream)
     {
       free (pop3_stream);
@@ -43,9 +43,9 @@ mu_pop3_stream_destroy (stream_t stream)
 }
 
 static int
-mu_pop3_stream_read (stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
+mu_pop3_stream_read (mu_stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
 {
-  struct mu_pop3_stream *pop3_stream = stream_get_owner (stream);
+  struct mu_pop3_stream *pop3_stream = mu_stream_get_owner (stream);
   size_t n = 0;
   int status = 0;
   char *p = buf;
@@ -61,7 +61,7 @@ mu_pop3_stream_read (stream_t stream, char *buf, size_t buflen, off_t offset, si
 
 	      /* The pop3_readline () function will always read one less to
 		 be able to null terminate the buffer, this will cause
-		 serious grief for stream_read() where it is legitimate to
+		 serious grief for mu_stream_read() where it is legitimate to
 		 have a buffer of 1 char.  So we must catch it here.  */
 	      if (buflen == 1)
 		{
@@ -94,9 +94,9 @@ mu_pop3_stream_read (stream_t stream, char *buf, size_t buflen, off_t offset, si
 }
 
 static int
-mu_pop3_stream_readline (stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
+mu_pop3_stream_readline (mu_stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
 {
-  struct mu_pop3_stream *pop3_stream = stream_get_owner (stream);
+  struct mu_pop3_stream *pop3_stream = mu_stream_get_owner (stream);
   size_t n = 0;
   int status = 0;
 
@@ -119,7 +119,7 @@ mu_pop3_stream_readline (stream_t stream, char *buf, size_t buflen, off_t offset
 }
 
 int
-mu_pop3_stream_create (mu_pop3_t pop3, stream_t *pstream)
+mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
 {
   struct mu_pop3_stream *pop3_stream;
   int status;
@@ -131,16 +131,16 @@ mu_pop3_stream_create (mu_pop3_t pop3, stream_t *pstream)
   pop3_stream->pop3 = pop3;
   pop3_stream->done = 0;
 
-  status = stream_create (pstream, MU_STREAM_READ | MU_STREAM_NO_CLOSE | MU_STREAM_NO_CHECK, pop3_stream);
+  status = mu_stream_create (pstream, MU_STREAM_READ | MU_STREAM_NO_CLOSE | MU_STREAM_NO_CHECK, pop3_stream);
   if (status != 0)
     {
       free (pop3_stream);
       return status;
     }
  
-  stream_set_read (*pstream, mu_pop3_stream_read, pop3_stream);
-  stream_set_readline (*pstream, mu_pop3_stream_readline, pop3_stream);
-  stream_set_destroy (*pstream, mu_pop3_stream_destroy, pop3_stream);
+  mu_stream_set_read (*pstream, mu_pop3_stream_read, pop3_stream);
+  mu_stream_set_readline (*pstream, mu_pop3_stream_readline, pop3_stream);
+  mu_stream_set_destroy (*pstream, mu_pop3_stream_destroy, pop3_stream);
                                                                                                                              
   return 0;
 }

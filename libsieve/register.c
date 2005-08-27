@@ -28,9 +28,9 @@
 #include <sieve.h>
 
 static mu_sieve_register_t *
-reg_lookup (list_t list, const char *name)
+reg_lookup (mu_list_t list, const char *name)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   mu_sieve_register_t *reg;
 
   if (!list || mu_list_get_iterator (list, &itr))
@@ -61,7 +61,7 @@ mu_sieve_action_lookup (mu_sieve_machine_t mach, const char *name)
 }
 
 static int
-reg_require (mu_sieve_machine_t mach, list_t list, const char *name)
+reg_require (mu_sieve_machine_t mach, mu_list_t list, const char *name)
 {
   mu_sieve_register_t *reg = reg_lookup (list, name);
   if (!reg)
@@ -88,8 +88,8 @@ mu_sieve_require_test (mu_sieve_machine_t mach, const char *name)
 
 
 static int
-sieve_register (list_t *pool,
-		list_t *list,
+sieve_register (mu_list_t *pool,
+		mu_list_t *list,
 		const char *name, mu_sieve_handler_t handler,
 		mu_sieve_data_type *arg_types,
 		mu_sieve_tag_group_t *tags, int required)

@@ -51,7 +51,7 @@ struct mu_auth_module {
   void           *auth_by_uid_data;
 };
 
-extern int mu_auth_runlist (list_t flist,
+extern int mu_auth_runlist (mu_list_t flist,
 			    struct mu_auth_data **return_data,
 			    const void *key, void *data);
 extern struct mu_auth_data *

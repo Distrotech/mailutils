@@ -25,11 +25,11 @@
    mbox upon normal termination. */
 
 static int
-touch0 (msgset_t *mspec, message_t msg, void *data)
+touch0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  attribute_t attr = NULL;
+  mu_attribute_t attr = NULL;
   
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (!mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
     {
       mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);

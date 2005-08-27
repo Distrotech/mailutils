@@ -39,23 +39,23 @@
 /* Auxiliary functions */
 
 static int
-spamd_connect_tcp (mu_sieve_machine_t mach, stream_t *stream,
+spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 		   char *host, int port)
 {
-  int rc = tcp_stream_create (stream, host, port, 0);
+  int rc = mu_tcp_stream_create (stream, host, port, 0);
   if (rc)
     {
-      mu_sieve_error (mach, "tcp_stream_create: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "mu_tcp_stream_create: %s", mu_strerror (rc));
       return rc;
     }
-  rc = stream_open (*stream);
+  rc = mu_stream_open (*stream);
   if (rc)
     mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
   return rc;
 }
 
 static int
-spamd_connect_socket (mu_sieve_machine_t mach, stream_t *stream, char *path)
+spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
 {
   /* FIXME: A library deficiency: we cannot create a unix socket stream */
   int fd, rc;
@@ -80,41 +80,41 @@ spamd_connect_socket (mu_sieve_machine_t mach, stream_t *stream, char *path)
     }
 
   fp = fdopen (fd, "w+");
-  rc = stdio_stream_create (stream, fp, MU_STREAM_RDWR);
+  rc = mu_stdio_stream_create (stream, fp, MU_STREAM_RDWR);
   if (rc)
     {
-      mu_sieve_error (mach, "stdio_stream_create: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "mu_stdio_stream_create: %s", mu_strerror (rc));
       fclose (fp);
       return rc;
     }
 
-  rc = stream_open (*stream);
+  rc = mu_stream_open (*stream);
   if (rc)
     {
-      mu_sieve_error (mach, "stream_open: %s", mu_strerror (rc));
-      stream_destroy (stream, stream_get_owner (*stream));
+      mu_sieve_error (mach, "mu_stream_open: %s", mu_strerror (rc));
+      mu_stream_destroy (stream, mu_stream_get_owner (*stream));
     }
   return rc;
 }
 
 static void
-spamd_destroy (stream_t *stream)
+spamd_destroy (mu_stream_t *stream)
 {
-  stream_close (*stream);
-  stream_destroy (stream, stream_get_owner (*stream));
+  mu_stream_close (*stream);
+  mu_stream_destroy (stream, mu_stream_get_owner (*stream));
 }
 
 static void
-spamd_shutdown (stream_t stream, int flag)
+spamd_shutdown (mu_stream_t stream, int flag)
 {
   mu_transport_t trans;
-  stream_flush (stream);
-  stream_get_transport (stream, &trans);
+  mu_stream_flush (stream);
+  mu_stream_get_transport (stream, &trans);
   shutdown (fileno ((FILE*)trans), flag);
 }
 
 static void
-spamd_send_command (stream_t stream, const char *fmt, ...)
+spamd_send_command (mu_stream_t stream, const char *fmt, ...)
 {
   char buf[512];
   size_t n;
@@ -123,20 +123,20 @@ spamd_send_command (stream_t stream, const char *fmt, ...)
   va_start (ap, fmt);
   n = vsnprintf (buf, sizeof buf, fmt, ap);
   va_end (ap);
-  stream_sequential_write (stream, buf, n);
-  stream_sequential_write (stream, "\r\n", 2);
+  mu_stream_sequential_write (stream, buf, n);
+  mu_stream_sequential_write (stream, "\r\n", 2);
 }
 
 static void
-spamd_send_message (stream_t stream, message_t msg)
+spamd_send_message (mu_stream_t stream, mu_message_t msg)
 {
   size_t size;
   char buf[512];
-  stream_t mstr;
+  mu_stream_t mstr;
 
-  message_get_stream (msg, &mstr);
-  stream_seek (mstr, 0, SEEK_SET);
-  while (stream_sequential_readline (mstr, buf, sizeof (buf), &size) == 0
+  mu_message_get_stream (msg, &mstr);
+  mu_stream_seek (mstr, 0, SEEK_SET);
+  while (mu_stream_sequential_readline (mstr, buf, sizeof (buf), &size) == 0
 	 && size > 0)
     {
       char *nl = NULL;
@@ -146,18 +146,18 @@ spamd_send_message (stream_t stream, message_t msg)
 	  size--;
 	  nl = "\r\n";
 	}
-      stream_sequential_write (stream, buf, size);
+      mu_stream_sequential_write (stream, buf, size);
       if (nl)
-	stream_sequential_write (stream, nl, 2);
+	mu_stream_sequential_write (stream, nl, 2);
     }
 }
 
 static size_t
-spamd_read_line (mu_sieve_machine_t mach, stream_t stream,
+spamd_read_line (mu_sieve_machine_t mach, mu_stream_t stream,
 		 char *buffer, size_t size, size_t *pn)
 {
   size_t n = 0;
-  int rc = stream_sequential_readline (stream, buffer, size, &n);
+  int rc = mu_stream_sequential_readline (stream, buffer, size, &n);
   if (rc == 0)
     {
       if (pn)
@@ -243,7 +243,7 @@ set_signal_handler (int sig, signal_handler h)
 }
 
 void
-spamd_abort (mu_sieve_machine_t mach, stream_t *stream, signal_handler handler)
+spamd_abort (mu_sieve_machine_t mach, mu_stream_t *stream, signal_handler handler)
 {
   spamd_destroy (stream);
   set_signal_handler (SIGPIPE, handler);
@@ -285,7 +285,7 @@ sigpipe_handler (int sig ARG_UNUSED)
 */
 
 static int
-spamd_test (mu_sieve_machine_t mach, list_t args, list_t tags)
+spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   char buffer[512];
   char version_str[19];
@@ -294,14 +294,14 @@ spamd_test (mu_sieve_machine_t mach, list_t args, list_t tags)
   long version;
   int result;
   long score, threshold, limit;
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   mu_sieve_value_t *arg;
-  message_t msg;
+  mu_message_t msg;
   size_t m_size, m_lines, size;
   struct mu_auth_data *auth;
   signal_handler handler;
   char *host;
-  header_t hdr;
+  mu_header_t hdr;
 
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
@@ -328,8 +328,8 @@ spamd_test (mu_sieve_machine_t mach, list_t args, list_t tags)
     mu_sieve_abort (mach);
 
   msg = mu_sieve_get_message (mach);
-  message_size (msg, &m_size);
-  message_lines (msg, &m_lines);
+  mu_message_size (msg, &m_size);
+  mu_message_lines (msg, &m_lines);
 
   auth = mu_get_auth_by_uid (geteuid ());
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
@@ -403,7 +403,7 @@ spamd_test (mu_sieve_machine_t mach, list_t args, list_t tags)
   /* Read symbol list */
   spamd_read_line (mach, stream, buffer, sizeof buffer, &size);
 
-  rc = message_get_header (msg, &hdr);
+  rc = mu_message_get_header (msg, &hdr);
   if (rc)
     {
       mu_sieve_error (mach, "cannot get message header: %s", mu_strerror (rc));

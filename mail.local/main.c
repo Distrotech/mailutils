@@ -42,11 +42,11 @@ mu_debug_t mudebug;        /* Mailutils debugging object */
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
 void close_fds (void);
-int make_tmp (const char *from, mailbox_t *mbx);
-void deliver (mailbox_t msg, char *name);
+int make_tmp (const char *from, mu_mailbox_t *mbx);
+void deliver (mu_mailbox_t msg, char *name);
 void guess_retval (int ec);
 void mailer_err (char *fmt, ...);
-void notify_biff (mailbox_t mbox, char *name, size_t size);
+void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 
 const char *program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
@@ -246,16 +246,16 @@ _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 
 static void
 _sieve_action_log (void *user_name,
-		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   char *text = NULL;
   
   if (message_id_header)
     {
-      header_t hdr = NULL;
+      mu_header_t hdr = NULL;
       char *val = NULL;
-      message_get_header (msg, &hdr);
+      mu_message_get_header (msg, &hdr);
       if (mu_header_aget_value (hdr, message_id_header, &val) == 0
 	  || mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
 	{
@@ -269,7 +269,7 @@ _sieve_action_log (void *user_name,
   if (text == NULL)
     {
       size_t uid = 0;
-      message_get_uid (msg, &uid);
+      mu_message_get_uid (msg, &uid);
       asprintf (&text, _("%s:%lu: %s on msg uid %d"),
 		locus->source_file,
 		(unsigned long)	locus->source_line,
@@ -310,7 +310,7 @@ _sieve_parse_error (void *user_name, const char *filename, int lineno,
 int
 main (int argc, char *argv[])
 {
-  mailbox_t mbox = NULL;
+  mu_mailbox_t mbox = NULL;
   int arg_index;
   
   /* Preparative work: close inherited fds, force a reasonable umask
@@ -373,11 +373,11 @@ main (int argc, char *argv[])
     }
 
   /* Register local mbox formats. */
-  registrar_record (mbox_record); 
-  registrar_record (path_record);
+  mu_registrar_record (mu_mbox_record); 
+  mu_registrar_record (mu_path_record);
   /* Possible supported mailers.  */
-  registrar_record (sendmail_record);
-  registrar_record (smtp_record);
+  mu_registrar_record (mu_sendmail_record);
+  mu_registrar_record (mu_smtp_record);
 
   if (make_tmp (from, &mbox))
     exit (exit_code);
@@ -404,7 +404,7 @@ main (int argc, char *argv[])
 }
 
 int
-sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
+sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
 {
   int rc = 1;
   char *progfile;
@@ -438,11 +438,11 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
 	  rc = mu_sieve_compile (mach, progfile);
 	  if (rc == 0)
 	    {
-	      attribute_t attr;
-	      message_t msg = NULL;
+	      mu_attribute_t attr;
+	      mu_message_t msg = NULL;
 		
 	      mu_mailbox_get_message (mbx, 1, &msg);
-	      message_get_attribute (msg, &attr);
+	      mu_message_get_attribute (msg, &attr);
 	      mu_attribute_unset_deleted (attr);
 	      if (switch_user_id (auth, 1) == 0)
 		{
@@ -464,7 +464,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
 }
 
 int
-mda (mailbox_t mbx, char *username)
+mda (mu_mailbox_t mbx, char *username)
 {
   deliver (mbx, username);
 
@@ -520,10 +520,10 @@ switch_user_id (struct mu_auth_data *auth, int user)
 }
 
 static int
-tmp_write (stream_t stream, off_t *poffset, char *buf, size_t len)
+tmp_write (mu_stream_t stream, off_t *poffset, char *buf, size_t len)
 {
   size_t n = 0;
-  int status = stream_write (stream, buf, len, *poffset, &n);
+  int status = mu_stream_write (stream, buf, len, *poffset, &n);
   if (status == 0 && n != len)
     status = EIO;
   *poffset += n;
@@ -531,9 +531,9 @@ tmp_write (stream_t stream, off_t *poffset, char *buf, size_t len)
 }
 
 int
-make_tmp (const char *from, mailbox_t *mbox)
+make_tmp (const char *from, mu_mailbox_t *mbox)
 {
-  stream_t stream;
+  mu_stream_t stream;
   char *buf = NULL;
   size_t n = 0;
   off_t offset = 0;
@@ -543,13 +543,13 @@ make_tmp (const char *from, mailbox_t *mbox)
   char *tempfile;
   
   tempfile = mu_tempname (NULL);
-  if ((status = file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
+  if ((status = mu_file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
     {
       mailer_err (_("Unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
     }
 
-  if ((status = stream_open (stream)))
+  if ((status = mu_stream_open (stream)))
     {
       mailer_err (_("unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
@@ -601,7 +601,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       if (status)
 	{
 	  mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
-	  stream_destroy (&stream, stream_get_owner (stream));
+	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
 	  return status;
 	}
     }
@@ -618,17 +618,17 @@ make_tmp (const char *from, mailbox_t *mbox)
     {
       errno = status;
       mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
-      stream_destroy (&stream, stream_get_owner (stream));
+      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
     }
 
-  stream_flush (stream);
+  mu_stream_flush (stream);
   if ((status = mu_mailbox_create (mbox, "/dev/null")) 
       || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mu_mailbox_set_stream (*mbox, stream)))
     {
       mailer_err (_("Error opening temporary file: %s"), mu_strerror (status));
-      stream_destroy (&stream, stream_get_owner (stream));
+      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
     }
 
@@ -638,7 +638,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       errno = status;
       mailer_err (_("Error creating temporary message: %s"),
 		  mu_strerror (status));
-      stream_destroy (&stream, stream_get_owner (stream));
+      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
     }
 
@@ -646,15 +646,15 @@ make_tmp (const char *from, mailbox_t *mbox)
 }
 
 void
-deliver (mailbox_t imbx, char *name)
+deliver (mu_mailbox_t imbx, char *name)
 {
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   char *path;
-  url_t url = NULL;
-  locker_t lock;
+  mu_url_t url = NULL;
+  mu_locker_t lock;
   struct mu_auth_data *auth;
   int status;
-  stream_t istream, ostream;
+  mu_stream_t istream, ostream;
   off_t size;
   int failed = 0;
   
@@ -690,7 +690,7 @@ deliver (mailbox_t imbx, char *name)
     }
 
   mu_mailbox_get_url (mbox, &url);
-  path = (char*) url_to_string (url);
+  path = (char*) mu_url_to_string (url);
 
   /* Actually open the mailbox. Switch to the user's euid to make
      sure the maildrop file will have right privileges, in case it
@@ -727,7 +727,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
 
-  if ((status = stream_size (ostream, &size)))
+  if ((status = mu_stream_size (ostream, &size)))
     {
       mailer_err (_("Cannot get stream size (mailbox %s): %s"),
 		  path, mu_strerror (status));
@@ -752,7 +752,7 @@ deliver (mailbox_t imbx, char *name)
 	break;
 	
       default:
-	if ((status = stream_size (istream, &isize)))
+	if ((status = mu_stream_size (istream, &isize)))
 	  {
 	    mailer_err (_("Cannot get stream size (input message): %s"),
 			path, mu_strerror (status));
@@ -779,7 +779,7 @@ deliver (mailbox_t imbx, char *name)
       char *buf = NULL;
       off_t bufsize = 1024;
 
-      stream_size (istream, &bufsize);
+      mu_stream_size (istream, &bufsize);
       for (; (buf = malloc (bufsize)) == NULL && bufsize > 1; bufsize /= 2)
 	;
       
@@ -792,11 +792,11 @@ deliver (mailbox_t imbx, char *name)
 	{
 	  status = 0;
 
-	  while ((status = stream_read (istream, buf, bufsize, ioff, &nrd))
+	  while ((status = mu_stream_read (istream, buf, bufsize, ioff, &nrd))
 		 == 0
 		 && nrd > 0)
 	    {
-	      status = stream_write (ostream, buf, nrd, off, &nwr);
+	      status = mu_stream_write (ostream, buf, nrd, off, &nwr);
 	      if (status)
 		break;
 	      ioff += nrd;
@@ -812,7 +812,7 @@ deliver (mailbox_t imbx, char *name)
 	{
 	  /* Undo the delivery by truncating the mailbox back to its
 	     original size */
-	  int rc = stream_truncate (ostream, size);
+	  int rc = mu_stream_truncate (ostream, size);
 	  if (rc)
 	    mailer_err (_("Error writing to mailbox: %s. Mailbox NOT truncated: %s"),
 			mu_strerror (status), mu_strerror (rc));
@@ -833,10 +833,10 @@ deliver (mailbox_t imbx, char *name)
 }
 
 void
-notify_biff (mailbox_t mbox, char *name, size_t size)
+notify_biff (mu_mailbox_t mbox, char *name, size_t size)
 {
   static int fd = -1;
-  url_t url = NULL;
+  mu_url_t url = NULL;
   char *buf = NULL;
   static struct sockaddr_in inaddr;
     
@@ -861,7 +861,7 @@ notify_biff (mailbox_t mbox, char *name, size_t size)
   
   mu_mailbox_get_url (mbox, &url);
   asprintf (&buf, "%s@%lu:%s", name,
-	    (unsigned long) size, url_to_string (url));
+	    (unsigned long) size, mu_url_to_string (url));
   if (buf)
     {
       sendto (fd, buf, strlen (buf), 0, (struct sockaddr *)&inaddr,

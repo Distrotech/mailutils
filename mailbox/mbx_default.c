@@ -343,7 +343,7 @@ percent_expand (const char *file, char **mbox)
    =file       --> /home/user/Mail/file
 */
 int
-mu_mailbox_create_default (mailbox_t *pmbox, const char *mail)
+mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 {
   char *mbox = NULL;
   char *tmp_mbox = NULL;

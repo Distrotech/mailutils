@@ -25,7 +25,7 @@
 #include "mail.h"
 
 static int isfilename (const char *);
-static void msg_to_pipe (const char *cmd, message_t msg);
+static void msg_to_pipe (const char *cmd, mu_message_t msg);
 
 
 /* Additional message headers */
@@ -36,7 +36,7 @@ struct add_header
   char *value;
 };
 
-static list_t add_header_list;
+static mu_list_t add_header_list;
 
 static int
 seed_headers (void *item, void *data)
@@ -458,26 +458,26 @@ mail_send0 (compose_env_t * env, int save_to)
       file = fopen (filename, "r");
       if (file != NULL)
 	{
-	  mailer_t mailer;
-	  message_t msg = NULL;
+	  mu_mailer_t mailer;
+	  mu_message_t msg = NULL;
 
-	  message_create (&msg, NULL);
+	  mu_message_create (&msg, NULL);
 
-	  message_set_header (msg, env->header, NULL);
+	  mu_message_set_header (msg, env->header, NULL);
 
 	  /* Fill the body.  */
 	  {
-	    body_t body = NULL;
-	    stream_t stream = NULL;
+	    mu_body_t body = NULL;
+	    mu_stream_t stream = NULL;
 	    off_t offset = 0;
 	    char *buf = NULL;
 	    size_t n = 0;
-	    message_get_body (msg, &body);
+	    mu_message_get_body (msg, &body);
 	    mu_body_get_stream (body, &stream);
 	    while (getline (&buf, &n, file) >= 0)
 	      {
 		size_t len = strlen (buf);
-		stream_write (stream, buf, len, offset, &n);
+		mu_stream_write (stream, buf, len, offset, &n);
 		offset += len;
 	      }
 	    
@@ -493,7 +493,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	  if (save_to)
 	    {
 	      char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
-	      address_t addr = NULL;
+	      mu_address_t addr = NULL;
 	      
 	      mu_address_create (&addr, tmp);
 	      mu_address_aget_email (addr, 1, &savefile);
@@ -522,7 +522,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		  else
 		    {
 		      int status;
-		      mailbox_t mbx = NULL;
+		      mu_mailbox_t mbx = NULL;
 		      status = mu_mailbox_create_default (&mbx, env->outfiles[i]);
 		      if (status == 0)
 			{
@@ -553,24 +553,24 @@ mail_send0 (compose_env_t * env, int save_to)
 	      char *sendmail;
 	      if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
 		{
-		  int status = mailer_create (&mailer, sendmail);
+		  int status = mu_mailer_create (&mailer, sendmail);
 		  if (status == 0)
 		    {
 		      if (util_getenv (NULL, "verbose", Mail_env_boolean, 0)
 			  == 0)
 			{
 			  mu_debug_t debug = NULL;
-			  mailer_get_debug (mailer, &debug);
+			  mu_mailer_get_debug (mailer, &debug);
 			  mu_debug_set_level (debug,
 					      MU_DEBUG_TRACE | MU_DEBUG_PROT);
 			}
-		      status = mailer_open (mailer, MU_STREAM_RDWR);
+		      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
 		      if (status == 0)
 			{
-			  mailer_send_message (mailer, msg, NULL, NULL);
-			  mailer_close (mailer);
+			  mu_mailer_send_message (mailer, msg, NULL, NULL);
+			  mu_mailer_close (mailer);
 			}
-		      mailer_destroy (&mailer);
+		      mu_mailer_destroy (&mailer);
 		    }
 		  if (status != 0)
 		    msg_to_pipe (sendmail, msg);
@@ -578,7 +578,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	      else
 		util_error (_("Variable sendmail not set: no mailer"));
 	    }
-	  message_destroy (&msg, NULL);
+	  mu_message_destroy (&msg, NULL);
 	  remove (filename);
 	  free (filename);
 	  return 0;
@@ -604,17 +604,17 @@ isfilename (const char *p)
 /* FIXME: Should probably be in util.c.  */
 /* Call popen(cmd) and write the message to it.  */
 static void
-msg_to_pipe (const char *cmd, message_t msg)
+msg_to_pipe (const char *cmd, mu_message_t msg)
 {
   FILE *fp = popen (cmd, "w");
   if (fp)
     {
-      stream_t stream = NULL;
+      mu_stream_t stream = NULL;
       char buffer[512];
       off_t off = 0;
       size_t n = 0;
-      message_get_stream (msg, &stream);
-      while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+      mu_message_get_stream (msg, &stream);
+      while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';

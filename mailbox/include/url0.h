@@ -45,17 +45,17 @@ struct _url
 
   void  *data;
 
-  void  (*_destroy)    (url_t url);
+  void  (*_destroy)    (mu_url_t url);
 
   /* Methods */
-  int   (*_get_scheme) (const url_t, char *, size_t, size_t *);
-  int   (*_get_user)   (const url_t, char *, size_t, size_t *);
-  int   (*_get_passwd) (const url_t, char *, size_t, size_t *);
-  int   (*_get_auth)   (const url_t, char *, size_t, size_t *);
-  int   (*_get_host)   (const url_t, char *, size_t, size_t *);
-  int   (*_get_port)   (const url_t, long *);
-  int   (*_get_path)   (const url_t, char *, size_t, size_t *);
-  int   (*_get_query)  (const url_t, char *, size_t, size_t *);
+  int   (*_get_scheme) (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_user)   (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_passwd) (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_auth)   (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_host)   (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_port)   (const mu_url_t, long *);
+  int   (*_get_path)   (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_query)  (const mu_url_t, char *, size_t, size_t *);
 };
 
 

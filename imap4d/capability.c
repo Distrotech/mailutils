@@ -18,7 +18,7 @@
 
 #include "imap4d.h"
 
-static list_t capa_list;
+static mu_list_t capa_list;
 
 static int
 comp (const void *item, const void *data)

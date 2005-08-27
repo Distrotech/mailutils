@@ -98,27 +98,27 @@ movemail_error_printer (const char *fmt, va_list ap)
 }
 
 void
-die (mailbox_t mbox, char *msg, int status)
+die (mu_mailbox_t mbox, char *msg, int status)
 {
-  url_t url = NULL;
+  mu_url_t url = NULL;
   
   mu_mailbox_get_url (mbox, &url);
   if (emacs_mode)
     mu_error (_("%s:mailbox `%s': %s: %s"),
 	      mu_errname (status),
-	      url_to_string (url),
+	      mu_url_to_string (url),
 	      msg,
 	      mu_strerror (status));
   else
     mu_error (_("mailbox `%s': %s: %s"),
-	      url_to_string (url), msg, mu_strerror (status));
+	      mu_url_to_string (url), msg, mu_strerror (status));
   exit (1);
 }
 
 void
-lock_mailbox (mailbox_t mbox)
+lock_mailbox (mu_mailbox_t mbox)
 {
-  locker_t lock;
+  mu_locker_t lock;
   int status;
   
   status = mu_mailbox_get_locker (mbox, &lock);
@@ -138,14 +138,14 @@ lock_mailbox (mailbox_t mbox)
 
 /* A password ticket: returns the cleantext password. */
 void
-password_destroy (ticket_t t)
+password_destroy (mu_ticket_t t)
 {
   char *p = mu_ticket_get_owner (t);
   free (p);
 }
 
 int
-password_pop (ticket_t t, url_t u, const char *challenge, char **ppwd)
+password_pop (mu_ticket_t t, mu_url_t u, const char *challenge, char **ppwd)
 {
   char *p = mu_ticket_get_owner (t);
   *ppwd = strdup (p);
@@ -153,12 +153,12 @@ password_pop (ticket_t t, url_t u, const char *challenge, char **ppwd)
 }
 
 void
-attach_passwd_ticket (mailbox_t mbx, char *passwd)
+attach_passwd_ticket (mu_mailbox_t mbx, char *passwd)
 {
-  folder_t folder = NULL;
-  authority_t auth = NULL;
+  mu_folder_t folder = NULL;
+  mu_authority_t auth = NULL;
   char *p = strdup (passwd);
-  ticket_t t;
+  mu_ticket_t t;
   int rc;
   
   mu_ticket_create (&t, p);
@@ -179,7 +179,7 @@ attach_passwd_ticket (mailbox_t mbx, char *passwd)
 /* Create and open a mailbox associated with the given URL,
    flags and (optionally) password */
 void
-open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
+open_mailbox (mu_mailbox_t *mbx, char *name, int flags, char *passwd)
 {
   int status = mu_mailbox_create_default (mbx, name);
 
@@ -204,10 +204,10 @@ open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 }
 
 int
-move_message (mailbox_t src, mailbox_t dst, size_t msgno)
+move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
 {
   int rc;
-  message_t msg;
+  mu_message_t msg;
 
   if ((rc = mu_mailbox_get_message (src, msgno, &msg)) != 0)
     {
@@ -223,8 +223,8 @@ move_message (mailbox_t src, mailbox_t dst, size_t msgno)
     }
   if (!preserve_mail)
     {
-      attribute_t attr;
-      message_get_attribute (msg, &attr);
+      mu_attribute_t attr;
+      mu_message_get_attribute (msg, &attr);
       mu_attribute_set_deleted (attr);
     }
   return rc;
@@ -238,7 +238,7 @@ move_message (mailbox_t src, mailbox_t dst, size_t msgno)
    if POP-SERVER part is omitted, the MAILHOST environment variable
    will be consulted. */
 void
-compatibility_mode (mailbox_t *mbx, char *source_name, char *password,
+compatibility_mode (mu_mailbox_t *mbx, char *source_name, char *password,
 		    int flags)
 {
   char *tmp;
@@ -260,7 +260,7 @@ int
 main (int argc, char **argv)
 {
   int index;
-  mailbox_t source, dest;
+  mu_mailbox_t source, dest;
   size_t i, total;
   int rc = 0;
   char *source_name, *dest_name;

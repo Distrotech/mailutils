@@ -207,8 +207,8 @@ display_file (const char *type)
     }
   else
     {
-      stream_t stream;
-      header_t hdr;
+      mu_stream_t stream;
+      mu_header_t hdr;
       char *text;
 
       asprintf (&text, "Content-Type: %s\n", type);
@@ -217,16 +217,16 @@ display_file (const char *type)
 	mu_error (_("Cannot create header: %s"), mu_strerror (status));
       else
 	{
-	  stdio_stream_create (&stream, mimeview_fp,
+	  mu_stdio_stream_create (&stream, mimeview_fp,
 			       MU_STREAM_READ|MU_STREAM_SEEKABLE|MU_STREAM_NO_CLOSE);
-	  stream_open (stream);
+	  mu_stream_open (stream);
 	  
 	  display_stream_mailcap (mimeview_file, stream, hdr,
 				  no_ask_types, interactive, dry_run,
 				  debug_level);
 	  
-	  stream_close (stream);
-	  stream_destroy (&stream, stream_get_owner (stream));
+	  mu_stream_close (stream);
+	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
 
 	  mu_header_destroy (&hdr, mu_header_get_owner (hdr));
 	}

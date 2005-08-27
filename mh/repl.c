@@ -116,7 +116,7 @@ static int width = 80;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static mh_msgset_t msgset;
-static mailbox_t mbox;
+static mu_mailbox_t mbox;
 static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
@@ -255,10 +255,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
+make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 {
   int rc;
-  message_t msg;
+  mu_message_t msg;
   struct stat st;
   
   /* First check if the draft exists */
@@ -303,10 +303,10 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 
   if (disp == DISP_REPLACE)
     {
-      stream_t str;
+      mu_stream_t str;
       char *buf;
       
-      rc = file_stream_create (&str, wh->file,
+      rc = mu_file_stream_create (&str, wh->file,
 			       MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
@@ -315,7 +315,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  exit (1);
 	}
 
-      if ((rc = stream_open (str)))
+      if ((rc = mu_stream_open (str)))
 	{
 	  mh_error (_("Cannot open draft file %s: %s"),
 		    wh->file, mu_strerror (rc));
@@ -323,29 +323,29 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	}	  
 
       mh_format (&format, msg, msgset.list[0], width, &buf);
-      stream_sequential_write (str, buf, strlen (buf));
+      mu_stream_sequential_write (str, buf, strlen (buf));
 
       if (mhl_filter)
 	{
-	  list_t filter = mhl_format_compile (mhl_filter);
+	  mu_list_t filter = mhl_format_compile (mhl_filter);
 	  if (!filter)
 	    exit (1);
 	  mhl_format_run (filter, width, 0, 0, msg, str);
 	  mhl_format_destroy (&filter);
 	}
 
-      stream_destroy (&str, stream_get_owner (str));
+      mu_stream_destroy (&str, mu_stream_get_owner (str));
       free (buf);
     }
 
   {
-    url_t url;
+    mu_url_t url;
     size_t num;
     char *msgname, *p;
     
     mu_mailbox_get_url (mbox, &url);
     mh_message_number (msg, &num);
-    asprintf (&msgname, "%s/%lu", url_to_string (url), (unsigned long) num);
+    asprintf (&msgname, "%s/%lu", mu_url_to_string (url), (unsigned long) num);
     p = strchr (msgname, ':');
     if (!p)
       wh->msg = msgname;

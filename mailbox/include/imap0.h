@@ -41,7 +41,7 @@ do \
   { \
      if (status != 0) \
        { \
-          stream_close (folder->stream); \
+          mu_stream_close (folder->stream); \
           CLEAR_STATE (f_imap); \
           return status; \
        } \
@@ -138,7 +138,7 @@ struct literal_string
 struct _f_imap
 {
   /* Back pointer.  */
-  folder_t folder;
+  mu_folder_t folder;
   m_imap_t selected;
 
   enum imap_state state;
@@ -152,7 +152,7 @@ struct _f_imap
      the IMAP server.  */
   struct
   {
-    stream_t stream;
+    mu_stream_t stream;
     off_t offset;
     size_t nleft;  /* nleft to read in the literal. */
     msg_imap_t msg_imap;
@@ -170,7 +170,7 @@ struct _f_imap
   char *ptr;
   char *nl;
   off_t offset; /* Dummy, this is used because of the stream buffering.
-                   The stream_t maintains and offset and the offset we use must
+                   The mu_stream_t maintains and offset and the offset we use must
                    be in sync.  */
 
   /* Login  */
@@ -184,7 +184,7 @@ struct _f_imap
 struct _m_imap
 {
   /* Back pointers.  */
-  mailbox_t mailbox;
+  mu_mailbox_t mailbox;
   f_imap_t f_imap;
   size_t messages_count;
   size_t imessages_count;
@@ -202,7 +202,7 @@ struct _m_imap
 struct _msg_imap
 {
   /* Back pointers.  */
-  message_t message;
+  mu_message_t message;
   m_imap_t m_imap;
   size_t num;
   size_t part;
@@ -212,11 +212,11 @@ struct _msg_imap
   int flags;
   size_t uid;
 
-  header_t fheader;
+  mu_header_t fheader;
   char *internal_date;
 
-  size_t message_size;
-  size_t message_lines;
+  size_t mu_message_size;
+  size_t mu_message_lines;
   size_t body_size;
   size_t body_lines;
   size_t header_size;

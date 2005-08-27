@@ -28,7 +28,7 @@ main ()
   char buffer[1024];
   long port = 0;
   int len = sizeof (buffer);
-  url_t u = NULL;
+  mu_url_t u = NULL;
 
   while (fgets (str, sizeof (str), stdin) != NULL)
     {
@@ -37,13 +37,13 @@ main ()
       str[strlen (str) - 1] = '\0';     /* chop newline */
       if (strspn (str, " \t") == strlen (str))
         continue;               /* skip empty lines */
-      if ((rc = url_create (&u, str)) != 0)
+      if ((rc = mu_url_create (&u, str)) != 0)
         {
-          fprintf (stderr, "url_create %s ERROR: [%d] %s",
+          fprintf (stderr, "mu_url_create %s ERROR: [%d] %s",
                    str, rc, mu_strerror (rc));
           exit (1);
         }
-      if ((rc = url_parse (u)) != 0)
+      if ((rc = mu_url_parse (u)) != 0)
         {
           printf ("%s => FAILED: [%d] %s\n",
                   str, rc, mu_strerror (rc));
@@ -51,31 +51,31 @@ main ()
         }
       printf ("%s => SUCCESS\n", str);
 
-      url_get_scheme (u, buffer, len, NULL);
+      mu_url_get_scheme (u, buffer, len, NULL);
       printf ("\tscheme <%s>\n", buffer);
 
-      url_get_user (u, buffer, len, NULL);
+      mu_url_get_user (u, buffer, len, NULL);
       printf ("\tuser <%s>\n", buffer);
 
-      url_get_passwd (u, buffer, len, NULL);
+      mu_url_get_passwd (u, buffer, len, NULL);
       printf ("\tpasswd <%s>\n", buffer);
 
-      url_get_auth (u, buffer, len, NULL);
+      mu_url_get_auth (u, buffer, len, NULL);
       printf ("\tauth <%s>\n", buffer);
 
-      url_get_host (u, buffer, len, NULL);
+      mu_url_get_host (u, buffer, len, NULL);
       printf ("\thost <%s>\n", buffer);
 
-      url_get_port (u, &port);
+      mu_url_get_port (u, &port);
       printf ("\tport %ld\n", port);
 
-      url_get_path (u, buffer, len, NULL);
+      mu_url_get_path (u, buffer, len, NULL);
       printf ("\tpath <%s>\n", buffer);
 
-      url_get_query (u, buffer, len, NULL);
+      mu_url_get_query (u, buffer, len, NULL);
       printf ("\tquery <%s>\n", buffer);
 
-      url_destroy (&u);
+      mu_url_destroy (&u);
 
     }
   return 0;

@@ -55,21 +55,21 @@ SCM _mu_scm_debug;          /* NUM: Default debug level. */
 
 struct format_record {
   char *name;
-  record_t *record;
+  mu_record_t *record;
 };
 
 static struct format_record format_table[] = {
-  { "mbox", &mbox_record },
-  { "mh",   &mh_record },
-  { "maildir", &maildir_record },
-  { "pop",  &pop_record },
-  { "imap", &imap_record },
-  { "sendmail", &sendmail_record },
-  { "smtp", &smtp_record },
+  { "mbox", &mu_mbox_record },
+  { "mh",   &mu_mh_record },
+  { "maildir", &mu_maildir_record },
+  { "pop",  &mu_pop_record },
+  { "imap", &mu_imap_record },
+  { "sendmail", &mu_sendmail_record },
+  { "smtp", &mu_smtp_record },
   { NULL, NULL },
 };
 
-static record_t *
+static mu_record_t *
 find_format (const struct format_record *table, const char *name)
 {
   for (; table->name; table++)
@@ -87,13 +87,13 @@ register_format (const char *name)
     {
       struct format_record *table;
       for (table = format_table; table->name; table++)
-	registrar_record (*table->record);
+	mu_registrar_record (*table->record);
     }
   else
     {
-      record_t *record = find_format (format_table, name);
+      mu_record_t *record = find_format (format_table, name);
       if (record)
-	status = registrar_record (*record);
+	status = mu_registrar_record (*record);
       else
 	status = EINVAL;
     }
@@ -189,5 +189,5 @@ mu_scm_init ()
   mu_scm_mime_init ();
 #include "mu_scm.x"
 
-  registrar_record (path_record);
+  mu_registrar_record (mu_path_record);
 }

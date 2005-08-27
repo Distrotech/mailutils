@@ -27,12 +27,12 @@ int
 mail_next (int argc, char **argv)
 {
   size_t n;
-  message_t msg;
+  mu_message_t msg;
   
   if (argc < 2)
     {
       int rc;
-      attribute_t attr = NULL;
+      mu_attribute_t attr = NULL;
       
       n = get_cursor ();
       if (n == 0 || util_get_message (mbox, n, &msg))
@@ -41,7 +41,7 @@ mail_next (int argc, char **argv)
 	  return 1;
 	}
 
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       if (!mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SHOWN))
 	{
 	  util_do_command ("print");

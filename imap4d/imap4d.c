@@ -22,7 +22,7 @@
 # include <mailutils/gsasl.h>
 #endif
 
-mailbox_t mbox;
+mu_mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
 int debug_mode = 0;

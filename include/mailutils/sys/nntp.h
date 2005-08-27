@@ -146,14 +146,14 @@ struct _mu_nntp
 
     enum mu_nntp_state state;  /* Indicate the state of the running command.  */
 
-    stream_t carrier; /* TCP Connection.  */
+    mu_stream_t carrier; /* TCP Connection.  */
   };
 
 extern int  mu_nntp_debug_cmd        (mu_nntp_t);
 extern int  mu_nntp_debug_ack        (mu_nntp_t);
-extern int  mu_nntp_iterator_create  (mu_nntp_t, iterator_t *iterator);
-extern int  mu_nntp_stream_create    (mu_nntp_t nntp, stream_t *pstream);
-extern int  mu_nntp_carrier_is_ready (stream_t carrier, int flag, int timeout);
+extern int  mu_nntp_iterator_create  (mu_nntp_t, mu_iterator_t *iterator);
+extern int  mu_nntp_stream_create    (mu_nntp_t nntp, mu_stream_t *pstream);
+extern int  mu_nntp_carrier_is_ready (mu_stream_t carrier, int flag, int timeout);
 extern int  mu_nntp_parse_article    (mu_nntp_t nntp, int code, unsigned long *pnum, char **mid);
 
 

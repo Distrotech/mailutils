@@ -126,7 +126,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 int
 main (int argc, char *argv[])
 {
-  locker_t locker = 0;
+  mu_locker_t locker = 0;
   int err = 0;
   pid_t usergid = getgid ();
   pid_t mailgid = getegid ();

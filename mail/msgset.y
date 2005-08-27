@@ -40,14 +40,14 @@ struct header_data
   char *expr;
 };
 
-static msgset_t *msgset_select (int (*sel) (message_t, void *),
+static msgset_t *msgset_select (int (*sel) (mu_message_t, void *),
 				     void *closure, int rev,
 				     unsigned int max_matches);
-static int select_header (message_t msg, void *closure);
-static int select_body (message_t msg, void *closure);
-static int select_type (message_t msg, void *closure);
-static int select_sender (message_t msg, void *closure);
-static int select_deleted (message_t msg, void *closure);
+static int select_header (mu_message_t msg, void *closure);
+static int select_body (mu_message_t msg, void *closure);
+static int select_type (mu_message_t msg, void *closure);
+static int select_sender (mu_message_t msg, void *closure);
+static int select_deleted (mu_message_t msg, void *closure);
 static int check_set (msgset_t **pset);
  
 int yyerror (const char *);
@@ -514,12 +514,12 @@ msgset_expand (msgset_t *set, msgset_t *expand_by)
 }
 
 msgset_t *
-msgset_select (int (*sel) (message_t, void *), void *closure, int rev,
+msgset_select (int (*sel) (mu_message_t, void *), void *closure, int rev,
 	       unsigned int max_matches)
 {
   size_t i, match_count = 0;
   msgset_t *first = NULL, *last = NULL, *mp;
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
 
   if (max_matches == 0)
     max_matches = total;
@@ -564,14 +564,14 @@ msgset_select (int (*sel) (message_t, void *), void *closure, int rev,
 }
 
 int
-select_header (message_t msg, void *closure)
+select_header (mu_message_t msg, void *closure)
 {
   struct header_data *hd = (struct header_data *)closure;
-  header_t hdr;
+  mu_header_t hdr;
   char *contents;
   const char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
 
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, header, &contents) == 0)
     {
       if (util_getenv (NULL, "regex", Mail_env_boolean, 0) == 0)
@@ -609,14 +609,14 @@ select_header (message_t msg, void *closure)
 }
 
 int
-select_body (message_t msg, void *closure)
+select_body (mu_message_t msg, void *closure)
 {
   char *expr = closure;
   int noregex = util_getenv (NULL, "regex", Mail_env_boolean, 0);
   regex_t re;
   int status;
-  body_t body = NULL;
-  stream_t stream = NULL;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
   char buffer[128];
   size_t n = 0;
@@ -627,13 +627,13 @@ select_body (message_t msg, void *closure)
   else if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
     return 0;
 
-  message_get_body (msg, &body);
+  mu_message_get_body (msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
   mu_body_get_stream (body, &stream);
   status = 0;
   while (status == 0
-	 && stream_readline (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
+	 && mu_stream_readline (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
 	 && n > 0)
     {
       offset += n;
@@ -653,7 +653,7 @@ select_body (message_t msg, void *closure)
 }
 
 int
-select_sender (message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
+select_sender (mu_message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
 {
   /* char *sender = (char*) closure; */
   /* FIXME: all messages from sender argv[i] */
@@ -663,12 +663,12 @@ select_sender (message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
 }
 
 int
-select_type (message_t msg, void *closure)
+select_type (mu_message_t msg, void *closure)
 {
   int type = *(int*) closure;
-  attribute_t attr= NULL;
+  mu_attribute_t attr= NULL;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
 
   switch (type)
     {
@@ -691,12 +691,12 @@ select_type (message_t msg, void *closure)
 }
 
 int
-select_deleted (message_t msg, void *closure ARG_UNUSED)
+select_deleted (mu_message_t msg, void *closure ARG_UNUSED)
 {
-  attribute_t attr= NULL;
+  mu_attribute_t attr= NULL;
   int rc;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   rc = mu_attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;
 }

@@ -41,7 +41,7 @@
 #include <mailbox0.h>
 
 int
-mailbox_folder_create (folder_t *pfolder, const char *name)
+mailbox_folder_create (mu_folder_t *pfolder, const char *name)
 {
   int rc;
   char *p, *fname = strdup (name);
@@ -59,28 +59,28 @@ mailbox_folder_create (folder_t *pfolder, const char *name)
 
 /* The Mailbox Factory.
    Create an iterator for registrar and see if any url scheme match,
-   Then we call the mailbox's url_create() to parse the URL. Last
+   Then we call the mailbox's mu_url_create() to parse the URL. Last
    initialize the concrete mailbox and folder.  */
 int
-mu_mailbox_create (mailbox_t *pmbox, const char *name)
+mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
 {
-  record_t record = NULL;
+  mu_record_t record = NULL;
 
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
+  if (mu_registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
     {
-      int (*m_init) (mailbox_t) = NULL;
-      int (*u_init) (url_t) = NULL;
+      int (*m_init) (mu_mailbox_t) = NULL;
+      int (*u_init) (mu_url_t) = NULL;
       
-      record_get_mailbox (record, &m_init);
-      record_get_url (record, &u_init);
+      mu_record_get_mailbox (record, &m_init);
+      mu_record_get_url (record, &u_init);
       if (m_init && u_init)
         {
 	  int status;
-	  url_t url;
-	  mailbox_t mbox;
+	  mu_url_t url;
+	  mu_mailbox_t mbox;
 
 	  /* Allocate memory for mbox.  */
 	  mbox = calloc (1, sizeof (*mbox));
@@ -89,7 +89,7 @@ mu_mailbox_create (mailbox_t *pmbox, const char *name)
 
 	  /* Initialize the internal lock now, so the concrete mailbox
 	     could use it. */
-	  status = monitor_create (&mbox->monitor, 0, mbox);
+	  status = mu_monitor_create (&mbox->monitor, 0, mbox);
 	  if (status != 0)
 	    {
 	      mu_mailbox_destroy (&mbox);
@@ -98,7 +98,7 @@ mu_mailbox_create (mailbox_t *pmbox, const char *name)
 
 	  /* Parse the url, it may be a bad one and we should bailout if this
 	     failed.  */
-	  if ((status = url_create (&url, name)) != 0
+	  if ((status = mu_url_create (&url, name)) != 0
 	      || (status = u_init (url)) != 0)
 	    {
 	      mu_mailbox_destroy (&mbox);
@@ -126,37 +126,37 @@ mu_mailbox_create (mailbox_t *pmbox, const char *name)
 }
 
 void
-mu_mailbox_destroy (mailbox_t *pmbox)
+mu_mailbox_destroy (mu_mailbox_t *pmbox)
 {
   if (pmbox && *pmbox)
     {
-      mailbox_t mbox = *pmbox;
-      monitor_t monitor = mbox->monitor;
+      mu_mailbox_t mbox = *pmbox;
+      mu_monitor_t monitor = mbox->monitor;
 
       /* Notify the observers.  */
       if (mbox->observable)
 	{
-	  observable_notify (mbox->observable, MU_EVT_MAILBOX_DESTROY);
-	  observable_destroy (&(mbox->observable), mbox);
+	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_DESTROY);
+	  mu_observable_destroy (&(mbox->observable), mbox);
 	}
 
       /* Call the concrete mailbox _destroy method. So it can clean itself.  */
       if (mbox->_destroy)
 	mbox->_destroy (mbox);
 
-      monitor_wrlock (monitor);
+      mu_monitor_wrlock (monitor);
 
       /* Close the stream and nuke it */
       if (mbox->stream)
 	{
 	  /* FIXME: Is this right, should the client be responsible
 	     for closing the stream?  */
-	  /* stream_close (mbox->stream); */
-	  stream_destroy (&(mbox->stream), mbox);
+	  /* mu_stream_close (mbox->stream); */
+	  mu_stream_destroy (&(mbox->stream), mbox);
 	}
 
       if (mbox->url)
-        url_destroy (&(mbox->url));
+        mu_url_destroy (&(mbox->url));
 
       if (mbox->locker)
 	mu_locker_destroy (&(mbox->locker));
@@ -168,12 +168,12 @@ mu_mailbox_destroy (mailbox_t *pmbox)
 	mu_folder_destroy (&(mbox->folder));
 
       if (mbox->property)
-	property_destroy (&(mbox->property), mbox);
+	mu_property_destroy (&(mbox->property), mbox);
 
       free (mbox);
       *pmbox = NULL;
-      monitor_unlock (monitor);
-      monitor_destroy (&monitor, mbox);
+      mu_monitor_unlock (monitor);
+      mu_monitor_destroy (&monitor, mbox);
     }
 }
 
@@ -181,7 +181,7 @@ mu_mailbox_destroy (mailbox_t *pmbox)
 /* -------------- stub functions ------------------- */
 
 int
-mu_mailbox_open (mailbox_t mbox, int flag)
+mu_mailbox_open (mu_mailbox_t mbox, int flag)
 {
   if (mbox == NULL || mbox->_open == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -189,7 +189,7 @@ mu_mailbox_open (mailbox_t mbox, int flag)
 }
 
 int
-mu_mailbox_close (mailbox_t mbox)
+mu_mailbox_close (mu_mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_close == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -198,7 +198,7 @@ mu_mailbox_close (mailbox_t mbox)
 }
 
 int
-mu_mailbox_flush (mailbox_t mbox, int expunge)
+mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
 {
   size_t i, total = 0;
   int status = 0;
@@ -214,10 +214,10 @@ mu_mailbox_flush (mailbox_t mbox, int expunge)
     i = 1;
   for ( ; i <= total; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
       mu_mailbox_get_message (mbox, i, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       mu_attribute_set_seen (attr);
     }
   if (expunge)
@@ -229,7 +229,7 @@ mu_mailbox_flush (mailbox_t mbox, int expunge)
 
 /* messages */
 int
-mu_mailbox_append_message (mailbox_t mbox, message_t msg)
+mu_mailbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 {
   if (mbox == NULL || mbox->_append_message == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -239,7 +239,7 @@ mu_mailbox_append_message (mailbox_t mbox, message_t msg)
 }
 
 int
-mu_mailbox_get_message (mailbox_t mbox, size_t msgno,  message_t *pmsg)
+mu_mailbox_get_message (mu_mailbox_t mbox, size_t msgno,  mu_message_t *pmsg)
 {
   if (mbox == NULL || mbox->_get_message == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -247,7 +247,7 @@ mu_mailbox_get_message (mailbox_t mbox, size_t msgno,  message_t *pmsg)
 }
 
 int
-mu_mailbox_messages_count (mailbox_t mbox, size_t *num)
+mu_mailbox_messages_count (mu_mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_messages_count == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -255,7 +255,7 @@ mu_mailbox_messages_count (mailbox_t mbox, size_t *num)
 }
 
 int
-mu_mailbox_messages_recent (mailbox_t mbox, size_t *num)
+mu_mailbox_messages_recent (mu_mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_messages_recent == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -263,7 +263,7 @@ mu_mailbox_messages_recent (mailbox_t mbox, size_t *num)
 }
 
 int
-mu_mailbox_message_unseen (mailbox_t mbox, size_t *num)
+mu_mailbox_message_unseen (mu_mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_message_unseen == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -271,7 +271,7 @@ mu_mailbox_message_unseen (mailbox_t mbox, size_t *num)
 }
 
 int
-mu_mailbox_save_attributes (mailbox_t mbox)
+mu_mailbox_save_attributes (mu_mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_save_attributes == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -281,7 +281,7 @@ mu_mailbox_save_attributes (mailbox_t mbox)
 }
 
 int
-mu_mailbox_expunge (mailbox_t mbox)
+mu_mailbox_expunge (mu_mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -291,7 +291,7 @@ mu_mailbox_expunge (mailbox_t mbox)
 }
 
 int
-mu_mailbox_is_updated (mailbox_t mbox)
+mu_mailbox_is_updated (mu_mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_is_updated == NULL)
     return 1;
@@ -299,7 +299,7 @@ mu_mailbox_is_updated (mailbox_t mbox)
 }
 
 int
-mu_mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+mu_mailbox_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   if (mbox == NULL || mbox->_scan == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -307,7 +307,7 @@ mu_mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 }
 
 int
-mu_mailbox_get_size (mailbox_t mbox, off_t *psize)
+mu_mailbox_get_size (mu_mailbox_t mbox, off_t *psize)
 {
   if (mbox == NULL || mbox->_get_size == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -315,7 +315,7 @@ mu_mailbox_get_size (mailbox_t mbox, off_t *psize)
 }
 
 int
-mu_mailbox_uidvalidity (mailbox_t mbox, unsigned long *pvalid)
+mu_mailbox_uidvalidity (mu_mailbox_t mbox, unsigned long *pvalid)
 {
   if (mbox == NULL || mbox->_uidvalidity == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -323,7 +323,7 @@ mu_mailbox_uidvalidity (mailbox_t mbox, unsigned long *pvalid)
 }
 
 int
-mu_mailbox_uidnext (mailbox_t mbox, size_t *puidnext)
+mu_mailbox_uidnext (mu_mailbox_t mbox, size_t *puidnext)
 {
   if (mbox == NULL || mbox->_uidnext == NULL)
     return MU_ERR_EMPTY_VFN;
@@ -332,7 +332,7 @@ mu_mailbox_uidnext (mailbox_t mbox, size_t *puidnext)
 
 /* locking */
 int
-mu_mailbox_set_locker (mailbox_t mbox, locker_t locker)
+mu_mailbox_set_locker (mu_mailbox_t mbox, mu_locker_t locker)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -343,7 +343,7 @@ mu_mailbox_set_locker (mailbox_t mbox, locker_t locker)
 }
 
 int
-mu_mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
+mu_mailbox_get_locker (mu_mailbox_t mbox, mu_locker_t *plocker)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -354,7 +354,7 @@ mu_mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 }
 
 int
-mu_mailbox_get_flags (mailbox_t mbox, int *flags)
+mu_mailbox_get_flags (mu_mailbox_t mbox, int *flags)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -365,12 +365,12 @@ mu_mailbox_get_flags (mailbox_t mbox, int *flags)
 }
 
 int
-mu_mailbox_set_stream (mailbox_t mbox, stream_t stream)
+mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
   if (mbox->stream)
-    stream_destroy (&(mbox->stream), mbox);
+    mu_stream_destroy (&(mbox->stream), mbox);
   mbox->stream = stream;
   return 0;
 }
@@ -384,7 +384,7 @@ mu_mailbox_set_stream (mailbox_t mbox, stream_t stream)
    The question is : should this function be removed?
    So far it as been used on local mailboxes to get offsets.  */
 int
-mu_mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
+mu_mailbox_get_stream (mu_mailbox_t mbox, mu_stream_t *pstream)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -404,7 +404,7 @@ mu_mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 }
 
 int
-mu_mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
+mu_mailbox_get_observable (mu_mailbox_t mbox, mu_observable_t *pobservable)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -413,7 +413,7 @@ mu_mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 
   if (mbox->observable == NULL)
     {
-      int status = observable_create (&(mbox->observable), mbox);
+      int status = mu_observable_create (&(mbox->observable), mbox);
       if (status != 0)
 	return status;
     }
@@ -422,7 +422,7 @@ mu_mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 }
 
 int
-mu_mailbox_get_property (mailbox_t mbox, property_t *pproperty)
+mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -431,7 +431,7 @@ mu_mailbox_get_property (mailbox_t mbox, property_t *pproperty)
   
   if (mbox->property == NULL)
     {
-      int status = property_create (&(mbox->property), mbox);
+      int status = mu_property_create (&(mbox->property), mbox);
       if (status != 0)
 	return status;
     }
@@ -440,7 +440,7 @@ mu_mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 }
 
 int
-mu_mailbox_has_debug (mailbox_t mailbox)
+mu_mailbox_has_debug (mu_mailbox_t mailbox)
 {
   if (mailbox == NULL)
     return 0;
@@ -449,7 +449,7 @@ mu_mailbox_has_debug (mailbox_t mailbox)
 }
 
 int
-mu_mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
+mu_mailbox_set_debug (mu_mailbox_t mbox, mu_debug_t debug)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -462,7 +462,7 @@ mu_mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 }
 
 int
-mu_mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
+mu_mailbox_get_debug (mu_mailbox_t mbox, mu_debug_t *pdebug)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -479,7 +479,7 @@ mu_mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 }
 
 int
-mu_mailbox_get_url (mailbox_t mbox, url_t *purl)
+mu_mailbox_get_url (mu_mailbox_t mbox, mu_url_t *purl)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -490,7 +490,7 @@ mu_mailbox_get_url (mailbox_t mbox, url_t *purl)
 }
 
 int
-mu_mailbox_get_folder (mailbox_t mbox, folder_t *pfolder)
+mu_mailbox_get_folder (mu_mailbox_t mbox, mu_folder_t *pfolder)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -501,7 +501,7 @@ mu_mailbox_get_folder (mailbox_t mbox, folder_t *pfolder)
 }
 
 int
-mu_mailbox_set_folder (mailbox_t mbox, folder_t folder)
+mu_mailbox_set_folder (mu_mailbox_t mbox, mu_folder_t folder)
 {
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -510,17 +510,17 @@ mu_mailbox_set_folder (mailbox_t mbox, folder_t folder)
 }
 
 int
-mu_mailbox_lock (mailbox_t mbox)
+mu_mailbox_lock (mu_mailbox_t mbox)
 {
-  locker_t lock = NULL;
+  mu_locker_t lock = NULL;
   mu_mailbox_get_locker (mbox, &lock);
   return mu_locker_lock (lock);
 }
 
 int
-mu_mailbox_unlock (mailbox_t mbox)
+mu_mailbox_unlock (mu_mailbox_t mbox)
 {
-  locker_t lock = NULL;
+  mu_locker_t lock = NULL;
   mu_mailbox_get_locker (mbox, &lock);
   return mu_locker_unlock (lock);
 }

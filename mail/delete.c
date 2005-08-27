@@ -23,11 +23,11 @@
  */
 
 static int
-mail_delete_msg (msgset_t *mspec, message_t msg, void *data)
+mail_delete_msg (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_set_deleted (attr);
   cond_page_invalidate (mspec->msg_part[0]);
   return 0;

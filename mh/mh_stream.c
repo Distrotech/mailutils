@@ -38,17 +38,17 @@ _mh_delim (char *str)
 }
 
 struct _mhdraft_stream {
-  stream_t stream;     /* Actual stream */
+  mu_stream_t stream;     /* Actual stream */
   size_t mark_offset;  /* Offset of the header separator */
   size_t mark_length;  /* Length of the header separator (not counting the
 			  newline) */
 };
 
 static int
-_mhdraft_read (stream_t stream, char *optr, size_t osize,
+_mhdraft_read (mu_stream_t stream, char *optr, size_t osize,
 	       off_t offset, size_t *nbytes)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
 
   if (offset < s->mark_offset)
     {
@@ -57,14 +57,14 @@ _mhdraft_read (stream_t stream, char *optr, size_t osize,
     }
   else
     offset += s->mark_length;
-  return stream_read (s->stream, optr, osize, offset, nbytes);
+  return mu_stream_read (s->stream, optr, osize, offset, nbytes);
 }
   
 static int
-_mhdraft_readline (stream_t stream, char *optr, size_t osize,
+_mhdraft_readline (mu_stream_t stream, char *optr, size_t osize,
 		   off_t offset, size_t *nbytes)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
     
   if (offset < s->mark_offset)
     {
@@ -74,7 +74,7 @@ _mhdraft_readline (stream_t stream, char *optr, size_t osize,
 	  size_t n;
 	  size_t rdsize = s->mark_offset - offset + 1;
 
-	  rc = stream_readline (s->stream, optr, rdsize, offset, &n);
+	  rc = mu_stream_readline (s->stream, optr, rdsize, offset, &n);
 	  if (rc == 0)
 	    {
 	      if (nbytes)
@@ -86,14 +86,14 @@ _mhdraft_readline (stream_t stream, char *optr, size_t osize,
   else
     offset += s->mark_length;
 
-  return stream_readline (s->stream, optr, osize, offset, nbytes);
+  return mu_stream_readline (s->stream, optr, osize, offset, nbytes);
 }
   
 static int
-_mhdraft_size (stream_t stream, off_t *psize)
+_mhdraft_size (mu_stream_t stream, off_t *psize)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
-  int rc = stream_size (s->stream, psize);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
+  int rc = mu_stream_size (s->stream, psize);
   
   if (rc == 0)
     *psize -= s->mark_length;
@@ -101,15 +101,15 @@ _mhdraft_size (stream_t stream, off_t *psize)
 }
   
 static int
-_mhdraft_open (stream_t stream)
+_mhdraft_open (mu_stream_t stream)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
   size_t offset, len;
   char buffer[256];
   int rc;
 
   offset = 0;
-  while ((rc = stream_readline (s->stream, buffer, sizeof buffer,
+  while ((rc = mu_stream_readline (s->stream, buffer, sizeof buffer,
 				offset, &len)) == 0
 	 && len > 0)
     {
@@ -126,23 +126,23 @@ _mhdraft_open (stream_t stream)
 }
 
 static int
-_mhdraft_close (stream_t stream)
+_mhdraft_close (mu_stream_t stream)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
-  return stream_close (s->stream);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
+  return mu_stream_close (s->stream);
 }
 
 static void
-_mhdraft_destroy (stream_t stream)
+_mhdraft_destroy (mu_stream_t stream)
 {
-  struct _mhdraft_stream *s = stream_get_owner (stream);
+  struct _mhdraft_stream *s = mu_stream_get_owner (stream);
   if (s->stream)
-    stream_destroy (&s->stream, stream_get_owner (s->stream));
+    mu_stream_destroy (&s->stream, mu_stream_get_owner (s->stream));
   free (s);
 }
     
 int
-mhdraft_stream_create (stream_t *stream, stream_t src, int flags)
+mhdraft_stream_create (mu_stream_t *stream, mu_stream_t src, int flags)
 {
   struct _mhdraft_stream *s;
   int rc;
@@ -158,19 +158,19 @@ mhdraft_stream_create (stream_t *stream, stream_t src, int flags)
 
   s->stream = src;
   
-  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  rc = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
   if (rc)
     {
       free (s);
       return rc;
     }
   
-  stream_set_open (*stream, _mhdraft_open, s);
-  stream_set_close (*stream, _mhdraft_close, s);
-  stream_set_destroy (*stream, _mhdraft_destroy, s);
-  stream_set_readline (*stream, _mhdraft_readline, s);
-  stream_set_read (*stream, _mhdraft_read, s);
-  stream_set_size (*stream, _mhdraft_size, s);
+  mu_stream_set_open (*stream, _mhdraft_open, s);
+  mu_stream_set_close (*stream, _mhdraft_close, s);
+  mu_stream_set_destroy (*stream, _mhdraft_destroy, s);
+  mu_stream_set_readline (*stream, _mhdraft_readline, s);
+  mu_stream_set_read (*stream, _mhdraft_read, s);
+  mu_stream_set_size (*stream, _mhdraft_size, s);
 
   return 0;  
 }
@@ -200,7 +200,7 @@ struct _mhdraft_message
 };
 
 static int
-restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
+restore_envelope (mu_stream_t str, struct _mhdraft_message **pmenv)
 {
   size_t offset = 0;
   char *from = NULL;
@@ -211,7 +211,7 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
   size_t len;
   off_t body_start, body_end;
   
-  while ((rc = stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
+  while ((rc = mu_stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
 	 && len > 0)
     {
       if (buffer[0] == '\n')
@@ -230,13 +230,13 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
     }
 
   body_start = offset + 1;
-  stream_size (str, &body_end);
+  mu_stream_size (str, &body_end);
   
   if (!env_from)
     {
       if (from)
 	{
-	  address_t addr;
+	  mu_address_t addr;
 	  
 	  mu_address_create (&addr, from);
 	  if (!addr
@@ -280,10 +280,10 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
 }
 
 static int
-_env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+_env_msg_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  struct _mhdraft_message *env = message_get_owner (msg);
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  struct _mhdraft_message *env = mu_message_get_owner (msg);
   
   if (!env || !env->date)
     return EINVAL;
@@ -293,10 +293,10 @@ _env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 }
 
 static int
-_env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+_env_msg_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  struct _mhdraft_message *env = message_get_owner (msg);
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  struct _mhdraft_message *env = mu_message_get_owner (msg);
   
   if (!env || !env->from)
     return EINVAL;
@@ -306,10 +306,10 @@ _env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 }
 
 static int
-_body_size (body_t body, size_t *size)
+_body_size (mu_body_t body, size_t *size)
 {
-  message_t msg = mu_body_get_owner (body);
-  struct _mhdraft_message *mp = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _mhdraft_message *mp = mu_message_get_owner (msg);
 
   if (size)
     *size = mp->body_end - mp->body_start;
@@ -317,52 +317,52 @@ _body_size (body_t body, size_t *size)
 }
 
 static int 
-_body_read (stream_t stream, char *optr, size_t osize,
+_body_read (mu_stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  struct _mhdraft_message *mp = message_get_owner (msg);
-  stream_t str;
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _mhdraft_message *mp = mu_message_get_owner (msg);
+  mu_stream_t str;
 
-  message_get_stream (msg, &str);
-  return stream_read (str, optr, osize, mp->body_start + offset, nbytes);
+  mu_message_get_stream (msg, &str);
+  return mu_stream_read (str, optr, osize, mp->body_start + offset, nbytes);
 }
 
 static int
-_body_readline (stream_t stream, char *optr, size_t osize,
+_body_readline (mu_stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  struct _mhdraft_message *mp = message_get_owner (msg);
-  stream_t str;
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _mhdraft_message *mp = mu_message_get_owner (msg);
+  mu_stream_t str;
 
-  message_get_stream (msg, &str);
-  return stream_readline (str, optr, osize, mp->body_start + offset, nbytes);
+  mu_message_get_stream (msg, &str);
+  return mu_stream_readline (str, optr, osize, mp->body_start + offset, nbytes);
 }
 
 static int
-_body_stream_size (stream_t stream, off_t *psize)
+_body_stream_size (mu_stream_t stream, off_t *psize)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  struct _mhdraft_message *mp = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _mhdraft_message *mp = mu_message_get_owner (msg);
   
   if (psize)
     *psize = mp->body_end - mp->body_start;
   return 0;
 }
 
-message_t
-mh_stream_to_message (stream_t instream)
+mu_message_t
+mh_stream_to_message (mu_stream_t instream)
 {
   struct _mhdraft_message *mp;
-  envelope_t env;
-  message_t msg;
-  body_t body;
-  stream_t bstream;
-  stream_t draftstream;
+  mu_envelope_t env;
+  mu_message_t msg;
+  mu_body_t body;
+  mu_stream_t bstream;
+  mu_stream_t draftstream;
   int rc;
   
   if ((rc = mhdraft_stream_create (&draftstream, instream, 0)))
@@ -372,37 +372,37 @@ mh_stream_to_message (stream_t instream)
       return NULL;
     }
 
-  if ((rc = stream_open (draftstream)))
+  if ((rc = mu_stream_open (draftstream)))
     {
       mh_error (_("cannot open draft message stream: %s"),
 		mu_strerror (rc));
-      stream_destroy (&draftstream, stream_get_owner (draftstream));
+      mu_stream_destroy (&draftstream, mu_stream_get_owner (draftstream));
       return NULL;
     }
 
   restore_envelope (draftstream, &mp);
 
-  if (message_create (&msg, mp))
+  if (mu_message_create (&msg, mp))
     return NULL;
   
-  message_set_stream (msg, draftstream, mp);
+  mu_message_set_stream (msg, draftstream, mp);
   
   if (mu_envelope_create (&env, msg))
     return NULL;
   
   mu_envelope_set_date (env, _env_msg_date, msg);
   mu_envelope_set_sender (env, _env_msg_sender, msg);
-  message_set_envelope (msg, env, mp);
+  mu_message_set_envelope (msg, env, mp);
 
   mu_body_create (&body, msg);
-  stream_create (&bstream,  MU_STREAM_RDWR | MU_STREAM_SEEKABLE, body);
+  mu_stream_create (&bstream,  MU_STREAM_RDWR | MU_STREAM_SEEKABLE, body);
 
-  stream_set_read (bstream, _body_read, body);
-  stream_set_readline (bstream, _body_readline, body);
-  stream_set_size (bstream, _body_stream_size, body);
+  mu_stream_set_read (bstream, _body_read, body);
+  mu_stream_set_readline (bstream, _body_readline, body);
+  mu_stream_set_size (bstream, _body_stream_size, body);
   mu_body_set_stream (body, bstream, msg);
   mu_body_set_size (body, _body_size, msg);
-  message_set_body (msg, body, mp);
+  mu_message_set_body (msg, body, mp);
   
   return msg;
 }

@@ -34,7 +34,7 @@ mail_quit (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 int
 mail_mbox_close ()
 {
-  url_t url = NULL;
+  mu_url_t url = NULL;
   size_t held_count;
 
   if (util_getenv (NULL, "readonly", Mail_env_boolean, 0))
@@ -51,7 +51,7 @@ mail_mbox_close ()
            ngettext ("Held %d message in %s\n",
                      "Held %d messages in %s\n",
                      held_count),
-           held_count, url_to_string (url));
+           held_count, mu_url_to_string (url));
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
   return 0;
@@ -61,24 +61,24 @@ int
 mail_mbox_commit ()
 {
   unsigned int i;
-  mailbox_t dest_mbox = NULL;
+  mu_mailbox_t dest_mbox = NULL;
   int saved_count = 0;
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   int keepsave = util_getenv (NULL, "keepsave", Mail_env_boolean, 0) == 0;
   int hold = util_getenv (NULL, "hold", Mail_env_boolean, 0) == 0;
-  url_t url;
+  mu_url_t url;
   int is_user_mbox;
 
   mu_mailbox_get_url (mbox, &url);
-  is_user_mbox = strcmp (url_to_string (url), getenv ("MBOX")) == 0;
+  is_user_mbox = strcmp (mu_url_to_string (url), getenv ("MBOX")) == 0;
 
   {
-    mailbox_t mb;
-    url_t u;
+    mu_mailbox_t mb;
+    mu_url_t u;
     mu_mailbox_create_default (&mb, NULL);
     mu_mailbox_get_url (mb, &u);
-    if (strcmp (url_to_string (u), url_to_string (url)) != 0)
+    if (strcmp (mu_url_to_string (u), mu_url_to_string (url)) != 0)
       {
 	/* The mailbox we are closing is not a system one (%). Raise
 	   hold flag */
@@ -92,7 +92,7 @@ mail_mbox_commit ()
       if (util_get_message (mbox, i, &msg))
 	return 1;
 
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
 
       if (!is_user_mbox
 	  && (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
@@ -140,14 +140,14 @@ mail_mbox_commit ()
 
   if (saved_count)
     {
-      url_t u = NULL;
+      mu_url_t u = NULL;
 
       mu_mailbox_get_url (dest_mbox, &u);
       fprintf(ofile, 
               ngettext ("Saved %d message in %s\n",
                         "Saved %d messages in %s\n",
 			saved_count),
-              saved_count, url_to_string (u));
+              saved_count, mu_url_to_string (u));
       mu_mailbox_close (dest_mbox);
       mu_mailbox_destroy (&dest_mbox);
     }

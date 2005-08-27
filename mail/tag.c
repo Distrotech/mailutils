@@ -22,12 +22,12 @@
 /* unt[ag] [msglist] */
 
 static int
-tag_message (message_t mesg, msgset_t *msgset ARG_UNUSED, void *arg)
+tag_message (mu_message_t mesg, msgset_t *msgset ARG_UNUSED, void *arg)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
   int *action = arg;
 
-  message_get_attribute (mesg, &attr);
+  mu_message_get_attribute (mesg, &attr);
   if (*action)
     mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
   else

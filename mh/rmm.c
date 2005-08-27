@@ -61,10 +61,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-rmm (mailbox_t mbox, message_t msg, size_t num, void *data)
+rmm (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
-  attribute_t attr;
-  message_get_attribute (msg, &attr);
+  mu_attribute_t attr;
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_set_deleted (attr);
 }
 
@@ -72,7 +72,7 @@ int
 main (int argc, char **argv)
 {
   int index = 0;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   mh_msgset_t msgset;
   int status;
 

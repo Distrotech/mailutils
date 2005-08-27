@@ -61,7 +61,7 @@ struct mh_option mh_option[] = {
 static int action;  /* Action to perform */
 static int seq_flags = 0; /* Create public sequences;
 			     Do not zero the sequence before addition */
-static list_t seq_list;  /* List of sequence names to operate upon */
+static mu_list_t seq_list;  /* List of sequence names to operate upon */
 
 static char *mbox_dir;
 
@@ -192,8 +192,8 @@ main (int argc, char **argv)
 {
   int index;
   mh_msgset_t msgset;
-  mailbox_t mbox;
-  url_t url;
+  mu_mailbox_t mbox;
+  mu_url_t url;
   
   mu_init_nls ();
   mu_argp_init (program_version, NULL);
@@ -202,7 +202,7 @@ main (int argc, char **argv)
 
   mbox = mh_open_folder (current_folder, 0);
   mu_mailbox_get_url (mbox, &url);
-  mbox_dir = url_to_string (url);
+  mbox_dir = mu_url_to_string (url);
   if (memcmp (mbox_dir, "mh:", 3) == 0)
     mbox_dir += 3;
 	

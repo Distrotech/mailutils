@@ -60,12 +60,12 @@ mu_pop3_stls (mu_pop3_t pop3)
 
     case MU_POP3_STLS_ACK:
       {
-        stream_t tls_stream;
+        mu_stream_t tls_stream;
         status = mu_pop3_response (pop3, NULL, 0, NULL);
         MU_POP3_CHECK_EAGAIN (pop3, status);
         mu_pop3_debug_ack (pop3);
         MU_POP3_CHECK_OK (pop3);
-        status = tls_stream_create_client_from_tcp (&tls_stream, pop3->carrier, 0);
+        status = mu_tls_stream_create_client_from_tcp (&tls_stream, pop3->carrier, 0);
         MU_POP3_CHECK_ERROR (pop3, status);
         pop3->carrier = tls_stream; 
         pop3->state = MU_POP3_STLS_CONNECT;
@@ -73,7 +73,7 @@ mu_pop3_stls (mu_pop3_t pop3)
       }
 
     case MU_POP3_STLS_CONNECT:
-      status = stream_open (pop3->carrier);
+      status = mu_stream_open (pop3->carrier);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       pop3->state = MU_POP3_NO_STATE;
       break;

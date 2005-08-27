@@ -28,7 +28,7 @@
 int
 main (int argc, char * argv [])
 {
-  stream_t in, out, flt;
+  mu_stream_t in, out, flt;
   unsigned char buffer;
   int c, verbose = 0;
   int printable = 0;
@@ -77,37 +77,37 @@ main (int argc, char * argv [])
       }
 
   if (input)
-    c = file_stream_create (&in, input, MU_STREAM_READ);
+    c = mu_file_stream_create (&in, input, MU_STREAM_READ);
   else
-    c = stdio_stream_create (&in, stdin, 0);
+    c = mu_stdio_stream_create (&in, stdin, 0);
   assert (c == 0);
   assert (mu_filter_create (&flt, in, encoding, mode, MU_STREAM_READ) == 0);
-  assert (stream_open (in) == 0);
+  assert (mu_stream_open (in) == 0);
 
   if (output)
-    c = file_stream_create (&out, output, MU_STREAM_WRITE|MU_STREAM_CREAT);
+    c = mu_file_stream_create (&out, output, MU_STREAM_WRITE|MU_STREAM_CREAT);
   else
-    c = stdio_stream_create (&out, stdout, 0);
+    c = mu_stdio_stream_create (&out, stdout, 0);
   assert (c == 0);
-  assert (stream_open (out) == 0);
+  assert (mu_stream_open (out) == 0);
   
-  while (stream_read (flt, &buffer, sizeof (buffer), total, &size) == 0
+  while (mu_stream_read (flt, &buffer, sizeof (buffer), total, &size) == 0
 	 && size > 0)
     {
       if (printable && !ISPRINT (buffer))
 	{
 	  char outbuf[24];
 	  sprintf (outbuf, "\\%03o", (unsigned int) buffer);
-	  stream_sequential_write (out, outbuf, strlen (outbuf));
+	  mu_stream_sequential_write (out, outbuf, strlen (outbuf));
 	}
       else
-	stream_sequential_write (out, &buffer, size);
+	mu_stream_sequential_write (out, &buffer, size);
       total += size;
     }
 
-  stream_sequential_write (out, "\n", 1);
-  stream_close (in);
-  stream_close (out);
+  mu_stream_sequential_write (out, "\n", 1);
+  mu_stream_close (in);
+  mu_stream_close (out);
   if (verbose)
     fprintf (stderr, "total: %lu bytes\n", (unsigned long) total);
   return 0;

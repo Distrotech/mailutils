@@ -47,7 +47,7 @@ static char *mailer_url_default;
 /* FIXME: I'd like to check that the URL is valid, but that requires that the
    mailers already be registered! */
 int
-mailer_set_url_default (const char *url)
+mu_mailer_set_url_default (const char *url)
 {
   char *n = NULL;
 
@@ -66,7 +66,7 @@ mailer_set_url_default (const char *url)
 }
 
 int
-mailer_get_url_default (const char **url)
+mu_mailer_get_url_default (const char **url)
 {
   if (!url)
     return EINVAL;
@@ -80,54 +80,54 @@ mailer_get_url_default (const char **url)
 }
 
 int
-mailer_create (mailer_t * pmailer, const char *name)
+mu_mailer_create (mu_mailer_t * pmailer, const char *name)
 {
-  record_t record;
+  mu_record_t record;
 
   if (pmailer == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   if (name == NULL)
-    mailer_get_url_default (&name);
+    mu_mailer_get_url_default (&name);
 
-  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
+  if (mu_registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
     {
-      int (*m_init) (mailer_t) = NULL;
-      int (*u_init) (url_t) = NULL;
+      int (*m_init) (mu_mailer_t) = NULL;
+      int (*u_init) (mu_url_t) = NULL;
 
-      record_get_mailer (record, &m_init);
-      record_get_url (record, &u_init);
+      mu_record_get_mailer (record, &m_init);
+      mu_record_get_url (record, &u_init);
       if (m_init && u_init)
         {
 	  int status;
-	  url_t url;
-	  mailer_t mailer;
+	  mu_url_t url;
+	  mu_mailer_t mailer;
 	  
 	  /* Allocate memory for mailer.  */
 	  mailer = calloc (1, sizeof (*mailer));
 	  if (mailer == NULL)
 	    return ENOMEM;
 
-	  status = monitor_create (&mailer->monitor, 0, mailer);
+	  status = mu_monitor_create (&mailer->monitor, 0, mailer);
 	  if (status)
 	    {
-	      mailer_destroy (&mailer);
+	      mu_mailer_destroy (&mailer);
 	      return status;
 	    }
 
 	  /* Parse the url, it may be a bad one and we should bail out if this
 	     failed.  */
-	  if ((status = url_create (&url, name)) != 0
+	  if ((status = mu_url_create (&url, name)) != 0
 	      || (status = u_init (url)) != 0)
 	    {
-	      mailer_destroy (&mailer);
+	      mu_mailer_destroy (&mailer);
 	      return status;
 	    }
 	  mailer->url = url;
 
 	  status = m_init (mailer);
 	  if (status)
-	    mailer_destroy (&mailer);
+	    mu_mailer_destroy (&mailer);
 	  else
 	    *pmailer = mailer;
 
@@ -139,45 +139,45 @@ mailer_create (mailer_t * pmailer, const char *name)
 }
 
 void
-mailer_destroy (mailer_t * pmailer)
+mu_mailer_destroy (mu_mailer_t * pmailer)
 {
   if (pmailer && *pmailer)
     {
-      mailer_t mailer = *pmailer;
-      monitor_t monitor = mailer->monitor;
+      mu_mailer_t mailer = *pmailer;
+      mu_monitor_t monitor = mailer->monitor;
 
       if (mailer->observable)
 	{
-	  observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
-	  observable_destroy (&(mailer->observable), mailer);
+	  mu_observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
+	  mu_observable_destroy (&(mailer->observable), mailer);
 	}
 
       /* Call the object destructor.  */
       if (mailer->_destroy)
 	mailer->_destroy (mailer);
 
-      monitor_wrlock (monitor);
+      mu_monitor_wrlock (monitor);
 
       if (mailer->stream)
 	{
 	  /* FIXME: Should be the client responsability to close this?  */
-	  /* stream_close (mailer->stream); */
-	  stream_destroy (&(mailer->stream), mailer);
+	  /* mu_stream_close (mailer->stream); */
+	  mu_stream_destroy (&(mailer->stream), mailer);
 	}
 
       if (mailer->url)
-	url_destroy (&(mailer->url));
+	mu_url_destroy (&(mailer->url));
 
       if (mailer->debug)
 	mu_debug_destroy (&(mailer->debug), mailer);
 
       if (mailer->property)
-	property_destroy (&(mailer->property), mailer);
+	mu_property_destroy (&(mailer->property), mailer);
 
       free (mailer);
       *pmailer = NULL;
-      monitor_unlock (monitor);
-      monitor_destroy (&monitor, mailer);
+      mu_monitor_unlock (monitor);
+      mu_monitor_destroy (&monitor, mailer);
     }
 }
 
@@ -185,7 +185,7 @@ mailer_destroy (mailer_t * pmailer)
 /* -------------- stub functions ------------------- */
 
 int
-mailer_open (mailer_t mailer, int flag)
+mu_mailer_open (mu_mailer_t mailer, int flag)
 {
   if (mailer == NULL || mailer->_open == NULL)
     return ENOSYS;
@@ -193,7 +193,7 @@ mailer_open (mailer_t mailer, int flag)
 }
 
 int
-mailer_close (mailer_t mailer)
+mu_mailer_close (mu_mailer_t mailer)
 {
   if (mailer == NULL || mailer->_close == NULL)
     return ENOSYS;
@@ -202,7 +202,7 @@ mailer_close (mailer_t mailer)
 
 
 int
-mailer_check_from (address_t from)
+mu_mailer_check_from (mu_address_t from)
 {
   size_t n = 0;
 
@@ -219,7 +219,7 @@ mailer_check_from (address_t from)
 }
 
 int
-mailer_check_to (address_t to)
+mu_mailer_check_to (mu_address_t to)
 {
   size_t count = 0;
   size_t emails = 0;
@@ -248,13 +248,13 @@ mailer_check_to (address_t to)
 }
 
 static void
-save_fcc (message_t msg)
+save_fcc (mu_message_t msg)
 {
-  header_t hdr;
+  mu_header_t hdr;
   size_t count = 0, i;
   char buf[512];
   
-  if (message_get_header (msg, &hdr))
+  if (mu_message_get_header (msg, &hdr))
     return;
 
   if (mu_header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL))
@@ -263,7 +263,7 @@ save_fcc (message_t msg)
   mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
-      mailbox_t mbox;
+      mu_mailbox_t mbox;
       
       mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
       if (strcasecmp (buf, MU_HEADER_FCC) == 0)
@@ -284,8 +284,8 @@ save_fcc (message_t msg)
 }
 
 int
-mailer_send_message (mailer_t mailer, message_t msg,
-		     address_t from, address_t to)
+mu_mailer_send_message (mu_mailer_t mailer, mu_message_t msg,
+		     mu_address_t from, mu_address_t to)
 {
   int status;
 
@@ -298,13 +298,13 @@ mailer_send_message (mailer_t mailer, message_t msg,
      yet, though, so do it here. */
   if (from)
     {
-      if ((status = mailer_check_from (from)) != 0)
+      if ((status = mu_mailer_check_from (from)) != 0)
 	return status;
     }
 
   if (to)
     {
-      if ((status = mailer_check_to (to)) != 0)
+      if ((status = mu_mailer_check_to (to)) != 0)
 	return status;
     }
   
@@ -313,7 +313,7 @@ mailer_send_message (mailer_t mailer, message_t msg,
 }
 
 int
-mailer_set_stream (mailer_t mailer, stream_t stream)
+mu_mailer_set_stream (mu_mailer_t mailer, mu_stream_t stream)
 {
   if (mailer == NULL)
     return EINVAL;
@@ -322,7 +322,7 @@ mailer_set_stream (mailer_t mailer, stream_t stream)
 }
 
 int
-mailer_get_stream (mailer_t mailer, stream_t * pstream)
+mu_mailer_get_stream (mu_mailer_t mailer, mu_stream_t * pstream)
 {
   if (mailer == NULL)
     return EINVAL;
@@ -333,7 +333,7 @@ mailer_get_stream (mailer_t mailer, stream_t * pstream)
 }
 
 int
-mailer_get_observable (mailer_t mailer, observable_t * pobservable)
+mu_mailer_get_observable (mu_mailer_t mailer, mu_observable_t * pobservable)
 {
   /* FIXME: I should check for invalid types */
   if (mailer == NULL)
@@ -342,7 +342,7 @@ mailer_get_observable (mailer_t mailer, observable_t * pobservable)
     return MU_ERR_OUT_PTR_NULL;
   if (mailer->observable == NULL)
     {
-      int status = observable_create (&(mailer->observable), mailer);
+      int status = mu_observable_create (&(mailer->observable), mailer);
       if (status != 0)
 	return status;
     }
@@ -351,7 +351,7 @@ mailer_get_observable (mailer_t mailer, observable_t * pobservable)
 }
 
 int
-mailer_get_property (mailer_t mailer, property_t * pproperty)
+mu_mailer_get_property (mu_mailer_t mailer, mu_property_t * pproperty)
 {
   if (mailer == NULL)
     return EINVAL;
@@ -359,7 +359,7 @@ mailer_get_property (mailer_t mailer, property_t * pproperty)
     return MU_ERR_OUT_PTR_NULL;
   if (mailer->property == NULL)
     {
-      int status = property_create (&(mailer->property), mailer);
+      int status = mu_property_create (&(mailer->property), mailer);
       if (status != 0)
 	return status;
     }
@@ -368,7 +368,7 @@ mailer_get_property (mailer_t mailer, property_t * pproperty)
 }
 
 int
-mailer_set_debug (mailer_t mailer, mu_debug_t debug)
+mu_mailer_set_debug (mu_mailer_t mailer, mu_debug_t debug)
 {
   if (mailer == NULL)
     return EINVAL;
@@ -378,7 +378,7 @@ mailer_set_debug (mailer_t mailer, mu_debug_t debug)
 }
 
 int
-mailer_get_debug (mailer_t mailer, mu_debug_t * pdebug)
+mu_mailer_get_debug (mu_mailer_t mailer, mu_debug_t * pdebug)
 {
   if (mailer == NULL)
     return EINVAL;
@@ -395,7 +395,7 @@ mailer_get_debug (mailer_t mailer, mu_debug_t * pdebug)
 }
 
 int
-mailer_get_url (mailer_t mailer, url_t * purl)
+mu_mailer_get_url (mu_mailer_t mailer, mu_url_t * purl)
 {
   if (!mailer)
     return EINVAL;

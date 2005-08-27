@@ -29,7 +29,7 @@ extern "C" {
 struct _mu_refcount
 {
   unsigned int ref;
-  monitor_t lock;
+  mu_monitor_t lock;
 };
 
 extern int  mu_refcount_create  (mu_refcount_t *);

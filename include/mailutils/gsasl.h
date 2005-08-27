@@ -21,7 +21,7 @@
 
 #include <gsasl.h>
 
-int mu_gsasl_stream_create (stream_t *stream, stream_t transport,
+int mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
 			 Gsasl_session_ctx *ctx,
 			 int flags);
 

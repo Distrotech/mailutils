@@ -27,13 +27,13 @@
 extern "C" {
 #endif
 
-extern int tls_stream_create (stream_t *stream, 
-                              stream_t strin, stream_t strout, int flags);
-extern int tls_stream_create_client (stream_t *stream,
-				     stream_t strin, stream_t strout,
+extern int mu_tls_stream_create (mu_stream_t *stream, 
+                              mu_stream_t strin, mu_stream_t strout, int flags);
+extern int mu_tls_stream_create_client (mu_stream_t *stream,
+				     mu_stream_t strin, mu_stream_t strout,
 				     int flags);
-extern int tls_stream_create_client_from_tcp (stream_t *stream,
-					      stream_t tcp_str,
+extern int mu_tls_stream_create_client_from_tcp (mu_stream_t *stream,
+					      mu_stream_t tcp_str,
 					      int flags);
 
 extern int mu_check_tls_environment (void);

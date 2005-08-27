@@ -100,7 +100,7 @@ typedef int function_t (int, char **);
 
 typedef struct compose_env
 {
-  header_t header;   /* The message headers */
+  mu_header_t header;   /* The message headers */
   char *filename;    /* Name of the temporary compose file */
   FILE *file;        /* Temporary compose file */
   FILE *ofile;       /* Diagnostics output channel */
@@ -169,10 +169,10 @@ struct message_set
                            message number */
 };
 
-typedef int (*msg_handler_t) (msgset_t *mp, message_t mesg, void *data);
+typedef int (*msg_handler_t) (msgset_t *mp, mu_message_t mesg, void *data);
 
 /* Global variables and constants*/
-extern mailbox_t mbox;
+extern mu_mailbox_t mbox;
 extern unsigned int cursor;
 extern size_t total;
 extern FILE *ofile;
@@ -196,7 +196,7 @@ extern int mail_file (int argc, char **argv);
 extern int mail_folders (int argc, char **argv);
 extern int mail_followup (int argc, char **argv);
 extern int mail_from (int argc, char **argv);
-extern int mail_from0 (msgset_t *mspec, message_t msg, void *data);
+extern int mail_from0 (msgset_t *mspec, mu_message_t msg, void *data);
 extern int mail_headers (int argc, char **argv);
 extern int mail_hold (int argc, char **argv);
 extern int mail_help (int argc, char **argv);
@@ -243,7 +243,7 @@ extern int mail_copy0 (int argc, char **argv, int mark);
 extern int mail_send0 (compose_env_t *env, int save_to);
 extern void free_env_headers (compose_env_t *env);
 
-/*extern void print_message (message_t mesg, char *prefix, int all_headers, FILE *file);*/
+/*extern void print_message (mu_message_t mesg, char *prefix, int all_headers, FILE *file);*/
 
 extern int mail_mbox_commit (void);
 extern int mail_is_my_name (char *name);
@@ -340,35 +340,35 @@ extern char *util_fullpath (const char *inpath);
 extern char *util_folder_path (const char *name);
 extern char *util_get_sender (int msgno, int strip);
 
-extern void util_slist_print (list_t list, int nl);
-extern int util_slist_lookup (list_t list, char *str);
-extern void util_slist_add (list_t *list, char *value);
-extern void util_slist_remove (list_t *list, char *value);
-extern void util_slist_destroy (list_t *list);
-extern char *util_slist_to_string (list_t list, const char *delim);
+extern void util_slist_print (mu_list_t list, int nl);
+extern int util_slist_lookup (mu_list_t list, char *str);
+extern void util_slist_add (mu_list_t *list, char *value);
+extern void util_slist_remove (mu_list_t *list, char *value);
+extern void util_slist_destroy (mu_list_t *list);
+extern char *util_slist_to_string (mu_list_t list, const char *delim);
 extern void util_strcat (char **dest, const char *str);
 extern void util_strupper (char *str);
 extern void util_escape_percent (char **str);
 extern char *util_outfolder_name (char *str);
-extern void util_save_outgoing (message_t msg, char *savefile);
+extern void util_save_outgoing (mu_message_t msg, char *savefile);
 extern void util_error (const char *format, ...);
 extern int util_error_range (size_t msgno);
 extern void util_noapp (void);
 extern int util_tempfile (char **namep);
 extern void util_msgset_iterate (msgset_t *msgset, 
-                                 int (*fun) (message_t, msgset_t *, void *), 
+                                 int (*fun) (mu_message_t, msgset_t *, void *), 
                                  void *closure);
-extern int util_get_content_type (header_t hdr, char **value);
-extern int util_get_hdr_value (header_t hdr, const char *name, char **value);
+extern int util_get_content_type (mu_header_t hdr, char **value);
+extern int util_get_hdr_value (mu_header_t hdr, const char *name, char **value);
 extern int util_merge_addresses (char **addr_str, const char *value);
-extern int util_header_expand (header_t *hdr);
-extern int util_get_message (mailbox_t mbox, size_t msgno, message_t *msg);
-void util_cache_command (list_t *list, const char *fmt, ...);
-void util_run_cached_commands (list_t *list);
+extern int util_header_expand (mu_header_t *hdr);
+extern int util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg);
+void util_cache_command (mu_list_t *list, const char *fmt, ...);
+void util_run_cached_commands (mu_list_t *list);
 const char *util_reply_prefix (void);
 void util_rfc2047_decode (char **value);
 
-void util_mark_read (message_t msg);
+void util_mark_read (mu_message_t msg);
 
 extern int ml_got_interrupt (void);
 extern void ml_clear_interrupt (void);
@@ -388,7 +388,7 @@ extern void alias_iterate_end (alias_iterator_t *itr);
 
 extern int mail_sender    (int argc, char **argv);
 extern int mail_nosender  (int argc, char **argv);
-extern address_t get_sender_address (message_t msg);
+extern mu_address_t get_sender_address (mu_message_t msg);
 
 typedef struct var_iterator *var_iterator_t;
 extern const char *var_iterate_next (var_iterator_t itr);

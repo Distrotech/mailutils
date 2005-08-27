@@ -46,7 +46,7 @@ struct _property
 {
   struct property_item *items;
   void *owner;
-  monitor_t lock;
+  mu_monitor_t lock;
 };
 
 #ifdef __cplusplus

@@ -71,7 +71,7 @@ struct mhl_stmt_variable
 struct mhl_stmt_component
 {
   char *name;
-  list_t format;
+  mu_list_t format;
 };
 
 struct mhl_stmt
@@ -115,10 +115,10 @@ compdecl (char **str, char **compname)
   return 1;
 }
 
-static void parse_variable (locus_t *loc, list_t formlist, char *str);
+static void parse_variable (locus_t *loc, mu_list_t formlist, char *str);
 
 static void
-parse_cleartext (locus_t *loc, list_t formlist, char *str)
+parse_cleartext (locus_t *loc, mu_list_t formlist, char *str)
 {
   int len;
   mhl_stmt_t *stmt = stmt_alloc (stmt_cleartext);
@@ -130,7 +130,7 @@ parse_cleartext (locus_t *loc, list_t formlist, char *str)
 }
 
 static void
-parse_component (locus_t *loc, list_t formlist, char *compname, char *str)
+parse_component (locus_t *loc, mu_list_t formlist, char *compname, char *str)
 {
   mhl_stmt_t *stmt = stmt_alloc (stmt_component);
   stmt->v.component.name = compname;
@@ -146,7 +146,7 @@ parse_component (locus_t *loc, list_t formlist, char *compname, char *str)
 }
 
 static void
-parse_variable (locus_t *loc, list_t formlist, char *str)
+parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 {
   int i;
   int argc;
@@ -236,7 +236,7 @@ parse_variable (locus_t *loc, list_t formlist, char *str)
 }
 
 static int
-parse_line (locus_t *loc, list_t formlist, char *str)
+parse_line (locus_t *loc, mu_list_t formlist, char *str)
 {
   char *compname;
   
@@ -249,11 +249,11 @@ parse_line (locus_t *loc, list_t formlist, char *str)
   return 0;
 }
 
-list_t 
+mu_list_t 
 mhl_format_compile (char *name)
 {
   FILE *fp;
-  list_t formlist;
+  mu_list_t formlist;
   char *buf = NULL;
   size_t n = 0;
   locus_t loc;
@@ -347,7 +347,7 @@ _destroy_stmt (void *item, void *data)
 }
 
 void
-mhl_format_destroy (list_t *fmt)
+mhl_format_destroy (mu_list_t *fmt)
 {
   mu_list_do (*fmt, _destroy_stmt, NULL);
   mu_list_destroy (fmt);
@@ -441,9 +441,9 @@ variable_lookup (char *name)
 
 struct eval_env
 {
-  message_t msg;
-  stream_t output;
-  list_t printed_fields;  /* A list of printed header names */
+  mu_message_t msg;
+  mu_stream_t output;
+  mu_list_t printed_fields;  /* A list of printed header names */
   int pos;
   int nlines;
   int ivar[I_MAX];
@@ -527,7 +527,7 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	  if (env->svar[S_OVERFLOWTEXT])
 	    {
 	      int l = strlen (env->svar[S_OVERFLOWTEXT]);
-	      stream_sequential_write (env->output,
+	      mu_stream_sequential_write (env->output,
 				       env->svar[S_OVERFLOWTEXT], l);
 	      env->pos += l;
 	    }
@@ -538,7 +538,7 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	    {
 	      goto_offset (env, env->ivar[I_OFFSET]);
 	      
-	      stream_sequential_write (env->output, env->prefix,
+	      mu_stream_sequential_write (env->output, env->prefix,
 				       strlen (env->prefix));
 	      env->pos += strlen (env->prefix);
 	      
@@ -552,7 +552,7 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	  len = env->ivar[I_WIDTH] - env->pos;
 	}
       
-      stream_sequential_write (env->output, str, len);
+      mu_stream_sequential_write (env->output, str, len);
       env->pos += len;
       if (env->pos >= env->ivar[I_WIDTH])
 	newline (env);
@@ -590,15 +590,15 @@ print (struct eval_env *env, char *str, int nloff)
 static void
 newline (struct eval_env *env)
 {
-  stream_sequential_write (env->output, "\n", 1);
+  mu_stream_sequential_write (env->output, "\n", 1);
   env->pos = 0;
   if (env->ivar[I_LENGTH] && ++env->nlines >= env->ivar[I_LENGTH])
     {
       /* FIXME: Better to write it directly on the terminal */
       if (env->bvar[B_BELL])
-	stream_sequential_write (env->output, "\a", 1);
+	mu_stream_sequential_write (env->output, "\a", 1);
       if (env->bvar[B_CLEARSCREEN])
-	stream_sequential_write (env->output, "\f", 1);
+	mu_stream_sequential_write (env->output, "\f", 1);
       env->nlines = 0;
     }
 }
@@ -607,7 +607,7 @@ static void
 goto_offset (struct eval_env *env, int count)
 {
   for (; env->pos < count; env->pos++)
-    stream_sequential_write (env->output, " ", 1);
+    mu_stream_sequential_write (env->output, " ", 1);
 }
 
 int
@@ -654,10 +654,10 @@ print_header_value (struct eval_env *env, char *val)
 int
 eval_component (struct eval_env *env, char *name)
 {
-  header_t hdr;
+  mu_header_t hdr;
   char *val;
   
-  message_get_header (env->msg, &hdr);
+  mu_message_get_header (env->msg, &hdr);
   if (mu_header_aget_value (hdr, name, &val))
     return 0;
 
@@ -670,26 +670,26 @@ eval_component (struct eval_env *env, char *name)
 int
 eval_body (struct eval_env *env)
 {
-  stream_t input = NULL;
-  stream_t dstr = NULL;
+  mu_stream_t input = NULL;
+  mu_stream_t dstr = NULL;
   char buf[128]; /* FIXME: Fixed size. Bad */
   size_t n;
-  body_t body = NULL;
+  mu_body_t body = NULL;
 
   if (env->bvar[B_DISABLE_BODY])
     return 0;
   
   env->prefix = env->svar[S_COMPONENT];
 
-  message_get_body (env->msg, &body);
+  mu_message_get_body (env->msg, &body);
   mu_body_get_stream (body, &input);
 
   if (env->bvar[B_DECODE])
     {
-      header_t hdr;
+      mu_header_t hdr;
       char *encoding = NULL;
 
-      message_get_header (env->msg, &hdr);
+      mu_message_get_header (env->msg, &hdr);
       mu_header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
       if (encoding)
 	{
@@ -701,26 +701,26 @@ eval_body (struct eval_env *env)
 	}
     }
   
-  stream_seek (input, 0, SEEK_SET);
-  while (stream_sequential_readline (input, buf, sizeof buf, &n) == 0
+  mu_stream_seek (input, 0, SEEK_SET);
+  while (mu_stream_sequential_readline (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       buf[n] = 0;
       print (env, buf, 0);
     }
   if (dstr)
-    stream_destroy (&dstr, stream_get_owner (dstr));
+    mu_stream_destroy (&dstr, mu_stream_get_owner (dstr));
   return 0;
 }
 
 int
 eval_extras (struct eval_env *env)
 {
-  header_t hdr;
+  mu_header_t hdr;
   size_t i, num;
   char buf[512];
 
-  message_get_header (env->msg, &hdr);
+  mu_message_get_header (env->msg, &hdr);
   mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
@@ -741,7 +741,7 @@ eval_extras (struct eval_env *env)
 }
 
 int
-eval_comp (struct eval_env *env, char *compname, list_t format)
+eval_comp (struct eval_env *env, char *compname, mu_list_t format)
 {
   struct eval_env lenv = *env;
   
@@ -804,9 +804,9 @@ eval_stmt (void *item, void *data)
 }
 
 int
-mhl_format_run (list_t fmt,
+mhl_format_run (mu_list_t fmt,
 		int width, int length, int flags,
-		message_t msg, stream_t output)
+		mu_message_t msg, mu_stream_t output)
 {
   int rc;
   struct eval_env env;

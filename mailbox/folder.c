@@ -38,11 +38,11 @@
 #include <folder0.h>
 
 /* Internal folder list.  */
-static list_t known_folder_list;
-static int is_known_folder (url_t, folder_t *);
+static mu_list_t known_folder_list;
+static int is_known_folder (mu_url_t, mu_folder_t *);
 
 /* Static folder lock.  */
-static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
+static struct mu__monitor folder_lock = MU_MONITOR_INITIALIZER;
 
 /* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
    etc ..  We maintain a known list of folder to not generate multiple folder
@@ -52,47 +52,47 @@ static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
    they maybe cases where you want a different folder for the same URL, there
    is not easy way to do this.  */
 int
-mu_folder_create (folder_t *pfolder, const char *name)
+mu_folder_create (mu_folder_t *pfolder, const char *name)
 {
-  record_t record;
+  mu_record_t record;
 
   if (pfolder == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   /* Look in the registrar list(iterator), for a possible concrete mailbox
      implementation that could match the URL.  */
-  if (registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_DIRECTORY))
+  if (mu_registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_DIRECTORY))
     {
-      int (*f_init) (folder_t) = NULL;
-      int (*u_init) (url_t) = NULL;
+      int (*f_init) (mu_folder_t) = NULL;
+      int (*u_init) (mu_url_t) = NULL;
       
-      record_get_folder (record, &f_init);
-      record_get_url (record, &u_init);
+      mu_record_get_folder (record, &f_init);
+      mu_record_get_url (record, &u_init);
       if (f_init && u_init)
         {
 	  int status;
-	  url_t url;
-	  folder_t folder;
+	  mu_url_t url;
+	  mu_folder_t folder;
 
 	  /* Parse the url, it may be a bad one and we should bailout if this
 	     failed.  */
-	  if ((status = url_create (&url, name) != 0)
+	  if ((status = mu_url_create (&url, name) != 0)
 	      || (status = u_init (url)) != 0)
 	    return status;
 
-	  monitor_wrlock (&folder_lock);
+	  mu_monitor_wrlock (&folder_lock);
 
 	  /* Check if we already have the same URL folder.  */
 	  if (is_known_folder (url, &folder))
 	    {
 	      folder->ref++;
 	      *pfolder = folder;
-	      url_destroy (&url);
-	      monitor_unlock (&folder_lock);
+	      mu_url_destroy (&url);
+	      mu_monitor_unlock (&folder_lock);
 	      return  0;
 	    }
 	  else
-	    monitor_unlock (&folder_lock);
+	    mu_monitor_unlock (&folder_lock);
 	  
 	  /* Create a new folder.  */
 
@@ -103,7 +103,7 @@ mu_folder_create (folder_t *pfolder, const char *name)
 	      folder->url = url;
 	      /* Initialize the internal foilder lock, now so the
 		 concrete folder could use it.  */
-	      status = monitor_create (&(folder->monitor), 0, folder);
+	      status = mu_monitor_create (&(folder->monitor), 0, folder);
 	      if (status == 0)
 		{
 		  /* Create the concrete folder type.  */
@@ -122,9 +122,9 @@ mu_folder_create (folder_t *pfolder, const char *name)
 	      if (status)
 		{
 		  if (folder->monitor)
-		    monitor_destroy (&(folder->monitor), folder);
+		    mu_monitor_destroy (&(folder->monitor), folder);
 		  if (folder->url)
-		    url_destroy (&(folder->url));
+		    mu_url_destroy (&(folder->url));
 		  free (folder);
 		}
 	    }
@@ -137,19 +137,19 @@ mu_folder_create (folder_t *pfolder, const char *name)
 
 /* The folder is destroy if it is the last reference.  */
 void
-mu_folder_destroy (folder_t *pfolder)
+mu_folder_destroy (mu_folder_t *pfolder)
 {
   if (pfolder && *pfolder)
     {
-      folder_t folder = *pfolder;
+      mu_folder_t folder = *pfolder;
       int destroy_lock = 0;
-      monitor_t monitor = folder->monitor;
+      mu_monitor_t monitor = folder->monitor;
 
-      monitor_wrlock (monitor);
+      mu_monitor_wrlock (monitor);
 
       /* Check if this the last reference for this folder.  If yes removed
          it from the list.  */
-      monitor_wrlock (&folder_lock);
+      mu_monitor_wrlock (&folder_lock);
       folder->ref--;
       /* Remove the folder from the list of known folder.  */
       if (folder->ref <= 0)
@@ -160,40 +160,40 @@ mu_folder_destroy (folder_t *pfolder)
 	  mu_list_destroy (&known_folder_list);
 	  known_folder_list = NULL;
 	}
-      monitor_unlock (&folder_lock);
+      mu_monitor_unlock (&folder_lock);
 
       if (folder->ref <= 0)
 	{
-	  monitor_unlock (monitor);
+	  mu_monitor_unlock (monitor);
 	  destroy_lock = 1;
 	  /* Notify the observers.  */
 	  if (folder->observable)
 	    {
-	      observable_notify (folder->observable, MU_EVT_FOLDER_DESTROY);
-	      observable_destroy (&(folder->observable), folder);
+	      mu_observable_notify (folder->observable, MU_EVT_FOLDER_DESTROY);
+	      mu_observable_destroy (&(folder->observable), folder);
 	    }
 	  if (folder->_destroy)
 	    folder->_destroy (folder);
-	  monitor_wrlock (monitor);
+	  mu_monitor_wrlock (monitor);
 	  if (folder->authority)
 	    mu_authority_destroy (&(folder->authority), folder);
 	  if (folder->stream)
-	    stream_destroy (&(folder->stream), folder);
+	    mu_stream_destroy (&(folder->stream), folder);
 	  if (folder->url)
 
-	    url_destroy (&(folder->url));
+	    mu_url_destroy (&(folder->url));
 	  free (folder);
 	}
-      monitor_unlock (monitor);
+      mu_monitor_unlock (monitor);
       if (destroy_lock)
-	monitor_destroy (&monitor, folder);
+	mu_monitor_destroy (&monitor, folder);
       *pfolder = NULL;
     }
 }
 
 /* Cover functions.  */
 int
-mu_folder_open (folder_t folder, int flags)
+mu_folder_open (mu_folder_t folder, int flags)
 {
   if (folder == NULL || folder->_open == NULL)
     return ENOSYS;
@@ -201,7 +201,7 @@ mu_folder_open (folder_t folder, int flags)
 }
 
 int
-mu_folder_close (folder_t folder)
+mu_folder_close (mu_folder_t folder)
 {
   if (folder == NULL || folder->_close == NULL)
     return ENOSYS;
@@ -209,18 +209,18 @@ mu_folder_close (folder_t folder)
 }
 
 int
-mu_folder_set_stream (folder_t folder, stream_t stream)
+mu_folder_set_stream (mu_folder_t folder, mu_stream_t stream)
 {
   if (folder == NULL)
     return EINVAL;
   if (folder->stream)
-    stream_destroy (&(folder->stream), folder);
+    mu_stream_destroy (&(folder->stream), folder);
   folder->stream = stream;
   return 0;
 }
 
 int
-mu_folder_get_stream (folder_t folder, stream_t *pstream)
+mu_folder_get_stream (mu_folder_t folder, mu_stream_t *pstream)
 {
   if (folder == NULL)
     return EINVAL;
@@ -231,7 +231,7 @@ mu_folder_get_stream (folder_t folder, stream_t *pstream)
 }
 
 int
-mu_folder_set_authority (folder_t folder, authority_t authority)
+mu_folder_set_authority (mu_folder_t folder, mu_authority_t authority)
 {
   if (folder == NULL)
     return EINVAL;
@@ -242,7 +242,7 @@ mu_folder_set_authority (folder_t folder, authority_t authority)
 }
 
 int
-mu_folder_get_authority (folder_t folder, authority_t *pauthority)
+mu_folder_get_authority (mu_folder_t folder, mu_authority_t *pauthority)
 {
   if (folder == NULL)
     return EINVAL;
@@ -253,7 +253,7 @@ mu_folder_get_authority (folder_t folder, authority_t *pauthority)
 }
 
 int
-mu_folder_get_observable (folder_t folder, observable_t *pobservable)
+mu_folder_get_observable (mu_folder_t folder, mu_observable_t *pobservable)
 {
   if (folder == NULL)
     return EINVAL;
@@ -262,7 +262,7 @@ mu_folder_get_observable (folder_t folder, observable_t *pobservable)
 
   if (folder->observable == NULL)
     {
-      int status = observable_create (&(folder->observable), folder);
+      int status = mu_observable_create (&(folder->observable), folder);
       if (status != 0)
         return status;
     }
@@ -271,7 +271,7 @@ mu_folder_get_observable (folder_t folder, observable_t *pobservable)
 }
 
 int
-mu_folder_has_debug (folder_t folder)
+mu_folder_has_debug (mu_folder_t folder)
 {
   if (folder == NULL)
     return 0;
@@ -280,7 +280,7 @@ mu_folder_has_debug (folder_t folder)
 }
 
 int
-mu_folder_set_debug (folder_t folder, mu_debug_t debug)
+mu_folder_set_debug (mu_folder_t folder, mu_debug_t debug)
 {
   if (folder == NULL)
     return EINVAL;
@@ -291,7 +291,7 @@ mu_folder_set_debug (folder_t folder, mu_debug_t debug)
 }
 
 int
-mu_folder_get_debug (folder_t folder, mu_debug_t *pdebug)
+mu_folder_get_debug (mu_folder_t folder, mu_debug_t *pdebug)
 {
   if (folder == NULL)
     return EINVAL;
@@ -308,7 +308,7 @@ mu_folder_get_debug (folder_t folder, mu_debug_t *pdebug)
 }
 
 int
-mu_folder_list (folder_t folder, const char *dirname, const char *basename,
+mu_folder_list (mu_folder_t folder, const char *dirname, const char *basename,
 	     struct mu_folder_list *pflist)
 {
   if (folder == NULL || folder->_list == NULL)
@@ -317,7 +317,7 @@ mu_folder_list (folder_t folder, const char *dirname, const char *basename,
 }
 
 int
-mu_folder_lsub (folder_t folder, const char *dirname, const char *basename,
+mu_folder_lsub (mu_folder_t folder, const char *dirname, const char *basename,
 	     struct mu_folder_list *pflist)
 {
   if (folder == NULL || folder->_lsub == NULL)
@@ -326,7 +326,7 @@ mu_folder_lsub (folder_t folder, const char *dirname, const char *basename,
 }
 
 int
-mu_folder_subscribe (folder_t folder, const char *name)
+mu_folder_subscribe (mu_folder_t folder, const char *name)
 {
   if (folder == NULL || folder->_subscribe == NULL)
     return EINVAL;
@@ -334,7 +334,7 @@ mu_folder_subscribe (folder_t folder, const char *name)
 }
 
 int
-mu_folder_unsubscribe (folder_t folder, const char *name)
+mu_folder_unsubscribe (mu_folder_t folder, const char *name)
 {
   if (folder == NULL || folder->_unsubscribe == NULL)
     return EINVAL;
@@ -364,7 +364,7 @@ mu_folder_list_destroy (struct mu_folder_list *pflist)
 }
 
 int
-mu_folder_delete (folder_t folder, const char *name)
+mu_folder_delete (mu_folder_t folder, const char *name)
 {
   if (folder == NULL || folder->_delete == NULL)
     return ENOSYS;
@@ -372,7 +372,7 @@ mu_folder_delete (folder_t folder, const char *name)
 }
 
 int
-mu_folder_rename (folder_t folder, const char *oldname, const char *newname)
+mu_folder_rename (mu_folder_t folder, const char *oldname, const char *newname)
 {
   if (folder == NULL || folder->_rename == NULL)
     return ENOSYS;
@@ -380,7 +380,7 @@ mu_folder_rename (folder_t folder, const char *oldname, const char *newname)
 }
 
 int
-mu_folder_get_url (folder_t folder, url_t *purl)
+mu_folder_get_url (mu_folder_t folder, mu_url_t *purl)
 {
   if (folder == NULL)
     return EINVAL;
@@ -391,11 +391,11 @@ mu_folder_get_url (folder_t folder, url_t *purl)
 }
 
 static int
-is_known_folder (url_t url, folder_t *pfolder)
+is_known_folder (mu_url_t url, mu_folder_t *pfolder)
 {
   int ret = 0;
-  folder_t folder = NULL;
-  iterator_t iterator;
+  mu_folder_t folder = NULL;
+  mu_iterator_t iterator;
 
   if (url == NULL || pfolder == NULL)
     return ret;
@@ -409,11 +409,11 @@ is_known_folder (url_t url, folder_t *pfolder)
       mu_iterator_current (iterator, (void **)&folder);
       /* Check if the same URL type.  */
       if (folder && folder->url
-	  && url_is_same_scheme (url, folder->url)
-	  && url_is_same_user (url, folder->url)
-	  && url_is_same_host (url, folder->url)
-	  /*&& url_is_same_path (url, folder->url) */
-	  && url_is_same_port (url, folder->url))
+	  && mu_url_is_same_scheme (url, folder->url)
+	  && mu_url_is_same_user (url, folder->url)
+	  && mu_url_is_same_host (url, folder->url)
+	  /*&& mu_url_is_same_path (url, folder->url) */
+	  && mu_url_is_same_port (url, folder->url))
 	{
 	  ret = 1;
 	  break;

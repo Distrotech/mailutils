@@ -29,7 +29,7 @@ static Gsasl_session_ctx *sess_ctx;
 static void auth_gsasl_capa_init (int disable);
 
 static int
-create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
+create_gsasl_stream (mu_stream_t *newstr, mu_stream_t transport, int flags)
 {
   int rc;
   
@@ -41,10 +41,10 @@ create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
       return RESP_NO;
     }
 
-  if ((rc = stream_open (*newstr)) != 0)
+  if ((rc = mu_stream_open (*newstr)) != 0)
     {
       const char *p;
-      if (stream_strerror (*newstr, &p))
+      if (mu_stream_strerror (*newstr, &p))
 	p = mu_strerror (rc);
       syslog (LOG_ERR, _("cannot open SASL input stream: %s"), p);
       return RESP_NO;
@@ -56,7 +56,7 @@ create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
 int
 gsasl_replace_streams (void *self, void *data)
 {
-  stream_t *s = data;
+  mu_stream_t *s = data;
 
   util_set_input (s[0]);
   util_set_output (s[1]);
@@ -122,8 +122,8 @@ auth_gsasl (struct imap4d_command *command,
 
   if (sess_ctx)
     {
-      stream_t tmp, new_in, new_out;
-      stream_t *s;
+      mu_stream_t tmp, new_in, new_out;
+      mu_stream_t *s;
 
       util_get_input (&tmp);
       if (create_gsasl_stream (&new_in, tmp, MU_STREAM_READ))
@@ -131,11 +131,11 @@ auth_gsasl (struct imap4d_command *command,
       util_get_output (&tmp);
       if (create_gsasl_stream (&new_out, tmp, MU_STREAM_WRITE))
 	{
-	  stream_destroy (&new_in, stream_get_owner (new_in));
+	  mu_stream_destroy (&new_in, mu_stream_get_owner (new_in));
 	  return RESP_NO;
 	}
 
-      s = calloc (2, sizeof (stream_t));
+      s = calloc (2, sizeof (mu_stream_t));
       s[0] = new_in;
       s[1] = new_out;
       util_register_event (STATE_NONAUTH, STATE_AUTH,

@@ -45,7 +45,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct _record _mbox_record =
+static struct mu__record _mbox_record =
 {
   MU_MBOX_PRIO,
   MU_MBOX_SCHEME,
@@ -60,10 +60,10 @@ static struct _record _mbox_record =
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
-record_t mbox_record = &_mbox_record;
+mu_record_t mu_mbox_record = &_mbox_record;
 
 static int
-_path_is_scheme (record_t record, const char *url, int flags)
+_path_is_scheme (mu_record_t record, const char *url, int flags)
 {
   int rc = 0;
   const char *path;
@@ -89,7 +89,7 @@ _path_is_scheme (record_t record, const char *url, int flags)
   return rc;
 }
 
-static struct _record _path_record =
+static struct mu__record _path_record =
 {
   MU_PATH_PRIO,
   MU_PATH_SCHEME,
@@ -104,25 +104,25 @@ static struct _record _path_record =
   NULL, /* get_mailer method.  */
   NULL  /* get_folder method.  */
 };
-record_t path_record = &_path_record;
+mu_record_t mu_path_record = &_path_record;
 
 /* lsub/subscribe/unsubscribe are not needed.  */
-static void folder_mbox_destroy    (folder_t);
-static int folder_mbox_open        (folder_t, int);
-static int folder_mbox_close       (folder_t);
-static int folder_mbox_delete      (folder_t, const char *);
-static int folder_mbox_rename      (folder_t , const char *, const char *);
-static int folder_mbox_list        (folder_t, const char *, const char *,
+static void folder_mbox_destroy    (mu_folder_t);
+static int folder_mbox_open        (mu_folder_t, int);
+static int folder_mbox_close       (mu_folder_t);
+static int folder_mbox_delete      (mu_folder_t, const char *);
+static int folder_mbox_rename      (mu_folder_t , const char *, const char *);
+static int folder_mbox_list        (mu_folder_t, const char *, const char *,
 				    struct mu_folder_list *);
-static int folder_mbox_subscribe   (folder_t, const char *);
-static int folder_mbox_unsubscribe (folder_t, const char *);
-static int folder_mbox_lsub        (folder_t, const char *, const char *,
+static int folder_mbox_subscribe   (mu_folder_t, const char *);
+static int folder_mbox_unsubscribe (mu_folder_t, const char *);
+static int folder_mbox_lsub        (mu_folder_t, const char *, const char *,
 				    struct mu_folder_list *);
 
 
 static char *get_pathname       (const char *, const char *);
 
-static int folder_mbox_get_authority (folder_t folder, authority_t * pauth);
+static int folder_mbox_get_authority (mu_folder_t folder, mu_authority_t * pauth);
 
 struct _fmbox
 {
@@ -134,7 +134,7 @@ typedef struct _fmbox *fmbox_t;
 
 
 int
-_folder_mbox_init (folder_t folder)
+_folder_mbox_init (mu_folder_t folder)
 {
   fmbox_t dfolder;
   size_t name_len = 0;
@@ -150,7 +150,7 @@ _folder_mbox_init (folder_t folder)
   if (dfolder == NULL)
     return ENOMEM;
 
-  url_get_path (folder->url, NULL, 0, &name_len);
+  mu_url_get_path (folder->url, NULL, 0, &name_len);
   dfolder->dirname = calloc (name_len + 1, sizeof (char));
   if (dfolder->dirname == NULL)
     {
@@ -158,7 +158,7 @@ _folder_mbox_init (folder_t folder)
       folder->data = NULL;
       return ENOMEM;
     }
-  url_get_path (folder->url, dfolder->dirname, name_len + 1, NULL);
+  mu_url_get_path (folder->url, dfolder->dirname, name_len + 1, NULL);
 
   folder->_destroy = folder_mbox_destroy;
 
@@ -175,7 +175,7 @@ _folder_mbox_init (folder_t folder)
 }
 
 void
-folder_mbox_destroy (folder_t folder)
+folder_mbox_destroy (mu_folder_t folder)
 {
   if (folder->data)
     {
@@ -191,7 +191,7 @@ folder_mbox_destroy (folder_t folder)
 
 /* Noop. */
 static int
-folder_mbox_open (folder_t folder, int flags ARG_UNUSED)
+folder_mbox_open (mu_folder_t folder, int flags ARG_UNUSED)
 {
   fmbox_t fmbox = folder->data;
   if (flags & MU_STREAM_CREAT)
@@ -203,13 +203,13 @@ folder_mbox_open (folder_t folder, int flags ARG_UNUSED)
 
 /*  Noop.  */
 static int
-folder_mbox_close (folder_t folder ARG_UNUSED)
+folder_mbox_close (mu_folder_t folder ARG_UNUSED)
 {
   return 0;
 }
 
 static int
-folder_mbox_delete (folder_t folder, const char *filename)
+folder_mbox_delete (mu_folder_t folder, const char *filename)
 {
   fmbox_t fmbox = folder->data;
   if (filename)
@@ -230,7 +230,7 @@ folder_mbox_delete (folder_t folder, const char *filename)
 }
 
 static int
-folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
+folder_mbox_rename (mu_folder_t folder, const char *oldpath, const char *newpath)
 {
   fmbox_t fmbox = folder->data;
   if (oldpath && newpath)
@@ -261,7 +261,7 @@ folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
    Unfortunately glob() does not expand the '~'.  We also return
    The full pathname so it can be use to create other folders.  */
 static int
-folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
+folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
 		  struct mu_folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
@@ -306,8 +306,8 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 		    }
 		  if (stat (gl.gl_pathv[i], &stbuf) == 0)
 		    {
-		      record_t record;
-		      plist[i]->type = registrar_lookup (gl.gl_pathv[i],
+		      mu_record_t record;
+		      plist[i]->type = mu_registrar_lookup (gl.gl_pathv[i],
 							 &record,
 						      MU_FOLDER_ATTRIBUTE_ALL);
 		    }
@@ -348,7 +348,7 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 }
 
 static int
-folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
+folder_mbox_lsub (mu_folder_t folder, const char *ref ARG_UNUSED, const char *name,
 		  struct mu_folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
@@ -386,7 +386,7 @@ folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
 }
 
 static int
-folder_mbox_subscribe (folder_t folder, const char *name)
+folder_mbox_subscribe (mu_folder_t folder, const char *name)
 {
   fmbox_t fmbox = folder->data;
   char **tmp;
@@ -408,7 +408,7 @@ folder_mbox_subscribe (folder_t folder, const char *name)
 }
 
 static int
-folder_mbox_unsubscribe (folder_t folder, const char *name)
+folder_mbox_unsubscribe (mu_folder_t folder, const char *name)
 {
   fmbox_t fmbox = folder->data;
   size_t i;
@@ -461,7 +461,7 @@ get_pathname (const char *dirname, const char *basename)
 }
 
 static int
-folder_mbox_get_authority (folder_t folder, authority_t *pauth)
+folder_mbox_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 {
   int status = 0;
   if (folder->authority == NULL)

@@ -65,7 +65,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/mime.h>
 
-typedef int (*frm_select_t) (size_t index, message_t msg);
+typedef int (*frm_select_t) (size_t index, mu_message_t msg);
 
 extern char *show_field;   /* Show this header field instead of the default
 			      `From: Subject:' pair. -f option */

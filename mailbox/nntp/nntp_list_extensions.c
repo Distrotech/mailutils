@@ -33,7 +33,7 @@
   It is the responsability of the caller to destroy the iterator(mu_iterator_destroy).
  */
 int
-mu_nntp_list_extensions (mu_nntp_t nntp, iterator_t *piterator)
+mu_nntp_list_extensions (mu_nntp_t nntp, mu_iterator_t *piterator)
 {
   int status = 0;
 

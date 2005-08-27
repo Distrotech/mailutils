@@ -55,7 +55,7 @@ mu_nntp_connect (mu_nntp_t nntp)
 
     case MU_NNTP_CONNECT:
       /* Establish the connection.  */
-      status = stream_open (nntp->carrier);
+      status = mu_stream_open (nntp->carrier);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
       nntp->state = MU_NNTP_GREETINGS;
@@ -73,7 +73,7 @@ mu_nntp_connect (mu_nntp_t nntp)
 	code = mu_nntp_response_code(nntp);
 	if (code != MU_NNTP_RESP_CODE_POSTING_ALLOWED && code != MU_NNTP_RESP_CODE_POSTING_PROHIBITED)
 	  {
-	    stream_close (nntp->carrier);
+	    mu_stream_close (nntp->carrier);
 	    nntp->state = MU_NNTP_NO_STATE;
 	    return EACCES;
 	  }

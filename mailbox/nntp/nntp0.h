@@ -27,9 +27,9 @@ typedef struct _nntp_folder *f_nntp_t;
 typedef struct _nntp_mailbox *m_nntp_t;
 typedef struct _nntp_message *msg_nntp_t;
 
-extern int _nntp_url_init          (url_t);
-extern int _nntp_mailbox_init      (mailbox_t);
-extern int _nntp_folder_init       (folder_t);
+extern int _nntp_url_init          (mu_url_t);
+extern int _nntp_mailbox_init      (mu_mailbox_t);
+extern int _nntp_folder_init       (mu_folder_t);
 
 struct _nntp_folder
 {
@@ -37,7 +37,7 @@ struct _nntp_folder
   int isopen;
 
   /* Back pointer.  */
-  folder_t folder;
+  mu_folder_t folder;
 
   /* Selected newsgroup.  */
   m_nntp_t selected;
@@ -53,7 +53,7 @@ struct _nntp_mailbox
   char *name;
 
   /* Pointer back to the mailbox/newsgroup. */
-  mailbox_t mailbox;
+  mu_mailbox_t mailbox;
 
   /* Our nntp folder.  */
   f_nntp_t f_nntp;
@@ -73,7 +73,7 @@ struct _nntp_mailbox
 struct _nntp_message
 {
   /* Back pointer.  */
-  message_t message;
+  mu_message_t message;
 
   /* Our nntp folder.  */
   m_nntp_t m_nntp;
@@ -85,9 +85,9 @@ struct _nntp_message
   unsigned long msgno;
 
   /* Stream for message.  */
-  stream_t mstream;
+  mu_stream_t mstream;
   /* Stream for body.  */
-  stream_t bstream;
+  mu_stream_t bstream;
   /* Stream for header.  */
-  stream_t hstream;
+  mu_stream_t hstream;
 };

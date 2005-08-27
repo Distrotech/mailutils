@@ -30,7 +30,7 @@ unsigned page_avail;     /* First non-used entry in page map. Can be
 
 /* Auxiliary function: Store number of message from mspec into page_map */
 static int
-_fill_map (msgset_t *mspec, message_t msg, void *data)
+_fill_map (msgset_t *mspec, mu_message_t msg, void *data)
 {
   unsigned *pos = data;
   page_map[*pos] = mspec->msg_part[0];
@@ -161,7 +161,7 @@ page_do (msg_handler_t func, void *data)
   check_page_map ();
   for (i = 0; i < page_avail; i++)
     {
-      message_t msg;
+      mu_message_t msg;
       msgset_t set;
       
       set.next = NULL;

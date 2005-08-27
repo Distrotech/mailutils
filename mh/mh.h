@@ -182,7 +182,7 @@ struct mh_builtin
 typedef struct
 {
   char *name;
-  header_t header;
+  mu_header_t header;
 } mh_context_t;
 
 typedef struct
@@ -191,7 +191,7 @@ typedef struct
   size_t *list;
 } mh_msgset_t;
 
-typedef void (*mh_iterator_fp) (mailbox_t mbox, message_t msg,
+typedef void (*mh_iterator_fp) (mu_mailbox_t mbox, mu_message_t msg,
 			        size_t num, void *data);
 
 /* Recipient masks */
@@ -231,8 +231,8 @@ void mh_init (void);
 void mh_init2 (void);
 void mh_read_profile (void);
 int mh_read_formfile (char *name, char **pformat);
-message_t mh_file_to_message (char *folder, char *file_name);
-message_t mh_stream_to_message (stream_t stream);
+mu_message_t mh_file_to_message (char *folder, char *file_name);
+mu_message_t mh_stream_to_message (mu_stream_t stream);
 void mh_install (char *name, int automode);
 
 char *mh_global_profile_get (char *name, const char *defval);
@@ -253,7 +253,7 @@ int mh_getyn (const char *fmt, ...);
 int mh_getyn_interactive (const char *fmt, ...);
 int mh_check_folder (char *pathname, int confirm);
 
-int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
+int mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	       size_t width, char **pret);
 int mh_format_str (mh_format_t *fmt, char *str, size_t width, char **pret);
 void mh_format_dump (mh_format_t *fmt);
@@ -265,7 +265,7 @@ mh_builtin_t *mh_lookup_builtin (char *name, int *rest);
 void mh_error (const char *fmt, ...);
 void mh_err_memory (int fatal);
 
-FILE *mh_audit_open (char *name, mailbox_t mbox);
+FILE *mh_audit_open (char *name, mu_mailbox_t mbox);
 void mh_audit_close (FILE *fp);
 
 mh_context_t *mh_context_create (char *name, int copy);
@@ -277,18 +277,18 @@ int mh_context_set_value (mh_context_t *ctx, const char *name,
 			  const char *value);
 int mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data);
 
-int mh_message_number (message_t msg, size_t *pnum);
+int mh_message_number (mu_message_t msg, size_t *pnum);
 
-mailbox_t mh_open_folder (const char *folder, int create);
+mu_mailbox_t mh_open_folder (const char *folder, int create);
 
-int mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset,
+int mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
 		     int argc, char **argv, char *def);
 int mh_msgset_member (mh_msgset_t *msgset, size_t num);
 void mh_msgset_reverse (mh_msgset_t *msgset);
-void mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset);
-int mh_msgset_current (mailbox_t mbox, mh_msgset_t *msgset, int index);
+void mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset);
+int mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index);
 void mh_msgset_free (mh_msgset_t *msgset);
-void mh_msgset_uids (mailbox_t mbox, mh_msgset_t *msgset);
+void mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset);
 
 char *mh_get_dir (void);
 char *mh_expand_name (const char *base, const char *name, int is_folder);
@@ -296,10 +296,10 @@ char *mh_expand_name (const char *base, const char *name, int is_folder);
 int mh_is_my_name (char *name);
 char * mh_my_email (void);
 
-int mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
+int mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
 	        mh_iterator_fp itr, void *data);
 
-size_t mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg);
+size_t mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg);
 
 int mh_decode_rcpt_flag (const char *arg);
 
@@ -318,27 +318,27 @@ void mh_set_reply_regex (const char *str);
 int mh_decode_2047 (char *text, char **decoded_text);
 
 int mh_alias_read (char *name, int fail);
-int mh_alias_get (char *name, list_t *return_list);
-int mh_alias_get_address (char *name, address_t *addr, int *incl);
-int mh_alias_get_alias (char *uname, list_t *return_list);
+int mh_alias_get (char *name, mu_list_t *return_list);
+int mh_alias_get_address (char *name, mu_address_t *addr, int *incl);
+int mh_alias_get_alias (char *uname, mu_list_t *return_list);
 int mh_read_aliases (void);
-int mh_alias_expand (char *str, address_t *paddr, int *incl);
+int mh_alias_expand (char *str, mu_address_t *paddr, int *incl);
 
-typedef int (*mh_alias_enumerator_t) (char *alias, list_t names, void *data);
+typedef int (*mh_alias_enumerator_t) (char *alias, mu_list_t names, void *data);
 void mh_alias_enumerate (mh_alias_enumerator_t fun, void *data);
 
 
-void mh_annotate (message_t msg, char *field, char *text, int date);
+void mh_annotate (mu_message_t msg, char *field, char *text, int date);
 
 #define MHL_DECODE       1
 #define MHL_CLEARSCREEN  2
 #define MHL_BELL         4
 #define MHL_DISABLE_BODY 8
 
-list_t mhl_format_compile (char *name);
-int mhl_format_run (list_t fmt, int width, int length, int flags,
-		    message_t msg, stream_t output);
-void mhl_format_destroy (list_t *fmt);
+mu_list_t mhl_format_compile (char *name);
+int mhl_format_run (mu_list_t fmt, int width, int length, int flags,
+		    mu_message_t msg, mu_stream_t output);
+void mhl_format_destroy (mu_list_t *fmt);
 
 void mh_seq_add (char *name, mh_msgset_t *mset, int flags);
 int mh_seq_delete (char *name, mh_msgset_t *mset, int flags);

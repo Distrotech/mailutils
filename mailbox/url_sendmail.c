@@ -37,10 +37,10 @@
 #include <registrar0.h>
 #include <url0.h>
 
-static void url_sendmail_destroy (url_t purl);
+static void url_sendmail_destroy (mu_url_t purl);
 
 static void
-url_sendmail_destroy (url_t url ARG_UNUSED)
+url_sendmail_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
@@ -50,13 +50,13 @@ url_sendmail_destroy (url_t url ARG_UNUSED)
 */
 
 int
-_url_sendmail_init (url_t url)
+_url_sendmail_init (mu_url_t url)
 {
   int status = 0;
 
   url->_destroy = url_sendmail_destroy;
 
-  status = url_parse(url);
+  status = mu_url_parse(url);
 
   if(status)
     return status;

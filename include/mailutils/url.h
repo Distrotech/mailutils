@@ -25,31 +25,31 @@
 extern "C" {
 #endif
 
-extern int  url_create    (url_t *, const char *name);
-extern void url_destroy   (url_t *);
-extern int  url_parse     (url_t);
+extern int  mu_url_create    (mu_url_t *, const char *name);
+extern void mu_url_destroy   (mu_url_t *);
+extern int  mu_url_parse     (mu_url_t);
 
-extern int url_get_scheme  (const url_t, char *, size_t, size_t *);
-extern int url_get_user    (const url_t, char *, size_t, size_t *);
-extern int url_get_passwd  (const url_t, char *, size_t, size_t *);
-extern int url_get_auth    (const url_t, char *, size_t, size_t *);
-extern int url_get_host    (const url_t, char *, size_t, size_t *);
-extern int url_get_port    (const url_t, long *);
-extern int url_get_path    (const url_t, char *, size_t, size_t *);
-extern int url_get_query   (const url_t, char *, size_t, size_t *);
-extern const char* url_to_string   (const url_t);
+extern int mu_url_get_scheme  (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_user    (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_passwd  (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_auth    (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_host    (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_port    (const mu_url_t, long *);
+extern int mu_url_get_path    (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_query   (const mu_url_t, char *, size_t, size_t *);
+extern const char* mu_url_to_string   (const mu_url_t);
 
-extern int url_is_scheme   (url_t, const char* scheme);
+extern int mu_url_is_scheme   (mu_url_t, const char* scheme);
 
-extern int url_is_same_scheme (url_t, url_t);
-extern int url_is_same_user   (url_t, url_t);
-extern int url_is_same_path   (url_t, url_t);
-extern int url_is_same_host   (url_t, url_t);
-extern int url_is_same_port   (url_t, url_t);
+extern int mu_url_is_same_scheme (mu_url_t, mu_url_t);
+extern int mu_url_is_same_user   (mu_url_t, mu_url_t);
+extern int mu_url_is_same_path   (mu_url_t, mu_url_t);
+extern int mu_url_is_same_host   (mu_url_t, mu_url_t);
+extern int mu_url_is_same_port   (mu_url_t, mu_url_t);
 
-extern char* url_decode    (const char *s);
+extern char* mu_url_decode    (const char *s);
 
-extern int url_is_ticket   (url_t ticket, url_t url);
+extern int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
 
 #ifdef __cplusplus
 }

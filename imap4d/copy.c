@@ -51,7 +51,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
   char *sp = NULL;
   size_t *set = NULL;
   int n = 0;
-  mailbox_t cmbox = NULL;
+  mu_mailbox_t cmbox = NULL;
 
   msgset = util_getword (arg, &sp);
   name = util_getword (NULL, &sp);
@@ -91,7 +91,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 	  size_t i;
 	  for (i = 0; i < n; i++)
 	    {
-	      message_t msg = NULL;
+	      mu_message_t msg = NULL;
 	      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
 	      if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
 		mu_mailbox_append_message (cmbox, msg);

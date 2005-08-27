@@ -356,9 +356,9 @@ maildir_msg_free (struct _amd_message *amsg)
 }
 
 static int
-maildir_message_uid (message_t msg, size_t *puid)
+maildir_message_uid (mu_message_t msg, size_t *puid)
 {
-  struct _maildir_message *mp = message_get_owner (msg);
+  struct _maildir_message *mp = mu_message_get_owner (msg);
   if (puid)
     *puid = mp->uid;
   return 0;
@@ -592,7 +592,7 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 }
 
 static int
-maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
+maildir_scan0 (mu_mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
 	       int do_notify)
 {
   struct _amd_data *amd = mailbox->data;
@@ -604,7 +604,7 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
   if (amd == NULL)
     return EINVAL;
 
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
 
   /* 1st phase: Flush tmp/ */
   maildir_flush (amd);
@@ -669,7 +669,7 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
 
 
 int
-_mailbox_maildir_init (mailbox_t mailbox)
+_mailbox_maildir_init (mu_mailbox_t mailbox)
 {
   int rc;
   struct _amd_data *amd;
@@ -690,9 +690,9 @@ _mailbox_maildir_init (mailbox_t mailbox)
   
   /* Set our properties.  */
   {
-    property_t property = NULL;
+    mu_property_t property = NULL;
     mu_mailbox_get_property (mailbox, &property);
-    property_set_value (property, "TYPE", "MAILDIR", 1);
+    mu_property_set_value (property, "TYPE", "MAILDIR", 1);
   }
 
   return 0;

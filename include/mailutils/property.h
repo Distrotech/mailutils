@@ -27,18 +27,18 @@
 extern "C" {
 #endif
 
-extern int  property_create   (property_t *, void *);
-extern void property_destroy (property_t *, void *);
-extern void *property_get_owner (property_t);
+extern int  mu_property_create   (mu_property_t *, void *);
+extern void mu_property_destroy (mu_property_t *, void *);
+extern void *mu_property_get_owner (mu_property_t);
 
-extern int  property_set_value (property_t, const char *, const char *, int);
-extern int property_get_value (property_t, const char *, char *, size_t, 
+extern int  mu_property_set_value (mu_property_t, const char *, const char *, int);
+extern int mu_property_get_value (mu_property_t, const char *, char *, size_t, 
                                size_t *);
 
 /* Helper functions.  */
-extern int property_set  (property_t, const char *);
-extern int property_unset (property_t, const char *);
-extern int property_is_set (property_t, const char *);
+extern int mu_property_set  (mu_property_t, const char *);
+extern int mu_property_unset (mu_property_t, const char *);
+extern int mu_property_is_set (mu_property_t, const char *);
 
 #ifdef __cplusplus
 }

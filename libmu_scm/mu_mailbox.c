@@ -21,10 +21,10 @@
 long mailbox_tag;
 
 /* NOTE: Maybe will have to add some more members. That's why it is a
-   struct, not just a typedef mailbox_t */
+   struct, not just a typedef mu_mailbox_t */
 struct mu_mailbox
 {
-  mailbox_t mbox;       /* Mailbox */
+  mu_mailbox_t mbox;       /* Mailbox */
 };
 
 /* SMOB functions: */
@@ -51,7 +51,7 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
 {
   struct mu_mailbox *mum = (struct mu_mailbox *) SCM_CDR (mailbox_smob);
   size_t count = 0;
-  url_t url = NULL;
+  mu_url_t url = NULL;
 
   mu_mailbox_messages_count (mum->mbox, &count);
   mu_mailbox_get_url (mum->mbox, &url);
@@ -65,7 +65,7 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
     }
   else
     {
-      const char *p = url_to_string (url);
+      const char *p = mu_url_to_string (url);
       if (p)
 	{
 	  char buf[64];
@@ -86,7 +86,7 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
 /* Internal functions */
 
 SCM
-mu_scm_mailbox_create (mailbox_t mbox)
+mu_scm_mailbox_create (mu_mailbox_t mbox)
 {
   struct mu_mailbox *mum;
 
@@ -139,7 +139,7 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
             "Opens a mailbox specified by URL.")
 #define FUNC_NAME s_scm_mu_mailbox_open
 {
-  mailbox_t mbox = NULL;
+  mu_mailbox_t mbox = NULL;
   char *mode_str;
   int mode = 0;
 
@@ -200,12 +200,12 @@ SCM_DEFINE (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_get_url
 {
   struct mu_mailbox *mum;
-  url_t url;
+  mu_url_t url;
   
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   mu_mailbox_get_url (mum->mbox, &url);
-  return scm_makfrom0str (url_to_string (url));
+  return scm_makfrom0str (mu_url_to_string (url));
 }
 #undef FUNC_NAME
 
@@ -218,7 +218,7 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_get_port
 {
   struct mu_mailbox *mum;
-  stream_t stream;
+  mu_stream_t stream;
   
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
@@ -237,7 +237,7 @@ SCM_DEFINE (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
 {
   size_t msgno;
   struct mu_mailbox *mum;
-  message_t msg;
+  mu_message_t msg;
 
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT ((SCM_IMP (MSGNO) && SCM_INUMP (MSGNO)),
@@ -288,12 +288,12 @@ SCM_DEFINE (scm_mu_mailbox_url, "mu-mailbox-url", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_url
 {
   struct mu_mailbox *mum;
-  url_t url;
+  mu_url_t url;
 
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   mu_mailbox_get_url (mum->mbox, &url);
-  return scm_makfrom0str (url_to_string (url));
+  return scm_makfrom0str (mu_url_to_string (url));
 }
 #undef FUNC_NAME
 
@@ -302,7 +302,7 @@ SCM_DEFINE (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_append_message
 {
   struct mu_mailbox *mum;
-  message_t msg;
+  mu_message_t msg;
 
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);

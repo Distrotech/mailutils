@@ -20,7 +20,7 @@
 
 char *temp_filename;
 FILE *temp_file;
-mailbox_t mbox;
+mu_mailbox_t mbox;
 
 void
 collect_open_default ()
@@ -132,7 +132,7 @@ int
 collect_output ()
 {
   size_t i, count = 0;
-  mailbox_t outbox = NULL;
+  mu_mailbox_t outbox = NULL;
   int saved_umask;
 
   if (!temp_filename)
@@ -156,11 +156,11 @@ collect_output ()
   mu_mailbox_messages_count (mbox, &count);
   for (i = 1; i <= count; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
 
       mu_mailbox_get_message (mbox, i, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       if (!mu_attribute_is_deleted (attr))
 	{
 	  mu_attribute_set_recent (attr);
@@ -191,7 +191,7 @@ collect_drop_mailbox ()
 }
 
 SCM
-guimb_catch_body (void *data, mailbox_t unused)
+guimb_catch_body (void *data, mu_mailbox_t unused)
 {
   struct guimb_data *gd = data;
   if (gd->program_file)
@@ -211,7 +211,7 @@ guimb_catch_handler (void *unused, SCM tag, SCM throw_args)
 }
 
 int
-guimb_exit (void *unused1, mailbox_t unused2)
+guimb_exit (void *unused1, mu_mailbox_t unused2)
 {
   int rc = collect_output ();
   collect_drop_mailbox ();

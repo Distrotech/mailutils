@@ -23,8 +23,8 @@
 #include <mailutils/argp.h>
 #include <string.h>
 
-list_t mu_sieve_include_path = NULL;
-list_t mu_sieve_library_path = NULL;
+mu_list_t mu_sieve_include_path = NULL;
+mu_list_t mu_sieve_library_path = NULL;
 
 static error_t sieve_argp_parser (int key, char *arg, struct argp_state *state);
 
@@ -52,7 +52,7 @@ static struct argp_child sieve_argp_child = {
 static error_t
 sieve_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  list_t *plist = NULL;
+  mu_list_t *plist = NULL;
   
   switch (key)
     {

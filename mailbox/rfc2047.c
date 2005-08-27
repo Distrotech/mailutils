@@ -42,7 +42,7 @@ realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)
 }
 
 int
-rfc2047_decode (const char *tocode, const char *input, char **ptostr)
+mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 {
   int status = 0;
   char *tmpcopy, *fromstr;
@@ -99,8 +99,8 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  char *fromcode = NULL;
 	  char *encoding_type = NULL;
 	  char *encoded_text = NULL;
-	  stream_t filter = NULL;
-	  stream_t in_stream = NULL;
+	  mu_stream_t filter = NULL;
+	  mu_stream_t in_stream = NULL;
 	  const char *filter_type = NULL;
 	  size_t nbytes = 0, size;
 	  char *sp = NULL;
@@ -144,21 +144,21 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  memory_stream_create (&in_stream, 0, 0);
-	  stream_write (in_stream, encoded_text, size, 0, NULL);
+	  mu_memory_stream_create (&in_stream, 0, 0);
+	  mu_stream_write (in_stream, encoded_text, size, 0, NULL);
 	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
 				     tocode);
 	  if (status != 0)
 	    break;
 
-	  while (stream_sequential_read (filter, buffer + bufpos,
+	  while (mu_stream_sequential_read (filter, buffer + bufpos,
 					 bufsize - bufpos,
 					 &nbytes) == 0
 		 && nbytes)
 	    bufpos += nbytes;
 
-	  stream_close (filter);
-	  stream_destroy (&filter, stream_get_owner (filter));
+	  mu_stream_close (filter);
+	  mu_stream_destroy (&filter, mu_stream_get_owner (filter));
 	  
 	  fromstr = sp + 1;
 	  run_count = 1;
@@ -223,11 +223,11 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
    @return 0 on success
 */
 int
-rfc2047_encode (const char *charset, const char *encoding,
+mu_rfc2047_encode (const char *charset, const char *encoding,
 		const char *text, char **result)
 {
-  stream_t input_stream;
-  stream_t output_stream;
+  mu_stream_t input_stream;
+  mu_stream_t output_stream;
   int rc;
   
   if (charset == NULL || encoding == NULL || text == NULL)
@@ -240,11 +240,11 @@ rfc2047_encode (const char *charset, const char *encoding,
   else if (encoding[1] || !strchr ("BQ", encoding[0]))
     return MU_ERR_BAD_2047_ENCODING;
 
-  rc = memory_stream_create (&input_stream, 0, 0);
+  rc = mu_memory_stream_create (&input_stream, 0, 0);
   if (rc)
     return rc;
   
-  stream_sequential_write (input_stream, text, strlen (text));
+  mu_stream_sequential_write (input_stream, text, strlen (text));
 
   rc = mu_filter_create (&output_stream, input_stream,
 		      encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
@@ -269,7 +269,7 @@ rfc2047_encode (const char *charset, const char *encoding,
 	  
 	  p += sprintf (p, "=?%s?%s?", charset, encoding);
 	  
-	  rc = stream_sequential_read (output_stream,
+	  rc = mu_stream_sequential_read (output_stream,
 				       p,
 				       strlen (text) * 3, &s);
 
@@ -277,10 +277,10 @@ rfc2047_encode (const char *charset, const char *encoding,
 	}
       else
 	rc = ENOMEM;
-      stream_destroy (&output_stream, NULL);
+      mu_stream_destroy (&output_stream, NULL);
     }
   else
-    stream_destroy (&input_stream, NULL);
+    mu_stream_destroy (&input_stream, NULL);
 
   return rc;
 }

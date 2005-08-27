@@ -36,26 +36,26 @@
 */
 
 void
-pop3d_mark_retr (attribute_t attr)
+pop3d_mark_retr (mu_attribute_t attr)
 {
   mu_attribute_set_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
  
 int
-pop3d_is_retr (attribute_t attr)
+pop3d_is_retr (mu_attribute_t attr)
 {
   return mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
  
 void
-pop3d_unmark_retr (attribute_t attr)
+pop3d_unmark_retr (mu_attribute_t attr)
 {
   if (mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_RETR))
     mu_attribute_unset_userflag (attr, POP3_ATTRIBUTE_RETR);
 }
 
 static int
-header_is_expired (header_t hdr)
+header_is_expired (mu_header_t hdr)
 {
   time_t timestamp;
   char buf[64];
@@ -83,19 +83,19 @@ header_is_expired (header_t hdr)
               X-Expire-Timestamp is to be stored. *value must be set to
 	      NULL upon the first invocation of this function */
 void
-expire_mark_message (message_t msg, char **value)
+expire_mark_message (mu_message_t msg, char **value)
 {
   /* Mark the message with a timestamp. */
   if (expire != EXPIRE_NEVER)
     {
-      header_t header = NULL;
-      attribute_t attr = NULL;
+      mu_header_t header = NULL;
+      mu_attribute_t attr = NULL;
       
       if (!*value)
 	asprintf (value, "%lu", (unsigned long) time (NULL));
       
-      message_get_header (msg, &header);
-      message_get_attribute (msg, &attr);
+      mu_message_get_header (msg, &header);
+      mu_message_get_attribute (msg, &attr);
 	  
       if (pop3d_is_retr (attr))
 	mu_header_set_value (header, MU_HEADER_X_EXPIRE_TIMESTAMP, *value, 0);

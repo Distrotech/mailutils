@@ -39,17 +39,17 @@ struct _message
   /* Who is the owner.  */
   void *owner;
 
-  envelope_t envelope;
-  header_t header;
-  body_t body;
+  mu_envelope_t envelope;
+  mu_header_t header;
+  mu_body_t body;
 
   int flags;
-  stream_t stream;
-  attribute_t attribute;
-  monitor_t monitor;
-  mime_t mime;
-  observable_t observable;
-  mailbox_t mailbox;
+  mu_stream_t stream;
+  mu_attribute_t attribute;
+  mu_monitor_t monitor;
+  mu_mime_t mime;
+  mu_observable_t observable;
+  mu_mailbox_t mailbox;
 
   /* Reference count.  */
   int ref;
@@ -58,13 +58,13 @@ struct _message
   size_t hdr_buflen;
   int hdr_done;
 
-  int (*_get_uidl)       (message_t, char *, size_t, size_t *);
-  int (*_get_uid)        (message_t, size_t *);
-  int (*_get_num_parts)  (message_t, size_t *);
-  int (*_get_part)       (message_t, size_t, message_t *);
-  int (*_is_multipart)   (message_t, int *);
-  int (*_lines)          (message_t, size_t *);
-  int (*_size)           (message_t, size_t *);
+  int (*_get_uidl)       (mu_message_t, char *, size_t, size_t *);
+  int (*_get_uid)        (mu_message_t, size_t *);
+  int (*_get_num_parts)  (mu_message_t, size_t *);
+  int (*_get_part)       (mu_message_t, size_t, mu_message_t *);
+  int (*_is_multipart)   (mu_message_t, int *);
+  int (*_lines)          (mu_message_t, size_t *);
+  int (*_size)           (mu_message_t, size_t *);
 };
 
 #ifdef __cplusplus

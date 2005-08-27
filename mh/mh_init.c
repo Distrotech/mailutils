@@ -297,13 +297,13 @@ mh_getyn_interactive (const char *fmt, ...)
 }
 	    
 FILE *
-mh_audit_open (char *name, mailbox_t mbox)
+mh_audit_open (char *name, mu_mailbox_t mbox)
 {
   FILE *fp;
   char date[64];
   time_t t;
   struct tm *tm;
-  url_t url;
+  mu_url_t url;
   char *namep;
   
   namep = mu_tilde_expansion (name, "/", NULL);
@@ -338,7 +338,7 @@ mh_audit_open (char *name, mailbox_t mbox)
   fprintf (fp, "<<%s>> %s %s\n",
 	   program_invocation_short_name,
 	   date,
-	   url_to_string (url));
+	   mu_url_to_string (url));
   return fp;
 }
 
@@ -349,15 +349,15 @@ mh_audit_close (FILE *fp)
 }
 
 int
-mh_message_number (message_t msg, size_t *pnum)
+mh_message_number (mu_message_t msg, size_t *pnum)
 {
-  return message_get_uid (msg, pnum);	
+  return mu_message_get_uid (msg, pnum);	
 }
 
-mailbox_t
+mu_mailbox_t
 mh_open_folder (const char *folder, int create)
 {
-  mailbox_t mbox = NULL;
+  mu_mailbox_t mbox = NULL;
   char *name;
   int flags = MU_STREAM_RDWR;
   
@@ -441,7 +441,7 @@ mh_expand_name (const char *base, const char *name, int is_folder)
 }
 
 int
-mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
+mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
 	    mh_iterator_fp itr, void *data)
 {
   int rc;
@@ -449,7 +449,7 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
 
   for (i = 0; i < msgset->count; i++)
     {
-      message_t msg;
+      mu_message_t msg;
       size_t num;
 
       num = msgset->list[i];
@@ -505,8 +505,8 @@ mh_file_copy (const char *from, const char *to)
   char *buffer;
   size_t bufsize, rdsize;
   struct stat st;
-  stream_t in;
-  stream_t out;
+  mu_stream_t in;
+  mu_stream_t out;
   int rc;
   
   if (stat (from, &st))
@@ -522,8 +522,8 @@ mh_file_copy (const char *from, const char *to)
   if (!bufsize)
     mh_err_memory (1);
 
-  if ((rc = file_stream_create (&in, from, MU_STREAM_READ)) != 0
-      || (rc = stream_open (in)))
+  if ((rc = mu_file_stream_create (&in, from, MU_STREAM_READ)) != 0
+      || (rc = mu_stream_open (in)))
     {
       mh_error (_("Cannot open input file `%s': %s"),
 		from, mu_strerror (rc));
@@ -531,22 +531,22 @@ mh_file_copy (const char *from, const char *to)
       return 1;
     }
 
-  if ((rc = file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
-      || (rc = stream_open (out)))
+  if ((rc = mu_file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
+      || (rc = mu_stream_open (out)))
     {
       mh_error (_("Cannot open output file `%s': %s"),
 		to, mu_strerror (rc));
       free (buffer);
-      stream_close (in);
-      stream_destroy (&in, stream_get_owner (in));
+      mu_stream_close (in);
+      mu_stream_destroy (&in, mu_stream_get_owner (in));
       return 1;
     }
 
   while (st.st_size > 0
-	 && (rc = stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
+	 && (rc = mu_stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
 	 && rdsize > 0)
     {
-      if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
+      if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
 	  mh_error (_("Write error on `%s': %s"),
 		    to, mu_strerror (rc));
@@ -557,20 +557,20 @@ mh_file_copy (const char *from, const char *to)
 
   free (buffer);
 
-  stream_close (in);
-  stream_close (out);
-  stream_destroy (&in, stream_get_owner (in));
-  stream_destroy (&out, stream_get_owner (out));
+  mu_stream_close (in);
+  mu_stream_close (out);
+  mu_stream_destroy (&in, mu_stream_get_owner (in));
+  mu_stream_destroy (&out, mu_stream_get_owner (out));
   
   return rc;
 }
 
-message_t
+mu_message_t
 mh_file_to_message (char *folder, char *file_name)
 {
   struct stat st;
   int rc;
-  stream_t instream;
+  mu_stream_t instream;
   
   if (folder)
     file_name = mh_expand_name (folder, file_name, 0);
@@ -581,18 +581,18 @@ mh_file_to_message (char *folder, char *file_name)
       return NULL;
     }
   
-  if ((rc = file_stream_create (&instream, file_name, MU_STREAM_READ)))
+  if ((rc = mu_file_stream_create (&instream, file_name, MU_STREAM_READ)))
     {
       mh_error (_("Cannot create input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       return NULL;
     }
   
-  if ((rc = stream_open (instream)))
+  if ((rc = mu_stream_open (instream)))
     {
       mh_error (_("Cannot open input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
-      stream_destroy (&instream, stream_get_owner (instream));
+      mu_stream_destroy (&instream, mu_stream_get_owner (instream));
       return NULL;
     }
 
@@ -720,12 +720,12 @@ mh_install (char *name, int automode)
 }
         
 void
-mh_annotate (message_t msg, char *field, char *text, int date)
+mh_annotate (mu_message_t msg, char *field, char *text, int date)
 {
-  header_t hdr;
-  attribute_t attr;
+  mu_header_t hdr;
+  mu_attribute_t attr;
   
-  if (message_get_header (msg, &hdr))
+  if (mu_message_get_header (msg, &hdr))
     return;
 
   if (date)
@@ -742,7 +742,7 @@ mh_annotate (message_t msg, char *field, char *text, int date)
 
   if (text)
     mu_header_set_value (hdr, field, text, 0);
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_set_modified (attr);
 }
 
@@ -823,5 +823,5 @@ mh_decode_2047 (char *text, char **decoded_text)
   if (!charset)
     return 1;
   
-  return rfc2047_decode (charset, text, decoded_text);
+  return mu_rfc2047_decode (charset, text, decoded_text);
 }

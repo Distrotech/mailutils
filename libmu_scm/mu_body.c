@@ -22,8 +22,8 @@ long body_tag;
 
 struct mu_body
 {
-  body_t body;             /* Message body */
-  stream_t stream;         /* Associated stream */
+  mu_body_t body;             /* Message body */
+  mu_stream_t stream;         /* Associated stream */
   int offset;              /* Current offset in the stream */
   char *buffer;            /* I/O buffer */
   int bufsize;             /* Size of allocated buffer */
@@ -84,7 +84,7 @@ mu_scm_is_body (SCM scm)
 }
 
 SCM
-mu_scm_body_create (SCM msg, body_t body)
+mu_scm_body_create (SCM msg, mu_body_t body)
 {
   struct mu_body *mbp;
 
@@ -129,7 +129,7 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
   nread = 0;
   while (1)
     {
-      if (stream_readline (mbp->stream, mbp->buffer + nread,
+      if (mu_stream_readline (mbp->stream, mbp->buffer + nread,
 			   mbp->bufsize - nread,
 			   mbp->offset, &n))
 	return SCM_BOOL_F;
@@ -178,7 +178,7 @@ SCM_DEFINE (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 
   ptr = SCM_STRING_CHARS (TEXT);
   len = strlen (ptr);
-  if (stream_write (mbp->stream, ptr, len, mbp->offset, &n))
+  if (mu_stream_write (mbp->stream, ptr, len, mbp->offset, &n))
     {
       return SCM_BOOL_F;
     }

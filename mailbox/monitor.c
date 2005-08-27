@@ -66,8 +66,8 @@ static int monitor_pthread_rdlock (p_lock_t);
 static int monitor_pthread_wrlock (p_lock_t);
 static int monitor_pthread_unlock (p_lock_t);
 
-/* The idea was to have a general/portable object monitor_t.
-   The monitor_t object could have different implementation (on the fly ?)
+/* The idea was to have a general/portable object mu_monitor_t.
+   The mu_monitor_t object could have different implementation (on the fly ?)
    of locking.  Also the rest of the library would not have to know about
    different threading implementation.  So far we've pretty much hardcoded
    the concrete implementation of monitor on pthread and read/write locks,
@@ -78,9 +78,9 @@ static int monitor_pthread_unlock (p_lock_t);
  */
 
 int
-monitor_create (monitor_t *pmonitor, int flags, void *owner)
+mu_monitor_create (mu_monitor_t *pmonitor, int flags, void *owner)
 {
-  monitor_t monitor;
+  mu_monitor_t monitor;
 
   if (pmonitor == NULL)
     return MU_ERR_OUT_PTR_NULL;
@@ -106,17 +106,17 @@ monitor_create (monitor_t *pmonitor, int flags, void *owner)
 }
 
 void *
-monitor_get_owner (monitor_t monitor)
+mu_monitor_get_owner (mu_monitor_t monitor)
 {
   return (monitor == NULL) ? NULL : monitor->owner;
 }
 
 void
-monitor_destroy (monitor_t *pmonitor, void *owner)
+mu_monitor_destroy (mu_monitor_t *pmonitor, void *owner)
 {
   if (pmonitor && *pmonitor)
     {
-      monitor_t monitor = *pmonitor;
+      mu_monitor_t monitor = *pmonitor;
       if (monitor->owner == owner)
 	{
 	  if (monitor->flags == MU_MONITOR_PTHREAD)
@@ -128,7 +128,7 @@ monitor_destroy (monitor_t *pmonitor, void *owner)
 }
 
 int
-monitor_rdlock (monitor_t monitor)
+mu_monitor_rdlock (mu_monitor_t monitor)
 {
   if (monitor)
     {
@@ -155,7 +155,7 @@ monitor_rdlock (monitor_t monitor)
 }
 
 int
-monitor_wrlock  (monitor_t monitor)
+mu_monitor_wrlock  (mu_monitor_t monitor)
 {
   if (monitor)
     {
@@ -182,7 +182,7 @@ monitor_wrlock  (monitor_t monitor)
 }
 
 int
-monitor_unlock (monitor_t monitor)
+mu_monitor_unlock (mu_monitor_t monitor)
 {
   if (monitor)
     {
@@ -193,13 +193,13 @@ monitor_unlock (monitor_t monitor)
 }
 
 int
-monitor_wait (monitor_t monitor ARG_UNUSED)
+mu_monitor_wait (mu_monitor_t monitor ARG_UNUSED)
 {
   return ENOSYS;
 }
 
 int
-monitor_notify (monitor_t monitor ARG_UNUSED)
+mu_monitor_notify (mu_monitor_t monitor ARG_UNUSED)
 {
   return ENOSYS;
 }

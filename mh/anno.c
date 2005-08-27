@@ -104,7 +104,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-anno (mailbox_t mbox, message_t msg, size_t num, void *data)
+anno (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   mh_annotate (msg, component, anno_text, anno_date);
 }
@@ -114,7 +114,7 @@ main (int argc, char **argv)
 {
   int rc;
   int index;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   mh_msgset_t msgset;
   size_t len;
   

@@ -26,8 +26,8 @@
 int
 mail_followup (int argc, char **argv)
 {
-  message_t msg;
-  header_t hdr;
+  mu_message_t msg;
+  mu_header_t hdr;
   char *str;
   msgset_t *msglist, *mp;
   compose_env_t env;
@@ -52,7 +52,7 @@ mail_followup (int argc, char **argv)
     }
 
   /* Create subject value */
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
     {
       char *p = NULL;

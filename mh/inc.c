@@ -155,9 +155,9 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-list_message (mh_format_t *format, mailbox_t mbox, size_t msgno, size_t width)
+list_message (mh_format_t *format, mu_mailbox_t mbox, size_t msgno, size_t width)
 {
-  message_t msg;
+  mu_message_t msg;
   char *buf = NULL;
 
   mu_mailbox_get_message (mbox, msgno, &msg);
@@ -171,8 +171,8 @@ list_message (mh_format_t *format, mailbox_t mbox, size_t msgno, size_t width)
 int
 main (int argc, char **argv)
 {
-  mailbox_t input = NULL;
-  mailbox_t output = NULL;
+  mu_mailbox_t input = NULL;
+  mu_mailbox_t output = NULL;
   size_t total, n;
   size_t lastmsg;
   int f_truncate = 0;
@@ -214,10 +214,10 @@ main (int argc, char **argv)
 
   if ((rc = mu_mailbox_open (input, MU_STREAM_RDWR)) != 0)
     {
-      url_t url;
+      mu_url_t url;
       mu_mailbox_get_url (input, &url);
       mh_error (_("Cannot open mailbox %s: %s"),
-		url_to_string (url),
+		mu_url_to_string (url),
 		mu_strerror (errno));
       exit (1);
     }
@@ -248,7 +248,7 @@ main (int argc, char **argv)
   
   for (n = 1; n <= total; n++)
     {
-      message_t imsg;
+      mu_message_t imsg;
       
       if ((rc = mu_mailbox_get_message (input, n, &imsg)) != 0)
 	{
@@ -266,7 +266,7 @@ main (int argc, char **argv)
 
       if (n == 1 && changecur)
 	{
-	  message_t msg = NULL;
+	  mu_message_t msg = NULL;
       
 	  mu_mailbox_get_message (output, lastmsg+1, &msg);
 	  mh_message_number (msg, &current_message);
@@ -277,8 +277,8 @@ main (int argc, char **argv)
       
       if (truncate_source)
 	{
-	  attribute_t attr;
-	  message_get_attribute (imsg, &attr);
+	  mu_attribute_t attr;
+	  mu_message_get_attribute (imsg, &attr);
 	  mu_attribute_set_deleted (attr);
 	}
     }

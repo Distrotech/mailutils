@@ -36,7 +36,7 @@
 #include <amd.h>
 
 static int
-_maildir_folder_init (folder_t folder ARG_UNUSED)
+_maildir_folder_init (mu_folder_t folder ARG_UNUSED)
 {
   return 0;
 }
@@ -56,7 +56,7 @@ dir_exists (const char *name, const char *suf)
 }
 
 static int
-_maildir_is_scheme (record_t record, const char *url, int flags)
+_maildir_is_scheme (mu_record_t record, const char *url, int flags)
 {
   const char *path;
   
@@ -94,12 +94,12 @@ _maildir_is_scheme (record_t record, const char *url, int flags)
   maildir:path
 */
 int
-_maildir_url_init (url_t url)
+_maildir_url_init (mu_url_t url)
 {
   return amd_url_init (url, MU_MAILDIR_SCHEME);
 }
 
-static struct _record _maildir_record =
+static struct mu__record _maildir_record =
 {
   MU_MAILDIR_PRIO,
   MU_MAILDIR_SCHEME,
@@ -114,10 +114,10 @@ static struct _record _maildir_record =
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
-record_t maildir_record = &_maildir_record;
+mu_record_t mu_maildir_record = &_maildir_record;
 
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t maildir_record = NULL;
+mu_record_t mu_maildir_record = NULL;
 #endif

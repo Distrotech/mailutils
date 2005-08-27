@@ -25,8 +25,8 @@
 int
 mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   size_t msgno;
   size_t count = 0;
   int mseen = 0, mnew = 0, mdelete = 0;
@@ -36,7 +36,7 @@ mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
   for (msgno = 1; msgno <= count; msgno++)
     {
       if ((mu_mailbox_get_message (mbox, msgno, &msg) == 0)
-	  && (message_get_attribute (msg, &attr) == 0))
+	  && (mu_message_get_attribute (msg, &attr) == 0))
 	    {
 	      int deleted = mu_attribute_is_deleted (attr);
 
@@ -59,9 +59,9 @@ mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 
   /* Print the mailbox name.  */
   {
-    url_t url = NULL;
+    mu_url_t url = NULL;
     mu_mailbox_get_url (mbox, &url);
-    printf("\"%s\": ", url_to_string (url));
+    printf("\"%s\": ", mu_url_to_string (url));
   }
   printf (ngettext ("%d message", "%d messages", count), count);
   if (mnew > 0)

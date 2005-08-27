@@ -29,8 +29,8 @@ int
 main (int argc, char **argv)
 {
   int rc;
-  stream_t in, out;
-  stream_t cvt;
+  mu_stream_t in, out;
+  mu_stream_t cvt;
   size_t total = 0, size;
   char buffer[80];
   
@@ -40,27 +40,27 @@ main (int argc, char **argv)
       return 1;
     }
 
-  rc = stdio_stream_create (&in, stdin, 0);
+  rc = mu_stdio_stream_create (&in, stdin, 0);
   assert (rc == 0);
-  assert (stream_open (in) == 0);
+  assert (mu_stream_open (in) == 0);
   assert (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 0, mu_fallback_none) == 0);
-  assert (stream_open (cvt) == 0);
+  assert (mu_stream_open (cvt) == 0);
   
-  rc = stdio_stream_create (&out, stdout, 0);
+  rc = mu_stdio_stream_create (&out, stdout, 0);
   assert (rc == 0);
-  assert (stream_open (out) == 0);
+  assert (mu_stream_open (out) == 0);
 
-  while ((rc = stream_read (cvt, buffer, sizeof (buffer), total, &size)) == 0
+  while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), total, &size)) == 0
 	 && size > 0)
     {
-      stream_sequential_write (out, buffer, size);
+      mu_stream_sequential_write (out, buffer, size);
       total += size;
     }
-  stream_flush (out);
+  mu_stream_flush (out);
   if (rc)
     {
       const char *p;
-      stream_strerror (cvt, &p);
+      mu_stream_strerror (cvt, &p);
       fprintf (stderr, "error: %s / %s\n", mu_strerror (rc), p);
     }
   return 0;

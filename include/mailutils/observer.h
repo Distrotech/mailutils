@@ -37,23 +37,23 @@ extern "C" {
 
 #define MU_OBSERVER_NO_CHECK 1
 
-extern int observer_create      (observer_t *, void *owner);
-extern void observer_destroy    (observer_t *, void *owner);
-extern void * observer_get_owner  (observer_t);
-extern int observer_action      (observer_t, size_t type);
-extern int observer_set_action  (observer_t, 
-                                 int (*_action) (observer_t, size_t), 
+extern int mu_observer_create      (mu_observer_t *, void *owner);
+extern void mu_observer_destroy    (mu_observer_t *, void *owner);
+extern void * mu_observer_get_owner  (mu_observer_t);
+extern int mu_observer_action      (mu_observer_t, size_t type);
+extern int mu_observer_set_action  (mu_observer_t, 
+                                 int (*_action) (mu_observer_t, size_t), 
                                  void *owner);
-extern int observer_set_destroy (observer_t, 
-                                 int (*_destroy) (observer_t), void *owner);
-extern int observer_set_flags   (observer_t, int flags);
+extern int mu_observer_set_destroy (mu_observer_t, 
+                                 int (*_destroy) (mu_observer_t), void *owner);
+extern int mu_observer_set_flags   (mu_observer_t, int flags);
 
-extern int observable_create    (observable_t *, void *owner);
-extern void observable_destroy  (observable_t *, void *owner);
-extern void * observable_get_owner (observable_t);
-extern int observable_attach    (observable_t, size_t type, observer_t observer);
-extern int observable_detach    (observable_t, observer_t observer);
-extern int observable_notify    (observable_t, int type);
+extern int mu_observable_create    (mu_observable_t *, void *owner);
+extern void mu_observable_destroy  (mu_observable_t *, void *owner);
+extern void * mu_observable_get_owner (mu_observable_t);
+extern int mu_observable_attach    (mu_observable_t, size_t type, mu_observer_t observer);
+extern int mu_observable_detach    (mu_observable_t, mu_observer_t observer);
+extern int mu_observable_notify    (mu_observable_t, int type);
 
 #ifdef __cplusplus
 }

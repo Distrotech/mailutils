@@ -44,7 +44,7 @@ struct _list
 {
   struct list_data head;
   size_t count;
-  monitor_t monitor;
+  mu_monitor_t monitor;
   mu_list_comparator_t comp;
   void (*destroy_item) (void *item);
   struct _iterator *itr;

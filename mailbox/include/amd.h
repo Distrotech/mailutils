@@ -24,9 +24,9 @@
 do \
 { \
   int bailing = 0; \
-  monitor_unlock (mbox->monitor); \
+  mu_monitor_unlock (mbox->monitor); \
   if (mbox->observable) \
-     bailing = observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
+     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
   if (bailing != 0) \
     { \
       if (pcount) \
@@ -34,13 +34,13 @@ do \
       mu_locker_unlock (mbox->locker); \
       return EINTR; \
     } \
-  monitor_wrlock (mbox->monitor); \
+  mu_monitor_wrlock (mbox->monitor); \
 } while (0);
 
 struct _amd_data;
 struct _amd_message
 {
-  stream_t stream;          /* Associated file stream */
+  mu_stream_t stream;          /* Associated file stream */
   off_t body_start;         /* Offset of body start in the message file */
   off_t body_end;           /* Offset of body end (size of file, effectively)*/
 
@@ -51,7 +51,7 @@ struct _amd_message
   size_t header_lines;      /* Number of lines in the header part */
   size_t body_lines;        /* Number of lines in the body */
 
-  message_t message;        /* Corresponding message_t */
+  mu_message_t message;        /* Corresponding mu_message_t */
   struct _amd_data *amd;    /* Back pointer.  */
 };
 
@@ -62,10 +62,10 @@ struct _amd_data
   int (*msg_finish_delivery) (struct _amd_data *, struct _amd_message *);
   void (*msg_free) (struct _amd_message *);
   char *(*msg_file_name) (struct _amd_message *, int deleted);
-  int (*scan0)     (mailbox_t mailbox, size_t msgno, size_t *pcount,
+  int (*scan0)     (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
 		    int do_notify);
   int (*msg_cmp) (struct _amd_message *, struct _amd_message *);
-  int (*message_uid) (message_t msg, size_t *puid);
+  int (*message_uid) (mu_message_t msg, size_t *puid);
   size_t (*next_uid) (struct _amd_data *mhd);
   
   /* List of messages: */
@@ -84,17 +84,17 @@ struct _amd_data
 
   time_t mtime;      /* Time of last modification */
 
-  mailbox_t mailbox; /* Back pointer. */
+  mu_mailbox_t mailbox; /* Back pointer. */
 };
 
 
-int amd_init_mailbox (mailbox_t mailbox, size_t mhd_size,
+int amd_init_mailbox (mu_mailbox_t mailbox, size_t mhd_size,
 		      struct _amd_data **pmhd);
 int _amd_message_insert (struct _amd_data *mhd, struct _amd_message *msg);
 int amd_message_stream_open (struct _amd_message *mhm);
 void amd_message_stream_close (struct _amd_message *mhm);
 void amd_cleanup (void *arg);
-int amd_url_init (url_t url, const char *scheme);
+int amd_url_init (mu_url_t url, const char *scheme);
 struct _amd_message *_amd_get_message (struct _amd_data *amd, size_t msgno);
 int amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
 		    size_t *pret);

@@ -558,7 +558,7 @@ main (int argc, char **argv)
 
   if (argc - index == 1)
     {
-      mailbox_t mbox = mh_open_folder (current_folder, 0);
+      mu_mailbox_t mbox = mh_open_folder (current_folder, 0);
       mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
       mh_msgset_current (mbox, &msgset, 0);
       mh_global_save_state ();

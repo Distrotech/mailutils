@@ -41,7 +41,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct _record _pop_record =
+static struct mu__record _pop_record =
 {
   MU_POP_PRIO,
   MU_POP_SCHEME,
@@ -56,18 +56,18 @@ static struct _record _pop_record =
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
-record_t pop_record = &_pop_record;
+mu_record_t mu_pop_record = &_pop_record;
 
-static int folder_pop_open  (folder_t, int);
-static int folder_pop_close (folder_t);
-static int folder_pop_get_authority (folder_t, authority_t *);
-extern int _pop_user         (authority_t);
-extern int _pop_apop         (authority_t);
+static int folder_pop_open  (mu_folder_t, int);
+static int folder_pop_close (mu_folder_t);
+static int folder_pop_get_authority (mu_folder_t, mu_authority_t *);
+extern int _pop_user         (mu_authority_t);
+extern int _pop_apop         (mu_authority_t);
 
 /* XXX: The way, the POP folder is handled is not clean at all.
    the I/O functions should have been here on folder, not in  mbx_pop.c  */
 int
-_folder_pop_init (folder_t folder)
+_folder_pop_init (mu_folder_t folder)
 {
   int status;
 
@@ -85,21 +85,21 @@ _folder_pop_init (folder_t folder)
 }
 
 static int
-folder_pop_open (folder_t folder, int flags)
+folder_pop_open (mu_folder_t folder, int flags)
 {
-  mailbox_t mbox = folder->data;
+  mu_mailbox_t mbox = folder->data;
   return mu_mailbox_open (mbox, flags);
 }
 
 static int
-folder_pop_close (folder_t folder)
+folder_pop_close (mu_folder_t folder)
 {
-  mailbox_t mbox = folder->data;
+  mu_mailbox_t mbox = folder->data;
   return mu_mailbox_close (mbox);
 }
 
 static int
-folder_pop_get_authority (folder_t folder, authority_t *pauth)
+folder_pop_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 {
   int status = 0;
   if (folder->authority == NULL)
@@ -137,5 +137,5 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t pop_record = NULL;
+mu_record_t mu_pop_record = NULL;
 #endif

@@ -34,10 +34,10 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 
-static void url_mbox_destroy (url_t purl);
+static void url_mbox_destroy (mu_url_t purl);
 
 static void
-url_mbox_destroy (url_t url ARG_UNUSED)
+url_mbox_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
@@ -170,9 +170,9 @@ _url_path_rev_index (const char *spooldir, const char *iuser, int index_depth)
   mbox:path[;type=TYPE][;param=PARAM][;user=USERNAME]
 */
 int
-_url_mbox_init (url_t url)
+_url_mbox_init (mu_url_t url)
 {
-  const char *name = url_to_string (url);
+  const char *name = mu_url_to_string (url);
   size_t len = strlen (name);
   char *p;
   
@@ -259,14 +259,14 @@ _url_mbox_init (url_t url)
 }
 
 static void
-url_path_destroy (url_t url ARG_UNUSED)
+url_path_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
 int
-_url_path_init (url_t url)
+_url_path_init (mu_url_t url)
 {
-  const char *name = url_to_string (url);
+  const char *name = mu_url_to_string (url);
   const char *path;
   
   /* reject the obvious */

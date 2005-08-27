@@ -66,8 +66,8 @@ static int
 instr_run (mu_sieve_machine_t mach)
 {
   mu_sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
-  list_t arg_list = SIEVE_ARG (mach, 1, list);
-  list_t tag_list = SIEVE_ARG (mach, 2, list);
+  mu_list_t arg_list = SIEVE_ARG (mach, 1, list);
+  mu_list_t tag_list = SIEVE_ARG (mach, 2, list);
   int rc = 0;
   
   SIEVE_ADJUST(mach, 4);
@@ -239,7 +239,7 @@ mu_sieve_get_locus (mu_sieve_machine_t mach, mu_sieve_locus_t *loc)
   return 1;
 }
 
-message_t
+mu_message_t
 mu_sieve_get_message (mu_sieve_machine_t mach)
 {
   if (!mach->msg)
@@ -304,14 +304,14 @@ mu_sieve_disass (mu_sieve_machine_t mach)
 }
   
 static int
-_sieve_action (observer_t obs, size_t type)
+_sieve_action (mu_observer_t obs, size_t type)
 {
   mu_sieve_machine_t mach;
   
   if (type != MU_EVT_MESSAGE_ADD)
     return 0;
 
-  mach = observer_get_owner (obs);
+  mach = mu_observer_get_owner (obs);
   mach->msgno++;
   mu_mailbox_get_message (mach->mailbox, mach->msgno, &mach->msg);
   sieve_run (mach);
@@ -319,20 +319,20 @@ _sieve_action (observer_t obs, size_t type)
 }
 
 int
-mu_sieve_mailbox (mu_sieve_machine_t mach, mailbox_t mbox)
+mu_sieve_mailbox (mu_sieve_machine_t mach, mu_mailbox_t mbox)
 {
   int rc;
   size_t total;
-  observer_t observer;
-  observable_t observable;
+  mu_observer_t observer;
+  mu_observable_t observable;
   
   if (!mach || !mbox)
     return EINVAL;
 
-  observer_create (&observer, mach);
-  observer_set_action (observer, _sieve_action, mach);
+  mu_observer_create (&observer, mach);
+  mu_observer_set_action (observer, _sieve_action, mach);
   mu_mailbox_get_observable (mbox, &observable);
-  observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+  mu_observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
   
   mach->mailbox = mbox;
   mach->msgno = 0;
@@ -340,8 +340,8 @@ mu_sieve_mailbox (mu_sieve_machine_t mach, mailbox_t mbox)
   if (rc)
     mu_sieve_error (mach, _("mu_mailbox_scan: %s"), mu_strerror (errno));
 
-  observable_detach (observable, observer);
-  observer_destroy (&observer, mach);
+  mu_observable_detach (observable, observer);
+  mu_observer_destroy (&observer, mach);
 
   mach->mailbox = NULL;
   
@@ -349,7 +349,7 @@ mu_sieve_mailbox (mu_sieve_machine_t mach, mailbox_t mbox)
 }
 
 int
-mu_sieve_message (mu_sieve_machine_t mach, message_t msg)
+mu_sieve_message (mu_sieve_machine_t mach, mu_message_t msg)
 {
   int rc;
   

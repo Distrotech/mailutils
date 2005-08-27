@@ -193,7 +193,7 @@ sig_hup (int sig)
 void
 comsat_init ()
 {
-  registrar_record (path_record);
+  mu_registrar_record (mu_path_record);
 
   gethostname (hostname, sizeof hostname);
 
@@ -427,9 +427,9 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   FILE *fp;
   const char *cr;
   char *blurb;
-  mailbox_t mbox = NULL, tmp = NULL;
-  message_t msg;
-  stream_t stream = NULL;
+  mu_mailbox_t mbox = NULL, tmp = NULL;
+  mu_message_t msg;
+  mu_stream_t stream = NULL;
   int status;
   off_t size;
   size_t count, n;
@@ -465,7 +465,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  if ((status = stream_size (stream, &size)))
+  if ((status = mu_stream_size (stream, &size)))
     {
       syslog (LOG_ERR, _("Cannot get stream size (mailbox %s): %s"),
 	      path, mu_strerror (status));
@@ -478,7 +478,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   if (!blurb)
     return;
 
-  stream_read (stream, blurb, size, offset, &n);
+  mu_stream_read (stream, blurb, size, offset, &n);
   blurb[size] = 0;
 
   if ((status = mu_mailbox_create (&tmp, "/dev/null")) != 0
@@ -489,14 +489,14 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  if ((status = memory_stream_create (&stream, 0, 0)))
+  if ((status = mu_memory_stream_create (&stream, 0, 0)))
     {
       syslog (LOG_ERR, _("Cannot create temporary stream: %s"),
 	      mu_strerror (status));
       return;
     }
 
-  stream_write (stream, blurb, size, 0, &count);
+  mu_stream_write (stream, blurb, size, 0, &count);
   mu_mailbox_set_stream (tmp, stream);
   mu_mailbox_messages_count (tmp, &count);
   mu_mailbox_get_message (tmp, 1, &msg);

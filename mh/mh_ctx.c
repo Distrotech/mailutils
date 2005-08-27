@@ -79,7 +79,7 @@ mh_context_read (mh_context_t *ctx)
 int 
 mh_context_write (mh_context_t *ctx)
 {
-  stream_t stream;
+  mu_stream_t stream;
   char buffer[512];
   size_t off = 0, n;
   FILE *fp;
@@ -97,7 +97,7 @@ mh_context_write (mh_context_t *ctx)
   
   mu_header_get_stream (ctx->header, &stream);
 
-  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';
@@ -111,7 +111,7 @@ mh_context_write (mh_context_t *ctx)
 
 /* FIXME: mh_context_get_value returns a pointer to the allocated memory.
    Instead, it should return a const pointer to the static storage within
-   the header_t structure and be declared as
+   the mu_header_t structure and be declared as
    `const char *mh_context_get_value()'. Current implementation of
    header_.* functions does not allow that.
 

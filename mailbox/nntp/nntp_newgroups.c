@@ -27,7 +27,7 @@
 
 int
 mu_nntp_newgroups (mu_nntp_t nntp, unsigned int year, unsigned int month, unsigned int day,
-		   unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, iterator_t *piterator)
+		   unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, mu_iterator_t *piterator)
 {
   int status = 0;
 

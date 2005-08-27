@@ -25,7 +25,7 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines, stream_t *pstream)
+mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines, mu_stream_t *pstream)
 {
   int status;
 

@@ -28,9 +28,9 @@
 #include <mailutils/errno.h>
 
 int
-mu_list_create (list_t *plist)
+mu_list_create (mu_list_t *plist)
 {
-  list_t list;
+  mu_list_t list;
   int status;
 
   if (plist == NULL)
@@ -38,7 +38,7 @@ mu_list_create (list_t *plist)
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
-  status = monitor_create (&(list->monitor), 0,  list);
+  status = mu_monitor_create (&(list->monitor), 0,  list);
   if (status != 0)
     {
       free (list);
@@ -51,15 +51,15 @@ mu_list_create (list_t *plist)
 }
 
 void
-mu_list_destroy (list_t *plist)
+mu_list_destroy (mu_list_t *plist)
 {
   if (plist && *plist)
     {
-      list_t list = *plist;
+      mu_list_t list = *plist;
       struct list_data *current;
       struct list_data *previous;
 
-      monitor_wrlock (list->monitor);
+      mu_monitor_wrlock (list->monitor);
       for (current = list->head.next; current != &(list->head);)
 	{
 	  previous = current;
@@ -68,15 +68,15 @@ mu_list_destroy (list_t *plist)
 	    list->destroy_item (previous->item);
 	  free (previous);
 	}
-      monitor_unlock (list->monitor);
-      monitor_destroy (&(list->monitor), list);
+      mu_monitor_unlock (list->monitor);
+      mu_monitor_destroy (&(list->monitor), list);
       free (list);
       *plist = NULL;
     }
 }
 
 int
-mu_list_append (list_t list, void *item)
+mu_list_append (mu_list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *last;
@@ -88,18 +88,18 @@ mu_list_append (list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   ldata->next = &(list->head);
   ldata->prev = list->head.prev;
   last->next = ldata;
   list->head.prev = ldata;
   list->count++;
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return 0;
 }
 
 int
-mu_list_prepend (list_t list, void *item)
+mu_list_prepend (mu_list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *first;
@@ -111,18 +111,18 @@ mu_list_prepend (list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   ldata->prev = &(list->head);
   ldata->next = list->head.next;
   first->prev = ldata;
   list->head.next = ldata;
   list->count++;
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return 0;
 }
 
 int
-mu_list_is_empty (list_t list)
+mu_list_is_empty (mu_list_t list)
 {
   size_t n = 0;
 
@@ -131,7 +131,7 @@ mu_list_is_empty (list_t list)
 }
 
 int
-mu_list_count (list_t list, size_t *pcount)
+mu_list_count (mu_list_t list, size_t *pcount)
 {
   if (list == NULL)
     return EINVAL;
@@ -142,7 +142,7 @@ mu_list_count (list_t list, size_t *pcount)
 }
 
 mu_list_comparator_t
-mu_list_set_comparator (list_t list, mu_list_comparator_t comp)
+mu_list_set_comparator (mu_list_t list, mu_list_comparator_t comp)
 {
   mu_list_comparator_t old_comp;
 
@@ -160,7 +160,7 @@ def_comp (const void *item, const void *value)
 }
 
 int
-mu_list_locate (list_t list, void *item, void **ret_item)
+mu_list_locate (mu_list_t list, void *item, void **ret_item)
 {
   struct list_data *current, *previous;
   mu_list_comparator_t comp;
@@ -169,7 +169,7 @@ mu_list_locate (list_t list, void *item, void **ret_item)
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
@@ -181,12 +181,12 @@ mu_list_locate (list_t list, void *item, void **ret_item)
 	  break;
 	}
     }
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return status;
 }
 
 static int
-_insert_item(list_t list, struct list_data *current, void *new_item,
+_insert_item(mu_list_t list, struct list_data *current, void *new_item,
 	     int insert_before)
 {
   struct list_data *ldata = calloc (sizeof (*ldata), 1);
@@ -223,7 +223,7 @@ _insert_item(list_t list, struct list_data *current, void *new_item,
 }
 
 int
-mu_list_insert (list_t list, void *item, void *new_item, int insert_before)
+mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
 {
   struct list_data *current;
   mu_list_comparator_t comp;
@@ -233,7 +233,7 @@ mu_list_insert (list_t list, void *item, void *new_item, int insert_before)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
 
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   for (current = list->head.next;
        current != &(list->head);
        current = current->next)
@@ -244,12 +244,12 @@ mu_list_insert (list_t list, void *item, void *new_item, int insert_before)
 	  break;
 	}
     }
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return status;
 }
 
 int
-mu_list_remove (list_t list, void *item)
+mu_list_remove (mu_list_t list, void *item)
 {
   struct list_data *current, *previous;
   mu_list_comparator_t comp;
@@ -258,7 +258,7 @@ mu_list_remove (list_t list, void *item)
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
@@ -273,12 +273,12 @@ mu_list_remove (list_t list, void *item)
 	  break;
 	}
     }
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return status;
 }
 
 int
-mu_list_replace (list_t list, void *old_item, void *new_item)
+mu_list_replace (mu_list_t list, void *old_item, void *new_item)
 {
   struct list_data *current, *previous;
   mu_list_comparator_t comp;
@@ -287,7 +287,7 @@ mu_list_replace (list_t list, void *old_item, void *new_item)
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
-  monitor_wrlock (list->monitor);
+  mu_monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
@@ -298,12 +298,12 @@ mu_list_replace (list_t list, void *old_item, void *new_item)
 	  break;
 	}
     }
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return status;
 }
 
 int
-mu_list_get (list_t list, size_t indx, void **pitem)
+mu_list_get (mu_list_t list, size_t indx, void **pitem)
 {
   struct list_data *current;
   size_t count;
@@ -313,7 +313,7 @@ mu_list_get (list_t list, size_t indx, void **pitem)
     return EINVAL;
   if (pitem == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  monitor_rdlock (list->monitor);
+  mu_monitor_rdlock (list->monitor);
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)
     {
@@ -324,14 +324,14 @@ mu_list_get (list_t list, size_t indx, void **pitem)
 	  break;
         }
     }
-  monitor_unlock (list->monitor);
+  mu_monitor_unlock (list->monitor);
   return status;
 }
 
 int
-mu_list_do (list_t list, mu_list_action_t * action, void *cbdata)
+mu_list_do (mu_list_t list, mu_list_action_t * action, void *cbdata)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int status = 0;
 
   if (list == NULL || action == NULL)
@@ -351,7 +351,7 @@ mu_list_do (list_t list, mu_list_action_t * action, void *cbdata)
 }
 
 int
-mu_list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
+mu_list_set_destroy_item (mu_list_t list, void (*destroy_item)(void *item))
 {
   if (list == NULL)
     return EINVAL;
@@ -360,7 +360,7 @@ mu_list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
 }
 
 int
-mu_list_to_array (list_t list, void **array, size_t count, size_t *pcount)
+mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount)
 {
   size_t total = 0;
 
@@ -388,7 +388,7 @@ mu_list_to_array (list_t list, void **array, size_t count, size_t *pcount)
 
 struct list_iterator
 {
-  list_t list;
+  mu_list_t list;
   struct list_data *cur;
 };
 
@@ -424,7 +424,7 @@ finished_p (void *owner)
 }
 
 static int
-destroy (iterator_t iterator, void *data)
+destroy (mu_iterator_t iterator, void *data)
 {
   struct list_iterator *itr = data;
   mu_iterator_detach (&itr->list->itr, iterator);
@@ -450,9 +450,9 @@ list_data_dup (void **ptr, void *owner)
 }
 
 int
-mu_list_get_iterator (list_t list, iterator_t *piterator)
+mu_list_get_iterator (mu_list_t list, mu_iterator_t *piterator)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   int status;
   struct list_iterator *itr;
 

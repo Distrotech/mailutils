@@ -204,7 +204,7 @@ extern int expire_on_exit;
 #define ERR_TLS_IO      18
 #define ERR_LOGIN_DELAY 19
 
-extern mailbox_t mbox;
+extern mu_mailbox_t mbox;
 extern int state;
 extern int initial_state;
 extern char *username;
@@ -255,9 +255,9 @@ extern void pop3d_flush_output  (void);
 
 extern int pop3d_is_master      (void);
 
-extern void pop3d_mark_deleted (attribute_t attr);
-extern int pop3d_is_deleted (attribute_t attr);
-extern void pop3d_unset_deleted (attribute_t attr);
+extern void pop3d_mark_deleted (mu_attribute_t attr);
+extern int pop3d_is_deleted (mu_attribute_t attr);
+extern void pop3d_unset_deleted (mu_attribute_t attr);
 void pop3d_undelete_all (void);
 
 #ifdef WITH_TLS
@@ -265,11 +265,11 @@ extern int pop3d_init_tls_server    (void);
 extern void pop3d_deinit_tls_server (void);
 #endif /* WITH_TLS */
 
-extern void pop3d_mark_retr (attribute_t attr);
-extern int pop3d_is_retr (attribute_t attr);
-extern void pop3d_unmark_retr (attribute_t attr);
+extern void pop3d_mark_retr (mu_attribute_t attr);
+extern int pop3d_is_retr (mu_attribute_t attr);
+extern void pop3d_unmark_retr (mu_attribute_t attr);
 
-extern void expire_mark_message (message_t msg, char **value);
+extern void expire_mark_message (mu_message_t msg, char **value);
 
 
 #endif /* _POP3D_H */

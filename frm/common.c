@@ -367,7 +367,7 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
   if (strcmp (charset, "ASCII") == 0)
     return strdup (buf);
 
-  rc = rfc2047_decode (charset, buf, &tmp);
+  rc = mu_rfc2047_decode (charset, buf, &tmp);
   if (rc)
     {
       if (frm_debug)
@@ -381,7 +381,7 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
 
 /* Retrieve the Personal Name from the header To: or From:  */
 static int
-get_personal (header_t hdr, const char *field, char **personal)
+get_personal (mu_header_t hdr, const char *field, char **personal)
 {
   char *hfield;
   int status;
@@ -389,7 +389,7 @@ get_personal (header_t hdr, const char *field, char **personal)
   status = mu_header_aget_value_unfold (hdr, field, &hfield);
   if (status == 0)
     {
-      address_t address = NULL;
+      mu_address_t address = NULL;
       char *s;
       
       mu_address_create (&address, hfield);
@@ -421,7 +421,7 @@ static size_t msg_index;             /* Index (1-based) of the current
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
 static int
-action (observer_t o, size_t type)
+action (mu_observer_t o, size_t type)
 {
   int status;
 
@@ -429,16 +429,16 @@ action (observer_t o, size_t type)
     {
     case MU_EVT_MESSAGE_ADD:
       {
-	mailbox_t mbox = observer_get_owner (o);
-	message_t msg = NULL;
-	header_t hdr = NULL;
-	attribute_t attr = NULL;
+	mu_mailbox_t mbox = mu_observer_get_owner (o);
+	mu_message_t msg = NULL;
+	mu_header_t hdr = NULL;
+	mu_attribute_t attr = NULL;
 
 	msg_index++;
 	
 	mu_mailbox_get_message (mbox, msg_index, &msg);
-	message_get_attribute (msg, &attr);
-	message_get_header (msg, &hdr);
+	mu_message_get_attribute (msg, &attr);
+	mu_message_get_header (msg, &hdr);
 
 	if (!select_message (msg_index, msg))
 	  break;
@@ -460,7 +460,7 @@ action (observer_t o, size_t type)
 	      format_field ("(none)");
 	  }
 
-	if (show_field) /* FIXME: This should be also rfc2047_decode. */
+	if (show_field) /* FIXME: This should be also mu_rfc2047_decode. */
 	  {
 	    char *hfield;
 	    status = mu_header_aget_value_unfold (hdr, show_field, &hfield);
@@ -506,16 +506,16 @@ action (observer_t o, size_t type)
 }
 
 static void
-frm_abort (mailbox_t *mbox)
+frm_abort (mu_mailbox_t *mbox)
 {
   int status;
   
   if ((status = mu_mailbox_close (*mbox)) != 0)
     {
-      url_t url;
+      mu_url_t url;
       
       mu_error (_("Could not close mailbox `%s': %s"),
-		url_to_string (url), mu_strerror (status));
+		mu_url_to_string (url), mu_strerror (status));
       exit (3);
     }
   
@@ -525,7 +525,7 @@ frm_abort (mailbox_t *mbox)
 
 /* Scan the mailbox MAILBOX_NAME using FUN as the selection function.
    FUN takes as its argument message number and the message itself
-   (message_t). It returns non-zero if that message is to be displayed
+   (mu_message_t). It returns non-zero if that message is to be displayed
    and zero otherwise.
 
    Upon finishing scanning, the function places the overall number of
@@ -534,9 +534,9 @@ frm_abort (mailbox_t *mbox)
 void
 frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
 {
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   int status;
-  url_t url;
+  mu_url_t url;
   
   status = mu_mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
@@ -565,37 +565,37 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
   else if (status != 0)
     {
       mu_error (_("Could not open mailbox `%s': %s"),
-		url_to_string (url), mu_strerror (status));
+		mu_url_to_string (url), mu_strerror (status));
       frm_abort (&mbox);
     }
   else
     {
-      observer_t observer;
-      observable_t observable;
+      mu_observer_t observer;
+      mu_observable_t observable;
 
       select_message = fun;
       msg_index = 0;
       
-      observer_create (&observer, mbox);
-      observer_set_action (observer, action, mbox);
+      mu_observer_create (&observer, mbox);
+      mu_observer_set_action (observer, action, mbox);
       mu_mailbox_get_observable (mbox, &observable);
-      observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+      mu_observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
       
       status = mu_mailbox_scan (mbox, 1, total);
       if (status != 0)
 	{
 	  mu_error (_("Could not scan mailbox `%s': %s."),
-		    url_to_string (url), mu_strerror (status));
+		    mu_url_to_string (url), mu_strerror (status));
 	  frm_abort (&mbox);
 	}
       
-      observable_detach (observable, observer);
-      observer_destroy (&observer, mbox);
+      mu_observable_detach (observable, observer);
+      mu_observer_destroy (&observer, mbox);
       
       if ((status = mu_mailbox_close (mbox)) != 0)
 	{
 	  mu_error (_("Could not close mailbox `%s': %s"),
-		    url_to_string (url), mu_strerror (status));
+		    mu_url_to_string (url), mu_strerror (status));
 	  exit (3);
 	}
     }

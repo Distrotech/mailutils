@@ -23,11 +23,11 @@
  */
 
 static int
-undelete0 (msgset_t *mspec, message_t msg, void *data)
+undelete0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_unset_deleted (attr);
   util_mark_read (msg);
   cond_page_invalidate (mspec->msg_part[0]);

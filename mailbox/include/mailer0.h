@@ -39,22 +39,22 @@ extern "C" {
 
 struct _mailer
 {
-  stream_t stream;
-  observable_t observable;
+  mu_stream_t stream;
+  mu_observable_t observable;
   mu_debug_t debug;
-  url_t url;
+  mu_url_t url;
   int flags;
-  monitor_t monitor;
-  property_t property;
+  mu_monitor_t monitor;
+  mu_property_t property;
 
   /* Pointer to the specific mailer data.  */
   void *data;
 
   /* Public methods.  */
-  void (*_destroy)     (mailer_t);
-  int (*_open)         (mailer_t, int flags);
-  int (*_close)        (mailer_t);
-  int (*_send_message) (mailer_t, message_t, address_t, address_t);
+  void (*_destroy)     (mu_mailer_t);
+  int (*_open)         (mu_mailer_t, int flags);
+  int (*_close)        (mu_mailer_t);
+  int (*_send_message) (mu_mailer_t, mu_message_t, mu_address_t, mu_address_t);
 };
 
 #define MAILER_NOTIFY(mailer, type) \

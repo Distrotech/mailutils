@@ -66,8 +66,8 @@ struct mh_option mh_option[] = {
 int link_flag = 0;
 int preserve_flag = 0;
 char *source_file = NULL;
-list_t folder_name_list = NULL;
-list_t folder_mbox_list = NULL;
+mu_list_t folder_name_list = NULL;
+mu_list_t folder_mbox_list = NULL;
 
 void
 add_folder (const char *folder)
@@ -83,7 +83,7 @@ add_folder (const char *folder)
 void
 open_folders ()
 {
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (!folder_name_list)
     {
@@ -106,7 +106,7 @@ open_folders ()
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *name = NULL;
-      mailbox_t mbox;
+      mu_mailbox_t mbox;
       
       mu_iterator_current (itr, (void **)&name);
       mbox = mh_open_folder (name, 1);
@@ -118,9 +118,9 @@ open_folders ()
 }
 
 void
-enumerate_folders (void (*f) (void *, mailbox_t), void *data)
+enumerate_folders (void (*f) (void *, mu_mailbox_t), void *data)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (folder_mbox_list, &itr))
     {
@@ -130,7 +130,7 @@ enumerate_folders (void (*f) (void *, mailbox_t), void *data)
 
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
-      mailbox_t mbox;
+      mu_mailbox_t mbox;
       mu_iterator_current (itr, (void **)&mbox);
       (*f) (data, mbox);
     }
@@ -138,7 +138,7 @@ enumerate_folders (void (*f) (void *, mailbox_t), void *data)
 }
   
 void
-_close_folder (void *unused, mailbox_t mbox)
+_close_folder (void *unused, mu_mailbox_t mbox)
 {
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
@@ -190,9 +190,9 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-refile_folder (void *data, mailbox_t mbox)
+refile_folder (void *data, mu_mailbox_t mbox)
 {
-  message_t msg = data;
+  mu_message_t msg = data;
   int rc;
   
   rc = mu_mailbox_append_message (mbox, msg);
@@ -204,19 +204,19 @@ refile_folder (void *data, mailbox_t mbox)
 }
 
 void
-refile (message_t msg)
+refile (mu_message_t msg)
 {
   enumerate_folders (refile_folder, msg);
 }
 
 void
-refile_iterator (mailbox_t mbox, message_t msg, size_t num, void *data)
+refile_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   enumerate_folders (refile_folder, msg);
   if (!link_flag)
     {
-      attribute_t attr;
-      message_get_attribute (msg, &attr);
+      mu_attribute_t attr;
+      mu_message_get_attribute (msg, &attr);
       mu_attribute_set_deleted (attr);
     }
 }
@@ -226,7 +226,7 @@ main (int argc, char **argv)
 {
   int index;
   mh_msgset_t msgset;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   int status, i, j;
 
   /* Native Language Support */
@@ -254,7 +254,7 @@ main (int argc, char **argv)
 
   if (source_file)
     {
-      message_t msg;
+      mu_message_t msg;
       
       if (argc > 0)
 	{

@@ -33,7 +33,7 @@ parse (const char *str)
   size_t pcount = 0;
   int status;
   char buf[BUFSIZ];
-  address_t address = NULL;
+  mu_address_t address = NULL;
 
   mu_set_user_email_domain ("localhost");
   status = mu_address_create (&address, str);

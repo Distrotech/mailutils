@@ -34,7 +34,7 @@
 #endif
 #include <mu_asprintf.h>
 
-list_t environment = NULL;
+mu_list_t environment = NULL;
 
 /*
  * expands command into its command and arguments, then runs command
@@ -135,7 +135,7 @@ util_foreach_msg (int argc, char **argv, int flags,
 
   for (mp = list; mp; mp = mp->next)
     {
-      message_t mesg;
+      mu_message_t mesg;
 
       if (util_get_message (mbox, mp->msg_part[0], &mesg) == 0)
 	{
@@ -177,7 +177,7 @@ util_range_msg (size_t low, size_t high, int flags,
 
   for (count = 0; count < expect_count && low <= total; low++)
     {
-     message_t mesg;
+     mu_message_t mesg;
 
      if ((flags & MSG_NODELETED) && util_isdeleted (low))
        {
@@ -508,7 +508,7 @@ struct var_iterator
 {
   const char *prefix;
   int prefixlen;
-  iterator_t itr;
+  mu_iterator_t itr;
 };
   
 const char *
@@ -707,20 +707,20 @@ util_reply_prefix ()
 int
 util_isdeleted (size_t n)
 {
-  message_t msg = NULL;
-  attribute_t attr = NULL;
+  mu_message_t msg = NULL;
+  mu_attribute_t attr = NULL;
 
   mu_mailbox_get_message (mbox, n, &msg);
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   return mu_attribute_is_deleted (attr);
 }
 
 void
-util_mark_read (message_t msg)
+util_mark_read (mu_message_t msg)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_set_read (attr);
   mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
 }
@@ -782,17 +782,17 @@ util_folder_path (const char *name)
 char *
 util_get_sender (int msgno, int strip)
 {
-  message_t msg = NULL;
-  address_t addr = NULL;
+  mu_message_t msg = NULL;
+  mu_address_t addr = NULL;
   char *buf = NULL, *p;
 
   mu_mailbox_get_message (mbox, msgno, &msg);
   addr = get_sender_address (msg);
   if (!addr)
     {
-      envelope_t env = NULL;
+      mu_envelope_t env = NULL;
       char buffer[512];
-      message_get_envelope (msg, &env);
+      mu_message_get_envelope (msg, &env);
       if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || mu_address_create (&addr, buffer))
 	{
@@ -820,9 +820,9 @@ util_get_sender (int msgno, int strip)
 }
 
 void
-util_slist_print (list_t list, int nl)
+util_slist_print (mu_list_t list, int nl)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   char *name;
 
   if (!list || mu_list_get_iterator (list, &itr))
@@ -838,9 +838,9 @@ util_slist_print (list_t list, int nl)
 }
 
 int
-util_slist_lookup (list_t list, char *str)
+util_slist_lookup (mu_list_t list, char *str)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   char *name;
   int rc = 0;
 
@@ -861,7 +861,7 @@ util_slist_lookup (list_t list, char *str)
 }
 
 void
-util_slist_add (list_t *list, char *value)
+util_slist_add (mu_list_t *list, char *value)
 {
   char *p;
 
@@ -883,7 +883,7 @@ comp (const void *item, const void *data)
 }
 
 void
-util_slist_remove (list_t *list, char *value)
+util_slist_remove (mu_list_t *list, char *value)
 {
   mu_list_comparator_t cp;
   
@@ -895,9 +895,9 @@ util_slist_remove (list_t *list, char *value)
 }
 
 void
-util_slist_destroy (list_t *list)
+util_slist_destroy (mu_list_t *list)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   char *name;
 
   if (!*list || mu_list_get_iterator (*list, &itr))
@@ -913,9 +913,9 @@ util_slist_destroy (list_t *list)
 }
 
 char *
-util_slist_to_string (list_t list, const char *delim)
+util_slist_to_string (mu_list_t list, const char *delim)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   char *name;
   char *str = NULL;
 
@@ -1034,14 +1034,14 @@ util_outfolder_name (char *str)
 /* Save an outgoing message. "savefile" allows to override the setting
    of the "record" variable. */
 void
-util_save_outgoing (message_t msg, char *savefile)
+util_save_outgoing (mu_message_t msg, char *savefile)
 {
   char *record;
   
   if (util_getenv (&record, "record", Mail_env_string, 0) == 0)
     {
       int rc;
-      mailbox_t outbox;
+      mu_mailbox_t outbox;
       char *filename = util_outfolder_name (savefile ? savefile : record);
 
       rc = mu_mailbox_create_default (&outbox, filename);
@@ -1099,22 +1099,22 @@ util_error (va_alist)
 }
 
 static int
-util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
+util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
 {
   unsigned int i;
 
   for (i = 1; i < msgset->npart; i++)
     {
-      message_t submsg = NULL;
+      mu_message_t submsg = NULL;
       size_t nparts = 0;
       char *type = NULL;
-      header_t hdr = NULL;
+      mu_header_t hdr = NULL;
 
-      message_get_header (mesg, &hdr);
+      mu_message_get_header (mesg, &hdr);
       util_get_content_type (hdr, &type);
       if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
 	{
-	  if (message_unencapsulate (mesg, &submsg, NULL))
+	  if (mu_message_unencapsulate (mesg, &submsg, NULL))
 	    {
 	      util_error (_("Cannot unencapsulate message/part"));
 	      return 1;
@@ -1122,7 +1122,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 	  mesg = submsg;
 	}
 
-      message_get_num_parts (mesg, &nparts);
+      mu_message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
 	  util_error (_("No such (sub)part in the message: %d"),
@@ -1130,7 +1130,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 	  return 1;
 	}
 
-      if (message_get_part (mesg, msgset->msg_part[i], &submsg))
+      if (mu_message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
 	  util_error (_("Cannot get (sub)part from the message: %d"),
 		      msgset->msg_part[i]);
@@ -1146,12 +1146,12 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 
 void
 util_msgset_iterate (msgset_t *msgset,
-		     int (*fun) (message_t, msgset_t *, void *),
+		     int (*fun) (mu_message_t, msgset_t *, void *),
 		     void *closure)
 {
   for (; msgset; msgset = msgset->next)
     {
-      message_t mesg;
+      mu_message_t mesg;
 
       if (mu_mailbox_get_message (mbox, msgset->msg_part[0], &mesg) != 0)
 	return;
@@ -1162,7 +1162,7 @@ util_msgset_iterate (msgset_t *msgset,
 }
 
 int
-util_get_content_type (header_t hdr, char **value)
+util_get_content_type (mu_header_t hdr, char **value)
 {
   char *type = NULL;
   util_get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
@@ -1177,7 +1177,7 @@ util_get_content_type (header_t hdr, char **value)
 }
 
 int
-util_get_hdr_value (header_t hdr, const char *name, char **value)
+util_get_hdr_value (mu_header_t hdr, const char *name, char **value)
 {
   int status = mu_header_aget_value (hdr, name, value);
   if (status == 0)
@@ -1195,7 +1195,7 @@ util_get_hdr_value (header_t hdr, const char *name, char **value)
 int
 util_merge_addresses (char **addr_str, const char *value)
 {
-  address_t addr, new_addr;
+  mu_address_t addr, new_addr;
   int rc;
 
   if ((rc = mu_address_create (&new_addr, value)) != 0)
@@ -1247,10 +1247,10 @@ is_address_field (const char *name)
 }
 
 int
-util_header_expand (header_t *phdr)
+util_header_expand (mu_header_t *phdr)
 {
   size_t i, nfields = 0;
-  header_t hdr;
+  mu_header_t hdr;
   int errcnt = 0, rc;
   
   rc = mu_header_create (&hdr, "", 0, NULL);
@@ -1277,7 +1277,7 @@ util_header_expand (header_t *phdr)
       if (is_address_field (name))
 	{
 	  char *p, *s, *exp;
-	  address_t addr = NULL;
+	  mu_address_t addr = NULL;
 
 	  if (mu_header_aget_value (hdr, name, &exp) == 0)
 	    {
@@ -1287,7 +1287,7 @@ util_header_expand (header_t *phdr)
 	  
 	  for (p = strtok_r (value, ",", &s); p; p = strtok_r (NULL, ",", &s))
 	    {
-	      address_t new_addr;
+	      mu_address_t new_addr;
 	      
 	      while (*p && isspace (*p))
 		p++;
@@ -1340,7 +1340,7 @@ util_header_expand (header_t *phdr)
 }
 
 int
-util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
+util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg)
 {
   int status;
 
@@ -1375,7 +1375,7 @@ util_noapp ()
 }
 
 void
-util_cache_command (list_t *list, const char *fmt, ...)
+util_cache_command (mu_list_t *list, const char *fmt, ...)
 {
   char *cmd;
   va_list ap;
@@ -1399,7 +1399,7 @@ _run_and_free (void *item, void *data)
 }
 
 void
-util_run_cached_commands (list_t *list)
+util_run_cached_commands (mu_list_t *list)
 {
   mu_list_do (*list, _run_and_free, NULL);
   mu_list_destroy (list);
@@ -1446,7 +1446,7 @@ util_rfc2047_decode (char **value)
   if (!charset)
     return;
   
-  rc = rfc2047_decode (charset, *value, &tmp);
+  rc = mu_rfc2047_decode (charset, *value, &tmp);
   if (rc)
     {
       if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)

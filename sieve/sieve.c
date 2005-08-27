@@ -290,12 +290,12 @@ syslog_debug_print (mu_debug_t unused, size_t level, const char *fmt,
 
 static void
 stdout_action_log (void *unused,
-		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
   
-  message_get_uid (msg, &uid);
+  mu_message_get_uid (msg, &uid);
 
   if (sieve_print_locus)
     fprintf (stdout, _("%s:%lu: %s on msg uid %lu"),
@@ -314,13 +314,13 @@ stdout_action_log (void *unused,
 
 static void
 syslog_action_log (void *unused,
-		   const mu_sieve_locus_t *locus, size_t msgno, message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
   char *text = NULL;
   
-  message_get_uid (msg, &uid);
+  mu_message_get_uid (msg, &uid);
 
   if (sieve_print_locus)
     asprintf (&text, _("%s:%lu: %s on msg uid %lu"),
@@ -345,10 +345,10 @@ int
 main (int argc, char *argv[])
 {
   mu_sieve_machine_t mach;
-  wicket_t wicket = 0;
-  ticket_t ticket = 0;
+  mu_wicket_t wicket = 0;
+  mu_ticket_t ticket = 0;
   mu_debug_t debug = 0;
-  mailbox_t mbox = 0;
+  mu_mailbox_t mbox = 0;
   int rc;
   struct options opts = {0};
   int (*debugfp) (mu_debug_t, size_t level, const char *, va_list);
@@ -471,8 +471,8 @@ main (int argc, char *argv[])
 
   if (ticket)
     {
-      folder_t folder = NULL;
-      authority_t auth = NULL;
+      mu_folder_t folder = NULL;
+      mu_authority_t auth = NULL;
 
       if ((rc = mu_mailbox_get_folder (mbox, &folder)))
 	{

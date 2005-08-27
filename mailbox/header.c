@@ -38,17 +38,17 @@
 
 #define HEADER_MODIFIED 1
 
-static int header_parse    (header_t, const char *, int);
-static int header_read     (stream_t, char *, size_t, off_t, size_t *);
-static int header_readline (stream_t, char *, size_t, off_t, size_t *);
-static int header_write    (stream_t, const char *, size_t, off_t, size_t *);
-static int fill_blurb      (header_t);
-static void header_free_cache (header_t);
+static int header_parse    (mu_header_t, const char *, int);
+static int header_read     (mu_stream_t, char *, size_t, off_t, size_t *);
+static int header_readline (mu_stream_t, char *, size_t, off_t, size_t *);
+static int header_write    (mu_stream_t, const char *, size_t, off_t, size_t *);
+static int fill_blurb      (mu_header_t);
+static void header_free_cache (mu_header_t);
 
 int
-mu_header_create (header_t *ph, const char *blurb, size_t len, void *owner)
+mu_header_create (mu_header_t *ph, const char *blurb, size_t len, void *owner)
 {
-  header_t header;
+  mu_header_t header;
   int status = 0;
 
   header = calloc (1, sizeof (*header));
@@ -64,7 +64,7 @@ mu_header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 }
 
 static void
-header_free_cache (header_t header)
+header_free_cache (mu_header_t header)
 {
   /* Clean up our fast header cache.  */
   if (header->fhdr)
@@ -84,16 +84,16 @@ header_free_cache (header_t header)
 }
 
 void
-mu_header_destroy (header_t *ph, void *owner)
+mu_header_destroy (mu_header_t *ph, void *owner)
 {
   if (ph && *ph)
     {
-      header_t header = *ph;
+      mu_header_t header = *ph;
 
       /* Can we destroy ?.  */
       if (header->owner == owner)
 	{
-	  stream_destroy (&(header->stream), header);
+	  mu_stream_destroy (&(header->stream), header);
 
 	  if (header->hdr)
 	    free (header->hdr);
@@ -104,7 +104,7 @@ mu_header_destroy (header_t *ph, void *owner)
 	  header_free_cache (header);
 
 	  if (header->mstream)
-	    stream_destroy (&(header->mstream), NULL);
+	    mu_stream_destroy (&(header->mstream), NULL);
 
 	  free (header);
 	}
@@ -113,19 +113,19 @@ mu_header_destroy (header_t *ph, void *owner)
 }
 
 void *
-mu_header_get_owner (header_t header)
+mu_header_get_owner (mu_header_t header)
 {
   return (header) ? header->owner : NULL;
 }
 
 int
-mu_header_is_modified (header_t header)
+mu_header_is_modified (mu_header_t header)
 {
   return (header) ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
 int
-mu_header_clear_modified (header_t header)
+mu_header_clear_modified (mu_header_t header)
 {
   if (header)
     header->flags &= ~HEADER_MODIFIED;
@@ -138,7 +138,7 @@ mu_header_clear_modified (header_t header)
    on how to handle the case. in the case of error .i.e a bad header construct
    we do a full stop and return what we have so far.  */
 static int
-header_parse (header_t header, const char *blurb, int len)
+header_parse (mu_header_t header, const char *blurb, int len)
 {
   char *header_end;
   char *header_start;
@@ -260,7 +260,7 @@ header_parse (header_t header, const char *blurb, int len)
 /* FIXME: grossly inneficient, to many copies and reallocating.
    This all header business need a good rewrite.  */
 int
-mu_header_set_value (header_t header, const char *fn, const char *fv,
+mu_header_set_value (mu_header_t header, const char *fn, const char *fv,
 		  int replace)
 {
   char *blurb;
@@ -405,7 +405,7 @@ mu_header_set_value (header_t header, const char *fn, const char *fv,
    the field does not exist on the server and we should not
    attempt to contact the server again for this field.  */
 static int
-header_set_fvalue (header_t header, const char *name, char *buffer)
+header_set_fvalue (mu_header_t header, const char *name, char *buffer)
 {
   struct _hdr *thdr;
   thdr = realloc (header->fhdr, (header->fhdr_count + 1) * sizeof(*thdr));
@@ -447,7 +447,7 @@ header_set_fvalue (header_t header, const char *name, char *buffer)
    value, it is a permanent failure i.e.  the field does not exist
    in the header return EINVAL to notify mu_header_get_value().  */
 static int
-header_get_fvalue (header_t header, const char *name, char *buffer,
+header_get_fvalue (mu_header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
 {
   size_t i, fn_len, fv_len = 0;
@@ -487,7 +487,7 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
 }
 
 int
-mu_header_get_value (header_t header, const char *name, char *buffer,
+mu_header_get_value (mu_header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
 {
   size_t i = 0;
@@ -608,7 +608,7 @@ mu_header_get_value (header_t header, const char *name, char *buffer,
 }
 
 int
-mu_header_get_value_unfold (header_t header, const char *name, char *buffer,
+mu_header_get_value_unfold (mu_header_t header, const char *name, char *buffer,
 			 size_t buflen, size_t *pn)
 {
   int rc = mu_header_get_value (header, name, buffer, buflen, pn);
@@ -619,7 +619,7 @@ mu_header_get_value_unfold (header_t header, const char *name, char *buffer,
 }
 
 int
-mu_header_aget_value (header_t header, const char *name, char **pvalue)
+mu_header_aget_value (mu_header_t header, const char *name, char **pvalue)
 {
   char *value;
   size_t n = 0;
@@ -637,7 +637,7 @@ mu_header_aget_value (header_t header, const char *name, char **pvalue)
 }
 
 int
-mu_header_aget_value_unfold (header_t header, const char *name, char **pvalue)
+mu_header_aget_value_unfold (mu_header_t header, const char *name, char **pvalue)
 {
   int rc = mu_header_aget_value (header, name, pvalue);
   if (rc == 0)
@@ -646,7 +646,7 @@ mu_header_aget_value_unfold (header_t header, const char *name, char **pvalue)
 }
 
 int
-mu_header_get_address (header_t header, const char *name, address_t *addr)
+mu_header_get_address (mu_header_t header, const char *name, mu_address_t *addr)
 {
   char* value = NULL;
   int status = mu_header_aget_value(header, name, &value);
@@ -662,7 +662,7 @@ mu_header_get_address (header_t header, const char *name, address_t *addr)
 }
 
 int
-mu_header_get_field_count (header_t header, size_t *pcount)
+mu_header_get_field_count (mu_header_t header, size_t *pcount)
 {
   if (header == NULL)
     {
@@ -685,7 +685,7 @@ mu_header_get_field_count (header_t header, size_t *pcount)
 }
 
 int
-mu_header_get_field_name (header_t header, size_t num, char *buf,
+mu_header_get_field_name (mu_header_t header, size_t num, char *buf,
 		       size_t buflen, size_t *nwriten)
 {
   size_t len;
@@ -720,7 +720,7 @@ mu_header_get_field_name (header_t header, size_t num, char *buf,
 }
 
 int
-mu_header_aget_field_name (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_name (mu_header_t header, size_t num, char **pvalue)
 {
   char *value;
   size_t n = 0;
@@ -739,7 +739,7 @@ mu_header_aget_field_name (header_t header, size_t num, char **pvalue)
 }
 
 int
-mu_header_get_field_value (header_t header, size_t num, char *buf,
+mu_header_get_field_value (mu_header_t header, size_t num, char *buf,
 			size_t buflen, size_t *nwritten)
 {
   size_t len;
@@ -775,7 +775,7 @@ mu_header_get_field_value (header_t header, size_t num, char *buf,
 }
 
 int
-mu_header_get_field_value_unfold (header_t header, size_t num, char *buf,
+mu_header_get_field_value_unfold (mu_header_t header, size_t num, char *buf,
 			       size_t buflen, size_t *nwritten)
 {
   int rc = mu_header_get_field_value (header, num, buf, buflen, nwritten);
@@ -785,7 +785,7 @@ mu_header_get_field_value_unfold (header_t header, size_t num, char *buf,
 }
 
 int
-mu_header_aget_field_value (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_value (mu_header_t header, size_t num, char **pvalue)
 {
   char *value;
   size_t n = 0;
@@ -804,7 +804,7 @@ mu_header_aget_field_value (header_t header, size_t num, char **pvalue)
 }
 
 int
-mu_header_aget_field_value_unfold (header_t header, size_t num, char **pvalue)
+mu_header_aget_field_value_unfold (mu_header_t header, size_t num, char **pvalue)
 {
   int rc = mu_header_aget_field_value (header, num, pvalue);
   if (rc == 0)
@@ -813,8 +813,8 @@ mu_header_aget_field_value_unfold (header_t header, size_t num, char **pvalue)
 }
 
 int
-mu_header_set_lines (header_t header, int (*_lines)
-		 (header_t, size_t *), void *owner)
+mu_header_set_lines (mu_header_t header, int (*_lines)
+		 (mu_header_t, size_t *), void *owner)
 {
   if (header ==  NULL)
     return EINVAL;
@@ -825,7 +825,7 @@ mu_header_set_lines (header_t header, int (*_lines)
 }
 
 int
-mu_header_lines (header_t header, size_t *plines)
+mu_header_lines (mu_header_t header, size_t *plines)
 {
   int n;
   size_t lines = 0;
@@ -858,8 +858,8 @@ mu_header_lines (header_t header, size_t *plines)
 }
 
 int
-mu_header_set_size (header_t header, int (*_size)
-		 (header_t, size_t *), void *owner)
+mu_header_set_size (mu_header_t header, int (*_size)
+		 (mu_header_t, size_t *), void *owner)
 {
   if (header ==  NULL)
     return EINVAL;
@@ -870,7 +870,7 @@ mu_header_set_size (header_t header, int (*_size)
 }
 
 int
-mu_header_size (header_t header, size_t *psize)
+mu_header_size (mu_header_t header, size_t *psize)
 {
   if (header == NULL)
       return EINVAL;
@@ -893,8 +893,8 @@ mu_header_size (header_t header, size_t *psize)
 }
 
 int
-mu_header_set_get_fvalue (header_t header, 
-       int (*_get_fvalue) (header_t, const char *, char *, size_t, size_t *), 
+mu_header_set_get_fvalue (mu_header_t header, 
+       int (*_get_fvalue) (mu_header_t, const char *, char *, size_t, size_t *), 
                        void *owner)
 {
   if (header == NULL)
@@ -906,8 +906,8 @@ mu_header_set_get_fvalue (header_t header,
 }
 
 int
-mu_header_set_get_value (header_t header, int (*_get_value)
-		     (header_t, const char *, char *, size_t, size_t *),
+mu_header_set_get_value (mu_header_t header, int (*_get_value)
+		     (mu_header_t, const char *, char *, size_t, size_t *),
 		     void *owner)
 {
   if (header == NULL)
@@ -919,8 +919,8 @@ mu_header_set_get_value (header_t header, int (*_get_value)
 }
 
 int
-mu_header_set_set_value (header_t header, int (*_set_value)
-		      (header_t , const char *, const char *, int),
+mu_header_set_set_value (mu_header_t header, int (*_set_value)
+		      (mu_header_t , const char *, const char *, int),
 		      void *owner)
 {
   if (header == NULL)
@@ -932,7 +932,7 @@ mu_header_set_set_value (header_t header, int (*_set_value)
 }
 
 int
-mu_header_set_stream (header_t header, stream_t stream, void *owner)
+mu_header_set_stream (mu_header_t header, mu_stream_t stream, void *owner)
 {
   if (header == NULL)
     return EINVAL;
@@ -943,8 +943,8 @@ mu_header_set_stream (header_t header, stream_t stream, void *owner)
 }
 
 int
-mu_header_set_fill (header_t header, int
-		 (*_fill) (header_t, char *, size_t, off_t, size_t *),
+mu_header_set_fill (mu_header_t header, int
+		 (*_fill) (mu_header_t, char *, size_t, off_t, size_t *),
 		 void *owner)
 {
   if (header == NULL)
@@ -956,7 +956,7 @@ mu_header_set_fill (header_t header, int
 }
 
 static int
-fill_blurb (header_t header)
+fill_blurb (mu_header_t header)
 {
   int status;
   char buf[1024];
@@ -965,7 +965,7 @@ fill_blurb (header_t header)
   if (header->_fill == NULL)
     return 0;
 
-  /* The entire header is now ours(part of header_t), clear all the
+  /* The entire header is now ours(part of mu_header_t), clear all the
      overloading.  */
   header_free_cache (header);
   header->_get_fvalue = NULL;
@@ -976,10 +976,10 @@ fill_blurb (header_t header)
 
   if (header->mstream == NULL)
     {
-      status = memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
+      status = mu_memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
-      stream_open (header->mstream);
+      mu_stream_open (header->mstream);
       header->stream_len = 0;
     }
 
@@ -993,17 +993,17 @@ fill_blurb (header_t header)
 	{
 	  if (status != EAGAIN && status != EINTR)
 	    {
-	      stream_destroy (&(header->mstream), NULL);
+	      mu_stream_destroy (&(header->mstream), NULL);
 	      header->stream_len = 0;
 	    }
 	  return status;
 	}
       if (nread > 0)
 	{
-	  status = stream_write (header->mstream, buf, nread, header->stream_len, NULL);
+	  status = mu_stream_write (header->mstream, buf, nread, header->stream_len, NULL);
 	  if (status != 0)
 	    {
-	      stream_destroy (&(header->mstream), NULL);
+	      mu_stream_destroy (&(header->mstream), NULL);
 	      header->stream_len = 0;
 	      return status;
 	    }
@@ -1019,21 +1019,21 @@ fill_blurb (header_t header)
     blurb = calloc (1, len + 1);
     if (blurb)
       {
-	stream_read (header->mstream, blurb, len, 0, &len);
+	mu_stream_read (header->mstream, blurb, len, 0, &len);
 	status = header_parse (header, blurb, len);
       }
     free (blurb);
   }
-  stream_destroy (&header->mstream, NULL);
+  mu_stream_destroy (&header->mstream, NULL);
   header->stream_len = 0;
   return status;
 }
 
 static int
-header_write (stream_t os, const char *buf, size_t buflen,
+header_write (mu_stream_t os, const char *buf, size_t buflen,
 	      off_t off, size_t *pnwrite)
 {
-  header_t header = stream_get_owner (os);
+  mu_header_t header = mu_stream_get_owner (os);
   int status;
 
   if (header == NULL)
@@ -1052,22 +1052,22 @@ header_write (stream_t os, const char *buf, size_t buflen,
 
   if (header->mstream == NULL)
     {
-      status = memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
+      status = mu_memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
-      status = stream_open (header->mstream);
+      status = mu_stream_open (header->mstream);
       if (status != 0)
       {
-	stream_destroy(&header->mstream, NULL);
+	mu_stream_destroy(&header->mstream, NULL);
 	return status;
       }
       header->stream_len = 0;
     }
 
-  status = stream_write (header->mstream, buf, buflen, header->stream_len, &buflen);
+  status = mu_stream_write (header->mstream, buf, buflen, header->stream_len, &buflen);
   if (status != 0)
     {
-      stream_destroy (&header->mstream, NULL);
+      mu_stream_destroy (&header->mstream, NULL);
       header->stream_len = 0;
       return status;
     }
@@ -1080,14 +1080,14 @@ header_write (stream_t os, const char *buf, size_t buflen,
       int finish = 0;
       char nlnl[2];
       nlnl[1] = nlnl[0] = '\0';
-      stream_read (header->mstream, nlnl, 1, 0, NULL);
+      mu_stream_read (header->mstream, nlnl, 1, 0, NULL);
       if (nlnl[0] == '\n')
 	{
 	  finish = 1;
 	}
       else
 	{
-	  stream_read (header->mstream, nlnl, 2, header->stream_len - 2, NULL);
+	  mu_stream_read (header->mstream, nlnl, 2, header->stream_len - 2, NULL);
 	  if (nlnl[0] == '\n' && nlnl[1] == '\n')
 	    {
 	      finish = 1;
@@ -1100,11 +1100,11 @@ header_write (stream_t os, const char *buf, size_t buflen,
 	  blurb = calloc (1, len + 1);
 	  if (blurb)
 	    {
-	      stream_read (header->mstream, blurb, len, 0, &len);
+	      mu_stream_read (header->mstream, blurb, len, 0, &len);
 	      status = header_parse (header, blurb, len);
 	    }
 	  free (blurb);
-	  stream_destroy (&header->mstream, NULL);
+	  mu_stream_destroy (&header->mstream, NULL);
 	  header->stream_len = 0;
 	}
   }
@@ -1116,10 +1116,10 @@ header_write (stream_t os, const char *buf, size_t buflen,
 }
 
 static int
-header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
+header_read (mu_stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 {
   int len;
-  header_t header = stream_get_owner (is);
+  mu_header_t header = mu_stream_get_owner (is);
 
   if (is == NULL || header == NULL)
     return EINVAL;
@@ -1154,10 +1154,10 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 }
 
 static int
-header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
+header_readline (mu_stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 {
   int len;
-  header_t header = stream_get_owner (is);
+  mu_header_t header = mu_stream_get_owner (is);
 
   if (is == NULL || header == NULL)
     return EINVAL;
@@ -1197,7 +1197,7 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 }
 
 int
-mu_header_get_stream (header_t header, stream_t *pstream)
+mu_header_get_stream (mu_header_t header, mu_stream_t *pstream)
 {
   if (header == NULL)
     return EINVAL;
@@ -1205,12 +1205,12 @@ mu_header_get_stream (header_t header, stream_t *pstream)
     return MU_ERR_OUT_PTR_NULL;
   if (header->stream == NULL)
     {
-      int status = stream_create (&(header->stream), MU_STREAM_RDWR, header);
+      int status = mu_stream_create (&(header->stream), MU_STREAM_RDWR, header);
       if (status != 0)
 	return status;
-      stream_set_read (header->stream, header_read, header);
-      stream_set_readline (header->stream, header_readline, header);
-      stream_set_write (header->stream, header_write, header);
+      mu_stream_set_read (header->stream, header_read, header);
+      mu_stream_set_readline (header->stream, header_readline, header);
+      mu_stream_set_write (header->stream, header_write, header);
     }
   *pstream = header->stream;
   return 0;

@@ -31,7 +31,7 @@
 
 #include <mailutils/mailutils.h>
 
-void message_display_parts(message_t msg, int indent);
+void message_display_parts(mu_message_t msg, int indent);
 
 char from[256];
 char subject[256];
@@ -59,7 +59,7 @@ print_file (const char *fname, int indent)
 int
 main (int argc, char **argv)
 {
-  mailbox_t mbox = NULL;
+  mu_mailbox_t mbox = NULL;
   int ret;
   size_t i;
   size_t count = 0;
@@ -81,10 +81,10 @@ main (int argc, char **argv)
   mailbox_name = argv[i];
 
   /* Registration.  */
-  registrar_record (imap_record);
-  registrar_record (mbox_record);
-  registrar_record (path_record);
-  registrar_record (pop_record);
+  mu_registrar_record (mu_imap_record);
+  mu_registrar_record (mu_mbox_record);
+  mu_registrar_record (mu_path_record);
+  mu_registrar_record (mu_pop_record);
 
   if ((ret = mu_mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
@@ -113,8 +113,8 @@ main (int argc, char **argv)
 
   for (i = 1; i <= count; ++i)
     {
-      message_t msg;
-      header_t hdr;
+      mu_message_t msg;
+      mu_header_t hdr;
       size_t nparts;
       size_t msize, nlines;
 
@@ -123,19 +123,19 @@ main (int argc, char **argv)
           fprintf (stderr, "mu_mailbox_get_message - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_size (msg, &msize)) != 0)
+      if ((ret = mu_message_size (msg, &msize)) != 0)
         {
-          fprintf (stderr, "message_size - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_size - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_lines (msg, &nlines)) != 0)
+      if ((ret = mu_message_lines (msg, &nlines)) != 0)
         {
-          fprintf (stderr, "message_lines - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_lines - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_get_header (msg, &hdr)) != 0)
+      if ((ret = mu_message_get_header (msg, &hdr)) != 0)
         {
-          fprintf (stderr, "message_get_header - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_get_header - %s\n", mu_strerror (ret));
           exit (2);
         }
       mu_header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
@@ -145,9 +145,9 @@ main (int argc, char **argv)
       printf ("From: %s\n", from);
       printf ("Subject: %s\n", subject);
 
-      if ((ret = message_get_num_parts (msg, &nparts)) != 0)
+      if ((ret = mu_message_get_num_parts (msg, &nparts)) != 0)
         {
-          fprintf (stderr, "message_get_num_parts - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_get_num_parts - %s\n", mu_strerror (ret));
           exit (2);
         }
       printf ("Number of parts in message - %lu\n",
@@ -164,23 +164,23 @@ main (int argc, char **argv)
 char buf[2048];
 
 void
-message_display_parts (message_t msg, int indent)
+message_display_parts (mu_message_t msg, int indent)
 {
   int ret, j;
   size_t msize, nlines, nparts, nsubparts;
-  message_t part;
-  header_t hdr;
+  mu_message_t part;
+  mu_header_t hdr;
   char type[256];
   char encoding[256];
-  stream_t str;
-  body_t body;
+  mu_stream_t str;
+  mu_body_t body;
   int offset, ismulti;
   size_t nbytes;
 
   /* How many parts does the message has? */
-  if ((ret = message_get_num_parts (msg, &nparts)) != 0)
+  if ((ret = mu_message_get_num_parts (msg, &nparts)) != 0)
     {
-      fprintf (stderr, "message_get_num_parts - %s\n", mu_strerror (ret));
+      fprintf (stderr, "mu_message_get_num_parts - %s\n", mu_strerror (ret));
       exit (2);
     }
 
@@ -189,24 +189,24 @@ message_display_parts (message_t msg, int indent)
      its own that can have other subparts(recursive). */
   for (j = 1; j <= nparts; j++)
     {
-      if ((ret = message_get_part (msg, j, &part)) != 0)
+      if ((ret = mu_message_get_part (msg, j, &part)) != 0)
         {
-          fprintf (stderr, "mime_get_part - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_mime_get_part - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_size (part, &msize)) != 0)
+      if ((ret = mu_message_size (part, &msize)) != 0)
         {
-          fprintf (stderr, "message_size - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_size - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_lines (part, &nlines)) != 0)
+      if ((ret = mu_message_lines (part, &nlines)) != 0)
         {
-          fprintf (stderr, "message_lines - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_lines - %s\n", mu_strerror (ret));
           exit (2);
         }
-      if ((ret = message_get_header (part, &hdr)) != 0)
+      if ((ret = mu_message_get_header (part, &hdr)) != 0)
         {
-          fprintf (stderr, "message_get_header - %s\n", mu_strerror (ret));
+          fprintf (stderr, "mu_message_get_header - %s\n", mu_strerror (ret));
           exit (2);
         }
       mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
@@ -220,19 +220,19 @@ message_display_parts (message_t msg, int indent)
       ismulti = 0;
       if ((type[0]
            && strncasecmp (type, "message/rfc822", strlen (type)) == 0)
-          || (message_is_multipart (part, &ismulti) == 0 && ismulti))
+          || (mu_message_is_multipart (part, &ismulti) == 0 && ismulti))
         {
           if (!ismulti)
             {
-              ret = message_unencapsulate (part, &part, NULL);
+              ret = mu_message_unencapsulate (part, &part, NULL);
               if (ret != 0)
-                fprintf (stderr, "message_unencapsulate - %s\n",
+                fprintf (stderr, "mu_message_unencapsulate - %s\n",
                          mu_strerror (ret));
               break;
             }
-          if ((ret = message_get_header (part, &hdr)) != 0)
+          if ((ret = mu_message_get_header (part, &hdr)) != 0)
             {
-              fprintf (stderr, "message_get_header - %s\n",
+              fprintf (stderr, "mu_message_get_header - %s\n",
                        mu_strerror (ret));
               exit (2);
             }
@@ -242,14 +242,14 @@ message_display_parts (message_t msg, int indent)
           printf ("%*.*sEncapsulated message : %s\t%s\n",
                   indent, indent, "", from, subject);
           printf ("%*.*sBegin\n", indent, indent, "");
-          if ((ret = message_get_num_parts (part, &nsubparts)) != 0)
+          if ((ret = mu_message_get_num_parts (part, &nsubparts)) != 0)
             {
-              fprintf (stderr, "mime_get_num_parts - %s\n",
+              fprintf (stderr, "mu_mime_get_num_parts - %s\n",
                        mu_strerror (ret));
               exit (2);
             }
           message_display_parts (part, indent+indent_level);
-          message_destroy (&part, NULL);
+          mu_message_destroy (&part, NULL);
         }
       else if (type[0] == '\0'
                || (strncasecmp (type, "text/plain", strlen ("text/plain")) ==
@@ -259,23 +259,23 @@ message_display_parts (message_t msg, int indent)
         {
           printf ("%*.*sText Message\n", indent, indent, "");
           printf ("%*.*sBegin\n", indent, indent, "");
-          message_get_body (part, &body);
+          mu_message_get_body (part, &body);
           mu_body_get_stream (body, &str);
           mu_filter_create (&str, str, encoding, 0, 0);
           offset = 0;
-          while (stream_readline (str, buf, sizeof (buf), offset, &nbytes) ==
+          while (mu_stream_readline (str, buf, sizeof (buf), offset, &nbytes) ==
                  0 && nbytes)
             {
               printf ("%*.*s%s", indent, indent, "", buf);
               offset += nbytes;
             }
-          stream_destroy (&str, NULL);
+          mu_stream_destroy (&str, NULL);
         }
       else
         {
           /* Save the attachements.  */
           char *fname = NULL;
-          message_aget_attachment_name (part, &fname);
+          mu_message_aget_attachment_name (part, &fname);
           if (fname == NULL)
             fname = mu_tempname (NULL);
 
@@ -283,7 +283,7 @@ message_display_parts (message_t msg, int indent)
                   fname);
           printf ("%*.*sBegin\n", indent, indent, "");
           /*FIXME: What is the 'data' argument for? */
-          message_save_attachment (part, NULL, NULL);
+          mu_message_save_attachment (part, NULL, NULL);
           if (print_attachments)
             print_file (fname, indent);
           free (fname);

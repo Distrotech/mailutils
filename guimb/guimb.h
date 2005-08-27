@@ -51,10 +51,10 @@ extern char *program_file;
 extern char *program_expr;
 extern char *user_name;
 extern char *default_mailbox;
-extern mailbox_t mbox;
+extern mu_mailbox_t mbox;
 extern size_t nmesg;
 extern size_t current_mesg_no;
-extern message_t current_message;
+extern mu_message_t current_message;
 extern int debug_guile;
 extern char *maildir;
 
@@ -74,6 +74,6 @@ struct guimb_data
   char *program_expr;
 };
 
-SCM guimb_catch_body (void *data, mailbox_t unused);
+SCM guimb_catch_body (void *data, mu_mailbox_t unused);
 SCM guimb_catch_handler (void *unused, SCM tag, SCM throw_args);
-int guimb_exit (void *unused1, mailbox_t unused2);
+int guimb_exit (void *unused1, mu_mailbox_t unused2);

@@ -161,7 +161,7 @@ pop3d_user (const char *arg)
   
   /* mailbox name */
   {
-    url_t url = NULL;
+    mu_url_t url = NULL;
     size_t total = 0;
     mu_mailbox_get_url (mbox, &url);
     mu_mailbox_messages_count (mbox, &total);
@@ -169,7 +169,7 @@ pop3d_user (const char *arg)
 	    ngettext ("User `%s' logged in with mailbox `%s' (%d message)",
 		      "User `%s' logged in with mailbox `%s' (%d messages)",
 		      total),
-	    username, url_to_string (url), total);
+	    username, mu_url_to_string (url), total);
   }
   return OK;
 }

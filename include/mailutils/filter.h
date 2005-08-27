@@ -37,26 +37,26 @@ extern "C" {
 struct mu_filter_record
 {
   const char *name;
-  int  (*_filter)     (filter_t);
+  int  (*_filter)     (mu_filter_t);
   void *data;
 
   /* Stub function return the fields.  */
-  int (*_is_filter)  (filter_record_t, const char *);
-  int (*_get_filter) (filter_record_t, int (*(*_filter)) (filter_t));
+  int (*_is_filter)  (mu_filter_record_t, const char *);
+  int (*_get_filter) (mu_filter_record_t, int (*(*_filter)) (mu_filter_t));
 };
 
 
-extern int mu_filter_create   (stream_t *, stream_t, const char*, int, int);
-extern int mu_filter_get_list (list_t *);
+extern int mu_filter_create   (mu_stream_t *, mu_stream_t, const char*, int, int);
+extern int mu_filter_get_list (mu_list_t *);
 
 /* List of defaults.  */
-extern filter_record_t mu_rfc822_filter;
-extern filter_record_t mu_qp_filter; /* quoted-printable.  */
-extern filter_record_t mu_base64_filter;
-extern filter_record_t mu_binary_filter;
-extern filter_record_t mu_bit8_filter;
-extern filter_record_t mu_bit7_filter;
-extern filter_record_t mu_rfc_2047_Q_filter;
+extern mu_filter_record_t mu_rfc822_filter;
+extern mu_filter_record_t mu_qp_filter; /* quoted-printable.  */
+extern mu_filter_record_t mu_base64_filter;
+extern mu_filter_record_t mu_binary_filter;
+extern mu_filter_record_t mu_bit8_filter;
+extern mu_filter_record_t mu_bit7_filter;
+extern mu_filter_record_t mu_rfc_2047_Q_filter;
 
 enum mu_iconv_fallback_mode {
   mu_fallback_none,
@@ -64,7 +64,7 @@ enum mu_iconv_fallback_mode {
   mu_fallback_copy_octal
 };
 
-extern int mu_filter_iconv_create (stream_t *s, stream_t transport,
+extern int mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
 				const char *fromcode, const char *tocode,
 				int flags,
 				enum mu_iconv_fallback_mode fallback_mode);

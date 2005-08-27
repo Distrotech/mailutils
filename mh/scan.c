@@ -85,8 +85,8 @@ static mh_format_t format;
 
 static mh_msgset_t msgset;
 
-void list_message (mailbox_t mbox, message_t msg, size_t num, void *data);
-void print_header (mailbox_t mbox);
+void list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data);
+void print_header (mu_mailbox_t mbox);
 void clear_screen (void);
 
 static int
@@ -151,16 +151,16 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 
 /* Observable Action this is being call at every message discover.  */
 static int
-action (observer_t o, size_t type)
+action (mu_observer_t o, size_t type)
 {
   static int counter;
-  mailbox_t mbox;
-  message_t msg = NULL;
+  mu_mailbox_t mbox;
+  mu_message_t msg = NULL;
   size_t num;
 
   if (type == MU_EVT_MESSAGE_ADD)
     {
-      mbox = observer_get_owner (o);
+      mbox = mu_observer_get_owner (o);
       counter++;
       mu_mailbox_get_message (mbox, counter, &msg);
       mh_message_number (msg, &num);
@@ -173,7 +173,7 @@ int
 main (int argc, char **argv)
 {
   int index;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   int status;
   size_t total = 0;
   
@@ -197,15 +197,15 @@ main (int argc, char **argv)
   if ((argc == 0 || strcmp (argv[0], "all") == 0) && !reverse)
     {
       /* Fast approach */
-      observer_t observer;
-      observable_t observable;
+      mu_observer_t observer;
+      mu_observable_t observable;
         
       print_header (mbox);
       
-      observer_create (&observer, mbox);
-      observer_set_action (observer, action, mbox);
+      mu_observer_create (&observer, mbox);
+      mu_observer_set_action (observer, action, mbox);
       mu_mailbox_get_observable (mbox, &observable);
-      observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+      mu_observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
 
       status = mu_mailbox_scan (mbox, 1, &total);
     }
@@ -223,10 +223,10 @@ main (int argc, char **argv)
 
   if (total == 0)
     {
-      url_t url = NULL;
+      mu_url_t url = NULL;
 
       mu_mailbox_get_url (mbox, &url);
-      mh_error (_("no messages in %s"), url_to_string (url));
+      mh_error (_("no messages in %s"), mu_url_to_string (url));
     }
 
   clear_screen ();
@@ -236,18 +236,18 @@ main (int argc, char **argv)
 }
 
 void
-print_header (mailbox_t mbox)
+print_header (mu_mailbox_t mbox)
 {
   if (header)
     {
-      url_t url = NULL;
+      mu_url_t url = NULL;
       char datestr[64];
       time_t t;
 	  
       mu_mailbox_get_url (mbox, &url);
       time (&t);
       strftime (datestr, sizeof datestr, "%c", localtime (&t));
-      printf (_("Folder %s  %s\n"), url_to_string (url), datestr);
+      printf (_("Folder %s  %s\n"), mu_url_to_string (url), datestr);
     }
 }
 
@@ -293,7 +293,7 @@ clear_screen ()
 }
 
 void
-list_message (mailbox_t mbox, message_t msg, size_t num, void *data)
+list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   char *buffer;
   int len;

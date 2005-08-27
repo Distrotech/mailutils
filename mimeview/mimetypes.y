@@ -44,7 +44,7 @@ yyprint (FILE *output, unsigned short toknum, YYSTYPE val)
 
 #define YYPRINT yyprint
 
-static list_t arg_list; /* For error recovery */
+static mu_list_t arg_list; /* For error recovery */
 
 #define L_OR  0
 #define L_AND 1
@@ -92,7 +92,7 @@ static struct node *make_binary_node (int op,
 static struct node *make_negation_node (struct node *p);
 
 static struct node *make_suffix_node (struct mimetypes_string *suffix);
-static struct node *make_functional_node (char *ident, list_t list);
+static struct node *make_functional_node (char *ident, mu_list_t list);
 
 static int eval_rule (struct node *root);
 
@@ -102,7 +102,7 @@ struct rule_tab
   struct node *node;
 };
 
-static list_t rule_list;
+static mu_list_t rule_list;
 
 %}
 
@@ -119,7 +119,7 @@ static list_t rule_list;
 
 %union {
   struct mimetypes_string string;
-  list_t list;
+  mu_list_t list;
   int result;
   struct node *node;
 }
@@ -521,13 +521,13 @@ static struct builtin_tab builtin_tab[] = {
 };
   
 struct node *
-make_functional_node (char *ident, list_t list)
+make_functional_node (char *ident, mu_list_t list)
 {
   size_t count, i;
   struct builtin_tab *p;
   struct node *node;
   union argument *args;
-  iterator_t itr;
+  mu_iterator_t itr;
   
   for (p = builtin_tab; ; p++)
     {

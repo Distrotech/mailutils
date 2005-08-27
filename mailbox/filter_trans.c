@@ -61,7 +61,7 @@ struct _trans_stream
 };
 
 static void
-trans_destroy (filter_t filter)
+trans_destroy (mu_filter_t filter)
 {
   struct _trans_stream *ts = filter->data;
   if (ts->s_buf)
@@ -70,7 +70,7 @@ trans_destroy (filter_t filter)
 }
 
 static int
-trans_read (filter_t filter, char *optr, size_t osize, off_t offset,
+trans_read (mu_filter_t filter, char *optr, size_t osize, off_t offset,
 	    size_t *n_bytes)
 {
   struct _trans_stream *ts = filter->data;
@@ -101,7 +101,7 @@ trans_read (filter_t filter, char *optr, size_t osize, off_t offset,
 	  memmove (ts->w_buf, ts->w_buf + ts->w_rhd, ts->w_whd - ts->w_rhd);
 	  ts->w_whd = ts->w_whd - ts->w_rhd;
 	  ts->w_rhd = 0;
-	  ret = stream_read (filter->stream, ts->w_buf + ts->w_whd,
+	  ret = mu_stream_read (filter->stream, ts->w_buf + ts->w_whd,
 			     MU_TRANS_BSIZE - ts->w_whd, ts->offset,
 			     &wbytes );
 	  if (ret != 0)
@@ -356,7 +356,7 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 }
 
 static int
-qp_init (filter_t filter)
+qp_init (mu_filter_t filter)
 {
   struct _trans_stream *ts;
   ts = calloc (sizeof (*ts), 1);
@@ -488,7 +488,7 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 }
 
 static int
-base64_init (filter_t filter)
+base64_init (mu_filter_t filter)
 {
   struct _trans_stream *ts;
   ts = calloc (sizeof (*ts), 1);
@@ -674,7 +674,7 @@ Q_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 }
 
 static int
-Q_init (filter_t filter)
+Q_init (mu_filter_t filter)
 {
   struct _trans_stream *ts;
   ts = calloc (sizeof (*ts), 1);
@@ -738,12 +738,12 @@ static struct mu_filter_record _binary_filter =
 
 
 /* Export.  */
-filter_record_t mu_qp_filter = &_qp_filter;
-filter_record_t mu_base64_filter = &_base64_filter;
-filter_record_t mu_binary_filter = &_binary_filter;
-filter_record_t mu_bit8_filter = &_bit8_filter;
-filter_record_t mu_bit7_filter = &_bit7_filter;
-filter_record_t mu_rfc_2047_Q_filter = &_Q_filter;
+mu_filter_record_t mu_qp_filter = &_qp_filter;
+mu_filter_record_t mu_base64_filter = &_base64_filter;
+mu_filter_record_t mu_binary_filter = &_binary_filter;
+mu_filter_record_t mu_bit8_filter = &_bit8_filter;
+mu_filter_record_t mu_bit7_filter = &_bit7_filter;
+mu_filter_record_t mu_rfc_2047_Q_filter = &_Q_filter;
 
 
 

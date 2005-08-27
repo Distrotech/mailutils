@@ -49,23 +49,23 @@ mh_comp_draft (char *formfile, char *defformfile, char *draftfile)
       else
 	{
 	  int rc;
-	  stream_t stream;
+	  mu_stream_t stream;
 	  
-	  if ((rc = file_stream_create (&stream,
+	  if ((rc = mu_file_stream_create (&stream,
 					draftfile,
 					MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
-	      || (rc = stream_open (stream)))
+	      || (rc = mu_stream_open (stream)))
 	    {
 	      mh_error (_("cannot open output file \"%s\": %s"),
 			draftfile, mu_strerror (rc));
 	      exit (1);
 	    }
 	  
-	  rc = stream_sequential_write (stream, 
+	  rc = mu_stream_sequential_write (stream, 
 					default_format_str,
 					strlen (default_format_str));
-	  stream_close (stream);
-	  stream_destroy (&stream, stream_get_owner (stream));
+	  mu_stream_close (stream);
+	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
 
 	  if (rc)
 	    {

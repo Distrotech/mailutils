@@ -27,9 +27,9 @@
 int
 mail_write (int argc, char **argv)
 {
-  message_t msg;
-  body_t bod;
-  stream_t stream;
+  mu_message_t msg;
+  mu_body_t bod;
+  mu_stream_t stream;
   FILE *output;
   char *filename = NULL;
   msgset_t *msglist = NULL, *mp;
@@ -83,7 +83,7 @@ mail_write (int argc, char **argv)
 
   for (mp = msglist; mp; mp = mp->next)
     {
-      attribute_t attr;
+      mu_attribute_t attr;
       char buffer[512];
       off_t off = 0;
       size_t n = 0;
@@ -91,7 +91,7 @@ mail_write (int argc, char **argv)
       if (util_get_message (mbox, mp->msg_part[0], &msg))
         continue;
 
-      message_get_body (msg, &bod);
+      mu_message_get_body (msg, &bod);
 
       mu_body_size (bod, &size);
       total_size += size;
@@ -100,7 +100,7 @@ mail_write (int argc, char **argv)
 
       mu_body_get_stream (bod, &stream);
       /* should there be a separator? */
-      while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+      while (mu_stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
@@ -110,7 +110,7 @@ mail_write (int argc, char **argv)
 
       /* mark as saved. */
 
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
     }
 

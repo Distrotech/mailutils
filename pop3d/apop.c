@@ -265,10 +265,10 @@ pop3d_apop (const char *arg)
 
   /* mailbox name */
   {
-    url_t url = NULL;
+    mu_url_t url = NULL;
     mu_mailbox_get_url (mbox, &url);
     syslog (LOG_INFO, _("User `%s' logged in with mailbox `%s'"),
-            username, url_to_string (url));
+            username, mu_url_to_string (url));
   }
   return OK;
 }

@@ -38,7 +38,7 @@
 #include <mailutils/mutil.h>
 
 static int
-_mh_folder_init (folder_t folder ARG_UNUSED)
+_mh_folder_init (mu_folder_t folder ARG_UNUSED)
 {
   return 0;
 }
@@ -87,7 +87,7 @@ mh_dir_p (const char *name)
 }
 
 static int
-_mh_is_scheme (record_t record, const char *url, int flags)
+_mh_is_scheme (mu_record_t record, const char *url, int flags)
 {
   const char *path;
   int rc = 0;
@@ -123,12 +123,12 @@ _mh_is_scheme (record_t record, const char *url, int flags)
   mh:path
 */
 static int
-_mh_url_init (url_t url)
+_mh_url_init (mu_url_t url)
 {
   return amd_url_init (url, MU_MH_SCHEME);
 }
 
-static struct _record _mh_record =
+static struct mu__record _mh_record =
 {
   MU_MH_PRIO,
   MU_MH_SCHEME,
@@ -143,10 +143,10 @@ static struct _record _mh_record =
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
-record_t mh_record = &_mh_record;
+mu_record_t mu_mh_record = &_mh_record;
 
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t mh_record = NULL;
+mu_record_t mu_mh_record = NULL;
 #endif

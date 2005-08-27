@@ -22,13 +22,13 @@
  *  
  */
 
-typedef int (*status_funcp) (mailbox_t);
+typedef int (*status_funcp) (mu_mailbox_t);
 
-static int status_messages    (mailbox_t);
-static int status_recent      (mailbox_t);
-static int status_uidnext     (mailbox_t);
-static int status_uidvalidity (mailbox_t);
-static int status_unseen      (mailbox_t);
+static int status_messages    (mu_mailbox_t);
+static int status_recent      (mu_mailbox_t);
+static int status_uidnext     (mu_mailbox_t);
+static int status_uidvalidity (mu_mailbox_t);
+static int status_unseen      (mu_mailbox_t);
 
 struct status_table {
   char *name;
@@ -60,7 +60,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
   char *name;
   char *mailbox_name;
   const char *delim = "/";
-  mailbox_t smbox = NULL;
+  mu_mailbox_t smbox = NULL;
   int status;
   int count = 0;
   char *err_msg = NULL;
@@ -129,7 +129,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 }
 
 static int
-status_messages (mailbox_t smbox)
+status_messages (mu_mailbox_t smbox)
 {
   size_t total = 0;
   mu_mailbox_messages_count (smbox, &total);
@@ -138,7 +138,7 @@ status_messages (mailbox_t smbox)
 }
 
 static int
-status_recent (mailbox_t smbox)
+status_recent (mu_mailbox_t smbox)
 {
   size_t recent = 0;
   mu_mailbox_messages_recent (smbox, &recent);
@@ -147,7 +147,7 @@ status_recent (mailbox_t smbox)
 }
 
 static int
-status_uidnext (mailbox_t smbox)
+status_uidnext (mu_mailbox_t smbox)
 {
   size_t uidnext = 1;
   mu_mailbox_uidnext (smbox, &uidnext);
@@ -156,7 +156,7 @@ status_uidnext (mailbox_t smbox)
 }
 
 static int
-status_uidvalidity (mailbox_t smbox)
+status_uidvalidity (mu_mailbox_t smbox)
 {
   unsigned long uidvalidity = 0;
   util_uidvalidity (smbox, &uidvalidity);
@@ -168,7 +168,7 @@ status_uidvalidity (mailbox_t smbox)
    number of the first unseen message, the unseeen item in the response the
    status command indicates the quantity of unseen messages.  */
 static int
-status_unseen (mailbox_t smbox)
+status_unseen (mu_mailbox_t smbox)
 {
   size_t total = 0;
   size_t unseen = 0;
@@ -176,10 +176,10 @@ status_unseen (mailbox_t smbox)
   mu_mailbox_messages_count (smbox, &total);
   for (i = 1; i <= total; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
       mu_mailbox_get_message (smbox, i, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       if (!mu_attribute_is_seen (attr) && !mu_attribute_is_read (attr))
 	unseen++;
     }

@@ -72,7 +72,7 @@ char *from_person = NULL; /* Set the name of the `from' person */
 int read_recipients = 0; /* Read the message for recipients */
 int dot = 1;             /* Message is terminated by a lone dot on a line */
 
-address_t recipients = NULL;
+mu_address_t recipients = NULL;
 char *progname;
 
 int mta_stdin (int argc, char **argv);
@@ -251,15 +251,15 @@ make_tmp (FILE *input, const char *from, char **tempfile)
 void
 register_handlers ()
 {
-  registrar_record (path_record);
-  registrar_record (sendmail_record);
-  registrar_record (smtp_record);
+  mu_registrar_record (mu_path_record);
+  mu_registrar_record (mu_sendmail_record);
+  mu_registrar_record (mu_smtp_record);
 }
 
 int
 add_recipient (const char *name)
 {
-  address_t addr;
+  mu_address_t addr;
   int status;
     
   status = mu_address_create (&addr, name);
@@ -272,7 +272,7 @@ add_recipient (const char *name)
 /* Convert addr to a comma-separated list of email addresses,
    suitable as an argument to RCPT TO command */
 char *
-address_email_string (address_t addr)
+address_email_string (mu_address_t addr)
 {
   size_t count, i, n, length;
   char *value, *p;
@@ -308,11 +308,11 @@ address_email_string (address_t addr)
 }
 
 int
-mta_send (message_t msg)
+mta_send (mu_message_t msg)
 {
   size_t n;
   char buffer[512];    
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   size_t off = 0, line;
   char *value;
 
@@ -327,10 +327,10 @@ mta_send (message_t msg)
   fprintf (diag, "ENVELOPE TO: %s\n", value);
   free (value);
 
-  message_get_stream (msg, &stream);
+  mu_message_get_stream (msg, &stream);
   line = 0;
   fprintf (diag, "%4lu: ", (unsigned long) line);
-  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
       size_t i;
@@ -354,13 +354,13 @@ mta_send (message_t msg)
 #define SENDER_WARNING "set sender using -f flag"
 
 int
-message_finalize (message_t msg, int warn)
+message_finalize (mu_message_t msg, int warn)
 {
-  header_t header = NULL;
+  mu_header_t header = NULL;
   int have_to;
   char *value = NULL;
   
-  message_get_header (msg, &header);
+  mu_message_get_header (msg, &header);
 
   if (warn && from_person)
     {
@@ -444,8 +444,8 @@ mta_stdin (int argc, char **argv)
 {
   int c;
   char *tempfile;
-  mailbox_t mbox;
-  message_t msg = NULL;
+  mu_mailbox_t mbox;
+  mu_message_t msg = NULL;
   
   for (c = 0; c < argc; c++)
     {
@@ -550,8 +550,8 @@ smtp (int fd)
   int state, c;
   char *buf = NULL;
   size_t size = 0;
-  mailbox_t mbox;
-  message_t msg;
+  mu_mailbox_t mbox;
+  mu_message_t msg;
   char *tempfile;
   
   in = fdopen (fd, "r");

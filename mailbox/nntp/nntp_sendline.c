@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <mailutils/sys/nntp.h>
 
-/* A socket may write less then expected but stream.c:stream_write() will
+/* A socket may write less then expected but stream.c:mu_stream_write() will
    always try to send the entire buffer unless an error is reported.  We have
    to cope with nonblocking, it is done by keeping track with the nntp->ptr
    pointer if the write failed we keep track and restart where we left.  */
@@ -55,7 +55,7 @@ mu_nntp_send (mu_nntp_t nntp)
 	    return ETIMEDOUT;
 	}
 
-      status = stream_write (nntp->carrier, nntp->io.buf, len, 0, &n);
+      status = mu_stream_write (nntp->carrier, nntp->io.buf, len, 0, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */

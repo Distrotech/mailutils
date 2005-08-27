@@ -166,7 +166,7 @@ struct token
   char *val;
 };
 
-static iterator_t iterator;
+static mu_iterator_t iterator;
 
 int
 yylex ()
@@ -234,7 +234,7 @@ yyerror (char *s)
 }
   
 void
-pick_add_token (list_t *list, int tok, char *val)
+pick_add_token (mu_list_t *list, int tok, char *val)
 {
   struct token *tp;
   int rc;
@@ -252,7 +252,7 @@ pick_add_token (list_t *list, int tok, char *val)
 
 /* Main entry point */
 int
-pick_parse (list_t toklist)
+pick_parse (mu_list_t toklist)
 {
   int rc;
   
@@ -287,18 +287,18 @@ pick_node_create (node_type type, void *a, void *b)
 
 struct eval_env
 {
-  message_t msg;
+  mu_message_t msg;
   char *datefield;
 };
 
 static int
-match_header (message_t msg, char *comp, regex_t *regex)
+match_header (mu_message_t msg, char *comp, regex_t *regex)
 {
   size_t i, count;
-  header_t hdr = NULL;
+  mu_header_t hdr = NULL;
   char buf[128];
   
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
@@ -314,15 +314,15 @@ match_header (message_t msg, char *comp, regex_t *regex)
 }
 
 static int
-match_message (message_t msg, regex_t *regex)
+match_message (mu_message_t msg, regex_t *regex)
 {
-  stream_t str = NULL;
+  mu_stream_t str = NULL;
   char buf[128];
   size_t n;
   
-  message_get_stream (msg, &str);
-  stream_seek (str, 0, SEEK_SET);
-  while (stream_sequential_readline (str, buf, sizeof buf, &n) == 0
+  mu_message_get_stream (msg, &str);
+  mu_stream_seek (str, 0, SEEK_SET);
+  while (mu_stream_sequential_readline (str, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       buf[n] = 0;
@@ -335,10 +335,10 @@ match_message (message_t msg, regex_t *regex)
 static int
 get_date_field (struct eval_env *env, time_t *t)
 {
-  header_t hdr;
+  mu_header_t hdr;
   char buf[128];
   
-  if (message_get_header (env->msg, &hdr))
+  if (mu_message_get_header (env->msg, &hdr))
     return 1;
   if (mu_header_get_value (hdr, env->datefield, buf, sizeof buf, NULL))
     return 1;
@@ -390,7 +390,7 @@ pick_eval_node (node_t *node, struct eval_env *env)
 }
 
 int
-pick_eval (message_t msg)
+pick_eval (mu_message_t msg)
 {
   struct eval_env env;
   

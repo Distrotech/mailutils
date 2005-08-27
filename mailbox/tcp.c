@@ -60,9 +60,9 @@ struct _tcp_instance {
 #endif
 
 static int
-_tcp_close (stream_t stream)
+_tcp_close (mu_stream_t stream)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int err = 0;
 
   if (tcp->fd != -1)
@@ -78,9 +78,9 @@ _tcp_close (stream_t stream)
 }
 
 static int
-_tcp_open (stream_t stream)
+_tcp_open (mu_stream_t stream)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int flgs, ret;
   socklen_t namelen;
   struct sockaddr_in peer_addr;
@@ -88,7 +88,7 @@ _tcp_open (stream_t stream)
   struct sockaddr_in soc_addr;
   int flags;
 
-  stream_get_flags(stream, &flags);
+  mu_stream_get_flags(stream, &flags);
 
   switch (tcp->state)
     {
@@ -103,7 +103,7 @@ _tcp_open (stream_t stream)
 	  flgs = fcntl (tcp->fd, F_GETFL);
 	  flgs |= O_NONBLOCK;
 	  fcntl (tcp->fd, F_SETFL, flgs);
-	  stream_set_flags (stream, MU_STREAM_NONBLOCK);
+	  mu_stream_set_flags (stream, MU_STREAM_NONBLOCK);
 	}
       tcp->state = TCP_STATE_RESOLVING;
     case TCP_STATE_RESOLVING:
@@ -158,9 +158,9 @@ _tcp_open (stream_t stream)
 
 
 static int
-_tcp_get_transport2 (stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
+_tcp_get_transport2 (mu_stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
 
   if (tcp->fd == -1)
     return EINVAL;
@@ -173,9 +173,9 @@ _tcp_get_transport2 (stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
 }
 
 static int
-_tcp_read (stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * br)
+_tcp_read (mu_stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * br)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int bytes;
 
   offset = offset;
@@ -192,10 +192,10 @@ _tcp_read (stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * b
 }
 
 static int
-_tcp_write (stream_t stream, const char *buf, size_t buf_size, off_t offset,
+_tcp_write (mu_stream_t stream, const char *buf, size_t buf_size, off_t offset,
 	    size_t * bw)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int bytes;
 
   offset = offset;
@@ -212,9 +212,9 @@ _tcp_write (stream_t stream, const char *buf, size_t buf_size, off_t offset,
 }
 
 static void
-_tcp_destroy (stream_t stream)
+_tcp_destroy (mu_stream_t stream)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
 
   if (tcp->host)
     free (tcp->host);
@@ -225,16 +225,16 @@ _tcp_destroy (stream_t stream)
 }
 
 int
-_tcp_wait (stream_t stream, int *pflags, struct timeval *tvp)
+_tcp_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
-  struct _tcp_instance *tcp = stream_get_owner (stream);
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   if (tcp->fd == -1)
     return EINVAL;
   return mu_fd_wait (tcp->fd, pflags, tvp);
 }
 
 int
-tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
+mu_tcp_stream_create (mu_stream_t * stream, const char* host, int port, int flags)
 {
   struct _tcp_instance *tcp;
   int ret;
@@ -257,7 +257,7 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   tcp->port = port;
   tcp->state = TCP_STATE_INIT;
 
-  if ((ret = stream_create (stream,
+  if ((ret = mu_stream_create (stream,
 	  flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)) != 0)
   {
     free (tcp->host);
@@ -266,13 +266,13 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
     return ret;
   }
 
-  stream_set_open (*stream, _tcp_open, tcp);
-  stream_set_close (*stream, _tcp_close, tcp);
-  stream_set_read (*stream, _tcp_read, tcp);
-  stream_set_write (*stream, _tcp_write, tcp);
-  stream_set_get_transport2 (*stream, _tcp_get_transport2, tcp);
-  stream_set_destroy (*stream, _tcp_destroy, tcp);
-  stream_set_wait (*stream, _tcp_wait, tcp);
+  mu_stream_set_open (*stream, _tcp_open, tcp);
+  mu_stream_set_close (*stream, _tcp_close, tcp);
+  mu_stream_set_read (*stream, _tcp_read, tcp);
+  mu_stream_set_write (*stream, _tcp_write, tcp);
+  mu_stream_set_get_transport2 (*stream, _tcp_get_transport2, tcp);
+  mu_stream_set_destroy (*stream, _tcp_destroy, tcp);
+  mu_stream_set_wait (*stream, _tcp_wait, tcp);
 
   return 0;
 }

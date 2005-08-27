@@ -36,21 +36,21 @@ struct _ticket
   void *owner;
   char *challenge;
   void *data;
-  int  (*_pop)      (ticket_t, url_t, const char *challenge, char **);
-  void (*_destroy)  (ticket_t);
+  int  (*_pop)      (mu_ticket_t, mu_url_t, const char *challenge, char **);
+  void (*_destroy)  (mu_ticket_t);
 };
 
 struct _authority
 {
   void *owner;
-  ticket_t ticket;
-  list_t auth_methods; /* list of int (*_authenticate) (authority_t)s; */
+  mu_ticket_t ticket;
+  mu_list_t auth_methods; /* list of int (*_authenticate) (mu_authority_t)s; */
 };
 
 struct _wicket
 {
   char *filename;
-  int (*_get_ticket) (wicket_t, const char *, const char *, ticket_t *);
+  int (*_get_ticket) (mu_wicket_t, const char *, const char *, mu_ticket_t *);
 };
 
 

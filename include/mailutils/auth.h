@@ -25,36 +25,36 @@
 extern "C" {
 #endif
 
-extern int  mu_ticket_create          (ticket_t *, void *owner);
-extern void mu_ticket_destroy         (ticket_t *, void *owner);
-extern int  mu_ticket_set_destroy     (ticket_t, void (*) (ticket_t), void *);
-extern void *mu_ticket_get_owner      (ticket_t);
+extern int  mu_ticket_create          (mu_ticket_t *, void *owner);
+extern void mu_ticket_destroy         (mu_ticket_t *, void *owner);
+extern int  mu_ticket_set_destroy     (mu_ticket_t, void (*) (mu_ticket_t), void *);
+extern void *mu_ticket_get_owner      (mu_ticket_t);
 
-extern int mu_ticket_set_pop          (ticket_t, 
-                                    int (*_pop) (ticket_t, url_t, const char *, char **), void *);
-extern int mu_ticket_pop              (ticket_t, url_t, const char *, char **);
-extern int mu_ticket_set_data         (ticket_t, void *, void *owner);
-extern int mu_ticket_get_data         (ticket_t, void **);
+extern int mu_ticket_set_pop          (mu_ticket_t, 
+                                    int (*_pop) (mu_ticket_t, mu_url_t, const char *, char **), void *);
+extern int mu_ticket_pop              (mu_ticket_t, mu_url_t, const char *, char **);
+extern int mu_ticket_set_data         (mu_ticket_t, void *, void *owner);
+extern int mu_ticket_get_data         (mu_ticket_t, void **);
 
-extern int mu_authority_create           (authority_t *, ticket_t, void *);
-extern void mu_authority_destroy         (authority_t *, void *);
-extern void *mu_authority_get_owner      (authority_t);
-extern int mu_authority_set_ticket       (authority_t, ticket_t);
-extern int mu_authority_get_ticket       (authority_t, ticket_t *);
-extern int mu_authority_authenticate     (authority_t);
-extern int mu_authority_set_authenticate (authority_t, 
-                                            int (*_authenticate) (authority_t), void *);
+extern int mu_authority_create           (mu_authority_t *, mu_ticket_t, void *);
+extern void mu_authority_destroy         (mu_authority_t *, void *);
+extern void *mu_authority_get_owner      (mu_authority_t);
+extern int mu_authority_set_ticket       (mu_authority_t, mu_ticket_t);
+extern int mu_authority_get_ticket       (mu_authority_t, mu_ticket_t *);
+extern int mu_authority_authenticate     (mu_authority_t);
+extern int mu_authority_set_authenticate (mu_authority_t, 
+                                            int (*_authenticate) (mu_authority_t), void *);
 
-extern int mu_authority_create_null      (authority_t *pauthority, void *owner);
+extern int mu_authority_create_null      (mu_authority_t *pauthority, void *owner);
 
-extern int  mu_wicket_create       (wicket_t *, const char *);
-extern void mu_wicket_destroy      (wicket_t *);
-extern int  mu_wicket_set_filename (wicket_t, const char *);
-extern int  mu_wicket_get_filename (wicket_t, char *, size_t, size_t *);
-extern int  mu_wicket_set_ticket   (wicket_t, 
-                                 int (*) (wicket_t, const char *,
-			         const char *, ticket_t *));
-extern int  mu_wicket_get_ticket   (wicket_t, ticket_t *, const char *, const char *);
+extern int  mu_wicket_create       (mu_wicket_t *, const char *);
+extern void mu_wicket_destroy      (mu_wicket_t *);
+extern int  mu_wicket_set_filename (mu_wicket_t, const char *);
+extern int  mu_wicket_get_filename (mu_wicket_t, char *, size_t, size_t *);
+extern int  mu_wicket_set_ticket   (mu_wicket_t, 
+                                 int (*) (mu_wicket_t, const char *,
+			         const char *, mu_ticket_t *));
+extern int  mu_wicket_get_ticket   (mu_wicket_t, mu_ticket_t *, const char *, const char *);
 
 #ifdef __cplusplus
 }

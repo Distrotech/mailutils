@@ -19,8 +19,8 @@
 
 #include "imap4d.h"
 
-static stream_t istream;
-static stream_t ostream;
+static mu_stream_t istream;
+static mu_stream_t ostream;
 
 static int add2set (size_t **, int *, unsigned long);
 static const char *sc2string (int);
@@ -178,9 +178,9 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
   /* If it is a uid sequence, override max with the UID.  */
   if (isuid)
     {
-      message_t msg = NULL;
+      mu_message_t msg = NULL;
       mu_mailbox_get_message (mbox, max, &msg);
-      message_get_uid (msg, &max);
+      mu_message_get_uid (msg, &max);
     }
 
   *n = 0;
@@ -363,7 +363,7 @@ util_send (const char *format, ...)
   if (daemon_param.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
-  status = stream_sequential_write (ostream, buf, strlen (buf));
+  status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
 
   return status;
@@ -417,7 +417,7 @@ util_out (int rc, const char *format, ...)
   if (daemon_param.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
-  status = stream_sequential_write (ostream, buf, strlen (buf));
+  status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
   free (tempbuf);
   return status;
@@ -458,9 +458,9 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   if (daemon_param.transcript)
     syslog (LOG_DEBUG, "sent: %s\r\n", buf);
 
-  stream_sequential_write (ostream, buf, strlen (buf));
+  mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
-  stream_sequential_write (ostream, "\r\n", 2);
+  mu_stream_sequential_write (ostream, "\r\n", 2);
 
   /* Reset the state.  */
   if (rc == RESP_OK)
@@ -504,7 +504,7 @@ imap4d_readline (void)
       int rc;
       
       alarm (daemon_param.timeout);
-      rc = stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
+      rc = mu_stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
       if (sz == 0)
 	{
 	  syslog (LOG_INFO, _("Unexpected eof on input"));
@@ -513,7 +513,7 @@ imap4d_readline (void)
       else if (rc)
 	{
 	  const char *p;
-	  if (stream_strerror (istream, &p))
+	  if (mu_stream_strerror (istream, &p))
 	    p = strerror (errno);
 
 	  syslog (LOG_INFO, _("Error reading from input file: %s"), p);
@@ -733,7 +733,7 @@ util_parse_822_date (char *date, time_t * timep)
   mu_timezone tz;
   const char *p = date;
 
-  if (parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
+  if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);
       return 0;
@@ -834,7 +834,7 @@ util_type_to_attribute (int type, char **attr_str)
 }
 
 void
-util_print_flags (attribute_t attr)
+util_print_flags (mu_attribute_t attr)
 {
   int i;
   int flags = 0;
@@ -860,7 +860,7 @@ util_print_flags (attribute_t attr)
 }
 
 int
-util_attribute_matches_flag (attribute_t attr, const char *item)
+util_attribute_matches_flag (mu_attribute_t attr, const char *item)
 {
   int flags = 0, mask = 0;
 
@@ -1084,14 +1084,14 @@ util_wcard_match (const char *string, const char *pattern, const char *delim)
    first sees if it is asked to operate upon an already opened mailbox
    and if so, returns the previously computed value. */
 int
-util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
+util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp)
 {
-  url_t mbox_url = NULL;
-  url_t smbox_url = NULL;
+  mu_url_t mbox_url = NULL;
+  mu_url_t smbox_url = NULL;
 
   mu_mailbox_get_url (mbox, &mbox_url);
   mu_mailbox_get_url (smbox, &smbox_url);
-  if (strcmp (url_to_string (mbox_url), url_to_string (smbox_url)) == 0)
+  if (strcmp (mu_url_to_string (mbox_url), mu_url_to_string (smbox_url)) == 0)
     smbox = mbox;
   return mu_mailbox_uidvalidity (smbox, uidvp);
 }
@@ -1105,31 +1105,31 @@ util_setio (FILE *in, FILE *out)
 
   setvbuf (in, NULL, _IOLBF, 0);
   setvbuf (out, NULL, _IOLBF, 0);
-  if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
-      || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
+      || mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_OFILE);
 }
 
 void
-util_get_input (stream_t *pstr)
+util_get_input (mu_stream_t *pstr)
 {
   *pstr = istream;
 }
 
 void
-util_get_output (stream_t *pstr)
+util_get_output (mu_stream_t *pstr)
 {
   *pstr = ostream;
 }
 
 void
-util_set_input (stream_t str)
+util_set_input (mu_stream_t str)
 {
   istream = str;
 }
 
 void
-util_set_output (stream_t str)
+util_set_output (mu_stream_t str)
 {
   ostream = str;
 }
@@ -1147,7 +1147,7 @@ util_wait_input (int timeout)
   
   tv.tv_sec = timeout;
   tv.tv_usec = 0;
-  status = stream_wait (istream, &wflags, &tv);
+  status = mu_stream_wait (istream, &wflags, &tv);
   if (status)
     {
       syslog (LOG_ERR, _("Cannot poll input stream: %s"),
@@ -1160,7 +1160,7 @@ util_wait_input (int timeout)
 void
 util_flush_output ()
 {
-  stream_flush (ostream);
+  mu_stream_flush (ostream);
 }
 
 int
@@ -1173,17 +1173,17 @@ util_is_master ()
 int
 imap4d_init_tls_server ()
 {
-  stream_t stream;
+  mu_stream_t stream;
   int rc;
  
-  rc = tls_stream_create (&stream, istream, ostream, 0);
+  rc = mu_tls_stream_create (&stream, istream, ostream, 0);
   if (rc)
     return 0;
 
-  if (stream_open (stream))
+  if (mu_stream_open (stream))
     {
       const char *p;
-      stream_strerror (stream, &p);
+      mu_stream_strerror (stream, &p);
       syslog (LOG_ERR, _("Cannot open TLS stream: %s"), p);
       return 0;
     }
@@ -1193,7 +1193,7 @@ imap4d_init_tls_server ()
 }
 #endif /* WITH_TLS */
 
-static list_t atexit_list;
+static mu_list_t atexit_list;
 
 void
 util_atexit (void (*fp) (void))
@@ -1215,13 +1215,13 @@ util_bye ()
 {
   int rc = istream != ostream;
   
-  stream_close (istream);
-  stream_destroy (&istream, stream_get_owner (istream));
+  mu_stream_close (istream);
+  mu_stream_destroy (&istream, mu_stream_get_owner (istream));
 
   if (rc)
     {
-      stream_close (ostream);
-      stream_destroy (&ostream, stream_get_owner (ostream));
+      mu_stream_close (ostream);
+      mu_stream_destroy (&ostream, mu_stream_get_owner (ostream));
     }
       
   mu_list_do (atexit_list, atexit_run, 0);
@@ -1234,7 +1234,7 @@ struct state_event {
   void *data;
 };
 
-static list_t event_list;
+static mu_list_t event_list;
 
 void
 util_register_event (int old_state, int new_state,
@@ -1274,7 +1274,7 @@ util_run_events (int old_state, int new_state)
   if (event_list)
     {
       struct state_event ev;
-      iterator_t itr;
+      mu_iterator_t itr;
       ev.old_state = old_state;
       ev.new_state = new_state;
 

@@ -25,29 +25,29 @@
 extern "C" {
 #endif
 
-extern int mu_iterator_create   (iterator_t *, void *);
-extern int mu_iterator_dup      (iterator_t *piterator, iterator_t orig);
-extern void mu_iterator_destroy (iterator_t *);
-extern int mu_iterator_first    (iterator_t);
-extern int mu_iterator_next     (iterator_t);
-extern int mu_iterator_current  (iterator_t, void * const *pitem);
-extern int mu_iterator_is_done  (iterator_t);
+extern int mu_iterator_create   (mu_iterator_t *, void *);
+extern int mu_iterator_dup      (mu_iterator_t *piterator, mu_iterator_t orig);
+extern void mu_iterator_destroy (mu_iterator_t *);
+extern int mu_iterator_first    (mu_iterator_t);
+extern int mu_iterator_next     (mu_iterator_t);
+extern int mu_iterator_current  (mu_iterator_t, void * const *pitem);
+extern int mu_iterator_is_done  (mu_iterator_t);
 
-extern int mu_iterator_attach (iterator_t *root, iterator_t iterator);
-extern int mu_iterator_detach (iterator_t *root, iterator_t iterator);
-extern void mu_iterator_advance (iterator_t iterator, void *e);
+extern int mu_iterator_attach (mu_iterator_t *root, mu_iterator_t iterator);
+extern int mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator);
+extern void mu_iterator_advance (mu_iterator_t iterator, void *e);
   
-extern int mu_iterator_set_first (iterator_t, int (*first) (void *));  
-extern int mu_iterator_set_next (iterator_t, int (*next) (void *));  
-extern int mu_iterator_set_getitem (iterator_t,
+extern int mu_iterator_set_first (mu_iterator_t, int (*first) (void *));  
+extern int mu_iterator_set_next (mu_iterator_t, int (*next) (void *));  
+extern int mu_iterator_set_getitem (mu_iterator_t,
 				 int (*getitem) (void *, void **));  
-extern int mu_iterator_set_finished_p (iterator_t,
+extern int mu_iterator_set_finished_p (mu_iterator_t,
 				    int (*finished_p) (void *));  
-extern int mu_iterator_set_dup (iterator_t itr,
+extern int mu_iterator_set_dup (mu_iterator_t itr,
 			     int (dup) (void **ptr, void *data));
-extern int mu_iterator_set_destroy (iterator_t itr,
-				 int (destroy) (iterator_t, void *data));
-extern int mu_iterator_set_curitem_p (iterator_t itr,
+extern int mu_iterator_set_destroy (mu_iterator_t itr,
+				 int (destroy) (mu_iterator_t, void *data));
+extern int mu_iterator_set_curitem_p (mu_iterator_t itr,
 				   int (*curitem_p) (void *, void *));
   
 #ifdef __cplusplus

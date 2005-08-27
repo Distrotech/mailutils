@@ -27,7 +27,7 @@ int
 mail_previous (int argc, char **argv)
 {
   size_t n;
-  message_t msg;
+  mu_message_t msg;
 
   if (argc < 2)
     {

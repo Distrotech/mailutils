@@ -31,7 +31,7 @@
 #include <mailutils/error.h>
 
 int
-mu_nntp_carrier_is_ready (stream_t carrier, int flag, int timeout)
+mu_nntp_carrier_is_ready (mu_stream_t carrier, int flag, int timeout)
 {
   struct timeval tv, *tvp = NULL;
   int wflags = flag;
@@ -43,7 +43,7 @@ mu_nntp_carrier_is_ready (stream_t carrier, int flag, int timeout)
       tv.tv_usec = (timeout % 1000) * 1000;
       tvp = &tv;
     }
-  status = stream_wait (carrier, &wflags, tvp);
+  status = mu_stream_wait (carrier, &wflags, tvp);
   if (status)
     return 0; /* FIXME: provide a way to return error code! */
   return wflags & flag;
@@ -73,7 +73,7 @@ mu_nntp_getline (mu_nntp_t nntp)
 	    return ETIMEDOUT;
 	}
 
-      status = stream_sequential_readline (nntp->carrier, nntp->io.buf + total, nntp->io.len - total, &n);
+      status = mu_stream_sequential_readline (nntp->carrier, nntp->io.buf + total, nntp->io.len - total, &n);
       if (status != 0)
 	return status;
 

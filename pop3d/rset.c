@@ -36,10 +36,10 @@ pop3d_rset (const char *arg)
 
   for (i = 1; i <= total; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
       mu_mailbox_get_message (mbox, i, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       pop3d_unset_deleted (attr);
     }
   pop3d_outf ("+OK\r\n");

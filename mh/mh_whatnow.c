@@ -186,33 +186,33 @@ display_file (const char *name)
     mh_spawnp (pager, name);
   else
     {
-      stream_t stream;
+      mu_stream_t stream;
       int rc;
       size_t off = 0;
       size_t n;
       char buffer[512];
       
-      rc = file_stream_create (&stream, name, MU_STREAM_READ);
+      rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
       if (rc)
 	{
-	  mh_error ("file_stream_create: %s", mu_strerror (rc));
+	  mh_error ("mu_file_stream_create: %s", mu_strerror (rc));
 	  return;
 	}
-      rc = stream_open (stream);
+      rc = mu_stream_open (stream);
       if (rc)
 	{
-	  mh_error ("stream_open: %s", mu_strerror (rc));
+	  mh_error ("mu_stream_open: %s", mu_strerror (rc));
 	  return;
 	} 
       
-      while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+      while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  printf ("%s", buffer);
 	  off += n;
 	}
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
 }      
 

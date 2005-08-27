@@ -61,7 +61,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-mhpath (mailbox_t mbox, message_t msg, size_t num, void *data)
+mhpath (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   size_t uid;
       
@@ -73,8 +73,8 @@ int
 main (int argc, char **argv)
 {
   int index = 0;
-  mailbox_t mbox = NULL;
-  url_t url = NULL;
+  mu_mailbox_t mbox = NULL;
+  mu_url_t url = NULL;
   char *mhdir;
   size_t total;
   mh_msgset_t msgset;
@@ -99,7 +99,7 @@ main (int argc, char **argv)
 
   mu_mailbox_messages_count (mbox, &total);
   mu_mailbox_get_url (mbox, &url);
-  mhdir = (char*) url_to_string (url);
+  mhdir = (char*) mu_url_to_string (url);
   if (strncmp (mhdir, "mh:", 3) == 0)
     mhdir += 3;
 
@@ -121,7 +121,7 @@ main (int argc, char **argv)
   
   if (argc - index == 1 && strcmp (argv[index], "new") == 0)
     {
-      message_t msg = NULL;
+      mu_message_t msg = NULL;
       size_t num;
       
       mu_mailbox_get_message (mbox, total, &msg);

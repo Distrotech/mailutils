@@ -95,7 +95,7 @@ struct mh_option mh_option[] = {
 
 static int limit;
 static int verbose;
-static mailbox_t mbox;
+static mu_mailbox_t mbox;
 static const char *mbox_path;
 static mh_msgset_t msgset;
 
@@ -207,7 +207,7 @@ struct comp_op {
   compfun comp;
 };
 
-static list_t oplist;
+static mu_list_t oplist;
 
 static void
 addop (char *field, compfun comp)
@@ -252,7 +252,7 @@ remop (compfun comp)
 
 struct comp_data {
   int r;
-  message_t m[2];
+  mu_message_t m[2];
 };
 
 static int
@@ -261,13 +261,13 @@ compare_action (void *item, void *data)
   struct comp_op *op = item;
   struct comp_data *dp = data;
   char *a, *ap, *b, *bp;
-  header_t h;
+  mu_header_t h;
   
-  if (message_get_header (dp->m[0], &h)
+  if (mu_message_get_header (dp->m[0], &h)
       || mu_header_aget_value (h, op->field, &a))
     return 0;
 
-  if (message_get_header (dp->m[1], &h)
+  if (mu_message_get_header (dp->m[1], &h)
       || mu_header_aget_value (h, op->field, &b))
     {
       free (a);
@@ -292,7 +292,7 @@ compare_action (void *item, void *data)
 }
 
 static int
-compare_messages (message_t a, message_t b)
+compare_messages (mu_message_t a, mu_message_t b)
 {
   struct comp_data d;
 
@@ -333,7 +333,7 @@ _parse_822_date (char *date, time_t * timep)
   mu_timezone tz;
   const char *p = date;
 
-  if (parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
+  if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);
       return 0;
@@ -370,7 +370,7 @@ comp_date (void *a, void *b)
 static int
 comp0 (size_t na, size_t nb)
 {
-  message_t a, b;
+  mu_message_t a, b;
 
   if (mu_mailbox_get_message (mbox, na, &a)
       || mu_mailbox_get_message (mbox, nb, &b))
@@ -431,7 +431,7 @@ shell_sort ()
 void
 list_message (size_t num)
 {
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
   char *buffer;
   mu_mailbox_get_message (mbox, num, &msg);
   mh_format (&format, msg, num, 76, &buffer);
@@ -518,7 +518,7 @@ sort ()
 	  if (msgset.list[i] != oldlist[i])
 	    {
 	      size_t old_num, new_num;
-	      message_t msg;
+	      mu_message_t msg;
 
 	      mu_mailbox_get_message (mbox, oldlist[i], &msg);
 	      mh_message_number (msg, &old_num);
@@ -543,7 +543,7 @@ int
 main (int argc, char **argv)
 {
   int index;
-  url_t url;
+  mu_url_t url;
   
   mu_init_nls ();
   mu_argp_init (program_version, NULL);
@@ -560,7 +560,7 @@ main (int argc, char **argv)
   
   mbox = mh_open_folder (current_folder, 0);
   mu_mailbox_get_url (mbox, &url);
-  mbox_path = url_to_string (url);
+  mbox_path = mu_url_to_string (url);
   if (memcmp (mbox_path, "mh:", 3) == 0)
     mbox_path += 3;
   

@@ -485,9 +485,9 @@ save_field = &(mum->fhdr[H_X_UIDL])
 do \
 { \
   int bailing = 0; \
-  monitor_unlock (mbox->monitor); \
+  mu_monitor_unlock (mbox->monitor); \
   if (mbox->observable) \
-     bailing = observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
+     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
   if (bailing != 0) \
     { \
       if (pcount) \
@@ -495,7 +495,7 @@ do \
       mu_locker_unlock (mbox->locker); \
       return EINTR; \
     } \
-  monitor_wrlock (mbox->monitor); \
+  mu_monitor_wrlock (mbox->monitor); \
 } while (0);
 
 /* Notification MBX_PROGRESS
@@ -509,10 +509,10 @@ do \
 { \
     { \
       int bailing = 0; \
-      monitor_unlock (mbox->monitor); \
+      mu_monitor_unlock (mbox->monitor); \
       mud->messages_count--; \
       if (mbox->observable) \
-        bailing = observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS); \
+        bailing = mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS); \
       if (bailing != 0) \
 	{ \
 	  if (pcount) \
@@ -521,7 +521,7 @@ do \
 	  return EINTR; \
 	} \
       mud->messages_count++; \
-      monitor_wrlock (mbox->monitor); \
+      mu_monitor_wrlock (mbox->monitor); \
     } \
 } while (0)
 
@@ -538,7 +538,7 @@ do \
     if (m == NULL) \
       { \
         mu_locker_unlock (mbox->locker); \
-        monitor_unlock (mbox->monitor); \
+        mu_monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
     (mud)->umessages = m; \
@@ -546,7 +546,7 @@ do \
     if ((mud)->umessages[num - 1] == NULL) \
       { \
         mu_locker_unlock (mbox->locker); \
-        monitor_unlock (mbox->monitor); \
+        mu_monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
     (mud)->umessages_count = num; \
@@ -554,7 +554,7 @@ do \
 } while (0)
 
 int
-mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
+mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 {
 #define MSGLINELEN 1024
   char buf[MSGLINELEN];
@@ -567,7 +567,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   size_t lines;
   int newline;
   size_t n = 0;
-  stream_t stream;
+  mu_stream_t stream;
   char **sfield = NULL;
   size_t min_uid = 0;
   int zn, isfrom = 0;
@@ -578,7 +578,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     return EINVAL;
 
   /* Grab the lock.  */
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
 
 #ifdef WITH_PTHREAD
   /* read() is cancellation point since we're doing a potentially
@@ -587,16 +587,16 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 #endif
 
   /* Save the timestamp and size.  */
-  status = stream_size (mailbox->stream, &(mud->size));
+  status = mu_stream_size (mailbox->stream, &(mud->size));
   if (status != 0)
     {
-      monitor_unlock (mailbox->monitor);
+      mu_monitor_unlock (mailbox->monitor);
       return status;
     }
 
   if((status = mu_locker_lock (mailbox->locker)))
     {
-      monitor_unlock (mailbox->monitor);
+      mu_monitor_unlock (mailbox->monitor);
       return status;
     }
 
@@ -628,7 +628,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   errno = lines = inheader = inbody = 0;
 
   stream = mailbox->stream;
-  while ((status = stream_readline (mailbox->stream, buf, sizeof (buf),
+  while ((status = mu_stream_readline (mailbox->stream, buf, sizeof (buf),
 				    total, &n)) == 0 && n != 0)
     {
       int nl;
@@ -832,7 +832,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   if (pcount)
     *pcount = mud->messages_count;
   mu_locker_unlock (mailbox->locker);
-  monitor_unlock (mailbox->monitor);
+  mu_monitor_unlock (mailbox->monitor);
 
   /* Reset the uidvalidity.  */
   if (mud->messages_count > 0)

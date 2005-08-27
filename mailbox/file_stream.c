@@ -49,27 +49,27 @@ struct _file_stream
   int offset;
 
   char *filename;
-  stream_t cache;
+  mu_stream_t cache;
 };
 
 static void
-_file_destroy (stream_t stream)
+_file_destroy (mu_stream_t stream)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
 
   if (fs->filename)
     free (fs->filename);
 
   if (fs->cache)
-    stream_destroy (&fs->cache, stream_get_owner (fs->cache));
+    mu_stream_destroy (&fs->cache, mu_stream_get_owner (fs->cache));
   free (fs);
 }
 
 static int
-_file_read (stream_t stream, char *optr, size_t osize,
+_file_read (mu_stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n;
   int err = 0;
 
@@ -109,10 +109,10 @@ _file_read (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_file_readline (stream_t stream, char *optr, size_t osize,
+_file_readline (mu_stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n = 0;
   int err = 0;
 
@@ -162,10 +162,10 @@ _file_readline (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_file_write (stream_t stream, const char *iptr, size_t isize,
+_file_write (mu_stream_t stream, const char *iptr, size_t isize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n;
   int err = 0;
 
@@ -200,16 +200,16 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_stdin_file_read (stream_t stream, char *optr, size_t osize,
+_stdin_file_read (mu_stream_t stream, char *optr, size_t osize,
 		  off_t offset, size_t *pnbytes)
 {
   int status = 0;
   size_t nbytes;
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   int fs_offset = fs->offset;
 
   if (offset < fs_offset)
-    return stream_read (fs->cache, optr, osize, offset, pnbytes);
+    return mu_stream_read (fs->cache, optr, osize, offset, pnbytes);
   else if (offset > fs_offset)
     {
       int status = 0;
@@ -218,11 +218,11 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
       if (!buf)
 	return ENOMEM;
       while (left > 0
-	     && (status = stream_read (stream, buf, left, fs_offset, &n)) == 0
+	     && (status = mu_stream_read (stream, buf, left, fs_offset, &n)) == 0
 	     && n > 0)
 	{
 	  size_t k;
-	  status = stream_write (fs->cache, buf, n, fs_offset, &k);
+	  status = mu_stream_write (fs->cache, buf, n, fs_offset, &k);
 	  if (status)
 	    break;
 	  if (k != n)
@@ -248,7 +248,7 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
 	{
 	  size_t k;
 
-	  status = stream_write (fs->cache, optr, nbytes, fs_offset, &k);
+	  status = mu_stream_write (fs->cache, optr, nbytes, fs_offset, &k);
 	  if (status)
 	    return status;
 	  if (k != nbytes)
@@ -261,16 +261,16 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_stdin_file_readline (stream_t stream, char *optr, size_t osize,
+_stdin_file_readline (mu_stream_t stream, char *optr, size_t osize,
 		      off_t offset, size_t *pnbytes)
 {
   int status;
   size_t nbytes;
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   int fs_offset = fs->offset;
   
   if (offset < fs->offset)
-    return stream_readline (fs->cache, optr, osize, offset, pnbytes);
+    return mu_stream_readline (fs->cache, optr, osize, offset, pnbytes);
   else if (offset > fs->offset)
     return ESPIPE;
 
@@ -280,7 +280,7 @@ _stdin_file_readline (stream_t stream, char *optr, size_t osize,
     {
       size_t k;
 
-      status = stream_write (fs->cache, optr, nbytes, fs_offset, &k);
+      status = mu_stream_write (fs->cache, optr, nbytes, fs_offset, &k);
       if (status)
 	return status;
       if (k != nbytes)
@@ -292,26 +292,26 @@ _stdin_file_readline (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_stdout_file_write (stream_t stream, const char *iptr, size_t isize,
+_stdout_file_write (mu_stream_t stream, const char *iptr, size_t isize,
 		    off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   return _file_write (stream, iptr, isize, fs->offset, nbytes);
 }
 
 static int
-_file_truncate (stream_t stream, off_t len)
+_file_truncate (mu_stream_t stream, off_t len)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   if (fs->file && ftruncate (fileno(fs->file), len) != 0)
     return errno;
   return 0;
 }
 
 static int
-_file_size (stream_t stream, off_t *psize)
+_file_size (mu_stream_t stream, off_t *psize)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   struct stat stbuf;
   if (!fs->file)
     {
@@ -328,18 +328,18 @@ _file_size (stream_t stream, off_t *psize)
 }
 
 static int
-_file_flush (stream_t stream)
+_file_flush (mu_stream_t stream)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   if (fs->file)
     return fflush (fs->file);
   return 0;
 }
 
 int
-_file_wait (stream_t stream, int *pflags, struct timeval *tvp)
+_file_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
 
   if (!fs->file)
     return EINVAL;
@@ -347,10 +347,10 @@ _file_wait (stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 static int
-_file_get_transport2 (stream_t stream,
+_file_get_transport2 (mu_stream_t stream,
 		      mu_transport_t *pin, mu_transport_t *pout)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   int status = 0;
 
   if (pin)
@@ -366,9 +366,9 @@ _file_get_transport2 (stream_t stream,
 }
 
 static int
-_file_close (stream_t stream)
+_file_close (mu_stream_t stream)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   int err = 0;
 
   if (!stream)
@@ -378,7 +378,7 @@ _file_close (stream_t stream)
     {
       int flags = 0;
 
-      stream_get_flags (stream, &flags);
+      mu_stream_get_flags (stream, &flags);
 
       if ((flags & MU_STREAM_NO_CLOSE) == 0)
 	{
@@ -392,9 +392,9 @@ _file_close (stream_t stream)
 }
 
 static int
-_file_open (stream_t stream)
+_file_open (mu_stream_t stream)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
+  struct _file_stream *fs = mu_stream_get_owner (stream);
   int flg;
   int fd;
   const char *mode;
@@ -413,7 +413,7 @@ _file_open (stream_t stream)
       fs->file = NULL;
     }
 
-  stream_get_flags(stream, &flags);
+  mu_stream_get_flags(stream, &flags);
 
   /* Map the flags to the system equivalent.  */
   if (flags & MU_STREAM_WRITE && flags & MU_STREAM_READ)
@@ -500,14 +500,14 @@ _file_open (stream_t stream)
 }
 
 int
-_file_strerror (stream_t unused, const char **pstr)
+_file_strerror (mu_stream_t unused, const char **pstr)
 {
   *pstr = strerror (errno);
   return 0;
 }
 
 int
-file_stream_create (stream_t *stream, const char* filename, int flags)
+mu_file_stream_create (mu_stream_t *stream, const char* filename, int flags)
 {
   struct _file_stream *fs;
   int ret;
@@ -525,7 +525,7 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
       return ENOMEM;
     }
 
-  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  ret = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
       free (fs);
@@ -533,24 +533,24 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
       return ret;
     }
 
-  stream_set_open (*stream, _file_open, fs);
-  stream_set_close (*stream, _file_close, fs);
-  stream_set_get_transport2 (*stream, _file_get_transport2, fs);
-  stream_set_read (*stream, _file_read, fs);
-  stream_set_readline (*stream, _file_readline, fs);
-  stream_set_write (*stream, _file_write, fs);
-  stream_set_truncate (*stream, _file_truncate, fs);
-  stream_set_size (*stream, _file_size, fs);
-  stream_set_flush (*stream, _file_flush, fs);
-  stream_set_destroy (*stream, _file_destroy, fs);
-  stream_set_strerror (*stream, _file_strerror, fs);
-  stream_set_wait (*stream, _file_wait, fs);
+  mu_stream_set_open (*stream, _file_open, fs);
+  mu_stream_set_close (*stream, _file_close, fs);
+  mu_stream_set_get_transport2 (*stream, _file_get_transport2, fs);
+  mu_stream_set_read (*stream, _file_read, fs);
+  mu_stream_set_readline (*stream, _file_readline, fs);
+  mu_stream_set_write (*stream, _file_write, fs);
+  mu_stream_set_truncate (*stream, _file_truncate, fs);
+  mu_stream_set_size (*stream, _file_size, fs);
+  mu_stream_set_flush (*stream, _file_flush, fs);
+  mu_stream_set_destroy (*stream, _file_destroy, fs);
+  mu_stream_set_strerror (*stream, _file_strerror, fs);
+  mu_stream_set_wait (*stream, _file_wait, fs);
   
   return 0;
 }
 
 int
-stdio_stream_create (stream_t *stream, FILE *file, int flags)
+mu_stdio_stream_create (mu_stream_t *stream, FILE *file, int flags)
 {
   struct _file_stream *fs;
   int ret;
@@ -567,7 +567,7 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
 
   fs->file = file;
 
-  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  ret = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
       free (fs);
@@ -578,32 +578,32 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
 
   if ((flags & MU_STREAM_SEEKABLE) && lseek (fileno (file), 0, 0))
     {
-      if ((ret = memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
-	  || (ret = stream_open (fs->cache)))
+      if ((ret = mu_memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
+	  || (ret = mu_stream_open (fs->cache)))
 	{
-	  stream_destroy (stream, fs);
+	  mu_stream_destroy (stream, fs);
 	  free (fs);
 	  return ret;
 	}
-      stream_set_read (*stream, _stdin_file_read, fs);
-      stream_set_readline (*stream, _stdin_file_readline, fs);
-      stream_set_write (*stream, _stdout_file_write, fs);
+      mu_stream_set_read (*stream, _stdin_file_read, fs);
+      mu_stream_set_readline (*stream, _stdin_file_readline, fs);
+      mu_stream_set_write (*stream, _stdout_file_write, fs);
     }
   else
     {
-      stream_set_read (*stream, _file_read, fs);
-      stream_set_readline (*stream, _file_readline, fs);
-      stream_set_write (*stream, _file_write, fs);
+      mu_stream_set_read (*stream, _file_read, fs);
+      mu_stream_set_readline (*stream, _file_readline, fs);
+      mu_stream_set_write (*stream, _file_write, fs);
     }
   
   /* We don't need to open the FILE, just return success. */
 
-  stream_set_open (*stream, NULL, fs);
-  stream_set_close (*stream, _file_close, fs);
-  stream_set_get_transport2 (*stream, _file_get_transport2, fs);
-  stream_set_flush (*stream, _file_flush, fs);
-  stream_set_destroy (*stream, _file_destroy, fs);
-  stream_set_wait (*stream, _file_wait, fs);
+  mu_stream_set_open (*stream, NULL, fs);
+  mu_stream_set_close (*stream, _file_close, fs);
+  mu_stream_set_get_transport2 (*stream, _file_get_transport2, fs);
+  mu_stream_set_flush (*stream, _file_flush, fs);
+  mu_stream_set_destroy (*stream, _file_destroy, fs);
+  mu_stream_set_wait (*stream, _file_wait, fs);
   
   return 0;
 }
@@ -616,12 +616,12 @@ struct _prog_stream
   pid_t writer_pid;
   size_t argc;
   char **argv;
-  stream_t in, out;
+  mu_stream_t in, out;
 
-  stream_t input;
+  mu_stream_t input;
 };
 
-static list_t prog_stream_list;
+static mu_list_t prog_stream_list;
 
 static int
 _prog_stream_register (struct _prog_stream *stream)
@@ -778,14 +778,14 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv,
 }
 
 static void
-_prog_destroy (stream_t stream)
+_prog_destroy (mu_stream_t stream)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
   mu_argcv_free (fs->argc, fs->argv);
   if (fs->in)
-    stream_destroy (&fs->in, stream_get_owner (fs->in));
+    mu_stream_destroy (&fs->in, mu_stream_get_owner (fs->in));
   if (fs->out)
-    stream_destroy (&fs->out, stream_get_owner (fs->out));
+    mu_stream_destroy (&fs->out, mu_stream_get_owner (fs->out));
   if (fs->pid > 0)
     {
       kill (fs->pid, SIGTERM);
@@ -799,9 +799,9 @@ _prog_destroy (stream_t stream)
 }
 
 static int
-_prog_close (stream_t stream)
+_prog_close (mu_stream_t stream)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
   
   if (!stream)
     return EINVAL;
@@ -809,13 +809,13 @@ _prog_close (stream_t stream)
   if (fs->pid <= 0)
     return 0;
 
-  stream_close (fs->out);
-  stream_destroy (&fs->out, stream_get_owner (fs->out));
+  mu_stream_close (fs->out);
+  mu_stream_destroy (&fs->out, mu_stream_get_owner (fs->out));
 
   _prog_stream_wait (fs);
   
-  stream_close (fs->in);
-  stream_destroy (&fs->in, stream_get_owner (fs->in));
+  mu_stream_close (fs->in);
+  mu_stream_destroy (&fs->in, mu_stream_get_owner (fs->in));
 
   if (WIFEXITED (fs->status))
     {
@@ -845,17 +845,17 @@ feed_input (struct _prog_stream *fs)
     default:
       /* Master */
       fs->writer_pid = pid;
-      stream_close (fs->out);
-      stream_destroy (&fs->out, stream_get_owner (fs->out));
+      mu_stream_close (fs->out);
+      mu_stream_destroy (&fs->out, mu_stream_get_owner (fs->out));
       break;
       
     case 0:
       /* Child */
-      while (stream_sequential_read (fs->input, buffer, sizeof (buffer),
+      while (mu_stream_sequential_read (fs->input, buffer, sizeof (buffer),
 				     &size) == 0
 	     && size > 0)
-	stream_sequential_write (fs->out, buffer, size);
-      stream_close (fs->out);
+	mu_stream_sequential_write (fs->out, buffer, size);
+      mu_stream_close (fs->out);
       exit (0);
       
     case -1:
@@ -866,9 +866,9 @@ feed_input (struct _prog_stream *fs)
 }
   
 static int
-_prog_open (stream_t stream)
+_prog_open (mu_stream_t stream)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
   int rc;
   int pfd[2];
   int flags;
@@ -882,7 +882,7 @@ _prog_open (stream_t stream)
       _prog_close (stream);
     }
 
-  stream_get_flags (stream, &flags);
+  mu_stream_get_flags (stream, &flags);
   seekable_flag = (flags & MU_STREAM_SEEKABLE);
   
   rc = start_program_filter (&fs->pid, pfd, fs->argc, fs->argv, NULL, flags);
@@ -893,13 +893,13 @@ _prog_open (stream_t stream)
     {
       FILE *fp = fdopen (pfd[0], "r");
       setvbuf (fp, NULL, _IONBF, 0);
-      rc = stdio_stream_create (&fs->in, fp, MU_STREAM_READ|seekable_flag);
+      rc = mu_stdio_stream_create (&fs->in, fp, MU_STREAM_READ|seekable_flag);
       if (rc)
 	{
 	  _prog_close (stream);
 	  return rc;
 	}
-      rc = stream_open (fs->in);
+      rc = mu_stream_open (fs->in);
       if (rc)
 	{
 	  _prog_close (stream);
@@ -911,13 +911,13 @@ _prog_open (stream_t stream)
     {
       FILE *fp = fdopen (pfd[1], "w");
       setvbuf (fp, NULL, _IONBF, 0);
-      rc = stdio_stream_create (&fs->out, fp, MU_STREAM_WRITE|seekable_flag);
+      rc = mu_stdio_stream_create (&fs->out, fp, MU_STREAM_WRITE|seekable_flag);
       if (rc)
 	{
 	  _prog_close (stream);
 	  return rc;
 	}
-      rc = stream_open (fs->out);
+      rc = mu_stream_open (fs->out);
       if (rc)
 	{
 	  _prog_close (stream);
@@ -932,52 +932,52 @@ _prog_open (stream_t stream)
 }
 
 static int
-_prog_read (stream_t stream, char *optr, size_t osize,
+_prog_read (mu_stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *pnbytes)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
-  return stream_read (fs->in, optr, osize, offset, pnbytes);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
+  return mu_stream_read (fs->in, optr, osize, offset, pnbytes);
 }
 
 static int
-_prog_readline (stream_t stream, char *optr, size_t osize,
+_prog_readline (mu_stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *pnbytes)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
-  return stream_readline (fs->in, optr, osize, offset, pnbytes);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
+  return mu_stream_readline (fs->in, optr, osize, offset, pnbytes);
 }
 
 static int
-_prog_write (stream_t stream, const char *iptr, size_t isize,
+_prog_write (mu_stream_t stream, const char *iptr, size_t isize,
 	     off_t offset, size_t *pnbytes)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
-  return stream_write (fs->out, iptr, isize, offset, pnbytes);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
+  return mu_stream_write (fs->out, iptr, isize, offset, pnbytes);
 }
 
 static int
-_prog_flush (stream_t stream)
+_prog_flush (mu_stream_t stream)
 {
-  struct _prog_stream *fs = stream_get_owner (stream);
-  stream_flush (fs->in);
-  stream_flush (fs->out);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
+  mu_stream_flush (fs->in);
+  mu_stream_flush (fs->out);
   return 0;
 }
 
 static int
-_prog_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+_prog_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   int rc;
-  struct _prog_stream *fs = stream_get_owner (stream);
+  struct _prog_stream *fs = mu_stream_get_owner (stream);
   
-  if ((rc = stream_get_transport (fs->in, pin)) != 0)
+  if ((rc = mu_stream_get_transport (fs->in, pin)) != 0)
     return rc;
-  return stream_get_transport (fs->out, pout);
+  return mu_stream_get_transport (fs->out, pout);
 }
 
 int
 _prog_stream_create (struct _prog_stream **pfs,
-		     stream_t *stream, const char *progname, int flags)
+		     mu_stream_t *stream, const char *progname, int flags)
 {
   struct _prog_stream *fs;
   int ret;
@@ -1005,7 +1005,7 @@ _prog_stream_create (struct _prog_stream **pfs,
       return ENOMEM;
     }
 
-  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  ret = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
       mu_argcv_free (fs->argc, fs->argv);
@@ -1013,17 +1013,17 @@ _prog_stream_create (struct _prog_stream **pfs,
       return ret;
     }
 
-  stream_set_read (*stream, _prog_read, fs);
-  stream_set_readline (*stream, _prog_readline, fs);
-  stream_set_write (*stream, _prog_write, fs);
+  mu_stream_set_read (*stream, _prog_read, fs);
+  mu_stream_set_readline (*stream, _prog_readline, fs);
+  mu_stream_set_write (*stream, _prog_write, fs);
   
   /* We don't need to open the FILE, just return success. */
 
-  stream_set_open (*stream, _prog_open, fs);
-  stream_set_close (*stream, _prog_close, fs);
-  stream_set_get_transport2 (*stream, _prog_get_transport2, fs);
-  stream_set_flush (*stream, _prog_flush, fs);
-  stream_set_destroy (*stream, _prog_destroy, fs);
+  mu_stream_set_open (*stream, _prog_open, fs);
+  mu_stream_set_close (*stream, _prog_close, fs);
+  mu_stream_set_get_transport2 (*stream, _prog_get_transport2, fs);
+  mu_stream_set_flush (*stream, _prog_flush, fs);
+  mu_stream_set_destroy (*stream, _prog_destroy, fs);
 
   if (pfs)
     *pfs = fs;
@@ -1031,14 +1031,14 @@ _prog_stream_create (struct _prog_stream **pfs,
 }
 
 int
-prog_stream_create (stream_t *stream, const char *progname, int flags)
+mu_prog_stream_create (mu_stream_t *stream, const char *progname, int flags)
 {
   return _prog_stream_create (NULL, stream, progname, flags);
 }
 
 int
-filter_prog_stream_create (stream_t *stream, const char *progname,
-			   stream_t input)
+mu_filter_prog_stream_create (mu_stream_t *stream, const char *progname,
+			   mu_stream_t input)
 {
   struct _prog_stream *fs;
   int rc = _prog_stream_create (&fs, stream, progname, MU_STREAM_RDWR);

@@ -33,10 +33,10 @@
 #include <registrar0.h>
 #include <url0.h>
 
-static void url_imap_destroy (url_t url);
+static void url_imap_destroy (mu_url_t url);
 
 static void
-url_imap_destroy (url_t url ARG_UNUSED)
+url_imap_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
@@ -48,13 +48,13 @@ url_imap_destroy (url_t url ARG_UNUSED)
 */
 
 int
-_url_imap_init (url_t url)
+_url_imap_init (mu_url_t url)
 {
   int status = 0;
 
   url->_destroy = url_imap_destroy;
 
-  status = url_parse (url);
+  status = mu_url_parse (url);
 
   if (status)
     return status;

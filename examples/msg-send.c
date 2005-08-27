@@ -63,11 +63,11 @@ main (int argc, char *argv[])
   char *optmailer = "sendmail:";
   char *optfrom = 0;
 
-  stream_t in = 0;
-  message_t msg = 0;
-  mailer_t mailer = 0;
-  address_t from = 0;
-  address_t to = 0;
+  mu_stream_t in = 0;
+  mu_message_t msg = 0;
+  mu_mailer_t mailer = 0;
+  mu_address_t from = 0;
+  mu_address_t to = 0;
 
   while ((opt = getopt (argc, argv, "hdm:f:")) != -1)
     {
@@ -96,8 +96,8 @@ main (int argc, char *argv[])
     }
 
   /* Register mailers. */
-  registrar_record (smtp_record);
-  registrar_record (sendmail_record);
+  mu_registrar_record (mu_smtp_record);
+  mu_registrar_record (mu_sendmail_record);
 
   if (optfrom)
     {
@@ -111,22 +111,22 @@ main (int argc, char *argv[])
       C (mu_address_createv (&to, (const char **) av, -1));
     }
 
-  C (stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
-  C (stream_open (in));
-  C (message_create (&msg, NULL));
-  C (message_set_stream (msg, in, NULL));
-  C (mailer_create (&mailer, optmailer));
+  C (mu_stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
+  C (mu_stream_open (in));
+  C (mu_message_create (&msg, NULL));
+  C (mu_message_set_stream (msg, in, NULL));
+  C (mu_mailer_create (&mailer, optmailer));
 
   if (optdebug)
     {
       mu_debug_t debug;
-      mailer_get_debug (mailer, &debug);
+      mu_mailer_get_debug (mailer, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
     }
 
-  C (mailer_open (mailer, 0));
+  C (mu_mailer_open (mailer, 0));
 
-  C (mailer_send_message (mailer, msg, from, to));
+  C (mu_mailer_send_message (mailer, msg, from, to));
 
   return 0;
 }

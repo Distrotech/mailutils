@@ -104,7 +104,7 @@ _load_dir (void *item, void *unused)
 }
 
 int
-sieve_load_add_path (list_t path)
+sieve_load_add_path (mu_list_t path)
 {
   if (lt_dlinit ())
     return 1;
@@ -130,7 +130,7 @@ mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 }
 
 int
-sieve_load_add_path (list_t path)
+sieve_load_add_path (mu_list_t path)
 {
   return 1;
 }

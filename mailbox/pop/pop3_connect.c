@@ -68,7 +68,7 @@ mu_pop3_connect (mu_pop3_t pop3)
 
     case MU_POP3_CONNECT:
       /* Establish the connection.  */
-      status = stream_open (pop3->carrier);
+      status = mu_stream_open (pop3->carrier);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       pop3->acknowledge = 0;
       pop3->state = MU_POP3_GREETINGS;
@@ -83,7 +83,7 @@ mu_pop3_connect (mu_pop3_t pop3)
 	mu_pop3_debug_ack (pop3);
 	if (strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
 	  {
-	    stream_close (pop3->carrier);
+	    mu_stream_close (pop3->carrier);
 	    pop3->state = MU_POP3_NO_STATE;
 	    return EACCES;
 	  }
@@ -100,7 +100,7 @@ mu_pop3_connect (mu_pop3_t pop3)
 		pop3->timestamp = calloc (len + 1, 1);
 		if (pop3->timestamp == NULL)
 		  {
-		    stream_close (pop3->carrier);
+		    mu_stream_close (pop3->carrier);
 		    MU_POP3_CHECK_ERROR (pop3, ENOMEM);
 		  }
 		memcpy (pop3->timestamp, right, len);

@@ -28,9 +28,9 @@
 #include <mailutils/errno.h>
 
 int
-mu_iterator_create (iterator_t *piterator, void *owner)
+mu_iterator_create (mu_iterator_t *piterator, void *owner)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
   if (owner == NULL)
@@ -44,7 +44,7 @@ mu_iterator_create (iterator_t *piterator, void *owner)
 }
 
 int
-mu_iterator_set_first (iterator_t itr, int (*first) (void *))
+mu_iterator_set_first (mu_iterator_t itr, int (*first) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -53,7 +53,7 @@ mu_iterator_set_first (iterator_t itr, int (*first) (void *))
 }
 
 int
-mu_iterator_set_next (iterator_t itr, int (*next) (void *))
+mu_iterator_set_next (mu_iterator_t itr, int (*next) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -62,7 +62,7 @@ mu_iterator_set_next (iterator_t itr, int (*next) (void *))
 }
 
 int
-mu_iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
+mu_iterator_set_getitem (mu_iterator_t itr, int (*getitem) (void *, void **))
 {
   if (!itr)
     return EINVAL;
@@ -71,7 +71,7 @@ mu_iterator_set_getitem (iterator_t itr, int (*getitem) (void *, void **))
 }
 
 int
-mu_iterator_set_finished_p (iterator_t itr, int (*finished_p) (void *))
+mu_iterator_set_finished_p (mu_iterator_t itr, int (*finished_p) (void *))
 {
   if (!itr)
     return EINVAL;
@@ -80,7 +80,7 @@ mu_iterator_set_finished_p (iterator_t itr, int (*finished_p) (void *))
 }
 
 int
-mu_iterator_set_curitem_p (iterator_t itr,
+mu_iterator_set_curitem_p (mu_iterator_t itr,
 			int (*curitem_p) (void *, void *))
 {
   if (!itr)
@@ -90,7 +90,7 @@ mu_iterator_set_curitem_p (iterator_t itr,
 }
 
 int
-mu_iterator_set_destroy (iterator_t itr, int (destroy) (iterator_t, void *))
+mu_iterator_set_destroy (mu_iterator_t itr, int (destroy) (mu_iterator_t, void *))
 {
   if (!itr)
     return EINVAL;
@@ -99,7 +99,7 @@ mu_iterator_set_destroy (iterator_t itr, int (destroy) (iterator_t, void *))
 }
 
 int
-mu_iterator_set_dup (iterator_t itr, int (dup) (void **ptr, void *data))
+mu_iterator_set_dup (mu_iterator_t itr, int (dup) (void **ptr, void *data))
 {
   if (!itr)
     return EINVAL;
@@ -110,9 +110,9 @@ mu_iterator_set_dup (iterator_t itr, int (dup) (void **ptr, void *data))
 
 
 int
-mu_iterator_dup (iterator_t *piterator, iterator_t orig)
+mu_iterator_dup (mu_iterator_t *piterator, mu_iterator_t orig)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   int status;
   
   if (piterator == NULL)
@@ -144,7 +144,7 @@ mu_iterator_dup (iterator_t *piterator, iterator_t orig)
 }
 
 void
-mu_iterator_destroy (iterator_t *piterator)
+mu_iterator_destroy (mu_iterator_t *piterator)
 {
   if (!piterator || !*piterator)
     return;
@@ -157,14 +157,14 @@ mu_iterator_destroy (iterator_t *piterator)
 }
 
 int
-mu_iterator_first (iterator_t iterator)
+mu_iterator_first (mu_iterator_t iterator)
 {
   iterator->is_advanced = 0;
   return iterator->first (iterator->owner);
 }
 
 int
-mu_iterator_next (iterator_t iterator)
+mu_iterator_next (mu_iterator_t iterator)
 {
   int status = 0;
   if (!iterator->is_advanced)
@@ -174,13 +174,13 @@ mu_iterator_next (iterator_t iterator)
 }
 
 int
-mu_iterator_current (iterator_t iterator, void * const *pitem)
+mu_iterator_current (mu_iterator_t iterator, void * const *pitem)
 {
   return iterator->getitem (iterator->owner, (void**)pitem);
 }
 
 int
-mu_iterator_is_done (iterator_t iterator)
+mu_iterator_is_done (mu_iterator_t iterator)
 {
   if (iterator == NULL)
     return 1;
@@ -188,7 +188,7 @@ mu_iterator_is_done (iterator_t iterator)
 }
 
 int
-iterator_get_owner (iterator_t iterator, void **powner)
+iterator_get_owner (mu_iterator_t iterator, void **powner)
 {
   if (!iterator)
     return EINVAL;
@@ -199,7 +199,7 @@ iterator_get_owner (iterator_t iterator, void **powner)
 }
 
 void
-mu_iterator_advance (iterator_t iterator, void *e)
+mu_iterator_advance (mu_iterator_t iterator, void *e)
 {
   for (; iterator; iterator = iterator->next_itr)
     {
@@ -212,7 +212,7 @@ mu_iterator_advance (iterator_t iterator, void *e)
 }
 
 int
-mu_iterator_attach (iterator_t *root, iterator_t iterator)
+mu_iterator_attach (mu_iterator_t *root, mu_iterator_t iterator)
 {
   iterator->next_itr = *root;
   *root = iterator;
@@ -220,9 +220,9 @@ mu_iterator_attach (iterator_t *root, iterator_t iterator)
 }
 
 int
-mu_iterator_detach (iterator_t *root, iterator_t iterator)
+mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator)
 {
-  iterator_t itr, prev;
+  mu_iterator_t itr, prev;
   
   for (itr = *root, prev = NULL; itr; prev = itr, itr = itr->next_itr)
     if (iterator == itr)

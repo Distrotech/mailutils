@@ -23,7 +23,7 @@
  */
 
 static int
-edit0 (msgset_t *mspec, message_t msg, void *data)
+edit0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
   char *file = mu_tempname (NULL);
   util_do_command ("copy %s", file);

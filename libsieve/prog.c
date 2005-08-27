@@ -66,7 +66,7 @@ sieve_code_handler (mu_sieve_handler_t handler)
 }
 
 int
-sieve_code_list (list_t list)
+sieve_code_list (mu_list_t list)
 {
   sieve_op_t op;
 
@@ -122,8 +122,8 @@ _compare_ptr (void *item, void *data)
 
 struct check_arg {
   const char *name;
-  list_t args;
-  list_t tags;
+  mu_list_t args;
+  mu_list_t tags;
 };
 
 static int
@@ -134,12 +134,12 @@ _run_checker (void *item, void *data)
 }
 
 int
-sieve_code_command (mu_sieve_register_t *reg, list_t arglist)
+sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  iterator_t itr;
-  list_t arg_list = NULL;
-  list_t tag_list = NULL;
-  list_t chk_list = NULL;
+  mu_iterator_t itr;
+  mu_list_t arg_list = NULL;
+  mu_list_t tag_list = NULL;
+  mu_list_t chk_list = NULL;
   mu_sieve_data_type *exp_arg;
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
@@ -231,7 +231,7 @@ sieve_code_command (mu_sieve_register_t *reg, list_t arglist)
 		{
 		  if (*exp_arg == SVT_STRING_LIST && val->type == SVT_STRING)
 		    {
-		      list_t list;
+		      mu_list_t list;
 
 		      mu_list_create (&list);
 		      mu_list_append (list, val->v.string);
@@ -331,7 +331,7 @@ sieve_code_line (size_t line)
 }
 
 int
-sieve_code_action (mu_sieve_register_t *reg, list_t arglist)
+sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_code_line (sieve_line_num)
          || sieve_code_instr (instr_action)
@@ -339,7 +339,7 @@ sieve_code_action (mu_sieve_register_t *reg, list_t arglist)
 }
 
 int
-sieve_code_test (mu_sieve_register_t *reg, list_t arglist)
+sieve_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_code_line (sieve_line_num)
          || sieve_code_instr (instr_test)

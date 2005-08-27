@@ -175,7 +175,7 @@ struct parsebuf
 
                                 /* Execution time only: */
   size_t msgno;                 /* Number of current message */
-  message_t msg;                /* Current message */ 
+  mu_message_t msg;                /* Current message */ 
 };
 
 static void put_code (struct parsebuf *pb, inst_t inst);
@@ -285,7 +285,7 @@ do_search (struct parsebuf *pb)
 	  if (pb->isuid)
 	    {
 	      size_t uid;
-	      message_get_uid (pb->msg, &uid);
+	      mu_message_get_uid (pb->msg, &uid);
 	      util_send (" %d", uid);
 	    }
 	  else
@@ -662,9 +662,9 @@ static int
 _scan_header (struct parsebuf *pb, char *name, char *value)
 {
   char buffer[512];
-  header_t header = NULL;
+  mu_header_t header = NULL;
   
-  message_get_header (pb->msg, &header);
+  mu_message_get_header (pb->msg, &header);
   if (!mu_header_get_value (header, name, buffer, sizeof(buffer), NULL))
     {
       return util_strcasestr (buffer, value) != NULL;
@@ -677,9 +677,9 @@ static int
 _header_date (struct parsebuf *pb, time_t *timep)
 {
   char buffer[512];
-  header_t header = NULL;
+  mu_header_t header = NULL;
   
-  message_get_header (pb->msg, &header);
+  mu_message_get_header (pb->msg, &header);
   if (!mu_header_get_value (header, "Date", buffer, sizeof(buffer), NULL)
       && util_parse_822_date (buffer, timep))
     return 0;
@@ -691,11 +691,11 @@ static int
 _scan_header_all (struct parsebuf *pb, char *text)
 {
   char buffer[512];
-  header_t header = NULL;
+  mu_header_t header = NULL;
   size_t fcount = 0;
   int i, rc;
 
-  message_get_header (pb->msg, &header);
+  mu_message_get_header (pb->msg, &header);
   mu_header_get_field_count (header, &fcount);
   for (i = rc = 0; i < fcount; i++)
     {
@@ -709,21 +709,21 @@ _scan_header_all (struct parsebuf *pb, char *text)
 static int
 _scan_body (struct parsebuf *pb, char *text)
 {
-  body_t body = NULL;
-  stream_t stream = NULL;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
   char buffer[128];
   size_t n = 0;
   off_t offset = 0;
   int rc;
   
-  message_get_body (pb->msg, &body);
+  mu_message_get_body (pb->msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
   mu_body_get_stream (body, &stream);
   rc = 0;
   while (rc == 0
-	 && stream_read (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
+	 && mu_stream_read (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
 	 && n > 0)
     {
       buffer[n] = 0;
@@ -791,9 +791,9 @@ cond_before (struct parsebuf *pb)
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
   char buffer[512];
-  envelope_t env;
+  mu_envelope_t env;
   
-  message_get_envelope (pb->msg, &env);
+  mu_message_get_envelope (pb->msg, &env);
   mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time < t);
@@ -815,11 +815,11 @@ void
 cond_from (struct parsebuf *pb)
 {
   char *s = _search_arg (pb);
-  envelope_t env;
+  mu_envelope_t env;
   char buffer[512];
   int rc = 0;
   
-  message_get_envelope (pb->msg, &env);
+  mu_message_get_envelope (pb->msg, &env);
   if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL) == 0)
     rc = util_strcasestr (buffer, s) != NULL;
   _search_push (pb, _scan_header (pb, "from", s));
@@ -838,9 +838,9 @@ void
 cond_keyword (struct parsebuf *pb)
 {
   char *s = _search_arg (pb);
-  attribute_t attr = NULL;
+  mu_attribute_t attr = NULL;
   
-  message_get_attribute (pb->msg, &attr);
+  mu_message_get_attribute (pb->msg, &attr);
   _search_push (pb, util_attribute_matches_flag (attr, s));
 }                  
 
@@ -850,7 +850,7 @@ cond_larger (struct parsebuf *pb)
   int n = (int) _search_arg (pb);
   size_t size = 0;
   
-  message_size (pb->msg, &size);
+  mu_message_size (pb->msg, &size);
   _search_push (pb, size > n);
 }                   
 
@@ -860,9 +860,9 @@ cond_on (struct parsebuf *pb)
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
   char buffer[512];
-  envelope_t env;
+  mu_envelope_t env;
   
-  message_get_envelope (pb->msg, &env);
+  mu_message_get_envelope (pb->msg, &env);
   mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
@@ -904,9 +904,9 @@ cond_since (struct parsebuf *pb)
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
   char buffer[512];
-  envelope_t env;
+  mu_envelope_t env;
   
-  message_get_envelope (pb->msg, &env);
+  mu_message_get_envelope (pb->msg, &env);
   mu_envelope_date (env, buffer, sizeof (buffer), NULL);
   util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time >= t);
@@ -918,7 +918,7 @@ cond_smaller (struct parsebuf *pb)
   int n = (int) _search_arg (pb);
   size_t size = 0;
   
-  message_size (pb->msg, &size);
+  mu_message_size (pb->msg, &size);
   _search_push (pb, size < n);
 }                  
 
@@ -949,7 +949,7 @@ cond_uid (struct parsebuf *pb)
   size_t uid = 0;
   int i, rc;
   
-  message_get_uid (pb->msg, &uid);
+  mu_message_get_uid (pb->msg, &uid);
   for (i = rc = 0; rc == 0 && i < n; i++)
     rc = set[i] == uid;
       

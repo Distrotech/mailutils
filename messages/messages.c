@@ -130,8 +130,8 @@ main (int argc, char **argv)
 static int
 messages_count (const char *box)
 {
-  mailbox_t mbox;
-  url_t url = NULL;
+  mu_mailbox_t mbox;
+  mu_url_t url = NULL;
   size_t count;
   int status = 0;
 
@@ -148,7 +148,7 @@ messages_count (const char *box)
     }
 
   mu_mailbox_get_url (mbox, &url);
-  box = url_to_string (url);
+  box = mu_url_to_string (url);
 
   status =  mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)

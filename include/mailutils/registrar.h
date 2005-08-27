@@ -26,77 +26,77 @@ extern "C" {
 #endif
 
 /* Public Interface, to allow static initialization.  */
-struct _record
+struct mu__record
 {
   int priority;    /* Higher priority records are scanned first */
   const char *scheme;
-  int (*_url) (url_t);
-  int (*_mailbox) (mailbox_t);
-  int (*_mailer) (mailer_t);
-  int (*_folder) (folder_t);
+  int (*_url) (mu_url_t);
+  int (*_mailbox) (mu_mailbox_t);
+  int (*_mailer) (mu_mailer_t);
+  int (*_folder) (mu_folder_t);
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The default is to return the fields.  */
-  int (*_is_scheme) (record_t, const char *, int);
-  int (*_get_url) (record_t, int (*(*_url)) (url_t));
-  int (*_get_mailbox) (record_t, int (*(*_mailbox)) (mailbox_t));
-  int (*_get_mailer) (record_t, int (*(*_mailer)) (mailer_t));
-  int (*_get_folder) (record_t, int (*(*_folder)) (folder_t));
+  int (*_is_scheme) (mu_record_t, const char *, int);
+  int (*_get_url) (mu_record_t, int (*(*_url)) (mu_url_t));
+  int (*_get_mailbox) (mu_record_t, int (*(*_mailbox)) (mu_mailbox_t));
+  int (*_get_mailer) (mu_record_t, int (*(*_mailer)) (mu_mailer_t));
+  int (*_get_folder) (mu_record_t, int (*(*_folder)) (mu_folder_t));
 };
 
 /* Registration.  */
-extern int registrar_get_iterator (iterator_t *);
-extern int registrar_get_list (list_t *) __attribute__ ((deprecated));
+extern int mu_registrar_get_iterator (mu_iterator_t *);
+extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
   
-extern int registrar_lookup (const char *name, record_t *precord, int flags);
-extern int registrar_record       (record_t);
-extern int unregistrar_record     (record_t);
+extern int mu_registrar_lookup (const char *name, mu_record_t *precord, int flags);
+extern int mu_registrar_record       (mu_record_t);
+extern int mu_unregistrar_record     (mu_record_t);
 
 /* Scheme.  */
-extern int record_is_scheme       (record_t, const char *, int flags);
-extern int record_set_scheme      (record_t, const char *);
-extern int record_set_is_scheme   (record_t, 
-                      int (*_is_scheme) (record_t, const char *, int));
+extern int mu_record_is_scheme       (mu_record_t, const char *, int flags);
+extern int mu_record_set_scheme      (mu_record_t, const char *);
+extern int mu_record_set_is_scheme   (mu_record_t, 
+                      int (*_is_scheme) (mu_record_t, const char *, int));
 
 /* Url.  */
-extern int record_get_url         (record_t, int (*(*)) (url_t));
-extern int record_set_url         (record_t, int (*) (url_t));
-extern int record_set_get_url     (record_t, 
-                      int (*_get_url) (record_t, int (*(*)) (url_t)));
+extern int mu_record_get_url         (mu_record_t, int (*(*)) (mu_url_t));
+extern int mu_record_set_url         (mu_record_t, int (*) (mu_url_t));
+extern int mu_record_set_get_url     (mu_record_t, 
+                      int (*_get_url) (mu_record_t, int (*(*)) (mu_url_t)));
 /*  Mailbox. */
-extern int record_get_mailbox     (record_t, int (*(*)) (mailbox_t));
-extern int record_set_mailbox     (record_t, int (*) (mailbox_t));
-extern int record_set_get_mailbox (record_t, 
-                 int (*_get_mailbox) (record_t, int (*(*)) (mailbox_t)));
+extern int mu_record_get_mailbox     (mu_record_t, int (*(*)) (mu_mailbox_t));
+extern int mu_record_set_mailbox     (mu_record_t, int (*) (mu_mailbox_t));
+extern int mu_record_set_get_mailbox (mu_record_t, 
+                 int (*_get_mailbox) (mu_record_t, int (*(*)) (mu_mailbox_t)));
 /* Mailer.  */
-extern int record_get_mailer      (record_t,
-				   int (*(*)) (mailer_t));
-extern int record_set_mailer      (record_t, int (*) (mailer_t));
-extern int record_set_get_mailer  (record_t, 
-        int (*_get_mailer) (record_t, int (*(*)) (mailer_t)));
+extern int mu_record_get_mailer      (mu_record_t,
+				   int (*(*)) (mu_mailer_t));
+extern int mu_record_set_mailer      (mu_record_t, int (*) (mu_mailer_t));
+extern int mu_record_set_get_mailer  (mu_record_t, 
+        int (*_get_mailer) (mu_record_t, int (*(*)) (mu_mailer_t)));
 /* Folder.  */
-extern int record_get_folder      (record_t, int (*(*)) (folder_t));
-extern int record_set_folder      (record_t, int (*) (folder_t));
-extern int record_set_get_folder  (record_t, 
-         int (*_get_folder) (record_t, int (*(*)) (folder_t)));
+extern int mu_record_get_folder      (mu_record_t, int (*(*)) (mu_folder_t));
+extern int mu_record_set_folder      (mu_record_t, int (*) (mu_folder_t));
+extern int mu_record_set_get_folder  (mu_record_t, 
+         int (*_get_folder) (mu_record_t, int (*(*)) (mu_folder_t)));
 
 /* Records provided by the library.  */
 
 /* Remote Folder "imap://"  */
-extern record_t imap_record;
+extern mu_record_t mu_imap_record;
 /* Remote Mailbox POP3, pop://  */
-extern record_t pop_record;
+extern mu_record_t mu_pop_record;
 /* Remote newsgroup NNTP, nntp://  */
-extern record_t nntp_record;
+extern mu_record_t mu_nntp_record;
 
 /* Local Mailbox Unix Mailbox, "mbox:"  */
-extern record_t mbox_record;
+extern mu_record_t mu_mbox_record;
 /* Local Folder/Mailbox, /  */
-extern record_t path_record;
+extern mu_record_t mu_path_record;
 /* Local MH, "mh:" */
-extern record_t mh_record;
+extern mu_record_t mu_mh_record;
 /* Maildir, "maildir:" */
-extern record_t maildir_record;
+extern mu_record_t mu_maildir_record;
 
 #define MU_IMAP_PRIO       100
 #define MU_POP_PRIO        200
@@ -110,39 +110,39 @@ extern record_t maildir_record;
 #define MU_SENDMAIL_PRIO   10000
   
 /* SMTP mailer, "smtp://"  */
-extern record_t smtp_record;
+extern mu_record_t mu_smtp_record;
 /* Sendmail, "sendmail:"  */
-extern record_t sendmail_record;
+extern mu_record_t mu_sendmail_record;
 
 #define mu_register_all_mbox_formats() do {\
-  registrar_record (path_record);\
-  registrar_record (mbox_record);\
-  registrar_record (pop_record);\
-  registrar_record (imap_record);\
-  registrar_record (mh_record);\
-  registrar_record (maildir_record);\
+  mu_registrar_record (mu_path_record);\
+  mu_registrar_record (mu_mbox_record);\
+  mu_registrar_record (mu_pop_record);\
+  mu_registrar_record (mu_imap_record);\
+  mu_registrar_record (mu_mh_record);\
+  mu_registrar_record (mu_maildir_record);\
 } while (0)
 
 #define mu_register_local_mbox_formats() do {\
-  registrar_record (path_record);\
-  registrar_record (mbox_record);\
-  registrar_record (mh_record);\
-  registrar_record (maildir_record);\
+  mu_registrar_record (mu_path_record);\
+  mu_registrar_record (mu_mbox_record);\
+  mu_registrar_record (mu_mh_record);\
+  mu_registrar_record (mu_maildir_record);\
 } while (0)
 
 #define mu_register_remote_mbox_formats() do {\
-  registrar_record (pop_record);\
-  registrar_record (imap_record);\
-  registrar_record (nntp_record);\
+  mu_registrar_record (mu_pop_record);\
+  mu_registrar_record (mu_imap_record);\
+  mu_registrar_record (mu_nntp_record);\
 } while (0)
 
 #define mu_register_all_mailer_formats() do {\
-  registrar_record (sendmail_record);\
-  registrar_record (smtp_record);\
+  mu_registrar_record (mu_sendmail_record);\
+  mu_registrar_record (mu_smtp_record);\
 } while (0)
 
 #define mu_register_extra_formats() do {\
-  registrar_record (nntp_record);\
+  mu_registrar_record (mu_nntp_record);\
 } while (0)
 
 #define mu_register_all_formats() do {\

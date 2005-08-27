@@ -35,7 +35,7 @@ size_t io_timeout = 3;
 size_t io_attempts = 3;
 
 int
-http_stream_wait (stream_t stream, int flags, size_t *attempt)
+http_stream_wait (mu_stream_t stream, int flags, size_t *attempt)
 {
   int rc;
   int oflags = flags;
@@ -45,7 +45,7 @@ http_stream_wait (stream_t stream, int flags, size_t *attempt)
     {
       tv.tv_sec = io_timeout;
       tv.tv_usec = 0;
-      rc = stream_wait (stream, &oflags, &tv);
+      rc = mu_stream_wait (stream, &oflags, &tv);
       switch (rc) {
       case 0:
 	if (flags & oflags)
@@ -67,7 +67,7 @@ int
 main (int argc, char **argv)
 {
   int ret, off = 0;
-  stream_t stream;
+  mu_stream_t stream;
   size_t nb, size;
   size_t attempt;
   char *url = "www.gnu.org";
@@ -84,14 +84,14 @@ main (int argc, char **argv)
   snprintf (wbuf, sizeof wbuf, "GET %s HTTP/1.0\r\n\r\n",
 	    argc == 3 ? argv[2] : "/");
 
-  ret = tcp_stream_create (&stream, url, 80, MU_STREAM_NONBLOCK);
+  ret = mu_tcp_stream_create (&stream, url, 80, MU_STREAM_NONBLOCK);
   if (ret != 0)
     {
-      mu_error ("tcp_stream_create: %s", mu_strerror (ret));
+      mu_error ("mu_tcp_stream_create: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
-  for (attempt = 0; (ret = stream_open (stream)); )
+  for (attempt = 0; (ret = mu_stream_open (stream)); )
     {
       if ((ret == EAGAIN || ret == EINPROGRESS) && attempt < io_attempts)
 	{
@@ -99,18 +99,18 @@ main (int argc, char **argv)
 	  if (ret == 0)
 	    continue;
 	}
-      mu_error ("stream_open: %s", mu_strerror (ret));
+      mu_error ("mu_stream_open: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
   for (attempt = 0, size = strlen (wbuf); size > 0; )
     {
-      ret = stream_write (stream, wbuf + off, strlen (wbuf), 0, &nb);
+      ret = mu_stream_write (stream, wbuf + off, strlen (wbuf), 0, &nb);
       if (ret == 0)
 	{
 	  if (nb == 0)
 	    {
-	      mu_error("stream_write: wrote 0 bytes");
+	      mu_error("mu_stream_write: wrote 0 bytes");
 	      exit (EXIT_FAILURE);
 	    }
 	  off += nb;
@@ -130,13 +130,13 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      mu_error ("stream_write timed out");
+	      mu_error ("mu_stream_write timed out");
 	      exit (EXIT_FAILURE);
 	    }
 	}
       else
 	{
-	  mu_error ("stream_write: %s", mu_strerror (ret));
+	  mu_error ("mu_stream_write: %s", mu_strerror (ret));
 	  exit (EXIT_FAILURE);
 	}
     }
@@ -144,7 +144,7 @@ main (int argc, char **argv)
   attempt = 0;
   for (;;)
     {
-      ret = stream_read (stream, rbuf, sizeof (rbuf), 0, &nb);
+      ret = mu_stream_read (stream, rbuf, sizeof (rbuf), 0, &nb);
       if (ret == 0)
 	{
 	  if (nb == 0)
@@ -164,19 +164,19 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      mu_error ("stream_read: %s", mu_strerror (ret));
+	      mu_error ("mu_stream_read: %s", mu_strerror (ret));
 	      exit (EXIT_FAILURE);
 	    }
 	}
     }
 
-  ret = stream_close (stream);
+  ret = mu_stream_close (stream);
   if (ret != 0)
     {
-      mu_error ("stream_close: %s", mu_strerror (ret));
+      mu_error ("mu_stream_close: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
-  stream_destroy (&stream, NULL);
+  mu_stream_destroy (&stream, NULL);
   exit (EXIT_SUCCESS);
 }

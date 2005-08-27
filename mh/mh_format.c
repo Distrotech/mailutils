@@ -53,10 +53,10 @@ struct mh_machine
   size_t width;             /* Output buffer width */
   size_t ind;               /* Output buffer index */
 
-  list_t addrlist;          /* The list of email addresses output this far */
+  mu_list_t addrlist;          /* The list of email addresses output this far */
   int fmtflags;             /* Current formatting flags */
   
-  message_t message;        /* Current message */
+  mu_message_t message;        /* Current message */
   size_t msgno;             /* Its number */
 };
 
@@ -396,8 +396,8 @@ format_str (struct mh_machine *mach, char *str)
 static int
 addr_cmp (void *item, void *data)
 {
-  address_t a = item;
-  address_t b = data;
+  mu_address_t a = item;
+  mu_address_t b = data;
   size_t i, count;
   int rc = 0;
   
@@ -414,7 +414,7 @@ addr_cmp (void *item, void *data)
 }
 
 static int
-addrlist_lookup (list_t list, address_t addr)
+addrlist_lookup (mu_list_t list, mu_address_t addr)
 {
   return mu_list_do (list, addr_cmp, addr);
 }
@@ -422,13 +422,13 @@ addrlist_lookup (list_t list, address_t addr)
 static int
 addr_free (void *item, void *data)
 {
-  address_t addr = item;
+  mu_address_t addr = item;
   mu_address_destroy (&addr);
   return 0;
 }
 
 static void
-addrlist_destroy (list_t *list)
+addrlist_destroy (mu_list_t *list)
 {
   mu_list_do (*list, addr_free, NULL);
   mu_list_destroy (list);
@@ -437,7 +437,7 @@ addrlist_destroy (list_t *list)
 /* Execute pre-compiled format on message msg with number msgno.
    buffer and bufsize specify output storage */
 int
-mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
+mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	   size_t width, char **pret)
 {
   struct mh_machine mach;
@@ -513,9 +513,9 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 
 	case mhop_header:
 	  {
-	    header_t hdr = NULL;
+	    mu_header_t hdr = NULL;
 	    char *value = NULL;
-	    message_get_header (mach.message, &hdr);
+	    mu_message_get_header (mach.message, &hdr);
 	    mu_header_aget_value_unfold (hdr, strobj_ptr (&mach.arg_str), &value);
 	    strobj_free (&mach.arg_str);
 	    if (value)
@@ -533,13 +533,13 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 
 	case mhop_body:
 	  {
-	    body_t body = NULL;
-	    stream_t stream = NULL;
+	    mu_body_t body = NULL;
+	    mu_stream_t stream = NULL;
 	    size_t size = 0, off, str_off, nread;
 	    size_t rest = mach.width - mach.ind;
 
 	    strobj_free (&mach.arg_str);
-	    message_get_body (mach.message, &body);
+	    mu_message_get_body (mach.message, &body);
 	    mu_body_size (body, &size);
 	    mu_body_get_stream (body, &stream);
 	    if (size == 0 || !stream)
@@ -552,7 +552,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    
 	    off = 0;
 	    str_off = 0;
-	    while (!stream_read (stream, mach.arg_str.ptr + str_off,
+	    while (!mu_stream_read (stream, mach.arg_str.ptr + str_off,
 				 mach.arg_str.size - str_off, off, &nread)
 		   && nread != 0
 		   && str_off < size)
@@ -621,16 +621,16 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 int
 mh_format_str (mh_format_t *fmt, char *str, size_t width, char **pret)
 {
-  message_t msg = NULL;
-  header_t hdr = NULL;
+  mu_message_t msg = NULL;
+  mu_header_t hdr = NULL;
   int rc;
   
-  if (message_create (&msg, NULL))
+  if (mu_message_create (&msg, NULL))
     return -1;
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_set_value (hdr, "text", str, 1);
   rc = mh_format (fmt, msg, 1, width, pret);
-  message_destroy (&msg, NULL);
+  mu_message_destroy (&msg, NULL);
   return rc;
 }
   
@@ -854,7 +854,7 @@ static void
 builtin_size (struct mh_machine *mach)
 {
   size_t size;
-  if (message_size (mach->message, &size) == 0)
+  if (mu_message_size (mach->message, &size) == 0)
     mach->arg_num = size;
 }
 
@@ -1087,7 +1087,7 @@ _parse_date (struct mh_machine *mach, struct tm *tm, mu_timezone *tz)
   char *date = strobj_ptr (&mach->arg_str);
   const char *p = date;
   
-  if (parse822_date_time (&p, date+strlen(date), tm, tz))
+  if (mu_parse822_date_time (&p, date+strlen(date), tm, tz))
     {
       time_t t;
       
@@ -1511,7 +1511,7 @@ builtin_friendly (struct mh_machine *mach)
 static void
 builtin_addr (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1530,7 +1530,7 @@ builtin_addr (struct mh_machine *mach)
 static void
 builtin_pers (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1556,7 +1556,7 @@ builtin_pers (struct mh_machine *mach)
 static void
 builtin_note (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1575,7 +1575,7 @@ builtin_note (struct mh_machine *mach)
 static void
 builtin_mbox (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1599,7 +1599,7 @@ builtin_mbox (struct mh_machine *mach)
 static void
 builtin_mymbox (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   
@@ -1616,7 +1616,7 @@ builtin_mymbox (struct mh_machine *mach)
 static void
 builtin_host (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1639,7 +1639,7 @@ builtin_host (struct mh_machine *mach)
 static void
 builtin_nohost (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1661,7 +1661,7 @@ builtin_nohost (struct mh_machine *mach)
 static void
 builtin_type (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1689,7 +1689,7 @@ builtin_type (struct mh_machine *mach)
 static void
 builtin_path (struct mh_machine *mach)
 {
-  address_t addr;
+  mu_address_t addr;
   size_t n;
   char buf[80];
   int rc;
@@ -1724,7 +1724,7 @@ builtin_gname (struct mh_machine *mach)
 static void
 builtin_formataddr (struct mh_machine *mach)
 {
-  address_t addr, dest;
+  mu_address_t addr, dest;
   size_t size;
   int i;
   size_t num;
@@ -1748,7 +1748,7 @@ builtin_formataddr (struct mh_machine *mach)
 	{
 	  if ((rcpt_mask & RCPT_ME) || !mh_is_my_name (buf))
 	    {
-	      address_t subaddr;
+	      mu_address_t subaddr;
 	      mu_address_get_nth (addr, i, &subaddr);
 	      if (!addrlist_lookup (mach->addrlist, subaddr))
 		{
@@ -1809,9 +1809,9 @@ builtin_isreply (struct mh_machine *mach)
   
   if (strobj_is_null (&mach->arg_str))
     {
-      header_t hdr = NULL;
+      mu_header_t hdr = NULL;
       char *value = NULL;
-      message_get_header (mach->message, &hdr);
+      mu_message_get_header (mach->message, &hdr);
       
       mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &value);
       rc = munre_subject (value, NULL);

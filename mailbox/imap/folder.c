@@ -62,7 +62,7 @@
 #define DEBUG_SHOW_DATA 0
 
 /* Variable use for the registrar.  */
-static struct _record _imap_record =
+static struct mu__record _imap_record =
 {
   MU_IMAP_PRIO,
   MU_IMAP_SCHEME,
@@ -80,26 +80,26 @@ static struct _record _imap_record =
 
 /* We export this variable: url parsing and the initialisation of the mailbox,
    via the register entry/record.  */
-record_t imap_record = &_imap_record;
+mu_record_t mu_imap_record = &_imap_record;
 
 #ifndef HAVE_STRTOK_R
 char *strtok_r                      (char *, const char *, char **);
 #endif
 
-/* Concrete folder_t IMAP implementation.  */
-static int  folder_imap_open        (folder_t, int);
-static int  folder_imap_close       (folder_t);
-static void folder_imap_destroy     (folder_t);
-static int  folder_imap_delete      (folder_t, const char *);
-static int  folder_imap_list        (folder_t, const char *, const char *,
+/* Concrete mu_folder_t IMAP implementation.  */
+static int  folder_imap_open        (mu_folder_t, int);
+static int  folder_imap_close       (mu_folder_t);
+static void folder_imap_destroy     (mu_folder_t);
+static int  folder_imap_delete      (mu_folder_t, const char *);
+static int  folder_imap_list        (mu_folder_t, const char *, const char *,
 				     struct mu_folder_list *);
-static int  folder_imap_lsub        (folder_t, const char *, const char *,
+static int  folder_imap_lsub        (mu_folder_t, const char *, const char *,
 				     struct mu_folder_list *);
-static int  folder_imap_rename      (folder_t, const char *,
+static int  folder_imap_rename      (mu_folder_t, const char *,
 				     const char *);
-static int  folder_imap_subscribe   (folder_t, const char *);
-static int  folder_imap_unsubscribe (folder_t, const char *);
-static int  folder_imap_get_authority (folder_t, authority_t *);
+static int  folder_imap_subscribe   (mu_folder_t, const char *);
+static int  folder_imap_unsubscribe (mu_folder_t, const char *);
+static int  folder_imap_get_authority (mu_folder_t, mu_authority_t *);
 
 /* FETCH  */
 static int  imap_fetch              (f_imap_t);
@@ -135,15 +135,15 @@ static int  check_capa              (f_imap_t f_imap, char *capa);
 
 /* Authentication methods */
 
-typedef int (*auth_method_t) (authority_t);
+typedef int (*auth_method_t) (mu_authority_t);
 
 /* Simple User/pass authentication for imap.  */
 static int
-authenticate_imap_login (authority_t auth)
+authenticate_imap_login (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
+  mu_folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
-  ticket_t ticket;
+  mu_ticket_t ticket;
   int status = 0;
 
   if (check_capa (f_imap, "LOGINDISABLED") == 0)
@@ -164,22 +164,22 @@ authenticate_imap_login (authority_t auth)
 	if (f_imap->passwd)
 	  free (f_imap->passwd);
 	/* Was it in the URL?  */
-	status = url_get_user (folder->url, NULL, 0, &n);
+	status = mu_url_get_user (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
 	  mu_ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
 	else
 	  {
 	    f_imap->user = calloc (1, n + 1);
-	    url_get_user (folder->url, f_imap->user, n + 1, NULL);
+	    mu_url_get_user (folder->url, f_imap->user, n + 1, NULL);
 	  }
 	/* Was it in the URL?  */
-	status = url_get_passwd (folder->url, NULL, 0, &n);
+	status = mu_url_get_passwd (folder->url, NULL, 0, &n);
         if (status != 0 || n == 0)
 	  mu_ticket_pop (ticket, folder->url, "Imap Passwd: ",  &f_imap->passwd);
 	else
 	  {
 	    f_imap->passwd = calloc (1, n + 1);
-	    url_get_passwd (folder->url, f_imap->passwd, n + 1, NULL);
+	    mu_url_get_passwd (folder->url, f_imap->passwd, n + 1, NULL);
 	  }
 
 	if (f_imap->user == NULL)
@@ -270,9 +270,9 @@ authenticate_imap_login (authority_t auth)
 */
 
 static int
-authenticate_imap_sasl_anon (authority_t auth)
+authenticate_imap_sasl_anon (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
+  mu_folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   int status = 0;
 
@@ -370,9 +370,9 @@ find_auth_method (const char *name)
 }
 
 static int
-authenticate_imap_select (authority_t auth)
+authenticate_imap_select (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
+  mu_folder_t folder = mu_authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   struct auth_tab *p;
   int status = ENOSYS;
@@ -391,7 +391,7 @@ authenticate_imap_select (authority_t auth)
 
 /* Initialize the concrete IMAP mailbox: overload the folder functions  */
 int
-_folder_imap_init (folder_t folder)
+_folder_imap_init (mu_folder_t folder)
 {
   int status;
   f_imap_t f_imap;
@@ -428,7 +428,7 @@ _folder_imap_init (folder_t folder)
 
 /* Destroy the folder resources.  */
 static void
-folder_imap_destroy (folder_t folder)
+folder_imap_destroy (mu_folder_t folder)
 {
   if (folder->data)
     {
@@ -443,7 +443,7 @@ folder_imap_destroy (folder_t folder)
 }
 
 static int
-folder_set_auth_method (folder_t folder, auth_method_t method)
+folder_set_auth_method (mu_folder_t folder, auth_method_t method)
 {
   if (!folder->authority)
     {
@@ -455,7 +455,7 @@ folder_set_auth_method (folder_t folder, auth_method_t method)
 }
 
 static int
-folder_imap_get_authority (folder_t folder, authority_t *pauth)
+folder_imap_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 {
   int status = 0;
   if (folder->authority == NULL)
@@ -540,7 +540,7 @@ check_capa (f_imap_t f_imap, char *capa)
 
 
 static int
-tls (folder_t folder)
+tls (mu_folder_t folder)
 {
 #ifdef WITH_TLS
   int status;
@@ -558,10 +558,10 @@ tls (folder_t folder)
   status = imap_parse (f_imap);
   if (status == 0)
     {
-      stream_t str;
-      status = tls_stream_create_client_from_tcp (&str, folder->stream, 0);
+      mu_stream_t str;
+      status = mu_tls_stream_create_client_from_tcp (&str, folder->stream, 0);
       CHECK_ERROR (f_imap, status);
-      status = stream_open (str);
+      status = mu_stream_open (str);
       if (status == 0)
 	folder->stream = str;
       FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
@@ -576,7 +576,7 @@ tls (folder_t folder)
 
 /* Create/Open the stream for IMAP.  */
 static int
-folder_imap_open (folder_t folder, int flags)
+folder_imap_open (mu_folder_t folder, int flags)
 {
   f_imap_t f_imap = folder->data;
   char *host;
@@ -585,21 +585,21 @@ folder_imap_open (folder_t folder, int flags)
   size_t len = 0;
 
   /* If we are already open for business, noop.  */
-  monitor_wrlock (folder->monitor);
+  mu_monitor_wrlock (folder->monitor);
   if (f_imap->isopen)
     {
-      monitor_unlock (folder->monitor);
+      mu_monitor_unlock (folder->monitor);
       return 0;
     }
-  monitor_unlock (folder->monitor);
+  mu_monitor_unlock (folder->monitor);
 
-  /* Fetch the server name and the port in the url_t.  */
-  status = url_get_host (folder->url, NULL, 0, &len);
+  /* Fetch the server name and the port in the mu_url_t.  */
+  status = mu_url_get_host (folder->url, NULL, 0, &len);
   if (status != 0)
     return status;
   host = alloca (len + 1);
-  url_get_host (folder->url, host, len + 1, NULL);
-  url_get_port (folder->url, &port);
+  mu_url_get_host (folder->url, host, len + 1, NULL);
+  mu_url_get_port (folder->url, &port);
 
   folder->flags = flags;
 
@@ -618,15 +618,15 @@ folder_imap_open (folder_t folder, int flags)
             {
               CHECK_ERROR (f_imap, ENOMEM);
             }
-	  status = memory_stream_create (&f_imap->string.stream, NULL, MU_STREAM_RDWR);
+	  status = mu_memory_stream_create (&f_imap->string.stream, NULL, MU_STREAM_RDWR);
           CHECK_ERROR (f_imap, status);
-	  stream_open (f_imap->string.stream);
+	  mu_stream_open (f_imap->string.stream);
         }
       else
         {
 	  /* Clear from any residue.  */
           memset (f_imap->buffer, '\0', f_imap->buflen);
-	  stream_truncate (f_imap->string.stream, 0);
+	  mu_stream_truncate (f_imap->string.stream, 0);
 	  f_imap->string.offset = 0;
 	  f_imap->string.nleft = 0;
         }
@@ -635,19 +635,19 @@ folder_imap_open (folder_t folder, int flags)
       /* Create the networking stack.  */
       if (folder->stream == NULL)
         {
-          status = tcp_stream_create (&folder->stream, host, port, folder->flags);
+          status = mu_tcp_stream_create (&folder->stream, host, port, folder->flags);
           CHECK_ERROR (f_imap, status);
 	  /* Ask for the stream internal buffering mechanism scheme.  */
-	  stream_setbufsiz (folder->stream, BUFSIZ);
+	  mu_stream_setbufsiz (folder->stream, BUFSIZ);
         }
       else
-        stream_close (folder->stream);
+        mu_stream_close (folder->stream);
       FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "imap_open (%s:%d)\n", host, port);
       f_imap->state = IMAP_OPEN_CONNECTION;
 
     case IMAP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      status = stream_open (folder->stream);
+      status = mu_stream_open (folder->stream);
       CHECK_EAGAIN (f_imap, status);
       /* Can't recover bailout.  */
       CHECK_ERROR_CLOSE (folder, f_imap, status);
@@ -699,28 +699,28 @@ folder_imap_open (folder_t folder, int flags)
       break;
     }
   f_imap->state = IMAP_NO_STATE;
-  monitor_wrlock (folder->monitor);
+  mu_monitor_wrlock (folder->monitor);
   f_imap->isopen++;
-  monitor_unlock (folder->monitor);
+  mu_monitor_unlock (folder->monitor);
   return 0;
 }
 
 
 /* Shutdown the connection.  */
 static int
-folder_imap_close (folder_t folder)
+folder_imap_close (mu_folder_t folder)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
 
-  monitor_wrlock (folder->monitor);
+  mu_monitor_wrlock (folder->monitor);
   f_imap->isopen--;
   if (f_imap->isopen)
     {
-      monitor_unlock (folder->monitor);
+      mu_monitor_unlock (folder->monitor);
       return 0;
     }
-  monitor_unlock (folder->monitor);
+  mu_monitor_unlock (folder->monitor);
 
   switch (f_imap->state)
     {
@@ -741,7 +741,7 @@ folder_imap_close (folder_t folder)
       CHECK_EAGAIN (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
       /* This is done when we received the BYE in the parser code.  */
-      /* stream_close (folder->stream); */
+      /* mu_stream_close (folder->stream); */
       /* f_imap->isopen = 0 ; */
 
     default:
@@ -754,7 +754,7 @@ folder_imap_close (folder_t folder)
 
 /* Remove a mailbox.  */
 static int
-folder_imap_delete (folder_t folder, const char *name)
+folder_imap_delete (mu_folder_t folder, const char *name)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -797,7 +797,7 @@ folder_imap_delete (folder_t folder, const char *name)
    the approach is everywhere there is a regex in the path we change that
    branch for '%' and do the matching ourself with fnmatch().  */
 static int
-folder_imap_list (folder_t folder, const char *ref, const char *name,
+folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
 		  struct mu_folder_list *pflist)
 {
   f_imap_t f_imap = folder->data;
@@ -956,7 +956,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 }
 
 static int
-folder_imap_lsub (folder_t folder, const char *ref, const char *name,
+folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
 		  struct mu_folder_list *pflist)
 {
   f_imap_t f_imap = folder->data;
@@ -1031,7 +1031,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 }
 
 static int
-folder_imap_rename (folder_t folder, const char *oldpath, const char *newpath)
+folder_imap_rename (mu_folder_t folder, const char *oldpath, const char *newpath)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -1070,7 +1070,7 @@ folder_imap_rename (folder_t folder, const char *oldpath, const char *newpath)
 }
 
 static int
-folder_imap_subscribe (folder_t folder, const char *name)
+folder_imap_subscribe (mu_folder_t folder, const char *name)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -1108,7 +1108,7 @@ folder_imap_subscribe (folder_t folder, const char *name)
 }
 
 static int
-folder_imap_unsubscribe (folder_t folder, const char *name)
+folder_imap_unsubscribe (mu_folder_t folder, const char *name)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -1193,7 +1193,7 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
 	    len0--;
 	}
 
-      stream_write (f_imap->string.stream, f_imap->buffer,
+      mu_stream_write (f_imap->string.stream, f_imap->buffer,
 		    len0, f_imap->string.offset, NULL);
       f_imap->string.offset += len0;
 
@@ -1215,7 +1215,7 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
 	      break;
 
 	    case IMAP_MESSAGE:
-	      f_imap->string.msg_imap->message_lines += nl;
+	      f_imap->string.msg_imap->mu_message_lines += nl;
 	      /* The message size is known by sending RFC822.SIZE.  */
 
 	    default:
@@ -1255,7 +1255,7 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
     }
 
   len = *ptr - bquote;
-  stream_write (f_imap->string.stream, bquote, len,
+  mu_stream_write (f_imap->string.stream, bquote, len,
 		f_imap->string.offset, NULL);
   f_imap->string.offset += len;
   if (**ptr == '"')
@@ -1277,7 +1277,7 @@ imap_digits (f_imap_t f_imap, char **ptr)
   for (++*ptr; **ptr && isdigit(**ptr); ++*ptr)
     ;
   len = *ptr - start;
-  stream_write (f_imap->string.stream, start, len,
+  mu_stream_write (f_imap->string.stream, start, len,
 		f_imap->string.offset, NULL);
   f_imap->string.offset += len;
   return 0;
@@ -1413,13 +1413,13 @@ imap_list (f_imap_t f_imap)
 	{
 	  off_t sz = 0;
 
-	  stream_size (f_imap->string.stream, &sz);
+	  mu_stream_size (f_imap->string.stream, &sz);
 	  lr->name = calloc (sz + 1, 1);
 	  if (!lr->name)
 	    status = ENOMEM;
 	  else
-	    stream_read (f_imap->string.stream, lr->name, sz, 0, NULL);
-	  stream_truncate (f_imap->string.stream, 0);
+	    mu_stream_read (f_imap->string.stream, lr->name, sz, 0, NULL);
+	  mu_stream_truncate (f_imap->string.stream, 0);
 	  f_imap->string.offset = 0;
 	  f_imap->string.nleft = 0;
 	}
@@ -1526,7 +1526,7 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **ptr)
 	  if (start != *ptr)
 	    {
 	      if (!have_size && msg_imap && msg_imap->parent)
-		msg_imap->message_size = size;
+		msg_imap->mu_message_size = size;
 	      have_size = 1;
 	      no_arg = 0;
 	    }
@@ -1772,13 +1772,13 @@ imap_body (f_imap_t f_imap, char **ptr)
       off_t total = 0;
       if (f_imap->string.msg_imap && f_imap->string.msg_imap->fheader)
 	mu_header_destroy (&f_imap->string.msg_imap->fheader, NULL);
-      stream_size (f_imap->string.stream, &total);
+      mu_stream_size (f_imap->string.stream, &total);
       buffer = malloc (total + 1);
-      stream_read (f_imap->string.stream, buffer, total, 0, NULL);
+      mu_stream_read (f_imap->string.stream, buffer, total, 0, NULL);
       status = mu_header_create (&f_imap->string.msg_imap->fheader,
 			      buffer, total, NULL);
       free (buffer);
-      stream_truncate (f_imap->string.stream, 0);
+      mu_stream_truncate (f_imap->string.stream, 0);
       f_imap->string.offset = 0;
       f_imap->string.nleft = 0;
     }
@@ -1817,7 +1817,7 @@ imap_rfc822_size (f_imap_t f_imap, char **ptr)
   char token[128];
   imap_token (token, sizeof token, ptr);
   if (f_imap->string.msg_imap)
-    f_imap->string.msg_imap->message_size = strtoul (token, NULL, 10);
+    f_imap->string.msg_imap->mu_message_size = strtoul (token, NULL, 10);
   return 0;
 }
 
@@ -1890,7 +1890,7 @@ imap_fetch (f_imap_t f_imap)
     {
       /* Find the imap mesg struct.  */
       size_t i;
-      message_t msg = NULL;
+      mu_message_t msg = NULL;
       mu_mailbox_get_message (m_imap->mailbox, msgno, &msg);
       for (i = 0; i < m_imap->imessages_count; i++)
 	{
@@ -1900,7 +1900,7 @@ imap_fetch (f_imap_t f_imap)
 	      break;
 	    }
 	}
-      /* message_destroy (&msg);  */
+      /* mu_message_destroy (&msg);  */
     }
 
   while (*sp && *sp != ')')
@@ -2077,7 +2077,7 @@ imap_send (f_imap_t f_imap)
       size_t len;
       size_t n = 0;
       len = f_imap->ptr - f_imap->buffer;
-      status = stream_write (f_imap->folder->stream, f_imap->buffer, len,
+      status = mu_stream_write (f_imap->folder->stream, f_imap->buffer, len,
 			     0, &n);
       if (status == 0)
         {
@@ -2104,7 +2104,7 @@ imap_readline (f_imap_t f_imap)
   /* Must get a full line before bailing out.  */
   do
     {
-      status = stream_readline (f_imap->folder->stream, f_imap->buffer + total,
+      status = mu_stream_readline (f_imap->folder->stream, f_imap->buffer + total,
 				f_imap->buflen - total,  f_imap->offset, &n);
       if (status != 0)
         return status;
@@ -2204,7 +2204,7 @@ imap_parse (f_imap_t f_imap)
   int status = 0;
   char empty[2];
   char *buffer = NULL;
-  folder_t folder = f_imap->folder;
+  mu_folder_t folder = f_imap->folder;
 
   /* We use that moronic hack to not check null for the tockenize strings.  */
   empty[0] = '\0';
@@ -2398,11 +2398,11 @@ imap_parse (f_imap_t f_imap)
 	    {
 	      /* We should close the stream. This is not recoverable.  */
 	      done = 1;
-	      monitor_wrlock (f_imap->folder->monitor);
+	      mu_monitor_wrlock (f_imap->folder->monitor);
 	      f_imap->isopen = 0;
 	      f_imap->selected = NULL;
-	      monitor_unlock (f_imap->folder->monitor);
-	      stream_close (f_imap->folder->stream);
+	      mu_monitor_unlock (f_imap->folder->monitor);
+	      mu_stream_close (f_imap->folder->stream);
 	    }
 	  else if (strcasecmp (response, "CAPABILITY") == 0)
 	    {
@@ -2472,9 +2472,9 @@ imap_parse (f_imap_t f_imap)
 	    {
 	      if (strncasecmp (remainder, "LOGIN", 5) == 0)
 		{
-		  observable_t observable = NULL;
+		  mu_observable_t observable = NULL;
 		  mu_folder_get_observable (f_imap->folder, &observable);
-		  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+		  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 		  status = MU_ERR_AUTH_FAILURE;
 		}
 	      else
@@ -2495,5 +2495,5 @@ imap_parse (f_imap_t f_imap)
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t imap_record = NULL;
+mu_record_t mu_imap_record = NULL;
 #endif

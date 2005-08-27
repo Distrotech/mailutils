@@ -26,18 +26,18 @@
  */
 
 static int
-mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
+mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 {
-  header_t hdr;
-  body_t body;
-  stream_t stream;
+  mu_header_t hdr;
+  mu_body_t body;
+  mu_stream_t stream;
   char buffer[512];
   off_t off = 0;
   size_t n = 0, lines = 0;
   FILE *out = ofile;
   int pagelines = util_get_crt ();
   
-  message_lines (mesg, &lines);
+  mu_message_lines (mesg, &lines);
 
   /* If it is POP or IMAP the lines number is not known, so try
      to be smart about it.  */
@@ -49,7 +49,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
 	  if (col)
 	    {
 	      size_t size = 0;
-	      message_size (mesg, &size);
+	      mu_message_size (mesg, &size);
 	      lines =  size / col;
 	    }
 	}
@@ -64,7 +64,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
       char buf[512];
       char *tmp;
       
-      message_get_header (mesg, &hdr);
+      mu_message_get_header (mesg, &hdr);
       mu_header_get_field_count (hdr, &num);
 
       for (i = 1; i <= num; i++)
@@ -82,13 +82,13 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
 	    }
 	}
       fprintf (out, "\n");
-      message_get_body (mesg, &body);
+      mu_message_get_body (mesg, &body);
       mu_body_get_stream (body, &stream);
     }
   else
-    message_get_stream (mesg, &stream);
+    mu_message_get_stream (mesg, &stream);
   
-  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
       if (ml_got_interrupt())

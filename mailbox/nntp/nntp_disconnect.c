@@ -44,5 +44,5 @@ mu_nntp_disconnect (mu_nntp_t nntp)
   nntp->ack.ptr = nntp->ack.buf;
 
   /* Close the stream.  */
-  return stream_close (nntp->carrier);
+  return mu_stream_close (nntp->carrier);
 }

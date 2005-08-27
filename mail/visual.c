@@ -23,7 +23,7 @@
  */
 
 static int
-visual0 (msgset_t *mspec, message_t msg, void *data)
+visual0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
   char *file = mu_tempname (NULL);
 

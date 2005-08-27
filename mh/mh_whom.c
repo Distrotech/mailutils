@@ -23,11 +23,11 @@ struct recipient {
   int isbcc;
 };
 
-static list_t local_rcp;   /* Local recipients */
-static list_t network_rcp; /* Network recipients */
+static mu_list_t local_rcp;   /* Local recipients */
+static mu_list_t network_rcp; /* Network recipients */
 
 static void
-addrcp (list_t *list, char *addr, int isbcc)
+addrcp (mu_list_t *list, char *addr, int isbcc)
 {
   int rc;
   struct recipient *p = xmalloc (sizeof (*p));
@@ -52,13 +52,13 @@ ismydomain (char *p)
 }
 
 int
-mh_alias_expand (char *str, address_t *paddr, int *incl)
+mh_alias_expand (char *str, mu_address_t *paddr, int *incl)
 {
   size_t argc;
   char **argv;
   size_t i;
   char *buf;
-  address_t exaddr = NULL;
+  mu_address_t exaddr = NULL;
   
   mu_argcv_get (str, ",", NULL, &argc, &argv);
   for (i = 0; i < argc;)
@@ -119,7 +119,7 @@ mh_alias_expand (char *str, address_t *paddr, int *incl)
 static void
 scan_addrs (char *str, int isbcc)
 {
-  address_t addr = NULL;
+  mu_address_t addr = NULL;
   size_t i, count;
   char *buf;
   int rc;
@@ -165,7 +165,7 @@ _destroy_recipient (void *item, void *unused_data)
 }
 
 static void
-destroy_addrs (list_t *list)
+destroy_addrs (mu_list_t *list)
 {
   if (!*list)
     return;

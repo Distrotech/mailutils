@@ -110,55 +110,55 @@ enum pop_state
 #define CAPA_STLS            0x00000100
 #define CAPA_IMPLEMENTATION  0x00000200
 
-static void pop_destroy        (mailbox_t);
-static int pop_capa            (mailbox_t);
-static int pop_stls            (mailbox_t);
+static void pop_destroy        (mu_mailbox_t);
+static int pop_capa            (mu_mailbox_t);
+static int pop_stls            (mu_mailbox_t);
 
-/*  Functions/Methods that implements the mailbox_t API.  */
-static int pop_open            (mailbox_t, int);
-static int pop_close           (mailbox_t);
-static int pop_get_message     (mailbox_t, size_t, message_t *);
-static int pop_messages_count  (mailbox_t, size_t *);
-static int pop_messages_recent (mailbox_t, size_t *);
-static int pop_message_unseen  (mailbox_t, size_t *);
-static int pop_expunge         (mailbox_t);
-static int pop_scan            (mailbox_t, size_t, size_t *);
-static int pop_is_updated      (mailbox_t);
+/*  Functions/Methods that implements the mu_mailbox_t API.  */
+static int pop_open            (mu_mailbox_t, int);
+static int pop_close           (mu_mailbox_t);
+static int pop_get_message     (mu_mailbox_t, size_t, mu_message_t *);
+static int pop_messages_count  (mu_mailbox_t, size_t *);
+static int pop_messages_recent (mu_mailbox_t, size_t *);
+static int pop_message_unseen  (mu_mailbox_t, size_t *);
+static int pop_expunge         (mu_mailbox_t);
+static int pop_scan            (mu_mailbox_t, size_t, size_t *);
+static int pop_is_updated      (mu_mailbox_t);
 
-/* The implementation of message_t */
-int _pop_user            (authority_t);
-int _pop_apop            (authority_t);
-static int pop_get_size        (mailbox_t, off_t *);
+/* The implementation of mu_message_t */
+int _pop_user            (mu_authority_t);
+int _pop_apop            (mu_authority_t);
+static int pop_get_size        (mu_mailbox_t, off_t *);
 /* We use pop_top for retreiving headers.  */
-/* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
-static int pop_body_transport  (stream_t, mu_transport_t *, mu_transport_t *);
-static int pop_body_size       (body_t, size_t *);
-static int pop_body_lines      (body_t, size_t *);
-static int pop_body_read       (stream_t, char *, size_t, off_t, size_t *);
-static int pop_message_read    (stream_t, char *, size_t, off_t, size_t *);
-static int pop_message_size    (message_t, size_t *);
-static int pop_message_transport (stream_t, mu_transport_t *, mu_transport_t *);
-static int pop_top             (header_t, char *, size_t, off_t, size_t *);
+/* static int pop_header_read (mu_header_t, char *, size_t, off_t, size_t *); */
+static int pop_body_transport  (mu_stream_t, mu_transport_t *, mu_transport_t *);
+static int pop_body_size       (mu_body_t, size_t *);
+static int pop_body_lines      (mu_body_t, size_t *);
+static int pop_body_read       (mu_stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_read    (mu_stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_size    (mu_message_t, size_t *);
+static int pop_message_transport (mu_stream_t, mu_transport_t *, mu_transport_t *);
+static int pop_top             (mu_header_t, char *, size_t, off_t, size_t *);
 static int pop_retr            (pop_message_t, char *, size_t, off_t, size_t *);
 static int pop_get_transport2   (pop_message_t, mu_transport_t *, mu_transport_t *);
-static int pop_get_attribute   (attribute_t, int *);
-static int pop_set_attribute   (attribute_t, int);
-static int pop_unset_attribute (attribute_t, int);
-static int pop_uidl            (message_t, char *, size_t, size_t *);
-static int pop_uid             (message_t, size_t *);
+static int pop_get_attribute   (mu_attribute_t, int *);
+static int pop_set_attribute   (mu_attribute_t, int);
+static int pop_unset_attribute (mu_attribute_t, int);
+static int pop_uidl            (mu_message_t, char *, size_t, size_t *);
+static int pop_uid             (mu_message_t, size_t *);
 static int fill_buffer         (pop_data_t, char *, size_t);
 static int pop_sleep           (int);
 static int pop_readline        (pop_data_t);
 static int pop_read_ack        (pop_data_t);
 static int pop_writeline       (pop_data_t, const char *, ...);
 static int pop_write           (pop_data_t);
-static int pop_get_user        (authority_t);
-static int pop_get_passwd      (authority_t);
+static int pop_get_user        (mu_authority_t);
+static int pop_get_passwd      (mu_authority_t);
 static char *pop_get_timestamp (pop_data_t);
 static int pop_get_md5         (pop_data_t);
 
 /* This structure holds the info for a message. The pop_message_t
-   type, will serve as the owner of the message_t and contains the command to
+   type, will serve as the owner of the mu_message_t and contains the command to
    send to "RETR"eive the specify message.  The problem comes from the header.
    If the  POP server supports TOP, we can cleanly fetch the header.
    But otherwise we use the clumsy approach. .i.e for the header we read 'til
@@ -173,11 +173,11 @@ struct _pop_message
   size_t header_size;
   size_t body_lines;
   size_t header_lines;
-  size_t message_size;
+  size_t mu_message_size;
   size_t num;
   char *uidl; /* Cache the uidl string.  */
   int attr_flags;
-  message_t message;
+  mu_message_t message;
   pop_data_t mpd; /* Back pointer.  */
 };
 
@@ -201,13 +201,13 @@ struct _pop_data
   char *ptr; /* Points to the end of the buffer i.e the non consume chars.  */
   char *nl;  /* Points to the '\n' char in te string.  */
   off_t offset; /* Dummy, this is use because of the stream buffering.
-		   The stream_t maintains and offset and the offset we use must
+		   The mu_stream_t maintains and offset and the offset we use must
 		   be in sync.  */
 
   int is_updated;
   char *user;     /* Temporary holders for user and passwd.  */
   char *passwd;   /* Temporary holders for passwd memset (0) when finish.  */
-  mailbox_t mbox; /* Back pointer.  */
+  mu_mailbox_t mbox; /* Back pointer.  */
 } ;
 
 /* Usefull little Macros, since these are very repetitive.  */
@@ -217,17 +217,17 @@ struct _pop_data
    is trying to execute a command while another is running
    something is seriously incorrect,  So the best course
    of action is to close down the connection and start a new one.
-   For example mime_t only reads part of the message.  If a client
+   For example mu_mime_t only reads part of the message.  If a client
    wants to read different part of the message via mime it should
    download it first.  POP does not have the features of IMAP for
    multipart messages.
    Let see a concrete example:
    {
-     mailbox_t mbox; message_t msg; stream_t stream; char buffer[105];
+     mu_mailbox_t mbox; mu_message_t msg; mu_stream_t stream; char buffer[105];
      mu_mailbox_create (&mbox, "pop://qnx.com");
      mu_mailbox_get_message (mbox, 1, &msg);
-     message_get_stream (msg, &stream);
-     while (stream_readline (stream, buffer, sizeof(buffer), NULL) != 0) { ..}
+     mu_message_get_stream (msg, &stream);
+     while (mu_stream_readline (stream, buffer, sizeof(buffer), NULL) != 0) { ..}
    }
    if in the while of the readline, one try to get another email.  The pop
    server will get seriously confused, and the second message will still
@@ -241,7 +241,7 @@ struct _pop_data
 #define CHECK_BUSY(mbox, mpd, function, identity) \
 do \
   { \
-    int err = monitor_wrlock (mbox->monitor); \
+    int err = mu_monitor_wrlock (mbox->monitor); \
     if (err != 0) \
       return err; \
     if ((mpd->func && mpd->func != function) \
@@ -250,7 +250,7 @@ do \
         mpd->id = 0; \
         mpd->func = (void *)pop_open; \
         mpd->state = POP_NO_STATE; \
-        monitor_unlock (mbox->monitor); \
+        mu_monitor_unlock (mbox->monitor); \
         err = pop_open (mbox, mbox->flags); \
         if (err != 0) \
           { \
@@ -261,7 +261,7 @@ do \
       { \
         mpd->id = (size_t)identity; \
         mpd->func = func; \
-        monitor_unlock (mbox->monitor); \
+        mu_monitor_unlock (mbox->monitor); \
       } \
   } \
 while (0)
@@ -276,7 +276,7 @@ do \
   { \
      if (status != 0) \
        { \
-          stream_close (mbox->stream); \
+          mu_stream_close (mbox->stream); \
           CLEAR_STATE (mpd); \
           mpd->func = (void *)-1; \
           MAILBOX_DEBUG1(mbox, MU_DEBUG_PROT, "CHECK_ERROR_CLOSE: %s\n", mu_strerror (status));\
@@ -317,9 +317,9 @@ do \
 while (0)
 
 
-/* Allocate mailbox_t, allocate pop internal structures.  */
+/* Allocate mu_mailbox_t, allocate pop internal structures.  */
 int
-_mailbox_pop_init (mailbox_t mbox)
+_mailbox_pop_init (mu_mailbox_t mbox)
 {
   pop_data_t mpd;
   int status = 0;
@@ -353,9 +353,9 @@ _mailbox_pop_init (mailbox_t mbox)
 
   /* Set our properties.  */
   {
-    property_t property = NULL;
+    mu_property_t property = NULL;
     mu_mailbox_get_property (mbox, &property);
-    property_set_value (property, "TYPE", "POP3", 1);
+    mu_property_set_value (property, "TYPE", "POP3", 1);
   }
 
   /* Hack! POP does not really have a folder.  */
@@ -366,19 +366,19 @@ _mailbox_pop_init (mailbox_t mbox)
 
 /*  Cleaning up all the ressources associate with a pop mailbox.  */
 static void
-pop_destroy (mailbox_t mbox)
+pop_destroy (mu_mailbox_t mbox)
 {
   if (mbox->data)
     {
       pop_data_t mpd = mbox->data;
       size_t i;
-      monitor_wrlock (mbox->monitor);
+      mu_monitor_wrlock (mbox->monitor);
       /* Destroy the pop messages and ressources associated to them.  */
       for (i = 0; i < mpd->pmessages_count; i++)
 	{
 	  if (mpd->pmessages[i])
 	    {
-	      message_destroy (&(mpd->pmessages[i]->message),
+	      mu_message_destroy (&(mpd->pmessages[i]->message),
 			       mpd->pmessages[i]);
 	      if (mpd->pmessages[i]->uidl)
 		free (mpd->pmessages[i]->uidl);
@@ -392,7 +392,7 @@ pop_destroy (mailbox_t mbox)
 	free (mpd->pmessages);
       free (mpd);
       mbox->data = NULL;
-      monitor_unlock (mbox->monitor);
+      mu_monitor_unlock (mbox->monitor);
     }
 }
 
@@ -401,7 +401,7 @@ pop_destroy (mailbox_t mbox)
  */
 
 static int
-pop_capa (mailbox_t mbox)
+pop_capa (mu_mailbox_t mbox)
 {
   pop_data_t mpd = mbox->data;
   int status;
@@ -461,10 +461,10 @@ pop_capa (mailbox_t mbox)
 /* Simple User/pass authentication for pop. We ask for the info
    from the standard input.  */
 int
-_pop_user (authority_t auth)
+_pop_user (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
-  mailbox_t mbox = folder->data;
+  mu_folder_t folder = mu_authority_get_owner (auth);
+  mu_mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   int status;
 
@@ -500,10 +500,10 @@ _pop_user (authority_t auth)
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  observable_t observable = NULL;
+	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
-	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
       status = pop_get_passwd (auth);
@@ -538,10 +538,10 @@ _pop_user (authority_t auth)
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  observable_t observable = NULL;
+	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
-	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  return MU_ERR_AUTH_FAILURE;
 	}
       mpd->state = POP_AUTH_DONE;
@@ -555,10 +555,10 @@ _pop_user (authority_t auth)
 }
 
 int
-_pop_apop (authority_t auth)
+_pop_apop (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
-  mailbox_t mbox = folder->data;
+  mu_folder_t folder = mu_authority_get_owner (auth);
+  mu_mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   int status;
 
@@ -610,10 +610,10 @@ _pop_apop (authority_t auth)
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
         {
-          observable_t observable = NULL;
+          mu_observable_t observable = NULL;
           mu_mailbox_get_observable (mbox, &observable);
           CLEAR_STATE (mpd);
-          observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+          mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
           CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
         }
       mpd->state = POP_AUTH_DONE;
@@ -631,12 +631,12 @@ _pop_apop (authority_t auth)
  */
 
 static int
-pop_stls (mailbox_t mbox)
+pop_stls (mu_mailbox_t mbox)
 {
 #ifdef WITH_TLS
   pop_data_t mpd = mbox->data;
   int status;
-  stream_t str;
+  mu_stream_t str;
   
   if (!mu_tls_enable || !(mpd->capa & CAPA_STLS))
     return -1;
@@ -651,9 +651,9 @@ pop_stls (mailbox_t mbox)
   if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
     return -1;
 
-  status = tls_stream_create_client_from_tcp (&str, mbox->stream, 0);
+  status = mu_tls_stream_create_client_from_tcp (&str, mbox->stream, 0);
   CHECK_ERROR (mpd, status);
-  status = stream_open (str);
+  status = mu_stream_open (str);
   if (status == 0)
     mbox->stream = str;
   MAILBOX_DEBUG1 (mbox, MU_DEBUG_PROT, "TLS negotiation %s\n",
@@ -666,7 +666,7 @@ pop_stls (mailbox_t mbox)
 
 /* Open the connection to the sever, and send the authentication. */
 static int
-pop_open (mailbox_t mbox, int flags)
+pop_open (mu_mailbox_t mbox, int flags)
 {
   pop_data_t mpd = mbox->data;
   int status;
@@ -678,13 +678,13 @@ pop_open (mailbox_t mbox, int flags)
   if (mpd == NULL)
     return EINVAL;
 
-  /* Fetch the pop server name and the port in the url_t.  */
-  status = url_get_host (mbox->url, NULL, 0, &hostlen);
+  /* Fetch the pop server name and the port in the mu_url_t.  */
+  status = mu_url_get_host (mbox->url, NULL, 0, &hostlen);
   if (status != 0)
     return status;
   host = alloca (hostlen + 1);
-  url_get_host (mbox->url, host, hostlen + 1, NULL);
-  url_get_port (mbox->url, &port);
+  mu_url_get_host (mbox->url, host, hostlen + 1, NULL);
+  mu_url_get_port (mbox->url, &port);
 
   mbox->flags = flags;
 
@@ -716,10 +716,10 @@ pop_open (mailbox_t mbox, int flags)
       /* Create the networking stack.  */
       if (mbox->stream == NULL)
 	{
-	  status = tcp_stream_create (&mbox->stream, host, port, mbox->flags);
+	  status = mu_tcp_stream_create (&mbox->stream, host, port, mbox->flags);
 	  CHECK_ERROR(mpd, status);
-	  /* Using the awkward stream_t buffering.  */
-	  stream_setbufsiz (mbox->stream, BUFSIZ);
+	  /* Using the awkward mu_stream_t buffering.  */
+	  mu_stream_setbufsiz (mbox->stream, BUFSIZ);
 	}
       else
 	{
@@ -731,7 +731,7 @@ pop_open (mailbox_t mbox, int flags)
 	     server again, and we'll end up having "-ERR Mail Lock busy" or
 	     something similar. To prevent this race condition we sleep 2
 	     seconds. */
-	  stream_close (mbox->stream);
+	  mu_stream_close (mbox->stream);
 	  pop_sleep (2);
 	}
       mpd->state = POP_OPEN_CONNECTION;
@@ -739,7 +739,7 @@ pop_open (mailbox_t mbox, int flags)
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
       MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%d)\n", host, port);
-      status = stream_open (mbox->stream);
+      status = mu_stream_open (mbox->stream);
       CHECK_EAGAIN (mpd, status);
       /* Can't recover bailout.  */
       CHECK_ERROR_CLOSE (mbox, mpd, status);
@@ -798,7 +798,7 @@ pop_open (mailbox_t mbox, int flags)
 
 /* Send the QUIT and close the socket.  */
 static int
-pop_close (mailbox_t mbox)
+pop_close (mu_mailbox_t mbox)
 {
   pop_data_t mpd = mbox->data;
   void *func = (void *)pop_close;
@@ -810,12 +810,12 @@ pop_close (mailbox_t mbox)
 
   /* Should not check for Busy, we're shuting down anyway.  */
   /* CHECK_BUSY (mbox, mpd, func, 0); */
-  monitor_wrlock (mbox->monitor);
+  mu_monitor_wrlock (mbox->monitor);
   if (mpd->func && mpd->func != func)
     mpd->state = POP_NO_STATE;
   mpd->id = 0;
   mpd->func = func;
-  monitor_unlock (mbox->monitor);
+  mu_monitor_unlock (mbox->monitor);
 
   /*  Ok boys, it's a wrap: UPDATE State.  */
   switch (mpd->state)
@@ -843,7 +843,7 @@ pop_close (mailbox_t mbox)
 	  anyway.  */
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	mu_error ("pop_close: %s\n", mpd->buffer);
-      stream_close (mbox->stream);
+      mu_stream_close (mbox->stream);
       break;
 
     default:
@@ -858,7 +858,7 @@ pop_close (mailbox_t mbox)
     {
       if (mpd->pmessages[i])
 	{
-	  message_destroy (&(mpd->pmessages[i]->message),
+	  mu_message_destroy (&(mpd->pmessages[i]->message),
 			   mpd->pmessages[i]);
 	  if (mpd->pmessages[i]->uidl)
 	    free (mpd->pmessages[i]->uidl);
@@ -880,13 +880,13 @@ pop_close (mailbox_t mbox)
   return 0;
 }
 
-/*  Only build/setup the message_t structure for a mesgno. pop_message_t,
+/*  Only build/setup the mu_message_t structure for a mesgno. pop_message_t,
     will act as the owner of messages.  */
 static int
-pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
+pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
 {
   pop_data_t mpd = mbox->data;
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
   pop_message_t mpm;
   int status;
   size_t i;
@@ -895,7 +895,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   if (pmsg == NULL || mpd == NULL || msgno > mpd->messages_count)
     return EINVAL;
 
-  monitor_rdlock (mbox->monitor);
+  mu_monitor_rdlock (mbox->monitor);
   /* See if we have already this message.  */
   for (i = 0; i < mpd->pmessages_count; i++)
     {
@@ -904,12 +904,12 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  if (mpd->pmessages[i]->num == msgno)
 	    {
 	      *pmsg = mpd->pmessages[i]->message;
-	      monitor_unlock (mbox->monitor);
+	      mu_monitor_unlock (mbox->monitor);
 	      return 0;
 	    }
 	}
     }
-  monitor_unlock (mbox->monitor);
+  mu_monitor_unlock (mbox->monitor);
 
   mpm = calloc (1, sizeof (*mpm));
   if (mpm == NULL)
@@ -921,102 +921,102 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the message.  */
   {
-    stream_t stream = NULL;
-    if ((status = message_create (&msg, mpm)) != 0
-	|| (status = stream_create (&stream, mbox->flags, msg)) != 0)
+    mu_stream_t stream = NULL;
+    if ((status = mu_message_create (&msg, mpm)) != 0
+	|| (status = mu_stream_create (&stream, mbox->flags, msg)) != 0)
       {
-	stream_destroy (&stream, msg);
-	message_destroy (&msg, mpm);
+	mu_stream_destroy (&stream, msg);
+	mu_message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
     /* Help for the readline()s  */
-    stream_setbufsiz (stream, 128);
-    stream_set_read (stream, pop_message_read, msg);
-    stream_set_get_transport2 (stream, pop_message_transport, msg);
-    message_set_stream (msg, stream, mpm);
-    message_set_size (msg, pop_message_size, mpm);
+    mu_stream_setbufsiz (stream, 128);
+    mu_stream_set_read (stream, pop_message_read, msg);
+    mu_stream_set_get_transport2 (stream, pop_message_transport, msg);
+    mu_message_set_stream (msg, stream, mpm);
+    mu_message_set_size (msg, pop_message_size, mpm);
   }
 
   /* Create the header.  */
   {
-    header_t header = NULL;
+    mu_header_t header = NULL;
     if ((status = mu_header_create (&header, NULL, 0,  msg)) != 0)
       {
-	message_destroy (&msg, mpm);
+	mu_message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
     mu_header_set_fill (header, pop_top, msg);
-    message_set_header (msg, header, mpm);
+    mu_message_set_header (msg, header, mpm);
   }
 
   /* Create the attribute.  */
   {
-    attribute_t attribute;
+    mu_attribute_t attribute;
     status = mu_attribute_create (&attribute, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mpm);
+	mu_message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
     mu_attribute_set_get_flags (attribute, pop_get_attribute, msg);
     mu_attribute_set_set_flags (attribute, pop_set_attribute, msg);
     mu_attribute_set_unset_flags (attribute, pop_unset_attribute, msg);
-    message_set_attribute (msg, attribute, mpm);
+    mu_message_set_attribute (msg, attribute, mpm);
   }
 
   /* Create the body and its stream.  */
   {
-    body_t body = NULL;
-    stream_t stream = NULL;
+    mu_body_t body = NULL;
+    mu_stream_t stream = NULL;
     if ((status = mu_body_create (&body, msg)) != 0
-	|| (status = stream_create (&stream, mbox->flags, body)) != 0)
+	|| (status = mu_stream_create (&stream, mbox->flags, body)) != 0)
       {
 	mu_body_destroy (&body, msg);
-	stream_destroy (&stream, body);
-	message_destroy (&msg, mpm);
+	mu_stream_destroy (&stream, body);
+	mu_message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
     /* Helps for the readline()s  */
-    stream_setbufsiz (stream, 128);
-    stream_set_read (stream, pop_body_read, body);
-    stream_set_get_transport2 (stream, pop_body_transport, body);
+    mu_stream_setbufsiz (stream, 128);
+    mu_stream_set_read (stream, pop_body_read, body);
+    mu_stream_set_get_transport2 (stream, pop_body_transport, body);
     mu_body_set_size (body, pop_body_size, msg);
     mu_body_set_lines (body, pop_body_lines, msg);
     mu_body_set_stream (body, stream, msg);
-    message_set_body (msg, body, mpm);
+    mu_message_set_body (msg, body, mpm);
   }
 
   /* Set the UIDL call on the message. */
   if (mpd->capa & CAPA_UIDL)
-    message_set_uidl (msg, pop_uidl, mpm);
+    mu_message_set_uidl (msg, pop_uidl, mpm);
 
   /* Set the UID on the message. */
-  message_set_uid (msg, pop_uid, mpm);
+  mu_message_set_uid (msg, pop_uid, mpm);
 
   /* Add it to the list.  */
-  monitor_wrlock (mbox->monitor);
+  mu_monitor_wrlock (mbox->monitor);
   {
     pop_message_t *m ;
     m = realloc (mpd->pmessages, (mpd->pmessages_count + 1)*sizeof (*m));
     if (m == NULL)
       {
-	message_destroy (&msg, mpm);
+	mu_message_destroy (&msg, mpm);
 	free (mpm);
-	monitor_unlock (mbox->monitor);
+	mu_monitor_unlock (mbox->monitor);
 	return ENOMEM;
       }
     mpd->pmessages = m;
     mpd->pmessages[mpd->pmessages_count] = mpm;
     mpd->pmessages_count++;
   }
-  monitor_unlock (mbox->monitor);
+  mu_monitor_unlock (mbox->monitor);
 
   /* Save The message pointer.  */
-  message_set_mailbox (msg, mbox, mpm);
+  mu_message_set_mailbox (msg, mbox, mpm);
   *pmsg = mpm->message = msg;
 
   return 0;
@@ -1026,7 +1026,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
    FIXME: We could cheat and peek at the status if it was not strip
    by the server ...  */
 static int
-pop_messages_recent (mailbox_t mbox, size_t *precent)
+pop_messages_recent (mu_mailbox_t mbox, size_t *precent)
 {
   return pop_messages_count (mbox, precent);
 }
@@ -1035,7 +1035,7 @@ pop_messages_recent (mailbox_t mbox, size_t *precent)
    FIXME: We could cheat and peek at the status if it was not strip
    by the server ...  */
 static int
-pop_message_unseen (mailbox_t mbox, size_t *punseen)
+pop_message_unseen (mu_mailbox_t mbox, size_t *punseen)
 {
   size_t count = 0;
   int status = pop_messages_count (mbox, &count);
@@ -1048,7 +1048,7 @@ pop_message_unseen (mailbox_t mbox, size_t *punseen)
 
 /*  How many messages we have.  Done with STAT.  */
 static int
-pop_messages_count (mailbox_t mbox, size_t *pcount)
+pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
 {
   pop_data_t mpd = mbox->data;
   int status;
@@ -1117,7 +1117,7 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
 
 /* Update and scanning.  */
 static int
-pop_is_updated (mailbox_t mbox)
+pop_is_updated (mu_mailbox_t mbox)
 {
   pop_data_t mpd = mbox->data;
   if (mpd == NULL)
@@ -1128,7 +1128,7 @@ pop_is_updated (mailbox_t mbox)
 /* We just simulate by sending a notification for the total msgno.  */
 /* FIXME is message is set deleted should we sent a notif ?  */
 static int
-pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   int status;
   size_t i;
@@ -1143,11 +1143,11 @@ pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
     return 0;
   for (i = msgno; i <= count; i++)
     {
-      if (observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
 	break;
       if (((i +1) % 10) == 0)
 	{
-	  observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
 	}
     }
   return 0;
@@ -1159,11 +1159,11 @@ pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
    beside closing down the connection without going to the update state via
    QUIT.  So DELE is send only when in expunge.  */
 static int
-pop_expunge (mailbox_t mbox)
+pop_expunge (mu_mailbox_t mbox)
 {
   pop_data_t mpd = mbox->data;
   size_t i;
-  attribute_t attr;
+  mu_attribute_t attr;
   int status;
   void *func = (void *)pop_expunge;
 
@@ -1175,7 +1175,7 @@ pop_expunge (mailbox_t mbox)
 
   for (i = (int)mpd->id; i < mpd->pmessages_count; mpd->id = ++i)
     {
-      if (message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
+      if (mu_message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
 	{
 	  if (mu_attribute_is_deleted (attr))
 	    {
@@ -1211,7 +1211,7 @@ pop_expunge (mailbox_t mbox)
 		  break;
 		} /* switch (state) */
 	    } /* if mu_attribute_is_deleted() */
-	} /* message_get_attribute() */
+	} /* mu_message_get_attribute() */
     } /* for */
   CLEAR_STATE (mpd);
   /* Invalidate.  But Really they should shutdown the channel POP protocol
@@ -1222,7 +1222,7 @@ pop_expunge (mailbox_t mbox)
 
 /* Mailbox size ? It is part of the STAT command */
 static int
-pop_get_size (mailbox_t mbox, off_t *psize)
+pop_get_size (mu_mailbox_t mbox, off_t *psize)
 {
   pop_data_t mpd = mbox->data;
   int status = 0;
@@ -1251,9 +1251,9 @@ pop_get_size (mailbox_t mbox, off_t *psize)
    then the octets returned will not be correct so we do our best.
  */
 static int
-pop_message_size (message_t msg, size_t *psize)
+pop_message_size (mu_message_t msg, size_t *psize)
 {
-  pop_message_t mpm = message_get_owner (msg);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   int status = 0;
   void *func = (void *)pop_message_size;
@@ -1263,9 +1263,9 @@ pop_message_size (message_t msg, size_t *psize)
     return EINVAL;
 
   /* Did we have it already ?  */
-  if (mpm->message_size != 0)
+  if (mpm->mu_message_size != 0)
     {
-      *psize = mpm->message_size;
+      *psize = mpm->mu_message_size;
       return 0;
     }
 
@@ -1302,7 +1302,7 @@ pop_message_size (message_t msg, size_t *psize)
       break;
     }
 
-  status = sscanf (mpd->buffer, "+OK %d %d\n", &num, &mpm->message_size);
+  status = sscanf (mpd->buffer, "+OK %d %d\n", &num, &mpm->mu_message_size);
   CLEAR_STATE (mpd);
 
   if (status != 2)
@@ -1311,7 +1311,7 @@ pop_message_size (message_t msg, size_t *psize)
   /* The size of the message is with the extra '\r' octet for everyline.
      Substract to get, hopefully, a good count.  */
   if (psize)
-    *psize = mpm->message_size - (mpm->header_lines + mpm->body_lines);
+    *psize = mpm->mu_message_size - (mpm->header_lines + mpm->body_lines);
   return 0;
 }
 
@@ -1320,10 +1320,10 @@ pop_message_size (message_t msg, size_t *psize)
    our best with what we know but the only way to get a precise number
    is by dowloading the whole message.  */
 static int
-pop_body_size (body_t body, size_t *psize)
+pop_body_size (mu_body_t body, size_t *psize)
 {
-  message_t msg = mu_body_get_owner (body);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  pop_message_t mpm = mu_message_get_owner (msg);
 
   if (mpm == NULL)
     return EINVAL;
@@ -1333,10 +1333,10 @@ pop_body_size (body_t body, size_t *psize)
     {
       *psize = mpm->body_size;
     }
-  else if (mpm->message_size != 0)
+  else if (mpm->mu_message_size != 0)
     {
       /* Take a guest.  */
-      *psize = mpm->message_size - mpm->header_size - mpm->body_lines;
+      *psize = mpm->mu_message_size - mpm->header_size - mpm->body_lines;
     }
   else
     *psize = 0;
@@ -1346,10 +1346,10 @@ pop_body_size (body_t body, size_t *psize)
 
 /* Not know until the whole message get downloaded.  */
 static int
-pop_body_lines (body_t body, size_t *plines)
+pop_body_lines (mu_body_t body, size_t *plines)
 {
-  message_t msg = mu_body_get_owner (body);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  pop_message_t mpm = mu_message_get_owner (msg);
   if (mpm == NULL)
     return EINVAL;
   if (plines)
@@ -1369,19 +1369,19 @@ pop_body_lines (body_t body, size_t *plines)
    the RETR some go as much as deleting after the TOP, since technicaly
    you can download a message via TOP without RET'reiving it.  */
 static int
-pop_get_attribute (attribute_t attr, int *pflags)
+pop_get_attribute (mu_attribute_t attr, int *pflags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  pop_message_t mpm = mu_message_get_owner (msg);
   char hdr_status[64];
-  header_t header = NULL;
+  mu_header_t header = NULL;
 
   if (mpm == NULL || pflags == NULL)
     return EINVAL;
   if (mpm->attr_flags == 0)
     {
       hdr_status[0] = '\0';
-      message_get_header (mpm->message, &header);
+      mu_message_get_header (mpm->message, &header);
       mu_header_get_value (header, "Status", hdr_status, sizeof hdr_status, NULL);
       mu_string_to_flags (hdr_status, &(mpm->attr_flags));
     }
@@ -1390,10 +1390,10 @@ pop_get_attribute (attribute_t attr, int *pflags)
 }
 
 static int
-pop_set_attribute (attribute_t attr, int flags)
+pop_set_attribute (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  pop_message_t mpm = mu_message_get_owner (msg);
 
   if (mpm == NULL)
     return EINVAL;
@@ -1402,10 +1402,10 @@ pop_set_attribute (attribute_t attr, int flags)
 }
 
 static int
-pop_unset_attribute (attribute_t attr, int flags)
+pop_unset_attribute (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  pop_message_t mpm = mu_message_get_owner (msg);
 
   if (mpm == NULL)
     return EINVAL;
@@ -1415,20 +1415,20 @@ pop_unset_attribute (attribute_t attr, int flags)
 
 /* Stub to call the fd from body object.  */
 static int
-pop_body_transport (stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
+pop_body_transport (mu_stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  pop_message_t mpm = mu_message_get_owner (msg);
   return pop_get_transport2 (mpm, ptr, ptr2);
 }
 
 /* Stub to call the fd from message object.  */
 static int
-pop_message_transport (stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
+pop_message_transport (mu_stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
-  message_t msg = stream_get_owner (stream);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_stream_get_owner (stream);
+  pop_message_t mpm = mu_message_get_owner (msg);
   return pop_get_transport2 (mpm, ptr, ptr2);
 }
 
@@ -1436,14 +1436,14 @@ static int
 pop_get_transport2 (pop_message_t mpm, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
   if (mpm && mpm->mpd && mpm->mpd->mbox)
-	return stream_get_transport2 (mpm->mpd->mbox->stream, ptr, ptr2);
+	return mu_stream_get_transport2 (mpm->mpd->mbox->stream, ptr, ptr2);
   return EINVAL;
 }
 
 static int
-pop_uid (message_t msg,  size_t *puid)
+pop_uid (mu_message_t msg,  size_t *puid)
 {
-  pop_message_t mpm = message_get_owner (msg);
+  pop_message_t mpm = mu_message_get_owner (msg);
   if (puid)
     *puid = mpm->num;
   return 0;
@@ -1454,9 +1454,9 @@ pop_uid (message_t msg,  size_t *puid)
    FIXME:  We should check the "mpd->capa & CAPA_UIDL" and fall back to
    a md5 scheme ? Or maybe check for "X-UIDL" a la Qpopper ?  */
 static int
-pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
+pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
-  pop_message_t mpm = message_get_owner (msg);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   int status = 0;
   void *func = (void *)pop_uidl;
@@ -1555,14 +1555,14 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 /* How we retrieve the headers.  If it fails we jump to the pop_retr()
    code i.e. send a RETR and skip the body, ugly.
    NOTE: if the offset is different, flag an error, offset is meaningless
-   on a socket but we better warn them, some stuff like mime_t may try to
+   on a socket but we better warn them, some stuff like mu_mime_t may try to
    read ahead, for example for the headers.  */
 static int
-pop_top (header_t header, char *buffer, size_t buflen,
+pop_top (mu_header_t header, char *buffer, size_t buflen,
 	 off_t offset, size_t *pnread)
 {
-  message_t msg = mu_header_get_owner (header);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   size_t nread = 0;
   int status = 0;
@@ -1662,11 +1662,11 @@ pop_top (header_t header, char *buffer, size_t buflen,
 #if 0
 /* Stub to call pop_retr ().   Call form the stream object of the header.  */
 static int
-pop_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
+pop_header_read (mu_header_t header, char *buffer, size_t buflen, off_t offset,
 		 size_t *pnread)
 {
-  message_t msg = mu_header_get_owner (header);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_header_read;
 
@@ -1694,12 +1694,12 @@ pop_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 
 /* Stub to call pop_retr (). Call from the stream object of the body.  */
 static int
-pop_body_read (stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t offset,
 	       size_t *pnread)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_body_read;
 
@@ -1726,11 +1726,11 @@ pop_body_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 
 /* Stub to call pop_retr (), calling from the stream object of a message.  */
 static int
-pop_message_read (stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_message_read (mu_stream_t is, char *buffer, size_t buflen, off_t offset,
 		  size_t *pnread)
 {
-  message_t msg = stream_get_owner (is);
-  pop_message_t mpm = message_get_owner (msg);
+  mu_message_t msg = mu_stream_get_owner (is);
+  pop_message_t mpm = mu_message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_message_read;
 
@@ -1953,7 +1953,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
 		mpd->ptr = mpd->buffer;
 	      }
 	  }
-      mpm->message_size = mpm->body_size + mpm->header_size;
+      mpm->mu_message_size = mpm->body_size + mpm->header_size;
       mpd->state = POP_STATE_DONE;
       /* Return here earlier, because we want to return nread = 0 to notify
 	 the callee that we've finish, since there is already data
@@ -1977,12 +1977,12 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
 
 /* Extract the User from the URL or the ticket.  */
 static int
-pop_get_user (authority_t auth)
+pop_get_user (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
-  mailbox_t mbox = folder->data;
+  mu_folder_t folder = mu_authority_get_owner (auth);
+  mu_mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
-  ticket_t ticket = NULL;
+  mu_ticket_t ticket = NULL;
   int status;
   /*  Fetch the user from them.  */
   size_t n = 0;
@@ -1994,25 +1994,25 @@ pop_get_user (authority_t auth)
       mpd->user = NULL;
     }
   /* Was it in the URL? */
-  status = url_get_user (mbox->url, NULL, 0, &n);
+  status = mu_url_get_user (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
     mu_ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
   else
     {
       mpd->user = calloc (1, n + 1);
-      url_get_user (mbox->url, mpd->user, n + 1, NULL);
+      mu_url_get_user (mbox->url, mpd->user, n + 1, NULL);
     }
   return 0;
 }
 
 /* Extract the User from the URL or the ticket.  */
 static int
-pop_get_passwd (authority_t auth)
+pop_get_passwd (mu_authority_t auth)
 {
-  folder_t folder = mu_authority_get_owner (auth);
-  mailbox_t mbox = folder->data;
+  mu_folder_t folder = mu_authority_get_owner (auth);
+  mu_mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
-  ticket_t ticket = NULL;
+  mu_ticket_t ticket = NULL;
   int status;
   /*  Fetch the user from them.  */
   size_t n = 0;
@@ -2024,13 +2024,13 @@ pop_get_passwd (authority_t auth)
       mpd->passwd = NULL;
     }
   /* Was it in the URL? */
-  status = url_get_passwd (mbox->url, NULL, 0, &n);
+  status = mu_url_get_passwd (mbox->url, NULL, 0, &n);
   if (status != 0 || n == 0)
     mu_ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
   else
     {
       mpd->passwd = calloc (1, n + 1);
-      url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
+      mu_url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
     }
   return 0;
 }
@@ -2148,7 +2148,7 @@ pop_write (pop_data_t mpd)
       size_t len;
       size_t n = 0;
       len = mpd->ptr - mpd->buffer;
-      status = stream_write (mpd->mbox->stream, mpd->buffer, len, 0, &n);
+      status = mu_stream_write (mpd->mbox->stream, mpd->buffer, len, 0, &n);
       if (status == 0)
 	{
 	  memmove (mpd->buffer, mpd->buffer + n, len - n);
@@ -2184,7 +2184,7 @@ pop_readline (pop_data_t mpd)
   /* Must get a full line before bailing out.  */
   do
     {
-      status = stream_readline (mpd->mbox->stream, mpd->buffer + total,
+      status = mu_stream_readline (mpd->mbox->stream, mpd->buffer + total,
 				mpd->buflen - total,  mpd->offset, &n);
       if (status != 0)
 	return status;

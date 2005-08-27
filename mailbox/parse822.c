@@ -33,7 +33,7 @@ Things to consider:
     int group_end;, so if you care, you can search for the end of
     a group with address_is_group_end();
 
-    --> Groups no longer show up in the address_t list.
+    --> Groups no longer show up in the mu_address_t list.
 
   - Need a way to parse ",,,", it's a valid address-list, it just doesn't
     have any addresses.
@@ -64,7 +64,7 @@ typedef struct parse822_token_t TOK;
 Then I can have str_append_token(), and the lexer functions can
 look like:
 
-int parse822_atom(const char** p, const char* e, TOK* atom);
+int mu_parse822_atom(const char** p, const char* e, TOK* atom);
 
 Just a quick thought, I'll have to see how many functions that will
 actually help.
@@ -187,13 +187,13 @@ str_free (char **s)
  * boolean arithmetic.
  */
 int
-parse822_is_char (char c)
+mu_parse822_is_char (char c)
 {
   return isascii (c);
 }
 
 int
-parse822_is_digit (char c)
+mu_parse822_is_digit (char c)
 {
   /* digit = <any ASCII decimal digit> */
 
@@ -201,31 +201,31 @@ parse822_is_digit (char c)
 }
 
 int
-parse822_is_ctl (char c)
+mu_parse822_is_ctl (char c)
 {
   return iscntrl ((unsigned) c) || c == 127 /* DEL */ ;
 }
 
 int
-parse822_is_space (char c)
+mu_parse822_is_space (char c)
 {
   return c == ' ';
 }
 
 int
-parse822_is_htab (char c)
+mu_parse822_is_htab (char c)
 {
   return c == '\t';
 }
 
 int
-parse822_is_lwsp_char (char c)
+mu_parse822_is_lwsp_char (char c)
 {
-  return parse822_is_space (c) || parse822_is_htab (c);
+  return mu_parse822_is_space (c) || mu_parse822_is_htab (c);
 }
 
 int
-parse822_is_special (char c)
+mu_parse822_is_special (char c)
 {
   return strchr ("()<>@,;:\\\".[]", c) ? 1 : 0;
 }
@@ -233,32 +233,32 @@ parse822_is_special (char c)
 int
 parse822_is_atom_char_ex (char c)
 {
-  return !parse822_is_special (c)
-    && !parse822_is_space (c)
-    && !parse822_is_ctl (c);
+  return !mu_parse822_is_special (c)
+    && !mu_parse822_is_space (c)
+    && !mu_parse822_is_ctl (c);
 }
 
 int
-parse822_is_atom_char (char c)
+mu_parse822_is_atom_char (char c)
 {
-  return parse822_is_char (c) && parse822_is_atom_char_ex (c);
+  return mu_parse822_is_char (c) && parse822_is_atom_char_ex (c);
 }
 
 int
-parse822_is_q_text (char c)
+mu_parse822_is_q_text (char c)
 {
   return
-    parse822_is_char (c) &&
+    mu_parse822_is_char (c) &&
     c != '"' &&
     c != '\\' &&
     c != '\r';
 }
 
 int
-parse822_is_d_text (char c)
+mu_parse822_is_d_text (char c)
 {
   return
-    parse822_is_char (c) &&
+    mu_parse822_is_char (c) &&
     c != '[' &&
     c != ']' &&
     c != '\\' &&
@@ -269,17 +269,17 @@ parse822_is_d_text (char c)
  * also excludes <LF>.
  */
 int
-parse822_is_smtp_q (char c)
+mu_parse822_is_smtp_q (char c)
 {
   return
-    parse822_is_q_text (c) &&
+    mu_parse822_is_q_text (c) &&
     c != '\n';
 }
 
 /***** From RFC 822, 3.3 Lexical Tokens *****/
 
 int
-parse822_skip_nl (const char **p, const char *e)
+mu_parse822_skip_nl (const char **p, const char *e)
 {
   /* Here we consider a new-line (NL) to be either a bare LF, or
    * a CRLF pair as required by the RFC.
@@ -304,9 +304,9 @@ parse822_skip_nl (const char **p, const char *e)
 }
 
 int
-parse822_skip_lwsp_char (const char **p, const char *e)
+mu_parse822_skip_lwsp_char (const char **p, const char *e)
 {
-  if (*p < e && parse822_is_lwsp_char (**p))
+  if (*p < e && mu_parse822_is_lwsp_char (**p))
     {
       *p += 1;
       return EOK;
@@ -315,7 +315,7 @@ parse822_skip_lwsp_char (const char **p, const char *e)
 }
 
 int
-parse822_skip_lwsp (const char **p, const char *e)
+mu_parse822_skip_lwsp (const char **p, const char *e)
 {
   /*
    * linear-white-space = 1*([[CR]LF] LWSP-char)
@@ -331,14 +331,14 @@ parse822_skip_lwsp (const char **p, const char *e)
     {
       const char *save = *p;
 
-      if (parse822_skip_lwsp_char (p, e) == EOK)
+      if (mu_parse822_skip_lwsp_char (p, e) == EOK)
 	{
 	  space = 1;
 	  continue;
 	}
-      if (parse822_skip_nl (p, e) == EOK)
+      if (mu_parse822_skip_nl (p, e) == EOK)
 	{
-	  if (parse822_skip_lwsp_char (p, e) == EOK)
+	  if (mu_parse822_skip_lwsp_char (p, e) == EOK)
 	    {
 	      continue;
 	    }
@@ -351,18 +351,18 @@ parse822_skip_lwsp (const char **p, const char *e)
 }
 
 int
-parse822_skip_comments (const char **p, const char *e)
+mu_parse822_skip_comments (const char **p, const char *e)
 {
   int status;
 
-  while ((status = parse822_comment (p, e, 0)) == EOK)
+  while ((status = mu_parse822_comment (p, e, 0)) == EOK)
     ;
 
   return EOK;
 }
 
 int
-parse822_digits (const char **p, const char *e, int min, int max, int *digits)
+mu_parse822_digits (const char **p, const char *e, int min, int max, int *digits)
 {
   const char *save = *p;
 
@@ -372,7 +372,7 @@ parse822_digits (const char **p, const char *e, int min, int max, int *digits)
 
   *digits = 0;
 
-  while (*p < e && parse822_is_digit (**p))
+  while (*p < e && mu_parse822_is_digit (**p))
     {
       *digits = *digits * 10 + **p - '0';
       *p += 1;
@@ -392,9 +392,9 @@ parse822_digits (const char **p, const char *e, int min, int max, int *digits)
 }
 
 int
-parse822_special (const char **p, const char *e, char c)
+mu_parse822_special (const char **p, const char *e, char c)
 {
-  parse822_skip_lwsp (p, e);	/* not comments, they start with a special... */
+  mu_parse822_skip_lwsp (p, e);	/* not comments, they start with a special... */
 
   if ((*p != e) && **p == c)
     {
@@ -405,7 +405,7 @@ parse822_special (const char **p, const char *e, char c)
 }
 
 int
-parse822_comment (const char **p, const char *e, char **comment)
+mu_parse822_comment (const char **p, const char *e, char **comment)
 {
   /* comment = "(" *(ctext / quoted-pair / comment) ")"
    * ctext = <any char except "(", ")", "\", & CR, including lwsp>
@@ -413,7 +413,7 @@ parse822_comment (const char **p, const char *e, char **comment)
   const char *save = *p;
   int rc;
 
-  if ((rc = parse822_special (p, e, '(')))
+  if ((rc = mu_parse822_special (p, e, '(')))
     {
       return rc;
     }
@@ -429,18 +429,18 @@ parse822_comment (const char **p, const char *e, char **comment)
 	}
       else if (c == '(')
 	{
-	  rc = parse822_comment (p, e, comment);
+	  rc = mu_parse822_comment (p, e, comment);
 	}
       else if (c == '\\')
 	{
-	  rc = parse822_quoted_pair (p, e, comment);
+	  rc = mu_parse822_quoted_pair (p, e, comment);
 	}
       else if (c == '\r')
 	{
 	  /* invalid character... */
 	  *p += 1;
 	}
-      else if (parse822_is_char (c))
+      else if (mu_parse822_is_char (c))
 	{
 	  rc = str_append_char (comment, c);
 	  *p += 1;
@@ -467,18 +467,18 @@ parse822_comment (const char **p, const char *e, char **comment)
 }
 
 int
-parse822_atom (const char **p, const char *e, char **atom)
+mu_parse822_atom (const char **p, const char *e, char **atom)
 {
   /* atom = 1*<an atom char> */
 
   const char *save = *p;
   int rc = EPARSE;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   save = *p;
 
-  while ((*p != e) && parse822_is_atom_char (**p))
+  while ((*p != e) && mu_parse822_is_atom_char (**p))
     {
       rc = str_append_char (atom, **p);
       *p += 1;
@@ -499,7 +499,7 @@ parse822_atom_ex (const char **p, const char *e, char **atom)
   const char *save = *p;
   int rc = EPARSE;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   save = *p;
 
@@ -517,7 +517,7 @@ parse822_atom_ex (const char **p, const char *e, char **atom)
 }
 
 int
-parse822_quoted_pair (const char **p, const char *e, char **qpair)
+mu_parse822_quoted_pair (const char **p, const char *e, char **qpair)
 {
   /* quoted-pair = "\" char */
 
@@ -539,7 +539,7 @@ parse822_quoted_pair (const char **p, const char *e, char **qpair)
 }
 
 int
-parse822_quoted_string (const char **p, const char *e, char **qstr)
+mu_parse822_quoted_string (const char **p, const char *e, char **qstr)
 {
   /* quoted-string = <"> *(qtext/quoted-pair) <">
    * qtext = char except <">, "\", & CR, including lwsp-char
@@ -548,11 +548,11 @@ parse822_quoted_string (const char **p, const char *e, char **qstr)
   const char *save = *p;
   int rc;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   save = *p;
 
-  if ((rc = parse822_special (p, e, '"')))
+  if ((rc = mu_parse822_special (p, e, '"')))
     return rc;
 
   while (*p != e)
@@ -566,14 +566,14 @@ parse822_quoted_string (const char **p, const char *e, char **qstr)
 	}
       else if (c == '\\')
 	{
-	  rc = parse822_quoted_pair (p, e, qstr);
+	  rc = mu_parse822_quoted_pair (p, e, qstr);
 	}
       else if (c == '\r')
 	{
 	  /* invalid character... */
 	  *p += 1;
 	}
-      else if (parse822_is_char (c))
+      else if (mu_parse822_is_char (c))
 	{
 	  rc = str_append_char (qstr, c);
 	  *p += 1;
@@ -596,20 +596,20 @@ parse822_quoted_string (const char **p, const char *e, char **qstr)
 }
 
 int
-parse822_word (const char **p, const char *e, char **word)
+mu_parse822_word (const char **p, const char *e, char **word)
 {
   /* word = atom / quoted-string */
 
   const char *save = *p;
   int rc = EOK;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   save = *p;
 
   {
     char *qstr = 0;
-    if ((rc = parse822_quoted_string (p, e, &qstr)) == EOK && qstr)
+    if ((rc = mu_parse822_quoted_string (p, e, &qstr)) == EOK && qstr)
       {
 	rc = str_append (word, qstr);
 
@@ -663,14 +663,14 @@ parse822_word (const char **p, const char *e, char **word)
 int
 parse822_word_dot (const char **p, const char *e, char **word)
 {
-  int rc = parse822_word (p, e, word);
+  int rc = mu_parse822_word (p, e, word);
   for (;rc == 0 && (*p != e) && **p == '.'; ++*p)
     rc = str_append (word, ".");
   return rc;
 }
 
 int
-parse822_phrase (const char **p, const char *e, char **phrase)
+mu_parse822_phrase (const char **p, const char *e, char **phrase)
 {
   /* phrase = 1*word */
 
@@ -708,14 +708,14 @@ parse822_phrase (const char **p, const char *e, char **phrase)
 
 /***** From RFC 822, 6.1 Address Specification Syntax *****/
 
-static address_t
+static mu_address_t
 new_mb (void)
 {
   return calloc (1, sizeof (struct _address));
 }
 
 static int
-fill_mb (address_t * a,
+fill_mb (mu_address_t * a,
 	 char *comments, char *personal, char *local, char *domain)
 {
   int rc = EOK;
@@ -743,7 +743,7 @@ fill_mb (address_t * a,
 	  /* no email to construct */
 	  break;
 	}
-      if ((rc = parse822_quote_local_part (&(*a)->email, local)))
+      if ((rc = mu_parse822_quote_local_part (&(*a)->email, local)))
 	break;
       if ((rc = str_append (&(*a)->email, "@")))
 	break;
@@ -766,16 +766,16 @@ fill_mb (address_t * a,
 }
 
 int
-parse822_address_list (address_t * a, const char *s)
+mu_parse822_address_list (mu_address_t * a, const char *s)
 {
   /* address-list = #(address) */
 
   const char **p = &s;
   const char *e = &s[strlen (s)];
   int rc = EOK;
-  address_t *n = a;		/* the next address we'll be creating */
+  mu_address_t *n = a;		/* the next address we'll be creating */
 
-  rc = parse822_address (p, e, n);
+  rc = mu_parse822_address (p, e, n);
 
   /* A list may start with a leading <,>, we'll find out if
    * that's not the case at the top of the while, but give
@@ -788,7 +788,7 @@ parse822_address_list (address_t * a, const char *s)
     }
   while (*p < e)
     {
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
       /* An address can contain a group, so an entire
        * list of addresses may have been appended, or no
@@ -802,13 +802,13 @@ parse822_address_list (address_t * a, const char *s)
       /* Remember that ',,a@b' is a valid list! So, we must find
        * the <,>, but the address after it can be empty.
        */
-      if ((rc = parse822_special (p, e, ',')))
+      if ((rc = mu_parse822_special (p, e, ',')))
 	{
 	  break;
 	}
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
-      rc = parse822_address (p, e, n);
+      rc = mu_parse822_address (p, e, n);
 
       if (rc == EOK || rc == EPARSE)
 	{
@@ -833,17 +833,17 @@ parse822_address_list (address_t * a, const char *s)
 }
 
 int
-parse822_address (const char **p, const char *e, address_t * a)
+mu_parse822_address (const char **p, const char *e, mu_address_t * a)
 {
   /* address = mailbox / group / unix-mbox */
 
   int rc;
 
-  if ((rc = parse822_mail_box (p, e, a)) == EPARSE)
+  if ((rc = mu_parse822_mail_box (p, e, a)) == EPARSE)
     {
-      if ((rc = parse822_group (p, e, a)) == EPARSE)
+      if ((rc = mu_parse822_group (p, e, a)) == EPARSE)
 	{
-	  rc = parse822_unix_mbox (p, e, a);
+	  rc = mu_parse822_unix_mbox (p, e, a);
 	}
     }
 
@@ -856,27 +856,27 @@ parse822_address (const char **p, const char *e, address_t * a)
  */
 #undef ADD_GROUPS
 int
-parse822_group (const char **p, const char *e, address_t * a)
+mu_parse822_group (const char **p, const char *e, mu_address_t * a)
 {
   /* group = phrase ":" [#mailbox] ";" */
 
   const char *save = *p;
-  address_t *asave = a;		/* so we can destroy these if parsing fails */
+  mu_address_t *asave = a;		/* so we can destroy these if parsing fails */
   int rc;
   char *phrase = 0;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   *p = save;
 
-  if ((rc = parse822_phrase (p, e, &phrase)))
+  if ((rc = mu_parse822_phrase (p, e, &phrase)))
     {
       return rc;
     }
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_special (p, e, ':')))
+  if ((rc = mu_parse822_special (p, e, ':')))
     {
       *p = save;
       str_free (&phrase);
@@ -904,22 +904,22 @@ parse822_group (const char **p, const char *e, address_t * a)
    */
   while (!rc)
     {
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
       /* it's ok not be a mailbox, but other errors are fatal */
-      rc = parse822_mail_box (p, e, a);
+      rc = mu_parse822_mail_box (p, e, a);
       if (rc == EOK)
 	{
 	  a = &(*a)->next;
 
-	  parse822_skip_comments (p, e);
+	  mu_parse822_skip_comments (p, e);
 	}
       else if (rc != EPARSE)
 	{
 	  break;
 	}
 
-      if ((rc = parse822_special (p, e, ',')))
+      if ((rc = mu_parse822_special (p, e, ',')))
 	{
 	  /* the commas aren't optional */
 	  break;
@@ -930,7 +930,7 @@ parse822_group (const char **p, const char *e, address_t * a)
       rc = EOK;			/* ok, as long as we find the ";" next */
     }
 
-  if (rc || (rc = parse822_special (p, e, ';')))
+  if (rc || (rc = mu_parse822_special (p, e, ';')))
     {
       *p = save;
 
@@ -941,7 +941,7 @@ parse822_group (const char **p, const char *e, address_t * a)
 }
 
 int
-parse822_mail_box (const char **p, const char *e, address_t * a)
+mu_parse822_mail_box (const char **p, const char *e, mu_address_t * a)
 {
   /* mailbox =
    *     addr-spec [ "(" comment ")" ] /
@@ -956,12 +956,12 @@ parse822_mail_box (const char **p, const char *e, address_t * a)
   int rc;
 
   /* -> addr-spec */
-  if ((rc = parse822_addr_spec (p, e, a)) == EOK)
+  if ((rc = mu_parse822_addr_spec (p, e, a)) == EOK)
     {
-      parse822_skip_lwsp (p, e);
+      mu_parse822_skip_lwsp (p, e);
 
       /* yuck. */
-      if ((rc = parse822_comment (p, e, &(*a)->personal)) == EPARSE)
+      if ((rc = mu_parse822_comment (p, e, &(*a)->personal)) == EPARSE)
 	{
 	  rc = EOK;
 	  /* cool if there's no comment, */
@@ -980,14 +980,14 @@ parse822_mail_box (const char **p, const char *e, address_t * a)
   {
     char *phrase = 0;
 
-    rc = parse822_phrase (p, e, &phrase);
+    rc = mu_parse822_phrase (p, e, &phrase);
 
     if (rc != EPARSE && rc != EOK)
       {
 	return rc;
       }
 
-    if ((rc = parse822_route_addr (p, e, a)) == EOK)
+    if ((rc = mu_parse822_route_addr (p, e, a)) == EOK)
       {
 	/* add the phrase */
 	(*a)->personal = phrase;
@@ -1005,7 +1005,7 @@ parse822_mail_box (const char **p, const char *e, address_t * a)
 }
 
 int
-parse822_route_addr (const char **p, const char *e, address_t * a)
+mu_parse822_route_addr (const char **p, const char *e, mu_address_t * a)
 {
   /* route-addr = "<" [route] addr-spec ">" */
 
@@ -1013,15 +1013,15 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
   char *route = 0;
   int rc;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_special (p, e, '<')))
+  if ((rc = mu_parse822_special (p, e, '<')))
     {
       *p = save;
 
       return rc;
     }
-  if (!(rc = parse822_special (p, e, '>')))
+  if (!(rc = mu_parse822_special (p, e, '>')))
     {
       (void) (((rc = fill_mb (a, 0, 0, 0, 0)) == EOK)
           && ((rc = str_append (&(*a)->email, "")) == EOK));
@@ -1029,9 +1029,9 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
       return rc;
     }
 
-  parse822_route (p, e, &route);
+  mu_parse822_route (p, e, &route);
 
-  if ((rc = parse822_addr_spec (p, e, a)))
+  if ((rc = mu_parse822_addr_spec (p, e, a)))
     {
       *p = save;
 
@@ -1042,9 +1042,9 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
 
   (*a)->route = route;		/* now we don't have to free our local */
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_special (p, e, '>')))
+  if ((rc = mu_parse822_special (p, e, '>')))
     {
       *p = save;
 
@@ -1057,7 +1057,7 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
 }
 
 int
-parse822_route (const char **p, const char *e, char **route)
+mu_parse822_route (const char **p, const char *e, char **route)
 {
   /* route = 1#("@" domain ) ":" */
 
@@ -1067,9 +1067,9 @@ parse822_route (const char **p, const char *e, char **route)
 
   for (;;)
     {
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
-      if ((rc = parse822_special (p, e, '@')))
+      if ((rc = mu_parse822_special (p, e, '@')))
 	{
 	  break;
 	}
@@ -1079,17 +1079,17 @@ parse822_route (const char **p, const char *e, char **route)
 	  break;
 	}
 
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
-      if ((rc = parse822_domain (p, e, &accumulator)))
+      if ((rc = mu_parse822_domain (p, e, &accumulator)))
 	{
 	  /* it looked like a route, but there's no domain! */
 	  break;
 	}
 
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
-      if ((rc = parse822_special (p, e, ',')) == EPARSE)
+      if ((rc = mu_parse822_special (p, e, ',')) == EPARSE)
 	{
 	  /* no more routes, but we got one so its ok */
 	  rc = EOK;
@@ -1101,11 +1101,11 @@ parse822_route (const char **p, const char *e, char **route)
 	}
     }
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   if (!rc)
     {
-      rc = parse822_special (p, e, ':');
+      rc = mu_parse822_special (p, e, ':');
     }
 
   if (!rc)
@@ -1121,7 +1121,7 @@ parse822_route (const char **p, const char *e, char **route)
 }
 
 int
-parse822_addr_spec (const char **p, const char *e, address_t * a)
+mu_parse822_addr_spec (const char **p, const char *e, mu_address_t * a)
 {
   /* addr-spec = local-part "@" domain */
 
@@ -1130,18 +1130,18 @@ parse822_addr_spec (const char **p, const char *e, address_t * a)
   char *domain = 0;
   int rc;
 
-  rc = parse822_local_part (p, e, &local_part);
+  rc = mu_parse822_local_part (p, e, &local_part);
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   if (!rc)
     {
-      rc = parse822_special (p, e, '@');
+      rc = mu_parse822_special (p, e, '@');
     }
 
   if (!rc)
     {
-      rc = parse822_domain (p, e, &domain);
+      rc = mu_parse822_domain (p, e, &domain);
     }
 
   if (!rc)
@@ -1159,7 +1159,7 @@ parse822_addr_spec (const char **p, const char *e, address_t * a)
 }
 
 int
-parse822_unix_mbox (const char **p, const char *e, address_t * a)
+mu_parse822_unix_mbox (const char **p, const char *e, mu_address_t * a)
 {
   /* unix-mbox = atom */
 
@@ -1167,9 +1167,9 @@ parse822_unix_mbox (const char **p, const char *e, address_t * a)
   char *mbox = 0;
   int rc;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  rc = parse822_atom (p, e, &mbox);
+  rc = mu_parse822_atom (p, e, &mbox);
 
   if (!rc)
     {
@@ -1185,7 +1185,7 @@ parse822_unix_mbox (const char **p, const char *e, address_t * a)
 }
 
 int
-parse822_local_part (const char **p, const char *e, char **local_part)
+mu_parse822_local_part (const char **p, const char *e, char **local_part)
 {
   /* local-part = word *("." word)
    *
@@ -1196,28 +1196,28 @@ parse822_local_part (const char **p, const char *e, char **local_part)
   const char *save2 = *p;
   int rc;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_word (p, e, local_part)))
+  if ((rc = mu_parse822_word (p, e, local_part)))
     {
       *p = save;
       return rc;
     }
   /* We've got a local-part, but keep looking for more. */
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   /* If we get a parse error, we roll back to save2, but if
    * something else failed, we have to roll back to save.
    */
   save2 = *p;
 
-  rc = parse822_special (p, e, '.');
+  rc = mu_parse822_special (p, e, '.');
 
   if (!rc)
     {
       char *more = 0;
-      if ((rc = parse822_local_part (p, e, &more)) == EOK)
+      if ((rc = mu_parse822_local_part (p, e, &more)) == EOK)
 	{
 	  /* append more */
 	  if ((rc = str_append (local_part, ".")) == EOK)
@@ -1244,7 +1244,7 @@ parse822_local_part (const char **p, const char *e, char **local_part)
 }
 
 int
-parse822_domain (const char **p, const char *e, char **domain)
+mu_parse822_domain (const char **p, const char *e, char **domain)
 {
   /* domain = sub-domain *("." sub-domain)
    *
@@ -1255,9 +1255,9 @@ parse822_domain (const char **p, const char *e, char **domain)
   const char *save2 = 0;
   int rc;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_sub_domain (p, e, domain)))
+  if ((rc = mu_parse822_sub_domain (p, e, domain)))
     {
       *p = save;
       return rc;
@@ -1272,14 +1272,14 @@ parse822_domain (const char **p, const char *e, char **domain)
 
   /* we've got the 1, keep looking for more */
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  rc = parse822_special (p, e, '.');
+  rc = mu_parse822_special (p, e, '.');
 
   if (!rc)
     {
       char *more = 0;
-      if ((rc = parse822_domain (p, e, &more)) == EOK)
+      if ((rc = mu_parse822_domain (p, e, &more)) == EOK)
 	{
 	  if ((rc = str_append (domain, ".")) == EOK)
 	    {
@@ -1305,29 +1305,29 @@ parse822_domain (const char **p, const char *e, char **domain)
 }
 
 int
-parse822_sub_domain (const char **p, const char *e, char **sub_domain)
+mu_parse822_sub_domain (const char **p, const char *e, char **sub_domain)
 {
   /* sub-domain = domain-ref / domain-literal
    */
 
   int rc;
 
-  if ((rc = parse822_domain_ref (p, e, sub_domain)) == EPARSE)
-    rc = parse822_domain_literal (p, e, sub_domain);
+  if ((rc = mu_parse822_domain_ref (p, e, sub_domain)) == EPARSE)
+    rc = mu_parse822_domain_literal (p, e, sub_domain);
 
   return rc;
 }
 
 int
-parse822_domain_ref (const char **p, const char *e, char **domain_ref)
+mu_parse822_domain_ref (const char **p, const char *e, char **domain_ref)
 {
   /* domain-ref = atom */
 
-  return parse822_atom (p, e, domain_ref);
+  return mu_parse822_atom (p, e, domain_ref);
 }
 
 int
-parse822_d_text (const char **p, const char *e, char **dtext)
+mu_parse822_d_text (const char **p, const char *e, char **dtext)
 {
   /* d-text = 1*dtext
    *
@@ -1339,7 +1339,7 @@ parse822_d_text (const char **p, const char *e, char **dtext)
   const char *start = *p;
   int rc = EOK;
 
-  while (*p < e && parse822_is_d_text (**p))
+  while (*p < e && mu_parse822_is_d_text (**p))
     {
       *p += 1;
     }
@@ -1358,7 +1358,7 @@ parse822_d_text (const char **p, const char *e, char **dtext)
 }
 
 int
-parse822_domain_literal (const char **p, const char *e, char **domain_literal)
+mu_parse822_domain_literal (const char **p, const char *e, char **domain_literal)
 {
   /* domain-literal = "[" *(dtext / quoted-pair) "]" */
 
@@ -1366,7 +1366,7 @@ parse822_domain_literal (const char **p, const char *e, char **domain_literal)
   char *literal = 0;
   int rc;
 
-  if ((rc = parse822_special (p, e, '[')))
+  if ((rc = mu_parse822_special (p, e, '[')))
     {
       return rc;
     }
@@ -1376,8 +1376,8 @@ parse822_domain_literal (const char **p, const char *e, char **domain_literal)
       return rc;
     }
 
-  while ((rc = parse822_d_text (p, e, &literal)) == EOK ||
-	 (rc = parse822_quoted_pair (p, e, &literal)) == EOK)
+  while ((rc = mu_parse822_d_text (p, e, &literal)) == EOK ||
+	 (rc = mu_parse822_quoted_pair (p, e, &literal)) == EOK)
     {
       /* Eat all of this we can get! */
     }
@@ -1387,7 +1387,7 @@ parse822_domain_literal (const char **p, const char *e, char **domain_literal)
     }
   if (!rc)
     {
-      rc = parse822_special (p, e, ']');
+      rc = mu_parse822_special (p, e, ']');
     }
   if (!rc)
     {
@@ -1410,7 +1410,7 @@ parse822_domain_literal (const char **p, const char *e, char **domain_literal)
 /***** From RFC 822, 5.1 Date and Time Specification Syntax *****/
 
 int
-parse822_day (const char **p, const char *e, int *day)
+mu_parse822_day (const char **p, const char *e, int *day)
 {
   /* day = "Mon" / "Tue" / "Wed" / "Thu" / "Fri" / "Sat" / "Sun" */
 
@@ -1427,7 +1427,7 @@ parse822_day (const char **p, const char *e, int *day)
 
   int d;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   if ((e - *p) < 3)
     return EPARSE;
@@ -1446,7 +1446,7 @@ parse822_day (const char **p, const char *e, int *day)
 }
 
 int
-parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
+mu_parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
 {
   /* date = 1*2DIGIT month 2*4DIGIT
    * month =  "Jan"  /  "Feb" /  "Mar"  /  "Apr"
@@ -1476,15 +1476,15 @@ parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
   int yr = 0;
   const char *yrbeg = 0;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_digits (p, e, 1, 2, day)))
+  if ((rc = mu_parse822_digits (p, e, 1, 2, day)))
     {
       *p = save;
       return rc;
     }
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   if ((e - *p) < 3)
     return EPARSE;
@@ -1506,14 +1506,14 @@ parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
       return EPARSE;
     }
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
   /* We need to count how many digits their were, and adjust the
    * interpretation of the year accordingly. This is from RFC 2822,
    * Section 4.3, Obsolete Date and Time. */
   yrbeg = *p;
 
-  if ((rc = parse822_digits (p, e, 2, 4, &yr)))
+  if ((rc = mu_parse822_digits (p, e, 2, 4, &yr)))
     {
       *p = save;
       return rc;
@@ -1540,7 +1540,7 @@ parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
 }
 
 int
-parse822_time (const char **p, const char *e,
+mu_parse822_time (const char **p, const char *e,
 	       int *hour, int *min, int *sec, int *tz, const char **tz_name)
 {
   /* time        =  hour zone
@@ -1583,39 +1583,39 @@ parse822_time (const char **p, const char *e,
   int z = 0;
   char *zone = NULL;
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_digits (p, e, 1, 2, hour)))
+  if ((rc = mu_parse822_digits (p, e, 1, 2, hour)))
     {
       *p = save;
       return rc;
     }
 
-  if ((rc = parse822_special (p, e, ':')))
+  if ((rc = mu_parse822_special (p, e, ':')))
     {
       *p = save;
       return rc;
     }
 
-  if ((rc = parse822_digits (p, e, 1, 2, min)))
+  if ((rc = mu_parse822_digits (p, e, 1, 2, min)))
     {
       *p = save;
       return rc;
     }
 
-  if ((rc = parse822_special (p, e, ':')))
+  if ((rc = mu_parse822_special (p, e, ':')))
     {
       *sec = 0;
     }
-  else if ((rc = parse822_digits (p, e, 1, 2, sec)))
+  else if ((rc = mu_parse822_digits (p, e, 1, 2, sec)))
     {
       *p = save;
       return rc;
     }
 
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if ((rc = parse822_atom (p, e, &zone)))
+  if ((rc = mu_parse822_atom (p, e, &zone)))
     {
       /* zone is optional */
       if (tz)
@@ -1706,7 +1706,7 @@ struct tm
 #endif
 
 int
-parse822_date_time (const char **p, const char *e, struct tm *tm,
+mu_parse822_date_time (const char **p, const char *e, struct tm *tm,
 		    struct mu_timezone *tz)
 {
   /* date-time = [ day "," ] date time */
@@ -1727,7 +1727,7 @@ parse822_date_time (const char **p, const char *e, struct tm *tm,
   int tzoffset = 0;
   const char *tz_name = 0;
 
-  if ((rc = parse822_day (p, e, &wday)))
+  if ((rc = mu_parse822_day (p, e, &wday)))
     {
       if (rc != EPARSE)
 	return rc;
@@ -1735,21 +1735,21 @@ parse822_date_time (const char **p, const char *e, struct tm *tm,
   else
     {
       /* If we got a day, we MUST have a ','. */
-      parse822_skip_comments (p, e);
+      mu_parse822_skip_comments (p, e);
 
-      if ((rc = parse822_special (p, e, ',')))
+      if ((rc = mu_parse822_special (p, e, ',')))
 	{
 	  *p = save;
 	  return rc;
 	}
     }
 
-  if ((rc = parse822_date (p, e, &mday, &mon, &year)))
+  if ((rc = mu_parse822_date (p, e, &mday, &mon, &year)))
     {
       *p = save;
       return rc;
     }
-  if ((rc = parse822_time (p, e, &hour, &min, &sec, &tzoffset, &tz_name)))
+  if ((rc = mu_parse822_time (p, e, &hour, &min, &sec, &tzoffset, &tz_name)))
     {
       *p = save;
       return rc;
@@ -1792,7 +1792,7 @@ parse822_date_time (const char **p, const char *e, struct tm *tm,
 /***** From RFC 822, 3.2 Header Field Definitions *****/
 
 int
-parse822_field_name (const char **p, const char *e, char **fieldname)
+mu_parse822_field_name (const char **p, const char *e, char **fieldname)
 {
   /* field-name = 1*<any char, excluding ctls, space, and ":"> ":" */
 
@@ -1804,12 +1804,12 @@ parse822_field_name (const char **p, const char *e, char **fieldname)
     {
       char c = **p;
 
-      if (!parse822_is_char (c))
+      if (!mu_parse822_is_char (c))
 	break;
 
-      if (parse822_is_ctl (c))
+      if (mu_parse822_is_ctl (c))
 	break;
-      if (parse822_is_space (c))
+      if (mu_parse822_is_space (c))
 	break;
       if (c == ':')
 	break;
@@ -1823,9 +1823,9 @@ parse822_field_name (const char **p, const char *e, char **fieldname)
       *p = save;
       return EPARSE;
     }
-  parse822_skip_comments (p, e);
+  mu_parse822_skip_comments (p, e);
 
-  if (!parse822_special (p, e, ':'))
+  if (!mu_parse822_special (p, e, ':'))
     {
       *p = save;
       if (fn)
@@ -1839,7 +1839,7 @@ parse822_field_name (const char **p, const char *e, char **fieldname)
 }
 
 int
-parse822_field_body (const char **p, const char *e, char **fieldbody)
+mu_parse822_field_body (const char **p, const char *e, char **fieldbody)
 {
   /* field-body = *text [CRLF lwsp-char field-body] */
 
@@ -1883,7 +1883,7 @@ parse822_field_body (const char **p, const char *e, char **fieldbody)
 /***** RFC 822 Quoting Functions *****/
 
 int
-parse822_quote_string (char **quoted, const char *raw)
+mu_parse822_quote_string (char **quoted, const char *raw)
 {
   /* quoted-string = <"> *(qtext/quoted-pair) <">
    *
@@ -1905,7 +1905,7 @@ parse822_quote_string (char **quoted, const char *raw)
 
   while (!rc && *s)
     {
-      if (!parse822_is_q_text (*s))
+      if (!mu_parse822_is_q_text (*s))
 	{
 	  rc = str_append_char (quoted, '\\');
 	}
@@ -1930,7 +1930,7 @@ parse822_quote_string (char **quoted, const char *raw)
 }
 
 int
-parse822_quote_local_part (char **quoted, const char *raw)
+mu_parse822_quote_local_part (char **quoted, const char *raw)
 {
   /* local-part = word * ("." word)
    * word = atom / quoted-string
@@ -1950,9 +1950,9 @@ parse822_quote_local_part (char **quoted, const char *raw)
 
   while (*s)
     {
-      if (*s != '.' && !parse822_is_atom_char (*s))
+      if (*s != '.' && !mu_parse822_is_atom_char (*s))
 	{
-	  return parse822_quote_string (quoted, raw);
+	  return mu_parse822_quote_string (quoted, raw);
 	}
       ++s;
     }

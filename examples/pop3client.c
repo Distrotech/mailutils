@@ -401,7 +401,7 @@ com_apop (char *arg)
 int
 com_capa (char *arg ARG_UNUSED)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_pop3_capa (pop3, &iterator);
 
   if (status == 0)
@@ -424,7 +424,7 @@ com_uidl (char *arg)
   int status = 0;
   if (arg == NULL || *arg == '\0')
     {
-      iterator_t uidl_iterator = NULL;
+      mu_iterator_t uidl_iterator = NULL;
       status = mu_pop3_uidl_all (pop3, &uidl_iterator);
       if (status == 0)
 	{
@@ -457,7 +457,7 @@ com_list (char *arg)
   int status = 0;
   if (arg == NULL || *arg == '\0')
     {
-      iterator_t list_iterator;
+      mu_iterator_t list_iterator;
       status = mu_pop3_list_all (pop3, &list_iterator);
       if (status == 0)
 	{
@@ -597,7 +597,7 @@ com_rset (char *arg ARG_UNUSED)
 int
 com_top (char *arg)
 {
-  stream_t stream;
+  mu_stream_t stream;
   unsigned int msgno;
   unsigned int lines;
   char *space;
@@ -622,9 +622,9 @@ com_top (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
 	printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
   return status;
 }
@@ -632,7 +632,7 @@ com_top (char *arg)
 int
 com_retr (char *arg)
 {
-  stream_t stream;
+  mu_stream_t stream;
   unsigned int msgno;
   int status;
 
@@ -646,9 +646,9 @@ com_retr (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
 	printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
   return status;
 }
@@ -670,12 +670,12 @@ com_connect (char *arg)
   status = mu_pop3_create (&pop3);
   if (status == 0)
     {
-      stream_t tcp;
+      mu_stream_t tcp;
 
       if (verbose)
 	com_verbose ("on");
       status =
-	tcp_stream_create (&tcp, host, port,
+	mu_tcp_stream_create (&tcp, host, port,
 			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
       if (status == 0)
 	{

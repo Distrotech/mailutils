@@ -255,7 +255,7 @@ mu_cpystr (char *dst, const char *src, size_t size)
 /* General retrieve stack support: */
 
 void
-mu_register_retriever (list_t *pflist, mu_retrieve_fp fun)
+mu_register_retriever (mu_list_t *pflist, mu_retrieve_fp fun)
 {
   if (!*pflist && mu_list_create (pflist))
     return;
@@ -263,10 +263,10 @@ mu_register_retriever (list_t *pflist, mu_retrieve_fp fun)
 }
 
 void *
-mu_retrieve (list_t flist, void *data)
+mu_retrieve (mu_list_t flist, void *data)
 {
   void *p = NULL;
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (flist, &itr) == 0)
     {
@@ -318,7 +318,7 @@ int
 mu_set_user_email (const char *candidate)
 {
   int err = 0;
-  address_t addr = NULL;
+  mu_address_t addr = NULL;
   size_t emailno = 0;
   char *email = NULL;
   char *domain = NULL;
@@ -432,7 +432,7 @@ mu_get_user_email (const char *name)
       return NULL;
     }
 
-  if ((status = parse822_quote_local_part (&localpart, name)))
+  if ((status = mu_parse822_quote_local_part (&localpart, name)))
     {
       free(tmpname);
       errno = status;
@@ -923,7 +923,7 @@ strip_message_id (char *msgid, char **pval)
 }
 
 int
-get_msgid_header (header_t hdr, const char *name, char **val)
+get_msgid_header (mu_header_t hdr, const char *name, char **val)
 {
   char *p;
   int status = mu_header_aget_value (hdr, name, &p);
@@ -969,13 +969,13 @@ concat (const char *s1, const char *s2)
    References:" field. */
 
 int
-mu_rfc2822_references (message_t msg, char **pstr)
+mu_rfc2822_references (mu_message_t msg, char **pstr)
 {
   char *ref = NULL, *msgid = NULL;
-  header_t hdr;
+  mu_header_t hdr;
   int rc;
   
-  rc = message_get_header (msg, &hdr);
+  rc = mu_message_get_header (msg, &hdr);
   if (rc)
     return rc;
   get_msgid_header (hdr, MU_HEADER_MESSAGE_ID, &msgid);
@@ -1005,23 +1005,23 @@ mu_rfc2822_references (message_t msg, char **pstr)
    field.
 */
 int
-mu_rfc2822_in_reply_to (message_t msg, char **pstr)
+mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr)
 {
   char *value, *s1 = NULL, *s2 = NULL;
-  header_t hdr;
+  mu_header_t hdr;
   int rc;
   
-  rc = message_get_header (msg, &hdr);
+  rc = mu_message_get_header (msg, &hdr);
   if (rc)
     return rc;
   
   if (mu_header_aget_value (hdr, MU_HEADER_DATE, &value))
     {
-      envelope_t envelope = NULL;
+      mu_envelope_t envelope = NULL;
       value = malloc (DATEBUFSIZE);
       if (value)
 	{
-	  message_get_envelope (msg, &envelope);
+	  mu_message_get_envelope (msg, &envelope);
 	  mu_envelope_date (envelope, value, DATEBUFSIZE, NULL);
 	}
     }
@@ -1259,11 +1259,11 @@ mu_set_default_fallback (const char *str)
 }
 
 int
-mu_decode_filter (stream_t *pfilter, stream_t input,
+mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 		  const char *filter_type,
 		  const char *fromcode, const char *tocode)
 {
-  stream_t filter;
+  mu_stream_t filter;
   
   int status = mu_filter_create (&filter, input, filter_type,
 			      MU_FILTER_DECODE, MU_STREAM_READ);
@@ -1272,20 +1272,20 @@ mu_decode_filter (stream_t *pfilter, stream_t input,
 
   if (fromcode && tocode && strcasecmp (fromcode, tocode))
     {
-      stream_t cvt;
+      mu_stream_t cvt;
       status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,
 				    MU_STREAM_NO_CLOSE,
 				    mu_default_fallback_mode);
       if (status == 0)
 	{
-	  if (stream_open (cvt))
-	    stream_destroy (&cvt, stream_get_owner (cvt));
+	  if (mu_stream_open (cvt))
+	    mu_stream_destroy (&cvt, mu_stream_get_owner (cvt));
 	  else
 	    {
 	      int flags;
-	      stream_get_flags (cvt, &flags);
+	      mu_stream_get_flags (cvt, &flags);
 	      flags &= ~MU_STREAM_NO_CLOSE;
-	      stream_set_flags (cvt, flags);
+	      mu_stream_set_flags (cvt, flags);
 	      filter = cvt;
 	    }
 	}

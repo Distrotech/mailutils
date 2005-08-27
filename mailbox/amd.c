@@ -70,37 +70,37 @@
 #include <url0.h>
 #include <amd.h>
 
-static void amd_destroy (mailbox_t mailbox);
-static int amd_open (mailbox_t, int);
-static int amd_close (mailbox_t);
-static int amd_get_message (mailbox_t, size_t, message_t *);
-static int amd_append_message (mailbox_t, message_t);
-static int amd_messages_count (mailbox_t, size_t *);
-static int amd_messages_recent (mailbox_t, size_t *);
-static int amd_message_unseen (mailbox_t, size_t *);
-static int amd_expunge (mailbox_t);
-static int amd_save_attributes (mailbox_t);
-static int amd_uidnext (mailbox_t mailbox, size_t *puidnext);
-static int amd_uidvalidity (mailbox_t, unsigned long *);
-static int amd_scan (mailbox_t, size_t, size_t *);
-static int amd_is_updated (mailbox_t);
-static int amd_get_size (mailbox_t, off_t *);
+static void amd_destroy (mu_mailbox_t mailbox);
+static int amd_open (mu_mailbox_t, int);
+static int amd_close (mu_mailbox_t);
+static int amd_get_message (mu_mailbox_t, size_t, mu_message_t *);
+static int amd_append_message (mu_mailbox_t, mu_message_t);
+static int amd_messages_count (mu_mailbox_t, size_t *);
+static int amd_messages_recent (mu_mailbox_t, size_t *);
+static int amd_message_unseen (mu_mailbox_t, size_t *);
+static int amd_expunge (mu_mailbox_t);
+static int amd_save_attributes (mu_mailbox_t);
+static int amd_uidnext (mu_mailbox_t mailbox, size_t *puidnext);
+static int amd_uidvalidity (mu_mailbox_t, unsigned long *);
+static int amd_scan (mu_mailbox_t, size_t, size_t *);
+static int amd_is_updated (mu_mailbox_t);
+static int amd_get_size (mu_mailbox_t, off_t *);
 
-static int amd_body_read (stream_t, char *, size_t, off_t, size_t *);
-static int amd_body_readline (stream_t, char *, size_t, off_t, size_t *);
-static int amd_stream_size (stream_t stream, off_t *psize);
+static int amd_body_read (mu_stream_t, char *, size_t, off_t, size_t *);
+static int amd_body_readline (mu_stream_t, char *, size_t, off_t, size_t *);
+static int amd_stream_size (mu_stream_t stream, off_t *psize);
 
-static int amd_body_size (body_t body, size_t *psize);
-static int amd_body_lines (body_t body, size_t *plines);
+static int amd_body_size (mu_body_t body, size_t *psize);
+static int amd_body_lines (mu_body_t body, size_t *plines);
 
-static int amd_header_fill (header_t header, char *buffer, size_t len,
+static int amd_header_fill (mu_header_t header, char *buffer, size_t len,
 			    off_t off, size_t *pnread);
-static int amd_header_size (header_t header, size_t *psize);
-static int amd_header_lines (header_t header, size_t *plines);
+static int amd_header_size (mu_header_t header, size_t *psize);
+static int amd_header_lines (mu_header_t header, size_t *plines);
 
-static int amd_get_attr_flags (attribute_t attr, int *pflags);
-static int amd_set_attr_flags (attribute_t attr, int flags);
-static int amd_unset_attr_flags (attribute_t attr, int flags);
+static int amd_get_attr_flags (mu_attribute_t attr, int *pflags);
+static int amd_set_attr_flags (mu_attribute_t attr, int flags);
+static int amd_unset_attr_flags (mu_attribute_t attr, int flags);
 
 static void _amd_message_delete (struct _amd_data *amd,
 				 struct _amd_message *msg);
@@ -109,9 +109,9 @@ static int amd_pool_open_count (struct _amd_data *amd);
 static void amd_pool_flush (struct _amd_data *amd);
 static struct _amd_message **amd_pool_lookup (struct _amd_message *mhm);
 
-static int amd_envelope_date (envelope_t envelope, char *buf, size_t len,
+static int amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 			      size_t *psize);
-static int amd_envelope_sender (envelope_t envelope, char *buf, size_t len,
+static int amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 			        size_t *psize);
 
 /* Operations on message array */
@@ -242,7 +242,7 @@ amd_array_shrink (struct _amd_data *amd, size_t index)
 
 
 int
-amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd) 
+amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd) 
 {
   struct _amd_data *amd;
   size_t name_len;
@@ -259,7 +259,7 @@ amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd)
   /* Back pointer.  */
   amd->mailbox = mailbox;
 
-  url_get_path (mailbox->url, NULL, 0, &name_len);
+  mu_url_get_path (mailbox->url, NULL, 0, &name_len);
   amd->name = calloc (name_len + 1, sizeof (char));
   if (amd->name == NULL)
     {
@@ -267,7 +267,7 @@ amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd)
       mailbox->data = NULL;
       return ENOMEM;
     }
-  url_get_path (mailbox->url, amd->name, name_len + 1, NULL);
+  mu_url_get_path (mailbox->url, amd->name, name_len + 1, NULL);
 
   /* Overloading the defaults.  */
   mailbox->_destroy = amd_destroy;
@@ -297,7 +297,7 @@ amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd)
 }
 
 static void
-amd_destroy (mailbox_t mailbox)
+amd_destroy (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   size_t i;
@@ -306,10 +306,10 @@ amd_destroy (mailbox_t mailbox)
     return;
 
   amd_pool_flush (amd);
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
   for (i = 0; i < amd->msg_count; i++)
     {
-      message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
+      mu_message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
       free (amd->msg_array[i]);
     }
   free (amd->msg_array);
@@ -319,11 +319,11 @@ amd_destroy (mailbox_t mailbox)
 
   free (amd);
   mailbox->data = NULL;
-  monitor_unlock (mailbox->monitor);
+  mu_monitor_unlock (mailbox->monitor);
 }
 
 static int
-amd_open (mailbox_t mailbox, int flags)
+amd_open (mu_mailbox_t mailbox, int flags)
 {
   struct _amd_data *amd = mailbox->data;
   struct stat st;
@@ -341,7 +341,7 @@ amd_open (mailbox_t mailbox, int flags)
 }
 
 static int
-amd_close (mailbox_t mailbox)
+amd_close (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd;
   int i;
@@ -353,10 +353,10 @@ amd_close (mailbox_t mailbox)
   
   /* Destroy all cached data */
   amd_pool_flush (amd);
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
   for (i = 0; i < amd->msg_count; i++)
     {
-      message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
+      mu_message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
       free (amd->msg_array[i]);
     }
   free (amd->msg_array);
@@ -380,11 +380,11 @@ _amd_get_message (struct _amd_data *amd, size_t msgno)
 }
 
 static int
-_amd_attach_message (mailbox_t mailbox, struct _amd_message *mhm,
-		    message_t *pmsg)
+_amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
+		    mu_message_t *pmsg)
 {
   int status;
-  message_t msg;
+  mu_message_t msg;
 
   /* Check if we already have it.  */
   if (mhm->message)
@@ -395,17 +395,17 @@ _amd_attach_message (mailbox_t mailbox, struct _amd_message *mhm,
     }
 
   /* Get an empty message struct.  */
-  status = message_create (&msg, mhm);
+  status = mu_message_create (&msg, mhm);
   if (status != 0)
     return status;
 
   /* Set the header.  */
   {
-    header_t header = NULL;
+    mu_header_t header = NULL;
     status = mu_header_create (&header, NULL, 0, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mhm);
+	mu_message_destroy (&msg, mhm);
 	return status;
       }
     mu_header_set_fill (header, amd_header_fill, msg);
@@ -414,68 +414,68 @@ _amd_attach_message (mailbox_t mailbox, struct _amd_message *mhm,
     /*FIXME:
     mu_header_set_get_fvalue (header, amd_header_get_fvalue, msg);
     */
-    message_set_header (msg, header, mhm);
+    mu_message_set_header (msg, header, mhm);
   }
 
   /* Set the attribute.  */
   {
-    attribute_t attribute;
+    mu_attribute_t attribute;
     status = mu_attribute_create (&attribute, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mhm);
+	mu_message_destroy (&msg, mhm);
 	return status;
       }
     mu_attribute_set_get_flags (attribute, amd_get_attr_flags, msg);
     mu_attribute_set_set_flags (attribute, amd_set_attr_flags, msg);
     mu_attribute_set_unset_flags (attribute, amd_unset_attr_flags, msg);
-    message_set_attribute (msg, attribute, mhm);
+    mu_message_set_attribute (msg, attribute, mhm);
   }
 
   /* Prepare the body.  */
   {
-    body_t body = NULL;
-    stream_t stream = NULL;
+    mu_body_t body = NULL;
+    mu_stream_t stream = NULL;
     if ((status = mu_body_create (&body, msg)) != 0
-	|| (status = stream_create (&stream,
+	|| (status = mu_stream_create (&stream,
 				    mailbox->flags | MU_STREAM_SEEKABLE,
 				    body)) != 0)
       {
 	mu_body_destroy (&body, msg);
-	stream_destroy (&stream, body);
-	message_destroy (&msg, mhm);
+	mu_stream_destroy (&stream, body);
+	mu_message_destroy (&msg, mhm);
 	return status;
       }
-    stream_set_read (stream, amd_body_read, body);
-    stream_set_readline (stream, amd_body_readline, body);
-    stream_set_size (stream, amd_stream_size, body);
+    mu_stream_set_read (stream, amd_body_read, body);
+    mu_stream_set_readline (stream, amd_body_readline, body);
+    mu_stream_set_size (stream, amd_stream_size, body);
     mu_body_set_stream (body, stream, msg);
     mu_body_set_size (body, amd_body_size, msg);
     mu_body_set_lines (body, amd_body_lines, msg);
-    message_set_body (msg, body, mhm);
+    mu_message_set_body (msg, body, mhm);
   }
 
   /* Set the envelope.  */
   {
-    envelope_t envelope = NULL;
+    mu_envelope_t envelope = NULL;
     status = mu_envelope_create (&envelope, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mhm);
+	mu_message_destroy (&msg, mhm);
 	return status;
       }
     mu_envelope_set_sender (envelope, amd_envelope_sender, msg);
     mu_envelope_set_date (envelope, amd_envelope_date, msg);
-    message_set_envelope (msg, envelope, mhm);
+    mu_message_set_envelope (msg, envelope, mhm);
   }
 
   /* Set the UID.  */
   if (mhm->amd->message_uid)
-    message_set_uid (msg, mhm->amd->message_uid, mhm);
+    mu_message_set_uid (msg, mhm->amd->message_uid, mhm);
 
   /* Attach the message to the mailbox mbox data.  */
   mhm->message = msg;
-  message_set_mailbox (msg, mailbox, mhm);
+  mu_message_set_mailbox (msg, mailbox, mhm);
 
   if (pmsg)
     *pmsg = msg;
@@ -484,7 +484,7 @@ _amd_attach_message (mailbox_t mailbox, struct _amd_message *mhm,
 }
 
 static int
-amd_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
+amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 {
   int status;
   struct _amd_data *amd = mailbox->data;
@@ -534,26 +534,26 @@ _amd_delim (char *str)
 static int
 _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   char *name = NULL, *buf = NULL, *msg_name;
   size_t n, off = 0;
   size_t bsize;
   size_t nlines, nbytes;
   size_t new_body_start, new_header_lines;
   FILE *fp;
-  message_t msg = mhm->message;
-  header_t hdr;
+  mu_message_t msg = mhm->message;
+  mu_header_t hdr;
   int status;
-  attribute_t attr;
-  body_t body;
+  mu_attribute_t attr;
+  mu_body_t body;
   char buffer[512];
-  envelope_t env = NULL;
+  mu_envelope_t env = NULL;
   
   fp = _amd_tempfile (mhm->amd, &name);
   if (!fp)
     return errno;
 
-  message_size (msg, &bsize);
+  mu_message_size (msg, &bsize);
 
   /* Try to allocate large buffer */
   for (; bsize > 1; bsize /= 2)
@@ -564,11 +564,11 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
     return ENOMEM;
 
   /* Copy flags */
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_stream (hdr, &stream);
   off = 0;
   nlines = nbytes = 0;
-  while ((status = stream_readline (stream, buf, bsize, off, &n)) == 0
+  while ((status = mu_stream_readline (stream, buf, bsize, off, &n)) == 0
 	 && n != 0)
     {
       if (_amd_delim(buf))
@@ -597,7 +597,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
       nlines++;
     }
   
-  message_get_envelope (msg, &env);
+  mu_message_get_envelope (msg, &env);
   if (mu_envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
     {
       /* NOTE: buffer is terminated with \n */
@@ -619,7 +619,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
     }
   
   /* Add status */
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_to_string (attr, buf, bsize, &n);
   if (n)
     {
@@ -634,11 +634,11 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
 
   /* Copy message body */
 
-  message_get_body (msg, &body);
+  mu_message_get_body (msg, &body);
   mu_body_get_stream (body, &stream);
   off = 0;
   nlines = 0;
-  while (stream_read (stream, buf, bsize, off, &n) == 0 && n != 0)
+  while (mu_stream_read (stream, buf, bsize, off, &n) == 0 && n != 0)
     {
       char *p;
       for (p = buf; p < buf + n; p++)
@@ -666,7 +666,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
 }
 
 static int
-amd_append_message (mailbox_t mailbox, message_t msg)
+amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 {
   int status;
   struct _amd_data *amd = mailbox->data;
@@ -721,7 +721,7 @@ amd_append_message (mailbox_t mailbox, message_t msg)
 }
 
 static int
-amd_messages_count (mailbox_t mailbox, size_t *pcount)
+amd_messages_count (mu_mailbox_t mailbox, size_t *pcount)
 {
   struct _amd_data *amd = mailbox->data;
 
@@ -741,7 +741,7 @@ amd_messages_count (mailbox_t mailbox, size_t *pcount)
    ('O' in the Status header), i.e. a message that is first seen
    by the current session (see attributes.h) */
 static int
-amd_messages_recent (mailbox_t mailbox, size_t *pcount)
+amd_messages_recent (mu_mailbox_t mailbox, size_t *pcount)
 {
   struct _amd_data *amd = mailbox->data;
   size_t count, i;
@@ -765,7 +765,7 @@ amd_messages_recent (mailbox_t mailbox, size_t *pcount)
 
 /* An "unseen" message is the one that has not been read yet */
 static int
-amd_message_unseen (mailbox_t mailbox, size_t *pmsgno)
+amd_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
 {
   struct _amd_data *amd = mailbox->data;
   size_t i;
@@ -790,7 +790,7 @@ amd_message_unseen (mailbox_t mailbox, size_t *pmsgno)
 }
 
 static int
-amd_expunge (mailbox_t mailbox)
+amd_expunge (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
@@ -808,7 +808,7 @@ amd_expunge (mailbox_t mailbox)
       mhm = amd->msg_array[i];
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
 	  (mhm->attr_flags & MU_ATTRIBUTE_DELETED) ||
-	  (mhm->message && message_is_modified (mhm->message)))
+	  (mhm->message && mu_message_is_modified (mhm->message)))
 	break;
     }
 
@@ -839,7 +839,7 @@ amd_expunge (mailbox_t mailbox)
       else
 	{
 	  if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	      || (mhm->message && message_is_modified (mhm->message)))
+	      || (mhm->message && mu_message_is_modified (mhm->message)))
 	    {
 	      _amd_attach_message (mailbox, mhm, NULL);
 	      mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
@@ -853,7 +853,7 @@ amd_expunge (mailbox_t mailbox)
 }
 
 static int
-amd_save_attributes (mailbox_t mailbox)
+amd_save_attributes (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
@@ -870,7 +870,7 @@ amd_save_attributes (mailbox_t mailbox)
     {
       mhm = amd->msg_array[i];
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	  || (mhm->message && message_is_modified (mhm->message)))
+	  || (mhm->message && mu_message_is_modified (mhm->message)))
 	break;
     }
 
@@ -879,7 +879,7 @@ amd_save_attributes (mailbox_t mailbox)
       mhm = amd->msg_array[i];
 
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	  || (mhm->message && message_is_modified (mhm->message)))
+	  || (mhm->message && mu_message_is_modified (mhm->message)))
 	{
 	  _amd_attach_message (mailbox, mhm, NULL);
 	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
@@ -891,7 +891,7 @@ amd_save_attributes (mailbox_t mailbox)
 }
 
 static int
-amd_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
+amd_uidvalidity (mu_mailbox_t mailbox, unsigned long *puidvalidity)
 {
   struct _amd_data *amd = mailbox->data;
   int status = amd_messages_count (mailbox, NULL);
@@ -910,7 +910,7 @@ amd_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
 }
 
 static int
-amd_uidnext (mailbox_t mailbox, size_t *puidnext)
+amd_uidnext (mu_mailbox_t mailbox, size_t *puidnext)
 {
   struct _amd_data *amd = mailbox->data;
   int status;
@@ -936,8 +936,8 @@ amd_uidnext (mailbox_t mailbox, size_t *puidnext)
 void
 amd_cleanup (void *arg)
 {
-  mailbox_t mailbox = arg;
-  monitor_unlock (mailbox->monitor);
+  mu_mailbox_t mailbox = arg;
+  mu_monitor_unlock (mailbox->monitor);
   mu_locker_unlock (mailbox->locker);
 }
 
@@ -983,7 +983,7 @@ _amd_message_delete (struct _amd_data *amd, struct _amd_message *msg)
   if (pp)
     *pp = NULL;
   
-  message_destroy (&msg->message, msg);
+  mu_message_destroy (&msg->message, msg);
   if (amd->msg_free)
     amd->msg_free (msg);
   free (msg);
@@ -995,7 +995,7 @@ _amd_message_delete (struct _amd_data *amd, struct _amd_message *msg)
 static int
 amd_scan_message (struct _amd_message *mhm)
 {
-  stream_t stream = mhm->stream;
+  mu_stream_t stream = mhm->stream;
   char buf[1024];
   off_t off = 0;
   size_t n;
@@ -1020,7 +1020,7 @@ amd_scan_message (struct _amd_message *mhm)
       free (msg_name);
     }
 
-  while ((status = stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
+  while ((status = mu_stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
 	 && n != 0)
     {
       if (in_header)
@@ -1065,7 +1065,7 @@ amd_scan_message (struct _amd_message *mhm)
 }
 
 static int
-amd_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
+amd_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
   struct _amd_data *amd = mailbox->data;
 
@@ -1081,7 +1081,7 @@ amd_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 /* Is the internal representation of the mailbox up to date.
    Return 1 if so, 0 otherwise. */
 static int
-amd_is_updated (mailbox_t mailbox)
+amd_is_updated (mu_mailbox_t mailbox)
 {
   struct stat st;
   struct _amd_data *amd = mailbox->data;
@@ -1096,7 +1096,7 @@ amd_is_updated (mailbox_t mailbox)
 }
 
 static int
-amd_get_size (mailbox_t mailbox ARG_UNUSED, off_t *psize ARG_UNUSED)
+amd_get_size (mu_mailbox_t mailbox ARG_UNUSED, off_t *psize ARG_UNUSED)
 {
   /*FIXME*/
   return ENOSYS;
@@ -1187,17 +1187,17 @@ amd_message_stream_open (struct _amd_message *mhm)
     flags |= MU_STREAM_RDWR;
   else 
     flags |= MU_STREAM_READ;
-  status = file_stream_create (&mhm->stream, filename, flags);
+  status = mu_file_stream_create (&mhm->stream, filename, flags);
 
   free (filename);
 
   if (status != 0)
     return status;
 
-  status = stream_open (mhm->stream);
+  status = mu_stream_open (mhm->stream);
 
   if (status != 0)
-    stream_destroy (&mhm->stream, NULL);
+    mu_stream_destroy (&mhm->stream, NULL);
 
   if (status == 0)
     status = amd_scan_message (mhm);
@@ -1211,7 +1211,7 @@ amd_message_stream_close (struct _amd_message *mhm)
 {
   if (mhm)
     {
-      stream_close (mhm->stream);
+      mu_stream_close (mhm->stream);
       mhm->stream = NULL;
     }
 }
@@ -1241,7 +1241,7 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
       return 0;
     }
 
-  monitor_rdlock (mhm->amd->mailbox->monitor);
+  mu_monitor_rdlock (mhm->amd->mailbox->monitor);
 #ifdef WITH_PTHREAD
   /* read() is cancellation point since we're doing a potentially
      long operation.  Lets make sure we clean the state.  */
@@ -1254,14 +1254,14 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
       /* Position the file pointer and the buffer.  */
       nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
       if (isreadline)
-	status = stream_readline (mhm->stream, buffer, buflen,
+	status = mu_stream_readline (mhm->stream, buffer, buflen,
 				  start + off, &nread);
       else
-	status = stream_read (mhm->stream, buffer, nread,
+	status = mu_stream_read (mhm->stream, buffer, nread,
 			      start + off, &nread);
     }
 
-  monitor_unlock (mhm->amd->mailbox->monitor);
+  mu_monitor_unlock (mhm->amd->mailbox->monitor);
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
 #endif
@@ -1272,24 +1272,24 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
 }
 
 static int
-amd_body_read (stream_t is, char *buffer, size_t buflen, off_t off,
+amd_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t off,
 	      size_t *pnread)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   amd_pool_open (mhm);
   return amd_readstream (mhm, buffer, buflen, off, pnread, 0,
 			mhm->body_start, mhm->body_end);
 }
 
 static int
-amd_body_readline (stream_t is, char *buffer, size_t buflen,
+amd_body_readline (mu_stream_t is, char *buffer, size_t buflen,
 		  off_t off, size_t *pnread)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   amd_pool_open (mhm);
   return amd_readstream (mhm, buffer, buflen, off, pnread, 1,
 			mhm->body_start, mhm->body_end);
@@ -1298,17 +1298,17 @@ amd_body_readline (stream_t is, char *buffer, size_t buflen,
 /* Return corresponding sizes */
 
 static int
-amd_stream_size (stream_t stream, off_t *psize)
+amd_stream_size (mu_stream_t stream, off_t *psize)
 {
-  body_t body = stream_get_owner (stream);
+  mu_body_t body = mu_stream_get_owner (stream);
   return amd_body_size (body, (size_t*) psize);
 }
 
 static int
-amd_body_size (body_t body, size_t *psize)
+amd_body_size (mu_body_t body, size_t *psize)
 {
-  message_t msg = mu_body_get_owner (body);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
   amd_check_message (mhm);
@@ -1318,10 +1318,10 @@ amd_body_size (body_t body, size_t *psize)
 }
 
 static int
-amd_body_lines (body_t body, size_t *plines)
+amd_body_lines (mu_body_t body, size_t *plines)
 {
-  message_t msg = mu_body_get_owner (body);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
   amd_check_message (mhm);
@@ -1332,11 +1332,11 @@ amd_body_lines (body_t body, size_t *plines)
 
 /* Headers */
 static int
-amd_header_fill (header_t header, char *buffer, size_t len,
+amd_header_fill (mu_header_t header, char *buffer, size_t len,
 		off_t off, size_t *pnread)
 {
-  message_t msg = mu_header_get_owner (header);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
 
   amd_pool_open (mhm);
   return amd_readstream (mhm, buffer, len, off, pnread, 0,
@@ -1344,10 +1344,10 @@ amd_header_fill (header_t header, char *buffer, size_t len,
 }
 
 static int
-amd_header_size (header_t header, size_t *psize)
+amd_header_size (mu_header_t header, size_t *psize)
 {
-  message_t msg = mu_header_get_owner (header);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
   amd_check_message (mhm);
@@ -1357,10 +1357,10 @@ amd_header_size (header_t header, size_t *psize)
 }
 
 static int
-amd_header_lines (header_t header, size_t *plines)
+amd_header_lines (mu_header_t header, size_t *plines)
 {
-  message_t msg = mu_header_get_owner (header);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
   amd_check_message (mhm);
@@ -1371,10 +1371,10 @@ amd_header_lines (header_t header, size_t *plines)
 
 /* Attributes */
 static int
-amd_get_attr_flags (attribute_t attr, int *pflags)
+amd_get_attr_flags (mu_attribute_t attr, int *pflags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
 
   if (mhm == NULL)
     return EINVAL;
@@ -1384,10 +1384,10 @@ amd_get_attr_flags (attribute_t attr, int *pflags)
 }
 
 static int
-amd_set_attr_flags (attribute_t attr, int flags)
+amd_set_attr_flags (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
 
   if (mhm == NULL)
     return EINVAL;
@@ -1396,10 +1396,10 @@ amd_set_attr_flags (attribute_t attr, int flags)
 }
 
 static int
-amd_unset_attr_flags (attribute_t attr, int flags)
+amd_unset_attr_flags (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  struct _amd_message *mhm = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
 
   if (mhm == NULL)
     return EINVAL;
@@ -1409,19 +1409,19 @@ amd_unset_attr_flags (attribute_t attr, int flags)
 
 /* Envelope */
 static int
-amd_envelope_date (envelope_t envelope, char *buf, size_t len,
+amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 		  size_t *psize)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  struct _amd_message *mhm = message_get_owner (msg);
-  header_t hdr = NULL;
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
+  mu_header_t hdr = NULL;
   char *date;
   int status;
   
   if (mhm == NULL)
     return EINVAL;
 
-  if ((status = message_get_header (msg, &hdr)) != 0)
+  if ((status = mu_message_get_header (msg, &hdr)) != 0)
     return status;
   if (mu_header_aget_value (hdr, MU_HEADER_ENV_DATE, &date)
       && mu_header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
@@ -1462,18 +1462,18 @@ amd_envelope_date (envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-amd_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
+amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *psize)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  struct _amd_message *mhm = message_get_owner (msg);
-  header_t hdr = NULL;
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
+  mu_header_t hdr = NULL;
   char *from;
   int status;
 
   if (mhm == NULL)
     return EINVAL;
 
-  if ((status = message_get_header (msg, &hdr)) != 0)
+  if ((status = mu_message_get_header (msg, &hdr)) != 0)
     return status;
   if (status = mu_header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from))
     return status;
@@ -1496,14 +1496,14 @@ amd_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 }
 
 static void
-amd_url_destroy (url_t url ARG_UNUSED)
+amd_url_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
 int
-amd_url_init (url_t url, const char *scheme)
+amd_url_init (mu_url_t url, const char *scheme)
 {
-  const char *name = url_to_string (url);
+  const char *name = mu_url_to_string (url);
   const char *path_ptr = name;
   size_t len = strlen (name);
   size_t scheme_len = strlen (scheme);

@@ -18,7 +18,7 @@
 
 #include "pop3d.h"
 
-static stream_t istream, ostream;
+static mu_stream_t istream, ostream;
 
 /* Takes a string as input and returns either the remainder of the string
    after the first space, or a zero length string if no space */
@@ -144,8 +144,8 @@ pop3d_setio (FILE *in, FILE *out)
 
   setvbuf (in, NULL, _IOLBF, 0);
   setvbuf (out, NULL, _IOLBF, 0);
-  if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
-      || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
+      || mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_OFILE);
 }
 
@@ -153,17 +153,17 @@ pop3d_setio (FILE *in, FILE *out)
 int
 pop3d_init_tls_server ()
 {
-  stream_t stream;
+  mu_stream_t stream;
   int rc;
  
-  rc = tls_stream_create (&stream, istream, ostream, 0);
+  rc = mu_tls_stream_create (&stream, istream, ostream, 0);
   if (rc)
     return 0;
 
-  if (stream_open (stream))
+  if (mu_stream_open (stream))
     {
       const char *p;
-      stream_strerror (stream, &p);
+      mu_stream_strerror (stream, &p);
       syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
       return 0;
     }
@@ -178,8 +178,8 @@ pop3d_bye ()
 {
   if (istream == ostream)
     {
-      stream_close (istream);
-      stream_destroy (&istream, stream_get_owner (istream));
+      mu_stream_close (istream);
+      mu_stream_destroy (&istream, mu_stream_get_owner (istream));
     }
   /* There's no reason closing in/out streams otherwise */
 #ifdef WITH_TLS
@@ -191,7 +191,7 @@ pop3d_bye ()
 void
 pop3d_flush_output ()
 {
-  stream_flush (ostream);
+  mu_stream_flush (ostream);
 }
 
 int
@@ -217,13 +217,13 @@ pop3d_outf (const char *fmt, ...)
   if (daemon_param.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
-  rc = stream_sequential_write (ostream, buf, strlen (buf));
+  rc = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
   if (rc)
     {
       const char *p;
 
-      if (stream_strerror (ostream, &p))
+      if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
       syslog (LOG_ERR, _("Write failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
@@ -239,14 +239,14 @@ pop3d_readline (char *buffer, size_t size)
   size_t nbytes;
   
   alarm (daemon_param.timeout);
-  rc = stream_sequential_readline (istream, buffer, size, &nbytes);
+  rc = mu_stream_sequential_readline (istream, buffer, size, &nbytes);
   alarm (0);
 
   if (rc)
     {
       const char *p;
 
-      if (stream_strerror (ostream, &p))
+      if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
       syslog (LOG_ERR, _("Read failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
@@ -268,20 +268,20 @@ pop3d_readline (char *buffer, size_t size)
 /* Handling of the deletion marks */
 
 void
-pop3d_mark_deleted (attribute_t attr)
+pop3d_mark_deleted (mu_attribute_t attr)
 {
   mu_attribute_set_userflag (attr, POP3_ATTRIBUTE_DELE);
 }
 
 int
-pop3d_is_deleted (attribute_t attr)
+pop3d_is_deleted (mu_attribute_t attr)
 {
   return mu_attribute_is_deleted (attr)
          || mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE);
 }
 
 void
-pop3d_unset_deleted (attribute_t attr)
+pop3d_unset_deleted (mu_attribute_t attr)
 {
   if (mu_attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
     mu_attribute_unset_userflag (attr, POP3_ATTRIBUTE_DELE);
@@ -297,10 +297,10 @@ pop3d_undelete_all ()
 
   for (i = 1; i <= total; i++)
     {
-       message_t msg = NULL;
-       attribute_t attr = NULL;
+       mu_message_t msg = NULL;
+       mu_attribute_t attr = NULL;
        mu_mailbox_get_message (mbox, i, &msg);
-       message_get_attribute (msg, &attr);
+       mu_message_get_attribute (msg, &attr);
        mu_attribute_unset_deleted (attr);
     }
 }

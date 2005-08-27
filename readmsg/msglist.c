@@ -79,7 +79,7 @@ is_number (const char *s)
 */
 
 int
-msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
+msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
 {
   int i = 0;
   size_t total = 0;
@@ -117,11 +117,11 @@ msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
 	      char buf[128];
 	      size_t len = 0;
 	      off_t offset = 0;
-	      message_t msg = NULL;
-	      stream_t stream = NULL;
+	      mu_message_t msg = NULL;
+	      mu_stream_t stream = NULL;
 	      mu_mailbox_get_message (mbox, j, &msg);
-	      message_get_stream (msg, &stream);
-	      while (stream_readline (stream, buf, sizeof buf, offset, &len) == 0 && len > 0)
+	      mu_message_get_stream (msg, &stream);
+	      while (mu_stream_readline (stream, buf, sizeof buf, offset, &len) == 0 && len > 0)
 		{
 		  if (strstr (buf, argv[i]) != NULL)
 		    {

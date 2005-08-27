@@ -130,18 +130,18 @@ static const char *capa[] = {
   NULL
 };
 
-mailer_t mailer;     /* Mailer object */ 
-address_t from;      /* Sender address */ 
-address_t to;        /* Recipient addresses */
-stream_t in;         /* Input stream */
+mu_mailer_t mailer;     /* Mailer object */ 
+mu_address_t from;      /* Sender address */ 
+mu_address_t to;        /* Recipient addresses */
+mu_stream_t in;         /* Input stream */
 
 void
 mr_exit (int status)
 {
   mu_address_destroy (&from);
   mu_address_destroy (&to);
-  stream_destroy (&in, NULL);
-  mailer_destroy (&mailer);
+  mu_stream_destroy (&in, NULL);
+  mu_mailer_destroy (&mailer);
 
   exit (status ? 1 : 0);
 }
@@ -152,7 +152,7 @@ main (int argc, char **argv)
   int status = 0;
   int optind = 0;
 
-  message_t msg = 0;
+  mu_message_t msg = 0;
 
   int mailer_flags = 0;
 
@@ -160,7 +160,7 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   /* Register mailers. */
-  registrar_record (smtp_record);
+  mu_registrar_record (mu_smtp_record);
 
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
@@ -186,34 +186,34 @@ main (int argc, char **argv)
 	}
     }
      
-  if ((status = stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
+  if ((status = mu_stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = stream_open (in)))
+  if ((status = mu_stream_open (in)))
     {
       mu_error (_("Opening stdin failed: %s"), mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = message_create (&msg, NULL)))
+  if ((status = mu_message_create (&msg, NULL)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = message_set_stream (msg, in, NULL)))
+  if ((status = mu_message_set_stream (msg, in, NULL)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = mailer_create (&mailer, NULL)))
+  if ((status = mu_mailer_create (&mailer, NULL)))
     {
       const char *url = NULL;
-      mailer_get_url_default (&url);
+      mu_mailer_get_url_default (&url);
       mu_error (_("Creating mailer `%s' failed: %s"),
 		url, mu_strerror (status));
       mr_exit (status);
@@ -222,7 +222,7 @@ main (int argc, char **argv)
   if (optdebug)
     {
       mu_debug_t debug;
-      mailer_get_debug (mailer, &debug);
+      mu_mailer_get_debug (mailer, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
 
       if (optdebug > 1)
@@ -231,28 +231,28 @@ main (int argc, char **argv)
 
   if (read_recipients)
     {
-      property_t property = NULL;
+      mu_property_t property = NULL;
 
-      mailer_get_property (mailer, &property);
-      property_set_value (property, "READ_RECIPIENTS", "true", 1);
+      mu_mailer_get_property (mailer, &property);
+      mu_property_set_value (property, "READ_RECIPIENTS", "true", 1);
     }
   
-  if ((status = mailer_open (mailer, mailer_flags)))
+  if ((status = mu_mailer_open (mailer, mailer_flags)))
     {
       const char *url = NULL;
-      mailer_get_url_default (&url);
+      mu_mailer_get_url_default (&url);
       mu_error (_("Opening mailer `%s' failed: %s"),
 		url, mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = mailer_send_message (mailer, msg, from, to)))
+  if ((status = mu_mailer_send_message (mailer, msg, from, to)))
     {
       mu_error (_("Sending message failed: %s"), mu_strerror (status));
       mr_exit (status);
     }
 
-  if ((status = mailer_close (mailer)))
+  if ((status = mu_mailer_close (mailer)))
     {
       mu_error (_("Closing mailer failed: %s"), mu_strerror (status));
       mr_exit (status);

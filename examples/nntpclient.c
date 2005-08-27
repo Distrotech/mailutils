@@ -407,7 +407,7 @@ com_mode_reader (char *arg ARG_UNUSED)
 int
 com_head (char *arg)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
   /* No space allowed. */
@@ -426,9 +426,9 @@ com_head (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
         printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
    return status;
 }
@@ -436,7 +436,7 @@ com_head (char *arg)
 int
 com_body (char *arg)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
   /* No space allowed. */
@@ -455,9 +455,9 @@ com_body (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
         printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
    return status;
 }
@@ -465,7 +465,7 @@ com_body (char *arg)
 int
 com_article (char *arg)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
   /* No space allowed. */
@@ -484,9 +484,9 @@ com_article (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
         printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
    return status;
 }
@@ -564,7 +564,7 @@ int com_list (char *arg)
 int
 com_list_extensions (char *arg ARG_UNUSED)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_extensions (nntp, &iterator);
 
   if (status == 0)
@@ -585,7 +585,7 @@ com_list_extensions (char *arg ARG_UNUSED)
 int
 com_list_active (char *arg)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_active (nntp, arg, &iterator);
 
   if (status == 0)
@@ -616,7 +616,7 @@ com_list_active (char *arg)
 int
 com_list_active_times (char *arg)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_active_times (nntp, arg, &iterator);
 
   if (status == 0)
@@ -663,7 +663,7 @@ com_list_active_times (char *arg)
 int
 com_list_distributions (char *arg ARG_UNUSED)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_distributions (nntp, arg, &iterator);
 
   if (status == 0)
@@ -697,7 +697,7 @@ com_list_distributions (char *arg ARG_UNUSED)
 int
 com_list_distrib_pats (char *arg ARG_UNUSED)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_distrib_pats (nntp, &iterator);
 
   if (status == 0)
@@ -733,7 +733,7 @@ com_list_distrib_pats (char *arg ARG_UNUSED)
 int
 com_list_newsgroups (char *arg)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_newsgroups (nntp, arg, &iterator);
 
   if (status == 0)
@@ -797,7 +797,7 @@ com_next (char *arg ARG_UNUSED)
 int
 com_newgroups (char *arg)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   int status;
   int year, month, day, hour, min, sec, is_gmt;
   year = month = day = hour = min = sec = is_gmt = 0;
@@ -852,7 +852,7 @@ com_newgroups (char *arg)
 int
 com_newnews (char *arg)
 {
-  iterator_t iterator = NULL;
+  mu_iterator_t iterator = NULL;
   char *wildmat;
   char gmt[4];
   int year, month, day, hour, min, sec, is_gmt;
@@ -953,7 +953,7 @@ com_ihave (char *arg)
 int
 com_help (char *arg ARG_UNUSED)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
   status = mu_nntp_help (nntp, &stream);
@@ -961,9 +961,9 @@ com_help (char *arg ARG_UNUSED)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
         printf ("%s", buf);
-      stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream, NULL);
     }
   return status;
 }
@@ -1030,12 +1030,12 @@ com_connect (char *arg)
   status = mu_nntp_create (&nntp);
   if (status == 0)
     {
-      stream_t tcp;
+      mu_stream_t tcp;
 
       if (verbose)
 	com_verbose ("on");
       status =
-	tcp_stream_create (&tcp, host, port,
+	mu_tcp_stream_create (&tcp, host, port,
 			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
       if (status == 0)
 	{

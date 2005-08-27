@@ -36,8 +36,8 @@ typedef struct _mu_pop3* mu_pop3_t;
 extern int  mu_pop3_create       (mu_pop3_t *pop3);
 extern void mu_pop3_destroy      (mu_pop3_t *pop3);
 
-extern int  mu_pop3_set_carrier  (mu_pop3_t pop3, stream_t carrier);
-extern int  mu_pop3_get_carrier  (mu_pop3_t pop3, stream_t *pcarrier);
+extern int  mu_pop3_set_carrier  (mu_pop3_t pop3, mu_stream_t carrier);
+extern int  mu_pop3_get_carrier  (mu_pop3_t pop3, mu_stream_t *pcarrier);
 
 extern int  mu_pop3_connect      (mu_pop3_t pop3);
 extern int  mu_pop3_disconnect   (mu_pop3_t pop3);
@@ -54,7 +54,7 @@ extern int  mu_pop3_stls         (mu_pop3_t pop3);
 /* It is the responsability of the caller to call mu_iterator_destroy() when done
    with the iterator.  The items return by the iterator are of type "const char *",
    no processing is done on the item except the removal of the trailing newline.  */
-extern int  mu_pop3_capa         (mu_pop3_t pop3, iterator_t *iterator);
+extern int  mu_pop3_capa         (mu_pop3_t pop3, mu_iterator_t *iterator);
 
 extern int  mu_pop3_dele         (mu_pop3_t pop3, unsigned int mesgno);
 
@@ -62,7 +62,7 @@ extern int  mu_pop3_list         (mu_pop3_t pop3, unsigned int mesgno, size_t *m
 
 /* An iterator is return with the multi-line answer.  It is the responsability of
    the caller to call mu_iterator_destroy() to dispose of the iterator.  */
-extern int  mu_pop3_list_all     (mu_pop3_t pop3, iterator_t *piterator);
+extern int  mu_pop3_list_all     (mu_pop3_t pop3, mu_iterator_t *piterator);
 
 extern int  mu_pop3_noop         (mu_pop3_t pop3);
 
@@ -71,23 +71,23 @@ extern int  mu_pop3_pass         (mu_pop3_t pop3, const char *pass);
 extern int  mu_pop3_quit         (mu_pop3_t pop3);
 
 /* A stream is return with the multi-line answer.  It is the responsability of
-   the caller to call stream_destroy() to dipose of the stream.  */
-extern int  mu_pop3_retr         (mu_pop3_t pop3, unsigned int mesgno, stream_t *pstream);
+   the caller to call mu_stream_destroy() to dipose of the stream.  */
+extern int  mu_pop3_retr         (mu_pop3_t pop3, unsigned int mesgno, mu_stream_t *pstream);
 
 extern int  mu_pop3_rset         (mu_pop3_t pop3);
 
 extern int  mu_pop3_stat         (mu_pop3_t pop3, unsigned int *count, size_t *octets);
 
 /* A stream is return with the multi-line answer.  It is the responsability of
-   the caller to call stream_destroy() to dipose of the stream.  */
-extern int  mu_pop3_top          (mu_pop3_t pop3, unsigned int mesgno, unsigned int lines, stream_t *pstream);
+   the caller to call mu_stream_destroy() to dipose of the stream.  */
+extern int  mu_pop3_top          (mu_pop3_t pop3, unsigned int mesgno, unsigned int lines, mu_stream_t *pstream);
 
 /* The uidl is malloc and return in puidl, it is the responsability of caller
    to free() the uild when done.  */
 extern int  mu_pop3_uidl         (mu_pop3_t pop3, unsigned int mesgno, char **puidl);
 /* An iterator is return with the multi-line answer.  It is the responsability of
    the caller to call mu_iterator_destroy() to dispose of the iterator.  */
-extern int  mu_pop3_uidl_all     (mu_pop3_t pop3, iterator_t *piterator);
+extern int  mu_pop3_uidl_all     (mu_pop3_t pop3, mu_iterator_t *piterator);
 
 extern int  mu_pop3_user         (mu_pop3_t pop3, const char *user);
 

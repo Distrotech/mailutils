@@ -28,7 +28,7 @@
 #include <mailutils/sys/pop3.h>
 
 static int  pop3_itr_dup     (void **ptr, void *owner);
-static int  pop3_itr_destroy (iterator_t itr, void *owner);
+static int  pop3_itr_destroy (mu_iterator_t itr, void *owner);
 static int  pop3_itr_first   (void *owner);
 static int  pop3_itr_next    (void *woner);
 static int  pop3_itr_getitem (void *owner, void **pret);
@@ -43,10 +43,10 @@ struct pop3_iterator
 };
 
 int
-mu_pop3_iterator_create (mu_pop3_t pop3, iterator_t *piterator)
+mu_pop3_iterator_create (mu_pop3_t pop3, mu_iterator_t *piterator)
 {
   struct pop3_iterator *pop3_iterator;
-  iterator_t iterator;
+  mu_iterator_t iterator;
   int status;
 
   pop3_iterator = malloc (sizeof *pop3_iterator);
@@ -89,7 +89,7 @@ pop3_itr_dup (void **ptr, void *owner)
 }
 
 static int
-pop3_itr_destroy (iterator_t iterator, void *owner)
+pop3_itr_destroy (mu_iterator_t iterator, void *owner)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
   /* Delicate situation if they did not finish to drain the result

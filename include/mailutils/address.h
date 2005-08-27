@@ -25,52 +25,52 @@
 extern "C" {
 #endif
 
-extern int mu_address_create   (address_t *, const char *);
-extern int mu_address_createv  (address_t *, const char *v[], size_t);
-extern void mu_address_destroy (address_t *);
+extern int mu_address_create   (mu_address_t *, const char *);
+extern int mu_address_createv  (mu_address_t *, const char *v[], size_t);
+extern void mu_address_destroy (mu_address_t *);
 
-extern address_t mu_address_dup (address_t src);
+extern mu_address_t mu_address_dup (mu_address_t src);
 
 /* Set FROM to null, after adding its addresses to TO. */
-extern int mu_address_concatenate (address_t to, address_t* from);
+extern int mu_address_concatenate (mu_address_t to, mu_address_t* from);
 
 extern int mu_address_get_nth
-        (address_t addr, size_t no, address_t *pret);
+        (mu_address_t addr, size_t no, mu_address_t *pret);
 extern int mu_address_get_email
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_get_local_part
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_get_domain
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_get_personal
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_get_comments
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_get_route
-	(address_t, size_t, char *, size_t, size_t *);
+	(mu_address_t, size_t, char *, size_t, size_t *);
 
 extern int mu_address_aget_email
-	(address_t, size_t, char **);
+	(mu_address_t, size_t, char **);
 extern int mu_address_aget_local_part
-       (address_t addr, size_t no, char **buf);
+       (mu_address_t addr, size_t no, char **buf);
 extern int mu_address_aget_domain
-       (address_t addr, size_t no, char **buf);
+       (mu_address_t addr, size_t no, char **buf);
 extern int mu_address_aget_personal
-       (address_t addr, size_t no, char **buf);
+       (mu_address_t addr, size_t no, char **buf);
 
 extern int mu_address_is_group
-	(address_t, size_t, int*);
+	(mu_address_t, size_t, int*);
 
-extern int mu_address_to_string (address_t, char *, size_t, size_t *);
-extern int mu_address_get_count (address_t, size_t *);
-extern int mu_address_get_group_count (address_t, size_t *);
-extern int mu_address_get_email_count (address_t, size_t *);
-extern int mu_address_get_unix_mailbox_count (address_t, size_t *);
+extern int mu_address_to_string (mu_address_t, char *, size_t, size_t *);
+extern int mu_address_get_count (mu_address_t, size_t *);
+extern int mu_address_get_group_count (mu_address_t, size_t *);
+extern int mu_address_get_email_count (mu_address_t, size_t *);
+extern int mu_address_get_unix_mailbox_count (mu_address_t, size_t *);
 
-extern int mu_address_contains_email (address_t addr, const char *email);
-extern int mu_address_union (address_t *a, address_t b);
+extern int mu_address_contains_email (mu_address_t addr, const char *email);
+extern int mu_address_union (mu_address_t *a, mu_address_t b);
   
-extern size_t mu_address_format_string (address_t addr, char *buf, size_t buflen);
+extern size_t mu_address_format_string (mu_address_t addr, char *buf, size_t buflen);
   
 #ifdef __cplusplus
 }

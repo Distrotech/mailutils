@@ -26,7 +26,7 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_uidl_all (mu_pop3_t pop3, iterator_t *piterator)
+mu_pop3_uidl_all (mu_pop3_t pop3, mu_iterator_t *piterator)
 {
   int status = 0;
 
@@ -59,7 +59,7 @@ mu_pop3_uidl_all (mu_pop3_t pop3, iterator_t *piterator)
       pop3->state = MU_POP3_UIDL_RX;
 
     case MU_POP3_UIDL_RX:
-      /* The iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
+      /* The mu_iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
       break;
 
       /* They must deal with the error first by reopening.  */

@@ -27,7 +27,7 @@
 #include <sieve.h>
 
 int
-sieve_action_stop (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_stop (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "STOP", NULL);
   mach->pc = 0;
@@ -35,7 +35,7 @@ sieve_action_stop (mu_sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
-sieve_action_keep (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_keep (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "KEEP", NULL);
   if (mu_sieve_is_dry_run (mach))
@@ -45,7 +45,7 @@ sieve_action_keep (mu_sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
-sieve_action_discard (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_discard (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "DISCARD", _("marking as deleted"));
   if (mu_sieve_is_dry_run (mach))
@@ -55,7 +55,7 @@ sieve_action_discard (mu_sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
-sieve_action_fileinto (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
   mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
@@ -68,7 +68,7 @@ sieve_action_fileinto (mu_sieve_machine_t mach, list_t args, list_t tags)
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
-  rc = message_save_to_mailbox (mach->msg, mach->ticket, mach->debug,
+  rc = mu_message_save_to_mailbox (mach->msg, mach->ticket, mach->debug,
 				val->v.string);
   if (rc)
     mu_sieve_error (mach, _("cannot save to mailbox: %s"),
@@ -80,7 +80,7 @@ sieve_action_fileinto (mu_sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
-mu_stream_printf (stream_t stream, size_t *off, const char *fmt, ...)
+mu_stream_printf (mu_stream_t stream, size_t *off, const char *fmt, ...)
 {
   va_list ap;
   char *buf = NULL;
@@ -91,7 +91,7 @@ mu_stream_printf (stream_t stream, size_t *off, const char *fmt, ...)
   vasprintf (&buf, fmt, ap);
   va_end (ap);
   size = strlen (buf);
-  rc = stream_write (stream, buf, size, *off, &bytes);
+  rc = mu_stream_write (stream, buf, size, *off, &bytes);
   if (rc)
     return rc;
   *off += bytes;
@@ -101,14 +101,14 @@ mu_stream_printf (stream_t stream, size_t *off, const char *fmt, ...)
 }
 
 int
-mu_sieve_get_message_sender (message_t msg, char **ptext)
+mu_sieve_get_message_sender (mu_message_t msg, char **ptext)
 {
   int rc;
-  envelope_t envelope;
+  mu_envelope_t envelope;
   char *text;
   size_t size;
   
-  rc = message_get_envelope (msg, &envelope);
+  rc = mu_message_get_envelope (msg, &envelope);
   if (rc)
     return rc;
   
@@ -121,8 +121,8 @@ mu_sieve_get_message_sender (message_t msg, char **ptext)
     }
   else
     {
-      header_t hdr = NULL;
-      message_get_header (msg, &hdr);
+      mu_header_t hdr = NULL;
+      mu_message_get_header (msg, &hdr);
       if (rc = mu_header_aget_value (hdr, MU_HEADER_SENDER, &text))
 	rc = mu_header_aget_value (hdr, MU_HEADER_FROM, &text);
     }
@@ -133,23 +133,23 @@ mu_sieve_get_message_sender (message_t msg, char **ptext)
 }
 
 static int
-build_mime (mime_t *pmime, message_t msg, const char *text)
+build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
 {
-  mime_t mime = NULL;
+  mu_mime_t mime = NULL;
   char datestr[80];
   
-  mime_create (&mime, NULL, 0);
+  mu_mime_create (&mime, NULL, 0);
   {
-    message_t newmsg;
-    stream_t stream;
+    mu_message_t newmsg;
+    mu_stream_t stream;
     time_t t;
     struct tm *tm;
     char *sender;
     size_t off = 0;
-    body_t body;
+    mu_body_t body;
       
-    message_create (&newmsg, NULL);
-    message_get_body (newmsg, &body);
+    mu_message_create (&newmsg, NULL);
+    mu_message_get_body (newmsg, &body);
     mu_body_get_stream (body, &stream);
 
     time (&t);
@@ -166,24 +166,24 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
 		   "Message was refused by recipient's mail filtering program.\n");
     mu_stream_printf (stream, &off, "Reason given was as follows:\n\n");
     mu_stream_printf (stream, &off, "%s", text);
-    stream_close (stream);
-    mime_add_part (mime, newmsg);
+    mu_stream_close (stream);
+    mu_mime_add_part (mime, newmsg);
     message_unref (newmsg);
   }
   
   /*  message/delivery-status */
   {
-    message_t newmsg;
-    stream_t stream;
-    header_t hdr;
+    mu_message_t newmsg;
+    mu_stream_t stream;
+    mu_header_t hdr;
     size_t off = 0;
-    body_t body;
+    mu_body_t body;
     char *email;
     
-    message_create (&newmsg, NULL);
-    message_get_header (newmsg, &hdr); 
+    mu_message_create (&newmsg, NULL);
+    mu_message_get_header (newmsg, &hdr); 
     mu_header_set_value (hdr, "Content-Type", "message/delivery-status", 1);
-    message_get_body (newmsg, &body);
+    mu_message_get_body (newmsg, &body);
     mu_body_get_stream (body, &stream);
     mu_stream_printf (stream, &off, "Reporting-UA: sieve; %s\n", PACKAGE_STRING);
     mu_stream_printf (stream, &off, "Arrival-Date: %s\n", datestr);
@@ -195,39 +195,39 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     mu_stream_printf (stream, &off, 
 		 "Disposition: automatic-action/MDN-sent-automatically;deleted\n");
     mu_stream_printf (stream, &off, "Last-Attempt-Date: %s\n", datestr);
-    stream_close (stream);
-    mime_add_part(mime, newmsg);
+    mu_stream_close (stream);
+    mu_mime_add_part(mime, newmsg);
     message_unref (newmsg);
   }
   
   /* Quote original message */
   {
-    message_t newmsg;
-    stream_t istream, ostream;
-    header_t hdr;
+    mu_message_t newmsg;
+    mu_stream_t istream, ostream;
+    mu_header_t hdr;
     size_t ioff = 0, ooff = 0, n;
     char buffer[512];
-    body_t body;
+    mu_body_t body;
     
-    message_create (&newmsg, NULL);
-    message_get_header (newmsg, &hdr); 
+    mu_message_create (&newmsg, NULL);
+    mu_message_get_header (newmsg, &hdr); 
     mu_header_set_value (hdr, "Content-Type", "message/rfc822", 1);
-    message_get_body (newmsg, &body);
+    mu_message_get_body (newmsg, &body);
     mu_body_get_stream (body, &ostream);
-    message_get_stream (msg, &istream);
+    mu_message_get_stream (msg, &istream);
   
-    while (stream_read (istream, buffer, sizeof buffer - 1, ioff, &n) == 0
+    while (mu_stream_read (istream, buffer, sizeof buffer - 1, ioff, &n) == 0
 	   && n != 0)
       {
 	size_t sz;
-	stream_write (ostream, buffer, n, ooff, &sz);
+	mu_stream_write (ostream, buffer, n, ooff, &sz);
 	if (sz != n)
 	  return EIO;
 	ooff += n;
 	ioff += n;
       }
-    stream_close (ostream);
-    mime_add_part (mime, newmsg);
+    mu_stream_close (ostream);
+    mu_mime_add_part (mime, newmsg);
     message_unref (newmsg);
   }
 
@@ -237,14 +237,14 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
 }
 
 int
-sieve_action_reject (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  mime_t mime = NULL;
-  mailer_t mailer = mu_sieve_get_mailer (mach);
+  mu_mime_t mime = NULL;
+  mu_mailer_t mailer = mu_sieve_get_mailer (mach);
   int rc;
-  message_t newmsg;
+  mu_message_t newmsg;
   char *addrtext;
-  address_t from, to;
+  mu_address_t from, to;
   
   mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
   if (!val)
@@ -258,7 +258,7 @@ sieve_action_reject (mu_sieve_machine_t mach, list_t args, list_t tags)
 
   rc = build_mime (&mime, mach->msg, val->v.string);
 
-  mime_get_message (mime, &newmsg);
+  mu_mime_get_message (mime, &newmsg);
 
   mu_sieve_get_message_sender (mach->msg, &addrtext);
   rc = mu_address_create (&to, addrtext);
@@ -284,26 +284,26 @@ sieve_action_reject (mu_sieve_machine_t mach, list_t args, list_t tags)
       goto end;
     }
   
-  rc = mailer_open (mailer, 0);
+  rc = mu_mailer_open (mailer, 0);
   if (rc)
     {
-      url_t url = NULL;
-      mailer_get_url (mailer, &url);
+      mu_url_t url = NULL;
+      mu_mailer_get_url (mailer, &url);
 	
       mu_sieve_error (mach,
 		   _("%d: cannot open mailer %s: %s"),
 		   mu_sieve_get_message_num (mach),
-		   url_to_string (url),
+		   mu_url_to_string (url),
 		   mu_strerror (rc));
       goto end;
     }
 
-  rc = mailer_send_message (mailer, newmsg, from, to);
-  mailer_close (mailer);
+  rc = mu_mailer_send_message (mailer, newmsg, from, to);
+  mu_mailer_close (mailer);
 
  end:
   sieve_mark_deleted (mach->msg, rc == 0);    
-  mime_destroy (&mime);
+  mu_mime_destroy (&mime);
   mu_address_destroy (&from);
   mu_address_destroy (&to);
   
@@ -317,15 +317,15 @@ sieve_action_reject (mu_sieve_machine_t mach, list_t args, list_t tags)
     contains our email address, we assume it is a loop and bail out. */
 
 static int
-check_redirect_loop (message_t msg)
+check_redirect_loop (mu_message_t msg)
 {
-  header_t hdr = NULL;
+  mu_header_t hdr = NULL;
   size_t i, num = 0;
   char buf[512];
   int loop = 0;
   char *email = mu_get_user_email (NULL);
   
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_field_count (hdr, &num);
   for (i = 1; !loop && i <= num; i++)
     {
@@ -333,7 +333,7 @@ check_redirect_loop (message_t msg)
       if (strcasecmp (buf, "X-Loop-Prevention") == 0)
 	{
 	  size_t j, cnt = 0;
-	  address_t addr;
+	  mu_address_t addr;
 	  
 	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
 	  if (mu_address_create (&addr, buf))
@@ -354,14 +354,14 @@ check_redirect_loop (message_t msg)
 }
 
 int
-sieve_action_redirect (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  message_t msg, newmsg = NULL;
-  address_t addr = NULL, from = NULL;
-  header_t hdr = NULL;
+  mu_message_t msg, newmsg = NULL;
+  mu_address_t addr = NULL, from = NULL;
+  mu_header_t hdr = NULL;
   int rc;
   char *fromaddr, *p;
-  mailer_t mailer = mu_sieve_get_mailer (mach);
+  mu_mailer_t mailer = mu_sieve_get_mailer (mach);
   
   mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
   if (!val)
@@ -415,7 +415,7 @@ sieve_action_redirect (mu_sieve_machine_t mach, list_t args, list_t tags)
 
   free (fromaddr);
 
-  rc = message_create_copy (&newmsg, msg);
+  rc = mu_message_create_copy (&newmsg, msg);
   if (rc)
     {
       mu_sieve_error (mach,
@@ -425,7 +425,7 @@ sieve_action_redirect (mu_sieve_machine_t mach, list_t args, list_t tags)
       goto end;
     }
   
-  message_get_header (newmsg, &hdr);
+  mu_message_get_header (newmsg, &hdr);
   p = mu_get_user_email (NULL);
   if (p)
     {
@@ -439,26 +439,26 @@ sieve_action_redirect (mu_sieve_machine_t mach, list_t args, list_t tags)
       goto end;
     }
   
-  rc = mailer_open (mailer, 0);
+  rc = mu_mailer_open (mailer, 0);
   if (rc)
     {
-      url_t url = NULL;
-      mailer_get_url (mailer, &url);
+      mu_url_t url = NULL;
+      mu_mailer_get_url (mailer, &url);
 	
       mu_sieve_error (mach,
 		   _("%d: cannot open mailer %s: %s"),
 		   mu_sieve_get_message_num (mach),
-		   url_to_string (url),
+		   mu_url_to_string (url),
 		   mu_strerror (rc));
       goto end;
     }
   
-  rc = mailer_send_message (mailer, newmsg, from, addr);
-  mailer_close (mailer);
+  rc = mu_mailer_send_message (mailer, newmsg, from, addr);
+  mu_mailer_close (mailer);
   
  end:
   sieve_mark_deleted (mach->msg, rc == 0);    
-  message_destroy (&newmsg, NULL);
+  mu_message_destroy (&newmsg, NULL);
   mu_address_destroy (&from);
   mu_address_destroy (&addr);
   

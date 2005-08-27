@@ -29,7 +29,7 @@ main (int argc, const char **argv)
 {
   char *from;
   char *subject;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   size_t msgno, total = 0;
   int status;
 
@@ -54,11 +54,11 @@ main (int argc, const char **argv)
 
   for (msgno = 1; msgno <= total; msgno++)
     {
-      message_t msg;
-      header_t hdr;
+      mu_message_t msg;
+      mu_header_t hdr;
 
       if ((status = mu_mailbox_get_message (mbox, msgno, &msg)) != 0
-          || (status = message_get_header (msg, &hdr)) != 0)
+          || (status = mu_message_get_header (msg, &hdr)) != 0)
         {
           mu_error ("Error message: %s", mu_strerror (status));
           exit (EXIT_FAILURE);

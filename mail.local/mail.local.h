@@ -108,14 +108,14 @@ extern int exit_code;
 extern void setgroupquota (char *str);
 extern int check_quota (char *name, size_t size, size_t *rest);
 
-int mda (mailbox_t mbx, char *username);
+int mda (mu_mailbox_t mbx, char *username);
 int switch_user_id (struct mu_auth_data *auth, int user);
 void mailer_err (char *fmt, ...);
 
 #ifdef WITH_GUILE
 struct mda_data
 {
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   char *progfile;
   char *progfile_pattern;
   char **argv;

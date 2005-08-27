@@ -26,8 +26,8 @@
 int
 mail_pipe (int argc, char **argv)
 {
-  message_t msg;
-  stream_t stream;
+  mu_message_t msg;
+  mu_stream_t stream;
   char *cmd;
   FILE *tube;
   msgset_t *list, *mp;
@@ -49,9 +49,9 @@ mail_pipe (int argc, char **argv)
     {
       if (util_get_message (mbox, mp->msg_part[0], &msg) == 0)
 	{
-	  message_get_stream (msg, &stream);
+	  mu_message_get_stream (msg, &stream);
 	  off = 0;
-	  while (stream_read (stream, buffer, sizeof (buffer) - 1, off,
+	  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, off,
 			      &n) == 0 && n != 0)
 	    {
 	      buffer[n] = '\0';

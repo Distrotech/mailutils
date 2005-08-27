@@ -46,7 +46,7 @@
 #include <mailer0.h>
 #include <registrar0.h>
 
-static struct _record _sendmail_record =
+static struct mu__record _sendmail_record =
 {
   MU_SENDMAIL_PRIO,
   MU_SENDMAIL_SCHEME,
@@ -63,7 +63,7 @@ static struct _record _sendmail_record =
 };
 /* We export, url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
-record_t sendmail_record = &_sendmail_record;
+mu_record_t mu_sendmail_record = &_sendmail_record;
 
 struct _sendmail
 {
@@ -77,13 +77,13 @@ struct _sendmail
 
 typedef struct _sendmail * sendmail_t;
 
-static void sendmail_destroy (mailer_t);
-static int sendmail_open (mailer_t, int);
-static int sendmail_close (mailer_t);
-static int sendmail_send_message (mailer_t, message_t, address_t, address_t);
+static void sendmail_destroy (mu_mailer_t);
+static int sendmail_open (mu_mailer_t, int);
+static int sendmail_close (mu_mailer_t);
+static int sendmail_send_message (mu_mailer_t, mu_message_t, mu_address_t, mu_address_t);
 
 int
-_mailer_sendmail_init (mailer_t mailer)
+_mailer_sendmail_init (mu_mailer_t mailer)
 {
   sendmail_t sendmail;
 
@@ -99,15 +99,15 @@ _mailer_sendmail_init (mailer_t mailer)
 
   /* Set our properties.  */
   {
-    property_t property = NULL;
-    mailer_get_property (mailer, &property);
-    property_set_value (property, "TYPE", "SENDMAIL", 1);
+    mu_property_t property = NULL;
+    mu_mailer_get_property (mailer, &property);
+    mu_property_set_value (property, "TYPE", "SENDMAIL", 1);
   }
   return 0;
 }
 
 static void
-sendmail_destroy(mailer_t mailer)
+sendmail_destroy(mu_mailer_t mailer)
 {
   sendmail_t sendmail = mailer->data;
   if (sendmail)
@@ -120,7 +120,7 @@ sendmail_destroy(mailer_t mailer)
 }
 
 static int
-sendmail_open (mailer_t mailer, int flags)
+sendmail_open (mu_mailer_t mailer, int flags)
 {
   sendmail_t sendmail = mailer->data;
   int status;
@@ -133,12 +133,12 @@ sendmail_open (mailer_t mailer, int flags)
 
   mailer->flags = flags;
 
-  if ((status = url_get_path (mailer->url, NULL, 0, &pathlen)) != 0
+  if ((status = mu_url_get_path (mailer->url, NULL, 0, &pathlen)) != 0
       || pathlen == 0)
     return status;
 
   path = calloc (pathlen + 1, sizeof (char));
-  url_get_path (mailer->url, path, pathlen + 1, NULL);
+  mu_url_get_path (mailer->url, path, pathlen + 1, NULL);
 
   if (access (path, X_OK) == -1)
     {
@@ -152,7 +152,7 @@ sendmail_open (mailer_t mailer, int flags)
 }
 
 static int
-sendmail_close (mailer_t mailer)
+sendmail_close (mu_mailer_t mailer)
 {
   sendmail_t sendmail = mailer->data;
 
@@ -170,12 +170,12 @@ sendmail_close (mailer_t mailer)
 }
 
 static int
-mailer_property_is_set (mailer_t mailer, const char *name)
+mailer_property_is_set (mu_mailer_t mailer, const char *name)
 {
-  property_t property = NULL;
+  mu_property_t property = NULL;
 
-  mailer_get_property (mailer, &property);
-  return property_is_set (property, name);
+  mu_mailer_get_property (mailer, &property);
+  return mu_property_is_set (property, name);
 }
 
 
@@ -183,8 +183,8 @@ mailer_property_is_set (mailer_t mailer, const char *name)
 #define SCLOSE(fd,p) if (p[0]!=fd&&p[1]!=fd) close(fd)
 
 static int
-sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
-		       address_t to)
+sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
+		       mu_address_t to)
 {
   sendmail_t sendmail = mailer->data;
   int status = 0;
@@ -360,21 +360,21 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
     case SENDMAIL_SEND:
       {
-	stream_t stream = NULL;
+	mu_stream_t stream = NULL;
 	char buffer[512];
 	size_t len = 0;
 	int rc;
 	size_t offset = 0;
-	header_t hdr;
-	body_t body;
+	mu_header_t hdr;
+	mu_body_t body;
 	int found_nl = 0;
 	int exit_status;
 	
-	message_get_header (msg, &hdr);
+	mu_message_get_header (msg, &hdr);
 	mu_header_get_stream (hdr, &stream);
 
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending headers...\n");
-	while ((status = stream_readline (stream, buffer, sizeof (buffer),
+	while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
 					  offset, &len)) == 0
 	       && len != 0)
 	  {
@@ -408,12 +408,12 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	      }
 	  }
 	
-	message_get_body (msg, &body);
+	mu_message_get_body (msg, &body);
 	mu_body_get_stream (body, &stream);
 
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending body...\n");
 	offset = 0;
-	while ((status = stream_read (stream, buffer, sizeof (buffer),
+	while ((status = mu_stream_read (stream, buffer, sizeof (buffer),
 				      offset, &len)) == 0
 	       && len != 0)
 	  {
@@ -457,7 +457,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	  status = MU_ERR_PROCESS_UNKNOWN_FAILURE;
 	
 	/* Shouldn't this notification only happen on success? */
-	observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
+	mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       }
     default:
       break;
@@ -471,5 +471,5 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t sendmail_record = NULL;
+mu_record_t mu_sendmail_record = NULL;
 #endif

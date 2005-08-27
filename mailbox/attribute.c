@@ -35,9 +35,9 @@
 static int flags_to_string (int, char *, size_t, size_t *);
 
 int
-mu_attribute_create (attribute_t *pattr, void *owner)
+mu_attribute_create (mu_attribute_t *pattr, void *owner)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
   if (pattr == NULL)
     return MU_ERR_OUT_PTR_NULL;
   attr = calloc (1, sizeof(*attr));
@@ -49,11 +49,11 @@ mu_attribute_create (attribute_t *pattr, void *owner)
 }
 
 void
-mu_attribute_destroy (attribute_t *pattr, void *owner)
+mu_attribute_destroy (mu_attribute_t *pattr, void *owner)
 {
   if (pattr && *pattr)
     {
-      attribute_t attr = *pattr;
+      mu_attribute_t attr = *pattr;
       if (attr->owner == owner)
 	free (*pattr);
       /* Loose the link */
@@ -62,19 +62,19 @@ mu_attribute_destroy (attribute_t *pattr, void *owner)
 }
 
 void *
-mu_attribute_get_owner (attribute_t attr)
+mu_attribute_get_owner (mu_attribute_t attr)
 {
   return (attr) ? attr->owner : NULL;
 }
 
 int
-mu_attribute_is_modified (attribute_t attr)
+mu_attribute_is_modified (mu_attribute_t attr)
 {
   return (attr) ? attr->flags & MU_ATTRIBUTE_MODIFIED : 0;
 }
 
 int
-mu_attribute_clear_modified (attribute_t attr)
+mu_attribute_clear_modified (mu_attribute_t attr)
 {
   if (attr)
     attr->flags &= ~MU_ATTRIBUTE_MODIFIED;
@@ -82,7 +82,7 @@ mu_attribute_clear_modified (attribute_t attr)
 }
 
 int
-mu_attribute_set_modified (attribute_t attr)
+mu_attribute_set_modified (mu_attribute_t attr)
 {
   if (attr)
     attr->flags |= MU_ATTRIBUTE_MODIFIED;
@@ -90,7 +90,7 @@ mu_attribute_set_modified (attribute_t attr)
 }
 
 int
-mu_attribute_get_flags (attribute_t attr, int *pflags)
+mu_attribute_get_flags (mu_attribute_t attr, int *pflags)
 {
   if (attr == NULL)
     return EINVAL;
@@ -103,7 +103,7 @@ mu_attribute_get_flags (attribute_t attr, int *pflags)
 }
 
 int
-mu_attribute_set_flags (attribute_t attr, int flags)
+mu_attribute_set_flags (mu_attribute_t attr, int flags)
 {
   int status = 0;
   int oflags = 0;
@@ -126,7 +126,7 @@ mu_attribute_set_flags (attribute_t attr, int flags)
 }
 
 int
-mu_attribute_unset_flags (attribute_t attr, int flags)
+mu_attribute_unset_flags (mu_attribute_t attr, int flags)
 {
   int status = 0;
   int oflags = 0;
@@ -149,8 +149,8 @@ mu_attribute_unset_flags (attribute_t attr, int flags)
 }
 
 int
-mu_attribute_set_get_flags (attribute_t attr, int (*_get_flags)
-			 (attribute_t, int *), void *owner)
+mu_attribute_set_get_flags (mu_attribute_t attr, int (*_get_flags)
+			 (mu_attribute_t, int *), void *owner)
 {
   if (attr == NULL)
     return EINVAL;
@@ -161,8 +161,8 @@ mu_attribute_set_get_flags (attribute_t attr, int (*_get_flags)
 }
 
 int
-mu_attribute_set_set_flags (attribute_t attr, int (*_set_flags)
-			 (attribute_t, int), void *owner)
+mu_attribute_set_set_flags (mu_attribute_t attr, int (*_set_flags)
+			 (mu_attribute_t, int), void *owner)
 {
   if (attr == NULL)
     return EINVAL;
@@ -173,8 +173,8 @@ mu_attribute_set_set_flags (attribute_t attr, int (*_set_flags)
 }
 
 int
-mu_attribute_set_unset_flags (attribute_t attr, int (*_unset_flags)
-			 (attribute_t, int), void *owner)
+mu_attribute_set_unset_flags (mu_attribute_t attr, int (*_unset_flags)
+			 (mu_attribute_t, int), void *owner)
 {
   if (attr == NULL)
     return EINVAL;
@@ -187,7 +187,7 @@ mu_attribute_set_unset_flags (attribute_t attr, int (*_unset_flags)
 /* We add support for "USER" flag, it is a way for external objects
    Not being the owner to add custom flags.  */
 int
-mu_attribute_set_userflag (attribute_t attr, int flag)
+mu_attribute_set_userflag (mu_attribute_t attr, int flag)
 {
   if (attr == NULL)
     return EINVAL;
@@ -196,43 +196,43 @@ mu_attribute_set_userflag (attribute_t attr, int flag)
 }
 
 int
-mu_attribute_set_seen (attribute_t attr)
+mu_attribute_set_seen (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_SEEN);
 }
 
 int
-mu_attribute_set_answered (attribute_t attr)
+mu_attribute_set_answered (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_ANSWERED);
 }
 
 int
-mu_attribute_set_flagged (attribute_t attr)
+mu_attribute_set_flagged (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_FLAGGED);
 }
 
 int
-mu_attribute_set_read (attribute_t attr)
+mu_attribute_set_read (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_READ);
 }
 
 int
-mu_attribute_set_deleted (attribute_t attr)
+mu_attribute_set_deleted (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_DELETED);
 }
 
 int
-mu_attribute_set_draft (attribute_t attr)
+mu_attribute_set_draft (mu_attribute_t attr)
 {
   return mu_attribute_set_flags (attr, MU_ATTRIBUTE_DRAFT);
 }
 
 int
-mu_attribute_set_recent (attribute_t attr)
+mu_attribute_set_recent (mu_attribute_t attr)
 {
   int status = mu_attribute_unset_flags (attr, MU_ATTRIBUTE_READ);
   if (status == 0)
@@ -241,7 +241,7 @@ mu_attribute_set_recent (attribute_t attr)
 }
 
 int
-mu_attribute_is_userflag (attribute_t attr, int flag)
+mu_attribute_is_userflag (mu_attribute_t attr, int flag)
 {
   if (attr == NULL)
     return 0;
@@ -249,7 +249,7 @@ mu_attribute_is_userflag (attribute_t attr, int flag)
 }
 
 int
-mu_attribute_is_seen (attribute_t attr)
+mu_attribute_is_seen (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -258,7 +258,7 @@ mu_attribute_is_seen (attribute_t attr)
 }
 
 int
-mu_attribute_is_answered (attribute_t attr)
+mu_attribute_is_answered (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -267,7 +267,7 @@ mu_attribute_is_answered (attribute_t attr)
 }
 
 int
-mu_attribute_is_flagged (attribute_t attr)
+mu_attribute_is_flagged (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -276,7 +276,7 @@ mu_attribute_is_flagged (attribute_t attr)
 }
 
 int
-mu_attribute_is_read (attribute_t attr)
+mu_attribute_is_read (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -285,7 +285,7 @@ mu_attribute_is_read (attribute_t attr)
 }
 
 int
-mu_attribute_is_deleted (attribute_t attr)
+mu_attribute_is_deleted (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -294,7 +294,7 @@ mu_attribute_is_deleted (attribute_t attr)
 }
 
 int
-mu_attribute_is_draft (attribute_t attr)
+mu_attribute_is_draft (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -303,7 +303,7 @@ mu_attribute_is_draft (attribute_t attr)
 }
 
 int
-mu_attribute_is_recent (attribute_t attr)
+mu_attribute_is_recent (mu_attribute_t attr)
 {
   int flags = 0;
   if (mu_attribute_get_flags (attr, &flags) == 0)
@@ -312,7 +312,7 @@ mu_attribute_is_recent (attribute_t attr)
 }
 
 int
-mu_attribute_unset_userflag (attribute_t attr, int flag)
+mu_attribute_unset_userflag (mu_attribute_t attr, int flag)
 {
   if (attr == NULL)
     return 0;
@@ -321,49 +321,49 @@ mu_attribute_unset_userflag (attribute_t attr, int flag)
 }
 
 int
-mu_attribute_unset_seen (attribute_t attr)
+mu_attribute_unset_seen (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_SEEN);
 }
 
 int
-mu_attribute_unset_answered (attribute_t attr)
+mu_attribute_unset_answered (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_ANSWERED);
 }
 
 int
-mu_attribute_unset_flagged (attribute_t attr)
+mu_attribute_unset_flagged (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_FLAGGED);
 }
 
 int
-mu_attribute_unset_read (attribute_t attr)
+mu_attribute_unset_read (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_READ);
 }
 
 int
-mu_attribute_unset_deleted (attribute_t attr)
+mu_attribute_unset_deleted (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_DELETED);
 }
 
 int
-mu_attribute_unset_draft (attribute_t attr)
+mu_attribute_unset_draft (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_DRAFT);
 }
 
 int
-mu_attribute_unset_recent (attribute_t attr)
+mu_attribute_unset_recent (mu_attribute_t attr)
 {
   return mu_attribute_unset_flags (attr, MU_ATTRIBUTE_SEEN);
 }
 
 int
-mu_attribute_is_equal (attribute_t attr, attribute_t attr2)
+mu_attribute_is_equal (mu_attribute_t attr, mu_attribute_t attr2)
 {
   int flags2 = 0, flags = 0;
   mu_attribute_get_flags (attr, &flags);
@@ -373,7 +373,7 @@ mu_attribute_is_equal (attribute_t attr, attribute_t attr2)
 
 /*   Miscellaneous.  */
 int
-mu_attribute_copy (attribute_t dest, attribute_t src)
+mu_attribute_copy (mu_attribute_t dest, mu_attribute_t src)
 {
   if (dest == NULL || src == NULL)
     return EINVAL;
@@ -416,7 +416,7 @@ mu_string_to_flags (const char *buffer, int *pflags)
 }
 
 int
-mu_attribute_to_string (attribute_t attr, char *buffer, size_t len, size_t *pn)
+mu_attribute_to_string (mu_attribute_t attr, char *buffer, size_t len, size_t *pn)
 {
   int flags = 0;;
   mu_attribute_get_flags (attr, &flags);

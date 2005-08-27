@@ -42,7 +42,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct _record _nntp_record =
+static struct mu__record _nntp_record =
 {
   MU_NNTP_PRIO,
   MU_NNTP_URL_SCHEME,
@@ -57,15 +57,15 @@ static struct _record _nntp_record =
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
-record_t nntp_record = &_nntp_record;
+mu_record_t mu_nntp_record = &_nntp_record;
 
-static int  nntp_folder_open    (folder_t, int);
-static int  nntp_folder_close   (folder_t);
-static void nntp_folder_destroy (folder_t folder);
-static int  nntp_folder_list    (folder_t folder, const char *ref, const char *name, struct mu_folder_list *pflist);
+static int  nntp_folder_open    (mu_folder_t, int);
+static int  nntp_folder_close   (mu_folder_t);
+static void nntp_folder_destroy (mu_folder_t folder);
+static int  nntp_folder_list    (mu_folder_t folder, const char *ref, const char *name, struct mu_folder_list *pflist);
 
 int
-_nntp_folder_init (folder_t folder)
+_nntp_folder_init (mu_folder_t folder)
 {
   f_nntp_t f_nntp;
 
@@ -93,43 +93,43 @@ _nntp_folder_init (folder_t folder)
 }
 
 static int
-nntp_folder_open (folder_t folder, int flags)
+nntp_folder_open (mu_folder_t folder, int flags)
 {
   f_nntp_t f_nntp = folder->data;
-  stream_t carrier = NULL;
+  mu_stream_t carrier = NULL;
   char *host;
   long port = MU_NNTP_DEFAULT_PORT; /* default nntp port.  */
   int status = 0;
   size_t len = 0;
 
   /* If we are already open for business, noop.  */
-  monitor_wrlock (folder->monitor);
+  mu_monitor_wrlock (folder->monitor);
   if (f_nntp->isopen)
     {
-      monitor_unlock (folder->monitor);
+      mu_monitor_unlock (folder->monitor);
       return 0;
     }
-  monitor_unlock (folder->monitor);
+  mu_monitor_unlock (folder->monitor);
 
-  /* Fetch the server name and the port in the url_t.  */
-  status = url_get_host (folder->url, NULL, 0, &len);
+  /* Fetch the server name and the port in the mu_url_t.  */
+  status = mu_url_get_host (folder->url, NULL, 0, &len);
   if (status != 0)
     return status;
   host = malloc (len + 1);
   if (!host)
     return ENOMEM;
-  url_get_host (folder->url, host, len + 1, NULL);
-  url_get_port (folder->url, &port);
+  mu_url_get_host (folder->url, host, len + 1, NULL);
+  mu_url_get_port (folder->url, &port);
 
   folder->flags = flags;
 
   /* Create the networking stack.  */
-  status = tcp_stream_create (&carrier, host, port, folder->flags);
+  status = mu_tcp_stream_create (&carrier, host, port, folder->flags);
   free (host);
   if (status != 0)
     return status;
   /* Ask for the stream internal buffering mechanism scheme.  */
-  stream_setbufsiz (carrier, BUFSIZ);
+  mu_stream_setbufsiz (carrier, BUFSIZ);
   FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "folder_nntp_open (%s:%d)\n", host, port);
 
   status = mu_nntp_create (&f_nntp->nntp);
@@ -141,9 +141,9 @@ nntp_folder_open (folder_t folder, int flags)
 	  status = mu_nntp_connect (f_nntp->nntp);
 	  if (status == 0)
 	    {
-	      monitor_wrlock (folder->monitor);
+	      mu_monitor_wrlock (folder->monitor);
 	      f_nntp->isopen++;
-	      monitor_unlock (folder->monitor);
+	      mu_monitor_unlock (folder->monitor);
 	    }
 	}
     }
@@ -152,19 +152,19 @@ nntp_folder_open (folder_t folder, int flags)
 }
 
 static int
-nntp_folder_close (folder_t folder)
+nntp_folder_close (mu_folder_t folder)
 {
   f_nntp_t f_nntp = folder->data;
   int status = 0;
 
-  monitor_wrlock (folder->monitor);
+  mu_monitor_wrlock (folder->monitor);
   f_nntp->isopen--;
   if (f_nntp->isopen)
     {
-      monitor_unlock (folder->monitor);
+      mu_monitor_unlock (folder->monitor);
       return 0;
     }
-  monitor_unlock (folder->monitor);
+  mu_monitor_unlock (folder->monitor);
   status = mu_nntp_quit (f_nntp->nntp);
   f_nntp->selected = NULL;
   return status;
@@ -173,7 +173,7 @@ nntp_folder_close (folder_t folder)
 
 /* Destroy the folder resources.  */
 static void
-nntp_folder_destroy (folder_t folder)
+nntp_folder_destroy (mu_folder_t folder)
 {
   if (folder->data)
     {
@@ -187,12 +187,12 @@ nntp_folder_destroy (folder_t folder)
 
 
 static int
-nntp_folder_list (folder_t folder, const char *ref, const char *name, struct mu_folder_list *pflist)
+nntp_folder_list (mu_folder_t folder, const char *ref, const char *name, struct mu_folder_list *pflist)
 {
   return ENOTSUP;
 }
 #else
 #include <stdio.h>
 #include <registrar0.h>
-record_t nntp_record = NULL;
+mu_record_t mu_nntp_record = NULL;
 #endif

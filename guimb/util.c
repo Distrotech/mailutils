@@ -33,18 +33,18 @@ util_error (char *fmt, ...)
 char *
 util_get_sender (int msgno)
 {
-  header_t header = NULL;
-  address_t addr = NULL;
-  message_t msg = NULL;
+  mu_header_t header = NULL;
+  mu_address_t addr = NULL;
+  mu_message_t msg = NULL;
   char buffer[512];
 
   mu_mailbox_get_message (mbox, msgno, &msg);
-  message_get_header (msg, &header);
+  mu_message_get_header (msg, &header);
   if (mu_header_get_value (header, MU_HEADER_FROM, buffer, sizeof (buffer), NULL)
       || mu_address_create (&addr, buffer))
     {
-      envelope_t env = NULL;
-      message_get_envelope (msg, &env);
+      mu_envelope_t env = NULL;
+      mu_message_get_envelope (msg, &env);
       if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || mu_address_create (&addr, buffer))
 	{

@@ -36,42 +36,42 @@ extern "C" {
 struct _mailbox
 {
   /* Data */
-  observable_t observable;
+  mu_observable_t observable;
   mu_debug_t debug;
-  property_t property;
-  locker_t locker;
-  stream_t stream;
-  url_t url;
+  mu_property_t property;
+  mu_locker_t locker;
+  mu_stream_t stream;
+  mu_url_t url;
   int flags;
-  folder_t folder;
-  monitor_t monitor;
+  mu_folder_t folder;
+  mu_monitor_t monitor;
 
   /* Back pointer to the specific mailbox */
   void *data;
 
   /* Public methods */
 
-  void (*_destroy)         (mailbox_t);
+  void (*_destroy)         (mu_mailbox_t);
 
-  int  (*_open)            (mailbox_t, int);
-  int  (*_close)           (mailbox_t);
+  int  (*_open)            (mu_mailbox_t, int);
+  int  (*_close)           (mu_mailbox_t);
 
   /* messages */
-  int  (*_get_message)     (mailbox_t, size_t, message_t *);
-  int  (*_append_message)  (mailbox_t, message_t);
-  int  (*_messages_count)  (mailbox_t, size_t *);
-  int  (*_messages_recent) (mailbox_t, size_t *);
-  int  (*_message_unseen)  (mailbox_t, size_t *);
-  int  (*_expunge)         (mailbox_t);
-  int  (*_save_attributes) (mailbox_t);
-  int  (*_uidvalidity)     (mailbox_t, unsigned long *);
-  int  (*_uidnext)         (mailbox_t, size_t *);
-  int  (*_get_property)    (mailbox_t, property_t *);
+  int  (*_get_message)     (mu_mailbox_t, size_t, mu_message_t *);
+  int  (*_append_message)  (mu_mailbox_t, mu_message_t);
+  int  (*_messages_count)  (mu_mailbox_t, size_t *);
+  int  (*_messages_recent) (mu_mailbox_t, size_t *);
+  int  (*_message_unseen)  (mu_mailbox_t, size_t *);
+  int  (*_expunge)         (mu_mailbox_t);
+  int  (*_save_attributes) (mu_mailbox_t);
+  int  (*_uidvalidity)     (mu_mailbox_t, unsigned long *);
+  int  (*_uidnext)         (mu_mailbox_t, size_t *);
+  int  (*_get_property)    (mu_mailbox_t, mu_property_t *);
 
-  int  (*_scan)            (mailbox_t, size_t, size_t *);
-  int  (*_is_updated)      (mailbox_t);
+  int  (*_scan)            (mu_mailbox_t, size_t, size_t *);
+  int  (*_is_updated)      (mu_mailbox_t);
 
-  int  (*_get_size)        (mailbox_t, off_t *);
+  int  (*_get_size)        (mu_mailbox_t, off_t *);
 
 };
 

@@ -45,29 +45,29 @@
    FIXME: This is for future use, when I add :mime tag
 */
 static int
-build_mime (mime_t *pmime, message_t msg, const char *text)
+build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
 {
-  mime_t mime = NULL;
-  message_t newmsg;
-  stream_t stream;
+  mu_mime_t mime = NULL;
+  mu_message_t newmsg;
+  mu_stream_t stream;
   size_t off = 0;
-  header_t hdr;
-  body_t body;
+  mu_header_t hdr;
+  mu_body_t body;
   /* FIXME: charset */
   char *header = "Content-Type: text/plain;charset=iso-8859-1\n"
     "Content-Transfer-Encoding: 8bit\n\n";
 
-  mime_create (&mime, NULL, 0);
+  mu_mime_create (&mime, NULL, 0);
 
-  message_create (&newmsg, NULL);
-  message_get_body (newmsg, &body);
+  mu_message_create (&newmsg, NULL);
+  mu_message_get_body (newmsg, &body);
   mu_header_create (&hdr, header, strlen (header), newmsg);
-  message_set_header (newmsg, hdr, NULL);
+  mu_message_set_header (newmsg, hdr, NULL);
   mu_body_get_stream (body, &stream);
 
   mu_stream_printf (stream, &off, "%s", text);
-  stream_close (stream);
-  mime_add_part (mime, newmsg);
+  mu_stream_close (stream);
+  mu_mime_add_part (mime, newmsg);
   message_unref (newmsg);
 
   *pmime = mime;
@@ -96,7 +96,7 @@ diag (mu_sieve_machine_t mach)
 
 
 struct addr_data {
-  address_t addr;
+  mu_address_t addr;
   char *my_address;
 };
 
@@ -114,7 +114,7 @@ _compare (void *item, void *data)
    of the originating mail. Return non-zero if so and store a pointer
    to the matching address to *MY_ADDRESS. */
 static int
-match_addresses (header_t hdr, mu_sieve_value_t *addresses, char **my_address)
+match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses, char **my_address)
 {
   int match = 0;
   char *str;
@@ -174,7 +174,7 @@ regex_comparator (void *item, void *data)
 /* Decide whether EMAIL address should not be responded to.
  */
 static int
-noreply_address_p (mu_sieve_machine_t mach, list_t tags, char *email)
+noreply_address_p (mu_sieve_machine_t mach, mu_list_t tags, char *email)
 {
   int i, rc = 0;
   mu_sieve_value_t *arg;
@@ -205,7 +205,7 @@ noreply_address_p (mu_sieve_machine_t mach, list_t tags, char *email)
 
 /* Return T if letter precedence is 'bulk' or 'junk' */
 static int
-bulk_precedence_p (header_t hdr)
+bulk_precedence_p (mu_header_t hdr)
 {
   int rc = 0;
   char *str;
@@ -225,7 +225,7 @@ bulk_precedence_p (header_t hdr)
 /* Check and updated vacation database. Return 0 if the mail should
    be answered. */
 static int
-check_db (mu_sieve_machine_t mach, list_t tags, char *from)
+check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
 {
 #ifdef USE_DBM
   DBM_FILE db;
@@ -319,7 +319,7 @@ check_db (mu_sieve_machine_t mach, list_t tags, char *from)
    "reply_prefix" tag.
  */
 static void
-re_subject (mu_sieve_machine_t mach, list_t tags, char **psubject)
+re_subject (mu_sieve_machine_t mach, mu_list_t tags, char **psubject)
 {
   char *subject;
   mu_sieve_value_t *arg;
@@ -353,26 +353,26 @@ re_subject (mu_sieve_machine_t mach, list_t tags, char **psubject)
    Otherwise, reply_prefix is prepended to it. */
 
 static void
-vacation_subject (mu_sieve_machine_t mach, list_t tags,
-		  message_t msg, header_t newhdr)
+vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
+		  mu_message_t msg, mu_header_t newhdr)
 {
   mu_sieve_value_t *arg;
   char *value;
   char *subject;
   int subject_allocated;
-  header_t hdr;
+  mu_header_t hdr;
   
   if (mu_sieve_tag_lookup (tags, "subject", &arg))
     {
       subject =  arg->v.string;
       subject_allocated = 0;
     }
-  else if (message_get_header (msg, &hdr) == 0
+  else if (mu_message_get_header (msg, &hdr) == 0
 	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &value) == 0)
     {
       char *p;
       
-      int rc = rfc2047_decode ("iso-8859-1", value, &p);
+      int rc = mu_rfc2047_decode ("iso-8859-1", value, &p);
 
       subject_allocated = 1;
       if (rc)
@@ -406,7 +406,7 @@ vacation_subject (mu_sieve_machine_t mach, list_t tags,
       free (value);
     }
 
-  if (rfc2047_encode ("iso-8859-1", "quoted-printable",
+  if (mu_rfc2047_encode ("iso-8859-1", "quoted-printable",
 		      subject, &value))
     mu_header_set_value (newhdr, MU_HEADER_SUBJECT, subject, 0);
   else
@@ -421,20 +421,20 @@ vacation_subject (mu_sieve_machine_t mach, list_t tags,
 
 /* Generate and send the reply message */
 static int
-vacation_reply (mu_sieve_machine_t mach, list_t tags, message_t msg,
+vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 		char *text, char *to, char *from)
 {
-  mime_t mime = NULL;
-  message_t newmsg;
-  header_t newhdr;
-  address_t to_addr = NULL, from_addr = NULL;
+  mu_mime_t mime = NULL;
+  mu_message_t newmsg;
+  mu_header_t newhdr;
+  mu_address_t to_addr = NULL, from_addr = NULL;
   char *value;
-  mailer_t mailer;
+  mu_mailer_t mailer;
   int rc;
   
   build_mime (&mime, msg, text);
-  mime_get_message (mime, &newmsg);
-  message_get_header (newmsg, &newhdr);
+  mu_mime_get_message (mime, &newmsg);
+  mu_message_get_header (newmsg, &newhdr);
 
   rc = mu_address_create (&to_addr, to);
   if (rc)
@@ -468,32 +468,32 @@ vacation_reply (mu_sieve_machine_t mach, list_t tags, message_t msg,
   free (value);
   
   mailer = mu_sieve_get_mailer (mach);
-  rc = mailer_open (mailer, 0);
+  rc = mu_mailer_open (mailer, 0);
   if (rc)
     {
-      url_t url = NULL;
-      mailer_get_url (mailer, &url);
+      mu_url_t url = NULL;
+      mu_mailer_get_url (mailer, &url);
       
       mu_sieve_error (mach,
 		   _("%d: cannot open mailer %s: %s"),
 		   mu_sieve_get_message_num (mach),
-		   url_to_string (url), mu_strerror (rc));
+		   mu_url_to_string (url), mu_strerror (rc));
       return -1;
     }
 
-  rc = mailer_send_message (mailer, newmsg, from_addr, to_addr);
-  mailer_close (mailer);
+  rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
+  mu_mailer_close (mailer);
   return rc;
 }
 
 int
-sieve_action_vacation (mu_sieve_machine_t mach, list_t args, list_t tags)
+sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
   char *text, *from;
   mu_sieve_value_t *val;
-  message_t msg;
-  header_t hdr;
+  mu_message_t msg;
+  mu_header_t hdr;
   char *my_address = mu_sieve_get_daemon_email (mach);
   
   if (diag (mach))
@@ -509,7 +509,7 @@ sieve_action_vacation (mu_sieve_machine_t mach, list_t args, list_t tags)
     text = val->v.string;
 
   msg = mu_sieve_get_message (mach);
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
 
   if (mu_sieve_tag_lookup (tags, "sender", &val))
     {

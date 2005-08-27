@@ -22,7 +22,7 @@ long message_tag;
 
 struct mu_message
 {
-  message_t msg;       /* Message itself */
+  mu_message_t msg;       /* Message itself */
   SCM mbox;            /* Mailbox it belongs to */
 };
 
@@ -39,16 +39,16 @@ static scm_sizet
 mu_scm_message_free (SCM message_smob)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
-  if (message_get_owner (mum->msg) == NULL)
-    message_destroy (&mum->msg, NULL);
+  if (mu_message_get_owner (mum->msg) == NULL)
+    mu_message_destroy (&mum->msg, NULL);
   free (mum);
   return sizeof (struct mu_message);
 }
 
 static char *
-_get_envelope_sender (envelope_t env)
+_get_envelope_sender (mu_envelope_t env)
 {
-  address_t addr;
+  mu_address_t addr;
   char buffer[128];
 
   if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
@@ -69,14 +69,14 @@ static int
 mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
-  envelope_t env = NULL;
+  mu_envelope_t env = NULL;
   char buffer[128];
   const char *p;
   size_t m_size = 0, m_lines = 0;
   struct tm tm;
   mu_timezone tz;
 
-  message_get_envelope (mum->msg, &env);
+  mu_message_get_envelope (mum->msg, &env);
 
   scm_puts ("#<message ", port);
 
@@ -107,8 +107,8 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
       scm_puts (buffer, port);
       scm_puts ("\" ", port);
       
-      message_size (mum->msg, &m_size);
-      message_lines (mum->msg, &m_lines);
+      mu_message_size (mum->msg, &m_size);
+      mu_message_lines (mum->msg, &m_lines);
       
       snprintf (buffer, sizeof (buffer), "%3lu %-5lu",
 		(unsigned long) m_lines, (unsigned long) m_size);
@@ -121,7 +121,7 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
 /* Internal calls: */
 
 SCM
-mu_scm_message_create (SCM owner, message_t msg)
+mu_scm_message_create (SCM owner, mu_message_t msg)
 {
   struct mu_message *mum;
 
@@ -158,7 +158,7 @@ mu_scm_message_add_owner (SCM MESG, SCM owner)
   mum->mbox = cell;
 }
 
-const message_t
+const mu_message_t
 mu_scm_message_get (SCM MESG)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (MESG);
@@ -179,8 +179,8 @@ SCM_DEFINE (scm_mu_message_create, "mu-message-create", 0, 0, 0,
 	    "Creates an empty message.")
 #define FUNC_NAME s_scm_mu_message_create
 {
-  message_t msg;
-  message_create (&msg, NULL);
+  mu_message_t msg;
+  mu_message_create (&msg, NULL);
   return mu_scm_message_create (SCM_BOOL_F, msg);
 }
 #undef FUNC_NAME
@@ -191,37 +191,37 @@ SCM_DEFINE (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 	    "Creates the copy of the given message.\n")
 #define FUNC_NAME s_scm_mu_message_copy
 {
-  message_t msg, newmsg;
-  stream_t in = NULL, out = NULL;
+  mu_message_t msg, newmsg;
+  mu_stream_t in = NULL, out = NULL;
   char buffer[512];
   size_t off, n;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
 
-  if (message_get_stream (msg, &in))
+  if (mu_message_get_stream (msg, &in))
     return SCM_BOOL_F;
   
-  if (message_create (&newmsg, NULL))
+  if (mu_message_create (&newmsg, NULL))
     return SCM_BOOL_F;
   
-  if (message_get_stream (newmsg, &out))
+  if (mu_message_get_stream (newmsg, &out))
     {
-      message_destroy (&newmsg, NULL);
+      mu_message_destroy (&newmsg, NULL);
       return SCM_BOOL_F;
     }
 
   off = 0;
-  while (stream_read (in, buffer, sizeof (buffer) - 1, off, &n) == 0
+  while (mu_stream_read (in, buffer, sizeof (buffer) - 1, off, &n) == 0
 	 && n != 0)
     {
       int wr;
       
-      stream_write (out, buffer, n, off, &wr);
+      mu_stream_write (out, buffer, n, off, &wr);
       off += n;
       if (wr != n)
 	{
-	  message_destroy (&newmsg, NULL);
+	  mu_message_destroy (&newmsg, NULL);
 	  return SCM_BOOL_F;
 	}
     }
@@ -239,7 +239,7 @@ SCM_DEFINE (scm_mu_message_destroy, "mu-message-destroy", 1, 0, 0,
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_message *) SCM_CDR (MESG);
-  message_destroy (&mum->msg, message_get_owner (mum->msg));
+  mu_message_destroy (&mum->msg, mu_message_get_owner (mum->msg));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -252,8 +252,8 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 	    "#t. Otherwise new header is created and appended.")
 #define FUNC_NAME s_scm_mu_message_set_header
 {
-  message_t msg;
-  header_t hdr;
+  mu_message_t msg;
+  mu_header_t hdr;
   int replace = 0;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
@@ -271,7 +271,7 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
       replace = REPLACE == SCM_BOOL_T;
     }
   
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_set_value (hdr, SCM_STRING_CHARS (HEADER), SCM_STRING_CHARS (VALUE),
 		    replace);
   return SCM_UNSPECIFIED;
@@ -283,11 +283,11 @@ SCM_DEFINE (scm_mu_message_get_size, "mu-message-get-size", 1, 0, 0,
 	    "Returns the size of the given message.")
 #define FUNC_NAME s_scm_mu_message_get_size
 {
-  message_t msg;
+  mu_message_t msg;
   size_t size;
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  message_size (msg, &size);
+  mu_message_size (msg, &size);
   return mu_scm_makenum (size);
 }
 #undef FUNC_NAME
@@ -297,11 +297,11 @@ SCM_DEFINE (scm_mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
 	    "Returns number of lines in the given message.")
 #define FUNC_NAME s_scm_mu_message_get_lines
 {
-  message_t msg;
+  mu_message_t msg;
   size_t lines;
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  message_lines (msg, &lines);
+  mu_message_lines (msg, &lines);
   return mu_scm_makenum (lines);
 }
 #undef FUNC_NAME
@@ -311,13 +311,13 @@ SCM_DEFINE (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 	    "Returns the sender email address for the message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_sender
 {
-  message_t msg;
-  envelope_t env = NULL;
+  mu_message_t msg;
+  mu_envelope_t env = NULL;
   SCM ret = SCM_BOOL_F;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  if (message_get_envelope (msg, &env) == 0)
+  if (mu_message_get_envelope (msg, &env) == 0)
     {
       char *p = _get_envelope_sender (env);
       ret = scm_makfrom0str (p);
@@ -332,8 +332,8 @@ SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
 	    "Returns the header value of the HEADER in the MESG.")
 #define FUNC_NAME s_scm_mu_message_get_header
 {
-  message_t msg;
-  header_t hdr;
+  mu_message_t msg;
+  mu_header_t hdr;
   char *value = NULL;
   char *header_string;
   SCM ret = SCM_BOOL_F;
@@ -343,7 +343,7 @@ SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
   SCM_ASSERT (SCM_NIMP (HEADER) && SCM_STRINGP (HEADER),
 	      HEADER, SCM_ARG2, FUNC_NAME);
   header_string = SCM_STRING_CHARS (HEADER);
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, header_string, &value) == 0)
     {
       ret = scm_makfrom0str (value);
@@ -374,8 +374,8 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
 #define FUNC_NAME s_scm_mu_message_get_header_fields
 {
   size_t i, nfields = 0;
-  message_t msg;
-  header_t hdr = NULL;
+  mu_message_t msg;
+  mu_header_t hdr = NULL;
   SCM scm_first = SCM_EOL, scm_last;
   SCM headers = SCM_EOL;
     
@@ -388,7 +388,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
       headers = HEADERS;
     }
 
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_field_count (hdr, &nfields);
   for (i = 1; i <= nfields; i++)
     {
@@ -432,8 +432,8 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
 	    "message.")
 #define FUNC_NAME s_scm_mu_message_set_header_fields
 {
-  message_t msg;
-  header_t hdr;
+  mu_message_t msg;
+  mu_header_t hdr;
   SCM list;
   int replace = 0;
   
@@ -449,7 +449,7 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
       replace = REPLACE == SCM_BOOL_T;
     }
 
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   for (list = LIST; list != SCM_EOL; list = SCM_CDR (list))
     {
       SCM cell = SCM_CAR (list);
@@ -475,8 +475,8 @@ SCM_DEFINE (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
 	    "The message is deleted if it is #t and undeleted if it is #f")
 #define FUNC_NAME s_scm_mu_message_delete
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   int delete = 1;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
@@ -487,7 +487,7 @@ SCM_DEFINE (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
 		  FLAG, SCM_ARG2, FUNC_NAME);
       delete = FLAG == SCM_BOOL_T;
     }
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (delete)
     mu_attribute_set_deleted (attr);
   else
@@ -501,15 +501,15 @@ SCM_DEFINE (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
 	    "Return value of the attribute FLAG.")
 #define FUNC_NAME s_scm_mu_message_get_flag
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   int ret = 0;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   switch (SCM_INUM (FLAG))
     {
     case MU_ATTRIBUTE_ANSWERED:
@@ -550,8 +550,8 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
 	    "attribute is unset.")
 #define FUNC_NAME s_scm_mu_message_set_flag
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   int value = 1;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
@@ -565,7 +565,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
       value = VALUE == SCM_BOOL_T;
     }
   
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   switch (SCM_INUM (FLAG))
     {
     case MU_ATTRIBUTE_ANSWERED:
@@ -629,13 +629,13 @@ SCM_DEFINE (scm_mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
 	    "Returns value of the user attribute FLAG.")
 #define FUNC_NAME s_scm_mu_message_get_user_flag
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   return mu_attribute_is_userflag (attr, SCM_INUM (FLAG)) ?
                                 SCM_BOOL_T : SCM_BOOL_F;
 }
@@ -648,8 +648,8 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 	    "#f, the attribute is unset.")
 #define FUNC_NAME s_scm_mu_message_set_user_flag
 {
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
   int set = 1;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
@@ -663,7 +663,7 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
       set = VALUE == SCM_BOOL_T;
     }
   
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (set)
     mu_attribute_set_userflag (attr, SCM_INUM (FLAG));
   else
@@ -683,8 +683,8 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
 	    "accesses only the message body (the default).\n")
 #define FUNC_NAME s_scm_mu_message_get_port
 {
-  message_t msg;
-  stream_t stream = NULL;
+  mu_message_t msg;
+  mu_stream_t stream = NULL;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
@@ -696,15 +696,15 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
     {
       SCM_ASSERT (SCM_IMP (FULL) && SCM_BOOLP (FULL),
 		  FULL, SCM_ARG3, FUNC_NAME);
-      if (FULL == SCM_BOOL_T && message_get_stream (msg, &stream))
+      if (FULL == SCM_BOOL_T && mu_message_get_stream (msg, &stream))
 	return SCM_BOOL_F;
     }
 
   if (!stream)
     {
-      body_t body = NULL;
+      mu_body_t body = NULL;
 
-      if (message_get_body (msg, &body)
+      if (mu_message_get_body (msg, &body)
 	  || mu_body_get_stream (body, &stream))
 	return SCM_BOOL_F;
     }
@@ -720,12 +720,12 @@ SCM_DEFINE (scm_mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 	    "Returns the message body for the message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_body
 {
-  message_t msg;
-  body_t body = NULL;
+  mu_message_t msg;
+  mu_body_t body = NULL;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  if (message_get_body (msg, &body))
+  if (mu_message_get_body (msg, &body))
     return SCM_BOOL_F;
   return mu_scm_body_create (MESG, body);
 }
@@ -736,12 +736,12 @@ SCM_DEFINE (scm_mu_message_multipart_p, "mu-message-multipart?", 1, 0, 0,
 	    "Returns #t if MESG is a multipart MIME message.")
 #define FUNC_NAME s_scm_mu_message_multipart_p
 {
-  message_t msg;
+  mu_message_t msg;
   int ismime = 0;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  message_is_multipart (msg, &ismime);
+  mu_message_is_multipart (msg, &ismime);
   return ismime ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -752,17 +752,17 @@ SCM_DEFINE (scm_mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
             "#f if the argument is not a multipart message.")
 #define FUNC_NAME s_scm_mu_message_get_num_parts
 {
-  message_t msg;
+  mu_message_t msg;
   int ismime = 0;
   size_t nparts = 0;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  message_is_multipart (msg, &ismime);
+  mu_message_is_multipart (msg, &ismime);
   if (!ismime)
     return SCM_BOOL_F;
 
-  message_get_num_parts (msg, &nparts);
+  mu_message_get_num_parts (msg, &nparts);
   return mu_scm_makenum (nparts);
 }
 #undef FUNC_NAME
@@ -772,18 +772,18 @@ SCM_DEFINE (scm_mu_message_get_part, "mu-message-get-part", 2, 0, 0,
 	    "Returns part number PART from a multipart MIME message.")
 #define FUNC_NAME s_scm_mu_message_get_part
 {
-  message_t msg, submsg;
+  mu_message_t msg, submsg;
   int ismime = 0;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_IMP (PART) && SCM_INUMP (PART), PART, SCM_ARG2, FUNC_NAME);
 
   msg = mu_scm_message_get (MESG);
-  message_is_multipart (msg, &ismime);
+  mu_message_is_multipart (msg, &ismime);
   if (!ismime)
     return SCM_BOOL_F;
 
-  if (message_get_part (msg, SCM_INUM (PART), &submsg))
+  if (mu_message_get_part (msg, SCM_INUM (PART), &submsg))
     return SCM_BOOL_F;
   return mu_scm_message_create (MESG, submsg);
 }
@@ -797,10 +797,10 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 #define FUNC_NAME s_scm_mu_message_send
 {
   char *mailer_name;
-  address_t from = NULL;
-  address_t to = NULL;
-  mailer_t mailer = NULL;
-  message_t msg;
+  mu_address_t from = NULL;
+  mu_address_t to = NULL;
+  mu_mailer_t mailer = NULL;
+  mu_message_t msg;
   int status;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
@@ -832,7 +832,7 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 		  TO, SCM_ARG4, FUNC_NAME);
     }
 
-  if (mailer_create (&mailer, mailer_name))
+  if (mu_mailer_create (&mailer, mailer_name))
     {
       return SCM_BOOL_F;
     }
@@ -840,17 +840,17 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
   if (SCM_INUM(MU_SCM_SYMBOL_VALUE("mu-debug")))
     {
       mu_debug_t debug = NULL;
-      mailer_get_debug (mailer, &debug);
+      mu_mailer_get_debug (mailer, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
     }
 
-  status = mailer_open (mailer, MU_STREAM_RDWR);
+  status = mu_mailer_open (mailer, MU_STREAM_RDWR);
   if (status == 0)
     {
-      status = mailer_send_message (mailer, msg, from, to);
-      mailer_close (mailer);
+      status = mu_mailer_send_message (mailer, msg, from, to);
+      mu_mailer_close (mailer);
     }
-  mailer_destroy (&mailer);
+  mu_mailer_destroy (&mailer);
   
   return status == 0 ? SCM_BOOL_T : SCM_BOOL_F;
 }

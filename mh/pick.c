@@ -126,9 +126,9 @@ struct mh_option mh_option[] = {
 static int list = 1;
 static int seq_flags = 0; /* Create public sequences;
 			     Do not zero the sequence before addition */
-static list_t seq_list;  /* List of sequence names to operate upon */
+static mu_list_t seq_list;  /* List of sequence names to operate upon */
 
-static list_t lexlist;   /* List of input tokens */
+static mu_list_t lexlist;   /* List of input tokens */
 
 static struct obstack msgno_stk; /* Stack of selected message numbers */
 static size_t msgno_count;       /* Number of items on the stack */
@@ -299,7 +299,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 }
 
 void
-pick_message (mailbox_t mbox, message_t msg, size_t num, void *data)
+pick_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   if (pick_eval (msg))
     {
@@ -344,7 +344,7 @@ main (int argc, char **argv)
 {
   int status;
   int index;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   mh_msgset_t msgset;
   int flags;
 

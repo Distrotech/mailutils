@@ -19,9 +19,9 @@
 #include "mail.h"
 
 static void alias_print (char *name);
-static void alias_print_group (char *name, list_t list);
-static int  alias_create (char *name, list_t *plist);
-static int  alias_lookup (char *name, list_t *plist);
+static void alias_print_group (char *name, mu_list_t list);
+static int  alias_create (char *name, mu_list_t *plist);
+static int  alias_lookup (char *name, mu_list_t *plist);
 
 /*
  * a[lias] [alias [address...]]
@@ -37,7 +37,7 @@ mail_alias (int argc, char **argv)
     alias_print (argv[1]);
   else
     {
-      list_t list;
+      mu_list_t list;
 
       if (alias_create (argv[1], &list))
 	return 1;
@@ -55,7 +55,7 @@ typedef struct _alias alias_t;
 struct _alias
 {
   char *name;
-  list_t list;
+  mu_list_t list;
 };
 
 /* Hash sizes. These are prime numbers, the distance between each
@@ -74,7 +74,7 @@ static unsigned int hash_num;  /* Index to hash_size table */
 static unsigned int hash (char *name);
 static int alias_rehash (void);
 static alias_t *alias_lookup_or_install (char *name, int install);
-static void alias_print_group (char *name, list_t list);
+static void alias_print_group (char *name, mu_list_t list);
 
 unsigned
 hash (char *name)
@@ -159,7 +159,7 @@ alias_lookup_or_install (char *name, int install)
 }
 
 static int
-alias_lookup (char *name, list_t *plist)
+alias_lookup (char *name, mu_list_t *plist)
 {
   alias_t *ap = alias_lookup_or_install (name, 0);
   if (ap)
@@ -188,7 +188,7 @@ alias_print (char *name)
     }
   else
     {
-      list_t list;
+      mu_list_t list;
 
       if (!alias_lookup (name, &list))
 	{
@@ -200,7 +200,7 @@ alias_print (char *name)
 }
 
 int
-alias_create (char *name, list_t *plist)
+alias_create (char *name, mu_list_t *plist)
 {
   alias_t *ap = alias_lookup_or_install (name, 1);
   if (!ap)
@@ -222,7 +222,7 @@ alias_create (char *name, list_t *plist)
 }
 
 void
-alias_print_group (char *name, list_t list)
+alias_print_group (char *name, mu_list_t list)
 {
   fprintf (ofile, "%s    ", name);
   util_slist_print (list, 0);
@@ -261,7 +261,7 @@ alias_destroy (char *name)
 char *
 alias_expand (char *name)
 {
-  list_t list;
+  mu_list_t list;
 
   if (!alias_lookup (name, &list))
     return NULL;

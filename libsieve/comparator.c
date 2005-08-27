@@ -66,9 +66,9 @@ mu_sieve_register_comparator (mu_sieve_machine_t mach,
 }
 
 sieve_comparator_record_t *
-_lookup (list_t list, const char *name)
+_lookup (mu_list_t list, const char *name)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   sieve_comparator_record_t *reg;
 
   if (!list || mu_list_get_iterator (list, &itr))
@@ -124,7 +124,7 @@ _find_comparator (void *item, void *data)
 }
 
 mu_sieve_comparator_t
-mu_sieve_get_comparator (mu_sieve_machine_t mach, list_t tags)
+mu_sieve_get_comparator (mu_sieve_machine_t mach, mu_list_t tags)
 {
   mu_sieve_comparator_t comp = NULL;
 
@@ -138,7 +138,7 @@ mu_sieve_get_comparator (mu_sieve_machine_t mach, list_t tags)
 
 struct regex_data {
   int flags;
-  list_t list;
+  mu_list_t list;
 };
 
 #ifndef FNM_CASEFOLD
@@ -193,7 +193,7 @@ _free_regex (void *item, void *unused)
 static void
 _free_reglist (void *data)
 {
-  list_t list = data;
+  mu_list_t list = data;
   mu_list_do (list, _free_regex, NULL);
   mu_list_destroy (&list);
 }
@@ -205,9 +205,9 @@ comp_false (const char *pattern, const char *text)
 }
 
 int
-mu_sieve_match_part_checker (const char *name, list_t tags, list_t args)
+mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   mu_sieve_runtime_tag_t *match = NULL;
   mu_sieve_runtime_tag_t *comp = NULL;
   mu_sieve_runtime_tag_t *tmp;

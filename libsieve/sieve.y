@@ -38,7 +38,7 @@ int yylex ();
   size_t number;
   sieve_instr_t instr;
   mu_sieve_value_t *value;
-  list_t list;
+  mu_list_t list;
   size_t pc;
   struct {
     size_t start;
@@ -46,7 +46,7 @@ int yylex ();
   } pclist;
   struct {
     char *ident;
-    list_t args;
+    mu_list_t args;
   } command;
   struct {
     size_t begin;
@@ -402,34 +402,34 @@ mu_sieve_set_logger (mu_sieve_machine_t mach, mu_sieve_action_log_t logger)
 }
 
 void
-mu_sieve_set_ticket (mu_sieve_machine_t mach, ticket_t ticket)
+mu_sieve_set_ticket (mu_sieve_machine_t mach, mu_ticket_t ticket)
 {
   mach->ticket = ticket;
 }
 
-ticket_t
+mu_ticket_t
 mu_sieve_get_ticket (mu_sieve_machine_t mach)
 {
   return mach->ticket;
 }
 
-mailer_t
+mu_mailer_t
 mu_sieve_get_mailer (mu_sieve_machine_t mach)
 {
   if (!mach->mailer)
     {
-      mailer_create (&mach->mailer, NULL);
+      mu_mailer_create (&mach->mailer, NULL);
       if (mach->debug)
-	mailer_set_debug (mach->mailer, mach->debug);
+	mu_mailer_set_debug (mach->mailer, mach->debug);
     }
 
   return mach->mailer;
 }
 
 void
-mu_sieve_set_mailer (mu_sieve_machine_t mach, mailer_t mailer)
+mu_sieve_set_mailer (mu_sieve_machine_t mach, mu_mailer_t mailer)
 {
-  mailer_destroy (&mach->mailer);
+  mu_mailer_destroy (&mach->mailer);
   mach->mailer = mailer;
 }
 
@@ -492,7 +492,7 @@ void
 mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
-  mailer_destroy (&mach->mailer);
+  mu_mailer_destroy (&mach->mailer);
   mu_list_do (mach->destr_list, _run_destructor, NULL);
   mu_list_destroy (&mach->destr_list);
   mu_list_destroy (&mach->action_list);

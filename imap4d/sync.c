@@ -27,7 +27,7 @@ struct _uid_table
   size_t uid;
   size_t msgno;
   int notify;
-  attribute_t attr;
+  mu_attribute_t attr;
 };
 
 static struct _uid_table *uid_table;
@@ -48,13 +48,13 @@ add_flag (char **pbuf, const char *f)
 }
 
 static void
-notify_flag (size_t msgno, attribute_t oattr)
+notify_flag (size_t msgno, mu_attribute_t oattr)
 {
-  message_t msg = NULL;
-  attribute_t nattr = NULL;
+  mu_message_t msg = NULL;
+  mu_attribute_t nattr = NULL;
   int status ;
   mu_mailbox_get_message (mbox, msgno, &msg);
-  message_get_attribute (msg, &nattr);
+  mu_message_get_attribute (msg, &nattr);
   status = mu_attribute_is_equal (oattr, nattr);
 
   if (status == 0)
@@ -186,16 +186,16 @@ reset_uids (void)
   mu_mailbox_messages_count (mbox, &total);
   for (i = 1; i <= total; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
       size_t uid = 0;
       uid_table = realloc (uid_table, sizeof (*uid_table) *
 			   (uid_table_count + 1));
       if (!uid_table)
 	imap4d_bye (ERR_NO_MEM);
       mu_mailbox_get_message (mbox, i, &msg);
-      message_get_attribute (msg, &attr);
-      message_get_uid (msg, &uid);
+      mu_message_get_attribute (msg, &attr);
+      mu_message_get_uid (msg, &uid);
       uid_table[uid_table_count].uid = uid;
       uid_table[uid_table_count].msgno = i;
       uid_table[uid_table_count].notify = 0;
@@ -227,10 +227,10 @@ notify (void)
 
       for (i = 1; i <= total; i++)
 	{
-	  message_t msg = NULL;
+	  mu_message_t msg = NULL;
 	  size_t uid = 0;
 	  mu_mailbox_get_message (mbox, i, &msg);
-	  message_get_uid (msg, &uid);
+	  mu_message_get_uid (msg, &uid);
 	  notify_uid (uid);
 	}
       notify_deleted ();
@@ -263,10 +263,10 @@ imap4d_sync_flags (size_t msgno)
   for (i = 0; i < uid_table_count; i++)
     if (uid_table[i].msgno == msgno)
       {
-	message_t msg = NULL;
-	attribute_t attr = NULL;
+	mu_message_t msg = NULL;
+	mu_attribute_t attr = NULL;
 	mu_mailbox_get_message (mbox, msgno, &msg);
-	message_get_attribute (msg, &attr);
+	mu_message_get_attribute (msg, &attr);
 	mu_attribute_copy (uid_table[i].attr, attr);
 	break;
       }
@@ -276,7 +276,7 @@ imap4d_sync_flags (size_t msgno)
 static int mailbox_corrupt;
 
 static int
-action (observer_t observer, size_t type)
+action (mu_observer_t observer, size_t type)
 {
   switch (type)
     {
@@ -292,15 +292,15 @@ action (observer_t observer, size_t type)
 }
 
 void
-imap4d_set_observer (mailbox_t mbox)
+imap4d_set_observer (mu_mailbox_t mbox)
 {
-  observer_t observer;
-  observable_t observable;
+  mu_observer_t observer;
+  mu_observable_t observable;
       
-  observer_create (&observer, mbox);
-  observer_set_action (observer, action, mbox);
+  mu_observer_create (&observer, mbox);
+  mu_observer_set_action (observer, action, mbox);
   mu_mailbox_get_observable (mbox, &observable);
-  observable_attach (observable, MU_EVT_MAILBOX_CORRUPT|MU_EVT_MAILBOX_DESTROY,
+  mu_observable_attach (observable, MU_EVT_MAILBOX_CORRUPT|MU_EVT_MAILBOX_DESTROY,
 		     observer);
   mailbox_corrupt = 0;
 }

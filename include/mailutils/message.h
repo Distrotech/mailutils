@@ -26,90 +26,90 @@ extern "C" {
 #endif
 
 /* A message is considered to be a container for:
-  header_t, body_t, and its attribute_t.  */
+  mu_header_t, mu_body_t, and its mu_attribute_t.  */
 
-extern int message_create           (message_t *, void *owner);
-extern void message_destroy         (message_t *, void *owner);
+extern int mu_message_create           (mu_message_t *, void *owner);
+extern void mu_message_destroy         (mu_message_t *, void *owner);
 
-extern int message_create_copy      (message_t *to, message_t from);
+extern int mu_message_create_copy      (mu_message_t *to, mu_message_t from);
 
-extern void * message_get_owner     (message_t);
-extern int message_is_modified      (message_t);
-extern int message_clear_modified   (message_t);
-extern int message_get_mailbox      (message_t, mailbox_t *);
-extern int message_set_mailbox      (message_t, mailbox_t, void *);
+extern void * mu_message_get_owner     (mu_message_t);
+extern int mu_message_is_modified      (mu_message_t);
+extern int mu_message_clear_modified   (mu_message_t);
+extern int mu_message_get_mailbox      (mu_message_t, mu_mailbox_t *);
+extern int mu_message_set_mailbox      (mu_message_t, mu_mailbox_t, void *);
 
-extern int message_ref              (message_t);
-#define message_unref(msg)          message_destroy (&msg, NULL)
+extern int mu_message_ref              (mu_message_t);
+#define message_unref(msg)          mu_message_destroy (&msg, NULL)
 
-extern int message_get_envelope     (message_t, envelope_t *);
-extern int message_set_envelope     (message_t, envelope_t, void *);
+extern int mu_message_get_envelope     (mu_message_t, mu_envelope_t *);
+extern int mu_message_set_envelope     (mu_message_t, mu_envelope_t, void *);
 
-extern int message_get_header       (message_t, header_t *);
-extern int message_set_header       (message_t, header_t, void *);
+extern int mu_message_get_header       (mu_message_t, mu_header_t *);
+extern int mu_message_set_header       (mu_message_t, mu_header_t, void *);
 
-extern int message_get_body         (message_t, body_t *);
-extern int message_set_body         (message_t, body_t, void *);
+extern int mu_message_get_body         (mu_message_t, mu_body_t *);
+extern int mu_message_set_body         (mu_message_t, mu_body_t, void *);
 
-extern int message_get_stream       (message_t, stream_t *);
-extern int message_set_stream       (message_t, stream_t, void *);
+extern int mu_message_get_stream       (mu_message_t, mu_stream_t *);
+extern int mu_message_set_stream       (mu_message_t, mu_stream_t, void *);
 
-extern int message_get_attribute    (message_t, attribute_t *);
-extern int message_set_attribute    (message_t, attribute_t, void *);
+extern int mu_message_get_attribute    (mu_message_t, mu_attribute_t *);
+extern int mu_message_set_attribute    (mu_message_t, mu_attribute_t, void *);
 
-extern int message_get_observable   (message_t, observable_t *);
+extern int mu_message_get_observable   (mu_message_t, mu_observable_t *);
 
-extern int message_is_multipart     (message_t, int *);
-extern int message_set_is_multipart (message_t, 
-                                     int (*_is_multipart) (message_t, int *), 
+extern int mu_message_is_multipart     (mu_message_t, int *);
+extern int mu_message_set_is_multipart (mu_message_t, 
+                                     int (*_is_multipart) (mu_message_t, int *), 
                                      void *);
 
-extern int message_size             (message_t, size_t *);
-extern int message_set_size         (message_t, 
-                                     int (*_size) (message_t, size_t *), 
+extern int mu_message_size             (mu_message_t, size_t *);
+extern int mu_message_set_size         (mu_message_t, 
+                                     int (*_size) (mu_message_t, size_t *), 
                                      void *owner);
 
-extern int message_lines            (message_t, size_t *);
-extern int message_set_lines        (message_t, 
-                                     int (*_lines) (message_t, size_t *),
+extern int mu_message_lines            (mu_message_t, size_t *);
+extern int mu_message_set_lines        (mu_message_t, 
+                                     int (*_lines) (mu_message_t, size_t *),
 				     void *owner);
 
-extern int message_get_num_parts    (message_t, size_t *nparts);
-extern int message_set_get_num_parts (message_t, 
-                                      int (*_get_num_parts) (message_t, 
+extern int mu_message_get_num_parts    (mu_message_t, size_t *nparts);
+extern int mu_message_set_get_num_parts (mu_message_t, 
+                                      int (*_get_num_parts) (mu_message_t, 
                                                              size_t *),
 				      void *owner);
 
-extern int message_get_part         (message_t, size_t, message_t *);
-extern int message_set_get_part     (message_t, 
-                                     int (*_get_part) (message_t, size_t,
-						       message_t *), 
+extern int mu_message_get_part         (mu_message_t, size_t, mu_message_t *);
+extern int mu_message_set_get_part     (mu_message_t, 
+                                     int (*_get_part) (mu_message_t, size_t,
+						       mu_message_t *), 
                                      void *owner);
 
-extern int message_get_uidl         (message_t, char *, size_t, size_t *);
-extern int message_set_uidl         (message_t, 
-                                     int (*_get_uidl) (message_t, char *, 
+extern int mu_message_get_uidl         (mu_message_t, char *, size_t, size_t *);
+extern int mu_message_set_uidl         (mu_message_t, 
+                                     int (*_get_uidl) (mu_message_t, char *, 
                                                        size_t, size_t *), 
                                      void *owner);
-extern int message_get_uid          (message_t, size_t *);
-extern int message_set_uid          (message_t, 
-                                     int (*_get_uid) (message_t, size_t *),
+extern int mu_message_get_uid          (mu_message_t, size_t *);
+extern int mu_message_set_uid          (mu_message_t, 
+                                     int (*_get_uid) (mu_message_t, size_t *),
 				     void *owner);
 
 /* misc functions */
-extern int message_create_attachment (const char *content_type,
+extern int mu_message_create_attachment (const char *content_type,
 				      const char *encoding,
 				      const char *filename,
-				      message_t *newmsg);
-extern int message_save_attachment (message_t msg,
+				      mu_message_t *newmsg);
+extern int mu_message_save_attachment (mu_message_t msg,
 				    const char *filename, void **data);
-extern int message_encapsulate (message_t msg, message_t *newmsg, void **data);
-extern int message_unencapsulate (message_t msg, message_t *newmsg, void **data);
+extern int mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg, void **data);
+extern int mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg, void **data);
 
-extern int message_get_attachment_name (message_t, char *name, size_t bufsz, size_t* sz);
-extern int message_aget_attachment_name (message_t, char **name);
+extern int mu_message_get_attachment_name (mu_message_t, char *name, size_t bufsz, size_t* sz);
+extern int mu_message_aget_attachment_name (mu_message_t, char **name);
 
-extern int message_save_to_mailbox (message_t msg, ticket_t ticket,
+extern int mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
                                     mu_debug_t debug, const char *toname);
 
 

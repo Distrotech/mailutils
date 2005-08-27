@@ -68,8 +68,8 @@ imap4d_rename (struct imap4d_command *command, char *arg)
      leaving INBOX empty.  */
   if (strcasecmp (oldname, "INBOX") == 0)
     {
-      mailbox_t newmbox = NULL;
-      mailbox_t inbox = NULL;
+      mu_mailbox_t newmbox = NULL;
+      mu_mailbox_t inbox = NULL;
       char *name;
 
       if (S_ISDIR(newst.st_mode))
@@ -97,12 +97,12 @@ imap4d_rename (struct imap4d_command *command, char *arg)
 	  mu_mailbox_messages_count (inbox, &total);
 	  for (no = 1; no <= total; no++)
 	    {
-	      message_t message;
+	      mu_message_t message;
 	      if (mu_mailbox_get_message (inbox, no, &message) == 0)
 		{
-		  attribute_t attr = NULL;
+		  mu_attribute_t attr = NULL;
 		  mu_mailbox_append_message (newmbox, message);
-		  message_get_attribute (message, &attr);
+		  mu_message_get_attribute (message, &attr);
 		  mu_attribute_set_deleted (attr);
 		}
 	    }

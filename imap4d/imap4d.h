@@ -154,7 +154,7 @@ struct imap4d_command
 #define IMAP_CAPA_XTLSREQUIRED   "XTLSREQUIRED"  
   
 extern struct imap4d_command imap4d_command_table[];
-extern mailbox_t mbox;
+extern mu_mailbox_t mbox;
 extern char *homedir;
 extern char *rootdir;
 extern int state;
@@ -172,7 +172,7 @@ extern char *strtok_r (char *s, const char *delim, char **save_ptr);
   
 /* Imap4 commands */
 extern int  imap4d_append (struct imap4d_command *, char *);
-extern int  imap4d_append0 (mailbox_t mbox, int flags, char *text);
+extern int  imap4d_append0 (mu_mailbox_t mbox, int flags, char *text);
 extern int  imap4d_authenticate (struct imap4d_command *, char *);
 extern void imap4d_auth_capability (void);
 extern int  imap4d_capability (struct imap4d_command *, char *);
@@ -212,13 +212,13 @@ extern int  imap4d_version (struct imap4d_command *, char *);
 extern int  imap4d_idle (struct imap4d_command *, char *);
   
 /* Shared between fetch and store */  
-extern void fetch_flags0 (const char *prefix, message_t msg, int isuid);
+extern void fetch_flags0 (const char *prefix, mu_message_t msg, int isuid);
 
 /* Synchronisation on simultaneous access.  */
 extern int imap4d_sync (void);
 extern int imap4d_sync_flags (size_t);
 extern size_t uid_to_msgno (size_t);
-extern void imap4d_set_observer (mailbox_t mbox);
+extern void imap4d_set_observer (mu_mailbox_t mbox);
   
 /* Signal handling.  */
 extern RETSIGTYPE imap4d_sigchld (int);
@@ -277,18 +277,18 @@ extern char *util_localname (void);
 
 extern int util_wcard_match (const char *string, const char *pattern,
 			     const char *delim);
-void util_print_flags (attribute_t attr);
+void util_print_flags (mu_attribute_t attr);
 int util_attribute_to_type (const char *item, int *type);
 int util_type_to_attribute (int type, char **attr_str);
-int util_attribute_matches_flag (attribute_t attr, const char *item);
-int util_uidvalidity (mailbox_t smbox, unsigned long *uidvp);
+int util_attribute_matches_flag (mu_attribute_t attr, const char *item);
+int util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp);
 
 void util_setio (FILE*, FILE*);
 void util_flush_output (void);
-void util_get_input (stream_t *pstr);
-void util_get_output (stream_t *pstr);
-void util_set_input (stream_t str);
-void util_set_output (stream_t str);
+void util_get_input (mu_stream_t *pstr);
+void util_get_output (mu_stream_t *pstr);
+void util_set_input (mu_stream_t str);
+void util_set_output (mu_stream_t str);
 int util_wait_input (int);
   
 void util_register_event (int old_state, int new_state,

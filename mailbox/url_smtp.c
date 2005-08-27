@@ -30,14 +30,14 @@
 #include <url0.h>
 
 int
-_url_smtp_init (url_t url)
+_url_smtp_init (mu_url_t url)
 {
   int status = 0;
 
-  if((status = url_parse(url)))
+  if((status = mu_url_parse(url)))
     return status;
 
-  if(!url_is_scheme(url, "smtp"))
+  if(!mu_url_is_scheme(url, "smtp"))
     return EINVAL;
 
   /* host isn't optional */

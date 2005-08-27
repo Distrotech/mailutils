@@ -36,9 +36,9 @@ struct _attribute
   int flags;
   int user_flags;
 
-  int (*_get_flags)   (attribute_t, int *);
-  int (*_set_flags)   (attribute_t, int);
-  int (*_unset_flags) (attribute_t, int);
+  int (*_get_flags)   (mu_attribute_t, int *);
+  int (*_set_flags)   (mu_attribute_t, int);
+  int (*_unset_flags) (mu_attribute_t, int);
 };
 
 #ifdef __cplusplus

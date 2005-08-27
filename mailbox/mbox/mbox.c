@@ -28,7 +28,7 @@
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
 
-static void mbox_destroy (mailbox_t);
+static void mbox_destroy (mu_mailbox_t);
 
 /* Below are the headers field-names that we are caching for speed, it is
    more or less the list of headers in ENVELOPE command from IMAP.
@@ -56,52 +56,52 @@ const char *fhdr_table[HDRSIZE] =
 };
 
 /* Mailbox concrete implementation.  */
-static int mbox_open                  (mailbox_t, int);
-static int mbox_close                 (mailbox_t);
-static int mbox_get_message           (mailbox_t, size_t, message_t *);
-/* static int mbox_get_message_by_uid    (mailbox_t, size_t, message_t *); */
-static int mbox_append_message        (mailbox_t, message_t);
-static int mbox_messages_count        (mailbox_t, size_t *);
-static int mbox_messages_recent       (mailbox_t, size_t *);
-static int mbox_message_unseen        (mailbox_t, size_t *);
-static int mbox_expunge0              (mailbox_t, int);
-static int mbox_expunge               (mailbox_t);
-static int mbox_save_attributes       (mailbox_t);
-static int mbox_uidvalidity           (mailbox_t, unsigned long *);
-static int mbox_uidnext               (mailbox_t, size_t *);
-static int mbox_scan                  (mailbox_t, size_t, size_t *);
-static int mbox_is_updated            (mailbox_t);
-static int mbox_get_size              (mailbox_t, off_t *);
+static int mbox_open                  (mu_mailbox_t, int);
+static int mbox_close                 (mu_mailbox_t);
+static int mbox_get_message           (mu_mailbox_t, size_t, mu_message_t *);
+/* static int mbox_get_message_by_uid    (mu_mailbox_t, size_t, mu_message_t *); */
+static int mbox_append_message        (mu_mailbox_t, mu_message_t);
+static int mbox_messages_count        (mu_mailbox_t, size_t *);
+static int mbox_messages_recent       (mu_mailbox_t, size_t *);
+static int mbox_message_unseen        (mu_mailbox_t, size_t *);
+static int mbox_expunge0              (mu_mailbox_t, int);
+static int mbox_expunge               (mu_mailbox_t);
+static int mbox_save_attributes       (mu_mailbox_t);
+static int mbox_uidvalidity           (mu_mailbox_t, unsigned long *);
+static int mbox_uidnext               (mu_mailbox_t, size_t *);
+static int mbox_scan                  (mu_mailbox_t, size_t, size_t *);
+static int mbox_is_updated            (mu_mailbox_t);
+static int mbox_get_size              (mu_mailbox_t, off_t *);
 
 /* private stuff */
-static int mbox_append_message0       (mailbox_t, message_t, off_t *, int, int);
-static int mbox_message_uid           (message_t, size_t *);
-static int mbox_header_fill           (header_t, char *, size_t, off_t, size_t *);
-static int mbox_get_body_transport    (stream_t, mu_transport_t *, mu_transport_t *);
+static int mbox_append_message0       (mu_mailbox_t, mu_message_t, off_t *, int, int);
+static int mbox_message_uid           (mu_message_t, size_t *);
+static int mbox_header_fill           (mu_header_t, char *, size_t, off_t, size_t *);
+static int mbox_get_body_transport    (mu_stream_t, mu_transport_t *, mu_transport_t *);
 static int mbox_get_transport2         (mbox_message_t, mu_transport_t *, mu_transport_t *);
-static int mbox_get_attr_flags        (attribute_t, int *);
-static int mbox_set_attr_flags        (attribute_t, int);
-static int mbox_unset_attr_flags      (attribute_t, int);
-static int mbox_body_read             (stream_t, char *, size_t, off_t, size_t *);
-static int mbox_body_readline         (stream_t, char *, size_t, off_t, size_t *);
+static int mbox_get_attr_flags        (mu_attribute_t, int *);
+static int mbox_set_attr_flags        (mu_attribute_t, int);
+static int mbox_unset_attr_flags      (mu_attribute_t, int);
+static int mbox_body_read             (mu_stream_t, char *, size_t, off_t, size_t *);
+static int mbox_body_readline         (mu_stream_t, char *, size_t, off_t, size_t *);
 static int mbox_readstream            (mbox_message_t, char *, size_t,
 				       off_t, size_t *, int, off_t, off_t);
-static int mbox_stream_size           (stream_t stream, off_t *psize);
+static int mbox_stream_size           (mu_stream_t stream, off_t *psize);
 
-static int mbox_header_size           (header_t, size_t *);
-static int mbox_header_lines          (header_t, size_t *);
-static int mbox_body_size             (body_t, size_t *);
-static int mbox_body_lines            (body_t, size_t *);
-static int mbox_envelope_sender       (envelope_t, char *, size_t, size_t *);
-static int mbox_envelope_date         (envelope_t, char *, size_t, size_t *);
-static int mbox_tmpfile               (mailbox_t, char **pbox);
+static int mbox_header_size           (mu_header_t, size_t *);
+static int mbox_header_lines          (mu_header_t, size_t *);
+static int mbox_body_size             (mu_body_t, size_t *);
+static int mbox_body_lines            (mu_body_t, size_t *);
+static int mbox_envelope_sender       (mu_envelope_t, char *, size_t, size_t *);
+static int mbox_envelope_date         (mu_envelope_t, char *, size_t, size_t *);
+static int mbox_tmpfile               (mu_mailbox_t, char **pbox);
 
 /* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
    parsing on the name or even test for existence.  However we do strip any
    leading "mbox:" part of the name, this is suppose to be the
    protocol/scheme name.  */
 int
-_mailbox_mbox_init (mailbox_t mailbox)
+_mailbox_mbox_init (mu_mailbox_t mailbox)
 {
   mbox_data_t mud;
   size_t name_len;
@@ -125,7 +125,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
      will be "///var/mail/alain", we let open() do the right thing.
      So it will let things like this "mbox://390/var/mail/alain" where
      the "//" _is_ part of the filename, pass correctely.  */
-  url_get_path (mailbox->url, NULL, 0, &name_len);
+  mu_url_get_path (mailbox->url, NULL, 0, &name_len);
   mud->name = calloc (name_len + 1, sizeof (char));
   if (mud->name == NULL)
     {
@@ -133,7 +133,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
       mailbox->data = NULL;
       return ENOMEM;
     }
-  url_get_path (mailbox->url, mud->name, name_len + 1, NULL);
+  mu_url_get_path (mailbox->url, mud->name, name_len + 1, NULL);
 
   mud->state = MBOX_NO_STATE;
 
@@ -161,9 +161,9 @@ _mailbox_mbox_init (mailbox_t mailbox)
 
   /* Set our properties.  */
   {
-    property_t property = NULL;
+    mu_property_t property = NULL;
     mu_mailbox_get_property (mailbox, &property);
-    property_set_value (property, "TYPE", "MBOX", 1);
+    mu_property_set_value (property, "TYPE", "MBOX", 1);
   }
 
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init (%s)\n", mud->name);
@@ -172,7 +172,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
 
 /* Free all ressources associated with Unix concrete mailbox.  */
 static void
-mbox_destroy (mailbox_t mailbox)
+mbox_destroy (mu_mailbox_t mailbox)
 {
   if (mailbox->data)
     {
@@ -180,14 +180,14 @@ mbox_destroy (mailbox_t mailbox)
       mbox_data_t mud = mailbox->data;
       MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,
 		      "mbox_destroy (%s)\n", mud->name);
-      monitor_wrlock (mailbox->monitor);
+      mu_monitor_wrlock (mailbox->monitor);
       for (i = 0; i < mud->umessages_count; i++)
 	{
 	  mbox_message_t mum = mud->umessages[i];
 	  if (mum)
 	    {
 	      size_t j;
-	      message_destroy (&(mum->message), mum);
+	      mu_message_destroy (&(mum->message), mum);
 	      for (j = 0; j < HDRSIZE; j++)
 		if (mum->fhdr[j])
 		  free (mum->fhdr[j]);
@@ -200,14 +200,14 @@ mbox_destroy (mailbox_t mailbox)
 	free (mud->name);
       free (mud);
       mailbox->data = NULL;
-      monitor_unlock (mailbox->monitor);
+      mu_monitor_unlock (mailbox->monitor);
     }
 }
 
 /* Open the file.  For MU_STREAM_READ, the code tries mmap() first and fall
    back to normal file.  */
 static int
-mbox_open (mailbox_t mailbox, int flags)
+mbox_open (mu_mailbox_t mailbox, int flags)
 {
   mbox_data_t mud = mailbox->data;
   int status = 0;
@@ -227,34 +227,34 @@ mbox_open (mailbox_t mailbox, int flags)
       /* Try to mmap () the file first.  */
       if (status == 0)
 	{
-	  status = mapfile_stream_create (&mailbox->stream, mud->name, mailbox->flags);
+	  status = mu_mapfile_stream_create (&mailbox->stream, mud->name, mailbox->flags);
 	  if (status == 0)
 	    {
-	      status = stream_open (mailbox->stream);
+	      status = mu_stream_open (mailbox->stream);
 	    }
 	}
 
       /* Fall back to normal file if mmap() failed.  */
       if (status != 0)
 	{
-	  status = file_stream_create (&mailbox->stream, mud->name, mailbox->flags);
+	  status = mu_file_stream_create (&mailbox->stream, mud->name, mailbox->flags);
 	  if (status != 0)
 	    return status;
-	  status = stream_open (mailbox->stream);
+	  status = mu_stream_open (mailbox->stream);
 	}
       /* All failed, bail out.  */
       if (status != 0)
       {
-	stream_destroy (&mailbox->stream, NULL);
+	mu_stream_destroy (&mailbox->stream, NULL);
 	return status;
       }
       /* Even on top, of normal FILE *, lets agressively cache.  But this
 	 may not be suitable for system tight on memory.  */
-      stream_setbufsiz (mailbox->stream, BUFSIZ);
+      mu_stream_setbufsiz (mailbox->stream, BUFSIZ);
     }
   else
     {
-      status = stream_open (mailbox->stream);
+      status = mu_stream_open (mailbox->stream);
       if (status != 0)
 	return status;
     }
@@ -268,7 +268,7 @@ mbox_open (mailbox_t mailbox, int flags)
 }
 
 static int
-mbox_close (mailbox_t mailbox)
+mbox_close (mu_mailbox_t mailbox)
 {
   mbox_data_t mud = mailbox->data;
   size_t i; 
@@ -289,7 +289,7 @@ mbox_close (mailbox_t mailbox)
      sure that the sequence mu_mailbox_open();mu_mailbox_close() will catch all
      the changes that might have been done to the mailbox */
   
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
   /* Before closing we need to remove all the messages
      - to reclaim the memory
      - to prepare for another scan.  */
@@ -300,7 +300,7 @@ mbox_close (mailbox_t mailbox)
       if (mum)
 	{
 	  size_t j;
-	  message_destroy (&(mum->message), mum);
+	  mu_message_destroy (&(mum->message), mum);
 	  for (j = 0; j < HDRSIZE; j++)
 	    if (mum->fhdr[j])
 	      free (mum->fhdr[j]);
@@ -314,15 +314,15 @@ mbox_close (mailbox_t mailbox)
   mud->size = 0;
   mud->uidvalidity = 0;
   mud->uidnext = 0;
-  monitor_unlock (mailbox->monitor);
+  mu_monitor_unlock (mailbox->monitor);
 
-  return stream_close (mailbox->stream);
+  return mu_stream_close (mailbox->stream);
 }
 
 /* Cover function that call the real thing, mbox_scan(), with
    notification set.  */
 static int
-mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
+mbox_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
   size_t i;
   mbox_data_t mud = mailbox->data;
@@ -334,11 +334,11 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
     msgno--; /* The fist message is number "1", decrement for the C array.  */
   for (i = msgno; i < mud->messages_count; i++)
     {
-      if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      if (mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
 	break;
       if (((i +1) % 50) == 0)
 	{
-	  observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	  mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
 	}
     }
   *pcount = mud->messages_count;
@@ -357,15 +357,15 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
    does that. */
 
 static int
-mbox_is_updated (mailbox_t mailbox)
+mbox_is_updated (mu_mailbox_t mailbox)
 {
   off_t size = 0;
   mbox_data_t mud = mailbox->data;
-  if (stream_size (mailbox->stream, &size) != 0)
+  if (mu_stream_size (mailbox->stream, &size) != 0)
     return 0;
   if (size < mud->size)
     {
-      observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
+      mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
       /* And be verbose.  ? */
       mu_error ("* BAD : Mailbox corrupted, shrank size\n");
       /* FIXME: should I crash.  */
@@ -376,7 +376,7 @@ mbox_is_updated (mailbox_t mailbox)
 
 /* Try to create an uniq file, we no race conditions.   */
 static int
-mbox_tmpfile (mailbox_t mailbox, char **pbox)
+mbox_tmpfile (mu_mailbox_t mailbox, char **pbox)
 {
   const char *tmpdir;
   int fd;
@@ -435,7 +435,7 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
    the temporary file may be left in /tmp, which is not all that bad
    because at least, we have something to recuperate when failure.  */
 static int
-mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
+mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 {
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum;
@@ -446,7 +446,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
   off_t marker = 0;    /* marker will be the position to truncate.  */
   off_t total = 0;
   char *tmpmboxname = NULL;
-  mailbox_t tmpmailbox = NULL;
+  mu_mailbox_t tmpmailbox = NULL;
   size_t save_imapbase = 0;  /* uidvalidity is save in the first message.  */
 #ifdef WITH_PTHREAD
   int state;
@@ -468,7 +468,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
       /* Message may have been tampered, break here.  */
       if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
 	  (mum->attr_flags & MU_ATTRIBUTE_DELETED) ||
-	  (mum->message && message_is_modified (mum->message)))
+	  (mum->message && mu_message_is_modified (mum->message)))
 	break;
     }
 
@@ -495,11 +495,11 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	{
 	  mum = mud->umessages[j];
 	  if (mum && mum->message && ATTRIBUTE_IS_DELETED (mum->attr_flags))
-	    message_destroy (&(mum->message), mum);
+	    mu_message_destroy (&(mum->message), mum);
 	}
     }
 
-  /* Create temporary mailbox_t.  */
+  /* Create temporary mu_mailbox_t.  */
   {
     mbox_data_t tmp_mud;
     char *m = alloca (5 + strlen (tmpmboxname) + 1);
@@ -508,7 +508,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
     status = mu_mailbox_create (&tmpmailbox, m);
     if (status != 0)
       {
-	/* Do not give up just yet, maybe they register the path_record.  */
+	/* Do not give up just yet, maybe they register the mu_path_record.  */
 	sprintf (m, "%s", tmpmboxname);
 	status = mu_mailbox_create (&tmpmailbox, m);
 	if (status != 0)
@@ -587,13 +587,13 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 
       /* Do the expensive mbox_append_message0() only if mark dirty.  */
       if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
-	  (mum->message && message_is_modified (mum->message)))
+	  (mum->message && mu_message_is_modified (mum->message)))
 	{
 	  /* The message was not instanciated, probably the dirty flag was
 	     set by mbox_scan(), create one here.  */
 	  if (mum->message == 0)
 	    {
-	      message_t msg;
+	      mu_message_t msg;
 	      status = mbox_get_message (mailbox, i + 1, &msg);
 	      if (status != 0)
 		{
@@ -612,7 +612,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	    }
 	  /* Clear the dirty bits.  */
 	  mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
-	  message_clear_modified (mum->message);
+	  mu_message_clear_modified (mum->message);
 	}
       else
 	{
@@ -624,9 +624,9 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  while (len > 0)
 	    {
 	      n = (len < sizeof (buffer)) ? len : sizeof (buffer);
-	      if ((status = stream_read (mailbox->stream, buffer, n, offset,
+	      if ((status = mu_stream_read (mailbox->stream, buffer, n, offset,
 					 &n) != 0)
-		  || (status = stream_write (tmpmailbox->stream, buffer, n,
+		  || (status = mu_stream_write (tmpmailbox->stream, buffer, n,
 					     total, &n) != 0))
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
@@ -638,7 +638,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	      offset += n;
 	    }
 	  /* Add the newline separator.  */
-	  status = stream_write (tmpmailbox->stream, "\n", 1, total, &n);
+	  status = mu_stream_write (tmpmailbox->stream, "\n", 1, total, &n);
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
@@ -655,7 +655,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
      - The mailbox may not have been properly updated before expunging.  */
   {
     off_t size = 0;
-    if (stream_size (mailbox->stream, &size) == 0)
+    if (mu_stream_size (mailbox->stream, &size) == 0)
       {
 	off_t len = size - mud->size;
 	off_t offset = mud->size;
@@ -663,11 +663,11 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	size_t n = 0;
 	if (len > 0 )
 	  {
-	    while ((status = stream_read (mailbox->stream, buffer,
+	    while ((status = mu_stream_read (mailbox->stream, buffer,
 					  sizeof (buffer), offset, &n)) == 0
 		   && n > 0)
 	      {
-		status = stream_write (tmpmailbox->stream, buffer, n,
+		status = mu_stream_write (tmpmailbox->stream, buffer, n,
 				       total, &n);
 		if (status != 0)
 		  {
@@ -696,11 +696,11 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
       size_t n = 0;
       off_t off = 0;
       off_t offset = marker;
-      while ((status = stream_read (tmpmailbox->stream, buffer,
+      while ((status = mu_stream_read (tmpmailbox->stream, buffer,
 				    sizeof (buffer), off, &n)) == 0
 	     && n > 0)
 	{
-	  status = stream_write (mailbox->stream, buffer, n, offset, &n);
+	  status = mu_stream_write (mailbox->stream, buffer, n, offset, &n);
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s\n", __LINE__,
@@ -713,8 +713,8 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
     }
 
   /* Flush/truncation. Need to flush before truncate.  */
-  stream_flush (mailbox->stream);
-  status = stream_truncate (mailbox->stream, total + marker);
+  mu_stream_flush (mailbox->stream);
+  status = mu_stream_truncate (mailbox->stream, total + marker);
   if (status != 0)
     {
       mu_error ("Error expunging:%d: %s\n", __LINE__,
@@ -748,7 +748,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
   if (status == 0)
     {
       size_t dlast;
-      monitor_wrlock (mailbox->monitor);
+      mu_monitor_wrlock (mailbox->monitor);
       for (j = dirty, dlast = mud->messages_count - 1;
 	   j <= dlast; j++)
 	{
@@ -804,7 +804,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 		mum->fhdr[i] = NULL;
 	      }
 	}
-      monitor_unlock (mailbox->monitor);
+      mu_monitor_unlock (mailbox->monitor);
       /* This is should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
       mbox_scan0 (mailbox, dirty, NULL, 0);
@@ -813,32 +813,32 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 }
 
 static int
-mbox_expunge (mailbox_t mailbox)
+mbox_expunge (mu_mailbox_t mailbox)
 {
   return mbox_expunge0 (mailbox, 1);
 }
 
 static int
-mbox_save_attributes (mailbox_t mailbox)
+mbox_save_attributes (mu_mailbox_t mailbox)
 {
   return mbox_expunge0 (mailbox, 0);
 }
 
 static int
-mbox_message_uid (message_t msg, size_t *puid)
+mbox_message_uid (mu_message_t msg, size_t *puid)
 {
-  mbox_message_t mum = message_get_owner (msg);
+  mbox_message_t mum = mu_message_get_owner (msg);
   if (puid)
     *puid = mum->uid;
   return 0;
 }
 
 static int
-mbox_get_body_transport (stream_t is, mu_transport_t *pin, mu_transport_t *pout)
+mbox_get_body_transport (mu_stream_t is, mu_transport_t *pin, mu_transport_t *pout)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  mbox_message_t mum = mu_message_get_owner (msg);
   return mbox_get_transport2 (mum, pin, pout);
 }
 
@@ -847,14 +847,14 @@ mbox_get_transport2 (mbox_message_t mum, mu_transport_t *pin, mu_transport_t *po
 {
   if (mum == NULL)
     return EINVAL;
-  return stream_get_transport2 (mum->mud->mailbox->stream, pin, pout);
+  return mu_stream_get_transport2 (mum->mud->mailbox->stream, pin, pout);
 }
 
 static int
-mbox_get_attr_flags (attribute_t attr, int *pflags)
+mbox_get_attr_flags (mu_attribute_t attr, int *pflags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  mbox_message_t mum = mu_message_get_owner (msg);
 
   if (mum == NULL)
     return EINVAL;
@@ -864,10 +864,10 @@ mbox_get_attr_flags (attribute_t attr, int *pflags)
 }
 
 static int
-mbox_set_attr_flags (attribute_t attr, int flags)
+mbox_set_attr_flags (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  mbox_message_t mum = mu_message_get_owner (msg);
 
   if (mum == NULL)
     return EINVAL;
@@ -876,10 +876,10 @@ mbox_set_attr_flags (attribute_t attr, int flags)
 }
 
 static int
-mbox_unset_attr_flags (attribute_t attr, int flags)
+mbox_unset_attr_flags (mu_attribute_t attr, int flags)
 {
-  message_t msg = mu_attribute_get_owner (attr);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_attribute_get_owner (attr);
+  mbox_message_t mum = mu_message_get_owner (msg);
 
   if (mum == NULL)
     return EINVAL;
@@ -888,24 +888,24 @@ mbox_unset_attr_flags (attribute_t attr, int flags)
 }
 
 static int
-mbox_body_readline (stream_t is, char *buffer, size_t buflen,
+mbox_body_readline (mu_stream_t is, char *buffer, size_t buflen,
 		    off_t off, size_t *pnread)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  mbox_message_t mum = mu_message_get_owner (msg);
 
   return mbox_readstream (mum, buffer, buflen, off, pnread, 1,
 			  mum->body, mum->body_end);
 }
 
 static int
-mbox_body_read (stream_t is, char *buffer, size_t buflen,
+mbox_body_read (mu_stream_t is, char *buffer, size_t buflen,
 		off_t off, size_t *pnread)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = mu_body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (is);
+  mu_message_t msg = mu_body_get_owner (body);
+  mbox_message_t mum = mu_message_get_owner (msg);
   return mbox_readstream (mum, buffer, buflen, off, pnread, 0,
 			  mum->body, mum->body_end);
 }
@@ -925,7 +925,7 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
       return 0;
     }
 
-  monitor_rdlock (mum->mud->mailbox->monitor);
+  mu_monitor_rdlock (mum->mud->mailbox->monitor);
 #ifdef WITH_PTHREAD
   /* read() is cancellation point since we're doing a potentially
      long operation.  Lets make sure we clean the state.  */
@@ -938,14 +938,14 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
 	/* Position the file pointer and the buffer.  */
 	nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
 	if (isreadline)
-	  status = stream_readline (mum->mud->mailbox->stream, buffer, buflen,
+	  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, buflen,
 				    start + off, &nread);
 	else
-	  status = stream_read (mum->mud->mailbox->stream, buffer, nread,
+	  status = mu_stream_read (mum->mud->mailbox->stream, buffer, nread,
 				start + off, &nread);
       }
   }
-  monitor_unlock (mum->mud->mailbox->monitor);
+  mu_monitor_unlock (mum->mud->mailbox->monitor);
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
 #endif
@@ -956,11 +956,11 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
 }
 
 static int
-mbox_header_fill (header_t header, char *buffer, size_t len,
+mbox_header_fill (mu_header_t header, char *buffer, size_t len,
 		  off_t off, size_t *pnread)
 {
-  message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  mbox_message_t mum = mu_message_get_owner (msg);
   size_t j;
   /* Since we are filling the header there is no need for the cache headers
      discard them.  */
@@ -977,12 +977,12 @@ mbox_header_fill (header_t header, char *buffer, size_t len,
 }
 
 static int
-mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
+mbox_header_get_fvalue (mu_header_t header, const char *name, char *buffer,
 		       size_t buflen, size_t *pnread)
 {
   size_t i, fv_len = 0;
-  message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  mbox_message_t mum = mu_message_get_owner (msg);
   int err = MU_ERR_NOENT;
   for (i = 0; i < HDRSIZE; i++)
     {
@@ -1013,10 +1013,10 @@ mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
 }
 
 static int
-mbox_header_size (header_t header, size_t *psize)
+mbox_header_size (mu_header_t header, size_t *psize)
 {
-  message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  mbox_message_t mum = mu_message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
   if (psize)
@@ -1025,10 +1025,10 @@ mbox_header_size (header_t header, size_t *psize)
 }
 
 static int
-mbox_header_lines (header_t header, size_t *plines)
+mbox_header_lines (mu_header_t header, size_t *plines)
 {
-  message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  mbox_message_t mum = mu_message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
   if (plines)
@@ -1037,10 +1037,10 @@ mbox_header_lines (header_t header, size_t *plines)
 }
 
 static int
-mbox_body_size (body_t body, size_t *psize)
+mbox_body_size (mu_body_t body, size_t *psize)
 {
-  message_t msg = mu_body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  mbox_message_t mum = mu_message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
   if (psize)
@@ -1049,17 +1049,17 @@ mbox_body_size (body_t body, size_t *psize)
 }
 
 static int
-mbox_stream_size (stream_t stream, off_t *psize)
+mbox_stream_size (mu_stream_t stream, off_t *psize)
 {
-  body_t body = stream_get_owner (stream);
+  mu_body_t body = mu_stream_get_owner (stream);
   return mbox_body_size (body, (size_t*) psize);
 }
 
 static int
-mbox_body_lines (body_t body, size_t *plines)
+mbox_body_lines (mu_body_t body, size_t *plines)
 {
-  message_t msg = mu_body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_body_get_owner (body);
+  mbox_message_t mum = mu_message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
   if (plines)
@@ -1068,11 +1068,11 @@ mbox_body_lines (body_t body, size_t *plines)
 }
 
 static int
-mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
+mbox_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 		    size_t *pnwrite)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  mbox_message_t mum = mu_message_get_owner (msg);
   size_t n = 0;
   int status;
   char buffer[512];
@@ -1081,7 +1081,7 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
+  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
   if (status != 0)
     {
@@ -1112,11 +1112,11 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
+mbox_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 		      size_t *pnwrite)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  mbox_message_t mum = message_get_owner (msg);
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  mbox_message_t mum = mu_message_get_owner (msg);
   size_t n = 0;
   int status;
   char buffer[512];
@@ -1125,7 +1125,7 @@ mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
+  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
   if (status != 0)
     {
@@ -1158,12 +1158,12 @@ mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
+mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 {
   int status;
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum;
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
 
   /* Sanity checks.  */
   if (pmsg == NULL)
@@ -1199,92 +1199,92 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 		  mud->name, msgno);
 
   /* Get an empty message struct.  */
-  status = message_create (&msg, mum);
+  status = mu_message_create (&msg, mum);
   if (status != 0)
     return status;
 
   /* Set the header.  */
   {
-    header_t header = NULL;
+    mu_header_t header = NULL;
     status = mu_header_create (&header, NULL, 0, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mum);
+	mu_message_destroy (&msg, mum);
 	return status;
       }
     mu_header_set_fill (header, mbox_header_fill, msg);
     mu_header_set_get_fvalue (header, mbox_header_get_fvalue, msg);
     mu_header_set_size (header, mbox_header_size, msg);
     mu_header_set_lines (header, mbox_header_lines, msg);
-    message_set_header (msg, header, mum);
+    mu_message_set_header (msg, header, mum);
   }
 
   /* Set the attribute.  */
   {
-    attribute_t attribute;
+    mu_attribute_t attribute;
     status = mu_attribute_create (&attribute, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mum);
+	mu_message_destroy (&msg, mum);
 	return status;
       }
     mu_attribute_set_get_flags (attribute, mbox_get_attr_flags, msg);
     mu_attribute_set_set_flags (attribute, mbox_set_attr_flags, msg);
     mu_attribute_set_unset_flags (attribute, mbox_unset_attr_flags, msg);
-    message_set_attribute (msg, attribute, mum);
+    mu_message_set_attribute (msg, attribute, mum);
   }
 
   /* Prepare the body.  */
   {
-    body_t body = NULL;
-    stream_t stream = NULL;
+    mu_body_t body = NULL;
+    mu_stream_t stream = NULL;
     if ((status = mu_body_create (&body, msg)) != 0
-	|| (status = stream_create (&stream,
+	|| (status = mu_stream_create (&stream,
 				    mailbox->flags | MU_STREAM_SEEKABLE,
 				    body)) != 0)
       {
 	mu_body_destroy (&body, msg);
-	stream_destroy (&stream, body);
-	message_destroy (&msg, mum);
+	mu_stream_destroy (&stream, body);
+	mu_message_destroy (&msg, mum);
 	return status;
       }
-    stream_set_read (stream, mbox_body_read, body);
-    stream_set_readline (stream, mbox_body_readline, body);
-    stream_set_get_transport2 (stream, mbox_get_body_transport, body);
-    stream_set_size (stream, mbox_stream_size, body);
+    mu_stream_set_read (stream, mbox_body_read, body);
+    mu_stream_set_readline (stream, mbox_body_readline, body);
+    mu_stream_set_get_transport2 (stream, mbox_get_body_transport, body);
+    mu_stream_set_size (stream, mbox_stream_size, body);
     mu_body_set_stream (body, stream, msg);
     mu_body_set_size (body, mbox_body_size, msg);
     mu_body_set_lines (body, mbox_body_lines, msg);
-    message_set_body (msg, body, mum);
+    mu_message_set_body (msg, body, mum);
   }
 
   /* Set the envelope.  */
   {
-    envelope_t envelope= NULL;
+    mu_envelope_t envelope= NULL;
     status = mu_envelope_create (&envelope, msg);
     if (status != 0)
       {
-	message_destroy (&msg, mum);
+	mu_message_destroy (&msg, mum);
 	return status;
       }
     mu_envelope_set_sender (envelope, mbox_envelope_sender, msg);
     mu_envelope_set_date (envelope, mbox_envelope_date, msg);
-    message_set_envelope (msg, envelope, mum);
+    mu_message_set_envelope (msg, envelope, mum);
   }
 
   /* Set the UID.  */
-  message_set_uid (msg, mbox_message_uid, mum);
+  mu_message_set_uid (msg, mbox_message_uid, mum);
 
   /* Attach the message to the mailbox mbox data.  */
   mum->message = msg;
-  message_set_mailbox (msg, mailbox, mum);
+  mu_message_set_mailbox (msg, mailbox, mum);
 
   *pmsg = msg;
   return 0;
 }
 
 static int
-mbox_append_message (mailbox_t mailbox, message_t msg)
+mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 {
   int status = 0;
   mbox_data_t mud = mailbox->data;
@@ -1310,7 +1310,7 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
       {
 	off_t size;
 	/* Move to the end of the file, not necesary if _APPEND mode.  */
-	if ((status = stream_size (mailbox->stream, &size)) != 0
+	if ((status = mu_stream_size (mailbox->stream, &size)) != 0
 	    || (status = mbox_append_message0 (mailbox, msg, &size, 0, 0)) != 0)
 	  {
 	    if (status != EAGAIN)
@@ -1324,19 +1324,19 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 }
 
 int
-restore_sender (message_t msg, mbox_data_t mud)
+restore_sender (mu_message_t msg, mbox_data_t mud)
 {
-  header_t hdr;
+  mu_header_t hdr;
   char *from = NULL;
   int rc = 0;
   
-  if (message_get_header (msg, &hdr) == 0)
+  if (mu_message_get_header (msg, &hdr) == 0)
     mu_header_aget_value (hdr, MU_HEADER_FROM, &from);
 
   if (from)
     {
       int status;
-      address_t addr;
+      mu_address_t addr;
       
       status = mu_address_create (&addr, from);
       free (from);
@@ -1361,14 +1361,14 @@ restore_sender (message_t msg, mbox_data_t mud)
 }
 
 int
-restore_date (message_t msg, mbox_data_t mud)
+restore_date (mu_message_t msg, mbox_data_t mud)
 {
-  header_t hdr;
+  mu_header_t hdr;
   char *date = NULL;
   time_t t;
   int rc = 0;
   
-  if (message_get_header (msg, &hdr) == 0)
+  if (mu_message_get_header (msg, &hdr) == 0)
     mu_header_aget_value (hdr, MU_HEADER_DATE, &date);
 
   if (date && mu_parse_date (date, &t, NULL))
@@ -1401,7 +1401,7 @@ restore_date (message_t msg, mbox_data_t mud)
    perfomance big time when expunging.  But should not this be the
    responsability of the client ?  */
 static int
-mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
+mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, off_t *psize,
 		      int is_expunging, int first)
 {
   mbox_data_t mud = mailbox->data;
@@ -1432,8 +1432,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char *s;
 	size_t len = 0;
-	envelope_t envelope = NULL;
-	message_get_envelope (msg, &envelope);
+	mu_envelope_t envelope = NULL;
+	mu_message_get_envelope (msg, &envelope);
 	status = mu_envelope_sender (envelope, mud->sender, 128, &len);
 	switch (status) {
 	case 0:
@@ -1471,9 +1471,9 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char *s;
 	size_t len = 0;
-	envelope_t envelope = NULL;
+	mu_envelope_t envelope = NULL;
 	char buffer[1024];
-	message_get_envelope (msg, &envelope);
+	mu_message_get_envelope (msg, &envelope);
 	status = mu_envelope_date (envelope, mud->date, 128, &len);
 	switch (status) {
 	case 0:
@@ -1507,13 +1507,13 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	/* Write the separator to the mailbox.  */
 	n = snprintf (buffer, sizeof (buffer), "From %s %s",
 		      mud->sender, mud->date);
-	status = stream_write (mailbox->stream, buffer, n, *psize, &n);
+	status = mu_stream_write (mailbox->stream, buffer, n, *psize, &n);
 	if (status)
 	  break;
 	*psize += n;
 
 	/* Add the newline, the above may be truncated.  */
-	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	status = mu_stream_write (mailbox->stream, &nl , 1, *psize, &n);
 	if (status)
 	  break;
 	*psize += n;
@@ -1537,13 +1537,13 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char buffer[1024];
 	size_t nread = 0;
-	stream_t is = NULL;
-	header_t header = NULL;
-	message_get_header (msg, &header);
+	mu_stream_t is = NULL;
+	mu_header_t header = NULL;
+	mu_message_get_header (msg, &header);
 	mu_header_get_stream (header, &is);
 	do
 	  {
-	    status = stream_readline (is, buffer, sizeof (buffer), mud->off,
+	    status = mu_stream_readline (is, buffer, sizeof (buffer), mud->off,
 				      &nread);
 	    if (status != 0)
 	      {
@@ -1552,7 +1552,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 		    mud->state = MBOX_NO_STATE;
 		    mud->off = 0;
 		  }
-		stream_truncate (mailbox->stream, orig_size);
+		mu_stream_truncate (mailbox->stream, orig_size);
 		return status;
 	      }
 	    mud->off += nread;
@@ -1573,7 +1573,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 			|| buffer[5] == '\t')))
 	      continue;
 
-	    status = stream_write (mailbox->stream, buffer, nread,
+	    status = mu_stream_write (mailbox->stream, buffer, nread,
 				    *psize, &n);
 	    if (status)
 	      break;
@@ -1588,7 +1588,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    n = sprintf (buffer, "X-IMAPbase: %lu %u\n",
 			 (unsigned long) mud->uidvalidity,
 			 (unsigned) mud->uidnext);
-	    status = stream_write (mailbox->stream, buffer, n, *psize, &n);
+	    status = mu_stream_write (mailbox->stream, buffer, n, *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
@@ -1601,12 +1601,12 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char abuf[64];
 	size_t na = 0;
-	attribute_t attr = NULL;
+	mu_attribute_t attr = NULL;
 	abuf[0] = '\0';
-	message_get_attribute (msg, &attr);
+	mu_message_get_attribute (msg, &attr);
 	mu_attribute_to_string (attr, abuf, sizeof(abuf), &na);
 
-	status = stream_write (mailbox->stream, abuf, na, *psize, &n);
+	status = mu_stream_write (mailbox->stream, abuf, na, *psize, &n);
 	if (status != 0)
 	  break;
 	*psize += n;
@@ -1621,7 +1621,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	size_t uid = 0;
 	if (is_expunging)
 	  {
-	    status = message_get_uid (msg, &uid);
+	    status = mu_message_get_uid (msg, &uid);
 	    if (status == EAGAIN)
 	      return status;
 	  }
@@ -1632,14 +1632,14 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	  {
 	    n = sprintf (suid, "X-UID: %u\n", (unsigned) uid);
 	    /* Put the UID.  */
-	    status = stream_write (mailbox->stream, suid, n, *psize, &n);
+	    status = mu_stream_write (mailbox->stream, suid, n, *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
 	  }
 
 	/* New line separator of the Header.  */
-	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	status = mu_stream_write (mailbox->stream, &nl , 1, *psize, &n);
 	if (status)
 	  break;
 	*psize += n;
@@ -1651,13 +1651,13 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char buffer[1024];
 	size_t nread = 0;
-	stream_t is = NULL;
-	body_t body = NULL;
-	message_get_body (msg, &body);
+	mu_stream_t is = NULL;
+	mu_body_t body = NULL;
+	mu_message_get_body (msg, &body);
 	mu_body_get_stream (body, &is);
 	do
 	  {
-	    status = stream_read (is, buffer, sizeof (buffer), mud->off,
+	    status = mu_stream_read (is, buffer, sizeof (buffer), mud->off,
 				  &nread);
 	    if (status != 0)
 	      {
@@ -1669,7 +1669,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 		return status;
 	      }
 	    mud->off += nread;
-	    status = stream_write (mailbox->stream, buffer, nread, *psize, &n);
+	    status = mu_stream_write (mailbox->stream, buffer, nread, *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
@@ -1677,7 +1677,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	while (nread > 0);
 	mud->off = 0;
 	n = 0;
-	status = stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	status = mu_stream_write (mailbox->stream, &nl, 1, *psize, &n);
 	if (status)
 	  break;
 	*psize += n;
@@ -1697,11 +1697,11 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    /* Append the Message.  */
 	    char buffer[1024];
 	    size_t nread = 0;
-	    stream_t is = NULL;
-	    message_get_stream (msg, &is);
+	    mu_stream_t is = NULL;
+	    mu_message_get_stream (msg, &is);
 	    do
 	      {
-		status = stream_read (is, buffer, sizeof (buffer), mud->off,
+		status = mu_stream_read (is, buffer, sizeof (buffer), mud->off,
 				      &nread);
 		if (status != 0)
 		  {
@@ -1710,10 +1710,10 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 			mud->state = MBOX_NO_STATE;
 			mud->off = 0;
 		      }
-		    stream_truncate (mailbox->stream, orig_size);
+		    mu_stream_truncate (mailbox->stream, orig_size);
 		    return status;
 		  }
-		status = stream_write (mailbox->stream, buffer, nread,
+		status = mu_stream_write (mailbox->stream, buffer, nread,
 				       *psize, &n);
 		if (status)
 		  break;
@@ -1722,7 +1722,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	      }
 	    while (nread > 0);
 	    n = 0;
-       	    status = stream_write (mailbox->stream, &nl, 1, *psize, &n);
+       	    status = mu_stream_write (mailbox->stream, &nl, 1, *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
@@ -1734,20 +1734,20 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
     } /* is_expunging */
   mud->state = MBOX_NO_STATE;
   if (status)
-    stream_truncate (mailbox->stream, orig_size);
+    mu_stream_truncate (mailbox->stream, orig_size);
   else
-    stream_flush (mailbox->stream);
+    mu_stream_flush (mailbox->stream);
   return status;
 }
 
 static int
-mbox_get_size (mailbox_t mailbox, off_t *psize)
+mbox_get_size (mu_mailbox_t mailbox, off_t *psize)
 {
   off_t size;
   int status;
 
   /* Maybe was not open yet ??  */
-  status  = stream_size (mailbox->stream, &size);
+  status  = mu_stream_size (mailbox->stream, &size);
   if (status != 0)
     return status;
   if (psize)
@@ -1756,7 +1756,7 @@ mbox_get_size (mailbox_t mailbox, off_t *psize)
 }
 
 static int
-mbox_messages_count (mailbox_t mailbox, size_t *pcount)
+mbox_messages_count (mu_mailbox_t mailbox, size_t *pcount)
 {
   mbox_data_t mud = mailbox->data;
 
@@ -1776,7 +1776,7 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
    ('O' in the Status header), i.e. a message that is first seen
    by the current session (see attributes.h) */
 static int
-mbox_messages_recent (mailbox_t mailbox, size_t *pcount)
+mbox_messages_recent (mu_mailbox_t mailbox, size_t *pcount)
 {
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum;
@@ -1801,7 +1801,7 @@ mbox_messages_recent (mailbox_t mailbox, size_t *pcount)
 
 /* An "unseen" message is the one that has not been read yet */
 static int
-mbox_message_unseen (mailbox_t mailbox, size_t *pmsgno)
+mbox_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
 {
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum;
@@ -1828,7 +1828,7 @@ mbox_message_unseen (mailbox_t mailbox, size_t *pmsgno)
 }
 
 static int
-mbox_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
+mbox_uidvalidity (mu_mailbox_t mailbox, unsigned long *puidvalidity)
 {
   mbox_data_t mud = mailbox->data;
   int status = mbox_messages_count (mailbox, NULL);
@@ -1847,7 +1847,7 @@ mbox_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
 }
 
 static int
-mbox_uidnext (mailbox_t mailbox, size_t *puidnext)
+mbox_uidnext (mu_mailbox_t mailbox, size_t *puidnext)
 {
   mbox_data_t mud = mailbox->data;
   int status = mbox_messages_count (mailbox, NULL);
@@ -1869,8 +1869,8 @@ mbox_uidnext (mailbox_t mailbox, size_t *puidnext)
 void
 mbox_cleanup (void *arg)
 {
-  mailbox_t mailbox = arg;
-  monitor_unlock (mailbox->monitor);
+  mu_mailbox_t mailbox = arg;
+  mu_monitor_unlock (mailbox->monitor);
   mu_locker_unlock (mailbox->locker);
 }
 #endif

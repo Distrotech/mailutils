@@ -18,13 +18,13 @@
 
 #include "mu_scm.h"
 
-typedef int (*address_get_fp) (address_t, size_t, char *, size_t, size_t *);
+typedef int (*address_get_fp) (mu_address_t, size_t, char *, size_t, size_t *);
 
 static SCM
 _get_address_part (const char *func_name, address_get_fp fun,
 		   SCM ADDRESS, SCM NUM)
 {
-  address_t addr;
+  mu_address_t addr;
   int length;
   char *str;
   SCM ret;
@@ -121,7 +121,7 @@ SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 	    "Return number of parts in email address.\n")
 #define FUNC_NAME s_scm_mu_address_get_count
 {
-  address_t addr;
+  mu_address_t addr;
   size_t count = 0;
   
   SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),

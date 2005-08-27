@@ -37,9 +37,9 @@ lperror (char *text, int rc)
 }
 
 void
-print (list_t list)
+print (mu_list_t list)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int rc;
   
   rc = mu_list_get_iterator (list, &itr);
@@ -59,7 +59,7 @@ print (list_t list)
 }
 
 void
-next (iterator_t itr, char *arg)
+next (mu_iterator_t itr, char *arg)
 {
   int skip = arg ? strtoul (arg, NULL, 0) :  1;
 
@@ -70,7 +70,7 @@ next (iterator_t itr, char *arg)
 }
 
 void
-delete (list_t list, int argc, char **argv)
+delete (mu_list_t list, int argc, char **argv)
 {
   int rc;
 
@@ -89,7 +89,7 @@ delete (list_t list, int argc, char **argv)
 }
 
 void
-add (list_t list, int argc, char **argv)
+add (mu_list_t list, int argc, char **argv)
 {
   int rc;
   
@@ -108,7 +108,7 @@ add (list_t list, int argc, char **argv)
 }
 
 void
-prep (list_t list, int argc, char **argv)
+prep (mu_list_t list, int argc, char **argv)
 {
   int rc;
   
@@ -127,7 +127,7 @@ prep (list_t list, int argc, char **argv)
 }
 
 void
-ins (list_t list, int argc, char **argv)
+ins (mu_list_t list, int argc, char **argv)
 {
   int rc;
   char *item;
@@ -163,7 +163,7 @@ ins (list_t list, int argc, char **argv)
 
 
 void
-repl (list_t list, int argc, char **argv)
+repl (mu_list_t list, int argc, char **argv)
 {
   int rc;
   
@@ -201,7 +201,7 @@ iter (int *pnum, int argc, char **argv)
 }
 
 void
-find (iterator_t itr, char *arg)
+find (mu_iterator_t itr, char *arg)
 {
   char *text;
   
@@ -252,10 +252,10 @@ help ()
 }
 
 void
-shell (list_t list)
+shell (mu_list_t list)
 {
   int num = 0;
-  iterator_t itr[NITR];
+  mu_iterator_t itr[NITR];
   int rc;
 
   for (num = 0; num < NITR; num++)
@@ -343,7 +343,7 @@ string_comp (const void *item, const void *value)
 int
 main (int argc, char **argv)
 {
-  list_t list;
+  mu_list_t list;
   int rc;
   
   while ((rc = getopt (argc, argv, "h")) != EOF)

@@ -25,11 +25,11 @@ pop3d_top (const char *arg)
 {
   size_t mesgno;
   int lines;
-  message_t msg;
-  attribute_t attr;
-  header_t hdr;
-  body_t body;
-  stream_t stream;
+  mu_message_t msg;
+  mu_attribute_t attr;
+  mu_header_t hdr;
+  mu_body_t body;
+  mu_stream_t stream;
   char *mesgc, *linesc;
   char *buf;
   size_t buflen = BUFFERSIZE;
@@ -55,20 +55,20 @@ pop3d_top (const char *arg)
   if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
     return ERR_NO_MESG;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (pop3d_is_deleted (attr))
     return ERR_MESG_DELE;
 
   pop3d_outf ("+OK\r\n");
 
   /* Header.  */
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_stream (hdr, &stream);
   buf = malloc (buflen * sizeof (*buf));
   if (buf == NULL)
     pop3d_abquit (ERR_NO_MEM);
   off = n = 0;
-  while (stream_readline (stream, buf, buflen, off, &n) == 0
+  while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
     {
       /* Nuke the trainline newline.  */
@@ -85,10 +85,10 @@ pop3d_top (const char *arg)
   /* Lines of body.  */
   if (lines)
     {
-      message_get_body (msg, &body);
+      mu_message_get_body (msg, &body);
       mu_body_get_stream (body, &stream);
       n = off = 0;
-      while (stream_readline (stream, buf, buflen, off, &n) == 0
+      while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
 	     && n > 0 && lines > 0)
 	{
 	  /* Nuke the trailing newline.  */

@@ -25,7 +25,7 @@ imap4d_append (struct imap4d_command *command, char *arg)
   char *sp;
   char *mboxname;
   int flags = 0;
-  mailbox_t dest_mbox = NULL;
+  mu_mailbox_t dest_mbox = NULL;
   int status;
 
   mboxname = util_getword (arg, &sp);
@@ -62,40 +62,40 @@ imap4d_append (struct imap4d_command *command, char *arg)
 }
 
 static int
-_append_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+_append_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  message_t msg = mu_envelope_get_owner (envelope);
-  struct tm **tm = message_get_owner (msg);
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  struct tm **tm = mu_message_get_owner (msg);
 
   strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
   return 0;
 }
 
 static int
-_append_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+_append_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   strncpy (buf, "GNU-imap4d", len);
   return 0;
 }
 
 int
-imap4d_append0 (mailbox_t mbox, int flags, char *text)
+imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
 {
-  stream_t stream;
+  mu_stream_t stream;
   int rc = 0;
   size_t len = 0;
-  message_t msg = 0;
+  mu_message_t msg = 0;
   struct tm *tm;
   time_t t;
-  envelope_t env;
+  mu_envelope_t env;
     
-  if (message_create (&msg, &tm))
+  if (mu_message_create (&msg, &tm))
     return 1;
   
-  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
-      || stream_open (stream))
+  if (mu_memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+      || mu_stream_open (stream))
     {
-      message_destroy (&msg, &tm);
+      mu_message_destroy (&msg, &tm);
       return 1;
     }
 
@@ -116,25 +116,25 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
     }
   tm = gmtime(&t);
 
-  stream_write (stream, text, strlen (text), len, &len);
-  message_set_stream (msg, stream, &tm);
+  mu_stream_write (stream, text, strlen (text), len, &len);
+  mu_message_set_stream (msg, stream, &tm);
 
   mu_envelope_create (&env, msg);
   mu_envelope_set_date (env, _append_date, msg);
   mu_envelope_set_sender (env, _append_sender, msg);
-  message_set_envelope (msg, env, &tm);
+  mu_message_set_envelope (msg, env, &tm);
   rc = mu_mailbox_append_message (mbox, msg);
   if (rc == 0 && flags)
     {
       size_t num = 0;
-      attribute_t attr = NULL;
+      mu_attribute_t attr = NULL;
       mu_mailbox_messages_count (mbox, &num);
       mu_mailbox_get_message (mbox, num, &msg);
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       mu_attribute_set_flags (attr, flags);
     }
 
-  message_destroy (&msg, &tm);
+  mu_message_destroy (&msg, &tm);
   return rc;
 }
 

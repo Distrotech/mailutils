@@ -42,7 +42,7 @@
 #include <mailutils/libsieve.h>
 
 struct val_ctr {  /* Data passed to the counter function */
-  header_t hdr;   /* Headers of the current message */
+  mu_header_t hdr;   /* Headers of the current message */
   size_t limit;   /* Limit for the number of addresses */
   size_t count;   /* Number of addresses counted so far */
 };
@@ -61,7 +61,7 @@ _count_items (void *item, void *data)
   char *name = item;
   struct val_ctr *vp = data;
   char *val;
-  address_t addr;
+  mu_address_t addr;
   size_t count = 0;
   
   if (mu_header_aget_value (vp->hdr, name, &val))
@@ -78,7 +78,7 @@ _count_items (void *item, void *data)
 
 /* Handler for the numaddr test */
 static int
-numaddr_test (mu_sieve_machine_t mach, list_t args, list_t tags)
+numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_value_t *h, *v;
   struct val_ctr vc;
@@ -110,7 +110,7 @@ numaddr_test (mu_sieve_machine_t mach, list_t args, list_t tags)
     }
 
   /* Fill in the val_ctr structure */
-  message_get_header (mu_sieve_get_message (mach), &vc.hdr);
+  mu_message_get_header (mu_sieve_get_message (mach), &vc.hdr);
   vc.count = 0;
   vc.limit = v->v.number;
 

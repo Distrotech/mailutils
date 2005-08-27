@@ -25,9 +25,9 @@
 #include <envelope0.h>
 
 int
-mu_envelope_create (envelope_t *penvelope, void *owner)
+mu_envelope_create (mu_envelope_t *penvelope, void *owner)
 {
-  envelope_t envelope;
+  mu_envelope_t envelope;
   if (penvelope == NULL)
     return MU_ERR_OUT_PTR_NULL;
   envelope = calloc (1, sizeof (*envelope));
@@ -39,11 +39,11 @@ mu_envelope_create (envelope_t *penvelope, void *owner)
 }
 
 void
-mu_envelope_destroy (envelope_t *penvelope, void *owner)
+mu_envelope_destroy (mu_envelope_t *penvelope, void *owner)
 {
   if (penvelope && *penvelope)
     {
-      envelope_t envelope = *penvelope;
+      mu_envelope_t envelope = *penvelope;
       if (envelope->owner == owner)
 	{
 	  if (envelope->_destroy)
@@ -55,14 +55,14 @@ mu_envelope_destroy (envelope_t *penvelope, void *owner)
 }
 
 void *
-mu_envelope_get_owner (envelope_t envelope)
+mu_envelope_get_owner (mu_envelope_t envelope)
 {
   return (envelope) ? envelope->owner : NULL;
 }
 
 int
-mu_envelope_set_sender (envelope_t envelope,
-		   int (*_sender) (envelope_t, char *, size_t, size_t*),
+mu_envelope_set_sender (mu_envelope_t envelope,
+		   int (*_sender) (mu_envelope_t, char *, size_t, size_t*),
 		   void *owner)
 {
   if (envelope == NULL)
@@ -74,7 +74,7 @@ mu_envelope_set_sender (envelope_t envelope,
 }
 
 int
-mu_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+mu_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   if (envelope == NULL)
     return EINVAL;
@@ -88,8 +88,8 @@ mu_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 }
 
 int
-mu_envelope_set_date (envelope_t envelope,
-		   int (*_date) (envelope_t, char *, size_t , size_t *),
+mu_envelope_set_date (mu_envelope_t envelope,
+		   int (*_date) (mu_envelope_t, char *, size_t , size_t *),
 		   void *owner)
 {
   if (envelope == NULL)
@@ -101,7 +101,7 @@ mu_envelope_set_date (envelope_t envelope,
 }
 
 int
-mu_envelope_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+mu_envelope_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   if (envelope == NULL)
     return EINVAL;

@@ -25,28 +25,28 @@
 extern "C" {
 #endif
 
-struct _monitor
+struct mu__monitor
 {
   void *data;
   void *owner;
   int allocated;
   int flags;
 };
-typedef struct _monitor *monitor_t;
+typedef struct mu__monitor *mu_monitor_t;
 
 #define MU_MONITOR_PTHREAD 0
 #define MU_MONITOR_INITIALIZER {0, 0, 0, 0}
 
 
-extern int monitor_create      (monitor_t *, int flags, void *owner);
-extern void monitor_destroy    (monitor_t *, void *owner);
-extern void *monitor_get_owner (monitor_t);
+extern int mu_monitor_create      (mu_monitor_t *, int flags, void *owner);
+extern void mu_monitor_destroy    (mu_monitor_t *, void *owner);
+extern void *mu_monitor_get_owner (mu_monitor_t);
 
-extern int monitor_rdlock      (monitor_t);
-extern int monitor_wrlock      (monitor_t);
-extern int monitor_unlock      (monitor_t);
-extern int monitor_wait        (monitor_t);
-extern int monitor_notify      (monitor_t);
+extern int mu_monitor_rdlock      (mu_monitor_t);
+extern int mu_monitor_wrlock      (mu_monitor_t);
+extern int mu_monitor_unlock      (mu_monitor_t);
+extern int mu_monitor_wait        (mu_monitor_t);
+extern int mu_monitor_notify      (mu_monitor_t);
 
 #ifdef __cplusplus
 }

@@ -80,7 +80,7 @@ static const char *capa[] = {
 };
 
 static int
-from_select (size_t index, message_t msg)
+from_select (size_t index, mu_message_t msg)
 {
   if (count_only)
     return 0;
@@ -88,9 +88,9 @@ from_select (size_t index, message_t msg)
   if (sender_option)
     {
       int rc = 0;
-      header_t hdr = NULL;
+      mu_header_t hdr = NULL;
       char *sender;
-      message_get_header (msg, &hdr);
+      mu_message_get_header (msg, &hdr);
 
       if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &sender) == 0)
 	{

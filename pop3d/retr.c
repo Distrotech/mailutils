@@ -26,9 +26,9 @@ pop3d_retr (const char *arg)
   size_t mesgno, n;
   char *buf;
   size_t buflen = BUFFERSIZE;
-  message_t msg = NULL;
-  attribute_t attr = NULL;
-  stream_t stream = NULL;
+  mu_message_t msg = NULL;
+  mu_attribute_t attr = NULL;
+  mu_stream_t stream = NULL;
   off_t off;
 
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
@@ -42,11 +42,11 @@ pop3d_retr (const char *arg)
   if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
     return ERR_NO_MESG;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (pop3d_is_deleted (attr))
     return ERR_MESG_DELE;
 
-  message_get_stream (msg, &stream);
+  mu_message_get_stream (msg, &stream);
   pop3d_outf ("+OK\r\n");
 
   off = n = 0;
@@ -54,7 +54,7 @@ pop3d_retr (const char *arg)
   if (buf == NULL)
     pop3d_abquit (ERR_NO_MEM);
 
-  while (stream_readline (stream, buf, buflen, off, &n) == 0
+  while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
     {
       /* Nuke the trailing newline.  */

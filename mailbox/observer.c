@@ -29,9 +29,9 @@
 #include <observer0.h>
 
 int
-observer_create (observer_t *pobserver, void *owner)
+mu_observer_create (mu_observer_t *pobserver, void *owner)
 {
-  observer_t observer;
+  mu_observer_t observer;
   observer = calloc (sizeof (*observer), 1);
   if (observer == NULL)
     return ENOMEM;
@@ -41,11 +41,11 @@ observer_create (observer_t *pobserver, void *owner)
 }
 
 void
-observer_destroy (observer_t *pobserver, void *owner)
+mu_observer_destroy (mu_observer_t *pobserver, void *owner)
 {
   if (pobserver && *pobserver)
     {
-      observer_t observer = *pobserver;
+      mu_observer_t observer = *pobserver;
       if (observer->owner == owner || observer->flags & MU_OBSERVER_NO_CHECK)
 	{
 	  if (observer->_destroy)
@@ -57,13 +57,13 @@ observer_destroy (observer_t *pobserver, void *owner)
 }
 
 void *
-observer_get_owner (observer_t observer)
+mu_observer_get_owner (mu_observer_t observer)
 {
   return (observer) ? observer->owner : NULL;
 }
 
 int
-observer_action (observer_t observer, size_t type)
+mu_observer_action (mu_observer_t observer, size_t type)
 {
   if (observer == NULL)
     return EINVAL;
@@ -73,8 +73,8 @@ observer_action (observer_t observer, size_t type)
 }
 
 int
-observer_set_action (observer_t observer,
-		     int (*_action) (observer_t, size_t), void *owner)
+mu_observer_set_action (mu_observer_t observer,
+		     int (*_action) (mu_observer_t, size_t), void *owner)
 {
   if (observer == NULL)
     return EINVAL;
@@ -85,7 +85,7 @@ observer_set_action (observer_t observer,
 }
 
 int
-observer_set_destroy (observer_t observer, int (*_destroy) (observer_t),
+mu_observer_set_destroy (mu_observer_t observer, int (*_destroy) (mu_observer_t),
 		      void *owner)
 {
   if (observer == NULL)
@@ -97,7 +97,7 @@ observer_set_destroy (observer_t observer, int (*_destroy) (observer_t),
 }
 
 int
-observer_set_flags (observer_t observer, int flags)
+mu_observer_set_flags (mu_observer_t observer, int flags)
 {
   if (observer == NULL)
     return EINVAL;
@@ -106,9 +106,9 @@ observer_set_flags (observer_t observer, int flags)
 }
 
 int
-observable_create (observable_t *pobservable, void *owner)
+mu_observable_create (mu_observable_t *pobservable, void *owner)
 {
-  observable_t observable;
+  mu_observable_t observable;
   int status;
   if (pobservable == NULL)
     return MU_ERR_OUT_PTR_NULL;
@@ -127,12 +127,12 @@ observable_create (observable_t *pobservable, void *owner)
 }
 
 void
-observable_destroy (observable_t *pobservable, void *owner)
+mu_observable_destroy (mu_observable_t *pobservable, void *owner)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   if (pobservable && *pobservable)
     {
-      observable_t observable = *pobservable;
+      mu_observable_t observable = *pobservable;
       if (observable->owner == owner)
 	{
 	  int status = mu_list_get_iterator (observable->list, &iterator);
@@ -146,7 +146,7 @@ observable_destroy (observable_t *pobservable, void *owner)
 		  mu_iterator_current (iterator, (void **)&event);
 		  if (event != NULL)
 		    {
-		      observer_destroy (&(event->observer), NULL);
+		      mu_observer_destroy (&(event->observer), NULL);
 		      free (event);
 		    }
 		}
@@ -160,13 +160,13 @@ observable_destroy (observable_t *pobservable, void *owner)
 }
 
 void *
-observable_get_owner (observable_t observable)
+mu_observable_get_owner (mu_observable_t observable)
 {
   return (observable) ? observable->owner : NULL;
 }
 
 int
-observable_attach (observable_t observable, size_t type,  observer_t observer)
+mu_observable_attach (mu_observable_t observable, size_t type,  mu_observer_t observer)
 {
   event_t event;
   if (observable == NULL || observer == NULL)
@@ -180,9 +180,9 @@ observable_attach (observable_t observable, size_t type,  observer_t observer)
 }
 
 int
-observable_detach (observable_t observable, observer_t observer)
+mu_observable_detach (mu_observable_t observable, mu_observer_t observer)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   int status;
   int found = 0;
   event_t event = NULL;
@@ -214,9 +214,9 @@ observable_detach (observable_t observable, observer_t observer)
 }
 
 int
-observable_notify (observable_t observable, int type)
+mu_observable_notify (mu_observable_t observable, int type)
 {
-  iterator_t iterator;
+  mu_iterator_t iterator;
   event_t event = NULL;
   int status = 0;
   if (observable == NULL)
@@ -231,7 +231,7 @@ observable_notify (observable_t observable, int type)
       mu_iterator_current (iterator, (void **)&event);
       if (event && event->type & type)
         {
-	  status |= observer_action (event->observer, type);
+	  status |= mu_observer_action (event->observer, type);
         }
     }
   mu_iterator_destroy (&iterator);

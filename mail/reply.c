@@ -19,7 +19,7 @@
 #include "mail.h"
 
 void
-make_in_reply_to (compose_env_t *env, message_t msg)
+make_in_reply_to (compose_env_t *env, mu_message_t msg)
 {
   char *value = NULL;
 
@@ -30,7 +30,7 @@ make_in_reply_to (compose_env_t *env, message_t msg)
 }
 
 void
-make_references (compose_env_t *env, message_t msg)
+make_references (compose_env_t *env, mu_message_t msg)
 {
   char *value = NULL;
 
@@ -47,9 +47,9 @@ make_references (compose_env_t *env, message_t msg)
  */
 
 int
-reply0 (msgset_t *mspec, message_t msg, void *data)
+reply0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  header_t hdr;
+  mu_header_t hdr;
   compose_env_t env;
   int status;
   char *str;
@@ -58,7 +58,7 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
   
   compose_init (&env);
 
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
 
   compose_header_set (&env, MU_HEADER_TO,
 		      util_get_sender (mspec->msg_part[0], 0),
@@ -68,7 +68,7 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
     {
       /* Add all recepients of the originate letter */
 
-      address_t addr = NULL;
+      mu_address_t addr = NULL;
       size_t i, count = 0;
       char buf[512];
 

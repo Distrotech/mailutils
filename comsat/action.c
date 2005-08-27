@@ -81,14 +81,14 @@ act_getline (FILE *fp, char **sptr, size_t *size)
 }
 
 static int
-expand_escape (char **pp, message_t msg, struct obstack *stk)
+expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
 {
   char *p = *pp;
   char *start, *sval, *namep;
   int len;
-  header_t hdr;
-  body_t body;
-  stream_t stream;
+  mu_header_t hdr;
+  mu_body_t body;
+  mu_stream_t stream;
   int rc = 1;
   size_t size = 0, lncount = 0;
 
@@ -122,7 +122,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 	break;
       memcpy (namep, start, len);
       namep[len] = 0;
-      if (message_get_header (msg, &hdr) == 0
+      if (mu_message_get_header (msg, &hdr) == 0
 	  && mu_header_aget_value (hdr, namep, &sval) == 0)
 	{
 	  len = strlen (sval);
@@ -147,7 +147,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 	size = 400;
       if (lncount == 0)
 	lncount = maxlines;
-      if (message_get_body (msg, &body) == 0
+      if (mu_message_get_body (msg, &body) == 0
 	  && mu_body_get_stream (body, &stream) == 0)
 	{
 	  size_t nread;
@@ -155,7 +155,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 
 	  if (!buf)
 	    break;
- 	  if (stream_read (stream, buf, size, 0, &nread) == 0)
+ 	  if (mu_stream_read (stream, buf, size, 0, &nread) == 0)
 	    {
 	      char *q;
 
@@ -181,7 +181,7 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 }
 
 static char *
-expand_line (const char *str, message_t msg)
+expand_line (const char *str, mu_message_t msg)
 {
   const char *p;
   int c = 0;
@@ -331,7 +331,7 @@ open_rc (const char *filename, FILE *tty)
 }
 
 void
-run_user_action (FILE *tty, const char *cr, message_t msg)
+run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 {
   FILE *fp;
   int nact = 0;

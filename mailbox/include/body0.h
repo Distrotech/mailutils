@@ -37,12 +37,12 @@ struct _body
 {
   void *owner;
   char *filename;
-  stream_t stream;
-  stream_t fstream;
+  mu_stream_t stream;
+  mu_stream_t fstream;
   int flags;
 
-  int (*_size)  (body_t, size_t*);
-  int (*_lines) (body_t, size_t*);
+  int (*_size)  (mu_body_t, size_t*);
+  int (*_lines) (mu_body_t, size_t*);
 };
 
 #ifdef __cplusplus

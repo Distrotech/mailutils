@@ -29,33 +29,33 @@ extern "C" {
 #define MAILER_FLAG_DEBUG_DATA 0x0001
 
 /* A url of NULL will cause the default to be used. */
-extern int mailer_create         (mailer_t *, const char *url);
-extern void mailer_destroy       (mailer_t *);
-extern int mailer_open           (mailer_t, int flags);
-extern int mailer_close          (mailer_t);
-extern int mailer_send_message   (mailer_t, message_t, address_t from, address_t to);
+extern int mu_mailer_create         (mu_mailer_t *, const char *url);
+extern void mu_mailer_destroy       (mu_mailer_t *);
+extern int mu_mailer_open           (mu_mailer_t, int flags);
+extern int mu_mailer_close          (mu_mailer_t);
+extern int mu_mailer_send_message   (mu_mailer_t, mu_message_t, mu_address_t from, mu_address_t to);
 
 /* Called to set or get the default mailer url. */
-extern int mailer_set_url_default       (const char* url);
-extern int mailer_get_url_default       (const char** url);
+extern int mu_mailer_set_url_default       (const char* url);
+extern int mu_mailer_get_url_default       (const char** url);
 
 /* Accessor functions. */
-extern int mailer_get_property   (mailer_t, property_t *);
-extern int mailer_get_stream     (mailer_t, stream_t *);
-extern int mailer_set_stream     (mailer_t, stream_t);
-extern int mailer_get_debug      (mailer_t, mu_debug_t *);
-extern int mailer_set_debug      (mailer_t, mu_debug_t);
-extern int mailer_get_observable (mailer_t, observable_t *);
-extern int mailer_get_url        (mailer_t, url_t *);
+extern int mu_mailer_get_property   (mu_mailer_t, mu_property_t *);
+extern int mu_mailer_get_stream     (mu_mailer_t, mu_stream_t *);
+extern int mu_mailer_set_stream     (mu_mailer_t, mu_stream_t);
+extern int mu_mailer_get_debug      (mu_mailer_t, mu_debug_t *);
+extern int mu_mailer_set_debug      (mu_mailer_t, mu_debug_t);
+extern int mu_mailer_get_observable (mu_mailer_t, mu_observable_t *);
+extern int mu_mailer_get_url        (mu_mailer_t, mu_url_t *);
 
 /* Utility functions, primarily for use of implementing concrete mailers. */
 
-/* A valid from address_t contains a single address that has a qualified
+/* A valid from mu_address_t contains a single address that has a qualified
    email address. */
-extern int mailer_check_from     (address_t from);
-/* A valid to address_t contains 1 or more addresses, that are
+extern int mu_mailer_check_from     (mu_address_t from);
+/* A valid to mu_address_t contains 1 or more addresses, that are
    qualified email addresses. */
-extern int mailer_check_to       (address_t to);
+extern int mu_mailer_check_to       (mu_address_t to);
 
 #ifdef __cplusplus
 }

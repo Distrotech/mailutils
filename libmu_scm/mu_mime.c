@@ -22,7 +22,7 @@ long mime_tag;
 
 struct mu_mime
 {
-  mime_t mime;
+  mu_mime_t mime;
   SCM owner;
 };
 
@@ -39,7 +39,7 @@ static scm_sizet
 mu_scm_mime_free (SCM mime_smob)
 {
   struct mu_mime *mum = (struct mu_mime *) SCM_CDR (mime_smob);
-  mime_destroy (&mum->mime);
+  mu_mime_destroy (&mum->mime);
   free (mum);
   return sizeof (struct mu_mime);
 }
@@ -50,7 +50,7 @@ mu_scm_mime_print (SCM mime_smob, SCM port, scm_print_state * pstate)
   struct mu_mime *mum = (struct mu_mime *) SCM_CDR (mime_smob);
   size_t nparts = 0;
   
-  mime_get_num_parts (mum->mime, &nparts);
+  mu_mime_get_num_parts (mum->mime, &nparts);
   
   scm_puts ("#<mime ", port);
   scm_intprint (nparts, 10, port);
@@ -62,7 +62,7 @@ mu_scm_mime_print (SCM mime_smob, SCM port, scm_print_state * pstate)
 /* Internal calls: */
 
 SCM
-mu_scm_mime_create (SCM owner, mime_t mime)
+mu_scm_mime_create (SCM owner, mu_mime_t mime)
 {
   struct mu_mime *mum;
 
@@ -72,7 +72,7 @@ mu_scm_mime_create (SCM owner, mime_t mime)
   SCM_RETURN_NEWSMOB (mime_tag, mum);
 }
 
-const mime_t
+const mu_mime_t
 mu_scm_mime_get (SCM MIME)
 {
   struct mu_mime *mum = (struct mu_mime *) SCM_CDR (MIME);
@@ -93,8 +93,8 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 	    "Creates a new MIME object.")
 #define FUNC_NAME s_scm_mu_mime_create
 {
-  message_t msg = NULL;
-  mime_t mime;
+  mu_message_t msg = NULL;
+  mu_mime_t mime;
   int flags;
 
   if (SCM_IMP (FLAGS) && SCM_BOOLP (FLAGS))
@@ -115,7 +115,7 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
       msg = mu_scm_message_get (MESG);
     }
   
-  if (mime_create (&mime, msg, flags))
+  if (mu_mime_create (&mime, msg, flags))
     return SCM_BOOL_F;
   
   return mu_scm_mime_create (MESG, mime);
@@ -128,7 +128,7 @@ SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_mime_multipart_p
 {
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  return mime_is_multipart (mu_scm_mime_get (MIME)) ? SCM_BOOL_T : SCM_BOOL_F;
+  return mu_mime_is_multipart (mu_scm_mime_get (MIME)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -137,12 +137,12 @@ SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 	    "Returns number of parts in a MIME object.")
 #define FUNC_NAME s_scm_mu_mime_get_num_parts
 {
-  mime_t mime;
+  mu_mime_t mime;
   size_t nparts;
   
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
-  if (mime_get_num_parts (mime, &nparts))
+  if (mu_mime_get_num_parts (mime, &nparts))
     return SCM_BOOL_F;
   return mu_scm_makenum (nparts);
 }
@@ -153,13 +153,13 @@ SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 	    "Returns part number PART from a MIME object.")
 #define FUNC_NAME s_scm_mu_mime_get_part
 {
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
 
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_IMP (PART) && SCM_INUMP (PART),
 	      PART, SCM_ARG2, FUNC_NAME);
   
-  if (mime_get_part (mu_scm_mime_get (MIME), SCM_INUM (PART), &msg))
+  if (mu_mime_get_part (mu_scm_mime_get (MIME), SCM_INUM (PART), &msg))
     return SCM_BOOL_F;
   return mu_scm_message_create (MIME, msg);
 }
@@ -170,15 +170,15 @@ SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 	    "Adds MESG to the MIME object.")
 #define FUNC_NAME s_scm_mu_mime_add_part
 {
-  mime_t mime;
-  message_t msg;
+  mu_mime_t mime;
+  mu_message_t msg;
 
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
   msg = mu_scm_message_get (MESG);
 
-  if (mime_add_part (mime, msg))
+  if (mu_mime_add_part (mime, msg))
     return SCM_BOOL_F;
 
   mu_scm_message_add_owner (MESG, MIME);
@@ -192,12 +192,12 @@ SCM_DEFINE (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
 	    "Converts MIME object to a message.\n")
 #define FUNC_NAME s_scm_mu_mime_get_message
 {
-  mime_t mime;
-  message_t msg;
+  mu_mime_t mime;
+  mu_message_t msg;
   
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
-  if (mime_get_message (mime, &msg))
+  if (mu_mime_get_message (mime, &msg))
     return SCM_BOOL_F;
   return mu_scm_message_create (MIME, msg);
 }

@@ -57,6 +57,6 @@ struct node
   } v;
 };
 
-void pick_add_token (list_t *list, int tok, char *val);
-int pick_parse (list_t toklist);
-int pick_eval (message_t msg);
+void pick_add_token (mu_list_t *list, int tok, char *val);
+int pick_parse (mu_list_t toklist);
+int pick_eval (mu_message_t msg);

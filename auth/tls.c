@@ -245,8 +245,8 @@ enum tls_stream_state {
 };
 
 struct _tls_stream {
-  stream_t strin;  /* Input stream */
-  stream_t strout; /* Output stream */ 
+  mu_stream_t strin;  /* Input stream */
+  mu_stream_t strout; /* Output stream */ 
   int last_err;
   struct _line_buffer *lb;
   enum tls_stream_state state;
@@ -255,9 +255,9 @@ struct _tls_stream {
 
 
 static void
-_tls_destroy (stream_t stream)
+_tls_destroy (mu_stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   if (x509_cred)
     gnutls_certificate_free_credentials (x509_cred);
   if (s->session && s->state == state_closed)
@@ -270,10 +270,10 @@ _tls_destroy (stream_t stream)
 }
     
 static int
-_tls_read (stream_t stream, char *optr, size_t osize,
+_tls_read (mu_stream_t stream, char *optr, size_t osize,
 	   off_t offset, size_t *nbytes)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;
   
   if (!stream || s->state != state_open)
@@ -289,10 +289,10 @@ _tls_read (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_tls_readline (stream_t stream, char *optr, size_t osize,
+_tls_readline (mu_stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;
   char *ptr;
   size_t rdsize;
@@ -328,10 +328,10 @@ _tls_readline (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_tls_write (stream_t stream, const char *iptr, size_t isize,
+_tls_write (mu_stream_t stream, const char *iptr, size_t isize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;
   
   if (!stream || s->state != state_open)
@@ -361,16 +361,16 @@ _tls_write (stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_tls_flush (stream_t stream)
+_tls_flush (mu_stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
-  return stream_flush (s->strout);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
+  return mu_stream_flush (s->strout);
 }
 
 static int
-_tls_close (stream_t stream)
+_tls_close (mu_stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   if (s->session && s->state == state_open)
     {
       gnutls_bye (s->session, GNUTLS_SHUT_RDWR);
@@ -385,11 +385,11 @@ _tls_close (stream_t stream)
 static ssize_t
 _tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
 {
-  stream_t stream = fd;
+  mu_stream_t stream = fd;
   int rc;
   size_t rdbytes;
 	
-  while ((rc = stream_sequential_read (stream, buf, size, &rdbytes)) == EAGAIN)
+  while ((rc = mu_stream_sequential_read (stream, buf, size, &rdbytes)) == EAGAIN)
     ;
 
   if (rc)
@@ -400,10 +400,10 @@ _tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
 static ssize_t
 _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
 {
-  stream_t stream = fd;
+  mu_stream_t stream = fd;
   int rc;
 
-  rc = stream_sequential_write (stream, buf, size);
+  rc = mu_stream_sequential_write (stream, buf, size);
   if (rc)
     return -1;
   return size;
@@ -412,9 +412,9 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
 
 
 static int
-_tls_open (stream_t stream)
+_tls_open (mu_stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc = 0;
   
   if (!stream || s->state != state_init)
@@ -500,9 +500,9 @@ prepare_client_session (struct _tls_stream *s)
 }
   
 static int
-_tls_open_client (stream_t stream)
+_tls_open_client (mu_stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc = 0;
   
   switch (s->state)
@@ -535,43 +535,43 @@ _tls_open_client (stream_t stream)
 }
 
 int
-_tls_strerror (stream_t stream, const char **pstr)
+_tls_strerror (mu_stream_t stream, const char **pstr)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   *pstr = gnutls_strerror (s->last_err);
   return 0;
 }
 
 int
-_tls_get_transport2 (stream_t stream,
+_tls_get_transport2 (mu_stream_t stream,
 		     mu_transport_t *pin, mu_transport_t *pout)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   *pin = (mu_transport_t) s->strin;
   *pout = (mu_transport_t) s->strout;
   return 0;
 }
 
 int
-_tls_wait (stream_t stream, int *pflags, struct timeval *tvp)
+_tls_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
+  struct _tls_stream *s = mu_stream_get_owner (stream);
   if ((*pflags & (MU_STREAM_READY_RD|MU_STREAM_READY_WR)) == (MU_STREAM_READY_RD|MU_STREAM_READY_WR))
     return EINVAL; /* Sorry, can't wait for both input and output. */
   if (*pflags & MU_STREAM_READY_RD)
-    return stream_wait (s->strin, pflags, tvp);
+    return mu_stream_wait (s->strin, pflags, tvp);
   if (*pflags & MU_STREAM_READY_WR)
-    return stream_wait (s->strout, pflags, tvp);
+    return mu_stream_wait (s->strout, pflags, tvp);
   return EINVAL;
 }
 
 /* FIXME: if strin == strout sequential reads may intefere with
    sequential writes (they would share stream->offset). This should
-   be fixed either in stream.c or here. In particular, tls_stream_create_client
+   be fixed either in stream.c or here. In particular, mu_tls_stream_create_client
    will malfunction */
 int
-tls_stream_create (stream_t *stream,
-		   stream_t strin, stream_t strout, int flags)
+mu_tls_stream_create (mu_stream_t *stream,
+		   mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _tls_stream *s;
   int rc;
@@ -586,23 +586,23 @@ tls_stream_create (stream_t *stream,
   s->strin = strin;
   s->strout = strout;
 
-  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  rc = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
   if (rc)
     {
       free (s);
       return rc;
     }
 
-  stream_set_open (*stream, _tls_open, s);
-  stream_set_close (*stream, _tls_close, s);
-  stream_set_read (*stream, _tls_read, s);
-  stream_set_readline (*stream, _tls_readline, s);
-  stream_set_write (*stream, _tls_write, s);
-  stream_set_flush (*stream, _tls_flush, s);
-  stream_set_destroy (*stream, _tls_destroy, s);
-  stream_set_strerror (*stream, _tls_strerror, s);
-  stream_set_get_transport2 (*stream, _tls_get_transport2, s);
-  stream_set_wait (*stream, _tls_wait, s);
+  mu_stream_set_open (*stream, _tls_open, s);
+  mu_stream_set_close (*stream, _tls_close, s);
+  mu_stream_set_read (*stream, _tls_read, s);
+  mu_stream_set_readline (*stream, _tls_readline, s);
+  mu_stream_set_write (*stream, _tls_write, s);
+  mu_stream_set_flush (*stream, _tls_flush, s);
+  mu_stream_set_destroy (*stream, _tls_destroy, s);
+  mu_stream_set_strerror (*stream, _tls_strerror, s);
+  mu_stream_set_get_transport2 (*stream, _tls_get_transport2, s);
+  mu_stream_set_wait (*stream, _tls_wait, s);
   _auth_lb_create (&s->lb);
   
   s->state = state_init;
@@ -610,8 +610,8 @@ tls_stream_create (stream_t *stream,
 }
 
 int
-tls_stream_create_client (stream_t *stream,
-			  stream_t strin, stream_t strout, int flags)
+mu_tls_stream_create_client (mu_stream_t *stream,
+			  mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _tls_stream *s;
   int rc;
@@ -626,23 +626,23 @@ tls_stream_create_client (stream_t *stream,
   s->strin = strin;
   s->strout = strout;
   
-  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  rc = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
   if (rc)
     {
       free (s);
       return rc;
     }
 
-  stream_set_open (*stream, _tls_open_client, s);
-  stream_set_close (*stream, _tls_close, s);
-  stream_set_read (*stream, _tls_read, s);
-  stream_set_readline (*stream, _tls_readline, s);
-  stream_set_write (*stream, _tls_write, s);
-  stream_set_flush (*stream, _tls_flush, s);
-  stream_set_destroy (*stream, _tls_destroy, s);
-  stream_set_strerror (*stream, _tls_strerror, s);
-  stream_set_get_transport2 (*stream, _tls_get_transport2, s);
-  stream_set_wait (*stream, _tls_wait, s);
+  mu_stream_set_open (*stream, _tls_open_client, s);
+  mu_stream_set_close (*stream, _tls_close, s);
+  mu_stream_set_read (*stream, _tls_read, s);
+  mu_stream_set_readline (*stream, _tls_readline, s);
+  mu_stream_set_write (*stream, _tls_write, s);
+  mu_stream_set_flush (*stream, _tls_flush, s);
+  mu_stream_set_destroy (*stream, _tls_destroy, s);
+  mu_stream_set_strerror (*stream, _tls_strerror, s);
+  mu_stream_set_get_transport2 (*stream, _tls_get_transport2, s);
+  mu_stream_set_wait (*stream, _tls_wait, s);
   _auth_lb_create (&s->lb);
   
   s->state = state_init;
@@ -650,10 +650,10 @@ tls_stream_create_client (stream_t *stream,
 }
 
 int
-tls_stream_create_client_from_tcp (stream_t *stream, stream_t tcp_str,
+mu_tls_stream_create_client_from_tcp (mu_stream_t *stream, mu_stream_t tcp_str,
 				   int flags)
 {
-  return tls_stream_create_client (stream, tcp_str, tcp_str, flags);
+  return mu_tls_stream_create_client (stream, tcp_str, tcp_str, flags);
 }
 
 #endif /* WITH_TLS */

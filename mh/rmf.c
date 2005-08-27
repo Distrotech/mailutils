@@ -104,11 +104,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 static char *
 current_folder_path ()
 {
-  mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
-  url_t url;
+  mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
+  mu_url_t url;
   char *p;
   mu_mailbox_get_url (mbox, &url);
-  p = (char*) url_to_string (url);
+  p = (char*) mu_url_to_string (url);
   if (strncmp (p, "mh:", 3) == 0)
     p += 3;
   return p;

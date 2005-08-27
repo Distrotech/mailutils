@@ -28,10 +28,10 @@
 #include <sieve.h>
 
 void
-mu_sieve_require (list_t slist)
+mu_sieve_require (mu_list_t slist)
 {
   int status;
-  iterator_t itr;
+  mu_iterator_t itr;
   
   status = mu_list_get_iterator (slist, &itr);
   if (status)

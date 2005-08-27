@@ -36,12 +36,12 @@ extern "C" {
 struct _folder
 {
   /* Data */
-  authority_t authority;
-  observable_t observable;
+  mu_authority_t authority;
+  mu_observable_t observable;
   mu_debug_t debug;
-  stream_t stream;
-  monitor_t monitor;
-  url_t url;
+  mu_stream_t stream;
+  mu_monitor_t monitor;
+  mu_url_t url;
   int flags;
   int ref;
   size_t uid;
@@ -51,18 +51,18 @@ struct _folder
 
   /* Public methods */
 
-  void (*_destroy)     (folder_t);
+  void (*_destroy)     (mu_folder_t);
 
-  int  (*_open)        (folder_t, int flag);
-  int  (*_close)       (folder_t);
-  int  (*_list)        (folder_t, const char *, const char *,
+  int  (*_open)        (mu_folder_t, int flag);
+  int  (*_close)       (mu_folder_t);
+  int  (*_list)        (mu_folder_t, const char *, const char *,
 		        struct mu_folder_list *);
-  int  (*_lsub)        (folder_t, const char *, const char *,
+  int  (*_lsub)        (mu_folder_t, const char *, const char *,
 		        struct mu_folder_list *);
-  int  (*_delete)      (folder_t, const char *);
-  int  (*_rename)      (folder_t, const char *, const char *);
-  int  (*_subscribe)   (folder_t, const char *);
-  int  (*_unsubscribe) (folder_t, const char *);
+  int  (*_delete)      (mu_folder_t, const char *);
+  int  (*_rename)      (mu_folder_t, const char *, const char *);
+  int  (*_subscribe)   (mu_folder_t, const char *);
+  int  (*_unsubscribe) (mu_folder_t, const char *);
 };
 
 /* Moro(?)ic kluge.  */

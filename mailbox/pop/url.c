@@ -33,10 +33,10 @@
 #include <url0.h>
 #include <registrar0.h>
 
-static void url_pop_destroy (url_t url);
+static void url_pop_destroy (mu_url_t url);
 
 static void
-url_pop_destroy (url_t url ARG_UNUSED)
+url_pop_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
@@ -48,13 +48,13 @@ url_pop_destroy (url_t url ARG_UNUSED)
 */
 
 int
-_url_pop_init (url_t url)
+_url_pop_init (mu_url_t url)
 {
   int status = 0;
 
   url->_destroy = url_pop_destroy;
 
-  status = url_parse(url);
+  status = mu_url_parse(url);
 
   if(status)
     return status;

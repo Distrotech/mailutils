@@ -41,7 +41,7 @@ struct rbuffer
 struct _stream
 {
   void *owner;
-  property_t property;
+  mu_property_t property;
 
   int flags;
   int state;
@@ -52,19 +52,19 @@ struct _stream
   /* Stream pointer for sequential offset.  */
   off_t offset;
   
-  void (*_destroy) (stream_t);
-  int (*_open)     (stream_t);
-  int (*_close)    (stream_t);
-  int (*_get_transport2) (stream_t, mu_transport_t *, mu_transport_t *);
-  int (*_read)     (stream_t, char *, size_t, off_t, size_t *);
-  int (*_readline) (stream_t, char *, size_t, off_t, size_t *);
-  int (*_write)    (stream_t, const char *, size_t, off_t, size_t *);
-  int (*_truncate) (stream_t, off_t);
-  int (*_size)     (stream_t, off_t *);
-  int (*_flush)    (stream_t);
-  int (*_setbufsiz)(stream_t, size_t);
-  int (*_strerror) (stream_t, const char **);
-  int (*_wait)     (stream_t, int *pflags, struct timeval *tvp);
+  void (*_destroy) (mu_stream_t);
+  int (*_open)     (mu_stream_t);
+  int (*_close)    (mu_stream_t);
+  int (*_get_transport2) (mu_stream_t, mu_transport_t *, mu_transport_t *);
+  int (*_read)     (mu_stream_t, char *, size_t, off_t, size_t *);
+  int (*_readline) (mu_stream_t, char *, size_t, off_t, size_t *);
+  int (*_write)    (mu_stream_t, const char *, size_t, off_t, size_t *);
+  int (*_truncate) (mu_stream_t, off_t);
+  int (*_size)     (mu_stream_t, off_t *);
+  int (*_flush)    (mu_stream_t);
+  int (*_setbufsiz)(mu_stream_t, size_t);
+  int (*_strerror) (mu_stream_t, const char **);
+  int (*_wait)     (mu_stream_t, int *pflags, struct timeval *tvp);
 };
 
 #ifdef __cplusplus

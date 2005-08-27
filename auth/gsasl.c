@@ -89,26 +89,26 @@ struct _gsasl_stream {
   Gsasl_session_ctx *sess_ctx; /* Context */
   int last_err;        /* Last Gsasl error code */
   
-  stream_t stream;     /* I/O stream */
+  mu_stream_t stream;     /* I/O stream */
   struct _line_buffer *lb; 
 };
 
 static void
-_gsasl_destroy (stream_t stream)
+_gsasl_destroy (mu_stream_t stream)
 {
   int flags;
-  struct _gsasl_stream *s = stream_get_owner (stream);
-  stream_get_flags (stream, &flags);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
+  mu_stream_get_flags (stream, &flags);
   if (!(flags & MU_STREAM_NO_CLOSE))
-    stream_destroy (&s->stream, stream_get_owner (s->stream));
+    mu_stream_destroy (&s->stream, mu_stream_get_owner (s->stream));
   _auth_lb_destroy (&s->lb);
 }
 
 static int
-_gsasl_readline (stream_t stream, char *optr, size_t osize,
+_gsasl_readline (mu_stream_t stream, char *optr, size_t osize,
 		 off_t offset, size_t *nbytes)
 {
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
   int rc;
   size_t len, sz;
   char *bufp = NULL;
@@ -128,7 +128,7 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
       size_t sz;
       int status;
       
-      status = stream_sequential_read (s->stream, buf, sizeof (buf), &sz);
+      status = mu_stream_sequential_read (s->stream, buf, sizeof (buf), &sz);
       if (status == EINTR)
 	continue;
       else if (status)
@@ -191,7 +191,7 @@ write_chunk (void *data, char *start, char *end)
     
   gsasl_encode (s->sess_ctx, start, chunk_size, &buf, &len);
 
-  status = stream_sequential_write (s->stream, buf, len);
+  status = mu_stream_sequential_write (s->stream, buf, len);
   
   free (buf);
 
@@ -200,11 +200,11 @@ write_chunk (void *data, char *start, char *end)
 
 
 static int
-_gsasl_write (stream_t stream, const char *iptr, size_t isize,
+_gsasl_write (mu_stream_t stream, const char *iptr, size_t isize,
 	      off_t offset, size_t *nbytes)
 {
   int rc;
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
   
   rc = _auth_lb_grow (s->lb, iptr, isize);
   if (rc)
@@ -215,63 +215,63 @@ _gsasl_write (stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_gsasl_flush (stream_t stream)
+_gsasl_flush (mu_stream_t stream)
 {
-  struct _gsasl_stream *s = stream_get_owner (stream);
-  return stream_flush (s->stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
+  return mu_stream_flush (s->stream);
 }
 
 static int
-_gsasl_close (stream_t stream)
+_gsasl_close (mu_stream_t stream)
 {
   int flags;
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
 
-  stream_get_flags (stream, &flags);
+  mu_stream_get_flags (stream, &flags);
   if (!(flags & MU_STREAM_NO_CLOSE))
-    stream_close (s->stream);
+    mu_stream_close (s->stream);
   return 0;
 }
 
 static int
-_gsasl_open (stream_t stream)
+_gsasl_open (mu_stream_t stream)
 {
   /* Nothing to do */
   return 0;
 }
 
 int
-_gsasl_strerror (stream_t stream, const char **pstr)
+_gsasl_strerror (mu_stream_t stream, const char **pstr)
 {
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
   *pstr = gsasl_strerror (s->last_err);
   return 0;
 }
 
 int
-_gsasl_get_transport2 (stream_t stream, mu_transport_t *pt, mu_transport_t *pt2)
+_gsasl_get_transport2 (mu_stream_t stream, mu_transport_t *pt, mu_transport_t *pt2)
 {
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
   *pt2 = NULL; /* FIXME 1 */
   *pt = (mu_transport_t) s->stream;
   return 0;
 }
 
 int
-_gsasl_wait (stream_t stream, int *pflags, struct timeval *tvp)
+_gsasl_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
   int flags;
-  struct _gsasl_stream *s = stream_get_owner (stream);
+  struct _gsasl_stream *s = mu_stream_get_owner (stream);
 
-  stream_get_flags (stream, &flags);
+  mu_stream_get_flags (stream, &flags);
   if (((*pflags & MU_STREAM_READY_RD) && !(flags & MU_STREAM_READ))
       || ((*pflags & MU_STREAM_READY_WR) && !(flags & MU_STREAM_WRITE)))
     return EINVAL; 
-  return stream_wait (s->stream, pflags, tvp);
+  return mu_stream_wait (s->stream, pflags, tvp);
 }
 
 int
-mu_gsasl_stream_create (stream_t *stream, stream_t transport,
+mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
 		     Gsasl_session_ctx *ctx, int flags)
 {
   struct _gsasl_stream *s;
@@ -292,24 +292,24 @@ mu_gsasl_stream_create (stream_t *stream, stream_t transport,
   s->stream = transport;
   s->sess_ctx = ctx;
   
-  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  rc = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
   if (rc)
     {
       free (s);
       return rc;
     }
 
-  stream_set_open (*stream, _gsasl_open, s);
-  stream_set_close (*stream, _gsasl_close, s);
-  stream_set_flush (*stream, _gsasl_flush, s);
-  stream_set_destroy (*stream, _gsasl_destroy, s);
-  stream_set_strerror (*stream, _gsasl_strerror, s);
-  stream_set_wait (*stream, _gsasl_wait, s);
-  stream_set_get_transport2 (*stream, _gsasl_get_transport2, s);
+  mu_stream_set_open (*stream, _gsasl_open, s);
+  mu_stream_set_close (*stream, _gsasl_close, s);
+  mu_stream_set_flush (*stream, _gsasl_flush, s);
+  mu_stream_set_destroy (*stream, _gsasl_destroy, s);
+  mu_stream_set_strerror (*stream, _gsasl_strerror, s);
+  mu_stream_set_wait (*stream, _gsasl_wait, s);
+  mu_stream_set_get_transport2 (*stream, _gsasl_get_transport2, s);
   if (flags & MU_STREAM_READ)
-    stream_set_readline (*stream, _gsasl_readline, s);
+    mu_stream_set_readline (*stream, _gsasl_readline, s);
   else
-    stream_set_write (*stream, _gsasl_write, s);
+    mu_stream_set_write (*stream, _gsasl_write, s);
 
   _auth_lb_create (&s->lb);
   

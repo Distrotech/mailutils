@@ -344,7 +344,7 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
   if (!state)
     {
       char *wcard;
-      folder_t folder;
+      mu_folder_t folder;
   
       wcard = xmalloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");

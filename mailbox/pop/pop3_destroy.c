@@ -45,7 +45,7 @@ mu_pop3_destroy (mu_pop3_t *ppop3)
 
       /* Release the carrier.  */
       if (pop3->carrier)
-	stream_destroy (&pop3->carrier, pop3);
+	mu_stream_destroy (&pop3->carrier, pop3);
 
       free (pop3);
 

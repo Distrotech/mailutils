@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <mailutils/sys/pop3.h>
 
-/* A socket may write less then expected but stream.c:stream_write() will
+/* A socket may write less then expected but stream.c:mu_stream_write() will
    always try to send the entire buffer unless an error is reported.  We have
    to cope with nonblocking, it is done by keeping track with the pop3->ptr
    pointer if the write failed we keep track and restart where we left.  */
@@ -55,7 +55,7 @@ mu_pop3_send (mu_pop3_t pop3)
 	    return ETIMEDOUT;
 	}
 
-      status = stream_write (pop3->carrier, pop3->io.buf, len, 0, &n);
+      status = mu_stream_write (pop3->carrier, pop3->io.buf, len, 0, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */

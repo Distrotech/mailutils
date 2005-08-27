@@ -46,9 +46,9 @@ struct _memory_stream
 };
 
 static void
-_memory_destroy (stream_t stream)
+_memory_destroy (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   if (mfs && mfs->ptr != NULL)
     free (mfs->ptr);
   if(mfs->filename)
@@ -57,10 +57,10 @@ _memory_destroy (stream_t stream)
 }
 
 static int
-_memory_read (stream_t stream, char *optr, size_t osize,
+_memory_read (mu_stream_t stream, char *optr, size_t osize,
 	      off_t offset, size_t *nbytes)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   size_t n = 0;
   if (mfs->ptr != NULL && ((size_t)offset <= mfs->size))
     {
@@ -73,10 +73,10 @@ _memory_read (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_memory_readline (stream_t stream, char *optr, size_t osize,
+_memory_readline (mu_stream_t stream, char *optr, size_t osize,
 		  off_t offset, size_t *nbytes)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   char *nl;
   size_t n = 0;
   if (mfs->ptr && ((size_t)offset < mfs->size))
@@ -95,10 +95,10 @@ _memory_readline (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_memory_write (stream_t stream, const char *iptr, size_t isize,
+_memory_write (mu_stream_t stream, const char *iptr, size_t isize,
 	       off_t offset, size_t *nbytes)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
 
   /* Bigger we have to realloc.  */
   if (mfs->capacity < ((size_t)offset + isize))
@@ -121,9 +121,9 @@ _memory_write (stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_memory_truncate (stream_t stream, off_t len)
+_memory_truncate (mu_stream_t stream, off_t len)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
 
   if (len == 0)
     {
@@ -144,18 +144,18 @@ _memory_truncate (stream_t stream, off_t len)
 }
 
 static int
-_memory_size (stream_t stream, off_t *psize)
+_memory_size (mu_stream_t stream, off_t *psize)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   if (psize)
     *psize = mfs->size;
   return 0;
 }
 
 static int
-_memory_close (stream_t stream)
+_memory_close (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   if (mfs->ptr)
     free (mfs->ptr);
   mfs->ptr = NULL;
@@ -165,9 +165,9 @@ _memory_close (stream_t stream)
 }
 
 static int
-_memory_open (stream_t stream)
+_memory_open (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = stream_get_owner (stream);
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
   int status = 0;
 
   /* Close any previous file.  */
@@ -217,7 +217,7 @@ _memory_open (stream_t stream)
 }
 
 int
-memory_stream_create (stream_t * stream, const char *filename, int flags)
+mu_memory_stream_create (mu_stream_t * stream, const char *filename, int flags)
 {
   struct _memory_stream *mfs;
   int ret;
@@ -243,7 +243,7 @@ memory_stream_create (stream_t * stream, const char *filename, int flags)
   mfs->ptr = NULL;
   mfs->size = 0;
 
-  ret = stream_create (stream, flags | MU_STREAM_NO_CHECK, mfs);
+  ret = mu_stream_create (stream, flags | MU_STREAM_NO_CHECK, mfs);
   if (ret != 0)
     {
       free (mfs->filename);
@@ -252,14 +252,14 @@ memory_stream_create (stream_t * stream, const char *filename, int flags)
       return ret;
     }
 
-  stream_set_open (*stream, _memory_open, mfs);
-  stream_set_close (*stream, _memory_close, mfs);
-  stream_set_read (*stream, _memory_read, mfs);
-  stream_set_readline (*stream, _memory_readline, mfs);
-  stream_set_write (*stream, _memory_write, mfs);
-  stream_set_truncate (*stream, _memory_truncate, mfs);
-  stream_set_size (*stream, _memory_size, mfs);
-  stream_set_destroy (*stream, _memory_destroy, mfs);
+  mu_stream_set_open (*stream, _memory_open, mfs);
+  mu_stream_set_close (*stream, _memory_close, mfs);
+  mu_stream_set_read (*stream, _memory_read, mfs);
+  mu_stream_set_readline (*stream, _memory_readline, mfs);
+  mu_stream_set_write (*stream, _memory_write, mfs);
+  mu_stream_set_truncate (*stream, _memory_truncate, mfs);
+  mu_stream_set_size (*stream, _memory_size, mfs);
+  mu_stream_set_destroy (*stream, _memory_destroy, mfs);
 
   return 0;
 }

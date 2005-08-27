@@ -63,7 +63,7 @@ main (int argc, char *argv[])
       len = strlen (buf);
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
-      rc = rfc2047_decode ("iso-8859-1", buf, &p);
+      rc = mu_rfc2047_decode ("iso-8859-1", buf, &p);
       printf ("%s=> %s\n", buf, mu_strerror (rc));
       if (p)
 	print (p, printable);

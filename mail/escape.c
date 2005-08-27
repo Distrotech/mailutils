@@ -25,11 +25,11 @@ static void
 dump_headers (FILE *fp, compose_env_t *env)
 {
   char buffer[512];
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   size_t off = 0, n;
   
   mu_header_get_stream (env->header, &stream);
-  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
       buffer[n] = 0;
@@ -46,7 +46,7 @@ static int
 parse_headers (FILE *fp, compose_env_t *env)
 {
   int status;
-  header_t header;
+  mu_header_t header;
   char *name = NULL;
   char *value = NULL;
   char *buf = NULL;
@@ -438,11 +438,11 @@ escape_insert (int argc, char **argv, compose_env_t *send_env ARG_UNUSED)
 /* ~M[mesg-list] */
 
 int
-quote0 (msgset_t *mspec, message_t mesg, void *data)
+quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 {
-  header_t hdr;
-  body_t body;
-  stream_t stream;
+  mu_header_t hdr;
+  mu_body_t body;
+  mu_stream_t stream;
   char buffer[512];
   off_t off = 0;
   size_t n = 0;
@@ -457,7 +457,7 @@ quote0 (msgset_t *mspec, message_t mesg, void *data)
       size_t i, num = 0;
       char buf[512];
 
-      message_get_header (mesg, &hdr);
+      mu_message_get_header (mesg, &hdr);
       mu_header_get_field_count (hdr, &num);
 
       for (i = 1; i <= num; i++)
@@ -485,13 +485,13 @@ quote0 (msgset_t *mspec, message_t mesg, void *data)
 	    }
 	}
       fprintf (ofile, "%s\n", prefix);
-      message_get_body (mesg, &body);
+      mu_message_get_body (mesg, &body);
       mu_body_get_stream (body, &stream);
     }
   else
-    message_get_stream (mesg, &stream);
+    mu_message_get_stream (mesg, &stream);
 
-  while (stream_readline (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_readline (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';

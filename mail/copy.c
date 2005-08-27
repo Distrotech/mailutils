@@ -32,8 +32,8 @@
 int
 mail_copy0 (int argc, char **argv, int mark)
 {
-  message_t msg;
-  mailbox_t mbx;
+  mu_message_t msg;
+  mu_mailbox_t mbx;
   char *filename = NULL;
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
@@ -93,15 +93,15 @@ mail_copy0 (int argc, char **argv, int mark)
 	  break;
 	}
       
-      message_size (msg, &size);
+      mu_message_size (msg, &size);
       total_size += size;
-      message_lines (msg, &size);
+      mu_message_lines (msg, &size);
       total_lines += size;
 
       if (mark)
  	{
-	  attribute_t attr;
-	  message_get_attribute (msg, &attr);
+	  mu_attribute_t attr;
+	  mu_message_get_attribute (msg, &attr);
 	  mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
 	}
     }

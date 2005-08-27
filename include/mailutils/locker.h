@@ -87,27 +87,27 @@ extern void mu_locker_set_default_expire_timeout (time_t t);
 extern void mu_locker_set_default_external_program (char *path);
 
 /* A flags of 0 means that the default will be used. */
-extern int mu_locker_create (locker_t *, const char *filename, int flags);
-extern void mu_locker_destroy (locker_t *);
+extern int mu_locker_create (mu_locker_t *, const char *filename, int flags);
+extern void mu_locker_destroy (mu_locker_t *);
 
 /* Time is measured in seconds. */
 
-extern int mu_locker_set_flags (locker_t, int);
-extern int mu_locker_set_expire_time (locker_t, int);
-extern int mu_locker_set_retries (locker_t, int);
-extern int mu_locker_set_retry_sleep (locker_t, int);
-extern int mu_locker_set_external (locker_t, const char* program);
+extern int mu_locker_set_flags (mu_locker_t, int);
+extern int mu_locker_set_expire_time (mu_locker_t, int);
+extern int mu_locker_set_retries (mu_locker_t, int);
+extern int mu_locker_set_retry_sleep (mu_locker_t, int);
+extern int mu_locker_set_external (mu_locker_t, const char* program);
 
-extern int mu_locker_get_flags (locker_t, int*);
-extern int mu_locker_get_expire_time (locker_t, int*);
-extern int mu_locker_get_retries (locker_t, int*);
-extern int mu_locker_get_retry_sleep (locker_t, int*);
-extern int mu_locker_get_external (locker_t, char**);
+extern int mu_locker_get_flags (mu_locker_t, int*);
+extern int mu_locker_get_expire_time (mu_locker_t, int*);
+extern int mu_locker_get_retries (mu_locker_t, int*);
+extern int mu_locker_get_retry_sleep (mu_locker_t, int*);
+extern int mu_locker_get_external (mu_locker_t, char**);
 
-extern int mu_locker_lock          (locker_t);
-extern int mu_locker_touchlock     (locker_t);
-extern int mu_locker_unlock        (locker_t);
-extern int mu_locker_remove_lock   (locker_t);
+extern int mu_locker_lock          (mu_locker_t);
+extern int mu_locker_touchlock     (mu_locker_t);
+extern int mu_locker_unlock        (mu_locker_t);
+extern int mu_locker_remove_lock   (mu_locker_t);
 
 #ifdef __cplusplus
 }

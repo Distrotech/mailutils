@@ -75,7 +75,7 @@ static char *formfile = MHLIBDIR "/mhl.format";
 static char *moreproc;
 static int nomoreproc;
 
-static list_t format;
+static mu_list_t format;
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)
@@ -144,11 +144,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   return 0;
 }
 
-static stream_t
+static mu_stream_t
 open_output ()
 {
   int rc;
-  stream_t output;
+  mu_stream_t output;
 
   if (interactive && !nomoreproc)
     {
@@ -159,9 +159,9 @@ open_output ()
     moreproc = NULL;
 
   if (moreproc)
-    rc = prog_stream_create (&output, moreproc, MU_STREAM_WRITE);
+    rc = mu_prog_stream_create (&output, moreproc, MU_STREAM_WRITE);
   else
-    rc = stdio_stream_create (&output, stdout, MU_STREAM_WRITE);
+    rc = mu_stdio_stream_create (&output, stdout, MU_STREAM_WRITE);
 
   if (rc)
     {
@@ -169,7 +169,7 @@ open_output ()
       exit (1);
     }
 
-  if ((rc = stream_open (output)))
+  if ((rc = mu_stream_open (output)))
     {
       mh_error (_("Cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
@@ -178,26 +178,26 @@ open_output ()
 }
 
 static void
-list_message (char *name, stream_t output)
+list_message (char *name, mu_stream_t output)
 {
   int rc;
-  stream_t input;
-  message_t msg;
+  mu_stream_t input;
+  mu_message_t msg;
 
   if (!name)
-    rc = stdio_stream_create (&input, stdin, MU_STREAM_SEEKABLE);
+    rc = mu_stdio_stream_create (&input, stdin, MU_STREAM_SEEKABLE);
   else
-    rc = file_stream_create (&input, name, MU_STREAM_READ);
+    rc = mu_file_stream_create (&input, name, MU_STREAM_READ);
   if (rc)
     {
       mh_error (_("Cannot create input stream: %s"), mu_strerror (rc));
       return;
     }
 
-  if ((rc = stream_open (input)))
+  if ((rc = mu_stream_open (input)))
     {
       mh_error (_("Cannot open input stream: %s"), mu_strerror (rc));
-      stream_destroy (&input, stream_get_owner (input));
+      mu_stream_destroy (&input, mu_stream_get_owner (input));
       return;
     }
 
@@ -206,8 +206,8 @@ list_message (char *name, stream_t output)
     {
       mh_error (_("Input stream %s is not a message (%s)"),
 		name, mu_strerror (rc));
-      stream_close (input);
-      stream_destroy (&input, stream_get_owner (input));
+      mu_stream_close (input);
+      mu_stream_destroy (&input, mu_stream_get_owner (input));
     }
   else
     {
@@ -220,7 +220,7 @@ int
 main (int argc, char **argv)
 {
   int index;
-  stream_t output;
+  mu_stream_t output;
   
   interactive = isatty (1) && isatty (0);
   
@@ -250,6 +250,6 @@ main (int argc, char **argv)
     while (argc--)
       list_message (*argv++, output);
 
-  stream_close (output);
+  mu_stream_close (output);
   return 0;
 }

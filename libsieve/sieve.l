@@ -37,7 +37,7 @@ char *sieve_filename;
 int sieve_line_num;  
 ino_t sieve_source_inode;
 
-static list_t string_list;
+static mu_list_t string_list;
 static char *multiline_delimiter;
 static int strip_tabs; 
 
@@ -676,7 +676,7 @@ multiline_begin ()
 void
 line_finish ()
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   int length = 0;
   char *p;
   

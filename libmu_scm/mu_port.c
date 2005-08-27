@@ -20,7 +20,7 @@
 
 struct mu_port
 {
-  stream_t stream;         /* Associated stream */
+  mu_stream_t stream;         /* Associated stream */
   int offset;              /* Current offset in the stream */
   SCM msg;                 /* Message the port belongs to */		
 };
@@ -74,7 +74,7 @@ mu_port_alloc_buffer (SCM port, size_t read_size, size_t write_size)
 static long scm_tc16_smuport;
 
 SCM
-mu_port_make_from_stream (SCM msg, stream_t stream, long mode)
+mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode)
 {
   struct mu_port *mp;
   SCM port;
@@ -89,7 +89,7 @@ mu_port_make_from_stream (SCM msg, stream_t stream, long mode)
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
-  pt->rw_random = stream_is_seekable (stream);
+  pt->rw_random = mu_stream_is_seekable (stream);
   SCM_SET_CELL_TYPE (port, (scm_tc16_smuport | mode));
   SCM_SETSTREAM (port, mp);
   mu_port_alloc_buffer (port, 0, 0);
@@ -119,7 +119,7 @@ mu_port_flush (SCM port)
   
   if (wrsize)
     {
-      if (stream_write (mp->stream, pt->write_buf, wrsize, mp->offset, &n))
+      if (mu_stream_write (mp->stream, pt->write_buf, wrsize, mp->offset, &n))
 	return;
       mp->offset += n;
     }
@@ -134,7 +134,7 @@ mu_port_close (SCM port)
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
   mu_port_flush (port);
-  stream_close (mp->stream);
+  mu_stream_close (mp->stream);
   SCM_SETSTREAM (port, NULL);
 		
   if (pt->read_buf != &pt->shortbuf)
@@ -159,7 +159,7 @@ mu_port_fill_input (SCM port)
   scm_port *pt = SCM_PTAB_ENTRY (port);
   size_t nread = 0;
   
-  if (stream_read (mp->stream, pt->read_buf, pt->read_buf_size,
+  if (mu_stream_read (mp->stream, pt->read_buf, pt->read_buf_size,
 		   mp->offset, &nread))
       scm_syserror ("mu_port_fill_input");
 
@@ -232,7 +232,7 @@ mu_port_seek (SCM port, off_t offset, int whence)
       scm_end_input (port);
     }
 
-  stream_size (mp->stream, &size);
+  mu_stream_size (mp->stream, &size);
   switch (whence)
     {
     case SEEK_SET:
@@ -254,8 +254,8 @@ static void
 mu_port_truncate (SCM port, off_t length)
 {
   struct mu_port *mp = MU_PORT (port);
-  if (stream_truncate (mp->stream, length))
-    scm_syserror ("stream_truncate");
+  if (mu_stream_truncate (mp->stream, length))
+    scm_syserror ("mu_stream_truncate");
 }
   
 static int
@@ -267,7 +267,7 @@ mu_port_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);
   scm_puts ("mu-port", port);
-  if (stream_size (mp->stream, &size) == 0)
+  if (mu_stream_size (mp->stream, &size) == 0)
     {
       char buffer[64];
       snprintf (buffer, sizeof (buffer), " %-5ld", size);

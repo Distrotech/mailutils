@@ -34,10 +34,10 @@
 
 #include <url0.h>
 
-static void url_nntp_destroy (url_t url);
+static void url_nntp_destroy (mu_url_t url);
 
 static void
-url_nntp_destroy (url_t url ARG_UNUSED)
+url_nntp_destroy (mu_url_t url ARG_UNUSED)
 {
 }
 
@@ -47,13 +47,13 @@ url_nntp_destroy (url_t url ARG_UNUSED)
 */
 
 int
-_nntp_url_init (url_t url)
+_nntp_url_init (mu_url_t url)
 {
   int status = 0;
 
   url->_destroy = url_nntp_destroy;
 
-  status = url_parse(url);
+  status = mu_url_parse(url);
 
   if(status)
     return status;

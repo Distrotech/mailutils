@@ -32,7 +32,7 @@
 
 /* Auxiliary functions */
 struct header_closure {
-  header_t header;        /* Message header */
+  mu_header_t header;        /* Message header */
   int index;              /* Header index */
   char *delim;            /* List delimiter */
   char *value;            /* Retrieved header value */
@@ -127,7 +127,7 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
 */
 
 static int
-list_test (mu_sieve_machine_t mach, list_t args, list_t tags)
+list_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_value_t *h, *v, *arg;
   mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
@@ -162,7 +162,7 @@ list_test (mu_sieve_machine_t mach, list_t args, list_t tags)
       mu_sieve_abort (mach);
     }
 
-  message_get_header (mu_sieve_get_message (mach), &clos.header);
+  mu_message_get_header (mu_sieve_get_message (mach), &clos.header);
   result = mu_sieve_vlist_compare (h, v, comp, mu_sieve_get_relcmp (mach, tags),
 				list_retrieve_header,
 				&clos, NULL) > 0;

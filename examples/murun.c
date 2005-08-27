@@ -30,15 +30,15 @@
 #include <mailutils/argcv.h>
 
 static void
-read_and_print (stream_t in, stream_t out)
+read_and_print (mu_stream_t in, mu_stream_t out)
 {
   size_t size;
   char buffer[128];
   
-  while (stream_sequential_readline (in, buffer, sizeof (buffer), &size) == 0
+  while (mu_stream_sequential_readline (in, buffer, sizeof (buffer), &size) == 0
 	 && size > 0)
     {
-      stream_sequential_write (out, buffer, size);
+      mu_stream_sequential_write (out, buffer, size);
     }
 }
 
@@ -46,7 +46,7 @@ int
 main (int argc, char *argv[])
 {
   int rc;
-  stream_t stream, out;
+  mu_stream_t stream, out;
   int read_stdin = 0;
   int i = 1;
   char *cmdline;
@@ -68,13 +68,13 @@ main (int argc, char *argv[])
   assert (mu_argcv_string (argc - i, &argv[i], &cmdline) == 0);
   if (read_stdin)
     {
-      stream_t in;
-      assert (stdio_stream_create (&in, stdin, 0) == 0);
-      assert (stream_open (in) == 0);
-      rc = filter_prog_stream_create (&stream, cmdline, in);
+      mu_stream_t in;
+      assert (mu_stdio_stream_create (&in, stdin, 0) == 0);
+      assert (mu_stream_open (in) == 0);
+      rc = mu_filter_prog_stream_create (&stream, cmdline, in);
     }
   else
-    rc = prog_stream_create (&stream, cmdline, flags);
+    rc = mu_prog_stream_create (&stream, cmdline, flags);
   if (rc)
     {
       fprintf (stderr, "%s: cannot create program filter stream: %s\n",
@@ -82,7 +82,7 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  rc = stream_open (stream);
+  rc = mu_stream_open (stream);
   if (rc)
     {
       fprintf (stderr, "%s: cannot open program filter stream: %s\n",
@@ -90,14 +90,14 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  assert (stdio_stream_create (&out, stdout, 0) == 0);
+  assert (mu_stdio_stream_create (&out, stdout, 0) == 0);
   assert (rc == 0);
-  assert (stream_open (out) == 0);
+  assert (mu_stream_open (out) == 0);
   
   read_and_print (stream, out);
-  stream_close (stream);
-  stream_destroy (&stream, stream_get_owner (stream));
-  stream_close (out);
-  stream_destroy (&out, stream_get_owner (stream));
+  mu_stream_close (stream);
+  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+  mu_stream_close (out);
+  mu_stream_destroy (&out, mu_stream_get_owner (stream));
   return 0;
 }

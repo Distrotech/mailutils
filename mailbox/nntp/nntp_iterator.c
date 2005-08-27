@@ -29,7 +29,7 @@
 #include <mailutils/iterator.h>
 
 static int  nntp_itr_dup     (void **ptr, void *owner);
-static int  nntp_itr_destroy (iterator_t itr, void *owner);
+static int  nntp_itr_destroy (mu_iterator_t itr, void *owner);
 static int  nntp_itr_first   (void *owner);
 static int  nntp_itr_next    (void *woner);
 static int  nntp_itr_getitem (void *owner, void **pret);
@@ -44,10 +44,10 @@ struct nntp_iterator
 };
 
 int
-mu_nntp_iterator_create (mu_nntp_t nntp, iterator_t *piterator)
+mu_nntp_iterator_create (mu_nntp_t nntp, mu_iterator_t *piterator)
 {
   struct nntp_iterator *nntp_iterator;
-  iterator_t iterator;
+  mu_iterator_t iterator;
   int status;
 
   nntp_iterator = malloc (sizeof *nntp_iterator);
@@ -90,7 +90,7 @@ nntp_itr_dup (void **ptr, void *owner)
 }
 
 static int
-nntp_itr_destroy (iterator_t iterator, void *owner)
+nntp_itr_destroy (mu_iterator_t iterator, void *owner)
 {
   struct nntp_iterator *nntp_iterator = (struct nntp_iterator *)owner;
   /* Delicate situation if they did not finish to drain the result

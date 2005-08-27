@@ -116,7 +116,7 @@ struct auth_stack_entry {
 };
 
 void
-mu_insert_stack_entry (list_t *pflist, struct auth_stack_entry *entry)
+mu_insert_stack_entry (mu_list_t *pflist, struct auth_stack_entry *entry)
 {
   if (!*pflist && mu_list_create (pflist))
     return;
@@ -124,11 +124,11 @@ mu_insert_stack_entry (list_t *pflist, struct auth_stack_entry *entry)
 }
 
 int
-mu_auth_runlist (list_t flist, struct mu_auth_data **return_data,
+mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
 		 const void *key, void *data)
 {
   int rc = 1;
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (flist, &itr) == 0)
     {
@@ -160,8 +160,8 @@ mu_auth_nosupport (struct mu_auth_data **return_data ARG_UNUSED,
 
 /* II. Authorization: retrieving information about user */
 
-static list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
-static list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
+static mu_list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
+static mu_list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
 
 struct mu_auth_data *
 mu_get_auth_by_name (const char *username)
@@ -189,7 +189,7 @@ mu_get_auth_by_uid (uid_t uid)
 
 /* III. Authentication: determining the authenticity of a user */
 
-static list_t mu_authenticate_list, _tmp_authenticate_list;
+static mu_list_t mu_authenticate_list, _tmp_authenticate_list;
 
 int
 mu_authenticate (struct mu_auth_data *auth_data, char *pass)
@@ -261,7 +261,7 @@ struct _module_handler {
   struct auth_stack_entry auth_by_uid;
 };
 
-static list_t module_handler_list;
+static mu_list_t module_handler_list;
 
 void
 mu_auth_register_module (struct mu_auth_module *mod)
@@ -329,7 +329,7 @@ static struct _module_handler *
 _locate (const char *name)
 {
   struct _module_handler *rp = NULL;
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (mu_list_get_iterator (module_handler_list, &itr) == 0)
     {
@@ -422,7 +422,7 @@ mu_authentication_add_module_list (const char *modlist)
 void
 mu_auth_begin_setup ()
 {
-  iterator_t itr;
+  mu_iterator_t itr;
 
   if (!module_handler_list)
     {

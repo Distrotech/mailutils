@@ -35,8 +35,8 @@ typedef struct _mu_nntp* mu_nntp_t;
 extern int  mu_nntp_create          (mu_nntp_t *nntp);
 extern void mu_nntp_destroy         (mu_nntp_t *nntp);
 
-extern int  mu_nntp_set_carrier     (mu_nntp_t nntp, stream_t carrier);
-extern int  mu_nntp_get_carrier     (mu_nntp_t nntp, stream_t *pcarrier);
+extern int  mu_nntp_set_carrier     (mu_nntp_t nntp, mu_stream_t carrier);
+extern int  mu_nntp_get_carrier     (mu_nntp_t nntp, mu_stream_t *pcarrier);
 
 extern int  mu_nntp_connect         (mu_nntp_t nntp);
 extern int  mu_nntp_disconnect      (mu_nntp_t nntp);
@@ -53,7 +53,7 @@ extern int  mu_nntp_mode_reader     (mu_nntp_t nntp);
 
 /* An iterator is return with the multi-line answer. It is the responsibility
    of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
-extern int  mu_nntp_list_extensions (mu_nntp_t nntp, iterator_t *iterator);
+extern int  mu_nntp_list_extensions (mu_nntp_t nntp, mu_iterator_t *iterator);
 
 extern int  mu_nntp_quit            (mu_nntp_t nntp);
 
@@ -77,22 +77,22 @@ extern int  mu_nntp_next            (mu_nntp_t nntp,
    other commands are permitted until the stream is destroyed.  */
 extern int  mu_nntp_article         (mu_nntp_t nntp, unsigned long number,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 extern int  mu_nntp_article_id      (mu_nntp_t nntp, const char *id,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 extern int  mu_nntp_head            (mu_nntp_t nntp, unsigned long number,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 extern int  mu_nntp_head_id         (mu_nntp_t nntp, const char *name,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 extern int  mu_nntp_body            (mu_nntp_t nntp, unsigned long number,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 extern int  mu_nntp_body_id         (mu_nntp_t nntp, const char *id,
 				     unsigned long *pnum, char **mid,
-				     stream_t *stream);
+				     mu_stream_t *stream);
 
 /* The argument mid is allocated with malloc(3). The caller is responsible
    to call free(3)  */
@@ -108,7 +108,7 @@ extern int  mu_nntp_date            (mu_nntp_t nntp, unsigned int *year,
 
 /* The caller must call stream_destoy() when done, no other commands are
    permitted until the stream is destroyed.  */
-extern int  mu_nntp_help            (mu_nntp_t nntp, stream_t *stream);
+extern int  mu_nntp_help            (mu_nntp_t nntp, mu_stream_t *stream);
 
 
 /* An iterator is return with the multi-line answer. It is the responsibility
@@ -117,7 +117,7 @@ extern int  mu_nntp_newgroups       (mu_nntp_t nntp, unsigned int year,
 				     unsigned int month, unsigned int day,
 				     unsigned int hour, unsigned int minute,
 				     unsigned int second, int is_gmt,
-				     iterator_t *iterator);
+				     mu_iterator_t *iterator);
   
 /* A iterator is return with the multi-line answer. It is the responsibility
    of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
@@ -125,27 +125,27 @@ extern int  mu_nntp_newnews       (mu_nntp_t nntp, const char *wildmat,
 				   unsigned int year, unsigned int month,
 				   unsigned int day, unsigned int hour,
 				   unsigned int minute, unsigned int second,
-				   int is_gmt, iterator_t *iterator);
+				   int is_gmt, mu_iterator_t *iterator);
 
-extern int  mu_nntp_post            (mu_nntp_t nntp, stream_t stream);
+extern int  mu_nntp_post            (mu_nntp_t nntp, mu_stream_t stream);
 extern int  mu_nntp_ihave           (mu_nntp_t nntp, const char *mid,
-				     stream_t stream);
+				     mu_stream_t stream);
 
 
 /* A iterator is return with the multi-line answer. It is the responsibility
    of the caller to call mu_iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_list_active     (mu_nntp_t nntp, const char *wildmat,
-				     iterator_t *iterator);
+				     mu_iterator_t *iterator);
 extern int  mu_nntp_list_active_times      (mu_nntp_t nntp,
 					    const char *wildmat,
-					    iterator_t *iterator);
+					    mu_iterator_t *iterator);
 extern int  mu_nntp_list_distributions (mu_nntp_t nntp,
 					const char *wildmat,
-					iterator_t *iterator);
-extern int  mu_nntp_list_distrib_pats  (mu_nntp_t nntp, iterator_t *iterator);
+					mu_iterator_t *iterator);
+extern int  mu_nntp_list_distrib_pats  (mu_nntp_t nntp, mu_iterator_t *iterator);
 extern int  mu_nntp_list_newsgroups    (mu_nntp_t nntp, 
 					const char *wildmat,
-					iterator_t *iterator);
+					mu_iterator_t *iterator);
 
 
 /* Parse the list active response.

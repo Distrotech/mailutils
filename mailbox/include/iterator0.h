@@ -36,7 +36,7 @@ struct _iterator
   int is_advanced;            /* Is the iterator already advanced */
 
   int (*dup) (void **ptr, void *owner);
-  int (*destroy) (iterator_t itr, void *owner);
+  int (*destroy) (mu_iterator_t itr, void *owner);
   int (*first) (void *owner);
   int (*next) (void *owner);
   int (*getitem) (void *owner, void **pret);

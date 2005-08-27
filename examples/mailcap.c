@@ -24,12 +24,12 @@
 int
 main (int argc, char **argv)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status = 0;
   char *file = argc == 1 ? "/etc/mailcap" : argv[1];
   mu_mailcap_t mailcap = NULL;
 
-  status = file_stream_create (&stream, file, MU_STREAM_READ);
+  status = mu_file_stream_create (&stream, file, MU_STREAM_READ);
   if (status)
     {
       mu_error ("cannot create file stream %s: %s",
@@ -37,7 +37,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  status = stream_open (stream);
+  status = mu_stream_open (stream);
   if (status)
     {
       mu_error ("cannot open file stream %s: %s",

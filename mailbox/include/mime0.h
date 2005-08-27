@@ -51,9 +51,9 @@ extern "C" {
 
 struct _mime
 {
-  message_t       msg;
-  header_t        hdrs;
-  stream_t        stream;
+  mu_message_t       msg;
+  mu_header_t        hdrs;
+  mu_stream_t        stream;
   int             flags;
   char           *content_type;
 
@@ -83,8 +83,8 @@ struct _mime
 
 struct _mime_part
 {
-  mime_t          mime;
-  message_t       msg;
+  mu_mime_t          mime;
+  mu_message_t       msg;
   int             body_created;
   int             offset;
   size_t          len;

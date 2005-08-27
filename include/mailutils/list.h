@@ -25,30 +25,30 @@
 extern "C" {
 #endif
 
-extern int mu_list_create   (list_t *);
-extern void mu_list_destroy (list_t *);
-extern int mu_list_append   (list_t, void *item);
-extern int mu_list_prepend  (list_t, void *item);
-extern int mu_list_insert   (list_t list, void *item, void *new_item, 
+extern int mu_list_create   (mu_list_t *);
+extern void mu_list_destroy (mu_list_t *);
+extern int mu_list_append   (mu_list_t, void *item);
+extern int mu_list_prepend  (mu_list_t, void *item);
+extern int mu_list_insert   (mu_list_t list, void *item, void *new_item, 
                           int insert_before);
-extern int mu_list_is_empty (list_t);
-extern int mu_list_count    (list_t, size_t *pcount);
-extern int mu_list_remove   (list_t, void *item);
-extern int mu_list_replace  (list_t list, void *old_item, void *new_item);  
-extern int mu_list_get      (list_t, size_t _index, void **pitem);
-extern int mu_list_to_array (list_t list, void **array, size_t count, size_t *pcount);
-extern int mu_list_locate   (list_t list, void *item, void **ret_item);
-extern int mu_list_get_iterator (list_t, iterator_t *);
+extern int mu_list_is_empty (mu_list_t);
+extern int mu_list_count    (mu_list_t, size_t *pcount);
+extern int mu_list_remove   (mu_list_t, void *item);
+extern int mu_list_replace  (mu_list_t list, void *old_item, void *new_item);  
+extern int mu_list_get      (mu_list_t, size_t _index, void **pitem);
+extern int mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount);
+extern int mu_list_locate   (mu_list_t list, void *item, void **ret_item);
+extern int mu_list_get_iterator (mu_list_t, mu_iterator_t *);
 
 typedef int mu_list_action_t (void* item, void* cbdata);
   
-extern int mu_list_do       (list_t list, mu_list_action_t * action, void *cbdata);
+extern int mu_list_do       (mu_list_t list, mu_list_action_t * action, void *cbdata);
 
 typedef int (*mu_list_comparator_t) (const void*, const void*);
 
-extern mu_list_comparator_t mu_list_set_comparator (list_t, mu_list_comparator_t);
+extern mu_list_comparator_t mu_list_set_comparator (mu_list_t, mu_list_comparator_t);
 
-extern int mu_list_set_destroy_item (list_t list, void (*destoy_item) (void *));
+extern int mu_list_set_destroy_item (mu_list_t list, void (*destoy_item) (void *));
 
   
 #ifdef __cplusplus

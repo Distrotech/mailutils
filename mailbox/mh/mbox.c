@@ -127,7 +127,7 @@ _mh_get_message_seq (struct _amd_data *amd, size_t seq)
 
 /* Scan the mailbox */
 static int
-mh_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
+mh_scan0 (mu_mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
           int do_notify)
 {
   struct _amd_data *amd = mailbox->data;
@@ -144,7 +144,7 @@ mh_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
   if (!dir)
     return errno;
 
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
 
 #ifdef WITH_PTHREAD
   pthread_cleanup_push (amd_cleanup, (void *)mailbox);
@@ -251,9 +251,9 @@ mh_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
    to keeping the uids in the headers of the messages. */
 
 static int
-mh_message_uid (message_t msg, size_t *puid)
+mh_message_uid (mu_message_t msg, size_t *puid)
 {
-  struct _mh_message *mhm = message_get_owner (msg);
+  struct _mh_message *mhm = mu_message_get_owner (msg);
   if (puid)
     *puid = mhm->seq_number;
   return 0;
@@ -270,7 +270,7 @@ _mh_msg_init (struct _amd_data *amd, struct _amd_message *amm)
 
 
 int
-_mailbox_mh_init (mailbox_t mailbox)
+_mailbox_mh_init (mu_mailbox_t mailbox)
 {
   int rc;
   struct _amd_data *amd;
@@ -291,9 +291,9 @@ _mailbox_mh_init (mailbox_t mailbox)
   
   /* Set our properties.  */
   {
-    property_t property = NULL;
+    mu_property_t property = NULL;
     mu_mailbox_get_property (mailbox, &property);
-    property_set_value (property, "TYPE", "MH", 1);
+    mu_property_set_value (property, "TYPE", "MH", 1);
   }
 
   return 0;

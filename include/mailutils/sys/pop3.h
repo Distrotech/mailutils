@@ -86,14 +86,14 @@ struct _mu_pop3
 
     enum mu_pop3_state state;  /* Indicate the state of the running command.  */
 
-    stream_t carrier; /* TCP Connection.  */
+    mu_stream_t carrier; /* TCP Connection.  */
   };
 
 extern int  mu_pop3_debug_cmd       (mu_pop3_t);
 extern int  mu_pop3_debug_ack       (mu_pop3_t);
-extern int  mu_pop3_iterator_create (mu_pop3_t pop3, iterator_t *piterator);
-extern int  mu_pop3_stream_create (mu_pop3_t pop3, stream_t *pstream);
-extern int  mu_pop3_carrier_is_ready (stream_t carrier, int flag, int timeout);
+extern int  mu_pop3_iterator_create (mu_pop3_t pop3, mu_iterator_t *piterator);
+extern int  mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream);
+extern int  mu_pop3_carrier_is_ready (mu_stream_t carrier, int flag, int timeout);
 
 /* Check for non recoverable error.
    The error is consider not recoverable if not part of the signal set:

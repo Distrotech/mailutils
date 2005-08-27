@@ -101,8 +101,8 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 
   for (i = 0; i < n; i++)
     {
-      message_t msg = NULL;
-      attribute_t attr = NULL;
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
       char *items = strdup (sp); /* Don't use the orignal list.  */
       int first = 1;
       size_t msgno;
@@ -112,7 +112,7 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
       if (msgno)
 	{
 	  mu_mailbox_get_message (mbox, msgno, &msg);
-	  message_get_attribute (msg, &attr);
+	  mu_message_get_attribute (msg, &attr);
 
 	  /* Get the fetch command names.  */
 	  while (*items && *items != ')')

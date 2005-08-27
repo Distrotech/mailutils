@@ -26,7 +26,7 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_article (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_article (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, mu_stream_t *pstream)
 {
   int status;
   char *message_id = NULL;
@@ -48,7 +48,7 @@ mu_nntp_article (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char
 }
 
 int
-mu_nntp_article_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_article_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, mu_stream_t *pstream)
 {
   int status;
 

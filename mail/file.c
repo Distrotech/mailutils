@@ -80,8 +80,8 @@ mail_file (int argc, char **argv)
     {
       /* switch folders */
       char *pname;
-      url_t url;
-      mailbox_t newbox = NULL;
+      mu_url_t url;
+      mu_mailbox_t newbox = NULL;
       char *name = mail_expand_name (argv[1]);
       int status;
 
@@ -101,7 +101,7 @@ mail_file (int argc, char **argv)
       page_invalidate (1); /* Invalidate current page map */
       
       mu_mailbox_get_url (mbox, &url);
-      pname = strdup (url_to_string (url));
+      pname = strdup (mu_url_to_string (url));
       if (mail_mbox_close ())
 	{
 	  if (pname)

@@ -48,7 +48,7 @@ struct _header
   void *owner;
 
   /* Data.  */
-  stream_t mstream;
+  mu_stream_t mstream;
   size_t stream_len;
   char *blurb;
   size_t blurb_len;
@@ -59,13 +59,13 @@ struct _header
   int flags;
 
   /* Stream.  */
-  stream_t stream;
-  int (*_get_value) (header_t, const char *, char *, size_t , size_t *);
-  int (*_get_fvalue) (header_t, const char *, char *, size_t , size_t *);
-  int (*_set_value) (header_t, const char *, const char *, int);
-  int (*_lines)     (header_t, size_t *);
-  int (*_size)      (header_t, size_t *);
-  int (*_fill)      (header_t, char *, size_t, off_t, size_t *);
+  mu_stream_t stream;
+  int (*_get_value) (mu_header_t, const char *, char *, size_t , size_t *);
+  int (*_get_fvalue) (mu_header_t, const char *, char *, size_t , size_t *);
+  int (*_set_value) (mu_header_t, const char *, const char *, int);
+  int (*_lines)     (mu_header_t, size_t *);
+  int (*_size)      (mu_header_t, size_t *);
+  int (*_fill)      (mu_header_t, char *, size_t, off_t, size_t *);
 };
 
 #ifdef __cplusplus

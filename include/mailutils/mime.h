@@ -31,21 +31,21 @@
 extern "C" {
 #endif
 
-int mime_create		(mime_t *pmime, message_t msg, int flags);
-void mime_destroy	(mime_t *pmime);
-int mime_is_multipart	(mime_t mime);
-int mime_get_num_parts	(mime_t mime, size_t *nparts);
+int mu_mime_create		(mu_mime_t *pmime, mu_message_t msg, int flags);
+void mu_mime_destroy	(mu_mime_t *pmime);
+int mu_mime_is_multipart	(mu_mime_t mime);
+int mu_mime_get_num_parts	(mu_mime_t mime, size_t *nparts);
 
-int mime_get_part	(mime_t mime, size_t part, message_t *msg);
+int mu_mime_get_part	(mu_mime_t mime, size_t part, mu_message_t *msg);
 
-int mime_add_part	(mime_t mime, message_t msg);
+int mu_mime_add_part	(mu_mime_t mime, mu_message_t msg);
 
-int mime_get_message	(mime_t mime, message_t *msg);
+int mu_mime_get_message	(mu_mime_t mime, mu_message_t *msg);
 
-int rfc2047_decode      (const char *tocode, const char *fromstr, 
+int mu_rfc2047_decode      (const char *tocode, const char *fromstr, 
                          char **ptostr);
 
-int rfc2047_encode      (const char *charset, const char *encoding, 
+int mu_rfc2047_encode      (const char *charset, const char *encoding, 
 			 const char *text, char **result);
   
 #ifdef __cplusplus

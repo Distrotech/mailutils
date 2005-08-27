@@ -33,7 +33,7 @@ struct mu_odbc_data
   SQLHDBC dbc;        /* DBC */
                       /* Result data: */ 
   SQLHSTMT stmt;      /* Statement being executed */
-  list_t result;      /* List of returned field values */
+  mu_list_t result;      /* List of returned field values */
                       /* Error reporting: */
   struct odbc_err_buffer
   {

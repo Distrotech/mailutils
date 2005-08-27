@@ -18,15 +18,15 @@
 
 #include "mail.h"
 
-static list_t retained_headers = NULL;
-static list_t ignored_headers = NULL;
-static list_t unfolded_headers = NULL;
-static list_t sender_headers = NULL;
+static mu_list_t retained_headers = NULL;
+static mu_list_t ignored_headers = NULL;
+static mu_list_t unfolded_headers = NULL;
+static mu_list_t sender_headers = NULL;
 
 static int
 process_list (int argc, char **argv,
-	      list_t *list,
-	      void (*fun) (list_t *, char *),
+	      mu_list_t *list,
+	      void (*fun) (mu_list_t *, char *),
 	      char *msg)
 {
   if (argc == 1)
@@ -135,14 +135,14 @@ mail_nosender (int argc, char **argv)
 }
 
 
-address_t
-get_sender_address (message_t msg)
+mu_address_t
+get_sender_address (mu_message_t msg)
 {
-  iterator_t itr;
-  header_t header = NULL;
-  address_t addr = NULL;
+  mu_iterator_t itr;
+  mu_header_t header = NULL;
+  mu_address_t addr = NULL;
 
-  if (message_get_header (msg, &header))
+  if (mu_message_get_header (msg, &header))
     return NULL;
   
   if (!sender_headers || mu_list_get_iterator (sender_headers, &itr))

@@ -251,13 +251,13 @@ watch_printf (const char *fmt, ...)
   va_end (ap);
 }
 
-static list_t mesg_list;
+static mu_list_t mesg_list;
 static mh_context_t *mts_profile;
 
 int
 check_file (char *name)
 {
-  message_t msg;
+  mu_message_t msg;
 
   msg = mh_file_to_message (draft_folder, name);
   if (!msg)
@@ -290,17 +290,17 @@ read_mts_profile ()
 }
 
 
-mailer_t
+mu_mailer_t
 open_mailer ()
 {
   char *url = mh_context_get_value (mts_profile,
 				    "url",
 				    "sendmail:/usr/sbin/sendmail");
-  mailer_t mailer;
+  mu_mailer_t mailer;
   int status;
     
   WATCH ((_("Creating mailer %s"), url));
-  status = mailer_create (&mailer, url);
+  status = mu_mailer_create (&mailer, url);
   if (status)
     {
       mh_error(_("Cannot create mailer `%s'"), url);
@@ -310,12 +310,12 @@ open_mailer ()
   if (verbose)
     {
       mu_debug_t debug = NULL;
-      mailer_get_debug (mailer, &debug);
+      mu_mailer_get_debug (mailer, &debug);
       mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
     }
 
   WATCH ((_("Opening mailer %s"), url));
-  status = mailer_open (mailer, MU_STREAM_RDWR);
+  status = mu_mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
       mh_error(_("Cannot open mailer `%s'"), url);
@@ -325,7 +325,7 @@ open_mailer ()
 }
 
 static void
-create_message_id (header_t hdr)
+create_message_id (mu_header_t hdr)
 {
   char *p = mh_create_message_id (0);
   mu_header_set_value (hdr, MU_HEADER_MESSAGE_ID, p, 1);
@@ -351,7 +351,7 @@ get_sender_personal ()
 }
 
 static void
-set_address_header (header_t hdr, char *name, address_t addr)
+set_address_header (mu_header_t hdr, char *name, mu_address_t addr)
 {
   size_t s = mu_address_format_string (addr, NULL, 0);
   char *value = xmalloc (s + 1);
@@ -361,16 +361,16 @@ set_address_header (header_t hdr, char *name, address_t addr)
 }
 
 void
-expand_aliases (message_t msg)
+expand_aliases (mu_message_t msg)
 {
-  header_t hdr;
+  mu_header_t hdr;
   size_t i, num;
   char *buf;
-  address_t addr_to = NULL,
+  mu_address_t addr_to = NULL,
             addr_cc = NULL,
             addr_bcc = NULL;
   
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
@@ -381,7 +381,7 @@ expand_aliases (message_t msg)
 	      || strcasecmp (buf, MU_HEADER_BCC) == 0)
 	    {
 	      char *value;
-	      address_t addr = NULL;
+	      mu_address_t addr = NULL;
 	      int incl;
 	      
 	      mu_header_aget_field_value_unfold (hdr, i, &value);
@@ -419,12 +419,12 @@ expand_aliases (message_t msg)
 }
 
 void
-fix_fcc (message_t msg)
+fix_fcc (mu_message_t msg)
 {
-  header_t hdr;
+  mu_header_t hdr;
   char *val;
   
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, MU_HEADER_FCC, &val) == 0
       && strchr ("+%~/=", val[0]) == NULL)
     {
@@ -440,15 +440,15 @@ fix_fcc (message_t msg)
 int
 _action_send (void *item, void *data)
 {
-  message_t msg = item;
+  mu_message_t msg = item;
   int rc;
-  mailer_t mailer;
-  header_t hdr;
+  mu_mailer_t mailer;
+  mu_header_t hdr;
   size_t n;
 
   WATCH ((_("Getting message")));
 
-  if (message_get_header (msg, &hdr) == 0)
+  if (mu_message_get_header (msg, &hdr) == 0)
     {
       char date[80];
       time_t t = time (NULL);
@@ -487,7 +487,7 @@ _action_send (void *item, void *data)
     return 1;
 
   WATCH ((_("Sending message")));
-  rc = mailer_send_message (mailer, msg, NULL, NULL);
+  rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
       mh_error(_("Cannot send message: %s"), mu_strerror (rc));
@@ -495,8 +495,8 @@ _action_send (void *item, void *data)
     }
 
   WATCH ((_("Destroying the mailer")));
-  mailer_close (mailer);
-  mailer_destroy (&mailer);
+  mu_mailer_close (mailer);
+  mu_mailer_destroy (&mailer);
   
   return 0;
 }

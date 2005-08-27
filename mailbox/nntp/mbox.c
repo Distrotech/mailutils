@@ -57,38 +57,38 @@
 #include "nntp0.h"
 
 
-/*  Functions/Methods that implements the mailbox_t API.  */
-static void nntp_mailbox_destroy         (mailbox_t);
-static int  nntp_mailbox_open            (mailbox_t, int);
-static int  nntp_mailbox_close           (mailbox_t);
-static int  nntp_mailbox_get_message     (mailbox_t, size_t, message_t *);
-static int  nntp_mailbox_messages_count  (mailbox_t, size_t *);
-static int  nntp_mailbox_scan            (mailbox_t, size_t, size_t *);
+/*  Functions/Methods that implements the mu_mailbox_t API.  */
+static void nntp_mailbox_destroy         (mu_mailbox_t);
+static int  nntp_mailbox_open            (mu_mailbox_t, int);
+static int  nntp_mailbox_close           (mu_mailbox_t);
+static int  nntp_mailbox_get_message     (mu_mailbox_t, size_t, mu_message_t *);
+static int  nntp_mailbox_messages_count  (mu_mailbox_t, size_t *);
+static int  nntp_mailbox_scan            (mu_mailbox_t, size_t, size_t *);
 /* FIXME
-   static int  nntp_mailbox_get_size        (mailbox_t, off_t *); */
+   static int  nntp_mailbox_get_size        (mu_mailbox_t, off_t *); */
 
-static int  nntp_message_get_transport2  (stream_t, mu_transport_t *, mu_transport_t *);
-static int  nntp_message_read            (stream_t, char *, size_t, off_t, size_t *);
-static int  nntp_message_size            (message_t, size_t *);
+static int  nntp_message_get_transport2  (mu_stream_t, mu_transport_t *, mu_transport_t *);
+static int  nntp_message_read            (mu_stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_message_size            (mu_message_t, size_t *);
 /* FIXME
-   static int  nntp_message_line            (message_t, size_t *); */
-static int  nntp_message_uidl            (message_t, char *, size_t, size_t *);
-static int  nntp_message_uid             (message_t, size_t *);
+   static int  nntp_message_line            (mu_message_t, size_t *); */
+static int  nntp_message_uidl            (mu_message_t, char *, size_t, size_t *);
+static int  nntp_message_uid             (mu_message_t, size_t *);
 
 /* FIXME
-   static int  nntp_header_get_transport2   (header_t, char *,
+   static int  nntp_header_get_transport2   (mu_header_t, char *,
                                              size_t, off_t, size_t *); */
-static int  nntp_header_fill             (header_t, char *, size_t, off_t, size_t *);
+static int  nntp_header_fill             (mu_header_t, char *, size_t, off_t, size_t *);
 
-static int  nntp_body_get_transport2     (stream_t, mu_transport_t *, mu_transport_t *);
-static int  nntp_body_read               (stream_t, char *, size_t, off_t, size_t *);
-static int  nntp_body_size               (body_t, size_t *);
-static int  nntp_body_lines              (body_t, size_t *);
+static int  nntp_body_get_transport2     (mu_stream_t, mu_transport_t *, mu_transport_t *);
+static int  nntp_body_read               (mu_stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_body_size               (mu_body_t, size_t *);
+static int  nntp_body_lines              (mu_body_t, size_t *);
 
 static int  nntp_get_transport2          (msg_nntp_t, mu_transport_t *, mu_transport_t *);
 
 int
-_nntp_mailbox_init (mailbox_t mbox)
+_nntp_mailbox_init (mu_mailbox_t mbox)
 {
   m_nntp_t m_nntp;
   int status = 0;
@@ -106,7 +106,7 @@ _nntp_mailbox_init (mailbox_t mbox)
   m_nntp->mailbox = mbox;		/* Back pointer.  */
 
   /* Retrieve the name of the newsgroup from the URL.  */
-  url_get_path (mbox->url, NULL, 0, &name_len);
+  mu_url_get_path (mbox->url, NULL, 0, &name_len);
   if (name_len == 0)
     {
       /* name "INBOX" is the default.  */
@@ -117,7 +117,7 @@ _nntp_mailbox_init (mailbox_t mbox)
     {
       char *p;
       m_nntp->name = calloc (name_len + 1, sizeof (char));
-      url_get_path (mbox->url, m_nntp->name, name_len + 1, NULL);
+      mu_url_get_path (mbox->url, m_nntp->name, name_len + 1, NULL);
       p = strchr (m_nntp->name,'/');
       if (p)
 	*p = '\0';
@@ -143,9 +143,9 @@ _nntp_mailbox_init (mailbox_t mbox)
 
   /* Set our properties.  */
   {
-    property_t property = NULL;
+    mu_property_t property = NULL;
     mu_mailbox_get_property (mbox, &property);
-    property_set_value (property, "TYPE", "NNTP", 1);
+    mu_property_set_value (property, "TYPE", "NNTP", 1);
   }
 
   return status;
@@ -153,7 +153,7 @@ _nntp_mailbox_init (mailbox_t mbox)
 
 /*  Cleaning up all the ressources associate with a newsgroup/mailbox.  */
 static void
-nntp_mailbox_destroy (mailbox_t mbox)
+nntp_mailbox_destroy (mu_mailbox_t mbox)
 {
   if (mbox->data)
     {
@@ -165,7 +165,7 @@ nntp_mailbox_destroy (mailbox_t mbox)
       if (m_nntp == f_nntp->selected)
 	f_nntp->selected = NULL;
 
-      monitor_wrlock (mbox->monitor);
+      mu_monitor_wrlock (mbox->monitor);
 
       if (m_nntp->name)
 	free (m_nntp->name);
@@ -175,7 +175,7 @@ nntp_mailbox_destroy (mailbox_t mbox)
 	{
 	  if (m_nntp->messages[i])
 	    {
-	      message_destroy (&(m_nntp->messages[i]->message), m_nntp->messages[i]);
+	      mu_message_destroy (&(m_nntp->messages[i]->message), m_nntp->messages[i]);
 	      if (m_nntp->messages[i]->mid)
 		free (m_nntp->messages[i]->mid);
 	      free (m_nntp->messages[i]);
@@ -186,7 +186,7 @@ nntp_mailbox_destroy (mailbox_t mbox)
 	free (m_nntp->messages);
       free (m_nntp);
       mbox->data = NULL;
-      monitor_unlock (mbox->monitor);
+      mu_monitor_unlock (mbox->monitor);
     }
 }
 
@@ -195,12 +195,12 @@ nntp_mailbox_destroy (mailbox_t mbox)
    to set select the mailbox/newsgoup right away, there are maybe on going operations.
    But on any operation by a particular mailbox, it will be selected first.  */
 static int
-nntp_mailbox_open (mailbox_t mbox, int flags)
+nntp_mailbox_open (mu_mailbox_t mbox, int flags)
 {
   int status = 0;
   m_nntp_t m_nntp = mbox->data;
   f_nntp_t f_nntp = m_nntp->f_nntp;
-  iterator_t iterator;
+  mu_iterator_t iterator;
 
   /* m_nntp must have been created during mailbox initialization. */
   /* assert (mbox->data);
@@ -234,13 +234,13 @@ nntp_mailbox_open (mailbox_t mbox, int flags)
 /* We can not close the folder in term of shuting down the connection but if
    we were the selected mailbox/newsgroup we deselect ourself.  */
 static int
-nntp_mailbox_close (mailbox_t mailbox)
+nntp_mailbox_close (mu_mailbox_t mailbox)
 {
   m_nntp_t m_nntp = mailbox->data;
   f_nntp_t f_nntp = m_nntp->f_nntp;
   int i;
 
-  monitor_wrlock (mailbox->monitor);
+  mu_monitor_wrlock (mailbox->monitor);
 
   /* Destroy the nntp posts and ressources associated to them.  */
   for (i = 0; i < m_nntp->messages_count; i++)
@@ -249,7 +249,7 @@ nntp_mailbox_close (mailbox_t mailbox)
 	{
 	  msg_nntp_t msg_nntp = m_nntp->messages[i];
 	  if (msg_nntp->message)
-	    message_destroy (&(msg_nntp->message), msg_nntp);
+	    mu_message_destroy (&(msg_nntp->message), msg_nntp);
 	}
       free (m_nntp->messages[i]);
     }
@@ -260,7 +260,7 @@ nntp_mailbox_close (mailbox_t mailbox)
   m_nntp->number = 0;
   m_nntp->low = 0;
   m_nntp->high = 0;
-  monitor_unlock (mailbox->monitor);
+  mu_monitor_unlock (mailbox->monitor);
 
   /* Deselect.  */
   if (m_nntp != f_nntp->selected)
@@ -271,11 +271,11 @@ nntp_mailbox_close (mailbox_t mailbox)
 }
 
 static int
-nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
+nntp_mailbox_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
 {
   m_nntp_t m_nntp = mbox->data;
   msg_nntp_t msg_nntp;
-  message_t msg = NULL;
+  mu_message_t msg = NULL;
   int status;
   size_t i;
 
@@ -284,7 +284,7 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     return MU_ERR_OUT_PTR_NULL;
 
  msgno--;
-  monitor_rdlock (mbox->monitor);
+  mu_monitor_rdlock (mbox->monitor);
   /* See if we have already this message.  */
   for (i = 0; i < m_nntp->messages_count; i++)
     {
@@ -293,12 +293,12 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  if (m_nntp->messages[i]->msgno == msgno + m_nntp->low)
 	    {
 	      *pmsg = m_nntp->messages[i]->message;
-	      monitor_unlock (mbox->monitor);
+	      mu_monitor_unlock (mbox->monitor);
 	      return 0;
 	    }
 	}
     }
-  monitor_unlock (mbox->monitor);
+  mu_monitor_unlock (mbox->monitor);
 
   msg_nntp = calloc (1, sizeof (*msg_nntp));
   if (msg_nntp == NULL)
@@ -310,80 +310,80 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the message.  */
   {
-    stream_t stream = NULL;
-    if ((status = message_create (&msg, msg_nntp)) != 0
-	|| (status = stream_create (&stream, mbox->flags, msg)) != 0)
+    mu_stream_t stream = NULL;
+    if ((status = mu_message_create (&msg, msg_nntp)) != 0
+	|| (status = mu_stream_create (&stream, mbox->flags, msg)) != 0)
       {
-	stream_destroy (&stream, msg);
-	message_destroy (&msg, msg_nntp);
+	mu_stream_destroy (&stream, msg);
+	mu_message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
 	return status;
       }
     /* Help for the readline()s  */
-    stream_set_read (stream, nntp_message_read, msg);
-    stream_set_get_transport2 (stream, nntp_message_get_transport2, msg);
-    message_set_stream (msg, stream, msg_nntp);
-    message_set_size (msg, nntp_message_size, msg_nntp);
+    mu_stream_set_read (stream, nntp_message_read, msg);
+    mu_stream_set_get_transport2 (stream, nntp_message_get_transport2, msg);
+    mu_message_set_stream (msg, stream, msg_nntp);
+    mu_message_set_size (msg, nntp_message_size, msg_nntp);
   }
 
   /* Create the header.  */
   {
-    header_t header = NULL;
+    mu_header_t header = NULL;
     if ((status = mu_header_create (&header, NULL, 0,  msg)) != 0)
       {
-	message_destroy (&msg, msg_nntp);
+	mu_message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
 	return status;
       }
     mu_header_set_fill (header, nntp_header_fill, msg);
-    message_set_header (msg, header, msg_nntp);
+    mu_message_set_header (msg, header, msg_nntp);
   }
 
   /* Create the body and its stream.  */
   {
-    body_t body = NULL;
-    stream_t stream = NULL;
+    mu_body_t body = NULL;
+    mu_stream_t stream = NULL;
     if ((status = mu_body_create (&body, msg)) != 0
-	|| (status = stream_create (&stream, mbox->flags, body)) != 0)
+	|| (status = mu_stream_create (&stream, mbox->flags, body)) != 0)
       {
 	mu_body_destroy (&body, msg);
-	stream_destroy (&stream, body);
-	message_destroy (&msg, msg_nntp);
+	mu_stream_destroy (&stream, body);
+	mu_message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
 	return status;
       }
     /* Helps for the readline()s  */
-    stream_set_read (stream, nntp_body_read, body);
-    stream_set_get_transport2 (stream, nntp_body_get_transport2, body);
+    mu_stream_set_read (stream, nntp_body_read, body);
+    mu_stream_set_get_transport2 (stream, nntp_body_get_transport2, body);
     mu_body_set_size (body, nntp_body_size, msg);
     mu_body_set_lines (body, nntp_body_lines, msg);
     mu_body_set_stream (body, stream, msg);
-    message_set_body (msg, body, msg_nntp);
+    mu_message_set_body (msg, body, msg_nntp);
   }
 
   /* Set the UID on the message. */
-  message_set_uid (msg, nntp_message_uid, msg_nntp);
+  mu_message_set_uid (msg, nntp_message_uid, msg_nntp);
 
   /* Add it to the list.  */
-  monitor_wrlock (mbox->monitor);
+  mu_monitor_wrlock (mbox->monitor);
   {
     msg_nntp_t *m ;
     m = realloc (m_nntp->messages, (m_nntp->messages_count + 1)*sizeof (*m));
     if (m == NULL)
       {
-	message_destroy (&msg, msg_nntp);
+	mu_message_destroy (&msg, msg_nntp);
 	free (msg_nntp);
-	monitor_unlock (mbox->monitor);
+	mu_monitor_unlock (mbox->monitor);
 	return ENOMEM;
       }
     m_nntp->messages = m;
     m_nntp->messages[m_nntp->messages_count] = msg_nntp;
     m_nntp->messages_count++;
   }
-  monitor_unlock (mbox->monitor);
+  mu_monitor_unlock (mbox->monitor);
 
   /* Save The message pointer.  */
-  message_set_mailbox (msg, mbox, msg_nntp);
+  mu_message_set_mailbox (msg, mbox, msg_nntp);
   *pmsg = msg_nntp->message = msg;
 
   return 0;
@@ -392,7 +392,7 @@ nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 /* There is no explicit call to get the message count.  The count is send on
    a "GROUP" command.  The function is also use as a way to select newsgoupr by other functions.  */
 static int
-nntp_mailbox_messages_count (mailbox_t mbox, size_t *pcount)
+nntp_mailbox_messages_count (mu_mailbox_t mbox, size_t *pcount)
 {
   m_nntp_t m_nntp = mbox->data;
   f_nntp_t f_nntp = m_nntp->f_nntp;
@@ -423,7 +423,7 @@ nntp_mailbox_messages_count (mailbox_t mbox, size_t *pcount)
 
 /* Update and scanning. FIXME: Is not used */
 static int
-nntp_is_updated (mailbox_t mbox)
+nntp_is_updated (mu_mailbox_t mbox)
 {
   return 1;
 }
@@ -431,7 +431,7 @@ nntp_is_updated (mailbox_t mbox)
 /* We just simulate by sending a notification for the total msgno.  */
 /* FIXME is message is set deleted should we sent a notif ?  */
 static int
-nntp_mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+nntp_mailbox_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   int status;
   size_t i;
@@ -447,18 +447,18 @@ nntp_mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
     return 0;
   for (i = msgno; i <= count; i++)
     {
-      if (observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
 	break;
       if (((i +1) % 10) == 0)
 	{
-	  observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
 	}
     }
   return 0;
 }
 
 static int
-nntp_message_size (message_t msg, size_t *psize)
+nntp_message_size (mu_message_t msg, size_t *psize)
 {
   if (psize)
     *psize = 0;
@@ -466,7 +466,7 @@ nntp_message_size (message_t msg, size_t *psize)
 }
 
 static int
-nntp_body_size (body_t body, size_t *psize)
+nntp_body_size (mu_body_t body, size_t *psize)
 {
   if (psize)
     *psize = 0;
@@ -476,7 +476,7 @@ nntp_body_size (body_t body, size_t *psize)
 
 /* Not know until the whole message get downloaded.  */
 static int
-nntp_body_lines (body_t body, size_t *plines)
+nntp_body_lines (mu_body_t body, size_t *plines)
 {
   if (plines)
     *plines = 0;
@@ -485,20 +485,20 @@ nntp_body_lines (body_t body, size_t *plines)
 
 /* Stub to call the fd from body object.  */
 static int
-nntp_body_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+nntp_body_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   return nntp_get_transport2 (msg_nntp, pin, pout);
 }
 
 /* Stub to call the fd from message object.  */
 static int
-nntp_message_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+nntp_message_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  message_t msg = stream_get_owner (stream);
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  mu_message_t msg = mu_stream_get_owner (stream);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   return nntp_get_transport2 (msg_nntp, pin, pout);
 }
 
@@ -509,18 +509,18 @@ nntp_get_transport2 (msg_nntp_t msg_nntp, mu_transport_t *pin, mu_transport_t *p
   if (msg_nntp && msg_nntp->m_nntp
       && msg_nntp->m_nntp->f_nntp && msg_nntp->m_nntp->f_nntp->folder)
     {
-      stream_t carrier;
+      mu_stream_t carrier;
       status = mu_nntp_get_carrier (msg_nntp->m_nntp->f_nntp->nntp, &carrier);
       if (status == 0)
-	return stream_get_transport2 (carrier, pin, pout);
+	return mu_stream_get_transport2 (carrier, pin, pout);
     }
   return status;
 }
 
 static int
-nntp_message_uid (message_t msg,  size_t *puid)
+nntp_message_uid (mu_message_t msg,  size_t *puid)
 {
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   int status;
 
@@ -538,10 +538,10 @@ nntp_message_uid (message_t msg,  size_t *puid)
 }
 
 static int
-nntp_message_uidl (message_t msg, char *buffer, size_t buflen,
+nntp_message_uidl (mu_message_t msg, char *buffer, size_t buflen,
 		   size_t *pnwriten)
 {
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   int status = 0;
 
@@ -573,10 +573,10 @@ nntp_message_uidl (message_t msg, char *buffer, size_t buflen,
 
 /* Message read overload  */
 static int
-nntp_message_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_message_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
 {
-  message_t msg = stream_get_owner (stream);
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  mu_message_t msg = mu_stream_get_owner (stream);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   f_nntp_t f_nntp = m_nntp->f_nntp;
   int status;
@@ -597,13 +597,13 @@ nntp_message_read (stream_t stream, char *buffer, size_t buflen, off_t offset, s
       if (status != 0)
 	return status;
     }
-  status = stream_read (msg_nntp->mstream, buffer, buflen, offset, plen);
+  status = mu_stream_read (msg_nntp->mstream, buffer, buflen, offset, plen);
   if (status == 0)
     {
       /* Destroy the stream.  */
       if (*plen == 0)
 	{
-	  stream_destroy (&msg_nntp->mstream, NULL);
+	  mu_stream_destroy (&msg_nntp->mstream, NULL);
 	}
     }
   return status;
@@ -611,11 +611,11 @@ nntp_message_read (stream_t stream, char *buffer, size_t buflen, off_t offset, s
 
 /* Message read overload  */
 static int
-nntp_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_body_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = mu_body_get_owner (body);
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  mu_body_t body = mu_stream_get_owner (stream);
+  mu_message_t msg = mu_body_get_owner (body);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   f_nntp_t f_nntp = m_nntp->f_nntp;
   int status;
@@ -636,13 +636,13 @@ nntp_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size
       if (status != 0)
 	return status;
     }
-  status = stream_read (msg_nntp->bstream, buffer, buflen, offset, plen);
+  status = mu_stream_read (msg_nntp->bstream, buffer, buflen, offset, plen);
   if (status == 0)
     {
       /* Destroy the stream.  */
       if (*plen == 0)
 	{
-	  stream_destroy (&msg_nntp->bstream, NULL);
+	  mu_stream_destroy (&msg_nntp->bstream, NULL);
 	}
     }
   return status;
@@ -650,10 +650,10 @@ nntp_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset, size
 
 /* Header read overload  */
 static int
-nntp_header_fill (header_t header, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_header_fill (mu_header_t header, char *buffer, size_t buflen, off_t offset, size_t *plen)
 {
-  message_t msg = mu_header_get_owner (header);
-  msg_nntp_t msg_nntp = message_get_owner (msg);
+  mu_message_t msg = mu_header_get_owner (header);
+  msg_nntp_t msg_nntp = mu_message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
   f_nntp_t f_nntp = m_nntp->f_nntp;
   int status;
@@ -674,13 +674,13 @@ nntp_header_fill (header_t header, char *buffer, size_t buflen, off_t offset, si
       if (status != 0)
 	return status;
     }
-  status = stream_read (msg_nntp->hstream, buffer, buflen, offset, plen);
+  status = mu_stream_read (msg_nntp->hstream, buffer, buflen, offset, plen);
   if (status == 0)
     {
       /* Destroy the stream.  */
       if (*plen == 0)
 	{
-	  stream_destroy (&msg_nntp->hstream, NULL);
+	  mu_stream_destroy (&msg_nntp->hstream, NULL);
 	}
     }
   return status;

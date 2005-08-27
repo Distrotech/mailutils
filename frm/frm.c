@@ -236,13 +236,13 @@ static struct
 static int selected;
 
 static int
-frm_select (size_t index, message_t msg)
+frm_select (size_t index, mu_message_t msg)
 {
-  header_t hdr = NULL;
-  attribute_t attr = NULL;
+  mu_header_t hdr = NULL;
+  mu_attribute_t attr = NULL;
   
-  message_get_attribute (msg, &attr);
-  message_get_header (msg, &hdr);
+  mu_message_get_attribute (msg, &attr);
+  mu_message_get_header (msg, &hdr);
 
   if (mu_attribute_is_read (attr))
     counter.read++;

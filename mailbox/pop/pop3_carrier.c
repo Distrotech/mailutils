@@ -26,7 +26,7 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_set_carrier (mu_pop3_t pop3, stream_t carrier)
+mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
 {
   /* Sanity checks.  */
   if (pop3 == NULL)
@@ -36,14 +36,14 @@ mu_pop3_set_carrier (mu_pop3_t pop3, stream_t carrier)
     {
       /* Close any old carrier.  */
       mu_pop3_disconnect (pop3);
-      stream_destroy (&pop3->carrier, pop3);
+      mu_stream_destroy (&pop3->carrier, pop3);
     }
   pop3->carrier = carrier;
   return 0;
 }
 
 int
-mu_pop3_get_carrier (mu_pop3_t pop3, stream_t *pcarrier)
+mu_pop3_get_carrier (mu_pop3_t pop3, mu_stream_t *pcarrier)
 {
   /* Sanity checks.  */
   if (pop3 == NULL)

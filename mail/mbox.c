@@ -23,11 +23,11 @@
  */
 
 static int
-mbox0 (msgset_t *mspec, message_t msg, void *data)
+mbox0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  attribute_t attr;
+  mu_attribute_t attr;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
   util_mark_read (msg);
   

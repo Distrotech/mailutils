@@ -25,9 +25,9 @@
 
 #define WEEDLIST_SEPARATOR " :,"
 
-static void print_header (message_t, int no_header,
+static void print_header (mu_message_t, int no_header,
 			  int all_header, const char *weedlst);
-static void print_body (message_t);
+static void print_body (mu_message_t);
 static int  string_starts_with (const char * s1, const char *s2);
 
 const char *program_version = "readmsg (" PACKAGE_STRING ")";
@@ -133,25 +133,25 @@ string_starts_with (const char * s1, const char *s2)
 }
 
 static void
-print_header (message_t message, int no_header, int all_headers,
+print_header (mu_message_t message, int no_header, int all_headers,
 	      const char *weedlist)
 {
-  header_t header = NULL;
+  mu_header_t header = NULL;
 
   if (no_header)
     return;
 
-  message_get_header (message, &header);
+  mu_message_get_header (message, &header);
 
   if (all_headers)
     {
-      stream_t stream = NULL;
+      mu_stream_t stream = NULL;
       off_t offset = 0;
       size_t len = 0;
       char buf[128];
 
       mu_header_get_stream (header, &stream);
-      while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+      while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	     && len != 0)
 	{
 	  buf[len] ='\0';
@@ -195,17 +195,17 @@ print_header (message_t message, int no_header, int all_headers,
 }
 
 static void
-print_body (message_t message)
+print_body (mu_message_t message)
 {
   char buf[128];
-  body_t body = NULL;
-  stream_t stream = NULL;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
   off_t offset = 0;
   size_t len = 0;
-  message_get_body (message, &body);
+  mu_message_get_body (message, &body);
   mu_body_get_stream (body, &stream);
 
-  while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+  while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	 && len != 0)
     {
       buf[len] ='\0';
@@ -227,7 +227,7 @@ main (int argc, char **argv)
   int n = 0;
   int i;
   int index;
-  mailbox_t mbox = NULL;
+  mu_mailbox_t mbox = NULL;
 
   /* Native Language Support */
   mu_init_nls ();
@@ -266,11 +266,11 @@ main (int argc, char **argv)
   status = mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      url_t url = NULL;
+      mu_url_t url = NULL;
 
       mu_mailbox_get_url (mbox, &url);
       fprintf (stderr, _("Could not open mailbox `%s': %s\n"),
-	       url_to_string (url), mu_strerror(status));
+	       mu_url_to_string (url), mu_strerror(status));
       exit (2);
     }
 
@@ -284,7 +284,7 @@ main (int argc, char **argv)
 
   for (i = 0; i < n; ++i)
     {
-      message_t msg = NULL;
+      mu_message_t msg = NULL;
 
       status = mu_mailbox_get_message (mbox, set[i], &msg);
       if (status != 0)

@@ -79,14 +79,14 @@ struct _locker
  */
 #define INVARIANT(l) assert((l)->refcnt >= 0);
 
-static void expire_stale_lock (locker_t lock);
+static void expire_stale_lock (mu_locker_t lock);
 static int stat_check (const char *file, int fd, int links);
 static int check_file_permissions (const char *file);
-static int lock_external (locker_t l, int lock); 
-static int _locker_lock_dotlock (locker_t lock);
-static int _locker_unlock_dotlock (locker_t lock);
-static int _locker_lock_kernel (locker_t lock); 
-static int _locker_unlock_kernel (locker_t lock);
+static int lock_external (mu_locker_t l, int lock); 
+static int _locker_lock_dotlock (mu_locker_t lock);
+static int _locker_unlock_dotlock (mu_locker_t lock);
+static int _locker_lock_kernel (mu_locker_t lock); 
+static int _locker_unlock_kernel (mu_locker_t lock);
 
 static int mu_locker_default_flags = MU_LOCKER_DEFAULT;
 static time_t mu_locker_retry_timeout = MU_LOCKER_RETRY_SLEEP;
@@ -143,9 +143,9 @@ mu_locker_set_default_external_program (char *path)
 }
 
 int
-mu_locker_create (locker_t *plocker, const char *filename_, int flags)
+mu_locker_create (mu_locker_t *plocker, const char *filename_, int flags)
 {
-  locker_t l;
+  mu_locker_t l;
   char filename[_POSIX_PATH_MAX];
   int err = 0;
 
@@ -216,7 +216,7 @@ mu_locker_create (locker_t *plocker, const char *filename_, int flags)
 }
 
 void
-_locker_destroy_private (locker_t locker)
+_locker_destroy_private (mu_locker_t locker)
 {
   if (locker)
     {
@@ -235,7 +235,7 @@ _locker_destroy_private (locker_t locker)
 }
 
 void
-mu_locker_destroy (locker_t *plocker)
+mu_locker_destroy (mu_locker_t *plocker)
 {
   if (plocker && *plocker)
     {
@@ -247,7 +247,7 @@ mu_locker_destroy (locker_t *plocker)
 }
 
 int
-mu_locker_set_flags (locker_t locker, int flags)
+mu_locker_set_flags (mu_locker_t locker, int flags)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -258,7 +258,7 @@ mu_locker_set_flags (locker_t locker, int flags)
 }
 
 int
-mu_locker_set_expire_time (locker_t locker, int etime)
+mu_locker_set_expire_time (mu_locker_t locker, int etime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -272,7 +272,7 @@ mu_locker_set_expire_time (locker_t locker, int etime)
 }
 
 int
-mu_locker_set_retries (locker_t locker, int retries)
+mu_locker_set_retries (mu_locker_t locker, int retries)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -286,7 +286,7 @@ mu_locker_set_retries (locker_t locker, int retries)
 }
 
 int
-mu_locker_set_retry_sleep (locker_t locker, int retry_sleep)
+mu_locker_set_retry_sleep (mu_locker_t locker, int retry_sleep)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -300,7 +300,7 @@ mu_locker_set_retry_sleep (locker_t locker, int retry_sleep)
 }
 
 int
-mu_locker_set_external (locker_t locker, const char* program)
+mu_locker_set_external (mu_locker_t locker, const char* program)
 {
   char* p = NULL;
 
@@ -324,7 +324,7 @@ mu_locker_set_external (locker_t locker, const char* program)
 }
 
 int
-mu_locker_get_flags (locker_t locker, int *flags)
+mu_locker_get_flags (mu_locker_t locker, int *flags)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -338,7 +338,7 @@ mu_locker_get_flags (locker_t locker, int *flags)
 }
 
 int
-mu_locker_get_expire_time (locker_t locker, int *ptime)
+mu_locker_get_expire_time (mu_locker_t locker, int *ptime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -352,7 +352,7 @@ mu_locker_get_expire_time (locker_t locker, int *ptime)
 }
 
 int
-mu_locker_get_retries (locker_t locker, int *retries)
+mu_locker_get_retries (mu_locker_t locker, int *retries)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -366,7 +366,7 @@ mu_locker_get_retries (locker_t locker, int *retries)
 }
 
 int
-mu_locker_get_retry_sleep (locker_t locker, int *retry_sleep)
+mu_locker_get_retry_sleep (mu_locker_t locker, int *retry_sleep)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -380,7 +380,7 @@ mu_locker_get_retry_sleep (locker_t locker, int *retry_sleep)
 }
 
 int
-mu_locker_lock (locker_t lock)
+mu_locker_lock (mu_locker_t lock)
 {
   int rc;
   int retries = 1;
@@ -470,7 +470,7 @@ mu_locker_lock (locker_t lock)
 }
 
 int
-mu_locker_touchlock (locker_t lock)
+mu_locker_touchlock (mu_locker_t lock)
 {
   if (!lock)
     return MU_ERR_LOCKER_NULL;
@@ -485,7 +485,7 @@ mu_locker_touchlock (locker_t lock)
 }
 
 int
-mu_locker_unlock (locker_t lock)
+mu_locker_unlock (mu_locker_t lock)
 {
   int rc = 0;
 
@@ -523,7 +523,7 @@ mu_locker_unlock (locker_t lock)
 }
 
 int
-mu_locker_remove_lock (locker_t lock)
+mu_locker_remove_lock (mu_locker_t lock)
 {
   int err;
 
@@ -542,7 +542,7 @@ mu_locker_remove_lock (locker_t lock)
 
 /* expire a stale lock (if MU_LOCKER_PID or MU_LOCKER_TIME) */
 static void
-expire_stale_lock (locker_t lock)
+expire_stale_lock (mu_locker_t lock)
 {
   int stale = 0;
   int fd = open (lock->data.dot.dotlock, O_RDONLY);
@@ -660,7 +660,7 @@ check_file_permissions (const char *file)
 
 /* Locker-specific lock/unlock functions */
 int
-_locker_lock_dotlock (locker_t lock)
+_locker_lock_dotlock (mu_locker_t lock)
 {
   char host[MAXHOSTNAMELEN + 1] = "localhost";
   char pid[11];		/* 10 is strlen(2^32 = 4294967296) */
@@ -753,7 +753,7 @@ _locker_lock_dotlock (locker_t lock)
 }  
 
 int
-_locker_unlock_dotlock (locker_t lock)
+_locker_unlock_dotlock (mu_locker_t lock)
 {
   if (unlink (lock->data.dot.dotlock) == -1)
     {
@@ -770,7 +770,7 @@ _locker_unlock_dotlock (locker_t lock)
 }
 
 int
-_locker_lock_kernel (locker_t lock)
+_locker_lock_kernel (mu_locker_t lock)
 {
   int fd;
   struct flock fl;
@@ -797,7 +797,7 @@ _locker_lock_kernel (locker_t lock)
 }
 
 int
-_locker_unlock_kernel (locker_t lock)
+_locker_unlock_kernel (mu_locker_t lock)
 {
   struct flock fl;
 
@@ -825,7 +825,7 @@ _locker_unlock_kernel (locker_t lock)
 #define DEC_DIGS_PER_INT (sizeof(int) * 8 / 3 + 1)
 
 static int
-lock_external (locker_t l, int lock)
+lock_external (mu_locker_t l, int lock)
 {
   int err = 0;
   const char *av[6];

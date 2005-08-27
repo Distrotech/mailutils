@@ -106,15 +106,15 @@ extern char * mu_getcwd (void);
 extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
 
 typedef void *(*mu_retrieve_fp) (void *);
-extern void mu_register_retriever (list_t *pflist, mu_retrieve_fp fun);
-extern void * mu_retrieve (list_t flist, void *data);
+extern void mu_register_retriever (mu_list_t *pflist, mu_retrieve_fp fun);
+extern void * mu_retrieve (mu_list_t flist, void *data);
 
 extern int mu_unroll_symlink (char *out, size_t outsz, const char *in);
 
 extern char * mu_expand_path_pattern (const char *pattern, const char *username);
 
-extern int mu_rfc2822_references (message_t msg, char **pstr);
-extern int mu_rfc2822_in_reply_to (message_t msg, char **pstr);
+extern int mu_rfc2822_references (mu_message_t msg, char **pstr);
+extern int mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr);
 
 /* Find NEEDLE in the HAYSTACK. Case insensitive comparison */
 extern char *mu_strcasestr (const char *haystack, const char *needle);
@@ -133,7 +133,7 @@ struct timeval;
   
 extern int mu_fd_wait (int fd, int *pflags, struct timeval *tvp);
 
-extern int mu_decode_filter (stream_t *pfilter, stream_t input,
+extern int mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 			     const char *filter_type,
 			     const char *fromcode, const char *tocode);
 

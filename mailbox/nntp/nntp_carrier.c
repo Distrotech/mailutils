@@ -26,7 +26,7 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_set_carrier (mu_nntp_t nntp, stream_t carrier)
+mu_nntp_set_carrier (mu_nntp_t nntp, mu_stream_t carrier)
 {
   /* Sanity checks.  */
   if (nntp == NULL)
@@ -36,14 +36,14 @@ mu_nntp_set_carrier (mu_nntp_t nntp, stream_t carrier)
     {
       /* Close any old carrier.  */
       mu_nntp_disconnect (nntp);
-      stream_destroy (&nntp->carrier, nntp);
+      mu_stream_destroy (&nntp->carrier, nntp);
     }
   nntp->carrier = carrier;
   return 0;
 }
 
 int
-mu_nntp_get_carrier (mu_nntp_t nntp, stream_t *pcarrier)
+mu_nntp_get_carrier (mu_nntp_t nntp, mu_stream_t *pcarrier)
 {
   /* Sanity checks.  */
   if (nntp == NULL)

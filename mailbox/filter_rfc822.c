@@ -30,11 +30,11 @@
 
 #include <filter0.h>
 
-static int rfc822_init (filter_t);
-static void rfc822_destroy (filter_t);
-static int rfc822_read (filter_t, char *, size_t, off_t, size_t *);
-static int rfc822_readline (filter_t, char *, size_t, off_t, size_t *);
-static int rfc822_read0 (filter_t, char *, size_t, off_t, size_t *, int);
+static int rfc822_init (mu_filter_t);
+static void rfc822_destroy (mu_filter_t);
+static int rfc822_read (mu_filter_t, char *, size_t, off_t, size_t *);
+static int rfc822_readline (mu_filter_t, char *, size_t, off_t, size_t *);
+static int rfc822_read0 (mu_filter_t, char *, size_t, off_t, size_t *, int);
 
 struct rfc822
 {
@@ -54,12 +54,12 @@ static struct mu_filter_record _rfc822_filter =
 };
 
 /* Exported.  */
-filter_record_t mu_rfc822_filter = &_rfc822_filter;
+mu_filter_record_t mu_rfc822_filter = &_rfc822_filter;
 
 static int
-rfc822_init (filter_t filter)
+rfc822_init (mu_filter_t filter)
 {
-  property_t property;
+  mu_property_t property;
   int status;
   filter->data = calloc (1, sizeof (struct rfc822));
   if (filter->data == NULL)
@@ -70,8 +70,8 @@ rfc822_init (filter_t filter)
   filter->_destroy = rfc822_destroy;
 
   /* We are interested in this property.  */
-  if ((status = stream_get_property (filter->filter_stream, &property) != 0)
-      || (status = property_set_value (property, "LINES", "0", 1)) != 0)
+  if ((status = mu_stream_get_property (filter->filter_stream, &property) != 0)
+      || (status = mu_property_set_value (property, "LINES", "0", 1)) != 0)
     {
       free (filter->data);
       filter->data = NULL;
@@ -81,21 +81,21 @@ rfc822_init (filter_t filter)
 }
 
 static void
-rfc822_destroy (filter_t filter)
+rfc822_destroy (mu_filter_t filter)
 {
   if (filter->data)
     free (filter->data);
 }
 
 static int
-rfc822_read (filter_t filter, char *buffer, size_t buflen,
+rfc822_read (mu_filter_t filter, char *buffer, size_t buflen,
 	      off_t off, size_t *pnread)
 {
   return rfc822_read0 (filter, buffer, buflen, off, pnread, 0);
 }
 
 static int
-rfc822_readline (filter_t filter, char *buffer, size_t buflen,
+rfc822_readline (mu_filter_t filter, char *buffer, size_t buflen,
 		 off_t off, size_t *pnread)
 {
   return rfc822_read0 (filter, buffer, buflen, off, pnread, 1);
@@ -107,7 +107,7 @@ rfc822_readline (filter_t filter, char *buffer, size_t buflen,
    and start to read by 1 'till we reach the current offset.  */
 
 static int
-rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
+rfc822_read0 (mu_filter_t filter, char *buffer, size_t buflen,
 	      off_t off, size_t *pnread, int isreadline)
 {
   size_t total = 0;
@@ -135,7 +135,7 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
 	{
 	  char c;
 	  size_t n = 0;
-	  status = stream_read (filter->stream, &c, 1, rfc822->s_offset, &n);
+	  status = mu_stream_read (filter->stream, &c, 1, rfc822->s_offset, &n);
 	  if (status != 0)
 	    return status;
 	  if (n == 0)
@@ -161,7 +161,7 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
   do
     {
       size_t nread = 0;
-      status = stream_readline (filter->stream, buffer, buflen,
+      status = mu_stream_readline (filter->stream, buffer, buflen,
 				rfc822->s_offset, &nread);
       if (status != 0)
 	return status;

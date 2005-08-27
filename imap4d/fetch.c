@@ -51,17 +51,17 @@ static int fetch_body              (struct fetch_command *, char**);
 static int fetch_uid               (struct fetch_command *, char**);
 
 /* Helper functions.  */
-static int fetch_envelope0         (message_t);
-static int fetch_bodystructure0    (message_t, int);
-static int bodystructure           (message_t, int);
+static int fetch_envelope0         (mu_message_t);
+static int fetch_bodystructure0    (mu_message_t, int);
+static int bodystructure           (mu_message_t, int);
 static void send_parameter_list    (const char *);
-static int fetch_operation         (message_t, char **, int);
-static int fetch_message           (message_t, unsigned long, unsigned long);
-static int fetch_header            (message_t, unsigned long, unsigned long);
-static int fetch_body_content      (message_t, unsigned long, unsigned long);
-static int fetch_io                (stream_t, unsigned long, unsigned long, unsigned long);
-static int fetch_header_fields     (message_t, char **, unsigned long, unsigned long);
-static int fetch_header_fields_not (message_t, char **, unsigned long, unsigned long);
+static int fetch_operation         (mu_message_t, char **, int);
+static int fetch_message           (mu_message_t, unsigned long, unsigned long);
+static int fetch_header            (mu_message_t, unsigned long, unsigned long);
+static int fetch_body_content      (mu_message_t, unsigned long, unsigned long);
+static int fetch_io                (mu_stream_t, unsigned long, unsigned long, unsigned long);
+static int fetch_header_fields     (mu_message_t, char **, unsigned long, unsigned long);
+static int fetch_header_fields_not (mu_message_t, char **, unsigned long, unsigned long);
 static int fetch_send_address      (const char *);
 
 static struct fetch_command* fetch_getcommand (char *, struct fetch_command*);
@@ -70,7 +70,7 @@ struct fetch_command
 {
   const char *name;
   int (*func) (struct fetch_command *, char **);
-  message_t msg;
+  mu_message_t msg;
 } fetch_command_table [] =
 {
 #define F_ALL 0
@@ -167,7 +167,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
   for (i = 0; i < n && rc == RESP_OK; i++)
     {
       size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-      message_t msg = NULL;
+      mu_message_t msg = NULL;
 
       if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
 	{
@@ -292,11 +292,11 @@ fetch_envelope (struct fetch_command *command, char **arg ARG_UNUSED)
 /* FLAGS: The flags that are set for this message.  */
 /* FIXME: User flags not done. If enable change the PERMANENTFLAGS in SELECT */
 void
-fetch_flags0 (const char *prefix, message_t msg, int isuid)
+fetch_flags0 (const char *prefix, mu_message_t msg, int isuid)
 {
-  attribute_t attr = NULL;
+  mu_attribute_t attr = NULL;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   if (isuid)
     {
       struct fetch_command *fcmd = &fetch_command_table[F_UID];
@@ -350,11 +350,11 @@ static int
 fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
 {
   char date[128];
-  envelope_t env = NULL;
+  mu_envelope_t env = NULL;
   struct tm tm, *tmp = NULL;
   mu_timezone tz;
 
-  message_get_envelope (command->msg, &env);
+  mu_message_get_envelope (command->msg, &env);
   date[0] = '\0';
   if (mu_envelope_date (env, date, sizeof (date), NULL) == 0)
     {
@@ -407,8 +407,8 @@ fetch_rfc822_size (struct fetch_command *command, char **arg ARG_UNUSED)
   size_t size = 0;
   size_t lines = 0;
   
-  message_size (command->msg, &size);
-  message_lines (command->msg, &lines);
+  mu_message_size (command->msg, &size);
+  mu_message_lines (command->msg, &lines);
   util_send ("%s %u", command->name, size + lines);
   return RESP_OK;
 }
@@ -461,7 +461,7 @@ fetch_uid (struct fetch_command *command, char **arg ARG_UNUSED)
 {
   size_t uid = 0;
 
-  message_get_uid (command->msg, &uid);
+  mu_message_get_uid (command->msg, &uid);
   util_send ("%s %d", command->name, uid);
   return RESP_OK;
 }
@@ -496,8 +496,8 @@ fetch_body (struct fetch_command *command, char **arg)
   /* It's body section, set the message as seen  */
   if (**arg == '[')
     {
-      attribute_t attr = NULL;
-      message_get_attribute (command->msg, &attr);
+      mu_attribute_t attr = NULL;
+      mu_message_get_attribute (command->msg, &attr);
       if (!mu_attribute_is_read (attr))
 	{
 	  util_send ("FLAGS (\\Seen) ");
@@ -527,7 +527,7 @@ fetch_body (struct fetch_command *command, char **arg)
 /* Helper Functions: Where the Beef is.  */
 
 static void
-fetch_send_header_value (header_t header, const char *name,
+fetch_send_header_value (mu_header_t header, const char *name,
 			 const char *defval, int space)
 {
   char *buffer;
@@ -546,7 +546,7 @@ fetch_send_header_value (header_t header, const char *name,
 }
 
 static void
-fetch_send_header_list (header_t header, const char *name,
+fetch_send_header_list (mu_header_t header, const char *name,
 			const char *defval, int space)
 {
   char *buffer;
@@ -565,7 +565,7 @@ fetch_send_header_list (header_t header, const char *name,
 }
 
 static void
-fetch_send_header_address (header_t header, const char *name,
+fetch_send_header_address (mu_header_t header, const char *name,
 			   const char *defval, int space)
 {
   char *buffer;
@@ -592,12 +592,12 @@ fetch_send_header_address (header_t header, const char *name,
    fields are strings.  The from, sender, reply-to, to, cc, and bcc fields
    are parenthesized lists of address structures.  */
 static int
-fetch_envelope0 (message_t msg)
+fetch_envelope0 (mu_message_t msg)
 {
   char *from = NULL;
-  header_t header = NULL;
+  mu_header_t header = NULL;
 
-  message_get_header (msg, &header);
+  mu_message_get_header (msg, &header);
 
   fetch_send_header_value (header, "Date", NULL, 0);
   fetch_send_header_value (header, "Subject", NULL, 1);
@@ -642,31 +642,31 @@ fetch_envelope0 (message_t msg)
    A string or parenthesized list giving the body language value as defined
    in [LANGUAGE-TAGS].  */
 static int
-fetch_bodystructure0 (message_t message, int extension)
+fetch_bodystructure0 (mu_message_t message, int extension)
 {
   size_t nparts = 1;
   size_t i;
   int is_multipart = 0;
 
-  message_is_multipart (message, &is_multipart);
+  mu_message_is_multipart (message, &is_multipart);
   if (is_multipart)
     {
       char *buffer = NULL;
-      header_t header = NULL;
+      mu_header_t header = NULL;
 
-      message_get_num_parts (message, &nparts);
+      mu_message_get_num_parts (message, &nparts);
 
       /* Get all the sub messages.  */
       for (i = 1; i <= nparts; i++)
         {
-          message_t msg = NULL;
-          message_get_part (message, i, &msg);
+          mu_message_t msg = NULL;
+          mu_message_get_part (message, i, &msg);
           util_send ("(");
           fetch_bodystructure0 (msg, extension);
           util_send (")");
         } /* for () */
 
-      message_get_header (message, &header);
+      mu_message_get_header (message, &header);
 
 
       /* The subtype.  */
@@ -797,15 +797,15 @@ fetch_bodystructure0 (message_t message, int extension)
    in [LANGUAGE-TAGS].
  */
 static int
-bodystructure (message_t msg, int extension)
+bodystructure (mu_message_t msg, int extension)
 {
-  header_t header = NULL;
+  mu_header_t header = NULL;
   char *buffer = NULL;
   size_t blines = 0;
   int message_rfc822 = 0;
   int text_plain = 0;
 
-  message_get_header (msg, &header);
+  mu_message_get_header (msg, &header);
 
   if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
     {
@@ -912,8 +912,8 @@ bodystructure (message_t msg, int extension)
   /* body size RFC822 format.  */
   {
     size_t size = 0;
-    body_t body = NULL;
-    message_get_body (msg, &body);
+    mu_body_t body = NULL;
+    mu_message_get_body (msg, &body);
     mu_body_size (body, &size);
     mu_body_lines (body, &blines);
     util_send (" %d", size + blines);
@@ -928,8 +928,8 @@ bodystructure (message_t msg, int extension)
   else if (message_rfc822)
     {
       size_t lines = 0;
-      message_t emsg = NULL;
-      message_unencapsulate  (msg, &emsg, NULL);
+      mu_message_t emsg = NULL;
+      mu_message_unencapsulate  (msg, &emsg, NULL);
       /* Add envelope structure of the encapsulated message.  */
       util_send (" (");
       fetch_envelope0 (emsg);
@@ -939,9 +939,9 @@ bodystructure (message_t msg, int extension)
       bodystructure (emsg, extension);
       util_send (")");
       /* Size in text lines of the encapsulated message.  */
-      message_lines (emsg, &lines);
+      mu_message_lines (emsg, &lines);
       util_send (" %d", lines);
-      message_destroy (&emsg, NULL);
+      mu_message_destroy (&emsg, NULL);
     }
 
   if (extension)
@@ -959,7 +959,7 @@ bodystructure (message_t msg, int extension)
 }
 
 static int
-fetch_operation (message_t msg, char **arg, int silent)
+fetch_operation (mu_message_t msg, char **arg, int silent)
 {
   unsigned long start = ULONG_MAX; /* No starting offset.  */
   unsigned long end = ULONG_MAX; /* No limit. */
@@ -997,7 +997,7 @@ fetch_operation (message_t msg, char **arg, int silent)
 	break;
 
       /* If the section message did not exist bail out here.  */
-      status = message_get_part (msg, j, &msg);
+      status = mu_message_get_part (msg, j, &msg);
       if (status != 0)
 	{
 	  util_send (" \"\"");
@@ -1108,23 +1108,23 @@ fetch_operation (message_t msg, char **arg, int silent)
 }
 
 static int
-fetch_message (message_t msg, unsigned long start, unsigned long end)
+fetch_message (mu_message_t msg, unsigned long start, unsigned long end)
 {
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
-  message_get_stream (msg, &stream);
-  message_size (msg, &size);
-  message_lines (msg, &lines);
+  mu_message_get_stream (msg, &stream);
+  mu_message_size (msg, &size);
+  mu_message_lines (msg, &lines);
   return fetch_io (stream, start, end, size + lines);
 }
 
 static int
-fetch_header (message_t msg, unsigned long start, unsigned long end)
+fetch_header (mu_message_t msg, unsigned long start, unsigned long end)
 {
-  header_t header = NULL;
-  stream_t stream = NULL;
+  mu_header_t header = NULL;
+  mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
-  message_get_header (msg, &header);
+  mu_message_get_header (msg, &header);
   mu_header_size (header, &size);
   mu_header_lines (header, &lines);
   mu_header_get_stream (header, &stream);
@@ -1132,12 +1132,12 @@ fetch_header (message_t msg, unsigned long start, unsigned long end)
 }
 
 static int
-fetch_body_content (message_t msg, unsigned long start, unsigned long end)
+fetch_body_content (mu_message_t msg, unsigned long start, unsigned long end)
 {
-  body_t body = NULL;
-  stream_t stream = NULL;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
-  message_get_body (msg, &body);
+  mu_message_get_body (msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
   mu_body_get_stream (body, &stream);
@@ -1145,10 +1145,10 @@ fetch_body_content (message_t msg, unsigned long start, unsigned long end)
 }
 
 static int
-fetch_io (stream_t stream, unsigned long start, unsigned long end,
+fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
 	  unsigned long max)
 {
-  stream_t rfc = NULL;
+  mu_stream_t rfc = NULL;
   size_t n = 0;
   off_t offset;
 
@@ -1161,7 +1161,7 @@ fetch_io (stream_t stream, unsigned long start, unsigned long end,
       if (max)
 	{
 	  util_send (" {%u}\r\n", max);
-	  while (stream_read (rfc, buffer, sizeof (buffer) - 1, offset,
+	  while (mu_stream_read (rfc, buffer, sizeof (buffer) - 1, offset,
 			      &n) == 0 && n > 0)
 	    {
 	      buffer[n] = '\0';
@@ -1183,7 +1183,7 @@ fetch_io (stream_t stream, unsigned long start, unsigned long end,
       offset = start;
       p = buffer = calloc (end + 2, 1);
       while (end > 0
-	     && stream_read (rfc, buffer, end + 1, offset, &n) == 0 && n > 0)
+	     && mu_stream_read (rfc, buffer, end + 1, offset, &n) == 0 && n > 0)
 	{
 	  offset += n;
 	  total += n;
@@ -1206,7 +1206,7 @@ fetch_io (stream_t stream, unsigned long start, unsigned long end,
 }
 
 static int
-fetch_header_fields (message_t msg, char **arg, unsigned long start,
+fetch_header_fields (mu_message_t msg, char **arg, unsigned long start,
 		     unsigned long end)
 {
   char *buffer = NULL;
@@ -1214,10 +1214,10 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
   size_t array_len = 0;
   size_t off = 0;
   size_t lines = 0;
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
-  status = memory_stream_create (&stream, 0, 0);
+  status = mu_memory_stream_create (&stream, 0, 0);
   if (status != 0)
     imap4d_bye (ERR_NO_MEM);
 
@@ -1248,8 +1248,8 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
   /* Get the header values.  */
   {
     size_t j;
-    header_t header = NULL;
-    message_get_header (msg, &header);
+    mu_header_t header = NULL;
+    mu_message_get_header (msg, &header);
     for (j = 0; j < array_len; j++)
       {
 	char *value = NULL;
@@ -1258,7 +1258,7 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
 	    continue;
 
 	n = asprintf (&buffer, "%s: %s\n", array[j], value);
-	status = stream_write (stream, buffer, n, off, &n);
+	status = mu_stream_write (stream, buffer, n, off, &n);
 	off += n;
 	/* count the lines.  */
 	{
@@ -1277,7 +1277,7 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
       }
   }
   /* Headers are always sent with the NL separator.  */
-  stream_write (stream, "\n", 1, off, NULL);
+  mu_stream_write (stream, "\n", 1, off, NULL);
   off++;
   lines++;
 
@@ -1304,7 +1304,7 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
 }
 
 static int
-fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
+fetch_header_fields_not (mu_message_t msg, char **arg, unsigned long start,
 			 unsigned long end)
 {
   char **array = NULL;
@@ -1312,10 +1312,10 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
   char *buffer = NULL;
   size_t off = 0;
   size_t lines = 0;
-  stream_t stream = NULL;
+  mu_stream_t stream = NULL;
   int status;
 
-  status = memory_stream_create (&stream, 0, 0);
+  status = mu_memory_stream_create (&stream, 0, 0);
   if (status)
     imap4d_bye (ERR_NO_MEM);
 
@@ -1346,9 +1346,9 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
   /* Build the memory buffer.  */
   {
     size_t i;
-    header_t header = NULL;
+    mu_header_t header = NULL;
     size_t count = 0;
-    message_get_header (msg, &header);
+    mu_message_get_header (msg, &header);
     mu_header_get_field_count (header, &count);
     for (i = 1; i <= count; i++)
       {
@@ -1389,7 +1389,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 	    
 	    /* Save the field.  */
 	    n = asprintf (&buffer, "%s: %s\n", name, value);
-	    status = stream_write (stream, buffer, n, off, &n);
+	    status = mu_stream_write (stream, buffer, n, off, &n);
 	    off += n;
 	    /* count the lines.  */
 	    for (nl = buffer;(nl = strchr (nl, '\n')); nl++)
@@ -1408,7 +1408,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
       }
   }
   /* Headers are always sent with a NL separator.  */
-  stream_write (stream, "\n", 1, off, NULL);
+  mu_stream_write (stream, "\n", 1, off, NULL);
   off++;
   lines++;
 
@@ -1438,7 +1438,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 static int
 fetch_send_address (const char *addr)
 {
-  address_t address;
+  mu_address_t address;
   size_t i, count = 0;
 
   /* Short circuit.  */

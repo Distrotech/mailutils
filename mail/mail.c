@@ -20,12 +20,12 @@
 #include "mail.h"
 
 /* Global variables and constants*/
-mailbox_t mbox;               /* Mailbox being operated upon */
+mu_mailbox_t mbox;               /* Mailbox being operated upon */
 size_t total;                 /* Total number of messages in the mailbox */
 FILE *ofile;                  /* Output file */
 int interactive;              /* Is the session interactive */  
 
-static list_t command_list;   /* List of commands to be executed after parsing
+static mu_list_t command_list;   /* List of commands to be executed after parsing
 				 command line */
 
 const char *program_version = "mail (" PACKAGE_STRING ")";
@@ -433,10 +433,10 @@ main (int argc, char **argv)
 
       if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)
 	{
-	  url_t url = NULL;
+	  mu_url_t url = NULL;
 	  mu_mailbox_get_url (mbox, &url);
 	  util_error (_("Cannot open mailbox %s: %s"),
-		      url_to_string (url), mu_strerror (rc));
+		      mu_url_to_string (url), mu_strerror (rc));
 	  mu_mailbox_destroy (&mbox);
 	  exit (EXIT_FAILURE);
 	}
@@ -447,10 +447,10 @@ main (int argc, char **argv)
 	{
 	  if ((rc = mu_mailbox_scan (mbox, 1, &total)) != 0)
 	    {
-	      url_t url = NULL;
+	      mu_url_t url = NULL;
 	      mu_mailbox_get_url (mbox, &url);
 	      util_error (_("Cannot read mailbox %s: %s"),
-			  url_to_string (url), mu_strerror (rc));
+			  mu_url_to_string (url), mu_strerror (rc));
 	      exit (EXIT_FAILURE);
 	    }
 

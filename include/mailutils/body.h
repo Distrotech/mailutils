@@ -25,23 +25,23 @@
 extern "C" {
 #endif
 
-extern int mu_body_create         (body_t *, void *owner);
-extern void mu_body_destroy       (body_t *, void *owner);
-extern void * mu_body_get_owner   (body_t);
-extern int mu_body_is_modified    (body_t);
-extern int mu_body_clear_modified (body_t);
+extern int mu_body_create         (mu_body_t *, void *owner);
+extern void mu_body_destroy       (mu_body_t *, void *owner);
+extern void * mu_body_get_owner   (mu_body_t);
+extern int mu_body_is_modified    (mu_body_t);
+extern int mu_body_clear_modified (mu_body_t);
 
-extern int mu_body_get_stream     (body_t, stream_t *);
-extern int mu_body_set_stream     (body_t, stream_t, void *owner);
+extern int mu_body_get_stream     (mu_body_t, mu_stream_t *);
+extern int mu_body_set_stream     (mu_body_t, mu_stream_t, void *owner);
 
-extern int mu_body_get_filename   (body_t, char *, size_t, size_t *);
+extern int mu_body_get_filename   (mu_body_t, char *, size_t, size_t *);
 
-extern int mu_body_size           (body_t, size_t*);
-extern int mu_body_set_size       (body_t,
-				int (*_size) (body_t, size_t*), void *owner);
-extern int mu_body_lines          (body_t, size_t *);
-extern int mu_body_set_lines      (body_t,
-				int (*_lines) (body_t, size_t*), void *owner);
+extern int mu_body_size           (mu_body_t, size_t*);
+extern int mu_body_set_size       (mu_body_t,
+				int (*_size) (mu_body_t, size_t*), void *owner);
+extern int mu_body_lines          (mu_body_t, size_t *);
+extern int mu_body_set_lines      (mu_body_t,
+				int (*_lines) (mu_body_t, size_t*), void *owner);
 
 #ifdef __cplusplus
 }

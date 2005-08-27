@@ -38,45 +38,45 @@
 
 /* NOTE: We will leak here since the monitor and the registrar will never
    be released. That's ok we can live with this, it's only done once.  */
-static list_t registrar_list;
-struct _monitor registrar_monitor = MU_MONITOR_INITIALIZER;
+static mu_list_t registrar_list;
+struct mu__monitor registrar_monitor = MU_MONITOR_INITIALIZER;
 
 static int
-_registrar_get_list (list_t *plist)
+_registrar_get_list (mu_list_t *plist)
 {
   int status = 0;
 
   if (plist == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  monitor_wrlock (&registrar_monitor);
+  mu_monitor_wrlock (&registrar_monitor);
   if (registrar_list == NULL)
     status = mu_list_create (&registrar_list);
   *plist = registrar_list;
-  monitor_unlock (&registrar_monitor);
+  mu_monitor_unlock (&registrar_monitor);
   return status;
 }
 
 /* Provided for backward compatibility */
 int
-registrar_get_list (list_t *plist)
+mu_registrar_get_list (mu_list_t *plist)
 {
   static int warned;
 
   if (!warned)
     {
-      mu_error (_("Program uses registrar_get_list(), which is deprecated"));
+      mu_error (_("Program uses mu_registrar_get_list(), which is deprecated"));
       warned = 1;
     }
   return _registrar_get_list (plist);
 }
 
 int
-registrar_get_iterator (iterator_t *pitr)
+mu_registrar_get_iterator (mu_iterator_t *pitr)
 {
   int status = 0;
   if (pitr == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  monitor_wrlock (&registrar_monitor);
+  mu_monitor_wrlock (&registrar_monitor);
   if (registrar_list == NULL)
     {
       status = mu_list_create (&registrar_list);
@@ -84,24 +84,24 @@ registrar_get_iterator (iterator_t *pitr)
 	return status;
     }
   status = mu_list_get_iterator (registrar_list, pitr);
-  monitor_unlock (&registrar_monitor);
+  mu_monitor_unlock (&registrar_monitor);
   return status;
 }
 
 int
-registrar_lookup (const char *name, record_t *precord, int flags)
+mu_registrar_lookup (const char *name, mu_record_t *precord, int flags)
 {
-  iterator_t iterator;
-  int status = registrar_get_iterator (&iterator);
+  mu_iterator_t iterator;
+  int status = mu_registrar_get_iterator (&iterator);
   if (status != 0)
     return status;
   status = 0;
   for (mu_iterator_first (iterator); status == 0 && !mu_iterator_is_done (iterator);
        mu_iterator_next (iterator))
     {
-      record_t record;
+      mu_record_t record;
       mu_iterator_current (iterator, (void **)&record);
-      status = record_is_scheme (record, name, flags);
+      status = mu_record_is_scheme (record, name, flags);
       if (status)
 	*precord = record;
     }
@@ -113,18 +113,18 @@ registrar_lookup (const char *name, record_t *precord, int flags)
 static int
 _compare_prio (const void *item, const void *value)
 {
-  const record_t a = item;
-  const record_t b = value;
+  const mu_record_t a = item;
+  const mu_record_t b = value;
   if (a->priority > b->priority)
     return 0;
   return -1;
 }
 
 int
-registrar_record (record_t record)
+mu_registrar_record (mu_record_t record)
 {
   int status;
-  list_t list;
+  mu_list_t list;
   mu_list_comparator_t comp;
   
   _registrar_get_list (&list);
@@ -137,16 +137,16 @@ registrar_record (record_t record)
 }
 
 int
-unregistrar_record (record_t record)
+mu_unregistrar_record (mu_record_t record)
 {
-  list_t list;
+  mu_list_t list;
   _registrar_get_list (&list);
   mu_list_remove (list, record);
   return 0;
 }
 
 int
-record_is_scheme (record_t record, const char *scheme, int flags)
+mu_record_is_scheme (mu_record_t record, const char *scheme, int flags)
 {
   if (record == NULL)
     return 0;
@@ -164,7 +164,7 @@ record_is_scheme (record_t record, const char *scheme, int flags)
 }
 
 int
-record_set_scheme (record_t record, const char *scheme)
+mu_record_set_scheme (mu_record_t record, const char *scheme)
 {
   if (record == NULL)
     return EINVAL;
@@ -173,8 +173,8 @@ record_set_scheme (record_t record, const char *scheme)
 }
 
 int
-record_set_is_scheme (record_t record, int (*_is_scheme)
-		      (record_t, const char *, int))
+mu_record_set_is_scheme (mu_record_t record, int (*_is_scheme)
+		      (mu_record_t, const char *, int))
 {
   if (record == NULL)
     return EINVAL;
@@ -183,7 +183,7 @@ record_set_is_scheme (record_t record, int (*_is_scheme)
 }
 
 int
-record_get_url (record_t record, int (*(*_purl)) (url_t))
+mu_record_get_url (mu_record_t record, int (*(*_purl)) (mu_url_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -197,7 +197,7 @@ record_get_url (record_t record, int (*(*_purl)) (url_t))
 }
 
 int
-record_set_url (record_t record, int (*_url) (url_t))
+mu_record_set_url (mu_record_t record, int (*_url) (mu_url_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -206,8 +206,8 @@ record_set_url (record_t record, int (*_url) (url_t))
 }
 
 int
-record_set_get_url (record_t record, int (*_get_url)
-		    (record_t, int (*(*)) (url_t)))
+mu_record_set_get_url (mu_record_t record, int (*_get_url)
+		    (mu_record_t, int (*(*)) (mu_url_t)))
 {
   if (record == NULL)
     return EINVAL;
@@ -216,7 +216,7 @@ record_set_get_url (record_t record, int (*_get_url)
 }
 
 int
-record_get_mailbox (record_t record, int (*(*_pmailbox)) (mailbox_t))
+mu_record_get_mailbox (mu_record_t record, int (*(*_pmailbox)) (mu_mailbox_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -230,7 +230,7 @@ record_get_mailbox (record_t record, int (*(*_pmailbox)) (mailbox_t))
 }
 
 int
-record_set_mailbox (record_t record, int (*_mailbox) (mailbox_t))
+mu_record_set_mailbox (mu_record_t record, int (*_mailbox) (mu_mailbox_t))
 {
   if (record)
     return EINVAL;
@@ -239,8 +239,8 @@ record_set_mailbox (record_t record, int (*_mailbox) (mailbox_t))
 }
 
 int
-record_set_get_mailbox (record_t record, 
-     int (*_get_mailbox) (record_t, int (*(*)) (mailbox_t)))
+mu_record_set_get_mailbox (mu_record_t record, 
+     int (*_get_mailbox) (mu_record_t, int (*(*)) (mu_mailbox_t)))
 {
   if (record)
     return EINVAL;
@@ -249,7 +249,7 @@ record_set_get_mailbox (record_t record,
 }
 
 int
-record_get_mailer (record_t record, int (*(*_pmailer)) (mailer_t))
+mu_record_get_mailer (mu_record_t record, int (*(*_pmailer)) (mu_mailer_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -263,7 +263,7 @@ record_get_mailer (record_t record, int (*(*_pmailer)) (mailer_t))
 }
 
 int
-record_set_mailer (record_t record, int (*_mailer) (mailer_t))
+mu_record_set_mailer (mu_record_t record, int (*_mailer) (mu_mailer_t))
 {
   if (record)
     return EINVAL;
@@ -272,8 +272,8 @@ record_set_mailer (record_t record, int (*_mailer) (mailer_t))
 }
 
 int
-record_set_get_mailer (record_t record, 
-  int (*_get_mailer) (record_t, int (*(*)) (mailer_t)))
+mu_record_set_get_mailer (mu_record_t record, 
+  int (*_get_mailer) (mu_record_t, int (*(*)) (mu_mailer_t)))
 {
   if (record == NULL)
     return EINVAL;
@@ -282,7 +282,7 @@ record_set_get_mailer (record_t record,
 }
 
 int
-record_get_folder (record_t record, int (*(*_pfolder)) (folder_t))
+mu_record_get_folder (mu_record_t record, int (*(*_pfolder)) (mu_folder_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -296,7 +296,7 @@ record_get_folder (record_t record, int (*(*_pfolder)) (folder_t))
 }
 
 int
-record_set_folder (record_t record, int (*_folder) (folder_t))
+mu_record_set_folder (mu_record_t record, int (*_folder) (mu_folder_t))
 {
   if (record == NULL)
     return EINVAL;
@@ -305,8 +305,8 @@ record_set_folder (record_t record, int (*_folder) (folder_t))
 }
 
 int
-record_set_get_folder (record_t record, 
-   int (*_get_folder) (record_t, int (*(*)) (folder_t)))
+mu_record_set_get_folder (mu_record_t record, 
+   int (*_get_folder) (mu_record_t, int (*(*)) (mu_folder_t)))
 {
   if (record == NULL)
     return EINVAL;

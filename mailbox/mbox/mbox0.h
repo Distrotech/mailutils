@@ -101,7 +101,7 @@ struct _mbox_message
 
   /* Fast header retrieve, we save here the most common headers. This will
      speed the header search.  The entire headers are copied, when modified,
-     by the header_t object, we do not have to worry about updating them.  */
+     by the mu_header_t object, we do not have to worry about updating them.  */
   char *fhdr[HDRSIZE];
 
   size_t uid; /* IMAP uid.  */
@@ -111,7 +111,7 @@ struct _mbox_message
   size_t header_lines;
   size_t body_lines;
 
-  message_t message; /* A message attach to it.  */
+  mu_message_t message; /* A message attach to it.  */
   mbox_data_t mud; /* Back pointer.  */
 };
 
@@ -141,10 +141,10 @@ struct _mbox_data
   char *sender;
   char *date;
   off_t off;
-  mailbox_t mailbox; /* Back pointer. */
+  mu_mailbox_t mailbox; /* Back pointer. */
 };
 
-int mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif);
+int mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif);
 #ifdef WITH_PTHREAD
 void mbox_cleanup (void *arg);
 #endif

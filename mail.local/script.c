@@ -23,10 +23,10 @@
 
 int debug_guile;
 
-SCM mda_catch_body (void *data, mailbox_t mbox);
+SCM mda_catch_body (void *data, mu_mailbox_t mbox);
 SCM mda_catch_handler (void *unused, SCM tag, SCM throw_args);
-int mda_next (void *data, mailbox_t mbox);
-int mda_exit (void *data, mailbox_t mbox);
+int mda_next (void *data, mu_mailbox_t mbox);
+int mda_exit (void *data, mu_mailbox_t mbox);
 int mda_init (void *data);
 
 int
@@ -82,11 +82,11 @@ mda_switch_to_user (struct mda_data *md)
 }
 
 SCM
-mda_catch_body (void *data, mailbox_t mbox)
+mda_catch_body (void *data, mu_mailbox_t mbox)
 {
   struct mda_data *md = data;
-  message_t mesg = NULL;
-  attribute_t attr = NULL;
+  mu_message_t mesg = NULL;
+  mu_attribute_t attr = NULL;
 
   if (access (md->progfile, R_OK))
     {
@@ -100,7 +100,7 @@ mda_catch_body (void *data, mailbox_t mbox)
     }
   
   mu_mailbox_get_message (mbox, 1, &mesg);
-  message_get_attribute (mesg, &attr);
+  mu_message_get_attribute (mesg, &attr);
   if (mu_attribute_is_deleted (attr))
     return SCM_BOOL_F;
 
@@ -117,11 +117,11 @@ mda_catch_handler (void *data, SCM tag, SCM throw_args)
 }
 
 int
-mda_next (void *data, mailbox_t mbox)
+mda_next (void *data, mu_mailbox_t mbox)
 {
   struct mda_data *md = data;
-  message_t mesg = NULL;
-  attribute_t attr = NULL;
+  mu_message_t mesg = NULL;
+  mu_attribute_t attr = NULL;
 
   md->argv++;
   if (*md->argv == NULL)
@@ -131,14 +131,14 @@ mda_next (void *data, mailbox_t mbox)
   md->progfile = mu_expand_path_pattern (md->progfile_pattern, *md->argv);
 
   mu_mailbox_get_message (mbox, 1, &mesg);
-  message_get_attribute (mesg, &attr);
+  mu_message_get_attribute (mesg, &attr);
   mu_attribute_unset_deleted (attr);
   
   return md->progfile != NULL;
 }
 
 int
-mda_exit (void *data, mailbox_t mbox)
+mda_exit (void *data, mu_mailbox_t mbox)
 {
   return exit_code;
 }

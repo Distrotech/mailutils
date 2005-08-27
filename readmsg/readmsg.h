@@ -45,7 +45,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/error.h>
 
-int msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n);
+int msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n);
 
 #endif
 

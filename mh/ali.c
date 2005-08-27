@@ -117,9 +117,9 @@ getcols ()
 }
 
 static void
-ali_print_name_list (list_t list, int off)
+ali_print_name_list (mu_list_t list, int off)
 {
-  iterator_t itr;
+  mu_iterator_t itr;
   char *item;
   
   mu_list_get_iterator (list, &itr);
@@ -167,7 +167,7 @@ ali_print_name_list (list_t list, int off)
 }
 
 static int
-ali_print_alias (char *name, list_t alias, void *data ARG_UNUSED)
+ali_print_alias (char *name, mu_list_t alias, void *data ARG_UNUSED)
 {
   int n;
   
@@ -213,7 +213,7 @@ main (int argc, char **argv)
 	  int i;
 	  for (i = 0; i < argc; i++)
 	    {
-	      list_t al = NULL;
+	      mu_list_t al = NULL;
 	      
 	      if (mh_alias_get (argv[i], &al) == 0)
 		{
@@ -237,7 +237,7 @@ main (int argc, char **argv)
 	  int i;
 	  for (i = 0; i < argc; i++)
 	    {
-	      list_t nl = NULL;
+	      mu_list_t nl = NULL;
 
 	      if (mh_alias_get_alias (argv[i], &nl) == 0)
 		{

@@ -38,7 +38,7 @@ mu_sieve_alloc (size_t size)
 }
 
 void *
-mu_sieve_palloc (list_t *pool, size_t size)
+mu_sieve_palloc (mu_list_t *pool, size_t size)
 {
   void *p = malloc (size);
   if (p)
@@ -54,7 +54,7 @@ mu_sieve_palloc (list_t *pool, size_t size)
 }
 
 char *
-mu_sieve_pstrdup (list_t *pool, const char *str)
+mu_sieve_pstrdup (mu_list_t *pool, const char *str)
 {
   size_t len;
   char *p;
@@ -72,7 +72,7 @@ mu_sieve_pstrdup (list_t *pool, const char *str)
 }
 
 void *
-mu_sieve_prealloc (list_t *pool, void *ptr, size_t size)
+mu_sieve_prealloc (mu_list_t *pool, void *ptr, size_t size)
 {
   void *newptr;
   
@@ -93,7 +93,7 @@ mu_sieve_prealloc (list_t *pool, void *ptr, size_t size)
 }
 
 void
-mu_sieve_pfree (list_t *pool, void *ptr)
+mu_sieve_pfree (mu_list_t *pool, void *ptr)
 {
 
   if (*pool)
@@ -133,7 +133,7 @@ _destroy_item (void *item, void *data)
 }
 
 void
-mu_sieve_slist_destroy (list_t *plist)
+mu_sieve_slist_destroy (mu_list_t *plist)
 {
   if (!plist)
     return;
@@ -180,7 +180,7 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
 }
 
 mu_sieve_value_t *
-mu_sieve_value_get (list_t vlist, size_t index)
+mu_sieve_value_get (mu_list_t vlist, size_t index)
 {
   mu_sieve_value_t *val = NULL;
   mu_list_get (vlist, index, (void **)&val);
@@ -374,7 +374,7 @@ sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer, void *data)
 } 
 
 void
-sieve_print_value_list (list_t list, mu_sieve_printf_t printer, void *data)
+sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
 {
   mu_sieve_value_t val;
   
@@ -398,7 +398,7 @@ tag_printer (mu_sieve_runtime_tag_t *val, struct debug_data *dbg)
 }
 
 void
-sieve_print_tag_list (list_t list, mu_sieve_printf_t printer, void *data)
+sieve_print_tag_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
 {
   struct debug_data dbg;
 
@@ -422,7 +422,7 @@ tag_finder (void *item, void *data)
 }
 
 int
-mu_sieve_tag_lookup (list_t taglist, char *name, mu_sieve_value_t **arg)
+mu_sieve_tag_lookup (mu_list_t taglist, char *name, mu_sieve_value_t **arg)
 {
   mu_sieve_runtime_tag_t t;
 
@@ -437,12 +437,12 @@ mu_sieve_tag_lookup (list_t taglist, char *name, mu_sieve_value_t **arg)
 }
 
 int
-sieve_mark_deleted (message_t msg, int deleted)
+sieve_mark_deleted (mu_message_t msg, int deleted)
 {
-  attribute_t attr = 0;
+  mu_attribute_t attr = 0;
   int rc;
 
-  rc = message_get_attribute (msg, &attr);
+  rc = mu_message_get_attribute (msg, &attr);
 
   if (!rc)
     {

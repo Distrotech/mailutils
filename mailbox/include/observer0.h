@@ -33,20 +33,20 @@ struct _observer
 {
   int flags;
   void *owner;
-  int (*_action)  (observer_t, size_t);
-  int (*_destroy) (observer_t);
+  int (*_action)  (mu_observer_t, size_t);
+  int (*_destroy) (mu_observer_t);
 };
 
 struct _observable
 {
   void *owner;
-  list_t list;
+  mu_list_t list;
 };
 
 struct _event
 {
   size_t type;
-  observer_t observer;
+  mu_observer_t observer;
 };
 
 typedef struct _event *event_t;

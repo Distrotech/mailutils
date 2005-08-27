@@ -23,12 +23,12 @@
  */
 
 static int
-size0 (msgset_t *mspec, message_t msg, void *data)
+size0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
   size_t size = 0, lines = 0;
 
-  message_size (msg, &size);
-  message_lines (msg, &lines);
+  mu_message_size (msg, &size);
+  mu_message_lines (msg, &lines);
   
   fprintf (ofile, "%c%2d %3d/%-5d\n",
 	   is_current_message (mspec->msg_part[0]) ? '>' : ' ',

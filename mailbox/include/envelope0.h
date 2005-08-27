@@ -32,9 +32,9 @@ extern "C" {
 struct _envelope
 {
   void *owner;
-  int (*_destroy) (envelope_t);
-  int (*_sender)    (envelope_t, char *, size_t, size_t*);
-  int (*_date)    (envelope_t, char *, size_t , size_t *);
+  int (*_destroy) (mu_envelope_t);
+  int (*_sender)    (mu_envelope_t, char *, size_t, size_t*);
+  int (*_date)    (mu_envelope_t, char *, size_t , size_t *);
 };
 
 #endif /* _ENVELOPE0_H */

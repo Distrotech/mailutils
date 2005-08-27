@@ -48,10 +48,10 @@
 
 /* Handler for the timestamp test */
 static int
-timestamp_test (mu_sieve_machine_t mach, list_t args, list_t tags)
+timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_value_t *h, *v;
-  header_t hdr;
+  mu_header_t hdr;
   char *val;
   time_t now = time (NULL);
   time_t tlimit, tval;
@@ -89,10 +89,10 @@ timestamp_test (mu_sieve_machine_t mach, list_t args, list_t tags)
       mu_sieve_abort (mach);
     }
 
-  rc = message_get_header (mu_sieve_get_message (mach), &hdr);
+  rc = mu_message_get_header (mu_sieve_get_message (mach), &hdr);
   if (rc)
     {
-      mu_sieve_error (mach, "message_get_header: %s", mu_strerror (rc));
+      mu_sieve_error (mach, "mu_message_get_header: %s", mu_strerror (rc));
       mu_sieve_abort (mach);
     }
   

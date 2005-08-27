@@ -19,7 +19,7 @@
 #include "mail.h"
 #include <pwd.h>
 
-static list_t alternate_names = NULL;
+static mu_list_t alternate_names = NULL;
 static char *my_email;
 static char *my_name;
 

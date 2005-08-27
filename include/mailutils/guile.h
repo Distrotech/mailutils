@@ -45,13 +45,13 @@ extern SCM scm_long2num (long val);
 typedef struct
 {
   int debug_guile;
-  mailbox_t mbox;
+  mu_mailbox_t mbox;
   char *user_name;
   int (*init) (void *data);
-  SCM (*catch_body) (void *data, mailbox_t mbox);
+  SCM (*catch_body) (void *data, mu_mailbox_t mbox);
   SCM (*catch_handler) (void *data, SCM tag, SCM throw_args);
-  int (*next) (void *data, mailbox_t mbox);
-  int (*exit) (void *data, mailbox_t mbox);
+  int (*next) (void *data, mu_mailbox_t mbox);
+  int (*exit) (void *data, mu_mailbox_t mbox);
   void *data;
 } mu_guimb_param_t;
 
@@ -64,23 +64,23 @@ extern void mu_set_variable (const char *name, SCM value);
 extern void mu_scm_init (void);
 
 extern void mu_scm_mailbox_init (void);
-extern SCM mu_scm_mailbox_create (mailbox_t mbox);
+extern SCM mu_scm_mailbox_create (mu_mailbox_t mbox);
 extern int mu_scm_is_mailbox (SCM scm);
 
 extern void mu_scm_message_init (void);
-extern SCM mu_scm_message_create (SCM owner, message_t msg);
+extern SCM mu_scm_message_create (SCM owner, mu_message_t msg);
 extern int mu_scm_is_message (SCM scm);
-extern const message_t mu_scm_message_get (SCM MESG);
+extern const mu_message_t mu_scm_message_get (SCM MESG);
 
 extern int mu_scm_is_body (SCM scm);
 extern void mu_scm_body_init (void);
-extern SCM mu_scm_body_create (SCM mesg, body_t body);
+extern SCM mu_scm_body_create (SCM mesg, mu_body_t body);
 
 extern void mu_scm_address_init (void);
 extern void mu_scm_logger_init (void);
 
 extern void mu_scm_port_init (void);
-extern SCM mu_port_make_from_stream (SCM msg, stream_t stream, long mode);
+extern SCM mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode);
 
 extern void mu_scm_mime_init (void);
 extern void mu_scm_message_add_owner (SCM MESG, SCM owner);

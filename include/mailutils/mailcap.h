@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 /* Create a mailcap from stream.  */
-int mu_mailcap_create (mu_mailcap_t * mailcap, stream_t stream);
+int mu_mailcap_create (mu_mailcap_t * mailcap, mu_stream_t stream);
 
 /* Destroy mailcap object.  */
 void mu_mailcap_destroy (mu_mailcap_t * mailcap);

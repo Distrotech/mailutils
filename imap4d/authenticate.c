@@ -23,7 +23,7 @@ struct imap_auth {
   imap4d_auth_handler_fp handler;
 };
 
-static list_t imap_auth_list;
+static mu_list_t imap_auth_list;
 
 static int
 comp (const void *item, const void *data)

@@ -23,8 +23,8 @@ pop3d_uidl (const char *arg)
 {
   size_t mesgno;
   char uidl[128];
-  message_t msg;
-  attribute_t attr;
+  mu_message_t msg;
+  mu_attribute_t attr;
 
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
@@ -40,10 +40,10 @@ pop3d_uidl (const char *arg)
       for (mesgno = 1; mesgno <= total; mesgno++)
         {
           mu_mailbox_get_message (mbox, mesgno, &msg);
-          message_get_attribute (msg, &attr);
+          mu_message_get_attribute (msg, &attr);
           if (!pop3d_is_deleted (attr))
             {
-              message_get_uidl (msg, uidl, sizeof (uidl), NULL);
+              mu_message_get_uidl (msg, uidl, sizeof (uidl), NULL);
               pop3d_outf ("%d %s\r\n", mesgno, uidl);
             }
         }
@@ -54,10 +54,10 @@ pop3d_uidl (const char *arg)
       mesgno = strtoul (arg, NULL, 10);
       if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
         return ERR_NO_MESG;
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       if (pop3d_is_deleted (attr))
         return ERR_MESG_DELE;
-      message_get_uidl (msg, uidl, sizeof (uidl), NULL);
+      mu_message_get_uidl (msg, uidl, sizeof (uidl), NULL);
       pop3d_outf ("+OK %d %s\r\n", mesgno, uidl);
     }
 

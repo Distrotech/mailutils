@@ -482,7 +482,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 
       /* mailer */
     case 'M':
-      if ((err = mailer_set_url_default (arg)) != 0)
+      if ((err = mu_mailer_set_url_default (arg)) != 0)
 	  {
 	    argp_error (state, _("Invalid mailer URL `%s': %s"),
 			arg, mu_strerror(err));

@@ -25,17 +25,17 @@
 extern "C" { /*}*/
 #endif
 
-int mu_envelope_create (envelope_t *, void *);
-void mu_envelope_destroy (envelope_t *, void *);
-void * mu_envelope_get_owner (envelope_t);
-int mu_envelope_set_sender (envelope_t, 
-                         int (*_sender) (envelope_t, char *, size_t, size_t*), 
+int mu_envelope_create (mu_envelope_t *, void *);
+void mu_envelope_destroy (mu_envelope_t *, void *);
+void * mu_envelope_get_owner (mu_envelope_t);
+int mu_envelope_set_sender (mu_envelope_t, 
+                         int (*_sender) (mu_envelope_t, char *, size_t, size_t*), 
                          void *);
-int mu_envelope_sender (envelope_t, char *, size_t, size_t *);
-int mu_envelope_set_date (envelope_t, 
-                       int (*_date) (envelope_t, char *, size_t , size_t *), 
+int mu_envelope_sender (mu_envelope_t, char *, size_t, size_t *);
+int mu_envelope_set_date (mu_envelope_t, 
+                       int (*_date) (mu_envelope_t, char *, size_t , size_t *), 
                        void *);
-int mu_envelope_date (envelope_t, char *, size_t, size_t *);
+int mu_envelope_date (mu_envelope_t, char *, size_t, size_t *);
 
 #ifdef __cplusplus
 }

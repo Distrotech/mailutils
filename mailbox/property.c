@@ -29,34 +29,34 @@
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
-static int property_find (property_t, const char *, struct property_item **);
+static int property_find (mu_property_t, const char *, struct property_item **);
 
 int
-property_create (property_t *pp, void *owner)
+mu_property_create (mu_property_t *pp, void *owner)
 {
-  property_t prop;
+  mu_property_t prop;
   if (pp == NULL)
     return MU_ERR_OUT_PTR_NULL;
   prop = calloc (1, sizeof *prop);
   if (prop == NULL)
     return ENOMEM;
-  monitor_create (&prop->lock, 0, prop);
+  mu_monitor_create (&prop->lock, 0, prop);
   prop->owner = owner;
   *pp = prop;
   return 0;
 }
 
 void
-property_destroy (property_t *pp, void *owner)
+mu_property_destroy (mu_property_t *pp, void *owner)
 {
   if (pp && *pp)
     {
-      property_t prop = *pp;
+      mu_property_t prop = *pp;
       if (prop->owner == owner)
 	{
 	  struct property_item *item, *cur;
 	  /* Destroy the list and is properties.  */
-	  monitor_wrlock (prop->lock);
+	  mu_monitor_wrlock (prop->lock);
 	  for (item = prop->items; item; item = cur)
 	    {
 	      if (item->key)
@@ -66,8 +66,8 @@ property_destroy (property_t *pp, void *owner)
 	      cur = item->next;
 	      free (item);
 	    }
-	  monitor_unlock (prop->lock);
-	  monitor_destroy (&prop->lock, prop);
+	  mu_monitor_unlock (prop->lock);
+	  mu_monitor_destroy (&prop->lock, prop);
 	  free (prop);
 	}
       *pp = NULL;
@@ -75,13 +75,13 @@ property_destroy (property_t *pp, void *owner)
 }
 
 void *
-property_get_owner (property_t prop)
+mu_property_get_owner (mu_property_t prop)
 {
   return (prop == NULL) ? NULL : prop->owner;
 }
 
 int
-property_set_value (property_t prop, const char *key,  const char *value,
+mu_property_set_value (mu_property_t prop, const char *key,  const char *value,
 		    int overwrite)
 {
   struct property_item *item;
@@ -122,7 +122,7 @@ property_set_value (property_t prop, const char *key,  const char *value,
 }
 
 int
-property_get_value (property_t prop, const char *key, char *buffer,
+mu_property_get_value (mu_property_t prop, const char *key, char *buffer,
 		    size_t buflen, size_t *n)
 {
   struct property_item *item = NULL;
@@ -146,7 +146,7 @@ property_get_value (property_t prop, const char *key, char *buffer,
 }
 
 int
-property_set (property_t prop, const char *k)
+mu_property_set (mu_property_t prop, const char *k)
 {
   struct property_item *item = NULL;
   int status = property_find (prop, k, &item);
@@ -157,7 +157,7 @@ property_set (property_t prop, const char *k)
 }
 
 int
-property_unset (property_t prop, const char *k)
+mu_property_unset (mu_property_t prop, const char *k)
 {
   struct property_item *item = NULL;
   int status = property_find (prop, k, &item);
@@ -168,7 +168,7 @@ property_unset (property_t prop, const char *k)
 }
 
 int
-property_is_set (property_t prop, const char *k)
+mu_property_is_set (mu_property_t prop, const char *k)
 {
   struct property_item *item = NULL;
   int status = property_find (prop, k, &item);
@@ -178,7 +178,7 @@ property_is_set (property_t prop, const char *k)
 }
 
 static int
-property_find (property_t prop, const char *key, struct property_item **item)
+property_find (mu_property_t prop, const char *key, struct property_item **item)
 {
   size_t len = 0;
   struct property_item *cur = NULL;
@@ -186,7 +186,7 @@ property_find (property_t prop, const char *key, struct property_item **item)
   if (prop == NULL || key == NULL)
     return EINVAL;
 
-  monitor_wrlock (prop->lock);
+  mu_monitor_wrlock (prop->lock);
   for (len = strlen (key), cur = prop->items; cur; cur = cur->next)
     {
       if (strlen (cur->key) == len && !strcmp (key, cur->key))
@@ -198,13 +198,13 @@ property_find (property_t prop, const char *key, struct property_item **item)
       cur = calloc (1, sizeof *cur);
       if (cur == NULL)
 	{
-	  monitor_unlock (prop->lock);
+	  mu_monitor_unlock (prop->lock);
 	  return ENOMEM;
 	}
       cur->key = strdup (key);
       if (cur->key == NULL)
 	{
-	  monitor_unlock (prop->lock);
+	  mu_monitor_unlock (prop->lock);
 	  free (cur);
 	  return ENOMEM;
 	}
@@ -212,6 +212,6 @@ property_find (property_t prop, const char *key, struct property_item **item)
       prop->items = cur;
     }
   *item = cur;
-  monitor_unlock (prop->lock);
+  mu_monitor_unlock (prop->lock);
   return 0;
 }

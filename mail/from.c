@@ -24,11 +24,11 @@
  */
 
 int
-mail_from0 (msgset_t *mspec, message_t msg, void *data)
+mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  header_t hdr = NULL;
-  envelope_t env;
-  attribute_t attr;
+  mu_header_t hdr = NULL;
+  mu_envelope_t env;
+  mu_attribute_t attr;
   char *from = NULL, *subj = NULL, *fromp, *subjp;
   int froml, subjl;
   char date[80], st[10];
@@ -36,10 +36,10 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   int cflag;
   size_t m_size = 0, m_lines = 0;
 
-  message_get_header (msg, &hdr);
+  mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
     {
-      address_t address = NULL;
+      mu_address_t address = NULL;
       if (mu_address_create (&address, from) == 0)
 	{
 	  char name[128];
@@ -55,7 +55,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 
 		  if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, &tmp) == 0)
 		    {
-		      address_t addr_to;
+		      mu_address_t addr_to;
 		      if (mu_address_create (&addr_to, tmp) == 0)
 			{
 			  mu_address_destroy (&address);
@@ -85,7 +85,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
   util_rfc2047_decode (&subj);
   
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   
   if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
     cflag = 'M';
@@ -121,15 +121,15 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
       struct tm tm;
       mu_timezone tz;
 
-      message_get_envelope (msg, &env);
+      mu_message_get_envelope (msg, &env);
       mu_envelope_date (env, date, sizeof (date), NULL);
       p = date;
       if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
 	strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);
     }
   
-  message_size (msg, &m_size);
-  message_lines (msg, &m_lines);
+  mu_message_size (msg, &m_size);
+  mu_message_lines (msg, &m_lines);
   
   snprintf (st, sizeof (st), "%3d/%-5d", m_lines, m_size);
   

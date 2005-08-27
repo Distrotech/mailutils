@@ -24,8 +24,8 @@ int
 pop3d_dele (const char *arg)
 {
   size_t num;
-  message_t msg;
-  attribute_t attr = NULL;
+  mu_message_t msg;
+  mu_attribute_t attr = NULL;
 
   if ((arg == NULL) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -38,7 +38,7 @@ pop3d_dele (const char *arg)
   if (mu_mailbox_get_message (mbox, num, &msg) != 0)
     return ERR_NO_MESG;
 
-  message_get_attribute (msg, &attr);
+  mu_message_get_attribute (msg, &attr);
   pop3d_mark_deleted (attr);
   pop3d_outf ("+OK Message %d marked\r\n", num);
   return OK;

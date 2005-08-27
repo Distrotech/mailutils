@@ -23,9 +23,9 @@
  */
 
 static int
-top0 (msgset_t *mspec, message_t msg, void *data)
+top0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
-  stream_t stream;
+  mu_stream_t stream;
   char buf[512];
   size_t n;
   off_t off;
@@ -35,10 +35,10 @@ top0 (msgset_t *mspec, message_t msg, void *data)
       || lines < 0)
     return 1;
 
-  message_get_stream (msg, &stream);
+  mu_message_get_stream (msg, &stream);
   for (n = 0, off = 0; lines > 0; lines--, off += n)
     {
-      int status = stream_readline (stream, buf, sizeof (buf), off, &n);
+      int status = mu_stream_readline (stream, buf, sizeof (buf), off, &n);
       if (status != 0 || n == 0)
 	break;
       fprintf (ofile, "%s", buf);

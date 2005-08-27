@@ -47,16 +47,16 @@
 
 struct mime_context
 {
-  stream_t input;         
-  header_t hdr;
+  mu_stream_t input;         
+  mu_header_t hdr;
   char *content_type_buffer;
   char *content_type;
-  list_t values;
+  mu_list_t values;
   char *temp_file;
   int unlink_temp_file;
 
   char *no_ask_str;
-  list_t no_ask_types;
+  mu_list_t no_ask_types;
   int debug_level;
   int flags;
 };
@@ -65,7 +65,7 @@ struct mime_context
 
 static int
 mime_context_fill (struct mime_context *ctx, const char *file,
-		   stream_t input, header_t hdr, const char *no_ask,
+		   mu_stream_t input, mu_header_t hdr, const char *no_ask,
 		   int interactive, int dry_run, int debug_level)
 {
   char *p, *sp;
@@ -128,7 +128,7 @@ mime_context_do_not_ask (struct mime_context *ctx)
   
   if (ctx->no_ask_types)
     {
-      iterator_t itr;
+      mu_iterator_t itr;
       mu_list_get_iterator (ctx->no_ask_types, &itr);
       for (mu_iterator_first (itr); !rc && !mu_iterator_is_done (itr);
 	   mu_iterator_next (itr))
@@ -161,7 +161,7 @@ mime_context_get_content_type (struct mime_context *ctx, char **ptr)
 }
 
 static void
-mime_context_get_input (struct mime_context *ctx, stream_t *pinput)
+mime_context_get_input (struct mime_context *ctx, mu_stream_t *pinput)
 {
   *pinput = ctx->input;
 }
@@ -171,7 +171,7 @@ mime_context_get_content_type_value (struct mime_context *ctx,
 				     char *name, size_t len,
 				     char **ptr, size_t *plen)
 {
-  iterator_t itr = NULL;
+  mu_iterator_t itr = NULL;
   int rc = 1;
   
   mu_list_get_iterator (ctx->values, &itr);
@@ -201,14 +201,14 @@ mime_context_get_content_type_value (struct mime_context *ctx,
 static void
 mime_context_write_input (struct mime_context *ctx, int fd)
 {
-  stream_t input;
+  mu_stream_t input;
   char buf[512];
   size_t n;
   int status;
   
   mime_context_get_input (ctx, &input);
-  stream_seek (input, 0, SEEK_SET);
-  while ((status = stream_sequential_read (input, buf, sizeof buf, &n)) == 0
+  mu_stream_seek (input, 0, SEEK_SET);
+  while ((status = mu_stream_sequential_read (input, buf, sizeof buf, &n)) == 0
 	 && n)
     write (fd, buf, n);
 }
@@ -587,11 +587,11 @@ find_entry (const char *file, struct mime_context *ctx)
 {
   mu_mailcap_t mailcap;
   int status;
-  stream_t stream;
+  mu_stream_t stream;
   int rc = 1;
 
   DEBUG (ctx, 2, (_("Trying %s...\n"), file));
-  status = file_stream_create (&stream, file, MU_STREAM_READ);
+  status = mu_file_stream_create (&stream, file, MU_STREAM_READ);
   if (status)
     {
       mu_error ("cannot create file stream %s: %s",
@@ -599,10 +599,10 @@ find_entry (const char *file, struct mime_context *ctx)
       return -1;
     }
 
-  status = stream_open (stream);
+  status = mu_stream_open (stream);
   if (status)
     {
-      stream_destroy (&stream, stream_get_owner (stream));
+      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       if (status != ENOENT)
 	mu_error ("cannot open file stream %s: %s",
 		  file, mu_strerror (status));
@@ -651,7 +651,7 @@ find_entry (const char *file, struct mime_context *ctx)
 }
 
 int
-display_stream_mailcap (const char *ident, stream_t stream, header_t hdr,
+display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
 			const char *no_ask, int interactive, int dry_run,
 			int debug_level)
 {

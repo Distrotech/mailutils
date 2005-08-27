@@ -24,8 +24,8 @@ int
 pop3d_list (const char *arg)
 {
   size_t mesgno;
-  message_t msg = NULL;
-  attribute_t attr = NULL;
+  mu_message_t msg = NULL;
+  mu_attribute_t attr = NULL;
   size_t size = 0;
   size_t lines = 0;
 
@@ -43,11 +43,11 @@ pop3d_list (const char *arg)
       for (mesgno = 1; mesgno <= total; mesgno++)
 	{
 	  mu_mailbox_get_message (mbox, mesgno, &msg);
-	  message_get_attribute (msg, &attr);
+	  mu_message_get_attribute (msg, &attr);
 	  if (!pop3d_is_deleted (attr))
 	    {
-	      message_size (msg, &size);
-	      message_lines (msg, &lines);
+	      mu_message_size (msg, &size);
+	      mu_message_lines (msg, &lines);
 	      pop3d_outf ("%d %d\r\n", mesgno, size + lines);
 	    }
 	}
@@ -58,11 +58,11 @@ pop3d_list (const char *arg)
       mesgno = strtoul (arg, NULL, 10);
       if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
 	return ERR_NO_MESG;
-      message_get_attribute (msg, &attr);
+      mu_message_get_attribute (msg, &attr);
       if (pop3d_is_deleted (attr))
 	return ERR_MESG_DELE;
-      message_size (msg, &size);
-      message_lines (msg, &lines);
+      mu_message_size (msg, &size);
+      mu_message_lines (msg, &lines);
       pop3d_outf ("+OK %d %d\r\n", mesgno, size + lines);
     }
 

@@ -50,9 +50,9 @@ struct _mapfile_stream
 };
 
 static void
-_mapfile_destroy (stream_t stream)
+_mapfile_destroy (mu_stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
 
   if (mfs->ptr != MAP_FAILED)
     {
@@ -65,10 +65,10 @@ _mapfile_destroy (stream_t stream)
 }
 
 static int
-_mapfile_read (stream_t stream, char *optr, size_t osize,
+_mapfile_read (mu_stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   size_t n = 0;
 
   if (mfs->ptr == MAP_FAILED)
@@ -86,10 +86,10 @@ _mapfile_read (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_mapfile_readline (stream_t stream, char *optr, size_t osize,
+_mapfile_readline (mu_stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   char *nl;
   size_t n = 0;
 
@@ -112,10 +112,10 @@ _mapfile_readline (stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_mapfile_write (stream_t stream, const char *iptr, size_t isize,
+_mapfile_write (mu_stream_t stream, const char *iptr, size_t isize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
 
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
@@ -154,9 +154,9 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_mapfile_truncate (stream_t stream, off_t len)
+_mapfile_truncate (mu_stream_t stream, off_t len)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
   /* Remap.  */
@@ -181,9 +181,9 @@ _mapfile_truncate (stream_t stream, off_t len)
 }
 
 static int
-_mapfile_size (stream_t stream, off_t *psize)
+_mapfile_size (mu_stream_t stream, off_t *psize)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   struct stat stbuf;
   int err = 0;
 
@@ -228,18 +228,18 @@ _mapfile_size (stream_t stream, off_t *psize)
 }
 
 static int
-_mapfile_flush (stream_t stream)
+_mapfile_flush (mu_stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   if (mfs->ptr != MAP_FAILED && mfs->ptr != NULL && (mfs->flags & PROT_WRITE))
     return msync (mfs->ptr, mfs->size, MS_SYNC);
   return 0;
 }
 
 static int
-_mapfile_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+_mapfile_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
 
   if (pout)
     *pout = NULL;
@@ -250,9 +250,9 @@ _mapfile_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *p
 }
 
 static int
-_mapfile_close (stream_t stream)
+_mapfile_close (mu_stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   int err = 0;
   if (mfs->ptr != MAP_FAILED)
     {
@@ -267,15 +267,15 @@ _mapfile_close (stream_t stream)
 }
 
 static int
-_mapfile_open (stream_t stream)
+_mapfile_open (mu_stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream_get_owner (stream);
+  struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   int mflag, flg;
   struct stat st;
   char* filename = mfs->filename;
   int flags;
 
-  stream_get_flags (stream, &flags);
+  mu_stream_get_flags (stream, &flags);
 
   /* Close any previous file.  */
   if (mfs->ptr != MAP_FAILED)
@@ -334,14 +334,14 @@ _mapfile_open (stream_t stream)
   else
     mfs->ptr = NULL;
   mfs->flags = mflag;
-  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
+  mu_stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;
 }
 
 #endif /* _POSIX_MAPPED_FILES */
 
 int
-mapfile_stream_create (stream_t *stream, const char* filename, int flags)
+mu_mapfile_stream_create (mu_stream_t *stream, const char* filename, int flags)
 {
 #ifndef _POSIX_MAPPED_FILES
   return ENOSYS;
@@ -368,7 +368,7 @@ mapfile_stream_create (stream_t *stream, const char* filename, int flags)
   fs->fd = -1;
   fs->ptr = MAP_FAILED;
 
-  ret = stream_create (stream, flags | MU_STREAM_NO_CHECK, fs);
+  ret = mu_stream_create (stream, flags | MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
       free (fs->filename);
@@ -376,16 +376,16 @@ mapfile_stream_create (stream_t *stream, const char* filename, int flags)
       return ret;
     }
 
-  stream_set_open (*stream, _mapfile_open, fs);
-  stream_set_close (*stream, _mapfile_close, fs);
-  stream_set_get_transport2 (*stream, _mapfile_get_transport2, fs);
-  stream_set_read (*stream, _mapfile_read, fs);
-  stream_set_readline (*stream, _mapfile_readline, fs);
-  stream_set_write (*stream, _mapfile_write, fs);
-  stream_set_truncate (*stream, _mapfile_truncate, fs);
-  stream_set_size (*stream, _mapfile_size, fs);
-  stream_set_flush (*stream, _mapfile_flush, fs);
-  stream_set_destroy (*stream, _mapfile_destroy, fs);
+  mu_stream_set_open (*stream, _mapfile_open, fs);
+  mu_stream_set_close (*stream, _mapfile_close, fs);
+  mu_stream_set_get_transport2 (*stream, _mapfile_get_transport2, fs);
+  mu_stream_set_read (*stream, _mapfile_read, fs);
+  mu_stream_set_readline (*stream, _mapfile_readline, fs);
+  mu_stream_set_write (*stream, _mapfile_write, fs);
+  mu_stream_set_truncate (*stream, _mapfile_truncate, fs);
+  mu_stream_set_size (*stream, _mapfile_size, fs);
+  mu_stream_set_flush (*stream, _mapfile_flush, fs);
+  mu_stream_set_destroy (*stream, _mapfile_destroy, fs);
   return 0;
 #endif /* _POSIX_MAPPED_FILES */
 }

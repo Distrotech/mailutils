@@ -19,7 +19,7 @@
 
 #include "pop3d.h"
 
-mailbox_t mbox;
+mu_mailbox_t mbox;
 int state;
 char *username;
 char *md5shared;

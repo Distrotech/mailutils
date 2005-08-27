@@ -34,16 +34,16 @@ extern "C" {
 
 struct _filter
 {
-  stream_t stream;
-  stream_t filter_stream;
-  property_t property;
+  mu_stream_t stream;
+  mu_stream_t filter_stream;
+  mu_property_t property;
   int direction;
   int type;
   void *data;
-  int  (*_read)     (filter_t, char *, size_t, off_t, size_t *);
-  int  (*_readline) (filter_t, char *, size_t, off_t, size_t *);
-  int  (*_write)    (filter_t, const char *, size_t, off_t, size_t *);
-  void (*_destroy)  (filter_t);
+  int  (*_read)     (mu_filter_t, char *, size_t, off_t, size_t *);
+  int  (*_readline) (mu_filter_t, char *, size_t, off_t, size_t *);
+  int  (*_write)    (mu_filter_t, const char *, size_t, off_t, size_t *);
+  void (*_destroy)  (mu_filter_t);
 };
 
 #ifdef __cplusplus

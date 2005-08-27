@@ -45,58 +45,58 @@ extern "C" {
 #define MU_ATTRIBUTE_IS_UNREAD(f) \
       ((f) == 0 || ! ((f) & MU_ATTRIBUTE_READ))
 
-extern int mu_attribute_create          (attribute_t *, void *);
-extern void mu_attribute_destroy        (attribute_t *, void *);
-extern void * mu_attribute_get_owner    (attribute_t);
-extern int mu_attribute_is_modified     (attribute_t);
-extern int mu_attribute_clear_modified  (attribute_t);
-extern int mu_attribute_set_modified    (attribute_t attr);
+extern int mu_attribute_create          (mu_attribute_t *, void *);
+extern void mu_attribute_destroy        (mu_attribute_t *, void *);
+extern void * mu_attribute_get_owner    (mu_attribute_t);
+extern int mu_attribute_is_modified     (mu_attribute_t);
+extern int mu_attribute_clear_modified  (mu_attribute_t);
+extern int mu_attribute_set_modified    (mu_attribute_t attr);
 
-extern int mu_attribute_is_userflag     (attribute_t, int);
-extern int mu_attribute_is_seen         (attribute_t);
-extern int mu_attribute_is_answered     (attribute_t);
-extern int mu_attribute_is_flagged      (attribute_t);
-extern int mu_attribute_is_deleted      (attribute_t);
-extern int mu_attribute_is_draft        (attribute_t);
-extern int mu_attribute_is_recent       (attribute_t);
-extern int mu_attribute_is_read         (attribute_t);
+extern int mu_attribute_is_userflag     (mu_attribute_t, int);
+extern int mu_attribute_is_seen         (mu_attribute_t);
+extern int mu_attribute_is_answered     (mu_attribute_t);
+extern int mu_attribute_is_flagged      (mu_attribute_t);
+extern int mu_attribute_is_deleted      (mu_attribute_t);
+extern int mu_attribute_is_draft        (mu_attribute_t);
+extern int mu_attribute_is_recent       (mu_attribute_t);
+extern int mu_attribute_is_read         (mu_attribute_t);
 
-extern int mu_attribute_set_userflag    (attribute_t, int);
-extern int mu_attribute_set_seen        (attribute_t);
-extern int mu_attribute_set_answered    (attribute_t);
-extern int mu_attribute_set_flagged     (attribute_t);
-extern int mu_attribute_set_deleted     (attribute_t);
-extern int mu_attribute_set_draft       (attribute_t);
-extern int mu_attribute_set_recent      (attribute_t);
-extern int mu_attribute_set_read        (attribute_t);
+extern int mu_attribute_set_userflag    (mu_attribute_t, int);
+extern int mu_attribute_set_seen        (mu_attribute_t);
+extern int mu_attribute_set_answered    (mu_attribute_t);
+extern int mu_attribute_set_flagged     (mu_attribute_t);
+extern int mu_attribute_set_deleted     (mu_attribute_t);
+extern int mu_attribute_set_draft       (mu_attribute_t);
+extern int mu_attribute_set_recent      (mu_attribute_t);
+extern int mu_attribute_set_read        (mu_attribute_t);
 
-extern int mu_attribute_unset_userflag  (attribute_t, int);
-extern int mu_attribute_unset_seen      (attribute_t);
-extern int mu_attribute_unset_answered  (attribute_t);
-extern int mu_attribute_unset_flagged   (attribute_t);
-extern int mu_attribute_unset_deleted   (attribute_t);
-extern int mu_attribute_unset_draft     (attribute_t);
-extern int mu_attribute_unset_recent    (attribute_t);
-extern int mu_attribute_unset_read      (attribute_t);
+extern int mu_attribute_unset_userflag  (mu_attribute_t, int);
+extern int mu_attribute_unset_seen      (mu_attribute_t);
+extern int mu_attribute_unset_answered  (mu_attribute_t);
+extern int mu_attribute_unset_flagged   (mu_attribute_t);
+extern int mu_attribute_unset_deleted   (mu_attribute_t);
+extern int mu_attribute_unset_draft     (mu_attribute_t);
+extern int mu_attribute_unset_recent    (mu_attribute_t);
+extern int mu_attribute_unset_read      (mu_attribute_t);
 
-extern int mu_attribute_get_flags       (attribute_t, int *);
-extern int mu_attribute_set_flags       (attribute_t, int);
-extern int mu_attribute_unset_flags     (attribute_t, int);
+extern int mu_attribute_get_flags       (mu_attribute_t, int *);
+extern int mu_attribute_set_flags       (mu_attribute_t, int);
+extern int mu_attribute_unset_flags     (mu_attribute_t, int);
 
-extern int mu_attribute_set_set_flags   (attribute_t,
-				      int (*_set_flags) (attribute_t, int),
+extern int mu_attribute_set_set_flags   (mu_attribute_t,
+				      int (*_set_flags) (mu_attribute_t, int),
 				      void *);
-extern int mu_attribute_set_unset_flags (attribute_t,
-				      int (*_unset_flags) (attribute_t, int),
+extern int mu_attribute_set_unset_flags (mu_attribute_t,
+				      int (*_unset_flags) (mu_attribute_t, int),
 				      void *);
-extern int mu_attribute_set_get_flags   (attribute_t,
-				      int (*_get_flags) (attribute_t, int *),
+extern int mu_attribute_set_get_flags   (mu_attribute_t,
+				      int (*_get_flags) (mu_attribute_t, int *),
 				      void *);
-extern int mu_attribute_is_equal        (attribute_t, attribute_t att2);
+extern int mu_attribute_is_equal        (mu_attribute_t, mu_attribute_t att2);
 
-extern int mu_attribute_copy            (attribute_t, attribute_t);
+extern int mu_attribute_copy            (mu_attribute_t, mu_attribute_t);
 
-extern int mu_attribute_to_string       (attribute_t, char *, size_t, size_t *);
+extern int mu_attribute_to_string       (mu_attribute_t, char *, size_t, size_t *);
 extern int mu_string_to_flags           (const char *, int *);
 
 #ifdef __cplusplus

@@ -36,12 +36,12 @@
   TODO: implement functions to create a url and encode it properly.
 */
 
-static int url_parse0 (url_t, char *);
+static int url_parse0 (mu_url_t, char *);
 
 int
-url_create (url_t * purl, const char *name)
+mu_url_create (mu_url_t * purl, const char *name)
 {
-  url_t url = calloc (1, sizeof (*url));
+  mu_url_t url = calloc (1, sizeof (*url));
   if (url == NULL)
     return ENOMEM;
   url->name = strdup (name);
@@ -55,11 +55,11 @@ url_create (url_t * purl, const char *name)
 }
 
 void
-url_destroy (url_t * purl)
+mu_url_destroy (mu_url_t * purl)
 {
   if (purl && *purl)
     {
-      url_t url = (*purl);
+      mu_url_t url = (*purl);
 
       if (url->_destroy)
 	url->_destroy (url);
@@ -95,7 +95,7 @@ url_destroy (url_t * purl)
 }
 
 int
-url_parse (url_t url)
+mu_url_parse (mu_url_t url)
 {
   int err = 0;
   char *n = NULL;
@@ -126,7 +126,7 @@ url_parse (url_t url)
 
 
 #define UALLOC(X) \
-  		if(u.X && u.X[0] && (url->X = url_decode(u.X)) == 0) { \
+  		if(u.X && u.X[0] && (url->X = mu_url_decode(u.X)) == 0) { \
 		  err = ENOMEM; \
 		  goto CLEANUP; \
 		} else { \
@@ -186,7 +186,7 @@ Is this required to be % quoted, though? I hope so!
 */
 
 static int
-url_parse0 (url_t u, char *name)
+url_parse0 (mu_url_t u, char *name)
 {
   char *p;			/* pointer into name */
 
@@ -300,7 +300,7 @@ url_parse0 (url_t u, char *name)
 }
 
 int
-url_get_scheme (const url_t url, char *scheme, size_t len, size_t * n)
+mu_url_get_scheme (const mu_url_t url, char *scheme, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -314,7 +314,7 @@ url_get_scheme (const url_t url, char *scheme, size_t len, size_t * n)
 }
 
 int
-url_get_user (const url_t url, char *user, size_t len, size_t * n)
+mu_url_get_user (const mu_url_t url, char *user, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -330,7 +330,7 @@ url_get_user (const url_t url, char *user, size_t len, size_t * n)
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
 int
-url_get_passwd (const url_t url, char *passwd, size_t len, size_t * n)
+mu_url_get_passwd (const mu_url_t url, char *passwd, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -344,7 +344,7 @@ url_get_passwd (const url_t url, char *passwd, size_t len, size_t * n)
 }
 
 int
-url_get_auth (const url_t url, char *auth, size_t len, size_t * n)
+mu_url_get_auth (const mu_url_t url, char *auth, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -358,7 +358,7 @@ url_get_auth (const url_t url, char *auth, size_t len, size_t * n)
 }
 
 int
-url_get_host (const url_t url, char *host, size_t len, size_t * n)
+mu_url_get_host (const mu_url_t url, char *host, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -372,7 +372,7 @@ url_get_host (const url_t url, char *host, size_t len, size_t * n)
 }
 
 int
-url_get_port (const url_t url, long *pport)
+mu_url_get_port (const mu_url_t url, long *pport)
 {
   if (url == NULL)
     return EINVAL;
@@ -383,7 +383,7 @@ url_get_port (const url_t url, long *pport)
 }
 
 int
-url_get_path (const url_t url, char *path, size_t len, size_t * n)
+mu_url_get_path (const mu_url_t url, char *path, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -397,7 +397,7 @@ url_get_path (const url_t url, char *path, size_t len, size_t * n)
 }
 
 int
-url_get_query (const url_t url, char *query, size_t len, size_t * n)
+mu_url_get_query (const mu_url_t url, char *query, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -411,7 +411,7 @@ url_get_query (const url_t url, char *query, size_t len, size_t * n)
 }
 
 const char *
-url_to_string (const url_t url)
+mu_url_to_string (const mu_url_t url)
 {
   if (url == NULL || url->name == NULL)
     return "";
@@ -419,7 +419,7 @@ url_to_string (const url_t url)
 }
 
 int
-url_is_scheme (url_t url, const char *scheme)
+mu_url_is_scheme (mu_url_t url, const char *scheme)
 {
   if (url && scheme && url->scheme && strcasecmp (url->scheme, scheme) == 0)
     return 1;
@@ -428,22 +428,22 @@ url_is_scheme (url_t url, const char *scheme)
 }
 
 int
-url_is_same_scheme (url_t url1, url_t url2)
+mu_url_is_same_scheme (mu_url_t url1, mu_url_t url2)
 {
   size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 1;
 
-  url_get_scheme (url1, NULL, 0, &i);
-  url_get_scheme (url2, NULL, 0, &j);
+  mu_url_get_scheme (url1, NULL, 0, &i);
+  mu_url_get_scheme (url2, NULL, 0, &j);
   s1 = calloc (i + 1, sizeof (char));
   if (s1)
     {
-      url_get_scheme (url1, s1, i + 1, NULL);
+      mu_url_get_scheme (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
 	{
-	  url_get_scheme (url2, s2, j + 1, NULL);
+	  mu_url_get_scheme (url2, s2, j + 1, NULL);
 	  ret = !strcasecmp (s1, s2);
 	  free (s2);
 	}
@@ -453,22 +453,22 @@ url_is_same_scheme (url_t url1, url_t url2)
 }
 
 int
-url_is_same_user (url_t url1, url_t url2)
+mu_url_is_same_user (mu_url_t url1, mu_url_t url2)
 {
   size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
-  url_get_user (url1, NULL, 0, &i);
-  url_get_user (url2, NULL, 0, &j);
+  mu_url_get_user (url1, NULL, 0, &i);
+  mu_url_get_user (url2, NULL, 0, &j);
   s1 = calloc (i + 1, sizeof (char));
   if (s1)
     {
-      url_get_user (url1, s1, i + 1, NULL);
+      mu_url_get_user (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
 	{
-	  url_get_user (url2, s2, j + 1, NULL);
+	  mu_url_get_user (url2, s2, j + 1, NULL);
 	  ret = !strcmp (s1, s2);
 	  free (s2);
 	}
@@ -478,22 +478,22 @@ url_is_same_user (url_t url1, url_t url2)
 }
 
 int
-url_is_same_path (url_t url1, url_t url2)
+mu_url_is_same_path (mu_url_t url1, mu_url_t url2)
 {
   size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
-  url_get_path (url1, NULL, 0, &i);
-  url_get_path (url2, NULL, 0, &j);
+  mu_url_get_path (url1, NULL, 0, &i);
+  mu_url_get_path (url2, NULL, 0, &j);
   s1 = calloc (i + 1, sizeof (char));
   if (s1)
     {
-      url_get_path (url1, s1, i + 1, NULL);
+      mu_url_get_path (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
 	{
-	  url_get_path (url2, s2, j + 1, NULL);
+	  mu_url_get_path (url2, s2, j + 1, NULL);
 	  ret = !strcmp (s1, s2);
 	  free (s2);
 	}
@@ -503,22 +503,22 @@ url_is_same_path (url_t url1, url_t url2)
 }
 
 int
-url_is_same_host (url_t url1, url_t url2)
+mu_url_is_same_host (mu_url_t url1, mu_url_t url2)
 {
   size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
-  url_get_host (url1, NULL, 0, &i);
-  url_get_host (url2, NULL, 0, &j);
+  mu_url_get_host (url1, NULL, 0, &i);
+  mu_url_get_host (url2, NULL, 0, &j);
   s1 = calloc (i + 1, sizeof (char));
   if (s1)
     {
-      url_get_host (url1, s1, i + 1, NULL);
+      mu_url_get_host (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
 	{
-	  url_get_host (url2, s2, j + 1, NULL);
+	  mu_url_get_host (url2, s2, j + 1, NULL);
 	  ret = !strcasecmp (s1, s2);
 	  free (s2);
 	}
@@ -528,18 +528,18 @@ url_is_same_host (url_t url1, url_t url2)
 }
 
 int
-url_is_same_port (url_t url1, url_t url2)
+mu_url_is_same_port (mu_url_t url1, mu_url_t url2)
 {
   long p1 = 0, p2 = 0;
 
-  url_get_port (url1, &p1);
-  url_get_port (url2, &p2);
+  mu_url_get_port (url1, &p1);
+  mu_url_get_port (url2, &p2);
   return (p1 == p2);
 }
 
 /* From RFC 1738, section 2.2 */
 char *
-url_decode (const char *s)
+mu_url_decode (const char *s)
 {
   char *d = strdup (s);
   const char *eos = s + strlen (s);
@@ -587,7 +587,7 @@ defined (const char *s)
 }
 
 int
-url_is_ticket (url_t ticket, url_t url)
+mu_url_is_ticket (mu_url_t ticket, mu_url_t url)
 {
   if (!ticket || !url)
     return 0;
