@@ -112,7 +112,7 @@
 	pop3d/lock.c, pop3d/pop3d.c, pop3d/pop3d.h, pop3d/quit.c, pop3d/retr.c,
 	pop3d/rset.c, pop3d/stat.c, pop3d/top.c, pop3d/uidl.c, pop3d/user.c,
 	readmsg/msglist.c, readmsg/readmsg.c, readmsg/readmsg.h, sieve/sieve.c,
-	sql/odbc.c, 
+	sql/odbc.c.
 	
 2005-08-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 

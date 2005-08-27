@@ -4,6 +4,7 @@
 Makefile
 Makefile.in
 addr
+argcv
 base64
 decode2047
 encode2047
