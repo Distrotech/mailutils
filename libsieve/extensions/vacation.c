@@ -389,7 +389,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	{
 	  char *err = NULL;
 	  
-	  rc = munre_set_regex (arg->v.string, 0, &err);
+	  rc = mu_unre_set_regex (arg->v.string, 0, &err);
 	  if (rc)
 	    {
 	      mu_sieve_error (mach,
@@ -400,7 +400,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	    }
 	}
 	  
-      if (munre_subject (subject, NULL))
+      if (mu_unre_subject (subject, NULL))
 	re_subject (mach, tags, &subject);
       
       free (value);

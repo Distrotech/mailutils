@@ -57,7 +57,7 @@ mail_followup (int argc, char **argv)
     {
       char *p = NULL;
 
-      if (munre_subject (str, NULL))
+      if (mu_unre_subject (str, NULL))
 	util_strcat (&p, util_reply_prefix ());
       util_strcat (&p, str);
       free (str);

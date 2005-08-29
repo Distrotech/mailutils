@@ -31,7 +31,7 @@
 static regex_t *re_prefix;
 
 int
-munre_set_regex (char *str, int caseflag, char **errp)
+mu_unre_set_regex (char *str, int caseflag, char **errp)
 {
   int rc;
   int flags = REG_EXTENDED;
@@ -70,7 +70,7 @@ munre_set_regex (char *str, int caseflag, char **errp)
 }
 
 int
-munre_subject (const char *subject, const char **new_subject)
+mu_unre_subject (const char *subject, const char **new_subject)
 {
   int rc;
   regmatch_t rm;
@@ -80,7 +80,7 @@ munre_subject (const char *subject, const char **new_subject)
   
   if (!re_prefix)
     {
-      rc = munre_set_regex (NULL, 0, NULL);
+      rc = mu_unre_set_regex (NULL, 0, NULL);
       if (rc)
 	return rc;
     }

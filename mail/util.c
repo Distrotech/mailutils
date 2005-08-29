@@ -667,7 +667,7 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
       int rc;
       char *err;
 	      
-      if ((rc = munre_set_regex (value, 0, &err)))
+      if ((rc = mu_unre_set_regex (value, 0, &err)))
 	{
 	  fprintf (stderr, "%s", mu_strerror (rc));
 	  if (err)

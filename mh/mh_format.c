@@ -1791,7 +1791,7 @@ static void
 builtin_unre (struct mh_machine *mach)
 {
   const char *p;
-  int rc = munre_subject (strobj_ptr (&mach->arg_str), &p);
+  int rc = mu_unre_subject (strobj_ptr (&mach->arg_str), &p);
   if (rc == 0 && p != strobj_ptr (&mach->arg_str))
     {
       char *q = strdup (p); /* Create a copy, since strobj_create will
@@ -1814,11 +1814,11 @@ builtin_isreply (struct mh_machine *mach)
       mu_message_get_header (mach->message, &hdr);
       
       mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &value);
-      rc = munre_subject (value, NULL);
+      rc = mu_unre_subject (value, NULL);
       free (value);
     }
   else
-    rc = munre_subject (strobj_ptr (&mach->arg_str), NULL);
+    rc = mu_unre_subject (strobj_ptr (&mach->arg_str), NULL);
 
   mach->arg_num = !rc;
 }

@@ -786,7 +786,7 @@ void
 mh_set_reply_regex (const char *str)
 {
   char *err;
-  int rc = munre_set_regex (str, 0, &err);
+  int rc = mu_unre_set_regex (str, 0, &err);
   if (rc)
     mh_error ("reply_regex: %s%s%s", mu_strerror (rc),
 	      err ? ": " : "",

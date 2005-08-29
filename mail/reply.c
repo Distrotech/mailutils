@@ -99,7 +99,7 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
     {
       char *p = NULL;
       
-      if (munre_subject (str, NULL))
+      if (mu_unre_subject (str, NULL))
 	util_strcat (&p, util_reply_prefix ());
       util_strcat (&p, str);
       free (str);
