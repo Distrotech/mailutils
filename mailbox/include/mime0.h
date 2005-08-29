@@ -49,7 +49,7 @@ extern "C" {
 #define MIME_INSERT_BOUNDARY       0x04000000
 #define MIME_ADDING_BOUNDARY       0x02000000
 
-struct _mime
+struct _mu_mime
 {
   mu_message_t       msg;
   mu_header_t        hdrs;

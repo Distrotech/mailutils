@@ -40,14 +40,14 @@ struct list_data
   struct list_data *prev;
 };
 
-struct _list
+struct _mu_list
 {
   struct list_data head;
   size_t count;
   mu_monitor_t monitor;
   mu_list_comparator_t comp;
   void (*destroy_item) (void *item);
-  struct _iterator *itr;
+  struct _mu_iterator *itr;
 };
 
 

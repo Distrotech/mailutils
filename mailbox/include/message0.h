@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-struct _message
+struct _mu_message
 {
   /* Who is the owner.  */
   void *owner;

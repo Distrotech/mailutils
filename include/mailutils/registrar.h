@@ -26,22 +26,22 @@ extern "C" {
 #endif
 
 /* Public Interface, to allow static initialization.  */
-struct mu__record
+struct _mu_record
 {
   int priority;    /* Higher priority records are scanned first */
   const char *scheme;
-  int (*_url) (mu_url_t);
-  int (*_mailbox) (mu_mailbox_t);
-  int (*_mailer) (mu_mailer_t);
-  int (*_folder) (mu_folder_t);
+  int (*_mu_url) (mu_url_t);
+  int (*_mu_mailbox) (mu_mailbox_t);
+  int (*_mu_mailer) (mu_mailer_t);
+  int (*_mu_folder) (mu_folder_t);
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The default is to return the fields.  */
   int (*_is_scheme) (mu_record_t, const char *, int);
-  int (*_get_url) (mu_record_t, int (*(*_url)) (mu_url_t));
-  int (*_get_mailbox) (mu_record_t, int (*(*_mailbox)) (mu_mailbox_t));
-  int (*_get_mailer) (mu_record_t, int (*(*_mailer)) (mu_mailer_t));
-  int (*_get_folder) (mu_record_t, int (*(*_folder)) (mu_folder_t));
+  int (*_get_url) (mu_record_t, int (*(*_mu_url)) (mu_url_t));
+  int (*_get_mailbox) (mu_record_t, int (*(*_mu_mailbox)) (mu_mailbox_t));
+  int (*_get_mailer) (mu_record_t, int (*(*_mu_mailer)) (mu_mailer_t));
+  int (*_get_folder) (mu_record_t, int (*(*_mu_folder)) (mu_folder_t));
 };
 
 /* Registration.  */

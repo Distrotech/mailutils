@@ -37,7 +37,7 @@ extern "C" {
 
 #define MAILER_LINE_BUF_SIZE	1000
 
-struct _mailer
+struct _mu_mailer
 {
   mu_stream_t stream;
   mu_observable_t observable;

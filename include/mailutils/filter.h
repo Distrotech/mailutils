@@ -34,15 +34,15 @@ extern "C" {
 #define MU_FILTER_WRITE MU_STREAM_WRITE
 #define MU_FILTER_RDWR  MU_STREAM_RDWR
 
-struct mu_filter_record
+struct _mu_filter_record
 {
   const char *name;
-  int  (*_filter)     (mu_filter_t);
+  int  (*_mu_filter)     (mu_filter_t);
   void *data;
 
   /* Stub function return the fields.  */
   int (*_is_filter)  (mu_filter_record_t, const char *);
-  int (*_get_filter) (mu_filter_record_t, int (*(*_filter)) (mu_filter_t));
+  int (*_get_filter) (mu_filter_record_t, int (*(*_mu_filter)) (mu_filter_t));
 };
 
 

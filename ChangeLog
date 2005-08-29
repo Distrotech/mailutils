@@ -1,5 +1,27 @@
 2005-08-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Raise version number to 0.6.92
+	Raise library current interface version to 1
+	
+	* include/mailutils/filter.h,
+	include/mailutils/registrar.h, include/mailutils/types.h,
+	mailbox/filter.c, mailbox/filter_rfc822.c, mailbox/filter_trans.c,
+	mailbox/folder.c, mailbox/getopt.h, mailbox/locker.c,
+	mailbox/parse822.c, mailbox/registrar.c, mailbox/sendmail.c,
+	mailbox/smtp.c, mailbox/url.c, mailbox/imap/folder.c,
+	mailbox/include/address0.h, mailbox/include/attribute0.h,
+	mailbox/include/auth0.h, mailbox/include/body0.h,
+	mailbox/include/debug0.h, mailbox/include/envelope0.h,
+	mailbox/include/filter0.h, mailbox/include/folder0.h,
+	mailbox/include/header0.h, mailbox/include/iterator0.h,
+	mailbox/include/list0.h, mailbox/include/mailbox0.h,
+	mailbox/include/mailer0.h, mailbox/include/message0.h,
+	mailbox/include/mime0.h, mailbox/include/observer0.h,
+	mailbox/include/property0.h, mailbox/include/stream0.h,
+	mailbox/include/url0.h, mailbox/maildir/folder.c,
+	mailbox/mbox/folder.c, mailbox/mh/folder.c, mailbox/nntp/folder.c,
+	mailbox/pop/folder.c: Fix-up structure names from types.h
+
 	Final seasoning: Replace munre_ with mu_unre_
 	
 	* include/mailutils/mutil.h

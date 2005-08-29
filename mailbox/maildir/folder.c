@@ -99,7 +99,7 @@ _maildir_url_init (mu_url_t url)
   return amd_url_init (url, MU_MAILDIR_SCHEME);
 }
 
-static struct mu__record _maildir_record =
+static struct _mu_record _maildir_record =
 {
   MU_MAILDIR_PRIO,
   MU_MAILDIR_SCHEME,

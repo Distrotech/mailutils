@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-struct _filter
+struct _mu_filter
 {
   mu_stream_t stream;
   mu_stream_t filter_stream;

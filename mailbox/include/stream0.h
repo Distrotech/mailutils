@@ -38,7 +38,7 @@ struct rbuffer
   off_t offset;
 };
 
-struct _stream
+struct _mu_stream
 {
   void *owner;
   mu_property_t property;

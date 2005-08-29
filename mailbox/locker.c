@@ -47,7 +47,7 @@
 /* First draft by Brian Edmond. */
 /* For subsequent modifications, see the GNU mailutils ChangeLog. */
 
-struct _locker
+struct _mu_locker
 {
   int refcnt;
 

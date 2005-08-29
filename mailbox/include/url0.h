@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct _url
+struct _mu_url
 {
   /* Data */
   char  *name;

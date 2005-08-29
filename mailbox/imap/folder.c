@@ -62,7 +62,7 @@
 #define DEBUG_SHOW_DATA 0
 
 /* Variable use for the registrar.  */
-static struct mu__record _imap_record =
+static struct _mu_record _imap_record =
 {
   MU_IMAP_PRIO,
   MU_IMAP_SCHEME,
@@ -416,7 +416,7 @@ _folder_imap_init (mu_folder_t folder)
   folder->_open = folder_imap_open;
   folder->_close = folder_imap_close;
 
-  folder->_list = folder_imap_list;
+  folder->_mu_list = folder_imap_list;
   folder->_lsub = folder_imap_lsub;
   folder->_subscribe = folder_imap_subscribe;
   folder->_unsubscribe = folder_imap_unsubscribe;

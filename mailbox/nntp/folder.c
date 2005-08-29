@@ -42,7 +42,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct mu__record _nntp_record =
+static struct _mu_record _nntp_record =
 {
   MU_NNTP_PRIO,
   MU_NNTP_URL_SCHEME,
@@ -80,7 +80,7 @@ _nntp_folder_init (mu_folder_t folder)
   folder->_open = nntp_folder_open;
   folder->_close = nntp_folder_close;
 
-  folder->_list = nntp_folder_list;
+  folder->_mu_list = nntp_folder_list;
   /* Not supported.
     folder->_lsub = folder_nntp_lsub;
     folder->_subscribe = folder_nntp_subscribe;

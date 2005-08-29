@@ -45,7 +45,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct mu__record _mbox_record =
+static struct _mu_record _mbox_record =
 {
   MU_MBOX_PRIO,
   MU_MBOX_SCHEME,
@@ -89,7 +89,7 @@ _path_is_scheme (mu_record_t record, const char *url, int flags)
   return rc;
 }
 
-static struct mu__record _path_record =
+static struct _mu_record _path_record =
 {
   MU_PATH_PRIO,
   MU_PATH_SCHEME,
@@ -165,7 +165,7 @@ _folder_mbox_init (mu_folder_t folder)
   folder->_open = folder_mbox_open;
   folder->_close = folder_mbox_close;
 
-  folder->_list = folder_mbox_list;
+  folder->_mu_list = folder_mbox_list;
   folder->_lsub = folder_mbox_lsub;
   folder->_subscribe = folder_mbox_subscribe;
   folder->_unsubscribe = folder_mbox_unsubscribe;

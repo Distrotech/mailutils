@@ -378,7 +378,7 @@ qp_init (mu_filter_t filter)
   return 0;
 }
 
-static struct mu_filter_record _qp_filter =
+static struct _mu_filter_record _qp_filter =
 {
   "quoted-printable",
   qp_init,
@@ -510,7 +510,7 @@ base64_init (mu_filter_t filter)
   return 0;
 }
 
-static struct mu_filter_record _base64_filter =
+static struct _mu_filter_record _base64_filter =
 {
   "base64",
   base64_init,
@@ -696,7 +696,7 @@ Q_init (mu_filter_t filter)
   return 0;
 }
 
-static struct mu_filter_record _Q_filter =
+static struct _mu_filter_record _Q_filter =
 {
   "Q",
   Q_init,
@@ -708,7 +708,7 @@ static struct mu_filter_record _Q_filter =
 
 /* Pass-through encodings */
 
-static struct mu_filter_record _bit8_filter =
+static struct _mu_filter_record _bit8_filter =
 {
   "8bit",
   NULL,
@@ -717,7 +717,7 @@ static struct mu_filter_record _bit8_filter =
   NULL
 };
 
-static struct mu_filter_record _bit7_filter =
+static struct _mu_filter_record _bit7_filter =
 {
   "7bit",
   NULL,
@@ -726,7 +726,7 @@ static struct mu_filter_record _bit7_filter =
   NULL
 };
 
-static struct mu_filter_record _binary_filter =
+static struct _mu_filter_record _binary_filter =
 {
   "binary",
   NULL,

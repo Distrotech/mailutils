@@ -52,7 +52,7 @@
 #include <mailer0.h>
 #include <registrar0.h>
 
-static struct mu__record _smtp_record = {
+static struct _mu_record _smtp_record = {
   MU_SMTP_PRIO,
   MU_SMTP_SCHEME,
   _url_smtp_init,		/* url init.  */

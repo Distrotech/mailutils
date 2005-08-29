@@ -41,7 +41,7 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
-static struct mu__record _pop_record =
+static struct _mu_record _pop_record =
 {
   MU_POP_PRIO,
   MU_POP_SCHEME,

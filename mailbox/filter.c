@@ -190,7 +190,7 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 	  if (filter_record->_get_filter)
 	    filter_record->_get_filter (filter_record, &f_init);
 	  else
-	    f_init = filter_record->_filter;
+	    f_init = filter_record->_mu_filter;
 	  break;
         }
     }

@@ -311,9 +311,9 @@ int
 mu_folder_list (mu_folder_t folder, const char *dirname, const char *basename,
 	     struct mu_folder_list *pflist)
 {
-  if (folder == NULL || folder->_list == NULL)
+  if (folder == NULL || folder->_mu_list == NULL)
     return EINVAL;
-  return folder->_list (folder, dirname, basename, pflist);
+  return folder->_mu_list (folder, dirname, basename, pflist);
 }
 
 int

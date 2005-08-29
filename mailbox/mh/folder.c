@@ -128,7 +128,7 @@ _mh_url_init (mu_url_t url)
   return amd_url_init (url, MU_MH_SCHEME);
 }
 
-static struct mu__record _mh_record =
+static struct _mu_record _mh_record =
 {
   MU_MH_PRIO,
   MU_MH_SCHEME,

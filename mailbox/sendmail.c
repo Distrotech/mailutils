@@ -46,7 +46,7 @@
 #include <mailer0.h>
 #include <registrar0.h>
 
-static struct mu__record _sendmail_record =
+static struct _mu_record _sendmail_record =
 {
   MU_SENDMAIL_PRIO,
   MU_SENDMAIL_SCHEME,

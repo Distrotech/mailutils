@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-struct _body
+struct _mu_body
 {
   void *owner;
   char *filename;

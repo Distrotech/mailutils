@@ -36,7 +36,7 @@ extern "C" {
  *  
  * Capitalized names are from RFC 822, section 6.1 (Address Syntax).
  */
-struct _address
+struct _mu_address
 {
   char *addr;
   	/* the original string that this list of addresses was created
@@ -58,7 +58,7 @@ struct _address
 /*  size_t num; this didn't appear to be used anywhere... so I commented
  it out, is that ok? -sam */
 
-  struct _address *next;
+  struct _mu_address *next;
 };
 
 #ifdef __cplusplus

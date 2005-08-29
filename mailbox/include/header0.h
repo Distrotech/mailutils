@@ -42,7 +42,7 @@ struct _hdr
 
 /* The blurb member represents the headers, hdr_count the number of distinct
    header field and the layout is done by struct_hdr *hdr.  */
-struct _header
+struct _mu_header
 {
   /* Owner.  */
   void *owner;

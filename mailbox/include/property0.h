@@ -42,7 +42,7 @@ struct property_item
   struct property_item *next;
 };
 
-struct _property
+struct _mu_property
 {
   struct property_item *items;
   void *owner;

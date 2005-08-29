@@ -29,9 +29,9 @@
 extern "C" {
 #endif
 
-struct _iterator
+struct _mu_iterator
 {
-  struct _iterator *next_itr; /* Next iterator in the chain */
+  struct _mu_iterator *next_itr; /* Next iterator in the chain */
   void *owner;                /* Object whose contents is being iterated */
   int is_advanced;            /* Is the iterator already advanced */
 

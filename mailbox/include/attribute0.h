@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct _attribute
+struct _mu_attribute
 {
   void *owner;
 

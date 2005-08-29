@@ -44,7 +44,7 @@ struct rfc822
   int residue;
 };
 
-static struct mu_filter_record _rfc822_filter =
+static struct _mu_filter_record _rfc822_filter =
 {
   "RFC822",
   rfc822_init,

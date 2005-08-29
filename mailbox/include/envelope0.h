@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct _envelope
+struct _mu_envelope
 {
   void *owner;
   int (*_destroy) (mu_envelope_t);

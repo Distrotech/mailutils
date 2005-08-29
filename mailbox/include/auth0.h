@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-struct _ticket
+struct _mu_ticket
 {
   void *owner;
   char *challenge;
@@ -40,14 +40,14 @@ struct _ticket
   void (*_destroy)  (mu_ticket_t);
 };
 
-struct _authority
+struct _mu_authority
 {
   void *owner;
   mu_ticket_t ticket;
   mu_list_t auth_methods; /* list of int (*_authenticate) (mu_authority_t)s; */
 };
 
-struct _wicket
+struct _mu_wicket
 {
   char *filename;
   int (*_get_ticket) (mu_wicket_t, const char *, const char *, mu_ticket_t *);

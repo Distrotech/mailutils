@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct _debug
+struct _mu_debug
 {
   size_t level;
   char *buffer;

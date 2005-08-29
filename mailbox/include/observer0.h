@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct _observer
+struct _mu_observer
 {
   int flags;
   void *owner;
@@ -37,7 +37,7 @@ struct _observer
   int (*_destroy) (mu_observer_t);
 };
 
-struct _observable
+struct _mu_observable
 {
   void *owner;
   mu_list_t list;

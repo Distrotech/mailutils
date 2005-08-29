@@ -29,7 +29,7 @@ Things to consider:
 
   - Are comments allowed in domain-literals?
 
-  - Need a way to mark the *end* of a group. Maybe add a field to _address,
+  - Need a way to mark the *end* of a group. Maybe add a field to _mu_address,
     int group_end;, so if you care, you can search for the end of
     a group with address_is_group_end();
 
@@ -711,7 +711,7 @@ mu_parse822_phrase (const char **p, const char *e, char **phrase)
 static mu_address_t
 new_mb (void)
 {
-  return calloc (1, sizeof (struct _address));
+  return calloc (1, sizeof (struct _mu_address));
 }
 
 static int

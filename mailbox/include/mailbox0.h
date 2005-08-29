@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-struct _mailbox
+struct _mu_mailbox
 {
   /* Data */
   mu_observable_t observable;
