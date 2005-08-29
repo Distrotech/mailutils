@@ -1,8 +1,18 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-08-12
+GNU mailutils NEWS -- history of user-visible changes.  2005-08-29
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+Version 0.6.92:
+
+* Library namespace is optimized. All global identifiers begin with mu_.
+NOTE: This is incompatible change.
+
+* Main library is renamed to libmailutils
+NOTE: This is incompatible change, unless you use mailutils-config to
+obtain library names (which is recommended, anyway).
+
 
 Version 0.6.91:
 
