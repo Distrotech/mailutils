@@ -80,7 +80,7 @@ _nntp_folder_init (mu_folder_t folder)
   folder->_open = nntp_folder_open;
   folder->_close = nntp_folder_close;
 
-  folder->_mu_list = nntp_folder_list;
+  folder->_list = nntp_folder_list;
   /* Not supported.
     folder->_lsub = folder_nntp_lsub;
     folder->_subscribe = folder_nntp_subscribe;

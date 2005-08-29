@@ -55,7 +55,7 @@ struct _mu_folder
 
   int  (*_open)        (mu_folder_t, int flag);
   int  (*_close)       (mu_folder_t);
-  int  (*_mu_list)        (mu_folder_t, const char *, const char *,
+  int  (*_list)        (mu_folder_t, const char *, const char *,
 		        struct mu_folder_list *);
   int  (*_lsub)        (mu_folder_t, const char *, const char *,
 		        struct mu_folder_list *);

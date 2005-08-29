@@ -165,7 +165,7 @@ _folder_mbox_init (mu_folder_t folder)
   folder->_open = folder_mbox_open;
   folder->_close = folder_mbox_close;
 
-  folder->_mu_list = folder_mbox_list;
+  folder->_list = folder_mbox_list;
   folder->_lsub = folder_mbox_lsub;
   folder->_subscribe = folder_mbox_subscribe;
   folder->_unsubscribe = folder_mbox_unsubscribe;

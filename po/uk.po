@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-08-16 13:23+0300\n"
+"POT-Creation-Date: 2005-08-26 17:10+0300\n"
 "PO-Revision-Date: 2005-05-19 11:54+0300\n"
 "Last-Translator: Sergey Poznyakoff <gray@gnu.org>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
@@ -54,7 +54,7 @@ msgstr ""
 "що були визначені під час компіляції. Програма повертає код 0 якщо усі "
 "вказані опції були визначені. Інакше повертається код 1."
 
-#: config/mailutils-config.c:126 frm/from.c:128 mh/folder.c:569
+#: config/mailutils-config.c:126 frm/from.c:128 mh/folder.c:570
 msgid "Too many arguments"
 msgstr "Забагато аргументів"
 
@@ -115,8 +115,8 @@ msgid "Name of the database to connect to"
 msgstr "Назва бази SQL"
 
 #: auth/sql.c:201 mailbox/mu_argp.c:80 mailbox/mu_argp.c:115
-#: mailbox/mu_argp.c:121 mh/forw.c:65 mh/inc.c:50 mh/mhl.c:44 mh/mhl.c:46
-#: mh/repl.c:65 mh/scan.c:50 mh/send.c:75
+#: mailbox/mu_argp.c:121 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44 mh/mhl.c:46
+#: mh/repl.c:65 mh/scan.c:51 mh/send.c:75
 msgid "NUMBER"
 msgstr "ЧИСЛО"
 
@@ -165,8 +165,8 @@ msgstr "Опції шифрування"
 #: auth/tls.c:59 auth/tls.c:61 auth/tls.c:63 comsat/comsat.c:59
 #: dotlock/dotlock.c:43 frm/from.c:32 mail.local/main.c:83
 #: mailbox/mu_argp.c:125 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
-#: mh/inc.c:32 mh/inc.c:36 mh/inc.c:43 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
-#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:44 mh/scan.c:55 mh/send.c:38
+#: mh/inc.c:33 mh/inc.c:37 mh/inc.c:44 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
+#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:45 mh/scan.c:56 mh/send.c:38
 #: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:81 pop3d/popauth.c:82
 #: mimeview/mimeview.c:48 mimeview/mimeview.c:52
 msgid "FILE"
@@ -188,17 +188,17 @@ msgstr "Назва довіреного файлу CA"
 msgid "INTERNAL ERROR: cannot register argp capability tls"
 msgstr "ВНУТРІШНЯ ПОМИЛКА: не вдається зареєструвати можливість TLS"
 
-#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:63 mh/folder.c:66
-#: mh/folder.c:69 mh/folder.c:72 mh/folder.c:75 mh/forw.c:33 mh/forw.c:49
-#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:40 mh/inc.c:47
+#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:64 mh/folder.c:67
+#: mh/folder.c:70 mh/folder.c:73 mh/folder.c:76 mh/forw.c:33 mh/forw.c:49
+#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:41 mh/inc.c:48
 #: mh/mark.c:40 mh/mark.c:43 mh/mhl.c:36 mh/mhl.c:39 mh/mhn.c:43 mh/mhn.c:48
 #: mh/mhn.c:51 mh/mhn.c:54 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:72
 #: mh/mhn.c:75 mh/mhn.c:84 mh/pick.c:84 mh/pick.c:89 mh/pick.c:92
 #: mh/refile.c:42 mh/refile.c:45 mh/repl.c:36 mh/repl.c:51 mh/repl.c:59
-#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:41
-#: mh/scan.c:48 mh/scan.c:52 mh/send.c:52 mh/send.c:55 mh/send.c:58
+#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:42
+#: mh/scan.c:49 mh/scan.c:53 mh/send.c:52 mh/send.c:55 mh/send.c:58
 #: mh/send.c:61 mh/send.c:64 mh/send.c:69 mh/send.c:72 mh/whom.c:40
-#: sieve/sieve.c:92
+#: sieve/sieve.c:93
 msgid "BOOL"
 msgstr "ЛОГІЧНЕ-ЗНАЧЕННЯ"
 
@@ -365,8 +365,8 @@ msgid "Cannot open device %s: %m"
 msgstr "Не вдається відкрити пристрій %s: %m"
 
 #: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:438
-#: mail/quit.c:118 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:218
-#: mh/mh_init.c:379 pop3d/apop.c:240
+#: mail/quit.c:118 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:219
+#: mh/mh_init.c:380 pop3d/apop.c:240
 #, c-format
 msgid "Cannot open mailbox %s: %s"
 msgstr "Неможливо відкрити скриньку %s: %s"
@@ -638,7 +638,7 @@ msgstr ""
 msgid "Just print a count of messages and exit"
 msgstr "Вивести кількість повідомлень та вийти"
 
-#: frm/from.c:30 sieve/sieve.c:95
+#: frm/from.c:30 sieve/sieve.c:96
 msgid "ADDRESS"
 msgstr "АДРЕСА"
 
@@ -684,13 +684,13 @@ msgid "Could not close mailbox `%s': %s"
 msgstr "Неможливо закрити скриньку `%s': %s"
 
 #: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:189
-#: sieve/sieve.c:457
+#: sieve/sieve.c:458
 #, c-format
 msgid "Could not create mailbox `%s': %s"
 msgstr "Не вдається створити скриньку `%s': %s"
 
 #: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:193
-#: sieve/sieve.c:460
+#: sieve/sieve.c:461
 #, c-format
 msgid "Could not create default mailbox: %s"
 msgstr "Не вдається створити типову скриньку: %s"
@@ -735,9 +735,9 @@ msgid "Cannot open output mailbox %s: %s\n"
 msgstr "Неможливо відкрити вхідну скриньку %s: %s\n"
 
 #: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
-#: libsieve/sieve.l:603 libsieve/sieve.l:667 libsieve/sieve.l:721
-#: mail/folders.c:38 mail/if.c:56 mail/util.c:873 mh/mh_init.c:111
-#: mh/mh_init.c:316 mh/mh_msgset.c:606
+#: libsieve/sieve.l:604 libsieve/sieve.l:668 libsieve/sieve.l:722
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:873 mh/mh_init.c:112
+#: mh/mh_init.c:317 mh/mh_msgset.c:606
 msgid "Not enough memory"
 msgstr "Недостатньо пам'яті"
 
@@ -852,65 +852,65 @@ msgstr "Користувача GSSAPI %s ідентифіковано як %s"
 msgid "User `%s' logged in"
 msgstr "Користувач `%s' увійшов у систему"
 
-#: imap4d/imap4d.c:46
+#: imap4d/imap4d.c:47
 msgid "GNU imap4d -- the IMAP4D daemon"
 msgstr "GNU imap4d -- демон IMAP4D"
 
-#: imap4d/imap4d.c:52 imap4d/imap4d.c:54
+#: imap4d/imap4d.c:53 imap4d/imap4d.c:55
 msgid "PATHLIST"
 msgstr "ШЛЯХИ"
 
-#: imap4d/imap4d.c:53
+#: imap4d/imap4d.c:54
 msgid "Set the `other' namespace"
 msgstr "Встановити простір назв `other'"
 
-#: imap4d/imap4d.c:55
+#: imap4d/imap4d.c:56
 msgid "Set the `shared' namespace"
 msgstr "Встановити простір назв `shared'"
 
-#: imap4d/imap4d.c:57
+#: imap4d/imap4d.c:58
 msgid "Disable LOGIN command"
 msgstr "Вимкнути команду LOGIN"
 
-#: imap4d/imap4d.c:60
+#: imap4d/imap4d.c:61
 msgid "Always require STARTTLS before entering authentication phase"
 msgstr "Вимагати використання STARTTLS перед переходом до фази ідентифікації"
 
-#: imap4d/imap4d.c:175 pop3d/pop3d.c:201
+#: imap4d/imap4d.c:176 pop3d/pop3d.c:202
 msgid "Error getting mail group"
 msgstr "Помилка отримання поштової групи"
 
-#: imap4d/imap4d.c:181 pop3d/pop3d.c:207
+#: imap4d/imap4d.c:182 pop3d/pop3d.c:208
 msgid "Error setting mail group"
 msgstr "Помилка встановлення поштової групи"
 
-#: imap4d/imap4d.c:260 pop3d/pop3d.c:298
+#: imap4d/imap4d.c:261 pop3d/pop3d.c:299
 msgid "Incoming connection opened"
 msgstr "Відкрито вхідне з'єднання"
 
-#: imap4d/imap4d.c:262 pop3d/pop3d.c:310
+#: imap4d/imap4d.c:263 pop3d/pop3d.c:311
 #, c-format
 msgid "Cannot obtain IP address of client: %s"
 msgstr "Не вдається встановити адресу IP клієнта: %s"
 
-#: imap4d/imap4d.c:265
+#: imap4d/imap4d.c:266
 #, c-format
 msgid "Connect from %s"
 msgstr "З'єднання з %s"
 
-#: imap4d/imap4d.c:270 pop3d/pop3d.c:303
+#: imap4d/imap4d.c:271 pop3d/pop3d.c:304
 msgid "Started in debugging mode"
 msgstr "Робота у режимі налагоджування"
 
-#: imap4d/imap4d.c:302
+#: imap4d/imap4d.c:303
 msgid "could not become daemon"
 msgstr "не вдається перейти у фоновий режим"
 
-#: imap4d/imap4d.c:358
+#: imap4d/imap4d.c:359
 msgid "GNU imap4d started"
 msgstr "GNU imap4d запустився"
 
-#: imap4d/imap4d.c:364
+#: imap4d/imap4d.c:365
 #, c-format
 msgid "Too many children (%lu)"
 msgstr "Надто багато процесів-нащадків (%lu)"
@@ -950,7 +950,7 @@ msgstr "Закінчення сесії для користувача %s"
 msgid "Quitting (numeric reason %d)"
 msgstr "Вихід (підстава %d)"
 
-#: imap4d/list.c:247 mh/folder.c:326 mh/mh_init.c:225 mh/mh_init.c:704
+#: imap4d/list.c:247 mh/folder.c:327 mh/mh_init.c:226 mh/mh_init.c:705
 #: mh/rmf.c:147 pop3d/popauth.c:246
 #, c-format
 msgid "Cannot stat %s: %s"
@@ -980,25 +980,25 @@ msgstr "Отримано сигнал %s"
 msgid "MASTER: exiting on signal"
 msgstr "ГОЛОВНИЙ ПРОЦЕС: вихід по сигналу"
 
-#: imap4d/util.c:509
+#: imap4d/util.c:510
 msgid "Unexpected eof on input"
 msgstr "Неочікуваний кінець файлу"
 
-#: imap4d/util.c:518
+#: imap4d/util.c:519
 #, c-format
 msgid "Error reading from input file: %s"
 msgstr "Помилка читання з вхідного файлу %s"
 
-#: imap4d/util.c:1005
+#: imap4d/util.c:1006
 msgid "Cannot find out my own hostname"
 msgstr "Не вдається визначити власну назву системи"
 
-#: imap4d/util.c:1152
+#: imap4d/util.c:1153
 #, c-format
 msgid "Cannot poll input stream: %s"
 msgstr "Не вдається опитати вхідний потік: %s"
 
-#: imap4d/util.c:1186
+#: imap4d/util.c:1187
 #, c-format
 msgid "Cannot open TLS stream: %s"
 msgstr "Неможливо відкрити потік TLS: %s"
@@ -1120,106 +1120,106 @@ msgstr "%d: не вдається скопіювати повідомлення:
 msgid "%d: cannot get my email address"
 msgstr "%d: не вдається встановити власну адресу електронної пошти"
 
-#: libsieve/comparator.c:171
+#: libsieve/comparator.c:172
 #, c-format
 msgid "Regex error: %s"
 msgstr "Помилка регулярного виразу: %s"
 
-#: libsieve/comparator.c:176
+#: libsieve/comparator.c:177
 msgid "Regex error"
 msgstr "Помилка регулярного виразу"
 
-#: libsieve/comparator.c:238
+#: libsieve/comparator.c:239
 #, c-format
 msgid "match type specified twice in call to `%s'"
 msgstr "тип допасування вказано двічі у виклику `%s'"
 
 #. TRANSLATORS: Do not translate ':count'. It is the name of a Sieve tag
-#: libsieve/comparator.c:275
+#: libsieve/comparator.c:276
 #, c-format
 msgid "comparator %s is incompatible with :count in call to `%s'"
 msgstr "порівнювач %s несумісний з :count у виклику `%s'"
 
-#: libsieve/comparator.c:291
+#: libsieve/comparator.c:292
 msgid "second argument must be a list of one element"
 msgstr "другий аргумент має бути списком з одного елементу"
 
-#: libsieve/comparator.c:299
+#: libsieve/comparator.c:300
 msgid "second argument cannot be converted to number"
 msgstr "не вдається перетворити другий аргумент на число"
 
-#: libsieve/comparator.c:309
+#: libsieve/comparator.c:310
 #, c-format
 msgid "invalid relational match `%s' in call to `%s'"
 msgstr "недійсне відносне порівняння `%s' у виклику `%s'"
 
-#: libsieve/comparator.c:322
+#: libsieve/comparator.c:323
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
 msgstr "порівнювач %s несумісний з типом порівняння `%s' у виклику `%s'"
 
-#: libsieve/prog.c:39
+#: libsieve/prog.c:40
 msgid "out of memory!"
 msgstr "недостатньо пам'яті!"
 
-#: libsieve/prog.c:158 libsieve/require.c:39
+#: libsieve/prog.c:159 libsieve/require.c:40
 #, c-format
 msgid "cannot create iterator: %s"
 msgstr "не вдається створити ітератор: %s"
 
-#: libsieve/prog.c:177
+#: libsieve/prog.c:178
 #, c-format
 msgid "invalid tag name `%s' for `%s'"
 msgstr "неправильна назва мітки `%s' для `%s'"
 
-#: libsieve/prog.c:186
+#: libsieve/prog.c:187
 #, c-format
 msgid "%s:%d: cannot create tag list: %s"
 msgstr "%s:%d: неможливо створити перелік міток: %s"
 
-#: libsieve/prog.c:210
+#: libsieve/prog.c:211
 #, c-format
 msgid "%s:%d: cannot create check list: %s"
 msgstr "%s:%d: неможливо створити контрольний перелік: %s"
 
-#: libsieve/prog.c:222 mimeview/mimetypes.y:561
+#: libsieve/prog.c:223 mimeview/mimetypes.y:561
 #, c-format
 msgid "too many arguments in call to `%s'"
 msgstr "занадто багато аргументів у виклику `%s'"
 
-#: libsieve/prog.c:243
+#: libsieve/prog.c:244
 #, c-format
 msgid "type mismatch in argument %d to `%s'"
 msgstr "невірний тип аргументу %d у виклику `%s'"
 
-#: libsieve/prog.c:247
+#: libsieve/prog.c:248
 #, c-format
 msgid "expected %s but passed %s"
 msgstr "очікувалось %s але отримано %s"
 
-#: libsieve/prog.c:258
+#: libsieve/prog.c:259
 #, c-format
 msgid "cannot create arg list: %s"
 msgstr "не можна створити перелік аргументів: %s"
 
-#: libsieve/prog.c:276 mimeview/mimetypes.y:553
+#: libsieve/prog.c:277 mimeview/mimetypes.y:553
 #, c-format
 msgid "too few arguments in call to `%s'"
 msgstr "занадто мало аргументів у виклику `%s'"
 
-#: libsieve/require.c:56
+#: libsieve/require.c:57
 msgid "required comparator"
 msgstr "потрібного порівнювача"
 
-#: libsieve/require.c:62
+#: libsieve/require.c:63
 msgid "required test"
 msgstr "потрібної перевірки"
 
-#: libsieve/require.c:72
+#: libsieve/require.c:73
 msgid "required action"
 msgstr "потрібної дії"
 
-#: libsieve/require.c:78
+#: libsieve/require.c:79
 #, c-format
 msgid "source for the %s %s is not available"
 msgstr "джерело %s %s не існує"
@@ -1233,8 +1233,8 @@ msgid "stack underflow"
 msgstr "стек пустий"
 
 #: libsieve/runtime.c:341
-#, c-format
-msgid "mailbox_scan: %s"
+#, fuzzy, c-format
+msgid "mu_mailbox_scan: %s"
 msgstr "mailbox_scan: %s"
 
 #: libsieve/sieve.l:234
@@ -1338,7 +1338,7 @@ msgstr ""
 msgid "\"%s\": not a group"
 msgstr "\"%s\" не є групою"
 
-#: mail/alt.c:64 mh/mh_init.c:127
+#: mail/alt.c:64 mh/mh_init.c:128
 msgid "Cannot determine my username"
 msgstr "Неможливо встановити власне ім'я користувача."
 
@@ -1352,13 +1352,13 @@ msgstr "Неможливо визначити власну адресу email: %
 msgid "cannot change to '%s': %s"
 msgstr "не вдається виконати stat %s: %s"
 
-#: mail/copy.c:68 mail/mail.c:421 mail/quit.c:111 mail/send.c:541 mh/inc.c:209
-#: mh/mh_init.c:369
+#: mail/copy.c:68 mail/mail.c:421 mail/quit.c:111 mail/send.c:542 mh/inc.c:210
+#: mh/mh_init.c:370
 #, c-format
 msgid "Cannot create mailbox %s: %s"
 msgstr "Неможливо створити скриньку %s: %s"
 
-#: mail/copy.c:92 mail/quit.c:126 mail/send.c:534
+#: mail/copy.c:92 mail/quit.c:126 mail/send.c:535
 #, c-format
 msgid "Cannot append message: %s"
 msgstr "Не вдається додати повідомлення: %s"
@@ -1386,7 +1386,7 @@ msgstr ""
 "\n"
 "Переривання"
 
-#: mail/escape.c:59 mail/send.c:225 mh/mhn.c:2059 mimeview/mimeview.c:217
+#: mail/escape.c:59 mail/send.c:226 mh/mhn.c:2059 mimeview/mimeview.c:217
 #, c-format
 msgid "Cannot create header: %s"
 msgstr "Не вдається створити заголовок: %s"
@@ -1733,21 +1733,21 @@ msgstr "Наразі не розгортаються жодні поля\n"
 msgid "Sender address is obtained from the envelope\n"
 msgstr "Адресу відправника отримано з конверта\n"
 
-#: mail/send.c:73
+#: mail/send.c:74
 #, c-format
 msgid "Cannot create header list: %s"
 msgstr "Не вдається створити перелік заголовків: %s"
 
-#: mail/send.c:95
+#: mail/send.c:96
 #, c-format
 msgid "Invalid header: %s"
 msgstr "Недійсний заголовок: %s"
 
-#: mail/send.c:308
+#: mail/send.c:309
 msgid "Cannot open temporary file"
 msgstr "Неможливо відкрити тимчасовий файл"
 
-#: mail/send.c:337
+#: mail/send.c:338
 msgid ""
 "\n"
 "(Interrupt -- one more to kill letter)"
@@ -1755,42 +1755,42 @@ msgstr ""
 "\n"
 "(Переривання -- додайте ще одне щоб знищити лист)"
 
-#: mail/send.c:348
+#: mail/send.c:349
 msgid "Use \".\" to terminate letter."
 msgstr "Використовуйте \".\" щоб закінчити лист."
 
-#: mail/send.c:349
+#: mail/send.c:350
 msgid "Use \"~.\" to terminate letter."
 msgstr "Використовуйте \"~.\" щоб закінчити лист."
 
 # екрануюча послідовність?
-#: mail/send.c:391
+#: mail/send.c:392
 #, c-format
 msgid "Unknown escape %s"
 msgstr "Невідома послідовність втечі %s"
 
-#: mail/send.c:394
+#: mail/send.c:395
 msgid "Unfinished escape"
 msgstr "Не завершена послідовність втечі"
 
-#: mail/send.c:398
+#: mail/send.c:399
 msgid "Cannot parse escape sequence"
 msgstr "Не вдається розібрати послідовність втечі"
 
-#: mail/send.c:423 mh/mh_init.c:668 mh/mh_list.c:264
+#: mail/send.c:424 mh/mh_init.c:669 mh/mh_list.c:264
 #, c-format
 msgid "Cannot open file %s: %s"
 msgstr "Неможливо відкрити файл %s: %s"
 
-#: mail/send.c:484
+#: mail/send.c:485
 msgid "Null message body; hope that's ok\n"
 msgstr "Пусте тіло повідомлення; сподіваюся що це навмисно\n"
 
-#: mail/send.c:578
+#: mail/send.c:579
 msgid "Variable sendmail not set: no mailer"
 msgstr "Змінна sendmail не встановлена: немає відправника"
 
-#: mail/send.c:626
+#: mail/send.c:627
 #, c-format
 msgid "Piping %s failed"
 msgstr "Створення каналу до команди %s не вдалося"
@@ -2023,7 +2023,7 @@ msgstr ""
 msgid "Set name pattern for user-defined Scheme mail filters"
 msgstr "Шаблон назв поштових фільтрів користувачів у форматі Scheme"
 
-#: mail.local/main.c:98 mailbox/mu_argp.c:76 sieve/sieve.c:86
+#: mail.local/main.c:98 mailbox/mu_argp.c:76 sieve/sieve.c:87
 #: mimeview/mimeview.c:46
 msgid "FLAGS"
 msgstr "ОЗНАКИ"
@@ -2036,7 +2036,7 @@ msgstr "Увімкнути налагодження"
 msgid "Multiple --from options"
 msgstr "Вказано декілька опцій --from"
 
-#: mail.local/main.c:215 sieve/sieve.c:208
+#: mail.local/main.c:215 sieve/sieve.c:209
 #, c-format
 msgid "%c is not a valid debug flag"
 msgstr "%c не є дійсною ознакою налагодження"
@@ -2086,7 +2086,7 @@ msgstr ""
 msgid "Access to %s failed: %m"
 msgstr "Не вдалося отримати доступ до %s: %m"
 
-#: mail.local/main.c:427 sieve/sieve.c:375
+#: mail.local/main.c:427 sieve/sieve.c:376
 #, c-format
 msgid "Cannot initialize sieve machine: %s"
 msgstr "Не вдається ініціалізувати машину sieve: %s"
@@ -2306,146 +2306,146 @@ msgstr "Не вдалося відіслати повідомлення: %s"
 msgid "Closing mailer failed: %s"
 msgstr "Не вдалося закрити відправника: %s"
 
-#: mailbox/getopt.c:552 mailbox/getopt.c:571
+#: mailbox/getopt.c:551 mailbox/getopt.c:570
 #, c-format
 msgid "%s: option `%s' is ambiguous\n"
 msgstr "%s: опція `%s' неоднозначна\n"
 
-#: mailbox/getopt.c:604 mailbox/getopt.c:608
+#: mailbox/getopt.c:603 mailbox/getopt.c:607
 #, c-format
 msgid "%s: option `--%s' doesn't allow an argument\n"
 msgstr "%s: опція `--%s' не може мати аргументу\n"
 
-#: mailbox/getopt.c:617 mailbox/getopt.c:622
+#: mailbox/getopt.c:616 mailbox/getopt.c:621
 #, c-format
 msgid "%s: option `%c%s' doesn't allow an argument\n"
 msgstr "%s: опція `%c%s' не може мати аргументу\n"
 
-#: mailbox/getopt.c:668 mailbox/getopt.c:690 mailbox/getopt.c:1021
-#: mailbox/getopt.c:1043
+#: mailbox/getopt.c:667 mailbox/getopt.c:689 mailbox/getopt.c:1020
+#: mailbox/getopt.c:1042
 #, c-format
 msgid "%s: option `%s' requires an argument\n"
 msgstr "%s: опція `%s' вимагає аргумент\n"
 
-#: mailbox/getopt.c:728 mailbox/getopt.c:731
+#: mailbox/getopt.c:727 mailbox/getopt.c:730
 #, c-format
 msgid "%s: unrecognized option `--%s'\n"
 msgstr "%s: невідома опція `--%s'\n"
 
-#: mailbox/getopt.c:739 mailbox/getopt.c:742
+#: mailbox/getopt.c:738 mailbox/getopt.c:741
 #, c-format
 msgid "%s: unrecognized option `%c%s'\n"
 msgstr "%s: невідома опція `%c%s'\n"
 
-#: mailbox/getopt.c:797 mailbox/getopt.c:800
+#: mailbox/getopt.c:796 mailbox/getopt.c:799
 #, c-format
 msgid "%s: illegal option -- %c\n"
 msgstr "%s: недопустима опція -- %c\n"
 
-#: mailbox/getopt.c:806 mailbox/getopt.c:809
+#: mailbox/getopt.c:805 mailbox/getopt.c:808
 #, c-format
 msgid "%s: invalid option -- %c\n"
 msgstr "%s: невірна опція -- %c\n"
 
-#: mailbox/getopt.c:864 mailbox/getopt.c:883 mailbox/getopt.c:1096
-#: mailbox/getopt.c:1117
+#: mailbox/getopt.c:863 mailbox/getopt.c:882 mailbox/getopt.c:1095
+#: mailbox/getopt.c:1116
 #, c-format
 msgid "%s: option requires an argument -- %c\n"
 msgstr "%s: опція вимагає аргумент -- %c\n"
 
-#: mailbox/getopt.c:936 mailbox/getopt.c:955
+#: mailbox/getopt.c:935 mailbox/getopt.c:954
 #, c-format
 msgid "%s: option `-W %s' is ambiguous\n"
 msgstr "%s: опція `-W %s' неоднозначна\n"
 
-#: mailbox/getopt.c:979 mailbox/getopt.c:1000
+#: mailbox/getopt.c:978 mailbox/getopt.c:999
 #, c-format
 msgid "%s: option `-W %s' doesn't allow an argument\n"
 msgstr "%s: опція `-W %s' не може мати аргументу\n"
 
-#: mailbox/argp-help.c:195
+#: mailbox/argp-help.c:194
 #, c-format
 msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
 msgstr "%.*s: параметр ARGP_HELP_FMT вимагає значення"
 
-#: mailbox/argp-help.c:204
+#: mailbox/argp-help.c:203
 #, c-format
 msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
 msgstr "%.*s: Невідомий параметр ARGP_HELP_FMT"
 
-#: mailbox/argp-help.c:216
+#: mailbox/argp-help.c:215
 #, c-format
 msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Хибні дані в ARGP_HELP_FMT: %s"
 
-#: mailbox/argp-help.c:1195
+#: mailbox/argp-help.c:1194
 msgid ""
 "Mandatory or optional arguments to long options are also mandatory or "
 "optional for any corresponding short options."
 msgstr ""
 "Аргументи, обов'язкові для довгих ключів, є обов'язковими й для коротких."
 
-#: mailbox/argp-help.c:1582
+#: mailbox/argp-help.c:1581
 msgid "Usage:"
 msgstr "Використання:"
 
-#: mailbox/argp-help.c:1586
+#: mailbox/argp-help.c:1585
 msgid "  or: "
 msgstr " чи: "
 
-#: mailbox/argp-help.c:1598
+#: mailbox/argp-help.c:1597
 msgid " [OPTION...]"
 msgstr " [ОПЦІЯ...]"
 
-#: mailbox/argp-help.c:1625
+#: mailbox/argp-help.c:1624
 #, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
 msgstr ""
 "Спробуйте `%s --help' або `%s --usage' для отримання докладнішого опису.\n"
 
-#: mailbox/argp-help.c:1653
+#: mailbox/argp-help.c:1652
 #, c-format
 msgid "Report bugs to %s.\n"
 msgstr "Про помилки звітуйте на %s.\n"
 
-#: mailbox/argp-help.c:1873
+#: mailbox/argp-help.c:1872
 msgid "Unknown system error"
 msgstr "Невідомий тип повідомлення"
 
-#: mailbox/argp-parse.c:83
+#: mailbox/argp-parse.c:82
 msgid "Give this help list"
 msgstr "Вивести цю довідку"
 
-#: mailbox/argp-parse.c:84
+#: mailbox/argp-parse.c:83
 msgid "Give a short usage message"
 msgstr "Вивести коротке повідомлення про використання"
 
-#: mailbox/argp-parse.c:85
+#: mailbox/argp-parse.c:84
 msgid "Set the program name"
 msgstr "Встановити текст запрошення"
 
-#: mailbox/argp-parse.c:87
+#: mailbox/argp-parse.c:86
 msgid "Hang for SECS seconds (default 3600)"
 msgstr "Зачекати вказану кількість секунд (типово 3600)"
 
-#: mailbox/argp-parse.c:148
+#: mailbox/argp-parse.c:147
 msgid "Print program version"
 msgstr "Вивести версію програми"
 
-#: mailbox/argp-parse.c:164
+#: mailbox/argp-parse.c:163
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(ПОМИЛКА ПРОГРАМУВАННЯ) Невідома версія!?"
 
-#: mailbox/argp-parse.c:620
+#: mailbox/argp-parse.c:619
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s: Забагато аргументів\n"
 
-#: mailbox/argp-parse.c:763
+#: mailbox/argp-parse.c:762
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(ПОМИЛКА ПРОГРАМУВАННЯ) Опція мала бути розпізнана!?"
 
-#: mailbox/file_stream.c:479
+#: mailbox/file_stream.c:480
 #, c-format
 msgid "%s must be a plain file with one link\n"
 msgstr "%s повинен бути звичайним файлом з одним посиланням\n"
@@ -2469,24 +2469,24 @@ msgstr "Помилка iconv: %s"
 msgid "Stream is closed"
 msgstr "Потік закритий"
 
-#: mailbox/message.c:1092
-#, c-format
-msgid "mailbox_create_default (%s) failed: %s\n"
+#: mailbox/message.c:1093
+#, fuzzy, c-format
+msgid "mu_mailbox_create_default (%s) failed: %s\n"
 msgstr "помилка mailbox_create_default (%s): %s\n"
 
-#: mailbox/message.c:1123
-#, c-format
-msgid "mailbox_open (%s) failed: %s\n"
+#: mailbox/message.c:1124
+#, fuzzy, c-format
+msgid "mu_mailbox_open (%s) failed: %s\n"
 msgstr "помилка mailbox_open (%s): %s\n"
 
-#: mailbox/message.c:1131
-#, c-format
-msgid "mailbox_append_message (%s) failed: %s\n"
+#: mailbox/message.c:1132
+#, fuzzy, c-format
+msgid "mu_mailbox_append_message (%s) failed: %s\n"
 msgstr "помилка mailbox_append_message (%s): %s\n"
 
-#: mailbox/message.c:1143
-#, c-format
-msgid "mailbox_close (%s) failed: %s\n"
+#: mailbox/message.c:1144
+#, fuzzy, c-format
+msgid "mu_mailbox_close (%s) failed: %s\n"
 msgstr "помилка mailbox_close (%s): %s\n"
 
 #: mailbox/mu_argp.c:60
@@ -2510,7 +2510,7 @@ msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
 msgstr ""
 "Типові ознаки блокування (E=зовнішня, R=повторення спроб, T=час, P=pid)"
 
-#: mailbox/mu_argp.c:78 mailbox/mu_argp.c:82 mh/send.c:67 pop3d/pop3d.c:76
+#: mailbox/mu_argp.c:78 mailbox/mu_argp.c:82 mh/send.c:67 pop3d/pop3d.c:77
 msgid "SECONDS"
 msgstr "СЕКУНДИ"
 
@@ -2942,15 +2942,15 @@ msgstr ""
 msgid "[msg [msg...]]"
 msgstr "[повідомлення [повідомлення...]]"
 
-#: mh/anno.c:33 mh/folder.c:49 mh/folder.c:59 mh/forw.c:37 mh/forw.c:43
-#: mh/inc.c:34 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
+#: mh/anno.c:33 mh/folder.c:50 mh/folder.c:60 mh/forw.c:37 mh/forw.c:43
+#: mh/inc.c:35 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
 #: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
-#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:39 mh/send.c:42
+#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:40 mh/send.c:42
 #: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:43
 msgid "FOLDER"
 msgstr "ТЕКА"
 
-#: mh/anno.c:34 mh/folder.c:60 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
+#: mh/anno.c:34 mh/folder.c:61 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
 #: mh/mhn.c:38 mh/mhpath.c:33 mh/pick.c:40 mh/refile.c:39 mh/repl.c:50
 #: mh/rmm.c:33
 msgid "Specify folder to operate upon"
@@ -2976,10 +2976,10 @@ msgstr "Додати це поле до заголовків повідомле�
 msgid "Field value for the component"
 msgstr "Значення компоненту"
 
-#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:80 mh/forw.c:75 mh/inc.c:55
+#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:81 mh/forw.c:75 mh/inc.c:56
 #: mh/install-mh.c:33 mh/mark.c:47 mh/mhl.c:53 mh/mhn.c:90 mh/mhpath.c:35
 #: mh/pick.c:96 mh/refile.c:52 mh/repl.c:72 mh/rmf.c:50 mh/rmm.c:35
-#: mh/scan.c:59 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
+#: mh/scan.c:60 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
 msgid "Display software license"
 msgstr "Вивести текст ліцензії"
 
@@ -2995,16 +2995,16 @@ msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH fmtcheckВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
-#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
-#: mh/scan.c:45
+#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:45 mh/mhl.c:43 mh/repl.c:58
+#: mh/scan.c:46
 msgid "Read format from given file"
 msgstr "Читати формат з вказаного файлу"
 
-#: mh/fmtcheck.c:34 mh/inc.c:45 mh/scan.c:46
+#: mh/fmtcheck.c:34 mh/inc.c:46 mh/scan.c:47
 msgid "FORMAT"
 msgstr "ФОРМАТ"
 
-#: mh/fmtcheck.c:35 mh/inc.c:46 mh/scan.c:47
+#: mh/fmtcheck.c:35 mh/inc.c:47 mh/scan.c:48
 msgid "Use this format string"
 msgstr "Використовувати цей рядок формату"
 
@@ -3020,34 +3020,34 @@ msgstr "Увімкнути налагодження аналізатора"
 msgid "Format string not specified"
 msgstr "Рядок формату не вказано"
 
-#: mh/fmtcheck.c:115 mh/inc.c:191 mh/repl.c:373 mh/scan.c:188
+#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:373 mh/scan.c:189
 msgid "Bad format string"
 msgstr "Недійсний рядок формату"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/folder.c:39
+#: mh/folder.c:40
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH folderВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
-#: mh/folder.c:41
+#: mh/folder.c:42
 msgid "[action] [msg]"
 msgstr "[дія] [повідомлення]"
 
-#: mh/folder.c:44 pop3d/popauth.c:68
+#: mh/folder.c:45 pop3d/popauth.c:68
 msgid "Actions are:"
 msgstr "Можливі дії:"
 
-#: mh/folder.c:46
+#: mh/folder.c:47
 msgid "List the folders (default)"
 msgstr "Показати перелік тек (типово)"
 
-#: mh/folder.c:48
+#: mh/folder.c:49
 msgid "List the contents of the folder stack"
 msgstr "Вивести вміст стеку тек"
 
-#: mh/folder.c:50
+#: mh/folder.c:51
 msgid ""
 "Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
 "Otherwise, if a folder is given in the command line (via + or --folder), it "
@@ -3059,44 +3059,44 @@ msgstr ""
 "вершині стеку з поточною"
 
 # Вірші...
-#: mh/folder.c:55
+#: mh/folder.c:56
 msgid "Pop the folder off the folder stack"
 msgstr "Зняти теку зі стеку"
 
-#: mh/folder.c:57 mh/mh_whatnow.c:153 pop3d/popauth.c:80
+#: mh/folder.c:58 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr "Опції:"
 
-#: mh/folder.c:62
+#: mh/folder.c:63
 msgid "List all folders"
 msgstr "Вивести перелік усіх тек"
 
-#: mh/folder.c:64
+#: mh/folder.c:65
 msgid "Create non-existing folders"
 msgstr "Створювати неіснуючі теки"
 
-#: mh/folder.c:67
+#: mh/folder.c:68
 msgid "List only the folder names"
 msgstr "Виводити тільки назви тек"
 
-#: mh/folder.c:70
+#: mh/folder.c:71
 msgid "Print the header line"
 msgstr "Вивести рядок заголовку"
 
-#: mh/folder.c:73
+#: mh/folder.c:74
 msgid "Scan folders recursively"
 msgstr "Рекурсивно переглядати теки"
 
-#: mh/folder.c:76
+#: mh/folder.c:77
 msgid "Output the total statistics"
 msgstr "Вивести загальну статистику"
 
-#: mh/folder.c:309 mh/rmf.c:128
+#: mh/folder.c:310 mh/rmf.c:128
 #, c-format
 msgid "Cannot scan folder %s: %s"
 msgstr "Неможливо переглянути теку %s: %s"
 
-#: mh/folder.c:382
+#: mh/folder.c:383
 #, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
@@ -3104,18 +3104,18 @@ msgstr[0] " містить %4lu повідомлення (%4lu-%4lu)"
 msgstr[1] " містить %4lu повідомлення (%4lu-%4lu)"
 msgstr[2] " містить %4lu повідомлень  (%4lu-%4lu)"
 
-#: mh/folder.c:393
+#: mh/folder.c:394
 #, c-format
 msgid " has no messages"
 msgstr " не містить повідомлень"
 
-#: mh/folder.c:402
+#: mh/folder.c:403
 #, c-format
 msgid "(others)"
 msgstr "(інші)"
 
 # Вирівнювання
-#: mh/folder.c:450
+#: mh/folder.c:451
 #, c-format
 msgid ""
 "Folder                  # of messages     (  range  )  cur msg   (other "
@@ -3124,11 +3124,11 @@ msgstr ""
 "Тека                    Кількість повідомлень     ( діапазон)  поточне   "
 "(інші)\n"
 
-#: mh/folder.c:456
+#: mh/folder.c:457
 msgid "TOTAL"
 msgstr "ЗАГАЛОМ"
 
-#: mh/folder.c:457
+#: mh/folder.c:458
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
@@ -3136,7 +3136,7 @@ msgstr[0] "%4lu повідомлення "
 msgstr[1] "%4lu повідомлення "
 msgstr[2] "%4lu повідомлень  "
 
-#: mh/folder.c:460
+#: mh/folder.c:461
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
@@ -3212,7 +3212,7 @@ msgstr "Відмінює результат останньої опції --filt
 msgid "Use MIME encapsulation"
 msgstr "Використовує інкапсуляцію MIME"
 
-#: mh/forw.c:65 mh/inc.c:51 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:51
+#: mh/forw.c:65 mh/inc.c:52 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:52
 msgid "Set output width"
 msgstr "Встановити ширину виводу"
 
@@ -3230,15 +3230,15 @@ msgstr ""
 msgid "Use draft file preserved after the last session"
 msgstr "Використовує чорновий файл що залишився від попередньої сесії"
 
-#: mh/forw.c:147 mh/inc.c:137 mh/mhl.c:115 mh/repl.c:203 mh/scan.c:124
+#: mh/forw.c:147 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:203 mh/scan.c:125
 msgid "Invalid width"
 msgstr "Недійсна ширина"
 
-#: mh/forw.c:196 mh/repl.c:239 mh/scan.c:138
+#: mh/forw.c:196 mh/repl.c:239 mh/scan.c:139
 msgid "Option is not yet implemented"
 msgstr "Опцію ще не реалізовано"
 
-#: mh/forw.c:285 mh/mh_init.c:536
+#: mh/forw.c:285 mh/mh_init.c:537
 #, c-format
 msgid "Cannot open output file `%s': %s"
 msgstr "Неможливо відкрити файл виводу: `%s': %s"
@@ -3261,62 +3261,62 @@ msgstr "Кінець пересланих повідомлень"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/inc.c:26
+#: mh/inc.c:27
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
 msgstr "GNU MH incВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
-#: mh/inc.c:28 mh/rmf.c:37
+#: mh/inc.c:29 mh/rmf.c:37
 msgid "[+folder]"
 msgstr "[+тека]"
 
-#: mh/inc.c:33
+#: mh/inc.c:34
 msgid "Incorporate mail from named file"
 msgstr "Додати пошту з вказаного файлу"
 
-#: mh/inc.c:35
+#: mh/inc.c:36
 msgid "Specify folder to incorporate mail to"
 msgstr "Додати пошту до вказаної теки"
 
-#: mh/inc.c:37
+#: mh/inc.c:38
 msgid "Enable audit"
 msgstr "Увімкнути аудит"
 
-#: mh/inc.c:39
+#: mh/inc.c:40
 msgid "Disable audit"
 msgstr "Вимкнути аудит"
 
-#: mh/inc.c:41
+#: mh/inc.c:42
 msgid "Mark first incorporated message as current (default)"
 msgstr "Зробити поточним перше додане повідомлення (типово)"
 
-#: mh/inc.c:48
+#: mh/inc.c:49
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr "Обрізати скриньку-джерело після додання повідомлень (типово)"
 
-#: mh/inc.c:53 mh/mhn.c:88
+#: mh/inc.c:54 mh/mhn.c:88
 msgid "Be quiet"
 msgstr "Не друкувати заголовки"
 
-#: mh/inc.c:200
+#: mh/inc.c:201
 msgid "Cannot create default mailbox"
 msgstr "Не вдається створити типову скриньку"
 
-#: mh/inc.c:226
+#: mh/inc.c:227
 #, c-format
 msgid "Cannot read input mailbox: %s"
 msgstr "Не вдається прочитати вхідну скриньку: %s"
 
-#: mh/inc.c:233
+#: mh/inc.c:234
 #, c-format
 msgid "Cannot read output mailbox: %s"
 msgstr "Не вдається прочитати вихідну скриньку: %s"
 
-#: mh/inc.c:254
+#: mh/inc.c:255
 #, c-format
 msgid "%d: cannot get message: %s"
 msgstr "%d: не вдається отримати повідомлення: %s"
 
-#: mh/inc.c:261
+#: mh/inc.c:262
 #, c-format
 msgid "%d: error appending message: %s"
 msgstr "%d: помилка додання повідомлення: %s"
@@ -3394,12 +3394,12 @@ msgstr ""
 "Це є %s\n"
 "\n"
 
-#: mh/mh_ctx.c:92
+#: mh/mh_ctx.c:93
 #, c-format
 msgid "Cannot open context file %s: %s"
 msgstr "Неможливо відкрити файл контексту: %s: %s"
 
-#: mh/mh_ctx.c:142
+#: mh/mh_ctx.c:143
 #, c-format
 msgid "Cannot create context %s: %s"
 msgstr "Не вдається створити контекст %s: %s"
@@ -3426,17 +3426,17 @@ msgstr "Відсутні аргументи для %s"
 msgid "Extra arguments to %s"
 msgstr "Надто багато аргументів для %s"
 
-#: mh/mh_format.c:603
+#: mh/mh_format.c:604
 #, c-format
 msgid "INTERNAL ERROR: Unknown opcode: %x"
 msgstr "ВНУТРІШНЯ ПОМИЛКА: Хибний код операції: %x"
 
 #. TRANSLATORS: Do not translate the word 'format'!
-#: mh/mh_format.c:946 mh/mh_format.c:958
+#: mh/mh_format.c:947 mh/mh_format.c:959
 msgid "format: divide by zero"
 msgstr "формат: ділення на нуль"
 
-#: mh/mh_format.c:1874
+#: mh/mh_format.c:1875
 msgid "Invalid recipient mask"
 msgstr "Недійсна маска одержувача"
 
@@ -3466,73 +3466,73 @@ msgstr ""
 "Будь ласка використовуйте довгі опції GNU.\n"
 "Спробуйте %s --help щоб отримати їх детальний опис.\n"
 
-#: mh/mh_init.c:69
+#: mh/mh_init.c:70
 #, c-format
 msgid "Cannot stat format file %s: %s"
 msgstr "Неможливо отримати інформацію про файл формату %s: %s"
 
-#: mh/mh_init.c:76
+#: mh/mh_init.c:77
 #, c-format
 msgid "Cannot open format file %s: %s"
 msgstr "Неможливо відкрити файл формату %s: %s"
 
-#: mh/mh_init.c:206
+#: mh/mh_init.c:207
 #, c-format
 msgid "Create folder \"%s\""
 msgstr "Створити теку \"%s\""
 
-#: mh/mh_init.c:214
+#: mh/mh_init.c:215
 #, c-format
 msgid "Cannot create directory %s: %s"
 msgstr "Не вдається створити каталог %s: %s"
 
 #. TRANSLATORS: See msgids "nN" and "yY".
-#: mh/mh_init.c:267
+#: mh/mh_init.c:268
 #, c-format
 msgid "Please answer yes or no: "
 msgstr "Будь ласка введіть `yes'(так) або `no'(ні): "
 
-#: mh/mh_init.c:326
+#: mh/mh_init.c:327
 #, c-format
 msgid "Cannot open audit file %s: %s"
 msgstr "Не вдається відкрити файл аудиту %s: %s"
 
-#: mh/mh_init.c:457 mh/mh_msgset.c:165
+#: mh/mh_init.c:458 mh/mh_msgset.c:165
 #, c-format
 msgid "Cannot get message %d: %s"
 msgstr "Не вдається отримати повідомлення %d: %s"
 
-#: mh/mh_init.c:475
+#: mh/mh_init.c:476
 #, c-format
 msgid "Cannot split line %s"
 msgstr "Не вдається розділити рядок %s"
 
-#: mh/mh_init.c:527
+#: mh/mh_init.c:528
 #, c-format
 msgid "Cannot open input file `%s': %s"
 msgstr "Не вдається відкрити вхідний файл `%s': %s"
 
-#: mh/mh_init.c:550
+#: mh/mh_init.c:551
 #, c-format
 msgid "Write error on `%s': %s"
 msgstr "Помилка запису `%s': %s"
 
-#: mh/mh_init.c:579
+#: mh/mh_init.c:580
 #, c-format
 msgid "Cannot stat file %s: %s"
 msgstr "Не вдається отримати інформацію про файл %s: %s"
 
-#: mh/mh_init.c:585 mh/mhn.c:2267
+#: mh/mh_init.c:586 mh/mhn.c:2267
 #, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "Не вдається створити вхідний потік (файл %s): %s"
 
-#: mh/mh_init.c:592 mh/mhn.c:2274
+#: mh/mh_init.c:593 mh/mhn.c:2274
 #, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "Не вдається відкрити вхідний потік (файл %s): %s"
 
-#: mh/mh_init.c:605
+#: mh/mh_init.c:606
 #, c-format
 msgid ""
 "Prior to using MH, it is necessary to have a file in your login\n"
@@ -3546,39 +3546,39 @@ msgstr ""
 "елементом цього файлу є шлях до каталогу в якому містяться усі теки MH. "
 "Запропонований шлях: %s...\n"
 
-#: mh/mh_init.c:628
+#: mh/mh_init.c:629
 msgid "Do you need help"
 msgstr "Потрібна допомога"
 
-#: mh/mh_init.c:631
+#: mh/mh_init.c:632
 #, c-format
 msgid "Do you want the standard MH path \"%s\""
 msgstr "Використати стандартний шлях MH \"%s\""
 
-#: mh/mh_init.c:636
+#: mh/mh_init.c:637
 msgid "Do you want a path below your login directory"
 msgstr "Використати шлях відносно Вашого домашнього каталогу"
 
-#: mh/mh_init.c:638
+#: mh/mh_init.c:639
 #, c-format
 msgid "What is the path? "
 msgstr "Вкажіть шлях: "
 
-#: mh/mh_init.c:640
+#: mh/mh_init.c:641
 #, c-format
 msgid "What is the full path? "
 msgstr "Вкажіть повний шлях: "
 
-#: mh/mh_init.c:699
+#: mh/mh_init.c:700
 #, c-format
 msgid "I'm going to create the standard MH path for you.\n"
 msgstr "Створюється стандартний шлях MH.\n"
 
-#: mh/mh_init.c:710
+#: mh/mh_init.c:711
 msgid "You already have an MH profile, use an editor to modify it"
 msgstr "Ви вже маєте профіль MH, використайте редактор щоб модифікувати його"
 
-#: mh/mh_init.c:715
+#: mh/mh_init.c:716
 #, c-format
 msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
@@ -4085,7 +4085,7 @@ msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH mhpathВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
-#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
+#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:36
 msgid "[+folder] [msgs]"
 msgstr "[+тека] [повідомлення]"
 
@@ -4403,37 +4403,37 @@ msgstr "GNU MH rmmВикористовуйте -help щоб отримати о
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/scan.c:33
+#: mh/scan.c:34
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH scanВикористовуйте -help щоб отримати опис традиційних опцій MH."
 
-#: mh/scan.c:40
+#: mh/scan.c:41
 msgid "Specify folder to scan"
 msgstr "Вказує теку для перегляду"
 
-#: mh/scan.c:42
+#: mh/scan.c:43
 msgid "Clear screen after displaying the list"
 msgstr "Очищати екран після виводу переліку"
 
-#: mh/scan.c:49
+#: mh/scan.c:50
 msgid "Display header"
 msgstr "Показувати заголовок"
 
-#: mh/scan.c:53
+#: mh/scan.c:54
 msgid "List messages in reverse order"
 msgstr "Показувати повідомлення у зворотному порядку"
 
-#: mh/scan.c:56
+#: mh/scan.c:57
 msgid "[Not yet implemented]"
 msgstr "[Ще не реалізовано]"
 
-#: mh/scan.c:228
+#: mh/scan.c:229
 #, c-format
 msgid "no messages in %s"
 msgstr "немає повідомлень в %s"
 
-#: mh/scan.c:249
+#: mh/scan.c:250
 #, c-format
 msgid "Folder %s  %s\n"
 msgstr "Тека %s  %s\n"
@@ -4515,7 +4515,7 @@ msgstr "Трасувати доставку пошти"
 msgid "* Make header fields no longer than NUMBER columns"
 msgstr "* Обмежити довжину полів заголовку у ЧИСЛО символів"
 
-#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:134 pop3d/pop3d.c:148
+#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135 pop3d/pop3d.c:149
 msgid "Invalid number"
 msgstr "Недійсне число"
 
@@ -4633,15 +4633,18 @@ msgid "Cannot lock"
 msgstr "Не вдається заблокувати"
 
 #: movemail/movemail.c:169
-msgid "mailbox_get_folder failed"
+#, fuzzy
+msgid "mu_mailbox_get_folder failed"
 msgstr "помилка mailbox_get_folder"
 
 #: movemail/movemail.c:172
-msgid "folder_get_authority failed"
+#, fuzzy
+msgid "mu_folder_get_authority failed"
 msgstr "помилка folder_get_authority"
 
 #: movemail/movemail.c:175
-msgid "authority_set_ticket failed"
+#, fuzzy
+msgid "mu_authority_set_ticket failed"
 msgstr "помилка authority_set_ticket"
 
 #: movemail/movemail.c:202
@@ -4743,62 +4746,62 @@ msgstr "неочікуваний кінець файлу"
 msgid "Locking mailbox `%s' failed: %s"
 msgstr "Не вдалося заблокувати скриньку `%s': %s"
 
-#: pop3d/pop3d.c:64
+#: pop3d/pop3d.c:65
 msgid "GNU pop3d -- the POP3 daemon"
 msgstr "GNU pop3d -- демон POP3"
 
-#: pop3d/pop3d.c:74
+#: pop3d/pop3d.c:75
 msgid "Undelete all messages on startup"
 msgstr "Після запуску скасувати ознаку видалення з усіх повідомлень"
 
-#: pop3d/pop3d.c:77
+#: pop3d/pop3d.c:78
 msgid "Allowed delay between the two successive logins"
 msgstr ""
 "Дозволений найменший інтервал між завершенням попередньої й початком "
 "наступної сесії"
 
-#: pop3d/pop3d.c:78
+#: pop3d/pop3d.c:79
 msgid "FILENAME"
 msgstr "ФАЙЛ"
 
-#: pop3d/pop3d.c:79
+#: pop3d/pop3d.c:80
 msgid "Name of login statistics file"
 msgstr "Назва файлу статистики входів"
 
-#: pop3d/pop3d.c:81
+#: pop3d/pop3d.c:82
 msgid "DAYS"
 msgstr "ДНІ"
 
-#: pop3d/pop3d.c:82
+#: pop3d/pop3d.c:83
 msgid "Expire read messages after the given number of days"
 msgstr "Встановити термін дійсності прочитаних повідомлень"
 
-#: pop3d/pop3d.c:84
+#: pop3d/pop3d.c:85
 msgid "Delete expired messages upon closing the mailbox"
 msgstr "Після закриття скриньки видаляти повідомлення що втратили дійсність"
 
-#: pop3d/pop3d.c:87
+#: pop3d/pop3d.c:88
 msgid "Always require STLS before entering authentication phase"
 msgstr "Вимагати використання STLS перед переходом до фази ідентифікації"
 
-#: pop3d/pop3d.c:277
+#: pop3d/pop3d.c:278
 msgid "Failed to become a daemon:"
 msgstr "Не вдається перейти у фоновий режим:"
 
-#: pop3d/pop3d.c:313
+#: pop3d/pop3d.c:314
 #, c-format
 msgid "connect from %s"
 msgstr "з'єднання з %s"
 
-#: pop3d/pop3d.c:437
+#: pop3d/pop3d.c:438
 msgid "Session terminated"
 msgstr "Сесію закінчено"
 
-#: pop3d/pop3d.c:523
+#: pop3d/pop3d.c:524
 msgid "GNU pop3d started"
 msgstr "GNU pop3d запустився"
 
-#: pop3d/pop3d.c:530
+#: pop3d/pop3d.c:531
 #, c-format
 msgid "too many children (%lu)"
 msgstr "надто багато процесів-нащадків (%lu)"
@@ -5046,7 +5049,7 @@ msgstr "Неможливо відкрити скриньку `%s': %s\n"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: sieve/sieve.c:53
+#: sieve/sieve.c:54
 msgid ""
 "GNU sieve -- a mail filtering tool\n"
 "Debug flags:\n"
@@ -5063,152 +5066,152 @@ msgstr ""
 "  t - трасування перевірок і дій sieve (MU_SIEVE_DEBUG_TRACE)\n"
 "  i - трасування інструкцій sieve (MU_SIEVE_DEBUG_INSTR)\n"
 
-#: sieve/sieve.c:69
+#: sieve/sieve.c:70
 msgid "Do not execute any actions, just print what would be done"
 msgstr "Не виконувати жодних дій, лише друкувати що мало бути зроблено"
 
-#: sieve/sieve.c:72
+#: sieve/sieve.c:73
 msgid "Keep on going if execution fails on a message"
 msgstr "Продовжувати роботу у разі збою операції з якимось повідомленням"
 
-#: sieve/sieve.c:75
+#: sieve/sieve.c:76
 msgid "Compile script and exit"
 msgstr "Скомпілювати сценарій та вийти"
 
-#: sieve/sieve.c:78
+#: sieve/sieve.c:79
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
 msgstr "Скомпілювати сценарій, вивести код на термінал та вийти"
 
-#: sieve/sieve.c:80
+#: sieve/sieve.c:81
 msgid "MBOX"
 msgstr "СКРИНЬКА"
 
-#: sieve/sieve.c:81
+#: sieve/sieve.c:82
 msgid "Mailbox to sieve (defaults to user's mail spool)"
 msgstr ""
 "Просівати вказану скриньку (типово системну поштову скриньку користувача)"
 
-#: sieve/sieve.c:83
+#: sieve/sieve.c:84
 msgid "TICKET"
 msgstr "КВИТОК"
 
-#: sieve/sieve.c:84
+#: sieve/sieve.c:85
 msgid "Ticket file for mailbox authentication"
 msgstr "Файл квитка для ідентифікації скриньки"
 
-#: sieve/sieve.c:87
+#: sieve/sieve.c:88
 msgid "Debug flags (defaults to \""
 msgstr "Ознаки налагодження (типово \""
 
-#: sieve/sieve.c:87
+#: sieve/sieve.c:88
 msgid "\")"
 msgstr "\")"
 
-#: sieve/sieve.c:90
+#: sieve/sieve.c:91
 msgid "Log all actions"
 msgstr "Протоколювати усі дії"
 
-#: sieve/sieve.c:93
+#: sieve/sieve.c:94
 msgid "Print source location along with action logs (default)"
 msgstr ""
 "Реєструвати назву джерела та номер рядку що викликали виконання дії (типово)"
 
-#: sieve/sieve.c:96
+#: sieve/sieve.c:97
 msgid "Override user email address"
 msgstr "Перевизначити поштову адресу користувача"
 
-#: sieve/sieve.c:149
+#: sieve/sieve.c:150
 #, c-format
 msgid "Invalid email: %s"
 msgstr "Недійсна поштова адреса: %s"
 
-#: sieve/sieve.c:170
+#: sieve/sieve.c:171
 msgid "Only one MBOX can be specified"
 msgstr "Дозволяється вказувати лише одну скриньку"
 
-#: sieve/sieve.c:224
+#: sieve/sieve.c:225
 msgid "Only one SCRIPT can be specified"
 msgstr "Дозволяється вказувати лише один сценарій"
 
-#: sieve/sieve.c:229
+#: sieve/sieve.c:230
 msgid "SCRIPT must be specified"
 msgstr "Необхідно вказати сценарій"
 
-#: sieve/sieve.c:242
+#: sieve/sieve.c:243
 msgid "SCRIPT"
 msgstr "СЦЕНАРІЙ"
 
-#: sieve/sieve.c:300 sieve/sieve.c:325
+#: sieve/sieve.c:301 sieve/sieve.c:326
 #, c-format
 msgid "%s:%lu: %s on msg uid %lu"
 msgstr "%s:%lu: %s над повідомленням з uid %lu"
 
-#: sieve/sieve.c:304 sieve/sieve.c:329
+#: sieve/sieve.c:305 sieve/sieve.c:330
 #, c-format
 msgid "%s on msg uid %lu"
 msgstr "%s над повідомленням з uid %lu"
 
-#: sieve/sieve.c:415
+#: sieve/sieve.c:416
 #, c-format
 msgid "ticket_get failed: %s"
 msgstr "помилка ticket_get: %s"
 
-#: sieve/sieve.c:421
-#, c-format
-msgid "wicket_create `%s' failed: %s"
+#: sieve/sieve.c:422
+#, fuzzy, c-format
+msgid "mu_wicket_create `%s' failed: %s"
 msgstr "помилка wicket_create `%s': %s"
 
-#: sieve/sieve.c:434
+#: sieve/sieve.c:435
 #, c-format
 msgid "mu_debug_create failed: %s"
 msgstr "помилка mu_debug_create: %s"
 
-#: sieve/sieve.c:439
+#: sieve/sieve.c:440
 #, c-format
 msgid "mu_debug_set_level failed: %s"
 msgstr "помилка mu_debug_set_level: %s"
 
-#: sieve/sieve.c:445
+#: sieve/sieve.c:446
 #, c-format
 msgid "mu_debug_set_print failed: %s"
 msgstr "помилка mu_debug_set_print: %s"
 
-#: sieve/sieve.c:467
-#, c-format
-msgid "mailbox_set_debug failed: %s"
+#: sieve/sieve.c:468
+#, fuzzy, c-format
+msgid "mu_mailbox_set_debug failed: %s"
 msgstr "помилка mailbox_set_debug: %s"
 
-#: sieve/sieve.c:478
-#, c-format
-msgid "mailbox_get_folder failed: %s"
+#: sieve/sieve.c:479
+#, fuzzy, c-format
+msgid "mu_mailbox_get_folder failed: %s"
 msgstr "помилка mailbox_get_folder: %s"
 
-#: sieve/sieve.c:485
-#, c-format
-msgid "folder_get_authority failed: %s"
+#: sieve/sieve.c:486
+#, fuzzy, c-format
+msgid "mu_folder_get_authority failed: %s"
 msgstr "помилка folder_get_authority: %s"
 
-#: sieve/sieve.c:493
-#, c-format
-msgid "authority_set_ticket failed: %s"
+#: sieve/sieve.c:494
+#, fuzzy, c-format
+msgid "mu_authority_set_ticket failed: %s"
 msgstr "помилка authority_set_ticket: %s"
 
-#: sieve/sieve.c:508
+#: sieve/sieve.c:509
 #, c-format
 msgid "Opening mailbox `%s' failed: %s"
 msgstr "Не вдалося відкрити скриньку `%s': %s"
 
-#: sieve/sieve.c:511
+#: sieve/sieve.c:512
 #, c-format
 msgid "Opening default mailbox failed: %s"
 msgstr "Не вдалося відкрити типову скриньку: %s"
 
-#: sieve/sieve.c:532
+#: sieve/sieve.c:533
 #, c-format
 msgid "Expunge on mailbox `%s' failed: %s"
 msgstr "Неможливо видалити повідомлення з `%s': %s"
 
-#: sieve/sieve.c:535
+#: sieve/sieve.c:536
 #, c-format
 msgid "Expunge on default mailbox failed: %s"
 msgstr "Неможливо видалити повідомлення з типової скриньки: %s"
