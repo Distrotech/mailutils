@@ -1,3 +1,16 @@
+2005-08-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Final seasoning: Replace munre_ with mu_unre_
+	
+	* include/mailutils/mutil.h
+	* libsieve/extensions/vacation.c
+	* mail/followup.c
+	* mail/reply.c
+	* mail/util.c
+	* mailbox/munre.c
+	* mh/mh_format.c
+	* mh/mh_init.c
+
 2005-08-27  Wojciech Polak
 
 	Normalize global namespace. Part 2: Symbols defined in header files
