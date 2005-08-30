@@ -113,11 +113,12 @@ static int folder_mbox_close       (mu_folder_t);
 static int folder_mbox_delete      (mu_folder_t, const char *);
 static int folder_mbox_rename      (mu_folder_t , const char *, const char *);
 static int folder_mbox_list        (mu_folder_t, const char *, const char *,
-				    struct mu_folder_list *);
+				    size_t,
+				    mu_list_t);
 static int folder_mbox_subscribe   (mu_folder_t, const char *);
 static int folder_mbox_unsubscribe (mu_folder_t, const char *);
 static int folder_mbox_lsub        (mu_folder_t, const char *, const char *,
-				    struct mu_folder_list *);
+				    mu_list_t);
 
 
 static char *get_pathname       (const char *, const char *);
@@ -257,65 +258,103 @@ folder_mbox_rename (mu_folder_t folder, const char *oldpath, const char *newpath
   return EINVAL;
 }
 
-/* The listing is not recursif and we use glob() some expansion for us.
-   Unfortunately glob() does not expand the '~'.  We also return
-   The full pathname so it can be use to create other folders.  */
-static int
-folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
-		  struct mu_folder_list *pflist)
+struct inode_list           /* Inode/dev number list used to cut off
+			       recursion */
 {
-  fmbox_t fmbox = folder->data;
-  char *pathname = NULL;
+  struct inode_list *next;
+  ino_t inode;
+  dev_t dev;
+};
+
+struct search_data
+{
+  mu_list_t result;
+  const char *pattern;
+  size_t max_level;
+};
+
+static int
+inode_list_lookup (struct inode_list *list, struct stat *st)
+{
+  for (; list; list = list->next)
+    if (list->inode == st->st_ino && list->dev == st->st_dev)
+      return 1;
+  return 0;
+}
+
+
+static int
+list_helper (struct search_data *data,
+	     const char *dirname, size_t level, struct inode_list *ilist)
+{
   int status;
-  size_t num = 0;
   glob_t gl;
+  char *pathname;
 
-  if (dirname == NULL || dirname[0] == '\0')
-    dirname = (const char *)fmbox->dirname;
+  ++level;
+  if (data->max_level && level > data->max_level)
+    return 0;
+  
+  pathname = get_pathname (dirname, data->pattern);
+  if (!pathname)
+    return ENOMEM;
 
-  pathname = get_pathname (dirname, pattern);
-  if (pathname)
-    {
-      memset(&gl, 0, sizeof(gl));
-      status = glob (pathname, 0, NULL, &gl);
-      free (pathname);
-      num = gl.gl_pathc;
-    }
-  else
-    status = ENOMEM;
+  memset(&gl, 0, sizeof(gl));
+  status = glob (pathname, 0, NULL, &gl);
+  free (pathname);
 
-  /* Build the folder list from glob.  */
   if (status == 0)
     {
-      if (pflist)
+      size_t i;
+      struct mu_list_response *resp;
+      
+      for (i = 0; i < gl.gl_pathc; i++)
 	{
-	  struct mu_list_response **plist;
-	  plist = calloc (num, sizeof (*plist));
-	  if (plist)
+	  struct stat st;
+	  
+	  resp = malloc (sizeof (*resp));
+	  if (resp == NULL)
 	    {
-	      size_t i;
-	      struct stat stbuf;
-	      for (i = 0; i < num; i++)
+	      status = ENOMEM;
+	      break;
+	    }
+	  else if ((resp->name = strdup (gl.gl_pathv[i])) == NULL)
+	    {
+	      free (resp);
+	      status = ENOMEM;
+	      break;
+	    }
+
+	  resp->level = level;
+	  resp->separator = '/';
+	  resp->type = 0;
+	  
+	  mu_list_append (data->result, resp);
+
+	  if (stat (gl.gl_pathv[i], &st) == 0)
+	    {
+	      mu_record_t record;
+	      resp->type = mu_registrar_lookup (gl.gl_pathv[i],
+						&record,
+						MU_FOLDER_ATTRIBUTE_ALL);
+	      if ((resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+		  && !inode_list_lookup (ilist, &st))
 		{
-		  plist[i] = calloc (1, sizeof (**plist));
-		  if (plist[i] == NULL
-		      || (plist[i]->name = strdup (gl.gl_pathv[i])) == NULL)
+		  struct inode_list idata;
+		  idata.inode = st.st_ino;
+		  idata.dev   = st.st_dev;
+		  idata.next  = ilist;
+		  status = list_helper (data, gl.gl_pathv[i], level, &idata);
+		  if (status)
 		    {
-		      num = i;
-		      break;
+		      if (status == MU_ERR_NOENT
+			  && !mu_list_is_empty (data->result))
+			status = 0;
+		      else
+			break;
 		    }
-		  if (stat (gl.gl_pathv[i], &stbuf) == 0)
-		    {
-		      mu_record_t record;
-		      plist[i]->type = mu_registrar_lookup (gl.gl_pathv[i],
-							 &record,
-						      MU_FOLDER_ATTRIBUTE_ALL);
-		    }
-		  plist[i]->separator = '/';
 		}
 	    }
-	  pflist->element = plist;
-	  pflist->num = num;
 	}
       globfree (&gl);
     }
@@ -347,42 +386,68 @@ folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
   return status;
 }
 
+/* The listing is not recursif and we use glob() some expansion for us.
+   Unfortunately glob() does not expand the '~'.  We also return
+   The full pathname so it can be use to create other folders.  */
 static int
-folder_mbox_lsub (mu_folder_t folder, const char *ref ARG_UNUSED, const char *name,
-		  struct mu_folder_list *pflist)
+folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
+		  size_t max_level,
+		  mu_list_t flist)
 {
   fmbox_t fmbox = folder->data;
-  size_t j = 0;
+  struct inode_list iroot;
+  struct search_data sdata;
+  
+  memset (&iroot, 0, sizeof iroot);
+  if (dirname == NULL || dirname[0] == '\0')
+    dirname = (const char *)fmbox->dirname;
 
-  if (pflist == NULL)
-    return MU_ERR_OUT_NULL;
+  sdata.result = flist;
+  sdata.pattern = pattern;
+  sdata.max_level = max_level;
+  return list_helper (&sdata, dirname, 0, &iroot);
+}
 
+static int
+folder_mbox_lsub (mu_folder_t folder, const char *ref ARG_UNUSED,
+		  const char *name,
+		  mu_list_t flist)
+{
+  fmbox_t fmbox = folder->data;
+  int status;
+  
   if (name == NULL || *name == '\0')
     name = "*";
 
   if (fmbox->sublen > 0)
-    {
-      struct mu_list_response **plist;
+    {      
       size_t i;
-      plist = calloc (fmbox->sublen, sizeof (*plist));
+
       for (i = 0; i < fmbox->sublen; i++)
 	{
 	  if (fmbox->subscribe[i]
 	      && fnmatch (name, fmbox->subscribe[i], 0) == 0)
 	    {
-	      plist[i] = calloc (1, sizeof (**plist));
-	      if (plist[i] == NULL
-		  || (plist[i]->name = strdup (fmbox->subscribe[i])) == NULL)
-		break;
-	      plist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
-	      plist[i]->separator = '/';
-	      j++;
+	      struct mu_list_response *resp;
+	      resp = malloc (sizeof (*resp));
+	      if (resp == NULL)
+		{
+		  status = ENOMEM;
+		  break;
+		}
+	      else if ((resp->name = strdup (fmbox->subscribe[i])) == NULL)
+		{
+		  free (resp);
+		  status = ENOMEM;
+		  break;
+		}
+	      resp->type = MU_FOLDER_ATTRIBUTE_FILE;
+	      resp->level = 0;
+	      resp->separator = '/';
 	    }
 	}
-      pflist->element = plist;
     }
-  pflist->num = j;
-  return 0;
+  return status;
 }
 
 static int
@@ -449,7 +514,7 @@ get_pathname (const char *dirname, const char *basename)
       size_t dirlen = strlen (dirname);
       while (dirlen > 0 && dirname[dirlen-1] == '/')
 	dirlen--;
-      pathname = calloc (dirname + baselen + 2, sizeof (char));
+      pathname = calloc (dirlen + baselen + 2, sizeof (char));
       if (pathname)
 	{
 	  memcpy (pathname, dirname, dirlen);

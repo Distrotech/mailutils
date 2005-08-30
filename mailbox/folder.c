@@ -307,22 +307,52 @@ mu_folder_get_debug (mu_folder_t folder, mu_debug_t *pdebug)
   return 0;
 }
 
+void
+mu_list_response_free (void *data)
+{
+  struct mu_list_response *f = data;
+  free (f->name);
+  free (f);
+}
+
 int
 mu_folder_list (mu_folder_t folder, const char *dirname, const char *basename,
-	     struct mu_folder_list *pflist)
+		size_t max_level,
+		mu_list_t *pflist)
 {
+  int status;
   if (folder == NULL || folder->_list == NULL)
     return EINVAL;
-  return folder->_list (folder, dirname, basename, pflist);
+  else
+    {
+      status = mu_list_create (pflist);
+      if (status)
+	return status;
+      mu_list_set_destroy_item (*pflist, mu_list_response_free);
+      status = folder->_list (folder, dirname, basename, max_level, *pflist);
+      if (status)
+	mu_list_destroy (pflist);
+    }
+  return status;
 }
 
 int
 mu_folder_lsub (mu_folder_t folder, const char *dirname, const char *basename,
-	     struct mu_folder_list *pflist)
+		mu_list_t *pflist)
 {
+  int status;
+  
   if (folder == NULL || folder->_lsub == NULL)
     return ENOSYS;
-  return folder->_lsub (folder, dirname, basename, pflist);
+  else
+    {
+      status = mu_list_create (pflist);
+      if (status)
+	return status;
+      mu_list_set_destroy_item (*pflist, mu_list_response_free);
+      status = folder->_lsub (folder, dirname, basename, *pflist);
+    }
+  return status;
 }
 
 int
@@ -339,28 +369,6 @@ mu_folder_unsubscribe (mu_folder_t folder, const char *name)
   if (folder == NULL || folder->_unsubscribe == NULL)
     return EINVAL;
   return folder->_unsubscribe (folder, name);
-}
-
-int
-mu_folder_list_destroy (struct mu_folder_list *pflist)
-{
-  size_t i;
-  if (pflist == NULL)
-    return 0;
-  for (i = 0 ; i < pflist->num; i++)
-    {
-      if (pflist->element[i])
-	{
-	  if (pflist->element[i]->name)
-	    free (pflist->element[i]->name);
-	  free (pflist->element[i]);
-	}
-    }
-  if (i > 0)
-    free (pflist->element);
-  pflist->element = NULL;
-  pflist->num = 0;
-  return 0;
 }
 
 int

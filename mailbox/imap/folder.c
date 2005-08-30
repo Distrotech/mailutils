@@ -50,6 +50,7 @@
 #include <mailutils/header.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
+#include <mailutils/iterator.h>
 #include <mailutils/argcv.h>
 #include <mailutils/tls.h>
 
@@ -92,9 +93,10 @@ static int  folder_imap_close       (mu_folder_t);
 static void folder_imap_destroy     (mu_folder_t);
 static int  folder_imap_delete      (mu_folder_t, const char *);
 static int  folder_imap_list        (mu_folder_t, const char *, const char *,
-				     struct mu_folder_list *);
+				     size_t,
+				     mu_list_t);
 static int  folder_imap_lsub        (mu_folder_t, const char *, const char *,
-				     struct mu_folder_list *);
+				     mu_list_t);
 static int  folder_imap_rename      (mu_folder_t, const char *,
 				     const char *);
 static int  folder_imap_subscribe   (mu_folder_t, const char *);
@@ -792,21 +794,127 @@ folder_imap_delete (mu_folder_t folder, const char *name)
   return status;
 }
 
-/* Since mailutils API does not offer recursive listing. There is no need
-   to follow IMAP "bizarre" recursive rules. The use of '%' is sufficient.  So
-   the approach is everywhere there is a regex in the path we change that
-   branch for '%' and do the matching ourself with fnmatch().  */
+void
+guess_level (struct mu_list_response *resp, size_t prefix_len)
+{
+  char *p;
+  size_t lev = 0;
+  
+  for (p = strchr (resp->name + prefix_len, resp->separator); p;
+       p = strchr (p + 1, resp->separator))
+    lev++;
+  resp->level = lev;
+}
+
+/* Moves all matching items from list DST to SRC.
+   Items are moved verbatim (i.e. pointers are moved). Non-matching
+   items are deleted. After calling this function, SRC must be
+   destroyed.
+
+   While moving, this function also computes the recursion level.
+   
+   Matching is determined based on PATTERN, by NAMECMP function,
+   and MAX_LEVEL. Both can be zero. */
+   
+static void
+list_copy (mu_list_t dst, mu_list_t src,
+	   size_t prefix_len,
+	   int (*namecmp) (const char* pattern, const char* mailbox),
+	   const char *pattern, size_t max_level)
+{
+  mu_iterator_t itr;
+
+  mu_list_get_iterator (src, &itr);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      struct mu_list_response *p;
+      mu_iterator_current (itr, (void **)&p);
+      guess_level (p, prefix_len);
+      if ((max_level == 0 || p->level < max_level)
+	  && (!namecmp || namecmp (pattern, p->name) == 0))
+	mu_list_append (dst, p);
+      else
+	free (p);
+    }
+  mu_iterator_destroy (&itr);
+  mu_list_set_destroy_item (src, NULL);
+}
+
+/* Convert glob(3)-style pattern to IMAP one
+   Rules:
+     Wildcard          Replace with
+     --------          ------------
+     *                 * for recursive searches, % otherwise
+     ?                 %
+     [..]              %
+
+   NOTE:
+    1. The '*' can be made more selective by taking into account the
+       required maximum recursion level and counting directory separators
+       ('/') in the input pattern.
+    2. The resulting pattern matches, in general, a wider set of strings, so
+       each matched string should be additionally compared against the
+       original pattern.
+ */
+char *
+glob_to_imap (const char *pat, int recursive)
+{
+  char *p, *q;
+  char *ret = strdup (pat);
+
+  if (!ret)
+    return NULL;
+
+  for (p = q = ret; *q; )
+    {
+      switch (*q)
+	{
+	case '?':
+	  *p++ = '%';
+	  q++;
+	  break;
+
+	case '*':
+	  *p++ = recursive ? '*' : '%';
+	  q++;
+	  break;
+	  
+	case '[':
+	  for (; *q; q++)
+	    if (*q == '\\')
+	      q++;
+	    else if (*q == ']')
+	      {
+		q++;
+		break;
+	      }
+	  *p++ = '%';
+	  break;
+
+	case '\\':
+	  q++;
+	  if (*q)
+	    *p++ = *q++;
+	  break;
+	  
+	default:
+	  *p++ = *q++;
+	  break;
+	}
+    }
+  *p = 0;
+  return ret;
+}
+
 static int
 folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
-		  struct mu_folder_list *pflist)
+		  size_t max_level,
+		  mu_list_t flist)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
   char *path = NULL;
-
-  /* NOOP.  */
-  if (pflist == NULL)
-    return MU_ERR_OUT_NULL;
 
   status = mu_folder_open (folder, folder->flags);
   if (status != 0)
@@ -817,79 +925,10 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
   if (name == NULL)
     name = "";
 
-  path = strdup ("");
-  if (path == NULL)
-    return ENOMEM;
-
-  /* We break the string to pieces and change the occurences of "*?[" for
-     the imap magic "%" for expansion.  Then reassemble the string:
-     "/home/?/Mail/a*lain*" --> "/usr/%/Mail/%".  */
-  {
-    int done = 0;
-    size_t i;
-    char **node = NULL;
-    size_t nodelen = 0;
-    const char *p = name;
-    /* Disassemble.  */
-    while (!done && *p)
-      {
-	char **n;
-	n = realloc (node, (nodelen + 1) * sizeof (*node));
-	if (n == NULL)
-	  break;
-	node = n;
-	if (*p == '/')
-	  {
-	    node[nodelen] = strdup ("/");
-	    p++;
-	  }
-	else
-	  {
-	    const char *s = strchr (p, '/');
-	    if (s)
-	      {
-		node[nodelen] = calloc (s - p + 1, 1);
-		if (node[nodelen])
-		  memcpy (node[nodelen], p, s - p);
-		p = s;
-	      }
-	    else
-	      {
-		node[nodelen] = strdup (p);
-		done = 1;
-	      }
-	    if (node[nodelen] && strpbrk (node[nodelen], "*?["))
-	      {
-		free (node[nodelen]);
-		node[nodelen] = strdup ("%");
-            }
-	  }
-	nodelen++;
-	if (done)
-	  break;
-      }
-    /* Reassemble.  */
-    for (i = 0; i < nodelen; i++)
-      {
-	if (node[i])
-	  {
-	    char *pth;
-	    pth = realloc (path, strlen (path) + strlen (node[i]) + 1);
-	    if (pth)
-	      {
-		path = pth;
-		strcat (path, node[i]);
-	      }
-	    free (node[i]);
-	  }
-      }
-    if (node)
-      free (node);
-  }
-
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
+      path = glob_to_imap (name, max_level != 1);
       status = imap_writeline (f_imap, "g%u LIST \"%s\" \"%s\"\r\n",
 			       f_imap->seq++, ref, path);
       free (path);
@@ -911,67 +950,29 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
       break;
     }
 
-  /* Build the folder list.  */
-  if (f_imap->flist.num > 0)
-    {
-      struct mu_list_response **plist = NULL;
-      size_t num = f_imap->flist.num;
-      size_t j = 0;
-      plist = calloc (num, sizeof (*plist));
-      if (plist)
-	{
-	  size_t i;
-	  for (i = 0; i < num; i++)
-	    {
-	      struct mu_list_response *lr = f_imap->flist.element[i];
-	      if (imap_mailbox_name_match (name, lr->name) == 0)
-		{
-		  /*
-		  FOLDER_DEBUG2(folder, MU_DEBUG_TRACE,
-		      "fnmatch against %s: %s - match!\n", name, lr->name);
-		      */
-		  plist[i] = calloc (1, sizeof (**plist));
-		  if (plist[i] == NULL
-		      || (plist[i]->name = strdup (lr->name)) == NULL)
-		    {
-		      break;
-		    }
-		  plist[i]->type = lr->type;
-		  plist[i]->separator = lr->separator;
-		  j++;
-		}
-	      /*
-	      else
-		  FOLDER_DEBUG2(folder, MU_DEBUG_TRACE,
-		      "fnmatch against %s: %s - no match!\n", name, lr->name);
-	      */
-	    }
-	}
-      pflist->element = plist;
-      pflist->num = j;
-    }
-  mu_folder_list_destroy (&(f_imap->flist));
+  list_copy (flist, f_imap->flist, strlen (ref),
+	     imap_mailbox_name_match, name, max_level);
+
+  mu_list_destroy (&f_imap->flist);
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
 
 static int
 folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
-		  struct mu_folder_list *pflist)
+		  mu_list_t flist)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
-
-  /* NOOP.  */
-  if (pflist == NULL)
-    return MU_ERR_OUT_NULL;
 
   status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
 
-  if (ref == NULL) ref = "";
-  if (name == NULL) name = "";
+  if (ref == NULL)
+    ref = "";
+  if (name == NULL)
+    name = "";
 
   switch (f_imap->state)
     {
@@ -997,41 +998,16 @@ folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
     }
 
   /* Build the folder list.  */
-  if (f_imap->flist.num > 0)
-    {
-      struct mu_list_response **plist = NULL;
-      size_t num = f_imap->flist.num;
-      size_t j = 0;
-      plist = calloc (num, sizeof (*plist));
-      if (plist)
-	{
-	  size_t i;
-	  for (i = 0; i < num; i++)
-	    {
-	      struct mu_list_response *lr = f_imap->flist.element[i];
-	      /* printf ("%s --> %s\n", lr->name, name); */
-	      plist[i] = calloc (1, sizeof (**plist));
-	      if (plist[i] == NULL
-		  || (plist[i]->name = strdup (lr->name)) == NULL)
-		{
-		  break;
-		}
-	      plist[i]->type = lr->type;
-	      plist[i]->separator = lr->separator;
-	      j++;
-	    }
-	}
-      pflist->element = plist;
-      pflist->num = j;
-      mu_folder_list_destroy (&(f_imap->flist));
-    }
-  f_imap->state = IMAP_NO_STATE;
+  list_copy (flist, f_imap->flist, strlen (ref), NULL, NULL, 0);
+  mu_list_destroy (&f_imap->flist);
+  
   f_imap->state = IMAP_NO_STATE;
   return 0;
 }
 
 static int
-folder_imap_rename (mu_folder_t folder, const char *oldpath, const char *newpath)
+folder_imap_rename (mu_folder_t folder, const char *oldpath,
+		    const char *newpath)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -1337,22 +1313,23 @@ imap_list (f_imap_t f_imap)
   char *sp = NULL;
   size_t len = f_imap->nl - f_imap->buffer - 1;
   char *buffer;
-  struct mu_list_response **plr;
   struct mu_list_response *lr;
   int status = 0;
 
   buffer = alloca (len);
   memcpy (buffer, f_imap->buffer, len);
   buffer[len] = '\0';
-  plr = realloc (f_imap->flist.element,
-		 (f_imap->flist.num + 1) * sizeof (*plr));
-  if (plr == NULL)
+
+  lr = malloc (sizeof (*lr));
+  if (!lr)
     return ENOMEM;
-  f_imap->flist.element = plr;
-  lr = plr[f_imap->flist.num] = calloc (1, sizeof (*lr));
-  if (lr == NULL)
-    return ENOMEM;
-  (f_imap->flist.num)++;
+      
+  if (!f_imap->flist)
+    {
+      mu_list_create (&f_imap->flist);
+      mu_list_set_destroy_item (f_imap->flist, mu_list_response_free);
+    }
+  mu_list_append (f_imap->flist, lr);
 
   /* Glob untag.  */
   tok = strtok_r (buffer, " ", &sp);
@@ -1367,23 +1344,14 @@ imap_list (f_imap_t f_imap)
       while ((tok = strtok_r (p, " ()", &s)) != NULL)
 	{
 	  if (strcasecmp (tok, "\\Noselect") == 0)
-	    {
-	      lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
-	    }
-	  else if (strcasecmp (tok, "\\Marked") == 0)
-	    {
-	    }
-	  else if (strcasecmp (tok, "\\Unmarked") == 0)
-	    {
-	    }
+	    lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
 	  else if (strcasecmp (tok, "\\Noinferiors") == 0)
-	    {
-	      lr->type |= MU_FOLDER_ATTRIBUTE_FILE;
-	    }
+	    lr->type |= MU_FOLDER_ATTRIBUTE_FILE;
+	  else if (strcasecmp (tok, "\\Marked") == 0
+		   || strcasecmp (tok, "\\Unmarked") == 0)
+	    /* nothing */;
 	  else
-	    {
-	      lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
-	    }
+	    lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
 	  p = NULL;
 	}
     }
@@ -1432,6 +1400,7 @@ imap_list (f_imap_t f_imap)
     }
   return status;
 }
+
 /* Helping function to figure out the section name of the message: for example
    a 2 part message with the first part being sub in two will be:
    {1}, {1,1} {1,2}  The first subpart of the message and its sub parts

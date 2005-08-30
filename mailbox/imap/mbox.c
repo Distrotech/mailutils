@@ -252,8 +252,9 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
   mu_folder_t folder = f_imap->folder;
-  struct mu_folder_list folders = { 0, 0 };
-
+  mu_list_t folders = NULL;
+  size_t count;
+  
   /* m_imap must have been created during mailbox initialization. */
   assert (mailbox->data);
   assert (m_imap->name);
@@ -274,7 +275,7 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
       m_imap->state = IMAP_LIST;
 
     case IMAP_LIST:
-      status = mu_folder_list (folder, NULL, m_imap->name, &folders);
+      status = mu_folder_list (folder, NULL, m_imap->name, 0, &folders);
       if (status != 0)
 	{
 	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
@@ -283,7 +284,9 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
 	  return status;
 	}
       m_imap->state = IMAP_NO_STATE;
-      if (folders.num)
+      status = mu_list_count (folders, &count);
+      mu_list_destroy (&folders);
+      if (status || count)
 	return 0;
 
       if ((flags & MU_STREAM_CREAT) == 0)

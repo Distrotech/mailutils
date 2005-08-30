@@ -338,52 +338,62 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
 		char repl,
 		int flags)
 {
-  static struct mu_folder_list list;
-  static int i;
+  static mu_list_t list;
+  static mu_iterator_t itr;
   
   if (!state)
     {
       char *wcard;
       mu_folder_t folder;
-  
+      size_t count;
+      
       wcard = xmalloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");
 
       mu_folder_create (&folder, path);
-      mu_folder_list (folder, path, wcard, &list);
+      mu_folder_list (folder, path, wcard, 1, &list);
       free (wcard);
       mu_folder_destroy (&folder);
 
-      if (list.num == 0)
-	return NULL;
-      else if (list.num == 1)
+      if (mu_list_count (list, &count) || count == 0)
+	{
+	  mu_list_destroy (&list);
+	  return NULL;
+	}
+      else if (count == 1)
 	ml_set_completion_append_character (0);
-
-      i = 0;
+      
+      if (mu_list_get_iterator (list, &itr))
+	{
+	  mu_list_destroy (&list);
+	  return NULL;
+	}
+      mu_iterator_first (itr);
     }
 
-  while (i < list.num)
+  while (!mu_iterator_is_done (itr))
     {
-      if (list.element[i]->type & flags)
+      struct mu_list_response *resp;
+      mu_iterator_current (itr, (void**)&resp);
+      mu_iterator_next (itr);
+      if (resp->type & flags)
 	{
 	  char *ret;
 	  if (repl)
 	    {
-	      int len = strlen (list.element[i]->name + pathlen);
+	      int len = strlen (resp->name + pathlen);
 	      ret = xmalloc (len + 2);
 	      ret[0] = repl;
-	      memcpy (ret + 1, list.element[i]->name + pathlen, len);
+	      memcpy (ret + 1, resp->name + pathlen, len);
 	      ret[len+1] = 0;
 	    }
 	  else
-	    ret = xstrdup (list.element[i]->name);
-	  i++;
+	    ret = xstrdup (resp->name);
 	  return ret;
 	}
-      i++;
     }
-  
-  mu_folder_list_destroy (&list);
+  mu_iterator_destroy (&itr);
+  mu_list_destroy (&list);
   return NULL;
 }
 

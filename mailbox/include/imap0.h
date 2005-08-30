@@ -131,7 +131,6 @@ struct literal_string
   size_t total;
   msg_imap_t msg_imap;
   enum imap_state type;
-  struct mu_folder_list flist;
   size_t nleft;  /* nleft to read in the literal. */
 };
 
@@ -160,7 +159,7 @@ struct _f_imap
   } string;
 
   /* Use for LIST and LSUB.  */
-  struct mu_folder_list flist;
+  mu_list_t flist;
 
   int isopen;
 
