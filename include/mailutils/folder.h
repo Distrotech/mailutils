@@ -28,14 +28,9 @@ extern "C" {
 struct mu_list_response
 {
   int type;             /* MU_FOLDER_ATTRIBUTE_.* flags */
+  int level;
   int separator;
   char *name;
-};
-
-struct mu_folder_list
-{
-  struct mu_list_response **element;
-  size_t num;
 };
 
 /* Constructor/destructor and possible types.  */
@@ -50,10 +45,9 @@ extern int  mu_folder_rename         (mu_folder_t, const char *, const char *);
 extern int  mu_folder_subscribe      (mu_folder_t, const char *);
 extern int  mu_folder_unsubscribe    (mu_folder_t, const char *);
 extern int  mu_folder_list           (mu_folder_t, const char *, const char *,
-				   struct mu_folder_list *);
+				      size_t, mu_list_t *);
 extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
-				   struct mu_folder_list *);
-extern int  mu_folder_list_destroy   (struct mu_folder_list *);
+				      mu_list_t *);
 
 /* Stream settings.  */
 extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *);
@@ -78,6 +72,8 @@ extern int  mu_folder_set_url        (mu_folder_t, mu_url_t);
 /* FIXME: not implemented */
 extern int  mu_folder_decrement      (mu_folder_t);
 
+extern void mu_list_response_free    (void *data);
+  
 
 #ifdef __cplusplus
 }
