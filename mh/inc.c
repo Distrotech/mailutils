@@ -253,14 +253,14 @@ main (int argc, char **argv)
       if ((rc = mu_mailbox_get_message (input, n, &imsg)) != 0)
 	{
 	  mh_error (_("%d: cannot get message: %s"),
-		    n, mu_strerror (errno));
+		    n, mu_strerror (rc));
 	  continue;
 	}
 
       if ((rc = mu_mailbox_append_message (output, imsg)) != 0)
 	{
 	  mh_error (_("%d: error appending message: %s"),
-		    n, mu_strerror (errno));
+		    n, mu_strerror (rc));
 	  continue;
 	}
 

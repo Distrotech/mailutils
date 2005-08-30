@@ -156,7 +156,7 @@ action_list (void *item, void *data)
 }
 
 static int
-list_private (char *name, char *value, char *data)
+list_private (char *name, char *value, void *data)
 {
   int nlen;
   
@@ -174,7 +174,7 @@ list_private (char *name, char *value, char *data)
 }
 
 static int
-list_public (char *name, char *value, char *data)
+list_public (char *name, char *value, void *data)
 {
   printf ("%s: %s\n", name, value);
   return 0;
