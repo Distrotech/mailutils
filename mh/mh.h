@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <mh_getopt.h>
+#include <xalloc.h>
+#include <mu_asprintf.h>
 
 #include <string.h>
 
@@ -217,7 +219,7 @@ struct mh_whatnow_env {   /* An environment for whatnow shell */
 #define DISP_USE 1
 #define DISP_REPLACE 2
 
-typedef int (*mh_context_iterator) (char *field, char *value, char *data);
+typedef int (*mh_context_iterator) (char *field, char *value, void *data);
 
 #define SEQ_PRIVATE 1
 #define SEQ_ZERO    2
