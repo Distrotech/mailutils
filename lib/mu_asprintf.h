@@ -17,14 +17,9 @@
 #ifndef MUASPRINTF_H
 #define MUASPRINTF_H
 
-#ifndef __P
-# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
-#  define args args
-# else
-#  define args) (
-# endif
-#endif /*__P */
-
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 
