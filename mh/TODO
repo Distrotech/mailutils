@@ -26,7 +26,7 @@ State	Nice	Utility		Comments
 				--split,--width
 *	-20	refile		--link copies messages.
 *	-20	rmm		rmproc:	
-*	-15	folder(s)	--pack,--verbose
++	-15	folder(s)	
 +	-15	mhn		
 +	-10	rmf
 +	0	install-mh	

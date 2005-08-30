@@ -1,3 +1,42 @@
+2005-08-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Remove obsolete usage of mu_folder_list (ex. folder_list). It
+	seems to have been introduced when mu_list_t (ex. list_t) has
+	not yet been there. All callers updated. Mbox format
+	implementation has been tested. Imap format one is being tested. 
+	
+	* include/mailutils/folder.h (struct mu_list_response.level): New
+	member
+	(struct mu_folder_list): Removed. Use mu_list_t instead
+	(mu_folder_list): Use mu_list_t. Take an extra argument: a maximum
+	recusion level.
+	(mu_folder_lsub): Change typo of the last argument (mu_list_t
+	now).
+	(mu_folder_list_destroy): Removed
+	(mu_list_response_free): New function
+	* lib/mu_asprintf.h: Remove vestiges of __P(). Define _GNU_SOURCE,
+	if not alrerady defined.
+
+	* mailbox/imap/folder.c: Rewritten for new
+	mu_folder_list,mu_folder_lsub semantics.  
+	* mailbox/imap/mbox.c: Likewise
+	* mailbox/include/folder0.h: Likewise.
+	* mailbox/include/imap0.h: Likewise.
+	* mailbox/mbox/folder.c: Likewise.
+	* mailbox/nntp/folder.c: Likewise.
+	* mail/mailline.c: Use new mu_folder_list
+	* mailbox/folder.c: Likewise.
+
+	* auth/radius.c: Updated for recent libgnuradius 
+
+	* mh/folder.c: Implement --pack, --verbose, --dry-run (just in case).
+	* mh/TODO: Updated
+	* mh/inc.c: Minor bugfixes.
+	* mh/mark.c: Likewise
+	* mh/mh.h (mh_context_iterator): Changed signature
+	* mh/mh_ctx.c (mh_context_iterate): Bugfix
+	* mh/mh_getopt.h (ARG_PACK): New define
+
 2005-08-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Raise version number to 0.6.92
