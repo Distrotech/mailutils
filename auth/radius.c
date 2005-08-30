@@ -211,7 +211,7 @@ mu_radius_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_RADIUS_DIR:
-      radius_dir = grad_estrdup(arg);
+      grad_config_dir = grad_estrdup (arg);
       break;
       
     case ARGP_KEY_FINI:
