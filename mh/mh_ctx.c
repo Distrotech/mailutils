@@ -166,7 +166,7 @@ mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
       mu_header_aget_field_value (ctx->header, i, &value);
       rc = fp (name, value, data);
       free (name);
-      free (data);
+      free (value);
     }
 
   return rc;
