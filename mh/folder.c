@@ -47,6 +47,8 @@ static struct argp_option options[] = {
    N_("List the folders (default)"), 1 },
   {"list",  ARG_LIST,  NULL, 0,
    N_("List the contents of the folder stack"), 1},
+  {"pack",  ARG_PACK,  N_("NUMBER"), OPTION_ARG_OPTIONAL,
+   N_("Remove holes in message numbering. Begin numbering from NUMBER (default: first message number"), 1},
   {"push",  ARG_PUSH,  N_("FOLDER"), OPTION_ARG_OPTIONAL,
     N_("Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
        "Otherwise, if a folder is given in the command line (via + or --folder), "
@@ -76,7 +78,11 @@ static struct argp_option options[] = {
   {"total",  ARG_TOTAL, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Output the total statistics"), 3},
   {"nototal", ARG_NOTOTAL, NULL, OPTION_HIDDEN, ""},
-  
+  {"verbose", ARG_VERBOSE, NULL, 0,
+   N_("Verbosely list actions taken"), 3},
+  {"dry-run", ARG_DRY_RUN, NULL, 0,
+   N_("Do nothing, print what would be done (with --pack)"), 3},
+   
   {"license", ARG_LICENSE, 0,      0,
    N_("Display software license"), -1},
 
@@ -90,6 +96,7 @@ struct mh_option mh_option[] = {
   {"push",    2, 0, NULL },
   {"pop",     2, 0, NULL },
   {"all",     1, 0, NULL },
+  {"pack",    2, 0, NULL },
   {"create",  1, MH_OPT_BOOL, NULL},
   {"fast",    1, MH_OPT_BOOL, NULL},
   {"header",  1, MH_OPT_BOOL, NULL},
@@ -104,7 +111,7 @@ static int action_print ();
 static int action_list ();
 static int action_push ();
 static int action_pop ();
-
+static int action_pack ();
 static folder_action action = action_print;
 
 int show_all = 0; /* List all folders. Raised by --all switch */
@@ -114,9 +121,12 @@ int create_flag = -1; /* Create non-existent folders (--create).
 		          1: Always create without prompting */
 int fast_mode = 0; /* Fast operation mode. (--fast) */
 int print_header = 0; /* Display the header line (--header) */
-int recurse = 0; /* Recurse sub-folders */
-int print_total; /* Display total stats */
-
+int recurse = 0;   /* Recurse sub-folders */
+int print_total;   /* Display total stats */
+int verbose = 0;   /* Verbosely list actions taken */
+size_t pack_start; /* Number to be assigned to the first message in packed
+		      folder. 0 means do not change first message number. */
+int dry_run;       /* Dry run mode */ 
 char *push_folder; /* Folder name to push on stack */
 
 char *mh_seq_name; /* Name of the mh sequence file (defaults to
@@ -127,6 +137,21 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
+    case ARG_DRY_RUN:
+      dry_run++;
+      break;
+	
+    case ARG_PACK:
+      action = action_pack;
+      if (arg)
+	{
+	  char *p;
+	  pack_start = strtoul (arg, &p, 10);
+	  if (*p)
+	    argp_error (state, _("Invalid number"));
+	}
+      break;
+      
     case ARG_PRINT:
       action = action_print;
       break;
@@ -134,7 +159,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_LIST:
       action = action_list;
       break;
-      
+
     case ARG_PUSH:
       action = action_push;
       if (arg)
@@ -200,13 +225,22 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       mh_license (argp_program_version);
       break;
 
+    case ARG_VERBOSE:
+      verbose++;
+      break;
+      
     default:
       return 1;
     }
   return 0;
 }
 
-struct folder_info {
+
+/* ************************************************************* */
+/* Printing */
+
+struct folder_info
+{
   char *name;              /* Folder name */
   size_t message_count;    /* Number of messages in this folder */
   size_t min;              /* First used sequence number (=uid) */
@@ -223,7 +257,6 @@ size_t folder_info_count;         /* Number of the entries in the array */
 size_t message_count;             /* Total number of messages */
 
 int name_prefix_len;              /* Length of the mu_path_folder_dir */
-
 
 void
 install_folder_info (const char *name, struct folder_info *info)
@@ -418,7 +451,7 @@ print_fast ()
 static int
 action_print ()
 {
-  char *folder_dir = mu_folder_directory ();
+  const char *folder_dir = mu_folder_directory ();
   mh_seq_name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
 
   name_prefix_len = strlen (folder_dir);
@@ -470,6 +503,10 @@ action_print ()
   return 0;
 }
 
+
+/* ************************************************************* */
+/* Listing */
+
 static int
 action_list ()
 {
@@ -481,6 +518,10 @@ action_list ()
   printf ("\n");
   return 0;
 }
+
+
+/* ************************************************************* */
+/* Push & pop */
 
 static char *
 make_stack (char *folder, char *old_stack)
@@ -535,6 +576,281 @@ action_pop ()
   current_folder = p;
   action_list ();
   mh_global_save_state ();
+  return 0;
+}
+
+
+/* ************************************************************* */
+/* Packing */
+
+struct pack_tab
+{
+  size_t orig;
+  size_t new;
+};
+
+static int
+pack_rename (struct pack_tab *tab, int reverse)
+{
+  int rc;
+  char s1[64];
+  char s2[64];
+  char *from, *to;
+  
+  snprintf (s1, sizeof s1, "%lu", (unsigned long) tab->orig);
+  snprintf (s2, sizeof s2, "%lu", (unsigned long) tab->new);
+
+  if (!reverse)
+    {
+      from = s1;
+      to = s2;
+    }
+  else
+    {
+      from = s2;
+      to = s1;
+    }
+
+  if (verbose)
+    fprintf (stderr, _("Renaming %s to %s\n"), from, to);
+
+  if (!dry_run)
+    {
+      if ((rc = rename (from, to)))
+	mh_error (_("cannot rename `%s' to `%s': %s"),
+		  from, to, mu_strerror (errno));
+    }
+  else
+    rc = 0;
+  
+  return rc;
+}
+
+/* Reverse ordering of COUNT entries in array TAB */
+static void
+reverse (struct pack_tab *tab, size_t count)
+{
+  size_t i, j;
+
+  for (i = 0, j = count-1; i < j; i++, j--)
+    {
+      size_t tmp;
+      tmp = tab[i].orig;
+      tab[i].orig = tab[j].orig;
+      tab[j].orig = tmp;
+
+      tmp = tab[i].new;
+      tab[i].new = tab[j].new;
+      tab[j].new = tmp;
+    }
+} 
+
+static void
+roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
+{
+  size_t start;
+  
+  if (i == 0)
+    return;
+  
+  start = i - 1;
+  mh_error (_("Rolling back changes..."));
+  while (--i >= 0)
+    if (pack_rename (pack_tab + i, 1))
+      {
+	mh_error (_("CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
+		    "occurred while trying to roll back the changes.\n"
+		    "Message range %lu-%lu has been renamed to %lu-%lu."),
+		  folder_name,
+		  pack_tab[0].orig, pack_tab[start].orig,
+		  pack_tab[0].new, pack_tab[start].new);
+	mh_error (_("You will have to fix it manually."));
+	exit (1);
+      }
+  mh_error (_("Folder `%s' restored successfully"), folder_name);
+}
+
+struct fixup_data
+{
+  const char *folder_dir;
+  struct pack_tab *pack_tab;
+  size_t count;
+};
+
+static int
+pack_cmp (const void *a, const void *b)
+{
+  const struct pack_tab *pa = a;
+  const struct pack_tab *pb = b;
+
+  if (pa->orig < pb->orig)
+    return -1;
+  else if (pa->orig > pb->orig)
+    return 1;
+  return 0;
+}
+
+static size_t
+pack_xlate (struct pack_tab *pack_tab, size_t count, size_t n)
+{
+  struct pack_tab key, *p;
+
+  key.orig = n;
+  p = bsearch (&key, pack_tab, count, sizeof pack_tab[0], pack_cmp);
+  return p ? p->new : 0;
+}
+
+static int
+_fixup (char *name, char *value, struct fixup_data *fd, int flags)
+{
+  int i, j, argc;
+  char **argv;
+  mh_msgset_t msgset;
+
+  if (verbose)
+    fprintf (stderr, "Sequence `%s'...\n", name);
+  
+  if (mu_argcv_get (value, "", NULL, &argc, &argv))
+    return 0;
+
+  msgset.list = xcalloc (argc, sizeof msgset.list[0]);
+  for (i = j = 0; i < argc; i++)
+    {
+      size_t n = pack_xlate (fd->pack_tab, fd->count,
+			     strtoul (argv[i], NULL, 0));
+      if (n)
+	msgset.list[j++] = n;
+    }
+  msgset.count = j;
+
+  mh_seq_add (name, &msgset, flags | SEQ_ZERO);
+  free (msgset.list);
+
+  if (verbose)
+    {
+      char *p = mh_seq_read (name, flags);
+      fprintf (stderr, "Sequence %s: %s\n", name, p);
+    }
+  
+  return 0;
+}
+
+static int
+fixup_global (char *name, char *value, void *data)
+{
+  return _fixup (name, value, data, 0);
+}
+
+static int
+fixup_private (char *name, char *value, void *data)
+{
+  struct fixup_data *fd = data;
+  int nlen = strlen (name);  
+  if (nlen < 4 || memcmp (name, "atr-", 4))
+    return 0;
+  name += 4;
+
+  nlen = strlen (name) - strlen (fd->folder_dir);
+  if (nlen > 0 && strcmp (name + nlen, fd->folder_dir) == 0)
+    {
+      name[nlen-1] = 0;
+      return _fixup (name, value, fd, SEQ_PRIVATE);
+    }
+  return 0;
+}
+
+int
+action_pack ()
+{
+  const char *folder_dir = mh_expand_name (NULL, current_folder, 0);
+  mu_mailbox_t mbox = mh_open_folder (current_folder, 0);
+  struct pack_tab *pack_tab;
+  size_t i, count, start;
+  int status;
+  struct fixup_data fd;
+  
+  /* Allocate pack table */
+  if (mu_mailbox_messages_count (mbox, &count))
+    {
+      mh_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
+      return 1;
+    }
+  pack_tab = xcalloc (count, sizeof pack_tab[0]); /* Never freed. No use to
+						     try to. */
+
+  /* Populate it with message numbers */
+  if (verbose)
+    fprintf (stderr, _("Getting message numbers.\n"));
+    
+  for (i = 0; i < count; i++)
+    {
+      mu_message_t msg;
+      status = mu_mailbox_get_message (mbox, i + 1, &msg);
+      if (status)
+	{
+	  mh_error (_("%d: cannot get message: %s"), i, mu_strerror (status));
+	  return 1;
+	}
+      mh_message_number (msg, &pack_tab[i].orig);
+    }
+  if (verbose)
+    fprintf (stderr, ngettext ("%lu message number collected.\n",
+			       "%lu message numbers collected.\n",
+			       count),
+	     (unsigned long) count);
+  
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
+
+  /* Compute new message numbers */
+  if (pack_start == 0)
+    pack_start = pack_tab[0].orig;
+
+  for (i = 0, start = pack_start; i < count; i++)
+    pack_tab[i].new = start++;
+
+  if (pack_start > pack_tab[0].orig)
+    {
+      if (verbose)
+	fprintf (stderr, _("Reverting pack table.\n"));
+      reverse (pack_tab, i);
+    }
+  
+  /* Change to the folder directory and rename messages */
+  status = chdir (folder_dir);
+  if (status)
+    {
+      mh_error (_("cannot change to directory `%s': %s"),
+		folder_dir, mu_strerror (status));
+      return 1;
+    }
+
+  for (i = 0; i < count; i++)
+    {
+      if (pack_rename (pack_tab + i, 0))
+	{
+	  roll_back (folder_dir, pack_tab, i);
+	  return 1;
+	}
+    }
+
+  if (verbose)
+    fprintf (stderr, _("Finished packing messages.\n"));
+
+  /* Fix-up sequences */
+  fd.folder_dir = folder_dir;
+  fd.pack_tab = pack_tab;
+  fd.count = count;
+  if (verbose)
+    fprintf (stderr, _("Fixing global sequences\n"));
+  mh_global_sequences_iterate (fixup_global, &fd);
+  if (verbose)
+    fprintf (stderr, _("Fixing private sequences\n"));
+  mh_global_context_iterate (fixup_private, &fd);
+
+  if (!dry_run)
+    mh_global_save_state ();
+  
   return 0;
 }
 
