@@ -346,13 +346,7 @@ list_helper (struct search_data *data,
 		  idata.next  = ilist;
 		  status = list_helper (data, gl.gl_pathv[i], level, &idata);
 		  if (status)
-		    {
-		      if (status == MU_ERR_NOENT
-			  && !mu_list_is_empty (data->result))
-			status = 0;
-		      else
-			break;
-		    }
+		    break;
 		}
 	    }
 	}
@@ -371,7 +365,10 @@ list_helper (struct search_data *data,
 	  break;
 
 	case GLOB_NOMATCH:
-	  status = MU_ERR_NOENT;
+	  if (mu_list_is_empty (data->result))
+	    status = MU_ERR_NOENT;
+	  else
+	    status = 0;
 	  break;
 
 	case GLOB_NOSYS:
