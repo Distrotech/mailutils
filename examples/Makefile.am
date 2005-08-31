@@ -28,6 +28,7 @@ noinst_PROGRAMS = \
  http\
  iconv\
  listop\
+ lsf\
  mailcap\
  mimetest\
  msg-send\
@@ -95,4 +96,14 @@ nntpclient_LDADD = \
  ../mailbox/libmailutils.la\
  ../lib/libmuaux.la\
  @AUTHLIBS@ @READLINE_LIBS@
+
+lsf_LDADD = \
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/nntp/libmu_nntp.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
+  @AUTHLIBS@ \
+ ../mailbox/libmailutils.la
 
