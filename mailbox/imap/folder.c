@@ -797,12 +797,17 @@ folder_imap_delete (mu_folder_t folder, const char *name)
 void
 guess_level (struct mu_list_response *resp, size_t prefix_len)
 {
-  char *p;
   size_t lev = 0;
-  
-  for (p = strchr (resp->name + prefix_len, resp->separator); p;
-       p = strchr (p + 1, resp->separator))
-    lev++;
+
+  if (!resp->separator)
+    lev = 0;
+  else
+    {
+      char *p = resp->name + prefix_len;
+      if (p[0] == resp->separator)
+	for ( ; p; p = strchr (p + 1, resp->separator))
+	  lev++;
+    }
   resp->level = lev;
 }
 
@@ -828,11 +833,15 @@ list_copy (mu_list_t dst, mu_list_t src,
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
        mu_iterator_next (itr))
     {
+      char *name;
       struct mu_list_response *p;
       mu_iterator_current (itr, (void **)&p);
       guess_level (p, prefix_len);
-      if ((max_level == 0 || p->level < max_level)
-	  && (!namecmp || namecmp (pattern, p->name) == 0))
+      name = p->name + prefix_len;
+      if (name[0] == p->separator && pattern[0] != p->separator)
+	name++;
+      if ((max_level == 0 || p->level <= max_level)
+	  && (!namecmp || namecmp (pattern, name) == 0))
 	mu_list_append (dst, p);
       else
 	free (p);
@@ -915,7 +924,7 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
   f_imap_t f_imap = folder->data;
   int status = 0;
   char *path = NULL;
-
+  
   status = mu_folder_open (folder, folder->flags);
   if (status != 0)
     return status;
@@ -2437,7 +2446,7 @@ imap_parse (f_imap_t f_imap)
 	    {
 	      /* Cool we are doing ok.  */
 	    }
-	  else /* NO and BAD */
+	  else if (strcasecmp (response, "NO") == 0)
 	    {
 	      if (strncasecmp (remainder, "LOGIN", 5) == 0)
 		{
@@ -2446,11 +2455,15 @@ imap_parse (f_imap_t f_imap)
 		  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 		  status = MU_ERR_AUTH_FAILURE;
 		}
+	      else if (strncasecmp (remainder, "LIST", 4) == 0)
+		status = MU_ERR_NOENT;
 	      else
-		{
-		  status = EINVAL;
-		  mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
-		}
+		status = MU_ERR_FAILURE;
+	    }
+	  else /* NO and BAD */
+	    {
+	      status = EINVAL;
+	      mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
 	    }
 	}
       f_imap->ptr = f_imap->buffer;
