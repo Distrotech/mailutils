@@ -1,3 +1,11 @@
+2005-08-31  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/lsf.c: New test program. List folders
+	* examples/Makefile.am: Add lsf
+	* mailbox/imap/folder.c (guess_level,list_copy): Fixed
+	(imap_parse): Handle NO case explicitely.
+	* mailbox/mbox/folder.c: Minor fix.
+
 2005-08-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Remove obsolete usage of mu_folder_list (ex. folder_list). It
