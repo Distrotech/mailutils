@@ -29,7 +29,7 @@ imap4d_store (struct imap4d_command *command, char *arg)
   char buffer[64];
 
   rc = imap4d_store0 (arg, 0, buffer, sizeof buffer);
-  return util_finish (command, rc, buffer);
+  return util_finish (command, rc, "%s", buffer);
 }
 
 int

@@ -37,7 +37,7 @@ imap4d_copy (struct imap4d_command *command, char *arg)
 	state = new_state;
       return util_send ("%s %s\r\n", command->tag, buffer);
     }
-  return util_finish (command, rc, buffer);
+  return util_finish (command, rc, "%s", buffer);
 }
 
 int

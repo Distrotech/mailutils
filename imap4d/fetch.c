@@ -128,7 +128,7 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   char buffer[64];
 
   rc = imap4d_fetch0 (arg, 0, buffer, sizeof buffer);
-  return util_finish (command, rc, buffer);
+  return util_finish (command, rc, "%s", buffer);
 }
 
 /* Where the real implementation is.  It is here since UID command also
