@@ -1,3 +1,7 @@
+2005-09-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/page.c (cond_page_invalidate,page_move): Bugfix.
+
 2005-09-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/search.c (imap4d_search): Fix potential vulnerability:
