@@ -25,7 +25,7 @@ size_t *page_map;       /* Array of message numbers. page_map[N] holds
 			   number of the message occupying Nth line on
 			   the screen */
 unsigned page_size;     /* Capacity of page_map */
-unsigned page_avail;     /* First non-used entry in page map. Can be
+unsigned page_avail;    /* First non-used entry in page map. Can be
 			   equal to page_size */
 
 /* Auxiliary function: Store number of message from mspec into page_map */
@@ -86,12 +86,18 @@ cond_page_invalidate (size_t value)
 
   if (page_map == NULL || page_avail == 0)
     return;
-  for (i = 0; i < page_avail; i++)
-    if (page_map[i] >= value && value <= page_map[i+1])
-      {
+  if (page_avail)
+    {
+      if (page_map[page_avail-1] == value)
 	page_invalidate (0);
-	return;
-      }
+      else if (page_avail > 1)
+	for (i = 0; i < page_avail-1; i++)
+	  if (page_map[i] >= value && value <= page_map[i+1])
+	    {
+	      page_invalidate (0);
+	      return;
+	    }
+    }
 }
 
 /* Return a 1-based index of page_map entry occupied by number VALUE.
@@ -209,12 +215,15 @@ page_move (off_t offset)
 	      if (!util_isdeleted (start))
 		{
 		  top_of_page = start;
-		  cursor++;
 		  count++;
+		  cursor++;
 		}
 	    }
+
 	  page_avail = 0;
 	  fill_page_map ();
+	  if (cursor >= page_avail)
+	    cursor = page_avail - 1;
 	}
       else
 	page_avail = count;
