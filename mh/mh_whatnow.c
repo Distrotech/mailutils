@@ -217,13 +217,35 @@ display_file (const char *name)
 }      
 
 static int
+check_exit_status (char *progname, int status)
+{
+  if (WIFEXITED (status))
+    {
+      if (WEXITSTATUS (status))
+	{
+	  mh_error (_("Command `%s' exited with status %d"),
+		    progname, WEXITSTATUS(status));
+	  return 1;
+	}
+      return 0;
+    }
+  else if (WIFSIGNALED (status))
+    mh_error (_("Command `%s' terminated on signal %d"),
+	      progname, WTERMSIG (status));
+  else
+    mh_error (_("Command `%s' terminated abnormally"), progname);
+  return 1;
+}
+
+static int
 invoke (char *compname, char *defval, int argc, char **argv,
-	char *extra0, char *extra1, int *status)
+	char *extra0, char *extra1)
 {
   int i, rc;
   char **xargv;
   char *progname;
-
+  int status;
+  
   progname = mh_global_profile_get (compname, defval);
   if (!progname)
     return -1;
@@ -243,9 +265,63 @@ invoke (char *compname, char *defval, int argc, char **argv,
   if (extra1)
     xargv[i++] = extra1;
   xargv[i++] = NULL;
-  rc = mu_spawnvp (xargv[0], (const char **) xargv, status);
+  rc = mu_spawnvp (xargv[0], (const char **) xargv, &status);
   free (xargv);
-  return rc;
+  return rc ? rc : check_exit_status (progname, status);
+}
+
+struct anno_data
+{
+  char *field;
+  char *value;
+  int date;
+};
+
+static int
+anno (void *item, void *data)
+{
+  struct anno_data *d = item; 
+  mh_annotate (item, d->field, d->value, d->date);
+  return 0;
+}
+
+static void
+annotate (struct mh_whatnow_env *wh)
+{
+  mu_message_t msg;
+  mu_address_t addr = NULL;
+  size_t i, count;
+  
+  if (!wh->anno_field || !wh->anno_list)
+    return;
+  
+  msg = mh_file_to_message (NULL, wh->file);
+  if (!msg)
+    return;
+  
+  mh_expand_aliases (msg, &addr, NULL, NULL);
+  mu_address_get_count (addr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      mu_address_t subaddr;
+
+      if (mu_address_get_nth (addr, i, &subaddr) == 0)
+	{
+	  size_t size;
+	  struct anno_data d;
+
+	  mu_address_to_string (subaddr, NULL, 0, &size);
+	  d.value = xmalloc (size + 1);
+	  d.field = wh->anno_field;
+	  d.date = i == 1;
+	  mu_address_to_string (subaddr, d.value, size + 1, NULL);
+	  mu_list_do (wh->anno_list, anno, &d);
+	  free (d.value);
+	  mu_address_destroy (&subaddr);
+	}
+    }
+  mu_address_destroy (&addr);
+  mu_message_destroy (&msg, NULL);
 }
 
 
@@ -306,10 +382,9 @@ static int
 edit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   char *name;
-  int rc;
   
   asprintf (&name, "%s-next", wh->editor);
-  invoke (name, wh->editor, argc, argv, wh->file, NULL, &rc);
+  invoke (name, wh->editor, argc, argv, wh->file, NULL);
   free (name);
   
   return 0;
@@ -330,8 +405,8 @@ list (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 push (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
-  int rc;
-  invoke ("sendproc", MHBINDIR "/send", argc, argv, "-push", wh->file, &rc);
+  if (invoke ("sendproc", MHBINDIR "/send", argc, argv, "-push", wh->file) == 0)
+    annotate (wh);
   return 0;
 }
 
@@ -359,8 +434,7 @@ quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
-  int rc;
-  invoke ("fileproc", MHBINDIR "/refile", argc, argv, "-file", wh->file, &rc);
+  invoke ("fileproc", MHBINDIR "/refile", argc, argv, "-file", wh->file);
   return 0;
 }
 
@@ -368,8 +442,8 @@ refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
-  int rc;
-  invoke ("sendproc", MHBINDIR "/send", argc, argv, wh->file, NULL, &rc);
+  if (invoke ("sendproc", MHBINDIR "/send", argc, argv, wh->file, NULL) == 0)
+    annotate (wh);
   return 0;
 }
 
