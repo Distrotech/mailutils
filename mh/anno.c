@@ -90,7 +90,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_TEXT:
-      anno_text = arg;
+      mh_quote (arg, &anno_text);
       break;
 
     case ARG_LICENSE:
@@ -148,6 +148,8 @@ main (int argc, char **argv)
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   rc = mh_iterate (mbox, &msgset, anno, NULL);
 
+  mh_msgset_current (mbox, &msgset, 0);
+  mh_global_save_state ();
   mu_mailbox_save_attributes (mbox);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
