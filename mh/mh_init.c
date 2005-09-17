@@ -825,3 +825,73 @@ mh_decode_2047 (char *text, char **decoded_text)
   
   return mu_rfc2047_decode (charset, text, decoded_text);
 }
+
+void
+mh_quote (const char *in, char **out)
+{
+  size_t len = strlen (in);
+  if (len && in[0] == '"' && in[len - 1] == '"')
+    {
+      const char *p;
+      char *q;
+      
+      for (p = in + 1; p < in + len - 1; p++)
+        if (*p == '\\' || *p == '"')
+	  len++;
+
+      *out = xmalloc (len + 1);
+      q = *out;
+      p = in;
+      *q++ = *p++;
+      while (p[1])
+	{
+	  if (*p == '\\' || *p == '"')
+	    *q++ = '\\';
+	  *q++ = *p++;
+	}
+      *q++ = *p++;
+      *q = 0;
+    }
+  else
+    *out = xstrdup (in);
+}
+
+void
+mh_expand_aliases (mu_message_t msg,
+		   mu_address_t *addr_to,
+		   mu_address_t *addr_cc,
+		   mu_address_t *addr_bcc)
+{
+  mu_header_t hdr;
+  size_t i, num;
+  char *buf;
+  
+  mu_message_get_header (msg, &hdr);
+  mu_header_get_field_count (hdr, &num);
+  for (i = 1; i <= num; i++)
+    {
+      if (mu_header_aget_field_name (hdr, i, &buf) == 0)
+	{
+	  if (strcasecmp (buf, MU_HEADER_TO) == 0
+	      || strcasecmp (buf, MU_HEADER_CC) == 0
+	      || strcasecmp (buf, MU_HEADER_BCC) == 0)
+	    {
+	      char *value;
+	      mu_address_t addr = NULL;
+	      int incl;
+	      
+	      mu_header_aget_field_value_unfold (hdr, i, &value);
+	      
+	      mh_alias_expand (value, &addr, &incl);
+	      free (value);
+	      if (strcasecmp (buf, MU_HEADER_TO) == 0)
+		mu_address_union (addr_to, addr);
+	      else if (strcasecmp (buf, MU_HEADER_CC) == 0)
+		mu_address_union (addr_cc ? addr_cc : addr_to, addr);
+	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
+		mu_address_union (addr_bcc ? addr_bcc : addr_to, addr);
+	    }
+	  free (buf);
+	}
+    }
+}
