@@ -31,7 +31,7 @@ static char args_doc[] = "[msgs]";
 /* GNU options */
 static struct argp_option options[] = {
   {"annotate",      ARG_ANNOTATE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Add Replied: header to the message being replied to")},
+   N_("Add Forwarded: header to each forwarded message")},
   {"build",         ARG_BUILD,         0, 0,
    N_("Build the draft and quit immediately")},
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
@@ -107,6 +107,7 @@ struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static char *mhl_filter = NULL; /* --filter flag */
 static int build_only = 0;      /* --build flag */
+static int annotate = 0;        /* --annotate flag */
 static enum encap_type encap = encap_clear; /* controlled by --format, --form
 					       and --mime flags */
 static int use_draft = 0;       /* --use flag */
@@ -120,6 +121,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
+    case ARG_ANNOTATE:
+      annotate = is_true (arg);
+      break;
+      
     case ARG_BUILD:
       build_only = 1;
       break;
@@ -189,7 +194,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	encap = encap_clear;
       break;
       
-    case ARG_ANNOTATE:
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
@@ -237,7 +241,10 @@ format_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   struct format_data *fp = data;
   char *s;
   int rc;
-
+  
+  if (annotate)
+    mu_list_append (wh_env.anno_list, msg);
+  
   if (fp->num)
     {
       asprintf (&s, "\n------- Message %d\n", fp->num++);
@@ -278,8 +285,8 @@ finish_draft ()
     }
   
   if ((rc = mu_file_stream_create (&stream,
-				wh_env.file,
-				MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
+				   wh_env.file,
+				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (stream)))
     {
       mh_error (_("Cannot open output file `%s': %s"),
@@ -289,6 +296,12 @@ finish_draft ()
 
   mu_stream_seek (stream, 0, SEEK_END);
 
+  if (annotate)
+    {
+      wh_env.anno_field = "Forwarded";
+      mu_list_create (&wh_env.anno_list);
+    }
+  
   if (encap == encap_mime)
     {
       mu_url_t url;
@@ -310,6 +323,8 @@ finish_draft ()
 	  size_t num;
 		  
 	  mu_mailbox_get_message (mbox, msgset.list[i], &msg);
+	  if (annotate)
+	    mu_list_append (wh_env.anno_list, msg);
 	  mh_message_number (msg, &num);
 	  snprintf (buf, sizeof buf, " %lu", (unsigned long) num);
           rc = mu_stream_sequential_write (stream, buf, strlen (buf));
@@ -355,7 +370,7 @@ finish_draft ()
 int
 main (int argc, char **argv)
 {
-  int index;
+  int index, rc;
 
   /* Native Language Support */
   mu_init_nls ();
@@ -402,5 +417,10 @@ main (int argc, char **argv)
       return 0;
     }
   
-  return mh_whatnow (&wh_env, initial_edit);
+  rc = mh_whatnow (&wh_env, initial_edit);
+
+  mu_mailbox_save_attributes (mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
+  return rc;
 }

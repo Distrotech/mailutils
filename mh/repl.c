@@ -34,7 +34,7 @@ static char args_doc[] = N_("[+folder] [msg]");
 /* GNU options */
 static struct argp_option options[] = {
   {"annotate", ARG_ANNOTATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Add Replied: header to the message being replied to")},
+   N_("Add Replied: header to the message being replied to")},
   {"build",   ARG_BUILD, 0, 0,
    N_("Build the draft and quit immediately.")},
   {"draftfolder", ARG_DRAFTFOLDER, N_("FOLDER"), 0,
@@ -121,6 +121,7 @@ static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
 static char *mhl_filter = NULL; /* --filter flag */
+static int annotate;       /* --annotate flag */
 
 static int
 decode_cc_flag (const char *opt, const char *arg)
@@ -141,6 +142,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   
   switch (key)
     {
+    case ARG_ANNOTATE:
+      annotate = is_true (arg);
+      break;
+      
     case ARG_BUILD:
       build_only = 1;
       break;
@@ -231,7 +236,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	mhl_filter = NULL;
       break;
       
-    case ARG_ANNOTATE:
     case ARG_FCC:
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
@@ -300,7 +304,13 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 		mu_strerror (rc));
       exit (1);
     }
-
+  if (annotate)
+    {
+      wh->anno_field = "Replied";
+      mu_list_create (&wh->anno_list);
+      mu_list_append (wh->anno_list, msg);
+    }
+  
   if (disp == DISP_REPLACE)
     {
       mu_stream_t str;
@@ -360,7 +370,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 int
 main (int argc, char **argv)
 {
-  int index;
+  int index, rc;
 
   /* Native Language Support */
   mu_init_nls ();
@@ -395,5 +405,10 @@ main (int argc, char **argv)
   if (build_only)
     return 0;
 
-  return mh_whatnow (&wh_env, initial_edit);
+  rc = mh_whatnow (&wh_env, initial_edit);
+  
+  mu_mailbox_save_attributes (mbox);
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
+  return rc;
 }
