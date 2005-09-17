@@ -364,41 +364,13 @@ void
 expand_aliases (mu_message_t msg)
 {
   mu_header_t hdr;
-  size_t i, num;
-  char *buf;
   mu_address_t addr_to = NULL,
-            addr_cc = NULL,
-            addr_bcc = NULL;
-  
-  mu_message_get_header (msg, &hdr);
-  mu_header_get_field_count (hdr, &num);
-  for (i = 1; i <= num; i++)
-    {
-      if (mu_header_aget_field_name (hdr, i, &buf) == 0)
-	{
-	  if (strcasecmp (buf, MU_HEADER_TO) == 0
-	      || strcasecmp (buf, MU_HEADER_CC) == 0
-	      || strcasecmp (buf, MU_HEADER_BCC) == 0)
-	    {
-	      char *value;
-	      mu_address_t addr = NULL;
-	      int incl;
-	      
-	      mu_header_aget_field_value_unfold (hdr, i, &value);
-	      
-	      mh_alias_expand (value, &addr, &incl);
-	      free (value);
-	      if (strcasecmp (buf, MU_HEADER_TO) == 0)
-		mu_address_union (&addr_to, addr);
-	      else if (strcasecmp (buf, MU_HEADER_CC) == 0)
-		mu_address_union (&addr_cc, addr);
-	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
-		mu_address_union (&addr_bcc, addr);
-	    }
-	  free (buf);
-	}
-    }
+               addr_cc = NULL,
+               addr_bcc = NULL;
 
+  mh_expand_aliases (msg, &addr_to, &addr_cc, &addr_bcc);
+
+  mu_message_get_header (msg, &hdr);
   if (addr_to)
     {
       set_address_header (hdr, MU_HEADER_TO, addr_to);
