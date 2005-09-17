@@ -1,3 +1,20 @@
+2005-09-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/send.c (expand_aliases): Use mh_expand_aliases
+
+	* mh/forw.c,mh/repl.c: Implemented --annotate
+
+	* mh/mh_init.c (mh_quote,mh_expand_aliases): New functions
+	* mh/mh.h (mh_quote,mh_expand_aliases): New functions
+	(struct mh_whatnow_env): New fields to support annotation.
+	* mh/mh_whatnow.c: Support message annotation. Improved error
+	reporting after launching external programs.
+	
+	* mh/anno.c (main): Make the first annotated message current. 
+	(opt_handler): Quote --text argument, if necessary.
+
+	* mh/TODO: Updated
+	
 2005-09-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/page.c (cond_page_invalidate,page_move): Bugfix.
