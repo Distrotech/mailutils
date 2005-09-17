@@ -205,14 +205,17 @@ typedef void (*mh_iterator_fp) (mu_mailbox_t mbox, mu_message_t msg,
 
 #define RCPT_DEFAULT RCPT_NONE
 
-struct mh_whatnow_env {   /* An environment for whatnow shell */
+struct mh_whatnow_env     /* whatnow shell environment */
+{  
   char *file;             /* The file being processed */
-  char *msg;              /* The original message (if any) */
+  char *msg;              /* File name of the original message (if any) */
   char *draftfile;        /* File to preserve the draft into */
   char *draftfolder;
   char *draftmessage;
   char *editor;
   char *prompt;
+  char *anno_field;       /* Annotate field to be used */
+  mu_list_t anno_list;    /* List of messages (mu_message_t) to annotate */
 };
 
 #define DISP_QUIT 0
@@ -294,6 +297,10 @@ void mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset);
 
 char *mh_get_dir (void);
 char *mh_expand_name (const char *base, const char *name, int is_folder);
+void mh_quote (const char *in, char **out);
+void mh_expand_aliases (mu_message_t msg, mu_address_t *addr_to,
+			mu_address_t *addr_cc,
+			mu_address_t *addr_bcc);
 
 int mh_is_my_name (char *name);
 char * mh_my_email (void);
