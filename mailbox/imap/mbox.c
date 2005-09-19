@@ -2263,9 +2263,12 @@ delete_to_string (m_imap_t m_imap, char **pset)
 	}
     } /* for () */
 
-  status = add_number (&set, start, cur);
-  if (status != 0)
-    return status;
+  if (start)
+    {
+      status = add_number (&set, start, cur);
+      if (status != 0)
+	return status;
+    }
   *pset = set;
   return 0;
 }
