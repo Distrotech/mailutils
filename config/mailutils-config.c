@@ -32,8 +32,8 @@ static struct argp_option options[] = {
   {"compile", 'c', NULL,   0,
    N_("Print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
-   N_("Print libraries to link with. Possible arguments are: auth, guile, all, "
-      "mbox, mh, maildir, imap, pop"), 0},
+   N_("Print libraries to link with. Possible arguments are: auth, guile, "
+      "mbox, mh, maildir, imap, pop, sieve and all"), 0},
   {"info", 'i', NULL, 0,
    N_("Print a list of configuration options used to build mailutils. If arguments "
    "are given, they are interpreted as a list of configuration options to check "
@@ -91,29 +91,31 @@ static const char *argp_capa[] = {
 };
 
 #ifdef WITH_TLS
-# define TLSAUTH 1
+# define NEEDAUTH 1
 #else
-# define TLSAUTH 0
+# define NEEDAUTH 0
 #endif
+#define NOTALL   2
 
 struct lib_descr {
   char *name;
   char *libname;
-  int needauth;
+  int flags;
 } lib_descr[] = {
   { "mbox",   "mu_mbox", 0 },
   { "mh",     "mu_mh",   0 },
   { "maildir","mu_maildir", 0 },
-  { "imap",   "mu_imap", TLSAUTH },
-  { "pop",    "mu_pop",  TLSAUTH },
+  { "imap",   "mu_imap", NEEDAUTH },
+  { "pop",    "mu_pop",  NEEDAUTH },
   { "nntp",   "mu_nntp", 0 },
+  { "sieve",  "sieve",   NOTALL },
   { NULL }
 };
 
 struct lib_entry {
   int level;
   char *ptr;
-} lib_entry[10];
+} lib_entry[16];
 
 int nentry;
 
@@ -208,9 +210,11 @@ main (int argc, char **argv)
 		  
 		  for (p = lib_descr; p->name; p++)
 		    {
+		      if (p->flags & NOTALL)
+			continue;
 		      asprintf (&ptr, "-l%s", p->libname);
 		      add_entry (0, ptr);
-		      if (p->needauth)
+		      if (p->flags & NEEDAUTH)
 			add_entry (2, "-lmuauth " AUTHLIBS);
 		    }
 		}
@@ -226,7 +230,7 @@ main (int argc, char **argv)
 		    {
 		      asprintf (&ptr, "-l%s", p->libname);
 		      add_entry (0, ptr);
-		      if (p->needauth)
+		      if (p->flags & NEEDAUTH)
 			add_entry (2, "-lmuauth " AUTHLIBS);
 		    }
 		  else
