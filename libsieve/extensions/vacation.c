@@ -45,28 +45,69 @@
    FIXME: This is for future use, when I add :mime tag
 */
 static int
-build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
+build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
+	    mu_message_t msg, const char *text)
 {
   mu_mime_t mime = NULL;
   mu_message_t newmsg;
-  mu_stream_t stream;
-  size_t off = 0;
+  mu_stream_t stream, input, save_input = NULL;
   mu_header_t hdr;
   mu_body_t body;
-  /* FIXME: charset */
-  char *header = "Content-Type: text/plain;charset=iso-8859-1\n"
-    "Content-Transfer-Encoding: 8bit\n\n";
-
+  char buf[512];
+  size_t n;
+  char *header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
+ 	       "Content-Transfer-Encoding: 8bit\n\n";
+  int rc;
+  
   mu_mime_create (&mime, NULL, 0);
-
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
-  mu_header_create (&hdr, header, strlen (header), newmsg);
-  mu_message_set_header (newmsg, hdr, NULL);
   mu_body_get_stream (body, &stream);
 
-  mu_stream_printf (stream, &off, "%s", text);
-  mu_stream_close (stream);
+  if (rc = mu_memory_stream_create (&input, 0, MU_STREAM_RDWR))
+    {
+      mu_sieve_error (mach,
+		      _("cannot create temporary stream: %s"),
+		      mu_strerror (rc));
+      return 1;
+    }
+
+  if (rc = mu_stream_open (input))
+    {
+      mu_sieve_error (mach,
+		      _("cannot open temporary stream: %s"),
+		      mu_strerror (rc));
+      return 1;
+    }
+  
+  mu_stream_write (input, text, strlen (text), 0, &n);
+
+  if (mu_sieve_tag_lookup (tags, "mime", NULL))
+    {
+      mu_stream_t fstr;
+      rc = mu_filter_create (&fstr, input, "base64",
+			     MU_FILTER_ENCODE, MU_STREAM_READ);
+      if (rc == 0) 
+	{
+	  header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
+	           "Content-Transfer-Encoding: base64\n\n";
+	  save_input = input;
+	  input = fstr;
+	}
+    }
+
+  while (rc == 0
+	 && mu_stream_sequential_read (input, buf, sizeof buf, &n) == 0
+	 && n > 0)
+    rc = mu_stream_sequential_write (stream, buf, n);
+
+  mu_stream_destroy (&input, mu_stream_get_owner (input));
+  if (save_input)
+    mu_stream_destroy (&save_input, mu_stream_get_owner (save_input));
+  
+  mu_header_create (&hdr, header, strlen (header), newmsg);
+  mu_message_set_header (newmsg, hdr, NULL);
+
   mu_mime_add_part (mime, newmsg);
   message_unref (newmsg);
 
@@ -161,9 +202,9 @@ regex_comparator (void *item, void *data)
 	       REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE))
     {
       mu_sieve_error (d->mach,
-		   ("%d: cannot compile regular expression \"%s\"\n"),
-		   mu_sieve_get_message_num (d->mach),
-		   item);
+		      _("%d: cannot compile regular expression \"%s\"\n"),
+		      mu_sieve_get_message_num (d->mach),
+		      item);
       return 0;
     }
   rc = regexec (&preg, d->email, 0, NULL, 0) == 0;
@@ -253,7 +294,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
     {
       mu_sieve_error (mach, _("%d: cannot build db file name"),
-		   mu_sieve_get_message_num (mach));
+		      mu_sieve_get_message_num (mach));
       free (home);
       mu_sieve_abort (mach);
     }
@@ -263,9 +304,9 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot open `%s': %s"),
-		   mu_sieve_get_message_num (mach), file,
-		   mu_strerror (rc));
+		      _("%d: cannot open `%s': %s"),
+		      mu_sieve_get_message_num (mach), file,
+		      mu_strerror (rc));
       free (file);
       mu_sieve_abort (mach);
     }
@@ -334,8 +375,8 @@ re_subject (mu_sieve_machine_t mach, mu_list_t tags, char **psubject)
   if (!subject)
     {
       mu_sieve_error (mach,
-		   ("%d: not enough memory"),
-		   mu_sieve_get_message_num (mach));
+		      _("%d: not enough memory"),
+		      mu_sieve_get_message_num (mach));
       return;
     }
   
@@ -372,7 +413,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
     {
       char *p;
       
-      int rc = mu_rfc2047_decode ("iso-8859-1", value, &p);
+      int rc = mu_rfc2047_decode (MU_SIEVE_CHARSET, value, &p);
 
       subject_allocated = 1;
       if (rc)
@@ -393,10 +434,10 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	  if (rc)
 	    {
 	      mu_sieve_error (mach,
-			   ("%d: vacation - cannot compile reply prefix regexp: %s: %s"),
-			   mu_sieve_get_message_num (mach),
-			   mu_strerror (rc),
-			   err ? err : "");
+			      _("%d: vacation - cannot compile reply prefix regexp: %s: %s"),
+			      mu_sieve_get_message_num (mach),
+			      mu_strerror (rc),
+			      err ? err : "");
 	    }
 	}
 	  
@@ -406,8 +447,8 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
       free (value);
     }
 
-  if (mu_rfc2047_encode ("iso-8859-1", "quoted-printable",
-		      subject, &value))
+  if (mu_rfc2047_encode (MU_SIEVE_CHARSET, "quoted-printable",
+			 subject, &value))
     mu_header_set_value (newhdr, MU_HEADER_SUBJECT, subject, 0);
   else
     {
@@ -432,7 +473,8 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   mu_mailer_t mailer;
   int rc;
   
-  build_mime (&mime, msg, text);
+  if (build_mime (mach, tags, &mime, msg, text))
+    return -1;
   mu_mime_get_message (mime, &newmsg);
   mu_message_get_header (newmsg, &newhdr);
 
@@ -440,8 +482,8 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot create recipient address <%s>: %s"),
-		   mu_sieve_get_message_num (mach), from, mu_strerror (rc));
+		      _("%d: cannot create recipient address <%s>: %s"),
+		      mu_sieve_get_message_num (mach), from, mu_strerror (rc));
       return -1;
     }
 
@@ -459,13 +501,17 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
       from_addr = NULL;
     }
   
-  mu_rfc2822_in_reply_to (msg, &value);
-  mu_header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
-  free (value);
+  if (mu_rfc2822_in_reply_to (msg, &value) == 0)
+    {
+      mu_header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
+      free (value);
+    }
   
-  mu_rfc2822_references (msg, &value);
-  mu_header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
-  free (value);
+  if (mu_rfc2822_references (msg, &value) == 0)
+    {
+      mu_header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
+      free (value);
+    }
   
   mailer = mu_sieve_get_mailer (mach);
   rc = mu_mailer_open (mailer, 0);
@@ -475,9 +521,9 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
       mu_mailer_get_url (mailer, &url);
       
       mu_sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s"),
-		   mu_sieve_get_message_num (mach),
-		   mu_url_to_string (url), mu_strerror (rc));
+		      _("%d: cannot open mailer %s: %s"),
+		      mu_sieve_get_message_num (mach),
+		      mu_url_to_string (url), mu_strerror (rc));
       return -1;
     }
 
@@ -519,8 +565,8 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   else if (mu_sieve_get_message_sender (msg, &from))
     {
       mu_sieve_error (mach,
-		   _("%d: cannot get sender address"),
-		   mu_sieve_get_message_num (mach));
+		      _("%d: cannot get sender address"),
+		      mu_sieve_get_message_num (mach));
       mu_sieve_abort (mach);
     }
 
@@ -551,6 +597,7 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"addresses", SVT_STRING_LIST},
   {"reply_regex", SVT_STRING},
   {"reply_prefix", SVT_STRING},
+  {"mime", SVT_VOID},
   {NULL}
 };
 
