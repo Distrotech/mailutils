@@ -519,6 +519,15 @@ static struct _mu_filter_record _base64_filter =
   NULL
 };
 
+static struct _mu_filter_record _B_filter =
+{
+  "B",
+  base64_init,
+  NULL,
+  NULL,
+  NULL
+};
+
 
 
 /* RFC 2047 "Q" Encoding */
@@ -611,7 +620,7 @@ Q_printable_char_p (unsigned c)
     case '\t':
       return 0;
     default:
-      return 1;
+      return c > 32 && c < 127;
     }
 }
 
@@ -744,7 +753,7 @@ mu_filter_record_t mu_binary_filter = &_binary_filter;
 mu_filter_record_t mu_bit8_filter = &_bit8_filter;
 mu_filter_record_t mu_bit7_filter = &_bit7_filter;
 mu_filter_record_t mu_rfc_2047_Q_filter = &_Q_filter;
-
+mu_filter_record_t mu_rfc_2047_B_filter = &_B_filter;
 
 
 
