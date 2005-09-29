@@ -1,3 +1,23 @@
+2005-09-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/decode2047.c: Allow to specify charset from the command
+	line.
+	* examples/encode2047.c: Allow to specify charset and encoding
+	from the command line.
+	* include/mailutils/filter.h (mu_rfc_2047_B_filter): New filter.
+	* include/mailutils/libsieve.h (MU_SIEVE_CHARSET): New define
+	* libsieve/extensions/vacation.c: Implemented :mime. Correctly
+	handle subject line, no matter what the charset is.
+	Fixed bug in creating `References:' header.
+	* mailbox/filter.c (mu_filter_get_list): Add mu_rfc_2047_B_filter
+	* mailbox/filter_trans.c (mu_rfc_2047_B_filter): New filter. Alias
+	to base64.
+	
+	* include/mailutils/iterator.h: Minor stylistic changes
+	* mailbox/iterator.c: Likewise
+	* mailbox/wicket.c: Likewise
+	* mh/mhn.c: Likewise
+	
 2005-09-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Minor wording change.
