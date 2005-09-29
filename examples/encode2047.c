@@ -26,7 +26,26 @@
 int
 main (int argc, char *argv[])
 {
+  int c;
   char buf[256];
+  char *charset = "iso-8859-1";
+  char *encoding = "quoted-printable";
+  
+  while ((c = getopt (argc, argv, "c:e:h")) != EOF)
+    switch (c)
+      {
+      case 'c':
+	charset = optarg;
+	break;
+      case 'e':
+	encoding = optarg;
+	break;
+      case 'h':
+	printf ("usage: %s [-c charset] [-e encoding]\n", argv[0]);
+	exit (0);
+      default:
+	exit (1);
+      }
 
   while (fgets (buf, sizeof (buf), stdin))
     {
@@ -36,7 +55,7 @@ main (int argc, char *argv[])
       len = strlen (buf);
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
-      rc = mu_rfc2047_encode ("iso-8859-1", "quoted-printable", buf, &p);
+      rc = mu_rfc2047_encode (charset, encoding, buf, &p);
       printf ("%s=> %s\n", buf, mu_strerror (rc));
       if (p)
 	    printf ("%s\n", p);
