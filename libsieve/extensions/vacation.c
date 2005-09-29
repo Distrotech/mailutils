@@ -526,9 +526,12 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 		      mu_url_to_string (url), mu_strerror (rc));
       return -1;
     }
-
-  rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
-  mu_mailer_close (mailer);
+  else
+    {
+      rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
+      mu_mailer_close (mailer);
+    }
+  mu_mime_destroy (&mime);
   return rc;
 }
 
