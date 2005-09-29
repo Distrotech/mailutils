@@ -43,10 +43,14 @@ main (int argc, char *argv[])
 {
   char buf[256];
   int c, printable = 0;
-
-  while ((c = getopt (argc, argv, "p")) != EOF)
+  char *charset = "iso-8859-1";
+  
+  while ((c = getopt (argc, argv, "c:p")) != EOF)
     switch (c)
       {
+      case 'c':
+	charset = optarg;
+	break;
       case 'p':
 	printable = 1;
 	break;
@@ -63,7 +67,7 @@ main (int argc, char *argv[])
       len = strlen (buf);
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
-      rc = mu_rfc2047_decode ("iso-8859-1", buf, &p);
+      rc = mu_rfc2047_decode (charset, buf, &p);
       printf ("%s=> %s\n", buf, mu_strerror (rc));
       if (p)
 	print (p, printable);
