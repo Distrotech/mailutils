@@ -116,8 +116,8 @@ mu_wicket_set_filename (mu_wicket_t wicket, const char *filename)
 }
 
 int
-mu_wicket_set_ticket (mu_wicket_t wicket, int get_ticket
-		   (mu_wicket_t, const char *, const char *, mu_ticket_t *))
+mu_wicket_set_ticket (mu_wicket_t wicket, int (*get_ticket)
+		      (mu_wicket_t, const char *, const char *, mu_ticket_t *))
 {
   if (wicket == NULL)
     return EINVAL;

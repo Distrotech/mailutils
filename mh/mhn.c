@@ -1109,7 +1109,7 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 	  _get_content_encoding (hdr, &encoding);
 
 	  rc = mu_filter_create(&dstr, bstr, encoding,
-			     MU_FILTER_DECODE, MU_STREAM_READ);
+				MU_FILTER_DECODE, MU_STREAM_READ);
 	  free (encoding);
 	  if (rc == 0)
 	    {
@@ -2025,7 +2025,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       mu_message_get_body (*msg, &body);
       mu_body_get_stream (body, &input);
       rc = mu_filter_create (&fstr, input, "quoted-printable",
-			  MU_FILTER_ENCODE, MU_STREAM_READ);
+			     MU_FILTER_ENCODE, MU_STREAM_READ);
       if (rc == 0)
 	{
 	  cat_message (output, fstr);

@@ -90,7 +90,7 @@ mu_iterator_set_curitem_p (mu_iterator_t itr,
 }
 
 int
-mu_iterator_set_destroy (mu_iterator_t itr, int (destroy) (mu_iterator_t, void *))
+mu_iterator_set_destroy (mu_iterator_t itr, int (*destroy) (mu_iterator_t, void *))
 {
   if (!itr)
     return EINVAL;
@@ -99,7 +99,7 @@ mu_iterator_set_destroy (mu_iterator_t itr, int (destroy) (mu_iterator_t, void *
 }
 
 int
-mu_iterator_set_dup (mu_iterator_t itr, int (dup) (void **ptr, void *data))
+mu_iterator_set_dup (mu_iterator_t itr, int (*dup) (void **ptr, void *data))
 {
   if (!itr)
     return EINVAL;

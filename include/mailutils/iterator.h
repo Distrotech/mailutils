@@ -44,9 +44,9 @@ extern int mu_iterator_set_getitem (mu_iterator_t,
 extern int mu_iterator_set_finished_p (mu_iterator_t,
 				    int (*finished_p) (void *));  
 extern int mu_iterator_set_dup (mu_iterator_t itr,
-			     int (dup) (void **ptr, void *data));
+			     int (*dup) (void **ptr, void *data));
 extern int mu_iterator_set_destroy (mu_iterator_t itr,
-				 int (destroy) (mu_iterator_t, void *data));
+				 int (*destroy) (mu_iterator_t, void *data));
 extern int mu_iterator_set_curitem_p (mu_iterator_t itr,
 				   int (*curitem_p) (void *, void *));
   
