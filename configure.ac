@@ -460,13 +460,38 @@ fi
 ## FriBidi support
 
 AC_SUBST(FRIBIDI_LIBS)
+
+use_fribidi=yes
+
+AC_ARG_WITH([fribidi],
+            AC_HELP_STRING([--without-fribidi],
+                           [do not compile FriBidi support]),
+            [use_fribidi=$withval])
+
 AH_TEMPLATE(HAVE_LIBFRIBIDI,
             [Define to 1 if you have the `fribidi' library (-lfribidi).])
-AC_CHECK_HEADERS(fribidi/fribidi.h)
-if test $ac_cv_header_fribidi_fribidi_h = yes; then
-	AC_CHECK_LIB(fribidi, fribidi_log2vis,
-                     [AC_DEFINE(HAVE_LIBFRIBIDI,1)
-                      FRIBIDI_LIBS=-lfribidi])
+AH_TEMPLATE(HAVE_FRIBIDI_CHARSET_CAP_RTL,
+            [Define to 1 if fribidi headers declare FRIBIDI_CHARSET_CAP_RTL type])
+AH_BOTTOM([
+#ifdef HAVE_FRIBIDI_CHARSET_CAP_RTL
+# define FRIBIDI_CHARSET_CAP_RTL FRIBIDI_CHAR_SET_CAP_RTL
+#endif])
+
+if test "$use_fribidi" = "yes"; then
+  AC_CHECK_HEADERS(fribidi/fribidi.h)
+  if test $ac_cv_header_fribidi_fribidi_h = yes; then
+    AC_CHECK_LIB(fribidi, fribidi_log2vis,
+                 [AC_DEFINE(HAVE_LIBFRIBIDI,1)
+                  FRIBIDI_LIBS=-lfribidi],
+                 [use_fribidi=no])
+
+    AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <fribidi/fribidi.h>],
+                                  [FriBidiCharSet s = FRIBIDI_CHARSET_CAP_RTL;]),
+                  [AC_DEFINE(HAVE_FRIBIDI_CHARSET_CAP_RTL)])
+                 
+  else
+    use_fribidi=no
+  fi
 fi
 
 
