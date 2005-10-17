@@ -59,6 +59,10 @@ specific configuration options:
 
 	Do not build thread-safe libraries.
 
+    --without-fribidi
+
+        Do not include fribidi support, even if libfribidi is present.
+		
     --with-sql=MODLIST
 
         Enable support for authentication using given SQL modules. MODLIST

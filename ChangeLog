@@ -1,3 +1,10 @@
+2005-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: New option --without-fribidi allows to disable
+	fribidi support.
+	Check for FRIBIDI_CHARSET_CAP_RTL vs. FRIBIDI_CHAR_SET_CAP_RTL.
+	* README: Updated
+	
 2005-09-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/decode2047.c: Allow to specify charset from the command
