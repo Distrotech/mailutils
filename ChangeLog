@@ -1,3 +1,7 @@
+2005-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/argcv.c: Include config.h
+
 2005-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: New option --without-fribidi allows to disable
