@@ -49,7 +49,7 @@ util_do_command (const char *c, ...)
   int argc = 0;
   char **argv = NULL;
   int status = 0;
-  struct mail_command_entry *entry = NULL;
+  const struct mail_command_entry *entry = NULL;
   char *cmd = NULL;
   va_list ap;
   static const char *delim = "=";
