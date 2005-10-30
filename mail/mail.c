@@ -49,6 +49,8 @@ static struct argp_option options[] = {
   {"user",    'u', N_("USER"), 0, N_("Operate on USER's mailbox"), 0},
   {"append",  'a', N_("HEADER: VALUE"), 0,
    N_("Append given header to the message being sent"), 0},
+  {"exec",    'E', N_("COMMAND"), 0,
+   N_("Execute COMMAND"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -129,6 +131,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'u':
       args->user = arg;
       break;
+
+    case 'E':
+      util_cache_command (&command_list, arg);
+      break;
       
     case 'F':
       util_cache_command (&command_list, "set byname");
@@ -195,6 +201,7 @@ mail_cmdline(void *closure, int cont ARG_UNUSED)
           && !mu_mailbox_is_updated (mbox))
 	{
 	  mu_mailbox_messages_count (mbox, &total);
+	  page_invalidate (0);
 	  fprintf (ofile, _("New mail has arrived.\n"));
 	}
 
@@ -281,7 +288,6 @@ int
 main (int argc, char **argv)
 {
   char *mode = NULL, *prompt = NULL;
-  size_t modelen = 0;
   struct arguments args;
   int i, rc;
   
@@ -360,7 +366,7 @@ main (int argc, char **argv)
   util_do_command ("source %s", getenv ("MAILRC"));
 
   util_run_cached_commands (&command_list);
-  
+
   if (!interactive)
     {
       util_do_command ("set nocrt");
@@ -372,7 +378,6 @@ main (int argc, char **argv)
   /* how should we be running? */
   if (util_getenv (&mode, "mode", Mail_env_string, 1))
     exit (EXIT_FAILURE);
-  modelen = strlen (mode);
 
   /* Interactive mode */
 
@@ -380,7 +385,7 @@ main (int argc, char **argv)
   mail_set_my_name(args.user);
 
   /* Mode is just sending */
-  if (strlen ("send") == modelen && !strcmp ("send", mode))
+  if (strcmp (mode, "send") == 0)
     {
       /* FIXME: set cmd to "mail [add1...]" */
       char *buf = NULL;
@@ -394,7 +399,7 @@ main (int argc, char **argv)
       return util_getenv (NULL, "mailx", Mail_env_boolean, 0) ? rc : 0;
     }
   /* Or acting as a normal reader */
-  else
+  else 
     {
       /* open the mailbox */
       if (args.file == NULL)
@@ -454,14 +459,18 @@ main (int argc, char **argv)
 	      exit (EXIT_FAILURE);
 	    }
 
-	  if (strlen ("exist") == modelen && !strcmp ("exist", mode))
+	  if (strcmp (mode, "exist") == 0)
 	    return (total < 1) ? 1 : 0;
-	  else if (strlen ("print") == modelen
-		   && !strcmp ("print", mode))
+	  else if (strcmp (mode, "print") == 0)
 	    return util_do_command ("print *");
-	  else if (strlen ("headers") == modelen
-		   && !strcmp ("headers", mode))
+	  else if (strcmp (mode, "headers") == 0)
 	    return util_do_command ("from *");
+	  else if (strcmp (mode, "read"))
+	    {
+	      util_error(_("Unknown mode `%s'"), mode);
+	      util_do_command ("quit");
+	      return 1;
+	    }
 	}
       
       if (total == 0
