@@ -30,10 +30,10 @@ struct _mu_record
 {
   int priority;    /* Higher priority records are scanned first */
   const char *scheme;
-  int (*_mu_url) (mu_url_t);
-  int (*_mu_mailbox) (mu_mailbox_t);
-  int (*_mu_mailer) (mu_mailer_t);
-  int (*_mu_folder) (mu_folder_t);
+  int (*_url) (mu_url_t);
+  int (*_mailbox) (mu_mailbox_t);
+  int (*_mailer) (mu_mailer_t);
+  int (*_folder) (mu_folder_t);
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The default is to return the fields.  */
