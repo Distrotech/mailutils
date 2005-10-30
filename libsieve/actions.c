@@ -168,7 +168,7 @@ build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
     mu_stream_printf (stream, &off, "%s", text);
     mu_stream_close (stream);
     mu_mime_add_part (mime, newmsg);
-    message_unref (newmsg);
+    mu_message_unref (newmsg);
   }
   
   /*  message/delivery-status */
@@ -197,7 +197,7 @@ build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
     mu_stream_printf (stream, &off, "Last-Attempt-Date: %s\n", datestr);
     mu_stream_close (stream);
     mu_mime_add_part(mime, newmsg);
-    message_unref (newmsg);
+    mu_message_unref (newmsg);
   }
   
   /* Quote original message */
@@ -228,7 +228,7 @@ build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
       }
     mu_stream_close (ostream);
     mu_mime_add_part (mime, newmsg);
-    message_unref (newmsg);
+    mu_message_unref (newmsg);
   }
 
   *pmime = mime;

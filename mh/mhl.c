@@ -212,7 +212,7 @@ list_message (char *name, mu_stream_t output)
   else
     {
       mhl_format_run (format, width, length, mhl_fmt_flags, msg, output);
-      message_unref (msg);
+      mu_message_unref (msg);
     }
 }
 

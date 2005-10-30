@@ -42,7 +42,7 @@ static mu_list_t known_folder_list;
 static int is_known_folder (mu_url_t, mu_folder_t *);
 
 /* Static folder lock.  */
-static struct mu__monitor folder_lock = MU_MONITOR_INITIALIZER;
+static struct mu_monitor folder_lock = MU_MONITOR_INITIALIZER;
 
 /* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
    etc ..  We maintain a known list of folder to not generate multiple folder
@@ -431,4 +431,90 @@ is_known_folder (mu_url_t url, mu_folder_t *pfolder)
     *pfolder = folder;
   mu_iterator_destroy (&iterator);
   return ret;
+}
+
+/* Deprecated functions */
+static int
+list_to_0_6_folder_list (mu_list_t flist, struct mu_0_6_folder_list *pflist)
+{
+  int status = 0;
+  size_t count;
+  
+  mu_list_count (flist, &count);
+  pflist->num = count;
+  if (count == 0)
+    pflist->element = NULL;
+  else
+    {
+      pflist->element = calloc (count, sizeof (pflist->element[0]));
+      if (!pflist->element)
+	status = ENOMEM;
+      else
+	{
+	  size_t i;
+	  mu_iterator_t itr;
+	  
+	  mu_list_set_destroy_item (flist, NULL);
+	  mu_list_get_iterator (flist, &itr);
+	  for (mu_iterator_first (itr), i = 0;
+	       !mu_iterator_is_done (itr); mu_iterator_next(itr), i++)
+	    mu_iterator_current (itr, (void**) &pflist->element[i]);
+	  mu_iterator_destroy (&itr);
+	}
+    }
+  return status;
+}
+
+int
+mu_0_6_folder_list (mu_folder_t folder,
+		    const char *dirname, const char *basename,
+		    struct mu_0_6_folder_list *pflist)
+{
+  mu_list_t flist;
+  int status = 0;
+  
+  status = mu_folder_list (folder, dirname, basename, 0, &flist);
+  if (status)
+    return status;
+  status = list_to_0_6_folder_list (flist, pflist);
+  mu_list_destroy (&flist);
+  return status;
+}
+
+int
+mu_0_6_folder_lsub (mu_folder_t folder,
+		    const char *dirname, const char *basename,
+		    struct mu_0_6_folder_list *pflist)
+{
+  mu_list_t flist;
+  int status = 0;
+
+  status = mu_folder_lsub (folder, dirname, basename, &flist);
+  if (status)
+    return status;
+  status = list_to_0_6_folder_list (flist, pflist);
+  mu_list_destroy (&flist);
+  return status;
+}
+
+int
+mu_0_6_folder_list_destroy (struct mu_0_6_folder_list *pflist)
+{
+  size_t i;
+  if (pflist == NULL)
+    return 0;
+  for (i = 0 ; i < pflist->num; i++)
+    {
+      if (pflist->element[i])
+	{
+	  if (pflist->element[i]->name)
+	    free (pflist->element[i]->name);
+	  free (pflist->element[i]);
+	}
+    }
+  if (i > 0)
+    free (pflist->element);
+  pflist->element = NULL;
+  pflist->num = 0;
+  return 0;
 }

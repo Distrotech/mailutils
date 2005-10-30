@@ -129,7 +129,7 @@ filter_close (mu_stream_t stream)
 /* NOTE: We will leak here since the monitor of the filter will never
    be release.  That's ok we can leave with this, it's only done once.  */
 static mu_list_t filter_list;
-struct mu__monitor filter_monitor = MU_MONITOR_INITIALIZER;
+struct mu_monitor filter_monitor = MU_MONITOR_INITIALIZER;
 
 int
 mu_filter_get_list (mu_list_t *plist)

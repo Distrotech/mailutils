@@ -495,7 +495,7 @@ _mime_set_content_type (mu_mime_t mime)
     {
       if (mime->flags & MIME_ADDED_MULTIPART_CT)
 	return 0;
-      if (mime->flags & MIME_MULTIPART_MIXED)
+      if (mime->flags & MU_MIME_MULTIPART_MIXED)
 	strcpy (content_type, "multipart/mixed; boundary=");
       else
 	strcpy (content_type, "multipart/alternative; boundary=");
@@ -786,7 +786,7 @@ mu_mime_create (mu_mime_t * pmime, mu_message_t msg, int flags)
     }
   else
     {
-      mime->flags |= MIME_NEW_MESSAGE | MIME_MULTIPART_MIXED;
+      mime->flags |= MIME_NEW_MESSAGE | MU_MIME_MULTIPART_MIXED;
     }
   if (ret != 0)
     {
@@ -818,7 +818,7 @@ mu_mime_destroy (mu_mime_t * pmime)
 	    {
 	      mime_part = mime->mtp_parts[i];
 	      if (mime_part->msg && mime->flags & MIME_NEW_MESSAGE)
-		message_unref (mime_part->msg);
+		mu_message_unref (mime_part->msg);
 	      else
 		mu_message_destroy (&mime_part->msg, mime_part);
 	      free (mime_part);

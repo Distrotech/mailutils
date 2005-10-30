@@ -109,7 +109,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
   mu_message_set_header (newmsg, hdr, NULL);
 
   mu_mime_add_part (mime, newmsg);
-  message_unref (newmsg);
+  mu_message_unref (newmsg);
 
   *pmime = mime;
 

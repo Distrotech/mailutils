@@ -1998,7 +1998,7 @@ finish_msg (struct compose_env *env, mu_message_t *msg)
       free (p);
     }
   mu_mime_add_part (env->mime, *msg);
-  message_unref (*msg);
+  mu_message_unref (*msg);
   *msg = NULL;
 }
 
@@ -2029,7 +2029,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       if (rc == 0)
 	{
 	  cat_message (output, fstr);
-	  message_unref (*msg);
+	  mu_message_unref (*msg);
 	  *msg = newmsg;
 	}
       else
@@ -2177,7 +2177,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 
   if (*pmsg)
     {
-      message_unref (*pmsg);
+      mu_message_unref (*pmsg);
       *pmsg = NULL;
     }
   
@@ -2435,7 +2435,7 @@ mhn_edit (struct compose_env *env, int level)
 		    {
 		      mu_mime_get_message (new_env.mime, &new_msg);
 		      mu_mime_add_part (env->mime, new_msg);
-		      message_unref (new_msg);
+		      mu_message_unref (new_msg);
 		    }
 		}
 	      else if (strcmp (tok, "#end") == 0)
@@ -2472,7 +2472,7 @@ mhn_edit (struct compose_env *env, int level)
       if (line_count)
 	finish_text_msg (env, &msg, ascii_buf);
       else
-	message_unref (msg);
+	mu_message_unref (msg);
     }
   
   return status;

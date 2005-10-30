@@ -224,7 +224,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 */
 int
 mu_rfc2047_encode (const char *charset, const char *encoding,
-		const char *text, char **result)
+		   const char *text, char **result)
 {
   mu_stream_t input_stream;
   mu_stream_t output_stream;

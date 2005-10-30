@@ -39,7 +39,7 @@
 /* NOTE: We will leak here since the monitor and the registrar will never
    be released. That's ok we can live with this, it's only done once.  */
 static mu_list_t registrar_list;
-struct mu__monitor registrar_monitor = MU_MONITOR_INITIALIZER;
+struct mu_monitor registrar_monitor = MU_MONITOR_INITIALIZER;
 
 static int
 _registrar_get_list (mu_list_t *plist)
@@ -192,7 +192,7 @@ mu_record_get_url (mu_record_t record, int (*(*_purl)) (mu_url_t))
   /* Overload.  */
   if (record->_get_url)
     return record->_get_url (record, _purl);
-  *_purl = record->_mu_url;
+  *_purl = record->_url;
   return 0;
 }
 
@@ -201,7 +201,7 @@ mu_record_set_url (mu_record_t record, int (*_mu_url) (mu_url_t))
 {
   if (record == NULL)
     return EINVAL;
-  record->_mu_url = _mu_url;
+  record->_url = _mu_url;
   return 0;
 }
 
@@ -225,7 +225,7 @@ mu_record_get_mailbox (mu_record_t record, int (*(*_pmailbox)) (mu_mailbox_t))
   /* Overload.  */
   if (record->_get_mailbox)
     return record->_get_mailbox (record, _pmailbox);
-  *_pmailbox = record->_mu_mailbox;
+  *_pmailbox = record->_mailbox;
   return 0;
 }
 
@@ -234,7 +234,7 @@ mu_record_set_mailbox (mu_record_t record, int (*_mu_mailbox) (mu_mailbox_t))
 {
   if (record)
     return EINVAL;
-  record->_mu_mailbox = _mu_mailbox;
+  record->_mailbox = _mu_mailbox;
   return 0;
 }
 
@@ -258,7 +258,7 @@ mu_record_get_mailer (mu_record_t record, int (*(*_pmailer)) (mu_mailer_t))
   /* Overload.  */
   if (record->_get_mailer)
     return record->_get_mailer (record, _pmailer);
-  *_pmailer = record->_mu_mailer;
+  *_pmailer = record->_mailer;
   return 0;
 }
 
@@ -267,7 +267,7 @@ mu_record_set_mailer (mu_record_t record, int (*_mu_mailer) (mu_mailer_t))
 {
   if (record)
     return EINVAL;
-  record->_mu_mailer = _mu_mailer;
+  record->_mailer = _mu_mailer;
   return 0;
 }
 
@@ -291,7 +291,7 @@ mu_record_get_folder (mu_record_t record, int (*(*_pfolder)) (mu_folder_t))
   /* Overload.  */
   if (record->_get_folder)
     return record->_get_folder (record, _pfolder);
-  *_pfolder = record->_mu_folder;
+  *_pfolder = record->_folder;
   return 0;
 }
 
@@ -300,7 +300,7 @@ mu_record_set_folder (mu_record_t record, int (*_mu_folder) (mu_folder_t))
 {
   if (record == NULL)
     return EINVAL;
-  record->_mu_folder = _mu_folder;
+  record->_folder = _mu_folder;
   return 0;
 }
 
