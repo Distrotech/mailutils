@@ -24,8 +24,8 @@
 #define __s_cat3__(a,b,c) a ## b ## c
 #define RDL_EXPORT(module,name) __s_cat3__(module,_LTX_,name)
 
-typedef int (*rdl_init_t) (void);
-typedef void (*rdl_done_t) (void);
+typedef int (*mu_rdl_init_t) (void);
+typedef void (*mu_rdl_done_t) (void);
 
 #ifdef _HAVE_LIBLTDL //FIXME: Remove leading _ when SQL + ltdl works
 # define MU_DECL_SQL_DISPATCH_T(mod) \
