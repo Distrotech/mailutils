@@ -54,4 +54,8 @@
 #include <mailutils/types.h>
 #include <mailutils/url.h>
 
+#ifdef MU_COMPAT
+# include <mailutils/compat.h>
+#endif
+
 /* EOF */
