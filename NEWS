@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-08-29
+GNU mailutils NEWS -- history of user-visible changes.  2005-10-30
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -12,6 +12,12 @@ NOTE: This is incompatible change.
 * Main library is renamed to libmailutils
 NOTE: This is incompatible change, unless you use mailutils-config to
 obtain loader options (which is recommended, anyway).
+
+* mail: New option --exec (-E) allows to execute arbitrary mail commands
+before opening the mailbox. Any number of --exec options can be given.
+
+* Bugfixes:
+** mail: Fix handling of conditional expressions
 
 
 Version 0.6.91:

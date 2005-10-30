@@ -622,6 +622,13 @@ The program uses following option groups: @xref{mailbox}.
 Return true if the mailbox contains some messages. Return false
 otherwise.
 This is useful for writing shell scripts.
+@item -E @var{command}
+@itemx --exec=@var{command}
+Execute @var{command} before opening the mailbox. Any number of
+@option{--exec} options can be given. The commands will be executed
+after sourcing configuration files (@pxref{Mail Configuration Files}),
+but before opening the mailbox. 
+@item --exec
 @item -f[@var{file}]
 @itemx --file[=@var{file}]
 Operate on mailbox @var{file}. If this option is not specified, the default

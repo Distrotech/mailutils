@@ -1,3 +1,21 @@
+2005-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/if.c (mail_if): Fix 'r' condition
+	(mail_else): Fix handling of nested ifs
+	* mail/mail.c: New option --exec (-E)
+	(mail_cmdline): Invalidate the page when a new mail arrives
+	(main): Fix handling of modes.
+	* mail/quit.c (mail_mbox_close): mbox can be NULL (e.g.
+	--exec=quit was given)
+	* mail/util.c (util_do_command): Accept traditional contracted
+	forms (`d*', `p9')
+	Fix bug in handling conditional branches (bug introduced on
+	2005-08-11).
+	* mail/testsuite/if.mail: New test script.
+	* mail/testsuite/Makefile.am (EXTRA_DIST): Add if.mail
+	* mail/testsuite/mail/if.exp: New test case.
+	* mail/testsuite/mail/DISTFILES: Add if.exp
+
 2005-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/argcv.c: Include config.h
@@ -20,6 +38,7 @@
 	* libsieve/extensions/vacation.c: Implemented :mime. Correctly
 	handle subject line, no matter what the charset is.
 	Fixed bug in creating `References:' header.
+
 	* mailbox/filter.c (mu_filter_get_list): Add mu_rfc_2047_B_filter
 	* mailbox/filter_trans.c (mu_rfc_2047_B_filter): New filter. Alias
 	to base64.
