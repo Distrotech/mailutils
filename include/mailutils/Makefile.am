@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
  attribute.h \
  auth.h \
  body.h \
+ compat.h \
  daemon.h \
  debug.h \
  envelope.h \
