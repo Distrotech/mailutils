@@ -37,6 +37,9 @@ mail_mbox_close ()
   mu_url_t url = NULL;
   size_t held_count;
 
+  if (!mbox)
+    return 0;
+
   if (util_getenv (NULL, "readonly", Mail_env_boolean, 0))
     {
       if (mail_mbox_commit ())
