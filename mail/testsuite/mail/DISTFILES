@@ -1,6 +1,7 @@
-alias.exp  
-read.exp
+alias.exp
 folder.exp
+if.exp
+read.exp
 send.exp
 tag.exp
 write.exp
