@@ -36,6 +36,8 @@
 
 mu_list_t environment = NULL;
 
+#define is_ascii_alpha(c) (isascii(c) && isalpha(c))
+
 /*
  * expands command into its command and arguments, then runs command
  * cmd is the command to parse and run
@@ -47,8 +49,7 @@ util_do_command (const char *c, ...)
   int argc = 0;
   char **argv = NULL;
   int status = 0;
-  function_t *command = NULL;
-  int exec = 1;
+  struct mail_command_entry *entry = NULL;
   char *cmd = NULL;
   va_list ap;
   static const char *delim = "=";
@@ -83,7 +84,6 @@ util_do_command (const char *c, ...)
 
       if (mu_argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
 	{
-	  struct mail_command_entry *entry;
 	  char *p;
 
 	  /* Special case: a number alone implies "print" */
@@ -95,19 +95,44 @@ util_do_command (const char *c, ...)
 	      free (p);
 	    }
 
-	  command = util_command_get (argv[0]);
-	  /* Make sure we are not in any if/else */
-	  exec = !(if_cond () == 0 && (entry->flags & EF_FLOW) == 0);
+	  entry = mail_find_command (argv[0]);
 	}
       free (cmd);
     }
   else
-    command = util_command_get ("quit");
+    entry = mail_find_command ("quit");
 
-  if (command != NULL)
+  if (!entry)
     {
-      if (exec)
-	status = command (argc, argv);
+      /* argv[0] might be a traditional /bin/mail contracted form, e.g.
+	 `d*' or `p4'. */
+	 
+      char *p;
+      
+      for (p = argv[0] + strlen (argv[0]) - 1;
+	   p > argv[0] && !is_ascii_alpha (*p);
+	   p--)
+	;
+
+      p++;
+      
+      if (strlen (p))
+	{
+	  argc++;
+	  argv = xrealloc (argv, (argc + 1)*sizeof argv[0]);
+	  memmove (argv + 2, argv + 1, argc*sizeof argv[0]);
+	  argv[1] = xstrdup (p);
+	  *p = 0;
+	}
+      
+      entry = mail_find_command (argv[0]);
+    }
+  
+  if (entry)
+    {
+      /* Make sure we are not in any if/else */
+      if (!(if_cond () == 0 && (entry->flags & EF_FLOW) == 0))
+	status = entry->func (argc, argv);
     }
   else
     {
@@ -117,7 +142,6 @@ util_do_command (const char *c, ...)
 	util_error (_("Invalid command"));
       status = 1;
     }
-      
 
   mu_argcv_free (argc, argv);
   return status;
