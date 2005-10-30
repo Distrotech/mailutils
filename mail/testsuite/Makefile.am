@@ -21,6 +21,7 @@ AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = mail
 RUNTESTFLAGS = 
 CLEANFILES = *.log
+EXTRA_DIST = if.mail
 test_dirs = config lib mail 
 
 dist-hook:
