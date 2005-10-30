@@ -111,7 +111,7 @@ mail_if (int argc, char **argv)
 	  cond = strcmp(mode, "send") == 0;
 	  break;
 	case 'r': /* Read mode */
-	  cond = strcmp(mode, "send") != 0;
+	  cond = strcmp(mode, "read") == 0;
 	  break;
 	case 't': /* Stdout is a terminal device? */
 	  cond = isatty (fileno (stdout));
@@ -138,7 +138,7 @@ mail_else (int argc ARG_UNUSED, char **argv ARG_UNUSED)
       return 1;
     }
   cond = _cond_pop();
-  if (_cond_level == 0)
+  if (if_cond ())
     cond = !cond;
   _cond_push(cond);
   return 0;
