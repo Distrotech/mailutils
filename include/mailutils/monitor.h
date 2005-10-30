@@ -25,14 +25,14 @@
 extern "C" {
 #endif
 
-struct mu__monitor
+struct mu_monitor
 {
   void *data;
   void *owner;
   int allocated;
   int flags;
 };
-typedef struct mu__monitor *mu_monitor_t;
+typedef struct mu_monitor *mu_monitor_t;
 
 #define MU_MONITOR_PTHREAD 0
 #define MU_MONITOR_INITIALIZER {0, 0, 0, 0}
