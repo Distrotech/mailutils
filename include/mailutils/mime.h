@@ -22,16 +22,14 @@
 #include <mailutils/types.h>
 
 /* mime flags */
-#define MIME_INCREAMENTAL_PARSER	0x1
-
-#define MIME_MULTIPART_MIXED		0x1
-#define MIME_MULTIPART_ALT          0x2
+#define MU_MIME_MULTIPART_MIXED	    0x1
+#define MU_MIME_MULTIPART_ALT       0x2
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int mu_mime_create		(mu_mime_t *pmime, mu_message_t msg, int flags);
+int mu_mime_create	(mu_mime_t *pmime, mu_message_t msg, int flags);
 void mu_mime_destroy	(mu_mime_t *pmime);
 int mu_mime_is_multipart	(mu_mime_t mime);
 int mu_mime_get_num_parts	(mu_mime_t mime, size_t *nparts);
@@ -42,10 +40,10 @@ int mu_mime_add_part	(mu_mime_t mime, mu_message_t msg);
 
 int mu_mime_get_message	(mu_mime_t mime, mu_message_t *msg);
 
-int mu_rfc2047_decode      (const char *tocode, const char *fromstr, 
+int mu_rfc2047_decode   (const char *tocode, const char *fromstr, 
                          char **ptostr);
 
-int mu_rfc2047_encode      (const char *charset, const char *encoding, 
+int mu_rfc2047_encode   (const char *charset, const char *encoding, 
 			 const char *text, char **result);
   
 #ifdef __cplusplus
