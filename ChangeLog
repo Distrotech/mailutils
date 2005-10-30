@@ -1,5 +1,30 @@
 2005-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Updated
+	* include/mailutils/compat.h: New file. Compatibility defines for
+	programs using mailutils interface version 0:0:0.
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add compat.h
+	* include/mailutils/folder.h (mu_0_6_folder_list)
+	(mu_0_6_folder_lsub,mu_0_6_folder_list_destroy): Compatibility
+	functions.
+	* include/mailutils/mailutils.h: Include compat.h, if required
+	* include/mailutils/message.h (message_unref): Rename to
+	mu_message_unref. All callers updated
+	* include/mailutils/mime.h (MIME_INCREAMENTAL_PARSER): Remove
+	(MIME_MULTIPART_MIXED,MIME_MULTIPART_ALT): Prefix with MU_. All
+	uses changed.
+	* include/mailutils/monitor.h (struct mu__monitor): Rename to
+	mu_monitor. All uses changed.
+	* include/mailutils/registrar.h (struct _mu_record): Fix member
+	names. All uses changed
+	* include/mailutils/sql.h (rdl_init_t,rdl_done_t): Prefix with mu_
+	* mail/util.c (util_do_command): Minor fix
+	
+	* libsieve/actions.c,libsieve/extensions/vacation.c,
+	mailbox/filter.c, mailbox/folder.c, mailbox/mime.c,
+	mailbox/registrar.c, mailbox/rfc2047.c, mh/mhl.c, mh/mhn.c: Synch
+	with the above changes.
+
 	* mail/if.c (mail_if): Fix 'r' condition
 	(mail_else): Fix handling of nested ifs
 	* mail/mail.c: New option --exec (-E)

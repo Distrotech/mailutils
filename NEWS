@@ -9,6 +9,11 @@ Version 0.6.92:
 * Library namespace is optimized. All global identifiers begin with mu_.
 NOTE: This is incompatible change.
 
+The programs using old API can still be compiled, using one of the
+following approaches. If the program includes <mailutils/mailutils.h>,
+define the symbol MU_COMPAT before including it (or invoke cc with
+-DMU_COMPAT option). Othervise, include file <mailutils/compat.h>.
+
 * Main library is renamed to libmailutils
 NOTE: This is incompatible change, unless you use mailutils-config to
 obtain loader options (which is recommended, anyway).
