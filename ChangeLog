@@ -1,3 +1,16 @@
+2005-10-31  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/actions.c (build_mime): Split into three smaller
+	functions, each for its own task.
+	Add Content-Type,Content-Transfer-Encoding headers to the
+	DSN. Proposed by Kostas Zorbadelos. 
+	* sieve/testsuite/Reject: Updated to match the above changes	
+	* sieve/testsuite/sieve/reject.exp: Updated
+	* examples/http.c: Include <sys/time.h>
+	* mailbox/imap/folder.c (imap_writeline): Fix handling of input
+	lines longer than 254 chars. Proposed by Daniel Kahn Gillmor.
+	* THANKS: Add Kostas Zorbadelos and Daniel Kahn Gillmor.	
+
 2005-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Updated
