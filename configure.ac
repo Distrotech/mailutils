@@ -452,6 +452,11 @@ AC_TRY_COMPILE([#include <argp.h>
  AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)])
 
+AH_BOTTOM([
+/* program_name is used by lib/error.c */
+#define program_name program_invocation_name
+])
+
 if test "$ac_use_included_regex" = yes; then
        MU_HEADER(regex.h)
 fi
