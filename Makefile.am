@@ -27,8 +27,11 @@ SUBDIRS = include intl po testsuite mailbox lib libsieve doc \
 
 EXTRA_DIST = COPYING.LESSER @MU_EXTRA_DIST@
 
-release:
+alpha:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
+
+alphacheck:
+	$(MAKE) distcheck distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
 rpm: dist
 	rpm -ta --clean mailutils-$(VERSION).tar.gz
