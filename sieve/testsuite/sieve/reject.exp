@@ -25,6 +25,6 @@ set mailer "sendmail:$top_builddir/examples/mta"
 
 sieve_driver_test "Reject" "$mailer" "$mtafile"
 
-# End of redirect.exp	
+# End of reject.exp	
 
 

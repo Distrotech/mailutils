@@ -1,5 +1,10 @@
 2005-10-31  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* Makefile.am (release): Rename to alpha
+	(alphacheck): New rule
+	* configure.ac: Always define program_name to
+	program_invocation_name
+
 	* libsieve/actions.c (build_mime): Split into three smaller
 	functions, each for its own task.
 	Add Content-Type,Content-Transfer-Encoding headers to the
