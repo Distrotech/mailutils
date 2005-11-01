@@ -306,13 +306,14 @@ pop_source ()
 #ifndef FLEX_SCANNER
   lex_delete_buffer (current_buffer);
 #endif
+  if (sieve_filename)
+    free (sieve_filename);
   if (!context_stack)
     {
       yyin = NULL;
+      sieve_filename = NULL;
       return 1;
     }
-  if (sieve_filename)
-    free (sieve_filename);
   /* Restore previous context */
   sieve_filename = context_stack->filename;
   sieve_line_num = context_stack->line + 1; /* #include rule did not increment
