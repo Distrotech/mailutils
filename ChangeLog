@@ -1,3 +1,8 @@
+2005-11-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/sieve.l (pop_source): Clear sieve_filename if
+	context_stack is empty.
+
 2005-10-31  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* Makefile.am (release): Rename to alpha
