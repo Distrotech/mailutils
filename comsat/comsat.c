@@ -210,7 +210,7 @@ comsat_daemon_init (void)
   extern int daemon (int, int);
 
   /* Become a daemon. Take care to close inherited fds and to hold
-     first three one, in, out, err.  Do not do the chdir("/").   */
+     first three ones, in, out, err.  Do not do the chdir("/").   */
   if (daemon (1, 0) < 0)
     {
       perror (_("Failed to become a daemon"));
