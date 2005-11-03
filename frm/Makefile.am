@@ -30,6 +30,7 @@ frm_LDADD =  $(common_ldadd)
 from_LDADD = $(common_ldadd)
 
 common_ldadd = \
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -37,6 +38,5 @@ common_ldadd = \
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @FRIBIDI_LIBS@ @MU_COMMON_LIBRARIES@
 

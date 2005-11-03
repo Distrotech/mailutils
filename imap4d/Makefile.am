@@ -63,12 +63,12 @@ imap4d_SOURCES = \
 
 imap4d_LDADD = \
  @IMAP_AUTHOBJS@\
+ ../lib/libmuaux.la\
  @AUTHLIBS@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@
 
 ## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS

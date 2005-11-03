@@ -124,6 +124,7 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include
 AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = \
  ./libmh.a\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -131,7 +132,6 @@ mh_LIBS = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@

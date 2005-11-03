@@ -23,6 +23,7 @@ SUBDIRS  = testsuite
 bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c
 sieve_LDADD =\
+ ../lib/libmuaux.la\
  ../libsieve/libsieve.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
@@ -31,7 +32,6 @@ sieve_LDADD =\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@
 
 sieve_LDFLAGS = -export-dynamic

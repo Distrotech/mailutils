@@ -54,27 +54,28 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
 AM_LDFLAGS = ../mailbox/libmailutils.la ../lib/libmuaux.la @MU_COMMON_LIBRARIES@
 
 argcv_LDADD =\
- ../mailbox/libmailutils.la\
- ../lib/libmuaux.la
+ ../lib/libmuaux.la\
+ ../mailbox/libmailutils.la
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la
 numaddr_la_LDFLAGS = -module -avoid-version -no-undefined
 
 mimetest_LDADD =\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@
 
 mta_LDADD =\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailutils.la\
- ../lib/libmuaux.la
+ ../mailbox/libmailutils.la
 
 sfrom_LDADD =\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -82,19 +83,18 @@ sfrom_LDADD =\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@
 
 pop3client_LDADD = \
+ ../lib/libmuaux.la\
  ../mailbox/pop/libmu_pop.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @READLINE_LIBS@
 
 nntpclient_LDADD = \
+ ../lib/libmuaux.la\
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @READLINE_LIBS@
 
 lsf_LDADD = \

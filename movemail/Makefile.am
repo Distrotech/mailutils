@@ -21,6 +21,7 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include
 bin_PROGRAMS = movemail
 
 movemail_LDADD = \
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -28,5 +29,4 @@ movemail_LDADD = \
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@

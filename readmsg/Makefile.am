@@ -26,6 +26,7 @@ bin_PROGRAMS = readmsg
 readmsg_SOURCES = readmsg.c msglist.c readmsg.h
 
 readmsg_LDADD =\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -33,5 +34,4 @@ readmsg_LDADD =\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @MU_COMMON_LIBRARIES@

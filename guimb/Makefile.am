@@ -27,6 +27,7 @@ bin_PROGRAMS=@GUIMB@
 EXTRA_PROGRAMS=guimb
 guimb_SOURCES=main.c collect.c util.c guimb.h 
 guimb_LDADD = \
+ ../lib/libmuaux.la\
  ../libmu_scm/libmu_scm.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
@@ -35,5 +36,4 @@ guimb_LDADD = \
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
- ../lib/libmuaux.la\
  @AUTHLIBS@ @GUILE_LIBS@ @MU_COMMON_LIBRARIES@
