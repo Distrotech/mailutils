@@ -1,3 +1,8 @@
+2005-11-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (GUIMB): Fix assignment to work on cygwin too
+	* THANKS: Add D. J. Henman
+
 2005-11-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/Makefile.am, dotlock/Makefile.am, examples/Makefile.am,
