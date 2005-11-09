@@ -17,30 +17,32 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
+# All MH programs. Note that we have to explicitely append EXEEXT, Makefile
+# won't do that.
 PROGRAMS_MH = \
- ali\
- anno\
- comp\
- fmtcheck\
- folder\
- forw\
- inc\
- install-mh\
- mark\
- mhl\
- mhn\
- mhparam\
- mhpath\
- pick\
- refile\
- repl\
- rmf\
- rmm\
- scan\
- send\
- sortm\
- whatnow\
- whom
+ ali$(EXEEXT)\
+ anno$(EXEEXT)\
+ comp$(EXEEXT)\
+ fmtcheck$(EXEEXT)\
+ folder$(EXEEXT)\
+ forw$(EXEEXT)\
+ inc$(EXEEXT)\
+ install-mh$(EXEEXT)\
+ mark$(EXEEXT)\
+ mhl$(EXEEXT)\
+ mhn$(EXEEXT)\
+ mhparam$(EXEEXT)\
+ mhpath$(EXEEXT)\
+ pick$(EXEEXT)\
+ refile$(EXEEXT)\
+ repl$(EXEEXT)\
+ rmf$(EXEEXT)\
+ rmm$(EXEEXT)\
+ scan$(EXEEXT)\
+ send$(EXEEXT)\
+ sortm$(EXEEXT)\
+ whatnow$(EXEEXT)\
+ whom$(EXEEXT)
 
 EXTRA_PROGRAMS = \
  ali\

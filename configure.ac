@@ -866,7 +866,7 @@ GDBM)
                                        AC_DEFINE(WITH_GDBM,1,
                                                  [Enable use of GNU DBM library]))
                      LIBS="$LIBS -lgdbm"
-                     POPAUTH=popauth
+                     POPAUTH='popauth$(EXEEXT)'
                      status_gdbm=yes]);;
 BDB2)
 	AC_CHECK_LIB(db, db_open,
@@ -875,7 +875,7 @@ BDB2)
                                                  [Enable use of Berkeley DB]))
                      LIBS="$LIBS -ldb"
                      MU_DB2_CURSOR
-		     POPAUTH=popauth
+		     POPAUTH='popauth$(EXEEXT)'
                      status_bdb2=yes]);;
 NDBM)
 	AC_CHECK_LIB(ndbm, dbm_open,
@@ -883,7 +883,7 @@ NDBM)
                                        AC_DEFINE(WITH_NDBM,1,
                                                  [Enable use of NDBM]))
                      LIBS="$LIBS -lndbm"
-		     POPAUTH=popauth
+		     POPAUTH='popauth$(EXEEXT)'
                      status_ndbm=yes]);;
 ODBM)
 	AC_CHECK_LIB(dbm, dbminit,
@@ -891,7 +891,7 @@ ODBM)
                                        AC_DEFINE(WITH_OLD_DBM,1,
                                                  [Enable use of old DBM library]))
                      LIBS="$LIBS -ldbm"
-		     POPAUTH=popauth
+		     POPAUTH='popauth$(EXEEXT)'
                      status_dbm=yes]);;
 esac
 

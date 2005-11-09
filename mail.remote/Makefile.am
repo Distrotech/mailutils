@@ -20,7 +20,7 @@
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I${top_builddir}/include/mailutils/gnu -I$(top_srcdir)/include @INTLINCS@
 
 SUBDIRS = testsuite
-PROGRAMS_SMTP = mail.remote
+PROGRAMS_SMTP = mail.remote$(EXEEXT)
 EXTRA_PROGRAMS = mail.remote
 libexec_PROGRAMS = @BUILD_SMTP_PROGRAMS@
 
