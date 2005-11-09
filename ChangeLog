@@ -1,3 +1,10 @@
+2005-11-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Somewhat reluctantly append $(EXEEXT) to popauth
+	binary name to fix cygwin builds.
+	* mail.remote/Makefile.am (PROGRAMS_SMTP): Likewise
+	* mh/Makefile.am (PROGRAMS_MH): Likewise
+
 2005-11-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (GUIMB): Fix assignment to work on cygwin too
