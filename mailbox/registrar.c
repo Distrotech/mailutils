@@ -113,8 +113,8 @@ mu_registrar_lookup (const char *name, mu_record_t *precord, int flags)
 static int
 _compare_prio (const void *item, const void *value)
 {
-  const mu_record_t a = item;
-  const mu_record_t b = value;
+  const mu_record_t a = (const mu_record_t) item;
+  const mu_record_t b = (const mu_record_t) value;
   if (a->priority > b->priority)
     return 0;
   return -1;

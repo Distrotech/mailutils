@@ -582,8 +582,8 @@ var_iterate_end (var_iterator_t *itr)
 static int
 envp_comp (const void *a, const void *b)
 {
-  const struct mail_env_entry **epa = a;
-  const struct mail_env_entry **epb = b;
+  struct mail_env_entry * const *epa = a;
+  struct mail_env_entry * const *epb = b;
 
   return strcmp ((*epa)->var, (*epb)->var);
 }
@@ -596,7 +596,7 @@ util_printenv (int set)
   
   mu_list_count (environment, &count);
   ep = xcalloc (count, sizeof *ep);
-  mu_list_to_array (environment, ep, count, NULL);
+  mu_list_to_array (environment, (void**) ep, count, NULL);
   qsort (ep, count, sizeof *ep, envp_comp);
   for (i = 0; i < count; i++)
     {
