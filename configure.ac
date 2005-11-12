@@ -100,12 +100,12 @@ MU_DEBUG_MODE
 
 # Initialize authlibs
 
-AC_SUBST(AUTHLIBS)
-AC_SUBST(AUTHLIBS_DEPENDENCY)
-AC_SUBST(AUTHINCS)
+AC_SUBST(MU_AUTHLIBS)
+AC_SUBST(MU_AUTHLIBS_DEPENDENCY)
+AC_SUBST(MU_AUTHINCS)
 
-AUTHLIBS=../auth/libmuauth.la
-AUTHLIBS_DEPENDENCY=$AUTHLIBS
+MU_AUTHLIBS=../auth/libmuauth.la
+MU_AUTHLIBS_DEPENDENCY=$MU_AUTHLIBS
 
 dnl Check for arguments
 AC_ARG_ENABLE([pam],
@@ -163,7 +163,7 @@ fi
 
 MU_CHECK_GSASL(0.2.3, [
     AC_DEFINE(WITH_GSASL,1,[Define if mailutils is using GNU SASL])
-    AUTHLIBS="$AUTHLIBS $GSASL_LIBS"
+    MU_AUTHLIBS="$MU_AUTHLIBS $GSASL_LIBS"
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"
     status_gsasl=yes])
 
@@ -180,7 +180,7 @@ AC_ARG_WITH(cram-passwd,
 
 MU_CHECK_TLS
 if test "$WITH_GNUTLS" != "no"; then
-  AUTHLIBS="$AUTHLIBS $TLS_LIBS"
+  MU_AUTHLIBS="$MU_AUTHLIBS $TLS_LIBS"
   AC_DEFINE(WITH_GNUTLS,1,[Define if mailutils is using GNU TLS])
   AC_DEFINE(WITH_TLS,1,[Define if mailutils is using TLS])
 fi
@@ -727,7 +727,7 @@ MU_ENABLE_SUPPORT(radius,
                                     [mu_cv_enable_radius=no])
                    if test $mu_cv_enable_radius = yes; then
 		       AC_CHECK_LIB(gnuradius, grad_dict_init,
-                                    [AUTHLIBS="$AUTHLIBS -lgnuradius"],
+                                    [MU_AUTHLIBS="$MU_AUTHLIBS -lgnuradius"],
                                     [mu_cv_enable_radius=no])
                    fi])
 
@@ -764,7 +764,7 @@ if test x"$testpam" = x"yes"; then
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
 		AC_CHECK_LIB(dl, dlopen, [LDL=-ldl], [LDL=])
 		AC_CHECK_LIB(pam, pam_start,
-			[AUTHLIBS="$AUTHLIBS -lpam $LDL"
+			[MU_AUTHLIBS="$MU_AUTHLIBS -lpam $LDL"
                          ac_cv_have_libpam="yes"],, $LDL)
 		AC_DEFINE(USE_LIBPAM,1,[Enable use of PAM])
 		status_pam=yes
