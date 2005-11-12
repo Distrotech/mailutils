@@ -719,9 +719,7 @@ check_set (msgset_t **pset)
 	  msgset_t *next = p->next;
 	  if (util_isdeleted (p->msg_part[0]))
 	    {
-	      if ((flags & MSG_SILENT)
-		  && prev != NULL
-		  && next != NULL)
+	      if ((flags & MSG_SILENT) && (prev || next))
 		{
 		  /* Mark subset as deleted */
 		  p->next = delset;
