@@ -29,20 +29,28 @@ pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
  uidl.c user.c logindelay.c expire.c
 
 pop3d_LDADD = \
- @AUTHLIBS@ \
  ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@ \
  ../mailbox/libmailutils.la\
  @MU_COMMON_LIBRARIES@
 
 popauth_SOURCES = popauth.c
 popauth_LDADD = ../lib/libmuaux.la ../mailbox/libmailutils.la @MU_COMMON_LIBRARIES@
 pop3d_DEPENDENCIES = \
- @AUTHLIBS_DEPENDENCY@ \
+ @MU_AUTHLIBS_DEPENDENCY@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailutils.la\
  ../lib/libmuaux.la
+
+CFLOW_FLAGS=-i^s --brief -v
+pop3d_CFLOW_INPUT=$(pop3d_OBJECTS:.$(OBJEXT)=.c)
+pop3d.cflow: $(pop3d_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(pop3d_CFLOW_INPUT)

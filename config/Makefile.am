@@ -34,6 +34,6 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -I${top_srcdir}/lib \
   -DLINK_FLAGS="\"-L$(libdir)\"" \
   -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
-  -DAUTHLIBS="\"`echo $(AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" \
+  -DAUTHLIBS="\"`echo $(MU_AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DI18NLIBS="\"`test $(BUILD_INCLUDED_LIBINTL) = no && echo $(LIBINTL)`\""

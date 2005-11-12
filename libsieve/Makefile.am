@@ -65,3 +65,11 @@ sieve-gram.c sieve-gram.h: $(srcdir)/sieve.y
 	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h y.output y.output \
                   -- -yy mu_sieve_yy
 
+
+CFLOW_FLAGS=-i^s --brief -v
+libsieve_CFLOW_INPUT=$(libsieve_la_OBJECTS:.lo=.c)
+libsieve.cflow: $(libsieve_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(libsieve_CFLOW_INPUT)

@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @AUTHINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
 
 movemail_LDADD = \
@@ -28,5 +28,14 @@ movemail_LDADD = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @MU_COMMON_LIBRARIES@
+ @MU_COMMON_LIBRARIES@
+
+CFLOW_FLAGS=-i^s --brief -v
+movemail_CFLOW_INPUT=$(movemail_OBJECTS:.$(OBJEXT)=.c)
+movemail.cflow: $(movemail_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(movemail_CFLOW_INPUT)

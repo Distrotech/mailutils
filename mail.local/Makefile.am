@@ -26,11 +26,11 @@ mail_local_SOURCES = main.c mailquota.c script.c mail.local.h
 mail_local_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
- @AUTHLIBS@\
  ../lib/libmuaux.la \
- ../mailbox/mbox/libmu_mbox.la \
- ../mailbox/libmailutils.la \
  ../libsieve/libsieve.la\
+ ../mailbox/mbox/libmu_mbox.la\
+ @MU_AUTHLIBS@\
+ ../mailbox/libmailutils.la \
  @MU_COMMON_LIBRARIES@
 
 install-exec-hook:

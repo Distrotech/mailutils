@@ -32,5 +32,14 @@ messages_LDADD =\
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @MU_COMMON_LIBRARIES@
+ @MU_COMMON_LIBRARIES@
+
+CFLOW_FLAGS=-i^s --brief -v
+messages_CFLOW_INPUT=$(messages_OBJECTS:.$(OBJEXT)=.c)
+messages.cflow: $(messages_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(messages_CFLOW_INPUT)

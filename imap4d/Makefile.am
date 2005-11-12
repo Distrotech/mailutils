@@ -19,7 +19,7 @@
 
 INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include \
  -I$(top_srcdir)/mailbox \
- -I${top_builddir}/include/mailutils/gnu @AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
+ -I${top_builddir}/include/mailutils/gnu @MU_AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d
@@ -64,23 +64,31 @@ imap4d_SOURCES = \
 imap4d_LDADD = \
  @IMAP_AUTHOBJS@\
  ../lib/libmuaux.la\
- @AUTHLIBS@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@ \
  ../mailbox/libmailutils.la\
  @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@
 
 ## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS
-## and imap4d -> AUTHLIBS dependencies. Automake stupidly refuses to 
+## and imap4d -> MU_AUTHLIBS dependencies. Automake stupidly refuses to 
 ## include them.
 ## Same kludge appears in pop3d/Makefile.am and auth/Makefile.am
 ## Think about better approach         --gray
 imap4d_DEPENDENCIES = \
  @IMAP_AUTHOBJS@\
- @AUTHLIBS_DEPENDENCY@\
+ @MU_AUTHLIBS_DEPENDENCY@\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/libmailutils.la\
  ../lib/libmuaux.la
 
 EXTRA_DIST=auth_gss.c auth_gsasl.c
+
+CFLOW_FLAGS=-i^s --brief 
+imap4d_CFLOW_INPUT=$(imap4d_OBJECTS:.$(OBJEXT)=.c)
+imap4d.cflow: $(imap4d_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(imap4d_CFLOW_INPUT)

@@ -28,3 +28,11 @@ comsatd_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/libmailutils.la\
  @MU_COMMON_LIBRARIES@
+
+CFLOW_FLAGS=-i^s --brief -v
+comsatd_CFLOW_INPUT=$(comsatd_OBJECTS:.$(OBJEXT)=.c)
+comsatd.cflow: $(comsatd_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(comsatd_CFLOW_INPUT)

@@ -66,8 +66,8 @@ mimetest_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
- ../mailbox/libmailutils.la\
- @AUTHLIBS@
+ @MU_AUTHLIBS@\
+ ../mailbox/libmailutils.la
 
 mta_LDADD =\
  ../lib/libmuaux.la\
@@ -82,20 +82,22 @@ sfrom_LDADD =\
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailutils.la\
- @AUTHLIBS@
+ @MU_AUTHLIBS@\
+ ../mailbox/libmailutils.la
 
 pop3client_LDADD = \
  ../lib/libmuaux.la\
  ../mailbox/pop/libmu_pop.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @READLINE_LIBS@
+ @READLINE_LIBS@
 
 nntpclient_LDADD = \
  ../lib/libmuaux.la\
  ../mailbox/nntp/libmu_nntp.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @READLINE_LIBS@
+ @READLINE_LIBS@
 
 lsf_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
@@ -104,6 +106,6 @@ lsf_LDADD = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
-  @AUTHLIBS@ \
+ @MU_AUTHLIBS@ \
  ../mailbox/libmailutils.la
 

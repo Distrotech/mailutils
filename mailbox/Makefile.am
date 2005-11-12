@@ -185,3 +185,11 @@ libmailutils_la_SOURCES += vsnprintf.h
 libmailutils_la_SOURCES += xsize.h
 
 EXTRA_DIST += getdelim.c getdelim.h getdelim.c getopt.c getopt1.c md5.c md5.h md5.c memchr.c mempcpy.c mempcpy.h mempcpy.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c getline.c getline.c getline.h getline.c getndelim2.c vsnprintf.c unlocked-io.h strchrnul.c regex.c strcasecmp.c strncasecmp.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c
+
+CFLOW_FLAGS=-i^s --brief 
+mailutils_CFLOW_INPUT=$(libmailutils_la_OBJECTS:.lo=.c)
+mailutils.cflow: $(mailutils_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(mailutils_CFLOW_INPUT)

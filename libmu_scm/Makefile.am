@@ -91,3 +91,11 @@ install-data-hook:
 		$(LN_S) -f libmu_scm.so libguile-mailutils-v-$(VERSION).so; \
 	 fi; \
 	 cd $$here
+
+CFLOW_FLAGS=-i^s --brief -v
+libmu_scm_CFLOW_INPUT=$(libmu_scm_la_OBJECTS:.lo=.c)
+libmu_scm.cflow: $(libmu_scm_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(libmu_scm_CFLOW_INPUT)

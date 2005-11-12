@@ -35,5 +35,6 @@ guimb_LDADD = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @GUILE_LIBS@ @MU_COMMON_LIBRARIES@
+ @GUILE_LIBS@ @MU_COMMON_LIBRARIES@

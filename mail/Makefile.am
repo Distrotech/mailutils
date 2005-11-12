@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @AUTHINCS@ 
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @MU_AUTHINCS@ 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
@@ -31,8 +31,9 @@ mail_LDADD = \
  ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
+ @MU_AUTHLIBS@\
  ../mailbox/libmailutils.la\
- @AUTHLIBS@ @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
+ @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
 
 EXTRA_DIST = msgset.c
 
@@ -94,3 +95,11 @@ mail_SOURCES = \
  z.c
 
 SUBDIRS = testsuite
+
+CFLOW_FLAGS=-i^s --brief -v
+mail_CFLOW_INPUT=$(mail_OBJECTS:.$(OBJEXT)=.c)
+mail.cflow: $(mail_CFLOW_INPUT) Makefile
+	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
+		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+		$(CPPFLAGS) \
+	$(mail_CFLOW_INPUT)
