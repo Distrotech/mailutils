@@ -1,3 +1,20 @@
+2005-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (AUTHLIBS,AUTHLIBS_DEPENDENCY,AUTHINCS): Prefixed
+	with MU_
+	* mail/msgset.y (check_set): Was displaying `inappropriate message'
+	diagnostics if the first message from the set was deleted. Fixed.
+	* mail/util.c, mailbox/registrar.c: Add typecasts
+	* mh/mh.h: Add includes needed for W.*() macros
+	* comsat/Makefile.am, config/Makefile.am, examples/Makefile.am,
+	frm/Makefile.am, guimb/Makefile.am, imap4d/Makefile.am,
+	libmu_scm/Makefile.am, libsieve/Makefile.am, mail/Makefile.am, 
+	mail.local/Makefile.am, mail.remote/Makefile.am,
+	mailbox/Makefile.am, messages/Makefile.am, mh/Makefile.am,
+	movemail/Makefile.am, pop3d/Makefile.am, readmsg/Makefile.am,
+	sieve/Makefile.am: Load MU_AUTHLIBS before libmailutils. Fixes
+	cygwin build.
+
 2005-11-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Somewhat reluctantly append $(EXEEXT) to popauth
