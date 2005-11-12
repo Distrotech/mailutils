@@ -19,6 +19,9 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <mh_getopt.h>
