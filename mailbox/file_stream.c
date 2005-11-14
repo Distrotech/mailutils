@@ -46,7 +46,7 @@
 struct _file_stream
 {
   FILE *file;
-  int offset;
+  off_t offset;
 
   char *filename;
   mu_stream_t cache;
