@@ -1,3 +1,14 @@
+2005-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+        * examples/argcv.c: Include <mailutils/error.h>
+        * examples/base64.c: Include <config.h>
+        * readmsg/readmsg.h: Likewise
+        * mail/z.c (z_parse_args): change type of return_count
+        (mail_z): Change type of count to off_t
+        * include/mailutils/stream.h: Fix indentation
+	* mailbox/file_stream.c (struct _fise_stream.offset): Change type
+	to off_t
+	
 2005-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (AUTHLIBS,AUTHLIBS_DEPENDENCY,AUTHINCS): Prefixed
