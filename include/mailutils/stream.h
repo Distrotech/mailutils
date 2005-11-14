@@ -68,7 +68,7 @@ extern int mu_stream_close       (mu_stream_t);
 extern int mu_stream_is_seekable (mu_stream_t);
 extern int mu_stream_get_transport2 (mu_stream_t stream, mu_transport_t *pt,
 				  mu_transport_t *pt2);
-  extern int mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt);
+extern int mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt);
 
 extern int mu_stream_read        (mu_stream_t, char *, size_t, off_t, size_t *);
 extern int mu_stream_readline    (mu_stream_t, char *, size_t, off_t, size_t *);
