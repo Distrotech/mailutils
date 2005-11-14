@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <getline.h>
 #include <mailutils/argcv.h>
+#include <mailutils/error.h>
 
 int
 main(int argc, char **argv)
@@ -37,7 +38,7 @@ main(int argc, char **argv)
   
   while (getline (&buf, &n, stdin) > 0)
     {
-      int status, i, c;
+      int status, c;
       char **v;
       char *s;
 
