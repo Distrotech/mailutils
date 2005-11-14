@@ -16,6 +16,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <assert.h>
@@ -61,7 +64,7 @@ main (int argc, char * argv [])
 	break;
 
       case 'p':
-	printable = 1;
+ 	printable = 1;
 	break;
 	
       case 'v':
@@ -99,7 +102,7 @@ main (int argc, char * argv [])
 	  char outbuf[24];
 	  sprintf (outbuf, "\\%03o", (unsigned int) buffer);
 	  mu_stream_sequential_write (out, outbuf, strlen (outbuf));
-	}
+	} 
       else
 	mu_stream_sequential_write (out, &buffer, size);
       total += size;
