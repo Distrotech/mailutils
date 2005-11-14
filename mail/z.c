@@ -33,7 +33,7 @@
 
 static int
 z_parse_args(int argc, char **argv,
-	     unsigned int *return_count, int *return_dir)
+	     off_t *return_count, int *return_dir)
 {
   int count = 1;
   int mul = 1;
@@ -107,7 +107,7 @@ z_parse_args(int argc, char **argv,
 int
 mail_z (int argc, char **argv)
 {
-  unsigned int count;
+  off_t count;
   int dir;
   unsigned int pagelines = util_screen_lines ();
 
