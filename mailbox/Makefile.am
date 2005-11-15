@@ -30,7 +30,7 @@ lib_LTLIBRARIES = libmailutils.la
 localedir = $(datadir)/locale
 DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = errors muerrno.cin parsedate.y pin.c fgetpwent.c
+EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y pin.c fgetpwent.c
 
 libmailutils_la_SOURCES = \
 address.c \
@@ -121,7 +121,6 @@ libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-namefrob.h argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c
 
 
-EXTRA_DIST += regex_internal.c regex_internal.h regexec.c regcomp.c
 
 libmailutils_la_SOURCES += strtok_r.h
 
