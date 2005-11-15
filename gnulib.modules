@@ -12,6 +12,7 @@ getline
 regex
 strtok_r
 md5
+glob
 
 :muaux
 xalloc
