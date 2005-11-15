@@ -139,6 +139,8 @@ extern int mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 
 extern enum mu_iconv_fallback_mode mu_default_fallback_mode;
 extern int mu_set_default_fallback (const char *str);
+
+extern int mu_is_proto (const char *p);
   
 #ifdef __cplusplus
 }
