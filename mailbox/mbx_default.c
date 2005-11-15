@@ -90,15 +90,6 @@ mu_construct_user_mailbox_url (char **pout, const char *name)
 #define USE_ENVIRON 1
 
 static int
-is_proto (const char *p)
-{
-  for (; *p && *p != '/'; p++)
-    if (*p == ':')
-      return 1;
-  return 0;
-}
-
-static int
 split_shortcut (const char *file, const char pfx[], char **user, char **rest)
 {
   *user = NULL;
@@ -249,7 +240,7 @@ plus_expand (const char *file, char **buf)
       return ENOENT;
     }
 
-  if (folder_dir[0] == '/' || is_proto (folder_dir))
+  if (folder_dir[0] == '/' || mu_is_proto (folder_dir))
     {
       len = strlen (folder_dir) + strlen (path) + 2;
       *buf = malloc (len);
@@ -391,7 +382,7 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
       break;
       
     default:
-      if (!is_proto (mail))
+      if (!mu_is_proto (mail))
 	{
 	  tmp_mbox = mu_getcwd();
 	  mbox = malloc (strlen (tmp_mbox) + strlen (mail) + 2);
