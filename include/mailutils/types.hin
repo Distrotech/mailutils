@@ -54,6 +54,8 @@ struct _mu_ticket;
 struct _mu_url;
 struct _mu_wicket;
 
+typedef MU_OFF_TYPE mu_off_t;
+  
 typedef struct _mu_address *mu_address_t;
 typedef struct _mu_attribute *mu_attribute_t;
 typedef struct _mu_authority *mu_authority_t;

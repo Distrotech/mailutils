@@ -19,10 +19,15 @@
 ##   02110-1301 USA
 
 BUILT_SOURCES=errno.h
-EXTRA_DIST=errno.hin
+EXTRA_DIST=errno.hin types.hin
 errno.h: $(top_srcdir)/mailbox/errors errno.hin
 	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
 
+types.h: $(top_srcdir)/include/mailutils/types.hin Makefile
+	sed 's/MU_OFF_TYPE/$(MU_OFF_TYPE)/' $(top_srcdir)/include/mailutils/types.hin > $@
+DISTCLEANFILES = types.h
+
+pkginclude_DATA = types.h
 pkginclude_HEADERS = \
  address.h \
  argcv.h \
@@ -65,7 +70,6 @@ pkginclude_HEADERS = \
  stream.h \
  sql.h \
  tls.h \
- types.h \
  url.h 
 
 nobase_pkginclude_HEADERS = \
