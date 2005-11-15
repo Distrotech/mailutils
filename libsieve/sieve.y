@@ -29,8 +29,6 @@ mu_sieve_machine_t sieve_machine;
 int sieve_error_count;
 
 static void branch_fixup (size_t start, size_t end);
-int yyerror (char *s);
-int yylex (); 
 %}
 
 %union {
