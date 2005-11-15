@@ -18,7 +18,7 @@
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+# include <config.h>
 #endif
 
 #include <alloca.h>
@@ -81,8 +81,8 @@ static const struct argp_option argp_default_options[] =
 {
   {"help",	  '?',    	0, 0,  N_("Give this help list"), -1},
   {"usage",	  OPT_USAGE,	0, 0,  N_("Give a short usage message"), 0},
-  {"program-name",OPT_PROGNAME,"NAME", OPTION_HIDDEN, N_("Set the program name"), 0},
-  {"HANG",	  OPT_HANG,    "SECS", OPTION_ARG_OPTIONAL | OPTION_HIDDEN,
+  {"program-name",OPT_PROGNAME,N_("NAME"), OPTION_HIDDEN, N_("Set the program name"), 0},
+  {"HANG",	  OPT_HANG,    N_("SECS"), OPTION_ARG_OPTIONAL | OPTION_HIDDEN,
      N_("Hang for SECS seconds (default 3600)"), 0},
   {NULL, 0, 0, 0, NULL, 0}
 };
