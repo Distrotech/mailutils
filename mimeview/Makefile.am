@@ -33,6 +33,7 @@ mimeview_SOURCES = \
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
 AM_LEXFLAGS=-d
+AM_CPPFLAGS=-D_GNU_SOURCE=1
 EXTRA_DIST = mimetypes.y mimetypes.l
 
 mimetypes-gram.c mimetypes-decl.h: $(srcdir)/mimetypes.y
