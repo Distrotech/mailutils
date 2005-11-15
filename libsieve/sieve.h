@@ -102,6 +102,8 @@ int _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 
 int sieve_lex_begin (const char *name);
 void sieve_lex_finish (void);
+int mu_sieve_yyerror (char *s);
+int mu_sieve_yylex (); 
 
 void sieve_register_standard_actions (mu_sieve_machine_t mach);
 void sieve_register_standard_tests (mu_sieve_machine_t mach);
