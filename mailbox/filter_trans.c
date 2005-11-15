@@ -70,7 +70,7 @@ trans_destroy (mu_filter_t filter)
 }
 
 static int
-trans_read (mu_filter_t filter, char *optr, size_t osize, off_t offset,
+trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	    size_t *n_bytes)
 {
   struct _trans_stream *ts = filter->data;

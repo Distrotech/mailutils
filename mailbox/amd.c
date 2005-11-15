@@ -84,17 +84,17 @@ static int amd_uidnext (mu_mailbox_t mailbox, size_t *puidnext);
 static int amd_uidvalidity (mu_mailbox_t, unsigned long *);
 static int amd_scan (mu_mailbox_t, size_t, size_t *);
 static int amd_is_updated (mu_mailbox_t);
-static int amd_get_size (mu_mailbox_t, off_t *);
+static int amd_get_size (mu_mailbox_t, mu_off_t *);
 
-static int amd_body_read (mu_stream_t, char *, size_t, off_t, size_t *);
-static int amd_body_readline (mu_stream_t, char *, size_t, off_t, size_t *);
-static int amd_stream_size (mu_stream_t stream, off_t *psize);
+static int amd_body_read (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int amd_body_readline (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int amd_stream_size (mu_stream_t stream, mu_off_t *psize);
 
 static int amd_body_size (mu_body_t body, size_t *psize);
 static int amd_body_lines (mu_body_t body, size_t *plines);
 
 static int amd_header_fill (mu_header_t header, char *buffer, size_t len,
-			    off_t off, size_t *pnread);
+			    mu_off_t off, size_t *pnread);
 static int amd_header_size (mu_header_t header, size_t *psize);
 static int amd_header_lines (mu_header_t header, size_t *plines);
 
@@ -125,11 +125,11 @@ static int amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
    Indexes are zero-based. */
    
 static int
-amd_msg_bsearch (struct _amd_data *amd, off_t first, off_t last,
+amd_msg_bsearch (struct _amd_data *amd, mu_off_t first, mu_off_t last,
 		 struct _amd_message *msg,
-		 off_t *pret)
+		 mu_off_t *pret)
 {
-  off_t mid;
+  mu_off_t mid;
   int rc;
 
   if (last < first)
@@ -163,7 +163,7 @@ amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
 		 size_t *pret)
 {
   int rc;
-  off_t i;
+  mu_off_t i;
   
   if (!amd->msg_array)
     {
@@ -997,7 +997,7 @@ amd_scan_message (struct _amd_message *mhm)
 {
   mu_stream_t stream = mhm->stream;
   char buf[1024];
-  off_t off = 0;
+  mu_off_t off = 0;
   size_t n;
   int status;
   int in_header = 1;
@@ -1096,7 +1096,7 @@ amd_is_updated (mu_mailbox_t mailbox)
 }
 
 static int
-amd_get_size (mu_mailbox_t mailbox ARG_UNUSED, off_t *psize ARG_UNUSED)
+amd_get_size (mu_mailbox_t mailbox ARG_UNUSED, mu_off_t *psize ARG_UNUSED)
 {
   /*FIXME*/
   return ENOSYS;
@@ -1227,12 +1227,12 @@ amd_check_message (struct _amd_message *mhm)
 
 static int
 amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
-	       off_t off, size_t *pnread, int isreadline,
-	       off_t start, off_t end)
+	       mu_off_t off, size_t *pnread, int isreadline,
+	       mu_off_t start, mu_off_t end)
 {
   size_t nread = 0;
   int status = 0;
-  off_t ln;
+  mu_off_t ln;
 
   if (buffer == NULL || buflen == 0)
     {
@@ -1272,7 +1272,7 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
 }
 
 static int
-amd_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t off,
+amd_body_read (mu_stream_t is, char *buffer, size_t buflen, mu_off_t off,
 	      size_t *pnread)
 {
   mu_body_t body = mu_stream_get_owner (is);
@@ -1285,7 +1285,7 @@ amd_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t off,
 
 static int
 amd_body_readline (mu_stream_t is, char *buffer, size_t buflen,
-		  off_t off, size_t *pnread)
+		  mu_off_t off, size_t *pnread)
 {
   mu_body_t body = mu_stream_get_owner (is);
   mu_message_t msg = mu_body_get_owner (body);
@@ -1298,7 +1298,7 @@ amd_body_readline (mu_stream_t is, char *buffer, size_t buflen,
 /* Return corresponding sizes */
 
 static int
-amd_stream_size (mu_stream_t stream, off_t *psize)
+amd_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return amd_body_size (body, (size_t*) psize);
@@ -1333,7 +1333,7 @@ amd_body_lines (mu_body_t body, size_t *plines)
 /* Headers */
 static int
 amd_header_fill (mu_header_t header, char *buffer, size_t len,
-		off_t off, size_t *pnread)
+		mu_off_t off, size_t *pnread)
 {
   mu_message_t msg = mu_header_get_owner (header);
   struct _amd_message *mhm = mu_message_get_owner (msg);

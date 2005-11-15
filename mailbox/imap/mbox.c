@@ -80,7 +80,7 @@ static int  imap_message_size     (mu_message_t, size_t *);
 static int  imap_message_lines    (mu_message_t, size_t *);
 static int  imap_message_get_transport2  (mu_stream_t, mu_transport_t *pin, 
                                           mu_transport_t *pout);
-static int  imap_message_read     (mu_stream_t , char *, size_t, off_t, size_t *);
+static int  imap_message_read     (mu_stream_t , char *, size_t, mu_off_t, size_t *);
 static int  imap_message_uid      (mu_message_t, size_t *);
 
 /* mu_mime_t API.  */
@@ -98,12 +98,12 @@ static int  imap_attr_set_flags   (mu_attribute_t, int);
 static int  imap_attr_unset_flags (mu_attribute_t, int);
 
 /* mu_header_t API.  */
-static int  imap_header_read      (mu_header_t, char*, size_t, off_t, size_t *);
+static int  imap_header_read      (mu_header_t, char*, size_t, mu_off_t, size_t *);
 static int  imap_header_get_value (mu_header_t, const char*, char *, size_t, size_t *);
 static int  imap_header_get_fvalue (mu_header_t, const char*, char *, size_t, size_t *);
 
 /* mu_body_t API.  */
-static int  imap_body_read        (mu_stream_t, char *, size_t, off_t, size_t *);
+static int  imap_body_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
 static int  imap_body_size        (mu_body_t, size_t *);
 static int  imap_body_lines       (mu_body_t, size_t *);
 static int  imap_body_get_transport2 (mu_stream_t, mu_transport_t *pin, mu_transport_t *pout);
@@ -1068,7 +1068,7 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
     case IMAP_APPEND_SEND:
       {
 	mu_stream_t stream = NULL;
-	off_t off = 0;
+	mu_off_t off = 0;
 	size_t n = 0;
 	char buffer[255];
 	mu_message_get_stream (msg, &stream);
@@ -1165,7 +1165,7 @@ imap_copy_message (mu_mailbox_t mailbox, mu_message_t msg)
 /* Message read overload  */
 static int
 imap_message_read (mu_stream_t stream, char *buffer, size_t buflen,
-		   off_t offset, size_t *plen)
+		   mu_off_t offset, size_t *plen)
 {
   mu_message_t msg = mu_stream_get_owner (stream);
   msg_imap_t msg_imap = mu_message_get_owner (msg);
@@ -1844,7 +1844,7 @@ imap_header_get_fvalue (mu_header_t header, const char *field, char * buffer,
 }
 
 static int
-imap_header_read (mu_header_t header, char *buffer, size_t buflen, off_t offset,
+imap_header_read (mu_header_t header, char *buffer, size_t buflen, mu_off_t offset,
 		  size_t *plen)
 {
   mu_message_t msg = mu_header_get_owner (header);
@@ -1949,8 +1949,8 @@ imap_body_lines (mu_body_t body, size_t *plines)
 
 /* FIXME: Send EISPIPE if trying to seek back.  */
 static int
-imap_body_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset,
-		size_t *plen)
+imap_body_read (mu_stream_t stream, char *buffer, size_t buflen,
+		mu_off_t offset, size_t *plen)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   mu_message_t msg = mu_body_get_owner (body);

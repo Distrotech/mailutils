@@ -56,7 +56,7 @@ extern int  mu_mailbox_expunge         (mu_mailbox_t);
 extern int  mu_mailbox_save_attributes (mu_mailbox_t);
 
 /* Update and scanning.  */
-extern int  mu_mailbox_get_size        (mu_mailbox_t, off_t *size);
+extern int  mu_mailbox_get_size        (mu_mailbox_t, mu_off_t *size);
 extern int  mu_mailbox_is_updated      (mu_mailbox_t);
 extern int  mu_mailbox_scan            (mu_mailbox_t, size_t no, size_t *count);
 

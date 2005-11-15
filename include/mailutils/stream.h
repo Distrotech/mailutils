@@ -70,12 +70,12 @@ extern int mu_stream_get_transport2 (mu_stream_t stream, mu_transport_t *pt,
 				  mu_transport_t *pt2);
 extern int mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt);
 
-extern int mu_stream_read        (mu_stream_t, char *, size_t, off_t, size_t *);
-extern int mu_stream_readline    (mu_stream_t, char *, size_t, off_t, size_t *);
-extern int mu_stream_size        (mu_stream_t, off_t *);
-extern int mu_stream_truncate    (mu_stream_t, off_t);
-extern int mu_stream_write       (mu_stream_t, const char *, size_t, off_t,
-			       size_t *);
+extern int mu_stream_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+extern int mu_stream_readline    (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+extern int mu_stream_size        (mu_stream_t, mu_off_t *);
+extern int mu_stream_truncate    (mu_stream_t, mu_off_t);
+extern int mu_stream_write       (mu_stream_t, const char *, size_t, mu_off_t,
+				  size_t *);
 extern int mu_stream_setbufsiz   (mu_stream_t stream, size_t size);
 extern int mu_stream_flush       (mu_stream_t);
 
@@ -118,21 +118,21 @@ extern int mu_stream_set_get_transport2  (mu_stream_t,
       void *owner);
 
 extern int mu_stream_set_read     (mu_stream_t,
-      int (*_read) (mu_stream_t, char *, size_t, off_t, size_t *),
-			        void *owner);
+      int (*_read) (mu_stream_t, char *, size_t, mu_off_t, size_t *),
+				   void *owner);
 
 extern int mu_stream_set_readline (mu_stream_t, 
-      int (*_readline) (mu_stream_t, char *, size_t, off_t, size_t *),
+      int (*_readline) (mu_stream_t, char *, size_t, mu_off_t, size_t *),
 			        void *owner);
 
 extern int mu_stream_set_size     (mu_stream_t,
-      int (*_size) (mu_stream_t, off_t *), void *owner);
+      int (*_size) (mu_stream_t, mu_off_t *), void *owner);
 
 extern int mu_stream_set_truncate (mu_stream_t,
-      int (*_truncate) (mu_stream_t, off_t), void *owner);
+      int (*_truncate) (mu_stream_t, mu_off_t), void *owner);
 
 extern int mu_stream_set_write    (mu_stream_t,
-      int (*_write) (mu_stream_t, const char *, size_t, off_t, size_t *),
+      int (*_write) (mu_stream_t, const char *, size_t, mu_off_t, size_t *),
 			    void *owner);
 
 extern int mu_stream_set_flush    (mu_stream_t,
@@ -152,7 +152,7 @@ extern int mu_stream_sequential_readline (mu_stream_t stream,
   
 extern int mu_stream_sequential_write (mu_stream_t stream,
 				    const char *buf, size_t size);
-extern int mu_stream_seek (mu_stream_t stream, off_t off, int whence);
+extern int mu_stream_seek (mu_stream_t stream, mu_off_t off, int whence);
   
 extern int mu_stream_strerror (mu_stream_t stream, const char **p);
   

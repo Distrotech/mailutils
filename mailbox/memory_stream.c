@@ -58,7 +58,7 @@ _memory_destroy (mu_stream_t stream)
 
 static int
 _memory_read (mu_stream_t stream, char *optr, size_t osize,
-	      off_t offset, size_t *nbytes)
+	      mu_off_t offset, size_t *nbytes)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
   size_t n = 0;
@@ -74,7 +74,7 @@ _memory_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _memory_readline (mu_stream_t stream, char *optr, size_t osize,
-		  off_t offset, size_t *nbytes)
+		  mu_off_t offset, size_t *nbytes)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
   char *nl;
@@ -96,7 +96,7 @@ _memory_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _memory_write (mu_stream_t stream, const char *iptr, size_t isize,
-	       off_t offset, size_t *nbytes)
+	       mu_off_t offset, size_t *nbytes)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
 
@@ -121,7 +121,7 @@ _memory_write (mu_stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_memory_truncate (mu_stream_t stream, off_t len)
+_memory_truncate (mu_stream_t stream, mu_off_t len)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
 
@@ -131,7 +131,7 @@ _memory_truncate (mu_stream_t stream, off_t len)
 	free (mfs->ptr);
       mfs->ptr = NULL;
     }
-  else if (len != (off_t)mfs->size)
+  else if (len != (mu_off_t)mfs->size)
     {
       char *tmp = realloc (mfs->ptr, len);
       if (tmp == NULL)
@@ -144,7 +144,7 @@ _memory_truncate (mu_stream_t stream, off_t len)
 }
 
 static int
-_memory_size (mu_stream_t stream, off_t *psize)
+_memory_size (mu_stream_t stream, mu_off_t *psize)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
   if (psize)

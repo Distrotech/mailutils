@@ -128,18 +128,18 @@ static int pop_is_updated      (mu_mailbox_t);
 /* The implementation of mu_message_t */
 int _pop_user            (mu_authority_t);
 int _pop_apop            (mu_authority_t);
-static int pop_get_size        (mu_mailbox_t, off_t *);
+static int pop_get_size        (mu_mailbox_t, mu_off_t *);
 /* We use pop_top for retreiving headers.  */
-/* static int pop_header_read (mu_header_t, char *, size_t, off_t, size_t *); */
+/* static int pop_header_read (mu_header_t, char *, size_t, mu_off_t, size_t *); */
 static int pop_body_transport  (mu_stream_t, mu_transport_t *, mu_transport_t *);
 static int pop_body_size       (mu_body_t, size_t *);
 static int pop_body_lines      (mu_body_t, size_t *);
-static int pop_body_read       (mu_stream_t, char *, size_t, off_t, size_t *);
-static int pop_message_read    (mu_stream_t, char *, size_t, off_t, size_t *);
+static int pop_body_read       (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int pop_message_read    (mu_stream_t, char *, size_t, mu_off_t, size_t *);
 static int pop_message_size    (mu_message_t, size_t *);
 static int pop_message_transport (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int pop_top             (mu_header_t, char *, size_t, off_t, size_t *);
-static int pop_retr            (pop_message_t, char *, size_t, off_t, size_t *);
+static int pop_top             (mu_header_t, char *, size_t, mu_off_t, size_t *);
+static int pop_retr            (pop_message_t, char *, size_t, mu_off_t, size_t *);
 static int pop_get_transport2   (pop_message_t, mu_transport_t *, mu_transport_t *);
 static int pop_get_attribute   (mu_attribute_t, int *);
 static int pop_set_attribute   (mu_attribute_t, int);
@@ -200,7 +200,7 @@ struct _pop_data
   size_t buflen; /* Len of buffer.  */
   char *ptr; /* Points to the end of the buffer i.e the non consume chars.  */
   char *nl;  /* Points to the '\n' char in te string.  */
-  off_t offset; /* Dummy, this is use because of the stream buffering.
+  mu_off_t offset; /* Dummy, this is use because of the stream buffering.
 		   The mu_stream_t maintains and offset and the offset we use must
 		   be in sync.  */
 
@@ -1222,7 +1222,7 @@ pop_expunge (mu_mailbox_t mbox)
 
 /* Mailbox size ? It is part of the STAT command */
 static int
-pop_get_size (mu_mailbox_t mbox, off_t *psize)
+pop_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 {
   pop_data_t mpd = mbox->data;
   int status = 0;
@@ -1559,7 +1559,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
    read ahead, for example for the headers.  */
 static int
 pop_top (mu_header_t header, char *buffer, size_t buflen,
-	 off_t offset, size_t *pnread)
+	 mu_off_t offset, size_t *pnread)
 {
   mu_message_t msg = mu_header_get_owner (header);
   pop_message_t mpm = mu_message_get_owner (msg);
@@ -1662,7 +1662,7 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
 #if 0
 /* Stub to call pop_retr ().   Call form the stream object of the header.  */
 static int
-pop_header_read (mu_header_t header, char *buffer, size_t buflen, off_t offset,
+pop_header_read (mu_header_t header, char *buffer, size_t buflen, mu_off_t offset,
 		 size_t *pnread)
 {
   mu_message_t msg = mu_header_get_owner (header);
@@ -1694,7 +1694,7 @@ pop_header_read (mu_header_t header, char *buffer, size_t buflen, off_t offset,
 
 /* Stub to call pop_retr (). Call from the stream object of the body.  */
 static int
-pop_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_body_read (mu_stream_t is, char *buffer, size_t buflen, mu_off_t offset,
 	       size_t *pnread)
 {
   mu_body_t body = mu_stream_get_owner (is);
@@ -1726,7 +1726,7 @@ pop_body_read (mu_stream_t is, char *buffer, size_t buflen, off_t offset,
 
 /* Stub to call pop_retr (), calling from the stream object of a message.  */
 static int
-pop_message_read (mu_stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_message_read (mu_stream_t is, char *buffer, size_t buflen, mu_off_t offset,
 		  size_t *pnread)
 {
   mu_message_t msg = mu_stream_get_owner (is);
@@ -1790,7 +1790,7 @@ fill_buffer (pop_data_t mpd, char *buffer, size_t buflen)
 /* The heart of most funtions.  Send the RETR and skip different parts.  */
 static int
 pop_retr (pop_message_t mpm, char *buffer, size_t buflen,  
-          off_t offset ARG_UNUSED, size_t *pnread)
+          mu_off_t offset ARG_UNUSED, size_t *pnread)
 {
   pop_data_t mpd;
   size_t nread = 0;

@@ -20,9 +20,8 @@
    MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
+# include <config.h>  /* For ARG_UNUSED only */
+#endif 
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>

@@ -46,7 +46,7 @@ struct _mhdraft_stream {
 
 static int
 _mhdraft_read (mu_stream_t stream, char *optr, size_t osize,
-	       off_t offset, size_t *nbytes)
+	       mu_off_t offset, size_t *nbytes)
 {
   struct _mhdraft_stream *s = mu_stream_get_owner (stream);
 
@@ -62,7 +62,7 @@ _mhdraft_read (mu_stream_t stream, char *optr, size_t osize,
   
 static int
 _mhdraft_readline (mu_stream_t stream, char *optr, size_t osize,
-		   off_t offset, size_t *nbytes)
+		   mu_off_t offset, size_t *nbytes)
 {
   struct _mhdraft_stream *s = mu_stream_get_owner (stream);
     
@@ -90,7 +90,7 @@ _mhdraft_readline (mu_stream_t stream, char *optr, size_t osize,
 }
   
 static int
-_mhdraft_size (mu_stream_t stream, off_t *psize)
+_mhdraft_size (mu_stream_t stream, mu_off_t *psize)
 {
   struct _mhdraft_stream *s = mu_stream_get_owner (stream);
   int rc = mu_stream_size (s->stream, psize);
@@ -195,8 +195,8 @@ struct _mhdraft_message
 {
   char *from;
   char *date;
-  off_t body_start;
-  off_t body_end;
+  mu_off_t body_start;
+  mu_off_t body_end;
 };
 
 static int
@@ -209,7 +209,7 @@ restore_envelope (mu_stream_t str, struct _mhdraft_message **pmenv)
   int rc;
   char buffer[128];
   size_t len;
-  off_t body_start, body_end;
+  mu_off_t body_start, body_end;
   
   while ((rc = mu_stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
 	 && len > 0)
@@ -318,7 +318,7 @@ _body_size (mu_body_t body, size_t *size)
 
 static int 
 _body_read (mu_stream_t stream, char *optr, size_t osize,
-	    off_t offset, size_t *nbytes)
+	    mu_off_t offset, size_t *nbytes)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   mu_message_t msg = mu_body_get_owner (body);
@@ -331,7 +331,7 @@ _body_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _body_readline (mu_stream_t stream, char *optr, size_t osize,
-		off_t offset, size_t *nbytes)
+		mu_off_t offset, size_t *nbytes)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   mu_message_t msg = mu_body_get_owner (body);
@@ -343,7 +343,7 @@ _body_readline (mu_stream_t stream, char *optr, size_t osize,
 }
 
 static int
-_body_stream_size (mu_stream_t stream, off_t *psize)
+_body_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   mu_message_t msg = mu_body_get_owner (body);

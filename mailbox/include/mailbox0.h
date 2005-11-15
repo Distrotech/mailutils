@@ -71,7 +71,7 @@ struct _mu_mailbox
   int  (*_scan)            (mu_mailbox_t, size_t, size_t *);
   int  (*_is_updated)      (mu_mailbox_t);
 
-  int  (*_get_size)        (mu_mailbox_t, off_t *);
+  int  (*_get_size)        (mu_mailbox_t, mu_off_t *);
 
 };
 

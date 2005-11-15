@@ -65,10 +65,10 @@ static int  nntp_mailbox_get_message     (mu_mailbox_t, size_t, mu_message_t *);
 static int  nntp_mailbox_messages_count  (mu_mailbox_t, size_t *);
 static int  nntp_mailbox_scan            (mu_mailbox_t, size_t, size_t *);
 /* FIXME
-   static int  nntp_mailbox_get_size        (mu_mailbox_t, off_t *); */
+   static int  nntp_mailbox_get_size        (mu_mailbox_t, mu_off_t *); */
 
 static int  nntp_message_get_transport2  (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int  nntp_message_read            (mu_stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_message_read            (mu_stream_t, char *, size_t, mu_off_t, size_t *);
 static int  nntp_message_size            (mu_message_t, size_t *);
 /* FIXME
    static int  nntp_message_line            (mu_message_t, size_t *); */
@@ -77,11 +77,11 @@ static int  nntp_message_uid             (mu_message_t, size_t *);
 
 /* FIXME
    static int  nntp_header_get_transport2   (mu_header_t, char *,
-                                             size_t, off_t, size_t *); */
-static int  nntp_header_fill             (mu_header_t, char *, size_t, off_t, size_t *);
+                                             size_t, mu_off_t, size_t *); */
+static int  nntp_header_fill             (mu_header_t, char *, size_t, mu_off_t, size_t *);
 
 static int  nntp_body_get_transport2     (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int  nntp_body_read               (mu_stream_t, char *, size_t, off_t, size_t *);
+static int  nntp_body_read               (mu_stream_t, char *, size_t, mu_off_t, size_t *);
 static int  nntp_body_size               (mu_body_t, size_t *);
 static int  nntp_body_lines              (mu_body_t, size_t *);
 
@@ -573,7 +573,7 @@ nntp_message_uidl (mu_message_t msg, char *buffer, size_t buflen,
 
 /* Message read overload  */
 static int
-nntp_message_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_message_read (mu_stream_t stream, char *buffer, size_t buflen, mu_off_t offset, size_t *plen)
 {
   mu_message_t msg = mu_stream_get_owner (stream);
   msg_nntp_t msg_nntp = mu_message_get_owner (msg);
@@ -611,7 +611,7 @@ nntp_message_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset
 
 /* Message read overload  */
 static int
-nntp_body_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_body_read (mu_stream_t stream, char *buffer, size_t buflen, mu_off_t offset, size_t *plen)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   mu_message_t msg = mu_body_get_owner (body);
@@ -650,7 +650,7 @@ nntp_body_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset, s
 
 /* Header read overload  */
 static int
-nntp_header_fill (mu_header_t header, char *buffer, size_t buflen, off_t offset, size_t *plen)
+nntp_header_fill (mu_header_t header, char *buffer, size_t buflen, mu_off_t offset, size_t *plen)
 {
   mu_message_t msg = mu_header_get_owner (header);
   msg_nntp_t msg_nntp = mu_message_get_owner (msg);

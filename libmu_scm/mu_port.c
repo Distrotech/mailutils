@@ -213,12 +213,12 @@ mu_port_end_input (SCM port, int offset)
   pt->rw_active = SCM_PORT_NEITHER;
 }
 
-static off_t
-mu_port_seek (SCM port, off_t offset, int whence)
+static mu_off_t
+mu_port_seek (SCM port, mu_off_t offset, int whence)
 {
   struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  off_t size = 0;
+  mu_off_t size = 0;
   
   if (whence == SEEK_CUR && offset == 0)
     return mp->offset;
@@ -251,7 +251,7 @@ mu_port_seek (SCM port, off_t offset, int whence)
 }
 
 static void
-mu_port_truncate (SCM port, off_t length)
+mu_port_truncate (SCM port, mu_off_t length)
 {
   struct mu_port *mp = MU_PORT (port);
   if (mu_stream_truncate (mp->stream, length))
@@ -262,7 +262,7 @@ static int
 mu_port_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   struct mu_port *mp = MU_PORT (exp);
-  off_t size = 0;
+  mu_off_t size = 0;
   
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);

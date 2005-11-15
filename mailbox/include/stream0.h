@@ -35,7 +35,7 @@ struct rbuffer
   char *ptr;
   size_t count;
   size_t bufsiz;
-  off_t offset;
+  mu_off_t offset;
 };
 
 struct _mu_stream
@@ -50,17 +50,17 @@ struct _mu_stream
   struct rbuffer rbuffer;
   
   /* Stream pointer for sequential offset.  */
-  off_t offset;
+  mu_off_t offset;
   
   void (*_destroy) (mu_stream_t);
   int (*_open)     (mu_stream_t);
   int (*_close)    (mu_stream_t);
   int (*_get_transport2) (mu_stream_t, mu_transport_t *, mu_transport_t *);
-  int (*_read)     (mu_stream_t, char *, size_t, off_t, size_t *);
-  int (*_readline) (mu_stream_t, char *, size_t, off_t, size_t *);
-  int (*_write)    (mu_stream_t, const char *, size_t, off_t, size_t *);
-  int (*_truncate) (mu_stream_t, off_t);
-  int (*_size)     (mu_stream_t, off_t *);
+  int (*_read)     (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+  int (*_readline) (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+  int (*_write)    (mu_stream_t, const char *, size_t, mu_off_t, size_t *);
+  int (*_truncate) (mu_stream_t, mu_off_t);
+  int (*_size)     (mu_stream_t, mu_off_t *);
   int (*_flush)    (mu_stream_t);
   int (*_setbufsiz)(mu_stream_t, size_t);
   int (*_strerror) (mu_stream_t, const char **);

@@ -271,7 +271,7 @@ _tls_destroy (mu_stream_t stream)
     
 static int
 _tls_read (mu_stream_t stream, char *optr, size_t osize,
-	   off_t offset, size_t *nbytes)
+	   mu_off_t offset, size_t *nbytes)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;
@@ -290,7 +290,7 @@ _tls_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _tls_readline (mu_stream_t stream, char *optr, size_t osize,
-		off_t offset, size_t *nbytes)
+		mu_off_t offset, size_t *nbytes)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;
@@ -329,7 +329,7 @@ _tls_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _tls_write (mu_stream_t stream, const char *iptr, size_t isize,
-	    off_t offset, size_t *nbytes)
+	    mu_off_t offset, size_t *nbytes)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
   int rc;

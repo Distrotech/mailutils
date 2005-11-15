@@ -173,7 +173,7 @@ _tcp_get_transport2 (mu_stream_t stream, mu_transport_t *tr, mu_transport_t *tr2
 }
 
 static int
-_tcp_read (mu_stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * br)
+_tcp_read (mu_stream_t stream, char *buf, size_t buf_size, mu_off_t offset, size_t * br)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int bytes;
@@ -192,7 +192,7 @@ _tcp_read (mu_stream_t stream, char *buf, size_t buf_size, off_t offset, size_t 
 }
 
 static int
-_tcp_write (mu_stream_t stream, const char *buf, size_t buf_size, off_t offset,
+_tcp_write (mu_stream_t stream, const char *buf, size_t buf_size, mu_off_t offset,
 	    size_t * bw)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);

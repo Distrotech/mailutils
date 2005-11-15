@@ -40,9 +40,9 @@ struct _mu_filter
   int direction;
   int type;
   void *data;
-  int  (*_read)     (mu_filter_t, char *, size_t, off_t, size_t *);
-  int  (*_readline) (mu_filter_t, char *, size_t, off_t, size_t *);
-  int  (*_write)    (mu_filter_t, const char *, size_t, off_t, size_t *);
+  int  (*_read)     (mu_filter_t, char *, size_t, mu_off_t, size_t *);
+  int  (*_readline) (mu_filter_t, char *, size_t, mu_off_t, size_t *);
+  int  (*_write)    (mu_filter_t, const char *, size_t, mu_off_t, size_t *);
   void (*_destroy)  (mu_filter_t);
 };
 

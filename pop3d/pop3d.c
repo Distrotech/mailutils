@@ -386,8 +386,8 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	 of sync.  */
       if (state == TRANSACTION && !mu_mailbox_is_updated (mbox))
 	{
-	  static off_t mailbox_size;
-	  off_t newsize = 0;
+	  static mu_off_t mailbox_size;
+	  mu_off_t newsize = 0;
 	  mu_mailbox_get_size (mbox, &newsize);
 	  /* Did we shrink?  First time save the size.  */
 	  if (!mailbox_size)

@@ -66,7 +66,7 @@ _mapfile_destroy (mu_stream_t stream)
 
 static int
 _mapfile_read (mu_stream_t stream, char *optr, size_t osize,
-	    off_t offset, size_t *nbytes)
+	       mu_off_t offset, size_t *nbytes)
 {
   struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   size_t n = 0;
@@ -74,7 +74,7 @@ _mapfile_read (mu_stream_t stream, char *optr, size_t osize,
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
 
-  if (offset < (off_t)mfs->size)
+  if (offset < (mu_off_t)mfs->size)
     {
       n = ((offset + osize) > mfs->size) ? mfs->size - offset :  osize;
       memcpy (optr, mfs->ptr + offset, n);
@@ -87,7 +87,7 @@ _mapfile_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _mapfile_readline (mu_stream_t stream, char *optr, size_t osize,
-		off_t offset, size_t *nbytes)
+		mu_off_t offset, size_t *nbytes)
 {
   struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   char *nl;
@@ -96,7 +96,7 @@ _mapfile_readline (mu_stream_t stream, char *optr, size_t osize,
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
 
-  if (offset < (off_t)mfs->size)
+  if (offset < (mu_off_t)mfs->size)
     {
       /* Save space for the null byte.  */
       osize--;
@@ -113,7 +113,7 @@ _mapfile_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _mapfile_write (mu_stream_t stream, const char *iptr, size_t isize,
-	    off_t offset, size_t *nbytes)
+	    mu_off_t offset, size_t *nbytes)
 {
   struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
 
@@ -154,7 +154,7 @@ _mapfile_write (mu_stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
-_mapfile_truncate (mu_stream_t stream, off_t len)
+_mapfile_truncate (mu_stream_t stream, mu_off_t len)
 {
   struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   if (mfs->ptr == MAP_FAILED)
@@ -181,7 +181,7 @@ _mapfile_truncate (mu_stream_t stream, off_t len)
 }
 
 static int
-_mapfile_size (mu_stream_t stream, off_t *psize)
+_mapfile_size (mu_stream_t stream, mu_off_t *psize)
 {
   struct _mapfile_stream *mfs = mu_stream_get_owner (stream);
   struct stat stbuf;

@@ -43,7 +43,7 @@ mu_pop3_stream_destroy (mu_stream_t stream)
 }
 
 static int
-mu_pop3_stream_read (mu_stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
+mu_pop3_stream_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t offset, size_t *pn)
 {
   struct mu_pop3_stream *pop3_stream = mu_stream_get_owner (stream);
   size_t n = 0;
@@ -94,7 +94,7 @@ mu_pop3_stream_read (mu_stream_t stream, char *buf, size_t buflen, off_t offset,
 }
 
 static int
-mu_pop3_stream_readline (mu_stream_t stream, char *buf, size_t buflen, off_t offset, size_t *pn)
+mu_pop3_stream_readline (mu_stream_t stream, char *buf, size_t buflen, mu_off_t offset, size_t *pn)
 {
   struct mu_pop3_stream *pop3_stream = mu_stream_get_owner (stream);
   size_t n = 0;

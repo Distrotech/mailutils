@@ -309,7 +309,7 @@ mu_mailbox_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 }
 
 int
-mu_mailbox_get_size (mu_mailbox_t mbox, off_t *psize)
+mu_mailbox_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 {
   if (mbox == NULL || mbox->_get_size == NULL)
     return MU_ERR_EMPTY_VFN;

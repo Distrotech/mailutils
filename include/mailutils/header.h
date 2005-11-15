@@ -130,7 +130,7 @@ extern int mu_header_set_lines (mu_header_t,
       int (*_lines) (mu_header_t, size_t *), void *);
 
 extern int mu_header_set_fill (mu_header_t,
-      int (*_fill) (mu_header_t, char *, size_t, off_t, size_t *), void *owner);
+      int (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *), void *owner);
 
   
 #ifdef __cplusplus

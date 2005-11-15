@@ -311,7 +311,7 @@ muaux_modules=`echo $MODLIST | sort -u`
 mailutils_modules=`echo $mailutils_modules | sort -u`
 
 copy_files lib muaux
-copy_files mailbox mailutils 's/AC_LIBSOURCES/MU_LIBSOURCES/;s/AC_REPLACE_FUNCS/MU_REPLACE_FUNCS/;s/AC_LIBOBJ/MU_LIBOBJ/'
+copy_files mailbox mailutils 's/AC_LIBSOURCES/MU_LIBSOURCES/;s/AC_LIBSOURCE/MU_LIBSOURCE/;s/AC_REPLACE_FUNCS/MU_REPLACE_FUNCS/;s/AC_LIBOBJ/MU_LIBOBJ/'
 
 if [ -n "$DRY_RUN" ]; then
   echo "-----BEGIN gnulib.m4 FILE-----"

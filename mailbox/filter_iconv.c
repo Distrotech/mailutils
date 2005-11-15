@@ -117,7 +117,7 @@ _icvt_destroy (mu_stream_t stream)
 }
 
 static int _icvt_read (mu_stream_t stream, char *optr, size_t osize,
-		       off_t offset, size_t *pnbytes);
+		       mu_off_t offset, size_t *pnbytes);
 
 static int
 internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbytes)
@@ -332,7 +332,7 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 
 static int
 _icvt_read (mu_stream_t stream, char *optr, size_t osize,
-	    off_t offset ARG_UNUSED, size_t *pnbytes)
+	    mu_off_t offset ARG_UNUSED, size_t *pnbytes)
 {
   struct icvt_stream *s = mu_stream_get_owner (stream);
 

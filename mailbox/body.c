@@ -38,11 +38,11 @@
 
 static int _body_flush    (mu_stream_t);
 static int _body_get_transport2 (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int _body_read     (mu_stream_t, char *, size_t, off_t, size_t *);
-static int _body_readline (mu_stream_t, char *, size_t, off_t, size_t *);
-static int _body_truncate (mu_stream_t, off_t);
-static int _body_size     (mu_stream_t, off_t *);
-static int _body_write    (mu_stream_t, const char *, size_t, off_t, size_t *);
+static int _body_read     (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int _body_readline (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int _body_truncate (mu_stream_t, mu_off_t);
+static int _body_size     (mu_stream_t, mu_off_t *);
+static int _body_write    (mu_stream_t, const char *, size_t, mu_off_t, size_t *);
 
 /* Our own defaults for the body.  */
 static int _body_get_size   (mu_body_t, size_t *);
@@ -254,35 +254,35 @@ _body_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *p
 }
 
 static int
-_body_read (mu_stream_t stream,  char *buffer, size_t n, off_t off, size_t *pn)
+_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off, size_t *pn)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return mu_stream_read (body->fstream, buffer, n, off, pn);
 }
 
 static int
-_body_readline (mu_stream_t stream, char *buffer, size_t n, off_t off, size_t *pn)
+_body_readline (mu_stream_t stream, char *buffer, size_t n, mu_off_t off, size_t *pn)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return mu_stream_readline (body->fstream, buffer, n, off, pn);
 }
 
 static int
-_body_write (mu_stream_t stream, const char *buf, size_t n, off_t off, size_t *pn)
+_body_write (mu_stream_t stream, const char *buf, size_t n, mu_off_t off, size_t *pn)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return mu_stream_write (body->fstream, buf, n, off, pn);
 }
 
 static int
-_body_truncate (mu_stream_t stream, off_t n)
+_body_truncate (mu_stream_t stream, mu_off_t n)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return mu_stream_truncate (body->fstream, n);
 }
 
 static int
-_body_size (mu_stream_t stream, off_t *size)
+_body_size (mu_stream_t stream, mu_off_t *size)
 {
   mu_body_t body = mu_stream_get_owner (stream);
   return mu_stream_size (body->fstream, size);
@@ -311,7 +311,7 @@ _body_get_size (mu_body_t body, size_t *psize)
 static int
 _body_get_size0 (mu_stream_t stream, size_t *psize)
 {
-  off_t off = 0;
+  mu_off_t off = 0;
   int status = mu_stream_size (stream, &off);
   if (psize)
     *psize = off;
@@ -327,9 +327,9 @@ _body_get_lines0 (mu_stream_t stream, size_t *plines)
     {
       char buf[128];
       size_t n = 0;
-      off_t off = 0;
+      mu_off_t off = 0;
       while ((status = mu_stream_readline (stream, buf, sizeof buf,
-					off, &n)) == 0 && n > 0)
+					   off, &n)) == 0 && n > 0)
 	{
 	  if (buf[n - 1] == '\n')
 	    lines++;

@@ -32,14 +32,14 @@
 
 static int rfc822_init (mu_filter_t);
 static void rfc822_destroy (mu_filter_t);
-static int rfc822_read (mu_filter_t, char *, size_t, off_t, size_t *);
-static int rfc822_readline (mu_filter_t, char *, size_t, off_t, size_t *);
-static int rfc822_read0 (mu_filter_t, char *, size_t, off_t, size_t *, int);
+static int rfc822_read (mu_filter_t, char *, size_t, mu_off_t, size_t *);
+static int rfc822_readline (mu_filter_t, char *, size_t, mu_off_t, size_t *);
+static int rfc822_read0 (mu_filter_t, char *, size_t, mu_off_t, size_t *, int);
 
 struct rfc822
 {
-  off_t r_offset; /* rfc822 offset.  */
-  off_t s_offset; /* stream offset.  */
+  mu_off_t r_offset; /* rfc822 offset.  */
+  mu_off_t s_offset; /* stream offset.  */
   size_t lines;
   int residue;
 };
@@ -89,14 +89,14 @@ rfc822_destroy (mu_filter_t filter)
 
 static int
 rfc822_read (mu_filter_t filter, char *buffer, size_t buflen,
-	      off_t off, size_t *pnread)
+	      mu_off_t off, size_t *pnread)
 {
   return rfc822_read0 (filter, buffer, buflen, off, pnread, 0);
 }
 
 static int
 rfc822_readline (mu_filter_t filter, char *buffer, size_t buflen,
-		 off_t off, size_t *pnread)
+		 mu_off_t off, size_t *pnread)
 {
   return rfc822_read0 (filter, buffer, buflen, off, pnread, 1);
 }
@@ -108,7 +108,7 @@ rfc822_readline (mu_filter_t filter, char *buffer, size_t buflen,
 
 static int
 rfc822_read0 (mu_filter_t filter, char *buffer, size_t buflen,
-	      off_t off, size_t *pnread, int isreadline)
+	      mu_off_t off, size_t *pnread, int isreadline)
 {
   size_t total = 0;
   int status = 0;

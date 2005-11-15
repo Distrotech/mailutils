@@ -51,7 +51,7 @@ filter_destroy (mu_stream_t stream)
 }
 
 static int
-filter_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset,
+filter_read (mu_stream_t stream, char *buffer, size_t buflen, mu_off_t offset,
 	     size_t *nbytes)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
@@ -63,7 +63,7 @@ filter_read (mu_stream_t stream, char *buffer, size_t buflen, off_t offset,
 
 static int
 filter_readline (mu_stream_t stream, char *buffer, size_t buflen,
-		 off_t offset, size_t *nbytes)
+		 mu_off_t offset, size_t *nbytes)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_readline && (filter->direction & MU_STREAM_READ
@@ -74,7 +74,7 @@ filter_readline (mu_stream_t stream, char *buffer, size_t buflen,
 
 static int
 filter_write (mu_stream_t stream, const char *buffer, size_t buflen,
-	      off_t offset, size_t *nbytes)
+	      mu_off_t offset, size_t *nbytes)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
   if (filter->_write && (filter->direction & MU_STREAM_WRITE
@@ -92,14 +92,14 @@ filter_open (mu_stream_t stream)
 }
 
 static int
-filter_truncate (mu_stream_t stream, off_t len)
+filter_truncate (mu_stream_t stream, mu_off_t len)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
   return mu_stream_truncate (filter->stream, len);
 }
 
 static int
-filter_size (mu_stream_t stream, off_t *psize)
+filter_size (mu_stream_t stream, mu_off_t *psize)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
   return mu_stream_size (filter->stream, psize);

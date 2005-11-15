@@ -520,7 +520,7 @@ switch_user_id (struct mu_auth_data *auth, int user)
 }
 
 static int
-tmp_write (mu_stream_t stream, off_t *poffset, char *buf, size_t len)
+tmp_write (mu_stream_t stream, mu_off_t *poffset, char *buf, size_t len)
 {
   size_t n = 0;
   int status = mu_stream_write (stream, buf, len, *poffset, &n);
@@ -536,7 +536,7 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
   mu_stream_t stream;
   char *buf = NULL;
   size_t n = 0;
-  off_t offset = 0;
+  mu_off_t offset = 0;
   size_t line;
   int status;
   static char *newline = "\n";
@@ -655,7 +655,7 @@ deliver (mu_mailbox_t imbx, char *name)
   struct mu_auth_data *auth;
   int status;
   mu_stream_t istream, ostream;
-  off_t size;
+  mu_off_t size;
   int failed = 0;
   
   auth = mu_get_auth_by_name (name);
@@ -738,7 +738,7 @@ deliver (mu_mailbox_t imbx, char *name)
 #if defined(USE_MAILBOX_QUOTAS)
   {
     size_t n;
-    off_t isize;
+    mu_off_t isize;
 
     switch (check_quota (name, size, &n))
       {
@@ -773,11 +773,11 @@ deliver (mu_mailbox_t imbx, char *name)
   
   if (!failed && switch_user_id (auth, 1) == 0)
     {
-      off_t ioff = 0;
-      off_t off = size;
+      mu_off_t ioff = 0;
+      mu_off_t off = size;
       size_t nwr, nrd;
       char *buf = NULL;
-      off_t bufsize = 1024;
+      mu_off_t bufsize = 1024;
 
       mu_stream_size (istream, &bufsize);
       for (; (buf = malloc (bufsize)) == NULL && bufsize > 1; bufsize /= 2)

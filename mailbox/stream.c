@@ -40,7 +40,7 @@
 #include <mailutils/errno.h>
 #include <stream0.h>
 
-static int refill (mu_stream_t, off_t);
+static int refill (mu_stream_t, mu_off_t);
 
 /* A stream provides a way for an object to do I/O. It overloads
    stream read/write functions. Only a minimal buffering is done
@@ -156,7 +156,7 @@ mu_stream_setbufsiz (mu_stream_t stream, size_t size)
 
 int
 mu_stream_read (mu_stream_t is, char *buf, size_t count,
-	     off_t offset, size_t *pnread)
+	     mu_off_t offset, size_t *pnread)
 {
   int status = 0;
   if (is == NULL || is->_read == NULL)
@@ -265,7 +265,7 @@ mu_stream_read (mu_stream_t is, char *buf, size_t count,
  */
 int
 mu_stream_readline (mu_stream_t is, char *buf, size_t count,
-		 off_t offset, size_t *pnread)
+		 mu_off_t offset, size_t *pnread)
 {
   int status = 0;
 
@@ -398,7 +398,7 @@ mu_stream_readline (mu_stream_t is, char *buf, size_t count,
 
 int
 mu_stream_write (mu_stream_t os, const char *buf, size_t count,
-	      off_t offset, size_t *pnwrite)
+	      mu_off_t offset, size_t *pnwrite)
 {
   int nleft;
   int err = 0;
@@ -481,7 +481,7 @@ mu_stream_get_property (mu_stream_t stream, mu_property_t *pp)
 }
 
 int
-mu_stream_size (mu_stream_t stream, off_t *psize)
+mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   if (stream == NULL || stream->_size == NULL)
     return EINVAL;
@@ -489,7 +489,7 @@ mu_stream_size (mu_stream_t stream, off_t *psize)
 }
 
 int
-mu_stream_truncate (mu_stream_t stream, off_t len)
+mu_stream_truncate (mu_stream_t stream, mu_off_t len)
 {
   if (stream == NULL || stream->_truncate == NULL )
     return EINVAL;
@@ -575,7 +575,7 @@ mu_stream_set_get_transport2 (mu_stream_t stream,
 
 int
 mu_stream_set_read (mu_stream_t stream, int (*_read)
-		 (mu_stream_t, char *, size_t, off_t, size_t *),
+		 (mu_stream_t, char *, size_t, mu_off_t, size_t *),
 		 void *owner)
 {
   if (stream == NULL)
@@ -590,7 +590,7 @@ mu_stream_set_read (mu_stream_t stream, int (*_read)
 
 int
 mu_stream_set_readline (mu_stream_t stream, int (*_readline)
-		 (mu_stream_t, char *, size_t, off_t, size_t *),
+		 (mu_stream_t, char *, size_t, mu_off_t, size_t *),
 		 void *owner)
 {
   if (stream == NULL)
@@ -605,7 +605,7 @@ mu_stream_set_readline (mu_stream_t stream, int (*_readline)
 
 int
 mu_stream_set_write (mu_stream_t stream, int (*_write)
-		  (mu_stream_t, const char *, size_t, off_t, size_t *),
+		  (mu_stream_t, const char *, size_t, mu_off_t, size_t *),
 		  void *owner)
 {
   if (stream == NULL)
@@ -620,7 +620,7 @@ mu_stream_set_write (mu_stream_t stream, int (*_write)
 
 
 int
-mu_stream_set_size (mu_stream_t stream, int (*_size)(mu_stream_t, off_t *), void *owner)
+mu_stream_set_size (mu_stream_t stream, int (*_size)(mu_stream_t, mu_off_t *), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -631,7 +631,7 @@ mu_stream_set_size (mu_stream_t stream, int (*_size)(mu_stream_t, off_t *), void
 }
 
 int
-mu_stream_set_truncate (mu_stream_t stream, int (*_truncate) (mu_stream_t, off_t),
+mu_stream_set_truncate (mu_stream_t stream, int (*_truncate) (mu_stream_t, mu_off_t),
 		     void *owner)
 {
   if (stream == NULL)
@@ -736,9 +736,9 @@ mu_stream_sequential_write (mu_stream_t stream, const char *buf, size_t size)
 }
 
 int
-mu_stream_seek (mu_stream_t stream, off_t off, int whence)
+mu_stream_seek (mu_stream_t stream, mu_off_t off, int whence)
 {
-  off_t size = 0;
+  mu_off_t size = 0;
   size_t pos;
   int rc;
 
@@ -803,7 +803,7 @@ mu_stream_strerror (mu_stream_t stream, const char **p)
 }
 
 static int
-refill (mu_stream_t stream, off_t offset)
+refill (mu_stream_t stream, mu_off_t offset)
 {
   if (stream->_read)
     {

@@ -39,9 +39,9 @@
 #define HEADER_MODIFIED 1
 
 static int header_parse    (mu_header_t, const char *, int);
-static int header_read     (mu_stream_t, char *, size_t, off_t, size_t *);
-static int header_readline (mu_stream_t, char *, size_t, off_t, size_t *);
-static int header_write    (mu_stream_t, const char *, size_t, off_t, size_t *);
+static int header_read     (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int header_readline (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int header_write    (mu_stream_t, const char *, size_t, mu_off_t, size_t *);
 static int fill_blurb      (mu_header_t);
 static void header_free_cache (mu_header_t);
 
@@ -944,7 +944,7 @@ mu_header_set_stream (mu_header_t header, mu_stream_t stream, void *owner)
 
 int
 mu_header_set_fill (mu_header_t header, int
-		 (*_fill) (mu_header_t, char *, size_t, off_t, size_t *),
+		 (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *),
 		 void *owner)
 {
   if (header == NULL)
@@ -1031,7 +1031,7 @@ fill_blurb (mu_header_t header)
 
 static int
 header_write (mu_stream_t os, const char *buf, size_t buflen,
-	      off_t off, size_t *pnwrite)
+	      mu_off_t off, size_t *pnwrite)
 {
   mu_header_t header = mu_stream_get_owner (os);
   int status;
@@ -1116,7 +1116,7 @@ header_write (mu_stream_t os, const char *buf, size_t buflen,
 }
 
 static int
-header_read (mu_stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
+header_read (mu_stream_t is, char *buf, size_t buflen, mu_off_t off, size_t *pnread)
 {
   int len;
   mu_header_t header = mu_stream_get_owner (is);
@@ -1154,7 +1154,7 @@ header_read (mu_stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread
 }
 
 static int
-header_readline (mu_stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
+header_readline (mu_stream_t is, char *buf, size_t buflen, mu_off_t off, size_t *pn)
 {
   int len;
   mu_header_t header = mu_stream_get_owner (is);

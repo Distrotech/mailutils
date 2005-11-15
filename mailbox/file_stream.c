@@ -46,7 +46,7 @@
 struct _file_stream
 {
   FILE *file;
-  off_t offset;
+  mu_off_t offset;
 
   char *filename;
   mu_stream_t cache;
@@ -67,7 +67,7 @@ _file_destroy (mu_stream_t stream)
 
 static int
 _file_read (mu_stream_t stream, char *optr, size_t osize,
-	    off_t offset, size_t *nbytes)
+	    mu_off_t offset, size_t *nbytes)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n;
@@ -110,7 +110,7 @@ _file_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _file_readline (mu_stream_t stream, char *optr, size_t osize,
-		off_t offset, size_t *nbytes)
+		mu_off_t offset, size_t *nbytes)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n = 0;
@@ -163,7 +163,7 @@ _file_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _file_write (mu_stream_t stream, const char *iptr, size_t isize,
-	    off_t offset, size_t *nbytes)
+	    mu_off_t offset, size_t *nbytes)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n;
@@ -201,7 +201,7 @@ _file_write (mu_stream_t stream, const char *iptr, size_t isize,
 
 static int
 _stdin_file_read (mu_stream_t stream, char *optr, size_t osize,
-		  off_t offset, size_t *pnbytes)
+		  mu_off_t offset, size_t *pnbytes)
 {
   int status = 0;
   size_t nbytes;
@@ -262,7 +262,7 @@ _stdin_file_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _stdin_file_readline (mu_stream_t stream, char *optr, size_t osize,
-		      off_t offset, size_t *pnbytes)
+		      mu_off_t offset, size_t *pnbytes)
 {
   int status;
   size_t nbytes;
@@ -293,14 +293,14 @@ _stdin_file_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _stdout_file_write (mu_stream_t stream, const char *iptr, size_t isize,
-		    off_t offset, size_t *nbytes)
+		    mu_off_t offset, size_t *nbytes)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   return _file_write (stream, iptr, isize, fs->offset, nbytes);
 }
 
 static int
-_file_truncate (mu_stream_t stream, off_t len)
+_file_truncate (mu_stream_t stream, mu_off_t len)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   if (fs->file && ftruncate (fileno(fs->file), len) != 0)
@@ -309,7 +309,7 @@ _file_truncate (mu_stream_t stream, off_t len)
 }
 
 static int
-_file_size (mu_stream_t stream, off_t *psize)
+_file_size (mu_stream_t stream, mu_off_t *psize)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   struct stat stbuf;
@@ -933,7 +933,7 @@ _prog_open (mu_stream_t stream)
 
 static int
 _prog_read (mu_stream_t stream, char *optr, size_t osize,
-	    off_t offset, size_t *pnbytes)
+	    mu_off_t offset, size_t *pnbytes)
 {
   struct _prog_stream *fs = mu_stream_get_owner (stream);
   return mu_stream_read (fs->in, optr, osize, offset, pnbytes);
@@ -941,7 +941,7 @@ _prog_read (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _prog_readline (mu_stream_t stream, char *optr, size_t osize,
-		off_t offset, size_t *pnbytes)
+		mu_off_t offset, size_t *pnbytes)
 {
   struct _prog_stream *fs = mu_stream_get_owner (stream);
   return mu_stream_readline (fs->in, optr, osize, offset, pnbytes);
@@ -949,7 +949,7 @@ _prog_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _prog_write (mu_stream_t stream, const char *iptr, size_t isize,
-	     off_t offset, size_t *pnbytes)
+	     mu_off_t offset, size_t *pnbytes)
 {
   struct _prog_stream *fs = mu_stream_get_owner (stream);
   return mu_stream_write (fs->out, iptr, isize, offset, pnbytes);

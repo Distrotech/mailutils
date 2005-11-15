@@ -406,7 +406,7 @@ _mime_parse_mpart_message (mu_mime_t mime)
 /*------ Mime message functions for READING a multipart message -----*/
 
 static int
-_mimepart_body_read (mu_stream_t stream, char *buf, size_t buflen, off_t off,
+_mimepart_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
 		     size_t * nbytes)
 {
   mu_body_t          body = mu_stream_get_owner (stream);
@@ -561,7 +561,7 @@ _mime_set_content_type (mu_mime_t mime)
 } while (0)
 
 static int
-_mime_body_read (mu_stream_t stream, char *buf, size_t buflen, off_t off,
+_mime_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
 		 size_t * nbytes)
 {
   mu_body_t          body = mu_stream_get_owner (stream);

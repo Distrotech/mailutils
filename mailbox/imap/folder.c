@@ -1388,7 +1388,7 @@ imap_list (f_imap_t f_imap)
 	}
       else if ((status = imap_string (f_imap, &tok)) == 0)
 	{
-	  off_t sz = 0;
+	  mu_off_t sz = 0;
 
 	  mu_stream_size (f_imap->string.stream, &sz);
 	  lr->name = calloc (sz + 1, 1);
@@ -1747,7 +1747,7 @@ imap_body (f_imap_t f_imap, char **ptr)
   if (f_imap->state == IMAP_SCAN_ACK)
     {
       char *buffer;
-      off_t total = 0;
+      mu_off_t total = 0;
       if (f_imap->string.msg_imap && f_imap->string.msg_imap->fheader)
 	mu_header_destroy (&f_imap->string.msg_imap->fheader, NULL);
       mu_stream_size (f_imap->string.stream, &total);

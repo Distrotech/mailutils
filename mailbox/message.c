@@ -55,21 +55,21 @@
 #define MESSAGE_MODIFIED 0x10000;
 
 static int message_read   (mu_stream_t is, char *buf, size_t buflen,
-			   off_t off, size_t *pnread );
+			   mu_off_t off, size_t *pnread );
 static int message_write  (mu_stream_t os, const char *buf, size_t buflen,
-			   off_t off, size_t *pnwrite);
+			   mu_off_t off, size_t *pnwrite);
 static int message_get_transport2 (mu_stream_t stream, mu_transport_t *pin, 
                                    mu_transport_t *pout);
 static int message_sender (mu_envelope_t envelope, char *buf, size_t len,
 			   size_t *pnwrite);
 static int message_date   (mu_envelope_t envelope, char *buf, size_t len,
 			   size_t *pnwrite);
-static int message_stream_size (mu_stream_t stream, off_t *psize);
+static int message_stream_size (mu_stream_t stream, mu_off_t *psize);
 static int message_header_fill (mu_header_t header, char *buffer,
-			        size_t buflen, off_t off,
+			        size_t buflen, mu_off_t off,
 				size_t * pnread);
 static int message_body_read (mu_stream_t stream,  char *buffer,
-			      size_t n, off_t off, size_t *pn);
+			      size_t n, mu_off_t off, size_t *pn);
 
 /*  Allocate ressources for the mu_message_t.  */
 int
@@ -172,7 +172,7 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
   int status = 0;
   mu_stream_t fromstr = NULL;
   mu_stream_t tostr = NULL;
-  off_t off = 0;
+  mu_off_t off = 0;
   size_t n = 0;
   char buf[512];
 
@@ -618,7 +618,7 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
       struct md5_ctx md5context;
       mu_stream_t stream = NULL;
       char buf[1024];
-      off_t offset = 0;
+      mu_off_t offset = 0;
       unsigned char md5digest[16];
       char *tmp;
       n = 0;
@@ -784,7 +784,7 @@ mu_message_get_observable (mu_message_t msg, mu_observable_t *pobservable)
 /* Implements the mu_stream_read () on the message stream.  */
 static int
 message_read (mu_stream_t is, char *buf, size_t buflen,
-	      off_t off, size_t *pnread )
+	      mu_off_t off, size_t *pnread )
 {
   mu_message_t msg =  mu_stream_get_owner (is);
   mu_stream_t his, bis;
@@ -822,7 +822,7 @@ message_read (mu_stream_t is, char *buf, size_t buflen,
 /* Implements the mu_stream_write () on the message stream.  */
 static int
 message_write (mu_stream_t os, const char *buf, size_t buflen,
-	       off_t off, size_t *pnwrite)
+	       mu_off_t off, size_t *pnwrite)
 {
   mu_message_t msg = mu_stream_get_owner (os);
   int status = 0;
@@ -887,7 +887,7 @@ message_write (mu_stream_t os, const char *buf, size_t buflen,
 	  msg->hdr_buflen = msg->hdr_done = 0;
 	  return status;
 	}
-      if (off < (off_t)msg->hdr_buflen)
+      if (off < (mu_off_t)msg->hdr_buflen)
 	off = 0;
       else
 	off -= msg->hdr_buflen;
@@ -928,7 +928,7 @@ message_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t 
 
 /* Implements the stream_stream_size () on the message stream.  */
 static int
-message_stream_size (mu_stream_t stream, off_t *psize)
+message_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   mu_message_t msg = mu_stream_get_owner (stream);
   return mu_message_size (msg, (size_t*) psize);
@@ -1019,7 +1019,7 @@ message_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
 static int
 message_header_fill (mu_header_t header, char *buffer, size_t buflen,
-		     off_t off, size_t * pnread)
+		     mu_off_t off, size_t * pnread)
 {
   int status = 0;
   mu_message_t msg = mu_header_get_owner (header);
@@ -1057,7 +1057,7 @@ message_header_fill (mu_header_t header, char *buffer, size_t buflen,
 }
 
 static int
-message_body_read (mu_stream_t stream,  char *buffer, size_t n, off_t off,
+message_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off,
 		   size_t *pn)
 {
   mu_body_t body = mu_stream_get_owner (stream);

@@ -41,8 +41,8 @@ struct _amd_data;
 struct _amd_message
 {
   mu_stream_t stream;          /* Associated file stream */
-  off_t body_start;         /* Offset of body start in the message file */
-  off_t body_end;           /* Offset of body end (size of file, effectively)*/
+  mu_off_t body_start;         /* Offset of body start in the message file */
+  mu_off_t body_end;           /* Offset of body end (size of file, effectively)*/
 
   int attr_flags;           /* Attribute flags */
   int deleted;              /* Was the message originally deleted */

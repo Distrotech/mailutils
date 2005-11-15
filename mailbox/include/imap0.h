@@ -152,7 +152,7 @@ struct _f_imap
   struct
   {
     mu_stream_t stream;
-    off_t offset;
+    mu_off_t offset;
     size_t nleft;  /* nleft to read in the literal. */
     msg_imap_t msg_imap;
     enum imap_state type;
@@ -168,7 +168,7 @@ struct _f_imap
   char *buffer;
   char *ptr;
   char *nl;
-  off_t offset; /* Dummy, this is used because of the stream buffering.
+  mu_off_t offset; /* Dummy, this is used because of the stream buffering.
                    The mu_stream_t maintains and offset and the offset we use must
                    be in sync.  */
 

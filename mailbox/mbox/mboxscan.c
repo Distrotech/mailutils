@@ -560,7 +560,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   char buf[MSGLINELEN];
   int inheader;
   int inbody;
-  off_t total = 0;
+  mu_off_t total = 0;
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum = NULL;
   int status = 0;

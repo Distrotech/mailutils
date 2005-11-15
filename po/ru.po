@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.6.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-08-26 17:10+0300\n"
+"POT-Creation-Date: 2005-11-15 20:37+0200\n"
 "PO-Revision-Date: 2005-05-19 12:01+0300\n"
 "Last-Translator: Sergey Poznyakoff <gray@gnu.org>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -33,9 +33,10 @@ msgid "Print C compiler flags to compile with"
 msgstr "Вывести флаги компилятора C"
 
 #: config/mailutils-config.c:35
+#, fuzzy
 msgid ""
-"Print libraries to link with. Possible arguments are: auth, guile, all, "
-"mbox, mh, maildir, imap, pop"
+"Print libraries to link with. Possible arguments are: auth, guile, mbox, mh, "
+"maildir, imap, pop, sieve and all"
 msgstr ""
 "Вывести опции загрузчика. Допустимые аргументы: auth, guile, all, mbox, mh, "
 "maildir, imap, pop"
@@ -54,7 +55,7 @@ msgstr ""
 "компиляции. Программа завершается с кодом 0 если все из указанных опций были "
 "определены. В противном случае возвращается код 1."
 
-#: config/mailutils-config.c:126 frm/from.c:128 mh/folder.c:570
+#: config/mailutils-config.c:128 frm/from.c:128 mh/folder.c:886
 msgid "Too many arguments"
 msgstr "Слишком много аргументов"
 
@@ -70,7 +71,7 @@ msgid "Use STRING as PAM service name"
 msgstr "Использовать СТРОКУ как название сервиса PAM"
 
 #: auth/sql.c:185 auth/sql.c:195 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
-#: mh/mark.c:32 mh/pick.c:87
+#: mailbox/argp-parse.c:84 mh/mark.c:32 mh/pick.c:87
 msgid "NAME"
 msgstr "ИМЯ"
 
@@ -116,8 +117,8 @@ msgid "Name of the database to connect to"
 msgstr "Название базы данных"
 
 #: auth/sql.c:201 mailbox/mu_argp.c:80 mailbox/mu_argp.c:115
-#: mailbox/mu_argp.c:121 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44 mh/mhl.c:46
-#: mh/repl.c:65 mh/scan.c:51 mh/send.c:75
+#: mailbox/mu_argp.c:121 mh/folder.c:50 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44
+#: mh/mhl.c:46 mh/repl.c:65 mh/scan.c:51 mh/send.c:75
 msgid "NUMBER"
 msgstr "ЧИСЛО"
 
@@ -188,8 +189,8 @@ msgstr "доверенный Файл CA"
 msgid "INTERNAL ERROR: cannot register argp capability tls"
 msgstr "ВНУТРЕННЯЯ ОШИБКА: невозможно зарегистрировать свойство argp tls"
 
-#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:64 mh/folder.c:67
-#: mh/folder.c:70 mh/folder.c:73 mh/folder.c:76 mh/forw.c:33 mh/forw.c:49
+#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:66 mh/folder.c:69
+#: mh/folder.c:72 mh/folder.c:75 mh/folder.c:78 mh/forw.c:33 mh/forw.c:49
 #: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:41 mh/inc.c:48
 #: mh/mark.c:40 mh/mark.c:43 mh/mhl.c:36 mh/mhl.c:39 mh/mhn.c:43 mh/mhn.c:48
 #: mh/mhn.c:51 mh/mhn.c:54 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:72
@@ -365,8 +366,8 @@ msgstr "Недействительный ввод: %s@%s (возле %s)"
 msgid "Cannot open device %s: %m"
 msgstr "Невозможно открыть устройство %s: %m"
 
-#: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:438
-#: mail/quit.c:118 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:219
+#: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:443
+#: mail/quit.c:121 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:219
 #: mh/mh_init.c:380 pop3d/apop.c:240
 #, c-format
 msgid "Cannot open mailbox %s: %s"
@@ -672,7 +673,7 @@ msgstr[2] "В вашем почтовом ящике %lu писем.\n"
 msgid "fribidi failed to recognize charset `%s'"
 msgstr "fribidi не опознал набор символов `%s'"
 
-#: frm/common.c:374 mail/util.c:1453
+#: frm/common.c:374 mail/util.c:1477
 #, c-format
 msgid "Cannot decode line `%s': %s"
 msgstr "Невозможно расшифровать строку `%s': %s"
@@ -734,8 +735,8 @@ msgid "Cannot open output mailbox %s: %s\n"
 msgstr "Невозможно открыть почтовый ящик %s: %s\n"
 
 #: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
-#: libsieve/sieve.l:604 libsieve/sieve.l:668 libsieve/sieve.l:722
-#: mail/folders.c:38 mail/if.c:56 mail/util.c:873 mh/mh_init.c:112
+#: libsieve/sieve.l:605 libsieve/sieve.l:669 libsieve/sieve.l:723
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:897 mh/mh_init.c:112
 #: mh/mh_init.c:317 mh/mh_msgset.c:606
 msgid "Not enough memory"
 msgstr "Недостаточно памяти"
@@ -812,7 +813,7 @@ msgstr "[почтовый ящик...]"
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
 msgstr "Необходимо указать одну из опций -fecs."
 
-#: guimb/util.c:51 guimb/util.c:58 mail/util.c:799 mail/util.c:806
+#: guimb/util.c:51 guimb/util.c:58 mail/util.c:823 mail/util.c:830
 #, c-format
 msgid "Cannot determine sender name (msg %d)"
 msgstr "Невозможно определить имя отправителя (сообщ. %d)"
@@ -949,7 +950,7 @@ msgstr "Завершение сессии пользователя %s"
 msgid "Quitting (numeric reason %d)"
 msgstr "Остановка (причина %d)"
 
-#: imap4d/list.c:247 mh/folder.c:327 mh/mh_init.c:226 mh/mh_init.c:705
+#: imap4d/list.c:247 mh/folder.c:360 mh/mh_init.c:226 mh/mh_init.c:705
 #: mh/rmf.c:147 pop3d/popauth.c:246
 #, c-format
 msgid "Cannot stat %s: %s"
@@ -1065,56 +1066,56 @@ msgstr "доставка в %s"
 msgid "cannot save to mailbox: %s"
 msgstr "невозможно сохранить в почтовом ящике: %s"
 
-#: libsieve/actions.c:252
+#: libsieve/actions.c:275
 msgid "reject: cannot get text!"
 msgstr "невозможно получить текст!"
 
-#: libsieve/actions.c:268 libsieve/extensions/vacation.c:443
+#: libsieve/actions.c:291 libsieve/extensions/vacation.c:485
 #, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d: ошибка создания адреса получателя <%s>: %s"
 
-#: libsieve/actions.c:280 libsieve/actions.c:409
+#: libsieve/actions.c:303 libsieve/actions.c:432
 #, c-format
 msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d: невозможно создать адрес отправителя <%s>: %s"
 
-#: libsieve/actions.c:294 libsieve/actions.c:449
-#: libsieve/extensions/vacation.c:478
+#: libsieve/actions.c:317 libsieve/actions.c:472
+#: libsieve/extensions/vacation.c:524
 #, c-format
 msgid "%d: cannot open mailer %s: %s"
 msgstr "%d: ошибка открытия отсыльщика %s: %s"
 
-#: libsieve/actions.c:369
+#: libsieve/actions.c:392
 msgid "cannot get address!"
 msgstr "невозможно получить адрес!"
 
-#: libsieve/actions.c:377
+#: libsieve/actions.c:400
 #, c-format
 msgid "%d: parsing recipient address `%s' failed: %s"
 msgstr "%d: разбор адреса получателя `%s' не удался: %s"
 
-#: libsieve/actions.c:383
+#: libsieve/actions.c:406
 #, c-format
 msgid "to %s"
 msgstr "в %s"
 
-#: libsieve/actions.c:390
+#: libsieve/actions.c:413
 #, c-format
 msgid "%d: Redirection loop detected"
 msgstr "%d: Обнаружена петля перенаправления"
 
-#: libsieve/actions.c:399
+#: libsieve/actions.c:422
 #, c-format
 msgid "%d: cannot get envelope sender: %s"
 msgstr "%d: невозможно получить адрес отправителя из конверта: %s"
 
-#: libsieve/actions.c:422
+#: libsieve/actions.c:445
 #, c-format
 msgid "%d: cannot copy message: %s"
 msgstr "%d: ошибка копирования сообщения: %s"
 
-#: libsieve/actions.c:437
+#: libsieve/actions.c:460
 #, c-format
 msgid "%d: cannot get my email address"
 msgstr "%d: невозможно определить собственный email адрес"
@@ -1260,30 +1261,30 @@ msgstr "`%s' уже включен на верхнем уровне"
 msgid "cannot open `%s': %s"
 msgstr "невозможно открыть `%s': %s"
 
-#: libsieve/sieve.l:439
+#: libsieve/sieve.l:440
 msgid "preprocessor syntax"
 msgstr "синтаксис препроцессора"
 
-#: libsieve/sieve.l:448
+#: libsieve/sieve.l:449
 msgid "missing closing quote in preprocessor statement"
 msgstr "в инструкции препроцессора недостает закрывающей кавычки"
 
-#: libsieve/sieve.y:235
+#: libsieve/sieve.y:233
 #, c-format
 msgid "unknown test: %s"
 msgstr "неизвестная проверка: %s"
 
-#: libsieve/sieve.y:239
+#: libsieve/sieve.y:237
 #, c-format
 msgid "test `%s' has not been required"
 msgstr "проверка '%s' не была затребована"
 
-#: libsieve/sieve.y:261
+#: libsieve/sieve.y:259
 #, c-format
 msgid "unknown action: %s"
 msgstr "неизвестное действие: %s"
 
-#: libsieve/sieve.y:265
+#: libsieve/sieve.y:263
 #, c-format
 msgid "action `%s' has not been required"
 msgstr "действие '%s' не было затребовано"
@@ -1297,29 +1298,54 @@ msgstr "Недействительный тип данных"
 msgid "cannot retrieve argument %d"
 msgstr "невозможно получить аргумент %d"
 
-#: libsieve/extensions/vacation.c:255
+#: libsieve/extensions/vacation.c:70
+#, fuzzy, c-format
+msgid "cannot create temporary stream: %s"
+msgstr "Невозможно создать временный поток: %s"
+
+#: libsieve/extensions/vacation.c:78
+#, fuzzy, c-format
+msgid "cannot open temporary stream: %s"
+msgstr "Невозможно создать временный поток: %s"
+
+#: libsieve/extensions/vacation.c:205
+#, fuzzy, c-format
+msgid "%d: cannot compile regular expression \"%s\"\n"
+msgstr "%d: reject - ошибка открытия почтовой программы %s: %s\n"
+
+#: libsieve/extensions/vacation.c:296
 #, c-format
 msgid "%d: cannot build db file name"
 msgstr "%d: невозможно создать имя файла базы данных"
 
-#: libsieve/extensions/vacation.c:266
+#: libsieve/extensions/vacation.c:307
 #, c-format
 msgid "%d: cannot open `%s': %s"
 msgstr "%d: невозможно открыть `%s': %s"
 
 #. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
 #. Do not translate them!
-#: libsieve/extensions/vacation.c:309
+#: libsieve/extensions/vacation.c:350
 #, c-format
 msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
 msgstr ""
 "%d: vacation скомпилирована без поддержки DBM. Игнорируется ярлык :days"
 
-#: libsieve/extensions/vacation.c:505
+#: libsieve/extensions/vacation.c:378
+#, fuzzy, c-format
+msgid "%d: not enough memory"
+msgstr "%s: недостаточно памяти\n"
+
+#: libsieve/extensions/vacation.c:437
+#, fuzzy, c-format
+msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
+msgstr "%d: redirect - ошибка открытия почтовой программы %s: %s\n"
+
+#: libsieve/extensions/vacation.c:554
 msgid "cannot get text!"
 msgstr "невозможно получить текст!"
 
-#: libsieve/extensions/vacation.c:522
+#: libsieve/extensions/vacation.c:571
 #, c-format
 msgid "%d: cannot get sender address"
 msgstr "%d: невозможно определить адрес отправителя"
@@ -1352,13 +1378,13 @@ msgstr "Невозможно определить мой адрес email: %s"
 msgid "cannot change to '%s': %s"
 msgstr "ошибка stat(%s): %s"
 
-#: mail/copy.c:68 mail/mail.c:421 mail/quit.c:111 mail/send.c:542 mh/inc.c:210
+#: mail/copy.c:68 mail/mail.c:426 mail/quit.c:114 mail/send.c:543 mh/inc.c:210
 #: mh/mh_init.c:370
 #, c-format
 msgid "Cannot create mailbox %s: %s"
 msgstr "Невозможно создать почтовый ящик %s: %s"
 
-#: mail/copy.c:92 mail/quit.c:126 mail/send.c:535
+#: mail/copy.c:92 mail/quit.c:129 mail/send.c:536
 #, c-format
 msgid "Cannot append message: %s"
 msgstr "Невозможно добавить сообщение: %s"
@@ -1386,7 +1412,7 @@ msgstr ""
 "\n"
 "Прерывание"
 
-#: mail/escape.c:59 mail/send.c:226 mh/mhn.c:2059 mimeview/mimeview.c:217
+#: mail/escape.c:59 mail/send.c:227 mh/mhn.c:2059 mimeview/mimeview.c:217
 #, c-format
 msgid "Cannot create header: %s"
 msgstr "Невозможно создать заголовок: %s"
@@ -1410,7 +1436,7 @@ msgstr "(продолжение)\n"
 msgid "%c%s requires an argument"
 msgstr "%c%s требует аргумента"
 
-#: mail/escape.c:200 mail/util.c:115
+#: mail/escape.c:200 mail/util.c:140
 #, c-format
 msgid "Unknown command: %s"
 msgstr "Неизвестная команда: %s"
@@ -1506,7 +1532,7 @@ msgstr "esle без if"
 msgid "endif without matching if"
 msgstr "endif без if"
 
-#: mail/inc.c:31 mail/mail.c:198
+#: mail/inc.c:31 mail/mail.c:205
 #, c-format
 msgid "New mail has arrived.\n"
 msgstr "Получена новая почта.\n"
@@ -1597,35 +1623,49 @@ msgstr "ЗАГОЛОВОК: ЗНАЧЕНИЕ"
 msgid "Append given header to the message being sent"
 msgstr "Добавить к высылаемому сообщению указанный заголовок"
 
-#: mail/mail.c:205
+#: mail/mail.c:52
+#, fuzzy
+msgid "COMMAND"
+msgstr "ДОМЕН"
+
+#: mail/mail.c:53
+msgid "Execute COMMAND"
+msgstr ""
+
+#: mail/mail.c:212
 msgid "Interrupt"
 msgstr "Прерывание"
 
-#: mail/mail.c:211
+#: mail/mail.c:218
 msgid "Use \"quit\" to quit."
 msgstr "Используйте \"quit\" для завершения работы."
 
-#: mail/mail.c:414
+#: mail/mail.c:419
 #, c-format
 msgid "Cannot create mailbox for %s: %s"
 msgstr "Невозможно создать почтовый ящик для %s: %s"
 
-#: mail/mail.c:452
+#: mail/mail.c:457
 #, c-format
 msgid "Cannot read mailbox %s: %s"
 msgstr "Невозможно прочесть почтовый ящик %s: %s"
 
-#: mail/mail.c:472
+#: mail/mail.c:470
+#, fuzzy, c-format
+msgid "Unknown mode `%s'"
+msgstr "Неизвестный тип пароля `%s'"
+
+#: mail/mail.c:481
 #, c-format
 msgid "%s: 0 messages\n"
 msgstr "%s: 0 сообщений\n"
 
-#: mail/mail.c:474
+#: mail/mail.c:483
 #, c-format
 msgid "No mail for %s\n"
 msgstr "Нет почты для %s\n"
 
-#: mail/mail.c:539
+#: mail/mail.c:548
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
 "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
@@ -1637,7 +1677,7 @@ msgstr ""
 "Foundation, Inc.\n"
 "\n"
 
-#: mail/mail.c:543 mailbox/mu_argp.c:255 mh/mh_argp.c:188
+#: mail/mail.c:552 mailbox/mu_argp.c:255 mh/mh_argp.c:188
 #, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
@@ -1674,8 +1714,8 @@ msgstr ""
 "\n"
 "\n"
 
-#: mail/mailline.c:694 mail/mailline.c:722 mail/mailline.c:769
-#: mail/mailline.c:805
+#: mail/mailline.c:704 mail/mailline.c:732 mail/mailline.c:779
+#: mail/mailline.c:815
 msgid "Not enough memory to edit the line"
 msgstr "Для редактирования строки не хватает памяти"
 
@@ -1697,12 +1737,12 @@ msgstr " возле %s"
 msgid "range error"
 msgstr "ошибка диапазона"
 
-#: mail/msgset.y:737 mail/util.c:185
+#: mail/msgset.y:735 mail/util.c:209
 #, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
 msgstr "%lu: Недействительное сообщение (было удалено)"
 
-#: mail/quit.c:51
+#: mail/quit.c:54
 #, c-format
 msgid "Held %d message in %s\n"
 msgid_plural "Held %d messages in %s\n"
@@ -1710,7 +1750,7 @@ msgstr[0] "%d сообщение удержано в %s\n"
 msgstr[1] "%d сообщения удержаны в %s\n"
 msgstr[2] "%d сообщений удержано в %s\n"
 
-#: mail/quit.c:147
+#: mail/quit.c:150
 #, c-format
 msgid "Saved %d message in %s\n"
 msgid_plural "Saved %d messages in %s\n"
@@ -1736,21 +1776,21 @@ msgstr "Никакие поля не соединяются\n"
 msgid "Sender address is obtained from the envelope\n"
 msgstr "Адреса получателей выбираются из конверта сообщения\n"
 
-#: mail/send.c:74
+#: mail/send.c:75
 #, c-format
 msgid "Cannot create header list: %s"
 msgstr "Невозможно создать список заголовков: %s"
 
-#: mail/send.c:96
+#: mail/send.c:97
 #, c-format
 msgid "Invalid header: %s"
 msgstr "Недействительный заголовок: %s"
 
-#: mail/send.c:309
+#: mail/send.c:310
 msgid "Cannot open temporary file"
 msgstr "Невозможно открыть временный файл"
 
-#: mail/send.c:338
+#: mail/send.c:339
 msgid ""
 "\n"
 "(Interrupt -- one more to kill letter)"
@@ -1758,41 +1798,41 @@ msgstr ""
 "\n"
 "(Прерывание -- чтобы отменить сообщение, подай еще одно)"
 
-#: mail/send.c:349
+#: mail/send.c:350
 msgid "Use \".\" to terminate letter."
 msgstr "Используйте \".\" чтобы завершить письмо."
 
-#: mail/send.c:350
+#: mail/send.c:351
 msgid "Use \"~.\" to terminate letter."
 msgstr "Используйте \"~.\" чтобы завершить письмо."
 
-#: mail/send.c:392
+#: mail/send.c:393
 #, c-format
 msgid "Unknown escape %s"
 msgstr "Неизвестная экранированная команда %s"
 
-#: mail/send.c:395
+#: mail/send.c:396
 msgid "Unfinished escape"
 msgstr "Незаконченная экранированная команда"
 
-#: mail/send.c:399
+#: mail/send.c:400
 msgid "Cannot parse escape sequence"
 msgstr "Невозможно разобрать экранированную команду"
 
-#: mail/send.c:424 mh/mh_init.c:669 mh/mh_list.c:264
+#: mail/send.c:425 mh/mh_init.c:669 mh/mh_list.c:264
 #, c-format
 msgid "Cannot open file %s: %s"
 msgstr "Невозможно открыть файл %s: %s"
 
-#: mail/send.c:485
+#: mail/send.c:486
 msgid "Null message body; hope that's ok\n"
 msgstr "Пустое тело сообщения; надеюсь так и должно быть\n"
 
-#: mail/send.c:579
+#: mail/send.c:580
 msgid "Variable sendmail not set: no mailer"
 msgstr "Переменная sendmail не установлена: не определён отсыльщик"
 
-#: mail/send.c:627
+#: mail/send.c:628
 #, c-format
 msgid "Piping %s failed"
 msgstr "Ошибка создания конвейера для %s"
@@ -1802,7 +1842,7 @@ msgstr "Ошибка создания конвейера для %s"
 msgid "source requires an argument"
 msgstr "source требует аргумента"
 
-#: mail/source.c:60 mimeview/mimeview.c:166 mimeview/mimetypes.l:167
+#: mail/source.c:60 mimeview/mimeview.c:166 mimeview/mimetypes.l:168
 #, c-format
 msgid "Cannot open `%s': %s"
 msgstr "Невозможно открыть `%s': %s"
@@ -1844,88 +1884,88 @@ msgstr[2] " %d удаленных"
 msgid "unalias requires at least one argument"
 msgstr "unalias требует по меньшей мере одного аргумента"
 
-#: mail/util.c:117
+#: mail/util.c:142
 msgid "Invalid command"
 msgstr "Недействительная команда"
 
-#: mail/util.c:272
+#: mail/util.c:296
 #, c-format
 msgid "Unknown command: %s\n"
 msgstr "Неизвестная команда: %s\n"
 
-#: mail/util.c:439
+#: mail/util.c:463
 #, c-format
 msgid "No value set for \"%s\""
 msgstr "Не установлено значение переменной \"%s\""
 
-#: mail/util.c:594
+#: mail/util.c:618
 #, c-format
 msgid "oops?"
 msgstr "ой?"
 
-#: mail/util.c:684
+#: mail/util.c:708
 msgid "Incorrect value for decode-fallback"
 msgstr "Недействительное значение decode-fallback"
 
-#: mail/util.c:735
+#: mail/util.c:759
 msgid "Cannot get homedir"
 msgstr "Невозможно определить домашний каталог"
 
-#: mail/util.c:1050
+#: mail/util.c:1074
 #, fuzzy, c-format
 msgid "Cannot create output mailbox `%s': %s"
 msgstr "Невозможно создать временный почтовый ящик %s: %s"
 
-#: mail/util.c:1058
+#: mail/util.c:1082
 #, fuzzy, c-format
 msgid "Cannot open output mailbox `%s': %s"
 msgstr "Невозможно открыть почтовый ящик %s: %s\n"
 
-#: mail/util.c:1064
+#: mail/util.c:1088
 #, fuzzy, c-format
 msgid "Cannot append message to `%s': %s"
 msgstr "Невозможно добавить сообщение %lu: %s"
 
-#: mail/util.c:1119
+#: mail/util.c:1143
 msgid "Cannot unencapsulate message/part"
 msgstr "Невозможно развернуть сообщение/часть"
 
-#: mail/util.c:1128
+#: mail/util.c:1152
 #, c-format
 msgid "No such (sub)part in the message: %d"
 msgstr "В сообщении нет такой (под)части: %d"
 
-#: mail/util.c:1135
+#: mail/util.c:1159
 #, c-format
 msgid "Cannot get (sub)part from the message: %d"
 msgstr "Невозможно получить (под)часть из сообщения: %d"
 
-#: mail/util.c:1259
+#: mail/util.c:1283
 #, c-format
 msgid "Cannot create temporary header: %s"
 msgstr "Ошибка создания временного заголовка: %s"
 
-#: mail/util.c:1300
+#: mail/util.c:1324
 #, c-format
 msgid "Cannot parse address `%s' (while expanding `%s'): %s"
 msgstr "Ошибка разбора адреса `%s' (при расширении `%s'): %s"
 
-#: mail/util.c:1303
+#: mail/util.c:1327
 #, c-format
 msgid "Cannot parse address `%s': %s"
 msgstr "Ошибка разбора адреса `%s': %s"
 
-#: mail/util.c:1356
+#: mail/util.c:1380
 #, c-format
 msgid "Cannot get message %lu: %s"
 msgstr "Невозможно прочитать сообщение %lu: %s"
 
-#: mail/util.c:1367
+#: mail/util.c:1391
 #, c-format
 msgid "%d: invalid message number"
 msgstr "%d: недействительный номер сообщения"
 
-#: mail/util.c:1374
+#: mail/util.c:1398
 msgid "No applicable messages"
 msgstr "Нет применимых сообщений"
 
@@ -2429,6 +2469,11 @@ msgstr "Выдать краткую подсказку по использованию"
 #: mailbox/argp-parse.c:84
 msgid "Set the program name"
 msgstr "Задать номер порта для авторизации"
+
+#: mailbox/argp-parse.c:85
+#, fuzzy
+msgid "SECS"
+msgstr "СЕКУНДЫ"
 
 #: mailbox/argp-parse.c:86
 msgid "Hang for SECS seconds (default 3600)"
@@ -2947,7 +2992,7 @@ msgstr ""
 msgid "[msg [msg...]]"
 msgstr "[сообщение [сообщение...]]"
 
-#: mh/anno.c:33 mh/folder.c:50 mh/folder.c:60 mh/forw.c:37 mh/forw.c:43
+#: mh/anno.c:33 mh/folder.c:52 mh/folder.c:62 mh/forw.c:37 mh/forw.c:43
 #: mh/inc.c:35 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
 #: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
 #: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:40 mh/send.c:42
@@ -2955,7 +3000,7 @@ msgstr "[сообщение [сообщение...]]"
 msgid "FOLDER"
 msgstr "КАТАЛОГ"
 
-#: mh/anno.c:34 mh/folder.c:61 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
+#: mh/anno.c:34 mh/folder.c:63 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
 #: mh/mhn.c:38 mh/mhpath.c:33 mh/pick.c:40 mh/refile.c:39 mh/repl.c:50
 #: mh/rmm.c:33
 msgid "Specify folder to operate upon"
@@ -2981,7 +3026,7 @@ msgstr "Добавить это ПОЛЕ к заголовкам сообщения"
 msgid "Field value for the component"
 msgstr "Значение поля для компонента"
 
-#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:81 mh/forw.c:75 mh/inc.c:56
+#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:87 mh/forw.c:75 mh/inc.c:56
 #: mh/install-mh.c:33 mh/mark.c:47 mh/mhl.c:53 mh/mhn.c:90 mh/mhpath.c:35
 #: mh/pick.c:96 mh/refile.c:52 mh/repl.c:72 mh/rmf.c:50 mh/rmm.c:35
 #: mh/scan.c:60 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
@@ -3026,7 +3071,7 @@ msgstr "Включить отладку синтаксического анализатора"
 msgid "Format string not specified"
 msgstr "Строка формата не указана"
 
-#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:373 mh/scan.c:189
+#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:383 mh/scan.c:189
 msgid "Bad format string"
 msgstr "Неверная строка формата"
 
@@ -3056,6 +3101,12 @@ msgstr "Показать содержимое стека каталогов"
 
 #: mh/folder.c:51
 msgid ""
+"Remove holes in message numbering. Begin numbering from NUMBER (default: "
+"first message number"
+msgstr ""
+
+#: mh/folder.c:53
+msgid ""
 "Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
 "Otherwise, if a folder is given in the command line (via + or --folder), it "
 "is pushed on stack. Otherwise, the current folder and the top of the folder "
@@ -3067,44 +3118,58 @@ msgstr ""
 "стек. В противном случае, меняются местами текущий каталог и каталог в "
 "вершине стека."
 
-#: mh/folder.c:56
+#: mh/folder.c:58
 msgid "Pop the folder off the folder stack"
 msgstr "Извлечь название каталога из вершины стека"
 
-#: mh/folder.c:58 mh/mh_whatnow.c:153 pop3d/popauth.c:80
+#: mh/folder.c:60 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr "Опции:"
 
-#: mh/folder.c:63
+#: mh/folder.c:65
 msgid "List all folders"
 msgstr "Показать все каталоги"
 
-#: mh/folder.c:65
+#: mh/folder.c:67
 msgid "Create non-existing folders"
 msgstr "Создавать несуществующие каталоги"
 
-#: mh/folder.c:68
+#: mh/folder.c:70
 msgid "List only the folder names"
 msgstr "Выводить только названия каталогов"
 
-#: mh/folder.c:71
+#: mh/folder.c:73
 msgid "Print the header line"
 msgstr "Выводить строку заголовка"
 
-#: mh/folder.c:74
+#: mh/folder.c:76
 msgid "Scan folders recursively"
 msgstr "Проходить по каталогам рекурсивно"
 
-#: mh/folder.c:77
+#: mh/folder.c:79
 msgid "Output the total statistics"
 msgstr "Выводить суммарную статистику"
 
-#: mh/folder.c:310 mh/rmf.c:128
+#: mh/folder.c:82
+msgid "Verbosely list actions taken"
+msgstr ""
+
+#: mh/folder.c:84
+#, fuzzy
+msgid "Do nothing, print what would be done (with --pack)"
+msgstr "Не выполнять никаких действий, только печатать что должно быть сделано"
+
+#: mh/folder.c:151 mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135
+#: pop3d/pop3d.c:149
+msgid "Invalid number"
+msgstr "Неверное задание числа"
+
+#: mh/folder.c:343 mh/rmf.c:128
 #, c-format
 msgid "Cannot scan folder %s: %s"
 msgstr "Невозможно просканировать каталог %s: %s"
 
-#: mh/folder.c:383
+#: mh/folder.c:416
 #, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
@@ -3112,17 +3177,17 @@ msgstr[0] " %4lu сообщение (%4lu-%4lu)"
 msgstr[1] " %4lu сообщения (%4lu-%4lu)"
 msgstr[2] " %4lu сообщений (%4lu-%4lu)"
 
-#: mh/folder.c:394
+#: mh/folder.c:427
 #, c-format
 msgid " has no messages"
 msgstr " нет сообщений"
 
-#: mh/folder.c:403
+#: mh/folder.c:436
 #, c-format
 msgid "(others)"
 msgstr "(другие)"
 
-#: mh/folder.c:451
+#: mh/folder.c:484
 #, c-format
 msgid ""
 "Folder                  # of messages     (  range  )  cur msg   (other "
@@ -3131,11 +3196,11 @@ msgstr ""
 "Каталог                 к-во сообщений    (диапазон )  тек.сооб. (др. "
 "файлы)\n"
 
-#: mh/folder.c:457
+#: mh/folder.c:490
 msgid "TOTAL"
 msgstr "ВСЕГО"
 
-#: mh/folder.c:458
+#: mh/folder.c:491
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
@@ -3143,13 +3208,92 @@ msgstr[0] "%4lu сообщение "
 msgstr[1] "%4lu сообщения "
 msgstr[2] "%4lu сообщений "
 
-#: mh/folder.c:461
+#: mh/folder.c:494
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
 msgstr[0] "в %4lu-м каталоге"
 msgstr[1] "в %4lu-x каталогах"
 msgstr[2] "в %4lu-и каталогах"
+
+#: mh/folder.c:615
+#, fuzzy, c-format
+msgid "Renaming %s to %s\n"
+msgstr "Чтение %s\n"
+
+#: mh/folder.c:620
+#, fuzzy, c-format
+msgid "cannot rename `%s' to `%s': %s"
+msgstr "Невозможно добавить сообщение %lu: %s"
+
+#: mh/folder.c:657
+msgid "Rolling back changes..."
+msgstr ""
+
+#: mh/folder.c:661
+#, c-format
+msgid ""
+"CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
+"occurred while trying to roll back the changes.\n"
+"Message range %lu-%lu has been renamed to %lu-%lu."
+msgstr ""
+
+#: mh/folder.c:667
+msgid "You will have to fix it manually."
+msgstr ""
+
+#: mh/folder.c:670
+#, c-format
+msgid "Folder `%s' restored successfully"
+msgstr ""
+
+#: mh/folder.c:775 mh/inc.c:227
+#, c-format
+msgid "Cannot read input mailbox: %s"
+msgstr "Невозможно читать из входного почтового ящика: %s"
+
+#: mh/folder.c:783
+#, fuzzy, c-format
+msgid "Getting message numbers.\n"
+msgstr "Получение сообщения"
+
+#: mh/folder.c:791 mh/inc.c:255
+#, c-format
+msgid "%d: cannot get message: %s"
+msgstr "%d: невозможно получить сообщение: %s"
+
+#: mh/folder.c:797
+#, fuzzy, c-format
+msgid "%lu message number collected.\n"
+msgid_plural "%lu message numbers collected.\n"
+msgstr[0] "%d: недействительный номер сообщения"
+msgstr[1] "%d: недействительный номер сообщения"
+msgstr[2] "%d: недействительный номер сообщения"
+
+#: mh/folder.c:815
+#, c-format
+msgid "Reverting pack table.\n"
+msgstr ""
+
+#: mh/folder.c:823
+#, fuzzy, c-format
+msgid "cannot change to directory `%s': %s"
+msgstr "ошибка stat(%s): %s"
+
+#: mh/folder.c:838
+#, fuzzy, c-format
+msgid "Finished packing messages.\n"
+msgstr "Отправка сообщения"
+
+#: mh/folder.c:845
+#, c-format
+msgid "Fixing global sequences\n"
+msgstr ""
+
+#: mh/folder.c:848
+#, fuzzy, c-format
+msgid "Fixing private sequences\n"
+msgstr "Распечатать все последовательности"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -3161,9 +3305,9 @@ msgstr ""
 "GNU MH forwОпции, помеченные знаком '*' еще не реализованы.\n"
 "Используйте опцию -help для получения списка традиционных опций MH."
 
-#: mh/forw.c:34 mh/repl.c:37
-msgid "* Add Replied: header to the message being replied to"
-msgstr "* Добавить к обрабатываемому сообщению заголовок Replied:"
+#: mh/forw.c:34
+msgid "Add Forwarded: header to each forwarded message"
+msgstr ""
 
 #: mh/forw.c:36
 msgid "Build the draft and quit immediately"
@@ -3236,32 +3380,32 @@ msgstr ""
 msgid "Use draft file preserved after the last session"
 msgstr "Использовать черновое сообщение, оставшееся от последней сессии"
 
-#: mh/forw.c:147 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:203 mh/scan.c:125
+#: mh/forw.c:152 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:208 mh/scan.c:125
 msgid "Invalid width"
 msgstr "Недействительная ширина"
 
-#: mh/forw.c:196 mh/repl.c:239 mh/scan.c:139
+#: mh/forw.c:200 mh/repl.c:243 mh/scan.c:139
 msgid "Option is not yet implemented"
 msgstr "Опция пока не реализована"
 
-#: mh/forw.c:285 mh/mh_init.c:537
+#: mh/forw.c:292 mh/mh_init.c:537
 #, c-format
 msgid "Cannot open output file `%s': %s"
 msgstr "Невозможно открыть выходной файл `%s': %s"
 
-#: mh/forw.c:326
+#: mh/forw.c:341
 msgid "Forwarded message\n"
 msgstr "Перенаправленное сообщение\n"
 
-#: mh/forw.c:331
+#: mh/forw.c:346
 msgid "Forwarded messages\n"
 msgstr "Перенаправленные сообщения\n"
 
-#: mh/forw.c:343
+#: mh/forw.c:358
 msgid "End of Forwarded message"
 msgstr "Конец перенаправленного сообщения"
 
-#: mh/forw.c:345
+#: mh/forw.c:360
 msgid "End of Forwarded messages"
 msgstr "Конец перенаправленных сообщений"
 
@@ -3308,20 +3452,10 @@ msgstr "Не выводить дополнительную информацию"
 msgid "Cannot create default mailbox"
 msgstr "Невозможно создать стандартный почтовый ящик"
 
-#: mh/inc.c:227
-#, c-format
-msgid "Cannot read input mailbox: %s"
-msgstr "Невозможно читать из входного почтового ящика: %s"
-
 #: mh/inc.c:234
 #, c-format
 msgid "Cannot read output mailbox: %s"
 msgstr "Невозможно читать из выходного почтового ящика: %s"
-
-#: mh/inc.c:255
-#, c-format
-msgid "%d: cannot get message: %s"
-msgstr "%d: невозможно получить сообщение: %s"
 
 #: mh/inc.c:262
 #, c-format
@@ -3684,26 +3818,41 @@ msgstr "ПЕРЕКЛЮЧАТЕЛИ"
 msgid "EDITOR"
 msgstr "РЕДАКТОР"
 
-#: mh/mh_whatnow.c:298
+#: mh/mh_whatnow.c:226
+#, fuzzy, c-format
+msgid "Command `%s' exited with status %d"
+msgstr "Дочерний процесс завершился со статусом %d\n"
+
+#: mh/mh_whatnow.c:233
+#, fuzzy, c-format
+msgid "Command `%s' terminated on signal %d"
+msgstr "Дочерний процесс завершился по сигналу %d\n"
+
+#: mh/mh_whatnow.c:236
+#, fuzzy, c-format
+msgid "Command `%s' terminated abnormally"
+msgstr "Дочерний процесс завершился ненормально: %d"
+
+#: mh/mh_whatnow.c:374
 msgid "no alternate message to display"
 msgstr "нет дополнительного сообщения"
 
-#: mh/mh_whatnow.c:323 mh/mh_whatnow.c:381
+#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:455
 msgid "no draft file to display"
 msgstr "нет чернового файла"
 
-#: mh/mh_whatnow.c:350
+#: mh/mh_whatnow.c:425
 #, c-format
 msgid "draft left on \"%s\".\n"
 msgstr "черновик оставлен в \"%s\".\n"
 
-#: mh/mh_whatnow.c:392
+#: mh/mh_whatnow.c:466
 msgid "List the message being distributed/replied-to on the terminal."
 msgstr ""
 "Вывести на терминал текст сообщения, которое отправляется или на которое "
 "пишется ответ."
 
-#: mh/mh_whatnow.c:394
+#: mh/mh_whatnow.c:468
 msgid ""
 "Edit the message. If EDITOR is omitted use the one that was used on the "
 "preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
@@ -3714,24 +3863,24 @@ msgstr ""
 "название редактора, использованного в последний раз. Если эта переменная не "
 "установлена, используется название последнего использованного редактора."
 
-#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
+#: mh/mh_whatnow.c:472 mh/mh_whatnow.c:502 mh/mh_whatnow.c:592
 msgid "List the draft on the terminal."
 msgstr "Вывести черновик на терминал."
 
-#: mh/mh_whatnow.c:400
+#: mh/mh_whatnow.c:474
 msgid "Send the message in the background."
 msgstr "Отослать сообщение в фоновом режиме."
 
-#: mh/mh_whatnow.c:402
+#: mh/mh_whatnow.c:476
 msgid ""
 "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr "Завершить сессию. Если не указана опция -delete, сохранить черновик."
 
-#: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
+#: mh/mh_whatnow.c:478 mh/mh_whatnow.c:503
 msgid "Refile the draft into the given FOLDER."
 msgstr "Сохранить черновик в заданном КАТАЛОГЕ."
 
-#: mh/mh_whatnow.c:406
+#: mh/mh_whatnow.c:480
 msgid ""
 "Send the message. The -watch flag causes the delivery process to be "
 "monitored. SWITCHES are passed to send program verbatim."
@@ -3739,42 +3888,42 @@ msgstr ""
 "Отослать сообщение. Если указана опция -watch, выдается подробная информация "
 "о процессе доставки. ОПЦИИ передаются программе отсылки без изменений."
 
-#: mh/mh_whatnow.c:409
+#: mh/mh_whatnow.c:483
 msgid ""
 "List the addresses and verify that they are acceptable to the transport "
 "service."
 msgstr ""
 "Вывести список адресов и проверить их допустимость для транспортного сервиса."
 
-#: mh/mh_whatnow.c:425
+#: mh/mh_whatnow.c:499
 msgid "Terminate the session. Preserve the draft."
 msgstr "Завершить сессию и сохранить черновик."
 
-#: mh/mh_whatnow.c:426
+#: mh/mh_whatnow.c:500
 msgid "Replace the draft with the newly created one"
 msgstr "Заменить черновик только что созданным."
 
-#: mh/mh_whatnow.c:427
+#: mh/mh_whatnow.c:501
 msgid "Use this draft"
 msgstr "Использовать указанный черновик"
 
-#: mh/mh_whatnow.c:484
+#: mh/mh_whatnow.c:558
 msgid "What now?"
 msgstr "Что теперь?"
 
-#: mh/mh_whatnow.c:508
+#: mh/mh_whatnow.c:582
 msgid "Disposition?"
 msgstr "Размещение?"
 
-#: mh/mh_whatnow.c:516
+#: mh/mh_whatnow.c:590
 msgid "Don't use the draft."
 msgstr "Не использовать черновик."
 
-#: mh/mh_whatnow.c:517
+#: mh/mh_whatnow.c:591
 msgid "Use the draft."
 msgstr "Использовать черновик."
 
-#: mh/mh_whatnow.c:559
+#: mh/mh_whatnow.c:633
 #, c-format
 msgid "Use \"%s\"?"
 msgstr "Использовать \"%s\"?"
@@ -4301,6 +4450,11 @@ msgstr ""
 msgid "[+folder] [msg]"
 msgstr "[+каталог] [сообщение]"
 
+#: mh/repl.c:37
+#, fuzzy
+msgid "Add Replied: header to the message being replied to"
+msgstr "* Добавить к обрабатываемому сообщению заголовок Replied:"
+
 #: mh/repl.c:39
 msgid "Build the draft and quit immediately."
 msgstr "Создать черновик и немедленно выйти."
@@ -4348,12 +4502,12 @@ msgstr ""
 "* Игнорировать переменную whatnowproc. Использовать стандартную программу "
 "'whatnow'"
 
-#: mh/repl.c:131
+#: mh/repl.c:132
 #, c-format
 msgid "%s %s is unknown"
 msgstr "%s %s неизвестен"
 
-#: mh/repl.c:271
+#: mh/repl.c:275
 #, c-format
 msgid "Draft \"%s\" exists (%lu byte).\n"
 msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
@@ -4361,22 +4515,22 @@ msgstr[0] "Черновик \"%s\" существует (%lu байт).\n"
 msgstr[1] "Черновик \"%s\" существует (%lu байта).\n"
 msgstr[2] "Черновик \"%s\" существует (%lu байтов).\n"
 
-#: mh/repl.c:298
+#: mh/repl.c:302
 #, c-format
 msgid "Cannot read message %lu: %s"
 msgstr "Невозможно прочитать сообщение %lu: %s"
 
-#: mh/repl.c:313
+#: mh/repl.c:323
 #, c-format
 msgid "Cannot create draft file stream %s: %s"
 msgstr "Невозможно создать поток чернового файла %s: %s"
 
-#: mh/repl.c:320
+#: mh/repl.c:330
 #, c-format
 msgid "Cannot open draft file %s: %s"
 msgstr "Невозможно открыть черновой файл %s: %s"
 
-#: mh/repl.c:385
+#: mh/repl.c:395
 msgid "only one message at a time!"
 msgstr "только одно сообщение за раз!"
 
@@ -4533,10 +4687,6 @@ msgstr "Отслеживать отсылку сообщений"
 msgid "* Make header fields no longer than NUMBER columns"
 msgstr "* Ограничить длину заголовков заданным числом символов"
 
-#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135 pop3d/pop3d.c:149
-msgid "Invalid number"
-msgstr "Неверное задание числа"
-
 #: mh/send.c:267
 msgid "Cannot create message list"
 msgstr "Невозможно создать список сообщений"
@@ -4561,34 +4711,34 @@ msgstr "Открытие отсыльщика %s"
 msgid "Cannot open mailer `%s'"
 msgstr "Невозможно открыть отсыльщик `%s'"
 
-#: mh/send.c:435
+#: mh/send.c:407
 #, c-format
 msgid "Fixed Fcc: %s"
 msgstr "Исправленный Fcc: %s"
 
-#: mh/send.c:449
+#: mh/send.c:421
 msgid "Getting message"
 msgstr "Получение сообщения"
 
-#: mh/send.c:489
+#: mh/send.c:461
 msgid "Sending message"
 msgstr "Отправка сообщения"
 
-#: mh/send.c:493
+#: mh/send.c:465
 #, c-format
 msgid "Cannot send message: %s"
 msgstr "Невозможно отослать сообщение: %s"
 
-#: mh/send.c:497
+#: mh/send.c:469
 msgid "Destroying the mailer"
 msgstr "Уничтожение отсыльщика"
 
-#: mh/send.c:521
+#: mh/send.c:493
 #, c-format
 msgid "Cannot switch to background: %s"
 msgstr "Невозможно переключиться в фоновый режим: %s"
 
-#: mh/send.c:560
+#: mh/send.c:532
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "ошибка stat(%s): %s"
@@ -5306,7 +5456,7 @@ msgstr "Использовать программу metamail для вывода файлов"
 msgid "FILE [FILE ...]"
 msgstr "ФАЙЛ [ФАЙЛ ...]"
 
-#: mimeview/mimeview.c:153 mimeview/mimetypes.l:149
+#: mimeview/mimeview.c:153 mimeview/mimetypes.l:150
 #, c-format
 msgid "Cannot stat `%s': %s"
 msgstr "Ошибка stat(%s): %s"
@@ -5361,9 +5511,6 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 #~ msgid "%d: cannot create sender address <%s>: %s\n"
 #~ msgstr "%d: redirect - невозможно создать адрес отправителя <%s>: %s\n"
 
-#~ msgid "%d: cannot open mailer %s: %s\n"
-#~ msgstr "%d: reject - ошибка открытия почтовой программы %s: %s\n"
-
 #~ msgid "%d: cannot create recipient address <%s>: %s\n"
 #~ msgstr "%d: reject - ошибка создания адреса получателя <%s>: %s\n"
 
@@ -5393,9 +5540,6 @@ msgstr "неверный тип аргумента %d в вызове '%s'"
 
 #~ msgid "%d: redirect - parsing to `%s' failed: %s\n"
 #~ msgstr "%d: redirect - ошибка разбора адреса отправителя '%s': %s\n"
-
-#~ msgid "%d: redirect - cannot open mailer %s: %s\n"
-#~ msgstr "%d: redirect - ошибка открытия почтовой программы %s: %s\n"
 
 #~ msgid "address: cannot get argument 1"
 #~ msgstr "address: невозможно получить первый аргумент"

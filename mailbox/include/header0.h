@@ -65,7 +65,7 @@ struct _mu_header
   int (*_set_value) (mu_header_t, const char *, const char *, int);
   int (*_lines)     (mu_header_t, size_t *);
   int (*_size)      (mu_header_t, size_t *);
-  int (*_fill)      (mu_header_t, char *, size_t, off_t, size_t *);
+  int (*_fill)      (mu_header_t, char *, size_t, mu_off_t, size_t *);
 };
 
 #ifdef __cplusplus
