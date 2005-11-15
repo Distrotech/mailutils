@@ -1,3 +1,12 @@
+2005-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am (EXTRA_DIST): Remove MU_EXTRA_DIST
+	* configure.ac: Call MU_FINISH
+	* m4/mu_libobj.m4 (MU_LIBSOURCE,MU_LIBSOURCES): Construct the list
+	of EXTRA_DIST sources.
+	(MU_FINISH): New defun
+	* mailbox/Makefile.am (EXTRA_DIST): Add MU_EXTRA_DIST
+
 2005-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Determine the size of off_t and define an
