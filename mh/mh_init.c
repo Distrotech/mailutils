@@ -566,7 +566,7 @@ mh_file_copy (const char *from, const char *to)
 }
 
 mu_message_t
-mh_file_to_message (char *folder, char *file_name)
+mh_file_to_message (const char *folder, char *file_name)
 {
   struct stat st;
   int rc;

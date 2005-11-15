@@ -239,7 +239,7 @@ void mh_init (void);
 void mh_init2 (void);
 void mh_read_profile (void);
 int mh_read_formfile (char *name, char **pformat);
-mu_message_t mh_file_to_message (char *folder, char *file_name);
+mu_message_t mh_file_to_message (const char *folder, char *file_name);
 mu_message_t mh_stream_to_message (mu_stream_t stream);
 void mh_install (char *name, int automode);
 
