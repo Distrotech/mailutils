@@ -19,8 +19,15 @@ dnl
 AC_SUBST(MU_LIBOBJS)
 AC_SUBST(MU_EXTRA_DIST)
 
-AC_DEFUN([MU_LIBSOURCES],[])
-AC_DEFUN([MU_LIBSOURCE],[])
+AC_SUBST(MU_EXTRA_DIST)
+m4_define([mu_extra_dist],[])
+AC_DEFUN([MU_LIBSOURCES],[
+m4_foreach(source, [$1], [m4_define([mu_extra_dist], mu_extra_dist source)])])
+AC_DEFUN([MU_LIBSOURCE],[m4_define([mu_extra_dist], mu_extra_dist [$1])])
+
+AC_DEFUN([MU_FINISH],[
+[MU_EXTRA_DIST]="mu_extra_dist"
+])
 
 AC_DEFUN([MU_LIBOBJ],[
  MU_LIBOBJS="$MU_LIBOBJS $1.o"])
