@@ -25,7 +25,7 @@ EXTRA_DIST=\
  postgres.c
 DISTCLEANFILES = modlist.h
 
-INCLUDES=-I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES= @MU_COMMON_INCLUDES@ @INTLINCS@
 libsql_la_SOURCES=sql.c
 libsql_la_LIBADD=@SQL_LTLIBOBJS@
 

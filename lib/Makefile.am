@@ -19,7 +19,8 @@
 
 noinst_LTLIBRARIES = libmuaux.la
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+
 libmuaux_la_SOURCES = \
  daemon.c\
  mailcap.c\
@@ -45,17 +46,6 @@ EXTRA_DIST += allocsa.valgrind
 libmuaux_la_SOURCES += exit.h
 
 
-
-
-BUILT_SOURCES += $(FNMATCH_H)
-EXTRA_DIST += fnmatch_.h fnmatch_loop.c
-
-# We need the following in order to create <fnmatch.h> when the system
-# doesn't have one that supports the required API.
-fnmatch.h: fnmatch_.h
-	cp $(srcdir)/fnmatch_.h $@-t
-	mv $@-t $@
-MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 
 
 

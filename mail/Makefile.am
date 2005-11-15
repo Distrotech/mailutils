@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @MU_AUTHINCS@ 
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@ @MU_AUTHINCS@ 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail

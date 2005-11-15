@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include
+INCLUDES = @MU_COMMON_INCLUDES@
 
 SUBDIRS = include
 

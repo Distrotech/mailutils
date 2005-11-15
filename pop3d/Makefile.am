@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox -I${top_builddir}/include/mailutils/gnu -I$(top_srcdir)/include @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 sbin_PROGRAMS = pop3d
 bin_PROGRAMS = @POPAUTH@

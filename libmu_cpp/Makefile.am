@@ -16,10 +16,7 @@
 ##   along with this program; if not, write to the Free Software
 ##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox\
-	-I${top_srcdir}/mailbox/include\
-	-I${top_builddir}/include/mailutils/gnu \
-	@INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 MU_CXX_LIBS = libmu_cpp.la
 lib_LTLIBRARIES = @MU_CXX_LIBS@

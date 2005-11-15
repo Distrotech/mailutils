@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES =-I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include @GUILE_INCLUDES@ @INTLINCS@
+INCLUDES = -I. @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ @INTLINCS@
 
 lib_LTLIBRARIES=@MU_SCM@
 EXTRA_LTLIBRARIES=libmu_scm.la

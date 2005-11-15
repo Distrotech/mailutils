@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 SUBDIRS  = testsuite
 
 bin_PROGRAMS = sieve

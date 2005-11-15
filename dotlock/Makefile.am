@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I${top_builddir}/include/mailutils/gnu -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 bin_PROGRAMS = dotlock
 

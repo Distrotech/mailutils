@@ -17,9 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
- -I${top_srcdir}/mailbox/include \
- @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/mailbox/include @INTLINCS@
 
 lib_LTLIBRARIES = libmu_mh.la
 libmu_mh_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@

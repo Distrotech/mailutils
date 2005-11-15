@@ -20,9 +20,7 @@
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = timestamp.la spamd.la list.la vacation.la
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
- -I$(top_builddir)/include/mailutils/gnu\
- -I$(top_srcdir)/mailbox @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 AM_LDFLAGS = ../../mailbox/libmailutils.la ../../lib/libmuaux.la
 

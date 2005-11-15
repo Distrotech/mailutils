@@ -17,9 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include \
- -I$(top_srcdir)/mailbox \
- -I${top_builddir}/include/mailutils/gnu @MU_AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d

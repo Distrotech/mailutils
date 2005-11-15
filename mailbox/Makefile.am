@@ -17,9 +17,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
- -I${top_srcdir}/mailbox/include -I${top_builddir}/include/mailutils/gnu \
- @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/mailbox/include @INTLINCS@
 
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
@@ -123,9 +121,30 @@ libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-namefrob.h argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c
 
 
+EXTRA_DIST += regex_internal.c regex_internal.h regexec.c regcomp.c
 
 libmailutils_la_SOURCES += strtok_r.h
 
+
+BUILT_SOURCES += $(GLOB_H)
+
+# We need the following in order to create <glob.h> when the system
+# doesn't have one that works with the given compiler.
+glob.h: glob_.h
+	cp $(srcdir)/glob_.h $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += glob.h glob.h-t
+
+
+BUILT_SOURCES += $(FNMATCH_H)
+EXTRA_DIST += fnmatch_.h fnmatch_loop.c
+
+# We need the following in order to create <fnmatch.h> when the system
+# doesn't have one that supports the required API.
+fnmatch.h: fnmatch_.h
+	cp $(srcdir)/fnmatch_.h $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 
 
 
@@ -141,12 +160,17 @@ MOSTLYCLEANFILES += getopt.h getopt.h-t
 
 libmailutils_la_SOURCES += gettext.h
 
-libmailutils_la_SOURCES += mbchar.h mbchar.c
+
+libmailutils_la_SOURCES += mbchar.h
+
+libmailutils_la_SOURCES += mbuiter.h
 
 
 
 libmailutils_la_SOURCES += minmax.h
 
+
+libmailutils_la_SOURCES += size_max.h
 
 
 BUILT_SOURCES += $(STDBOOL_H)
@@ -159,9 +183,20 @@ stdbool.h: stdbool_.h
 	mv $@-t $@
 MOSTLYCLEANFILES += stdbool.h stdbool.h-t
 
+BUILT_SOURCES += $(STDINT_H)
+EXTRA_DIST += stdint_.h
+
+# We need the following in order to create <stdint.h> when the system
+# doesn't have one that works with the given compiler.
+stdint.h: stdint_.h
+	sed -e 's/@''HAVE_LONG_64BIT''@/$(HAVE_LONG_64BIT)/g;s/@''HAVE_LONG_LONG_64BIT@/$(HAVE_LONG_LONG_64BIT)/g' < $(srcdir)/stdint_.h > $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += stdint.h stdint.h-t
+
 libmailutils_la_SOURCES += strcase.h
 
 libmailutils_la_SOURCES += strchrnul.h
+
 
 
 
@@ -177,19 +212,10 @@ sysexits.h: sysexit_.h
 	mv sysexits.h-t sysexits.h
 MOSTLYCLEANFILES += sysexits.h sysexits.h-t
 
-
 libmailutils_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
 
 libmailutils_la_SOURCES += vsnprintf.h
 
 libmailutils_la_SOURCES += xsize.h
 
-EXTRA_DIST += getdelim.c getdelim.h getdelim.c getopt.c getopt1.c md5.c md5.h md5.c memchr.c mempcpy.c mempcpy.h mempcpy.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c getline.c getline.c getline.h getline.c getndelim2.c vsnprintf.c unlocked-io.h strchrnul.c regex.c strcasecmp.c strncasecmp.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c
-
-CFLOW_FLAGS=-i^s --brief 
-mailutils_CFLOW_INPUT=$(libmailutils_la_OBJECTS:.lo=.c)
-mailutils.cflow: $(mailutils_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(mailutils_CFLOW_INPUT)
+EXTRA_DIST += fnmatch.c getline.c getline.c getline.h getline.c getndelim2.c getopt.c getopt1.c md5.c md5.h md5.c mempcpy.c mempcpy.h mempcpy.c regex.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c unlocked-io.h getdelim.c getdelim.h getdelim.c mbchar.c memchr.c getlogin_r.c getlogin_r.c glob.c glob_.h glob-libc.h glob.c stat-macros.h strdup.c strdup.h strdup.c
