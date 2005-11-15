@@ -25,7 +25,7 @@ SUBDIRS = include intl po testsuite mailbox lib libsieve doc \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh movemail mimeview
 
-EXTRA_DIST = COPYING.LESSER @MU_EXTRA_DIST@
+EXTRA_DIST = COPYING.LESSER
 
 alpha:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
