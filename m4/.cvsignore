@@ -1,6 +1,9 @@
+Makefile
+Makefile.in
 codeset.m4
 gettext.m4
 glibc21.m4
+gmailboxc2.m4
 iconv.m4
 intdiv0.m4
 intmax.m4

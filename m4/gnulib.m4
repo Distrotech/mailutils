@@ -18,14 +18,8 @@ gl_XALLOC
 # xalloc
 gl_XALLOC
 
-# fnmatch
-# No macro. You should also use one of fnmatch-posix or fnmatch-gnu.
-
 # getpass-gnu
 gl_FUNC_GETPASS_GNU
-
-# malloc
-AC_FUNC_MALLOC
 
 # mbswidth
 gl_MBSWIDTH
@@ -75,19 +69,34 @@ gl_FUNC_STRTOK_R
 # md5
 gl_MD5
 
+# glob
+gl_GLOB
+
 # extensions
 dnl gl_USE_SYSTEM_EXTENSIONS must be added quite early to configure.ac.
 
+# fnmatch
+# No macro. You should also use one of fnmatch-posix or fnmatch-gnu.
+
 # getdelim
 gl_FUNC_GETDELIM
+
+# getlogin_r
+gl_GETLOGIN_R
 
 # getopt
 gl_GETOPT
 
 # gettext-h
 
+# malloc
+AC_FUNC_MALLOC
+
 # mbchar
 gl_MBCHAR
+
+# mbuiter
+gl_MBITER
 
 # memchr
 gl_FUNC_MEMCHR
@@ -104,14 +113,23 @@ gl_C_RESTRICT
 # size_max
 gl_SIZE_MAX
 
+# stat-macros
+gl_STAT_MACROS
+
 # stdbool
 AM_STDBOOL_H
+
+# stdint
+gl_STDINT_H
 
 # strcase
 gl_STRCASE
 
 # strchrnul
 gl_FUNC_STRCHRNUL
+
+# strdup
+gl_FUNC_STRDUP
 
 # strndup
 gl_FUNC_STRNDUP
@@ -123,9 +141,6 @@ gl_FUNC_STRNLEN
 
 # sysexits
 gl_SYSEXITS
-
-# unlocked-io
-gl_FUNC_GLIBC_UNLOCKED_IO
 
 # vasnprintf
 gl_FUNC_VASNPRINTF

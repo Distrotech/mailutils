@@ -20,6 +20,7 @@ AC_SUBST(MU_LIBOBJS)
 AC_SUBST(MU_EXTRA_DIST)
 
 AC_DEFUN([MU_LIBSOURCES],[])
+AC_DEFUN([MU_LIBSOURCE],[])
 
 AC_DEFUN([MU_LIBOBJ],[
  MU_LIBOBJS="$MU_LIBOBJS $1.o"])
@@ -29,7 +30,9 @@ AC_DEFUN([MU_CHECK_FUNC],[
       [MU_LIBOBJ($1)])])
 
 AC_DEFUN([MU_REPLACE_FUNCS],
-[AC_CHECK_FUNCS([$1], , [MU_LIBOBJ($ac_func)])
+[AC_CHECK_FUNCS([$1], , [dnl
+ MU_LIBOBJ($ac_func)
+ AC_DEFINE($ac_func, [mu_repl_]$ac_func, [Define to a replacement function name for ]$ac_func)])
 ])
 
 AC_SUBST(GNU_INCLS)
