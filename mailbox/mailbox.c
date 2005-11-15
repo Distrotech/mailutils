@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <strdup.h>
 
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
@@ -37,10 +38,11 @@
 #include <mailutils/url.h>
 #include <mailutils/attribute.h>
 #include <mailutils/message.h>
+#include <mailutils/mutil.h>
 
 #include <mailbox0.h>
 
-int
+static int
 mailbox_folder_create (mu_folder_t *pfolder, const char *name)
 {
   int rc;
@@ -48,9 +50,9 @@ mailbox_folder_create (mu_folder_t *pfolder, const char *name)
 
   if (!fname)
     return ENOMEM;
-  
+
   p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
-  if (p)
+  if (p && !(mu_is_proto (fname) && strncmp (p, "file:", 5)))
     *p = 0;
   rc = mu_folder_create (pfolder, fname);
   free (fname);
