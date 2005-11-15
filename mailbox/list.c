@@ -22,6 +22,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <list0.h>
 #include <iterator0.h>

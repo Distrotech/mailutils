@@ -21,14 +21,15 @@
 # include <config.h>
 #endif
 
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
 #include <mimeview.h>
 #include <mimetypes-decl.h>  
 #include <mu_asprintf.h>
-#include <unistd.h>
-#include <sys/stat.h>
-  
+
 static int line_num;
-static const char *file_name;
+static char *file_name;
 static int file_name_alloc; 
  
 static struct obstack stack;

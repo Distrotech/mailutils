@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <getline.h>
 #include <mailutils/argcv.h>
-#include <mailutils/error.h>
+#include <mailutils/errno.h>
 
 int
 main(int argc, char **argv)

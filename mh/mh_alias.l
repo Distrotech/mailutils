@@ -21,7 +21,8 @@
 #include <mh_alias.h>
 #include <sys/stat.h>
 #include <ctype.h>
-
+#include <mu_asprintf.h>
+  
 #ifndef isblank
 # define isblank(c) ((c)==' ' || (c)=='\t')
 #endif  
