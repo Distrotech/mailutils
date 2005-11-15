@@ -372,6 +372,23 @@ m4_copy([MU_SAVE_AC_LIBOBJ],[AC_LIBOBJ])
 
 libmuaux_GNULIB
 
+#####
+# Determine the size of off_t and define an equivalent mu_off_t type.
+# We cannot use off_t in the library since its size depends on whether
+# large file support is used or not, which will lead to arbitrary crashes
+# if a user application and the library use off_t of different sizes.
+AC_CHECK_SIZEOF(off_t)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_SUBST(MU_OFF_TYPE)
+if test $ac_cv_sizeof_off_t -eq $ac_cv_sizeof_long; then
+  MU_OFF_TYPE=long
+elif test $ac_cv_sizeof_off_t -eq $ac_cv_sizeof_long_long; then
+  MU_OFF_TYPE="long long"
+else
+  AC_MSG_ERROR([Cannot find ${ac_cv_sizeof_off_t}-byte type, suitable for mu_off_t])
+fi
+
 AC_FUNC_MMAP
 
 AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf, strsignal],
@@ -971,6 +988,7 @@ LTLIBOBJS=`echo "$LIB@&t@OBJS" |
 AC_SUBST(LTLIBOBJS)
 
 S=`echo "$MU_LIBOBJS" |
+	          tr ' ' '\n' | sort | uniq | tr '\n' ' ' |
                   sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
 MU_LTLIBOBJS=`echo "$S" |
                 sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
@@ -981,6 +999,9 @@ SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
 
 AC_SUBST(MU_COMMON_LIBRARIES)
 MU_COMMON_LIBRARIES='$(LTLIBINTL) $(LTLIBICONV)'
+
+AC_SUBST(MU_COMMON_INCLUDES)
+MU_COMMON_INCLUDES='-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox'
 
 ### Display the status
 
