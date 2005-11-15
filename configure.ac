@@ -994,6 +994,8 @@ MU_LTLIBOBJS=`echo "$S" |
                 sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(MU_LTLIBOBJS)
 
+MU_FINISH
+
 AC_SUBST(SIEVE_MODDIR)
 SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
 
