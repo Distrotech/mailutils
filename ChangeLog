@@ -1,3 +1,41 @@
+2005-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/argcv.c: Add missing includes
+	* examples/mailcap.c: Likewise
+	* examples/url-parse.c: Likewise
+	* mail/send.c: Likewise
+	* mailbox/list.c: Likewise
+	* mh/mh_alias.l: Likewise
+	* mimeview/mimetypes.l: Likewise
+	* examples/nntpclient.c: Add missing forward declarations
+
+	* libsieve/sieve.h (mu_sieve_yylex,mu_sieve_yyerror): Add
+	declarations.
+	* libsieve/sieve.y (yylex,yyerror): Remove declarations
+	* include/mailutils/mutil.h (mu_is_proto): New function.
+	* mailbox/mutil.c: Likewise
+	* mailbox/mbx_default.c (is_proto): Replace by mu_is_proto. All
+	callers updated
+	* mailbox/mailbox.c (mailbox_folder_create): Do not try to select
+	previous level if given a protocol spec, other than `file:'
+
+	* mh/mh.h (mh_file_to_message): Change signature
+	* mh/mh_init.c: Likewise
+	* mimeview/Makefile.am (AM_CPPFLAGS): Add -D_GNU_SOURCE=1, needed
+	for compiling lex sources
+	* mh/Makefile.am: Likewise
+	
+2005-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/argcv.c: Include <mailutils/error.h>
+	* examples/base64.c: Include <config.h>
+	* readmsg/readmsg.h: Likewise
+	* mail/z.c (z_parse_args): change tyoe of return_count
+	(mail_z): Change type of count to off_t
+	* include/mailutils/stream.h: Fix indentation
+
+	* scripts/gnulib-sync: Replace AC_LIBSOURCE with MU_LIBSOURCE
+	
 2005-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
         * examples/argcv.c: Include <mailutils/error.h>
