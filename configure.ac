@@ -352,6 +352,13 @@ AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
 
 dnl Check for working functions
 
+# Dirty hack: make sure HAVE_DECL_PROGRAM_INVOCATION_NAME is defined
+# This must be done before gl_ARGP, which attempts
+# an AC_CHECK_DECLS([program_invocation_name), because autoconf machinery
+# gives preference to the first definition, in spite of what the comment
+# at autoconf/status.m4:574 sais
+AC_DEFINE([HAVE_DECL_PROGRAM_INVOCATION_NAME], 1)
+
 dnl Escape defuns that force automake to add their arguments
 dnl to LIBOBJS.
 dnl All dependencies has been handled by gnulib-sync.
