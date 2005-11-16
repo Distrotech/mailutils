@@ -40,7 +40,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/mailbox.h>
 
-extern char *sql_interface;
+extern int sql_interface;
 extern char *mu_sql_getpwnam_query;
 extern char *mu_sql_getpass_query;
 extern char *mu_sql_getpwuid_query;
