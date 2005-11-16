@@ -1,5 +1,10 @@
 2005-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/sql.h (sql_interface): Fix data type
+	* include/mailutils/errno.hin: Include errno.h
+	Provide ECANCELED if it is missing (mainly for cygwin).
+	* mailbox/errors (MU_ERR_CANCELED): New error code.
+
 	* Makefile.am (EXTRA_DIST): Remove MU_EXTRA_DIST
 	* configure.ac: Call MU_FINISH
 	* m4/mu_libobj.m4 (MU_LIBSOURCE,MU_LIBSOURCES): Construct the list
