@@ -17,6 +17,7 @@
 # MA 02110-1301  USA  
 
 MU_ERR_FAILURE              _("Operation failed")
+MU_ERR_CANCELED             _("Operation canceled")
 
 MU_ERR_NO_HANDLER           _("No registered handler")
 MU_ERR_EMPTY_VFN            _("Empty virtual function")
