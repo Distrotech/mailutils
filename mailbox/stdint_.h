@@ -230,7 +230,9 @@ typedef uint32_t uintmax_t;
 #define SIG_ATOMIC_MIN 0
 #define SIG_ATOMIC_MAX 127
 
-#define SIZE_MAX (~(size_t)0)
+#ifndef SIZE_MAX
+# define SIZE_MAX (~(size_t)0)
+#endif
 
 /* wchar_t limits already defined in <stddef.h>.  */
 /* wint_t limits already defined in <wchar.h>.  */
