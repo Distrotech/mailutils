@@ -1,5 +1,11 @@
 2005-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Declare HAVE_DECL_PROGRAM_INVOCATION_NAME,
+	otherwise argp-help.c can bail out at line 1693
+	* examples/argcv.c: Temporarily include config.h to make sure
+	replaced symbols are referenced properly.
+	The use of config.h in example files should be reduced to minimum.
+	
 	* auth/sql.h (sql_interface): Fix data type
 	* include/mailutils/errno.hin: Include errno.h
 	Provide ECANCELED if it is missing (mainly for cygwin).
