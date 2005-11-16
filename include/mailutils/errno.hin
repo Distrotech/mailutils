@@ -15,11 +15,13 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA  */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301  USA  */
 
 #ifndef _MAILUTILS_ERRNO_H
 #define _MAILUTILS_ERRNO_H	1
 
+#include <errno.h>
 #include <mailutils/types.h>
 
 #ifdef __cplusplus
@@ -29,6 +31,10 @@ extern "C" {
 #define MU_ERR_BASE                 0x1000
 
 $MESSAGE_DEFS
+
+#ifndef ECANCELED
+# define ECANCELED MU_ERR_CANCELED
+#endif  
   
 const char *mu_errname (int e);
 const char *mu_strerror (int e);
