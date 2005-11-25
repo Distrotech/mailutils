@@ -37,7 +37,7 @@ mail_cd (int argc, char **argv)
 
   if (chdir (dir))
     {
-      mu_error (_("cannot change to '%s': %s"), dir, mu_strerror (errno));
+      mu_error (_("cannot change to `%s': %s"), dir, mu_strerror (errno));
       return 1;
     }
   return 0;

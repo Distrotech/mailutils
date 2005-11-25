@@ -48,7 +48,7 @@ static struct argp_option options[] = {
   {"list",  ARG_LIST,  NULL, 0,
    N_("List the contents of the folder stack"), 1},
   {"pack",  ARG_PACK,  N_("NUMBER"), OPTION_ARG_OPTIONAL,
-   N_("Remove holes in message numbering. Begin numbering from NUMBER (default: first message number"), 1},
+   N_("Remove holes in message numbering. Begin numbering from NUMBER (default: first message number)"), 1},
   {"push",  ARG_PUSH,  N_("FOLDER"), OPTION_ARG_OPTIONAL,
     N_("Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
        "Otherwise, if a folder is given in the command line (via + or --folder), "
