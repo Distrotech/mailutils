@@ -1,3 +1,7 @@
+2005-11-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/cd.c, mh/folder.c: Fix diagnostic messages
+
 2005-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Declare HAVE_DECL_PROGRAM_INVOCATION_NAME,
