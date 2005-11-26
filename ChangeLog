@@ -1,3 +1,7 @@
+2005-11-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* sieve/sieve.c (options): Add --dry-run, an alias for -n. 
+
 2005-11-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/cd.c, mh/folder.c: Fix diagnostic messages
