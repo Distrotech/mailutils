@@ -445,7 +445,7 @@ msgset_negate (msgset_t *set)
   size_t i;
   msgset_t *first = NULL, *last = NULL;
 
-  for (i = 1; i < total; i++)
+  for (i = 1; i <= total; i++)
     {
       if (!msgset_member (set, i))
 	{
