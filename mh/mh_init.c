@@ -404,39 +404,35 @@ mh_get_dir ()
 char *
 mh_expand_name (const char *base, const char *name, int is_folder)
 {
-  char *tmp = NULL;
   char *p = NULL;
-  char *namep;
+  char *namep = NULL;
   
-  tmp = mu_tilde_expansion (name, "/", NULL);
-  if (tmp[0] == '+')
-    namep = tmp + 1;
-  else if (strncmp (tmp, "../", 3) == 0 || strncmp (tmp, "./", 2) == 0)
+  namep = mu_tilde_expansion (name, "/", NULL);
+  if (namep[0] == '+')
+    memmove (namep, namep + 1, strlen (namep)); /* copy null byte as well */
+  else if (strncmp (namep, "../", 3) == 0 || strncmp (namep, "./", 2) == 0)
     {
       char *cwd = mu_getcwd ();
-      asprintf (&namep, "%s/%s", cwd, tmp);
+      char *tmp = NULL;
+      asprintf (&tmp, "%s/%s", cwd, namep);
       free (cwd);
-      free (tmp);
-      tmp = NULL;
+      free (namep);
+      namep = tmp;
     }
-  else
-    namep = tmp;
   
-  if (!base)
-    base = mu_folder_directory ();
   if (is_folder)
     {
       if (namep[0] == '/')
 	asprintf (&p, "mh:%s", namep);
       else
-	asprintf (&p, "mh:%s/%s", base, namep);
+	asprintf (&p, "mh:%s/%s", base ? base : mu_folder_directory (), namep);
     }
   else if (namep[0] != '/')
-    asprintf (&p, "%s/%s", base, namep);
+    asprintf (&p, "%s/%s", base ? base : mu_folder_directory (), namep);
   else
     return namep;
   
-  free (tmp);
+  free (namep);
   return p;
 }
 
