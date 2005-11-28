@@ -1,3 +1,14 @@
+2005-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/header.c: Fix indentation
+	* mh/mh.h (mh_context_destroy,mh_context_merge): New proto
+	* mh/mh_ctx.c (mh_context_destroy,mh_context_merge): New
+	functions.
+	* mh/mh_init.c (mh_expand_name): Make sure the returned value can
+	safely be freed.
+	* mh/send.c (read_mts_profile): Allow .mtstailor to override
+	system-wide configuration values.
+
 2005-11-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/msgset.y (msgset_negate): Fix loop break condition.
