@@ -284,6 +284,8 @@ char *mh_context_get_value (mh_context_t *ctx, const char *name,
 int mh_context_set_value (mh_context_t *ctx, const char *name,
 			  const char *value);
 int mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data);
+void mh_context_destroy (mh_context_t **pctx);
+void mh_context_merge (mh_context_t *dst, mh_context_t *src);
 
 int mh_message_number (mu_message_t msg, size_t *pnum);
 
