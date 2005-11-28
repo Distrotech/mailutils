@@ -42,6 +42,45 @@ mh_context_create (char *name, int copy)
   return ctx;
 }
 
+void
+mh_context_destroy (mh_context_t **pctx)
+{
+  mh_context_t *ctx = *pctx;
+  
+  free (ctx->name);
+  if (ctx->header)
+    mu_header_destroy (&ctx->header, mu_header_get_owner (ctx->header));
+  free (ctx);
+  *pctx = NULL;
+}
+
+void
+mh_context_merge (mh_context_t *dst, mh_context_t *src)
+{
+  if (!dst->header)
+    {
+      dst->header = src->header;
+      src->header = NULL;
+    }
+  else
+    {
+      size_t i, count;
+      
+      mu_header_get_field_count (src->header, &count);
+      for (i = 1; i <= count; i++)
+	{
+	  char *name = NULL;
+	  char *value = NULL;
+	  
+	  mu_header_aget_field_name (src->header, i, &name);
+	  mu_header_aget_field_value (src->header, i, &value);
+	  mu_header_set_value (dst->header, name, value, 1);
+	  free (name);
+	  free (value);
+	}
+    }
+}
+
 int 
 mh_context_read (mh_context_t *ctx)
 {
