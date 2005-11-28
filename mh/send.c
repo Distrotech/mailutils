@@ -275,18 +275,17 @@ void
 read_mts_profile ()
 {
   char *p;
-
+  mh_context_t *local_profile;
+  
   p = mh_expand_name (MHLIBDIR, "mtstailor", 0);
-  if (!p)
-    {
-      char *home = mu_get_homedir ();
-      if (!home)
-	abort (); /* shouldn't happen */
-      asprintf (&p, "%s/%s", home, ".mtstailor");
-      free (home);
-    }
   mts_profile = mh_context_create (p, 1);
   mh_context_read (mts_profile);
+
+  p = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
+  local_profile = mh_context_create (p, 1);
+  if (mh_context_read (local_profile) == 0)
+    mh_context_merge (mts_profile, local_profile);
+  mh_context_destroy (&local_profile);
 }
 
 
