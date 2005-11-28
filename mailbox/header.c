@@ -261,7 +261,7 @@ header_parse (mu_header_t header, const char *blurb, int len)
    This all header business need a good rewrite.  */
 int
 mu_header_set_value (mu_header_t header, const char *fn, const char *fv,
-		  int replace)
+		     int replace)
 {
   char *blurb;
   size_t len;
