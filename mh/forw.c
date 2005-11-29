@@ -216,6 +216,18 @@ struct format_data {
   mu_list_t format;
 };
 
+/* State machine according to RFC 934:
+   
+      S1 ::   CRLF {CRLF} S1
+            | "-" {"- -"} S2
+            | c {c} S2
+
+      S2 ::   CRLF {CRLF} S1
+            | c {c} S2
+*/
+
+enum rfc934_state { S1, S2 };
+
 static int
 msg_copy (mu_message_t msg, mu_stream_t ostream)
 {
@@ -223,6 +235,7 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
   int rc;
   size_t n;
   char buf[512];
+  enum rfc934_state state = S1;
   
   rc = mu_message_get_stream (msg, &istream);
   if (rc)
@@ -231,7 +244,36 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
   while (rc == 0
 	 && mu_stream_sequential_read (istream, buf, sizeof buf, &n) == 0
 	 && n > 0)
-    rc = mu_stream_sequential_write (ostream, buf, n);
+    {
+      size_t start, i;
+	
+      for (i = start = 0; i < n; i++)
+	switch (state)
+	  {
+	  case S1:
+	    if (buf[i] == '-')
+	      {
+		rc = mu_stream_sequential_write (ostream, buf + start,
+						 i - start + 1);
+		if (rc)
+		  return rc;
+		rc = mu_stream_sequential_write (ostream, " -", 2);
+		if (rc)
+		  return rc;
+		start = i + 1;
+		state = S2;
+	      }
+	    else if (buf[i] != '\n')
+	      state = S2;
+	    break;
+	      
+	  case S2:
+	    if (buf[i] == '\n')
+	      state = S1;
+	  }
+      if (i > start)
+	rc = mu_stream_sequential_write (ostream, buf + start, i  - start);
+    }
   return rc;
 }
 
