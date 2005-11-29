@@ -36,7 +36,7 @@ extern int mu_body_set_stream     (mu_body_t, mu_stream_t, void *owner);
 
 extern int mu_body_get_filename   (mu_body_t, char *, size_t, size_t *);
 
-extern int mu_body_size           (mu_body_t, size_t*);
+extern int mu_body_size           (mu_body_t, size_t *);
 extern int mu_body_set_size       (mu_body_t,
 				int (*_size) (mu_body_t, size_t*), void *owner);
 extern int mu_body_lines          (mu_body_t, size_t *);
