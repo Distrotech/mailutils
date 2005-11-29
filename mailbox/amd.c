@@ -165,7 +165,7 @@ amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
   int rc;
   mu_off_t i;
   
-  if (!amd->msg_array)
+  if (amd->msg_count == 0)
     {
       *pret = 0;
       return 1;
@@ -549,11 +549,13 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
   char buffer[512];
   mu_envelope_t env = NULL;
   
+  status = mu_message_size (msg, &bsize);
+  if (status)
+    return status;
+
   fp = _amd_tempfile (mhm->amd, &name);
   if (!fp)
     return errno;
-
-  mu_message_size (msg, &bsize);
 
   /* Try to allocate large buffer */
   for (; bsize > 1; bsize /= 2)
