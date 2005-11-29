@@ -22,6 +22,7 @@
 PROGRAMS_MH = \
  ali$(EXEEXT)\
  anno$(EXEEXT)\
+ burst$(EXEEXT)\
  comp$(EXEEXT)\
  fmtcheck$(EXEEXT)\
  folder$(EXEEXT)\
@@ -47,6 +48,7 @@ PROGRAMS_MH = \
 EXTRA_PROGRAMS = \
  ali\
  anno\
+ burst\
  comp\
  fmtcheck\
  folder\
