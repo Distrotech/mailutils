@@ -1,3 +1,22 @@
+2005-11-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/rfc/rfc934.txt: New file.
+	* doc/rfc/Makefile.am (EXTRA_DIST): Add rfc934.txt
+
+	* mailbox/amd.c (amd_msg_lookup): Bugfix. Use msg_count == 0
+	to determine if the msg_array is empty.
+	* mailbox/mime.c (mu_mime_get_part): Set stream_size function.
+
+	* mh/burst.c: New file. Initial implementation of burst command.
+	* mh/Makefile.am (PROGRAMS_MH,EXTRA_PROGRAMS): Add burst
+	* mh/TODO: Update
+	* mh/forw.c (msg_copy): Implement FSA described in RFC 934
+	* mh/mh_getopt.h (enum mh_arg): New declaration, instead of
+	multiple defines.
+	* mh/mh_init.c (mh_expand_name): Accept names starting with mh:/
+	protocol indicator.
+	* mh/.cvsignore: Add burst, sort entries.
+	
 2005-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/header.c: Fix indentation

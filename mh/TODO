@@ -35,7 +35,7 @@ State	Nice	Utility		Comments
 +	5	mark
 +	5	pick		See the README entry.
 +	10	anno
--	10	burst
+*	10	burst		Only a framework is implemented
 *	10	whom		--check 
 +	10	mhpath
 +	10	whatnow		
