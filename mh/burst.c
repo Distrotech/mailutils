@@ -47,6 +47,8 @@ static struct argp_option options[] = {
   {"recursive",    ARG_RECURSIVE,    N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Recursively expand MIME messages") },
   {"norecursive",  ARG_NORECURSIVE,  0, OPTION_HIDDEN, ""},
+  {"length",       ARG_LENGTH,       N_("NUMBER"), 0,
+   N_("Set minimal length of digest encapsulation boundary (default 1)") },
   {"license",      ARG_LICENSE, 0,      0,
    N_("Display software license"), -1},
   { NULL }
@@ -65,6 +67,7 @@ int inplace;
 int quiet;
 int verbose;
 int recursive;
+int eb_min_length = 1;  /* Minimal length of encapsulation boundary */
 
 #define VERBOSE(c) do { if (verbose) { printf c; putchar ('\n'); } } while (0)
 
@@ -83,6 +86,12 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 
     case ARG_NOINPLACE:
       inplace = 0;
+      break;
+
+    case ARG_LENGTH:
+      eb_min_length = strtoul (arg, NULL, 0);
+      if (eb_min_length == 0)
+	eb_min_length = 1;
       break;
       
     case ARG_LICENSE:
@@ -261,8 +270,8 @@ burst_digest (mu_message_t msg)
   size_t bufsize;
   size_t n;
   int state = S1;
-  int rc;
   size_t count = 0;
+  int eb_length;
   
   mu_message_size (msg, &bufsize);
 
@@ -293,9 +302,23 @@ burst_digest (mu_message_t msg)
 	      flush_stream (&os, buf + start, i - start);
 	      start = i + 1;
 	    }
-	      
 
-	  if (state == S5 && newstate == S2)
+	  if (state == S1)
+	    {
+	      /* GNU extension: check if we have seen enough dashes to
+		 constitute a valid encapsulation boundary. */
+	      if (newstate == S3)
+		{
+		  eb_length++;
+		  if (eb_length < eb_min_length)
+		    continue; /* Ignore state change */
+		}
+	      else if (eb_length)
+		while (eb_length--)
+		  flush_stream (&os, "-", 1);
+	      eb_length = 0;
+	    }
+	  else if (state == S5 && newstate == S2)
 	    {
 	      /* As the automaton traverses from state S5 to S2, the
 		 bursting agent should consider a new message started
@@ -309,6 +332,7 @@ burst_digest (mu_message_t msg)
 		 bursting agent should consider the current message ended. */
 	      finish_stream (&os);
 	    }
+	  
 	  state = newstate;
 	}
 
@@ -326,8 +350,6 @@ burst_digest (mu_message_t msg)
 	  mu_stream_destroy (&os, mu_stream_get_owner (os));
 	}
     }
-  VERBOSE((ngettext ("%lu message bursted", "%lu messages bursted", count),
-	   count));
   return count > 0;
 }
 
@@ -373,7 +395,14 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
 	    }
 	  free (value);
 	}
-			     
+
+      /* FIXME:
+	 if (verbose && !inplace)
+	   printf(_("message %lu of digest %lu becomes message %s"),
+		   (unsigned long) (j+1),
+		   (unsigned long) burst_map[i].msgno, to));
+      */     
+
       rc = mu_mailbox_append_message (tmpbox, msg);
       if (rc)
 	{
@@ -395,6 +424,11 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   
   if (burst_or_copy (msg, 1, 0) == 0)
     {
+      VERBOSE((ngettext ("%lu message exploded from digest %lu",
+			 "%lu messages exploded from digest %lu",
+			 map.count),
+	       (unsigned long) map.count,
+	       (unsigned long) num));
       if (inplace)
 	{
 	  obstack_grow (&stk, &map, sizeof map);
@@ -402,7 +436,7 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 	}
     }
   else if (!quiet)
-    mh_error (_("%lu: Not a digest message"), (unsigned long) num);
+    mh_error (_("message %lu not in digest format"), (unsigned long) num);
 }
 
 
@@ -430,7 +464,9 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
       asprintf (&from, "%lu", (unsigned long) ms->list[i-1]);
       asprintf (&to, "%lu", (unsigned long) lastuid);
       --lastuid;
-      
+
+      VERBOSE((_("message %s becomes message %s"), from, to));
+	       
       if (rename (from, to))
 	{
 	  mh_error (_("error renaming %s to %s: %s"),
@@ -496,6 +532,9 @@ finalize_inplace (size_t lastuid)
 	  char *to;
 
 	  asprintf (&to, "%lu", (unsigned long) (burst_map[i].msgno + 1 + j));
+	  VERBOSE((_("message %lu of digest %lu becomes message %s"),
+		   (unsigned long) (j+1),
+		   (unsigned long) burst_map[i].msgno, to));
 	  msg_copy (burst_map[i].first + j, to);
 	}
     }
