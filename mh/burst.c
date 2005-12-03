@@ -222,7 +222,7 @@ void
 burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 {
   memset (&map, 0, sizeof (map));
-  map.msgno = num;
+  mh_message_number (msg, &map.msgno);
   
   if (burst_or_copy (msg, 1, 0) == 0)
     {
@@ -251,14 +251,14 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
       char *from;
       char *to;
 
-      if (ms->list[i] == burst_map[j].msgno)
+      if (ms->list[i-1] == burst_map[j].msgno)
 	{
 	  lastuid -= burst_map[j].count;
 	  burst_map[j].msgno = lastuid;
 	  j--;
 	}
       
-      asprintf (&from, "%lu", (unsigned long) ms->list[i]);
+      asprintf (&from, "%lu", (unsigned long) ms->list[i-1]);
       asprintf (&to, "%lu", (unsigned long) lastuid);
       --lastuid;
       
@@ -391,7 +391,7 @@ main (int argc, char **argv)
       burst_map = obstack_finish (&stk);
 
       mu_mailbox_uidnext (mbox, &next_uid);
-      for (i = 0, last_uid = next_uid; i < burst_count; i++)
+      for (i = 0, last_uid = next_uid-1; i < burst_count; i++)
 	last_uid += burst_map[i].count;
       VERBOSE ((_("Estimated last UID: %lu"), (unsigned long) last_uid));
 
@@ -400,7 +400,8 @@ main (int argc, char **argv)
       xargv[1] = NULL;
       mh_msgset_parse (mbox, &ms, 1, xargv, NULL);
       free (xargv[0]);
-
+      mh_msgset_uids (mbox, &ms);
+	
       mu_mailbox_get_url (mbox, &dst_url);
       dir = mu_url_to_string (dst_url);
       VERBOSE ((_("changing to `%s'"), dir + 3));
