@@ -233,6 +233,8 @@ finish_stream (mu_stream_t *pstr)
   mu_message_t msg;
   mu_stream_seek (*pstr, 0, SEEK_SET);
   msg = mh_stream_to_message (*pstr);
+  if (!map.first)
+    mu_mailbox_uidnext (tmpbox, &map.first);
   burst_or_copy (msg, recursive, 1);
   mu_stream_close (*pstr);
   mu_stream_destroy (pstr, mu_stream_get_owner (*pstr));
@@ -271,7 +273,7 @@ burst_digest (mu_message_t msg)
   size_t n;
   int state = S1;
   size_t count = 0;
-  int eb_length;
+  int eb_length = 0;
   
   mu_message_size (msg, &bufsize);
 
@@ -460,6 +462,9 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
 	  burst_map[j].msgno = lastuid;
 	  j--;
 	}
+
+      if (ms->list[i-1] == lastuid)
+	continue;
       
       asprintf (&from, "%lu", (unsigned long) ms->list[i-1]);
       asprintf (&to, "%lu", (unsigned long) lastuid);
@@ -583,12 +588,12 @@ main (int argc, char **argv)
     }
   else
     tmpbox = mbox;
-  
+
   rc = mh_iterate (mbox, &msgset, burst, NULL);
   if (rc)
     return rc;
 
-  if (inplace)
+  if (inplace && burst_count)
     {
       mu_url_t dst_url = NULL;
       size_t i, next_uid, last_uid;
