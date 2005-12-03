@@ -163,6 +163,175 @@ burst_mime (mu_message_t msg)
 }
 
 
+/* Digest messages */
+
+/* Bursting FSA states accoring to RFC 934:
+   
+      S1 ::   "-" S3
+            | CRLF {CRLF} S1
+            | c {c} S2
+
+      S2 ::   CRLF {CRLF} S1
+            | c {c} S2
+
+      S3 ::   " " S2
+            | c S4     ;; the bursting agent should consider the current
+	               ;; message ended.  
+
+      S4 ::   CRLF S5
+            | c S4
+
+      S5 ::   CRLF S5
+            | c {c} S2 ;; The bursting agent should consider a new
+	               ;; message started
+*/
+
+#define S1 1
+#define S2 2
+#define S3 3
+#define S4 4
+#define S5 5
+
+/* Negative state means no write */
+int transtab[][4] = {
+/*          DEF    '\n'   ' '   '-' */
+/* S1 */ {  S2,    S1,    S2,   -S3 },
+/* S2 */ {  S2,    S1,    S2,    S2 },
+/* S3 */ { -S4,   -S4,   -S2,   -S4 }, 
+/* S4 */ { -S4,   -S5,   -S4,   -S4 },
+/* S5 */ {  S2,   -S5,    S2,    S2 }
+};
+
+static int
+token_num(int c)
+{
+  switch (c)
+    {
+    case '\n':
+      return 1;
+    case ' ':
+      return 2;
+    case '-':
+      return 3;
+    default:
+      return 0;
+    }
+}
+
+static void
+finish_stream (mu_stream_t *pstr)
+{
+  mu_message_t msg;
+  mu_stream_seek (*pstr, 0, SEEK_SET);
+  msg = mh_stream_to_message (*pstr);
+  burst_or_copy (msg, recursive, 1);
+  mu_stream_close (*pstr);
+  mu_stream_destroy (pstr, mu_stream_get_owner (*pstr));
+}  
+
+static void
+flush_stream (mu_stream_t *pstr, char *buf, size_t size)
+{
+  int rc;
+
+  if (size == 0)
+    return;
+  if (!*pstr
+      && ((rc = mu_temp_file_stream_create (pstr, NULL)) != 0
+	  || (rc = mu_stream_open (*pstr))))
+    {
+      mh_error (_("Cannot open temporary file: %s"),
+		mu_strerror (rc));
+      exit (1);
+    }
+  rc = mu_stream_sequential_write (*pstr, buf, size);
+  if (rc)
+    {
+      mu_error (_("error writing temporary stream: %s"),
+		mu_strerror (rc));
+      exit (1); /* FIXME: better error handling please */
+    }
+}
+
+int
+burst_digest (mu_message_t msg)
+{
+  mu_stream_t is, os = NULL;
+  char *buf;
+  size_t bufsize;
+  size_t n;
+  int state = S1;
+  int rc;
+  size_t count = 0;
+  
+  mu_message_size (msg, &bufsize);
+
+  for (; bufsize > 1; bufsize >>= 1)
+    if ((buf = malloc (bufsize)))
+      break;
+
+  if (!buf)
+    {
+      mh_error (_("cannot burst message: %s"), mu_strerror (ENOMEM));
+      exit (1);
+    }
+
+  mu_message_get_stream (msg, &is);
+
+  while (mu_stream_sequential_read (is, buf, bufsize, &n) == 0
+	 && n > 0)
+    {
+      size_t start, i;
+	
+      for (i = start = 0; i < n; i++)
+	{
+	  int newstate = transtab[state-1][token_num(buf[i])];
+	  
+	  if (newstate < 0)
+	    {
+	      newstate = -newstate;
+	      flush_stream (&os, buf + start, i - start);
+	      start = i + 1;
+	    }
+	      
+
+	  if (state == S5 && newstate == S2)
+	    {
+	      /* As the automaton traverses from state S5 to S2, the
+		 bursting agent should consider a new message started
+		 and output the first character. */
+	      os = NULL;
+	      count++;
+	    }
+	  else if (state == S3 && newstate == S4)
+	    {
+	      /* As the automaton traverses from state S3 to S4, the
+		 bursting agent should consider the current message ended. */
+	      finish_stream (&os);
+	    }
+	  state = newstate;
+	}
+
+      flush_stream (&os, buf + start, i - start);
+    }
+
+  free (buf);
+  if (os)
+    {
+      if (count)
+	finish_stream (&os);
+      else
+	{
+	  mu_stream_close (os);
+	  mu_stream_destroy (&os, mu_stream_get_owner (os));
+	}
+    }
+  VERBOSE((ngettext ("%lu message bursted", "%lu messages bursted", count),
+	   count));
+  return count > 0;
+}
+
+
 int
 burst_or_copy (mu_message_t msg, int recursive, int copy)
 {
@@ -177,8 +346,8 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
 	    map.mime = 1;
 	  return burst_mime (msg);
 	}
-      /* else if (is_digest (msg))
-        return burst_digest (msg) */
+      else if (burst_digest (msg))
+	return 0;
     }
 
   if (copy)
@@ -299,7 +468,7 @@ msg_copy (size_t num, char *file)
   while (rc == 0
 	 && mu_stream_sequential_read (istream, buf, sizeof buf, &n) == 0
 	 && n > 0)
-    /* FIXME: Implement RFC 934 FSA */
+    /* FIXME: Implement RFC 934 FSA? */
     rc = mu_stream_sequential_write (ostream, buf, n);
   
   mu_stream_close (ostream);
