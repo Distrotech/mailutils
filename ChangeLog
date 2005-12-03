@@ -1,5 +1,9 @@
 2005-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/stream.h (mu_temp_file_stream_create): New
+	function.
+	* mailbox/file_stream.c: Likewise.
+	
 	* mh/burst.c: New option --length allows to set a minimal
 	encapsulation boundary length.
 	(burst_digest): Take into account minimal EB length.

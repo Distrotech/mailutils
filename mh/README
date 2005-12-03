@@ -174,24 +174,31 @@ usual English, Norwiegian, German and Polish reply subject prefixes.
 
 See also format functions `reply_regex' and `isreply'.
 
-* rmm
+* burst
 
-** Different behaviour if one of the messages in the list does not exist.
+The utility is able to burst both RFC 934 digest messages and MIME
+multipart messages. It provides two additional command line options:
+--recurse and --length.
 
-Mailutils rmm does not delete any messages. Standard rmm in this case
-deletes all messages preceeding the non-existent one.
+The --recurse option instructs the utility to recursively expand the
+digest.
 
-** The rmmproc: profile component is not used.
-
-* fmtdump command is not provided. Use fmtcheck instead.
-
-* repl
-
-Understands --use option. Disposition shell provides 'use' command.
+The --length option can be used to set the minimal encapsulation
+boundary length for RFC 934 digests. Default length is 1,
+i.e. encountering one dash immediately following a newline triggers
+digest decoding. It is OK for messages that follow RFC 934
+specification. However, many user agents do not precisely follow it,
+in particular, they often do not escape lines starting with a dash by
+"- " sequence. Mailman is one of such agents. To cope with such
+digests you can set encapsulation boundary length to a higher
+value. For example, `bounce --length=8' has been found to be
+sufficient for most Mailman-generated digests.
 
 * comp
 
 Understands --build option.
+
+* fmtdump command is not provided. Use fmtcheck instead.
 
 * mhl
 
@@ -201,6 +208,50 @@ to set a string variable to the empty value use = "", e.g.:
 overflowtext="" (see the supplied mhl.format file).
 
 Ineractive prompting is not yet implemented.
+
+* mhn
+
+** New option --compose forces mhn editing mode. This is also the default
+mode. This differs from the standard mhn, which switches to the
+editing mode only if no other options were given and the input file
+name coincides with the value of "mhdraft" environment variable. 
+
+** Show mode (--show)
+*** If an appropriate mhn-show-type[/subtype] was not found, GNU mhn
+prints the decoded message content using moreproc. Standard mhn in
+this case used to print "don't know how to display content" diagnostic.
+
+*** The default behaviour is to pipe the content to the standard input
+of the mhn-show-type[/subtype] command. This is altered to using a
+temporary file if the command contains %f or %F escapes.
+
+** Store mode (--store)
+*** If the Content-Disposition header contains "filename=", and mhn
+is invoked with --auto switch, it transforms the filename into
+the absolute notation and uses it only if it lies below the
+current mhn-storage directory. Standard mhn only requires that the
+filename do not begin with '/'
+
+*** Before saving a message part, GNU mhn checks if the file already
+exists. If so it asks whether the user wishes to rewrite it. This
+behaviour is disabled when --quiet option was given.
+
+* mhparam
+
+The -all mode does not display commented out entries.
+
+* repl
+
+Understands --use option. Disposition shell provides 'use' command.
+
+* rmm
+
+** Different behaviour if one of the messages in the list does not exist.
+
+Mailutils rmm does not delete any messages. Standard rmm in this case
+deletes all messages preceeding the non-existent one.
+
+** The rmmproc: profile component is not used.
 
 * pick
 
@@ -267,37 +318,6 @@ specified:
 	    by --form or --format option.
  --dry-run  do not actually sort messages, rather print what would
             have been done. This is useful for debugging purposes.
-
-* mhn
-
-** New option --compose forces mhn editing mode. This is also the default
-mode. This differs from the standard mhn, which switches to the
-editing mode only if no other options were given and the input file
-name coincides with the value of "mhdraft" environment variable. 
-
-** Show mode (--show)
-*** If an appropriate mhn-show-type[/subtype] was not found, GNU mhn
-prints the decoded message content using moreproc. Standard mhn in
-this case used to print "don't know how to display content" diagnostic.
-
-*** The default behaviour is to pipe the content to the standard input
-of the mhn-show-type[/subtype] command. This is altered to using a
-temporary file if the command contains %f or %F escapes.
-
-** Store mode (--store)
-*** If the Content-Disposition header contains "filename=", and mhn
-is invoked with --auto switch, it transforms the filename into
-the absolute notation and uses it only if it lies below the
-current mhn-storage directory. Standard mhn only requires that the
-filename do not begin with '/'
-
-*** Before saving a message part, GNU mhn checks if the file already
-exists. If so it asks whether the user wishes to rewrite it. This
-behaviour is disabled when --quiet option was given.
-
-* mhparam
-
-The -all mode does not display commented out entries.
 
 
 Local variables:

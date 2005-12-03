@@ -35,10 +35,7 @@ State	Nice	Utility		Comments
 +	5	mark
 +	5	pick		See the README entry.
 +	10	anno
-*	10	burst		It is able to burst both RFC934 digests and
-				MIME multipart messages. Mailman digests can
-				cause the digest-decoder FSA to burst more
-				messages than there are actually.
++	10	burst		See the README entry.
 *	10	whom		--check 
 +	10	mhpath
 +	10	whatnow		
