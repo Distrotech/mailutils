@@ -1,5 +1,10 @@
 2005-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/burst.c (finish_stream): Set map.first if necessary
+	(burst_digest): Initialize eb_length
+	(burst_rename): Skip messages that do not need to be renamed.
+	(main): Do not process inplace if burst_count is 0
+
 	* include/mailutils/stream.h (mu_temp_file_stream_create): New
 	function.
 	* mailbox/file_stream.c: Likewise.
