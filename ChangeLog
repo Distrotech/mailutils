@@ -1,9 +1,12 @@
 2005-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/TODO: Update
+
 	* mh/burst.c (burst): Keep message sequence number in msgno.
 	(burst_rename): Fix loop limits
 	(main): Fix calculation of last_uid.
 	Keep message sequence numbers in ms.
+	(burst_digest): Initial implementation of RFC 934
 
 2005-11-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
