@@ -47,7 +47,7 @@ struct _file_stream
 {
   FILE *file;
   mu_off_t offset;
-
+  int tempfile;
   char *filename;
   mu_stream_t cache;
 };
@@ -392,6 +392,22 @@ _file_close (mu_stream_t stream)
 }
 
 static int
+_temp_file_open (mu_stream_t stream)
+{
+  struct _file_stream *fs = mu_stream_get_owner (stream);
+  int fd;
+
+  fd = mu_tempfile (fs->filename, NULL);
+  if (fd == -1)
+    return errno;
+  fs->file = fdopen (fd, "r+b");
+  if (fs->file == NULL)
+    return errno;
+
+  return 0;
+}
+
+static int
 _file_open (mu_stream_t stream)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
@@ -534,6 +550,53 @@ mu_file_stream_create (mu_stream_t *stream, const char* filename, int flags)
     }
 
   mu_stream_set_open (*stream, _file_open, fs);
+  mu_stream_set_close (*stream, _file_close, fs);
+  mu_stream_set_get_transport2 (*stream, _file_get_transport2, fs);
+  mu_stream_set_read (*stream, _file_read, fs);
+  mu_stream_set_readline (*stream, _file_readline, fs);
+  mu_stream_set_write (*stream, _file_write, fs);
+  mu_stream_set_truncate (*stream, _file_truncate, fs);
+  mu_stream_set_size (*stream, _file_size, fs);
+  mu_stream_set_flush (*stream, _file_flush, fs);
+  mu_stream_set_destroy (*stream, _file_destroy, fs);
+  mu_stream_set_strerror (*stream, _file_strerror, fs);
+  mu_stream_set_wait (*stream, _file_wait, fs);
+  
+  return 0;
+}
+
+int
+mu_temp_file_stream_create (mu_stream_t *stream, const char *dir)
+{
+  struct _file_stream *fs;
+  int ret;
+
+  if (stream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+
+  fs = calloc (1, sizeof (struct _file_stream));
+  if (fs == NULL)
+    return ENOMEM;
+  fs->tempfile = 1;
+
+  if (!dir)
+    fs->filename = dir;
+  else if ((fs->filename = strdup(dir)) == NULL)
+    {
+      free (fs);
+      return ENOMEM;
+    }
+  
+  ret = mu_stream_create (stream,
+			  MU_STREAM_RDWR|MU_STREAM_CREAT|MU_STREAM_NO_CHECK,
+			  fs);
+  if (ret != 0)
+    {
+      free (fs);
+      return ret;
+    }
+
+  mu_stream_set_open (*stream, _temp_file_open, fs);
   mu_stream_set_close (*stream, _file_close, fs);
   mu_stream_set_get_transport2 (*stream, _file_get_transport2, fs);
   mu_stream_set_read (*stream, _file_read, fs);

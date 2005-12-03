@@ -43,23 +43,25 @@ extern "C" { /*}*/
 /* Functions useful to users of the pre-defined stream types. */
 
 extern int mu_file_stream_create    (mu_stream_t *stream, const char* filename,
-				  int flags);
+				     int flags);
+extern int mu_temp_file_stream_create (mu_stream_t *stream, const char *dir);
+  
 extern int mu_tcp_stream_create     (mu_stream_t *stream, const char* host,
-				  int port, int flags);
+				     int port, int flags);
 extern int mu_mapfile_stream_create (mu_stream_t *stream, const char* filename,
-				  int flags);
+				     int flags);
 extern int mu_memory_stream_create  (mu_stream_t *stream, const char* filename,
-				  int flags);
+				     int flags);
 extern int mu_encoder_stream_create (mu_stream_t *stream, mu_stream_t iostream,
-				  const char *encoding);
+				     const char *encoding);
 extern int mu_decoder_stream_create (mu_stream_t *stream, mu_stream_t iostream,
-				  const char *encoding);
+				     const char *encoding);
 extern int mu_stdio_stream_create   (mu_stream_t *stream, FILE* stdio,
-				  int flags);
+				     int flags);
 extern int mu_prog_stream_create    (mu_stream_t *stream, const char *progname,
-				  int flags);
+				     int flags);
 int mu_filter_prog_stream_create    (mu_stream_t *stream, const char *progname,
-				  mu_stream_t input);
+				     mu_stream_t input);
   
 extern void mu_stream_destroy    (mu_stream_t *, void *owner);
 
@@ -67,7 +69,7 @@ extern int mu_stream_open        (mu_stream_t);
 extern int mu_stream_close       (mu_stream_t);
 extern int mu_stream_is_seekable (mu_stream_t);
 extern int mu_stream_get_transport2 (mu_stream_t stream, mu_transport_t *pt,
-				  mu_transport_t *pt2);
+				     mu_transport_t *pt2);
 extern int mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt);
 
 extern int mu_stream_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
