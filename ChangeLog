@@ -1,5 +1,10 @@
 2005-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/burst.c: New option --length allows to set a minimal
+	encapsulation boundary length.
+	(burst_digest): Take into account minimal EB length.
+
+	* mh/README: Update
 	* mh/TODO: Update
 
 	* mh/burst.c (burst): Keep message sequence number in msgno.
