@@ -1,3 +1,15 @@
+2005-12-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/list.c (list_file,print_dir,print_file): Use
+	mkfullname. Fixes [bug #15144].
+
+	* imap4d/create.c: Do not create anything and return OK if the
+	argument is suffixed with a hierarchy separator. Fixes [bug #15142].
+	* imap4d/status.c (imap4d_status): Flush attributes before opening
+	the mailbox.
+	(status_unseen): Remove superfluous condition
+	Fixes [bug #15143].
+	
 2005-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/burst.c (finish_stream): Set map.first if necessary
