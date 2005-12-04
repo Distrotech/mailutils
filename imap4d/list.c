@@ -194,6 +194,27 @@ inode_list_lookup (struct inode_list *list, struct stat *st)
   return 0;
 }
 
+static char *
+mkfullname (const char *dir, const char *name, const char *delim)
+{
+  char *p;
+  int dlen = strlen (dir);
+
+  if (dlen == 0)
+    return strdup (name);
+  
+  if (dir[dlen-1] == delim[0])
+    dlen--;
+
+  p = malloc (dlen + 1 + strlen (name) + 1);
+  if (p)
+    {
+      memcpy (p, dir, dlen);
+      p[dlen] = '/';
+      strcpy (p + dlen + 1, name);
+    }
+  return p;
+}
 
 /* Recusively calling the files.  */
 static void
@@ -204,6 +225,9 @@ list_file (const char *cwd, const char *ref, const char *pattern,
   struct dirent *dp;
   char *next;
 
+  if (!cwd || !ref)
+    return;
+  
   /* Shortcut no wildcards.  */
   if (*pattern == '\0' || !strpbrk (pattern, "%*"))
     {
@@ -266,12 +290,8 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 			      inode_rec.inode = st.st_ino;
 			      inode_rec.dev   = st.st_dev;
 			      inode_rec.next = inode_list;
-			      rf = calloc (strlen (ref) + strlen (delim) +
-					   strlen (entry) + 1, 1);
-			      sprintf (rf, "%s%s%s", ref, delim, entry);
-			      cd = calloc (strlen (cwd) + strlen (delim) +
-					   strlen (entry) + 1, 1);
-			      sprintf (cd, "%s%s%s", cwd, delim, entry);
+			      rf = mkfullname (ref, entry, delim);
+			      cd = mkfullname (cwd, entry, delim);
 			      list_file (cd, rf, (next) ? next : pattern,
 					 delim, &inode_rec);
 			      free (rf);
@@ -298,15 +318,16 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 static void
 print_file (const char *ref, const char *file, const char *delim)
 {
+  char *name = mkfullname (ref, file, delim);
   if (strpbrk (file, "\"{}"))
     {
       util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" {%d}", delim,
-		strlen (ref) + strlen ((*ref) ? delim : "") + strlen (file));
-      util_send ("%s%s%s\r\n", ref, (*ref) ? delim : "", file);
+		strlen (name));
+      util_send ("%s\r\n", name);
     }
   else
-    util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" %s%s%s", delim,
-	      ref, (*ref) ? delim : "", file);
+    util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" %s", delim, name);
+  free (name);
 }
 
 /* Make sure that the file name does not contain any undesirable
@@ -314,18 +335,16 @@ print_file (const char *ref, const char *file, const char *delim)
 static void
 print_dir (const char *ref, const char *file, const char *delim)
 {
+  char *name = mkfullname (ref, file, delim);
   if (strpbrk (file, "\"{}"))
     {
       util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" {%d}", delim,
-		strlen (ref) + strlen ((*ref) ? delim : "") + strlen (file));
-      util_send ("%s%s%s\r\n", ref, (*ref) ? delim : "", file);
+		strlen (name));
+      util_send ("%s\r\n", name);
     }
-  else if (*file)
-    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" %s%s%s", delim,
-	      ref, (*ref) ? delim : "", file);
   else
-    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" \"%s%s\"", delim,
-	      ref, (*ref) ? delim : "");
+    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" %s", delim, name);
+  free (name);
 }
 
 /* Calls the imap_matcher if a match found out the attribute. */
