@@ -75,6 +75,10 @@ imap4d_status (struct imap4d_command *command, char *arg)
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Error opening mailbox");
 
+  /* We may be opening the current mailbox, so make sure the attributes are
+     preserved */
+  mu_mailbox_save_attributes (mbox);
+  
   status = mu_mailbox_create_default (&smbox, mailbox_name);
   if (status == 0)
     {
@@ -83,7 +87,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	{
 	  char item[32];
 	  item[0] = '\0';
-	  
+
 	  if (*sp == '(')
 	    sp++;
 	  else
@@ -180,7 +184,11 @@ status_unseen (mu_mailbox_t smbox)
       mu_attribute_t attr = NULL;
       mu_mailbox_get_message (smbox, i, &msg);
       mu_message_get_attribute (msg, &attr);
-      if (!mu_attribute_is_seen (attr) && !mu_attribute_is_read (attr))
+      /* RFC 3501:
+           \Seen
+ 	      Message has been read
+      */
+      if (!mu_attribute_is_read (attr))
 	unseen++;
     }
   util_send ("UNSEEN %d", unseen);
