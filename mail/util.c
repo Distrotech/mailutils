@@ -120,7 +120,8 @@ util_do_command (const char *c, ...)
 	{
 	  argc++;
 	  argv = xrealloc (argv, (argc + 1)*sizeof argv[0]);
-	  memmove (argv + 2, argv + 1, argc*sizeof argv[0]);
+	  if (argc > 2)
+	    memmove (argv + 2, argv + 1, (argc - 2)*sizeof argv[0]);
 	  argv[1] = xstrdup (p);
 	  *p = 0;
 	}
