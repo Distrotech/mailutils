@@ -1,3 +1,7 @@
+2005-12-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/util.c (util_do_command): Bugfix
+
 2005-12-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/list.c (list_file,print_dir,print_file): Use
