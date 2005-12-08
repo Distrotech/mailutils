@@ -86,6 +86,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
+                                                   mu_folder_directory ());
+      break;
+
     case ARG_BUILD:
       build_only = 1;
       break;
@@ -208,10 +213,6 @@ main (int argc, char **argv)
   mu_argp_init (program_version, NULL);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
-
-  if (!wh_env.draftfolder)
-    wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						mu_folder_directory ());
 
   wh_env.file = mh_expand_name (wh_env.draftfolder, "comp", 0);
   if (!wh_env.draftfile)

@@ -121,6 +121,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
+                                                   mu_folder_directory ());
+      break;
+
     case ARG_ANNOTATE:
       annotate = is_true (arg);
       break;
@@ -427,10 +432,6 @@ main (int argc, char **argv)
   mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   
-  if (!wh_env.draftfolder)
-    wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						mu_folder_directory ());
-
   wh_env.file = mh_expand_name (wh_env.draftfolder, "forw", 0);
   if (!wh_env.draftfile)
     wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
