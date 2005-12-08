@@ -1,3 +1,8 @@
+2005-12-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/comp.c, mh/forw.c, mh/repl.c: Make sure -nodraftfolder
+	cancels Draft-Folder variable, not only -draftfolder option.
+
 2005-12-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/util.c (util_do_command): Bugfix
