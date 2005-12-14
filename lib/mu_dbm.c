@@ -76,6 +76,41 @@ mu_check_perm (const char *name, int mode)
   return 0;
 }
 
+static char *
+strip_suffix (const char *name, const char *suffix)
+{
+  int nlen = strlen (name);
+  int slen = strlen (suffix);
+  char *p;
+  
+  if (nlen > slen && strcmp (name + nlen - slen, suffix) == 0)
+    {
+      p = xmalloc (nlen - slen + 1);
+      memcpy (p, name, nlen - slen);
+      p[nlen - slen] = 0;
+    }
+  else
+    p = xstrdup (name);
+  return p;
+}
+
+static char *
+make_db_name (const char *name, const char *suffix)
+{
+  int nlen = strlen (name);
+  int slen = strlen (suffix);
+  char *p;
+  
+  if (nlen > slen && strcmp (name + nlen - slen, suffix) == 0)
+    p = xstrdup (name);
+  else
+    {
+      p = xmalloc (strlen (name) + slen + 1);
+      strcat (strcpy (p, name), suffix);
+    }
+  return p;
+}
+
 #if defined(WITH_GDBM)
 
 #define DB_SUFFIX ".db"
@@ -84,8 +119,7 @@ int
 mu_dbm_stat (char *name, struct stat *sb)
 {
   int rc;
-  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
+  char *pfname = make_db_name (name, DB_SUFFIX);
   rc = stat (pfname, sb);
   free (pfname);
   return rc;
@@ -95,10 +129,8 @@ int
 mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
-  char *pfname;
+  char *pfname = make_db_name (name, DB_SUFFIX);
 
-  pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
   if (mu_check_perm (pfname, mode))
     {
       free (pfname);
@@ -173,8 +205,7 @@ int
 mu_dbm_stat (char *name, struct stat *sb)
 {
   int rc;
-  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
+  char *pfname = make_db_name (name, DB_SUFFIX);
   rc = stat (pfname, sb);
   free (pfname);
   return rc;
@@ -185,10 +216,8 @@ mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
 {
   int f, rc;
   DB *db;
-  char *pfname;
+  char *pfname = make_db_name (name, DB_SUFFIX);
 
-  pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
   if (mu_check_perm (pfname, mode))
     {
       free (pfname);
@@ -315,8 +344,7 @@ int
 mu_dbm_stat (char *name, struct stat *sb)
 {
   int rc;
-  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
+  char *pfname = make_db_name (name, DB_SUFFIX);
   rc = stat (pfname, sb);
   free (pfname);
   return rc;
@@ -326,6 +354,7 @@ int
 mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
+  char *pfname;
 
   switch (flags)
     {
@@ -342,7 +371,9 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
       errno = EINVAL;
       return -1;
     }
-  *db = dbm_open (name, f, mode);
+  pfname = strip_suffix (name, DB_SUFFIX);
+  *db = dbm_open (pfname, f, mode);
+  free (pfname);
   if (!*db)
     return -1;
 
@@ -359,14 +390,14 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 int
 mu_dbm_close (DBM_FILE db)
 {
-  dbm_close(db);
+  dbm_close (db);
   return 0;
 }
 
 int
 mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
-  *ret = dbm_fetch(db, key);
+  *ret = dbm_fetch (db, key);
   return ret->dptr == NULL;
 }
 
@@ -379,7 +410,7 @@ mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
 int
 mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
-  return dbm_store(db, key, contents, replace ? DBM_REPLACE : DBM_INSERT);
+  return dbm_store (db, key, contents, replace ? DBM_REPLACE : DBM_INSERT);
 }
 
 DBM_DATUM
@@ -402,8 +433,7 @@ int
 mu_dbm_stat (char *name, struct stat *sb)
 {
   int rc;
-  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
-  strcat (strcpy (pfname, name), DB_SUFFIX);
+  char *pfname = make_db_name (name, DB_SUFFIX);
   rc = stat (pfname, sb);
   free (pfname);
   return rc;
@@ -414,7 +444,8 @@ int
 mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
-
+  char *pfname;
+  
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -429,37 +460,42 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
     default:
       return -1;
     }
-
+  pfname = strip_suffix (name, DB_SUFFIX);
   if (f & O_CREAT)
     {
       char *p;
       int fd;
 
-      p = xmalloc(strlen(name)+5);
-      strcat(strcpy(p, name), ".pag");
-      fd = open(p, f, mode);
-      free(p);
+      p = make_db_name (pfname, ".pag");
+      fd = open (p, f, mode);
+      free (p);
       if (fd < 0)
-	return -1;
+	{
+	  free (pfname);
+	  return -1;
+	}
       close(fd);
 
-      p = xmalloc(strlen(name)+5);
-      strcat(strcpy(p, name), ".dir");
-      fd = open(p, f, mode);
-      free(p);
+      p = make_db_name (pfname, ".dir");
+      fd = open (p, f, mode);
+      free (p);
       if (fd < 0)
-	return -1;
-      close(fd);
+	{
+	  free (pfname);
+	  return -1;
+	}
+      close (fd);
     }
-
-  return dbminit(name);
+  rc = dbminit (pfname);
+  free (pfname);
+  return rc;
 }
 
 /*ARGSUSED*/
 int
 mu_dbm_close (DBM_FILE db)
 {
-  dbmclose();
+  dbmclose ();
   return 0;
 }
 
@@ -467,7 +503,7 @@ mu_dbm_close (DBM_FILE db)
 int
 mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
-  *ret = fetch(key);
+  *ret = fetch (key);
   return ret->dptr == NULL;
 }
 
@@ -480,7 +516,7 @@ mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
 int
 mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
-  return store(key, contents);
+  return store (key, contents);
 }
 
 DBM_DATUM
