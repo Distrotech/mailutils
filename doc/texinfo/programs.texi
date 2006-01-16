@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006
 @c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
@@ -1999,6 +1999,15 @@ composed.
 
 String used by the @code{~m} tilde escape for indenting quoted messages.
 
+@item inplacealiases
+@*Type: Boolean
+@*Default: False
+
+If set, @command{mail} will expand aliases in the address header field
+before entering send mode (@pxref{Composing Mail}). By default, the
+address header fields are left intact while composing, the alias
+expansion takes place immediately before sending message.
+
 @item keepsave
 @*Type: Boolean.
 @*Default: False.
@@ -2131,6 +2140,12 @@ configuration file upon startup. See @ref{Mail Configuration Files}.
 @vrindex record, mail variable
 
 When set, any outgoing message will be saved to the named file.
+
+@item recursivealiases
+@*Type: Boolean
+@*Default: True
+
+When set, @command{mail} will expand aliases recursively.
 
 @item regex
 @*Type: Boolean.

@@ -1,3 +1,23 @@
+2006-01-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Updated
+	* THANKS: Add Walter Neumann
+	* doc/texinfo/programs.texi: Document inplacealiases and
+	recursealiases.
+	* mail/alias.c (alias_expand): Recursively expand aliases if
+	recursealiases is set.
+	* mail/mail.c (default_setup): Provide defaults for inplacealiases
+	and recursealiases.
+	* mail/mail.h (is_address_field): New prototype.
+	* mail/send.c (compose_header_set): Check for valid arguments at
+	the beginning of the function (value can be NULL, e.g. if the user hit
+	C-D at Cc: prompt).
+	Call util_merge_addresses() only if inplacealiases is set. Expand
+	aliases before calling it.
+	* mail/util.c (is_address_field): Remove static qualifier.
+	(util_header_expand): Expand aliases unless inplacealiases is set.
+	* mail/testsuite/mail/send.exp: Set inplacealiases.
+
 2005-12-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* lib/mu_dbm.c: Allow specifying full file name (including the
