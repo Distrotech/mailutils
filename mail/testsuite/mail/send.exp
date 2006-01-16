@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002,2006 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 mail_start "--file=%mbox1"
 
 mail_command "set sendmail=\"sendmail:$top_builddir/examples/mta\""
+mail_command "set inplacealiases"
 mail_command "setenv MTA_DIAG=\"$MU_FOLDER_DIR/mta.diag\""
 
 mail_test -noprompt "reply 1" \
