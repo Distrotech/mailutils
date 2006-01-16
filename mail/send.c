@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -221,6 +221,9 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
   int status;
   char *old_value;
 
+  if (!value || value[0] == 0)
+    return EINVAL;
+
   if (!env->header
       && (status = mu_header_create (&env->header, NULL, 0, NULL)) != 0)
     {
@@ -232,23 +235,50 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
     {
     case COMPOSE_REPLACE:
     case COMPOSE_APPEND:
-      status = mu_header_set_value (env->header, name, value, mode);
+      if (is_address_field (name)
+	  && util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0) == 0)
+	{
+	  char *exp = alias_expand (value);
+	  status = mu_header_set_value (env->header, name, exp ? exp : value,
+					mode);
+	  free (exp);
+	}
+      else
+	status = mu_header_set_value (env->header, name, value, mode);
       break;
 
     case COMPOSE_SINGLE_LINE:
-      if (!value || value[0] == 0)
-	return EINVAL;
-
       if (mu_header_aget_value (env->header, name, &old_value) == 0
 	  && old_value[0])
 	{
-	  status = util_merge_addresses (&old_value, value);
-	  if (status == 0)
-	    status = mu_header_set_value (env->header, name, old_value, 1);
+	  if (is_address_field (name)
+	      && util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0) == 0)
+	    {
+	      char *exp = alias_expand (value);
+	      status = util_merge_addresses (&old_value, exp ? exp : value);
+	      if (status == 0)
+		status = mu_header_set_value (env->header, name, old_value, 1);
+	      free (exp);
+	    }
+	  else
+	    {
+	      size_t size = strlen (old_value) + strlen (value) + 2;
+	      char *p = realloc (old_value, size);
+	      if (!p)
+		status = ENOMEM;
+	      else
+		{
+		  old_value = p;
+		  strcat (old_value, ",");
+		  strcat (old_value, value);
+		  status = mu_header_set_value (env->header, name, old_value,
+						1);
+		}
+	    }
 	  free (old_value);
 	}
       else
-	status = mu_header_set_value (env->header, name, value, 1);
+	status = compose_header_set (env, name, value, COMPOSE_REPLACE);
     }
 
   return status;
