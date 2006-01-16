@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005 Free Software Foundation, Inc.
+   2004, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1254,7 +1254,7 @@ util_merge_addresses (char **addr_str, const char *value)
   return rc;
 }
 
-static int
+int
 is_address_field (const char *name)
 {
   static char *address_fields[] = {
@@ -1301,7 +1301,7 @@ util_header_expand (mu_header_t *phdr)
       
       if (is_address_field (name))
 	{
-	  char *p, *s, *exp;
+	  char *p, *s, *exp = NULL;
 	  mu_address_t addr = NULL;
 
 	  if (mu_header_aget_value (hdr, name, &exp) == 0)
@@ -1316,7 +1316,9 @@ util_header_expand (mu_header_t *phdr)
 	      
 	      while (*p && isspace (*p))
 		p++;
-	      exp = alias_expand (p);
+	      /* If inplacealiases was set, the value was already expanded */
+	      if (util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0))
+		exp = alias_expand (p);
 	      rc = mu_address_create (&new_addr, exp ? exp : p);
 	      if (rc)
 		{
