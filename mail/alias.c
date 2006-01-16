@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -258,11 +258,75 @@ alias_destroy (char *name)
     }
 }
 
+static void
+recursive_alias_expand (char *name, mu_list_t exlist, mu_list_t origlist)
+{ 
+  mu_list_t alist;
+  mu_iterator_t itr;
+
+  if (!alias_lookup (name, &alist))
+    {
+      if (mu_list_locate (exlist, name, NULL) == MU_ERR_NOENT)
+	mu_list_append (exlist, name);
+      return;
+    }
+  
+  mu_list_get_iterator (alist, &itr);
+  for (mu_iterator_first (itr);
+       !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      char *word;
+      
+      mu_iterator_current (itr, (void **)&word);
+      if (mu_list_locate (origlist, word, NULL) == MU_ERR_NOENT)
+	{
+	  mu_list_prepend (origlist, word);
+	  recursive_alias_expand (word, exlist, origlist);
+	  mu_list_remove (origlist, word);
+	}
+    }
+  mu_iterator_destroy (&itr);
+}
+
+static int
+string_comp (const void *item, const void *value)
+{
+  return strcmp (item, value);
+}
+
 char *
 alias_expand (char *name)
 {
   mu_list_t list;
 
+  if (util_getenv (NULL, "recursivealiases", Mail_env_boolean, 0) == 0)
+    {
+      char *s;
+      mu_list_t origlist;
+      
+      int status = mu_list_create (&list);
+      if (status)
+	{
+	  mu_error (_("Cannot create list: %s"), mu_strerror (status));
+	  return NULL;
+	}
+      status = mu_list_create (&origlist);
+      if (status)
+	{
+	  mu_list_destroy (&origlist);
+	  mu_error (_("Cannot create list: %s"), mu_strerror (status));
+	  return NULL;
+	}
+      mu_list_set_comparator (list, string_comp);
+      mu_list_set_comparator (origlist, string_comp);
+      recursive_alias_expand (name, list, origlist);
+      s = util_slist_to_string (list, ",");
+      mu_list_destroy (&origlist);
+      mu_list_destroy (&list);
+      return s;
+    }
+  
   if (!alias_lookup (name, &list))
     return NULL;
   return util_slist_to_string (list, ",");
