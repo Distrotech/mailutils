@@ -26,10 +26,7 @@ the CVS repository:
 
 To checkout the source tree from CVS issue the following command:
 
-CVS_RSH=ssh \
- cvs -d :ext:anoncvs@savannah.gnu.org:/cvsroot/mailutils checkout mailutils
-
-Make sure SSHv2 is used.
+ cvs -d :pserver:anoncvs@cvs.savannah.gnu.org:/cvsroot/mailutils checkout mailutils
 
     This will give you read-only access.  If you think you need write access,
 contact the mailing list.
