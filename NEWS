@@ -28,6 +28,9 @@ expansion takes place before entering compose mode (by default, it is
 carried out when exiting compose mode, right before sending the
 message). The default is `set recursivealiases noinplacealiases'.
 
+* imap4d: New option --create-home-dir: If a user logs in and his home
+directory does not exist, create it.
+
 * Bugfixes:
 ** mail: Fix handling of conditional expressions
 ** mail: When several recipients were specified, no alias expansion took

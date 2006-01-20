@@ -1,3 +1,20 @@
+2006-01-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/authenticate.c (imap4d_authenticate): Call
+	imap4d_check_home_dir before switching to user's privileges. Bail
+	out if it returns with an error.
+	Use util_chdir instead of chdir to change to user's home
+	directory.
+	* imap4d/login.c (imap4d_login): Likewise
+	* imap4d/imap4d.c (create_home_dir,home_dir_mode): New variables
+	(options): New option --create-home-dir
+	(imap4d_check_home_dir): New function
+	* imap4d/imap4d.h (imap4d_check_home_dir,util_chdir): New
+	prototype.
+	* imap4d/util.c (util_chdir): New function.	
+	* doc/texinfo/programs.texi: Document --create-home-dir option.
+	* NEWS: Update
+	
 2006-01-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* README-alpha: Update cvs co information
