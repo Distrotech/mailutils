@@ -589,7 +589,7 @@ envp_comp (const void *a, const void *b)
   return strcmp ((*epa)->var, (*epb)->var);
 }
 
-int
+void
 util_printenv (int set)
 {
   struct mail_env_entry **ep;

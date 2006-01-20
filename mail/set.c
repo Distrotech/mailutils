@@ -31,7 +31,8 @@ mail_set (int argc, char **argv)
 {
   if (argc < 2)
     {
-      return util_printenv (1);
+      util_printenv (1);
+      return 0;
     }
   else
     {

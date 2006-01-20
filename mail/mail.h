@@ -332,7 +332,7 @@ extern struct mail_env_entry *util_find_env (const char *var, int create);
 extern int util_getenv (void *ptr, const char *variable,
 			mail_env_data_t type, int warn);
 
-extern int util_printenv (int set);
+extern void util_printenv (int set);
 extern int util_setenv (const char *name, void *value,
 		        mail_env_data_t type, int overwrite);
 extern int util_isdeleted (size_t msgno);
