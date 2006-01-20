@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -124,12 +124,15 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
 	return util_finish (command, RESP_NO,
 			    "User name or passwd rejected");
 
+      homedir = mu_normalize_path (strdup (auth_data->dir), "/");
+      if (imap4d_check_home_dir (homedir, auth_data->uid, auth_data->gid))
+	return util_finish (command, RESP_NO,
+			    "User name or passwd rejected");
+      
       if (auth_data->change_uid)
 	setuid (auth_data->uid);
 
-      homedir = mu_normalize_path (strdup (auth_data->dir), "/");
-      /* FIXME: Check for errors.  */
-      chdir (homedir);
+      util_chdir (homedir);
       namespace_init (homedir);
       syslog (LOG_INFO, _("User `%s' logged in"), adata.username);
       
