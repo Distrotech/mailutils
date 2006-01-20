@@ -25,6 +25,7 @@
 #endif
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
+#include <mu_umaxtostr.h>
 
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"

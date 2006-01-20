@@ -95,6 +95,7 @@
 #include <mailutils/url.h>
 
 #include <mu_asprintf.h>
+#include <mu_umaxtostr.h>
 #include <getline.h>
 
 #ifdef __cplusplus

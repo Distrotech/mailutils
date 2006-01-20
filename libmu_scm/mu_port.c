@@ -17,6 +17,7 @@
    Boston, MA 02110-1301 USA */
 
 #include "mu_scm.h"
+#include <mu_umaxtostr.h>
 
 struct mu_port
 {
@@ -270,7 +271,7 @@ mu_port_print (SCM exp, SCM port, scm_print_state *pstate)
   if (mu_stream_size (mp->stream, &size) == 0)
     {
       char buffer[64];
-      snprintf (buffer, sizeof (buffer), " %-5ld", size);
+      snprintf (buffer, sizeof (buffer), " %-5s", mu_umaxtostr (0, size));
       scm_puts (buffer, port);
       scm_puts (" chars", port);
     }

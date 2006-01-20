@@ -54,6 +54,7 @@
 #include <mailutils/mime.h>
 
 #include <mu_asprintf.h>
+#include <mu_umaxtostr.h>
 #include <getline.h>
 
 #if !HAVE_DECL_STRCHRNUL
