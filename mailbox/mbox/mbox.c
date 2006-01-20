@@ -367,7 +367,7 @@ mbox_is_updated (mu_mailbox_t mailbox)
     {
       mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
       /* And be verbose.  ? */
-      mu_error ("* BAD : Mailbox corrupted, shrank size\n");
+      mu_error (_("* BAD : Mailbox corrupted, shrank in size"));
       /* FIXME: should I crash.  */
       return 0;
     }
@@ -482,7 +482,7 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
     {
       if (tmpmboxname)
 	free (tmpmboxname);
-      mu_error ("Failed to create temporary file when expunging.\n");
+      mu_error (_("Failed to create temporary file when expunging"));
       return errno;
     }
 
@@ -545,7 +545,7 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
       mu_mailbox_destroy (&tmpmailbox);
       remove (tmpmboxname);
       free (tmpmboxname);
-      mu_error ("Failed to grab the lock: %s\n", mu_strerror(status));
+      mu_error (_("Failed to grab the lock: %s"), mu_strerror (status));
       return status;
     }
 
@@ -597,8 +597,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	      status = mbox_get_message (mailbox, i + 1, &msg);
 	      if (status != 0)
 		{
-		  mu_error ("Error expunge:%d: %s", __LINE__,
-			  mu_strerror (status));
+		  mu_error (_("Error expunging:%d: %s"), __LINE__,
+			    mu_strerror (status));
 		  goto bailout0;
 		}
 	    }
@@ -606,8 +606,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 					 &total, 1, (i == save_imapbase));
 	  if (status != 0)
 	    {
-	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       mu_strerror (status));
+	      mu_error (_("Error expunging:%d: %s"), __LINE__,
+		        mu_strerror (status));
 	      goto bailout0;
 	    }
 	  /* Clear the dirty bits.  */
@@ -629,8 +629,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 		  || (status = mu_stream_write (tmpmailbox->stream, buffer, n,
 					     total, &n) != 0))
 		{
-		  mu_error ("Error expunge:%d: %s", __LINE__,
-			   mu_strerror (status));
+		  mu_error (_("Error expunging:%d: %s"), __LINE__,
+			    mu_strerror (status));
 		  goto bailout0;
 		}
 	      len -= n;
@@ -641,8 +641,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	  status = mu_stream_write (tmpmailbox->stream, "\n", 1, total, &n);
 	  if (status != 0)
 	    {
-	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       mu_strerror (status));
+	      mu_error (_("Error expunging:%d: %s"), __LINE__,
+		        mu_strerror (status));
 	      goto bailout0;
 	    }
 	  total++;
@@ -671,8 +671,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 				       total, &n);
 		if (status != 0)
 		  {
-		    mu_error ("Error expunge:%d: %s", __LINE__,
-			     mu_strerror (status));
+		    mu_error (_("Error expunging:%d: %s"), __LINE__,
+			      mu_strerror (status));
 		    goto bailout0;
 		  }
 		total += n;
@@ -682,8 +682,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	else if (len < 0)
 	  {
 	    /* Corrupted mailbox.  */
-	    mu_error ("Error expunge:%d: %s", __LINE__,
-		     mu_strerror (status));
+	    mu_error (_("Error expunging:%d: %s"), __LINE__,
+		      mu_strerror (status));
 	    goto bailout0;
 	  }
       }
@@ -703,8 +703,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	  status = mu_stream_write (mailbox->stream, buffer, n, offset, &n);
 	  if (status != 0)
 	    {
-	      mu_error ("Error expunge:%d: %s\n", __LINE__,
-		       mu_strerror (status));
+	      mu_error (_("Error expunging:%d: %s"), __LINE__,
+		        mu_strerror (status));
 	      goto bailout;
 	    }
 	  off += n;
@@ -717,8 +717,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   status = mu_stream_truncate (mailbox->stream, total + marker);
   if (status != 0)
     {
-      mu_error ("Error expunging:%d: %s\n", __LINE__,
-	       mu_strerror (status));
+      mu_error (_("Error expunging:%d: %s"), __LINE__,
+	        mu_strerror (status));
       goto bailout;
     }
 

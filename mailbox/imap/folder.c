@@ -53,6 +53,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/argcv.h>
 #include <mailutils/tls.h>
+#include <mailutils/nls.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -1923,7 +1924,7 @@ imap_fetch (f_imap_t f_imap)
 		{
 		  status = imap_rfc822_header (f_imap, &sp);
 		}
-	      /* else mu_error ("not supported RFC822 option\n");  */
+	      /* else mu_error (_("not supported RFC822 option"));  */
 	    }
 	  else
 	    {
@@ -1934,7 +1935,7 @@ imap_fetch (f_imap_t f_imap)
 	{
 	  status = imap_uid (f_imap, &sp);
 	}
-      /* else mu_error ("not supported FETCH command\n");  */
+      /* else mu_error (_("not supported FETCH command"));  */
     }
   return status;
 }
@@ -2222,8 +2223,14 @@ imap_parse (f_imap_t f_imap)
 	  remainder = empty;
       }
 
+      if (!tag)
+	{
+	  /* Just in case */
+	  mu_error (_("No tag in response: %s %s"), response, remainder);
+	  status = MU_ERR_FAILURE;
+	}
       /* Is the response untagged ?  */
-      if (tag && tag[0] == '*')
+      else if (tag[0] == '*')
 	{
 	  FOLDER_DEBUG2(folder, MU_DEBUG_PROT, "* %s %s\n",
 	      response, remainder);
@@ -2246,7 +2253,7 @@ imap_parse (f_imap_t f_imap)
 		      /* The human-readable text contains a special alert that
 			 MUST be presented to the user in a fashion that calls
 			 the user's attention to the message.  */
-		      mu_error ("ALERT: %s\n", (sp) ? sp : "");
+		      mu_error (_("ALERT: %s"), (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "BADCHARSET") == 0)
 		    {
@@ -2255,7 +2262,7 @@ imap_parse (f_imap_t f_imap)
 			 is not supported by this implementation.  If the
 			 optional list of charsets is given, this lists the
 			 charsets that are supported by this implementation. */
-		      mu_error ("BADCHARSET: %s\n", (sp) ? sp : "");
+		      mu_error (_("BAD CHARSET: %s"), (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "CAPABILITY") == 0)
 		    {
@@ -2274,14 +2281,14 @@ imap_parse (f_imap_t f_imap)
 			 mailbox name.  This is a hint to the client that the
 			 operation can succeed if the SELECT or EXAMINE is
 			 reissued with the new mailbox name. */
-		      mu_error ("NEWNAME: %s\n", (sp) ? sp : "");
+		      mu_error ("NEWNAME: %s", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "PARSE") == 0)
 		    {
 		      /* The human-readable text represents an error in
 			 parsing the [RFC-822] header or [MIME-IMB] headers
 			 of a message in the mailbox.  */
-		      mu_error ("PARSE: %s\n", (sp) ? sp : "");
+		      mu_error ("PARSE: %s", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "PERMANENTFLAGS") == 0)
 		    {
@@ -2317,7 +2324,7 @@ imap_parse (f_imap_t f_imap)
 			 other reason).  This is a hint to the client that
 			 the operation can succeed if the mailbox is first
 			 created by the CREATE command.  */
-		      mu_error ("TRYCREATE: %s\n", (sp) ? sp : "");
+		      mu_error ("TRYCREATE: %s", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "UIDNEXT") == 0)
 		    {
@@ -2355,18 +2362,18 @@ imap_parse (f_imap_t f_imap)
 		{
 		  /* Not sure why we would get an untagged ok...but we do... */
 		  /* Still should we be verbose about is ? */
-		  mu_error ("Untagged OK: %s\n", remainder);
+		  mu_error (_("Untagged OK: %s"), remainder);
 		}
 	    }
 	  else if (strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
-	      mu_error ("Untagged NO: %s\n", remainder);
+	      mu_error (_("Untagged NO: %s"), remainder);
 	    }
 	  else if (strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
-	      mu_error ("Untagged BAD: %s\n", remainder);
+	      mu_error (_("Untagged BAD: %s"), remainder);
 	    }
 	  else if (strcasecmp (response, "PREAUTH") == 0)
 	    {
@@ -2390,7 +2397,7 @@ imap_parse (f_imap_t f_imap)
 	    {
 	      f_imap->selected->messages_count = strtol (response, NULL, 10);
 	    }
-	  else if (strcasecmp (remainder, "EXPUNGED") == 0)
+	  else if (strcasecmp (remainder, "EXPUNGE") == 0)
 	    {
 	      unsigned int msgno = strtol (response, NULL, 10);
 	      status = imap_expunge (f_imap, msgno);
@@ -2429,12 +2436,12 @@ imap_parse (f_imap_t f_imap)
 	  else
 	    {
 	      /* Once again, check for something strange.  */
-	      mu_error ("unknown untagged response: \"%s\"  %s\n",
+	      mu_error (_("unknown untagged response: \"%s\"  %s"),
 			response, remainder);
 	    }
 	}
       /* Continuation token ???.  */
-      else if (tag && tag[0] == '+')
+      else if (tag[0] == '+')
 	{
 	  done = 1;
 	}
@@ -2463,7 +2470,8 @@ imap_parse (f_imap_t f_imap)
 	  else /* NO and BAD */
 	    {
 	      status = EINVAL;
-	      mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
+	      mu_error (_("NO/Bad Tagged: %s %s %s"),
+			tag, response, remainder);
 	    }
 	}
       f_imap->ptr = f_imap->buffer;
