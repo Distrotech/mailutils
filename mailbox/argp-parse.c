@@ -97,7 +97,7 @@ argp_default_parser (int key, char *arg, struct argp_state *state)
       break;
     case OPT_USAGE:
       __argp_state_help (state, state->out_stream,
-		       ARGP_HELP_USAGE | ARGP_HELP_EXIT_OK);
+			 ARGP_HELP_USAGE | ARGP_HELP_EXIT_OK);
       break;
 
     case OPT_PROGNAME:		/* Set the program name.  */
@@ -109,11 +109,7 @@ argp_default_parser (int key, char *arg, struct argp_state *state)
 	 to be that, so we have to be a bit careful here.]  */
 
       /* Update what we use for messages.  */
-      state->name = strrchr (arg, '/');
-      if (state->name)
-	state->name++;
-      else
-	state->name = arg;
+      state->name = __argp_base_name (arg);
 
 #if defined _LIBC || HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME
       program_invocation_short_name = state->name;
@@ -562,10 +558,7 @@ parser_init (struct parser *parser, const struct argp *argp,
 
   if (parser->state.argv == argv && argv[0])
     /* There's an argv[0]; use it for messages.  */
-    {
-      char *short_name = strrchr (argv[0], '/');
-      parser->state.name = short_name ? short_name + 1 : argv[0];
-    }
+    parser->state.name = __argp_base_name (argv[0]);
   else
     parser->state.name = __argp_short_program_name ();
 
