@@ -1,5 +1,20 @@
 2006-01-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Fix bug reported by Ronan KERYELL <Ronan.Keryell@enstb.org>
+	(Debian Bug#344420):
+	
+	* mailbox/file_stream.c (_file_write): Return ENOSPC if fwrite
+	returns 0.
+	* mailbox/mbox/mbox.c (mbox_append_message0): Preserve return
+	status from mu_stream_write, if it is not 0.
+	* movemail/movemail.c (main): Exit on first detected IO
+	error. Make sure the source mailbox is not modified if not all
+	messages were moved successfully.
+
+	* THANKS: Add Ronan KERYELL
+
+	Support automatic home directory creation in imap4d
+	
 	* imap4d/authenticate.c (imap4d_authenticate): Call
 	imap4d_check_home_dir before switching to user's privileges. Bail
 	out if it returns with an error.

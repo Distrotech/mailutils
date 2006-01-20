@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-01-16
+GNU mailutils NEWS -- history of user-visible changes.  2006-01-20
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -35,6 +35,8 @@ directory does not exist, create it.
 ** mail: Fix handling of conditional expressions
 ** mail: When several recipients were specified, no alias expansion took
 place. 
+** movemail: did not preserve input mailbox if an I/O error happened on the
+output one. Debian Bug#344420.
 
 
 Version 0.6.91:
