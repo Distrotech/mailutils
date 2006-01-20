@@ -163,7 +163,7 @@ _file_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _file_write (mu_stream_t stream, const char *iptr, size_t isize,
-	    mu_off_t offset, size_t *nbytes)
+	     mu_off_t offset, size_t *nbytes)
 {
   struct _file_stream *fs = mu_stream_get_owner (stream);
   size_t n;
@@ -188,6 +188,8 @@ _file_write (mu_stream_t stream, const char *iptr, size_t isize,
     {
       if (feof (fs->file) == 0)
 	err = EIO;
+      else if (n == 0)
+	err = ENOSPC; 
       clearerr(fs->file);
       n = 0;
     }
