@@ -19,7 +19,7 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/mailbox/include @INTLINCS@
 
-AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
+AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" -DGNULIB_ARGP_DISABLE_DIRNAME=1
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
 
@@ -30,7 +30,7 @@ lib_LTLIBRARIES = libmailutils.la
 localedir = $(datadir)/locale
 DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y pin.c fgetpwent.c
+EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y fgetpwent.c
 
 libmailutils_la_SOURCES = \
 address.c \
@@ -66,6 +66,8 @@ mime.c \
 monitor.c \
 mu_argp.c \
 mu_auth.c \
+mu_umaxtostr.h \
+mu_umaxtostr.c \
 munre.c \
 mutil.c \
 muerror.c \
@@ -118,7 +120,8 @@ MOSTLYCLEANFILES += alloca.h alloca.h-t
 
 libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-fmtstream.c argp-fmtstream.h argp-fs-xinl.c argp-help.c \
-           argp-namefrob.h argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c
+           argp-namefrob.h argp-parse.c argp-pin.c argp-pv.c argp-pvh.c \
+           argp-xinl.c
 
 
 
@@ -133,6 +136,8 @@ glob.h: glob_.h
 	cp $(srcdir)/glob_.h $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += glob.h glob.h-t
+
+EXTRA_DIST += inttostr.c
 
 
 BUILT_SOURCES += $(FNMATCH_H)
@@ -217,4 +222,4 @@ libmailutils_la_SOURCES += vsnprintf.h
 
 libmailutils_la_SOURCES += xsize.h
 
-EXTRA_DIST += fnmatch.c getline.c getline.c getline.h getline.c getndelim2.c getopt.c getopt1.c md5.c md5.h md5.c mempcpy.c mempcpy.h mempcpy.c regex.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c unlocked-io.h getdelim.c getdelim.h getdelim.c mbchar.c memchr.c getlogin_r.c getlogin_r.c glob.c glob_.h glob-libc.h glob.c stat-macros.h strdup.c strdup.h strdup.c
+EXTRA_DIST += dirname.c dirname.h dirname.c strcasecmp.c strncasecmp.c unlocked-io.h getndelim2.c xstrtol.c xstrtol.h xstrtoul.c intprops.h xstrtol.c xstrtoul.c fnmatch.c getdelim.c getdelim.h getdelim.c getopt.c getopt1.c mbchar.c memchr.c mempcpy.c mempcpy.h mempcpy.c getlogin_r.c getlogin_r.c inttostr.c inttostr.h intprops.h imaxtostr.c offtostr.c umaxtostr.c imaxtostr.c offtostr.c umaxtostr.c regex.c stat-macros.h strchrnul.c strdup.c strdup.h strdup.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c getline.c getline.c getline.h getline.c glob.c glob_.h glob-libc.h glob.c md5.c md5.h md5.c
