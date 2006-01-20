@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@ static struct argp_option options[] = {
   { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
   { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
   { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
-  { "emacs", OPT_EMACS, NULL, 0, N_("Output information used by Emacs rmail interface"), 0 },
+  { "emacs", OPT_EMACS, NULL, 0,
+    N_("Output information used by Emacs rmail interface"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -77,11 +78,11 @@ static struct argp argp = {
 };
 
 static const char *mail_capa[] = {
-	"common",
-	"license",
-	"mailbox",
+  "common",
+  "license",
+  "mailbox",
 #ifdef WITH_TLS
-	"tls",
+  "tls",
 #endif
 	 NULL 
 };
@@ -256,11 +257,19 @@ compatibility_mode (mu_mailbox_t *mbx, char *source_name, char *password,
   free (tmp);
 }
 
+static mu_mailbox_t source, dest;
+
+static void
+close_mailboxes (void)
+{
+  mu_mailbox_close (dest);
+  mu_mailbox_close (source);
+}  
+
 int
 main (int argc, char **argv)
 {
   int index;
-  mu_mailbox_t source, dest;
   size_t i, total;
   int rc = 0;
   char *source_name, *dest_name;
@@ -290,6 +299,8 @@ main (int argc, char **argv)
       return 1;
     }
 
+  atexit (close_mailboxes);
+  
   source_name = argv[0];
   dest_name = argv[1];
 
@@ -306,19 +317,26 @@ main (int argc, char **argv)
   if (reverse_order)
     {
       for (i = total; rc == 0 && i > 0; i--)
-	move_message (source, dest, i);
+	rc = move_message (source, dest, i);
     }
   else
     {
       for (i = 1; rc == 0 && i <= total; i++)
-	move_message (source, dest, i);
+	rc = move_message (source, dest, i);
     }
+  
   if (rc)
     return rc;
-  mu_mailbox_flush (source, 1);
+  
+  rc = mu_mailbox_close (dest);
+  mu_mailbox_destroy (&dest);
+  if (rc)
+    mu_error (_("Cannot close destination mailbox: %s"), mu_strerror (rc));
+  else
+    mu_mailbox_flush (source, 1);
+
   mu_mailbox_close (source);
   mu_mailbox_destroy (&source);
-  mu_mailbox_close (dest);
-  mu_mailbox_destroy (&dest);
-  return 0;
+
+  return rc;
 }
