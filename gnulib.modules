@@ -1,4 +1,3 @@
-
 # List of gnulib modules needed for GNU mailutils.
 # A module name per line. Empty lines and comments are ignored.
 # A line beginning with colon starts a library section. All modules
@@ -13,6 +12,7 @@ regex
 strtok_r
 md5
 glob
+inttostr
 
 :muaux
 xalloc
@@ -26,5 +26,5 @@ realloc
 setenv
 snprintf
 strcase
-xstrtol
 vasprintf
+xstrtol
