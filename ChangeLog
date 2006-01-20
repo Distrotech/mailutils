@@ -55,7 +55,7 @@
 	* po/POTFILES.in: Updated. Sorted alphabetically
 
 	* scripts/gnulib-sync (expand_modules): Implement 'avoid' feature.
-	Avoid expanding dirname into mailbox/, since it grags xalloc with
+	Avoid expanding dirname into mailbox/, since it drags xalloc with
 	it. 
 	
 	Update by gnulib-sync.
