@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -43,6 +44,7 @@
 
 #include <md5.h>
 
+#include <mu_umaxtostr.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
 #include <mailutils/body.h>
@@ -1022,6 +1024,40 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
   return 0;
 }
 
+static int
+parse_answer0 (const char *buffer, size_t *n1, size_t *n2)
+{
+  char *p;
+  uintmax_t m;
+  if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
+    return 1;
+  m = *n1 = strtoumax (buffer + 3, &p, 10);
+  if (!isspace (*p) || m != *n1)
+    return 1;
+  m = *n2 = strtoumax (p, &p, 10);
+  if (!(*p == 0 || isspace (*p)) || m != *n2)
+    return 1;
+  return 0;
+}
+
+static int
+parse_answer1 (const char *buffer, size_t *n1, char *buf, size_t bufsize)
+{
+  char *p;
+  uintmax_t m;
+  if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
+    return 1;
+  m = *n1 = strtoumax (buffer + 3, &p, 0);
+  if (!isspace (*p) || m != *n1)
+    return 1;
+  while (*p && isspace (*p))
+    p++;
+  if (strlen (p) >= bufsize)
+    return 1;
+  strcpy (buf, p);
+  return 0;
+}
+  
 /* There is no such thing in pop all messages should be consider recent.
    FIXME: We could cheat and peek at the status if it was not strip
    by the server ...  */
@@ -1099,14 +1135,13 @@ pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
 
 
   /* Parse the answer.  */
-  status = sscanf (mpd->buffer, "+OK %d %d", &(mpd->messages_count),
-		   &(mpd->size));
 
+  status = parse_answer0 (mpd->buffer, &mpd->messages_count, &mpd->size);
   /*  Clear the state _after_ the scanf, since another thread could
       start writing over mpd->buffer.  */
   CLEAR_STATE (mpd);
 
-  if (status == EOF || status != 2)
+  if (status)
     return EIO;
 
   if (pcount)
@@ -1182,8 +1217,9 @@ pop_expunge (mu_mailbox_t mbox)
 	      switch (mpd->state)
 		{
 		case POP_NO_STATE:
-		  status = pop_writeline (mpd, "DELE %d\r\n",
-					  mpd->pmessages[i]->num);
+		  status = pop_writeline (mpd, "DELE %s\r\n",
+					  mu_umaxtostr (0,
+							mpd->pmessages[i]->num));
 		  CHECK_ERROR (mpd, status);
 		  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
 		  mpd->state = POP_DELE;
@@ -1277,7 +1313,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      status = pop_writeline (mpd, "LIST %d\r\n", mpm->num);
+      status = pop_writeline (mpd, "LIST %s\r\n", mu_umaxtostr (0, mpm->num));
       CHECK_ERROR (mpd, status);
       MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_LIST;
@@ -1302,10 +1338,11 @@ pop_message_size (mu_message_t msg, size_t *psize)
       break;
     }
 
-  status = sscanf (mpd->buffer, "+OK %d %d\n", &num, &mpm->mu_message_size);
+  /* FIXME */
+  status = parse_answer0 (mpd->buffer, &num, &mpm->mu_message_size);
   CLEAR_STATE (mpd);
 
-  if (status != 2)
+  if (status != 0)
     status = MU_ERR_PARSE;
 
   /* The size of the message is with the extra '\r' octet for everyline.
@@ -1495,7 +1532,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      status = pop_writeline (mpd, "UIDL %d\r\n", mpm->num);
+      status = pop_writeline (mpd, "UIDL %s\r\n", mu_umaxtostr (0, mpm->num));
       CHECK_ERROR (mpd, status);
       MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_UIDL;
@@ -1522,8 +1559,8 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
   /* FIXME:  I should cache the result.  */
   *uniq = '\0';
-  status = sscanf (mpd->buffer, "+OK %d %127s\n", &num, uniq);
-  if (status != 2)
+  status = parse_answer1 (mpd->buffer, &num, uniq, sizeof uniq);
+  if (status)
     {
       status = MU_ERR_PARSE;
       buflen = 0;
@@ -1590,7 +1627,8 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
     case POP_NO_STATE:
       if (mpd->capa & CAPA_TOP)
         {
-	  status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
+	  status = pop_writeline (mpd, "TOP %s 0\r\n",
+				  mu_umaxtostr (0, mpm->num));
 	  CHECK_ERROR (mpd, status);
 	  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
 	  mpd->state = POP_TOP;
@@ -1815,7 +1853,8 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
     {
     case POP_NO_STATE:
       mpm->body_lines = mpm->body_size = 0;
-      status = pop_writeline (mpd, "RETR %d\r\n", mpm->num);
+      status = pop_writeline (mpd, "RETR %s\r\n",
+			      mu_umaxtostr (0, mpm->num));
       MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       CHECK_ERROR (mpd, status);
       mpd->state = POP_RETR;
