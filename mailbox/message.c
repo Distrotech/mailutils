@@ -51,6 +51,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
+#include <mu_umaxtostr.h>
 
 #define MESSAGE_MODIFIED 0x10000;
 
@@ -637,7 +638,8 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
 	sprintf (tmp, "%02x", md5digest[n]);
       *tmp = '\0';
       /* POP3 rfc says that an UID should not be longer than 70.  */
-      snprintf (buf + 32, 70, ".%lu.%u", (unsigned long)time (NULL), uid);
+      snprintf (buf + 32, 70, ".%lu.%s", (unsigned long)time (NULL), 
+                mu_umaxtostr (0, uid));
 
       mu_header_set_value (header, "X-UIDL", buf, 1);
       buflen--; /* leave space for the NULL.  */

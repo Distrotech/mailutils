@@ -166,10 +166,10 @@ pop3d_user (const char *arg)
     mu_mailbox_get_url (mbox, &url);
     mu_mailbox_messages_count (mbox, &total);
     syslog (LOG_INFO,
-	    ngettext ("User `%s' logged in with mailbox `%s' (%d message)",
-		      "User `%s' logged in with mailbox `%s' (%d messages)",
-		      total),
-	    username, mu_url_to_string (url), total);
+	    ngettext ("User `%s' logged in with mailbox `%s' (%s message)",
+		      "User `%s' logged in with mailbox `%s' (%s messages)",
+		      (unsigned long) total),
+	    username, mu_url_to_string (url), mu_umaxtostr (0, total));
   }
   return OK;
 }

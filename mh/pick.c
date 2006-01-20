@@ -305,7 +305,7 @@ pick_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
     {
       mh_message_number (msg, &num);
       if (list)
-	printf ("%lu\n", (unsigned long) num);
+	printf ("%s\n", mu_umaxtostr (0, num));
       if (seq_list)
 	{
 	  obstack_grow (&msgno_stk, &num, sizeof (num));

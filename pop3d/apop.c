@@ -211,8 +211,8 @@ pop3d_apop (const char *arg)
   /* Reset the uid.  */
   if (auth->change_uid && setuid (auth->uid) == -1)
     {
-      syslog (LOG_INFO, _("Cannot change to uid %lu: %m"),
-	      (unsigned long) auth->uid);
+      syslog (LOG_INFO, _("Cannot change to uid %s: %m"),
+	      mu_umaxtostr (0, auth->uid));
       mu_auth_data_free (auth);
       return ERR_BAD_LOGIN;
     }

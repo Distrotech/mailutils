@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <mailutils/daemon.h>
+#include <mu_umaxtostr.h>
 
 static char *pidfile;
 static pid_t current_pid;
@@ -36,7 +37,7 @@ static pid_t current_pid;
 int
 mu_daemon_create_pidfile (const char *filename)
 {
-  char pid_string[10]; /* 32bit PID */
+  const char *pid_string; 
   int fd;
 
   if (filename[0] != '/')
@@ -57,8 +58,7 @@ mu_daemon_create_pidfile (const char *filename)
       return 2; /* failure */
     }
   
-  snprintf (pid_string, sizeof (pid_string) - 1, "%lu\n",
-	    (unsigned long) current_pid);
+  pid_string = mu_umaxtostr (0, current_pid);
   write (fd, pid_string, strlen (pid_string));
   close (fd);
   

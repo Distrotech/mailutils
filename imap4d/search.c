@@ -286,10 +286,10 @@ do_search (struct parsebuf *pb)
 	    {
 	      size_t uid;
 	      mu_message_get_uid (pb->msg, &uid);
-	      util_send (" %d", uid);
+	      util_send (" %s", mu_umaxtostr (0, uid));
 	    }
 	  else
-	    util_send (" %d", pb->msgno);
+	    util_send (" %s", mu_umaxtostr (0, pb->msgno));
 	}
     }
   util_send ("\r\n");

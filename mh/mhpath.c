@@ -66,7 +66,7 @@ mhpath (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   size_t uid;
       
   mh_message_number (msg, &uid);
-  printf ("%s/%lu\n", (char*) data, (unsigned long) uid);
+  printf ("%s/%s\n", (char*) data, mu_umaxtostr (0, uid));
 }
 
 int
@@ -126,7 +126,7 @@ main (int argc, char **argv)
       
       mu_mailbox_get_message (mbox, total, &msg);
       mh_message_number (msg, &num);
-      printf ("%s/%lu\n", mhdir, (unsigned long)(num + 1));
+      printf ("%s/%s\n", mhdir, mu_umaxtostr (0, num + 1));
       exit (0);
     }
       

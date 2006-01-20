@@ -48,7 +48,9 @@ pop3d_list (const char *arg)
 	    {
 	      mu_message_size (msg, &size);
 	      mu_message_lines (msg, &lines);
-	      pop3d_outf ("%d %d\r\n", mesgno, size + lines);
+	      pop3d_outf ("%s %s\r\n", 
+                          mu_umaxtostr (0, mesgno), 
+                          mu_umaxtostr (1, size + lines));
 	    }
 	}
       pop3d_outf (".\r\n");
@@ -63,7 +65,9 @@ pop3d_list (const char *arg)
 	return ERR_MESG_DELE;
       mu_message_size (msg, &size);
       mu_message_lines (msg, &lines);
-      pop3d_outf ("+OK %d %d\r\n", mesgno, size + lines);
+      pop3d_outf ("+OK %s %s\r\n", 
+                  mu_umaxtostr (0, mesgno),
+                  mu_umaxtostr (1, size + lines));
     }
 
   return OK;

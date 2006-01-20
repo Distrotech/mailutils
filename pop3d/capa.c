@@ -53,7 +53,7 @@ pop3d_capa (const char *arg)
   if (expire < 0)
     pop3d_outf ("EXPIRE NEVER\r\n");
   else 
-    pop3d_outf ("EXPIRE %d\r\n", expire);
+    pop3d_outf ("EXPIRE %s\r\n", mu_umaxtostr (0, expire));
 
   if (state == INITIAL)
     pop3d_outf ("XTLSREQUIRED\r\n");

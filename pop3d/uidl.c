@@ -44,7 +44,7 @@ pop3d_uidl (const char *arg)
           if (!pop3d_is_deleted (attr))
             {
               mu_message_get_uidl (msg, uidl, sizeof (uidl), NULL);
-              pop3d_outf ("%d %s\r\n", mesgno, uidl);
+              pop3d_outf ("%s %s\r\n", mu_umaxtostr (0, mesgno), uidl);
             }
         }
       pop3d_outf (".\r\n");
@@ -58,7 +58,7 @@ pop3d_uidl (const char *arg)
       if (pop3d_is_deleted (attr))
         return ERR_MESG_DELE;
       mu_message_get_uidl (msg, uidl, sizeof (uidl), NULL);
-      pop3d_outf ("+OK %d %s\r\n", mesgno, uidl);
+      pop3d_outf ("+OK %s %s\r\n", mu_umaxtostr (0, mesgno), uidl);
     }
 
   return OK;

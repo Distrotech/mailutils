@@ -177,7 +177,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 	  int space = 0;
 
 	  fcmd = NULL;
-	  util_send ("* %d FETCH (", msgno);
+	  util_send ("* %s FETCH (", mu_umaxtostr (0, msgno));
 	  item[0] = '\0';
 	  /* Server implementations MUST implicitly
 	     include the UID message data item as part of any FETCH
@@ -462,7 +462,7 @@ fetch_uid (struct fetch_command *command, char **arg ARG_UNUSED)
   size_t uid = 0;
 
   mu_message_get_uid (command->msg, &uid);
-  util_send ("%s %d", command->name, uid);
+  util_send ("%s %s", command->name, mu_umaxtostr (0, uid));
   return RESP_OK;
 }
 
@@ -916,14 +916,14 @@ bodystructure (mu_message_t msg, int extension)
     mu_message_get_body (msg, &body);
     mu_body_size (body, &size);
     mu_body_lines (body, &blines);
-    util_send (" %d", size + blines);
+    util_send (" %s", mu_umaxtostr (0, size + blines));
   }
 
   /* If the mime type was text.  */
   if (text_plain)
     {
       /* Add the line number of the body.  */
-      util_send (" %d", blines);
+      util_send (" %s", mu_umaxtostr (0, blines));
     }
   else if (message_rfc822)
     {
@@ -940,7 +940,7 @@ bodystructure (mu_message_t msg, int extension)
       util_send (")");
       /* Size in text lines of the encapsulated message.  */
       mu_message_lines (emsg, &lines);
-      util_send (" %d", lines);
+      util_send (" %s", mu_umaxtostr (0, lines));
       mu_message_destroy (&emsg, NULL);
     }
 
@@ -1150,7 +1150,7 @@ fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
 {
   mu_stream_t rfc = NULL;
   size_t n = 0;
-  off_t offset;
+  mu_off_t offset;
 
   mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
 
@@ -1195,7 +1195,7 @@ fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
       util_send ("<%lu>", start);
       if (total)
 	{
-	  util_send (" {%u}\r\n", total);
+	  util_send (" {%s}\r\n", mu_umaxtostr (0, total));
 	  util_send ("%s", p);
 	}
       else

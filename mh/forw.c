@@ -353,7 +353,7 @@ finish_draft ()
     {
       mu_url_t url;
       const char *mbox_path;
-      char buf[64];
+      char *p;
       size_t i;
       
       mu_mailbox_get_url (mbox, &url);
@@ -373,8 +373,8 @@ finish_draft ()
 	  if (annotate)
 	    mu_list_append (wh_env.anno_list, msg);
 	  mh_message_number (msg, &num);
-	  snprintf (buf, sizeof buf, " %lu", (unsigned long) num);
-          rc = mu_stream_sequential_write (stream, buf, strlen (buf));
+          p = mu_umaxtostr (0, num);
+          rc = mu_stream_sequential_write (stream, p, strlen (p));
 	}
     }
   else

@@ -123,7 +123,7 @@ login_delay_capa ()
   
   if (login_delay && open_stat_db (&db, MU_STREAM_RDWR) == 0)
     {
-      pop3d_outf ("LOGIN-DELAY %lu\r\n", (unsigned long)login_delay);
+      pop3d_outf ("LOGIN-DELAY %s\r\n", mu_umaxtostr (0, login_delay));
       mu_dbm_close (db);
     }
 }

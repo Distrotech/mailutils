@@ -381,8 +381,8 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
 	{
-	  syslog (LOG_ERR, _("Too many children (%lu)"),
-		  (unsigned long) children);
+	  syslog (LOG_ERR, _("Too many children (%s)"),
+		  mu_umaxtostr (0, children));
 	  pause ();
 	  continue;
 	}

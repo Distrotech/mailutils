@@ -377,9 +377,9 @@ comp0 (size_t na, size_t nb)
     return 0;
   if (verbose > 1)
     fprintf (stderr,
-	     _("comparing messages %lu and %lu: "),
-	     (unsigned long) na,
-	     (unsigned long) nb);
+	     _("comparing messages %s and %s: "),
+	     mu_umaxtostr (0, na),
+	     mu_umaxtostr (1, nb));
   return compare_messages (a, b);
 }
 
@@ -445,8 +445,8 @@ swap_message (size_t a, size_t b)
   char *path_a, *path_b;
   char *tmp;
   
-  asprintf (&path_a, "%s/%lu", mbox_path, (unsigned long) a);
-  asprintf (&path_b, "%s/%lu", mbox_path, (unsigned long) b);
+  asprintf (&path_a, "%s/%s", mbox_path, mu_umaxtostr (0, a));
+  asprintf (&path_b, "%s/%s", mbox_path, mu_umaxtostr (1, b));
   tmp = mu_tempname (mbox_path);
   rename (path_a, tmp);
   unlink (path_a);
@@ -526,9 +526,9 @@ sort ()
 	      mh_message_number (msg, &new_num);
 	      transpose (i, oldlist[i]);
 	      if (verbose)
-		fprintf (stderr, "{%lu, %lu}\n",
-			 (unsigned long) old_num,
-			 (unsigned long) new_num);
+		fprintf (stderr, "{%s, %s}\n",
+			 mu_umaxtostr (0, old_num),
+			 mu_umaxtostr (1, new_num));
 	      if (action == ACTION_REORDER)
 		swap_message (old_num, new_num);
 	    }

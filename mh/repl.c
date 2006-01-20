@@ -277,10 +277,10 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	disp = DISP_USE;
       else 
 	{
-	  printf (ngettext ("Draft \"%s\" exists (%lu byte).\n",
-			    "Draft \"%s\" exists (%lu bytes).\n",
-			    st.st_size),
-		  wh->draftfile, (unsigned long) st.st_size);
+	  printf (ngettext ("Draft \"%s\" exists (%s byte).\n",
+			    "Draft \"%s\" exists (%s bytes).\n",
+			    (unsigned long) st.st_size),
+		  wh->draftfile, mu_umaxtostr (0, st.st_size));
 	  disp = mh_disposition (wh->draftfile);
 	}
     }
@@ -304,8 +304,8 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
-      mh_error (_("Cannot read message %lu: %s"),
-		(unsigned long) msgset.list[0],
+      mh_error (_("Cannot read message %s: %s"),
+		mu_umaxtostr (0, msgset.list[0]),
 		mu_strerror (rc));
       exit (1);
     }
@@ -360,7 +360,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     
     mu_mailbox_get_url (mbox, &url);
     mh_message_number (msg, &num);
-    asprintf (&msgname, "%s/%lu", mu_url_to_string (url), (unsigned long) num);
+    asprintf (&msgname, "%s/%s", mu_url_to_string (url), mu_umaxtostr (0, num));
     p = strchr (msgname, ':');
     if (!p)
       wh->msg = msgname;

@@ -480,7 +480,7 @@ msg_part_print (msg_part_t p, int max_width)
 	  printf (".");
 	  width++;
 	}
-      width += printf ("%lu", (unsigned long) p->part[i]);
+      width += printf ("%s", mu_umaxtostr (0, p->part[i]));
     }
   for (; width < max_width; width++)
     putchar (' ');
@@ -492,13 +492,12 @@ msg_part_format (msg_part_t p)
   int i;
   int width = 0;
   char *str, *s;
-  char buf[64];
   
   for (i = 1; i <= p->level; i++)
     {
       if (i > 1)
 	width++;
-      width += snprintf (buf, sizeof buf, "%lu", (unsigned long) p->part[i]);
+      width += strlen (mu_umaxtostr (0, p->part[i]));
     }
 
   str = s = xmalloc (width + 1);
@@ -506,7 +505,7 @@ msg_part_format (msg_part_t p)
     {
       if (i > 1)
 	*s++ = '.';
-      s += sprintf (s, "%lu", (unsigned long) p->part[i]);
+      s += sprintf (s, "%s", mu_umaxtostr (0, p->part[i]));
     }
   *s = 0;
   return str;
@@ -516,16 +515,17 @@ void
 msg_part_format_stk (struct obstack *stk, msg_part_t p)
 {
   int i;
-  char buf[64];
   
   for (i = 1; i <= p->level; i++)
     {
       int len;
+      char *buf;
   
       if (i > 1)
 	obstack_1grow (stk, '.');
 
-      len = snprintf (buf, sizeof buf, "%lu", (unsigned long) p->part[i]);
+      buf = mu_umaxtostr (0, p->part[i]);
+      len = strlen (buf);
       obstack_grow (stk, buf, len);
     }
 }
@@ -793,7 +793,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
-  char buf[64];
+  char *buf;
   
   mu_message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
@@ -823,8 +823,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 		obstack_grow (&stk, name, strlen (name));
 	      else
 		{
-		  snprintf (buf, sizeof buf, "%lu",
-			    (unsigned long) msg_part_subpart (part, 0));
+                  buf = mu_umaxtostr (0, msg_part_subpart (part, 0));
 		  obstack_grow (&stk, buf, strlen (buf));
 		}
 	      break;
@@ -846,7 +845,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 	    case 'd':
 	      /* content description */
 	      if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
-				     &tmp) == 0)
+				        &tmp) == 0)
 		{
 		  obstack_grow (&stk, tmp, strlen (tmp));
 		  free (tmp);
@@ -1252,8 +1251,8 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
 
   if ((rc = mu_message_get_body (msg, &body)))
     {
-      mh_error (_("%lu: cannot get message body: %s"),
-		(unsigned long) msg_part_subpart (part, 0),
+      mh_error (_("%s: cannot get message body: %s"),
+		mu_umaxtostr (0, msg_part_subpart (part, 0)),
 		mu_strerror (rc));
       return 0;
     }
@@ -1363,7 +1362,6 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   mu_stream_t out = data;
   char *cmd;
   int flags = 0;
-  char buf[64];
   int fd = 1;
   char *tempfile = NULL;
   int ismime;
@@ -1383,6 +1381,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   if (flags & MHN_LISTING)
     {
       char *str;
+      char *p;
       size_t size = 0;
 
       str = _("part ");
@@ -1393,8 +1392,8 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       mu_stream_sequential_write (out, " ", 1);
       mu_stream_sequential_write (out, type, strlen (type));
       mhn_message_size (msg, &size);
-      snprintf (buf, sizeof buf, " %lu", (unsigned long) size);
-      mu_stream_sequential_write (out, buf, strlen (buf));
+      p = mu_umaxtostr (0, size);
+      mu_stream_sequential_write (out, p, strlen (p));
       mu_stream_sequential_write (out, "\n", 1);
       mu_stream_flush (out);
     }
@@ -1403,6 +1402,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     {
       if (isatty (fd) && isatty (0))
 	{
+          char buf[64];
 	  printf (_("Press <return> to show content..."));
 	  if (!fgets (buf, sizeof buf, stdin) || buf[0] != '\n')
 	    return 0;
@@ -1652,8 +1652,8 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	    tmp,
 	    name);
   else
-    printf (_("storing message %lu part %s as file %s\n"),
-	    (unsigned long) msg_part_subpart (part, 0),
+    printf (_("storing message %s part %s as file %s\n"),
+	    mu_umaxtostr (0, msg_part_subpart (part, 0)),
 	    tmp,
 	    name);
   free (tmp);

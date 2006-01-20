@@ -528,8 +528,8 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
       process_cleanup ();
       if (children > maxchildren)
         {
-	  syslog (LOG_ERR, _("too many children (%lu)"),
-		  (unsigned long) children);
+	  syslog (LOG_ERR, _("too many children (%s)"),
+		  mu_umaxtostr (0, children));
           pause ();
           continue;
         }

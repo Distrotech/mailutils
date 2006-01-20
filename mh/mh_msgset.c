@@ -154,7 +154,6 @@ msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
       {
 	int rc;
 	size_t uid, num;
-	char *ret = NULL;
 	mu_message_t msg;
 	
 	if (p->handler (mbox, &num))
@@ -165,10 +164,9 @@ msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
 	    mh_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
 	    exit (1);
 	  }
-	mu_message_get_uid (msg, &uid);
-	asprintf (&ret, "%lu", (unsigned long) uid);
 	*rest = arg + strlen (p->name);
-	return ret;
+	mu_message_get_uid (msg, &uid);
+	return xstrdup (mu_umaxtostr (0, uid));
       }
   cp = strchr (arg, '-');
   if (cp)

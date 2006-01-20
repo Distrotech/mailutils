@@ -68,7 +68,7 @@ mh_seq_add (char *name, mh_msgset_t *mset, int flags)
 {
   char *value = mh_seq_read (name, flags);
   char *new_value, *p;
-  char buf[64];
+  const char *buf;
   size_t i, len;
 
   delete_sequence (name, !(flags & SEQ_PRIVATE));
@@ -83,7 +83,7 @@ mh_seq_add (char *name, mh_msgset_t *mset, int flags)
   len++;
   for (i = 0; i < mset->count; i++)
     {
-      snprintf (buf, sizeof buf, "%lu", (unsigned long) mset->list[i]);
+      buf = mu_umaxtostr (0, mset->list[i]);
       len += strlen (buf) + 1;
     }
 
@@ -96,7 +96,7 @@ mh_seq_add (char *name, mh_msgset_t *mset, int flags)
   *p++ = ' ';
   for (i = 0; i < mset->count; i++)
     {
-      p += sprintf (p, "%lu", (unsigned long) mset->list[i]);
+      p += sprintf (p, "%s", mu_umaxtostr (0, mset->list[i]));
       *p++ = ' ';
     }
   *p = 0;

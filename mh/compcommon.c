@@ -91,8 +91,10 @@ check_draft_disposition (struct mh_whatnow_env *wh, int use_draft)
 	disp = DISP_USE;
       else
 	{
-	  printf (_("Draft \"%s\" exists (%lu bytes).\n"),
-		  wh->draftfile, (unsigned long) st.st_size);
+	  printf (ngettext ("Draft \"%s\" exists (%s byte).\n",
+                            "Draft \"%s\" exists (%su bytes).\n",
+                            (unsigned long) st.st_size),
+		  wh->draftfile, mu_umaxtostr (0, st.st_size));
 	  disp = mh_disposition (wh->draftfile);
 	}
     }

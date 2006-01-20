@@ -56,7 +56,7 @@ pop3d_stat (const char *arg)
 	  num++;
 	}
     }
-  pop3d_outf ("+OK %d %d\r\n", num, tsize);
+  pop3d_outf ("+OK %s %s\r\n", mu_umaxtostr (0, num), mu_umaxtostr (1, tsize));
 
   return OK;
 }

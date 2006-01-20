@@ -383,7 +383,7 @@ _scan (const char *name, int depth)
   
   if (info.cur)
     {
-      asprintf (&p, "%s/%lu", name, (unsigned long) info.cur);
+      asprintf (&p, "%s/%s", name, mu_umaxtostr (0, info.cur));
       if (stat (p, &st) < 0 || !S_ISREG (st.st_mode))
 	info.cur = 0;
       free (p);
@@ -593,12 +593,12 @@ static int
 pack_rename (struct pack_tab *tab, int reverse)
 {
   int rc;
-  char s1[64];
-  char s2[64];
-  char *from, *to;
+  const char *s1;
+  const char *s2;
+  const char *from, *to;
   
-  snprintf (s1, sizeof s1, "%lu", (unsigned long) tab->orig);
-  snprintf (s2, sizeof s2, "%lu", (unsigned long) tab->new);
+  s1 = mu_umaxtostr (0, tab->orig);
+  s2 = mu_umaxtostr (1, tab->new);
 
   if (!reverse)
     {
@@ -660,10 +660,12 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
       {
 	mh_error (_("CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
 		    "occurred while trying to roll back the changes.\n"
-		    "Message range %lu-%lu has been renamed to %lu-%lu."),
+		    "Message range %s-%s has been renamed to %s-%s."),
 		  folder_name,
-		  pack_tab[0].orig, pack_tab[start].orig,
-		  pack_tab[0].new, pack_tab[start].new);
+		  mu_umaxtostr (0, pack_tab[0].orig),
+                  mu_umaxtostr (1, pack_tab[start].orig),
+		  mu_umaxtostr (2, pack_tab[0].new),
+                  mu_umaxtostr (3, pack_tab[start].new));
 	mh_error (_("You will have to fix it manually."));
 	exit (1);
       }
@@ -794,10 +796,10 @@ action_pack ()
       mh_message_number (msg, &pack_tab[i].orig);
     }
   if (verbose)
-    fprintf (stderr, ngettext ("%lu message number collected.\n",
-			       "%lu message numbers collected.\n",
-			       count),
-	     (unsigned long) count);
+    fprintf (stderr, ngettext ("%s message number collected.\n",
+			       "%s message numbers collected.\n",
+			       (unsigned long) count),
+	     mu_umaxtostr (0, count));
   
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);

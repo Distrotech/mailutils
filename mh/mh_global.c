@@ -183,9 +183,7 @@ mh_global_sequences_iterate (mh_context_iterator fp, void *data)
 void
 mh_global_save_state ()
 {
-  char buf[64];
-  snprintf (buf, sizeof buf, "%lu", (unsigned long) current_message);
-  mh_context_set_value (sequences, "cur", buf);
+  mh_context_set_value (sequences, "cur", mu_umaxtostr (0, current_message));
   mh_context_write (sequences);
 
   mh_context_set_value (context, "Current-Folder", current_folder);

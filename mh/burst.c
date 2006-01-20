@@ -426,11 +426,11 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   
   if (burst_or_copy (msg, 1, 0) == 0)
     {
-      VERBOSE((ngettext ("%lu message exploded from digest %lu",
-			 "%lu messages exploded from digest %lu",
-			 map.count),
-	       (unsigned long) map.count,
-	       (unsigned long) num));
+      VERBOSE((ngettext ("%s message exploded from digest %s",
+			 "%s messages exploded from digest %s",
+			 (unsigned long) map.count),
+	       mu_umaxtostr (0, map.count),
+	       mu_umaxtostr (1, num)));
       if (inplace)
 	{
 	  obstack_grow (&stk, &map, sizeof map);
@@ -438,7 +438,7 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 	}
     }
   else if (!quiet)
-    mh_error (_("message %lu not in digest format"), (unsigned long) num);
+    mh_error (_("message %s not in digest format"), mu_umaxtostr (0, num));
 }
 
 
@@ -453,8 +453,8 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
   j = burst_count - 1;
   for (i = ms->count; i > 0; i--)
     {
-      char *from;
-      char *to;
+      const char *from;
+      const char *to;
 
       if (ms->list[i-1] == burst_map[j].msgno)
 	{
@@ -466,8 +466,8 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
       if (ms->list[i-1] == lastuid)
 	continue;
       
-      asprintf (&from, "%lu", (unsigned long) ms->list[i-1]);
-      asprintf (&to, "%lu", (unsigned long) lastuid);
+      from = mu_umaxtostr (0, ms->list[i-1]);
+      to   = mu_umaxtostr (1, lastuid);
       --lastuid;
 
       VERBOSE((_("message %s becomes message %s"), from, to));
@@ -478,8 +478,6 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
 		    from, to, mu_strerror (errno));
 	  exit (1);
 	}
-      free (from);
-      free (to);
     }
 }  
 
@@ -534,12 +532,10 @@ finalize_inplace (size_t lastuid)
       /* FIXME: toc handling */
       for (j = 0; j < burst_map[i].count; j++)
 	{
-	  char *to;
-
-	  asprintf (&to, "%lu", (unsigned long) (burst_map[i].msgno + 1 + j));
-	  VERBOSE((_("message %lu of digest %lu becomes message %s"),
-		   (unsigned long) (j+1),
-		   (unsigned long) burst_map[i].msgno, to));
+	  const char *to = mu_umaxtostr (0, burst_map[i].msgno + 1 + j);
+	  VERBOSE((_("message %s of digest %s becomes message %s"),
+		   mu_umaxtostr (1, j + 1),
+		   mu_umaxtostr (2, burst_map[i].msgno), to));
 	  msg_copy (burst_map[i].first + j, to);
 	}
     }
@@ -606,10 +602,9 @@ main (int argc, char **argv)
       mu_mailbox_uidnext (mbox, &next_uid);
       for (i = 0, last_uid = next_uid-1; i < burst_count; i++)
 	last_uid += burst_map[i].count;
-      VERBOSE ((_("Estimated last UID: %lu"), (unsigned long) last_uid));
+      VERBOSE ((_("Estimated last UID: %s"), mu_umaxtostr (0, last_uid)));
 
-      asprintf (&xargv[0], "%lu-last",
-		(unsigned long) burst_map[0].msgno);
+      asprintf (&xargv[0], "%s-last", mu_umaxtostr (0, burst_map[0].msgno));
       xargv[1] = NULL;
       mh_msgset_parse (mbox, &ms, 1, xargv, NULL);
       free (xargv[0]);
