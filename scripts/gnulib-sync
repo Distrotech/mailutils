@@ -124,17 +124,31 @@ get_modules() {
 expand_modules() {
   eval gnulib_modules="\$${1}"
   gnulib_modules="`echo $gnulib_modules | sort -u -`"
+
+  # gnulib-tool currently does not support --avoid with --extract-dependencies
+  # Hence this mess.
+  varname=$1   
+  filter=''
+  shift
+  for mod 
+  do
+	filter="${filter}s/$mod//;"
+  done
+  if [ -z "$filter" ]; then
+    filter="b"
+  fi
+  
   previous_gnulib_modules=
   while [ "$gnulib_modules" != "$previous_gnulib_modules" ]
   do
     previous_gnulib_modules=$gnulib_modules
     gnulib_modules=`(echo "$gnulib_modules"
 		     for module in $gnulib_modules; do
-	  	       $GNULIB_SRCDIR/gnulib-tool --extract-dependencies $module
-		     done) | sort -u
+	  	       $GNULIB_SRCDIR/gnulib-tool --extract-dependencies $module 
+		     done) | sed "$filter" | sort -u
     `
   done
-  eval ${1}=\"$gnulib_modules\"
+  eval ${varname}=\"$gnulib_modules\"
 }
 
 verbose() {
@@ -295,7 +309,7 @@ trap cleanup 1 2 13 15
 get_modules gnulib.modules
 
 expand_modules muaux_modules
-expand_modules mailutils_modules
+expand_modules mailutils_modules dirname
 
 MODLIST=
 for mod in $muaux_modules
