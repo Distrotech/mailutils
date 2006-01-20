@@ -76,9 +76,15 @@ dbm_retrieve_quota (char *name, size_t *quota)
   int unlimited = 0;
   int rc;
 
-  if (!quotadbname || mu_dbm_open (quotadbname, &db, MU_STREAM_READ, 0600)) 
+  if (!quotadbname)
     return RETR_FAILURE;
-
+  
+  if (mu_dbm_open (quotadbname, &db, MU_STREAM_READ, 0600))
+    {
+      mu_error (_("Cannot open %s: %s"), quotadbname, mu_strerror (errno));
+      return RETR_FAILURE;
+    }
+  
   memset (&named, 0, sizeof named);
   memset (&contentd, 0, sizeof contentd);
   MU_DATUM_PTR (named) = name;

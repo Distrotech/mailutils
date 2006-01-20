@@ -68,11 +68,6 @@
 # define INADDR_LOOPBAK 0x7f000001
 #endif
 
-#if defined (USE_DBM) || defined (USE_SQL)
-# define USE_MAILBOX_QUOTAS 1
-#endif
-
-#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -92,6 +87,11 @@
 #include <mu_asprintf.h>
 #include <getline.h>
 
+#if defined (USE_DBM) || defined (USE_SQL)
+# define USE_MAILBOX_QUOTAS 1
+#endif
+
+#include <mailutils/argp.h>
 /* Debug */
 extern int debug_level;
 #define dbg() if (debug_level) debug
