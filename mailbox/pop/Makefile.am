@@ -21,6 +21,7 @@ INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/mailbox/include @INTLINCS@
 
 lib_LTLIBRARIES = libmu_pop.la
 libmu_pop_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
+libmu_pop_la_LIBADD = @INTLLIBS@
 
 libmu_pop_la_SOURCES = \
  folder.c\
