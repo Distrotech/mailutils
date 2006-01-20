@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005  Free Software Foundation, Inc.
+   2005, 2006  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,9 @@ struct daemon_param daemon_param = {
 
 int login_disabled;             /* Disable LOGIN command */
 int tls_required;               /* Require STARTTLS */
+int create_home_dir;            /* Create home directory if it does not
+				   exist */
+int home_dir_mode;
 
 /* Number of child processes.  */
 size_t children;
@@ -46,8 +49,9 @@ size_t children;
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
-#define ARG_LOGIN_DISABLED 1
-#define ARG_TLS_REQUIRED   2
+#define ARG_LOGIN_DISABLED  1
+#define ARG_TLS_REQUIRED    2
+#define ARG_CREATE_HOME_DIR 3
 
 static struct argp_option options[] = {
   {"other-namespace", 'O', N_("PATHLIST"), 0,
@@ -56,6 +60,8 @@ static struct argp_option options[] = {
    N_("Set the `shared' namespace"), 0},
   {"login-disabled", ARG_LOGIN_DISABLED, NULL, 0,
    N_("Disable LOGIN command")},
+  {"create-home-dir", ARG_CREATE_HOME_DIR, N_("MODE"), OPTION_ARG_OPTIONAL,
+   N_("Create home directory, if it does not exist")},
 #ifdef WITH_TLS
   {"tls-required", ARG_TLS_REQUIRED, NULL, 0,
    N_("Always require STARTTLS before entering authentication phase")},
@@ -117,6 +123,19 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
       break;
 
+    case ARG_CREATE_HOME_DIR:
+      create_home_dir = 1;
+      if (arg)
+	{
+	  char *p;
+	  home_dir_mode = strtoul (arg, &p, 8);
+	  if (p || (home_dir_mode & 0777))
+	    argp_error (state, _("Invalid mode specification: %s"), arg);
+	}
+      else
+	home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+      break;
+	
 #ifdef WITH_TLS
     case ARG_TLS_REQUIRED:
       tls_required = 1;
@@ -397,3 +416,34 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
       close (connfd);
     }
 }
+
+int
+imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid)
+{
+  struct stat st;
+
+  if (stat (homedir, &st))
+    {
+      if (errno == ENOENT && create_home_dir)
+	{
+	  mode_t mode = umask (0);
+	  int rc = mkdir (homedir, home_dir_mode);
+	  umask (mode);
+	  if (rc)
+	    {
+	      mu_error ("Cannot create home directory `%s': %s",
+			homedir, mu_strerror (errno));
+	      return 1;
+	    }
+	  if (chown (homedir, uid, gid))
+	    {
+	      mu_error ("Cannot set owner for home directory `%s': %s",
+			homedir, mu_strerror (errno));
+	      return 1;
+	    }
+	}
+    }
+  
+  return 0;
+}
+
