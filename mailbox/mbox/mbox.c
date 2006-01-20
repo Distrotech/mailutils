@@ -1714,18 +1714,18 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 		    return status;
 		  }
 		status = mu_stream_write (mailbox->stream, buffer, nread,
-				       *psize, &n);
+					  *psize, &n);
 		if (status)
 		  break;
 		mud->off += nread;
 		*psize += n;
 	      }
 	    while (nread > 0);
-	    n = 0;
-       	    status = mu_stream_write (mailbox->stream, &nl, 1, *psize, &n);
 	    if (status)
 	      break;
-	    *psize += n;
+       	    status = mu_stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	    if (status == 0)
+	      *psize += n;
 	  }
 
 	default:
