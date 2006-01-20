@@ -3640,6 +3640,12 @@ The program uses following option groups: @xref{mailbox},
 @subheading Command Line Options
 
 @table @option
+@item --create-home-dir[=@var{mode}]
+If a user logs in and his home directory does not exist, create
+it. Optional @var{mode} is an octal number specifying the permissions
+to be set on the created directory. It is not modified by the current
+@code{umask} value. The default value for @var{mode} is @samp{700}
+(@samp{drwx------} in @code{ls} terms). 
 @item -d[@var{number}]
 @itemx --daemon[=@var{number}]
 Run in standalone mode. An optional @var{number} specifies the maximum number
