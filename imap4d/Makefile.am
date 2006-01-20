@@ -77,9 +77,9 @@ imap4d_LDADD = \
 imap4d_DEPENDENCIES = \
  @IMAP_AUTHOBJS@\
  @MU_AUTHLIBS_DEPENDENCY@\
+ ../lib/libmuaux.la\
  ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailutils.la\
- ../lib/libmuaux.la
+ ../mailbox/libmailutils.la
 
 EXTRA_DIST=auth_gss.c auth_gsasl.c
 

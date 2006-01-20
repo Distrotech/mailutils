@@ -22,7 +22,7 @@ mod_LTLIBRARIES = timestamp.la spamd.la list.la vacation.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
-AM_LDFLAGS = ../../mailbox/libmailutils.la ../../lib/libmuaux.la
+AM_LDFLAGS = ../../lib/libmuaux.la ../../mailbox/libmailutils.la 
 
 timestamp_la_SOURCES = timestamp.c
 timestamp_la_LIBADD = ../libsieve.la 

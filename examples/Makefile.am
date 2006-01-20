@@ -49,7 +49,7 @@ mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
-AM_LDFLAGS = ../mailbox/libmailutils.la ../lib/libmuaux.la @MU_COMMON_LIBRARIES@
+AM_LDFLAGS = ../lib/libmuaux.la ../mailbox/libmailutils.la @MU_COMMON_LIBRARIES@
 
 argcv_LDADD =\
  ../lib/libmuaux.la\

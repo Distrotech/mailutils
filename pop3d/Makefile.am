@@ -41,11 +41,11 @@ popauth_SOURCES = popauth.c
 popauth_LDADD = ../lib/libmuaux.la ../mailbox/libmailutils.la @MU_COMMON_LIBRARIES@
 pop3d_DEPENDENCIES = \
  @MU_AUTHLIBS_DEPENDENCY@ \
+ ../lib/libmuaux.la \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
- ../mailbox/libmailutils.la\
- ../lib/libmuaux.la
+ ../mailbox/libmailutils.la
 
 CFLOW_FLAGS=-i^s --brief -v
 pop3d_CFLOW_INPUT=$(pop3d_OBJECTS:.$(OBJEXT)=.c)
