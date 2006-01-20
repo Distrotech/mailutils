@@ -1407,6 +1407,7 @@ struct
   { "CST", "CDT", -6 },
   { "MST", "MDT", -7 },
   { "PST", "PDT", -8 },
+  { "EET", "EEST", -2 },
   { NULL, 0}
 };
 
