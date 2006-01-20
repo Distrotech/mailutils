@@ -36,9 +36,6 @@ gt_FUNC_SETENV
 # snprintf
 gl_FUNC_SNPRINTF
 
-# xstrtol
-gl_XSTRTOL
-
 # vasprintf
 gl_FUNC_VASPRINTF
 
@@ -71,6 +68,9 @@ gl_MD5
 
 # glob
 gl_GLOB
+
+# inttostr
+gl_INTTOSTR
 
 # extensions
 dnl gl_USE_SYSTEM_EXTENSIONS must be added quite early to configure.ac.
