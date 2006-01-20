@@ -6,9 +6,9 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_XSTRTOL],
 [
-  MU_LIBSOURCES([xstrtol.c, xstrtol.h, xstrtoul.c, intprops.h])
-  MU_LIBOBJ([xstrtol])
-  MU_LIBOBJ([xstrtoul])
+  AC_LIBSOURCES([xstrtol.c, xstrtol.h, xstrtoul.c, intprops.h])
+  AC_LIBOBJ([xstrtol])
+  AC_LIBOBJ([xstrtoul])
 
   AC_REQUIRE([gl_PREREQ_XSTRTOL])
   AC_REQUIRE([gl_PREREQ_XSTRTOUL])

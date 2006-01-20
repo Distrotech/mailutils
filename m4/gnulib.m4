@@ -39,6 +39,9 @@ gl_FUNC_SNPRINTF
 # vasprintf
 gl_FUNC_VASPRINTF
 
+# xstrtol
+gl_XSTRTOL
+
 # xalloc-die
 
 # xsize
