@@ -352,13 +352,6 @@ AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
 
 dnl Check for working functions
 
-# Dirty hack: make sure HAVE_DECL_PROGRAM_INVOCATION_NAME is defined
-# This must be done before gl_ARGP, which attempts
-# an AC_CHECK_DECLS([program_invocation_name), because autoconf machinery
-# gives preference to the first definition, in spite of what the comment
-# at autoconf/status.m4:574 sais
-AC_DEFINE([HAVE_DECL_PROGRAM_INVOCATION_NAME], 1)
-
 dnl Escape defuns that force automake to add their arguments
 dnl to LIBOBJS.
 dnl All dependencies has been handled by gnulib-sync.
@@ -442,39 +435,8 @@ dnl Check for libraries
 # The gnulib version fixes a number of bugs and provides new features,
 # so currently we force to use it. This may change when gnulib and glibc
 # are synchronized.
-MU_LIBOBJ(pin)
 MU_HEADER(getopt.h,getopt_.h)
 MU_HEADER(argp.h)
-
-AC_MSG_CHECKING(whether extern program_invocation_name is present)
-AC_TRY_COMPILE([#include <argp.h>
-#include <errno.h>],
-[ program_invocation_name = "test"; ],
-[AC_DEFINE(PROGRAM_INVOCATION_NAME_DECLARED,1,
-           [Define if program_invocation_name is declared in argp.h])
- AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)])
-
-AH_BOTTOM([
-#ifndef PROGRAM_INVOCATION_NAME_DECLARED
-extern char *program_invocation_short_name;
-extern char *program_invocation_name;
-#endif])
-
-
-AC_MSG_CHECKING(whether program_invocation_name is declared)
-AC_TRY_COMPILE([#include <argp.h>
-#include <errno.h>],
-[
-#ifndef PROGRAM_INVOCATION_NAME_DECLARED
-	extern char *program_invocation_name;
-#endif
-	program_invocation_name = "test";
-],
-[AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
-           [Define if the variable program_invocation_name exists])
- AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)])
 
 AH_BOTTOM([
 /* program_name is used by lib/error.c */
