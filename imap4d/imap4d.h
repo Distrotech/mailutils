@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -165,7 +165,7 @@ extern struct mu_auth_data *auth_data;
 
 extern int login_disabled;
 extern int tls_required;
-
+	
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
 #endif
@@ -211,6 +211,8 @@ extern int  imap4d_namespace (struct imap4d_command *, char *);
 extern int  imap4d_version (struct imap4d_command *, char *);
 extern int  imap4d_idle (struct imap4d_command *, char *);
   
+extern int imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid);
+
 /* Shared between fetch and store */  
 extern void fetch_flags0 (const char *prefix, mu_message_t msg, int isuid);
 
@@ -299,6 +301,7 @@ void util_run_events (int old_state, int new_state);
 int util_is_master (void);
 void util_bye (void);  
 void util_atexit (void (*fp) (void));
+void util_chdir (const char *homedir);
 
 #ifdef WITH_TLS
 int imap4d_init_tls_server (void);
