@@ -1639,8 +1639,8 @@ mu_parse822_time (const char **p, const char *e,
     }
   else if (strlen (zone) > 5 || strlen (zone) < 4)
     {
-      str_free (&zone);
-      return EPARSE;
+      if (*tz)
+	*tz = 0; /* Assume UTC */
     }
   else
     {
