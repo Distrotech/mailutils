@@ -17,6 +17,8 @@
    MA 02110-1301 USA */
 
 #include "mail.h"
+#include <sys/stat.h>
+#include <dirent.h>
 #include <mailutils/folder.h>
 
 #ifdef WITH_READLINE
@@ -241,7 +243,7 @@ ml_command_completion (char *cmd, int start, int end)
     return NULL;
   rl_completion_append_character = ' ';
   
-  if (argc <= 1 && strlen (argv[0]) <= end - start)
+  if (argc == 0 || (argc == 1 && strlen (argv[0]) <= end - start))
     {
       ret = rl_completion_matches (cmd, ml_command_generator);
       rl_attempted_completion_over = 1;
@@ -559,6 +561,115 @@ var_compl (int argc, char **argv, int ws)
 {
   ml_attempted_completion_over ();
   return rl_completion_matches (ws ? "" : argv[argc-1], var_generator);
+}
+
+static char *
+mkfilename (const char *dir, const char *file)
+{
+  size_t len = strlen (dir) + 1 + strlen (file) + 1;
+  char *p = malloc (len);
+  if (p)
+    {
+      strcpy (p, dir);
+      strcat (p, "/");
+      strcat (p, file);
+    }
+  return p;
+}
+
+static char *
+exec_generator (const char *text, int state)
+{
+  static int prefix_len;
+  static char *var;
+  static char *dir;
+  static size_t dsize;
+  static DIR *dp;
+  struct dirent *ent;
+  
+  if (!state)
+    {
+      var = getenv ("PATH");
+      if (!var)
+	return NULL;
+      prefix_len = strlen (text);
+      dsize = 0;
+      dir = NULL;
+      dp = NULL;
+    }
+
+  while (1)
+    {
+      if (!dp)
+	{
+	  char *p;
+	  size_t len;
+
+	  if (*var == 0)
+	    break;
+	  else
+	    var++;
+	  
+	  p = strchr (var, ':');
+	  if (!p)
+	    len = strlen (var) + 1;
+	  else
+	    len = p - var + 1;
+	  
+	  if (dsize == 0)
+	    {
+	      dir = malloc (len);
+	      dsize = len;
+	    }
+	  else if (len > dsize)
+	    {
+	      dir = realloc (dir, len);
+	      dsize = len;
+	    }
+	  
+	  if (!dir)
+	    return NULL;
+	  memcpy (dir, var, len - 1);
+	  dir[len - 1] = 0;
+	  var += len - 1;
+	  
+	  dp = opendir (dir);
+	  if (!dp)
+	    continue;
+	}
+
+      while ((ent = readdir (dp)))
+	{
+	  char *name = mkfilename (dir, ent->d_name);
+	  if (name)
+	    {
+	      int rc = access (name, X_OK); 
+	      if (rc == 0)
+		{
+		  struct stat st;
+		  rc = !(stat (name, &st) == 0 && S_ISREG (st.st_mode));
+		}
+		    
+	      free (name);
+	      if (rc == 0
+		  && strlen (ent->d_name) >= prefix_len
+		  && strncmp (ent->d_name, text, prefix_len) == 0)
+		return strdup (ent->d_name);
+	    }
+	}
+
+      closedir (dp);
+      dp = NULL;
+    }
+
+  free (dir);
+  return NULL;
+}
+
+char **
+exec_compl (int argc, char **argv, int ws)
+{
+  return rl_completion_matches (ws ? "" : argv[argc-1], exec_generator);
 }
 
 #else
