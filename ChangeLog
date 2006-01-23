@@ -1,5 +1,10 @@
 2006-01-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mail/mail.h (exec_compl): New prototype
+	* mail/mailline.c (ml_command_completion): Fix coredump
+	(exec_compl,exec_generator): New functions
+	* mail/table.c: Use exec_compl to complete first argument to !
+
 	* mailbox/parse822.c (mu_parse822_time): Assume UTC for invalid or
 	unknown timezones.
 
