@@ -171,7 +171,7 @@ static const struct mail_command_entry mail_command_table[] = {
   { "?",	"?",		"? [command...]",		0,
     mail_help, command_compl },
   { "!",	"",		"![command]",			0,
-    mail_shell, NULL }, /* FIXME: exec_compl */
+    mail_shell, exec_compl },
   { "=",	"=",		"=",				0,
     mail_eq, no_compl },
   { "#",	"#",		"# comment",			0,
