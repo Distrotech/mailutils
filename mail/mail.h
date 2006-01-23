@@ -437,6 +437,7 @@ extern char **dir_compl (int argc, char **argv, int ws);
 extern char **command_compl (int argc, char **argv, int ws);
 extern char **alias_compl (int argc, char **argv, int ws);
 extern char **var_compl (int argc, char **argv, int ws);
+extern char **exec_compl (int argc, char **argv, int ws);
 #else
 # define file_compl NULL
 # define no_compl NULL
@@ -446,6 +447,7 @@ extern char **var_compl (int argc, char **argv, int ws);
 # define command_compl NULL
 # define alias_compl NULL
 # define var_compl NULL
+# define exec_compl NULL     
 #endif
 
 #ifdef __cplusplus
