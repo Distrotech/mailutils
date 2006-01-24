@@ -169,12 +169,36 @@ mh_is_my_name (char *name)
       char *nlist = mh_global_profile_get ("Alternate-Mailboxes", NULL);
       if (nlist)
 	{
-	  char *p, *sp;
-      
-	  p = strtok_r (nlist, ",", &sp);
-	  do
-	    rc = emailcmp (p, pname) == 0;
-	  while (rc == 0 && (p = strtok_r (NULL, ",", &sp)));
+	  char *end, *p, *pat;
+	  int len;
+	  
+	  for (p = nlist; rc == 0 && *p; p = end)
+	    {
+	      
+	      while (*p && isspace (*p))
+		p++;
+
+	      end = strchr (p, ',');
+	      if (end)
+		{
+		  len = end - p;
+		  end++;
+		}
+	      else
+		{
+		  len = strlen (p);
+		  end = p + len;
+		}
+
+	      while (len > 0 && isspace (p[len-1]))
+		len--;
+
+	      pat = xmalloc (len + 1);
+	      memcpy (pat, p, len);
+	      pat[len] = 0;
+	      rc = emailcmp (pat, pname) == 0;
+	      free (pat);
+	    }
 	}
     }
   free (pname);
