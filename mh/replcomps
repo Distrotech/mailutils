@@ -12,6 +12,5 @@
 %<{subject}%(lit)%<(isreply)%?(profile reply-prefix)%(concat)%|%(concat Re:)%>%(concat{subject})%(printhdr Subject: )\n%>\
 %(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printhdr In-reply-to: )\n%>\
 %(lit)%(concat(references))%<(nonnull)%(void(width))%(printhdr References: )\n%>\
-X-Mailer: MH \(%(package_string)\)\n\
 --------
 
