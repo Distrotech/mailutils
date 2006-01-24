@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-01-20
+GNU mailutils NEWS -- history of user-visible changes.  2006-01-24
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -30,6 +30,18 @@ message). The default is `set recursivealiases noinplacealiases'.
 
 * imap4d: New option --create-home-dir: If a user logs in and his home
 directory does not exist, create it.
+
+* Changes in MH
+
+** send
+
+Add support for localname and localdomain mtstailor variables.
+
+New mtstailor variable x-mailer controls whether to add the 'X-Mailer'
+header to the message being sent, if it does not contain one. The
+the value 'yes' means to add the default X-Mailer string, the value
+'no' means to ignore it. Any other value is taken as the X-Mailer
+identifier to be added to the message.
 
 * Bugfixes:
 ** mail: Fix handling of conditional expressions

@@ -1,3 +1,14 @@
+2006-01-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/header.h (MU_HEADER_X_MAILER): New define
+	* mail/send.c (mail_send0): Use MU_HEADER_X_MAILER
+	* mh/replcomps: Remove X-Mailer. Send will add it if needed.
+	* mh/replgroupcomps: Likewise
+	* mh/send.c (read_mts_profile): Support localname and localdomain
+	variables.
+	(read_mts_profile): Support x-mailer variable.
+	* NEWS: Updated
+
 2006-01-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/mail.h (exec_compl): New prototype
