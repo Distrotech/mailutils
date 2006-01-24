@@ -1,5 +1,10 @@
 2006-01-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/mh_ctx.c (mh_context_read): Allow for empty lines and
+	conventional comment characters ('#') in the context file. 
+	* mh/mh_init.c (mh_is_my_name): Bugfix: do not use strtok_r, which 
+	modifies its argument.
+	
 	* include/mailutils/header.h (MU_HEADER_X_MAILER): New define
 	* mail/send.c (mail_send0): Use MU_HEADER_X_MAILER
 	* mh/replcomps: Remove X-Mailer. Send will add it if needed.

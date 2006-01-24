@@ -33,6 +33,15 @@ directory does not exist, create it.
 
 * Changes in MH
 
+** Context file handling
+
+Comments and empty lines are allowed in any MH context file
+(.mh_profile, .mtstailor etc.)
+
+Comment is any line whose first non-whitespace character is
+'#'. Notice that '#' looses its special meaning when used as a part of
+the keyword or a value. 
+
 ** send
 
 Add support for localname and localdomain mtstailor variables.
@@ -49,6 +58,7 @@ identifier to be added to the message.
 place. 
 ** movemail: did not preserve input mailbox if an I/O error happened on the
 output one. Debian Bug#344420.
+** Fix handling of Alternate-Mailboxes in MH
 
 
 Version 0.6.91:
