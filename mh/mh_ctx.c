@@ -85,10 +85,12 @@ int
 mh_context_read (mh_context_t *ctx)
 {
   int status;
-  char *blurb;
+  char *blurb, *p;
   struct stat st;
   FILE *fp;
-
+  char *buf = NULL;
+  size_t size = 0;
+  
   if (!ctx)
     return MU_ERR_OUT_NULL;
   
@@ -106,10 +108,22 @@ mh_context_read (mh_context_t *ctx)
       return errno;
     }
 
-  fread (blurb, st.st_size, 1, fp);
+  p = blurb;
+  while (getline (&buf, &size, fp) > 0)
+    {
+      char *q;
+
+      for (q = buf; *q && isspace (*q); q++)
+	;
+      if (!*q || *q == '#')
+	continue;
+      
+      while ((*p = *q++))
+	p++;
+    }
   fclose (fp);
-  
-  if ((status = mu_header_create (&ctx->header, blurb, st.st_size, NULL)) != 0) 
+
+  if ((status = mu_header_create (&ctx->header, blurb, p - blurb, NULL)) != 0) 
     free (blurb);
 
   return status;
