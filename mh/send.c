@@ -32,7 +32,6 @@ Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("file [file...]");
 
-
 /* GNU options */
 static struct argp_option options[] = {
   {"alias",         ARG_ALIAS,         N_("FILE"), 0,
@@ -117,6 +116,8 @@ static int verbose;              /* Produce verbose diagnostics */
 static int watch;                /* Watch the delivery process */
 static unsigned width = 76;      /* Maximum width of header fields */
 
+#define DEFAULT_X_MAILER "MH (" PACKAGE_STRING ")"
+
 #define WATCH(c) do {\
   if (watch)\
     watch_printf c;\
@@ -156,7 +157,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       return 1;
       
     case ARG_FORMAT:
-      reformat_recipients = is_true(arg);
+      reformat_recipients = is_true (arg);
       break;
       
     case ARG_NOFORMAT:
@@ -164,7 +165,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_FORWARD:
-      forward_notice = is_true(arg);
+      forward_notice = is_true (arg);
       break;
       
     case ARG_NOFORWARD:
@@ -172,7 +173,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_MIME:
-      mime_encaps = is_true(arg);
+      mime_encaps = is_true (arg);
       break;
       
     case ARG_NOMIME:
@@ -180,7 +181,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_MSGID:
-      append_msgid = is_true(arg);
+      append_msgid = is_true (arg);
       break;
       
     case ARG_NOMSGID:
@@ -188,7 +189,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_PUSH:
-      background = is_true(arg);
+      background = is_true (arg);
       break;
       
     case ARG_NOPUSH:
@@ -197,7 +198,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       
     case ARG_SPLIT:
       split_message = 1;
-      split_interval = strtoul(arg, &p, 10);
+      split_interval = strtoul (arg, &p, 10);
       if (*p)
 	{
 	  argp_error (state, _("Invalid number"));
@@ -206,7 +207,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_VERBOSE:
-      verbose = is_true(arg);
+      verbose = is_true (arg);
       break;
       
     case ARG_NOVERBOSE:
@@ -214,7 +215,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_WATCH:
-      watch = is_true(arg);
+      watch = is_true (arg);
       break;
       
     case ARG_NOWATCH:
@@ -222,7 +223,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_WIDTH:
-      width = strtoul(arg, &p, 10);
+      width = strtoul (arg, &p, 10);
       if (*p)
 	{
 	  argp_error (state, _("Invalid number"));
@@ -275,6 +276,8 @@ void
 read_mts_profile ()
 {
   char *p;
+  char *hostname = NULL;
+  int rc;
   mh_context_t *local_profile;
   
   p = mh_expand_name (MHLIBDIR, "mtstailor", 0);
@@ -286,6 +289,35 @@ read_mts_profile ()
   if (mh_context_read (local_profile) == 0)
     mh_context_merge (mts_profile, local_profile);
   mh_context_destroy (&local_profile);
+
+  if ((p = mh_context_get_value (mts_profile, "localname", NULL)))
+    {
+      hostname = p;
+      mu_set_user_email_domain (p);
+    }
+  else if ((rc = mu_get_host_name (&hostname)))
+    mu_error (_("Cannot get system host name: %s"), mu_strerror (rc));
+  
+  if ((p = mh_context_get_value (mts_profile, "localdomain", NULL)))
+    {
+      const char *domain;
+      char *newdomain;
+
+      if (!hostname)
+	exit (1);
+      
+      newdomain = xmalloc (strlen (hostname) + 1 + strlen (p) + 1);
+      strcpy (newdomain, hostname);
+      strcat (newdomain, ".");
+      strcat (newdomain, p);
+      rc = mu_set_user_email_domain (newdomain);
+      free (newdomain);
+      if (rc)
+	{
+	  mu_error (_("Cannot set user mail domain: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+    }
 }
 
 
@@ -302,7 +334,7 @@ open_mailer ()
   status = mu_mailer_create (&mailer, url);
   if (status)
     {
-      mh_error(_("Cannot create mailer `%s'"), url);
+      mh_error (_("Cannot create mailer `%s'"), url);
       return NULL;
     }
 
@@ -317,7 +349,7 @@ open_mailer ()
   status = mu_mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
-      mh_error(_("Cannot open mailer `%s'"), url);
+      mh_error (_("Cannot open mailer `%s'"), url);
       return NULL;
     }
   return mailer;
@@ -448,8 +480,19 @@ _action_send (void *item, void *data)
       if (append_msgid
 	  && mu_header_get_value (hdr, MU_HEADER_MESSAGE_ID, NULL, 0, &n))
 	create_message_id (hdr);
-    }
 
+      if (mu_header_get_value (hdr, MU_HEADER_X_MAILER, NULL, 0, &n))
+	{
+	  char *p = mh_context_get_value (mts_profile, "x-mailer", "yes");
+
+	  if (!strcmp (p, "yes"))
+	    mu_header_set_value (hdr, MU_HEADER_X_MAILER,
+				 DEFAULT_X_MAILER, 0);
+	  else if (strcmp (p, "no"))
+	    mu_header_set_value (hdr, MU_HEADER_X_MAILER, p, 0);
+	}
+    }
+  
   expand_aliases (msg);
   fix_fcc (msg);
   
@@ -539,5 +582,5 @@ main (int argc, char **argv)
       argc = 1;
     }
 
-  return send(argc, argv);  
+  return send (argc, argv);  
 }
