@@ -260,48 +260,6 @@ plus_expand (const char *file, char **buf)
   return 0;
 }
 
-/* Do ~ , if necessary. */
-static int
-tilde_expand (const char *file, char **buf)
-{
-  char *user = NULL;
-  char *path = NULL;
-  char *home;
-  int status;
-  int len;
-  
-  if ((status = split_shortcut (file, "~", &user, &path)))
-    return status;
-
-  if (!path)
-    {
-      if (user)
-	free (user);
-      return ENOENT;
-    }
-  
-  home = get_homedir (user);
-  if (!home)
-    {
-      free (user);
-      free (path);
-      return MU_ERR_NO_SUCH_USER;
-    }
-
-  free (user); /* not needed anymore */
-      
-  len = strlen (home) + strlen (path) + 2;
-  *buf = malloc (len);
-  if (*buf)
-    {
-      sprintf (*buf, "%s/%s", home, path);
-      (*buf)[len-1] = 0;
-    }
-
-  free (path);
-  return *buf ? 0 : ENOMEM;
-}
-
 static int
 percent_expand (const char *file, char **mbox)
 {
@@ -338,6 +296,7 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 {
   char *mbox = NULL;
   char *tmp_mbox = NULL;
+  char *p;
   int status = 0;
 
   /* Sanity.  */
@@ -362,14 +321,20 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
         }
     }
 
+  p = mu_tilde_expansion (mail, "/", NULL);
+  if (tmp_mbox)
+    {
+      free (tmp_mbox);
+      tmp_mbox = p;
+    }
+  mail = p;
+  if (!mail)
+    return ENOMEM;
+  
   switch (mail[0])
     {
     case '%':
       status = percent_expand (mail, &mbox);
-      break;
-      
-    case '~':
-      status = tilde_expand (mail, &mbox);
       break;
       
     case '+':
