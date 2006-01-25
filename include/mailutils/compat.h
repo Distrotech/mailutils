@@ -533,7 +533,7 @@
 #define refcount_t mu_refcount_t
 #define registrar_get_iterator mu_registrar_get_iterator
 #define registrar_get_list mu_registrar_get_list
-#define registrar_lookup mu_registrar_lookup
+#define registrar_lookup mu_0_6_registrar_lookup
 #define registrar_record mu_registrar_record
 #define rfc2047_decode mu_rfc2047_decode
 #define rfc2047_encode mu_rfc2047_encode
