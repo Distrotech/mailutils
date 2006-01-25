@@ -54,6 +54,7 @@
 #define ARG_LOCK_EXTERNAL_PROGRAM 6
 #define ARG_SHOW_OPTIONS          7
 #define ARG_LICENSE               8
+#define ARG_MAILBOX_TYPE          9
 
 static struct argp_option mu_common_argp_options[] = 
 {
@@ -73,6 +74,8 @@ static struct argp_option mu_license_argp_option[] = {
 static struct argp_option mu_mailbox_argp_option[] = {
   {"mail-spool", 'm', N_("URL"), 0,
    N_("Use specified URL as a mailspool directory"), 0},
+  {"mailbox-type", ARG_MAILBOX_TYPE, N_("PROTO"), 0,
+   N_("Default mailbox type to use"), 0 },
   {"lock-flags", ARG_LOCK_FLAGS, N_("FLAGS"), 0,
    N_("Default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
   {"lock-retry-timeout", ARG_LOCK_RETRY_TIMEOUT, N_("SECONDS"), 0,
@@ -403,6 +406,11 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		    mu_strerror (err));
       break;
 
+    case ARG_MAILBOX_TYPE:
+      if (mu_mailbox_set_default_proto (arg))
+	argp_error (state, _("Invalid mailbox type: %s"), arg);
+      break;
+      
     case ARG_LOCK_FLAGS:
       {
 	int flags = 0;
@@ -672,7 +680,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	    }
 	  
 	  for (i = 0; i < n_argc; i++)
-	    x_argv[x_argc++] = n_argv[i];
+	    x_argv[x_argc++] = mu_tilde_expansion (n_argv[i], "/", NULL);
 	  
 	  free (n_argv);
 	}
