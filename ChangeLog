@@ -30,6 +30,8 @@
 	* mailbox/folder.c: Update invocations of mu_registrar_lookup
 	* mailbox/mailer.c: Likewise
 	* mailbox/mbox/folder.c: Likewise.
+
+	* NEWS: Update
 	
 2006-01-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
