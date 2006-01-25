@@ -48,7 +48,10 @@ struct _mu_record
 extern int mu_registrar_get_iterator (mu_iterator_t *);
 extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
   
-extern int mu_registrar_lookup (const char *name, mu_record_t *precord, int flags);
+extern int mu_registrar_lookup (const char *name, int flags, 
+                                mu_record_t *precord, int *pflags);
+extern int mu_0_6_registrar_lookup (const char *name, mu_record_t *precord,
+				    int flags); 
 extern int mu_registrar_record       (mu_record_t);
 extern int mu_unregistrar_record     (mu_record_t);
 
