@@ -61,7 +61,8 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
 
   /* Look in the registrar list(iterator), for a possible concrete mailbox
      implementation that could match the URL.  */
-  if (mu_registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_DIRECTORY))
+  if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_DIRECTORY, &record, NULL)
+      == 0)
     {
       int (*f_init) (mu_folder_t) = NULL;
       int (*u_init) (mu_url_t) = NULL;

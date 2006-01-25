@@ -333,10 +333,9 @@ list_helper (struct search_data *data,
 
 	  if (stat (gl.gl_pathv[i], &st) == 0)
 	    {
-	      mu_record_t record;
-	      resp->type = mu_registrar_lookup (gl.gl_pathv[i],
-						&record,
-						MU_FOLDER_ATTRIBUTE_ALL);
+	      resp->type = 0;
+	      mu_registrar_lookup (gl.gl_pathv[i], MU_FOLDER_ATTRIBUTE_ALL,
+				   NULL, &resp->type);
 	      if ((resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
 		  && !inode_list_lookup (ilist, &st))
 		{
