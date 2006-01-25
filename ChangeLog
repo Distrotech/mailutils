@@ -1,5 +1,7 @@
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* sql/mysql.c (connect): Initialize socket_name to NULL
+
 	* include/mailutils/compat.h (registrar_lookup): Define to
 	mu_0_6_registrar_lookup
 	* include/mailutils/mailbox.h (mu_mailbox_set_default_proto)
