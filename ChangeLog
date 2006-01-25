@@ -1,3 +1,36 @@
+2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/compat.h (registrar_lookup): Define to
+	mu_0_6_registrar_lookup
+	* include/mailutils/mailbox.h (mu_mailbox_set_default_proto)
+	(mu_mailbox_get_default_proto): New prototypes.
+	* include/mailutils/registrar.h (mu_registrar_lookup): Changed
+	declaration.
+	(mu_0_6_registrar_lookup): New prototype.
+	* mailbox/mailbox.c (mu_mailbox_set_default_proto)
+	(mu_mailbox_get_default_proto): New functions.
+	(mu_mailbox_create): Append default_proto to the mailbox URL, if
+	the latter does not already contain one.
+	Update invocation of mu_registrar_lookup
+
+	* mailbox/mbx_default.c (tilde_expand): Remove
+	(mu_mailbox_create_default): Use  mu_tilde_expansion instead of
+	tilde_expand
+	
+	* mailbox/mu_argp.c (mu_mailbox_argp_option)
+	(mu_common_argp_parser): New option --mailbox-type
+	* mailbox/mutil.c (mu_tilde_expansion): Expand tilde after
+	the protocol specification.
+
+	* mailbox/registrar.c (mu_registrar_lookup): Return error
+	code. Use an extra argument to return the flags.
+	(mu_0_6_registrar_lookup): New function for compatibility with
+	previous versions.
+	
+	* mailbox/folder.c: Update invocations of mu_registrar_lookup
+	* mailbox/mailer.c: Likewise
+	* mailbox/mbox/folder.c: Likewise.
+	
 2006-01-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/mh_ctx.c (mh_context_read): Allow for empty lines and
