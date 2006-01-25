@@ -89,26 +89,41 @@ mu_registrar_get_iterator (mu_iterator_t *pitr)
 }
 
 int
-mu_registrar_lookup (const char *name, mu_record_t *precord, int flags)
+mu_registrar_lookup (const char *name, int flags,
+		     mu_record_t *precord, int *pflags)
 {
   mu_iterator_t iterator;
   int status = mu_registrar_get_iterator (&iterator);
   if (status != 0)
     return status;
-  status = 0;
-  for (mu_iterator_first (iterator); status == 0 && !mu_iterator_is_done (iterator);
+  status = MU_ERR_NOENT;
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
        mu_iterator_next (iterator))
     {
+      int rc;
       mu_record_t record;
       mu_iterator_current (iterator, (void **)&record);
-      status = mu_record_is_scheme (record, name, flags);
-      if (status)
-	*precord = record;
+      if ((rc = mu_record_is_scheme (record, name, flags)))
+	{
+	  status = 0;
+	  if (precord)
+	    *precord = record;
+	  if (pflags)
+	    *pflags = rc;
+	}
     }
   mu_iterator_destroy (&iterator);
   return status;
 }
 
+/* For compatibility with earlier versions */
+int
+mu_0_6_registrar_lookup (const char *name, mu_record_t *precord, int flags)
+{
+  int status = mu_registrar_lookup (name, flags, precord, &flags);
+  return (status == 0) ? flags : 0;
+}
+    
 
 static int
 _compare_prio (const void *item, const void *value)
