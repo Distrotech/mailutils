@@ -1,5 +1,8 @@
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* imap4d/select.c (imap4d_select0): Create INBOX if it does not
+	exist.
+
 	* mailbox/Makefile.am (AM_CFLAGS): Define
 	GNULIB_ARGP_EXTERN_BASENAME
 	* mailbox/argp-namefrob.h: Bugfix (stray #)
