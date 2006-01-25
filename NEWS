@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-01-24
+GNU mailutils NEWS -- history of user-visible changes.  2006-01-25
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -17,6 +17,29 @@ define the symbol MU_COMPAT before including it (or invoke cc with
 * Main library is renamed to libmailutils
 NOTE: This is incompatible change, unless you use mailutils-config to
 obtain loader options (which is recommended, anyway).
+
+* Use of '~' character (denoting the user home directory)
+
+This character is expanded also if it appears after the protocol
+specification in a mailbox URL. e.g.: maildir:~/Mail/inbox.
+
+It is possible to use '~' in mailutils configuration file.
+
+* New option --mailbox-type
+
+Use this option to specify the default mailbox type. It is supported
+by all utilities that use "mailbox" command line capability (see the
+documentation for the list). For example:
+
+  mail --mailbox-type=mh: --file=~/Mail/inbox
+
+will open ~/Mail/inbox directory as an MH folder. This option is
+especially useful in the mailutils configuration file. For example,
+adding this line to your mailutils.rc:
+
+:mailbox  --mailbox-type=mh:
+
+will force all mail utilities to use MH by default.
 
 * mail: New option --exec (-E) allows to execute arbitrary mail commands
 before opening the mailbox. Any number of --exec options can be given.

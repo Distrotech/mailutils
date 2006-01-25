@@ -1,5 +1,10 @@
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* THANKS: Add Helmut Leitner.
+	* mail/mail.c (parse_opt): Try to catch arguments separated from
+	the option by whitespace. Solution proposed by Helmut Leitner.
+	Avoid queueing multiple "set mode=send" options.
+
 	* sql/mysql.c (connect): Initialize socket_name to NULL
 
 	* include/mailutils/compat.h (registrar_lookup): Define to
