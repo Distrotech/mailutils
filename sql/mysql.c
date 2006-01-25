@@ -84,7 +84,7 @@ static int
 connect (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
-  char *host, *socket_name;
+  char *host, *socket_name = NULL;
   
   mp->mysql = malloc (sizeof(MYSQL));
   if (!mp->mysql)
