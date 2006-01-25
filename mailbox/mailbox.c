@@ -59,6 +59,30 @@ mailbox_folder_create (mu_folder_t *pfolder, const char *name)
   return rc;
 }
 
+static char *default_proto;
+
+int
+mu_mailbox_set_default_proto (const char *proto)
+{
+  char *p;
+  
+  if (mu_registrar_lookup (proto, MU_FOLDER_ATTRIBUTE_FILE, NULL, NULL))
+    return MU_ERR_NO_HANDLER;
+  p = strdup (proto);
+  if (!p)
+    return ENOMEM;
+  if (default_proto)
+    free (default_proto);
+  default_proto = p;
+  return 0;
+}
+
+const char *
+mu_mailbox_get_default_proto ()
+{
+  return default_proto ? default_proto : "/";
+}
+
 /* The Mailbox Factory.
    Create an iterator for registrar and see if any url scheme match,
    Then we call the mailbox's mu_url_create() to parse the URL. Last
@@ -67,11 +91,21 @@ int
 mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
 {
   mu_record_t record = NULL;
-
+  
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (mu_registrar_lookup (name, &record, MU_FOLDER_ATTRIBUTE_FILE))
+  if (!mu_is_proto (name) && default_proto)
+    {
+      char *tmp_name = alloca (strlen (default_proto) + strlen (name) + 1);
+      if (!tmp_name)
+	return ENOMEM;
+      strcpy (tmp_name, default_proto);
+      strcat (tmp_name, name);
+      name = tmp_name;
+    }
+  
+  if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
     {
       int (*m_init) (mu_mailbox_t) = NULL;
       int (*u_init) (mu_url_t) = NULL;
