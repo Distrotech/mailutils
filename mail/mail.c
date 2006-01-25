@@ -82,6 +82,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'f':
       if (arg != NULL)
 	args->file = arg;
+      /* People often tend to separate -f option from its argument
+	 with a whitespace. This heuristics tries to catch the
+	 error: */
+      else if (state->next < state->argc
+	       && state->argv[state->next][0] != '-')
+	args->file = state->argv[state->next++];
       else
 	{
 	  int len;
@@ -141,22 +147,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_ARG:
-      /* People often tend to separate -f option from its argument
-	 with a whitespace. This heuristics tries to catch the
-	 error: */
-
-      if (args->file)
-	{
-	  args->file = arg;
-	}
-      else
-	{
-	  args->args = realloc (args->args,
-				sizeof (char *) * (state->arg_num + 2));
-	  args->args[state->arg_num] = arg;
-	  args->args[state->arg_num + 1] = NULL;
-	  util_cache_command (&command_list, "set mode=send");
-	}
+      args->args = realloc (args->args,
+			    sizeof (char *) * (state->arg_num + 2));
+      args->args[state->arg_num] = arg;
+      args->args[state->arg_num + 1] = NULL;
+      args->send_mode = 1;
       break;
 
     case ARGP_KEY_FINI:
