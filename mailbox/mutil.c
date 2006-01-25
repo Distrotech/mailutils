@@ -184,9 +184,33 @@ mu_get_full_path (const char *file)
 char *
 mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 {
-  char *p = strdup (ref);
+  char *base = strdup (ref);
   char *home = NULL;
+  char *proto = NULL;
+  size_t proto_len = 0;
+  char *p;
 
+  for (p = base; *p && isascii (*p) && isalnum (*p); p++)
+    ;
+  
+  if (*p == ':')
+    {
+      p++;
+      proto_len = p - base;
+      proto = malloc (proto_len + 1);
+      if (!proto)
+	return NULL;
+      memcpy (proto, base, proto_len);
+      proto[proto_len] = 0;
+      /* Allow for extra pair of slashes after the protocol specifier */
+      if (*p == delim[0])
+	p++;
+      if (*p == delim[0])
+	p++;
+    }
+  else
+    p = base;
+  
   if (*p == '~')
     {
       p++;
@@ -197,14 +221,18 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 	    {
 	      home = mu_get_homedir ();
 	      if (!home)
-		return NULL;
+		return base;
 	      homedir = home;
 	    }
-	  s = calloc (strlen (homedir) + strlen (p) + 1, 1);
-          strcpy (s, homedir);
+	  s = calloc (proto_len + strlen (homedir) + strlen (p) + 1, 1);
+	  if (proto_len)
+	    strcpy (s, proto);
+	  else
+	    s[0] = 0;
+          strcat (s, homedir);
           strcat (s, p);
-          free (--p);
-          p = s;
+          free (base);
+          base = s;
         }
       else
         {
@@ -215,26 +243,29 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
             s++;
           name = calloc (s - p + 1, 1);
           memcpy (name, p, s - p);
-          name [s - p] = '\0';
+          name[s - p] = '\0';
 	  
           auth = mu_get_auth_by_name (name);
           free (name);
           if (auth)
             {
-              char *buf = calloc (strlen (auth->dir) + strlen (s) + 1, 1);
-	      strcpy (buf, auth->dir);
+              char *buf = calloc (proto_len + strlen (auth->dir)
+				  + strlen (s) + 1, 1);
+	      if (proto_len)
+		strcpy (buf, proto);
+	      else
+		buf[0] = 0;
+	      strcat (buf, auth->dir);
               strcat (buf, s);
-              free (--p);
-              p = buf;
+              free (base);
+              base = buf;
 	      mu_auth_data_free (auth);
             }
-          else
-            p--;
         }
     }
   if (home)
     free (home);
-  return p;
+  return base;
 }
 
 /* Smart strncpy that always add the null and returns the number of bytes
