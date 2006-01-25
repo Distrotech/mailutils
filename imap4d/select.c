@@ -55,6 +55,8 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       imap4d_sync ();
     }
 
+  if (strcmp (mailbox_name, "INBOX") == 0)
+    flags |= MU_STREAM_CREAT;
   mailbox_name = namespace_getfullpath (mailbox_name, "/");
 
   if (!mailbox_name)
