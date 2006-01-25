@@ -1,5 +1,10 @@
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/Makefile.am (AM_CFLAGS): Define
+	GNULIB_ARGP_EXTERN_BASENAME
+	* mailbox/argp-namefrob.h: Bugfix (stray #)
+	* mailbox/mutil.c (__argp_base_name): New function
+
 	* THANKS: Add Helmut Leitner.
 	* mail/mail.c (parse_opt): Try to catch arguments separated from
 	the option by whitespace. Solution proposed by Helmut Leitner.
