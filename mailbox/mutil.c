@@ -1334,3 +1334,11 @@ mu_is_proto (const char *p)
   return 0;
 }
 
+char *
+__argp_base_name (const char *arg)
+{
+  char *p = strrchr (arg, '/');
+  return p ? p + 1 : arg;
+}
+
+    
