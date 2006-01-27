@@ -75,7 +75,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 	  free (mailbox_name);
 	  /* Need to set the state explicitely for select.  */
 	  return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
-			    (MU_STREAM_READ == flags) ?
+			    (flags & MU_STREAM_READ)  ?
 			    "READ-ONLY" : "READ-WRITE", command->name);
 	}
     }
