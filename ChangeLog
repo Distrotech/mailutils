@@ -1,5 +1,19 @@
 2006-01-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/comp.c: Fix semantics of -build/-draftmessage/-[no]draftfolder
+	options for compatibility with other implementations of MH
+	* mh/forw.c: Likewise
+	* mh/whatnow.c: Likewise
+	* mh/repl.c: Likewise
+	* mh/compcommon.c: Bugfix.
+	* mh/mh.h (mh_draft_message): New prototype.
+	(xmalloc,xrealloc): Remove prototypes
+	* mh/mh_argp.c (parse_opt): Pass ARGP_KEY_INIT to the application
+	handler.
+	* mh/mh_init.c (mh_draft_message): New function
+	* mh/mh_whatnow.c (quit): Don't call rename if both file and
+	draftfile are the same.
+
 	* imap4d/select.c (imap4d_select0): Fix status display.
 
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
