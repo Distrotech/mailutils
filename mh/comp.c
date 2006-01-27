@@ -80,6 +80,7 @@ const char *formfile;
 static int initial_edit = 1;
 static int build_only = 0; /* --build flag */
 static int use_draft = 0;  /* --use flag */
+static char *draftmessage = "new";
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)
@@ -112,11 +113,12 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_DRAFTMESSAGE:
-      wh_env.draftmessage = arg;
+      draftmessage = arg;
       break;
 
     case ARG_USE:
       use_draft = is_true (arg);
+      draftmessage = "cur";
       break;
 
     case ARG_NOUSE:
@@ -214,9 +216,14 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  wh_env.file = mh_expand_name (wh_env.draftfolder, "comp", 0);
-  if (!wh_env.draftfile)
-    wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+  if (build_only || !wh_env.draftfolder)
+    wh_env.file = mh_expand_name (NULL, "draft", 0);
+  else if (wh_env.draftfolder)
+    {
+      if (mh_draft_message (wh_env.draftfolder, draftmessage, &wh_env.file))
+	return 1;
+    }
+  wh_env.draftfile = wh_env.file;
 
   switch (check_draft_disposition (&wh_env, use_draft))
     {
@@ -224,8 +231,6 @@ main (int argc, char **argv)
       exit (0);
 
     case DISP_USE:
-      unlink (wh_env.file);
-      rename (wh_env.draftfile, wh_env.file);
       break;
 	  
     case DISP_REPLACE:

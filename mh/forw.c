@@ -112,6 +112,7 @@ static enum encap_type encap = encap_clear; /* controlled by --format, --form
 					       and --mime flags */
 static int use_draft = 0;       /* --use flag */
 static int width = 80;          /* --width flag */
+static char *draftmessage = "new";
 
 static mh_msgset_t msgset;
 static mu_mailbox_t mbox;
@@ -137,9 +138,13 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_DRAFTFOLDER:
       wh_env.draftfolder = arg;
       break;
+
+    case ARG_NODRAFTFOLDER:
+      wh_env.draftfolder = NULL;
+      break;
       
     case ARG_DRAFTMESSAGE:
-      wh_env.draftmessage = arg;
+      draftmessage = arg;
       break;
 
     case ARG_USE:
@@ -432,9 +437,14 @@ main (int argc, char **argv)
   mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   
-  wh_env.file = mh_expand_name (wh_env.draftfolder, "forw", 0);
-  if (!wh_env.draftfile)
-    wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+  if (build_only || !wh_env.draftfolder)
+    wh_env.file = mh_expand_name (NULL, "draft", 0);
+  else 
+    {
+      if (mh_draft_message (NULL, draftmessage, &wh_env.file))
+	return 1;
+    }
+  wh_env.draftfile = wh_env.file;
 
   switch (build_only ?
 	    DISP_REPLACE : check_draft_disposition (&wh_env, use_draft))
@@ -443,8 +453,6 @@ main (int argc, char **argv)
       exit (0);
 
     case DISP_USE:
-      unlink (wh_env.file);
-      rename (wh_env.draftfile, wh_env.file);
       break;
 	  
     case DISP_REPLACE:
@@ -456,7 +464,8 @@ main (int argc, char **argv)
   /* Exit immediately if --build is given */
   if (build_only)
     {
-      rename (wh_env.file, wh_env.draftfile);
+      if (strcmp (wh_env.file, wh_env.draftfile))
+	rename (wh_env.file, wh_env.draftfile);
       return 0;
     }
   

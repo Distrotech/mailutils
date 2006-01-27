@@ -55,12 +55,18 @@ struct mh_option mh_option[] = {
 
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
+static char *draftmessage = "cur";
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
+						  mu_folder_directory ());
+      break;
+      
     case ARG_DRAFTFOLDER:
       wh_env.draftfolder = arg;
       break;
@@ -78,7 +84,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_DRAFTMESSAGE:
-      wh_env.draftmessage = arg;
+      draftmessage = arg;
       break;
 
     case ARG_PROMPT:
@@ -109,9 +115,15 @@ main (int argc, char **argv)
   argv += index;
   if (argc)
     wh_env.draftfile = argv[0];
+  else if (wh_env.draftfolder)
+    {
+      if (mh_draft_message (wh_env.draftfolder, draftmessage,
+			    &wh_env.file))
+	return 1;
+    }
   else
-    wh_env.draftfile = mh_draft_name ();
-  wh_env.file = wh_env.draftfile;
+    wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+  wh_env.draftfile = wh_env.file;
   wh_env.msg = getenv ("mhaltmsg");
   return mh_whatnow (&wh_env, initial_edit);
 }

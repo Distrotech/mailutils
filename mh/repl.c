@@ -122,6 +122,7 @@ static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
 static char *mhl_filter = NULL; /* --filter flag */
 static int annotate;       /* --annotate flag */
+static char *draftmessage = "new";
 
 static int
 decode_cc_flag (const char *opt, const char *arg)
@@ -199,7 +200,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 	    
     case ARG_DRAFTMESSAGE:
-      wh_env.draftmessage = arg;
+      draftmessage = arg;
       break;
 
     case ARG_USE:
@@ -291,8 +292,6 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       exit (0);
 
     case DISP_USE:
-      unlink (wh->file);
-      rename (wh->draftfile, wh->file);
       break;
 	  
     case DISP_REPLACE:
@@ -359,7 +358,8 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     
     mu_mailbox_get_url (mbox, &url);
     mh_message_number (msg, &num);
-    asprintf (&msgname, "%s/%s", mu_url_to_string (url), mu_umaxtostr (0, num));
+    asprintf (&msgname, "%s/%s",
+	      mu_url_to_string (url), mu_umaxtostr (0, num));
     p = strchr (msgname, ':');
     if (!p)
       wh->msg = msgname;
@@ -397,8 +397,16 @@ main (int argc, char **argv)
       return 1;
     }
   
-  wh_env.file = mh_expand_name (wh_env.draftfolder, "reply", 0);
-  wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+  if (build_only)
+    wh_env.file = mh_expand_name (wh_env.draftfolder, "reply", 0);
+  else if (wh_env.draftfolder)
+    {
+      if (mh_draft_message (wh_env.draftfolder, draftmessage, &wh_env.file))
+	return 1;
+    }
+  else
+    wh_env.file = mh_expand_name (wh_env.draftfolder, "draft", 0);
+  wh_env.draftfile = wh_env.file;
 
   make_draft (mbox, DISP_REPLACE, &wh_env);
 
