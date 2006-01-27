@@ -33,9 +33,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
   struct mh_argp_data *data = state->input;
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      break;
-
     case ARGP_KEY_ARG:
       if (arg[0] == '+')
 	{
