@@ -43,7 +43,7 @@ mh_comp_draft (char *formfile, char *defformfile, char *draftfile)
       s = mh_expand_name (MHLIBDIR, defformfile, 0);
       if (access (s, R_OK) == 0)
 	{
-	  if (mh_file_copy (s, draftfile) == 0)
+	  if (mh_file_copy (s, draftfile))
 	    exit (1);
 	}
       else
