@@ -44,6 +44,7 @@ mu_url_create (mu_url_t * purl, const char *name)
   mu_url_t url = calloc (1, sizeof (*url));
   if (url == NULL)
     return ENOMEM;
+
   url->name = strdup (name);
   if (url->name == NULL)
     {

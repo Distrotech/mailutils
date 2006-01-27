@@ -6,10 +6,11 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 Version 0.6.92:
 
-* Library namespace is optimized. All global identifiers begin with mu_.
+* The library namespace is optimized. Now all global identifiers begin 
+with mu_.
 NOTE: This is incompatible change.
 
-The programs using old API can still be compiled, using one of the
+Programs using old API can still be compiled, using one of the
 following approaches. If the program includes <mailutils/mailutils.h>,
 define the symbol MU_COMPAT before including it (or invoke cc with
 -DMU_COMPAT option). Othervise, include file <mailutils/compat.h>.

@@ -57,8 +57,8 @@ libmuaux_la_SOURCES += setenv.h
 
 libmuaux_la_SOURCES += snprintf.h
 
-
 libmuaux_la_SOURCES += vasprintf.h
+
 
 libmuaux_la_SOURCES += xalloc-die.c
 

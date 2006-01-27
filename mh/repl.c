@@ -299,7 +299,6 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       unlink (wh->draftfile);
       break;  
     }
-
   
   rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
