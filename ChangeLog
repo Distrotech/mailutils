@@ -1,3 +1,7 @@
+2006-01-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/select.c (imap4d_select0): Fix status display.
+
 2006-01-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/select.c (imap4d_select0): Create INBOX if it does not
