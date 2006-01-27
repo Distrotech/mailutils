@@ -20,6 +20,7 @@
 /* Initialize MH applications. */
 
 #include <mh.h>
+#include <mailutils/url.h>
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -917,3 +918,65 @@ mh_expand_aliases (mu_message_t msg,
 	}
     }
 }
+
+int
+mh_draft_message (const char *name, const char *msgspec, char **pname)
+{
+  mu_url_t url;
+  size_t uid;
+  int rc;
+  const char *urlstr;
+  mu_mailbox_t mbox;
+
+  mbox = mh_open_folder (name, 0);
+  if (!mbox)
+    return 1;
+  
+  mu_mailbox_get_url (mbox, &url);
+  urlstr = mu_url_to_string (url);
+
+  if (strcmp (msgspec, "new") == 0)
+    {
+      rc = mu_mailbox_uidnext (mbox, &uid);
+      if (rc)
+	mu_error (_("Cannot obtain sequence number for the new message"),
+		  mu_strerror (rc));
+    }
+  else
+    {
+      char *argv[2];
+      mh_msgset_t msgset;
+      
+      argv[0] = (char*) msgspec;
+      argv[1] = NULL;
+      rc = mh_msgset_parse (mbox, &msgset, 1, argv, "cur");
+      if (rc)
+	mu_error (_("Invalid message number: %s"), msgspec);
+      else if (msgset.count > 1)
+	mu_error (_("only one message at a time!"));
+      else
+	uid = msgset.list[0];
+
+      mh_msgset_free (&msgset);
+    }
+  
+  if (rc == 0)
+    {
+      const char *dir;
+      const char *msg;
+      size_t len;
+      
+      dir = urlstr + 3; /* FIXME */
+      
+      msg = mu_umaxtostr (0, uid);
+      len = strlen (dir) + 1 + strlen (msg) + 1;
+      *pname = xmalloc (len);
+      strcpy (*pname, dir);
+      strcat (*pname, "/");
+      strcat (*pname, msg);
+    }
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
+  return rc;
+}
+
