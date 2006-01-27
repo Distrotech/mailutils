@@ -215,7 +215,6 @@ struct mh_whatnow_env     /* whatnow shell environment */
   char *msg;              /* File name of the original message (if any) */
   char *draftfile;        /* File to preserve the draft into */
   char *draftfolder;
-  char *draftmessage;
   char *editor;
   char *prompt;
   char *anno_field;       /* Annotate field to be used */
@@ -318,8 +317,7 @@ size_t mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg);
 
 int mh_decode_rcpt_flag (const char *arg);
 
-void *xmalloc (size_t);
-void *xrealloc (void *, size_t);
+int mh_draft_message (const char *name, const char *msgspec, char **pname);
      
 int mh_spawnp (const char *prog, const char *file);
 int mh_whatnow (struct mh_whatnow_env *wh, int initial_edit);
