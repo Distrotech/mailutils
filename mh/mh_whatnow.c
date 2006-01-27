@@ -423,7 +423,8 @@ quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
       else
 	{
 	  printf (_("draft left on \"%s\".\n"), wh->draftfile);
-	  rename (wh->file, wh->draftfile);
+	  if (strcmp (wh->file, wh->draftfile))
+	    rename (wh->file, wh->draftfile);
 	}
     }
 
