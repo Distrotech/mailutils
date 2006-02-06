@@ -63,6 +63,7 @@ mapfile_stream.c \
 mbx_default.c \
 message.c \
 memory_stream.c \
+message_stream.c \
 mime.c \
 monitor.c \
 mu_argp.c \
