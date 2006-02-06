@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -18,23 +18,32 @@
 ##   02110-1301 USA
 
 moddir=@SIEVE_MODDIR@
-mod_LTLIBRARIES = timestamp.la spamd.la list.la vacation.la
+mod_LTLIBRARIES = \
+ list.la\
+ moderator.la\
+ spamd.la\
+ timestamp.la\
+ vacation.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 AM_LDFLAGS = ../../lib/libmuaux.la ../../mailbox/libmailutils.la 
 
-timestamp_la_SOURCES = timestamp.c
-timestamp_la_LIBADD = ../libsieve.la 
-timestamp_la_LDFLAGS = -module -avoid-version -no-undefined 
+list_la_SOURCES = list.c
+list_la_LIBADD = ../libsieve.la 
+list_la_LDFLAGS = -module -avoid-version -no-undefined 
+
+moderator_la_SOURCES = moderator.c
+moderator_la_LIBADD = ../libsieve.la 
+moderator_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 spamd_la_SOURCES = spamd.c
 spamd_la_LIBADD = ../libsieve.la 
 spamd_la_LDFLAGS = -module -avoid-version -no-undefined 
 
-list_la_SOURCES = list.c
-list_la_LIBADD = ../libsieve.la 
-list_la_LDFLAGS = -module -avoid-version -no-undefined 
+timestamp_la_SOURCES = timestamp.c
+timestamp_la_LIBADD = ../libsieve.la 
+timestamp_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 vacation_la_SOURCES = vacation.c
 vacation_la_LIBADD = ../libsieve.la 
