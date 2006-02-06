@@ -1,3 +1,29 @@
+2006-02-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Raise version number to 0.6.93
+	* include/mailutils/libsieve.h (mu_sieve_machine_dup)
+	(mu_sieve_machine_inherit_report): New functions
+	* include/mailutils/message.h (mu_stream_to_message): New
+	function.
+	* include/mailutils/mutil.h (mu_mh_delim): New function
+	* libsieve/actions.c: Minor stylistic changes
+	* libsieve/require.c: Likewise
+	* libsieve/sieve.h: Likewise
+	* libsieve/sieve.y (mu_sieve_machine_inherit_report)
+	(mu_sieve_machine_dup): New functions
+	* libsieve/util.c: Minor stylistic changes
+	* libsieve/extensions/moderator.c: New file. Automatic moderator
+	for Mailman-driven mailing lists.
+	* libsieve/extensions/Makefile.am: Add moderator module
+	
+	* mailbox/message_stream.c: New file. Derived from mh/mh_stream.c
+	* mailbox/Makefile.am: Add message_stream.c
+	* mailbox/mutil.c (mu_mh_delim): New function
+	* mh/mh_stream.c: Rewritten using mu_stream_to_message. Actually,
+	the source can be removed now and the function moved elsewhere,
+	e.g. to mh_init...
+	* sieve/sieve.c (main): Register all mailbox/mailer formats.
+	
 2006-01-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/comp.c: Fix semantics of -build/-draftmessage/-[no]draftfolder
