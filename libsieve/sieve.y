@@ -1,6 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005,
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -368,6 +369,58 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
 }
 
 void
+mu_sieve_machine_inherit_report (mu_sieve_machine_t child,
+				 mu_sieve_machine_t parent)
+{
+  child->logger = parent->logger;
+  child->debug = parent->debug;
+  child->debug_level = parent->debug_level;
+  child->debug_printer = parent->debug_printer;
+}
+
+int
+mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
+{
+  int rc;
+  mu_sieve_machine_t mach;
+  
+  mach = malloc (sizeof (*mach));
+  if (!mach)
+    return ENOMEM;
+  memset (mach, 0, sizeof (*mach));
+  rc = mu_list_create (&mach->memory_pool);
+  if (rc)
+    {
+      free (mach);
+      return rc;
+    }
+  mach->destr_list = NULL;
+  mach->test_list = NULL;
+  mach->action_list = NULL;
+  mach->comp_list = NULL;
+
+  mach->progsize = in->progsize;
+  mach->prog = in->prog;
+
+  mach->pc = 0;
+  mach->reg = 0;
+  mach->stack = NULL;
+
+  mach->debug_level = in->debug_level;
+  
+  mach->data = in->data;
+  mach->error_printer = in->error_printer;
+  mach->parse_error_printer = in->parse_error_printer;
+  mach->debug_printer = in->debug_printer;
+  mach->logger = in->logger;
+  mach->debug = in->debug;
+  mach->daemon_email = in->daemon_email;
+
+  *out = mach;
+  return 0;
+}
+
+void
 mu_sieve_set_error (mu_sieve_machine_t mach, mu_sieve_printf_t error_printer)
 {
   mach->error_printer = error_printer ?
@@ -463,8 +516,9 @@ struct sieve_destr_record
 };
 
 int
-mu_sieve_machine_add_destructor (mu_sieve_machine_t mach, mu_sieve_destructor_t destr,
-			      void *ptr)
+mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
+				 mu_sieve_destructor_t destr,
+				 void *ptr)
 {
   struct sieve_destr_record *p;
 
