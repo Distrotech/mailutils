@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005, 
+   2006  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -141,6 +142,8 @@ extern enum mu_iconv_fallback_mode mu_default_fallback_mode;
 extern int mu_set_default_fallback (const char *str);
 
 extern int mu_is_proto (const char *p);
+
+extern int mu_mh_delim (const char *str);
   
 #ifdef __cplusplus
 }

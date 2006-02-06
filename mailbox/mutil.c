@@ -1334,6 +1334,19 @@ mu_is_proto (const char *p)
   return 0;
 }
 
+int
+mu_mh_delim (const char *str)
+{
+  if (str[0] == '-')
+    {
+      for (; *str == '-'; str++)
+	;
+      for (; *str == ' ' || *str == '\t'; str++)
+	;
+    }
+  return str[0] == '\n';
+}
+
 char *
 __argp_base_name (const char *arg)
 {
