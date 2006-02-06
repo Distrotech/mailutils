@@ -53,7 +53,7 @@
    if allof(header :is "Sender" "mailman-bounces@gnu.org",
             header :is "X-List-Administrivia" "yes")
      {
-        moderator "~/.sieve/mailman.sv";
+        moderator :source "~/.sieve/mailman.sv";
      }
    
 */
