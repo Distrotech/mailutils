@@ -4,7 +4,7 @@ See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
-Version 0.6.92:
+Version 0.6.93:
 
 * The library namespace is optimized. Now all global identifiers begin 
 with mu_.
