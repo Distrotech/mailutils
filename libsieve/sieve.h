@@ -49,22 +49,22 @@ struct sieve_machine {
   mu_list_t comp_list;       /* Comparators */
   mu_list_t source_list;     /* Source names (for diagnostics) */
   
-  size_t progsize;        /* Number of allocated program cells */
-  sieve_op_t *prog;       /* Compiled program */
+  size_t progsize;           /* Number of allocated program cells */
+  sieve_op_t *prog;          /* Compiled program */
 
   /* Runtime data */
-  size_t pc;              /* Current program counter */
-  long reg;               /* Numeric register */
+  size_t pc;                 /* Current program counter */
+  long reg;                  /* Numeric register */
   mu_list_t stack;           /* Runtime stack */
 
-  int debug_level;        /* Debugging level */
-  jmp_buf errbuf;         /* Target location for non-local exits */
-  char *identifier;       /* Name of action or test being executed */
+  int debug_level;           /* Debugging level */
+  jmp_buf errbuf;            /* Target location for non-local exits */
+  char *identifier;          /* Name of action or test being executed */
   
   mu_mailbox_t mailbox;      /* Mailbox to operate upon */
-  size_t    msgno;        /* Current message number */
+  size_t    msgno;           /* Current message number */
   mu_message_t msg;          /* Current message */
-  int action_count;       /* Number of actions executed over this message */
+  int action_count;          /* Number of actions executed over this message */
 			    
   /* User supplied data */
   mu_sieve_parse_error_t parse_error_printer;

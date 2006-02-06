@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -64,15 +65,16 @@ sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_error (mach, _("cannot get filename!"));
       mu_sieve_abort (mach);
     }
-  mu_sieve_log_action (mach, "FILEINTO", _("delivering into %s"), val->v.string);
+  mu_sieve_log_action (mach, "FILEINTO",
+		       _("delivering into %s"), val->v.string);
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
   rc = mu_message_save_to_mailbox (mach->msg, mach->ticket, mach->debug,
-				val->v.string);
+				   val->v.string);
   if (rc)
     mu_sieve_error (mach, _("cannot save to mailbox: %s"),
-		 mu_strerror (rc));
+		    mu_strerror (rc));
   else
     sieve_mark_deleted (mach->msg, 1);    
   
