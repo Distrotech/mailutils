@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -202,6 +203,10 @@ int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
 
 /* Functions to create and destroy sieve machine */
 int mu_sieve_machine_init (mu_sieve_machine_t * mach, void *data);
+int mu_sieve_machine_dup (mu_sieve_machine_t const in,
+			  mu_sieve_machine_t *out);
+void mu_sieve_machine_inherit_report (mu_sieve_machine_t child,
+				      mu_sieve_machine_t parent);
 void mu_sieve_machine_destroy (mu_sieve_machine_t * pmach);
 int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 				     mu_sieve_destructor_t destr, void *ptr);
