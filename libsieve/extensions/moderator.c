@@ -77,7 +77,7 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
   
   if (mu_sieve_tag_lookup (tags, "source", &arg))
     {
-      rc = mu_sieve_machine_init (&newmach, NULL);
+      rc = mu_sieve_machine_inherit (mach, &newmach);
       if (rc)
 	{
 	  mu_sieve_error (mach, _("Cannot initialize sieve machine: %s"),
@@ -89,7 +89,6 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
 	   moderator :debug 2
 	   ...
       */
-      mu_sieve_machine_inherit_report (newmach, mach);
       
       rc = mu_sieve_compile (newmach, arg->v.string);
       if (rc)
