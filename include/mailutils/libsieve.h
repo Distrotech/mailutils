@@ -205,8 +205,8 @@ int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
 int mu_sieve_machine_init (mu_sieve_machine_t * mach, void *data);
 int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
-void mu_sieve_machine_inherit_report (mu_sieve_machine_t child,
-				      mu_sieve_machine_t parent);
+int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
+			      mu_sieve_machine_t *out);
 void mu_sieve_machine_destroy (mu_sieve_machine_t * pmach);
 int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 				     mu_sieve_destructor_t destr, void *ptr);

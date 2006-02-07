@@ -368,14 +368,22 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
   return 0;
 }
 
-void
-mu_sieve_machine_inherit_report (mu_sieve_machine_t child,
-				 mu_sieve_machine_t parent)
+int
+mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
+			  mu_sieve_machine_t *pmach)
 {
+  mu_sieve_machine_t child;
+  int rc;
+  
+  rc = mu_sieve_machine_init (&child, parent->data);
+  if (rc)
+    return rc;
   child->logger = parent->logger;
   child->debug = parent->debug;
   child->debug_level = parent->debug_level;
   child->debug_printer = parent->debug_printer;
+  *pmach = child;
+  return 0;
 }
 
 int
