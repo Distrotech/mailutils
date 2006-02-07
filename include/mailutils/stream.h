@@ -74,6 +74,8 @@ extern int mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt);
 
 extern int mu_stream_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
 extern int mu_stream_readline    (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+extern int mu_stream_getline     (mu_stream_t is, char **pbuf, size_t *pbufsize,
+				  mu_off_t offset, size_t *pnread);
 extern int mu_stream_size        (mu_stream_t, mu_off_t *);
 extern int mu_stream_truncate    (mu_stream_t, mu_off_t);
 extern int mu_stream_write       (mu_stream_t, const char *, size_t, mu_off_t,
@@ -151,6 +153,9 @@ extern int mu_stream_sequential_read (mu_stream_t stream,
   
 extern int mu_stream_sequential_readline (mu_stream_t stream,
       char *buf, size_t size, size_t *nbytes);
+
+extern int mu_stream_sequential_getline  (mu_stream_t is,
+      char **pbuf, size_t *pbufsize, size_t *pnread);
   
 extern int mu_stream_sequential_write (mu_stream_t stream,
 				    const char *buf, size_t size);

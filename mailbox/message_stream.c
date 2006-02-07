@@ -109,12 +109,13 @@ _mu_rfc822_open (mu_stream_t stream)
 {
   struct _mu_rfc822_stream *s = mu_stream_get_owner (stream);
   size_t offset, len;
-  char buffer[256];
+  char *buffer = NULL;
+  size_t bufsize = 0;
   int rc;
 
   offset = 0;
-  while ((rc = mu_stream_readline (s->stream, buffer, sizeof buffer,
-				   offset, &len)) == 0
+  while ((rc = mu_stream_getline (s->stream, &buffer, &bufsize,
+				  offset, &len)) == 0
 	 && len > 0)
     {
       if (mu_mh_delim (buffer))
@@ -126,6 +127,7 @@ _mu_rfc822_open (mu_stream_t stream)
 
       offset += len;
     }
+  free (buffer);
   return 0;
 }
 
@@ -211,18 +213,17 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
   char *env_from = NULL;
   char *env_date = NULL;
   int rc;
-  char buffer[128];
+  char *buffer = NULL;
+  size_t bufsize = 0;
   size_t len;
   mu_off_t body_start, body_end;
   
-  while ((rc = mu_stream_readline (str, buffer, sizeof buffer, offset, &len))
-	 == 0
+  while ((rc = mu_stream_getline (str, &buffer, &bufsize, offset, &len)) == 0
 	 && len > 0)
     {
       if (buffer[0] == '\n')
 	break;
       buffer[len] = 0;
-      offset += len;
       if (strncasecmp (buffer, MU_HEADER_FROM,
 		       sizeof (MU_HEADER_FROM) - 1) == 0)
 	from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
@@ -234,6 +235,8 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
 	env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
     }
 
+  free (buffer);
+  
   body_start = offset + 1;
   mu_stream_size (str, &body_end);
   

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -156,7 +157,7 @@ mu_stream_setbufsiz (mu_stream_t stream, size_t size)
 
 int
 mu_stream_read (mu_stream_t is, char *buf, size_t count,
-	     mu_off_t offset, size_t *pnread)
+		mu_off_t offset, size_t *pnread)
 {
   int status = 0;
   if (is == NULL || is->_read == NULL)
@@ -265,7 +266,7 @@ mu_stream_read (mu_stream_t is, char *buf, size_t count,
  */
 int
 mu_stream_readline (mu_stream_t is, char *buf, size_t count,
-		 mu_off_t offset, size_t *pnread)
+		    mu_off_t offset, size_t *pnread)
 {
   int status = 0;
 
@@ -397,8 +398,71 @@ mu_stream_readline (mu_stream_t is, char *buf, size_t count,
 }
 
 int
+mu_stream_getline (mu_stream_t is, char **pbuf, size_t *pbufsize,
+		   mu_off_t offset, size_t *pnread)
+{
+  char *buf = *pbuf;
+  size_t bufsize = *pbufsize;
+  size_t total = 0, off = 0;
+  int rc = 0;
+#define DELTA 128
+  
+  if (buf == NULL)
+    {
+      bufsize = DELTA;
+      buf = malloc (bufsize);
+      if (!buf)
+	return ENOMEM;
+    }
+
+  do
+    {
+      size_t nread;
+      int rc;
+
+      if (off + 1 == bufsize)
+	{
+	  char *p;
+	  p = realloc (buf, bufsize + DELTA);
+	  if (!p)
+	    {
+	      rc = ENOMEM;
+	      break;
+	    }
+	  bufsize += DELTA;
+	  buf = p;
+	}
+      
+      rc = mu_stream_readline (is, buf + off, bufsize - off, offset + off,
+			       &nread);
+      if (rc)
+	{
+	  if (*pbuf)
+	    free (buf);
+	  return rc;
+	}
+      if (nread == 0)
+	break;
+      off += nread;
+      total += nread;
+    }
+  while (buf[off - 1] != '\n');
+
+  if (rc && !*pbuf)
+    free (buf);
+  else
+    {
+      *pbuf = buf;
+      *pbufsize = bufsize;
+      if (pnread)
+	*pnread = total;
+    }
+  return rc;
+}
+
+int
 mu_stream_write (mu_stream_t os, const char *buf, size_t count,
-	      mu_off_t offset, size_t *pnwrite)
+		 mu_off_t offset, size_t *pnwrite)
 {
   int nleft;
   int err = 0;
@@ -427,7 +491,7 @@ mu_stream_write (mu_stream_t os, const char *buf, size_t count,
 
 int
 mu_stream_get_transport2 (mu_stream_t stream,
-		       mu_transport_t *p1, mu_transport_t *p2)
+			  mu_transport_t *p1, mu_transport_t *p2)
 {
   if (stream == NULL || stream->_get_transport2 == NULL)
     return EINVAL;
@@ -435,8 +499,7 @@ mu_stream_get_transport2 (mu_stream_t stream,
 }
 
 int
-mu_stream_get_transport (mu_stream_t stream,
-		      mu_transport_t *pt)
+mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt)
 {
   return mu_stream_get_transport2 (stream, pt, NULL);
 }
@@ -519,7 +582,8 @@ mu_stream_get_state (mu_stream_t stream, int *pstate)
 }
 
 int
-mu_stream_set_destroy (mu_stream_t stream, void (*_destroy) (mu_stream_t),  void *owner)
+mu_stream_set_destroy (mu_stream_t stream,
+		       void (*_destroy) (mu_stream_t), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -533,7 +597,7 @@ mu_stream_set_destroy (mu_stream_t stream, void (*_destroy) (mu_stream_t),  void
 
 int
 mu_stream_set_open (mu_stream_t stream,
-	         int (*_open) (mu_stream_t), void *owner)
+		    int (*_open) (mu_stream_t), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -546,7 +610,8 @@ mu_stream_set_open (mu_stream_t stream,
 }
 
 int
-mu_stream_set_close (mu_stream_t stream, int (*_close) (mu_stream_t), void *owner)
+mu_stream_set_close (mu_stream_t stream,
+		     int (*_close) (mu_stream_t), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -560,8 +625,10 @@ mu_stream_set_close (mu_stream_t stream, int (*_close) (mu_stream_t), void *owne
 
 int
 mu_stream_set_get_transport2 (mu_stream_t stream,
-			   int (*_get_trans) (mu_stream_t, mu_transport_t *, mu_transport_t *),
-			   void *owner)
+			      int (*_get_trans) (mu_stream_t,
+						 mu_transport_t *,
+						 mu_transport_t *),
+			      void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -574,9 +641,10 @@ mu_stream_set_get_transport2 (mu_stream_t stream,
 }
 
 int
-mu_stream_set_read (mu_stream_t stream, int (*_read)
-		 (mu_stream_t, char *, size_t, mu_off_t, size_t *),
-		 void *owner)
+mu_stream_set_read (mu_stream_t stream,
+		    int (*_read) (mu_stream_t, char *, size_t,
+				  mu_off_t, size_t *),
+		    void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -589,9 +657,10 @@ mu_stream_set_read (mu_stream_t stream, int (*_read)
 }
 
 int
-mu_stream_set_readline (mu_stream_t stream, int (*_readline)
-		 (mu_stream_t, char *, size_t, mu_off_t, size_t *),
-		 void *owner)
+mu_stream_set_readline (mu_stream_t stream,
+			int (*_readline) (mu_stream_t, char *, size_t,
+					  mu_off_t, size_t *),
+			void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -604,9 +673,10 @@ mu_stream_set_readline (mu_stream_t stream, int (*_readline)
 }
 
 int
-mu_stream_set_write (mu_stream_t stream, int (*_write)
-		  (mu_stream_t, const char *, size_t, mu_off_t, size_t *),
-		  void *owner)
+mu_stream_set_write (mu_stream_t stream,
+		     int (*_write) (mu_stream_t, const char *, size_t,
+				    mu_off_t, size_t *),
+		     void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -620,7 +690,9 @@ mu_stream_set_write (mu_stream_t stream, int (*_write)
 
 
 int
-mu_stream_set_size (mu_stream_t stream, int (*_size)(mu_stream_t, mu_off_t *), void *owner)
+mu_stream_set_size (mu_stream_t stream,
+		    int (*_size) (mu_stream_t, mu_off_t *),
+		    void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -631,8 +703,9 @@ mu_stream_set_size (mu_stream_t stream, int (*_size)(mu_stream_t, mu_off_t *), v
 }
 
 int
-mu_stream_set_truncate (mu_stream_t stream, int (*_truncate) (mu_stream_t, mu_off_t),
-		     void *owner)
+mu_stream_set_truncate (mu_stream_t stream,
+			int (*_truncate) (mu_stream_t, mu_off_t),
+			void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -643,7 +716,8 @@ mu_stream_set_truncate (mu_stream_t stream, int (*_truncate) (mu_stream_t, mu_of
 }
 
 int
-mu_stream_set_flush (mu_stream_t stream, int (*_flush) (mu_stream_t), void *owner)
+mu_stream_set_flush (mu_stream_t stream,
+		     int (*_flush) (mu_stream_t), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -664,7 +738,7 @@ mu_stream_set_flags (mu_stream_t stream, int fl)
 
 int
 mu_stream_set_strerror (mu_stream_t stream,
-		     int (*fp) (mu_stream_t, const char **), void *owner)
+			int (*fp) (mu_stream_t, const char **), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -676,7 +750,8 @@ mu_stream_set_strerror (mu_stream_t stream,
 
 int
 mu_stream_set_wait (mu_stream_t stream,
-		 int (*wait) (mu_stream_t, int *, struct timeval *), void *owner)
+		    int (*wait) (mu_stream_t, int *, struct timeval *),
+		    void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -688,7 +763,7 @@ mu_stream_set_wait (mu_stream_t stream,
 
 int
 mu_stream_sequential_read (mu_stream_t stream, char *buf, size_t size,
-			size_t *nbytes)
+			   size_t *nbytes)
 {
   size_t rdbytes;
   int rc = mu_stream_read (stream, buf, size, stream->offset, &rdbytes);
@@ -703,7 +778,7 @@ mu_stream_sequential_read (mu_stream_t stream, char *buf, size_t size,
 
 int
 mu_stream_sequential_readline (mu_stream_t stream, char *buf, size_t size,
-			    size_t *nbytes)
+			       size_t *nbytes)
 {
   size_t rdbytes;
   int rc = mu_stream_readline (stream, buf, size, stream->offset, &rdbytes);
@@ -715,6 +790,23 @@ mu_stream_sequential_readline (mu_stream_t stream, char *buf, size_t size,
     }
   return rc;
 }
+
+int
+mu_stream_sequential_getline  (mu_stream_t stream,
+			       char **pbuf, size_t *pbufsize,
+			       size_t *nbytes)
+{
+  size_t rdbytes;
+  int rc = mu_stream_getline (stream, pbuf, pbufsize, stream->offset, &rdbytes);
+  if (!rc)
+    {
+      stream->offset += rdbytes;
+      if (nbytes)
+	*nbytes = rdbytes;
+    }
+  return rc;
+}  
+
 
 int
 mu_stream_sequential_write (mu_stream_t stream, const char *buf, size_t size)
