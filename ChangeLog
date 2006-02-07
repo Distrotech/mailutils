@@ -1,5 +1,14 @@
 2006-02-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/stream.c (mu_stream_getline)
+	(mu_stream_sequential_getline): New function
+
+	* mailbox/message_stream.c (_mu_rfc822_open, restore_envelope): Use
+	mu_stream_getline
+
+	* include/mailutils/stream.h (mu_stream_getline)
+	(mu_stream_sequential_getline): New function
+
 	* include/mailutils/libsieve.h (mu_sieve_machine_inherit_report):
 	Replace by mu_sieve_machine_inherit
 	* libsieve/sieve.y: Likewise
