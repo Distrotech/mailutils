@@ -1,5 +1,18 @@
 2006-02-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Fix displaying source locations in Sieve action logs:
+	
+	* libsieve/prog.c (sieve_change_source)
+	(sieve_check_source_changed): New functions
+	(sieve_code_action,sieve_code_test): Call
+	sieve_check_source_changed.
+	* libsieve/sieve.h (sieve_change_source): New function
+	* libsieve/sieve.l (push_source,pop_source): Do not code
+	SOURCE instruction directly, use sieve_change_source() to let the
+	code generator know it should do it.
+
+	Fix build on platforms without program_invocation_short_name:
+
 	* mailbox/Makefile.am (AM_CFLAGS): Use AM_CPPFLAGS instead.
 	* config/Makefile.am, movemail/Makefile.am (AM_CPPFLAGS): Add
 	GNULIB_ARGP_EXTERN_BASENAME=1
