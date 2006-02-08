@@ -20,6 +20,7 @@
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 bin_PROGRAMS = mailutils-config
+AM_CPPFLAGS = -DGNULIB_ARGP_EXTERN_BASENAME=1
 
 mailutils_config_SOURCES = mailutils-config.c
 mailutils_config_LDADD = \

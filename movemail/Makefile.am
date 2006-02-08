@@ -19,6 +19,7 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
+AM_CPPFLAGS = -DGNULIB_ARGP_EXTERN_BASENAME=1
 
 movemail_LDADD = \
  ../lib/libmuaux.la\
