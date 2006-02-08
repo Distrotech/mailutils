@@ -1,3 +1,8 @@
+2006-02-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/message_stream.c (restore_envelope): Restore line
+	accidentally deleted with the recent changes.
+	
 2006-02-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix displaying source locations in Sieve action logs:
