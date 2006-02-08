@@ -224,6 +224,7 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
       if (buffer[0] == '\n')
 	break;
       buffer[len] = 0;
+      offset += len;
       if (strncasecmp (buffer, MU_HEADER_FROM,
 		       sizeof (MU_HEADER_FROM) - 1) == 0)
 	from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
