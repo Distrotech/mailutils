@@ -120,6 +120,7 @@ void sieve_code_anyof (size_t start);
 void sieve_code_allof (size_t start);
 int sieve_code_source (const char *name);
 int sieve_code_line (size_t line);
+void sieve_change_source (void);
 
 void instr_action (mu_sieve_machine_t mach);
 void instr_test (mu_sieve_machine_t mach);
