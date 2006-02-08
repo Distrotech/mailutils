@@ -330,10 +330,30 @@ sieve_code_line (size_t line)
 	 || sieve_code (&op);
 }
 
+static int sieve_source_changed;
+
+void
+sieve_change_source ()
+{
+  sieve_source_changed = 1;
+}
+
+static int
+sieve_check_source_changed ()
+{
+  if (sieve_source_changed)
+    {
+      sieve_source_changed = 0;
+      return sieve_code_source (sieve_filename);
+    }
+  return 0;
+}
+
 int
 sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  return sieve_code_line (sieve_line_num)
+  return sieve_check_source_changed ()
+         || sieve_code_line (sieve_line_num)
          || sieve_code_instr (instr_action)
          || sieve_code_command (reg, arglist);
 }
@@ -341,7 +361,8 @@ sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 int
 sieve_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  return sieve_code_line (sieve_line_num)
+  return sieve_check_source_changed ()
+         || sieve_code_line (sieve_line_num)
          || sieve_code_instr (instr_test)
          || sieve_code_command (reg, arglist);
 }
