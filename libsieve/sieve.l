@@ -290,8 +290,7 @@ push_source (const char *name)
   sieve_line_num = 1;
   sieve_source_inode = st.st_ino;
 
-  sieve_code_source (sieve_filename);
-  sieve_code_line (sieve_line_num);
+  sieve_change_source ();
   
   return 0;
 }
@@ -324,8 +323,7 @@ pop_source ()
   free (context_stack);
   context_stack = ctx;
 
-  sieve_code_source (sieve_filename);
-  sieve_code_line (sieve_line_num);
+  sieve_change_source ();
 
   return 0;
 }
