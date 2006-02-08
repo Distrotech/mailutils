@@ -23,6 +23,7 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/argp.h>
 #include <mu_asprintf.h>
+#include <argp-namefrob.h>
 
 const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
