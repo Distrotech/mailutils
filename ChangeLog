@@ -1,3 +1,11 @@
+2006-02-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/Makefile.am (AM_CFLAGS): Use AM_CPPFLAGS instead.
+	* config/Makefile.am, movemail/Makefile.am (AM_CPPFLAGS): Add
+	GNULIB_ARGP_EXTERN_BASENAME=1
+	* config/mailutils-config.c, movemail/movemail.c: Include
+	argp-namefrob.h 
+
 2006-02-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/stream.c (mu_stream_getline)
