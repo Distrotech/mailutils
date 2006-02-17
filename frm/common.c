@@ -390,7 +390,7 @@ get_personal (mu_header_t hdr, const char *field, char **personal)
   if (status == 0)
     {
       mu_address_t address = NULL;
-      char *s;
+      char *s = NULL;
       
       mu_address_create (&address, hfield);
       
