@@ -231,7 +231,7 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
   int rc;
   
   if (charset == NULL || encoding == NULL || text == NULL)
-    return MU_ERR_BAD_2047_INPUT;
+    return EINVAL;
 
   if (strcmp (encoding, "base64") == 0)
     encoding = "B";
