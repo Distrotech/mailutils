@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -519,7 +519,7 @@ msg_part_format_stk (struct obstack *stk, msg_part_t p)
   for (i = 1; i <= p->level; i++)
     {
       int len;
-      char *buf;
+      const char *buf;
   
       if (i > 1)
 	obstack_1grow (stk, '.');
@@ -793,7 +793,6 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
-  char *buf;
   
   mu_message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
@@ -823,7 +822,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 		obstack_grow (&stk, name, strlen (name));
 	      else
 		{
-                  buf = mu_umaxtostr (0, msg_part_subpart (part, 0));
+                  const char *buf = mu_umaxtostr (0, msg_part_subpart (part, 0));
 		  obstack_grow (&stk, buf, strlen (buf));
 		}
 	      break;
@@ -881,6 +880,32 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 
 /* ************************* Auxiliary functions ************************** */
 
+static void
+split_args (char *argstr, int *pargc, char ***pargv)
+{
+  int argc;
+  char **argv;
+
+  if (mu_argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
+    {
+      int i, j;
+      
+      for (i = j = 0; i < argc; i++)
+	{
+	  if (argv[i][0] != ';')
+	    argv[j++] = argv[i];
+	}
+      argv[j] = NULL;
+      *pargc = j;
+      *pargv = argv;
+    }
+  else
+    {
+      *pargc = 0;
+      *pargv = NULL;
+    }
+}
+
 int
 _message_is_external_body (mu_message_t msg, char ***env)
 {
@@ -895,22 +920,8 @@ _message_is_external_body (mu_message_t msg, char ***env)
   rc = subtype && strcmp (subtype, "external-body") == 0;
   if (rc && env)
     {
-      int argc;
-      char **argv;
-      if (mu_argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
-	{
-	  int i, j;
-	  
-	  for (i = j =  0; i < argc; i++)
-	    {
-	      if (argv[i][0] != ';')
-		argv[j++] = argv[i];
-	    }
-	  argv[j] = NULL;
-	  *env = argv;
-	}
-      else
-	*env = NULL;
+      int c;
+      split_args (argstr, &c, env);
     }
 
   free (typestr);
@@ -1371,7 +1382,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     return 0;
 
   mu_stream_get_transport (out, &trans);
-  fd = trans;
+  fd = (int) trans; /* FIXME */
 
   if (mode_options & OPT_PAUSE)
     flags |= MHN_CONFIRM;
@@ -1381,7 +1392,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   if (flags & MHN_LISTING)
     {
       char *str;
-      char *p;
+      const char *p;
       size_t size = 0;
 
       str = _("part ");
@@ -2016,7 +2027,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       mu_message_create (&newmsg, NULL);
       mu_message_get_header (newmsg, &hdr);
       mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
-			"quoted-printable", 0);
+			   "quoted-printable", 0);
       
       mu_message_get_body (newmsg, &body);
       mu_body_get_stream (body, &output);
@@ -2408,7 +2419,10 @@ mhn_edit (struct compose_env *env, int level)
 	      if (tok[1] == 0)
 		/* starts a new message */;
 	      else if (tok[1] == '<')
-		status = edit_modify (tok+2, env, &msg);
+		{
+		  *sp = c;
+		  status = edit_modify (tok+2, env, &msg);
+		}
 	      else if (tok[1] == '@')
 		{
 		  *sp = c;
@@ -2499,6 +2513,136 @@ copy_header (mu_message_t msg, mu_stream_t stream)
 }
 
 int
+parse_header_directive (char *val, char **encoding, char **charset, char **subject)
+{
+  char *p;
+
+  /* Provide default values */
+  *encoding = NULL;
+  *charset = NULL;
+  *subject = val;
+
+  if (*val != '#')
+    return 1;
+  val++;
+  
+  switch (*val)
+    {
+    case '#':
+      *subject = val;
+      return 1;
+
+    case '<':
+      for (p = val; *p; p++)
+	if (*p == '>')
+	  {
+	    int i, argc;
+	    char **argv;
+	    
+	    *subject = p + 1;
+	    *p = 0;
+	    split_args (val + 1, &argc, &argv);
+	    for (i = 0; i < argc; i++)
+	      {
+		if (strlen (argv[i]) > 8
+		    && memcmp (argv[i], "charset=", 8) == 0)
+		  {
+		    free (*charset);
+		    *charset = strdup (argv[i] + 8);
+		  }
+		else if (strlen (argv[i]) > 9
+			 && memcmp (argv[i], "encoding=", 9) == 0)
+		  {
+		    free (*encoding);
+		    *encoding = strdup (argv[i] + 9);
+		  }
+	      }
+	    mu_argcv_free (argc, argv);
+	    return 0;
+	  }
+      break;
+    }
+  return 1;
+}
+
+
+void
+mhn_header (mu_message_t msg, mu_message_t omsg)
+{
+  mu_header_t hdr = NULL;
+  char *val;
+  
+  mu_message_get_header (msg, &hdr);
+  if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &val) == 0)
+    {
+      char *subject, *encoding, *charset;
+      
+      if (parse_header_directive (val, &encoding, &charset, &subject))
+	{
+	  if (has_nonascii (val, strlen (val)))
+	    {
+	      int ismime = 0;
+	      mu_message_t part = NULL;
+	      
+	      mu_message_is_multipart (omsg, &ismime);
+	      if (ismime)
+		mu_message_get_part (omsg, 1, &part);
+	      else
+		part = omsg;
+	      if (part);
+		{
+		  mu_header_t parthdr = NULL;
+		  char *typestr, *typeargs;
+		  
+		  mu_message_get_header (part, &parthdr);
+		  _get_content_type (parthdr, &typestr, &typeargs);
+		  _get_content_encoding (parthdr, &encoding);
+		  if (typeargs)
+		    {
+		      int i, argc;
+		      char **argv;
+		      
+		      split_args (typeargs, &argc, &argv);
+		      for (i = 0; i < argc; i++)
+			if (strlen (argv[i]) > 8
+			    && memcmp (argv[i], "charset=", 8) == 0)
+			  {
+			    charset = strdup (argv[i]+8);
+			    break;
+			  }
+		      mu_argcv_free (argc, argv);
+		    }
+		  free (typestr);
+		}
+	    }
+	}
+
+      if (charset)
+	{
+	  char *p;
+	  int rc;
+	  
+	  if (!encoding || strcmp (encoding, "7bit") == 0)
+	    {
+	      free (encoding);
+	      encoding = strdup ("base64");
+	    }
+	  rc = mu_rfc2047_encode (charset, encoding, subject, &p);
+	  if (rc)
+	    mu_error (_("cannot encode subject using %s, %s: %s"),
+		      charset, encoding, mu_strerror (rc));
+	  else
+	    {
+	      mu_header_set_value (hdr, MU_HEADER_SUBJECT, p, 1);
+	      free (p);
+	    }
+	}
+      free (charset);
+      free (encoding);
+    }
+}
+
+int
 mhn_compose ()
 {
   int rc;
@@ -2518,12 +2662,13 @@ mhn_compose ()
   env.mime = mime;
   env.input = stream;
   env.subpart = 0;
+  env.line = 0;
   rc = mhn_edit (&env, 0);
   if (rc)
     return rc;
 
   mu_mime_get_message (mime, &msg);
-
+  
   p = strrchr (input_file, '/');
   /* Prepare file names */
   if (p)
@@ -2558,7 +2703,8 @@ mhn_compose ()
       mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return rc;
     }
-  
+
+  mhn_header (message, msg);
   copy_header (message, stream);
   mu_message_get_stream (msg, &in);
   cat_message (stream, in);
