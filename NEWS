@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-01-25
+GNU mailutils NEWS -- history of user-visible changes.  2006-02-17
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -75,6 +75,16 @@ header to the message being sent, if it does not contain one. The
 the value 'yes' means to add the default X-Mailer string, the value
 'no' means to ignore it. Any other value is taken as the X-Mailer
 identifier to be added to the message.
+
+** mhn
+
+In compose mode mhn analyzes Subject: line and, if it contains any
+non-printable characters, encodes it in accordance with RFC
+2047. Encoding type and charset are taken from the first message
+part. They also can be specified in the subject itself using the
+following syntax:
+
+ #<encoding=ENC; charset=CSET>CONTENT
 
 * Bugfixes:
 ** mail: Fix handling of conditional expressions

@@ -1,3 +1,22 @@
+2006-02-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+
+	* mh/mhn.c (split_args): New function
+	(_message_is_external_body ): Use split_args to parse
+	additional arguments
+	(mhn_edit): Fix invocation of edit_modify (was not getting
+	additional arguments after ';')
+	(parse_header_directive): New function
+	(mhn_header): New function
+	(mhn_compose): Bugfix: initialize env.line
+	Call mhn_header to optionally encode Subject line
+
+	* mailbox/rfc2047.c (mu_rfc2047_encode): Return EINVAL if any of
+	the arguments is NULL.
+
+	* frm/common.c (get_personal): Fix coredump on empty From: headers.
+
 2006-02-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/message_stream.c (restore_envelope): Restore line
