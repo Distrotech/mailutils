@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2006 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -37,7 +37,7 @@ libmu_scm_la_SOURCES=\
  $(C_SRCS) \
  mu_scm.h
 
-libmu_scm_la_LDFLAGS = -rpath $(libdir) -version-info 0:0:0
+libmu_scm_la_LDFLAGS = -rpath $(libdir) -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
 EXTRA_DIST=mailutils.scm mailutils.scm.in
 

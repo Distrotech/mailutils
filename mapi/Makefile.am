@@ -41,4 +41,4 @@ libmapi_la_SOURCES = \
  MAPISendDocuments.c \
  MAPISendMail.c
 
-libmapi_la_LDFLAGS = -version-info 0:0:0
+libmapi_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
