@@ -24,7 +24,7 @@ AM_CPPFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" -DGNULIB_ARGP_EXTE
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
 
-SUBDIRS = include mbox pop nntp imap mh maildir testsuite 
+SUBDIRS = . include mbox pop nntp imap mh maildir testsuite 
 
 lib_LTLIBRARIES = libmailutils.la
 
