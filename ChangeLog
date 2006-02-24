@@ -1,3 +1,15 @@
+2006-02-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/Makefile.am, libmu_cpp/Makefile.am, libmu_scm/Makefile.am,
+	mailbox/imap/Makefile.am, mailbox/maildir/Makefile.am,
+	mailbox/mbox/Makefile.am, mailbox/mh/Makefile.am,
+	mailbox/nntp/Makefile.am, mailbox/pop/Makefile.am,
+	mapi/Makefile.am: Set version info  
+	* mailbox/Makefile.am: Compile libmailutils first, then recurse
+	into the subdirs.
+	* m4/guile.m4: Use improved sed expression, proposed by Thien-Thi
+	Nguyen. 
+	
 2006-02-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
