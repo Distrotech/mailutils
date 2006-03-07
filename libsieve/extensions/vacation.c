@@ -202,7 +202,7 @@ regex_comparator (void *item, void *data)
 	       REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE))
     {
       mu_sieve_error (d->mach,
-		      _("%d: cannot compile regular expression \"%s\"\n"),
+		      _("%d: cannot compile regular expression \"%s\""),
 		      mu_sieve_get_message_num (d->mach),
 		      item);
       return 0;
@@ -434,6 +434,8 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	  if (rc)
 	    {
 	      mu_sieve_error (mach,
+			      /* TRANSLATORS: 'vacation' is the name of the
+				 Sieve action. Do not translate it! */
 			      _("%d: vacation - cannot compile reply prefix regexp: %s: %s"),
 			      mu_sieve_get_message_num (mach),
 			      mu_strerror (rc),
