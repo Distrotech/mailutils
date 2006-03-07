@@ -27,12 +27,23 @@ gl_USE_SYSTEM_EXTENSIONS
 AC_PREREQ(2.59)
 
 dnl Library versioning
-VI_CURRENT=1
-VI_REVISION=0
-VI_AGE=0
-AC_SUBST(VI_CURRENT)
-AC_SUBST(VI_REVISION)
-AC_SUBST(VI_AGE)
+AC_SUBST(VI_CURRENT,  1)
+AC_SUBST(VI_REVISION, 0)
+AC_SUBST(VI_AGE,      0)
+
+dnl Library paths
+AC_SUBST(MU_LIB_AUTH,'${top_builddir}/auth/libmuauth.la')
+AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/mailbox/libmailutils.la')
+AC_SUBST(MU_LIB_SQL,'${top_builddir}/sql/libsql.la')
+AC_SUBST(MU_LIB_IMAP,'${top_builddir}/libproto/imap/libmu_imap.la')
+AC_SUBST(MU_LIB_MAILDIR,'${top_builddir}/libproto/maildir/libmu_maildir.la')
+AC_SUBST(MU_LIB_MBOX,'${top_builddir}/libproto/mbox/libmu_mbox.la')
+AC_SUBST(MU_LIB_MH,'${top_builddir}/libproto/mh/libmu_mh.la')
+AC_SUBST(MU_LIB_NNTP,'${top_builddir}/libproto/nntp/libmu_nntp.la')
+AC_SUBST(MU_LIB_POP,'${top_builddir}/libproto/pop/libmu_pop.la')
+AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libsieve/libsieve.la')
+AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
+AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
 
 dnl Check for programs
 AC_PROG_CC
@@ -104,8 +115,8 @@ AC_SUBST(MU_AUTHLIBS)
 AC_SUBST(MU_AUTHLIBS_DEPENDENCY)
 AC_SUBST(MU_AUTHINCS)
 
-MU_AUTHLIBS=../auth/libmuauth.la
-MU_AUTHLIBS_DEPENDENCY=$MU_AUTHLIBS
+MU_AUTHLIBS=
+MU_AUTHLIBS_DEPENDENCY=../auth/libmuauth.la
 
 dnl Check for arguments
 AC_ARG_ENABLE([pam],
@@ -167,8 +178,8 @@ MU_CHECK_GSASL(0.2.3, [
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"
     status_gsasl=yes])
 
-AC_SUBST(SITE_CRAM_MD5_PWD)
-SITE_CRAM_MD5_PWD="\$(sysconfdir)/cram-md5.pwd"
+AC_SUBST(SITE_CRAM_MD5_PWD,"\$(sysconfdir)/cram-md5.pwd")
+
 AC_ARG_WITH(cram-passwd,
             AC_HELP_STRING([--with-cram-passwd=FILE],
                            [use keep passwords for CRAM-MD5 authentication method in FILE (default $SITE_CRAM_MD5_PWD)]),
@@ -902,7 +913,7 @@ if test x"$useguile" = x"yes"; then
 	    GUIMB='guimb$(EXEEXT)'
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
-	    LIBMU_SCM_DEPS="../mailbox/mbox/libmu_mbox.la ../mailbox/imap/libmu_imap.la ../mailbox/pop/libmu_pop.la ../mailbox/mh/libmu_mh.la ../mailbox/maildir/libmu_maildir.la"
+	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR}'
             GUILE_PKGDATA="guile-procedures.txt mailutils.scm"
 	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
             case "$GUILE_VERSION" in
@@ -1069,6 +1080,14 @@ AC_CONFIG_FILES([Makefile
  intl/Makefile
  lib/Makefile
  libmu_scm/Makefile
+ libproto/Makefile
+ libproto/mbox/Makefile
+ libproto/mh/Makefile
+ libproto/maildir/Makefile
+ libproto/pop/Makefile
+ libproto/nntp/Makefile
+ libproto/imap/Makefile
+ libproto/include/Makefile
  libsieve/Makefile
  libsieve/extensions/Makefile
  mail/Makefile
@@ -1078,13 +1097,6 @@ AC_CONFIG_FILES([Makefile
  mail.remote/Makefile
  mail.remote/testsuite/Makefile
  mailbox/Makefile
- mailbox/mbox/Makefile
- mailbox/mh/Makefile
- mailbox/maildir/Makefile
- mailbox/pop/Makefile
- mailbox/nntp/Makefile
- mailbox/imap/Makefile
- mailbox/include/Makefile
  mailbox/testsuite/Makefile
  messages/Makefile
  messages/testsuite/Makefile
