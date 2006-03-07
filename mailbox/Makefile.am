@@ -18,13 +18,13 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/mailbox/include @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include @INTLINCS@
 
 AM_CPPFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" -DGNULIB_ARGP_EXTERN_BASENAME=1
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
 
-SUBDIRS = . include mbox pop nntp imap mh maildir testsuite 
+SUBDIRS = testsuite 
 
 lib_LTLIBRARIES = libmailutils.la
 
