@@ -28,6 +28,7 @@ mail_remote_SOURCES = mail.remote.c
 
 mail_remote_LDADD = \
  ../lib/libmuaux.la\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@

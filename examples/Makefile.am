@@ -49,61 +49,69 @@ mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
-AM_LDFLAGS = ../lib/libmuaux.la ../mailbox/libmailutils.la @MU_COMMON_LIBRARIES@
+AM_LDFLAGS = \
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}\
+ @MU_COMMON_LIBRARIES@
 
 argcv_LDADD =\
  ../lib/libmuaux.la\
- ../mailbox/libmailutils.la
+ ${MU_LIB_MAILUTILS}
 
 numaddr_la_SOURCES = numaddr.c
-numaddr_la_LIBADD = ../libsieve/libsieve.la
+numaddr_la_LIBADD = ${MU_LIB_SIEVE}
 numaddr_la_LDFLAGS = -module -avoid-version -no-undefined
 
 mimetest_LDADD =\
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/imap/libmu_imap.la\
- ../mailbox/pop/libmu_pop.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la
+ ${MU_LIB_MAILUTILS}
 
 mta_LDADD =\
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailutils.la
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_MAILUTILS}
 
 sfrom_LDADD =\
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/imap/libmu_imap.la\
- ../mailbox/pop/libmu_pop.la\
- ../mailbox/nntp/libmu_nntp.la\
- ../mailbox/mh/libmu_mh.la\
- ../mailbox/maildir/libmu_maildir.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_NNTP}\
+ ${MU_LIB_MH}\
+ ${MU_LIB_MAILDIR}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la
+ ${MU_LIB_MAILUTILS}
 
 pop3client_LDADD = \
  ../lib/libmuaux.la\
- ../mailbox/pop/libmu_pop.la\
+ ${MU_LIB_POP}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @READLINE_LIBS@
 
 nntpclient_LDADD = \
  ../lib/libmuaux.la\
- ../mailbox/nntp/libmu_nntp.la\
+ ${MU_LIB_NNTP}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @READLINE_LIBS@
 
 lsf_LDADD = \
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/imap/libmu_imap.la\
- ../mailbox/pop/libmu_pop.la\
- ../mailbox/nntp/libmu_nntp.la\
- ../mailbox/mh/libmu_mh.la\
- ../mailbox/maildir/libmu_maildir.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_NNTP}\
+ ${MU_LIB_MH}\
+ ${MU_LIB_MAILDIR}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@ \
- ../mailbox/libmailutils.la
+ ${MU_LIB_MAILUTILS}
 

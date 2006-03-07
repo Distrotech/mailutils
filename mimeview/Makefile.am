@@ -50,6 +50,6 @@ BUILT_SOURCES = mimetypes-gram.c mimetypes-lex.c mimetypes-decl.h
 
 mimeview_LDADD = \
  ../lib/libmuaux.la \
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @LTLIBINTL@
  

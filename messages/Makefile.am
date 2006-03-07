@@ -25,14 +25,15 @@ bin_PROGRAMS = messages
 messages_SOURCES = messages.c
 messages_LDADD =\
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/imap/libmu_imap.la\
- ../mailbox/pop/libmu_pop.la\
- ../mailbox/nntp/libmu_nntp.la\
- ../mailbox/mh/libmu_mh.la\
- ../mailbox/maildir/libmu_maildir.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_NNTP}\
+ ${MU_LIB_MH}\
+ ${MU_LIB_MAILDIR}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
 CFLOW_FLAGS=-i^s --brief -v

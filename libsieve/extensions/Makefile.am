@@ -27,7 +27,7 @@ mod_LTLIBRARIES = \
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
-AM_LDFLAGS = ../../lib/libmuaux.la ../../mailbox/libmailutils.la 
+AM_LDFLAGS = ../../lib/libmuaux.la ${MU_LIB_MAILUTILS} 
 
 list_la_SOURCES = list.c
 list_la_LIBADD = ../libsieve.la 

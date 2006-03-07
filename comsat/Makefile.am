@@ -25,8 +25,8 @@ comsatd_SOURCES = action.c cfg.c comsat.c comsat.h
 
 comsatd_LDADD = \
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
 CFLOW_FLAGS=-i^s --brief -v

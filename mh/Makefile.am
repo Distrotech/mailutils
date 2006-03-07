@@ -129,14 +129,15 @@ AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = \
  ./libmh.a\
  ../lib/libmuaux.la\
- ../mailbox/mbox/libmu_mbox.la\
- ../mailbox/imap/libmu_imap.la\
- ../mailbox/pop/libmu_pop.la\
- ../mailbox/mh/libmu_mh.la\
- ../mailbox/nntp/libmu_nntp.la\
- ../mailbox/maildir/libmu_maildir.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_MH}\
+ ${MU_LIB_NNTP}\
+ ${MU_LIB_MAILDIR}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la\
+ ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@

@@ -25,7 +25,7 @@ AM_CPPFLAGS = -DGNULIB_ARGP_EXTERN_BASENAME=1
 mailutils_config_SOURCES = mailutils-config.c
 mailutils_config_LDADD = \
  ../lib/libmuaux.la \
- ../mailbox/libmailutils.la \
+ ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@
 
 mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
@@ -33,6 +33,6 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -I${top_srcdir}/lib \
   -DLINK_FLAGS="\"-L$(libdir)\"" \
   -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
-  -DAUTHLIBS="\"`echo $(MU_AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" \
+  -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DI18NLIBS="\"`test $(BUILD_INCLUDED_LIBINTL) = no && echo $(LIBINTL)`\""

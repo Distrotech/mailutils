@@ -21,7 +21,10 @@ INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
 bin_PROGRAMS = dotlock
 
-dotlock_LDADD = ../lib/libmuaux.la ../mailbox/libmailutils.la @MU_COMMON_LIBRARIES@
+dotlock_LDADD = \
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}\
+ @MU_COMMON_LIBRARIES@
 
 install-exec-hook:
 	for i in $(bin_PROGRAMS); do\

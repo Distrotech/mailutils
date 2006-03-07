@@ -27,10 +27,11 @@ mail_local_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
  ../lib/libmuaux.la \
- ../libsieve/libsieve.la\
- ../mailbox/mbox/libmu_mbox.la\
+ ${MU_LIB_SIEVE}\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
- ../mailbox/libmailutils.la \
+ ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@
 
 install-exec-hook:

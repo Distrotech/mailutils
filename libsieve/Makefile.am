@@ -42,7 +42,8 @@ libsieve_la_SOURCES = \
  sieve-lex.c\
  tests.c\
  util.c
-libsieve_la_LIBADD = @LTDL_LIB@
+libsieve_la_LIBADD = ${MU_LIB_MAILUTILS} @LTDL_LIB@
+libsieve_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
 noinst_HEADERS = sieve.h
 
