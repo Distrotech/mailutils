@@ -29,6 +29,8 @@ imap4d/signal.c
 imap4d/util.c
 lib/mailcap.c
 lib/xmalloc.c
+libproto/imap/folder.c
+libproto/mbox/mbox.c
 libsieve/actions.c
 libsieve/comparator.c
 libsieve/extensions/list.c
@@ -79,8 +81,6 @@ mailbox/errors
 mailbox/file_stream.c
 mailbox/filter_iconv.c
 mailbox/getopt.c
-mailbox/imap/folder.c
-mailbox/mbox/mbox.c
 mailbox/message.c
 mailbox/mu_argp.c
 mailbox/mu_auth.c

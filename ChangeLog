@@ -101,7 +101,17 @@
 	* po/POTFILES.in: Update
 	
 	* mailbox/amd.c: Protect definition of _XOPEN_SOURCE by an extra
-	ifdef. 
+	ifdef.
+	* libsieve/extensions/vacation.c (regex_comparator): Fix error
+	diagnostics
+	* mail/mail.h (cursor): Fix declaration
+
+	* mailbox/Makefile.am: Fix INCLUDES and SUBDIRS
+	* mailbox/filter_trans.c (base64_encode): Split into two
+	functions.
+	(B_encode): New function for RFC 2047 encoding
+	* mailbox/rfc2047.c: Minor indentation fix
+	* mh/mhn.c (finish_msg): Make sure part header is preserved.
 
 2006-02-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
