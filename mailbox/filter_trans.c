@@ -450,10 +450,10 @@ base64_decode (const char *iptr, size_t isize, char *optr, size_t osize,
   return consumed;
 }
 
-#define BASE64_LINE_MAX 	77
 static int
-base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
-	       size_t *nbytes, int *line_len)
+base64_encode_internal (const char *iptr, size_t isize,
+			char *optr, size_t osize,
+			size_t *nbytes, int *line_len, int line_max)
 {
   size_t consumed = 0;
   int pad = 0;
@@ -466,7 +466,7 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
     pad = 1;
   while (((consumed + 3) <= isize && (*nbytes + 4) <= osize) || pad)
     {
-      if (*line_len == 76)
+      if (line_max && *line_len == line_max)
 	{
 	  *optr++ = '\n';
 	  (*nbytes)++;
@@ -487,6 +487,15 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
   return consumed;
 }
 
+static int
+base64_encode (const char *iptr, size_t isize,
+	       char *optr, size_t osize,
+	       size_t *nbytes, int *line_len)
+{
+  return  base64_encode_internal (iptr, isize, optr, osize,
+				  nbytes, line_len, 76);
+}
+    
 static int
 base64_init (mu_filter_t filter)
 {
@@ -519,10 +528,42 @@ static struct _mu_filter_record _base64_filter =
   NULL
 };
 
+static int
+B_encode (const char *iptr, size_t isize,
+	       char *optr, size_t osize,
+	       size_t *nbytes, int *line_len)
+{
+  return  base64_encode_internal (iptr, isize, optr, osize,
+				  nbytes, line_len, 0);
+}
+
+static int
+B_init (mu_filter_t filter)
+{
+  struct _trans_stream *ts;
+  ts = calloc (sizeof (*ts), 1);
+  if (ts == NULL)
+    return ENOMEM;
+
+  ts->min_size = 4;
+  ts->s_buf = calloc (ts->min_size, 1);
+  if (ts->s_buf == NULL)
+    {
+      free (ts);
+      return ENOMEM;
+    }
+  ts->transcoder = (filter->type == MU_FILTER_DECODE) ? base64_decode : B_encode;
+
+  filter->_read = trans_read;
+  filter->_destroy = trans_destroy;
+  filter->data = ts;
+  return 0;
+}
+
 static struct _mu_filter_record _B_filter =
 {
   "B",
-  base64_init,
+  B_init,
   NULL,
   NULL,
   NULL
