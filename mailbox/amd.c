@@ -41,7 +41,9 @@
 
 #ifdef WITH_PTHREAD
 # ifdef HAVE_PTHREAD_H
-#  define _XOPEN_SOURCE  500
+#  ifdef _XOPEN_SOURCE
+#   define _XOPEN_SOURCE  500
+#  endif
 #  include <pthread.h>
 # endif
 #endif
