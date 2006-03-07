@@ -1,3 +1,108 @@
+2006-03-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am (SUBDIRS): Add libproto
+	* configure.ac: Define MU_LIB_.* variables
+	(MU_AUTHLIBS): Initialize to empty value.
+	(AC_CONFIG_FILES): Add libproto Makefiles
+
+	* libproto: New directory
+	* libproto/Makefile.am: New file
+	* libproto/imap: New directory
+	* libproto/include: New directory
+	* libproto/maildir: New directory
+	* libproto/mbox: New directory
+	* libproto/mh: New directory
+	* libproto/nntp: New directory
+	* libproto/pop: New directory
+
+	* mailbox/imap/folder.c, mailbox/imap/mbox.c, mailbox/imap/url.c,
+	mailbox/imap/Makefile.am, mailbox/imap/.cvsignore: Move to
+	libproto/imap 
+
+	* mailbox/include/address0.h, mailbox/include/amd.h,
+	mailbox/include/attribute0.h, mailbox/include/auth0.h,
+	mailbox/include/body0.h, mailbox/include/debug0.h,
+	mailbox/include/envelope0.h, mailbox/include/filter0.h,
+	mailbox/include/folder0.h, mailbox/include/header0.h,
+	mailbox/include/imap0.h, mailbox/include/iterator0.h,
+	mailbox/include/list0.h, mailbox/include/mailbox0.h,
+	mailbox/include/mailer0.h, mailbox/include/message0.h,
+	mailbox/include/mime0.h, mailbox/include/monitor0.h,
+	mailbox/include/observer0.h, mailbox/include/property0.h,
+	mailbox/include/registrar0.h, mailbox/include/stream0.h,
+	mailbox/include/url0.h, mailbox/include/Makefile.am,
+	mailbox/include/.cvsignore: Move to libproto/include 
+
+	* mailbox/maildir/folder.c, mailbox/maildir/maildir.h,
+	mailbox/maildir/mbox.c, mailbox/maildir/Makefile.am,
+	mailbox/maildir/.cvsignore: Move to libproto/maildir
+
+	* mailbox/mbox/folder.c, mailbox/mbox/mbox.c,
+	mailbox/mbox/mbox0.h, mailbox/mbox/mboxscan.c, mailbox/mbox/url.c,
+	mailbox/mbox/Makefile.am, mailbox/mbox/.cvsignore: Move to
+	libproto/mbox. 
+	
+	* mailbox/mh/folder.c, mailbox/mh/mbox.c, mailbox/mh/Makefile.am,
+	mailbox/mh/.cvsignore: Move to libproto/mh
+
+	* mailbox/nntp/folder.c, mailbox/nntp/mbox.c,
+	mailbox/nntp/nntp0.h, mailbox/nntp/nntp_article.c,
+	mailbox/nntp/nntp_body.c, mailbox/nntp/nntp_carrier.c,
+	mailbox/nntp/nntp_connect.c, mailbox/nntp/nntp_create.c,
+	mailbox/nntp/nntp_date.c, mailbox/nntp/nntp_debug.c,
+	mailbox/nntp/nntp_destroy.c, mailbox/nntp/nntp_disconnect.c,
+	mailbox/nntp/nntp_group.c, mailbox/nntp/nntp_head.c,
+	mailbox/nntp/nntp_help.c, mailbox/nntp/nntp_ihave.c,
+	mailbox/nntp/nntp_iterator.c, mailbox/nntp/nntp_last.c,
+	mailbox/nntp/nntp_list_active.c,
+	mailbox/nntp/nntp_list_distribpats.c,
+	mailbox/nntp/nntp_list_distributions.c,
+	mailbox/nntp/nntp_list_extensions.c,
+	mailbox/nntp/nntp_list_newsgroups.c,
+	mailbox/nntp/nntp_list_times.c, mailbox/nntp/nntp_mode_reader.c,
+	mailbox/nntp/nntp_newgroups.c, mailbox/nntp/nntp_newnews.c,
+	mailbox/nntp/nntp_next.c, mailbox/nntp/nntp_post.c,
+	mailbox/nntp/nntp_quit.c, mailbox/nntp/nntp_readline.c,
+	mailbox/nntp/nntp_response.c, mailbox/nntp/nntp_sendline.c,
+	mailbox/nntp/nntp_stat.c, mailbox/nntp/nntp_stream.c,
+	mailbox/nntp/nntp_timeout.c, mailbox/nntp/url.c,
+	mailbox/nntp/Makefile.am, mailbox/nntp/.cvsignore: Move to
+	libproto/nntp 
+
+	* mailbox/pop/folder.c, mailbox/pop/mbox.c,
+	mailbox/pop/pop3_apop.c, mailbox/pop/pop3_capa.c,
+	mailbox/pop/pop3_carrier.c, mailbox/pop/pop3_connect.c,
+	mailbox/pop/pop3_create.c, mailbox/pop/pop3_debug.c,
+	mailbox/pop/pop3_dele.c, mailbox/pop/pop3_destroy.c,
+	mailbox/pop/pop3_disconnect.c, mailbox/pop/pop3_iterator.c,
+	mailbox/pop/pop3_list.c, mailbox/pop/pop3_lista.c,
+	mailbox/pop/pop3_noop.c, mailbox/pop/pop3_pass.c,
+	mailbox/pop/pop3_quit.c, mailbox/pop/pop3_readline.c,
+	mailbox/pop/pop3_response.c, mailbox/pop/pop3_retr.c,
+	mailbox/pop/pop3_rset.c, mailbox/pop/pop3_sendline.c,
+	mailbox/pop/pop3_stat.c, mailbox/pop/pop3_stls.c,
+	mailbox/pop/pop3_stream.c, mailbox/pop/pop3_timeout.c,
+	mailbox/pop/pop3_top.c, mailbox/pop/pop3_uidl.c,
+	mailbox/pop/pop3_uidla.c, mailbox/pop/pop3_user.c,
+	mailbox/pop/url.c, mailbox/pop/Makefile.am,
+	mailbox/pop/.cvsignore: Move to libproto/pop. 
+	
+	* auth/Makefile.am, comsat/Makefile.am, config/Makefile.am,
+	dotlock/Makefile.am, examples/Makefile.am, frm/Makefile.am,
+	guimb/Makefile.am, imap4d/Makefile.am, libmu_scm/Makefile.am,
+	libsieve/Makefile.am, libsieve/extensions/Makefile.am,
+	mail/Makefile.am, mail.local/Makefile.am, mail.remote/Makefile.am,
+	mailbox/Makefile.am, mapi/Makefile.am, messages/Makefile.am,
+	mh/Makefile.am, mimeview/Makefile.am, movemail/Makefile.am,
+	pop3d/Makefile.am, readmsg/Makefile.am, sieve/Makefile.am: Use
+	MU_LIB_.* variables instead of referring to the libraries by their
+	relative paths. 
+
+	* po/POTFILES.in: Update
+	
+	* mailbox/amd.c: Protect definition of _XOPEN_SOURCE by an extra
+	ifdef. 
+
 2006-02-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/Makefile.am, libmu_cpp/Makefile.am, libmu_scm/Makefile.am,
