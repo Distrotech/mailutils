@@ -1993,6 +1993,53 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
 }
 
 void
+copy_header (mu_message_t msg, mu_header_t out)
+{
+  size_t i, count;
+  mu_header_t hdr;
+
+  mu_message_get_header (msg, &hdr);
+  mu_header_get_field_count (hdr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      char *name, *value;
+
+      if (mu_header_aget_field_name (hdr, i, &name))
+        continue;
+
+      if (mu_header_aget_field_value (hdr, i, &value))
+	{
+          free (name);
+          continue;
+        }
+
+      mu_header_set_value (out, name, value, 0);
+      free (name);
+      free (value);
+    }
+}
+
+void
+copy_header_to_stream (mu_message_t msg, mu_stream_t stream)
+{
+  mu_header_t hdr;
+  mu_stream_t in;
+  char *buf = NULL;
+  size_t bufsize = 0, n = 0;
+  
+  mu_message_get_header (msg, &hdr);
+  mu_header_get_stream (hdr, &in);
+  mu_stream_seek (in, 0, SEEK_SET);
+  while (stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
+    {
+      if (n == 1 && buf[0] == '\n')
+	break;
+      mu_stream_sequential_write (stream, buf, n);
+    }
+  free (buf);
+}
+
+void
 finish_msg (struct compose_env *env, mu_message_t *msg)
 {
   mu_header_t hdr;
@@ -2026,6 +2073,8 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       
       mu_message_create (&newmsg, NULL);
       mu_message_get_header (newmsg, &hdr);
+      mu_header_get_stream (hdr, &output);
+      copy_header (*msg, hdr);
       mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
 			   "quoted-printable", 0);
       
@@ -2492,26 +2541,6 @@ mhn_edit (struct compose_env *env, int level)
   return status;
 }
 
-void
-copy_header (mu_message_t msg, mu_stream_t stream)
-{
-  mu_header_t hdr;
-  mu_stream_t in;
-  char *buf = NULL;
-  size_t bufsize = 0, n = 0;
-  
-  mu_message_get_header (msg, &hdr);
-  mu_header_get_stream (hdr, &in);
-  mu_stream_seek (in, 0, SEEK_SET);
-  while (stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
-    {
-      if (n == 1 && buf[0] == '\n')
-	break;
-      mu_stream_sequential_write (stream, buf, n);
-    }
-  free (buf);
-}
-
 int
 parse_header_directive (char *val, char **encoding, char **charset, char **subject)
 {
@@ -2627,7 +2656,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 	      free (encoding);
 	      encoding = strdup ("base64");
 	    }
-	  rc = mu_rfc2047_encode (charset, encoding, subject, &p);
+ 	  rc = mu_rfc2047_encode (charset, encoding, subject, &p);
 	  if (rc)
 	    mu_error (_("cannot encode subject using %s, %s: %s"),
 		      charset, encoding, mu_strerror (rc));
@@ -2705,7 +2734,7 @@ mhn_compose ()
     }
 
   mhn_header (message, msg);
-  copy_header (message, stream);
+  copy_header_to_stream (message, stream);
   mu_message_get_stream (msg, &in);
   cat_message (stream, in);
   mu_stream_destroy (&stream, mu_stream_get_owner (stream));
