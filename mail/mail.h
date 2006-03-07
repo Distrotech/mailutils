@@ -174,7 +174,7 @@ typedef int (*msg_handler_t) (msgset_t *mp, mu_message_t mesg, void *data);
 
 /* Global variables and constants*/
 extern mu_mailbox_t mbox;
-extern unsigned int cursor;
+extern size_t cursor;
 extern size_t total;
 extern FILE *ofile;
 extern int interactive;
