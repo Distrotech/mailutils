@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.90\n"
+"Project-Id-Version: mailutils 0.6.93\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-05-17 15:23+0300\n"
-"PO-Revision-Date: 2006-01-10 09:07+0100\n"
+"POT-Creation-Date: 2006-02-13 00:14+0100\n"
+"PO-Revision-Date: 2006-03-11 00:28+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
@@ -16,34 +16,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: config/mailutils-config.c:28
-msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
-msgstr "GNU mailutils-config -- Visa kompilator och inläsningsflaggor som behövs för att bygga ett program med mailutils"
-
-#: config/mailutils-config.c:29
-msgid "[arg...]"
-msgstr "[arg...]"
-
-#: config/mailutils-config.c:33
-msgid "Print C compiler flags to compile with"
-msgstr "Skriv ut C-kompilatorflaggor att kompilera med"
-
-#: config/mailutils-config.c:35
-msgid "Print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
-msgstr "Skriv ut bibliotek att länka med. Möjliga argument är: auth, guile, all, mbox, mh, maildir, imap, pop"
-
-#: config/mailutils-config.c:38
-msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
-msgstr "Skriv ut en lista med konfigurationsflaggor som används för att bygga mailutils. Om argumenten anges kommer de tolkas som en lista av konfigurationsflaggor att kontrollera. I detta fall skriver programmet ut dessa flaggor från den lista som har definierats. Den avslutar med noll status om alla av de angivna flaggorna är definierade. Om inte, blir felkoden 1. "
-
-#: config/mailutils-config.c:126 frm/from.c:129 mh/folder.c:568
-msgid "Too many arguments"
-msgstr "För många argument"
-
-#: auth/pam.c:153 auth/sql.c:196 auth/sql.c:198 auth/sql.c:202
+#: auth/pam.c:153 auth/sql.c:197 auth/sql.c:199 auth/sql.c:203
 #: mail.local/main.c:87 mail.local/main.c:92 mh/anno.c:43 mh/pick.c:45
 #: mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54 mh/pick.c:56
-#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:84
+#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:83
 msgid "STRING"
 msgstr "STRÄNG"
 
@@ -51,86 +27,86 @@ msgstr "STRÄNG"
 msgid "Use STRING as PAM service name"
 msgstr "Använd STRÄNG som namn för PAM-tjänst"
 
-#: auth/sql.c:184 auth/sql.c:194 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
-#: mh/mark.c:32 mh/pick.c:87
+#: auth/sql.c:185 auth/sql.c:195 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
+#: mailbox/argp-parse.c:84 mh/mark.c:32 mh/pick.c:87
 msgid "NAME"
 msgstr "NAMN"
 
-#: auth/sql.c:185
+#: auth/sql.c:186
 msgid "Type of SQL interface to use"
 msgstr "Typ av SQL-gränssnitt att använda"
 
-#: auth/sql.c:186 auth/sql.c:188 auth/sql.c:190
+#: auth/sql.c:187 auth/sql.c:189 auth/sql.c:191
 msgid "QUERY"
 msgstr "FRÅGA"
 
-#: auth/sql.c:187
+#: auth/sql.c:188
 msgid "SQL query to retrieve a passwd entry based on username"
 msgstr "SQL-fråga för att hämta en lösenordspost baserad på användarnamn"
 
-#: auth/sql.c:189
+#: auth/sql.c:190
 msgid "SQL query to retrieve a passwd entry based on UID"
 msgstr "SQL-fråga för att hämta en lösenordspost baserad på UID"
 
-#: auth/sql.c:191
+#: auth/sql.c:192
 msgid "SQL query to retrieve a password from the database"
 msgstr "SQL-fråga för att hämta ett lösenord från databasen"
 
-#: auth/sql.c:192
+#: auth/sql.c:193
 msgid "HOSTNAME"
 msgstr "VÄRDNAMN"
 
-#: auth/sql.c:193
+#: auth/sql.c:194
 msgid "Name or IP of MySQL server to connect to"
 msgstr "Namn eller IP till MySQL-server som ska anslutas till"
 
-#: auth/sql.c:195
+#: auth/sql.c:196
 msgid "SQL user name"
 msgstr "SQL-användarnamn"
 
-#: auth/sql.c:197
+#: auth/sql.c:198
 msgid "SQL connection password"
 msgstr "SQL-lösenord"
 
-#: auth/sql.c:199
+#: auth/sql.c:200
 msgid "Name of the database to connect to"
 msgstr "Namn på databasen att ansluta till"
 
-#: auth/sql.c:200 mailbox/mu_argp.c:79 mailbox/mu_argp.c:114
-#: mailbox/mu_argp.c:120 mh/forw.c:65 mh/inc.c:50 mh/mhl.c:44 mh/mhl.c:46
-#: mh/repl.c:65 mh/scan.c:50 mh/send.c:75
+#: auth/sql.c:201 mailbox/mu_argp.c:83 mailbox/mu_argp.c:118
+#: mailbox/mu_argp.c:124 mh/folder.c:50 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44
+#: mh/mhl.c:46 mh/repl.c:65 mh/scan.c:51 mh/send.c:74
 msgid "NUMBER"
 msgstr "ANTAL"
 
-#: auth/sql.c:201
+#: auth/sql.c:202
 msgid "Port to use"
 msgstr "Port att använda"
 
-#: auth/sql.c:203
+#: auth/sql.c:204
 msgid "Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"
 msgstr "Typ av lösenord returnerad av frågan --sql-getpass. STRÄNG är en av dessa: plain, hash, scambled"
 
-#: auth/sql.c:215
+#: auth/sql.c:216
 #, c-format
 msgid "Unknown SQL interface `%s'"
 msgstr "Okänt SQL-gränssnitt \"%s\""
 
-#: auth/sql.c:258
+#: auth/sql.c:259
 #, c-format
 msgid "Unknown password type `%s'"
 msgstr "Okänd lösenordstyp \"%s\""
 
-#: auth/sql.c:324 auth/sql.c:456 auth/sql.c:577 mail.local/mailquota.c:191
+#: auth/sql.c:325 auth/sql.c:455 auth/sql.c:574 mail.local/mailquota.c:197
 #, c-format
 msgid "SQL Query failed: %s"
 msgstr "SQL-fråga misslyckades: %s"
 
-#: auth/sql.c:335 auth/sql.c:467 auth/sql.c:588 mail.local/mailquota.c:202
+#: auth/sql.c:336 auth/sql.c:466 auth/sql.c:585 mail.local/mailquota.c:208
 #, c-format
 msgid "Cannot store SQL result: %s"
 msgstr "Kan inte lagra SQL-resultat: %s"
 
-#: auth/sql.c:598
+#: auth/sql.c:595
 #, c-format
 msgid "Cannot get password from SQL: %s"
 msgstr "Kan inte hämta lösenord från SQL: %s"
@@ -141,11 +117,11 @@ msgstr "Krypteringsflaggor"
 
 #: auth/tls.c:59 auth/tls.c:61 auth/tls.c:63 comsat/comsat.c:59
 #: dotlock/dotlock.c:43 frm/from.c:32 mail.local/main.c:83
-#: mailbox/mu_argp.c:124 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
-#: mh/inc.c:32 mh/inc.c:36 mh/inc.c:43 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
-#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:44 mh/scan.c:55 mh/send.c:38
-#: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:82 pop3d/popauth.c:83
-#: mimeview/mimeview.c:48 mimeview/mimeview.c:52
+#: mailbox/mu_argp.c:128 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
+#: mh/inc.c:33 mh/inc.c:37 mh/inc.c:44 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
+#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:45 mh/scan.c:56 mh/send.c:37
+#: mh/send.c:47 mh/whom.c:30 mimeview/mimeview.c:48 mimeview/mimeview.c:52
+#: pop3d/popauth.c:81 pop3d/popauth.c:82
 msgid "FILE"
 msgstr "FIL"
 
@@ -166,20 +142,19 @@ msgstr "Ange fil för pålitliga CA"
 msgid "INTERNAL ERROR: cannot register argp capability tls"
 msgstr "INTERNT FEL: kan inte registrera argp capability tls"
 
-#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:63 mh/folder.c:66
-#: mh/folder.c:69 mh/folder.c:72 mh/folder.c:75 mh/forw.c:33 mh/forw.c:49
-#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:40 mh/inc.c:47
+#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:66 mh/folder.c:69
+#: mh/folder.c:72 mh/folder.c:75 mh/folder.c:78 mh/forw.c:33 mh/forw.c:49
+#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:41 mh/inc.c:48
 #: mh/mark.c:40 mh/mark.c:43 mh/mhl.c:36 mh/mhl.c:39 mh/mhn.c:43 mh/mhn.c:48
 #: mh/mhn.c:51 mh/mhn.c:54 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:72
 #: mh/mhn.c:75 mh/mhn.c:84 mh/pick.c:84 mh/pick.c:89 mh/pick.c:92
 #: mh/refile.c:42 mh/refile.c:45 mh/repl.c:36 mh/repl.c:51 mh/repl.c:59
-#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:41
-#: mh/scan.c:48 mh/scan.c:52 mh/send.c:52 mh/send.c:55 mh/send.c:58
-#: mh/send.c:61 mh/send.c:64 mh/send.c:69 mh/send.c:72 mh/whom.c:40
-#: sieve/sieve.c:92
-#, fuzzy
+#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:42
+#: mh/scan.c:49 mh/scan.c:53 mh/send.c:51 mh/send.c:54 mh/send.c:57
+#: mh/send.c:60 mh/send.c:63 mh/send.c:68 mh/send.c:71 mh/whom.c:40
+#: sieve/sieve.c:93
 msgid "BOOL"
-msgstr "bool"
+msgstr "BOOL"
 
 #: auth/tls.c:129
 msgid "Enable TLS support"
@@ -252,8 +227,8 @@ msgstr ".biffrc:%d: okänt nyckelord"
 msgid "%s:.biffrc:%d: unknown keyword %s"
 msgstr "%s:.biffrc:%d: okänt nyckelord %s"
 
-#: comsat/cfg.c:114 comsat/cfg.c:225 imap4d/bye.c:43 mailbox/mu_argp.c:868
-#: mailbox/mu_argp.c:906 pop3d/extra.c:104
+#: comsat/cfg.c:114 comsat/cfg.c:225 imap4d/bye.c:43 mailbox/mu_argp.c:876
+#: mailbox/mu_argp.c:914 pop3d/extra.c:104
 msgid "Out of memory"
 msgstr "Slut på minne"
 
@@ -299,99 +274,124 @@ msgstr "Startar om"
 msgid "Cannot restart: program must be invoked using absolute pathname"
 msgstr "Kan inte starta om: programmet måste startas med absolut sökväg"
 
-#: comsat/comsat.c:220
+#: comsat/comsat.c:216
 msgid "Failed to become a daemon"
 msgstr "Misslyckades att bli en demon"
 
-#: comsat/comsat.c:264
+#: comsat/comsat.c:260
 msgid "GNU comsat started"
 msgstr "GNU comsat startad"
 
-#: comsat/comsat.c:292
+#: comsat/comsat.c:288
 #, c-format
 msgid "Too many requests: pausing for %u second"
 msgid_plural "Too many requests: pausing for %u seconds"
 msgstr[0] "För många förfrågningar: pausar i %u sekund"
 msgstr[1] "För många förfrågningar: pausar i %u sekunder"
 
-#: comsat/comsat.c:347
+#: comsat/comsat.c:343
 #, c-format
 msgid "DENIED attempt to connect from %s"
 msgstr "NEKADE anslutningsförsök från %s"
 
-#: comsat/comsat.c:353
+#: comsat/comsat.c:349
 #, c-format
 msgid "Received %d byte from %s"
 msgid_plural "Received %d bytes from %s"
 msgstr[0] "Mottog %d byte från %s"
 msgstr[1] "Mottog %d byte från %s"
 
-#: comsat/comsat.c:363
+#: comsat/comsat.c:359
 #, c-format
 msgid "Malformed input: %s"
-msgstr ""
+msgstr "Felformaterad inmatning: %s"
 
-#: comsat/comsat.c:378
+#: comsat/comsat.c:374
 #, c-format
 msgid "Malformed input: %s@%s (near %s)"
-msgstr ""
+msgstr "Felformaterad inmatning: %s@%s (nära %s)"
 
-#: comsat/comsat.c:444
+#: comsat/comsat.c:440
 #, c-format
 msgid "Cannot open device %s: %m"
 msgstr "Kan inte öppna enhet %s: %m"
 
-#: comsat/comsat.c:460 mail/file.c:92 mail/mail.c:438 mail.local/main.c:690
-#: mail.local/main.c:709 mh/inc.c:218 mh/mh_init.c:379 pop3d/apop.c:240
+#: comsat/comsat.c:456 mail.local/main.c:686 mail.local/main.c:705
+#: mail/copy.c:76 mail/file.c:95 mail/mail.c:440 mail/quit.c:121 mh/inc.c:219
+#: mh/mh_init.c:405 pop3d/apop.c:240
 #, c-format
 msgid "Cannot open mailbox %s: %s"
 msgstr "Kan inte öppna postlåda %s: %s"
 
-#: comsat/comsat.c:467 mail.local/main.c:728
+#: comsat/comsat.c:463 mail.local/main.c:724
 #, c-format
 msgid "Cannot get stream for mailbox %s: %s"
-msgstr ""
+msgstr "Kan inte få ström för postlåda %s: %s"
 
-#: comsat/comsat.c:474 mail.local/main.c:736
+#: comsat/comsat.c:470 mail.local/main.c:732
 #, c-format
 msgid "Cannot get stream size (mailbox %s): %s"
-msgstr ""
+msgstr "Kan inte få strömstorlek (postlåda %s): %s"
 
-#: comsat/comsat.c:491 pop3d/apop.c:230
+#: comsat/comsat.c:487 pop3d/apop.c:230
 #, c-format
 msgid "Cannot create temporary mailbox: %s"
 msgstr "Kan inte skapa temporär postlåda: %s"
 
-#: comsat/comsat.c:498
+#: comsat/comsat.c:494
 #, c-format
 msgid "Cannot create temporary stream: %s"
 msgstr "Kan inte skapa temporär ström: %s"
 
-#: comsat/comsat.c:545
+#: comsat/comsat.c:541
 #, c-format
 msgid "Bad line name in utmp record: %s"
-msgstr ""
+msgstr "Fel radnamn i utmp-post: %s"
 
-#: comsat/comsat.c:553
+#: comsat/comsat.c:549
 #, c-format
 msgid "Not a character device: %s"
 msgstr "Inte en teckenenhet: %s"
 
-#: comsat/comsat.c:586 pop3d/popauth.c:309 pop3d/popauth.c:546
+#: comsat/comsat.c:582 pop3d/popauth.c:308 pop3d/popauth.c:545
 #, c-format
 msgid "No such user: %s"
 msgstr "Ingen sådan användare: %s"
 
-#: comsat/comsat.c:606
+#: comsat/comsat.c:602
 #, c-format
 msgid "User nonexistent: %s"
 msgstr "Användare existerar inte: %s"
+
+#: config/mailutils-config.c:28
+msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
+msgstr "GNU mailutils-config -- Visa kompilator och inläsningsflaggor som behövs för att bygga ett program med mailutils"
+
+#: config/mailutils-config.c:29
+msgid "[arg...]"
+msgstr "[arg...]"
+
+#: config/mailutils-config.c:33
+msgid "Print C compiler flags to compile with"
+msgstr "Skriv ut C-kompilatorflaggor att kompilera med"
+
+#: config/mailutils-config.c:35
+msgid "Print libraries to link with. Possible arguments are: auth, guile, mbox, mh, maildir, imap, pop, sieve and all"
+msgstr "Skriv ut bibliotek att länka med. Möjliga argument är: auth, guile, mbox, mh, maildir, imap, pop, sieve och all"
+
+#: config/mailutils-config.c:38
+msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
+msgstr "Skriv ut en lista med konfigurationsflaggor som används för att bygga mailutils. Om argumenten anges kommer de tolkas som en lista av konfigurationsflaggor att kontrollera. I detta fall skriver programmet ut dessa flaggor från den lista som har definierats. Den avslutar med noll status om alla av de angivna flaggorna är definierade. Om inte, blir felkoden 1. "
+
+#: config/mailutils-config.c:128 frm/from.c:128 mh/folder.c:888
+msgid "Too many arguments"
+msgstr "För många argument"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: dotlock/dotlock.c:38
 msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
-msgstr ""
+msgstr "GNU dotlock -- lås postköfilerReturnerar 0 om lyckad, 3 om låsning av fil misslyckas på grund av att den redan är låst, och 1 om någon annan typ av fel inträffade."
 
 #: dotlock/dotlock.c:47
 msgid "Unlock"
@@ -403,7 +403,7 @@ msgstr "MINUTER"
 
 #: dotlock/dotlock.c:50
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr ""
+msgstr "Tvinga fram brytning av existerande lås äldre än en viss tid"
 
 #: dotlock/dotlock.c:52
 msgid "RETRIES"
@@ -415,7 +415,7 @@ msgstr "Försök med låset ett par gånger"
 
 #: dotlock/dotlock.c:56
 msgid "Print details of failure reasons to stderr"
-msgstr ""
+msgstr "Skriv ut detaljer om felanledningar till standard fel"
 
 #: dotlock/dotlock.c:95
 msgid "RETRIES must be greater than 0"
@@ -436,7 +436,7 @@ msgstr "FIL måste anges"
 #: dotlock/dotlock.c:149
 #, c-format
 msgid "Creating locker failed: %s\n"
-msgstr ""
+msgstr "Skapande av lås misslyckades: %s\n"
 
 #: dotlock/dotlock.c:175
 #, c-format
@@ -447,6 +447,43 @@ msgstr "Upplåsning av filen %s misslyckades: %s\n"
 #, c-format
 msgid "Locking the file %s failed: %s\n"
 msgstr "Låsning av filen %s misslyckades: %s\n"
+
+#: frm/common.c:127
+#, c-format
+msgid "fribidi failed to recognize charset `%s'"
+msgstr "fribidi misslyckades med att känna igen teckenkodning \"%s\""
+
+#: frm/common.c:374 mail/util.c:1480
+#, c-format
+msgid "Cannot decode line `%s': %s"
+msgstr "Kan inte avkoda rad \"%s\": %s"
+
+#: frm/common.c:517 frm/common.c:597
+#, c-format
+msgid "Could not close mailbox `%s': %s"
+msgstr "Kunde inte stänga postlåda \"%s\": %s"
+
+#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:190
+#: sieve/sieve.c:460
+#, c-format
+msgid "Could not create mailbox `%s': %s"
+msgstr "Kunde inte skapa postlåda \"%s\": %s"
+
+#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:194
+#: sieve/sieve.c:463
+#, c-format
+msgid "Could not create default mailbox: %s"
+msgstr "Kunde inte skapa förvald postlåda: %s"
+
+#: frm/common.c:567 messages/messages.c:156
+#, c-format
+msgid "Could not open mailbox `%s': %s"
+msgstr "Kunde inte öppna postlåda \"%s\": %s"
+
+#: frm/common.c:587
+#, c-format
+msgid "Could not scan mailbox `%s': %s."
+msgstr "Kunde inte söka av postlåda \"%s\": %s."
 
 #: frm/frm.c:35
 msgid "GNU frm -- display From: lines"
@@ -482,12 +519,12 @@ msgstr "läst"
 #.
 #: frm/frm.c:62
 msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
-msgstr ""
+msgstr "Välj meddelanden med specifikt attribut. STATUS är en av följande: ny, oläst, gammal (samma som oläst) eller läst. Vissa självklara förkortningar av dessa accepteras också."
 
 #: frm/frm.c:127
 #, c-format
 msgid "%s: ambiguous abbreviation"
-msgstr ""
+msgstr "%s: tvetydig förkortning"
 
 #: frm/frm.c:129
 #, c-format
@@ -496,15 +533,15 @@ msgstr "%s: okänt attribut"
 
 #: frm/frm.c:136 frm/from.c:34 mimeview/mimeview.c:47
 msgid "Enable debugging output"
-msgstr ""
+msgstr "Aktivera utdata för felsökning"
 
 #: frm/frm.c:137
 msgid "Header field to display"
-msgstr ""
+msgstr "Rubrikfält att visa"
 
 #: frm/frm.c:138
 msgid "Include the To: information"
-msgstr ""
+msgstr "Inkludera \"To:\"-information"
 
 #: frm/frm.c:139
 msgid "Display message numbers"
@@ -528,7 +565,7 @@ msgstr "STATUS"
 
 #: frm/frm.c:144
 msgid "Tidy mode: align subject lines"
-msgstr ""
+msgstr "Propert läge: arrangera ämnesrader"
 
 #: frm/frm.c:211
 msgid "[URL ...]"
@@ -595,13 +632,13 @@ msgstr "GNU from -- visa Från och Ämne"
 msgid "Just print a count of messages and exit"
 msgstr "Skriv bara ut antalet meddelanden och avsluta"
 
-#: frm/from.c:30 sieve/sieve.c:95
+#: frm/from.c:30 sieve/sieve.c:96
 msgid "ADDRESS"
 msgstr "ADRESS"
 
 #: frm/from.c:31
 msgid "Print only mail from addresses containing the supplied string"
-msgstr ""
+msgstr "Skriv endast ut post från adresser som innehåller medskickad sträng"
 
 #: frm/from.c:33
 msgid "Read mail from FILE"
@@ -611,84 +648,52 @@ msgstr "Läs post från FIL"
 msgid "[OPTIONS] [USER]"
 msgstr "[FLAGGOR] [ANVÄNDARE]"
 
-#: frm/from.c:136
+#: frm/from.c:135
 msgid "Both --from option and user name are specified"
-msgstr ""
+msgstr "Både flaggan --from och användarnamn är angivna"
 
-#: frm/from.c:151
+#: frm/from.c:150
 #, c-format
 msgid "There is %lu message in your incoming mailbox.\n"
 msgid_plural "There are %lu messages in your incoming mailbox.\n"
 msgstr[0] "Det finns %lu meddelande i din inkommande postlåda.\n"
 msgstr[1] "Det finns %lu meddelanden i din inkommande postlåda.\n"
 
-#: frm/common.c:127
+#: guimb/collect.c:35
 #, c-format
-msgid "fribidi failed to recognize charset `%s'"
-msgstr ""
+msgid "Cannot construct default mailbox URL: %s"
+msgstr "Kan inte konstruera standardpostlåde-url: %s"
 
-#: frm/common.c:374 mail/util.c:1398
-#, c-format
-msgid "Cannot decode line `%s': %s"
-msgstr "Kan inte avkoda rad \"%s\": %s"
-
-#: frm/common.c:517 frm/common.c:597
-#, c-format
-msgid "Could not close mailbox `%s': %s"
-msgstr "Kunde inte stänga postlåda \"%s\": %s"
-
-#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:189
-#: sieve/sieve.c:457
-#, c-format
-msgid "Could not create mailbox `%s': %s"
-msgstr "Kunde inte skapa postlåda \"%s\": %s"
-
-#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:193
-#: sieve/sieve.c:460
-#, c-format
-msgid "Could not create default mailbox: %s"
-msgstr "Kunde inte skapa förvald postlåda: %s"
-
-#: frm/common.c:567 messages/messages.c:156
-#, c-format
-msgid "Could not open mailbox `%s': %s"
-msgstr "Kunde inte öppna postlåda \"%s\": %s"
-
-#: frm/common.c:587
-#, c-format
-msgid "Could not scan mailbox `%s': %s."
-msgstr "Kunde inte söka av postlåda \"%s\": %s."
-
-#: guimb/collect.c:35 guimb/main.c:45 imap4d/auth_gss.c:267
-#: libsieve/sieve.l:131 libsieve/sieve.l:602 libsieve/sieve.l:666
-#: libsieve/sieve.l:720 mail/folders.c:38 mail/if.c:56 mail/util.c:761
-#: mh/mh_init.c:111 mh/mh_init.c:316 mh/mh_msgset.c:606
-msgid "Not enough memory"
-msgstr "Inte tillräckligt med minne"
-
-#: guimb/collect.c:42
+#: guimb/collect.c:43
 #, c-format
 msgid "Cannot open default mailbox %s: %s"
 msgstr "Kan inte öppna förvald postlåda %s: %s"
 
-#: guimb/collect.c:86
+#: guimb/collect.c:87
 #, c-format
 msgid "Cannot open input file %s: %s"
 msgstr "Kan inte öppna inmatningsfil %s: %s"
 
-#: guimb/collect.c:114
+#: guimb/collect.c:115
 #, c-format
 msgid "Cannot create temp mailbox %s: %s"
 msgstr "Kan inte skapa temporär postlåda %s: %s"
 
-#: guimb/collect.c:125
+#: guimb/collect.c:126
 msgid "Input format not recognized"
 msgstr "Format på indata känns inte igen"
 
-#: guimb/collect.c:150
+#: guimb/collect.c:151
 #, c-format
 msgid "Cannot open output mailbox %s: %s\n"
-msgstr ""
+msgstr "Kan inte öppna postlåda för utdata %s: %s\n"
+
+#: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
+#: libsieve/sieve.l:605 libsieve/sieve.l:669 libsieve/sieve.l:723
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:898 mh/mh_init.c:113
+#: mh/mh_init.c:342 mh/mh_msgset.c:604
+msgid "Not enough memory"
+msgstr "Inte tillräckligt med minne"
 
 #. TRANSLATORS: (command-line) is the name of Guile function. Do not
 #. translate it.
@@ -698,26 +703,28 @@ msgid ""
 "The following switches stop argument processing, and pass all\n"
 "remaining arguments as the value of (command-line):"
 msgstr ""
+"Följande växlar stoppar bearbetning av argument och skickar\n"
+"alla återstående argument som värdet av (command-line):"
 
 #: guimb/main.c:59 guimb/main.c:64
 msgid "EXPR"
-msgstr ""
+msgstr "UTTRY"
 
 #: guimb/main.c:59 guimb/main.c:64
 msgid "Execute given scheme expression."
-msgstr ""
+msgstr "Kör angivet schemeuttryck."
 
 #: guimb/main.c:60 guimb/main.c:65
 msgid "PROGFILE"
-msgstr ""
+msgstr "PROGFIL"
 
 #: guimb/main.c:61 guimb/main.c:66
 msgid "Load Scheme source code from PROGFILE, and exit"
-msgstr ""
+msgstr "Läs in Scheme-källkod från PROGFIL och avsluta."
 
 #: guimb/main.c:63
 msgid "The following options do not change the order of options parsing:"
-msgstr ""
+msgstr "Följande flaggor ändrar inte ordningen på tolkningsflaggor:"
 
 #: guimb/main.c:67
 msgid "Other options:"
@@ -725,7 +732,7 @@ msgstr "Övriga flaggor:"
 
 #: guimb/main.c:68
 msgid "Start with debugging evaluator and backtraces."
-msgstr ""
+msgstr "Starta med felsökningsevaluator och bakspårning."
 
 #: guimb/main.c:69
 msgid "ARG"
@@ -733,15 +740,16 @@ msgstr "ARG"
 
 #: guimb/main.c:70
 msgid "Append ARG to the command line passed to Guile"
-msgstr ""
+msgstr "Lägg till ARG till kommandoraden som skickas till Guile"
 
 #: guimb/main.c:71
 msgid "Set default mailbox name"
 msgstr "Sätt förvalt namn på postlåda"
 
+# MDA = Mail Delivery Agent... svenskt ord för det?
 #: guimb/main.c:73
 msgid "Act as local MDA for user NAME"
-msgstr ""
+msgstr "Agera som lokal MDA för användarNAMN"
 
 #: guimb/main.c:126
 msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
@@ -753,9 +761,9 @@ msgstr "[postlåda...]"
 
 #: guimb/main.c:170
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr ""
+msgstr "Åtminstone ett av -fecs måste användas. Försök med guimb --help för mer information."
 
-#: guimb/util.c:51 guimb/util.c:58 mail/util.c:687 mail/util.c:694
+#: guimb/util.c:51 guimb/util.c:58 mail/util.c:824 mail/util.c:831
 #, c-format
 msgid "Cannot determine sender name (msg %d)"
 msgstr "Kan inte fastställa avsändarens namn (meddel %d)"
@@ -776,7 +784,7 @@ msgstr "oviktig"
 #: imap4d/auth_gss.c:254
 #, c-format
 msgid "Client requested unsupported protection mechanism (%d)"
-msgstr ""
+msgstr "Klient begärde skyddsmekanism som inte stöds (%d)"
 
 #: imap4d/auth_gss.c:296
 #, c-format
@@ -788,73 +796,10 @@ msgstr "GSSAPI användare %s är INTE auktoriserad som %s"
 msgid "GSSAPI user %s is authorized as %s"
 msgstr "GSSAPI användare %s är auktoriserad som %s"
 
-#: imap4d/authenticate.c:134 imap4d/login.c:64
+#: imap4d/authenticate.c:137 imap4d/login.c:69
 #, c-format
 msgid "User `%s' logged in"
 msgstr "Användaren \"%s\" loggade in"
-
-#: imap4d/imap4d.c:46
-msgid "GNU imap4d -- the IMAP4D daemon"
-msgstr "GNU imap4d -- IMAP4D-demonen"
-
-#: imap4d/imap4d.c:52 imap4d/imap4d.c:54
-msgid "PATHLIST"
-msgstr ""
-
-#: imap4d/imap4d.c:53
-msgid "Set the `other' namespace"
-msgstr ""
-
-#: imap4d/imap4d.c:55
-msgid "Set the `shared' namespace"
-msgstr ""
-
-#: imap4d/imap4d.c:57
-msgid "Disable LOGIN command"
-msgstr "Stäng av LOGIN-kommandot"
-
-#: imap4d/imap4d.c:60
-msgid "Always require STARTTLS before entering authentication phase"
-msgstr "Kräv alltid STARTTLS före autentiseringsfasen"
-
-#: imap4d/imap4d.c:175 pop3d/pop3d.c:202
-msgid "Error getting mail group"
-msgstr "Fel vid läsning av postgrupp"
-
-#: imap4d/imap4d.c:181 pop3d/pop3d.c:208
-msgid "Error setting mail group"
-msgstr "Fel vid skrivning av postgrupp"
-
-#: imap4d/imap4d.c:260 pop3d/pop3d.c:299
-msgid "Incoming connection opened"
-msgstr "Inkommande anslutning öppnad"
-
-#: imap4d/imap4d.c:262 pop3d/pop3d.c:311
-#, c-format
-msgid "Cannot obtain IP address of client: %s"
-msgstr "Kan inte få tag på IP-adressen för klient: %s"
-
-#: imap4d/imap4d.c:265
-#, c-format
-msgid "Connect from %s"
-msgstr "Anslutning från %s"
-
-#: imap4d/imap4d.c:270 pop3d/pop3d.c:304
-msgid "Started in debugging mode"
-msgstr "Startad i felsökningsläge"
-
-#: imap4d/imap4d.c:302
-msgid "could not become daemon"
-msgstr "kunde inte bli demon"
-
-#: imap4d/imap4d.c:358
-msgid "GNU imap4d started"
-msgstr "GNU imap4d startad"
-
-#: imap4d/imap4d.c:364
-#, c-format
-msgid "Too many children (%lu)"
-msgstr "För många barnprocesser (%lu)"
 
 #: imap4d/bye.c:47 pop3d/extra.c:108
 msgid "Quitting on signal"
@@ -862,12 +807,12 @@ msgstr "Avslutar på signal"
 
 #: imap4d/bye.c:53 pop3d/extra.c:116
 msgid "Session timed out for no user"
-msgstr ""
+msgstr "Tidsgräns för ingen användare överstigen"
 
 #: imap4d/bye.c:55 pop3d/extra.c:114
 #, c-format
 msgid "Session timed out for user: %s"
-msgstr ""
+msgstr "Tidsgräns för användare %s överstigen"
 
 #: imap4d/bye.c:59 pop3d/extra.c:120
 msgid "No socket to send to"
@@ -891,8 +836,85 @@ msgstr "Session termineras för användare: %s"
 msgid "Quitting (numeric reason %d)"
 msgstr "Avslutar (numerisk anledning %d)"
 
-#: imap4d/list.c:247 mh/folder.c:326 mh/mh_init.c:225 mh/mh_init.c:704
-#: mh/rmf.c:147 pop3d/popauth.c:247
+#: imap4d/imap4d.c:50
+msgid "GNU imap4d -- the IMAP4D daemon"
+msgstr "GNU imap4d -- IMAP4D-demonen"
+
+#: imap4d/imap4d.c:57 imap4d/imap4d.c:59
+msgid "PATHLIST"
+msgstr "SÖKVÄGLISTA"
+
+#: imap4d/imap4d.c:58
+msgid "Set the `other' namespace"
+msgstr "Sätt \"övrig\" namnrymd"
+
+#: imap4d/imap4d.c:60
+msgid "Set the `shared' namespace"
+msgstr "Sätt \"delad\" namnrymd"
+
+#: imap4d/imap4d.c:62
+msgid "Disable LOGIN command"
+msgstr "Stäng av LOGIN-kommandot"
+
+# Kan även vara rättigheter
+#: imap4d/imap4d.c:63
+msgid "MODE"
+msgstr "LÄGE"
+
+#: imap4d/imap4d.c:64
+msgid "Create home directory, if it does not exist"
+msgstr "Skapa hemkatalog, om det inte finns"
+
+#: imap4d/imap4d.c:67
+msgid "Always require STARTTLS before entering authentication phase"
+msgstr "Kräv alltid STARTTLS före autentiseringsfasen"
+
+#: imap4d/imap4d.c:133
+#, c-format
+msgid "Invalid mode specification: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:195 pop3d/pop3d.c:202
+msgid "Error getting mail group"
+msgstr "Fel vid läsning av postgrupp"
+
+#: imap4d/imap4d.c:201 pop3d/pop3d.c:208
+msgid "Error setting mail group"
+msgstr "Fel vid skrivning av postgrupp"
+
+#: imap4d/imap4d.c:280 pop3d/pop3d.c:299
+msgid "Incoming connection opened"
+msgstr "Inkommande anslutning öppnad"
+
+#: imap4d/imap4d.c:282 pop3d/pop3d.c:311
+#, c-format
+msgid "Cannot obtain IP address of client: %s"
+msgstr "Kan inte få tag på IP-adressen för klient: %s"
+
+#: imap4d/imap4d.c:285
+#, c-format
+msgid "Connect from %s"
+msgstr "Anslutning från %s"
+
+#: imap4d/imap4d.c:290 pop3d/pop3d.c:304
+msgid "Started in debugging mode"
+msgstr "Startad i felsökningsläge"
+
+#: imap4d/imap4d.c:322
+msgid "could not become daemon"
+msgstr "kunde inte bli demon"
+
+#: imap4d/imap4d.c:378
+msgid "GNU imap4d started"
+msgstr "GNU imap4d startad"
+
+#: imap4d/imap4d.c:384
+#, c-format
+msgid "Too many children (%s)"
+msgstr "För många barnprocesser (%s)"
+
+#: imap4d/list.c:271 mh/folder.c:360 mh/mh_init.c:251 mh/mh_init.c:728
+#: mh/rmf.c:147 pop3d/popauth.c:246
 #, c-format
 msgid "Cannot stat %s: %s"
 msgstr "Kan inte läsa status på %s: %s"
@@ -919,944 +941,411 @@ msgstr "Fick signal %s"
 
 #: imap4d/signal.c:46 pop3d/signal.c:58
 msgid "MASTER: exiting on signal"
-msgstr ""
+msgstr "MASTER: avslutar på signal"
 
-#: imap4d/util.c:485
+#: imap4d/util.c:510
 msgid "Unexpected eof on input"
-msgstr ""
+msgstr "Oväntat slut på fil vid inmatning"
 
-#: imap4d/util.c:494
+#: imap4d/util.c:519
 #, c-format
 msgid "Error reading from input file: %s"
 msgstr "Fel vid läsning från indatafil: %s"
 
-#: imap4d/util.c:981
+#: imap4d/util.c:1006
 msgid "Cannot find out my own hostname"
 msgstr "Kan inte fastställa mitt egna värdnamn"
 
-#: imap4d/util.c:1128
+#: imap4d/util.c:1153
 #, c-format
 msgid "Cannot poll input stream: %s"
-msgstr ""
+msgstr "Kan inte hämta inmatningsström: %s"
 
-#: imap4d/util.c:1162
+#: imap4d/util.c:1187
 #, c-format
 msgid "Cannot open TLS stream: %s"
 msgstr "Kan inte öppna TLS-ström: %s"
 
-#: lib/mailcap.c:331
+#: lib/mailcap.c:337
 #, c-format
 msgid "Run `%s'?"
 msgstr "Köra \"%s\"?"
 
-#: lib/mailcap.c:367
+#: lib/mailcap.c:373
 #, c-format
 msgid "cannot retrieve field %lu: %s"
 msgstr "kan inte hämta fält %lu: %s"
 
-#: lib/mailcap.c:439
+#: lib/mailcap.c:445
 #, c-format
 msgid "Cannot execute `%s': %s"
 msgstr "Kan inte starta \"%s\": %s"
 
-#: lib/mailcap.c:456
+#: lib/mailcap.c:462
 #, c-format
 msgid "Command exited with status %d\n"
 msgstr "Kommando avslutades med status %d\n"
 
-#: lib/mailcap.c:458
+#: lib/mailcap.c:464
 #, c-format
 msgid "Command terminated on signal %d\n"
 msgstr "Kommando terminerat på signal: %d\n"
 
-#: lib/mailcap.c:460
+#: lib/mailcap.c:466
 #, c-format
 msgid "Command terminated\n"
 msgstr "Kommando terminerat\n"
 
-#: lib/mailcap.c:544 mimeview/mimeview.c:201
+#: lib/mailcap.c:550 mimeview/mimeview.c:201
 #, c-format
 msgid "Executing %s...\n"
 msgstr "Startar %s...\n"
 
-#: lib/mailcap.c:587
+#: lib/mailcap.c:593
 #, c-format
 msgid "Trying %s...\n"
 msgstr "Försöker %s...\n"
 
-#: lib/mailcap.c:629
+#: lib/mailcap.c:635
 #, c-format
 msgid "Found in %s\n"
 msgstr "Hittades i %s\n"
 
-#: libsieve/actions.c:50
+#: libsieve/actions.c:51
 msgid "marking as deleted"
 msgstr "markerar som borttagen"
 
-#: libsieve/actions.c:64
+#: libsieve/actions.c:65
 msgid "cannot get filename!"
 msgstr "kan inte få filnamn!"
 
-#: libsieve/actions.c:67
+#: libsieve/actions.c:69
 #, c-format
 msgid "delivering into %s"
 msgstr "levererar till %s"
 
-#: libsieve/actions.c:74
+#: libsieve/actions.c:76
 #, c-format
 msgid "cannot save to mailbox: %s"
 msgstr "kan inte spara till postlåda: %s"
 
-#: libsieve/actions.c:243
+# Osäker om reject ska översättas. Verkar vara ett programnamn
+#: libsieve/actions.c:277
 msgid "reject: cannot get text!"
-msgstr ""
+msgstr "reject: kan inte hämta text!"
 
-#: libsieve/actions.c:259 libsieve/extensions/vacation.c:445
+#: libsieve/actions.c:293 libsieve/extensions/vacation.c:485
 #, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d: kan inte skapa mottagaradress <%s>: %s"
 
-#: libsieve/actions.c:271 libsieve/actions.c:400
+#: libsieve/actions.c:305 libsieve/actions.c:434
 #, c-format
 msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d: kan inte skapa avsändaradress <%s>: %s"
 
-#: libsieve/actions.c:285 libsieve/actions.c:440
-#: libsieve/extensions/vacation.c:480
+#: libsieve/actions.c:319 libsieve/actions.c:474
+#: libsieve/extensions/vacation.c:524
 #, c-format
 msgid "%d: cannot open mailer %s: %s"
-msgstr ""
+msgstr "%d: kan inte öppna e-postprogram %s: %s"
 
-#: libsieve/actions.c:360
+#: libsieve/actions.c:394
 msgid "cannot get address!"
 msgstr "kan inte hämta adress!"
 
-#: libsieve/actions.c:368
+#: libsieve/actions.c:402
 #, c-format
 msgid "%d: parsing recipient address `%s' failed: %s"
 msgstr "%d: tolkning av mottagaradress \"%s\" misslyckades: %s"
 
-#: libsieve/actions.c:374
+#: libsieve/actions.c:408
 #, c-format
 msgid "to %s"
 msgstr "till %s"
 
-#: libsieve/actions.c:381
+#: libsieve/actions.c:415
 #, c-format
 msgid "%d: Redirection loop detected"
 msgstr "%d: Omdirigeringsloop upptäckt"
 
-#: libsieve/actions.c:390
+#: libsieve/actions.c:424
 #, c-format
 msgid "%d: cannot get envelope sender: %s"
-msgstr ""
+msgstr "%d: kan inte hämta kuvertavsändare: %s"
 
-#: libsieve/actions.c:413
+#: libsieve/actions.c:447
 #, c-format
 msgid "%d: cannot copy message: %s"
 msgstr "%d: kan inte kopiera meddelande: %s"
 
-#: libsieve/actions.c:428
+#: libsieve/actions.c:462
 #, c-format
 msgid "%d: cannot get my email address"
 msgstr "%d: kan inte hämta min e-postadress"
 
-#: libsieve/comparator.c:171
+#: libsieve/comparator.c:172
 #, c-format
 msgid "Regex error: %s"
 msgstr "Regutr-fel: %s"
 
-#: libsieve/comparator.c:176
+#: libsieve/comparator.c:177
 msgid "Regex error"
 msgstr "Regutr-fel"
 
-#: libsieve/comparator.c:238
+#: libsieve/comparator.c:239
 #, c-format
 msgid "match type specified twice in call to `%s'"
-msgstr ""
+msgstr "matchtyp angiven två gånger i anrop till \"%s\""
 
 #. TRANSLATORS: Do not translate ':count'. It is the name of a Sieve tag
-#: libsieve/comparator.c:275
+#: libsieve/comparator.c:276
 #, c-format
 msgid "comparator %s is incompatible with :count in call to `%s'"
-msgstr ""
+msgstr "jämförare %s är inte kompatibel med :count i anrop till \"%s\""
 
-#: libsieve/comparator.c:291
+#: libsieve/comparator.c:292
 msgid "second argument must be a list of one element"
 msgstr "andra argumentet måste vara en lista av ett element"
 
-#: libsieve/comparator.c:299
+#: libsieve/comparator.c:300
 msgid "second argument cannot be converted to number"
 msgstr "andra argumentet kan inte konverteras till nummer"
 
-#: libsieve/comparator.c:309
+#: libsieve/comparator.c:310
 #, c-format
 msgid "invalid relational match `%s' in call to `%s'"
 msgstr ""
 
-#: libsieve/comparator.c:322
+#: libsieve/comparator.c:323
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr ""
-
-#: libsieve/prog.c:39
-msgid "out of memory!"
-msgstr "slut på minne!"
-
-#: libsieve/prog.c:158 libsieve/require.c:39
-#, c-format
-msgid "cannot create iterator: %s"
-msgstr ""
-
-#: libsieve/prog.c:177
-#, c-format
-msgid "invalid tag name `%s' for `%s'"
-msgstr ""
-
-#: libsieve/prog.c:186
-#, c-format
-msgid "%s:%d: cannot create tag list: %s"
-msgstr ""
-
-#: libsieve/prog.c:210
-#, c-format
-msgid "%s:%d: cannot create check list: %s"
-msgstr ""
-
-#: libsieve/prog.c:222 mimeview/mimetypes.y:561
-#, c-format
-msgid "too many arguments in call to `%s'"
-msgstr "för många argument i anrop till \"%s\""
-
-#: libsieve/prog.c:243
-#, c-format
-msgid "type mismatch in argument %d to `%s'"
-msgstr ""
-
-#: libsieve/prog.c:247
-#, c-format
-msgid "expected %s but passed %s"
-msgstr ""
-
-#: libsieve/prog.c:258
-#, c-format
-msgid "cannot create arg list: %s"
-msgstr ""
-
-#: libsieve/prog.c:276 mimeview/mimetypes.y:553
-#, c-format
-msgid "too few arguments in call to `%s'"
-msgstr "för få argument i anrop till \"%s\""
-
-#: libsieve/require.c:56
-msgid "required comparator"
-msgstr ""
-
-#: libsieve/require.c:62
-msgid "required test"
-msgstr "krävt test"
-
-#: libsieve/require.c:72
-msgid "required action"
-msgstr "krävd åtgärd"
-
-#: libsieve/require.c:78
-#, c-format
-msgid "source for the %s %s is not available"
-msgstr "källan för %s %s är inte tillgänglig"
-
-#: libsieve/runtime.c:126
-msgid "cannot create stack"
-msgstr ""
-
-#: libsieve/runtime.c:144
-#, fuzzy
-msgid "stack underflow"
-msgstr "underspill i stacken"
-
-#: libsieve/runtime.c:341
-#, c-format
-msgid "mailbox_scan: %s"
-msgstr "mailbox_scan: %s"
-
-#: libsieve/sieve.l:233
-#, c-format
-msgid "cannot stat `%s': %s"
-msgstr "kan inte läsa status på \"%s\": %s"
-
-#: libsieve/sieve.l:239 libsieve/sieve.l:244
-msgid "recursive inclusion"
-msgstr ""
-
-#: libsieve/sieve.l:247
-#, c-format
-msgid "`%s' already included here"
-msgstr "\"%s\" redan inkluderad här"
-
-#: libsieve/sieve.l:251
-#, c-format
-msgid "`%s' already included at top level"
-msgstr "\"%s\" redan inkluderad på toppnivå"
-
-#: libsieve/sieve.l:260
-#, c-format
-msgid "cannot open `%s': %s"
-msgstr "kan inte öppna \"%s\": %s"
-
-#: libsieve/sieve.l:438
-msgid "preprocessor syntax"
-msgstr ""
-
-#: libsieve/sieve.l:447
-msgid "missing closing quote in preprocessor statement"
-msgstr ""
-
-#: libsieve/sieve.y:235
-#, c-format
-msgid "unknown test: %s"
-msgstr "okänt test: %s"
-
-#: libsieve/sieve.y:239
-#, c-format
-msgid "test `%s' has not been required"
-msgstr ""
-
-#: libsieve/sieve.y:261
-#, c-format
-msgid "unknown action: %s"
-msgstr "okänd åtgärd: %s"
-
-#: libsieve/sieve.y:265
-#, c-format
-msgid "action `%s' has not been required"
-msgstr "åtgärd \"%s\" har inte varit ett krav"
-
-#: libsieve/util.c:176
-msgid "invalid data type"
-msgstr "ogiltig datatyp"
-
-#: libsieve/util.c:231
-#, c-format
-msgid "cannot retrieve argument %d"
-msgstr "kan inte hämta argument %d"
-
-#: libsieve/extensions/vacation.c:257
-#, c-format
-msgid "%d: cannot build db file name"
-msgstr ""
-
-#: libsieve/extensions/vacation.c:268
-#, c-format
-msgid "%d: cannot open `%s': %s"
-msgstr "%d: kan inte öppna \"%s\": %s"
-
-#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
-#. Do not translate them!
-#: libsieve/extensions/vacation.c:311
-#, c-format
-msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr ""
-
-#: libsieve/extensions/vacation.c:507
-msgid "cannot get text!"
-msgstr "kan inte hämta text!"
-
-#: libsieve/extensions/vacation.c:524
-#, c-format
-msgid "%d: cannot get sender address"
-msgstr "%d: kan inte hämta avsändaradress"
+msgstr "jämförare \"%s\" är inte kompatibel med matchningstyp \"%s\" i anrop till \"%s\""
 
 #: libsieve/extensions/timestamp.c:87
 #, c-format
 msgid "cannot parse date specification (%s)"
 msgstr "kan inte tolka datumangivelse (%s)"
 
-#: mail/alias.c:195
+#: libsieve/extensions/vacation.c:70
 #, c-format
-msgid "\"%s\": not a group"
-msgstr "\"%s\": inte en grupp"
+msgid "cannot create temporary stream: %s"
+msgstr "kan inte skapa temporär ström: %s"
 
-#: mail/alt.c:64 mh/mh_init.c:127
-msgid "Cannot determine my username"
-msgstr "Kan inte fastställa mitt användarnamn"
-
-#: mail/alt.c:73
+#: libsieve/extensions/vacation.c:78
 #, c-format
-msgid "Cannot determine my email address: %s"
-msgstr "Kan inte fastställa min e-postadress: %s"
+msgid "cannot open temporary stream: %s"
+msgstr "kan inte öppna temporär ström: %s"
 
-#: mail/copy.c:69 mail/quit.c:113 mail/send.c:542
+#: libsieve/extensions/vacation.c:205
 #, c-format
-msgid "Cannot create mailbox %s"
-msgstr "Kan inte skapa postlåda %s"
+msgid "%d: cannot compile regular expression \"%s\"\n"
+msgstr "%d: kan inte bygga reguljärt uttryck \"%s\"\n"
 
-#: mail/copy.c:84 mail/quit.c:120 mail/send.c:535
+#: libsieve/extensions/vacation.c:296
 #, c-format
-msgid "Cannot append message: %s"
+msgid "%d: cannot build db file name"
 msgstr ""
 
-#: mail/decode.c:124
+#: libsieve/extensions/vacation.c:307
 #, c-format
-msgid "| Message=%d"
-msgstr "| Meddelande=%d"
+msgid "%d: cannot open `%s': %s"
+msgstr "%d: kan inte öppna \"%s\": %s"
 
-#: mail/decode.c:131
+#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
+#. Do not translate them!
+#: libsieve/extensions/vacation.c:350
 #, c-format
-msgid "| Type=%s\n"
-msgstr "| Typ=%s\n"
+msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
+msgstr "%d: vacation byggd utan DBM-stöd. Ignorerar :days-tagg"
 
-#: mail/decode.c:132
+#: libsieve/extensions/vacation.c:378
 #, c-format
-msgid "| Encoding=%s\n"
-msgstr "| Kodning=%s\n"
+msgid "%d: not enough memory"
+msgstr "%d: inte tillräckligt med minne"
 
-#: mail/decode.c:267 mail/print.c:97
-msgid ""
-"\n"
-"Interrupt"
-msgstr ""
-"\n"
-"Avbrott"
-
-#: mail/file.c:40
-msgid "No previous file"
-msgstr "Ingen föregående fil"
-
-#: mail/file.c:48
-msgid "MBOX environment variable not set"
-msgstr "Miljövariabeln MBOX inte satt"
-
-#: mail/file.c:126
+#: libsieve/extensions/vacation.c:437
 #, c-format
-msgid "%s takes only one argument"
-msgstr "%s tar endast ett argument"
-
-#: mail/if.c:67
-msgid "Internal error: condition stack underflow"
+msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
 msgstr ""
 
-#. TRANSLATORS: 'if' is the function name. Do not translate it
-#: mail/if.c:90
-msgid "if requires an argument: s | r | t"
-msgstr "om argument krävs: s | r | t"
+#: libsieve/extensions/vacation.c:554
+msgid "cannot get text!"
+msgstr "kan inte hämta text!"
 
-#: mail/if.c:96 mail/if.c:120
-msgid "Valid if arguments are: s | r | t"
-msgstr "Giltig om argument är: s | r | t"
-
-#. TRANSLATORS: 'else' and 'if' are function names. Do not translate them
-#: mail/if.c:137
-msgid "else without matching if"
-msgstr "else utan matchande if"
-
-#. TRANSLATORS: 'endif' and 'if' are function names. Do not translate them
-#: mail/if.c:153
-msgid "endif without matching if"
-msgstr "endif utan matchande if"
-
-#: mail/inc.c:31 mail/mail.c:198
+#: libsieve/extensions/vacation.c:571
 #, c-format
-msgid "New mail has arrived.\n"
-msgstr "Ny post har anlänt.\n"
+msgid "%d: cannot get sender address"
+msgstr "%d: kan inte hämta avsändaradress"
 
-#: mail/inc.c:34
+#: libsieve/prog.c:40
+msgid "out of memory!"
+msgstr "slut på minne!"
+
+#: libsieve/prog.c:159 libsieve/require.c:40
 #, c-format
-msgid "No new mail for %s\n"
-msgstr "Ingen ny post för %s\n"
+msgid "cannot create iterator: %s"
+msgstr "kan inte skapa iterator: %s"
 
-#: mail/mail.c:32
-msgid "GNU mail -- the standard /bin/mail interface"
-msgstr "GNU mail -- standardgränssnittet för /bin/mail"
-
-#: mail/mail.c:33
-msgid "[address...]"
-msgstr "[adress...]"
-
-#: mail/mail.c:36
-msgid "Return true if mail exists"
-msgstr "Returnera sant om post existerar"
-
-#: mail/mail.c:37 mailbox/mu_argp.c:73
-msgid "URL"
-msgstr "URL"
-
-#: mail/mail.c:38
-msgid "Operate on given mailbox URL (default ~/mbox)"
-msgstr "Operera på angiven postlåde-URL (förval: ~/mbox)"
-
-#: mail/mail.c:39
-msgid "Save messages according to sender"
-msgstr "Spara meddelanden enligt avsändaren"
-
-#: mail/mail.c:40
-msgid "Write a header summary and exit"
-msgstr ""
-
-#: mail/mail.c:41
-msgid "Ignore interrupts"
-msgstr "Ignorera avbrott"
-
-#: mail/mail.c:42
-msgid "Do not read the system mailrc file"
-msgstr "Läs inte systemets mailrc-fil"
-
-#: mail/mail.c:43
-msgid "Do not display initial header summary"
-msgstr ""
-
-#: mail/mail.c:44
-msgid "Print all mail to standard output"
-msgstr "Skriv ut all post till standard ut"
-
-#: mail/mail.c:45
-msgid "Cause interrupts to terminate program"
-msgstr ""
-
-#: mail/mail.c:46
-msgid "Same as -p"
-msgstr "Samma som -p"
-
-#: mail/mail.c:47
-msgid "SUBJ"
-msgstr "ÄMNE"
-
-#: mail/mail.c:47
-msgid "Send a message with a Subject of SUBJ"
-msgstr "Skicka ett meddelande med ämnet ÄMNE"
-
-#: mail/mail.c:48
-msgid "Precede message by a list of addresses"
-msgstr ""
-
-#: mail/mail.c:49
-msgid "USER"
-msgstr "ANVÄNDARE"
-
-#: mail/mail.c:49
-msgid "Operate on USER's mailbox"
-msgstr "Operera på postlåda för ANVÄNDARE"
-
-#: mail/mail.c:50
-msgid "HEADER: VALUE"
-msgstr ""
-
-#: mail/mail.c:51
-msgid "Append given header to the message being sent"
-msgstr ""
-
-#: mail/mail.c:205
-msgid "Interrupt"
-msgstr "Avbrott"
-
-#: mail/mail.c:211
-msgid "Use \"quit\" to quit."
-msgstr "Använd \"quit\" för att avsluta."
-
-#: mail/mail.c:414
+# tagg?
+#: libsieve/prog.c:178
 #, c-format
-msgid "Cannot create mailbox for %s: %s"
-msgstr "Kan inte skapa postlåda för %s: %s"
+msgid "invalid tag name `%s' for `%s'"
+msgstr "ogiltigt taggnamn \"%s\" för \"%s\""
 
-#: mail/mail.c:421 mh/inc.c:209 mh/mh_init.c:369
+#: libsieve/prog.c:187
 #, c-format
-msgid "Cannot create mailbox %s: %s"
-msgstr "Kan inte skapa postlåda %s: %s"
+msgid "%s:%d: cannot create tag list: %s"
+msgstr "%s:%d: kan inte skapa tagglista: %s"
 
-#: mail/mail.c:452
+#: libsieve/prog.c:211
 #, c-format
-msgid "Cannot read mailbox %s: %s"
-msgstr "Kan inte läsa postlåda %s: %s"
+msgid "%s:%d: cannot create check list: %s"
+msgstr "%s:%d: kan inte skapa kontrollista: %s"
 
-#: mail/mail.c:472
+#: libsieve/prog.c:223 mimeview/mimetypes.y:561
 #, c-format
-msgid "%s: 0 messages\n"
-msgstr "%s: 0 meddelanden\n"
+msgid "too many arguments in call to `%s'"
+msgstr "för många argument i anrop till \"%s\""
 
-#: mail/mail.c:474
+#: libsieve/prog.c:244
 #, c-format
-msgid "No mail for %s\n"
-msgstr "Ingen post för %s\n"
+msgid "type mismatch in argument %d to `%s'"
+msgstr "typ stämmer inte i argument %d till \"%s\""
 
-#: mail/mail.c:537
-msgid ""
-"GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
-"\n"
-msgstr ""
-"GNU Mailutils -- en svit av verktyg för elektronisk post\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
-"\n"
-
-#: mail/mail.c:541 mailbox/mu_argp.c:254 mh/mh_argp.c:188
+#: libsieve/prog.c:248
 #, c-format
-msgid ""
-"   GNU Mailutils is free software; you can redistribute it and/or modify\n"
-"   it under the terms of the GNU General Public License as published by\n"
-"   the Free Software Foundation; either version 2 of the License, or\n"
-"   (at your option) any later version.\n"
-"\n"
-"   GNU Mailutils is distributed in the hope that it will be useful,\n"
-"   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"   GNU General Public License for more details.\n"
-"\n"
-"   You should have received a copy of the GNU General Public License along\n"
-"   with GNU Mailutils; if not, write to the Free Software Foundation,\n"
-"   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA\n"
-"\n"
-"\n"
-msgstr ""
+msgid "expected %s but passed %s"
+msgstr "förväntade %s men skickade %s"
 
-#: mail/mailline.c:402 mail/mailline.c:430 mail/mailline.c:477
-#: mail/mailline.c:513
-msgid "Not enough memory to edit the line"
-msgstr "Inte tillräckligt minne att redigera raden"
-
-#: mail/msgset.y:163
-msgid "unknown message type"
-msgstr "okänd meddelandetyp"
-
-#: mail/msgset.y:248 mail/msgset.y:253
+#: libsieve/prog.c:259
 #, c-format
-msgid " near end"
-msgstr " nära slutet"
+msgid "cannot create arg list: %s"
+msgstr "kan inte skapa argumentlista: %s"
 
-#: mail/msgset.y:255 mail/msgset.y:258
+#: libsieve/prog.c:277 mimeview/mimetypes.y:553
 #, c-format
-msgid " near %s"
-msgstr " nära %s"
+msgid "too few arguments in call to `%s'"
+msgstr "för få argument i anrop till \"%s\""
 
-#: mail/msgset.y:473
-msgid "range error"
-msgstr "områdesfel"
+#: libsieve/require.c:58
+msgid "required comparator"
+msgstr "krävde jämförare"
 
-#: mail/msgset.y:736 mail/util.c:213
+#: libsieve/require.c:64
+msgid "required test"
+msgstr "krävt test"
+
+#: libsieve/require.c:74
+msgid "required action"
+msgstr "krävd åtgärd"
+
+#: libsieve/require.c:80
 #, c-format
-msgid "%lu: Inappropriate message (has been deleted)"
-msgstr ""
+msgid "source for the %s %s is not available"
+msgstr "källan för %s %s är inte tillgänglig"
 
-#: mail/next.c:40 mail/next.c:63 mail/next.c:80 mail/previous.c:46
-#: mail/previous.c:63
-msgid "No applicable message"
-msgstr ""
+#: libsieve/runtime.c:126
+msgid "cannot create stack"
+msgstr "kan inte skapa stack"
 
-#: mail/quit.c:51
+#: libsieve/runtime.c:144
+msgid "stack underflow"
+msgstr "stackunderspill"
+
+#: libsieve/runtime.c:341
 #, c-format
-msgid "Held %d message in %s\n"
-msgid_plural "Held %d messages in %s\n"
-msgstr[0] "Håller %d meddelande i %s\n"
-msgstr[1] "Håller %d meddelanden i %s\n"
+msgid "mu_mailbox_scan: %s"
+msgstr "mu_mailbox_scan: %s"
 
-#: mail/quit.c:141
+#: libsieve/sieve.l:234
 #, c-format
-msgid "Saved %d message in %s\n"
-msgid_plural "Saved %d messages in %s\n"
-msgstr[0] "Sparade %d meddelande i %s\n"
-msgstr[1] "Sparade %d meddelanden i %s\n"
+msgid "cannot stat `%s': %s"
+msgstr "kan inte läsa status på \"%s\": %s"
 
-#: mail/retain.c:55
-msgid "No fields are currently being retained\n"
-msgstr ""
+#: libsieve/sieve.l:240 libsieve/sieve.l:245
+msgid "recursive inclusion"
+msgstr "rekursiv inkludering"
 
-#: mail/retain.c:68
-msgid "No fields are currently being ignored\n"
-msgstr ""
-
-#: mail/retain.c:81 mail/retain.c:93
-msgid "No fields are currently being unfolded\n"
-msgstr ""
-
-#: mail/retain.c:120 mail/retain.c:129
+#: libsieve/sieve.l:248
 #, c-format
-msgid "Sender address is obtained from the envelope\n"
-msgstr ""
+msgid "`%s' already included here"
+msgstr "\"%s\" redan inkluderad här"
 
-#: mail/send.c:73
+#: libsieve/sieve.l:252
 #, c-format
-msgid "Cannot create header list: %s"
-msgstr ""
+msgid "`%s' already included at top level"
+msgstr "\"%s\" redan inkluderad på toppnivå"
 
-#: mail/send.c:95
-#, fuzzy, c-format
-msgid "Invalid header: %s"
-msgstr "%s: %s: Huvudet \"%s\" är ogiltigt.\n"
-
-#: mail/send.c:225 mail/var.c:59 mh/mhn.c:2023 mimeview/mimeview.c:217
+#: libsieve/sieve.l:261
 #, c-format
-msgid "Cannot create header: %s"
-msgstr ""
+msgid "cannot open `%s': %s"
+msgstr "kan inte öppna \"%s\": %s"
 
-#: mail/send.c:308
-msgid "Cannot open temporary file"
-msgstr "Kan inte öppna temporärfil"
+#: libsieve/sieve.l:440
+msgid "preprocessor syntax"
+msgstr "syntax för förbehandlare"
 
-#: mail/send.c:337
-msgid ""
-"\n"
-"(Interrupt -- one more to kill letter)"
-msgstr ""
+#: libsieve/sieve.l:449
+msgid "missing closing quote in preprocessor statement"
+msgstr "saknar avslutande citattecken i påstående till förbehandlare"
 
-#: mail/send.c:348
-msgid "Use \".\" to terminate letter."
-msgstr "Använd \".\" för att avsluta brev."
-
-#: mail/send.c:349
-msgid "Use \"~.\" to terminate letter."
-msgstr "Använd \"~.\" för att avsluta brev."
-
-#: mail/send.c:392
-#, fuzzy, c-format
-msgid "Unknown escape %s"
-msgstr "%s: okänd \"$\"-kontrollsekvens \"%c\" (%d)"
-
-#: mail/send.c:395
-#, fuzzy
-msgid "Unfinished escape"
-msgstr "Oavslutad \\-sekvens"
-
-#: mail/send.c:399
-msgid "Cannot parse escape sequence"
-msgstr ""
-
-#: mail/send.c:424 mh/mh_init.c:668 mh/mh_list.c:264
+#: libsieve/sieve.y:234
 #, c-format
-msgid "Cannot open file %s: %s"
-msgstr "Kan inte öppna fil %s: %s"
+msgid "unknown test: %s"
+msgstr "okänt test: %s"
 
-#: mail/send.c:485
-msgid "Null message body; hope that's ok\n"
-msgstr ""
-
-#: mail/send.c:578
-msgid "Variable sendmail not set: no mailer"
-msgstr ""
-
-#: mail/send.c:626
+#: libsieve/sieve.y:238
 #, c-format
-msgid "Piping %s failed"
-msgstr ""
+msgid "test `%s' has not been required"
+msgstr "test \"%s\" har inte krävts"
 
-#. TRANSLATORS: 'source' is a command name. Do not translate it!
-#: mail/source.c:52
-msgid "source requires an argument"
-msgstr "källa kräver ett argument"
-
-#: mail/source.c:60 mimeview/mimeview.c:166 mimeview/mimetypes.l:167
+#: libsieve/sieve.y:260
 #, c-format
-msgid "Cannot open `%s': %s"
-msgstr "Kan inte öppna \"%s\": %s"
+msgid "unknown action: %s"
+msgstr "okänd åtgärd: %s"
 
-#: mail/summary.c:66
+#: libsieve/sieve.y:264
 #, c-format
-msgid "%d message"
-msgid_plural "%d messages"
-msgstr[0] "%d meddelande"
-msgstr[1] "%d meddelanden"
+msgid "action `%s' has not been required"
+msgstr "åtgärd \"%s\" har inte varit ett krav"
 
-#: mail/summary.c:68
+#: libsieve/util.c:177
+msgid "invalid data type"
+msgstr "ogiltig datatyp"
+
+#: libsieve/util.c:232
 #, c-format
-msgid " %d new"
-msgid_plural " %d new"
-msgstr[0] " %d ny"
-msgstr[1] " %d nya"
+msgid "cannot retrieve argument %d"
+msgstr "kan inte hämta argument %d"
 
-#: mail/summary.c:70
-#, c-format
-msgid " %d unread"
-msgid_plural " %d unread"
-msgstr[0] " %d oläst"
-msgstr[1] " %d olästa"
+#: mail.local/mailquota.c:65
+msgid "No quota retrieving mechanism"
+msgstr "Ingen mekanism för att hämta kvot"
 
-#: mail/summary.c:72
-#, c-format
-msgid " %d deleted"
-msgid_plural " %d deleted"
-msgstr[0] " %d borttaget"
-msgstr[1] " %d borttagna"
-
-#. TRANSLATORS: 'unalias' is a command name. Do not translate it!
-#: mail/unalias.c:31
-msgid "unalias requires at least one argument"
-msgstr ""
-
-#: mail/util.c:157 mail/var.c:200
-#, c-format
-msgid "Unknown command: %s"
-msgstr "Okänt kommando: %s"
-
-#: mail/util.c:159
-msgid "Invalid command"
-msgstr "Ogiltigt kommando"
-
-#: mail/util.c:389
-#, c-format
-msgid "No value set for \"%s\""
-msgstr "Inget värde satt för \"%s\""
-
-#: mail/util.c:487
-#, c-format
-msgid "oops?"
-msgstr "oops?"
-
-#: mail/util.c:567
-msgid "Incorrect value for decode-fallback"
-msgstr ""
-
-#: mail/util.c:625
-msgid "Cannot get homedir"
-msgstr "Kan inte läsa av hemkatalog"
-
-#: mail/util.c:937
-#, c-format
-msgid "Cannot open save file %s: %s"
-msgstr "Kan inte öppna sparfil %s: %s"
-
-#: mail/util.c:954
-msgid "Not enough memory for creating save file"
-msgstr "Inte tillräckligt minne för att skapa sparfil"
-
-#: mail/util.c:1039
-#, c-format
-msgid "Unknown command: %s\n"
-msgstr "Okänt kommando: %s\n"
-
-#: mail/util.c:1064
-msgid "Cannot unencapsulate message/part"
-msgstr ""
-
-#: mail/util.c:1073
-#, c-format
-msgid "No such (sub)part in the message: %d"
-msgstr ""
-
-#: mail/util.c:1080
-#, c-format
-msgid "Cannot get (sub)part from the message: %d"
-msgstr ""
-
-#: mail/util.c:1204
-#, c-format
-msgid "Cannot create temporary header: %s"
-msgstr ""
-
-#: mail/util.c:1245
-#, c-format
-msgid "Cannot parse address `%s' (while expanding `%s'): %s"
-msgstr ""
-
-#: mail/util.c:1248
-#, c-format
-msgid "Cannot parse address `%s': %s"
-msgstr "Kan inte tolka adress \"%s\": %s"
-
-#: mail/util.c:1301
-#, c-format
-msgid "Cannot get message %lu: %s"
-msgstr "Kan inte hämta meddelande %lu: %s"
-
-#: mail/util.c:1312
-#, c-format
-msgid "%d: invalid message number"
-msgstr "%d: ogiltigt meddelandenummer"
-
-#: mail/util.c:1319
-msgid "No applicable messages"
-msgstr ""
-
-#: mail/var.c:95 mail/var.c:121
-#, c-format
-msgid "%d: not a header line"
-msgstr ""
-
-#: mail/var.c:142
-msgid "Edit again?"
-msgstr "Redigera igen?"
-
-#: mail/var.c:157
-#, c-format
-msgid "(continue)\n"
-msgstr "(fortsätt)\n"
-
-#: mail/var.c:167
-#, c-format
-msgid "%c%s requires an argument"
-msgstr "%c%s kräver ett argument"
-
-#: mail/var.c:205
-msgid "Command not allowed in an escape sequence\n"
-msgstr ""
-
-#: mail/var.c:252 mail/var.c:551 mail/var.c:606 pop3d/popauth.c:285
-#: pop3d/popauth.c:356 pop3d/popauth.c:430
+#: mail.local/mailquota.c:84 mail/escape.c:248 mail/escape.c:547
+#: mail/escape.c:602 pop3d/popauth.c:284 pop3d/popauth.c:355
+#: pop3d/popauth.c:429
 #, c-format
 msgid "Cannot open %s: %s"
 msgstr "Kan inte öppna %s: %s"
 
-#: mail/var.c:256
+#: mail.local/mailquota.c:115
 #, c-format
-msgid "Reading %s\n"
-msgstr "Läser %s\n"
+msgid "Mailbox quota for `%s' is too big: %d digit"
+msgid_plural "Mailbox quota for `%s' is too big: %d digits"
+msgstr[0] "Kvot på postlåda för \"%s\" är för stor: %d siffra"
+msgstr[1] "Kvot på postlåda för \"%s\" är för stor: %d siffror"
 
-#: mail/var.c:455
+#: mail.local/mailquota.c:130 mail.local/mailquota.c:240
 #, c-format
-msgid "Interpolating: %d\n"
-msgstr ""
+msgid "Bogus mailbox quota for `%s' (near `%s')"
+msgstr "Felaktig postlådekvot för \"%s\" (nära \"%s\")"
 
-#: mail/var.c:523
+#: mail.local/mailquota.c:227
 #, c-format
-msgid "Message contains:\n"
-msgstr "Meddelande innehåller:\n"
-
-#. TRANSLATORS: 'pipe' is a command name. Do not translate it!
-#: mail/var.c:637
-msgid "pipe: no command specified"
-msgstr ""
-
-#: mail/var.c:681
-#, c-format
-msgid "Cannot exec process `%s': %s"
-msgstr "Kan inte starta process \"%s\": %s"
-
-#: mail/var.c:714
-#, c-format
-msgid "Child terminated abnormally: %d"
-msgstr "Barnprocess terminerad onormalt: %d"
-
-#: mail/var.c:721
-#, c-format
-msgid "Cannot stat output file: %s"
-msgstr ""
-
-#: mail/var.c:731
-#, c-format
-msgid "no lines out\n"
-msgstr ""
-
-#: mail/z.c:65
-msgid "Bad arguments for the scrolling command"
-msgstr ""
-
-#: mail/z.c:80
-msgid "Too many arguments for the scrolling command"
-msgstr ""
-
-#: mail/z.c:88
-msgid "Argument not applicable for z"
-msgstr ""
-
-#: mail/z.c:94
-msgid "Bad number of pages"
-msgstr "Fel antal sidor"
-
-#: mail/z.c:128
-#, c-format
-msgid "On first screenful of messages\n"
-msgstr ""
-
-#: mail/z.c:140 mail/z.c:151
-#, c-format
-msgid "On last screenful of messages\n"
-msgstr ""
+msgid "Cannot retrieve mailbox quota from SQL: %s"
+msgstr "Kan inte hämta kvot för postlåda från SQL: %s"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -1871,6 +1360,14 @@ msgid ""
 "  l - sieve action logs\n"
 "  0-9 - Set mail.local debugging level\n"
 msgstr ""
+"GNU mail.local -- den lokala postleverantörenFelsökningsflaggor är:\n"
+"  g - stackspårning i guimb\n"
+"  T - spårning i mailutils (MU_DEBUG_TRACE)\n"
+"  P - nätverksprotokoll (MU_DEBUG_PROT)\n"
+"  t - spårning i sieve (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - instruktionsspårning i sieve (MU_SIEVE_DEBUG_INSTR)\n"
+"  l - åtgärdsloggar från sieve\n"
+"  0-9 - Sätt felsökningsnivå för mail.local\n"
 
 #: mail.local/main.c:66
 msgid "recipient [recipient ...]"
@@ -1878,13 +1375,13 @@ msgstr "mottagare [mottagare ...]"
 
 #: mail.local/main.c:76
 msgid "Do not return errors when delivering to multiple recipients"
-msgstr ""
+msgstr "Returnera inte fel vid leverans till multipla mottagare"
 
 #: mail.local/main.c:78
 msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr ""
+msgstr "Returnera temporärt fel om disk- eller postlådekvot överstigs"
 
-#: mail.local/main.c:79 mailbox/mu_argp.c:90
+#: mail.local/main.c:79 mailbox/mu_argp.c:94
 msgid "EMAIL"
 msgstr "EPOST"
 
@@ -1898,7 +1395,7 @@ msgstr ""
 
 #: mail.local/main.c:88
 msgid "SQL query to retrieve mailbox quota"
-msgstr ""
+msgstr "SQL-fråga för att hämta postlådekvot"
 
 #: mail.local/main.c:90 mail.local/main.c:95
 msgid "PATTERN"
@@ -1914,10 +1411,10 @@ msgstr ""
 
 #: mail.local/main.c:96
 msgid "Set name pattern for user-defined Scheme mail filters"
-msgstr ""
+msgstr "Ställ in namnmönster för användardefinierade Scheme-mailfilter"
 
-#: mail.local/main.c:98 mailbox/mu_argp.c:75 sieve/sieve.c:86
-#: mimeview/mimeview.c:46
+#: mail.local/main.c:98 mailbox/mu_argp.c:79 mimeview/mimeview.c:46
+#: sieve/sieve.c:87
 msgid "FLAGS"
 msgstr "FLAGGOR"
 
@@ -1929,7 +1426,7 @@ msgstr "Aktivera felsökning"
 msgid "Multiple --from options"
 msgstr "Multipla \"--from\"-flaggor"
 
-#: mail.local/main.c:215 sieve/sieve.c:208
+#: mail.local/main.c:215 sieve/sieve.c:209
 #, c-format
 msgid "%c is not a valid debug flag"
 msgstr "%c är inte en giltig felsökningsflagga"
@@ -1973,109 +1470,88 @@ msgstr "mu_debug_set_print misslyckades: %s\n"
 msgid "Missing arguments. Try --help for more info."
 msgstr "Saknar argument. Försök med --help för mer info."
 
-#: mail.local/main.c:423 mail.local/script.c:94
+#: mail.local/main.c:419 mail.local/script.c:94
 #, c-format
 msgid "Access to %s failed: %m"
 msgstr "Tillgång till %s misslyckades: %m"
 
-#: mail.local/main.c:431 sieve/sieve.c:375
+#: mail.local/main.c:427 sieve/sieve.c:378
 #, c-format
 msgid "Cannot initialize sieve machine: %s"
-msgstr ""
+msgstr "Kan inte initiera sieve-maskin: %s"
 
-#: mail.local/main.c:552
+#: mail.local/main.c:548
 #, c-format
 msgid "Unable to open temporary file: %s"
 msgstr "Kunde inte öppna temporärfil: %s"
 
-#: mail.local/main.c:558
+#: mail.local/main.c:554
 #, c-format
 msgid "unable to open temporary file: %s"
 msgstr "kunde inte öppna temporärfil: %s"
 
-#: mail.local/main.c:589
+#: mail.local/main.c:585
 msgid "Cannot determine sender address"
 msgstr "Kan inte fastställa avsändaradress"
 
-#: mail.local/main.c:607 mail.local/main.c:624
+#: mail.local/main.c:603 mail.local/main.c:620
 #, c-format
 msgid "Error writing temporary file: %s"
 msgstr "Fel vid skrivning till temporärfil: %s"
 
-#: mail.local/main.c:634
+#: mail.local/main.c:630
 #, c-format
 msgid "Error opening temporary file: %s"
 msgstr "Fel vid öppning av temporärfil: %s"
 
-#: mail.local/main.c:643
+#: mail.local/main.c:639
 #, c-format
 msgid "Error creating temporary message: %s"
 msgstr "Fel vid skapandet av temporärt meddelande: %s"
 
-#: mail.local/main.c:668
+#: mail.local/main.c:664
 #, c-format
 msgid "%s: no such user"
 msgstr "%s: ingen sådan användare"
 
-#: mail.local/main.c:682
+#: mail.local/main.c:678
 #, c-format
 msgid "Cannot get input message stream: %s"
-msgstr ""
+msgstr "Kan inte få inmatning av meddelandeström: %s"
 
-#: mail.local/main.c:720
+#: mail.local/main.c:716
 #, c-format
 msgid "Cannot lock mailbox `%s': %s"
 msgstr "Kan inte låsa postlåda \"%s\": %s"
 
-#: mail.local/main.c:750
+#: mail.local/main.c:746
 #, c-format
 msgid "%s: mailbox quota exceeded for this recipient"
 msgstr "%s: kvot för postlåda överstigen för denna mottagare"
 
-#: mail.local/main.c:761
+#: mail.local/main.c:757
 #, c-format
 msgid "Cannot get stream size (input message): %s"
-msgstr ""
+msgstr "Kan inte hämta strömstorlek (indata meddelande): %s"
 
-#: mail.local/main.c:768
+#: mail.local/main.c:764
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr ""
+msgstr "%s: meddelande skulle överskrida maximal storlek för den här mottagarens postlåda"
 
-#: mail.local/main.c:821
+#: mail.local/main.c:817
 #, c-format
 msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
 msgstr ""
 
-#: mail.local/main.c:824
+#: mail.local/main.c:820
 #, c-format
 msgid "Error writing to mailbox: %s"
 msgstr "Fel vid skrivning till postlåda: %s"
 
-#: mail.local/mailquota.c:65
-msgid "No quota retrieving mechanism"
-msgstr ""
-
-#: mail.local/mailquota.c:109
-#, c-format
-msgid "Mailbox quota for `%s' is too big: %d digit"
-msgid_plural "Mailbox quota for `%s' is too big: %d digits"
-msgstr[0] "Kvot på postlåda för \"%s\" är för stor: %d siffra"
-msgstr[1] "Kvot på postlåda för \"%s\" är för stor: %d siffror"
-
-#: mail.local/mailquota.c:124 mail.local/mailquota.c:234
-#, c-format
-msgid "Bogus mailbox quota for `%s' (near `%s')"
-msgstr ""
-
-#: mail.local/mailquota.c:221
-#, c-format
-msgid "Cannot retrieve mailbox quota from SQL: %s"
-msgstr ""
-
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mail.remote/mail.remote.c:51
+#: mail.remote/mail.remote.c:52
 msgid ""
 "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
 "This is a simple drop-in replacement for sendmail to forward mail directly\n"
@@ -2099,220 +1575,1033 @@ msgid ""
 "\n"
 "   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
 msgstr ""
-
-#: mail.remote/mail.remote.c:75
-#, fuzzy
-msgid "ADDR"
-msgstr " Adr: "
-
-#: mail.remote/mail.remote.c:75
-msgid "Override the default from address"
-msgstr ""
+"GNU mail.remote -- pseudo-gränssnitt för sendmail för postleverans\n"
+"Detta är en enkelt ersättare för sendmail för att vidarebefordra post\n"
+"direkt till en SMTP-gateway.\n"
+"Du bör alltid ange din SMTP-gateway med flaggan --mailer\n"
+"(bästa stället att göra det på är i din konfigurationsfil).\n"
+"\n"
+"Exempel:\n"
+"\n"
+"Leverera post via SMTP-gateway på \"mail.exempel.se\", läser dess\n"
+"innehåller efter mottagare av meddelandet.\n"
+"\n"
+"   mail.remote --mailer smtp://mail.exempel.se -t\n"
+"\n"
+"Leverera endast post till \"devnull@foo.bar\"\n"
+"\n"
+"   mail.remote --mailer smtp://mail.exampel.se devnull@foo.bar\n"
+"\n"
+"Leverera post till \"devnull@foo.bar\" såväl som till mottagarna\n"
+"angivna i själva meddelandet:\n"
+"\n"
+"   mail.remote --mailer smtp://mail.exempel.se -t devnull@foo.bar\n"
 
 #: mail.remote/mail.remote.c:76
+msgid "ADDR"
+msgstr "ADR"
+
+#: mail.remote/mail.remote.c:76
+msgid "Override the default from address"
+msgstr "Åsidosätt standard-från-adress"
+
+#: mail.remote/mail.remote.c:77
 msgid "Read message for recipients."
 msgstr "Läs meddelande för mottagare."
 
-#: mail.remote/mail.remote.c:77
+#: mail.remote/mail.remote.c:78
 msgid "Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed."
-msgstr ""
+msgstr "Skriver ut kuvertkommandon i SMTP-protokollöverföringen. Om angiven flera gånger kommer datadelen av protokollöverföringen även att skrivas ut."
 
-#: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
-#, fuzzy
+#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
 msgid "OPT"
-msgstr "Val"
+msgstr ""
 
-#: mail.remote/mail.remote.c:78 mail.remote/mail.remote.c:79
-#: mail.remote/mail.remote.c:80
+#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
+#: mail.remote/mail.remote.c:81
 msgid "Ignored for sendmail compatibility"
-msgstr ""
+msgstr "Ignorerades för att vara kompatibel med sendmail"
 
-#: mail.remote/mail.remote.c:119
+#: mail.remote/mail.remote.c:120
 msgid "[TO-ADDR]..."
-msgstr ""
+msgstr "[TILL-ADR]..."
 
-#: mail.remote/mail.remote.c:176
+#: mail.remote/mail.remote.c:173
 #, c-format
 msgid "Parsing from addresses failed: %s"
-msgstr ""
+msgstr "Tolkning av från-adresser misslyckades: %s"
 
-#: mail.remote/mail.remote.c:186
+#: mail.remote/mail.remote.c:183
 #, c-format
 msgid "Parsing recipient addresses failed: %s"
-msgstr ""
+msgstr "Tolkning av mottagar-adresser misslyckades: %s"
 
-#: mail.remote/mail.remote.c:194 mail.remote/mail.remote.c:206
-#: mail.remote/mail.remote.c:212
+#: mail.remote/mail.remote.c:191 mail.remote/mail.remote.c:203
+#: mail.remote/mail.remote.c:209
 #, c-format
 msgid "Failed: %s"
 msgstr "Misslyckades: %s"
 
-#: mail.remote/mail.remote.c:200
+#: mail.remote/mail.remote.c:197
 #, c-format
 msgid "Opening stdin failed: %s"
 msgstr "Öppning av standard in misslyckades: %s"
 
-#: mail.remote/mail.remote.c:220
+#: mail.remote/mail.remote.c:217
 #, c-format
 msgid "Creating mailer `%s' failed: %s"
-msgstr ""
+msgstr "Skapandet av posthanterare \"%s\" misslyckades: %s"
 
-#: mail.remote/mail.remote.c:247
+#: mail.remote/mail.remote.c:244
 #, c-format
 msgid "Opening mailer `%s' failed: %s"
-msgstr ""
+msgstr "Öppning av posthanterare \"%s\" misslyckades: %s"
 
-#: mail.remote/mail.remote.c:254
+#: mail.remote/mail.remote.c:251
 #, c-format
 msgid "Sending message failed: %s"
-msgstr ""
+msgstr "Sändning av meddelande misslyckades: %s"
 
-#: mail.remote/mail.remote.c:260
+#: mail.remote/mail.remote.c:257
 #, c-format
 msgid "Closing mailer failed: %s"
+msgstr "Stängning av posthanterare misslyckades: %s"
+
+#: mail/alias.c:100
+msgid "alias hash table full"
 msgstr ""
 
-#: mailbox/getopt.c:552 mailbox/getopt.c:571
+#: mail/alias.c:195
 #, c-format
-msgid "%s: option `%s' is ambiguous\n"
-msgstr "%s: flaggan \"%s\" är tvetydig\n"
+msgid "\"%s\": not a group"
+msgstr "\"%s\": inte en grupp"
 
-#: mailbox/getopt.c:604 mailbox/getopt.c:608
+#: mail/alias.c:311 mail/alias.c:318 mh/mh_whom.c:38
 #, c-format
-msgid "%s: option `--%s' doesn't allow an argument\n"
-msgstr "%s: flaggan \"--%s\" tar inget argument\n"
+msgid "Cannot create list: %s"
+msgstr "Kan inte skapa lista: %s"
 
-#: mailbox/getopt.c:617 mailbox/getopt.c:622
+#: mail/alt.c:64 mh/mh_init.c:129
+msgid "Cannot determine my username"
+msgstr "Kan inte fastställa mitt användarnamn"
+
+#: mail/alt.c:73
 #, c-format
-msgid "%s: option `%c%s' doesn't allow an argument\n"
-msgstr "%s: flaggan \"%c%s\" tar inget argument\n"
+msgid "Cannot determine my email address: %s"
+msgstr "Kan inte fastställa min e-postadress: %s"
 
-#: mailbox/getopt.c:668 mailbox/getopt.c:690 mailbox/getopt.c:1021
-#: mailbox/getopt.c:1043
+#: mail/cd.c:40
 #, c-format
-msgid "%s: option `%s' requires an argument\n"
-msgstr "%s: flagga \"%s\" kräver ett argument\n"
+msgid "cannot change to `%s': %s"
+msgstr "kan inte byta till \"%s\": %s"
 
-#: mailbox/getopt.c:728 mailbox/getopt.c:731
+#: mail/copy.c:68 mail/mail.c:423 mail/quit.c:114 mail/send.c:574 mh/inc.c:210
+#: mh/mh_init.c:395
 #, c-format
-msgid "%s: unrecognized option `--%s'\n"
-msgstr "%s: okänd flagga \"--%s\"\n"
+msgid "Cannot create mailbox %s: %s"
+msgstr "Kan inte skapa postlåda %s: %s"
 
-#: mailbox/getopt.c:739 mailbox/getopt.c:742
+#: mail/copy.c:92 mail/quit.c:129 mail/send.c:567
 #, c-format
-msgid "%s: unrecognized option `%c%s'\n"
-msgstr "%s: okänd flagga \"%c%s\"\n"
+msgid "Cannot append message: %s"
+msgstr "Kan inte lägga till i meddelande: %s"
 
-#: mailbox/getopt.c:797 mailbox/getopt.c:800
+#: mail/decode.c:124
 #, c-format
-msgid "%s: illegal option -- %c\n"
-msgstr "%s: otillåten flagga -- %c\n"
+msgid "| Message=%d"
+msgstr "| Meddelande=%d"
 
-#: mailbox/getopt.c:806 mailbox/getopt.c:809
+#: mail/decode.c:131
 #, c-format
-msgid "%s: invalid option -- %c\n"
-msgstr "%s: ogiltig flagga -- %c\n"
+msgid "| Type=%s\n"
+msgstr "| Typ=%s\n"
 
-#: mailbox/getopt.c:864 mailbox/getopt.c:883 mailbox/getopt.c:1096
-#: mailbox/getopt.c:1117
+#: mail/decode.c:132
 #, c-format
-msgid "%s: option requires an argument -- %c\n"
-msgstr "%s: flagga kräver ett argument -- %c\n"
+msgid "| Encoding=%s\n"
+msgstr "| Kodning=%s\n"
 
-#: mailbox/getopt.c:936 mailbox/getopt.c:955
+#: mail/decode.c:267 mail/print.c:96
+msgid ""
+"\n"
+"Interrupt"
+msgstr ""
+"\n"
+"Avbrott"
+
+#: mail/escape.c:59 mail/send.c:230 mh/mhn.c:2059 mimeview/mimeview.c:217
 #, c-format
-msgid "%s: option `-W %s' is ambiguous\n"
-msgstr "%s: flaggan \"-W %s\" är tvetydig\n"
+msgid "Cannot create header: %s"
+msgstr "Kan inte skapa rubrik: %s"
 
-#: mailbox/getopt.c:979 mailbox/getopt.c:1000
+#: mail/escape.c:95 mail/escape.c:121
 #, c-format
-msgid "%s: option `-W %s' doesn't allow an argument\n"
-msgstr "%s: flagga \"-W %s\" tillåter inte ett argument\n"
+msgid "%d: not a header line"
+msgstr "%d: inte en rubrikrad"
 
-#: mailbox/argp-help.c:195
+#: mail/escape.c:142
+msgid "Edit again?"
+msgstr "Redigera igen?"
+
+#: mail/escape.c:157
+#, c-format
+msgid "(continue)\n"
+msgstr "(fortsätt)\n"
+
+#: mail/escape.c:167
+#, c-format
+msgid "%c%s requires an argument"
+msgstr "%c%s kräver ett argument"
+
+#: mail/escape.c:200 mail/util.c:141
+#, c-format
+msgid "Unknown command: %s"
+msgstr "Okänt kommando: %s"
+
+#: mail/escape.c:205
+msgid "Command not allowed in an escape sequence\n"
+msgstr "Kommando tillåts inte i en specialsekvens\n"
+
+#: mail/escape.c:252
+#, c-format
+msgid "Reading %s\n"
+msgstr "Läser %s\n"
+
+#: mail/escape.c:451
+#, c-format
+msgid "Interpolating: %d\n"
+msgstr "Interpolerar: %d\n"
+
+#: mail/escape.c:519
+#, c-format
+msgid "Message contains:\n"
+msgstr "Meddelande innehåller:\n"
+
+#. TRANSLATORS: 'pipe' is a command name. Do not translate it!
+#: mail/escape.c:633
+msgid "pipe: no command specified"
+msgstr "pipe: inget kommando angivet"
+
+#: mail/escape.c:677
+#, c-format
+msgid "Cannot exec process `%s': %s"
+msgstr "Kan inte starta process \"%s\": %s"
+
+#: mail/escape.c:710
+#, c-format
+msgid "Child terminated abnormally: %d"
+msgstr "Barnprocess terminerad onormalt: %d"
+
+#: mail/escape.c:717
+#, c-format
+msgid "Cannot stat output file: %s"
+msgstr "Kan inte få status på utdatafil: %s"
+
+#: mail/escape.c:727
+#, c-format
+msgid "no lines out\n"
+msgstr "inga rader ut\n"
+
+#: mail/file.c:41
+msgid "No previous file"
+msgstr "Ingen föregående fil"
+
+#: mail/file.c:51
+msgid "MBOX environment variable not set"
+msgstr "Miljövariabeln MBOX inte satt"
+
+#: mail/file.c:130
+#, c-format
+msgid "%s takes only one argument"
+msgstr "%s tar endast ett argument"
+
+#: mail/followup.c:44 mail/next.c:40 mail/next.c:63 mail/next.c:80
+#: mail/previous.c:49 mail/previous.c:66
+msgid "No applicable message"
+msgstr "Inget passande meddelande"
+
+# Denna är en luring..
+#: mail/if.c:67
+msgid "Internal error: condition stack underflow"
+msgstr "Internt fel: tillstånd stackunderspill"
+
+#. TRANSLATORS: 'if' is the function name. Do not translate it
+#: mail/if.c:90
+msgid "if requires an argument: s | r | t"
+msgstr "om argument krävs: s | r | t"
+
+#: mail/if.c:96 mail/if.c:120
+msgid "Valid if arguments are: s | r | t"
+msgstr "Giltig om argument är: s | r | t"
+
+#. TRANSLATORS: 'else' and 'if' are function names. Do not translate them
+#: mail/if.c:137
+msgid "else without matching if"
+msgstr "else utan matchande if"
+
+#. TRANSLATORS: 'endif' and 'if' are function names. Do not translate them
+#: mail/if.c:153
+msgid "endif without matching if"
+msgstr "endif utan matchande if"
+
+#: mail/inc.c:31 mail/mail.c:200
+#, c-format
+msgid "New mail has arrived.\n"
+msgstr "Ny post har anlänt.\n"
+
+#: mail/inc.c:34
+#, c-format
+msgid "No new mail for %s\n"
+msgstr "Ingen ny post för %s\n"
+
+#: mail/mail.c:32
+msgid "GNU mail -- the standard /bin/mail interface"
+msgstr "GNU mail -- standardgränssnittet för /bin/mail"
+
+#: mail/mail.c:33
+msgid "[address...]"
+msgstr "[adress...]"
+
+#: mail/mail.c:36
+msgid "Return true if mail exists"
+msgstr "Returnera sant om post existerar"
+
+#: mail/mail.c:37 mailbox/mu_argp.c:75
+msgid "URL"
+msgstr "URL"
+
+#: mail/mail.c:38
+msgid "Operate on given mailbox URL (default ~/mbox)"
+msgstr "Operera på angiven postlåde-URL (förval: ~/mbox)"
+
+#: mail/mail.c:39
+msgid "Save messages according to sender"
+msgstr "Spara meddelanden enligt avsändaren"
+
+#: mail/mail.c:40
+msgid "Write a header summary and exit"
+msgstr "Skriv en rubriköversikt och avsluta"
+
+#: mail/mail.c:41
+msgid "Ignore interrupts"
+msgstr "Ignorera avbrott"
+
+#: mail/mail.c:42
+msgid "Do not read the system mailrc file"
+msgstr "Läs inte systemets mailrc-fil"
+
+#: mail/mail.c:43
+msgid "Do not display initial header summary"
+msgstr "Visa inte initial rubriköversikt"
+
+#: mail/mail.c:44
+msgid "Print all mail to standard output"
+msgstr "Skriv ut all post till standard ut"
+
+# Fel engelska??
+#: mail/mail.c:45
+msgid "Cause interrupts to terminate program"
+msgstr "Avbrott orsakade terminering av program"
+
+#: mail/mail.c:46
+msgid "Same as -p"
+msgstr "Samma som -p"
+
+#: mail/mail.c:47
+msgid "SUBJ"
+msgstr "ÄMNE"
+
+#: mail/mail.c:47
+msgid "Send a message with a Subject of SUBJ"
+msgstr "Skicka ett meddelande med ämnet ÄMNE"
+
+#: mail/mail.c:48
+msgid "Precede message by a list of addresses"
+msgstr "Inled meddelande av en adresslista"
+
+#: mail/mail.c:49
+msgid "USER"
+msgstr "ANVÄNDARE"
+
+#: mail/mail.c:49
+msgid "Operate on USER's mailbox"
+msgstr "Operera på postlåda för ANVÄNDARE"
+
+#: mail/mail.c:50
+msgid "HEADER: VALUE"
+msgstr "RUBRIK: VÄRDE"
+
+#: mail/mail.c:51
+msgid "Append given header to the message being sent"
+msgstr ""
+
+#: mail/mail.c:52
+msgid "COMMAND"
+msgstr "KOMMANDO"
+
+#: mail/mail.c:53
+msgid "Execute COMMAND"
+msgstr ""
+
+#: mail/mail.c:207
+msgid "Interrupt"
+msgstr "Avbrott"
+
+#: mail/mail.c:213
+msgid "Use \"quit\" to quit."
+msgstr "Använd \"quit\" för att avsluta."
+
+#: mail/mail.c:416
+#, c-format
+msgid "Cannot create mailbox for %s: %s"
+msgstr "Kan inte skapa postlåda för %s: %s"
+
+#: mail/mail.c:454
+#, c-format
+msgid "Cannot read mailbox %s: %s"
+msgstr "Kan inte läsa postlåda %s: %s"
+
+#: mail/mail.c:467
+#, c-format
+msgid "Unknown mode `%s'"
+msgstr "Okänt läge \"%s\""
+
+#: mail/mail.c:478
+#, c-format
+msgid "%s: 0 messages\n"
+msgstr "%s: 0 meddelanden\n"
+
+#: mail/mail.c:480
+#, c-format
+msgid "No mail for %s\n"
+msgstr "Ingen post för %s\n"
+
+#: mail/mail.c:545
+msgid ""
+"GNU Mailutils -- a suite of utilities for electronic mail\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
+"\n"
+msgstr ""
+"GNU Mailutils -- en svit av verktyg för elektronisk post\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n"
+"\n"
+
+#: mail/mail.c:549 mailbox/mu_argp.c:258 mh/mh_argp.c:185
+#, c-format
+msgid ""
+"   GNU Mailutils is free software; you can redistribute it and/or modify\n"
+"   it under the terms of the GNU General Public License as published by\n"
+"   the Free Software Foundation; either version 2 of the License, or\n"
+"   (at your option) any later version.\n"
+"\n"
+"   GNU Mailutils is distributed in the hope that it will be useful,\n"
+"   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"   GNU General Public License for more details.\n"
+"\n"
+"   You should have received a copy of the GNU General Public License along\n"
+"   with GNU Mailutils; if not, write to the Free Software Foundation,\n"
+"   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA\n"
+"\n"
+"\n"
+msgstr ""
+"   GNU mailutils är fri programvara. Du kan distribuera det och/eller\n"
+"   modifiera det under villkoren i GNU General Public License, publicerad\n"
+"   av Free Software Foundation, antingen version 2 eller (om du så vill)\n"
+"   någon senare version.\n"
+"\n"
+"   GNU mailutils distribueras i hopp om att det ska vara användbart,\n"
+"   men UTAN NÅGON SOM HELST GARANTI, även utan underförstådd garanti\n"
+"   om SÄLJBARHET eller LÄMPLIGHET FÖR NÅGOT SPECIELLT ÄNDAMÅL. Se GNU\n"
+"   General Public License för ytterligare information.\n"
+"\n"
+"   Du bör ha fått en kopia av GNU General Public License tillsammans\n"
+"   med detta program. Om inte, skriv till Free Software Foundation,\n"
+"   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.\n"
+"\n"
+"\n"
+
+#: mail/mailline.c:815 mail/mailline.c:843 mail/mailline.c:890
+#: mail/mailline.c:926
+msgid "Not enough memory to edit the line"
+msgstr "Inte tillräckligt minne att redigera raden"
+
+#: mail/msgset.y:164
+msgid "unknown message type"
+msgstr "okänd meddelandetyp"
+
+#: mail/msgset.y:249 mail/msgset.y:254
+#, c-format
+msgid " near end"
+msgstr " nära slutet"
+
+#: mail/msgset.y:256 mail/msgset.y:259
+#, c-format
+msgid " near %s"
+msgstr " nära %s"
+
+#: mail/msgset.y:474
+msgid "range error"
+msgstr "områdesfel"
+
+#: mail/msgset.y:735 mail/util.c:210
+#, c-format
+msgid "%lu: Inappropriate message (has been deleted)"
+msgstr "%lu: Olämpligt meddelande (har tagits bort)"
+
+#: mail/quit.c:54
+#, c-format
+msgid "Held %d message in %s\n"
+msgid_plural "Held %d messages in %s\n"
+msgstr[0] "Håller %d meddelande i %s\n"
+msgstr[1] "Håller %d meddelanden i %s\n"
+
+#: mail/quit.c:150
+#, c-format
+msgid "Saved %d message in %s\n"
+msgid_plural "Saved %d messages in %s\n"
+msgstr[0] "Sparade %d meddelande i %s\n"
+msgstr[1] "Sparade %d meddelanden i %s\n"
+
+#: mail/retain.c:55
+msgid "No fields are currently being retained\n"
+msgstr "Inga fält behålls för närvarande\n"
+
+#: mail/retain.c:68
+msgid "No fields are currently being ignored\n"
+msgstr "Inga fält ignoreras för närvarande\n"
+
+# Synonym/bättre förslag på unfolded önskas
+#: mail/retain.c:81 mail/retain.c:93
+msgid "No fields are currently being unfolded\n"
+msgstr "Inga fält uppenbaras för närvarande\n"
+
+#: mail/retain.c:120 mail/retain.c:129
+#, c-format
+msgid "Sender address is obtained from the envelope\n"
+msgstr "Avsändarens adress hämtas från kuvertet\n"
+
+#: mail/send.c:75
+#, c-format
+msgid "Cannot create header list: %s"
+msgstr "Kan inte skapa rubriklista: %s"
+
+#: mail/send.c:97
+#, c-format
+msgid "Invalid header: %s"
+msgstr "Ogiltig rubrik: %s"
+
+#: mail/send.c:340
+msgid "Cannot open temporary file"
+msgstr "Kan inte öppna temporärfil"
+
+#: mail/send.c:369
+msgid ""
+"\n"
+"(Interrupt -- one more to kill letter)"
+msgstr ""
+"\n"
+"(Avbrott -- en till att för att döda brevet)"
+
+#: mail/send.c:380
+msgid "Use \".\" to terminate letter."
+msgstr "Använd \".\" för att avsluta brev."
+
+#: mail/send.c:381
+msgid "Use \"~.\" to terminate letter."
+msgstr "Använd \"~.\" för att avsluta brev."
+
+#: mail/send.c:423
+#, c-format
+msgid "Unknown escape %s"
+msgstr "Okänd specialsekvens %s"
+
+#: mail/send.c:426
+msgid "Unfinished escape"
+msgstr "Ofärdig specialsekvens"
+
+#: mail/send.c:430
+msgid "Cannot parse escape sequence"
+msgstr "Kan inte tolka specialsekvens"
+
+#: mail/send.c:455 mh/mh_init.c:692 mh/mh_list.c:264
+#, c-format
+msgid "Cannot open file %s: %s"
+msgstr "Kan inte öppna fil %s: %s"
+
+#: mail/send.c:517
+msgid "Null message body; hope that's ok\n"
+msgstr "Ingen meddelandekropp; hoppas det är ok\n"
+
+#: mail/send.c:611
+msgid "Variable sendmail not set: no mailer"
+msgstr "Variabeln sendmail inte inställd: ingen e-posthanterare"
+
+#: mail/send.c:659
+#, c-format
+msgid "Piping %s failed"
+msgstr "Rör %s misslyckades"
+
+#. TRANSLATORS: 'source' is a command name. Do not translate it!
+#: mail/source.c:52
+msgid "source requires an argument"
+msgstr "källa kräver ett argument"
+
+#: mail/source.c:60 mimeview/mimetypes.l:168 mimeview/mimeview.c:166
+#, c-format
+msgid "Cannot open `%s': %s"
+msgstr "Kan inte öppna \"%s\": %s"
+
+#: mail/summary.c:66
+#, c-format
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] "%d meddelande"
+msgstr[1] "%d meddelanden"
+
+#: mail/summary.c:68
+#, c-format
+msgid " %d new"
+msgid_plural " %d new"
+msgstr[0] " %d ny"
+msgstr[1] " %d nya"
+
+#: mail/summary.c:70
+#, c-format
+msgid " %d unread"
+msgid_plural " %d unread"
+msgstr[0] " %d oläst"
+msgstr[1] " %d olästa"
+
+#: mail/summary.c:72
+#, c-format
+msgid " %d deleted"
+msgid_plural " %d deleted"
+msgstr[0] " %d borttaget"
+msgstr[1] " %d borttagna"
+
+#. TRANSLATORS: 'unalias' is a command name. Do not translate it!
+#: mail/unalias.c:31
+msgid "unalias requires at least one argument"
+msgstr "unalias kräver åtminstone ett argument"
+
+#: mail/util.c:143
+msgid "Invalid command"
+msgstr "Ogiltigt kommando"
+
+#: mail/util.c:297
+#, c-format
+msgid "Unknown command: %s\n"
+msgstr "Okänt kommando: %s\n"
+
+#: mail/util.c:464
+#, c-format
+msgid "No value set for \"%s\""
+msgstr "Inget värde satt för \"%s\""
+
+#: mail/util.c:619
+#, c-format
+msgid "oops?"
+msgstr "oops?"
+
+#: mail/util.c:709
+msgid "Incorrect value for decode-fallback"
+msgstr "Ogiltigt värde för decode-fallback"
+
+#: mail/util.c:760
+msgid "Cannot get homedir"
+msgstr "Kan inte läsa av hemkatalog"
+
+#: mail/util.c:1075
+#, c-format
+msgid "Cannot create output mailbox `%s': %s"
+msgstr ""
+
+#: mail/util.c:1083
+#, c-format
+msgid "Cannot open output mailbox `%s': %s"
+msgstr "Kan inte öppna postlåda för utdata \"%s\": %s"
+
+#: mail/util.c:1089
+#, c-format
+msgid "Cannot append message to `%s': %s"
+msgstr ""
+
+#: mail/util.c:1144
+msgid "Cannot unencapsulate message/part"
+msgstr "Kan inte baka in meddelande/del"
+
+#: mail/util.c:1153
+#, c-format
+msgid "No such (sub)part in the message: %d"
+msgstr "Ingen sådan (under)del i meddelandet: %d"
+
+#: mail/util.c:1160
+#, c-format
+msgid "Cannot get (sub)part from the message: %d"
+msgstr "Kan inte få (under)del från meddelandet: %d"
+
+#: mail/util.c:1284
+#, c-format
+msgid "Cannot create temporary header: %s"
+msgstr "Kan inte skapa temporär rubrik: %s"
+
+#: mail/util.c:1327
+#, c-format
+msgid "Cannot parse address `%s' (while expanding `%s'): %s"
+msgstr "Kan inte tolka adress \"%s\" (vid expandering av \"%s\"): %s"
+
+#: mail/util.c:1330
+#, c-format
+msgid "Cannot parse address `%s': %s"
+msgstr "Kan inte tolka adress \"%s\": %s"
+
+#: mail/util.c:1383
+#, c-format
+msgid "Cannot get message %lu: %s"
+msgstr "Kan inte hämta meddelande %lu: %s"
+
+#: mail/util.c:1394
+#, c-format
+msgid "%d: invalid message number"
+msgstr "%d: ogiltigt meddelandenummer"
+
+#: mail/util.c:1401
+msgid "No applicable messages"
+msgstr "Inga passande meddelanden"
+
+#: mail/z.c:65
+msgid "Bad arguments for the scrolling command"
+msgstr "Fel argument för skrollningskommandot"
+
+#: mail/z.c:80
+msgid "Too many arguments for the scrolling command"
+msgstr "För många argument för skrollningskommandot"
+
+#: mail/z.c:88
+msgid "Argument not applicable for z"
+msgstr "Argument inte lämpligt för z"
+
+#: mail/z.c:94
+msgid "Bad number of pages"
+msgstr "Fel antal sidor"
+
+#: mail/z.c:124
+#, c-format
+msgid "On first screenful of messages\n"
+msgstr ""
+
+#: mail/z.c:132
+#, c-format
+msgid "On last screenful of messages\n"
+msgstr ""
+
+#: mailbox/argp-help.c:148
+#, c-format
+msgid "ARGP_HELP_FMT: %s value is less then or equal to %s"
+msgstr "ARGP_HELP_FMT: %s värde är mindre än eller lika med %s"
+
+#: mailbox/argp-help.c:221
 #, c-format
 msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
 msgstr "%.*s: ARGP_HELP_FMT parameter kräver ett värde"
 
-#: mailbox/argp-help.c:204
+#: mailbox/argp-help.c:227
+#, c-format
+msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+msgstr "%.*s: Parametern ARGP_HELP_FMT måste vara positiv"
+
+#: mailbox/argp-help.c:236
 #, c-format
 msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
 msgstr "%.*s: Okänd ARGP_HELP_FMT-parameter"
 
-#: mailbox/argp-help.c:216
+#: mailbox/argp-help.c:248
 #, c-format
 msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Skräp i ARGP_HELP_FMT: %s"
 
-#: mailbox/argp-help.c:1195
+#: mailbox/argp-help.c:1229
 msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
 msgstr "Obligatoriska respektive valfria argument för långa flaggor är obligatoriska respektive valfria även för korta flaggor."
 
-#: mailbox/argp-help.c:1582
+#: mailbox/argp-help.c:1616
 msgid "Usage:"
 msgstr "Användning:"
 
-#: mailbox/argp-help.c:1586
+#: mailbox/argp-help.c:1620
 msgid "  or: "
 msgstr "  eller: "
 
-#: mailbox/argp-help.c:1598
+#: mailbox/argp-help.c:1632
 msgid " [OPTION...]"
 msgstr " [FLAGGA...]"
 
-#: mailbox/argp-help.c:1625
+#: mailbox/argp-help.c:1659
 #, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
 msgstr "Försök med \"%s --help\" eller \"%s --usage\" för mer information.\n"
 
-#: mailbox/argp-help.c:1653
+#: mailbox/argp-help.c:1687
 #, c-format
 msgid "Report bugs to %s.\n"
 msgstr ""
 "Rapportera fel till %s.\n"
-"Rapportera synpunkter på översättningen till <tp-sv@listor.tp-sv.se>.\n"
+"Skicka synpunkter på översättningen till <tp-sv@listor.tp-sv.se>.\n"
 
-#: mailbox/argp-help.c:1873
+#: mailbox/argp-help.c:1906
 msgid "Unknown system error"
 msgstr "Okänt systemfel"
 
-#: mailbox/argp-parse.c:83
+#: mailbox/argp-parse.c:82
 msgid "Give this help list"
 msgstr "Ge denna hjälplista"
 
-#: mailbox/argp-parse.c:84
+#: mailbox/argp-parse.c:83
 msgid "Give a short usage message"
 msgstr "Ge ett kort meddelande om användning"
 
-#: mailbox/argp-parse.c:85
+#: mailbox/argp-parse.c:84
 msgid "Set the program name"
 msgstr "Sätt programnamnet"
 
-#: mailbox/argp-parse.c:87
+#: mailbox/argp-parse.c:85
+msgid "SECS"
+msgstr "SEK"
+
+#: mailbox/argp-parse.c:86
 msgid "Hang for SECS seconds (default 3600)"
 msgstr "Vänta i SEK sekunder (standardvärde 3600)"
 
-#: mailbox/argp-parse.c:148
+#: mailbox/argp-parse.c:143
 msgid "Print program version"
 msgstr "Skriv ut programversion"
 
-#: mailbox/argp-parse.c:164
+#: mailbox/argp-parse.c:159
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(PROGRAMFEL) Ingen version känd!?"
 
-#: mailbox/argp-parse.c:620
+#: mailbox/argp-parse.c:612
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s: För många argument\n"
 
-#: mailbox/argp-parse.c:763
+#: mailbox/argp-parse.c:755
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(PROGRAMFEL) Flagga skulle känts igen!?"
 
-#: mailbox/file_stream.c:479
+#: mailbox/errors:19
+msgid "Operation failed"
+msgstr "Åtgärd misslyckades"
+
+#: mailbox/errors:20
+msgid "Operation canceled"
+msgstr "Åtgärd avbruten"
+
+#: mailbox/errors:22
+msgid "No registered handler"
+msgstr "Inget registrerat handtag"
+
+#: mailbox/errors:23
+msgid "Empty virtual function"
+msgstr "Tom virtuell funktion"
+
+#: mailbox/errors:25
+msgid "Pointer to output null"
+msgstr ""
+
+#: mailbox/errors:26
+msgid "Pointer to output pointer null"
+msgstr ""
+
+#: mailbox/errors:28
+msgid "Mailbox null"
+msgstr ""
+
+#: mailbox/errors:30
+msgid "Format of RFC822 object is bad"
+msgstr "Format på RFC822-objekt är fel"
+
+#: mailbox/errors:31
+msgid "Address contains no addr specs"
+msgstr ""
+
+#: mailbox/errors:33
+msgid "Locker null"
+msgstr ""
+
+#: mailbox/errors:34
+msgid "Conflict with previous locker"
+msgstr "Konflikt med tidigare lås"
+
+#: mailbox/errors:35
+msgid "Lock file check failed"
+msgstr "Kontroll av låsfil misslyckades"
+
+#: mailbox/errors:36
+msgid "File check failed"
+msgstr "Filkontroll misslyckades"
+
+#: mailbox/errors:37
+msgid "Lock not held on file"
+msgstr ""
+
+#: mailbox/errors:38
+msgid "Failed to exec external locker"
+msgstr "Misslyckades att starta externt lås"
+
+#: mailbox/errors:39
+msgid "External locker failed"
+msgstr ""
+
+#: mailbox/errors:40
+msgid "External locker killed"
+msgstr ""
+
+#: mailbox/errors:42
+msgid "No such user name"
+msgstr "Inget sådant användarnamn"
+
+#: mailbox/errors:44
+msgid "DNS name resolution failed"
+msgstr "DNS-uppslag misslyckades"
+
+#: mailbox/errors:45
+msgid "State busy must resume operation"
+msgstr ""
+
+#: mailbox/errors:46
+msgid "Not a valid mailer from address"
+msgstr ""
+
+#: mailbox/errors:47
+msgid "Not a valid mailer to address"
+msgstr ""
+
+#: mailbox/errors:48
+msgid "No receipt addresses found"
+msgstr "Inga mottagaradresser hittade"
+
+#: mailbox/errors:49
+msgid "Malformed or unsupported mailer URL"
+msgstr ""
+
+#: mailbox/errors:50
+msgid "SMTP rcpt to command failed"
+msgstr "SMTP-kommando \"rcpt to\" misslyckades"
+
+#: mailbox/errors:51
+msgid "Tcp connections need a host"
+msgstr "TCP-anslutningar behöver en värd"
+
+#: mailbox/errors:52
+msgid "Tcp connections need a postive port"
+msgstr "TCP-anslutningar behöver en positiv port"
+
+#: mailbox/errors:54
+msgid "Input string is not RFC 2047 encoded"
+msgstr "Inmatad sträng är inte RFC 2047-kodad"
+
+#: mailbox/errors:55
+msgid "Not a valid RFC 2047 encoding"
+msgstr "Inte en giltig RFC 2047-kodning"
+
+#: mailbox/errors:57
+msgid "User name is not supplied"
+msgstr "Användarnamn är inte angivet"
+
+#: mailbox/errors:58
+msgid "User password is not supplied"
+msgstr "Användarens lösenord är inte angivet"
+
+#: mailbox/errors:60
+msgid "Unsafe file permissions. Set 0600"
+msgstr "Osäkra filrättigheter. Sätt 0600"
+
+#: mailbox/errors:61
+msgid "Unsupported authentication scheme"
+msgstr ""
+
+#: mailbox/errors:62
+msgid "Authentication failed"
+msgstr "Autentisering misslyckades"
+
+#: mailbox/errors:64
+msgid "Cannot execute"
+msgstr "Kan inte starta"
+
+#: mailbox/errors:65
+msgid "Process exited with a non-zero status"
+msgstr ""
+
+#: mailbox/errors:66
+msgid "Process exited on signal"
+msgstr "Process avslutades på signal"
+
+#: mailbox/errors:67
+msgid "Unknown failure while executing subprocess"
+msgstr ""
+
+#: mailbox/errors:68
+msgid "Connection closed by remote host"
+msgstr "Anslutning stängd av fjärrvärd"
+
+#: mailbox/errors:69
+msgid "Parse error"
+msgstr "Tolkningsfel"
+
+#: mailbox/errors:70
+msgid "Requested item not found"
+msgstr "Begärt objekt hittades inte"
+
+#: mailbox/errors:71
+msgid "Not enough buffer space"
+msgstr "Inte tillräckligt buffertutrymme"
+
+#: mailbox/errors:73
+msgid "SQL error"
+msgstr "SQL-fel"
+
+#: mailbox/errors:74
+msgid "Already connected to the database"
+msgstr "Redan ansluten till databasen"
+
+#: mailbox/errors:75
+msgid "Not connected to the database"
+msgstr "Inte ansluten till databasen"
+
+#: mailbox/errors:76
+msgid "Result of the previous query is not released"
+msgstr ""
+
+#: mailbox/errors:77
+msgid "No query was yet executed"
+msgstr ""
+
+#: mailbox/errors:78
+msgid "Bad column address"
+msgstr "Felaktig kolumnadress"
+
+#: mailbox/errors:79
+msgid "No result from the previous query available"
+msgstr "Inget resultat från den tidigare frågan är tillgänglig"
+
+#: mailbox/errors:80
+msgid "No such interface"
+msgstr "Inget sådant gränssnitt"
+
+#: mailbox/errors:82
+msgid "Badly formed file or directory name"
+msgstr ""
+
+#: mailbox/errors:83
+msgid "Read error"
+msgstr "Läsfel"
+
+#: mailbox/file_stream.c:498
 #, c-format
 msgid "%s must be a plain file with one link\n"
-msgstr ""
+msgstr "%s måste vara en vanlig fil med en länk\n"
 
 #: mailbox/filter_iconv.c:367
 #, c-format
@@ -2333,137 +2622,261 @@ msgstr "Iconv-fel: %s"
 msgid "Stream is closed"
 msgstr "Ström är stängd"
 
-#: mailbox/message.c:1089
+#: mailbox/getopt.c:551 mailbox/getopt.c:570
 #, c-format
-msgid "mailbox_create_default (%s) failed: %s\n"
-msgstr "mailbox_create_default (%s) misslyckades: %s\n"
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: flaggan \"%s\" är tvetydig\n"
 
-#: mailbox/message.c:1120
+#: mailbox/getopt.c:603 mailbox/getopt.c:607
 #, c-format
-msgid "mailbox_open (%s) failed: %s\n"
-msgstr "mailbox_open (%s) misslyckades: %s\n"
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: flaggan \"--%s\" tar inget argument\n"
 
-#: mailbox/message.c:1128
+#: mailbox/getopt.c:616 mailbox/getopt.c:621
 #, c-format
-msgid "mailbox_append_message (%s) failed: %s\n"
-msgstr "mailbox_append_message (%s) misslyckades: %s\n"
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: flaggan \"%c%s\" tar inget argument\n"
 
-#: mailbox/message.c:1140
+#: mailbox/getopt.c:667 mailbox/getopt.c:689 mailbox/getopt.c:1020
+#: mailbox/getopt.c:1042
 #, c-format
-msgid "mailbox_close (%s) failed: %s\n"
-msgstr "mailbox_close (%s) misslyckades: %s\n"
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: flagga \"%s\" kräver ett argument\n"
 
-#: mailbox/mu_argp.c:59
+#: mailbox/getopt.c:727 mailbox/getopt.c:730
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: okänd flagga \"--%s\"\n"
+
+#: mailbox/getopt.c:738 mailbox/getopt.c:741
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: okänd flagga \"%c%s\"\n"
+
+#: mailbox/getopt.c:796 mailbox/getopt.c:799
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: otillåten flagga -- %c\n"
+
+#: mailbox/getopt.c:805 mailbox/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ogiltig flagga -- %c\n"
+
+#: mailbox/getopt.c:863 mailbox/getopt.c:882 mailbox/getopt.c:1095
+#: mailbox/getopt.c:1116
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: flagga kräver ett argument -- %c\n"
+
+#: mailbox/getopt.c:935 mailbox/getopt.c:954
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: flaggan \"-W %s\" är tvetydig\n"
+
+#: mailbox/getopt.c:978 mailbox/getopt.c:999
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: flagga \"-W %s\" tillåter inte ett argument\n"
+
+#: mailbox/imap/folder.c:2229
+#, c-format
+msgid "No tag in response: %s %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2256
+#, c-format
+msgid "ALERT: %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2265
+#, c-format
+msgid "BAD CHARSET: %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2365
+#, c-format
+msgid "Untagged OK: %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2371
+#, c-format
+msgid "Untagged NO: %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2376
+#, c-format
+msgid "Untagged BAD: %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2439
+#, c-format
+msgid "unknown untagged response: \"%s\"  %s"
+msgstr ""
+
+#: mailbox/imap/folder.c:2473
+#, c-format
+msgid "NO/Bad Tagged: %s %s %s"
+msgstr ""
+
+#: mailbox/mbox/mbox.c:370
+msgid "* BAD : Mailbox corrupted, shrank in size"
+msgstr ""
+
+#: mailbox/mbox/mbox.c:485
+msgid "Failed to create temporary file when expunging"
+msgstr ""
+
+#: mailbox/mbox/mbox.c:548
+#, c-format
+msgid "Failed to grab the lock: %s"
+msgstr "Misslyckades med att fånga låset: %s"
+
+#: mailbox/mbox/mbox.c:600 mailbox/mbox/mbox.c:609 mailbox/mbox/mbox.c:632
+#: mailbox/mbox/mbox.c:644 mailbox/mbox/mbox.c:674 mailbox/mbox/mbox.c:685
+#: mailbox/mbox/mbox.c:706 mailbox/mbox/mbox.c:720
+#, c-format
+msgid "Error expunging:%d: %s"
+msgstr ""
+
+#: mailbox/message.c:1095
+#, c-format
+msgid "mu_mailbox_create_default (%s) failed: %s\n"
+msgstr "mu_mailbox_create_default (%s) misslyckades: %s\n"
+
+#: mailbox/message.c:1126
+#, c-format
+msgid "mu_mailbox_open (%s) failed: %s\n"
+msgstr "mu_mailbox_open (%s) misslyckades: %s\n"
+
+#: mailbox/message.c:1134
+#, c-format
+msgid "mu_mailbox_append_message (%s) failed: %s\n"
+msgstr "mu_mailbox_append_message (%s) misslyckades: %s\n"
+
+#: mailbox/message.c:1146
+#, c-format
+msgid "mu_mailbox_close (%s) failed: %s\n"
+msgstr "mu_mailbox_close (%s) misslyckades: %s\n"
+
+#: mailbox/mu_argp.c:61
 msgid "Common options"
 msgstr "Vanliga flaggor"
 
-#: mailbox/mu_argp.c:61
+#: mailbox/mu_argp.c:63
 msgid "Show compilation options"
 msgstr ""
 
-#: mailbox/mu_argp.c:67
+#: mailbox/mu_argp.c:69
 msgid "Print license and exit"
 msgstr "Skriv ut licens och avsluta"
 
-#: mailbox/mu_argp.c:74
-msgid "Use specified URL as a mailspool directory"
-msgstr ""
-
 #: mailbox/mu_argp.c:76
+msgid "Use specified URL as a mailspool directory"
+msgstr "Använd angiven URL som en kökatalog för post"
+
+#: mailbox/mu_argp.c:77
+msgid "PROTO"
+msgstr "PROTO"
+
+#: mailbox/mu_argp.c:78
+msgid "Default mailbox type to use"
+msgstr "Standardpostlådetyp att använda"
+
+#: mailbox/mu_argp.c:80
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
 msgstr ""
 
-#: mailbox/mu_argp.c:77 mailbox/mu_argp.c:81 mh/send.c:67 pop3d/pop3d.c:77
+#: mailbox/mu_argp.c:81 mailbox/mu_argp.c:85 mh/send.c:66 pop3d/pop3d.c:77
 msgid "SECONDS"
 msgstr "SEKUNDER"
 
-#: mailbox/mu_argp.c:78
-msgid "Set timeout for acquiring the lockfile"
-msgstr ""
-
-#: mailbox/mu_argp.c:80
-msgid "Set the maximum number of times to retry acquiring the lockfile"
-msgstr ""
-
 #: mailbox/mu_argp.c:82
-msgid "Number of seconds after which the lock expires"
-msgstr ""
+msgid "Set timeout for acquiring the lockfile"
+msgstr "Ställ in timeout för hämtning av låsfil"
 
-#: mailbox/mu_argp.c:83
+#: mailbox/mu_argp.c:84
+msgid "Set the maximum number of times to retry acquiring the lockfile"
+msgstr "Ställ in maximalt antal försök för att ta kontroll över låsfilen"
+
+#: mailbox/mu_argp.c:86
+msgid "Number of seconds after which the lock expires"
+msgstr "Antal sekunder som låset förblir aktivt"
+
+#: mailbox/mu_argp.c:87
 msgid "PATH"
 msgstr "SÖKVÄG"
 
-#: mailbox/mu_argp.c:84
+#: mailbox/mu_argp.c:88
 msgid "Set full path to the external locker program"
-msgstr ""
+msgstr "Ställ in hela sökvägen till externt låsprogram"
 
-#: mailbox/mu_argp.c:91
+#: mailbox/mu_argp.c:95
 msgid "Set current user's email address (default is loginname@defaultdomain)"
-msgstr ""
+msgstr "Ställ in aktuell användares e-postadress (förval är kontonamn@förvald-domän)"
 
-#: mailbox/mu_argp.c:92
+#: mailbox/mu_argp.c:96
 msgid "DOMAIN"
 msgstr "DOMÄN"
 
-#: mailbox/mu_argp.c:93
+#: mailbox/mu_argp.c:97
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr ""
+msgstr "Ställ in domän för okvalificerade användarnamn (standard är den här värden)"
 
-#: mailbox/mu_argp.c:99
-#, fuzzy
+#: mailbox/mu_argp.c:103
 msgid "MAILER"
-msgstr "E-postprogram"
+msgstr "POSTHANTERARE"
 
-#: mailbox/mu_argp.c:100
+#: mailbox/mu_argp.c:104
 msgid "Use specified URL as the default mailer"
-msgstr ""
+msgstr "Använd angiven URL som standard posthanterare"
 
-#: mailbox/mu_argp.c:106
+#: mailbox/mu_argp.c:110
 msgid "FACILITY"
-msgstr ""
+msgstr "NIVÅ"
 
-#: mailbox/mu_argp.c:107
+#: mailbox/mu_argp.c:111
 msgid "Output logs to syslog FACILITY"
-msgstr ""
+msgstr "Logga utdata till syslog-NIVÅ"
 
-#: mailbox/mu_argp.c:115
+#: mailbox/mu_argp.c:119
 msgid "Runs in daemon mode with a maximum of NUMBER children"
-msgstr ""
+msgstr "Körs i demonläge med ett maximalt ANTAL barnprocesser"
 
-#: mailbox/mu_argp.c:117
+#: mailbox/mu_argp.c:121
 msgid "Run in inetd mode"
 msgstr "Kör i inetd-läge"
 
-#: mailbox/mu_argp.c:118
+#: mailbox/mu_argp.c:122
 msgid "PORT"
 msgstr "PORT"
 
-#: mailbox/mu_argp.c:119
+#: mailbox/mu_argp.c:123
 msgid "Listen on specified port number"
-msgstr ""
+msgstr "Lyssna på angivet portnummer"
 
-#: mailbox/mu_argp.c:121
+#: mailbox/mu_argp.c:125
 msgid "Set idle timeout value to NUMBER seconds"
 msgstr ""
 
-#: mailbox/mu_argp.c:123
+#: mailbox/mu_argp.c:127
 msgid "Output session transcript via syslog"
 msgstr ""
 
-#: mailbox/mu_argp.c:125
+#: mailbox/mu_argp.c:129
 msgid "Set PID file"
 msgstr "Sätt PID-fil"
 
-#: mailbox/mu_argp.c:214
+#: mailbox/mu_argp.c:218
 msgid "Daemon configuration options"
 msgstr ""
 
-#: mailbox/mu_argp.c:249
+#: mailbox/mu_argp.c:253
 #, c-format
 msgid "Unknown facility `%s'\n"
-msgstr ""
+msgstr "Okänd nivå \"%s\"\n"
 
-#: mailbox/mu_argp.c:387
+#: mailbox/mu_argp.c:393
 #, c-format
 msgid ""
 "License for %s:\n"
@@ -2472,43 +2885,48 @@ msgstr ""
 "Licens för %s:\n"
 "\n"
 
-#: mailbox/mu_argp.c:424
+#: mailbox/mu_argp.c:405
 #, c-format
-msgid "Invalid lock flag `%c'"
+msgid "Cannot set mail directory name: %s"
 msgstr ""
 
-#: mailbox/mu_argp.c:464
+#: mailbox/mu_argp.c:411
+#, c-format
+msgid "Invalid mailbox type: %s"
+msgstr "Ogiltig postlådetyp: %s"
+
+#: mailbox/mu_argp.c:438
+#, c-format
+msgid "Invalid lock flag `%c'"
+msgstr "Ogiltig låsflagga \"%c\""
+
+#: mailbox/mu_argp.c:478
 #, c-format
 msgid "Invalid email address `%s': %s"
 msgstr "Ogiltig e-postadress \"%s\": %s"
 
-#: mailbox/mu_argp.c:472
+#: mailbox/mu_argp.c:486
 #, c-format
 msgid "Invalid email domain `%s': %s"
 msgstr "Ogiltig e-postdomän \"%s\": %s"
 
-#: mailbox/mu_argp.c:481
+#: mailbox/mu_argp.c:495
 #, c-format
 msgid "Invalid mailer URL `%s': %s"
 msgstr ""
 
-#: mailbox/mu_argp.c:495
-#, c-format
-msgid "Badly formed mailspool path: %s"
-msgstr ""
-
-#: mailbox/mu_argp.c:631 mailbox/mu_argp.c:670 mailbox/mu_argp.c:710
-#: mailbox/mu_argp.c:753 mailbox/mu_argp.c:782
+#: mailbox/mu_argp.c:639 mailbox/mu_argp.c:678 mailbox/mu_argp.c:718
+#: mailbox/mu_argp.c:761 mailbox/mu_argp.c:790
 #, c-format
 msgid "%s: not enough memory\n"
 msgstr "%s: inte tillräckligt med minne\n"
 
-#: mailbox/mu_argp.c:892
+#: mailbox/mu_argp.c:900
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
 msgstr ""
 
-#: mailbox/mu_argp.c:955
+#: mailbox/mu_argp.c:963
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
 msgstr ""
 
@@ -2518,205 +2936,13 @@ msgstr ""
 
 #: mailbox/mu_auth.c:215
 msgid "Set the list of modules to be used for authentication"
-msgstr ""
+msgstr "Ställ in listan av moduler som används för autentisering"
 
 #: mailbox/mu_auth.c:217
 msgid "Set list of modules to be used for authorization"
-msgstr ""
+msgstr "Ställ in lista av moduler som används för autentisering"
 
-#: mailbox/errors:18
-msgid "Operation failed"
-msgstr "Operation misslyckades"
-
-#: mailbox/errors:20
-msgid "No registered handler"
-msgstr ""
-
-#: mailbox/errors:21
-msgid "Empty virtual function"
-msgstr ""
-
-#: mailbox/errors:23
-msgid "Pointer to output null"
-msgstr ""
-
-#: mailbox/errors:24
-msgid "Pointer to output pointer null"
-msgstr ""
-
-#: mailbox/errors:26
-msgid "Mailbox null"
-msgstr ""
-
-#: mailbox/errors:28
-msgid "Format of RFC822 object is bad"
-msgstr ""
-
-#: mailbox/errors:29
-msgid "Address contains no addr specs"
-msgstr ""
-
-#: mailbox/errors:31
-msgid "Locker null"
-msgstr ""
-
-#: mailbox/errors:32
-msgid "Conflict with previous locker"
-msgstr ""
-
-#: mailbox/errors:33
-msgid "Lock file check failed"
-msgstr ""
-
-#: mailbox/errors:34
-msgid "File check failed"
-msgstr ""
-
-#: mailbox/errors:35
-msgid "Lock not held on file"
-msgstr ""
-
-#: mailbox/errors:36
-msgid "Failed to exec external locker"
-msgstr ""
-
-#: mailbox/errors:37
-msgid "External locker failed"
-msgstr ""
-
-#: mailbox/errors:38
-msgid "External locker killed"
-msgstr ""
-
-#: mailbox/errors:40
-msgid "No such user name"
-msgstr "Inget sådant användarnamn"
-
-#: mailbox/errors:42
-msgid "DNS name resolution failed"
-msgstr ""
-
-#: mailbox/errors:43
-msgid "State busy must resume operation"
-msgstr ""
-
-#: mailbox/errors:44
-msgid "Not a valid mailer from address"
-msgstr ""
-
-#: mailbox/errors:45
-msgid "Not a valid mailer to address"
-msgstr ""
-
-#: mailbox/errors:46
-msgid "No receipt addresses found"
-msgstr "Inga mottagaradresser hittade"
-
-#: mailbox/errors:47
-msgid "Malformed or unsupported mailer URL"
-msgstr ""
-
-#: mailbox/errors:48
-msgid "SMTP rcpt to command failed"
-msgstr ""
-
-#: mailbox/errors:49
-msgid "Tcp connections need a host"
-msgstr ""
-
-#: mailbox/errors:50
-msgid "Tcp connections need a postive port"
-msgstr ""
-
-#: mailbox/errors:52
-msgid "Input string is not RFC 2047 encoded"
-msgstr ""
-
-#: mailbox/errors:54
-msgid "User name is not supplied"
-msgstr "Användarnamn är inte angivet"
-
-#: mailbox/errors:55
-msgid "User password is not supplied"
-msgstr "Användarens lösenord är inte angivet"
-
-#: mailbox/errors:57
-msgid "Unsafe file permissions. Set 0600"
-msgstr "Osäkra filrättigheter. Sätt 0600"
-
-#: mailbox/errors:58
-msgid "Unsupported authentication scheme"
-msgstr ""
-
-#: mailbox/errors:59
-msgid "Authentication failed"
-msgstr "Autentisering misslyckades"
-
-#: mailbox/errors:61
-msgid "Cannot execute"
-msgstr "Kan inte starta"
-
-#: mailbox/errors:62
-msgid "Process exited with a non-zero status"
-msgstr ""
-
-#: mailbox/errors:63
-msgid "Process exited on signal"
-msgstr ""
-
-#: mailbox/errors:64
-msgid "Unknown failure while executing subprocess"
-msgstr ""
-
-#: mailbox/errors:65
-msgid "Connection closed by remote host"
-msgstr "Anslutning stängd av fjärrvärd"
-
-#: mailbox/errors:66
-msgid "Parse error"
-msgstr "Tolkningsfel"
-
-#: mailbox/errors:67
-msgid "Requested item not found"
-msgstr ""
-
-#: mailbox/errors:68
-msgid "Not enough buffer space"
-msgstr "Inte tillräckligt buffertutrymme"
-
-#: mailbox/errors:70
-msgid "SQL error"
-msgstr "SQL-fel"
-
-#: mailbox/errors:71
-msgid "Already connected to the database"
-msgstr "Redan ansluten till databasen"
-
-#: mailbox/errors:72
-msgid "Not connected to the database"
-msgstr "Inte ansluten till databasen"
-
-#: mailbox/errors:73
-msgid "Result of the previous query is not released"
-msgstr ""
-
-#: mailbox/errors:74
-msgid "No query was yet executed"
-msgstr ""
-
-#: mailbox/errors:75
-msgid "Bad column address"
-msgstr ""
-
-#: mailbox/errors:76
-msgid "No result from the previous query available"
-msgstr ""
-
-#: mailbox/errors:77
-msgid "No such interface"
-msgstr "Inget sådant gränssnitt"
-
-#: mailbox/mutil.c:581
+#: mailbox/mutil.c:621
 #, c-format
 msgid "Cannot open temporary file: %s"
 msgstr "Kan inte öppna temporärfil: %s"
@@ -2727,7 +2953,7 @@ msgstr "Kan inte öppna temporärfil: %s"
 #.
 #. msgstr "yYbB";
 #.
-#: mailbox/mutil.c:1166
+#: mailbox/mutil.c:1206
 msgid "yY"
 msgstr "yYjJ"
 
@@ -2737,7 +2963,7 @@ msgstr "yYjJ"
 #.
 #. msgstr "nNeE";
 #.
-#: mailbox/mutil.c:1175
+#: mailbox/mutil.c:1215
 msgid "nN"
 msgstr "nN"
 
@@ -2780,20 +3006,22 @@ msgid ""
 "GNU MH annoOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH annoFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/anno.c:29
 msgid "[msg [msg...]]"
 msgstr ""
 
-#: mh/anno.c:33 mh/folder.c:49 mh/folder.c:59 mh/forw.c:37 mh/forw.c:43
-#: mh/inc.c:34 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
+#: mh/anno.c:33 mh/folder.c:52 mh/folder.c:62 mh/forw.c:37 mh/forw.c:43
+#: mh/inc.c:35 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
 #: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
-#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:39 mh/send.c:42
-#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:44
+#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:40 mh/send.c:41
+#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:43
 msgid "FOLDER"
 msgstr "MAPP"
 
-#: mh/anno.c:34 mh/folder.c:60 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
+#: mh/anno.c:34 mh/folder.c:63 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
 #: mh/mhn.c:38 mh/mhpath.c:33 mh/pick.c:40 mh/refile.c:39 mh/repl.c:50
 #: mh/rmm.c:33
 msgid "Specify folder to operate upon"
@@ -2819,10 +3047,10 @@ msgstr ""
 msgid "Field value for the component"
 msgstr ""
 
-#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:80 mh/forw.c:75 mh/inc.c:55
+#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:87 mh/forw.c:75 mh/inc.c:56
 #: mh/install-mh.c:33 mh/mark.c:47 mh/mhl.c:53 mh/mhn.c:90 mh/mhpath.c:35
 #: mh/pick.c:96 mh/refile.c:52 mh/repl.c:72 mh/rmf.c:50 mh/rmm.c:35
-#: mh/scan.c:59 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
+#: mh/scan.c:60 mh/send.c:77 mh/whatnow.c:40 mh/whom.c:45
 msgid "Display software license"
 msgstr "Visa programvarulicens"
 
@@ -2835,18 +3063,18 @@ msgstr "Komponentnamn: "
 #. in this message
 #: mh/fmtcheck.c:26
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH fmtcheckAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:44 mh/mhl.c:43 mh/repl.c:58
-#: mh/scan.c:45
+#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:45 mh/mhl.c:43 mh/repl.c:58
+#: mh/scan.c:46
 msgid "Read format from given file"
 msgstr "Läs format från angiven fil"
 
-#: mh/fmtcheck.c:34 mh/inc.c:45 mh/scan.c:46
+#: mh/fmtcheck.c:34 mh/inc.c:46 mh/scan.c:47
 msgid "FORMAT"
 msgstr "FORMAT"
 
-#: mh/fmtcheck.c:35 mh/inc.c:46 mh/scan.c:47
+#: mh/fmtcheck.c:35 mh/inc.c:47 mh/scan.c:48
 msgid "Use this format string"
 msgstr "Använd denna formatsträng"
 
@@ -2860,114 +3088,210 @@ msgstr ""
 
 #: mh/fmtcheck.c:63
 msgid "Format string not specified"
-msgstr ""
+msgstr "Formatsträng inte angiven"
 
-#: mh/fmtcheck.c:115 mh/inc.c:191 mh/repl.c:373 mh/scan.c:188
+#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:388 mh/scan.c:189
 msgid "Bad format string"
-msgstr ""
+msgstr "Felaktig formatsträng"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/folder.c:39
+#: mh/folder.c:40
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH folderAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/folder.c:41
+#: mh/folder.c:42
 msgid "[action] [msg]"
 msgstr "[åtgärd] [meddelande]"
 
-#: mh/folder.c:44 pop3d/popauth.c:69
+#: mh/folder.c:45 pop3d/popauth.c:68
 msgid "Actions are:"
 msgstr "Åtgärder är:"
 
-#: mh/folder.c:46
+#: mh/folder.c:47
 msgid "List the folders (default)"
 msgstr "Lista mappar (förval)"
 
-#: mh/folder.c:48
+#: mh/folder.c:49
 msgid "List the contents of the folder stack"
 msgstr ""
 
-#: mh/folder.c:50
+#: mh/folder.c:51
+msgid "Remove holes in message numbering. Begin numbering from NUMBER (default: first message number)"
+msgstr ""
+
+#: mh/folder.c:53
 msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
 msgstr ""
 
-#: mh/folder.c:55
+#: mh/folder.c:58
 msgid "Pop the folder off the folder stack"
 msgstr ""
 
-#: mh/folder.c:57 mh/mh_whatnow.c:153 pop3d/popauth.c:81
+#: mh/folder.c:60 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr "Flaggor är:"
 
-#: mh/folder.c:62
+#: mh/folder.c:65
 msgid "List all folders"
 msgstr "Lista alla mappar"
 
-#: mh/folder.c:64
+#: mh/folder.c:67
 msgid "Create non-existing folders"
 msgstr "Skapa icke-existerande mappar"
 
-#: mh/folder.c:67
+#: mh/folder.c:70
 msgid "List only the folder names"
 msgstr "Lista endast mappnamnen"
 
-#: mh/folder.c:70
+#: mh/folder.c:73
 msgid "Print the header line"
 msgstr ""
 
-#: mh/folder.c:73
+#: mh/folder.c:76
 msgid "Scan folders recursively"
 msgstr ""
 
-#: mh/folder.c:76
+#: mh/folder.c:79
 msgid "Output the total statistics"
 msgstr ""
 
-#: mh/folder.c:309 mh/rmf.c:128
+#: mh/folder.c:82
+msgid "Verbosely list actions taken"
+msgstr ""
+
+#: mh/folder.c:84
+msgid "Do nothing, print what would be done (with --pack)"
+msgstr "Gör ingenting, skriv endast ut vad som skulle gjorts (med --pack)"
+
+#: mh/folder.c:151 mh/send.c:204 mh/send.c:229 pop3d/pop3d.c:135
+#: pop3d/pop3d.c:149
+msgid "Invalid number"
+msgstr "Ogiltigt nummer"
+
+#: mh/folder.c:343 mh/rmf.c:128
 #, c-format
 msgid "Cannot scan folder %s: %s"
 msgstr "Kan inte söka av mapp %s: %s"
 
-#: mh/folder.c:382
+#: mh/folder.c:416
 #, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
 msgstr[0] " har %4lu meddelande  (%4lu-%4lu)"
 msgstr[1] " har %4lu meddelanden (%4lu-%4lu)"
 
-#: mh/folder.c:393
+#: mh/folder.c:427
 #, c-format
 msgid " has no messages"
 msgstr " har inga meddelanden"
 
-#: mh/folder.c:402
+#: mh/folder.c:436
 #, c-format
 msgid "(others)"
 msgstr "(övriga)"
 
-#: mh/folder.c:449
+#: mh/folder.c:484
 #, c-format
 msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
 msgstr "Mapp                    Antal meddelanden (  omfång )  nuv med   (övriga filer)\n"
 
-#: mh/folder.c:455
+#: mh/folder.c:490
 msgid "TOTAL"
 msgstr "TOTALT"
 
-#: mh/folder.c:456
+#: mh/folder.c:491
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
 msgstr[0] "%4lu meddelande  "
 msgstr[1] "%4lu meddelanden "
 
-#: mh/folder.c:459
+#: mh/folder.c:494
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
 msgstr[0] "i %4lu mapp"
 msgstr[1] "i %4lu mappar"
+
+#: mh/folder.c:615
+#, c-format
+msgid "Renaming %s to %s\n"
+msgstr "Byter namn från %s till %s\n"
+
+#: mh/folder.c:620
+#, c-format
+msgid "cannot rename `%s' to `%s': %s"
+msgstr "kan inte byta namn på \"%s\" till \"%s\": %s"
+
+#: mh/folder.c:657
+msgid "Rolling back changes..."
+msgstr "Rullar tillbaka ändringar..."
+
+#: mh/folder.c:661
+#, c-format
+msgid ""
+"CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
+"occurred while trying to roll back the changes.\n"
+"Message range %s-%s has been renamed to %s-%s."
+msgstr ""
+
+#: mh/folder.c:669
+msgid "You will have to fix it manually."
+msgstr "Du behöver rätta till det manuellt."
+
+#: mh/folder.c:672
+#, c-format
+msgid "Folder `%s' restored successfully"
+msgstr ""
+
+#: mh/folder.c:777 mh/inc.c:227
+#, c-format
+msgid "Cannot read input mailbox: %s"
+msgstr ""
+
+#: mh/folder.c:785
+#, c-format
+msgid "Getting message numbers.\n"
+msgstr "Hämtar meddelandenummer.\n"
+
+#: mh/folder.c:793 mh/inc.c:255
+#, c-format
+msgid "%d: cannot get message: %s"
+msgstr "%d: kan inte hämta meddelande: %s"
+
+#: mh/folder.c:799
+#, c-format
+msgid "%s message number collected.\n"
+msgid_plural "%s message numbers collected.\n"
+msgstr[0] "%s meddelandenummer insamlade.\n"
+msgstr[1] "%s meddelandenummer insamlade.\n"
+
+#: mh/folder.c:817
+#, c-format
+msgid "Reverting pack table.\n"
+msgstr ""
+
+#: mh/folder.c:825
+#, c-format
+msgid "cannot change to directory `%s': %s"
+msgstr "kan inte byta till katalog \"%s\": %s"
+
+# Komprimering?
+#: mh/folder.c:840
+#, c-format
+msgid "Finished packing messages.\n"
+msgstr "Färdig med paketering av meddelanden.\n"
+
+#: mh/folder.c:847
+#, c-format
+msgid "Fixing global sequences\n"
+msgstr ""
+
+#: mh/folder.c:850
+#, c-format
+msgid "Fixing private sequences\n"
+msgstr "Rättar till privata sekvenser\n"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -2976,20 +3300,22 @@ msgid ""
 "GNU MH forwOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH forwFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/forw.c:34 mh/repl.c:37
-msgid "* Add Replied: header to the message being replied to"
+#: mh/forw.c:34
+msgid "Add Forwarded: header to each forwarded message"
 msgstr ""
 
 #: mh/forw.c:36
 msgid "Build the draft and quit immediately"
 msgstr ""
 
-#: mh/forw.c:38 mh/repl.c:41 mh/send.c:43 mh/whatnow.c:30 mh/whom.c:35
+#: mh/forw.c:38 mh/repl.c:41 mh/send.c:42 mh/whatnow.c:30 mh/whom.c:35
 msgid "Specify the folder for message drafts"
 msgstr ""
 
-#: mh/forw.c:40 mh/repl.c:43 mh/send.c:47 mh/whatnow.c:32 mh/whom.c:39
+#: mh/forw.c:40 mh/repl.c:43 mh/send.c:46 mh/whatnow.c:32 mh/whom.c:39
 msgid "Undo the effect of the last --draftfolder option"
 msgstr ""
 
@@ -3008,7 +3334,7 @@ msgstr "PROG"
 
 #: mh/forw.c:46 mh/repl.c:53 mh/whatnow.c:35
 msgid "Set the editor program to use"
-msgstr ""
+msgstr "Ställ in redigeringsprogram att använda"
 
 #: mh/forw.c:48 mh/repl.c:54 mh/whatnow.c:36
 msgid "Suppress the initial edit"
@@ -3016,7 +3342,7 @@ msgstr ""
 
 #: mh/forw.c:50
 msgid "Format messages"
-msgstr ""
+msgstr "Formatera meddelanden"
 
 #: mh/forw.c:52
 msgid "Undo the effect of the last --format option"
@@ -3034,9 +3360,9 @@ msgstr ""
 msgid "Use MIME encapsulation"
 msgstr ""
 
-#: mh/forw.c:65 mh/inc.c:51 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:51
+#: mh/forw.c:65 mh/inc.c:52 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:52
 msgid "Set output width"
-msgstr ""
+msgstr "Ställ in bredd på utdata"
 
 #: mh/forw.c:67 mh/repl.c:67
 msgid "* Set the replacement for whatnow program"
@@ -3050,93 +3376,83 @@ msgstr ""
 msgid "Use draft file preserved after the last session"
 msgstr ""
 
-#: mh/forw.c:147 mh/inc.c:137 mh/mhl.c:115 mh/repl.c:203 mh/scan.c:124
+#: mh/forw.c:162 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:214 mh/scan.c:125
 msgid "Invalid width"
 msgstr "Ogiltig bredd"
 
-#: mh/forw.c:196 mh/repl.c:239 mh/scan.c:138
+#: mh/forw.c:210 mh/repl.c:249 mh/scan.c:139
 msgid "Option is not yet implemented"
 msgstr "Flagga ännu inte implementerad"
 
-#: mh/forw.c:285 mh/mh_init.c:536
+#: mh/forw.c:344 mh/mh_init.c:560
 #, c-format
 msgid "Cannot open output file `%s': %s"
 msgstr "Kan inte öppna fil för utdata \"%s\": %s"
 
-#: mh/forw.c:326
+#: mh/forw.c:393
 msgid "Forwarded message\n"
 msgstr "Vidarebefodrat meddelande\n"
 
-#: mh/forw.c:331
+#: mh/forw.c:398
 msgid "Forwarded messages\n"
 msgstr "Vidarebefodrade meddelanden\n"
 
-#: mh/forw.c:343
+#: mh/forw.c:410
 msgid "End of Forwarded message"
 msgstr "Slut på vidarebefodrat meddelande"
 
-#: mh/forw.c:345
+#: mh/forw.c:412
 msgid "End of Forwarded messages"
 msgstr "Slut på vidarebefodrade meddelanden"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/inc.c:26
+#: mh/inc.c:27
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH incAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/inc.c:28 mh/rmf.c:37
+#: mh/inc.c:29 mh/rmf.c:37
 msgid "[+folder]"
 msgstr "[+mapp]"
 
-#: mh/inc.c:33
+#: mh/inc.c:34
 msgid "Incorporate mail from named file"
 msgstr ""
 
-#: mh/inc.c:35
+#: mh/inc.c:36
 msgid "Specify folder to incorporate mail to"
 msgstr ""
 
-#: mh/inc.c:37
+#: mh/inc.c:38
 msgid "Enable audit"
 msgstr ""
 
-#: mh/inc.c:39
+#: mh/inc.c:40
 msgid "Disable audit"
 msgstr ""
 
-#: mh/inc.c:41
+#: mh/inc.c:42
 msgid "Mark first incorporated message as current (default)"
 msgstr ""
 
-#: mh/inc.c:48
+#: mh/inc.c:49
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr ""
 
-#: mh/inc.c:53 mh/mhn.c:88
+#: mh/inc.c:54 mh/mhn.c:88
 msgid "Be quiet"
 msgstr "Var tyst"
 
-#: mh/inc.c:200
+#: mh/inc.c:201
 msgid "Cannot create default mailbox"
-msgstr ""
+msgstr "Kan inte skapa standardpostlåda"
 
-#: mh/inc.c:226
-#, c-format
-msgid "Cannot read input mailbox: %s"
-msgstr ""
-
-#: mh/inc.c:233
+#: mh/inc.c:234
 #, c-format
 msgid "Cannot read output mailbox: %s"
 msgstr ""
 
-#: mh/inc.c:254
-#, c-format
-msgid "%d: cannot get message: %s"
-msgstr "%d: kan inte hämta meddelande: %s"
-
-#: mh/inc.c:261
+#: mh/inc.c:262
 #, c-format
 msgid "%d: error appending message: %s"
 msgstr ""
@@ -3145,7 +3461,7 @@ msgstr ""
 #. in this message
 #: mh/install-mh.c:24
 msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH install-mhAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/install-mh.c:30
 msgid "Do not ask for anything"
@@ -3155,7 +3471,7 @@ msgstr "Fråga inte efter något"
 #. in this message
 #: mh/mark.c:24
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH markAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/mark.c:33
 msgid "Specify sequence name to operate upon"
@@ -3197,11 +3513,11 @@ msgstr "--add kräver åtminstone ett \"--sequence\"-argument"
 msgid "--delete requires at least one --sequence argument"
 msgstr "--delete kräver åtminstone ett \"--sequence\"-argument"
 
-#: mh/mh_argp.c:176
+#: mh/mh_argp.c:173
 msgid "Extra arguments"
 msgstr "Extra argument"
 
-#: mh/mh_argp.c:186
+#: mh/mh_argp.c:183
 #, c-format
 msgid ""
 "This is %s\n"
@@ -3210,19 +3526,19 @@ msgstr ""
 "Detta är %s\n"
 "\n"
 
-#: mh/mh_ctx.c:92
+#: mh/mh_ctx.c:146
 #, c-format
 msgid "Cannot open context file %s: %s"
-msgstr ""
+msgstr "Kan inte öppna sammanhangsfil %s: %s"
 
-#: mh/mh_ctx.c:142
+#: mh/mh_ctx.c:196
 #, c-format
 msgid "Cannot create context %s: %s"
-msgstr "Kan inte skapa kontext %s: %s"
+msgstr "Kan inte skapa sammanhang %s: %s"
 
 #: mh/mh_fmtgram.y:102
 msgid "INTERNAL ERROR: unexpected item type (please report)"
-msgstr ""
+msgstr "INTERNT FEL: oväntad objekttyp (vänligen rapportera)"
 
 #: mh/mh_fmtgram.y:208
 msgid "undefined function"
@@ -3230,7 +3546,7 @@ msgstr "ej definierad funktion"
 
 #: mh/mh_fmtgram.y:634
 msgid "INTERNAL ERROR: unknown argtype (please report)"
-msgstr ""
+msgstr "INTERNT FEL: okänd argumenttyp (vänligen rapportera)"
 
 #: mh/mh_fmtgram.y:640
 #, c-format
@@ -3242,24 +3558,24 @@ msgstr "Argument saknas för %s"
 msgid "Extra arguments to %s"
 msgstr "Extra argument till %s"
 
-#: mh/mh_format.c:603
+#: mh/mh_format.c:604
 #, c-format
 msgid "INTERNAL ERROR: Unknown opcode: %x"
 msgstr ""
 
 #. TRANSLATORS: Do not translate the word 'format'!
-#: mh/mh_format.c:946 mh/mh_format.c:958
+#: mh/mh_format.c:947 mh/mh_format.c:959
 msgid "format: divide by zero"
 msgstr ""
 
-#: mh/mh_format.c:1874
+#: mh/mh_format.c:1876
 msgid "Invalid recipient mask"
 msgstr ""
 
 #: mh/mh_getopt.c:124
 #, c-format
 msgid "Compatibility syntax:\n"
-msgstr ""
+msgstr "Syntax för kompatibilitet:\n"
 
 #: mh/mh_getopt.c:125
 #, c-format
@@ -3269,7 +3585,7 @@ msgstr "%s [växlar] %s\n"
 #: mh/mh_getopt.c:126
 #, c-format
 msgid "  switches are:\n"
-msgstr ""
+msgstr "  växlar är:\n"
 
 #: mh/mh_getopt.c:148
 #, c-format
@@ -3279,73 +3595,73 @@ msgid ""
 "Run %s --help for more info on these.\n"
 msgstr ""
 
-#: mh/mh_init.c:69
+#: mh/mh_init.c:71
 #, c-format
 msgid "Cannot stat format file %s: %s"
 msgstr ""
 
-#: mh/mh_init.c:76
+#: mh/mh_init.c:78
 #, c-format
 msgid "Cannot open format file %s: %s"
 msgstr "Kan inte öppna formatfil %s: %s"
 
-#: mh/mh_init.c:206
+#: mh/mh_init.c:232
 #, c-format
 msgid "Create folder \"%s\""
 msgstr "Skapa mapp \"%s\""
 
-#: mh/mh_init.c:214
+#: mh/mh_init.c:240
 #, c-format
 msgid "Cannot create directory %s: %s"
 msgstr "Kan inte skapa katalog %s: %s"
 
 #. TRANSLATORS: See msgids "nN" and "yY".
-#: mh/mh_init.c:267
+#: mh/mh_init.c:293
 #, c-format
 msgid "Please answer yes or no: "
 msgstr "Vänligen svara ja eller nej: "
 
-#: mh/mh_init.c:326
+#: mh/mh_init.c:352
 #, c-format
 msgid "Cannot open audit file %s: %s"
 msgstr ""
 
-#: mh/mh_init.c:457 mh/mh_msgset.c:165
+#: mh/mh_init.c:481 mh/mh_msgset.c:164
 #, c-format
 msgid "Cannot get message %d: %s"
 msgstr "Kan inte hämta meddelande %d: %s"
 
-#: mh/mh_init.c:475
+#: mh/mh_init.c:499
 #, c-format
 msgid "Cannot split line %s"
-msgstr ""
+msgstr "Kan inte dela rad %s"
 
-#: mh/mh_init.c:527
+#: mh/mh_init.c:551
 #, c-format
 msgid "Cannot open input file `%s': %s"
 msgstr "kan inte öppna infil \"%s\": %s"
 
-#: mh/mh_init.c:550
+#: mh/mh_init.c:574
 #, c-format
 msgid "Write error on `%s': %s"
 msgstr "Skrivfel på \"%s\": %s"
 
-#: mh/mh_init.c:579
+#: mh/mh_init.c:603
 #, c-format
 msgid "Cannot stat file %s: %s"
 msgstr "Kan inte läsa status på fil %s: %s"
 
-#: mh/mh_init.c:585 mh/mhn.c:2231
+#: mh/mh_init.c:609 mh/mhn.c:2267
 #, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr ""
 
-#: mh/mh_init.c:592 mh/mhn.c:2238
+#: mh/mh_init.c:616 mh/mhn.c:2274
 #, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr ""
 
-#: mh/mh_init.c:605
+#: mh/mh_init.c:629
 #, c-format
 msgid ""
 "Prior to using MH, it is necessary to have a file in your login\n"
@@ -3355,44 +3671,59 @@ msgid ""
 "path for you is %s...\n"
 msgstr ""
 
-#: mh/mh_init.c:628
+#: mh/mh_init.c:652
 msgid "Do you need help"
 msgstr "Behöver du hjälp"
 
-#: mh/mh_init.c:631
+#: mh/mh_init.c:655
 #, c-format
 msgid "Do you want the standard MH path \"%s\""
 msgstr ""
 
-#: mh/mh_init.c:636
+#: mh/mh_init.c:660
 msgid "Do you want a path below your login directory"
 msgstr ""
 
-#: mh/mh_init.c:638
+#: mh/mh_init.c:662
 #, c-format
 msgid "What is the path? "
 msgstr "Vad är sökvägen? "
 
-#: mh/mh_init.c:640
+#: mh/mh_init.c:664
 #, c-format
 msgid "What is the full path? "
 msgstr "Vad är hela sökvägen? "
 
-#: mh/mh_init.c:699
+#: mh/mh_init.c:723
 #, c-format
 msgid "I'm going to create the standard MH path for you.\n"
 msgstr ""
 
-#: mh/mh_init.c:710
+#: mh/mh_init.c:734
 msgid "You already have an MH profile, use an editor to modify it"
 msgstr ""
 
-#: mh/mh_init.c:715
+#: mh/mh_init.c:739
 #, c-format
 msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
 "Please remove it and try again"
 msgstr ""
+"Du har redan fil %s som inte är en vanlig fil eller en symbolisk länk.\n"
+"Vänligen ta bort den och försök igen"
+
+#: mh/mh_init.c:942
+msgid "Cannot obtain sequence number for the new message"
+msgstr "Kan inte hämta sekvensnummer för det nya meddelandet"
+
+#: mh/mh_init.c:954
+#, c-format
+msgid "Invalid message number: %s"
+msgstr "Ogiltigt meddelandenummer: %s"
+
+#: mh/mh_init.c:956 mh/repl.c:396
+msgid "only one message at a time!"
+msgstr "endast ett meddelande åt gången!"
 
 #: mh/mh_list.c:139
 #, c-format
@@ -3450,17 +3781,17 @@ msgstr "inget föreg meddelande"
 msgid "no next message"
 msgstr "inget nästa meddelande"
 
-#: mh/mh_msgset.c:335
+#: mh/mh_msgset.c:333
 #, c-format
 msgid "message set %s does not exist"
 msgstr ""
 
-#: mh/mh_msgset.c:352
+#: mh/mh_msgset.c:350
 #, c-format
 msgid "message %d does not exist"
 msgstr "meddelande %d existerar inte"
 
-#: mh/mh_msgset.c:378 mh/mh_msgset.c:412
+#: mh/mh_msgset.c:376 mh/mh_msgset.c:410
 #, c-format
 msgid "no messages in range %s"
 msgstr "inga meddelanden i omfånget %s"
@@ -3478,88 +3809,98 @@ msgstr "VÄXLAR"
 msgid "EDITOR"
 msgstr "REDIGERARE"
 
-#: mh/mh_whatnow.c:298
+#: mh/mh_whatnow.c:226
+#, c-format
+msgid "Command `%s' exited with status %d"
+msgstr "Kommandot \"%s\" avslutade med status %d"
+
+#: mh/mh_whatnow.c:233
+#, c-format
+msgid "Command `%s' terminated on signal %d"
+msgstr "Kommandot \"%s\" avslutade på signal: %d"
+
+#: mh/mh_whatnow.c:236
+#, c-format
+msgid "Command `%s' terminated abnormally"
+msgstr "Kommandot \"%s\" avslutades onormalt"
+
+#: mh/mh_whatnow.c:374
 msgid "no alternate message to display"
-msgstr ""
+msgstr "inget alternativt meddelande att visa"
 
-#: mh/mh_whatnow.c:323 mh/mh_whatnow.c:381
+#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:456
 msgid "no draft file to display"
-msgstr ""
+msgstr "ingen utdragsfil att visa"
 
-#: mh/mh_whatnow.c:350
+#: mh/mh_whatnow.c:425
 #, c-format
 msgid "draft left on \"%s\".\n"
-msgstr ""
+msgstr "utdrag kvar på \"%s\".\n"
 
-#: mh/mh_whatnow.c:392
+#: mh/mh_whatnow.c:467
 msgid "List the message being distributed/replied-to on the terminal."
 msgstr ""
 
-#: mh/mh_whatnow.c:394
+#: mh/mh_whatnow.c:469
 msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
 msgstr ""
 
-#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:428 mh/mh_whatnow.c:518
+#: mh/mh_whatnow.c:473 mh/mh_whatnow.c:503 mh/mh_whatnow.c:593
 msgid "List the draft on the terminal."
 msgstr ""
 
-#: mh/mh_whatnow.c:400
+#: mh/mh_whatnow.c:475
 msgid "Send the message in the background."
 msgstr ""
 
-#: mh/mh_whatnow.c:402
+#: mh/mh_whatnow.c:477
 msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr ""
 
-#: mh/mh_whatnow.c:404 mh/mh_whatnow.c:429
+#: mh/mh_whatnow.c:479 mh/mh_whatnow.c:504
 msgid "Refile the draft into the given FOLDER."
 msgstr ""
 
-#: mh/mh_whatnow.c:406
+#: mh/mh_whatnow.c:481
 msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
-msgstr ""
+msgstr "Skicka meddelandet. Flaggan -watch gör att leveransprocessen övervakas. VÄXLAR skickas ordagrant till sändprogrammet."
 
-#: mh/mh_whatnow.c:409
+#: mh/mh_whatnow.c:484
 msgid "List the addresses and verify that they are acceptable to the transport service."
-msgstr ""
+msgstr "Listar adresserna och validerar att de är acceptabla för transporttjänsten."
 
-#: mh/mh_whatnow.c:425
+#: mh/mh_whatnow.c:500
 msgid "Terminate the session. Preserve the draft."
-msgstr ""
+msgstr "Avsluta sessionen. Behåll utdraget."
 
-#: mh/mh_whatnow.c:426
+#: mh/mh_whatnow.c:501
 msgid "Replace the draft with the newly created one"
 msgstr ""
 
-#: mh/mh_whatnow.c:427
+#: mh/mh_whatnow.c:502
 msgid "Use this draft"
-msgstr ""
+msgstr "Använd det här utdraget"
 
-#: mh/mh_whatnow.c:484
+#: mh/mh_whatnow.c:559
 msgid "What now?"
 msgstr "Vad nu?"
 
-#: mh/mh_whatnow.c:508
+#: mh/mh_whatnow.c:583
 msgid "Disposition?"
-msgstr ""
+msgstr "Disposition?"
 
-#: mh/mh_whatnow.c:516
+#: mh/mh_whatnow.c:591
 msgid "Don't use the draft."
-msgstr ""
+msgstr "Använd inte utdraget."
 
-#: mh/mh_whatnow.c:517
+#: mh/mh_whatnow.c:592
 msgid "Use the draft."
-msgstr ""
+msgstr "Använd utdraget."
 
-#: mh/mh_whatnow.c:559
+#: mh/mh_whatnow.c:634
 #, c-format
 msgid "Use \"%s\"?"
 msgstr "Använd \"%s\"?"
-
-#: mh/mh_whom.c:38
-#, c-format
-msgid "Cannot create list: %s"
-msgstr "Kan inte skapa lista: %s"
 
 #: mh/mh_whom.c:107
 #, c-format
@@ -3573,7 +3914,7 @@ msgstr " vid %s"
 
 #: mh/mh_whom.c:228
 msgid "Malformed message"
-msgstr ""
+msgstr "Felformaterat meddelade"
 
 #: mh/mh_whom.c:241
 msgid "-- Local Recipients --"
@@ -3591,7 +3932,7 @@ msgstr "Inga mottagare"
 #. in this message
 #: mh/mhl.c:28
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH mhlAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/mhl.c:30
 msgid "[files]"
@@ -3624,27 +3965,27 @@ msgstr "Ogiltig längd"
 #: mh/mhl.c:168 mh/mhn.c:1465
 #, c-format
 msgid "Cannot create output stream: %s"
-msgstr ""
+msgstr "Kan inte skapa utdataström: %s"
 
 #: mh/mhl.c:174 mh/mhn.c:1471
 #, c-format
 msgid "Cannot open output stream: %s"
-msgstr ""
+msgstr "Kan inte öppna utdataström: %s"
 
 #: mh/mhl.c:193
 #, c-format
 msgid "Cannot create input stream: %s"
-msgstr ""
+msgstr "Kan inte skapa indataström: %s"
 
 #: mh/mhl.c:199
 #, c-format
 msgid "Cannot open input stream: %s"
-msgstr ""
+msgstr "Kan inte öppna indataström: %s"
 
 #: mh/mhl.c:207
 #, c-format
 msgid "Input stream %s is not a message (%s)"
-msgstr ""
+msgstr "Indataström %s är inte ett meddelande (%s)"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -3653,22 +3994,24 @@ msgid ""
 "GNU MH mhnOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH mhnFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/mhn.c:40
 msgid "Specify file to operate upon"
-msgstr ""
+msgstr "Ange fil att operera på"
 
 #: mh/mhn.c:42
 msgid "MIME editing options"
-msgstr ""
+msgstr "Flaggor för MIME-redigering"
 
 #: mh/mhn.c:44
 msgid "Compose the MIME message (default)"
-msgstr ""
+msgstr "Skriv MIME-meddelandet (förval)"
 
 #: mh/mhn.c:47
 msgid "Listing options"
-msgstr ""
+msgstr "Listningsflaggor"
 
 #: mh/mhn.c:49
 msgid "List the table of contents"
@@ -3680,7 +4023,7 @@ msgstr ""
 
 #: mh/mhn.c:55
 msgid "List the decoded sizes"
-msgstr ""
+msgstr "Lista avkodade storlekar"
 
 #: mh/mhn.c:58
 msgid "Display options"
@@ -3688,7 +4031,7 @@ msgstr "Visningsalternativ"
 
 #: mh/mhn.c:60
 msgid "Display the contents of the messages"
-msgstr ""
+msgstr "Visa innehållet av meddelanden"
 
 #: mh/mhn.c:63
 msgid "* Display messages serially"
@@ -3696,11 +4039,11 @@ msgstr ""
 
 #: mh/mhn.c:66
 msgid "Read mhl format from FILE"
-msgstr ""
+msgstr "Läs mhl-format från FIL"
 
 #: mh/mhn.c:68
 msgid "Pause prior to displaying content"
-msgstr ""
+msgstr "Gör paus före visning av innehåll"
 
 #: mh/mhn.c:71
 msgid "Saving options"
@@ -3712,7 +4055,7 @@ msgstr "Lagra innehållet av meddelanden på disk"
 
 #: mh/mhn.c:76
 msgid "Use filenames from the content headers"
-msgstr ""
+msgstr "Använd filnamn från innehållshuvuden"
 
 #: mh/mhn.c:79
 msgid "Other options"
@@ -3732,7 +4075,7 @@ msgstr "INNEHÅLL"
 
 #: mh/mhn.c:83
 msgid "Operate on message part with given multipart content"
-msgstr ""
+msgstr "Operera på meddelandedel med angivet flerdelat innehåll"
 
 #: mh/mhn.c:85
 msgid "Print additional information"
@@ -3743,42 +4086,42 @@ msgstr "Skriv ut ytterligare information"
 msgid "Malformed part specification (near %s)"
 msgstr ""
 
-#: mh/mhn.c:1218
+#: mh/mhn.c:1217
 #, c-format
 msgid " msg part type/subtype              size  description\n"
 msgstr ""
 
-#: mh/mhn.c:1255
+#: mh/mhn.c:1254
 #, c-format
-msgid "%lu: cannot get message body: %s"
-msgstr ""
+msgid "%s: cannot get message body: %s"
+msgstr "%s: kan inte hämta meddelandekropp: %s"
 
-#: mh/mhn.c:1277
+#: mh/mhn.c:1276
 #, c-format
 msgid "Cannot create proc stream (command %s): %s"
 msgstr ""
 
-#: mh/mhn.c:1284
+#: mh/mhn.c:1283
 #, c-format
 msgid "Cannot open proc stream (command %s): %s"
 msgstr ""
 
-#: mh/mhn.c:1325
+#: mh/mhn.c:1324
 #, c-format
 msgid "Cannot parse command line `%s'"
 msgstr "Kan inte tolka kommandorad \"%s\""
 
-#: mh/mhn.c:1332
+#: mh/mhn.c:1331
 #, c-format
 msgid "Cannot create temporary stream (file %s): %s"
-msgstr ""
+msgstr "Kan inte skapa temporärström (fil %s): %s"
 
-#: mh/mhn.c:1340
+#: mh/mhn.c:1339
 #, c-format
 msgid "Cannot open temporary stream (file %s): %s"
-msgstr ""
+msgstr "Kan inte öppna temporärström (fil %s): %s"
 
-#: mh/mhn.c:1388
+#: mh/mhn.c:1387
 msgid "part "
 msgstr "del "
 
@@ -3787,27 +4130,22 @@ msgstr "del "
 msgid "Press <return> to show content..."
 msgstr "Tryck <Return> för att visa innehåll..."
 
-#: mh/mhn.c:1650
+#: mh/mhn.c:1650 mh/mhn.c:1655
 #, c-format
 msgid "storing message %s part %s as file %s\n"
-msgstr ""
-
-#: mh/mhn.c:1655
-#, c-format
-msgid "storing message %lu part %s as file %s\n"
-msgstr ""
+msgstr "lagrar meddelande %s del %s som fil %s\n"
 
 #: mh/mhn.c:1666
 #, c-format
 msgid "File %s already exists. Rewrite"
-msgstr ""
+msgstr "Fil %s existerar redan. Skriv om"
 
-#: mh/mhn.c:1680 mh/mhn.c:2497
+#: mh/mhn.c:1680 mh/mhn.c:2547
 #, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr ""
 
-#: mh/mhn.c:1688 mh/mhn.c:2505
+#: mh/mhn.c:1688 mh/mhn.c:2555
 #, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr ""
@@ -3820,19 +4158,19 @@ msgstr "%s:%lu: saknar %c"
 #: mh/mhn.c:1837
 #, c-format
 msgid "%s:%lu: comment redefined"
-msgstr ""
+msgstr "%s:%lu: kommentar omdefinierad"
 
-#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2115
+#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2151
 #, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu: syntaxfel"
 
-#: mh/mhn.c:1858 mh/mhn.c:2082
+#: mh/mhn.c:1858 mh/mhn.c:2118
 #, c-format
 msgid "%s:%lu: description redefined"
-msgstr ""
+msgstr "%s:%lu: beskrivning omdefinierad"
 
-#: mh/mhn.c:1870 mh/mhn.c:2094
+#: mh/mhn.c:1870 mh/mhn.c:2130
 #, c-format
 msgid "%s:%lu: content id redefined"
 msgstr ""
@@ -3840,29 +4178,29 @@ msgstr ""
 #: mh/mhn.c:1952
 #, c-format
 msgid "%s:%lu: missing subtype"
-msgstr ""
+msgstr "%s:%lu: saknar undertyp"
 
-#: mh/mhn.c:2129
+#: mh/mhn.c:2165
 #, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu: inget sådant meddelande: %lu"
 
-#: mh/mhn.c:2220
+#: mh/mhn.c:2256
 #, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu: saknas filnamn"
 
-#: mh/mhn.c:2276
+#: mh/mhn.c:2312
 #, c-format
 msgid "Cannot open filter stream: %s"
-msgstr ""
+msgstr "Kan inte öppna filterström: %s"
 
-#: mh/mhn.c:2397
+#: mh/mhn.c:2445
 #, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr ""
 
-#: mh/mhn.c:2551 mh/mhn.c:2562
+#: mh/mhn.c:2601 mh/mhn.c:2612
 msgid "extra arguments"
 msgstr "extra argument"
 
@@ -3870,9 +4208,9 @@ msgstr "extra argument"
 #. in this message
 #: mh/mhpath.c:26
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH mhpathAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:35
+#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:36
 msgid "[+folder] [msgs]"
 msgstr ""
 
@@ -3883,6 +4221,8 @@ msgid ""
 "GNU MH pickOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH pickFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/pick.c:35
 msgid "[messages]"
@@ -3938,27 +4278,27 @@ msgstr "DATUM"
 
 #: mh/pick.c:65
 msgid "Match messages after the given date"
-msgstr ""
+msgstr "Matcha meddelanden efter angivet datum"
 
 #: mh/pick.c:67
 msgid "Match messages before the given date"
-msgstr ""
+msgstr "Matcha meddelanden före angivet datum"
 
 #: mh/pick.c:69
 msgid "Logical operations and grouping:"
-msgstr ""
+msgstr "Logiska åtgärder och gruppering:"
 
 #: mh/pick.c:71
 msgid "Logical AND (default)"
-msgstr ""
+msgstr "Logisk AND (standard)"
 
 #: mh/pick.c:73
 msgid "Logical OR"
-msgstr ""
+msgstr "Logisk OR"
 
 #: mh/pick.c:75
 msgid "Logical NOT"
-msgstr ""
+msgstr "Logisk NOT"
 
 #: mh/pick.c:77
 msgid "Open group"
@@ -3970,11 +4310,11 @@ msgstr "Stäng grupp"
 
 #: mh/pick.c:83
 msgid "Operations over the selected messages:"
-msgstr ""
+msgstr "Åtgärder på de valda meddelandena:"
 
 #: mh/pick.c:85
 msgid "List the numbers of the selected messages (default)"
-msgstr ""
+msgstr "Listar antalet valda meddelanden (standard)"
 
 #: mh/pick.c:88
 msgid "Add matching messages to the given sequence"
@@ -3992,6 +4332,8 @@ msgid ""
 "GNU MH refileOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH refileFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/refile.c:34
 msgid "messages folder [folder...]"
@@ -4011,11 +4353,11 @@ msgstr ""
 
 #: mh/refile.c:48
 msgid "Specify source folder. FOLDER will become the current folder after the program exits"
-msgstr ""
+msgstr "Ange källmapp. MAPP kommer att bli aktuell mapp efter att programmet avslutat"
 
 #: mh/refile.c:50
 msgid "Use FILE as the source message"
-msgstr ""
+msgstr "Använd FIL som källmeddelandet"
 
 #: mh/refile.c:77 mh/refile.c:96
 msgid "Cannot create folder list"
@@ -4027,7 +4369,7 @@ msgstr "Ingen mapp angiven"
 
 #: mh/refile.c:102 mh/refile.c:127
 msgid "Cannot create iterator"
-msgstr ""
+msgstr "Kan inte skapa iterator"
 
 #: mh/refile.c:201
 #, c-format
@@ -4045,14 +4387,20 @@ msgid ""
 "GNU MH replOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH replFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/repl.c:31
 msgid "[+folder] [msg]"
 msgstr ""
 
+#: mh/repl.c:37
+msgid "Add Replied: header to the message being replied to"
+msgstr ""
+
 #: mh/repl.c:39
 msgid "Build the draft and quit immediately."
-msgstr ""
+msgstr "Bygg utdraget och avsluta omedelbart."
 
 #: mh/repl.c:47
 msgid "Specify whom to place on the Cc: list of the reply"
@@ -4064,7 +4412,7 @@ msgstr ""
 
 #: mh/repl.c:52
 msgid "Construct a group or followup reply"
-msgstr ""
+msgstr "Konstruera ett grupp- eller uppföljningssvar"
 
 #: mh/repl.c:55
 msgid "* Set the folder to receive Fcc's"
@@ -4072,7 +4420,7 @@ msgstr ""
 
 #: mh/repl.c:56
 msgid "MHL-FILTER"
-msgstr ""
+msgstr "MHL-FILTER"
 
 #: mh/repl.c:57
 msgid "Set the mhl filter to preprocess the body of the message being replied"
@@ -4090,42 +4438,38 @@ msgstr ""
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
 msgstr ""
 
-#: mh/repl.c:131
+#: mh/repl.c:133
 #, c-format
 msgid "%s %s is unknown"
 msgstr "%s %s är okänd"
 
-#: mh/repl.c:271
+#: mh/repl.c:281
 #, c-format
-msgid "Draft \"%s\" exists (%lu byte).\n"
-msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
-msgstr[0] ""
-msgstr[1] ""
+msgid "Draft \"%s\" exists (%s byte).\n"
+msgid_plural "Draft \"%s\" exists (%s bytes).\n"
+msgstr[0] "Utdraget \"%s\" existerar (%s byte).\n"
+msgstr[1] "Utdraget \"%s\" existerar (%s byte).\n"
 
-#: mh/repl.c:298 movemail/movemail.c:214
+#: mh/repl.c:305
 #, c-format
-msgid "Cannot read message %lu: %s"
-msgstr "Kan inte läsa meddelande %lu: %s"
+msgid "Cannot read message %s: %s"
+msgstr "Kan inte läsa meddelandet %s: %s"
 
-#: mh/repl.c:313
+#: mh/repl.c:326
 #, c-format
 msgid "Cannot create draft file stream %s: %s"
 msgstr ""
 
-#: mh/repl.c:320
+#: mh/repl.c:333
 #, c-format
 msgid "Cannot open draft file %s: %s"
 msgstr ""
-
-#: mh/repl.c:385
-msgid "only one message at a time!"
-msgstr "endast ett meddelande åt gången!"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/rmf.c:35
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH rmfAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/rmf.c:42
 msgid "Specify the folder to delete"
@@ -4133,11 +4477,11 @@ msgstr "Ange mapp att ta bort"
 
 #: mh/rmf.c:44
 msgid "Interactive mode: ask for confirmation before removing each folder"
-msgstr ""
+msgstr "Interaktivt läge: fråga efter bekräftelse före borttagning av varje mapp"
 
 #: mh/rmf.c:47
 msgid "Recursively delete all subfolders"
-msgstr ""
+msgstr "Ta rekursivt bort alla undermappar"
 
 #: mh/rmf.c:132
 #, c-format
@@ -4147,46 +4491,46 @@ msgstr "Ta bort mapp %s"
 #: mh/rmf.c:164
 #, c-format
 msgid "Cannot unlink %s: %s"
-msgstr ""
+msgstr "Kan inte avlänka %s: %s"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/rmm.c:26
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH rmmAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: mh/scan.c:33
+#: mh/scan.c:34
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH scanAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
-#: mh/scan.c:40
+#: mh/scan.c:41
 msgid "Specify folder to scan"
-msgstr ""
+msgstr "Ange mapp att söka av"
 
-#: mh/scan.c:42
+#: mh/scan.c:43
 msgid "Clear screen after displaying the list"
-msgstr ""
+msgstr "Rensa skärmen efter visning av listan"
 
-#: mh/scan.c:49
+#: mh/scan.c:50
 msgid "Display header"
-msgstr ""
+msgstr "Visa huvud"
 
-#: mh/scan.c:53
+#: mh/scan.c:54
 msgid "List messages in reverse order"
 msgstr "Lista meddelanden i omvänd ordning"
 
-#: mh/scan.c:56
+#: mh/scan.c:57
 msgid "[Not yet implemented]"
 msgstr "[Ännu inte implementerad]"
 
-#: mh/scan.c:228
+#: mh/scan.c:229
 #, c-format
 msgid "no messages in %s"
 msgstr "inga meddelanden i %s"
 
-#: mh/scan.c:249
+#: mh/scan.c:250
 #, c-format
 msgid "Folder %s  %s\n"
 msgstr "Mapp %s  %s\n"
@@ -4198,123 +4542,131 @@ msgid ""
 "GNU MH sendOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH sendFlaggor märkta med \"*\" är ännu inte implementerade.\n"
+"Använd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/send.c:33
 msgid "file [file...]"
 msgstr "fil [fil...]"
 
-#: mh/send.c:39 mh/whom.c:31
+#: mh/send.c:38 mh/whom.c:31
 msgid "Specify additional alias file"
 msgstr ""
 
-#: mh/send.c:41 mh/whom.c:33
+#: mh/send.c:40 mh/whom.c:33
 msgid "Use prepared draft"
-msgstr ""
+msgstr "Använd förberett utdrag"
 
-#: mh/send.c:45 mh/whom.c:37
+#: mh/send.c:44 mh/whom.c:37
 msgid "Treat the arguments as a list of messages from the draftfolder"
 msgstr ""
 
-#: mh/send.c:49
+#: mh/send.c:48
 msgid "* Use filter FILE to preprocess the body of the message"
-msgstr ""
+msgstr "* Använd filtret FIL för att förbehandla meddelandekroppen"
 
-#: mh/send.c:51
+#: mh/send.c:50
 msgid "* Undo the effect of the last --filter option"
 msgstr ""
 
-#: mh/send.c:53
+#: mh/send.c:52
 msgid "* Reformat To: and Cc: addresses"
-msgstr ""
+msgstr "* Formatera om Till: och Cc:-adresser"
 
-#: mh/send.c:56
+#: mh/send.c:55
 msgid "* In case of failure forward the draft along with the failure notice to the sender"
 msgstr ""
 
-#: mh/send.c:59
+#: mh/send.c:58
 msgid "* Use MIME encapsulation"
 msgstr ""
 
-#: mh/send.c:62
+#: mh/send.c:61
 msgid "Add Message-ID: field"
 msgstr ""
 
-#: mh/send.c:65
+#: mh/send.c:64
 msgid "Run in the backround."
 msgstr "Kör i bakgrunden."
 
-#: mh/send.c:68
+#: mh/send.c:67
 msgid "* Split the draft into several partial messages and send them with SECONDS interval"
 msgstr ""
 
-#: mh/send.c:70
+#: mh/send.c:69
 msgid "Print the transcript of interactions with the transport system"
 msgstr ""
 
-#: mh/send.c:73
+#: mh/send.c:72
 msgid "Monitor the delivery of mail"
-msgstr ""
+msgstr "Övervaka leveransen av post"
 
-#: mh/send.c:76
+#: mh/send.c:75
 msgid "* Make header fields no longer than NUMBER columns"
 msgstr ""
 
-#: mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135 pop3d/pop3d.c:149
-msgid "Invalid number"
-msgstr "Ogiltigt nummer"
-
-#: mh/send.c:267
+#: mh/send.c:268
 msgid "Cannot create message list"
 msgstr "Kan inte skapa meddelandelista"
 
-#: mh/send.c:302
+#: mh/send.c:299
+#, c-format
+msgid "Cannot get system host name: %s"
+msgstr "Kan inte hämta systemets värdnamn: %s"
+
+#: mh/send.c:316
+#, c-format
+msgid "Cannot set user mail domain: %s"
+msgstr "Kan inte ställa in användarpostdomän: %s"
+
+#: mh/send.c:332
 #, c-format
 msgid "Creating mailer %s"
-msgstr ""
+msgstr "Skapar posthanterare %s"
 
-#: mh/send.c:306
+#: mh/send.c:336
 #, c-format
 msgid "Cannot create mailer `%s'"
-msgstr ""
+msgstr "Kan inte skapa posthanterare \"%s\""
 
-#: mh/send.c:317
+#: mh/send.c:347
 #, c-format
 msgid "Opening mailer %s"
-msgstr ""
+msgstr "Öppnar posthanterare %s"
 
-#: mh/send.c:321
+#: mh/send.c:351
 #, c-format
 msgid "Cannot open mailer `%s'"
-msgstr ""
+msgstr "Kan inte öppna posthanterare \"%s\""
 
-#: mh/send.c:435
+#: mh/send.c:437
 #, c-format
 msgid "Fixed Fcc: %s"
 msgstr ""
 
-#: mh/send.c:449
+#: mh/send.c:451
 msgid "Getting message"
 msgstr "Hämtar meddelande"
 
-#: mh/send.c:489
+#: mh/send.c:502
 msgid "Sending message"
 msgstr "Skickar meddelande"
 
-#: mh/send.c:493
+#: mh/send.c:506
 #, c-format
 msgid "Cannot send message: %s"
 msgstr "Kan inte skicka meddelande: %s"
 
-#: mh/send.c:497
+#: mh/send.c:510
 msgid "Destroying the mailer"
-msgstr ""
+msgstr "Förstör posthanteraren"
 
-#: mh/send.c:521
+#: mh/send.c:534
 #, c-format
 msgid "Cannot switch to background: %s"
-msgstr ""
+msgstr "Kan inte växla till bakgrund: %s"
 
-#: mh/send.c:559
+#: mh/send.c:573
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "kan inte läsa status på %s: %s"
@@ -4325,17 +4677,85 @@ msgstr "[FIL]"
 
 #: mh/whatnow.c:37
 msgid "Set the prompt"
-msgstr ""
+msgstr "Ställ in prompten"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
 #: mh/whom.c:24
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH whomAnvänd -help för att hämta listan av traditionella MH-flaggor."
 
 #: mh/whom.c:41
 msgid "Check if addresses are deliverable"
+msgstr "Kontrollera om adresser är leveringsbara"
+
+#: mimeview/mimetypes.l:150 mimeview/mimeview.c:153
+#, c-format
+msgid "Cannot stat `%s': %s"
+msgstr "Kan inte läsa status på \"%s\": %s"
+
+#: mimeview/mimetypes.y:537
+#, c-format
+msgid "%s: unknown function"
+msgstr "%s: okänd funktion"
+
+#: mimeview/mimetypes.y:609
+#, c-format
+msgid "argument %d has wrong type in call to `%s'"
+msgstr "argument %d har fel typ i anrop till \"%s\""
+
+#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+#. in this message
+#: mimeview/mimeview.c:31
+msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
+msgstr "GNU mimeview -- visa filer, använd mailcap-mekanism.Förvald fil för mime.types är "
+
+#: mimeview/mimeview.c:33
+msgid ""
+"\n"
+"\n"
+"Debug flags are:\n"
+"  g - Mime.types parser traces\n"
+"  l - Mime.types lexical analyzer traces\n"
+"  0-9 - Set debugging level\n"
 msgstr ""
+
+#: mimeview/mimeview.c:41
+msgid "TYPE-LIST"
+msgstr "TYPLISTA"
+
+#: mimeview/mimeview.c:42
+msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
+msgstr ""
+
+#: mimeview/mimeview.c:44
+msgid "Disable interactive mode"
+msgstr "Inaktivera interaktivt läge"
+
+#: mimeview/mimeview.c:49
+msgid "Use this mime.types file"
+msgstr "Använd den här mime.types-filen"
+
+#: mimeview/mimeview.c:51
+msgid "Do not do anything, just print what whould be done"
+msgstr "Gör ingenting, skriv endast ut vad som skulle gjorts"
+
+#: mimeview/mimeview.c:53
+msgid "Use metamail to display files"
+msgstr "Använda metamail för att visa filer"
+
+#: mimeview/mimeview.c:135
+msgid "FILE [FILE ...]"
+msgstr "FIL [FIL ...]"
+
+#: mimeview/mimeview.c:158
+#, c-format
+msgid "Not a regular file or symbolic link: `%s'"
+msgstr "Inte en vanlig fil eller symbolisk länk: \"%s\""
+
+#: mimeview/mimeview.c:250
+msgid "No files given"
+msgstr "Inga filer angivna"
 
 #: movemail/movemail.c:30
 msgid "GNU movemail"
@@ -4347,62 +4767,72 @@ msgstr "inbox-url dest-fil [POP-lösenord]"
 
 #: movemail/movemail.c:36
 msgid "Preserve the source mailbox"
-msgstr ""
+msgstr "Behåll källpostlådan"
 
 #: movemail/movemail.c:38
 msgid "Reverse the sorting order"
-msgstr ""
+msgstr "Omvänd sorteringsordning"
 
-#: movemail/movemail.c:39
+#: movemail/movemail.c:40
 msgid "Output information used by Emacs rmail interface"
 msgstr ""
 
-#: movemail/movemail.c:107
+#: movemail/movemail.c:108
 #, c-format
 msgid "%s:mailbox `%s': %s: %s"
 msgstr "%s:postlåda \"%s\": %s: %s"
 
-#: movemail/movemail.c:113
+#: movemail/movemail.c:114
 #, c-format
 msgid "mailbox `%s': %s: %s"
 msgstr "postlåda \"%s\": %s: %s"
 
-#: movemail/movemail.c:126
+#: movemail/movemail.c:127
 msgid "Cannot retrieve locker"
-msgstr ""
+msgstr "Kan inte hämta låsaren"
 
-#: movemail/movemail.c:135
+#: movemail/movemail.c:136
 msgid "Cannot lock"
 msgstr "Kan inte låsa"
 
-#: movemail/movemail.c:169
-msgid "mailbox_get_folder failed"
-msgstr ""
+#: movemail/movemail.c:170
+msgid "mu_mailbox_get_folder failed"
+msgstr "mu_mailbox_get_folder misslyckades"
 
-#: movemail/movemail.c:172
-msgid "folder_get_authority failed"
-msgstr ""
+#: movemail/movemail.c:173
+msgid "mu_folder_get_authority failed"
+msgstr "mu_folder_get_authority misslyckades"
 
-#: movemail/movemail.c:175
-msgid "authority_set_ticket failed"
-msgstr ""
+#: movemail/movemail.c:176
+msgid "mu_authority_set_ticket failed"
+msgstr "mu_authority_set_ticket misslyckades"
 
-#: movemail/movemail.c:202
+#: movemail/movemail.c:203
 msgid "Cannot open"
 msgstr "Kan inte öppna"
 
-#: movemail/movemail.c:220
+#: movemail/movemail.c:215
 #, c-format
-msgid "Cannot append message %lu: %s"
+msgid "Cannot read message %lu: %s\n"
+msgstr "Kan inte läsa meddelande %lu: %s\n"
+
+#: movemail/movemail.c:221
+#, c-format
+msgid "Cannot append message %lu: %s\n"
 msgstr ""
 
-#: movemail/movemail.c:251
+#: movemail/movemail.c:252
 msgid "Hostname of the POP3 server is unknown"
 msgstr "Värdnamn för POP3-servern är okänt"
 
-#: movemail/movemail.c:289
+#: movemail/movemail.c:298
 msgid "Wrong number of arguments"
 msgstr "Fel antal argument"
+
+#: movemail/movemail.c:334
+#, c-format
+msgid "Cannot close destination mailbox: %s"
+msgstr "Kan inte stänga destionationspostlåda: %s"
 
 #: pop3d/apop.c:57
 msgid "Bad permissions on APOP password db"
@@ -4411,7 +4841,7 @@ msgstr ""
 #: pop3d/apop.c:59
 #, c-format
 msgid "Unable to open APOP db: %s"
-msgstr ""
+msgstr "Kunde inte öppna APOP-databas: %s"
 
 #: pop3d/apop.c:77
 #, c-format
@@ -4420,12 +4850,12 @@ msgstr "Kan inte hämta APOP-data: %s"
 
 #: pop3d/apop.c:95
 msgid "Bad permissions on APOP password file"
-msgstr ""
+msgstr "Felaktig rättigheter på APOP:s lösenordsfil"
 
 #: pop3d/apop.c:102
 #, c-format
 msgid "Unable to open APOP password file %s"
-msgstr ""
+msgstr "Kunde inte öppna APOPs lösenordsfil %s"
 
 #: pop3d/apop.c:166
 #, c-format
@@ -4444,8 +4874,8 @@ msgstr "APOP misslyckades för \"%s\""
 
 #: pop3d/apop.c:214
 #, c-format
-msgid "Cannot change to uid %lu: %m"
-msgstr "Kan inte ändra till uid %lu: %m"
+msgid "Cannot change to uid %s: %m"
+msgstr "Kan inte byta till uid %s: %m"
 
 #: pop3d/apop.c:270
 #, c-format
@@ -4487,11 +4917,11 @@ msgstr "GNU pop3d -- POP3-demonen"
 
 #: pop3d/pop3d.c:75
 msgid "Undelete all messages on startup"
-msgstr ""
+msgstr "Återställ alla meddelanden vid uppstart"
 
 #: pop3d/pop3d.c:78
 msgid "Allowed delay between the two successive logins"
-msgstr ""
+msgstr "Tillåten fördröjning mellan två lyckade inloggningar"
 
 #: pop3d/pop3d.c:79
 msgid "FILENAME"
@@ -4536,153 +4966,156 @@ msgstr "GNU pop3d startad"
 
 #: pop3d/pop3d.c:531
 #, c-format
-msgid "too many children (%lu)"
-msgstr "för många barnprocesser (%lu)"
+msgid "too many children (%s)"
+msgstr "för många barnprocesser (%s)"
 
 #: pop3d/popauth.c:58
 msgid "GNU popauth -- manage pop3 authentication database"
 msgstr "GNU popauth -- databas för att hantera pop3-autentisering"
 
-#: pop3d/popauth.c:70
+#: pop3d/popauth.c:69
 msgid "Add user"
 msgstr "Lägg till användare"
 
-#: pop3d/popauth.c:71
+#: pop3d/popauth.c:70
 msgid "Modify user's record (change password)"
 msgstr ""
 
-#: pop3d/popauth.c:72
+#: pop3d/popauth.c:71
 msgid "Delete user's record"
 msgstr ""
 
-#: pop3d/popauth.c:73
+#: pop3d/popauth.c:72
 msgid "List the contents of DBM file"
-msgstr ""
+msgstr "Lista DBM-filens innehåll"
 
-#: pop3d/popauth.c:74
+#: pop3d/popauth.c:73
 msgid "Create the DBM from a plaintext file"
-msgstr ""
+msgstr "Skapa DBM från en vanlig textfil"
 
-#: pop3d/popauth.c:77
+#: pop3d/popauth.c:76
 msgid ""
 "Default action is:\n"
 "  For the file owner: --list\n"
 "  For a user: --modify --username <username>\n"
 msgstr ""
+"Förvald åtgärd är:\n"
+"  För filägaren: --list\n"
+"  För en användare: --modify --username <användarnamn>\n"
+
+#: pop3d/popauth.c:81
+msgid "Read input from FILE (default stdin)"
+msgstr "Läs inmatning från FIL (standard är standard in)"
 
 #: pop3d/popauth.c:82
-msgid "Read input from FILE (default stdin)"
-msgstr ""
-
-#: pop3d/popauth.c:83
 msgid "Direct output to file"
 msgstr "Dirigera utdata till fil"
 
-#: pop3d/popauth.c:84
+#: pop3d/popauth.c:83
 msgid "Specify user's password"
 msgstr "Ange användarens lösenord"
 
-#: pop3d/popauth.c:85
+#: pop3d/popauth.c:84
 msgid "USERNAME"
 msgstr "ANVÄNDARNAMN"
 
-#: pop3d/popauth.c:85
+#: pop3d/popauth.c:84
 msgid "Specify user name"
 msgstr "Ange användarnamn"
 
-#: pop3d/popauth.c:86
+#: pop3d/popauth.c:85
 msgid "PERM"
-msgstr ""
+msgstr "RÄTT"
 
-#: pop3d/popauth.c:86
+#: pop3d/popauth.c:85
 msgid "Force given permissions on the database"
 msgstr "Tvinga angivna rättigheter på databasen"
 
-#: pop3d/popauth.c:116
+#: pop3d/popauth.c:115
 #, c-format
 msgid "Invalid octal number: %s"
 msgstr "Ogiltigt oktalt nummer: %s"
 
-#: pop3d/popauth.c:216
+#: pop3d/popauth.c:215
 msgid "You may not specify more than one `-aldp' option"
-msgstr ""
+msgstr "Du får inte ange mer än en \"-aldp\"-flagga"
 
-#: pop3d/popauth.c:238 pop3d/popauth.c:294 pop3d/popauth.c:370
+#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:369
 #, c-format
 msgid "Cannot create %s: %s"
 msgstr "Kan inte skapa %s: %s"
 
-#: pop3d/popauth.c:258
+#: pop3d/popauth.c:257
 msgid "Only the file owner can use --username"
 msgstr "Endast filägaren kan använda --username"
 
-#: pop3d/popauth.c:264
+#: pop3d/popauth.c:263
 msgid "Operation not allowed"
-msgstr "Operation tillåts inte"
+msgstr "Åtgärden tillåts inte"
 
-#: pop3d/popauth.c:400
+#: pop3d/popauth.c:399
 #, c-format
 msgid "%s:%d: malformed line"
-msgstr ""
+msgstr "%s:%d: felformaterad rad"
 
-#: pop3d/popauth.c:413
+#: pop3d/popauth.c:412
 #, c-format
 msgid "%s:%d: cannot store datum"
 msgstr ""
 
-#: pop3d/popauth.c:446
+#: pop3d/popauth.c:445
 msgid "Password:"
 msgstr "Lösenord:"
 
 #. TRANSLATORS: Please try to format this string so that it has
 #. the same length as the translation of 'Password:' above
-#: pop3d/popauth.c:452
+#: pop3d/popauth.c:451
 msgid "Confirm :"
 msgstr "Bekräfta :"
 
-#: pop3d/popauth.c:455
+#: pop3d/popauth.c:454
 msgid "Passwords differ. Please retry."
 msgstr "Lösenorden skiljer sig. Försök igen."
 
-#: pop3d/popauth.c:470
+#: pop3d/popauth.c:469
 msgid "Missing username to add"
 msgstr "Saknar användarnamn att lägga till"
 
-#: pop3d/popauth.c:488
+#: pop3d/popauth.c:487
 msgid "Cannot store datum"
 msgstr ""
 
-#: pop3d/popauth.c:503
+#: pop3d/popauth.c:502
 msgid "Missing username to delete"
 msgstr "Saknar användarnamn att ta bort"
 
-#: pop3d/popauth.c:515
+#: pop3d/popauth.c:514
 #, c-format
 msgid "Cannot remove record for %s"
-msgstr ""
+msgstr "Kan inte ta bort post för %s"
 
-#: pop3d/popauth.c:535
+#: pop3d/popauth.c:534
 msgid "Missing username"
 msgstr "Saknar användarnamn"
 
-#: pop3d/popauth.c:557
+#: pop3d/popauth.c:556
 msgid "Old Password:"
 msgstr "Gammalt lösenord:"
 
-#: pop3d/popauth.c:562
+#: pop3d/popauth.c:561
 msgid "Sorry"
 msgstr "Tyvärr"
 
-#: pop3d/popauth.c:573
+#: pop3d/popauth.c:572
 msgid "Cannot replace datum"
 msgstr ""
 
-#: pop3d/popauth.c:592
+#: pop3d/popauth.c:591
 #, c-format
 msgid "Database format: %s\n"
 msgstr "Databasformat: %s\n"
 
-#: pop3d/popauth.c:593
+#: pop3d/popauth.c:592
 #, c-format
 msgid "Database location: %s\n"
 msgstr "Databasplats: %s\n"
@@ -4714,69 +5147,69 @@ msgstr ""
 #: pop3d/user.c:107
 #, c-format
 msgid "User `%s' tried to log in within the minimum allowed delay"
-msgstr ""
+msgstr "Användare \"%s\" försökte att logga in inom minsta tillåtna fördröjning"
 
 #: pop3d/user.c:169
 #, c-format
-msgid "User `%s' logged in with mailbox `%s' (%d message)"
-msgid_plural "User `%s' logged in with mailbox `%s' (%d messages)"
-msgstr[0] ""
-msgstr[1] ""
+msgid "User `%s' logged in with mailbox `%s' (%s message)"
+msgid_plural "User `%s' logged in with mailbox `%s' (%s messages)"
+msgstr[0] "Användaren \"%s\" loggade in med postlåda \"%s\" (%s meddelande)"
+msgstr[1] "Användaren \"%s\" loggade in med postlåda \"%s\" (%s meddelanden)"
 
 #: readmsg/readmsg.c:34
 msgid "GNU readmsg -- print messages"
 msgstr "GNU readmsg -- skriv ut meddelanden"
 
-#: readmsg/readmsg.c:40
+#: readmsg/readmsg.c:39
 msgid "Display debugging information"
 msgstr "Visa felsökningsinformation"
 
-#: readmsg/readmsg.c:41
+#: readmsg/readmsg.c:40
 msgid "Display entire header"
 msgstr "Visa hela huvudet"
 
-#: readmsg/readmsg.c:42
+#: readmsg/readmsg.c:41
 msgid "LIST"
 msgstr "LISTA"
 
-#: readmsg/readmsg.c:43
+#: readmsg/readmsg.c:42
 msgid "List of header names separated by whitespace or commas"
 msgstr "Lista av namn i huvudet separerade med blanksteg eller komma"
 
-#: readmsg/readmsg.c:44
+#: readmsg/readmsg.c:43
 msgid "Folder to use"
 msgstr "Mapp att använda"
 
-#: readmsg/readmsg.c:45
+#: readmsg/readmsg.c:44
 msgid "Exclude all headers"
 msgstr "Exkludera alla huvuden"
 
-#: readmsg/readmsg.c:46
+#: readmsg/readmsg.c:45
 msgid "Output formfeeds between messages"
 msgstr ""
 
-#: readmsg/readmsg.c:48
+#: readmsg/readmsg.c:47
 msgid "Print all messages matching pattern, not just the first"
 msgstr "Skriv ut alla meddelanden som matchar mönster, inte bara det första"
 
-#: readmsg/readmsg.c:250
+#: readmsg/readmsg.c:249
 #, c-format
 msgid "Could not create mailbox `%s': %s\n"
 msgstr "Kunde inte skapa postlåda \"%s\": %s\n"
 
-#: readmsg/readmsg.c:254
+#: readmsg/readmsg.c:253
 #, c-format
 msgid "Could not create default mailbox: %s\n"
-msgstr ""
+msgstr "Kunde inte skapa förvald postlåda: %s\n"
 
-#: readmsg/readmsg.c:273
+#: readmsg/readmsg.c:272
 #, c-format
 msgid "Could not open mailbox `%s': %s\n"
 msgstr "Kunde inte öppna postlåda \"%s\": %s\n"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
-#: sieve/sieve.c:53
+#: sieve/sieve.c:54
 msgid ""
 "GNU sieve -- a mail filtering tool\n"
 "Debug flags:\n"
@@ -4787,218 +5220,156 @@ msgid ""
 "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
 msgstr ""
 
-#: sieve/sieve.c:69
+#: sieve/sieve.c:70
 msgid "Do not execute any actions, just print what would be done"
-msgstr ""
+msgstr "Starta inga åtgärder, skriv endast ut vad som skulle ha gjorts"
 
-#: sieve/sieve.c:72
+#: sieve/sieve.c:73
 msgid "Keep on going if execution fails on a message"
-msgstr ""
+msgstr "Fortsätt även om start misslyckades för ett meddelande"
 
-#: sieve/sieve.c:75
+#: sieve/sieve.c:76
 msgid "Compile script and exit"
 msgstr "Kompilera skript och avsluta"
 
-#: sieve/sieve.c:78
+#: sieve/sieve.c:79
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
 msgstr ""
 
-#: sieve/sieve.c:80
-msgid "MBOX"
-msgstr ""
-
 #: sieve/sieve.c:81
+msgid "MBOX"
+msgstr "PLÅDA"
+
+#: sieve/sieve.c:82
 msgid "Mailbox to sieve (defaults to user's mail spool)"
 msgstr ""
 
-#: sieve/sieve.c:83
+#: sieve/sieve.c:84
 msgid "TICKET"
 msgstr ""
 
-#: sieve/sieve.c:84
+#: sieve/sieve.c:85
 msgid "Ticket file for mailbox authentication"
 msgstr ""
 
-#: sieve/sieve.c:87
+#: sieve/sieve.c:88
 msgid "Debug flags (defaults to \""
 msgstr "Felsökningsflaggor (förval: \""
 
-#: sieve/sieve.c:87
+#: sieve/sieve.c:88
 msgid "\")"
 msgstr "\")"
 
-#: sieve/sieve.c:90
+#: sieve/sieve.c:91
 msgid "Log all actions"
 msgstr "Logga alla åtgärder"
 
-#: sieve/sieve.c:93
+#: sieve/sieve.c:94
 msgid "Print source location along with action logs (default)"
-msgstr ""
+msgstr "SKriv ut källplats tillsammans med åtgärdslogg (standard)"
 
-#: sieve/sieve.c:96
+#: sieve/sieve.c:97
 msgid "Override user email address"
-msgstr ""
+msgstr "Åsidosätt användarens e-postadress"
 
-#: sieve/sieve.c:149
+#: sieve/sieve.c:150
 #, c-format
 msgid "Invalid email: %s"
 msgstr "Ogiltig e-post: %s"
 
-#: sieve/sieve.c:170
+#: sieve/sieve.c:171
 msgid "Only one MBOX can be specified"
-msgstr ""
+msgstr "Endast en PLÅDA kan anges"
 
-#: sieve/sieve.c:224
+#: sieve/sieve.c:225
 msgid "Only one SCRIPT can be specified"
-msgstr ""
+msgstr "Endast ett SKRIPT kan anges"
 
-#: sieve/sieve.c:229
+#: sieve/sieve.c:230
 msgid "SCRIPT must be specified"
 msgstr "SKRIPT måste anges"
 
-#: sieve/sieve.c:242
+#: sieve/sieve.c:243
 msgid "SCRIPT"
 msgstr "SKRIPT"
 
-#: sieve/sieve.c:300 sieve/sieve.c:325
+#: sieve/sieve.c:301 sieve/sieve.c:326
 #, c-format
 msgid "%s:%lu: %s on msg uid %lu"
 msgstr ""
 
-#: sieve/sieve.c:304 sieve/sieve.c:329
+#: sieve/sieve.c:305 sieve/sieve.c:330
 #, c-format
 msgid "%s on msg uid %lu"
 msgstr ""
 
-#: sieve/sieve.c:415
+#: sieve/sieve.c:418
 #, c-format
 msgid "ticket_get failed: %s"
 msgstr "ticket_get misslyckades: %s"
 
-#: sieve/sieve.c:421
+#: sieve/sieve.c:424
 #, c-format
-msgid "wicket_create `%s' failed: %s"
-msgstr "wicket_create \"%s\" misslyckades: %s"
+msgid "mu_wicket_create `%s' failed: %s"
+msgstr "mu_wicket_create \"%s\" misslyckades: %s"
 
-#: sieve/sieve.c:434
+#: sieve/sieve.c:437
 #, c-format
 msgid "mu_debug_create failed: %s"
 msgstr "mu_debug_create misslyckades: %s"
 
-#: sieve/sieve.c:439
+#: sieve/sieve.c:442
 #, c-format
 msgid "mu_debug_set_level failed: %s"
 msgstr "mu_debug_set_level misslyckades: %s"
 
-#: sieve/sieve.c:445
+#: sieve/sieve.c:448
 #, c-format
 msgid "mu_debug_set_print failed: %s"
 msgstr "mu_debug_set_print misslyckades: %s"
 
-#: sieve/sieve.c:467
+#: sieve/sieve.c:470
 #, c-format
-msgid "mailbox_set_debug failed: %s"
-msgstr "mailbox_set_debug misslyckades: %s"
+msgid "mu_mailbox_set_debug failed: %s"
+msgstr "mu_mailbox_set_debug misslyckades: %s"
 
-#: sieve/sieve.c:478
+#: sieve/sieve.c:481
 #, c-format
-msgid "mailbox_get_folder failed: %s"
-msgstr "mailbox_get_folder misslyckades: %s"
+msgid "mu_mailbox_get_folder failed: %s"
+msgstr "mu_mailbox_get_folder misslyckades: %s"
 
-#: sieve/sieve.c:485
+#: sieve/sieve.c:488
 #, c-format
-msgid "folder_get_authority failed: %s"
-msgstr "folder_get_authority misslyckades: %s"
+msgid "mu_folder_get_authority failed: %s"
+msgstr "mu_folder_get_authority misslyckades: %s"
 
-#: sieve/sieve.c:493
+#: sieve/sieve.c:496
 #, c-format
-msgid "authority_set_ticket failed: %s"
-msgstr "authority_set_ticket misslyckades: %s"
+msgid "mu_authority_set_ticket failed: %s"
+msgstr "mu_authority_set_ticket misslyckades: %s"
 
-#: sieve/sieve.c:508
+#: sieve/sieve.c:511
 #, c-format
 msgid "Opening mailbox `%s' failed: %s"
 msgstr "Öppning av postlåda \"%s\" misslyckades: %s"
 
-#: sieve/sieve.c:511
+#: sieve/sieve.c:514
 #, c-format
 msgid "Opening default mailbox failed: %s"
-msgstr ""
+msgstr "Öppning av förvald postlåda misslyckades: %s"
 
-#: sieve/sieve.c:532
+#: sieve/sieve.c:535
 #, c-format
 msgid "Expunge on mailbox `%s' failed: %s"
 msgstr ""
 
-#: sieve/sieve.c:535
+#: sieve/sieve.c:538
 #, c-format
 msgid "Expunge on default mailbox failed: %s"
 msgstr ""
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mimeview/mimeview.c:31
-msgid "GNU mimeview -- display files, using mailcap mechanism.Default mime.types file is "
-msgstr "GNU mimeview -- visa filer, använd mailcap-mekanism.Förvald fil för mime.types är "
+#~ msgid "Cannot open save file %s: %s"
+#~ msgstr "Kan inte öppna sparfil %s: %s"
 
-#: mimeview/mimeview.c:33
-msgid ""
-"\n"
-"\n"
-"Debug flags are:\n"
-"  g - Mime.types parser traces\n"
-"  l - Mime.types lexical analyzer traces\n"
-"  0-9 - Set debugging level\n"
-msgstr ""
-
-#: mimeview/mimeview.c:41
-msgid "TYPE-LIST"
-msgstr ""
-
-#: mimeview/mimeview.c:42
-msgid "Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"
-msgstr ""
-
-#: mimeview/mimeview.c:44
-msgid "Disable interactive mode"
-msgstr ""
-
-#: mimeview/mimeview.c:49
-msgid "Use this mime.types file"
-msgstr ""
-
-#: mimeview/mimeview.c:51
-msgid "Do not do anything, just print what whould be done"
-msgstr ""
-
-#: mimeview/mimeview.c:53
-msgid "Use metamail to display files"
-msgstr "Använda metamail för att visa filer"
-
-#: mimeview/mimeview.c:135
-msgid "FILE [FILE ...]"
-msgstr "FIL [FIL ...]"
-
-#: mimeview/mimeview.c:153 mimeview/mimetypes.l:149
-#, c-format
-msgid "Cannot stat `%s': %s"
-msgstr "Kan inte läsa status på \"%s\": %s"
-
-#: mimeview/mimeview.c:158
-#, c-format
-msgid "Not a regular file or symbolic link: `%s'"
-msgstr "Inte en vanlig fil eller symbolisk länk: \"%s\""
-
-#: mimeview/mimeview.c:250
-msgid "No files given"
-msgstr "Inga filer angivna"
-
-#: mimeview/mimetypes.y:537
-#, c-format
-msgid "%s: unknown function"
-msgstr "%s: okänd funktion"
-
-#: mimeview/mimetypes.y:609
-#, c-format
-msgid "argument %d has wrong type in call to `%s'"
-msgstr "argument %d har fel typ i anrop till \"%s\""
+#~ msgid "Not enough memory for creating save file"
+#~ msgstr "Inte tillräckligt minne för att skapa sparfil"
