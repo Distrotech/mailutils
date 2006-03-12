@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,17 +24,37 @@
 
 /* Initialize Native Language Support */
 
+char *mu_locale_set;
+
+#ifndef HAVE_SETLOCALE
+# define setlocale(c,s) NULL
+#endif
+
+/* Set locale via LC_ALL.  */
+char *
+mu_set_locale (const char *locale)
+{
+#ifdef HAVE_SETLOCALE
+  return setlocale (LC_ALL, locale);
+#else
+  return NULL;
+#endif
+}
+
+void
+mu_restore_locale (void)
+{
+  if (mu_locale_set)
+    mu_set_locale (mu_locale_set);
+}
+
 void
 mu_init_nls (void)
 {
 #ifdef ENABLE_NLS
-  /* Set locale via LC_ALL.  */
-#ifdef HAVE_SETLOCALE
-  setlocale(LC_ALL, "");
-#endif /* HAVE_SETLOCALE */
-  bindtextdomain(PACKAGE, LOCALEDIR);
-  textdomain(PACKAGE);
+  mu_locale_set = mu_set_locale ("");
+  bindtextdomain (PACKAGE, LOCALEDIR);
+  textdomain (PACKAGE);
 #endif /* ENABLE_NLS */
-  return;
 }
 
