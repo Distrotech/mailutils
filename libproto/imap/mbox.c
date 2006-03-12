@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1560,31 +1560,20 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
      parsed, use the calendar time. */
   if (now == (time_t)-1)
     {
-      struct tm* gmt;
+      struct tm *gmt;
 
-      time(&now);
-      gmt = gmtime(&now);
+      time (&now);
+      gmt = gmtime (&now);
       tm = *gmt;
     }
 
   {
-    int len = strftime (buffer, buflen, " %a %b %d %H:%M:%S %Y", &tm);
-
-    /* FIXME: I don't know what strftime does if the buflen is too
-       short, or it fails. Assuming that it won't fail, this is my guess
-       as to the right thing.
-
-       I think if the buffer is too short, it will fill it as much
-       as it can, and nul terminate it. But I'll terminate it anyhow.
-     */
-    if(len == 0)
-      {
-	len = buflen - 1;
-	buffer[len] = 0;
-      }
-
-    if(plen)
-      *plen = len;
+    char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
+    size_t n = mu_strftime (tmpbuf, sizeof tmpbuf,
+                            MU_ENVELOPE_DATE_FORMAT, localtime (&tm));
+    n = mu_cpystr (buffer, tmpbuf, buflen);
+    if (plen)
+      *plen = n;
   }
   return 0;
 }

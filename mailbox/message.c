@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -948,20 +948,18 @@ message_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
   /* FIXME: extract the time from "Date:".  */
 
-  /* Catch all.  */
-  /* FIXME: ctime() is not thread safe use strftime().  */
-  t = time (NULL);
-  n = strlen (ctime (&t));
-
   if (buf == NULL || len == 0)
     {
-      if (pnwrite)
-	*pnwrite = n;
-      return 0;
+      n = MU_ENVELOPE_DATE_LENGTH;
     }
-  n = (n > len) ? len : n;
-  strncpy (buf, ctime (&t), n);
-  buf [n] = '\0';
+  else
+    {
+      char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
+      t = time (NULL);
+      n = mu_strftime (tmpbuf, sizeof tmpbuf, 
+                       MU_ENVELOPE_DATE_FORMAT, localtime (&t));
+      n = mu_cpystr (buf, tmpbuf, len);
+    }
   if (pnwrite)
     *pnwrite = n;
   return 0;

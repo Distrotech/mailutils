@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ _append_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   mu_message_t msg = mu_envelope_get_owner (envelope);
   struct tm **tm = mu_message_get_owner (msg);
 
-  strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
+  mu_strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
   return 0;
 }
 

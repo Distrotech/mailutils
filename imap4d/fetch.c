@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -367,7 +367,7 @@ fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
       time_t t = time(NULL);
       tmp = localtime(&t);
     }
-  strftime (date, sizeof (date), "%d-%b-%Y %H:%M:%S", tmp);
+  mu_strftime (date, sizeof (date), "%d-%b-%Y %H:%M:%S", tmp);
   util_send ("%s", command->name);
   util_send (" \"%s +0000\"", date);
   return RESP_OK;

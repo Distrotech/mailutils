@@ -155,7 +155,7 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
 
   time (&t);
   tm = localtime (&t);
-  strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tm);
+  mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tm);
 
   mu_sieve_get_message_sender (msg, &sender);
 

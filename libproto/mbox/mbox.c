@@ -1373,12 +1373,11 @@ restore_date (mu_message_t msg, mbox_data_t mud)
 
   if (date && mu_parse_date (date, &t, NULL))
     {
-      char datebuf[25];
+      char datebuf[MU_ENVELOPE_DATE_LENGTH+1];
       
       /* FIXME: 1. Preserve TZ info */
-      /* FIXME: 2. Do not depend on LC */
-      strftime (datebuf, sizeof datebuf, "%a %b %d %H:%M:%S %Y",
-		localtime (&t));
+      mu_strftime (datebuf, sizeof datebuf, MU_ENVELOPE_DATE_FORMAT,
+		   localtime (&t));
       free (date);
       date = strdup (datebuf);
     }

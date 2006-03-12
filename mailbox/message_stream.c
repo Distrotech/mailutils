@@ -261,11 +261,11 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
     {
       struct tm *tm;
       time_t t;
-      char date[80];
+      char date[80]; /* FIXME: This size is way too big */
 
       time(&t);
       tm = gmtime(&t);
-      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
+      mu_strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
       env_date = strdup (date);
     }
 

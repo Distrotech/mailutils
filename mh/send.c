@@ -456,7 +456,7 @@ _action_send (void *item, void *data)
       time_t t = time (NULL);
       struct tm *tm = localtime (&t);
       
-      strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
+      mu_strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
       mu_header_set_value (hdr, MU_HEADER_DATE, date, 1);
 
       if (mu_header_get_value (hdr, MU_HEADER_FROM, NULL, 0, &n))

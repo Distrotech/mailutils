@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -357,7 +357,7 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
   
   time (&t);
   tm = localtime (&t);
-  strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
+  mu_strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
   mu_mailbox_get_url (mbox, &url);
   
   fprintf (fp, "<<%s>> %s %s\n",
@@ -758,7 +758,7 @@ mh_annotate (mu_message_t msg, char *field, char *text, int date)
       char datebuf[80];
       t = time (NULL);
       tm = localtime (&t);
-      strftime (datebuf, sizeof datebuf, "%a, %d %b %Y %H:%M:%S %Z", tm);
+      mu_strftime (datebuf, sizeof datebuf, "%a, %d %b %Y %H:%M:%S %Z", tm);
 
       mu_header_set_value (hdr, field, datebuf, 0);
     }
@@ -786,7 +786,7 @@ mh_create_message_id (int subpart)
   char *host;
   char *p;
 	  
-  strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
+  mu_strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
   mu_get_host_name (&host);
 
   if (subpart)
