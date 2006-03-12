@@ -1,5 +1,5 @@
 # generr.awk -- Create error reporting sources for GNU Mailutils
-# Copyright (C) 2005 Free Software Foundation, Inc.
+# Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 #
 # GNU Mailutils is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -38,7 +38,8 @@ ARGIND == 1 {
 
 ARGIND == 2 && /\$AUTOWARN/ {
   match($0,"\\$AUTOWARN");
-  print substr($0,1,RSTART-1) "This file is generated automatically. Please, do not edit." substr($0,RSTART+RLENGTH)
+  rest = (RSTART+RLENGTH < length($0)) ? substr($0,RSTART+RLENGTH) : "";
+  print substr($0,1,RSTART-1) "This file is generated automatically. Please, do not edit." rest
   next
 }
 
@@ -48,6 +49,7 @@ ARGIND == 2 && $1 == "$MESSAGE_STRINGS" {
     printf "%*.*scase %s:\n", RLENGTH, RLENGTH, "", def[i]
     printf "%*.*sreturn %s;\n\n", RLENGTH+2,RLENGTH+2,"", text[i] 
   }
+  total += defno;
   next
 }
 
@@ -57,6 +59,7 @@ ARGIND == 2 && $1 == "$MESSAGE_CODES" {
     printf "%*.*scase %s:\n", RLENGTH, RLENGTH, "", def[i]
     printf "%*.*sreturn \"%s\";\n\n", RLENGTH+2,RLENGTH+2,"", def[i] 
   }
+  total += defno;
   next
 }
 
@@ -64,6 +67,7 @@ ARGIND == 2 && $1 == "$MESSAGE_DEFS" {
   for (i = 0; i < defno; i++) {
     print "#define " def[i] " (MU_ERR_BASE+" i ")"
   }
+  total += defno;
   next
 }
 
@@ -71,4 +75,10 @@ ARGIND == 2 {
   print
 }
 
+END {
+	if (total == 0) {
+		print "Output file is empty" > "/dev/stderr"
+		exit 1
+	}
+}
 # End of generr.awk
