@@ -1,3 +1,21 @@
+2006-03-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/append.c, imap4d/fetch.c, libproto/imap/mbox.c,
+	libproto/mbox/mbox.c, libsieve/actions.c, mailbox/message.c,
+	mailbox/message_stream.c, mh/mh_init.c, mh/send.c: Use mu_strftime
+	* include/mailutils/envelope.h (MU_ENVELOPE_DATE_FORMAT)
+	(MU_ENVELOPE_DATE_LENGTH): New defines
+	* include/mailutils/mutil.h (mu_strftime): New function
+	* include/mailutils/nls.h (mu_set_locale,mu_restore_locale): New
+	functions
+	* mailbox/mutil.c (mu_strftime): New function
+	* mailbox/nls.c (mu_locale_set): New variable
+	(mu_set_locale,mu_restore_locale): New functions
+	(mu_init_nls): Use mu_set_locale. Store its return in mu_locale_set.
+
+	* scripts/generr.awk: Report error if no output lines were
+	produced. 
+	
 2006-03-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* Makefile.am (SUBDIRS): Add libproto
