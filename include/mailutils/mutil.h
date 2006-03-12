@@ -144,6 +144,10 @@ extern int mu_set_default_fallback (const char *str);
 extern int mu_is_proto (const char *p);
 
 extern int mu_mh_delim (const char *str);
+
+extern size_t mu_strftime (char *s, size_t max, const char *format,
+			   const struct tm *tm);
+  
   
 #ifdef __cplusplus
 }

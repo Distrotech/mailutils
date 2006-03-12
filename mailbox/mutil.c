@@ -1354,4 +1354,15 @@ __argp_base_name (const char *arg)
   return p ? p + 1 : arg;
 }
 
+/* A locale-independent version of strftime */
+size_t
+mu_strftime (char *s, size_t max, const char *format, const struct tm *tm)
+{
+  size_t size;
+  mu_set_locale ("C");
+  size = strftime(s, max, format, tm);
+  mu_restore_locale ();
+  return size;
+}
+  
     
