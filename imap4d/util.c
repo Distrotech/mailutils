@@ -1279,7 +1279,8 @@ util_run_events (int old_state, int new_state)
       ev.new_state = new_state;
 
       mu_list_get_iterator (event_list, &itr);
-      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+      for (mu_iterator_first (itr);
+	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  struct state_event *p;
 	  mu_iterator_current (itr, (void **)&p);
@@ -1298,3 +1299,17 @@ util_chdir (const char *homedir)
     mu_error ("Cannot change to home directory `%s': %s",
 	      homedir, mu_strerror (errno));
 }
+
+int
+is_atom (const char *s)
+{
+  if (strpbrk (s, "(){ \t%*\"\\"))
+    return 0;
+  for (; *s; s++)
+    {
+      if (*(const unsigned char *)s > 127 || iscntrl (*s))
+	return 0;
+    }
+  return 1;
+}
+     
