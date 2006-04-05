@@ -303,7 +303,8 @@ int util_is_master (void);
 void util_bye (void);  
 void util_atexit (void (*fp) (void));
 void util_chdir (const char *homedir);
-
+int is_atom (const char *s);
+  
 #ifdef WITH_TLS
 int imap4d_init_tls_server (void);
 #endif /* WITH_TLS */
