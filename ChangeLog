@@ -1,3 +1,18 @@
+2006-04-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* THANKS: Add Willem Jaap Zwart
+	* NEWS: Update
+	* imap4d/imap4d.h (is_atom): New function
+	* imap4d/list.c (print_file,print_dir): Rewrite using an
+	auxiliary function. Make sure the string is properly quoted if it
+	is not a valid atom.
+	* imap4d/util.c (is_atom): New function.
+	* libproto/imap/folder.c (list_copy): Do nothing if src is NULL.
+	(imap_list): Use mu_argcv_get instead of strtok_r to parse last
+	two tokens of the reply, so that file names containing white space
+	are processed.
+	* mailbox/argcv.c: Fix indentation.
+
 2006-03-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/append.c, imap4d/fetch.c, libproto/imap/mbox.c,
