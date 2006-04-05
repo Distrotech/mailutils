@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005, 2006  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -313,38 +313,34 @@ list_file (const char *cwd, const char *ref, const char *pattern,
   closedir (dirp);
 }
 
-/* Make sure that the file name does not contain any undesirable
-   chars like "{}. If yes send it as a literal string.  */
 static void
-print_file (const char *ref, const char *file, const char *delim)
+print_name (const char *ref, const char *file, const char *delim,
+	     const char *attr)
 {
   char *name = mkfullname (ref, file, delim);
-  if (strpbrk (file, "\"{}"))
+  if (strpbrk (name, "\"{}"))
     {
-      util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" {%d}", delim,
-		strlen (name));
+      util_out (RESP_NONE, "LIST (%s) \"%s\" {%d}",
+		attr, delim, strlen (name));
       util_send ("%s\r\n", name);
     }
+  else if (is_atom (name))
+    util_out (RESP_NONE, "LIST (%s) \"%s\" %s", attr, delim, name);
   else
-    util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" %s", delim, name);
+    util_out (RESP_NONE, "LIST (%s) \"%s\" \"%s\"", attr, delim, name);
   free (name);
 }
 
-/* Make sure that the file name does not contain any undesirable
-   chars like "{}. If yes send it as a literal string.  */
+static void
+print_file (const char *ref, const char *file, const char *delim)
+{
+  print_name (ref, file, delim, "\\NoInferiors");
+}
+
 static void
 print_dir (const char *ref, const char *file, const char *delim)
 {
-  char *name = mkfullname (ref, file, delim);
-  if (strpbrk (file, "\"{}"))
-    {
-      util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" {%d}", delim,
-		strlen (name));
-      util_send ("%s\r\n", name);
-    }
-  else
-    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" %s", delim, name);
-  free (name);
+  print_name (ref, file, delim, "\\NoSelect");
 }
 
 /* Calls the imap_matcher if a match found out the attribute. */
