@@ -1,6 +1,6 @@
 /* argcv.c - simple functions for parsing input based on whitespace
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -249,7 +249,7 @@ argcv_unquote_copy (char *dst, const char *src, size_t n)
 		    }
 		}
 	    }
-	  else if ((unsigned char)src[i] < 128 && isdigit(src[i]))
+	  else if ((unsigned char)src[i] < 128 && isdigit (src[i]))
 	    {
 	      if (n - i < 1)
 		{
@@ -258,7 +258,7 @@ argcv_unquote_copy (char *dst, const char *src, size_t n)
 		}
 	      else
 		{
-		  int off = xtonum(&c, src+i, 8, 3);
+		  int off = xtonum (&c, src+i, 8, 3);
 		  if (off == 0)
 		    {
 		      *dst++ = '\\';
