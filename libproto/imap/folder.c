@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -830,6 +830,9 @@ list_copy (mu_list_t dst, mu_list_t src,
 {
   mu_iterator_t itr;
 
+  if (!src)
+    return;
+  
   mu_list_get_iterator (src, &itr);
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
        mu_iterator_next (itr))
@@ -1325,7 +1328,9 @@ imap_list (f_imap_t f_imap)
   char *buffer;
   struct mu_list_response *lr;
   int status = 0;
-
+  int argc;
+  char **argv;
+  
   buffer = alloca (len);
   memcpy (buffer, f_imap->buffer, len);
   buffer[len] = '\0';
@@ -1347,7 +1352,7 @@ imap_list (f_imap_t f_imap)
   tok = strtok_r (NULL, " ", &sp);
   /* Get the attibutes.  */
   tok = strtok_r (NULL, ")", &sp);
-  if (tok)
+  if (tok) 
     {
       char *s = NULL;
       char *p = tok;
@@ -1365,15 +1370,19 @@ imap_list (f_imap_t f_imap)
 	  p = NULL;
 	}
     }
-  /* Hiearchy delimeter.  */
-  tok = strtok_r (NULL, " ", &sp);
-  if (tok && strlen (tok) > 2 && strcasecmp (tok, "NIL"))
-    lr->separator = tok[1];
-  /* The path.  */
-  tok = strtok_r (NULL, " ", &sp);
-  if (tok)
+
+  status = mu_argcv_get (sp, "", NULL, &argc, &argv);
+  if (status == 0)
     {
-      char *s = strchr (tok, '{');
+      char *s;
+      
+      /* Hiearchy delimeter.  */
+      tok = argv[0];
+      if (tok && tok[1] == 0 && strcasecmp (tok, "NIL"))
+	lr->separator = tok[0];
+      /* The path.  */
+      tok = argv[1];
+      s = strchr (tok, '{');
       if (s)
 	{
 	  size_t n = strtoul (s + 1, NULL, 10);
@@ -1390,11 +1399,11 @@ imap_list (f_imap_t f_imap)
       else if ((status = imap_string (f_imap, &tok)) == 0)
 	{
 	  mu_off_t sz = 0;
-
+	  
 	  mu_stream_size (f_imap->string.stream, &sz);
 	  lr->name = calloc (sz + 1, 1);
 	  if (!lr->name)
-	    status = ENOMEM;
+		status = ENOMEM;
 	  else
 	    mu_stream_read (f_imap->string.stream, lr->name, sz, 0, NULL);
 	  mu_stream_truncate (f_imap->string.stream, 0);
@@ -1408,6 +1417,8 @@ imap_list (f_imap_t f_imap)
 	    status = ENOMEM;
 	}
     }
+  mu_argcv_free (argc, argv);
+  
   return status;
 }
 
