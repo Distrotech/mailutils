@@ -16,7 +16,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-AC_INIT([GNU Mailutils], [0.6.93], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.6.94], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -45,6 +45,13 @@ AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libsieve/libsieve.la')
 AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
 AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
 
+dnl Other variables
+AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
+
+AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
+
+AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox')
+
 dnl Check for programs
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -57,7 +64,7 @@ AM_PROG_LEX
 ## Predefine several variables used to display configuration status
 status_pam=no
 status_ltdl=no
-status_bdb2=no
+status_bdb=no
 status_ndbm=no
 status_dbm=no
 status_gdbm=no
@@ -261,14 +268,23 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --with-gdbm) ;;
 esac])
 
-AC_ARG_WITH([db2],
-            AC_HELP_STRING([--with-db2],
+## Support --with-db2 for backward compatibility
+if test ${with_db2+set} = set; then
+  case "${with_db2}" in
+  yes) use_dbm=BDB2 ;;
+  no)  use_dbm=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --with-db2) ;;
+  esac
+fi
+
+AC_ARG_WITH([berkeley-db],
+            AC_HELP_STRING([--with-berkeley-db],
                            [use Berkeley DB]),
             [
 case "${withval}" in
-  yes) use_dbm=BDB2 ;;
+  yes) use_dbm=BDB ;;
   no)  use_dbm=no ;;
-  *)   AC_MSG_ERROR(bad value ${withval} for --with-db) ;;
+  *)   use_dbm=BDB="${withval}";;
 esac])
 
 AC_ARG_WITH([ndbm],
@@ -847,6 +863,7 @@ if test x"$usereadline" = x"yes"; then
 	fi
 
 fi
+
 AH_BOTTOM([
 /* Newer versions of readline have rl_completion_matches */
 #ifndef HAVE_RL_COMPLETION_MATCHES
@@ -856,6 +873,61 @@ AH_BOTTOM([
 dnl Check for DBM
 
 AC_SUBST(POPAUTH)
+AH_TEMPLATE([WITH_BDB],
+            [Define to the major version of Berkeley DB library to use])
+
+## Set the variable status_bdb to $1 if:
+##
+##  1. Function $3 is defined in the library $2
+##  2. Header file db.h is available
+##
+## Then check if the major version, minor version and patchlevel of the
+## library matches those from the header. If so, define WITH_BDB
+## to the version (i.e. $1 with all dots removed). Otherwise, report
+## an error and stop.
+##
+check_bdb() {
+	AC_CHECK_LIB($2, $3,
+                     [ver=`echo $1|tr -d '.'`
+                      AC_CHECK_HEADERS(db.h,
+                                       AC_DEFINE_UNQUOTED(WITH_BDB,$ver))
+                      LIBS="$LIBS -l$2"
+                      MU_DB2_CURSOR
+		      POPAUTH='popauth$(EXEEXT)'
+                      status_bdb=$1])
+	if test $status_bdb = no; then
+		:
+	else
+	  AC_RUN_IFELSE(
+           [AC_LANG_PROGRAM([#include "db.h"],
+            [int v_major, v_minor, v_patch;
+             db_version(&v_major, &v_minor, &v_patch);
+             return !(v_major == DB_VERSION_MAJOR
+                       && v_minor == DB_VERSION_MINOR
+                       && v_patch == DB_VERSION_PATCH);
+            ])],
+           [],
+           [AC_MSG_ERROR([DB Library and header versions don't match])
+            status_bdb=no])
+	fi
+}
+
+## Check for the Berkeley DB library version $1, assuming Slackware-like
+## installation layout (header files in /usr/incude/db$vn and library named
+## libdb-$version.so, where $version is the library version and $vn is
+## $version with all dots removed.
+##
+check_slackware_bdb() {
+	dir=db`echo $1|tr -d '.'`
+	save_CPPFLAGS=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS -I/usr/include/$dir"
+	check_bdb $1 db-$1 db_create
+	CPPFLAGS=$save_CPPFLAGS
+	if test $status_bdb = "$1"; then
+	    MU_COMMON_INCLUDES="$MU_COMMON_INCLUDES -I/usr/include/$dir"
+	fi
+}
+
 case "$use_dbm" in
 GDBM)
 	AC_CHECK_LIB(gdbm, gdbm_open,
@@ -865,15 +937,25 @@ GDBM)
                      LIBS="$LIBS -lgdbm"
                      POPAUTH='popauth$(EXEEXT)'
                      status_gdbm=yes]);;
-BDB2)
-	AC_CHECK_LIB(db, db_open,
-                     [AC_CHECK_HEADERS(db.h,
-                                       AC_DEFINE(WITH_BDB2,1,
-                                                 [Enable use of Berkeley DB]))
-                     LIBS="$LIBS -ldb"
-                     MU_DB2_CURSOR
-		     POPAUTH='popauth$(EXEEXT)'
-                     status_bdb2=yes]);;
+
+BDB2)   check_bdb 2 db db_open;;
+
+BDB)
+	check_bdb 2 db db_open
+        if test $status_bdb = no; then
+	  check_bdb 3 db db_create
+        fi;;
+
+BDB=*)
+	name=`expr $use_dbm : 'BDB=\(.*\)'`
+	case $name in
+	[[0-9]]*)  check_slackware_bdb $name;;
+	*)	   check_bdb 2 $name db_open
+	           test $status_bdb = no && check_bdb 3 $name db_create
+		   ;;
+	esac
+        ;;
+
 NDBM)
 	AC_CHECK_LIB(ndbm, dbm_open,
                      [AC_CHECK_HEADERS(ndbm.h,
@@ -976,15 +1058,6 @@ AC_SUBST(MU_LTLIBOBJS)
 
 MU_FINISH
 
-AC_SUBST(SIEVE_MODDIR)
-SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
-
-AC_SUBST(MU_COMMON_LIBRARIES)
-MU_COMMON_LIBRARIES='$(LTLIBINTL) $(LTLIBICONV)'
-
-AC_SUBST(MU_COMMON_INCLUDES)
-MU_COMMON_INCLUDES='-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox'
-
 ### Display the status
 
 AC_CONFIG_COMMANDS([status],[
@@ -995,7 +1068,7 @@ GNU Mailutils configured with the following settings:
 
 Use PAM........................ $status_pam
 Use -ltdl...................... $status_ltdl
-Use Berkeley DB2............... $status_bdb2
+Use Berkeley DB................ $status_bdb
 Use NDBM....................... $status_ndbm
 Use DBM........................ $status_dbm
 Use GDBM....................... $status_gdbm
@@ -1030,7 +1103,11 @@ EOF
 ],
 [status_pam=$status_pam
 status_ltdl=$status_ltdl
-status_bdb2=$status_bdb2
+if test $status_bdb = no; then
+  status_bdb=$status_bdb
+else
+  status_bdb="v. $status_bdb"
+fi
 status_ndbm=$status_ndbm
 status_dbm=$status_dbm
 status_gdbm=$status_gdbm
