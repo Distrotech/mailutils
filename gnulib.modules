@@ -27,4 +27,3 @@ setenv
 snprintf
 strcase
 vasprintf
-xstrtol
