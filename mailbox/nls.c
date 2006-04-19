@@ -20,6 +20,7 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <mailutils/nls.h>
 
 /* Initialize Native Language Support */
@@ -34,7 +35,7 @@ char *mu_locale_set;
 char *
 mu_set_locale (const char *locale)
 {
-#ifdef HAVE_SETLOCALE
+#if defined HAVE_SETLOCALE && defined ENABLE_NLS
   return setlocale (LC_ALL, locale);
 #else
   return NULL;
