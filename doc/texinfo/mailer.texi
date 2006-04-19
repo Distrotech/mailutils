@@ -1,10 +1,10 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{mailer_} is reserved. */}
+@code{/* Prefix @emph{mu_mailer_} is reserved. */}
 @code{#include <mailutils/mailer.h>}
 
 @end smallexample
@@ -13,19 +13,19 @@
 @c Constructor/Destructor.
 @c
 
-@deftypefun  int mailer_create (mailer_t *, const char *@var{url})
+@deftypefun  int mu_mailer_create (mu_mailer_t *, const char *@var{url})
 @end deftypefun
 
-@deftypefun void mailer_destroy (mailer_t *)
+@deftypefun void mu_mailer_destroy (mu_mailer_t *)
 @end deftypefun
 
-@deftypefun  int mailer_open (mailer_t, int @var{flags})
+@deftypefun  int mu_mailer_open (mu_mailer_t, int @var{flags})
 @end deftypefun
 
-@deftypefun  int mailer_close (mailer_t)
+@deftypefun  int mu_mailer_close (mu_mailer_t)
 @end deftypefun
 
-@deftypefun  int mailer_send_message (mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
+@deftypefun  int mu_mailer_send_message (mu_mailer_t @var{mailer}, mu_message_t @var{msg}, mu_address_t @var{from}, mu_address_t @var{to});
 
 If @var{from} is not @code{NULL}, it must contain a single fully qualified
 RFC2822 email address which will be used as the envelope from
@@ -42,31 +42,31 @@ The default for @var{to} is to use the contents of the standard "To:", "Cc:",
 and "Bcc:" fields, this is equivalent to Sendmail's @option{-t} flag.
 @end deftypefun
 
-@deftypefun  int mailer_get_property (mailer_t, property_t *)
+@deftypefun  int mu_mailer_get_property (mu_mailer_t, mu_property_t *)
 @end deftypefun
 
-@deftypefun  int mailer_get_stream (mailer_t, stream_t *)
+@deftypefun  int mu_mailer_get_stream (mu_mailer_t, mu_stream_t *)
 @end deftypefun
 
-@deftypefun  int mailer_set_stream (mailer_t, stream_t)
+@deftypefun  int mu_mailer_set_stream (mu_mailer_t, mu_stream_t)
 @end deftypefun
 
-@deftypefun  int mailer_get_debug (mailer_t, mu_debug_t *)
+@deftypefun  int mu_mailer_get_debug (mu_mailer_t, mu_debug_t *)
 @end deftypefun
 
-@deftypefun  int mailer_set_debug (mailer_t, mu_debug_t)
+@deftypefun  int mu_mailer_set_debug (mu_mailer_t, mu_debug_t)
 @end deftypefun
 
-@deftypefun  int mailer_get_observable (mailer_t, observable_t *)
+@deftypefun  int mu_mailer_get_observable (mu_mailer_t, observable_t *)
 @end deftypefun
 
-@deftypefun  int mailer_get_url (mailer_t, url_t *)
+@deftypefun  int mu_mailer_get_url (mu_mailer_t, url_t *)
 @end deftypefun
 
-@deftypefun  int mailer_check_from (address_t @var{from})
+@deftypefun  int mu_mailer_check_from (mu_address_t @var{from})
 @end deftypefun
 
-@deftypefun  int mailer_check_to (address_t @var{to})
+@deftypefun  int mu_mailer_check_to (mu_address_t @var{to})
 @end deftypefun
 
 @sp 1
@@ -74,41 +74,53 @@ and "Bcc:" fields, this is equivalent to Sendmail's @option{-t} flag.
 
 Some possible use cases the API must support are:
 
-- original submission
+@itemize @bullet{}
+@item original submission
 
- 1 - fill in header addresses
+@enumerate 0
+@item fill in header addresses
 
- 2 - @code{mailer_send_message(mailer, msg, NULL, NULL)}
+@item @code{mu_mailer_send_message(mailer, msg, NULL, NULL)}
 
-   - from will be filled in if missing,
+@itemize @minus{}
+@item from will be filled in if missing,
 
-   - Bcc's will be deleted before delivery to a non-bcc address,
+@item Bcc's will be deleted before delivery to a non-bcc address,
 
-   - message-id and date will be added, if missing,
+@item message-id and date will be added, if missing,
 
-   - a To: or Apparently-To: will be added if non is present (for RFC
-     compliance)
+@item a @code{To:} or @code{Apparently-To:} header will be added if non is present (for RFC compliance)
+@end itemize
 
-- MTA-style @file{.forward} (and Sieve-style redirect)
+@end enumerate
 
- 1 - get the envelope from of the message to be forwarded
+@item MTA-style @file{.forward} (and Sieve-style redirect)
 
- 2 - @code{mailer_send_message(mailer, msg, from, to)}
+@enumerate 1
+@item get the envelope from of the message to be forwarded
 
-- MUA-style bounce
+@item @code{mu_mailer_send_message(mailer, msg, from, to)}
+@end enumerate
 
- 1 - add Resent-[To,From,...]
+@item MUA-style bounce
 
- 2 - @code{mailer_send_message(mailer, msg, NULL, to)}
+@enumerate 1
+@item add @code{Resent-[To,From,...]}
 
-- DSN "bounce"
+@item @code{mu_mailer_send_message(mailer, msg, NULL, to)}
+@end enumerate
 
- 1 - compose DSN
+@item DSN "bounce"
 
- 2 - @code{mailer_deliver(mailer, msg, address_t("<>"), to)}
+@enumerate 1
+@item compose DSN
+
+@item @code{mu_mailer_deliver(mailer, msg, address_t("<>"), to)}
 
    Don't want mail loops, so the null but valid SMTP address of @samp{<>}
    is the envelope From.
+@end enumerate
+@end itemize
 
 @subheading The Sendmail Mailer
 
@@ -124,7 +136,7 @@ contents for the recipients).
 
 @strong{Caution:} since the @code{stdout} and @code{stderr} of Sendmail
 is closed, we have no way of ever giving feedback on failure. Also, what
-should the return code be from @code{mailer_send_message()} when Sendmail
+should the return code be from @code{mu_mailer_send_message()} when Sendmail
 returns @samp{1}? @samp{1} maps to @code{EPERM}, which is less than
 descriptive!
 

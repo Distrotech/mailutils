@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -70,7 +70,7 @@ from the data structure.
 @include mailcap.inc
 @end smallexample
 
-@deftypefun  int mu_mailcap_create (mu_mailcap_t *@var{mailcap}, stream_t @var{stream})
+@deftypefun  int mu_mailcap_create (mu_mailcap_t *@var{mailcap}, mu_stream_t @var{stream})
 The function allocates, parses the buffer from the @var{stream} and initializes @var{mailcap}.
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -156,9 +156,9 @@ Helper function saving in buffer, the argument of "notes" field.
 @end deftypefun
 
 @deftypefun  int mu_mailcap_entry_needsterminal (mu_mailcap_entry_t @var{entry}, int *@var{on})
-Helper function. Returns *@var{on} != 0 if the flag "needsterminal" is in the record.
+Helper function. Returns *@var{on} != 0 if the flag @code{needsterminal} is in the record.
 @end deftypefun
 
 @deftypefun  int mu_mailcap_entry_copiousoutput (mu_mailcap_entry_t @var{entry}, int *@var{on})
-Helper function. Returns *@var{on} != 0 if the flag "copiousoutput" is in the record.
+Helper function. Returns *@var{on} != 0 if the flag @var{copiousoutput} is in the record.
 @end deftypefun

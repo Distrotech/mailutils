@@ -1,37 +1,37 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{mailbox_} is reserved. */}
+@code{/* Prefix @emph{mu_mailbox_} is reserved. */}
 @code{#include <mailutils/mailbox.h>}
 @end smallexample
 
-@deftp {Data Type} mailbox_t
-The @code{mailbox_t} object is used to hold information and it is an opaque
+@deftp {Data Type} mu_mailbox_t
+The @code{mu_mailbox_t} object is used to hold information and it is an opaque
 data structure to the user. Functions are provided to retrieve information
 from the data structure.
 @end deftp
 
 @smallexample
 @group
-                             mailbox_t                  url_t
-  -/var/mail-    +---//--->/-----------------\   +-->/-----------\
- (  alain   )    |         |  url_t        *-|---+   |  port     |
-  ----------     |         |-----------------+       |  hostname |
- (  jakob *-)----+         |  observer_t   *-|       |  file     |
-  ----------               |-----------------+       |  ...      |
- (  jeff    )              |  stream_t       |       \-----------/
-  ----------               |-----------------|
- (  sean    )              |  locker_t       |
-  ----------               |-----------------|
-                           |  message_t(1)   |
-                           |-----------------|
-                           |  message_t(2)   |
-                           |  ......         |
-                           |  message_t(n)   |
-                           \-----------------/
+                             mu_mailbox_t               mu_url_t
+  -/var/mail-    +---//--->/------------------\   +-->/-----------\
+ (  alain   )    |         |  mu_url_t      *-|---+   |  port     |
+  ----------     |         |------------------+       |  hostname |
+ (  jakob *-)----+         |  mu_observer_t *-|       |  file     |
+  ----------               |------------------+       |  ...      |
+ (  jeff    )              |  mu_stream_t     |       \-----------/
+  ----------               |------------------|
+ (  sean    )              |  mu_locker_t     |
+  ----------               |------------------|
+                           |  mu_message_t(1) |
+                           |------------------|
+                           |  mu_message_t(2) |
+                           |  ......          |
+                           |  mu_message_t(n) |
+                           \------------------/
 @end group
 @end smallexample
 
@@ -39,8 +39,8 @@ from the data structure.
 @c Constructor/destructor and possible types.
 @c
 
-@deftypefun  int mailbox_create (mailbox_t *@var{mbox}, const char *@var{name})
-The function @code{mailbox_create} allocates and initializes @var{mbox}.
+@deftypefun  int mu_mailbox_create (mu_mailbox_t *@var{mbox}, const char *@var{name})
+The function @code{mu_mailbox_create} allocates and initializes @var{mbox}.
 The concrete mailbox type instantiate is based on the scheme of the url @var{name}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -56,17 +56,17 @@ Not enough memory to allocate resources.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_create_default (mailbox_t *@var{mbox}, const char *@var{name})
-Create a mailbox with @code{mailbox_create()} based on the environment
+@deftypefun  int mu_mailbox_create_default (mu_mailbox_t *@var{mbox}, const char *@var{name})
+Create a mailbox with @code{mu_mailbox_create()} based on the environment
 variable @env{MAIL} or the string formed by
 @emph{_PATH_MAILDIR}/@var{user}" or @env{LOGNAME} if @var{user} is null,
 @end deftypefun
 
-@deftypefun  void mailbox_destroy (mailbox_t *@var{mbox})
+@deftypefun  void mu_mailbox_destroy (mu_mailbox_t *@var{mbox})
 Destroys and releases resources held by @var{mbox}.
 @end deftypefun
 
-@deftypefun  int mailbox_open (mailbox_t @var{mbox}, int @var{flag})
+@deftypefun  int mu_mailbox_open (mu_mailbox_t @var{mbox}, int @var{flag})
 A connection is open, if no stream was provided, a stream
 is created based on the @var{mbox} type.  The @var{flag} can be OR'ed.
 See @code{stream_create()} for @var{flag}'s description.
@@ -85,7 +85,7 @@ Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_close (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_close (mu_mailbox_t @var{mbox})
 The stream attach to @var{mbox} is closed.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -95,10 +95,10 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_flush (mailbox_t @var{mbox}, int @var{expunge})
+@deftypefun  int mu_mailbox_flush (mu_mailbox_t @var{mbox}, int @var{expunge})
 @end deftypefun
 
-@deftypefun  int mailbox_get_folder (mailbox_t @var{mbox}, folder_t *@var{folder})
+@deftypefun  int mu_mailbox_get_folder (mu_mailbox_t @var{mbox}, folder_t *@var{folder})
 Get the @var{folder}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -108,10 +108,10 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_set_folder (mailbox_t @var{mbox}, folder_t @var{folder})
+@deftypefun  int mu_mailbox_set_folder (mu_mailbox_t @var{mbox}, mu_folder_t @var{folder})
 @end deftypefun
 
-@deftypefun  int mailbox_uidvalidity (mailbox_t @var{mbox}, unsigned long *@var{number});
+@deftypefun  int mu_mailbox_uidvalidity (mu_mailbox_t @var{mbox}, unsigned long *@var{number});
 Give the uid validity of @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -121,7 +121,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_uidnext (mailbox_t @var{mbox}, size_t *@var{number});
+@deftypefun  int mu_mailbox_uidnext (mu_mailbox_t @var{mbox}, size_t *@var{number});
 Give the next predicted uid for @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -135,7 +135,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @c Messages.
 @c
 
-@deftypefun  int mailbox_get_message (mailbox_t @var{mbox}, size_t @var{msgno}, message_t *@var{message})
+@deftypefun  int mu_mailbox_get_message (mu_mailbox_t @var{mbox}, size_t @var{msgno}, mu_message_t *@var{message})
 Retrieve message number @var{msgno}, @var{message} is allocated and
 initialized.
 
@@ -148,7 +148,7 @@ Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
+@deftypefun  int mu_mailbox_append_message (mu_mailbox_t @var{mbox}, mu_message_t @var{message})
 The @var{message} is appended to the mailbox @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -158,7 +158,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_messages_count (mailbox_t @var{mbox}, size_t *@var{number});
+@deftypefun  int mu_mailbox_messages_count (mu_mailbox_t @var{mbox}, size_t *@var{number});
 Give the number of messages in @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -168,7 +168,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_messages_recent (mailbox_t @var{mbox}, size_t *@var{number});
+@deftypefun  int mu_mailbox_messages_recent (mu_mailbox_t @var{mbox}, size_t *@var{number});
 Give the number of recent messages in @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -178,7 +178,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_message_unseen (mailbox_t @var{mbox}, size_t *@var{number});
+@deftypefun  int mu_mailbox_message_unseen (mu_mailbox_t @var{mbox}, size_t *@var{number});
 Give the number of first unseen message in @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -188,7 +188,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_expunge (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_expunge (mu_mailbox_t @var{mbox})
 All messages marked for deletion are removed.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -198,14 +198,14 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_save_attributes (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_save_attributes (mu_mailbox_t @var{mbox})
 @end deftypefun
 
 @c
 @c Update and Scanning.
 @c
 
-@deftypefun  int mailbox_get_size (mailbox_t @var{mbox}, off_t *@var{size})
+@deftypefun  int mu_mailbox_get_size (mu_mailbox_t @var{mbox}, mu_off_t *@var{size})
 Gives the @var{mbox} size.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -215,10 +215,10 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_is_updated (mu_mailbox_t @var{mbox})
 @end deftypefun
 
-@deftypefun  int mailbox_scan (mailbox_t @var{mbox}, size_t @var{msgno}, size_t *@var{count});
+@deftypefun  int mu_mailbox_scan (mu_mailbox_t @var{mbox}, size_t @var{msgno}, size_t *@var{count});
 Scan the mailbox for new messages starting at message @var{msgno}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -234,7 +234,7 @@ Not enough memory.
 @c Mailbox Stream.
 @c
 
-@deftypefun  int mailbox_get_stream (mailbox_t @var{mbox}, stream_t *@var{stream})
+@deftypefun  int mu_mailbox_get_stream (mu_mailbox_t @var{mbox}, mu_stream_t *@var{stream})
 The mailbox stream is put in @var{stream}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -244,7 +244,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_set_stream (mailbox_t @var{mbox}, stream_t @var{stream})
+@deftypefun  int mu_mailbox_set_stream (mu_mailbox_t @var{mbox}, mu_stream_t @var{stream})
 Set the @var{stream} connection to use for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -258,8 +258,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @c Lock Settings.
 @c
 
-@deftypefun  int mailbox_get_locker (mailbox_t @var{mbox}, locker_t *@var{locker})
-Get the @var{locker_t} object.
+@deftypefun  int mu_mailbox_get_locker (mu_mailbox_t @var{mbox}, mu_locker_t *@var{locker})
+Get the @var{mu_locker_t} object.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -268,7 +268,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_set_locker (mailbox_t @var{mbox}, locker_t @var{locker})
+@deftypefun  int mu_mailbox_set_locker (mu_mailbox_t @var{mbox}, mu_locker_t @var{locker})
 Set the type of locking done by the @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -282,7 +282,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @c Property.
 @c
 
-@deftypefun  int mailbox_get_property (mailbox_t @var{mbox}, property_t *@var{property})
+@deftypefun  int mu_mailbox_get_property (mu_mailbox_t @var{mbox}, mu_property_t *@var{property})
 Get the property object.
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -296,7 +296,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @c URL.
 @c
 
-@deftypefun  int mailbox_get_url (mailbox_t @var{mbox}, url_t *@var{url})
+@deftypefun  int mu_mailbox_get_url (mu_mailbox_t @var{mbox}, mu_url_t *@var{url})
 Gives the constructed @var{url}.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -310,10 +310,10 @@ The return value is @code{0} on success and a code number on error conditions:
 @c Debug.
 @c
 
-@deftypefun  int mailbox_has_debug (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_has_debug (mu_mailbox_t @var{mbox})
 @end deftypefun
 
-@deftypefun  int mailbox_get_debug (mailbox_t @var{mbox}, mu_debug_t *@var{debug})
+@deftypefun  int mu_mailbox_get_debug (mu_mailbox_t @var{mbox}, mu_debug_t *@var{debug})
 Get a debug object.
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -323,14 +323,14 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_set_debug (mailbox_t @var{mbox}, mu_debug_t @var{debug})
+@deftypefun  int mu_mailbox_set_debug (mu_mailbox_t @var{mbox}, mu_debug_t @var{debug})
 @end deftypefun
 
 @c
 @c Events.
 @c
 
-@deftypefun  int mailbox_get_observable (mailbox_t mbox @var{mbox}, observable_t *@var{observable})
+@deftypefun  int mu_mailbox_get_observable (mu_mailbox_t mbox @var{mbox}, mu_observable_t *@var{observable})
 Get the observable object.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -346,8 +346,8 @@ Not enough memory.
 @c Locking
 @c
 
-@deftypefun  int mailbox_lock (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_lock (mu_mailbox_t @var{mbox})
 @end deftypefun
 
-@deftypefun  int mailbox_unlock (mailbox_t @var{mbox})
+@deftypefun  int mu_mailbox_unlock (mu_mailbox_t @var{mbox})
 @end deftypefun

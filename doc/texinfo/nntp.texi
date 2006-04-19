@@ -1,10 +1,10 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{nntp_} is reserved */}
+@code{/* Prefix @emph{mu_nntp_} is reserved */}
 @code{#include <mailutils/nntp.h>}
 
 @end smallexample
@@ -15,86 +15,86 @@ Network News Transfer Protocol. Not implemented.
 
 @subsubsection Initialization
 @cindex NNTP Initialization
-@deftypefun int nntp_create (nnpt_t *)
+@deftypefun int mu_nntp_create (mu_nntp_t *)
 @end deftypefun
 
-@deftypefun int nntp_destroy (nnpt_t *)
+@deftypefun int mu_nntp_destroy (mu_nntp_t *)
 @end deftypefun
 
-@deftypefun int nntp_open (nnpt_t)
+@deftypefun int mu_nntp_open (nnpt_t)
 @end deftypefun
 
 @subsubsection Article
 @cindex NNTP Article
-@deftypefun int nntp_article (nnpt_t)
+@deftypefun int mu_nntp_article (nnpt_t)
 @end deftypefun
 
 @subsubsection Body
 @cindex NNTP Body
-@deftypefun int nntp_body (nntp_t)
+@deftypefun int mu_nntp_body (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Group
 @cindex NNTP Group
-@deftypefun int nntp_group (nntp_t)
+@deftypefun int mu_nntp_group (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Head
 @cindex NNTP Head
-@deftypefun int nntp_head (nntp_t)
+@deftypefun int mu_nntp_head (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Help
 @cindex NNTP Help
-@deftypefun int nntp_help (nntp_t)
+@deftypefun int mu_nntp_help (mu_nntp_t)
 @end deftypefun
 
 @subsubsection IHave
 @cindex NNTP IHave
-@deftypefun int nntp_ihave (nntp_t)
+@deftypefun int mu_nntp_ihave (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Last
 @cindex NNTP Last
-@deftypefun int nntp_last (nntp_t)
+@deftypefun int mu_nntp_last (mu_nntp_t)
 @end deftypefun
 
 @subsubsection List
 @cindex NNTP List
-@deftypefun int nntp_list (nntp_t)
+@deftypefun int mu_nntp_list (mu_nntp_t)
 @end deftypefun
 
 @subsubsection NewGroups
 @cindex NNTP NewGroups
-@deftypefun int nntp_newgroups (nntp_t)
+@deftypefun int mu_nntp_newgroups (mu_nntp_t)
 @end deftypefun
 
 @subsubsection NewNews
 @cindex NNTP NewNews
-@deftypefun int nntp_newnews (nntp_t)
+@deftypefun int mu_nntp_newnews (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Next
 @cindex NNTP Next
-@deftypefun int nntp_next (nntp_t)
+@deftypefun int mu_nntp_next (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Post
 @cindex NNTP Post
-@deftypefun int nntp_post (nntp_t)
+@deftypefun int mu_nntp_post (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Quit
 @cindex NNTP Quit
-@deftypefun int nntp_quit (nntp_t)
+@deftypefun int mu_nntp_quit (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Slave
 @cindex NNTP Slave
-@deftypefun int nntp_slave (nntp_t)
+@deftypefun int mu_nntp_slave (mu_nntp_t)
 @end deftypefun
 
 @subsubsection Stat
 @cindex NNTP Stat
-@deftypefun int nntp_stat (nntp_t)
+@deftypefun int mu_nntp_stat (mu_nntp_t)
 @end deftypefun

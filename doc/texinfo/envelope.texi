@@ -1,47 +1,47 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{envelope_} is reserved. */}
+@code{/* Prefix @emph{mu_envelope_} is reserved. */}
 @code{#include <mailutils/envelope.h>}
 @end smallexample
 
-@deftypefun  int envelope_create (envelope_t *, void *)
+@deftypefun  int mu_envelope_create (mu_envelope_t *, void *)
 Primarily for internal use.
 @end deftypefun
 
-@deftypefun void envelope_destroy (envelope_t *, void *)
+@deftypefun void mu_envelope_destroy (mu_envelope_t *, void *)
 Primarily for internal use.
 @end deftypefun
 
-@deftypefun void* envelope_get_owner (envelope_t)
+@deftypefun void* mu_envelope_get_owner (mu_envelope_t)
 @end deftypefun
 
 @c
 @c ----------
 @c
 
-@deftypefun  int envelope_sender (envelope_t, char *, size_t, size_t *)
+@deftypefun  int mu_envelope_sender (mu_envelope_t, char *, size_t, size_t *)
 Get the address that this message was reportedly received from. This
 would be the "mail from" argument if the message was delivered
 or received via SMTP, for example.
 @end deftypefun
 
-@deftypefun int envelope_set_sender (envelope_t, int (*@var{_sender}) (envelope_t, char *, size_t, size_t *), void *)
-Primarily for internal use. The implementation of @code{envelope_t} depends
+@deftypefun int mu_envelope_set_sender (mu_envelope_t, int (*@var{_sender}) (mu_envelope_t, char *, size_t, size_t *), void *)
+Primarily for internal use. The implementation of @code{mu_envelope_t} depends
 on the mailbox type, this allows the function which actually gets
-the sender to be set by the creator of an @code{envelope_t}.
+the sender to be set by the creator of an @code{mu_envelope_t}.
 @end deftypefun
 
-@deftypefun  int envelope_date (envelope_t, char *, size_t, size_t *)
+@deftypefun  int mu_envelope_date (mu_envelope_t, char *, size_t, size_t *)
 Get the date that the message was delivered to the mailbox, in
 something close to ANSI @code{ctime()} format: Mon Jul 05 13:08:27 1999.
 @end deftypefun
 
-@deftypefun int envelope_set_date (envelope_t, int (*@var{_date}) (envelope_t, char *, size_t, size_t *), void *)
-Primarily for internal use. The implementation of @code{envelope_t} depends
+@deftypefun int mu_envelope_set_date (mu_envelope_t, int (*@var{_date}) (mu_envelope_t, char *, size_t, size_t *), void *)
+Primarily for internal use. The implementation of @code{mu_envelope_t} depends
 on the mailbox type, this allows the function which actually gets
-the date to be set by the creator of an @code{envelope_t}.
+the date to be set by the creator of an @code{mu_envelope_t}.
 @end deftypefun

@@ -1,10 +1,11 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006
+@c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{smtp_} is reserved */}
+@code{/* Prefix @emph{mu_smtp_} is reserved */}
 @code{#include <mailutils/smtp.h>}
 
 @end smallexample
@@ -12,86 +13,86 @@
 Simple Mail Transfer Protocol. Not implemented.
 
 @subsection Commands
-@cindex smtp_t
+@cindex mu_smtp_t
 
 @subsubsection Initialization
 @cindex SMTP Initialization
-@deftypefun int smtp_create (smtp_t *)
+@deftypefun int mu_smtp_create (mu_smtp_t *)
 @end deftypefun
 
-@deftypefun void smtp_destroy (smtp_t *)
+@deftypefun void mu_smtp_destroy (mu_smtp_t *)
 @end deftypefun
 
-@deftypefun int smtp_open (smtp_t, const char *@var{host}, unsigned int @var{port}, int @var{flags})
+@deftypefun int mu_smtp_open (mu_smtp_t, const char *@var{host}, unsigned int @var{port}, int @var{flags})
 @end deftypefun
 
 
 @subsubsection Data
 @cindex SMTP Data
-@deftypefun int smtp_data (smtp_t, stream_t @var{stream})
+@deftypefun int mu_smtp_data (mu_smtp_t, stream_t @var{stream})
 @end deftypefun
 
 @subsubsection Helo
 @cindex SMTP Helo
-@deftypefun int smtp_helo (smtp_t, const char *@var{domain})
+@deftypefun int mu_smtp_helo (mu_smtp_t, const char *@var{domain})
 @end deftypefun
 
-@deftypefun int smtp_ehlo (smtp_t, const char *@var{domain})
+@deftypefun int mu_smtp_ehlo (mu_smtp_t, const char *@var{domain})
 @end deftypefun
 
 @subsubsection Expn
 @cindex SMTP Expn
-@deftypefun int smtp_expn (smtp_t, const char *@var{list}, iterator_t *)
+@deftypefun int mu_smtp_expn (mu_smtp_t, const char *@var{list}, iterator_t *)
 @end deftypefun
 
 @subsubsection Help
 @cindex SMTP Help
-@deftypefun int smtp_help (smtp_t, const char *@var{help}, iterator_t *)
+@deftypefun int mu_smtp_help (mu_smtp_t, const char *@var{help}, iterator_t *)
 @end deftypefun
 
 @subsubsection Mail From
 @cindex SMTP Mail From
-@deftypefun int smtp_mail_from (smtp_t, const char *@var{address}, const char *@var{param})
+@deftypefun int mu_smtp_mail_from (mu_smtp_t, const char *@var{address}, const char *@var{param})
 @end deftypefun
 
 @subsubsection Noop
 @cindex SMTP Noop
-@deftypefun int smtp_noop (smtp_t)
+@deftypefun int mu_smtp_noop (mu_smtp_t)
 @end deftypefun
 
 @subsubsection Quit
 @cindex SMTP Quit
-@deftypefun int smtp_quit (smtp_t)
+@deftypefun int mu_smtp_quit (mu_smtp_t)
 @end deftypefun
 
 @subsubsection Recpt To
 @cindex SMTP Recpt To
-@deftypefun int smtp_rcpt_to (smtp_t, const char *@var{address}, const char *@var{param})
+@deftypefun int mu_smtp_rcpt_to (mu_smtp_t, const char *@var{address}, const char *@var{param})
 @end deftypefun
 
 @subsubsection Reset
 @cindex SMTP Reset
-@deftypefun int smtp_reset (smtp_t)
+@deftypefun int mu_smtp_reset (mu_smtp_t)
 @end deftypefun
 
 @subsubsection Verify
 @cindex SMTP Verify
-@deftypefun int smtp_verify (smtp_t, const char *@var{user})
+@deftypefun int mu_smtp_verify (mu_smtp_t, const char *@var{user})
 @end deftypefun
 
 @subsubsection Help functions
 @cindex SMTP Help functions
-@deftypefun extern int smtp_readline (smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
+@deftypefun extern int mu_smtp_readline (mu_smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
 @end deftypefun
 
-@deftypefun extern int smtp_response (smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
+@deftypefun extern int mu_smtp_response (mu_smtp_t, char *@var{buffer}, size_t @var{len}, size_t *@var{len})
 @end deftypefun
 
-@deftypefun extern int smtp_writeline (smtp_t, const char *@var{format}, @var{...})
+@deftypefun extern int mu_smtp_writeline (mu_smtp_t, const char *@var{format}, @var{...})
 @end deftypefun
 
-@deftypefun extern int smtp_sendline (smtp_t, const char *@var{line})
+@deftypefun extern int mu_smtp_sendline (mu_smtp_t, const char *@var{line})
 @end deftypefun
 
-@deftypefun extern int smtp_send (smtp_t
+@deftypefun extern int mu_smtp_send (mu_smtp_t)
 @end deftypefun

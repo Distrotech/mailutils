@@ -4,7 +4,8 @@
 @finalout
 
 @comment This is part of the GNU Mailutils manual.
-@comment Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@comment Copyright (C) 1999,2000,2001,2002,2003,2004,2006 
+@comment Free Software Foundation, Inc.
 @comment See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -80,7 +81,7 @@ default timeout to be ten minutes, many servers have shorter idle period, care s
 @code{mu_pop3_connect()}, two built-ins authentications are provided @code{mu_pop3_apop ()} or
 @code{mu_pop3_user()}/@code{mu_pop3_pass()}.  The @code{mu_pop3_stat()} and @code{mu_pop3_list ()} functions can be use to
 get the number and size of messages. The functions @code{mu_pop3_list_all()}, @code{mu_pop3_uidl_all ()} and
-@code{mu_pop3_capa()} save the information in an @code{iterator_t}.  Downloading of messages is done
+@code{mu_pop3_capa()} save the information in an @code{mu_iterator_t}.  Downloading of messages is done
 via a two methods @code{mu_pop3_retr()} or @code{mu_pop3_top()};
 @strong{Caution: Some Internet Service Providers do not permit to leave mail on server and the message will be
 deleted once downloaded}.
@@ -174,7 +175,7 @@ Errors:
 
 @cindex POP3 carrier
 
-@deftypefun int mu_pop3_set_carrier (mu_pop3_t @var{pop3}, stream_t @var{carrier})
+@deftypefun int mu_pop3_set_carrier (mu_pop3_t @var{pop3}, mu_stream_t @var{carrier})
 
 Set the stream to be use as the carrier to the server , for example tcp_stream.
 
@@ -225,7 +226,7 @@ Errors:
 
 @cindex POP3 CAPA
 
-@deftypefun int mu_pop3_capa (mu_pop3_t @var{pop3}, iterator_t *@var{iterator})
+@deftypefun int mu_pop3_capa (mu_pop3_t @var{pop3}, mu_iterator_t *@var{iterator})
 
 The CAPA command is send to the server and the list of capabilities is retrieve by going through
 the iterator, when done the user should call @code{iterator_destroy()}.
@@ -287,7 +288,7 @@ Errors:
 
 @cindex POP3 RETR
 
-@deftypefun int mu_pop3_retr (mu_pop3_t @var{pop3}, unsigned @var{msgno}, stream_t *@var{stream})
+@deftypefun int mu_pop3_retr (mu_pop3_t @var{pop3}, unsigned @var{msgno}, mu_stream_t *@var{stream})
 
 If successful @code{stream} should be call to download the message, byte-stuff lines or handle internally, CRLFs are
 converted to LF. All other operations will fail until the downloaded is complete by the caller.
@@ -308,13 +309,15 @@ Errors:
 int
 print_message (mu_pop3_t pop3, unsigned int msgno)
 @{
-   stream_t stream;
+   mu_stream_t stream;
    int status = mu_pop3_retr (pop3, msgno, &stream);
    if (status == 0)
     @{
        size_t n = 0;
        char buf[128];
-       while ((status = stream_readline (stream, buf, sizeof buf, &n)) == 0) && n > 0)
+       while ((status = mu_stream_readline (stream, 
+                                            buf, sizeof buf, &n)) == 0) 
+              && n > 0)
         @{
            printf ("%s", buf);
         @}
@@ -325,7 +328,7 @@ print_message (mu_pop3_t pop3, unsigned int msgno)
 
 @cindex POP3 TOP
 
-@deftypefun int mu_pop3_top  (mu_pop3_t @var{pop3}, unsigned int @var{msgno}, unsigned int @var{lines}, stream_t *@var{stream})
+@deftypefun int mu_pop3_top  (mu_pop3_t @var{pop3}, unsigned int @var{msgno}, unsigned int @var{lines}, mu_stream_t *@var{stream})
 
 If successful @code{stream} should be call to download the header, byte-stuff lines or handle internally, CRLFs are
 converted to LF.  All other operations will failed until the operation is completed by the caller.
@@ -345,13 +348,15 @@ Errors:
 int
 print_top (mu_pop3_t pop3, unsigned int msgno, unsigned int lines)
 @{
-    stream_t stream;
+    mu_stream_t stream;
     int status = mu_pop3_top (pop3, msgno, lines, &stream);
     if (status == 0)
      @{
         size_t n = 0;
         char buf[128];
-        while ((status = stream_readline (stream, buf, sizeof buf, &n)) == 0) && n > 0)
+        while ((status = mu_stream_readline (stream, buf, 
+                                             sizeof buf, &n)) == 0) 
+               && n > 0)
           printf ("%s", buf);
      @}
   return status;
@@ -403,7 +408,7 @@ Errors:
 @end table
 @end deftypefun
 
-@deftypefun int mu_pop3_uidl_all (mu_pop3_t @var{pop3}, iterator_t *@var{iterator})
+@deftypefun int mu_pop3_uidl_all (mu_pop3_t @var{pop3}, mu_iterator_t *@var{iterator})
 
 A UIDL command is executed.  The call should iterate through the @code{iterator} to fetch the response.
 
@@ -422,22 +427,24 @@ Errors:
 
 void print_uidl (mu_pop3_t pop3)
 @{
-   iterator_t itr;
+   mu_iterator_t itr;
    status = mu_pop3_uidl_all (pop3, &itr);
    if (status == 0)
     @{
        int rc;
    
-       for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+       for (mu_iterator_first (itr); 
+            !mu_iterator_is_done (itr); 
+            mu_iterator_next (itr))
           @{
               char *text;
  
-              rc = iterator_current (itr, (void**) &text);
+              rc = mu_iterator_current (itr, (void**) &text);
               if (rc)
                 lperror ("iterator_current", rc);
               printf ("%s\n", text);
           @}
-       iterator_destroy (&itr);
+       mu_iterator_destroy (&itr);
     @}
     
 @}

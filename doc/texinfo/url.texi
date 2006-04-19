@@ -1,5 +1,6 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006
+@c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -111,15 +112,15 @@ For more complete information see @cite{RFC 2368}.
 
 Helper functions are provided to retrieve and set the @emph{URL} fields.
 
-@deftypefun  int url_create (url_t *@var{url}, const char *@var{name})
+@deftypefun  int mu_url_create (mu_url_t *@var{url}, const char *@var{name})
 Create the url data structure, but do not parse it.
 @end deftypefun
 
-@deftypefun void url_destroy (url_t *@var{url})
+@deftypefun void mu_url_destroy (mu_url_t *@var{url})
 Destroy the url and free its resources.
 @end deftypefun
 
-@deftypefun  int url_parse (url_t)
+@deftypefun  int mu_url_parse (mu_url_t)
 Parses the url, after calling this the get functions can be called.
 
 The syntax, condensed from @cite{RFC 1738}, and extended with the ;auth=
@@ -142,58 +143,58 @@ This is a generalized URL syntax, and may not be exactly appropriate
 for any particular scheme.
 @end deftypefun
 
-@deftypefun  int url_get_scheme (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_scheme (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_user (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_user (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_passwd (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_passwd (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_auth (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_auth (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_host (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_host (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_port (const url_t, long *)
+@deftypefun  int mu_url_get_port (const mu_url_t, long *)
 @end deftypefun
 
-@deftypefun  int url_get_path (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_path (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int url_get_query (const url_t, char *, size_t, size_t *)
+@deftypefun  int mu_url_get_query (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  {const char*} url_to_string (const url_t)
+@deftypefun  {const char*} mu_url_to_string (const mu_url_t)
 @end deftypefun
 
-@deftypefun  int url_is_scheme (url_t, const char *@var{scheme})
+@deftypefun  int mu_url_is_scheme (mu_url_t, const char *@var{scheme})
 @end deftypefun
 
-@deftypefun  int url_is_same_scheme (url_t, url_t)
+@deftypefun  int mu_url_is_same_scheme (mu_url_t, mu_url_t)
 @end deftypefun
 
-@deftypefun  int url_is_same_user (url_t, url_t)
+@deftypefun  int mu_url_is_same_user (mu_url_t, mu_url_t)
 @end deftypefun
 
-@deftypefun  int url_is_same_path (url_t, url_t)
+@deftypefun  int mu_url_is_same_path (mu_url_t, mu_url_t)
 @end deftypefun
 
-@deftypefun  int url_is_same_host (url_t, url_t)
+@deftypefun  int mu_url_is_same_host (mu_url_t, mu_url_t)
 @end deftypefun
 
-@deftypefun  int url_is_same_port (url_t, url_t)
+@deftypefun  int mu_url_is_same_port (mu_url_t, mu_url_t)
 @end deftypefun
 
-@deftypefun char* url_decode (const char *@var{string})
+@deftypefun {char *} mu_url_decode (const char *@var{string})
 Decodes an @cite{RFC 1738} encoded string, returning the decoded string
 in allocated memory. If the string is not encoded, this degenerates to
 a @code{strdup()}.
 @end deftypefun
 
-@deftypefun  int url_is_ticket (url_t @var{ticket}, url_t @var{url})
+@deftypefun  int mu_url_is_ticket (mu_url_t @var{ticket}, mu_url_t @var{url})
 @end deftypefun
 
 @subsubheading Example

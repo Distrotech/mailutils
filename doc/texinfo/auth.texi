@@ -1,51 +1,51 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefixes @emph{authority_}, @emph{ticket_}, and @emph{wicket_} are reserved. */}
+@code{/* Prefixes @emph{mu_authority_}, @emph{mu_ticket_}, and @emph{mu_wicket_} are reserved. */}
 @code{#include <mailutils/auth.h>}
 
 @end smallexample
 
 There are many ways to authenticate to a server.  To be flexible the
-authentication process is provided by three objects @code{authority_t},
-@code{ticket_t}, and @code{wicket_t}.  The @code{authority_t} can implement
+authentication process is provided by three objects @code{mu_authority_t},
+@code{mu_ticket_t}, and @code{mu_wicket_t}.  The @code{mu_authority_t} can implement
 different protocol like APOP, MD5-AUTH, One Time Passwd, etc. By default
 if a mailbox does not understand or know how to authenticate it falls back
-to user/passwd authentication.  The @code{ticket_t} is a way for
+to user/passwd authentication.  The @code{mu_ticket_t} is a way for
 Mailboxes and Mailers provide a way to authenticate when the URL does not
 contain enough information.  The default action is to call the function
-@code{authority_authenticate()} which will get the @emph{user} and @emph{passwd}
+@code{mu_authority_authenticate()} which will get the @emph{user} and @emph{passwd}
 if not set, this function can be overridden by a custom method.
 
 @c
 @c Ticket
 @c
 
-@deftypefun  int ticket_create (ticket_t *, void *@var{owner})
+@deftypefun  int mu_ticket_create (mu_ticket_t *, void *@var{owner})
 @end deftypefun
 
-@deftypefun void ticket_destroy (ticket_t *, void *@var{owner})
+@deftypefun void mu_ticket_destroy (mu_ticket_t *, void *@var{owner})
 @end deftypefun
 
-@deftypefun  int ticket_set_destroy (ticket_t, void (*) (ticket_t), void *@var{owner})
+@deftypefun  int mu_ticket_set_destroy (mu_ticket_t, void (*) (mu_ticket_t), void *@var{owner})
 @end deftypefun
 
-@deftypefun void* ticket_get_owner (ticket_t)
+@deftypefun void* mu_ticket_get_owner (mu_ticket_t)
 @end deftypefun
 
-@deftypefun  int ticket_set_pop (ticket_t, int (*@var{_pop}) (ticket_t, url_t, const char *, char **), void *)
+@deftypefun  int mu_ticket_set_pop (mu_ticket_t, int (*@var{_pop}) (mu_ticket_t, url_t, const char *, char **), void *)
 @end deftypefun
 
-@deftypefun  int ticket_pop (ticket_t, url_t, const char *, char **)
+@deftypefun  int mu_ticket_pop (mu_ticket_t, url_t, const char *, char **)
 @end deftypefun
 
-@deftypefun  int ticket_set_data (ticket_t, void *, void *@var{owner})
+@deftypefun  int mu_ticket_set_data (mu_ticket_t, void *, void *@var{owner})
 @end deftypefun
 
-@deftypefun  int ticket_get_data (ticket_t, void **)
+@deftypefun  int mu_ticket_get_data (mu_ticket_t, void **)
 @end deftypefun
 
 @c
@@ -54,28 +54,28 @@ if not set, this function can be overridden by a custom method.
 
 @sp 1
 
-@deftypefun  int authority_create (authority_t *, ticket_t, void *)
+@deftypefun  int mu_authority_create (mu_authority_t *, mu_ticket_t, void *)
 @end deftypefun
 
-@deftypefun void authority_destroy (authority_t *, void *)
+@deftypefun void mu_authority_destroy (mu_authority_t *, void *)
 @end deftypefun
 
-@deftypefun void* authority_get_owner (authority_t)
+@deftypefun void* mu_authority_get_owner (mu_authority_t)
 @end deftypefun
 
-@deftypefun  int authority_set_ticket (authority_t, ticket_t)
+@deftypefun  int mu_authority_set_ticket (mu_authority_t, mu_ticket_t)
 @end deftypefun
 
-@deftypefun  int authority_get_ticket (authority_t, ticket_t *)
+@deftypefun  int mu_authority_get_ticket (mu_authority_t, mu_ticket_t *)
 @end deftypefun
 
-@deftypefun  int authority_authenticate (authority_t)
+@deftypefun  int mu_authority_authenticate (mu_authority_t)
 @end deftypefun
 
-@deftypefun  int authority_set_authenticate (authority_t, int (*@var{_authenticate}) (authority_t), void *)
+@deftypefun  int mu_authority_set_authenticate (mu_authority_t, int (*@var{_authenticate}) (mu_authority_t), void *)
 @end deftypefun
 
-@deftypefun  int authority_create_null (authority_t *@var{authority}, void *@var{owner})
+@deftypefun  int mu_authority_create_null (mu_authority_t *@var{authority}, void *@var{owner})
 @end deftypefun
 
 @c
@@ -84,22 +84,22 @@ if not set, this function can be overridden by a custom method.
 
 @sp 1
 
-@deftypefun  int wicket_create (wicket_t *, const char *)
+@deftypefun  int mu_wicket_create (mu_wicket_t *, const char *)
 @end deftypefun
 
-@deftypefun void wicket_destroy (wicket_t *)
+@deftypefun void mu_wicket_destroy (mu_wicket_t *)
 @end deftypefun
 
-@deftypefun  int wicket_set_filename (wicket_t, const char *)
+@deftypefun  int mu_wicket_set_filename (mu_wicket_t, const char *)
 @end deftypefun
 
-@deftypefun  int wicket_get_filename (wicket_t, char *, size_t, size_t *)
+@deftypefun  int mu_wicket_get_filename (mu_wicket_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int wicket_set_ticket (wicket_t, int (*) (wicket_t, const char *, const char *, ticket_t *))
+@deftypefun  int mu_wicket_set_ticket (mu_wicket_t, int (*) (mu_wicket_t, const char *, const char *, mu_ticket_t *))
 @end deftypefun
 
-@deftypefun  int wicket_get_ticket (wicket_t, ticket_t *, const char *, const char *)
+@deftypefun  int mu_wicket_get_ticket (mu_wicket_t, mu_ticket_t *, const char *, const char *)
 @end deftypefun
 
 @c

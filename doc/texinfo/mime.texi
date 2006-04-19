@@ -1,33 +1,33 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2006 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{pop3_} is reserve */}
-@code{#include <mailutils/pop3.h>}
+@code{/* Prefix @emph{mu_mime_} is reserved */}
+@code{#include <mailutils/mime.h>}
 
 @end smallexample
 
 Multipurpose Internet Mail Extensions (MIME).
 
-@deftypefun int mime_create (mime_t *pmime, message_t msg, int flags)
+@deftypefun int mu_mime_create (mu_mime_t *pmime, mu_message_t msg, int flags)
 @end deftypefun
 
-@deftypefun void mime_destroy (mime_t *pmime)
+@deftypefun void mu_mime_destroy (mu_mime_t *pmime)
 @end deftypefun
 
-@deftypefun int mime_is_multipart (mime_t mime)
+@deftypefun int mu_mime_is_multipart (mu_mime_t mime)
 @end deftypefun
 
-@deftypefun int mime_get_num_parts (mime_t mime, size_t *nparts)
+@deftypefun int mu_mime_get_num_parts (mu_mime_t mime, size_t *nparts)
 @end deftypefun
 
-@deftypefun int mime_get_part (mime_t mime, size_t part, message_t *msg)
+@deftypefun int mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t *msg)
 @end deftypefun
 
-@deftypefun int mime_add_part (mime_t mime, message_t msg)
+@deftypefun int mu_mime_add_part (mu_mime_t mime, mu_message_t msg)
 @end deftypefun
 
-@deftypefun int mime_get_message (mime_t mime, message_t *msg)
+@deftypefun int mu_mime_get_message (mu_mime_t mime, mu_message_t *msg)
 @end deftypefun
