@@ -189,29 +189,6 @@ specific configuration options:
 	                       a better average distribution than the `index'
 			       method.
 	
-If you wish to use APOP authentication in POP3 daemon, you will have
-to enable DBM support in Mailutils. To do so, use one of the following
-options:
-
-    --with-gdbm
-
-	Use GNU DBM
-
-    --with-db2
-
-	Use Berkeley DB
-
-    --with-ndbm
-
-	Use NDBM
-
-    --with-dbm
-
-	Use old DBM
-
-        Only one dbm option may be specified. Which one depends on the flavor
-        of DBM you are using. GDBM is most common for GNU system.
-
     --with-log-facility=facility
 
 	Enable logging to the given syslog facility. Default is `mail'.
@@ -235,6 +212,44 @@ options:
         one from your libc. You will need this option if the libc library
         on your system was compiled without NLS support.
 
+The following options enable DBM support in Mailutils. DBM support is
+necessary if you wish to use APOP authentication in POP3 daemon or to
+use DBM-based mail box quotas with mail.local.
+
+    --with-gdbm
+
+	Use GNU DBM
+
+    --with-berkeley-db[=ARG]
+
+	Use Berkeley DB. If ARG is not specified, configure will
+	attempt to autodetect the database version to use. Unless ARG
+	begins with a digit, it is taken as a library name, without
+	the `lib' prefix and library type suffix, so that specifying
+
+	    --with-berkeley-db=db-3.1
+
+	instructs configure to use library libdb-3.1.so (or
+	libdb-3.1.a).
+	Otherwise, if ARG begins with a digit, it is understood as a
+	library version number to link to. In this case configure
+	assumes a Slackware-like installation layout. Thus, using
+
+	    --with-berkeley-db=3.1
+
+	tells configure to use library libdb-3.1.so (or libdb-3.1.a)
+	and header file /usr/include/db31/db.h    
+
+    --with-ndbm
+
+	Use NDBM
+
+    --with-dbm
+
+	Use old DBM
+
+        Only one dbm option may be specified. Which one depends on the flavor
+        of DBM you are using. GDBM is most common for GNU system.
 
 Use following options to disable support for particular protocols or
 features:
