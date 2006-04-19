@@ -1024,30 +1024,32 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
   return 0;
 }
 
+/* FIXME: Should use strtoumax ideally */
 static int
 parse_answer0 (const char *buffer, size_t *n1, size_t *n2)
 {
   char *p;
-  uintmax_t m;
+  unsigned long m;
   if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
     return 1;
-  m = *n1 = strtoumax (buffer + 3, &p, 10);
+  m = *n1 = strtoul (buffer + 3, &p, 10);
   if (!isspace (*p) || m != *n1)
     return 1;
-  m = *n2 = strtoumax (p, &p, 10);
+  m = *n2 = strtoul (p, &p, 10);
   if (!(*p == 0 || isspace (*p)) || m != *n2)
     return 1;
   return 0;
 }
 
+/* FIXME: Should use strtoumax ideally */
 static int
 parse_answer1 (const char *buffer, size_t *n1, char *buf, size_t bufsize)
 {
   char *p;
-  uintmax_t m;
+  unsigned long m;
   if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
     return 1;
-  m = *n1 = strtoumax (buffer + 3, &p, 0);
+  m = *n1 = strtoul (buffer + 3, &p, 0);
   if (!isspace (*p) || m != *n1)
     return 1;
   while (*p && isspace (*p))
