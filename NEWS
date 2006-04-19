@@ -9,7 +9,7 @@ Version 0.6.94:
 * Add support for Berkeley DB 3.x and 4.x
 
 * Bugfixes:
-** Fix handling of file name containing whitespace characters in imap4 server
+** Fix handling of file names containing whitespace characters in imap4 server
 and library.
 ** frm: Fix coredump on empty From headers
 
@@ -82,7 +82,7 @@ Add support for localname and localdomain mtstailor variables.
 
 New mtstailor variable x-mailer controls whether to add the 'X-Mailer'
 header to the message being sent, if it does not contain one. The
-the value 'yes' means to add the default X-Mailer string, the value
+value 'yes' means to add the default X-Mailer string, the value
 'no' means to ignore it. Any other value is taken as the X-Mailer
 identifier to be added to the message.
 
@@ -111,7 +111,7 @@ Version 0.6.91:
 
 * imap4d: Implemented SASL authentication using LOGIN and PLAIN mechanisms.
 
-* Plaintext passwords for SASL authentication types may be kept in SQL
+* Plaintext passwords for SASL authentication types can be kept in SQL
 database. When used with LOGIN or PLAIN, the passwords may be
 encrypted using MySQL password() function. New option
 --sql-password-type specifies what kind of password is returned by

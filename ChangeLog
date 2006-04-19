@@ -1,6 +1,16 @@
 2006-04-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
+	* gnulib.modules (muaux): Remove xstrtol
+	* libproto/pop/mbox.c (parse_answer0,parse_answer1): Use strtoul
+	instead of strtoumax. This is a temporary change.
+	* m4/gnulib.m4: Remove gl_XSTRTOL.
+	* m4/xstrtol.m4: Removed
+	* lib/xstrtol.h: Removed
+	* lib/xstrtol.c: Removed
+	* lib/xstrtoul.c: Removed
+
+	* NEWS: Update
 	* README: Document --with-berkeley-db option
 	* configure.ac (--with-berkeley-db): New option
 	(--with-db2): Deprecated. Remove from the help list.

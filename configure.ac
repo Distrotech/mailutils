@@ -270,11 +270,11 @@ case "${withval}" in
 esac])
 
 ## Support --with-db2 for backward compatibility
-if test ${with_db2+set} = set; then
+if test "${with_db2+set}" = set; then
   case "${with_db2}" in
   yes) use_dbm=BDB2 ;;
   no)  use_dbm=no ;;
-  *)   AC_MSG_ERROR(bad value ${withval} for --with-db2) ;;
+  *)   AC_MSG_ERROR(bad value ${with_db2} for --with-db2) ;;
   esac
 fi
 
