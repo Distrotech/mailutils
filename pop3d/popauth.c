@@ -580,8 +580,8 @@ popauth_version (FILE *stream, struct argp_state *state)
 {
 #if defined(WITH_GDBM)
 # define FORMAT "GDBM"
-#elif defined(WITH_BDB2)
-# define FORMAT "Berkeley DB"  
+#elif defined(WITH_BDB)
+# define FORMAT "Berkeley DB"
 #elif defined(WITH_NDBM)
 # define FORMAT "NDBM"  
 #elif defined(WITH_OLD_DBM)

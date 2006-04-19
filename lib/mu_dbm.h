@@ -27,7 +27,7 @@ typedef datum DBM_DATUM;
 #define MU_DATUM_SIZE(d) d.dsize
 #define MU_DATUM_PTR(d) d.dptr
 
-#elif defined(WITH_BDB2)
+#elif defined(WITH_BDB)
 
 #include <db.h>
 #define USE_DBM

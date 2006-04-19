@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -197,7 +197,7 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
   return gdbm_nextkey (db, key);
 }
 
-#elif defined(WITH_BDB2)
+#elif defined(WITH_BDB)
 
 #define DB_SUFFIX ".db"
 
@@ -241,7 +241,15 @@ mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
       return -1;
     }
 
+#if WITH_BDB == 2  
   rc = db_open (pfname, DB_HASH, f, mode, NULL, NULL, &db);
+#else
+  rc = db_create (&db, NULL, 0);
+  if (rc != 0 || db == NULL)
+    return rc;
+  rc = db->open (db, pfname, NULL, DB_HASH, f, mode);
+#endif
+  
   free (pfname);
   if (rc)
     return -1;
