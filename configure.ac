@@ -1,6 +1,7 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
-dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005 Free Software Foundation, Inc.
+dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005,
+dn; 2006 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by

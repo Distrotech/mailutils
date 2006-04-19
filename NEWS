@@ -1,8 +1,18 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-04-05
+GNU mailutils NEWS -- history of user-visible changes.  2006-04-19
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+Version 0.6.94:
+
+* Add support for Berkeley DB 3.x and 4.x
+
+* Bugfixes:
+** Fix handling of file name containing whitespace characters in imap4 server
+and library.
+** frm: Fix coredump on empty From headers
+
 
 Version 0.6.93:
 
@@ -93,8 +103,6 @@ place.
 ** movemail: did not preserve input mailbox if an I/O error happened on the
 output one. Debian Bug#344420.
 ** Fix handling of Alternate-Mailboxes in MH
-** Fix handling of file name containing whitespace characters in imap4 server
-and library.
 
 
 Version 0.6.91:

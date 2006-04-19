@@ -1,3 +1,30 @@
+2006-04-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+	* README: Document --with-berkeley-db option
+	* configure.ac (--with-berkeley-db): New option
+	(--with-db2): Deprecated. Remove from the help list.
+	Raise version number to 0.6.94
+	
+	* lib/mu_dbm.c: Add support for Berkeley DB >= 3
+	* lib/mu_dbm.h: Likewise
+	* pop3d/popauth.c: Likewise
+	* mailbox/nls.c: Include stdlib.h
+
+	* doc/texinfo/address.texi, doc/texinfo/attribute.texi,
+	doc/texinfo/auth.texi, doc/texinfo/body.texi,
+	doc/texinfo/envelope.texi, doc/texinfo/folder.texi,
+	doc/texinfo/framework.texi, doc/texinfo/headers.texi,
+	doc/texinfo/imap4.texi, doc/texinfo/iterator.texi,
+	doc/texinfo/libsieve.texi, doc/texinfo/locker.texi,
+	doc/texinfo/mailbox.texi, doc/texinfo/mailcap.texi,
+	doc/texinfo/mailer.texi, doc/texinfo/mbox.texi,
+	doc/texinfo/message.texi, doc/texinfo/mime.texi,
+	doc/texinfo/nntp.texi, doc/texinfo/parse822.texi,
+	doc/texinfo/pop3.texi, doc/texinfo/smtp.texi,
+	doc/texinfo/stream.texi, doc/texinfo/url.texi: Reflect namespace
+	changes.
+
 2006-04-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* THANKS: Add Willem Jaap Zwart
