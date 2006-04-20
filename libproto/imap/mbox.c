@@ -1570,7 +1570,7 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
   {
     char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
     size_t n = mu_strftime (tmpbuf, sizeof tmpbuf,
-                            MU_ENVELOPE_DATE_FORMAT, localtime (&tm));
+                            MU_ENVELOPE_DATE_FORMAT, &tm);
     n = mu_cpystr (buffer, tmpbuf, buflen);
     if (plen)
       *plen = n;
