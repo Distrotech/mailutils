@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006 
+   Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -42,6 +43,39 @@ extern SCM scm_long2num (long val);
 # define MU_SCM_SYMBOL_VALUE(p) SCM_VARIABLE_REF(scm_c_lookup(p))
 #endif
 
+#if GUILE_VERSION < 18
+
+# define scm_i_string_chars SCM_ROCHARS 
+# define scm_i_string_length SCM_ROLENGTH 
+# define scm_is_string(s) (SCM_NIMP(s) && SCM_STRINGP(s))
+# define scm_from_locale_stringn(s,l) scm_makfromstr(s,l,0) 
+# define scm_from_locale_string(s) scm_makfrom0str(s)
+
+# define scm_from_locale_symbol(s) scm_str2symbol(s)
+
+# define scm_from_int SCM_MAKINUM 
+
+//# define scm_i_string_chars SCM_STRING_CHARS 
+
+# define scm_gc_malloc scm_must_malloc 
+
+/* FIXME */
+# define scm_is_integer SCM_INUMP 
+# define scm_to_int32 SCM_INUM 
+# define scm_to_int SCM_INUM 
+
+# define DECL_SCM_T_ARRAY_HANDLE(name) 
+# define SCM_T_ARRAY_HANDLE_PTR(name) 0
+# define scm_vector_writable_elements(res,handle,a,b) SCM_VELTS(res)
+# define scm_array_handle_release(h)
+
+#else
+
+# define DECL_SCM_T_ARRAY_HANDLE(name) scm_t_array_handle name
+# define SCM_T_ARRAY_HANDLE_PTR(name) &(name)
+
+#endif
+
 typedef struct
 {
   int debug_guile;
@@ -59,6 +93,8 @@ typedef struct
 extern "C" {
 #endif
 
+void mu_scm_error (const char *func_name, int status,
+		   const char *fmt, SCM args);
 extern SCM mu_scm_makenum (unsigned long val);
 extern void mu_set_variable (const char *name, SCM value);
 extern void mu_scm_init (void);
