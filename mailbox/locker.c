@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -828,7 +828,7 @@ static int
 lock_external (mu_locker_t l, int lock)
 {
   int err = 0;
-  const char *av[6];
+  char *av[6];
   int ac = 0;
   char aforce[3 + DEC_DIGS_PER_INT + 1];
   char aretry[3 + DEC_DIGS_PER_INT + 1];
