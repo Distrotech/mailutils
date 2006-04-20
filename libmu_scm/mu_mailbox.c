@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,7 @@ mu_scm_mailbox_create (mu_mailbox_t mbox)
 {
   struct mu_mailbox *mum;
 
-  mum = scm_must_malloc (sizeof (struct mu_mailbox), "mailbox");
+  mum = scm_gc_malloc (sizeof (struct mu_mailbox), "mailbox");
   mum->mbox = mbox;
   SCM_RETURN_NEWSMOB (mailbox_tag, mum);
 }
@@ -111,9 +111,8 @@ SCM_DEFINE (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
 {
   if (!SCM_UNBNDP (URL))
     {
-      SCM_ASSERT (SCM_NIMP (URL) && SCM_STRINGP (URL),
-		  URL, SCM_ARG1, FUNC_NAME);
-      mu_set_mail_directory (SCM_STRING_CHARS (URL));
+      SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
+      mu_set_mail_directory (scm_i_string_chars (URL));
     }
   return scm_makfrom0str (mu_mail_directory ());
 }
@@ -126,9 +125,8 @@ SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
 {
   if (!SCM_UNBNDP (URL))
     {
-      SCM_ASSERT (SCM_NIMP (URL) && SCM_STRINGP (URL),
-		  URL, SCM_ARG1, FUNC_NAME);
-      mu_set_folder_directory (SCM_STRING_CHARS (URL));
+      SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
+      mu_set_folder_directory (scm_i_string_chars (URL));
     }
   return scm_makfrom0str (mu_folder_directory ());
 }
@@ -140,14 +138,14 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_open
 {
   mu_mailbox_t mbox = NULL;
-  char *mode_str;
+  const char *mode_str;
   int mode = 0;
+  int status;
+  
+  SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
 
-  SCM_ASSERT (SCM_NIMP (URL) && SCM_STRINGP (URL), URL, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
-	      MODE, SCM_ARG2, FUNC_NAME);
-
-  for (mode_str = SCM_STRING_CHARS (MODE); *mode_str; mode_str++)
+  for (mode_str = scm_i_string_chars (MODE); *mode_str; mode_str++)
     switch (*mode_str)
       {
       case 'r':
@@ -167,15 +165,22 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
   if (mode & MU_STREAM_READ && mode & MU_STREAM_WRITE)
     mode = (mode & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
 
-  if (mu_mailbox_create_default (&mbox, SCM_STRING_CHARS (URL)) != 0)
-    return SCM_BOOL_F;
+  status = mu_mailbox_create_default (&mbox, scm_i_string_chars (URL));
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot create default mailbox ~A",
+		  scm_list_1 (URL));
 
-  if (mu_mailbox_open (mbox, mode) != 0)
+
+  status = mu_mailbox_open (mbox, mode);
+  if (status)
     {
       mu_mailbox_destroy (&mbox);
-      return SCM_BOOL_F;
+      mu_scm_error (FUNC_NAME, status,
+		    "Cannot open default mailbox ~A",
+		    scm_list_1 (URL));
     }
-
+      
   return mu_scm_mailbox_create (mbox);
 }
 #undef FUNC_NAME
@@ -219,15 +224,18 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
 {
   struct mu_mailbox *mum;
   mu_stream_t stream;
+  int status;
   
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
-	      MODE, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  if (mu_mailbox_get_stream (mum->mbox, &stream))
-    return SCM_BOOL_F;
+  status = mu_mailbox_get_stream (mum->mbox, &stream);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot get mailbox stream",
+		  scm_list_1 (MBOX));
   return mu_port_make_from_stream (MBOX, stream,
-				   scm_mode_bits (SCM_STRING_CHARS (MODE)));    
+			   scm_mode_bits ((char*)scm_i_string_chars (MODE))); 
 }
 #undef FUNC_NAME
 
@@ -238,17 +246,20 @@ SCM_DEFINE (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
   size_t msgno;
   struct mu_mailbox *mum;
   mu_message_t msg;
-
+  int status;
+    
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT ((SCM_IMP (MSGNO) && SCM_INUMP (MSGNO)),
-	      MSGNO, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (MSGNO), MSGNO, SCM_ARG2, FUNC_NAME);
 
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  msgno = SCM_INUM (MSGNO);
+  msgno = scm_to_int32 (MSGNO);
 
-  if (mu_mailbox_get_message (mum->mbox, msgno, &msg))
-    return SCM_BOOL_F;
-
+  status = mu_mailbox_get_message (mum->mbox, msgno, &msg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot get message ~A from mailbox ~A",
+		  scm_list_2 (MSGNO, MBOX));
+    
   return mu_scm_message_create (MBOX, msg);
 }
 #undef FUNC_NAME
@@ -259,12 +270,16 @@ SCM_DEFINE (scm_mu_mailbox_messages_count, "mu-mailbox-messages-count", 1, 0, 0,
 {
   struct mu_mailbox *mum;
   size_t nmesg;
-
+  int status;
+  
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
 
-  if (mu_mailbox_messages_count (mum->mbox, &nmesg))
-    return SCM_BOOL_F;
+  status = mu_mailbox_messages_count (mum->mbox, &nmesg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot count messages in mailbox ~A",
+		  scm_list_1 (MBOX));
   return mu_scm_makenum (nmesg);
 }
 #undef FUNC_NAME
@@ -274,11 +289,15 @@ SCM_DEFINE (scm_mu_mailbox_expunge, "mu-mailbox-expunge", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_expunge
 {
   struct mu_mailbox *mum;
-
+  int status;
+    
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  if (mu_mailbox_expunge (mum->mbox))
-    return SCM_BOOL_F;
+  status = mu_mailbox_expunge (mum->mbox);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot expunge messages in mailbox ~A",
+		  scm_list_1 (MBOX));
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
@@ -289,10 +308,15 @@ SCM_DEFINE (scm_mu_mailbox_url, "mu-mailbox-url", 1, 0, 0,
 {
   struct mu_mailbox *mum;
   mu_url_t url;
-
+  int status;
+  
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   mu_mailbox_get_url (mum->mbox, &url);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot get mailbox URL",
+		  SCM_BOOL_F);
   return scm_makfrom0str (mu_url_to_string (url));
 }
 #undef FUNC_NAME
@@ -303,13 +327,17 @@ SCM_DEFINE (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
 {
   struct mu_mailbox *mum;
   mu_message_t msg;
-
+  int status;
+    
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   msg = mu_scm_message_get (MESG);
-  if (mu_mailbox_append_message (mum->mbox, msg))
-    return SCM_BOOL_F;
+  status = mu_mailbox_append_message (mum->mbox, msg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot append message ~A to mailbox ~A",
+		  scm_list_2 (MESG, MBOX));
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME

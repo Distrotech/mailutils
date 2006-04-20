@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,27 +25,26 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 	   "Opens a connection to the system logger for Guile program.")
 #define FUNC_NAME s_scm_mu_openlog
 {
-  char *ident;
+  const char *ident;
   int option, facility;
 
   if (IDENT == SCM_BOOL_F)
     ident = "libmu_scm";
   else
     {
-      SCM_ASSERT (SCM_NIMP (IDENT) && SCM_STRINGP (IDENT),
-		 IDENT, SCM_ARG1, FUNC_NAME);
-      ident = SCM_STRING_CHARS (IDENT);
+      SCM_ASSERT (scm_is_string (IDENT), IDENT, SCM_ARG1, FUNC_NAME);
+      ident = scm_i_string_chars (IDENT);
     }
 	
-  if (SCM_IMP (OPTION) && SCM_INUMP (OPTION))
-    option = SCM_INUM (OPTION);
+  if (scm_is_integer (OPTION))
+    option = scm_to_int32 (OPTION);
   else if (SCM_BIGP (OPTION)) 
     option = (int) scm_i_big2dbl (OPTION);
   else 
     SCM_ASSERT (0, OPTION, SCM_ARG2, FUNC_NAME);
 
-  if (SCM_IMP (FACILITY) && SCM_INUMP (FACILITY)) 
-    facility = SCM_INUM (FACILITY);
+  if (scm_is_integer (FACILITY)) 
+    facility = scm_to_int32 (FACILITY);
   else if (SCM_BIGP (FACILITY)) 
     facility = (int) scm_i_big2dbl (FACILITY);
   else
@@ -65,16 +64,15 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 
   if (PRIO == SCM_BOOL_F) 
     prio = LOG_INFO;
-  else if (SCM_IMP (PRIO) && SCM_INUMP (PRIO)) 
-    prio = SCM_INUM (PRIO);
+  else if (scm_is_integer (PRIO)) 
+    prio = scm_to_int32 (PRIO);
   else if (SCM_BIGP (PRIO)) 
     prio = (int) scm_i_big2dbl (PRIO);
   else
     SCM_ASSERT (0, PRIO, SCM_ARG1, FUNC_NAME);
   
-  SCM_ASSERT (SCM_NIMP (TEXT) && SCM_STRINGP (TEXT),
-	     TEXT, SCM_ARG2, FUNC_NAME);
-  syslog (prio, "%s", SCM_STRING_CHARS (TEXT));
+  SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
+  syslog (prio, "%s", scm_i_string_chars (TEXT));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -127,6 +125,6 @@ mu_scm_logger_init ()
   int i;
   
   for (i = 0; i < sizeof (syslog_kw)/sizeof (syslog_kw[0]); i++)
-    scm_c_define (syslog_kw[i].name, SCM_MAKINUM (syslog_kw[i].facility));
+    scm_c_define (syslog_kw[i].name, scm_from_int (syslog_kw[i].facility));
 #include <mu_logger.x>
 }

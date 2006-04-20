@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,39 +29,47 @@ _get_address_part (const char *func_name, address_get_fp fun,
   char *str;
   SCM ret;
   int num;
+  int status;
   
-  SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),
-	      ADDRESS, SCM_ARG1, func_name);
+  SCM_ASSERT (scm_is_string (ADDRESS), ADDRESS, SCM_ARG1, func_name);
 
   if (!SCM_UNBNDP (NUM))
     {
-      SCM_ASSERT (SCM_IMP (NUM) && SCM_INUMP (NUM),
-		  NUM, SCM_ARG1, func_name);
-      num = SCM_INUM (NUM);
+      SCM_ASSERT (scm_is_integer (NUM), NUM, SCM_ARG1, func_name);
+      num = scm_to_int (NUM);
     }
   else
     num = 1;
 
-  str = SCM_STRING_CHARS (ADDRESS);
-  length = strlen (str);
+  length = strlen (scm_i_string_chars (ADDRESS));
   if (length == 0)
-    return scm_makfrom0str("");
+    mu_scm_error (func_name, 0,
+		  "Empty address", SCM_BOOL_F);
   
-  if (mu_address_create (&addr, SCM_STRING_CHARS (ADDRESS)))
-    return SCM_BOOL_F;
+  status = mu_address_create (&addr, scm_i_string_chars (ADDRESS));
+  if (status)
+    mu_scm_error (func_name, status, "Cannot create address", SCM_BOOL_F);
 
   str = malloc (length + 1);
   if (!str)
     {
       mu_address_destroy (&addr);
-      return SCM_BOOL_F;
+      mu_scm_error (func_name, ENOMEM,
+		    "Cannot allocate memory", SCM_BOOL_F);
     }
 
-  if ((*fun) (addr, num, str, length + 1, NULL) == 0)
+  status = (*fun) (addr, num, str, length + 1, NULL);
+  mu_address_destroy (&addr);
+
+  if (status == 0)
     ret = scm_makfrom0str (str);
   else
-    ret = SCM_BOOL_F;
-  mu_address_destroy (&addr);
+    {
+      free (str);
+      mu_scm_error (func_name, status,
+		    "Underlying function failed", SCM_BOOL_F);
+    }
+  
   free (str);
   return ret;
 }
@@ -123,12 +131,15 @@ SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 {
   mu_address_t addr;
   size_t count = 0;
+  int status;
   
-  SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),
-	      ADDRESS, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (ADDRESS), ADDRESS, SCM_ARG1, FUNC_NAME);
 
-  if (mu_address_create (&addr, SCM_STRING_CHARS (ADDRESS)))
-    return SCM_MAKINUM(0);
+  status = mu_address_create (&addr, scm_i_string_chars (ADDRESS));
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot create address for ~A",
+		  scm_list_1 (ADDRESS));
 
   mu_address_get_count (addr, &count);
   mu_address_destroy (&addr);
@@ -142,21 +153,24 @@ SCM_DEFINE (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
 	    "is assumed\n")
 #define FUNC_NAME s_scm_mu_username_to_email
 {
-  char *name;
+  const char *name;
   char *email;
   SCM ret;
   
   if (SCM_UNBNDP (NAME))
     name = NULL;
-  else {
-    SCM_ASSERT (SCM_NIMP (NAME) && SCM_STRINGP (NAME),
-		NAME, SCM_ARG1, FUNC_NAME);
-    name = SCM_STRING_CHARS (NAME);
-  }
+  else
+    {
+      SCM_ASSERT (scm_is_string (NAME), NAME, SCM_ARG1, FUNC_NAME);
+      name = scm_i_string_chars (NAME);
+    }
 
   email = mu_get_user_email (name);
   if (!email)
-    return SCM_BOOL_F;
+    mu_scm_error (FUNC_NAME, 0,
+		  "Cannot get user email for ~A",
+		  scm_list_1 (scm_makfrom0str (name)));
+
   ret = scm_makfrom0str (email);
   free (email);
   return ret;

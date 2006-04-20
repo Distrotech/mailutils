@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,23 @@
 # define _PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
 
+void
+mu_scm_error (const char *func_name, int status,
+	      const char *fmt, SCM args)
+{
+  scm_error_scm (scm_from_locale_symbol ("mailutils-error"),
+		 func_name ? scm_from_locale_string (func_name) : SCM_BOOL_F,
+		 scm_makfrom0str (fmt),
+		 args,
+		 scm_list_1 (scm_from_int (status)));
+}
+
 SCM
 mu_scm_makenum (unsigned long val)
 #ifndef HAVE_SCM_LONG2NUM
 {
   if (SCM_FIXABLE ((long) val))
-    return SCM_MAKINUM (val);
+    return scm_from_int (val);
 
 #ifdef SCM_BIGDIG
   return scm_long2big (val);
@@ -115,26 +126,30 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 "If called without arguments, registers all available formats\n")
 #define FUNC_NAME s_scm_mu_register_format
 {
-  SCM status;
+  int status;
 
   if (REST == SCM_EOL)
     {
-      register_format (NULL);
-      status = SCM_BOOL_T;
+      status = register_format (NULL);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "Cannot register formats",
+		      SCM_BOOL_F);
     }
   else
     {
-      status = SCM_BOOL_T;
       for (; REST != SCM_EOL; REST = SCM_CDR (REST))
 	{
 	  SCM scm = SCM_CAR (REST);
-	  SCM_ASSERT (SCM_NIMP (scm) && SCM_STRINGP (scm),
-		      scm, SCM_ARGn, FUNC_NAME);
-	  if (register_format (SCM_STRING_CHARS (scm)))
-	    status = SCM_BOOL_F;
+	  SCM_ASSERT (scm_is_string (scm), scm, SCM_ARGn, FUNC_NAME);
+	  status = register_format (scm_i_string_chars (scm));
+	  if (status)
+	    mu_scm_error (FUNC_NAME, status,
+			  "Cannot register format ~A",
+			  scm_list_1 (scm));
 	}
     }
-  return status;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -177,7 +192,7 @@ mu_scm_init ()
 
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
-    scm_c_define(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
+    scm_c_define(attr_kw[i].name, scm_from_int(attr_kw[i].value));
   
   mu_scm_mutil_init ();
   mu_scm_mailbox_init ();

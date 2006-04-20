@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -125,7 +125,7 @@ mu_scm_message_create (SCM owner, mu_message_t msg)
 {
   struct mu_message *mum;
 
-  mum = scm_must_malloc (sizeof (struct mu_message), "message");
+  mum = scm_gc_malloc (sizeof (struct mu_message), "message");
   mum->msg = msg;
   mum->mbox = owner;
   SCM_RETURN_NEWSMOB (message_tag, mum);
@@ -258,21 +258,19 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_NIMP (HEADER) && SCM_STRINGP (HEADER),
-	      HEADER, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (HEADER), HEADER, SCM_ARG2, FUNC_NAME);
 
   if (SCM_IMP (VALUE) && SCM_BOOLP (VALUE))
     return SCM_UNSPECIFIED;
   
-  SCM_ASSERT (SCM_NIMP (VALUE) && SCM_STRINGP (VALUE),
-	      VALUE, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (VALUE), VALUE, SCM_ARG2, FUNC_NAME);
   if (!SCM_UNBNDP (REPLACE))
     {
       replace = REPLACE == SCM_BOOL_T;
     }
   
   mu_message_get_header (msg, &hdr);
-  mu_header_set_value (hdr, SCM_STRING_CHARS (HEADER), SCM_STRING_CHARS (VALUE),
+  mu_header_set_value (hdr, scm_i_string_chars (HEADER), scm_i_string_chars (VALUE),
 		    replace);
   return SCM_UNSPECIFIED;
 }
@@ -335,14 +333,13 @@ SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
   mu_message_t msg;
   mu_header_t hdr;
   char *value = NULL;
-  char *header_string;
+  const char *header_string;
   SCM ret = SCM_BOOL_F;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_NIMP (HEADER) && SCM_STRINGP (HEADER),
-	      HEADER, SCM_ARG2, FUNC_NAME);
-  header_string = SCM_STRING_CHARS (HEADER);
+  SCM_ASSERT (scm_is_string (HEADER), HEADER, SCM_ARG2, FUNC_NAME);
+  header_string = scm_i_string_chars (HEADER);
   mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, header_string, &value) == 0)
     {
@@ -359,8 +356,8 @@ string_sloppy_member (SCM lst, char *name)
   for(; SCM_CONSP (lst); lst = SCM_CDR(lst))
     {
       SCM car = SCM_CAR (lst);
-      if ((SCM_NIMP (car) && SCM_STRINGP (car))
-	  && strcasecmp (SCM_STRING_CHARS (car), name) == 0)
+      if (scm_is_string (car)
+	  && strcasecmp (scm_i_string_chars (car), name) == 0)
 	return 1;
     }
   return 0;
@@ -459,11 +456,9 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
 		 cell, SCM_ARGn, FUNC_NAME);
       car = SCM_CAR (cell);
       cdr = SCM_CDR (cell);
-      SCM_ASSERT (SCM_NIMP (car) && SCM_STRINGP (car),
-		  car, SCM_ARGn, FUNC_NAME);
-      SCM_ASSERT (SCM_NIMP (cdr) && SCM_STRINGP (cdr),
-		  cdr, SCM_ARGn, FUNC_NAME);
-      mu_header_set_value (hdr, SCM_STRING_CHARS (car), SCM_STRING_CHARS (cdr), replace);
+      SCM_ASSERT (scm_is_string (car), car, SCM_ARGn, FUNC_NAME);
+      SCM_ASSERT (scm_is_string (cdr), cdr, SCM_ARGn, FUNC_NAME);
+      mu_header_set_value (hdr, scm_i_string_chars (car), scm_i_string_chars (cdr), replace);
     }
   return SCM_UNSPECIFIED;
 }
@@ -507,10 +502,10 @@ SCM_DEFINE (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
 
   mu_message_get_attribute (msg, &attr);
-  switch (SCM_INUM (FLAG))
+  switch (scm_to_int32 (FLAG))
     {
     case MU_ATTRIBUTE_ANSWERED:
       ret = mu_attribute_is_answered (attr);
@@ -538,7 +533,7 @@ SCM_DEFINE (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
       break;
     default:
       mu_attribute_get_flags (attr, &ret);
-      ret &= SCM_INUM (FLAG);
+      ret &= scm_to_int32 (FLAG);
     }
   return ret ? SCM_BOOL_T : SCM_BOOL_F;
 }
@@ -556,7 +551,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
 
   if (!SCM_UNBNDP (VALUE))
     {
@@ -566,7 +561,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
     }
   
   mu_message_get_attribute (msg, &attr);
-  switch (SCM_INUM (FLAG))
+  switch (scm_to_int32 (FLAG))
     {
     case MU_ATTRIBUTE_ANSWERED:
       if (value)
@@ -618,7 +613,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
       break;
     default:
       if (value)
-	mu_attribute_set_flags (attr, SCM_INUM (FLAG));
+	mu_attribute_set_flags (attr, scm_to_int32 (FLAG));
     }
   return SCM_UNSPECIFIED;
 }
@@ -634,9 +629,9 @@ SCM_DEFINE (scm_mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
   mu_message_get_attribute (msg, &attr);
-  return mu_attribute_is_userflag (attr, SCM_INUM (FLAG)) ?
+  return mu_attribute_is_userflag (attr, scm_to_int32 (FLAG)) ?
                                 SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -654,7 +649,7 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
 
   if (!SCM_UNBNDP (VALUE))
     {
@@ -665,9 +660,9 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
   
   mu_message_get_attribute (msg, &attr);
   if (set)
-    mu_attribute_set_userflag (attr, SCM_INUM (FLAG));
+    mu_attribute_set_userflag (attr, scm_to_int32 (FLAG));
   else
-    mu_attribute_unset_userflag (attr, SCM_INUM (FLAG));
+    mu_attribute_unset_userflag (attr, scm_to_int32 (FLAG));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -687,8 +682,7 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
   mu_stream_t stream = NULL;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
-	      MODE, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
 
   msg = mu_scm_message_get (MESG);
 
@@ -710,7 +704,7 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
     }
   
   return mu_port_make_from_stream (MESG, stream,
-				   scm_mode_bits (SCM_STRING_CHARS (MODE)));    
+				   scm_mode_bits ((char*)scm_i_string_chars (MODE)));    
 }
 #undef FUNC_NAME
   
@@ -776,14 +770,14 @@ SCM_DEFINE (scm_mu_message_get_part, "mu-message-get-part", 2, 0, 0,
   int ismime = 0;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_IMP (PART) && SCM_INUMP (PART), PART, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (PART), PART, SCM_ARG2, FUNC_NAME);
 
   msg = mu_scm_message_get (MESG);
   mu_message_is_multipart (msg, &ismime);
   if (!ismime)
     return SCM_BOOL_F;
 
-  if (mu_message_get_part (msg, SCM_INUM (PART), &submsg))
+  if (mu_message_get_part (msg, scm_to_int32 (PART), &submsg))
     return SCM_BOOL_F;
   return mu_scm_message_create (MESG, submsg);
 }
@@ -796,7 +790,7 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 	    "Optional FROM and TO are sender and recever addresses\n")
 #define FUNC_NAME s_scm_mu_message_send
 {
-  char *mailer_name;
+  const char *mailer_name;
   mu_address_t from = NULL;
   mu_address_t to = NULL;
   mu_mailer_t mailer = NULL;
@@ -808,27 +802,26 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
   
   if (!SCM_UNBNDP (MAILER) && MAILER != SCM_BOOL_F)
     {
-      SCM_ASSERT (SCM_NIMP (MAILER) && SCM_STRINGP (MAILER),
-		  MAILER, SCM_ARG2, FUNC_NAME);
-      mailer_name = SCM_STRING_CHARS (MAILER);
+      SCM_ASSERT (scm_is_string (MAILER), MAILER, SCM_ARG2, FUNC_NAME);
+      mailer_name = scm_i_string_chars (MAILER);
     }
   else
     {
       SCM val = MU_SCM_SYMBOL_VALUE("mu-mailer");
-      mailer_name = SCM_STRING_CHARS(val);
+      mailer_name = scm_i_string_chars(val);
     }
   
   if (!SCM_UNBNDP (FROM) && FROM != SCM_BOOL_F)
     {
-      SCM_ASSERT (SCM_NIMP (FROM) && SCM_STRINGP (FROM)
-		  && mu_address_create (&from, SCM_STRING_CHARS (FROM)) == 0,
+      SCM_ASSERT (scm_is_string (FROM)
+		  && mu_address_create (&from, scm_i_string_chars (FROM)) == 0,
 		  FROM, SCM_ARG3, FUNC_NAME);
     }
   
   if (!SCM_UNBNDP (TO) && TO != SCM_BOOL_F)
     {
-      SCM_ASSERT (SCM_NIMP (TO) && SCM_STRINGP (TO)
-		  && mu_address_create (&to, SCM_STRING_CHARS (TO)) == 0,
+      SCM_ASSERT (scm_is_string (TO)
+		  && mu_address_create (&to, scm_i_string_chars (TO)) == 0,
 		  TO, SCM_ARG4, FUNC_NAME);
     }
 
@@ -837,7 +830,7 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
       return SCM_BOOL_F;
     }
 
-  if (SCM_INUM(MU_SCM_SYMBOL_VALUE("mu-debug")))
+  if (scm_to_int32 (MU_SCM_SYMBOL_VALUE("mu-debug")))
     {
       mu_debug_t debug = NULL;
       mu_mailer_get_debug (mailer, &debug);

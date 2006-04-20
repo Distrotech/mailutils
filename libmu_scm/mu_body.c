@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -88,7 +88,7 @@ mu_scm_body_create (SCM msg, mu_body_t body)
 {
   struct mu_body *mbp;
 
-  mbp = scm_must_malloc (sizeof (struct mu_body), "body");
+  mbp = scm_gc_malloc (sizeof (struct mu_body), "body");
   mbp->msg = msg;
   mbp->body = body;
   mbp->stream = NULL;
@@ -108,14 +108,18 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 {
   struct mu_body *mbp;
   int n, nread;
-
+  int status;
+  
   SCM_ASSERT (mu_scm_is_body (BODY), BODY, SCM_ARG1, FUNC_NAME);
   mbp = (struct mu_body *) SCM_CDR (BODY);
 
   if (!mbp->stream)
     {
-      if (mu_body_get_stream (mbp->body, &mbp->stream))
-	return SCM_BOOL_F;
+      status = mu_body_get_stream (mbp->body, &mbp->stream);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "Cannot get body stream",
+		      SCM_BOOL_F);
     }
 
   if (!mbp->buffer)
@@ -123,16 +127,18 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
       mbp->bufsize = BUF_SIZE;
       mbp->buffer = malloc (mbp->bufsize);
       if (!mbp->buffer)
-	return SCM_BOOL_F;
+	mu_scm_error (FUNC_NAME, ENOMEM, "Cannot allocate memory", SCM_BOOL_F);
     }
 
   nread = 0;
   while (1)
     {
-      if (mu_stream_readline (mbp->stream, mbp->buffer + nread,
-			   mbp->bufsize - nread,
-			   mbp->offset, &n))
-	return SCM_BOOL_F;
+      status = mu_stream_readline (mbp->stream, mbp->buffer + nread,
+				   mbp->bufsize - nread,
+				   mbp->offset, &n);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "Error reading from stream", SCM_BOOL_F);
       if (n == 0)
 	break;
       nread += n;
@@ -164,24 +170,25 @@ SCM_DEFINE (scm_mu_body_write, "mu-body-write", 2, 0, 0,
   char *ptr;
   size_t len, n;
   struct mu_body *mbp;
-
+  int status;
+  
   SCM_ASSERT (mu_scm_is_body (BODY), BODY, SCM_ARG1, FUNC_NAME);
   mbp = (struct mu_body *) SCM_CDR (BODY);
-  SCM_ASSERT (SCM_NIMP (TEXT) && SCM_STRINGP (TEXT),
-	      TEXT, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
   
   if (!mbp->stream)
     {
-      if (mu_body_get_stream (mbp->body, &mbp->stream))
-	return SCM_BOOL_F;
+      status = mu_body_get_stream (mbp->body, &mbp->stream);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "Cannot get body stream", SCM_BOOL_F);
     }
 
   ptr = SCM_STRING_CHARS (TEXT);
   len = strlen (ptr);
-  if (mu_stream_write (mbp->stream, ptr, len, mbp->offset, &n))
-    {
-      return SCM_BOOL_F;
-    }
+  status = mu_stream_write (mbp->stream, ptr, len, mbp->offset, &n);
+  mu_scm_error (FUNC_NAME, status,
+		"Error writing to stream", SCM_BOOL_F);
   mbp->offset += n;
   return SCM_BOOL_T;
 }

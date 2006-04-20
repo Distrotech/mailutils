@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,22 +30,28 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
   SCM result;
   struct mu_auth_data *entry;
   SCM *ve;
-
-  result = scm_make_vector (SCM_MAKINUM (8), SCM_UNSPECIFIED);
-  ve = SCM_VELTS (result);
-  if (SCM_INUMP (USER))
+  DECL_SCM_T_ARRAY_HANDLE(handle);
+  
+  result = scm_c_make_vector (8, SCM_UNSPECIFIED);
+  ve = scm_vector_writable_elements (result,
+				     SCM_T_ARRAY_HANDLE_PTR(handle),
+				     NULL, NULL);
+  
+  if (scm_is_integer (USER))
     {
-      entry = mu_get_auth_by_uid (SCM_INUM (USER));
+      entry = mu_get_auth_by_uid (scm_to_int32 (USER));
     }
   else
     {
-      SCM_VALIDATE_ROSTRING (1, USER);
-      if (SCM_SUBSTRP (USER))
-	USER = scm_makfromstr (SCM_ROCHARS (USER), SCM_ROLENGTH (USER), 0);
-      entry = mu_get_auth_by_name (SCM_ROCHARS (USER));
+      SCM_VALIDATE_STRING (1, USER);
+      if (scm_is_string (USER))
+	USER = scm_from_locale_stringn (scm_i_string_chars (USER), 
+					scm_i_string_length (USER));
+      entry = mu_get_auth_by_name (scm_i_string_chars (USER));
     }
   if (!entry)
-    return SCM_BOOL_F;
+    mu_scm_error (FUNC_NAME, errno,
+		  "Cannot get user credentials", SCM_BOOL_F);
 
   ve[0] = scm_makfrom0str (entry->name);
   ve[1] = scm_makfrom0str (entry->passwd);
@@ -61,6 +67,9 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
   else
     ve[6] = scm_makfrom0str (entry->shell);
   ve[7] = scm_makfrom0str (entry->mailbox);
+
+  scm_array_handle_release (SCM_T_ARRAY_HANDLE_PTR (handle));
+  
   mu_auth_data_free (entry);
   return result;
 }

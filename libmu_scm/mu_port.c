@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode)
   SCM port;
   scm_port *pt;
   
-  mp = scm_must_malloc (sizeof (struct mu_port), "mu-port");
+  mp = scm_gc_malloc (sizeof (struct mu_port), "mu-port");
   mp->msg = msg;
   mp->stream = stream;
   mp->offset = 0;
@@ -159,10 +159,13 @@ mu_port_fill_input (SCM port)
   struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   size_t nread = 0;
+  int status;
   
-  if (mu_stream_read (mp->stream, pt->read_buf, pt->read_buf_size,
-		   mp->offset, &nread))
-      scm_syserror ("mu_port_fill_input");
+  status = mu_stream_read (mp->stream, pt->read_buf, pt->read_buf_size,
+			   mp->offset, &nread);
+  if (status)
+    mu_scm_error ("mu_port_fill_input", status,
+		  "Error reading from stream", SCM_BOOL_F);
 
   if (nread == 0)
     return EOF;
@@ -255,8 +258,11 @@ static void
 mu_port_truncate (SCM port, mu_off_t length)
 {
   struct mu_port *mp = MU_PORT (port);
-  if (mu_stream_truncate (mp->stream, length))
-    scm_syserror ("mu_stream_truncate");
+  int status;
+  status = mu_stream_truncate (mp->stream, length);
+  if (status)
+    mu_scm_error ("mu_stream_truncate", status,
+		  "Error truncating stream", SCM_BOOL_F);
 }
   
 static int

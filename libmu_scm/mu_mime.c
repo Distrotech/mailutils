@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -66,7 +66,7 @@ mu_scm_mime_create (SCM owner, mu_mime_t mime)
 {
   struct mu_mime *mum;
 
-  mum = scm_must_malloc (sizeof (struct mu_mime), "mime");
+  mum = scm_gc_malloc (sizeof (struct mu_mime), "mime");
   mum->owner = owner;
   mum->mime = mime;
   SCM_RETURN_NEWSMOB (mime_tag, mum);
@@ -96,7 +96,8 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
   mu_message_t msg = NULL;
   mu_mime_t mime;
   int flags;
-
+  int status;
+  
   if (SCM_IMP (FLAGS) && SCM_BOOLP (FLAGS))
     {
       /*if (FLAGS == SCM_BOOL_F)*/
@@ -104,9 +105,8 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
     }
   else
     {
-      SCM_ASSERT (SCM_IMP (FLAGS) && SCM_INUMP (FLAGS),
-		  FLAGS, SCM_ARG1, FUNC_NAME);
-      flags = SCM_INUM (FLAGS);
+      SCM_ASSERT (scm_is_integer (FLAGS), FLAGS, SCM_ARG1, FUNC_NAME);
+      flags = scm_to_int32 (FLAGS);
     }
   
   if (!SCM_UNBNDP (MESG))
@@ -115,8 +115,10 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
       msg = mu_scm_message_get (MESG);
     }
   
-  if (mu_mime_create (&mime, msg, flags))
-    return SCM_BOOL_F;
+  status = mu_mime_create (&mime, msg, flags);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot create MIME object", SCM_BOOL_F);
   
   return mu_scm_mime_create (MESG, mime);
 }
@@ -139,11 +141,14 @@ SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 {
   mu_mime_t mime;
   size_t nparts;
+  int status;
   
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
-  if (mu_mime_get_num_parts (mime, &nparts))
-    return SCM_BOOL_F;
+  status = mu_mime_get_num_parts (mime, &nparts);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot count MIME parts", SCM_BOOL_F);
   return mu_scm_makenum (nparts);
 }
 #undef FUNC_NAME
@@ -154,13 +159,18 @@ SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_mime_get_part
 {
   mu_message_t msg = NULL;
-
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_IMP (PART) && SCM_INUMP (PART),
-	      PART, SCM_ARG2, FUNC_NAME);
+  int status;
   
-  if (mu_mime_get_part (mu_scm_mime_get (MIME), SCM_INUM (PART), &msg))
-    return SCM_BOOL_F;
+  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (PART), PART, SCM_ARG2, FUNC_NAME);
+  
+  status = mu_mime_get_part (mu_scm_mime_get (MIME),
+			     scm_to_int32 (PART), &msg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot get part ~A from MIME object ~A",
+		  scm_list_2 (PART, MIME));
+  
   return mu_scm_message_create (MIME, msg);
 }
 #undef FUNC_NAME
@@ -172,15 +182,19 @@ SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 {
   mu_mime_t mime;
   mu_message_t msg;
-
+  int status;
+  
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
   msg = mu_scm_message_get (MESG);
 
-  if (mu_mime_add_part (mime, msg))
-    return SCM_BOOL_F;
-
+  status = mu_mime_add_part (mime, msg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot add new part to MIME object ~A",
+		  scm_list_1 (MIME));
+  
   mu_scm_message_add_owner (MESG, MIME);
   
   return SCM_BOOL_T;
@@ -194,11 +208,16 @@ SCM_DEFINE (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
 {
   mu_mime_t mime;
   mu_message_t msg;
+  int status;
   
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
   mime = mu_scm_mime_get (MIME);
-  if (mu_mime_get_message (mime, &msg))
-    return SCM_BOOL_F;
+  status = mu_mime_get_message (mime, &msg);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Cannot get message from MIME object ~A",
+		  scm_list_1 (MIME));
+
   return mu_scm_message_create (MIME, msg);
 }
 #undef FUNC_NAME
