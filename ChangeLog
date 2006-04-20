@@ -1,3 +1,29 @@
+2006-04-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* guimb/scm/sieve-core.scm: Always load mailutils module
+	(sieve-main): Use (mu-mail-directory) instead of mu-path-maildir.
+	* include/mailutils/guile.h: Add support for Guile 1.8
+	(mu_scm_error): New function
+	* include/mailutils/mutil.h (mu_spawnvp): Change type of the 2nd
+	argument.
+	* libmu_scm/mailutils.scm.in (mu-libs): Use "libmailutils" instead
+	of "libmailbox"
+	* libmu_scm/mu_address.c: Rewritten using Guile 1.8 API.
+	Throw 'mailutils-error instead of returning #f on error.
+	* libmu_scm/mu_body.c: Likewise
+	* libmu_scm/mu_logger.c: Likewise
+	* libmu_scm/mu_mailbox.c: Likewise
+	* libmu_scm/mu_message.c: Likewise
+	* libmu_scm/mu_mime.c: Likewise
+	* libmu_scm/mu_port.c: Likewise
+	* libmu_scm/mu_scm.c: Likewise
+	* libmu_scm/mu_util.c: Likewise
+
+	* libproto/imap/mbox.c (imap_envelope_date): bugfix
+	* mailbox/amd.c [WITH_PTHREAD][HAVE_PTHREAD_H]: Fix typo
+	* mailbox/locker.c (lock_external): Minor fix
+	* mailbox/mutil.c (mu_spawnvp): Change type of the 2nd argument.
+
 2006-04-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
