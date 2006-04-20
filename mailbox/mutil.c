@@ -655,7 +655,7 @@ mu_tempname (const char *tmpdir)
  * to find it.
  */
 int 
-mu_spawnvp (const char *prog, const char *const av_[], int *stat)
+mu_spawnvp (const char *prog, char * const av[], int *stat)
 {
   pid_t pid;
   int err = 0;
@@ -665,7 +665,6 @@ mu_spawnvp (const char *prog, const char *const av_[], int *stat)
   struct sigaction savequit;
   sigset_t chldmask;
   sigset_t savemask;
-  char **av = (char **) av_;
 
   if (!prog || !av)
     return EINVAL;

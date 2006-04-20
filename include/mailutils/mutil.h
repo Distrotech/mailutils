@@ -104,7 +104,7 @@ extern char *mu_tempname (const char *tmpdir);
 extern char * mu_get_full_path (const char *file);
 extern char * mu_getcwd (void);
   
-extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
+extern int mu_spawnvp(const char* prog, char * const av[], int* stat);
 
 typedef void *(*mu_retrieve_fp) (void *);
 extern void mu_register_retriever (mu_list_t *pflist, mu_retrieve_fp fun);
