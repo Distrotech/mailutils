@@ -1,5 +1,5 @@
 ;;;; GNU Mailutils -- a suite of utilities for electronic mail
-;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; GNU Mailutils is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@
 ;;;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;;; This module provides core functionality for the sieve scripts.
+
+(set! %load-path (append %load-path (list sieve-libdir)))
+(use-modules (mailutils))
 
 ;;; The email address for originator of error messages. Should be <>
 ;;; but current mailutils API is unable to parse and handle it.
@@ -173,7 +176,7 @@
 		 ;; FIXME: This is very inefficient, but I have to use this
 		 ;; provided (string-index str (string-ref key 0)) may not
 		 ;; work...
-		 ((comp (make-shared-substring str index (+ index key-len))
+		 ((comp (substring str index (+ index key-len))
 			key)
 		  (xx #t))
 		 (else
@@ -434,14 +437,11 @@
 (define (sieve-main)
   (cond
    ((not (guimb?))
-;    (DEBUG 1 "Loading mailutils")
-    (set! %load-path (append %load-path (list sieve-libdir)))
-    (use-modules (mailutils))
     (let* ((cl (sieve-command-line))
 	   (name (if (and (not (null? (cdr cl)))
 			  (string? (cadr cl)))
 		     (cadr cl)
-		     (string-append mu-path-maildir "/"
+		     (string-append (mu-mail-directory) "/"
 				    (passwd:name (mu-getpwuid (getuid)))))))
 ;      (DEBUG 2 "mailbox name " name)
       (set! sieve-mailbox (mu-mailbox-open name "rw"))
