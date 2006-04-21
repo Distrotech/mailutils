@@ -984,7 +984,7 @@ AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
 AC_SUBST(LIBMU_SCM)
 AC_SUBST(LIBMU_SCM_DEPS)
-AC_SUBST(GUILE_PKGDATA)
+AC_SUBST(GUILE_SITE_DATA)
 AC_SUBST(GUILE_BUILT_SOURCES)
 
 if test x"$useguile" = x"yes"; then
@@ -997,8 +997,8 @@ if test x"$useguile" = x"yes"; then
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
 	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR}'
-            GUILE_PKGDATA="guile-procedures.txt mailutils.scm"
-	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
+            GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
+	    GUILE_BUILT_SOURCES='$(GUILE_BUILT_SOURCES_X)'
             case "$GUILE_VERSION" in
 	      14) GUILE_SNARF_VERSION="1.4";;
 	      16|17) GUILE_SNARF_VERSION="1.6";;
