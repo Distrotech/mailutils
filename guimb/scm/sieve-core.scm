@@ -17,23 +17,66 @@
 
 ;;;; This module provides core functionality for the sieve scripts.
 
-(set! %load-path (append %load-path (list sieve-libdir)))
-(use-modules (mailutils))
+(define-module (mailutils sieve-core))
+
+(use-modules (mailutils mailutils))
+
+;;; Set to #t when parsing 
+(define-public sieve-parser #f)
+
+;;; Name of the input source
+(define-public sieve-source "UNKNOWN")
 
 ;;; The email address for originator of error messages. Should be <>
 ;;; but current mailutils API is unable to parse and handle it.
 ;;; Site administrators are supposed to replace it with the
 ;;; actual value.
-(define sieve-daemon-email "MAILER-DAEMON@localhost")
+(define-public sieve-daemon-email "MAILER-DAEMON@localhost")
 
 ;;; The email address of the user whose mailbox is being processed.
 ;;; If #f, it will be set by sieve-main
-(define sieve-my-email #f)
+(define-public sieve-my-email #f)
 
 (define SIEVE-WARNING "Warning")
 (define SIEVE-ERROR "Error")
 (define SIEVE-NOTICE "Notice")
-  
+
+(defmacro handle-exception (. expr)
+  `(catch 'mailutils-error
+	  (lambda () ,@expr)
+	  (lambda (key . args)
+	    (runtime-message SIEVE-ERROR
+			     "In function " (car args) ": "
+			     (apply format #f
+				    (list-ref args 1) (list-ref args 2))
+			     (let ((error-code
+				    (car (list-ref args (1- (length args))))))
+			       (if (= error-code 0)
+				   ""
+				   (string-append
+				    "; Error code: "
+				    (number->string error-code)
+				    " - "
+				    (mu-strerror error-code))))))))
+
+;;; Set to #t if verbose action listing is requested
+(define-public sieve-verbose #f)
+
+(defmacro sieve-verbose-print (action . rest)
+  `(if sieve-verbose
+       (let ((uid (false-if-exception
+		   (mu-message-get-uid sieve-current-message))))
+	 (display ,action)
+	 (display " on msg uid ")
+	 (display uid)
+	 (let ((args (list ,@rest)))
+	   (cond ((not (null? args))
+		  (display ": ")
+		  (for-each
+		   display
+		   args))))
+	 (newline))))
+
 ;;; List of open mailboxes.
 ;;; Each entry is: (list MAILBOX-NAME OPEN-FLAGS MBOX)
 (define sieve-mailbox-list '())
@@ -46,7 +89,7 @@
   (let ((slot (assoc name sieve-mailbox-list)))
     (if slot
 	(list-ref slot 2)
-      (let ((mbox (mu-mailbox-open name flags)))
+      (let ((mbox (false-if-exception (mu-mailbox-open name flags))))
 	(if mbox
 	    (set! sieve-mailbox-list (append
 				      sieve-mailbox-list
@@ -78,14 +121,14 @@
 	    filename)))))
 
 ;;; Comparators
-(cond
- (sieve-parser
-  (sieve-register-comparator "i;octet" string=?)
-  (sieve-register-comparator "i;ascii-casemap" string-ci=?)))
+(define-public sieve-standard-comparators 
+  (list (list "i;octet" string=?)
+	(list "i;ascii-casemap" string-ci=?)))
 
 ;;; Stop statement
 
-(define (sieve-stop)
+(define-public (sieve-stop)
+  (sieve-verbose-print "STOP")
   (throw 'sieve-stop))
 
 ;;; Basic five actions:
@@ -94,14 +137,16 @@
 
 ;;; fileinto
 
-(define (action-fileinto filename)
+(define-public (action-fileinto filename)
   (let ((name (sieve-expand-filename filename)))
+    (sieve-verbose-print "FILEINTO" "delivering into " name)
     (if (string? name)
 	(let ((outbox (sieve-mailbox-open name "cw")))
 	  (cond
 	   (outbox
-	    (mu-mailbox-append-message outbox sieve-current-message)
-	    (mu-message-delete sieve-current-message))
+	    (handle-exception
+	     (mu-mailbox-append-message outbox sieve-current-message)
+	     (mu-message-delete sieve-current-message)))
 	   (else
 	    (runtime-message SIEVE-ERROR
 			     "Could not open mailbox " name))))
@@ -112,20 +157,23 @@
 
 ;;; keep -- does nothing worth mentioning :^)
 
-(define (action-keep)
-  (mu-message-delete sieve-current-message #f))
+(define-public (action-keep)
+  (sieve-verbose-print "KEEP")
+  (handle-exception
+   (mu-message-delete sieve-current-message #f)))
 
 ;;; discard
 
-(define (action-discard)
-  (mu-message-delete sieve-current-message))
+(define-public (action-discard)
+  (sieve-verbose-print "DISCARD" "marking as deleted")
+  (handle-exception
+   (mu-message-delete sieve-current-message)))
 
 ;;; Register standard actions
-(cond
- (sieve-parser
-  (sieve-register-action "keep" action-keep '() '())
-  (sieve-register-action "discard" action-discard '() '())
-  (sieve-register-action "fileinto" action-fileinto (list 'string) '())))
+(define-public sieve-standard-actions
+  (list (list "keep" action-keep '() '())
+	(list "discard" action-discard '() '())
+	(list "fileinto" action-fileinto (list 'string) '())))
 
 ;;; Some utilities.
 
@@ -225,7 +273,7 @@
 
 ;;;; Standard tests:
 
-(define (test-address header-list key-list . opt-args)
+(define-public (test-address header-list key-list . opt-args)
   (let ((comp (find-comp opt-args))
 	(match (find-match opt-args))
 	(part (cond
@@ -275,7 +323,7 @@
 	key-list)
        #f))))
 
-(define (test-size key-size . comp)
+(define-public (test-size key-size . comp)
   (let ((size (mu-message-get-size sieve-current-message)))
     (cond
      ((null? comp)       ;; An extension.
@@ -287,7 +335,7 @@
      (else
       (runtime-message SIEVE-ERROR  "test-size: unknown comparator " comp)))))
 
-(define (test-envelope part-list key-list . opt-args)
+(define-public (test-envelope part-list key-list . opt-args)
   (let ((comp (find-comp opt-args))
 	(match (find-match opt-args)))
     (call-with-current-continuation
@@ -309,7 +357,7 @@
 	part-list)
        #f))))
 
-(define (test-exists header-list)
+(define-public (test-exists header-list)
   (call-with-current-continuation
    (lambda (exit)
      (for-each (lambda (hdr)
@@ -319,7 +367,7 @@
 	       header-list)
      #t)))
 
-(define (test-header header-list key-list . opt-args)
+(define-public (test-header header-list key-list . opt-args)
   (let ((comp (find-comp opt-args))
 	(match (find-match opt-args)))
     (call-with-current-continuation
@@ -360,45 +408,46 @@
 			   (cons "over" #f)))
 (define comparator   (list (cons "comparator" 'string)))
 
-(cond
- (sieve-parser
-  (sieve-register-test "address"
-		       test-address
-                       (list 'string-list 'string-list)
-		       (append address-part comparator match-type))
-  (sieve-register-test "size"
-		       test-size
-                       (list 'number)
-		       size-comp)
-  (sieve-register-test "envelope"
-		       test-envelope
-                       (list 'string-list 'string-list)
-		       (append comparator address-part match-type))
-  (sieve-register-test "exists"
-		       test-exists
-                       (list 'string-list) 
-                       '())
-  (sieve-register-test "header"
-		       test-header
-		       (list 'string-list 'string-list)
-		       (append comparator match-type))
-  (sieve-register-test "false" #f '() '())
-  (sieve-register-test "true"  #t '() '())))
+(define-public sieve-standard-tests
+  (list
+   (list "address"
+	 test-address
+	 (list 'string-list 'string-list)
+	 (append address-part comparator match-type))
+   (list "size"
+	 test-size
+	 (list 'number)
+	 size-comp)
+   (list "envelope"
+	 test-envelope
+	 (list 'string-list 'string-list)
+	 (append comparator address-part match-type))
+   (list "exists"
+	 test-exists
+	 (list 'string-list) 
+	 '())
+   (list "header"
+	 test-header
+	 (list 'string-list 'string-list)
+	 (append comparator match-type))
+   (list "false" #f '() '())
+   (list "true"  #t '() '())))
 
 ;;; runtime-message
 
-(define (runtime-message level . text)
+(define-public (runtime-message level . text)
   (let ((msg (apply string-append
 		    (map (lambda (x)
 			   (format #f "~A" x))
 			 (append
 			  (list "(in " sieve-source ") ")
 			  text)))))
-    (mu-message-set-header sieve-current-message
-			   (string-append "X-Sieve-" level)
-			   msg)
-       (if (isatty? (current-output-port))
-	   (display (string-append level ": " msg "\n")))))
+    (if sieve-current-message
+	(mu-message-set-header sieve-current-message
+			       (string-append "X-Sieve-" level)
+			       msg))
+    (if (isatty? (current-error-port))
+	(display (string-append level ": " msg "\n") (current-error-port)))))
 
 (define (guimb?)
   (catch #t
@@ -411,7 +460,7 @@
 (define sieve-mailbox #f)
 (define sieve-current-message #f)
 
-(define (sieve-run)
+(define (sieve-run thunk)
   (if (not sieve-my-email)
       (set! sieve-my-email (mu-username->email)))
 ;  (DEBUG 1 "Mailbox: " sieve-mailbox)
@@ -421,10 +470,11 @@
 	((> n count) #f)
 	(set! sieve-current-message
 	      (mu-mailbox-get-message sieve-mailbox n))
-	(catch 'sieve-stop
-	       sieve-process-message
-	       (lambda args
-		 #f)))
+	(and (catch 'sieve-stop
+		    thunk
+		    (lambda args
+		      #f))
+	     (sieve-verbose-print "IMPLICIT KEEP")))
     (sieve-close-mailboxes)))
 
 (define (sieve-command-line)
@@ -434,22 +484,22 @@
 	     (append (list "<temp-file>") args)))
 	 (lambda args (command-line))))
 
-(define (sieve-main)
-  (cond
-   ((not (guimb?))
-    (let* ((cl (sieve-command-line))
-	   (name (if (and (not (null? (cdr cl)))
-			  (string? (cadr cl)))
-		     (cadr cl)
-		     (string-append (mu-mail-directory) "/"
-				    (passwd:name (mu-getpwuid (getuid)))))))
-;      (DEBUG 2 "mailbox name " name)
-      (set! sieve-mailbox (mu-mailbox-open name "rw"))
-      (sieve-run)
-      (mu-mailbox-expunge sieve-mailbox)
-      (mu-mailbox-close sieve-mailbox)))
-   (else
-;    (DEBUG 1 "Using current-mailbox")
-    (set! sieve-mailbox current-mailbox)
-    (sieve-run))))
+(define-public (sieve-main thunk) 
+  (handle-exception
+   (cond
+    ((not (guimb?))
+     (let* ((cl (sieve-command-line))
+	    (name (if (and (not (null? (cdr cl)))
+			   (string? (cadr cl)))
+		      (cadr cl)
+		      (string-append (mu-mail-directory) "/"
+				     (passwd:name (mu-getpwuid (getuid)))))))
+
+       (set! sieve-mailbox (mu-mailbox-open name "rw"))
+       (sieve-run thunk)
+       (mu-mailbox-expunge sieve-mailbox)
+       (mu-mailbox-close sieve-mailbox)))
+    (else
+     (set! sieve-mailbox current-mailbox)
+     (sieve-run thunk)))))
 	 
