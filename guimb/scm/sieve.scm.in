@@ -2,7 +2,7 @@
 # Emacs, its -*- scheme -*-
 !#
 ;;;; GNU Mailutils -- a suite of utilities for electronic mail
-;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; GNU Mailutils is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -31,11 +31,19 @@
 ;;;; or
 ;;;;  guimb [--mailbox mailbox-name] -s sieve.scm --file <sieve-script-name> 
 
+(if (not (member "%GUILE_SITE%" %load-path))
+    (set! %load-path (cons "%GUILE_SITE%" %load-path)))
+(use-modules (ice-9 getopt-long)
+	     (ice-9 rdelim)
+	     (mailutils sieve-core))
+
+(set! sieve-parser #t)
+
 (define sieve-debug 0)
-(define sieve-parser #t)
 (define sieve-libdir "%LIBDIR%")
 (define sieve-load-files '())
 (define sieve-script-args '())
+(define request-verbose #f)
 
 (define error-count 0)
 (define current-token #f)
@@ -68,28 +76,33 @@
 
 (define (lex-error . rest)
   (set! error-count (1+ error-count))
-  (display input-file)
-  (display ":")
-  (display input-line-number)
-  (display ": ")
-  (for-each (lambda (x)
-	      (display x))
-	    rest)
-  (newline)
+  (with-output-to-port
+      (current-error-port)
+    (lambda ()
+      (display input-file)
+      (display ":")
+      (display input-line-number)
+      (display ": ")
+      (for-each (lambda (x)
+		  (display x))
+		rest)
+      (newline)))
   #t)
 
 (define (syntax-error . rest)
   (set! error-count (1+ error-count))
-  (display input-file)
-  (display ":")
-  (display input-line-number)
-  (display ": ")
-  (for-each (lambda (x)
-	      (display x))
-	    rest)
-  (newline)
+  (with-output-to-port
+      (current-error-port)
+    (lambda ()
+      (display input-file)
+      (display ":")
+      (display input-line-number)
+      (display ": ")
+      (for-each (lambda (x)
+		  (display x))
+		rest)
+      (newline)))
   (throw 'syntax-error))
-
 
 ;;; If current input position points to end of line or to a start of
 ;;; # comment, return #f. Otherwise return cons whose car contains
@@ -230,7 +243,7 @@
 	  (if (and (not (string-null? line))
                    (char=? (string-ref line 0) #\.)
 		   (char=? (string-ref line 1) #\.))
-	      (set! line (make-shared-substring line 1)))
+	      (set! line (substring line 1)))
 	  (set! text (string-append text "\n" line)))
 	(set! input-length 0)
 	(set! input-index 0)
@@ -400,7 +413,7 @@
     ((not (or (eq? ,function #f)
 	      (eq? ,function #t)
 	      (procedure? ,function)))
-     (lex-error "sieve-syntax-table-add: bad type for function" ,function))
+     (lex-error "sieve-syntax-table-add: bad type for function " ,function))
     (else
      (set! ,table
 	   (append ,table
@@ -408,6 +421,13 @@
 		    (list ,name ,function ,opt-arg-list ,req-arg-list)))))))
    
 ;;;;
+
+(defmacro do-for-all (fun rest)
+  `(for-each
+    (lambda (x)
+      (apply ,fun x))
+    ,rest))
+
 
 ;;;; Available syntax tables.
 
@@ -424,6 +444,9 @@
 (define (sieve-register-comparator name function)
   (sieve-syntax-table-add sieve-comparator-table name function '() '()))
 
+;;; Register standard comparators
+(do-for-all sieve-register-comparator sieve-standard-comparators)
+
 ;;;; Sieve Tests
 
 ;;; Syntax table for tests. Function names must start with "test-"
@@ -436,6 +459,9 @@
   (sieve-syntax-table-add sieve-test-table name function
 			  req-arg-list opt-arg-list))
 
+;;; Register standard tests
+(do-for-all sieve-register-test sieve-standard-tests) 
+
 ;;;; Sieve Actions
 
 ;;; Syntax table for actions. Function names start with "action-"
@@ -447,6 +473,9 @@
 (define (sieve-register-action name function req-arg-list opt-arg-list)
   (sieve-syntax-table-add sieve-action-table name function
 			  req-arg-list opt-arg-list))
+
+;;; Register standard actions
+(do-for-all sieve-register-action sieve-standard-actions)
 
 ;;;;
 
@@ -492,7 +521,7 @@
 	       (let ((comp (sieve-find-comparator (cdr token))))
 		 (if (not comp)
 		     (syntax-error "Undefined comparator: " (cdr token)))
-		 (set-cdr! token comp))))
+		 (set-cdr! token (car comp)))))
 	     (set! opt-list (append opt-list (list token)))
 	     (set! last-tag #f))
 	    (else
@@ -566,7 +595,8 @@
      (lambda (tag)
        (sieve-exp-append (cond
 			  ((eq? (car tag) 'tag)
-			   (string->symbol (string-append "#:" (cdr tag))))
+			   (symbol->keyword
+			    (string->symbol (cdr tag))))
 			  ((eq? (car tag) 'string-list)
 			   (append (list 'list) (cdr tag)))
 			  (else
@@ -596,17 +626,19 @@
 ;;; test = identifier arguments
 (define (sieve-parse-test)
   (let ((ident (require-identifier)))
-    (sieve-exp-begin)
     (cond
      ((string=? (cdr ident) "not")
+      (sieve-exp-begin)
       (sieve-exp-append 'not)
-      (sieve-parse-test))
+      (sieve-parse-test)
+      (sieve-exp-finish))
      (else
       (read-token)
       (cond
        ((eof-object? current-token)
 	(syntax-error "Unexpected end of file in conditional"))
        ((delimiter current-token #\()
+	(sieve-exp-begin)
 	(cond
 	 ((string=? (cdr ident) "allof")
 	  (sieve-exp-append 'and))
@@ -614,16 +646,21 @@
 	  (sieve-exp-append 'or))
 	 (else
 	  (syntax-error "Unexpected '('")))
-	(sieve-parse-test-list))
-       ((delimiter current-token #\)))
+	(sieve-parse-test-list)
+	(sieve-exp-finish))
        (else
 	(let ((test (sieve-find-test (cdr ident))))
 	  (if (not test)
 	      (syntax-error "Unknown test name: " (cdr ident)))
-	  (putback-token)
-	  (sieve-exp-append (car test))
-	  (sieve-parse-arguments (cdr ident) test))))))
-    (sieve-exp-finish))
+	  (cond
+	   ((procedure? (car test))
+	    (putback-token)
+	    (sieve-exp-begin)
+	    (sieve-exp-append (car test))
+	    (sieve-parse-arguments (cdr ident) test)
+	    (sieve-exp-finish))
+	   (else
+	    (sieve-exp-append (car test))))))))))
   current-token)
 
 (define (sieve-parse-block . read)
@@ -687,12 +724,12 @@
 	  (cond
 	   ((and
 	     (>= (string-length capability) 5)
-	     (string=? (make-shared-substring capability 0 5) "test-"))
-	    (sieve-find-test (make-shared-substring capability 5)))
+	     (string=? (substring capability 0 5) "test-"))
+	    (sieve-find-test (substring capability 5)))
 	   ((and
 	     (>= (string-length capability) 11)
-	     (string=? (make-shared-substring capability 0 11) "comparator-"))
-	    (sieve-find-comparator (make-shared-substring capability 11)))
+	     (string=? (substring capability 0 11) "comparator-"))
+	    (sieve-find-comparator (substring capability 11)))
 	   (else
 	    (sieve-find-action capability))))
 	 (let ((name (string-append sieve-libdir
@@ -725,6 +762,8 @@
      (descr
       (cond
        ((car descr)
+	(sieve-exp-begin 'reg-action)
+	(sieve-exp-finish)
 	(sieve-exp-begin (car descr))
 	(sieve-parse-arguments name descr)
 	(require-semicolon 'dont-read)
@@ -850,68 +889,81 @@
   (set! sieve-exp-stack '())
   (set! sieve-exp '()))
 
+(define (sieve-code-prologue code-list)
+  (sieve-exp-begin (car code-list))
+  (let loop ((code-list (cdr code-list)))
+    (for-each
+     (lambda (elt)
+       (cond
+	((and (list? elt) (not (null? elt)))
+	 (sieve-exp-begin (car elt))
+	 (loop (cdr elt))
+	 (sieve-exp-finish))
+	(else
+	 (sieve-exp-append elt))))
+     code-list)))
+		 
 (define (sieve-code-finish)
   (if (not (null? sieve-exp))
-      (set! sieve-code-list (append sieve-code-list sieve-exp (list #t)))))
+      (set! sieve-code-list (append sieve-code-list sieve-exp))))
 
 ;;; Print the program
 
-(define (sieve-code-print-list exp . opt-port)
-  (let ((port (if (null? opt-port)
-		  (current-output-port)
-		(car opt-port))))
-    (display "(" port)
-    (for-each
-     (lambda (x)
-       (cond
-	((procedure? x)
-	 (display (procedure-name x) port))
-	((list? x)
-	 (sieve-code-print-list x port))
-	(else
-	 (write x port)))
-       (display " " port))
-     exp)
-    (display ")" port)))
+(define (sieve-code-print-list exp)
+  (display "(")
+  (for-each
+   (lambda (x)
+     (cond
+      ((procedure? x)
+       (display (procedure-name x)))
+      ((list? x)
+       (sieve-code-print-list x))
+      (else
+       (write x)))
+     (display " "))
+   exp)
+  (display ")"))
 
 ;;; Save the program
 
 (define (sieve-save-program outfile guimb-header)
-  (call-with-output-file
-   outfile
-   (lambda (port)
-     (display "#! " port)
-     (if guimb-header
-	 (display "%BINDIR%/guimb -s\n" port)
-	 (display "%GUILE_BINDIR%/guile -s\n" port))
+  (with-output-to-file
+      outfile
+    (lambda ()
+      (display "#! ")
+      (if guimb-header
+	 (display "/home/gray/alpha/bin/guimb -s\n")
+	 (display "/usr/bin/guile -s\n"))
      (display (string-append
-	       "# Guile mailbox parser made from " filename) port)
-     (newline port) 
-     (display "# by sieve.scm, GNU %PACKAGE% %VERSION%\n!#" port)
-     (newline port)
-     
-     (display "(define sieve-parser #f)" port)
-     (newline port)
-     (display (string-append
-	       "(define sieve-source \"" filename "\")") port)
-     (newline port)
+	       "# Guile mailbox parser made from " filename))
+     (newline) 
+     (display "# by sieve.scm, GNU %PACKAGE% %VERSION%\n!#")
+     (newline)
 
-     (display (string-append
-	       "(define sieve-libdir \"" sieve-libdir "\")") port)
-     (newline port)
+     (display 
+      "(if (not (member \"%GUILE_SITE%\" %load-path))\n
+           (set! %load-path (cons \"%GUILE_SITE%\" %load-path)))\n")
      
+     (display "(use-modules (mailutils sieve-core))\n")
      (display (string-append
-	       "(load \"" sieve-libdir "/sieve-core.scm\")") port)
-     (newline port)
+	       "(set! sieve-source \"" filename "\")"))
+     (newline)
+
      (for-each
       (lambda (file)
 	(display (string-append
-		  "(load \"" file "\")") port)
-	(newline port))
+		  "(load \"" file "\")"))
+	(newline))
       sieve-load-files)
-     (sieve-code-print-list sieve-code-list port)
-     (newline port)
-     (display "(sieve-main)" port))))
+     (newline)
+     (if request-verbose
+	 (display "(set! sieve-verbose #t)\n"))
+     (display "(sieve-main ")
+
+     (sieve-code-print-list
+      (append '(lambda ())
+	      sieve-code-list))
+     (display ")"))))
 
 ;;;;
 
@@ -943,7 +995,6 @@
 
 ;;; Parse command line 
 
-(use-modules (ice-9 getopt-long))
 (define grammar
   `((file   (single-char #\f)
             (value #t))
@@ -955,6 +1006,7 @@
 	     (value #t))
     (guimb  (single-char #\g))
     (version)
+    (verbose (single-char #\v))
     (help   (single-char #\h))))
 
 (define program-name (car (command-line)))
@@ -976,6 +1028,8 @@
 	(set! guimb-header #t))
        ((version)
 	(sieve-version))
+       ((verbose)
+	(set! request-verbose #t))
        ((help)
 	(sieve-usage))
        ('()
@@ -984,15 +1038,10 @@
 
 (cond
  ((not filename)
-  (display program-name)
-  (display ": missing input filename")
-  (newline)
+  (format (current-error-port) "~A: missing input filename~%" program-name)
   (sieve-usage))
  ((not (file-exists? filename))
-  (display (string-append
-	    program-name
-	    ": Input file " filename " does not exist."))
-  (newline)
+  (format (current-error-port) "~A: Input file ~A does not exist~%" filename)
   (exit 0)))
 	
 (if (not sieve-libdir)
@@ -1003,11 +1052,14 @@
 	      (let ((slash (string-rindex myname #\/)))
 		(substring myname 0 slash)))))
 
-(load (string-append sieve-libdir "/sieve-core.scm"))
+(sieve-code-prologue
+ '(letrec
+      ((implicit-keep #t)
+       (reg-action (lambda () (set! implicit-keep #f))))))
 
-(sieve-exp-append 'define)
-(sieve-exp-append (list 'sieve-process-message))
 (sieve-parse filename)
+(sieve-exp-append 'implicit-keep)
+(sieve-exp-finish)
 (sieve-code-finish)
 
 (cond
@@ -1021,9 +1073,10 @@
  (else
   (let ((temp-file (tmpnam))
 	(saved-umask (umask #o077)))
-    (sieve-save-program temp-file)
+    (sieve-save-program temp-file guimb-header)
     (catch #t
 	   (lambda ()
+	     (set-cdr! (command-line) sieve-script-args)
 	     (load temp-file))
 	   (lambda (key . args)
 	     (apply display-error the-last-stack (current-error-port) args)))
