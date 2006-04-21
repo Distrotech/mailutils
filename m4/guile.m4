@@ -40,8 +40,8 @@ AC_DEFUN([MU_CHECK_GUILE],
    if test $GUILE_CONFIG = no; then
      mu_cv_lib_guile=no
    else
-     GUILE_INCLUDES=`guile-config compile`
-     GUILE_LIBS=`guile-config link`
+     GUILE_INCLUDES=`$GUILE_CONFIG compile`
+     GUILE_LIBS=`$GUILE_CONFIG link`
    fi
 
    if test $GUILE_CONFIG != no; then
@@ -73,8 +73,8 @@ AC_DEFUN([MU_CHECK_GUILE],
    fi
  else
    cached=" (cached) "
-   GUILE_INCLUDES=`guile-config compile`
-   GUILE_LIBS=`guile-config link`
+   GUILE_INCLUDES=`$GUILE_CONFIG compile`
+   GUILE_LIBS=`$GUILE_CONFIG link`
  fi
  AC_MSG_CHECKING(whether to build guile support)
  MU_RESULT_ACTIONS([mu_cv_lib_guile],[LIBGUILE],[$2],[$3])
@@ -97,7 +97,28 @@ AC_DEFUN([MU_CHECK_GUILE],
       CFLAGS=$save_CFLAGS
       LIBS=$save_LIBS
     fi
+   AC_ARG_WITH([guiledir],
+               AC_HELP_STRING([--with-guiledir=DIR],
+                              [Specify the directory to install guile modules to]),
+               [case $withval in
+                /*) GUILE_SITE=$withval;;
+                yes) GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site;;
+                *)  AC_MSG_ERROR([Argument to --with-guiledir must be an absolute directory name]);;
+                esac],
+               [GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site
+                pfx=$prefix 
+                test "x$pfx" = xNONE && pfx=$ac_default_prefix
+                case $GUILE_SITE in
+                $pfx/*) ;; # OK
+	        *) AC_MSG_WARN([guile site directory "$GUILE_SITE" lies outside your current prefix ($pfx).])
+                   GUILE_SITE='$(pkgdatadir)/$(VERSION)/guile'
+                   AC_MSG_WARN([Falling back to ${GUILE_SITE} instead. Use --with-guiledir to force using site directory.])
+                   ;;
+                esac])
  fi
+ AC_SUBST(GUILE_SITE) 
+ AC_SUBST(GUILE_INCLUDES)
+ AC_SUBST(GUILE_LIBS)
 ])
  
 	
