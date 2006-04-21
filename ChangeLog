@@ -1,3 +1,48 @@
+2006-04-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Minor change
+	* guimb/scm/Makefile.am (sieve.scm): Use auxiliary sed script to
+	create.
+	(pkgdata_DATA): Rename to sievemod_DATA
+	* guimb/scm/redirect.scm: Use handle-exception where necessary
+	* guimb/scm/reject.scm: Likewise.
+	* guimb/scm/vacation.scm: Likewise.
+	
+	* guimb/scm/sieve-core.scm: Rewrite as module. Change
+	initialization of the syntax tables.
+	(handle-exception,sieve-verbose-print): New macro
+	(action-fileinto,action-keep,action-stop,action-discard): Produce
+	verbose diagnostics if required.
+	(sieve-run): Take thunk as an argument. Report implicit keep if it
+	returns #t and the verbose mode is on.
+	(sieve-main): Take thunk as an argument.
+	* guimb/scm/sieve.scm.in: Load sieve-core as a module.
+	Do not use make-shared-substring. Change
+	initialization of the syntax tables. Construct the code so, that
+	it returns #t if implicit keep is performed, pass the code as an
+	argument to sieve-main.
+	Fix handling of command line arguments when executing the compiled
+	code (call without -o option).
+	(lex-error,syntax-error): Rewritten
+	(sieve-preprocess-arguments): Correctly handle #:comparator
+	tags
+	(sieve-parse-arguments): Fix handling of keywords (did not work with
+	Guile 1.6.x)
+	(sieve-parse-test): Bugfix 1: Some tests are not procedures.
+	Bugfix 2: Do not ignore last test in allof, anyof constructs
+	(sieve-save-program): Rewrite using with-output-to-file
+	(grammar): New option --verbose.
+
+	* include/mailutils/guile.h: Update
+	* libmu_scm/Makefile.am (pkgdata_DATA): Rename to site_DATA
+	* libmu_scm/mailutils.scm.in: Change module definition
+
+	* libmu_scm/mu_message.c: Throw exceptions on errors.
+	* libmu_scm/mu_scm.c (mu-strerror): New function
+	* libmu_scm/mu_scm.h: Include mailutils/errno.h
+	* m4/guile.m4: New option --with-guiledir. AC_SUBST all GUILE_.*
+	variables. Use $GUILE_CONFIG instead of guile-config.
+	
 2006-04-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* guimb/scm/sieve-core.scm: Always load mailutils module

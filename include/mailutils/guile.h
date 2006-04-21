@@ -54,8 +54,7 @@ extern SCM scm_long2num (long val);
 # define scm_from_locale_symbol(s) scm_str2symbol(s)
 
 # define scm_from_int SCM_MAKINUM 
-
-//# define scm_i_string_chars SCM_STRING_CHARS 
+# define scm_from_size_t mu_scm_makenum
 
 # define scm_gc_malloc scm_must_malloc 
 
