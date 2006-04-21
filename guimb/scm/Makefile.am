@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2006 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,17 +19,30 @@
 
 bin_SCRIPTS = sieve.scm
 
-sieve.scm: sieve.scm.in
-	sed "s,%GUILE_BINDIR%,@GUILE_BINDIR@,g;s,%BINDIR%,$(bindir),g;s,%LIBDIR%,$(pkgdatadir),g;s,%PACKAGE%,$(PACKAGE),g;s,%VERSION%,$(VERSION),g" $? > $@
+sievemoddir=$(GUILE_SITE)/sieve-modules
 
-CLEANFILES = sieve.scm
+sieve.scm: sieve.scm.in sieve.sed
+	sed -f sieve.sed $(srcdir)/sieve.scm.in > sieve.scm
 
-pkgdata_DATA=\
+sieve.sed: Makefile
+	echo 's,%GUILE_BINDIR%,@GUILE_BINDIR@,g' > sieve.sed
+	echo 's,%BINDIR%,$(bindir),g' >> sieve.sed
+	echo 's,%GUILE_SITE%,$(GUILE_SITE),g' >> sieve.sed
+	echo 's,%LIBDIR%,$(sievemoddir),g' >> sieve.sed
+	echo 's,%PACKAGE%,$(PACKAGE),g' >> sieve.sed
+	echo 's,%VERSION%,$(VERSION),g' >> sieve.sed
+
+CLEANFILES = sieve.scm sieve.sed
+
+sitedir=$(GUILE_SITE)/$(PACKAGE)
+GUILE_SITE_DATA_X=sieve-core.scm
+site_DATA=@GUILE_SITE_DATA@
+
+sievemod_DATA=\
  mimeheader.scm\
  numaddr.scm\
  redirect.scm\
  reject.scm\
- sieve-core.scm\
  vacation.scm
 
 EXTRA_DIST=\
