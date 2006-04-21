@@ -1,5 +1,5 @@
 ;;;; GNU Mailutils -- a suite of utilities for electronic mail
-;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; GNU Mailutils is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -160,6 +160,7 @@
     (mu-message-send mesg #f #f sender)))
 
 (define (action-vacation text . opt)
+  (sieve-verbose-print "VACATION")
   (set! vacation-debug (member #:debug opt))
   (if vacation-debug
       (begin

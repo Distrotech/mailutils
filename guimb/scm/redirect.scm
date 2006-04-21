@@ -1,5 +1,5 @@
 ;;;; GNU Mailutils -- a suite of utilities for electronic mail
-;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; GNU Mailutils is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -37,17 +37,19 @@
 
 ;;; redirect action
 (define (action-redirect address)
-  (if sieve-my-email
-      (cond
-       ((sent-from-me? sieve-current-message)
-	(runtime-message SIEVE-WARNING "Redirection loop detected"))
-       (else
-	(let ((out-msg (mu-message-copy sieve-current-message))
-              (sender (mu-message-get-sender sieve-current-message)))
-	  (mu-message-set-header out-msg "X-Sender" sieve-my-email)
-	  (mu-message-send out-msg #f sender address)
-	  (mu-message-destroy out-msg))
-	(mu-message-delete sieve-current-message)))))
+  (sieve-verbose-print "REDIRECT" "to address " address)
+  (handle-exception
+   (if sieve-my-email
+       (cond
+	((sent-from-me? sieve-current-message)
+	 (runtime-message SIEVE-WARNING "Redirection loop detected"))
+	(else
+	 (let ((out-msg (mu-message-copy sieve-current-message))
+	       (sender (mu-message-get-sender sieve-current-message)))
+	   (mu-message-set-header out-msg "X-Sender" sieve-my-email)
+	   (mu-message-send out-msg #f sender address)
+	   (mu-message-destroy out-msg))
+	 (mu-message-delete sieve-current-message))))))
 
 ;;; Register action
 (if sieve-parser
