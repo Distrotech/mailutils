@@ -153,6 +153,17 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_mu_strerror, "mu-strerror", 1, 0, 0,
+	    (SCM ERR),
+"Return the error message corresponding to ERR, which must be\n"
+"an integer value.\n")
+#define FUNC_NAME s_scm_mu_strerror
+{
+  SCM_ASSERT (scm_is_integer (ERR), ERR, SCM_ARG1, FUNC_NAME);
+  return scm_makfrom0str (mu_strerror (scm_to_int (ERR)));
+}
+#undef FUNC_NAME
+
 static struct
 {
   char *name;
