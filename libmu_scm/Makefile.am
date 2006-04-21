@@ -50,14 +50,39 @@ libmu_scm_la_LIBADD = \
 
 EXTRA_DIST=mailutils.scm mailutils.scm.in
 
-pkgdata_DATA=@GUILE_PKGDATA@
-DOT_X_FILES=mu_address.x mu_body.x mu_guimb.x mu_mailbox.x mu_message.x mu_mime.x\
- mu_logger.x mu_port.x mu_scm.x mu_util.x
-DOT_DOC_FILES=mu_address.doc mu_body.doc mu_guimb.doc mu_mailbox.doc mu_message.doc \
- mu_mime.doc mu_logger.doc mu_port.doc mu_scm.doc mu_util.doc 
+sitedir=$(GUILE_SITE)/$(PACKAGE)
+GUILE_SITE_DATA_X=guile-procedures.txt mailutils.scm
+site_DATA=@GUILE_SITE_DATA@
+
+DOT_X_FILES=\
+ mu_address.x\
+ mu_body.x\
+ mu_guimb.x\
+ mu_mailbox.x\
+ mu_message.x\
+ mu_mime.x\
+ mu_logger.x\
+ mu_port.x\
+ mu_scm.x\
+ mu_util.x
+
+DOT_DOC_FILES=\
+ mu_address.doc\
+ mu_body.doc\
+ mu_guimb.doc\
+ mu_mailbox.doc\
+ mu_message.doc\
+ mu_mime.doc\
+ mu_logger.doc\
+ mu_port.doc\
+ mu_scm.doc\
+ mu_util.doc 
+
+GUILE_BUILT_SOURCES_X=$(DOT_X_FILES) $(DOT_DOC_FILES)
+
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
 
-DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_PKGDATA@
+DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_SITE_DATA@
 CLEANFILES=*.inc
 
 AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
