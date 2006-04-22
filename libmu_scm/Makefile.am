@@ -112,7 +112,7 @@ guile-procedures.txt: $(DOT_DOC_FILES)
 mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
 	m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm \
-            mailutils.scm.in > $@
+            $(srcdir)/mailutils.scm.in > $@
 
 
 ## Add -MG to make the .x magic work with auto-dep code.

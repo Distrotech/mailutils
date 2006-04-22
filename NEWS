@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-04-19
+GNU mailutils NEWS -- history of user-visible changes.  2006-05-24
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -7,8 +7,15 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 Version 0.6.94:
 
 * Add support for Berkeley DB 3.x and 4.x
+See the description of --with-berkeley-db option in the README file.
 
 * Add support for Guile 1.8.x
+
+* The module mailutils.scm is now defined as (mailutils mailutils). Please
+change your (use-modules) statements accordingly.
+
+* Scheme modules can now be installed in the site-wide Guile directory.
+See the description of --with-guiledir option in the README file.
 
 * Bugfixes:
 ** Fix handling of file names containing whitespace characters in imap4 server

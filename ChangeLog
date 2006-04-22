@@ -1,5 +1,7 @@
 2006-04-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS, README: Updated
+
 	* configure.ac: Minor change
 	* guimb/scm/Makefile.am (sieve.scm): Use auxiliary sed script to
 	create.
