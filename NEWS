@@ -8,6 +8,8 @@ Version 0.6.94:
 
 * Add support for Berkeley DB 3.x and 4.x
 
+* Add support for Guile 1.8.x
+
 * Bugfixes:
 ** Fix handling of file names containing whitespace characters in imap4 server
 and library.
