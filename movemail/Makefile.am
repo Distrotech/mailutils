@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,7 +19,6 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
-AM_CPPFLAGS = -DGNULIB_ARGP_EXTERN_BASENAME=1
 
 movemail_LDADD = \
  ../lib/libmuaux.la\
