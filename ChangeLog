@@ -1,3 +1,23 @@
+2006-04-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am (SUBDIRS): Remove intl
+	* configure.ac: Require external gettext
+	Always define GNULIB_ARGP_EXTERN_BASENAME
+	* config/Makefile.am (AM_CPPFLAGS): Removed
+	* mailbox/Makefile.am: Likewise
+	* movemail/Makefile.am: Likewise
+	* include/mailutils/address.h (mu_address_set_personal)
+	(mu_address_set_comments): New functions
+	* mailbox/address.c: Likewise
+	* mailbox/sendmail.c: Add extra debug info
+	* mh/mh.h: Include <argp-namefrob.h>
+	* mh/mh_getopt.c: Likewise
+	* mh/mh_alias.y (mh_alias_get_internal): Set `inclusive'
+	only if the alias matches
+	(mh_alias_get_address): Initialize incl
+	Use mu_address_set_personal to handle alias inclusion
+	* mh/mh_whom.c (mh_alias_expand): Initialize incl
+	
 2006-04-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS, README: Updated
