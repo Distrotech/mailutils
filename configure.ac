@@ -1,7 +1,7 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
 dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005,
-dn; 2006 Free Software Foundation, Inc.
+dnl 2006 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ status_mysql=no
 status_pgsql=no
 
 dnl Internationalization macros.
-AM_GNU_GETTEXT(no-libtool, need-ngettext)
+AM_GNU_GETTEXT([external], [need-ngettext])
 AM_GNU_GETTEXT_VERSION(0.14.1)
 AM_ICONV
 AC_CHECK_HEADERS(iconv.h)
@@ -393,6 +393,9 @@ AC_DEFUN([AC_REPLACE_FUNCS],
 ])
 
 libmailutils_GNULIB
+
+AC_DEFINE([GNULIB_ARGP_EXTERN_BASENAME],1,
+          [Define to use our own version of __argp_base_name])
 
 dnl Restore overridden defuns
 m4_copy([MU_SAVE_AC_REPLACE_FUNCS],[AC_REPLACE_FUNCS])
@@ -1155,7 +1158,6 @@ AC_CONFIG_FILES([Makefile
  include/mailutils/Makefile
  include/mailutils/gnu/Makefile
  include/mailutils/sys/Makefile
- intl/Makefile
  lib/Makefile
  libmu_scm/Makefile
  libproto/Makefile
