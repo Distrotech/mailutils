@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005, 
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -381,6 +382,8 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	    if (strncasecmp (buffer, MU_HEADER_FCC,
 			     sizeof (MU_HEADER_FCC) - 1))
 	      {
+		MAILER_DEBUG1 (mailer, MU_DEBUG_PROT,
+			       "Header: %s", buffer);
 		if (write (sendmail->fd, buffer, len) == -1)
 		  {
 		    status = errno;
