@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -333,10 +333,10 @@ mh_alias_get_internal (char *name, mu_iterator_t start, mu_list_t *return_list,
     {
       struct mh_alias *alias;
       mu_iterator_current (itr, (void **)&alias);
-      if (inclusive)
-	*inclusive |= alias->inclusive;
       if (aliascmp (alias->name, name) == 0)
 	{
+	  if (inclusive)
+	    *inclusive |= alias->inclusive;
 	  *return_list = ali_list_dup (alias->rcpt_list);
 	  alias_expand_list (*return_list, itr, inclusive);
 	  rc = 0;
@@ -360,7 +360,9 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
   mu_iterator_t itr;
   mu_list_t list;
   const char *domain = NULL;
-  
+
+  if (incl)
+    *incl = 0;
   if (mh_alias_get_internal (name, NULL, &list, incl))
     return 1;
   if (mu_list_is_empty (list))
@@ -378,18 +380,6 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 	  char *ptr = NULL; 
 
 	  mu_iterator_current (itr, (void **)&item);
-	  if (incl && *incl)
-	    {
-	      if (strchr (item, '@') == 0)
-		{
-		  if (!domain)
-		    mu_get_user_email_domain (&domain);
-		  asprintf (&ptr, "\"%s\" <%s@%s>", name, item, domain);
-		}
-	      else
-		asprintf (&ptr, "\"%s\" <%s>", name, item);
-	      item = ptr;
-	    }
 	  if (mu_address_create (&a, item))
 	    {
 	      mh_error (_("Error expanding aliases -- invalid address `%s'"),
@@ -397,6 +387,8 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 	    }
 	  else
 	    {
+	      if (incl && *incl)
+		mu_address_set_personal (a, 1, name);
 	      mu_address_union (paddr, a);
 	      mu_address_destroy (&a);
 	    }
