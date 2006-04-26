@@ -1,5 +1,13 @@
 2006-04-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* doc/texinfo/mu-mh.texi: New file
+	* doc/texinfo/programs.texi: Update
+	* doc/texinfo/Makefile.am (mailutils_TEXINFOS): Add mu-mh.texi
+	(info_TEXINFOS): Remove muint.texi
+
+	* mh/README: Removed. Documentation moved to its proper place in
+	mailutils.info.
+
 	* Makefile.am (SUBDIRS): Remove intl
 	* configure.ac: Require external gettext
 	Always define GNULIB_ARGP_EXTERN_BASENAME

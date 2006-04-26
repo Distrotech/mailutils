@@ -3932,7 +3932,7 @@ $B(,5)\
 @node mh
 @section @acronym{MH} --- The MH Message Handling System
 
-[FIXME]
+@include mu-mh.texi
 
 @page
 @node mailutils-config
