@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -214,7 +214,7 @@ mu_address_get_nth (mu_address_t addr, size_t no, mu_address_t *pret)
 
 int
 mu_address_get_personal (mu_address_t addr, size_t no, char *buf, size_t len,
-		      size_t * n)
+			 size_t * n)
 {
   size_t i;
   mu_address_t subaddr;
@@ -233,8 +233,31 @@ mu_address_get_personal (mu_address_t addr, size_t no, char *buf, size_t len,
 }
 
 int
+mu_address_set_personal (mu_address_t addr, size_t no, const char *buf)
+{
+  char *s;
+  mu_address_t subaddr;
+  
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return MU_ERR_NOENT;
+
+  s = strdup (buf);
+  if (!s)
+    return errno;
+  
+  free (subaddr->personal);
+  subaddr->personal = s;
+
+  return 0;
+}
+
+int
 mu_address_get_comments (mu_address_t addr, size_t no, char *buf, size_t len,
-		      size_t * n)
+			 size_t * n)
 {
   size_t i;
   mu_address_t subaddr;
@@ -253,8 +276,31 @@ mu_address_get_comments (mu_address_t addr, size_t no, char *buf, size_t len,
 }
 
 int
+mu_address_set_comments (mu_address_t addr, size_t no, const char *buf)
+{
+  char *s;
+  mu_address_t subaddr;
+  
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return MU_ERR_NOENT;
+
+  s = strdup (buf);
+  if (!s)
+    return errno;
+  
+  free (subaddr->comments);
+  subaddr->comments = s;
+
+  return 0;
+}
+
+int
 mu_address_get_email (mu_address_t addr, size_t no, char *buf, size_t len,
-		   size_t * n)
+		      size_t * n)
 {
   size_t i;
   mu_address_t subaddr;
@@ -463,7 +509,7 @@ mu_address_aget_domain (mu_address_t addr, size_t no, char **buf)
 
 int
 mu_address_get_local_part (mu_address_t addr, size_t no, char *buf, size_t len,
-			size_t * n)
+			   size_t * n)
 {
   size_t i;
   mu_address_t subaddr;
@@ -483,7 +529,7 @@ mu_address_get_local_part (mu_address_t addr, size_t no, char *buf, size_t len,
 
 int
 mu_address_get_domain (mu_address_t addr, size_t no, char *buf, size_t len,
-		    size_t * n)
+		       size_t * n)
 {
   size_t i;
   mu_address_t subaddr;
@@ -503,7 +549,7 @@ mu_address_get_domain (mu_address_t addr, size_t no, char *buf, size_t len,
 
 int
 mu_address_get_route (mu_address_t addr, size_t no, char *buf, size_t len,
-		   size_t * n)
+		      size_t * n)
 {
   size_t i;
   mu_address_t subaddr;

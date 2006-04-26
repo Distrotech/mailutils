@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -71,6 +71,13 @@ extern int mu_address_contains_email (mu_address_t addr, const char *email);
 extern int mu_address_union (mu_address_t *a, mu_address_t b);
   
 extern size_t mu_address_format_string (mu_address_t addr, char *buf, size_t buflen);
+
+  /* The following setters are not entirely orthogonal to their _get_
+     counterparts. Only personal and comments parts can be set */
+extern int mu_address_set_personal (mu_address_t addr, size_t no,
+				    const char *buf);
+extern int mu_address_set_comments (mu_address_t addr, size_t no,
+				    const char *buf);
   
 #ifdef __cplusplus
 }
