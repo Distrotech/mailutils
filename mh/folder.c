@@ -304,20 +304,6 @@ _scan (const char *name, int depth)
   struct stat st;
   size_t uid;
 
-  if (!recurse)
-    {
-      if (fast_mode && depth > 0)
-	{
-	  memset (&info, 0, sizeof (info));
-	  info.name = strdup (name);
-	  install_folder_info (name, &info);
-	  return;
-	}
-      
-      if (depth > 1)
-	return;
-    }
-  
   dir = opendir (name);
 
   if (!dir && errno == ENOENT)
@@ -332,10 +318,7 @@ _scan (const char *name, int depth)
 	  dir = opendir (name);
 	}
       else
-	{
-	  push_folder = 0;
-	  return;
-	}
+	exit (1);
     }
 
   if (!dir)
@@ -344,6 +327,21 @@ _scan (const char *name, int depth)
       return;
     }
 
+  if (!recurse)
+    {
+      closedir (dir);
+      if (fast_mode && depth > 0)
+	{
+	  memset (&info, 0, sizeof (info));
+	  info.name = strdup (name);
+	  install_folder_info (name, &info);
+	  return;
+	}
+      
+      if (depth > 1)
+	return;
+    }
+  
   memset (&info, 0, sizeof (info));
   info.name = strdup (name);
   while ((entry = readdir (dir)))
