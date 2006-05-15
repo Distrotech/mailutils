@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.93\n"
+"Project-Id-Version: mailutils 0.6.94\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2006-02-13 00:14+0100\n"
-"PO-Revision-Date: 2006-03-07 12:35+0100\n"
+"POT-Creation-Date: 2006-04-21 16:49+0300\n"
+"PO-Revision-Date: 2006-05-09 20:54+0200\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -362,27 +362,27 @@ msgstr "No existeix l'usuari: %s"
 msgid "User nonexistent: %s"
 msgstr "No existeix l'usuari: %s"
 
-#: config/mailutils-config.c:28
+#: config/mailutils-config.c:29
 msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
 msgstr "GNU mailutils-config -- Mostra les opcions del compilador i carregador necessitades per a construir un programa amb mailutils"
 
-#: config/mailutils-config.c:29
+#: config/mailutils-config.c:30
 msgid "[arg...]"
 msgstr "[arguments...]"
 
-#: config/mailutils-config.c:33
+#: config/mailutils-config.c:34
 msgid "Print C compiler flags to compile with"
 msgstr "Mostra les senyals del compilador de C en les quals compilar"
 
-#: config/mailutils-config.c:35
+#: config/mailutils-config.c:36
 msgid "Print libraries to link with. Possible arguments are: auth, guile, mbox, mh, maildir, imap, pop, sieve and all"
 msgstr "Mostra les biblioteques amb les quals enllaçar. Els arguments possibles són: auth, guile, mbox, mh, maildir, imap, pop, sieve i all"
 
-#: config/mailutils-config.c:38
+#: config/mailutils-config.c:39
 msgid "Print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
 msgstr "Mostra una llista de opcions de compilació usades per construir mailutils. Si es donen arguments, s'interpreten com una llista d'opcions de compilació a ser comprovades. En aquest cas, el programa mostra les opcions d'aquesta llista que estan definides. Ix amb estat zero si totes les opcions especificades estan definides. Si no, l'estat d'eixida és 1."
 
-#: config/mailutils-config.c:128 frm/from.c:128 mh/folder.c:888
+#: config/mailutils-config.c:129 frm/from.c:128 mh/folder.c:888
 msgid "Too many arguments"
 msgstr "S'han donat massa arguments"
 
@@ -464,13 +464,13 @@ msgstr "No es pot decodificar la línia «%s»: %s"
 msgid "Could not close mailbox `%s': %s"
 msgstr "No s'ha pogut tancar la bústia «%s»: %s"
 
-#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:190
+#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:191
 #: sieve/sieve.c:460
 #, c-format
 msgid "Could not create mailbox `%s': %s"
 msgstr "No s'ha pogut crear la bústia «%s»: %s"
 
-#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:194
+#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:195
 #: sieve/sieve.c:463
 #, c-format
 msgid "Could not create default mailbox: %s"
@@ -690,7 +690,7 @@ msgid "Cannot open output mailbox %s: %s\n"
 msgstr "No es pot obrir la bústia d'eixida %s: %s\n"
 
 #: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
-#: libsieve/sieve.l:605 libsieve/sieve.l:669 libsieve/sieve.l:723
+#: libsieve/sieve.l:603 libsieve/sieve.l:667 libsieve/sieve.l:721
 #: mail/folders.c:38 mail/if.c:56 mail/util.c:898 mh/mh_init.c:113
 #: mh/mh_init.c:342 mh/mh_msgset.c:604
 msgid "Not enough memory"
@@ -1010,6 +1010,66 @@ msgstr "S'està provant %s...\n"
 msgid "Found in %s\n"
 msgstr "S'ha trobat en %s\n"
 
+#: libproto/imap/folder.c:2240
+#, c-format
+msgid "No tag in response: %s %s"
+msgstr "No hi ha cap etiqueta en la resposta: %s %s"
+
+#: libproto/imap/folder.c:2267
+#, c-format
+msgid "ALERT: %s"
+msgstr "ALERTA: %s"
+
+#: libproto/imap/folder.c:2276
+#, c-format
+msgid "BAD CHARSET: %s"
+msgstr "JOC DE CARÀCTERS ERRONI: %s"
+
+#: libproto/imap/folder.c:2376
+#, c-format
+msgid "Untagged OK: %s"
+msgstr "Desetiquetat CORRECTAMENT: %s"
+
+#: libproto/imap/folder.c:2382
+#, c-format
+msgid "Untagged NO: %s"
+msgstr "NO desetiquetat: %s"
+
+#: libproto/imap/folder.c:2387
+#, c-format
+msgid "Untagged BAD: %s"
+msgstr "Desetiquetat INCORRECTAMENT: %s"
+
+#: libproto/imap/folder.c:2450
+#, c-format
+msgid "unknown untagged response: \"%s\"  %s"
+msgstr "la resposta del desetiquetatge és desconeguda: «%s»  %s"
+
+#: libproto/imap/folder.c:2484
+#, c-format
+msgid "NO/Bad Tagged: %s %s %s"
+msgstr "L'etiquetatge manca o és erroni: %s %s %s"
+
+#: libproto/mbox/mbox.c:370
+msgid "* BAD : Mailbox corrupted, shrank in size"
+msgstr "* BAD: La bústia s'ha corromput, la mida s'ha contret"
+
+#: libproto/mbox/mbox.c:485
+msgid "Failed to create temporary file when expunging"
+msgstr "No s'ha pogut crear un fitxer temporal quan s'eliminava"
+
+#: libproto/mbox/mbox.c:548
+#, c-format
+msgid "Failed to grab the lock: %s"
+msgstr "No s'ha pogut obtenir el blocatge: %s"
+
+#: libproto/mbox/mbox.c:600 libproto/mbox/mbox.c:609 libproto/mbox/mbox.c:632
+#: libproto/mbox/mbox.c:644 libproto/mbox/mbox.c:674 libproto/mbox/mbox.c:685
+#: libproto/mbox/mbox.c:706 libproto/mbox/mbox.c:720
+#, c-format
+msgid "Error expunging:%d: %s"
+msgstr "S'ha produït un error en eliminar:%d: %s"
+
 #: libsieve/actions.c:51
 msgid "marking as deleted"
 msgstr "s'estan marcant com eliminats"
@@ -1032,7 +1092,7 @@ msgstr "no es pot desar en una bústia temporal: %s"
 msgid "reject: cannot get text!"
 msgstr "reject: no es pot obtindre text!"
 
-#: libsieve/actions.c:293 libsieve/extensions/vacation.c:485
+#: libsieve/actions.c:293 libsieve/extensions/vacation.c:487
 #, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d: no es pot crear l'adreça del destinatari <%s>: %s"
@@ -1043,7 +1103,7 @@ msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d: no es pot crear l'adreça de procedència <%s>: %s"
 
 #: libsieve/actions.c:319 libsieve/actions.c:474
-#: libsieve/extensions/vacation.c:524
+#: libsieve/extensions/vacation.c:526
 #, c-format
 msgid "%d: cannot open mailer %s: %s"
 msgstr "%d: no es pot obrir el servidor de correu %s: %s"
@@ -1138,8 +1198,8 @@ msgstr "no es pot obrir el flux temporal: %s"
 
 #: libsieve/extensions/vacation.c:205
 #, c-format
-msgid "%d: cannot compile regular expression \"%s\"\n"
-msgstr "%d: no es poden compilar les expressions regulars «%s»\n"
+msgid "%d: cannot compile regular expression \"%s\""
+msgstr "%d: no es poden compilar l'expressió regular «%s»"
 
 #: libsieve/extensions/vacation.c:296
 #, c-format
@@ -1163,16 +1223,18 @@ msgstr "%d: vacation ha estat compilat sense suport per a DBM. S'està ignorant 
 msgid "%d: not enough memory"
 msgstr "%d: no hi ha memòria suficient"
 
-#: libsieve/extensions/vacation.c:437
+#. TRANSLATORS: 'vacation' is the name of the
+#. Sieve action. Do not translate it!
+#: libsieve/extensions/vacation.c:439
 #, c-format
 msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
 msgstr "%d: vacation - no es pot compilar l'expressió regular del prefixe de la resposta: %s: %s"
 
-#: libsieve/extensions/vacation.c:554
+#: libsieve/extensions/vacation.c:556
 msgid "cannot get text!"
 msgstr "no es pot obtindre text!"
 
-#: libsieve/extensions/vacation.c:571
+#: libsieve/extensions/vacation.c:573
 #, c-format
 msgid "%d: cannot get sender address"
 msgstr "%d: no es pot determinar l'adreça de correu del remitent"
@@ -1281,11 +1343,11 @@ msgstr "«%s» ja està inclòs en el nivell superior"
 msgid "cannot open `%s': %s"
 msgstr "no es pot obrir «%s»: %s"
 
-#: libsieve/sieve.l:440
+#: libsieve/sieve.l:438
 msgid "preprocessor syntax"
 msgstr "sintaxi de preprocessador"
 
-#: libsieve/sieve.l:449
+#: libsieve/sieve.l:447
 msgid "missing closing quote in preprocessor statement"
 msgstr "falten les comilles finals en la sentència de preprocessador"
 
@@ -1731,7 +1793,7 @@ msgstr ""
 "\n"
 "Interrupció"
 
-#: mail/escape.c:59 mail/send.c:230 mh/mhn.c:2059 mimeview/mimeview.c:217
+#: mail/escape.c:59 mail/send.c:230 mh/mhn.c:2119 mimeview/mimeview.c:217
 #, c-format
 msgid "Cannot create header: %s"
 msgstr "No es pot crear la capçalera: %s"
@@ -2683,82 +2745,22 @@ msgstr "%s: l'opció «-W %s» és ambigua\n"
 msgid "%s: option `-W %s' doesn't allow an argument\n"
 msgstr "%s: l'opció «-W %s» no accepta arguments\n"
 
-#: mailbox/imap/folder.c:2229
-#, c-format
-msgid "No tag in response: %s %s"
-msgstr "No hi ha cap etiqueta en la resposta: %s %s"
-
-#: mailbox/imap/folder.c:2256
-#, c-format
-msgid "ALERT: %s"
-msgstr "ALERTA: %s"
-
-#: mailbox/imap/folder.c:2265
-#, c-format
-msgid "BAD CHARSET: %s"
-msgstr "JOC DE CARÀCTERS ERRONI: %s"
-
-#: mailbox/imap/folder.c:2365
-#, c-format
-msgid "Untagged OK: %s"
-msgstr "Desetiquetat CORRECTAMENT: %s"
-
-#: mailbox/imap/folder.c:2371
-#, c-format
-msgid "Untagged NO: %s"
-msgstr "NO desetiquetat: %s"
-
-#: mailbox/imap/folder.c:2376
-#, c-format
-msgid "Untagged BAD: %s"
-msgstr "Desetiquetat INCORRECTAMENT: %s"
-
-#: mailbox/imap/folder.c:2439
-#, c-format
-msgid "unknown untagged response: \"%s\"  %s"
-msgstr "la resposta del desetiquetatge és desconeguda: «%s»  %s"
-
-#: mailbox/imap/folder.c:2473
-#, c-format
-msgid "NO/Bad Tagged: %s %s %s"
-msgstr "L'etiquetatge manca o és erroni: %s %s %s"
-
-#: mailbox/mbox/mbox.c:370
-msgid "* BAD : Mailbox corrupted, shrank in size"
-msgstr "* BAD: La bústia s'ha corromput, la mida s'ha contret"
-
-#: mailbox/mbox/mbox.c:485
-msgid "Failed to create temporary file when expunging"
-msgstr "No s'ha pogut crear un fitxer temporal quan s'eliminava"
-
-#: mailbox/mbox/mbox.c:548
-#, c-format
-msgid "Failed to grab the lock: %s"
-msgstr "No s'ha pogut obtenir el blocatge: %s"
-
-#: mailbox/mbox/mbox.c:600 mailbox/mbox/mbox.c:609 mailbox/mbox/mbox.c:632
-#: mailbox/mbox/mbox.c:644 mailbox/mbox/mbox.c:674 mailbox/mbox/mbox.c:685
-#: mailbox/mbox/mbox.c:706 mailbox/mbox/mbox.c:720
-#, c-format
-msgid "Error expunging:%d: %s"
-msgstr "S'ha produït un error en eliminar:%d: %s"
-
-#: mailbox/message.c:1095
+#: mailbox/message.c:1093
 #, c-format
 msgid "mu_mailbox_create_default (%s) failed: %s\n"
 msgstr "mu_mailbox_create_default (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1126
+#: mailbox/message.c:1124
 #, c-format
 msgid "mu_mailbox_open (%s) failed: %s\n"
 msgstr "mu_mailbox_open (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1134
+#: mailbox/message.c:1132
 #, c-format
 msgid "mu_mailbox_append_message (%s) failed: %s\n"
 msgstr "mu_mailbox_append_message (%s) ha fallat: %s\n"
 
-#: mailbox/message.c:1146
+#: mailbox/message.c:1144
 #, c-format
 msgid "mu_mailbox_close (%s) failed: %s\n"
 msgstr "mu_mailbox_close (%s) ha fallat: %s\n"
@@ -2957,7 +2959,7 @@ msgstr "No es pot obrir un fitxer temporal: %s"
 #.
 #. msgstr "yYbB";
 #.
-#: mailbox/mutil.c:1206
+#: mailbox/mutil.c:1205
 msgid "yY"
 msgstr "yYsS"
 
@@ -2967,7 +2969,7 @@ msgstr "yYsS"
 #.
 #. msgstr "nNeE";
 #.
-#: mailbox/mutil.c:1215
+#: mailbox/mutil.c:1214
 msgid "nN"
 msgstr "nN"
 
@@ -3659,12 +3661,12 @@ msgstr "Error d'escriptura en «%s»: %s"
 msgid "Cannot stat file %s: %s"
 msgstr "No es pot fer «stat» del fitxer %s: %s"
 
-#: mh/mh_init.c:609 mh/mhn.c:2267
+#: mh/mh_init.c:609 mh/mhn.c:2327
 #, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "No es pot crear un flux d'entrada (fitxer %s): %s"
 
-#: mh/mh_init.c:616 mh/mhn.c:2274
+#: mh/mh_init.c:616 mh/mhn.c:2334
 #, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "No es pot obrir el flux d'entrada (fitxer %s): %s"
@@ -3975,12 +3977,12 @@ msgstr "Inhabilita l'ús del programa moreproc"
 msgid "Invalid length"
 msgstr "Mida no vàlida"
 
-#: mh/mhl.c:168 mh/mhn.c:1465
+#: mh/mhl.c:168 mh/mhn.c:1476
 #, c-format
 msgid "Cannot create output stream: %s"
 msgstr "No es pot crear un flux d'eixida: %s"
 
-#: mh/mhl.c:174 mh/mhn.c:1471
+#: mh/mhl.c:174 mh/mhn.c:1482
 #, c-format
 msgid "Cannot open output stream: %s"
 msgstr "No es pot obrir el flux d'eixida: %s"
@@ -4100,121 +4102,126 @@ msgstr "Mostra informació addicional"
 msgid "Malformed part specification (near %s)"
 msgstr "L'especificació de part és malformada: (prop de %s)"
 
-#: mh/mhn.c:1217
+#: mh/mhn.c:1228
 #, c-format
 msgid " msg part type/subtype              size  description\n"
 msgstr " msg part tipus/subtipus            mida descripció\n"
 
-#: mh/mhn.c:1254
+#: mh/mhn.c:1265
 #, c-format
 msgid "%s: cannot get message body: %s"
 msgstr "%s: no es pot obtenir el cos del missatge: %s"
 
-#: mh/mhn.c:1276
+#: mh/mhn.c:1287
 #, c-format
 msgid "Cannot create proc stream (command %s): %s"
 msgstr "No es pot crear un flux de procés (ordre %s): %s"
 
-#: mh/mhn.c:1283
+#: mh/mhn.c:1294
 #, c-format
 msgid "Cannot open proc stream (command %s): %s"
 msgstr "No es pot obrir el flux de procés (ordre %s): %s"
 
-#: mh/mhn.c:1324
+#: mh/mhn.c:1335
 #, c-format
 msgid "Cannot parse command line `%s'"
 msgstr "No es pot analitzar la línia d'ordres «%s»"
 
-#: mh/mhn.c:1331
+#: mh/mhn.c:1342
 #, c-format
 msgid "Cannot create temporary stream (file %s): %s"
 msgstr "No es pot crear un flux temporal (fitxer %s): %s"
 
-#: mh/mhn.c:1339
+#: mh/mhn.c:1350
 #, c-format
 msgid "Cannot open temporary stream (file %s): %s"
 msgstr "No es pot obrir el flux temporal (fitxer %s): %s"
 
-#: mh/mhn.c:1387
+#: mh/mhn.c:1398
 msgid "part "
 msgstr "part "
 
-#: mh/mhn.c:1406
+#: mh/mhn.c:1417
 #, c-format
 msgid "Press <return> to show content..."
 msgstr "Premeu «retorn» per a mostrar els continguts..."
 
-#: mh/mhn.c:1650 mh/mhn.c:1655
+#: mh/mhn.c:1661 mh/mhn.c:1666
 #, c-format
 msgid "storing message %s part %s as file %s\n"
 msgstr "s'està desant el missatge %s, part %s en el fitxer %s\n"
 
-#: mh/mhn.c:1666
+#: mh/mhn.c:1677
 #, c-format
 msgid "File %s already exists. Rewrite"
 msgstr "El fitxer %s ja existeix. Reescriure"
 
-#: mh/mhn.c:1680 mh/mhn.c:2547
+#: mh/mhn.c:1691 mh/mhn.c:2721
 #, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr "No es pot crear un flux d'eixida (fitxer %s): %s"
 
-#: mh/mhn.c:1688 mh/mhn.c:2555
+#: mh/mhn.c:1699 mh/mhn.c:2729
 #, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr "No es pot obrir el flux d'eixida (fitxer %s): %s"
 
-#: mh/mhn.c:1802
+#: mh/mhn.c:1813
 #, c-format
 msgid "%s:%lu: missing %c"
 msgstr "%s:%lu: manca %c"
 
-#: mh/mhn.c:1837
+#: mh/mhn.c:1848
 #, c-format
 msgid "%s:%lu: comment redefined"
 msgstr "%s:%lu: el comentari està redefinit"
 
-#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2151
+#: mh/mhn.c:1860 mh/mhn.c:1900 mh/mhn.c:2211
 #, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu: error de sintaxi"
 
-#: mh/mhn.c:1858 mh/mhn.c:2118
+#: mh/mhn.c:1869 mh/mhn.c:2178
 #, c-format
 msgid "%s:%lu: description redefined"
 msgstr "%s:%lu: la descripció està redefinida"
 
-#: mh/mhn.c:1870 mh/mhn.c:2130
+#: mh/mhn.c:1881 mh/mhn.c:2190
 #, c-format
 msgid "%s:%lu: content id redefined"
 msgstr "%s:%lu: l'id del contingut està redefinit"
 
-#: mh/mhn.c:1952
+#: mh/mhn.c:1963
 #, c-format
 msgid "%s:%lu: missing subtype"
 msgstr "%s:%lu: manca el subtipus"
 
-#: mh/mhn.c:2165
+#: mh/mhn.c:2225
 #, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu no existeix el missatge: %lu"
 
-#: mh/mhn.c:2256
+#: mh/mhn.c:2316
 #, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu: manca el nom del fitxer"
 
-#: mh/mhn.c:2312
+#: mh/mhn.c:2372
 #, c-format
 msgid "Cannot open filter stream: %s"
 msgstr "No es pot obrir el flux de filtre: %s"
 
-#: mh/mhn.c:2445
+#: mh/mhn.c:2508
 #, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu: #end no emparellat"
 
-#: mh/mhn.c:2601 mh/mhn.c:2612
+#: mh/mhn.c:2661
+#, c-format
+msgid "cannot encode subject using %s, %s: %s"
+msgstr "no es pot codificar l'assumpte utilitzant %s, %s: %s"
+
+#: mh/mhn.c:2776 mh/mhn.c:2787
 msgid "extra arguments"
 msgstr "arguments extra"
 
@@ -4781,79 +4788,79 @@ msgstr "No és un fitxer regular o un enllaç simbòlic: «%s»"
 msgid "No files given"
 msgstr "No s'han donat fitxers"
 
-#: movemail/movemail.c:30
+#: movemail/movemail.c:31
 msgid "GNU movemail"
 msgstr "GNU movemail"
 
-#: movemail/movemail.c:31
+#: movemail/movemail.c:32
 msgid "inbox-url destfile [POP-password]"
 msgstr "url-bústia fitxerdestinació [contrasenya-POP]"
 
-#: movemail/movemail.c:36
+#: movemail/movemail.c:37
 msgid "Preserve the source mailbox"
 msgstr "Preserva la carpeta d'origen"
 
-#: movemail/movemail.c:38
+#: movemail/movemail.c:39
 msgid "Reverse the sorting order"
 msgstr "Inverteix el criteri d'ordenació"
 
-#: movemail/movemail.c:40
+#: movemail/movemail.c:41
 msgid "Output information used by Emacs rmail interface"
 msgstr "Informació d'eixida utilitzat per la interfície rmail d'Emacs"
 
-#: movemail/movemail.c:108
+#: movemail/movemail.c:109
 #, c-format
 msgid "%s:mailbox `%s': %s: %s"
 msgstr "%s:bústia «%s»: %s: %s"
 
-#: movemail/movemail.c:114
+#: movemail/movemail.c:115
 #, c-format
 msgid "mailbox `%s': %s: %s"
 msgstr "bústia «%s»: %s: %s"
 
-#: movemail/movemail.c:127
+#: movemail/movemail.c:128
 msgid "Cannot retrieve locker"
 msgstr "No s'ha pogut obtenir el blocatge"
 
-#: movemail/movemail.c:136
+#: movemail/movemail.c:137
 msgid "Cannot lock"
 msgstr "No es pot blocar"
 
-#: movemail/movemail.c:170
+#: movemail/movemail.c:171
 msgid "mu_mailbox_get_folder failed"
 msgstr "mu_mailbox_get_folder ha fallat"
 
-#: movemail/movemail.c:173
+#: movemail/movemail.c:174
 msgid "mu_folder_get_authority failed"
 msgstr "mu_folder_get_authority ha fallat"
 
-#: movemail/movemail.c:176
+#: movemail/movemail.c:177
 msgid "mu_authority_set_ticket failed"
 msgstr "mu_authority_set_ticket ha fallat"
 
-#: movemail/movemail.c:203
+#: movemail/movemail.c:204
 msgid "Cannot open"
 msgstr "No es pot obrir"
 
-#: movemail/movemail.c:215
+#: movemail/movemail.c:216
 #, c-format
 msgid "Cannot read message %lu: %s\n"
 msgstr "No es pot llegir el missatge %lu: %s\n"
 
-#: movemail/movemail.c:221
+#: movemail/movemail.c:222
 #, c-format
 msgid "Cannot append message %lu: %s\n"
 msgstr "No es pot agregar el missatge %lu: %s\n"
 
-#: movemail/movemail.c:252
+#: movemail/movemail.c:253
 msgid "Hostname of the POP3 server is unknown"
 msgstr "El nom del servidor de POP3 és desconegut"
 
-#: movemail/movemail.c:298
+#: movemail/movemail.c:299
 msgid "Wrong number of arguments"
 msgstr "Número erroni d'arguments"
 
-#: movemail/movemail.c:334
+#: movemail/movemail.c:335
 #, c-format
 msgid "Cannot close destination mailbox: %s"
 msgstr "No es pot tancar la bústia de destinació: %s"
