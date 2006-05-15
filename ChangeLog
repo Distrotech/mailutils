@@ -1,8 +1,16 @@
+2006-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/folder.c (_scan): Bugfix
+	* mh/mh.h (mh_makedir): New function
+	* mh/mh_init.c (mh_makedir): New function
+	(mh_check_folder): Use mh_makedir to create directories (or
+	directory hierarchies).
+	* NEWS: Update
+	
 2006-05-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/folder.c (_scan): Test for existence of the folder even if
 	--fast was given. Exit with code 1 if the folder does not exist.
-	
 
 2006-04-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
