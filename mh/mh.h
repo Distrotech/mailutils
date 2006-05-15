@@ -262,6 +262,7 @@ int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...);
 int mh_getyn_interactive (const char *fmt, ...);
 int mh_check_folder (char *pathname, int confirm);
+int mh_makedir (char *p);
 
 int mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	       size_t width, char **pret);
