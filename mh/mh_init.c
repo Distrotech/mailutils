@@ -214,6 +214,58 @@ mh_my_email ()
   return my_email;
 }
 
+static int
+make_dir_hier (const char *p, mode_t perm)
+{
+  int rc = 0;
+  char *dir = xstrdup (p);
+  char *q = dir;
+
+  while (!rc && (q = strchr (q + 1, '/')))
+    {
+      *q = 0;
+      if (access (dir, X_OK))
+	{
+	  if (errno != ENOENT)
+	    {
+	      mh_error (_("Cannot create directory %s: error accessing name component %s: %s"),
+			dir, strerror (errno));
+	      rc = 1;
+	    }
+	  else if ((rc = mkdir (dir, perm)))
+	    mh_error (_("Cannot create directory %s: error creating name component %s: %s"),
+		      dir, rc);
+	}
+      *q = '/';
+    }
+  free (dir);
+  return rc;
+}
+
+int
+mh_makedir (char *p)
+{
+  int rc;
+  mode_t save_umask;
+  mode_t perm = 0711;
+  char *pb = mh_global_profile_get ("Folder-Protect", NULL);
+  if (pb)
+    perm = strtoul (pb, NULL, 8);
+
+  save_umask = umask (0);
+
+  if ((rc = make_dir_hier (p, perm)) == 0)
+    {
+      rc = mkdir (p, perm);
+      if (rc)
+	mh_error (_("Cannot create directory %s: %s"),
+		  p, strerror (errno));
+    }
+
+  umask (save_umask);
+  return rc;
+}
+
 int
 mh_check_folder (char *pathname, int confirm)
 {
@@ -230,19 +282,7 @@ mh_check_folder (char *pathname, int confirm)
       if (errno == ENOENT)
 	{
 	  if (!confirm || mh_getyn (_("Create folder \"%s\""), p))
-	    {
-	      int perm = 0711;
-	      char *pb = mh_global_profile_get ("Folder-Protect", NULL);
-	      if (pb)
-		perm = strtoul (pb, NULL, 8);
-	      if (mkdir (p, perm)) 
-		{
-		  mh_error (_("Cannot create directory %s: %s"),
-			    p, strerror (errno));
-		  return 1;
-		}
-	      return 0;
-	    }
+	    return mh_makedir (p);
 	  else
 	    return 1;
 	}
