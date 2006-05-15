@@ -329,17 +329,20 @@ _scan (const char *name, int depth)
 
   if (!recurse)
     {
-      closedir (dir);
       if (fast_mode && depth > 0)
 	{
 	  memset (&info, 0, sizeof (info));
 	  info.name = strdup (name);
 	  install_folder_info (name, &info);
+	  closedir (dir);
 	  return;
 	}
       
       if (depth > 1)
-	return;
+	{
+	  closedir (dir);
+	  return;
+	}
     }
   
   memset (&info, 0, sizeof (info));
