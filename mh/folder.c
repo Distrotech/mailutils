@@ -175,6 +175,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       
     case ARG_ALL:
       show_all++;
+      print_header = print_total = 1;
       break;
 
     case ARG_CREATE:
@@ -889,9 +890,6 @@ main (int argc, char **argv)
       mh_error (_("Too many arguments"));
       exit (1);
     }
-  
-  if (show_all)
-    print_header = print_total = 1;
   
   return (*action) ();
 }
