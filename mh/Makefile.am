@@ -87,7 +87,6 @@ libmh_a_SOURCES= \
  mh_ctx.c\
  mh_getopt.c\
  mh_global.c\
- mh_error.c\
  mh_format.c\
  mh_init.c\
  mh_list.c\
