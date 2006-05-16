@@ -1020,3 +1020,13 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
   return rc;
 }
 
+void
+mh_error(const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  fprintf (stderr, "%s: ", program_invocation_short_name);
+  vfprintf (stderr, fmt, ap);
+  fprintf (stderr, "\n");
+  va_end (ap);
+}
