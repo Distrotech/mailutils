@@ -120,9 +120,10 @@ int create_flag = -1; /* Create non-existent folders (--create).
 		          0: Do not create
 		          1: Always create without prompting */
 int fast_mode = 0; /* Fast operation mode. (--fast) */
-int print_header = 0; /* Display the header line (--header) */
-int recurse = 0;   /* Recurse sub-folders */
-int print_total;   /* Display total stats */
+  /* The following two vars are three-state, -1 meaning the default for
+     current mode */
+int print_header = -1; /* Display the header line (--header) */
+int print_total = -1;  /* Display total stats */
 int verbose = 0;   /* Verbosely list actions taken */
 size_t pack_start; /* Number to be assigned to the first message in packed
 		      folder. 0 means do not change first message number. */
@@ -131,6 +132,10 @@ char *push_folder; /* Folder name to push on stack */
 
 char *mh_seq_name; /* Name of the mh sequence file (defaults to
 		      .mh_sequences) */
+int has_folder;    /* Folder has been explicitely given */
+size_t max_depth = 1;  /* Maximum recursion depth (0 means infinity) */ 
+
+#define OPTION_IS_SET(opt) ((opt) == -1 ? show_all : opt)
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)
@@ -174,8 +179,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_ALL:
-      show_all++;
-      print_header = print_total = 1;
+      show_all = 1;
       break;
 
     case ARG_CREATE:
@@ -202,11 +206,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_RECURSIVE:
-      recurse = is_true (arg);
+      max_depth = is_true (arg) ? 0 : 1;
       break;
 
     case ARG_NORECURSIVE:
-      recurse = 0;
+      max_depth = 0;
       break;
       
     case ARG_TOTAL:
@@ -218,6 +222,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_FOLDER:
+      has_folder = 1;
       push_folder = mh_current_folder ();
       current_folder = arg;
       break;
@@ -296,7 +301,7 @@ read_seq_file (struct folder_info *info, const char *prefix, const char *name)
 }
 
 static void
-_scan (const char *name, int depth)
+_scan (const char *name, size_t depth)
 {
   DIR *dir;
   struct dirent *entry;
@@ -328,7 +333,7 @@ _scan (const char *name, int depth)
       return;
     }
 
-  if (!recurse)
+  if (max_depth == 1)
     {
       if (fast_mode && depth > 0)
 	{
@@ -338,12 +343,12 @@ _scan (const char *name, int depth)
 	  closedir (dir);
 	  return;
 	}
-      
-      if (depth > 1)
-	{
-	  closedir (dir);
-	  return;
-	}
+    }
+  
+  if (max_depth && depth > max_depth)
+    {
+      closedir (dir);
+      return;
     }
   
   memset (&info, 0, sizeof (info));
@@ -482,12 +487,12 @@ action_print ()
     print_fast ();
   else
     {
-      if (print_header)                                   
+      if (OPTION_IS_SET (print_header))
 	printf (_("Folder                  # of messages     (  range  )  cur msg   (other files)\n"));
 		
       print_all ();
 
-      if (print_total)
+      if (OPTION_IS_SET (print_total))
 	{
 	  printf ("\n%24.24s=", _("TOTAL"));
 	  printf (ngettext ("%4lu message  ", "%4lu messages ",
@@ -870,12 +875,17 @@ main (int argc, char **argv)
   mu_argp_init (program_version, NULL);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
-
+  if (has_folder)
+    {
+      if (show_all && max_depth)
+	max_depth = 2;
+      show_all = 0;
+    }
   /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
      `-all'  is  assumed */
-  if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
-    show_all++;
-
+  else if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
+    show_all = 1;
+    
   if (argc - index == 1)
     {
       mu_mailbox_t mbox = mh_open_folder (current_folder, 0);
