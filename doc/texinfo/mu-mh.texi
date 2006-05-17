@@ -31,7 +31,7 @@ options is provided for backward compatibility;
 
 @item UUCP addresses are not supported;
 
-@item Mailutils support a set of new format specifications
+@item Mailutils supports a set of new format specifications
 (@pxref{Format String Diffs});
 
 @item Mailutils provides a set of new profile variables
