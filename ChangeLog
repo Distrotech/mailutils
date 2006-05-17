@@ -1,5 +1,16 @@
 2006-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update
+	* doc/texinfo/mu-mh.texi: Minor fix
+	* mh/ali.c, mh/burst.c, mh/comp.c, mh/compcommon.c, mh/fmtcheck.c,
+	mh/folder.c, mh/forw.c, mh/inc.c, mh/mark.c, mh/mh_alias.l,
+	mh/mh_alias.y, mh/mh_argp.c, mh/mh_ctx.c, mh/mh_fmtgram.y,
+	mh/mh_format.c, mh/mh_init.c, mh/mh_list.c, mh/mh_msgset.c,
+	mh/mh_stream.c, mh/mh_whatnow.c, mh/mh_whom.c, mh/mhl.c, mh/mhn.c,
+	mh/pick.c, mh/pick.y, mh/refile.c, mh/repl.c, mh/rmf.c, mh/scan.c,
+	mh/send.c, mh/sortm.c: Remove mh_error function, use mu_error
+	instead.  
+
 	* mh/folder.c: Improve compatibility with nmh: if a folder is
 	specified along with -all, set the recursion depth to 2 (unless
 	-recurse has also been given).
