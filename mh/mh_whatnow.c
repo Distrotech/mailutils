@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ func (struct action_tab *p, const char *name)
 	return p->fp;
     }
 
-  mh_error (_("%s is unknown. Hit <CR> for help"), name);
+  mu_error (_("%s is unknown. Hit <CR> for help"), name);
   return NULL;
 }
 
@@ -195,13 +195,13 @@ display_file (const char *name)
       rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
       if (rc)
 	{
-	  mh_error ("mu_file_stream_create: %s", mu_strerror (rc));
+	  mu_error ("mu_file_stream_create: %s", mu_strerror (rc));
 	  return;
 	}
       rc = mu_stream_open (stream);
       if (rc)
 	{
-	  mh_error ("mu_stream_open: %s", mu_strerror (rc));
+	  mu_error ("mu_stream_open: %s", mu_strerror (rc));
 	  return;
 	} 
       
@@ -223,17 +223,17 @@ check_exit_status (char *progname, int status)
     {
       if (WEXITSTATUS (status))
 	{
-	  mh_error (_("Command `%s' exited with status %d"),
+	  mu_error (_("Command `%s' exited with status %d"),
 		    progname, WEXITSTATUS(status));
 	  return 1;
 	}
       return 0;
     }
   else if (WIFSIGNALED (status))
-    mh_error (_("Command `%s' terminated on signal %d"),
+    mu_error (_("Command `%s' terminated on signal %d"),
 	      progname, WTERMSIG (status));
   else
-    mh_error (_("Command `%s' terminated abnormally"), progname);
+    mu_error (_("Command `%s' terminated abnormally"), progname);
   return 1;
 }
 
@@ -371,7 +371,7 @@ static int
 display (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   if (!wh->msg)
-    mh_error (_("no alternate message to display"));
+    mu_error (_("no alternate message to display"));
   else
     display_file (wh->msg);
   return 0;
@@ -395,7 +395,7 @@ static int
 list (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   if (!wh->file)
-    mh_error (_("no draft file to display"));
+    mu_error (_("no draft file to display"));
   else
     display_file (wh->file);
   return 0;
@@ -453,7 +453,7 @@ static int
 whom (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   if (!wh->file)
-    mh_error (_("no draft file to display"));
+    mu_error (_("no draft file to display"));
   else
     mh_whom (wh->file, (argc == 2
 			&& (strcmp (argv[1], "-check") == 0

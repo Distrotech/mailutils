@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
 static void
 msgset_abort (const char *arg)
 {
-  mh_error (_("Bad message list `%s'"), arg);
+  mu_error (_("Bad message list `%s'"), arg);
   exit (1);
 }
 
@@ -61,7 +61,7 @@ msgset_last (mu_mailbox_t mbox, size_t *pnum)
   rc = mu_mailbox_messages_count (mbox, &count);
   if (rc)
     {
-      mh_error (_("Cannot get last message: %s"), mu_strerror (rc));
+      mu_error (_("Cannot get last message: %s"), mu_strerror (rc));
       exit (1);
     }
   *pnum = count;
@@ -94,7 +94,7 @@ msgset_cur (mu_mailbox_t mbox, size_t *pnum)
 	  return 0;
 	}
     }
-  mh_error (_("no cur message"));
+  mu_error (_("no cur message"));
   exit (1);
 }
 
@@ -105,7 +105,7 @@ msgset_prev (mu_mailbox_t mbox, size_t *pnum)
   msgset_cur (mbox, &cur_n);
   if (cur_n < 1)
     {
-      mh_error (_("no prev message"));
+      mu_error (_("no prev message"));
       exit (1);
     }
   *pnum = cur_n - 1;
@@ -120,7 +120,7 @@ msgset_next (mu_mailbox_t mbox, size_t *pnum)
   mu_mailbox_messages_count (mbox, &total);
   if (cur_n + 1 > total)
     {
-      mh_error (_("no next message"));
+      mu_error (_("no next message"));
       exit (1);
     }
   *pnum = cur_n + 1;
@@ -161,7 +161,7 @@ msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
 	rc = mu_mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
-	    mh_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
+	    mu_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
 	    exit (1);
 	  }
 	*rest = arg + strlen (p->name);
@@ -330,7 +330,7 @@ _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	  
 	  if (expand_user_seq (mbox, &m, arg))
 	    {
-	      mh_error (_("message set %s does not exist"), arg);
+	      mu_error (_("message set %s does not exist"), arg);
 	      exit (1);
 	    }
 	  _expand (&msgcnt, &msglist, m.count);
@@ -347,7 +347,7 @@ _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      n = mh_get_message (mbox, start, NULL);
 	      if (!n)
 		{
-		  mh_error (_("message %d does not exist"), start);
+		  mu_error (_("message %d does not exist"), start);
 		  exit (1);
 		}
 	      msglist[msgno++] = n;
@@ -373,7 +373,7 @@ _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 		}
 	      if (msgno == msg_first)
 		{
-		  mh_error (_("no messages in range %s"), argv[i]);
+		  mu_error (_("no messages in range %s"), argv[i]);
 		  exit (1);
 		}
 	      break;
@@ -407,7 +407,7 @@ _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 		}
 	      if (msgno == msg_first)
 		{
-		  mh_error (_("no messages in range %s"), argv[i]);
+		  mu_error (_("no messages in range %s"), argv[i]);
 		  exit (1);
 		}
 	      break;
@@ -601,7 +601,7 @@ mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset)
   list = realloc (list, sizeof (list[0]) * msgno);
   if (!list)
     {
-      mh_error (_("Not enough memory"));
+      mu_error (_("Not enough memory"));
       abort ();
     }
   mh_msgset_free (msgset);

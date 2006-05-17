@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002,2003,2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ decode_cc_flag (const char *opt, const char *arg)
   int rc = mh_decode_rcpt_flag (arg);
   if (rc == RCPT_NONE)
     {
-      mh_error (_("%s %s is unknown"), opt, arg);
+      mu_error (_("%s %s is unknown"), opt, arg);
       exit (1);
     }
   return rc;
@@ -302,7 +302,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
-      mh_error (_("Cannot read message %s: %s"),
+      mu_error (_("Cannot read message %s: %s"),
 		mu_umaxtostr (0, msgset.list[0]),
 		mu_strerror (rc));
       exit (1);
@@ -323,14 +323,14 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 			       MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
-	  mh_error (_("Cannot create draft file stream %s: %s"),
+	  mu_error (_("Cannot create draft file stream %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}
 
       if ((rc = mu_stream_open (str)))
 	{
-	  mh_error (_("Cannot open draft file %s: %s"),
+	  mu_error (_("Cannot open draft file %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}	  
@@ -385,7 +385,7 @@ main (int argc, char **argv)
 		 opt_handler, NULL, &index);
   if (mh_format_parse (format_str, &format))
     {
-      mh_error (_("Bad format string"));
+      mu_error (_("Bad format string"));
       exit (1);
     }
 
@@ -393,7 +393,7 @@ main (int argc, char **argv)
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   if (msgset.count != 1)
     {
-      mh_error (_("only one message at a time!"));
+      mu_error (_("only one message at a time!"));
       return 1;
     }
   

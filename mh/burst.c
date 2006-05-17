@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -251,7 +251,7 @@ flush_stream (mu_stream_t *pstr, char *buf, size_t size)
       && ((rc = mu_temp_file_stream_create (pstr, NULL)) != 0
 	  || (rc = mu_stream_open (*pstr))))
     {
-      mh_error (_("Cannot open temporary file: %s"),
+      mu_error (_("Cannot open temporary file: %s"),
 		mu_strerror (rc));
       exit (1);
     }
@@ -283,7 +283,7 @@ burst_digest (mu_message_t msg)
 
   if (!buf)
     {
-      mh_error (_("cannot burst message: %s"), mu_strerror (ENOMEM));
+      mu_error (_("cannot burst message: %s"), mu_strerror (ENOMEM));
       exit (1);
     }
 
@@ -408,7 +408,7 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
       rc = mu_mailbox_append_message (tmpbox, msg);
       if (rc)
 	{
-	  mh_error (_("cannot append message: %s"), mu_strerror (rc));
+	  mu_error (_("cannot append message: %s"), mu_strerror (rc));
 	  exit (1);
 	}
       map.count++;
@@ -438,7 +438,7 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 	}
     }
   else if (!quiet)
-    mh_error (_("message %s not in digest format"), mu_umaxtostr (0, num));
+    mu_error (_("message %s not in digest format"), mu_umaxtostr (0, num));
 }
 
 
@@ -474,7 +474,7 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
 	       
       if (rename (from, to))
 	{
-	  mh_error (_("error renaming %s to %s: %s"),
+	  mu_error (_("error renaming %s to %s: %s"),
 		    from, to, mu_strerror (errno));
 	  exit (1);
 	}
@@ -496,7 +496,7 @@ msg_copy (size_t num, char *file)
 				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (ostream)))
     {
-      mh_error (_("Cannot open output file `%s': %s"),
+      mu_error (_("Cannot open output file `%s': %s"),
 		file, mu_strerror (rc));
       exit (1);
     }
@@ -615,7 +615,7 @@ main (int argc, char **argv)
       VERBOSE ((_("changing to `%s'"), dir + 3));
       if (chdir (dir+3))
 	{
-	  mh_error (_("cannot change to `%s': %s"), dir, mu_strerror (errno));
+	  mu_error (_("cannot change to `%s': %s"), dir, mu_strerror (errno));
 	  exit (1);
 	}
       mu_mailbox_close (mbox);

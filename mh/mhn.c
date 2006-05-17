@@ -549,7 +549,7 @@ msg_part_parse (char *str)
 	  str = endp;
 	  break;
 	default:
-	  mh_error (_("Malformed part specification (near %s)"), endp);
+	  mu_error (_("Malformed part specification (near %s)"), endp);
 	  exit (1);
 	}
       msg_part_incr (p);
@@ -1262,7 +1262,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
 
   if ((rc = mu_message_get_body (msg, &body)))
     {
-      mh_error (_("%s: cannot get message body: %s"),
+      mu_error (_("%s: cannot get message body: %s"),
 		mu_umaxtostr (0, msg_part_subpart (part, 0)),
 		mu_strerror (rc));
       return 0;
@@ -1284,14 +1284,14 @@ mhn_exec (mu_stream_t *str, char *cmd, int flags)
   int rc = mu_prog_stream_create (str, cmd, MU_STREAM_WRITE);
   if (rc)
     {
-      mh_error (_("Cannot create proc stream (command %s): %s"),
+      mu_error (_("Cannot create proc stream (command %s): %s"),
 		cmd, mu_strerror (rc));
     }
   else
     {
       rc = mu_stream_open (*str);
       if (rc)
-	mh_error (_("Cannot open proc stream (command %s): %s"),
+	mu_error (_("Cannot open proc stream (command %s): %s"),
 		  cmd, mu_strerror (rc));
     }
   return rc;
@@ -1332,14 +1332,14 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
       
       if (mu_argcv_get (cmd, "", "#", &argc, &argv))
 	{
-	  mh_error (_("Cannot parse command line `%s'"), cmd);
+	  mu_error (_("Cannot parse command line `%s'"), cmd);
 	  return ENOSYS;
 	}
 
       rc = mu_file_stream_create (&tmp, tempfile, MU_STREAM_RDWR);
       if (rc)
 	{
-	  mh_error (_("Cannot create temporary stream (file %s): %s"),
+	  mu_error (_("Cannot create temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
 	  mu_argcv_free (argc, argv);
 	  return rc;
@@ -1347,7 +1347,7 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
       rc = mu_stream_open (tmp);
       if (rc)
 	{
-	  mh_error (_("Cannot open temporary stream (file %s): %s"),
+	  mu_error (_("Cannot open temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
 	  mu_stream_destroy (&tmp, mu_stream_get_owner (tmp));
 	  mu_argcv_free (argc, argv);
@@ -1473,13 +1473,13 @@ mhn_show ()
   rc = mu_stdio_stream_create (&ostr, stdout, 0);
   if (rc)
     {
-      mh_error (_("Cannot create output stream: %s"), mu_strerror (rc));
+      mu_error (_("Cannot create output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   rc = mu_stream_open (ostr);
   if (rc)
     {
-      mh_error (_("Cannot open output stream: %s"), mu_strerror (rc));
+      mu_error (_("Cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   
@@ -1688,7 +1688,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   rc = mu_file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
   if (rc)
     {
-      mh_error (_("Cannot create output stream (file %s): %s"),
+      mu_error (_("Cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       return rc;
@@ -1696,7 +1696,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   rc = mu_stream_open (out);
   if (rc)
     {
-      mh_error (_("Cannot open output stream (file %s): %s"),
+      mu_error (_("Cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       mu_stream_destroy (&out, mu_stream_get_owner (out));
@@ -1810,7 +1810,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
   
   if (!sp)
     {
-      mh_error (_("%s:%lu: missing %c"),
+      mu_error (_("%s:%lu: missing %c"),
 		input_file,
 		(unsigned long) mhn_error_loc (env),
 		c);
@@ -1845,7 +1845,7 @@ parse_content_type (struct compose_env *env,
 	case '(':
 	  if (comment)
 	    {
-	      mh_error (_("%s:%lu: comment redefined"),
+	      mu_error (_("%s:%lu: comment redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1857,7 +1857,7 @@ parse_content_type (struct compose_env *env,
 	case '[':
 	  if (!descr)
 	    {
-	      mh_error (_("%s:%lu: syntax error"),
+	      mu_error (_("%s:%lu: syntax error"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1866,7 +1866,7 @@ parse_content_type (struct compose_env *env,
 	    
 	  if (*descr)
 	    {
-	      mh_error (_("%s:%lu: description redefined"),
+	      mu_error (_("%s:%lu: description redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1878,7 +1878,7 @@ parse_content_type (struct compose_env *env,
 	case '<':
 	  if (*id)
 	    {
-	      mh_error (_("%s:%lu: content id redefined"),
+	      mu_error (_("%s:%lu: content id redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1897,7 +1897,7 @@ parse_content_type (struct compose_env *env,
 	  skipws (rest);
 	  if (*rest != '=')
 	    {
-	      mh_error (_("%s:%lu: syntax error"),
+	      mu_error (_("%s:%lu: syntax error"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1960,7 +1960,7 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
   
   if (!subtype)
     {
-      mh_error (_("%s:%lu: missing subtype"),
+      mu_error (_("%s:%lu: missing subtype"),
 		input_file,
 		(unsigned long) mhn_error_loc (env));
       return 1;
@@ -2116,7 +2116,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   
   if ((rc = mu_header_create (&hdr2, NULL, 0, NULL)) != 0)
     {
-      mh_error (_("Cannot create header: %s"),
+      mu_error (_("Cannot create header: %s"),
 		mu_strerror (rc));
       return 1;
     }
@@ -2175,7 +2175,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 	case '[':
 	  if (descr)
 	    {
-	      mh_error (_("%s:%lu: description redefined"),
+	      mu_error (_("%s:%lu: description redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -2187,7 +2187,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 	case '<':
 	  if (id)
 	    {
-	      mh_error (_("%s:%lu: content id redefined"),
+	      mu_error (_("%s:%lu: content id redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -2208,7 +2208,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 
   if (mu_argcv_get (cmd, "\n", NULL, &argc, &argv))
     {
-      mh_error (_("%s:%lu: syntax error"),
+      mu_error (_("%s:%lu: syntax error"),
 		input_file,
 		(unsigned long) mhn_error_loc (env));
       return 1;
@@ -2222,7 +2222,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
       mu_message_t input_msg;
       if (mh_get_message (mbox, i, &input_msg) == 0)
 	{
-	  mh_error (_("%s:%lu: no such message: %lu"),
+	  mu_error (_("%s:%lu: no such message: %lu"),
 		    input_file,
 		    (unsigned long) mhn_error_loc (env),
 		    (unsigned long)i);
@@ -2313,7 +2313,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
     }
   else if (p == cmd)
     {
-      mh_error (_("%s:%lu: missing filename"),
+      mu_error (_("%s:%lu: missing filename"),
 		input_file,
 		(unsigned long) mhn_error_loc (env));
       finish_msg (env, msg);
@@ -2324,14 +2324,14 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       rc = mu_file_stream_create (&in, cmd, MU_STREAM_READ);
       if (rc)
 	{
-	  mh_error (_("Cannot create input stream (file %s): %s"),
+	  mu_error (_("Cannot create input stream (file %s): %s"),
 		    cmd, mu_strerror (rc));
 	  return rc;
 	}
       rc = mu_stream_open (in);
       if (rc)
 	{
-	  mh_error (_("Cannot open input stream (file %s): %s"),
+	  mu_error (_("Cannot open input stream (file %s): %s"),
 		    cmd, mu_strerror (rc));
 	  mu_stream_destroy (&in, mu_stream_get_owner (in));
 	  return rc;
@@ -2369,7 +2369,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   rc = mu_stream_open (fstr);
   if (rc)
     {
-      mh_error (_("Cannot open filter stream: %s"),
+      mu_error (_("Cannot open filter stream: %s"),
 		mu_strerror (rc));
       return rc;
     }
@@ -2505,7 +2505,7 @@ mhn_edit (struct compose_env *env, int level)
 		{
 		  if (level == 0)
 		    {
-		      mh_error (_("%s:%lu: unmatched #end"),
+		      mu_error (_("%s:%lu: unmatched #end"),
 				input_file,
 				(unsigned long) mhn_error_loc (env));
 		      status = 1;
@@ -2718,7 +2718,7 @@ mhn_compose ()
   rc = mu_file_stream_create (&stream, name, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if (rc)
     {
-      mh_error (_("Cannot create output stream (file %s): %s"),
+      mu_error (_("Cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       return rc;
@@ -2726,7 +2726,7 @@ mhn_compose ()
   rc = mu_stream_open (stream);
   if (rc)
     {
-      mh_error (_("Cannot open output stream (file %s): %s"),
+      mu_error (_("Cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       mu_stream_destroy (&stream, mu_stream_get_owner (stream));
@@ -2773,7 +2773,7 @@ main (int argc, char **argv)
     {
       if (argc)
 	{
-	  mh_error (_("extra arguments"));
+	  mu_error (_("extra arguments"));
 	  return 1;
 	}
       message = mh_file_to_message (mu_folder_directory (), input_file);
@@ -2784,7 +2784,7 @@ main (int argc, char **argv)
     {
       if (argc > 1)
 	{
-	  mh_error (_("extra arguments"));
+	  mu_error (_("extra arguments"));
 	  return 1;
 	}
       input_file = argc == 1 ? argv[0] : "draft";

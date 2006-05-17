@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002,2003,2004,2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ add_folder (const char *folder)
 {
   if (!folder_name_list && mu_list_create (&folder_name_list))
     {
-      mh_error (_("Cannot create folder list"));
+      mu_error (_("Cannot create folder list"));
       exit (1);
     }
   mu_list_append (folder_name_list, strdup (folder));
@@ -87,19 +87,19 @@ open_folders ()
 
   if (!folder_name_list)
     {
-      mh_error (_("No folder specified"));
+      mu_error (_("No folder specified"));
       exit (1);
     }
 
   if (mu_list_create (&folder_mbox_list))
     {
-      mh_error (_("Cannot create folder list"));
+      mu_error (_("Cannot create folder list"));
       exit (1);
     }
 
   if (mu_list_get_iterator (folder_name_list, &itr))
     {
-      mh_error (_("Cannot create iterator"));
+      mu_error (_("Cannot create iterator"));
       exit (1);
     }
 
@@ -124,7 +124,7 @@ enumerate_folders (void (*f) (void *, mu_mailbox_t), void *data)
 
   if (mu_list_get_iterator (folder_mbox_list, &itr))
     {
-      mh_error (_("Cannot create iterator"));
+      mu_error (_("Cannot create iterator"));
       exit (1);
     }
 
@@ -198,7 +198,7 @@ refile_folder (void *data, mu_mailbox_t mbox)
   rc = mu_mailbox_append_message (mbox, msg);
   if (rc)
     {
-      mh_error (_("Error appending message: %s"), mu_strerror (rc));
+      mu_error (_("Error appending message: %s"), mu_strerror (rc));
       exit (1);
     }
 }
@@ -258,7 +258,7 @@ main (int argc, char **argv)
       
       if (argc > 0)
 	{
-	  mh_error (_("Both message set and source file given"));
+	  mu_error (_("Both message set and source file given"));
 	  exit (1);
 	}
       msg = mh_file_to_message (mu_folder_directory (), source_file);

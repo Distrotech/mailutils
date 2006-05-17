@@ -329,7 +329,7 @@ _scan (const char *name, size_t depth)
 
   if (!dir)
     {
-      mh_error (_("Cannot scan folder %s: %s"), name, strerror (errno));
+      mu_error (_("Cannot scan folder %s: %s"), name, strerror (errno));
       return;
     }
 
@@ -364,7 +364,7 @@ _scan (const char *name, size_t depth)
 	{
 	  asprintf (&p, "%s/%s", name, entry->d_name);
 	  if (stat (p, &st) < 0)
-	    mh_error (_("Cannot stat %s: %s"), p, strerror (errno));
+	    mu_error (_("Cannot stat %s: %s"), p, strerror (errno));
 	  else if (S_ISDIR (st.st_mode))
 	    {
 	      info.others++;
@@ -624,7 +624,7 @@ pack_rename (struct pack_tab *tab, int reverse)
   if (!dry_run)
     {
       if ((rc = rename (from, to)))
-	mh_error (_("cannot rename `%s' to `%s': %s"),
+	mu_error (_("cannot rename `%s' to `%s': %s"),
 		  from, to, mu_strerror (errno));
     }
   else
@@ -661,11 +661,11 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
     return;
   
   start = i - 1;
-  mh_error (_("Rolling back changes..."));
+  mu_error (_("Rolling back changes..."));
   while (--i >= 0)
     if (pack_rename (pack_tab + i, 1))
       {
-	mh_error (_("CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
+	mu_error (_("CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
 		    "occurred while trying to roll back the changes.\n"
 		    "Message range %s-%s has been renamed to %s-%s."),
 		  folder_name,
@@ -673,10 +673,10 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
                   mu_umaxtostr (1, pack_tab[start].orig),
 		  mu_umaxtostr (2, pack_tab[0].new),
                   mu_umaxtostr (3, pack_tab[start].new));
-	mh_error (_("You will have to fix it manually."));
+	mu_error (_("You will have to fix it manually."));
 	exit (1);
       }
-  mh_error (_("Folder `%s' restored successfully"), folder_name);
+  mu_error (_("Folder `%s' restored successfully"), folder_name);
 }
 
 struct fixup_data
@@ -781,7 +781,7 @@ action_pack ()
   /* Allocate pack table */
   if (mu_mailbox_messages_count (mbox, &count))
     {
-      mh_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
+      mu_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
       return 1;
     }
   pack_tab = xcalloc (count, sizeof pack_tab[0]); /* Never freed. No use to
@@ -797,7 +797,7 @@ action_pack ()
       status = mu_mailbox_get_message (mbox, i + 1, &msg);
       if (status)
 	{
-	  mh_error (_("%d: cannot get message: %s"), i, mu_strerror (status));
+	  mu_error (_("%d: cannot get message: %s"), i, mu_strerror (status));
 	  return 1;
 	}
       mh_message_number (msg, &pack_tab[i].orig);
@@ -829,7 +829,7 @@ action_pack ()
   status = chdir (folder_dir);
   if (status)
     {
-      mh_error (_("cannot change to directory `%s': %s"),
+      mu_error (_("cannot change to directory `%s': %s"),
 		folder_dir, mu_strerror (status));
       return 1;
     }
@@ -901,7 +901,7 @@ main (int argc, char **argv)
     }
   else if (argc - index > 1)
     {
-      mh_error (_("Too many arguments"));
+      mu_error (_("Too many arguments"));
       exit (1);
     }
   

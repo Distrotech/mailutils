@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,7 +85,7 @@ regex    : cflags T_STRING
 	       {
 		 char errbuf[512];
 		 regerror (rc, &$$, errbuf, sizeof (errbuf));
-		 mh_error ("error compiling regex \"%s\": %s",
+		 mu_error ("error compiling regex \"%s\": %s",
 			   $2, errbuf);
 		 YYERROR;
 	       }
@@ -113,7 +113,7 @@ expr     : lbrace exprlist rbrace
 	     time_t t;
 	     if (mu_parse_date ($2, &t, NULL))
 	       {
-		 mh_error (_("bad date format: %s"), $2);
+		 mu_error (_("bad date format: %s"), $2);
 		 exit (1);
 	       }
 	     $$ = pick_node_create (node_before, NULL, NULL);
@@ -124,7 +124,7 @@ expr     : lbrace exprlist rbrace
 	     time_t t;
 	     if (mu_parse_date ($2, &t, NULL))
 	       {
-		 mh_error (_("bad date format: %s"), $2);
+		 mu_error (_("bad date format: %s"), $2);
 		 exit (1);
 	       }
 	     $$ = pick_node_create (node_after, NULL, NULL);
@@ -227,9 +227,9 @@ yyerror (char *s)
     str = tokname (tok);
 
   if (nesting_level)
-    mh_error (_("%s near %s (missing closing brace?)"), s, str);
+    mu_error (_("%s near %s (missing closing brace?)"), s, str);
   else
-    mh_error (_("%s near %s"), s, str);
+    mu_error (_("%s near %s"), s, str);
   return 0;
 }
   
@@ -241,7 +241,7 @@ pick_add_token (mu_list_t *list, int tok, char *val)
   
   if (!*list && (rc = mu_list_create (list)))
     {
-      mh_error(_("cannot create list: %s"), mu_strerror (rc));
+      mu_error(_("cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
   tp = xmalloc (sizeof (*tp));
@@ -430,7 +430,7 @@ set_cflags (char *str)
 	  break;
 
 	default:
-	  mh_error (_("Invalid regular expression flag: %c"), *str);
+	  mu_error (_("Invalid regular expression flag: %c"), *str);
 	  exit (1);
 	}
     }

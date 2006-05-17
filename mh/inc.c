@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -189,7 +189,7 @@ main (int argc, char **argv)
 
   if (!quiet && mh_format_parse (format_str, &format))
     {
-      mh_error (_("Bad format string"));
+      mu_error (_("Bad format string"));
       exit (1);
     }
 
@@ -198,7 +198,7 @@ main (int argc, char **argv)
     {
       if ((rc = mu_mailbox_create_default (&input, NULL)) != 0)
 	{
-	  mh_error (_("Cannot create default mailbox"),
+	  mu_error (_("Cannot create default mailbox"),
 		    mu_strerror (rc));
 	  exit (1);
 	}
@@ -207,7 +207,7 @@ main (int argc, char **argv)
     }
   else if ((rc = mu_mailbox_create_default (&input, input_file)) != 0)
     {
-      mh_error (_("Cannot create mailbox %s: %s"),
+      mu_error (_("Cannot create mailbox %s: %s"),
 		input_file, mu_strerror (rc));
       exit (1);
     }
@@ -216,7 +216,7 @@ main (int argc, char **argv)
     {
       mu_url_t url;
       mu_mailbox_get_url (input, &url);
-      mh_error (_("Cannot open mailbox %s: %s"),
+      mu_error (_("Cannot open mailbox %s: %s"),
 		mu_url_to_string (url),
 		mu_strerror (errno));
       exit (1);
@@ -224,14 +224,14 @@ main (int argc, char **argv)
 
   if ((rc = mu_mailbox_messages_count (input, &total)) != 0)
     {
-      mh_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
+      mu_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
       exit (1);
     }
 
   output = mh_open_folder (append_folder, 1);
   if ((rc = mu_mailbox_messages_count (output, &lastmsg)) != 0)
     {
-      mh_error (_("Cannot read output mailbox: %s"),
+      mu_error (_("Cannot read output mailbox: %s"),
 		mu_strerror (errno));
       exit (1);
     }
@@ -252,14 +252,14 @@ main (int argc, char **argv)
       
       if ((rc = mu_mailbox_get_message (input, n, &imsg)) != 0)
 	{
-	  mh_error (_("%d: cannot get message: %s"),
+	  mu_error (_("%d: cannot get message: %s"),
 		    n, mu_strerror (rc));
 	  continue;
 	}
 
       if ((rc = mu_mailbox_append_message (output, imsg)) != 0)
 	{
-	  mh_error (_("%d: error appending message: %s"),
+	  mu_error (_("%d: error appending message: %s"),
 		    n, mu_strerror (rc));
 	  continue;
 	}

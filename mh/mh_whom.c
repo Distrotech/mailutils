@@ -35,7 +35,7 @@ addrcp (mu_list_t *list, char *addr, int isbcc)
   p->isbcc = isbcc;
   if (!*list && (rc = mu_list_create (list)))
     {
-      mh_error (_("Cannot create list: %s"), mu_strerror (rc));
+      mu_error (_("Cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
   mu_list_append (*list, p);
@@ -106,7 +106,7 @@ mh_alias_expand (char *str, mu_address_t *paddr, int *incl)
       int status;
       mu_argcv_string (argc, argv, &buf);
       if (status = mu_address_create (paddr, buf))
-	mh_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
+	mu_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
       free (buf);
     }
 
@@ -141,7 +141,7 @@ scan_addrs (char *str, int isbcc)
       rc = mu_address_aget_email (addr, i, &buf);
       if (rc)
 	{
-	  mh_error ("mu_address_aget_email: %s", mu_strerror (rc));
+	  mu_error ("mu_address_aget_email: %s", mu_strerror (rc));
 	  continue;
 	}
 
@@ -227,7 +227,7 @@ mh_whom (char *filename, int check)
   ctx = mh_context_create (filename, 1);
   if (mh_context_read (ctx))
     {
-      mh_error (_("Malformed message"));
+      mu_error (_("Malformed message"));
       rc = -1;
     }
   else
@@ -252,7 +252,7 @@ mh_whom (char *filename, int check)
 
       if (count == 0)
 	{
-	  mh_error(_("No recipients"));
+	  mu_error(_("No recipients"));
 	  rc = -1;
 	}
     }

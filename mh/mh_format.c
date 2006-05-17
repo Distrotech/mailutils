@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -601,7 +601,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	  break;
 
 	default:
-	  mh_error (_("INTERNAL ERROR: Unknown opcode: %x"), opcode);
+	  mu_error (_("INTERNAL ERROR: Unknown opcode: %x"), opcode);
 	  abort ();
 	}
     }
@@ -807,7 +807,7 @@ mh_format_dump (mh_format_t *fmt)
 	  break;
 
 	default:
-	  mh_error ("Unknown opcode: %x", opcode);
+	  mu_error ("Unknown opcode: %x", opcode);
 	  abort ();
 	}
       printf ("\n");
@@ -831,7 +831,7 @@ mh_format_free (mh_format_t *fmt)
 static void
 builtin_not_implemented (char *name)
 {
-  mh_error ("%s is not yet implemented.", name);
+  mu_error ("%s is not yet implemented.", name);
 }
 
 static void
@@ -944,7 +944,7 @@ builtin_divide (struct mh_machine *mach)
   if (!mach->arg_num)
     {
       /* TRANSLATORS: Do not translate the word 'format'! */
-      mh_error (_("format: divide by zero"));
+      mu_error (_("format: divide by zero"));
       mach->stop = 1;
     }
   else
@@ -956,7 +956,7 @@ builtin_modulo (struct mh_machine *mach)
 {
   if (!mach->arg_num)
     {
-      mh_error (_("format: divide by zero"));
+      mu_error (_("format: divide by zero"));
       mach->stop = 1;
     }
   else
@@ -1091,7 +1091,7 @@ _parse_date (struct mh_machine *mach, struct tm *tm, mu_timezone *tz)
     {
       time_t t;
       
-      /*mh_error ("can't parse date: [%s]", date);*/
+      /*mu_error ("can't parse date: [%s]", date);*/
       time (&t);
       *tm = *localtime (&t);
       tz->utc_offset = mu_utc_offset ();
@@ -1873,7 +1873,7 @@ builtin_rcpt (struct mh_machine *mach)
   int rc = mh_decode_rcpt_flag (strobj_ptr (&mach->arg_str));
   if (rc == RCPT_NONE)
     {
-      mh_error (_("Invalid recipient mask"));
+      mu_error (_("Invalid recipient mask"));
       /* try to continue anyway */
     }
   mach->arg_num = rc & rcpt_mask;

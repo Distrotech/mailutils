@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ add_sequence (char *name)
 {
   if (!seq_list && mu_list_create (&seq_list))
     {
-      mh_error (_("Cannot create sequence list"));
+      mu_error (_("Cannot create sequence list"));
       exit (1);
     }
   mu_list_append (seq_list, name);
@@ -216,7 +216,7 @@ main (int argc, char **argv)
     case ARG_ADD:
       if (!seq_list)
 	{
-	  mh_error (_("--add requires at least one --sequence argument"));
+	  mu_error (_("--add requires at least one --sequence argument"));
 	  return 1;
 	}
       mu_list_do (seq_list, action_add, (void *) &msgset);
@@ -226,7 +226,7 @@ main (int argc, char **argv)
     case ARG_DELETE:
       if (!seq_list)
 	{
-	  mh_error (_("--delete requires at least one --sequence argument"));
+	  mu_error (_("--delete requires at least one --sequence argument"));
 	  return 1;
 	}
       mu_list_do (seq_list, action_delete, (void *) &msgset);

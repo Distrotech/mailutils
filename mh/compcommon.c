@@ -56,7 +56,7 @@ mh_comp_draft (char *formfile, char *defformfile, char *draftfile)
 					MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
 	      || (rc = mu_stream_open (stream)))
 	    {
-	      mh_error (_("cannot open output file \"%s\": %s"),
+	      mu_error (_("cannot open output file \"%s\": %s"),
 			draftfile, mu_strerror (rc));
 	      exit (1);
 	    }
@@ -69,7 +69,7 @@ mh_comp_draft (char *formfile, char *defformfile, char *draftfile)
 
 	  if (rc)
 	    {
-	      mh_error (_("error writing to \"%s\": %s"),
+	      mu_error (_("error writing to \"%s\": %s"),
 			draftfile, mu_strerror (rc));
 	      exit (1);
 	    }

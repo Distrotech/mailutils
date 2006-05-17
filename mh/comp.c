@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -179,7 +179,7 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
 				file, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (out)))
     {
-      mh_error (_("cannot open output file \"%s\": %s"),
+      mu_error (_("cannot open output file \"%s\": %s"),
 		file, mu_strerror (rc));
       free (buffer);
       return 1;
@@ -191,7 +191,7 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
     {
       if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
-	  mh_error (_("error writing to \"%s\": %s"),
+	  mu_error (_("error writing to \"%s\": %s"),
 		    file, mu_strerror (rc));
 	  break;
 	}
@@ -245,7 +245,7 @@ main (int argc, char **argv)
 	  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
 	  if (msgset.count != 1)
 	    {
-	      mh_error (_("only one message at a time!"));
+	      mu_error (_("only one message at a time!"));
 	      return 1;
 	    }
 	  copy_message (mbox, msgset.list[0], wh_env.file);

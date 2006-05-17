@@ -34,7 +34,7 @@ mh_stream_to_message (mu_stream_t instream)
   rc = mu_stream_to_message (instream, &msg);
   if (rc)
     {
-      mh_error (_("cannot open draft message stream: %s"),
+      mu_error (_("cannot open draft message stream: %s"),
 		mu_strerror (rc));
       return NULL;
     }

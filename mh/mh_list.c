@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ parse_component (locus_t *loc, mu_list_t formlist, char *compname, char *str)
   stmt->v.component.name = compname;
   if (mu_list_create (&stmt->v.component.format))
     {
-      mh_error (_("%s:%d: cannot create list"),
+      mu_error (_("%s:%d: cannot create list"),
 		loc->filename,
 		loc->line);
       exit (1); /* FIXME */
@@ -155,7 +155,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
   
   if (mu_argcv_get (str, ",=", NULL, &argc, &argv))
     {
-      mh_error (_("%s:%d: cannot split string %s"),
+      mu_error (_("%s:%d: cannot split string %s"),
 		loc->filename,
 		loc->line,
 		str);
@@ -172,7 +172,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       var = variable_lookup (name);
       if (!var)
 	{
-	  mh_error (_("%s:%d: unknown variable: %s"),
+	  mu_error (_("%s:%d: unknown variable: %s"),
 		    loc->filename,
 		    loc->line,
 		    argv[i]);
@@ -188,7 +188,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       if ((var->type == dt_flag && value)
 	  || (var->type != dt_flag && !value))
 	{
-	  mh_error (_("%s:%d: wrong datatype for %s"),
+	  mu_error (_("%s:%d: wrong datatype for %s"),
 		    loc->filename,
 		    loc->line,
 		    var->name);
@@ -208,7 +208,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 	case dt_format:
 	  if (mh_format_parse (value, &fmt))
 	    {
-	      mh_error (_("%s:%d: bad format string"),
+	      mu_error (_("%s:%d: bad format string"),
 			loc->filename,
 			loc->line);
 	      exit (1);
@@ -227,7 +227,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       i++;
       if (i < argc && argv[i][0] != ',')
 	{
-	  mh_error (_("%s:%d: syntax error"), loc->filename, loc->line);
+	  mu_error (_("%s:%d: syntax error"), loc->filename, loc->line);
 	  exit (1);
 	}
     }
@@ -261,14 +261,14 @@ mhl_format_compile (char *name)
   fp = fopen (name, "r");
   if (!fp)
     {
-      mh_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
       return NULL;
     }
 
   if (mu_list_create (&formlist))
     {
       fclose (fp);
-      mh_error (_("Cannot create list"));
+      mu_error (_("Cannot create list"));
       return NULL;
     }
 

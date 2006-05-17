@@ -206,7 +206,7 @@ function  : FUNCTION
 	      else
 		{
 		  yyerror (_("undefined function"));
-		  mh_error ($1);
+		  mu_error ($1);
 		  YYERROR;
 		}
 	    }
@@ -357,9 +357,9 @@ int
 yyerror (char *s)
 {
   int len;
-  mh_error ("%s: %s", start, s);
+  mu_error ("%s: %s", start, s);
   len = curp - start;
-  mh_error ("%*.*s^", len, len, "");
+  mu_error ("%*.*s^", len, len, "");
   return 0;
 }
 
@@ -637,7 +637,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	    }
 	  else
 	    {
-	      mh_error (_("Missing argument for %s"), bp->name);
+	      mu_error (_("Missing argument for %s"), bp->name);
 	      return 0;
 	    }
 	}
@@ -646,7 +646,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	  switch (bp->argtype)
 	    {
 	    case mhtype_none:
-	      mh_error (_("Extra arguments to %s"), bp->name);
+	      mu_error (_("Extra arguments to %s"), bp->name);
 	      return 0;
 	      
 	    case mhtype_num:

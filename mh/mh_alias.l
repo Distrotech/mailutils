@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,9 +38,9 @@ va_ali_parse_error_loc (char *name, size_t line, char *fmt, va_list ap)
 
   vasprintf (&buf, fmt, ap);
   if (name)
-    mh_error ("%s:%lu: %s", name, (unsigned long) line,  buf);
+    mu_error ("%s:%lu: %s", name, (unsigned long) line,  buf);
   else
-    mh_error ("%s", buf);
+    mu_error ("%s", buf);
   free (buf);
 }
 

@@ -382,7 +382,7 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 	  mu_iterator_current (itr, (void **)&item);
 	  if (mu_address_create (&a, item))
 	    {
-	      mh_error (_("Error expanding aliases -- invalid address `%s'"),
+	      mu_error (_("Error expanding aliases -- invalid address `%s'"),
 			item);
 	    }
 	  else

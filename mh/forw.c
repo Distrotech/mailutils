@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -341,7 +341,7 @@ finish_draft ()
 				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (stream)))
     {
-      mh_error (_("Cannot open output file `%s': %s"),
+      mu_error (_("Cannot open output file `%s': %s"),
 		wh_env.file, mu_strerror (rc));
       exit (1);
     }

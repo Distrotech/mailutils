@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -216,7 +216,7 @@ addop (char *field, compfun comp)
   
   if (!oplist && mu_list_create (&oplist))
     {
-      mh_error (_("can't create operation list"));
+      mu_error (_("can't create operation list"));
       exit (1);
     }
   op->field = field;
@@ -554,7 +554,7 @@ main (int argc, char **argv)
 
   if (action == ACTION_LIST && mh_format_parse (format_str, &format))
     {
-      mh_error (_("Bad format string"));
+      mu_error (_("Bad format string"));
       exit (1);
     }
   

@@ -265,7 +265,7 @@ check_file (char *name)
     return 1;
   if (!mesg_list && mu_list_create (&mesg_list))
     {
-      mh_error (_("Cannot create message list"));
+      mu_error (_("Cannot create message list"));
       return 1;
     }
   
@@ -333,7 +333,7 @@ open_mailer ()
   status = mu_mailer_create (&mailer, url);
   if (status)
     {
-      mh_error (_("Cannot create mailer `%s'"), url);
+      mu_error (_("Cannot create mailer `%s'"), url);
       return NULL;
     }
 
@@ -348,7 +348,7 @@ open_mailer ()
   status = mu_mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
-      mh_error (_("Cannot open mailer `%s'"), url);
+      mu_error (_("Cannot open mailer `%s'"), url);
       return NULL;
     }
   return mailer;
@@ -503,7 +503,7 @@ _action_send (void *item, void *data)
   rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
-      mh_error(_("Cannot send message: %s"), mu_strerror (rc));
+      mu_error(_("Cannot send message: %s"), mu_strerror (rc));
       return 1;
     }
 
@@ -531,7 +531,7 @@ send (int argc, char **argv)
   
   if (background && daemon (0, 0) < 0)
     {
-      mh_error(_("Cannot switch to background: %s"), mu_strerror (errno));
+      mu_error(_("Cannot switch to background: %s"), mu_strerror (errno));
       return 1;
     }
 
@@ -570,7 +570,7 @@ main (int argc, char **argv)
 
       if (stat (xargv[0], &st))
 	{
-	  mh_error(_("cannot stat %s: %s"), xargv[0], mu_strerror (errno));
+	  mu_error(_("cannot stat %s: %s"), xargv[0], mu_strerror (errno));
 	  return 1;
 	}
 
