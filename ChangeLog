@@ -1,5 +1,8 @@
 2006-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mh/send.c (_action_send): Use %z instead of %Z to form Date
+	header.
+	
 	* NEWS: Update
 	* doc/texinfo/mu-mh.texi: Minor fix
 	* mh/ali.c, mh/burst.c, mh/comp.c, mh/compcommon.c, mh/fmtcheck.c,
