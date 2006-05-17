@@ -1,3 +1,18 @@
+2006-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/folder.c: Improve compatibility with nmh: if a folder is
+	specified along with -all, set the recursion depth to 2 (unless
+	-recurse has also been given).
+	(print_header,print_total): Default to -1
+	(recurse): Removed in favor of max_depth.
+	(has_folder,max_depth): New variable.
+	(OPTION_IS_SET): New macro.
+	(opt_handler): Updated for new variable usage.
+	(_scan): Depth argument is now size_t
+	Take into account max_depth.
+	(action_print): Use OPTION_IS_SET with the three-state variables
+	(main): Properly set/clear show_all and max_depth.
+
 2006-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/folder.c (opt_handler): Allow -noheader and -nototal to be
