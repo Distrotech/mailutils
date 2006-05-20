@@ -19,6 +19,7 @@
 /* MH repl command */
 
 #include <mh.h>
+#include <mh_format.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -52,7 +53,7 @@ static struct argp_option options[] = {
    N_("Construct a group or followup reply") },
   {"editor", ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
-  {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("* Set the folder to receive Fcc's")},
+  {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("Set the folder to receive Fcc's")},
   {"filter", ARG_FILTER, N_("MHL-FILTER"), 0,
    N_("Set the mhl filter to preprocess the body of the message being replied")},
   {"form",   ARG_FORM, N_("FILE"), 0, N_("Read format from given file")},
@@ -123,6 +124,8 @@ static int use_draft = 0;  /* --use flag */
 static char *mhl_filter = NULL; /* --filter flag */
 static int annotate;       /* --annotate flag */
 static char *draftmessage = "new";
+static struct obstack fcc_stack;
+static int has_fcc;
 
 static int
 decode_cc_flag (const char *opt, const char *arg)
@@ -243,6 +246,16 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_FCC:
+      if (!has_fcc)
+	{
+	  obstack_init (&fcc_stack);
+	  has_fcc = 1;
+	}
+      else
+	obstack_grow (&fcc_stack, ", ", 2);
+      obstack_grow (&fcc_stack, arg, strlen (arg));
+      break;
+	  
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
@@ -335,7 +348,22 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  exit (1);
 	}	  
 
-      mh_format (&format, msg, msgset.list[0], width, &buf);
+      if (has_fcc)
+	{
+	  mu_message_t tmp_msg;
+	  mu_header_t hdr;
+	  char *text;
+	  
+	  mu_message_create_copy (&tmp_msg, msg);
+	  mu_message_get_header (tmp_msg, &hdr);
+	  text = obstack_finish (&fcc_stack);
+	  mu_header_set_value (hdr, MU_HEADER_FCC, text, 0);
+	  mh_format (&format, tmp_msg, msgset.list[0], width, &buf);
+	  mu_message_destroy (&tmp_msg, NULL);
+	}
+      else
+	mh_format (&format, msg, msgset.list[0], width, &buf);
+      
       mu_stream_sequential_write (str, buf, strlen (buf));
 
       if (mhl_filter)
