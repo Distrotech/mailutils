@@ -40,6 +40,7 @@
 #include <mailutils/header.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
+#include <mailutils/argcv.h>
 
 #include <mailer0.h>
 
