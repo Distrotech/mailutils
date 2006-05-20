@@ -1,3 +1,23 @@
+2006-05-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/mailer.c (save_fcc): Handle comma-delimited folder lists
+	in Fcc lines.
+	* mh/Makefile.am: Add mh_format.h
+	* mh/mh_format.h: New file
+	* mh/TODO: Update
+	* mh/mh_format.c: Move declarations of strobj functions to
+	mh_format.h
+	* mh/mh_init.c (mh_file_to_message): Fix a memory leak
+	* mh/mh_whatnow.c (mh_whatnow): consult VISUAL and EDITOR
+	environment variables for the default editor
+	* mh/repl.c (opt_handler, make_draft): Handle --fcc
+	* mh/rmf.c (main): Fix coredump if invoked with no options.
+	* mh/send.c (check_file): Change format of the mesg_list entries.
+	(fix_fcc): Correctly handle comma-delimited lists of folders.
+	(backup_file): New function.
+	(_action_send): Rename draft file after sending it.
+	* NEWS: Update.
+	
 2006-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/send.c (_action_send): Use %z instead of %Z to form Date
