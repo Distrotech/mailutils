@@ -550,7 +550,13 @@ int
 mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
 {
   if (!wh->editor)
-    wh->editor = mh_global_profile_get ("Editor", "prompter");
+    {
+      char *p;
+      wh->editor = mh_global_profile_get ("Editor",
+					  (p = getenv ("VISUAL")) ?
+					    p : (p = (getenv ("EDITOR"))) ?
+					          p : "prompter");	  
+    }
   
   if (initial_edit)
     mh_spawnp (wh->editor, wh->file);
