@@ -199,12 +199,16 @@ main (int argc, char **argv)
   mu_argp_init (program_version, NULL);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
-  if (!explicit_folder)
-    interactive = 1;
 
   cur_folder_path = current_folder_path ();
 
-  name = mh_expand_name (NULL, folder_name, 0);
+  if (!explicit_folder)
+    {
+      interactive = 1;
+      name = cur_folder_path;
+    }
+  else
+    name = mh_expand_name (NULL, folder_name, 0);
   rmf (name);
   return 0;
 }
