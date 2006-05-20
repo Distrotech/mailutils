@@ -20,45 +20,12 @@
 /* This module implements execution of MH format strings. */
 
 #include <mh.h>
+#include <mh_format.h>
 #include <mailutils/mime.h>
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
-
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
-
-typedef struct       /* A string object type */
-{
-  int size;          /* Allocated size or 0 for static storage */
-  char *ptr;         /* Actual data */
-} strobj_t;
-
-struct mh_machine
-{
-  strobj_t reg_str;         /* String register */
-  int reg_num;              /* Numeric register */
-
-  strobj_t arg_str;         /* String argument */
-  long arg_num;             /* Numeric argument */
-  
-  size_t pc;                /* Program counter */
-  size_t progsize;          /* Size of allocated program*/
-  mh_instr_t *prog;         /* Program itself */
-  int stop;                 /* Stop execution immediately */
-
-  struct obstack stk;       /* Output buffer */
-  size_t width;             /* Output buffer width */
-  size_t ind;               /* Output buffer index */
-
-  mu_list_t addrlist;          /* The list of email addresses output this far */
-  int fmtflags;             /* Current formatting flags */
-  
-  mu_message_t message;        /* Current message */
-  size_t msgno;             /* Its number */
-};
 
 static char *_get_builtin_name (mh_builtin_fp ptr);
 
@@ -73,12 +40,7 @@ strobj_free (strobj_t *obj)
   obj->ptr = NULL;
 }
 
-#define strobj_ptr(p) ((p)->ptr ? (p)->ptr : "")
-#define strobj_len(p) (strobj_is_null(p) ? 0 : strlen((p)->ptr))
-#define strobj_is_null(p) ((p)->ptr == NULL)
-#define strobj_is_static(p) ((p)->size == 0)
-
-static void
+void
 strobj_create (strobj_t *lvalue, char *str)
 {
   if (!str)
@@ -94,14 +56,14 @@ strobj_create (strobj_t *lvalue, char *str)
     }
 }
 
-static void
+void
 strobj_set (strobj_t *lvalue, char *str)
 {
   lvalue->size = 0;
   lvalue->ptr = str;
 }
 
-static void
+void
 strobj_assign (strobj_t *lvalue, strobj_t *rvalue)
 {
   strobj_free (lvalue);
@@ -110,7 +72,7 @@ strobj_assign (strobj_t *lvalue, strobj_t *rvalue)
   rvalue->ptr = NULL;
 }
 
-static void
+void
 strobj_copy (strobj_t *lvalue, strobj_t *rvalue)
 {
   if (strobj_is_null (rvalue))
@@ -125,7 +87,7 @@ strobj_copy (strobj_t *lvalue, strobj_t *rvalue)
     }
 }
 
-static void
+void
 strobj_realloc (strobj_t *obj, size_t length)
 {
   if (strobj_is_static (obj))
