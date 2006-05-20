@@ -638,16 +638,13 @@ mh_file_copy (const char *from, const char *to)
   return rc;
 }
 
-mu_message_t
-mh_file_to_message (const char *folder, char *file_name)
+static mu_message_t
+_file_to_message (char *file_name)
 {
   struct stat st;
   int rc;
   mu_stream_t instream;
-  
-  if (folder)
-    file_name = mh_expand_name (folder, file_name, 0);
-  
+
   if (stat (file_name, &st) < 0)
     {
       mu_error (_("Cannot stat file %s: %s"), file_name, strerror (errno));
@@ -670,6 +667,24 @@ mh_file_to_message (const char *folder, char *file_name)
     }
 
   return mh_stream_to_message (instream);
+}
+
+mu_message_t
+mh_file_to_message (const char *folder, char *file_name)
+{
+  mu_message_t msg;
+  char *tmp_name = NULL;
+  
+  if (folder)
+    {
+      tmp_name = mh_expand_name (folder, file_name, 0);
+      msg = _file_to_message (tmp_name);
+      free (tmp_name);
+    }
+  else
+    msg = _file_to_message (file_name);
+  
+  return msg;
 }
 
 void
