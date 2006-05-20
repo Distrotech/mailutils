@@ -253,7 +253,7 @@ save_fcc (mu_message_t msg)
 {
   mu_header_t hdr;
   size_t count = 0, i;
-  char buf[512];
+  char buf[512], *fcc;
   
   if (mu_message_get_header (msg, &hdr))
     return;
@@ -267,19 +267,29 @@ save_fcc (mu_message_t msg)
       mu_mailbox_t mbox;
       
       mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, MU_HEADER_FCC) == 0)
+      if (strcasecmp (buf, MU_HEADER_FCC) == 0
+	  && mu_header_aget_field_value (hdr, i, &fcc) == 0)
 	{
-	  if (mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL))
-	    continue;
-	  if (mu_mailbox_create_default (&mbox, buf))
-	    continue; /*FIXME: error message?? */
-	  if (mu_mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT|MU_STREAM_APPEND) == 0)
+	  int i, argc;
+	  char **argv;
+	  
+	  mu_argcv_get (fcc, ",", NULL, &argc, &argv);
+	  for (i = 0; i < argc; i += 2)
 	    {
-	      mu_mailbox_append_message (mbox, msg);
-	      mu_mailbox_flush (mbox, 0);
+	      if (mu_mailbox_create_default (&mbox, argv[i]))
+		continue; /*FIXME: error message?? */
+	      if (mu_mailbox_open (mbox,
+				   MU_STREAM_RDWR | MU_STREAM_CREAT
+				   | MU_STREAM_APPEND) == 0)
+		{
+		  mu_mailbox_append_message (mbox, msg);
+		  mu_mailbox_flush (mbox, 0);
+		}
+	      mu_mailbox_close (mbox);
+	      mu_mailbox_destroy (&mbox);
 	    }
-	  mu_mailbox_close (mbox);
-	  mu_mailbox_destroy (&mbox);
+	  mu_argcv_free (argc, argv);
+	  free (fcc);
 	}
     }
 }
