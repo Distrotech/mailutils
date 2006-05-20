@@ -96,7 +96,7 @@ libmh_a_SOURCES= \
  mh_stream.c\
  mh_whatnow.c\
  mh_whom.c
-noinst_HEADERS = mh.h mh_getopt.h mh_alias.h
+noinst_HEADERS = mh.h mh_alias.h mh_format.h mh_getopt.h
 
 LISPSRC = mailutils-mh.el
 lisp_LISP=@lisp_LISP@
