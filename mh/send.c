@@ -252,24 +252,39 @@ watch_printf (const char *fmt, ...)
   va_end (ap);
 }
 
+struct list_elt           /* Element of the send list */
+{
+  const char *file_name;  /* Duplicated in msg stream, but there's no way
+			     to get it from there */
+  mu_message_t msg;       /* Corresponding message */
+};
+
 static mu_list_t mesg_list;
 static mh_context_t *mts_profile;
 
 int
 check_file (char *name)
 {
+  struct list_elt *elt;
   mu_message_t msg;
-
-  msg = mh_file_to_message (draft_folder, name);
+  char *file_name = mh_expand_name (draft_folder, name, 0);
+  
+  msg = mh_file_to_message (NULL, file_name);
   if (!msg)
-    return 1;
+    {
+      free (file_name);
+      return 1;
+    }
   if (!mesg_list && mu_list_create (&mesg_list))
     {
+      free (file_name);
       mu_error (_("Cannot create message list"));
       return 1;
     }
-  
-  return mu_list_append (mesg_list, msg);
+  elt = xmalloc (sizeof *elt);
+  elt->file_name = file_name;
+  elt->msg = msg;
+  return mu_list_append (mesg_list, elt);
 }
 
 void
@@ -424,31 +439,99 @@ void
 fix_fcc (mu_message_t msg)
 {
   mu_header_t hdr;
-  char *val;
+  char *fcc;
   
   mu_message_get_header (msg, &hdr);
-  if (mu_header_aget_value (hdr, MU_HEADER_FCC, &val) == 0
-      && strchr ("+%~/=", val[0]) == NULL)
+  if (mu_header_aget_value (hdr, MU_HEADER_FCC, &fcc) == 0)
     {
-      val = realloc (val, strlen (val) + 2);
-      memmove (val + 1, val, strlen (val) + 1);
-      val[0] = '+';
-      mu_header_set_value (hdr, MU_HEADER_FCC, val, 1);
-      WATCH ((_("Fixed Fcc: %s"), val));
-      free (val);
-    }  
+      int i, argc;
+      char **argv;
+      int need_fixup = 0;
+      size_t fixup_len = 0;
+      
+      mu_argcv_get (fcc, ",", NULL, &argc, &argv);
+      for (i = 0; i < argc; i += 2)
+	{
+	  if (strchr ("+%~/=", argv[i][0]) == NULL)
+	    {
+	      need_fixup++;
+	      fixup_len ++;
+	    }
+	  fixup_len += strlen (argv[i]);
+	}
+
+      if (need_fixup)
+	{
+	  char *p;
+
+	  /* the new fcc string contains: folder names - fixup_len characters
+	     long, (argc - 2)/2 comma-space pairs and a terminating
+	     nul */
+	  fcc = realloc (fcc, fixup_len + argc - 2 + 1);
+	  for (i = 0, p = fcc; i < argc; i++)
+	    {
+	      if (i % 2 == 0)
+		{
+		  if (strchr ("+%~/=", argv[i][0]) == NULL)
+		    *p++ = '+';
+		  strcpy (p, argv[i]);
+		  p += strlen (argv[i]);
+		}
+	      else
+		{
+		  *p++ = ',';
+		  *p++ = ' ';
+		}
+	    }
+	  *p = 0;
+	}
+
+      mu_argcv_free (argc, argv);
+    }	  
+
+  mu_header_set_value (hdr, MU_HEADER_FCC, fcc, 1);
+  WATCH ((_("fixed fcc: %s"), fcc));
+  free (fcc);
+}
+
+void
+backup_file (const char *file_name)
+{
+  char *new_name = xmalloc (strlen (file_name) + 2);
+  char *p = strrchr (file_name, '/');
+  if (p)
+    {
+      size_t len = p - file_name + 1;
+      memcpy (new_name, file_name, len);
+      new_name[len++] = ',';
+      strcpy (new_name + len, p + 1);
+    }
+  else
+    {
+      new_name[0] = ',';
+      strcpy (new_name + 1, file_name);
+    }
+  WATCH ((_("renaming %s to %s"), file_name, new_name));
+
+  if (unlink (new_name) && errno != ENOENT)
+    mu_error (_("Cannot unlink file `%s': %s"), new_name, mu_strerror (errno));
+  else if (rename (file_name, new_name))
+    mu_error (_("Cannot rename `%s' to `%s': %s"),
+	      file_name, new_name, mu_strerror (errno));
+  free (new_name);
 }
 
 int
 _action_send (void *item, void *data)
 {
-  mu_message_t msg = item;
+  struct list_elt *elt = item;
+  mu_message_t msg = elt->msg;
   int rc;
   mu_mailer_t mailer;
   mu_header_t hdr;
   size_t n;
 
-  WATCH ((_("Getting message")));
+  WATCH ((_("Getting message %s"), elt->file_name));
 
   if (mu_message_get_header (msg, &hdr) == 0)
     {
@@ -499,7 +582,7 @@ _action_send (void *item, void *data)
   if (!mailer)
     return 1;
 
-  WATCH ((_("Sending message")));
+  WATCH ((_("Sending message %s"), elt->file_name));
   rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
@@ -510,6 +593,8 @@ _action_send (void *item, void *data)
   WATCH ((_("Destroying the mailer")));
   mu_mailer_close (mailer);
   mu_mailer_destroy (&mailer);
+
+  backup_file (elt->file_name);
   
   return 0;
 }
@@ -570,7 +655,7 @@ main (int argc, char **argv)
 
       if (stat (xargv[0], &st))
 	{
-	  mu_error(_("cannot stat %s: %s"), xargv[0], mu_strerror (errno));
+	  mu_error(_("Cannot stat %s: %s"), xargv[0], mu_strerror (errno));
 	  return 1;
 	}
 
