@@ -333,12 +333,7 @@ mu_header_set_value (mu_header_t header, const char *fn, const char *fv,
 		  header->hdr[i].fn[1] = '\0';
 		}
 	      /* Readjust the pointers. */
-	      /* FIXME: I'm not sure this 3 will work when the
-	         original data looked like:
-	         Field  :   Value
-	         Test this... and why not just do a strlen(blurb)?
-	       */
-	      len -= fn_len + fv_len + 3;	/* :<sp>\n */
+	      len -= header->hdr[i].fv_end  - header->hdr[i].fn + 1;
 	      i--;
 	      blurb = header->blurb;
 	      header_parse (header, blurb, len);
