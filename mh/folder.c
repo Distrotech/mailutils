@@ -875,6 +875,12 @@ main (int argc, char **argv)
   mu_argp_init (program_version, NULL);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
+
+  /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
+     `-all'  is  assumed */
+  if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
+    show_all = 1;
+  
   if (has_folder)
     {
       /* If a +folder is given along with the -all switch, folder will, in
@@ -885,10 +891,6 @@ main (int argc, char **argv)
 	max_depth = 2;
       show_all = 0;
     }
-  /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
-     `-all'  is  assumed */
-  else if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
-    show_all = 1;
     
   if (argc - index == 1)
     {
