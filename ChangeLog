@@ -1,3 +1,10 @@
+2006-05-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libproto/mbox/mbox.c (mbox_is_updated): Return 1 (not updated)
+	if unable to measure stream size.
+	* mail/quit.c (mail_mbox_close): Initialize held_count to 0
+	* mailbox/header.c (mu_header_set_value): Fix length calculation.
+
 2006-05-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/folder.c (main): Minor fix
