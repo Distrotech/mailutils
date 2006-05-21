@@ -362,7 +362,7 @@ mbox_is_updated (mu_mailbox_t mailbox)
   mu_off_t size = 0;
   mbox_data_t mud = mailbox->data;
   if (mu_stream_size (mailbox->stream, &size) != 0)
-    return 0;
+    return 1;
   if (size < mud->size)
     {
       mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
