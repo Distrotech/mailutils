@@ -731,6 +731,9 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 		status = smtp_write (smtp);
 		CHECK_EAGAIN (smtp, status);
 	      }
+	    else
+	      nl = 0;
+	    
 	    if (nl)
 	      {
 		status = smtp_writeline (smtp, "\r\n");
