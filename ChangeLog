@@ -1,3 +1,8 @@
+2006-05-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/smtp.c (smtp_send_message): Avoid generating spurious
+	newline when skipping an Fcc header. 
+
 2006-05-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/mailer.c (save_fcc): Handle comma-delimited folder lists
