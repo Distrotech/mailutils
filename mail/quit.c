@@ -35,7 +35,7 @@ int
 mail_mbox_close ()
 {
   mu_url_t url = NULL;
-  size_t held_count;
+  size_t held_count = 0;
 
   if (!mbox)
     return 0;
