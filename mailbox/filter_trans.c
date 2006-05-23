@@ -147,7 +147,7 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	    }
 	  ts->s_offset = i;
 	}
-      if (wbytes == 0 && ts->s_offset == 0)
+      if (wbytes == 0 && ts->w_whd - ts->w_rhd == 0)
 	break;
     }
   return ret;
