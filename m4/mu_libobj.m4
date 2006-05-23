@@ -39,8 +39,7 @@ AC_DEFUN([MU_CHECK_FUNC],[
 AC_DEFUN([MU_REPLACE_FUNCS],
 [AC_CHECK_FUNCS([$1], , [dnl
  MU_LIBOBJ($ac_func)
- AC_DEFINE($ac_func, [mu_repl_]$ac_func, [Define to a replacement function name for ]$ac_func)])
-])
+])])
 
 AC_SUBST(GNU_INCLS)
 AC_DEFUN([MU_HEADER],[
