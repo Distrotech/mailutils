@@ -1,3 +1,19 @@
+2006-05-23  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* m4/mu_libobj.m4 (MU_REPLACE_FUNCS): Remove erroneous AC_DEFINE
+	* examples/encode2047.c: Allow to change encoding and charset
+	at runtime.
+	* mailbox/filter_trans.c (trans_read): Bugfix. Do not break the
+	loop if there are characters left in the buffer.
+	* mailbox/testsuite/Makefile.am (EXTRA_DIST): Add Encode2047
+	* mailbox/testsuite/RFC2047: Rename to ...
+	* mailbox/testsuite/Decode2047: ... this
+	* mailbox/testsuite/Encode2047: New file
+	* mailbox/testsuite/mailbox/DISTFILES: Update
+	* mailbox/testsuite/mailbox/rfc2047.exp: Rename to ...
+	* mailbox/testsuite/mailbox/decode2047.exp: ... this
+	* mailbox/testsuite/mailbox/encode2047.exp: New test
+
 2006-05-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libproto/mbox/mbox.c (mbox_is_updated): Return 1 (not updated)
