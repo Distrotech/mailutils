@@ -28,38 +28,72 @@ main (int argc, char *argv[])
 {
   int c;
   char buf[256];
-  char *charset = "iso-8859-1";
-  char *encoding = "quoted-printable";
+  char *charset = strdup ("iso-8859-1");
+  char *encoding = strdup ("quoted-printable");
   
   while ((c = getopt (argc, argv, "c:e:h")) != EOF)
     switch (c)
       {
       case 'c':
-	charset = optarg;
+	free (charset);
+	charset = strdup (optarg);
 	break;
+	
       case 'e':
-	encoding = optarg;
+	free (encoding);
+	encoding = strdup (optarg);
 	break;
+	
       case 'h':
 	printf ("usage: %s [-c charset] [-e encoding]\n", argv[0]);
 	exit (0);
+	
       default:
 	exit (1);
       }
 
   while (fgets (buf, sizeof (buf), stdin))
     {
+      int len;
       char *p = NULL;
-      int rc, len;
-      
+     
       len = strlen (buf);
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
-      rc = mu_rfc2047_encode (charset, encoding, buf, &p);
-      printf ("%s=> %s\n", buf, mu_strerror (rc));
-      if (p)
+      if (buf[0] == '\\')
+	{
+	  if (buf[1] == 0)
+	    {
+	      fprintf (stderr, "Unfinished command\n");
+	      continue;
+	    }
+	  
+	  for (p = buf + 2; *p && *p == ' '; p++)
+	    ;
+	  switch (buf[1])
+	    {
+	    case 'c':
+	      free (charset);
+	      charset = strdup (p);
+	      break;
+	      
+	    case 'e':
+	      free (encoding);
+	      encoding = strdup (p);
+	      break;
+
+	    default:
+	      fprintf (stderr, "Unknown command\n");
+	    }
+	}
+      else
+	{
+	  int rc = mu_rfc2047_encode (charset, encoding, buf, &p);
+	  printf ("%s=> %s\n", buf, mu_strerror (rc));
+	  if (p)
 	    printf ("%s\n", p);
-      free (p);
+	  free (p);
+	}
     }
     return 0;
 }
