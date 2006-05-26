@@ -147,6 +147,7 @@ int
 main (int argc, char *argv[])
 {
   int c = argc;
+  int index;
   mu_guimb_param_t param;
   struct guimb_data gd;
 
@@ -155,10 +156,10 @@ main (int argc, char *argv[])
 
   append_arg ("");
   mu_argp_init (program_version, NULL);
-  mu_argp_parse (&argp, &argc, &argv, 0, guimb_argp_capa, NULL, &c);
-  
+  mu_argp_parse (&argp, &argc, &argv, 0, guimb_argp_capa, &index, &c);
+
   for (; c < argc; c++)
-      append_arg (argv[c]);
+    append_arg (argv[c]);
 
   if (!user_name)
     user_name = who_am_i ();
@@ -174,7 +175,7 @@ main (int argc, char *argv[])
   /* Register the desired formats. */
   mu_register_all_formats ();
 
-  if (!argv[optind])
+  if (!argv[index])
     {
       if (default_mailbox)
 	append_arg (default_mailbox);
@@ -184,12 +185,12 @@ main (int argc, char *argv[])
     {
       collect_open_mailbox_file ();
 
-      if (argv[optind])
+      if (argv[index])
 	{
-	  for (; argv[optind]; optind++)
+	  for (; argv[index]; index++)
 	    {
-	      append_arg (argv[optind]);
-	      collect_append_file (argv[optind]);
+	      append_arg (argv[index]);
+	      collect_append_file (argv[index]);
 	    }
 	}
       else 
