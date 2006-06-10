@@ -1,3 +1,8 @@
+2006-06-10  Thomas Seeling <thomas.seeling@gmx.net> (trivial changes)
+
+	* mailbox/registrar.c (mu_registrar_record): Tolerate NULL
+	argument. 
+
 2006-05-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* guimb/main.c: Remove leftover optind usage. Thanks Jay
