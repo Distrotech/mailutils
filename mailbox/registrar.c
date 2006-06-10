@@ -143,6 +143,8 @@ mu_registrar_record (mu_record_t record)
   mu_list_t list;
   mu_list_comparator_t comp;
   
+  if (!record)
+    return 0;
   _registrar_get_list (&list);
   comp = mu_list_set_comparator (list, _compare_prio);
   status = mu_list_insert (list, record, record, 1);
