@@ -53,7 +53,7 @@ mailbox_folder_create (mu_folder_t *pfolder, const char *name)
     return ENOMEM;
 
   p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
-  if (p && !(mu_is_proto (fname) && strncmp (p, "file:", 5)))
+  if (p && !(mu_is_proto (fname) && strncmp (fname, "file:", 5)))
     *p = 0;
   rc = mu_folder_create (pfolder, fname);
   free (fname);
