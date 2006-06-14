@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,6 @@
 # include <config.h>
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -46,12 +45,14 @@
 #define TCP_STATE_CONNECTING 	4
 #define TCP_STATE_CONNECTED	5
 
-struct _tcp_instance {
-	int 		fd;
-	char 		*host;
-	int 		port;
-	int		state;
-	unsigned long	address;
+struct _tcp_instance
+{
+  int 		fd;
+  char 		*host;
+  int 		port;
+  int		state;
+  unsigned long	address;
+  unsigned long source_addr;
 };
 
 /* On solaris inet_addr() return -1.  */
@@ -78,13 +79,27 @@ _tcp_close (mu_stream_t stream)
 }
 
 static int
+resolve_hostname (const char *host, unsigned long *ip)
+{
+  unsigned long address = inet_addr (host);
+  if (address == INADDR_NONE)
+    {
+      struct hostent *phe = gethostbyname (host);
+      if (!phe)
+	return MU_ERR_GETHOSTBYNAME;
+      address = *(((unsigned long **) phe->h_addr_list)[0]);
+    }
+  *ip = address;
+  return 0;
+}
+
+static int
 _tcp_open (mu_stream_t stream)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int flgs, ret;
   socklen_t namelen;
   struct sockaddr_in peer_addr;
-  struct hostent *phe;
   struct sockaddr_in soc_addr;
   int flags;
 
@@ -105,19 +120,33 @@ _tcp_open (mu_stream_t stream)
 	  fcntl (tcp->fd, F_SETFL, flgs);
 	  mu_stream_set_flags (stream, MU_STREAM_NONBLOCK);
 	}
+      if (tcp->source_addr != INADDR_ANY)
+	{
+	  struct sockaddr_in s;
+	  s.sin_family = AF_INET;
+	  s.sin_addr.s_addr = tcp->source_addr;
+	  s.sin_port = 0;
+	  if (bind (tcp->fd, (struct sockaddr*) &s, sizeof(s)) < 0)
+	    {
+	      int e = errno;
+	      close (tcp->fd);
+	      tcp->fd = -1;
+	      return e;
+	    }
+	}
+      
       tcp->state = TCP_STATE_RESOLVING;
     case TCP_STATE_RESOLVING:
-      assert (tcp->host != NULL && tcp->port > 0);
-      tcp->address = inet_addr (tcp->host);
-      if (tcp->address == INADDR_NONE)
+      if (!(tcp->host != NULL && tcp->port > 0))
 	{
-	  phe = gethostbyname (tcp->host);
-	  if (!phe)
-	    {
-	      _tcp_close (stream);
-	      return MU_ERR_GETHOSTBYNAME;
-	    }
-	  tcp->address = *(((unsigned long **) phe->h_addr_list)[0]);
+	  _tcp_close (stream);
+	  return EINVAL;
+	}
+      
+      if ((ret = resolve_hostname (tcp->host, &tcp->address)))
+	{
+	  _tcp_close (stream);
+	  return ret;
 	}
       tcp->state = TCP_STATE_RESOLVE;
     case TCP_STATE_RESOLVE:
@@ -158,7 +187,8 @@ _tcp_open (mu_stream_t stream)
 
 
 static int
-_tcp_get_transport2 (mu_stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
+_tcp_get_transport2 (mu_stream_t stream, mu_transport_t *tr,
+		     mu_transport_t *tr2)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);
 
@@ -173,7 +203,8 @@ _tcp_get_transport2 (mu_stream_t stream, mu_transport_t *tr, mu_transport_t *tr2
 }
 
 static int
-_tcp_read (mu_stream_t stream, char *buf, size_t buf_size, mu_off_t offset, size_t * br)
+_tcp_read (mu_stream_t stream, char *buf, size_t buf_size,
+	   mu_off_t offset, size_t * br)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);
   int bytes;
@@ -192,7 +223,8 @@ _tcp_read (mu_stream_t stream, char *buf, size_t buf_size, mu_off_t offset, size
 }
 
 static int
-_tcp_write (mu_stream_t stream, const char *buf, size_t buf_size, mu_off_t offset,
+_tcp_write (mu_stream_t stream, const char *buf, size_t buf_size,
+	    mu_off_t offset,
 	    size_t * bw)
 {
   struct _tcp_instance *tcp = mu_stream_get_owner (stream);
@@ -234,7 +266,10 @@ _tcp_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 int
-mu_tcp_stream_create (mu_stream_t * stream, const char* host, int port, int flags)
+mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
+				     const char *host, int port,
+				     unsigned long source_ip,
+				     int flags)
 {
   struct _tcp_instance *tcp;
   int ret;
@@ -250,15 +285,15 @@ mu_tcp_stream_create (mu_stream_t * stream, const char* host, int port, int flag
   tcp->fd = -1;
   tcp->host = strdup (host);
   if(!tcp->host)
-  {
-    free (tcp);
-    return ENOMEM;
-  }
+    {
+      free (tcp);
+      return ENOMEM;
+    }
   tcp->port = port;
   tcp->state = TCP_STATE_INIT;
-
+  tcp->source_addr = source_ip;
   if ((ret = mu_stream_create (stream,
-	  flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)) != 0)
+		       flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)))
   {
     free (tcp->host);
     free (tcp);
@@ -275,4 +310,26 @@ mu_tcp_stream_create (mu_stream_t * stream, const char* host, int port, int flag
   mu_stream_set_wait (*stream, _tcp_wait, tcp);
 
   return 0;
+}
+
+int
+mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
+				       const char *host, int port,
+				       const char *source_host,
+				       int flags)
+{
+  unsigned long source_addr;
+  int ret = resolve_hostname (source_host, &source_addr);
+  if (ret == 0)
+    ret = mu_tcp_stream_create_with_source_ip (stream, host, port,
+					       source_addr, flags);
+  return ret;
+}
+       
+int
+mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
+		      int flags)
+{
+  return mu_tcp_stream_create_with_source_ip (stream, host, port,
+					      INADDR_ANY, flags);
 }

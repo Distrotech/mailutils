@@ -48,6 +48,15 @@ extern int mu_temp_file_stream_create (mu_stream_t *stream, const char *dir);
   
 extern int mu_tcp_stream_create     (mu_stream_t *stream, const char* host,
 				     int port, int flags);
+extern int mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
+						const char *host, int port,
+						unsigned long source_ip,
+						int flags);
+extern int mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
+						  const char *host, int port,
+						  const char *source_host,
+						  int flags);
+  
 extern int mu_mapfile_stream_create (mu_stream_t *stream, const char* filename,
 				     int flags);
 extern int mu_memory_stream_create  (mu_stream_t *stream, const char* filename,
