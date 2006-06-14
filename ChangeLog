@@ -1,5 +1,9 @@
 2006-06-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/tcp.c (mu_tcp_stream_create_with_source_ip):
+	(mu_tcp_stream_create_with_source_host): New functions
+	 * include/mailutils/stream.h: Likewise
+
 	* mailbox/mailbox.c (mailbox_folder_create): Bugfix,
 	strncmp(fname...
 	* mailbox/registrar.c: Stop iterating when the matching record was
