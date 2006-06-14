@@ -111,6 +111,7 @@ mu_registrar_lookup (const char *name, int flags,
 	    *precord = record;
 	  if (pflags)
 	    *pflags = rc;
+	  break;
 	}
     }
   mu_iterator_destroy (&iterator);
