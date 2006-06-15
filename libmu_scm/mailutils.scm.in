@@ -18,7 +18,11 @@
 ;;;;
 changequote([,])dnl
 
-(define-module (mailutils mailutils))
+(define-module (mailutils mailutils)
+               #:use-module (ice-9 documentation))
+
+(set! documentation-files (append documentation-files 
+                                  (list "SITEDIR/guile-procedures.txt")))
 
 (define mu-libs (list "libmailutils"
 		      "libmuauth"
