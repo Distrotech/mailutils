@@ -78,11 +78,11 @@ DOT_DOC_FILES=\
  mu_scm.doc\
  mu_util.doc 
 
-GUILE_BUILT_SOURCES_X=$(DOT_X_FILES) $(DOT_DOC_FILES)
+GUILE_BUILT_SOURCES_X=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi
 
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
 
-DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_SITE_DATA@
+DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi @GUILE_SITE_DATA@
 CLEANFILES=*.inc
 
 AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
@@ -106,11 +106,16 @@ SUFFIXES=.x .doc .inc .in
 .c.inc:
 	sed -n 's/SCM_DEFINE *(.[^,]*, *\"\([^"][^"]*\)\".*/[(export \1)]/p' $< > $@
 
-guile-procedures.txt: $(DOT_DOC_FILES)
+guile-procedures.texi: $(DOT_DOC_FILES)
 	cat $(DOT_DOC_FILES) > $@
+
+guile-procedures.txt: guile-procedures.texi
+	rm -f $@
+	$(MAKEINFO) --force -o $@ guile-procedures.texi || test -f $@
 
 mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
 	m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
+	   -DSITEDIR=$(sitedir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm \
             $(srcdir)/mailutils.scm.in > $@
 
