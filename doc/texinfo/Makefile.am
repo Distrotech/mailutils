@@ -19,8 +19,20 @@
 
 info_TEXINFOS = mailutils.texi 
 
-INCFILES = addr.inc http.inc numaddr.inc sfrom.inc\
- url-parse.inc mailcap.inc
+INCFILES = \
+ addr.inc\
+ http.inc\
+ mailcap.inc\
+ numaddr.inc\
+ sfrom.inc\
+ url-parse.inc\
+ mu_address.texi\
+ mu_mailbox.texi\
+ mu_message.texi\
+ mu_body.texi\
+ mu_mime.texi\
+ mu_logger.texi\
+ mu_scm.texi
 
 mailutils_TEXINFOS = \
  address.texi \
@@ -64,12 +76,15 @@ muint_TEXINFOS = \
  mom.texi
 
 ## Fake configure into including srcdir to VPATH:
-s=${srcdir}:${top_srcdir}/examples/
+s=${srcdir}:${top_srcdir}/examples/:$(top_srcdir)/libmu_scm
 VPATH = $(s)
 
-SUFFIXES=.c .inc
+SUFFIXES=.c .inc .texi .doc
 .c.inc:
 	sed -f $(top_srcdir)/scripts/texify.sed $< > $@
+
+.doc.texi:
+	sed '/\f/d' $< > $@
 
 DISTCLEANFILES=*.pgs *.kys *.vrs
 MAINTAINERCLEANFILES=$(INCFILES)
