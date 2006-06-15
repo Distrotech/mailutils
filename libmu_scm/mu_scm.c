@@ -114,16 +114,20 @@ register_format (const char *name)
 
 SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 	    (SCM REST),
-"Registers desired mailutils formats. Takes any number of arguments.\n"
-"Allowed arguments are:\n"
-"  \"mbox\"       Regular UNIX mbox format\n"
-"  \"mh\"         MH mailbox format\n"
-"  \"pop\"        POP mailbox format\n"
-"  \"imap\"       IMAP mailbox format\n"
-"  \"sendmail\"   sendmail mailer\n"
-"  \"smtp\"       smtp mailer\n"
+"Registers desired mailutils formats.  Any number of arguments can be given.\n"
+"Each argument must be one of the following strings:\n\n"
+"@multitable @columnfractions 0.3 0.6\n"
+"@headitem Argument @tab Meaning\n"
+"@item @samp{mbox}  @tab Regular UNIX mbox format\n"
+"@item @samp{mh}    @tab @acronym{MH} mailbox format\n"
+"@item @samp{maildir} @tab @i{Maildir} mailbox format\n"
+"@item @samp{pop}   @tab @acronym{POP} mailbox format\n"
+"@item @samp{imap}  @tab @acronym{IMAP} mailbox format\n"
+"@item @samp{sendmail} @tab @i{sendmail} mailer format\n"
+"@item @samp{smtp}  @tab @acronym{SMTP} mailer format\n"
+"@end multitable\n"
 "\n"
-"If called without arguments, registers all available formats\n")
+"If called without arguments, the function registers all available formats\n")
 #define FUNC_NAME s_scm_mu_register_format
 {
   int status;

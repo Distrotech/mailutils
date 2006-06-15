@@ -106,7 +106,8 @@ mu_scm_is_mailbox (SCM scm)
 
 SCM_DEFINE (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
 	    (SCM URL), 
-            "")
+"If URL is given, sets it as a name of the user's mail directory.\n"
+"Returns the current value of the mail directory.")
 #define FUNC_NAME s_scm_mu_mail_directory
 {
   if (!SCM_UNBNDP (URL))
@@ -120,7 +121,8 @@ SCM_DEFINE (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
 
 SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
 	    (SCM URL), 
-            "")
+"If URL is given, sets it as a name of the user's folder directory.\n"
+"Returns the current value of the folder directory.")
 #define FUNC_NAME s_scm_mu_folder_directory
 {
   if (!SCM_UNBNDP (URL))
@@ -134,14 +136,24 @@ SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
 
 SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 	    (SCM URL, SCM MODE), 
-            "Opens a mailbox specified by URL.")
+"Opens the mailbox specified by URL. MODE is a string, consisting of\n"
+"the characters described below, giving the access mode for the mailbox\n"
+"\n"
+"@multitable @columnfractions 0.20 0.70\n"
+"@headitem MODE @tab Meaning\n"
+"@item r @tab Open for reading.\n"
+"@item w @tab Open for writing.\n"
+"@item a @tab Open for appending to the end of the mailbox.\n"
+"@item c @tab Create the mailbox if it does not exist.\n"
+"@end multitable\n"
+)
 #define FUNC_NAME s_scm_mu_mailbox_open
 {
   mu_mailbox_t mbox = NULL;
   const char *mode_str;
   int mode = 0;
   int status;
-  
+
   SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
 
@@ -186,7 +198,7 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
-	    (SCM MBOX), "Closes mailbox MBOX")
+	    (SCM MBOX), "Closes mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_close
 {
   struct mu_mailbox *mum;
@@ -201,25 +213,31 @@ SCM_DEFINE (scm_mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
 
 SCM_DEFINE (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
 	    (SCM MBOX), 
-            "Returns the URL of the mailbox.")
+            "Returns url of the mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_get_url
 {
   struct mu_mailbox *mum;
   mu_url_t url;
-  
+  int status;
+ 
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  mu_mailbox_get_url (mum->mbox, &url);
+  status = mu_mailbox_get_url (mum->mbox, &url);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+                  "Cannot get mailbox url",
+                  SCM_BOOL_F);
+
   return scm_makfrom0str (mu_url_to_string (url));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
 	    (SCM MBOX, SCM MODE),
-	    "Returns a port associated with the contents of the MBOX.\n"
-	    "MODE is a string defining operation mode of the stream. It may\n"
-	    "contain any of the two characters: \"r\" for reading, \"w\" for\n"
-	    "writing.\n")
+"Returns a port associated with the contents of the MBOX.\n"
+"MODE is a string defining operation mode of the stream. It may\n"
+"contain any of the two characters: @samp{r} for reading, @samp{w} for\n"
+"writing.\n")
 #define FUNC_NAME s_scm_mu_mailbox_get_port
 {
   struct mu_mailbox *mum;
@@ -240,7 +258,8 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
-	    (SCM MBOX, SCM MSGNO), "Retrieve from MBOX message # MSGNO.")
+            (SCM MBOX, SCM MSGNO), 
+"Retrieve from message #MSGNO from the mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_get_message
 {
   size_t msgno;
@@ -265,7 +284,8 @@ SCM_DEFINE (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mailbox_messages_count, "mu-mailbox-messages-count", 1, 0, 0,
-	    (SCM MBOX), "Returns number of messages in the mailbox.")
+	    (SCM MBOX), 
+"Returns number of messages in the mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_messages_count
 {
   struct mu_mailbox *mum;
@@ -285,7 +305,8 @@ SCM_DEFINE (scm_mu_mailbox_messages_count, "mu-mailbox-messages-count", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mailbox_expunge, "mu-mailbox-expunge", 1, 0, 0,
-	    (SCM MBOX), "Expunges deleted messages from the mailbox.")
+	    (SCM MBOX), 
+"Expunges deleted messages from the mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_expunge
 {
   struct mu_mailbox *mum;
@@ -302,27 +323,9 @@ SCM_DEFINE (scm_mu_mailbox_expunge, "mu-mailbox-expunge", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mailbox_url, "mu-mailbox-url", 1, 0, 0,
-	    (SCM MBOX), "Returns the URL of the mailbox")
-#define FUNC_NAME s_scm_mu_mailbox_url
-{
-  struct mu_mailbox *mum;
-  mu_url_t url;
-  int status;
-  
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  mu_mailbox_get_url (mum->mbox, &url);
-  if (status)
-    mu_scm_error (FUNC_NAME, status,
-		  "Cannot get mailbox URL",
-		  SCM_BOOL_F);
-  return scm_makfrom0str (mu_url_to_string (url));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
-	    (SCM MBOX, SCM MESG), "Appends the message to the mailbox")
+	    (SCM MBOX, SCM MESG),
+"Appends message MESG to the mailbox MBOX.")
 #define FUNC_NAME s_scm_mu_mailbox_append_message
 {
   struct mu_mailbox *mum;

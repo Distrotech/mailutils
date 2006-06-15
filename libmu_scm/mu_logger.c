@@ -22,7 +22,8 @@
 
 SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 	   (SCM IDENT, SCM OPTION, SCM FACILITY),
-	   "Opens a connection to the system logger for Guile program.")
+"Opens a connection to the system logger for Guile program.\n"
+"IDENT, OPTION and FACILITY have the same meaning as in openlog(3)")
 #define FUNC_NAME s_scm_mu_openlog
 {
   const char *ident;
@@ -57,7 +58,7 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 
 SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 	   (SCM PRIO, SCM TEXT),
-	   "Generates a log message to be distributed via syslogd.")
+	   "Distributes TEXT via syslogd priority PRIO.")
 #define FUNC_NAME s_scm_mu_logger
 {
   int prio;
@@ -79,7 +80,7 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 
 SCM_DEFINE (scm_mu_closelog, "mu-closelog", 0, 0, 0,
 	   (),
-	   "Closes the channel to the system logger open by mu-openlog.")
+	   "Closes the channel to the system logger opened by @code{mu-openlog}.")
 #define FUNC_NAME s_scm_mu_closelog
 {
   closelog ();

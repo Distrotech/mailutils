@@ -90,7 +90,9 @@ mu_scm_is_mime (SCM scm)
 
 SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 	    (SCM FLAGS, SCM MESG),
-	    "Creates a new MIME object.")
+"Creates a new @acronym{MIME} object.  Both arguments are optional.\n"
+"FLAGS specifies the type of the object to create (@samp{0} is a reasonable\n"
+"value).  MESG gives the message to create the @acronym{MIME} object from.")
 #define FUNC_NAME s_scm_mu_mime_create
 {
   mu_message_t msg = NULL;
@@ -126,7 +128,7 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 
 SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 	    (SCM MIME),
-	    "Returns #t if MIME is a multipart object.\n")
+"Returns @code{#t} if MIME is a multipart object.\n")
 #define FUNC_NAME s_scm_mu_mime_multipart_p
 {
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
@@ -136,7 +138,7 @@ SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 
 SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 	    (SCM MIME),
-	    "Returns number of parts in a MIME object.")
+"Returns number of parts in the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_get_num_parts
 {
   mu_mime_t mime;
@@ -154,22 +156,22 @@ SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
-	    (SCM MIME, SCM PART),
-	    "Returns part number PART from a MIME object.")
+	    (SCM MIME, SCM NUM),
+	    "Returns NUMth part from the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_get_part
 {
   mu_message_t msg = NULL;
   int status;
   
   SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_integer (PART), PART, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (NUM), NUM, SCM_ARG2, FUNC_NAME);
   
   status = mu_mime_get_part (mu_scm_mime_get (MIME),
-			     scm_to_int32 (PART), &msg);
+			     scm_to_int32 (NUM), &msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get part ~A from MIME object ~A",
-		  scm_list_2 (PART, MIME));
+		  scm_list_2 (NUM, MIME));
   
   return mu_scm_message_create (MIME, msg);
 }
@@ -177,7 +179,7 @@ SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 
 SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 	    (SCM MIME, SCM MESG),
-	    "Adds MESG to the MIME object.")
+	    "Adds MESG to the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_add_part
 {
   mu_mime_t mime;
@@ -203,7 +205,7 @@ SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 
 SCM_DEFINE (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
 	    (SCM MIME),
-	    "Converts MIME object to a message.\n")
+	    "Converts @sc{mime} object MIME to a message.\n")
 #define FUNC_NAME s_scm_mu_mime_get_message
 {
   mu_mime_t mime;
