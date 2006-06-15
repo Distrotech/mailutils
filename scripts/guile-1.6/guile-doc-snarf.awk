@@ -1,4 +1,4 @@
-# Copyright (C) 2002 Sergey Poznyakoff
+# Copyright (C) 2002, 2006 Sergey Poznyakoff
 #
 # This is a snarfer for guile version 1.6
 # 
@@ -27,11 +27,18 @@ function flush() {
 	 if (arg_req + arg_opt + arg_var != numargs)
 	    error(cname " incorrectly defined as taking " numargs " arguments")
 
-	 print "\f" cname
+	 print "\f" fname
 	 print "@c snarfed from " loc_source ":" loc_line
-	 printf "@deffn {Scheme procedure} %s", cname
-	 for (i = 1; i <= numargs; i++) 
-	     printf(" %s", arglist[i])
+	 printf "@deffn {Scheme procedure} %s", fname
+	 # All scheme primitives follow the same naming style:
+	 # SCM argument names are in upper case.
+	 # So, we convert them to lower case for @deffn line and
+	 # replace their occurrences in the docstring by appropriate
+	 # @var{} commands.
+         for (i = 1; i <= numargs; i++) {
+	    printf(" %s", tolower(arglist[i]))
+	    gsub(arglist[i], "@var{" tolower(arglist[i]) "}", docstring)
+         }
 	 print ""
 	 print docstring
 	 print "@end deffn\n"
@@ -46,13 +53,13 @@ function error(s) {
 	 exit 1
 }
 
-state == 0 && /{/ {
+state == 0 && $1 == "{" {
 	flush()
 	cname = $3
 	next
 }		
 
-state == 0 && /fname/ { fname = $2; next }
+state == 0 && /fname/ { fname = substr($2,2,length($2)-2); next }
 state == 0 && /type/ { type = $2; next }
 state == 0 && /location/ { loc_source = $2; loc_line = $3 }
 state == 0 && /arglist/ {
@@ -70,13 +77,16 @@ state == 0 && /arglist/ {
 	       n = b[2]
 	    }   
 	    if (m > 2 || t != "SCM")
-	       error(cname ": wrong argument type for arg " i " " t) 
+	       error(cname ": wrong argument type for arg " i " " t)
 	    arglist[i] = n
 	}
 }
 state == 0 && /argsig/ { arg_req = $2; arg_opt = $3; arg_var = $4 }
 
 state == 0 && /.*\"/    {
+        # Concatenate strings. A very simplified version, but
+        # works for us
+	gsub("\\\\n\" *\"", "\n")
         gsub("\"\"", "")
 	gsub("\\\\n", "\n")
 	match($0,"\".*\"")

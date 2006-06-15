@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2002 Sergey Poznyakoff
+# Copyright (C) 2002, 2006 Sergey Poznyakoff
 #
 # This is a snarfer for guile version 1.6
 # 
@@ -33,7 +33,7 @@ do
     -d) DOCFILE=1; shift;;
     *)  break;;
     esac
-done    
+done
 
 INFILE=$1; shift
 
@@ -50,15 +50,8 @@ snarf_x() {
 snarf_doc() {
     $CPP -DSCM_MAGIC_SNARF_DOCS "$@" > ${temp}
     cpp_exit=$?
-    $AWK '
-NF<2 {next}
-state == 0 && /\^\^ {/ { state = 1; print; next }
-state == 0 && /\^\^/ { print }
-state == 1 && /\^\^ }/ { state = 0; print; next }
-state == 1 { print }
-state == 0 { next }' $temp |\
-      tr -d '\n' | tr '^' '\n' |\
-      $AWK -f $BASEDIR/guile-doc-snarf.awk > $OUTFILE
+    sed -n '/\^^ *{.*^^ *}/{s,\^^,\n,pg}' $temp | \
+      $AWK -f $BASEDIR/guile-doc-snarf.awk 
 }
 
 case "$DOCFILE" in
