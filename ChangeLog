@@ -1,3 +1,24 @@
+2006-06-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix generation of libmu_scm documentation. 
+	
+	* doc/texinfo/Makefile.am (INCFILES): Add mu_*.texi files
+	* doc/texinfo/libmu_scm.texi: Include snarfed files.
+	* libmu_scm/Makefile.am (GUILE_BUILT_SOURCES_X)
+	(DISTCLEANFILES): Add guile-procedures.texi
+	(guile-procedures.texi): New rule
+	* libmu_scm/mailutils.scm.in: Use documentation module. Update
+	documentation-files to make sure MU docs are found.
+	* libmu_scm/mu_address.c, libmu_scm/mu_logger.c,
+	libmu_scm/mu_mailbox.c, libmu_scm/mu_message.c,
+	libmu_scm/mu_mime.c, libmu_scm/mu_scm.c,
+	libmu_scm/mu_util.c: Update docstrings
+	* scripts/guile-1.6/guile-doc-snarf: Fix docfile generation
+	* scripts/guile-1.6/guile-doc-snarf.awk: Likewise
+	* libmu_scm/.cvsignore, doc/texinfo/.cvsignore,
+	include/mailutils/.cvsignore: Update
+	* libproto/.cvsignore: New file
+
 2006-06-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/tcp.c (mu_tcp_stream_create_with_source_ip):
