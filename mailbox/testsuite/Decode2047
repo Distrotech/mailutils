@@ -28,5 +28,9 @@ Andr\351 Pirard <PIRARD@vm1.ulg.ac.be>
 =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= ... =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?= => Success
 If you can read this yo ... u understand the example.
 
+# Malformed input string: lacks trailing =. MU 0.6.90 hanged on it.
+=?koi8-r?B?RndkOiDSxcfJ09TSwcPJ0SDEz83FzsE?= => Success
+Fwd: \322\305\307\311\323\324\322\301\303
+
 # NOTE: This file must end with an empty line
 # EOF
