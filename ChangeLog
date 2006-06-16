@@ -1,3 +1,8 @@
+2006-06-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Raise version number to 0.6.95
+	* NEWS: Update
+
 2006-06-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix generation of libmu_scm documentation. 

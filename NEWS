@@ -1,8 +1,27 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-05-20
+GNU mailutils NEWS -- history of user-visible changes.  2006-06-16
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+Version 0.6.95:
+
+* New functions:
+** Two new functions (mu_tcp_stream_create_with_source_ip and
+mu_tcp_stream_create_with_source_host) allow to create TCP connections
+from the given source address. 
+
+* Bugfixes:
+** Fix handling of Fcc headers in mailers
+** Fix several inconsistencies in `mh/folder' to make it compatible with
+RAND and nmh implementations.  In particular, `folder -all +name'
+(`folders +name') is now working as expected.
+** MH programs create directory hierarchies if requested to.
+** `mail' correctly hanldes empty mailboxes (it used to display garbage in
+place of the message count).
+** Fix RFC 2047 filters: do not stop translating until the buffer is drained.
+** Fix option handling in guimb: remove leftover optind usage.
+
 
 Version 0.6.94:
 
