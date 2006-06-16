@@ -17,7 +17,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-AC_INIT([GNU Mailutils], [0.6.94], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.6.95], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
