@@ -74,7 +74,7 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	    size_t *n_bytes)
 {
   struct _trans_stream *ts = filter->data;
-  size_t obytes, wbytes = 0;
+  size_t obytes, wbytes = 0, tbytes = 0;
   int ret = 0, i;
   size_t bytes, *nbytes = &bytes;
 
@@ -103,7 +103,7 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	  ts->w_rhd = 0;
 	  ret = mu_stream_read (filter->stream, ts->w_buf + ts->w_whd,
 			     MU_TRANS_BSIZE - ts->w_whd, ts->offset,
-			     &wbytes );
+			     &wbytes);
 	  if (ret != 0)
 	    break;
 	  ts->offset += wbytes;
@@ -113,10 +113,11 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	  && ts->s_offset == 0
 	  && ts->w_whd - ts->w_rhd)
 	{
-	  ts->w_rhd += ts->transcoder (ts->w_buf + ts->w_rhd,
-				       ts->w_whd - ts->w_rhd,
-				       optr + *nbytes, osize - *nbytes,
-				       &obytes, &ts->line_len);
+	  tbytes = ts->transcoder (ts->w_buf + ts->w_rhd,
+				   ts->w_whd - ts->w_rhd,
+				   optr + *nbytes, osize - *nbytes,
+				   &obytes, &ts->line_len);
+	  ts->w_rhd += tbytes;
 	  if (ts->w_rhd > ts->w_whd) /* over shot due to padding */
 	    ts->w_rhd = ts->w_whd;
 	  *nbytes += obytes;
@@ -126,10 +127,11 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	{
 	  if (ts->s_offset == 0 && ts->w_whd - ts->w_rhd)
 	    {
-	      ts->w_rhd += ts->transcoder (ts->w_buf + ts->w_rhd,
+	      tbytes = ts->transcoder (ts->w_buf + ts->w_rhd,
 					   ts->w_whd - ts->w_rhd, ts->s_buf,
 					   ts->min_size, &obytes,
 					   &ts->line_len);
+	      ts->w_rhd += tbytes;
 	      if (ts->w_rhd > ts->w_whd) /* over shot due to padding */
 		ts->w_rhd = ts->w_whd;
 	      ts->s_offset = obytes;
@@ -147,7 +149,8 @@ trans_read (mu_filter_t filter, char *optr, size_t osize, mu_off_t offset,
 	    }
 	  ts->s_offset = i;
 	}
-      if (wbytes == 0 && ts->w_whd - ts->w_rhd == 0)
+      /* FIXME: Should return error code if tbytes == 0? */
+      if (wbytes == 0 && (tbytes == 0 || ts->w_whd - ts->w_rhd == 0))
 	break;
     }
   return ret;
