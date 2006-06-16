@@ -47,8 +47,9 @@ the current folder recursively (with -recurse). This behavior is
 compatible with nmh and rand implementations.
 ** rmf: Fix coredump when invoked without arguments.
 ** send: rename draft file after sending it.
-** all mh utilities: create nested directories, if required.
+** All mh utilities: create nested directories, if required.
 ** Correctly handle comma-delimited folder lists in Fcc headers.
+** A decoder stream correctly handles unfinished input strings.
 
 
 Version 0.6.93:

@@ -1,5 +1,11 @@
 2006-06-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/filter_trans.c (trans_read): Break the loop if both
+	transcoder and read return 0 bytes. This is necessary to correctly
+	handle unfinished input strings
+	* mailbox/testsuite/Decode2047: New testcase: an example of
+	unfinished input.
+
 	* configure.ac: Raise version number to 0.6.95
 	* NEWS: Update
 
