@@ -29,6 +29,7 @@ extern "C" {
 #define MU_HEADER_RETURN_PATH               "Return-Path"
 #define MU_HEADER_RECEIVED                  "Received"
 #define MU_HEADER_DATE                      "Date"
+#define MU_HEADER_DCC                       "Dcc"  
 #define MU_HEADER_FROM                      "From"
 #define MU_HEADER_SENDER                    "Sender"
 #define MU_HEADER_RESENT_FROM               "Resent-From"
