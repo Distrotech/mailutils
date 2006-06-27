@@ -23,7 +23,9 @@ long message_tag;
 struct mu_message
 {
   mu_message_t msg;       /* Message itself */
-  SCM mbox;            /* Mailbox it belongs to */
+  SCM mbox;               /* Mailbox it belongs to */
+  int needs_destroy;      /* Set during mark phase if the message needs
+			     explicit destroying */
 };
 
 /* SMOB functions: */
@@ -32,6 +34,8 @@ static SCM
 mu_scm_message_mark (SCM message_smob)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
+  if (mu_message_get_owner (mum->msg) == NULL)
+    mum->needs_destroy = 1;
   return mum->mbox;
 }
 
@@ -39,7 +43,7 @@ static scm_sizet
 mu_scm_message_free (SCM message_smob)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
-  if (mu_message_get_owner (mum->msg) == NULL)
+  if (mum->needs_destroy)
     mu_message_destroy (&mum->msg, NULL);
   free (mum);
   return sizeof (struct mu_message);
@@ -128,6 +132,7 @@ mu_scm_message_create (SCM owner, mu_message_t msg)
   mum = scm_gc_malloc (sizeof (struct mu_message), "message");
   mum->msg = msg;
   mum->mbox = owner;
+  mum->needs_destroy = 0;
   SCM_RETURN_NEWSMOB (message_tag, mum);
 }
 
