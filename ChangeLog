@@ -1,3 +1,49 @@
+2006-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+ 
+	* auth/sql.c: Minor fixes to get rid of the spurious gcc warnings.
+	* libsieve/actions.c: Likewise
+	* libsieve/prog.c: Likewise
+	* libsieve/sieve.h: Likewise
+	* libsieve/sieve.l: Likewise
+	* libsieve/extensions/vacation.c: Likewise
+	* mail/escape.c: Likewise
+	* mailbox/argcv.c: Likewise
+	* mailbox/file_stream.c: Likewise
+	* mailbox/munre.c: Likewise
+	* mailbox/mutil.c: Likewise
+	* mh/mh_alias.l: Likewise
+	* mh/mh_alias.y: Likewise
+	* mh/mh_init.c: Likewise
+	* mh/mh_whatnow.c: Likewise
+	* mh/mh_whom.c: Likewise
+	* mh/mhn.c: Likewise
+	* sql/sql.c: Likewise
+	
+	* include/mailutils/header.h (MU_HEADER_DCC): New macro. Dcc is a
+	header traditionally used by MH
+	* include/mailutils/mutil.h (mu_unre_set_regex): First argument is
+	const.
+	* lib/daemon.c: Include stdlib.h
+	* lib/mailcap.c: All functions, except display_stream_mailcap, are
+	static.
+	* libmu_scm/mu_message.c (struct mu_message.needs_destroy): New
+	member
+	(mu_scm_message_mark): Raise needs_destroy if the message has null
+	owner.
+	(mu_scm_message_free): Do not attempt to reference msg, unless its
+	needs_destroy is set.
+	(mu_scm_message_create): Initialize needs_destroy to 0.
+	* libsieve/extensions/moderator.c (moderator_action): set deleted
+	flag manually, do not use undeclared sieve_mark_deleted.
+	* mailbox/amd.c (amd_close): Unlock the monitor before returning
+
+	* mh/send.c (fix_fcc): Minor fix
+	(fix_dcc): New function. Rewrites MH Dcc as standard Bcc header.
+	(_action_send): Call fix_dcc
+
+	* sql/mysql.c (mu_check_mysql_scrambled_password): Use
+	get_salt_from_scrambled.
+	
 2006-06-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/filter_trans.c (trans_read): Break the loop if both
