@@ -146,7 +146,7 @@ validate_uparams (const struct argp_state *state, struct uparams *upptr)
 	  __argp_failure (state, 0, 0,
 			  dgettext (state->root_argp->argp_domain,
 				    "\
-ARGP_HELP_FMT: %s value is less then or equal to %s"),
+ARGP_HELP_FMT: %s value is less than or equal to %s"),
 			  "rmargin", up->name);
 	  return;
 	}
@@ -1304,7 +1304,7 @@ usage_long_opt (const struct argp_option *opt,
   if (! arg)
     arg = real->arg;
 
-  if (! (flags & OPTION_NO_USAGE))
+  if (! (flags & OPTION_NO_USAGE) && !odoc (opt))
     {
       if (arg)
 	{
