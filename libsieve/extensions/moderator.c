@@ -306,7 +306,12 @@ moderator_action (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       else
 	{
 	  if (!mu_sieve_tag_lookup (tags, "keep", NULL))
-	    sieve_mark_deleted (msg, 1);
+	    {
+	      mu_attribute_t attr = 0;
+
+	      if (mu_message_get_attribute (msg, &attr) == 0)
+		mu_attribute_set_deleted (attr);
+	    }
 	  else
 	    discard = 0;
 	}
