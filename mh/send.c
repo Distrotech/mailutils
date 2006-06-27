@@ -487,11 +487,56 @@ fix_fcc (mu_message_t msg)
 	}
 
       mu_argcv_free (argc, argv);
-    }	  
 
-  mu_header_set_value (hdr, MU_HEADER_FCC, fcc, 1);
-  WATCH ((_("fixed fcc: %s"), fcc));
-  free (fcc);
+      if (need_fixup)
+	{
+	  mu_header_set_value (hdr, MU_HEADER_FCC, fcc, 1);
+	  WATCH ((_("fixed fcc: %s"), fcc));
+	}
+      free (fcc);
+    }	  
+}
+
+/* Convert MH-style DCC headers to normal BCC.
+   FIXME: Normally we should iterate through the headers to catch
+   multiple Dcc occurrences (the same holds true for Fcc as well),
+   however at the time of this writing we have mu_header_get_field_value,
+   but we miss mu_header_set_field_value. */
+void
+fix_dcc (mu_message_t msg)
+{
+  mu_header_t hdr;
+  char *dcc;
+  
+  mu_message_get_header (msg, &hdr);
+  if (mu_header_aget_value (hdr, MU_HEADER_DCC, &dcc) == 0)
+    {
+      char *bcc = NULL;
+      
+      mu_header_set_value (hdr, MU_HEADER_DCC, NULL, 1);
+      mu_header_aget_value (hdr, MU_HEADER_BCC, &bcc);
+      if (bcc)
+	{
+	  char *newbcc = realloc (bcc, strlen (bcc) + 1 + strlen (dcc) + 1);
+	  if (!newbcc)
+	    {
+	      mu_error (_("not enough memory"));
+	      free (dcc);
+	      free (bcc);
+	      return;
+	    }
+	  bcc = newbcc;
+	  strcat (bcc, ",");
+	  strcat (bcc, dcc);
+	  free (dcc);
+	}
+      else
+	bcc = dcc;
+
+      WATCH ((_("fixed bcc: %s"), bcc));
+      mu_header_set_value (hdr, MU_HEADER_BCC, bcc, 1);
+      free (bcc);
+    }
 }
 
 void
@@ -577,6 +622,7 @@ _action_send (void *item, void *data)
   
   expand_aliases (msg);
   fix_fcc (msg);
+  fix_dcc (msg);
   
   mailer = open_mailer ();
   if (!mailer)
