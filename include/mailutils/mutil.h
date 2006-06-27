@@ -122,7 +122,7 @@ extern char *mu_strcasestr (const char *haystack, const char *needle);
 
 extern int mu_string_unfold (char *text, size_t *plen);
 
-extern int mu_unre_set_regex (char *str, int caseflag, char **errp);
+extern int mu_unre_set_regex (const char *str, int caseflag, char **errp);
 extern int mu_unre_subject  (const char *subject, const char **new_subject);
 
 extern char *mu_charset_lookup (char *lang, char *terr);
