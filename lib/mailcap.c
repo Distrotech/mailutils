@@ -142,13 +142,13 @@ mime_context_do_not_ask (struct mime_context *ctx)
   return rc;
 }
 
-int
+static int
 dry_run_p (struct mime_context *ctx)
 {
   return ctx->flags & FLAGS_DRY_RUN;
 }
 
-int
+static int
 interactive_p (struct mime_context *ctx)
 {
   return ctx->flags & FLAGS_INTERACTIVE;
@@ -175,7 +175,8 @@ mime_context_get_content_type_value (struct mime_context *ctx,
   int rc = 1;
   
   mu_list_get_iterator (ctx->values, &itr);
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+  for (mu_iterator_first (itr);
+       !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       char *item, *p;
 
@@ -507,7 +508,7 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
   return status;
 }
 
-int
+static int
 run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
 {
   char *view_command;   
