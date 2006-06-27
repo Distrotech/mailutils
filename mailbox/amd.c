@@ -368,7 +368,8 @@ amd_close (mu_mailbox_t mailbox)
   amd->msg_max = 0;   /* maximum message buffer capacity */
 
   amd->uidvalidity = 0;
-
+  mu_monitor_unlock (mailbox->monitor);
+  
   return 0;
 }
 
@@ -383,7 +384,7 @@ _amd_get_message (struct _amd_data *amd, size_t msgno)
 
 static int
 _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
-		    mu_message_t *pmsg)
+		     mu_message_t *pmsg)
 {
   int status;
   mu_message_t msg;
@@ -1477,9 +1478,9 @@ amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *psiz
   if (mhm == NULL)
     return EINVAL;
 
-  if ((status = mu_message_get_header (msg, &hdr)) != 0)
+  if ((status = mu_message_get_header (msg, &hdr)))
     return status;
-  if (status = mu_header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from))
+  if ((status = mu_header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from)))
     return status;
 
   if (buf && len > 0)
