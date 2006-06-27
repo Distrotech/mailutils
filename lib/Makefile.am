@@ -59,7 +59,6 @@ libmuaux_la_SOURCES += snprintf.h
 
 libmuaux_la_SOURCES += vasprintf.h
 
-
 libmuaux_la_SOURCES += xalloc-die.c
 
 libmuaux_la_SOURCES += xsize.h

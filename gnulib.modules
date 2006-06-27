@@ -13,6 +13,7 @@ strtok_r
 md5
 glob
 inttostr
+sha1
 
 :muaux
 xalloc

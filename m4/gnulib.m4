@@ -72,6 +72,9 @@ gl_GLOB
 # inttostr
 gl_INTTOSTR
 
+# sha1
+gl_SHA1
+
 # extensions
 dnl gl_USE_SYSTEM_EXTENSIONS must be added quite early to configure.ac.
 
@@ -88,6 +91,8 @@ gl_GETLOGIN_R
 gl_GETOPT
 
 # gettext-h
+
+# intprops
 
 # malloc
 AC_FUNC_MALLOC
@@ -112,6 +117,9 @@ gl_C_RESTRICT
 
 # size_max
 gl_SIZE_MAX
+
+# ssize_t
+gt_TYPE_SSIZE_T
 
 # stat-macros
 gl_STAT_MACROS
@@ -141,6 +149,9 @@ gl_FUNC_STRNLEN
 
 # sysexits
 gl_SYSEXITS
+
+# unistd
+gl_HEADER_UNISTD
 
 # vasnprintf
 gl_FUNC_VASNPRINTF
