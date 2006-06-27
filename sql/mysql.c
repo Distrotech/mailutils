@@ -319,7 +319,7 @@ mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
       scrambled = buf;
     }
   
-  get_salt_from_password (hash_pass, scrambled);
+  get_salt_from_scrambled (hash_pass, scrambled);
   scramble_password (hash_message, message);
   return !(hash_message[0] == hash_pass[0]
 	   && hash_message[1] == hash_pass[1]);
