@@ -25,6 +25,7 @@
 
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
+#include <sha1.h>
 
 struct mu_mysql_data
 {
@@ -250,11 +251,10 @@ scramble_password (unsigned long *result, const char *password)
   result[1] = nr2 & (((unsigned long) 1L << 31) -1L);
 }
 
-#if 0
 static void
 octet2hex (char *to, const unsigned char *str, unsigned len)
 {
-  const char *str_end= str + len;
+  const unsigned char *str_end= str + len;
   static char d[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   for ( ; str != str_end; ++str)
@@ -266,16 +266,13 @@ octet2hex (char *to, const unsigned char *str, unsigned len)
 }
 
 #define SHA1_HASH_SIZE 20
-int
+static int
 mu_check_mysql_4x_password (const char *scrambled, const char *message)
 {
   struct sha1_ctx sha1_context;
-  uint8 hash_stage2[SHA1_HASH_SIZE];
+  unsigned char hash_stage2[SHA1_HASH_SIZE];
   char to[2*SHA1_HASH_SIZE + 2];
 
-  if (!to)
-    return 1;
-  
   /* stage 1: hash password */
   sha1_init_ctx (&sha1_context);
   sha1_process_bytes (message, strlen (message), &sha1_context);
@@ -287,42 +284,48 @@ mu_check_mysql_4x_password (const char *scrambled, const char *message)
   sha1_finish_ctx (&sha1_context, hash_stage2);
 
   /* convert hash_stage2 to hex string */
-  *to++= '*';
-  octet2hex (to, hash_stage2, SHA1_HASH_SIZE);
+  to[0] = '*';
+  octet2hex (to + 1, hash_stage2, SHA1_HASH_SIZE);
 
   /* Compare both strings */
   return memcmp (to, scrambled, strlen (scrambled));
 }
-#endif
+
+static int
+mu_check_mysql_3x_password (const char *scrambled, const char *message)
+{
+  unsigned long hash_pass[2], hash_message[2];
+  char buf[17];
+
+  memcpy (buf, scrambled, 16);
+  buf[16] = 0;
+  scrambled = buf;
+  
+  get_salt_from_scrambled (hash_pass, scrambled);
+  scramble_password (hash_message, message);
+  return !(hash_message[0] == hash_pass[0]
+	   && hash_message[1] == hash_pass[1]);
+}
 
 /* Check whether a plaintext password MESSAGE matches MySQL scrambled password
    PASSWORD */
 int
 mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
 {
-  unsigned long hash_pass[2], hash_message[2];
-  char buf[17];
+  const char *p;
 
-  if (strlen (scrambled) < 16)
-    return 1;
-  if (strlen (scrambled) > 16)
+  /* Try to normalize it by cutting off trailing whitespace */
+  for (p = scrambled + strlen (scrambled) - 1;
+       p > scrambled && isspace (*p); p--)
+    ;
+  switch (p - scrambled)
     {
-      const char *p;
-      /* Try to normalize it by cutting off trailing whitespace */
-      for (p = scrambled + strlen (scrambled) - 1;
-	   p > scrambled && isspace (*p); p--)
-	;
-      if (p - scrambled != 15)
-	return 1;
-      memcpy (buf, scrambled, 16);
-      buf[17] = 0;
-      scrambled = buf;
+    case 15:
+      return mu_check_mysql_3x_password (scrambled, message);
+    case 40:
+      return mu_check_mysql_4x_password (scrambled, message);
     }
-  
-  get_salt_from_scrambled (hash_pass, scrambled);
-  scramble_password (hash_message, message);
-  return !(hash_message[0] == hash_pass[0]
-	   && hash_message[1] == hash_pass[1]);
+  return 1;
 }
 
 
