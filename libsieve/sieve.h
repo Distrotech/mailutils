@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ typedef union {
   mu_sieve_value_t *val;
   mu_list_t list;
   long number;
-  char *string;
+  const char *string;
   size_t pc;
   size_t line;
 } sieve_op_t;
@@ -59,7 +59,7 @@ struct sieve_machine {
 
   int debug_level;           /* Debugging level */
   jmp_buf errbuf;            /* Target location for non-local exits */
-  char *identifier;          /* Name of action or test being executed */
+  const char *identifier;    /* Name of action or test being executed */
   
   mu_mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;           /* Current message number */

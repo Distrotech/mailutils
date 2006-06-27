@@ -1350,7 +1350,7 @@ char *
 __argp_base_name (const char *arg)
 {
   char *p = strrchr (arg, '/');
-  return p ? p + 1 : arg;
+  return (char *)(p ? p + 1 : arg);
 }
 
 /* A locale-independent version of strftime */

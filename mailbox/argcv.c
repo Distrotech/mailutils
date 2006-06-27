@@ -209,7 +209,7 @@ argcv_unquote_copy (char *dst, const char *src, size_t n)
 	case '"':
 	  if (!expect_delim)
 	    {
-	      char *p;
+	      const char *p;
 	      
 	      for (p = src+i+1; *p && *p != src[i]; p++)
 		if (*p == '\\')

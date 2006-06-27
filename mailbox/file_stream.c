@@ -582,8 +582,8 @@ mu_temp_file_stream_create (mu_stream_t *stream, const char *dir)
   fs->tempfile = 1;
 
   if (!dir)
-    fs->filename = dir;
-  else if ((fs->filename = strdup(dir)) == NULL)
+    fs->filename = NULL;
+  else if ((fs->filename = strdup (dir)) == NULL)
     {
       free (fs);
       return ENOMEM;

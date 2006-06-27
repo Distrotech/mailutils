@@ -564,7 +564,7 @@ mh_spawnp (const char *prog, const char *file)
   xargv[i++] = (char*) file;
   xargv[i++] = NULL;
 
-  rc = mu_spawnvp (xargv[0], (const char**) xargv, &status);
+  rc = mu_spawnvp (xargv[0], xargv, &status);
 
   free (xargv);
   mu_argcv_free (argc, argv);

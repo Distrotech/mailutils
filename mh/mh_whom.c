@@ -105,7 +105,7 @@ mh_alias_expand (char *str, mu_address_t *paddr, int *incl)
     {
       int status;
       mu_argcv_string (argc, argv, &buf);
-      if (status = mu_address_create (paddr, buf))
+      if ((status = mu_address_create (paddr, buf)))
 	mu_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
       free (buf);
     }

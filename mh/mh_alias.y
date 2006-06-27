@@ -359,7 +359,6 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 {
   mu_iterator_t itr;
   mu_list_t list;
-  const char *domain = NULL;
 
   if (incl)
     *incl = 0;

@@ -1623,30 +1623,31 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	    }
 
 	  if (!name
-	      && mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0) {
-	    if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
-	      {
-		int i;
-
-		for (i = 0; i < argc; i++)
-		  {
-		    if ((strcmp (argv[i], "filename") == 0
-			 || strcmp (argv[i], "name") == 0)
-			&& ++i < argc
-			&& argv[i][0] == '='
-			&& ++i < argc)
-		      {
-			name = normalize_path (dir, argv[i]);
-			break;
-		      }
-		  }
-		mu_argcv_free (argc, argv);
-	      }
-	    free (val);
-	  }
+	      && mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0)
+	    {
+	      if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
+		{
+		  int i;
+		  
+		  for (i = 0; i < argc; i++)
+		    {
+		      if ((strcmp (argv[i], "filename") == 0
+			   || strcmp (argv[i], "name") == 0)
+			  && ++i < argc
+			  && argv[i][0] == '='
+			  && ++i < argc)
+			{
+			  name = normalize_path (dir, argv[i]);
+			  break;
+			}
+		    }
+		  mu_argcv_free (argc, argv);
+		}
+	      free (val);
+	    }
 	}
     }
-
+  
   if (!name)
     {
       char *fname = mhn_store_command (msg, part, prefix);

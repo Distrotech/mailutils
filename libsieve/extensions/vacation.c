@@ -64,7 +64,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
   mu_message_get_body (newmsg, &body);
   mu_body_get_stream (body, &stream);
 
-  if (rc = mu_memory_stream_create (&input, 0, MU_STREAM_RDWR))
+  if ((rc = mu_memory_stream_create (&input, 0, MU_STREAM_RDWR)))
     {
       mu_sieve_error (mach,
 		      _("cannot create temporary stream: %s"),
@@ -72,7 +72,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       return 1;
     }
 
-  if (rc = mu_stream_open (input))
+  if ((rc = mu_stream_open (input)))
     {
       mu_sieve_error (mach,
 		      _("cannot open temporary stream: %s"),

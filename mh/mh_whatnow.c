@@ -265,7 +265,7 @@ invoke (char *compname, char *defval, int argc, char **argv,
   if (extra1)
     xargv[i++] = extra1;
   xargv[i++] = NULL;
-  rc = mu_spawnvp (xargv[0], (const char **) xargv, &status);
+  rc = mu_spawnvp (xargv[0], xargv, &status);
   free (xargv);
   return rc ? rc : check_exit_status (progname, status);
 }

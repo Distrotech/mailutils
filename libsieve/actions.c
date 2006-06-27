@@ -125,7 +125,7 @@ mu_sieve_get_message_sender (mu_message_t msg, char **ptext)
     {
       mu_header_t hdr = NULL;
       mu_message_get_header (msg, &hdr);
-      if (rc = mu_header_aget_value (hdr, MU_HEADER_SENDER, &text))
+      if ((rc = mu_header_aget_value (hdr, MU_HEADER_SENDER, &text)))
 	rc = mu_header_aget_value (hdr, MU_HEADER_FROM, &text);
     }
 

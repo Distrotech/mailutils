@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -84,7 +84,7 @@ sieve_code_number (long num)
 }
 
 int
-sieve_code_string (char *string)
+sieve_code_string (const char *string)
 {
   sieve_op_t op;
 

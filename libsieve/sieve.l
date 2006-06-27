@@ -240,7 +240,7 @@ push_source (const char *name)
       yyerror (_("recursive inclusion"));
       return 1;
     }
-  if (ctx = ctx_lookup (st.st_ino))
+  if ((ctx = ctx_lookup (st.st_ino)))
     {
       yyerror (_("recursive inclusion"));
       if (ctx->prev)

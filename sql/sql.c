@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,8 @@ init_disptab ()
   return 0;
 }
 
+/* FIXME: See comment 'For dynamic loading' below */
+#if 0
 static int
 add_disptab (mu_sql_dispatch_t *tab)
 {
@@ -64,6 +66,7 @@ add_disptab (mu_sql_dispatch_t *tab)
   sql_disptab[sql_disptab_next] = tab;
   return sql_disptab_next++;
 }
+#endif
 
 int
 mu_sql_interface_index (char *name)
@@ -75,9 +78,10 @@ mu_sql_interface_index (char *name)
   for (i = 1; i < sql_disptab_next; i++)
     if (sql_disptab[i] && (!name || strcmp (sql_disptab[i]->name, name) == 0))
       return i;
-  // FIXME
-  //  if (name && mu_sql_load_ext (name, "dispatch_tab", &tab))
-  //  return add_disptab (tab);
+  /* FIXME: For dynamic loading
+      if (name && mu_sql_load_ext (name, "dispatch_tab", &tab))
+       return add_disptab (tab);
+  */  
   return 0;
 }
 

@@ -255,7 +255,7 @@ push_source (const char *name, int fail)
       free (filename);
       return 1;
     }
-  if (ctx = ctx_lookup (st.st_ino))
+  if ((ctx = ctx_lookup (st.st_ino)))
     {
       ali_parse_error (_("recursive inclusion"));
       if (ctx->prev)
