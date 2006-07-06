@@ -50,7 +50,28 @@ snarf_x() {
 snarf_doc() {
     $CPP -DSCM_MAGIC_SNARF_DOCS "$@" > ${temp}
     cpp_exit=$?
-    sed -n '/\^^ *{.*^^ *}/{s,\^^,\n,pg}' $temp | \
+    sed -n '
+	/^ *^^ {.*/{
+	# First, remove the delimiting braces
+	s/^ *^^ {//
+	s/\^^ }/^^/
+	# Initialize the hold space
+	h
+	:beg
+	# Delete everything after the first ^^
+	s/\^^.*//
+	# Exchange spaces
+	x
+	# Delete up to the first ^^
+	s/[^^]*\^^//
+	# Append to the hold space and exchange
+	H
+	x
+	# Branch if the last substitution was successful
+	tbeg
+	# Otherwise, print the pattern space
+	p
+	}' $temp | \
       $AWK -f $BASEDIR/guile-doc-snarf.awk 
 }
 
