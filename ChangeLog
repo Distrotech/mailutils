@@ -1,5 +1,9 @@
 2006-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* doc/rfc/rfc2231.txt: New file
+	* doc/rfc/Makefile.am (EXTRA_DIST): Add rfc2231.txt
+	* mh/TODO: Update
+
 	Sources at this point are tagged rel-1_0 
 
 	* NEWS: Update
