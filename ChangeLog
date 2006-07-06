@@ -1,3 +1,17 @@
+2006-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+	* configure.ac: Raise version number to 1.0
+	* direntry: Update for 1.0
+	* doc/texinfo/Makefile.am: Removed hack introduced on
+	2006-06-15. It triggered unnecessary doc updates.
+	* scripts/guile-1.6/guile-doc-snarf (snarf_doc): Do not use \n in
+	the replacement part of a sed expression for the sake of older
+	seds. Use a more sophisticated approach with changing hold/pattern
+	spaces instead.
+	* scripts/guile-1.6/guile-doc-snarf.awk: Adopt for the new output
+	format of snarf_doc 
+
 2006-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* gnulib.modules (mailutils): Add sha1
