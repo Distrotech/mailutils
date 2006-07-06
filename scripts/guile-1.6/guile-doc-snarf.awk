@@ -53,16 +53,15 @@ function error(s) {
 	 exit 1
 }
 
-state == 0 && $1 == "{" {
-	flush()
-	cname = $3
-	next
-}		
+#{print NR ": " state}
 
-state == 0 && /fname/ { fname = substr($2,2,length($2)-2); next }
-state == 0 && /type/ { type = $2; next }
-state == 0 && /location/ { loc_source = $2; loc_line = $3 }
-state == 0 && /arglist/ {
+state == 0 && NF != 0 { state = 1 }		
+
+state == 1 && $1 == "cname" { cname = $2; next }
+state == 1 && $1 == "fname" { fname = substr($2,2,length($2)-2); next }
+state == 1 && $1 == "type" { type = $2; next }
+state == 1 && $1 == "location" { loc_source = $2; loc_line = $3; next }
+state == 1 && $1 == "arglist" {
 	match($0, "\\(.*\\)")
 	s = substr($0,RSTART+1,RLENGTH-2)
 	numargs = split(s, a, ",")
@@ -80,10 +79,13 @@ state == 0 && /arglist/ {
 	       error(cname ": wrong argument type for arg " i " " t)
 	    arglist[i] = n
 	}
+	next
 }
-state == 0 && /argsig/ { arg_req = $2; arg_opt = $3; arg_var = $4 }
 
-state == 0 && /.*\"/    {
+state == 1 && $1 == "argsig" { arg_req = $2; arg_opt = $3; arg_var = $4; next }
+state == 1 && $1 == "argpos" { argpos[$2] = $3; next }
+
+state == 1 && / *\"/    {
         # Concatenate strings. A very simplified version, but
         # works for us
 	gsub("\\\\n\" *\"", "\n")
@@ -93,7 +95,7 @@ state == 0 && /.*\"/    {
 	docstring = substr($0,RSTART+1,RLENGTH-2)
 }
 
-/argpos/ { argpos[$2] = $3 }
+state == 1 && NF==0 { flush(); state = 0; }
 
 END {
 	flush()
