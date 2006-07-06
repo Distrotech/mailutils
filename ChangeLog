@@ -1,5 +1,7 @@
 2006-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Sources at this point are tagged rel-1_0 
+
 	* NEWS: Update
 	* configure.ac: Raise version number to 1.0
 	* direntry: Update for 1.0

@@ -1,8 +1,15 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-06-16
+GNU mailutils NEWS -- history of user-visible changes.  2006-07-05
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+
+Version 1.0:
+
+Official release.  This is the first stable release since 0.6.  For a
+complete list of changes, please see the entries below.
+
 
 Version 0.6.95:
 
@@ -17,7 +24,7 @@ from the given source address.
 RAND and nmh implementations.  In particular, `folder -all +name'
 (`folders +name') is now working as expected.
 ** MH programs create directory hierarchies if requested to.
-** `mail' correctly hanldes empty mailboxes (it used to display garbage in
+** `mail' correctly handles empty mailboxes (it used to display garbage in
 place of the message count).
 ** Fix RFC 2047 filters: do not stop translating until the buffer is drained.
 ** Fix option handling in guimb: remove leftover optind usage.
@@ -61,7 +68,7 @@ NOTE: This is incompatible change.
 Programs using old API can still be compiled, using one of the
 following approaches. If the program includes <mailutils/mailutils.h>,
 define the symbol MU_COMPAT before including it (or invoke cc with
--DMU_COMPAT option). Othervise, include file <mailutils/compat.h>.
+-DMU_COMPAT option). Otherwise, include file <mailutils/compat.h>.
 
 * Main library is renamed to libmailutils
 NOTE: This is incompatible change, unless you use mailutils-config to

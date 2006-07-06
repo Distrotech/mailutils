@@ -1,5 +1,5 @@
 %%comments:
-Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -15,7 +15,7 @@ Texts. A copy of the license is included in the file COPYING.
 	GNU mailutils is a collection of mail-related utilities. At the
 	core of mailutils is libmailbox, a library which provides access
 	to various forms of mailbox files (including remote mailboxes via
-	popular protocols). It also provides support for parsing of RFC-822
+	popular protocols). It also provides support for parsing of RFC-2822
 	style messages and MIME support. The utilities, provided by
 	mailutils include: pop3d, imap4d, comsatd, mail, frm, messages,
 	readmsg, guimb,	sieve, mail.local, mail.remote, movemail,
@@ -30,7 +30,7 @@ Texts. A copy of the license is included in the file COPYING.
 	Alain Magloire <alainm@gnu.org>,
 	Sergey Poznyakoff <gray@Mirddin.farlep.net> 
 
-%%updated: 23 Dec 2004
+%%updated: 5 Jul 2006
 
 %%keywords: mail, email, pop3, imap4, sieve, comsat, smtp, mh, maildir, movemail
 
@@ -56,19 +56,19 @@ Texts. A copy of the license is included in the file COPYING.
 	Sergey Poznyakoff <gray@Mirddin.farlep.net>,
 	Wojciech Polak <polak@gnu.org>
 
-%%source-tarball: ftp://ftp.gnu.org/pub/gnu/mailutils/mailutils-0.6.tar.gz
+%%source-tarball: ftp://ftp.gnu.org/pub/gnu/mailutils/mailutils-1.0.tar.gz
 %%source-info: http://savannah.gnu.org/projects/mailutils
 
 %%repository:
-        CVS_RSH=ssh :ext:anoncvs@savannah.gnu.org:/cvsroot/mailutils co mailutils,
+        :pserver:anonymous@cvs.savannah.gnu.org:/cvsroot/mailutils co mailutils,
 	http://savannah.gnu.org/cvs/?group_id=36,
 	http://savannah.gnu.org/cgi-bin/viewcvs/mailutils/mailutils,
 
 %%source-language: C
 
-%%weak-prerequisites: Guile 1.6.4, Libtool 1.4.2, GSASL 0.2.3, GnuTLS 1.0.18
+%%weak-prerequisites: Guile 1.6.7, Libtool 1.4.2, GSASL 0.2.3, GnuTLS 1.0.18
 
-%%version: 0.6 released on 23 Dec 2004
+%%version: 1.0 released on 07 Dec 2006
 
 %%bug-list: bug-mailutils@gnu.org bug-mailutils@gnu.org http://mail.gnu.org/mailman/listinfo/bug-mailutils
 
