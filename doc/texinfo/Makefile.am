@@ -76,15 +76,12 @@ muint_TEXINFOS = \
  mom.texi
 
 ## Fake configure into including srcdir to VPATH:
-s=${srcdir}:${top_srcdir}/examples/:$(top_srcdir)/libmu_scm
+s=${srcdir}:${top_srcdir}/examples/
 VPATH = $(s)
 
-SUFFIXES=.c .inc .texi .doc
+SUFFIXES=.c .inc 
 .c.inc:
 	sed -f $(top_srcdir)/scripts/texify.sed $< > $@
-
-.doc.texi:
-	sed '/\f/d' $< > $@
 
 DISTCLEANFILES=*.pgs *.kys *.vrs
 MAINTAINERCLEANFILES=$(INCFILES)
