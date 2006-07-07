@@ -444,7 +444,7 @@ extern char *strsignal (int);
 ])
 
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim setreuid \
- setresuid seteuid vfork _exit)
+ setresuid seteuid setlocale vfork _exit)
 
 AC_FUNC_SETVBUF_REVERSED
 AH_BOTTOM([
