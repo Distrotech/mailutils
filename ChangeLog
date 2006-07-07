@@ -1,3 +1,7 @@
+2006-07-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (AC_CHECK_FUNCS): Add setlocale
+
 2006-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/rfc/rfc2231.txt: New file
