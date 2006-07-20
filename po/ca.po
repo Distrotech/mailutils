@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.6.95\n"
+"Project-Id-Version: mailutils 1.0\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2006-06-14 13:26+0300\n"
-"PO-Revision-Date: 2006-06-19 20:35+0200\n"
+"POT-Creation-Date: 2006-07-05 10:05+0300\n"
+"PO-Revision-Date: 2006-07-20 02:03+0200\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -913,7 +913,7 @@ msgid "Too many children (%s)"
 msgstr "Massa fills (%s)"
 
 #: imap4d/list.c:271 mh/folder.c:367 mh/mh_init.c:301 mh/mh_init.c:793
-#: mh/rmf.c:147 mh/send.c:658 pop3d/popauth.c:246
+#: mh/rmf.c:147 mh/send.c:704 pop3d/popauth.c:246
 #, c-format
 msgid "Cannot stat %s: %s"
 msgstr "No es pot fer «stat» de %s: %s"
@@ -965,47 +965,47 @@ msgstr "No es pot sondejar el flux d'entrada: %s"
 msgid "Cannot open TLS stream: %s"
 msgstr "No es pot obrir el flux de TLS: %s"
 
-#: lib/mailcap.c:337
+#: lib/mailcap.c:338
 #, c-format
 msgid "Run `%s'?"
 msgstr "Voleu executar «%s»?"
 
-#: lib/mailcap.c:373
+#: lib/mailcap.c:374
 #, c-format
 msgid "cannot retrieve field %lu: %s"
 msgstr "no es pot obtenir el camp %lu: %s"
 
-#: lib/mailcap.c:445
+#: lib/mailcap.c:446
 #, c-format
 msgid "Cannot execute `%s': %s"
 msgstr "No es pot executar «%s»: %s"
 
-#: lib/mailcap.c:462
+#: lib/mailcap.c:463
 #, c-format
 msgid "Command exited with status %d\n"
 msgstr "L'ordre ha sortit amb l'estat %d\n"
 
-#: lib/mailcap.c:464
+#: lib/mailcap.c:465
 #, c-format
 msgid "Command terminated on signal %d\n"
 msgstr "L'ordre ha eixit en rebre el senyal %d\n"
 
-#: lib/mailcap.c:466
+#: lib/mailcap.c:467
 #, c-format
 msgid "Command terminated\n"
 msgstr "L'ordre ha finalitzat\n"
 
-#: lib/mailcap.c:550 mimeview/mimeview.c:201
+#: lib/mailcap.c:551 mimeview/mimeview.c:201
 #, c-format
 msgid "Executing %s...\n"
 msgstr "S'està executant %s...\n"
 
-#: lib/mailcap.c:593
+#: lib/mailcap.c:594
 #, c-format
 msgid "Trying %s...\n"
 msgstr "S'està provant %s...\n"
 
-#: lib/mailcap.c:635
+#: lib/mailcap.c:636
 #, c-format
 msgid "Found in %s\n"
 msgstr "S'ha trobat en %s\n"
@@ -1793,7 +1793,7 @@ msgstr ""
 "\n"
 "Interrupció"
 
-#: mail/escape.c:59 mail/send.c:230 mh/mhn.c:2119 mimeview/mimeview.c:217
+#: mail/escape.c:59 mail/send.c:230 mh/mhn.c:2120 mimeview/mimeview.c:217
 #, c-format
 msgid "Cannot create header: %s"
 msgstr "No es pot crear la capçalera: %s"
@@ -3671,12 +3671,12 @@ msgstr "Error d'escriptura en «%s»: %s"
 msgid "Cannot stat file %s: %s"
 msgstr "No es pot fer «stat» del fitxer %s: %s"
 
-#: mh/mh_init.c:656 mh/mhn.c:2327
+#: mh/mh_init.c:656 mh/mhn.c:2328
 #, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "No es pot crear un flux d'entrada (fitxer %s): %s"
 
-#: mh/mh_init.c:663 mh/mhn.c:2334
+#: mh/mh_init.c:663 mh/mhn.c:2335
 #, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "No es pot obrir el flux d'entrada (fitxer %s): %s"
@@ -4156,82 +4156,82 @@ msgstr "part "
 msgid "Press <return> to show content..."
 msgstr "Premeu «retorn» per a mostrar els continguts..."
 
-#: mh/mhn.c:1661 mh/mhn.c:1666
+#: mh/mhn.c:1662 mh/mhn.c:1667
 #, c-format
 msgid "storing message %s part %s as file %s\n"
 msgstr "s'està desant el missatge %s, part %s en el fitxer %s\n"
 
-#: mh/mhn.c:1677
+#: mh/mhn.c:1678
 #, c-format
 msgid "File %s already exists. Rewrite"
 msgstr "El fitxer %s ja existeix. Reescriure"
 
-#: mh/mhn.c:1691 mh/mhn.c:2721
+#: mh/mhn.c:1692 mh/mhn.c:2722
 #, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr "No es pot crear un flux d'eixida (fitxer %s): %s"
 
-#: mh/mhn.c:1699 mh/mhn.c:2729
+#: mh/mhn.c:1700 mh/mhn.c:2730
 #, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr "No es pot obrir el flux d'eixida (fitxer %s): %s"
 
-#: mh/mhn.c:1813
+#: mh/mhn.c:1814
 #, c-format
 msgid "%s:%lu: missing %c"
 msgstr "%s:%lu: manca %c"
 
-#: mh/mhn.c:1848
+#: mh/mhn.c:1849
 #, c-format
 msgid "%s:%lu: comment redefined"
 msgstr "%s:%lu: el comentari està redefinit"
 
-#: mh/mhn.c:1860 mh/mhn.c:1900 mh/mhn.c:2211
+#: mh/mhn.c:1861 mh/mhn.c:1901 mh/mhn.c:2212
 #, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu: error de sintaxi"
 
-#: mh/mhn.c:1869 mh/mhn.c:2178
+#: mh/mhn.c:1870 mh/mhn.c:2179
 #, c-format
 msgid "%s:%lu: description redefined"
 msgstr "%s:%lu: la descripció està redefinida"
 
-#: mh/mhn.c:1881 mh/mhn.c:2190
+#: mh/mhn.c:1882 mh/mhn.c:2191
 #, c-format
 msgid "%s:%lu: content id redefined"
 msgstr "%s:%lu: l'id del contingut està redefinit"
 
-#: mh/mhn.c:1963
+#: mh/mhn.c:1964
 #, c-format
 msgid "%s:%lu: missing subtype"
 msgstr "%s:%lu: manca el subtipus"
 
-#: mh/mhn.c:2225
+#: mh/mhn.c:2226
 #, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu no existeix el missatge: %lu"
 
-#: mh/mhn.c:2316
+#: mh/mhn.c:2317
 #, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu: manca el nom del fitxer"
 
-#: mh/mhn.c:2372
+#: mh/mhn.c:2373
 #, c-format
 msgid "Cannot open filter stream: %s"
 msgstr "No es pot obrir el flux de filtre: %s"
 
-#: mh/mhn.c:2508
+#: mh/mhn.c:2509
 #, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu: #end no emparellat"
 
-#: mh/mhn.c:2661
+#: mh/mhn.c:2662
 #, c-format
 msgid "cannot encode subject using %s, %s: %s"
 msgstr "no es pot codificar l'assumpte utilitzant %s, %s: %s"
 
-#: mh/mhn.c:2776 mh/mhn.c:2787
+#: mh/mhn.c:2777 mh/mhn.c:2788
 msgid "extra arguments"
 msgstr "arguments extra"
 
@@ -4674,46 +4674,55 @@ msgstr "S'està obrint l'enviador %s"
 msgid "Cannot open mailer `%s'"
 msgstr "No es pot obrir el l'enviador «%s»"
 
-#: mh/send.c:493
+#: mh/send.c:494
 #, c-format
 msgid "fixed fcc: %s"
 msgstr "fcc fixe: %s"
 
-#: mh/send.c:514
+#: mh/send.c:523
+msgid "not enough memory"
+msgstr "no hi ha memòria suficient"
+
+#: mh/send.c:536
+#, c-format
+msgid "fixed bcc: %s"
+msgstr "bcc fixe: %s"
+
+#: mh/send.c:559
 #, c-format
 msgid "renaming %s to %s"
 msgstr "S'està canviant el nom de %s a %s"
 
-#: mh/send.c:517
+#: mh/send.c:562
 #, c-format
 msgid "Cannot unlink file `%s': %s"
 msgstr "No es pot desenllaçar «%s»: %s"
 
-#: mh/send.c:519
+#: mh/send.c:564
 #, c-format
 msgid "Cannot rename `%s' to `%s': %s"
 msgstr "No es pot canviar el nom de «%s» a «%s»: %s"
 
-#: mh/send.c:534
+#: mh/send.c:579
 #, c-format
 msgid "Getting message %s"
 msgstr "S'està obtenint el missatge %s"
 
-#: mh/send.c:585
+#: mh/send.c:631
 #, c-format
 msgid "Sending message %s"
 msgstr "S'està enviant el missatge %s"
 
-#: mh/send.c:589
+#: mh/send.c:635
 #, c-format
 msgid "Cannot send message: %s"
 msgstr "No es pot enviar el missatge: %s"
 
-#: mh/send.c:593
+#: mh/send.c:639
 msgid "Destroying the mailer"
 msgstr "S'està destruint l'enviador"
 
-#: mh/send.c:619
+#: mh/send.c:665
 #, c-format
 msgid "Cannot switch to background: %s"
 msgstr "No es pot canviar al segon pla: %s"
@@ -5481,9 +5490,6 @@ msgstr "Ha fallat l'eliminació a la bústia per defecte: %s"
 
 #~ msgid "msg %d : %s"
 #~ msgstr "msg %d : %s"
-
-#~ msgid "not enough memory"
-#~ msgstr "no hi ha memòria suficient"
 
 #~ msgid "can't open input file %s: %s"
 #~ msgstr "no es pot obrir el fitxer d'entrada %s: %s"
