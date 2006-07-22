@@ -1228,7 +1228,9 @@ mu_scheme_autodetect_p (const char *scheme,  const char **path)
       *path += MU_FILE_SCHEME_LEN;
       return 1;
     }
-  if (strncmp (MU_PATH_SCHEME, scheme, MU_PATH_SCHEME_LEN) == 0)
+  if (access (scheme, F_OK) == 0
+      /* FIXME: this can return true even if the folder is unreadable */
+      || strncmp (MU_PATH_SCHEME, scheme, MU_PATH_SCHEME_LEN) == 0)
     return 1;
   return 0;
 }
