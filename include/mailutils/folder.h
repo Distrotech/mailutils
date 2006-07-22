@@ -35,6 +35,9 @@ struct mu_list_response
 
 /* Constructor/destructor and possible types.  */
 extern int  mu_folder_create         (mu_folder_t *, const char *);
+extern int  mu_folder_create_from_record (mu_folder_t *, const char *,
+					  mu_record_t);
+  
 extern void mu_folder_destroy        (mu_folder_t *);
 
 extern int  mu_folder_open           (mu_folder_t, int flag);
