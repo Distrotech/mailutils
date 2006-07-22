@@ -1,3 +1,24 @@
+2006-07-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix coredump on `cd x<TAB>' in mail. Bug reported by
+	Daniel Kahn Gillmor.
+	
+	* include/mailutils/folder.h (mu_folder_create_from_record): New
+	function.
+	* mailbox/folder.c (mu_folder_create_from_record): New
+	function.
+	(mu_folder_create): Interface to mu_folder_create_from_record
+	* mailbox/mutil.c (mu_scheme_autodetect_p): Return true if scheme
+	is the name of an existing file or directory.
+	
+	* mail/mailline.c (file_generator): Remove leading pathlen
+	characters from the returned names.
+	
+	* libproto/mbox/folder.c: Minor formatting changes
+	* mail/mail.c: Likewise
+
+	* THANKS: Add Daniel Kahn Gillmor
+	
 2006-07-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (AC_CHECK_FUNCS): Add setlocale
