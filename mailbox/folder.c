@@ -53,16 +53,16 @@ static struct mu_monitor folder_lock = MU_MONITOR_INITIALIZER;
    they maybe cases where you want a different folder for the same URL, there
    is not easy way to do this.  */
 int
-mu_folder_create (mu_folder_t *pfolder, const char *name)
+mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
+			      mu_record_t record)
 {
-  mu_record_t record;
-
-  if (pfolder == NULL)
+  if (!pfolder)
     return MU_ERR_OUT_PTR_NULL;
 
-  /* Look in the registrar list(iterator), for a possible concrete mailbox
-     implementation that could match the URL.  */
-  if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_DIRECTORY, &record, NULL)
+  if (record || 
+      /* Look in the registrar list(iterator), for a possible concrete mailbox
+	 implementation that could match the URL.  */
+      mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_DIRECTORY, &record, NULL)
       == 0)
     {
       int (*f_init) (mu_folder_t) = NULL;
@@ -98,14 +98,14 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
 	  
 	  /* Create a new folder.  */
 
-	  /* Allocate memory for folder.  */
+	  /* Allocate memory for the folder.  */
 	  folder = calloc (1, sizeof (*folder));
 	  if (folder != NULL)
 	    {
 	      folder->url = url;
 	      /* Initialize the internal foilder lock, now so the
 		 concrete folder could use it.  */
-	      status = mu_monitor_create (&(folder->monitor), 0, folder);
+	      status = mu_monitor_create (&folder->monitor, 0, folder);
 	      if (status == 0)
 		{
 		  /* Create the concrete folder type.  */
@@ -124,9 +124,9 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
 	      if (status)
 		{
 		  if (folder->monitor)
-		    mu_monitor_destroy (&(folder->monitor), folder);
+		    mu_monitor_destroy (&folder->monitor, folder);
 		  if (folder->url)
-		    mu_url_destroy (&(folder->url));
+		    mu_url_destroy (&folder->url);
 		  free (folder);
 		}
 	    }
@@ -134,7 +134,13 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
 	}
     }
 
-  return MU_ERR_NOENT;
+    return MU_ERR_NOENT;
+}
+
+int
+mu_folder_create (mu_folder_t *pfolder, const char *name)
+{
+  return mu_folder_create_from_record (pfolder, name, NULL);
 }
 
 /* The folder is destroy if it is the last reference.  */
