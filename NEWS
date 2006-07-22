@@ -5,6 +5,13 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
+Version 1.0.1 (CVS):
+
+** Bug fixes
+* mail core dumped on tab expansion of `cd x'
+* Fix memory problems in mail's `decode' command
+
+
 Version 1.0:
 
 Official release.  This is the first stable release since 0.6.  For a

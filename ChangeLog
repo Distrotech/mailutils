@@ -1,5 +1,10 @@
 2006-07-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Raise version number to 1.0.1
+	* NEWS: Version 1.0.1
+	* lib/mailcap.c (expand_string, run_test, run_mailcap): Fix memory
+	allocation bugs. Place all temporary strings in the obstack. 
+
 	Fix coredump on `cd x<TAB>' in mail. Bug reported by
 	Daniel Kahn Gillmor.
 	
