@@ -335,9 +335,19 @@ command_compl (int argc, char **argv, int ws)
   return rl_completion_matches (argv[argc-1], ml_command_generator);
 }
 
+/* Generate file list based on reference prefix TEXT, relative to PATH.
+   Remove PATHLEN leading characters from the returned names. Replace
+   them with REPL unless it is 0.
+
+   Select only those files that match given FLAGS (MU_FOLDER_ATTRIBUTE_*
+   constants).
+   
+   STATE is 0 for the first call, 1 otherwise.
+ */
 static char *
-file_generator (const char *text, int state, char *path, size_t pathlen,
-		char repl,
+file_generator (const char *text, int state,
+		char *path, size_t pathlen,
+		char repl, 
 		int flags)
 {
   static mu_list_t list;
@@ -352,7 +362,12 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
       wcard = xmalloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");
 
-      mu_folder_create (&folder, path);
+      if (mu_folder_create (&folder, path))
+	{
+	  free (wcard);
+	  return NULL;
+	}
+      
       mu_folder_list (folder, path, wcard, 1, &list);
       free (wcard);
       mu_folder_destroy (&folder);
@@ -381,13 +396,17 @@ file_generator (const char *text, int state, char *path, size_t pathlen,
       if (resp->type & flags)
 	{
 	  char *ret;
-	  if (repl)
+	  if (pathlen)
 	    {
-	      int len = strlen (resp->name + pathlen);
-	      ret = xmalloc (len + 2);
-	      ret[0] = repl;
-	      memcpy (ret + 1, resp->name + pathlen, len);
-	      ret[len+1] = 0;
+	      size_t len = strlen (resp->name + pathlen);
+	      char *ptr;
+	      
+	      ret = xmalloc (len + (repl ? 1 : 0) + 1);
+	      ptr = ret;
+	      if (repl)
+		*ptr++ = repl;
+	      memcpy (ptr, resp->name + pathlen, len);
+	      ptr[len] = 0;
 	    }
 	  else
 	    ret = xstrdup (resp->name);
@@ -483,9 +502,15 @@ dir_generator (const char *text, int state)
 	    }
 	  /* else FIXME! */
 
-	default:
+	case '/':
 	  path = strdup (text);
 	  pathlen = 0;
+	  repl = 0;
+	  break;
+	  
+	default:
+	  path = strdup ("./");
+	  pathlen = 2;
 	  repl = 0;
 	}
       
