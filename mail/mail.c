@@ -185,7 +185,7 @@ static const char *mail_capa[] = {
 };
 			     
 static char *
-mail_cmdline(void *closure, int cont ARG_UNUSED)
+mail_cmdline (void *closure, int cont ARG_UNUSED)
 {
   char *prompt = (char*) closure;
   char *rc;
@@ -201,8 +201,8 @@ mail_cmdline(void *closure, int cont ARG_UNUSED)
 	}
 
       rc = ml_readline (prompt);
-
-      if (ml_got_interrupt())
+      
+      if (ml_got_interrupt ())
 	{
 	  util_error(_("Interrupt"));
 	  continue;

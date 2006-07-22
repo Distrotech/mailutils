@@ -71,7 +71,8 @@ _path_is_scheme (mu_record_t record, const char *url, int flags)
   if (url && record->scheme)
     {
       if (mu_scheme_autodetect_p (url, &path))
-	/* implies if (strncmp (record->scheme, url, strlen(record->scheme)) == 0)*/
+	/* implies:
+	   if (strncmp (record->scheme, url, strlen(record->scheme)) == 0) */
 	{
 	  struct stat st;
 	  
