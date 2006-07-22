@@ -319,7 +319,6 @@ expand_string (struct mime_context *ct, char **pstr)
 	}
     }
   obstack_1grow (&expand_stack, 0);
-  free (*pstr);
   *pstr = obstack_finish (&expand_stack);
   return rc;
 }
@@ -494,12 +493,14 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
     {
       int argc;
       char **argv;
-      char *str = xmalloc (size + 1);
+      char *str;
+
+      obstack_blank (&expand_stack, size + 1);
+      str = obstack_finish (&expand_stack);
       mu_mailcap_entry_get_test (entry, str, size + 1, NULL);
 
       expand_string (ctx, &str);
       mu_argcv_get (str, "", NULL, &argc, &argv);
-      free (str);
       
       if (mu_spawnvp (argv[0], argv, &status))
 	status = 1;
@@ -528,9 +529,11 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
 
   if (interactive_p (ctx))
     {
-      mu_mailcap_entry_get_viewcommand (entry, NULL, 0, &size);
+      if (mu_mailcap_entry_get_viewcommand (entry, NULL, 0, &size))
+	return 1;
       size++;
-      view_command = xmalloc (size);
+      obstack_blank (&expand_stack, size);
+      view_command = obstack_finish (&expand_stack);
       mu_mailcap_entry_get_viewcommand (entry, view_command, size, NULL);
     }
   else
@@ -538,7 +541,8 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
       if (mu_mailcap_entry_get_value (entry, "print", NULL, 0, &size))
 	return 1;
       size++;
-      view_command = xmalloc (size);
+      obstack_blank (&expand_stack, size);
+      view_command = obstack_finish (&expand_stack);
       mu_mailcap_entry_get_value (entry, "print", view_command, size, NULL);
     }
 
@@ -551,11 +555,8 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
   DEBUG (ctx, 0, (_("Executing %s...\n"), view_command));
 
   if (!confirm_action (ctx, view_command))
-    {
-      free (view_command);
-      return 1;
-    }
-
+    return 1;
+    
   flag = 0;
   if (interactive_p (ctx)
       && mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
@@ -579,7 +580,6 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
       if (ctx->debug_level)
 	print_exit_status (status);
     }
-  free (view_command);
   return 0;
 }
 
