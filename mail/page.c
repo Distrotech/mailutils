@@ -18,15 +18,15 @@
 
 #include "mail.h"
 
-size_t top_of_page = 1; /* Number of the topmost message on the page */
-size_t cursor;          /* Number of current message */
+static size_t top_of_page = 1; /* Number of the topmost message on the page */
+static size_t cursor;          /* Number of current message */
 
-size_t *page_map;       /* Array of message numbers. page_map[N] holds
-			   number of the message occupying Nth line on
-			   the screen */
-unsigned page_size;     /* Capacity of page_map */
-unsigned page_avail;    /* First non-used entry in page map. Can be
-			   equal to page_size */
+static size_t *page_map;       /* Array of message numbers. page_map[N] holds
+	  		          number of the message occupying Nth line on
+			          the screen */
+static unsigned page_size;     /* Capacity of page_map */
+static unsigned page_avail;    /* First non-used entry in page map. Can be
+			          equal to page_size */
 
 /* Auxiliary function: Store number of message from mspec into page_map */
 static int
@@ -46,6 +46,8 @@ fill_page_map ()
   util_range_msg (top_of_page, page_size,
 		  MSG_COUNT|MSG_NODELETED|MSG_SILENT, _fill_map,
 		  &page_avail);
+  if (cursor >= page_avail)
+    cursor = page_avail - 1;
 }
 
 /* Check if the page_map is valid. If not, fill it.
