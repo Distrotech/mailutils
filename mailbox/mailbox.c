@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <strdup.h>
+#include <alloca.h>
 
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
