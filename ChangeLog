@@ -1,3 +1,7 @@
+2006-08-23  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/mailbox.c: Include alloca.h
+
 2006-07-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/page.c (top_of_page,cursor,page_map,page_size)
