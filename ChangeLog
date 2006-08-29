@@ -1,3 +1,19 @@
+2006-08-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* THANKS: Add Damon Harper
+
+	Implement changes proposed by Damon Harper:
+	
+	* comsat/action.c (act_getline): Change return type to
+	unsigned. Return actual number of input lines processed or 0 on
+	failure (either I/O, or memory allocation or EOF).
+	(action_echo): Rewritten to use shell-like syntax
+	(run_user_action): Rewritten main loop to make it cleaner. In
+	particular, expand agruments after word splitting. Use new echo
+	semantics.
+	
+	* mail/table.c (mail_escape_table): Add ~x
+
 2006-08-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/mailbox.c: Include alloca.h
