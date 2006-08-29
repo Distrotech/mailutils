@@ -39,13 +39,14 @@
                  number of characters and line in the expansion.
 		 When omitted, they default to 400, 5. */
 
-static int
+static unsigned
 act_getline (FILE *fp, char **sptr, size_t *size)
 {
   char buf[256];
   int cont = 1;
   size_t used = 0;
-
+  unsigned lines = 0;
+  
   while (cont && fgets (buf, sizeof buf, fp))
     {
       int len = strlen (buf);
@@ -56,6 +57,7 @@ act_getline (FILE *fp, char **sptr, size_t *size)
 	    {
 	      buf[--len] = 0;
 	      cont = 1;
+	      lines++;
 	    }
 	  else
 	    cont = 0;
@@ -67,7 +69,7 @@ act_getline (FILE *fp, char **sptr, size_t *size)
 	{
 	  *sptr = realloc (*sptr, len + used + 1);
 	  if (!*sptr)
-	    return -1;
+	    return 0;
 	  *size = len + used + 1;
 	}
       memcpy (*sptr + used, buf, len);
@@ -77,7 +79,9 @@ act_getline (FILE *fp, char **sptr, size_t *size)
   if (*sptr)
     (*sptr)[used] = 0;
 
-  return used;
+  if (used && !feof (fp))
+    lines++;
+  return lines;
 }
 
 static int
@@ -237,7 +241,7 @@ action_beep (FILE *tty)
 }
 
 static void
-action_echo (FILE *tty, const char *cr, char *str)
+echo_string (FILE *tty, const char *cr, char *str)
 {
   if (!str)
     return;
@@ -252,6 +256,32 @@ action_echo (FILE *tty, const char *cr, char *str)
 	}
     }
   fflush (tty);
+}
+
+static void
+action_echo (FILE *tty, const char *cr, int omit_newline,
+	     int argc, char **argv)
+{
+  int i;
+
+  if (omit_newline)
+    {
+      argc--;
+      argv++;
+    }
+  
+  for (i = 0;;)
+    {
+      echo_string (tty, cr, argv[i]);
+      if (++i < argc)
+	echo_string (tty, cr, " ");
+      else
+	{
+	  if (!omit_newline)
+	    echo_string (tty, cr, "\n");
+	  break;
+	}
+    }
 }
 
 static void
@@ -337,58 +367,68 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
   int nact = 0;
   char *stmt = NULL;
   size_t size = 0;
-
+  
   fp = open_rc (BIFF_RC, tty);
   if (fp)
     {
-      int line = 0;
+      unsigned line = 1, n;
 
-      while (act_getline (fp, &stmt, &size))
+      while ((n = act_getline (fp, &stmt, &size)))
 	{
-	  char *str;
 	  int argc;
 	  char **argv;
 
-	  line++;
-	  str = expand_line (stmt, msg);
-	  if (!str)
-	    continue;
-	  if (mu_argcv_get (str, "", NULL, &argc, &argv)
-	      || argc == 0
-	      || argv[0][0] == '#')
+	  if (mu_argcv_get (stmt, "", NULL, &argc, &argv) == 0
+	      && argc
+	      && argv[0][0] != '#')
 	    {
-	      free (str);
-	      mu_argcv_free (argc, argv);
-	      continue;
+	      if (strcmp (argv[0], "beep") == 0)
+		{
+		  /* FIXME: excess arguments are ignored */
+		  action_beep (tty);
+		  nact++;
+		}
+	      else
+		{
+		  /* Rest of actions require keyword expansion */
+		  int i;
+		  int n_option = argc > 1 && strcmp (argv[1], "-n") == 0;
+		  
+		  for (i = 1; i < argc; i++)
+		    {
+		      char *oldarg = argv[i];
+		      argv[i] = expand_line (argv[i], msg);
+		      free (oldarg);
+		      if (!argv[i])
+			break;
+		    }
+		  
+		  if (strcmp (argv[0], "echo") == 0)
+		    {
+		      action_echo (tty, cr, n_option, argc - 1, argv + 1);
+		      nact++;
+		    }
+		  else if (strcmp (argv[0], "exec") == 0)
+		    {
+		      action_exec (tty, line, argc - 1, argv + 1);
+		      nact++;
+		    }
+		  else
+		    {
+		      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
+		      fprintf (tty, "\r\n");
+		      syslog (LOG_ERR, _("%s:.biffrc:%d: unknown keyword %s"),
+			      username, line, argv[0]);
+		      break;
+		    }
+		} 
 	    }
-
-	  if (strcmp (argv[0], "beep") == 0)
-	    {
-	      action_beep (tty);
-	      nact++;
-	    }
-	  else if (strcmp (argv[0], "echo") == 0)
-	    {
-	      action_echo (tty, cr, argv[1]);
-	      nact++;
-	    }
-	  else if (strcmp (argv[0], "exec") == 0)
-	    {
-	      action_exec (tty, line, argc-1, argv+1);
-	      nact++;
-	    }
-	  else
-	    {
-	      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
-	      fprintf (tty, "\r\n");
-	      syslog (LOG_ERR, _("%s:.biffrc:%d: unknown keyword %s"),
-		      username, line, argv[0]);
-	      break;
-	    }
+	  mu_argcv_free (argc, argv);
+	  line += n;
 	}
       fclose (fp);
     }
 
   if (nact == 0)
-    action_echo (tty, cr, expand_line (default_action, msg));
+    echo_string (tty, cr, expand_line (default_action, msg));
 }
