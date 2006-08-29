@@ -238,6 +238,8 @@ static const struct mail_escape_entry mail_escape_table[] = {
   {"t",	"t",	"t[name-list]",	    escape_to },
   {"v",	"v",	"v",		    escape_visual },
   {"w",	"w",	"w[filename]",	    escape_write },
+  {"x", "x",    "x",                NULL }, /* Implemented directly in
+					       send.c */
   {"|",	"|",	"|[shell-command]", escape_pipe },
 };
 
