@@ -28,7 +28,6 @@
 #include <string.h>
 #include <mh_getopt.h>
 #include <mu_asprintf.h>
-#include <argp-namefrob.h> /* Declarations of program_invocation_.*name */
 
 static int mh_optind = 1;
 static char *mh_optarg;

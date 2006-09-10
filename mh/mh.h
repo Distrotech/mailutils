@@ -57,7 +57,6 @@
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
 #include <getline.h>
-#include <argp-namefrob.h> /* Declarations of program_invocation_.*name */
 
 #if !HAVE_DECL_STRCHRNUL
 extern char *strchrnul (const char *s, int c_in);
