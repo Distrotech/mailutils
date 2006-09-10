@@ -116,8 +116,8 @@ EXTRA_DIST += alloca_.h
 # We need the following in order to create <alloca.h> when the system
 # doesn't have one that works with the given compiler.
 alloca.h: alloca_.h
-	cp $(srcdir)/alloca_.h $@-t
-	mv $@-t $@
+	cp -f $(srcdir)/alloca_.h $@-t
+	mv -f $@-t $@
 MOSTLYCLEANFILES += alloca.h alloca.h-t
 
 libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
@@ -125,21 +125,27 @@ libmailutils_la_SOURCES += argp.h argp-ba.c argp-eexst.c \
            argp-namefrob.h argp-parse.c argp-pin.c argp-pv.c argp-pvh.c \
            argp-xinl.c
 
+EXTRA_DIST += getline.h
 
+EXTRA_DIST += regcomp.c regex.h regex_internal.c regex_internal.h regexec.c
 
 libmailutils_la_SOURCES += strtok_r.h
 
+libmailutils_la_SOURCES += md5.h
 
 BUILT_SOURCES += $(GLOB_H)
+EXTRA_DIST += glob_.h glob-libc.h
 
 # We need the following in order to create <glob.h> when the system
 # doesn't have one that works with the given compiler.
 glob.h: glob_.h
-	cp $(srcdir)/glob_.h $@-t
-	mv $@-t $@
+	cp -f $(srcdir)/glob_.h $@-t
+	mv -f $@-t $@
 MOSTLYCLEANFILES += glob.h glob.h-t
 
-EXTRA_DIST += inttostr.c
+EXTRA_DIST += inttostr.c inttostr.h
+
+EXTRA_DIST += sha1.h
 
 
 
@@ -149,11 +155,13 @@ EXTRA_DIST += fnmatch_.h fnmatch_loop.c
 # We need the following in order to create <fnmatch.h> when the system
 # doesn't have one that supports the required API.
 fnmatch.h: fnmatch_.h
-	cp $(srcdir)/fnmatch_.h $@-t
-	mv $@-t $@
+	cp -f $(srcdir)/fnmatch_.h $@-t
+	mv -f $@-t $@
 MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 
+EXTRA_DIST += getdelim.h
 
+EXTRA_DIST += getlogin_r.h
 
 BUILT_SOURCES += $(GETOPT_H)
 EXTRA_DIST += getopt_.h getopt_int.h
@@ -161,8 +169,8 @@ EXTRA_DIST += getopt_.h getopt_int.h
 # We need the following in order to create <getopt.h> when the system
 # doesn't have one that works with the given compiler.
 getopt.h: getopt_.h
-	cp $(srcdir)/getopt_.h $@-t
-	mv $@-t $@
+	cp -f $(srcdir)/getopt_.h $@-t
+	mv -f $@-t $@
 MOSTLYCLEANFILES += getopt.h getopt.h-t
 
 libmailutils_la_SOURCES += gettext.h
@@ -175,13 +183,14 @@ libmailutils_la_SOURCES += mbchar.h
 libmailutils_la_SOURCES += mbuiter.h
 
 
+EXTRA_DIST += mempcpy.h
 
 libmailutils_la_SOURCES += minmax.h
-
 
 libmailutils_la_SOURCES += size_max.h
 
 
+EXTRA_DIST += stat-macros.h
 
 BUILT_SOURCES += $(STDBOOL_H)
 EXTRA_DIST += stdbool_.h
@@ -189,6 +198,7 @@ EXTRA_DIST += stdbool_.h
 # We need the following in order to create <stdbool.h> when the system
 # doesn't have one that works.
 stdbool.h: stdbool_.h
+	rm -f $@-t $@
 	sed -e 's/@''HAVE__BOOL''@/$(HAVE__BOOL)/g' < $(srcdir)/stdbool_.h > $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += stdbool.h stdbool.h-t
@@ -199,90 +209,28 @@ EXTRA_DIST += stdint_.h
 # We need the following in order to create <stdint.h> when the system
 # doesn't have one that works with the given compiler.
 stdint.h: stdint_.h
+	rm -f $@-t $@
 	sed -e 's/@''HAVE_WCHAR_H''@/$(HAVE_WCHAR_H)/g' \
 	    -e 's/@''HAVE_STDINT_H''@/$(HAVE_STDINT_H)/g' \
-	    -e 's|@''FULL_PATH_STDINT_H''@|$(FULL_PATH_STDINT_H)|g' \
+	    -e 's|@''ABSOLUTE_STDINT_H''@|$(ABSOLUTE_STDINT_H)|g' \
+	    -e 's/@''HAVE_SYS_TYPES_H''@/$(HAVE_SYS_TYPES_H)/g' \
 	    -e 's/@''HAVE_INTTYPES_H''@/$(HAVE_INTTYPES_H)/g' \
-	    -e 's|@''FULL_PATH_INTTYPES_H''@|$(FULL_PATH_INTTYPES_H)|g' \
 	    -e 's/@''HAVE_SYS_INTTYPES_H''@/$(HAVE_SYS_INTTYPES_H)/g' \
 	    -e 's/@''HAVE_SYS_BITYPES_H''@/$(HAVE_SYS_BITYPES_H)/g' \
-	    -e 's/@''HAVE_LONG_64BIT''@/$(HAVE_LONG_64BIT)/g' \
-	    -e 's/@''HAVE_LONG_LONG_64BIT''@/$(HAVE_LONG_LONG_64BIT)/g' \
-	    -e 's/@''HAVE_INT8_T''@/$(HAVE_INT8_T)/g' \
-	    -e 's/@''HAVE_INT16_T''@/$(HAVE_INT16_T)/g' \
-	    -e 's/@''HAVE_INT32_T''@/$(HAVE_INT32_T)/g' \
-	    -e 's/@''HAVE_INT64_T''@/$(HAVE_INT64_T)/g' \
-	    -e 's/@''HAVE_UINT8_T''@/$(HAVE_UINT8_T)/g' \
-	    -e 's/@''HAVE_UINT16_T''@/$(HAVE_UINT16_T)/g' \
-	    -e 's/@''HAVE_UINT32_T''@/$(HAVE_UINT32_T)/g' \
-	    -e 's/@''HAVE_UINT64_T''@/$(HAVE_UINT64_T)/g' \
-	    -e 's/@''HAVE_INT_LEAST8_T''@/$(HAVE_INT_LEAST8_T)/g' \
-	    -e 's/@''HAVE_INT_LEAST16_T''@/$(HAVE_INT_LEAST16_T)/g' \
-	    -e 's/@''HAVE_INT_LEAST32_T''@/$(HAVE_INT_LEAST32_T)/g' \
-	    -e 's/@''HAVE_INT_LEAST64_T''@/$(HAVE_INT_LEAST64_T)/g' \
-	    -e 's/@''HAVE_UINT_LEAST8_T''@/$(HAVE_UINT_LEAST8_T)/g' \
-	    -e 's/@''HAVE_UINT_LEAST16_T''@/$(HAVE_UINT_LEAST16_T)/g' \
-	    -e 's/@''HAVE_UINT_LEAST32_T''@/$(HAVE_UINT_LEAST32_T)/g' \
-	    -e 's/@''HAVE_UINT_LEAST64_T''@/$(HAVE_UINT_LEAST64_T)/g' \
-	    -e 's/@''HAVE_INT_FAST8_T''@/$(HAVE_INT_FAST8_T)/g' \
-	    -e 's/@''HAVE_INT_FAST16_T''@/$(HAVE_INT_FAST16_T)/g' \
-	    -e 's/@''HAVE_INT_FAST32_T''@/$(HAVE_INT_FAST32_T)/g' \
-	    -e 's/@''HAVE_INT_FAST64_T''@/$(HAVE_INT_FAST64_T)/g' \
-	    -e 's/@''HAVE_UINT_FAST8_T''@/$(HAVE_UINT_FAST8_T)/g' \
-	    -e 's/@''HAVE_UINT_FAST16_T''@/$(HAVE_UINT_FAST16_T)/g' \
-	    -e 's/@''HAVE_UINT_FAST32_T''@/$(HAVE_UINT_FAST32_T)/g' \
-	    -e 's/@''HAVE_UINT_FAST64_T''@/$(HAVE_UINT_FAST64_T)/g' \
-	    -e 's/@''HAVE_INTPTR_T''@/$(HAVE_INTPTR_T)/g' \
-	    -e 's/@''HAVE_UINTPTR_T''@/$(HAVE_UINTPTR_T)/g' \
-	    -e 's/@''HAVE_INTMAX_T''@/$(HAVE_INTMAX_T)/g' \
-	    -e 's/@''HAVE_UINTMAX_T''@/$(HAVE_UINTMAX_T)/g' \
-	    -e 's/@''BITSIZEOF_UNSIGNED_INT''@/$(BITSIZEOF_UNSIGNED_INT)/g' \
-	    -e 's/@''BITSIZEOF_LONG''@/$(BITSIZEOF_LONG)/g' \
-	    -e 's/@''BITSIZEOF_UNSIGNED_LONG''@/$(BITSIZEOF_UNSIGNED_LONG)/g' \
-	    -e 's/@''BITSIZEOF_INT8_T''@/$(BITSIZEOF_INT8_T)/g' \
-	    -e 's/@''BITSIZEOF_INT16_T''@/$(BITSIZEOF_INT16_T)/g' \
-	    -e 's/@''BITSIZEOF_INT32_T''@/$(BITSIZEOF_INT32_T)/g' \
-	    -e 's/@''BITSIZEOF_INT64_T''@/$(BITSIZEOF_INT64_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT8_T''@/$(BITSIZEOF_UINT8_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT16_T''@/$(BITSIZEOF_UINT16_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT32_T''@/$(BITSIZEOF_UINT32_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT64_T''@/$(BITSIZEOF_UINT64_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_LEAST8_T''@/$(BITSIZEOF_INT_LEAST8_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_LEAST16_T''@/$(BITSIZEOF_INT_LEAST16_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_LEAST32_T''@/$(BITSIZEOF_INT_LEAST32_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_LEAST64_T''@/$(BITSIZEOF_INT_LEAST64_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_LEAST8_T''@/$(BITSIZEOF_UINT_LEAST8_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_LEAST16_T''@/$(BITSIZEOF_UINT_LEAST16_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_LEAST32_T''@/$(BITSIZEOF_UINT_LEAST32_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_LEAST64_T''@/$(BITSIZEOF_UINT_LEAST64_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_FAST8_T''@/$(BITSIZEOF_INT_FAST8_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_FAST16_T''@/$(BITSIZEOF_INT_FAST16_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_FAST32_T''@/$(BITSIZEOF_INT_FAST32_T)/g' \
-	    -e 's/@''BITSIZEOF_INT_FAST64_T''@/$(BITSIZEOF_INT_FAST64_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_FAST8_T''@/$(BITSIZEOF_UINT_FAST8_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_FAST16_T''@/$(BITSIZEOF_UINT_FAST16_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_FAST32_T''@/$(BITSIZEOF_UINT_FAST32_T)/g' \
-	    -e 's/@''BITSIZEOF_UINT_FAST64_T''@/$(BITSIZEOF_UINT_FAST64_T)/g' \
-	    -e 's/@''BITSIZEOF_INTPTR_T''@/$(BITSIZEOF_INTPTR_T)/g' \
-	    -e 's/@''BITSIZEOF_UINTPTR_T''@/$(BITSIZEOF_UINTPTR_T)/g' \
-	    -e 's/@''BITSIZEOF_INTMAX_T''@/$(BITSIZEOF_INTMAX_T)/g' \
-	    -e 's/@''BITSIZEOF_UINTMAX_T''@/$(BITSIZEOF_UINTMAX_T)/g' \
+	    -e 's/@''HAVE_LONG_LONG_INT''@/$(HAVE_LONG_LONG_INT)/g' \
 	    -e 's/@''BITSIZEOF_PTRDIFF_T''@/$(BITSIZEOF_PTRDIFF_T)/g' \
-	    -e 's/@''SAME_TYPE_PTRDIFF_T_LONG''@/$(SAME_TYPE_PTRDIFF_T_LONG)/g' \
+	    -e 's/@''PTRDIFF_T_SUFFIX''@/$(PTRDIFF_T_SUFFIX)/g' \
 	    -e 's/@''BITSIZEOF_SIG_ATOMIC_T''@/$(BITSIZEOF_SIG_ATOMIC_T)/g' \
 	    -e 's/@''HAVE_SIGNED_SIG_ATOMIC_T''@/$(HAVE_SIGNED_SIG_ATOMIC_T)/g' \
-	    -e 's/@''SAME_TYPE_SIG_ATOMIC_T_LONG''@/$(SAME_TYPE_SIG_ATOMIC_T_LONG)/g' \
-	    -e 's/@''SAME_TYPE_SIG_ATOMIC_T_UNSIGNED_LONG''@/$(SAME_TYPE_SIG_ATOMIC_T_UNSIGNED_LONG)/g' \
+	    -e 's/@''SIG_ATOMIC_T_SUFFIX''@/$(SIG_ATOMIC_T_SUFFIX)/g' \
 	    -e 's/@''BITSIZEOF_SIZE_T''@/$(BITSIZEOF_SIZE_T)/g' \
-	    -e 's/@''SAME_TYPE_SIZE_T_UNSIGNED_LONG''@/$(SAME_TYPE_SIZE_T_UNSIGNED_LONG)/g' \
+	    -e 's/@''SIZE_T_SUFFIX''@/$(SIZE_T_SUFFIX)/g' \
 	    -e 's/@''BITSIZEOF_WCHAR_T''@/$(BITSIZEOF_WCHAR_T)/g' \
 	    -e 's/@''HAVE_SIGNED_WCHAR_T''@/$(HAVE_SIGNED_WCHAR_T)/g' \
-	    -e 's/@''SAME_TYPE_WCHAR_T_LONG''@/$(SAME_TYPE_WCHAR_T_LONG)/g' \
-	    -e 's/@''SAME_TYPE_WCHAR_T_UNSIGNED_LONG''@/$(SAME_TYPE_WCHAR_T_UNSIGNED_LONG)/g' \
+	    -e 's/@''WCHAR_T_SUFFIX''@/$(WCHAR_T_SUFFIX)/g' \
 	    -e 's/@''BITSIZEOF_WINT_T''@/$(BITSIZEOF_WINT_T)/g' \
 	    -e 's/@''HAVE_SIGNED_WINT_T''@/$(HAVE_SIGNED_WINT_T)/g' \
-	    -e 's/@''SAME_TYPE_WINT_T_LONG''@/$(SAME_TYPE_WINT_T_LONG)/g' \
-	    -e 's/@''SAME_TYPE_WINT_T_UNSIGNED_LONG''@/$(SAME_TYPE_WINT_T_UNSIGNED_LONG)/g' \
+	    -e 's/@''WINT_T_SUFFIX''@/$(WINT_T_SUFFIX)/g' \
 	    < $(srcdir)/stdint_.h > $@-t
 	mv $@-t $@
 MOSTLYCLEANFILES += stdint.h stdint.h-t
@@ -291,8 +239,11 @@ libmailutils_la_SOURCES += strcase.h
 
 libmailutils_la_SOURCES += strchrnul.h
 
+EXTRA_DIST += strdup.h
 
+EXTRA_DIST += strndup.h
 
+EXTRA_DIST += strnlen.h
 
 libmailutils_la_SOURCES += strnlen1.h strnlen1.c
 
@@ -302,8 +253,8 @@ EXTRA_DIST += sysexit_.h
 # We need the following in order to create <sysexits.h> when the system
 # doesn't have one that works with the given compiler.
 sysexits.h: sysexit_.h
-	cp $(srcdir)/sysexit_.h sysexits.h-t
-	mv sysexits.h-t sysexits.h
+	cp -f $(srcdir)/sysexit_.h $@-t
+	mv -f $@-t $@
 MOSTLYCLEANFILES += sysexits.h sysexits.h-t
 
 BUILT_SOURCES += $(UNISTD_H)
@@ -318,6 +269,8 @@ libmailutils_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
 
 libmailutils_la_SOURCES += vsnprintf.h
 
+libmailutils_la_SOURCES += wcwidth.h
+
 libmailutils_la_SOURCES += xsize.h
 
-EXTRA_DIST += inttostr.c inttostr.h intprops.h imaxtostr.c offtostr.c umaxtostr.c imaxtostr.c offtostr.c umaxtostr.c getopt.c getopt1.c regex.c fnmatch.c getdelim.c getdelim.h getdelim.c getline.c getline.c getline.h getline.c md5.c md5.h md5.c getndelim2.c mempcpy.c mempcpy.h mempcpy.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strndup.h strndup.c strnlen.c strnlen.h strnlen.c strtok_r.c vsnprintf.c unlocked-io.h memchr.c glob.c glob_.h glob-libc.h glob.c mbchar.c stat-macros.h strdup.c strdup.h strdup.c sha1.c sha1.h sha1.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c getlogin_r.c getlogin_r.c
+EXTRA_DIST += getopt.c getopt1.c imaxtostr.c offtostr.c umaxtostr.c glob.c regex.c fnmatch.c getdelim.c getline.c getline.c md5.c getndelim2.c mempcpy.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c unlocked-io.h mbchar.c strdup.c memchr.c sha1.c getlogin_r.c getlogin_r.c

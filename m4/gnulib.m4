@@ -25,7 +25,8 @@ gl_FUNC_GETPASS_GNU
 gl_MBSWIDTH
 
 # obstack
-gl_OBSTACK
+AC_FUNC_OBSTACK
+dnl Note: AC_FUNC_OBSTACK does AC_LIBSOURCES([obstack.h, obstack.c]).
 
 # realloc
 AC_FUNC_REALLOC
@@ -75,6 +76,9 @@ gl_INTTOSTR
 # sha1
 gl_SHA1
 
+# d-type
+gl_CHECK_TYPE_STRUCT_DIRENT_D_TYPE
+
 # extensions
 dnl gl_USE_SYSTEM_EXTENSIONS must be added quite early to configure.ac.
 
@@ -111,9 +115,6 @@ gl_FUNC_MEMPCPY
 
 # minmax
 gl_MINMAX
-
-# restrict
-gl_C_RESTRICT
 
 # size_max
 gl_SIZE_MAX
@@ -158,6 +159,9 @@ gl_FUNC_VASNPRINTF
 
 # vsnprintf
 gl_FUNC_VSNPRINTF
+
+# wcwidth
+gl_FUNC_WCWIDTH
 
 # xsize
 gl_XSIZE

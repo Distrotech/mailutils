@@ -45,9 +45,13 @@ EXTRA_DIST += allocsa.valgrind
 
 libmuaux_la_SOURCES += exit.h
 
+EXTRA_DIST += exitfail.h
 
+EXTRA_DIST += xalloc.h
 
+EXTRA_DIST += xalloc.h
 
+EXTRA_DIST += getpass.h
 
 libmuaux_la_SOURCES += mbswidth.h mbswidth.c
 
