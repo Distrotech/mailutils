@@ -47,31 +47,12 @@
 # define __set_errno(val) errno = (val)
 #endif
 
-#if defined HAVE_DIRENT_H || defined __GNU_LIBRARY__
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
-#else
-# define dirent direct
-# define NAMLEN(dirent) (dirent)->d_namlen
-# ifdef HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# ifdef HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# ifdef HAVE_NDIR_H
-#  include <ndir.h>
-# endif
-# ifdef HAVE_VMSDIR_H
-#  include "vmsdir.h"
-# endif /* HAVE_VMSDIR_H */
-#endif
+#include <dirent.h>
 
 
 /* In GNU systems, <dirent.h> defines this macro for us.  */
-#ifdef _D_NAMLEN
-# undef NAMLEN
-# define NAMLEN(d) _D_NAMLEN(d)
+#ifndef _D_EXACT_NAMLEN
+# define _D_EXACT_NAMLEN(dirent) strlen ((dirent)->d_name)
 #endif
 
 /* When used in the GNU libc the symbol _DIRENT_HAVE_D_TYPE is available
@@ -97,13 +78,6 @@
 
 /* If the system has the `struct dirent64' type we use it internally.  */
 #if defined _LIBC && !defined COMPILE_GLOB64
-# if defined HAVE_DIRENT_H || defined __GNU_LIBRARY__
-#  define CONVERT_D_NAMLEN(d64, d32)
-# else
-#  define CONVERT_D_NAMLEN(d64, d32) \
-  (d64)->d_namlen = (d32)->d_namlen;
-# endif
-
 # if (defined POSIX || defined WINDOWS32) && !defined __GNU_LIBRARY__
 #  define CONVERT_D_INO(d64, d32)
 # else
@@ -119,8 +93,7 @@
 # endif
 
 # define CONVERT_DIRENT_DIRENT64(d64, d32) \
-  memcpy ((d64)->d_name, (d32)->d_name, NAMLEN (d32) + 1);		      \
-  CONVERT_D_NAMLEN (d64, d32)						      \
+  memcpy ((d64)->d_name, (d32)->d_name, _D_EXACT_NAMLEN (d32) + 1);	      \
   CONVERT_D_INO (d64, d32)						      \
   CONVERT_D_TYPE (d64, d32)
 #endif
@@ -511,7 +484,6 @@ glob (pattern, flags, errfunc, pglob)
 
   oldcount = pglob->gl_pathc + pglob->gl_offs;
 
-#ifndef VMS
   if ((flags & (GLOB_TILDE|GLOB_TILDE_CHECK)) && dirname[0] == '~')
     {
       if (dirname[1] == '\0' || dirname[1] == '/')
@@ -679,7 +651,6 @@ glob (pattern, flags, errfunc, pglob)
 	}
 # endif	/* Not Amiga && not WINDOWS32.  */
     }
-#endif	/* Not VMS.  */
 
   /* Now test whether we looked for "~" or "~NAME".  In this case we
      can give the answer now.  */
@@ -1132,7 +1103,7 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 	    {
 	      int fnm_flags = ((!(flags & GLOB_PERIOD) ? FNM_PERIOD : 0)
 			       | ((flags & GLOB_NOESCAPE) ? FNM_NOESCAPE : 0)
-#if defined _AMIGA || defined VMS
+#if defined _AMIGA || defined __VMS
 			       | FNM_CASEFOLD
 #endif
 			       );
@@ -1205,7 +1176,7 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 			  struct globlink *new =
 			    __alloca (sizeof (struct globlink));
 			  char *p;
-			  len = NAMLEN (d);
+			  len = _D_EXACT_NAMLEN (d);
 			  new->name =
 			    malloc (len + 1 + ((flags & GLOB_MARK) && isdir));
 			  if (new->name == NULL)

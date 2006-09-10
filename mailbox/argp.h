@@ -94,7 +94,10 @@ struct argp_option
   /* The doc string for this option.  If both NAME and KEY are 0, This string
      will be printed outdented from the normal option column, making it
      useful as a group header (it will be the first thing printed in its
-     group); in this usage, it's conventional to end the string with a `:'.  */
+     group); in this usage, it's conventional to end the string with a `:'.
+
+     Write the initial value as N_("TEXT") if you want xgettext to collect
+     it into a POT file.  */
   const char *doc;
 
   /* The group this option is in.  In a long help message, options are sorted
@@ -243,7 +246,9 @@ struct argp
 
   /* If non-NULL, a string containing extra text to be printed before and
      after the options in a long help message (separated by a vertical tab
-     `\v' character).  */
+     `\v' character).
+     Write the initial value as N_("BEFORE-TEXT") "\v" N_("AFTER-TEXT") if
+     you want xgettext to collect the two pieces of text into a POT file.  */
   const char *doc;
 
   /* A vector of argp_children structures, terminated by a member with a 0
@@ -417,6 +422,20 @@ extern error_t __argp_parse (const struct argp *__restrict __argp,
 			     void *__restrict __input);
 
 /* Global variables.  */
+
+/* GNULIB makes sure both program_invocation_name and
+   program_invocation_short_name are available */
+#ifdef GNULIB_PROGRAM_INVOCATION_NAME
+extern char *program_invocation_name;
+# undef HAVE_DECL_PROGRAM_INVOCATION_NAME
+# define HAVE_DECL_PROGRAM_INVOCATION_NAME 1
+#endif
+
+#ifdef GNULIB_PROGRAM_INVOCATION_SHORT_NAME
+extern char *program_invocation_short_name;
+# undef HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME
+# define HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME 1
+#endif
 
 /* If defined or set by the user program to a non-zero value, then a default
    option --version is added (unless the ARGP_NO_HELP flag is used), which

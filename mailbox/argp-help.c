@@ -1475,46 +1475,51 @@ argp_doc (const struct argp *argp, const struct argp_state *state,
 {
   const char *text;
   const char *inp_text;
+  size_t inp_text_len = 0;
+  const char *trans_text;
   void *input = 0;
   int anything = 0;
-  size_t inp_text_limit = 0;
-  const char *doc = dgettext (argp->argp_domain, argp->doc);
   const struct argp_child *child = argp->children;
 
-  if (doc)
+  if (argp->doc)
     {
-      char *vt = strchr (doc, '\v');
-      inp_text = post ? (vt ? vt + 1 : 0) : doc;
-      inp_text_limit = (!post && vt) ? (vt - doc) : 0;
+      char *vt = strchr (argp->doc, '\v');
+      if (vt)
+	{
+	  if (post)
+	    inp_text = vt + 1;
+	  else
+	    {
+	      inp_text_len = vt - argp->doc;
+	      inp_text = __strndup (argp->doc, inp_text_len);
+	    }
+	}
+      else
+	inp_text = post ? 0 : argp->doc;
+      trans_text = dgettext (argp->argp_domain, inp_text);
     }
   else
-    inp_text = 0;
+    trans_text = inp_text = 0;
 
   if (argp->help_filter)
     /* We have to filter the doc strings.  */
     {
-      if (inp_text_limit)
-	/* Copy INP_TEXT so that it's nul-terminated.  */
-	inp_text = __strndup (inp_text, inp_text_limit);
       input = __argp_input (argp, state);
       text =
 	(*argp->help_filter) (post
 			      ? ARGP_KEY_HELP_POST_DOC
 			      : ARGP_KEY_HELP_PRE_DOC,
-			      inp_text, input);
+			      trans_text, input);
     }
   else
-    text = (const char *) inp_text;
+    text = (const char *) trans_text;
 
   if (text)
     {
       if (pre_blank)
 	__argp_fmtstream_putc (stream, '\n');
 
-      if (text == inp_text && inp_text_limit)
-	__argp_fmtstream_write (stream, inp_text, inp_text_limit);
-      else
-	__argp_fmtstream_puts (stream, text);
+      __argp_fmtstream_puts (stream, text);
 
       if (__argp_fmtstream_point (stream) > __argp_fmtstream_lmargin (stream))
 	__argp_fmtstream_putc (stream, '\n');
@@ -1522,9 +1527,10 @@ argp_doc (const struct argp *argp, const struct argp_state *state,
       anything = 1;
     }
 
-  if (text && text != inp_text)
+  if (text && text != trans_text)
     free ((char *) text);	/* Free TEXT returned from the help filter.  */
-  if (inp_text && inp_text_limit && argp->help_filter)
+
+  if (inp_text && inp_text_len)
     free ((char *) inp_text);	/* We copied INP_TEXT, so free it now.  */
 
   if (post && argp->help_filter)

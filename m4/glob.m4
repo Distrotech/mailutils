@@ -1,11 +1,11 @@
-# glob.m4 serial 3
-dnl Copyright (C) 2005 Free Software Foundation, Inc.
+# glob.m4 serial 7
+dnl Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 # The glob module assumes you want GNU glob, with glob_pattern_p etc,
-# rather than vanilla POSIX glob.  This means your your code should
+# rather than vanilla POSIX glob.  This means your code should
 # always include <glob.h> for the glob prototypes.
 
 AC_DEFUN([gl_GLOB_SUBSTITUTE],
@@ -13,7 +13,6 @@ AC_DEFUN([gl_GLOB_SUBSTITUTE],
   gl_PREREQ_GLOB
 
   GLOB_H=glob.h
-  MU_LIBSOURCES([glob.c, glob_.h, glob-libc.h])
   MU_LIBOBJ([glob])
   AC_SUBST([GLOB_H])
 ])
@@ -73,8 +72,8 @@ if (glob ("conf*-globtest", 0, NULL, &found) == GLOB_NOMATCH) return 1;]]),
 # Prerequisites of lib/glob.*.
 AC_DEFUN([gl_PREREQ_GLOB],
 [ AC_REQUIRE([gl_CHECK_TYPE_STRUCT_DIRENT_D_TYPE])dnl
+  AC_REQUIRE([AC_C_RESTRICT])dnl
   AC_REQUIRE([AC_GNU_SOURCE])dnl
-  AC_REQUIRE([AC_HEADER_DIRENT])dnl
   AC_CHECK_HEADERS_ONCE([sys/cdefs.h unistd.h])dnl
   AC_CHECK_FUNCS_ONCE([getlogin_r getpwnam_r])dnl
   :])
