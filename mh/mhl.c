@@ -23,10 +23,8 @@
 #include <unistd.h>
 
 const char *program_version = "mhl (" PACKAGE_STRING ")";
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
-static char doc[] = N_("GNU MH mhl\v\
-Use -help to obtain the list of traditional MH options.");
+static char doc[] = N_("GNU MH mhl")"\v"
+N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[files]");
 
 /* GNU options */

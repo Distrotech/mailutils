@@ -19,10 +19,8 @@
 #include <mh.h>
 
 const char *program_version = "whom (" PACKAGE_STRING ")";
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
-static char doc[] = N_("GNU MH whom\v\
-Use -help to obtain the list of traditional MH options.");
+static char doc[] = N_("GNU MH whom")"\v"
+N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[file]";
 
 /* GNU options */

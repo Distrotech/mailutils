@@ -24,8 +24,8 @@
 #include <signal.h>
 
 const char *program_version = "sortm (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU MH sortm\v"
-"Use -help to obtain the list of traditional MH options.");
+static char doc[] = N_("GNU MH sortm")"\v"
+N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[msgs]");
 
 #define ARG_QUICKSORT 1024

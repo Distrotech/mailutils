@@ -26,10 +26,8 @@
 #include <fcntl.h>
 
 const char *program_version = "refile (" PACKAGE_STRING ")";
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
-static char doc[] = N_("GNU MH refile\v\
-Options marked with `*' are not yet implemented.\n\
+static char doc[] = N_("GNU MH refile")"\v"
+N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("messages folder [folder...]");
 

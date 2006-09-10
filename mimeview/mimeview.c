@@ -26,8 +26,6 @@
 #include <sys/wait.h>
 
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
 static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.\
 Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
 N_("\n\nDebug flags are:\n\

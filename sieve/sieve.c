@@ -49,11 +49,9 @@
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
-N_("GNU sieve -- a mail filtering tool\n\
-\v\
-Debug flags:\n\
+N_("GNU sieve -- a mail filtering tool\n")
+"\v"
+N_("Debug flags:\n\
   g - main parser traces\n\
   T - mailutils traces (MU_DEBUG_TRACE)\n\
   P - network protocols (MU_DEBUG_PROT)\n\

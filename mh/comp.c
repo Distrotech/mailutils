@@ -23,8 +23,8 @@
 #include <sys/stat.h>
 
 const char *program_version = "comp (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU MH comp\v"
-"Options marked with `*' are not yet implemented.\n"
+static char doc[] = N_("GNU MH comp")"\v"
+N_("Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[msg]";
 

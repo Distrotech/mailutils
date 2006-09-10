@@ -21,8 +21,8 @@
 #include <mh.h>
 
 const char *program_version = "mhparam (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU MH mhparam\v"
-"Use -help to obtain the list of traditional MH options.");
+static char doc[] = N_("GNU MH mhparam")"\v"
+N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[components]");
 
 /* GNU options */

@@ -47,11 +47,9 @@
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
-/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-   in this message */
-N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n\
-\v\
-This is a simple drop-in replacement for sendmail to forward mail directly\n\
+N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n")
+"\v"
+N_("This is a simple drop-in replacement for sendmail to forward mail directly\n\
 to an SMTP gateway.\n\
 You should always specify your SMTP gateway using --mailer option\n\
 (the best place to do so is in your configuration file).\n\
