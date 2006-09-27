@@ -154,6 +154,7 @@ struct mail_env_entry
   {
     char *string;
     int number;
+    int bool;
   }
   value;
 };
