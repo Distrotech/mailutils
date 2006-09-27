@@ -26,7 +26,7 @@
    are executed in sequence. Possible actions:
 
    beep              --  Produce audible signal
-   echo STRING       --  Output STRING to the user's tty
+   echo ARGS...      --  Output ARGS to the user's tty
    exec PROG ARGS... --  Execute given program (absolute pathname
                          required)
 
@@ -36,7 +36,7 @@
    $h        --  Expands to hostname
    $H{name}  --  Expands to value of message header `name'
    $B(C,L)   --  Expands to message body. C and L give maximum
-                 number of characters and line in the expansion.
+                 number of characters and lines in the expansion.
 		 When omitted, they default to 400, 5. */
 
 static unsigned
