@@ -127,375 +127,393 @@ o
 h
  * evil mail to be totally unwilling to trust that ``it will never happen''.
  */
-#define VALID(s,x,ti,zn) {                      \
-  ti = 0;                               \
-  if ((*s == 'F') && (s[1] == 'r') && (s[2] == 'o') && (s[3] == 'm') && \
-      (s[4] == ' ')) {                          \
-    for (x = s + 5; *x && *x != '\n'; x++);             \
-    if (x) {                                \
-      if (x - s >= 41) {                        \
-    for (zn = -1; x[zn] != ' '; zn--);              \
-    if ((x[zn-1] == 'm') && (x[zn-2] == 'o') && (x[zn-3] == 'r') && \
-        (x[zn-4] == 'f') && (x[zn-5] == ' ') && (x[zn-6] == 'e') && \
-        (x[zn-7] == 't') && (x[zn-8] == 'o') && (x[zn-9] == 'm') && \
-        (x[zn-10] == 'e') && (x[zn-11] == 'r') && (x[zn-12] == ' '))\
-      x += zn - 12;                         \
-      }                                 \
-      if (x - s >= 27) {                        \
-    if (x[-5] == ' ') {                     \
-      if (x[-8] == ':') zn = 0,ti = -5;             \
-      else if (x[-9] == ' ') ti = zn = -9;              \
-      else if ((x[-11] == ' ') && ((x[-10]=='+') || (x[-10]=='-'))) \
-        ti = zn = -11;                      \
-    }                               \
-    else if (x[-4] == ' ') {                    \
-      if (x[-9] == ' ') zn = -4,ti = -9;                \
-    }                               \
-    else if (x[-6] == ' ') {                    \
-      if ((x[-11] == ' ') && ((x[-5] == '+') || (x[-5] == '-')))    \
-        zn = -6,ti = -11;                       \
-    }                               \
-    if (ti && !((x[ti - 3] == ':') &&               \
-            (x[ti -= ((x[ti - 6] == ':') ? 9 : 6)] == ' ') &&   \
-            (x[ti - 3] == ' ') && (x[ti - 7] == ' ') &&     \
-            (x[ti - 11] == ' '))) ti = 0;           \
-      }                                 \
-    }                                   \
-  }                                 \
-}
-
-#define ATTRIBUTE_SET(buf,mum,c0,c1,type) \
-do \
-{ \
-  char *s; \
-  for (s = (buf) + 7; *s; s++) \
-  { \
-    if (*s == c0 || *s == c1) \
-      { \
-        (mum)->attr_flags |= (type); \
-        break; \
-      } \
-  } \
+#define VALID(s,x,ti,zn) do					              \
+  {									      \
+    ti = 0;								      \
+    if ((*s == 'F') && (s[1] == 'r') && (s[2] == 'o') && (s[3] == 'm') &&     \
+	(s[4] == ' '))							      \
+      {									      \
+	for (x = s + 5; *x && *x != '\n'; x++);				      \
+	if (x)								      \
+	  {								      \
+	    if (x - s >= 41)						      \
+	      {								      \
+		for (zn = -1; x[zn] != ' '; zn--);			      \
+		if ((x[zn - 1] == 'm') && (x[zn - 2] == 'o')		      \
+		    && (x[zn - 3] == 'r') && (x[zn - 4] == 'f')		      \
+		    && (x[zn - 5] == ' ') && (x[zn - 6] == 'e')		      \
+		    && (x[zn - 7] == 't') && (x[zn - 8] == 'o')		      \
+		    && (x[zn - 9] == 'm') && (x[zn - 10] == 'e')	      \
+		    && (x[zn - 11] == 'r') && (x[zn - 12] == ' '))	      \
+		  x += zn - 12;						      \
+	      }								      \
+	    if (x - s >= 27)						      \
+	      {								      \
+		if (x[-5] == ' ')					      \
+		  {							      \
+		    if (x[-8] == ':')					      \
+		      zn = 0, ti = -5;					      \
+		    else if (x[-9] == ' ')				      \
+		      ti = zn = -9;					      \
+		    else if ((x[-11] == ' ')				      \
+			     && ((x[-10] == '+') || (x[-10] == '-')))	      \
+		      ti = zn = -11;					      \
+		  }							      \
+		else if (x[-4] == ' ')					      \
+		  {							      \
+		    if (x[-9] == ' ')					      \
+		      zn = -4, ti = -9;					      \
+		  }							      \
+		else if (x[-6] == ' ')					      \
+		  {							      \
+		    if ((x[-11] == ' ') && ((x[-5] == '+') || (x[-5] == '-')))\
+		      zn = -6, ti = -11;				      \
+		  }							      \
+		if (ti && !((x[ti - 3] == ':') &&			      \
+			    (x[ti -= ((x[ti - 6] == ':') ? 9 : 6)] == ' ') && \
+			    (x[ti - 3] == ' ') && (x[ti - 7] == ' ') &&	      \
+			    (x[ti - 11] == ' ')))			      \
+		  ti = 0;						      \
+	      }								      \
+	  }								      \
+      }									      \
+  }									      \
+while (0)								      
+     
+#define ATTRIBUTE_SET(buf,mum,c0,c1,type)                                     \
+do                                                                            \
+{                                                                             \
+  char *s;                                                                    \
+  for (s = (buf) + 7; *s; s++)                                                \
+  {                                                                           \
+    if (*s == c0 || *s == c1)                                                 \
+      {                                                                       \
+        (mum)->attr_flags |= (type);                                          \
+        break;                                                                \
+      }                                                                       \
+  }                                                                           \
 } while (0)
 
-#define ISBCC(buf) (\
-(buf[0] == 'B' || buf[0] == 'b') \
- && (buf[1] == 'C' || buf[1] == 'c') \
- && (buf[2] == 'C' || buf[2] == 'c') \
+#define ISBCC(buf) (                                                          \
+(buf[0] == 'B' || buf[0] == 'b')                                              \
+ && (buf[1] == 'C' || buf[1] == 'c')                                          \
+ && (buf[2] == 'C' || buf[2] == 'c')                                          \
  && (buf[3] == ':' || buf[3] == ' ' || buf[3] == '\t'))
 
-#define ISCC(buf) (\
-(buf[0] == 'C' || buf[0] == 'c') \
- && (buf[1] == 'C' || buf[1] == 'c') \
+#define ISCC(buf) (                                                           \
+(buf[0] == 'C' || buf[0] == 'c')                                              \
+ && (buf[1] == 'C' || buf[1] == 'c')                                          \
  && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
 
-#define ISCONTENT_LANGUAGE(buf) (\
-(buf[0] == 'C' || buf[0] == 'c') \
- && (buf[1] == 'O' || buf[1] == 'o') \
- && (buf[2] == 'N' || buf[2] == 'n') \
- && (buf[3] == 'T' || buf[3] == 't') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'N' || buf[5] == 'n') \
- && (buf[6] == 'T' || buf[6] == 't') \
- && (buf[7] == '-') \
- && (buf[8] == 'L' || buf[8] == 'l') \
- && (buf[9] == 'A' || buf[9] == 'a') \
- && (buf[10] == 'N' || buf[10] == 'n') \
- && (buf[11] == 'G' || buf[11] == 'g') \
- && (buf[12] == 'U' || buf[12] == 'u') \
- && (buf[13] == 'A' || buf[13] == 'a') \
- && (buf[14] == 'G' || buf[14] == 'g') \
- && (buf[15] == 'E' || buf[15] == 'e') \
+#define ISCONTENT_LANGUAGE(buf) (                                             \
+(buf[0] == 'C' || buf[0] == 'c')                                              \
+ && (buf[1] == 'O' || buf[1] == 'o')                                          \
+ && (buf[2] == 'N' || buf[2] == 'n')                                          \
+ && (buf[3] == 'T' || buf[3] == 't')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'N' || buf[5] == 'n')                                          \
+ && (buf[6] == 'T' || buf[6] == 't')                                          \
+ && (buf[7] == '-')                                                           \
+ && (buf[8] == 'L' || buf[8] == 'l')                                          \
+ && (buf[9] == 'A' || buf[9] == 'a')                                          \
+ && (buf[10] == 'N' || buf[10] == 'n')                                        \
+ && (buf[11] == 'G' || buf[11] == 'g')                                        \
+ && (buf[12] == 'U' || buf[12] == 'u')                                        \
+ && (buf[13] == 'A' || buf[13] == 'a')                                        \
+ && (buf[14] == 'G' || buf[14] == 'g')                                        \
+ && (buf[15] == 'E' || buf[15] == 'e')                                        \
  && (buf[16] == ':' || buf[16] == ' ' || buf[16] == '\t'))
 
-#define ISCONTENT_TRANSFER_ENCODING(buf) (\
-(buf[0] == 'C' || buf[0] == 'c') \
- && (buf[1] == 'O' || buf[1] == 'o') \
- && (buf[2] == 'N' || buf[2] == 'n') \
- && (buf[3] == 'T' || buf[3] == 't') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'N' || buf[5] == 'n') \
- && (buf[6] == 'T' || buf[6] == 't') \
- && (buf[7] == '-') \
- && (buf[8] == 'T' || buf[8] == 't') \
- && (buf[9] == 'R' || buf[9] == 'r') \
- && (buf[10] == 'A' || buf[10] == 'a') \
- && (buf[11] == 'N' || buf[11] == 'n') \
- && (buf[12] == 'S' || buf[12] == 's') \
- && (buf[13] == 'F' || buf[13] == 'f') \
- && (buf[14] == 'E' || buf[14] == 'e') \
- && (buf[15] == 'R' || buf[15] == 'r') \
- && (buf[16] == '-') \
- && (buf[17] == 'E' || buf[17] == 'e') \
- && (buf[18] == 'N' || buf[18] == 'n') \
- && (buf[19] == 'C' || buf[19] == 'c') \
- && (buf[20] == 'O' || buf[20] == 'o') \
- && (buf[21] == 'D' || buf[21] == 'd') \
- && (buf[22] == 'I' || buf[22] == 'i') \
- && (buf[23] == 'N' || buf[23] == 'n') \
- && (buf[24] == 'G' || buf[24] == 'g') \
+#define ISCONTENT_TRANSFER_ENCODING(buf) (                                    \
+(buf[0] == 'C' || buf[0] == 'c')                                              \
+ && (buf[1] == 'O' || buf[1] == 'o')                                          \
+ && (buf[2] == 'N' || buf[2] == 'n')                                          \
+ && (buf[3] == 'T' || buf[3] == 't')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'N' || buf[5] == 'n')                                          \
+ && (buf[6] == 'T' || buf[6] == 't')                                          \
+ && (buf[7] == '-')                                                           \
+ && (buf[8] == 'T' || buf[8] == 't')                                          \
+ && (buf[9] == 'R' || buf[9] == 'r')                                          \
+ && (buf[10] == 'A' || buf[10] == 'a')                                        \
+ && (buf[11] == 'N' || buf[11] == 'n')                                        \
+ && (buf[12] == 'S' || buf[12] == 's')                                        \
+ && (buf[13] == 'F' || buf[13] == 'f')                                        \
+ && (buf[14] == 'E' || buf[14] == 'e')                                        \
+ && (buf[15] == 'R' || buf[15] == 'r')                                        \
+ && (buf[16] == '-')                                                          \
+ && (buf[17] == 'E' || buf[17] == 'e')                                        \
+ && (buf[18] == 'N' || buf[18] == 'n')                                        \
+ && (buf[19] == 'C' || buf[19] == 'c')                                        \
+ && (buf[20] == 'O' || buf[20] == 'o')                                        \
+ && (buf[21] == 'D' || buf[21] == 'd')                                        \
+ && (buf[22] == 'I' || buf[22] == 'i')                                        \
+ && (buf[23] == 'N' || buf[23] == 'n')                                        \
+ && (buf[24] == 'G' || buf[24] == 'g')                                        \
  && (buf[25] == ':' || buf[25] == ' ' || buf[25] == '\t'))
 
-#define ISCONTENT_TYPE(buf) (\
-(buf[0] == 'C' || buf[0] == 'c') \
- && (buf[1] == 'O' || buf[1] == 'o') \
- && (buf[2] == 'N' || buf[2] == 'n') \
- && (buf[3] == 'T' || buf[3] == 't') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'N' || buf[5] == 'n') \
- && (buf[6] == 'T' || buf[6] == 't') \
- && (buf[7] == '-') \
- && (buf[8] == 'T' || buf[8] == 't') \
- && (buf[9] == 'Y' || buf[9] == 'y') \
- && (buf[10] == 'P' || buf[10] == 'p') \
- && (buf[11] == 'E' || buf[11] == 'e') \
+#define ISCONTENT_TYPE(buf) (                                                 \
+(buf[0] == 'C' || buf[0] == 'c')                                              \
+ && (buf[1] == 'O' || buf[1] == 'o')                                          \
+ && (buf[2] == 'N' || buf[2] == 'n')                                          \
+ && (buf[3] == 'T' || buf[3] == 't')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'N' || buf[5] == 'n')                                          \
+ && (buf[6] == 'T' || buf[6] == 't')                                          \
+ && (buf[7] == '-')                                                           \
+ && (buf[8] == 'T' || buf[8] == 't')                                          \
+ && (buf[9] == 'Y' || buf[9] == 'y')                                          \
+ && (buf[10] == 'P' || buf[10] == 'p')                                        \
+ && (buf[11] == 'E' || buf[11] == 'e')                                        \
  && (buf[12] == ':' || buf[12] == ' ' || buf[12] == '\t'))
 
-#define ISDATE(buf) (\
-(buf[0] == 'D' || buf[0] == 'd') \
- && (buf[1] == 'A' || buf[1] == 'a') \
- && (buf[2] == 'T' || buf[2] == 't') \
- && (buf[3] == 'E' || buf[3] == 'e') \
+#define ISDATE(buf) (                                                         \
+(buf[0] == 'D' || buf[0] == 'd')                                              \
+ && (buf[1] == 'A' || buf[1] == 'a')                                          \
+ && (buf[2] == 'T' || buf[2] == 't')                                          \
+ && (buf[3] == 'E' || buf[3] == 'e')                                          \
  && (buf[4] == ':' || buf[4] == ' ' || buf[4] == '\t'))
 
-#define ISFROM(buf) (\
-(buf[0] == 'F' || buf[0] == 'f') \
- && (buf[1] == 'R' || buf[1] == 'r') \
- && (buf[2] == 'O' || buf[2] == 'o') \
- && (buf[3] == 'M' || buf[3] == 'm') \
+#define ISFROM(buf) (                                                         \
+(buf[0] == 'F' || buf[0] == 'f')                                              \
+ && (buf[1] == 'R' || buf[1] == 'r')                                          \
+ && (buf[2] == 'O' || buf[2] == 'o')                                          \
+ && (buf[3] == 'M' || buf[3] == 'm')                                          \
  && (buf[4] == ':' || buf[4] == ' ' || buf[4] == '\t'))
 
-#define ISIN_REPLY_TO(buf) (\
-(buf[0] == 'I' || buf[0] == 'i') \
- && (buf[1] == 'N' || buf[1] == 'n') \
- && (buf[2] == '-' || buf[2] == '-') \
- && (buf[3] == 'R' || buf[3] == 'r') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'P' || buf[5] == 'p') \
- && (buf[6] == 'L' || buf[6] == 'l') \
- && (buf[7] == 'Y' || buf[7] == 'y') \
- && (buf[8] == '-') \
- && (buf[9] == 'T' || buf[9] == 't') \
- && (buf[10] == 'O' || buf[10] == 'o') \
+#define ISIN_REPLY_TO(buf) (                                                  \
+(buf[0] == 'I' || buf[0] == 'i')                                              \
+ && (buf[1] == 'N' || buf[1] == 'n')                                          \
+ && (buf[2] == '-' || buf[2] == '-')                                          \
+ && (buf[3] == 'R' || buf[3] == 'r')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'P' || buf[5] == 'p')                                          \
+ && (buf[6] == 'L' || buf[6] == 'l')                                          \
+ && (buf[7] == 'Y' || buf[7] == 'y')                                          \
+ && (buf[8] == '-')                                                           \
+ && (buf[9] == 'T' || buf[9] == 't')                                          \
+ && (buf[10] == 'O' || buf[10] == 'o')                                        \
  && (buf[11] == ':' || buf[11] == ' ' || buf[11] == '\t'))
 
-#define ISMESSAGE_ID(buf) (\
-(buf[0] == 'M' || buf[0] == 'm') \
- && (buf[1] == 'E' || buf[1] == 'e') \
- && (buf[2] == 'S' || buf[2] == 's') \
- && (buf[3] == 'S' || buf[3] == 's') \
- && (buf[4] == 'A' || buf[4] == 'a') \
- && (buf[5] == 'G' || buf[5] == 'g') \
- && (buf[6] == 'E' || buf[6] == 'e') \
- && (buf[7] == '-') \
- && (buf[8] == 'I' || buf[8] == 'i') \
- && (buf[9] == 'D' || buf[9] == 'd') \
+#define ISMESSAGE_ID(buf) (                                                   \
+(buf[0] == 'M' || buf[0] == 'm')                                              \
+ && (buf[1] == 'E' || buf[1] == 'e')                                          \
+ && (buf[2] == 'S' || buf[2] == 's')                                          \
+ && (buf[3] == 'S' || buf[3] == 's')                                          \
+ && (buf[4] == 'A' || buf[4] == 'a')                                          \
+ && (buf[5] == 'G' || buf[5] == 'g')                                          \
+ && (buf[6] == 'E' || buf[6] == 'e')                                          \
+ && (buf[7] == '-')                                                           \
+ && (buf[8] == 'I' || buf[8] == 'i')                                          \
+ && (buf[9] == 'D' || buf[9] == 'd')                                          \
  && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
 
-#define ISREFERENCE(buf) (\
-(buf[0] == 'R' || buf[0] == 'r') \
- && (buf[1] == 'E' || buf[1] == 'e') \
- && (buf[2] == 'F' || buf[2] == 'f') \
- && (buf[3] == 'E' || buf[3] == 'e') \
- && (buf[4] == 'R' || buf[4] == 'r') \
- && (buf[5] == 'E' || buf[5] == 'e') \
- && (buf[6] == 'n' || buf[6] == 'n') \
- && (buf[7] == 'C' || buf[7] == 'c') \
- && (buf[8] == 'E' || buf[8] == 'e') \
+#define ISREFERENCE(buf) (                                                    \
+(buf[0] == 'R' || buf[0] == 'r')                                              \
+ && (buf[1] == 'E' || buf[1] == 'e')                                          \
+ && (buf[2] == 'F' || buf[2] == 'f')                                          \
+ && (buf[3] == 'E' || buf[3] == 'e')                                          \
+ && (buf[4] == 'R' || buf[4] == 'r')                                          \
+ && (buf[5] == 'E' || buf[5] == 'e')                                          \
+ && (buf[6] == 'n' || buf[6] == 'n')                                          \
+ && (buf[7] == 'C' || buf[7] == 'c')                                          \
+ && (buf[8] == 'E' || buf[8] == 'e')                                          \
  && (buf[9] == ':' || buf[9] == ' ' || buf[9] == '\t'))
 
-#define ISREPLY_TO(buf) (\
-(buf[0] == 'R' || buf[0] == 'r') \
- && (buf[1] == 'E' || buf[1] == 'e') \
- && (buf[2] == 'P' || buf[2] == 'p') \
- && (buf[3] == 'L' || buf[3] == 'l') \
- && (buf[4] == 'Y' || buf[4] == 'y') \
- && (buf[5] == '-') \
- && (buf[6] == 'T' || buf[6] == 't') \
- && (buf[7] == 'O' || buf[7] == 'o') \
+#define ISREPLY_TO(buf) (                                                     \
+(buf[0] == 'R' || buf[0] == 'r')                                              \
+ && (buf[1] == 'E' || buf[1] == 'e')                                          \
+ && (buf[2] == 'P' || buf[2] == 'p')                                          \
+ && (buf[3] == 'L' || buf[3] == 'l')                                          \
+ && (buf[4] == 'Y' || buf[4] == 'y')                                          \
+ && (buf[5] == '-')                                                           \
+ && (buf[6] == 'T' || buf[6] == 't')                                          \
+ && (buf[7] == 'O' || buf[7] == 'o')                                          \
  && (buf[8] == ':' || buf[8] == ' ' || buf[8] == '\t'))
 
-#define ISSENDER(buf) (\
-(buf[0] == 'S' || buf[0] == 's') \
- && (buf[1] == 'E' || buf[1] == 'e') \
- && (buf[2] == 'N' || buf[2] == 'n') \
- && (buf[3] == 'D' || buf[3] == 'd') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'R' || buf[5] == 'r') \
+#define ISSENDER(buf) (                                                       \
+(buf[0] == 'S' || buf[0] == 's')                                              \
+ && (buf[1] == 'E' || buf[1] == 'e')                                          \
+ && (buf[2] == 'N' || buf[2] == 'n')                                          \
+ && (buf[3] == 'D' || buf[3] == 'd')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'R' || buf[5] == 'r')                                          \
  && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
 
-#define ISSTATUS(buf) (\
-(buf[0] == 'S' || buf[0] == 's') \
- && (buf[1] == 'T' || buf[1] == 't') \
- && (buf[2] == 'A' || buf[2] == 'a') \
- && (buf[3] == 'T' || buf[3] == 't') \
- && (buf[4] == 'U' || buf[4] == 'u') \
- && (buf[5] == 'S' || buf[5] == 's') \
+#define ISSTATUS(buf) (                                                       \
+(buf[0] == 'S' || buf[0] == 's')                                              \
+ && (buf[1] == 'T' || buf[1] == 't')                                          \
+ && (buf[2] == 'A' || buf[2] == 'a')                                          \
+ && (buf[3] == 'T' || buf[3] == 't')                                          \
+ && (buf[4] == 'U' || buf[4] == 'u')                                          \
+ && (buf[5] == 'S' || buf[5] == 's')                                          \
  && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
 
-#define ISSUBJECT(buf) (\
-(buf[0] == 'S' || buf[0] == 's') \
- && (buf[1] == 'U' || buf[1] == 'u') \
- && (buf[2] == 'B' || buf[2] == 'b') \
- && (buf[3] == 'J' || buf[3] == 'j') \
- && (buf[4] == 'E' || buf[4] == 'e') \
- && (buf[5] == 'C' || buf[5] == 'c') \
- && (buf[6] == 'T' || buf[6] == 't') \
+#define ISSUBJECT(buf) (                                                      \
+(buf[0] == 'S' || buf[0] == 's')                                              \
+ && (buf[1] == 'U' || buf[1] == 'u')                                          \
+ && (buf[2] == 'B' || buf[2] == 'b')                                          \
+ && (buf[3] == 'J' || buf[3] == 'j')                                          \
+ && (buf[4] == 'E' || buf[4] == 'e')                                          \
+ && (buf[5] == 'C' || buf[5] == 'c')                                          \
+ && (buf[6] == 'T' || buf[6] == 't')                                          \
  && (buf[7] == ':' || buf[7] == ' ' || buf[7] == '\t'))
 
-#define ISTO(buf) (\
-(buf[0] == 'T' || buf[0] == 't') \
- && (buf[1] == 'O' || buf[1] == 'o') \
+#define ISTO(buf) (                                                           \
+(buf[0] == 'T' || buf[0] == 't')                                              \
+ && (buf[1] == 'O' || buf[1] == 'o')                                          \
  && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
 
-#define ISX_IMAPBASE(buf) (\
-(buf[0] == 'X' || buf[0] == 'x') \
- && (buf[1] == '-') \
- && (buf[2] == 'I' || buf[2] == 'i') \
- && (buf[3] == 'M' || buf[3] == 'm') \
- && (buf[4] == 'A' || buf[4] == 'a') \
- && (buf[5] == 'P' || buf[5] == 'p') \
- && (buf[6] == 'B' || buf[6] == 'b') \
- && (buf[7] == 'A' || buf[7] == 'a') \
- && (buf[8] == 'S' || buf[8] == 's') \
- && (buf[9] == 'E' || buf[9] == 'e') \
+#define ISX_IMAPBASE(buf) (                                                   \
+(buf[0] == 'X' || buf[0] == 'x')                                              \
+ && (buf[1] == '-')                                                           \
+ && (buf[2] == 'I' || buf[2] == 'i')                                          \
+ && (buf[3] == 'M' || buf[3] == 'm')                                          \
+ && (buf[4] == 'A' || buf[4] == 'a')                                          \
+ && (buf[5] == 'P' || buf[5] == 'p')                                          \
+ && (buf[6] == 'B' || buf[6] == 'b')                                          \
+ && (buf[7] == 'A' || buf[7] == 'a')                                          \
+ && (buf[8] == 'S' || buf[8] == 's')                                          \
+ && (buf[9] == 'E' || buf[9] == 'e')                                          \
  && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
 
-#define ISX_UIDL(buf) (\
-(buf[0] == 'X' || buf[0] == 'x') \
- && (buf[1] == '-') \
- && (buf[2] == 'U' || buf[2] == 'u') \
- && (buf[3] == 'I' || buf[3] == 'i') \
- && (buf[4] == 'D' || buf[4] == 'd') \
- && (buf[5] == 'L' || buf[5] == 'l') \
+#define ISX_UIDL(buf) (                                                       \
+(buf[0] == 'X' || buf[0] == 'x')                                              \
+ && (buf[1] == '-')                                                           \
+ && (buf[2] == 'U' || buf[2] == 'u')                                          \
+ && (buf[3] == 'I' || buf[3] == 'i')                                          \
+ && (buf[4] == 'D' || buf[4] == 'd')                                          \
+ && (buf[5] == 'L' || buf[5] == 'l')                                          \
  && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
 
-#define ISX_UID(buf) (\
-(buf[0] == 'X' || buf[0] == 'x') \
- && (buf[1] == '-') \
- && (buf[2] == 'U' || buf[2] == 'u') \
- && (buf[3] == 'I' || buf[3] == 'i') \
- && (buf[4] == 'D' || buf[4] == 'd') \
+#define ISX_UID(buf) (                                                        \
+(buf[0] == 'X' || buf[0] == 'x')                                              \
+ && (buf[1] == '-')                                                           \
+ && (buf[2] == 'U' || buf[2] == 'u')                                          \
+ && (buf[3] == 'I' || buf[3] == 'i')                                          \
+ && (buf[4] == 'D' || buf[4] == 'd')                                          \
  && (buf[5] == ':' || buf[5] == ' ' || buf[5] == '\t'))
 
 /* Skip prepend spaces.  */
 #define SKIPSPACE(p) while (*p == ' ') p++
 
-#define ATOI(a,i) \
-do {\
- SKIPSPACE(a); \
- for (i = 0; *a >= '0' && *a <= '9'; a++) \
-    i = 10 * i + (*a - '0'); \
+#define ATOI(a,i)                                                             \
+do {                                                                          \
+ SKIPSPACE(a);                                                                \
+ for (i = 0; *a >= '0' && *a <= '9'; a++)                                     \
+    i = 10 * i + (*a - '0');                                                  \
 } while (0)
 
 /* Save/concatenate the field-value in the fast header(fhd) field.
    Notice that care is taken to preserve the intermediate newlines
    in the folded headers. However, the final newline is always
    removed. */
-#define FAST_HEADER(field,buf,n) \
-do { \
-  int i = 0; \
-  char *s = field; \
-  char *p = buf; \
-  if (s) \
-    while (*s++) i++; \
-  else \
-    p = memchr (buf, ':', n); \
-  if (p) \
-    { \
-      int l; \
-      char *tmp; \
-      buf[n - 1] = '\0'; \
-      p++; \
-      if (!field) \
-        SKIPSPACE(p); \
-      l = n - (p - buf); \
-      tmp = realloc (field, (l + (i ? i + 1 : 0) + 1) * sizeof (char)); \
-      if (tmp) \
-        { \
-           field = tmp; \
-           if (i) field[i++] = '\n'; \
-           memcpy (field + i, p, l); \
-        } \
-    } \
-} while (0)
-
-#define FAST_H_BCC(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_BCC],buf,n); \
-save_field = &(mum->fhdr[H_BCC])
-
-#define FAST_H_CC(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_CC],buf,n); \
-save_field = &(mum->fhdr[H_CC])
-
-#define FAST_H_CONTENT_LANGUAGE(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_CONTENT_LANGUAGE],buf,n); \
-save_field = &(mum->fhdr[H_CONTENT_LANGUAGE])
-
-#define FAST_H_CONTENT_TRANSFER_ENCODING(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_CONTENT_TRANSFER_ENCODING],buf,n); \
-save_field = &(mum->fhdr[H_CONTENT_TRANSFER_ENCODING])
-
-#define FAST_H_CONTENT_TYPE(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_CONTENT_TYPE],buf,n); \
-save_field = &(mum->fhdr[H_CONTENT_TYPE])
-
-#define FAST_H_DATE(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_DATE],buf,n); \
-save_field = &(mum->fhdr[H_DATE])
-
-#define FAST_H_FROM(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_FROM],buf,n); \
-save_field = &(mum->fhdr[H_FROM])
-
-#define FAST_H_IN_REPLY_TO(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_IN_REPLY_TO],buf,n); \
-save_field = &(mum->fhdr[H_IN_REPLY_TO])
-
-#define FAST_H_MESSAGE_ID(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_MESSAGE_ID],buf,n); \
-save_field = &(mum->fhdr[H_MESSAGE_ID])
-
-#define FAST_H_REFERENCE(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_REFERENCE],buf,n); \
-save_field = &(mum->fhdr[H_REFERENCE])
-
-#define FAST_H_REPLY_TO(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_REPLY_TO],buf,n); \
-save_field = &(mum->fhdr[H_REPLY_TO])
-
-#define FAST_H_SENDER(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_SENDER],buf,n); \
-save_field = &(mum->fhdr[H_SENDER])
-
-#define FAST_H_SUBJECT(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_SUBJECT],buf,n); \
-save_field = &(mum->fhdr[H_SUBJECT])
-
-#define FAST_H_TO(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_TO],buf,n); \
-save_field = &(mum->fhdr[H_TO])
-
-#define FAST_H_X_UIDL(mum,save_field,buf,n) \
-FAST_HEADER(mum->fhdr[H_X_UIDL],buf,n); \
-save_field = &(mum->fhdr[H_X_UIDL])
-
-/* Notifications ADD_MESG. */
-#define DISPATCH_ADD_MSG(mbox,mud) \
-do \
-{ \
-  int bailing = 0; \
-  mu_monitor_unlock (mbox->monitor); \
-  if (mbox->observable) \
-     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
-  if (bailing != 0) \
-    { \
-      if (pcount) \
-        *pcount = (mud)->messages_count; \
-      mu_locker_unlock (mbox->locker); \
-      return EINTR; \
-    } \
-  mu_monitor_wrlock (mbox->monitor); \
+#define FAST_HEADER(field,buf,n)                                              \
+do {                                                                          \
+  int i = 0;                                                                  \
+  char *s = field;                                                            \
+  char *p = buf;                                                              \
+  if (s)                                                                      \
+    while (*s++) i++;                                                         \
+  else                                                                        \
+    {                                                                         \
+      p = memchr (buf, ':', n);                                               \
+      if (p) p++;                                                             \
+    }                                                                         \
+  if (p)                                                                      \
+    {                                                                         \
+      int l;                                                                  \
+      char *tmp;                                                              \
+      buf[n - 1] = '\0';                                                      \
+      if (!field)                                                             \
+        SKIPSPACE(p);                                                         \
+      l = n - (p - buf);                                                      \
+      tmp = realloc (field, (l + (i ? i + 1 : 0) + 1) * sizeof (char));       \
+      if (tmp)                                                                \
+        {                                                                     \
+           field = tmp;                                                       \
+           if (i) field[i++] = '\n';                                          \
+           memcpy (field + i, p, l);                                          \
+        }                                                                     \
+    }                                                                         \
+} while (0)								      
+									      
+#define FAST_H_BCC(mum,save_field,buf,n)                                      \
+  FAST_HEADER(mum->fhdr[H_BCC],buf,n);                                        \
+  save_field = &(mum->fhdr[H_BCC])					      
+									      
+#define FAST_H_CC(mum,save_field,buf,n)                                       \
+  FAST_HEADER(mum->fhdr[H_CC],buf,n);                                         \
+  save_field = &(mum->fhdr[H_CC])					      
+									      
+#define FAST_H_CONTENT_LANGUAGE(mum,save_field,buf,n)                         \
+  FAST_HEADER(mum->fhdr[H_CONTENT_LANGUAGE],buf,n);                           \
+  save_field = &(mum->fhdr[H_CONTENT_LANGUAGE])				      
+									      
+#define FAST_H_CONTENT_TRANSFER_ENCODING(mum,save_field,buf,n)                \
+  FAST_HEADER(mum->fhdr[H_CONTENT_TRANSFER_ENCODING],buf,n);                  \
+  save_field = &(mum->fhdr[H_CONTENT_TRANSFER_ENCODING])		      
+									      
+#define FAST_H_CONTENT_TYPE(mum,save_field,buf,n)                             \
+  FAST_HEADER(mum->fhdr[H_CONTENT_TYPE],buf,n);                               \
+  save_field = &(mum->fhdr[H_CONTENT_TYPE])				      
+									      
+#define FAST_H_DATE(mum,save_field,buf,n)                                     \
+  FAST_HEADER(mum->fhdr[H_DATE],buf,n);                                       \
+  save_field = &(mum->fhdr[H_DATE])					      
+									      
+#define FAST_H_FROM(mum,save_field,buf,n)                                     \
+  FAST_HEADER(mum->fhdr[H_FROM],buf,n);                                       \
+  save_field = &(mum->fhdr[H_FROM])					      
+									      
+#define FAST_H_IN_REPLY_TO(mum,save_field,buf,n)                              \
+  FAST_HEADER(mum->fhdr[H_IN_REPLY_TO],buf,n);                                \
+  save_field = &(mum->fhdr[H_IN_REPLY_TO])				      
+									      
+#define FAST_H_MESSAGE_ID(mum,save_field,buf,n)                               \
+  FAST_HEADER(mum->fhdr[H_MESSAGE_ID],buf,n);                                 \
+  save_field = &(mum->fhdr[H_MESSAGE_ID])				      
+									      
+#define FAST_H_REFERENCE(mum,save_field,buf,n)                                \
+  FAST_HEADER(mum->fhdr[H_REFERENCE],buf,n);                                  \
+  save_field = &(mum->fhdr[H_REFERENCE])				      
+									      
+#define FAST_H_REPLY_TO(mum,save_field,buf,n)                                 \
+  FAST_HEADER(mum->fhdr[H_REPLY_TO],buf,n);                                   \
+  save_field = &(mum->fhdr[H_REPLY_TO])					      
+									      
+#define FAST_H_SENDER(mum,save_field,buf,n)                                   \
+  FAST_HEADER(mum->fhdr[H_SENDER],buf,n);                                     \
+  save_field = &(mum->fhdr[H_SENDER])					      
+									      
+#define FAST_H_SUBJECT(mum,save_field,buf,n)                                  \
+  FAST_HEADER(mum->fhdr[H_SUBJECT],buf,n);                                    \
+  save_field = &(mum->fhdr[H_SUBJECT])					      
+									      
+#define FAST_H_TO(mum,save_field,buf,n)                                       \
+  FAST_HEADER(mum->fhdr[H_TO],buf,n);                                         \
+  save_field = &(mum->fhdr[H_TO])					      
+									      
+#define FAST_H_X_UIDL(mum,save_field,buf,n)                                   \
+  FAST_HEADER(mum->fhdr[H_X_UIDL],buf,n);                                     \
+  save_field = &(mum->fhdr[H_X_UIDL])					      
+									      
+/* Notifications ADD_MESG. */						      
+#define DISPATCH_ADD_MSG(mbox,mud)                                            \
+do                                                                            \
+{                                                                             \
+  int bailing = 0;                                                            \
+  mu_monitor_unlock (mbox->monitor);                                          \
+  if (mbox->observable)                                                       \
+     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD);   \
+  if (bailing != 0)                                                           \
+    {                                                                         \
+      if (pcount)                                                             \
+        *pcount = (mud)->messages_count;                                      \
+      mu_locker_unlock (mbox->locker);                                        \
+      return EINTR;                                                           \
+    }                                                                         \
+  mu_monitor_wrlock (mbox->monitor);                                          \
 } while (0);
 
 /* Notification MBX_PROGRESS
@@ -504,53 +522,52 @@ do \
    FIXME: maybe this should be configurable.  */
 /* This is more tricky we can not leave the mum struct incomplete.  So we
    only tell them about the complete messages.  */
-#define DISPATCH_PROGRESS(mbox,mud) \
-do \
-{ \
-    { \
-      int bailing = 0; \
-      mu_monitor_unlock (mbox->monitor); \
-      mud->messages_count--; \
-      if (mbox->observable) \
-        bailing = mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS); \
-      if (bailing != 0) \
-	{ \
-	  if (pcount) \
-	    *pcount = (mud)->messages_count; \
-          mu_locker_unlock (mbox->locker); \
-	  return EINTR; \
-	} \
-      mud->messages_count++; \
-      mu_monitor_wrlock (mbox->monitor); \
-    } \
+#define DISPATCH_PROGRESS(mbox,mud)                                          \
+do                                                                           \
+{                                                                            \
+  int bailing = 0;                                                           \
+  mu_monitor_unlock (mbox->monitor);                                         \
+  mud->messages_count--;                                                     \
+  if (mbox->observable)                                                      \
+    bailing = mu_observable_notify (mbox->observable,                        \
+                                    MU_EVT_MAILBOX_PROGRESS);                \
+  if (bailing != 0)                                                          \
+    {	                                                                     \
+       if (pcount)                                                           \
+	 *pcount = (mud)->messages_count;                                    \
+       mu_locker_unlock (mbox->locker);                                      \
+       return EINTR;                                                         \
+    }                                                                        \
+  mud->messages_count++;                                                     \
+  mu_monitor_wrlock (mbox->monitor);                                         \
 } while (0)
 
 /* Allocate slots for the new messages.  */
 /*    size_t num = 2 * ((mud)->messages_count) + 10; */
-#define ALLOCATE_MSGS(mbox,mud) \
-do \
-{ \
-  if ((mud)->messages_count >= (mud)->umessages_count) \
-  { \
-    mbox_message_t *m; \
-    size_t num = ((mud)->umessages_count) + 1; \
-    m = realloc ((mud)->umessages, num * sizeof (*m)); \
-    if (m == NULL) \
-      { \
-        mu_locker_unlock (mbox->locker); \
-        mu_monitor_unlock (mbox->monitor); \
-        return ENOMEM; \
-      } \
-    (mud)->umessages = m; \
-    (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
-    if ((mud)->umessages[num - 1] == NULL) \
-      { \
-        mu_locker_unlock (mbox->locker); \
-        mu_monitor_unlock (mbox->monitor); \
-        return ENOMEM; \
-      } \
-    (mud)->umessages_count = num; \
-  } \
+#define ALLOCATE_MSGS(mbox,mud)                                              \
+do                                                                           \
+{                                                                            \
+  if ((mud)->messages_count >= (mud)->umessages_count)                       \
+    {                                                                        \
+      mbox_message_t *m;                                                     \
+      size_t num = ((mud)->umessages_count) + 1;                             \
+      m = realloc ((mud)->umessages, num * sizeof (*m));                     \
+    if (m == NULL)                                                           \
+      {                                                                      \
+        mu_locker_unlock (mbox->locker);                                     \
+        mu_monitor_unlock (mbox->monitor);                                   \
+        return ENOMEM;                                                       \
+      }                                                                      \
+    (mud)->umessages = m;                                                    \
+    (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum)));                 \
+    if ((mud)->umessages[num - 1] == NULL)                                   \
+      {                                                                      \
+        mu_locker_unlock (mbox->locker);                                     \
+        mu_monitor_unlock (mbox->monitor);                                   \
+        return ENOMEM;                                                       \
+      }                                                                      \
+    (mud)->umessages_count = num;                                            \
+  }                                                                          \
 } while (0)
 
 int
