@@ -476,7 +476,7 @@ util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
 	break;
 
       case Mail_env_boolean:
-	*(int*)ptr = env->set;
+	*(int*)ptr = env->value.bool;
 	break;
 
       default:
@@ -601,22 +601,24 @@ util_printenv (int set)
   qsort (ep, count, sizeof *ep, envp_comp);
   for (i = 0; i < count; i++)
     {
-      fprintf (ofile, "%s", ep[i]->var);
       switch (ep[i]->type)
 	{
 	case Mail_env_number:
-	  fprintf (ofile, "=%d", ep[i]->value.number);
+	  fprintf (ofile, "%s=%d", ep[i]->var, ep[i]->value.number);
 	  break;
 	  
 	case Mail_env_string:
-	  fprintf (ofile, "=\"%s\"", ep[i]->value.string);
+	  fprintf (ofile, "%s=\"%s\"", ep[i]->var, ep[i]->value.string);
 	  break;
 	  
 	case Mail_env_boolean:
+	  if (!ep[i]->value.bool)
+	    fprintf (ofile, "no");
+	  fprintf (ofile, "%s", ep[i]->var);
 	  break;
 	  
 	case Mail_env_whatever:
-	  fprintf (ofile, _("oops?"));
+	  fprintf (ofile, "%s %s", ep[i]->var, _("oops?"));
 	}
       fprintf (ofile, "\n");
     }
@@ -679,6 +681,7 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 	  break;
 	  
 	case Mail_env_boolean:
+	  ep->value.bool = *(int*)value;
 	  break;
 		  
 	default:
