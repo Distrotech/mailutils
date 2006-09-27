@@ -1172,13 +1172,44 @@ int
 mu_string_unfold (char *text, size_t *plen)
 {
   char *p, *q;
-
+  enum uf_state { uf_init, uf_nl, uf_fold } state = uf_init;
+#define ISSPACE(c) (c == '\r' || c == ' ' || c == '\t')
+  
   if (!text)
     return EINVAL;
   
   for (p = q = text; *q; q++)
-    if (*q != '\n')
-      *p++ = *q;
+    {
+      switch (state)
+	{
+	case uf_init:
+	  if (*q == '\n')
+	    state = uf_nl;
+	  else
+	    *p++ = *q;
+	  break;
+
+	case uf_nl:
+	  if (ISSPACE (*q))
+	    state = uf_fold;
+	  else
+	    {
+	      state = uf_init;
+	      *p++ = *q;
+	    }
+	  break;
+
+	case uf_fold:
+	  if (!ISSPACE (*q))
+	    {
+	      *p++ = ' ';
+	      *p++ = *q;
+	      state = uf_init;
+	    }
+	  break;
+	}
+    }
+  
   *p++ = 0;
   if (plen)
     *plen = p - text;
