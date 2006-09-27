@@ -62,7 +62,7 @@ mail_set (int argc, char **argv)
 	    }
 	  else
 	    {
-	      int dummy;
+	      int dummy = 1;
 	      util_setenv (argv[i], &dummy, Mail_env_boolean, 1);
 	    }
 	}
