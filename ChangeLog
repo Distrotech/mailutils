@@ -1,3 +1,19 @@
+2006-09-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* comsat/action.c: Minor fixes
+	* libproto/mbox/mboxscan.c (FAST_HEADER): Fix unfolding: Advance p
+	only if ':' was found.
+	Minor macro style fixes
+	* mail/mail.h (struct mail_env_entry): New member v.bool
+	* mail/set.c (mail_set): Init dummy to 1
+	* mail/util.c: mail_env_entry->set means that the entry was ever
+	set.  mail_env_entry->v.bool is the actual value of boolean
+	variables.
+	* mail.local/main.c: Minor indentation fixes
+	* mailbox/mutil.c (mu_string_unfold): Convert \n followed by any
+	amount of whitespace to single space.
+	* mh/sortm.c: Minor fix
+
 2006-09-10  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* dotlock/dotlock.c, mail.local/main.c, mail.remote/mail.remote.c,
