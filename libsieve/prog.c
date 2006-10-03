@@ -194,6 +194,14 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      if (tag->argtype != SVT_VOID)
 		{
 		  mu_iterator_next (itr);
+		  if (mu_iterator_is_done (itr))
+		    {
+		      sieve_compile_error (sieve_filename, sieve_line_num,
+			   _("required argument for tag %s is missing"),
+					   tag->name);
+		      err = 1;
+		      break;
+		    }
 		  mu_iterator_current (itr, (void **)&tagrec.arg);
 		}
 	      else
