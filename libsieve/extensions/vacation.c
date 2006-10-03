@@ -448,7 +448,9 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
       
       free (value);
     }
-
+  else
+    subject = "Re:";
+    
   if (mu_rfc2047_encode (MU_SIEVE_CHARSET, "quoted-printable",
 			 subject, &value))
     mu_header_set_value (newhdr, MU_HEADER_SUBJECT, subject, 0);
