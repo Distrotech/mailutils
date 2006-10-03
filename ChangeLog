@@ -1,3 +1,11 @@
+2006-10-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/prog.c (sieve_code_command): Avoid dead loop if a tag
+	is not given the argument it requires. Improve the diagnostics.
+	Bug reported by Kostas Zorbadelos.
+	* libsieve/extensions/vacation.c (vacation_subject): Make sure
+	subject is not null.
+
 2006-09-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/action.c: Minor fixes
