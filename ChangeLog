@@ -1,3 +1,8 @@
+2006-10-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/extensions/vacation.c (vacation_subject): Improve
+	yesterday's fix, following Kostas' suggestion.
+
 2006-10-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/prog.c (sieve_code_command): Avoid dead loop if a tag
