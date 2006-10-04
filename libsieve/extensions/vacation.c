@@ -400,14 +400,11 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
   mu_sieve_value_t *arg;
   char *value;
   char *subject;
-  int subject_allocated;
+  int subject_allocated = 0;
   mu_header_t hdr;
   
   if (mu_sieve_tag_lookup (tags, "subject", &arg))
-    {
-      subject =  arg->v.string;
-      subject_allocated = 0;
-    }
+    subject =  arg->v.string;
   else if (mu_message_get_header (msg, &hdr) == 0
 	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &value) == 0)
     {
@@ -449,7 +446,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
       free (value);
     }
   else
-    subject = "Re:";
+    subject = "Re: Your mail";
     
   if (mu_rfc2047_encode (MU_SIEVE_CHARSET, "quoted-printable",
 			 subject, &value))
