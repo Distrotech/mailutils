@@ -34,4 +34,4 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
   -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
-  -DI18NLIBS="\"`test $(BUILD_INCLUDED_LIBINTL) = no && echo $(LIBINTL)`\""
+  -DI18NLIBS="\"$(LIBINTL)\""
