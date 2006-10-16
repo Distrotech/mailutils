@@ -891,14 +891,16 @@ AH_TEMPLATE([WITH_BDB],
 ## an error and stop.
 ##
 check_bdb() {
+        ver=`echo $1 | tr -d '.'`
+	major=`expr $ver : '\(.\).*'`
 	AC_CHECK_LIB($2, $3,
-                     [ver=`echo $1|tr -d '.'`
-                      AC_CHECK_HEADERS(db.h,
-                                       AC_DEFINE_UNQUOTED(WITH_BDB,$ver))
-                      LIBS="$LIBS -l$2"
-                      MU_DB2_CURSOR
-		      POPAUTH='popauth$(EXEEXT)'
-                      status_bdb=$1])
+                     [AC_CHECK_HEADERS(db.h)
+                      if test $ac_cv_header_db_h = yes; then
+                        LIBS="$LIBS -l$2"
+                        MU_DB2_CURSOR
+		        POPAUTH='popauth$(EXEEXT)'
+                        status_bdb=$1
+                      fi])
 	if test $status_bdb = no; then
 		:
 	else
@@ -906,7 +908,8 @@ check_bdb() {
            [AC_LANG_PROGRAM([#include "db.h"],
             [int v_major, v_minor, v_patch;
              db_version(&v_major, &v_minor, &v_patch);
-             return !(v_major == DB_VERSION_MAJOR
+             return !(DB_VERSION_MAJOR == $major
+                       && v_major == DB_VERSION_MAJOR
                        && v_minor == DB_VERSION_MINOR
                        && v_patch == DB_VERSION_PATCH);
             ])],
@@ -944,11 +947,17 @@ GDBM)
 
 BDB2)   check_bdb 2 db db_open;;
 
-BDB)
-	check_bdb 2 db db_open
-        if test $status_bdb = no; then
-	  check_bdb 3 db db_create
-        fi;;
+BDB)    for version in 4 3 2
+	do
+		case $version in
+		4|3) func=db_create;;
+		2)   func=db_open;;
+		esac
+		check_bdb $version db $func
+		if test "$status_bdb" != no; then
+		   break;
+		fi
+	done;;
 
 BDB=*)
 	name=`expr $use_dbm : 'BDB=\(.*\)'`
