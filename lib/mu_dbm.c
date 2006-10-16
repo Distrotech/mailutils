@@ -247,7 +247,11 @@ mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
   rc = db_create (&db, NULL, 0);
   if (rc != 0 || db == NULL)
     return rc;
+# if DB_VERSION_MAJOR == 3
   rc = db->open (db, pfname, NULL, DB_HASH, f, mode);
+# else
+  rc = db->open (db, NULL, pfname, NULL, DB_HASH, f, mode);
+# endif
 #endif
   
   free (pfname);
