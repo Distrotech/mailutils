@@ -21,7 +21,8 @@
 
 #include <mailutils/types.h>
 
-struct mu_auth_data {
+struct mu_auth_data
+{
   /* These are from struct passwd */
   char    *name;       /* user name */
   char    *passwd;     /* user password */
@@ -40,7 +41,8 @@ typedef int (*mu_auth_fp) (struct mu_auth_data **data,
 			   void *func_data,
 			   void *call_data);
 
-struct mu_auth_module {
+struct mu_auth_module
+{
   char           *name;
   struct argp    *argp;
   mu_auth_fp     authenticate;
@@ -51,9 +53,20 @@ struct mu_auth_module {
   void           *auth_by_uid_data;
 };
 
+enum mu_auth_key_type
+  {
+    mu_auth_key_name,
+    mu_auth_key_uid
+  };
+
+
 extern int mu_auth_runlist (mu_list_t flist,
 			    struct mu_auth_data **return_data,
 			    const void *key, void *data);
+
+extern int mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
+			const void *key);
+
 extern struct mu_auth_data *
 mu_get_auth_by_name (const char *username);
 
