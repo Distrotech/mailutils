@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,6 +46,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/nls.h>
 
 /* FIXME: The functions from this module assign values to errno and 
@@ -80,7 +81,7 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
   
   *ptr = malloc (size);
   if (!*ptr)
-    return 1;
+    return ENOMEM;
 
   p = (char *)(*ptr + 1);
   
@@ -127,25 +128,33 @@ int
 mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
 		 const void *key, void *data)
 {
-  int rc = 1;
+  int status = MU_ERR_AUTH_FAILURE;
+  int rc;
   mu_iterator_t itr;
 
   if (mu_list_get_iterator (flist, &itr) == 0)
     {
       struct auth_stack_entry *ep;
       
-      for (mu_iterator_first (itr); rc && !mu_iterator_is_done (itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
 	   mu_iterator_next (itr))
 	{
 	  mu_iterator_current (itr, (void **)&ep);
 	  DEBUG(("trying %s", ep->name));
 	  rc = ep->fun (return_data, key, ep->func_data, data);
 	  DEBUG(("Result: %d", rc));
+	  if (rc == 0)
+	    {
+	      status = rc;
+	      break;
+	    }
+	  else if (status != EAGAIN)
+	    status = rc;
 	}
 
       mu_iterator_destroy (&itr);
     }
-  return rc;
+  return status;
 }
 
 int
@@ -154,8 +163,7 @@ mu_auth_nosupport (struct mu_auth_data **return_data ARG_UNUSED,
 		   void *func_data ARG_UNUSED,
 		   void *call_data ARG_UNUSED)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 
 /* II. Authorization: retrieving information about user */
@@ -163,15 +171,34 @@ mu_auth_nosupport (struct mu_auth_data **return_data ARG_UNUSED,
 static mu_list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
 static mu_list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
 
+int
+mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type, const void *key)
+{
+  mu_list_t list;
+  
+  if (!mu_auth_by_name_list)
+    mu_auth_begin_setup ();
+  switch (type)
+    {
+    case mu_auth_key_name:
+      list = mu_auth_by_name_list;
+      break;
+
+    case mu_auth_key_uid:
+      list = mu_auth_by_uid_list;
+      break;
+
+    default:
+      return EINVAL;
+    }
+  return mu_auth_runlist (list, auth, key, NULL);
+}
+
 struct mu_auth_data *
 mu_get_auth_by_name (const char *username)
 {
   struct mu_auth_data *auth = NULL;
-
-  DEBUG(("mu_get_auth_by_name"));
-  if (!mu_auth_by_name_list)
-    mu_auth_begin_setup ();
-  mu_auth_runlist (mu_auth_by_name_list, &auth, username, NULL);
+  mu_get_auth (&auth, mu_auth_key_name, username);
   return auth;
 }
 
@@ -179,11 +206,7 @@ struct mu_auth_data *
 mu_get_auth_by_uid (uid_t uid)
 {
   struct mu_auth_data *auth = NULL;
-
-  DEBUG(("mu_get_auth_by_uid"));
-  if (!mu_auth_by_uid_list)
-    mu_auth_begin_setup ();
-  mu_auth_runlist (mu_auth_by_uid_list, &auth, &uid, NULL);
+  mu_get_auth (&auth, mu_auth_key_uid, &uid);
   return auth;
 }
 
