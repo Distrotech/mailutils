@@ -33,6 +33,7 @@ noinst_PROGRAMS = \
  mimetest\
  msg-send\
  mta\
+ muauth\
  muemail\
  murun\
  nntpclient\
@@ -115,3 +116,7 @@ lsf_LDADD = \
  @MU_AUTHLIBS@ \
  ${MU_LIB_MAILUTILS}
 
+muauth_LDADD = \
+ ${MU_LIB_AUTH}\
+ @MU_AUTHLIBS@ \
+ ${MU_LIB_MAILUTILS}
