@@ -1,3 +1,29 @@
+2006-10-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Add support for Berkeley DB 3 and 4
+
+	* auth/radius.c: Return meaningful error codes.
+	* auth/sql.c: Likewise
+	* auth/virtual.c: Likewise
+	* mailbox/system.c: Likewise
+
+	* sql/mysql.c (octet2hex): Rename to mu_octet_to_hex to avoid name
+	clashes with mysql
+	
+	* config/Makefile.am (mailutils_config_CFLAGS): Define I18NLIBS
+	inconditionally.
+	* examples/Makefile.am (muath): New target
+
+	* include/mailutils/mu_auth.h (enum mu_auth_key_type): New data
+	type.
+	(mu_get_auth): New function.
+	* lib/mu_dbm.c: Support for Berkeley DB 3, 4
+	* mailbox/mu_auth.c (mu_get_auth): New function.
+	(mu_auth_runlist): Change return code convention: underlying calls
+	should return meaningful error codes, not just 0/1.
+
+	* examples/muauth.c: new file
+	
 2006-10-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/extensions/vacation.c (vacation_subject): Improve
