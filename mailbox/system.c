@@ -42,6 +42,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/errno.h>
 
 /* System database */
 static int
@@ -51,11 +52,11 @@ mu_auth_system (struct mu_auth_data **return_data, const struct passwd *pw)
   int rc;
   
   if (!pw)
-    return 1;
+    return MU_ERR_AUTH_FAILURE;
 
   rc = mu_construct_user_mailbox_url (&mailbox_name, pw->pw_name);
   if (rc)
-    return 1; /* FIXME: Return code is lost */
+    return rc; /* FIXME: Return code is lost */
   
   rc = mu_auth_data_alloc (return_data,
 			   pw->pw_name,
@@ -78,10 +79,7 @@ mu_auth_system_by_name (struct mu_auth_data **return_data,
 			void *call_data ARG_UNUSED)
 {
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
   return mu_auth_system (return_data, getpwnam (key));
 }
 
@@ -92,10 +90,7 @@ mu_auth_system_by_uid (struct mu_auth_data **return_data,
 		       void *call_data ARG_UNUSED)
 {
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
   return mu_auth_system (return_data, getpwuid (*(uid_t*) key));
 }
 
@@ -108,9 +103,12 @@ mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
   const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
 
-  return !auth_data
-    || !auth_data->passwd
-    || strcmp (auth_data->passwd, crypt (pass, auth_data->passwd));
+  if (!auth_data || !pass)
+    return EINVAL;
+  
+  return auth_data->passwd
+         && strcmp (auth_data->passwd, crypt (pass, auth_data->passwd)) == 0 ?
+          0 : MU_ERR_AUTH_FAILURE;
 }
 
 /* Called only if generic fails */
@@ -129,10 +127,11 @@ mu_authenticate_system (struct mu_auth_data **return_data ARG_UNUSED,
       struct spwd *spw;
       spw = getspnam (auth_data->name);
       if (spw)
-	return strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp));
+	return strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)) == 0 ?
+	        0 : MU_ERR_AUTH_FAILURE;
     }
 #endif
-  return 1;
+  return MU_ERR_AUTH_FAILURE;
 }
 
 

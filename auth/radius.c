@@ -451,26 +451,37 @@ mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 			const void *key,
 			void *func_data ARG_UNUSED, void *call_data)
 {
-  int rc;
+  int rc, code;
   grad_request_t *reply;
   const struct mu_auth_data *auth_data = key;
 
   if (!radius_auth_enabled)
-    {
-      errno = ENOSYS;
-      return 1;
-    }
+    return ENOSYS;
   
   if (!auth_request)
     {
       mu_error (_("--radius-auth-request is not specified"));
-      return 1;
+      return EINVAL;
     }
   
   reply = send_request (auth_request, RT_ACCESS_REQUEST,
 			auth_data->name, (char*) call_data);
-  rc = !reply || reply->code != RT_ACCESS_ACCEPT;
+  if (!reply)
+    return EAGAIN;
+
+  switch (reply->code) {
+  case RT_ACCESS_ACCEPT:
+    rc = 0;
+    break;
+
+  case RT_ACCESS_CHALLENGE:
+    /* Should return another code here? */
+  default:
+    rc = MU_ERR_AUTH_FAILURE;
+  }
+      
   grad_request_free (reply);
+
   return rc;
 }
 
@@ -479,31 +490,35 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
 			     const void *key,
 			     void *unused_func_data, void *unused_call_data)
 {
-  int rc = 1;
+  int rc = MU_ERR_AUTH_FAILURE;
   grad_request_t *reply;
   
   if (!radius_auth_enabled)
-    {
-      errno = ENOSYS;
-      return 1;
-    }
+    return ENOSYS;
 
   if (!getpwnam_request)
     {
       mu_error (_("--radius-getpwnam-request is not specified"));
-      return 1;
+      return MU_ERR_FAILURE;
     }
   
   reply = send_request (getpwnam_request, RT_ACCESS_REQUEST, key, NULL);
   if (!reply)
-    mu_error (_("radius server did not respond"));
-  else if (reply->code != RT_ACCESS_ACCEPT)
-    mu_error (_("%s: server returned %s"),
-	      (char*) key,
-	      grad_request_code_to_name (reply->code));
+    {
+      mu_error (_("radius server did not respond"));
+      rc = EAGAIN;
+    }
   else
-    rc = decode_reply (reply, key, "x", return_data);
-  grad_request_free (reply);
+    {
+      if (reply->code != RT_ACCESS_ACCEPT)
+	mu_error (_("%s: server returned %s"),
+		  (char*) key,
+		  grad_request_code_to_name (reply->code));
+      else
+	rc = decode_reply (reply, key, "x", return_data);
+      
+      grad_request_free (reply);
+    }
   return rc;
 }
 
@@ -512,39 +527,37 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
 			    const void *key,
 			    void *func_data, void *call_data)
 {
-  int rc = 1;
+  int rc = MU_ERR_AUTH_FAILURE;
   grad_request_t *reply;
   char uidstr[64];
   
   if (!radius_auth_enabled)
-    {
-      errno = ENOSYS;
-      return 1;
-    }
+    return ENOSYS;
 
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
 
   if (!getpwuid_request)
     {
       mu_error (_("--radius-getpwuid-request is not specified"));
-      return 1;
+      return MU_ERR_FAILURE;
     }
   
   snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
   reply = send_request (getpwuid_request, RT_ACCESS_REQUEST, uidstr, NULL);
+  if (!reply)
+    {
+      mu_error (_("radius server did not respond"));
+      rc = EAGAIN;
+    }
   if (reply->code != RT_ACCESS_ACCEPT)
     {
       mu_error (_("uid %s: server returned %s"), uidstr,
 		grad_request_code_to_name (reply->code));
     }
   else
-    {
-      rc = decode_reply (reply, uidstr, "x", return_data);
-    }
+    rc = decode_reply (reply, uidstr, "x", return_data);
+
   grad_request_free (reply);
   return rc;
 }
@@ -560,8 +573,7 @@ mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 			const void *key,
 			void *func_data ARG_UNUSED, void *call_data)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 
 static int
@@ -570,8 +582,7 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data ARG_UNUSED,
 			     void *func_data ARG_UNUSED,
 			     void *call_data ARG_UNUSED)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 
 static int
@@ -579,8 +590,7 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
 			    const void *key,
 			    void *func_data, void *call_data)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 #endif
 

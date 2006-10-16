@@ -271,6 +271,56 @@ struct argp mu_sql_argp = {
 };
 
 static int
+decode_tuple (mu_sql_connection_t conn, int n, struct mu_auth_data **return_data)
+{
+  int rc;
+  char *mailbox_name = NULL;
+  char *name;
+      
+  if (mu_sql_get_column (conn, 0, 0, &name))
+    return MU_ERR_FAILURE;
+
+  if (n == 7)
+    {
+      char *tmp;
+      if (mu_sql_get_column (conn, 0, 6, &tmp))
+	return MU_ERR_FAILURE;
+      if ((mailbox_name = strdup (tmp)) == NULL)
+	return ENOMEM;
+    }
+  else if (mu_construct_user_mailbox_url (&mailbox_name, name))
+    return MU_ERR_FAILURE;
+      
+  if (mailbox_name)
+    {
+      char *passwd, *suid, *sgid, *dir, *shell;
+	  
+      if (mu_sql_get_column (conn, 0, 1, &passwd)
+	  || mu_sql_get_column (conn, 0, 2, &suid)
+	  || mu_sql_get_column (conn, 0, 3, &sgid)
+	  || mu_sql_get_column (conn, 0, 4, &dir)
+	  || mu_sql_get_column (conn, 0, 5, &shell))
+	return MU_ERR_FAILURE;
+      
+      rc = mu_auth_data_alloc (return_data,
+			       name,
+			       passwd,
+			       atoi (suid),
+			       atoi (sgid),
+			       "SQL User",
+			       dir,
+			       shell,
+			       mailbox_name,
+			       1);
+    }
+  else
+    rc = MU_ERR_AUTH_FAILURE;
+  
+  free (mailbox_name);
+  return rc;
+}
+
+static int
 mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		     const void *key,
 		     void *func_data ARG_UNUSED,
@@ -282,15 +332,12 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
   size_t n;
   
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
 
   query_str = mu_sql_expand_query (mu_sql_getpwnam_query, key);
 
   if (!query_str)
-    return 1;
+    return MU_ERR_FAILURE;
 
   status = mu_sql_connection_init (&conn,
 				   sql_interface,
@@ -304,7 +351,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_connect (conn);
@@ -314,7 +361,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return EAGAIN;
     }
   
   status = mu_sql_query (conn, query_str);
@@ -326,7 +373,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_store_result (conn);
@@ -337,59 +384,14 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return MU_ERR_FAILURE;
     }
 
   mu_sql_num_tuples (conn, &n);
   if (n == 0)
-    {
-      rc = 1;
-    }
+    rc = MU_ERR_AUTH_FAILURE;
   else
-    {
-      char *mailbox_name = NULL;
-      char *name;
-      
-      mu_sql_get_column (conn, 0, 0, &name);
-
-      if (n == 7)
-	{
-	  char *tmp;
-	  mu_sql_get_column (conn, 0, 6, &tmp);
-	  mailbox_name = strdup (tmp);
-	}
-      else
-	{
-	  mu_construct_user_mailbox_url (&mailbox_name, name);
-	  /* FIXME: Error code is lost */
-	}
-      
-      if (mailbox_name)
-	{
-	  char *passwd, *suid, *sgid, *dir, *shell;
-	  
-	  mu_sql_get_column (conn, 0, 1, &passwd);
-	  mu_sql_get_column (conn, 0, 2, &suid);
-	  mu_sql_get_column (conn, 0, 3, &sgid);
-	  mu_sql_get_column (conn, 0, 4, &dir);
-	  mu_sql_get_column (conn, 0, 5, &shell);
-	  
-	  rc = mu_auth_data_alloc (return_data,
-				   name,
-				   passwd,
-				   atoi (suid),
-				   atoi (sgid),
-				   "SQL User",
-				   dir,
-				   shell,
-				   mailbox_name,
-				   1);
-	}
-      else
-	rc = 1;
-      
-      free (mailbox_name);
-    }
+    rc = decode_tuple (conn, n, return_data);
   
   mu_sql_release_result (conn);
   mu_sql_disconnect (conn);
@@ -411,16 +413,13 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
   size_t n;
   
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
 
   snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
   query_str = mu_sql_expand_query (mu_sql_getpwuid_query, uidstr);
 
   if (!query_str)
-    return 1;
+    return ENOMEM;
 
   status = mu_sql_connection_init (&conn,
 				   sql_interface,
@@ -434,7 +433,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_connect (conn);
@@ -444,7 +443,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return EAGAIN;
     }
   
   status = mu_sql_query (conn, query_str);
@@ -456,7 +455,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_store_result (conn);
@@ -467,59 +466,15 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return MU_ERR_FAILURE;
     }
 
   mu_sql_num_tuples (conn, &n);
 
   if (n == 0)
-    {
-      rc = 1;
-    }
+    rc = MU_ERR_AUTH_FAILURE;
   else
-    {
-      char *name;
-      char *mailbox_name = NULL;
-      
-      mu_sql_get_column (conn, 0, 0, &name);
-  
-      if (n == 7)
-	{
-	  char *tmp;
-	  mu_sql_get_column (conn, 0, 6, &tmp);
-	  mailbox_name = strdup (tmp);
-	}
-      else
-	{
-          mu_construct_user_mailbox_url (&mailbox_name, name);      
-          /* FIXME: Error code is lost */
-	}
-      
-      if (mailbox_name)
-	{
-	  char *passwd, *suid, *sgid, *dir, *shell;
-	  
-	  mu_sql_get_column (conn, 0, 1, &passwd);
-	  mu_sql_get_column (conn, 0, 2, &suid);
-	  mu_sql_get_column (conn, 0, 3, &sgid);
-	  mu_sql_get_column (conn, 0, 4, &dir);
-	  mu_sql_get_column (conn, 0, 5, &shell);
-	  
-	  rc = mu_auth_data_alloc (return_data,
-				   name,
-				   passwd,
-				   atoi (suid),
-				   atoi (sgid),
-				   "SQL User",
-				   dir,
-				   shell,
-				   mailbox_name,
-				   1);
-	}
-      else
-	rc = 1;
-      free (mailbox_name);
-    }
+    rc = decode_tuple (conn, n, return_data);
   
   mu_sql_release_result (conn);
   mu_sql_disconnect (conn);
@@ -553,7 +508,7 @@ mu_sql_getpass (const char *username, char **passwd)
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_connect (conn);
@@ -563,7 +518,7 @@ mu_sql_getpass (const char *username, char **passwd)
       mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
-      return status;
+      return EAGAIN;
     }
   
   status = mu_sql_query (conn, query_str);
@@ -575,7 +530,7 @@ mu_sql_getpass (const char *username, char **passwd)
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_store_result (conn);
@@ -586,7 +541,7 @@ mu_sql_getpass (const char *username, char **passwd)
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   status = mu_sql_get_column (conn, 0, 0, &sql_pass);
@@ -597,7 +552,7 @@ mu_sql_getpass (const char *username, char **passwd)
 	 	                          mu_strerror (status));
       mu_sql_release_result (conn);
       mu_sql_connection_destroy (&conn);
-      return status;
+      return MU_ERR_FAILURE;
     }
 
   *passwd = strdup (sql_pass);
@@ -622,10 +577,10 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
   int rc;
   
   if (!auth_data)
-    return 1;
+    return EINVAL;
 
-  if (mu_sql_getpass (auth_data->name, &sql_pass))
-    return 1;
+  if ((rc = mu_sql_getpass (auth_data->name, &sql_pass)))
+    return rc;
 
   switch (mu_sql_password_type)
     {
@@ -640,6 +595,8 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 	 just as the rest of mu_sql_.* functions do */
 #ifdef HAVE_MYSQL
       rc = mu_check_mysql_scrambled_password (sql_pass, pass);
+#else
+      rc = 1;
 #endif
       break;
 
@@ -650,7 +607,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 
   free (sql_pass);
   
-  return rc;
+  return rc == 0 ? 0 : MU_ERR_AUTH_FAILURE;
 }
 
 #else

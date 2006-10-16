@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,6 +52,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
+#include <mailutils/errno.h>
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
@@ -143,20 +144,19 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data,
   char *mailbox_name;
   
   if (!key)
-    {
-      errno = EINVAL;
-      return 1;
-    }
+    return EINVAL;
 
   pw = getpwnam_virtual (key);
   if (!pw)
     {
       pw = getpwnam_ip_virtual (key);
       if (!pw)
-	return 1;
+	return MU_ERR_AUTH_FAILURE;
     }
   
   mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX") + 1, 1);
+  if (!mailbox_name)
+    return ENOMEM;
   sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
 
   rc = mu_auth_data_alloc (return_data,
@@ -208,8 +208,7 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data ARG_UNUSED,
 			     void *func_data ARG_UNUSED,
 			     void *call_data ARG_UNUSED)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 #endif
 
