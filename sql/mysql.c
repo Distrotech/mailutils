@@ -252,7 +252,7 @@ scramble_password (unsigned long *result, const char *password)
 }
 
 static void
-octet2hex (char *to, const unsigned char *str, unsigned len)
+mu_octet_to_hex (char *to, const unsigned char *str, unsigned len)
 {
   const unsigned char *str_end= str + len;
   static char d[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -285,7 +285,7 @@ mu_check_mysql_4x_password (const char *scrambled, const char *message)
 
   /* convert hash_stage2 to hex string */
   to[0] = '*';
-  octet2hex (to + 1, hash_stage2, SHA1_HASH_SIZE);
+  mu_octet_to_hex (to + 1, hash_stage2, SHA1_HASH_SIZE);
 
   /* Compare both strings */
   return memcmp (to, scrambled, strlen (scrambled));
