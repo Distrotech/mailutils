@@ -20,13 +20,6 @@ mailutils.toc
 mailutils.tp
 mailutils.vr
 mdate-sh
-mu_address.texi
-mu_body.texi
-mu_logger.texi
-mu_mailbox.texi
-mu_message.texi
-mu_mime.texi
-mu_scm.texi
 muint.info*
 stamp-1
 stamp-vti

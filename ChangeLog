@@ -1,3 +1,14 @@
+2006-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/texinfo/mu_address.texi: Added to the repository
+	* doc/texinfo/mu_body.texi: Likewise
+	* doc/texinfo/mu_logger.texi: Likewise
+	* doc/texinfo/mu_mailbox.texi: Likewise
+	* doc/texinfo/mu_message.texi: Likewise
+	* doc/texinfo/mu_mime.texi: Likewise
+	* doc/texinfo/mu_scm.texi: Likewise
+	* doc/texinfo/.cvsignore: Update
+
 2006-10-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Add support for Berkeley DB 3 and 4
