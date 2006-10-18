@@ -711,7 +711,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if (status)
     {
-      mailer_err (_("Cannot lock mailbox `%s': %s"), path, mu_strerror (status));
+      mailer_err (_("Cannot lock mailbox `%s': %s"), path,
+		  mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
