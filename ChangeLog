@@ -1,3 +1,12 @@
+2006-10-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Require gettext 0.15
+	(check_bdb): Bugfix
+	* m4/iconv.m4, m4/intmax.m4, m4/inttypes.m4, m4/nls.m4,
+	m4/printf-posix.m4, m4/progtest.m4: Update
+	* mail.local/main.c: Formatting fix
+	* scripts/gnulib-sync (copy_files): Adjust for gettext 0.15
+
 2006-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/texinfo/mu_address.texi: Added to the repository
