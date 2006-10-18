@@ -75,7 +75,7 @@ status_pgsql=no
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION(0.14.1)
+AM_GNU_GETTEXT_VERSION(0.15)
 AM_ICONV
 AC_CHECK_HEADERS(iconv.h)
 AC_CHECK_TYPE(iconv_t,:,
@@ -916,6 +916,9 @@ check_bdb() {
            [],
            [AC_MSG_ERROR([DB Library and header versions don't match])
             status_bdb=no])
+           if test $status_bdb != no; then
+	     AC_DEFINE_UNQUOTED(WITH_BDB,$ver)
+           fi
 	fi
 }
 
