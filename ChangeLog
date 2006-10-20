@@ -1,3 +1,16 @@
+2006-10-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Updated
+	* doc/texinfo/programs.texi: Updated
+
+	* configure.ac (MU_GUILE_SITE_DIR,MU_GUILE_SIEVE_MOD_DIR)
+	(MU_GUILE_SIEVE_SCRIPTS,MU_GUILE_SIEVE_MOD_DATA): New variables to
+	clean build without Guile
+	* guimb/scm/Makefile.am: Likewise
+	* libmu_scm/Makefile.am: Likewise
+	* mail/escape.c (escape_sign): Print "-- \n" before the signature.
+	* mail/util.c (util_do_command): Implement ^ and $.
+
 2006-10-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Require gettext 0.15

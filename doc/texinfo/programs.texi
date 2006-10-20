@@ -3869,8 +3869,11 @@ The following actions are defined:
 @table @asis
 @item beep
 Produce an audible signal.
-@item echo @var{string}
-Output @var{string} to user's terminal device.
+@item echo [-n] @var{string} [@var{string}...]
+Output the arguments to the user's terminal device. If several
+arguments are given they will be output separated by single
+spaces. The newline character will be printed at the end of the
+output, unless the @option{-n} option is used.
 @item exec @var{prog} @var{arglist}
 Execute program @var{prog} with arguments from @var{arglist}. @var{prog}
 must be specified with absolute pathname. It may not be a setuid or
@@ -3907,6 +3910,20 @@ Subject: $H@{Subject@}\n\
 ---\n\
 $B(,5)\
 ---\n"
+@end group
+@end smallexample
+
+@noindent
+The above example can also be written as:
+@smallexample
+@group
+echo Mail to \a$u@@$h\a
+echo ---
+echo From: $H@{From@}
+echo Subject: $H@{Subject@}
+echo ---
+echo $B(,5)
+echo ---
 @end group
 @end smallexample
 

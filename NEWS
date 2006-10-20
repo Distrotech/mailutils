@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2006-07-05
+GNU mailutils NEWS -- history of user-visible changes.  2006-10-11
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -7,9 +7,29 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 Version 1.0.1 (CVS):
 
+* mail: Implement ^ and $ commands
+
+* Add support for Berkeley DB 3 and 4
+
+* comsat
+
+The syntax of echo command changed. Now it is more shell-like:
+
+echo
+echo New mail for \a$u@$h:
+echo ---
+echo From: $H{From}
+echo Subject: $H{Subject}
+echo $B(,5)---
+
 ** Bug fixes
+* Fix build without Guile
 * mail core dumped on tab expansion of `cd x'
+* Print "-- \n" before ~a expansion in mail
 * Fix memory problems in mail's `decode' command
+* Fix endless loop in libsieve that was triggered by using a tag without the
+arguments it requires.
+* Fix unfolding
 
 
 Version 1.0:
