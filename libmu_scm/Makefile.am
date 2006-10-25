@@ -50,7 +50,7 @@ libmu_scm_la_LIBADD = \
 
 EXTRA_DIST=mailutils.scm mailutils.scm.in
 
-sitedir=$(GUILE_SITE)/$(PACKAGE)
+sitedir=@MU_GUILE_SITE_DIR@
 GUILE_SITE_DATA_X=guile-procedures.txt mailutils.scm
 site_DATA=@GUILE_SITE_DATA@
 

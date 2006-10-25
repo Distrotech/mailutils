@@ -17,9 +17,11 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-bin_SCRIPTS = sieve.scm
+MU_GUILE_SIEVE_SCRIPTS_X=sieve.scm
+bin_SCRIPTS = @MU_GUILE_SIEVE_SCRIPTS@
+EXTRA_SCRIPTS=sieve.scm
 
-sievemoddir=$(GUILE_SITE)/sieve-modules
+sievemoddir=@MU_GUILE_SIEVE_MOD_DIR@
 
 sieve.scm: sieve.scm.in sieve.sed
 	sed -f sieve.sed $(srcdir)/sieve.scm.in > sieve.scm
@@ -34,16 +36,18 @@ sieve.sed: Makefile
 
 CLEANFILES = sieve.scm sieve.sed
 
-sitedir=$(GUILE_SITE)/$(PACKAGE)
+sitedir=@MU_GUILE_SITE_DIR@
 GUILE_SITE_DATA_X=sieve-core.scm
 site_DATA=@GUILE_SITE_DATA@
 
-sievemod_DATA=\
+MU_GUILE_SIEVE_MOD_DATA_X=\
  mimeheader.scm\
  numaddr.scm\
  redirect.scm\
  reject.scm\
  vacation.scm
+
+sievemod_DATA=@MU_GUILE_SIEVE_MOD_DATA@
 
 EXTRA_DIST=\
  mimeheader.scm\
