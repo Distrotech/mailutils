@@ -82,7 +82,7 @@ _file_read (mu_stream_t stream, char *optr, size_t osize,
 
   if (fs->offset != offset)
     {
-      if (fseek (fs->file, offset, SEEK_SET) != 0)
+      if (fseeko (fs->file, offset, SEEK_SET) != 0)
 	return errno;
       fs->offset = offset;
     }
@@ -126,7 +126,7 @@ _file_readline (mu_stream_t stream, char *optr, size_t osize,
 
   if (fs->offset != offset)
     {
-      if (fseek (fs->file, offset, SEEK_SET) != 0)
+      if (fseeko (fs->file, offset, SEEK_SET) != 0)
 	return errno;
       fs->offset = offset;
     }
@@ -178,7 +178,7 @@ _file_write (mu_stream_t stream, const char *iptr, size_t isize,
 
   if (fs->offset != offset)
     {
-      if (fseek (fs->file, offset, SEEK_SET) != 0)
+      if (fseeko (fs->file, offset, SEEK_SET) != 0)
 	return errno;
       fs->offset = offset;
     }
