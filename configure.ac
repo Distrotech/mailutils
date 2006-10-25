@@ -403,11 +403,15 @@ m4_copy([MU_SAVE_AC_LIBOBJ],[AC_LIBOBJ])
 
 libmuaux_GNULIB
 
+# Check for large file support
+AC_SYS_LARGEFILE
+
 #####
 # Determine the size of off_t and define an equivalent mu_off_t type.
 # We cannot use off_t in the library since its size depends on whether
 # large file support is used or not, which will lead to arbitrary crashes
 # if a user application and the library use off_t of different sizes.
+
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
@@ -446,8 +450,13 @@ extern char *strsignal (int);
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim setreuid \
  setresuid seteuid setlocale vfork _exit)
 
+AC_FUNC_FSEEKO
 AC_FUNC_SETVBUF_REVERSED
+
 AH_BOTTOM([
+#if !defined (HAVE_FSEEKO)
+# define fseeko fseek
+#endif
 #if defined (SETVBUF_REVERSED)
 # define SETVBUF(str,buf,mode,size) setvbuf(str,mode,buf,size)
 #else
@@ -1001,6 +1010,10 @@ AC_SUBST(LIBMU_SCM)
 AC_SUBST(LIBMU_SCM_DEPS)
 AC_SUBST(GUILE_SITE_DATA)
 AC_SUBST(GUILE_BUILT_SOURCES)
+AC_SUBST(MU_GUILE_SITE_DIR)
+AC_SUBST(MU_GUILE_SIEVE_MOD_DIR)
+AC_SUBST(MU_GUILE_SIEVE_SCRIPTS)
+AC_SUBST(MU_GUILE_SIEVE_MOD_DATA)
 
 if test x"$useguile" = x"yes"; then
 	MU_CHECK_GUILE(,[
@@ -1013,6 +1026,10 @@ if test x"$useguile" = x"yes"; then
             LIBMU_SCM=../libmu_scm/libmu_scm.la
 	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR}'
             GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
+	    MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
+	    MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
+	    MU_GUILE_SIEVE_SCRIPTS='$(MU_GUILE_SIEVE_SCRIPTS_X)'
+	    MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
 	    GUILE_BUILT_SOURCES='$(GUILE_BUILT_SOURCES_X)'
             case "$GUILE_VERSION" in
 	      14) GUILE_SNARF_VERSION="1.4";;
