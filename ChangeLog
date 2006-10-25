@@ -1,3 +1,14 @@
+2006-10-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Check for large file support and fseeko. Replace
+	the latter with fseek if it is not available.
+	(MU_GUILE_SITE_DIR,MU_GUILE_SIEVE_MOD_DIR)
+	(MU_GUILE_SIEVE_SCRIPTS,MU_GUILE_SIEVE_MOD_DATA): New variables
+	* guimb/scm/Makefile.am: Do not try to install anything if Guile
+	is not available
+	* libmu_scm/Makefile.am: Likewise
+	* mailbox/file_stream.c: Use fseeko instead of fseek
+
 2006-10-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Updated
