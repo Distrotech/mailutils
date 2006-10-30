@@ -1,3 +1,21 @@
+2006-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/texinfo/programs.texi: Document changes to mail
+	* TODO: Update
+	* examples/encode2047.c: new options -o/-t enable/disable special
+	interpretation of the octal escapes in the input.
+	* mailbox/testsuite/Argcv: Comment out 8-bit test case. Sorry, tcl
+	looses badly in handling eight-bit binary data.
+	* mailbox/testsuite/Encode2047: Feed input in octal notation and
+	use encode2047 \o command to override tcl brokenness.
+	* mailbox/testsuite/mailbox/encode2047.exp: Allow test string to
+	begin with two back slashes.
+	
+	* m4/.cvsignore: Update
+	* mail/escape.c (escape_sign): Print "-- \n" before the signature
+	* mail/mail.h: Remove the declaration of cursor
+	* mail/util.c: Allow use of ^ and $ as positioning commands
+
 2006-10-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Check for large file support and fseeko. Replace
