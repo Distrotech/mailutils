@@ -47,7 +47,7 @@
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n")
+N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery")
 "\v"
 N_("This is a simple drop-in replacement for sendmail to forward mail directly\n\
 to an SMTP gateway.\n\
