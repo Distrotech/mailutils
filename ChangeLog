@@ -1,5 +1,7 @@
 2006-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac, NEWS: Raise version number to 1.1
+	
 	* NEWS: Update
 	* mail.remote/mail.remote.c, sieve/sieve.c: Fix docstrings.
 	* libproto/imap/folder.c (imap_parse): Preserve the remainder of
