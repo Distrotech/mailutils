@@ -1118,6 +1118,10 @@ Display program warranty statement.
 @kyindex prev, mail command
 
 @table @samp
+@item ^
+Move to the first undeleted message.
+@item $
+Move to the last undeleted message.
 @item next
 @itemx n
 Move to the next message.
