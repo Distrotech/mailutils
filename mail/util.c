@@ -87,7 +87,9 @@ util_do_command (const char *c, ...)
 	  char *p;
 
 	  /* Special case: a number alone implies "print" */
-	  if (argc == 1 && strtoul (argv[0], &p, 10) > 0 && *p == 0)
+	  if (argc == 1
+	      && ((strtoul (argv[0], &p, 10) > 0 && *p == 0)
+		  || (argv[0][1] == 0 && strchr("^$", argv[0][0]))))
 	    {
 	      asprintf (&p, "print %s", argv[0]);
 	      mu_argcv_free (argc, argv);
