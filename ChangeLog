@@ -2,6 +2,8 @@
 
 	* NEWS: Update
 	* mail.remote/mail.remote.c, sieve/sieve.c: Fix docstrings.
+	* libproto/imap/folder.c (imap_parse): Preserve the remainder of
+	the OK line after '[whatever]' for diagnostic purposes.
 
 	* doc/texinfo/programs.texi: Document changes to mail
 	* TODO: Update
