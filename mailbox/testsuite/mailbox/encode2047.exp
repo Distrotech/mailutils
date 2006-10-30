@@ -29,7 +29,7 @@ for {gets $chan line} {![eof $chan]} {gets $chan line} {
 	"-message.*" {
 	    regexp -- "-message (.*)" $line dummy message
 	}
-	"\\\\" {
+	"^\\\\\[^\\\\\]" {
 	    mu_command $line
 	}
 	"^[^ \t].*=>.*" {
