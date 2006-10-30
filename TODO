@@ -119,6 +119,27 @@ file?)
 
 ** all
 
+* Testsuite:
+
+Tcl is not able to handle binary data properly. This makes impossible
+to test some aspects of MU functionalities. Following testcases are
+affected:
+
+** mailbox/testsuite/mailbox/base64.exp
+
+The ability of the test program to read given file instead of the
+stdin is used to override the issue.
+
+** mailbox/testsuite/mailbox/encode2047.exp
+
+Input data are represented in octal format (see
+mailbox/testsuite/Encode2047). 
+
+** mailbox/testsuite/mailbox/argcv.exp
+
+The affected testcase is not run (see mailbox/testsuite/Argcv and
+search for FIXME). 
+
 * add nightly build
 
 * add more features
