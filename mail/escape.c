@@ -236,6 +236,7 @@ escape_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
   if (util_getenv (&p, isupper (argv[0][0]) ? "Sign" : "sign",
 		   Mail_env_string, 1) == 0)
     {
+      fputs ("-- \n", ofile);
       if (isupper (argv[0][0]))
 	{
 	  char *name = util_fullpath (p);
