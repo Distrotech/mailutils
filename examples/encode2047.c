@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,15 +23,93 @@
 
 #include <mailutils/mailutils.h>
 
+/* Replace all octal escapes in BUF with the corresponding characters. */
+static void
+decode_octal (char *buf)
+{
+  char *p;
+  unsigned i, n;
+  
+  for (p = buf; *p;)
+    {
+      if (*buf == '\\')
+	{
+	  buf++;
+	  switch (*buf)
+	    {
+	    case 'a':
+	      *p++ = '\a';
+	      buf++;
+	      break;
+	      
+	    case 'b':
+	      *p++ = '\b';
+	      buf++;
+	      break;
+	      
+	    case 'f':
+	      *p++ = '\f';
+	      buf++;
+	      break;
+	      
+	    case 'n':
+	      *p++ = '\n';
+	      buf++;
+	      break;
+	      
+	    case 'r':
+	      *p++ = '\r';
+	      buf++;
+	      break;
+	      
+	    case 't':
+	      *p++ = '\t';
+	      buf++;
+	      break;
+
+	    case '0': case '1': case '2': case '3':
+	    case '4': case '5': case '6': case '7':
+	      n = 0;
+	      for (i = 0; i < 3; i++, buf++)
+		{
+		  unsigned x = *(unsigned char*)buf - '0';
+		  if (x > 7)
+		    break;
+		  n <<= 3;
+		  n += x;
+		}
+	      if (i != 3)
+		{
+		  buf -= i;
+		  *p++ = '\\';
+		}
+	      else
+		*p++ = n;
+	      break;
+
+	    default:
+	      *p++ = '\\';
+	      *p++ = *buf++;
+	      break;
+	    }
+	}
+      else
+	*p++ = *buf++;
+    }
+  *p = 0;
+}
+
 int
 main (int argc, char *argv[])
 {
   int c;
   char buf[256];
+  char vbuf[256];
   char *charset = strdup ("iso-8859-1");
   char *encoding = strdup ("quoted-printable");
+  int octal = 0;
   
-  while ((c = getopt (argc, argv, "c:e:h")) != EOF)
+  while ((c = getopt (argc, argv, "c:e:hot")) != EOF)
     switch (c)
       {
       case 'c':
@@ -43,9 +121,17 @@ main (int argc, char *argv[])
 	free (encoding);
 	encoding = strdup (optarg);
 	break;
+
+      case 'o':
+	octal = 1;
+	break;
+
+      case 't':
+	octal = 0;
+	break;
 	
       case 'h':
-	printf ("usage: %s [-c charset] [-e encoding]\n", argv[0]);
+	printf ("usage: %s [-c charset] [-e encoding] [-ot]\n", argv[0]);
 	exit (0);
 	
       default:
@@ -56,44 +142,62 @@ main (int argc, char *argv[])
     {
       int len;
       char *p = NULL;
-     
+      char *cmd;
+      int rc;
+	
       len = strlen (buf);
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
-      if (buf[0] == '\\')
+      strncpy(vbuf, buf, sizeof vbuf);
+      cmd = vbuf;
+      if (cmd[0] == '\\')
 	{
-	  if (buf[1] == 0)
+	  if (cmd[1] == 0)
 	    {
 	      fprintf (stderr, "Unfinished command\n");
 	      continue;
 	    }
 	  
-	  for (p = buf + 2; *p && *p == ' '; p++)
+	  for (p = cmd + 2; *p && *p == ' '; p++)
 	    ;
-	  switch (buf[1])
+	  switch (cmd[1])
 	    {
 	    case 'c':
 	      free (charset);
 	      charset = strdup (p);
-	      break;
+	      continue;
 	      
 	    case 'e':
 	      free (encoding);
 	      encoding = strdup (p);
-	      break;
+	      continue;
+	      
+	    case 'o':
+	      octal = 1;
+	      continue;
+	      
+	    case 't':
+	      octal = 0;
+	      continue;
 
+	    case '\\':
+	      cmd++;
+	      break;
+	      
 	    default:
 	      fprintf (stderr, "Unknown command\n");
+	      continue;
 	    }
 	}
-      else
-	{
-	  int rc = mu_rfc2047_encode (charset, encoding, buf, &p);
-	  printf ("%s=> %s\n", buf, mu_strerror (rc));
-	  if (p)
-	    printf ("%s\n", p);
-	  free (p);
-	}
+
+      if (octal)
+	decode_octal (cmd);
+	  
+      rc = mu_rfc2047_encode (charset, encoding, cmd, &p);
+      printf ("%s=> %s\n", buf, mu_strerror (rc));
+      if (p)
+	printf ("%s\n", p);
+      free (p);
     }
     return 0;
 }
