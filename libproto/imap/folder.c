@@ -2252,11 +2252,11 @@ imap_parse (f_imap_t f_imap)
 	      if (*remainder == '[')
 		{
 		  char *cruft, *subtag;
-		  char *sp = NULL;
+		  char *sp = NULL, *sp1;
 		  remainder++;
 		  cruft = strtok_r (remainder, "]", &sp);
 		  if (!cruft) cruft = empty;
-		  subtag = strtok_r (cruft, " ", &sp);
+		  subtag = strtok_r (cruft, " ", &sp1);
 		  if (!subtag) subtag = empty;
 
 		  if (strcasecmp (subtag, "ALERT") == 0)
