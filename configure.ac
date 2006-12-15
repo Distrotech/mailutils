@@ -25,7 +25,7 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 gl_USE_SYSTEM_EXTENSIONS
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.60)
 
 dnl Library versioning
 AC_SUBST(VI_CURRENT,  1)
@@ -1074,17 +1074,10 @@ dnl get sysconfdir expanded.
 
 CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
 
-# This is necessary so that .o files in LIBOBJS are also built via
-# the ANSI2KNR-filtering rules.
-LIB@&t@OBJS=`echo "$LIB@&t@OBJS" |
-                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
-LTLIBOBJS=`echo "$LIB@&t@OBJS" |
-                sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
-AC_SUBST(LTLIBOBJS)
-
 S=`echo "$MU_LIBOBJS" |
-	          tr ' ' '\n' | sort | uniq | tr '\n' ' ' |
-                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+	          tr ' ' '\n' | sort | uniq |
+                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,' |
+                  tr '\n' ' '`
 MU_LTLIBOBJS=`echo "$S" |
                 sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(MU_LTLIBOBJS)
