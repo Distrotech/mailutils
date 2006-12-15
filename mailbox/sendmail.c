@@ -441,10 +441,15 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 	if (rc < 0)
 	  {
-	    status = errno;
-	    MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
-			   "waitpid(%d) failed: %s\n",
-			   sendmail->pid, strerror (status));
+	    if (errno == ECHILD)
+              status = 0;
+	    else
+              { 
+	        status = errno;
+	        MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
+	  		       "waitpid(%d) failed: %s\n",
+			       sendmail->pid, strerror (status));
+              }
 	  }
 	else if (WIFEXITED (exit_status))
 	  {
