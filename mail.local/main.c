@@ -24,7 +24,7 @@ int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
 			      exceeded. If this variable is not set, mail.local
 			      will return "service unavailable" */
 int exit_code = EX_OK;     /* Exit code to be used */
-uid_t uid;                 /* Current user name */
+uid_t uid;                 /* Current user id */
 char *quotadbname = NULL;  /* Name of mailbox quota database */
 char *quota_query = NULL;  /* SQL query to retrieve mailbox quota */
 
@@ -333,9 +333,15 @@ main (int argc, char *argv[])
   mu_sieve_argp_init ();
   /* Parse command line */
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
+
+  uid = getuid ();
+
+  if (uid == 0)
+    {
+      openlog ("mail.local", LOG_PID, log_facility);
+      mu_error_set_print (mu_syslog_error_printer);
+    }
   
-  openlog ("mail.local", LOG_PID, log_facility);
-  mu_error_set_print (mu_syslog_error_printer);
   if (debug_flags)
     {
       int rc;
@@ -359,15 +365,31 @@ main (int argc, char *argv[])
 	}
     }
   
-  uid = getuid ();
-
   argc -= arg_index;
   argv += arg_index;
 
   if (!argc)
     {
-      mu_error (_("Missing arguments. Try --help for more info."));
-      return EX_USAGE;
+      if (uid)
+	{
+	  static char *s_argv[2];
+	  struct mu_auth_data *auth = mu_get_auth_by_uid (uid);
+
+	  if (!uid)
+	    {
+	      mu_error (_("Cannot get username"));
+	      return EX_UNAVAILABLE;
+	    }
+	    
+	  s_argv[0] = auth->name;
+	  argv = s_argv;
+	  argc = 1;
+	}
+      else
+	{
+	  mu_error (_("Missing arguments. Try --help for more info."));
+	  return EX_USAGE;
+	}
     }
 
   /* Register local mbox formats. */
@@ -663,7 +685,9 @@ deliver (mu_mailbox_t imbx, char *name)
       exit_code = EX_UNAVAILABLE;
       return;
     }
-
+  if (uid)
+    auth->change_uid = 0;
+  
   if (!sieve_test (auth, imbx))
     {
       exit_code = EX_OK;
