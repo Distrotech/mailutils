@@ -1269,15 +1269,18 @@ mu_scheme_autodetect_p (const char *scheme,  const char **path)
 int
 mu_fd_wait (int fd, int *pflags, struct timeval *tvp)
 {
-  fd_set rdset, wrset;
+  fd_set rdset, wrset, exset;
   int rc;
 
   FD_ZERO (&rdset);
   FD_ZERO (&wrset);
+  FD_ZERO (&exset);
   if ((*pflags) & MU_STREAM_READY_RD)
     FD_SET (fd, &rdset);
   if ((*pflags) & MU_STREAM_READY_WR)
     FD_SET (fd, &wrset);
+  if ((*pflags) & MU_STREAM_READY_EX)
+    FD_SET (fd, &exset);
   
   do
     {
@@ -1301,6 +1304,8 @@ mu_fd_wait (int fd, int *pflags, struct timeval *tvp)
 	*pflags |= MU_STREAM_READY_RD;
       if (FD_ISSET (fd, &wrset))
 	*pflags |= MU_STREAM_READY_WR;
+      if (FD_ISSET (fd, &exset))
+	*pflags |= MU_STREAM_READY_EX;
     }
   return 0;
 }
