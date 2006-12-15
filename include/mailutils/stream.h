@@ -94,6 +94,7 @@ extern int mu_stream_flush       (mu_stream_t);
 
 #define MU_STREAM_READY_RD 0x1
 #define MU_STREAM_READY_WR 0x2
+#define MU_STREAM_READY_EX 0x4  
 struct timeval;  /* Needed for the following declaration */ 
 
 extern int mu_stream_wait        (mu_stream_t stream, int *pflags, struct timeval *);
