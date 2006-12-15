@@ -1,3 +1,22 @@
+2006-12-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Require at least version 2.60 of autoconf
+	* include/mailutils/stream.h (MU_STREAM_READY_EX): New define
+	* mail.local/main.c: Allow to be run from console by a
+	non-privileged user (useful with fetchmail)
+	* mailbox/mutil.c (mu_fd_wait): Handle MU_STREAM_READY_EX
+	* mailbox/sendmail.c (sendmail_send_message): Failing waitpid is
+	not an error if errno==ECHILD (the calling program might have
+	ignored SIGCHLD). 
+	
+2006-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Fix creation of MU_LTLIBOBJS.  Patch submitted by
+	Kevin Buckley and Kenji Miyake
+	* include/mailutils/stream.h (MU_STREAM_READY_EX): New define
+	* mailbox/mutil.c (mu_fd_wait): Handle MU_STREAM_READY_EX
+	* mail.local/main.c
+
 2006-10-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac, NEWS: Raise version number to 1.1
