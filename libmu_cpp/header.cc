@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/header.h>
@@ -31,7 +32,7 @@ Header :: Header ()
 {
 }
 
-Header :: Header (const header_t hdr)
+Header :: Header (const mu_header_t hdr)
 {
   if (hdr == 0)
     throw Exception ("Header::Header", EINVAL);
@@ -40,13 +41,13 @@ Header :: Header (const header_t hdr)
 }
 
 std::string
-Header :: GetValue (const std::string& name)
+Header :: getValue (const std::string& name)
 {
   char* c_val;
 
-  int status = header_aget_value (hdr, name.c_str (), &c_val);
+  int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
   if (status)
-    throw Exception ("Header::GetValue", status);
+    throw Exception ("Header::getValue", status);
 
   std::string val (c_val);
   free (c_val);
@@ -56,6 +57,6 @@ Header :: GetValue (const std::string& name)
 std::string
 Header :: operator [] (const std::string& name)
 {
-  return this->GetValue (name);
+  return this->getValue (name);
 }
 

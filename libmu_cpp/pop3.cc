@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/pop3.h>
@@ -51,214 +52,214 @@ Pop3 :: ~Pop3 ()
 }
 
 void
-Pop3 :: SetCarrier (const Stream& carrier)
+Pop3 :: setCarrier (const Stream& carrier)
 {
   int status = mu_pop3_set_carrier (pop3, carrier.stm);
   if (status)
-    throw Exception ("Pop3::SetCarrier", status);
+    throw Exception ("Pop3::setCarrier", status);
 
   this->pStream = (Stream*) &carrier;
 }
 
 Stream&
-Pop3 :: GetCarrier ()
+Pop3 :: getCarrier ()
 {
   return *pStream;
 }
 
 void
-Pop3 :: Connect ()
+Pop3 :: connect ()
 {
   int status = mu_pop3_connect (pop3);
   if (status)
-    throw Exception ("Pop3::Connect", status);
+    throw Exception ("Pop3::connect", status);
 }
 
 void
-Pop3 :: Disconnect ()
+Pop3 :: disconnect ()
 {
   int status = mu_pop3_disconnect (pop3);
   if (status)
-    throw Exception ("Pop3::Disconnect", status);
+    throw Exception ("Pop3::disconnect", status);
 }
 
 void
-Pop3 :: SetTimeout (int timeout)
+Pop3 :: setTimeout (int timeout)
 {
   int status = mu_pop3_set_timeout (pop3, timeout);
   if (status)
-    throw Exception ("Pop3::SetTimeout", status);
+    throw Exception ("Pop3::setTimeout", status);
 }
 
 int
-Pop3 :: GetTimeout ()
+Pop3 :: getTimeout ()
 {
   int timeout;
 
   int status = mu_pop3_get_timeout (pop3, &timeout);
   if (status)
-    throw Exception ("Pop3::GetTimeout", status);
+    throw Exception ("Pop3::getTimeout", status);
 
   return timeout;
 }
 
 void
-Pop3 :: Stls ()
+Pop3 :: stls ()
 {
   int status = mu_pop3_stls (pop3);
   if (status)
-    throw Exception ("Pop3::Stls", status);
+    throw Exception ("Pop3::stls", status);
 }
 
 Iterator&
-Pop3 :: Capa ()
+Pop3 :: capa ()
 {
-  iterator_t mu_itr;
+  mu_iterator_t mu_itr;
 
   int status = mu_pop3_capa (pop3, &mu_itr);
   if (status)
-    throw Exception ("Pop3::Capa", status);
+    throw Exception ("Pop3::capa", status);
 
   return *new Iterator (mu_itr);
 }
 
 void
-Pop3 :: Dele (unsigned int msgno)
+Pop3 :: dele (unsigned int msgno)
 {
   int status = mu_pop3_dele (pop3, msgno);
   if (status)
-    throw Exception ("Pop3::Dele", status);
+    throw Exception ("Pop3::dele", status);
 }
 
 size_t
-Pop3 :: List (unsigned int msgno)
+Pop3 :: list (unsigned int msgno)
 {
   size_t msg_octet;
 
   int status = mu_pop3_list (pop3, msgno, &msg_octet);
   if (status)
-    throw Exception ("Pop3::List", status);
+    throw Exception ("Pop3::list", status);
 
   return msg_octet;
 }
 
 Iterator&
-Pop3 :: ListAll ()
+Pop3 :: listAll ()
 {
-  iterator_t mu_itr;
+  mu_iterator_t mu_itr;
 
   int status = mu_pop3_list_all (pop3, &mu_itr);
   if (status)
-    throw Exception ("Pop3::ListAll", status);
+    throw Exception ("Pop3::listAll", status);
 
   return *new Iterator (mu_itr);
 }
 
 void
-Pop3 :: Noop ()
+Pop3 :: noop ()
 {
   int status = mu_pop3_noop (pop3);
   if (status)
-    throw Exception ("Pop3::Noop", status);
+    throw Exception ("Pop3::noop", status);
 }
 
 void
-Pop3 :: Pass (const char* pass)
+Pop3 :: pass (const char* pass)
 {
   int status = mu_pop3_pass (pop3, pass);
   if (status)
-    throw Exception ("Pop3::Pass", status);
+    throw Exception ("Pop3::pass", status);
 }
 
 void
-Pop3 :: Quit ()
+Pop3 :: quit ()
 {
   int status = mu_pop3_quit (pop3);
   if (status)
-    throw Exception ("Pop3::Quit", status);
+    throw Exception ("Pop3::quit", status);
 }
 
 Stream&
-Pop3 :: Retr (unsigned int msgno)
+Pop3 :: retr (unsigned int msgno)
 {
-  stream_t c_stm;
+  mu_stream_t c_stm;
 
   int status = mu_pop3_retr (pop3, msgno, &c_stm);
   if (status)
-    throw Exception ("Pop3::Retr", status);
+    throw Exception ("Pop3::retr", status);
 
   return *new Stream (c_stm);
 }
 
 void
-Pop3 :: Rset ()
+Pop3 :: rset ()
 {
   int status = mu_pop3_rset (pop3);
   if (status)
-    throw Exception ("Pop3::Rset", status);
+    throw Exception ("Pop3::rset", status);
 }
 
 void
-Pop3 :: Stat (unsigned int* count, size_t* octets)
+Pop3 :: stat (unsigned int* count, size_t* octets)
 {
   int status = mu_pop3_stat (pop3, count, octets);
   if (status)
-    throw Exception ("Pop3::Stat", status);
+    throw Exception ("Pop3::stat", status);
 }
 
 Stream&
-Pop3 :: Top (unsigned int msgno, unsigned int lines)
+Pop3 :: top (unsigned int msgno, unsigned int lines)
 {
-  stream_t c_stm;
+  mu_stream_t c_stm;
 
   int status = mu_pop3_top (pop3, msgno, lines, &c_stm);
   if (status)
-    throw Exception ("Pop3::Top", status);
+    throw Exception ("Pop3::top", status);
 
   return *new Stream (c_stm);
 }
 
 void
-Pop3 :: User (const char* user)
+Pop3 :: user (const char* user)
 {
   int status = mu_pop3_user (pop3, user);
   if (status)
-    throw Exception ("Pop3::User", status);
+    throw Exception ("Pop3::user", status);
 }
 
 size_t
-Pop3 :: ReadLine (char* buf, size_t buflen)
+Pop3 :: readLine (char* buf, size_t buflen)
 {
   size_t nread;
 
   int status = mu_pop3_readline (pop3, buf, buflen, &nread);
   if (status)
-    throw Exception ("Pop3::ReadLine", status);
+    throw Exception ("Pop3::readLine", status);
 }
 
 size_t
-Pop3 :: Response (char* buf, size_t buflen)
+Pop3 :: response (char* buf, size_t buflen)
 {
   size_t nread;
 
   int status = mu_pop3_response (pop3, buf, buflen, &nread);
   if (status)
-    throw Exception ("Pop3::Response", status);
+    throw Exception ("Pop3::response", status);
 }
 
 void
-Pop3 :: SendLine (const char* line)
+Pop3 :: sendLine (const char* line)
 {
   int status = mu_pop3_sendline (pop3, line);
   if (status)
-    throw Exception ("Pop3::SendLine", status);
+    throw Exception ("Pop3::sendLine", status);
 }
 
 void
-Pop3 :: Send ()
+Pop3 :: send ()
 {
   int status = mu_pop3_send (pop3);
   if (status)
-    throw Exception ("Pop3::Send", status);
+    throw Exception ("Pop3::send", status);
 }
 

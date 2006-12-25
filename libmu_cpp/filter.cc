@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/filter.h>
@@ -26,32 +27,32 @@ using namespace mailutils;
 //
 
 void
-FilterStream :: Create (Stream& transport,
+FilterStream :: create (Stream& transport,
 			const std::string& code,
 			int mode, int flag)
 {
-  int status = filter_create (&this->stm,
-			      transport.stm,
-			      code.c_str (),
-			      mode, flag);
+  int status = mu_filter_create (&this->stm,
+				 transport.stm,
+				 code.c_str (),
+				 mode, flag);
   if (status)
-    throw Exception ("FilterStream::Create", status);
+    throw Exception ("FilterStream::create", status);
   this->input = new Stream (transport);
 }
 
 void
-FilterStream :: IconvCreate (Stream& transport,
+FilterStream :: iconvCreate (Stream& transport,
 			     const std::string& fromcode,
 			     const std::string& tocode,
 			     int flags,
 			     enum mu_iconv_fallback_mode fallback_mode)
 {
-  int status = filter_iconv_create (&this->stm, transport.stm,
-				    fromcode.c_str (),
-				    tocode.c_str (),
-				    flags, fallback_mode);
+  int status = mu_filter_iconv_create (&this->stm, transport.stm,
+				       fromcode.c_str (),
+				       tocode.c_str (),
+				       flags, fallback_mode);
   if (status)
-    throw Exception ("FilterStream::IconvCreate", status);
+    throw Exception ("FilterStream::iconvCreate", status);
   this->input = new Stream (transport);
 }
 

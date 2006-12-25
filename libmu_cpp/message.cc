@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/message.h>
@@ -32,7 +33,7 @@ Message :: Message ()
 {
 }
 
-Message :: Message (const message_t msg)
+Message :: Message (const mu_message_t msg)
 {
   if (msg == 0)
     throw Exception ("Message::Message", EINVAL);
@@ -41,13 +42,13 @@ Message :: Message (const message_t msg)
 }
 
 Header&
-Message :: GetHeader ()
+Message :: getHeader ()
 {
-  header_t c_hdr;
+  mu_header_t c_hdr;
 
-  int status = message_get_header (msg, &c_hdr);
+  int status = mu_message_get_header (msg, &c_hdr);
   if (status)
-    throw Exception ("Message::GetHeader", status);
+    throw Exception ("Message::getHeader", status);
 
   return *new Header (c_hdr);
 }

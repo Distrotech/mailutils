@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/url.h>
@@ -29,19 +30,19 @@ using namespace mailutils;
 
 Url :: Url (const std::string& str)
 {
-  int status = url_create (&url, str.c_str ());
+  int status = mu_url_create (&url, str.c_str ());
   if (status)
     throw Exception ("Url::Url", status);
 }
 
 Url :: Url (const char* str)
 {
-  int status = url_create (&url, str);
+  int status = mu_url_create (&url, str);
   if (status)
     throw Exception ("Url::Url", status);
 }
 
-Url :: Url (const url_t url)
+Url :: Url (const mu_url_t url)
 {
   if (url == 0)
     throw Exception ("Url::Url", EINVAL);
@@ -51,87 +52,87 @@ Url :: Url (const url_t url)
 
 Url :: ~Url ()
 {
-  url_destroy (&url);
+  mu_url_destroy (&url);
 }
 
 void
-Url :: Parse ()
+Url :: parse ()
 {
-  int status = url_parse (url);
+  int status = mu_url_parse (url);
   if (status)
-    throw Exception ("Url::Parse", status);
+    throw Exception ("Url::parse", status);
 }
 
 long
-Url :: GetPort ()
+Url :: getPort ()
 {
   long port;
-  int status = url_get_port (url, &port);
+  int status = mu_url_get_port (url, &port);
   if (status)
-    throw Exception ("Url::GetPort", status);
+    throw Exception ("Url::getPort", status);
   return port;
 }
 
 std::string
-Url :: GetScheme ()
+Url :: getScheme ()
 {
-  int status = url_get_scheme (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_scheme (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetScheme", status);
+    throw Exception ("Url::getScheme", status);
   return std::string (buf);
 }
 
 std::string
-Url :: GetUser ()
+Url :: getUser ()
 {
-  int status = url_get_user (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_user (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetUser", status);
+    throw Exception ("Url::getUser", status);
   return std::string (buf);
 }
 
 std::string
-Url :: GetPasswd ()
+Url :: getPasswd ()
 {
-  int status = url_get_passwd (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_passwd (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetPasswd", status);
+    throw Exception ("Url::getPasswd", status);
   return std::string (buf);
 }
 
 std::string
-Url :: GetAuth ()
+Url :: getAuth ()
 {
-  int status = url_get_auth (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_auth (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetAuth", status);
+    throw Exception ("Url::getAuth", status);
   return std::string (buf);
 }
  
 std::string
-Url :: GetHost ()
+Url :: getHost ()
 {
-  int status = url_get_host (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_host (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetHost", status);
+    throw Exception ("Url::getHost", status);
   return std::string (buf);
 }
 
 std::string
-Url :: GetPath ()
+Url :: getPath ()
 {
-  int status = url_get_path (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_path (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetPath", status);
+    throw Exception ("Url::getPath", status);
   return std::string (buf);
 }
 
 std::string
-Url :: GetQuery ()
+Url :: getQuery ()
 {
-  int status = url_get_query (url, buf, sizeof (buf), NULL);
+  int status = mu_url_get_query (url, buf, sizeof (buf), NULL);
   if (status)
-    throw Exception ("Url::GetQuery", status);
+    throw Exception ("Url::getQuery", status);
   return std::string (buf);
 }
 

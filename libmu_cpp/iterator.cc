@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/iterator.h>
@@ -29,14 +30,14 @@ using namespace mailutils;
 
 Iterator :: Iterator (const List& lst)
 {
-  int status = list_get_iterator (lst.mu_list, &mu_iter);
+  int status = mu_list_get_iterator (lst.mu_list, &mu_iter);
   if (status)
     throw Exception ("Iterator::Iterator", status);
 
   this->pList = (List*) &lst;
 }
 
-Iterator :: Iterator (const iterator_t iter)
+Iterator :: Iterator (const mu_iterator_t iter)
 {
   if (iter == 0)
     throw Exception ("Iterator::Iterator", EINVAL);
@@ -47,70 +48,70 @@ Iterator :: Iterator (const iterator_t iter)
 
 Iterator :: ~Iterator ()
 {
-  iterator_destroy (&mu_iter);
+  mu_iterator_destroy (&mu_iter);
 }
 
 void
-Iterator :: First ()
+Iterator :: first ()
 {
-  iterator_first (mu_iter);
+  mu_iterator_first (mu_iter);
 }
 
 void
-Iterator :: Next ()
+Iterator :: next ()
 {
-  iterator_next (mu_iter);
+  mu_iterator_next (mu_iter);
 }
 
 Iterator&
 Iterator :: operator ++ (int)
 {
-  iterator_next (mu_iter);
+  mu_iterator_next (mu_iter);
   return *this;
 }
 
 void
-Iterator :: Current (void** pitem)
+Iterator :: current (void** pitem)
 {
-  int status = iterator_current (mu_iter, pitem);
+  int status = mu_iterator_current (mu_iter, pitem);
   if (status)
-    throw Exception ("Iterator::Current", status);
+    throw Exception ("Iterator::current", status);
 }
 
 void*
-Iterator :: Current ()
+Iterator :: current ()
 {
   void* pitem;
 
-  int status = iterator_current (mu_iter, &pitem);
+  int status = mu_iterator_current (mu_iter, &pitem);
   if (status)
-    throw Exception ("Iterator::Current", status);
+    throw Exception ("Iterator::current", status);
 
   return pitem;
 }
 
 bool
-Iterator :: IsDone ()
+Iterator :: isDone ()
 {
-  return (bool) iterator_is_done (mu_iter);
+  return (bool) mu_iterator_is_done (mu_iter);
 }
 
 List&
-Iterator :: GetList ()
+Iterator :: getList ()
 {
   if (!pList)
-    throw Exception ("Iterator::GetList", ENOTSUP);
+    throw Exception ("Iterator::getList", ENOTSUP);
   return *pList;
 }
 
 void
-Iterator :: Dup (Iterator*& piter, const Iterator& orig)
+Iterator :: dup (Iterator*& piter, const Iterator& orig)
 {
-  iterator_t iter;
+  mu_iterator_t iter;
 
-  int status = iterator_dup (&iter, orig.mu_iter);
+  int status = mu_iterator_dup (&iter, orig.mu_iter);
   if (status)
-    throw Exception ("Iterator::Dup", status);
+    throw Exception ("Iterator::dup", status);
 
   piter->mu_iter = iter;
 }

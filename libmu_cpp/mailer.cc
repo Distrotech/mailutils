@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/mailer.h>
@@ -28,12 +29,12 @@ using namespace mailutils;
 
 Mailer :: Mailer (const std::string& url)
 {
-  int status = mailer_create (&mailer, url.c_str ());
+  int status = mu_mailer_create (&mailer, url.c_str ());
   if (status)
     throw Exception ("Mailer::Mailer", status);
 }
 
-Mailer :: Mailer (const mailer_t mailer)
+Mailer :: Mailer (const mu_mailer_t mailer)
 {
   if (mailer == 0)
     throw Exception ("Mailer::Mailer", EINVAL);
@@ -43,32 +44,32 @@ Mailer :: Mailer (const mailer_t mailer)
 
 Mailer :: ~Mailer ()
 {
-  mailer_destroy (&mailer);
+  mu_mailer_destroy (&mailer);
 }
 
 void
-Mailer :: Open (int flags)
+Mailer :: open (int flags)
 {
-  int status = mailer_open (mailer, flags);
+  int status = mu_mailer_open (mailer, flags);
   if (status)
-    throw Exception ("Mailer::Open", status);
+    throw Exception ("Mailer::open", status);
 }
 
 void
-Mailer :: Close ()
+Mailer :: close ()
 {
-  int status = mailer_close (mailer);
+  int status = mu_mailer_close (mailer);
   if (status)
-    throw Exception ("Mailer::Close", status);
+    throw Exception ("Mailer::close", status);
 }
 
 void
-Mailer :: SendMessage (const Message& msg, const Address& from,
+Mailer :: sendMessage (const Message& msg, const Address& from,
 		       const Address& to)
 {
-  int status = mailer_send_message (mailer, msg.msg,
-				    from.addr, to.addr);
+  int status = mu_mailer_send_message (mailer, msg.msg,
+				       from.addr, to.addr);
   if (status)
-    throw Exception ("Mailer::SendMessage", status);
+    throw Exception ("Mailer::sendMessage", status);
 }
 

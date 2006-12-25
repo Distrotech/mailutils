@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/stream.h>
@@ -33,7 +34,7 @@ Stream :: Stream ()
   reference ();
 }
 
-Stream :: Stream (const stream_t stm)
+Stream :: Stream (const mu_stream_t stm)
 {
   if (stm == 0)
     throw Exception ("Stream::Stream", EINVAL);
@@ -53,112 +54,112 @@ Stream :: ~Stream ()
 {
   if (dereference ())
     {
-      Close ();
+      close ();
       if (this->stm)
-	stream_destroy (&stm, NULL);
+	mu_stream_destroy (&stm, NULL);
     }
 }
 
 void
-Stream :: Open ()
+Stream :: open ()
 {
-  int status = stream_open (stm);
+  int status = mu_stream_open (stm);
   if (status == EAGAIN)
-    throw Stream::EAgain ("Stream::Open", status);
+    throw Stream::EAgain ("Stream::open", status);
   else if (status)
-    throw Exception ("Stream::Open", status);
+    throw Exception ("Stream::open", status);
 
   this->opened = true;
 }
 
 void
-Stream :: Close ()
+Stream :: close ()
 {
   if (this->opened)
     {
-      int status = stream_close (stm);
+      int status = mu_stream_close (stm);
       if (status)
-	throw Exception ("Stream::Close", status);
+	throw Exception ("Stream::close", status);
 
       this->opened = false;
     }
 }
 
 void
-Stream :: SetWaitFlags (int flags)
+Stream :: setWaitFlags (int flags)
 {
   this->wflags = flags;
 }
 
 void
-Stream :: Wait ()
+Stream :: wait ()
 {
-  int status = stream_wait (stm, &wflags, NULL);
+  int status = mu_stream_wait (stm, &wflags, NULL);
   if (status)
-    throw Exception ("Stream::Wait", status);
+    throw Exception ("Stream::wait", status);
 }
 
 void
-Stream :: Wait (int flags)
+Stream :: wait (int flags)
 {
   this->wflags = flags;
-  int status = stream_wait (stm, &wflags, NULL);
+  int status = mu_stream_wait (stm, &wflags, NULL);
   if (status)
-    throw Exception ("Stream::Wait", status);
+    throw Exception ("Stream::wait", status);
 }
 
 void
-Stream :: Read (char* rbuf, size_t size, off_t offset)
+Stream :: read (char* rbuf, size_t size, off_t offset)
 {
-  int status = stream_read (stm, rbuf, size, offset, &readn);
+  int status = mu_stream_read (stm, rbuf, size, offset, &readn);
   if (status == EAGAIN)
-    throw Stream::EAgain ("Stream::Read", status);
+    throw Stream::EAgain ("Stream::read", status);
   else if (status)
-    throw Exception ("Stream::Read", status);
+    throw Exception ("Stream::read", status);
 }
 
 void
-Stream :: Write (const std::string& wbuf, size_t size, off_t offset)
+Stream :: write (const std::string& wbuf, size_t size, off_t offset)
 {
-  int status = stream_write (stm, wbuf.c_str (), size, offset, &writen);
+  int status = mu_stream_write (stm, wbuf.c_str (), size, offset, &writen);
   if (status == EAGAIN)
-    throw Stream::EAgain ("Stream::Write", status);
+    throw Stream::EAgain ("Stream::write", status);
   else if (status)
-    throw Exception ("Stream::Write", status);
+    throw Exception ("Stream::write", status);
 }
 
 void
-Stream :: ReadLine (char* rbuf, size_t size, off_t offset)
+Stream :: readLine (char* rbuf, size_t size, off_t offset)
 {
-  int status = stream_readline (stm, rbuf, size, offset, &readn);
+  int status = mu_stream_readline (stm, rbuf, size, offset, &readn);
   if (status == EAGAIN)
-    throw Stream::EAgain ("Stream::ReadLine", status);
+    throw Stream::EAgain ("Stream::readLine", status);
   else if (status)
-    throw Exception ("Stream::ReadLine", status);
+    throw Exception ("Stream::readLine", status);
 }
 
 void
-Stream :: SequentialReadLine (char* rbuf, size_t size)
+Stream :: sequentialReadLine (char* rbuf, size_t size)
 {
-  int status = stream_sequential_readline (stm, rbuf, size, &readn);
+  int status = mu_stream_sequential_readline (stm, rbuf, size, &readn);
   if (status)
-    throw Exception ("Stream::SequentialReadLine", status);
+    throw Exception ("Stream::sequentialReadLine", status);
 }
 
 void
-Stream :: SequentialWrite (const std::string& wbuf, size_t size)
+Stream :: sequentialWrite (const std::string& wbuf, size_t size)
 {
-  int status = stream_sequential_write (stm, wbuf.c_str (), size);
+  int status = mu_stream_sequential_write (stm, wbuf.c_str (), size);
   if (status)
-    throw Exception ("Stream::SequentialWrite", status);
+    throw Exception ("Stream::sequentialWrite", status);
 }
 
 void
-Stream :: Flush ()
+Stream :: flush ()
 {
-  int status = stream_flush (stm);
+  int status = mu_stream_flush (stm);
   if (status)
-    throw Exception ("Stream::Flush", status);
+    throw Exception ("Stream::flush", status);
 }
 
 namespace mailutils
@@ -166,7 +167,7 @@ namespace mailutils
   Stream&
   operator << (Stream& stm, const std::string& wbuf)
   {
-    stm.Write (wbuf, wbuf.length (), 0);
+    stm.write (wbuf, wbuf.length (), 0);
     return stm;
   }
 
@@ -174,7 +175,7 @@ namespace mailutils
   operator >> (Stream& stm, std::string& rbuf)
   {
     char tmp[1024];
-    stm.Read (tmp, sizeof (tmp), 0);
+    stm.read (tmp, sizeof (tmp), 0);
     rbuf = std::string (tmp);
     return stm;
   }
@@ -186,7 +187,7 @@ namespace mailutils
 
 TcpStream :: TcpStream (const std::string& host, int port, int flags)
 {
-  int status = tcp_stream_create (&stm, host.c_str (), port, flags);
+  int status = mu_tcp_stream_create (&stm, host.c_str (), port, flags);
   if (status)
     throw Exception ("TcpStream::TcpStream", status);
 }
@@ -197,7 +198,7 @@ TcpStream :: TcpStream (const std::string& host, int port, int flags)
 
 FileStream :: FileStream (const std::string& filename, int flags)
 {
-  int status = file_stream_create (&stm, filename.c_str (), flags);
+  int status = mu_file_stream_create (&stm, filename.c_str (), flags);
   if (status)
     throw Exception ("FileStream::FileStream", status);
 }
@@ -208,7 +209,7 @@ FileStream :: FileStream (const std::string& filename, int flags)
 
 StdioStream :: StdioStream (FILE* fp, int flags)
 {
-  int status = stdio_stream_create (&stm, fp, flags);
+  int status = mu_stdio_stream_create (&stm, fp, flags);
   if (status)
     throw Exception ("StdioStream::StdioStream", status);
 }
@@ -219,7 +220,7 @@ StdioStream :: StdioStream (FILE* fp, int flags)
 
 ProgStream :: ProgStream (const std::string& progname, int flags)
 {
-  int status = prog_stream_create (&stm, progname.c_str (), flags);
+  int status = mu_prog_stream_create (&stm, progname.c_str (), flags);
   if (status)
     throw Exception ("ProgStream::ProgStream", status);
 }
@@ -231,8 +232,8 @@ ProgStream :: ProgStream (const std::string& progname, int flags)
 FilterProgStream :: FilterProgStream (const std::string& progname,
 				      Stream& input)
 {
-  int status = filter_prog_stream_create (&stm, progname.c_str (),
-					  input.stm);
+  int status = mu_filter_prog_stream_create (&stm, progname.c_str (),
+					     input.stm);
   this->input = new Stream (input);
   if (status)
     throw Exception ("FilterProgStream::FilterProgStream", status);
@@ -241,8 +242,8 @@ FilterProgStream :: FilterProgStream (const std::string& progname,
 FilterProgStream :: FilterProgStream (const std::string& progname,
 				      Stream* input)
 {
-  int status = filter_prog_stream_create (&stm, progname.c_str (),
-					  input->stm);
+  int status = mu_filter_prog_stream_create (&stm, progname.c_str (),
+					     input->stm);
   this->input = new Stream (*input);
   if (status)
     throw Exception ("FilterProgStream::FilterProgStream", status);

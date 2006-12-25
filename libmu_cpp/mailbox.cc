@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/mailbox.h>
@@ -29,37 +30,37 @@ using namespace mailutils;
 //
 
 void
-MailboxBase :: Open (int flag)
+MailboxBase :: open (int flag)
 {
-  int status = mailbox_open (mbox, flag);
+  int status = mu_mailbox_open (mbox, flag);
   if (status)
-    throw Exception ("MailboxBase::Open", status);
+    throw Exception ("MailboxBase::open", status);
 }
 
 void
-MailboxBase :: Close ()
+MailboxBase :: close ()
 {
-  int status = mailbox_close (mbox);
+  int status = mu_mailbox_close (mbox);
   if (status)
-    throw Exception ("MailboxBase::Close", status);
+    throw Exception ("MailboxBase::close", status);
 }
 
 size_t
-MailboxBase :: MessagesCount ()
+MailboxBase :: messagesCount ()
 {
   size_t total;
-  mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_count (mbox, &total);
   return total;
 }
 
 Message&
-MailboxBase :: GetMessage (size_t num)
+MailboxBase :: getMessage (size_t num)
 {
-  message_t c_msg;
+  mu_message_t c_msg;
 
-  int status = mailbox_get_message (mbox, num, &c_msg);
+  int status = mu_mailbox_get_message (mbox, num, &c_msg);
   if (status)
-    throw Exception ("MailboxBase::GetMessage", status);
+    throw Exception ("MailboxBase::getMessage", status);
 
   return *new Message (c_msg);
 }
@@ -67,7 +68,7 @@ MailboxBase :: GetMessage (size_t num)
 Message&
 MailboxBase :: operator [] (size_t num)
 {
-  return this->GetMessage (num);
+  return this->getMessage (num);
 }
 
 //
@@ -76,12 +77,12 @@ MailboxBase :: operator [] (size_t num)
 
 Mailbox :: Mailbox (const std::string& name)
 {
-  int status = mailbox_create (&mbox, name.c_str ());
+  int status = mu_mailbox_create (&mbox, name.c_str ());
   if (status)
     throw Exception ("Mailbox::Mailbox", status);
 }
 
-Mailbox :: Mailbox (const mailbox_t mbox)
+Mailbox :: Mailbox (const mu_mailbox_t mbox)
 {
   if (mbox == 0)
     throw Exception ("Mailbox::Mailbox", EINVAL);
@@ -91,7 +92,7 @@ Mailbox :: Mailbox (const mailbox_t mbox)
 
 Mailbox :: ~Mailbox ()
 {
-  mailbox_destroy (&mbox);
+  mu_mailbox_destroy (&mbox);
 }
 
 //
@@ -100,12 +101,12 @@ Mailbox :: ~Mailbox ()
 
 MailboxDefault :: MailboxDefault (const std::string& name)
 {
-  int status = mailbox_create_default (&mbox, name.c_str ());
+  int status = mu_mailbox_create_default (&mbox, name.c_str ());
   if (status)
     throw Exception ("MailboxDefault::MailboxDefault", status);
 }
 
-MailboxDefault :: MailboxDefault (const mailbox_t mbox)
+MailboxDefault :: MailboxDefault (const mu_mailbox_t mbox)
 {
   if (mbox == 0)
     throw Exception ("MailboxDefault::MailboxDefault", EINVAL);
@@ -115,6 +116,6 @@ MailboxDefault :: MailboxDefault (const mailbox_t mbox)
 
 MailboxDefault :: ~MailboxDefault ()
 {
-  mailbox_destroy (&mbox);
+  mu_mailbox_destroy (&mbox);
 }
 

@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #include <mailutils/cpp/list.h>
@@ -29,12 +30,12 @@ using namespace mailutils;
 
 List :: List ()
 {
-  int status = list_create (&mu_list);
+  int status = mu_list_create (&mu_list);
   if (status)
     throw Exception ("List::List", status);
 }
 
-List :: List (const list_t lst)
+List :: List (const mu_list_t lst)
 {
   if (lst == 0)
     throw Exception ("List::List", EINVAL);
@@ -44,65 +45,65 @@ List :: List (const list_t lst)
 
 List :: ~List ()
 {
-  list_destroy (&mu_list);
+  mu_list_destroy (&mu_list);
 }
 
 void
-List :: Append (void* item)
+List :: append (void* item)
 {
-  int status = list_append (mu_list, item);
+  int status = mu_list_append (mu_list, item);
   if (status)
-    throw Exception ("List::Append", status);
+    throw Exception ("List::append", status);
 }
 
 void
-List :: Prepend (void* item)
+List :: prepend (void* item)
 {
-  int status = list_prepend (mu_list, item);
+  int status = mu_list_prepend (mu_list, item);
   if (status)
-    throw Exception ("List::Prepend", status);
+    throw Exception ("List::prepend", status);
 }
 
 void
-List :: Insert (void* item, void* new_item)
+List :: insert (void* item, void* new_item, int insert_before)
 {
-  int status = list_insert (mu_list, item, new_item);
+  int status = mu_list_insert (mu_list, item, new_item, insert_before);
   if (status)
-    throw Exception ("List::Insert", status);
+    throw Exception ("List::insert", status);
 }
 
 void
-List :: Remove (void* item)
+List :: remove (void* item)
 {
-  int status = list_remove (mu_list, item);
+  int status = mu_list_remove (mu_list, item);
   if (status)
-    throw Exception ("List::Remove", status);
+    throw Exception ("List::remove", status);
 }
 
 void
-List :: Replace (void* old_item, void* new_item)
+List :: replace (void* old_item, void* new_item)
 {
-  int status = list_replace (mu_list, old_item, new_item);
+  int status = mu_list_replace (mu_list, old_item, new_item);
   if (status)
-    throw Exception ("List::Replace", status);
+    throw Exception ("List::replace", status);
 }
 
 void
-List :: Get (size_t index, void** pitem)
+List :: get (size_t index, void** pitem)
 {
-  int status = list_get (mu_list, index, pitem);
+  int status = mu_list_get (mu_list, index, pitem);
   if (status)
-    throw Exception ("List::Get", status);
+    throw Exception ("List::get", status);
 }
 
 void*
-List :: Get (size_t index)
+List :: get (size_t index)
 {
   void* pitem;
 
-  int status = list_get (mu_list, index, &pitem);
+  int status = mu_list_get (mu_list, index, &pitem);
   if (status)
-    throw Exception ("List::Get", status);
+    throw Exception ("List::get", status);
 
   return pitem;
 }
@@ -110,62 +111,62 @@ List :: Get (size_t index)
 void*
 List :: operator [] (size_t index)
 {
-  return this->Get (index);
+  return this->get (index);
 }
 
 void
-List :: ToArray (void** array, size_t count, size_t* pcount)
+List :: toArray (void** array, size_t count, size_t* pcount)
 {
-  int status = list_to_array (mu_list, array, count, pcount);
+  int status = mu_list_to_array (mu_list, array, count, pcount);
   if (status)
-    throw Exception ("List::ToArray", status);
+    throw Exception ("List::toArray", status);
 }
 
 void
-List :: Locate (void* item, void** ret_item)
+List :: locate (void* item, void** ret_item)
 {
-  int status = list_locate (mu_list, item, ret_item);
+  int status = mu_list_locate (mu_list, item, ret_item);
   if (status)
-    throw Exception ("List::Locate", status);
+    throw Exception ("List::locate", status);
 }
 
 bool
-List :: IsEmpty ()
+List :: isEmpty ()
 {
-  return (bool) list_is_empty (mu_list);
+  return (bool) mu_list_is_empty (mu_list);
 }
 
 size_t
-List :: Count ()
+List :: count ()
 {
   size_t count = 0;
 
-  int status = list_count (mu_list, &count);
+  int status = mu_list_count (mu_list, &count);
   if (status)
-    throw Exception ("List::Count", status);
+    throw Exception ("List::count", status);
 
   return count;
 }
 
 void
-List :: Do (list_action_t* action, void* cbdata)
+List :: apply (mu_list_action_t* action, void* cbdata)
 {
-  int status = list_do (mu_list, action, cbdata);
+  int status = mu_list_do (mu_list, action, cbdata);
   if (status)
-    throw Exception ("List::Do", status);
+    throw Exception ("List::apply", status);
 }
 
-list_comparator_t
-List :: SetComparator (list_comparator_t comp)
+mu_list_comparator_t
+List :: setComparator (mu_list_comparator_t comp)
 {
-  return list_set_comparator (mu_list, comp);
+  return mu_list_set_comparator (mu_list, comp);
 }
 
 void
-List :: SetDestroyItem (void (*destroy_item) (void *item))
+List :: setDestroyItem (void (*mu_destroy_item) (void *item))
 {
-  int status = list_set_destroy_item (mu_list, destroy_item);
+  int status = mu_list_set_destroy_item (mu_list, mu_destroy_item);
   if (status)
-    throw Exception ("List::SetDestroyItem", status);
+    throw Exception ("List::setDestroyItem", status);
 }
 
