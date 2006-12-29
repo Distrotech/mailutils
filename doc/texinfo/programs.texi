@@ -2099,6 +2099,41 @@ be included in the group.
 
 Setting this variable does not affect the operation mode of the program.
 
+@item nullbody
+@* Type: Boolean
+@* Default: True
+@vrindex nullbody, mail variable
+
+Controls whether @command{mail} accepts messages with an empty
+body.  The default value, @code{true}, means such messages are sent,
+and a warning (traditionally saying @samp{Null message body; hope
+that's ok}) is displayed.  The text of the warning can be set using
+@code{nullbodymsg} variable (see below).
+
+If @code{nullbody} is unset, @command{mail} will silently ignore such
+messages.  This can be useful in @file{crontab} files, to avoid sending
+mails when nothing important happens.  For example, the @file{crontab}
+entry below will send mail only if the utility @command{some-prog}
+outputs something on its standard output or error:
+
+@smallexample
+@group
+*/5 * * * * some-prog 2>&1 | \
+   /bin/mail -E'set nonullbody' -s 'Periodic synchronization'
+@end group
+@end smallexample
+
+@item nullbodymsg
+@*Type: String
+@*Default: Null message body; hope that's ok 
+@vrindex nullbodymsg
+
+Keeps the text of the warning, displayed by @command{mail} before
+sending an empty message.  When available, the translation of
+this text, in accordance with the current locale, is displayed.
+
+Unsetting this variable disables the warning.
+
 @item outfolder
 @*Type: String.
 @*Default: Unset.
