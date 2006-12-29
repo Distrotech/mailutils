@@ -274,6 +274,9 @@ static char *default_setup[] = {
   "set noflipr",
   "set noshowto",
   "set nobang",
+
+  "set nullbody", /* Null message body is traditionally allowed */
+  "set nullbodymsg=\"" N_("Null message body; hope that's ok") "\"",
   
   /* These settings are not yet used */
   "set nodebug",
