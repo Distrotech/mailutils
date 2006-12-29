@@ -1,3 +1,14 @@
+2006-12-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac, NEWS: Version 1.1.90
+	* mail/mail.c (default_setup): Set nullbody and nullbodymsg
+	* mail/send.c: Sent empty messages only if nullbody is set
+	* mailbox/amd.c (amd_open): Create directory if MU_STREAM_CREAT is
+	given.
+	* mimeview/mimeview.c (doc): Remove leftover \v
+	* doc/texinfo/programs.texi (Mail Variables): Document nullbody
+	and nullbodymsg
+
 2006-12-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Require at least version 2.60 of autoconf
