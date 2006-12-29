@@ -26,8 +26,9 @@
 #include <sys/wait.h>
 
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.\
-Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
+static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")
+"\v"     
+N_("Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
 N_("\n\nDebug flags are:\n\
   g - Mime.types parser traces\n\
   l - Mime.types lexical analyzer traces\n\
