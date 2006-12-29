@@ -307,6 +307,43 @@ compose_destroy (compose_env_t * env)
     }
 }
 
+static int
+fill_body (mu_message_t msg, FILE *file)
+{
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
+  off_t offset = 0;
+  char *buf = NULL;
+  size_t n = 0;
+  mu_message_get_body (msg, &body);
+  mu_body_get_stream (body, &stream);
+
+  while (getline (&buf, &n, file) >= 0)
+    {
+      size_t len = strlen (buf);
+      mu_stream_write (stream, buf, len, offset, &n);
+      offset += len;
+    }
+	    
+  if (buf)
+    free (buf);
+
+  if (offset == 0)
+    {
+      if (util_getenv (NULL, "nullbody", Mail_env_boolean, 0) == 0)
+	{
+	  char *str;
+	  if (util_getenv (&str, "nullbodymsg", Mail_env_string, 0) == 0)
+	    util_error ("%s\n", _(str));
+	}
+      else
+	return 1;
+    }
+
+  return 0;
+}
+
+
 /* mail_send0(): shared between mail_send() and mail_reply();
 
    If the variable "record" is set, the outgoing message is
@@ -492,123 +529,110 @@ mail_send0 (compose_env_t * env, int save_to)
 	{
 	  mu_mailer_t mailer;
 	  mu_message_t msg = NULL;
-
+	  int rc;
+	  
 	  mu_message_create (&msg, NULL);
 
 	  mu_message_set_header (msg, env->header, NULL);
 
 	  /* Fill the body.  */
-	  {
-	    mu_body_t body = NULL;
-	    mu_stream_t stream = NULL;
-	    off_t offset = 0;
-	    char *buf = NULL;
-	    size_t n = 0;
-	    mu_message_get_body (msg, &body);
-	    mu_body_get_stream (body, &stream);
-	    while (getline (&buf, &n, file) >= 0)
-	      {
-		size_t len = strlen (buf);
-		mu_stream_write (stream, buf, len, offset, &n);
-		offset += len;
-	      }
-	    
-	    if (offset == 0)
-	      util_error (_("Null message body; hope that's ok\n"));
-	    if (buf)
-	      free (buf);
-	  }
-
+	  rc = fill_body (msg, file);
 	  fclose (file);
 
-	  /* Save outgoing message */
-	  if (save_to)
+	  if (rc == 0)
 	    {
-	      char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
-	      mu_address_t addr = NULL;
+	      /* Save outgoing message */
+	      if (save_to)
+		{
+		  char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
+		  mu_address_t addr = NULL;
 	      
-	      mu_address_create (&addr, tmp);
-	      mu_address_aget_email (addr, 1, &savefile);
-	      mu_address_destroy (&addr);
-	      if (savefile)
-		{
-		  char *p = strchr (savefile, '@');
-		  if (p)
-		    *p = 0;
-		}
-	    }
-	  util_save_outgoing (msg, savefile);
-	  if (savefile)
-	    free (savefile);
-
-	  /* Check if we need to save the message to files or pipes.  */
-	  if (env->outfiles)
-	    {
-	      int i;
-	      for (i = 0; i < env->nfiles; i++)
-		{
-		  /* Pipe to a cmd.  */
-		  if (env->outfiles[i][0] == '|')
-		    msg_to_pipe (&(env->outfiles[i][1]), msg);
-		  /* Save to a file.  */
-		  else
+		  mu_address_create (&addr, tmp);
+		  mu_address_aget_email (addr, 1, &savefile);
+		  mu_address_destroy (&addr);
+		  if (savefile)
 		    {
-		      int status;
-		      mu_mailbox_t mbx = NULL;
-		      status = mu_mailbox_create_default (&mbx, env->outfiles[i]);
-		      if (status == 0)
+		      char *p = strchr (savefile, '@');
+		      if (p)
+			*p = 0;
+		    }
+		}
+	      util_save_outgoing (msg, savefile);
+	      if (savefile)
+		free (savefile);
+
+	      /* Check if we need to save the message to files or pipes.  */
+	      if (env->outfiles)
+		{
+		  int i;
+		  for (i = 0; i < env->nfiles; i++)
+		    {
+		      /* Pipe to a cmd.  */
+		      if (env->outfiles[i][0] == '|')
+			msg_to_pipe (&(env->outfiles[i][1]), msg);
+		      /* Save to a file.  */
+		      else
 			{
-			  status = mu_mailbox_open (mbx, MU_STREAM_WRITE
-						 | MU_STREAM_CREAT);
+			  int status;
+			  mu_mailbox_t mbx = NULL;
+			  status = mu_mailbox_create_default (&mbx, 
+                                                              env->outfiles[i]);
 			  if (status == 0)
 			    {
-			      status = mu_mailbox_append_message (mbx, msg);
-			      if (status)
-				util_error (_("Cannot append message: %s"),
-					    mu_strerror (status));
-			      mu_mailbox_close (mbx);
+			      status = mu_mailbox_open (mbx, MU_STREAM_WRITE
+							| MU_STREAM_CREAT);
+			      if (status == 0)
+				{
+				  status = mu_mailbox_append_message (mbx, msg);
+				  if (status)
+				    util_error (_("Cannot append message: %s"),
+						mu_strerror (status));
+				  mu_mailbox_close (mbx);
+				}
+			      mu_mailbox_destroy (&mbx);
 			    }
-			  mu_mailbox_destroy (&mbx);
+			  if (status)
+			    util_error (_("Cannot create mailbox %s: %s"), 
+					env->outfiles[i], mu_strerror (status));
 			}
-		      if (status)
-			util_error (_("Cannot create mailbox %s: %s"), 
-                                    env->outfiles[i], mu_strerror (status));
 		    }
 		}
-	    }
 
-	  /* Do we need to Send the message on the wire?  */
-	  if (compose_header_get (env, MU_HEADER_TO, NULL)
-	      || compose_header_get (env, MU_HEADER_CC, NULL)
-	      || compose_header_get (env, MU_HEADER_BCC, NULL))
-	    {
-	      char *sendmail;
-	      if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
+	      /* Do we need to Send the message on the wire?  */
+	      if (compose_header_get (env, MU_HEADER_TO, NULL)
+		  || compose_header_get (env, MU_HEADER_CC, NULL)
+		  || compose_header_get (env, MU_HEADER_BCC, NULL))
 		{
-		  int status = mu_mailer_create (&mailer, sendmail);
-		  if (status == 0)
+		  char *sendmail;
+		  if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) 
+                       == 0)
 		    {
-		      if (util_getenv (NULL, "verbose", Mail_env_boolean, 0)
-			  == 0)
-			{
-			  mu_debug_t debug = NULL;
-			  mu_mailer_get_debug (mailer, &debug);
-			  mu_debug_set_level (debug,
-					      MU_DEBUG_TRACE | MU_DEBUG_PROT);
-			}
-		      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
+		      int status = mu_mailer_create (&mailer, sendmail);
 		      if (status == 0)
 			{
-			  mu_mailer_send_message (mailer, msg, NULL, NULL);
-			  mu_mailer_close (mailer);
+			  if (util_getenv (NULL, "verbose", Mail_env_boolean, 0)
+			      == 0)
+			    {
+			      mu_debug_t debug = NULL;
+			      mu_mailer_get_debug (mailer, &debug);
+			      mu_debug_set_level (debug,
+						  MU_DEBUG_TRACE | 
+                                                    MU_DEBUG_PROT);
+			    }
+			  status = mu_mailer_open (mailer, MU_STREAM_RDWR);
+			  if (status == 0)
+			    {
+			      mu_mailer_send_message (mailer, msg, NULL, NULL);
+			      mu_mailer_close (mailer);
+			    }
+			  mu_mailer_destroy (&mailer);
 			}
-		      mu_mailer_destroy (&mailer);
+		      if (status != 0)
+			msg_to_pipe (sendmail, msg);
 		    }
-		  if (status != 0)
-		    msg_to_pipe (sendmail, msg);
+		  else
+		    util_error (_("Variable sendmail not set: no mailer"));
 		}
-	      else
-		util_error (_("Variable sendmail not set: no mailer"));
 	    }
 	  mu_message_destroy (&msg, NULL);
 	  remove (filename);
