@@ -54,9 +54,9 @@ Address :: isGroup (size_t n)
   int isgroup;
   int status = mu_address_is_group (addr, n, &isgroup);
   if (status == EINVAL)
-    throw Address::EInval ("Address::IsGroup", status);
+    throw Address::EInval ("Address::isGroup", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::IsGroup", status);
+    throw Address::ENoent ("Address::isGroup", status);
 
   return (bool) isgroup;
 }
