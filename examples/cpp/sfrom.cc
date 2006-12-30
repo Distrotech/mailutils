@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -33,7 +34,7 @@ int main (int argc, char* argv[])
   if (argc == 1)
     exit (0);
 
-  mu_register_local_mbox_formats();
+  mu_register_local_mbox_formats ();
 
   Message msg;
   Header  hdr;
@@ -42,22 +43,22 @@ int main (int argc, char* argv[])
 
     MailboxDefault mbox (argv[1]);
 
-    mbox.Open (MU_STREAM_READ);
-    total = mbox.MessagesCount ();
+    mbox.open (MU_STREAM_READ);
+    total = mbox.messagesCount ();
     cout << "Total: " << total << endl;
 
     for (int msgno = 1; msgno <= total; msgno++)
     {
       msg = mbox[msgno];
-      hdr = msg.GetHeader ();
+      hdr = msg.getHeader ();
       cout << hdr[MU_HEADER_FROM] << " "
 	   << hdr[MU_HEADER_SUBJECT] << endl;
     }
 
-    mbox.Close ();
+    mbox.close ();
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
     exit (1);
   }
 

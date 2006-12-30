@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -31,11 +32,11 @@ read_and_print (Stream *in, Stream& out)
 {
   char buffer[128];
   
-  in->SequentialReadLine (buffer, sizeof (buffer));
-  while (in->GetReadn ())
+  in->sequentialReadLine (buffer, sizeof (buffer));
+  while (in->getReadn ())
     {
-      out.SequentialWrite (buffer, in->GetReadn ());
-      in->SequentialReadLine (buffer, sizeof (buffer));
+      out.sequentialWrite (buffer, in->getReadn ());
+      in->sequentialReadLine (buffer, sizeof (buffer));
     }
 }
 
@@ -46,21 +47,21 @@ createFilter (bool read_stdin, char *cmdline, int flags)
     if (read_stdin)
       {
 	StdioStream *in = new StdioStream (stdin, 0);
-	in->Open ();
+	in->open ();
 	FilterProgStream *stream = new FilterProgStream (cmdline, in);
-	stream->Open ();
+	stream->open ();
 	return stream;
       }
     else
       {
 	ProgStream *stream = new ProgStream (cmdline, flags);
-	stream->Open ();
+	stream->open ();
 	return stream;
       }
   }
   catch (Exception& e) {
     cerr << progname << ": cannot create program filter stream: "
-	 << e.Method () << ": " << e.MsgError () << endl;
+	 << e.method () << ": " << e.msgError () << endl;
     exit (1);
   }
 }
@@ -89,20 +90,20 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  argcv_string (argc - i, &argv[i], &cmdline);
+  mu_argcv_string (argc - i, &argv[i], &cmdline);
 
   stream = createFilter (read_stdin, cmdline, flags);
 
   try {
     StdioStream out (stdout, 0);
-    out.Open ();
+    out.open ();
 
     read_and_print (stream, out);
 
     delete stream;
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
     exit (1);
   }
 

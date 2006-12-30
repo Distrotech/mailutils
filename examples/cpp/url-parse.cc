@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -39,19 +40,19 @@ main ()
 
       try {
 	Url url (str);
-	url.Parse ();
+	url.parse ();
 
-	cout << "\tscheme <" << url.GetScheme () << ">" << endl;
-	cout << "\tuser <"   << url.GetUser   () << ">" << endl;
-	cout << "\tpasswd <" << url.GetPasswd () << ">" << endl;
-	cout << "\tauth <"   << url.GetAuth   () << ">" << endl;
-	cout << "\thost <"   << url.GetHost   () << ">" << endl;
-	cout << "\tport "    << url.GetPort   () << endl;
-	cout << "\tpath <"   << url.GetPath   () << ">" << endl;
-	cout << "\tquery <"  << url.GetQuery  () << ">" << endl;
+	cout << "\tscheme <" << url.getScheme () << ">" << endl;
+	cout << "\tuser <"   << url.getUser   () << ">" << endl;
+	cout << "\tpasswd <" << url.getPasswd () << ">" << endl;
+	cout << "\tauth <"   << url.getAuth   () << ">" << endl;
+	cout << "\thost <"   << url.getHost   () << ">" << endl;
+	cout << "\tport "    << url.getPort   () << endl;
+	cout << "\tpath <"   << url.getPath   () << ">" << endl;
+	cout << "\tquery <"  << url.getQuery  () << ">" << endl;
       }
       catch (Exception& e) {
-	cerr << e.Method () << ": " << e.MsgError () << endl;
+	cerr << e.method () << ": " << e.msgError () << endl;
 	goto again;
       }
     }

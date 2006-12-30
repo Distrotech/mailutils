@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -31,7 +32,7 @@ main (int argc, char **argv)
 
   try {
     FileStream stream ((std::string) file, MU_STREAM_READ);
-    stream.Open ();
+    stream.open ();
 
     Mailcap mailcap (stream);
 
@@ -39,7 +40,7 @@ main (int argc, char **argv)
     size_t count = 0;
     string buffer;
 
-    count = mailcap.GetCount ();
+    count = mailcap.getCount ();
     for (i = 1; i <= count; i++)
       {
 	size_t j;
@@ -47,26 +48,26 @@ main (int argc, char **argv)
 
 	cout << "entry[" << i << "]\n";
 
-	MailcapEntry entry = mailcap.GetEntry (i);
+	MailcapEntry entry = mailcap.getEntry (i);
 
 	/* typefield.  */
-	buffer = entry.GetTypeField ();
+	buffer = entry.getTypeField ();
 	cout << "\ttypefield: " << buffer << endl;
 
 	/* view-command.  */
-	buffer = entry.GetViewCommand ();
+	buffer = entry.getViewCommand ();
 	cout << "\tview-command: " << buffer << endl;
 
 	/* fields.  */
-	fields_count = entry.FieldsCount ();
+	fields_count = entry.fieldsCount ();
 	for (j = 1; j <= fields_count; j++)
 	  {
 	    try {
-	      buffer = entry.GetField (j);
+	      buffer = entry.getField (j);
 	    }
 	    catch (Exception& e) {
-	      cerr << e.Method () << ": cannot retrieve field "
-		   << j << ": " << e.MsgError () << endl;
+	      cerr << e.method () << ": cannot retrieve field "
+		   << j << ": " << e.msgError () << endl;
 	    }
 	    cout << "\tfields[" << j << "]: " << buffer << endl;
 	  }
@@ -75,7 +76,7 @@ main (int argc, char **argv)
       }
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
     exit (1);
   }
   

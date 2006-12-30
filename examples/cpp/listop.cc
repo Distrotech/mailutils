@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -37,9 +38,9 @@ print (List& lst)
 {
   Iterator itr (lst);
 
-  for (itr.First (); !itr.IsDone (); itr++)
+  for (itr.first (); !itr.isDone (); itr++)
     {
-      char* text = (char *) itr.Current ();
+      char* text = (char *) itr.current ();
       cout << text << endl;
     }
 }
@@ -52,7 +53,7 @@ next (Iterator* itr, char *arg)
   if (skip == 0)
     cout << "next arg?" << endl;
   while (skip--)
-    itr->Next ();
+    itr->next ();
 }
 
 void
@@ -68,10 +69,10 @@ del (List& lst, int argc, char **argv)
   while (--argc)
     {
       try {
-	lst.Remove (strdup (*++argv));
+	lst.remove (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.Method () << ": " << e.MsgError () << endl;
+	cerr << e.method () << ": " << e.msgError () << endl;
       }
     }
 }
@@ -90,10 +91,10 @@ add (List& lst, int argc, char **argv)
   while (--argc)
     {
       try {
-	lst.Append (strdup (*++argv));
+	lst.append (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.Method () << ": " << e.MsgError () << endl;
+	cerr << e.method () << ": " << e.msgError () << endl;
       }
     }
 }
@@ -111,10 +112,10 @@ prep (List& lst, int argc, char **argv)
   while (--argc)
     {
       try {
-	lst.Prepend (strdup (*++argv));
+	lst.prepend (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.Method () << ": " << e.MsgError () << endl;
+	cerr << e.method () << ": " << e.msgError () << endl;
       }
     }
 }
@@ -130,10 +131,10 @@ repl (List& lst, int argc, char **argv)
     }
 
   try {
-    lst.Replace (argv[1], strdup (argv[2]));
+    lst.replace (argv[1], strdup (argv[2]));
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
   }
 }
 
@@ -168,23 +169,23 @@ find (Iterator* itr, char* arg)
       return;
     }
 
-  itr->Current ((void**) &text);
-  for (itr->First (); !itr->IsDone (); itr->Next ())
+  itr->current ((void**) &text);
+  for (itr->first (); !itr->isDone (); itr->next ())
     {
       char *item;
 
-      itr->Current ((void**) &item);
+      itr->current ((void**) &item);
       if (!strcmp (arg, item))
 	return;
     }
 
   cerr << arg << " not in list" << endl;
 
-  for (itr->First (); !itr->IsDone (); itr->Next ())
+  for (itr->first (); !itr->isDone (); itr->next ())
     {
       char *item;
 
-      itr->Current ((void**) &item);
+      itr->current ((void**) &item);
       if (!strcmp (text, item))
 	return;
     }
@@ -217,7 +218,7 @@ shell (List& lst)
   for (num = 0; num < NITR; num++)
     {
       itr[num] = new Iterator (lst);
-      itr[num]->First ();
+      itr[num]->first ();
     }
 
   num = 0;
@@ -229,26 +230,26 @@ shell (List& lst)
       char **argv;
       
       try {
-	itr[num]->Current ((void**) &text);
+	itr[num]->current ((void**) &text);
       }
       catch (Exception& e) {
-	cerr << e.Method () << ": " << e.MsgError () << endl;
+	cerr << e.method () << ": " << e.msgError () << endl;
       }
 
       cout << num << ":(" << (text ? text : "NULL") << ")> ";
       if (cin.getline (buf, sizeof (buf)).eof ())
 	return;
 
-      rc = argcv_get (buf, "", "#", &argc, &argv);
+      rc = mu_argcv_get (buf, "", "#", &argc, &argv);
       if (rc)
-	cerr << "argcv_get: " << rc << endl;
+	cerr << "mu_argcv_get: " << rc << endl;
 
       if (argc > 0)
 	{
 	  if (!strcmp (argv[0], "next"))
 	    next (itr[num], argv[1]);
 	  else if (!strcmp (argv[0], "first"))
-	    itr[num]->First ();
+	    itr[num]->first ();
 	  else if (!strcmp (argv[0], "del"))
 	    del (lst, argc, argv);
 	  else if (!strcmp (argv[0], "add"))
@@ -279,7 +280,7 @@ shell (List& lst)
 		    text = (char*) lst[n];
 		  }
 		  catch (Exception& e) {
-		    cerr << e.Method () << ": " << e.MsgError () << endl;
+		    cerr << e.method () << ": " << e.msgError () << endl;
 		  }
 
 		  // else
@@ -289,7 +290,7 @@ shell (List& lst)
 	  else
 	    cerr << "?" << endl;
 	}
-      argcv_free (argc, argv);
+      mu_argcv_free (argc, argv);
     }
 }
 
@@ -319,17 +320,17 @@ main (int argc, char **argv)
 
   try {
     List lst;
-    lst.SetComparator (string_comp);
+    lst.setComparator (string_comp);
     
     while (argc--)
       {
-	lst.Append (*argv++);
+	lst.append (*argv++);
       }
 
     shell (lst);
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
   }
 
   return 0;

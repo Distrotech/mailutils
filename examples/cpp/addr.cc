@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -37,30 +38,30 @@ parse (const char *str)
 
   try {
     Address address (str);
-    count = address.GetCount ();
+    count = address.getCount ();
     cout << str << "=> count " << count << endl;
 
     for (no = 1; no <= count; no++)
       {
-	bool isgroup = address.IsGroup (no);
+	bool isgroup = address.isGroup (no);
 	cout << no << " ";
 	
 	if (isgroup)
-	  cout << "group " << address.GetPersonal (no) << endl;
+	  cout << "group " << address.getPersonal (no) << endl;
 	else
-	  cout << "email " << address.GetEmail (no) << endl;
+	  cout << "email " << address.getEmail (no) << endl;
 	
 	if (!isgroup)
-	  cout << "   personal " << address.GetPersonal (no) << endl;
+	  cout << "   personal " << address.getPersonal (no) << endl;
 	
-	cout << "   comments " << address.GetComments (no) << endl;
-	cout << "   local-part " << address.GetLocalPart (no)
-	     << " domain "  << address.GetDomain (no) << endl;
-	cout << "   route " << address.GetRoute (no) << endl;
+	cout << "   comments " << address.getComments (no) << endl;
+	cout << "   local-part " << address.getLocalPart (no)
+	     << " domain "  << address.getDomain (no) << endl;
+	cout << "   route " << address.getRoute (no) << endl;
       }
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
   }
 
   cout << endl;

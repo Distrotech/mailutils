@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA
 */
 
 #include <iostream>
@@ -36,28 +37,28 @@ main (int argc, char **argv)
     }
 
   try {
-    StdioStream *in = new StdioStream(stdin, 0);
-    in->Open ();
+    StdioStream *in = new StdioStream (stdin, 0);
+    in->open ();
 
     FilterStream cvt;
-    cvt.IconvCreate (*in, (string)argv[1], (string)argv[2], 0, mu_fallback_none);
-    cvt.Open ();
+    cvt.iconvCreate (*in, (string)argv[1], (string)argv[2], 0, mu_fallback_none);
+    cvt.open ();
     delete in;
     
     StdioStream out (stdout, 0);
-    out.Open ();
+    out.open ();
 
     do {
-      cvt.Read (buffer, sizeof (buffer), total);
-      out.SequentialWrite (buffer, cvt.GetReadn ());
-      total += cvt.GetReadn ();
-    } while (cvt.GetReadn ());
+      cvt.read (buffer, sizeof (buffer), total);
+      out.sequentialWrite (buffer, cvt.getReadn ());
+      total += cvt.getReadn ();
+    } while (cvt.getReadn ());
 
-    out.Flush ();
+    out.flush ();
     delete in;
   }
   catch (Exception& e) {
-    cerr << e.Method () << ": " << e.MsgError () << endl;
+    cerr << e.method () << ": " << e.msgError () << endl;
     exit (1);
   }
 
