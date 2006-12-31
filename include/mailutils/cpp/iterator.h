@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,13 +12,14 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
-#ifndef _ITERATOR_H
-#define _ITERATOR_H
+#ifndef _MUCPP_ITERATOR_H
+#define _MUCPP_ITERATOR_H
 
 #include <iostream>
 #include <mailutils/iterator.h>
@@ -30,25 +31,25 @@ namespace mailutils
 class Iterator
 {
  protected:
-  iterator_t mu_iter;
+  mu_iterator_t mu_iter;
   List* pList;
 
  public:
   Iterator (const List&);
-  Iterator (const iterator_t);
+  Iterator (const mu_iterator_t);
   ~Iterator ();
 
-  void Dup (Iterator*&, const Iterator&);
-  void First ();
-  void Next ();
+  void dup (Iterator*&, const Iterator&);
+  void first ();
+  void next ();
   Iterator& operator ++ (int);
-  void Current (void**);
-  void* Current ();
-  bool IsDone ();
-  List& GetList ();
+  void current (void**);
+  void* current ();
+  bool isDone ();
+  List& getList ();
 };
 
 }
 
-#endif // not _ITERATOR_H
+#endif // not _MUCPP_ITERATOR_H
 

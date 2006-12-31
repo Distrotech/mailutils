@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,13 +12,14 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
-#ifndef _STREAM_H
-#define _STREAM_H
+#ifndef _MUCPP_STREAM_H
+#define _MUCPP_STREAM_H
 
 #include <iostream>
 #include <string>
@@ -32,7 +33,7 @@ namespace mailutils
 class Stream
 {
  protected:
-  stream_t stm;
+  mu_stream_t stm;
   size_t readn;
   size_t writen;
   int wflags;
@@ -56,26 +57,26 @@ class Stream
  public:
   Stream ();
   Stream (Stream& s);
-  Stream (const stream_t);
+  Stream (const mu_stream_t);
   ~Stream ();
 
-  void Open ();
-  void Close ();
-  void SetWaitFlags (int);
-  void Wait (); // timeval is missing
-  void Wait (int); // timeval is missing
-  void Read (char*, size_t, off_t);
-  void Write (const std::string&, size_t, off_t);
-  void ReadLine (char*, size_t, off_t);
-  void SequentialReadLine (char*, size_t);
-  void SequentialWrite (const std::string&, size_t);
-  void Flush ();
+  void open ();
+  void close ();
+  void setWaitFlags (int);
+  void wait (); // timeval is missing
+  void wait (int); // timeval is missing
+  void read (char*, size_t, off_t);
+  void write (const std::string&, size_t, off_t);
+  void readLine (char*, size_t, off_t);
+  void sequentialReadLine (char*, size_t);
+  void sequentialWrite (const std::string&, size_t);
+  void flush ();
 
   // Inlines
-  size_t GetReadn () const {
+  size_t getReadn () const {
     return readn;
   };
-  size_t GetWriten () const {
+  size_t getWriten () const {
     return writen;
   };
 
@@ -124,5 +125,5 @@ class FilterProgStream : public Stream
 
 }
 
-#endif // not _STREAM_H
+#endif // not _MUCPP_STREAM_H
 

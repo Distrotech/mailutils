@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,13 +12,14 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
-#ifndef _MAILER_H
-#define _MAILER_H
+#ifndef _MUCPP_MAILER_H
+#define _MUCPP_MAILER_H
 
 #include <iostream>
 #include <string>
@@ -32,19 +33,19 @@ namespace mailutils
 class Mailer
 {
  protected:
-  mailer_t mailer;
+  mu_mailer_t mailer;
 
  public:
   Mailer (const std::string&);
-  Mailer (const mailer_t);
+  Mailer (const mu_mailer_t);
   ~Mailer ();
 
-  void Open (int);
-  void Close ();
-  void SendMessage (const Message&, const Address&, const Address&);
+  void open (int);
+  void close ();
+  void sendMessage (const Message&, const Address&, const Address&);
 };
 
 }
 
-#endif // not _MAILER_H
+#endif // not _MUCPP_MAILER_H
 

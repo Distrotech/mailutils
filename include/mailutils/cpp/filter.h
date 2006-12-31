@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,13 +12,14 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
-#ifndef _FILTER_H
-#define _FILTER_H
+#ifndef _MUCPP_FILTER_H
+#define _MUCPP_FILTER_H
 
 #include <iostream>
 #include <mailutils/filter.h>
@@ -33,13 +34,13 @@ class FilterStream : public Stream
   Stream *input;
 
  public:
-  void Create (Stream&, const std::string&, int, int);
-  void IconvCreate (Stream&, const std::string&,
+  void create (Stream&, const std::string&, int, int);
+  void iconvCreate (Stream&, const std::string&,
 		    const std::string&, int,
 		    enum mu_iconv_fallback_mode);
 };
 
 }
 
-#endif // not _FILTER_H
+#endif // not _MUCPP_FILTER_H
 

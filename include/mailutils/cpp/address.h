@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library; if not, write to the
+   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301 USA
 */
 
 #ifndef _ADDRESS_H
@@ -33,24 +34,24 @@ class Address
   char buf[256];
 
  protected:
-  address_t addr;
+  mu_address_t addr;
 
   friend class Mailer;
 
  public:
   Address (const std::string&);
-  Address (const address_t);
+  Address (const mu_address_t);
   ~Address ();
 
-  size_t GetCount ();
-  bool IsGroup (size_t);
+  size_t getCount ();
+  bool isGroup (size_t);
 
-  std::string GetEmail (size_t);
-  std::string GetLocalPart (size_t);
-  std::string GetDomain (size_t);
-  std::string GetPersonal (size_t);
-  std::string GetComments (size_t);
-  std::string GetRoute (size_t);
+  std::string getEmail (size_t);
+  std::string getLocalPart (size_t);
+  std::string getDomain (size_t);
+  std::string getPersonal (size_t);
+  std::string getComments (size_t);
+  std::string getRoute (size_t);
 
   // Address Exceptions
   class EInval : public Exception {
