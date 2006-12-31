@@ -1,3 +1,25 @@
+2006-12-31  Wojciech Polak
+
+	Updated libmu_cpp to the current API 1.0.
+	All method names now begin with a lowercase letter.
+	Files affected:
+
+	* libmu_cpp/address.cc, libmu_cpp/filter.cc, libmu_cpp/header.cc,
+	libmu_cpp/iterator.cc, libmu_cpp/list.cc, libmu_cpp/mailbox.cc,
+	libmu_cpp/mailcap.cc, libmu_cpp/mailer.cc, libmu_cpp/message.cc,
+	libmu_cpp/pop3.cc, libmu_cpp/stream.cc, libmu_cpp/url.cc,
+	include/mailutils/cpp/address.h, include/mailutils/cpp/error.h,
+	include/mailutils/cpp/filter.h, include/mailutils/cpp/header.h,
+	include/mailutils/cpp/iterator.h, include/mailutils/cpp/list.h,
+	include/mailutils/cpp/mailbox.h, include/mailutils/cpp/mailcap.h,
+	include/mailutils/cpp/mailer.h, include/mailutils/cpp/mailutils.h,
+	include/mailutils/cpp/message.h, include/mailutils/cpp/pop3.h,
+	include/mailutils/cpp/stream.h, include/mailutils/cpp/url.h
+	* examples/cpp/addr.cc, examples/cpp/http.cc, examples/cpp/iconv.cc,
+	examples/cpp/listop.cc, examples/cpp/mailcap.cc, examples/cpp/murun.cc,
+	examples/cpp/sfrom.cc, examples/cpp/url-parse.cc: Updated.
+	* libmu_cpp/Makefile.am: Updated.
+
 2006-12-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac, NEWS: Version 1.1.90
