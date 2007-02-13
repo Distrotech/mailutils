@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
+#include <time.h>
 
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
@@ -47,6 +48,9 @@
 #include <mailutils/tls.h>
 #include <mailutils/argp.h>
 #include <mailutils/error.h>
+#include <mailutils/envelope.h>
+#include <mailutils/argcv.h>
+#include <mailutils/mutil.h>
 
 int msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n);
 
