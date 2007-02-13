@@ -298,13 +298,7 @@ void
 compose_destroy (compose_env_t * env)
 {
   mu_header_destroy (&env->header, NULL);
-  if (env->outfiles)
-    {
-      int i;
-      for (i = 0; i < env->nfiles; i++)
-	free (env->outfiles[i]);
-      free (env->outfiles);
-    }
+  free (env->outfiles);
 }
 
 static int
