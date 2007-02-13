@@ -35,9 +35,9 @@ mail_pipe (int argc, char **argv)
   off_t off = 0;
   size_t n = 0;
 
-  if (argc > 1)
+  if (argc > 2)
     cmd = argv[--argc];
-  else if (util_getenv (&cmd, "cmd", Mail_env_boolean, 1))
+  else if (util_getenv (&cmd, "cmd", Mail_env_string, 1))
     return 1;
 
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list))
