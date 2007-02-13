@@ -1468,7 +1468,8 @@ amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
       buf[len] = '\0';
     }
   else
-    len = 0;
+    len = strlen (date);
+  
   free (date);
   
   if (psize)
@@ -1503,7 +1504,7 @@ amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *psiz
       buf[slen] = 0;
     }
   else
-    len = 0;
+    len = strlen (from);
 
   if (psize)
     *psize = len;
