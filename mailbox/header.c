@@ -604,7 +604,7 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
 
 int
 mu_header_get_value_unfold (mu_header_t header, const char *name, char *buffer,
-			 size_t buflen, size_t *pn)
+			    size_t buflen, size_t *pn)
 {
   int rc = mu_header_get_value (header, name, buffer, buflen, pn);
 
