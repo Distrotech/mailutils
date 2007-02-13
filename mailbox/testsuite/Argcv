@@ -48,3 +48,5 @@ messed        up'quotations     ' in "a  single'" "command" lin"e
 unbalanced "quote
 2: unbalanced "\"quote"
 
+"
+1: "\""
