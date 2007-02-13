@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005 Free Software Foundation, Inc.
+   2004, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,12 @@
 #endif
 
 #include "readmsg.h"
+#include "xalloc.h"
 
 #define WEEDLIST_SEPARATOR " :,"
 
-static void print_header (mu_message_t, int no_header,
-			  int all_header, const char *weedlst);
+static void print_unix_header (mu_message_t);
+static void print_header (mu_message_t, int, int, char **);
 static void print_body (mu_message_t);
 static int  string_starts_with (const char * s1, const char *s2);
 
@@ -133,17 +134,59 @@ string_starts_with (const char * s1, const char *s2)
 }
 
 static void
-print_header (mu_message_t message, int no_header, int all_headers,
-	      const char *weedlist)
+print_unix_header (mu_message_t message)
+{
+  static size_t bufsize;
+  static char *buf;
+  size_t size;
+  mu_envelope_t envelope = NULL;
+
+  mu_message_get_envelope (message, &envelope);
+  if (mu_envelope_sender (envelope, NULL, 0, &size) || size == 0)
+    return;
+  
+  if (size > bufsize)
+    {
+      bufsize = size + 1;
+      buf = xrealloc (buf, bufsize);
+    }
+      
+  mu_envelope_sender (envelope, buf, bufsize, 0);
+  printf ("From %s ", buf);
+  
+  if (mu_envelope_date (envelope, NULL, 0, &size) == 0 && size > 0)
+    {
+      if (size > bufsize)
+	{
+	  bufsize = size + 1;
+	  buf = xrealloc (buf, bufsize);
+	}
+      mu_envelope_date (envelope, buf, bufsize, NULL);
+    }
+  else
+    {
+      time_t t;
+      struct tm *tm;
+
+      t = time (NULL);
+      tm = localtime (&t);
+      mu_strftime (buf, bufsize, "%a %b %d %H:%M:%S %Y", tm);
+    }
+
+  printf ("%s", buf);
+  size = strlen (buf);
+  if (size > 1 && buf[size-1] != '\n')
+    putchar ('\n');
+}
+    
+static void
+print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
 {
   mu_header_t header = NULL;
 
-  if (no_header)
-    return;
-
   mu_message_get_header (message, &header);
 
-  if (all_headers)
+  if (weedc == 0)
     {
       mu_stream_t stream = NULL;
       off_t offset = 0;
@@ -161,25 +204,27 @@ print_header (mu_message_t message, int no_header, int all_headers,
     }
   else
     {
-      size_t count = 0;
-      const char *delim = WEEDLIST_SEPARATOR;
+      size_t count;
       size_t i;
 
       mu_header_get_field_count (header, &count);
 
       for (i = 1; i <= count; i++)
 	{
+	  int j;
 	  char *name = NULL;
 	  char *value = NULL;
-	  char *weedcopy = strdup (weedlist);
-	  char *token, *s;
 
 	  mu_header_aget_field_name (header, i, &name);
 	  mu_header_aget_field_value (header, i, &value);
-	  for (token = strtok_r (weedcopy, delim, &s); token;
-	       token = strtok_r (NULL, delim, &s)) 
+	  for (j = 0; j < weedc; j++)
 	    {
-	      if (string_starts_with (name, token))
+	      if (weedv[j][0] == '!')
+		{
+		  if (string_starts_with (name, weedv[j]+1))
+		    break;
+		}
+	      else if (string_starts_with (name, weedv[j]))
 		{
 		  /* Check if mu_header_aget_value return an empty string.  */
 		  if (value && *value)
@@ -188,7 +233,6 @@ print_header (mu_message_t message, int no_header, int all_headers,
 	    }
 	  free (value);
 	  free (name);
-	  free (weedcopy);
 	}
       putchar ('\n');
     }
@@ -228,7 +272,10 @@ main (int argc, char **argv)
   int i;
   int index;
   mu_mailbox_t mbox = NULL;
-
+  char **weedv;
+  int weedc;
+  int unix_header = 0;
+  
   /* Native Language Support */
   mu_init_nls ();
 
@@ -269,13 +316,42 @@ main (int argc, char **argv)
       mu_url_t url = NULL;
 
       mu_mailbox_get_url (mbox, &url);
-      fprintf (stderr, _("Could not open mailbox `%s': %s\n"),
-	       mu_url_to_string (url), mu_strerror(status));
+      mu_error (_("Could not open mailbox `%s': %s\n"),
+		mu_url_to_string (url), mu_strerror (status));
       exit (2);
     }
 
   if (weedlist == NULL)
     weedlist = "Date To Cc Subject From Apparently-";
+
+  status = mu_argcv_get (weedlist, WEEDLIST_SEPARATOR, NULL,
+			 &weedc, &weedv);
+  if (status)
+    {
+      mu_error (_("Cannot parse weedlist: %s"), mu_strerror (status));
+      exit (2);
+    }
+
+  for (i = 0; i < weedc; i++)
+    {
+      if (strcasecmp (weedv[i], "From_") == 0)
+	{
+	  int j;
+	  unix_header = 1;
+	  free (weedv[i]);
+	  for (j = i; j < weedc; j++)
+	    weedv[j] = weedv[j+1];
+	  weedc--;
+	  if (weedc == 0 && !all_header)
+	    no_header = 1;
+	}
+    }
+  
+  if (all_header)
+    {
+      weedc = 0;
+      weedv = NULL;
+    }
 
   /* Build an array containing the message number.  */
   argc -= index;
@@ -294,7 +370,12 @@ main (int argc, char **argv)
 	  exit (2);
 	}
 
-      print_header (msg, no_header, all_header, weedlist);
+      if (unix_header)
+	print_unix_header (msg);
+      
+      if (!no_header)
+	print_header (msg, unix_header, weedc, weedv);
+      
       print_body (msg);
       if (form_feed)
 	putchar ('\f');
