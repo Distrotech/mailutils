@@ -1,3 +1,20 @@
+2007-02-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/pipe.c (mail_pipe): Fix handling of cmd variable and
+	command argument.
+	* mail/send.c (compose_destroy): Do not free outfiles[i], the
+	caller is responsible for that.
+	* mailbox/amd.c (amd_envelope_date, amd_envelope_sender): If buf
+	is NULL, return required length of the buffer.
+	* mailbox/argcv.c (argcv_get_n): Prevent coredump if command='"'
+	* mailbox/testsuite/Argcv: Test '"' case.
+	* mailbox/header.c: Indentation fix
+	* readmsg/readmsg.c: Improve compatibility with elm's
+	implementation.
+	* readmsg/readmsg.h: Add some includes
+	* THANKS: Add Neil R. Ormos
+	* NEWS: Update
+
 2006-12-31  Wojciech Polak
 
 	Updated libmu_cpp to the current API 1.0.
