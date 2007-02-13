@@ -348,8 +348,11 @@ argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
       if ((command[start] == '"' || command[end] == '\'')
 	  && command[end] == command[start])
 	{
-	  start++;
-	  end--;
+	  if (start < end)
+	    {
+	      start++;
+	      end--;
+	    }
 	  unquote = 0;
 	}
       else
