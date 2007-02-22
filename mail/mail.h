@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006 Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/argp.h>
+#include <mailutils/assoc.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
@@ -381,7 +382,7 @@ extern char *ml_readline (char *prompt);
 extern char *ml_readline_with_intr (char *prompt);
 
 extern char *alias_expand (char *name);
-extern void alias_destroy (char *name);
+extern void alias_destroy (const char *name);
 
 typedef struct alias_iterator *alias_iterator_t;
 extern char *alias_find_first (const char *prefix, alias_iterator_t *itr);
