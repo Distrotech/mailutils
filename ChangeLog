@@ -1,3 +1,26 @@
+2007-02-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/assoc.c: New file. Implementation of associative arrays.
+	* mailbox/Makefile.am: Add assoc.c
+	* mailbox/errors (MU_ERR_EXISTS): New error code
+	* include/mailutils/assoc.h: New file
+	* include/mailutils/Makefile.am: Add assoc.h
+	* auth/radius.c (mu_radius_authenticate): Remove unused variable
+	* include/mailutils/iterator.h (mu_iterator_current_kv): New
+	function
+	(mu_iterator_set_getitem): Change signature. All references
+	updated.
+	* mailbox/iterator.c: Likewise
+	* libproto/nntp/nntp_iterator.c, libproto/pop/pop3_iterator.c,
+	mailbox/list.c: Likewise
+	* include/mailutils/types.hin (mu_assoc_t): New data type
+	* libproto/include/iterator0.h (getitem): Change signature
+
+	* mail/alias.c: Reimplement using mu_assoc_t
+	* mail/mail.h: Include mailutils/assoc.h
+
+	* mailbox/mu_argp.c: Improve diagnostics of errors in rc files.
+	
 2007-02-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail/pipe.c (mail_pipe): Fix handling of cmd variable and
