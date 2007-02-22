@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
    Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/nls.h>
 #include <mailutils/argcv.h>
+#include "mu_umaxtostr.h"
 
 #define ARG_LOG_FACILITY          1
 #define ARG_LOCK_FLAGS            2
@@ -55,6 +56,20 @@
 #define ARG_SHOW_OPTIONS          7
 #define ARG_LICENSE               8
 #define ARG_MAILBOX_TYPE          9
+#define ARG_FILE_OPTION          10
+#define ARG_LINE_OPTION          11
+
+static struct argp_option mu_locus_argp_options[] =
+{
+  { "FILE", ARG_FILE_OPTION, "STRING", OPTION_HIDDEN,
+    "File name where the following options appeared "
+    "(empty string for command line)", 0 },
+  { "LINE", ARG_LINE_OPTION, "NUMBER", OPTION_HIDDEN,
+    "Line number where the following options appeared", 0 },
+  { NULL, 0, NULL, 0, NULL, 0 }
+};
+
+
 
 static struct argp_option mu_common_argp_options[] = 
 {
@@ -130,14 +145,28 @@ static struct argp_option mu_daemon_argp_option[] = {
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
+static error_t mu_locus_argp_parser (int key, char *arg,
+				      struct argp_state *state);
 static error_t mu_common_argp_parser (int key, char *arg,
 				      struct argp_state *state);
 static error_t mu_daemon_argp_parser (int key, char *arg,
 				      struct argp_state *state);
 
+struct argp mu_locus_argp = {
+  mu_locus_argp_options,
+  mu_locus_argp_parser
+};
+
 struct argp mu_common_argp = {
   mu_common_argp_options,
   mu_common_argp_parser,
+};
+
+struct argp_child mu_locus_argp_child = {
+  &mu_locus_argp,
+  0,
+  NULL,
+  0,
 };
 
 struct argp_child mu_common_argp_child = {
@@ -382,6 +411,49 @@ mu_check_option (char *name)
 }  
 
 static error_t
+mu_locus_argp_parser (int key, char *arg, struct argp_state *state)
+{
+  static char *file_name = NULL;
+  static char *line_num;
+  
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      state->flags |= ARGP_NO_ERRS;
+      break;
+      
+    case ARG_FILE_OPTION:
+      free (file_name);
+      file_name = arg[0] ? arg : NULL;
+      /*FIXME: This doesn't work
+	if (!file_name)
+	      state->flags &= ~(ARGP_NO_ERRS|ARGP_NO_EXIT);*/
+      break;
+      
+    case ARG_LINE_OPTION:
+      free (line_num);
+      line_num = arg;
+      break;
+
+    case ARGP_KEY_ERROR:
+      state->flags &= ~(ARGP_NO_ERRS|ARGP_NO_EXIT);
+      if (file_name)
+	argp_error(state,
+		   "%s:%s: unknown option `%s'", file_name, line_num,
+		   state->argv[state->next-1]);
+      else
+	argp_error(state,
+		   "unknown option `%s'",
+		   state->argv[state->next-1]);
+      /* FALL THROUGH */
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+
+static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
   int err = 0;
@@ -591,7 +663,16 @@ read_rc (const char *progname, const char *name, const char *capa[],
   int x_argc = *argc;
   char **x_argv = *argv;
   char* rcfile = mu_tilde_expansion (name, "/", NULL);
+  size_t line = 0;
 
+#define XPAND(n)                                                     \
+   x_argv = realloc (x_argv, (x_argc + n) * sizeof (x_argv[0]));     \
+   if (!x_argv)                                                      \
+     {                                                               \
+	fprintf (stderr, _("%s: not enough memory\n"), progname);    \
+	exit (1);                                                    \
+     }
+  
   if (!rcfile)
     return;
   
@@ -601,12 +682,17 @@ read_rc (const char *progname, const char *name, const char *capa[],
       free(rcfile);
       return;
     }
-  
+
+  XPAND (2);
+  x_argv[x_argc++] = "--FILE";
+  x_argv[x_argc++] = strdup (rcfile);
+    
   while (getline (&buf, &n, fp) > 0)
     {
       char *kwp, *p;
       int len;
-      
+
+      line++;
       for (kwp = buf; *kwp && isspace (*kwp); kwp++)
 	;
 
@@ -662,7 +748,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	{
 	  int i, n_argc = 0;
 	  char **n_argv;
-              
+
 	  if (mu_argcv_get (p, "", NULL, &n_argc, &n_argv))
 	    {
 	      mu_argcv_free (n_argc, n_argv);
@@ -671,14 +757,10 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	      linebuf = NULL;
 	      continue;
 	    }
-	  x_argv = realloc (x_argv,
-			    (x_argc + n_argc) * sizeof (x_argv[0]));
-	  if (!x_argv)
-	    {
-	      fprintf (stderr, _("%s: not enough memory\n"), progname);
-	      exit (1);
-	    }
-	  
+
+	  XPAND (n_argc + 2);
+	  x_argv[x_argc++] = "--LINE";
+	  x_argv[x_argc++] = strdup (mu_umaxtostr (0, line));
 	  for (i = 0; i < n_argc; i++)
 	    x_argv[x_argc++] = mu_tilde_expansion (n_argv[i], "/", NULL);
 	  
@@ -689,8 +771,12 @@ read_rc (const char *progname, const char *name, const char *capa[],
       linebuf = NULL;
     }
   fclose (fp);
-  free(rcfile);
+  free (rcfile);
 
+  XPAND (2);
+  x_argv[x_argc++] = "--FILE";
+  x_argv[x_argc++] = "";
+  
   *argc = x_argc;
   *argv = x_argv;
 }
@@ -817,6 +903,7 @@ struct argp_capa {
   char *capability;
   struct argp_child *child;
 } mu_argp_capa[MU_MAX_CAPA] = {
+  {"locus",   &mu_locus_argp_child},
   {"common",  &mu_common_argp_child},
   {"license", &mu_license_argp_child},
   {"mailbox", &mu_mailbox_argp_child},
@@ -862,9 +949,10 @@ mu_build_argp (const struct argp *template, const char *capa[])
   const struct argp_option *opt;
   struct argp *argp;
   int group = 0;
-
+  const char *cs;
+  
   /* Count the capabilities. */
-  for (n = 0; capa && capa[n]; n++)
+  for (n = 1; capa && capa[n]; n++)
     ;
   if (template->children)
     for (; template->children[n].argp; n++)
@@ -891,14 +979,15 @@ mu_build_argp (const struct argp *template, const char *capa[])
 
   group++;
     
-  /* Append any capabilities to the children or options, as appropriate. */
-  for (n = 0; capa && capa[n]; n++)
+  /* Append any capabilities to the children or options, as appropriate.
+     "locus" is always added */
+  for (cs = "locus", n = 0; cs; cs = capa[n++])
     {
-      struct argp_child *child = find_argp_child (capa[n]);
+      struct argp_child *child = find_argp_child (cs);
       if (!child)
 	{
 	  mu_error (_("INTERNAL ERROR: requested unknown argp capability %s (please report)"),
-		    capa[n]);
+		    cs);
 	  abort ();
 	}
       ap[nchild] = *child;
