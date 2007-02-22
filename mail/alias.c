@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,260 +18,111 @@
 
 #include "mail.h"
 
-static void alias_print (char *name);
-static void alias_print_group (char *name, mu_list_t list);
-static int  alias_create (char *name, mu_list_t *plist);
-static int  alias_lookup (char *name, mu_list_t *plist);
-
-/*
- * a[lias] [alias [address...]]
- * g[roup] [alias [address...]]
- */
-
-int
-mail_alias (int argc, char **argv)
-{
-  if (argc == 1)
-    alias_print (NULL);
-  else if (argc == 2)
-    alias_print (argv[1]);
-  else
-    {
-      mu_list_t list;
-
-      if (alias_create (argv[1], &list))
-	return 1;
-
-      argc --;
-      argv ++;
-      while (--argc)
-	util_slist_add (&list, *++argv);
-    }
-  return 0;
-}
-
-typedef struct _alias alias_t;
+typedef struct _alias *alias_t;
 
 struct _alias
 {
-  char *name;
   mu_list_t list;
 };
 
-/* Hash sizes. These are prime numbers, the distance between each
-   pair of them grows exponentially, starting from 64.
-   Hopefully no one will need more than 32797 aliases, and even if
-   someone will, it is easy enough to add more numbers to the sequence. */
-static unsigned int hash_size[] =
+static mu_assoc_t aliases;
+
+static void
+alias_free (void *data)
 {
-  37,   101,  229,  487, 1009, 2039, 4091, 8191, 16411, 32797,
-};
-/* Maximum number of re-hashes: */
-static unsigned int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
-static alias_t *aliases; /* Table of aliases */
-static unsigned int hash_num;  /* Index to hash_size table */
-
-static unsigned int hash (char *name);
-static int alias_rehash (void);
-static alias_t *alias_lookup_or_install (char *name, int install);
-static void alias_print_group (char *name, mu_list_t list);
-
-unsigned
-hash (char *name)
-{
-    unsigned i;
-
-    for (i = 0; *name; name++) {
-        i <<= 1;
-        i ^= *(unsigned char*) name;
-    }
-    return i % hash_size[hash_num];
+  alias_t al = data;
+  util_slist_destroy (&al->list);
 }
 
-int
-alias_rehash ()
+static void
+alias_print_group (const char *name, alias_t al)
 {
-  alias_t *old_aliases = aliases;
-  alias_t *ap;
-  unsigned int i;
-
-  if (++hash_num >= max_rehash)
-    {
-      util_error (_("alias hash table full"));
-      return 1;
-    }
-
-  aliases = xcalloc (hash_size[hash_num], sizeof (aliases[0]));
-  if (old_aliases)
-    {
-      for (i = 0; i < hash_size[hash_num-1]; i++)
-	{
-	  if (old_aliases[i].name)
-	    {
-	      ap = alias_lookup_or_install (old_aliases[i].name, 1);
-	      ap->name = old_aliases[i].name;
-	      ap->list = old_aliases[i].list;
-	    }
-	}
-      free (old_aliases);
-    }
-  return 0;
+  fprintf (ofile, "%s    ", name);
+  util_slist_print (al->list, 0);
+  fprintf (ofile, "\n");
 }
 
-alias_t *
-alias_lookup_or_install (char *name, int install)
+static alias_t
+alias_lookup (const char *name)
 {
-  unsigned i, pos;
-
-  if (!aliases)
-    {
-      if (install)
-	{
-	  if (alias_rehash ())
-	    return NULL;
-	}
-      else
-	return NULL;
-    }
-
-  pos = hash (name);
-
-  for (i = pos; aliases[i].name;)
-    {
-      if (strcmp(aliases[i].name, name) == 0)
-	return &aliases[i];
-      if (++i >= hash_size[hash_num])
-	i = 0;
-      if (i == pos)
-	break;
-    }
-
-  if (!install)
-    return NULL;
-
-  if (aliases[i].name == NULL)
-    return &aliases[i];
-
-  if (alias_rehash ())
-    return NULL;
-
-  return alias_lookup_or_install (name, install);
+  return mu_assoc_ref (aliases, name);
 }
 
-static int
-alias_lookup (char *name, mu_list_t *plist)
-{
-  alias_t *ap = alias_lookup_or_install (name, 0);
-  if (ap)
-    {
-      *plist = ap->list;
-      return 1;
-    }
-  return 0;
-}
-
-void
+static void
 alias_print (char *name)
 {
   if (!name)
     {
-      unsigned int i;
+      mu_iterator_t itr;
 
       if (!aliases)
 	return;
 
-      for (i = 0; i < hash_size[hash_num]; i++)
+      mu_assoc_get_iterator (aliases, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  if (aliases[i].name)
-	    alias_print_group (aliases[i].name, aliases[i].list);
+	  const char *name;
+	  alias_t al;
+	  if (mu_iterator_current_kv (itr, (const void **)&name, (void**)&al))
+	    continue;
+	  alias_print_group (name, al);
 	}
     }
   else
     {
-      mu_list_t list;
+      alias_t al;
 
-      if (!alias_lookup (name, &list))
+      al = alias_lookup (name);
+      if (!al)
 	{
 	  util_error (_("\"%s\": not a group"), name);
 	  return;
 	}
-      alias_print_group (name, list);
+      alias_print_group (name, al);
     }
 }
 
-int
-alias_create (char *name, mu_list_t *plist)
+static int
+alias_create (const char *name, alias_t *al)
 {
-  alias_t *ap = alias_lookup_or_install (name, 1);
-  if (!ap)
-    return 1;
+  int rc;
 
-  if (!ap->name)
+  if (!aliases)
     {
-      /* new entry */
-      if (mu_list_create (&ap->list))
-	return 1;
-      ap->name = strdup (name);
-      if (!ap->name)
-	return 1;
+      mu_assoc_create (&aliases, sizeof (struct _alias));
+      mu_assoc_set_free (aliases, alias_free);
     }
-
-  *plist = ap->list;
-
-  return 0;
+  
+  rc = mu_assoc_ref_install (aliases, name, (void**) al);
+  if (rc == MU_ERR_EXISTS)
+    return 0;
+  if (rc == 0)
+    return mu_list_create (&(*al)->list);
+  return 1;
 }
 
 void
-alias_print_group (char *name, mu_list_t list)
+alias_destroy (const char *name)
 {
-  fprintf (ofile, "%s    ", name);
-  util_slist_print (list, 0);
-  fprintf (ofile, "\n");
+  mu_assoc_remove (aliases, name);
 }
 
-void
-alias_destroy (char *name)
-{
-  unsigned int i, j, r;
-  alias_t *alias = alias_lookup_or_install (name, 0);
-  if (!alias)
-    return;
-  free (alias->name);
-  util_slist_destroy (&alias->list);
-
-  for (i = alias - aliases;;)
-    {
-      aliases[i].name = NULL;
-      j = i;
-
-      do
-	{
-	  if (++i >= hash_size[hash_num])
-	    i = 0;
-	  if (!aliases[i].name)
-	    return;
-	  r = hash(aliases[i].name);
-	}
-      while ((j < r && r <= i) || (i < j && j < r) || (r <= i && i < j));
-
-      aliases[j] = aliases[i];
-    }
-}
-
+
 static void
 recursive_alias_expand (char *name, mu_list_t exlist, mu_list_t origlist)
 { 
-  mu_list_t alist;
+  alias_t al;
   mu_iterator_t itr;
-
-  if (!alias_lookup (name, &alist))
+  
+  if ((al = alias_lookup (name)) == NULL)
     {
       if (mu_list_locate (exlist, name, NULL) == MU_ERR_NOENT)
 	mu_list_append (exlist, name);
       return;
     }
   
-  mu_list_get_iterator (alist, &itr);
+  mu_list_get_iterator (al->list, &itr);
   for (mu_iterator_first (itr);
        !mu_iterator_is_done (itr);
        mu_iterator_next (itr))
@@ -298,8 +149,9 @@ string_comp (const void *item, const void *value)
 char *
 alias_expand (char *name)
 {
+  alias_t al;
   mu_list_t list;
-
+  
   if (util_getenv (NULL, "recursivealiases", Mail_env_boolean, 0) == 0)
     {
       char *s;
@@ -327,55 +179,98 @@ alias_expand (char *name)
       return s;
     }
   
-  if (!alias_lookup (name, &list))
+  if ((al = alias_lookup (name)) == NULL)
     return NULL;
-  return util_slist_to_string (list, ",");
+  return util_slist_to_string (al->list, ",");
 }
 
+
 struct alias_iterator
 {
+  mu_iterator_t itr;
   const char *prefix;
   int prefixlen;
   int pos;
 };
 
 const char *
-alias_iterate_next (alias_iterator_t itr)
+alias_iterate_next (alias_iterator_t atr)
 {
-  int i;
-  for (i = itr->pos; i < hash_size[hash_num]; i++)
-    if (aliases[i].name
-	&& strlen (aliases[i].name) >= itr->prefixlen
-	&& strncmp (aliases[i].name, itr->prefix, itr->prefixlen) == 0)
-      {
-	itr->pos = i + 1;
-	return aliases[i].name;
-      }
+  while (!mu_iterator_is_done (atr->itr))
+    {
+      const char *name;
+      alias_t al;
+
+      if (mu_iterator_current_kv (atr->itr, (const void **)&name, (void**)&al))
+	continue;
+      mu_iterator_next (atr->itr);
+      if (strlen (name) >= atr->prefixlen
+	  && strncmp (name, atr->prefix, atr->prefixlen) == 0)
+	return name;
+    }
   return NULL;
 }
 
 const char *
 alias_iterate_first (const char *prefix, alias_iterator_t *pc)
 {
-  struct alias_iterator *itr;
-
+  mu_iterator_t itr;
+  alias_iterator_t atr;
+  
   if (!aliases)
     {
       *pc = NULL;
       return NULL;
     }
-  
-  itr = xmalloc (sizeof *itr);
-  itr->prefix = prefix;
-  itr->prefixlen = strlen (prefix);
-  itr->pos = 0;
-  *pc = itr;
-  return alias_iterate_next (itr);
+
+  if (mu_assoc_get_iterator (aliases, &itr))
+    return NULL;
+  mu_iterator_first (itr);
+  atr = xmalloc (sizeof *atr);
+  atr->prefix = prefix;
+  atr->prefixlen = strlen (prefix);
+  atr->pos = 0;
+  atr->itr = itr;
+  *pc = atr;
+
+  return alias_iterate_next (atr);
 }
 
 void
 alias_iterate_end (alias_iterator_t *pc)
 {
+  mu_iterator_destroy (&(*pc)->itr);
   free (*pc);
   *pc = NULL;
 }
+
+
+
+/*
+ * a[lias] [alias [address...]]
+ * g[roup] [alias [address...]]
+ */
+
+int
+mail_alias (int argc, char **argv)
+{
+  if (argc == 1)
+    alias_print (NULL);
+  else if (argc == 2)
+    alias_print (argv[1]);
+  else
+    {
+      alias_t al;
+
+      if (alias_create (argv[1], &al))
+	return 1;
+
+      argc--;
+      argv++;
+      while (--argc)
+	util_slist_add (&al->list, *++argv);
+    }
+  return 0;
+}
+
+
