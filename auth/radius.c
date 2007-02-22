@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -451,7 +451,7 @@ mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 			const void *key,
 			void *func_data ARG_UNUSED, void *call_data)
 {
-  int rc, code;
+  int rc;
   grad_request_t *reply;
   const struct mu_auth_data *auth_data = key;
 
