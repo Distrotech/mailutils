@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -32,7 +32,7 @@ static int  nntp_itr_dup     (void **ptr, void *owner);
 static int  nntp_itr_destroy (mu_iterator_t itr, void *owner);
 static int  nntp_itr_first   (void *owner);
 static int  nntp_itr_next    (void *woner);
-static int  nntp_itr_getitem (void *owner, void **pret);
+static int  nntp_itr_getitem (void *owner, void **pret, const void **pkey);
 static int  nntp_itr_curitem_p (void *owner, void *data);
 static int  nntp_itr_finished_p (void *owner);
 
@@ -158,7 +158,7 @@ nntp_itr_next (void *owner)
 }
 
 static int
-nntp_itr_getitem (void *owner, void **item)
+nntp_itr_getitem (void *owner, void **item, const void **pkey)
 {
   struct nntp_iterator *nntp_iterator = (struct nntp_iterator *)owner;
   if (item)
@@ -166,6 +166,8 @@ nntp_itr_getitem (void *owner, void **item)
       *((char **)item) = nntp_iterator->item;
       nntp_iterator->item = NULL;
     }
+  if (pkey)
+    *pkey = NULL;
   return 0;
 }
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,8 @@ mu_iterator_set_next (mu_iterator_t itr, int (*next) (void *))
 }
 
 int
-mu_iterator_set_getitem (mu_iterator_t itr, int (*getitem) (void *, void **))
+mu_iterator_set_getitem (mu_iterator_t itr,
+                         int (*getitem) (void *, void **, const void **))
 {
   if (!itr)
     return EINVAL;
@@ -174,9 +175,16 @@ mu_iterator_next (mu_iterator_t iterator)
 }
 
 int
-mu_iterator_current (mu_iterator_t iterator, void * const *pitem)
+mu_iterator_current (mu_iterator_t iterator, void **pitem)
 {
-  return iterator->getitem (iterator->owner, (void**)pitem);
+  return iterator->getitem (iterator->owner, pitem, NULL);
+}
+
+int
+mu_iterator_current_kv (mu_iterator_t iterator, 
+                        const void **pkey, void **pitem)
+{
+  return iterator->getitem (iterator->owner, (void**)pitem, pkey);
 }
 
 int

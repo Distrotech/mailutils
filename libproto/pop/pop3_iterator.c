@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -31,7 +31,7 @@ static int  pop3_itr_dup     (void **ptr, void *owner);
 static int  pop3_itr_destroy (mu_iterator_t itr, void *owner);
 static int  pop3_itr_first   (void *owner);
 static int  pop3_itr_next    (void *woner);
-static int  pop3_itr_getitem (void *owner, void **pret);
+static int  pop3_itr_getitem (void *owner, void **pret, const void **pkey);
 static int  pop3_itr_curitem_p (void *owner, void *data);
 static int  pop3_itr_finished_p (void *owner);
 
@@ -157,7 +157,7 @@ pop3_itr_next (void *owner)
 }
 
 static int
-pop3_itr_getitem (void *owner, void **item)
+pop3_itr_getitem (void *owner, void **item, const void **pkey)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
   if (item)
@@ -165,6 +165,8 @@ pop3_itr_getitem (void *owner, void **item)
       *((char **)item) = pop3_iterator->item;
       pop3_iterator->item = NULL;
     }
+  if (pkey)
+    *pkey = NULL;
   return 0;
 }
 

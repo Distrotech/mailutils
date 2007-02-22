@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,9 @@ extern int mu_iterator_dup      (mu_iterator_t *piterator, mu_iterator_t orig);
 extern void mu_iterator_destroy (mu_iterator_t *);
 extern int mu_iterator_first    (mu_iterator_t);
 extern int mu_iterator_next     (mu_iterator_t);
-extern int mu_iterator_current  (mu_iterator_t, void * const *pitem);
+extern int mu_iterator_current  (mu_iterator_t, void **pitem);
+extern int mu_iterator_current_kv (mu_iterator_t,
+				   const void **key, void **pitem);  
 extern int mu_iterator_is_done  (mu_iterator_t);
 
 extern int mu_iterator_attach (mu_iterator_t *root, mu_iterator_t iterator);
@@ -40,7 +42,8 @@ extern void mu_iterator_advance (mu_iterator_t iterator, void *e);
 extern int mu_iterator_set_first (mu_iterator_t, int (*first) (void *));  
 extern int mu_iterator_set_next (mu_iterator_t, int (*next) (void *));  
 extern int mu_iterator_set_getitem (mu_iterator_t,
-				 int (*getitem) (void *, void **));  
+				 int (*getitem) (void *, void **,
+						 const void **pkey));  
 extern int mu_iterator_set_finished_p (mu_iterator_t,
 				    int (*finished_p) (void *));  
 extern int mu_iterator_set_dup (mu_iterator_t itr,
