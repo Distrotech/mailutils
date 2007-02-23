@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -308,11 +308,14 @@ action_list (struct action_data *ap)
 	  mu_error (_("No such user: %s"), ap->username);
 	}
       else
-	fprintf (fp, "%.*s: %.*s\n",
-		 (int) MU_DATUM_SIZE (key),
-		 (char*) MU_DATUM_PTR (key),
-		 (int) MU_DATUM_SIZE (contents),
-		 (char*) MU_DATUM_PTR (contents));
+	{
+	  fprintf (fp, "%.*s: %.*s\n",
+		   (int) MU_DATUM_SIZE (key),
+		   (char*) MU_DATUM_PTR (key),
+		   (int) MU_DATUM_SIZE (contents),
+		   (char*) MU_DATUM_PTR (contents));
+	  mu_dbm_datum_free (&contents);
+	}
     }
   else
     {
@@ -326,6 +329,7 @@ action_list (struct action_data *ap)
 		   (char*) MU_DATUM_PTR (key),
 		   (int) MU_DATUM_SIZE (contents),
 		   (char*) MU_DATUM_PTR (contents));
+	  mu_dbm_datum_free (&contents);
 	}
     }
   
@@ -565,6 +569,7 @@ action_chpass (struct action_data *ap)
 
   fill_pass (ap);
   
+  mu_dbm_datum_free (&contents);
   MU_DATUM_PTR (contents) = ap->passwd;
   MU_DATUM_SIZE (contents) = strlen (ap->passwd);
   rc = mu_dbm_insert (db, key, contents, 1);
