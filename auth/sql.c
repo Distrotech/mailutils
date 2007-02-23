@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005, 2006,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,6 +40,7 @@
 # include <crypt.h>
 #endif
 
+#include <mailutils/assoc.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
@@ -47,6 +49,7 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/mutil.h>
 #include <mailutils/sql.h>
 
 #ifdef USE_SQL
@@ -65,6 +68,8 @@ char *mu_sql_db = "accounts";      /* Database Name */
 int  mu_sql_port = 0;              /* Port number to connect to.
 				      0 means default port */
 enum mu_password_type mu_sql_password_type  = password_hash;
+
+static mu_assoc_t sql_field_map;
 
 static char *
 sql_escape_string (const char *ustr)
@@ -170,16 +175,17 @@ mu_sql_expand_query (const char *query, const char *ustr)
   return res;
 }
 
-# define ARG_SQL_INTERFACE 256
-# define ARG_SQL_GETPWNAM  257
-# define ARG_SQL_GETPWUID  258
-# define ARG_SQL_GETPASS   259
-# define ARG_SQL_HOST      260
-# define ARG_SQL_USER      261
-# define ARG_SQL_PASSWD    262
-# define ARG_SQL_DB        263
-# define ARG_SQL_PORT      264
+# define ARG_SQL_INTERFACE        256
+# define ARG_SQL_GETPWNAM         257
+# define ARG_SQL_GETPWUID         258
+# define ARG_SQL_GETPASS          259
+# define ARG_SQL_HOST             260
+# define ARG_SQL_USER             261
+# define ARG_SQL_PASSWD           262
+# define ARG_SQL_DB               263
+# define ARG_SQL_PORT             264
 # define ARG_SQL_MU_PASSWORD_TYPE 265
+# define ARG_SQL_FIELD_MAP        266
 
 static struct argp_option mu_sql_argp_option[] = {
   {"sql-interface", ARG_SQL_INTERFACE, N_("NAME"), 0,
@@ -202,12 +208,17 @@ static struct argp_option mu_sql_argp_option[] = {
    N_("Port to use"), 0},
   {"sql-password-type", ARG_SQL_MU_PASSWORD_TYPE, N_("STRING"), 0,
    N_("Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"), 0},
+  {"sql-field-map", ARG_SQL_FIELD_MAP, N_("MAP"), 0,
+   N_("Declare a name translation map for SQL fields in results of sql-getpwnam and "
+      "sql-getpwuid queries"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 static error_t
 mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  int rc, err;
+  
   switch (key)
     {
     case ARG_SQL_INTERFACE:
@@ -258,6 +269,13 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
       else
 	argp_error (state, _("Unknown password type `%s'"), arg);
       break;
+
+    case ARG_SQL_FIELD_MAP:
+      rc = mutil_parse_field_map (arg, &sql_field_map, &err);
+      if (rc)
+	argp_error (state, _("Error near element %d: %s"),
+		    err, mu_strerror (rc));
+      break;
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -271,7 +289,8 @@ struct argp mu_sql_argp = {
 };
 
 static int
-decode_tuple (mu_sql_connection_t conn, int n, struct mu_auth_data **return_data)
+decode_tuple_v1_0 (mu_sql_connection_t conn, int n,
+		   struct mu_auth_data **return_data)
 {
   int rc;
   char *mailbox_name = NULL;
@@ -296,10 +315,15 @@ decode_tuple (mu_sql_connection_t conn, int n, struct mu_auth_data **return_data
       char *passwd, *suid, *sgid, *dir, *shell;
 	  
       if (mu_sql_get_column (conn, 0, 1, &passwd)
+	  || !passwd
 	  || mu_sql_get_column (conn, 0, 2, &suid)
+	  || !suid
 	  || mu_sql_get_column (conn, 0, 3, &sgid)
+	  || !sgid
 	  || mu_sql_get_column (conn, 0, 4, &dir)
-	  || mu_sql_get_column (conn, 0, 5, &shell))
+	  || !dir
+	  || mu_sql_get_column (conn, 0, 5, &shell)
+	  || !shell)
 	return MU_ERR_FAILURE;
       
       rc = mu_auth_data_alloc (return_data,
@@ -320,6 +344,144 @@ decode_tuple (mu_sql_connection_t conn, int n, struct mu_auth_data **return_data
   return rc;
 }
 
+static int
+get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
+{
+  const char **name = mu_assoc_ref (sql_field_map, id);
+  int rc = mu_sql_get_field (conn, 0, name ? *name : id, ret);
+  if (rc)
+    {
+      if (mandatory || rc != MU_ERR_NOENT)
+	mu_error (_("Cannot get SQL field `%s' (`%s'): %s"),
+		  id, name ? *name : id, mu_strerror (rc));
+    }
+  else if (!*ret)
+    {
+      mu_error (_("SQL field `%s' (`%s') has NULL value"),
+		id, name ? *name : id);
+      rc = MU_READ_ERROR;
+    }
+
+  return rc;
+}
+
+static int
+decode_tuple_new (mu_sql_connection_t conn, int n,
+		  struct mu_auth_data **return_data)
+{
+  int rc;
+  char *mailbox_name = NULL;
+  char *name;
+  char *passwd, *suid, *sgid, *dir, *shell, *gecos, *squota;
+  mu_off_t quota = 0;
+  char *p;
+  uid_t uid;
+  gid_t gid;
+  
+  if (get_field (conn, MU_AUTH_NAME, &name, 1)
+      || get_field (conn, MU_AUTH_PASSWD, &passwd, 1)
+      || get_field (conn, MU_AUTH_UID, &suid, 1)
+      || get_field (conn, MU_AUTH_GID, &sgid, 1)     
+      || get_field (conn, MU_AUTH_DIR, &dir, 1)     
+      || get_field (conn, MU_AUTH_SHELL, &shell, 1))
+    return MU_ERR_FAILURE;
+
+  if (get_field (conn, MU_AUTH_GECOS, &gecos, 0))
+    gecos = "SQL user";
+  
+  uid = strtoul (suid, &p, 0);
+  if (*p)
+    {
+      mu_error (_("Invalid value for uid: %s"), suid);
+      return MU_ERR_FAILURE;
+    }
+
+  gid = strtoul (sgid, &p, 0);
+  if (*p)
+    {
+      mu_error (_("Invalid value for gid: %s"), sgid);
+      return MU_ERR_FAILURE;
+    }
+  
+  rc = get_field (conn, MU_AUTH_MAILBOX, &mailbox_name, 0);
+  switch (rc)
+    {
+    case 0:
+      mailbox_name = strdup (mailbox_name);
+      break;
+      
+    case MU_ERR_NOENT:
+      if (mu_construct_user_mailbox_url (&mailbox_name, name))
+	return MU_ERR_FAILURE;
+      break;
+
+    default:
+      return MU_ERR_FAILURE;
+    }
+
+  rc = get_field (conn, MU_AUTH_QUOTA, &squota, 0);
+  if (rc == 0)
+    {
+      if (strcasecmp (squota, "none") == 0)
+	quota = 0;
+      else
+	{
+	  quota = strtoul (squota, &p, 10);
+	  switch (*p)
+	    {
+	    case 0:
+	      break;
+	      
+	    case 'k':
+	    case 'K':
+	      quota *= 1024;
+	      break;
+      
+	    case 'm':
+	    case 'M':
+	      quota *= 1024*1024;
+	      break;
+	      
+	    default:
+	      mu_error (_("Invalid value for quota: %s"), squota);
+	      free (mailbox_name);
+	      return MU_ERR_FAILURE;
+	    }
+	}
+    }
+  else if (rc ==  MU_ERR_NOENT)
+    quota = 0;
+  else
+    {
+      free (mailbox_name);
+      return MU_ERR_FAILURE;
+    }
+
+  rc = mu_auth_data_alloc (return_data,
+			   name,
+			   passwd,
+			   uid,
+			   gid,
+			   gecos,
+			   dir,
+			   shell,
+			   mailbox_name,
+			   1);
+  
+  free (mailbox_name);
+  return rc;
+}  
+
+static int
+decode_tuple (mu_sql_connection_t conn, int n,
+	      struct mu_auth_data **return_data)
+{
+  if (sql_field_map)
+    return decode_tuple_new (conn, n, return_data);
+  else
+    return decode_tuple_v1_0 (conn, n, return_data);
+}
+ 
 static int
 mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		     const void *key,
