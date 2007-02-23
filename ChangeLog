@@ -1,3 +1,35 @@
+2007-02-23  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/sql.c: Implement field mapping and retrieval by field
+	names.
+	* include/mailutils/mu_auth.h (struct mu_auth_data.quota): New
+	field
+	(mu_auth_data_destroy): New function
+	* include/mailutils/mutil.h (mutil_parse_field_map): New function
+	* include/mailutils/sql.h (mu_sql_dispatch.get_field_number): New
+	field
+	(mu_sql_get_field): New function
+	* lib/mu_dbm.c, lib/mu_dbm.h (mu_dbm_datum_free): New function
+	* mailbox/mu_auth.c (mu_auth_data_destroy): New function
+	* mailbox/mutil.c (mutil_parse_field_map): New function
+
+	* pop3d/bulletin.c: Implement bulletin facility
+	* pop3d/Makefile.am: Add bulletin.c
+	* pop3d/apop.c (pop3d_apop): Call pop3d_begin_session instead of
+	duplicating code from user.c
+	* pop3d/pop3d.c (--bulletin-source, --bulletin-db): New options
+	* pop3d/pop3d.h (auth_data): New global
+	* pop3d/user.c (pop3d_begin_session): New function. Implement
+	bulletin facility
+	* pop3d/popauth.c (action_list): Call mu_dbm_datum_free
+
+	* readmsg/readmsg.c (main): -h shows `From ' headers as well.
+	* readmsg/testsuite/readmsg/test.exp: Adapt for the new readmsg
+	behavior
+	
+	* sql/sql.c, sql/mysql.c, sql/odbc.c, sql/postgres.c: Implement
+	retrieval by field name.
+
 2007-02-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/assoc.c: New file. Implementation of associative arrays.
