@@ -261,7 +261,9 @@ static int
 get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
 {
   size_t count;
-
+  struct mu_odbc_data *dp = conn->data;
+  int i;
+  
   if (!dp->fnames)
     {
       int rc;
@@ -274,7 +276,7 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
 	return ENOMEM;
       for (i = 0; i < count; i++)
 	{
-	  char *name
+	  char *name;
 	  SQLRETURN ret;
 	  SQLSMALLINT namelen;
 
@@ -318,10 +320,10 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
       dp->fnames[i] = NULL;
     }
   else
-    count = df->fcount;
+    count = dp->fcount;
   for (i = 0; i < count; i++)
     {
-      if (strcmp (fname, df->fnames) == 0)
+      if (strcmp (fname, dp->fnames[i]) == 0)
 	{
 	  *fno = i;
 	  return 0;
