@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@
 #define USE_DBM
 typedef GDBM_FILE DBM_FILE;
 typedef datum DBM_DATUM;
-#define MU_DATUM_SIZE(d) d.dsize
-#define MU_DATUM_PTR(d) d.dptr
+#define MU_DATUM_SIZE(d) (d).dsize
+#define MU_DATUM_PTR(d) (d).dptr
 
 #elif defined(WITH_BDB)
 
@@ -40,8 +40,8 @@ struct db2_file
 
 typedef struct db2_file *DBM_FILE;
 typedef DBT DBM_DATUM;
-#define MU_DATUM_SIZE(d) d.size
-#define MU_DATUM_PTR(d) d.data
+#define MU_DATUM_SIZE(d) (d).size
+#define MU_DATUM_PTR(d) (d).data
 
 #elif defined(WITH_NDBM)
 
@@ -49,8 +49,8 @@ typedef DBT DBM_DATUM;
 #define USE_DBM
 typedef DBM *DBM_FILE;
 typedef datum DBM_DATUM;
-#define MU_DATUM_SIZE(d) d.dsize
-#define MU_DATUM_PTR(d) d.dptr
+#define MU_DATUM_SIZE(d) (d).dsize
+#define MU_DATUM_PTR(d) (d).dptr
 
 #elif defined(WITH_OLD_DBM)
 
@@ -58,8 +58,8 @@ typedef datum DBM_DATUM;
 #define USE_DBM
 typedef int DBM_FILE;
 typedef datum DBM_DATUM;
-#define MU_DATUM_SIZE(d) d.dsize
-#define MU_DATUM_PTR(d) d.dptr
+#define MU_DATUM_SIZE(d) (d).dsize
+#define MU_DATUM_PTR(d) (d).dptr
 
 #endif
 
@@ -73,6 +73,7 @@ int mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace);
 int mu_dbm_delete (DBM_FILE db, DBM_DATUM key);
 DBM_DATUM mu_dbm_firstkey (DBM_FILE db);
 DBM_DATUM mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key);
+void mu_dbm_datum_free(DBM_DATUM *datum);
 #endif
 
 int mu_fcheck_perm (int fd, int mode);

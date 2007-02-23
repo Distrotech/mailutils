@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -197,6 +197,15 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
   return gdbm_nextkey (db, key);
 }
 
+void
+mu_dbm_datum_free (DBM_DATUM *datum)
+{
+	void *ptr = MU_DATUM_PTR (*datum);
+	if (ptr)
+		free (ptr);
+	MU_DATUM_PTR (*datum) = 0;
+}
+
 #elif defined(WITH_BDB)
 
 #define DB_SUFFIX ".db"
@@ -221,6 +230,7 @@ mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
   if (mu_check_perm (pfname, mode))
     {
       free (pfname);
+      errno = MU_ERR_UNSAFE_PERMS;
       return -1;
     }
 
@@ -348,6 +358,12 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
   return key;
 }
 
+void
+mu_dbm_datum_free (DBM_DATUM *datum)
+{
+	/* empty */
+}
+
 #elif defined(WITH_NDBM)
 
 #define DB_SUFFIX ".pag"
@@ -437,6 +453,11 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
   return dbm_nextkey (db, key);
 }
 
+void
+mu_dbm_datum_free (DBM_DATUM *datum)
+{
+	/* empty */
+}
 #elif defined(WITH_OLD_DBM)
 
 #define DB_SUFFIX ".pag"
@@ -470,6 +491,7 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
       f = O_CREAT|O_RDWR;
       break;
     default:
+      errno = EINVAL;
       return -1;
     }
   pfname = strip_suffix (name, DB_SUFFIX);
@@ -543,5 +565,10 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
   return nextkey (key);
 }
 
+void
+mu_dbm_datum_free (DBM_DATUM *datum)
+{
+	/* empty */
+}
 #endif
 
