@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 
-   2005 Free Software Foundation, Inc.
+   2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,29 +64,53 @@ static void pop3d_log_connection (int fd);
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
-#define OPT_LOGIN_DELAY    257
-#define OPT_STAT_FILE      258
-#define OPT_EXPIRE         259
-#define OPT_EXPIRE_ON_EXIT 260
-#define OPT_TLS_REQUIRED   261
+#define OPT_LOGIN_DELAY     257
+#define OPT_STAT_FILE       258
+#define OPT_EXPIRE          259
+#define OPT_EXPIRE_ON_EXIT  260
+#define OPT_TLS_REQUIRED    261
+#define OPT_BULLETIN_SOURCE 262
+#define OPT_BULLETIN_DB     263
 
 static struct argp_option options[] = {
+#define GRP 0
+  { NULL, 0, NULL, 0,
+    N_("General options"), GRP },
   {"undelete", 'u', NULL, 0,
-   N_("Undelete all messages on startup"), 0},
-#ifdef ENABLE_LOGIN_DELAY
-  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), 0,
-   N_("Allowed delay between the two successive logins"), 0},
-  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), 0,
-   N_("Name of login statistics file"), 0},
-#endif
+   N_("Undelete all messages on startup"), GRP+1},
   {"expire", OPT_EXPIRE, N_("DAYS"), 0,
-   N_("Expire read messages after the given number of days"), 0},
+   N_("Expire read messages after the given number of days"), GRP+1},
   {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, 0,
-   N_("Delete expired messages upon closing the mailbox"), 0},
+   N_("Delete expired messages upon closing the mailbox"), GRP+1},
 #ifdef WITH_TLS
   {"tls-required", OPT_TLS_REQUIRED, NULL, 0,
    N_("Always require STLS before entering authentication phase")},
 #endif
+#undef GRP
+  
+#define GRP 10
+#ifdef ENABLE_LOGIN_DELAY
+  { NULL, 0, NULL, 0,
+    N_("Login delay control"), GRP },
+  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), 0,
+   N_("Allowed delay between the two successive logins"), GRP+1},
+  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), 0,
+   N_("Name of login statistics file"), GRP+1},
+#endif
+  
+#undef GRP
+
+#define GRP 20
+  { NULL, 0, NULL, 0,
+    N_("Bulletin control"), GRP },
+  { "bulletin-source", OPT_BULLETIN_SOURCE, N_("MBOX"), 0,
+    N_("Set source mailbox to get bulletins from"), GRP+1 },
+#ifdef USE_DBM
+  { "bulletin-db", OPT_BULLETIN_DB, N_("FILE"), 0,
+    N_("Set the bulletin database file name"), GRP+1 },
+#endif
+#undef GRP
+  
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -160,6 +184,16 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
       initial_state = INITIAL;
       break;
 #endif
+
+    case OPT_BULLETIN_SOURCE:
+      set_bulletin_source (arg);
+      break;
+      
+#ifdef USE_DBM
+    case OPT_BULLETIN_DB:
+      set_bulletin_db (arg);
+      break;
+#endif
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -179,6 +213,9 @@ main (int argc, char **argv)
 
   mu_argp_init (program_version, NULL);
   MU_AUTH_REGISTER_ALL_MODULES();
+  /* Register the desired formats.  */
+  mu_register_local_mbox_formats ();
+
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
@@ -209,9 +246,6 @@ main (int argc, char **argv)
 	  exit (EXIT_FAILURE);
 	}
     }
-
-  /* Register the desired formats.  */
-  mu_register_local_mbox_formats ();
 
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);
