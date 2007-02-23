@@ -349,6 +349,7 @@ main (int argc, char **argv)
   
   if (all_header)
     {
+      unix_header = 1;
       weedc = 0;
       weedv = NULL;
     }
