@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -364,6 +364,36 @@ mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
   return SQL_F (conn, get_column) (conn, nrow, ncol, pdata);
 }
 
+int
+mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, char *fname,
+		  char **pdata)
+{
+  int rc;
+  size_t fno;
+  
+  if (!conn)
+    return EINVAL;
+
+  switch (conn->state)
+    {
+    case mu_sql_not_connected:
+      return MU_ERR_DB_NOT_CONNECTED;
+
+    case mu_sql_connected:
+      return MU_ERR_NO_QUERY;
+      
+    case mu_sql_query_run:
+      return MU_ERR_NO_RESULT;
+
+    case mu_sql_result_available:
+      break;
+    }
+
+  rc = SQL_F (conn, get_field_number) (conn, fname, &fno);
+  if (rc == 0)
+    rc = SQL_F (conn, get_column) (conn, nrow, fno, pdata);
+  return rc;
+}
 
 const char *
 mu_sql_strerror (mu_sql_connection_t conn)

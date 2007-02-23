@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,9 @@ struct mu_odbc_data
   SQLHDBC dbc;        /* DBC */
                       /* Result data: */ 
   SQLHSTMT stmt;      /* Statement being executed */
-  mu_list_t result;      /* List of returned field values */
+  mu_list_t result;   /* List of returned field values */
+  char **fnames;      /* A list of field names */
+  size_t fcount;
                       /* Error reporting: */
   struct odbc_err_buffer
   {
@@ -189,6 +191,9 @@ release_result (mu_sql_connection_t conn)
   struct mu_odbc_data *dp = conn->data;
   mu_list_do (dp->result, free_char_data, NULL);
   mu_list_destroy (&dp->result);
+  mu_argcv_free (dp->fcount, dp->fnames);
+  dp->fcount = 0;
+  dp->fnames = NULL;
   return 0;
 }
 
@@ -197,12 +202,16 @@ num_columns (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_odbc_data *dp = conn->data;
   SQLSMALLINT  count;
-  
-  if (SQLNumResultCols (dp->stmt, &count) != SQL_SUCCESS)
+
+  if (dp->fcount == 0)
     {
-      mu_odbc_diag (dp, SQL_HANDLE_STMT, dp->stmt, "SQLNumResultCount");
-      return MU_ERR_SQL;
+      if (SQLNumResultCols (dp->stmt, &count) != SQL_SUCCESS)
+	{
+	  mu_odbc_diag (dp, SQL_HANDLE_STMT, dp->stmt, "SQLNumResultCount");
+	  return MU_ERR_SQL;
+	}
     }
+  dp->fcount = count;
   *np = count;
   return 0;
 }
@@ -245,6 +254,80 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
   *pdata = strdup (buffer);
   mu_list_append (dp->result, *pdata);
   return 0;
+}
+
+/* FIXME: untested */
+static int
+get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+{
+  size_t count;
+
+  if (!dp->fnames)
+    {
+      int rc;
+      
+      rc = num_columns (conn, &count);
+      if (rc)
+	return rc;
+      dp->fnames = calloc(count + 1, sizeof dp->fnames[0]);
+      if (!dp->fnames)
+	return ENOMEM;
+      for (i = 0; i < count; i++)
+	{
+	  char *name
+	  SQLRETURN ret;
+	  SQLSMALLINT namelen;
+
+	  ret = SQLDescribeCol (dp->stmt,
+				i + 1,
+				NULL,
+				0,
+				&namelen,
+				NULL,
+				NULL,
+				NULL,
+				NULL);
+
+	  if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO)
+	    {
+	      mu_odbc_diag (dp, SQL_HANDLE_STMT, dp->stmt, "SQLDescribeColl");
+	      return MU_ERR_SQL;
+	    }
+
+	  name = malloc (namelen + 1);
+	  if (!name)
+	    return ENOMEM;
+
+	  dp->fnames[i] = name;
+	  ret = SQLDescribeCol (dp->stmt,
+				i + 1,
+				name,
+				namelen + 1,
+				&namelen,
+				NULL,
+				NULL,
+				NULL,
+				NULL);
+	  
+	  if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO)
+	    {
+	      mu_odbc_diag (dp, SQL_HANDLE_STMT, dp->stmt, "SQLDescribeColl");
+	      return MU_ERR_SQL;
+	    }
+	}
+      dp->fnames[i] = NULL;
+    }
+  else
+    count = df->fcount;
+  for (i = 0; i < count; i++)
+    {
+      if (strcmp (fname, df->fnames) == 0)
+	{
+	  *fno = i;
+	  return 0;
+	}
+    }
+  return MU_ERR_NOENT;
 }
 
 #define DEFAULT_ERROR_BUFFER_SIZE 1024
@@ -305,5 +388,6 @@ MU_DECL_SQL_DISPATCH_T(odbc) = {
   num_tuples,
   num_columns,
   get_column,
+  get_field_number,
   errstr,
 };

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -124,6 +124,7 @@ release_result (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   PQclear (dp->res);
+  dp->res = NULL;
   return 0;
 }
 
@@ -157,6 +158,17 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
   return 0;
 }
 
+static int
+get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+{
+  struct mu_pgsql_data *dp = conn->data;
+  if (!dp->res)
+    return MU_ERR_NO_RESULT;
+  if ((*fno = PQfnumber (dp->res, fname)) == -1)
+    return MU_ERR_NOENT;
+  return 0;
+}
+
 static const char *
 errstr (mu_sql_connection_t conn)
 {
@@ -178,6 +190,7 @@ MU_DECL_SQL_DISPATCH_T(postgres) = {
   num_tuples,
   num_columns,
   get_column,
+  get_field_number,
   errstr,
 };
 

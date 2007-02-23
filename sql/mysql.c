@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
 struct mu_mysql_data
 {
   MYSQL *mysql;
-  MYSQL_RES  *result;
+  MYSQL_RES *result;
 };
   
 
@@ -152,6 +152,7 @@ release_result (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   mysql_free_result (mp->result);
+  mp->result = NULL;
   return 0;
 }
 
@@ -187,6 +188,27 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
     return MU_ERR_BAD_COLUMN;
   *pdata = row[ncol];
   return 0;
+}
+
+static int
+get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+{
+  struct mu_mysql_data *mp = conn->data;
+  MYSQL_FIELD *fields;
+  size_t nf, i;
+  
+  if (!mp->result)
+    return MU_ERR_NO_RESULT;
+
+  fields = mysql_fetch_fields (mp->result);
+  nf = mysql_num_fields (mp->result);
+  for (i = 0; i < nf; i++)
+    if (strcmp (fname, fields[i].name) == 0)
+      {
+	*fno = i;
+	return 0;
+      }
+  return MU_ERR_NOENT;
 }
 
 static const char *
@@ -343,6 +365,7 @@ MU_DECL_SQL_DISPATCH_T(mysql) = {
   num_tuples,
   num_columns,
   get_column,
+  get_field_number,
   errstr,
 };
 
