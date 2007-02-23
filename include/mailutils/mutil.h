@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2006  Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -148,6 +148,9 @@ extern int mu_mh_delim (const char *str);
 extern size_t mu_strftime (char *s, size_t max, const char *format,
 			   const struct tm *tm);
   
+
+extern int mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab,
+				  int *perr);
   
 #ifdef __cplusplus
 }

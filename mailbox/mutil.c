@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,8 @@
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/assoc.h>
+#include <mailutils/argcv.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/iterator.h>
@@ -1402,4 +1404,57 @@ mu_strftime (char *s, size_t max, const char *format, const struct tm *tm)
   return size;
 }
   
-    
+
+static void
+assoc_str_free (void *data)
+{
+  free (data);
+}
+
+int
+mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
+{
+  int rc;
+  int i;
+  char *copy = strdup (map);
+  char *sp, *tok;
+  mu_assoc_t assoc_tab = NULL;
+
+  for (tok = strtok_r (copy, ",", &sp); tok; tok = strtok_r (NULL, ",", &sp))
+    {
+      char *p = strchr (tok, '=');
+      char *pptr;
+      
+      if (!p)
+	{
+	  rc = EINVAL;
+	  break;
+	}
+      if (!assoc_tab)
+	{
+	  rc = mu_assoc_create (&assoc_tab, sizeof(char*));
+	  if (rc)
+	    break;
+	  mu_assoc_set_free (assoc_tab, assoc_str_free);
+	  *passoc_tab = assoc_tab;
+	}
+      *p++ = 0;
+      pptr = strdup (p);
+      if (!pptr)
+	{
+	  rc = errno;
+	  break;
+	}
+      rc = mu_assoc_install (assoc_tab, tok, &pptr);
+      if (rc)
+	{
+	  free (p);
+	  break;
+	}
+    }
+
+  free (copy);
+  if (rc && perr)
+    *perr = i;
+  return rc;
+}
