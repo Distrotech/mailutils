@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -106,6 +106,16 @@ void
 mu_auth_data_free (struct mu_auth_data *ptr)
 {
   free (ptr);
+}
+
+void
+mu_auth_data_destroy (struct mu_auth_data **pptr)
+{
+  if (pptr)
+    {
+      mu_auth_data_free (*pptr);
+      *pptr = NULL;
+    }
 }
 
 /* Generic functions */
