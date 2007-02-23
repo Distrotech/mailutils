@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002, 2007 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -265,6 +265,7 @@ mu_exec -message "readmsg 1 2" -arg 1 -arg 2 \
 ""
 
 mu_exec -message "readmsg -h SOMETHING" -arg -h -arg SOMETHING \
+"From bar@dontmailme.org  Fri Dec 28 23:28:09 2001"\
 "Received: (from bar@dontmailme.org) "\
 "	by dontmailme.org id fERKR9N16790"\
 "	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
