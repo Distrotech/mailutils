@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005 Free Software Foundation, Inc.
+   2004, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -219,6 +219,7 @@ extern int tls_available;
 extern int tls_done;
 #endif /* WITH_TLS */
 extern int undelete_on_startup;
+extern struct mu_auth_data *auth_data;
 
 extern void pop3d_bye           (void);
 extern int pop3d_abquit         (int);
@@ -271,6 +272,12 @@ extern int pop3d_is_retr (mu_attribute_t attr);
 extern void pop3d_unmark_retr (mu_attribute_t attr);
 
 extern void expire_mark_message (mu_message_t msg, char **value);
+
+extern void deliver_pending_bulletins (void);
+extern void set_bulletin_db (char *file);
+extern int set_bulletin_source (char *source);
+extern int pop3d_begin_session (void);
+
 
 
 #endif /* _POP3D_H */
