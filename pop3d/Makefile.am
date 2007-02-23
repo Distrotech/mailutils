@@ -1,6 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+##   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005,
+##   2007 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -24,9 +25,29 @@ bin_PROGRAMS = @POPAUTH@
 EXTRA_PROGRAMS = popauth
 SUBDIRS = testsuite
 
-pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
- list.c lock.c noop.c quit.c retr.c rset.c stat.c stls.c signal.c top.c \
- uidl.c user.c logindelay.c expire.c
+pop3d_SOURCES =\
+ apop.c\
+ auth.c\
+ bulletin.c\
+ capa.c\
+ dele.c\
+ expire.c\
+ extra.c\
+ list.c\
+ lock.c\
+ logindelay.c\
+ noop.c\
+ pop3d.c\
+ pop3d.h\
+ quit.c\
+ retr.c\
+ rset.c\
+ signal.c\
+ stat.c\
+ stls.c\
+ top.c\
+ uidl.c\
+ user.c
 
 pop3d_LDADD = \
  ../lib/libmuaux.la\
