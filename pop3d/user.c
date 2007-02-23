@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +18,77 @@
 
 #include "pop3d.h"
 
+struct mu_auth_data *auth_data;
+
+int
+pop3d_begin_session ()
+{
+  int status;
+
+  if (check_login_delay (auth_data->name))
+    {
+      syslog (LOG_INFO,
+	      _("User `%s' tried to log in within the minimum allowed delay"),
+	      auth_data->name);
+      state = AUTHORIZATION;
+      mu_auth_data_destroy (&auth_data);
+      return ERR_LOGIN_DELAY;
+    }
+  
+  if (auth_data->change_uid)
+    setuid (auth_data->uid);
+  
+  if ((status = mu_mailbox_create (&mbox, auth_data->mailbox)) != 0
+      || (status = mu_mailbox_open (mbox, MU_STREAM_CREAT | MU_STREAM_RDWR)) != 0)
+    {
+      mu_mailbox_destroy (&mbox);
+      state = AUTHORIZATION;
+      mu_auth_data_destroy (&auth_data);
+      return ERR_MBOX_LOCK;
+    }
+  
+  if (pop3d_lock ())
+    {
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox); 
+      mu_auth_data_destroy (&auth_data);
+      state = AUTHORIZATION;
+      return ERR_MBOX_LOCK;
+    }
+  
+  username = strdup (auth_data->name);
+  if (username == NULL)
+    pop3d_abquit (ERR_NO_MEM);
+  state = TRANSACTION;
+
+  pop3d_outf ("+OK opened mailbox for %s\r\n", username);
+
+  if (undelete_on_startup)
+    pop3d_undelete_all ();
+
+  deliver_pending_bulletins ();
+  
+  /* mailbox name */
+  {
+    mu_url_t url = NULL;
+    size_t total = 0;
+    mu_mailbox_get_url (mbox, &url);
+    mu_mailbox_messages_count (mbox, &total);
+    syslog (LOG_INFO,
+	    ngettext ("User `%s' logged in with mailbox `%s' (%s message)",
+		      "User `%s' logged in with mailbox `%s' (%s messages)",
+		      (unsigned long) total),
+	    username, mu_url_to_string (url), mu_umaxtostr (0, total));
+  }
+
+  return OK;
+}
+
 int
 pop3d_user (const char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
   char buffer[512];
-  int status;
-  int lockit = 1;
-  struct mu_auth_data *auth_data;
   
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -85,7 +148,7 @@ pop3d_user (const char *arg)
       if (rc)
 	{
 	  syslog (LOG_INFO, _("User `%s': authentication failed"), arg);
-	  mu_auth_data_free (auth_data);
+	  mu_auth_data_destroy (&auth_data);
 	  return ERR_BAD_LOGIN;
 	}
     }
@@ -101,76 +164,6 @@ pop3d_user (const char *arg)
       return ERR_BAD_CMD;
     }
 
-  if (check_login_delay (auth_data->name))
-    {
-      syslog (LOG_INFO,
-	      _("User `%s' tried to log in within the minimum allowed delay"),
-	      auth_data->name);
-      state = AUTHORIZATION;
-      mu_auth_data_free (auth_data);
-      return ERR_LOGIN_DELAY;
-    }
-  
-  if (auth_data->change_uid)
-    setuid (auth_data->uid);
-  
-  if ((status = mu_mailbox_create (&mbox, auth_data->mailbox)) != 0
-      || (status = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
-    {
-      mu_mailbox_destroy (&mbox);
-      /* For non existent mailbox, we fake.  */
-      if (status == ENOENT)
-	{
-	  if (mu_mailbox_create (&mbox, "/dev/null") != 0
-	      || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
-	    {
-	      state = AUTHORIZATION;
-	      mu_auth_data_free (auth_data);
-	      return ERR_UNKNOWN;
-	    }
-	}
-      else
-	{
-	  state = AUTHORIZATION;
-	  mu_auth_data_free (auth_data);
-	  return ERR_MBOX_LOCK;
-	}
-      lockit = 0;		/* Do not attempt to lock /dev/null ! */
-    }
-  
-  if (lockit && pop3d_lock ())
-    {
-      mu_mailbox_close (mbox);
-      mu_mailbox_destroy (&mbox); 
-      mu_auth_data_free (auth_data);
-      state = AUTHORIZATION;
-      return ERR_MBOX_LOCK;
-    }
-  
-  username = strdup (auth_data->name);
-  if (username == NULL)
-    pop3d_abquit (ERR_NO_MEM);
-  state = TRANSACTION;
-
-  mu_auth_data_free (auth_data);
-
-  pop3d_outf ("+OK opened mailbox for %s\r\n", username);
-
-  if (undelete_on_startup)
-    pop3d_undelete_all ();
-  
-  /* mailbox name */
-  {
-    mu_url_t url = NULL;
-    size_t total = 0;
-    mu_mailbox_get_url (mbox, &url);
-    mu_mailbox_messages_count (mbox, &total);
-    syslog (LOG_INFO,
-	    ngettext ("User `%s' logged in with mailbox `%s' (%s message)",
-		      "User `%s' logged in with mailbox `%s' (%s messages)",
-		      (unsigned long) total),
-	    username, mu_url_to_string (url), mu_umaxtostr (0, total));
-  }
-  return OK;
+  return pop3d_begin_session ();
 }
 
