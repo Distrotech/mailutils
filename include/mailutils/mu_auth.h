@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,16 @@
 
 #include <mailutils/types.h>
 
+#define MU_AUTH_NAME    "name"
+#define MU_AUTH_PASSWD  "passwd"
+#define MU_AUTH_UID     "uid"
+#define MU_AUTH_GID     "gid"
+#define MU_AUTH_GECOS   "gecos"
+#define MU_AUTH_DIR     "dir"
+#define MU_AUTH_SHELL   "shell"
+#define MU_AUTH_MAILBOX "mailbox"
+#define MU_AUTH_QUOTA   "quota"
+
 struct mu_auth_data
 {
   /* These are from struct passwd */
@@ -33,6 +43,8 @@ struct mu_auth_data
   char    *shell;      /* shell program */
   /* */
   char    *mailbox;
+  mu_off_t quota;
+
   int     change_uid;
 };
 
@@ -58,7 +70,6 @@ enum mu_auth_key_type
     mu_auth_key_name,
     mu_auth_key_uid
   };
-
 
 extern int mu_auth_runlist (mu_list_t flist,
 			    struct mu_auth_data **return_data,
@@ -99,6 +110,7 @@ extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
 			       const char *mailbox,
 			       int change_uid);
 extern void mu_auth_data_free (struct mu_auth_data *ptr);
+extern void mu_auth_data_destroy (struct mu_auth_data **ptr);
 
 
 extern struct mu_auth_module mu_auth_system_module;
