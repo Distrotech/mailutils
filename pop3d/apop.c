@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,11 +53,8 @@ pop3d_apopuser (const char *user)
     int rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
     if (rc)
       {
-	if (rc == -1)
-	  syslog (LOG_INFO, _("Bad permissions on APOP password db"));
-	else
-	  syslog (LOG_ERR, _("Unable to open APOP db: %s"),
-		  mu_strerror (rc));
+	syslog (LOG_ERR, _("Unable to open APOP db: %s"),
+		mu_strerror (errno));
 	return NULL;
       }
 
@@ -74,15 +71,19 @@ pop3d_apopuser (const char *user)
     mu_dbm_close (db);
     if (rc)
       {
-	syslog (LOG_ERR, _("Cannot fetch APOP data: %s"), mu_strerror (rc));
+	syslog (LOG_ERR, _("Cannot fetch APOP data: %s"), mu_strerror (errno));
 	return NULL;
       }
     password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));
     if (password == NULL)
-      return NULL;
-
+      {
+	mu_dbm_datum_free (&data);
+	return NULL;
+      }
+    
     sprintf (password, "%.*s", (int) MU_DATUM_SIZE(data),
 	     (char*) MU_DATUM_PTR(data));
+    mu_dbm_datum_free (&data);
     return password;
   }
 #else /* !USE_DBM */
@@ -146,12 +147,10 @@ int
 pop3d_apop (const char *arg)
 {
   char *tmp, *user_digest, *user, *password;
-  struct mu_auth_data *auth;
   char buf[POP_MAXCMDLEN];
   struct md5_ctx md5context;
   unsigned char md5digest[16];
   int status;
-  int lockit = 1;
   char *mailbox_name = NULL;
 
   if (state != AUTHORIZATION)
@@ -203,72 +202,10 @@ pop3d_apop (const char *arg)
     }
 
   free (user_digest);
-  auth = mu_get_auth_by_name (user);
+  auth_data = mu_get_auth_by_name (user);
   free (user);
-  if (auth == NULL)
+  if (auth_data == NULL)
     return ERR_BAD_LOGIN;
 
-  /* Reset the uid.  */
-  if (auth->change_uid && setuid (auth->uid) == -1)
-    {
-      syslog (LOG_INFO, _("Cannot change to uid %s: %m"),
-	      mu_umaxtostr (0, auth->uid));
-      mu_auth_data_free (auth);
-      return ERR_BAD_LOGIN;
-    }
-
-  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0
-      || (status = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
-    {
-      mu_mailbox_destroy (&mbox);
-      /* For non existent mailbox, we fake.  */
-      if (status == ENOENT)
-	{
-	  if (mu_mailbox_create (&mbox, "/dev/null") != 0
-	      || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
-	    {
-	      syslog (LOG_ERR, _("Cannot create temporary mailbox: %s"),
-		      mu_strerror (status));
-	      mu_auth_data_free (auth);
-	      free (mailbox_name);
-	      state = AUTHORIZATION;
-	      return ERR_UNKNOWN;
-	    }
-	}
-      else
-	{
-	  syslog (LOG_ERR, _("Cannot open mailbox %s: %s"),
-		  auth->mailbox,
-		  mu_strerror (status));
-	  state = AUTHORIZATION;
-	  mu_auth_data_free (auth);
-	  return ERR_MBOX_LOCK;
-	}
-      lockit = 0; /* Do not attempt to lock /dev/null ! */
-    }
-
-  if (lockit && pop3d_lock())
-    {
-      mu_auth_data_free (auth);
-      mu_mailbox_close(mbox);
-      mu_mailbox_destroy(&mbox);
-      state = AUTHORIZATION;
-      return ERR_MBOX_LOCK;
-    }
-
-  state = TRANSACTION;
-  username = strdup (auth->name);
-  if (username == NULL)
-    pop3d_abquit (ERR_NO_MEM);
-  pop3d_outf ("+OK opened mailbox for %s\r\n", username);
-  mu_auth_data_free (auth);
-
-  /* mailbox name */
-  {
-    mu_url_t url = NULL;
-    mu_mailbox_get_url (mbox, &url);
-    syslog (LOG_INFO, _("User `%s' logged in with mailbox `%s'"),
-            username, mu_url_to_string (url));
-  }
-  return OK;
+  return pop3d_begin_session ();
 }
