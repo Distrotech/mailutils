@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,7 +59,8 @@ check_login_delay (char *username)
   rc = mu_dbm_fetch (db, key, &data);
   if (rc)
     {
-      syslog (LOG_ERR, _("Can't fetch APOP data: %s"), mu_strerror (rc));
+      syslog (LOG_ERR, _("Can't fetch login delay data: %s"),
+	      mu_strerror (rc));
       mu_dbm_close (db);
       return 0;
     }
