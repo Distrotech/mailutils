@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 /* EXPIRE see RFC2449:
 
   Implementation:
-    When a message is downloaded by RETR, it is marked with
+    When a message is downloaded by RETR or TOP, it is marked with
     "X-Expire-Timestamp: N", where N is the current value of
     UNIX timestamp.
 

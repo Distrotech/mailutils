@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,7 +58,8 @@ pop3d_top (const char *arg)
   mu_message_get_attribute (msg, &attr);
   if (pop3d_is_deleted (attr))
     return ERR_MESG_DELE;
-
+  pop3d_mark_retr (attr);
+  
   pop3d_outf ("+OK\r\n");
 
   /* Header.  */
