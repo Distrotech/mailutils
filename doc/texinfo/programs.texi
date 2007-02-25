@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007
 @c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
@@ -3550,47 +3550,238 @@ mode is triggered by @option{-d} command line switch.
 The program uses following option groups: @xref{mailbox},
 @xref{daemon}, @xref{logging}, @xref{auth}.
 
-@subheading Command line options
+@menu
+* Login delay::
+* Auto-expire::
+* Bulletins::
+* Command line options::
+@end menu
+
+@node Login delay
+@subsection Login delay
+
+  POP3 clients often login frequently to check for new mail. Each new
+connection implies authenticating the user and opening his maildrop
+and can be very resource consuming. To reduce server load, it is
+possible to impose a minimum delay between any two consecutive logins.
+This is called @samp{LOGIN-DELAY} capability and is described in RFC
+2449.
+
+  As of version @value{VERSION}, GNU Mailutils @command{pop3d} allows
+to set global login delay, i.e. such enforcement will affect all POP3
+users. If a user attempts to log in before the specified login delay
+expires, he will get the following error message:
+
+@smallexample
+-ERR [LOGIN-DELAY] Attempt to log in within the minimum login delay interval
+@end smallexample
+
+The message will be issued after a valid password is entered. This prevents
+this feature from being used by malicious clients for account
+harvesting.
+
+  To enable the login delay capability, specify the minimum delay in
+seconds with @option{--login-delay} option, for example:
+
+@smallexample
+$ pop3d --login-delay=60
+@end smallexample
+
+  The @command{pop3d} utility keeps each user's last login time in a
+special DBM file, called @dfn{login statistics database}, so to be
+able to use this feature, Mailutils must be compiled with DBM support.
+By default, the login statistics database is called
+@file{/var/run/pop3-login.db}. You can change its name at run time
+using @option{--stat-file}:
+
+@smallexample
+$ pop3d --login-delay=60 --stat-file=/tmp/pop.login
+@end smallexample
+
+  Notice, that there is no need to include the @samp{.db} suffix in the
+file name.
+
+  The login delay facility will be enabled only if @command{pop3d} is
+able to access the statistics database for both reading and
+writing. If it is not, it will report this using @command{syslog} and
+start up without login delay restrictions. The common error message
+looks like:
+
+@smallexample
+Unable to open statistics db: Operation not permitted
+@end smallexample
+
+  You can check whether your @command{pop3d} uses login delays by
+connecting to it and issuing the @samp{CAPA} command. If login delays
+are in use, there response will contain the string @samp{LOGIN-DELAY
+@var{n}}, where @var{n} is the actual login delay value.
+
+@node Auto-expire
+@subsection Auto-expire
+
+  Automatic expiration of messages allows you to limit the period of
+time users are permitted to keep their messages on the server. It is
+enabled by @option{--expire} command line option:
+
+@smallexample
+$ pop3d --expire=@var{days}
+@end smallexample
+
+@noindent
+Here, @var{days} specifies the minimum server retention period, in
+days, for retrieved messages on the server.
+
+  Current implementation works as follows. When a message is
+downloaded by @code{RETR} or @code{TOP} command, it is marked with
+@samp{X-Expire-Timestamp: @var{n}} header, where @var{n} is current
+value of UNIX timestamp. The exact expiration mechanism 
+depends on you.  Mailutils allows you two options:
+
+@enumerate
+@item
+Expired messages are deleted by @command{pop3d} upon closing the
+mailbox. You specify this mechanism using @option{--delete-expired}
+command line option.
+
+@item
+Expired messages remain in the mailbox after closing it. The system
+administrator is supposed to run a cron job that purges the mailboxes.
+Such a cron job can be easily implemented using @command{sieve} from
+GNU Mailutils and the following script:
+
+@smallexample
+@group
+require "timestamp";
+# @r{Replace "5" with the desired expiration period}
+if timestamp :before "X-Expire-Timestamp" "now - 5 days"
+  @{
+    discard;
+  @}
+@end group
+@end smallexample
+
+This script will remove expired messages 5 days after the
+retrieval. Replace @samp{5} with the desired expiration period and
+make sure it equals the argument to @option{--expire} command.
+@end enumerate
+
+The option @option{--expire=0} means the client is not permitted to
+leave mail on the server. It always implies @option{--delete-expired}. 
+
+@node Bulletins
+@subsection Bulletins
+
+  The bulletin feature allows you to send important announcements to
+all POP3 users without mailing them. It works by creating a
+@dfn{bulletin source mailbox} and sending the announcements to it.
+
+  After a user successfully authenticates, @command{pop3d} checks the
+last @dfn{bulletin number} the user receives. The bulletin number
+refers to the number of the bulletin message in the bulletin source
+mailbox. If the latter contains more messages, these are appended to
+the user mailbox.
+
+  The user last bulletin number can be kept in two places. First, it
+can be stored in file @file{.popbull} in his home directory. Secondly,
+if Mailutils is compiled with DBM support, the numbers can be kept in
+a DBM file, supplied via @option{--bulletin-db} command line option. If
+both the database and the @file{.popbull} file are present, the data
+from the database take precedence.
+
+  To enable this feature, use the following command line options:
 
 @table @option
+@item --bulletin-source=@var{mbox}
+Set the @acronym{URL} of the bulletin source mailbox.
+
+@item --bulletin-db=@var{file}
+Set the name of the database file to keep last bulletin numbers in.
+Be sure not to specify @samp{.db} extension.
+@end table
+
+  The following example instructs @command{pop3d} to look for the
+bulletin messages in @acronym{MH} folder @file{/var/spool/bull/mbox}
+and to keep the database of last delivered bulletin numbers in
+@file{/var/spool/bull/numbers.db}:
+
+@smallexample
+@group
+$ pop3d --bulletin-source=mh:/var/spool/bull/mbox \
+        --bulletin-db=/var/spool/bull/numbers
+@end group
+@end smallexample
+        
+@node Command line options
+@subsection Command line options
+
+The following table summarizes all @command{pop3d} command line options.
+
+@table @option
+@item --bulletin-db=@var{file}
+Set the name of the database file to keep last bulletin numbers in.
+Be sure not to specify @samp{.db} extension. @xref{Bulletins}.
+
+@item --bulletin-source=@var{mbox}
+Set the @acronym{URL} of the bulletin source mailbox. @xref{Bulletins}.
+
 @item -d[@var{number}]
 @itemx --daemon[=@var{number}]
 Run in standalone mode. An optional @var{number} specifies the maximum number
-of child processes the daemon is allowed to fork. When it is omitted,
+of child processes allowed to run simultaneously. When it is omitted,
 it defaults to 10 processes.
 @emph{Please note}, that there should be no whitespace between the
 @option{-d} and its parameter.
-@item -h
-@itemx --help
-Display short help message and exit.
+
+@item --delete-expired
+Delete expired messages upon closing the mailbox. @xref{Auto-expire}.
+
+@item --expire=@var{days}
+Expire read messages after the given number of days. If @var{days} is
+0, this option implies @option{--delete-expired}. @xref{Auto-expire}.
+
 @item -i
 @itemx --inetd
 Run in inetd mode.
+
+@item -h
+@itemx --help
+Display short help message and exit.
+
+@item --login-delay=@var{seconds}
+Sets the minimum allowed delay between closing a pop3d session and
+opening it again with the same user name. @xref{Login delay}.
+
 @item -m @var{path}
 @itemx --mail-spool=@var{path}
 Set path to the mailspool directory
+
 @item -p @var{number}
 @itemx --port @var{number}
 Listen on given port @var{number}. This option is meaningful only in
 standalone mode. It defaults to port 110.
+
+@item --stat-file=@var{filename}
+Sets the name of the login timestamp database, used with
+@option{--login-delay}. By default, these data are kept in
+@file{/var/run/pop3-login}. Be sure to specify the file name
+@emph{without} DBM-specific suffix. @xref{Login delay}.
+
 @item -t @var{number}
 @itemx --timeout @var{number}
 Set idle timeout to given @var{number} of seconds. Default is 600 seconds (10
 minutes).  The daemon breaks the connection if it receives no commands
 from the client within that number of seconds.
+
+@item --tls-required
+Always require @code{STLS} command before entering authentication phase.
+
 @item -v
 @itemx --version
 Display program version and exit.
+
 @item --undelete
 Remove all deletion marks from the messages after opening the mailbox.
-@item --login-delay=@var{seconds}
-Sets the minimum allowed delay between closing a pop3d session and
-opening it again with the same user name.
-@item --stat-file=@var{filename}
-Sets the name of the login timestamp database, used with
-@option{--login-delay}. By default, these data are kept in
-@file{/var/run/pop3-login}. Be sure to specify the file name
-@emph{without} DBM-specific suffix.
+
 @end table
 
 @page
