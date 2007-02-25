@@ -173,6 +173,8 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 	  argp_error (astate, _("Invalid number"));
 	  exit (1);
 	}
+      if (expire == 0)
+	expire_on_exit = 1;
       break;
 
     case OPT_EXPIRE_ON_EXIT:
