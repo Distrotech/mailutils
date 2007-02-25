@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 
-   2004, 2005, 2006 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -244,11 +244,11 @@ mbox_open (mu_mailbox_t mailbox, int flags)
 	}
       /* All failed, bail out.  */
       if (status != 0)
-      {
-	mu_stream_destroy (&mailbox->stream, NULL);
-	return status;
-      }
-      /* Even on top, of normal FILE *, lets agressively cache.  But this
+	{
+	  mu_stream_destroy (&mailbox->stream, NULL);
+	  return status;
+	}
+      /* Even on top of normal FILE *, lets agressively cache.  But this
 	 may not be suitable for system tight on memory.  */
       mu_stream_setbufsiz (mailbox->stream, BUFSIZ);
     }
@@ -834,7 +834,8 @@ mbox_message_uid (mu_message_t msg, size_t *puid)
 }
 
 static int
-mbox_get_body_transport (mu_stream_t is, mu_transport_t *pin, mu_transport_t *pout)
+mbox_get_body_transport (mu_stream_t is, mu_transport_t *pin,
+			 mu_transport_t *pout)
 {
   mu_body_t body = mu_stream_get_owner (is);
   mu_message_t msg = mu_body_get_owner (body);
@@ -843,7 +844,8 @@ mbox_get_body_transport (mu_stream_t is, mu_transport_t *pin, mu_transport_t *po
 }
 
 static int
-mbox_get_transport2 (mbox_message_t mum, mu_transport_t *pin, mu_transport_t *pout)
+mbox_get_transport2 (mbox_message_t mum, mu_transport_t *pin,
+		     mu_transport_t *pout)
 {
   if (mum == NULL)
     return EINVAL;
@@ -938,8 +940,9 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
 	/* Position the file pointer and the buffer.  */
 	nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
 	if (isreadline)
-	  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, buflen,
-				    start + off, &nread);
+	  status = mu_stream_readline (mum->mud->mailbox->stream,
+				       buffer, buflen,
+				       start + off, &nread);
 	else
 	  status = mu_stream_read (mum->mud->mailbox->stream, buffer, nread,
 				start + off, &nread);
@@ -1081,8 +1084,9 @@ mbox_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
-			    mum->header_from, &n);
+  status = mu_stream_readline (mum->mud->mailbox->stream,
+			       buffer, sizeof(buffer),
+			       mum->header_from, &n);
   if (status != 0)
     {
       if (pnwrite)
@@ -1125,8 +1129,9 @@ mbox_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = mu_stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
-			    mum->header_from, &n);
+  status = mu_stream_readline (mum->mud->mailbox->stream, buffer,
+			       sizeof(buffer),
+			       mum->header_from, &n);
   if (status != 0)
     {
       if (pnwrite)
@@ -1240,8 +1245,8 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
     mu_stream_t stream = NULL;
     if ((status = mu_body_create (&body, msg)) != 0
 	|| (status = mu_stream_create (&stream,
-				    mailbox->flags | MU_STREAM_SEEKABLE,
-				    body)) != 0)
+				       mailbox->flags | MU_STREAM_SEEKABLE,
+				       body)) != 0)
       {
 	mu_body_destroy (&body, msg);
 	mu_stream_destroy (&stream, body);
@@ -1311,7 +1316,8 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 	mu_off_t size;
 	/* Move to the end of the file, not necesary if _APPEND mode.  */
 	if ((status = mu_stream_size (mailbox->stream, &size)) != 0
-	    || (status = mbox_append_message0 (mailbox, msg, &size, 0, 0)) != 0)
+	    || (status = mbox_append_message0 (mailbox, msg,
+					       &size, 0, 0)) != 0)
 	  {
 	    if (status != EAGAIN)
 	      mu_locker_unlock (mailbox->locker);
@@ -1388,10 +1394,9 @@ restore_date (mu_message_t msg, mbox_data_t mud)
       date = strdup (ctime (&t));
     }
 
-  mud->date = strdup (date);
+  mud->date = date;
   if (!mud->date)
     rc = ENOMEM;
-  free (date);
   return rc;
 }
 
@@ -1668,7 +1673,8 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 		return status;
 	      }
 	    mud->off += nread;
-	    status = mu_stream_write (mailbox->stream, buffer, nread, *psize, &n);
+	    status = mu_stream_write (mailbox->stream, buffer, nread,
+				      *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
