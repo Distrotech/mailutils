@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-02-13
+GNU mailutils NEWS -- history of user-visible changes. 2007-02-25
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -45,6 +45,11 @@ Improve compatibility with elm's implementation.  In particular -w
 'From_' will now output `From ' markers.  If the underlying mailbox
 format does not contain those, `readmsg' will try to construct them
 from the available data.
+
+* The `pop3d' utility.
+
+New options `--bulletin-db' and `--bulletin-source' implement bulletin
+facility.
 
 
 Version 1.1:

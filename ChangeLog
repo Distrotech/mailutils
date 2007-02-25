@@ -1,3 +1,16 @@
+2007-02-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* pop3d/bulletin.c: Fix copyright year
+	* pop3d/expire.c, pop3d/top.c: A message is marked for expiration
+	after RETR or TOP.
+	* pop3d/logindelay.c (check_login_delay): Fix error message
+	* pop3d/pop3d.c (pop3d_parse_opt) --expire=0 implies
+	--delete-expired.
+	
+	* doc/texinfo/programs.texi: Document new pop3d options
+	* libproto/mbox/mbox.c: Indentation fixes
+	* NEWS: Update
+	
 2007-02-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/sql.c: Implement field mapping and retrieval by field
