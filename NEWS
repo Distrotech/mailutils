@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-02-25
+GNU mailutils NEWS -- history of user-visible changes. 2007-02-27
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -50,6 +50,8 @@ from the available data.
 
 New options `--bulletin-db' and `--bulletin-source' implement bulletin
 facility.
+
+* Support for old DBM has been withdrawn.
 
 
 Version 1.1:

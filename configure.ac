@@ -1,7 +1,7 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
 dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005,
-dnl 2006 Free Software Foundation, Inc.
+dnl 2006,2007 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -65,10 +65,7 @@ AM_PROG_LEX
 ## Predefine several variables used to display configuration status
 status_pam=no
 status_ltdl=no
-status_bdb=no
-status_ndbm=no
 status_dbm=no
-status_gdbm=no
 status_gsasl=no
 status_mysql=no
 status_pgsql=no
@@ -296,16 +293,6 @@ case "${withval}" in
   yes) use_dbm=NDBM ;;
   no)  use_dbm=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-ndbm) ;;
-esac])
-
-AC_ARG_WITH([dbm],
-            AC_HELP_STRING([--with-dbm],
-                           [use old DBM]),
-            [
-case "${withval}" in
-  yes) use_dbm=ODBM ;;
-  no)  use_dbm=no ;;
-  *)   AC_MSG_ERROR(bad value ${withval} for --with-old-dbm) ;;
 esac])
 
 AC_MSG_CHECKING(for log facility)
@@ -757,12 +744,6 @@ MU_ENABLE_SUPPORT(radius,
                                     [mu_cv_enable_radius=no])
                    fi])
 
-dnl AC_ARG_ENABLE([experimental],
-dnl               AC_HELP_STRING([--enable-experimental],
-dnl                              [build experimental and/or unfinished utilities]),
-dnl               [MU_BUILD_EXPERIMENTAL="${enableval}"],
-dnl               [MU_BUILD_EXPERIMENTAL=no])
-
 AC_ARG_ENABLE([mh-utils],
               AC_HELP_STRING([--enable-mh-utils],
                              [Build MH utilities]),
@@ -784,6 +765,17 @@ AC_ARG_WITH([mh-bindir],
                      *)   MH_BIN_DIR="\${prefix}/${withval}";;
                      esac],
                     [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
+
+AC_ARG_ENABLE([experimental],
+              AC_HELP_STRING([--enable-experimental],
+                             [build experimental and/or unfinished utilities]),
+              [MU_BUILD_EXPERIMENTAL="${enableval}"],
+              [MU_BUILD_EXPERIMENTAL=no])
+
+AC_SUBST(MU_CXX_LIBS)
+if test "$MU_BUILD_EXPERIMENTAL" = yes; then
+	MU_CXX_LIBS='$(MU_CXX_LIBS)'
+fi
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
@@ -885,11 +877,10 @@ AH_BOTTOM([
 
 dnl Check for DBM
 
-AC_SUBST(POPAUTH)
 AH_TEMPLATE([WITH_BDB],
             [Define to the major version of Berkeley DB library to use])
 
-## Set the variable status_bdb to $1 if:
+## Set the variable status_dbm to $1 if:
 ##
 ##  1. Function $3 is defined in the library $2
 ##  2. Header file db.h is available
@@ -907,10 +898,9 @@ check_bdb() {
                       if test $ac_cv_header_db_h = yes; then
                         LIBS="$LIBS -l$2"
                         MU_DB2_CURSOR
-		        POPAUTH='popauth$(EXEEXT)'
-                        status_bdb=$1
+                        status_dbm=$1
                       fi])
-	if test $status_bdb = no; then
+	if test "$status_dbm" = no; then
 		:
 	else
 	  AC_RUN_IFELSE(
@@ -923,9 +913,8 @@ check_bdb() {
                        && v_patch == DB_VERSION_PATCH);
             ])],
            [],
-           [AC_MSG_ERROR([DB Library and header versions don't match])
-            status_bdb=no])
-           if test $status_bdb != no; then
+           [status_dbm=no])
+           if test "$status_dbm" != no; then
 	     AC_DEFINE_UNQUOTED(WITH_BDB,$ver)
            fi
 	fi
@@ -940,9 +929,9 @@ check_slackware_bdb() {
 	dir=db`echo $1|tr -d '.'`
 	save_CPPFLAGS=$CPPFLAGS
 	CPPFLAGS="$CPPFLAGS -I/usr/include/$dir"
-	check_bdb $1 db-$1 db_create
+	check_bdb "$1" db-$1 db_create
 	CPPFLAGS=$save_CPPFLAGS
-	if test $status_bdb = "$1"; then
+	if test "$status_dbm" = "$1"; then
 	    MU_COMMON_INCLUDES="$MU_COMMON_INCLUDES -I/usr/include/$dir"
 	fi
 }
@@ -954,10 +943,10 @@ GDBM)
                                        AC_DEFINE(WITH_GDBM,1,
                                                  [Enable use of GNU DBM library]))
                      LIBS="$LIBS -lgdbm"
-                     POPAUTH='popauth$(EXEEXT)'
-                     status_gdbm=yes]);;
+                     status_dbm="GDBM"]);;
 
-BDB2)   check_bdb 2 db db_open;;
+BDB2)   check_bdb 2 db db_open
+        test -n "$status_dbm" && status_dbm="Berkeley DB v. $status_dbm";;
 
 BDB)    for version in 4 3 2
 	do
@@ -966,7 +955,8 @@ BDB)    for version in 4 3 2
 		2)   func=db_open;;
 		esac
 		check_bdb $version db $func
-		if test "$status_bdb" != no; then
+		if test "$status_dbm" != no; then
+                   status_dbm="Berkeley DB v. $status_dbm"
 		   break;
 		fi
 	done;;
@@ -975,8 +965,18 @@ BDB=*)
 	name=`expr $use_dbm : 'BDB=\(.*\)'`
 	case $name in
 	[[0-9]]*)  check_slackware_bdb $name;;
-	*)	   check_bdb 2 $name db_open
-	           test $status_bdb = no && check_bdb 3 $name db_create
+	*)	   for version in 4 3 2
+	           do
+			case $version in
+			4|3) func=db_create;;
+			2)   func=db_open;;
+			esac
+			check_bdb $version $name $func
+			if test "$status_dbm" != no; then
+		           status_dbm="Berkeley DB v. $status_dbm"
+			   break;
+			fi
+		   done
 		   ;;
 	esac
         ;;
@@ -987,17 +987,13 @@ NDBM)
                                        AC_DEFINE(WITH_NDBM,1,
                                                  [Enable use of NDBM]))
                      LIBS="$LIBS -lndbm"
-		     POPAUTH='popauth$(EXEEXT)'
-                     status_ndbm=yes]);;
-ODBM)
-	AC_CHECK_LIB(dbm, dbminit,
-                     [AC_CHECK_HEADERS(dbm.h,
-                                       AC_DEFINE(WITH_OLD_DBM,1,
-                                                 [Enable use of old DBM library]))
-                     LIBS="$LIBS -ldbm"
-		     POPAUTH='popauth$(EXEEXT)'
-                     status_dbm=yes]);;
+                     status_dbm="NDBM"]);;
 esac
+
+AC_SUBST(POPAUTH)
+if test "$status_dbm" != no; then
+  POPAUTH='popauth$(EXEEXT)'
+fi
 
 dnl Check for Guile
 AC_SUBST(GUILE_INCLUDES)
@@ -1094,10 +1090,7 @@ GNU Mailutils configured with the following settings:
 
 Use PAM........................ $status_pam
 Use -ltdl...................... $status_ltdl
-Use Berkeley DB................ $status_bdb
-Use NDBM....................... $status_ndbm
 Use DBM........................ $status_dbm
-Use GDBM....................... $status_gdbm
 Use GNU TLS.................... $status_gnutls
 Use GSASL...................... $status_gsasl
 Use GSSAPI..................... $status_gssapi
@@ -1129,14 +1122,7 @@ EOF
 ],
 [status_pam=$status_pam
 status_ltdl=$status_ltdl
-if test $status_bdb = no; then
-  status_bdb=$status_bdb
-else
-  status_bdb="v. $status_bdb"
-fi
-status_ndbm=$status_ndbm
-status_dbm=$status_dbm
-status_gdbm=$status_gdbm
+status_dbm="$status_dbm"
 status_gnutls=$WITH_GNUTLS
 status_gsasl=$status_gsasl
 status_gssapi=$WITH_GSSAPI
@@ -1181,6 +1167,7 @@ AC_CONFIG_FILES([Makefile
  include/mailutils/gnu/Makefile
  include/mailutils/sys/Makefile
  lib/Makefile
+ libmu_cpp/Makefile
  libmu_scm/Makefile
  libproto/Makefile
  libproto/mbox/Makefile

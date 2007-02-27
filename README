@@ -266,10 +266,6 @@ use DBM-based mail box quotas with mail.local.
 
 	Use NDBM
 
-    --with-dbm
-
-	Use old DBM
-
         Only one dbm option may be specified.  Which one depends on
         the flavor of DBM you are using.  GDBM is most common for GNU
         system. 
