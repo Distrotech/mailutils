@@ -760,10 +760,10 @@ deliver (mu_mailbox_t imbx, char *name)
 
 #if defined(USE_MAILBOX_QUOTAS)
   {
-    size_t n;
+    mu_off_t n;
     mu_off_t isize;
 
-    switch (check_quota (name, size, &n))
+    switch (check_quota (auth, size, &n))
       {
       case MQUOTA_EXCEEDED:
 	mailer_err (_("%s: mailbox quota exceeded for this recipient"), name);

@@ -106,7 +106,8 @@ extern char *quota_query;
 extern int exit_code;
 
 extern void setgroupquota (char *str);
-extern int check_quota (char *name, size_t size, size_t *rest);
+extern int check_quota (struct mu_auth_data *auth,
+			mu_off_t size, mu_off_t *rest);
 
 int mda (mu_mailbox_t mbx, char *username);
 int switch_user_id (struct mu_auth_data *auth, int user);
