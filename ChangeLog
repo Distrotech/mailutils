@@ -1,5 +1,28 @@
 2007-02-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* Makefile.am: Add libmu_cpp
+	* NEWS, README: Update
+	* configure.ac: Add `--enable-experimental' option
+	Rewrite DBM handling
+	Withdraw old DBM support
+	* auth/sql.c: Actually set quota if it is available
+	* include/mailutils/mu_auth.h (struct mu_auth_data): New field
+	`flags'.
+	(mu_auth_data_set_quota): New function
+	* lib/mu_dbm.h, lib/mu_dbm.c: Withdraw old DBM support. Fix style
+	issues.
+	* mail.local/mail.local.h (check_quota): Change signature
+	* mail.local/mailquota.c: Get quota value from mu_auth_data, if
+	available.
+	* mail.local/main.c (check_quota): Change signature
+	* mailbox/mu_auth.c (mu_auth_data_alloc): Fill auth object with
+	zeroes.
+	(mu_auth_data_set_quota): New function
+	* pop3d/apop.c: Remove unused variables
+	* pop3d/bulletin.c (deliver_pending_bulletins): Return
+	immediately, if unable to count messages in the bulletin box
+	* pop3d/popauth.c (action_list): Do not check db permissions.
+
 	* pop3d/bulletin.c (read_bulletin_db,write_bulletin_db): Fix
 	permissions.
 	(open_bulletin_mailbox): Open the mailbox in read-only mode
@@ -11,7 +34,7 @@
 	* pop3d/expire.c, pop3d/top.c: A message is marked for expiration
 	after RETR or TOP.
 	* pop3d/logindelay.c (check_login_delay): Fix error message
-	* pop3d/pop3d.c (pop3d_parse_opt) --expire=0 implies
+	* pop3d/pop3d.c (pop3d_parse_opt): --expire=0 implies
 	--delete-expired.
 	
 	* doc/texinfo/programs.texi: Document new pop3d options
