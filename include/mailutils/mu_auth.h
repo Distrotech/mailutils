@@ -45,8 +45,13 @@ struct mu_auth_data
   char    *mailbox;
   mu_off_t quota;
 
+  int flags;
+  
   int     change_uid;
 };
+
+#define MU_AF_QUOTA 0x1
+#define MU_HAS_QUOTA(a) ((a)->flags & MU_AF_QUOTA)
 
 typedef int (*mu_auth_fp) (struct mu_auth_data **data,
 			   const void *key,
@@ -109,6 +114,7 @@ extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
 		   	       const char *shell,
 			       const char *mailbox,
 			       int change_uid);
+void mu_auth_data_set_quota (struct mu_auth_data *ptr, mu_off_t q);
 extern void mu_auth_data_free (struct mu_auth_data *ptr);
 extern void mu_auth_data_destroy (struct mu_auth_data **ptr);
 
