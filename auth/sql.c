@@ -377,7 +377,7 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
   char *p;
   uid_t uid;
   gid_t gid;
-  
+
   if (get_field (conn, MU_AUTH_NAME, &name, 1)
       || get_field (conn, MU_AUTH_PASSWD, &passwd, 1)
       || get_field (conn, MU_AUTH_UID, &suid, 1)
@@ -467,6 +467,8 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
 			   shell,
 			   mailbox_name,
 			   1);
+  if (rc == 0)
+    mu_auth_data_set_quota (*return_data, quota);
   
   free (mailbox_name);
   return rc;
