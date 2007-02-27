@@ -1,3 +1,10 @@
+2007-02-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* pop3d/bulletin.c (read_bulletin_db,write_bulletin_db): Fix
+	permissions.
+	(open_bulletin_mailbox): Open the mailbox in read-only mode
+	(set_bulletin_db): Do not try to open the mailbox.
+
 2007-02-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* pop3d/bulletin.c: Fix copyright year
