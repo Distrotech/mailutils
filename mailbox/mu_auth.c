@@ -79,7 +79,7 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
                 strlen (mailbox) + 1;
   char *p;
   
-  *ptr = malloc (size);
+  *ptr = calloc (1, size);
   if (!*ptr)
     return ENOMEM;
 
@@ -100,6 +100,13 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
   (*ptr)->gid = gid;
   (*ptr)->change_uid = change_uid;
   return 0;
+}
+
+void
+mu_auth_data_set_quota (struct mu_auth_data *ptr, mu_off_t q)
+{
+  ptr->flags |= MU_AF_QUOTA;
+  ptr->quota = q;
 }
 
 void
@@ -182,7 +189,8 @@ static mu_list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
 static mu_list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
 
 int
-mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type, const void *key)
+mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
+	     const void *key)
 {
   mu_list_t list;
   
