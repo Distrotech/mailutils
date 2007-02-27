@@ -279,7 +279,7 @@ action_list (struct action_data *ap)
   DBM_DATUM contents;
   
   check_user_perm (ACT_LIST, ap);
-  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, permissions))
+  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0))
     {
       mu_error (_("Cannot open %s: %s"), ap->input_name, mu_strerror (errno));
       return 1;
