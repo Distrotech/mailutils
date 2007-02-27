@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2006,
+   2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +40,8 @@ mu_fcheck_perm (int fd, int mode)
 {
   struct stat st;
 
+  if (mode == 0)
+    return 0;
   if (fstat (fd, &st) == -1)
     {
       if (errno == ENOENT)
@@ -142,12 +145,15 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
     case MU_STREAM_CREAT:
       f = GDBM_NEWDB;
       break;
+      
     case MU_STREAM_READ:
       f = GDBM_READER;
       break;
+      
     case MU_STREAM_RDWR:
       f = GDBM_WRCREAT;
       break;
+      
     default:
       free (pfname);
       errno = EINVAL;
@@ -200,10 +206,10 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
 void
 mu_dbm_datum_free (DBM_DATUM *datum)
 {
-	void *ptr = MU_DATUM_PTR (*datum);
-	if (ptr)
-		free (ptr);
-	MU_DATUM_PTR (*datum) = 0;
+  void *ptr = MU_DATUM_PTR (*datum);
+  if (ptr)
+    free (ptr);
+  MU_DATUM_PTR (*datum) = 0;
 }
 
 #elif defined(WITH_BDB)
@@ -239,12 +245,15 @@ mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
     case MU_STREAM_CREAT:
       f = DB_CREATE|DB_TRUNCATE;
       break;
+      
     case MU_STREAM_READ:
       f = DB_RDONLY;
       break;
+      
     case MU_STREAM_RDWR:
       f = DB_CREATE;
       break;
+      
     default:
       free (pfname);
       errno = EINVAL;
@@ -361,7 +370,7 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
 void
 mu_dbm_datum_free (DBM_DATUM *datum)
 {
-	/* empty */
+  /* empty */
 }
 
 #elif defined(WITH_NDBM)
@@ -389,12 +398,15 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
     case MU_STREAM_CREAT:
       f = O_CREAT|O_TRUNC|O_RDWR;
       break;
+      
     case MU_STREAM_READ:
       f = O_RDONLY;
       break;
+      
     case MU_STREAM_RDWR:
       f = O_CREAT|O_RDWR;
       break;
+      
     default:
       errno = EINVAL;
       return -1;
@@ -456,119 +468,7 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
 void
 mu_dbm_datum_free (DBM_DATUM *datum)
 {
-	/* empty */
-}
-#elif defined(WITH_OLD_DBM)
-
-#define DB_SUFFIX ".pag"
-
-int
-mu_dbm_stat (char *name, struct stat *sb)
-{
-  int rc;
-  char *pfname = make_db_name (name, DB_SUFFIX);
-  rc = stat (pfname, sb);
-  free (pfname);
-  return rc;
-}
-
-/*ARGSUSED*/
-int
-mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
-{
-  int f;
-  char *pfname;
-  
-  switch (flags)
-    {
-    case MU_STREAM_CREAT:
-      f = O_CREAT|O_TRUNC|O_RDWR;
-      break;
-    case MU_STREAM_READ:
-      f = O_RDONLY;
-      break;
-    case MU_STREAM_RDWR:
-      f = O_CREAT|O_RDWR;
-      break;
-    default:
-      errno = EINVAL;
-      return -1;
-    }
-  pfname = strip_suffix (name, DB_SUFFIX);
-  if (f & O_CREAT)
-    {
-      char *p;
-      int fd;
-
-      p = make_db_name (pfname, ".pag");
-      fd = open (p, f, mode);
-      free (p);
-      if (fd < 0)
-	{
-	  free (pfname);
-	  return -1;
-	}
-      close(fd);
-
-      p = make_db_name (pfname, ".dir");
-      fd = open (p, f, mode);
-      free (p);
-      if (fd < 0)
-	{
-	  free (pfname);
-	  return -1;
-	}
-      close (fd);
-    }
-  rc = dbminit (pfname);
-  free (pfname);
-  return rc;
-}
-
-/*ARGSUSED*/
-int
-mu_dbm_close (DBM_FILE db)
-{
-  dbmclose ();
-  return 0;
-}
-
-/*ARGSUSED*/
-int
-mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
-{
-  *ret = fetch (key);
-  return ret->dptr == NULL;
-}
-
-int
-mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
-{
-  return delete (key);
-}
-
-int
-mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
-{
-  return store (key, contents);
-}
-
-DBM_DATUM
-mu_dbm_firstkey (DBM_FILE db)
-{
-  return firstkey ();
-}
-
-DBM_DATUM
-mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
-{
-  return nextkey (key);
-}
-
-void
-mu_dbm_datum_free (DBM_DATUM *datum)
-{
-	/* empty */
+  /* empty */
 }
 #endif
 

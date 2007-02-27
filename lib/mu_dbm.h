@@ -52,15 +52,6 @@ typedef datum DBM_DATUM;
 #define MU_DATUM_SIZE(d) (d).dsize
 #define MU_DATUM_PTR(d) (d).dptr
 
-#elif defined(WITH_OLD_DBM)
-
-#include <dbm.h>
-#define USE_DBM
-typedef int DBM_FILE;
-typedef datum DBM_DATUM;
-#define MU_DATUM_SIZE(d) (d).dsize
-#define MU_DATUM_PTR(d) (d).dptr
-
 #endif
 
 #ifdef USE_DBM
