@@ -150,8 +150,8 @@ read_bulletin_db (size_t *pnum)
 		mu_strerror (errno));
       return 1;
     }
-
-  s = MU_DATUM_SIZE(data);
+  
+  s = MU_DATUM_SIZE (data);
   if (s < sizeof sbuf)
     bufptr = sbuf;
   else
@@ -165,7 +165,7 @@ read_bulletin_db (size_t *pnum)
       bufptr = buf;
     }
 
-  memcpy (bufptr, MU_DATUM_PTR(data), s);
+  memcpy (bufptr, MU_DATUM_PTR (data), s);
   bufptr[s] = 0;
   mu_dbm_datum_free(&data);
   
@@ -180,7 +180,7 @@ read_bulletin_db (size_t *pnum)
 	{
 	  long n;
 
-	  n = *(long*)MU_DATUM_PTR(data);
+	  n = *(long*)MU_DATUM_PTR (data);
 	  if (n >= 0)
 	    {
 	      syslog (LOG_INFO,
@@ -220,11 +220,11 @@ write_bulletin_db (size_t num)
   memset (&key, 0, sizeof key);
   memset (&data, 0, sizeof data);
 
-  MU_DATUM_PTR(key) = username;
-  MU_DATUM_SIZE(key) = strlen (username);
+  MU_DATUM_PTR (key) = username;
+  MU_DATUM_SIZE (key) = strlen (username);
   p = mu_umaxtostr (0, num);
-  MU_DATUM_PTR(data) = p;
-  MU_DATUM_SIZE(data) = strlen (p);
+  MU_DATUM_PTR (data) = p;
+  MU_DATUM_SIZE (data) = strlen (p);
 
   rc = mu_dbm_insert (db, key, data, 1);
   if (rc)
@@ -274,44 +274,49 @@ deliver_pending_bulletins ()
     return;
   lastnum = get_last_delivered_num ();
 
-  mu_mailbox_messages_count (bull, &total);
-
-  syslog (LOG_DEBUG,
-	  "user %s, last bulletin %lu, total bulletins %lu",
-	  username, (unsigned long) lastnum, (unsigned long) total);
-	  
-  if (lastnum < total)
+  rc = mu_mailbox_messages_count (bull, &total);
+  if (rc)
+    mu_error (_("Cannot count bulletins: %s"), mu_strerror (rc));
+  else
     {
-      size_t i;
-      size_t count = total - lastnum;
-  
-      syslog (LOG_INFO,
-	      ngettext ("user %s: delivering %lu pending bulletin",
-			"user %s: delivering %lu pending bulletins",
-			count),
-	      username, (unsigned long) count);
-
-      for (i = lastnum + 1; i <= total; i++)
-	{
-	  int rc;
-	  mu_message_t msg;
+      syslog (LOG_DEBUG,
+	      "user %s, last bulletin %lu, total bulletins %lu",
+	      username, (unsigned long) lastnum, (unsigned long) total);
 	  
-	  if ((rc = mu_mailbox_get_message (bull, i, &msg)) != 0)
+      if (lastnum < total)
+	{
+	  size_t i;
+	  size_t count = total - lastnum;
+  
+	  syslog (LOG_INFO,
+		  ngettext ("user %s: delivering %lu pending bulletin",
+			    "user %s: delivering %lu pending bulletins",
+			    count),
+		  username, (unsigned long) count);
+
+	  for (i = lastnum + 1; i <= total; i++)
 	    {
-	      mu_error (_("Cannot read bulletin %lu: %s"),
-			(unsigned long) i, mu_strerror (rc));
-	      break;
-	    }
+	      int rc;
+	      mu_message_t msg;
+	  
+	      if ((rc = mu_mailbox_get_message (bull, i, &msg)) != 0)
+		{
+		  mu_error (_("Cannot read bulletin %lu: %s"),
+			    (unsigned long) i, mu_strerror (rc));
+		  break;
+		}
 	
-	  if ((rc = mu_mailbox_append_message (mbox, msg)) != 0)
-	    {
-	      mu_error (_("Cannot append message %lu: %s"),
-			(unsigned long) i, mu_strerror (rc));
-	      break;
+	      if ((rc = mu_mailbox_append_message (mbox, msg)) != 0)
+		{
+		  mu_error (_("Cannot append message %lu: %s"),
+			    (unsigned long) i, mu_strerror (rc));
+		  break;
+		}
 	    }
+	  store_last_delivered_num (i - 1);
 	}
-      store_last_delivered_num (i - 1);
     }
+    
   close_bulletin_mailbox (&bull);
 }
     
