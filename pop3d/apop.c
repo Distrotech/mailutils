@@ -150,8 +150,6 @@ pop3d_apop (const char *arg)
   char buf[POP_MAXCMDLEN];
   struct md5_ctx md5context;
   unsigned char md5digest[16];
-  int status;
-  char *mailbox_name = NULL;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
