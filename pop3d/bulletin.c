@@ -50,8 +50,9 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
       return 1;
     }
 
-  if ((status = mu_mailbox_open (tmbox, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0)
+  if ((status = mu_mailbox_open (tmbox, MU_STREAM_READ)) != 0)
     {
+      mu_mailbox_destroy (pmbox);
       mu_error (_("Cannot open bulletin mailbox `%s': %s"),
 		bulletin_mbox_name, mu_strerror (status));
       return 1;
@@ -66,13 +67,8 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
 int
 set_bulletin_source (char *source)
 {
-  int rc;
-
   bulletin_mbox_name = source;
-  rc = open_bulletin_mailbox (NULL);
-  if (rc)
-    bulletin_mbox_name = NULL;
-  return rc;
+  return 0;
 }
 
 static int
@@ -131,7 +127,7 @@ read_bulletin_db (size_t *pnum)
   size_t s;
   char *p;
   
-  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_READ, 0600);
+  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_READ, 0660);
   if (rc)
     {
       mu_error (_("Unable to open bulletin db for reading: %s"),
@@ -213,7 +209,7 @@ write_bulletin_db (size_t num)
   int rc;
   char *p;
   
-  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_RDWR, 0600);
+  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_RDWR, 0660);
   if (rc)
     {
       mu_error (_("Unable to open bulletin db for writing: %s"),
