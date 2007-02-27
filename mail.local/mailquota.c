@@ -23,13 +23,13 @@
 
 #define DEFRETVAL MQUOTA_UNLIMITED
 
-size_t groupquota = 5*1024*1024UL;
-static int get_size (char *, size_t *, char **);
+mu_off_t groupquota = 5*1024*1024UL;
+static int get_size (char *, mu_off_t *, char **);
 
 int
-get_size (char *str, size_t *size, char **endp)
+get_size (char *str, mu_off_t *size, char **endp)
 {
-  size_t s;
+  mu_off_t s;
 
   s = strtol (str, &str, 0);
   switch (*str)
@@ -60,7 +60,7 @@ get_size (char *str, size_t *size, char **endp)
 #define RETR_FAILURE   1
 
 int
-fail_retrieve_quota (char *name, size_t *quota)
+fail_retrieve_quota (char *name, mu_off_t *quota)
 {
   mu_error (_("No quota retrieving mechanism"));
   return RETR_FAILURE;
@@ -68,7 +68,7 @@ fail_retrieve_quota (char *name, size_t *quota)
 
 #ifdef USE_DBM
 int
-dbm_retrieve_quota (char *name, size_t *quota)
+dbm_retrieve_quota (char *name, mu_off_t *quota)
 {
   DBM_FILE db;
   DBM_DATUM named, contentd;
@@ -149,13 +149,13 @@ dbm_retrieve_quota (char *name, size_t *quota)
 #include <auth/sql.h>
 
 int
-sql_retrieve_quota (char *name, size_t *quota)
+sql_retrieve_quota (char *name, mu_off_t *quota)
 {
   mu_sql_connection_t conn;
   char *query_str;
   int rc, status;
   char *tmp;
-  size_t n;
+  mu_off_t n;
   
   query_str = mu_sql_expand_query (quota_query, name);
   if (!query_str)
@@ -253,21 +253,29 @@ sql_retrieve_quota (char *name, size_t *quota)
 
 
 static int
-retrieve_quota (char *name, size_t *quota)
+retrieve_quota (struct mu_auth_data *auth, mu_off_t *quota)
 {
+  if (MU_HAS_QUOTA (auth))
+    {
+      if (auth->quota == 0)
+	return RETR_UNLIMITED;
+      *quota = auth->quota;
+      return RETR_OK;
+    }
+  
 #ifdef USE_SQL
   if (quota_query)
-    return sql_retrieve_quota (name, quota);
+    return sql_retrieve_quota (auth->name, quota);
 #endif
-  return default_retrieve_quota (name, quota);
+  return default_retrieve_quota (auth->name, quota);
 }
 
 int
-check_quota (char *name, size_t size, size_t *rest)
+check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest)
 {
-  size_t quota;
+  mu_off_t quota;
   
-  switch (retrieve_quota (name, &quota))
+  switch (retrieve_quota (auth, &quota))
     {
     case RETR_FAILURE:
       return DEFRETVAL;
