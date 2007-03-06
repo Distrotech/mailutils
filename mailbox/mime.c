@@ -325,8 +325,6 @@ _mime_parse_mpart_message (mu_mime_t mime)
 		  cp2 =
 		    mime->cur_line[0] ==
 		    '\n' ? mime->cur_line + 1 : mime->cur_line;
-		  if (mime->header_length)
-		    mb_lines++;
 		  if (mime->line_ndx >= blength)
 		    {
 		      if ((!strncasecmp (cp2, "--", 2)
@@ -338,10 +336,19 @@ _mime_parse_mpart_message (mu_mime_t mime)
 			  mime->flags &= ~MIME_PARSER_HAVE_CR;
 			  mb_length = mime->cur_offset -
 			    mb_offset - mime->line_ndx;
-			  if (mb_lines > 1)
-			    mb_length++;
 			  if (mime->header_length)
 			    /* this skips the preamble */
+			    /* RFC 1521 [Page 30]:
+			       NOTE: The CRLF preceding the encapsulation line
+			       is conceptually attached to the boundary so
+			       that it is possible to have a part that does
+			       not end with a CRLF (line break). Body parts
+			       that must be considered to end with line
+			       breaks, therefore, must have two CRLFs
+			       preceding the encapsulation line, the first
+			       of which is part of the preceding body part,
+			       and the second of which is part of the
+			       encapsulation boundary. */
 			    _mime_append_part (mime, NULL,
 					       mb_offset, mb_length,
 					       mb_lines - 1);
@@ -360,6 +367,9 @@ _mime_parse_mpart_message (mu_mime_t mime)
 			  break;
 			}
 		    }
+		  else if (mime->header_length)
+		    mb_lines++;
+
 		  mime->line_ndx = 0;
 		  mime->cur_line[0] = *cp;	/* stay in this state but
 						   leave '\n' at begining */
