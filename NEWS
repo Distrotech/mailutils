@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-02-27
+GNU mailutils NEWS -- history of user-visible changes. 2007-03-06
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -13,8 +13,12 @@ mu_stream_wait and mu_fd_wait allow to wait for exceptional conditions.
 
 maildir and mh repositories are created if MU_STREAM_CREAT flag is supplied.
 
-fix coredump in argcv, which was triggered by input line consisting of
-a single double-quote character
+Fix coredump in argcv, which was triggered by input line consisting of
+a single double-quote character.
+
+Fix inconsistency in decoding MIME messages: the CRLF preceding the
+encapsulation line is conceptually attached to the boundary, as
+requested by RFC 1521.
 
 * The `mail.local' utility
 

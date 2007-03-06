@@ -1,3 +1,9 @@
+2007-03-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/mime.c (_mime_parse_mpart_message): The CRLF preceding
+	the encapsulation line is conceptually attached to the boundary.
+	* NEWS: Update
+
 2007-02-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* Makefile.am: Add libmu_cpp
