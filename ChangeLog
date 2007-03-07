@@ -1,3 +1,25 @@
+2007-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/testsuite/imap4d/expunge.exp: Fix pattern
+	* include/mailutils/assoc.h (mu_assoc_create): Add third argument.
+	(mu_assoc_destroy,mu_assoc_clear): New functions
+	* include/mailutils/header.h (mu_header_set_get_fvalue): Remove
+	function.
+	* libproto/imap/mbox.c (imap_header_get_fvalue): Remove
+	* libproto/include/header0.h (struct _mu_header): Remove
+	`fhdr_count' and `fhdr', add `cache'.
+	Remove `_get_fvalue'
+	* libproto/mbox/mbox.c: Remove rudimentary header caching
+	* libproto/mbox/mbox0.h: Likewise
+	* libproto/mbox/mboxscan.c: Likewise
+	* mail/alias.c, mailbox/mutil.c: Update calls to mu_assoc_create
+	* mailbox/assoc.c (mu_assoc_create): Take 3 arguments
+	(mu_assoc_clear, mu_assoc_destroy): New functions
+	* mailbox/header.c: Rewrite header caching
+
+	* include/mailutils/locker.h: Rewrite
+	* mailbox/locker.c: Rewrite
+
 2007-03-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/mime.c (_mime_parse_mpart_message): The CRLF preceding
