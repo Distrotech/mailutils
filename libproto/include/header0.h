@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #endif
 
 #include <mailutils/header.h>
+#include <mailutils/assoc.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -54,14 +55,13 @@ struct _mu_header
   size_t blurb_len;
   size_t hdr_count;
   struct _hdr *hdr;
-  size_t fhdr_count;
-  struct _hdr *fhdr;
   int flags;
 
+  mu_assoc_t cache;
+  
   /* Stream.  */
   mu_stream_t stream;
   int (*_get_value) (mu_header_t, const char *, char *, size_t , size_t *);
-  int (*_get_fvalue) (mu_header_t, const char *, char *, size_t , size_t *);
   int (*_set_value) (mu_header_t, const char *, const char *, int);
   int (*_lines)     (mu_header_t, size_t *);
   int (*_size)      (mu_header_t, size_t *);
