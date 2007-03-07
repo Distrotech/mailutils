@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -66,21 +67,7 @@ mu_header_create (mu_header_t *ph, const char *blurb, size_t len, void *owner)
 static void
 header_free_cache (mu_header_t header)
 {
-  /* Clean up our fast header cache.  */
-  if (header->fhdr)
-    {
-      size_t i;
-      for (i = 0; i < header->fhdr_count; i++)
-	{
-	  if (header->fhdr[i].fn)
-	    free (header->fhdr[i].fn);
-	  if (header->fhdr[i].fv)
-	    free (header->fhdr[i].fv);
-	}
-      free (header->fhdr);
-      header->fhdr = NULL;
-      header->fhdr_count = 0;
-    }
+  mu_assoc_clear (header->cache);
 }
 
 void
@@ -103,6 +90,8 @@ mu_header_destroy (mu_header_t *ph, void *owner)
 
 	  header_free_cache (header);
 
+	  mu_assoc_destroy (&header->cache);
+	  
 	  if (header->mstream)
 	    mu_stream_destroy (&(header->mstream), NULL);
 
@@ -145,10 +134,12 @@ header_parse (mu_header_t header, const char *blurb, int len)
   char *header_start2;
   struct _hdr *hdr;
 
+  header_free_cache (header);
+
   /* Nothing to parse.  */
   if (blurb == NULL)
     return 0;
-
+  
   header->blurb_len = len;
   /* Why "+ 1", if for a terminating NULL, where is written? */
   header->blurb = calloc (1, header->blurb_len + 1);
@@ -257,8 +248,8 @@ header_parse (mu_header_t header, const char *blurb, int len)
  return 0;
 }
 
-/* FIXME: grossly inneficient, to many copies and reallocating.
-   This all header business need a good rewrite.  */
+/* FIXME: grossly inneficient, too many copies and reallocating.
+   This all header business needs a good rewrite.  */
 int
 mu_header_set_value (mu_header_t header, const char *fn, const char *fv,
 		     int replace)
@@ -395,100 +386,94 @@ mu_header_set_value (mu_header_t header, const char *fn, const char *fv,
   return 0;
 }
 
-/* We try to cache the headers here to reduce networking access
-   especially for IMAP.  When the buffer is NULL it means that
-   the field does not exist on the server and we should not
-   attempt to contact the server again for this field.  */
-static int
-header_set_fvalue (mu_header_t header, const char *name, char *buffer)
-{
-  struct _hdr *thdr;
-  thdr = realloc (header->fhdr, (header->fhdr_count + 1) * sizeof(*thdr));
-  if (thdr)
-    {
-      size_t len = strlen (name);
-      char *field = malloc (len + 1);
-      if (field == NULL)
-	return ENOMEM;
-      memcpy (field, name, len);
-      field[len] = '\0';
-      thdr[header->fhdr_count].fn = field;
-      thdr[header->fhdr_count].fn_end = field + len;
+struct _hdr_cache {
+  size_t len;
+  char *ptr;
+};
 
-      if (buffer)
-	{
-          len = strlen (buffer);
-          field =  malloc (len + 1);
-          if (field == NULL)
-	    return ENOMEM;
-	  memcpy (field, buffer, len);
-	  field[len] = '\0';
-	  thdr[header->fhdr_count].fv = field;
-	  thdr[header->fhdr_count].fv_end = field + len;
-	}
-      else
-	{
-	  thdr[header->fhdr_count].fv = NULL;
-	  thdr[header->fhdr_count].fv_end = NULL;
-	}
-      header->fhdr_count++;
-      header->fhdr = thdr;
-      return 0;
-    }
-  return ENOMEM;
+static void
+_hdr_cache_destroy (void *data)
+{
+  struct _hdr_cache *hc = data;
+  free (hc->ptr);
 }
 
-/* For the cache header if the field exist but with no corresponding
-   value, it is a permanent failure i.e.  the field does not exist
-   in the header return EINVAL to notify mu_header_get_value().  */
 static int
 header_get_fvalue (mu_header_t header, const char *name, char *buffer,
-		  size_t buflen, size_t *pn)
+		   size_t buflen, size_t *pn)
 {
-  size_t i, fn_len, fv_len = 0;
-  size_t name_len;
-  int err = MU_ERR_NOENT;
-
-  for (i = 0, name_len = strlen (name); i < header->fhdr_count; i++)
+  struct _hdr_cache *hdr = mu_assoc_ref (header->cache, name);
+  if (hdr)
     {
-      fn_len = header->fhdr[i].fn_end - header->fhdr[i].fn;
-      if (fn_len == name_len
-	  && strcasecmp (header->fhdr[i].fn, name) == 0)
+      if (hdr->len == 0)
+	return MU_ERR_NOENT;
+      else
 	{
-	  fv_len = header->fhdr[i].fv_end - header->fhdr[i].fv;
-
-	  /* Permanent failure.  */
-	  if (fv_len == 0)
-	    {
-	      err = EINVAL;
-	      break;
-	    }
+	  size_t fv_len = hdr->len;
 
 	  if (buffer && buflen > 0)
 	    {
 	      buflen--;
 	      fv_len = (fv_len < buflen) ? fv_len : buflen;
-	      memcpy (buffer, header->fhdr[i].fv, fv_len);
+	      memcpy (buffer, hdr->ptr, fv_len);
 	      buffer[fv_len] = '\0';
 	    }
-	  err = 0;
-	  break;
+	  if (pn)
+	    *pn = fv_len;
+	  return 0;
 	}
     }
-  if (pn)
-    *pn = fv_len;
-  return err;
-
+  return MU_ERR_NOENT;
 }
 
+/* We try to cache the headers here to reduce networking access
+   especially for IMAP.  When the buffer is NULL it means that
+   the field does not exist on the server and we should not
+   attempt to contact the server again for this field.  */
+static int
+header_set_fvalue (mu_header_t header, const char *name, char *buffer,
+		   size_t len)
+{
+  int rc;
+  struct _hdr_cache hcache;
+  
+  if (!header->cache)
+    {
+      rc = mu_assoc_create (&header->cache, sizeof(struct _hdr_cache),
+			    MU_ASSOC_ICASE);
+      if (rc)
+	return rc;
+      mu_assoc_set_free (header->cache, _hdr_cache_destroy);
+    }
+  if (buffer == NULL)
+    {
+      hcache.ptr = NULL;
+      hcache.len = 0;
+    }
+  else
+    {
+      if (!len)
+	len = strlen (buffer);
+      hcache.ptr = malloc (len + 1);
+      if (!hcache.ptr)
+	return ENOMEM;
+      memcpy (hcache.ptr, buffer, len);
+      hcache.ptr[len] = 0;
+      hcache.len = len;
+    }
+  rc = mu_assoc_install (header->cache, name, &hcache);
+  if (rc)
+    free (hcache.ptr);
+  return rc;
+}
+  
 int
 mu_header_get_value (mu_header_t header, const char *name, char *buffer,
-		  size_t buflen, size_t *pn)
+		     size_t buflen, size_t *pn)
 {
   size_t i = 0;
   size_t name_len;
-  size_t total = 0, fn_len = 0, fv_len = 0;
-  size_t threshold;
+  size_t fn_len = 0, fv_len = 0;
   int err = 0;
 
   if (header == NULL || name == NULL)
@@ -507,12 +492,6 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
       return err;
     }
 
-  /* Try the provided cache.  */
-  if (header->_get_fvalue)
-    err = header->_get_fvalue (header, name, buffer, buflen, pn);
-  if (err == 0)
-    return 0;
-
   if (header->_get_value)
     {
       char buf[1024]; /* should suffice for field-value. */
@@ -521,7 +500,7 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
       if (err == 0)
 	{
 	  /* Save in the fast header buffer.  */
-	  header_set_fvalue (header, name, buf);
+	  header_set_fvalue (header, name, buf, 0);
 	  if (buffer && buflen > 0)
 	    {
 	      buflen--;
@@ -537,7 +516,7 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
       else
         {
 	  /* Cache permanent failure also.  */
-	  header_set_fvalue (header, name, NULL);
+	  header_set_fvalue (header, name, NULL, 0);
         }
       return err;
     }
@@ -551,15 +530,8 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
     }
 
   /* We set the threshold to be 1 less for the null.  */
-  threshold = --buflen;
+  --buflen;
 
-  /* Caution: We may have more then one value for a field name, for example
-     a "Received" field-name is added by each passing MTA.  The way that the
-     parsing (_parse()) is done it's not take to account.  So we just stuff
-     in the buffer all the field-values to a corresponding field-name.
-     FIXME: Should we kosher the output ? meaning replace occurences of
-     " \t\r\n" for spaces ? for now we don't.
-   */
   for (name_len = strlen (name), i = 0; i < header->hdr_count; i++)
     {
       fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
@@ -567,39 +539,26 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
 	  strncasecmp (header->hdr[i].fn, name, fn_len) == 0)
 	{
 	  fv_len = (header->hdr[i].fv_end - header->hdr[i].fv);
-	  /* FIXME:FIXME:PLEASE: hack, add a space/nl separator  */
-	  /*
-	  if (total && (threshold - 2) > 0)
-	    {
-	      if (buffer)
-		{
-		  *buffer++ = '\n';
-		  *buffer++ = ' ';
-		}
-	      threshold -= 2;
-	      total += 2;
-	    }
-          */
-	  total += fv_len;
+	  header_set_fvalue (header, name, header->hdr[i].fv, fv_len);
 	  /* Can everything fit in the buffer.  */
-	  if (buffer && threshold > 0)
+	  if (buffer && buflen > 0)
 	    {
-	      buflen = (fv_len < threshold) ? fv_len : threshold;
-	      memcpy (buffer, header->hdr[i].fv, buflen);
-	      buffer += buflen;
-	      threshold -= buflen;
+	      if (fv_len > buflen)
+		fv_len = buflen;
+	      memcpy (buffer, header->hdr[i].fv, fv_len);
+	      buffer[buflen] = 0;
 	    }
-
-	  /* Jump out after the first header we found. -sr */
-	  break;
+	  
+	  if (pn)
+	    *pn = fv_len;
+	  return 0;
 	}
     }
-  if (buffer)
-    *buffer = '\0'; /* Null terminated.  */
-  if (pn)
-    *pn = total;
 
-  return  (total == 0) ? MU_ERR_NOENT : 0;
+  if (buffer)
+    *buffer = 0;
+  
+  return  MU_ERR_NOENT;
 }
 
 int
@@ -888,19 +847,6 @@ mu_header_size (mu_header_t header, size_t *psize)
 }
 
 int
-mu_header_set_get_fvalue (mu_header_t header, 
-       int (*_get_fvalue) (mu_header_t, const char *, char *, size_t, size_t *), 
-                       void *owner)
-{
-  if (header == NULL)
-    return EINVAL;
-  if (header->owner != owner)
-    return EACCES;
-  header->_get_fvalue = _get_fvalue;
-  return 0;
-}
-
-int
 mu_header_set_get_value (mu_header_t header, int (*_get_value)
 		     (mu_header_t, const char *, char *, size_t, size_t *),
 		     void *owner)
@@ -939,8 +885,8 @@ mu_header_set_stream (mu_header_t header, mu_stream_t stream, void *owner)
 
 int
 mu_header_set_fill (mu_header_t header, int
-		 (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *),
-		 void *owner)
+		    (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *),
+		    void *owner)
 {
   if (header == NULL)
     return EINVAL;
@@ -963,7 +909,6 @@ fill_blurb (mu_header_t header)
   /* The entire header is now ours(part of mu_header_t), clear all the
      overloading.  */
   header_free_cache (header);
-  header->_get_fvalue = NULL;
   header->_get_value = NULL;
   header->_set_value = NULL;
   header->_size = NULL;
