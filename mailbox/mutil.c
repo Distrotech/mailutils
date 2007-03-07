@@ -1432,7 +1432,7 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
 	}
       if (!assoc_tab)
 	{
-	  rc = mu_assoc_create (&assoc_tab, sizeof(char*));
+	  rc = mu_assoc_create (&assoc_tab, sizeof(char*), 0);
 	  if (rc)
 	    break;
 	  mu_assoc_set_free (assoc_tab, assoc_str_free);

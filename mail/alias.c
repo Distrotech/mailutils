@@ -90,7 +90,7 @@ alias_create (const char *name, alias_t *al)
 
   if (!aliases)
     {
-      mu_assoc_create (&aliases, sizeof (struct _alias));
+      mu_assoc_create (&aliases, sizeof (struct _alias), 0);
       mu_assoc_set_free (aliases, alias_free);
     }
   
