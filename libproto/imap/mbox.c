@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -101,7 +101,6 @@ static int  imap_attr_unset_flags (mu_attribute_t, int);
 /* mu_header_t API.  */
 static int  imap_header_read      (mu_header_t, char*, size_t, mu_off_t, size_t *);
 static int  imap_header_get_value (mu_header_t, const char*, char *, size_t, size_t *);
-static int  imap_header_get_fvalue (mu_header_t, const char*, char *, size_t, size_t *);
 
 /* mu_body_t API.  */
 static int  imap_body_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
@@ -547,7 +546,6 @@ imap_get_message0 (msg_imap_t msg_imap, mu_message_t *pmsg)
       }
     mu_header_set_fill (header, imap_header_read, msg);
     mu_header_set_get_value (header, imap_header_get_value, msg);
-    mu_header_set_get_fvalue (header, imap_header_get_fvalue, msg);
     mu_message_set_header (msg, header, msg_imap);
   }
 
@@ -1806,61 +1804,8 @@ imap_header_get_value (mu_header_t header, const char *field, char * buffer,
 }
 
 static int
-imap_header_get_fvalue (mu_header_t header, const char *field, char * buffer,
-			size_t buflen, size_t *plen)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  msg_imap_t msg_imap = mu_message_get_owner (msg);
-  m_imap_t m_imap = msg_imap->m_imap;
-  f_imap_t f_imap = m_imap->f_imap;
-  int status;
-  size_t len = 0;
-  char *value;
-
-  /* Select first.  */
-  status = imap_messages_count (m_imap->mailbox, NULL);
-  if (status != 0)
-    return status;
-
-  /* Do we all ready have the headers.  */
-  if (msg_imap->fheader)
-    return mu_header_get_value (msg_imap->fheader, field, buffer, buflen, plen);
-
-  /* We are caching the must use headers.  */
-  if (f_imap->state == IMAP_NO_STATE)
-    {
-      /* Select first.  */
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-        return status;
-      status = imap_writeline (f_imap,
-                               "g%s FETCH %s (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
-                               mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num),
-			       MU_IMAP_CACHE_HEADERS);
-      CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      f_imap->state = IMAP_FETCH;
-
-    }
-
-  /* Should be enough for our needs.  */
-  len = 2048;
-  value = calloc (len, sizeof *value);
-  status = fetch_operation (f_imap, msg_imap, value, len, &len);
-  if (status == 0)
-    {
-      status = mu_header_create (&msg_imap->fheader, value, len, NULL);
-      if (status == 0)
-	status =  mu_header_get_value (msg_imap->fheader, field, buffer,
-				    buflen, plen);
-    }
-  free (value);
-  return status;
-}
-
-static int
-imap_header_read (mu_header_t header, char *buffer, size_t buflen, mu_off_t offset,
+imap_header_read (mu_header_t header, char *buffer,
+		  size_t buflen, mu_off_t offset,
 		  size_t *plen)
 {
   mu_message_t msg = mu_header_get_owner (header);
