@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -121,9 +121,6 @@ extern int mu_header_set_set_value (mu_header_t,
 extern int mu_header_set_get_value (mu_header_t,
       int (*_get_value) (mu_header_t, const char *, char *, size_t, size_t *),
 				 void *);
-extern int mu_header_set_get_fvalue (mu_header_t,
-      int (*_get_value) (mu_header_t, const char *, char *, size_t, size_t *),
-				       void *);
 
 extern int mu_header_set_size (mu_header_t, 
       int (*_size) (mu_header_t, size_t *), void *);
