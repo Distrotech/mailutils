@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,34 +47,53 @@ enum mu_locker_set_mode
     
 /* mu_locker_create() flags */
 
-#define MU_LOCKER_SIMPLE   0x00
+/* Locker types */
+
+#define MU_LOCKER_TYPE_DOTLOCK  0
+#define MU_LOCKER_TYPE_EXTERNAL 1 
+  /* Use an external program to lock the file. This is necessary
+     for programs having permission to access a file, but do not
+     have write permission on the directory that contains that file. */
+#define MU_LOCKER_TYPE_KERNEL   2
+  /* Use kernel locking (flock, lockf or ioctl) */
+#define MU_LOCKER_TYPE_NULL     3
+  /* Special locker type: means no lock. This is to be used with
+     temporary mailboxes stored in memory. */
+
+#define MU_LOCKER_TYPE_TO_FLAG(t) ((t) << 8)
+#define MU_LOCKER_FLAG_TO_TYPE(f) ((f) >> 8)
+#define MU_LOCKER_IS_TYPE(f,t) (MU_LOCKER_FLAG_TO_TYPE(f) == (t))
+#define MU_LOCKER_SET_TYPE(f,t) ((f) = MU_LOCKER_TYPE_TO_FLAG(t) | MU_LOCKER_OPTIONS(f))
+#define MU_LOCKER_TYPE_MASK 0xff00
+#define MU_LOCKER_OPTION_MASK 0x00ff  
+#define MU_LOCKER_OPTIONS(f) ((f) & MU_LOCKER_OPTION_MASK)
+
+#define MU_LOCKER_NULL          MU_LOCKER_TYPE_TO_FLAG(MU_LOCKER_TYPE_NULL)
+#define MU_LOCKER_DOTLOCK       MU_LOCKER_TYPE_TO_FLAG(MU_LOCKER_TYPE_DOTLOCK)
+#define MU_LOCKER_EXTERNAL      MU_LOCKER_TYPE_TO_FLAG(MU_LOCKER_TYPE_EXTERNAL)
+#define MU_LOCKER_KERNEL        MU_LOCKER_TYPE_TO_FLAG(MU_LOCKER_TYPE_KERNEL)
+  
+/* Options */
+  
+#define MU_LOCKER_SIMPLE   0x0000
   /* Just try and dotlock the file, not the default because its usually
      better to retry. */
-#define MU_LOCKER_RETRY    0x01
+#define MU_LOCKER_RETRY    0x0001
   /* This requests that we loop retries times, sleeping retry_sleep
      seconds in between trying to obtain the lock before failing with
      MU_LOCK_CONFLICT. */
-#define MU_LOCKER_TIME     0x02
+#define MU_LOCKER_TIME     0x0002
   /* This mode checks the last update time of the lock, then removes
      it if older than MU_LOCKER_EXPIRE_TIME. If a client uses this,
      then the servers better periodically update the lock on the
      file... do they? */
-#define MU_LOCKER_PID      0x04
+#define MU_LOCKER_PID      0x0004
   /* PID locking is only useful for programs that aren't using
      an external dotlocker, non-setgid programs will use a dotlocker,
      which locks and exits imediately. This is a protection against
      a server crashing, it's not generally useful. */
-#define MU_LOCKER_EXTERNAL 0x08
-  /* Use an external program to lock the file. This is necessary
-     for programs having permission to access a file, but do not
-     have write permission on the directory that contains that file. */
-#define MU_LOCKER_NULL     0x10
-  /* Special locker type: means no lock. This is to be used with
-     temporary mailboxes stored in memory. */
-#define MU_LOCKER_KERNEL   0x20
-  /* Use kernel locking (flock, lockf or ioctl) */  
   
-#define MU_LOCKER_DEFAULT  (MU_LOCKER_RETRY)
+#define MU_LOCKER_DEFAULT  (MU_LOCKER_DOTLOCK | MU_LOCKER_RETRY)
 
 /* Use these flags for as the default locker flags (the default defaults
  * to MU_LOCKER_DEFAULT). A flags of 0 resets the flags back to the
@@ -103,6 +122,14 @@ extern int mu_locker_get_expire_time (mu_locker_t, int*);
 extern int mu_locker_get_retries (mu_locker_t, int*);
 extern int mu_locker_get_retry_sleep (mu_locker_t, int*);
 extern int mu_locker_get_external (mu_locker_t, char**);
+
+enum mu_locker_mode
+{
+   mu_lck_shr,   /* Shared (advisory) lock */
+   mu_lck_exc,   /* Exclusive lock */
+   mu_lck_opt    /* Optional lock = shared, if the locker supports it, no
+                    locking otherwise */
+}; 
 
 extern int mu_locker_lock          (mu_locker_t);
 extern int mu_locker_touchlock     (mu_locker_t);
