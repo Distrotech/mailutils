@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -66,24 +66,6 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 
-#define H_BCC                       0
-#define H_CC                        1
-#define H_CONTENT_LANGUAGE          2
-#define H_CONTENT_TRANSFER_ENCODING 3
-#define H_CONTENT_TYPE              4
-#define H_DATE                      5
-#define H_FROM                      6
-#define H_IN_REPLY_TO               7
-#define H_MESSAGE_ID                8
-#define H_REFERENCE                 9
-#define H_REPLY_TO                  10
-#define H_SENDER                    11
-#define H_SUBJECT                   12
-#define H_TO                        13
-#define H_X_UIDL                    14
-
-#define HDRSIZE                     15
-
 struct _mbox_message;
 struct _mbox_data;
 
@@ -99,11 +81,6 @@ struct _mbox_message
   off_t header_from_end;
   off_t body;
   off_t body_end;
-
-  /* Fast header retrieve, we save here the most common headers. This will
-     speed the header search.  The entire headers are copied, when modified,
-     by the mu_header_t object, we do not have to worry about updating them.  */
-  char *fhdr[HDRSIZE];
 
   size_t uid; /* IMAP uid.  */
 

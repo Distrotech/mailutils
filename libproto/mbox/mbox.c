@@ -30,31 +30,6 @@
 
 static void mbox_destroy (mu_mailbox_t);
 
-/* Below are the headers field-names that we are caching for speed, it is
-   more or less the list of headers in ENVELOPE command from IMAP.
-
-   NOTE: These are indexed with H_.* macros defined in mbox0.h. Keep them
-   in sync if you add or remove something. */
-
-const char *fhdr_table[HDRSIZE] =
-{
-  "Bcc",
-  "Cc",
-  "Content-Language",
-  "Content-Transfer-Encoding",
-  "Content-Type",
-  "Date",
-  "From",
-  "In-Reply-To",
-  "Message-ID",
-  "Reference",
-  "Reply-To",
-  "Sender",
-  "Subject",
-  "To",
-  "X-UIDL"
-};
-
 /* Mailbox concrete implementation.  */
 static int mbox_open                  (mu_mailbox_t, int);
 static int mbox_close                 (mu_mailbox_t);
@@ -186,11 +161,7 @@ mbox_destroy (mu_mailbox_t mailbox)
 	  mbox_message_t mum = mud->umessages[i];
 	  if (mum)
 	    {
-	      size_t j;
 	      mu_message_destroy (&(mum->message), mum);
-	      for (j = 0; j < HDRSIZE; j++)
-		if (mum->fhdr[j])
-		  free (mum->fhdr[j]);
 	      free (mum);
 	    }
 	}
@@ -299,11 +270,7 @@ mbox_close (mu_mailbox_t mailbox)
       /* Destroy the attach messages.  */
       if (mum)
 	{
-	  size_t j;
 	  mu_message_destroy (&(mum->message), mum);
-	  for (j = 0; j < HDRSIZE; j++)
-	    if (mum->fhdr[j])
-	      free (mum->fhdr[j]);
 	  free (mum);
 	}
     }
@@ -768,12 +735,6 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 		  mum->body = mum->body_end = 0;
 		  mum->header_lines = mum->body_lines = 0;
 #endif
-		  for (i = 0; i < HDRSIZE; i++)
-		    if (mum->fhdr[i])
-		      {
-			free (mum->fhdr[i]);
-			mum->fhdr[i] = NULL;
-		      }
 		  memset (mum, 0, sizeof (*mum));
 		  /* We are not free()ing the useless mum, but instead
 		     we put it back in the pool, to be reuse.  */
@@ -785,24 +746,12 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 		}
 	      else
 		{
-		  for (i = 0; i < HDRSIZE; i++)
-		    if (mum->fhdr[i])
-		      {
-			free (mum->fhdr[i]);
-			mum->fhdr[i] = NULL;
-		      }
 		  memset (mum, 0, sizeof (*mum));
 		}
 	    }
 	  mum->header_from = mum->header_from_end = 0;
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
-	  for (i = 0; i < HDRSIZE; i++)
-	    if (mum->fhdr[i])
-	      {
-		free (mum->fhdr[i]);
-		mum->fhdr[i] = NULL;
-	      }
 	}
       mu_monitor_unlock (mailbox->monitor);
       /* This is should reset the messages_count, the last argument 0 means
@@ -964,55 +913,8 @@ mbox_header_fill (mu_header_t header, char *buffer, size_t len,
 {
   mu_message_t msg = mu_header_get_owner (header);
   mbox_message_t mum = mu_message_get_owner (msg);
-  size_t j;
-  /* Since we are filling the header there is no need for the cache headers
-     discard them.  */
-  for (j = 0; j < HDRSIZE; j++)
-    {
-      if (mum->fhdr[j])
-	{
-	  free (mum->fhdr[j]);
-	  mum->fhdr[j] = NULL;
-	}
-    }
   return mbox_readstream (mum, buffer, len, off, pnread, 0,
 			  mum->header_from_end, mum->body);
-}
-
-static int
-mbox_header_get_fvalue (mu_header_t header, const char *name, char *buffer,
-		       size_t buflen, size_t *pnread)
-{
-  size_t i, fv_len = 0;
-  mu_message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = mu_message_get_owner (msg);
-  int err = MU_ERR_NOENT;
-  for (i = 0; i < HDRSIZE; i++)
-    {
-      if (*name == *(fhdr_table[i]) && strcasecmp (fhdr_table[i], name) == 0)
-	{
-	  if (mum->fhdr[i])
-	    {
-	      fv_len = strlen (mum->fhdr[i]);
-	      if (buffer && buflen > 0)
-		{
-		  /* For the null.  */
-		  buflen--;
-		  fv_len = (fv_len < buflen) ? fv_len : buflen;
-		  memcpy (buffer, mum->fhdr[i], fv_len);
-		  buffer[fv_len] = '\0';
-		}
-	      err = 0;
-	    }
-	  else
-	    err = MU_ERR_NOENT;
-	  break;
-	}
-    }
-
-  if (pnread)
-    *pnread = fv_len;
-  return err;
 }
 
 static int
@@ -1218,7 +1120,6 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 	return status;
       }
     mu_header_set_fill (header, mbox_header_fill, msg);
-    mu_header_set_get_fvalue (header, mbox_header_get_fvalue, msg);
     mu_header_set_size (header, mbox_header_size, msg);
     mu_header_set_lines (header, mbox_header_lines, msg);
     mu_message_set_header (msg, header, mum);

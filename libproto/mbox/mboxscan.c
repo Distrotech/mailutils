@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2005, 
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -404,100 +405,6 @@ do {                                                                          \
     i = 10 * i + (*a - '0');                                                  \
 } while (0)
 
-/* Save/concatenate the field-value in the fast header(fhd) field.
-   Notice that care is taken to preserve the intermediate newlines
-   in the folded headers. However, the final newline is always
-   removed. */
-#define FAST_HEADER(field,buf,n)                                              \
-do {                                                                          \
-  int i = 0;                                                                  \
-  char *s = field;                                                            \
-  char *p = buf;                                                              \
-  if (s)                                                                      \
-    while (*s++) i++;                                                         \
-  else                                                                        \
-    {                                                                         \
-      p = memchr (buf, ':', n);                                               \
-      if (p) p++;                                                             \
-    }                                                                         \
-  if (p)                                                                      \
-    {                                                                         \
-      int l;                                                                  \
-      char *tmp;                                                              \
-      buf[n - 1] = '\0';                                                      \
-      if (!field)                                                             \
-        SKIPSPACE(p);                                                         \
-      l = n - (p - buf);                                                      \
-      tmp = realloc (field, (l + (i ? i + 1 : 0) + 1) * sizeof (char));       \
-      if (tmp)                                                                \
-        {                                                                     \
-           field = tmp;                                                       \
-           if (i) field[i++] = '\n';                                          \
-           memcpy (field + i, p, l);                                          \
-        }                                                                     \
-    }                                                                         \
-} while (0)								      
-									      
-#define FAST_H_BCC(mum,save_field,buf,n)                                      \
-  FAST_HEADER(mum->fhdr[H_BCC],buf,n);                                        \
-  save_field = &(mum->fhdr[H_BCC])					      
-									      
-#define FAST_H_CC(mum,save_field,buf,n)                                       \
-  FAST_HEADER(mum->fhdr[H_CC],buf,n);                                         \
-  save_field = &(mum->fhdr[H_CC])					      
-									      
-#define FAST_H_CONTENT_LANGUAGE(mum,save_field,buf,n)                         \
-  FAST_HEADER(mum->fhdr[H_CONTENT_LANGUAGE],buf,n);                           \
-  save_field = &(mum->fhdr[H_CONTENT_LANGUAGE])				      
-									      
-#define FAST_H_CONTENT_TRANSFER_ENCODING(mum,save_field,buf,n)                \
-  FAST_HEADER(mum->fhdr[H_CONTENT_TRANSFER_ENCODING],buf,n);                  \
-  save_field = &(mum->fhdr[H_CONTENT_TRANSFER_ENCODING])		      
-									      
-#define FAST_H_CONTENT_TYPE(mum,save_field,buf,n)                             \
-  FAST_HEADER(mum->fhdr[H_CONTENT_TYPE],buf,n);                               \
-  save_field = &(mum->fhdr[H_CONTENT_TYPE])				      
-									      
-#define FAST_H_DATE(mum,save_field,buf,n)                                     \
-  FAST_HEADER(mum->fhdr[H_DATE],buf,n);                                       \
-  save_field = &(mum->fhdr[H_DATE])					      
-									      
-#define FAST_H_FROM(mum,save_field,buf,n)                                     \
-  FAST_HEADER(mum->fhdr[H_FROM],buf,n);                                       \
-  save_field = &(mum->fhdr[H_FROM])					      
-									      
-#define FAST_H_IN_REPLY_TO(mum,save_field,buf,n)                              \
-  FAST_HEADER(mum->fhdr[H_IN_REPLY_TO],buf,n);                                \
-  save_field = &(mum->fhdr[H_IN_REPLY_TO])				      
-									      
-#define FAST_H_MESSAGE_ID(mum,save_field,buf,n)                               \
-  FAST_HEADER(mum->fhdr[H_MESSAGE_ID],buf,n);                                 \
-  save_field = &(mum->fhdr[H_MESSAGE_ID])				      
-									      
-#define FAST_H_REFERENCE(mum,save_field,buf,n)                                \
-  FAST_HEADER(mum->fhdr[H_REFERENCE],buf,n);                                  \
-  save_field = &(mum->fhdr[H_REFERENCE])				      
-									      
-#define FAST_H_REPLY_TO(mum,save_field,buf,n)                                 \
-  FAST_HEADER(mum->fhdr[H_REPLY_TO],buf,n);                                   \
-  save_field = &(mum->fhdr[H_REPLY_TO])					      
-									      
-#define FAST_H_SENDER(mum,save_field,buf,n)                                   \
-  FAST_HEADER(mum->fhdr[H_SENDER],buf,n);                                     \
-  save_field = &(mum->fhdr[H_SENDER])					      
-									      
-#define FAST_H_SUBJECT(mum,save_field,buf,n)                                  \
-  FAST_HEADER(mum->fhdr[H_SUBJECT],buf,n);                                    \
-  save_field = &(mum->fhdr[H_SUBJECT])					      
-									      
-#define FAST_H_TO(mum,save_field,buf,n)                                       \
-  FAST_HEADER(mum->fhdr[H_TO],buf,n);                                         \
-  save_field = &(mum->fhdr[H_TO])					      
-									      
-#define FAST_H_X_UIDL(mum,save_field,buf,n)                                   \
-  FAST_HEADER(mum->fhdr[H_X_UIDL],buf,n);                                     \
-  save_field = &(mum->fhdr[H_X_UIDL])					      
-									      
 /* Notifications ADD_MESG. */						      
 #define DISPATCH_ADD_MSG(mbox,mud)                                            \
 do                                                                            \
@@ -585,7 +492,6 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   int newline;
   size_t n = 0;
   mu_stream_t stream;
-  char **sfield = NULL;
   size_t min_uid = 0;
   int zn, isfrom = 0;
   char *temp;
@@ -629,18 +535,6 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   else
     mud->messages_count = 0;
 
-#if 0
-  {
-    size_t j, k;
-    for (j = 0; j < mud->umessages_count; j++)
-      {
-	mum = mud->umessages[j];
-	for (k = 0; k < HDRSIZE; k++)
-	  if (mum->fhdr[k])
-	    free (mum->fhdr[k]);
-      }
-  }
-#endif
   newline = 1;
   errno = lines = inheader = inbody = 0;
 
@@ -667,7 +561,6 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	  /* New message.  */
 	  if (isfrom)
 	    {
-	      size_t j;
 	      /* Signal the end of the body.  */
 	      if (mum && !mum->body_end)
 		{
@@ -697,13 +590,6 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      mum->body_end = mum->body = 0;
 	      mum->attr_flags = 0;
 	      lines = 0;
-	      sfield = NULL;
-	      for (j = 0; j < HDRSIZE; j++)
-		if (mum->fhdr[j])
-		  {
-		    free (mum->fhdr[j]);
-		    mum->fhdr[j] = NULL;
-		  }
 	    }
 	  else if (ISSTATUS(buf))
 	    {
@@ -711,96 +597,6 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      ATTRIBUTE_SET(buf, mum, 'o', 'O', MU_ATTRIBUTE_SEEN);
 	      ATTRIBUTE_SET(buf, mum, 'a', 'A', MU_ATTRIBUTE_ANSWERED);
 	      ATTRIBUTE_SET(buf, mum, 'd', 'D', MU_ATTRIBUTE_DELETED);
-	      sfield = NULL;
-	    }
-	  else if (ISBCC(buf))
-	    {
-	      FAST_H_BCC(mum, sfield, buf, n);
-	    }
-	  else if (ISCC(buf))
-	    {
-	      FAST_H_CC(mum, sfield, buf, n);
-	    }
-	  else if (ISCONTENT_LANGUAGE(buf))
-	    {
-	      FAST_H_CONTENT_LANGUAGE(mum, sfield, buf, n);
-	    }
-	  else if (ISCONTENT_TRANSFER_ENCODING(buf))
-	    {
-	      FAST_H_CONTENT_TRANSFER_ENCODING(mum, sfield, buf, n);
-	    }
-	  else if (ISCONTENT_TYPE(buf))
-	    {
-	      FAST_H_CONTENT_TYPE(mum, sfield, buf, n);
-	    }
-	  else if (ISDATE(buf))
-	    {
-	      FAST_H_DATE(mum, sfield, buf, n);
-	    }
-	  else if (ISFROM(buf))
-	    {
-	      FAST_H_FROM(mum, sfield, buf, n);
-	    }
-	  else if (ISIN_REPLY_TO(buf))
-	    {
-	      FAST_H_IN_REPLY_TO(mum, sfield, buf, n);
-	    }
-	  else if (ISMESSAGE_ID(buf))
-	    {
-	      FAST_H_MESSAGE_ID(mum, sfield, buf, n);
-	    }
-	  else if (ISREFERENCE(buf))
-	    {
-	      FAST_H_REFERENCE(mum, sfield, buf, n);
-	    }
-	  else if (ISREPLY_TO(buf))
-	    {
-	      FAST_H_REPLY_TO(mum, sfield, buf, n);
-	    }
-	  else if (ISSENDER(buf))
-	    {
-	      FAST_H_SENDER (mum, sfield, buf, n);
-	    }
-	  else if (ISSUBJECT(buf))
-	    {
-	      FAST_H_SUBJECT (mum, sfield, buf, n);
-	    }
-	  else if (ISTO(buf))
-	    {
-	      FAST_H_TO (mum, sfield, buf, n);
-	    }
-	  else if (ISX_UIDL(buf))
-	    {
-	      FAST_H_X_UIDL (mum, sfield, buf, n);
-	    }
-	  else if (ISX_IMAPBASE(buf))
-	    {
-	      char *s = memchr (buf, ':', n);
-	      if (s)
-		{
-		  s++;
-		  ATOI(s, mud->uidvalidity);
-		  ATOI(s, mud->uidnext);
-		}
-	    }
-	  else if (ISX_UID(buf))
-	    {
-	      char *s = memchr (buf, ':', n);
-	      if (s)
-		{
-		  s++;
-		  ATOI(s, mum->uid);
-		}
-	    }
-	  else if (sfield && (buf[0] == ' ' || buf[0] == '\t'))
-	    {
-	      char *save = *sfield;
-	      FAST_HEADER (save, buf, n);
-	      *sfield = save;
-	    }
-	  else
-	    {
-	      sfield = NULL;
 	    }
 	}
 
