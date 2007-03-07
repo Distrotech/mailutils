@@ -44,12 +44,13 @@ static unsigned int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
 
 struct _mu_assoc_elem
 {
-  char *name;
+  const char *name;
   char data[1];
 };
 
 struct _mu_assoc
 {
+  int flags;
   unsigned int hash_num;  /* Index to hash_size table */
   size_t elsize;          /* Size of an element */
   void *tab;
@@ -121,6 +122,15 @@ assoc_rehash (mu_assoc_t assoc)
   return 0;
 }
 
+static void
+assoc_free_elem (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
+{
+  if (assoc->free)
+    assoc->free (elem->data);
+  if (!(assoc->flags & MU_ASSOC_COPY_KEY))
+    free (elem->name);
+}
+
 static int
 assoc_remove (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
 {
@@ -130,11 +140,7 @@ assoc_remove (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
 	&& elem < ASSOC_ELEM (assoc, hash_size[assoc->hash_num])))
     return EINVAL;
 
-  if (assoc->free)
-    {
-      assoc->free (elem->data);
-      free (elem->name);
-    }
+  assoc_free_elem (assoc, elem);
   
   for (i = ASSOC_ELEM_INDEX (assoc, elem);;)
     {
@@ -157,6 +163,9 @@ assoc_remove (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
     }
   return 0;
 }
+
+#define name_cmp(assoc,a,b) (((assoc)->flags & MU_ASSOC_ICASE) ? \
+                             strcasecmp(a,b) : strcmp(a,b))
 
 static int
 assoc_lookup_or_install (struct _mu_assoc_elem **elp,
@@ -182,7 +191,7 @@ assoc_lookup_or_install (struct _mu_assoc_elem **elp,
 
   for (i = pos; (elem = ASSOC_ELEM (assoc, i))->name;)
     {
-      if (strcmp (elem->name, name) == 0)
+      if (name_cmp (assoc, elem->name, name) == 0)
 	{
 	  if (install)
 	    *install = 0;
@@ -202,9 +211,14 @@ assoc_lookup_or_install (struct _mu_assoc_elem **elp,
   if (elem->name == NULL)
     {
       *install = 1;
-      elem->name = strdup (name);
-      if (!elem->name)
-	return ENOMEM;
+      if (assoc->flags & MU_ASSOC_COPY_KEY)
+	elem->name = name;
+      else
+	{
+	  elem->name = strdup (name);
+	  if (!elem->name)
+	    return ENOMEM;
+	}
       *elp = elem;
       return 0; 
     }
@@ -216,14 +230,48 @@ assoc_lookup_or_install (struct _mu_assoc_elem **elp,
 }
 
 int
-mu_assoc_create (mu_assoc_t *passoc, size_t elsize)
+mu_assoc_create (mu_assoc_t *passoc, size_t elsize, int flags)
 {
   mu_assoc_t assoc = calloc (1, sizeof (*assoc));
   if (!assoc)
     return ENOMEM;
+  assoc->flags = flags;
   assoc->elsize = elsize;
   *passoc = assoc;
   return 0;
+}
+
+void
+mu_assoc_clear (mu_assoc_t assoc)
+{
+  unsigned i, hs;
+  
+  if (!assoc)
+    return;
+
+  hs = hash_size[assoc->hash_num];
+  for (i = 0; i < hs; i++)
+    {
+      struct _mu_assoc_elem *elem = ASSOC_ELEM (assoc, i);
+      if (elem->name)
+	{
+	  assoc_free_elem (assoc, elem);
+	  elem->name = NULL;
+	}
+    }
+}
+
+void
+mu_assoc_destroy (mu_assoc_t *passoc)
+{
+  mu_assoc_t assoc;
+  if (passoc && (assoc = *passoc) != NULL)
+    {
+      mu_assoc_clear (assoc);
+      free (assoc->tab);
+      free (assoc);
+      *passoc = NULL;
+    }
 }
 
 int
