@@ -1,3 +1,7 @@
+2007-03-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* pop3d/bulletin.c (read_bulletin_db): Do not close DB too early.
+
 2007-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/testsuite/imap4d/expunge.exp: Fix pattern
