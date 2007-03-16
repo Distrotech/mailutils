@@ -142,12 +142,12 @@ read_bulletin_db (size_t *pnum)
   MU_DATUM_SIZE(key) = strlen (username);
 
   rc = mu_dbm_fetch (db, key, &data);
-  mu_dbm_close (db);
 
   if (rc)
     {
       mu_error (_("Cannot fetch bulletin db data: %s"),
 		mu_strerror (errno));
+      mu_dbm_close (db);
       return 1;
     }
   
@@ -168,7 +168,8 @@ read_bulletin_db (size_t *pnum)
   memcpy (bufptr, MU_DATUM_PTR (data), s);
   bufptr[s] = 0;
   mu_dbm_datum_free(&data);
-  
+  mu_dbm_close (db);
+
   rc = 1;
   *pnum = strtoul (bufptr, &p, 0);
   if (*p == 0)
