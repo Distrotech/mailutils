@@ -546,7 +546,7 @@ mu_header_get_value (mu_header_t header, const char *name, char *buffer,
 	      if (fv_len > buflen)
 		fv_len = buflen;
 	      memcpy (buffer, header->hdr[i].fv, fv_len);
-	      buffer[buflen] = 0;
+	      buffer[fv_len] = 0;
 	    }
 	  
 	  if (pn)
