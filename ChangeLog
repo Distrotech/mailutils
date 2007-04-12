@@ -1,3 +1,9 @@
+2007-04-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/header.c (mu_header_get_value): Bugfix
+	* mailbox/mbx_default.c (mu_mailbox_create_default): Fix memory
+	leaks.
+
 2007-03-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* pop3d/bulletin.c (read_bulletin_db): Do not close DB too early.
