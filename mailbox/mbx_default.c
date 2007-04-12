@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -323,11 +323,9 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 
   p = mu_tilde_expansion (mail, "/", NULL);
   if (tmp_mbox)
-    {
-      free (tmp_mbox);
-      tmp_mbox = p;
-    }
-  mail = p;
+    free (tmp_mbox);
+  tmp_mbox = p;
+  mail = tmp_mbox;
   if (!mail)
     return ENOMEM;
   
@@ -349,9 +347,10 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
     default:
       if (!mu_is_proto (mail))
 	{
-	  tmp_mbox = mu_getcwd();
-	  mbox = malloc (strlen (tmp_mbox) + strlen (mail) + 2);
-	  sprintf (mbox, "%s/%s", tmp_mbox, mail);
+	  p = mu_getcwd();
+	  mbox = malloc (strlen (p) + strlen (mail) + 2);
+	  sprintf (mbox, "%s/%s", p, mail);
+	  free (p);  
 	}
       else
 	mbox = strdup (mail);
