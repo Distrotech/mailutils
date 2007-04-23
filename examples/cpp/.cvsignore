@@ -1,3 +1,11 @@
+addr
+http
+iconv
+listop
+mailcap
+murun
+sfrom
+url-parse
 Makefile.in
 Makefile
 .deps
