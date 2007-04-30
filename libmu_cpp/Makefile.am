@@ -38,5 +38,5 @@ libmu_cpp_la_SOURCES = \
  url.cc
 
 libmu_cpp_la_LIBADD = @MU_COMMON_LIBRARIES@
-libmu_cpp_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
+libmu_cpp_la_LDFLAGS = -rpath $(libdir)  -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
