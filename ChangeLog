@@ -1,3 +1,7 @@
+2007-04-30  Wojciech Polak
+
+	* libproto/pop/mbox.c: Fixed APOP handling.
+
 2007-04-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/header.c (mu_header_get_value): Bugfix
