@@ -1,3 +1,10 @@
+2007-04-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (MU_BUILT_CXX_EXAMPLES): Define if c++ libs
+	requested.
+	* examples/cpp/Makefile.am: Build c++ examples
+	* libmu_cpp/Makefile.am (libmu_cpp_la_LDFLAGS): Add -rpath
+
 2007-04-30  Wojciech Polak
 
 	* libproto/pop/mbox.c: Fixed APOP handling.
