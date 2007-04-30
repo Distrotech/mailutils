@@ -773,8 +773,10 @@ AC_ARG_ENABLE([experimental],
               [MU_BUILD_EXPERIMENTAL=no])
 
 AC_SUBST(MU_CXX_LIBS)
+AC_SUBST(MU_BUILT_CXX_EXAMPLES)
 if test "$MU_BUILD_EXPERIMENTAL" = yes; then
 	MU_CXX_LIBS='$(MU_CXX_LIBS)'
+	MU_BUILT_CXX_EXAMPLES='$(CXX_EXAMPLES)'
 fi
 
 if test x"$testpam" = x"yes"; then
