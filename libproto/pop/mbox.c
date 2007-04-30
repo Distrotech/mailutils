@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999,2000,2001,2003,2005,2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -190,6 +190,7 @@ struct _pop_data
   void *func;  /*  Indicate a command is in operation, busy.  */
   size_t id;   /* A second level of distincion, we maybe in the same function
 		  but working on a different message.  */
+  char *greeting_banner; /* A greeting banner */
   unsigned long capa; /* Server capabilities */
   enum pop_state state;
   pop_message_t *pmessages;
@@ -388,6 +389,8 @@ pop_destroy (mu_mailbox_t mbox)
 	      mpd->pmessages[i] = NULL;
 	    }
 	}
+      if (mpd->greeting_banner)
+	free (mpd->greeting_banner);
       if (mpd->buffer)
 	free (mpd->buffer);
       if (mpd->pmessages)
@@ -417,7 +420,6 @@ pop_capa (mu_mailbox_t mbox)
   mpd->state = POP_CAPA_ACK;
 
   /* POP_CAPA_ACK */
-
   status = pop_read_ack (mpd);
   CHECK_EAGAIN (mpd, status);
   MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
@@ -645,11 +647,17 @@ pop_stls (mu_mailbox_t mbox)
 
   status = pop_writeline (mpd, "STLS\r\n");
   CHECK_ERROR (mpd, status);
+  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
   status = pop_write (mpd);
   CHECK_EAGAIN (mpd, status);
+  mpd->state = POP_STLS_ACK;
+
+  /* POP_STLS_ACK */
   status = pop_read_ack (mpd);
   CHECK_ERROR (mpd, status);
   MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
   if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
     return -1;
 
@@ -674,7 +682,7 @@ pop_open (mu_mailbox_t mbox, int flags)
   int status;
   char *host;
   size_t hostlen = 0;
-  long port = 110;
+  long port = MU_POP_PORT;
 
   /* Sanity checks.  */
   if (mpd == NULL)
@@ -749,7 +757,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     case POP_GREETINGS:
       {
-	/* Swallow the greetings.  */
+	int gblen = 0;
 	status = pop_read_ack (mpd);
 	CHECK_EAGAIN (mpd, status);
 	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
@@ -757,6 +765,13 @@ pop_open (mu_mailbox_t mbox, int flags)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	  }
+	gblen = strlen (mpd->buffer);
+	mpd->greeting_banner = calloc (gblen, 1);
+	if (mpd->greeting_banner == NULL)
+	  {
+	    CHECK_ERROR (mpd, ENOMEM);
+	  }
+	memcpy (mpd->greeting_banner, mpd->buffer, gblen);
 	mpd->state = POP_CAPA;
       }
 
@@ -869,6 +884,9 @@ pop_close (mu_mailbox_t mbox)
 	}
     }
   /* And clear any residue.  */
+  if (mpd->greeting_banner)
+    free (mpd->greeting_banner);
+  mpd->greeting_banner = NULL;
   if (mpd->pmessages)
     free (mpd->pmessages);
   mpd->pmessages = NULL;
@@ -2084,11 +2102,11 @@ pop_get_timestamp (pop_data_t mpd)
   char *timestamp = NULL;
   size_t len;
 
-  len = strlen (mpd->buffer);
-  right = memchr (mpd->buffer, '<', len);
+  len = strlen (mpd->greeting_banner);
+  right = memchr (mpd->greeting_banner, '<', len);
   if (right)
     {
-      len = len - (right - mpd->buffer);
+      len = len - (right - mpd->greeting_banner);
       left = memchr (right, '>', len);
       if (left)
 	{
