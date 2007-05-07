@@ -73,6 +73,7 @@ mu_daemon_remove_pidfile (void)
     {
       unlink (pidfile);
       free (pidfile);
+      pidfile = NULL;
     }
 }
 
