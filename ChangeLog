@@ -1,3 +1,7 @@
+2007-05-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/daemon.c (mu_daemon_remove_pidfile): Reset pidfile.
+
 2007-04-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (MU_BUILT_CXX_EXAMPLES): Define if c++ libs
