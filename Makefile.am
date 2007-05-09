@@ -56,10 +56,10 @@ SUBDIRS = \
 EXTRA_DIST = COPYING.LESSER
 
 alpha:
-	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
+	$(MAKE) dist distdir=$(PACKAGE)-$(VERSION)-`date +"%Y%m%d"`
 
 alphacheck:
-	$(MAKE) distcheck distdir=$(PACKAGE)-`date +"%Y%m%d"`
+	$(MAKE) distcheck distdir=$(PACKAGE)-$(VERSION)-`date +"%Y%m%d"`
 
 rpm: dist
 	rpm -ta --clean mailutils-$(VERSION).tar.gz
