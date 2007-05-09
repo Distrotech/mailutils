@@ -23,7 +23,7 @@ Subject: Jabberwocky
 Number of parts in message - 1
 Total message size - 1255/44
 Type of part 1 = 
-Message part size - 1255/44
+Message part size - 1255/44: 318/9, 937/35
 Text Message
 Begin
 `Twas brillig, and the slithy toves
@@ -69,7 +69,7 @@ Subject: Re: Jabberwocky
 Number of parts in message - 1
 Total message size - 535/13
 Type of part 1 = 
-Message part size - 535/13
+Message part size - 535/13: 320/9, 215/4
 Text Message
 Begin
 It seems very pretty, but it's *rather* hard to understand!'
@@ -84,7 +84,7 @@ Subject: Simple MIME
 Number of parts in message - 2
 Total message size - 1626/42
 Type of part 1 = text/plain; name="msg.1"; charset="us-ascii"
-Message part size - 372/14
+Message part size - 371/13: 141/4, 230/9
 Text Message
 Begin
 How doth the little crocodile
@@ -97,10 +97,9 @@ How neatly spread his claws,
 And welcome little fishes in
 With gently smiling jaws!
 
-
 End
 Type of part 2 = application/octet-stream; name="msg.21"
-Message part size - 646/12
+Message part size - 645/11: 183/5, 462/6
 Attachment - saving [msg.21]
 Begin
 `You are old, Father William,' the young man said,
@@ -121,7 +120,7 @@ Subject: Nested MIME
 Number of parts in message - 2
 Total message size - 3484/84
 Type of part 1 = text/plain; name="msg.21"; charset="us-ascii"
-Message part size - 497/15
+Message part size - 496/14: 155/4, 341/10
 Text Message
 Begin
 `You are old, Father William,' the young man said,
@@ -135,14 +134,13 @@ But, now that I'm perfectly sure I have none,
 Why, I do it again and again.'
 
 
-
 End
 Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa1"
-Message part size - 2379/53
+Message part size - 2378/52: 114/3, 2264/49
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream; name="msg.22"
-Message part size - 664/13
+Message part size - 663/12: 184/5, 479/7
 Attachment - saving [msg.22]
 Begin
 `You are old,' said the youth, `as I mentioned before,
@@ -157,11 +155,11 @@ Allow me to sell you a couple?'
 
 End
 Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa2"
-Message part size - 1532/33
+Message part size - 1531/32: 114/3, 1417/29
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream; name="msg.23"
-Message part size - 669/13
+Message part size - 668/12: 185/5, 483/7
 Attachment - saving [msg.23]
 Begin
 `You are old,' said the youth, `and your jaws are too weak
@@ -176,7 +174,7 @@ Has lasted the rest of my life.'
 
 End
 Type of part 2 = application/octet-stream; name="msg.24"
-Message part size - 680/13
+Message part size - 679/12: 184/5, 495/7
 Attachment - saving [msg.24]
 Begin
 `You are old,' said the youth, `one would hardly suppose
@@ -198,15 +196,15 @@ Message: 5
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Empty MIME Parts
 Number of parts in message - 2
-Total message size - 912/25
-Type of part 1 = text/plain; name="empty"; charset="us-ascii
-Message part size - 143/4
+Total message size - 914/27
+Type of part 1 = text/plain; name="empty"; charset="us-ascii"
+Message part size - 143/4: 143/4, 0/0
 Text Message
 Begin
 
 End
-Type of part 2 = text/plain; name="single.line"; charset="us-ascii
-Message part size - 156/5
+Type of part 2 = text/plain; name="single.line"; charset="us-ascii"
+Message part size - 156/5: 155/4, 1/1
 Text Message
 Begin
 
