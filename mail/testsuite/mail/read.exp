@@ -259,7 +259,6 @@ mail_test -message "decoding simple MIME messages" \
 "How neatly spread his claws,"\
 "And welcome little fishes in"\
 "With gently smiling jaws!"\
-""\
 "+------------------------------------------------------------------------------+"\
 "| Message=3\[2\]"\
 "| Type=application/octet-stream; name=\"msg.21\""\
@@ -278,8 +277,8 @@ mail_test -message "decoding simple MIME messages" \
 "`In my youth,' Father William replied to his son,"\
 "`I feared it might injure the brain;"\
 "But, now that I'm perfectly sure I have none,"\
-"Why, I do it again and again.'"\
-""
+"Why, I do it again and again.'"
+
 mail_test -message "decoding nested MIME messages" \
 	"decode 4" \
 "+------------------------------------------------------------------------------+"\
@@ -300,7 +299,6 @@ mail_test -message "decoding nested MIME messages" \
 "`I feared it might injure the brain;"\
 "But, now that I'm perfectly sure I have none,"\
 "Why, I do it again and again.'"\
-""\
 ""\
 "+------------------------------------------------------------------------------+"\
 "| Message=4\[2\[1\]\]"\

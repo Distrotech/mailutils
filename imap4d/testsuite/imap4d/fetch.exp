@@ -82,7 +82,7 @@ imap4d_test "FETCH 1:\* ALL"\
 "2 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 23:28:09 +0000\" RFC822.SIZE 548 ENVELOPE (\"Fri, 28 Dec 2001 23:28:08 +0200\" \"Re: Jabberwocky\" ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200112232808.fERKR9N16790@dontmailme.org>\"))"\
 "3 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 1668 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Simple MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
 "4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\"))"\
-"5 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 937 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Empty MIME Parts\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
+"5 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 941 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Empty MIME Parts\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
 "OK"
 
 # BODYSTRUCTURE  The [MIME-IMB] body structure of the message.  This
@@ -99,24 +99,24 @@ imap4d_test "FETCH 2 BODYSTRUCTURE"\
 "OK"
 
 imap4d_test "FETCH 3 BODYSTRUCTURE"\
-"3 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"msg.1\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"How doth\" \"7BIT\" 241 10 NIL NIL NIL)(\"application\" \"octet-stream\" (\"name\" \"msg.21\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Father William Part I\" \"base64\" 470 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
+"3 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"msg.1\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"How doth\" \"7BIT\" 239 9 NIL NIL NIL)(\"application\" \"octet-stream\" (\"name\" \"msg.21\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Father William Part I\" \"base64\" 468 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
 "OK"
 
 imap4d_test "FETCH 4 BODYSTRUCTURE"\
-"4 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 353 11 NIL NIL NIL)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 488 NIL NIL NIL)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 492 NIL NIL NIL)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 504 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa2\") NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa1\") NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
+"4 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 351 10 NIL NIL NIL)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 486 NIL NIL NIL)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 490 NIL NIL NIL)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 502 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa2\") NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa1\") NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
 "OK"
 
 imap4d_test "FETCH 5 BODYSTRUCTURE"\
-"5 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"empty\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"Empty part\" \"7BIT\" 0 0 NIL NIL NIL)(\"text\" \"plain\" (\"name\" \"single.line\" \"charset\" \"\us-ascii\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Single line part\" \"7BIT\" 2 1 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
+"5 FETCH (BODYSTRUCTURE ((\"text\" \"plain\" (\"name\" \"empty\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"Empty part\" \"7BIT\" 0 0 NIL NIL NIL)(\"text\" \"plain\" (\"name\" \"single.line\" \"charset\" \"us-ascii\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Single line part\" \"7BIT\" 2 1 NIL NIL NIL) \"mixed\" (\"boundary\" \"----- =_aaaaaaaaaa0\") NIL NIL))"\
 "OK" 
 
 # BODY       The text of a particular body section. 
 imap4d_test "FETCH 1:* BODY"\
 "1 FETCH (BODY (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\") NIL NIL \"7BIT\" 972 35))"\
 "2 FETCH (BODY (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\") NIL NIL \"7BIT\" 219 4))"\
-"3 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"msg.1\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"How doth\" \"7BIT\" 241 10)(\"application\" \"octet-stream\" (\"name\" \"msg.21\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Father William Part I\" \"base64\" 470) \"mixed\" NIL NIL NIL))"\
-"4 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 353 11)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 488)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 492)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 504) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
-"5 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"empty\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"Empty part\" \"7BIT\" 0 0)(\"text\" \"plain\" (\"name\" \"single.line\" \"charset\" \"\us-ascii\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Single line part\" \"7BIT\" 2 1) \"mixed\" NIL NIL NIL))"\
+"3 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"msg.1\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"How doth\" \"7BIT\" 239 9)(\"application\" \"octet-stream\" (\"name\" \"msg.21\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Father William Part I\" \"base64\" 468) \"mixed\" NIL NIL NIL))"\
+"4 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 351 10)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 486)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 490)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 502) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
+"5 FETCH (BODY ((\"text\" \"plain\" (\"name\" \"empty\" \"charset\" \"us-ascii\") \"<5082.1026510189.1@Mirddin.farlep.net>\" \"Empty part\" \"7BIT\" 0 0)(\"text\" \"plain\" (\"name\" \"single.line\" \"charset\" \"us-ascii\") \"<5082.1026510189.2@Mirddin.farlep.net>\" \"Single line part\" \"7BIT\" 2 1) \"mixed\" NIL NIL NIL))"\
 "OK"
 
 # BODY.PEEK[<section>]<<partial>>
@@ -329,9 +329,8 @@ imap4d_test "FETCH 3 BODY\[1.MIME\]"\
 ")"\
 "OK"
 
-
 imap4d_test "FETCH 4 BODY\[2.2.1\]"\
-"4 FETCH (FLAGS (\\Seen) BODY\[2.2.1\] {492}"\
+"4 FETCH (FLAGS (\\Seen) BODY\[2.2.1\] {490}"\
 -literal\
 "YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhbmQgeW91ciBqYXdzIGFyZSB0b28gd2Vh"\
 "awpGb3IgYW55dGhpbmcgdG91Z2hlciB0aGFuIHN1ZXQ7CllldCB5b3UgZmluaXNoZWQgdGhlIGdv"\
@@ -340,12 +339,11 @@ imap4d_test "FETCH 4 BODY\[2.2.1\]"\
 "dGhlIGxhdywKQW5kIGFyZ3VlZCBlYWNoIGNhc2Ugd2l0aCBteSB3aWZlOwpBbmQgdGhlIG11c2N1"\
 "bGFyIHN0cmVuZ3RoLCB3aGljaCBpdCBnYXZlIHRvIG15IGphdywKSGFzIGxhc3RlZCB0aGUgcmVz"\
 "dCBvZiBteSBsaWZlLicK"\
-""\
 ")"\
 "OK"
 
 imap4d_test "FETCH 4 BODY\[2.2.1.TEXT\]"\
-"4 FETCH (BODY\[2.2.1.TEXT\] {492}"\
+"4 FETCH (BODY\[2.2.1.TEXT\] {490}"\
 -literal\
 "YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhbmQgeW91ciBqYXdzIGFyZSB0b28gd2Vh"\
 "awpGb3IgYW55dGhpbmcgdG91Z2hlciB0aGFuIHN1ZXQ7CllldCB5b3UgZmluaXNoZWQgdGhlIGdv"\
@@ -354,12 +352,11 @@ imap4d_test "FETCH 4 BODY\[2.2.1.TEXT\]"\
 "dGhlIGxhdywKQW5kIGFyZ3VlZCBlYWNoIGNhc2Ugd2l0aCBteSB3aWZlOwpBbmQgdGhlIG11c2N1"\
 "bGFyIHN0cmVuZ3RoLCB3aGljaCBpdCBnYXZlIHRvIG15IGphdywKSGFzIGxhc3RlZCB0aGUgcmVz"\
 "dCBvZiBteSBsaWZlLicK"\
-""\
 ")"\
 "OK"
 
 imap4d_test "FETCH 4 BODY\[2.2.TEXT\]"\
-"4 FETCH (BODY\[2.2.TEXT\] {1448}"\
+"4 FETCH (BODY\[2.2.TEXT\] {1446}"\
 -literal\
 -- "------- =_aaaaaaaaaa2"\
 "Content-Type: application/octet-stream; name=\"msg.23\""\
@@ -390,7 +387,6 @@ imap4d_test "FETCH 4 BODY\[2.2.TEXT\]"\
 "IGtpY2sgeW91IGRvd24gc3RhaXJzIScK"\
 ""\
 -- "------- =_aaaaaaaaaa2--"\
-""\
 ")"\
 "OK"
 
@@ -521,7 +517,7 @@ imap4d_test "FETCH 1 FAST" \
 #                RFC822.SIZE ENVELOPE BODY)
 
 imap4d_test "FETCH 4 FULL"\
-"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\") BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 353 11)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 488)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 492)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 504) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
+"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\") BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 351 10)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 486)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 490)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 502) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
 "OK"
 
 imap4d_stop

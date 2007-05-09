@@ -44,14 +44,14 @@ mail_start -reuse-spool "--file=%mbox1"
 mail_test "h" \
 	">U   1 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"\
 	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"\
-	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  27/931   Empty MIME Parts"
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/933   Empty MIME Parts"
 
 # Send first message to mbox...
 mail_command "mbox 1"
 mail_test "h" \
 	">M   1 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"\
 	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1645  Simple MIME"\
-	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  27/931   Empty MIME Parts"
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/933   Empty MIME Parts"
 
 # ... and quit
 mail_test -noprompt "quit" \

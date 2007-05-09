@@ -199,10 +199,12 @@ mu_exec -message "readmsg *" -arg "\\\\*" \
 "Content-ID: <5082.1026510189.1@Mirddin.farlep.net>"\
 "Content-Description: Empty part"\
 ""\
+""\
 -- "------- =_aaaaaaaaaa0"\
 "Content-Type: text/plain; name=\"single.line\"; charset=\"us-ascii\""\
 "Content-ID: <5082.1026510189.2@Mirddin.farlep.net>"\
 "Content-Description: Single line part"\
+""\
 ""\
 ""\
 -- "------- =_aaaaaaaaaa0--"\
