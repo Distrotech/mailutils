@@ -1,3 +1,17 @@
+2007-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am (alpha): Change distdir format
+	* examples/mimetest.c: Print more information about the message
+	structure.
+	* mailbox/mime.c (_mime_parse_mpart_message): One more fix
+	* mailbox/testsuite/Mime: Fix to match new mimetest output and
+	bugfixes in mime.c
+	* imap4d/testsuite/imap4d/fetch.exp, mail/testsuite/mail/read.exp,
+	mail/testsuite/mail/write.exp,
+	readmsg/testsuite/readmsg/test.exp: Update to match bugfixes in
+	mime.c  
+	* testsuite/spool/mbox1: Fix msg#5
+	
 2007-05-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/daemon.c (mu_daemon_remove_pidfile): Reset pidfile.
