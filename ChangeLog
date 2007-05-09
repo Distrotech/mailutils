@@ -1,3 +1,12 @@
+2007-05-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* scripts/ylwrap: Rename to ...
+	* scripts/gylwrap: ... this
+	* doc/texinfo/Makefile.am, libsieve/Makefile.am,
+	mailbox/Makefile.am, mailbox/Makefile.am, mh/Makefile.am,
+	mimeview/Makefile.am, scripts/Makefile.am: Update to the
+	above change.
+
 2007-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* Makefile.am (alpha): Change distdir format

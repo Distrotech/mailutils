@@ -19,7 +19,7 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
 AM_YFLAGS = -dtv
 AM_CPPFLAGS = -DSIEVE_MODDIR=\"@SIEVE_MODDIR@\"
 

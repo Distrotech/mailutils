@@ -21,7 +21,7 @@
 INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include @INTLINCS@
 
 AM_CPPFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
 AM_YFLAGS=-vt
 
 SUBDIRS = testsuite 

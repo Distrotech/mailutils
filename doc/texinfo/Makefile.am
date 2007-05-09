@@ -25,50 +25,50 @@ INCFILES = \
  mailcap.inc\
  numaddr.inc\
  sfrom.inc\
- url-parse.inc\
- mu_address.texi\
- mu_mailbox.texi\
- mu_message.texi\
- mu_body.texi\
- mu_mime.texi\
- mu_logger.texi\
- mu_scm.texi
+ url-parse.inc
 
 mailutils_TEXINFOS = \
- address.texi \
- attribute.texi \
- auth.texi \
- body.texi \
- c-api.texi \
- encoding.texi \
- envelope.texi \
- fdl.texi \
- framework.texi \
- folder.texi \
- headers.texi \
- imap4.texi \
- iterator.texi \
- libmuauth.texi \
- libmu_scm.texi \
- libsieve.texi \
- locker.texi \
- mailbox.texi \
- mailcap.texi \
- mailer.texi \
- maildir.texi \
- mbox.texi \
- message.texi \
- mh.texi \
- mu-mh.texi \
- nntp.texi \
- parse822.texi \
- pop3.texi \
- programs.texi \
- sendmail.texi \
- sieve.texi \
- smtp.texi \
- stream.texi \
- url.texi \
+ address.texi\
+ attribute.texi\
+ auth.texi\
+ body.texi\
+ c-api.texi\
+ encoding.texi\
+ envelope.texi\
+ fdl.texi\
+ folder.texi\
+ framework.texi\
+ headers.texi\
+ imap4.texi\
+ iterator.texi\
+ libmu_scm.texi\
+ libmuauth.texi\
+ libsieve.texi\
+ locker.texi\
+ mailbox.texi\
+ mailcap.texi\
+ maildir.texi\
+ mailer.texi\
+ mbox.texi\
+ message.texi\
+ mh.texi\
+ mu-mh.texi\
+ mu_address.texi\
+ mu_body.texi\
+ mu_logger.texi\
+ mu_mailbox.texi\
+ mu_message.texi\
+ mu_mime.texi\
+ mu_scm.texi\
+ nntp.texi\
+ parse822.texi\
+ pop3.texi\
+ programs.texi\
+ sendmail.texi\
+ sieve.texi\
+ smtp.texi\
+ stream.texi\
+ url.texi\
  $(INCFILES)
 
 muint_TEXINFOS = \

@@ -142,7 +142,7 @@ LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 pick_SOURCES = pick.c pick.h pick-gram.c pick-gram.h
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
 AM_YFLAGS=-vt
 
 pick-gram.c pick-gram.h: $(srcdir)/pick.y
