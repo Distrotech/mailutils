@@ -334,24 +334,34 @@ _mime_parse_mpart_message (mu_mime_t mime)
 			{
 			  mime->parser_state = MIME_STATE_HEADERS;
 			  mime->flags &= ~MIME_PARSER_HAVE_CR;
-			  mb_length = mime->cur_offset -
-			    mb_offset - mime->line_ndx;
+			  mb_length = mime->cur_offset 
+			                   - mb_offset
+			                   - mime->line_ndx;
 			  if (mime->header_length)
 			    /* this skips the preamble */
-			    /* RFC 1521 [Page 30]:
-			       NOTE: The CRLF preceding the encapsulation line
-			       is conceptually attached to the boundary so
-			       that it is possible to have a part that does
-			       not end with a CRLF (line break). Body parts
-			       that must be considered to end with line
-			       breaks, therefore, must have two CRLFs
-			       preceding the encapsulation line, the first
-			       of which is part of the preceding body part,
-			       and the second of which is part of the
-			       encapsulation boundary. */
-			    _mime_append_part (mime, NULL,
-					       mb_offset, mb_length,
-					       mb_lines - 1);
+			    {
+			      /* RFC 1521 [Page 30]:
+				 NOTE: The CRLF preceding the encapsulation
+				 line is conceptually attached to the boundary
+				 so that it is possible to have a part that
+				 does not end with a CRLF (line break). Body
+				 parts that must be considered to end with line
+				 breaks, therefore, must have two CRLFs
+				 preceding the encapsulation line, the first
+				 of which is part of the preceding body part,
+				 and the second of which is part of the
+				 encapsulation boundary. */
+			      
+			      if (mb_lines)
+				/* to prevent negative values in case of a
+				   malformed message */
+				mb_lines--;
+				  
+			      _mime_append_part (mime, NULL,
+						 mb_offset, mb_length,
+						 mb_lines);
+			    }
+
 			  if ((&mime->cur_line[mime->line_ndx] - cp2 - 1 >
 			       blength
 			       && !strncasecmp (cp2 + blength + 2, "--", 2))
@@ -361,13 +371,15 @@ _mime_parse_mpart_message (mu_mime_t mime)
 			    {	/* last boundary */
 			      mime->parser_state = MIME_STATE_BEGIN_LINE;
 			      mime->header_length = 0;
-			      break;
 			    }
-			  mime->line_ndx = -1;	/* headers parsing requires empty line */
+			  else
+			    mime->line_ndx = -1; /* headers parsing requires
+						    empty line */
 			  break;
 			}
 		    }
-		  else if (mime->header_length)
+
+		  if (mime->header_length)
 		    mb_lines++;
 
 		  mime->line_ndx = 0;
