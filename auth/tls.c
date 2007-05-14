@@ -406,6 +406,7 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
   rc = mu_stream_sequential_write (stream, buf, size);
   if (rc)
     return -1;
+  mu_stream_flush (stream);
   return size;
 }
 
