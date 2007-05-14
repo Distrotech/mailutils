@@ -1,3 +1,8 @@
+2007-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* README: Fix typos, use LDFLAGS instead of LIBS
+	* auth/tls.c (_tls_stream_push): Flush data. before returning.
+
 2007-05-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* scripts/ylwrap: Rename to ...
