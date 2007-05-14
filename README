@@ -79,8 +79,8 @@ mailutils-specific configuration options:
         and include paths, e.g.
 
 
-	./configure LIBS='-L/usr/local/mysql/lib -L/usr/local/pgsql/lib' \
-                    CPPLAGS='-I/usr/local/mysql/include \
+	./configure LDFLAGS='-L/usr/local/mysql/lib -L/usr/local/pgsql/lib' \
+                    CPPFLAGS='-I/usr/local/mysql/include \
                              -I/usr/local/pgsql/include' 
     		    --with-sql=mysql:postgres
 
@@ -93,8 +93,8 @@ mailutils-specific configuration options:
         may require adding appropriate directories to the library and
         include paths, e.g.:
 
-	./configure LIBS='-L/usr/local/mysql/lib' \
-                    CPPLAGS='-I/usr/local/mysql/include' --with-mysql
+	./configure LDFLAGS='-L/usr/local/mysql/lib' \
+                    CPPFLAGS='-I/usr/local/mysql/include' --with-mysql
 
     --with-postgres
 
