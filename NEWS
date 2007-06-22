@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-03-06
+GNU mailutils NEWS -- history of user-visible changes. 2007-06-22
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -9,16 +9,18 @@ Version 1.1.90:
 
 * `libmailbox' library
 
-mu_stream_wait and mu_fd_wait allow to wait for exceptional conditions.
+** mu_stream_wait and mu_fd_wait allow to wait for exceptional conditions.
 
-maildir and mh repositories are created if MU_STREAM_CREAT flag is supplied.
+** maildir and mh repositories are created if MU_STREAM_CREAT flag is supplied.
 
-Fix coredump in argcv, which was triggered by input line consisting of
+** Fix coredump in argcv, which was triggered by input line consisting of
 a single double-quote character.
 
-Fix inconsistency in decoding MIME messages: the CRLF preceding the
+** Fix inconsistency in decoding MIME messages: the CRLF preceding the
 encapsulation line is conceptually attached to the boundary, as
 requested by RFC 1521.
+
+** New functions `mu_property_sget_value' and `mu_property_aget_value'
 
 * The `mail.local' utility
 
@@ -54,6 +56,10 @@ from the available data.
 
 New options `--bulletin-db' and `--bulletin-source' implement bulletin
 facility.
+
+* MH changes
+
+** sortm uses stable sort algorithm.
 
 * Support for old DBM has been withdrawn.
 
