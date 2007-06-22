@@ -41,6 +41,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/argcv.h>
+#include <mailutils/mutil.h>
 
 #include <mailer0.h>
 
@@ -295,33 +296,100 @@ save_fcc (mu_message_t msg)
     }
 }
 
+static int
+_set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
+	   mu_mailer_t mailer)
+{
+  int status = 0;
+  char *mail_from;
+  mu_header_t header = NULL;
+
+  *pfrom = NULL;
+  
+  /* Get MAIL_FROM from FROM, the message, or the environment. */
+  if (!from)
+    {
+      const char *type;
+      
+      if ((status = mu_message_get_header (msg, &header)) != 0)
+	return status;
+      
+      status = mu_header_aget_value (header, MU_HEADER_FROM, &mail_from);
+      
+      switch (status)
+	{
+	default:
+	  return status;
+
+	  /* Use the From: header. */
+	case 0:
+	  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+			 "mu_mailer_send_message(): using From: %s\n",
+			 mail_from);
+	    
+	  status = mu_address_create (pfrom, mail_from);
+	  free (mail_from);
+	  break;
+
+	case MU_ERR_NOENT:
+	  if (mu_property_sget_value (mailer->property, "TYPE", &type) == 0
+	      && strcmp (type, "SENDMAIL") == 0)
+	    return 0;
+	  
+	  /* Use the environment. */
+	  mail_from = mu_get_user_email (NULL);
+
+	  if (mail_from)
+	    {
+	      MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+			     "mu_mailer_send_message(): using user's address: %s\n",
+			     mail_from);
+	    }
+	  else
+	    {
+	      MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE,
+			     "mu_mailer_send_message(): no user's address, failing\n");
+	    }
+
+	  if (!mail_from)
+	    return errno;
+
+	  status = mu_address_create (pfrom, mail_from);
+	  /* FIXME: should we add the From: header? */
+	  break;
+	}
+    }
+
+  return status;
+}
+
 int
 mu_mailer_send_message (mu_mailer_t mailer, mu_message_t msg,
-		     mu_address_t from, mu_address_t to)
+			mu_address_t from, mu_address_t to)
 {
   int status;
-
-  if (mailer == NULL || mailer->_send_message == NULL)
+  mu_address_t sender_addr = NULL;
+  
+  if (mailer == NULL)
+    return EINVAL;
+  if (mailer->_send_message == NULL)
     return ENOSYS;
 
-  /* Common API checking. */
-
-  /* FIXME: this should be done in the concrete APIs, sendmail doesn't
-     yet, though, so do it here. */
-  if (from)
+  status = _set_from (&sender_addr, msg, from, mailer);
+  if (status)
+    return status;
+  if (sender_addr)
+    from = sender_addr;
+  
+  if ((!from || (status = mu_mailer_check_from (from)) == 0)
+      && (!to || (status = mu_mailer_check_to (to)) == 0))
     {
-      if ((status = mu_mailer_check_from (from)) != 0)
-	return status;
-    }
-
-  if (to)
-    {
-      if ((status = mu_mailer_check_to (to)) != 0)
-	return status;
+      save_fcc (msg);
+      status = mailer->_send_message (mailer, msg, from, to);
     }
   
-  save_fcc (msg);
-  return mailer->_send_message (mailer, msg, from, to);
+  mu_address_destroy (&sender_addr);
+  return status;
 }
 
 int
