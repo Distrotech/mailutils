@@ -55,6 +55,8 @@ AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}
 
 dnl Check for programs
 AC_PROG_CC
+AM_PROG_CC_C_O
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_LIBTOOL_DLOPEN
