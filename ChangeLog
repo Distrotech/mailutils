@@ -6,7 +6,7 @@
 	* mailbox/property.c: Likewise
 	* mailbox/Makefile.am: Merge DEFS and AM_CPPFLAGS
 	* mailbox/mailer.c (mu_mailer_send_message): Set envelope from
-	address depending on the underlying mailer type.
+	address according to the underlying mailer type.
 	* mailbox/smtp.c (smtp_open,smtp_send_message): On invalid
 	arguments, return EINVAL instead of spitting out assertion.
 	(smtp_send_message): Null from address is an error.
