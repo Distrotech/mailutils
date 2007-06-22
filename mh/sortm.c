@@ -292,7 +292,7 @@ compare_action (void *item, void *data)
 }
 
 static int
-compare_messages (mu_message_t a, mu_message_t b)
+compare_messages (mu_message_t a, mu_message_t b, size_t anum, size_t bnum)
 {
   struct comp_data d;
 
@@ -300,6 +300,14 @@ compare_messages (mu_message_t a, mu_message_t b)
   d.m[0] = a;
   d.m[1] = b;
   mu_list_do (oplist, compare_action, &d);
+  if (d.r == 0)
+    {
+      if (anum < bnum)
+	d.r = -1;
+      else if (anum > bnum)
+	d.r = 1;
+    }
+      
   if (verbose > 1)
     fprintf (stderr, "%d\n", d.r);
   return d.r;
@@ -380,7 +388,7 @@ comp0 (size_t na, size_t nb)
 	     _("comparing messages %s and %s: "),
 	     mu_umaxtostr (0, na),
 	     mu_umaxtostr (1, nb));
-  return compare_messages (a, b);
+  return compare_messages (a, b, na, nb);
 }
 
 int
