@@ -20,7 +20,6 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include @INTLINCS@
 
-AM_CPPFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" 
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
 AM_YFLAGS=-vt
 
@@ -29,7 +28,9 @@ SUBDIRS = testsuite
 lib_LTLIBRARIES = libmailutils.la
 
 localedir = $(datadir)/locale
-DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
+AM_CPPFLAGS = \
+ -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
+ -DLOCALEDIR=\"$(localedir)\"
 
 EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y fgetpwent.c
 
