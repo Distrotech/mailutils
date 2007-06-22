@@ -26,7 +26,6 @@
 
 #ifdef ENABLE_SMTP
 
-#include <assert.h>
 #include <errno.h>
 #include <ctype.h>
 #include <netdb.h>
@@ -125,7 +124,6 @@ static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
 static int smtp_write (smtp_t);
 
-static int _smtp_set_from (smtp_t, mu_message_t, mu_address_t);
 static int _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
 
 /* Useful little macros, since these are very repetitive. */
@@ -304,7 +302,8 @@ smtp_open (mu_mailer_t mailer, int flags)
   size_t buf_len = 0;
 
   /* Sanity checks.  */
-  assert (smtp);
+  if (!smtp)
+    return EINVAL;
 
   mailer->flags = flags;
 
@@ -316,7 +315,7 @@ smtp_open (mu_mailer_t mailer, int flags)
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
-/* Set up the mailer, open the stream, etc. */
+      /* Set up the mailer, open the stream, etc. */
       /* Get the mailhost.  */
       if (smtp->mailhost)
 	{
@@ -556,21 +555,22 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     return EINVAL;
 
   smtp = mailer->data;
-  assert (smtp);
+  if (!smtp)
+    return EINVAL;
 
   CHECK_SEND_RESUME (smtp, argmsg, argfrom, argto);
 
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
-      if (argmsg == NULL)
+      if (argmsg == NULL || argfrom == NULL)
 	return EINVAL;
 
       smtp->argmsg = smtp->msg = argmsg;
       smtp->argfrom = argfrom;
       smtp->argto = argto;
 
-      status = _smtp_set_from (smtp, smtp->argmsg, smtp->argfrom);
+      status = mu_address_aget_email (smtp->argfrom, 1, &smtp->mail_from);
       CHECK_ERROR (smtp, status);
 
       status = _smtp_set_rcpt (smtp, smtp->argmsg, smtp->argto);
@@ -808,110 +808,6 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     }
   CLEAR_STATE (smtp);
   return 0;
-}
-
-static int
-_smtp_set_from (smtp_t smtp, mu_message_t msg, mu_address_t from)
-{
-  int status = 0;
-  char *mail_from;
-  mu_header_t header = NULL;
-
-  /* Get MAIL_FROM from FROM, the message, or the environment. */
-  if (from)
-    {
-      /* Use the specified mu_address_t. */
-      if ((status = mu_mailer_check_from (from)) != 0)
-	{
-	  MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_ERROR,
-			 "mu_mailer_send_message(): explicit from not valid\n");
-	  return status;
-	}
-
-      if ((status = mu_address_aget_email (from, 1, &mail_from)) != 0)
-	return status;
-    }
-  else
-    {
-      char *from_hdr = NULL;
-
-      if ((status = mu_message_get_header (msg, &header)) != 0)
-	return status;
-
-      status = mu_header_aget_value (header, MU_HEADER_FROM, &from_hdr);
-
-      switch (status)
-	{
-	default:
-	  return status;
-
-	  /* Use the From: header. */
-	case 0:
-	  {
-	    mu_address_t fromaddr = NULL;
-
-	    MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_TRACE,
-			   "mu_mailer_send_message(): using From: %s\n",
-			   from_hdr);
-
-	    if ((status = mu_address_create (&fromaddr, from_hdr)) != 0)
-	      {
-		free (from_hdr);
-		return status;
-	      }
-	    if ((status = mu_mailer_check_from (fromaddr)) != 0)
-	      {
-		free (from_hdr);
-		mu_address_destroy (&fromaddr);
-		MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_ERROR,
-			       "mu_mailer_send_message(): from field %s not valid\n",
-			       from_hdr);
-		return status;
-	      }
-	    if ((status = mu_address_aget_email (fromaddr, 1, &mail_from)) != 0)
-	      {
-		free (from_hdr);
-		mu_address_destroy (&fromaddr);
-		return status;
-	      }
-	    free (from_hdr);
-	    mu_address_destroy (&fromaddr);
-	  }
-	  break;
-
-	case MU_ERR_NOENT:
-	  /* Use the environment. */
-	  mail_from = mu_get_user_email (NULL);
-
-	  if (mail_from)
-	    {
-	      MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_TRACE,
-			     "mu_mailer_send_message(): using user's address: %s\n",
-			     mail_from);
-	    }
-	  else
-	    {
-	      MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_TRACE,
-			     "mu_mailer_send_message(): no user's address, failing\n");
-	    }
-
-	  if (!mail_from)
-	    return errno;
-
-	  status = 0;
-
-	  /* FIXME: should we add the From: header? */
-
-	  break;
-
-	}
-    }
-
-  assert (mail_from);
-
-  smtp->mail_from = mail_from;
-
-  return status;
 }
 
 int
