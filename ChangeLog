@@ -1,3 +1,17 @@
+2007-06-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Use AM_PROG_CC_C_O and AC_PROG_CXX
+	* include/mailutils/property.h (mu_property_sget_value)
+	(mu_property_aget_value): New functions
+	* mailbox/property.c: Likewise
+	* mailbox/Makefile.am: Merge DEFS and AM_CPPFLAGS
+	* mailbox/mailer.c (mu_mailer_send_message): Set envelope from
+	address depending on the underlying mailer type.
+	* mailbox/smtp.c (smtp_open,smtp_send_message): On invalid
+	arguments, return EINVAL instead of spitting out assertion.
+	(smtp_send_message): Null from address is an error.
+	* mh/sortm.c: Stable sort.
+	
 2007-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* README: Fix typos, use LDFLAGS instead of LIBS
