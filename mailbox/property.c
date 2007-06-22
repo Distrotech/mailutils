@@ -82,7 +82,7 @@ mu_property_get_owner (mu_property_t prop)
 
 int
 mu_property_set_value (mu_property_t prop, const char *key,  const char *value,
-		    int overwrite)
+		       int overwrite)
 {
   struct property_item *item;
   int status = property_find (prop, key, &item);
@@ -123,7 +123,7 @@ mu_property_set_value (mu_property_t prop, const char *key,  const char *value,
 
 int
 mu_property_get_value (mu_property_t prop, const char *key, char *buffer,
-		    size_t buflen, size_t *n)
+		       size_t buflen, size_t *n)
 {
   struct property_item *item = NULL;
   int status;
@@ -143,6 +143,36 @@ mu_property_get_value (mu_property_t prop, const char *key, char *buffer,
   if (n)
     *n = len;
   return 0;
+}
+
+int
+mu_property_sget_value (mu_property_t prop, const char *key,
+			const char **buffer)
+{
+  struct property_item *item = NULL;
+  int status;
+
+  status = property_find (prop, key, &item);
+  if (status == 0)
+    *buffer = item->value;
+  return status;
+}
+
+int
+mu_property_aget_value (mu_property_t prop, const char *key,
+			char **buffer)
+{
+  struct property_item *item = NULL;
+  int status;
+
+  status = property_find (prop, key, &item);
+  if (status == 0)
+    {
+      *buffer = strdup (item->value);
+      if (!*buffer)
+	status = ENOMEM;
+    }
+  return status;
 }
 
 int

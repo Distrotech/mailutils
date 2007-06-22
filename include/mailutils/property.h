@@ -33,7 +33,11 @@ extern void *mu_property_get_owner (mu_property_t);
 
 extern int  mu_property_set_value (mu_property_t, const char *, const char *, int);
 extern int mu_property_get_value (mu_property_t, const char *, char *, size_t, 
-                               size_t *);
+				  size_t *);
+extern int mu_property_sget_value (mu_property_t prop, const char *key,
+				   const char **buffer);
+extern int mu_property_aget_value (mu_property_t prop, const char *key,
+				   char **buffer);
 
 /* Helper functions.  */
 extern int mu_property_set  (mu_property_t, const char *);
