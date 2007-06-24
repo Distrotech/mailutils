@@ -1,3 +1,20 @@
+2007-06-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+	* examples/addr.c, examples/mta.c, frm/common.c, imap4d/fetch.c,
+	libmu_scm/mu_message.c, mail/alias.c, mail/alt.c, mail/from.c,
+	mail/mail.h, mail/reply.c, mail/send.c, mail/util.c,
+	mailbox/attachment.c, mailbox/mutil.c, mailbox/sendmail.c,
+	mailbox/smtp.c, mh/mh.h, mh/mh_format.c, mh/mh_format.h,
+	mh/mh_init.c: Use mu_address_sget functions, where possible.
+	* include/mailutils/address.h (mu_address_set_local_part)
+	(mu_address_set_domain,mu_address_set_route)
+	(mu_address_set_email,mu_address_sget_comments)
+	(mu_address_sget_local_part,mu_address_sget_personal)
+	(mu_address_sget_domain,mu_address_sget_route)
+	(mu_address_sget_email): New functions
+	* mailbox/address.c: LIkewise
+
 2007-06-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Use AM_PROG_CC_C_O and AC_PROG_CXX
