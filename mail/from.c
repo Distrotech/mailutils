@@ -44,9 +44,9 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
 	{
 	  char name[128];
 	  size_t len;
-	  char *email;
+	  const char *email;
 	  
-	  if (mu_address_aget_email (address, 1, &email) == 0)
+	  if (mu_address_sget_email (address, 1, &email) == 0)
 	    {
 	      if (util_getenv (NULL, "showto", Mail_env_boolean, 0) == 0
 		  && mail_is_my_name (email))
@@ -64,7 +64,6 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
 		      free (tmp);
 		    }
 		}
-	      free (email);
 	    }
 	      
 	  len = strlen (from) + 1;

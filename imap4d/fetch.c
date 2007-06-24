@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1433,8 +1433,6 @@ fetch_header_fields_not (mu_message_t msg, char **arg, unsigned long start,
   return RESP_OK;
 }
 
-/* FIXME: The address is limit by a buffer of 128, no good.  We should
-   allocate the buffer.  */
 static int
 fetch_send_address (const char *addr)
 {
@@ -1461,39 +1459,33 @@ fetch_send_address (const char *addr)
   util_send ("(", count);
   for (i = 1; i <= count; i++)
     {
-      char buf[128];
+      const char *str;
+      int is_group = 0;
 
       util_send ("(");
 
-      *buf = '\0';
-      mu_address_get_personal (address, i, buf, sizeof (buf), NULL);
-      util_send_qstring (buf);
+      mu_address_sget_personal (address, i, &str);
+      util_send_qstring (str);
+      util_send (" ");
+
+      mu_address_sget_route (address, i, &str);
+      util_send_qstring (str);
 
       util_send (" ");
 
-      *buf = '\0';
-      mu_address_get_route (address, i, buf, sizeof (buf), NULL);
-      util_send_qstring (buf);
+      mu_address_is_group (address, i, &is_group);
+      str = NULL;
+      if (is_group)
+	mu_address_sget_personal (address, i, &str);
+      else
+	mu_address_sget_local_part (address, i, &str);
+
+      util_send_qstring (str);
 
       util_send (" ");
 
-      *buf = '\0';
-      {
-	int is_group = 0;
-
-	mu_address_is_group (address, i, &is_group);
-	if (is_group)
-	  mu_address_get_personal (address, i, buf, sizeof (buf), NULL);
-	else
-	  mu_address_get_local_part (address, i, buf, sizeof (buf), NULL);
-      }
-      util_send_qstring (buf);
-
-      util_send (" ");
-
-      *buf = '\0';
-      mu_address_get_domain (address, i, buf, sizeof (buf), NULL);
-      util_send_qstring (buf);
+      mu_address_sget_domain (address, i, &str);
+      util_send_qstring (str);
 
       util_send (")");
     }

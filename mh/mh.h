@@ -309,7 +309,7 @@ void mh_expand_aliases (mu_message_t msg, mu_address_t *addr_to,
 			mu_address_t *addr_cc,
 			mu_address_t *addr_bcc);
 
-int mh_is_my_name (char *name);
+int mh_is_my_name (const char *name);
 char * mh_my_email (void);
 
 int mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,

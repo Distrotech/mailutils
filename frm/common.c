@@ -358,7 +358,7 @@ init_output (size_t s)
   from `from/from.c' and `mail/util.c'...
 */
 static char *
-rfc2047_decode_wrapper (char *buf, size_t buflen)
+rfc2047_decode_wrapper (const char *buf, size_t buflen)
 {
   int rc;
   char *tmp;

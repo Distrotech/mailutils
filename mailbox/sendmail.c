@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2006 Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -201,9 +201,9 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
       {
 	int tunnel[2];
 	int argc = 0;
-	char **argvec = NULL;
+	const char **argvec = NULL;
 	size_t tocount = 0;
-	char *emailfrom = NULL;
+	const char *emailfrom = NULL;
 
 	/* Count the length of the arg vec: */
 
@@ -214,7 +214,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 	if (from)
 	  {
-	    if ((status = mu_address_aget_email (from, 1, &emailfrom)) != 0)
+	    if ((status = mu_address_sget_email (from, 1, &emailfrom)) != 0)
 	      goto OPEN_STATE_CLEANUP;
 
 	    if (!emailfrom)
@@ -253,34 +253,18 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 	argc = 0;
 
-	if ((argvec[argc++] = strdup (sendmail->path)) == 0)
-	  {
-	    status = ENOMEM;
-	    goto OPEN_STATE_CLEANUP;
-	  }
+	argvec[argc++] = sendmail->path;
+	argvec[argc++] = "-oi";
 
-	if ((argvec[argc++] = strdup ("-oi")) == 0)
-	  {
-	    status = ENOMEM;
-	    goto OPEN_STATE_CLEANUP;
-	  }
 	if (from)
 	  {
-	    if ((argvec[argc++] = strdup ("-f")) == 0)
-	      {
-		status = ENOMEM;
-		goto OPEN_STATE_CLEANUP;
-	      }
+	    argvec[argc++] = "-f";
 	    argvec[argc++] = emailfrom;
 	  }
 	
 	if (!to || mailer_property_is_set (mailer, "READ_RECIPIENTS"))
 	  {
-	    if ((argvec[argc++] = strdup ("-t")) == 0)
-	      {
-		status = ENOMEM;
-		goto OPEN_STATE_CLEANUP;
-	      }
+	    argvec[argc++] = "-t";
 	  }
 	else
 	  {
@@ -291,8 +275,8 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 	    for (; i <= count; i++)
 	      {
-		char *email = 0;
-		if ((status = mu_address_aget_email (to, i, &email)) != 0)
+		const char *email;
+		if ((status = mu_address_sget_email (to, i, &email)) != 0)
 		  goto OPEN_STATE_CLEANUP;
 		if (!email)
 		  {
@@ -322,7 +306,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 		SCLOSE (STDERR_FILENO, tunnel);
 		close (tunnel[1]);
 		dup2 (tunnel[0], STDIN_FILENO);
-		execv (sendmail->path, argvec);
+		execv (sendmail->path, (char**) argvec);
 		exit (errno);
 	      }
 	    else if (sendmail->pid == -1)
@@ -345,7 +329,6 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	for (argc = 0; argvec && argvec[argc]; argc++)
 	  {
 	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, " %s", argvec[argc]);
-	    free (argvec[argc]);
 	  }
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "\n");
 	free (argvec);

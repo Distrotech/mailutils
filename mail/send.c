@@ -216,7 +216,8 @@ compose_init (compose_env_t * env)
 }
 
 int
-compose_header_set (compose_env_t * env, char *name, char *value, int mode)
+compose_header_set (compose_env_t * env, const char *name,
+		    const char *value, int mode)
 {
   int status;
   char *old_value;

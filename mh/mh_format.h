@@ -57,7 +57,7 @@ struct mh_machine
 };
 
 void strobj_free (strobj_t *obj);
-void strobj_create (strobj_t *lvalue, char *str);
+void strobj_create (strobj_t *lvalue, const char *str);
 void strobj_set (strobj_t *lvalue, char *str);
 void strobj_assign (strobj_t *lvalue, strobj_t *rvalue);
 void strobj_copy (strobj_t *lvalue, strobj_t *rvalue);

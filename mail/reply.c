@@ -70,7 +70,6 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
 
       mu_address_t addr = NULL;
       size_t i, count = 0;
-      char buf[512];
 
       if (mu_header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
 	{
@@ -82,11 +81,13 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
       /* Make sure we do not include our alternate names */
       for (i = 1; i <= count; i++)
 	{
-	  mu_address_get_email (addr, i, buf, sizeof (buf), NULL);
+	  const char *email;
+	  if (mu_address_sget_email (addr, i, &email) || email == NULL)
+	    continue;
 	  if ((util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
-	      || !mail_is_my_name (buf))
+	      || !mail_is_my_name (email))
 	    compose_header_set (&env, MU_HEADER_TO,
-				buf,
+				email,
 				COMPOSE_SINGLE_LINE);
 	}
       

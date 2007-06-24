@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -60,15 +61,15 @@ struct _msg_info
   mu_message_t msg;
   int ioffset;
   int ooffset;
-  mu_stream_t stream;		/* output file/decoding stream for saving attachment */
-  mu_stream_t fstream;		/* output file stream for saving attachment */
+  mu_stream_t stream;	/* output file/decoding stream for saving attachment */
+  mu_stream_t fstream;	/* output file stream for saving attachment */
 };
 
 #define MSG_HDR "Content-Type: %s; name=%s\nContent-Transfer-Encoding: %s\nContent-Disposition: attachment; filename=%s\n\n"
 
 int
 mu_message_create_attachment (const char *content_type, const char *encoding,
-			   const char *filename, mu_message_t * newmsg)
+			      const char *filename, mu_message_t * newmsg)
 {
   mu_header_t hdr;
   mu_body_t body;
@@ -142,8 +143,8 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 
 
 static int
-_attachment_setup (struct _msg_info **info, mu_message_t msg, mu_stream_t * stream,
-		   void **data)
+_attachment_setup (struct _msg_info **info, mu_message_t msg,
+		   mu_stream_t * stream, void **data)
 {
   int sfl, ret;
   mu_body_t body;
@@ -230,53 +231,8 @@ _header_get_param (char *field_body, const char *param, size_t * len)
   return NULL;
 }
 
-#if 0
 int
-mu_message_get_attachment_name (mu_message_t msg, char *name, size_t bufsz, size_t *sz)
-{
-  char *pTmp, *fname = NULL;
-  mu_header_t hdr;
-  int ret = EINVAL;
-  size_t size = 0;
-
-  if (filename != NULL && (ret = mu_message_get_header (msg, &hdr)) == 0)
-    {
-      *filename = NULL;
-      mu_header_get_value (hdr, "Content-Disposition", NULL, 0, &size);
-      if (size)
-	{
-	  if ((pTmp = alloca (size + 1)) == NULL)
-	    ret = ENOMEM;
-	  mu_header_get_value (hdr, "Content-Disposition", pTmp, size + 1, 0);
-	  if (strstr (pTmp, "attachment") != NULL)
-	    fname = _header_get_param (pTmp, "filename", &size);
-	}
-      if (fname == NULL)
-	{
-	  size = 0;
-	  mu_header_get_value (hdr, "Content-Type", NULL, 0, &size);
-	  if (size)
-	    {
-	      if ((pTmp = alloca (size + 1)) == NULL)
-		ret = ENOMEM;
-	      mu_header_get_value (hdr, "Content-Type", pTmp, size + 1, 0);
-	      fname = _header_get_param (pTmp, "name", &size);
-	    }
-	}
-      if (fname)
-	{
-	  fname[size] = '\0';
-	  if ((*filename = strdup (fname)) == NULL)
-	    ret = ENOMEM;
-	}
-      else
-	ret = MU_ERR_NOENT;
-    }
-  return ret;
-}
-#endif
-
-int mu_message_aget_attachment_name(mu_message_t msg, char** name)
+mu_message_aget_attachment_name(mu_message_t msg, char **name)
 {
   size_t sz = 0;
   int ret = 0;
@@ -299,7 +255,8 @@ int mu_message_aget_attachment_name(mu_message_t msg, char** name)
 }
 
 int
-mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz, size_t *sz)
+mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz,
+				size_t *sz)
 {
   int ret = EINVAL;
   mu_header_t hdr;
@@ -360,7 +317,8 @@ mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz, size_
 }
 
 int
-mu_message_save_attachment (mu_message_t msg, const char *filename, void **data)
+mu_message_save_attachment (mu_message_t msg, const char *filename,
+			    void **data)
 {
   mu_stream_t istream;
   struct _msg_info *info = NULL;

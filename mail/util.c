@@ -868,7 +868,7 @@ util_slist_print (mu_list_t list, int nl)
 }
 
 int
-util_slist_lookup (mu_list_t list, char *str)
+util_slist_lookup (mu_list_t list, const char *str)
 {
   mu_iterator_t itr;
   char *name;

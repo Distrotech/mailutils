@@ -160,7 +160,7 @@ emailcmp (char *pattern, char *name)
 }
 
 int
-mh_is_my_name (char *name)
+mh_is_my_name (const char *name)
 {
   char *pname, *p;
   int rc = 0;

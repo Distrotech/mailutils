@@ -248,7 +248,7 @@ extern void free_env_headers (compose_env_t *env);
 /*extern void print_message (mu_message_t mesg, char *prefix, int all_headers, FILE *file);*/
 
 extern int mail_mbox_commit (void);
-extern int mail_is_my_name (char *name);
+extern int mail_is_my_name (const char *name);
 extern void mail_set_my_name (char *name);
 extern char *mail_whoami (void);
 extern int mail_header_is_visible (char *str);
@@ -343,7 +343,7 @@ extern char *util_folder_path (const char *name);
 extern char *util_get_sender (int msgno, int strip);
 
 extern void util_slist_print (mu_list_t list, int nl);
-extern int util_slist_lookup (mu_list_t list, char *str);
+extern int util_slist_lookup (mu_list_t list, const char *str);
 extern void util_slist_add (mu_list_t *list, char *value);
 extern void util_slist_remove (mu_list_t *list, char *value);
 extern void util_slist_destroy (mu_list_t *list);
@@ -381,7 +381,7 @@ extern int ml_reread (const char *prompt, char **text);
 extern char *ml_readline (char *prompt);
 extern char *ml_readline_with_intr (char *prompt);
 
-extern char *alias_expand (char *name);
+extern char *alias_expand (const char *name);
 extern void alias_destroy (const char *name);
 
 typedef struct alias_iterator *alias_iterator_t;
@@ -404,8 +404,8 @@ extern void var_iterate_end (var_iterator_t *itr);
 #define COMPOSE_SINGLE_LINE 2
 
 void compose_init (compose_env_t *env);
-int compose_header_set (compose_env_t *env, char *name,
-		        char *value, int replace);
+int compose_header_set (compose_env_t *env, const char *name,
+		        const char *value, int replace);
 char *compose_header_get (compose_env_t *env, char *name, char *defval);
 void compose_destroy (compose_env_t *env);
 

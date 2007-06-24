@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2006 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -95,7 +96,7 @@ struct _smtp
 
   int extended;
 
-  char *mail_from;
+  const char *mail_from;
   mu_address_t rcpt_to;		/* Destroy this if not the same as argto below. */
   mu_address_t rcpt_bcc;
   size_t rcpt_to_count;
@@ -140,10 +141,7 @@ CLEAR_STATE (smtp_t smtp)
   smtp->extended = 0;
 
   if (smtp->mail_from)
-    {
-      free (smtp->mail_from);
-      smtp->mail_from = NULL;
-    }
+    smtp->mail_from = NULL;
 
   if (smtp->rcpt_to != smtp->argto)
     mu_address_destroy (&smtp->rcpt_to);
@@ -570,7 +568,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
       smtp->argfrom = argfrom;
       smtp->argto = argto;
 
-      status = mu_address_aget_email (smtp->argfrom, 1, &smtp->mail_from);
+      status = mu_address_sget_email (smtp->argfrom, 1, &smtp->mail_from);
       CHECK_ERROR (smtp, status);
 
       status = _smtp_set_rcpt (smtp, smtp->argmsg, smtp->argto);
@@ -626,11 +624,11 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     ENV_RCPT:
       {
 	mu_address_t addr = smtp->rcpt_to;
-	char *to = NULL;
+	const char *to = NULL;
 
 	if (smtp->bccing)
 	  addr = smtp->rcpt_bcc;
-	status = mu_address_aget_email (addr, smtp->rcpt_index, &to);
+	status = mu_address_sget_email (addr, smtp->rcpt_index, &to);
 
 	CHECK_ERROR (smtp, status);
 
@@ -642,8 +640,6 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	  }
 
 	status = smtp_writeline (smtp, "RCPT TO: <%s>\r\n", to);
-
-	free (to);
 
 	CHECK_ERROR (smtp, status);
 

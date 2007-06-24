@@ -110,15 +110,15 @@ alias_destroy (const char *name)
 
 
 static void
-recursive_alias_expand (char *name, mu_list_t exlist, mu_list_t origlist)
+recursive_alias_expand (const char *name, mu_list_t exlist, mu_list_t origlist)
 { 
   alias_t al;
   mu_iterator_t itr;
   
   if ((al = alias_lookup (name)) == NULL)
     {
-      if (mu_list_locate (exlist, name, NULL) == MU_ERR_NOENT)
-	mu_list_append (exlist, name);
+      if (mu_list_locate (exlist, (void*)name, NULL) == MU_ERR_NOENT)
+	mu_list_append (exlist, (void*)name);
       return;
     }
   
@@ -147,7 +147,7 @@ string_comp (const void *item, const void *value)
 }
 
 char *
-alias_expand (char *name)
+alias_expand (const char *name)
 {
   alias_t al;
   mu_list_t list;

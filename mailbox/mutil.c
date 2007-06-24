@@ -354,7 +354,7 @@ mu_set_user_email (const char *candidate)
   mu_address_t addr = NULL;
   size_t emailno = 0;
   char *email = NULL;
-  char *domain = NULL;
+  const char *domain = NULL;
   
   if ((err = mu_address_create (&addr, candidate)) != 0)
     return err;
@@ -376,9 +376,8 @@ mu_set_user_email (const char *candidate)
 
   mu_user_email = email;
 
-  mu_address_aget_domain (addr, 1, &domain);
-  mu_set_user_email_domain (domain);
-  free (domain);
+  if ((err = mu_address_sget_domain (addr, 1, &domain)) == 0)
+    mu_set_user_email_domain (domain);
   
 cleanup:
   mu_address_destroy (&addr);
@@ -391,7 +390,7 @@ static char *mu_user_email_domain = 0;
 int
 mu_set_user_email_domain (const char *domain)
 {
-  char* d = NULL;
+  char *d = NULL;
   
   if (!domain)
     return EINVAL;

@@ -77,7 +77,7 @@ mail_set_my_name (char *name)
 }
    
 int
-mail_is_my_name (char *name)
+mail_is_my_name (const char *name)
 {
   if (strchr(name, '@') == NULL && strcasecmp (name, my_name) == 0)
     return 1;

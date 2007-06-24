@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +33,7 @@ parse (const char *str)
   size_t no = 0;
   size_t pcount = 0;
   int status;
-  char buf[BUFSIZ];
+  const char *buf;
   mu_address_t address = NULL;
 
   mu_set_user_email_domain ("localhost");
@@ -59,37 +60,32 @@ parse (const char *str)
 
       if (isgroup)
         {
-          mu_address_get_personal (address, no, buf, sizeof (buf), &got);
+          mu_address_sget_personal (address, no, &buf);
           printf ("group <%s>\n", buf);
         }
       else
         {
-          mu_address_get_email (address, no, buf, sizeof (buf), 0);
+          mu_address_sget_email (address, no, &buf);
           printf ("email <%s>\n", buf);
         }
 
-      mu_address_get_personal (address, no, buf, sizeof (buf), &got);
-      if (got && !isgroup)
+      if (mu_address_sget_personal (address, no, &buf) == 0 && buf && !isgroup)
         printf ("   personal <%s>\n", buf);
 
-      mu_address_get_comments (address, no, buf, sizeof (buf), &got);
-      if (got)
+      if (mu_address_sget_comments (address, no, &buf) == 0 && buf)
         printf ("   comments <%s>\n", buf);
 
-      mu_address_get_local_part (address, no, buf, sizeof (buf), &got);
-      if (got)
+      if (mu_address_sget_local_part (address, no, &buf) == 0 && buf)
         {
           printf ("   local-part <%s>", buf);
 
-          mu_address_get_domain (address, no, buf, sizeof (buf), &got);
-          if (got)
+          if (mu_address_sget_domain (address, no, &buf) == 0 && buf)
             printf (" domain <%s>", buf);
 
           printf ("\n");
         }
 
-      mu_address_get_route (address, no, buf, sizeof (buf), &got);
-      if (got)
+      if (mu_address_sget_route (address, no, &buf) == 0 && buf)
         printf ("   route <%s>\n", buf);
     }
   mu_address_destroy (&address);

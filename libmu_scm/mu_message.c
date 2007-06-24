@@ -54,19 +54,20 @@ _get_envelope_sender (mu_envelope_t env)
 {
   mu_address_t addr;
   char buffer[128];
-
+  char *ptr;
+  
   if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
       || mu_address_create (&addr, buffer))
     return NULL;
 
-  if (mu_address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
+  if (mu_address_aget_email (addr, 1, &ptr))
     {
       mu_address_destroy (&addr);
       return NULL;
     }
 
   mu_address_destroy (&addr);
-  return strdup (buffer);
+  return buffer;
 }
 
 static int
