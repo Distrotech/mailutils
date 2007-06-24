@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-06-22
+GNU mailutils NEWS -- history of user-visible changes. 2007-06-24
 Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -21,6 +21,14 @@ encapsulation line is conceptually attached to the boundary, as
 requested by RFC 1521.
 
 ** New functions `mu_property_sget_value' and `mu_property_aget_value'
+
+** New functions `mu_address_sget_comments', `mu_address_sget_local_part'
+`mu_address_sget_personal', `mu_address_sget_domain',
+`mu_address_sget_route', `mu_address_sget_email' 
+
+
+** New functions `mu_address_set_local_part', `mu_address_set_domain',
+`mu_address_set_route', `mu_address_set_email'
 
 * The `mail.local' utility
 
