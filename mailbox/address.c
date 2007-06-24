@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -212,112 +213,114 @@ mu_address_get_nth (mu_address_t addr, size_t no, mu_address_t *pret)
   return 0;
 }
 
-int
-mu_address_get_personal (mu_address_t addr, size_t no, char *buf, size_t len,
-			 size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
+
+/* General accessors: */
+#define AC4(a,b,c,d) a ## b ## c ## d
+#define ACCESSOR(action,field) AC4(mu_address_,action,_,field)
 
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  i = mu_cpystr (buf, subaddr->personal, len);
-  if (n)
-    *n = i;
-  return 0;
+#define DECL_SET(field)							\
+int									\
+ACCESSOR(set, field) (mu_address_t addr, size_t no, const char *buf)	\
+{									\
+  char *s;								\
+  mu_address_t subaddr;							\
+  									\
+  if (addr == NULL)							\
+    return EINVAL;							\
+									\
+  subaddr = _address_get_nth (addr, no);				\
+  if (!subaddr)								\
+    return MU_ERR_NOENT;						\
+									\
+  s = strdup (buf);							\
+  if (!s)								\
+    return errno;							\
+  									\
+  free (subaddr->field);						\
+  subaddr->field = s;							\
+									\
+  return 0;								\
 }
 
-int
-mu_address_set_personal (mu_address_t addr, size_t no, const char *buf)
-{
-  char *s;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  s = strdup (buf);
-  if (!s)
-    return errno;
-  
-  free (subaddr->personal);
-  subaddr->personal = s;
-
-  return 0;
+#define DECL_SGET(field)						\
+int									\
+ACCESSOR(sget,field) (mu_address_t addr, size_t no, char const **sptr)	\
+{									\
+  mu_address_t subaddr;							\
+  									\
+  if (addr == NULL)							\
+    return EINVAL;							\
+									\
+  subaddr = _address_get_nth (addr, no);				\
+  if (!subaddr)								\
+    return MU_ERR_NOENT;						\
+  									\
+  *sptr = subaddr->field;						\
+  return 0;								\
 }
 
-int
-mu_address_get_comments (mu_address_t addr, size_t no, char *buf, size_t len,
-			 size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  i = mu_cpystr (buf, subaddr->comments, len);
-  if (n)
-    *n = i;
-  return 0;
+#define DECL_GET(field)							  \
+int									  \
+ACCESSOR(get,field) (mu_address_t addr, size_t no, char *buf, size_t len, \
+		     size_t * n)					  \
+{									  \
+  size_t i;								  \
+  const char *str;							  \
+  int status = ACCESSOR(sget, field) (addr, no, &str);			  \
+  									  \
+  if (status)								  \
+    return status;							  \
+									  \
+  i = mu_cpystr (buf, str, len);					  \
+  if (n)								  \
+    *n = i;								  \
+  return 0;								  \
 }
 
-int
-mu_address_set_comments (mu_address_t addr, size_t no, const char *buf)
-{
-  char *s;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  s = strdup (buf);
-  if (!s)
-    return errno;
-  
-  free (subaddr->comments);
-  subaddr->comments = s;
-
-  return 0;
+#define DECL_AGET(field)						\
+int									\
+ACCESSOR(aget, field) (mu_address_t addr, size_t no, char **buf)	\
+{									\
+  const char *str;							\
+  int status = ACCESSOR(sget, field) (addr, no, &str);			\
+									\
+  if (status)								\
+    return status;							\
+									\
+  if (str)								\
+    {									\
+      *buf = strdup (str);						\
+      if (!*buf)							\
+	status = ENOMEM;						\
+    }									\
+  else									\
+    *buf = NULL;							\
+  return status;							\
 }
 
-int
-mu_address_get_email (mu_address_t addr, size_t no, char *buf, size_t len,
-		      size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
+#define DECL_ACCESSORS(field)			\
+DECL_SET(field)					\
+DECL_SGET(field)				\
+DECL_GET(field)					\
+DECL_AGET(field)          
 
-  if (addr == NULL)
-    return EINVAL;
+
 
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  i = mu_cpystr (buf, subaddr->email, len);
-  if (n)
-    *n = i;
-  return 0;
-}
+/* Personal part */
+DECL_ACCESSORS(personal)
+/* Comments */
+DECL_ACCESSORS(comments)
+/* Email */
+DECL_ACCESSORS(email)     
+/* Local part */
+DECL_ACCESSORS(local_part)
+/* Domain */
+DECL_ACCESSORS(domain)
+/* Route */
+DECL_ACCESSORS(route)
 
+
+
 #define format_char(c) do {\
  if (buflen) \
    {\
@@ -382,189 +385,6 @@ mu_address_format_string (mu_address_t addr, char *buf, size_t buflen)
     }
   format_char (0);
   return rc;
-}
-
-int
-mu_address_aget_personal (mu_address_t addr, size_t no, char **buf)
-{
-  int status = 0;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  if (subaddr->personal)
-    {
-      *buf = strdup (subaddr->personal);
-      if (!*buf)
-	status = ENOMEM;
-    }
-  else
-    *buf = NULL;
-  return status;
-}
-
-int
-address_aget_comments (mu_address_t addr, size_t no, char **buf)
-{
-  int status = 0;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  if (subaddr->comments)
-    {
-      *buf = strdup (subaddr->comments);
-      if (!*buf)
-	status = ENOMEM;
-    }
-  else
-    *buf = NULL;
-  return status;
-}
-
-int
-mu_address_aget_email (mu_address_t addr, size_t no, char **buf)
-{
-  int status = 0;
-  mu_address_t subaddr;
-  
-  if (addr == NULL || buf == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  if (subaddr->email)
-    {
-      *buf = strdup (subaddr->email);
-      if (!*buf)
-	status = ENOMEM;
-    }
-  else
-    *buf = NULL;
-
-  return status;
-}
-
-int
-mu_address_aget_local_part (mu_address_t addr, size_t no, char **buf)
-{
-  int status = 0;
-  mu_address_t subaddr;
-  
-  if (addr == NULL || buf == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  if (subaddr->local_part)
-    {
-      *buf = strdup (subaddr->local_part);
-      if (!*buf)
-	status = ENOMEM;
-    }
-  else
-    *buf = NULL;
-
-  return status;
-}
-
-int
-mu_address_aget_domain (mu_address_t addr, size_t no, char **buf)
-{
-  int status = 0;
-  mu_address_t subaddr;
-  
-  if (addr == NULL || buf == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  if (subaddr->domain)
-    {
-      *buf = strdup (subaddr->domain);
-      if (!*buf)
-	status = ENOMEM;
-    }
-  else
-    *buf = NULL;
-
-  return status;
-}
-
-int
-mu_address_get_local_part (mu_address_t addr, size_t no, char *buf, size_t len,
-			   size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-
-  i = mu_cpystr (buf, subaddr->local_part, len);
-  if (n)
-    *n = i;
-  return 0;
-}
-
-int
-mu_address_get_domain (mu_address_t addr, size_t no, char *buf, size_t len,
-		       size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  i = mu_cpystr (buf, subaddr->domain, len);
-  if (n)
-    *n = i;
-  return 0;
-}
-
-int
-mu_address_get_route (mu_address_t addr, size_t no, char *buf, size_t len,
-		      size_t * n)
-{
-  size_t i;
-  mu_address_t subaddr;
-  
-  if (addr == NULL)
-    return EINVAL;
-
-  subaddr = _address_get_nth (addr, no);
-  if (!subaddr)
-    return MU_ERR_NOENT;
-  
-  i = mu_cpystr (buf, subaddr->route, len);
-  if (n)
-    *n = i;
-  return 0;
 }
 
 static int

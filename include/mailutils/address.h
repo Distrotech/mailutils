@@ -36,27 +36,54 @@ extern int mu_address_concatenate (mu_address_t to, mu_address_t* from);
 
 extern int mu_address_get_nth
         (mu_address_t addr, size_t no, mu_address_t *pret);
+
+extern int mu_address_set_email (mu_address_t, size_t, const char *);
+extern int mu_address_sget_email
+	(mu_address_t, size_t, const char **);
 extern int mu_address_get_email
 	(mu_address_t, size_t, char *, size_t, size_t *);
-extern int mu_address_get_local_part
-	(mu_address_t, size_t, char *, size_t, size_t *);
-extern int mu_address_get_domain
-	(mu_address_t, size_t, char *, size_t, size_t *);
-extern int mu_address_get_personal
-	(mu_address_t, size_t, char *, size_t, size_t *);
-extern int mu_address_get_comments
-	(mu_address_t, size_t, char *, size_t, size_t *);
-extern int mu_address_get_route
-	(mu_address_t, size_t, char *, size_t, size_t *);
-
 extern int mu_address_aget_email
 	(mu_address_t, size_t, char **);
+
+extern int mu_address_set_comments (mu_address_t, size_t, const char *);
+extern int mu_address_sget_comments
+	(mu_address_t, size_t, const char **);
+extern int mu_address_get_comments
+	(mu_address_t, size_t, char *, size_t, size_t *);
+extern int mu_address_aget_comments
+	(mu_address_t, size_t, char **);
+
+extern int mu_address_set_local_part (mu_address_t, size_t, const char *);
+extern int mu_address_sget_local_part
+	(mu_address_t, size_t, const char **);
+extern int mu_address_get_local_part
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_aget_local_part
-       (mu_address_t addr, size_t no, char **buf);
-extern int mu_address_aget_domain
-       (mu_address_t addr, size_t no, char **buf);
+	(mu_address_t, size_t, char **);
+
+extern int mu_address_set_personal (mu_address_t, size_t, const char *);
+extern int mu_address_sget_personal
+	(mu_address_t, size_t, const char **);
+extern int mu_address_get_personal
+	(mu_address_t, size_t, char *, size_t, size_t *);
 extern int mu_address_aget_personal
-       (mu_address_t addr, size_t no, char **buf);
+	(mu_address_t, size_t, char **);
+
+extern int mu_address_set_domain (mu_address_t, size_t, const char *);
+extern int mu_address_sget_domain
+	(mu_address_t, size_t, const char **);
+extern int mu_address_get_domain
+	(mu_address_t, size_t, char *, size_t, size_t *);
+extern int mu_address_aget_domain
+	(mu_address_t, size_t, char **);
+
+extern int mu_address_set_route (mu_address_t, size_t, const char *);
+extern int mu_address_sget_route
+	(mu_address_t, size_t, const char **);
+extern int mu_address_get_route
+	(mu_address_t, size_t, char *, size_t, size_t *);
+extern int mu_address_aget_route
+	(mu_address_t, size_t, char **);
 
 extern int mu_address_is_group
 	(mu_address_t, size_t, int*);
@@ -72,13 +99,6 @@ extern int mu_address_union (mu_address_t *a, mu_address_t b);
   
 extern size_t mu_address_format_string (mu_address_t addr, char *buf, size_t buflen);
 
-  /* The following setters are not entirely orthogonal to their _get_
-     counterparts. Only personal and comments parts can be set */
-extern int mu_address_set_personal (mu_address_t addr, size_t no,
-				    const char *buf);
-extern int mu_address_set_comments (mu_address_t addr, size_t no,
-				    const char *buf);
-  
 #ifdef __cplusplus
 }
 #endif
