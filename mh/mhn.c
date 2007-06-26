@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1551,7 +1551,7 @@ normalize_path (char *cwd, char *path)
 	      /* Copy stuff */
 	      s = p + 2;
 	      p = q;
-	      while (*q++ = *s++)
+	      while ((*q++ = *s++))
 		;
 	      continue;
 	    }
