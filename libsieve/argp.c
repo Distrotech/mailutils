@@ -28,12 +28,16 @@ mu_list_t mu_sieve_library_path = NULL;
 
 static error_t sieve_argp_parser (int key, char *arg, struct argp_state *state);
 
+#define CLEARPATH_OPTION 256
+
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option sieve_argp_option[] = {
   { "includedir", 'I', N_("DIR"), 0,
     N_("Append directory DIR to the list of directories searched for include files"), 0 },
   { "libdir", 'L', N_("DIR"), 0,
     N_("Append directory DIR to the list of directories searched for library files"), 0 },
+  { "clearpath", CLEARPATH_OPTION, NULL, 0,
+    N_("Clear Sieve load path"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -48,6 +52,12 @@ static struct argp_child sieve_argp_child = {
   "Sieve options",
   0
 };
+
+static void
+destroy_string (void *str)
+{
+  free (str);
+}
 
 static error_t
 sieve_argp_parser (int key, char *arg, struct argp_state *state)
@@ -64,6 +74,10 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
       plist = &mu_sieve_library_path;
       break;
 
+    case CLEARPATH_OPTION:
+      mu_list_destroy (&mu_sieve_library_path);
+      break;
+      
     case ARGP_KEY_INIT:
 #ifdef SIEVE_MODDIR
       plist = &mu_sieve_library_path;
@@ -87,9 +101,10 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
 	  if (rc)
 	    {
 	      argp_error (state, "can't create list: %s",
-			mu_strerror (rc));
+			  mu_strerror (rc));
 	      exit (1);
 	    }
+	  mu_list_set_destroy_item (plist, destroy_string);
 	}
       mu_list_append (*plist, strdup (arg));
     }
