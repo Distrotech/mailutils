@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ static FILE *audit_fp;
 static int changecur = -1;
 static int truncate_source = -1;
 static int quiet = 0;
-static char *append_folder;
+static const char *append_folder;
 
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)

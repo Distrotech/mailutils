@@ -247,7 +247,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_FOLDER: 
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
 
     case ARG_FILE:
@@ -574,10 +574,11 @@ msg_part_subpart (msg_part_t p, int level)
 
 /* *********************** Context file accessors ************************* */
 
-char *
+const char *
 _mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
 {
-  char *str, *name;
+  char *name;
+  const char *str;
   
   if (subtype)
     {
@@ -599,7 +600,7 @@ _mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
 char *
 mhn_compose_command (char *typestr, int *flags, char *file)
 {
-  char *p, *str;
+  const char *p, *str;
   char *type, *subtype, *typeargs;
   struct obstack stk;
 
@@ -667,13 +668,15 @@ mhn_compose_command (char *typestr, int *flags, char *file)
     str = strdup (str);
 
   obstack_free (&stk, NULL);
-  return str;
+  return (char*) str;
 }
 
 char *
-mhn_show_command (mu_message_t msg, msg_part_t part, int *flags, char **tempfile)
+mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
+		  char **tempfile)
 {
-  char *p, *str, *tmp;
+  const char *p, *str;
+  char *tmp;
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
@@ -781,13 +784,14 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags, char **tempfile
     str = strdup (str);
 
   obstack_free (&stk, NULL);
-  return str;
+  return (char*) str;
 }
 
 char *
 mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 {
-  char *p, *str, *tmp;
+  const char *p, *str;
+  char *tmp;
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
@@ -872,7 +876,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
     str = strdup (str);
   
   obstack_free (&stk, NULL);
-  return str;
+  return (char*) str;
 }
 
 
@@ -1277,7 +1281,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
 }
   
 int
-mhn_exec (mu_stream_t *str, char *cmd, int flags)
+mhn_exec (mu_stream_t *str, const char *cmd, int flags)
 {
   int rc = mu_prog_stream_create (str, cmd, MU_STREAM_WRITE);
   if (rc)
@@ -1296,8 +1300,8 @@ mhn_exec (mu_stream_t *str, char *cmd, int flags)
 }
 
 int
-exec_internal (mu_message_t msg, msg_part_t part, char *encoding, char *cmd,
-	       int flags)
+exec_internal (mu_message_t msg, msg_part_t part, char *encoding,
+	       const char *cmd, int flags)
 {
   int rc;
   mu_stream_t tmp;
@@ -1420,7 +1424,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       
   if (!cmd)
     {
-      char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+      const char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
       if (pager)
 	exec_internal (msg, part, encoding, pager, 0);
       else
@@ -1583,7 +1587,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   int ismime;
   int rc;
   mu_stream_t out;
-  char *dir = mh_global_profile_get ("mhn-storage", NULL);
+  const char *dir = mh_global_profile_get ("mhn-storage", NULL);
   
   if (mu_message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
@@ -1611,7 +1615,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 			  && argv[i][0] == '='
 			  && ++i < argc)
 			{
-			  name = normalize_path (dir, argv[i]);
+			  name = normalize_path (xstrdup (dir), argv[i]);
 			  break;
 			}
 		    }
@@ -1635,7 +1639,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 			  && argv[i][0] == '='
 			  && ++i < argc)
 			{
-			  name = normalize_path (dir, argv[i]);
+			  name = normalize_path (xstrdup (dir), argv[i]);
 			  break;
 			}
 		    }
@@ -2793,7 +2797,7 @@ main (int argc, char **argv)
     }
   else
     {
-      mbox = mh_open_folder (current_folder, 0);
+      mbox = mh_open_folder (mh_current_folder (), 0);
       mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
     }
   

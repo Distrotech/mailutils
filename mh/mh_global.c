@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 #include <mh.h>
 
-char *current_folder = NULL;
+static const char *current_folder = NULL;
 size_t current_message = 0;
 mh_context_t *context;
 mh_context_t *profile;
@@ -30,8 +30,8 @@ int mh_auto_install = 1;
 
 /* Global profile */
 
-char *
-mh_global_profile_get (char *name, const char *defval)
+const char *
+mh_global_profile_get (const char *name, const char *defval)
 {
   return mh_context_get_value (profile, name, defval);
 }
@@ -52,6 +52,7 @@ void
 mh_read_profile ()
 {
   char *p;
+  const char *fallback;
   
   p = getenv ("MH");
   if (p)
@@ -72,8 +73,8 @@ mh_read_profile ()
   mh_context_read (profile);
 
   mh_set_reply_regex (mh_global_profile_get ("Reply-Regex", NULL));
-  p = mh_global_profile_get ("Decode-Fallback", NULL);
-  if (p && mu_set_default_fallback (p))
+  fallback = mh_global_profile_get ("Decode-Fallback", NULL);
+  if (fallback && mu_set_default_fallback (fallback))
     mu_error (_("Incorrect value for decode-fallback"));
 }
 
@@ -100,7 +101,7 @@ _mh_init_global_context ()
 							          "inbox"));
 }
 
-char *
+const char *
 mh_global_context_get (const char *name, const char *defval)
 {
   _mh_init_global_context ();
@@ -121,11 +122,20 @@ mh_global_context_iterate (mh_context_iterator fp, void *data)
   return mh_context_iterate (context, fp, data);
 }
 
-char *
+const char *
 mh_current_folder ()
 {
+  _mh_init_global_context ();
   return mh_global_context_get ("Current-Folder",
 				mh_global_profile_get ("Inbox", "inbox"));
+}
+
+const char *
+mh_set_current_folder (const char *val)
+{
+  mh_global_context_set ("Current-Folder", val);
+  current_folder = mh_current_folder ();
+  return current_folder;
 }
 
 /* Global sequences */
@@ -133,7 +143,8 @@ mh_current_folder ()
 void
 _mh_init_global_sequences ()
 {
-  char *name, *p, *seq_name;
+  const char *name;
+  char *p, *seq_name;
 
   if (sequences)
     return;
@@ -145,10 +156,8 @@ _mh_init_global_sequences ()
   free (p);
   sequences = mh_context_create (seq_name, 1);
   if (mh_context_read (sequences) == 0)
-    {
-      p = mh_context_get_value (sequences, "cur", "0");
-      current_message = strtoul (p, NULL, 10);
-    }
+    current_message = strtoul (mh_context_get_value (sequences, "cur", "0"),
+			       NULL, 10);
 }
 
 void
@@ -157,7 +166,7 @@ mh_global_sequences_drop ()
   sequences = NULL;
 }
 
-char *
+const char *
 mh_global_sequences_get (const char *name, const char *defval)
 {
   _mh_init_global_sequences ();

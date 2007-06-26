@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005,
-   2006 Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -188,7 +188,7 @@ struct mh_builtin
 
 typedef struct
 {
-  char *name;
+  const char *name;
   mu_header_t header;
 } mh_context_t;
 
@@ -215,8 +215,8 @@ struct mh_whatnow_env     /* whatnow shell environment */
   char *file;             /* The file being processed */
   char *msg;              /* File name of the original message (if any) */
   char *draftfile;        /* File to preserve the draft into */
-  char *draftfolder;
-  char *editor;
+  const char *draftfolder;
+  const char *editor;
   char *prompt;
   char *anno_field;       /* Annotate field to be used */
   mu_list_t anno_list;    /* List of messages (mu_message_t) to annotate */
@@ -226,12 +226,12 @@ struct mh_whatnow_env     /* whatnow shell environment */
 #define DISP_USE 1
 #define DISP_REPLACE 2
 
-typedef int (*mh_context_iterator) (char *field, char *value, void *data);
+typedef int (*mh_context_iterator) (const char *field, const char *value,
+				    void *data);
 
 #define SEQ_PRIVATE 1
 #define SEQ_ZERO    2
 
-extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
 extern int rcpt_mask;
@@ -240,16 +240,17 @@ void mh_init (void);
 void mh_init2 (void);
 void mh_read_profile (void);
 int mh_read_formfile (char *name, char **pformat);
-mu_message_t mh_file_to_message (const char *folder, char *file_name);
+mu_message_t mh_file_to_message (const char *folder, const char *file_name);
 mu_message_t mh_stream_to_message (mu_stream_t stream);
 void mh_install (char *name, int automode);
 
-char *mh_global_profile_get (char *name, const char *defval);
+const char *mh_global_profile_get (const char *name, const char *defval);
 int mh_global_profile_set (const char *name, const char *value);
-char *mh_global_context_get (const char *name, const char *defval);
+const char *mh_global_context_get (const char *name, const char *defval);
 int mh_global_context_set (const char *name, const char *value);
-char *mh_current_folder (void);
-char *mh_global_sequences_get (const char *name, const char *defval);
+const char *mh_set_current_folder (const char *val);
+const char *mh_current_folder (void);
+const char *mh_global_sequences_get (const char *name, const char *defval);
 int mh_global_sequences_set (const char *name, const char *value);
 void mh_global_save_state (void);
 int mh_global_profile_iterate (mh_context_iterator fp, void *data);
@@ -260,8 +261,8 @@ void mh_global_sequences_drop (void);
 int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...);
 int mh_getyn_interactive (const char *fmt, ...);
-int mh_check_folder (char *pathname, int confirm);
-int mh_makedir (char *p);
+int mh_check_folder (const char *pathname, int confirm);
+int mh_makedir (const char *p);
 
 int mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	       size_t width, char **pret);
@@ -278,11 +279,11 @@ void mh_err_memory (int fatal);
 FILE *mh_audit_open (char *name, mu_mailbox_t mbox);
 void mh_audit_close (FILE *fp);
 
-mh_context_t *mh_context_create (char *name, int copy);
+mh_context_t *mh_context_create (const char *name, int copy);
 int mh_context_read (mh_context_t *ctx);
 int mh_context_write (mh_context_t *ctx);
-char *mh_context_get_value (mh_context_t *ctx, const char *name,
-			    const char *defval);
+const char *mh_context_get_value (mh_context_t *ctx, const char *name,
+				  const char *defval);
 int mh_context_set_value (mh_context_t *ctx, const char *name,
 			  const char *value);
 int mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data);
@@ -328,7 +329,7 @@ int mh_usedraft (const char *filename);
 int mh_file_copy (const char *from, const char *to);
 char *mh_draft_name (void);
 char *mh_create_message_id (int);
-int mh_whom (char *filename, int check);
+int mh_whom (const char *filename, int check);
 void mh_set_reply_regex (const char *str);
 int mh_decode_2047 (char *text, char **decoded_text);
 
@@ -337,7 +338,7 @@ int mh_alias_get (char *name, mu_list_t *return_list);
 int mh_alias_get_address (char *name, mu_address_t *addr, int *incl);
 int mh_alias_get_alias (char *uname, mu_list_t *return_list);
 int mh_read_aliases (void);
-int mh_alias_expand (char *str, mu_address_t *paddr, int *incl);
+int mh_alias_expand (const char *str, mu_address_t *paddr, int *incl);
 
 typedef int (*mh_alias_enumerator_t) (char *alias, mu_list_t names, void *data);
 void mh_alias_enumerate (mh_alias_enumerator_t fun, void *data);
@@ -355,11 +356,12 @@ int mhl_format_run (mu_list_t fmt, int width, int length, int flags,
 		    mu_message_t msg, mu_stream_t output);
 void mhl_format_destroy (mu_list_t *fmt);
 
-void mh_seq_add (char *name, mh_msgset_t *mset, int flags);
-int mh_seq_delete (char *name, mh_msgset_t *mset, int flags);
-char *mh_seq_read (char *name, int flags);
+void mh_seq_add (const char *name, mh_msgset_t *mset, int flags);
+int mh_seq_delete (const char *name, mh_msgset_t *mset, int flags);
+const char *mh_seq_read (const char *name, int flags);
 
-void mh_comp_draft (char *formfile, char *defformfile, char *draftfile);
+void mh_comp_draft (const char *formfile, const char *defformfile,
+		    const char *draftfile);
 int check_draft_disposition (struct mh_whatnow_env *wh, int use_draft);
 
 void ali_parse_error (char *fmt, ...);

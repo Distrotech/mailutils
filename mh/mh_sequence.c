@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,19 +19,19 @@
 #include <mh.h>
 
 static char *
-private_sequence_name (char *name)
+private_sequence_name (const char *name)
 {
   char *p;
-  char *mbox_dir = mh_expand_name (NULL, current_folder, 0);
+  char *mbox_dir = mh_expand_name (NULL, mh_current_folder (), 0);
   asprintf (&p, "atr-%s-%s", name, mbox_dir);
   free (mbox_dir);
   return p;
 }
 
-char *
-mh_seq_read (char *name, int flags)
+const char *
+mh_seq_read (const char *name, int flags)
 {
-  char *value;
+  const char *value;
 
   if (flags & SEQ_PRIVATE)
     {
@@ -45,7 +45,7 @@ mh_seq_read (char *name, int flags)
 }
 
 static void
-write_sequence (char *name, char *value, int private)
+write_sequence (const char *name, char *value, int private)
 {
   if (private)
     {
@@ -58,15 +58,15 @@ write_sequence (char *name, char *value, int private)
 }
 
 static void
-delete_sequence (char *name, int private)
+delete_sequence (const char *name, int private)
 {
   write_sequence (name, NULL, private);
 }
 
 void
-mh_seq_add (char *name, mh_msgset_t *mset, int flags)
+mh_seq_add (const char *name, mh_msgset_t *mset, int flags)
 {
-  char *value = mh_seq_read (name, flags);
+  const char *value = mh_seq_read (name, flags);
   char *new_value, *p;
   const char *buf;
   size_t i, len;
@@ -120,9 +120,10 @@ cmp_msgnum (const void *a, const void *b)
 }
 
 int
-mh_seq_delete (char *name, mh_msgset_t *mset, int flags)
+mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
 {
-  char *value = mh_seq_read (name, flags);
+  const char *value = mh_seq_read (name, flags);
+  char *new_val;
   char *p;
   int argc, i, count;
   char **argv;
@@ -149,7 +150,8 @@ mh_seq_delete (char *name, mh_msgset_t *mset, int flags)
 	}
     }
 
-  p = value;
+  new_val = xstrdup (value);
+  p = new_val;
   count = 0;
   for (i = 0; i < argc; i++)
     {
@@ -162,8 +164,9 @@ mh_seq_delete (char *name, mh_msgset_t *mset, int flags)
 	}
     }
   *p = 0;
-  write_sequence (name, count > 0 ? value : NULL, flags & SEQ_PRIVATE);
+  write_sequence (name, count > 0 ? new_val : NULL, flags & SEQ_PRIVATE);
   mu_argcv_free (argc, argv);
+  free (new_val);
   
   return 0;
 }

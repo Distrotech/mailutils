@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006 Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -104,6 +104,7 @@ mh_argp_parse (int *pargc, char **pargv[],
   struct argp argp;
   struct mh_argp_data data;
   char *p;
+  const char *val;
   int index;
   int extra  = 0;
   
@@ -127,8 +128,8 @@ mh_argp_parse (int *pargc, char **pargv[],
   data.doc = argp_doc;
   data.errind = -1;
   
-  p = mh_global_profile_get (program_invocation_short_name, NULL);
-  if (p)
+  val = mh_global_profile_get (program_invocation_short_name, NULL);
+  if (val)
     {
       int argc;
       char **argv;
@@ -136,7 +137,7 @@ mh_argp_parse (int *pargc, char **pargv[],
       char **xargv;
       int i, j;
       
-      mu_argcv_get (p, "", NULL, &xargc, &xargv);
+      mu_argcv_get (val, "", NULL, &xargc, &xargv);
 
       argc = *pargc + xargc;
       argv = calloc (argc+1, sizeof *argv);

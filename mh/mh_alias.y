@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -509,12 +509,22 @@ unix_passwd_to_list ()
 int
 mh_read_aliases ()
 {
-  char *p, *sp;
+  const char *p;
   
   p = mh_global_profile_get ("Aliasfile", NULL);
   if (p)
-    for (p = strtok_r (p, " \t", &sp); p; p = strtok_r (NULL, " \t", &sp))
-      mh_alias_read (p, 1);
+    {
+      int argc;
+      char **argv;
+      int rc = mu_argcv_get (p, NULL, NULL, &argc, &argv);
+      if (rc == 0)
+	{
+	  int i;
+	  for (i = 0; i < argc; i++) 
+	    mh_alias_read (argv[i], 1);
+	}
+      mu_argcv_free (argc, argv);
+    }
   mh_alias_read (DEFAULT_ALIAS_FILE, 0);
   return 0;
 }

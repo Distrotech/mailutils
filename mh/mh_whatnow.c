@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -180,7 +180,7 @@ _help (struct helpdata *helpdata, char *argname)
 static void
 display_file (const char *name)
 {
-  char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+  const char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
 
   if (pager)
     mh_spawnp (pager, name);
@@ -217,7 +217,7 @@ display_file (const char *name)
 }      
 
 static int
-check_exit_status (char *progname, int status)
+check_exit_status (const char *progname, int status)
 {
   if (WIFEXITED (status))
     {
@@ -238,12 +238,12 @@ check_exit_status (char *progname, int status)
 }
 
 static int
-invoke (char *compname, char *defval, int argc, char **argv,
-	char *extra0, char *extra1)
+invoke (const char *compname, const char *defval, int argc, char **argv,
+	const char *extra0, const char *extra1)
 {
   int i, rc;
-  char **xargv;
-  char *progname;
+  const char **xargv;
+  const char *progname;
   int status;
   
   progname = mh_global_profile_get (compname, defval);
@@ -583,11 +583,13 @@ int
 mh_disposition (const char *filename)
 {
   struct mh_whatnow_env wh;
-
+  int rc;
   memset (&wh, 0, sizeof (wh));
-  wh.file = filename;
+  wh.file = xstrdup (filename);
   wh.prompt = _("Disposition?");
-  return _whatnow (&wh, disp_tab);
+  rc = _whatnow (&wh, disp_tab);
+  free (wh.file);
+  return rc;
 }
 
 /* Use draft shell */
@@ -636,10 +638,11 @@ mh_usedraft (const char *filename)
   int rc;
   
   memset (&wh, 0, sizeof (wh));
-  wh.file = filename;
+  wh.file = xstrdup (filename);
   asprintf (&wh.prompt, _("Use \"%s\"?"), filename);
   rc = _whatnow (&wh, usedraft_tab);
   free (wh.prompt);
+  free (wh.file);
   return rc;
 }
 

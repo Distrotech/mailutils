@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ struct mh_option mh_option[] = {
 };
 
 static int use_draft;            /* Use the prepared draft */
-static char *draft_folder;       /* Use this draft folder */
+static const char *draft_folder; /* Use this draft folder */
 static int reformat_recipients;  /* --format option */
 static int forward_notice;       /* Forward the failure notice to the sender,
 				    --forward flag */
@@ -288,7 +288,7 @@ check_file (char *name)
 void
 read_mts_profile ()
 {
-  char *p;
+  const char *p;
   char *hostname = NULL;
   int rc;
   mh_context_t *local_profile;
@@ -305,7 +305,7 @@ read_mts_profile ()
 
   if ((p = mh_context_get_value (mts_profile, "localname", NULL)))
     {
-      hostname = p;
+      hostname = xstrdup (p);
       mu_set_user_email_domain (p);
     }
   else if ((rc = mu_get_host_name (&hostname)))
@@ -336,9 +336,9 @@ read_mts_profile ()
 mu_mailer_t
 open_mailer ()
 {
-  char *url = mh_context_get_value (mts_profile,
-				    "url",
-				    "sendmail:/usr/sbin/sendmail");
+  const char *url = mh_context_get_value (mts_profile,
+					  "url",
+					  "sendmail:/usr/sbin/sendmail");
   mu_mailer_t mailer;
   int status;
     
@@ -375,10 +375,10 @@ create_message_id (mu_header_t hdr)
   free (p);
 }
 
-static char *
+static const char *
 get_sender_personal ()
 {
-  char *s = mh_global_profile_get ("signature", getenv ("SIGNATURE"));
+  const char *s = mh_global_profile_get ("signature", getenv ("SIGNATURE"));
   if (!s)
     {
       struct passwd *pw = getpwuid (getuid ());
@@ -589,7 +589,7 @@ _action_send (void *item, void *data)
 	{
 	  char *from;
 	  char *email = mu_get_user_email (NULL);
-	  char *pers = get_sender_personal ();
+	  const char *pers = get_sender_personal ();
 	  if (pers)
 	    {
 	      asprintf (&from, "\"%s\" <%s>", pers, email);
@@ -608,7 +608,8 @@ _action_send (void *item, void *data)
 
       if (mu_header_get_value (hdr, MU_HEADER_X_MAILER, NULL, 0, &n))
 	{
-	  char *p = mh_context_get_value (mts_profile, "x-mailer", "yes");
+	  const char *p = mh_context_get_value (mts_profile,
+						"x-mailer", "yes");
 
 	  if (!strcmp (p, "yes"))
 	    mu_header_set_value (hdr, MU_HEADER_X_MAILER,

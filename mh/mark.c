@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ static int seq_flags = 0; /* Create public sequences;
 			     Do not zero the sequence before addition */
 static mu_list_t seq_list;  /* List of sequence names to operate upon */
 
-static char *mbox_dir;
+static const char *mbox_dir;
 
 static void
 add_sequence (char *name)
@@ -80,7 +80,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_FOLDER: 
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
 
     case ARG_SEQUENCE:
@@ -143,7 +143,7 @@ static int
 action_list (void *item, void *data)
 {
   char *name = item;
-  char *val;
+  const char *val;
   
   val = mh_seq_read (name, 0);
   if (val)
@@ -154,7 +154,7 @@ action_list (void *item, void *data)
 }
 
 static int
-list_private (char *name, char *value, void *data)
+list_private (const char *name, const char *value, void *data)
 {
   int nlen;
   
@@ -165,14 +165,14 @@ list_private (char *name, char *value, void *data)
   nlen = strlen (name) - strlen (mbox_dir);
   if (nlen > 0 && strcmp (name + nlen, mbox_dir) == 0)
     {
-      name[nlen-1] = 0;
-      printf ("%s (%s): %s\n", name, _("private"), value);
+      nlen--;
+      printf ("%*.*s (%s): %s\n", nlen, nlen, name, _("private"), value);
     }
   return 0;
 }
 
 static int
-list_public (char *name, char *value, void *data)
+list_public (const char *name, const char *value, void *data)
 {
   printf ("%s: %s\n", name, value);
   return 0;
@@ -198,7 +198,7 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder (current_folder, 0);
+  mbox = mh_open_folder (mh_current_folder (), 0);
   mu_mailbox_get_url (mbox, &url);
   mbox_dir = mu_url_to_string (url);
   if (memcmp (mbox_dir, "mh:", 3) == 0)

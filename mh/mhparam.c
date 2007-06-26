@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ mhparam_defval (char *comp)
 }
 
 int
-mhparam_iterator (char *comp, char *value, char *data ARG_UNUSED)
+mhparam_iterator (const char *comp, const char *value, void *data ARG_UNUSED)
 {
   if (display_comp_name)
     printf("%s:\t", comp);
@@ -102,7 +102,7 @@ mhparam (char *comp)
 {
   if (comp)
     {
-      char *val = mh_global_profile_get (comp, NULL);
+      const char *val = mh_global_profile_get (comp, NULL);
       if (!val)
 	val = mhparam_defval (comp);
       if (!val)

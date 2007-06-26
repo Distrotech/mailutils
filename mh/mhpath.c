@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_FOLDER:
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
       
     case ARG_LICENSE:
@@ -77,7 +77,8 @@ main (int argc, char **argv)
   size_t total;
   mh_msgset_t msgset;
   int status;
-
+  const char *current_folder;
+  
   /* Native Language Support */
   mu_init_nls ();
 
@@ -85,6 +86,7 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
+  current_folder = mh_current_folder ();
   /* If  the  only argument  is `+', your MH Path is output; this
      can be useful is shell scripts. */
   if (current_folder[0] == 0)

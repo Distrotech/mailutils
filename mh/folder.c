@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,10 +126,10 @@ int verbose = 0;   /* Verbosely list actions taken */
 size_t pack_start; /* Number to be assigned to the first message in packed
 		      folder. 0 means do not change first message number. */
 int dry_run;       /* Dry run mode */ 
-char *push_folder; /* Folder name to push on stack */
+const char *push_folder; /* Folder name to push on stack */
 
-char *mh_seq_name; /* Name of the mh sequence file (defaults to
-		      .mh_sequences) */
+const char *mh_seq_name; /* Name of the mh sequence file (defaults to
+			    .mh_sequences) */
 int has_folder;    /* Folder has been explicitely given */
 size_t max_depth = 1;  /* Maximum recursion depth (0 means infinity) */ 
 
@@ -168,7 +168,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       if (arg)
 	{
 	  push_folder = mh_current_folder ();
-	  current_folder = arg;
+	  mh_set_current_folder (arg);
 	}
       break;
       
@@ -222,7 +222,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_FOLDER:
       has_folder = 1;
       push_folder = mh_current_folder ();
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
       
     case ARG_LICENSE:
@@ -283,7 +283,7 @@ read_seq_file (struct folder_info *info, const char *prefix, const char *name)
 {
   char *pname = NULL;
   mh_context_t *ctx;
-  char *p;
+  const char *p;
   
   asprintf (&pname, "%s/%s", prefix, name);
   if (!pname)
@@ -316,7 +316,7 @@ _scan (const char *name, size_t depth)
 	{
 	  if (mh_check_folder (name, create_flag == -1))
 	    {
-	      push_folder = 0;
+	      push_folder = NULL;
 	      return;
 	    }
 	  dir = opendir (name);
@@ -411,7 +411,7 @@ print_all ()
       else
 	printf ("%s", info->name);
       
-      if (strcmp (info->name, current_folder) == 0)
+      if (strcmp (info->name, mh_current_folder ()) == 0)
 	printf ("+");
       else
 	printf (" ");
@@ -472,7 +472,7 @@ action_print ()
     }
   else
     {
-      char *p = mh_expand_name (NULL, current_folder, 0);
+      char *p = mh_expand_name (NULL, mh_current_folder (), 0);
       _scan (p, 1);
       free (p);
     }
@@ -515,9 +515,9 @@ action_print ()
 static int
 action_list ()
 {
-  char *stack = mh_global_context_get ("Folder-Stack", NULL);
+  const char *stack = mh_global_context_get ("Folder-Stack", NULL);
 
-  printf ("%s", current_folder);
+  printf ("%s", mh_current_folder ());
   if (stack)
     printf (" %s", stack);
   printf ("\n");
@@ -528,33 +528,99 @@ action_list ()
 /* ************************************************************* */
 /* Push & pop */
 
-static char *
-make_stack (char *folder, char *old_stack)
+static void
+get_stack (int *pc, char ***pv)
 {
-  char *stack = NULL;
-  if (old_stack)
-    asprintf (&stack,  "%s %s", folder, old_stack);
-  else
-    stack = strdup (folder);
-  return stack;
+  const char *stack = mh_global_context_get ("Folder-Stack", NULL);
+  if (!stack)
+    {
+      *pc = 0;
+      *pv = NULL;
+    }
+  else if (mu_argcv_get (stack, NULL, "#", pc, pv))
+    {
+      mu_error (_("Cannot split line %s"), stack);
+      exit (1);
+    }
 }
 
+static void
+set_stack (int c, char **v)
+{
+  char *str;
+  int status = mu_argcv_string (c, v, &str);
+  if (status)
+    {
+      mu_error ("%s", mu_strerror (status));
+      exit (1);
+    }
+  mu_argcv_free (c, v);
+  mh_global_context_set ("Folder-Stack", str);
+  free (str);
+}
+
+static void
+push_val (int *pc, char ***pv, const char *val)
+{
+  int c = *pc;
+  char **v = *pv;
+
+  c++;
+  if (c == 1)
+    {
+      v = xcalloc (c + 1, sizeof (*v));
+    }
+  else
+    {
+      v = xrealloc (v, (c + 1) * sizeof (*v));
+      memmove (&v[1], &v[0], c * sizeof (*v));
+    }
+  v[0] = xstrdup (val);
+
+  *pv = v;
+  *pc = c;
+}
+
+static char *
+pop_val (int *pc, char ***pv)
+{
+  char *val;
+  int c;
+  char **v;
+  
+  if (*pc == 0)
+    return NULL;
+  c = *pc;
+  v = *pv;
+  val = v[0];
+  memmove (&v[0], &v[1], c * sizeof (*v));
+  c--;
+
+  *pc = c;
+  *pv = v;
+  return val;
+}
+  
 static int
 action_push ()
 {
-  char *stack = mh_global_context_get ("Folder-Stack", NULL);
-  char *new_stack = NULL;
+  int c;
+  char **v;
 
-  if (push_folder)
-    new_stack = make_stack (push_folder, stack);
-  else
-    {
-      char *s, *p = strtok_r (stack, " ", &s);
-      new_stack = make_stack (current_folder, stack);
-      current_folder = p;
-    }
+  get_stack (&c, &v);
   
-  mh_global_context_set ("Folder-Stack", new_stack);
+  if (push_folder)
+    push_val (&c, &v, push_folder);
+  else 
+    {
+      char *t = v[0];
+      v[0] = xstrdup (mh_current_folder ());
+      mh_set_current_folder (t);
+      free (t);
+    }
+
+  set_stack (c, v);
+
   action_list ();
   mh_global_save_state ();
   return 0;
@@ -563,22 +629,19 @@ action_push ()
 static int
 action_pop ()
 {
-  char *stack = mh_global_context_get ("Folder-Stack", NULL);
-  char *s, *p;
+  int c;
+  char **v;
 
-  if (stack)
+  get_stack (&c, &v);
+
+  if (c)
     {
-      p = strtok_r (stack, " ", &s);
-      if (s[0] == 0)
-	s = NULL;
+      char *p = pop_val (&c, &v);
+      set_stack (c, v);
+      mh_set_current_folder (p);
+      free (p);
     }
-  else
-    {
-      p = current_folder;
-      s = NULL;
-    }
-  mh_global_context_set ("Folder-Stack", s);
-  current_folder = p;
+
   action_list ();
   mh_global_save_state ();
   return 0;
@@ -708,7 +771,7 @@ pack_xlate (struct pack_tab *pack_tab, size_t count, size_t n)
 }
 
 static int
-_fixup (char *name, char *value, struct fixup_data *fd, int flags)
+_fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
 {
   int i, j, argc;
   char **argv;
@@ -735,7 +798,7 @@ _fixup (char *name, char *value, struct fixup_data *fd, int flags)
 
   if (verbose)
     {
-      char *p = mh_seq_read (name, flags);
+      const char *p = mh_seq_read (name, flags);
       fprintf (stderr, "Sequence %s: %s\n", name, p);
     }
   
@@ -743,13 +806,13 @@ _fixup (char *name, char *value, struct fixup_data *fd, int flags)
 }
 
 static int
-fixup_global (char *name, char *value, void *data)
+fixup_global (const char *name, const char *value, void *data)
 {
   return _fixup (name, value, data, 0);
 }
 
 static int
-fixup_private (char *name, char *value, void *data)
+fixup_private (const char *name, const char *value, void *data)
 {
   struct fixup_data *fd = data;
   int nlen = strlen (name);  
@@ -760,8 +823,12 @@ fixup_private (char *name, char *value, void *data)
   nlen = strlen (name) - strlen (fd->folder_dir);
   if (nlen > 0 && strcmp (name + nlen, fd->folder_dir) == 0)
     {
-      name[nlen-1] = 0;
-      return _fixup (name, value, fd, SEQ_PRIVATE);
+      int rc;
+      char *s = xmalloc (nlen);
+      memcpy (s, name, nlen - 1);
+      s[nlen-1] = 0;
+      rc = _fixup (s, value, fd, SEQ_PRIVATE);
+      free (s);
     }
   return 0;
 }
@@ -769,8 +836,8 @@ fixup_private (char *name, char *value, void *data)
 int
 action_pack ()
 {
-  const char *folder_dir = mh_expand_name (NULL, current_folder, 0);
-  mu_mailbox_t mbox = mh_open_folder (current_folder, 0);
+  const char *folder_dir = mh_expand_name (NULL, mh_current_folder (), 0);
+  mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
   struct pack_tab *pack_tab;
   size_t i, count, start;
   int status;
@@ -892,7 +959,7 @@ main (int argc, char **argv)
     
   if (argc - index == 1)
     {
-      mu_mailbox_t mbox = mh_open_folder (current_folder, 0);
+      mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
       mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
       mh_msgset_current (mbox, &msgset, 0);
       mh_global_save_state ();

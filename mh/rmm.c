@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_FOLDER: 
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
       
     case ARG_LICENSE:
@@ -81,7 +81,7 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder (current_folder, 0);
+  mbox = mh_open_folder (mh_current_folder (), 0);
 
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
 

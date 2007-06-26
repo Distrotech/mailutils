@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ static char *default_format_str =
 "--------\n";
 
 void
-mh_comp_draft (char *formfile, char *defformfile, char *draftfile)
+mh_comp_draft (const char *formfile, const char *defformfile,
+	       const char *draftfile)
 {
   char *s = NULL;
   if (formfile)

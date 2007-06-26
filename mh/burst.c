@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_FOLDER: 
-      current_folder = arg;
+      mh_set_current_folder (arg);
       break;
 
     case ARG_INPLACE:
@@ -480,7 +480,7 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
 }  
 
 void
-msg_copy (size_t num, char *file)
+msg_copy (size_t num, const char *file)
 {
   mu_message_t msg;
   mu_attribute_t attr = NULL;
@@ -545,7 +545,7 @@ main (int argc, char **argv)
   int index, rc;
   mu_mailbox_t mbox;
   mh_msgset_t msgset;
-  char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
+  const char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
   
   /* Native Language Support */
   mu_init_nls ();
@@ -557,8 +557,8 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
 
-  VERBOSE ((_("Opening folder `%s'"), current_folder));
-  mbox = mh_open_folder (current_folder, 0);
+  VERBOSE ((_("Opening folder `%s'"), mh_current_folder ()));
+  mbox = mh_open_folder (mh_current_folder (), 0);
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
 
   if (inplace)
@@ -593,7 +593,7 @@ main (int argc, char **argv)
       size_t i, next_uid, last_uid;
       mh_msgset_t ms;
       char *xargv[2];
-      char *dir;
+      const char *dir;
       
       burst_map = obstack_finish (&stk);
 

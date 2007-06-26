@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006, 
+   2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -237,7 +238,8 @@ expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
 {
   int argc;
   char **argv;
-  char *p, *listp;
+  char *p;
+  const char *listp;
   int rc = 1;
   int negate = 0;
   
@@ -248,7 +250,7 @@ expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
   if (!listp)
     {
       int len;
-      char *neg = mh_global_profile_get ("Sequence-Negation", NULL);
+      const char *neg = mh_global_profile_get ("Sequence-Negation", NULL);
       if (!neg)
 	return 1;
       len = strlen (neg);

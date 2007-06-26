@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ ismydomain (char *p)
 }
 
 int
-mh_alias_expand (char *str, mu_address_t *paddr, int *incl)
+mh_alias_expand (const char *str, mu_address_t *paddr, int *incl)
 {
   size_t argc;
   char **argv;
@@ -119,7 +119,7 @@ mh_alias_expand (char *str, mu_address_t *paddr, int *incl)
 
 
 static void
-scan_addrs (char *str, int isbcc)
+scan_addrs (const char *str, int isbcc)
 {
   mu_address_t addr = NULL;
   size_t i, count;
@@ -153,8 +153,6 @@ scan_addrs (char *str, int isbcc)
 	addrcp (&network_rcp, buf, isbcc);
     }
   mu_address_destroy (&addr);
-  free (str); /* FIXME: This will disappear. Note comment to
-		 mh_context_get_value! */
 }
 
 static int
@@ -218,7 +216,7 @@ _print_local_recipient (void *item, void *data)
 }
 		  
 int
-mh_whom (char *filename, int check)
+mh_whom (const char *filename, int check)
 {
   int rc = 0;
   mh_context_t *ctx;

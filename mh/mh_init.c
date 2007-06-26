@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -177,10 +177,11 @@ mh_is_my_name (const char *name)
     rc = 1;
   else
     {
-      char *nlist = mh_global_profile_get ("Alternate-Mailboxes", NULL);
+      const char *nlist = mh_global_profile_get ("Alternate-Mailboxes", NULL);
       if (nlist)
 	{
-	  char *end, *p, *pat;
+	  const char *end, *p;
+	  char *pat;
 	  int len;
 	  
 	  for (p = nlist; rc == 0 && *p; p = end)
@@ -253,12 +254,12 @@ make_dir_hier (const char *p, mode_t perm)
 }
 
 int
-mh_makedir (char *p)
+mh_makedir (const char *p)
 {
   int rc;
   mode_t save_umask;
   mode_t perm = 0711;
-  char *pb = mh_global_profile_get ("Folder-Protect", NULL);
+  const char *pb = mh_global_profile_get ("Folder-Protect", NULL);
   if (pb)
     perm = strtoul (pb, NULL, 8);
 
@@ -277,9 +278,9 @@ mh_makedir (char *p)
 }
 
 int
-mh_check_folder (char *pathname, int confirm)
+mh_check_folder (const char *pathname, int confirm)
 {
-  char *p;
+  const char *p;
   struct stat st;
   
   if ((p = strchr (pathname, ':')) != NULL)
@@ -464,16 +465,18 @@ mh_open_folder (const char *folder, int create)
 char *
 mh_get_dir ()
 {
-  char *mhdir = mh_global_profile_get ("Path", "Mail");
+  const char *mhdir = mh_global_profile_get ("Path", "Mail");
+  char *mhcopy;
+  
   if (mhdir[0] != '/')
     {
       char *p = mu_get_homedir ();
-      asprintf (&mhdir, "%s/%s", p, mhdir);
+      asprintf (&mhcopy, "%s/%s", p, mhdir);
       free (p);
     }
   else 
-    mhdir = strdup (mhdir);
-  return mhdir;
+    mhcopy = strdup (mhdir);
+  return mhcopy;
 }
 
 char *
@@ -639,7 +642,7 @@ mh_file_copy (const char *from, const char *to)
 }
 
 static mu_message_t
-_file_to_message (char *file_name)
+_file_to_message (const char *file_name)
 {
   struct stat st;
   int rc;
@@ -670,7 +673,7 @@ _file_to_message (char *file_name)
 }
 
 mu_message_t
-mh_file_to_message (const char *folder, char *file_name)
+mh_file_to_message (const char *folder, const char *file_name)
 {
   mu_message_t msg;
   char *tmp_name = NULL;
@@ -837,9 +840,9 @@ mh_annotate (mu_message_t msg, char *field, char *text, int date)
 char *
 mh_draft_name ()
 {
-  char *draftfolder = mh_global_profile_get ("Draft-Folder",
-					     mu_folder_directory ());
-  return mh_expand_name (draftfolder, "draft", 0);
+  return mh_expand_name (mh_global_profile_get ("Draft-Folder",
+						mu_folder_directory ()),
+			 "draft", 0);
 }
 
 char *
@@ -884,7 +887,7 @@ mh_set_reply_regex (const char *str)
 int
 mh_decode_2047 (char *text, char **decoded_text)
 {
-  char *charset = mh_global_profile_get ("Charset", NULL);
+  const char *charset = mh_global_profile_get ("Charset", NULL);
 
   if (!charset)
     return 1;
@@ -892,19 +895,22 @@ mh_decode_2047 (char *text, char **decoded_text)
     {
       /* Try to deduce the charset from LC_ALL variable */
 
-      char *tmp = getenv ("LC_ALL");
-      if (tmp)
+      char *lc_all = getenv ("LC_ALL");
+      if (lc_all)
 	{
 	  char *sp;
 	  char *lang;
 	  char *terr;
 
+	  char *tmp = strdup (lc_all);
 	  lang = strtok_r (tmp, "_", &sp);
 	  terr = strtok_r (NULL, ".", &sp);
 	  charset = strtok_r (NULL, "@", &sp);
 
 	  if (!charset)
 	    charset = mu_charset_lookup (lang, terr);
+	  
+	  free (tmp);
 	}
     }
 

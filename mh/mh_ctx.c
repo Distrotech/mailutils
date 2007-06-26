@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 
 mh_context_t *
-mh_context_create (char *name, int copy)
+mh_context_create (const char *name, int copy)
 {
   mh_context_t *ctx;
   ctx = malloc (sizeof (*ctx));
@@ -47,7 +47,7 @@ mh_context_destroy (mh_context_t **pctx)
 {
   mh_context_t *ctx = *pctx;
   
-  free (ctx->name);
+  free ((char*) ctx->name);
   if (ctx->header)
     mu_header_destroy (&ctx->header, mu_header_get_owner (ctx->header));
   free (ctx);
@@ -69,14 +69,12 @@ mh_context_merge (mh_context_t *dst, mh_context_t *src)
       mu_header_get_field_count (src->header, &count);
       for (i = 1; i <= count; i++)
 	{
-	  char *name = NULL;
-	  char *value = NULL;
+	  const char *name = NULL;
+	  const char *value = NULL;
 	  
-	  mu_header_aget_field_name (src->header, i, &name);
-	  mu_header_aget_field_value (src->header, i, &value);
+	  mu_header_sget_field_name (src->header, i, &name);
+	  mu_header_sget_field_value (src->header, i, &value);
 	  mu_header_set_value (dst->header, name, value, 1);
-	  free (name);
-	  free (value);
 	}
     }
 }
@@ -162,24 +160,13 @@ mh_context_write (mh_context_t *ctx)
   return 0;
 }
 
-/* FIXME: mh_context_get_value returns a pointer to the allocated memory.
-   Instead, it should return a const pointer to the static storage within
-   the mu_header_t structure and be declared as
-   `const char *mh_context_get_value()'. Current implementation of
-   header_.* functions does not allow that.
-
-   This has two drawbacks:
-     1) The function is declared as returning char * instead of
-        intended const char *.
-     2) Ugly typecast when returning defval. */
-  
-char *
+const char *
 mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 {
-  char *p;
+  const char *p;
 
-  if (!ctx || mu_header_aget_value (ctx->header, name, &p))
-    p = (char *) defval; 
+  if (!ctx || mu_header_sget_value (ctx->header, name, &p))
+    p = defval; 
   return p;
 }
 
@@ -213,13 +200,11 @@ mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
   mu_header_get_field_count (ctx->header, &nfields);
   for (i = 1; i <= nfields && rc == 0; i++)
     {
-      char *name, *value;
+      const char *name, *value;
       
-      mu_header_aget_field_name (ctx->header, i, &name);
-      mu_header_aget_field_value (ctx->header, i, &value);
+      mu_header_sget_field_name (ctx->header, i, &name);
+      mu_header_sget_field_value (ctx->header, i, &value);
       rc = fp (name, value, data);
-      free (name);
-      free (value);
     }
 
   return rc;

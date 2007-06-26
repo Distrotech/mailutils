@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -177,7 +177,7 @@ rmf (const char *name)
     {
       if (cur_folder_path && strcmp (name, cur_folder_path) == 0)
 	{
-	  current_folder = "inbox";
+	  mh_set_current_folder ("inbox");
 	  mh_global_sequences_drop ();
 	  mh_global_save_state ();
 	  printf ("[+inbox now current]\n");
