@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2006 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -97,8 +97,6 @@ static int amd_body_lines (mu_body_t body, size_t *plines);
 
 static int amd_header_fill (mu_header_t header, char *buffer, size_t len,
 			    mu_off_t off, size_t *pnread);
-static int amd_header_size (mu_header_t header, size_t *psize);
-static int amd_header_lines (mu_header_t header, size_t *plines);
 
 static int amd_get_attr_flags (mu_attribute_t attr, int *pflags);
 static int amd_set_attr_flags (mu_attribute_t attr, int flags);
@@ -422,8 +420,6 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
 	return status;
       }
     mu_header_set_fill (header, amd_header_fill, msg);
-    mu_header_set_size (header, amd_header_size, msg);
-    mu_header_set_lines (header, amd_header_lines, msg);
     /*FIXME:
     mu_header_set_get_fvalue (header, amd_header_get_fvalue, msg);
     */
@@ -1355,33 +1351,7 @@ amd_header_fill (mu_header_t header, char *buffer, size_t len,
 
   amd_pool_open (mhm);
   return amd_readstream (mhm, buffer, len, off, pnread, 0,
-			0, mhm->body_start);
-}
-
-static int
-amd_header_size (mu_header_t header, size_t *psize)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  struct _amd_message *mhm = mu_message_get_owner (msg);
-  if (mhm == NULL)
-    return EINVAL;
-  amd_check_message (mhm);
-  if (psize)
-    *psize = mhm->body_start;
-  return 0;
-}
-
-static int
-amd_header_lines (mu_header_t header, size_t *plines)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  struct _amd_message *mhm = mu_message_get_owner (msg);
-  if (mhm == NULL)
-    return EINVAL;
-  amd_check_message (mhm);
-  if (plines)
-    *plines = mhm->header_lines;
-  return 0;
+			 0, mhm->body_start);
 }
 
 /* Attributes */
