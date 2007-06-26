@@ -1,5 +1,5 @@
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2004, Free Software Foundation
+# Copyright (C) 2002, 2004, 2007 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ MESSAGE END
 MESSAGE BCC
 BODY BEGIN
 From: gray@gnu.org
-To:  alainm@gnu.org
+To: alainm@gnu.org
 Bcc: bug-mailutils@gnu.org
 Subject: Blind carbon copy test.
 
@@ -122,7 +122,7 @@ PATTERN BEGIN
 ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <alainm@gnu.org>
    0: From: gray@gnu.org
-   1: To:  alainm@gnu.org
+   1: To: alainm@gnu.org
    2: Subject: Blind carbon copy test.
    3:
    4: Bcc works too.
@@ -132,7 +132,7 @@ ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <bug-mailutils@gnu.org>
    0: Bcc: bug-mailutils@gnu.org
    1: From: gray@gnu.org
-   2: To:  alainm@gnu.org
+   2: To: alainm@gnu.org
    3: Subject: Blind carbon copy test.
    4:
    5: Bcc works too.
