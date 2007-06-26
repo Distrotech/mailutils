@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -98,7 +99,7 @@ mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 }
 
 static int
-_load_dir (void *item, void *unused)
+_add_load_dir (void *item, void *unused)
 {
   return lt_dladdsearchdir (item);
 }
@@ -108,7 +109,7 @@ sieve_load_add_path (mu_list_t path)
 {
   if (lt_dlinit ())
     return 1;
-  return mu_list_do (path, _load_dir, NULL);
+  return mu_list_do (path, _add_load_dir, NULL);
 }
 
 int
