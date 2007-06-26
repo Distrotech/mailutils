@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2006 Free Software Foundation, Inc.
+   2006, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -146,8 +146,9 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
   mu_body_t body;
   mu_header_t hdr;
   char datestr[80];
-  static char *content_header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
-                                "Content-Transfer-Encoding: 8bit\n";
+  static char *content_header =
+    "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
+    "Content-Transfer-Encoding: 8bit\n";
  
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
@@ -160,7 +161,7 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
   mu_sieve_get_message_sender (msg, &sender);
 
   mu_stream_printf (stream, &off,
-		    "\nThe original message was received at %s from %s.\n",
+		    "The original message was received at %s from %s.\n",
 		    datestr, sender);
   free (sender);
   mu_stream_printf (stream, &off,
@@ -302,10 +303,10 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot create sender address <%s>: %s"),
-		   mu_sieve_get_message_num (mach),
-		   mu_sieve_get_daemon_email (mach),
-		   mu_strerror (rc));
+		      _("%d: cannot create sender address <%s>: %s"),
+		      mu_sieve_get_message_num (mach),
+		      mu_sieve_get_daemon_email (mach),
+		      mu_strerror (rc));
       goto end;
     }
   
@@ -316,10 +317,10 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_mailer_get_url (mailer, &url);
 	
       mu_sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s"),
-		   mu_sieve_get_message_num (mach),
-		   mu_url_to_string (url),
-		   mu_strerror (rc));
+		      _("%d: cannot open mailer %s: %s"),
+		      mu_sieve_get_message_num (mach),
+		      mu_url_to_string (url),
+		      mu_strerror (rc));
       goto end;
     }
 

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -366,7 +366,6 @@ mail_send0 (compose_env_t * env, int save_to)
   char *escape;
 
   fd = mu_tempfile (NULL, &filename);
-
   if (fd == -1)
     {
       util_error (_("Cannot open temporary file"));
@@ -527,7 +526,6 @@ mail_send0 (compose_env_t * env, int save_to)
 	  int rc;
 	  
 	  mu_message_create (&msg, NULL);
-
 	  mu_message_set_header (msg, env->header, NULL);
 
 	  /* Fill the body.  */

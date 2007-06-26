@@ -359,7 +359,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending headers...\n");
 	while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
-					  offset, &len)) == 0
+					     offset, &len)) == 0
 	       && len != 0)
 	  {
 	    if (strncasecmp (buffer, MU_HEADER_FCC,

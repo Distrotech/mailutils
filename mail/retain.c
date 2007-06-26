@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2004, 2005,
+   2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -94,13 +95,13 @@ mail_nounfold (int argc, char **argv)
 }
 
 int
-mail_header_is_unfoldable (char *str)
+mail_header_is_unfoldable (const char *str)
 {
   return util_slist_lookup (unfolded_headers, str);
 }
 
 int
-mail_header_is_visible (char *str)
+mail_header_is_visible (const char *str)
 {
   if (retained_headers)
     return util_slist_lookup (retained_headers, str);

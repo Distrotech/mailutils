@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005 Free Software Foundation, Inc.
+   2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,19 +83,20 @@ display_headers (FILE *out, mu_message_t mesg, const msgset_t *msgset ARG_UNUSED
     {
       size_t num = 0;
       size_t i = 0;
-      char buffer[512];
+      const char *sptr;
 
       mu_message_get_header (mesg, &hdr);
       mu_header_get_field_count (hdr, &num);
       for (i = 1; i <= num; i++)
 	{
-	  buffer[0] = '\0';
-	  mu_header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
-	  if (mail_header_is_visible (buffer))
+	  if (mu_header_sget_field_name (hdr, i, &sptr))
+	    continue;
+	  if (mail_header_is_visible (sptr))
 	    {
-	      fprintf (out, "%s: ", buffer);
-	      mu_header_get_field_value (hdr, i, buffer, sizeof(buffer), NULL);
-	      fprintf (out, "%s\n", buffer);
+	      fprintf (out, "%s: ", sptr);
+	      if (mu_header_sget_field_value (hdr, i, &sptr))
+		sptr = "";
+	      fprintf (out, "%s\n", sptr);
 	    }
 	}
       fprintf (out, "\n");

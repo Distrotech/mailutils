@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@
 
 void message_display_parts(mu_message_t msg, int indent);
 
-char from[256];
-char subject[256];
+const char *from;
+const char *subject;
 int print_attachments;
 int indent_level = 4;
 
@@ -120,9 +120,10 @@ main (int argc, char **argv)
       CATCH (mu_message_size (msg, &msize));
       CATCH (mu_message_lines (msg, &nlines));
       CATCH (mu_message_get_header (msg, &hdr));
-      mu_header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-      mu_header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
-                        NULL);
+      if (mu_header_sget_value (hdr, MU_HEADER_FROM, &from))
+	from = "";
+      if (mu_header_sget_value (hdr, MU_HEADER_SUBJECT, &subject))
+	subject = "";
       printf ("Message: %lu\n", (unsigned long) i);
       printf ("From: %s\n", from);
       printf ("Subject: %s\n", subject);
@@ -170,8 +171,8 @@ message_display_parts (mu_message_t msg, int indent)
   size_t nparts, nsubparts;
   mu_message_t part;
   mu_header_t hdr;
-  char type[256];
-  char encoding[256];
+  const char *type;
+  const char *encoding;
   mu_stream_t str;
   mu_body_t body;
   int offset, ismulti;
@@ -189,15 +190,22 @@ message_display_parts (mu_message_t msg, int indent)
      its own that can have other subparts(recursive). */
   for (j = 1; j <= nparts; j++)
     {
+      int status;
       CATCH (mu_message_get_part (msg, j, &part));
       CATCH (mu_message_get_header (part, &hdr));
-      mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
-                        NULL);
+      status = mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+      if (status == MU_ERR_NOENT)
+	type = "";
+      else if (status != 0)
+	{
+	  type = "";
+	  mu_error ("Cannot get header value: %s", mu_strerror (status));
+	}
       printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
       print_message_part_sizes (part, indent);
-      encoding[0] = '\0';
-      mu_header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
-                        sizeof (encoding), NULL);
+      if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+				&encoding))
+	encoding = "";
       ismulti = 0;
       if ((type[0]
            && strncasecmp (type, "message/rfc822", strlen (type)) == 0)
@@ -207,9 +215,10 @@ message_display_parts (mu_message_t msg, int indent)
 	    CATCH (mu_message_unencapsulate (part, &part, NULL));
 	  
           CATCH (mu_message_get_header (part, &hdr));
-          mu_header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
-          mu_header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
-                            NULL);
+          if (mu_header_sget_value (hdr, MU_HEADER_FROM, &from))
+	    from = "";
+          if (mu_header_sget_value (hdr, MU_HEADER_SUBJECT, &subject))
+	    subject = "";
           printf ("%*.*sEncapsulated message : %s\t%s\n",
                   indent, indent, "", from, subject);
           printf ("%*.*sBegin\n", indent, indent, "");

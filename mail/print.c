@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 
+   2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +62,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   if (*(int *) data) /* print was called with a lowercase 'p' */
     {
       size_t i, num = 0;
-      char buf[512];
+      const char *sptr;
       char *tmp;
       
       mu_message_get_header (mesg, &hdr);
@@ -69,12 +70,13 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 
       for (i = 1; i <= num; i++)
 	{
-	  mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-	  if (mail_header_is_visible (buf))
+	  if (mu_header_sget_field_name (hdr, i, &sptr))
+	    continue;
+	  if (mail_header_is_visible (sptr))
 	    {
-	      fprintf (out, "%s: ", buf);
+	      fprintf (out, "%s: ", sptr);
 	      mu_header_aget_field_value (hdr, i, &tmp);
-	      if (mail_header_is_unfoldable (buf))
+	      if (mail_header_is_unfoldable (sptr))
 		mu_string_unfold (tmp, NULL);
 	      util_rfc2047_decode (&tmp);
 	      fprintf (out, "%s\n", tmp);

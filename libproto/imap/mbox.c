@@ -100,7 +100,6 @@ static int  imap_attr_unset_flags (mu_attribute_t, int);
 
 /* mu_header_t API.  */
 static int  imap_header_read      (mu_header_t, char*, size_t, mu_off_t, size_t *);
-static int  imap_header_get_value (mu_header_t, const char*, char *, size_t, size_t *);
 
 /* mu_body_t API.  */
 static int  imap_body_read        (mu_stream_t, char *, size_t, mu_off_t, size_t *);
@@ -545,7 +544,6 @@ imap_get_message0 (msg_imap_t msg_imap, mu_message_t *pmsg)
         return status;
       }
     mu_header_set_fill (header, imap_header_read, msg);
-    mu_header_set_get_value (header, imap_header_get_value, msg);
     mu_message_set_header (msg, header, msg_imap);
   }
 
@@ -1451,7 +1449,6 @@ imap_get_part (mu_message_t msg, size_t partno, mu_message_t *pmsg)
 	    {
 	      mu_header_t header;
 	      mu_message_get_header (message, &header);
-	      mu_header_set_get_value (header, NULL, message);
 	      mu_message_set_stream (message, NULL, msg_imap->parts[partno - 1]);
 	      /* mu_message_set_size (message, NULL, msg_imap->parts[partno - 1]); */
 	      msg_imap->parts[partno - 1]->message = message;
@@ -1720,89 +1717,6 @@ imap_attr_unset_flags (mu_attribute_t attribute, int flag)
 }
 
 /* Header.  */
-static int
-imap_header_get_value (mu_header_t header, const char *field, char * buffer,
-		       size_t buflen, size_t *plen)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  msg_imap_t msg_imap = mu_message_get_owner (msg);
-  m_imap_t m_imap = msg_imap->m_imap;
-  f_imap_t f_imap = m_imap->f_imap;
-  int status;
-  size_t len = 0;
-  char *value;
-
-  /* Select first.  */
-  status = imap_messages_count (m_imap->mailbox, NULL);
-  if (status != 0)
-    return status;
-
-  /* Hack, if buffer == NULL they want to know how big is the field value,
-     Unfortunately IMAP does not say, so we take a guess hoping that the
-     value will not be over 1024.  */
-  if (buffer == NULL || buflen == 0)
-    len = 1024;
-  else
-    len = strlen (field) + buflen + 4;
-
-  if (f_imap->state == IMAP_NO_STATE)
-    {
-      /* Select first.  */
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-	return status;
-      status = imap_writeline (f_imap,
-			       "g%s FETCH %s BODY.PEEK[HEADER.FIELDS (%s)]<0.%s>\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num),
-			       field,
-			       mu_umaxtostr (2, len));
-      CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      f_imap->state = IMAP_FETCH;
-
-    }
-
-  value = calloc (len, sizeof (*value));
-  status = fetch_operation (f_imap, msg_imap, value, len, &len);
-  if (status == 0)
-    {
-      char *colon;
-      /* The field-matching is case-insensitive.  In all cases, the
-	 delimiting newline between the header and the body is always
-	 included. Nuke it  */
-      if (len)
-	value[len - 1] = '\0';
-
-      /* Move pass the field-name.  */
-      colon = strchr (value, ':');
-      if (colon)
-	{
-	  colon++;
-	  if (*colon == ' ')
-	    colon++;
-	}
-      else
-	colon = value;
-
-      while (*colon && colon[strlen (colon) - 1] == '\n')
-	colon[strlen (colon) - 1] = '\0';
-
-      if (buffer && buflen)
-	{
-	  strncpy (buffer, colon, buflen);
-	  buffer[buflen - 1] = '\0';
-	}
-      len = strlen (buffer);
-      if (plen)
-	*plen = len;
-      if (len == 0)
-	status = MU_ERR_NOENT;
-    }
-  free (value);
-  return status;
-}
-
 static int
 imap_header_read (mu_header_t header, char *buffer,
 		  size_t buflen, mu_off_t offset,

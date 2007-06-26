@@ -63,8 +63,6 @@ static int mbox_readstream            (mbox_message_t, char *, size_t,
 				       mu_off_t, size_t *, int, mu_off_t, mu_off_t);
 static int mbox_stream_size           (mu_stream_t stream, mu_off_t *psize);
 
-static int mbox_header_size           (mu_header_t, size_t *);
-static int mbox_header_lines          (mu_header_t, size_t *);
 static int mbox_body_size             (mu_body_t, size_t *);
 static int mbox_body_lines            (mu_body_t, size_t *);
 static int mbox_envelope_sender       (mu_envelope_t, char *, size_t, size_t *);
@@ -894,7 +892,7 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
 				       start + off, &nread);
 	else
 	  status = mu_stream_read (mum->mud->mailbox->stream, buffer, nread,
-				start + off, &nread);
+				   start + off, &nread);
       }
   }
   mu_monitor_unlock (mum->mud->mailbox->monitor);
@@ -915,30 +913,6 @@ mbox_header_fill (mu_header_t header, char *buffer, size_t len,
   mbox_message_t mum = mu_message_get_owner (msg);
   return mbox_readstream (mum, buffer, len, off, pnread, 0,
 			  mum->header_from_end, mum->body);
-}
-
-static int
-mbox_header_size (mu_header_t header, size_t *psize)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = mu_message_get_owner (msg);
-  if (mum == NULL)
-    return EINVAL;
-  if (psize)
-    *psize = mum->body - mum->header_from_end;
-  return 0;
-}
-
-static int
-mbox_header_lines (mu_header_t header, size_t *plines)
-{
-  mu_message_t msg = mu_header_get_owner (header);
-  mbox_message_t mum = mu_message_get_owner (msg);
-  if (mum == NULL)
-    return EINVAL;
-  if (plines)
-    *plines = mum->header_lines;
-  return 0;
 }
 
 static int
@@ -1120,8 +1094,6 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 	return status;
       }
     mu_header_set_fill (header, mbox_header_fill, msg);
-    mu_header_set_size (header, mbox_header_size, msg);
-    mu_header_set_lines (header, mbox_header_lines, msg);
     mu_message_set_header (msg, header, mum);
   }
 

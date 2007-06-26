@@ -251,8 +251,8 @@ extern int mail_mbox_commit (void);
 extern int mail_is_my_name (const char *name);
 extern void mail_set_my_name (char *name);
 extern char *mail_whoami (void);
-extern int mail_header_is_visible (char *str);
-extern int mail_header_is_unfoldable (char *str);
+extern int mail_header_is_visible (const char *str);
+extern int mail_header_is_unfoldable (const char *str);
 extern int mail_mbox_close (void);
 extern char *mail_expand_name (const char *name);
 
