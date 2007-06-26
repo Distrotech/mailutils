@@ -1,3 +1,39 @@
+2007-06-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/header.h (MU_HEADER_REPLACE)
+	(MU_HEADER_BEFORE): New macros
+	(mu_header_remove,mu_header_insert)
+	(mu_header_sget_value_n,mu_header_get_value_n)
+	(mu_header_aget_value_n,mu_header_get_address_n)
+	(mu_header_sget_field_name,mu_header_sget_field_value)
+	(mu_header_get_value_unfold_n,mu_header_aget_value_unfold_n): New
+	functions;
+	(mu_header_sget_value,mu_header_get_value,mu_header_aget_value)
+	(mu_header_get_address,mu_header_get_value_unfold)
+	(mu_header_aget_value_unfold): Rewrite as macros
+	(mu_header_set_set_value,mu_header_set_get_value)
+	(mu_header_set_size,mu_header_set_lines): Remove functions
+
+	* libproto/include/header0.h: Rewrite from scratch
+	* mailbox/header.c: Rewrite from scratch
+	
+	* examples/header.c: New program
+	* examples/Makefile.am (noinst_PROGRAMS): Add header
+	* examples/addr.c: Remove unused vars
+	* lib/mu_dbm.c, libproto/maildir/mbox.c, mh/mh_format.c: Remove
+	unused functions 
+	* libmu_scm/mu_message.c (_get_envelope_sender): Bugfix: the return
+	value was wrong.
+	* examples/mimetest.c, libproto/imap/mbox.c, libproto/mbox/mbox.c,
+	libsieve/actions.c, mail/decode.c, mail/escape.c, mail/mail.h,
+	mail/print.c, mail/retain.c, mail/send.c, mail.local/mailquota.c,
+	mailbox/amd.c,  mailbox/sendmail.c: Prefer mu_header_sget 
+	where possible. Remove obsolete header calls.
+	* mail.remote/testsuite/Data: Remove extra white space
+	* mail.local/main.c (main): Register all mailbox formats
+	* mailbox/mime.c: Fix indentation
+	* mh/mhn.c: shut up the gcc warning
+	
 2007-06-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
