@@ -279,14 +279,6 @@ print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
     }
 }
 
-/* FIXME: width? */
-static void
-print_obj (struct mh_machine *mach, size_t width, strobj_t *obj)
-{
-  if (!strobj_is_null (obj))
-    print_string (mach, 0, strobj_ptr (obj));
-}
-
 static void
 reset_fmt_defaults (struct mh_machine *mach)
 {

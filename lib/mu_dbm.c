@@ -80,24 +80,6 @@ mu_check_perm (const char *name, int mode)
 }
 
 static char *
-strip_suffix (const char *name, const char *suffix)
-{
-  int nlen = strlen (name);
-  int slen = strlen (suffix);
-  char *p;
-  
-  if (nlen > slen && strcmp (name + nlen - slen, suffix) == 0)
-    {
-      p = xmalloc (nlen - slen + 1);
-      memcpy (p, name, nlen - slen);
-      p[nlen - slen] = 0;
-    }
-  else
-    p = xstrdup (name);
-  return p;
-}
-
-static char *
 make_db_name (const char *name, const char *suffix)
 {
   int nlen = strlen (name);

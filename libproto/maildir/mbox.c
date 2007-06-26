@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005 Free Software Foundation, Inc.
+   2004, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -97,18 +97,6 @@ static struct info_map {
   { 0 },
 };
 #define info_map_size (sizeof (info_map) / sizeof (info_map[0]))
-
-/* FIXME: is not used */
-static int
-info_map_letter (int c)
-{
-  struct info_map *p;
-
-  for (p = info_map; p < info_map + info_map_size; p++)
-    if (p->letter == c)
-      return p->flag;
-  return 0;
-}
 
 /* NOTE: BUF must be at least 7 bytes long */
 static int
