@@ -72,7 +72,8 @@ extern "C" {
 #define MU_HEADER_ENVELOPE_TO               "Envelope-to"
 #define MU_HEADER_X_EXPIRE_TIMESTAMP        "X-Expire-Timestamp"
   
-/* Mime support header attribute */
+#define MU_HEADER_REPLACE 0x01
+#define MU_HEADER_BEFORE  0x02
 
 extern int mu_header_create (mu_header_t *, const char *, size_t, void *);
 extern void mu_header_destroy (mu_header_t *, void *);
@@ -83,29 +84,65 @@ extern int mu_header_clear_modified (mu_header_t);
 
 /* Set and get field values by field name. */
 extern int mu_header_set_value (mu_header_t, const char *, const char *, int);
-extern int mu_header_get_value (mu_header_t, const char *, char *, size_t, size_t *);
-extern int mu_header_aget_value (mu_header_t, const char *, char **);
+extern int mu_header_remove (mu_header_t, const char *, int);
+extern int mu_header_insert (mu_header_t, const char *, const char *, 
+			     const char *, int, int);
+  
+extern int mu_header_sget_value_n (mu_header_t, const char *, int,
+				   const char **);
+#define mu_header_sget_value(header, name, pval) \
+  mu_header_sget_value_n (header, name, 1, pval)
 
+extern int mu_header_get_value_n (mu_header_t, const char *, int, char *,
+				  size_t, size_t *);
+#define mu_header_get_value(header, name, buffer, buflen, pn) \
+  mu_header_get_value_n (header, name, 1, buffer, buflen, pn)
+  
+extern int mu_header_aget_value_n (mu_header_t, const char *, int, char **);
+#define mu_header_aget_value(header, name, pptr) \
+  mu_header_aget_value_n (header, name, 1, pptr)
+  
 /* Get field values as an mu_address_t. */
-extern int mu_header_get_address (mu_header_t, const char *, mu_address_t *);
-
+extern int mu_header_get_address_n (mu_header_t, const char *,
+				    int, mu_address_t *);
+#define mu_header_get_address(header, name, addr) \
+  mu_header_get_address_n (header, name, 1, addr)
+  
 /* Set and get field values by field index (1-based). */
 extern int mu_header_get_field_count (mu_header_t, size_t *count);
-extern int mu_header_get_field_value (mu_header_t, size_t index, char *, size_t, size_t *);
-extern int mu_header_get_field_name (mu_header_t, size_t index, char *, size_t, size_t *);
-extern int mu_header_aget_field_value (mu_header_t, size_t index, char **);
-extern int mu_header_aget_field_name (mu_header_t, size_t index, char **);
 
-extern int mu_header_get_value_unfold (mu_header_t header, const char *name,
-			  	    char *buffer, size_t buflen,
-				    size_t *pn);
-extern int mu_header_aget_value_unfold (mu_header_t header, const char *name,
-				     char **pvalue);
+extern int mu_header_sget_field_name (mu_header_t, size_t index,
+				      const char **);
+  
+extern int mu_header_get_field_name (mu_header_t, size_t index,
+				     char *, size_t, size_t *);
+extern int mu_header_aget_field_name (mu_header_t, size_t index,
+				      char **);
+  
+extern int mu_header_sget_field_value (mu_header_t, size_t index,
+				       const char **);
+extern int mu_header_get_field_value (mu_header_t, size_t index,
+				      char *, size_t, size_t *);
+extern int mu_header_aget_field_value (mu_header_t, size_t index, char **);
+
+extern int mu_header_get_value_unfold_n (mu_header_t header,
+					 const char *name, int n,
+					 char *buffer, size_t buflen,
+					 size_t *pn);
+#define mu_header_get_value_unfold(header, name, buffer, buflen, pn) \
+  mu_header_get_value_unfold_n (header, name, 1, buffer, buflen, pn)
+  
+extern int mu_header_aget_value_unfold_n (mu_header_t header,
+					  const char *name, int n,
+					  char **pvalue);
+#define mu_header_aget_value_unfold(header, name, pvalue) \
+  mu_header_aget_value_unfold_n (header, name, 1, pvalue)
+
 extern int mu_header_get_field_value_unfold (mu_header_t header, size_t num,
-					  char *buf, size_t buflen,
-					  size_t *nwritten);
+					     char *buf, size_t buflen,
+					     size_t *nwritten);
 extern int mu_header_aget_field_value_unfold (mu_header_t header, size_t num,
-					   char **pvalue);
+					      char **pvalue);
 
 extern int mu_header_get_stream (mu_header_t, mu_stream_t *);
 extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
@@ -113,20 +150,6 @@ extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
 extern int mu_header_size (mu_header_t, size_t *);
 extern int mu_header_lines (mu_header_t, size_t *);
 
-
-extern int mu_header_set_set_value (mu_header_t,
-	      int (*_set_value) (mu_header_t, const char *, const char *, int), 
-              void *);
-
-extern int mu_header_set_get_value (mu_header_t,
-      int (*_get_value) (mu_header_t, const char *, char *, size_t, size_t *),
-				 void *);
-
-extern int mu_header_set_size (mu_header_t, 
-      int (*_size) (mu_header_t, size_t *), void *);
-
-extern int mu_header_set_lines (mu_header_t,
-      int (*_lines) (mu_header_t, size_t *), void *);
 
 extern int mu_header_set_fill (mu_header_t,
       int (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *), void *owner);
