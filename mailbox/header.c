@@ -985,7 +985,7 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
   int status;
   size_t strsize;
   
-  if (is == NULL)
+  if (is == NULL || buflen == 0)
     return EINVAL;
 
   header = mu_stream_get_owner (is);
@@ -1001,10 +1001,12 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
     }
 
   strsize = MU_STR_SIZE (ent->nlen, ent->vlen) - ent_off;
+  buflen--; /* Account for the terminating nul */
   if (buflen > strsize)
     buflen = strsize;
   mu_hdrent_fixup (header, ent);
   memcpy (buffer, MU_HDRENT_NAME (header, ent) + ent_off, buflen);
+  buffer[buflen] = 0;
   mu_hdrent_unroll_fixup (header, ent);
   if (pnread)
     *pnread = buflen;
