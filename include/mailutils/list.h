@@ -48,7 +48,8 @@ typedef int (*mu_list_comparator_t) (const void*, const void*);
 
 extern mu_list_comparator_t mu_list_set_comparator (mu_list_t, mu_list_comparator_t);
 
-extern int mu_list_set_destroy_item (mu_list_t list, void (*destoy_item) (void *));
+extern int mu_list_set_destroy_item (mu_list_t list,
+				     void (*destroy_item) (void *));
 
   
 #ifdef __cplusplus
