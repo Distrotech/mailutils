@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -150,7 +151,7 @@ _strttrim (char *str)
   return (str);
 }
 
-char           *_strtrim (char *str);
+char *_strtrim (char *str);
 
 #define _strtrim(str) _strltrim(_strttrim(str))
 
@@ -440,7 +441,7 @@ _mimepart_body_stream_size (mu_stream_t stream, mu_off_t *psize)
 static int
 _mimepart_body_read (mu_stream_t stream,
 		     char *buf, size_t buflen, mu_off_t off,
-		     size_t * nbytes)
+		     size_t *nbytes)
 {
   mu_body_t          body = mu_stream_get_owner (stream);
   mu_message_t       msg = mu_body_get_owner (body);
@@ -474,8 +475,8 @@ _mimepart_body_read (mu_stream_t stream,
 }
 
 static int
-_mimepart_body_transport (mu_stream_t stream, mu_transport_t * tr1,
-			  mu_transport_t * tr2)
+_mimepart_body_transport (mu_stream_t stream, mu_transport_t *tr1,
+			  mu_transport_t *tr2)
 {
   mu_body_t          body = mu_stream_get_owner (stream);
   mu_message_t       msg = mu_body_get_owner (body);
@@ -485,7 +486,7 @@ _mimepart_body_transport (mu_stream_t stream, mu_transport_t * tr1,
 }
 
 static int
-_mimepart_body_size (mu_body_t body, size_t * psize)
+_mimepart_body_size (mu_body_t body, size_t *psize)
 {
   mu_message_t       msg = mu_body_get_owner (body);
   struct _mime_part *mime_part = mu_message_get_owner (msg);
@@ -498,7 +499,7 @@ _mimepart_body_size (mu_body_t body, size_t * psize)
 }
 
 static int
-_mimepart_body_lines (mu_body_t body, size_t * plines)
+_mimepart_body_lines (mu_body_t body, size_t *plines)
 {
   mu_message_t       msg = mu_body_get_owner (body);
   struct _mime_part *mime_part = mu_message_get_owner (msg);
@@ -516,7 +517,7 @@ _mime_set_content_type (mu_mime_t mime)
 {
   char            content_type[256], *content_te;
   char            boundary[128];
-  mu_header_t        hdr = NULL;
+  mu_header_t     hdr = NULL;
   size_t          size;
   int             ret;
 
@@ -549,8 +550,7 @@ _mime_set_content_type (mu_mime_t mime)
     }
   else
     {
-      if ((mime->
-	   flags & (MIME_ADDED_CT | MIME_ADDED_MULTIPART_CT))
+      if ((mime->flags & (MIME_ADDED_CT | MIME_ADDED_MULTIPART_CT))
 	  == MIME_ADDED_CT)
 	return 0;
       mime->flags &= ~MIME_ADDED_MULTIPART_CT;
@@ -595,13 +595,13 @@ _mime_set_content_type (mu_mime_t mime)
 
 static int
 _mime_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
-		 size_t * nbytes)
+		 size_t *nbytes)
 {
   mu_body_t          body = mu_stream_get_owner (stream);
   mu_message_t       msg = mu_body_get_owner (body);
   mu_mime_t          mime = mu_message_get_owner (msg);
-  int             ret = 0;
-  size_t          part_nbytes = 0;
+  int                ret = 0;
+  size_t             part_nbytes = 0;
   mu_stream_t        msg_stream = NULL;
 
   if (mime->nmtp_parts == 0)
@@ -668,7 +668,7 @@ _mime_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
 	      if (mime->cur_part >= mime->nmtp_parts)
 		return 0;
 	      mu_message_get_stream (mime->mtp_parts[mime->cur_part]->msg,
-				  &msg_stream);
+				     &msg_stream);
 	    }
 	  else
 	    {
@@ -677,7 +677,7 @@ _mime_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
 	      if (mime->cur_part >= mime->nmtp_parts)
 		return 0;
 	      mu_message_get_body (mime->mtp_parts[mime->cur_part]->msg,
-				&part_body);
+				   &part_body);
 	      mu_body_get_stream (part_body, &msg_stream);
 	    }
 	  ret =
@@ -704,8 +704,8 @@ _mime_body_read (mu_stream_t stream, char *buf, size_t buflen, mu_off_t off,
 }
 
 static int
-_mime_body_transport (mu_stream_t stream, mu_transport_t * tr1,
-		      mu_transport_t * tr2)
+_mime_body_transport (mu_stream_t stream, mu_transport_t *tr1,
+		      mu_transport_t *tr2)
 {
   mu_body_t          body = mu_stream_get_owner (stream);
   mu_message_t       msg = mu_body_get_owner (body);
@@ -719,12 +719,12 @@ _mime_body_transport (mu_stream_t stream, mu_transport_t * tr1,
 }
 
 static int
-_mime_body_size (mu_body_t body, size_t * psize)
+_mime_body_size (mu_body_t body, size_t *psize)
 {
   mu_message_t       msg = mu_body_get_owner (body);
   mu_mime_t          mime = mu_message_get_owner (msg);
-  int             i, ret;
-  size_t          size;
+  int                i, ret;
+  size_t             size;
 
   if (mime->nmtp_parts == 0)
     return EINVAL;
@@ -745,7 +745,7 @@ _mime_body_size (mu_body_t body, size_t * psize)
 }
 
 static int
-_mime_body_lines (mu_body_t body, size_t * plines)
+_mime_body_lines (mu_body_t body, size_t *plines)
 {
   mu_message_t       msg = mu_body_get_owner (body);
   mu_mime_t          mime = mu_message_get_owner (msg);
@@ -768,7 +768,7 @@ _mime_body_lines (mu_body_t body, size_t * plines)
 }
 
 int
-mu_mime_create (mu_mime_t * pmime, mu_message_t msg, int flags)
+mu_mime_create (mu_mime_t *pmime, mu_message_t msg, int flags)
 {
   mu_mime_t          mime = NULL;
   int             ret = 0;
@@ -836,7 +836,7 @@ mu_mime_create (mu_mime_t * pmime, mu_message_t msg, int flags)
 }
 
 void
-mu_mime_destroy (mu_mime_t * pmime)
+mu_mime_destroy (mu_mime_t *pmime)
 {
   mu_mime_t          mime;
   struct _mime_part *mime_part;
@@ -876,7 +876,7 @@ mu_mime_destroy (mu_mime_t * pmime)
 }
 
 int
-mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t * msg)
+mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t *msg)
 {
   size_t          nmtp_parts;
   int             ret = 0, flags = 0;
@@ -924,7 +924,7 @@ mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t * msg)
 }
 
 int
-mu_mime_get_num_parts (mu_mime_t mime, size_t * nmtp_parts)
+mu_mime_get_num_parts (mu_mime_t mime, size_t *nmtp_parts)
 {
   int             ret = 0;
 
@@ -956,7 +956,7 @@ mu_mime_add_part (mu_mime_t mime, mu_message_t msg)
 }
 
 int
-mu_mime_get_message (mu_mime_t mime, mu_message_t * msg)
+mu_mime_get_message (mu_mime_t mime, mu_message_t *msg)
 {
   mu_stream_t        body_stream;
   mu_body_t          body;
@@ -983,14 +983,14 @@ mu_mime_get_message (mu_mime_t mime, mu_message_t * msg)
 		      mu_body_set_size (body, _mime_body_size, mime->msg);
 		      mu_body_set_lines (body, _mime_body_lines, mime->msg);
 		      if ((ret =
-			   mu_stream_create (&body_stream, MU_STREAM_READ, body))
-			  == 0)
+			   mu_stream_create (&body_stream,
+					     MU_STREAM_READ, body)) == 0)
 			{
 			  mu_stream_set_read (body_stream, _mime_body_read,
-					   body);
+					      body);
 			  mu_stream_set_get_transport2 (body_stream,
-						     _mime_body_transport,
-						     body);
+							_mime_body_transport,
+							body);
 			  mu_body_set_stream (body, body_stream, mime->msg);
 			  *msg = mime->msg;
 			  return 0;
