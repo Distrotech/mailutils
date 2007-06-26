@@ -1,7 +1,12 @@
 2007-06-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update
+	
 	* mailbox/header.c (header_readline): Always nul-terminate the
 	buffer.
+	(mu_hdrent_find): Allow negative instance indices, meaning
+	scanning from the bottom up.
+
 	* include/mailutils/list.h: Fix typo
 	* libsieve/argp.c: New option --clearpath
 	* libsieve/load.c: Minor change

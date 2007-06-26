@@ -1,5 +1,5 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-06-24
-Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+GNU mailutils NEWS -- history of user-visible changes. 2007-06-26
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
@@ -20,13 +20,57 @@ a single double-quote character.
 encapsulation line is conceptually attached to the boundary, as
 requested by RFC 1521.
 
-** New functions `mu_property_sget_value' and `mu_property_aget_value'
+** Three kinds of accessors.
 
-** New functions `mu_address_sget_comments', `mu_address_sget_local_part'
-`mu_address_sget_personal', `mu_address_sget_domain',
-`mu_address_sget_route', `mu_address_sget_email' 
+Each MU object has now three kind of accessors.  The `sget' accessor
+returns a pointer to the immutable memory allocated inside the object
+and holding its string representation.  The `aget' accessor allocates
+new memory chunk, copies there the string representation of the object
+and returns the pointer to the allocated memory.  Finally, the `get'
+accessor copies the string representation to the character buffer
+supplied by the caller.  For example:
 
+  const char *s;
+  mu_header_sget_value (hdr, "From", &s);
 
+  char *s
+  mu_header_aget_value (hdr, "From", &s);
+  [...]
+  free (s);
+
+  char buf[SIZE];
+  size_t size;
+  mu_header_get_value (hdr, "From", buf, sizeof buf, &size);
+
+** RFC2822 Headers.
+
+The RFC 2822 headers support has been rewritten from scratch.  The
+accessor functions are able to return a given header instance in case
+of multiple headers, something which was impossible in the earlier
+Mailutils releases.  These new functions are given identifiers, ending
+with `_n', for example:
+
+   int mu_header_sget_value_n (mu_header_t header,
+                               const char *name, int n, const char **retval);
+
+The `n' argument gives the ordinal number (1-based) of the header to return.
+For example, to get the topmost 'Recieved' header:
+
+   mu_header_sget_value_n (header, "Received", 1, &str);
+
+To count headers from the bottom up, pass negative value of `n',
+e.g. to get the last 'Recieved' header:
+
+   mu_header_sget_value_n (header, "Received", -1, &str);
+
+For backward compatibility, traditional header accessors are still
+provided, but they are implemented as macros, expanding to the
+corresponding `_n' style accessors.   
+			              
+Important note: `mu_header_aget_value' does not allocate any memory
+if the requested header was not found. In previous releases it used
+to return a pointer to an empty string ("") in that case.
+  
 ** New functions `mu_address_set_local_part', `mu_address_set_domain',
 `mu_address_set_route', `mu_address_set_email'
 
@@ -648,7 +692,7 @@ The first release.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
