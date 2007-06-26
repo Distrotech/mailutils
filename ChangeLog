@@ -1,5 +1,22 @@
 2007-06-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/header.c (header_readline): Always nul-terminate the
+	buffer.
+	* include/mailutils/list.h: Fix typo
+	* libsieve/argp.c: New option --clearpath
+	* libsieve/load.c: Minor change
+	* libsieve/sieve.h: Minor change
+	* sieve/testsuite/sieve/ext.exp: Pass --clearpath option to sieve
+	
+	* mh/anno.c, mh/burst.c, mh/comp.c, mh/compcommon.c, mh/folder.c,
+	mh/forw.c, mh/inc.c, mh/mark.c, mh/mh.h, mh/mh_alias.y,
+	mh/mh_argp.c, mh/mh_ctx.c,  mh/mh_global.c, mh/mh_init.c,
+	mh/mh_msgset.c, mh/mh_sequence.c, mh/mh_whatnow.c, mh/mh_whom.c,
+	mh/mhl.c, mh/mhn.c, mh/mhparam.c, mh/mhpath.c, mh/pick.c,
+	mh/refile.c, mh/repl.c, mh/rmf.c, mh/rmm.c, mh/scan.c, mh/send.c,
+	mh/sortm.c, mh/whom.c: Use mu_header_sget to retrieve context and
+	configuration settings. Update all callers.
+
 	* include/mailutils/header.h (MU_HEADER_REPLACE)
 	(MU_HEADER_BEFORE): New macros
 	(mu_header_remove,mu_header_insert)
