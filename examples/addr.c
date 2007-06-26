@@ -52,7 +52,6 @@ parse (const char *str)
 
   for (no = 1; no <= pcount; no++)
     {
-      size_t got = 0;
       int isgroup;
 
       mu_address_is_group (address, no, &isgroup);
