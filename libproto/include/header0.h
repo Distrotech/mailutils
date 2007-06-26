@@ -20,7 +20,7 @@
 #define _HEADER0_H
 
 #ifdef DMALLOC
-#  include <dmalloc.h>
+# include <dmalloc.h>
 #endif
 
 #include <mailutils/header.h>
@@ -33,38 +33,42 @@ extern "C" {
 
 /* The structure members are offset that point to the begin/end of header
    fields.  */
-struct _hdr
+struct mu_hdrent
 {
-  char *fn;
-  char *fn_end;
-  char *fv;
-  char *fv_end;
+  struct mu_hdrent *prev;
+  struct mu_hdrent *next;
+  size_t fn;
+  size_t nlen;
+  size_t fv;
+  size_t vlen;
+  size_t nlines;
 };
 
-/* The blurb member represents the headers, hdr_count the number of distinct
-   header field and the layout is done by struct_hdr *hdr.  */
 struct _mu_header
 {
   /* Owner.  */
   void *owner;
 
   /* Data.  */
-  mu_stream_t mstream;
-  size_t stream_len;
-  char *blurb;
-  size_t blurb_len;
-  size_t hdr_count;
-  struct _hdr *hdr;
+  char *spool;
+  size_t spool_size;
+  size_t spool_used;
+  struct mu_hdrent *head, *tail;
   int flags;
 
-  mu_assoc_t cache;
+  size_t numhdr;
+  size_t numlines;
+  size_t size;
+  
+  /* Temporary storage */
+  mu_stream_t mstream;
+  size_t mstream_size;
   
   /* Stream.  */
   mu_stream_t stream;
-  int (*_get_value) (mu_header_t, const char *, char *, size_t , size_t *);
-  int (*_set_value) (mu_header_t, const char *, const char *, int);
-  int (*_lines)     (mu_header_t, size_t *);
-  int (*_size)      (mu_header_t, size_t *);
+  size_t strpos;
+  
+  /* Methods */
   int (*_fill)      (mu_header_t, char *, size_t, mu_off_t, size_t *);
 };
 
