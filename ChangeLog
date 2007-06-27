@@ -1,3 +1,7 @@
+2007-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/header.c: Implement a terse runtime help.
+
 2007-06-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
