@@ -5,7 +5,7 @@ dnl 2006,2007 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
-dnl the Free Software Foundation; either version 2, or (at your option)
+dnl the Free Software Foundation; either version 3, or (at your option)
 dnl any later version.
 dnl
 dnl GNU Mailutils is distributed in the hope that it will be useful,

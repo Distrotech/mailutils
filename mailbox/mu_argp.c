@@ -1,11 +1,11 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+   2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+   version 3 of the License, or (at your option) any later version.
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -257,7 +257,7 @@ parse_log_facility (const char *str)
 char *mu_license_text =
  N_("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
-    "   the Free Software Foundation; either version 2 of the License, or\n"
+    "   the Free Software Foundation; either version 3 of the License, or\n"
     "   (at your option) any later version.\n"
     "\n"
     "   GNU Mailutils is distributed in the hope that it will be useful,\n"

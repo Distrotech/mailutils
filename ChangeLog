@@ -1,5 +1,10 @@
 2007-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Prepare for the GPL v.3 release.  
+	Relicense programs under GPL v.3, libraries under LPGL v.3
+	
+2007-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* examples/header.c: Implement a terse runtime help.
 
 2007-06-26  Sergey Poznyakoff  <gray@gnu.org.ua>

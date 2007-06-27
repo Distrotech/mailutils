@@ -1,10 +1,10 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
+   the Free Software Foundation; either version 3, or (at your option)
    any later version.
 
    GNU Mailutils is distributed in the hope that it will be useful,
@@ -546,12 +546,13 @@ int
 mail_warranty (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   fputs (_("GNU Mailutils -- a suite of utilities for electronic mail\n"
-           "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.\n\n"),
+           "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
+           "2007 Free Software Foundation, Inc.\n\n"),
            ofile);
   fputs (
   _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
-    "   the Free Software Foundation; either version 2 of the License, or\n"
+    "   the Free Software Foundation; either version 3 of the License, or\n"
     "   (at your option) any later version.\n"
     "\n"
     "   GNU Mailutils is distributed in the hope that it will be useful,\n"
