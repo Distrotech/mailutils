@@ -273,6 +273,7 @@ cmd_write (int argc, char **argv)
       mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
       return;
     }
+  printf("[reading headers; end with an empty line]\n");
   mu_stream_seek (str, 0, SEEK_SET);
   while (prompt (1), fgets(buf, sizeof buf, stdin))
     {
@@ -286,17 +287,25 @@ struct cmdtab
 {
   char *name;
   void (*fun) (int argc, char **argv);
+  char *args;
+  char *help;
 };
 
+static void cmd_help (int argc, char **argv);
+
 static struct cmdtab cmdtab[] = {
-  { "quit", cmd_quit },
-  { "load", cmd_load },
-  { "free", cmd_free },
-  { "print", cmd_print },
-  { "dump", cmd_dump },
-  { "remove", cmd_remove },
-  { "insert", cmd_insert },
-  { "write", cmd_write },
+  { "quit", cmd_quit, NULL, "quit the program" },
+  { "load", cmd_load, "FILE", "read headers from the specified FILE" },
+  { "free", cmd_free, NULL, "discard all headers" },
+  { "print", cmd_print, "NAME [N]",
+    "find and print the Nth (by default, 1st) instance of header named NAME" },
+  { "dump", cmd_dump, NULL, "dump all headers on screen" },
+  { "remove", cmd_remove, "NAME [N]",
+    "remove the Nth (by default, 1st) instance of header named NAME" },
+  { "insert", cmd_insert, "NAME VALUE [REF [NUM] [before|after] [replace]]",
+    "insert new header" },
+  { "write", cmd_write, NULL, "accept headers from raw stream" },
+  { "help", cmd_help, "[COMMAND]", "print short usage message" },
   { NULL }
 };
 
@@ -308,6 +317,75 @@ find_cmd (const char *name)
     if (strcmp (p->name, name) == 0)
       return p;
   return NULL;
+}
+
+static void
+format_help_str (int col, char *p)
+{
+  if (col > 31)
+    col = 80;
+  while (*p)
+    {
+      int len;
+      char *q;
+
+      if (*p == ' ' || *p == '\t')
+	{
+	  p++;
+	  continue;
+	}
+      
+      q = strchr (p, ' ');
+      if (!q)
+	len = strlen (p);
+      else
+	len = q - p;
+      
+      if (col + len > 80)
+	{
+	  fputc ('\n', stdout);
+	  for (col = 0; col < 30; col++)
+	    fputc (' ', stdout);
+	}
+      for (; len > 0; len--, p++, col++)
+	fputc (*p, stdout);
+
+      if (q)
+	{
+	  if (col < 80)
+	    {
+	      fputc (' ', stdout);
+	      col++;
+	    }
+	  p++;
+	}
+    }
+  fputc ('\n', stdout);
+}
+	  
+      
+
+void
+cmd_help (int argc, char **argv)
+{
+  struct cmdtab *p;
+  
+  if (check_args (argv[0], argc, 1, 2))
+    return;
+
+  for (p = cmdtab; p->name; p++)
+    {
+      int col;
+      
+      col = printf ("%s", p->name);
+      for (; col < 10; col++)
+	fputc (' ', stdout);
+      if (p->args)
+	col += printf ("%s", p->args);
+      for (; col < 30; col++)
+	fputc (' ', stdout);
+      format_help_str (col, p->help);
+    }
 }
 
 int
@@ -339,7 +417,16 @@ main (int argc, char **argv)
       if (load_file (file))
 	exit (1);
     }
-
+  else
+    {
+      int status = mu_header_create (&header, NULL, 0, NULL);
+      if (status)
+	{
+	  mu_error ("cannot create header: %s", mu_strerror (status));
+	  exit (1);
+	}
+    }
+  
   while (prompt(0), fgets(buf, sizeof buf, stdin))
     {
       int c;
