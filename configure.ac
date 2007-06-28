@@ -1047,18 +1047,6 @@ if test "$EMACS" != "no"; then
 fi
 AC_SUBST(lisp_LISP)
 
-dnl Define ARG_UNUSED macro
-dnl
-AH_BOTTOM([
-#if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
-#  define __attribute__(x)
-#endif
-
-#ifndef ARG_UNUSED
-# define ARG_UNUSED __attribute__ ((__unused__))
-#endif
-])
-
 AC_ARG_VAR([DEFAULT_CUPS_CONFDIR],
            [Set the location of CUPS configuration directory. Default is \$sysconfdir/cups])
 
