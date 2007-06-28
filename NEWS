@@ -70,13 +70,37 @@ e.g. to get the last 'Recieved' header:
    mu_header_sget_value_n (header, "Received", -1, &str);
 
 For backward compatibility, traditional header accessors are still
-provided, but they are implemented as macros, expanding to the
+provided, being implemented as macros that expand to the
 corresponding `_n' style accessors.   
 			              
 Important note: `mu_header_aget_value' does not allocate any memory
-if the requested header was not found. In previous releases it used
-to return a pointer to an empty string ("") in that case.
-  
+if the requested header was not found. This differs from its behavior
+in previous releases, where it used to return a pointer to an empty
+string ("") in that case. 
+
+New functions are provided for adding and replacing headers:
+
+- int mu_header_prepend (mu_header_t header, const char *name, const char *val)
+
+Prepends header `name: val' to the existing headers;
+
+- int mu_header_append (mu_header_t header, const char *name, const char *val)
+
+Appends header `name: val' to the existing headers
+
+- int mu_header_insert (mu_header_t header, const char *name, const char *val, 
+  		        const char *ref, int num, int flags)
+
+Inserts header `name: val'. The insertion position is determined by
+the last three arguments: 
+
+  -- If flags is MU_HEADER_REPLACE and the header with the same name
+     exists, it is replaced by the new header. Otherwise:
+  -- If ref == NULL, the header is added before the existing ones;
+  -- If ref is not NULL, the new header is inserted after `num'th
+     occurrence of the header named `ref'.  If flags is
+     MU_HEADER_BEFORE, it is inserted before that occurrence.
+     
 ** New functions `mu_address_set_local_part', `mu_address_set_domain',
 `mu_address_set_route', `mu_address_set_email'
 
