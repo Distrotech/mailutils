@@ -1,3 +1,23 @@
+2007-06-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+	* include/mailutils/header.h (mu_header_append,mu_header_prepend):
+	New functions
+	* mailbox/header.c: Likewise
+	* include/mailutils/mailer.h (mu_mailer_send_fragments): New
+	function
+	* mailbox/mailer.c: Likewise
+	* include/mailutils/mutil.h (mu_rfc2822_msg_id): New function
+	* mailbox/mutil.c: Likewise
+	* mailbox/mime.c (_mime_set_content_type): Avoid risky usage of
+	static buffers.
+
+	* mh/TODO: Update
+	* mh/mh_getopt.h (ARG_CHUNKSIZE): New value
+	* mh/mh_init.c (mh_create_message_id): Rewrite using
+	mu_rfc2822_msg_id
+	* mh/send.c: Implement `--send'.
+	
 2007-06-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Prepare for the GPL v.3 release.  
