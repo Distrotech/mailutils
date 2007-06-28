@@ -8,7 +8,33 @@ DOMAIN = $(PACKAGE)
 subdir = po
 top_builddir = ..
 
-XGETTEXT_OPTIONS = --keyword=_ --keyword=N_
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_ \
+ --flag=util_error:1:c-format\
+ --flag=util_out:2:c-format\
+ --flag=util_send:1:c-format\
+ --flag=util_finish:3:c-format\
+ --flag=mu_error:1:c-format\
+ --flag=sieve_compile_error:3:c-format\
+ --flag=sieve_debug_internal:3:c-format\
+ --flag=mu_sieve_error:2:c-format\
+ --flag=mu_sieve_debug:2:c-format\
+ --flag=mu_sieve_log_action:2:c-format\
+ --flag=mu_stream_printf:3:c-format\
+ --flag=mu_pop3_writeline:2:c-format\
+ --flag=mu_nntp_writeline:2:c-format\
+ --flag=util_out:2:c-format\
+ --flag=util_send:1:c-format\
+ --flag=util_do_command:1:c-format\
+ --flag=util_error:1:c-format\
+ --flag=util_cache_command:2:c-format\
+ --flag=mailer_err:1:c-format\
+ --flag=mh_getyn:1:c-format\
+ --flag=mh_getyn_interactive:1:c-format\
+ --flag=mh_error:1:c-format\
+ --flag=ali_parse_error:1:c-format\
+ --flag=pop3d_outf:1:c-format\
+ --flag=imap_writeline:2:c-format
+
 COPYRIGHT_HOLDER = Free Software Foundation, Inc.
 MSGID_BUGS_ADDRESS = bug-mailutils@gnu.org
 EXTRA_LOCALE_CATEGORIES =
