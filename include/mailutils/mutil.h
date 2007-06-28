@@ -114,6 +114,7 @@ extern int mu_unroll_symlink (char *out, size_t outsz, const char *in);
 
 extern char * mu_expand_path_pattern (const char *pattern, const char *username);
 
+extern int mu_rfc2822_msg_id (int subpart, char **pstr);
 extern int mu_rfc2822_references (mu_message_t msg, char **pstr);
 extern int mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr);
 

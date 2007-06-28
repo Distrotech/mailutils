@@ -1023,6 +1023,35 @@ mu_rfc2822_references (mu_message_t msg, char **pstr)
   return MU_ERR_FAILURE;
 }
 
+int
+mu_rfc2822_msg_id (int subpart, char **pval)
+{
+  char date[4+2+2+2+2+2+1];
+  time_t t = time (NULL);
+  struct tm *tm = localtime (&t);
+  char *host;
+  char *p;
+	  
+  mu_strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
+  mu_get_host_name (&host);
+
+  if (subpart)
+    {
+      struct timeval tv;
+      gettimeofday (&tv, NULL);
+      asprintf (&p, "<%s.%lu.%d@%s>",
+		date,
+		(unsigned long) getpid (),
+		subpart,
+		host);
+    }
+  else
+    asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
+  free (host);
+  *pval = p;
+  return 0;
+}
+
 #define DATEBUFSIZE 128
 #define COMMENT "Your message of "
 
