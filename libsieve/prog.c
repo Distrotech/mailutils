@@ -184,7 +184,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      if (!tag_list && (rc = mu_list_create (&tag_list)))
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                                       _("%s:%d: cannot create tag list: %s"),
+                                       _("cannot create tag list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
 		  break;
@@ -216,7 +216,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		  if (!chk_list && (rc = mu_list_create (&chk_list)))
 		    {
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-			  	         _("%s:%d: cannot create check list: %s"),
+ 			  	         _("cannot create check list: %s"),
 					   mu_strerror (rc));
 		      err = 1;
 		      break;
