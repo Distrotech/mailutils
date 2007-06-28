@@ -62,7 +62,9 @@ static struct argp_option options[] = {
    N_("Run in the backround.") },
   {"nopush",        ARG_NOPUSH,        NULL, OPTION_HIDDEN, "" },
   {"split",         ARG_SPLIT,         N_("SECONDS"), 0,
-   N_("* Split the draft into several partial messages and send them with SECONDS interval") },
+   N_("Split the draft into several partial messages and send them with SECONDS interval") },
+  {"chunksize",     ARG_CHUNKSIZE,     N_("NUMBER"), 0,
+   N_("Set the size of chunk for --split (in bytes)") },
   {"verbose",       ARG_VERBOSE,       N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Print the transcript of interactions with the transport system") },
   {"noverbose",     ARG_NOVERBOSE,     NULL, OPTION_HIDDEN, "" },
@@ -109,7 +111,7 @@ static int background;           /* Operate in the background */
 static int split_message;            /* Split the message */
 static unsigned long split_interval; /* Interval in seconds between sending two
 					successive partial messages */
-
+static size_t split_size = 76*632;   /* Size of split parts */
 static int verbose;              /* Produce verbose diagnostics */
 static int watch;                /* Watch the delivery process */
 static unsigned width = 76;      /* Maximum width of header fields */
@@ -131,7 +133,16 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_ALIAS:
       mh_alias_read (arg, 1);
       break;
-      
+
+    case ARG_CHUNKSIZE:
+      split_size = strtoul (arg, &p, 10);
+      if (*p)
+	{
+	  argp_error (state, "%s: %s", arg, _("Invalid number"));
+	  exit (1);
+	}
+      break;
+	
     case ARG_DRAFT:
       use_draft = 1;
       break;
@@ -199,7 +210,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       split_interval = strtoul (arg, &p, 10);
       if (*p)
 	{
-	  argp_error (state, _("Invalid number"));
+	  argp_error (state, "%s: %s", arg, _("Invalid number"));
 	  exit (1);
 	}
       break;
@@ -628,7 +639,17 @@ _action_send (void *item, void *data)
     return 1;
 
   WATCH ((_("Sending message %s"), elt->file_name));
-  rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
+  if (split_message)
+    {
+      struct timeval delay;
+      delay.tv_sec = split_interval;
+      delay.tv_usec = 0;
+      rc = mu_mailer_send_fragments (mailer, msg,
+				     split_size, &delay,
+				     NULL, NULL);
+    }
+  else
+    rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
       mu_error(_("Cannot send message: %s"), mu_strerror (rc));
