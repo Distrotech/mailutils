@@ -236,7 +236,7 @@ mu_hdrent_create (struct _mu_header *ph,
 {
   size_t strsize;
   size_t sizeleft;
-  char *p;
+  const char *p;
   
   if (!ent)
     {
