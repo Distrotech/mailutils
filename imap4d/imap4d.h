@@ -241,12 +241,13 @@ extern void imap4d_capability_remove (const char *str);
 extern void imap4d_capability_init (void);
   
 /* Helper functions.  */
-extern int  util_out (int, const char *, ...);
-extern int  util_send (const char *, ...);
+extern int  util_out (int, const char *, ...) MU_PRINTFLIKE(2,3);
+extern int  util_send (const char *, ...) MU_PRINTFLIKE(1,2);
 extern int  util_send_qstring (const char *);
 extern int  util_send_literal (const char *);
 extern int  util_start (char *);
-extern int  util_finish (struct imap4d_command *, int, const char *, ...);
+extern int  util_finish (struct imap4d_command *, int, const char *, ...) 
+                         MU_PRINTFLIKE(3,4);
 extern int  util_getstate (void);
 extern int  util_do_command (char *);
 extern char *imap4d_readline (void);

@@ -30,7 +30,7 @@ extern "C" {
 typedef int (*mu_error_pfn_t) (const char *fmt, va_list ap);
 
 extern int mu_verror (const char *fmt, va_list ap);
-extern int mu_error (const char *fmt, ...);
+extern int mu_error (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 extern void mu_error_set_print (mu_error_pfn_t);
 
 int mu_default_error_printer (const char *fmt, va_list ap);

@@ -37,7 +37,7 @@ extern void * mu_debug_get_owner (mu_debug_t);
 extern int mu_debug_set_level (mu_debug_t, size_t level);
 extern int mu_debug_get_level (mu_debug_t, size_t *plevel);
 extern int mu_debug_print     (mu_debug_t debug, size_t level,
-			       const char *format, ...);
+			       const char *format, ...) MU_PRINTFLIKE(3,4);
 extern int mu_debug_printv    (mu_debug_t debug, size_t level,
 			       const char *format, va_list argp);
 extern int mu_debug_set_print (mu_debug_t, 

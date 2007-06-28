@@ -102,7 +102,8 @@ extern int  mu_pop3_response     (mu_pop3_t pop3, char *buffer, size_t buflen, s
 
 /* pop3_writeline copies the line in the internal buffer, a mu_pop3_send() is
    needed to do the actual transmission.  */
-extern int  mu_pop3_writeline    (mu_pop3_t pop3, const char *format, ...);
+extern int  mu_pop3_writeline    (mu_pop3_t pop3, const char *format, ...)
+                                  MU_PRINTFLIKE(2,3);
 
 /* mu_pop3_sendline() is equivalent to:
        mu_pop3_writeline (pop3, line);

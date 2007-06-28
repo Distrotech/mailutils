@@ -89,9 +89,9 @@ extern int sieve_error_count;
 #define TAG_RELFUN  "__relfun__"
 
 void sieve_compile_error (const char *filename, int linenum,
-			  const char *fmt, ...);
+			  const char *fmt, ...) MU_PRINTFLIKE(3,4);
 void sieve_debug_internal (mu_sieve_printf_t printer, void *data,
-			   const char *fmt, ...);
+			   const char *fmt, ...) MU_PRINTFLIKE(3,4);
 void sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer,
 		        void *data);
 void sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data);

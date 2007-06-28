@@ -259,8 +259,8 @@ int mh_global_sequences_iterate (mh_context_iterator fp, void *data);
 void mh_global_sequences_drop (void);
 
 int mh_interactive_mode_p (void);
-int mh_getyn (const char *fmt, ...);
-int mh_getyn_interactive (const char *fmt, ...);
+int mh_getyn (const char *fmt, ...) MU_PRINTFLIKE(1,2);
+int mh_getyn_interactive (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 int mh_check_folder (const char *pathname, int confirm);
 int mh_makedir (const char *p);
 
@@ -273,7 +273,7 @@ void mh_format_debug (int val);
 void mh_format_free (mh_format_t *fmt);
 mh_builtin_t *mh_lookup_builtin (char *name, int *rest);
 
-void mh_error (const char *fmt, ...);
+void mh_error (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mh_err_memory (int fatal);
 
 FILE *mh_audit_open (char *name, mu_mailbox_t mbox);
@@ -364,6 +364,6 @@ void mh_comp_draft (const char *formfile, const char *defformfile,
 		    const char *draftfile);
 int check_draft_disposition (struct mh_whatnow_env *wh, int use_draft);
 
-void ali_parse_error (char *fmt, ...);
+void ali_parse_error (char *fmt, ...) MU_PRINTFLIKE(1,2); 
 void ali_verbatim (int enable);
 

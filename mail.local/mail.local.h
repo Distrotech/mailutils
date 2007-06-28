@@ -112,7 +112,7 @@ extern int check_quota (struct mu_auth_data *auth,
 
 int mda (mu_mailbox_t mbx, char *username);
 int switch_user_id (struct mu_auth_data *auth, int user);
-void mailer_err (char *fmt, ...);
+void mailer_err (char *fmt, ...) MU_PRINTFLIKE(1,2);
 
 #ifdef WITH_GUILE
 struct mda_data

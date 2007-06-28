@@ -302,7 +302,7 @@ extern int msgset_member (msgset_t *set, size_t n);
 extern msgset_t *msgset_negate (msgset_t *set);
 extern size_t msgset_count (msgset_t *set);
 
-extern int util_do_command (const char *cmd, ...);
+extern int util_do_command (const char *cmd, ...) MU_PRINTFLIKE(1,2);
 
 extern int util_foreach_msg (int argc, char **argv, int flags,
 			     msg_handler_t func, void *data);
@@ -353,7 +353,7 @@ extern void util_strupper (char *str);
 extern void util_escape_percent (char **str);
 extern char *util_outfolder_name (char *str);
 extern void util_save_outgoing (mu_message_t msg, char *savefile);
-extern void util_error (const char *format, ...);
+extern void util_error (const char *format, ...) MU_PRINTFLIKE(1,2);
 extern int util_error_range (size_t msgno);
 extern void util_noapp (void);
 extern int util_tempfile (char **namep);
@@ -365,7 +365,7 @@ extern int util_get_hdr_value (mu_header_t hdr, const char *name, char **value);
 extern int util_merge_addresses (char **addr_str, const char *value);
 extern int util_header_expand (mu_header_t *hdr);
 extern int util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg);
-void util_cache_command (mu_list_t *list, const char *fmt, ...);
+void util_cache_command (mu_list_t *list, const char *fmt, ...) MU_PRINTFLIKE(2,3);
 void util_run_cached_commands (mu_list_t *list);
 const char *util_reply_prefix (void);
 void util_rfc2047_decode (char **value);

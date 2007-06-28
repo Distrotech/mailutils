@@ -249,7 +249,7 @@ extern int pop3d_touchlock      (void);
 extern int pop3d_uidl           (const char *);
 extern int pop3d_user           (const char *);
 extern int pop3d_unlock         (void);
-extern void pop3d_outf          (const char *fmt, ...);
+extern void pop3d_outf          (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 
 extern void pop3d_setio         (FILE *in, FILE *out);
 extern char *pop3d_readline     (char *, size_t);

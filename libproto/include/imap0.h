@@ -222,7 +222,7 @@ struct _msg_imap
   size_t header_lines;
 };
 
-int imap_writeline    (f_imap_t,  const char *format, ...);
+int imap_writeline    (f_imap_t,  const char *format, ...) MU_PRINTFLIKE(2,3);
 int imap_write        (f_imap_t);
 int imap_send         (f_imap_t);
 int imap_parse        (f_imap_t);
