@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-06-27
+GNU mailutils NEWS -- history of user-visible changes. 2007-06-28
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -118,6 +118,10 @@ facility.
 * MH changes
 
 ** sortm uses stable sort algorithm.
+** send supports `--split'. The new option `--chunksize' allows to
+set size of chunks to split the message into. The default size is
+48032 (632 lines, each of 76 bytes).
+
 
 * Support for old DBM has been withdrawn.
 
