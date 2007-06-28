@@ -36,7 +36,7 @@
 #include <amd.h>
 
 static int
-_maildir_folder_init (mu_folder_t folder ARG_UNUSED)
+_maildir_folder_init (mu_folder_t folder MU_ARG_UNUSED)
 {
   return 0;
 }

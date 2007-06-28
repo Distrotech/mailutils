@@ -20,7 +20,7 @@
    MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>  /* For ARG_UNUSED only */
+# include <config.h>  /* For MU_ARG_UNUSED only */
 #endif 
 #include <sys/types.h>
 #include <unistd.h>
@@ -229,14 +229,14 @@ readline (char *prompt)
 }
 
 void
-add_history (const char *s ARG_UNUSED)
+add_history (const char *s MU_ARG_UNUSED)
 {
 }
 #endif
 
 
 int
-main (int argc ARG_UNUSED, char **argv)
+main (int argc MU_ARG_UNUSED, char **argv)
 {
   char *line, *s;
 
@@ -398,7 +398,7 @@ com_apop (char *arg)
 }
 
 int
-com_capa (char *arg ARG_UNUSED)
+com_capa (char *arg MU_ARG_UNUSED)
 {
   mu_iterator_t iterator = NULL;
   int status = mu_pop3_capa (pop3, &iterator);
@@ -483,7 +483,7 @@ com_list (char *arg)
 }
 
 int
-com_noop (char *arg ARG_UNUSED)
+com_noop (char *arg MU_ARG_UNUSED)
 {
   return mu_pop3_noop (pop3);
 }
@@ -526,7 +526,7 @@ com_pass (char *arg)
 }
 
 int
-com_stat (char *arg ARG_UNUSED)
+com_stat (char *arg MU_ARG_UNUSED)
 {
   unsigned count, size;
   int status = 0;
@@ -588,7 +588,7 @@ com_help (char *arg)
 }
 
 int
-com_rset (char *arg ARG_UNUSED)
+com_rset (char *arg MU_ARG_UNUSED)
 {
   return mu_pop3_rset (pop3);
 }
@@ -694,7 +694,7 @@ com_connect (char *arg)
 }
 
 int
-com_disconnect (char *arg ARG_UNUSED)
+com_disconnect (char *arg MU_ARG_UNUSED)
 {
   (void) arg;
   if (pop3)
@@ -707,7 +707,7 @@ com_disconnect (char *arg ARG_UNUSED)
 }
 
 int
-com_quit (char *arg ARG_UNUSED)
+com_quit (char *arg MU_ARG_UNUSED)
 {
   int status = 0;
   if (pop3)
@@ -727,7 +727,7 @@ com_quit (char *arg ARG_UNUSED)
 }
 
 int
-com_exit (char *arg ARG_UNUSED)
+com_exit (char *arg MU_ARG_UNUSED)
 {
   if (pop3)
     {

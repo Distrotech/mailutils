@@ -653,7 +653,7 @@ select_body (mu_message_t msg, void *closure)
 }
 
 int
-select_sender (mu_message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
+select_sender (mu_message_t msg MU_ARG_UNUSED, void *closure MU_ARG_UNUSED)
 {
   /* char *sender = (char*) closure; */
   /* FIXME: all messages from sender argv[i] */
@@ -691,7 +691,7 @@ select_type (mu_message_t msg, void *closure)
 }
 
 int
-select_deleted (mu_message_t msg, void *closure ARG_UNUSED)
+select_deleted (mu_message_t msg, void *closure MU_ARG_UNUSED)
 {
   mu_attribute_t attr= NULL;
   int rc;

@@ -25,7 +25,7 @@
    mailbox all messages that have the \\Deleted flag set, and returns
    to authenticated state from selected state.  */
 int
-imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
+imap4d_close (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
 {
   const char *msg = NULL;
   int status, flags;

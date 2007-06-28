@@ -23,7 +23,7 @@
  */
 
 int
-mail_folders (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_folders (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   char *path;
 

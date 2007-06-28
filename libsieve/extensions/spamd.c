@@ -253,7 +253,7 @@ spamd_abort (mu_sieve_machine_t mach, mu_stream_t *stream, signal_handler handle
 static int got_sigpipe;
 
 static RETSIGTYPE
-sigpipe_handler (int sig ARG_UNUSED)
+sigpipe_handler (int sig MU_ARG_UNUSED)
 {
   got_sigpipe = 1;
 }

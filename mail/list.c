@@ -24,7 +24,7 @@
  */
 
 int
-mail_list (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_list (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   mail_command_list ();
   return 0;

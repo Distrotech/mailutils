@@ -89,7 +89,7 @@ mhparam_defval (char *comp)
 }
 
 int
-mhparam_iterator (const char *comp, const char *value, void *data ARG_UNUSED)
+mhparam_iterator (const char *comp, const char *value, void *data MU_ARG_UNUSED)
 {
   if (display_comp_name)
     printf("%s:\t", comp);

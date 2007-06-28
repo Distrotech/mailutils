@@ -447,9 +447,9 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
 }
 
 int
-mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 			const void *key,
-			void *func_data ARG_UNUSED, void *call_data)
+			void *func_data MU_ARG_UNUSED, void *call_data)
 {
   int rc;
   grad_request_t *reply;
@@ -569,18 +569,18 @@ struct argp mu_radius_argp = {
 
 #else
 static int
-mu_radius_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 			const void *key,
-			void *func_data ARG_UNUSED, void *call_data)
+			void *func_data MU_ARG_UNUSED, void *call_data)
 {
   return ENOSYS;
 }
 
 static int
-mu_auth_radius_user_by_name (struct mu_auth_data **return_data ARG_UNUSED,
-			     const void *key ARG_UNUSED,
-			     void *func_data ARG_UNUSED,
-			     void *call_data ARG_UNUSED)
+mu_auth_radius_user_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
+			     const void *key MU_ARG_UNUSED,
+			     void *func_data MU_ARG_UNUSED,
+			     void *call_data MU_ARG_UNUSED)
 {
   return ENOSYS;
 }

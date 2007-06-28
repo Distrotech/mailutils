@@ -193,13 +193,13 @@ mu_monitor_unlock (mu_monitor_t monitor)
 }
 
 int
-mu_monitor_wait (mu_monitor_t monitor ARG_UNUSED)
+mu_monitor_wait (mu_monitor_t monitor MU_ARG_UNUSED)
 {
   return ENOSYS;
 }
 
 int
-mu_monitor_notify (mu_monitor_t monitor ARG_UNUSED)
+mu_monitor_notify (mu_monitor_t monitor MU_ARG_UNUSED)
 {
   return ENOSYS;
 }

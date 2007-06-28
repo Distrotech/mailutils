@@ -167,7 +167,7 @@ ali_print_name_list (mu_list_t list, int off)
 }
 
 static int
-ali_print_alias (char *name, mu_list_t alias, void *data ARG_UNUSED)
+ali_print_alias (char *name, mu_list_t alias, void *data MU_ARG_UNUSED)
 {
   int n;
   

@@ -25,7 +25,7 @@
  */
 
 int
-imap4d_check (struct imap4d_command *command, char *arg ARG_UNUSED)
+imap4d_check (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
 {
   return util_finish (command, RESP_OK, "Completed");
 }

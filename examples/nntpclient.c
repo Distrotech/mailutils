@@ -20,7 +20,7 @@
    MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>  /* For ARG_UNUSED only */
+# include <config.h>  /* For MU_ARG_UNUSED only */
 #endif 
 #include <sys/types.h>
 #include <unistd.h>
@@ -242,14 +242,14 @@ readline (char *prompt)
 }
 
 void
-add_history (const char *s ARG_UNUSED)
+add_history (const char *s MU_ARG_UNUSED)
 {
 }
 #endif
 
 
 int
-main (int argc ARG_UNUSED, char **argv)
+main (int argc MU_ARG_UNUSED, char **argv)
 {
   char *line, *s;
 
@@ -398,7 +398,7 @@ int com_mode (char *arg)
 }
 
 int
-com_mode_reader (char *arg ARG_UNUSED)
+com_mode_reader (char *arg MU_ARG_UNUSED)
 {
   return mu_nntp_mode_reader (nntp);
 }
@@ -561,7 +561,7 @@ int com_list (char *arg)
 }
 
 int
-com_list_extensions (char *arg ARG_UNUSED)
+com_list_extensions (char *arg MU_ARG_UNUSED)
 {
   mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_extensions (nntp, &iterator);
@@ -660,7 +660,7 @@ com_list_active_times (char *arg)
 }
 
 int
-com_list_distributions (char *arg ARG_UNUSED)
+com_list_distributions (char *arg MU_ARG_UNUSED)
 {
   mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_distributions (nntp, arg, &iterator);
@@ -694,7 +694,7 @@ com_list_distributions (char *arg ARG_UNUSED)
 }
 
 int
-com_list_distrib_pats (char *arg ARG_UNUSED)
+com_list_distrib_pats (char *arg MU_ARG_UNUSED)
 {
   mu_iterator_t iterator = NULL;
   int status = mu_nntp_list_distrib_pats (nntp, &iterator);
@@ -764,7 +764,7 @@ com_list_newsgroups (char *arg)
 }
 
 int
-com_last (char *arg ARG_UNUSED)
+com_last (char *arg MU_ARG_UNUSED)
 {
   char *mid = NULL;
   unsigned long number = 0;
@@ -779,7 +779,7 @@ com_last (char *arg ARG_UNUSED)
 }
 
 int
-com_next (char *arg ARG_UNUSED)
+com_next (char *arg MU_ARG_UNUSED)
 {
   char *mid = NULL;
   unsigned long number = 0;
@@ -922,7 +922,7 @@ com_stat (char *arg)
 }
 
 int
-com_date (char *arg ARG_UNUSED)
+com_date (char *arg MU_ARG_UNUSED)
 {
   unsigned int year, month, day, hour, min, sec;
   int status;
@@ -950,7 +950,7 @@ com_ihave (char *arg)
 }
 
 int
-com_help (char *arg ARG_UNUSED)
+com_help (char *arg MU_ARG_UNUSED)
 {
   mu_stream_t stream = NULL;
   int status;
@@ -1054,7 +1054,7 @@ com_connect (char *arg)
 }
 
 int
-com_disconnect (char *arg ARG_UNUSED)
+com_disconnect (char *arg MU_ARG_UNUSED)
 {
   (void) arg;
   if (nntp)
@@ -1067,7 +1067,7 @@ com_disconnect (char *arg ARG_UNUSED)
 }
 
 int
-com_quit (char *arg ARG_UNUSED)
+com_quit (char *arg MU_ARG_UNUSED)
 {
   int status = 0;
   if (nntp)
@@ -1087,7 +1087,7 @@ com_quit (char *arg ARG_UNUSED)
 }
 
 int
-com_exit (char *arg ARG_UNUSED)
+com_exit (char *arg MU_ARG_UNUSED)
 {
   if (nntp)
     {

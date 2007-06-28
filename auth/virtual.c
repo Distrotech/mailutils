@@ -203,10 +203,10 @@ struct argp mu_virt_argp = {
 
 #else
 static int
-mu_auth_virt_domain_by_name (struct mu_auth_data **return_data ARG_UNUSED,
-			     const void *key ARG_UNUSED,
-			     void *func_data ARG_UNUSED,
-			     void *call_data ARG_UNUSED)
+mu_auth_virt_domain_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
+			     const void *key MU_ARG_UNUSED,
+			     void *func_data MU_ARG_UNUSED,
+			     void *call_data MU_ARG_UNUSED)
 {
   return ENOSYS;
 }

@@ -40,7 +40,7 @@
 static void url_sendmail_destroy (mu_url_t purl);
 
 static void
-url_sendmail_destroy (mu_url_t url ARG_UNUSED)
+url_sendmail_destroy (mu_url_t url MU_ARG_UNUSED)
 {
 }
 

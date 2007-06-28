@@ -23,7 +23,7 @@
  */
 
 int
-mail_inc (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_inc (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   if (!mu_mailbox_is_updated (mbox))
     {

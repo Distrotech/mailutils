@@ -75,8 +75,8 @@ mu_auth_system (struct mu_auth_data **return_data, const struct passwd *pw)
 int
 mu_auth_system_by_name (struct mu_auth_data **return_data,
 			const void *key,
-			void *func_data ARG_UNUSED,
-			void *call_data ARG_UNUSED)
+			void *func_data MU_ARG_UNUSED,
+			void *call_data MU_ARG_UNUSED)
 {
   if (!key)
     return EINVAL;
@@ -86,8 +86,8 @@ mu_auth_system_by_name (struct mu_auth_data **return_data,
 static int
 mu_auth_system_by_uid (struct mu_auth_data **return_data,
 		       const void *key,
-		       void *func_data ARG_UNUSED,
-		       void *call_data ARG_UNUSED)
+		       void *func_data MU_ARG_UNUSED,
+		       void *call_data MU_ARG_UNUSED)
 {
   if (!key)
     return EINVAL;
@@ -95,9 +95,9 @@ mu_auth_system_by_uid (struct mu_auth_data **return_data,
 }
 
 static int
-mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
+mu_authenticate_generic (struct mu_auth_data **return_data MU_ARG_UNUSED,
 			 const void *key,
-			 void *func_data ARG_UNUSED,
+			 void *func_data MU_ARG_UNUSED,
 			 void *call_data)
 {
   const struct mu_auth_data *auth_data = key;
@@ -113,9 +113,9 @@ mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
 
 /* Called only if generic fails */
 static int
-mu_authenticate_system (struct mu_auth_data **return_data ARG_UNUSED,
+mu_authenticate_system (struct mu_auth_data **return_data MU_ARG_UNUSED,
 			const void *key,
-			void *func_data ARG_UNUSED,
+			void *func_data MU_ARG_UNUSED,
 			void *call_data)
 {
   const struct mu_auth_data *auth_data = key;

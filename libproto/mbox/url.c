@@ -37,7 +37,7 @@
 static void url_mbox_destroy (mu_url_t purl);
 
 static void
-url_mbox_destroy (mu_url_t url ARG_UNUSED)
+url_mbox_destroy (mu_url_t url MU_ARG_UNUSED)
 {
 }
 
@@ -259,7 +259,7 @@ _url_mbox_init (mu_url_t url)
 }
 
 static void
-url_path_destroy (mu_url_t url ARG_UNUSED)
+url_path_destroy (mu_url_t url MU_ARG_UNUSED)
 {
 }
 

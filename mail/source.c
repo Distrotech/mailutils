@@ -20,7 +20,7 @@
 
 
 static char *
-source_readline (void *closure, int cont ARG_UNUSED)
+source_readline (void *closure, int cont MU_ARG_UNUSED)
 {
   FILE *fp = closure;
   size_t s = 0;

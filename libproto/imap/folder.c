@@ -1952,21 +1952,21 @@ imap_fetch (f_imap_t f_imap)
 }
 
 static int
-imap_search (f_imap_t f_imap ARG_UNUSED)
+imap_search (f_imap_t f_imap MU_ARG_UNUSED)
 {
   /* Not implemented.  No provision for this in the API, yet.  */
   return 0;
 }
 
 static int
-imap_status (f_imap_t f_imap ARG_UNUSED)
+imap_status (f_imap_t f_imap MU_ARG_UNUSED)
 {
   /* Not implemented.  No provision for this in the API, yet.  */
   return 0;
 }
 
 static int
-imap_expunge (f_imap_t f_imap ARG_UNUSED, unsigned msgno ARG_UNUSED)
+imap_expunge (f_imap_t f_imap MU_ARG_UNUSED, unsigned msgno MU_ARG_UNUSED)
 {
   /* We should not have this, since do not send the expunge, but rather
      use SELECT/CLOSE.  */

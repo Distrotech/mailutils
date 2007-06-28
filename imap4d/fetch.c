@@ -280,7 +280,7 @@ fetch_fast (struct fetch_command *command, char **arg)
    Header: Date, Subject, From, Sender, Reply-To, To, Cc, Bcc, In-Reply-To,
    and Message-Id.  */
 static int
-fetch_envelope (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_envelope (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   int status;
   util_send ("%s (", command->name);
@@ -347,7 +347,7 @@ fetch_flags (struct fetch_command *command, char **arg)
    ;; from the given time will give the UT form.
    ;; The Universal Time zone is "+0000".  */
 static int
-fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_internaldate (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   char date[128];
   mu_envelope_t env = NULL;
@@ -378,7 +378,7 @@ fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
   Functionally equivalent to BODY.PEEK[HEADER], differing in the syntax of
   the resulting untagged FETCH data (RFC822.HEADER is returned). */
 static int
-fetch_rfc822_header (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_rfc822_header (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   char buffer[32];
   char *p = buffer;
@@ -391,7 +391,7 @@ fetch_rfc822_header (struct fetch_command *command, char **arg ARG_UNUSED)
    Functionally equivalent to BODY[TEXT], differing in the syntax of the
    resulting untagged FETCH data (RFC822.TEXT is returned). */
 static int
-fetch_rfc822_text (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_rfc822_text (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   char buffer[16];
   char *p = buffer;
@@ -402,7 +402,7 @@ fetch_rfc822_text (struct fetch_command *command, char **arg ARG_UNUSED)
 
 /* The [RFC-822] size of the message.  */
 static int
-fetch_rfc822_size (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_rfc822_size (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   size_t size = 0;
   size_t lines = 0;
@@ -457,7 +457,7 @@ fetch_rfc822 (struct fetch_command *command, char **arg)
 
 /* UID: The unique identifier for the message.  */
 static int
-fetch_uid (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_uid (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   size_t uid = 0;
 
@@ -471,7 +471,7 @@ fetch_uid (struct fetch_command *command, char **arg ARG_UNUSED)
    server by parsing the [MIME-IMB] header fields in the [RFC-822] header and
    [MIME-IMB] headers.  */
 static int
-fetch_bodystructure (struct fetch_command *command, char **arg ARG_UNUSED)
+fetch_bodystructure (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
   util_send ("%s (", command->name);
   fetch_bodystructure0 (command->msg, 1); /* 1 means with extension data.  */

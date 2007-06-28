@@ -30,7 +30,7 @@
 #include <auth0.h>
 
 static int
-_authenticate_null (mu_authority_t auth ARG_UNUSED)
+_authenticate_null (mu_authority_t auth MU_ARG_UNUSED)
 {
   return 0;
 }

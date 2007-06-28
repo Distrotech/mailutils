@@ -487,8 +487,8 @@ decode_tuple (mu_sql_connection_t conn, int n,
 static int
 mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		     const void *key,
-		     void *func_data ARG_UNUSED,
-		     void *call_data ARG_UNUSED)
+		     void *func_data MU_ARG_UNUSED,
+		     void *call_data MU_ARG_UNUSED)
 {
   int status, rc;
   char *query_str = NULL;
@@ -567,8 +567,8 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 static int
 mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 		    const void *key,
-		    void *func_data ARG_UNUSED,
-		    void *call_data ARG_UNUSED)
+		    void *func_data MU_ARG_UNUSED,
+		    void *call_data MU_ARG_UNUSED)
 {
   char uidstr[64];
   int status, rc;
@@ -731,9 +731,9 @@ mu_sql_getpass (const char *username, char **passwd)
 }
 
 static int
-mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 		     const void *key,
-		     void *func_data ARG_UNUSED, void *call_data)
+		     void *func_data MU_ARG_UNUSED, void *call_data)
 {
   const struct mu_auth_data *auth_data = key;
   char *pass = call_data;

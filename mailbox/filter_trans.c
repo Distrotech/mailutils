@@ -168,7 +168,7 @@ static const char _hexdigits[] = "0123456789ABCDEF";
 
 static int
 qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
-	   size_t *nbytes, int *line_len ARG_UNUSED)
+	   size_t *nbytes, int *line_len MU_ARG_UNUSED)
 {
   char c;
   int last_char = 0;
@@ -413,7 +413,7 @@ b64_input (char c)
 
 static int
 base64_decode (const char *iptr, size_t isize, char *optr, size_t osize,
-	       size_t *nbytes, int *line_len ARG_UNUSED)
+	       size_t *nbytes, int *line_len MU_ARG_UNUSED)
 {
   int i = 0, tmp = 0, pad = 0;
   size_t consumed = 0;
@@ -578,7 +578,7 @@ static struct _mu_filter_record _B_filter =
 /* RFC 2047 "Q" Encoding */
 static int
 Q_decode (const char *iptr, size_t isize, char *optr, size_t osize,
-	   size_t *nbytes, int *line_len ARG_UNUSED)
+	   size_t *nbytes, int *line_len MU_ARG_UNUSED)
 {
   char c;
   size_t consumed = 0;

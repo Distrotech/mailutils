@@ -580,7 +580,7 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 }
 
 static int
-maildir_scan0 (mu_mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
+maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount, 
 	       int do_notify)
 {
   struct _amd_data *amd = mailbox->data;

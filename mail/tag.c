@@ -23,7 +23,7 @@
 /* unt[ag] [msglist] */
 
 static int
-tag_message (mu_message_t mesg, msgset_t *msgset ARG_UNUSED, void *arg)
+tag_message (mu_message_t mesg, msgset_t *msgset MU_ARG_UNUSED, void *arg)
 {
   mu_attribute_t attr;
   int *action = arg;

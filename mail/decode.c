@@ -73,7 +73,8 @@ display_message (mu_message_t mesg, msgset_t *msgset, void *arg)
 }
 
 static void
-display_headers (FILE *out, mu_message_t mesg, const msgset_t *msgset ARG_UNUSED,
+display_headers (FILE *out, mu_message_t mesg, 
+                 const msgset_t *msgset MU_ARG_UNUSED,
 		 int select_hdr)
 {
   mu_header_t hdr = NULL;

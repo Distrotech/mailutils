@@ -707,7 +707,7 @@ _prog_stream_unregister (struct _prog_stream *stream)
 }
 
 static int
-_prog_waitpid (void *item, void *data ARG_UNUSED)
+_prog_waitpid (void *item, void *data MU_ARG_UNUSED)
 {
   struct _prog_stream *str = item;
   int status;

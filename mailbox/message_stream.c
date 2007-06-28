@@ -392,7 +392,7 @@ _body_stream_size (mu_stream_t stream, mu_off_t *psize)
 }
 
 static int
-_body_stream_flush (mu_stream_t str ARG_UNUSED)
+_body_stream_flush (mu_stream_t str MU_ARG_UNUSED)
 {
   return 0;
 }

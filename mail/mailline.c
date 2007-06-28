@@ -305,7 +305,7 @@ ml_attempted_completion_over ()
 
 /* Completion functions */
 char **
-no_compl (int argc ARG_UNUSED, char **argv ARG_UNUSED, int ws ARG_UNUSED)
+no_compl (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED, int ws MU_ARG_UNUSED)
 {
   ml_attempted_completion_over ();
   return NULL;
@@ -320,7 +320,7 @@ msglist_compl (int argc, char **argv, int ws)
 }
 
 char **
-msglist_file_compl (int argc, char **argv, int ws ARG_UNUSED)
+msglist_file_compl (int argc, char **argv, int ws MU_ARG_UNUSED)
 {
   if (argc == 1)
     ml_attempted_completion_over ();
@@ -989,7 +989,7 @@ readline (char *prompt)
 }
 
 void
-ml_set_completion_append_character (int c ARG_UNUSED)
+ml_set_completion_append_character (int c MU_ARG_UNUSED)
 {
 }
 

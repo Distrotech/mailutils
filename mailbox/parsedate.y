@@ -789,7 +789,7 @@ static SYMBOL const mil_tz_tab[] = {
 
 /* ARGSUSED */
 static int
-yyerror (char *s ARG_UNUSED)
+yyerror (char *s MU_ARG_UNUSED)
 {
   return 0;
 }

@@ -127,7 +127,7 @@ _mh_get_message_seq (struct _amd_data *amd, size_t seq)
 
 /* Scan the mailbox */
 static int
-mh_scan0 (mu_mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
+mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount, 
           int do_notify)
 {
   struct _amd_data *amd = mailbox->data;

@@ -23,7 +23,7 @@
    The side effect is that it sets the cursor
    to the newest or read message number.  */
 int
-mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_summary (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   mu_message_t msg;
   mu_attribute_t attr;

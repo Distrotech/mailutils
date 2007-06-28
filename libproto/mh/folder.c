@@ -39,7 +39,7 @@
 #include <mailutils/mutil.h>
 
 static int
-_mh_folder_init (mu_folder_t folder ARG_UNUSED)
+_mh_folder_init (mu_folder_t folder MU_ARG_UNUSED)
 {
   return 0;
 }

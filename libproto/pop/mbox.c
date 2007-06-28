@@ -1848,7 +1848,7 @@ fill_buffer (pop_data_t mpd, char *buffer, size_t buflen)
 /* The heart of most funtions.  Send the RETR and skip different parts.  */
 static int
 pop_retr (pop_message_t mpm, char *buffer, size_t buflen,  
-          mu_off_t offset ARG_UNUSED, size_t *pnread)
+          mu_off_t offset MU_ARG_UNUSED, size_t *pnread)
 {
   pop_data_t mpd;
   size_t nread = 0;

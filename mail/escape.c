@@ -215,7 +215,7 @@ escape_command (int argc, char **argv, compose_env_t *env)
 
 /* ~? */
 int
-escape_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_help (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 {
   int status;
   if (argc < 2)
@@ -230,7 +230,7 @@ escape_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 /* ~A */
 /* ~a */
 int
-escape_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
+escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env MU_ARG_UNUSED)
 {
   char *p;
 
@@ -286,8 +286,8 @@ escape_cc (int argc, char **argv, compose_env_t *env)
 
 /* ~d */
 int
-escape_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
-		   compose_env_t *env ARG_UNUSED)
+escape_deadletter (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED,
+		   compose_env_t *env MU_ARG_UNUSED)
 {
   FILE *dead = fopen (getenv ("DEAD"), "r");
   int c;
@@ -379,7 +379,7 @@ escape_visual (int argc, char **argv, compose_env_t *env)
 /* ~f[mesg-list] */
 /* ~F[mesg-list] */
 int
-escape_print (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_print (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 {
   return mail_print (argc, argv);
 }
@@ -408,7 +408,7 @@ escape_headers (int argc, char **argv, compose_env_t *env)
 
 /* ~i[var-name] */
 int
-escape_insert (int argc, char **argv, compose_env_t *send_env ARG_UNUSED)
+escape_insert (int argc, char **argv, compose_env_t *send_env MU_ARG_UNUSED)
 {
   struct mail_env_entry *env;
 
@@ -533,7 +533,7 @@ escape_type_input (int argc, char **argv, compose_env_t *env)
 
 /* ~r[filename] */
 int
-escape_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
+escape_read (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 {
   char *filename;
   FILE *inf;

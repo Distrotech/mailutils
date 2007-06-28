@@ -193,7 +193,7 @@ folder_mbox_destroy (mu_folder_t folder)
 
 /* Noop. */
 static int
-folder_mbox_open (mu_folder_t folder, int flags ARG_UNUSED)
+folder_mbox_open (mu_folder_t folder, int flags MU_ARG_UNUSED)
 {
   fmbox_t fmbox = folder->data;
   if (flags & MU_STREAM_CREAT)
@@ -205,7 +205,7 @@ folder_mbox_open (mu_folder_t folder, int flags ARG_UNUSED)
 
 /*  Noop.  */
 static int
-folder_mbox_close (mu_folder_t folder ARG_UNUSED)
+folder_mbox_close (mu_folder_t folder MU_ARG_UNUSED)
 {
   return 0;
 }
@@ -406,7 +406,7 @@ folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
 }
 
 static int
-folder_mbox_lsub (mu_folder_t folder, const char *ref ARG_UNUSED,
+folder_mbox_lsub (mu_folder_t folder, const char *ref MU_ARG_UNUSED,
 		  const char *name,
 		  mu_list_t flist)
 {

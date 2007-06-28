@@ -35,7 +35,7 @@ process_cleanup ()
 }
 
 RETSIGTYPE
-pop3d_sigchld (int signo ARG_UNUSED)
+pop3d_sigchld (int signo MU_ARG_UNUSED)
 {
   need_cleanup = 1;
 #ifndef HAVE_SIGACTION

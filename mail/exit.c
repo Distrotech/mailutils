@@ -19,7 +19,7 @@
 #include "mail.h"
 
 int
-mail_exit (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_exit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   mu_mailbox_close (mbox);
   exit (0);

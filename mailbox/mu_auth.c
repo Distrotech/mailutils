@@ -175,10 +175,10 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
 }
 
 int
-mu_auth_nosupport (struct mu_auth_data **return_data ARG_UNUSED,
-		   const void *key ARG_UNUSED,
-		   void *func_data ARG_UNUSED,
-		   void *call_data ARG_UNUSED)
+mu_auth_nosupport (struct mu_auth_data **return_data MU_ARG_UNUSED,
+		   const void *key MU_ARG_UNUSED,
+		   void *func_data MU_ARG_UNUSED,
+		   void *call_data MU_ARG_UNUSED)
 {
   return ENOSYS;
 }

@@ -1107,7 +1107,7 @@ amd_is_updated (mu_mailbox_t mailbox)
 }
 
 static int
-amd_get_size (mu_mailbox_t mailbox ARG_UNUSED, mu_off_t *psize ARG_UNUSED)
+amd_get_size (mu_mailbox_t mailbox MU_ARG_UNUSED, mu_off_t *psize MU_ARG_UNUSED)
 {
   /*FIXME*/
   return ENOSYS;
@@ -1482,7 +1482,7 @@ amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *psiz
 }
 
 static void
-amd_url_destroy (mu_url_t url ARG_UNUSED)
+amd_url_destroy (mu_url_t url MU_ARG_UNUSED)
 {
 }
 

@@ -352,7 +352,8 @@ sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer, void *data)
       break;
       
     case SVT_NUMBER:
-      sieve_debug_internal (printer, data, "%ld", val->v.number);
+      sieve_debug_internal (printer, data, "%lu",
+			    (unsigned long) val->v.number);
       break;
       
     case SVT_TAG:

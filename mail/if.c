@@ -127,7 +127,7 @@ mail_if (int argc, char **argv)
 
 
 int
-mail_else (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_else (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   int cond;
 
@@ -145,7 +145,7 @@ mail_else (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 }
 
 int
-mail_endif (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_endif (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   if (_cond_level == 0)
     {

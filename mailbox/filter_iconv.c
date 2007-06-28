@@ -332,7 +332,7 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 
 static int
 _icvt_read (mu_stream_t stream, char *optr, size_t osize,
-	    mu_off_t offset ARG_UNUSED, size_t *pnbytes)
+	    mu_off_t offset MU_ARG_UNUSED, size_t *pnbytes)
 {
   struct icvt_stream *s = mu_stream_get_owner (stream);
 

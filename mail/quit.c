@@ -25,7 +25,7 @@
  */
 
 int
-mail_quit (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+mail_quit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   if (mail_mbox_close ())
     return 1;

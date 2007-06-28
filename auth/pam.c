@@ -58,7 +58,7 @@ static int _perr = 0;
 
 static int
 mu_pam_conv (int num_msg, const struct pam_message **msg,
-	     struct pam_response **resp, void *appdata_ptr ARG_UNUSED)
+	     struct pam_response **resp, void *appdata_ptr MU_ARG_UNUSED)
 {
   int replies = 0;
   struct pam_response *reply = NULL;
@@ -102,9 +102,9 @@ mu_pam_conv (int num_msg, const struct pam_message **msg,
 static struct pam_conv PAM_conversation = { &mu_pam_conv, NULL };
 
 int
-mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
+mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
 		     const void *key,
-		     void *func_data ARG_UNUSED,
+		     void *func_data MU_ARG_UNUSED,
 		     void *call_data)
 {
   const struct mu_auth_data *auth_data = key;
@@ -164,10 +164,10 @@ struct argp mu_pam_argp = {
 #else
 
 int
-mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
-		     const void *key ARG_UNUSED,
-		     void *func_data ARG_UNUSED,
-		     void *call_data ARG_UNUSED)
+mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
+		     const void *key MU_ARG_UNUSED,
+		     void *func_data MU_ARG_UNUSED,
+		     void *call_data MU_ARG_UNUSED)
 {
   errno = ENOSYS;
   return 1;

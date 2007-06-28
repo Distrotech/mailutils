@@ -179,7 +179,7 @@ store_result (mu_sql_connection_t conn)
 }
 
 static int
-free_char_data (void *item, void *data ARG_UNUSED)
+free_char_data (void *item, void *data MU_ARG_UNUSED)
 {
   free (item);
   return 0;
