@@ -584,6 +584,48 @@ mu_header_remove (mu_header_t header, const char *fn, int n)
 }
 
 int
+mu_header_append (mu_header_t header, const char *fn, const char *fv)
+{
+  int status;
+  struct mu_hdrent *ent;
+
+  if (header == NULL || fn == NULL || fv == NULL)
+    return EINVAL;
+
+  status = mu_header_fill (header);
+  if (status)
+    return status;
+
+  ent = mu_hdrent_create (header, NULL, fn, strlen (fn), fv, strlen (fv));
+  if (!ent)
+    return ENOMEM;
+  mu_hdrent_append (header, ent);
+  HEADER_SET_MODIFIED (header);
+  return 0;
+}
+
+int
+mu_header_prepend (mu_header_t header, const char *fn, const char *fv)
+{
+  int status;
+  struct mu_hdrent *ent;
+
+  if (header == NULL || fn == NULL || fv == NULL)
+    return EINVAL;
+
+  status = mu_header_fill (header);
+  if (status)
+    return status;
+
+  ent = mu_hdrent_create (header, NULL, fn, strlen (fn), fv, strlen (fv));
+  if (!ent)
+    return ENOMEM;
+  mu_hdrent_prepend (header, ent);
+  HEADER_SET_MODIFIED (header);
+  return 0;
+}
+
+int
 mu_header_insert (mu_header_t header,
 		  const char *fn, const char *fv, 
 		  const char *ref, int n, int flags)
@@ -1188,4 +1230,5 @@ mu_header_clear_modified (mu_header_t header)
     header->flags &= ~HEADER_MODIFIED;
   return 0;
 }
+
 

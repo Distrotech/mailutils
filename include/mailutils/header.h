@@ -85,6 +85,10 @@ extern int mu_header_clear_modified (mu_header_t);
 /* Set and get field values by field name. */
 extern int mu_header_set_value (mu_header_t, const char *, const char *, int);
 extern int mu_header_remove (mu_header_t, const char *, int);
+extern int mu_header_append (mu_header_t header, const char *fn,
+			     const char *fv);
+extern int mu_header_prepend (mu_header_t header, const char *fn,
+			      const char *fv);
 extern int mu_header_insert (mu_header_t, const char *, const char *, 
 			     const char *, int, int);
   
