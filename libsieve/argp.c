@@ -105,7 +105,7 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
 			  mu_strerror (rc));
 	      exit (1);
 	    }
-	  mu_list_set_destroy_item (plist, destroy_string);
+	  mu_list_set_destroy_item (*plist, destroy_string);
 	}
       mu_list_append (*plist, strdup (arg));
     }
