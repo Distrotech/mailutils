@@ -92,8 +92,12 @@
 
 #define MAXFD 64
 
+#if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
+#  define __attribute__(x)
+#endif
+
 void
-waitdaemon_timeout (int signo ARG_UNUSED)
+waitdaemon_timeout (int signo __attribute__ ((__unused__)))
 {
   int left;
 
