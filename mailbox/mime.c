@@ -515,8 +515,7 @@ _mimepart_body_lines (mu_body_t body, size_t *plines)
 static int
 _mime_set_content_type (mu_mime_t mime)
 {
-  char            content_type[256], *content_te;
-  char            boundary[128];
+  const char  *content_type;
   mu_header_t     hdr = NULL;
   size_t          size;
   int             ret;
@@ -527,26 +526,35 @@ _mime_set_content_type (mu_mime_t mime)
     return 0;
   if (mime->nmtp_parts > 1)
     {
+      char *cstr;
+      
       if (mime->flags & MIME_ADDED_MULTIPART_CT)
 	return 0;
       if (mime->flags & MU_MIME_MULTIPART_MIXED)
-	strcpy (content_type, "multipart/mixed; boundary=");
+	content_type = "multipart/mixed; boundary=";
       else
-	strcpy (content_type, "multipart/alternative; boundary=");
+	content_type = "multipart/alternative; boundary=";
       if (mime->boundary == NULL)
 	{
-	  sprintf (boundary, "%ld-%ld=:%ld",
-		   (long) random (), (long) time (0), (long) getpid ());
+	  char boundary[128];
+	  
+	  snprintf (boundary, sizeof boundary, "%ld-%ld=:%ld",
+		    (long) random (), (long) time (0), (long) getpid ());
 	  if ((mime->boundary = strdup (boundary)) == NULL)
 	    return ENOMEM;
 	}
-      strcat (content_type, "\"");
-      strcat (content_type, mime->boundary);
-      strcat (content_type, "\"");
+      size = strlen (content_type) + 2 + strlen (mime->boundary) + 1;
+      cstr = malloc (size);
+      if (!cstr)
+	return ENOMEM;
+      strcpy (cstr, content_type);
+      strcat (cstr, "\"");
+      strcat (cstr, mime->boundary);
+      strcat (cstr, "\"");
       mime->flags |= MIME_ADDED_MULTIPART_CT;
 
-      ret = mu_header_set_value (mime->hdrs, MU_HEADER_CONTENT_TYPE,
-				 content_type, 1);
+      ret = mu_header_set_value (mime->hdrs, MU_HEADER_CONTENT_TYPE, cstr, 1);
+      free (cstr);
     }
   else
     {
@@ -556,30 +564,38 @@ _mime_set_content_type (mu_mime_t mime)
       mime->flags &= ~MIME_ADDED_MULTIPART_CT;
       if (mime->nmtp_parts)
 	mu_message_get_header (mime->mtp_parts[0]->msg, &hdr);
+
       if (hdr == NULL
-	  || mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE,
-				  NULL, 0, &size) != 0 || size == 0)
-	strcpy (content_type, "text/plain; charset=us-ascii");
-      else
-	mu_header_get_value (hdr, MU_HEADER_CONTENT_TYPE,
-			     content_type, sizeof (content_type), &size);
+	  || mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE,
+				   &content_type))
+	content_type = "text/plain; charset=us-ascii";
 
       ret = mu_header_set_value (mime->hdrs, MU_HEADER_CONTENT_TYPE,
 				 content_type, 1);
       if (ret)
 	return ret;
 
-      /* if the only part contains a transfer-encoding
-         field, set it on the message header too */
-      if (hdr &&
-	  mu_header_aget_value (hdr,
+      if (hdr)
+	{
+	  const char *content_te;
+	  
+	  /* if the only part contains a transfer-encoding
+	     field, set it on the message header too */
+	  if (mu_header_sget_value (hdr,
 				MU_HEADER_CONTENT_TRANSFER_ENCODING,
 				&content_te) == 0)
-	{
-	  ret = mu_header_set_value (mime->hdrs,
-				     MU_HEADER_CONTENT_TRANSFER_ENCODING,
-				     content_te, 1);
-	  free (content_te);
+	    ret = mu_header_set_value (mime->hdrs,
+				       MU_HEADER_CONTENT_TRANSFER_ENCODING,
+				       content_te, 1);
+
+	  if (ret == 0
+	      && mu_header_sget_value (hdr,
+				       MU_HEADER_CONTENT_DESCRIPTION,
+				       &content_te) == 0)
+	    ret = mu_header_set_value (mime->hdrs,
+				       MU_HEADER_CONTENT_DESCRIPTION,
+				       content_te, 1);
+
 	}
     }
   mime->flags |= MIME_ADDED_CT;
