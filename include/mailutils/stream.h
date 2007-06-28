@@ -1,4 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2005, 2007  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -38,7 +39,7 @@ extern "C" { /*}*/
 #define MU_STREAM_SEEKABLE    0x00000080
 #define MU_STREAM_NO_CLOSE    0x00000100
 #define MU_STREAM_ALLOW_LINKS 0x00000200
-#define MU_STREAM_STRICT      0x00000400
+#define MU_STREAM_NONLOCK     0x00000400
   
 /* Functions useful to users of the pre-defined stream types. */
 
