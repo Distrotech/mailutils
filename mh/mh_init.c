@@ -848,28 +848,8 @@ mh_draft_name ()
 char *
 mh_create_message_id (int subpart)
 {
-  char date[4+2+2+2+2+2+1];
-  time_t t = time (NULL);
-  struct tm *tm = localtime (&t);
-  char *host;
   char *p;
-	  
-  mu_strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
-  mu_get_host_name (&host);
-
-  if (subpart)
-    {
-      struct timeval tv;
-      gettimeofday (&tv, NULL);
-      asprintf (&p, "<%s.%lu.%d@%s>",
-		date,
-		(unsigned long) getpid (),
-		subpart,
-		host);
-    }
-  else
-    asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
-  free (host);
+  mu_rfc2822_msg_id (subpart, &p);
   return p;
 }
 
