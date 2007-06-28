@@ -1,5 +1,43 @@
 2007-06-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Remove the definition of ARG_UNUSED
+
+	* mailbox/header.c (mu_hdrent_create): Minor change
+	* libsieve/argp.c (sieve_argp_parser): Bug fix
+	* libsieve/prog.c (sieve_code_command: Bug fixes
+	
+	* include/mailutils/types.hin (MU_ARG_UNUSED, MU_PRINTFLIKE): New
+	macros.
+	* lib/daemon.c: Use __attribute__ instead of ARG_UNUSED
+	* auth/pam.c, auth/radius.c, auth/sql.c, auth/virtual.c,
+	examples/nntpclient.c, examples/pop3client.c, imap4d/capability.c,
+	imap4d/check.c, imap4d/close.c, imap4d/fetch.c,
+	libproto/imap/folder.c, libproto/imap/url.c,
+	libproto/maildir/folder.c, libproto/maildir/mbox.c,
+	libproto/mbox/folder.c, libproto/mbox/url.c, libproto/mh/folder.c,
+	libproto/mh/mbox.c, libproto/nntp/url.c, libproto/pop/mbox.c,
+	libproto/pop/url.c, libsieve/util.c, libsieve/extensions/spamd.c,
+	mail/decode.c, mail/escape.c, mail/exit.c, mail/folders.c,
+	mail/if.c, mail/inc.c, mail/list.c, mail/mail.c, mail/mailline.c,
+	mail/msgset.y, mail/quit.c, mail/source.c, mail/summary.c,
+	mail/tag.c, mail/version.c, mailbox/amd.c, mailbox/auth.c,
+	mailbox/file_stream.c, mailbox/filter_iconv.c,
+	mailbox/filter_trans.c, mailbox/message_stream.c,
+	mailbox/monitor.c, mailbox/mu_auth.c, mailbox/parsedate.y,
+	mailbox/system.c, mailbox/url_sendmail.c, mh/ali.c, 
+	mh/mhparam.c, pop3d/auth.c, pop3d/signal.c, sql/odbc.c: Use
+	MU_ARG_UNUSED to mark unused formal parameters.
+	
+	* guimb/guimb.h, imap4d/imap4d.h, include/mailutils/debug.h,
+	include/mailutils/error.h, include/mailutils/libsieve.h,
+	include/mailutils/nntp.h, include/mailutils/pop3.h,
+	libproto/include/imap0.h, libsieve/sieve.h, mail/mail.h, 
+	mail.local/mail.local.h, mh/mh.h, pop3d/pop3d.h: Mark printf-like
+	calls with MU_PRINTFLIKE.
+
+	* po/Makevars (XGETTEXT_OPTIONS): Add Mailutils-specific
+	printf-like calls.
+	
 	* NEWS: Update
 	* include/mailutils/header.h (mu_header_append,mu_header_prepend):
 	New functions
