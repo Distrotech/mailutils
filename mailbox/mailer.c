@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include <mailutils/address.h>
@@ -38,10 +39,13 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/header.h>
+#include <mailutils/body.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/argcv.h>
 #include <mailutils/mutil.h>
+#include <mailutils/mime.h>
+#include <mu_umaxtostr.h>
 
 #include <mailer0.h>
 
@@ -363,9 +367,137 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
   return status;
 }
 
+static int
+create_part (mu_mime_t mime, mu_stream_t istr, 
+	     size_t fragsize, size_t n, size_t nparts, char *msgid)
+{
+  int status = 0;
+  mu_message_t newmsg;
+  mu_header_t newhdr;
+  mu_body_t body;
+  mu_stream_t ostr;
+  char buffer[512], *str;
+  const char *nstr, *npartstr;
+  
+  mu_message_create (&newmsg, NULL);
+  mu_message_get_header (newmsg, &newhdr); 
+
+  nstr = mu_umaxtostr (0, n);
+  npartstr = mu_umaxtostr (1, nparts);
+  asprintf (&str,
+	    "message/partial; id=\"%s\"; number=%s; total=%s",
+	    msgid, nstr, npartstr);
+  mu_header_append (newhdr, MU_HEADER_CONTENT_TYPE, str);
+  free (str);
+  asprintf (&str, "part %s of %s", nstr, npartstr);
+  mu_header_append (newhdr, MU_HEADER_CONTENT_DESCRIPTION, str);
+  free (str);
+  
+  mu_message_get_body (newmsg, &body);
+  mu_body_get_stream (body, &ostr);
+
+  mu_stream_seek (ostr, 0, SEEK_SET);
+
+  while (fragsize)
+    {
+      size_t rds = fragsize;
+      if (rds > sizeof buffer)
+	rds = sizeof buffer;
+      
+      status = mu_stream_sequential_read (istr, buffer, rds, &rds);
+      if (status || rds == 0)
+	break;
+      status = mu_stream_sequential_write (ostr, buffer, rds);
+      if (status)
+	break;
+      fragsize -= rds;
+    }
+  if (status == 0)
+    {
+      mu_mime_add_part (mime, newmsg);
+      mu_message_unref (newmsg);
+    }
+  return status;
+}
+
+static void
+merge_headers (mu_message_t newmsg, mu_header_t hdr)
+{
+  size_t i, count;
+  mu_header_t newhdr;
+  
+  mu_message_get_header (newmsg, &newhdr);
+  mu_header_get_field_count (hdr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      const char *fn, *fv;
+
+      mu_header_sget_field_name (hdr, i, &fn);
+      mu_header_sget_field_value (hdr, i, &fv);
+      if (strcasecmp (fn, MU_HEADER_MESSAGE_ID) == 0)
+	continue;
+      else if (strcasecmp (fn, MU_HEADER_MIME_VERSION) == 0)
+	mu_header_append (newhdr, "X-Orig-" MU_HEADER_MIME_VERSION,
+			  fv);
+      else if (strcasecmp (fn, MU_HEADER_CONTENT_TYPE) == 0)
+	mu_header_append (newhdr, "X-Orig-" MU_HEADER_CONTENT_TYPE,
+			  fv);
+      else if (strcasecmp (fn, MU_HEADER_CONTENT_DESCRIPTION) == 0)
+	mu_header_append (newhdr, "X-Orig-" MU_HEADER_CONTENT_DESCRIPTION,
+			  fv);
+      else
+	mu_header_append (newhdr, fn, fv);
+    }
+}
+  
+
 int
-mu_mailer_send_message (mu_mailer_t mailer, mu_message_t msg,
-			mu_address_t from, mu_address_t to)
+send_fragments (mu_mailer_t mailer,
+		mu_header_t hdr,
+		mu_stream_t str,
+		size_t nparts, size_t fragsize,
+		struct timeval *delay,
+		mu_address_t from, mu_address_t to)
+{
+  int status;
+  size_t i;
+  char *msgid = NULL;
+  
+  if (mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &msgid))
+    mu_rfc2822_msg_id (0, &msgid);
+  
+  for (i = 1; i <= nparts; i++)
+    {
+      mu_message_t newmsg;
+      mu_mime_t mime;
+		  
+      mu_mime_create (&mime, NULL, 0);
+      status = create_part (mime, str, fragsize, i, nparts, msgid);
+      if (status)
+	break;
+
+      mu_mime_get_message (mime, &newmsg);
+      merge_headers (newmsg, hdr);
+      
+      status = mailer->_send_message (mailer, newmsg, from, to);
+      mu_mime_destroy (&mime);
+      if (status)
+	break;
+      if (delay)
+	{
+	  struct timeval t = *delay;
+	  select (0, NULL, NULL, NULL, &t);
+	}
+    }
+  free (msgid);
+  return status;
+}
+
+int
+mu_mailer_send_fragments (mu_mailer_t mailer,
+			  mu_message_t msg,
+			  size_t fragsize, struct timeval *delay,
+			  mu_address_t from, mu_address_t to)
 {
   int status;
   mu_address_t sender_addr = NULL;
@@ -385,11 +517,47 @@ mu_mailer_send_message (mu_mailer_t mailer, mu_message_t msg,
       && (!to || (status = mu_mailer_check_to (to)) == 0))
     {
       save_fcc (msg);
-      status = mailer->_send_message (mailer, msg, from, to);
+      if (fragsize == 0)
+	status = mailer->_send_message (mailer, msg, from, to);
+      else
+	{
+	  mu_header_t hdr;
+	  mu_body_t body;
+	  size_t bsize;
+	  size_t nparts;
+	  
+	  /* Estimate the number of messages to be sent. */
+	  mu_message_get_header (msg, &hdr);
+
+	  mu_message_get_body (msg, &body);
+	  mu_body_size (body, &bsize);
+
+	  nparts = bsize + fragsize - 1;
+	  if (nparts < bsize) /* overflow */
+	    return EINVAL;
+	  nparts /= fragsize;
+
+	  if (nparts == 1)
+	    status = mailer->_send_message (mailer, msg, from, to);
+	  else
+	    {
+	      mu_stream_t str;
+	      mu_body_get_stream (body, &str);
+	      
+	      status = send_fragments (mailer, hdr, str, nparts, fragsize,
+				       delay, from, to);
+	    }
+	}
     }
-  
   mu_address_destroy (&sender_addr);
   return status;
+}
+
+int
+mu_mailer_send_message (mu_mailer_t mailer, mu_message_t msg,
+			mu_address_t from, mu_address_t to)
+{
+  return mu_mailer_send_fragments (mailer, msg, 0, NULL, from, to);
 }
 
 int
