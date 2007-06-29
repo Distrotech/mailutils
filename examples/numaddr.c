@@ -122,6 +122,7 @@ numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
      to vc.limit. If `:under' tag was given we reverse the return value */
   if (mu_sieve_tag_lookup (tags, "under", NULL))
     rc = !rc;
+
   return rc;
 }
 

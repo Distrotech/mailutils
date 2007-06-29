@@ -1,3 +1,12 @@
+2007-06-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* COPYING, COPYING.LESSER: Install official versions
+	* configure.ac, NEWS: Version 1.2
+	* libsieve/extensions/spamd.c: Append `X-' headers.
+	* mail.local/main.c: Read message contents from the message
+	stream, so any changes to its headers and/or body are propagated
+	to the final delivery.
+
 2007-06-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Remove the definition of ARG_UNUSED

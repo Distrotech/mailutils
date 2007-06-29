@@ -410,10 +410,10 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       spamd_abort (mach, &stream, handler);
     }
 
-  mu_header_set_value (hdr, "X-Spamd-Status", spam_str, 1);
-  mu_header_set_value (hdr, "X-Spamd-Score", score_str, 1);
-  mu_header_set_value (hdr, "X-Spamd-Threshold", threshold_str, 1);
-  mu_header_set_value (hdr, "X-Spamd-Keywords", buffer, 1);
+  mu_header_append (hdr, "X-Spamd-Status", spam_str);
+  mu_header_append (hdr, "X-Spamd-Score", score_str);
+  mu_header_append (hdr, "X-Spamd-Threshold", threshold_str);
+  mu_header_append (hdr, "X-Spamd-Keywords", buffer);
 
   while (spamd_read_line (mach, stream, buffer, sizeof buffer, &size) == 0
 	 && size > 0)

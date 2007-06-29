@@ -124,6 +124,7 @@ static const char *argp_capa[] = {
 char *from = NULL;
 char *progfile_pattern = NULL;
 char *sieve_pattern = NULL;
+char *saved_envelope;  /* A hack to spare mu_envelope_ calls */
 
 #define D_DEFAULT "9s"
 
@@ -592,12 +593,11 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
 	      if (from)
 		{
 		  time_t t;
-		  char *ptr;
 		  
 		  time (&t);
-		  asprintf (&ptr, "From %s %s", from, ctime (&t));
-		  status = tmp_write (stream, &offset, ptr, strlen (ptr));
-		  free (ptr);
+		  asprintf (&saved_envelope, "From %s %s", from, ctime (&t));
+		  status = tmp_write (stream, &offset, saved_envelope,
+				      strlen (saved_envelope));
 		}
 	      else
 		{
@@ -606,6 +606,12 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
 		}
 	      if (auth)
 		mu_auth_data_free (auth);
+	    }
+	  else
+	    {
+	      saved_envelope = strdup (buf);
+	      if (!saved_envelope)
+		status = ENOMEM;
 	    }
 	}
       else if (!memcmp (buf, "From ", 5))
@@ -668,6 +674,7 @@ void
 deliver (mu_mailbox_t imbx, char *name)
 {
   mu_mailbox_t mbox;
+  mu_message_t msg;
   char *path;
   mu_url_t url = NULL;
   mu_locker_t lock;
@@ -694,7 +701,15 @@ deliver (mu_mailbox_t imbx, char *name)
       return;
     }
 
-  if ((status = mu_mailbox_get_stream (imbx, &istream)) != 0)
+  if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
+    {
+      mailer_err (_("Cannot get message from the temporary mailbox: %s"),
+		  mu_strerror (status));
+      mu_auth_data_free (auth);
+      return;
+    }
+
+  if ((status = mu_message_get_stream (msg, &istream)) != 0)
     {
       mailer_err (_("Cannot get input message stream: %s"),
 		  mu_strerror (status));
@@ -776,7 +791,7 @@ deliver (mu_mailbox_t imbx, char *name)
       default:
 	if ((status = mu_stream_size (istream, &isize)))
 	  {
-	    mailer_err (_("Cannot get stream size (input message): %s"),
+	    mailer_err (_("Cannot get stream size (input message %s): %s"),
 			path, mu_strerror (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
@@ -795,9 +810,7 @@ deliver (mu_mailbox_t imbx, char *name)
   
   if (!failed && switch_user_id (auth, 1) == 0)
     {
-      mu_off_t ioff = 0;
-      mu_off_t off = size;
-      size_t nwr, nrd;
+      size_t nrd;
       char *buf = NULL;
       mu_off_t bufsize = 1024;
 
@@ -810,22 +823,28 @@ deliver (mu_mailbox_t imbx, char *name)
 	  status = errno = ENOMEM;
 	  failed++;
 	}
+      else if ((status = mu_stream_seek (ostream, size, SEEK_SET)) != 0
+	       || (status = mu_stream_seek (istream, 0, SEEK_SET) != 0))
+	/* nothing: the error will be reported later */;
       else
 	{
-	  status = 0;
-
-	  while ((status = mu_stream_read (istream, buf, bufsize, ioff, &nrd))
-		 == 0
-		 && nrd > 0)
+	  status = mu_stream_sequential_write (ostream, saved_envelope,
+					       strlen (saved_envelope));
+	  if (status == 0)
 	    {
-	      status = mu_stream_write (ostream, buf, nrd, off, &nwr);
-	      if (status)
-		break;
-	      ioff += nrd;
-	      off += nwr;
-	    }
+	      while ((status = mu_stream_sequential_read (istream,
+							  buf, bufsize,
+							  &nrd))
+		     == 0
+		     && nrd > 0)
+		{
+		  status = mu_stream_sequential_write (ostream, buf, nrd);
+		  if (status)
+		    break;
+		}
 	  
-	  free (buf);
+	      free (buf);
+	    }
 	}
       
       switch_user_id (auth, 0);

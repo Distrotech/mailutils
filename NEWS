@@ -1,16 +1,16 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-06-28
+GNU mailutils NEWS -- history of user-visible changes. 2007-06-29
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 1.1.90:
+Version 1.2:
 
 * GPLv3
 
-The programs in this release are licensed under GNU General Public License
-version 3.  The libraries are covered by GNU Lesser General Public License
+The programs in this release are licensed under the GNU General Public License
+version 3.  The libraries are covered by the GNU Lesser General Public License
 version 3.
 
 * `libmailbox' library
@@ -108,6 +108,9 @@ the last three arguments:
 
 The program can be run by a non-privileged user.  Thus, it can be used with
 `fetchmail' and similar utilities.
+
+Any changes to message headers done by Sieve filters are reflected in
+the delivered message.
 
 * The `mail' utility:
 
