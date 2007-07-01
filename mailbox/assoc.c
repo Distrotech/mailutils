@@ -97,7 +97,7 @@ assoc_rehash (mu_assoc_t assoc)
   if (hash_num >= max_rehash)
       return MU_ERR_BUFSPACE;
 
-  new_tab = calloc (hash_size[hash_num], assoc->elsize);
+  new_tab = calloc (hash_size[hash_num], ASSOC_ELEM_SIZE (assoc));
   assoc->tab = new_tab;
   if (old_tab)
     {
@@ -114,7 +114,7 @@ assoc_rehash (mu_assoc_t assoc)
 	      if (rc)
 		return rc;
 	      newp->name = elt->name;
-	      memcpy(newp->data, elt->data, assoc->elsize);;
+	      memcpy(newp->data, elt->data, assoc->elsize);
 	    }
 	}
       free (old_tab);
