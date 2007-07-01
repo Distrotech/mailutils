@@ -1,3 +1,8 @@
+2007-07-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/assoc.c (assoc_rehash): Fix an incorrect element
+	size calculation.
+
 2007-06-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* COPYING, COPYING.LESSER: Install official versions
