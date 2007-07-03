@@ -1,3 +1,8 @@
+2007-07-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail.local/Makefile.am (mail_local_LDADD): Add missing
+	libraries. Reported by Robby Villegas.
+
 2007-07-01  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/assoc.c (assoc_rehash): Fix an incorrect element
