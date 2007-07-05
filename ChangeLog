@@ -1,3 +1,31 @@
+2007-07-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update
+	* configure.ac: Change library version info
+	* examples/url-parse.c: Rewrite using sget accessors
+	* include/mailutils/url.h, mailbox/url.c (mu_url_sget_scheme) 
+	(mu_url_aget_scheme, mu_url_sget_user, mu_url_aget_user)
+	(mu_url_sget_passwd, mu_url_aget_passwd, mu_url_sget_auth) 
+	(mu_url_aget_auth, mu_url_sget_host, mu_url_aget_host)
+	(mu_url_sget_path, mu_url_aget_path, mu_url_sget_query) 
+	(mu_url_aget_query): New functions
+	(mu_url_get_scheme, mu_url_get_user, mu_url_get_passwd)
+	(mu_url_get_auth, mu_url_get_host, mu_url_get_path)
+	(mu_url_get_query)
+	(mu_url_is_same_scheme, mu_url_is_same_user, mu_url_is_same_path)
+	(mu_url_is_same_host, mu_url_is_same_port): Rewrite using sget
+	accessors. 
+
+	* libproto/imap/folder.c, libproto/imap/mbox.c,
+	libproto/mbox/folder.c, libproto/mbox/mbox.c,
+	libproto/nntp/folder.c, libproto/nntp/mbox.c, libproto/pop/mbox.c,
+	mailbox/amd.c, mailbox/sendmail.c, mailbox/smtp.c,
+	mailbox/wicket.c: Use mu_url_sget or mu_url_aget, depending on the
+	needs.
+	
+	* mailbox/mailbox.c (mu_mailbox_get_debug): Propagate the debug
+	state to the underlying folder.
+
 2007-07-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail.local/Makefile.am (mail_local_LDADD): Add missing
