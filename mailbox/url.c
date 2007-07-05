@@ -125,7 +125,6 @@ mu_url_parse (mu_url_t url)
          though.
        */
 
-
 #define UALLOC(X) \
   		if(u.X && u.X[0] && (url->X = mu_url_decode(u.X)) == 0) { \
 		  err = ENOMEM; \
@@ -135,12 +134,15 @@ mu_url_parse (mu_url_t url)
 		  u.X = NULL; \
 		}
 
-      UALLOC (scheme)
-	UALLOC (user)
-	UALLOC (passwd)
-	UALLOC (auth) UALLOC (host) UALLOC (path) UALLOC (query)
+      UALLOC (scheme);
+      UALLOC (user);
+      UALLOC (passwd);
+      UALLOC (auth);
+      UALLOC (host);
+      UALLOC (path);
+      UALLOC (query);
 #undef UALLOC
-	url->port = u.port;
+      url->port = u.port;
     }
 
 CLEANUP:
@@ -150,11 +152,13 @@ CLEANUP:
     {
 #define UFREE(X) if(X) { free(X); X = 0; }
 
-      UFREE (url->scheme)
-	UFREE (url->user)
-	UFREE (url->passwd)
-	UFREE (url->auth)
-	UFREE (url->host) UFREE (url->path) UFREE (url->query)
+      UFREE (url->scheme);
+      UFREE (url->user);
+      UFREE (url->passwd);
+      UFREE (url->auth);
+      UFREE (url->host);
+      UFREE (url->path);
+      UFREE (url->query);
 #undef UFREE
     }
 
@@ -198,9 +202,7 @@ url_parse0 (mu_url_t u, char *name)
   /* Parse out the SCHEME. */
   p = strchr (name, ':');
   if (p == NULL)
-    {
-      return MU_ERR_PARSE;
-    }
+    return MU_ERR_PARSE;
 
   *p++ = 0;
 
@@ -300,77 +302,129 @@ url_parse0 (mu_url_t u, char *name)
   return 0;
 }
 
-int
-mu_url_get_scheme (const mu_url_t url, char *scheme, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_scheme)
-    return url->_get_scheme (url, scheme, len, n);
-  i = mu_cpystr (scheme, url->scheme, len);
-  if (n)
-    *n = i;
-  return 0;
+
+/* General accessors: */
+#define AC2(a,b) a ## b
+#define AC4(a,b,c,d) a ## b ## c ## d
+#define ACCESSOR(action,field) AC4(mu_url_,action,_,field)
+
+#define DECL_SGET(field)						  \
+int									  \
+ACCESSOR(sget,field) (mu_url_t url, char const **sptr)	                  \
+{									  \
+  if (url == NULL)							  \
+    return EINVAL;							  \
+  if (!url->field)							  \
+    {									  \
+      if (url->AC2(_get_,field))					  \
+	{								  \
+	  size_t n;							  \
+	  char *buf;							  \
+	  								  \
+	  int status = url->AC2(_get_,field) (url, NULL, 0, &n);	  \
+	  if (status)							  \
+	    return status;						  \
+	  								  \
+	  buf = malloc (n + 1);						  \
+	  if (!buf)							  \
+	    return ENOMEM;						  \
+	  								  \
+	  status = url->AC2(_get_,field) (url, buf, n + 1, NULL);	  \
+	  if (status)		                     		          \
+            return status;						  \
+	  								  \
+          if (buf[0])                                                     \
+            {                                                             \
+	       url->field = mu_url_decode (buf);			  \
+	       free (buf);						  \
+	    }                                                             \
+          else                                                            \
+            url->field = buf;                                             \
+	  if (!url->field)						  \
+	    return ENOMEM;						  \
+	}								  \
+      else								  \
+        return MU_ERR_NOENT; 			                          \
+    }									  \
+  *sptr = url->field;							  \
+  return 0;								  \
 }
 
-int
-mu_url_get_user (const mu_url_t url, char *user, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_user)
-    return url->_get_user (url, user, len, n);
-  i = mu_cpystr (user, url->user, len);
-  if (n)
-    *n = i;
-  return 0;
+#define DECL_GET(field)							  \
+int									  \
+ACCESSOR(get,field) (mu_url_t url, char *buf, size_t len, size_t *n)      \
+{									  \
+  size_t i;								  \
+  const char *str;							  \
+  int status = ACCESSOR(sget, field) (url, &str);			  \
+  									  \
+  if (status)								  \
+    return status;							  \
+									  \
+  i = mu_cpystr (buf, str, len);					  \
+  if (n)								  \
+    *n = i;								  \
+  return 0;								  \
 }
 
+#define DECL_AGET(field)						  \
+int									  \
+ACCESSOR(aget, field) (mu_url_t url, char **buf)	                  \
+{									  \
+  const char *str;							  \
+  int status = ACCESSOR(sget, field) (url, &str);			  \
+									  \
+  if (status)								  \
+    return status;							  \
+									  \
+  if (str)								  \
+    {									  \
+      *buf = strdup (str);						  \
+      if (!*buf)							  \
+	status = ENOMEM;						  \
+    }									  \
+  else									  \
+    *buf = NULL;							  \
+  return status;							  \
+}
+
+#define DECL_CMP(field)							  \
+int									  \
+ACCESSOR(is_same,field) (mu_url_t url1, mu_url_t url2)		          \
+{									  \
+  const char *s1, *s2;							  \
+  int status1, status2;							  \
+									  \
+  status1 = mu_url_sget_scheme (url1, &s1);				  \
+  if (status1 && status1 != MU_ERR_NOENT)				  \
+    return 0;								  \
+  status2 = mu_url_sget_scheme (url2, &s2);				  \
+  if (status2 && status2 != MU_ERR_NOENT)				  \
+    return 0;								  \
+									  \
+  if (status1 && status1 == status2) /* Both fields are missing */	  \
+    return 1;								  \
+  return strcasecmp (s1, s2) == 0;					  \
+}
+
+#define DECL_ACCESSORS(field)			                          \
+DECL_SGET(field)				                          \
+DECL_GET(field)					                          \
+DECL_AGET(field)                                                          \
+DECL_CMP(field)
+
+
+/* Declare particular accessors */
+DECL_ACCESSORS (scheme)
+DECL_ACCESSORS (user)
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
-int
-mu_url_get_passwd (const mu_url_t url, char *passwd, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_passwd)
-    return url->_get_passwd (url, passwd, len, n);
-  i = mu_cpystr (passwd, url->passwd, len);
-  if (n)
-    *n = i;
-  return 0;
-}
+DECL_ACCESSORS (passwd)
+DECL_ACCESSORS (auth)
+DECL_ACCESSORS (host)
+DECL_ACCESSORS (path)
+DECL_ACCESSORS (query)     
 
-int
-mu_url_get_auth (const mu_url_t url, char *auth, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_auth)
-    return url->_get_auth (url, auth, len, n);
-  i = mu_cpystr (auth, url->auth, len);
-  if (n)
-    *n = i;
-  return 0;
-}
-
-int
-mu_url_get_host (const mu_url_t url, char *host, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_host)
-    return url->_get_host (url, host, len, n);
-  i = mu_cpystr (host, url->host, len);
-  if (n)
-    *n = i;
-  return 0;
-}
 
 int
 mu_url_get_port (const mu_url_t url, long *pport)
@@ -383,33 +437,6 @@ mu_url_get_port (const mu_url_t url, long *pport)
   return 0;
 }
 
-int
-mu_url_get_path (const mu_url_t url, char *path, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_path)
-    return url->_get_path (url, path, len, n);
-  i = mu_cpystr (path, url->path, len);
-  if (n)
-    *n = i;
-  return 0;
-}
-
-int
-mu_url_get_query (const mu_url_t url, char *query, size_t len, size_t * n)
-{
-  size_t i;
-  if (url == NULL)
-    return EINVAL;
-  if (url->_get_query)
-    return url->_get_query (url, query, len, n);
-  i = mu_cpystr (query, url->query, len);
-  if (n)
-    *n = i;
-  return 0;
-}
 
 const char *
 mu_url_to_string (const mu_url_t url)
@@ -426,106 +453,6 @@ mu_url_is_scheme (mu_url_t url, const char *scheme)
     return 1;
 
   return 0;
-}
-
-int
-mu_url_is_same_scheme (mu_url_t url1, mu_url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 1;
-
-  mu_url_get_scheme (url1, NULL, 0, &i);
-  mu_url_get_scheme (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      mu_url_get_scheme (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  mu_url_get_scheme (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-int
-mu_url_is_same_user (mu_url_t url1, mu_url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  mu_url_get_user (url1, NULL, 0, &i);
-  mu_url_get_user (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      mu_url_get_user (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  mu_url_get_user (url2, s2, j + 1, NULL);
-	  ret = !strcmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-int
-mu_url_is_same_path (mu_url_t url1, mu_url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  mu_url_get_path (url1, NULL, 0, &i);
-  mu_url_get_path (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      mu_url_get_path (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  mu_url_get_path (url2, s2, j + 1, NULL);
-	  ret = !strcmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-int
-mu_url_is_same_host (mu_url_t url1, mu_url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  mu_url_get_host (url1, NULL, 0, &i);
-  mu_url_get_host (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      mu_url_get_host (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  mu_url_get_host (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
 }
 
 int
@@ -607,7 +534,7 @@ mu_url_is_ticket (mu_url_t ticket, mu_url_t url)
     }
   if (ticket->port && ticket->port != url->port)
     return 0;
-  /* If ticket has a user or pass, but url doesn't thats OK, were
+  /* If ticket has a user or pass, but url doesn't, that's OK, we were
      urling for this info. But if url does have a user/pass, it
      must match the ticket. */
   if (url->user)

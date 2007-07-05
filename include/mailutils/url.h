@@ -29,15 +29,37 @@ extern int  mu_url_create    (mu_url_t *, const char *name);
 extern void mu_url_destroy   (mu_url_t *);
 extern int  mu_url_parse     (mu_url_t);
 
+extern int mu_url_sget_scheme  (const mu_url_t, const char **);
+extern int mu_url_aget_scheme  (const mu_url_t, char **);  
 extern int mu_url_get_scheme  (const mu_url_t, char *, size_t, size_t *);
-extern int mu_url_get_user    (const mu_url_t, char *, size_t, size_t *);
+  
+extern int mu_url_sget_user  (const mu_url_t, const char **);
+extern int mu_url_aget_user  (const mu_url_t, char **);  
+extern int mu_url_get_user  (const mu_url_t, char *, size_t, size_t *);
+
+extern int mu_url_sget_passwd  (const mu_url_t, const char **);
+extern int mu_url_aget_passwd  (const mu_url_t, char **);  
 extern int mu_url_get_passwd  (const mu_url_t, char *, size_t, size_t *);
-extern int mu_url_get_auth    (const mu_url_t, char *, size_t, size_t *);
-extern int mu_url_get_host    (const mu_url_t, char *, size_t, size_t *);
+  
+extern int mu_url_sget_auth  (const mu_url_t, const char **);
+extern int mu_url_aget_auth  (const mu_url_t, char **);  
+extern int mu_url_get_auth  (const mu_url_t, char *, size_t, size_t *);
+
+extern int mu_url_sget_host  (const mu_url_t, const char **);
+extern int mu_url_aget_host  (const mu_url_t, char **);  
+extern int mu_url_get_host  (const mu_url_t, char *, size_t, size_t *);
+  
+extern int mu_url_sget_path  (const mu_url_t, const char **);
+extern int mu_url_aget_path  (const mu_url_t, char **);  
+extern int mu_url_get_path  (const mu_url_t, char *, size_t, size_t *);
+
+extern int mu_url_sget_query  (const mu_url_t, const char **);
+extern int mu_url_aget_query  (const mu_url_t, char **);  
+extern int mu_url_get_query  (const mu_url_t, char *, size_t, size_t *);
+  
 extern int mu_url_get_port    (const mu_url_t, long *);
-extern int mu_url_get_path    (const mu_url_t, char *, size_t, size_t *);
-extern int mu_url_get_query   (const mu_url_t, char *, size_t, size_t *);
-extern const char* mu_url_to_string   (const mu_url_t);
+
+extern const char *mu_url_to_string   (const mu_url_t);
 
 extern int mu_url_is_scheme   (mu_url_t, const char* scheme);
 
