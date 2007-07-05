@@ -13,7 +13,9 @@
 	libsieve/extensions/Makefile.am, mail/Makefile.am,
 	mail.local/Makefile.am, mail.remote/Makefile.am,
 	mailbox/Makefile.am, messages/Makefile.am, mh/Makefile.am,
-	mimeview/Makefile.am, movemail/Makefile.am (INCLUDES): Remove INTLINCS
+	mimeview/Makefile.am, movemail/Makefile.am,
+	pop3d/Makefile.am, readmsg/Makefile.am, sql/Makefile.am,
+	sieve/Makefile.am(INCLUDES): Remove INTLINCS
 	* config/Makefile.am (INCLUDES): Remove INTLINCS
 	(mailutils_config_CFLAGS): Use MU_LINK_POSTFLAGS
 
