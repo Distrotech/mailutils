@@ -86,12 +86,8 @@ AC_CHECK_TYPE(iconv_t,:,
 #endif
 ])
 
-AC_SUBST(INTLINCS)
-if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
-        AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
-                  [Define if the included libintl is used])
-	INTLINCS='-I${top_builddir}/intl -I${top_srcdir}/intl'
-fi
+AC_SUBST(MU_LINK_POSTFLAGS,[`for opt in $LTLIBICONV; do case $opt in -[[lL]]*) echo $opt;; esac; done|tr '\n' ' '`])
+
 
 dnl Check for libraries
 USE_LOADABLE_MODULES=no
