@@ -125,8 +125,8 @@ static int  is_same_folder        (mu_mailbox_t, mu_message_t);
 int
 _mailbox_imap_init (mu_mailbox_t mailbox)
 {
+  int status;
   m_imap_t m_imap;
-  size_t name_len = 0;
   mu_folder_t folder = NULL;
 
   assert(mailbox);
@@ -138,18 +138,15 @@ _mailbox_imap_init (mu_mailbox_t mailbox)
     return ENOMEM;
 
   /* Retrieve the name of the mailbox from the URL.  */
-  mu_url_get_path (mailbox->url, NULL, 0, &name_len);
-  if (name_len == 0)
+  status = mu_url_aget_path (mailbox->url, &m_imap->name);
+  if (status == MU_ERR_NOENT)
     {
-      /* name "INBOX" is the default.  */
-      m_imap->name = calloc (6, sizeof (char));
-      strcpy (m_imap->name, "INBOX");
+      m_imap->name = strdup ("INBOX");
+      if (!m_imap->name)
+        return ENOMEM;
     }
-  else
-    {
-      m_imap->name = calloc (name_len + 1, sizeof (char));
-      mu_url_get_path (mailbox->url, m_imap->name, name_len + 1, NULL);
-    }
+  else if (status)
+    return status;
 
   /* Overload the functions.  */
   mailbox->_destroy = mailbox_imap_destroy;
@@ -298,21 +295,18 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
 	{
 	case IMAP_NO_STATE:
 	  {
-	    char *path;
+	    const char *path;
 	    size_t len;
-	    mu_url_get_path (folder->url, NULL, 0, &len);
-	    if (len == 0)
+	    status = mu_url_sget_path (folder->url, &path);
+	    if (status == MU_ERR_NOENT)
 	      return 0;
-	    path = calloc (len + 1, sizeof (*path));
-	    if (path == NULL)
-	      return ENOMEM;
-	    mu_url_get_path (folder->url, path, len + 1, NULL);
+	    else if (status)
+	      return status;
 	    status = imap_writeline (f_imap, "g%u CREATE %s\r\n",
 				     f_imap->seq, path);
 	    MAILBOX_DEBUG2 (folder, MU_DEBUG_PROT, "g%u CREATE %s\n",
 			    f_imap->seq, path);
 	    f_imap->seq++;
-	    free (path);
 	    if (status != 0)
 	      {
 		m_imap->state = f_imap->state = IMAP_NO_STATE;
@@ -980,7 +974,7 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
     case IMAP_NO_STATE:
       {
 	size_t lines, size;
-	char *path;
+	const char *path;
 	char *abuf = malloc (1);
 	/* Get the desired flags attribute.  */
 	if (abuf == NULL)
@@ -1009,28 +1003,9 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
 	}
 
 	/* Get the mailbox filepath.  */
-	{
-	  size_t n = 0;
-	  mu_url_get_path (mailbox->url, NULL, 0, &n);
-	  if (n == 0)
-	    {
-	      if (!(path = strdup ("INBOX")))
-		{
-		  free (abuf);
-		  return ENOMEM;
-		}
-	    }
-	  else
-	    {
-	      path = calloc (n + 1, sizeof (*path));
-	      if (path == NULL)
-		{
-		  free (abuf);
-		  return ENOMEM;
-		}
-	      mu_url_get_path (mailbox->url, path, n + 1, NULL);
-	    }
-	}
+        status = mu_url_sget_path (mailbox->url, &path);
+        if (status == MU_ERR_NOENT)
+          path = "INBOX";
 
 	/* FIXME: we need to get the mu_envelope_date and use it.
 	   currently it is ignored.  */
@@ -1046,7 +1021,6 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
 				 abuf,
 				 mu_umaxtostr (1, size + lines));
 	free (abuf);
-	free (path);
 	CHECK_ERROR (f_imap, status);
 	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
 	f_imap->state = IMAP_APPEND;
@@ -1132,21 +1106,14 @@ imap_copy_message (mu_mailbox_t mailbox, mu_message_t msg)
     {
     case IMAP_NO_STATE:
       {
-	char *path;
-	size_t n = 0;
+	const char *path;
 	/* Check for a valid mailbox name.  */
-	mu_url_get_path (mailbox->url, NULL, 0, &n);
-	if (n == 0)
-	  return EINVAL;
-	path = calloc (n + 1, sizeof (*path));
-	if (path == NULL)
-	  return ENOMEM;
-	mu_url_get_path (mailbox->url, path, n + 1, NULL);
-	status = imap_writeline (f_imap, "g%s COPY %s %s\r\n",
-				 mu_umaxtostr (0, f_imap->seq++),
-				 mu_umaxtostr (1, msg_imap->num),
-				 path);
-	free (path);
+	status = mu_url_sget_path (mailbox->url, &path);
+	if (status == 0)
+  	  status = imap_writeline (f_imap, "g%s COPY %s %s\r\n",
+	 			   mu_umaxtostr (0, f_imap->seq++),
+				   mu_umaxtostr (1, msg_imap->num),
+				   path);
 	CHECK_ERROR (f_imap, status);
 	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
 	f_imap->state = IMAP_COPY;

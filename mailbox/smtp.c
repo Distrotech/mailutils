@@ -297,7 +297,6 @@ smtp_open (mu_mailer_t mailer, int flags)
   smtp_t smtp = mailer->data;
   int status;
   long port;
-  size_t buf_len = 0;
 
   /* Sanity checks.  */
   if (!smtp)
@@ -305,27 +304,21 @@ smtp_open (mu_mailer_t mailer, int flags)
 
   mailer->flags = flags;
 
-  /* Fetch the mailer server name and the port in the mu_url_t.  */
-  if ((status = mu_url_get_host (mailer->url, NULL, 0, &buf_len)) != 0
-      || buf_len == 0 || (status = mu_url_get_port (mailer->url, &port)) != 0)
-    return status;
+  if ((status = mu_url_get_port (mailer->url, &port)) != 0)
+     return status;
 
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
-      /* Set up the mailer, open the stream, etc. */
-      /* Get the mailhost.  */
       if (smtp->mailhost)
 	{
 	  free (smtp->mailhost);
 	  smtp->mailhost = NULL;
 	}
-      smtp->mailhost = calloc (buf_len + 1, sizeof (char));
 
-      if (smtp->mailhost == NULL)
-	return ENOMEM;
-
-      mu_url_get_host (mailer->url, smtp->mailhost, buf_len + 1, NULL);
+      /* Fetch the mailer server name and the port in the mu_url_t.  */
+      if ((status = mu_url_aget_host (mailer->url, &smtp->mailhost)) != 0)
+        return status;
 
       if (smtp->localhost)
 	{

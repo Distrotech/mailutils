@@ -92,7 +92,6 @@ _nntp_mailbox_init (mu_mailbox_t mbox)
 {
   m_nntp_t m_nntp;
   int status = 0;
-  size_t name_len = 0;
 
   /* Allocate specifics for nntp data.  */
   m_nntp = mbox->data = calloc (1, sizeof (*m_nntp));
@@ -106,19 +105,19 @@ _nntp_mailbox_init (mu_mailbox_t mbox)
   m_nntp->mailbox = mbox;		/* Back pointer.  */
 
   /* Retrieve the name of the newsgroup from the URL.  */
-  mu_url_get_path (mbox->url, NULL, 0, &name_len);
-  if (name_len == 0)
+  status = mu_url_aget_path (mbox->url, &m_nntp->name);
+  if (status == MU_ERR_NOENT)
     {
-      /* name "INBOX" is the default.  */
-      m_nntp->name = calloc (6, sizeof (char));
-      strcpy (m_nntp->name, "INBOX");
+      m_nntp->name = strdup ("INBOX");
+      if (!m_nntp->name)
+        return ENOMEM;
     }
-  else
+  else if (status)
+    return status;
+  else  
     {
       char *p;
-      m_nntp->name = calloc (name_len + 1, sizeof (char));
-      mu_url_get_path (mbox->url, m_nntp->name, name_len + 1, NULL);
-      p = strchr (m_nntp->name,'/');
+      p = strchr (m_nntp->name, '/');
       if (p)
 	*p = '\0';
     }

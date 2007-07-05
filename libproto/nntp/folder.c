@@ -100,10 +100,9 @@ nntp_folder_open (mu_folder_t folder, int flags)
 {
   f_nntp_t f_nntp = folder->data;
   mu_stream_t carrier = NULL;
-  char *host;
+  const char *host;
   long port = MU_NNTP_DEFAULT_PORT; /* default nntp port.  */
   int status = 0;
-  size_t len = 0;
 
   /* If we are already open for business, noop.  */
   mu_monitor_wrlock (folder->monitor);
@@ -115,25 +114,21 @@ nntp_folder_open (mu_folder_t folder, int flags)
   mu_monitor_unlock (folder->monitor);
 
   /* Fetch the server name and the port in the mu_url_t.  */
-  status = mu_url_get_host (folder->url, NULL, 0, &len);
+  status = mu_url_sget_host (folder->url, &host);
   if (status != 0)
     return status;
-  host = malloc (len + 1);
-  if (!host)
-    return ENOMEM;
-  mu_url_get_host (folder->url, host, len + 1, NULL);
   mu_url_get_port (folder->url, &port);
 
   folder->flags = flags;
 
   /* Create the networking stack.  */
   status = mu_tcp_stream_create (&carrier, host, port, folder->flags);
-  free (host);
   if (status != 0)
     return status;
   /* Ask for the stream internal buffering mechanism scheme.  */
   mu_stream_setbufsiz (carrier, BUFSIZ);
-  FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "folder_nntp_open (%s:%d)\n", host, port);
+  FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "folder_nntp_open (%s:%d)\n", 
+                 host, port);
 
   status = mu_nntp_create (&f_nntp->nntp);
   if (status == 0)

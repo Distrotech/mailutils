@@ -680,8 +680,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 {
   pop_data_t mpd = mbox->data;
   int status;
-  char *host;
-  size_t hostlen = 0;
+  const char *host;
   long port = MU_POP_PORT;
 
   /* Sanity checks.  */
@@ -689,11 +688,9 @@ pop_open (mu_mailbox_t mbox, int flags)
     return EINVAL;
 
   /* Fetch the pop server name and the port in the mu_url_t.  */
-  status = mu_url_get_host (mbox->url, NULL, 0, &hostlen);
+  status = mu_url_sget_host (mbox->url, &host);
   if (status != 0)
     return status;
-  host = alloca (hostlen + 1);
-  mu_url_get_host (mbox->url, host, hostlen + 1, NULL);
   mu_url_get_port (mbox->url, &port);
 
   mbox->flags = flags;
@@ -2044,7 +2041,6 @@ pop_get_user (mu_authority_t auth)
   mu_ticket_t ticket = NULL;
   int status;
   /*  Fetch the user from them.  */
-  size_t n = 0;
 
   mu_authority_get_ticket (auth, &ticket);
   if (mpd->user)
@@ -2053,14 +2049,11 @@ pop_get_user (mu_authority_t auth)
       mpd->user = NULL;
     }
   /* Was it in the URL? */
-  status = mu_url_get_user (mbox->url, NULL, 0, &n);
-  if (status != 0 || n == 0)
+  status = mu_url_aget_user (mbox->url, &mpd->user);
+  if (status == MU_ERR_NOENT)
     mu_ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
-  else
-    {
-      mpd->user = calloc (1, n + 1);
-      mu_url_get_user (mbox->url, mpd->user, n + 1, NULL);
-    }
+  else if (status)
+    return status;
   return 0;
 }
 
@@ -2073,8 +2066,6 @@ pop_get_passwd (mu_authority_t auth)
   pop_data_t mpd = mbox->data;
   mu_ticket_t ticket = NULL;
   int status;
-  /*  Fetch the user from them.  */
-  size_t n = 0;
 
   mu_authority_get_ticket (auth, &ticket);
   if (mpd->passwd)
@@ -2083,14 +2074,11 @@ pop_get_passwd (mu_authority_t auth)
       mpd->passwd = NULL;
     }
   /* Was it in the URL? */
-  status = mu_url_get_passwd (mbox->url, NULL, 0, &n);
-  if (status != 0 || n == 0)
+  status = mu_url_aget_passwd (mbox->url, &mpd->passwd);
+  if (status == MU_ERR_NOENT)
     mu_ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
-  else
-    {
-      mpd->passwd = calloc (1, n + 1);
-      mu_url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
-    }
+  else if (status)
+    return status;
   return 0;
 }
 

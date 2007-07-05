@@ -76,8 +76,8 @@ static int mbox_tmpfile               (mu_mailbox_t, char **pbox);
 int
 _mailbox_mbox_init (mu_mailbox_t mailbox)
 {
+  int status;
   mbox_data_t mud;
-  size_t name_len;
 
   if (mailbox == NULL)
     return EINVAL;
@@ -98,15 +98,13 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
      will be "///var/mail/alain", we let open() do the right thing.
      So it will let things like this "mbox://390/var/mail/alain" where
      the "//" _is_ part of the filename, pass correctely.  */
-  mu_url_get_path (mailbox->url, NULL, 0, &name_len);
-  mud->name = calloc (name_len + 1, sizeof (char));
-  if (mud->name == NULL)
+  status = mu_url_aget_path (mailbox->url, &mud->name);
+  if (status)
     {
       free (mud);
       mailbox->data = NULL;
-      return ENOMEM;
+      return status;
     }
-  mu_url_get_path (mailbox->url, mud->name, name_len + 1, NULL);
 
   mud->state = MBOX_NO_STATE;
 

@@ -125,7 +125,6 @@ sendmail_open (mu_mailer_t mailer, int flags)
 {
   sendmail_t sendmail = mailer->data;
   int status;
-  size_t pathlen = 0;
   char *path;
 
   /* Sanity checks.  */
@@ -134,12 +133,8 @@ sendmail_open (mu_mailer_t mailer, int flags)
 
   mailer->flags = flags;
 
-  if ((status = mu_url_get_path (mailer->url, NULL, 0, &pathlen)) != 0
-      || pathlen == 0)
+  if ((status = mu_url_aget_path (mailer->url, &path)))
     return status;
-
-  path = calloc (pathlen + 1, sizeof (char));
-  mu_url_get_path (mailer->url, path, pathlen + 1, NULL);
 
   if (access (path, X_OK) == -1)
     {

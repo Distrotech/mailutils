@@ -378,35 +378,27 @@ static int
 get_user (mu_url_t url, const char *filename, char **user)
 {
   char *u = 0;
+  int status;
 
   if (url)
     {
-      size_t n = 0;
-      mu_url_get_user (url, NULL, 0, &n);
-
-      if (n)
-	{
-	  u = calloc (1, n + 1);
-	  mu_url_get_user (url, u, n + 1, NULL);
-	}
+      status = mu_url_aget_user (url, &u);
+      if (status && status != MU_ERR_NOENT)
+        return status;
     }
+
   if (!u && filename)
     {
       mu_url_t ticket = 0;
-      int e = get_ticket (url, NULL, filename, &ticket);
-      if (e)
-	return e;
+      status = get_ticket (url, NULL, filename, &ticket);
+      if (status)
+	return status;
 
       if (ticket)
 	{
-	  size_t n = 0;
-	  mu_url_get_user (ticket, NULL, 0, &n);
-
-	  if (n)
-	    {
-	      u = calloc (1, n + 1);
-	      mu_url_get_user (ticket, u, n + 1, NULL);
-	    }
+	  status = mu_url_aget_user (ticket, &u);
+          if (status && status != MU_ERR_NOENT)
+            return status;
 	  mu_url_destroy (&ticket);
 	}
     }
@@ -428,36 +420,28 @@ get_user (mu_url_t url, const char *filename, char **user)
 static int
 get_pass (mu_url_t url, const char *user, const char *filename, char **pass)
 {
+  int status;
   char *u = 0;
 
   if (url)
     {
-      size_t n = 0;
-      mu_url_get_passwd (url, NULL, 0, &n);
-
-      if (n)
-	{
-	  u = calloc (1, n + 1);
-	  mu_url_get_passwd (url, u, n + 1, NULL);
-	}
+      status = mu_url_aget_passwd (url, &u);
+      if (status && status != MU_ERR_NOENT)
+	return status;
     }
+
   if (!u && filename)
     {
       mu_url_t ticket = 0;
-      int e = get_ticket (url, user, filename, &ticket);
-      if (e)
-	return e;
+      status = get_ticket (url, user, filename, &ticket);
+      if (status)
+	return status;
 
       if (ticket)
 	{
-	  size_t n = 0;
-	  mu_url_get_passwd (ticket, NULL, 0, &n);
-
-	  if (n)
-	    {
-	      u = calloc (1, n + 1);
-	      mu_url_get_passwd (ticket, u, n + 1, NULL);
-	    }
+	  status = mu_url_aget_passwd (ticket, &u);
+          if (status && status != MU_ERR_NOENT)
+	    return status;
 	  mu_url_destroy (&ticket);
 	}
     }

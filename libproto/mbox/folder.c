@@ -152,15 +152,13 @@ _folder_mbox_init (mu_folder_t folder)
   if (dfolder == NULL)
     return ENOMEM;
 
-  mu_url_get_path (folder->url, NULL, 0, &name_len);
-  dfolder->dirname = calloc (name_len + 1, sizeof (char));
-  if (dfolder->dirname == NULL)
+  status = mu_url_aget_path (folder->url, &dfolder->dirname);
+  if (status)  
     {
       free (dfolder);
       folder->data = NULL;
       return ENOMEM;
     }
-  mu_url_get_path (folder->url, dfolder->dirname, name_len + 1, NULL);
 
   folder->_destroy = folder_mbox_destroy;
 

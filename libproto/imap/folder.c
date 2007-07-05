@@ -160,30 +160,24 @@ authenticate_imap_login (mu_authority_t auth)
     case IMAP_AUTH:
       {
 	/* Grab the User and Passwd information.  */
-	size_t n = 0;
 	mu_authority_get_ticket (auth, &ticket);
 	if (f_imap->user)
 	  free (f_imap->user);
 	if (f_imap->passwd)
 	  free (f_imap->passwd);
 	/* Was it in the URL?  */
-	status = mu_url_get_user (folder->url, NULL, 0, &n);
-        if (status != 0 || n == 0)
+	status = mu_url_aget_user (folder->url, &f_imap->user);
+        if (status == MU_ERR_NOENT)
 	  mu_ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
-	else
-	  {
-	    f_imap->user = calloc (1, n + 1);
-	    mu_url_get_user (folder->url, f_imap->user, n + 1, NULL);
-	  }
-	/* Was it in the URL?  */
-	status = mu_url_get_passwd (folder->url, NULL, 0, &n);
-        if (status != 0 || n == 0)
-	  mu_ticket_pop (ticket, folder->url, "Imap Passwd: ",  &f_imap->passwd);
-	else
-	  {
-	    f_imap->passwd = calloc (1, n + 1);
-	    mu_url_get_passwd (folder->url, f_imap->passwd, n + 1, NULL);
-	  }
+	else if (status)
+	  return status;
+
+	status = mu_url_aget_passwd (folder->url, &f_imap->passwd);
+        if (status == MU_ERR_NOENT)
+	  mu_ticket_pop (ticket, folder->url, "Imap Passwd: ",  
+	                 &f_imap->passwd);
+	else if (status)
+	  return status;
 
 	if (f_imap->user == NULL)
 	  return MU_ERR_NOUSERNAME;
@@ -582,7 +576,7 @@ static int
 folder_imap_open (mu_folder_t folder, int flags)
 {
   f_imap_t f_imap = folder->data;
-  char *host;
+  const char *host;
   long port = 143; /* default imap port.  */
   int status = 0;
   size_t len = 0;
@@ -597,11 +591,9 @@ folder_imap_open (mu_folder_t folder, int flags)
   mu_monitor_unlock (folder->monitor);
 
   /* Fetch the server name and the port in the mu_url_t.  */
-  status = mu_url_get_host (folder->url, NULL, 0, &len);
+  status = mu_url_sget_host (folder->url, &host);
   if (status != 0)
     return status;
-  host = alloca (len + 1);
-  mu_url_get_host (folder->url, host, len + 1, NULL);
   mu_url_get_port (folder->url, &port);
 
   folder->flags = flags;

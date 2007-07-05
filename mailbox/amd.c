@@ -242,10 +242,11 @@ amd_array_shrink (struct _amd_data *amd, size_t index)
 
 
 int
-amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd) 
+amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
+		  struct _amd_data **pamd) 
 {
+  int status;
   struct _amd_data *amd;
-  size_t name_len;
 
   if (mailbox == NULL)
     return MU_ERR_MBX_NULL;
@@ -259,15 +260,13 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd
   /* Back pointer.  */
   amd->mailbox = mailbox;
 
-  mu_url_get_path (mailbox->url, NULL, 0, &name_len);
-  amd->name = calloc (name_len + 1, sizeof (char));
-  if (amd->name == NULL)
+  status = mu_url_aget_path (mailbox->url, &amd->name);
+  if (status)
     {
       free (amd);
       mailbox->data = NULL;
-      return ENOMEM;
+      return status;
     }
-  mu_url_get_path (mailbox->url, amd->name, name_len + 1, NULL);
 
   /* Overloading the defaults.  */
   mailbox->_destroy = amd_destroy;
