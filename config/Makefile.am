@@ -17,7 +17,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ 
 
 bin_PROGRAMS = mailutils-config
 
@@ -31,7 +31,7 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -I$(top_srcdir)/intl \
   -I${top_srcdir}/lib \
   -DLINK_FLAGS="\"-L$(libdir)\"" \
-  -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
+  -DLINK_POSTFLAGS="\"$(MU_LINK_POSTFLAGS)\"" \
   -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
