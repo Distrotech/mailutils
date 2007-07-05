@@ -25,7 +25,7 @@ mod_LTLIBRARIES = \
  timestamp.la\
  vacation.la
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ 
 
 AM_LDFLAGS = ../../lib/libmuaux.la ${MU_LIB_MAILUTILS} 
 

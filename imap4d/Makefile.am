@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ 
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d

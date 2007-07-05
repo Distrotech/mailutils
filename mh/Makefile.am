@@ -123,7 +123,7 @@ mailutils-mh.el: mailutils-mh.eli
 .eli.el:
 	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ 
 AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = \
  ./libmh.a\

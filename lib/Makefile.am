@@ -20,7 +20,7 @@
 
 noinst_LTLIBRARIES = libmuaux.la
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ 
 
 libmuaux_la_SOURCES = \
  daemon.c\

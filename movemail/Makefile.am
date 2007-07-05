@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@ @MU_AUTHINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
 
 movemail_LDADD = \

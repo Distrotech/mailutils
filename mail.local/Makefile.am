@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I${top_srcdir} @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ @INTLINCS@
+INCLUDES = -I${top_srcdir} @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
 SUBDIRS = testsuite
 
 libexec_PROGRAMS = mail.local

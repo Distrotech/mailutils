@@ -49,7 +49,7 @@ noinst_PROGRAMS = \
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
-INCLUDES = @MU_COMMON_INCLUDES@ @INTLINCS@
+INCLUDES = @MU_COMMON_INCLUDES@ 
 
 AM_LDFLAGS = \
  ../lib/libmuaux.la\
