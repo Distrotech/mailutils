@@ -1,3 +1,22 @@
+2007-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (INTLINCS): Remove leftover variable
+	(MU_LINK_POSTFLAGS): New subst
+	* auth/Makefile.am, comsat/Makefile.am, 
+	dotlock/Makefile.am, examples/Makefile.am,
+	examples/cpp/Makefile.am, frm/Makefile.am, guimb/Makefile.am,
+	imap4d/Makefile.am, lib/Makefile.am, libmu_cpp/Makefile.am,
+	libmu_scm/Makefile.am, libproto/imap/Makefile.am,
+	libproto/maildir/Makefile.am, libproto/mbox/Makefile.am,
+	libproto/mh/Makefile.am, libproto/nntp/Makefile.am,
+	libproto/pop/Makefile.am, libsieve/Makefile.am,
+	libsieve/extensions/Makefile.am, mail/Makefile.am,
+	mail.local/Makefile.am, mail.remote/Makefile.am,
+	mailbox/Makefile.am, messages/Makefile.am, mh/Makefile.am,
+	mimeview/Makefile.am, movemail/Makefile.am (INCLUDES): Remove INTLINCS
+	* config/Makefile.am (INCLUDES): Remove INTLINCS
+	(mailutils_config_CFLAGS): Use MU_LINK_POSTFLAGS
+
 2007-07-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
