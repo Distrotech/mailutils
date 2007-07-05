@@ -1,8 +1,41 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-06-29
+GNU mailutils NEWS -- history of user-visible changes. 2007-07-05
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+
+
+* New `aget' and `sget' accessors for mu_url_t
+
+The following new accessors are provided:
+
+extern int mu_url_sget_scheme  (const mu_url_t, const char **);
+extern int mu_url_aget_scheme  (const mu_url_t, char **);  
+  
+extern int mu_url_sget_user  (const mu_url_t, const char **);
+extern int mu_url_aget_user  (const mu_url_t, char **);  
+
+extern int mu_url_sget_passwd  (const mu_url_t, const char **);
+extern int mu_url_aget_passwd  (const mu_url_t, char **);  
+  
+extern int mu_url_sget_auth  (const mu_url_t, const char **);
+extern int mu_url_aget_auth  (const mu_url_t, char **);  
+
+extern int mu_url_sget_host  (const mu_url_t, const char **);
+extern int mu_url_aget_host  (const mu_url_t, char **);  
+  
+extern int mu_url_sget_path  (const mu_url_t, const char **);
+extern int mu_url_aget_path  (const mu_url_t, char **);  
+
+extern int mu_url_sget_query  (const mu_url_t, const char **);
+extern int mu_url_aget_query  (const mu_url_t, char **);  
+
+* Incompatible change in mu_url_get_.* return value
+
+Any mu_url_get_.* accessors return MU_ERR_ENOENT if the corresponding
+field is not present in the object. Previous versions in that case
+returned 0 and stored empty string in the output buffer.
 
 
 Version 1.2:
