@@ -22,19 +22,32 @@
 #include <mailutils/errno.h>
 #include <mailutils/url.h>
 
+#define CAT2(a,b) a ## b
+
+#define GET_AND_PRINT(field,u,buf,status) 		                \
+      status = CAT2(mu_url_sget_,field) (u, &buf);	                \
+      if (status == MU_ERR_NOENT)			                \
+	buf = "";					                \
+      else if (status)					                \
+	{						                \
+	  mu_error ("cannot get %s: %s", #field, mu_strerror (status));	\
+	  exit (1);					                \
+        }                                                               \
+      printf ("\t" #field " <%s>\n", buf)
+
+
 int
 main ()
 {
   char str[1024];
-  char buffer[1024];
   long port = 0;
-  int len = sizeof (buffer);
   mu_url_t u = NULL;
 
   while (fgets (str, sizeof (str), stdin) != NULL)
     {
       int rc;
-
+      const char *buf;
+      
       str[strlen (str) - 1] = '\0';     /* chop newline */
       if (strspn (str, " \t") == strlen (str))
         continue;               /* skip empty lines */
@@ -52,29 +65,22 @@ main ()
         }
       printf ("%s => SUCCESS\n", str);
 
-      mu_url_get_scheme (u, buffer, len, NULL);
-      printf ("\tscheme <%s>\n", buffer);
+      GET_AND_PRINT (scheme, u, buf, rc);
+      GET_AND_PRINT (user, u, buf, rc);
+      GET_AND_PRINT (passwd, u, buf, rc);
+      GET_AND_PRINT (auth, u, buf, rc);
+      GET_AND_PRINT (host, u, buf, rc);
 
-      mu_url_get_user (u, buffer, len, NULL);
-      printf ("\tuser <%s>\n", buffer);
-
-      mu_url_get_passwd (u, buffer, len, NULL);
-      printf ("\tpasswd <%s>\n", buffer);
-
-      mu_url_get_auth (u, buffer, len, NULL);
-      printf ("\tauth <%s>\n", buffer);
-
-      mu_url_get_host (u, buffer, len, NULL);
-      printf ("\thost <%s>\n", buffer);
-
-      mu_url_get_port (u, &port);
+      rc = mu_url_get_port (u, &port);
+      if (rc)					
+	{						
+	  mu_error ("cannot get %s: %s", "port", mu_strerror (rc));	
+	  exit (1);					
+        }                                               
       printf ("\tport %ld\n", port);
-
-      mu_url_get_path (u, buffer, len, NULL);
-      printf ("\tpath <%s>\n", buffer);
-
-      mu_url_get_query (u, buffer, len, NULL);
-      printf ("\tquery <%s>\n", buffer);
+      
+      GET_AND_PRINT (path, u, buf, rc);
+      GET_AND_PRINT (query, u, buf, rc);
 
       mu_url_destroy (&u);
 
