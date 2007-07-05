@@ -511,6 +511,8 @@ mu_mailbox_get_debug (mu_mailbox_t mbox, mu_debug_t *pdebug)
       int status = mu_debug_create (&(mbox->debug), mbox);
       if (status != 0)
 	return status;
+      if(!mu_folder_has_debug (mbox->folder))
+	mu_folder_set_debug (mbox->folder, mbox->debug);
     }
   *pdebug = mbox->debug;
   return 0;
