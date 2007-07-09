@@ -296,7 +296,6 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
 	case IMAP_NO_STATE:
 	  {
 	    const char *path;
-	    size_t len;
 	    status = mu_url_sget_path (folder->url, &path);
 	    if (status == MU_ERR_NOENT)
 	      return 0;
