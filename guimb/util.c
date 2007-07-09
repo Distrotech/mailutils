@@ -37,16 +37,18 @@ util_get_sender (int msgno)
   mu_header_t header = NULL;
   mu_address_t addr = NULL;
   mu_message_t msg = NULL;
-  char buffer[512];
+  const char *buffer;
+  char *email;
 
   mu_mailbox_get_message (mbox, msgno, &msg);
   mu_message_get_header (msg, &header);
-  if (mu_header_get_value (header, MU_HEADER_FROM, buffer, sizeof (buffer), NULL)
+  if (mu_header_sget_value (header, MU_HEADER_FROM, &buffer)
       || mu_address_create (&addr, buffer))
     {
       mu_envelope_t env = NULL;
       mu_message_get_envelope (msg, &env);
-      if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
+      
+      if (mu_envelope_sget_sender (env, &buffer)
 	  || mu_address_create (&addr, buffer))
 	{
 	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
@@ -54,7 +56,7 @@ util_get_sender (int msgno)
 	}
     }
 
-  if (mu_address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
+  if (mu_address_aget_email (addr, 1, &email))
     {
       util_error (_("Cannot determine sender name (msg %d)"), msgno);
       mu_address_destroy (&addr);
@@ -62,6 +64,6 @@ util_get_sender (int msgno)
     }
 
   mu_address_destroy (&addr);
-  return strdup (buffer);
+  return email;
 }
 

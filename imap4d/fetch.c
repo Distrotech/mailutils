@@ -349,27 +349,24 @@ fetch_flags (struct fetch_command *command, char **arg)
 static int
 fetch_internaldate (struct fetch_command *command, char **arg MU_ARG_UNUSED)
 {
-  char date[128];
+  const char *date;
   mu_envelope_t env = NULL;
   struct tm tm, *tmp = NULL;
   mu_timezone tz;
+  char datebuf[sizeof ("13-Jul-2002 00:00:00")];
 
   mu_message_get_envelope (command->msg, &env);
-  date[0] = '\0';
-  if (mu_envelope_date (env, date, sizeof (date), NULL) == 0)
+  if (mu_envelope_sget_date (env, &date) == 0
+      && mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
+    tmp = &tm;
+  else
     {
-      char *p = date;
-      if (mu_parse_ctime_date_time ((const char **) &p, &tm, &tz) == 0)
-	tmp = &tm;
+      time_t t = time (NULL);
+      tmp = localtime (&t);
     }
-  if (!tmp)
-    {
-      time_t t = time(NULL);
-      tmp = localtime(&t);
-    }
-  mu_strftime (date, sizeof (date), "%d-%b-%Y %H:%M:%S", tmp);
+  mu_strftime (datebuf, sizeof (datebuf), "%d-%b-%Y %H:%M:%S", tmp);
   util_send ("%s", command->name);
-  util_send (" \"%s +0000\"", date);
+  util_send (" \"%s +0000\"", datebuf);
   return RESP_OK;
 }
 

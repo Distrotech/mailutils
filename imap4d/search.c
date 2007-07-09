@@ -790,12 +790,13 @@ cond_before (struct parsebuf *pb)
 {
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
-  char buffer[512];
+  const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_ctime_date (buffer, &mesg_time);
+  if (mu_envelope_sget_date (env, &date))
+    return 0;
+  util_parse_ctime_date (date, &mesg_time);
   _search_push (pb, mesg_time < t);
 }                   
 
@@ -816,12 +817,12 @@ cond_from (struct parsebuf *pb)
 {
   char *s = _search_arg (pb);
   mu_envelope_t env;
-  char buffer[512];
+  const char *from;
   int rc = 0;
   
   mu_message_get_envelope (pb->msg, &env);
-  if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL) == 0)
-    rc = util_strcasestr (buffer, s) != NULL;
+  if (mu_envelope_sget_sender (env, &from) == 0)
+    rc = util_strcasestr (from, s) != NULL;
   _search_push (pb, _scan_header (pb, "from", s));
 }                     
 
@@ -859,12 +860,13 @@ cond_on (struct parsebuf *pb)
 {
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
-  char buffer[512];
+  const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_ctime_date (buffer, &mesg_time);
+  if (mu_envelope_sget_date (env, &date))
+    return 0;
+  util_parse_ctime_date (date, &mesg_time);
   _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
 }                       
 
@@ -903,12 +905,13 @@ cond_since (struct parsebuf *pb)
 {
   time_t t = (time_t)_search_arg (pb);
   time_t mesg_time;
-  char buffer[512];
+  const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  mu_envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_ctime_date (buffer, &mesg_time);
+  if (mu_envelope_sget_date (env, &date))
+    return 0;
+  util_parse_ctime_date (date, &mesg_time);
   _search_push (pb, mesg_time >= t);
 }                    
 

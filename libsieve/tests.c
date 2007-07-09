@@ -61,7 +61,7 @@ struct address_closure
 {
   address_aget_t aget;     /* appropriate address_aget_ function */
   void *data;              /* Either mu_header_t or mu_envelope_t */
-  mu_address_t addr;          /* Obtained address */
+  mu_address_t addr;       /* Obtained address */
 };  
 
 static int
@@ -243,13 +243,12 @@ retrieve_envelope (void *item, void *data, int idx, char **pval)
       
   if (!ap->addr)
     {
-      char buf[512];
-      size_t n;
+      const char *buf;
       
       if (strcasecmp ((char*)item, "from") != 0)
 	return 1;
 
-      if (mu_envelope_sender ((mu_envelope_t)ap->data, buf, sizeof(buf), &n))
+      if (mu_envelope_sget_sender ((mu_envelope_t)ap->data, &buf))
 	return 1;
 
       rc = mu_address_create (&ap->addr, buf);
@@ -291,7 +290,8 @@ sieve_test_envelope (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
 
-  mu_message_get_envelope (mu_sieve_get_message (mach), (mu_envelope_t*)&clos.data);
+  mu_message_get_envelope (mu_sieve_get_message (mach), 
+                           (mu_envelope_t*)&clos.data);
   clos.aget = sieve_get_address_part (tags);
   clos.addr = NULL;
   rc = mu_sieve_vlist_compare (h, v, comp, test, retrieve_envelope, &clos,

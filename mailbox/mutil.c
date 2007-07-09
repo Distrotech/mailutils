@@ -1067,7 +1067,8 @@ mu_rfc2822_msg_id (int subpart, char **pval)
 int
 mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr)
 {
-  char *value, *s1 = NULL, *s2 = NULL;
+  const char *value = NULL;
+  char *s1 = NULL, *s2 = NULL;
   mu_header_t hdr;
   int rc;
   
@@ -1075,39 +1076,30 @@ mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr)
   if (rc)
     return rc;
   
-  if (mu_header_aget_value (hdr, MU_HEADER_DATE, &value))
+  if (mu_header_sget_value (hdr, MU_HEADER_DATE, &value))
     {
       mu_envelope_t envelope = NULL;
-      value = malloc (DATEBUFSIZE);
-      if (value)
-	{
-	  mu_message_get_envelope (msg, &envelope);
-	  mu_envelope_date (envelope, value, DATEBUFSIZE, NULL);
-	}
+      mu_message_get_envelope (msg, &envelope);
+      mu_envelope_sget_date (envelope, &value);
     }
 
   if (value)
     {
       s1 = malloc (sizeof (COMMENT) + strlen (value));
-      if (s1)
-	strcat (strcpy (s1, COMMENT), value);
-      free (value);
       if (!s1)
 	return ENOMEM;
+      strcat (strcpy (s1, COMMENT), value);
     }
   
-  if (mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
+  if (mu_header_sget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
     {
       s2 = malloc (strlen (value) + 3);
-      if (s2)
-	strcat (strcpy (s2, "\n\t"), value);
-	  
-      free (value);
       if (!s2)
 	{
 	  free (s1);
 	  return ENOMEM;
 	}
+      strcat (strcpy (s2, "\n\t"), value);
     }
 
   if (s1 || s2)

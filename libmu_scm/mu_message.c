@@ -53,10 +53,10 @@ static char *
 _get_envelope_sender (mu_envelope_t env)
 {
   mu_address_t addr;
-  char buffer[128];
+  const char *buffer;
   char *ptr;
   
-  if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
+  if (mu_envelope_sget_sender (env, &buffer)
       || mu_address_create (&addr, buffer))
     return NULL;
 
@@ -75,11 +75,12 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (message_smob);
   mu_envelope_t env = NULL;
-  char buffer[128];
+  const char *buffer;
   const char *p;
   size_t m_size = 0, m_lines = 0;
   struct tm tm;
   mu_timezone tz;
+  char datebuf[sizeof ("Mon Jan 01 00:00")]; /* Warning: length must be > 9 */
 
   mu_message_get_envelope (mum->msg, &env);
 
@@ -102,12 +103,14 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
       else
 	scm_puts ("UNKNOWN", port);
       
-      mu_envelope_date (env, buffer, sizeof (buffer), NULL);
-      p = buffer;
-      if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
-	strftime (buffer, sizeof (buffer), "%a %b %e %H:%M", &tm);
+      if (mu_envelope_sget_date (env, &buffer) == 0
+          && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+	{
+	  strftime (datebuf, sizeof (datebuf), "%a %b %e %H:%M", &tm);
+	  buffer = datebuf;
+	}
       else
-	strcpy (buffer, "UNKNOWN");
+	buffer = "UNKNOWN";
       scm_puts ("\" \"", port);
       scm_puts (buffer, port);
       scm_puts ("\" ", port);
@@ -115,9 +118,9 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
       mu_message_size (mum->msg, &m_size);
       mu_message_lines (mum->msg, &m_lines);
       
-      snprintf (buffer, sizeof (buffer), "%3lu %-5lu",
+      snprintf (datebuf, sizeof (datebuf), "%3lu %-5lu",
 		(unsigned long) m_lines, (unsigned long) m_size);
-      scm_puts (buffer, port);
+      scm_puts (datebuf, port);
     }
   scm_puts (">", port);
   return 1;

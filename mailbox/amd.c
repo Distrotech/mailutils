@@ -554,7 +554,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
   int status;
   mu_attribute_t attr;
   mu_body_t body;
-  char buffer[512];
+  const char *sbuf;
   mu_envelope_t env = NULL;
   
   status = mu_message_size (msg, &bsize);
@@ -608,23 +608,22 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
     }
   
   mu_message_get_envelope (msg, &env);
-  if (mu_envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
+  if (mu_envelope_sget_date (env, &sbuf) == 0)
     {
-      /* NOTE: buffer is terminated with \n */
-      char *p = buffer;
-      while (isspace (*p))
-	p++;
-      nbytes += fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, p);
+      /* NOTE: buffer might be terminated with \n */
+      while (*sbuf && isspace (*sbuf))
+	sbuf++;
+      nbytes += fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, sbuf);
 
-      if (*p && p[strlen (p) - 1] != '\n')
+      if (*sbuf && sbuf[strlen (sbuf) - 1] != '\n')
 	nbytes += fprintf (fp, "\n");
       
       nlines++;
     }
 	  
-  if (mu_envelope_sender (env, buffer, sizeof buffer, &n) == 0 && n > 0)
+  if (mu_envelope_sget_sender (env, &sbuf) == 0)
     {
-      fprintf (fp, "%s: %s\n", MU_HEADER_ENV_SENDER, buffer);
+      fprintf (fp, "%s: %s\n", MU_HEADER_ENV_SENDER, sbuf);
       nlines++;
     }
   
@@ -1394,7 +1393,7 @@ amd_unset_attr_flags (mu_attribute_t attr, int flags)
 /* Envelope */
 static int
 amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
-		  size_t *psize)
+		   size_t *psize)
 {
   mu_message_t msg = mu_envelope_get_owner (envelope);
   struct _amd_message *mhm = mu_message_get_owner (msg);

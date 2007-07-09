@@ -121,9 +121,8 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
       mu_timezone tz;
 
       mu_message_get_envelope (msg, &env);
-      mu_envelope_date (env, date, sizeof (date), NULL);
-      p = date;
-      if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+      if (mu_envelope_sget_date (env, &p) == 0
+          && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
 	strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);
     }
   

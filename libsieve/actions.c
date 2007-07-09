@@ -107,30 +107,19 @@ mu_sieve_get_message_sender (mu_message_t msg, char **ptext)
 {
   int rc;
   mu_envelope_t envelope;
-  char *text;
-  size_t size;
   
   rc = mu_message_get_envelope (msg, &envelope);
   if (rc)
     return rc;
   
-  rc = mu_envelope_sender (envelope, NULL, 0, &size);
-  if (rc == 0)
-    {
-      if (!(text = malloc (size + 1)))
-	return ENOMEM;
-      mu_envelope_sender (envelope, text, size + 1, NULL);
-    }
-  else
+  rc = mu_envelope_aget_sender (envelope, ptext);
+  if (rc)
     {
       mu_header_t hdr = NULL;
       mu_message_get_header (msg, &hdr);
-      if ((rc = mu_header_aget_value (hdr, MU_HEADER_SENDER, &text)))
-	rc = mu_header_aget_value (hdr, MU_HEADER_FROM, &text);
+      if ((rc = mu_header_aget_value (hdr, MU_HEADER_SENDER, ptext)))
+	rc = mu_header_aget_value (hdr, MU_HEADER_FROM, ptext);
     }
-
-  if (rc == 0)
-    *ptext = text;
   return rc;
 }
 
@@ -431,10 +420,9 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   "redirect",
-		   _("%d: cannot create sender address <%s>: %s"),
-		   mu_sieve_get_message_num (mach),
-		   fromaddr, mu_strerror (rc));
+		      _("%d: cannot create sender address <%s>: %s"),
+		      mu_sieve_get_message_num (mach),
+		      fromaddr, mu_strerror (rc));
       free (fromaddr);
       goto end;
     }

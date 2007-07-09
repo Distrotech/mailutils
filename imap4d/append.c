@@ -65,16 +65,25 @@ static int
 _append_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   mu_message_t msg = mu_envelope_get_owner (envelope);
-  struct tm **tm = mu_message_get_owner (msg);
-
-  mu_strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
+  size_t size;
+  if (!buf)
+    size = MU_ENVELOPE_DATE_LENGTH;
+  else
+    {
+      struct tm **tm = mu_message_get_owner (msg);
+      size = mu_strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
+    }
+  if (pnwrite)
+    *pnwrite = size;
   return 0;
 }
 
 static int
 _append_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
-  strncpy (buf, "GNU-imap4d", len);
+  size_t n = mu_cpystr (buf, "GNU-imap4d", len);
+  if (pnwrite)
+    *pnwrite = n;
   return 0;
 }
 
@@ -139,4 +148,3 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
 }
 
 
-     
