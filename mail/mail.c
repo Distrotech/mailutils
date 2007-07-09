@@ -175,13 +175,13 @@ static struct argp argp = {
 };
 
 static const char *mail_capa[] = {
-	"common",
-	"license",
-	"mailbox",
+  "common",
+  "license",
+  "mailbox",
 #ifdef WITH_TLS
-	"tls",
+  "tls",
 #endif
-	 NULL 
+  NULL 
 };
 			     
 static char *
@@ -204,7 +204,7 @@ mail_cmdline (void *closure, int cont MU_ARG_UNUSED)
       
       if (ml_got_interrupt ())
 	{
-	  util_error(_("Interrupt"));
+	  util_error (_("Interrupt"));
 	  continue;
 	}
 
@@ -530,9 +530,8 @@ mail_mainloop (char *(*input) (void *, int),
 	  command = buf;
 	  len = strlen (command);
 	}
-      util_escape_percent (&command);
       cmd = util_stripwhite (command);
-      util_do_command (cmd);
+      util_do_command ("%s", cmd);
 #ifdef WITH_READLINE
       if (do_history && !(isspace(cmd[0]) || cmd[0] == '#'))
 	add_history (cmd);
