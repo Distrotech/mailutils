@@ -821,9 +821,9 @@ util_get_sender (int msgno, int strip)
   if (!addr)
     {
       mu_envelope_t env = NULL;
-      char buffer[512];
+      const char *buffer;
       mu_message_get_envelope (msg, &env);
-      if (mu_envelope_sender (env, buffer, sizeof (buffer), NULL)
+      if (mu_envelope_sget_sender (env, &buffer)
 	  || mu_address_create (&addr, buffer))
 	{
 	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
@@ -995,37 +995,6 @@ util_strupper (char *s)
     }
 }
 
-
-void
-util_escape_percent (char **str)
-{
-  int count;
-  char *p, *q;
-  char *newstr;
-
-  /* Count ocurrences of % in the string */
-  count = 0;
-  for (p = *str; *p; p++)
-    if (*p == '%')
-      count++;
-
-  if (!count)
-    return; /* nothing to do */
-
-  /* expand the string */
-  newstr = xmalloc (strlen (*str) + 1 + count);
-
-  /* and escape percent signs */
-  p = newstr;
-  q = *str;
-  while ((*p = *q++))
-    {
-      if (*p == '%')
-	*++p = '%';
-      p++;
-    }
-  *str = newstr;
-}
 
 char *
 util_outfolder_name (char *str)

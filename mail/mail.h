@@ -350,7 +350,6 @@ extern void util_slist_destroy (mu_list_t *list);
 extern char *util_slist_to_string (mu_list_t list, const char *delim);
 extern void util_strcat (char **dest, const char *str);
 extern void util_strupper (char *str);
-extern void util_escape_percent (char **str);
 extern char *util_outfolder_name (char *str);
 extern void util_save_outgoing (mu_message_t msg, char *savefile);
 extern void util_error (const char *format, ...) MU_PRINTFLIKE(1,2);
