@@ -204,7 +204,7 @@ regex_comparator (void *item, void *data)
       mu_sieve_error (d->mach,
 		      _("%d: cannot compile regular expression \"%s\""),
 		      mu_sieve_get_message_num (d->mach),
-		      item);
+		      (char*) item);
       return 0;
     }
   rc = regexec (&preg, d->email, 0, NULL, 0) == 0;

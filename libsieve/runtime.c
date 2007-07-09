@@ -287,7 +287,7 @@ sieve_run (mu_sieve_machine_t mach)
     mu_sieve_log_action (mach, "IMPLICIT KEEP", NULL);
   
   if (INSTR_DEBUG (mach))
-    mu_sieve_debug (mach, "%4lu: STOP\n", mach->pc);
+    mu_sieve_debug (mach, "%4lu: STOP\n", (unsigned long) mach->pc);
   
   return 0;
 }
