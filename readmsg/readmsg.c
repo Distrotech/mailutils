@@ -136,41 +136,26 @@ string_starts_with (const char * s1, const char *s2)
 static void
 print_unix_header (mu_message_t message)
 {
-  static size_t bufsize;
-  static char *buf;
+  const char *buf;
   size_t size;
   mu_envelope_t envelope = NULL;
 
   mu_message_get_envelope (message, &envelope);
-  if (mu_envelope_sender (envelope, NULL, 0, &size) || size == 0)
-    return;
-  
-  if (size > bufsize)
-    {
-      bufsize = size + 1;
-      buf = xrealloc (buf, bufsize);
-    }
       
-  mu_envelope_sender (envelope, buf, bufsize, 0);
+  if (mu_envelope_sget_sender (envelope, &buf))
+    buf = "UNKNOWN";
   printf ("From %s ", buf);
   
-  if (mu_envelope_date (envelope, NULL, 0, &size) == 0 && size > 0)
-    {
-      if (size > bufsize)
-	{
-	  bufsize = size + 1;
-	  buf = xrealloc (buf, bufsize);
-	}
-      mu_envelope_date (envelope, buf, bufsize, NULL);
-    }
-  else
-    {
+  if (mu_envelope_sget_date (envelope, &buf))
+    { 
+      char datebuf[MU_ENVELOPE_DATE_LENGTH+1];
       time_t t;
       struct tm *tm;
 
       t = time (NULL);
       tm = localtime (&t);
-      mu_strftime (buf, bufsize, "%a %b %d %H:%M:%S %Y", tm);
+      mu_strftime (datebuf, sizeof datebuf, "%a %b %d %H:%M:%S %Y", tm);
+      buf = datebuf;
     }
 
   printf ("%s", buf);
