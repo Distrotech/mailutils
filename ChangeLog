@@ -1,3 +1,34 @@
+2007-07-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS, configure.ac: Version 1.2.1
+	* THANKS: Add Robby Villegas
+	* examples/mta.c, libproto/imap/folder.c, libproto/nntp/folder.c,
+	mimeview/mimetypes.l: Fix format string
+	* libproto/imap/mbox.c: Minor fixes
+	* mail/mail.c (mail_mainloop): Use "%s" to properly pass command
+	to util_do_command. Remove call to util_escape_percent
+	* mail/mail.h, mail/util.c (util_escape_percent): Delete
+
+	* libproto/include/envelope0.h (date,sender): New members
+	(_sender,_date): Rename to _get_sender, _get_date
+	[__cplusplus]: Add missing }
+	
+	* include/mailutils/envelope.h, mailbox/envelope.c
+	(mu_envelope_get_sender)
+	(mu_envelope_sget_sender, mu_envelope_aget_sender)
+	(mu_envelope_get_date, mu_envelope_sget_date)
+	(mu_envelope_aget_date): New functions
+	(mu_envelope_sender, mu_envelope_date): Rewrite as macros
+	
+	* guimb/util.c, imap4d/append.c, imap4d/fetch.c, imap4d/search.c, 
+	libmu_scm/mu_message.c, libsieve/actions.c, libsieve/tests.c,
+	mail/from.c, mailbox/amd.c, mailbox/mutil.c,
+	readmsg/readmsg.c: Rewrite using new envelope accessors
+
+	* libproto/mbox/mbox.c (write_array): New function
+	(mbox_append_message0): Rewrite using new envelope accessors +
+	write_array
+	
 2007-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (INTLINCS): Remove leftover variable
