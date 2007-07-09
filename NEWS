@@ -5,6 +5,7 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
+Version 1.2.1:
 
 * New `aget' and `sget' accessors for mu_url_t
 
