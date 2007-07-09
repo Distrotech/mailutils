@@ -32,9 +32,15 @@ extern "C" {
 struct _mu_envelope
 {
   void *owner;
+  char *date;
+  char *sender;
   int (*_destroy) (mu_envelope_t);
-  int (*_sender)    (mu_envelope_t, char *, size_t, size_t*);
-  int (*_date)    (mu_envelope_t, char *, size_t , size_t *);
+  int (*_get_sender)  (mu_envelope_t, char *, size_t, size_t *);
+  int (*_get_date)    (mu_envelope_t, char *, size_t , size_t *);
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _ENVELOPE0_H */
