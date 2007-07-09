@@ -1271,6 +1271,29 @@ restore_date (mu_message_t msg, mbox_data_t mud)
   return rc;
 }
 
+static int
+write_array (mu_stream_t stream, mu_off_t *poff, int count, const char **array)
+{
+  int status;
+  for (; count; count--, array++)
+    {
+      size_t len = strlen (*array);
+      size_t i = 0, n;
+      
+      do
+	{
+	  status = mu_stream_write (stream, *array + i, len - i, *poff, &n);
+	  if (status)
+	    return status;
+	  *poff += n;
+	  i += n;
+	}
+      while (i < len);
+    }
+  return 0;
+}
+
+
 /* FIXME: We need to escape body line that begins with "From ", this
    will required to read the body by line instead of by chuncks hurting
    perfomance big time when expunging.  But should not this be the
@@ -1284,21 +1307,11 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
   size_t n = 0;
   char nl = '\n';
   size_t orig_size = *psize;
+  char *s;
   
   switch (mud->state)
     {
     case MBOX_NO_STATE:
-      /* Allocate memory for the sender/date buffers.  */
-      mud->sender = calloc (128, sizeof (char));
-      if (mud->sender == NULL)
-	return ENOMEM;
-      mud->date = calloc (128, sizeof (char));
-      if (mud->date == NULL)
-	{
-	  free (mud->sender);
-	  mud->sender = NULL;
-	  return ENOMEM;
-	}
       mud->off = 0;
       mud->state = MBOX_STATE_APPEND_SENDER;
 
@@ -1306,10 +1319,9 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
       /* Generate the sender for the "From " separator.  */
       {
 	char *s;
-	size_t len = 0;
 	mu_envelope_t envelope = NULL;
 	mu_message_get_envelope (msg, &envelope);
-	status = mu_envelope_sender (envelope, mud->sender, 128, &len);
+	status = mu_envelope_aget_sender (envelope, &mud->sender);
 	switch (status) {
 	case 0:
 	  break;
@@ -1319,12 +1331,10 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 
 	case MU_ERR_NOENT: /* Envelope headers not found: try to guess */
 	  free (mud->sender);
+          mud->sender = NULL;
 	  status = restore_sender (msg, mud);
 	  if (status == 0)
-	    {
-	      len = strlen (mud->sender);
-	      break;
-	    }
+            break;
 	  
 	default:
 	  free (mud->sender);
@@ -1335,7 +1345,7 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	}
 
 	/* Nuke trailing newline.  */
-	s = memchr (mud->sender, nl, len);
+	s = strchr (mud->sender, nl);
 	if (s)
 	  *s = '\0';
 	mud->state = MBOX_STATE_APPEND_DATE;
@@ -1344,12 +1354,11 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
     case MBOX_STATE_APPEND_DATE:
       /* Generate a date for the "From "  separator.  */
       {
-	char *s;
-	size_t len = 0;
 	mu_envelope_t envelope = NULL;
-	char buffer[1024];
+	const char *envarr[5];
+	
 	mu_message_get_envelope (msg, &envelope);
-	status = mu_envelope_date (envelope, mud->date, 128, &len);
+	status = mu_envelope_aget_date (envelope, &mud->date);
 	switch (status) {
 	case 0:
 	  break;
@@ -1359,12 +1368,10 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 
 	case MU_ERR_NOENT: /* Envelope headers not found: try to guess */
 	  free (mud->date);
+          mud->date = NULL;
 	  status = restore_date (msg, mud);
 	  if (status == 0)
-	    {
-	      len = strlen (mud->date);
-	      break;
-	    }
+	    break;
 	  
 	default:
 	  free (mud->sender);
@@ -1375,23 +1382,20 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	}
 
 	/* Nuke trailing newline.  */
-	s = memchr (mud->date, nl, len);
+	s = strchr (mud->date, nl);
 	if (s)
 	  *s = '\0';
 
 	/* Write the separator to the mailbox.  */
-	n = snprintf (buffer, sizeof (buffer), "From %s %s",
-		      mud->sender, mud->date);
-	status = mu_stream_write (mailbox->stream, buffer, n, *psize, &n);
+	envarr[0] = "From ";
+	envarr[1] = mud->sender;
+	envarr[2] = " ";
+	envarr[3] = mud->date;
+	envarr[4] = "\n";
+	
+	status = write_array (mailbox->stream, psize, 5, envarr);
 	if (status)
 	  break;
-	*psize += n;
-
-	/* Add the newline, the above may be truncated.  */
-	status = mu_stream_write (mailbox->stream, &nl , 1, *psize, &n);
-	if (status)
-	  break;
-	*psize += n;
 
 	free (mud->sender);
 	free (mud->date);
