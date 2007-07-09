@@ -404,7 +404,7 @@ message_finalize (mu_message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s: %s", progname, value);
+	      mu_error ("%s: bad address %s", progname, value);
 	      return 1;
 	    }
 	  free (value);

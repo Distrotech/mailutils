@@ -192,7 +192,7 @@ mimetypes_close ()
 int
 yyerror (char *s)
 {
-  mu_error ("%s:%lu: %s", file_name, line_num, s);
+  mu_error ("%s:%d: %s", file_name, line_num, s);
   return 0;
 }
 

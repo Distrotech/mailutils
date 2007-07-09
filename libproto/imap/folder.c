@@ -547,8 +547,7 @@ tls (mu_folder_t folder)
     return -1;
   
   FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u STARTTLS\n", f_imap->seq);
-  status = imap_writeline (f_imap, "g%u STARTTLS\r\n",
-			   f_imap->seq++, f_imap->user, f_imap->passwd);
+  status = imap_writeline (f_imap, "g%u STARTTLS\r\n", f_imap->seq++);
   CHECK_ERROR (f_imap, status);
   status = imap_send (f_imap);
   CHECK_ERROR (f_imap, status);
@@ -579,7 +578,6 @@ folder_imap_open (mu_folder_t folder, int flags)
   const char *host;
   long port = 143; /* default imap port.  */
   int status = 0;
-  size_t len = 0;
 
   /* If we are already open for business, noop.  */
   mu_monitor_wrlock (folder->monitor);
@@ -637,7 +635,8 @@ folder_imap_open (mu_folder_t folder, int flags)
         }
       else
         mu_stream_close (folder->stream);
-      FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "imap_open (%s:%d)\n", host, port);
+      FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "imap_open (%s:%ld)\n",
+		     host, port);
       f_imap->state = IMAP_OPEN_CONNECTION;
 
     case IMAP_OPEN_CONNECTION:

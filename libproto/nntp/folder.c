@@ -127,7 +127,7 @@ nntp_folder_open (mu_folder_t folder, int flags)
     return status;
   /* Ask for the stream internal buffering mechanism scheme.  */
   mu_stream_setbufsiz (carrier, BUFSIZ);
-  FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "folder_nntp_open (%s:%d)\n", 
+  FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "folder_nntp_open (%s:%ld)\n", 
                  host, port);
 
   status = mu_nntp_create (&f_nntp->nntp);
