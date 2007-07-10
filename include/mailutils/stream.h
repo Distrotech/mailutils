@@ -20,7 +20,7 @@
 # define _MAILUTILS_STREAM_H
 
 #include <stdio.h>
-
+#include <stdarg.h>
 #include <mailutils/types.h>
 
 #ifdef __cplusplus
@@ -91,6 +91,15 @@ extern int mu_stream_write       (mu_stream_t, const char *, size_t, mu_off_t,
 				  size_t *);
 extern int mu_stream_setbufsiz   (mu_stream_t stream, size_t size);
 extern int mu_stream_flush       (mu_stream_t);
+
+extern int mu_stream_vprintf     (mu_stream_t os, mu_off_t *poff, 
+                                  const char *fmt, va_list ap);
+extern int mu_stream_printf      (mu_stream_t stream, mu_off_t *off, 
+                                  const char *fmt, ...) MU_PRINTFLIKE(3,4);
+extern int mu_stream_sequential_vprintf (mu_stream_t stream, const char *fmt,
+                                         va_list ap);
+extern int mu_stream_sequential_printf (mu_stream_t stream, const char *fmt,
+                                        ...) MU_PRINTFLIKE(2,3);
 
 #define MU_STREAM_READY_RD 0x1
 #define MU_STREAM_READY_WR 0x2
