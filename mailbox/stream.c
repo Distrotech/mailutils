@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <mailutils/property.h>
 #include <mailutils/errno.h>
@@ -487,6 +488,92 @@ mu_stream_write (mu_stream_t os, const char *buf, size_t count,
   if (pnwrite)
     *pnwrite = total;
   return err;
+}
+
+int
+mu_stream_vprintf (mu_stream_t os, mu_off_t *poff, const char *fmt, va_list ap)
+{
+  char *buf, *p;
+  size_t buflen = 512;
+  size_t n;
+  int done = 0;
+  int rc;
+
+  buf = calloc (1, buflen);
+  if (buf == NULL)
+    return ENOMEM;
+
+  do
+    {
+      n = vsnprintf (buf, buflen, fmt, ap);
+      if (n < 0 || n >= buflen || !memchr (buf, '\0', n + 1))
+	{
+	  char *newbuf;
+	  size_t newlen = buflen * 2;
+	  if (newlen < buflen)
+	    {
+	      free (buf);
+	      return ENOMEM;
+	    }
+	  newbuf = realloc (buf, buflen);
+	  if (newbuf == NULL)
+	    {
+	      free (buf);
+	      return ENOMEM;
+	    }
+	  buflen = newlen;
+	  buf = newbuf;
+	}
+      else
+	done = 1;
+    }
+  while (!done);
+
+  p = buf;
+  do
+    {
+      size_t wrs;
+
+      rc = mu_stream_write (os, p, n, *poff, &wrs);
+      if (rc || wrs == 0)
+        break;
+      p += wrs;
+      *poff += wrs;
+      n -= wrs;
+    }
+  while (n > 0);
+  free (buf);
+  return rc;
+}
+
+int
+mu_stream_printf (mu_stream_t os, mu_off_t *poff, const char *fmt, ...)
+{ 
+  va_list ap;
+  int rc;
+	
+  va_start (ap, fmt);
+  rc = mu_stream_vprintf (os, poff, fmt, ap);
+  va_end (ap);
+  return rc;
+}
+
+int
+mu_stream_sequential_vprintf (mu_stream_t os, const char *fmt, va_list ap)
+{
+  return mu_stream_vprintf (os, &os->offset, fmt, ap);
+}
+
+int
+mu_stream_sequential_printf (mu_stream_t os, const char *fmt, ...)
+{
+  va_list ap;
+  int rc;
+	
+  va_start (ap, fmt);
+  rc = mu_stream_sequential_vprintf (os, fmt, ap);
+  va_end (ap);
+  return rc;
 }
 
 int
