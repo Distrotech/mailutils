@@ -48,6 +48,7 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/tls.h>
 
 #include <mailer0.h>
 #include <registrar0.h>
@@ -90,11 +91,12 @@ struct _smtp
     SMTP_HELO, SMTP_HELO_ACK, SMTP_QUIT, SMTP_QUIT_ACK, SMTP_ENV_FROM,
     SMTP_ENV_RCPT, SMTP_MAIL_FROM, SMTP_MAIL_FROM_ACK, SMTP_RCPT_TO,
     SMTP_RCPT_TO_ACK, SMTP_DATA, SMTP_DATA_ACK, SMTP_SEND, SMTP_SEND_ACK,
-    SMTP_SEND_DOT
+    SMTP_SEND_DOT, SMTP_STARTTLS, SMTP_STARTTLS_ACK
   }
   state;
 
   int extended;
+  unsigned long capa;           /* Server capabilities */
 
   const char *mail_from;
   mu_address_t rcpt_to;		/* Destroy this if not the same as argto below. */
@@ -116,6 +118,10 @@ struct _smtp
 
 typedef struct _smtp *smtp_t;
 
+/* ESMTP capabilities */
+#define CAPA_STARTTLS        0x00000001
+#define CAPA_8BITMIME        0x00000002
+
 static void smtp_destroy (mu_mailer_t);
 static int smtp_open (mu_mailer_t, int);
 static int smtp_close (mu_mailer_t);
@@ -123,7 +129,9 @@ static int smtp_send_message (mu_mailer_t, mu_message_t, mu_address_t, mu_addres
 static int smtp_writeline (smtp_t smtp, const char *format, ...);
 static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
+static int smtp_parse_ehlo_ack (smtp_t);
 static int smtp_write (smtp_t);
+static int smtp_starttls (smtp_t);
 
 static int _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
 
@@ -362,7 +370,7 @@ smtp_open (mu_mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (host: %s port: %d)\n",
+      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (host: %s port: %ld)\n",
 		     smtp->mailhost, port);
       status = mu_stream_open (mailer->stream);
       CHECK_EAGAIN (smtp, status);
@@ -390,7 +398,7 @@ smtp_open (mu_mailer_t mailer, int flags)
       smtp->state = SMTP_EHLO_ACK;
 
     case SMTP_EHLO_ACK:
-      status = smtp_read_ack (smtp);
+      status = smtp_parse_ehlo_ack (smtp);
       CHECK_EAGAIN (smtp, status);
 
       if (smtp->buffer[0] != '2')
@@ -403,8 +411,17 @@ smtp_open (mu_mailer_t mailer, int flags)
       else
 	{
 	  smtp->extended = 1;
-	  break;
+
+	  if (smtp->capa & CAPA_STARTTLS)
+	    smtp->state = SMTP_STARTTLS;
+	  else
+	    break;
 	}
+
+    case SMTP_STARTTLS:
+    case SMTP_STARTTLS_ACK:
+      smtp_starttls (smtp);
+      break;
 
     case SMTP_HELO:
       if (!smtp->extended)	/* FIXME: this will always be false! */
@@ -463,6 +480,69 @@ smtp_close (mu_mailer_t mailer)
       break;
     }
   return mu_stream_close (mailer->stream);
+}
+
+/*
+  Client side STARTTLS support.
+ */
+
+static int
+smtp_reader (void *iodata)
+{
+  int status = 0;
+  smtp_t iop = iodata;
+  status = smtp_read_ack (iop);
+  CHECK_EAGAIN (iop, status);
+  return status;
+}
+
+static int
+smtp_writer (void *iodata, char *buf)
+{
+  smtp_t iop = iodata;
+  int status;
+  if (strncasecmp (buf, "EHLO", 4) == 0)
+    status = smtp_writeline (iop, "%s %s\r\n", buf, iop->localhost);
+  else
+    status = smtp_writeline (iop, "%s\r\n", buf);
+  CHECK_ERROR (iop, status);
+  status = smtp_write (iop);
+  CHECK_EAGAIN (iop, status);
+  return status;
+}
+
+static void
+smtp_stream_ctl (void *iodata, mu_stream_t *pold, mu_stream_t new)
+{
+  smtp_t iop = iodata;
+  if (pold)
+    *pold = iop->mailer->stream;
+  if (new)
+    iop->mailer->stream = new;
+}
+
+static int
+smtp_starttls (smtp_t smtp)
+{
+#ifdef WITH_TLS
+  int status;
+  mu_mailer_t mailer = smtp->mailer;
+  char *keywords[] = { "STARTTLS", "EHLO", NULL };
+
+  if (!mu_tls_enable || !(smtp->capa & CAPA_STARTTLS))
+    return -1;
+
+  smtp->capa = 0;
+  status = mu_tls_begin (smtp, smtp_reader, smtp_writer,
+			 smtp_stream_ctl, keywords);
+
+  MAILER_DEBUG1 (mailer, MU_DEBUG_PROT, "TLS negotiation %s\n",
+		 status == 0 ? "succeeded" : "failed");
+
+  return status;
+#else
+  return -1;
+#endif /* WITH_TLS */
 }
 
 static int
@@ -999,6 +1079,32 @@ smtp_read_ack (smtp_t smtp)
 	multi = 1;
       if (status == 0)
 	smtp->ptr = smtp->buffer;
+    }
+  while (multi && status == 0);
+
+  if (status == 0)
+    smtp->ptr = smtp->buffer;
+  return status;
+}
+
+static int
+smtp_parse_ehlo_ack (smtp_t smtp)
+{
+  int status;
+  int multi;
+
+  do
+    {
+      multi = 0;
+      status = smtp_readline (smtp);
+      if ((smtp->ptr - smtp->buffer) > 4 && smtp->buffer[3] == '-')
+	multi = 1;
+      if (status == 0) {
+	smtp->ptr = smtp->buffer;
+
+	if (!strncasecmp (smtp->buffer, "250-STARTTLS", 12))
+	  smtp->capa |= CAPA_STARTTLS;
+      }
     }
   while (multi && status == 0);
 
