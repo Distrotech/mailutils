@@ -164,7 +164,7 @@ status_uidvalidity (mu_mailbox_t smbox)
 {
   unsigned long uidvalidity = 0;
   util_uidvalidity (smbox, &uidvalidity);
-  util_send ("UIDVALIDITY %u", uidvalidity);
+  util_send ("UIDVALIDITY %lu", uidvalidity);
   return 0;
 }
 

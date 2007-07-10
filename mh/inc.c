@@ -196,7 +196,7 @@ main (int argc, char **argv)
     {
       if ((rc = mu_mailbox_create_default (&input, NULL)) != 0)
 	{
-	  mu_error (_("Cannot create default mailbox"),
+	  mu_error (_("Cannot create default mailbox: %s"),
 		    mu_strerror (rc));
 	  exit (1);
 	}

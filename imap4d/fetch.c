@@ -1157,7 +1157,7 @@ fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
       offset = 0;
       if (max)
 	{
-	  util_send (" {%u}\r\n", max);
+	  util_send (" {%lu}\r\n", max);
 	  while (mu_stream_read (rfc, buffer, sizeof (buffer) - 1, offset,
 			      &n) == 0 && n > 0)
 	    {
@@ -1453,7 +1453,7 @@ fetch_send_address (const char *addr)
       return RESP_OK;
     }
 
-  util_send ("(", count);
+  util_send ("(");
   for (i = 1; i <= count; i++)
     {
       const char *str;

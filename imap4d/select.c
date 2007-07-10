@@ -108,7 +108,7 @@ imap4d_select_status ()
 
   /* This outputs EXISTS and RECENT responses */
   imap4d_sync();
-  util_out (RESP_OK, "[UIDVALIDITY %d] UID valididy status", uidvalidity);
+  util_out (RESP_OK, "[UIDVALIDITY %lu] UID valididy status", uidvalidity);
   util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
   if (unseen)
     util_out (RESP_OK, "[UNSEEN %d] first unseen messsage ", unseen);

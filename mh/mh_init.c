@@ -240,12 +240,13 @@ make_dir_hier (const char *p, mode_t perm)
 	  if (errno != ENOENT)
 	    {
 	      mu_error (_("Cannot create directory %s: error accessing name component %s: %s"),
-			dir, strerror (errno));
+
+			p, dir, strerror (errno));
 	      rc = 1;
 	    }
 	  else if ((rc = mkdir (dir, perm)))
 	    mu_error (_("Cannot create directory %s: error creating name component %s: %s"),
-		      dir, rc);
+		      p, dir, mu_strerror (rc));
 	}
       *q = '/';
     }
@@ -805,7 +806,8 @@ mh_install (char *name, int automode)
   else
     {
       mu_error(_("You already have file %s which is not a regular file or a symbolic link.\n"
-		 "Please remove it and try again"));
+		 "Please remove it and try again"),
+	       name);
       exit (1);
     }
 }
@@ -990,7 +992,7 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
     {
       rc = mu_mailbox_uidnext (mbox, &uid);
       if (rc)
-	mu_error (_("Cannot obtain sequence number for the new message"),
+	mu_error (_("Cannot obtain sequence number for the new message: %s"),
 		  mu_strerror (rc));
     }
   else

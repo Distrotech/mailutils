@@ -208,7 +208,7 @@ write_bulletin_db (size_t num)
   DBM_FILE db;
   DBM_DATUM key, data;
   int rc;
-  char *p;
+  const char *p;
   
   rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_RDWR, 0660);
   if (rc)
@@ -224,7 +224,7 @@ write_bulletin_db (size_t num)
   MU_DATUM_PTR (key) = username;
   MU_DATUM_SIZE (key) = strlen (username);
   p = mu_umaxtostr (0, num);
-  MU_DATUM_PTR (data) = p;
+  MU_DATUM_PTR (data) = (char *) p;
   MU_DATUM_SIZE (data) = strlen (p);
 
   rc = mu_dbm_insert (db, key, data, 1);
