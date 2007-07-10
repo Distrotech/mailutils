@@ -139,7 +139,6 @@ int
 _folder_mbox_init (mu_folder_t folder)
 {
   fmbox_t dfolder;
-  size_t name_len = 0;
   int status = 0;
 
   /* We create an authority so the API is uniform across the mailbox

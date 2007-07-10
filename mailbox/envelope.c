@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 #include <envelope0.h>
 
 int

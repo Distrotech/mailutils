@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/url.h>
 

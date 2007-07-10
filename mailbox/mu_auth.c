@@ -402,7 +402,8 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
 	  if (errno == ENOENT)
 	    mu_error ("no such module: %s", name);
 	  else
-	    mu_error ("failed to add module %s: %s", strerror (errno));
+	    mu_error ("failed to add module %s: %s",
+		      name, strerror (errno));
 	  exit (1);
 	}
     }
