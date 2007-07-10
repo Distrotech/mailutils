@@ -235,6 +235,88 @@ initialize_tls_session (void)
   return session;
 }
 
+int
+mu_tls_begin (void *iodata,
+	      mu_tls_readline_fn reader,
+	      mu_tls_writeline_fn writer,
+	      mu_tls_stream_ctl_fn stream_ctl,
+	      char *keywords[])
+{
+  int i = 0;
+  int status;
+  mu_stream_t oldstr, newstr;
+  
+  if (keywords == NULL)
+    return EINVAL;
+
+  for (i = 0; keywords[i]; i++)
+    {
+      switch (i)
+      {
+        case 0:
+          /*
+           *  Send STLS/STARTTLS
+           */
+          status = writer (iodata, keywords[i]);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: writer (0): %s", mu_strerror (status));
+	      return status;
+	    }
+          
+          status = reader (iodata);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: reader (0): %s", mu_strerror (status));
+	      return status;
+	    }
+
+          stream_ctl (iodata, &oldstr, NULL);
+          status = mu_tls_stream_create_client_from_tcp (&newstr, oldstr, 0);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: mu_tls_stream_create_client_from_tcp (0): %s",
+			mu_strerror (status));
+	      return status;
+	    }
+
+          status = mu_stream_open (newstr);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: mu_stream_open (0): %s",
+			mu_strerror (status));
+	      return status;
+	    }
+
+          stream_ctl (iodata, NULL, newstr);
+          break;
+
+        case 1:
+	  /*
+	   *  Send CAPABILITIES request
+	   */
+          status = writer (iodata, keywords[i]);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: writer (1): %s", mu_strerror (status));
+	      return status;
+	    }
+
+          status = reader (iodata);
+          if (status != 0)
+	    {
+	      mu_error ("mu_tls_begin: reader (1): %s", mu_strerror (status));
+	      return status;
+	    }
+          break;
+          
+      default:
+	return 1;
+      }
+    }
+  return 0;
+}
+
 /* ************************* TLS Stream Support **************************** */
 
 enum tls_stream_state {
@@ -405,7 +487,10 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
 
   rc = mu_stream_sequential_write (stream, buf, size);
   if (rc)
-    return -1;
+    {
+      mu_error ("_tls_stream_push: %s", mu_strerror (rc)); /* FIXME */
+      return -1;
+    }
   mu_stream_flush (stream);
   return size;
 }
@@ -522,12 +607,12 @@ _tls_open_client (mu_stream_t stream)
 	  s->last_err = rc;
 	  gnutls_deinit (s->session);
 	  s->state = state_init;
-	  return -1;
+	  return MU_ERR_FAILURE;
 	}
       break;
 
     default:
-      return -1;
+      return MU_ERR_FAILURE;
     }
 
   /* FIXME: if (ssl_cafile) verify_certificate (s->session); */
@@ -557,7 +642,8 @@ int
 _tls_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
-  if ((*pflags & (MU_STREAM_READY_RD|MU_STREAM_READY_WR)) == (MU_STREAM_READY_RD|MU_STREAM_READY_WR))
+  if ((*pflags & (MU_STREAM_READY_RD|MU_STREAM_READY_WR))
+      == (MU_STREAM_READY_RD|MU_STREAM_READY_WR))
     return EINVAL; /* Sorry, can't wait for both input and output. */
   if (*pflags & MU_STREAM_READY_RD)
     return mu_stream_wait (s->strin, pflags, tvp);
@@ -568,8 +654,8 @@ _tls_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
 /* FIXME: if strin == strout sequential reads may intefere with
    sequential writes (they would share stream->offset). This should
-   be fixed either in stream.c or here. In particular, mu_tls_stream_create_client
-   will malfunction */
+   be fixed either in stream.c or here. In particular,
+   mu_tls_stream_create_client will malfunction */
 int
 mu_tls_stream_create (mu_stream_t *stream,
 		   mu_stream_t strin, mu_stream_t strout, int flags)
