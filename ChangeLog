@@ -1,3 +1,14 @@
+2007-07-10  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/fetch.c, imap4d/select.c, imap4d/status.c, mh/inc.c,
+	mh/mh_init.c, pop3d/bulletin.c: Fix format strings 
+	* imap4d/search.c, libproto/mbox/folder.c, mailbox/envelope.c,
+	examples/url-parse.c, mailbox/mu_auth.c: Minor fixes
+	* include/mailutils/libsieve.h (mu_stream_printf): Remove
+	* libsieve/actions.c (mu_stream_printf): Remove
+	(mime_create_ds): Bugfix: datestr was never initialized! Nobody
+	noticed this far?
+	
 2007-07-10  Wojciech Polak
 
 	* auth/tls.c (mu_tls_begin): New function.
