@@ -406,31 +406,16 @@ pop_destroy (mu_mailbox_t mbox)
  */
 
 static int
-pop_capa (mu_mailbox_t mbox)
+pop_parse_capa (pop_data_t mpd)
 {
-  pop_data_t mpd = mbox->data;
   int status;
-
-  status = pop_writeline (mpd, "CAPA\r\n");
-  CHECK_ERROR (mpd, status);
-  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-
-  status = pop_write (mpd);
-  CHECK_EAGAIN (mpd, status);
-  mpd->state = POP_CAPA_ACK;
-
-  /* POP_CAPA_ACK */
-  status = pop_read_ack (mpd);
-  CHECK_EAGAIN (mpd, status);
-  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-
   if (!strncasecmp (mpd->buffer, "+OK", 3))
     {
       mpd->capa = 0;
       do
 	{
 	  status = pop_read_ack (mpd);
-	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
 
 	  /* Here we check some common capabilities like TOP, USER, UIDL,
 	     and STLS. The rest are ignored. Please note that some
@@ -461,6 +446,29 @@ pop_capa (mu_mailbox_t mbox)
       return -1;
     }
 }
+
+static int
+pop_capa (mu_mailbox_t mbox)
+{
+  pop_data_t mpd = mbox->data;
+  int status;
+
+  status = pop_writeline (mpd, "CAPA\r\n");
+  CHECK_ERROR (mpd, status);
+  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+  status = pop_write (mpd);
+  CHECK_EAGAIN (mpd, status);
+  mpd->state = POP_CAPA_ACK;
+
+  /* POP_CAPA_ACK */
+  status = pop_read_ack (mpd);
+  CHECK_EAGAIN (mpd, status);
+  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+
+  return pop_parse_capa (mpd);
+}
+
 
 /* Simple User/pass authentication for pop. We ask for the info
    from the standard input.  */
@@ -635,39 +643,58 @@ _pop_apop (mu_authority_t auth)
  */
 
 static int
+pop_reader (void *iodata)
+{
+  int status = 0;
+  pop_data_t iop = iodata;
+  status = pop_read_ack (iop);
+  CHECK_EAGAIN (iop, status);
+  MAILBOX_DEBUG0 (iop->mbox, MU_DEBUG_PROT, iop->buffer);
+  return status;//strncasecmp (iop->buffer, "+OK", 3) == 0;
+}
+
+static int
+pop_writer (void *iodata, char *buf)
+{
+  pop_data_t iop = iodata;
+  MAILBOX_DEBUG1 (iop->mbox, MU_DEBUG_PROT, "%s\n", buf);
+  int status = pop_writeline (iop, "%s\r\n", buf);
+  CHECK_ERROR (iop, status);
+  status = pop_write (iop);
+  CHECK_ERROR (iop, status);
+  return status;
+}
+
+static void
+pop_stream_ctl (void *iodata, mu_stream_t *pold, mu_stream_t new)
+{
+  pop_data_t iop = iodata;
+  if (pold)
+    *pold = iop->mbox->stream;
+  if (new)
+    iop->mbox->stream = new;
+}
+
+static int
 pop_stls (mu_mailbox_t mbox)
 {
 #ifdef WITH_TLS
-  pop_data_t mpd = mbox->data;
   int status;
-  mu_stream_t str;
-  
+  pop_data_t mpd = mbox->data;
+  char *keywords[] = { "STLS", "CAPA", NULL };
+
   if (!mu_tls_enable || !(mpd->capa & CAPA_STLS))
     return -1;
 
-  status = pop_writeline (mpd, "STLS\r\n");
-  CHECK_ERROR (mpd, status);
-  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+  status = mu_tls_begin (mpd, pop_reader, pop_writer,
+			 pop_stream_ctl, keywords);
 
-  status = pop_write (mpd);
-  CHECK_EAGAIN (mpd, status);
-  mpd->state = POP_STLS_ACK;
-
-  /* POP_STLS_ACK */
-  status = pop_read_ack (mpd);
-  CHECK_ERROR (mpd, status);
-  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-
-  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-    return -1;
-
-  status = mu_tls_stream_create_client_from_tcp (&str, mbox->stream, 0);
-  CHECK_ERROR (mpd, status);
-  status = mu_stream_open (str);
-  if (status == 0)
-    mbox->stream = str;
   MAILBOX_DEBUG1 (mbox, MU_DEBUG_PROT, "TLS negotiation %s\n",
 		  status == 0 ? "succeeded" : "failed");
+
+  if (status == 0)
+    pop_parse_capa (mpd);
+
   return status;
 #else
   return -1;
@@ -745,7 +772,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%d)\n", host, port);
+      MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%ld)\n", host, port);
       status = mu_stream_open (mbox->stream);
       CHECK_EAGAIN (mpd, status);
       /* Can't recover bailout.  */
@@ -779,9 +806,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     case POP_STLS:
     case POP_STLS_ACK:
-      status = pop_stls (mbox);
-      if (status == 0)
-	pop_capa (mbox);
+      pop_stls (mbox);
       mpd->state = POP_AUTH;
 
     case POP_AUTH:
