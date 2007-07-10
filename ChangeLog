@@ -9,7 +9,7 @@
 	(mime_create_ds): Bugfix: datestr was never initialized! Nobody
 	noticed this far?
 	
-2007-07-10  Wojciech Polak
+2007-07-10  Wojciech Polak  <polak@gnu.org>
 
 	* auth/tls.c (mu_tls_begin): New function.
 	(_tls_stream_push): Added mu_error call.
