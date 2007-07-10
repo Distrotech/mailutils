@@ -1,3 +1,37 @@
+2007-07-10  Wojciech Polak
+
+	* auth/tls.c (mu_tls_begin): New function.
+	(_tls_stream_push): Added mu_error call.
+	(_tls_open_client): Return MU_ERR_FAILURE instead of -1.
+	* include/mailutils/tls.h (mu_tls_readline_fn)
+	(mu_tls_writeline_fn, mu_tls_stream_ctl_fn): New data types.
+	(mu_tls_begin): New prototype.
+	* mailbox/mutil.c (mu_tls_begin): Placeholder.
+
+	* libproto/pop/mbox.c (pop_parse_capa): New function.
+	(pop_capa): Send CAPA, but don't parse the response,
+	call pop_parse_capa() instead.
+	(pop_reader, pop_writer, pop_stream_ctl): New static functions.
+	(pop_stls): Uses now mu_tls_begin() from libmuauth.
+
+	* libproto/imap/folder.c: (imap_reader, imap_writer)
+	(imap_stream_ctl): New static functions.
+	(tls): Uses now mu_tls_begin() from libmuauth.
+	(folder_imap_open): Use MU_IMAP_PORT.
+
+	* mailbox/smtp.c: Added STARTTLS support.
+	(smtp_parse_ehlo_ack): New function.
+	(smtp_starttls): New function.
+	(stmp_reader, smtp_writer, smtp_stream_ctl): New static
+	functions.
+
+	* mailbox/stream.c: (mu_stream_vprintf)
+	(mu_stream_printf, mu_stream_sequential_vprintf)
+	(mu_stream_sequential_printf): New functions.
+	* include/mailutils/stream.h: (mu_stream_vprintf)
+	(mu_stream_printf, mu_stream_sequential_vprintf)
+	(mu_stream_sequential_printf): New prototypes.
+
 2007-07-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS, configure.ac: Version 1.2.1
