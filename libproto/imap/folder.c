@@ -54,6 +54,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
+#include <mu_umaxtostr.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -537,37 +538,59 @@ check_capa (f_imap_t f_imap, char *capa)
 
 
 static int
+imap_reader (void *iodata)
+{
+  f_imap_t iop = iodata;
+  int status = imap_parse (iop);
+  CHECK_EAGAIN (iop, status);
+  FOLDER_DEBUG0 (iop->folder, MU_DEBUG_PROT, iop->buffer);
+  return status;
+}
+
+static int
+imap_writer (void *iodata, char *buf)
+{
+  f_imap_t iop = iodata;
+  FOLDER_DEBUG2 (iop->folder, MU_DEBUG_PROT, "g%s %s\n",
+		 mu_umaxtostr (0, iop->seq), buf);
+  int status = imap_writeline (iop, "g%s %s\r\n",
+                               mu_umaxtostr (0, iop->seq++), buf);
+  CHECK_ERROR (iop, status);
+  status = imap_send (iop);
+  CHECK_ERROR (iop, status);
+  return status;
+}
+
+static void
+imap_stream_ctl (void *iodata, mu_stream_t *pold, mu_stream_t new)
+{
+  f_imap_t iop = iodata;
+  if (pold)
+    *pold = iop->folder->stream;
+  if (new)
+    iop->folder->stream = new;
+}  
+
+static int
 tls (mu_folder_t folder)
 {
 #ifdef WITH_TLS
   int status;
   f_imap_t f_imap = folder->data;
+  char *keywords[] = { "STARTTLS", "CAPABILITY", NULL };
 
   if (!mu_tls_enable || check_capa (f_imap, "STARTTLS"))
     return -1;
-  
-  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u STARTTLS\n", f_imap->seq);
-  status = imap_writeline (f_imap, "g%u STARTTLS\r\n", f_imap->seq++);
-  CHECK_ERROR (f_imap, status);
-  status = imap_send (f_imap);
-  CHECK_ERROR (f_imap, status);
-  status = imap_parse (f_imap);
-  if (status == 0)
-    {
-      mu_stream_t str;
-      status = mu_tls_stream_create_client_from_tcp (&str, folder->stream, 0);
-      CHECK_ERROR (f_imap, status);
-      status = mu_stream_open (str);
-      if (status == 0)
-	folder->stream = str;
-      FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
-		     status == 0 ? "succeeded" : "failed");
-      read_capa (f_imap, 1);
-    }
+
+  status = mu_tls_begin (f_imap, imap_reader, imap_writer,
+			 imap_stream_ctl, keywords);
+
+  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
+		 status == 0 ? "succeeded" : "failed");
   return status;
 #else
   return -1;
-#endif
+#endif /* WITH_TLS */
 }
 
 /* Create/Open the stream for IMAP.  */
@@ -576,7 +599,7 @@ folder_imap_open (mu_folder_t folder, int flags)
 {
   f_imap_t f_imap = folder->data;
   const char *host;
-  long port = 143; /* default imap port.  */
+  long port = MU_IMAP_PORT; /* default imap port.  */
   int status = 0;
 
   /* If we are already open for business, noop.  */
