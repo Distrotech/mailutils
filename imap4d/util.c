@@ -727,7 +727,7 @@ util_parse_internal_date (char *date, time_t * timep)
 
 
 int
-util_parse_822_date (char *date, time_t * timep)
+util_parse_822_date (const char *date, time_t * timep)
 {
   struct tm tm;
   mu_timezone tz;

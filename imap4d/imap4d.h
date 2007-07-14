@@ -264,7 +264,7 @@ extern struct imap4d_command *util_getcommand (char *,
                                                struct imap4d_command []);
 extern int util_parse_internal_date0 (char *date, time_t *timep, char **endp);
 extern int util_parse_internal_date (char *date, time_t *timep);
-extern int util_parse_822_date (char *date, time_t *timep);
+extern int util_parse_822_date (const char *date, time_t *timep);
 extern int util_parse_ctime_date (const char *date, time_t *timep);
 extern char *util_strcasestr (const char *haystack, const char *needle);
 extern int util_parse_attributes (char *items, char **save, int *flags);
