@@ -1,3 +1,10 @@
+2007-07-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/imap4d.h (util_parse_822_date): First arg is const
+	* imap4d/util.c: Likewise.
+	* imap4d/search.c: Rewrite using parse tree instead of instruction
+	array. Implement boolean shortcut evaluation.
+
 2007-07-10  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/fetch.c, imap4d/select.c, imap4d/status.c, mh/inc.c,
