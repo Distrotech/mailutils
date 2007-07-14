@@ -27,50 +27,120 @@
 
 /* Implementation details:
 
-   The searching criteria are parsed and compiled into the array of
-   instructions. Each item of the array is either an instruction (inst_t
-   type) or the argument to previous instruction. The code array is
-   terminated by NULL. The result of `executing' the code array is
-   0 or 1 depending on whether current message meets the search
-   conditions.
+   The searching criteria are parsed and a parse tree is created. Each
+   node is of type search_node (see below) and contains either data
+   (struct value) or an instruction, which evaluates to a boolean value.
 
-   Note/FIXME: Implementing boolean shortcuts would speed up the long
-   search queries. */
+   The function search_run recursively evaluates the tree and returns a
+   boolean number, 0 or 1 depending on whether the current message meets
+   the search conditions. */
 
 struct parsebuf;
-typedef void (*inst_t) (struct parsebuf *pb);
 
-static void cond_and (struct parsebuf *pb);
-static void cond_or (struct parsebuf *pb);
-static void cond_not (struct parsebuf *pb);
+enum value_type
+  {
+    value_undefined,
+    value_number,
+    value_string,
+    value_date,
+    value_msgset
+  };
 
-static void cond_all (struct parsebuf *pb);                      
-static void cond_msgset (struct parsebuf *pb);                      
-static void cond_bcc (struct parsebuf *pb);                      
-static void cond_before (struct parsebuf *pb);                   
-static void cond_body (struct parsebuf *pb);                     
-static void cond_cc (struct parsebuf *pb);                       
-static void cond_from (struct parsebuf *pb);                     
-static void cond_header (struct parsebuf *pb);                   
-static void cond_keyword (struct parsebuf *pb);                  
-static void cond_larger (struct parsebuf *pb);                   
-static void cond_on (struct parsebuf *pb);                       
-static void cond_sentbefore (struct parsebuf *pb);               
-static void cond_senton (struct parsebuf *pb);                   
-static void cond_sentsince (struct parsebuf *pb);                
-static void cond_since (struct parsebuf *pb);                    
-static void cond_smaller (struct parsebuf *pb);                  
-static void cond_subject (struct parsebuf *pb);                  
-static void cond_text (struct parsebuf *pb);                     
-static void cond_to (struct parsebuf *pb);                       
-static void cond_uid (struct parsebuf *pb);                      
+enum node_type
+  {
+    node_call,
+    node_and,
+    node_or,
+    node_not,
+    node_value
+  };
+
+struct value
+{
+  enum value_type type;
+  union
+  {
+    char *string;
+    mu_off_t number;
+    time_t date;
+    struct
+    {
+      int n;
+      size_t *set;
+    } msgset;
+  } v;
+};
+
+#define MAX_NODE_ARGS 2
+
+struct search_node;
+
+typedef void (*instr_fn) (struct parsebuf *, struct search_node *,
+			  struct value *, struct value *);
+
+struct search_node
+{
+  enum node_type type;
+  union
+  {
+    struct key_node
+    {
+      char *keyword;
+      instr_fn fun;
+      int narg;
+      struct search_node *arg[MAX_NODE_ARGS];
+    } key;
+    struct search_node *arg[2]; /* Binary operation */
+    struct value value;
+  } v;
+};
+
+static void cond_msgset (struct parsebuf *, struct search_node *,
+			 struct value *, struct value *);       
+static void cond_bcc (struct parsebuf *, struct search_node *,
+		      struct value *, struct value *);
+static void cond_before (struct parsebuf *, struct search_node *,
+			 struct value *, struct value *);     
+static void cond_body (struct parsebuf *, struct search_node *,
+		       struct value *, struct value *);       
+static void cond_cc (struct parsebuf *, struct search_node *,
+		     struct value *, struct value *);        
+static void cond_from (struct parsebuf *, struct search_node *,
+		       struct value *, struct value *);     
+static void cond_header (struct parsebuf *, struct search_node *,
+			 struct value *, struct value *);      
+static void cond_keyword (struct parsebuf *, struct search_node *,
+			  struct value *, struct value *);   
+static void cond_larger (struct parsebuf *, struct search_node *,
+			 struct value *, struct value *);   
+static void cond_on (struct parsebuf *, struct search_node *,
+		     struct value *, struct value *);         
+static void cond_sentbefore (struct parsebuf *, struct search_node *,
+			     struct value *, struct value *); 
+static void cond_senton (struct parsebuf *, struct search_node *,
+			 struct value *, struct value *);     
+static void cond_sentsince (struct parsebuf *, struct search_node *,
+			    struct value *, struct value *);
+static void cond_since (struct parsebuf *, struct search_node *,
+			struct value *, struct value *);      
+static void cond_smaller (struct parsebuf *, struct search_node *,
+			  struct value *, struct value *);    
+static void cond_subject (struct parsebuf *, struct search_node *,
+			  struct value *, struct value *);  
+static void cond_text (struct parsebuf *, struct search_node *,
+		       struct value *, struct value *);       
+static void cond_to (struct parsebuf *, struct search_node *,
+		     struct value *, struct value *);      
+static void cond_uid (struct parsebuf *, struct search_node *,
+		      struct value *, struct value *);   
 
 /* A basic condition structure */
 struct cond
 {
   char *name;          /* Condition name */
-  char *argtypes;      /* String of argument types or NULL if takes no args */
-  inst_t inst;         /* Corresponding instruction */
+  char *argtypes;      /* String of argument types or NULL if it takes no
+			  args */
+  instr_fn inst;       /* Corresponding instruction function */
 };
 
 /* Types are: s -- string
@@ -79,10 +149,9 @@ struct cond
 	      m -- message set
 */
 
-/* List of basic conditions. <message set> is handled separately */
+/* List of basic conditions. "ALL" and <message set> is handled separately */
 struct cond condlist[] =
 {
-  { "ALL",        NULL,   cond_all },
   { "BCC",        "s",  cond_bcc },
   { "BEFORE",     "d",  cond_before },
   { "BODY",       "s",  cond_body },
@@ -135,7 +204,8 @@ struct cond_equiv equiv_list[] =
 
 /* A memory allocation chain used to keep track of objects allocated during
    the recursive-descent parsing. */
-struct mem_chain {
+struct mem_chain
+{
   struct mem_chain *next;
   void *mem;
 };
@@ -162,29 +232,19 @@ struct parsebuf
   char *err_mesg;               /* Error message if a parse error occured */
   struct mem_chain *alloc;      /* Chain of objects allocated during parsing */
   
-  int codesize;                 /* Current size of allocated code */
-  inst_t *code;                 /* Code buffer */
-  int pc;                       /* Program counter. On parse time points
-				   to the next free slot in `code' array.
-				   On execution time, points to the next
-				   instruction to be executed */
-
-  int stacksize;                /* Current size of allocated stack */
-  int *stack;                   /* Stack buffer. */
-  int tos;                      /* Top of stack */
-
+  struct search_node *tree;     /* Parse tree */
+  
                                 /* Execution time only: */
   size_t msgno;                 /* Number of current message */
-  mu_message_t msg;                /* Current message */ 
+  mu_message_t msg;             /* Current message */ 
 };
 
-static void put_code (struct parsebuf *pb, inst_t inst);
 static void parse_free_mem (struct parsebuf *pb);
 static void *parse_regmem (struct parsebuf *pb, void *mem);
 static char *parse_strdup (struct parsebuf *pb, char *s);
 static void *parse_alloc (struct parsebuf *pb, size_t size);
-static int parse_search_key_list (struct parsebuf *pb);
-static int parse_search_key (struct parsebuf *pb);
+static struct search_node *parse_search_key_list (struct parsebuf *pb);
+static struct search_node *parse_search_key (struct parsebuf *pb);
 static int parse_gettoken (struct parsebuf *pb, int req);
 static int search_run (struct parsebuf *pb);
 static void do_search (struct parsebuf *pb);
@@ -240,7 +300,8 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
     }
 
   /* Compile the expression */
-  if (parse_search_key_list (&parsebuf))
+  parsebuf.tree = parse_search_key_list (&parsebuf);
+  if (!parsebuf.tree)
     {
       parse_free_mem (&parsebuf);
       snprintf (replybuf, replysize, "%s (near %s)",
@@ -256,8 +317,6 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
       return RESP_BAD;
     }
   
-  put_code (&parsebuf, NULL);
-
   /* Execute compiled expression */
   do_search (&parsebuf);
   
@@ -352,10 +411,6 @@ parse_free_mem (struct parsebuf *pb)
       free (alloc);
       alloc = next;
     }
-  if (pb->code)
-    free (pb->code);
-  if (pb->stack)
-    free (pb->stack);
 }
 
 /* Register a memory pointer mem with the parsebuf */
@@ -405,63 +460,108 @@ parse_strdup (struct parsebuf *pb, char *s)
 		   ;
 */
 
-int parse_simple_key (struct parsebuf *pb);
-int parse_equiv_key (struct parsebuf *pb);
+struct search_node *parse_simple_key (struct parsebuf *pb);
+struct search_node *parse_equiv_key (struct parsebuf *pb);
 
-int
+struct search_node *
 parse_search_key_list (struct parsebuf *pb)
 {
-  int count = 0;
+  struct search_node *leftarg = NULL;
+  
   while (pb->token[0] && pb->token[0] != ')')
     {
-      if (parse_search_key (pb))
-	return 1;
-      if (count++)
-	put_code (pb, cond_and);
+      struct search_node *rightarg = parse_search_key (pb);
+      if (!rightarg)
+	return NULL;
+      if (!leftarg)
+	leftarg = rightarg;
+      else
+	{
+	  struct search_node *node = parse_alloc (pb, sizeof *node);
+	  node->type = node_and;
+	  node->v.arg[0] = leftarg;
+	  node->v.arg[1] = rightarg;
+	  leftarg = node;
+	}
     }
-  return 0;
+  return leftarg;
 }
 
-int
+struct search_node *
 parse_search_key (struct parsebuf *pb)
 {
+  struct search_node *node;
+  
   if (strcmp (pb->token, "(") == 0)
     {
-      if (parse_gettoken (pb, 1) == 0
-	  || parse_search_key_list (pb))
-	return 1;
+      if (parse_gettoken (pb, 1) == 0)
+	return NULL;
+      
+      node = parse_search_key_list (pb);
+      if (!node)
+	return NULL;
+	
       if (strcmp (pb->token, ")"))
 	{
 	  pb->err_mesg = "Unbalanced parenthesis";
-	  return 1;
+	  return NULL;
 	}
       parse_gettoken (pb, 0);
-      return 0;
+      return node;
+    }
+  else if (strcasecmp (pb->token, "ALL") == 0)
+    {
+      node = parse_alloc (pb, sizeof *node);
+      node->type = node_value;
+      node->v.value.type = value_number;
+      node->v.value.v.number = 1;
+
+      parse_gettoken (pb, 0);
+      return node;
     }
   else if (strcasecmp (pb->token, "NOT") == 0)
     {
-      if (parse_gettoken (pb, 1) == 0
-	  || parse_search_key (pb))
-	return 1;
-      put_code (pb, cond_not);
-      return 0;
+      struct search_node *np;
+      
+      if (parse_gettoken (pb, 1) == 0)
+	return NULL;
+
+      np = parse_search_key (pb);
+      if (!np)
+	return NULL;
+
+      node = parse_alloc (pb, sizeof *node);
+      node->type = node_not;
+      node->v.arg[0] = np;
+      
+      return node;
     }
   else if (strcasecmp (pb->token, "OR") == 0)
     {
-      if (parse_gettoken (pb, 1) == 0
-	  || parse_search_key (pb)
-	  || parse_search_key (pb))
-	return 1;
-      put_code (pb, cond_or);
-      return 0;
+      struct search_node *leftarg, *rightarg;
+      
+      if (parse_gettoken (pb, 1) == 0)
+	return NULL;
+
+      if ((leftarg = parse_search_key (pb)) == NULL
+	  || (rightarg = parse_search_key (pb)) == NULL)
+	return NULL;
+
+      node = parse_alloc (pb, sizeof *node);
+      node->type = node_or;
+      node->v.arg[0] = leftarg;
+      node->v.arg[1] = rightarg;
+
+      return node;
     }
   else
     return parse_equiv_key (pb);
 }
 
-int
+struct search_node *
 parse_equiv_key (struct parsebuf *pb)
 {
+  struct search_node *node;
   struct cond_equiv *condp;
   char *arg;
   char *save_arg;
@@ -479,9 +579,10 @@ parse_equiv_key (struct parsebuf *pb)
 
   parse_gettoken (pb, 0);
 
-  if (parse_search_key_list (pb))
+  node = parse_search_key_list (pb);
+  if (!node)
     {
-      /* shouldn't happen */
+      /* shouldn't happen? */
       syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
 	     __FILE__, __LINE__);
       abort (); 
@@ -489,12 +590,13 @@ parse_equiv_key (struct parsebuf *pb)
   
   pb->arg = save_arg;
   parse_gettoken (pb, 0);
-  return 0;
+  return node;
 }
 
-int
+struct search_node *
 parse_simple_key (struct parsebuf *pb)
 {
+  struct search_node *node;
   struct cond *condp;
   time_t time;
   size_t *set = NULL;
@@ -508,150 +610,183 @@ parse_simple_key (struct parsebuf *pb)
     {
       if (util_msgset (pb->token, &set, &n, 0) == 0) 
 	{
-	  put_code (pb, cond_msgset);
-	  put_code (pb, (inst_t) n);
-	  put_code (pb, (inst_t) parse_regmem (pb, set));
+	  struct search_node *np = parse_alloc (pb, sizeof *np);
+	  np->type = node_value;
+	  np->v.value.type = value_msgset;
+	  np->v.value.v.msgset.n = n;
+	  np->v.value.v.msgset.set = parse_regmem (pb, set);
+	  
+	  node = parse_alloc (pb, sizeof *node);
+	  node->type = node_call;
+	  node->v.key.keyword = "msgset";
+	  node->v.key.narg = 1;
+	  node->v.key.arg[0] = np;
+	  node->v.key.fun = cond_msgset;
+
 	  parse_gettoken (pb, 0);
-	  return 0;
+	  
+	  return node;
 	}
       else
 	{
 	  pb->err_mesg = "Unknown search criterion";
-	  return 1;
+	  return NULL;
 	}
     }
 
-  put_code (pb, condp->inst);
+  node = parse_alloc (pb, sizeof *node);
+  node->type = node_call;
+  node->v.key.keyword = condp->name;
+  node->v.key.fun = condp->inst;
+  node->v.key.narg = 0;
+  
   parse_gettoken (pb, 0);
   if (condp->argtypes)
     {
       char *t = condp->argtypes;
       char *s;
       int n;
+      mu_off_t number;
       size_t *set;
+      struct search_node *arg;
       
       for (; *t; t++, parse_gettoken (pb, 0))
 	{
+	  if (node->v.key.narg >= MAX_NODE_ARGS)
+	    {
+	      pb->err_mesg = "INTERNAL ERROR: too many arguments";
+	      return NULL;
+	    }
+	  
 	  if (!pb->token[0])
 	    {
 	      pb->err_mesg = "Not enough arguments for criterion";
-	      return 1;
+	      return NULL;
 	    }
 	  
+	  arg = parse_alloc (pb, sizeof *arg);
+	  arg->type = node_value;
 	  switch (*t)
 	    {
 	    case 's': /* string */
-	      put_code (pb, (inst_t) parse_strdup (pb, pb->token));
+	      arg->v.value.type = value_string;
+	      arg->v.value.v.string = parse_strdup (pb, pb->token);
 	      break;
+	      
 	    case 'n': /* number */
-	      n = strtoul (pb->token, &s, 10);
+	      number = strtoul (pb->token, &s, 10);
 	      if (*s)
 		{
 		  pb->err_mesg = "Invalid number";
-		  return 1;
+		  return NULL;
 		}
-	      put_code (pb, (inst_t) n);
+	      arg->v.value.type = value_number;
+	      arg->v.value.v.number = number;
 	      break;
+	      
 	    case 'd': /* date */
 	      if (util_parse_internal_date (pb->token, &time))
 		{
 		  pb->err_mesg = "Bad date format";
-		  return 1;
+		  return NULL;
 		}
-	      put_code (pb, (inst_t) time);
+	      arg->v.value.type = value_date;
+	      arg->v.value.v.date = time;
 	      break;
+	      
 	    case 'm': /* message set */
 	      if (util_msgset (pb->token, &set, &n, 1)) /*FIXME: isuid?*/
 		{
 		  pb->err_mesg = "Bogus number set";
-		  return 1;
+		  return NULL;
 		}
-	      put_code (pb, (inst_t) n);
-	      put_code (pb, (inst_t) parse_regmem (pb, set));
+	      arg->v.value.type = value_msgset;
+	      arg->v.value.v.msgset.n = n;
+	      arg->v.value.v.msgset.set = parse_regmem (pb, set);
 	      break;
+	      
 	    default:
 	      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
 		     __FILE__, __LINE__);
 	      abort (); /* should never happen */
 	    }
+	  node->v.key.arg[node->v.key.narg++] = arg;
 	}  
     }
-  return 0;
-}
-
-/* Code generator */
-
-void
-put_code (struct parsebuf *pb, inst_t inst)
-{
-  if (pb->codesize == 0)
-    {
-      pb->codesize = CODESIZE;
-      pb->code = calloc (CODESIZE, sizeof (pb->code[0]));
-      if (!pb->code)
-	imap4d_bye (ERR_NO_MEM);
-      pb->pc = 0;
-    }
-  else if (pb->pc >= pb->codesize)
-    {
-      inst_t *new_code;
-
-      pb->codesize += CODEINCR;
-      new_code = realloc (pb->code, pb->codesize*sizeof(pb->code[0]));
-      if (!new_code)
-	imap4d_bye (ERR_NO_MEM);
-      pb->code = new_code;
-    }
-  pb->code[pb->pc++] = inst;
-}
-
-/* The machine */
-static void *
-_search_arg (struct parsebuf *pb)
-{
-  return (void*)pb->code[pb->pc++];
-}
-
-static void
-_search_push (struct parsebuf *pb, int val)
-{
-  if (pb->tos == pb->stacksize)
-    {
-      if (pb->stacksize == 0)
-	{
-	  pb->stacksize = STACKSIZE;
-	  pb->stack = calloc (STACKSIZE, sizeof(pb->stack[0]));
-	}
-      else
-	{
-	  pb->stacksize += STACKINCR;
-	  pb->stack = realloc (pb->stack, pb->stacksize*sizeof(pb->stack[0]));
-	}
-      if (!pb->stack)
-	imap4d_bye (ERR_NO_MEM);
-    }
-  pb->stack[pb->tos++] = val;
-}
-
-static int
-_search_pop (struct parsebuf *pb)
-{
-  if (pb->tos == 0)
-    {
-      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"), __FILE__, __LINE__);
-      abort (); /* shouldn't happen */
-    }
-  return pb->stack[--pb->tos];
+  return node;
 }
 
 /* Executes a query from parsebuf */
+void
+evaluate_node (struct search_node *node, struct parsebuf *pb,
+	       struct value *val)
+{
+  int i;
+  struct value argval[MAX_NODE_ARGS];
+  
+  switch (node->type)
+    {
+    case node_call:
+      for (i = 0; i < node->v.key.narg; i++)
+	{
+	  /* FIXME: if (i >= MAX_NODE_ARGS) */
+	  evaluate_node (node->v.key.arg[i], pb, &argval[i]);
+	  /* FIXME: node types? */
+	}
+      
+      node->v.key.fun (pb, node, argval, val);
+      break;
+
+    case node_and:
+      val->type = value_number;
+      evaluate_node (node->v.arg[0], pb, &argval[0]);
+      if (argval[0].v.number == 0)
+	val->v.number = 0;
+      else
+	{
+	  evaluate_node (node->v.arg[1], pb, &argval[1]);
+	  val->v.number = argval[1].v.number;
+	}
+      break;
+      
+    case node_or:
+      val->type = value_number;
+      evaluate_node (node->v.arg[0], pb, &argval[0]);
+      if (argval[0].v.number)
+	val->v.number = 1;
+      else
+	{
+	  evaluate_node (node->v.arg[1], pb, &argval[1]);
+	  val->v.number = argval[1].v.number;
+	}
+      break;
+
+    case node_not:
+      evaluate_node (node->v.arg[0], pb, &argval[0]);
+      val->type = value_number;
+      val->v.number = !argval[0].v.number;
+      break;
+      
+    case node_value:
+      *val = node->v.value;
+      break;
+    }
+}
+
 int
 search_run (struct parsebuf *pb)
 {
-  pb->pc = 0;
-  while (pb->code[pb->pc] != NULL)
-    (*pb->code[pb->pc++]) (pb);
-  return _search_pop (pb);
+  struct value value;
+
+  value.type = value_undefined;
+  evaluate_node (pb->tree, pb, &value);
+  if (value.type != value_number)
+    {
+      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+	     __FILE__, __LINE__);
+      abort (); /* should never happen */
+    }
+  return value.v.number != 0;
 }
 
 /* Helper functions for evaluationg conditions */
@@ -661,13 +796,13 @@ search_run (struct parsebuf *pb)
 static int
 _scan_header (struct parsebuf *pb, char *name, char *value)
 {
-  char buffer[512];
+  const char *hval;
   mu_header_t header = NULL;
   
   mu_message_get_header (pb->msg, &header);
-  if (!mu_header_get_value (header, name, buffer, sizeof(buffer), NULL))
+  if (mu_header_sget_value (header, name, &hval) == 0)
     {
-      return util_strcasestr (buffer, value) != NULL;
+      return util_strcasestr (hval, value) != NULL;
     }
   return 0;
 }
@@ -676,12 +811,12 @@ _scan_header (struct parsebuf *pb, char *name, char *value)
 static int
 _header_date (struct parsebuf *pb, time_t *timep)
 {
-  char buffer[512];
+  const char *hval;
   mu_header_t header = NULL;
   
   mu_message_get_header (pb->msg, &header);
-  if (!mu_header_get_value (header, "Date", buffer, sizeof(buffer), NULL)
-      && util_parse_822_date (buffer, timep))
+  if (mu_header_sget_value (header, "Date", &hval) == 0
+      && util_parse_822_date (hval, timep))
     return 0;
   return 1;
 }
@@ -690,7 +825,7 @@ _header_date (struct parsebuf *pb, time_t *timep)
 static int
 _scan_header_all (struct parsebuf *pb, char *text)
 {
-  char buffer[512];
+  const char *hval;
   mu_header_t header = NULL;
   size_t fcount = 0;
   int i, rc;
@@ -699,13 +834,14 @@ _scan_header_all (struct parsebuf *pb, char *text)
   mu_header_get_field_count (header, &fcount);
   for (i = rc = 0; i < fcount; i++)
     {
-      if (mu_header_get_field_value (header, i, buffer, sizeof(buffer), NULL))
-	rc = util_strcasestr (buffer, text) != NULL;
+      if (mu_header_sget_field_value (header, i, &hval) == 0)
+	rc = util_strcasestr (hval, text) != NULL;
     }
   return rc;
 }
 
-/* Scan body of the message for the occurence of a substring */
+/* Scan body of the message for the occurrence of a substring */
+/* FIXME: The algorithm below is broken */
 static int
 _scan_body (struct parsebuf *pb, char *text)
 {
@@ -734,87 +870,71 @@ _scan_body (struct parsebuf *pb, char *text)
 }
 
 /* Basic instructions */
-void
-cond_and (struct parsebuf *pb)
+
+static void
+cond_msgset (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  int n1, n2;
-
-  n1 = _search_pop (pb);
-  n2 = _search_pop (pb);
-  _search_push (pb, n1 && n2);
-}                      
-
-void
-cond_or (struct parsebuf *pb)
-{
-  int n1, n2;
-
-  n1 = _search_pop (pb);
-  n2 = _search_pop (pb);
-  _search_push (pb, n1 || n2);
-}                      
-
-void
-cond_not (struct parsebuf *pb)
-{
-  _search_push (pb, !_search_pop (pb));
-}
-
-void
-cond_all (struct parsebuf *pb)
-{
-  _search_push (pb, 1);
-}                      
-
-void
-cond_msgset (struct parsebuf *pb)
-{
-  int  n = (int)_search_arg (pb);
-  size_t *set = (size_t*)_search_arg (pb);
+  int  n = arg[0].v.msgset.n;
+  size_t *set = arg[0].v.msgset.set;
   int i, rc;
   
   for (i = rc = 0; rc == 0 && i < n; i++)
     rc = set[i] == pb->msgno;
       
-  _search_push (pb, rc);
+  retval->type = value_number;
+  retval->v.number = rc;
 }
 
-void
-cond_bcc (struct parsebuf *pb)
+static void
+cond_bcc (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	  struct value *retval)
 {
-  _search_push (pb, _scan_header (pb, "bcc", _search_arg (pb)));
+  retval->type = value_number;
+  retval->v.number = _scan_header (pb, MU_HEADER_BCC, arg[0].v.string);
 }                      
 
-void
-cond_before (struct parsebuf *pb)
+static void
+cond_before (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
-  time_t mesg_time = 0;
+  time_t t = arg[0].v.date;
+  time_t mesg_time;
   const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  if (mu_envelope_sget_date (env, &date) == 0)
-    util_parse_ctime_date (date, &mesg_time);
-  _search_push (pb, mesg_time < t);
+  retval->type = value_number;
+  if (mu_envelope_sget_date (env, &date))
+    retval->v.number = 0;
+  else
+    {
+      util_parse_ctime_date (date, &mesg_time);
+      retval->v.number = mesg_time < t;
+    }
 }                   
 
-void
-cond_body (struct parsebuf *pb)
+static void
+cond_body (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	   struct value *retval)
 {
-  _search_push (pb, _scan_body (pb, _search_arg (pb)));
+  retval->type = value_number;
+  retval->v.number = _scan_body (pb, arg[0].v.string);
 }                     
 
-void
-cond_cc (struct parsebuf *pb)
+static void
+cond_cc (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	 struct value *retval)
 {
-  _search_push (pb, _scan_header (pb, "cc", _search_arg (pb)));
+  retval->type = value_number;
+  retval->v.number = _scan_header (pb, MU_HEADER_CC, arg[0].v.string);
 }                       
 
-void
-cond_from (struct parsebuf *pb)
+static void
+cond_from (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	   struct value *retval)
 {
-  char *s = _search_arg (pb);
+  char *s = arg[0].v.string;
   mu_envelope_t env;
   const char *from;
   int rc = 0;
@@ -822,130 +942,165 @@ cond_from (struct parsebuf *pb)
   mu_message_get_envelope (pb->msg, &env);
   if (mu_envelope_sget_sender (env, &from) == 0)
     rc = util_strcasestr (from, s) != NULL;
-  _search_push (pb, _scan_header (pb, "from", s));
+  
+  retval->type = value_number;
+  retval->v.number = rc || _scan_header (pb, MU_HEADER_FROM, s);
 }                     
 
-void
-cond_header (struct parsebuf *pb)
+static void
+cond_header (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  char *name = _search_arg (pb);
-  char *value = _search_arg (pb);
-  
-  _search_push (pb, _scan_header (pb, name, value));
+  char *name = arg[0].v.string;
+  char *value = arg[1].v.string;
+
+  retval->type = value_number;
+  retval->v.number = _scan_header (pb, name, value);
 }                   
 
-void
-cond_keyword (struct parsebuf *pb)
+static void
+cond_keyword (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  char *s = _search_arg (pb);
+  char *s = arg[0].v.string;
   mu_attribute_t attr = NULL;
   
   mu_message_get_attribute (pb->msg, &attr);
-  _search_push (pb, util_attribute_matches_flag (attr, s));
+  retval->type = value_number;
+  retval->v.number = util_attribute_matches_flag (attr, s);
 }                  
 
-void
-cond_larger (struct parsebuf *pb)
+static void
+cond_larger (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  int n = (int) _search_arg (pb);
   size_t size = 0;
   
   mu_message_size (pb->msg, &size);
-  _search_push (pb, size > n);
+  retval->type = value_number;
+  retval->v.number = size > arg[0].v.number;
 }                   
 
-void
-cond_on (struct parsebuf *pb)
+static void
+cond_on (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	 struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
-  time_t mesg_time = 0;
+  time_t t = arg[0].v.date;
+  time_t mesg_time;
   const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  if (mu_envelope_sget_date (env, &date) == 0)
-    util_parse_ctime_date (date, &mesg_time);
-  _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
+  retval->type = value_number;
+  if (mu_envelope_sget_date (env, &date))
+    retval->v.number = 0;
+  else
+    {
+      util_parse_ctime_date (date, &mesg_time);
+      retval->v.number = t <= mesg_time && mesg_time <= t + 86400;
+    }
 }                       
 
-void
-cond_sentbefore (struct parsebuf *pb)
+static void
+cond_sentbefore (struct parsebuf *pb, struct search_node *node,
+		 struct value *arg,
+		 struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
+  time_t t = arg[0].v.date;
   time_t mesg_time = 0;
 
   _header_date (pb, &mesg_time);
-  _search_push (pb, mesg_time < t);
+  retval->type = value_number;
+  retval->v.number = mesg_time < t;
 }               
 
-void
-cond_senton (struct parsebuf *pb)
+static void
+cond_senton (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	     struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
+  time_t t = arg[0].v.date;
   time_t mesg_time = 0;
 
   _header_date (pb, &mesg_time);
-  _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
+  retval->type = value_number;
+  retval->v.number = t <= mesg_time && mesg_time <= t + 86400;
 }                   
 
-void
-cond_sentsince (struct parsebuf *pb)
+static void
+cond_sentsince (struct parsebuf *pb, struct search_node *node,
+		struct value *arg,
+		struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
+  time_t t = arg[0].v.date;
   time_t mesg_time = 0;
 
   _header_date (pb, &mesg_time);
-  _search_push (pb, mesg_time >= t);
+  retval->type = value_number;
+  retval->v.number = mesg_time >= t;
 }                
 
-void
-cond_since (struct parsebuf *pb)
+static void
+cond_since (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	    struct value *retval)
 {
-  time_t t = (time_t)_search_arg (pb);
-  time_t mesg_time = 0;
+  time_t t = arg[0].v.date;
+  time_t mesg_time;
   const char *date;
   mu_envelope_t env;
   
   mu_message_get_envelope (pb->msg, &env);
-  if (mu_envelope_sget_date (env, &date) == 0)
-    util_parse_ctime_date (date, &mesg_time);
-  _search_push (pb, mesg_time >= t);
+  retval->type = value_number;
+  if (mu_envelope_sget_date (env, &date))
+    retval->v.number = 0;
+  else
+    {
+      util_parse_ctime_date (date, &mesg_time);
+      retval->v.number = mesg_time >= t;
+    }
 }                    
 
-void
-cond_smaller (struct parsebuf *pb)
+static void
+cond_smaller (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	      struct value *retval)
 {
-  int n = (int) _search_arg (pb);
   size_t size = 0;
   
   mu_message_size (pb->msg, &size);
-  _search_push (pb, size < n);
+  retval->type = value_number;
+  retval->v.number = size < arg[0].v.number;
 }                  
 
-void
-cond_subject (struct parsebuf *pb)
+static void
+cond_subject (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	      struct value *retval)
 {
-  _search_push (pb, _scan_header (pb, "subject", _search_arg (pb)));
+  retval->type = value_number;
+  retval->v.number = _scan_header (pb, MU_HEADER_SUBJECT, arg[0].v.string);
 }                  
 
-void
-cond_text (struct parsebuf *pb)
+static void
+cond_text (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	   struct value *retval)
 {
-  char *s = _search_arg (pb);
-  _search_push (pb, _scan_header_all (pb, s) || _scan_body (pb, s));
+  char *s = arg[0].v.string;
+  retval->type = value_number;
+  retval->v.number = _scan_header_all (pb, s) || _scan_body (pb, s);
 }                     
 
-void
-cond_to (struct parsebuf *pb)
+static void
+cond_to (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	 struct value *retval)
 {
-  _search_push (pb, _scan_header (pb, "to", _search_arg (pb)));
+  retval->type = value_number;
+  retval->v.number = _scan_header (pb, MU_HEADER_TO, arg[0].v.string);
 }                       
 
-void
-cond_uid (struct parsebuf *pb)
+static void
+cond_uid (struct parsebuf *pb, struct search_node *node, struct value *arg,
+	  struct value *retval)
 {
-  int  n = (int)_search_arg (pb);
-  size_t *set = (size_t*)_search_arg (pb);
+  int  n = arg[0].v.msgset.n;
+  size_t *set = arg[0].v.msgset.set;
   size_t uid = 0;
   int i, rc;
   
@@ -953,6 +1108,7 @@ cond_uid (struct parsebuf *pb)
   for (i = rc = 0; rc == 0 && i < n; i++)
     rc = set[i] == uid;
       
-  _search_push (pb, rc);
+  retval->type = value_number;
+  retval->v.number = rc;
 }                      
 
