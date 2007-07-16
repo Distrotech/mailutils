@@ -1,3 +1,8 @@
+2007-07-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/mh_ctx.c (mh_context_read): Avoid writing past blurb end.
+	* mh/send.c: New mtstailor variable "username"
+
 2007-07-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/imap4d.h (util_parse_822_date): First arg is const
