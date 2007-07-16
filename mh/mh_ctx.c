@@ -116,13 +116,13 @@ mh_context_read (mh_context_t *ctx)
       if (!*q || *q == '#')
 	continue;
       
-      while ((*p = *q++))
-	p++;
+      while (*q)
+	*p++ = *q++;
     }
   fclose (fp);
 
-  if ((status = mu_header_create (&ctx->header, blurb, p - blurb, NULL)) != 0) 
-    free (blurb);
+  status = mu_header_create (&ctx->header, blurb, p - blurb, NULL);
+  free (blurb);
 
   return status;
 }
