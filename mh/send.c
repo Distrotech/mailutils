@@ -303,7 +303,7 @@ read_mts_profile ()
   char *hostname = NULL;
   int rc;
   mh_context_t *local_profile;
-  
+
   p = mh_expand_name (MHLIBDIR, "mtstailor", 0);
   mts_profile = mh_context_create (p, 1);
   mh_context_read (mts_profile);
@@ -321,7 +321,7 @@ read_mts_profile ()
     }
   else if ((rc = mu_get_host_name (&hostname)))
     mu_error (_("Cannot get system host name: %s"), mu_strerror (rc));
-  
+
   if ((p = mh_context_get_value (mts_profile, "localdomain", NULL)))
     {
       char *newdomain;
@@ -340,6 +340,36 @@ read_mts_profile ()
 	  mu_error (_("Cannot set user mail domain: %s"), mu_strerror (rc));
 	  exit (1);
 	}
+    }
+
+  if ((p = mh_context_get_value (mts_profile, "username", NULL)))
+    {
+      size_t len;
+      const char *domain;
+      char *newemail;
+      int rc;
+      
+      rc = mu_get_user_email_domain (&domain);
+      if (rc)
+	{
+	  mu_error (_("Cannot get user email: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+      len = strlen (p) + 1 + strlen (domain) + 1;
+      newemail = xmalloc (len);
+      strcpy (newemail, p);
+      strcat (newemail, "@");
+      strcat (newemail, domain);
+
+      rc = mu_set_user_email (newemail);
+      if (rc)
+	{
+	  mu_error (_("Cannot set user email (%s): %s"),
+		    newemail, mu_strerror (rc));
+	  exit (1);
+	}
+      
+      free (newemail);
     }
 }
 
