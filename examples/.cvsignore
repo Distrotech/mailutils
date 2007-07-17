@@ -8,9 +8,11 @@ argcv
 base64
 decode2047
 encode2047
+header
 http
 iconv
 listop
+lsf
 mailcap
 mimetest
 msg-send
