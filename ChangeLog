@@ -1,3 +1,8 @@
+2007-07-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/libsieve.h (mu_stream_printf): Remove
+	conflicting prototype.
+
 2007-07-17  Wojciech Polak  <polak@gnu.org>
 
 	* libproto/mailer: New directory. Keeps libmu-mailer.la.
