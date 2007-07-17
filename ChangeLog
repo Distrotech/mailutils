@@ -1,3 +1,20 @@
+2007-07-17  Wojciech Polak  <polak@gnu.org>
+
+	* libproto/mailer: New directory. Keeps libmu-mailer.la.
+	* libproto/mailer/Makefile.am: New file.
+	* libproto/mailer/sendmail.c: Moved from mailbox/sendmail.c.
+	* libproto/mailer/smtp.c: Moved from mailbox/smtp.c.
+	* libproto/Makefile.am (SUBDIR): Added mailer.
+	* examples/Makefile.am, guimb/Makefile.am, libmu_scm/Makefile.am,
+	mail/Makefile.am, mail.remote/Makefile.am, mh/Makefile.am,
+	sieve/Makefile.am: Added ${MU_LIB_MAILER}.
+	* mailbox/sendmail.c: Moved to libproto/mailer/sendmail.c.
+	* mailbox/smtp.c: Moved to libproto/mailer/smtp.c.
+	* mailbox/mutil.c (mu_tls_begin): Removed placeholder.
+	* mailbox/Makefile.am (libmailutils_la_SOURCES):
+	Removed sendmail.c and smtp.c.
+	* configure.ac: Added MU_LIB_MAILER.
+
 2007-07-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/mh_ctx.c (mh_context_read): Avoid writing past blurb end.
