@@ -73,9 +73,16 @@ mimetest_LDADD =\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
+msg_send_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILER}\
+ @MU_AUTHLIBS@\
+ ${MU_LIB_MAILUTILS}
+
 mta_LDADD =\
  ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
+ ${MU_LIB_MAILER}\
  ${MU_LIB_MAILUTILS}
 
 sfrom_LDADD =\

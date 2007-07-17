@@ -45,6 +45,7 @@ libmu_scm_la_LIBADD = \
  ${MU_LIB_NNTP}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\
+ ${MU_LIB_MAILER}\
  ${MU_LIB_MAILUTILS}\
  @GUILE_LIBS@
 

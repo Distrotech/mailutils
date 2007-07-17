@@ -33,6 +33,7 @@ guimb_LDADD = \
  ${MU_LIB_NNTP}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\
+ ${MU_LIB_MAILER}\
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}\
