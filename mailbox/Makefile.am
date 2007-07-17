@@ -83,8 +83,6 @@ parsedate.c \
 property.c \
 registrar.c \
 rfc2047.c \
-sendmail.c \
-smtp.c \
 stream.c \
 system.c \
 tcp.c \
