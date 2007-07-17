@@ -247,8 +247,6 @@ void mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 			  const char *fmt, ...)
 			  MU_PRINTFLIKE(3,4);
 void mu_sieve_abort (mu_sieve_machine_t mach);
-int mu_stream_printf (mu_stream_t stream, size_t * off, const char *fmt, ...)
-                      MU_PRINTFLIKE(3,4);
 void mu_sieve_arg_error (mu_sieve_machine_t mach, int n);
 
 int mu_sieve_is_dry_run (mu_sieve_machine_t mach);
