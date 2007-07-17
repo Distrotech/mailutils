@@ -38,6 +38,7 @@ AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/mailbox/libmailutils.la')
 AC_SUBST(MU_LIB_SQL,'${top_builddir}/sql/libsql.la')
 AC_SUBST(MU_LIB_IMAP,'${top_builddir}/libproto/imap/libmu_imap.la')
 AC_SUBST(MU_LIB_MAILDIR,'${top_builddir}/libproto/maildir/libmu_maildir.la')
+AC_SUBST(MU_LIB_MAILER,'${top_builddir}/libproto/mailer/libmu-mailer.la')
 AC_SUBST(MU_LIB_MBOX,'${top_builddir}/libproto/mbox/libmu_mbox.la')
 AC_SUBST(MU_LIB_MH,'${top_builddir}/libproto/mh/libmu_mh.la')
 AC_SUBST(MU_LIB_NNTP,'${top_builddir}/libproto/nntp/libmu_nntp.la')
@@ -1020,7 +1021,7 @@ if test x"$useguile" = x"yes"; then
 	    GUIMB='guimb$(EXEEXT)'
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
-	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR}'
+	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
             GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
 	    MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
 	    MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
@@ -1161,6 +1162,7 @@ AC_CONFIG_FILES([Makefile
  libproto/mbox/Makefile
  libproto/mh/Makefile
  libproto/maildir/Makefile
+ libproto/mailer/Makefile
  libproto/pop/Makefile
  libproto/nntp/Makefile
  libproto/imap/Makefile
