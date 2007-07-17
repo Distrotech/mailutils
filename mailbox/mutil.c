@@ -58,7 +58,6 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
-#include <mailutils/tls.h>
 
 #include <registrar0.h>
 
@@ -1480,18 +1479,3 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
     *perr = i;
   return rc;
 }
-
-
-#ifdef WITH_TLS
-int
-mu_tls_begin (void *iodata,
-	      mu_tls_readline_fn reader,
-	      mu_tls_writeline_fn writer,
-	      mu_tls_stream_ctl_fn stream_ctl,
-	      char *keywords[])
-{
-  return ENOSYS;
-}
-
-int mu_tls_enable;
-#endif
