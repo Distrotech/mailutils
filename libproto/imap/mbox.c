@@ -123,16 +123,16 @@ static int  is_same_folder        (mu_mailbox_t, mu_message_t);
 /* Initialize the concrete object mu_mailbox_t by overloading the function of the
    structure.  */
 int
-_mailbox_imap_init (mu_mailbox_t mailbox)
+_mailbox_imap_and_imaps_init (mu_mailbox_t mailbox, int imaps)
 {
   int status;
   m_imap_t m_imap;
-  mu_folder_t folder = NULL;
 
-  assert(mailbox);
-
-  folder = mailbox->folder;
-
+  if (!mailbox)
+    return MU_ERR_MBX_NULL;
+  if (mailbox->folder == NULL)
+    return EINVAL;
+  
   m_imap = mailbox->data = calloc (1, sizeof (*m_imap));
   if (m_imap == NULL)
     return ENOMEM;
@@ -168,8 +168,9 @@ _mailbox_imap_init (mu_mailbox_t mailbox)
   mailbox->_is_updated = imap_is_updated;
 
   /* Get the back pointer of the concrete folder. */
-  if (mailbox->folder)
-    m_imap->f_imap = mailbox->folder->data;
+  m_imap->f_imap = mailbox->folder->data;
+  m_imap->f_imap->imaps = imaps;
+  
   /* maibox back pointer.  */
   m_imap->mailbox = mailbox;
 
@@ -182,6 +183,19 @@ _mailbox_imap_init (mu_mailbox_t mailbox)
 
   return 0;
 }
+
+int
+_mailbox_imap_init (mu_mailbox_t mailbox)
+{
+  return _mailbox_imap_and_imaps_init (mailbox, 0);
+}
+
+int
+_mailbox_imaps_init (mu_mailbox_t mailbox)
+{
+  return _mailbox_imap_and_imaps_init (mailbox, 1);
+}
+
 
 /* Recursive call to free all the subparts of a message.  */
 static void
