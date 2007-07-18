@@ -41,36 +41,47 @@ url_pop_destroy (mu_url_t url MU_ARG_UNUSED)
 }
 
 /*
-  POP URL:
+  POP URLs:
     pop://[<user>[;AUTH=<auth>]@]<host>[:<port>]
-  or:
     pop://[<user>[:pass]@]<host>[:<port>]
 */
 
 int
 _url_pop_init (mu_url_t url)
 {
-  int status = 0;
+  int status = mu_url_init (url, MU_POP_PORT, "pop");
+  if (status)
+    return status;
 
   url->_destroy = url_pop_destroy;
 
-  status = mu_url_parse(url);
-
-  if(status)
-    return status;
-
-  /* is it pop? */
-  if (strcmp ("pop", url->scheme) != 0)
-    return EINVAL;
-
-  /* not valid in a pop url */
+  /* not valid in pop url */
   if (url->path || url->query || !url->host)
     return EINVAL;
 
-  if (url->port == 0)
-    url->port = MU_POP_PORT;
-
-  return status;
+  return 0;
 }
 
-#endif
+/*
+  POPS URLs:
+    pops://[<user>[;AUTH=<auth>]@]<host>[:<port>]
+    pops://[<user>[:pass]@]<host>[:<port>]
+*/
+
+int
+_url_pops_init (mu_url_t url)
+{
+  int status = mu_url_init (url, MU_POPS_PORT, "pops");
+  if (status)
+    return status;
+
+  url->_destroy = url_pop_destroy;
+
+  /* not valid in pops url */
+  if (url->path || url->query || !url->host)
+    return EINVAL;
+
+  return 0;
+}
+
+#endif /* ENABLE_POP */
