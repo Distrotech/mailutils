@@ -141,6 +141,7 @@ struct _f_imap
   m_imap_t selected;
 
   enum imap_state state;
+  int imaps; /* IMAPS or IMAP? */
 
   size_t seq; /* Sequence number to build a tag.  */
   char **capav; /* Cabilities of the server.  */
