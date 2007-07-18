@@ -59,6 +59,27 @@ static struct _mu_record _pop_record =
 };
 mu_record_t mu_pop_record = &_pop_record;
 
+#ifdef WITH_TLS
+static struct _mu_record _pops_record =
+{
+  MU_POP_PRIO,
+  MU_POPS_SCHEME,
+  _url_pops_init, /* Url init.  */
+  _mailbox_pops_init, /* Mailbox init.  */
+  NULL, /* Mailer init.  */
+  _folder_pop_init, /* Folder init.  */
+  NULL, /* No need for an back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+mu_record_t mu_pops_record = &_pops_record;
+#else
+mu_record_t mu_pops_record = NULL;
+#endif /* WITH_TLS */
+
 static int folder_pop_open  (mu_folder_t, int);
 static int folder_pop_close (mu_folder_t);
 static int folder_pop_get_authority (mu_folder_t, mu_authority_t *);
@@ -139,4 +160,5 @@ folder_pop_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 #include <stdio.h>
 #include <registrar0.h>
 mu_record_t mu_pop_record = NULL;
-#endif
+mu_record_t mu_pops_record = NULL;
+#endif /* ENABLE_POP */
