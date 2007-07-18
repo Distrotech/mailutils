@@ -1,5 +1,28 @@
 2007-07-18  Wojciech Polak  <polak@gnu.org>
 
+	Added support for new protocols: POPS (pops://)
+	and IMAPS (imaps://).
+
+	* include/mailutils/registrar.h: Register new protocols:
+	mu_pops_record and mu_imaps_record.
+	* libproto/imap/folder.c (_imaps_record, mu_imaps_record): Added.
+	(folder_imap_open): Handle IMAPS connection.
+	* libproto/imap/mbox.c (_mailbox_imap_and_imaps_init): New function.
+	(_mailbox_imaps_init): Likewise.
+	(_mailbox_imap_init): Call _mailbox_imap_and_imaps_init.
+	* libproto/include/imap0.h (_f_imap): Added new variable imaps.
+	* libproto/include/registrar0.h (MU_IMAPS_PORT, MU_IMAPS_SCHEME)
+	(MU_IMAPS_SCHEME_LEN): Added new constants.
+	(MU_POPS_PORT, MU_POPS_SCHEME, MU_POPS_SCHEME_LEN): Likewise.
+	* libproto/pop/folder.c (_pops_record, mu_pops_record): Added.
+	* libproto/pop/mbox.c (_pop_data): Added new variable pops.
+	(_mailbox_pop_and_pops_init): New function.
+	(_mailbox_pops_init): Likewise.
+	(_mailbox_pop_init): Call _mailbox_pop_and_pops_init.
+	(pop_open): Handle POPS connection.
+
+2007-07-18  Wojciech Polak  <polak@gnu.org>
+
 	* libproto/mailer/Makefile.am (libmu_mailer_la_SOURCES):
 	Added url_sendmail.c and url_smtp.c.
 	* libproto/mailer/url_sendmail.c: Moved from mailbox/url_sendmail.c.
