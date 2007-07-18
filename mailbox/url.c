@@ -546,3 +546,23 @@ mu_url_is_ticket (mu_url_t ticket, mu_url_t url)
   /* Guess it matches. */
   return 1;
 }
+
+int
+mu_url_init (mu_url_t url, int port, const char *scheme)
+{
+  int status = 0;
+
+  url->_destroy = NULL;
+
+  status = mu_url_parse (url);
+  if (status)
+    return status;
+
+  if (!mu_url_is_scheme (url, scheme))
+    return EINVAL;
+
+  if (url->port == 0)
+    url->port = port;
+
+  return status;
+}
