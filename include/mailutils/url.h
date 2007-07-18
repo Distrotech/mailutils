@@ -72,6 +72,7 @@ extern int mu_url_is_same_port   (mu_url_t, mu_url_t);
 extern char* mu_url_decode    (const char *s);
 
 extern int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
+extern int mu_url_init (mu_url_t url, int port, const char *scheme);
 
 #ifdef __cplusplus
 }
