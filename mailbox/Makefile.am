@@ -88,8 +88,6 @@ system.c \
 tcp.c \
 ticket.c \
 url.c \
-url_sendmail.c \
-url_smtp.c \
 wicket.c
 
 BUILT_SOURCES = parsedate.c muerrno.c
