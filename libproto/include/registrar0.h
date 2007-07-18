@@ -42,12 +42,24 @@ extern int _url_pop_init          (mu_url_t);
 extern int _mailbox_pop_init      (mu_mailbox_t);
 extern int _folder_pop_init       (mu_folder_t);
 
+#define MU_POPS_PORT 995
+#define MU_POPS_SCHEME "pops://"
+#define MU_POPS_SCHEME_LEN (sizeof (MU_POPS_SCHEME) - 1)
+extern int _url_pops_init         (mu_url_t);
+extern int _mailbox_pops_init     (mu_mailbox_t);
+
 #define MU_IMAP_PORT 143
 #define MU_IMAP_SCHEME "imap://"
 #define MU_IMAP_SCHEME_LEN (sizeof (MU_IMAP_SCHEME) - 1)
 extern int _url_imap_init         (mu_url_t);
 extern int _mailbox_imap_init     (mu_mailbox_t);
 extern int _folder_imap_init      (mu_folder_t);
+
+#define MU_IMAPS_PORT 993
+#define MU_IMAPS_SCHEME "imaps://"
+#define MU_IMAPS_SCHEME_LEN (sizeof (MU_IMAPS_SCHEME) - 1)
+extern int _url_imaps_init        (mu_url_t);
+extern int _mailbox_imaps_init    (mu_mailbox_t);
 
 #define MU_MBOX_SCHEME "mbox:"
 #define MU_MBOX_SCHEME_LEN (sizeof (MU_MBOX_SCHEME) - 1)
