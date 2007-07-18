@@ -190,6 +190,7 @@ struct _pop_data
   void *func;  /*  Indicate a command is in operation, busy.  */
   size_t id;   /* A second level of distincion, we maybe in the same function
 		  but working on a different message.  */
+  int pops; /* POPS or POP? */
   char *greeting_banner; /* A greeting banner */
   unsigned long capa; /* Server capabilities */
   enum pop_state state;
@@ -321,8 +322,8 @@ while (0)
 
 
 /* Allocate mu_mailbox_t, allocate pop internal structures.  */
-int
-_mailbox_pop_init (mu_mailbox_t mbox)
+static int
+_mailbox_pop_and_pops_init (mu_mailbox_t mbox, int pops)
 {
   pop_data_t mpd;
   int status = 0;
@@ -333,8 +334,8 @@ _mailbox_pop_init (mu_mailbox_t mbox)
     return ENOMEM;
 
   mpd->mbox = mbox;		/* Back pointer.  */
-
   mpd->state = POP_NO_STATE;	/* Init with no state.  */
+  mpd->pops = pops;
 
   /* Initialize the structure.  */
   mbox->_destroy = pop_destroy;
@@ -365,6 +366,18 @@ _mailbox_pop_init (mu_mailbox_t mbox)
   mbox->folder->data = mbox;
 
   return status;
+}
+
+int
+_mailbox_pop_init (mu_mailbox_t mbox)
+{
+  return _mailbox_pop_and_pops_init (mbox, 0);
+}
+
+int
+_mailbox_pops_init (mu_mailbox_t mbox)
+{
+  return _mailbox_pop_and_pops_init (mbox, 1);
 }
 
 /*  Cleaning up all the ressources associate with a pop mailbox.  */
@@ -708,7 +721,7 @@ pop_open (mu_mailbox_t mbox, int flags)
   pop_data_t mpd = mbox->data;
   int status;
   const char *host;
-  long port = MU_POP_PORT;
+  long port = mpd->pops ? MU_POPS_PORT : MU_POP_PORT;
 
   /* Sanity checks.  */
   if (mpd == NULL)
@@ -751,7 +764,28 @@ pop_open (mu_mailbox_t mbox, int flags)
       if (mbox->stream == NULL)
 	{
 	  status = mu_tcp_stream_create (&mbox->stream, host, port, mbox->flags);
-	  CHECK_ERROR(mpd, status);
+	  CHECK_ERROR (mpd, status);
+
+#ifdef WITH_TLS
+	  if (mpd->pops)
+	    {
+	      mu_stream_t newstr;
+
+	      status = mu_stream_open (mbox->stream);
+	      CHECK_EAGAIN (mpd, status);
+	      CHECK_ERROR_CLOSE (mbox, mpd, status);
+
+	      status = mu_tls_stream_create_client_from_tcp (&newstr, mbox->stream, 0);
+	      if (status != 0)
+		{
+		  mu_error ("pop_open: mu_tls_stream_create_client_from_tcp: %s",
+			    mu_strerror (status));
+		  return status;
+		}
+	      mbox->stream = newstr;
+	    }
+#endif /* WITH_TLS */
+
 	  /* Using the awkward mu_stream_t buffering.  */
 	  mu_stream_setbufsiz (mbox->stream, BUFSIZ);
 	}
@@ -806,7 +840,8 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     case POP_STLS:
     case POP_STLS_ACK:
-      pop_stls (mbox);
+      if (!mpd->pops)
+	pop_stls (mbox);
       mpd->state = POP_AUTH;
 
     case POP_AUTH:
@@ -887,7 +922,7 @@ pop_close (mu_mailbox_t mbox)
 
     default:
       /*
-	mu_error ("pop_close unknow state");
+	mu_error ("pop_close unknown state");
       */
       break;
     } /* UPDATE state.  */
