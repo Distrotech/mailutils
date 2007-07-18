@@ -41,34 +41,22 @@ url_imap_destroy (mu_url_t url MU_ARG_UNUSED)
 }
 
 /*
-  IMAP URL:
+  IMAP URLs:
     imap://[<user>[;AUTH=<auth>]@]<host>[/<mailbox>]
-  else
     imap://[<user>[:<pass>]@]<host>[/<mailbox>]
 */
 
 int
 _url_imap_init (mu_url_t url)
 {
-  int status = 0;
-
-  url->_destroy = url_imap_destroy;
-
-  status = mu_url_parse (url);
-
+  int status = mu_url_init (url, MU_IMAP_PORT, "imap");
   if (status)
     return status;
 
+  url->_destroy = url_imap_destroy;
+
   if(!url->host || url->query)
     return EINVAL;
-
-  /* is it pop? */
-  if (strcmp ("imap", url->scheme) != 0)
-    return EINVAL;
-
-  /* fill in default port, if necesary */
-  if (url->port == 0)
-    url->port = MU_IMAP_PORT;
 
   /* fill in default auth, if necessary */
   if (!url->auth)
@@ -81,7 +69,39 @@ _url_imap_init (mu_url_t url)
       url->auth[1] = '\0';
     }
 
-  return status;
+  return 0;
 }
 
-#endif
+/*
+  IMAPS URLs:
+    imaps://[<user>[;AUTH=<auth>]@]<host>[/<mailbox>]
+    imaps://[<user>[:<pass>]@]<host>[/<mailbox>]
+*/
+
+int
+_url_imaps_init (mu_url_t url)
+{
+  int status = mu_url_init (url, MU_IMAPS_PORT, "imaps");
+  if (status)
+    return status;
+
+  url->_destroy = url_imap_destroy;
+
+  if(!url->host || url->query)
+    return EINVAL;
+
+  /* fill in default auth, if necessary */
+  if (!url->auth)
+    {
+      url->auth = malloc (1 + 1);
+      if (!url->auth)
+	return ENOMEM;
+
+      url->auth[0] = '*';
+      url->auth[1] = '\0';
+    }
+
+  return 0;
+}
+
+#endif /* ENABLE_IMAP */
