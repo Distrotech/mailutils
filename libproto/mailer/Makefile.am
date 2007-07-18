@@ -25,5 +25,7 @@ libmu_mailer_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 
 libmu_mailer_la_SOURCES = \
  sendmail.c\
- smtp.c
+ smtp.c\
+ url_sendmail.c\
+ url_smtp.c
 
