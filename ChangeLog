@@ -1,3 +1,20 @@
+2007-07-18  Wojciech Polak  <polak@gnu.org>
+
+	* libproto/mailer/Makefile.am (libmu_mailer_la_SOURCES):
+	Added url_sendmail.c and url_smtp.c.
+	* libproto/mailer/url_sendmail.c: Moved from mailbox/url_sendmail.c.
+	(_url_sendmail_init): Call mu_url_init.
+	* libproto/mailer/url_smtp.c: Moved from mailbox/url_smtp.c.
+	(_url_smtp_init): Call mu_url_init.
+	* libproto/pop/url.c (_url_pop_init, _url_pops_init): Call mu_url_init.
+	* libproto/imap/url.c (_url_imap_init, _url_imaps_init): Likewise.
+	* mailbox/Makefile.am (libmailutils_la_SOURCES):
+	Removed url_sendmail.c and url_smtp.c.
+	* mailbox/url_sendmail.c: Moved to libproto/mailer/url_sendmail.c.
+	* mailbox/url_smtp.c: Moved to libproto/mailer/url_smtp.c.
+	* mailbox/url.c (mu_url_init): New function.
+	* include/mailutils/url.c (mu_url_init): New prototype.
+
 2007-07-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/libsieve.h (mu_stream_printf): Remove
@@ -371,7 +388,7 @@
 	* examples/cpp/Makefile.am: Build c++ examples
 	* libmu_cpp/Makefile.am (libmu_cpp_la_LDFLAGS): Add -rpath
 
-2007-04-30  Wojciech Polak
+2007-04-30  Wojciech Polak  <polak@gnu.org>
 
 	* libproto/pop/mbox.c: Fixed APOP handling.
 
@@ -528,7 +545,7 @@
 	* THANKS: Add Neil R. Ormos
 	* NEWS: Update
 
-2006-12-31  Wojciech Polak
+2006-12-31  Wojciech Polak  <polak@gnu.org>
 
 	Updated libmu_cpp to the current API 1.0.
 	All method names now begin with a lowercase letter.
@@ -2858,7 +2875,7 @@
 	* mh/mh_format.c
 	* mh/mh_init.c
 
-2005-08-27  Wojciech Polak
+2005-08-27  Wojciech Polak  <polak@gnu.org>
 
 	Normalize global namespace. Part 2: Symbols defined in header files
 	mailer.h, message.h, mime.h, monitor.h, observer.h, parse822.h,
