@@ -71,7 +71,7 @@ static struct _mu_record _imap_record =
   MU_IMAP_SCHEME,
   _url_imap_init,     /* url entry.  */
   _mailbox_imap_init, /* Mailbox entry.  */
-  NULL,              /* Mailer entry.  */
+  NULL,               /* Mailer entry.  */
   _folder_imap_init,  /* Folder entry.  */
   NULL, /* No need for a back pointer.  */
   NULL, /* _is_scheme method.  */
@@ -84,6 +84,27 @@ static struct _mu_record _imap_record =
 /* We export this variable: url parsing and the initialisation of the mailbox,
    via the register entry/record.  */
 mu_record_t mu_imap_record = &_imap_record;
+
+#ifdef WITH_TLS
+static struct _mu_record _imaps_record =
+{
+  MU_IMAP_PRIO,
+  MU_IMAPS_SCHEME,
+  _url_imaps_init,     /* url entry.  */
+  _mailbox_imaps_init, /* Mailbox entry.  */
+  NULL,                /* Mailer entry.  */
+  _folder_imap_init,   /* Folder entry.  */
+  NULL, /* No need for a back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+mu_record_t mu_imaps_record = &_imaps_record;
+#else
+mu_record_t mu_imaps_record = NULL;
+#endif /* WITH_TLS */
 
 #ifndef HAVE_STRTOK_R
 char *strtok_r                      (char *, const char *, char **);
@@ -599,7 +620,7 @@ folder_imap_open (mu_folder_t folder, int flags)
 {
   f_imap_t f_imap = folder->data;
   const char *host;
-  long port = MU_IMAP_PORT; /* default imap port.  */
+  long port = f_imap->imaps ? MU_IMAPS_PORT : MU_IMAP_PORT;
   int status = 0;
 
   /* If we are already open for business, noop.  */
@@ -653,6 +674,27 @@ folder_imap_open (mu_folder_t folder, int flags)
         {
           status = mu_tcp_stream_create (&folder->stream, host, port, folder->flags);
           CHECK_ERROR (f_imap, status);
+
+#ifdef WITH_TLS
+	  if (f_imap->imaps)
+	    {
+	      mu_stream_t newstr;
+
+	      status = mu_stream_open (folder->stream);
+	      CHECK_EAGAIN (f_imap, status);
+	      CHECK_ERROR_CLOSE (folder, f_imap, status);
+
+	      status = mu_tls_stream_create_client_from_tcp (&newstr, folder->stream, 0);
+	      if (status != 0)
+		{
+		  mu_error ("folder_imap_open: mu_tls_stream_create_client_from_tcp: %s",
+			    mu_strerror (status));
+		  return status;
+		}
+	      folder->stream = newstr;
+	    }
+#endif /* WITH_TLS */
+
 	  /* Ask for the stream internal buffering mechanism scheme.  */
 	  mu_stream_setbufsiz (folder->stream, BUFSIZ);
         }
@@ -691,7 +733,8 @@ folder_imap_open (mu_folder_t folder, int flags)
             f_imap->state = IMAP_AUTH;
 	  }
       }
-      tls(folder);
+      if (!f_imap->imaps)
+	tls (folder);
       
     case IMAP_AUTH:
     case IMAP_LOGIN:
@@ -2511,4 +2554,5 @@ imap_parse (f_imap_t f_imap)
 #include <stdio.h>
 #include <registrar0.h>
 mu_record_t mu_imap_record = NULL;
-#endif
+mu_record_t mu_imaps_record = NULL;
+#endif /* ENABLE_IMAP */
