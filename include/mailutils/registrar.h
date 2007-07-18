@@ -88,8 +88,10 @@ extern int mu_record_set_get_folder  (mu_record_t,
 
 /* Remote Folder "imap://"  */
 extern mu_record_t mu_imap_record;
+extern mu_record_t mu_imaps_record;
 /* Remote Mailbox POP3, pop://  */
 extern mu_record_t mu_pop_record;
+extern mu_record_t mu_pops_record;
 /* Remote newsgroup NNTP, nntp://  */
 extern mu_record_t mu_nntp_record;
 
@@ -122,7 +124,9 @@ extern mu_record_t mu_sendmail_record;
   mu_registrar_record (mu_path_record);\
   mu_registrar_record (mu_mbox_record);\
   mu_registrar_record (mu_pop_record);\
+  mu_registrar_record (mu_pops_record);\
   mu_registrar_record (mu_imap_record);\
+  mu_registrar_record (mu_imaps_record);\
   mu_registrar_record (mu_mh_record);\
   mu_registrar_record (mu_maildir_record);\
 } while (0)
@@ -136,7 +140,9 @@ extern mu_record_t mu_sendmail_record;
 
 #define mu_register_remote_mbox_formats() do {\
   mu_registrar_record (mu_pop_record);\
+  mu_registrar_record (mu_pops_record);\
   mu_registrar_record (mu_imap_record);\
+  mu_registrar_record (mu_imaps_record);\
   mu_registrar_record (mu_nntp_record);\
 } while (0)
 
