@@ -45,7 +45,7 @@
 
 2007-07-17  Wojciech Polak  <polak@gnu.org>
 
-	* libproto/mailer: New directory. Keeps libmu-mailer.la.
+	* libproto/mailer: New directory. Keeps libmu_mailer.la.
 	* libproto/mailer/Makefile.am: New file.
 	* libproto/mailer/sendmail.c: Moved from mailbox/sendmail.c.
 	* libproto/mailer/smtp.c: Moved from mailbox/smtp.c.
