@@ -36,6 +36,20 @@ a default scheme base on the capability of the server.
 
 For more complete information see @cite{RFC 2368}.
 
+@subsubheading POP3S (POP3 Over SSL)
+The POP3S URL scheme contains a POP server over SSL, optional port
+number and the authentication mechanism. The general form is
+
+@smallexample
+@group
+@indicateurl{pops://[@var{user}[;AUTH=@var{auth}]@@]@var{host}[:@var{port}]}
+ or
+@indicateurl{pops://[@var{user}[:@var{passwd}]@@]@var{host}[:@var{port}]}
+@end group
+@end smallexample
+
+If @emph{:port} is omitted the default value is 995.
+
 @subsubheading IMAP
 The IMAP URL scheme contains an IMAP server, optional port number
 and the authentication mechanism. The general form is
@@ -60,6 +74,20 @@ a default scheme base on the capability of the server.
 @end smallexample
 
 For more complete information see @cite{RFC 2192}.
+
+@subsubheading IMAPS (IMAP Over SSL)
+The IMAPS URL scheme contains an IMAP server over SSL, optional port
+number and the authentication mechanism. The general form is
+
+@smallexample
+@group
+@indicateurl{imaps://[@var{user}[;AUTH=@var{type}]]@@@var{host}[:@var{port}][/@var{mailbox}]}
+ or
+@indicateurl{imaps://[@var{user}[:@var{passwd}]]@@@var{host}[:@var{port}][/@var{mailbox}]}
+@end group
+@end smallexample
+
+If @emph{:port} is omitted the default value is 993.
 
 @subsubheading File
 
