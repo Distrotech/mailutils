@@ -261,6 +261,9 @@ Wojciech Polak @email{polak@@gnu.org}
 
 @item
 @cite{RFC 2368: The mailto URL scheme}
+
+@item
+@cite{RFC 2487: SMTP Service Extension for Secure SMTP over TLS}
 @end itemize
 
 @item POP3
@@ -281,6 +284,9 @@ Protocol (POP3)}
 
 @item
 @cite{RFC 2384: POP URL Scheme}
+
+@item
+@cite{RFC 2595: Using TLS with IMAP, POP3 and ACAP}
 @end itemize
 
 @item IMAP4
@@ -309,6 +315,9 @@ Protocol (POP3)}
 
 @item
 @cite{RFC 2245: Anonymous SASL Mechanism}
+
+@item
+@cite{RFC 2595: Using TLS with IMAP, POP3 and ACAP}
 @end itemize
 
 @item message formats
