@@ -1,3 +1,8 @@
+2007-08-18  Wojciech Polak  <polak@gnu.org>
+
+	* doc/texinfo/mailutils.texi (References): Added RFC 2487 and 2595.
+	* doc/texinfo/url.texi (URL): Document POPS and IMAPS protocols.
+
 2007-08-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libproto/mailer/smtp.c (smtp_send_message): Do not output space
