@@ -1,3 +1,7 @@
+2007-08-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/mta.c: Accomodate for the change from 2007-08-09
+
 2007-08-18  Wojciech Polak  <polak@gnu.org>
 
 	* doc/texinfo/mailutils.texi (References): Added RFC 2487 and 2595.
