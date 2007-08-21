@@ -543,6 +543,16 @@ smtp_kw (const char *name)
   return -1;
 }
 
+static char *
+check_prefix (char *str, const char *prefix)
+{
+  int pflen = strlen (prefix);
+  if (strlen (str) > pflen && strncasecmp (str, prefix, pflen) == 0)
+    return str + pflen;
+  else
+    return NULL;
+}
+
 void
 smtp (int fd)
 {
@@ -552,6 +562,7 @@ smtp (int fd)
   mu_mailbox_t mbox;
   mu_message_t msg;
   char *tempfile;
+  char *rcpt_addr;
   
   in = fdopen (fd, "r");
   out = fdopen (fd, "w");
@@ -610,9 +621,16 @@ smtp (int fd)
 	  switch (kw)
 	    {
 	    case KW_MAIL:
-	      if (argc == 3 && strcasecmp (argv[1], "from:") == 0)
+	      if (argc == 2)
+		from_person = check_prefix (argv[1], "from:");
+	      else if (argc == 3 && strcasecmp (argv[1], "from:") == 0)
+		from_person = argv[2];
+	      else
+		from_person = NULL;
+
+	      if (from_person)
 		{
-		  from_person = strdup (argv[2]);
+		  from_person = strdup (from_person);
 		  smtp_reply (250, "Sender OK");
 		  state = STATE_MAIL;
 		}
@@ -629,9 +647,16 @@ smtp (int fd)
 	  switch (kw)
 	    {
 	    case KW_RCPT:
-	      if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+	      if (argc == 2)
+		rcpt_addr = check_prefix (argv[1], "to:");
+	      else if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+		rcpt_addr = argv[2];
+	      else
+		rcpt_addr = NULL;
+	      
+	      if (rcpt_addr)
 		{
-		  if (add_recipient (argv[2]))
+		  if (add_recipient (rcpt_addr))
 		    smtp_reply (451, "Recipient not accepted");
 		  else
 		    {
@@ -652,12 +677,22 @@ smtp (int fd)
 	  switch (kw)
 	    {
 	    case KW_RCPT:
-	      if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+	      if (argc == 2)
+		rcpt_addr = check_prefix (argv[1], "to:");
+	      else if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+		rcpt_addr = argv[2];
+	      else
+		rcpt_addr = NULL;
+	      
+	      if (rcpt_addr)
 		{
-		  if (add_recipient (argv[2]))
+		  if (add_recipient (rcpt_addr))
 		    smtp_reply (451, "Recipient not accepted");
 		  else
-		    smtp_reply (250, "Recipient OK");
+		    {
+		      smtp_reply (250, "Recipient OK");
+		      state = STATE_RCPT;
+		    }
 		}
 	      else
 		smtp_reply (501, "Syntax error");
