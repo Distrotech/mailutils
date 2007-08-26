@@ -1,3 +1,8 @@
+2007-08-27  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* config/mailutils-config.c (lib_descr): Add mailer.
+	* doc/texinfo/programs.texi (Loader Flags): Update
+
 2007-08-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/mta.c: Accomodate for the change from 2007-08-09
