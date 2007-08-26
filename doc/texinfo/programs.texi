@@ -4240,6 +4240,9 @@ Link against @code{mh} format library.
 @item maildir
 Link against @code{maildir} format library.
 
+@item mailer
+Link against @code{mailer} library.
+
 @item imap
 Link against @code{imap} format library.
 
