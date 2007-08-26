@@ -33,7 +33,7 @@ static struct argp_option options[] = {
    N_("Print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
    N_("Print libraries to link with. Possible arguments are: auth, guile, "
-      "mbox, mh, maildir, imap, pop, sieve and all"), 0},
+      "mbox, mh, maildir, mailer, imap, pop, sieve and all"), 0},
   {"info", 'i', NULL, 0,
    N_("Print a list of configuration options used to build mailutils. If arguments "
    "are given, they are interpreted as a list of configuration options to check "
@@ -108,6 +108,7 @@ struct lib_descr {
   { "imap",   "mu_imap", NEEDAUTH },
   { "pop",    "mu_pop",  NEEDAUTH },
   { "nntp",   "mu_nntp", 0 },
+  { "mailer", "mu_mailer", 0 },
   { "sieve",  "sieve",   NOTALL },
   { NULL }
 };
