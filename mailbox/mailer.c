@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <sys/time.h>
+
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
