@@ -117,9 +117,10 @@ mailutils-specific configuration options:
     --enable-mh-utils
 
         Build a suite of MH utilities.  The GNU implementation of MH
-        is primarily aiming to provide an interface between Mailutils
-        and Emacs using mh-e module.  For more information, refer to
-        files README and TODO in the mh subdirectory.
+        primarily aims to provide an interface between Mailutils' 
+        functionality and Emacs, using the mh-e module. 
+        For more information refer to the TODO file in the mh subdirectory, and
+        the texinfo file, ./doc/texinfo/mu-mh.texi 
 
     --with-mh-bindir=DIR
 
