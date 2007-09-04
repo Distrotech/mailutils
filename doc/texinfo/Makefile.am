@@ -103,3 +103,14 @@ manual:
 	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
 	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
 	$(GENDOCS) $(PACKAGE) '$(PACKAGE_NAME) manual'
+
+
+EXTRA_DIST=gendocs_template mastermenu.el untabify.el
+
+master-menu:
+	emacs -batch -l mastermenu.el -f make-master-menu $(info_TEXINFOS)
+
+untabify:
+	emacs -batch -l untabify.el $(info_TEXINFOS) $(mailutils_TEXINFOS)
+
+final: untabify master-menu
