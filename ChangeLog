@@ -1,3 +1,12 @@
+2007-09-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* README: Reword yesterdays changing by pointing to the
+	documentation, instead of the raw texi file.
+	* doc/texinfo/Makefile.am (master-menu, untabify, final): New
+	goals.
+	* doc/texinfo/mastermenu.el, doc/texinfo/untabify.el: New files
+	* doc/texinfo/mailutils.texi: Rebuild master menu.
+
 2007-09-03  Darel Henman  <dhenman@gmail.com>
 
 	* README:  Editted text in README file related to the
