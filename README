@@ -113,14 +113,17 @@ mailutils-specific configuration options:
 	You may have to explicitly specify LIBS and CPPFLAGS (see
 	above). 
 
-
     --enable-mh-utils
 
         Build a suite of MH utilities.  The GNU implementation of MH
         primarily aims to provide an interface between Mailutils' 
         functionality and Emacs, using the mh-e module. 
-        For more information refer to the TODO file in the mh subdirectory, and
-        the texinfo file, ./doc/texinfo/mu-mh.texi 
+        For more information, refer to the TODO file in the mh
+        subdirectory, and to the section `MH' in the accompanying
+	documentation.  To access it, run
+	`info -f ./doc/texinfo/mailutils.info mh' from the Mailutils
+	root directory. After installation, it will become available
+	by running `info mailutils mh'.
 
     --with-mh-bindir=DIR
 
