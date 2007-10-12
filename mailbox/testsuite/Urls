@@ -47,17 +47,7 @@ scheme:relative/path => SUCCESS
 	path <relative/path>
 	query <>
 
-scheme:///relative/path => SUCCESS
-	scheme <scheme>
-	user <>
-	passwd <>
-	auth <>
-	host <>
-	port 0
-	path <relative/path>
-	query <>
-
-scheme:////absolute/path => SUCCESS
+scheme:///absolute/path => SUCCESS
 	scheme <scheme>
 	user <>
 	passwd <>
@@ -177,7 +167,7 @@ ftp://@//a/path => SUCCESS
 	path </a/path>
 	query <>
 
-ftp:////a/path => SUCCESS
+ftp:/a/path => SUCCESS
 	scheme <ftp>
 	user <>
 	passwd <>
@@ -294,7 +284,7 @@ ftp:///a/path => SUCCESS
 	auth <>
 	host <>
 	port 0
-	path <a/path>
+	path </a/path>
 	query <>
 
 pop://pop.example.net => SUCCESS
