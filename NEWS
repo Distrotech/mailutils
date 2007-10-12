@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-07-05
+GNU mailutils NEWS -- history of user-visible changes. 2007-10-12
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -37,6 +37,13 @@ extern int mu_url_aget_query  (const mu_url_t, char **);
 Any mu_url_get_.* accessors return MU_ERR_ENOENT if the corresponding
 field is not present in the object. Previous versions in that case
 returned 0 and stored empty string in the output buffer.
+
+* Fixed parsing of URLs similar to file:///a/b. 
+
+It is parsed as an absolute file name `a/b'.
+
+Previous versions incorrectly understood such an URL as `a/b'
+(relative file name). 
 
 
 Version 1.2:

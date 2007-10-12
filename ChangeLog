@@ -1,5 +1,6 @@
 2007-10-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update
 	* mailbox/url.c (url_parse0): The notation proto:///file means
 	absolute file name.
 	* mailbox/testsuite/Urls: Likewise
