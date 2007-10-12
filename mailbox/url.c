@@ -226,6 +226,12 @@ url_parse0 (mu_url_t u, char *name)
 
   name += 2;
 
+  if (name[0] == '/')
+    {
+      u->path = name;
+      return 0;
+    }
+   
   /* Split into LHS and RHS of the '@', and then parse each side. */
   u->host = strchr (name, '@');
   if (u->host == NULL)
