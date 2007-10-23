@@ -292,9 +292,12 @@ escape_deadletter (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED,
   FILE *dead = fopen (getenv ("DEAD"), "r");
   int c;
 
-  while ((c = fgetc (dead)) != EOF)
-    fputc (c, ofile);
-  fclose (dead);
+  if (dead)
+    {
+      while ((c = fgetc (dead)) != EOF)
+	fputc (c, ofile);
+      fclose (dead);
+    }
   return 0;
 }
 
