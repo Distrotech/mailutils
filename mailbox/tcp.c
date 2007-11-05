@@ -266,6 +266,42 @@ _tcp_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 int
+_tcp_shutdown (mu_stream_t stream, int how)
+{
+  struct _tcp_instance *tcp = mu_stream_get_owner (stream);
+  int flag;
+  if (tcp->fd == -1)
+    return EINVAL;
+
+  switch (how)
+    {
+    case MU_STREAM_READ:
+      flag = SHUT_RD;
+      break;
+      
+    case MU_STREAM_WRITE:
+      flag = SHUT_WR;
+    }
+
+  if (shutdown (tcp->fd, flag))
+    return errno;
+  return 0;
+}
+
+static void
+_tcp_stream_init (mu_stream_t stream, struct _tcp_instance *tcp)
+{
+  mu_stream_set_open (stream, _tcp_open, tcp);
+  mu_stream_set_close (stream, _tcp_close, tcp);
+  mu_stream_set_read (stream, _tcp_read, tcp);
+  mu_stream_set_write (stream, _tcp_write, tcp);
+  mu_stream_set_get_transport2 (stream, _tcp_get_transport2, tcp);
+  mu_stream_set_destroy (stream, _tcp_destroy, tcp);
+  mu_stream_set_wait (stream, _tcp_wait, tcp);
+  mu_stream_set_shutdown (stream, _tcp_shutdown, tcp);
+}
+
+int
 mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
 				     const char *host, int port,
 				     unsigned long source_ip,
@@ -301,14 +337,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
     return ret;
   }
 
-  mu_stream_set_open (*stream, _tcp_open, tcp);
-  mu_stream_set_close (*stream, _tcp_close, tcp);
-  mu_stream_set_read (*stream, _tcp_read, tcp);
-  mu_stream_set_write (*stream, _tcp_write, tcp);
-  mu_stream_set_get_transport2 (*stream, _tcp_get_transport2, tcp);
-  mu_stream_set_destroy (*stream, _tcp_destroy, tcp);
-  mu_stream_set_wait (*stream, _tcp_wait, tcp);
-
+  _tcp_stream_init (*stream, tcp);
   return 0;
 }
 

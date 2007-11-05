@@ -65,6 +65,7 @@ struct _mu_stream
   int (*_setbufsiz)(mu_stream_t, size_t);
   int (*_strerror) (mu_stream_t, const char **);
   int (*_wait)     (mu_stream_t, int *pflags, struct timeval *tvp);
+  int (*_shutdown) (mu_stream_t, int how);
 };
 
 #ifdef __cplusplus

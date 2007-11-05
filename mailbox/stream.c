@@ -669,6 +669,25 @@ mu_stream_get_state (mu_stream_t stream, int *pstate)
 }
 
 int
+mu_stream_shutdown (mu_stream_t stream, int how)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (!stream->_shutdown)
+    return ENOSYS;
+  switch (how)
+    {
+    case MU_STREAM_READ:
+    case MU_STREAM_WRITE:
+      break;
+
+    default:
+      return EINVAL;
+    }
+  return stream->_shutdown (stream, how);
+}
+
+int
 mu_stream_set_destroy (mu_stream_t stream,
 		       void (*_destroy) (mu_stream_t), void *owner)
 {
@@ -846,6 +865,20 @@ mu_stream_set_wait (mu_stream_t stream,
     return EACCES;
   stream->_wait = wait;
   return 0;
+}
+
+int
+mu_stream_set_shutdown (mu_stream_t stream,
+			int (*_shutdown) (mu_stream_t, int how), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_shutdown = _shutdown;
+      return 0;
+    }
+  return EACCES;
 }
 
 int

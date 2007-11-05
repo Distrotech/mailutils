@@ -56,6 +56,8 @@ extern int mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
 						  const char *host, int port,
 						  const char *source_host,
 						  int flags);
+extern int mu_socket_stream_create (mu_stream_t *stream, const char *filename,
+				    int flags);
   
 extern int mu_mapfile_stream_create (mu_stream_t *stream, const char* filename,
 				     int flags);
@@ -91,6 +93,7 @@ extern int mu_stream_write       (mu_stream_t, const char *, size_t, mu_off_t,
 				  size_t *);
 extern int mu_stream_setbufsiz   (mu_stream_t stream, size_t size);
 extern int mu_stream_flush       (mu_stream_t);
+extern int mu_stream_shutdown    (mu_stream_t stream, int how);
 
 extern int mu_stream_vprintf     (mu_stream_t os, mu_off_t *poff, 
                                   const char *fmt, va_list ap);
@@ -166,6 +169,9 @@ extern int mu_stream_set_strerror (mu_stream_t stream,
 
 extern int mu_stream_set_wait (mu_stream_t stream,
       int (*wait) (mu_stream_t, int *, struct timeval *), void *owner);
+
+extern int mu_stream_set_shutdown (mu_stream_t stream,
+      int (*_shutdown) (mu_stream_t, int how), void *owner);
   
 extern int mu_stream_sequential_read (mu_stream_t stream,
       char *buf, size_t size, size_t *nbytes);

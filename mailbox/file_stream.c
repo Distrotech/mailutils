@@ -546,8 +546,8 @@ mu_file_stream_create (mu_stream_t *stream, const char* filename, int flags)
   ret = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
-      free (fs);
       free (fs->filename);
+      free (fs);
       return ret;
     }
 
