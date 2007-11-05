@@ -17,7 +17,7 @@
 	Implement normal UNIX-style configuration files:
 	
 	* mailbox/cfg_lexer.c: New file.
-	* mailbox/cfg_parser.c: New file.
+	* mailbox/cfg_parser.y: New file.
 	* mailbox/cfg_parser.h: New file.
 	* mailbox/Makefile.am: Add cfg_ sources and socket_stream.c.
 	
