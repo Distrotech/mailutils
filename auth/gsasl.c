@@ -41,8 +41,7 @@ char *mu_gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
 #define ARG_CRAM_PASSWD 1
 
 static struct argp_option _gsasl_argp_options[] = {
-  {NULL, 0, NULL, 0, N_("GSASL options"), 0},
-  {"cram-passwd", ARG_CRAM_PASSWD, N_("FILE"), 0,
+  {"cram-passwd", ARG_CRAM_PASSWD, N_("FILE"), OPTION_HIDDEN,
    N_("Specify password file for CRAM-MD5 authentication"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -77,7 +76,7 @@ static struct argp_child _gsasl_argp_child = {
 void
 mu_gsasl_init_argp ()
 {
-  if (mu_register_capa ("gsasl", &_gsasl_argp_child))
+  if (mu_register_capa ("gsasl", &_gsasl_argp_child, NULL))
     {
       mu_error (_("INTERNAL ERROR: cannot register argp capability gsasl"));
       abort ();

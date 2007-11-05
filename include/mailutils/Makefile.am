@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
  attribute.h \
  auth.h \
  body.h \
+ cfg.h \
  compat.h \
  daemon.h \
  debug.h \

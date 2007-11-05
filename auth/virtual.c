@@ -191,7 +191,7 @@ mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp_option mu_virt_argp_option[] = {
-  { "virtual-passwd-dir", ARG_PWDDIR, N_("DIR"), 0,
+  { "virtual-passwd-dir", ARG_PWDDIR, N_("DIR"), OPTION_HIDDEN,
     N_("Search for virtual passwd file in DIR"), 0},
     { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -216,7 +216,9 @@ struct mu_auth_module mu_auth_virtual_module = {
   "virtdomain",
 #ifdef ENABLE_VIRTUAL_DOMAINS
   &mu_virt_argp,
+  NULL,
 #else
+  NULL,
   NULL,
 #endif
   mu_auth_nosupport,

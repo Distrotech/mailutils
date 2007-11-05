@@ -41,7 +41,8 @@ int login_disabled;             /* Disable LOGIN command */
 int tls_required;               /* Require STARTTLS */
 int create_home_dir;            /* Create home directory if it does not
 				   exist */
-int home_dir_mode;
+int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+
 
 /* Number of child processes.  */
 size_t children;
@@ -54,20 +55,22 @@ static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 #define ARG_CREATE_HOME_DIR 3
 
 static struct argp_option options[] = {
-  {"other-namespace", 'O', N_("PATHLIST"), 0,
+  {"other-namespace", 'O', N_("PATHLIST"), OPTION_HIDDEN,
    N_("Set the `other' namespace"), 0},
-  {"shared-namespace", 'S', N_("PATHLIST"), 0,
+  {"shared-namespace", 'S', N_("PATHLIST"), OPTION_HIDDEN,
    N_("Set the `shared' namespace"), 0},
-  {"login-disabled", ARG_LOGIN_DISABLED, NULL, 0,
+  {"login-disabled", ARG_LOGIN_DISABLED, NULL, OPTION_HIDDEN,
    N_("Disable LOGIN command")},
-  {"create-home-dir", ARG_CREATE_HOME_DIR, N_("MODE"), OPTION_ARG_OPTIONAL,
+  {"create-home-dir", ARG_CREATE_HOME_DIR, N_("MODE"),
+   OPTION_ARG_OPTIONAL|OPTION_HIDDEN,
    N_("Create home directory, if it does not exist")},
 #ifdef WITH_TLS
-  {"tls-required", ARG_TLS_REQUIRED, NULL, 0,
+  {"tls-required", ARG_TLS_REQUIRED, NULL, OPTION_HIDDEN,
    N_("Always require STARTTLS before entering authentication phase")},
 #endif
   {NULL, 0, NULL, 0, NULL, 0}
 };
+
 
 static error_t imap4d_parse_opt (int key, char *arg,
 				 struct argp_state *state);
@@ -120,7 +123,6 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARG_LOGIN_DISABLED:
       login_disabled = 1;
-      imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
       break;
 
     case ARG_CREATE_HOME_DIR:
@@ -132,14 +134,11 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 	  if (p || (home_dir_mode & 0777))
 	    argp_error (state, _("Invalid mode specification: %s"), arg);
 	}
-      else
-	home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
       break;
 	
 #ifdef WITH_TLS
     case ARG_TLS_REQUIRED:
       tls_required = 1;
-      imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
       break;
 #endif
       
@@ -149,6 +148,41 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+static int
+cb_other (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_namespace (NS_OTHER, arg);
+  return 0;
+}
+
+static int
+cb_shared (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_namespace (NS_SHARED, arg);
+  return 0;
+}
+
+static int
+cb_mode (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  char *p;
+  home_dir_mode = strtoul (arg, &p, 8);
+  if (p || (home_dir_mode & 0777))
+    mu_error (_("%s:%d: Invalid mode specification: %s"),
+	      locus->file, locus->line, arg);
+  return 0;
+}
+
+static struct mu_cfg_param imap4d_cfg_param[] = {
+  { "other-namespace", mu_cfg_callback, NULL, cb_other },
+  { "shared-namespace", mu_cfg_callback, NULL, cb_shared },
+  { "login-disabled", mu_cfg_int, &login_disabled },
+  { "create-home-dir", mu_cfg_bool, &create_home_dir },
+  { "home-dir-mode", mu_cfg_callback, NULL, cb_mode },
+  { "tls-required", mu_cfg_int, &tls_required },
+  { NULL }
+};
+    
 int
 main (int argc, char **argv)
 {
@@ -170,8 +204,16 @@ main (int argc, char **argv)
 #ifdef WITH_GSASL
   mu_gsasl_init_argp ();
 #endif
+  mu_config_register_plain_section (NULL, NULL, imap4d_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
 
+  if (login_disabled)
+    imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
+#ifdef WITH_TLS
+  if (tls_required)
+    imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
+#endif
+  
   auth_gssapi_init ();
   auth_gsasl_init ();
   

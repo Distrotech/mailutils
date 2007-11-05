@@ -116,7 +116,7 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
 void
 mu_sieve_argp_init ()
 {
-  if (mu_register_capa ("sieve", &sieve_argp_child))
+  if (mu_register_capa ("sieve", &sieve_argp_child, NULL))
     {
       mu_error ("INTERNAL ERROR: cannot register argp capability sieve");
       abort ();

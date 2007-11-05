@@ -241,8 +241,10 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
   return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, pass);
 }
 
-/* Modules & configuration */
-
+
+/* ************************************************************************* */
+/* Traditional configuration                                                 */
+/* ************************************************************************* */
 
 #define ARG_AUTHORIZATION 1
 #define ARG_AUTHENTICATION 2
@@ -252,22 +254,22 @@ static error_t mu_auth_argp_parser (int key, char *arg,
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
-  { "authentication", ARG_AUTHENTICATION, N_("MODLIST"), 0,
+  { "authentication", ARG_AUTHENTICATION, N_("MODLIST"), OPTION_HIDDEN,
     N_("Set the list of modules to be used for authentication"), 0 },
-  { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), 0,
+  { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), OPTION_HIDDEN,
     N_("Set list of modules to be used for authorization"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-struct argp mu_auth_argp = {
+static struct argp mu_auth_argp = {
   mu_auth_argp_option,
   mu_auth_argp_parser,
 };
 
-struct argp_child mu_auth_argp_child = {
+static struct argp_child mu_auth_argp_child = {
   &mu_auth_argp,
   0,
-  "Authentication options",
+  NULL,
   0
 };
 
@@ -295,6 +297,43 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+
+/* ************************************************************************* */
+/* Resource-style configuration                                              */
+/* ************************************************************************* */
+static int
+cb_authentication (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  mu_authentication_add_module_list (arg);/*FIXME: error reporting*/
+  return 0;
+}
+
+static int
+cb_authorization (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  mu_authorization_add_module_list (arg);
+  return 0;
+}
+
+static struct mu_cfg_param mu_auth_param[] = {
+  { "authentication", mu_cfg_callback, NULL, cb_authentication },
+  { "authorization", mu_cfg_callback, NULL, cb_authorization },
+  { NULL }
+};
+
+
+void
+mu_auth_init ()
+{
+  if (mu_register_capa ("auth", &mu_auth_argp_child, mu_auth_param))
+    {
+      mu_error (_("INTERNAL ERROR: cannot register argp capability auth (please report)"));
+      abort ();
+    }
+}
+
+
+/* ************************************************************************* */
 
 struct _module_handler {
   struct auth_stack_entry authenticate;
@@ -342,7 +381,10 @@ mu_auth_register_module (struct mu_auth_module *mod)
       cp++;
       cp->argp = NULL;
     }
-
+  
+  if (mod->cfg)
+    mu_config_register_plain_section (NULL, mod->name, mod->cfg);
+  
   if (!module_handler_list && mu_list_create (&module_handler_list))
     abort ();
 

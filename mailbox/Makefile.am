@@ -32,7 +32,7 @@ AM_CPPFLAGS = \
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y fgetpwent.c
+EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y fgetpwent.c cfg_parser.y cfg_parser.h
 
 libmailutils_la_SOURCES = \
 address.c \
@@ -46,6 +46,8 @@ body.c \
 daemon.c \
 date.c \
 debug.c \
+cfg_lexer.c \
+cfg_parser.c \
 envelope.c \
 file_stream.c \
 filter.c \
@@ -83,6 +85,7 @@ parsedate.c \
 property.c \
 registrar.c \
 rfc2047.c \
+socket_stream.c \
 stream.c \
 system.c \
 tcp.c \
@@ -97,6 +100,12 @@ parsedate.c: $(srcdir)/parsedate.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS)" $< \
 	          y.tab.c parsedate.c y.output parsedate.y.output \
                   -- -yy pd_yy
+
+cfg_parser.c: $(srcdir)/cfg_parser.y
+	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
+	          y.tab.c cfg_parser.c y.tab.h cfg_parser.h \
+                  y.output cfg_parser.y.output \
+                  -- -yy mu_cfg_yy
 
 muerrno.c: errors muerrno.cin
 	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@

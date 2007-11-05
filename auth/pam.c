@@ -150,7 +150,7 @@ mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp_option mu_pam_argp_option[] = {
-  { "pam-service", ARG_PAM_SERVICE, N_("STRING"), 0,
+  { "pam-service", ARG_PAM_SERVICE, N_("STRING"), OPTION_HIDDEN,
     N_("Use STRING as PAM service name"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -179,7 +179,9 @@ struct mu_auth_module mu_auth_pam_module = {
   "pam",
 #ifdef USE_LIBPAM
   &mu_pam_argp,
+  NULL,
 #else
+  NULL,
   NULL,
 #endif
   mu_authenticate_pam,

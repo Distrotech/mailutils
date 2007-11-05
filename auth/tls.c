@@ -55,12 +55,11 @@ static char *ssl_cafile = NULL;
 #define ARG_SSL_CAFILE 4
 
 static struct argp_option _tls_argp_options[] = {
-  {NULL, 0, NULL, 0, N_("Encryption options"), 0},
-  {"ssl-cert", ARG_SSL_CERT, N_("FILE"), 0,
+  {"ssl-cert", ARG_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
    N_("Specify SSL certificate file"), 0},
-  {"ssl-key", ARG_SSL_KEY, N_("FILE"), 0,
-   N_("Specify SSL certificate key"), 0},
-  {"ssl-cafile", ARG_SSL_CAFILE, N_("FILE"), 0,
+  {"ssl-key", ARG_SSL_KEY, N_("FILE"), OPTION_HIDDEN,
+   N_("Specify SSL certificate key"), },
+  {"ssl-cafile", ARG_SSL_CAFILE, N_("FILE"), OPTION_HIDDEN,
    N_("Specify trusted CAs file"), 0},
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -117,7 +116,7 @@ static struct argp_child _tls_argp_child = {
 void
 mu_tls_init_argp ()
 {
-  if (mu_register_capa ("tls", &_tls_argp_child))
+  if (mu_register_capa ("tls", &_tls_argp_child, NULL))
     {
       mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
       abort ();
@@ -145,7 +144,7 @@ static struct argp_child _tls_argp_client_child = {
 void
 mu_tls_init_client_argp ()
 {
-  if (mu_register_capa ("tls", &_tls_argp_client_child))
+  if (mu_register_capa ("tls", &_tls_argp_client_child, NULL))
     {
       mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
       abort ();

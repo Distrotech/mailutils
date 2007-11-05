@@ -138,6 +138,7 @@ mu_authenticate_system (struct mu_auth_data **return_data MU_ARG_UNUSED,
 struct mu_auth_module mu_auth_system_module = {
   "system",
   NULL,
+  NULL,
   mu_authenticate_system,
   NULL,
   mu_auth_system_by_name,
@@ -149,6 +150,7 @@ struct mu_auth_module mu_auth_system_module = {
 
 struct mu_auth_module mu_auth_generic_module = {
   "generic",
+  NULL,
   NULL,
   mu_authenticate_generic,
   NULL,

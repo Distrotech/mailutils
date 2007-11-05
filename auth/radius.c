@@ -51,13 +51,13 @@
 #define ARG_RADIUS_DIR       259 
 
 static struct argp_option mu_radius_argp_option[] = {
-  { "radius-auth-request", ARG_AUTH_REQUEST, N_("REQUEST"), 0,
+  { "radius-auth-request", ARG_AUTH_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("Radius request to authenitcate the user"), 0 },
-  { "radius-getpwnam-request", ARG_GETPWNAM_REQUEST, N_("REQUEST"), 0,
+  { "radius-getpwnam-request", ARG_GETPWNAM_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("Radius request to retrieve a passwd entry based on username"), 0 },
-  { "radius-getpwuid-request", ARG_GETPWUID_REQUEST, N_("REQUEST"), 0,
+  { "radius-getpwuid-request", ARG_GETPWUID_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("Radius request to retrieve a passwd entry based on UID"), 0 },
-  { "radius-directory", ARG_RADIUS_DIR, N_("DIR"), 0,
+  { "radius-directory", ARG_RADIUS_DIR, N_("DIR"), OPTION_HIDDEN,
     N_("Set path to the radius configuration directory"), 0 },
   { NULL }
 };
@@ -598,7 +598,9 @@ struct mu_auth_module mu_auth_radius_module = {
   "radius",
 #ifdef ENABLE_RADIUS
   &mu_radius_argp,
+  NULL,
 #else
+  NULL,
   NULL,
 #endif
   mu_radius_authenticate,

@@ -21,6 +21,7 @@
 #define _MAILUTILS_ARGP_H
 
 #include <mailutils/types.h>
+#include <mailutils/cfg.h>
 #include <argp.h>
 #include <errno.h> /* May declare program_invocation_name */
 
@@ -49,15 +50,13 @@ extern "C" {
 
 extern void mu_argp_init (const char *vers, const char *bugaddr);
   
-extern void mu_create_argcv (const char *capa[],
-			     int argc, char **argv,
-		   	     int *p_argc, char ***p_argv);
 extern error_t mu_argp_parse (const struct argp * argp,
 			      int *p_argc, char ***p_argv,
 			      unsigned flags,
 			      const char *capa[],
 			      int *arg_index, void *input);
-extern int mu_register_capa (const char *name, struct argp_child *child);
+extern int mu_register_capa (const char *name, struct argp_child *child,
+			     struct mu_cfg_param *param);
 
 extern void mu_print_options (void);
 extern const char *mu_check_option (char *name);
