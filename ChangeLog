@@ -1,3 +1,50 @@
+2007-11-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement socket stream type and shutdown method for streams:
+	
+	* mailbox/socket_stream.c: New file.
+	* include/mailutils/stream.h (mu_socket_stream_create)
+	(mu_stream_shutdown, mu_stream_set_shutdown): New functions.
+	* libproto/include/stream0.h (struct _mu_stream): New member
+	`_shutdown'. 
+	* mailbox/file_stream.c (mu_stream_create): Bugfix.
+	* mailbox/stream.c (mu_stream_shutdown)
+	(mu_stream_set_shutdown): New functions.
+	* mailbox/tcp.c (_tcp_shutdown): New function.
+	(_tcp_stream_init): New function.
+	(mu_tcp_stream_create_with_source_ip): Register _tcp_shutdown.
+	
+	Implement normal UNIX-style configuration files:
+	
+	* mailbox/cfg_lexer.c: New file.
+	* mailbox/cfg_parser.c: New file.
+	* mailbox/cfg_parser.h: New file.
+	* mailbox/Makefile.am: Add cfg_ sources and socket_stream.c.
+	
+	* include/mailutils/cfg.h: New file.
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add cfg.h.
+	* include/mailutils/argp.h: Include cfg.h.
+	(mu_create_argcv): Remove prototype.
+	* include/mailutils/mu_auth.h (struct mu_auth_module): New member
+	`cfg'.
+	(MU_AUTH_REGISTER_ALL_MODULES): Call mu_auth_init first.
+
+	* mailbox/mu_argp.c: Rewrite. Implement normal configuration
+	(resource) file support. Overloaded command line options begin to
+	phase out.
+	* mailbox/mu_auth.c, auth/gsasl.c, auth/pam.c, auth/radius.c,
+	auth/sql.c, auth/tls.c, auth/virtual.c, libsieve/argp.c,
+	mailbox/system.c: Implement configuration statements.
+	
+	* imap4d/imap4d.c: Begin switching to the new configuration scheme.
+
+	* mh/mh_whatnow.c, mh/send.c, sql/mysql.c, sql/odbc.c,
+	sql/postgres.c: Keep the namespace clean. 
+
+2007-10-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mail/escape.c (escape_deadletter): Add missing check.
+
 2007-10-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update
