@@ -696,7 +696,7 @@ _action_send (void *item, void *data)
 }
 
 static int
-send (int argc, char **argv)
+do_send (int argc, char **argv)
 {
   int i, rc;
   char *p;
@@ -762,5 +762,5 @@ main (int argc, char **argv)
       argc = 1;
     }
 
-  return send (argc, argv);  
+  return do_send (argc, argv);  
 }

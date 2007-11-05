@@ -61,7 +61,7 @@ do_mysql_query (mu_sql_connection_t conn, char *query)
 /* Interface routines */
 
 static int
-init (mu_sql_connection_t conn)
+mu_mysql_init (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = calloc (1, sizeof (*mp));
   if (!mp)
@@ -71,7 +71,7 @@ init (mu_sql_connection_t conn)
 }
 
 static int
-destroy (mu_sql_connection_t conn)
+mu_mysql_destroy (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   free (mp->mysql);
@@ -82,7 +82,7 @@ destroy (mu_sql_connection_t conn)
   
 
 static int
-connect (mu_sql_connection_t conn)
+mu_mysql_connect (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   char *host, *socket_name = NULL;
@@ -115,7 +115,7 @@ connect (mu_sql_connection_t conn)
 }
 
 static int 
-disconnect (mu_sql_connection_t conn)
+mu_mysql_disconnect (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   
@@ -126,7 +126,7 @@ disconnect (mu_sql_connection_t conn)
 }
 
 static int
-query (mu_sql_connection_t conn, char *query)
+mu_mysql_query (mu_sql_connection_t conn, char *query)
 {
   if (do_mysql_query (conn, query)) 
     return MU_ERR_SQL;
@@ -135,7 +135,7 @@ query (mu_sql_connection_t conn, char *query)
 
 
 static int
-store_result (mu_sql_connection_t conn)
+mu_mysql_store_result (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   if (!(mp->result = mysql_store_result (mp->mysql)))
@@ -148,7 +148,7 @@ store_result (mu_sql_connection_t conn)
 }
 
 static int
-release_result (mu_sql_connection_t conn)
+mu_mysql_release_result (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   mysql_free_result (mp->result);
@@ -157,7 +157,7 @@ release_result (mu_sql_connection_t conn)
 }
 
 static int
-num_columns (mu_sql_connection_t conn, size_t *np)
+mu_mysql_num_columns (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_mysql_data *mp = conn->data;
   *np = mysql_num_fields (mp->result);
@@ -165,7 +165,7 @@ num_columns (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-num_tuples (mu_sql_connection_t conn, size_t *np)
+mu_mysql_num_tuples (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_mysql_data *mp = conn->data;
   *np = mysql_num_rows (mp->result);
@@ -173,7 +173,8 @@ num_tuples (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
+mu_mysql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
+		     char **pdata)
 {
   struct mu_mysql_data *mp = conn->data;
   MYSQL_ROW row;
@@ -191,7 +192,8 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
 }
 
 static int
-get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+mu_mysql_get_field_number (mu_sql_connection_t conn, const char *fname,
+			   size_t *fno)
 {
   struct mu_mysql_data *mp = conn->data;
   MYSQL_FIELD *fields;
@@ -212,7 +214,7 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
 }
 
 static const char *
-errstr (mu_sql_connection_t conn)
+mu_mysql_errstr (mu_sql_connection_t conn)
 {
   struct mu_mysql_data *mp = conn->data;
   return mysql_error (mp->mysql);
@@ -355,17 +357,17 @@ mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
 MU_DECL_SQL_DISPATCH_T(mysql) = {
   "mysql",
   3306,
-  init,
-  destroy,
-  connect,
-  disconnect,
-  query,
-  store_result,
-  release_result,
-  num_tuples,
-  num_columns,
-  get_column,
-  get_field_number,
-  errstr,
+  mu_mysql_init,
+  mu_mysql_destroy,
+  mu_mysql_connect,
+  mu_mysql_disconnect,
+  mu_mysql_query,
+  mu_mysql_store_result,
+  mu_mysql_release_result,
+  mu_mysql_num_tuples,
+  mu_mysql_num_columns,
+  mu_mysql_get_column,
+  mu_mysql_get_field_number,
+  mu_mysql_errstr,
 };
 

@@ -46,7 +46,7 @@ struct mu_pgsql_data
 
 
 static int
-init (mu_sql_connection_t conn)
+postgres_init (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = calloc (1, sizeof (*dp));
   if (!dp)
@@ -56,7 +56,7 @@ init (mu_sql_connection_t conn)
 }
 
 static int
-destroy (mu_sql_connection_t conn)
+postgres_destroy (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   free (dp);
@@ -65,7 +65,7 @@ destroy (mu_sql_connection_t conn)
 }
 
 static int
-connect (mu_sql_connection_t conn)
+postgres_connect (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   char portbuf[16];
@@ -88,7 +88,7 @@ connect (mu_sql_connection_t conn)
 }
 
 static int 
-disconnect (mu_sql_connection_t conn)
+postgres_disconnect (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   PQfinish (dp->pgconn);
@@ -96,7 +96,7 @@ disconnect (mu_sql_connection_t conn)
 }
 
 static int
-query (mu_sql_connection_t conn, char *query)
+postgres_query (mu_sql_connection_t conn, char *query)
 {
   struct mu_pgsql_data *dp = conn->data;
   ExecStatusType stat;
@@ -114,13 +114,13 @@ query (mu_sql_connection_t conn, char *query)
 }
 
 static int
-store_result (mu_sql_connection_t conn)
+postgres_store_result (mu_sql_connection_t conn)
 {
   return 0;
 }
 
 static int
-release_result (mu_sql_connection_t conn)
+postgres_release_result (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   PQclear (dp->res);
@@ -129,7 +129,7 @@ release_result (mu_sql_connection_t conn)
 }
 
 static int
-num_columns (mu_sql_connection_t conn, size_t *np)
+postgres_num_columns (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_pgsql_data *dp = conn->data;
   if (!dp->res)
@@ -139,7 +139,7 @@ num_columns (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-num_tuples (mu_sql_connection_t conn, size_t *np)
+postgres_num_tuples (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_pgsql_data *dp = conn->data;
   if (!dp->res)
@@ -149,7 +149,8 @@ num_tuples (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
+postgres_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
+		     char **pdata)
 {
   struct mu_pgsql_data *dp = conn->data;
   if (!dp->res)
@@ -159,7 +160,8 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
 }
 
 static int
-get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+postgres_get_field_number (mu_sql_connection_t conn, const char *fname,
+			   size_t *fno)
 {
   struct mu_pgsql_data *dp = conn->data;
   if (!dp->res)
@@ -170,7 +172,7 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
 }
 
 static const char *
-errstr (mu_sql_connection_t conn)
+postgres_errstr (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
   return PQerrorMessage (dp->pgconn);
@@ -180,18 +182,18 @@ errstr (mu_sql_connection_t conn)
 MU_DECL_SQL_DISPATCH_T(postgres) = {
   "postgres",
   5432,
-  init,
-  destroy,
-  connect,
-  disconnect,
-  query,
-  store_result,
-  release_result,
-  num_tuples,
-  num_columns,
-  get_column,
-  get_field_number,
-  errstr,
+  postgres_init,
+  postgres_destroy,
+  postgres_connect,
+  postgres_disconnect,
+  postgres_query,
+  postgres_store_result,
+  postgres_release_result,
+  postgres_num_tuples,
+  postgres_num_columns,
+  postgres_get_column,
+  postgres_get_field_number,
+  postgres_errstr,
 };
 
 #endif

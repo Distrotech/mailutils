@@ -441,7 +441,7 @@ refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 
 /* Send action */
 static int
-send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+call_send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   if (invoke ("sendproc", MHBINDIR "/send", argc, argv, wh->file, NULL) == 0)
     annotate (wh);
@@ -541,7 +541,7 @@ static struct action_tab whatnow_tab[] = {
   { "push", push },
   { "quit", quit },
   { "refile", refile },
-  { "send", send },
+  { "send", call_send },
   { "whom", whom },
   { NULL }
 };

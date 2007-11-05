@@ -60,7 +60,7 @@ mu_odbc_diag(struct mu_odbc_data *dp,
 /* Interface routines */
 
 static int
-init (mu_sql_connection_t conn)
+odbc_init (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = calloc (1, sizeof (*dp));
   if (!dp)
@@ -70,7 +70,7 @@ init (mu_sql_connection_t conn)
 }
 
 static int
-destroy (mu_sql_connection_t conn)
+odbc_destroy (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
   free (dp->err.msg);
@@ -83,7 +83,7 @@ destroy (mu_sql_connection_t conn)
 }
 
 static int
-connect (mu_sql_connection_t conn)
+odbc_connect (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
   long rc;
@@ -124,7 +124,7 @@ connect (mu_sql_connection_t conn)
 }
 
 static int 
-disconnect (mu_sql_connection_t conn)
+odbc_disconnect (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;   
   SQLDisconnect (dp->dbc);
@@ -133,7 +133,7 @@ disconnect (mu_sql_connection_t conn)
 }
 
 static int
-query (mu_sql_connection_t conn, char *query)
+odbc_query (mu_sql_connection_t conn, char *query)
 {
   struct mu_odbc_data *dp = conn->data;
   long rc;
@@ -171,7 +171,7 @@ query (mu_sql_connection_t conn, char *query)
 }
 
 static int
-store_result (mu_sql_connection_t conn)
+odbc_store_result (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
   mu_list_create (&dp->result);
@@ -179,17 +179,17 @@ store_result (mu_sql_connection_t conn)
 }
 
 static int
-free_char_data (void *item, void *data MU_ARG_UNUSED)
+odbc_free_char_data (void *item, void *data MU_ARG_UNUSED)
 {
   free (item);
   return 0;
 }
 
 static int
-release_result (mu_sql_connection_t conn)
+odbc_release_result (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
-  mu_list_do (dp->result, free_char_data, NULL);
+  mu_list_do (dp->result, odbc_free_char_data, NULL);
   mu_list_destroy (&dp->result);
   mu_argcv_free (dp->fcount, dp->fnames);
   dp->fcount = 0;
@@ -198,7 +198,7 @@ release_result (mu_sql_connection_t conn)
 }
 
 static int
-num_columns (mu_sql_connection_t conn, size_t *np)
+odbc_num_columns (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_odbc_data *dp = conn->data;
   SQLSMALLINT  count;
@@ -217,7 +217,7 @@ num_columns (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-num_tuples (mu_sql_connection_t conn, size_t *np)
+odbc_num_tuples (mu_sql_connection_t conn, size_t *np)
 {
   struct mu_odbc_data *dp = conn->data;
   SQLINTEGER count;
@@ -232,7 +232,8 @@ num_tuples (mu_sql_connection_t conn, size_t *np)
 }
 
 static int
-get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
+odbc_get_column (mu_sql_connection_t conn,
+		 size_t nrow, size_t ncol, char **pdata)
 {
   struct mu_odbc_data *dp = conn->data;
   char buffer[1024];
@@ -258,7 +259,8 @@ get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol, char **pdata)
 
 /* FIXME: untested */
 static int
-get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
+odbc_get_field_number (mu_sql_connection_t conn, const char *fname,
+		       size_t *fno)
 {
   size_t count;
   struct mu_odbc_data *dp = conn->data;
@@ -268,7 +270,7 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
     {
       int rc;
       
-      rc = num_columns (conn, &count);
+      rc = odbc_num_columns (conn, &count);
       if (rc)
 	return rc;
       dp->fnames = calloc(count + 1, sizeof dp->fnames[0]);
@@ -335,7 +337,7 @@ get_field_number (mu_sql_connection_t conn, const char *fname, size_t *fno)
 #define DEFAULT_ERROR_BUFFER_SIZE 1024
 
 static const char *
-errstr (mu_sql_connection_t conn)
+odbc_errstr (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;   
   char state[16];
@@ -380,16 +382,16 @@ errstr (mu_sql_connection_t conn)
 MU_DECL_SQL_DISPATCH_T(odbc) = {
   "odbc",
   0,
-  init,
-  destroy,
-  connect,
-  disconnect,
-  query,
-  store_result,
-  release_result,
-  num_tuples,
-  num_columns,
-  get_column,
-  get_field_number,
-  errstr,
+  odbc_init,
+  odbc_destroy,
+  odbc_connect,
+  odbc_disconnect,
+  odbc_query,
+  odbc_store_result,
+  odbc_release_result,
+  odbc_num_tuples,
+  odbc_num_columns,
+  odbc_get_column,
+  odbc_get_field_number,
+  odbc_errstr,
 };
