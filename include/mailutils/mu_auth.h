@@ -62,6 +62,7 @@ struct mu_auth_module
 {
   char           *name;
   struct argp    *argp;
+  struct mu_cfg_param *cfg;
   mu_auth_fp     authenticate;
   void           *authenticate_data;
   mu_auth_fp     auth_by_name;
@@ -127,12 +128,13 @@ extern struct mu_auth_module mu_auth_virtual_module;
 extern struct mu_auth_module mu_auth_radius_module;
 
 #define MU_AUTH_REGISTER_ALL_MODULES() do {\
+  mu_auth_init (); \
   mu_auth_register_module (&mu_auth_generic_module); \
   mu_auth_register_module (&mu_auth_system_module); \
   mu_auth_register_module (&mu_auth_pam_module);\
   mu_auth_register_module (&mu_auth_sql_module);\
   mu_auth_register_module (&mu_auth_virtual_module);\
   mu_auth_register_module (&mu_auth_radius_module);\
-  mu_auth_init (); } while (0)
+  } while (0)
 
 #endif
