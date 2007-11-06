@@ -933,7 +933,12 @@ static int
 message_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   mu_message_t msg = mu_stream_get_owner (stream);
-  return mu_message_size (msg, (size_t*) psize);
+  size_t size;
+  int rc = mu_message_size (msg, &size); /* FIXME: should it get mu_off_t as
+                                            its 2nd argument */
+  if (rc == 0)
+    *psize = size;
+  return rc;
 }
 
 static int
