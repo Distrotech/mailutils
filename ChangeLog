@@ -1,3 +1,7 @@
+2007-11-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/message.c (message_stream_size): Bugfix.
+
 2007-11-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement socket stream type and shutdown method for streams:
