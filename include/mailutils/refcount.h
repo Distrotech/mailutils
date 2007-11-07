@@ -26,17 +26,11 @@
 extern "C" {
 #endif
 
-/* FIXME: Declaration should be hidden in mailutils/sys/refcount.h */
-struct _mu_refcount
-{
-  unsigned int ref;
-  mu_monitor_t lock;
-};
-
 extern int  mu_refcount_create  (mu_refcount_t *);
 extern void mu_refcount_destroy (mu_refcount_t *);
-extern int  mu_refcount_inc     (mu_refcount_t);
-extern int  mu_refcount_dec     (mu_refcount_t);
+extern unsigned mu_refcount_value (mu_refcount_t);
+extern unsigned mu_refcount_inc   (mu_refcount_t);
+extern unsigned mu_refcount_dec   (mu_refcount_t);
 
 #ifdef __cplusplus
 }

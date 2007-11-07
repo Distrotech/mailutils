@@ -98,6 +98,7 @@ enum mu_cfg_param_data_type
     mu_cfg_ulong,
     mu_cfg_size,
     mu_cfg_off,
+    mu_cfg_time,
     mu_cfg_bool,
     mu_cfg_ipv4,
     mu_cfg_cidr,
@@ -130,8 +131,26 @@ struct mu_cfg_section
   const char *ident;
   mu_cfg_section_fp parser;
   void *data;
-  struct mu_cfg_section *subsec;
-  struct mu_cfg_param *param;
+  mu_list_t /* of mu_cfg_cont/mu_cfg_section */ subsec;
+  mu_list_t /* of mu_cfg_cont/mu_cfg_param */ param;
+};
+
+enum mu_cfg_cont_type
+  {
+    mu_cfg_cont_section,
+    mu_cfg_cont_param
+  };
+
+struct mu_cfg_cont
+{
+  enum mu_cfg_cont_type type;
+  mu_refcount_t refcount;
+  union
+  {
+    const char *ident;
+    struct mu_cfg_section section;
+    struct mu_cfg_param param;
+  } v;
 };
 
 typedef struct mu_cfg_cidr mu_cfg_cidr_t;
@@ -141,6 +160,11 @@ struct mu_cfg_cidr
   struct in_addr addr;
   unsigned long mask;
 };
+
+int mu_config_create_container (struct mu_cfg_cont **pcont,
+				enum mu_cfg_cont_type type);
+int mu_config_clone_container (struct mu_cfg_cont *cont);
+void mu_config_destroy_container (struct mu_cfg_cont **pcont);
 
 int mu_cfg_scan_tree (mu_cfg_node_t *node,
 		      struct mu_cfg_section *sections,
@@ -158,5 +182,8 @@ int mu_config_register_section (const char *parent_path,
 int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
+
+int mu_parse_config (char *file, char *progname,
+		     struct mu_cfg_param *progparam, int global);
 
 #endif

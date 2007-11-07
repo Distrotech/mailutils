@@ -204,7 +204,7 @@ main (int argc, char **argv)
 #ifdef WITH_GSASL
   mu_gsasl_init_argp ();
 #endif
-  mu_config_register_plain_section (NULL, NULL, imap4d_cfg_param);
+  mu_argp_set_config_param (imap4d_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
 
   if (login_disabled)

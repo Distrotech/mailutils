@@ -84,6 +84,7 @@ parse822.c \
 parsedate.c \
 property.c \
 registrar.c \
+refcount.c \
 rfc2047.c \
 socket_stream.c \
 stream.c \

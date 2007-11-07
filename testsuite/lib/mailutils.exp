@@ -21,6 +21,7 @@ verbose "STARTED" 1
 
 # Make sure we use POSIX locale
 set env(LC_ALL) "C"
+set env(MU_CONFIG_FLAVOR) "none"
 
 proc mu_init {args} {
     global TOOL_EXECUTABLE

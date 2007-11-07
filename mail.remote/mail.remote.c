@@ -119,6 +119,15 @@ static struct argp argp = {
   doc,
 };
 
+
+struct mu_cfg_param mail_remote_cfg_param[] = {
+  { "from", mu_cfg_string, &optfrom },
+  { "read-recipients", mu_cfg_string, &read_recipients },
+  { "debug", mu_cfg_int, &optdebug },
+  { NULL}
+};
+
+
 static const char *capa[] = {
   "auth",
   "common",
@@ -162,6 +171,7 @@ main (int argc, char **argv)
 
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
+  mu_argp_set_config_param (mail_remote_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, capa, &optind, NULL);
 
   if (optfrom)

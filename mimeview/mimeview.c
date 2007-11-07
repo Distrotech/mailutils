@@ -63,6 +63,27 @@ static int interactive = -1;
 char *mimeview_file;       /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */
 
+static void
+set_debug_flags (mu_cfg_locus_t *locus, char *arg)
+{
+  for (; *arg; arg++)
+    {
+      switch (*arg)
+	{
+	case 'l':
+	  mimetypes_lex_debug (1);
+	  break;
+
+	case 'g':
+	  mimetypes_gram_debug (1);
+	  break;
+	  
+	default:
+	  debug_level = *arg - '0';
+	}
+    }
+}  
+
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -88,22 +109,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'd':
       if (!arg)
 	arg = "9";
-      for (; *arg; arg++)
-	{
-	  switch (*arg)
-	    {
-	    case 'l':
-	      mimetypes_lex_debug (1);
-	      break;
-
-	    case 'g':
-	      mimetypes_gram_debug (1);
-	      break;
-
-	    default:
-	      debug_level = *arg - '0';
-	    }
-	}
+      set_debug_flags (NULL, arg);
       break;
 
     case 'h':
@@ -136,6 +142,23 @@ static struct argp argp = {
   NULL,
   NULL, NULL
 };
+
+
+static int
+cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_debug_flags (locus, arg);
+  return 0;
+}
+
+struct mu_cfg_param mimeview_cfg_param[] = {
+  {"debug", mu_cfg_callback, NULL, cb_debug },
+  {"mimetypes", mu_cfg_string, &mimetypes_config },
+  {"metamail", mu_cfg_string, &metamail },
+  { NULL }
+};
+
+
 
 static const char *capa[] = {
   "common",
@@ -239,6 +262,7 @@ main (int argc, char **argv)
   
   mu_init_nls ();
   mu_argp_init (program_version, NULL);
+  mu_argp_set_config_param (mimeview_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, capa, &index, NULL);
 
   argc -= index;

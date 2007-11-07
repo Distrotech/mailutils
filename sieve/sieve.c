@@ -97,17 +97,15 @@ static struct argp_option options[] =
   {0}
 };
 
-struct options {
-  int keep_going;
-  int compile_only;
-  char *mbox;
-  char *tickets;
-  int tickets_default;
-  int debug_level;
-  int sieve_debug;
-  int verbose;
-  char *script;
-};
+int keep_going;
+int compile_only;
+char *mbox_url;
+char *tickets;
+int tickets_default;
+int debug_level;
+int sieve_debug;
+int verbose;
+char *script;
 
 static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
@@ -123,25 +121,50 @@ is_true_p (char *p)
   return rc;
 }
 
+static void
+set_debug_level (mu_cfg_locus_t *locus, const char *arg)
+{
+  for (; *arg; arg++)
+    {
+      switch (*arg)
+	{
+	case 'T':
+	  debug_level |= MU_DEBUG_TRACE;
+	  break;
+
+	case 'P':
+	  debug_level |= MU_DEBUG_PROT;
+	  break;
+
+	case 'g':
+	  mu_sieve_yydebug = 1;
+	  break;
+
+	case 't':
+	  sieve_debug |= MU_SIEVE_DEBUG_TRACE;
+	  break;
+	  
+	case 'i':
+	  sieve_debug |= MU_SIEVE_DEBUG_INSTR;
+	  break;
+	  
+	default:
+	  if (locus)
+	    mu_error (_("%s:%d: %c is not a valid debug flag"),
+		      locus->file, locus->line, *arg);
+	  else
+	    mu_error (_("%c is not a valid debug flag"), *arg);
+	}
+    }
+}
+
 static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
-  struct options *opts = state->input;
   int rc;
   
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      if (!opts->tickets)
-	{
-	  opts->tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
-	  opts->tickets_default = 1;
-	}
-      if (!opts->debug_level)
-	opts->debug_level = MU_DEBUG_ERROR;
-      log_facility = 0;
-      break;
-
     case 'e':
       rc = mu_set_user_email (arg);
       if (rc)
@@ -149,69 +172,41 @@ parser (int key, char *arg, struct argp_state *state)
       break;
       
     case 'n':
-      opts->sieve_debug |= MU_SIEVE_DRY_RUN;
+      sieve_debug |= MU_SIEVE_DRY_RUN;
       break;
 
     case 'k':
-      opts->keep_going = 1;
+      keep_going = 1;
       break;
 
     case 'c':
-      opts->compile_only = 1;
+      compile_only = 1;
       break;
 
     case 'D':
-      opts->compile_only = 2;
+      compile_only = 2;
       break;
       
     case 'f':
-      if (opts->mbox)
-	argp_error (state, _("Only one MBOX can be specified"));
-      opts->mbox = strdup (arg);
+      if (mbox_url)
+	free (mbox_url);
+      mbox_url = strdup (arg);
       break;
       
     case 't':
-      free (opts->tickets);
-      opts->tickets = mu_tilde_expansion (arg, "/", NULL);
-      opts->tickets_default = 0;
+      free (tickets);
+      tickets = mu_tilde_expansion (arg, "/", NULL);
+      tickets_default = 0;
       break;
       
     case 'd':
       if (!arg)
 	arg = D_DEFAULT;
-      for (; *arg; arg++)
-	{
-	  switch (*arg)
-	    {
-	    case 'T':
-	      opts->debug_level |= MU_DEBUG_TRACE;
-	      break;
-
-	    case 'P':
-	      opts->debug_level |= MU_DEBUG_PROT;
-	      break;
-
-	    case 'g':
-	      mu_sieve_yydebug = 1;
-	      break;
-
-	    case 't':
-	      opts->sieve_debug |= MU_SIEVE_DEBUG_TRACE;
-	      break;
-	      
-	    case 'i':
-	      opts->sieve_debug |= MU_SIEVE_DEBUG_INSTR;
-	      break;
-	      
-	    default:
-	      argp_error (state, _("%c is not a valid debug flag"), *arg);
-	      break;
-	    }
-	}
+      set_debug_level (NULL, arg);
       break;
 
     case 'v':
-      opts->verbose = 1;
+      verbose = 1;
       break;
 
     case ARG_LINE_INFO:
@@ -219,9 +214,9 @@ parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_ARG:
-      if (opts->script)
+      if (script)
 	argp_error (state, _("Only one SCRIPT can be specified"));
-      opts->script = mu_tilde_expansion (arg, "/", NULL);
+      script = mu_tilde_expansion (arg, "/", NULL);
       break;
 
     case ARGP_KEY_NO_ARGS:
@@ -241,6 +236,45 @@ static struct argp argp =
   N_("SCRIPT"),
   doc
 };
+
+
+static int 
+cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_debug_level (locus, arg);
+  return 0;
+}
+
+static int
+cb_email (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  int rc = mu_set_user_email (arg);
+  if (rc)
+    mu_error (_("%s:%d: Invalid email: %s"),
+	      locus->file, locus->line, mu_strerror (rc));
+  return rc;
+}
+
+static int
+cb_ticket (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  free (tickets);
+  tickets = mu_tilde_expansion (arg, "/", NULL);
+  tickets_default = 0;
+  return 0;
+}
+
+static struct mu_cfg_param sieve_cfg_param[] = {
+  { "keep-going", mu_cfg_int, &keep_going },
+  { "mbox-url", mu_cfg_string, &mbox_url },
+  { "ticket", mu_cfg_callback, NULL, cb_ticket },
+  { "debug", mu_cfg_callback, NULL, cb_debug },
+  { "verbose", mu_cfg_bool, &verbose },
+  { "line-info", mu_cfg_bool, &sieve_print_locus },
+  { "email", mu_cfg_callback, NULL, cb_email },
+  { NULL }
+};
+
 
 static const char *sieve_argp_capa[] =
 {
@@ -348,7 +382,6 @@ main (int argc, char *argv[])
   mu_debug_t debug = 0;
   mu_mailbox_t mbox = 0;
   int rc;
-  struct options opts = {0};
   int (*debugfp) (mu_debug_t, size_t level, const char *, va_list);
 
   /* Native Language Support */
@@ -360,9 +393,15 @@ main (int argc, char *argv[])
 #endif
   mu_sieve_argp_init ();
   mu_register_all_formats ();
+
+  tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
+  tickets_default = 1;
+  debug_level = MU_DEBUG_ERROR;
+  log_facility = 0;
   
+  mu_argp_set_config_param (sieve_cfg_param);  
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
-		      0, &opts);
+		      0, 0);
 
   if (rc)
     return 1;
@@ -382,34 +421,34 @@ main (int argc, char *argv[])
       openlog ("sieve", LOG_PID, log_facility);
       mu_error_set_print (mu_syslog_error_printer);
       mu_sieve_set_debug (mach, sieve_syslog_debug_printer);
-      if (opts.verbose)
+      if (verbose)
 	mu_sieve_set_logger (mach, syslog_action_log);
       debugfp = syslog_debug_print;
     }
   else
     {
       mu_sieve_set_debug (mach, sieve_stderr_debug_printer);
-      if (opts.verbose)
+      if (verbose)
 	mu_sieve_set_logger (mach, stdout_action_log);
       debugfp = stderr_debug_print;
     }
   
-  rc = mu_sieve_compile (mach, opts.script);
+  rc = mu_sieve_compile (mach, script);
   if (rc)
     return 1;
 
   /* We can finish if its only a compilation check. */
-  if (opts.compile_only)
+  if (compile_only)
     {
-      if (opts.compile_only == 2)
+      if (compile_only == 2)
 	mu_sieve_disass (mach);
       return 0;
     }
 
   /* Create a ticket, if we can. */
-  if (opts.tickets)
+  if (tickets)
     {
-      if ((rc = mu_wicket_create (&wicket, opts.tickets)) == 0)
+      if ((rc = mu_wicket_create (&wicket, tickets)) == 0)
         {
           if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
             {
@@ -417,10 +456,10 @@ main (int argc, char *argv[])
               goto cleanup;
             }
         }
-      else if (!(opts.tickets_default && errno == ENOENT))
+      else if (!(tickets_default && errno == ENOENT))
         {
           mu_error (_("mu_wicket_create `%s' failed: %s"),
-                    opts.tickets, mu_strerror (rc));
+                    tickets, mu_strerror (rc));
           goto cleanup;
         }
       if (ticket)
@@ -428,14 +467,14 @@ main (int argc, char *argv[])
     }
 
   /* Create a debug object, if needed. */
-  if (opts.debug_level)
+  if (debug_level)
     {
       if ((rc = mu_debug_create (&debug, mach)))
 	{
 	  mu_error (_("mu_debug_create failed: %s"), mu_strerror (rc));
 	  goto cleanup;
 	}
-      if ((rc = mu_debug_set_level (debug, opts.debug_level)))
+      if ((rc = mu_debug_set_level (debug, debug_level)))
 	{
 	  mu_error (_("mu_debug_set_level failed: %s"),
 		    mu_strerror (rc));
@@ -449,14 +488,14 @@ main (int argc, char *argv[])
 	}
     }
   
-  mu_sieve_set_debug_level (mach, debug, opts.sieve_debug);
+  mu_sieve_set_debug_level (mach, debug, sieve_debug);
     
   /* Create, give a ticket to, and open the mailbox. */
-  if ((rc = mu_mailbox_create_default (&mbox, opts.mbox)) != 0)
+  if ((rc = mu_mailbox_create_default (&mbox, mbox_url)) != 0)
     {
-      if (opts.mbox)
+      if (mbox)
 	mu_error (_("Could not create mailbox `%s': %s"),
-		  opts.mbox, mu_strerror (rc));
+		  mbox_url, mu_strerror (rc));
       else
 	mu_error (_("Could not create default mailbox: %s"),
 		  mu_strerror (rc));
@@ -498,16 +537,16 @@ main (int argc, char *argv[])
     }
 
   /* Open the mailbox read-only if we aren't going to modify it. */
-  if (opts.sieve_debug & MU_SIEVE_DRY_RUN)
+  if (sieve_debug & MU_SIEVE_DRY_RUN)
     rc = mu_mailbox_open (mbox, MU_STREAM_READ);
   else
     rc = mu_mailbox_open (mbox, MU_STREAM_RDWR);
 
   if (rc != 0)
     {
-      if (opts.mbox)
+      if (mbox)
 	mu_error (_("Opening mailbox `%s' failed: %s"),
-		  opts.mbox, mu_strerror (rc));
+		  mbox_url, mu_strerror (rc));
       else
 	mu_error (_("Opening default mailbox failed: %s"),
 		  mu_strerror (rc));
@@ -519,7 +558,7 @@ main (int argc, char *argv[])
   rc = mu_sieve_mailbox (mach, mbox);
 
 cleanup:
-  if (mbox && !(opts.sieve_debug & MU_SIEVE_DRY_RUN))
+  if (mbox && !(sieve_debug & MU_SIEVE_DRY_RUN))
     {
       int e;
 
@@ -529,9 +568,9 @@ cleanup:
          on a later message. */
       if ((e = mu_mailbox_expunge (mbox)) != 0)
 	{
-	  if (opts.mbox)
+	  if (mbox)
 	    mu_error (_("Expunge on mailbox `%s' failed: %s"),
-		      opts.mbox, mu_strerror (e));
+		      mbox_url, mu_strerror (e));
 	  else
 	    mu_error (_("Expunge on default mailbox failed: %s"),
 		      mu_strerror (e));

@@ -1,3 +1,57 @@
+2007-11-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/argp.h (mu_argp_set_config_param): New
+	function.
+	* include/mailutils/cfg.h (mu_cfg_time): New value
+	(struct mu_cfg_section): Rewamp using lists.
+	(enum mu_cfg_cont_type, struct mu_cfg_cont): New types.
+	(mu_config_create_container, mu_config_clone_container)
+	(mu_config_destroy_container): New functions.
+	(mu_parse_config): New function.
+	* include/mailutils/mu_auth.h (mu_authentication_clear_list)
+	(mu_authorization_clear_list): New functions.
+	* mailbox/cfg_lexer.c: Add missing includes
+	(mu_config_create_container, mu_config_clone_container)
+	(mu_config_destroy_container): New functions.
+	(mu_parse_config): New function.
+	(_mu_config_register_section): New function.
+	(mu_config_register_section): New function.
+	(_mu_parse_config): Fully implement system-wide/per-user
+	configuration semantics.
+	(mu_parse_config): Take two more arguments.
+	* mailbox/cfg_parser.h: Remove automatically generated file.
+	* mailbox/cfg_parser.y (find_container): New function
+	(find_subsection,find_param): Rewrite using find_container
+	(parse_param): Implement new data type mu_cfg_time (time_t value).
+	(_scan_tree_helper): Complain about unknown sections only if
+	MU_CONFIG_VERBOSE environment variable is set.
+	* mailbox/mu_argp.c (assign_string): Bugfix.
+	(mu_argp_set_config_param): New function.
+	(mu_argp_parse): Remove eventual `lt-' prefix from program names.
+	* mailbox/mu_auth.c: New options --clear-authorization and
+	--clear-authentication.
+	(mu_authorization_clear_list,mu_authentication_clear_list): New
+	functions. 
+	
+	* include/mailutils/refcount.h (struct _mu_refcount): Move ro
+	refcount.c
+	(mu_refcount_inc,mu_refcount_dec): Change return value.
+	(mu_refcount_value): New function.
+	* mailbox/refcount.c (struct _mu_refcount): Moved from refcount.h
+	(mu_refcount_value): New function.
+	(mu_refcount_create,mu_refcount_destroy,mu_refcount_inc)
+	(mu_refcount_dec): Fix monitor usage.
+	(mu_refcount_inc,mu_refcount_dec): Fix return type.
+	
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add refcount.c
+	* dotlock/dotlock.c, imap4d/imap4d.c, mail.local/main.c,
+	mail.remote/mail.remote.c, mimeview/mimeview.c,
+	movemail/movemail.c, pop3d/pop3d.c, pop3d/signal.c,
+	readmsg/readmsg.c, sieve/sieve.c: Implement new configuration.
+
+	* testsuite/lib/mailutils.exp: Set MU_CONFIG_FLAVOR envar to
+	`none' to avoid reading configuration files.
+
 2007-11-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/message.c (message_stream_size): Bugfix.

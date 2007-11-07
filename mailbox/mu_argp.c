@@ -252,7 +252,7 @@ assign_string (char **pstr, char *val)
     {
       size_t size = strlen (val);
       char *p = realloc (*pstr, size + 1);
-      if (!*p)
+      if (!p)
 	{
 	  mu_error ("%s", mu_strerror (ENOMEM));
 	  exit (1);
@@ -1291,6 +1291,14 @@ mu_create_argcv (const char *capa[],
 
 /* ************************************************************************* */
 
+static struct mu_cfg_param *prog_param;
+
+void
+mu_argp_set_config_param (struct mu_cfg_param *p)
+{
+  prog_param = p;
+}
+
 static void
 read_configs (char *progname, enum mu_config_flavor cfl[CF_SIZE])
 {
@@ -1307,7 +1315,7 @@ read_configs (char *progname, enum mu_config_flavor cfl[CF_SIZE])
 	    {
 	    case mu_config_auto:
 	    case mu_config_resource:
-	      mu_parse_config (MU_CONFIG_FILE, progname);
+	      mu_parse_config (MU_CONFIG_FILE, progname, prog_param, 1);
 	      break;
 
 	    default:
@@ -1329,7 +1337,7 @@ read_configs (char *progname, enum mu_config_flavor cfl[CF_SIZE])
 	  strcpy (file_name, "~/.");
 	  strcat (file_name, progname);
 
-	  mu_parse_config (file_name, progname);
+	  mu_parse_config (file_name, progname, prog_param, 0);
 
 	  free (file_name);
 	}
@@ -1364,6 +1372,9 @@ mu_argp_parse (const struct argp *argp,
     progname++;
   else
     progname = (*pargv)[0];
+
+  if (strlen (progname) > 3 && memcmp (progname, "lt-", 3) == 0)
+    progname += 3;
 
   get_default_config_flavor (progname, cfl);
   

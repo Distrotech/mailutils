@@ -23,8 +23,15 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/monitor.h>
 #include <mailutils/refcount.h>
+
+struct _mu_refcount
+{
+  unsigned int ref;
+  mu_monitor_t lock;
+};
 
 int
 mu_refcount_create (mu_refcount_t *prefcount)
@@ -37,7 +44,7 @@ mu_refcount_create (mu_refcount_t *prefcount)
   if (refcount != NULL)
     {
       refcount->ref = 1;
-      status = monitor_create (&(refcount->lock));
+      status = mu_monitor_create (&refcount->lock, 0, refcount);
       if (status == 0)
 	{
 	  *prefcount = refcount;
@@ -54,41 +61,47 @@ mu_refcount_create (mu_refcount_t *prefcount)
   return status;
 }
 
+unsigned
+mu_refcount_value (mu_refcount_t refcount)
+{
+  return refcount ? refcount->ref : 0;
+}
+
 void
 mu_refcount_destroy (mu_refcount_t *prefcount)
 {
   if (prefcount && *prefcount)
     {
       mu_refcount_t refcount = *prefcount;
-      monitor_destroy (&refcount->lock);
+      mu_monitor_destroy (&refcount->lock, refcount);
       free (refcount);
       *prefcount = NULL;
     }
 }
 
-int
+unsigned
 mu_refcount_inc (mu_refcount_t refcount)
 {
   int count = 0;
   if (refcount)
     {
-      monitor_lock (refcount->lock);
+      mu_monitor_wrlock (refcount->lock);
       count = ++refcount->ref;
-      monitor_unlock (refcount->lock);
+      mu_monitor_wrlock (refcount->lock);
     }
   return count;
 }
 
-int
+unsigned
 mu_refcount_dec (mu_refcount_t refcount)
 {
   int count = 0;
   if (refcount)
     {
-      monitor_lock (refcount->lock);
+      mu_monitor_wrlock (refcount->lock);
       if (refcount->ref)
 	count = --refcount->ref;
-      monitor_unlock (refcount->lock);
+      mu_monitor_wrlock (refcount->lock);
     }
   return count;
 }

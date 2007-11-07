@@ -114,6 +114,18 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
   return 0;
 }
 
+
+struct mu_cfg_param readmsg_cfg_param[] = {
+  { "debug", mu_cfg_int, &dbug },
+  { "header", mu_cfg_bool, &all_header },
+  { "weedlist", mu_cfg_string, &weedlist },
+  { "folder", mu_cfg_string, &mailbox_name },
+  { "no-header", mu_cfg_bool, &no_header }, 
+  { "form-feeds", mu_cfg_bool, &form_feed },
+  { "show-all-match", mu_cfg_bool, &show_all },
+  { NULL }
+};
+
 static int
 string_starts_with (const char * s1, const char *s2)
 {
@@ -268,6 +280,7 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
 #endif
+  mu_argp_set_config_param (readmsg_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
   /* register the formats.  */

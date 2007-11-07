@@ -26,6 +26,8 @@
 #include <mailutils/cfg.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
+#include <mailutils/list.h>
+#include <mailutils/iterator.h>  
   
 static mu_cfg_node_t *parse_tree;
 mu_cfg_locus_t mu_cfg_locus;
@@ -487,21 +489,43 @@ struct scan_tree_data
   int error;
 };
 
+static struct mu_cfg_cont *
+find_container (mu_list_t list, const char *ident, size_t len)
+{
+  mu_iterator_t iter;
+  struct mu_cfg_cont *ret = NULL;
+      
+  if (len == 0)
+    len = strlen (ident);
+
+  mu_list_get_iterator (list, &iter);
+  for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
+       mu_iterator_next (iter))
+    {
+      struct mu_cfg_cont *cont;
+      mu_iterator_current (iter, (void**) &cont);
+
+      if (strlen (cont->v.ident) == len
+	  && memcmp (cont->v.ident, ident, len) == 0)
+	{
+	  ret = cont;
+	  break;
+	}
+    }
+  mu_iterator_destroy (&iter);
+  return ret;
+}
+
 static struct mu_cfg_section *
 find_subsection (struct mu_cfg_section *sec, const char *ident, size_t len)
 {
   if (sec)
     {
-      sec = sec->subsec;
-      if (sec)
+      if (sec->subsec)
 	{
-	  if (len == 0)
-	    len = strlen (ident);
-	  
-	  for (; sec->ident; sec++)
-	    if (strlen (sec->ident) == len
-		&& memcmp (sec->ident, ident, len) == 0)
-	      return sec;
+	  struct mu_cfg_cont *cont = find_container (sec->subsec, ident, len);
+	  if (cont)
+	    return &cont->v.section;
 	}
     }
   return NULL;
@@ -512,14 +536,11 @@ find_param (struct mu_cfg_section *sec, const char *ident, size_t len)
 {
   if (sec)
     {
-      struct mu_cfg_param *p = sec->param;
-      if (p)
+      if (sec->param)
 	{
-	  if (len == 0)
-	    len = strlen (ident);
-	  for (; p->ident; p++)
-	    if (strlen (p->ident) == len && memcmp (p->ident, ident, len) == 0)
-	      return p;
+	  struct mu_cfg_cont *cont = find_container (sec->param, ident, len);
+	  if (cont)
+	    return &cont->v.param;
 	}
     }
   return NULL;
@@ -874,6 +895,10 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
       /* GETSNUM(node->tag_label, off_t, *(off_t*)param->data); */
       return 1;
 
+    case mu_cfg_time:
+      GETUNUM (node->tag_label, time_t, *(time_t*)param->data);
+      break;
+      
     case mu_cfg_bool:
       if (parse_bool (sdata, node, (int*) param->data))
 	return 1;
@@ -921,11 +946,14 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
       sec = find_subsection (sdata->list->sec, node->tag_name, 0);
       if (!sec)
 	{
-	  mu_cfg_perror (sdata->call_data,
-			 &node->locus,
-			 _("unknown section `%s'"),
-			 node->tag_name);
-	  sdata->error++;
+	  if (getenv ("MU_CONFIG_VERBOSE"))
+	    {
+	      mu_cfg_perror (sdata->call_data,
+			     &node->locus,
+			     _("unknown section `%s'"),
+			     node->tag_name);
+	      sdata->error++;
+	    }
 	  return MU_CFG_ITER_SKIP;
 	}
       if (!sec->subsec && !sec->param)

@@ -128,6 +128,52 @@ char *saved_envelope;  /* A hack to spare mu_envelope_ calls */
 
 #define D_DEFAULT "9s"
 
+static void
+set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
+{
+  for (; *arg; arg++);
+    {
+      switch (*arg)
+	{
+	case 'g':
+#ifdef WITH_GUILE
+	  debug_guile = 1;
+#endif
+	  break;
+
+	case 't':
+	  sieve_debug_flags |= MU_SIEVE_DEBUG_TRACE;
+	  break;
+	  
+	case 'i':
+	  sieve_debug_flags |= MU_SIEVE_DEBUG_INSTR;
+	  break;
+	  
+	case 'l':
+	  sieve_enable_log = 1;
+	  break;
+	  
+	case 'T':
+	  debug_flags |= MU_DEBUG_TRACE;
+	  break;
+	  
+	case 'P':
+	  debug_flags |= MU_DEBUG_PROT;
+	  break;
+
+	default:
+	  if (isdigit (*arg))
+	    debug_level = *arg - '0';
+	  else if (locus)
+	    mu_error (_("%s:%d: %c is not a valid debug flag"),
+		      locus->file, locus->line, *arg);
+	  else
+	    mu_error (_("%c is not a valid debug flag"), *arg);
+	  break;
+	}
+    }
+}
+
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -176,47 +222,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'x':
-      do
-	{
-	  if (!arg)
-	    arg = D_DEFAULT;
-	  switch (*arg)
-	    {
-	    case 'g':
-#ifdef WITH_GUILE
-	      debug_guile = 1;
-#endif
-	      break;
-
-	    case 't':
-	      sieve_debug_flags |= MU_SIEVE_DEBUG_TRACE;
-	      break;
-
-	    case 'i':
-	      sieve_debug_flags |= MU_SIEVE_DEBUG_INSTR;
-	      break;
-	      
-	    case 'l':
-	      sieve_enable_log = 1;
-	      break;
-	      
-	    case 'T':
-	      debug_flags |= MU_DEBUG_TRACE;
-	      break;
-
-	    case 'P':
-	      debug_flags |= MU_DEBUG_PROT;
-	      break;
-
-	    default:
-	      if (isdigit (*arg))
-		debug_level = *arg - '0';
-	      else
-		argp_error (state, _("%c is not a valid debug flag"), *arg);
-	      break;
-	    }
-	}
-      while (*++arg);
+      if (!arg)
+	arg = D_DEFAULT;
+      set_debug_flags (NULL, arg);
       break;
       
     default:
@@ -228,6 +236,34 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+
+static int
+cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_debug_flags (locus, arg);
+  return 0;
+}
+
+struct mu_cfg_param mail_local_cfg_param[] = {
+  { "ex-multiple-delivery-success", mu_cfg_bool, &multiple_delivery },
+  { "ex-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail },
+  { "from", mu_cfg_string, &from },
+#ifdef USE_DBM
+  { "quota-db", mu_cfg_string, &quotadbname },
+#endif
+#ifdef USE_SQL
+  { "quota-query", mu_cfg_string, &quota_query },
+#endif
+  { "sieve", mu_cfg_string, &sieve_pattern },
+  { "message-id-header", mu_cfg_string, &message_id_header },
+#ifdef WITH_GUILE
+  { "source", mu_cfg_string, &progfile_pattern },
+#endif
+  { "debug", mu_cfg_callback, NULL, cb_debug },
+  { NULL }
+};
+
+
 
 static int
 _mu_debug_printer (mu_debug_t unused, size_t level, const char *fmt,
@@ -246,7 +282,8 @@ _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 
 static void
 _sieve_action_log (void *user_name,
-		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
+		   const mu_sieve_locus_t *locus, size_t msgno,
+		   mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   char *text = NULL;
@@ -334,6 +371,7 @@ main (int argc, char *argv[])
   mu_argp_init (program_version, NULL);
   mu_sieve_argp_init ();
   /* Parse command line */
+  mu_argp_set_config_param (mail_local_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
 
   uid = getuid ();

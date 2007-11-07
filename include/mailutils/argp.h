@@ -60,7 +60,8 @@ extern int mu_register_capa (const char *name, struct argp_child *child,
 
 extern void mu_print_options (void);
 extern const char *mu_check_option (char *name);
-
+extern void mu_argp_set_config_param (struct mu_cfg_param *);
+  
 #ifdef __cplusplus
 }
 #endif

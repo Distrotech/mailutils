@@ -77,6 +77,14 @@ static struct argp argp = {
   NULL, NULL
 };
 
+
+struct mu_cfg_param movemail_cfg_param[] = {
+  { "preserve", mu_cfg_bool, &preserve_mail },
+  { "reverse",  mu_cfg_bool, &reverse_order },
+  { NULL }
+};
+
+
 static const char *mail_capa[] = {
   "common",
   "license",
@@ -84,7 +92,7 @@ static const char *mail_capa[] = {
 #ifdef WITH_TLS
   "tls",
 #endif
-	 NULL 
+  NULL 
 };
 
 int
@@ -281,13 +289,14 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
 
   /* argument parsing */
-
+  
   mu_error_set_print (movemail_error_printer);
   
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
 #endif
+  mu_argp_set_config_param (movemail_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, &index, NULL);
 
   argc -= index;

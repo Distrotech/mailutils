@@ -70,7 +70,7 @@ static const char *file;
 static int unlock;
 static int flags;
 static int retries;
-static int force;
+static time_t force;
 static int debug;
 
 static error_t
@@ -102,9 +102,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  force = atoi (arg);
 	  if (force <= 0)
 	    argp_error (state, _("MINUTES must be greater than 0"));
-	  force *= 60;
 	}
-      flags |= MU_LOCKER_TIME;
       break;
 
     case ARGP_KEY_ARG:
@@ -121,6 +119,21 @@ parse_opt (int key, char *arg, struct argp_state *state)
     }
   return 0;
 }
+
+
+struct mu_cfg_param dotlock_cfg_param[] = {
+  { "force", mu_cfg_time, &force },
+  { "retry", mu_cfg_int, &retries },
+  { "debug", mu_cfg_bool, &debug },
+  { NULL }
+};
+
+
+
+const char *dotlock_capa[] = {
+  "license",
+  NULL
+};
 
 int
 main (int argc, char *argv[])
@@ -140,8 +153,15 @@ main (int argc, char *argv[])
 
   mu_argp_init (program_version, NULL);
   argp_err_exit_status = MU_DL_EX_ERROR;
-  argp_parse (&argp, argc, argv, 0, NULL, NULL);
 
+  mu_argp_set_config_param (dotlock_cfg_param);
+  mu_argp_parse (&argp, &argc, &argv, 0, dotlock_capa, NULL, NULL);
+  if (force)
+    {
+      force *= 60;
+      flags |= MU_LOCKER_TIME;
+    }
+  
   if ((err = mu_locker_create (&locker, file, flags)))
     {
       if (debug)

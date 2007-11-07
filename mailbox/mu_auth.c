@@ -248,6 +248,8 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 
 #define ARG_AUTHORIZATION 1
 #define ARG_AUTHENTICATION 2
+#define ARG_CLEAR_AUTHORIZATION 3
+#define ARG_CLEAR_AUTHENTICATION 4
 
 static error_t mu_auth_argp_parser (int key, char *arg,
 				    struct argp_state *state);
@@ -258,6 +260,10 @@ static struct argp_option mu_auth_argp_option[] = {
     N_("Set the list of modules to be used for authentication"), 0 },
   { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), OPTION_HIDDEN,
     N_("Set list of modules to be used for authorization"), 0 },
+  { "clear-authorization", ARG_CLEAR_AUTHORIZATION, NULL, OPTION_HIDDEN,
+    N_("Clear the list of authorization modules"), 0 },
+  { "clear-authentication", ARG_CLEAR_AUTHENTICATION, NULL, OPTION_HIDDEN,
+    N_("Clear the list of authentication modules"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -291,6 +297,14 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
       mu_authentication_add_module_list (arg);
       break;
       
+    case ARG_CLEAR_AUTHENTICATION:
+      mu_authentication_clear_list ();
+      break;
+      
+    case ARG_CLEAR_AUTHORIZATION:
+      mu_authorization_clear_list ();
+      break;
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -304,14 +318,20 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
 static int
 cb_authentication (mu_cfg_locus_t *locus, void *data, char *arg)
 {
-  mu_authentication_add_module_list (arg);/*FIXME: error reporting*/
+  if (strcmp (arg, "clear") == 0)
+    mu_authentication_clear_list ();
+  else
+    mu_authentication_add_module_list (arg);/*FIXME: error reporting*/
   return 0;
 }
 
 static int
 cb_authorization (mu_cfg_locus_t *locus, void *data, char *arg)
 {
-  mu_authorization_add_module_list (arg);
+  if (strcmp (arg, "clear") == 0)
+    mu_authorization_clear_list ();
+  else
+    mu_authorization_add_module_list (arg);
   return 0;
 }
 
@@ -451,6 +471,7 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
     }
 }
 
+
 int
 mu_authorization_add_module (const char *name)
 {
@@ -472,6 +493,14 @@ mu_authorization_add_module_list (const char *modlist)
   _add_module_list (modlist, mu_authorization_add_module);
 }
 
+void
+mu_authorization_clear_list ()
+{
+  mu_list_destroy (&_tmp_auth_by_name_list);
+  mu_list_destroy (&_tmp_auth_by_uid_list);
+}
+
+
 int
 mu_authentication_add_module (const char *name)
 {
@@ -492,6 +521,13 @@ mu_authentication_add_module_list (const char *modlist)
   _add_module_list (modlist, mu_authentication_add_module);
 }
 
+void
+mu_authentication_clear_list ()
+{
+  mu_list_destroy (&_tmp_authenticate_list);
+}
+
+
 /* ************************************************************************ */
 
 /* Setup functions. Note that:

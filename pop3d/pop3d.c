@@ -74,39 +74,33 @@ static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
 static struct argp_option options[] = {
 #define GRP 0
-  { NULL, 0, NULL, 0,
-    N_("General options"), GRP },
-  {"undelete", 'u', NULL, 0,
+  {"undelete", 'u', NULL, OPTION_HIDDEN,
    N_("Undelete all messages on startup"), GRP+1},
-  {"expire", OPT_EXPIRE, N_("DAYS"), 0,
+  {"expire", OPT_EXPIRE, N_("DAYS"), OPTION_HIDDEN,
    N_("Expire read messages after the given number of days"), GRP+1},
-  {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, 0,
+  {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, OPTION_HIDDEN,
    N_("Delete expired messages upon closing the mailbox"), GRP+1},
 #ifdef WITH_TLS
-  {"tls-required", OPT_TLS_REQUIRED, NULL, 0,
+  {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
    N_("Always require STLS before entering authentication phase")},
 #endif
 #undef GRP
   
 #define GRP 10
 #ifdef ENABLE_LOGIN_DELAY
-  { NULL, 0, NULL, 0,
-    N_("Login delay control"), GRP },
-  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), 0,
+  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), OPTION_HIDDEN,
    N_("Allowed delay between the two successive logins"), GRP+1},
-  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), 0,
+  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), OPTION_HIDDEN,
    N_("Name of login statistics file"), GRP+1},
 #endif
   
 #undef GRP
 
 #define GRP 20
-  { NULL, 0, NULL, 0,
-    N_("Bulletin control"), GRP },
-  { "bulletin-source", OPT_BULLETIN_SOURCE, N_("MBOX"), 0,
+  { "bulletin-source", OPT_BULLETIN_SOURCE, N_("MBOX"), OPTION_HIDDEN,
     N_("Set source mailbox to get bulletins from"), GRP+1 },
 #ifdef USE_DBM
-  { "bulletin-db", OPT_BULLETIN_DB, N_("FILE"), 0,
+  { "bulletin-db", OPT_BULLETIN_DB, N_("FILE"), OPTION_HIDDEN,
     N_("Set the bulletin database file name"), GRP+1 },
 #endif
 #undef GRP
@@ -114,6 +108,43 @@ static struct argp_option options[] = {
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
+#ifdef WITH_TLS
+static int
+cb_tls_expired (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  initial_state = INITIAL;
+  return 0;
+}
+#endif
+
+static int
+cb_bulletin_source (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_bulletin_source (arg);
+  return 0;
+}
+
+static int
+cb_bulletin_db (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  set_bulletin_source (arg);
+  return 0;
+}
+
+static struct mu_cfg_param pop3d_cfg_param[] = {
+  { "undelete", mu_cfg_int, &undelete_on_startup },
+  { "expire", mu_cfg_time, &expire },
+  { "delete-expired", mu_cfg_int, &expire_on_exit },
+#ifdef WITH_TLS
+  { "tls-required", mu_cfg_callback, NULL, cb_tls_expired },
+#endif
+  { "login-delay", mu_cfg_time, &login_delay },
+  { "stat-file", mu_cfg_string, &login_stat_file },
+  { "bulletin-source", mu_cfg_callback, NULL, cb_bulletin_source },
+  { "bulletin-db", mu_cfg_callback, NULL, cb_bulletin_db },
+  { NULL }
+};
+    
 static struct argp argp = {
   options,
   pop3d_parse_opt,
@@ -221,7 +252,11 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
+  mu_argp_set_config_param (pop3d_cfg_param);
   mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
+
+  if (expire == 0)
+    expire_on_exit = 1;
 
 #ifdef USE_LIBPAM
   if (!pam_service)

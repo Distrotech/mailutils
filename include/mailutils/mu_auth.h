@@ -103,6 +103,8 @@ extern void mu_auth_register_module (struct mu_auth_module *mod);
 
 extern void mu_authorization_add_module_list (const char *modlist);
 extern void mu_authentication_add_module_list (const char *modlist);
+extern void mu_authentication_clear_list (void);
+extern void mu_authorization_clear_list (void);
 
 extern void mu_auth_init (void);
 extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
