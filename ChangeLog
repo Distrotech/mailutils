@@ -1,5 +1,8 @@
 2007-11-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/cfg_lexer.c: Do not use obstack.
+	* mailbox/refcount.c (mu_refcount_inc, mu_refcount_dec): Bugfix
+
 	* auth/pam.c, auth/radius.c: Add configuration keywords.
 	* mailbox/cfg_lexer.c (isword): Allow dots in words.
 
