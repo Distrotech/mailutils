@@ -1,5 +1,8 @@
 2007-11-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/pam.c, auth/radius.c: Add configuration keywords.
+	* mailbox/cfg_lexer.c (isword): Allow dots in words.
+
 	* configure.ac, NEWS: version 1.2.90
 	* mailbox/Makefile.am: Additional dependency
 	cfg_parser.h:cfg_parser.y
