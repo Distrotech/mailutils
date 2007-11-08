@@ -451,6 +451,7 @@ _mu_config_register_section (struct mu_cfg_cont **proot,
       rc = mu_config_create_container (proot, mu_cfg_cont_section);
       if (rc)
 	return rc;
+      memset (&(*proot)->v.section, 0, sizeof (*proot)->v.section);
     }
   
   root_section = &(*proot)->v.section;
@@ -594,7 +595,7 @@ _mu_parse_config (char *file, char *progname,
 	  static struct mu_cfg_param empty_param = { NULL };
 	  if (!progparam)
 	    progparam = &empty_param;
-	  _mu_config_register_section (&cont, NULL, "prog", prog_parser,
+	  _mu_config_register_section (&cont, NULL, "program", prog_parser,
 				       progname,
 				       progparam, &prog_sect);
 
