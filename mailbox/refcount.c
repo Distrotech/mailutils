@@ -87,7 +87,7 @@ mu_refcount_inc (mu_refcount_t refcount)
     {
       mu_monitor_wrlock (refcount->lock);
       count = ++refcount->ref;
-      mu_monitor_wrlock (refcount->lock);
+      mu_monitor_unlock (refcount->lock);
     }
   return count;
 }
@@ -101,7 +101,7 @@ mu_refcount_dec (mu_refcount_t refcount)
       mu_monitor_wrlock (refcount->lock);
       if (refcount->ref)
 	count = --refcount->ref;
-      mu_monitor_wrlock (refcount->lock);
+      mu_monitor_unlock (refcount->lock);
     }
   return count;
 }
