@@ -34,17 +34,69 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include "obstack.h"
 #include "cfg_parser.h"
 
 struct lexer_data
 {
   char *buffer;
   char *curp;
-  struct obstack stk;
+  mu_list_t mpool;
+  char *cbuf;
+  size_t cbufsize;
+  size_t cbuflevel;
 };
+
+#define CBUFINCR 256
+
+static void
+cbuf_grow (struct lexer_data *datp, const char *str, size_t len)
+{
+  if (datp->cbufsize - datp->cbuflevel < len)
+    {
+      size_t n = ((datp->cbuflevel + len + CBUFINCR - 1) / CBUFINCR);
+      datp->cbufsize = n * CBUFINCR;
+      datp->cbuf = realloc (datp->cbuf, datp->cbufsize);
+      if (!datp->cbuf)
+	{
+	  mu_error ("%s", mu_strerror (ENOMEM));
+	  abort ();
+	}
+    }
+  memcpy (datp->cbuf + datp->cbuflevel, str, len);
+  datp->cbuflevel += len;
+}
+
+static void
+cbuf_1grow (struct lexer_data *datp, char c)
+{
+  cbuf_grow (datp, &c, 1);
+}
+
+static void
+_mpool_destroy_item (void *p)
+{
+  free (p);
+}
+
+static char *
+cbuf_finish (struct lexer_data *datp)
+{
+  char *p = malloc (datp->cbuflevel);
+  if (!p)
+    {
+      mu_error ("%s", mu_strerror (ENOMEM));
+      abort ();
+    }
+  memcpy (p, datp->cbuf, datp->cbuflevel);
+  datp->cbuflevel = 0;
+  if (!datp->mpool)
+    {
+      mu_list_create (&datp->mpool);
+      mu_list_set_destroy_item (datp->mpool, _mpool_destroy_item);
+    }
+  mu_list_append (datp->mpool, p);
+  return p;
+}
 
 static void
 skipws (struct lexer_data *p)
@@ -80,15 +132,15 @@ copy_alpha (struct lexer_data *p)
     {
       if (*p->curp == '\n')
 	mu_cfg_locus.line++;
-      obstack_1grow (&p->stk, *p->curp);
+      cbuf_1grow (p, *p->curp);
       p->curp++;
-    } while (*p->curp && isword(*p->curp));
-  obstack_1grow (&p->stk, 0);
-  return obstack_finish (&p->stk);
+    } while (*p->curp && isword (*p->curp));
+  cbuf_1grow (p, 0);
+  return cbuf_finish (p);
 }
 
 static char *
-copy_string(struct lexer_data *p)
+copy_string (struct lexer_data *p)
 {
   int quote = *p->curp++;
 
@@ -99,17 +151,17 @@ copy_string(struct lexer_data *p)
 	  char c;
 	  if (*++p->curp == 0)
 	    {
-	      obstack_1grow (&p->stk, '\\');
+	      cbuf_1grow (p, '\\');
 	      break;
 	    }
 	  c = mu_argcv_unquote_char (*p->curp);
 	  if (c == *p->curp)
 	    {
-	      obstack_1grow (&p->stk, '\\');
-	      obstack_1grow (&p->stk, *p->curp);
+	      cbuf_1grow (p, '\\');
+	      cbuf_1grow (p, *p->curp);
 	    }
 	  else
-	    obstack_1grow (&p->stk, c);
+	    cbuf_1grow (p, c);
 	  p->curp++;
 	}
       else if (*p->curp == quote)
@@ -119,12 +171,12 @@ copy_string(struct lexer_data *p)
 	}
       else
 	{
-	  obstack_1grow (&p->stk, *p->curp);
+	  cbuf_1grow (p, *p->curp);
 	  p->curp++;
 	}
     }
-  obstack_1grow (&p->stk, 0);
-  return obstack_finish (&p->stk);
+  cbuf_1grow (p, 0);
+  return cbuf_finish (p);
 }
 
 int
@@ -137,7 +189,8 @@ default_lexer (void *dp)
 again:
   skipws (p);
 
-  if (*p->curp == '#')
+  if (*p->curp == '#'
+      || (*p->curp == '/' && p->curp[1] == '/'))
     {
       skipline (p);
       goto again;
@@ -563,6 +616,8 @@ _mu_parse_config (char *file, char *progname,
 		 mu_cfg_locus.file);
       return -1;
     }
+
+  memset (&data, 0, sizeof data);
   data.buffer = malloc (st.st_size+1);
         
   read (fd, data.buffer, st.st_size);
@@ -572,8 +627,6 @@ _mu_parse_config (char *file, char *progname,
 
   mu_cfg_yydebug = strncmp (data.curp, "#debug", 6) == 0;
 
-  obstack_init (&data.stk);
-	
   /* Parse configuration */
   rc = mu_cfg_parse (&parse_tree,
 		     &data,
@@ -642,7 +695,8 @@ _mu_parse_config (char *file, char *progname,
     }
 
   mu_cfg_destroy_tree (&parse_tree);
-  obstack_free (&data.stk, NULL);
+  mu_list_destroy (&data.mpool);
+  free (data.cbuf);
   free (data.buffer);
   
   return rc;
