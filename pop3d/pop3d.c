@@ -127,7 +127,7 @@ cb_bulletin_source (mu_cfg_locus_t *locus, void *data, char *arg)
 static int
 cb_bulletin_db (mu_cfg_locus_t *locus, void *data, char *arg)
 {
-  set_bulletin_source (arg);
+  set_bulletin_db (arg);
   return 0;
 }
 
@@ -138,10 +138,14 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
 #ifdef WITH_TLS
   { "tls-required", mu_cfg_callback, NULL, cb_tls_expired },
 #endif
+#ifdef ENABLE_LOGIN_DELAY
   { "login-delay", mu_cfg_time, &login_delay },
   { "stat-file", mu_cfg_string, &login_stat_file },
+#endif
   { "bulletin-source", mu_cfg_callback, NULL, cb_bulletin_source },
+#ifdef USE_DBM
   { "bulletin-db", mu_cfg_callback, NULL, cb_bulletin_db },
+#endif
   { NULL }
 };
     
