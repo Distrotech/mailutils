@@ -160,6 +160,10 @@ struct argp mu_pam_argp = {
   mu_pam_argp_parser,
 };
 
+static struct mu_cfg_param pam_cfg_param[] = {
+  { "service", mu_cfg_string, &pam_service },
+  { NULL }
+};
 
 #else
 
@@ -179,7 +183,7 @@ struct mu_auth_module mu_auth_pam_module = {
   "pam",
 #ifdef USE_LIBPAM
   &mu_pam_argp,
-  NULL,
+  pam_cfg_param,
 #else
   NULL,
   NULL,

@@ -320,7 +320,22 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
   return res;
 }
 
+static int
+cb_directory (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  grad_config_dir = grad_estrdup (arg);
+  return 0;
+}
 
+static struct mu_cfg_param mu_radius_cfg_param[] = {
+  { "auth-request", mu_cfg_string, &auth_request_str },
+  { "getpwnam-request", mu_cfg_string, &getpwnam_request_str },
+  { "getpwuid-request", mu_cfg_string, &getpwuid_request_str },
+  { "directory", mu_cfg_callback, NULL, cb_directory },
+  { NULL }
+};
+
+
 static grad_avp_t *
 create_request (grad_avp_t *template, const char *ustr, const char *passwd)
 {
@@ -598,7 +613,7 @@ struct mu_auth_module mu_auth_radius_module = {
   "radius",
 #ifdef ENABLE_RADIUS
   &mu_radius_argp,
-  NULL,
+  mu_radius_cfg_param,
 #else
   NULL,
   NULL,
