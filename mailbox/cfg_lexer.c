@@ -70,7 +70,7 @@ isword (int c)
   if (mu_cfg_tie_in)
     return c && c != ';';
   
-  return isalnum (c) || c == '_' || c == '-';
+  return isalnum (c) || c == '_' || c == '-' || c == '.';
 }
 
 static char *
