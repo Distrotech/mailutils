@@ -1,5 +1,15 @@
 2007-11-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac, NEWS: version 1.2.90
+	* mailbox/Makefile.am: Additional dependency
+	cfg_parser.h:cfg_parser.y
+	* mailbox/cfg_lexer.c (_mu_config_register_section): Zero out
+	the root container after creation.
+	(_mu_parse_config): Use `program' not `prog' for per-program
+	sections.
+	* pop3d/pop3d.c (cb_bulletin_db): Fix typo
+	(pop3d_cfg_param): Protect some variables by ifdefs.
+
 	* include/mailutils/argp.h (mu_argp_set_config_param): New
 	function.
 	* include/mailutils/cfg.h (mu_cfg_time): New value
