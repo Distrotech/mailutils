@@ -1,11 +1,13 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-10-12
+GNU mailutils NEWS -- history of user-visible changes. 2007-11-08
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 1.2.1:
+Version 1.2.90:
+
+* New configuration file format.
 
 * New `aget' and `sget' accessors for mu_url_t
 
