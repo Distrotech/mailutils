@@ -102,7 +102,7 @@ parsedate.c: $(srcdir)/parsedate.y
 	          y.tab.c parsedate.c y.output parsedate.y.output \
                   -- -yy pd_yy
 
-cfg_parser.c: $(srcdir)/cfg_parser.y
+cfg_parser.c cfg_parser.h: $(srcdir)/cfg_parser.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
 	          y.tab.c cfg_parser.c y.tab.h cfg_parser.h \
                   y.output cfg_parser.y.output \
