@@ -94,7 +94,7 @@ ticket.c \
 url.c \
 wicket.c
 
-BUILT_SOURCES = parsedate.c muerrno.c
+BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h
 MOSTLYCLEANFILES=
 
 parsedate.c: $(srcdir)/parsedate.y

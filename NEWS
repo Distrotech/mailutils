@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-11-08
+GNU mailutils NEWS -- history of user-visible changes. 2007-11-10
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -8,6 +8,47 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 Version 1.2.90:
 
 * New configuration file format.
+
+* New utility `maidag'
+
+Maidag is a MAIl Delivery AGent. It is a general-purpose MDA able to
+run in both traditional and LMTP mode and to deliver mails to various
+mailbox formats. It is also able to process incoming messages using
+Sieve or Scheme scripts and, based on results of this processing,
+to take a decision on whether to actually deliver and where to
+deliver them.
+
+* New function mu_mailbox_sync
+
+It supercedes mu_mailbox_save_attributes, which is now considered
+deprecated.
+
+* Observable event handling
+
+Each event type is associated with an event-specific data
+pointer. This pointer is passed to event handling functions along with
+an opaque function-specific data pointer. This affects the following
+functions:
+
+  mu_observer_set_action
+  mu_observer_set_action_data (New function)
+  mu_observable_notify
+
+New type of event, MU_EVT_MESSAGE_APPEND, is signalled whenever a new
+message is appended to the mailbox.
+
+* Quick access to a message
+
+A set of functions are provided for so-called `quick access' to mail
+messages. FIXME: describe it.
+
+* New Sieve action `pipe'
+
+Syntax: pipe [:envelope] <command line: string> 
+
+This action executes the given <command line> and pipes the message to
+its standard input. If the :envelope tag is given, the envelope of the
+message is piped as well.
 
 * New `aget' and `sget' accessors for mu_url_t
 
@@ -46,6 +87,12 @@ It is parsed as an absolute file name `a/b'.
 
 Previous versions incorrectly understood such an URL as `a/b'
 (relative file name). 
+
+* Client SMTP STARTTLS support
+
+* Support for new protocols: POPS (pops://) and IMAPS (imaps://),
+
+* Fixed APOP handling.
 
 
 Version 1.2:

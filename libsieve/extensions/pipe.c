@@ -16,8 +16,7 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-/* Syntax: pipe <program call: string>
-                [:envelope]
+/* Syntax: pipe [:envelope] <program call: string>
 		
    Notes/FIXME: 1. it would be nice to implement meta-variables in
                 <program call> which would expand to various
