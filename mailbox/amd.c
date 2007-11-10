@@ -81,7 +81,7 @@ static int amd_messages_count (mu_mailbox_t, size_t *);
 static int amd_messages_recent (mu_mailbox_t, size_t *);
 static int amd_message_unseen (mu_mailbox_t, size_t *);
 static int amd_expunge (mu_mailbox_t);
-static int amd_save_attributes (mu_mailbox_t);
+static int amd_sync (mu_mailbox_t);
 static int amd_uidnext (mu_mailbox_t mailbox, size_t *puidnext);
 static int amd_uidvalidity (mu_mailbox_t, unsigned long *);
 static int amd_scan (mu_mailbox_t, size_t, size_t *);
@@ -281,7 +281,7 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
   mailbox->_messages_recent = amd_messages_recent;
   mailbox->_message_unseen = amd_message_unseen;
   mailbox->_expunge = amd_expunge;
-  mailbox->_save_attributes = amd_save_attributes;
+  mailbox->_sync = amd_sync;
   mailbox->_uidvalidity = amd_uidvalidity;
   mailbox->_uidnext = amd_uidnext;
 
@@ -862,7 +862,7 @@ amd_expunge (mu_mailbox_t mailbox)
 }
 
 static int
-amd_save_attributes (mu_mailbox_t mailbox)
+amd_sync (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;

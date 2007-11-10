@@ -2527,7 +2527,8 @@ imap_parse (f_imap_t f_imap)
 		{
 		  mu_observable_t observable = NULL;
 		  mu_folder_get_observable (f_imap->folder, &observable);
-		  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+		  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED,
+					NULL);
 		  status = MU_ERR_AUTH_FAILURE;
 		}
 	      else if (strncasecmp (remainder, "LIST", 4) == 0)

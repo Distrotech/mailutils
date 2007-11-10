@@ -177,8 +177,9 @@ mu_folder_destroy (mu_folder_t *pfolder)
 	  /* Notify the observers.  */
 	  if (folder->observable)
 	    {
-	      mu_observable_notify (folder->observable, MU_EVT_FOLDER_DESTROY);
-	      mu_observable_destroy (&(folder->observable), folder);
+	      mu_observable_notify (folder->observable, MU_EVT_FOLDER_DESTROY,
+				    folder);
+	      mu_observable_destroy (&folder->observable, folder);
 	    }
 	  if (folder->_destroy)
 	    folder->_destroy (folder);

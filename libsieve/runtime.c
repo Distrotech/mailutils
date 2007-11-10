@@ -305,7 +305,7 @@ mu_sieve_disass (mu_sieve_machine_t mach)
 }
   
 static int
-_sieve_action (mu_observer_t obs, size_t type)
+_sieve_action (mu_observer_t obs, size_t type, void *data, void *action_data)
 {
   mu_sieve_machine_t mach;
   

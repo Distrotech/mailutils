@@ -52,13 +52,18 @@ extern int  mu_mailbox_uidvalidity     (mu_mailbox_t, unsigned long *);
 extern int  mu_mailbox_uidnext         (mu_mailbox_t, size_t *);
 
 /* Messages.  */
-extern int  mu_mailbox_get_message     (mu_mailbox_t, size_t msgno, mu_message_t *);
+extern int  mu_mailbox_get_message     (mu_mailbox_t, size_t msgno,
+					mu_message_t *);
+extern int  mu_mailbox_quick_get_message(mu_mailbox_t, mu_message_qid_t,
+					 mu_message_t *); 
 extern int  mu_mailbox_append_message  (mu_mailbox_t, mu_message_t);
 extern int  mu_mailbox_messages_count  (mu_mailbox_t, size_t *);
 extern int  mu_mailbox_messages_recent (mu_mailbox_t, size_t *);
 extern int  mu_mailbox_message_unseen  (mu_mailbox_t, size_t *);
 extern int  mu_mailbox_expunge         (mu_mailbox_t);
-extern int  mu_mailbox_save_attributes (mu_mailbox_t);
+extern int  mu_mailbox_sync            (mu_mailbox_t);  
+extern int  mu_mailbox_save_attributes (mu_mailbox_t)
+                                       __attribute__ ((deprecated));
 
 /* Update and scanning.  */
 extern int  mu_mailbox_get_size        (mu_mailbox_t, mu_off_t *size);

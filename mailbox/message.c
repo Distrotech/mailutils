@@ -115,7 +115,8 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
 	  /* FIXME: to be removed since we do not support this event.  */
 	  if (msg->observable)
 	    {
-	      mu_observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY);
+	      mu_observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY,
+				    msg);
 	      mu_observable_destroy (&(msg->observable), msg);
 	    }
 
@@ -649,8 +650,31 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
 }
 
 int
+mu_message_get_qid (mu_message_t msg, mu_message_qid_t *pqid)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (!msg->_get_qid)
+    return ENOSYS;
+  return msg->_get_qid (msg, pqid);
+}
+    
+int
+mu_message_set_qid (mu_message_t msg,
+		    int (*_get_qid) (mu_message_t, mu_message_qid_t *),
+		    void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_qid = _get_qid;
+  return 0;
+}
+
+int
 mu_message_set_uid (mu_message_t msg, int (*_get_uid) (mu_message_t, size_t *),
-		 void *owner)
+		    void *owner)
 {
   if (msg == NULL)
     return EINVAL;

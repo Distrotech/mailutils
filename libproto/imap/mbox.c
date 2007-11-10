@@ -798,12 +798,13 @@ imap_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
 
   for (i = msgno; i <= count; i++)
     {
-      if (mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      size_t tmp = i;
+      if (mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD,
+                                &tmp) != 0)
 	break;
-      if (((i + 1) % 100) == 0)
-	{
-	  mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
-	}
+      if ((i + 1) % 100 == 0)
+	mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS, 
+                              NULL);
     }
   return 0;
 }

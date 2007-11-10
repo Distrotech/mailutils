@@ -157,8 +157,9 @@ mu_mailer_destroy (mu_mailer_t * pmailer)
 
       if (mailer->observable)
 	{
-	  mu_observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
-	  mu_observable_destroy (&(mailer->observable), mailer);
+	  mu_observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY,
+				mailer);
+	  mu_observable_destroy (&mailer->observable, mailer);
 	}
 
       /* Call the object destructor.  */

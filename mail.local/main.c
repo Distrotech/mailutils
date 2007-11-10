@@ -317,7 +317,8 @@ _sieve_action_log (void *user_name,
     {
       char *diag = NULL;
       vasprintf (&diag, fmt, ap);
-      syslog (LOG_NOTICE, _("(user %s) %s: %s"), (char*) user_name, text, diag);
+      syslog (LOG_NOTICE, _("(user %s) %s: %s"),
+	      (char*) user_name, text, diag);
       free (diag);
     }
   else
@@ -360,7 +361,7 @@ main (int argc, char *argv[])
 
   /* Default locker settings */
   mu_locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,
-			    mu_locker_assign);
+			       mu_locker_assign);
   mu_locker_set_default_retry_timeout (1);
   mu_locker_set_default_retry_count (300);
 

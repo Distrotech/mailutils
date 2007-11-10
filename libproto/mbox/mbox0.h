@@ -122,7 +122,8 @@ struct _mbox_data
   mu_mailbox_t mailbox; /* Back pointer. */
 };
 
-int mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif);
+int mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
+		int do_notif);
 #ifdef WITH_PTHREAD
 void mbox_cleanup (void *arg);
 #endif

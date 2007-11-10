@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.6\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-11-15 20:37+0200\n"
+"POT-Creation-Date: 2007-11-09 16:51+0200\n"
 "PO-Revision-Date: 2005-04-04 10:55-0700\n"
 "Last-Translator: Steven Michael Murphy <murf@e-tools.com>\n"
 "Language-Team: Kinyarwanda <translation-team-rw@lists.sourceforge.net>\n"
@@ -24,6 +24,478 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# svx/source\options\optcolor.src:RID_SVXPAGE_COLORCONFIG.CT_COLORCONFIG.WN_SCROLL.FT_BASICSTRING.text
+#: auth/pam.c:153 auth/sql.c:219 auth/sql.c:221 auth/sql.c:225
+#: mail.local/main.c:86 mail.local/main.c:91 mh/anno.c:41 mh/pick.c:43
+#: mh/pick.c:46 mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54
+#: mh/pick.c:56 mh/pick.c:60 mh/whatnow.c:37 pop3d/popauth.c:83
+#, fuzzy
+msgid "STRING"
+msgstr "Ikurikiranyanyuguti"
+
+#: auth/pam.c:154
+#, fuzzy
+msgid "Use STRING as PAM service name"
+msgstr "Nka Serivisi Izina:"
+
+#: auth/sql.c:207 auth/sql.c:217 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
+#: mailbox/argp-parse.c:84 mh/mark.c:30 mh/pick.c:85
+#, fuzzy
+msgid "NAME"
+msgstr "Izina"
+
+#: auth/sql.c:208
+#, fuzzy
+msgid "Type of SQL interface to use"
+msgstr "Bya Kuri Gukoresha"
+
+#: auth/sql.c:209 auth/sql.c:211 auth/sql.c:213
+#, fuzzy
+msgid "QUERY"
+msgstr "Ikibazo"
+
+#: auth/sql.c:210
+#, fuzzy
+msgid "SQL query to retrieve a passwd entry based on username"
+msgstr "Ikibazo# Kuri a Icyinjijwe ku Izina ry'ukoresha"
+
+#: auth/sql.c:212
+#, fuzzy
+msgid "SQL query to retrieve a passwd entry based on UID"
+msgstr "Ikibazo# Kuri a Icyinjijwe ku"
+
+#: auth/sql.c:214
+#, fuzzy
+msgid "SQL query to retrieve a password from the database"
+msgstr "Ikibazo# Kuri a Ijambobanga... Bivuye i Ububikoshingiro"
+
+#: auth/sql.c:215
+#, fuzzy
+msgid "HOSTNAME"
+msgstr "Izinabuturo"
+
+#: auth/sql.c:216
+#, fuzzy
+msgid "Name or IP of MySQL server to connect to"
+msgstr "Cyangwa Bya Seriveri Kuri Kwihuza Kuri"
+
+#: auth/sql.c:218
+#, fuzzy
+msgid "SQL user name"
+msgstr "Ukoresha: Izina:"
+
+#: auth/sql.c:220
+#, fuzzy
+msgid "SQL connection password"
+msgstr "Ukwihuza Ijambobanga..."
+
+#: auth/sql.c:222
+#, fuzzy
+msgid "Name of the database to connect to"
+msgstr "Bya i Ububikoshingiro Kuri Kwihuza Kuri"
+
+#: auth/sql.c:223 mailbox/mu_argp.c:322 mailbox/mu_argp.c:356
+#: mailbox/mu_argp.c:362 mh/folder.c:48 mh/forw.c:63 mh/inc.c:49 mh/mhl.c:42
+#: mh/mhl.c:44 mh/repl.c:64 mh/scan.c:49 mh/send.c:66 mh/send.c:74
+#, fuzzy
+msgid "NUMBER"
+msgstr "Umubare"
+
+#: auth/sql.c:224
+#, fuzzy
+msgid "Port to use"
+msgstr "Kuri Gukoresha"
+
+#: auth/sql.c:226
+msgid ""
+"Type of password returned by --sql-getpass query. STRING is one of: plain, "
+"hash, scrambled"
+msgstr ""
+
+#: auth/sql.c:227
+msgid "MAP"
+msgstr ""
+
+#: auth/sql.c:228
+msgid ""
+"Declare a name translation map for SQL fields in results of sql-getpwnam and "
+"sql-getpwuid queries"
+msgstr ""
+
+#: auth/sql.c:243
+#, fuzzy, c-format
+msgid "Unknown SQL interface `%s'"
+msgstr "Bya Kuri Gukoresha"
+
+#: auth/sql.c:280
+#, fuzzy, c-format
+msgid "Unknown password type `%s'"
+msgstr "Kitazwi"
+
+#: auth/sql.c:286
+#, c-format
+msgid "Error near element %d: %s"
+msgstr ""
+
+#: auth/sql.c:308
+#, fuzzy, c-format
+msgid "%s:%d: Unknown SQL interface `%s'"
+msgstr "Bya Kuri Gukoresha"
+
+#: auth/sql.c:317
+#, fuzzy, c-format
+msgid "%s:%d: Unknown password type `%s'"
+msgstr "Kitazwi"
+
+#: auth/sql.c:328
+#, fuzzy, c-format
+msgid "%s:%d: Error near element %d: %s"
+msgstr "%s:%d:Gutandukanya Ikurikiranyanyuguti"
+
+#: auth/sql.c:413
+#, fuzzy, c-format
+msgid "Cannot get SQL field `%s' (`%s'): %s"
+msgstr "Kongeraho... Ubutumwa"
+
+#: auth/sql.c:418
+#, c-format
+msgid "SQL field `%s' (`%s') has NULL value"
+msgstr ""
+
+#: auth/sql.c:453
+#, fuzzy, c-format
+msgid "Invalid value for uid: %s"
+msgstr "Umutwempangano"
+
+#: auth/sql.c:460
+#, fuzzy, c-format
+msgid "Invalid value for gid: %s"
+msgstr "Umutwempangano"
+
+#: auth/sql.c:504
+#, fuzzy, c-format
+msgid "Invalid value for quota: %s"
+msgstr "Umutwempangano"
+
+#: auth/sql.c:594 auth/sql.c:676 auth/sql.c:751 mail.local/mailquota.c:197
+#, fuzzy, c-format
+msgid "SQL Query failed: %s"
+msgstr "Byanze"
+
+#: auth/sql.c:605 auth/sql.c:687 auth/sql.c:762 mail.local/mailquota.c:208
+#, fuzzy, c-format
+msgid "Cannot store SQL result: %s"
+msgstr "Igisubizo"
+
+#: auth/sql.c:772
+#, fuzzy, c-format
+msgid "Cannot get password from SQL: %s"
+msgstr "Kubona Ijambobanga... Bivuye"
+
+#: auth/tls.c:58 auth/tls.c:60 auth/tls.c:62 comsat/comsat.c:60
+#: dotlock/dotlock.c:42 frm/from.c:32 mail.local/main.c:82
+#: mailbox/mu_argp.c:366 mh/fmtcheck.c:31 mh/forw.c:51 mh/forw.c:53
+#: mh/inc.c:31 mh/inc.c:35 mh/inc.c:42 mh/mhl.c:40 mh/mhn.c:37 mh/mhn.c:63
+#: mh/refile.c:49 mh/repl.c:57 mh/scan.c:43 mh/scan.c:54 mh/send.c:35
+#: mh/send.c:45 mh/whom.c:28 mimeview/mimeview.c:47 mimeview/mimeview.c:51
+#: pop3d/pop3d.c:103 pop3d/popauth.c:81 pop3d/popauth.c:82
+msgid "FILE"
+msgstr "IDOSIYE"
+
+#: auth/tls.c:59
+#, fuzzy
+msgid "Specify SSL certificate file"
+msgstr "Impamyabushobozi IDOSIYE"
+
+#: auth/tls.c:61
+#, fuzzy
+msgid "Specify SSL certificate key"
+msgstr "Impamyabushobozi Urufunguzo"
+
+#: auth/tls.c:63
+#, fuzzy
+msgid "Specify trusted CAs file"
+msgstr "IDOSIYE"
+
+#: auth/tls.c:121 auth/tls.c:149
+#, fuzzy, c-format
+msgid "INTERNAL ERROR: cannot register argp capability tls"
+msgstr "Kwiyandikisha TLS"
+
+#: auth/tls.c:127 mh/anno.c:33 mh/anno.c:36 mh/folder.c:64 mh/folder.c:67
+#: mh/folder.c:70 mh/folder.c:73 mh/folder.c:76 mh/forw.c:31 mh/forw.c:47
+#: mh/forw.c:57 mh/forw.c:60 mh/forw.c:68 mh/forw.c:70 mh/inc.c:39 mh/inc.c:46
+#: mh/mark.c:38 mh/mark.c:41 mh/mhl.c:34 mh/mhl.c:37 mh/mhn.c:41 mh/mhn.c:46
+#: mh/mhn.c:49 mh/mhn.c:52 mh/mhn.c:57 mh/mhn.c:60 mh/mhn.c:65 mh/mhn.c:70
+#: mh/mhn.c:73 mh/mhn.c:82 mh/pick.c:82 mh/pick.c:87 mh/pick.c:90
+#: mh/refile.c:41 mh/refile.c:44 mh/repl.c:35 mh/repl.c:50 mh/repl.c:58
+#: mh/repl.c:60 mh/repl.c:62 mh/repl.c:69 mh/rmf.c:41 mh/scan.c:40
+#: mh/scan.c:47 mh/scan.c:51 mh/send.c:49 mh/send.c:52 mh/send.c:55
+#: mh/send.c:58 mh/send.c:61 mh/send.c:68 mh/send.c:71 mh/whom.c:38
+#: sieve/sieve.c:91
+msgid "BOOL"
+msgstr ""
+
+#: auth/tls.c:128
+#, fuzzy
+msgid "Enable TLS support"
+msgstr "Gushigikira"
+
+#: auth/tls.c:170 auth/tls.c:182
+#, fuzzy, c-format
+msgid "%s is not a regular file or a symbolic link."
+msgstr "%sni OYA a Ibisanzwe IDOSIYE Cyangwa a Ihuza"
+
+#: auth/tls.c:188
+#, fuzzy, c-format
+msgid "Wrong permissions on %s. Set 0600"
+msgstr "Uruhushya ku"
+
+#: auth/virtual.c:194
+msgid "DIR"
+msgstr ""
+
+#: auth/virtual.c:195
+#, fuzzy
+msgid "Search for virtual passwd file in DIR"
+msgstr "kugirango Kitaboneka IDOSIYE in"
+
+#: comsat/action.c:296
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: No arguments for exec"
+msgstr ""
+"%s:.Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/action.c:302
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: Not an absolute pathname"
+msgstr ""
+"%s:.Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/action.c:309
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: cannot stat %s: %s"
+msgstr ""
+"%s:.Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/action.c:316
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: will not execute set[ug]id programs"
+msgstr ""
+"%s:.Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/action.c:330
+#, fuzzy, c-format
+msgid "Cannot execute %s: %s"
+msgstr "Gukora"
+
+#: comsat/action.c:348
+#, fuzzy, c-format
+msgid "%s's %s is not owned by %s"
+msgstr "%s'S ni OYA ku"
+
+#: comsat/action.c:355
+#, fuzzy
+msgid "Warning: your .biffrc has wrong permissions"
+msgstr "Uruhushya"
+
+#: comsat/action.c:356
+#, fuzzy, c-format
+msgid "%s's %s has wrong permissions"
+msgstr "%s'S Uruhushya"
+
+#: comsat/action.c:419
+#, fuzzy, c-format
+msgid ".biffrc:%d: unknown keyword"
+msgstr ""
+".Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/action.c:421
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: unknown keyword %s"
+msgstr ""
+"%s:.Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: comsat/cfg.c:113 comsat/cfg.c:224 imap4d/bye.c:44 mailbox/mu_argp.c:863
+#: mailbox/mu_argp.c:905 pop3d/extra.c:105
+#, c-format
+msgid "Out of memory"
+msgstr "Ububiko bwarenzwe"
+
+#: comsat/cfg.c:138
+#, fuzzy, c-format
+msgid "Cannot open config file %s: %m"
+msgstr "Gufungura IDOSIYE"
+
+#: comsat/cfg.c:165
+#, fuzzy, c-format
+msgid "%s:%d: too few fields"
+msgstr "%s:%d:Imyanya"
+
+#: comsat/cfg.c:177
+#, fuzzy, c-format
+msgid "%s:%d: yes or no expected"
+msgstr "%s:%d:Yego Cyangwa Oya Ikitezwe:"
+
+#: comsat/cfg.c:197
+#, fuzzy, c-format
+msgid "%s:%d: unknown keyword"
+msgstr "%s:%d:Kitazwi Ijambo- banze"
+
+#: comsat/cfg.c:208
+#, fuzzy, c-format
+msgid "%s:%d: cannot parse netdef: %s"
+msgstr "%s:%d:Gutandukanya Ikurikiranyanyuguti"
+
+#: comsat/comsat.c:60
+#, fuzzy
+msgid "Read configuration from FILE"
+msgstr "Iboneza Bivuye"
+
+#: comsat/comsat.c:150
+#, fuzzy, c-format
+msgid "--timeout and --daemon are incompatible\n"
+msgstr "--Igihe cyarenze: Na"
+
+#: comsat/comsat.c:184
+msgid "Restarting"
+msgstr ""
+
+#: comsat/comsat.c:187
+#, fuzzy
+msgid "Cannot restart: program must be invoked using absolute pathname"
+msgstr "Ongera utangire OYA Na:"
+
+#: comsat/comsat.c:217
+#, fuzzy
+msgid "Failed to become a daemon"
+msgstr "Byanze Kuri a"
+
+#: comsat/comsat.c:261
+msgid "GNU comsat started"
+msgstr ""
+
+#: comsat/comsat.c:289
+#, fuzzy, c-format
+msgid "Too many requests: pausing for %u second"
+msgid_plural "Too many requests: pausing for %u seconds"
+msgstr[0] "kugirango ISEGONDA"
+
+#: comsat/comsat.c:344
+#, fuzzy, c-format
+msgid "DENIED attempt to connect from %s"
+msgstr "Kuri Kwihuza Bivuye"
+
+#: comsat/comsat.c:350
+#, fuzzy, c-format
+msgid "Received %d byte from %s"
+msgid_plural "Received %d bytes from %s"
+msgstr[0] "BYAKIRIWE Bayite Bivuye"
+
+#: comsat/comsat.c:360
+#, fuzzy, c-format
+msgid "Malformed input: %s"
+msgstr "Iyinjiza"
+
+#: comsat/comsat.c:375
+#, fuzzy, c-format
+msgid "Malformed input: %s@%s (near %s)"
+msgstr "Iyinjiza"
+
+#: comsat/comsat.c:441
+#, fuzzy, c-format
+msgid "Cannot open device %s: %m"
+msgstr "Gufungura APAREYE"
+
+#: comsat/comsat.c:457 mail.local/main.c:761 mail.local/main.c:780
+#: mail/copy.c:77 mail/file.c:95 mail/mail.c:443 mail/quit.c:122 mh/inc.c:217
+#: mh/mh_init.c:457
+#, fuzzy, c-format
+msgid "Cannot open mailbox %s: %s"
+msgstr "OYA Gufungura"
+
+#: comsat/comsat.c:464 mail.local/main.c:800
+#, fuzzy, c-format
+msgid "Cannot get stream for mailbox %s: %s"
+msgstr "Kubona kugirango"
+
+#: comsat/comsat.c:471 mail.local/main.c:808
+#, fuzzy, c-format
+msgid "Cannot get stream size (mailbox %s): %s"
+msgstr "Kubona Ingano"
+
+#: comsat/comsat.c:488
+#, fuzzy, c-format
+msgid "Cannot create temporary mailbox: %s"
+msgstr "Kurema By'igihe gito"
+
+#: comsat/comsat.c:495
+#, fuzzy, c-format
+msgid "Cannot create temporary stream: %s"
+msgstr "Kurema By'igihe gito"
+
+#: comsat/comsat.c:542
+#, fuzzy, c-format
+msgid "Bad line name in utmp record: %s"
+msgstr "Umurongo Izina: in Icyabitswe"
+
+#: comsat/comsat.c:550
+#, fuzzy, c-format
+msgid "Not a character device: %s"
+msgstr "OYA a Inyuguti APAREYE"
+
+#: comsat/comsat.c:583 pop3d/popauth.c:308 pop3d/popauth.c:549
+#, fuzzy, c-format
+msgid "No such user: %s"
+msgstr "Oya Ukoresha:"
+
+#: comsat/comsat.c:603
+#, fuzzy, c-format
+msgid "User nonexistent: %s"
+msgstr "Ukoresha:"
 
 #: config/mailutils-config.c:28
 #, fuzzy
@@ -45,7 +517,7 @@ msgstr "Gucapa C Amabendera Kuri Gukusanya Na:"
 #, fuzzy
 msgid ""
 "Print libraries to link with. Possible arguments are: auth, guile, mbox, mh, "
-"maildir, imap, pop, sieve and all"
+"maildir, mailer, imap, pop, sieve and all"
 msgstr "Gucapa Amasomero Kuri Ihuza Na: ingingo Byose IMAP"
 
 #: config/mailutils-config.c:38
@@ -62,445 +534,25 @@ msgstr ""
 "Bivuye iyi Urutonde Na: Zeru Imimerere NIBA Byose Bya i Amahitamo i Gusohoka "
 "Imimerere ni 1."
 
-#: config/mailutils-config.c:128 frm/from.c:128 mh/folder.c:886
-#, fuzzy
+#: config/mailutils-config.c:129 frm/from.c:128 mh/folder.c:971
+#, fuzzy, c-format
 msgid "Too many arguments"
 msgstr "ingingo"
 
-# svx/source\options\optcolor.src:RID_SVXPAGE_COLORCONFIG.CT_COLORCONFIG.WN_SCROLL.FT_BASICSTRING.text
-#: auth/pam.c:153 auth/sql.c:197 auth/sql.c:199 auth/sql.c:203
-#: mail.local/main.c:87 mail.local/main.c:92 mh/anno.c:43 mh/pick.c:45
-#: mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54 mh/pick.c:56
-#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:83
-#, fuzzy
-msgid "STRING"
-msgstr "Ikurikiranyanyuguti"
-
-#: auth/pam.c:154
-#, fuzzy
-msgid "Use STRING as PAM service name"
-msgstr "Nka Serivisi Izina:"
-
-#: auth/sql.c:185 auth/sql.c:195 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
-#: mailbox/argp-parse.c:84 mh/mark.c:32 mh/pick.c:87
-#, fuzzy
-msgid "NAME"
-msgstr "Izina"
-
-#: auth/sql.c:186
-#, fuzzy
-msgid "Type of SQL interface to use"
-msgstr "Bya Kuri Gukoresha"
-
-#: auth/sql.c:187 auth/sql.c:189 auth/sql.c:191
-#, fuzzy
-msgid "QUERY"
-msgstr "Ikibazo"
-
-#: auth/sql.c:188
-#, fuzzy
-msgid "SQL query to retrieve a passwd entry based on username"
-msgstr "Ikibazo# Kuri a Icyinjijwe ku Izina ry'ukoresha"
-
-#: auth/sql.c:190
-#, fuzzy
-msgid "SQL query to retrieve a passwd entry based on UID"
-msgstr "Ikibazo# Kuri a Icyinjijwe ku"
-
-#: auth/sql.c:192
-#, fuzzy
-msgid "SQL query to retrieve a password from the database"
-msgstr "Ikibazo# Kuri a Ijambobanga... Bivuye i Ububikoshingiro"
-
-#: auth/sql.c:193
-#, fuzzy
-msgid "HOSTNAME"
-msgstr "Izinabuturo"
-
-#: auth/sql.c:194
-#, fuzzy
-msgid "Name or IP of MySQL server to connect to"
-msgstr "Cyangwa Bya Seriveri Kuri Kwihuza Kuri"
-
-#: auth/sql.c:196
-#, fuzzy
-msgid "SQL user name"
-msgstr "Ukoresha: Izina:"
-
-#: auth/sql.c:198
-#, fuzzy
-msgid "SQL connection password"
-msgstr "Ukwihuza Ijambobanga..."
-
-#: auth/sql.c:200
-#, fuzzy
-msgid "Name of the database to connect to"
-msgstr "Bya i Ububikoshingiro Kuri Kwihuza Kuri"
-
-#: auth/sql.c:201 mailbox/mu_argp.c:80 mailbox/mu_argp.c:115
-#: mailbox/mu_argp.c:121 mh/folder.c:50 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44
-#: mh/mhl.c:46 mh/repl.c:65 mh/scan.c:51 mh/send.c:75
-#, fuzzy
-msgid "NUMBER"
-msgstr "Umubare"
-
-#: auth/sql.c:202
-#, fuzzy
-msgid "Port to use"
-msgstr "Kuri Gukoresha"
-
-#: auth/sql.c:204
-msgid ""
-"Type of password returned by --sql-getpass query. STRING is one of: plain, "
-"hash, scrambled"
+#: dotlock/dotlock.c:37
+msgid "GNU dotlock -- lock mail spool files"
 msgstr ""
 
-#: auth/sql.c:216
-#, fuzzy, c-format
-msgid "Unknown SQL interface `%s'"
-msgstr "Bya Kuri Gukoresha"
-
-#: auth/sql.c:259
-#, fuzzy, c-format
-msgid "Unknown password type `%s'"
-msgstr "Kitazwi"
-
-#: auth/sql.c:325 auth/sql.c:455 auth/sql.c:574 mail.local/mailquota.c:191
-#, fuzzy, c-format
-msgid "SQL Query failed: %s"
-msgstr "Byanze"
-
-#: auth/sql.c:336 auth/sql.c:466 auth/sql.c:585 mail.local/mailquota.c:202
-#, fuzzy, c-format
-msgid "Cannot store SQL result: %s"
-msgstr "Igisubizo"
-
-#: auth/sql.c:595
-#, fuzzy, c-format
-msgid "Cannot get password from SQL: %s"
-msgstr "Kubona Ijambobanga... Bivuye"
-
-#: auth/tls.c:58
-#, fuzzy
-msgid "Encryption options"
-msgstr "Amahitamo"
-
-#: auth/tls.c:59 auth/tls.c:61 auth/tls.c:63 comsat/comsat.c:59
-#: dotlock/dotlock.c:43 frm/from.c:32 mail.local/main.c:83
-#: mailbox/mu_argp.c:125 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
-#: mh/inc.c:33 mh/inc.c:37 mh/inc.c:44 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
-#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:45 mh/scan.c:56 mh/send.c:38
-#: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:81 pop3d/popauth.c:82
-#: mimeview/mimeview.c:48 mimeview/mimeview.c:52
-msgid "FILE"
-msgstr "IDOSIYE"
-
-#: auth/tls.c:60
-#, fuzzy
-msgid "Specify SSL certificate file"
-msgstr "Impamyabushobozi IDOSIYE"
-
-#: auth/tls.c:62
-#, fuzzy
-msgid "Specify SSL certificate key"
-msgstr "Impamyabushobozi Urufunguzo"
-
-#: auth/tls.c:64
-#, fuzzy
-msgid "Specify trusted CAs file"
-msgstr "IDOSIYE"
-
-#: auth/tls.c:122 auth/tls.c:150
-#, fuzzy
-msgid "INTERNAL ERROR: cannot register argp capability tls"
-msgstr "Kwiyandikisha TLS"
-
-#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:66 mh/folder.c:69
-#: mh/folder.c:72 mh/folder.c:75 mh/folder.c:78 mh/forw.c:33 mh/forw.c:49
-#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:41 mh/inc.c:48
-#: mh/mark.c:40 mh/mark.c:43 mh/mhl.c:36 mh/mhl.c:39 mh/mhn.c:43 mh/mhn.c:48
-#: mh/mhn.c:51 mh/mhn.c:54 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:72
-#: mh/mhn.c:75 mh/mhn.c:84 mh/pick.c:84 mh/pick.c:89 mh/pick.c:92
-#: mh/refile.c:42 mh/refile.c:45 mh/repl.c:36 mh/repl.c:51 mh/repl.c:59
-#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:42
-#: mh/scan.c:49 mh/scan.c:53 mh/send.c:52 mh/send.c:55 mh/send.c:58
-#: mh/send.c:61 mh/send.c:64 mh/send.c:69 mh/send.c:72 mh/whom.c:40
-#: sieve/sieve.c:93
-msgid "BOOL"
-msgstr ""
-
-#: auth/tls.c:129
-#, fuzzy
-msgid "Enable TLS support"
-msgstr "Gushigikira"
-
-#: auth/tls.c:171 auth/tls.c:183
-#, fuzzy, c-format
-msgid "%s is not a regular file or a symbolic link."
-msgstr "%sni OYA a Ibisanzwe IDOSIYE Cyangwa a Ihuza"
-
-#: auth/tls.c:189
-#, fuzzy, c-format
-msgid "Wrong permissions on %s. Set 0600"
-msgstr "Uruhushya ku"
-
-#: auth/virtual.c:194
-msgid "DIR"
-msgstr ""
-
-#: auth/virtual.c:195
-#, fuzzy
-msgid "Search for virtual passwd file in DIR"
-msgstr "kugirango Kitaboneka IDOSIYE in"
-
-#: comsat/action.c:265
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: No arguments for exec"
-msgstr ""
-"%s:.Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/action.c:271
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: Not an absolute pathname"
-msgstr ""
-"%s:.Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/action.c:278
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: cannot stat %s: %s"
-msgstr ""
-"%s:.Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/action.c:285
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: will not execute set[ug]id programs"
-msgstr ""
-"%s:.Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/action.c:299
-#, fuzzy, c-format
-msgid "Cannot execute %s: %s"
-msgstr "Gukora"
-
-#: comsat/action.c:317
-#, fuzzy, c-format
-msgid "%s's %s is not owned by %s"
-msgstr "%s'S ni OYA ku"
-
-#: comsat/action.c:324
-#, fuzzy
-msgid "Warning: your .biffrc has wrong permissions"
-msgstr "Uruhushya"
-
-#: comsat/action.c:325
-#, fuzzy, c-format
-msgid "%s's %s has wrong permissions"
-msgstr "%s'S Uruhushya"
-
-#: comsat/action.c:382
-#, fuzzy, c-format
-msgid ".biffrc:%d: unknown keyword"
-msgstr ""
-".Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/action.c:384
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: unknown keyword %s"
-msgstr ""
-"%s:.Project- Id- Version: basctl\n"
-"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
-"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
-"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
-"Content- Type: text/ plain; charset= UTF- 8\n"
-"Content- Transfer- Encoding: 8bit\n"
-"X- Generator: KBabel 1. 0\n"
-"."
-
-#: comsat/cfg.c:114 comsat/cfg.c:225 imap4d/bye.c:43 mailbox/mu_argp.c:868
-#: mailbox/mu_argp.c:906 pop3d/extra.c:104
-msgid "Out of memory"
-msgstr "Ububiko bwarenzwe"
-
-#: comsat/cfg.c:139
-#, fuzzy, c-format
-msgid "Cannot open config file %s: %m"
-msgstr "Gufungura IDOSIYE"
-
-#: comsat/cfg.c:166
-#, fuzzy, c-format
-msgid "%s:%d: too few fields"
-msgstr "%s:%d:Imyanya"
-
-#: comsat/cfg.c:178
-#, fuzzy, c-format
-msgid "%s:%d: yes or no expected"
-msgstr "%s:%d:Yego Cyangwa Oya Ikitezwe:"
-
-#: comsat/cfg.c:198
-#, fuzzy, c-format
-msgid "%s:%d: unknown keyword"
-msgstr "%s:%d:Kitazwi Ijambo- banze"
-
-#: comsat/cfg.c:209
-#, fuzzy, c-format
-msgid "%s:%d: cannot parse netdef: %s"
-msgstr "%s:%d:Gutandukanya Ikurikiranyanyuguti"
-
-#: comsat/comsat.c:59
-#, fuzzy
-msgid "Read configuration from FILE"
-msgstr "Iboneza Bivuye"
-
-#: comsat/comsat.c:149
-#, fuzzy, c-format
-msgid "--timeout and --daemon are incompatible\n"
-msgstr "--Igihe cyarenze: Na"
-
-#: comsat/comsat.c:183
-msgid "Restarting"
-msgstr ""
-
-#: comsat/comsat.c:186
-#, fuzzy
-msgid "Cannot restart: program must be invoked using absolute pathname"
-msgstr "Ongera utangire OYA Na:"
-
-#: comsat/comsat.c:216
-#, fuzzy
-msgid "Failed to become a daemon"
-msgstr "Byanze Kuri a"
-
-#: comsat/comsat.c:260
-msgid "GNU comsat started"
-msgstr ""
-
-#: comsat/comsat.c:288
-#, fuzzy, c-format
-msgid "Too many requests: pausing for %u second"
-msgid_plural "Too many requests: pausing for %u seconds"
-msgstr[0] "kugirango ISEGONDA"
-
-#: comsat/comsat.c:343
-#, fuzzy, c-format
-msgid "DENIED attempt to connect from %s"
-msgstr "Kuri Kwihuza Bivuye"
-
-#: comsat/comsat.c:349
-#, fuzzy, c-format
-msgid "Received %d byte from %s"
-msgid_plural "Received %d bytes from %s"
-msgstr[0] "BYAKIRIWE Bayite Bivuye"
-
-#: comsat/comsat.c:359
-#, fuzzy, c-format
-msgid "Malformed input: %s"
-msgstr "Iyinjiza"
-
-#: comsat/comsat.c:374
-#, fuzzy, c-format
-msgid "Malformed input: %s@%s (near %s)"
-msgstr "Iyinjiza"
-
-#: comsat/comsat.c:440
-#, fuzzy, c-format
-msgid "Cannot open device %s: %m"
-msgstr "Gufungura APAREYE"
-
-#: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:443
-#: mail/quit.c:121 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:219
-#: mh/mh_init.c:380 pop3d/apop.c:240
-#, fuzzy, c-format
-msgid "Cannot open mailbox %s: %s"
-msgstr "OYA Gufungura"
-
-#: comsat/comsat.c:463 mail.local/main.c:724
-#, fuzzy, c-format
-msgid "Cannot get stream for mailbox %s: %s"
-msgstr "Kubona kugirango"
-
-#: comsat/comsat.c:470 mail.local/main.c:732
-#, fuzzy, c-format
-msgid "Cannot get stream size (mailbox %s): %s"
-msgstr "Kubona Ingano"
-
-#: comsat/comsat.c:487 pop3d/apop.c:230
-#, fuzzy, c-format
-msgid "Cannot create temporary mailbox: %s"
-msgstr "Kurema By'igihe gito"
-
-#: comsat/comsat.c:494
-#, fuzzy, c-format
-msgid "Cannot create temporary stream: %s"
-msgstr "Kurema By'igihe gito"
-
-#: comsat/comsat.c:541
-#, fuzzy, c-format
-msgid "Bad line name in utmp record: %s"
-msgstr "Umurongo Izina: in Icyabitswe"
-
-#: comsat/comsat.c:549
-#, fuzzy, c-format
-msgid "Not a character device: %s"
-msgstr "OYA a Inyuguti APAREYE"
-
-#: comsat/comsat.c:582 pop3d/popauth.c:308 pop3d/popauth.c:545
-#, fuzzy, c-format
-msgid "No such user: %s"
-msgstr "Oya Ukoresha:"
-
-#: comsat/comsat.c:602
-#, fuzzy, c-format
-msgid "User nonexistent: %s"
-msgstr "Ukoresha:"
-
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: dotlock/dotlock.c:38
+#: dotlock/dotlock.c:39
 #, fuzzy
 msgid ""
-"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
-"file fails because it's already locked, and 1 if some other kind of error "
-"occurred."
+"Returns 0 on success, 3 if locking the file fails because it's already "
+"locked, and 1 if some other kind of error occurred."
 msgstr ""
 "Ubutumwa 0 ku Ibyatunganye 3. NIBA i IDOSIYE Gifunze Na 1. NIBA Ikindi Bya "
 "Ikosa"
 
-#: dotlock/dotlock.c:47
+#: dotlock/dotlock.c:46
 msgid "Unlock"
 msgstr ""
 
@@ -508,62 +560,99 @@ msgstr ""
 # officecfg/registry\schema\org\openoffice\Office\Common.xcs:....Save.Document.AutoSaveTimeIntervall.text
 # #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
 # officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....Wizard.Agenda.Elements.Minutes.text
-#: dotlock/dotlock.c:49
+#: dotlock/dotlock.c:48
 #, fuzzy
 msgid "MINUTES"
 msgstr "Iminota"
 
-#: dotlock/dotlock.c:50
+#: dotlock/dotlock.c:49
 #, fuzzy
 msgid "Forcibly break an existing lock older than a certain time"
 msgstr "itandukanya a Igihe"
 
-#: dotlock/dotlock.c:52
+#: dotlock/dotlock.c:51
 msgid "RETRIES"
 msgstr ""
 
-#: dotlock/dotlock.c:53
+#: dotlock/dotlock.c:52
 #, fuzzy
 msgid "Retry the lock a few times"
 msgstr "Wongereugerageze i a Times"
 
-#: dotlock/dotlock.c:56
+#: dotlock/dotlock.c:55
 #, fuzzy
 msgid "Print details of failure reasons to stderr"
 msgstr "Birambuye Bya Kuri"
 
-#: dotlock/dotlock.c:95
+#: dotlock/dotlock.c:94
 #, fuzzy
 msgid "RETRIES must be greater than 0"
 msgstr "Biruta 0"
 
-#: dotlock/dotlock.c:105
+#: dotlock/dotlock.c:104
 #, fuzzy
 msgid "MINUTES must be greater than 0"
 msgstr "Biruta 0"
 
-#: dotlock/dotlock.c:113
+#: dotlock/dotlock.c:110
 msgid "Only one FILE can be specified"
 msgstr ""
 
-#: dotlock/dotlock.c:118
+#: dotlock/dotlock.c:115
 msgid "FILE must be specified"
 msgstr ""
 
-#: dotlock/dotlock.c:149
+#: dotlock/dotlock.c:168
 #, fuzzy, c-format
 msgid "Creating locker failed: %s\n"
 msgstr "Uwanditse Byanze"
 
-#: dotlock/dotlock.c:175
+#: dotlock/dotlock.c:194
 #, fuzzy, c-format
 msgid "Unlocking the file %s failed: %s\n"
 msgstr "i IDOSIYE Byanze"
 
-#: dotlock/dotlock.c:176
+#: dotlock/dotlock.c:195
 #, fuzzy, c-format
 msgid "Locking the file %s failed: %s\n"
 msgstr "i IDOSIYE Byanze"
+
+#: frm/common.c:127
+#, c-format
+msgid "fribidi failed to recognize charset `%s'"
+msgstr ""
+
+#: frm/common.c:374 mail/util.c:1454
+#, fuzzy, c-format
+msgid "Cannot decode line `%s': %s"
+msgstr "Umurongo"
+
+#: frm/common.c:517 frm/common.c:597
+#, fuzzy, c-format
+msgid "Could not close mailbox `%s': %s"
+msgstr "Gufungura"
+
+#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:198
+#: sieve/sieve.c:497
+#, fuzzy, c-format
+msgid "Could not create mailbox `%s': %s"
+msgstr "OYA Kurema"
+
+#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:202
+#: sieve/sieve.c:500
+#, fuzzy, c-format
+msgid "Could not create default mailbox: %s"
+msgstr "OYA Kurema Mburabuzi"
+
+#: frm/common.c:567 messages/messages.c:156
+#, fuzzy, c-format
+msgid "Could not open mailbox `%s': %s"
+msgstr "Gufungura"
+
+#: frm/common.c:587
+#, fuzzy, c-format
+msgid "Could not scan mailbox `%s': %s."
+msgstr "Gusikana"
 
 #: frm/frm.c:35
 #, fuzzy
@@ -624,7 +713,7 @@ msgstr "%s:Impine"
 msgid "%s: unknown attribute"
 msgstr "%s:Kitazwi Ikiranga"
 
-#: frm/frm.c:136 frm/from.c:34 mimeview/mimeview.c:47
+#: frm/frm.c:136 frm/from.c:34 mimeview/mimeview.c:46
 #, fuzzy
 msgid "Enable debugging output"
 msgstr "Ibisohoka"
@@ -731,7 +820,7 @@ msgstr "Bivuye Kugaragaza Bivuye Na Ikivugwaho"
 msgid "Just print a count of messages and exit"
 msgstr "a Inshamake Bya Ubutumwa"
 
-#: frm/from.c:30 sieve/sieve.c:96
+#: frm/from.c:30 sieve/sieve.c:94
 msgid "ADDRESS"
 msgstr "ADERESI"
 
@@ -749,6 +838,7 @@ msgid "[OPTIONS] [USER]"
 msgstr ""
 
 #: frm/from.c:135
+#, c-format
 msgid "Both --from option and user name are specified"
 msgstr ""
 
@@ -759,77 +849,41 @@ msgid_plural "There are %lu messages in your incoming mailbox.\n"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frm/common.c:127
-#, c-format
-msgid "fribidi failed to recognize charset `%s'"
-msgstr ""
-
-#: frm/common.c:374 mail/util.c:1477
-#, fuzzy, c-format
-msgid "Cannot decode line `%s': %s"
-msgstr "Umurongo"
-
-#: frm/common.c:517 frm/common.c:597
-#, fuzzy, c-format
-msgid "Could not close mailbox `%s': %s"
-msgstr "Gufungura"
-
-#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:189
-#: sieve/sieve.c:458
-#, fuzzy, c-format
-msgid "Could not create mailbox `%s': %s"
-msgstr "OYA Kurema"
-
-#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:193
-#: sieve/sieve.c:461
-#, fuzzy, c-format
-msgid "Could not create default mailbox: %s"
-msgstr "OYA Kurema Mburabuzi"
-
-#: frm/common.c:567 messages/messages.c:156
-#, fuzzy, c-format
-msgid "Could not open mailbox `%s': %s"
-msgstr "Gufungura"
-
-#: frm/common.c:587
-#, fuzzy, c-format
-msgid "Could not scan mailbox `%s': %s."
-msgstr "Gusikana"
-
-#: guimb/collect.c:35
+#: guimb/collect.c:36
 #, fuzzy, c-format
 msgid "Cannot construct default mailbox URL: %s"
 msgstr "OYA Kurema Mburabuzi"
 
-#: guimb/collect.c:43
+#: guimb/collect.c:44
 #, fuzzy, c-format
 msgid "Cannot open default mailbox %s: %s"
 msgstr "Gufungura Mburabuzi"
 
-#: guimb/collect.c:87
+#: guimb/collect.c:88
 #, fuzzy, c-format
 msgid "Cannot open input file %s: %s"
 msgstr "Gufungura Iyinjiza IDOSIYE"
 
-#: guimb/collect.c:115
+#: guimb/collect.c:116
 #, fuzzy, c-format
 msgid "Cannot create temp mailbox %s: %s"
 msgstr "Kurema"
 
-#: guimb/collect.c:126
-#, fuzzy
+#: guimb/collect.c:127
+#, fuzzy, c-format
 msgid "Input format not recognized"
 msgstr "Iyinjiza Imiterere OYA"
 
-#: guimb/collect.c:151
+#: guimb/collect.c:152
 #, fuzzy, c-format
 msgid "Cannot open output mailbox %s: %s\n"
 msgstr "OYA Gufungura"
 
-#: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
-#: libsieve/sieve.l:605 libsieve/sieve.l:669 libsieve/sieve.l:723
-#: mail/folders.c:38 mail/if.c:56 mail/util.c:897 mh/mh_init.c:112
-#: mh/mh_init.c:317 mh/mh_msgset.c:606
+#: guimb/main.c:45 imap4d/auth_gss.c:268 libsieve/sieve.l:132
+#: libsieve/sieve.l:603 libsieve/sieve.l:667 libsieve/sieve.l:721
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:903 mh/mh_init.c:123
+#: mh/mh_init.c:394 mh/mh_msgset.c:606
+#, c-format
 msgid "Not enough memory"
 msgstr "Ububiko ntibuhagije"
 
@@ -906,188 +960,209 @@ msgstr "i Ibigize Bya i ikoresha a Porogaramu Cyangwa imvugo"
 msgid "[mailbox...]"
 msgstr ""
 
-#: guimb/main.c:170
-#, fuzzy
+#: guimb/main.c:171
+#, fuzzy, c-format
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
 msgstr "Bya Ifashayobora kugirango Birenzeho Ibisobanuro"
 
-#: guimb/util.c:51 guimb/util.c:58 mail/util.c:823 mail/util.c:830
+#: guimb/util.c:54 guimb/util.c:61 mail/util.c:829 mail/util.c:836
 #, fuzzy, c-format
 msgid "Cannot determine sender name (msg %d)"
 msgstr "Uwohereza Izina:"
 
-#: imap4d/auth_gss.c:70
+#: imap4d/auth_gss.c:71
 #, fuzzy, c-format
 msgid "GSS-API error %s (%s): %.*s"
 msgstr "Ikosa S"
 
-#: imap4d/auth_gss.c:71
+#: imap4d/auth_gss.c:72
 msgid "major"
 msgstr ""
 
-#: imap4d/auth_gss.c:71
+#: imap4d/auth_gss.c:72
 msgid "minor"
 msgstr ""
 
-#: imap4d/auth_gss.c:254
+#: imap4d/auth_gss.c:255
 #, fuzzy, c-format
 msgid "Client requested unsupported protection mechanism (%d)"
 msgstr "Umukiriya Irinda"
 
-#: imap4d/auth_gss.c:296
+#: imap4d/auth_gss.c:297
 #, fuzzy, c-format
 msgid "GSSAPI user %s is NOT authorized as %s"
 msgstr "Ukoresha: ni Nka"
 
-#: imap4d/auth_gss.c:306
+#: imap4d/auth_gss.c:307
 #, fuzzy, c-format
 msgid "GSSAPI user %s is authorized as %s"
 msgstr "Ukoresha: ni Nka"
 
-#: imap4d/authenticate.c:134 imap4d/login.c:64
+#: imap4d/authenticate.c:137 imap4d/login.c:70
 #, fuzzy, c-format
 msgid "User `%s' logged in"
 msgstr "in"
 
-#: imap4d/imap4d.c:47
-#, fuzzy
-msgid "GNU imap4d -- the IMAP4D daemon"
-msgstr "i"
-
-#: imap4d/imap4d.c:53 imap4d/imap4d.c:55
-msgid "PATHLIST"
-msgstr ""
-
-#: imap4d/imap4d.c:54
-#, fuzzy
-msgid "Set the `other' namespace"
-msgstr "Gushyiraho i"
-
-#: imap4d/imap4d.c:56
-#, fuzzy
-msgid "Set the `shared' namespace"
-msgstr "Gushyiraho i"
-
-#: imap4d/imap4d.c:58
-#, fuzzy
-msgid "Disable LOGIN command"
-msgstr "Komandi:"
-
-#: imap4d/imap4d.c:61
-#, fuzzy
-msgid "Always require STARTTLS before entering authentication phase"
-msgstr "Mbere"
-
-#: imap4d/imap4d.c:176 pop3d/pop3d.c:202
-#, fuzzy
-msgid "Error getting mail group"
-msgstr "Ubutumwa Itsinda"
-
-#: imap4d/imap4d.c:182 pop3d/pop3d.c:208
-#, fuzzy
-msgid "Error setting mail group"
-msgstr "Igenamiterere Ubutumwa Itsinda"
-
-#: imap4d/imap4d.c:261 pop3d/pop3d.c:299
-#, fuzzy
-msgid "Incoming connection opened"
-msgstr "Ukwihuza"
-
-#: imap4d/imap4d.c:263 pop3d/pop3d.c:311
-#, fuzzy, c-format
-msgid "Cannot obtain IP address of client: %s"
-msgstr "Aderesi Bya Umukiriya"
-
-#: imap4d/imap4d.c:266
-#, fuzzy, c-format
-msgid "Connect from %s"
-msgstr "Kwihuza Bivuye"
-
-#: imap4d/imap4d.c:271 pop3d/pop3d.c:304
-#, fuzzy
-msgid "Started in debugging mode"
-msgstr "in Ubwoko"
-
-#: imap4d/imap4d.c:303
-#, fuzzy
-msgid "could not become daemon"
-msgstr "Byanze Kuri a"
-
-#: imap4d/imap4d.c:359
-msgid "GNU imap4d started"
-msgstr ""
-
-#: imap4d/imap4d.c:365
-#, c-format
-msgid "Too many children (%lu)"
-msgstr ""
-
-#: imap4d/bye.c:47 pop3d/extra.c:108
+#: imap4d/bye.c:48 pop3d/extra.c:109
 #, fuzzy
 msgid "Quitting on signal"
 msgstr "ku"
 
-#: imap4d/bye.c:53 pop3d/extra.c:116
+#: imap4d/bye.c:54 pop3d/extra.c:117
 #, fuzzy
 msgid "Session timed out for no user"
 msgstr "Inyuma kugirango Oya Ukoresha:"
 
-#: imap4d/bye.c:55 pop3d/extra.c:114
+#: imap4d/bye.c:56 pop3d/extra.c:115
 #, fuzzy, c-format
 msgid "Session timed out for user: %s"
 msgstr "Inyuma kugirango Ukoresha:"
 
-#: imap4d/bye.c:59 pop3d/extra.c:120
+#: imap4d/bye.c:60 pop3d/extra.c:121
 #, fuzzy
 msgid "No socket to send to"
 msgstr "Kuri Kohereza Kuri"
 
-#: imap4d/bye.c:63
+#: imap4d/bye.c:64
 #, fuzzy
 msgid "Mailbox modified by third party"
 msgstr "ku Ikindi"
 
-#: imap4d/bye.c:69
+#: imap4d/bye.c:70
 msgid "Session terminating"
 msgstr ""
 
-#: imap4d/bye.c:71
+#: imap4d/bye.c:72
 #, fuzzy, c-format
 msgid "Session terminating for user: %s"
 msgstr "kugirango Ukoresha:"
 
-#: imap4d/bye.c:77 pop3d/extra.c:131
+#: imap4d/bye.c:78 pop3d/extra.c:132
 #, fuzzy, c-format
 msgid "Quitting (numeric reason %d)"
 msgstr "Bikurikije umubare"
 
-#: imap4d/list.c:247 mh/folder.c:360 mh/mh_init.c:226 mh/mh_init.c:705
-#: mh/rmf.c:147 pop3d/popauth.c:246
+#: imap4d/imap4d.c:51
+#, fuzzy
+msgid "GNU imap4d -- the IMAP4D daemon"
+msgstr "i"
+
+#: imap4d/imap4d.c:58 imap4d/imap4d.c:60
+msgid "PATHLIST"
+msgstr ""
+
+#: imap4d/imap4d.c:59
+#, fuzzy
+msgid "Set the `other' namespace"
+msgstr "Gushyiraho i"
+
+#: imap4d/imap4d.c:61
+#, fuzzy
+msgid "Set the `shared' namespace"
+msgstr "Gushyiraho i"
+
+#: imap4d/imap4d.c:63
+#, fuzzy
+msgid "Disable LOGIN command"
+msgstr "Komandi:"
+
+# sfx2/source\explorer\explorer.src:STR_SFX_FOLDER.text
+#: imap4d/imap4d.c:64
+#, fuzzy
+msgid "MODE"
+msgstr "Ububiko"
+
+#: imap4d/imap4d.c:66
+#, fuzzy
+msgid "Create home directory, if it does not exist"
+msgstr "Ubutumwa Gushyiraho OYA"
+
+#: imap4d/imap4d.c:69
+#, fuzzy
+msgid "Always require STARTTLS before entering authentication phase"
+msgstr "Mbere"
+
+#: imap4d/imap4d.c:135
+#, fuzzy, c-format
+msgid "Invalid mode specification: %s"
+msgstr "Sibyo Ihitamo"
+
+#: imap4d/imap4d.c:171
+#, fuzzy, c-format
+msgid "%s:%d: Invalid mode specification: %s"
+msgstr "Sibyo Ihitamo"
+
+#: imap4d/imap4d.c:237 pop3d/pop3d.c:280
+#, fuzzy
+msgid "Error getting mail group"
+msgstr "Ubutumwa Itsinda"
+
+#: imap4d/imap4d.c:243 pop3d/pop3d.c:286
+#, fuzzy
+msgid "Error setting mail group"
+msgstr "Igenamiterere Ubutumwa Itsinda"
+
+#: imap4d/imap4d.c:322 pop3d/pop3d.c:374
+#, fuzzy
+msgid "Incoming connection opened"
+msgstr "Ukwihuza"
+
+#: imap4d/imap4d.c:324 pop3d/pop3d.c:386
+#, fuzzy, c-format
+msgid "Cannot obtain IP address of client: %s"
+msgstr "Aderesi Bya Umukiriya"
+
+#: imap4d/imap4d.c:327
+#, fuzzy, c-format
+msgid "Connect from %s"
+msgstr "Kwihuza Bivuye"
+
+#: imap4d/imap4d.c:332 pop3d/pop3d.c:379
+#, fuzzy
+msgid "Started in debugging mode"
+msgstr "in Ubwoko"
+
+#: imap4d/imap4d.c:364
+#, fuzzy
+msgid "could not become daemon"
+msgstr "Byanze Kuri a"
+
+#: imap4d/imap4d.c:420
+msgid "GNU imap4d started"
+msgstr ""
+
+#: imap4d/imap4d.c:426
+#, fuzzy, c-format
+msgid "Too many children (%s)"
+msgstr "ingingo"
+
+#: imap4d/list.c:272 mh/folder.c:365 mh/mh_init.c:303 mh/mh_init.c:797
+#: mh/rmf.c:145 mh/send.c:754 pop3d/popauth.c:246
 #, fuzzy, c-format
 msgid "Cannot stat %s: %s"
 msgstr "IDOSIYE"
 
-#: imap4d/login.c:46 pop3d/user.c:78
+#: imap4d/login.c:47 pop3d/user.c:141
 #, fuzzy, c-format
 msgid "User `%s': nonexistent"
 msgstr "Ukoresha:"
 
-#: imap4d/login.c:54
+#: imap4d/login.c:55
 #, fuzzy, c-format
 msgid "Login failed: %s"
 msgstr "Kwinjira Byanze."
 
-#: imap4d/search.c:485 imap4d/search.c:573 imap4d/search.c:641
+#: imap4d/search.c:586 imap4d/search.c:709 imap4d/search.c:785
 #, fuzzy, c-format
 msgid "%s:%d: INTERNAL ERROR (please report)"
 msgstr "%s:%d:Icyegeranyo"
 
-#: imap4d/signal.c:42 pop3d/signal.c:53
+#: imap4d/signal.c:42 pop3d/signal.c:54
 #, c-format
 msgid "Got signal %s"
 msgstr ""
 
-#: imap4d/signal.c:46 pop3d/signal.c:58
+#: imap4d/signal.c:46 pop3d/signal.c:59
 #, fuzzy
 msgid "MASTER: exiting on signal"
 msgstr "ku"
@@ -1147,95 +1222,157 @@ msgstr "ku"
 msgid "Command terminated\n"
 msgstr ""
 
-#: lib/mailcap.c:550 mimeview/mimeview.c:201
+#: lib/mailcap.c:555 mimeview/mimeview.c:223
 #, c-format
 msgid "Executing %s...\n"
 msgstr ""
 
-#: lib/mailcap.c:593
+#: lib/mailcap.c:594
 #, c-format
 msgid "Trying %s...\n"
 msgstr ""
 
 # sfx2/source\explorer\explorer.src:STR_SFX_FOLDER.text
-#: lib/mailcap.c:635
+#: lib/mailcap.c:636
 #, fuzzy, c-format
 msgid "Found in %s\n"
 msgstr "Ububiko"
 
-#: libsieve/actions.c:50
+#: libproto/imap/folder.c:2297
+#, c-format
+msgid "No tag in response: %s %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2324
+#, c-format
+msgid "ALERT: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2333
+#, c-format
+msgid "BAD CHARSET: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2433
+#, c-format
+msgid "Untagged OK: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2439
+#, c-format
+msgid "Untagged NO: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2444
+#, c-format
+msgid "Untagged BAD: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2507
+#, c-format
+msgid "unknown untagged response: \"%s\"  %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2542
+#, fuzzy, c-format
+msgid "NO/Bad Tagged: %s %s %s"
+msgstr "Aderesi"
+
+#: libproto/mbox/mbox.c:349
+#, c-format
+msgid "* BAD : Mailbox corrupted, shrank in size"
+msgstr ""
+
+#: libproto/mbox/mbox.c:464
+#, fuzzy, c-format
+msgid "Failed to create temporary file when expunging"
+msgstr "Kuri Gufungura By'igihe gito IDOSIYE"
+
+#: libproto/mbox/mbox.c:527
+#, fuzzy, c-format
+msgid "Failed to grab the lock: %s"
+msgstr "Kuri external"
+
+#: libproto/mbox/mbox.c:579 libproto/mbox/mbox.c:588 libproto/mbox/mbox.c:611
+#: libproto/mbox/mbox.c:623 libproto/mbox/mbox.c:653 libproto/mbox/mbox.c:664
+#: libproto/mbox/mbox.c:685 libproto/mbox/mbox.c:699
+#, fuzzy, c-format
+msgid "Error expunging:%d: %s"
+msgstr "Ikosa Ubutumwa"
+
+#: libsieve/actions.c:51
 #, fuzzy
 msgid "marking as deleted"
 msgstr "Nka Cyasibwe"
 
-#: libsieve/actions.c:64
-#, fuzzy
+#: libsieve/actions.c:65
+#, fuzzy, c-format
 msgid "cannot get filename!"
 msgstr "Kubona Izina ry'idosiye:"
 
-#: libsieve/actions.c:67
+#: libsieve/actions.c:69
 #, c-format
 msgid "delivering into %s"
 msgstr ""
 
-#: libsieve/actions.c:74
+#: libsieve/actions.c:76
 #, fuzzy, c-format
 msgid "cannot save to mailbox: %s"
 msgstr "Kubika Kuri"
 
-#: libsieve/actions.c:275
-#, fuzzy
+#: libsieve/actions.c:269
+#, fuzzy, c-format
 msgid "reject: cannot get text!"
 msgstr "Kwanga Kubona Umwandiko"
 
-#: libsieve/actions.c:291 libsieve/extensions/vacation.c:485
+#: libsieve/actions.c:285 libsieve/extensions/vacation.c:486
 #, fuzzy, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d:Kwanga Kurema Kuri Aderesi"
 
-#: libsieve/actions.c:303 libsieve/actions.c:432
+#: libsieve/actions.c:297 libsieve/actions.c:425
 #, fuzzy, c-format
 msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d:Kwanga Kurema Bivuye Aderesi"
 
-#: libsieve/actions.c:317 libsieve/actions.c:472
-#: libsieve/extensions/vacation.c:524
+#: libsieve/actions.c:311 libsieve/actions.c:465
+#: libsieve/extensions/vacation.c:525
 #, fuzzy, c-format
 msgid "%d: cannot open mailer %s: %s"
 msgstr "Gufungura IDOSIYE"
 
-#: libsieve/actions.c:392
-#, fuzzy
+#: libsieve/actions.c:386
+#, fuzzy, c-format
 msgid "cannot get address!"
 msgstr "Kubona Aderesi"
 
-#: libsieve/actions.c:400
+#: libsieve/actions.c:394
 #, fuzzy, c-format
 msgid "%d: parsing recipient address `%s' failed: %s"
 msgstr "Umukoresha Amaderesi Byanze"
 
 # sw/source\ui\envelp\mailmrge.src:DLG_MAILMERGE.FT_BIS.text
-#: libsieve/actions.c:406
+#: libsieve/actions.c:400
 #, fuzzy, c-format
 msgid "to %s"
 msgstr "Kuri:"
 
-#: libsieve/actions.c:413
+#: libsieve/actions.c:407
 #, c-format
 msgid "%d: Redirection loop detected"
 msgstr ""
 
-#: libsieve/actions.c:422
+#: libsieve/actions.c:416
 #, fuzzy, c-format
 msgid "%d: cannot get envelope sender: %s"
 msgstr "%d:Kubona Ibahasha Uwohereza"
 
-#: libsieve/actions.c:445
+#: libsieve/actions.c:438
 #, fuzzy, c-format
 msgid "%d: cannot copy message: %s"
 msgstr "%d:Gukoporora Ubutumwa"
 
-#: libsieve/actions.c:460
+#: libsieve/actions.c:453
 #, fuzzy, c-format
 msgid "%d: cannot get my email address"
 msgstr "%d:Kubona imeli Aderesi"
@@ -1246,7 +1383,7 @@ msgid "Regex error: %s"
 msgstr "Ikosa"
 
 #: libsieve/comparator.c:177
-#, fuzzy
+#, fuzzy, c-format
 msgid "Regex error"
 msgstr "Ikosa"
 
@@ -1262,12 +1399,12 @@ msgid "comparator %s is incompatible with :count in call to `%s'"
 msgstr "ni Na: IBARA in Kuri"
 
 #: libsieve/comparator.c:292
-#, fuzzy
+#, fuzzy, c-format
 msgid "second argument must be a list of one element"
 msgstr "ISEGONDA a Urutonde Bya Ikigize:"
 
 #: libsieve/comparator.c:300
-#, fuzzy
+#, fuzzy, c-format
 msgid "second argument cannot be converted to number"
 msgstr "ISEGONDA Kuri Umubare"
 
@@ -1281,8 +1418,67 @@ msgstr "Sibyo BIHUYE in Kuri"
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
 msgstr "ni Na: BIHUYE Ubwoko in Kuri"
 
+#: libsieve/extensions/timestamp.c:87
+#, fuzzy, c-format
+msgid "cannot parse date specification (%s)"
+msgstr "Kurema"
+
+#: libsieve/extensions/vacation.c:70
+#, fuzzy, c-format
+msgid "cannot create temporary stream: %s"
+msgstr "Kurema By'igihe gito"
+
+#: libsieve/extensions/vacation.c:78
+#, fuzzy, c-format
+msgid "cannot open temporary stream: %s"
+msgstr "Kurema By'igihe gito"
+
+#: libsieve/extensions/vacation.c:205
+#, fuzzy, c-format
+msgid "%d: cannot compile regular expression \"%s\""
+msgstr "Gufungura IDOSIYE"
+
+#: libsieve/extensions/vacation.c:296
+#, c-format
+msgid "%d: cannot build db file name"
+msgstr ""
+
+#: libsieve/extensions/vacation.c:307
+#, fuzzy, c-format
+msgid "%d: cannot open `%s': %s"
+msgstr "Gufungura"
+
+#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
+#. Do not translate them!
+#: libsieve/extensions/vacation.c:350
+#, c-format
+msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
+msgstr ""
+
+#: libsieve/extensions/vacation.c:378
+#, fuzzy, c-format
+msgid "%d: not enough memory"
+msgstr "%s:OYA"
+
+#. TRANSLATORS: 'vacation' is the name of the
+#. Sieve action. Do not translate it!
+#: libsieve/extensions/vacation.c:436
+#, c-format
+msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
+msgstr ""
+
+#: libsieve/extensions/vacation.c:555
+#, fuzzy, c-format
+msgid "cannot get text!"
+msgstr "Kwanga Kubona Umwandiko"
+
+#: libsieve/extensions/vacation.c:572
+#, fuzzy, c-format
+msgid "%d: cannot get sender address"
+msgstr "%d:Kubona imeli Aderesi"
+
 #: libsieve/prog.c:40
-#, fuzzy
+#, fuzzy, c-format
 msgid "out of memory!"
 msgstr "Ububiko bwarenzwe"
 
@@ -1298,69 +1494,75 @@ msgstr "Sibyo Itagi: Izina: kugirango"
 
 #: libsieve/prog.c:187
 #, fuzzy, c-format
-msgid "%s:%d: cannot create tag list: %s"
-msgstr "%s:%d:Kurema Itagi: Urutonde"
+msgid "cannot create tag list: %s"
+msgstr "Kurema Urutonde"
 
-#: libsieve/prog.c:211
+#: libsieve/prog.c:200
+#, c-format
+msgid "required argument for tag %s is missing"
+msgstr ""
+
+#: libsieve/prog.c:219
 #, fuzzy, c-format
-msgid "%s:%d: cannot create check list: %s"
+msgid "cannot create check list: %s"
 msgstr "%s:%d:Kurema Kugenzura... Urutonde"
 
-#: libsieve/prog.c:223 mimeview/mimetypes.y:561
+#: libsieve/prog.c:231 mimeview/mimetypes.y:561
 #, fuzzy, c-format
 msgid "too many arguments in call to `%s'"
 msgstr "ingingo in Kuri"
 
-#: libsieve/prog.c:244
+#: libsieve/prog.c:252
 #, fuzzy, c-format
 msgid "type mismatch in argument %d to `%s'"
 msgstr "Ubwoko in Kuri"
 
-#: libsieve/prog.c:248
+#: libsieve/prog.c:256
 #, fuzzy, c-format
 msgid "expected %s but passed %s"
 msgstr "Itegerejwe"
 
-#: libsieve/prog.c:259
+#: libsieve/prog.c:267
 #, fuzzy, c-format
 msgid "cannot create arg list: %s"
 msgstr "Kurema Urutonde"
 
-#: libsieve/prog.c:277 mimeview/mimetypes.y:553
+#: libsieve/prog.c:285 mimeview/mimetypes.y:553
 #, fuzzy, c-format
 msgid "too few arguments in call to `%s'"
 msgstr "ingingo in Kuri"
 
-#: libsieve/require.c:57
+#: libsieve/require.c:58
 #, fuzzy
 msgid "required comparator"
 msgstr "Bya ngombwa"
 
-#: libsieve/require.c:63
+#: libsieve/require.c:64
 #, fuzzy
 msgid "required test"
 msgstr "Bya ngombwa Igerageza"
 
-#: libsieve/require.c:73
+#: libsieve/require.c:74
 #, fuzzy
 msgid "required action"
 msgstr "Bya ngombwa Igikorwa"
 
-#: libsieve/require.c:79
+#: libsieve/require.c:80
 #, fuzzy, c-format
 msgid "source for the %s %s is not available"
 msgstr "Inkomoko kugirango i ni OYA Bihari"
 
-#: libsieve/runtime.c:126
-#, fuzzy
+#: libsieve/runtime.c:127
+#, fuzzy, c-format
 msgid "cannot create stack"
 msgstr "Kurema"
 
-#: libsieve/runtime.c:144
+#: libsieve/runtime.c:145
+#, c-format
 msgid "stack underflow"
 msgstr ""
 
-#: libsieve/runtime.c:341
+#: libsieve/runtime.c:342
 #, fuzzy, c-format
 msgid "mu_mailbox_scan: %s"
 msgstr "Byanze"
@@ -1389,113 +1591,427 @@ msgstr "`%s'ku Hejuru: urwego"
 msgid "cannot open `%s': %s"
 msgstr "Gufungura"
 
-#: libsieve/sieve.l:440
+#: libsieve/sieve.l:438
 msgid "preprocessor syntax"
 msgstr ""
 
-#: libsieve/sieve.l:449
+#: libsieve/sieve.l:447
 #, fuzzy
 msgid "missing closing quote in preprocessor statement"
 msgstr "Ibuze Gushyiraho akugarizo in Inyandiko"
 
-#: libsieve/sieve.y:233
+#: libsieve/sieve.y:234
 #, fuzzy, c-format
 msgid "unknown test: %s"
 msgstr "Kitazwi Igerageza"
 
-#: libsieve/sieve.y:237
+#: libsieve/sieve.y:238
 #, fuzzy, c-format
 msgid "test `%s' has not been required"
 msgstr "Igerageza OYA Bya ngombwa"
 
-#: libsieve/sieve.y:259
+#: libsieve/sieve.y:260
 #, fuzzy, c-format
 msgid "unknown action: %s"
 msgstr "Kitazwi Igikorwa"
 
-#: libsieve/sieve.y:263
+#: libsieve/sieve.y:264
 #, fuzzy, c-format
 msgid "action `%s' has not been required"
 msgstr "Igikorwa OYA Bya ngombwa"
 
-#: libsieve/util.c:176
-#, fuzzy
+#: libsieve/util.c:177
+#, fuzzy, c-format
 msgid "invalid data type"
 msgstr "Ibyatanzwe Ubwoko"
 
-#: libsieve/util.c:231
+#: libsieve/util.c:232
 #, fuzzy, c-format
 msgid "cannot retrieve argument %d"
 msgstr "Igice"
 
-#: libsieve/extensions/vacation.c:70
+#: mail.local/mailquota.c:65
 #, fuzzy, c-format
-msgid "cannot create temporary stream: %s"
-msgstr "Kurema By'igihe gito"
+msgid "No quota retrieving mechanism"
+msgstr "Igice"
 
-#: libsieve/extensions/vacation.c:78
+#: mail.local/mailquota.c:84 mail/escape.c:250 mail/escape.c:552
+#: mail/escape.c:607 pop3d/popauth.c:284 pop3d/popauth.c:359
+#: pop3d/popauth.c:433
 #, fuzzy, c-format
-msgid "cannot open temporary stream: %s"
-msgstr "Kurema By'igihe gito"
-
-#: libsieve/extensions/vacation.c:205
-#, fuzzy, c-format
-msgid "%d: cannot compile regular expression \"%s\"\n"
-msgstr "Gufungura IDOSIYE"
-
-#: libsieve/extensions/vacation.c:296
-#, c-format
-msgid "%d: cannot build db file name"
-msgstr ""
-
-#: libsieve/extensions/vacation.c:307
-#, fuzzy, c-format
-msgid "%d: cannot open `%s': %s"
+msgid "Cannot open %s: %s"
 msgstr "Gufungura"
 
-#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
-#. Do not translate them!
-#: libsieve/extensions/vacation.c:350
-#, c-format
-msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr ""
-
-#: libsieve/extensions/vacation.c:378
+#: mail.local/mailquota.c:115
 #, fuzzy, c-format
-msgid "%d: not enough memory"
-msgstr "%s:OYA"
+msgid "Mailbox quota for `%s' is too big: %d digit"
+msgid_plural "Mailbox quota for `%s' is too big: %d digits"
+msgstr[0] "Igice kugirango ni"
+msgstr[1] "Igice kugirango ni"
 
-#: libsieve/extensions/vacation.c:437
-#, c-format
-msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
+#: mail.local/mailquota.c:130 mail.local/mailquota.c:240
+#, fuzzy, c-format
+msgid "Bogus mailbox quota for `%s' (near `%s')"
+msgstr "Igice kugirango"
+
+#: mail.local/mailquota.c:227
+#, fuzzy, c-format
+msgid "Cannot retrieve mailbox quota from SQL: %s"
+msgstr "OYA Kurema kugirango"
+
+#: mail.local/main.c:54
+msgid "GNU mail.local -- the local MDA"
 msgstr ""
 
-#: libsieve/extensions/vacation.c:554
+#: mail.local/main.c:56
 #, fuzzy
-msgid "cannot get text!"
-msgstr "Kwanga Kubona Umwandiko"
+msgid ""
+"Debug flags are:\n"
+"  g - guimb stack traces\n"
+"  T - mailutils traces (MU_DEBUG_TRACE)\n"
+"  P - network protocols (MU_DEBUG_PROT)\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+"  l - sieve action logs\n"
+"  0-9 - Set mail.local debugging level\n"
+msgstr "Ubutumwa i Amabendera g urusobe T L Igikorwa 0 9 Ubutumwa"
 
-#: libsieve/extensions/vacation.c:571
-#, fuzzy, c-format
-msgid "%d: cannot get sender address"
-msgstr "%d:Kubona imeli Aderesi"
+#: mail.local/main.c:65
+#, fuzzy
+msgid "recipient [recipient ...]"
+msgstr "Umukoresha Umukoresha"
 
-#: libsieve/extensions/timestamp.c:87
-#, fuzzy, c-format
-msgid "cannot parse date specification (%s)"
-msgstr "Kurema"
+#: mail.local/main.c:75
+#, fuzzy
+msgid "Do not return errors when delivering to multiple recipients"
+msgstr "Garuka Amakosa Ryari: Kuri Igikubo Abandikiwe..."
 
-#: mail/alias.c:100
-msgid "alias hash table full"
+#: mail.local/main.c:77
+#, fuzzy
+msgid "Return temporary failure if disk or mailbox quota is exceeded"
+msgstr "By'igihe gito NIBA Cyangwa Igice ni"
+
+# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....BusinessCard.BusinessAddress.Email.text
+#: mail.local/main.c:78 mailbox/mu_argp.c:333
+#, fuzzy
+msgid "EMAIL"
+msgstr "imeli"
+
+#: mail.local/main.c:79
+#, fuzzy
+msgid "Specify the sender's name"
+msgstr "i Izina:"
+
+#: mail.local/main.c:83
+#, fuzzy
+msgid "Specify path to quota DBM database"
+msgstr "Inzira Kuri Igice Ububikoshingiro"
+
+#: mail.local/main.c:87
+#, fuzzy
+msgid "SQL query to retrieve mailbox quota"
+msgstr "Ikibazo# Kuri Igice"
+
+# sc/source\ui\src\autofmt.src:RID_SCDLG_AUTOFORMAT.BTN_PATTERN.text
+#: mail.local/main.c:89 mail.local/main.c:94
+#, fuzzy
+msgid "PATTERN"
+msgstr "Ishusho"
+
+#: mail.local/main.c:90
+#, fuzzy
+msgid "Set name pattern for user-defined Sieve mail filters"
+msgstr "Izina: Ishusho kugirango Ukoresha: Ubutumwa Muyunguruzi"
+
+#: mail.local/main.c:92
+#, fuzzy
+msgid ""
+"Identify messages by the value of this header when logging Sieve actions"
+msgstr "Ubutumwa ku i Agaciro Bya iyi Umutwempangano Ryari:"
+
+#: mail.local/main.c:95
+#, fuzzy
+msgid "Set name pattern for user-defined Scheme mail filters"
+msgstr "Izina: Ishusho kugirango Ukoresha: Ubutumwa Muyunguruzi"
+
+# svx/source\gallery2\galtheme.src:RID_GALLERYSTR_THEME_FLAGS.text
+#: mail.local/main.c:97 mailbox/mu_argp.c:318 mimeview/mimeview.c:45
+#: sieve/sieve.c:85
+#, fuzzy
+msgid "FLAGS"
+msgstr "Amabendera"
+
+#: mail.local/main.c:98
+msgid "Enable debugging"
 msgstr ""
 
-#: mail/alias.c:195
+#: mail.local/main.c:168 sieve/sieve.c:153
+#, fuzzy, c-format
+msgid "%s:%d: %c is not a valid debug flag"
+msgstr "%cni OYA a Byemewe Kosora amakosa Ibendera"
+
+#: mail.local/main.c:171 sieve/sieve.c:156
+#, fuzzy, c-format
+msgid "%c is not a valid debug flag"
+msgstr "%cni OYA a Byemewe Kosora amakosa Ibendera"
+
+#: mail.local/main.c:202
+#, fuzzy
+msgid "Multiple --from options"
+msgstr "Igikubo Bivuye Amahitamo"
+
+#: mail.local/main.c:299
+#, fuzzy, c-format
+msgid "%s:%lu: %s on msg %s"
+msgstr "%s:%lu:%sku"
+
+#: mail.local/main.c:310
+#, fuzzy, c-format
+msgid "%s:%lu: %s on msg uid %d"
+msgstr "%s:%lu:%sku UID"
+
+# sw/source\ui\envelp\label.src:STR_CUSTOM.text
+#: mail.local/main.c:320
+#, fuzzy, c-format
+msgid "(user %s) %s: %s"
+msgstr "(Ukoresha]"
+
+# sw/source\ui\envelp\label.src:STR_CUSTOM.text
+#: mail.local/main.c:325 mail.local/main.c:343
+#, fuzzy, c-format
+msgid "(user %s) %s"
+msgstr "(Ukoresha]"
+
+#: mail.local/main.c:392
+#, fuzzy, c-format
+msgid "mu_debug_create failed: %s\n"
+msgstr "Byanze"
+
+#: mail.local/main.c:397
+#, fuzzy, c-format
+msgid "mu_debug_set_level failed: %s\n"
+msgstr "Byanze"
+
+#: mail.local/main.c:403
+#, fuzzy, c-format
+msgid "mu_debug_set_print failed: %s\n"
+msgstr "Byanze"
+
+#: mail.local/main.c:421
+#, fuzzy, c-format
+msgid "Cannot get username"
+msgstr "Kubona Izina ry'idosiye:"
+
+#: mail.local/main.c:431
+#, fuzzy, c-format
+msgid "Missing arguments. Try --help for more info."
+msgstr "ingingo Ifashayobora kugirango Birenzeho Ibisobanuro"
+
+#: mail.local/main.c:478 mail.local/script.c:95
+#, fuzzy, c-format
+msgid "Access to %s failed: %m"
+msgstr "Kuri Byanze"
+
+#: mail.local/main.c:486 sieve/sieve.c:415
+#, fuzzy, c-format
+msgid "Cannot initialize sieve machine: %s"
+msgstr "gutangiza"
+
+#: mail.local/main.c:607
+#, fuzzy, c-format
+msgid "Unable to open temporary file: %s"
+msgstr "Kuri Gufungura By'igihe gito IDOSIYE"
+
+#: mail.local/main.c:613
+#, fuzzy, c-format
+msgid "unable to open temporary file: %s"
+msgstr "Kuri Gufungura By'igihe gito IDOSIYE"
+
+#: mail.local/main.c:643
+#, fuzzy, c-format
+msgid "Cannot determine sender address"
+msgstr "Uwohereza Aderesi"
+
+#: mail.local/main.c:667 mail.local/main.c:684
+#, fuzzy, c-format
+msgid "Error writing temporary file: %s"
+msgstr "Ikosa Kuri"
+
+#: mail.local/main.c:694
+#, fuzzy, c-format
+msgid "Error opening temporary file: %s"
+msgstr "Gufungura By'igihe gito IDOSIYE"
+
+#: mail.local/main.c:703
+#, fuzzy, c-format
+msgid "Error creating temporary message: %s"
+msgstr "Kurema By'igihe gito Umutwempangano"
+
+#: mail.local/main.c:729
+#, fuzzy, c-format
+msgid "%s: no such user"
+msgstr "%s:Oya Ukoresha:"
+
+#: mail.local/main.c:745
+#, fuzzy, c-format
+msgid "Cannot get message from the temporary mailbox: %s"
+msgstr "Kurema By'igihe gito"
+
+#: mail.local/main.c:753
+#, fuzzy, c-format
+msgid "Cannot get input message stream: %s"
+msgstr "Kubona Iyinjiza Ubutumwa"
+
+#: mail.local/main.c:791
+#, fuzzy, c-format
+msgid "Cannot lock mailbox `%s': %s"
+msgstr "OYA Gufungura"
+
+#: mail.local/main.c:822
+#, fuzzy, c-format
+msgid "%s: mailbox quota exceeded for this recipient"
+msgstr "%s:Igice kugirango iyi Umukoresha"
+
+#: mail.local/main.c:833
+#, fuzzy, c-format
+msgid "Cannot get stream size (input message %s): %s"
+msgstr "Kubona Ingano Iyinjiza Ubutumwa"
+
+#: mail.local/main.c:840
+#, fuzzy, c-format
+msgid "%s: message would exceed maximum mailbox size for this recipient"
+msgstr "%s:Ubutumwa Kinini Ingano kugirango iyi Umukoresha"
+
+#: mail.local/main.c:897
+#, fuzzy, c-format
+msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
+msgstr "Ikosa Kuri"
+
+#: mail.local/main.c:900
+#, fuzzy, c-format
+msgid "Error writing to mailbox: %s"
+msgstr "Ikosa Kuri"
+
+#: mail.remote/mail.remote.c:50
+msgid "GNU mail.remote -- pseudo-sendmail interface for mail delivery"
+msgstr ""
+
+#: mail.remote/mail.remote.c:52
+#, fuzzy
+msgid ""
+"This is a simple drop-in replacement for sendmail to forward mail directly\n"
+"to an SMTP gateway.\n"
+"You should always specify your SMTP gateway using --mailer option\n"
+"(the best place to do so is in your configuration file).\n"
+"\n"
+"Examples:\n"
+"\n"
+"Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n"
+"contents for recipients of the message.\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com -t\n"
+"\n"
+"Deliver mail only to \"devnull@foo.bar\"\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
+"\n"
+"Deliver mail to \"devnull@foo.bar\" as well as to the recipients\n"
+"specified in the message itself:\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
+msgstr "Urugero. Ubutumwa. Urugero. Urugero. Urugero."
+
+#: mail.remote/mail.remote.c:74
+#, fuzzy
+msgid "ADDR"
+msgstr "Aderesi"
+
+#: mail.remote/mail.remote.c:74
+#, fuzzy
+msgid "Override the default from address"
+msgstr "i Mburabuzi Bivuye Aderesi"
+
+#: mail.remote/mail.remote.c:75
+#, fuzzy
+msgid "Read message for recipients."
+msgstr "Ubutumwa kugirango Abandikiwe..."
+
+#: mail.remote/mail.remote.c:76
+#, fuzzy
+msgid ""
+"Print envelope commands in the SMTP protocol transaction. If specified more "
+"than once, the data part of the protocol transaction will also be printed."
+msgstr ""
+"Ibahasha Amabwiriza in i Porotokole Birenzeho Rimwe i Ibyatanzwe Bya i "
+"Porotokole Byacapwe"
+
+#: mail.remote/mail.remote.c:77 mail.remote/mail.remote.c:78
+msgid "OPT"
+msgstr ""
+
+#: mail.remote/mail.remote.c:77 mail.remote/mail.remote.c:78
+#: mail.remote/mail.remote.c:79
+#, fuzzy
+msgid "Ignored for sendmail compatibility"
+msgstr "kugirango Bihuye neza"
+
+#: mail.remote/mail.remote.c:118
+msgid "[TO-ADDR]..."
+msgstr ""
+
+#: mail.remote/mail.remote.c:181
+#, fuzzy, c-format
+msgid "Parsing from addresses failed: %s"
+msgstr "Bivuye Amaderesi Byanze"
+
+#: mail.remote/mail.remote.c:191
+#, fuzzy, c-format
+msgid "Parsing recipient addresses failed: %s"
+msgstr "Umukoresha Amaderesi Byanze"
+
+#: mail.remote/mail.remote.c:199 mail.remote/mail.remote.c:211
+#: mail.remote/mail.remote.c:217
+#, fuzzy, c-format
+msgid "Failed: %s"
+msgstr "Byanze"
+
+#: mail.remote/mail.remote.c:205
+#, fuzzy, c-format
+msgid "Opening stdin failed: %s"
+msgstr "Byanze"
+
+#: mail.remote/mail.remote.c:225
+#, fuzzy, c-format
+msgid "Creating mailer `%s' failed: %s"
+msgstr "Uwanditse Byanze"
+
+#: mail.remote/mail.remote.c:252
+#, fuzzy, c-format
+msgid "Opening mailer `%s' failed: %s"
+msgstr "Uwanditse Byanze"
+
+#: mail.remote/mail.remote.c:259
+#, fuzzy, c-format
+msgid "Sending message failed: %s"
+msgstr "Ubutumwa Byanze"
+
+#: mail.remote/mail.remote.c:265
+#, fuzzy, c-format
+msgid "Closing mailer failed: %s"
+msgstr "Uwanditse Byanze"
+
+#: mail/alias.c:79
 #, fuzzy, c-format
 msgid "\"%s\": not a group"
 msgstr "\"%s\":OYA a Itsinda"
 
-#: mail/alt.c:64 mh/mh_init.c:128
-#, fuzzy
+#: mail/alias.c:163 mail/alias.c:170 mh/mh_whom.c:38
+#, fuzzy, c-format
+msgid "Cannot create list: %s"
+msgstr "Kurema Urutonde"
+
+#: mail/alt.c:64 mh/mh_init.c:139
+#, fuzzy, c-format
 msgid "Cannot determine my username"
 msgstr "Izina ry'ukoresha"
 
@@ -1506,131 +2022,125 @@ msgstr "imeli Aderesi"
 
 #: mail/cd.c:40
 #, fuzzy, c-format
-msgid "cannot change to '%s': %s"
+msgid "cannot change to `%s': %s"
 msgstr "Guhindura>> Kuri UID"
 
-#: mail/copy.c:68 mail/mail.c:426 mail/quit.c:114 mail/send.c:543 mh/inc.c:210
-#: mh/mh_init.c:370
+#: mail/copy.c:69 mail/mail.c:426 mail/quit.c:115 mail/send.c:588 mh/inc.c:208
+#: mh/mh_init.c:447
 #, fuzzy, c-format
 msgid "Cannot create mailbox %s: %s"
 msgstr "OYA Kurema"
 
-#: mail/copy.c:92 mail/quit.c:129 mail/send.c:536
+#: mail/copy.c:93 mail/quit.c:130 mail/send.c:581
 #, fuzzy, c-format
 msgid "Cannot append message: %s"
 msgstr "Kongeraho... Ubutumwa"
 
-#: mail/decode.c:124
+#: mail/decode.c:126
 #, c-format
 msgid "| Message=%d"
 msgstr ""
 
-#: mail/decode.c:131
+#: mail/decode.c:133
 #, c-format
 msgid "| Type=%s\n"
 msgstr ""
 
-#: mail/decode.c:132
+#: mail/decode.c:134
 #, fuzzy, c-format
 msgid "| Encoding=%s\n"
 msgstr "|Imisobekere:"
 
 # 3225
-#: mail/decode.c:267 mail/print.c:96
-#, fuzzy
+#: mail/decode.c:269 mail/print.c:98
+#, fuzzy, c-format
 msgid ""
 "\n"
 "Interrupt"
 msgstr "Hagarikira aho"
 
-#: mail/escape.c:59 mail/send.c:227 mh/mhn.c:2059 mimeview/mimeview.c:217
+#: mail/escape.c:60 mail/send.c:231 mh/mhn.c:2122 mimeview/mimeview.c:239
 #, fuzzy, c-format
 msgid "Cannot create header: %s"
 msgstr "Kurema Umutwempangano"
 
-#: mail/escape.c:95 mail/escape.c:121
+#: mail/escape.c:96 mail/escape.c:122
 #, fuzzy, c-format
 msgid "%d: not a header line"
 msgstr "%d:OYA a Umutwempangano Umurongo"
 
-#: mail/escape.c:142
+#: mail/escape.c:143
 msgid "Edit again?"
 msgstr ""
 
-#: mail/escape.c:157
+#: mail/escape.c:158
 #, fuzzy, c-format
 msgid "(continue)\n"
 msgstr "(urifuzagukomeza"
 
-#: mail/escape.c:167
+#: mail/escape.c:168
 #, c-format
 msgid "%c%s requires an argument"
 msgstr ""
 
-#: mail/escape.c:200 mail/util.c:140
+#: mail/escape.c:201 mail/util.c:143
 #, fuzzy, c-format
 msgid "Unknown command: %s"
 msgstr "Komandi:"
 
-#: mail/escape.c:205
-#, fuzzy
+#: mail/escape.c:206
+#, fuzzy, c-format
 msgid "Command not allowed in an escape sequence\n"
 msgstr "OYA in"
 
-#: mail/escape.c:248 mail/escape.c:547 mail/escape.c:602 pop3d/popauth.c:284
-#: pop3d/popauth.c:355 pop3d/popauth.c:429
-#, fuzzy, c-format
-msgid "Cannot open %s: %s"
-msgstr "Gufungura"
-
-#: mail/escape.c:252
+#: mail/escape.c:254
 #, c-format
 msgid "Reading %s\n"
 msgstr ""
 
-#: mail/escape.c:451
+#: mail/escape.c:456
 #, c-format
 msgid "Interpolating: %d\n"
 msgstr ""
 
-#: mail/escape.c:519
+#: mail/escape.c:524
 #, fuzzy, c-format
 msgid "Message contains:\n"
 msgstr "Kirimo"
 
 #. TRANSLATORS: 'pipe' is a command name. Do not translate it!
-#: mail/escape.c:633
-#, fuzzy
+#: mail/escape.c:638
+#, fuzzy, c-format
 msgid "pipe: no command specified"
 msgstr "Oya Komandi:"
 
-#: mail/escape.c:677
+#: mail/escape.c:682
 #, fuzzy, c-format
 msgid "Cannot exec process `%s': %s"
 msgstr "Aderesi"
 
-#: mail/escape.c:710
+#: mail/escape.c:715
 #, c-format
 msgid "Child terminated abnormally: %d"
 msgstr ""
 
-#: mail/escape.c:717
+#: mail/escape.c:722
 #, fuzzy, c-format
 msgid "Cannot stat output file: %s"
 msgstr "Ibisohoka IDOSIYE"
 
-#: mail/escape.c:727
+#: mail/escape.c:732
 #, fuzzy, c-format
 msgid "no lines out\n"
 msgstr "Oya Imirongo"
 
 #: mail/file.c:41
-#, fuzzy
+#, fuzzy, c-format
 msgid "No previous file"
 msgstr "Ibanjirije IDOSIYE"
 
 #: mail/file.c:51
-#, fuzzy
+#, fuzzy, c-format
 msgid "MBOX environment variable not set"
 msgstr "IMPINDURAGACIRO OYA Gushyiraho"
 
@@ -1639,41 +2149,41 @@ msgstr "IMPINDURAGACIRO OYA Gushyiraho"
 msgid "%s takes only one argument"
 msgstr "Kubona"
 
-#: mail/followup.c:44 mail/next.c:40 mail/next.c:63 mail/next.c:80
-#: mail/previous.c:49 mail/previous.c:66
-#, fuzzy
+#: mail/followup.c:45 mail/next.c:41 mail/next.c:64 mail/next.c:81
+#: mail/previous.c:50 mail/previous.c:67
+#, fuzzy, c-format
 msgid "No applicable message"
 msgstr "Ubutumwa"
 
 #: mail/if.c:67
-#, fuzzy
+#, fuzzy, c-format
 msgid "Internal error: condition stack underflow"
 msgstr "By'imbere Ikosa Ibisabwa"
 
 #. TRANSLATORS: 'if' is the function name. Do not translate it
 #: mail/if.c:90
-#, fuzzy
+#, fuzzy, c-format
 msgid "if requires an argument: s | r | t"
 msgstr "NIBA S R T"
 
 #: mail/if.c:96 mail/if.c:120
-#, fuzzy
+#, fuzzy, c-format
 msgid "Valid if arguments are: s | r | t"
 msgstr "Byemewe NIBA ingingo S R T"
 
 #. TRANSLATORS: 'else' and 'if' are function names. Do not translate them
 #: mail/if.c:137
-#, fuzzy
+#, fuzzy, c-format
 msgid "else without matching if"
 msgstr "Ikindi NIBA"
 
 #. TRANSLATORS: 'endif' and 'if' are function names. Do not translate them
 #: mail/if.c:153
-#, fuzzy
+#, fuzzy, c-format
 msgid "endif without matching if"
 msgstr "NIBA"
 
-#: mail/inc.c:31 mail/mail.c:205
+#: mail/inc.c:31 mail/mail.c:200
 #, fuzzy, c-format
 msgid "New mail has arrived.\n"
 msgstr "Ubutumwa"
@@ -1698,7 +2208,7 @@ msgstr "[Aderesi"
 msgid "Return true if mail exists"
 msgstr "NIBYO NIBA Ubutumwa"
 
-#: mail/mail.c:37 mailbox/mu_argp.c:74
+#: mail/mail.c:37 mailbox/mu_argp.c:314
 msgid "URL"
 msgstr "URL"
 
@@ -1790,14 +2300,20 @@ msgstr "Urwego"
 msgid "Execute COMMAND"
 msgstr ""
 
-#: mail/mail.c:212
+#: mail/mail.c:207
+#, c-format
 msgid "Interrupt"
 msgstr "Hagarikira aho"
 
-#: mail/mail.c:218
-#, fuzzy
+#: mail/mail.c:213
+#, fuzzy, c-format
 msgid "Use \"quit\" to quit."
 msgstr "Kuvamo Kuri Kuvamo"
+
+#: mail/mail.c:279
+#, fuzzy
+msgid "Null message body; hope that's ok"
+msgstr "Ubutumwa Umubiri"
 
 #: mail/mail.c:419
 #, fuzzy, c-format
@@ -1824,21 +2340,21 @@ msgstr "%s:0"
 msgid "No mail for %s\n"
 msgstr "Ubutumwa kugirango"
 
-#: mail/mail.c:548
+#: mail/mail.c:547
 #, fuzzy
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
+"2007 Free Software Foundation, Inc.\n"
 "\n"
 msgstr "a Bya kugirango Cya elegitoronike C"
 
-#: mail/mail.c:552 mailbox/mu_argp.c:255 mh/mh_argp.c:188
+#: mail/mail.c:552 mailbox/mu_argp.c:114 mh/mh_argp.c:187
 #, fuzzy, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
 "   it under the terms of the GNU General Public License as published by\n"
-"   the Free Software Foundation; either version 2 of the License, or\n"
+"   the Free Software Foundation; either version 3 of the License, or\n"
 "   (at your option) any later version.\n"
 "\n"
 "   GNU Mailutils is distributed in the hope that it will be useful,\n"
@@ -1856,9 +2372,9 @@ msgstr ""
 "in i ATARIIGIHARWE i Cyangwa A kugirango Birenzeho Birambuye BYAKIRIWE a "
 "Gukoporora Bya i Na: NIBA OYA Kwandika Kuri i"
 
-#: mail/mailline.c:704 mail/mailline.c:732 mail/mailline.c:779
-#: mail/mailline.c:815
-#, fuzzy
+#: mail/mailline.c:841 mail/mailline.c:869 mail/mailline.c:916
+#: mail/mailline.c:952
+#, fuzzy, c-format
 msgid "Not enough memory to edit the line"
 msgstr "OYA Ububiko Kuri Guhindura i Umurongo"
 
@@ -1882,39 +2398,39 @@ msgstr ""
 msgid "range error"
 msgstr "Urutonde Ikosa"
 
-#: mail/msgset.y:735 mail/util.c:209
+#: mail/msgset.y:735 mail/util.c:212
 #, fuzzy, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
 msgstr "%lu:Ubutumwa Cyasibwe"
 
-#: mail/quit.c:54
+#: mail/quit.c:55
 #, fuzzy, c-format
 msgid "Held %d message in %s\n"
 msgid_plural "Held %d messages in %s\n"
 msgstr[0] "Ubutumwa in"
 
-#: mail/quit.c:150
+#: mail/quit.c:151
 #, fuzzy, c-format
 msgid "Saved %d message in %s\n"
 msgid_plural "Saved %d messages in %s\n"
 msgstr[0] "Ubutumwa in"
 
-#: mail/retain.c:55
+#: mail/retain.c:56
 #, fuzzy
 msgid "No fields are currently being retained\n"
 msgstr "Imyanya"
 
-#: mail/retain.c:68
+#: mail/retain.c:69
 #, fuzzy
 msgid "No fields are currently being ignored\n"
 msgstr "Imyanya"
 
-#: mail/retain.c:81 mail/retain.c:93
+#: mail/retain.c:82 mail/retain.c:94
 #, fuzzy
 msgid "No fields are currently being unfolded\n"
 msgstr "Imyanya"
 
-#: mail/retain.c:120 mail/retain.c:129
+#: mail/retain.c:121 mail/retain.c:130
 #, fuzzy, c-format
 msgid "Sender address is obtained from the envelope\n"
 msgstr "Aderesi ni Bivuye i"
@@ -1929,69 +2445,65 @@ msgstr "Kurema Umutwempangano Urutonde"
 msgid "Invalid header: %s"
 msgstr "Umutwempangano"
 
-#: mail/send.c:310
-#, fuzzy
+#: mail/send.c:371
+#, fuzzy, c-format
 msgid "Cannot open temporary file"
 msgstr "OYA Gufungura By'igihe gito IDOSIYE"
 
-#: mail/send.c:339
-#, fuzzy
+#: mail/send.c:400
+#, fuzzy, c-format
 msgid ""
 "\n"
 "(Interrupt -- one more to kill letter)"
 msgstr "(Birenzeho Kuri Ibaruwa..."
 
-#: mail/send.c:350
-#, fuzzy
+#: mail/send.c:411
+#, fuzzy, c-format
 msgid "Use \".\" to terminate letter."
 msgstr "Kuri Ibaruwa..."
 
-#: mail/send.c:351
-#, fuzzy
+#: mail/send.c:412
+#, fuzzy, c-format
 msgid "Use \"~.\" to terminate letter."
 msgstr "Kuri Ibaruwa..."
 
-#: mail/send.c:393
+#: mail/send.c:454
 #, c-format
 msgid "Unknown escape %s"
 msgstr ""
 
-#: mail/send.c:396
+#: mail/send.c:457
+#, c-format
 msgid "Unfinished escape"
 msgstr ""
 
-#: mail/send.c:400
-#, fuzzy
+#: mail/send.c:461
+#, fuzzy, c-format
 msgid "Cannot parse escape sequence"
 msgstr "OYA in"
 
-#: mail/send.c:425 mh/mh_init.c:669 mh/mh_list.c:264
+#: mail/send.c:486 mh/mh_init.c:761 mh/mh_list.c:264
 #, fuzzy, c-format
 msgid "Cannot open file %s: %s"
 msgstr "Gufungura IDOSIYE"
 
-#: mail/send.c:486
-#, fuzzy
-msgid "Null message body; hope that's ok\n"
-msgstr "Ubutumwa Umubiri"
-
-#: mail/send.c:580
-#, fuzzy
+#: mail/send.c:627
+#, fuzzy, c-format
 msgid "Variable sendmail not set: no mailer"
 msgstr "IMPINDURAGACIRO OYA Gushyiraho Oya Uwanditse"
 
-#: mail/send.c:628
+#: mail/send.c:676
 #, fuzzy, c-format
 msgid "Piping %s failed"
 msgstr "Byanze"
 
 #. TRANSLATORS: 'source' is a command name. Do not translate it!
 #: mail/source.c:52
-#, fuzzy
+#, fuzzy, c-format
 msgid "source requires an argument"
 msgstr "Inkomoko"
 
-#: mail/source.c:60 mimeview/mimeview.c:166 mimeview/mimetypes.l:168
+#: mail/source.c:60 mimeview/mimetypes.l:168 mimeview/mimeview.c:188
 #, fuzzy, c-format
 msgid "Cannot open `%s': %s"
 msgstr "Gufungura"
@@ -2023,117 +2535,116 @@ msgstr[0] "%dCyasibwe"
 
 #. TRANSLATORS: 'unalias' is a command name. Do not translate it!
 #: mail/unalias.c:31
-#, fuzzy
+#, fuzzy, c-format
 msgid "unalias requires at least one argument"
 msgstr "ku"
 
-#: mail/util.c:142
-#, fuzzy
+#: mail/util.c:145
+#, fuzzy, c-format
 msgid "Invalid command"
 msgstr "Komandi:"
 
-#: mail/util.c:296
+#: mail/util.c:299
 #, fuzzy, c-format
 msgid "Unknown command: %s\n"
 msgstr "Komandi:"
 
-#: mail/util.c:463
+#: mail/util.c:466
 #, fuzzy, c-format
 msgid "No value set for \"%s\""
 msgstr "Agaciro Gushyiraho kugirango"
 
-#: mail/util.c:618
-#, c-format
+#: mail/util.c:623
 msgid "oops?"
 msgstr ""
 
-#: mail/util.c:708
-#, fuzzy
+#: mail/util.c:714
+#, fuzzy, c-format
 msgid "Incorrect value for decode-fallback"
 msgstr "Agaciro kugirango"
 
-#: mail/util.c:759
-#, fuzzy
+#: mail/util.c:765
+#, fuzzy, c-format
 msgid "Cannot get homedir"
 msgstr "Kubona"
 
-#: mail/util.c:1074
+#: mail/util.c:1049
 #, fuzzy, c-format
 msgid "Cannot create output mailbox `%s': %s"
 msgstr "OYA Gusoma Ibisohoka"
 
-#: mail/util.c:1082
+#: mail/util.c:1057
 #, fuzzy, c-format
 msgid "Cannot open output mailbox `%s': %s"
 msgstr "OYA Gufungura"
 
-#: mail/util.c:1088
+#: mail/util.c:1063
 #, fuzzy, c-format
 msgid "Cannot append message to `%s': %s"
 msgstr "Kongeraho... Ubutumwa"
 
-#: mail/util.c:1143
-#, fuzzy
+#: mail/util.c:1118
+#, fuzzy, c-format
 msgid "Cannot unencapsulate message/part"
 msgstr "Ubutumwa"
 
-#: mail/util.c:1152
+#: mail/util.c:1127
 #, fuzzy, c-format
 msgid "No such (sub)part in the message: %d"
 msgstr "Oya in i Ubutumwa"
 
-#: mail/util.c:1159
+#: mail/util.c:1134
 #, fuzzy, c-format
 msgid "Cannot get (sub)part from the message: %d"
 msgstr "Kubona Bivuye i Ubutumwa"
 
-#: mail/util.c:1283
+#: mail/util.c:1258
 #, fuzzy, c-format
 msgid "Cannot create temporary header: %s"
 msgstr "Kurema By'igihe gito Umutwempangano"
 
-#: mail/util.c:1324
+#: mail/util.c:1301
 #, fuzzy, c-format
 msgid "Cannot parse address `%s' (while expanding `%s'): %s"
 msgstr "Aderesi"
 
-#: mail/util.c:1327
+#: mail/util.c:1304
 #, fuzzy, c-format
 msgid "Cannot parse address `%s': %s"
 msgstr "Aderesi"
 
-#: mail/util.c:1380
+#: mail/util.c:1357
 #, fuzzy, c-format
 msgid "Cannot get message %lu: %s"
 msgstr "Gusoma Ubutumwa"
 
-#: mail/util.c:1391
+#: mail/util.c:1368
 #, fuzzy, c-format
 msgid "%d: invalid message number"
 msgstr "%d:Sibyo Ubutumwa Umubare"
 
-#: mail/util.c:1398
-#, fuzzy
+#: mail/util.c:1375
+#, fuzzy, c-format
 msgid "No applicable messages"
 msgstr "Ubutumwa"
 
 #: mail/z.c:65
-#, fuzzy
+#, fuzzy, c-format
 msgid "Bad arguments for the scrolling command"
 msgstr "ingingo kugirango i Komandi:"
 
 #: mail/z.c:80
-#, fuzzy
+#, fuzzy, c-format
 msgid "Too many arguments for the scrolling command"
 msgstr "ingingo kugirango i Komandi:"
 
 #: mail/z.c:88
-#, fuzzy
+#, fuzzy, c-format
 msgid "Argument not applicable for z"
 msgstr "OYA kugirango Z"
 
 #: mail/z.c:94
-#, fuzzy
+#, fuzzy, c-format
 msgid "Bad number of pages"
 msgstr "Umubare Bya Amapaji"
 
@@ -2147,409 +2658,12 @@ msgstr "Itangira Bya"
 msgid "On last screenful of messages\n"
 msgstr "Iheruka Bya"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mail.local/main.c:55
-#, fuzzy
-msgid ""
-"GNU mail.local -- the local MDADebug flags are:\n"
-"  g - guimb stack traces\n"
-"  T - mailutils traces (MU_DEBUG_TRACE)\n"
-"  P - network protocols (MU_DEBUG_PROT)\n"
-"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
-"  l - sieve action logs\n"
-"  0-9 - Set mail.local debugging level\n"
-msgstr "Ubutumwa i Amabendera g urusobe T L Igikorwa 0 9 Ubutumwa"
-
-#: mail.local/main.c:66
-#, fuzzy
-msgid "recipient [recipient ...]"
-msgstr "Umukoresha Umukoresha"
-
-#: mail.local/main.c:76
-#, fuzzy
-msgid "Do not return errors when delivering to multiple recipients"
-msgstr "Garuka Amakosa Ryari: Kuri Igikubo Abandikiwe..."
-
-#: mail.local/main.c:78
-#, fuzzy
-msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr "By'igihe gito NIBA Cyangwa Igice ni"
-
-# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....BusinessCard.BusinessAddress.Email.text
-#: mail.local/main.c:79 mailbox/mu_argp.c:91
-#, fuzzy
-msgid "EMAIL"
-msgstr "imeli"
-
-#: mail.local/main.c:80
-#, fuzzy
-msgid "Specify the sender's name"
-msgstr "i Izina:"
-
-#: mail.local/main.c:84
-#, fuzzy
-msgid "Specify path to quota DBM database"
-msgstr "Inzira Kuri Igice Ububikoshingiro"
-
-#: mail.local/main.c:88
-#, fuzzy
-msgid "SQL query to retrieve mailbox quota"
-msgstr "Ikibazo# Kuri Igice"
-
-# sc/source\ui\src\autofmt.src:RID_SCDLG_AUTOFORMAT.BTN_PATTERN.text
-#: mail.local/main.c:90 mail.local/main.c:95
-#, fuzzy
-msgid "PATTERN"
-msgstr "Ishusho"
-
-#: mail.local/main.c:91
-#, fuzzy
-msgid "Set name pattern for user-defined Sieve mail filters"
-msgstr "Izina: Ishusho kugirango Ukoresha: Ubutumwa Muyunguruzi"
-
-#: mail.local/main.c:93
-#, fuzzy
-msgid ""
-"Identify messages by the value of this header when logging Sieve actions"
-msgstr "Ubutumwa ku i Agaciro Bya iyi Umutwempangano Ryari:"
-
-#: mail.local/main.c:96
-#, fuzzy
-msgid "Set name pattern for user-defined Scheme mail filters"
-msgstr "Izina: Ishusho kugirango Ukoresha: Ubutumwa Muyunguruzi"
-
-# svx/source\gallery2\galtheme.src:RID_GALLERYSTR_THEME_FLAGS.text
-#: mail.local/main.c:98 mailbox/mu_argp.c:76 sieve/sieve.c:87
-#: mimeview/mimeview.c:46
-#, fuzzy
-msgid "FLAGS"
-msgstr "Amabendera"
-
-#: mail.local/main.c:99
-msgid "Enable debugging"
+#: mailbox/argp-help.c:148
+#, c-format
+msgid "ARGP_HELP_FMT: %s value is less than or equal to %s"
 msgstr ""
 
-#: mail.local/main.c:156
-#, fuzzy
-msgid "Multiple --from options"
-msgstr "Igikubo Bivuye Amahitamo"
-
-#: mail.local/main.c:215 sieve/sieve.c:209
-#, fuzzy, c-format
-msgid "%c is not a valid debug flag"
-msgstr "%cni OYA a Byemewe Kosora amakosa Ibendera"
-
-#: mail.local/main.c:262
-#, fuzzy, c-format
-msgid "%s:%lu: %s on msg %s"
-msgstr "%s:%lu:%sku"
-
-#: mail.local/main.c:273
-#, fuzzy, c-format
-msgid "%s:%lu: %s on msg uid %d"
-msgstr "%s:%lu:%sku UID"
-
-# sw/source\ui\envelp\label.src:STR_CUSTOM.text
-#: mail.local/main.c:283
-#, fuzzy, c-format
-msgid "(user %s) %s: %s"
-msgstr "(Ukoresha]"
-
-# sw/source\ui\envelp\label.src:STR_CUSTOM.text
-#: mail.local/main.c:287 mail.local/main.c:305
-#, fuzzy, c-format
-msgid "(user %s) %s"
-msgstr "(Ukoresha]"
-
-#: mail.local/main.c:347
-#, fuzzy, c-format
-msgid "mu_debug_create failed: %s\n"
-msgstr "Byanze"
-
-#: mail.local/main.c:352
-#, fuzzy, c-format
-msgid "mu_debug_set_level failed: %s\n"
-msgstr "Byanze"
-
-#: mail.local/main.c:358
-#, fuzzy, c-format
-msgid "mu_debug_set_print failed: %s\n"
-msgstr "Byanze"
-
-#: mail.local/main.c:371
-#, fuzzy
-msgid "Missing arguments. Try --help for more info."
-msgstr "ingingo Ifashayobora kugirango Birenzeho Ibisobanuro"
-
-#: mail.local/main.c:419 mail.local/script.c:94
-#, fuzzy, c-format
-msgid "Access to %s failed: %m"
-msgstr "Kuri Byanze"
-
-#: mail.local/main.c:427 sieve/sieve.c:376
-#, fuzzy, c-format
-msgid "Cannot initialize sieve machine: %s"
-msgstr "gutangiza"
-
-#: mail.local/main.c:548
-#, fuzzy, c-format
-msgid "Unable to open temporary file: %s"
-msgstr "Kuri Gufungura By'igihe gito IDOSIYE"
-
-#: mail.local/main.c:554
-#, fuzzy, c-format
-msgid "unable to open temporary file: %s"
-msgstr "Kuri Gufungura By'igihe gito IDOSIYE"
-
-#: mail.local/main.c:585
-#, fuzzy
-msgid "Cannot determine sender address"
-msgstr "Uwohereza Aderesi"
-
-#: mail.local/main.c:603 mail.local/main.c:620
-#, fuzzy, c-format
-msgid "Error writing temporary file: %s"
-msgstr "Ikosa Kuri"
-
-#: mail.local/main.c:630
-#, fuzzy, c-format
-msgid "Error opening temporary file: %s"
-msgstr "Gufungura By'igihe gito IDOSIYE"
-
-#: mail.local/main.c:639
-#, fuzzy, c-format
-msgid "Error creating temporary message: %s"
-msgstr "Kurema By'igihe gito Umutwempangano"
-
-#: mail.local/main.c:664
-#, fuzzy, c-format
-msgid "%s: no such user"
-msgstr "%s:Oya Ukoresha:"
-
-#: mail.local/main.c:678
-#, fuzzy, c-format
-msgid "Cannot get input message stream: %s"
-msgstr "Kubona Iyinjiza Ubutumwa"
-
-#: mail.local/main.c:716
-#, fuzzy, c-format
-msgid "Cannot lock mailbox `%s': %s"
-msgstr "OYA Gufungura"
-
-#: mail.local/main.c:746
-#, fuzzy, c-format
-msgid "%s: mailbox quota exceeded for this recipient"
-msgstr "%s:Igice kugirango iyi Umukoresha"
-
-#: mail.local/main.c:757
-#, fuzzy, c-format
-msgid "Cannot get stream size (input message): %s"
-msgstr "Kubona Ingano Iyinjiza Ubutumwa"
-
-#: mail.local/main.c:764
-#, fuzzy, c-format
-msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr "%s:Ubutumwa Kinini Ingano kugirango iyi Umukoresha"
-
-#: mail.local/main.c:817
-#, fuzzy, c-format
-msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
-msgstr "Ikosa Kuri"
-
-#: mail.local/main.c:820
-#, fuzzy, c-format
-msgid "Error writing to mailbox: %s"
-msgstr "Ikosa Kuri"
-
-#: mail.local/mailquota.c:65
-#, fuzzy
-msgid "No quota retrieving mechanism"
-msgstr "Igice"
-
-#: mail.local/mailquota.c:109
-#, fuzzy, c-format
-msgid "Mailbox quota for `%s' is too big: %d digit"
-msgid_plural "Mailbox quota for `%s' is too big: %d digits"
-msgstr[0] "Igice kugirango ni"
-msgstr[1] "Igice kugirango ni"
-
-#: mail.local/mailquota.c:124 mail.local/mailquota.c:234
-#, fuzzy, c-format
-msgid "Bogus mailbox quota for `%s' (near `%s')"
-msgstr "Igice kugirango"
-
-#: mail.local/mailquota.c:221
-#, fuzzy, c-format
-msgid "Cannot retrieve mailbox quota from SQL: %s"
-msgstr "OYA Kurema kugirango"
-
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mail.remote/mail.remote.c:52
-#, fuzzy
-msgid ""
-"GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
-"This is a simple drop-in replacement for sendmail to forward mail directly\n"
-"to an SMTP gateway.\n"
-"You should always specify your SMTP gateway using --mailer option\n"
-"(the best place to do so is in your configuration file).\n"
-"\n"
-"Examples:\n"
-"\n"
-"Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n"
-"contents for recipients of the message.\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com -t\n"
-"\n"
-"Deliver mail only to \"devnull@foo.bar\"\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
-"\n"
-"Deliver mail to \"devnull@foo.bar\" as well as to the recipients\n"
-"specified in the message itself:\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
-msgstr "Urugero. Ubutumwa. Urugero. Urugero. Urugero."
-
-#: mail.remote/mail.remote.c:76
-#, fuzzy
-msgid "ADDR"
-msgstr "Aderesi"
-
-#: mail.remote/mail.remote.c:76
-#, fuzzy
-msgid "Override the default from address"
-msgstr "i Mburabuzi Bivuye Aderesi"
-
-#: mail.remote/mail.remote.c:77
-#, fuzzy
-msgid "Read message for recipients."
-msgstr "Ubutumwa kugirango Abandikiwe..."
-
-#: mail.remote/mail.remote.c:78
-#, fuzzy
-msgid ""
-"Print envelope commands in the SMTP protocol transaction. If specified more "
-"than once, the data part of the protocol transaction will also be printed."
-msgstr ""
-"Ibahasha Amabwiriza in i Porotokole Birenzeho Rimwe i Ibyatanzwe Bya i "
-"Porotokole Byacapwe"
-
-#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
-msgid "OPT"
-msgstr ""
-
-#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
-#: mail.remote/mail.remote.c:81
-#, fuzzy
-msgid "Ignored for sendmail compatibility"
-msgstr "kugirango Bihuye neza"
-
-#: mail.remote/mail.remote.c:120
-msgid "[TO-ADDR]..."
-msgstr ""
-
-#: mail.remote/mail.remote.c:173
-#, fuzzy, c-format
-msgid "Parsing from addresses failed: %s"
-msgstr "Bivuye Amaderesi Byanze"
-
-#: mail.remote/mail.remote.c:183
-#, fuzzy, c-format
-msgid "Parsing recipient addresses failed: %s"
-msgstr "Umukoresha Amaderesi Byanze"
-
-#: mail.remote/mail.remote.c:191 mail.remote/mail.remote.c:203
-#: mail.remote/mail.remote.c:209
-#, fuzzy, c-format
-msgid "Failed: %s"
-msgstr "Byanze"
-
-#: mail.remote/mail.remote.c:197
-#, fuzzy, c-format
-msgid "Opening stdin failed: %s"
-msgstr "Byanze"
-
-#: mail.remote/mail.remote.c:217
-#, fuzzy, c-format
-msgid "Creating mailer `%s' failed: %s"
-msgstr "Uwanditse Byanze"
-
-#: mail.remote/mail.remote.c:244
-#, fuzzy, c-format
-msgid "Opening mailer `%s' failed: %s"
-msgstr "Uwanditse Byanze"
-
-#: mail.remote/mail.remote.c:251
-#, fuzzy, c-format
-msgid "Sending message failed: %s"
-msgstr "Ubutumwa Byanze"
-
-#: mail.remote/mail.remote.c:257
-#, fuzzy, c-format
-msgid "Closing mailer failed: %s"
-msgstr "Uwanditse Byanze"
-
-#: mailbox/getopt.c:551 mailbox/getopt.c:570
-#, fuzzy, c-format
-msgid "%s: option `%s' is ambiguous\n"
-msgstr "%s:Ihitamo ni"
-
-#: mailbox/getopt.c:603 mailbox/getopt.c:607
-#, fuzzy, c-format
-msgid "%s: option `--%s' doesn't allow an argument\n"
-msgstr "%s:Ihitamo Kwemerera"
-
-#: mailbox/getopt.c:616 mailbox/getopt.c:621
-#, fuzzy, c-format
-msgid "%s: option `%c%s' doesn't allow an argument\n"
-msgstr "%s:Ihitamo Kwemerera"
-
-#: mailbox/getopt.c:667 mailbox/getopt.c:689 mailbox/getopt.c:1020
-#: mailbox/getopt.c:1042
-#, fuzzy, c-format
-msgid "%s: option `%s' requires an argument\n"
-msgstr "%s:Ihitamo"
-
-#: mailbox/getopt.c:727 mailbox/getopt.c:730
-#, fuzzy, c-format
-msgid "%s: unrecognized option `--%s'\n"
-msgstr "%s:Ihitamo"
-
-#: mailbox/getopt.c:738 mailbox/getopt.c:741
-#, fuzzy, c-format
-msgid "%s: unrecognized option `%c%s'\n"
-msgstr "%s:Ihitamo"
-
-#: mailbox/getopt.c:796 mailbox/getopt.c:799
-#, fuzzy, c-format
-msgid "%s: illegal option -- %c\n"
-msgstr "%s:Ihitamo"
-
-#: mailbox/getopt.c:805 mailbox/getopt.c:808
-#, fuzzy, c-format
-msgid "%s: invalid option -- %c\n"
-msgstr "%s:Sibyo Ihitamo"
-
-#: mailbox/getopt.c:863 mailbox/getopt.c:882 mailbox/getopt.c:1095
-#: mailbox/getopt.c:1116
-#, fuzzy, c-format
-msgid "%s: option requires an argument -- %c\n"
-msgstr "%s:Ihitamo"
-
-#: mailbox/getopt.c:935 mailbox/getopt.c:954
-#, fuzzy, c-format
-msgid "%s: option `-W %s' is ambiguous\n"
-msgstr "%s:Ihitamo ni"
-
-#: mailbox/getopt.c:978 mailbox/getopt.c:999
-#, fuzzy, c-format
-msgid "%s: option `-W %s' doesn't allow an argument\n"
-msgstr "%s:Ihitamo Kwemerera"
-
-#: mailbox/argp-help.c:194
+#: mailbox/argp-help.c:221
 #, fuzzy, c-format
 msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
 msgstr ""
@@ -2562,7 +2676,20 @@ msgstr ""
 "X- Generator: KBabel 1. 0\n"
 "."
 
-#: mailbox/argp-help.c:203
+#: mailbox/argp-help.c:227
+#, fuzzy, c-format
+msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+msgstr ""
+"%.*Project- Id- Version: basctl\n"
+"POT- Creation- Date: 2003- 12- 07 17: 13+ 02\n"
+"PO- Revision- Date: 2004- 11- 04 10: 13- 0700\n"
+"Last- Translator: Language- Team:< en@ li. org> MIME- Version: 1. 0\n"
+"Content- Type: text/ plain; charset= UTF- 8\n"
+"Content- Transfer- Encoding: 8bit\n"
+"X- Generator: KBabel 1. 0\n"
+"."
+
+#: mailbox/argp-help.c:236
 #, fuzzy, c-format
 msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
 msgstr ""
@@ -2575,12 +2702,12 @@ msgstr ""
 "X- Generator: KBabel 1. 0\n"
 "."
 
-#: mailbox/argp-help.c:215
+#: mailbox/argp-help.c:248
 #, fuzzy, c-format
 msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "in"
 
-#: mailbox/argp-help.c:1194
+#: mailbox/argp-help.c:1229
 #, fuzzy
 msgid ""
 "Mandatory or optional arguments to long options are also mandatory or "
@@ -2589,47 +2716,47 @@ msgstr ""
 "Cyangwa Bitari ngombwa ingingo Kuri Amahitamo Cyangwa Bitari ngombwa "
 "kugirango Amahitamo"
 
-#: mailbox/argp-help.c:1581
+#: mailbox/argp-help.c:1622
 msgid "Usage:"
 msgstr "Ikoresha:"
 
-#: mailbox/argp-help.c:1585
+#: mailbox/argp-help.c:1626
 #, fuzzy
 msgid "  or: "
 msgstr "Cyangwa"
 
-#: mailbox/argp-help.c:1597
+#: mailbox/argp-help.c:1638
 msgid " [OPTION...]"
 msgstr ""
 
-#: mailbox/argp-help.c:1624
+#: mailbox/argp-help.c:1665
 #, fuzzy, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
 msgstr "Cyangwa kugirango Birenzeho Ibisobanuro"
 
-#: mailbox/argp-help.c:1652
+#: mailbox/argp-help.c:1693
 #, fuzzy, c-format
 msgid "Report bugs to %s.\n"
 msgstr "Kuri"
 
-#: mailbox/argp-help.c:1872
+#: mailbox/argp-help.c:1912
 #, fuzzy
 msgid "Unknown system error"
 msgstr "Kitazwi Ubutumwa Ubwoko"
 
 #: mailbox/argp-parse.c:82
 #, fuzzy
-msgid "Give this help list"
+msgid "give this help list"
 msgstr "iyi Ifashayobora Urutonde"
 
 #: mailbox/argp-parse.c:83
 #, fuzzy
-msgid "Give a short usage message"
+msgid "give a short usage message"
 msgstr "a Ikoresha: Ubutumwa"
 
 #: mailbox/argp-parse.c:84
 #, fuzzy
-msgid "Set the program name"
+msgid "set the program name"
 msgstr "i Porogaramu Izina:"
 
 # offmgr/source\offapp\dialog\optgdlg.src:OFA_TP_MISC.FT_HELPAGENT_TIME_UNIT.text
@@ -2640,29 +2767,289 @@ msgstr "amasogonda"
 
 #: mailbox/argp-parse.c:86
 #, fuzzy
-msgid "Hang for SECS seconds (default 3600)"
+msgid "hang for SECS seconds (default 3600)"
 msgstr "kugirango amasogonda Mburabuzi"
 
-#: mailbox/argp-parse.c:147
+#: mailbox/argp-parse.c:143
 #, fuzzy
-msgid "Print program version"
+msgid "print program version"
 msgstr "Porogaramu Verisiyo"
 
-#: mailbox/argp-parse.c:163
+#: mailbox/argp-parse.c:159
 #, fuzzy
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(Verisiyo"
 
-#: mailbox/argp-parse.c:619
+#: mailbox/argp-parse.c:612
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr ""
 
-#: mailbox/argp-parse.c:762
+#: mailbox/argp-parse.c:755
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr ""
 
-#: mailbox/file_stream.c:480
+#: mailbox/errors:19
+#, fuzzy
+msgid "Operation failed"
+msgstr "Byanze"
+
+#: mailbox/errors:20
+#, fuzzy
+msgid "Operation canceled"
+msgstr "Byanze"
+
+#: mailbox/errors:22
+msgid "No registered handler"
+msgstr ""
+
+#: mailbox/errors:23
+#, fuzzy
+msgid "Empty virtual function"
+msgstr "Kitaboneka Umumaro"
+
+#: mailbox/errors:25
+#, fuzzy
+msgid "Pointer to output null"
+msgstr "Kuri Ibisohoka NTAGIHARI"
+
+#: mailbox/errors:26
+#, fuzzy
+msgid "Pointer to output pointer null"
+msgstr "Kuri Ibisohoka Mweretsi NTAGIHARI"
+
+#: mailbox/errors:28
+#, fuzzy
+msgid "Mailbox null"
+msgstr "NTAGIHARI"
+
+#: mailbox/errors:30
+#, fuzzy
+msgid "Format of RFC822 object is bad"
+msgstr "Bya Igikoresho ni"
+
+#: mailbox/errors:31
+#, fuzzy
+msgid "Address contains no addr specs"
+msgstr "Kirimo Oya Aderesi"
+
+#: mailbox/errors:33
+#, fuzzy
+msgid "Locker null"
+msgstr "NTAGIHARI"
+
+#: mailbox/errors:34
+#, fuzzy
+msgid "Conflict with previous locker"
+msgstr "Na: Ibanjirije"
+
+#: mailbox/errors:35
+#, fuzzy
+msgid "Lock file check failed"
+msgstr "IDOSIYE Kugenzura... Byanze"
+
+#: mailbox/errors:36
+#, fuzzy
+msgid "File check failed"
+msgstr "Idosiye Kugenzura... Byanze"
+
+#: mailbox/errors:37
+#, fuzzy
+msgid "Lock not held on file"
+msgstr "OYA ku IDOSIYE"
+
+#: mailbox/errors:38
+#, fuzzy
+msgid "Failed to exec external locker"
+msgstr "Kuri external"
+
+#: mailbox/errors:39
+#, fuzzy
+msgid "External locker failed"
+msgstr "Byanze"
+
+#: mailbox/errors:40
+msgid "External locker killed"
+msgstr ""
+
+#: mailbox/errors:42
+#, fuzzy
+msgid "No such user name"
+msgstr "Ukoresha: Izina:"
+
+#: mailbox/errors:44
+#, fuzzy
+msgid "DNS name resolution failed"
+msgstr "Izina: Imikemurire Byanze"
+
+#: mailbox/errors:45
+#, fuzzy
+msgid "State busy must resume operation"
+msgstr "Irahuze Gusubiramo"
+
+#: mailbox/errors:46
+#, fuzzy
+msgid "Not a valid mailer from address"
+msgstr "a Byemewe Uwanditse Bivuye Aderesi"
+
+#: mailbox/errors:47
+#, fuzzy
+msgid "Not a valid mailer to address"
+msgstr "a Byemewe Uwanditse Kuri Aderesi"
+
+#: mailbox/errors:48
+#, fuzzy
+msgid "No receipt addresses found"
+msgstr "Amaderesi Byabonetse"
+
+#: mailbox/errors:49
+#, fuzzy
+msgid "Malformed or unsupported mailer URL"
+msgstr "Cyangwa Uwanditse"
+
+#: mailbox/errors:50
+#, fuzzy
+msgid "SMTP rcpt to command failed"
+msgstr "Kuri Komandi: Byanze"
+
+#: mailbox/errors:51
+#, fuzzy
+msgid "Tcp connections need a host"
+msgstr "Ukwihuza a Ubuturo"
+
+#: mailbox/errors:52
+#, fuzzy
+msgid "Tcp connections need a postive port"
+msgstr "Ukwihuza a Umuyoboro"
+
+#: mailbox/errors:54
+#, fuzzy
+msgid "Input string is not RFC 2047 encoded"
+msgstr "Ikurikiranyanyuguti ni OYA"
+
+#: mailbox/errors:55
+msgid "Not a valid RFC 2047 encoding"
+msgstr ""
+
+#: mailbox/errors:57
+#, fuzzy
+msgid "User name is not supplied"
+msgstr "Izina: ni OYA"
+
+#: mailbox/errors:58
+#, fuzzy
+msgid "User password is not supplied"
+msgstr "Ijambobanga... ni OYA"
+
+#: mailbox/errors:60
+#, fuzzy
+msgid "Unsafe file permissions. Set 0600"
+msgstr "IDOSIYE Uruhushya"
+
+#: mailbox/errors:61
+#, fuzzy
+msgid "Unsupported authentication scheme"
+msgstr "Igishusho"
+
+#: mailbox/errors:62
+#, fuzzy
+msgid "Authentication failed"
+msgstr "Byanze"
+
+#: mailbox/errors:64
+#, fuzzy
+msgid "Cannot execute"
+msgstr "Gukora"
+
+#: mailbox/errors:65
+#, fuzzy
+msgid "Process exited with a non-zero status"
+msgstr "Na: a Zeru Imimerere"
+
+#: mailbox/errors:66
+#, fuzzy
+msgid "Process exited on signal"
+msgstr "ku"
+
+#: mailbox/errors:67
+#, fuzzy
+msgid "Unknown failure while executing subprocess"
+msgstr "Gukora:%s"
+
+#: mailbox/errors:68
+#, fuzzy
+msgid "Connection closed by remote host"
+msgstr "ku Ubuturo"
+
+#: mailbox/errors:69
+#, fuzzy
+msgid "Parse error"
+msgstr "Ikosa"
+
+#: mailbox/errors:70
+#, fuzzy
+msgid "Requested item not found"
+msgstr "Ikintu OYA Byabonetse"
+
+#: mailbox/errors:71
+#, fuzzy
+msgid "Item already exists"
+msgstr "Idosiye"
+
+#: mailbox/errors:72
+#, fuzzy
+msgid "Not enough buffer space"
+msgstr "Umwanya"
+
+#: mailbox/errors:74
+#, fuzzy
+msgid "SQL error"
+msgstr "Ikosa"
+
+#: mailbox/errors:75
+#, fuzzy
+msgid "Already connected to the database"
+msgstr "Kuri i Ububikoshingiro"
+
+#: mailbox/errors:76
+#, fuzzy
+msgid "Not connected to the database"
+msgstr "Kuri i Ububikoshingiro"
+
+#: mailbox/errors:77
+#, fuzzy
+msgid "Result of the previous query is not released"
+msgstr "Bya i Ibanjirije Ikibazo# ni OYA"
+
+#: mailbox/errors:78
+#, fuzzy
+msgid "No query was yet executed"
+msgstr "Ikibazo#"
+
+#: mailbox/errors:79
+#, fuzzy
+msgid "Bad column address"
+msgstr "Inkingi Aderesi"
+
+#: mailbox/errors:80
+#, fuzzy
+msgid "No result from the previous query available"
+msgstr "Igisubizo Bivuye i Ibanjirije Ikibazo# Bihari"
+
+#: mailbox/errors:81
+msgid "No such interface"
+msgstr ""
+
+#: mailbox/errors:83
+msgid "Badly formed file or directory name"
+msgstr ""
+
+#: mailbox/errors:84
+#, fuzzy
+msgid "Read error"
+msgstr "Ikosa"
+
+#: mailbox/file_stream.c:496
 #, fuzzy, c-format
 msgid "%s must be a plain file with one link\n"
 msgstr "%sa Byuzuye IDOSIYE Na:"
@@ -2687,95 +3074,168 @@ msgstr "Ikosa"
 msgid "Stream is closed"
 msgstr "ni"
 
-#: mailbox/message.c:1093
+#: mailbox/getopt.c:531 mailbox/getopt.c:547
+#, fuzzy, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s:Ihitamo ni"
+
+#: mailbox/getopt.c:580 mailbox/getopt.c:584
+#, fuzzy, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s:Ihitamo Kwemerera"
+
+#: mailbox/getopt.c:593 mailbox/getopt.c:598
+#, fuzzy, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s:Ihitamo Kwemerera"
+
+#: mailbox/getopt.c:641 mailbox/getopt.c:660 mailbox/getopt.c:976
+#: mailbox/getopt.c:995
+#, fuzzy, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s:Ihitamo"
+
+#: mailbox/getopt.c:698 mailbox/getopt.c:701
+#, fuzzy, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s:Ihitamo"
+
+#: mailbox/getopt.c:709 mailbox/getopt.c:712
+#, fuzzy, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s:Ihitamo"
+
+#: mailbox/getopt.c:764 mailbox/getopt.c:767
+#, fuzzy, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s:Ihitamo"
+
+#: mailbox/getopt.c:773 mailbox/getopt.c:776
+#, fuzzy, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s:Sibyo Ihitamo"
+
+#: mailbox/getopt.c:828 mailbox/getopt.c:844 mailbox/getopt.c:1048
+#: mailbox/getopt.c:1066
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s:Ihitamo"
+
+#: mailbox/getopt.c:897 mailbox/getopt.c:913
+#, fuzzy, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s:Ihitamo ni"
+
+#: mailbox/getopt.c:937 mailbox/getopt.c:955
+#, fuzzy, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s:Ihitamo Kwemerera"
+
+#: mailbox/message.c:1122
 #, fuzzy, c-format
 msgid "mu_mailbox_create_default (%s) failed: %s\n"
 msgstr "Byanze"
 
-#: mailbox/message.c:1124
+#: mailbox/message.c:1153
 #, fuzzy, c-format
 msgid "mu_mailbox_open (%s) failed: %s\n"
 msgstr "Byanze"
 
-#: mailbox/message.c:1132
+#: mailbox/message.c:1161
 #, fuzzy, c-format
 msgid "mu_mailbox_append_message (%s) failed: %s\n"
 msgstr "Byanze"
 
-#: mailbox/message.c:1144
+#: mailbox/message.c:1173
 #, fuzzy, c-format
 msgid "mu_mailbox_close (%s) failed: %s\n"
 msgstr "Byanze"
 
-#: mailbox/mu_argp.c:60
+#: mailbox/mu_argp.c:109
+#, fuzzy, c-format
+msgid "Unknown facility `%s'\n"
+msgstr "Kitazwi"
+
+#: mailbox/mu_argp.c:300
 #, fuzzy
 msgid "Common options"
 msgstr "Amahitamo"
 
-#: mailbox/mu_argp.c:62
+#: mailbox/mu_argp.c:302
 #, fuzzy
 msgid "Show compilation options"
 msgstr "Amahitamo"
 
-#: mailbox/mu_argp.c:68
+#: mailbox/mu_argp.c:308
 #, fuzzy
 msgid "Print license and exit"
 msgstr "Na Gusohoka"
 
-#: mailbox/mu_argp.c:75
+#: mailbox/mu_argp.c:315
 #, fuzzy
 msgid "Use specified URL as a mailspool directory"
 msgstr "Nka a bushyinguro"
 
-#: mailbox/mu_argp.c:77
+# crashrep/source\all\crashrep.lng:%PROXY_SETTINGS_PORT%.text
+#: mailbox/mu_argp.c:316
+#, fuzzy
+msgid "PROTO"
+msgstr "Umuyoboro"
+
+#: mailbox/mu_argp.c:317
+#, fuzzy
+msgid "Default mailbox type to use"
+msgstr "Mburabuzi Izina:"
+
+#: mailbox/mu_argp.c:319
 #, fuzzy
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
 msgstr "Amabendera E external Ongera ugerageze Igihe"
 
 # offmgr/source\offapp\dialog\optgdlg.src:OFA_TP_MISC.FT_HELPAGENT_TIME_UNIT.text
-#: mailbox/mu_argp.c:78 mailbox/mu_argp.c:82 mh/send.c:67 pop3d/pop3d.c:77
+#: mailbox/mu_argp.c:320 mailbox/mu_argp.c:324 mh/send.c:64 pop3d/pop3d.c:91
 #, fuzzy
 msgid "SECONDS"
 msgstr "amasogonda"
 
-#: mailbox/mu_argp.c:79
+#: mailbox/mu_argp.c:321
 #, fuzzy
 msgid "Set timeout for acquiring the lockfile"
 msgstr "Igihe cyarenze: kugirango i"
 
-#: mailbox/mu_argp.c:81
+#: mailbox/mu_argp.c:323
 #, fuzzy
 msgid "Set the maximum number of times to retry acquiring the lockfile"
 msgstr "i Kinini Umubare Bya Times Kuri Ongera ugerageze i"
 
-#: mailbox/mu_argp.c:83
+#: mailbox/mu_argp.c:325
 #, fuzzy
 msgid "Number of seconds after which the lock expires"
 msgstr "Bya amasogonda Nyuma i Yarenze igihe:"
 
 # offmgr/source\offapp\dialog\optgdlg.src:OFA_TP_HELPERPROG.FT_ADD_MAIL.text
-#: mailbox/mu_argp.c:84
+#: mailbox/mu_argp.c:326
 #, fuzzy
 msgid "PATH"
 msgstr "Inzira"
 
-#: mailbox/mu_argp.c:85
+#: mailbox/mu_argp.c:327
 #, fuzzy
 msgid "Set full path to the external locker program"
 msgstr "Inzira Kuri i external Porogaramu"
 
-#: mailbox/mu_argp.c:92
+#: mailbox/mu_argp.c:334
 #, fuzzy
 msgid "Set current user's email address (default is loginname@defaultdomain)"
 msgstr "KIGEZWEHO imeli Aderesi Mburabuzi ni"
 
 # sfx2/source\toolbox\tbxopdlg.src:TP_CONFIG_OBJECTBAR.STR_DOMAIN.text
-#: mailbox/mu_argp.c:93
+#: mailbox/mu_argp.c:335
 #, fuzzy
 msgid "DOMAIN"
 msgstr "Urwego"
 
-#: mailbox/mu_argp.c:94
+#: mailbox/mu_argp.c:336
 #, fuzzy
 msgid "Set domain for unqualified user names (default is this host)"
 msgstr "Urwego kugirango Ukoresha: Amazina Mburabuzi ni iyi Ubuturo"
@@ -2783,384 +3243,162 @@ msgstr "Urwego kugirango Ukoresha: Amazina Mburabuzi ni iyi Ubuturo"
 # VCARD_LDAP_MAILER
 # # @name VCARD_LDAP_MAILER
 # # @loc None
-#: mailbox/mu_argp.c:100
+#: mailbox/mu_argp.c:342
 #, fuzzy
 msgid "MAILER"
 msgstr "Uwanditse"
 
-#: mailbox/mu_argp.c:101
+#: mailbox/mu_argp.c:343
 #, fuzzy
 msgid "Use specified URL as the default mailer"
 msgstr "Nka i Mburabuzi Uwanditse"
 
-#: mailbox/mu_argp.c:107
+#: mailbox/mu_argp.c:349
 msgid "FACILITY"
 msgstr ""
 
-#: mailbox/mu_argp.c:108
+#: mailbox/mu_argp.c:350
 #, fuzzy
 msgid "Output logs to syslog FACILITY"
 msgstr "Kuri"
 
-#: mailbox/mu_argp.c:116
+#: mailbox/mu_argp.c:357
 #, fuzzy
 msgid "Runs in daemon mode with a maximum of NUMBER children"
 msgstr "in Ubwoko Na: a Kinini Bya"
 
-#: mailbox/mu_argp.c:118
+#: mailbox/mu_argp.c:359
 #, fuzzy
 msgid "Run in inetd mode"
 msgstr "in Ubwoko"
 
 # crashrep/source\all\crashrep.lng:%PROXY_SETTINGS_PORT%.text
-#: mailbox/mu_argp.c:119
+#: mailbox/mu_argp.c:360
 #, fuzzy
 msgid "PORT"
 msgstr "Umuyoboro"
 
-#: mailbox/mu_argp.c:120
+#: mailbox/mu_argp.c:361
 #, fuzzy
 msgid "Listen on specified port number"
 msgstr "ku Umuyoboro Umubare"
 
-#: mailbox/mu_argp.c:122
+#: mailbox/mu_argp.c:363
 #, fuzzy
 msgid "Set idle timeout value to NUMBER seconds"
 msgstr "Igihe cyarenze: Agaciro Kuri amasogonda"
 
-#: mailbox/mu_argp.c:124
+#: mailbox/mu_argp.c:365
 #, fuzzy
 msgid "Output session transcript via syslog"
 msgstr "Ibisohoka Umukoro Biturutse"
 
-#: mailbox/mu_argp.c:126
+#: mailbox/mu_argp.c:367
 #, fuzzy
 msgid "Set PID file"
 msgstr "IDOSIYE"
 
-#: mailbox/mu_argp.c:215
+#: mailbox/mu_argp.c:456
 #, fuzzy
 msgid "Daemon configuration options"
 msgstr "Iboneza Amahitamo"
 
-#: mailbox/mu_argp.c:250
-#, fuzzy, c-format
-msgid "Unknown facility `%s'\n"
-msgstr "Kitazwi"
-
-#: mailbox/mu_argp.c:390
+#: mailbox/mu_argp.c:469
 #, fuzzy, c-format
 msgid ""
 "License for %s:\n"
 "\n"
 msgstr "kugirango"
 
-#: mailbox/mu_argp.c:402
+#: mailbox/mu_argp.c:530
 #, fuzzy, c-format
 msgid "Cannot set mail directory name: %s"
 msgstr "Kurema bushyinguro"
 
-#: mailbox/mu_argp.c:430
+#: mailbox/mu_argp.c:539
+#, fuzzy, c-format
+msgid "Invalid mailbox type: %s"
+msgstr "Sibyo imeli"
+
+#: mailbox/mu_argp.c:571
 #, fuzzy, c-format
 msgid "Invalid lock flag `%c'"
 msgstr "Sibyo Ibendera"
 
-#: mailbox/mu_argp.c:470
+#: mailbox/mu_argp.c:612
 #, fuzzy, c-format
 msgid "Invalid email address `%s': %s"
 msgstr "Sibyo imeli Aderesi"
 
-#: mailbox/mu_argp.c:478
+#: mailbox/mu_argp.c:623
 #, fuzzy, c-format
 msgid "Invalid email domain `%s': %s"
 msgstr "Sibyo imeli Urwego"
 
-#: mailbox/mu_argp.c:487
+#: mailbox/mu_argp.c:634
 #, fuzzy, c-format
 msgid "Invalid mailer URL `%s': %s"
 msgstr "Sibyo Uwanditse URL"
 
-#: mailbox/mu_argp.c:631 mailbox/mu_argp.c:670 mailbox/mu_argp.c:710
-#: mailbox/mu_argp.c:753 mailbox/mu_argp.c:782
+#: mailbox/mu_argp.c:702
 #, fuzzy, c-format
-msgid "%s: not enough memory\n"
-msgstr "%s:OYA"
+msgid "Invalid daemon mode: `%s'"
+msgstr "Umutwempangano"
 
-#: mailbox/mu_argp.c:892
+#: mailbox/mu_argp.c:887
 #, fuzzy, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
 msgstr "Kitazwi Icyegeranyo"
 
-#: mailbox/mu_argp.c:955
-#, fuzzy
-msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr "Kwiyandikisha Icyegeranyo"
+#: mailbox/mu_argp.c:1015
+#, fuzzy, c-format
+msgid "invalid configuration flavor: %s"
+msgstr "Iboneza Bivuye"
 
-#: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
+#: mailbox/mu_argp.c:1087
+#, c-format
+msgid "Notice: reading options from `%s'"
+msgstr ""
+
+#: mailbox/mu_argp.c:1123 mailbox/mu_argp.c:1160 mailbox/mu_argp.c:1194
+#, fuzzy, c-format
+msgid "%s: not enough memory\n"
+msgstr "%s:OYA"
+
+#: mailbox/mu_argp.c:1237 mailbox/mu_argp.c:1266
+#, fuzzy, c-format
+msgid "%s: not enough memory"
+msgstr "%s:OYA"
+
+#: mailbox/mu_auth.c:259 mailbox/mu_auth.c:261
 msgid "MODLIST"
 msgstr ""
 
-#: mailbox/mu_auth.c:215
+#: mailbox/mu_auth.c:260
 #, fuzzy
 msgid "Set the list of modules to be used for authentication"
 msgstr "i Urutonde Bya Modire Kuri kugirango"
 
-#: mailbox/mu_auth.c:217
+#: mailbox/mu_auth.c:262
 #, fuzzy
 msgid "Set list of modules to be used for authorization"
 msgstr "Urutonde Bya Modire Kuri kugirango"
 
-#: mailbox/errors:19
+#: mailbox/mu_auth.c:264
+msgid "Clear the list of authorization modules"
+msgstr ""
+
+#: mailbox/mu_auth.c:266
 #, fuzzy
-msgid "Operation failed"
+msgid "Clear the list of authentication modules"
 msgstr "Byanze"
 
-#: mailbox/errors:21
-msgid "No registered handler"
-msgstr ""
+#: mailbox/mu_auth.c:350
+#, fuzzy, c-format
+msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
+msgstr "Kwiyandikisha Icyegeranyo"
 
-#: mailbox/errors:22
-#, fuzzy
-msgid "Empty virtual function"
-msgstr "Kitaboneka Umumaro"
-
-#: mailbox/errors:24
-#, fuzzy
-msgid "Pointer to output null"
-msgstr "Kuri Ibisohoka NTAGIHARI"
-
-#: mailbox/errors:25
-#, fuzzy
-msgid "Pointer to output pointer null"
-msgstr "Kuri Ibisohoka Mweretsi NTAGIHARI"
-
-#: mailbox/errors:27
-#, fuzzy
-msgid "Mailbox null"
-msgstr "NTAGIHARI"
-
-#: mailbox/errors:29
-#, fuzzy
-msgid "Format of RFC822 object is bad"
-msgstr "Bya Igikoresho ni"
-
-#: mailbox/errors:30
-#, fuzzy
-msgid "Address contains no addr specs"
-msgstr "Kirimo Oya Aderesi"
-
-#: mailbox/errors:32
-#, fuzzy
-msgid "Locker null"
-msgstr "NTAGIHARI"
-
-#: mailbox/errors:33
-#, fuzzy
-msgid "Conflict with previous locker"
-msgstr "Na: Ibanjirije"
-
-#: mailbox/errors:34
-#, fuzzy
-msgid "Lock file check failed"
-msgstr "IDOSIYE Kugenzura... Byanze"
-
-#: mailbox/errors:35
-#, fuzzy
-msgid "File check failed"
-msgstr "Idosiye Kugenzura... Byanze"
-
-#: mailbox/errors:36
-#, fuzzy
-msgid "Lock not held on file"
-msgstr "OYA ku IDOSIYE"
-
-#: mailbox/errors:37
-#, fuzzy
-msgid "Failed to exec external locker"
-msgstr "Kuri external"
-
-#: mailbox/errors:38
-#, fuzzy
-msgid "External locker failed"
-msgstr "Byanze"
-
-#: mailbox/errors:39
-msgid "External locker killed"
-msgstr ""
-
-#: mailbox/errors:41
-#, fuzzy
-msgid "No such user name"
-msgstr "Ukoresha: Izina:"
-
-#: mailbox/errors:43
-#, fuzzy
-msgid "DNS name resolution failed"
-msgstr "Izina: Imikemurire Byanze"
-
-#: mailbox/errors:44
-#, fuzzy
-msgid "State busy must resume operation"
-msgstr "Irahuze Gusubiramo"
-
-#: mailbox/errors:45
-#, fuzzy
-msgid "Not a valid mailer from address"
-msgstr "a Byemewe Uwanditse Bivuye Aderesi"
-
-#: mailbox/errors:46
-#, fuzzy
-msgid "Not a valid mailer to address"
-msgstr "a Byemewe Uwanditse Kuri Aderesi"
-
-#: mailbox/errors:47
-#, fuzzy
-msgid "No receipt addresses found"
-msgstr "Amaderesi Byabonetse"
-
-#: mailbox/errors:48
-#, fuzzy
-msgid "Malformed or unsupported mailer URL"
-msgstr "Cyangwa Uwanditse"
-
-#: mailbox/errors:49
-#, fuzzy
-msgid "SMTP rcpt to command failed"
-msgstr "Kuri Komandi: Byanze"
-
-#: mailbox/errors:50
-#, fuzzy
-msgid "Tcp connections need a host"
-msgstr "Ukwihuza a Ubuturo"
-
-#: mailbox/errors:51
-#, fuzzy
-msgid "Tcp connections need a postive port"
-msgstr "Ukwihuza a Umuyoboro"
-
-#: mailbox/errors:53
-#, fuzzy
-msgid "Input string is not RFC 2047 encoded"
-msgstr "Ikurikiranyanyuguti ni OYA"
-
-#: mailbox/errors:54
-msgid "Not a valid RFC 2047 encoding"
-msgstr ""
-
-#: mailbox/errors:56
-#, fuzzy
-msgid "User name is not supplied"
-msgstr "Izina: ni OYA"
-
-#: mailbox/errors:57
-#, fuzzy
-msgid "User password is not supplied"
-msgstr "Ijambobanga... ni OYA"
-
-#: mailbox/errors:59
-#, fuzzy
-msgid "Unsafe file permissions. Set 0600"
-msgstr "IDOSIYE Uruhushya"
-
-#: mailbox/errors:60
-#, fuzzy
-msgid "Unsupported authentication scheme"
-msgstr "Igishusho"
-
-#: mailbox/errors:61
-#, fuzzy
-msgid "Authentication failed"
-msgstr "Byanze"
-
-#: mailbox/errors:63
-#, fuzzy
-msgid "Cannot execute"
-msgstr "Gukora"
-
-#: mailbox/errors:64
-#, fuzzy
-msgid "Process exited with a non-zero status"
-msgstr "Na: a Zeru Imimerere"
-
-#: mailbox/errors:65
-#, fuzzy
-msgid "Process exited on signal"
-msgstr "ku"
-
-#: mailbox/errors:66
-#, fuzzy
-msgid "Unknown failure while executing subprocess"
-msgstr "Gukora:%s"
-
-#: mailbox/errors:67
-#, fuzzy
-msgid "Connection closed by remote host"
-msgstr "ku Ubuturo"
-
-#: mailbox/errors:68
-#, fuzzy
-msgid "Parse error"
-msgstr "Ikosa"
-
-#: mailbox/errors:69
-#, fuzzy
-msgid "Requested item not found"
-msgstr "Ikintu OYA Byabonetse"
-
-#: mailbox/errors:70
-#, fuzzy
-msgid "Not enough buffer space"
-msgstr "Umwanya"
-
-#: mailbox/errors:72
-#, fuzzy
-msgid "SQL error"
-msgstr "Ikosa"
-
-#: mailbox/errors:73
-#, fuzzy
-msgid "Already connected to the database"
-msgstr "Kuri i Ububikoshingiro"
-
-#: mailbox/errors:74
-#, fuzzy
-msgid "Not connected to the database"
-msgstr "Kuri i Ububikoshingiro"
-
-#: mailbox/errors:75
-#, fuzzy
-msgid "Result of the previous query is not released"
-msgstr "Bya i Ibanjirije Ikibazo# ni OYA"
-
-#: mailbox/errors:76
-#, fuzzy
-msgid "No query was yet executed"
-msgstr "Ikibazo#"
-
-#: mailbox/errors:77
-#, fuzzy
-msgid "Bad column address"
-msgstr "Inkingi Aderesi"
-
-#: mailbox/errors:78
-#, fuzzy
-msgid "No result from the previous query available"
-msgstr "Igisubizo Bivuye i Ibanjirije Ikibazo# Bihari"
-
-#: mailbox/errors:79
-msgid "No such interface"
-msgstr ""
-
-#: mailbox/errors:81
-msgid "Badly formed file or directory name"
-msgstr ""
-
-#: mailbox/errors:82
-#, fuzzy
-msgid "Read error"
-msgstr "Ikosa"
-
-#: mailbox/mutil.c:590
+#: mailbox/mutil.c:623
 #, fuzzy, c-format
 msgid "Cannot open temporary file: %s"
 msgstr "Gufungura By'igihe gito IDOSIYE"
@@ -3171,7 +3409,7 @@ msgstr "Gufungura By'igihe gito IDOSIYE"
 #.
 #. msgstr "yYbB";
 #.
-#: mailbox/mutil.c:1175
+#: mailbox/mutil.c:1259
 msgid "yY"
 msgstr ""
 
@@ -3181,7 +3419,7 @@ msgstr ""
 #.
 #. msgstr "nNeE";
 #.
-#: mailbox/mutil.c:1184
+#: mailbox/mutil.c:1268
 msgid "nN"
 msgstr ""
 
@@ -3221,150 +3459,154 @@ msgstr "Bya Ubutumwa in"
 msgid "Could not close `%s': %s"
 msgstr "Gufunga"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/anno.c:26
+#: mh/anno.c:24
+msgid "GNU MH anno"
+msgstr ""
+
+#: mh/anno.c:25 mh/forw.c:25 mh/mhn.c:30 mh/pick.c:31 mh/refile.c:31
+#: mh/repl.c:28 mh/send.c:29
 #, fuzzy
 msgid ""
-"GNU MH annoOptions marked with `*' are not yet implemented.\n"
+"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mh/anno.c:29
+#: mh/anno.c:27
 msgid "[msg [msg...]]"
 msgstr ""
 
 # sfx2/source\explorer\explorer.src:STR_SFX_FOLDER.text
-#: mh/anno.c:33 mh/folder.c:52 mh/folder.c:62 mh/forw.c:37 mh/forw.c:43
-#: mh/inc.c:35 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
-#: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
-#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:40 mh/send.c:42
-#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:43
+#: mh/anno.c:31 mh/folder.c:50 mh/folder.c:60 mh/forw.c:35 mh/forw.c:41
+#: mh/inc.c:33 mh/mark.c:28 mh/mh_whatnow.c:84 mh/mhl.c:32 mh/mhn.c:35
+#: mh/mhpath.c:30 mh/pick.c:37 mh/refile.c:37 mh/refile.c:46 mh/repl.c:39
+#: mh/repl.c:49 mh/repl.c:54 mh/rmf.c:39 mh/rmm.c:30 mh/scan.c:38 mh/send.c:39
+#: mh/whatnow.c:29 mh/whom.c:32 readmsg/readmsg.c:44
 #, fuzzy
 msgid "FOLDER"
 msgstr "Ububiko"
 
-#: mh/anno.c:34 mh/folder.c:63 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
-#: mh/mhn.c:38 mh/mhpath.c:33 mh/pick.c:40 mh/refile.c:39 mh/repl.c:50
-#: mh/rmm.c:33
+#: mh/anno.c:32 mh/folder.c:61 mh/forw.c:42 mh/mark.c:29 mh/mhl.c:33
+#: mh/mhn.c:36 mh/mhpath.c:31 mh/pick.c:38 mh/refile.c:38 mh/repl.c:49
+#: mh/rmm.c:31
 #, fuzzy
 msgid "Specify folder to operate upon"
 msgstr "Ububiko Kuri"
 
-#: mh/anno.c:36 mh/forw.c:60 mh/repl.c:62
+#: mh/anno.c:34 mh/forw.c:58 mh/repl.c:61
 #, fuzzy
 msgid "* Annotate the message in place"
 msgstr "*i Ubutumwa in"
 
-#: mh/anno.c:39
+#: mh/anno.c:37
 #, fuzzy
 msgid "Add FIELD: Date header"
 msgstr "Umutwempangano"
 
 # wizards/source\formwizard\dbwizres.src:RID_DB_REPORT_WIZARD_START_+_71.text
-#: mh/anno.c:41 mh/pick.c:43
+#: mh/anno.c:39 mh/pick.c:41
 #, fuzzy
 msgid "FIELD"
 msgstr "Umwanya"
 
-#: mh/anno.c:42
+#: mh/anno.c:40
 #, fuzzy
 msgid "Add this FIELD to the message header"
 msgstr "iyi Kuri i Ubutumwa Umutwempangano"
 
-#: mh/anno.c:44
+#: mh/anno.c:42
 #, fuzzy
 msgid "Field value for the component"
 msgstr "Agaciro kugirango i"
 
-#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:87 mh/forw.c:75 mh/inc.c:56
-#: mh/install-mh.c:33 mh/mark.c:47 mh/mhl.c:53 mh/mhn.c:90 mh/mhpath.c:35
-#: mh/pick.c:96 mh/refile.c:52 mh/repl.c:72 mh/rmf.c:50 mh/rmm.c:35
-#: mh/scan.c:60 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
+#: mh/anno.c:44 mh/fmtcheck.c:40 mh/folder.c:85 mh/forw.c:73 mh/inc.c:54
+#: mh/install-mh.c:31 mh/mark.c:45 mh/mhl.c:51 mh/mhn.c:88 mh/mhpath.c:33
+#: mh/pick.c:94 mh/refile.c:51 mh/repl.c:71 mh/rmf.c:48 mh/rmm.c:33
+#: mh/scan.c:58 mh/send.c:77 mh/whatnow.c:40 mh/whom.c:43
 msgid "Display software license"
 msgstr ""
 
-#: mh/anno.c:133
+#: mh/anno.c:131
 #, fuzzy, c-format
 msgid "Component name: "
 msgstr "Izina:"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/fmtcheck.c:26
+#: mh/fmtcheck.c:25
+msgid "GNU MH fmtcheck"
+msgstr ""
+
+#: mh/fmtcheck.c:26 mh/folder.c:39 mh/inc.c:26 mh/install-mh.c:23 mh/mark.c:23
+#: mh/mhl.c:27 mh/mhpath.c:25 mh/rmf.c:34 mh/rmm.c:25 mh/scan.c:33
+#: mh/whom.c:23
 #, fuzzy
-msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
+msgid "Use -help to obtain the list of traditional MH options."
 msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:45 mh/mhl.c:43 mh/repl.c:58
-#: mh/scan.c:46
+#: mh/fmtcheck.c:32 mh/forw.c:52 mh/inc.c:43 mh/mhl.c:41 mh/repl.c:57
+#: mh/scan.c:44
 #, fuzzy
 msgid "Read format from given file"
 msgstr "Imiterere Bivuye IDOSIYE"
 
-#: mh/fmtcheck.c:34 mh/inc.c:46 mh/scan.c:47
+#: mh/fmtcheck.c:33 mh/inc.c:44 mh/scan.c:45
 #, fuzzy
 msgid "FORMAT"
 msgstr "Imiterere"
 
-#: mh/fmtcheck.c:35 mh/inc.c:47 mh/scan.c:48
+#: mh/fmtcheck.c:34 mh/inc.c:45 mh/scan.c:46
 #, fuzzy
 msgid "Use this format string"
 msgstr "iyi Imiterere Ikurikiranyanyuguti"
 
-#: mh/fmtcheck.c:37
+#: mh/fmtcheck.c:36
 #, fuzzy
 msgid "Dump the listing of compiled format code"
 msgstr "i Bya Imiterere ITEGEKONGENGA"
 
-#: mh/fmtcheck.c:39
+#: mh/fmtcheck.c:38
 #, fuzzy
 msgid "Enable parser debugging output"
 msgstr "Ibisohoka"
 
-#: mh/fmtcheck.c:63
-#, fuzzy
+#: mh/fmtcheck.c:62
+#, fuzzy, c-format
 msgid "Format string not specified"
 msgstr "Imiterere Ikurikiranyanyuguti OYA"
 
-#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:383 mh/scan.c:189
-#, fuzzy
+#: mh/fmtcheck.c:114 mh/inc.c:190 mh/repl.c:414 mh/scan.c:187
+#, fuzzy, c-format
 msgid "Bad format string"
 msgstr "Imiterere Ikurikiranyanyuguti"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/folder.c:40
-#, fuzzy
-msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/folder.c:38
+msgid "GNU MH folder"
+msgstr ""
 
-#: mh/folder.c:42
+#: mh/folder.c:40
 #, fuzzy
 msgid "[action] [msg]"
 msgstr "[Igikorwa"
 
-#: mh/folder.c:45 pop3d/popauth.c:68
+#: mh/folder.c:43 pop3d/popauth.c:68
 msgid "Actions are:"
 msgstr ""
 
-#: mh/folder.c:47
+#: mh/folder.c:45
 #, fuzzy
 msgid "List the folders (default)"
 msgstr "i Mburabuzi"
 
-#: mh/folder.c:49
+#: mh/folder.c:47
 #, fuzzy
 msgid "List the contents of the folder stack"
 msgstr "i Ibigize Bya i Ububiko"
 
-#: mh/folder.c:51
+#: mh/folder.c:49
 msgid ""
 "Remove holes in message numbering. Begin numbering from NUMBER (default: "
-"first message number"
+"first message number)"
 msgstr ""
 
-#: mh/folder.c:53
+#: mh/folder.c:51
 #, fuzzy
 msgid ""
 "Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
@@ -3376,79 +3618,79 @@ msgstr ""
 "Biturutse Cyangwa Ububiko ni ku i KIGEZWEHO Ububiko Na i Hejuru: Bya i "
 "Ububiko"
 
-#: mh/folder.c:58
+#: mh/folder.c:56
 #, fuzzy
 msgid "Pop the folder off the folder stack"
 msgstr "i Ububiko Bidakora i Ububiko"
 
-#: mh/folder.c:60 mh/mh_whatnow.c:153 pop3d/popauth.c:80
+#: mh/folder.c:58 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr ""
 
-#: mh/folder.c:65
+#: mh/folder.c:63
 #, fuzzy
 msgid "List all folders"
 msgstr "Byose"
 
-#: mh/folder.c:67
+#: mh/folder.c:65
 msgid "Create non-existing folders"
 msgstr ""
 
-#: mh/folder.c:70
+#: mh/folder.c:68
 #, fuzzy
 msgid "List only the folder names"
 msgstr "i Ububiko Amazina"
 
-#: mh/folder.c:73
+#: mh/folder.c:71
 #, fuzzy
 msgid "Print the header line"
 msgstr "i Umutwempangano Umurongo"
 
-#: mh/folder.c:76
+#: mh/folder.c:74
 msgid "Scan folders recursively"
 msgstr ""
 
-#: mh/folder.c:79
+#: mh/folder.c:77
 #, fuzzy
 msgid "Output the total statistics"
 msgstr "i Igiteranyo Sitatisitiki"
 
-#: mh/folder.c:82
+#: mh/folder.c:80
 msgid "Verbosely list actions taken"
 msgstr ""
 
-#: mh/folder.c:84
+#: mh/folder.c:82
 #, fuzzy
 msgid "Do nothing, print what would be done (with --pack)"
 msgstr "OYA Gukora Gucapa Byakozwe"
 
-#: mh/folder.c:151 mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135
-#: pop3d/pop3d.c:149
+#: mh/folder.c:154 mh/send.c:141 mh/send.c:213 mh/send.c:238 pop3d/pop3d.c:194
+#: pop3d/pop3d.c:208
 msgid "Invalid number"
 msgstr "Umubare utari wo"
 
-#: mh/folder.c:343 mh/rmf.c:128
+#: mh/folder.c:330 mh/rmf.c:126
 #, fuzzy, c-format
 msgid "Cannot scan folder %s: %s"
 msgstr "Gusikana Ububiko"
 
-#: mh/folder.c:416
+#: mh/folder.c:421
 #, fuzzy, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
 msgstr[0] "Ubutumwa"
 
-#: mh/folder.c:427
+#: mh/folder.c:432
 #, fuzzy, c-format
 msgid " has no messages"
 msgstr "Oya Ubutumwa"
 
-#: mh/folder.c:436
+#: mh/folder.c:441
 #, fuzzy, c-format
 msgid "(others)"
 msgstr "(Ibindi"
 
-#: mh/folder.c:484
+#: mh/folder.c:489
 #, fuzzy, c-format
 msgid ""
 "Folder                  # of messages     (  range  )  cur msg   (other "
@@ -3459,439 +3701,431 @@ msgstr "Bya Ubutumwa Urutonde Ikindi Idosiye"
 # sc/source\ui\src\autofmt.src:RID_SCDLG_AUTOFORMAT.STR_SUM.text
 # #-#-#-#-#  sc.pot (PACKAGE VERSION)  #-#-#-#-#
 # sc/source\ui\src\globstr.src:RID_GLOBSTR.STR_PIVOT_TOTAL.text
-#: mh/folder.c:490
+#: mh/folder.c:495
 #, fuzzy
 msgid "TOTAL"
 msgstr "Igiteranyo"
 
-#: mh/folder.c:491
+#: mh/folder.c:496
 #, fuzzy, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
 msgstr[0] "%4luUbutumwa"
 
-#: mh/folder.c:494
+#: mh/folder.c:499
 #, fuzzy, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
 msgstr[0] "in Ububiko"
 
-#: mh/folder.c:615
+#: mh/folder.c:542 mh/mh_init.c:553
+#, fuzzy, c-format
+msgid "Cannot split line %s"
+msgstr "Gutandukanya Umurongo"
+
+#: mh/folder.c:683
 #, c-format
 msgid "Renaming %s to %s\n"
 msgstr ""
 
-#: mh/folder.c:620
+#: mh/folder.c:688
 #, fuzzy, c-format
 msgid "cannot rename `%s' to `%s': %s"
 msgstr "Kongeraho... Ubutumwa"
 
-#: mh/folder.c:657
+#: mh/folder.c:725
+#, c-format
 msgid "Rolling back changes..."
 msgstr ""
 
-#: mh/folder.c:661
+#: mh/folder.c:729
 #, c-format
 msgid ""
 "CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
 "occurred while trying to roll back the changes.\n"
-"Message range %lu-%lu has been renamed to %lu-%lu."
+"Message range %s-%s has been renamed to %s-%s."
 msgstr ""
 
-#: mh/folder.c:667
+#: mh/folder.c:737
+#, c-format
 msgid "You will have to fix it manually."
 msgstr ""
 
-#: mh/folder.c:670
+#: mh/folder.c:740
 #, c-format
 msgid "Folder `%s' restored successfully"
 msgstr ""
 
-#: mh/folder.c:775 mh/inc.c:227
+#: mh/folder.c:849 mh/inc.c:225
 #, fuzzy, c-format
 msgid "Cannot read input mailbox: %s"
 msgstr "OYA Gusoma Iyinjiza"
 
-#: mh/folder.c:783
+#: mh/folder.c:857
 #, fuzzy, c-format
 msgid "Getting message numbers.\n"
 msgstr "Oya Komeza>> Ubutumwa"
 
-#: mh/folder.c:791 mh/inc.c:255
+#: mh/folder.c:865 mh/inc.c:253
 #, fuzzy, c-format
 msgid "%d: cannot get message: %s"
 msgstr "%d:Kubona Ubutumwa"
 
-#: mh/folder.c:797
+#: mh/folder.c:871
 #, fuzzy, c-format
-msgid "%lu message number collected.\n"
-msgid_plural "%lu message numbers collected.\n"
+msgid "%s message number collected.\n"
+msgid_plural "%s message numbers collected.\n"
 msgstr[0] "%d:Sibyo Ubutumwa Umubare"
 msgstr[1] "%d:Sibyo Ubutumwa Umubare"
 
-#: mh/folder.c:815
+#: mh/folder.c:889
 #, c-format
 msgid "Reverting pack table.\n"
 msgstr ""
 
-#: mh/folder.c:823
+#: mh/folder.c:897
 #, fuzzy, c-format
 msgid "cannot change to directory `%s': %s"
 msgstr "Guhindura>> Kuri UID"
 
-#: mh/folder.c:838
+#: mh/folder.c:912
 #, fuzzy, c-format
 msgid "Finished packing messages.\n"
 msgstr "Ubutumwa Byanze"
 
-#: mh/folder.c:845
+#: mh/folder.c:919
 #, c-format
 msgid "Fixing global sequences\n"
 msgstr ""
 
-#: mh/folder.c:848
+#: mh/folder.c:922
 #, fuzzy, c-format
 msgid "Fixing private sequences\n"
 msgstr "i"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/forw.c:26
-#, fuzzy
-msgid ""
-"GNU MH forwOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/forw.c:24
+msgid "GNU MH forw"
+msgstr ""
 
-#: mh/forw.c:34
+#: mh/forw.c:32
 msgid "Add Forwarded: header to each forwarded message"
 msgstr ""
 
-#: mh/forw.c:36
+#: mh/forw.c:34
 #, fuzzy
 msgid "Build the draft and quit immediately"
 msgstr "i Inyandiko y'agateganyo Na Kuvamo Ako kanya"
 
-#: mh/forw.c:38 mh/repl.c:41 mh/send.c:43 mh/whatnow.c:30 mh/whom.c:35
+#: mh/forw.c:36 mh/repl.c:40 mh/send.c:40 mh/whatnow.c:30 mh/whom.c:33
 #, fuzzy
 msgid "Specify the folder for message drafts"
 msgstr "i Ububiko kugirango Ubutumwa"
 
-#: mh/forw.c:40 mh/repl.c:43 mh/send.c:47 mh/whatnow.c:32 mh/whom.c:39
+#: mh/forw.c:38 mh/repl.c:42 mh/send.c:44 mh/whatnow.c:32 mh/whom.c:37
 #, fuzzy
 msgid "Undo the effect of the last --draftfolder option"
 msgstr "i INGARUKA Bya i Iheruka Ihitamo"
 
-#: mh/forw.c:41 mh/repl.c:44 mh/whatnow.c:33
+#: mh/forw.c:39 mh/repl.c:43 mh/whatnow.c:33
 msgid "MSG"
 msgstr ""
 
-#: mh/forw.c:42 mh/repl.c:45 mh/whatnow.c:34
+#: mh/forw.c:40 mh/repl.c:44 mh/whatnow.c:34
 #, fuzzy
 msgid "Invoke the draftmessage facility"
 msgstr "i"
 
-#: mh/forw.c:45 mh/forw.c:66 mh/mhl.c:48 mh/repl.c:53 mh/repl.c:66
+#: mh/forw.c:43 mh/forw.c:64 mh/mhl.c:46 mh/repl.c:52 mh/repl.c:65
 #: mh/whatnow.c:35
 msgid "PROG"
 msgstr ""
 
-#: mh/forw.c:46 mh/repl.c:53 mh/whatnow.c:35
+#: mh/forw.c:44 mh/repl.c:52 mh/whatnow.c:35
 #, fuzzy
 msgid "Set the editor program to use"
 msgstr "i Muhinduzi Porogaramu Kuri Gukoresha"
 
-#: mh/forw.c:48 mh/repl.c:54 mh/whatnow.c:36
+#: mh/forw.c:46 mh/repl.c:53 mh/whatnow.c:36
 #, fuzzy
 msgid "Suppress the initial edit"
 msgstr "i Guhindura"
 
-#: mh/forw.c:50
+#: mh/forw.c:48
 #, fuzzy
 msgid "Format messages"
 msgstr "Ubutumwa"
 
-#: mh/forw.c:52
+#: mh/forw.c:50
 #, fuzzy
 msgid "Undo the effect of the last --format option"
 msgstr "i INGARUKA Bya i Iheruka Imiterere Ihitamo"
 
-#: mh/forw.c:56
+#: mh/forw.c:54
 #, fuzzy
 msgid "Use filter FILE to preprocess the body of the message"
 msgstr "Muyunguruzi... Kuri i Umubiri Bya i Ubutumwa"
 
-#: mh/forw.c:58
+#: mh/forw.c:56
 #, fuzzy
 msgid "Undo the effect of the last --filter option"
 msgstr "i INGARUKA Bya i Iheruka Muyunguruzi... Ihitamo"
 
-#: mh/forw.c:63
+#: mh/forw.c:61
 msgid "Use MIME encapsulation"
 msgstr ""
 
-#: mh/forw.c:65 mh/inc.c:52 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:52
+#: mh/forw.c:63 mh/inc.c:50 mh/mhl.c:43 mh/repl.c:64 mh/scan.c:50
 #, fuzzy
 msgid "Set output width"
 msgstr "Ibisohoka Ubugari"
 
-#: mh/forw.c:67 mh/repl.c:67
+#: mh/forw.c:65 mh/repl.c:66
 #, fuzzy
 msgid "* Set the replacement for whatnow program"
 msgstr "*i kugirango Porogaramu"
 
-#: mh/forw.c:69
+#: mh/forw.c:67
 #, fuzzy
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
 msgstr "*IMPINDURAGACIRO Bisanzwe Igikonoshwa"
 
-#: mh/forw.c:71 mh/repl.c:70
+#: mh/forw.c:69 mh/repl.c:69
 #, fuzzy
 msgid "Use draft file preserved after the last session"
 msgstr "Inyandiko y'agateganyo IDOSIYE Nyuma i Iheruka Umukoro"
 
-#: mh/forw.c:152 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:208 mh/scan.c:125
+#: mh/forw.c:160 mh/inc.c:136 mh/mhl.c:113 mh/repl.c:215 mh/scan.c:123
 #, fuzzy
 msgid "Invalid width"
 msgstr "Ubugari"
 
-#: mh/forw.c:200 mh/repl.c:243 mh/scan.c:139
+#: mh/forw.c:208 mh/repl.c:260 mh/scan.c:137
 #, fuzzy
 msgid "Option is not yet implemented"
 msgstr "Ihitamo ni OYA"
 
-#: mh/forw.c:292 mh/mh_init.c:537
+#: mh/forw.c:342 mh/mh_init.c:614
 #, fuzzy, c-format
 msgid "Cannot open output file `%s': %s"
 msgstr "Gufungura Ibisohoka IDOSIYE"
 
-#: mh/forw.c:341
+#: mh/forw.c:391
 msgid "Forwarded message\n"
 msgstr ""
 
-#: mh/forw.c:346
+#: mh/forw.c:396
 msgid "Forwarded messages\n"
 msgstr ""
 
-#: mh/forw.c:358
+#: mh/forw.c:408
 #, fuzzy
 msgid "End of Forwarded message"
 msgstr "Impera Bya Ubutumwa"
 
-#: mh/forw.c:360
+#: mh/forw.c:410
 #, fuzzy
 msgid "End of Forwarded messages"
 msgstr "Impera Bya Ubutumwa"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/inc.c:27
-#, fuzzy
-msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/inc.c:25
+msgid "GNU MH inc"
+msgstr ""
 
-#: mh/inc.c:29 mh/rmf.c:37
+#: mh/inc.c:27 mh/rmf.c:35
 #, fuzzy
 msgid "[+folder]"
 msgstr "[+Inyandiko"
 
-#: mh/inc.c:34
+#: mh/inc.c:32
 #, fuzzy
 msgid "Incorporate mail from named file"
 msgstr "Ubutumwa Bivuye IDOSIYE"
 
-#: mh/inc.c:36
+#: mh/inc.c:34
 #, fuzzy
 msgid "Specify folder to incorporate mail to"
 msgstr "Ububiko Kuri Ubutumwa Kuri"
 
-#: mh/inc.c:38
+#: mh/inc.c:36
 msgid "Enable audit"
 msgstr ""
 
-#: mh/inc.c:40
+#: mh/inc.c:38
 msgid "Disable audit"
 msgstr ""
 
-#: mh/inc.c:42
+#: mh/inc.c:40
 #, fuzzy
 msgid "Mark first incorporated message as current (default)"
 msgstr "Itangira Ubutumwa Nka KIGEZWEHO Mburabuzi"
 
-#: mh/inc.c:49
+#: mh/inc.c:47
 #, fuzzy
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr "Inkomoko Nyuma Mburabuzi"
 
-#: mh/inc.c:54 mh/mhn.c:88
+#: mh/inc.c:52 mh/mhn.c:86
 msgid "Be quiet"
 msgstr ""
 
-#: mh/inc.c:201
-#, fuzzy
-msgid "Cannot create default mailbox"
+#: mh/inc.c:199
+#, fuzzy, c-format
+msgid "Cannot create default mailbox: %s"
 msgstr "OYA Kurema Mburabuzi"
 
-#: mh/inc.c:234
+#: mh/inc.c:232
 #, fuzzy, c-format
 msgid "Cannot read output mailbox: %s"
 msgstr "OYA Gusoma Ibisohoka"
 
-#: mh/inc.c:262
+#: mh/inc.c:260
 #, fuzzy, c-format
 msgid "%d: error appending message: %s"
 msgstr "%d:Ikosa Ubutumwa"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/install-mh.c:24
-#, fuzzy
-msgid ""
-"GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr "Kwinjiza porogaramu Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/install-mh.c:22
+msgid "GNU MH install-mh"
+msgstr ""
 
-#: mh/install-mh.c:30
+#: mh/install-mh.c:28
 #, fuzzy
 msgid "Do not ask for anything"
 msgstr "OYA kugirango"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mark.c:24
-#, fuzzy
-msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/mark.c:22
+msgid "GNU MH mark"
+msgstr ""
 
-#: mh/mark.c:33
+#: mh/mark.c:31
 #, fuzzy
 msgid "Specify sequence name to operate upon"
 msgstr "Izina: Kuri"
 
-#: mh/mark.c:35
+#: mh/mark.c:33
 #, fuzzy
 msgid "Add messages to the sequence"
 msgstr "Ubutumwa Kuri i"
 
-#: mh/mark.c:37
+#: mh/mark.c:35
 #, fuzzy
 msgid "Delete messages from the sequence"
 msgstr "Ubutumwa Bivuye i"
 
-#: mh/mark.c:39
+#: mh/mark.c:37
 #, fuzzy
 msgid "List the sequences"
 msgstr "i"
 
-#: mh/mark.c:41 mh/pick.c:90
+#: mh/mark.c:39 mh/pick.c:88
 #, fuzzy
 msgid "Create public sequence"
 msgstr "Rusange"
 
-#: mh/mark.c:44 mh/pick.c:93
+#: mh/mark.c:42 mh/pick.c:91
 #, fuzzy
 msgid "Empty the sequence before adding messages"
 msgstr "i Mbere Wongera Ubutumwa"
 
-#: mh/mark.c:73 mh/pick.c:141
-#, fuzzy
+#: mh/mark.c:71 mh/pick.c:139
+#, fuzzy, c-format
 msgid "Cannot create sequence list"
 msgstr "Kurema Urutonde"
 
 # sw/source\ui\envelp\label.src:DLG_LAB.1.TP_PRIVATE_DATA.text
-#: mh/mark.c:154 mh/mark.c:171
+#: mh/mark.c:152 mh/mark.c:169
 #, fuzzy
 msgid "private"
 msgstr "By'umwihariko"
 
-#: mh/mark.c:219
-#, fuzzy
+#: mh/mark.c:217
+#, fuzzy, c-format
 msgid "--add requires at least one --sequence argument"
 msgstr "--Kongeramo ku"
 
-#: mh/mark.c:229
-#, fuzzy
+#: mh/mark.c:227
+#, fuzzy, c-format
 msgid "--delete requires at least one --sequence argument"
 msgstr "--Gusiba ku"
 
-#: mh/mh_argp.c:176
-#, fuzzy
+#: mh/mh_argp.c:175
+#, fuzzy, c-format
 msgid "Extra arguments"
 msgstr "Birenga ingingo"
 
-#: mh/mh_argp.c:186
+#: mh/mh_argp.c:185
 #, fuzzy, c-format
 msgid ""
 "This is %s\n"
 "\n"
 msgstr "ni"
 
-#: mh/mh_ctx.c:93
+#: mh/mh_ctx.c:144
 #, fuzzy, c-format
 msgid "Cannot open context file %s: %s"
 msgstr "Gufungura Ibisohoka IDOSIYE"
 
-#: mh/mh_ctx.c:143
+#: mh/mh_ctx.c:183
 #, fuzzy, c-format
 msgid "Cannot create context %s: %s"
 msgstr "Kurema Imvugiro"
 
-#: mh/mh_fmtgram.y:102
+#: mh/mh_fmtgram.y:103
 #, fuzzy
 msgid "INTERNAL ERROR: unexpected item type (please report)"
 msgstr "Ikintu Ubwoko Icyegeranyo"
 
-#: mh/mh_fmtgram.y:208
+#: mh/mh_fmtgram.y:209
 #, fuzzy
 msgid "undefined function"
 msgstr "kidasobanuye Umumaro"
 
-#: mh/mh_fmtgram.y:634
+#: mh/mh_fmtgram.y:635
 #, fuzzy
 msgid "INTERNAL ERROR: unknown argtype (please report)"
 msgstr "Kitazwi Icyegeranyo"
 
-#: mh/mh_fmtgram.y:640
+#: mh/mh_fmtgram.y:641
 #, fuzzy, c-format
 msgid "Missing argument for %s"
 msgstr "Ibuze kugirango"
 
-#: mh/mh_fmtgram.y:649
+#: mh/mh_fmtgram.y:650
 #, fuzzy, c-format
 msgid "Extra arguments to %s"
 msgstr "Birenga ingingo Kuri"
 
-#: mh/mh_format.c:604
+#: mh/mh_format.c:557
 #, c-format
 msgid "INTERNAL ERROR: Unknown opcode: %x"
 msgstr ""
 
 #. TRANSLATORS: Do not translate the word 'format'!
-#: mh/mh_format.c:947 mh/mh_format.c:959
-#, fuzzy
+#: mh/mh_format.c:900 mh/mh_format.c:912
+#, fuzzy, c-format
 msgid "format: divide by zero"
 msgstr "Imiterere Kugabanya ku Zeru"
 
-#: mh/mh_format.c:1875
-#, fuzzy
+#: mh/mh_format.c:1817
+#, fuzzy, c-format
 msgid "Invalid recipient mask"
 msgstr "Umukoresha"
 
-#: mh/mh_getopt.c:124
+#: mh/mh_getopt.c:125
 #, c-format
 msgid "Compatibility syntax:\n"
 msgstr ""
 
-#: mh/mh_getopt.c:125
+#: mh/mh_getopt.c:126
 #, c-format
 msgid "%s [switches] %s\n"
 msgstr ""
 
-#: mh/mh_getopt.c:126
+#: mh/mh_getopt.c:127
 #, c-format
 msgid "  switches are:\n"
 msgstr ""
 
-#: mh/mh_getopt.c:148
+#: mh/mh_getopt.c:149
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -3899,73 +4133,78 @@ msgid ""
 "Run %s --help for more info on these.\n"
 msgstr "Gukoresha Amahitamo Ifashayobora kugirango Birenzeho Ibisobanuro ku"
 
-#: mh/mh_init.c:70
+#: mh/mh_init.c:81
 #, fuzzy, c-format
 msgid "Cannot stat format file %s: %s"
 msgstr "Imiterere IDOSIYE"
 
-#: mh/mh_init.c:77
+#: mh/mh_init.c:88
 #, fuzzy, c-format
 msgid "Cannot open format file %s: %s"
 msgstr "Gufungura Imiterere IDOSIYE"
 
-#: mh/mh_init.c:207
+#: mh/mh_init.c:242
 #, fuzzy, c-format
-msgid "Create folder \"%s\""
-msgstr "Guhimba idosiye: %s%s"
+msgid "Cannot create directory %s: error accessing name component %s: %s"
+msgstr "Kurema Komandi:"
 
-#: mh/mh_init.c:215
+#: mh/mh_init.c:248
+#, fuzzy, c-format
+msgid "Cannot create directory %s: error creating name component %s: %s"
+msgstr "Kurema Komandi:"
+
+#: mh/mh_init.c:273
 #, fuzzy, c-format
 msgid "Cannot create directory %s: %s"
 msgstr "Kurema bushyinguro"
 
+#: mh/mh_init.c:296
+#, fuzzy, c-format
+msgid "Create folder \"%s\""
+msgstr "Guhimba idosiye: %s%s"
+
 #. TRANSLATORS: See msgids "nN" and "yY".
-#: mh/mh_init.c:268
+#: mh/mh_init.c:345
 #, fuzzy, c-format
 msgid "Please answer yes or no: "
 msgstr "Yego Cyangwa Oya"
 
-#: mh/mh_init.c:327
+#: mh/mh_init.c:404
 #, fuzzy, c-format
 msgid "Cannot open audit file %s: %s"
 msgstr "Gufungura IDOSIYE"
 
-#: mh/mh_init.c:458 mh/mh_msgset.c:165
+#: mh/mh_init.c:535 mh/mh_msgset.c:165
 #, fuzzy, c-format
 msgid "Cannot get message %d: %s"
 msgstr "Kubona Ubutumwa"
 
-#: mh/mh_init.c:476
-#, fuzzy, c-format
-msgid "Cannot split line %s"
-msgstr "Gutandukanya Umurongo"
-
-#: mh/mh_init.c:528
+#: mh/mh_init.c:605
 #, fuzzy, c-format
 msgid "Cannot open input file `%s': %s"
 msgstr "Gufungura Iyinjiza IDOSIYE"
 
-#: mh/mh_init.c:551
+#: mh/mh_init.c:628
 #, fuzzy, c-format
 msgid "Write error on `%s': %s"
 msgstr "Kwandika Ikosa ku"
 
-#: mh/mh_init.c:580
+#: mh/mh_init.c:654
 #, fuzzy, c-format
 msgid "Cannot stat file %s: %s"
 msgstr "IDOSIYE"
 
-#: mh/mh_init.c:586 mh/mhn.c:2267
+#: mh/mh_init.c:660 mh/mhn.c:2330
 #, fuzzy, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "Kurema Iyinjiza IDOSIYE"
 
-#: mh/mh_init.c:593 mh/mhn.c:2274
+#: mh/mh_init.c:667 mh/mhn.c:2337
 #, fuzzy, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "Gufungura Iyinjiza IDOSIYE"
 
-#: mh/mh_init.c:606
+#: mh/mh_init.c:698
 #, fuzzy, c-format
 msgid ""
 "Prior to using MH, it is necessary to have a file in your login\n"
@@ -3977,47 +4216,62 @@ msgstr ""
 "Kuri ikoresha ni Kuri a IDOSIYE in Kirimo Ibikorwa: Ikintu ni i Inzira Kuri "
 "Gukoresha kugirango Byose Ububiko Ibikorwa: kugirango ni"
 
-#: mh/mh_init.c:629
-#, fuzzy
+#: mh/mh_init.c:721
+#, fuzzy, c-format
 msgid "Do you need help"
 msgstr "Ifashayobora"
 
-#: mh/mh_init.c:632
+#: mh/mh_init.c:724
 #, fuzzy, c-format
 msgid "Do you want the standard MH path \"%s\""
 msgstr "i Bisanzwe Inzira"
 
-#: mh/mh_init.c:637
-#, fuzzy
+#: mh/mh_init.c:729
+#, fuzzy, c-format
 msgid "Do you want a path below your login directory"
 msgstr "a Inzira munsi Ifashayinjira bushyinguro"
 
-#: mh/mh_init.c:639
+#: mh/mh_init.c:731
 #, fuzzy, c-format
 msgid "What is the path? "
 msgstr "ni i Inzira"
 
-#: mh/mh_init.c:641
+#: mh/mh_init.c:733
 #, fuzzy, c-format
 msgid "What is the full path? "
 msgstr "ni i Inzira"
 
-#: mh/mh_init.c:700
+#: mh/mh_init.c:792
 #, fuzzy, c-format
 msgid "I'm going to create the standard MH path for you.\n"
 msgstr "Kuri Kurema i Bisanzwe Inzira kugirango"
 
-#: mh/mh_init.c:711
-#, fuzzy
+#: mh/mh_init.c:803
+#, fuzzy, c-format
 msgid "You already have an MH profile, use an editor to modify it"
 msgstr "Ibijyana Gukoresha Muhinduzi Kuri Guhindura"
 
-#: mh/mh_init.c:716
+#: mh/mh_init.c:808
 #, fuzzy, c-format
 msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
 "Please remove it and try again"
 msgstr "IDOSIYE ni OYA a Ibisanzwe IDOSIYE Cyangwa a Ihuza Gukuraho... Na"
+
+#: mh/mh_init.c:995
+#, fuzzy, c-format
+msgid "Cannot obtain sequence number for the new message: %s"
+msgstr "Kubona Bivuye i Ubutumwa"
+
+#: mh/mh_init.c:1007
+#, fuzzy, c-format
+msgid "Invalid message number: %s"
+msgstr "%d:Sibyo Ubutumwa Umubare"
+
+#: mh/mh_init.c:1009 mh/repl.c:422
+#, fuzzy, c-format
+msgid "only one message at a time!"
+msgstr "Ubutumwa ku a Igihe"
 
 #: mh/mh_list.c:139
 #, fuzzy, c-format
@@ -4051,32 +4305,32 @@ msgid "%s:%d: syntax error"
 msgstr "%s:%d:Ikosa ry'iyandikanteruro**"
 
 #: mh/mh_list.c:271
-#, fuzzy
+#, fuzzy, c-format
 msgid "Cannot create list"
 msgstr "Kurema Urutonde"
 
-#: mh/mh_msgset.c:42
+#: mh/mh_msgset.c:43
 #, fuzzy, c-format
 msgid "Bad message list `%s'"
 msgstr "Ubutumwa Urutonde"
 
-#: mh/mh_msgset.c:64
+#: mh/mh_msgset.c:65
 #, fuzzy, c-format
 msgid "Cannot get last message: %s"
 msgstr "Kubona Iheruka Ubutumwa"
 
-#: mh/mh_msgset.c:97
-#, fuzzy
+#: mh/mh_msgset.c:98
+#, fuzzy, c-format
 msgid "no cur message"
 msgstr "Oya Ubutumwa"
 
-#: mh/mh_msgset.c:108
-#, fuzzy
+#: mh/mh_msgset.c:109
+#, fuzzy, c-format
 msgid "no prev message"
 msgstr "Oya Ubutumwa"
 
-#: mh/mh_msgset.c:123
-#, fuzzy
+#: mh/mh_msgset.c:124
+#, fuzzy, c-format
 msgid "no next message"
 msgstr "Oya Komeza>> Ubutumwa"
 
@@ -4125,12 +4379,12 @@ msgid "Command `%s' terminated abnormally"
 msgstr "ku"
 
 #: mh/mh_whatnow.c:374
-#, fuzzy
+#, fuzzy, c-format
 msgid "no alternate message to display"
 msgstr "Oya Ubutumwa Kuri Kugaragaza"
 
-#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:455
-#, fuzzy
+#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:456
+#, fuzzy, c-format
 msgid "no draft file to display"
 msgstr "Oya Inyandiko y'agateganyo IDOSIYE Kuri Kugaragaza"
 
@@ -4139,12 +4393,12 @@ msgstr "Oya Inyandiko y'agateganyo IDOSIYE Kuri Kugaragaza"
 msgid "draft left on \"%s\".\n"
 msgstr "Inyandiko y'agateganyo Ibumoso: ku"
 
-#: mh/mh_whatnow.c:466
+#: mh/mh_whatnow.c:467
 #, fuzzy
 msgid "List the message being distributed/replied-to on the terminal."
 msgstr "i Ubutumwa Kuri ku i"
 
-#: mh/mh_whatnow.c:468
+#: mh/mh_whatnow.c:469
 #, fuzzy
 msgid ""
 "Edit the message. If EDITOR is omitted use the one that was used on the "
@@ -4154,86 +4408,81 @@ msgstr ""
 "i Ubutumwa ni Gukoresha i ku i IBURUNGUSHURA i Ibijyana Icyinjijwe Komeza>> "
 "Amazina Muhinduzi"
 
-#: mh/mh_whatnow.c:472 mh/mh_whatnow.c:502 mh/mh_whatnow.c:592
+#: mh/mh_whatnow.c:473 mh/mh_whatnow.c:503 mh/mh_whatnow.c:601
 #, fuzzy
 msgid "List the draft on the terminal."
 msgstr "i Inyandiko y'agateganyo ku i"
 
-#: mh/mh_whatnow.c:474
+#: mh/mh_whatnow.c:475
 #, fuzzy
 msgid "Send the message in the background."
 msgstr "i Ubutumwa in i Mbuganyuma"
 
-#: mh/mh_whatnow.c:476
+#: mh/mh_whatnow.c:477
 #, fuzzy
 msgid ""
 "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr "i Umukoro i Inyandiko y'agateganyo Gusiba Ibendera ni"
 
-#: mh/mh_whatnow.c:478 mh/mh_whatnow.c:503
+#: mh/mh_whatnow.c:479 mh/mh_whatnow.c:504
 #, fuzzy
 msgid "Refile the draft into the given FOLDER."
 msgstr "i Inyandiko y'agateganyo i"
 
-#: mh/mh_whatnow.c:480
+#: mh/mh_whatnow.c:481
 #, fuzzy
 msgid ""
 "Send the message. The -watch flag causes the delivery process to be "
 "monitored. SWITCHES are passed to send program verbatim."
 msgstr "i Ubutumwa Isaha Ibendera i Kuri Kuri Kohereza Porogaramu"
 
-#: mh/mh_whatnow.c:483
+#: mh/mh_whatnow.c:484
 #, fuzzy
 msgid ""
 "List the addresses and verify that they are acceptable to the transport "
 "service."
 msgstr "i Amaderesi Na Kuri i Serivisi"
 
-#: mh/mh_whatnow.c:499
+#: mh/mh_whatnow.c:500
 #, fuzzy
 msgid "Terminate the session. Preserve the draft."
 msgstr "i Umukoro i Inyandiko y'agateganyo"
 
-#: mh/mh_whatnow.c:500
+#: mh/mh_whatnow.c:501
 #, fuzzy
 msgid "Replace the draft with the newly created one"
 msgstr "i Inyandiko y'agateganyo Na: i Byaremwe"
 
-#: mh/mh_whatnow.c:501
+#: mh/mh_whatnow.c:502
 #, fuzzy
 msgid "Use this draft"
 msgstr "iyi Inyandiko y'agateganyo"
 
-#: mh/mh_whatnow.c:558
+#: mh/mh_whatnow.c:565
 #, fuzzy
 msgid "What now?"
 msgstr "NONEAHA"
 
-#: mh/mh_whatnow.c:582
+#: mh/mh_whatnow.c:589
 msgid "Disposition?"
 msgstr ""
 
-#: mh/mh_whatnow.c:590
+#: mh/mh_whatnow.c:599
 #, fuzzy
 msgid "Don't use the draft."
 msgstr "Gukoresha i Inyandiko y'agateganyo"
 
-#: mh/mh_whatnow.c:591
+#: mh/mh_whatnow.c:600
 #, fuzzy
 msgid "Use the draft."
 msgstr "i Inyandiko y'agateganyo"
 
-#: mh/mh_whatnow.c:633
+#: mh/mh_whatnow.c:642
 #, fuzzy, c-format
 msgid "Use \"%s\"?"
 msgstr "Gukoresha"
 
-#: mh/mh_whom.c:38
-#, fuzzy, c-format
-msgid "Cannot create list: %s"
-msgstr "Kurema Urutonde"
-
-#: mh/mh_whom.c:107
+#: mh/mh_whom.c:109
 #, fuzzy, c-format
 msgid "Bad address `%s': %s"
 msgstr "Aderesi"
@@ -4245,7 +4494,7 @@ msgid " at %s"
 msgstr "ku"
 
 #: mh/mh_whom.c:228
-#, fuzzy
+#, fuzzy, c-format
 msgid "Malformed message"
 msgstr "Ubutumwa"
 
@@ -4258,366 +4507,350 @@ msgid "-- Network Recipients --"
 msgstr ""
 
 #: mh/mh_whom.c:253
-#, fuzzy
+#, fuzzy, c-format
 msgid "No recipients"
 msgstr "Abandikiwe..."
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhl.c:28
-#, fuzzy
-msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/mhl.c:26
+msgid "GNU MH mhl"
+msgstr ""
 
 # LOCALIZATION NOTE (filesFolder):
 #    This is the name of the folder that is created parallel to a HTML file
 #    when it is saved "With Images". The %S section is replaced with the
 #    leaf name of the file being saved (minus extension).
-#: mh/mhl.c:30
+#: mh/mhl.c:28
 #, fuzzy
 msgid "[files]"
 msgstr "[files"
 
-#: mh/mhl.c:37
+#: mh/mhl.c:35
 #, fuzzy
 msgid "Ring the bell at the end of each output page"
 msgstr "i ku i Impera Bya Ibisohoka Ipaji"
 
-#: mh/mhl.c:40
+#: mh/mhl.c:38
 #, fuzzy
 msgid "Clear the screen after each page of output"
 msgstr "i Mugaragaza Nyuma Ipaji Bya Ibisohoka"
 
-#: mh/mhl.c:47
+#: mh/mhl.c:45
 #, fuzzy
 msgid "Set output screen length"
 msgstr "Ibisohoka Mugaragaza Uburebure"
 
-#: mh/mhl.c:49
+#: mh/mhl.c:47
 #, fuzzy
 msgid "Use given PROG instead of the default"
 msgstr "Bya i Mburabuzi"
 
-#: mh/mhl.c:51
+#: mh/mhl.c:49
 #, fuzzy
 msgid "Disable use of moreproc program"
 msgstr "Gukoresha Bya Porogaramu"
 
-#: mh/mhl.c:124
+#: mh/mhl.c:122
 #, fuzzy
 msgid "Invalid length"
 msgstr "Uburebure"
 
-#: mh/mhl.c:168 mh/mhn.c:1465
+#: mh/mhl.c:166 mh/mhn.c:1478
 #, fuzzy, c-format
 msgid "Cannot create output stream: %s"
 msgstr "Kurema Ibisohoka"
 
-#: mh/mhl.c:174 mh/mhn.c:1471
+#: mh/mhl.c:172 mh/mhn.c:1484
 #, fuzzy, c-format
 msgid "Cannot open output stream: %s"
 msgstr "Gufungura Ibisohoka"
 
-#: mh/mhl.c:193
+#: mh/mhl.c:191
 #, fuzzy, c-format
 msgid "Cannot create input stream: %s"
 msgstr "Kurema Iyinjiza"
 
-#: mh/mhl.c:199
+#: mh/mhl.c:197
 #, fuzzy, c-format
 msgid "Cannot open input stream: %s"
 msgstr "Gufungura Iyinjiza"
 
-#: mh/mhl.c:207
+#: mh/mhl.c:205
 #, fuzzy, c-format
 msgid "Input stream %s is not a message (%s)"
 msgstr "Iyinjiza ni OYA a Ubutumwa"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhn.c:31
-#, fuzzy
-msgid ""
-"GNU MH mhnOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/mhn.c:29
+msgid "GNU MH mhn"
+msgstr ""
 
-#: mh/mhn.c:40
+#: mh/mhn.c:38
 #, fuzzy
 msgid "Specify file to operate upon"
 msgstr "IDOSIYE Kuri"
 
-#: mh/mhn.c:42
+#: mh/mhn.c:40
 #, fuzzy
 msgid "MIME editing options"
 msgstr "Amahitamo"
 
-#: mh/mhn.c:44
+#: mh/mhn.c:42
 #, fuzzy
 msgid "Compose the MIME message (default)"
 msgstr "i Ubutumwa Mburabuzi"
 
-#: mh/mhn.c:47
+#: mh/mhn.c:45
 #, fuzzy
 msgid "Listing options"
 msgstr "Amahitamo"
 
-#: mh/mhn.c:49
+#: mh/mhn.c:47
 #, fuzzy
 msgid "List the table of contents"
 msgstr "i imbonerahamwe# Bya Ibigize"
 
-#: mh/mhn.c:52
+#: mh/mhn.c:50
 #, fuzzy
 msgid "Print the banner above the listing"
 msgstr "i hejuru i"
 
-#: mh/mhn.c:55
+#: mh/mhn.c:53
 #, fuzzy
 msgid "List the decoded sizes"
 msgstr "i"
 
-#: mh/mhn.c:58
+#: mh/mhn.c:56
 #, fuzzy
 msgid "Display options"
 msgstr "Amahitamo"
 
-#: mh/mhn.c:60
+#: mh/mhn.c:58
 #, fuzzy
 msgid "Display the contents of the messages"
 msgstr "i Ibigize Bya i Ubutumwa"
 
-#: mh/mhn.c:63
+#: mh/mhn.c:61
 #, fuzzy
 msgid "* Display messages serially"
 msgstr "*Ubutumwa"
 
-#: mh/mhn.c:66
+#: mh/mhn.c:64
 #, fuzzy
 msgid "Read mhl format from FILE"
 msgstr "Imiterere Bivuye"
 
-#: mh/mhn.c:68
+#: mh/mhn.c:66
 #, fuzzy
 msgid "Pause prior to displaying content"
 msgstr "Kuri Ibikubiyemo"
 
-#: mh/mhn.c:71
+#: mh/mhn.c:69
 #, fuzzy
 msgid "Saving options"
 msgstr "Amahitamo"
 
-#: mh/mhn.c:73
+#: mh/mhn.c:71
 #, fuzzy
 msgid "Store the contents of the messages on disk"
 msgstr "i Ibigize Bya i Ubutumwa ku"
 
-#: mh/mhn.c:76
+#: mh/mhn.c:74
 #, fuzzy
 msgid "Use filenames from the content headers"
 msgstr "Bivuye i Ibikubiyemo Imitwe"
 
-#: mh/mhn.c:79
+#: mh/mhn.c:77
 #, fuzzy
 msgid "Other options"
 msgstr "Amahitamo"
 
-#: mh/mhn.c:80
+#: mh/mhn.c:78
 msgid "PART"
 msgstr ""
 
-#: mh/mhn.c:81
+#: mh/mhn.c:79
 #, fuzzy
 msgid "Limit the scope of the operation to the given part"
 msgstr "i Ingano: Bya i Kuri i"
 
-#: mh/mhn.c:82
+#: mh/mhn.c:80
 #, fuzzy
 msgid "CONTENT"
 msgstr "Ibikubiyemo"
 
-#: mh/mhn.c:83
+#: mh/mhn.c:81
 #, fuzzy
 msgid "Operate on message part with given multipart content"
 msgstr "ku Ubutumwa Na: Ibikubiyemo"
 
-#: mh/mhn.c:85
+#: mh/mhn.c:83
 #, fuzzy
 msgid "Print additional information"
 msgstr "Ibisobanuro"
 
-#: mh/mhn.c:552
+#: mh/mhn.c:550
 #, fuzzy, c-format
 msgid "Malformed part specification (near %s)"
 msgstr "Iyinjiza"
 
-#: mh/mhn.c:1218
+#: mh/mhn.c:1230
 #, fuzzy, c-format
 msgid " msg part type/subtype              size  description\n"
 msgstr "Ubwoko Ingano"
 
-#: mh/mhn.c:1255
+#: mh/mhn.c:1267
 #, fuzzy, c-format
-msgid "%lu: cannot get message body: %s"
+msgid "%s: cannot get message body: %s"
 msgstr "%lu:Kubona Ubutumwa Umubiri"
 
-#: mh/mhn.c:1277
+#: mh/mhn.c:1289
 #, fuzzy, c-format
 msgid "Cannot create proc stream (command %s): %s"
 msgstr "Kurema Komandi:"
 
-#: mh/mhn.c:1284
+#: mh/mhn.c:1296
 #, fuzzy, c-format
 msgid "Cannot open proc stream (command %s): %s"
 msgstr "Gufungura Komandi:"
 
-#: mh/mhn.c:1325
+#: mh/mhn.c:1337
 #, fuzzy, c-format
 msgid "Cannot parse command line `%s'"
 msgstr "Komandi: Umurongo"
 
-#: mh/mhn.c:1332
+#: mh/mhn.c:1344
 #, fuzzy, c-format
 msgid "Cannot create temporary stream (file %s): %s"
 msgstr "Kurema By'igihe gito IDOSIYE"
 
-#: mh/mhn.c:1340
+#: mh/mhn.c:1352
 #, fuzzy, c-format
 msgid "Cannot open temporary stream (file %s): %s"
 msgstr "Gufungura By'igihe gito IDOSIYE"
 
-#: mh/mhn.c:1388
+#: mh/mhn.c:1400
 msgid "part "
 msgstr ""
 
-#: mh/mhn.c:1406
+#: mh/mhn.c:1419
 #, fuzzy, c-format
 msgid "Press <return> to show content..."
 msgstr "Garuka Kuri Garagaza Ibikubiyemo"
 
-#: mh/mhn.c:1650
+#: mh/mhn.c:1664 mh/mhn.c:1669
 #, fuzzy, c-format
 msgid "storing message %s part %s as file %s\n"
 msgstr "Ubutumwa Nka IDOSIYE"
 
-#: mh/mhn.c:1655
-#, fuzzy, c-format
-msgid "storing message %lu part %s as file %s\n"
-msgstr "Ubutumwa Nka IDOSIYE"
-
-#: mh/mhn.c:1666
+#: mh/mhn.c:1680
 #, fuzzy, c-format
 msgid "File %s already exists. Rewrite"
 msgstr "Idosiye"
 
-#: mh/mhn.c:1680 mh/mhn.c:2547
+#: mh/mhn.c:1694 mh/mhn.c:2724
 #, fuzzy, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr "Kurema Ibisohoka IDOSIYE"
 
-#: mh/mhn.c:1688 mh/mhn.c:2555
+#: mh/mhn.c:1702 mh/mhn.c:2732
 #, fuzzy, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr "Gufungura Ibisohoka IDOSIYE"
 
-#: mh/mhn.c:1802
+#: mh/mhn.c:1816
 #, fuzzy, c-format
 msgid "%s:%lu: missing %c"
 msgstr "%s:%lu:kibura."
 
-#: mh/mhn.c:1837
+#: mh/mhn.c:1851
 #, fuzzy, c-format
 msgid "%s:%lu: comment redefined"
 msgstr "%s:%lu:Icyo wongeraho"
 
 # sw/source\ui\utlui\initui.src:RID_SW_SHELLRES.STR_CALC_SYNTAX.text
-#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2151
+#: mh/mhn.c:1863 mh/mhn.c:1903 mh/mhn.c:2214
 #, fuzzy, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu:Ikosa ry'iyandikanteruro**"
 
-#: mh/mhn.c:1858 mh/mhn.c:2118
+#: mh/mhn.c:1872 mh/mhn.c:2181
 #, fuzzy, c-format
 msgid "%s:%lu: description redefined"
 msgstr "%s:%lu:Isobanuramiterere"
 
-#: mh/mhn.c:1870 mh/mhn.c:2130
+#: mh/mhn.c:1884 mh/mhn.c:2193
 #, fuzzy, c-format
 msgid "%s:%lu: content id redefined"
 msgstr "%s:%lu:Ibikubiyemo ID"
 
-#: mh/mhn.c:1952
+#: mh/mhn.c:1966
 #, fuzzy, c-format
 msgid "%s:%lu: missing subtype"
 msgstr "%s:%lu:Ibuze"
 
-#: mh/mhn.c:2165
+#: mh/mhn.c:2228
 #, fuzzy, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu:Oya Ubutumwa"
 
-#: mh/mhn.c:2256
+#: mh/mhn.c:2319
 #, fuzzy, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu:Ibuze Izina ry'idosiye:"
 
-#: mh/mhn.c:2312
+#: mh/mhn.c:2375
 #, fuzzy, c-format
 msgid "Cannot open filter stream: %s"
 msgstr "Gufungura Muyunguruzi..."
 
-#: mh/mhn.c:2445
+#: mh/mhn.c:2511
 #, fuzzy, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu:Impera"
 
-#: mh/mhn.c:2601 mh/mhn.c:2612
-#, fuzzy
+#: mh/mhn.c:2664
+#, fuzzy, c-format
+msgid "cannot encode subject using %s, %s: %s"
+msgstr "Umurongo"
+
+#: mh/mhn.c:2779 mh/mhn.c:2790
+#, fuzzy, c-format
 msgid "extra arguments"
 msgstr "Birenga ingingo"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhpath.c:26
-#, fuzzy
-msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/mhpath.c:24
+msgid "GNU MH mhpath"
+msgstr ""
 
-#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:36
+#: mh/mhpath.c:26 mh/rmm.c:26 mh/scan.c:34
 #, fuzzy
 msgid "[+folder] [msgs]"
 msgstr "[+Ububiko"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/pick.c:32
-#, fuzzy
-msgid ""
-"GNU MH pickOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/pick.c:30
+msgid "GNU MH pick"
+msgstr ""
 
-#: mh/pick.c:35
+#: mh/pick.c:33
 #, fuzzy
 msgid "[messages]"
 msgstr "[ubutumwa"
 
-#: mh/pick.c:42
+#: mh/pick.c:40
 #, fuzzy
 msgid "Specifying search patterns:"
 msgstr "Gushaka"
 
-#: mh/pick.c:44
+#: mh/pick.c:42
 #, fuzzy
 msgid "Search the named header field"
 msgstr "i Umutwempangano Umwanya"
 
-#: mh/pick.c:46
+#: mh/pick.c:44
 #, fuzzy
 msgid "A pattern to look for"
 msgstr "A Ishusho Kuri kugirango"
 
-#: mh/pick.c:49
+#: mh/pick.c:47
 #, fuzzy
 msgid ""
 "Flags controlling the type of regular expressions. STRING must consist of "
@@ -4630,223 +4863,213 @@ msgstr ""
 "Kwirengagiza C ni Amabendera in INGARUKA i Komeza>> ukugaragara Bya Ihitamo "
 "Ihitamo Iburyo: Mbere Ishusho Cyangwa Ihitamo Cyangwa Irihimbano"
 
-#: mh/pick.c:51
+#: mh/pick.c:49
 #, fuzzy
 msgid "Same as --component cc --pattern STRING"
 msgstr "Nka KopiKubandi Ishusho"
 
-#: mh/pick.c:53
+#: mh/pick.c:51
 #, fuzzy
 msgid "Same as --component date --pattern STRING"
 msgstr "Nka Itariki Ishusho"
 
-#: mh/pick.c:55
+#: mh/pick.c:53
 #, fuzzy
 msgid "Same as --component from --pattern STRING"
 msgstr "Nka Bivuye Ishusho"
 
-#: mh/pick.c:57
+#: mh/pick.c:55
 #, fuzzy
 msgid "Same as --component subject --pattern STRING"
 msgstr "Nka Ikivugwaho Ishusho"
 
-#: mh/pick.c:59
+#: mh/pick.c:57
 #, fuzzy
 msgid "Same as --component to --pattern STRING"
 msgstr "Nka Kuri Ishusho"
 
-#: mh/pick.c:61
+#: mh/pick.c:59
 #, fuzzy
 msgid "Date constraint operations:"
 msgstr "Imbogamizi Ibikorwa:"
 
-#: mh/pick.c:63
+#: mh/pick.c:61
 #, fuzzy
 msgid "Search in the named date header field (default is `Date:')"
 msgstr "in i Itariki Umutwempangano Umwanya Mburabuzi ni"
 
-#: mh/pick.c:64 mh/pick.c:66
+#: mh/pick.c:62 mh/pick.c:64
 msgid "DATE"
 msgstr "ITARIKI"
 
-#: mh/pick.c:65
+#: mh/pick.c:63
 #, fuzzy
 msgid "Match messages after the given date"
 msgstr "Ubutumwa Nyuma i Itariki"
 
-#: mh/pick.c:67
+#: mh/pick.c:65
 #, fuzzy
 msgid "Match messages before the given date"
 msgstr "Ubutumwa Mbere i Itariki"
 
-#: mh/pick.c:69
+#: mh/pick.c:67
 #, fuzzy
 msgid "Logical operations and grouping:"
 msgstr "Ibikorwa: Na Mu itsinda"
 
-#: mh/pick.c:71
+#: mh/pick.c:69
 #, fuzzy
 msgid "Logical AND (default)"
 msgstr "Mburabuzi"
 
-#: mh/pick.c:73
+#: mh/pick.c:71
 msgid "Logical OR"
 msgstr ""
 
-#: mh/pick.c:75
+#: mh/pick.c:73
 msgid "Logical NOT"
 msgstr ""
 
-#: mh/pick.c:77
+#: mh/pick.c:75
 #, fuzzy
 msgid "Open group"
 msgstr "Itsinda"
 
-#: mh/pick.c:80
+#: mh/pick.c:78
 #, fuzzy
 msgid "Close group"
 msgstr "Funga Itsinda"
 
-#: mh/pick.c:83
+#: mh/pick.c:81
 #, fuzzy
 msgid "Operations over the selected messages:"
 msgstr "KURI i Byahiswemo Ubutumwa"
 
-#: mh/pick.c:85
+#: mh/pick.c:83
 #, fuzzy
 msgid "List the numbers of the selected messages (default)"
 msgstr "i Imibare Bya i Byahiswemo Ubutumwa Mburabuzi"
 
-#: mh/pick.c:88
+#: mh/pick.c:86
 #, fuzzy
 msgid "Add matching messages to the given sequence"
 msgstr "Ubutumwa Kuri i"
 
-#: mh/pick.c:268 mh/pick.c:281
+#: mh/pick.c:266 mh/pick.c:279
 #, fuzzy, c-format
 msgid "Invalid option -- %s"
 msgstr "Sibyo Ihitamo"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/refile.c:31
-#, fuzzy
-msgid ""
-"GNU MH refileOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/refile.c:30
+msgid "GNU MH refile"
+msgstr ""
 
-#: mh/refile.c:34
+#: mh/refile.c:33
 #, fuzzy
 msgid "messages folder [folder...]"
 msgstr "Ubutumwa Ububiko Ububiko"
 
-#: mh/refile.c:41
+#: mh/refile.c:40
 #, fuzzy
 msgid "Use <mh-dir>/draft as the source message"
 msgstr "Inyandiko y'agateganyo Nka i Inkomoko Ubutumwa"
 
-#: mh/refile.c:43
+#: mh/refile.c:42
 #, fuzzy
 msgid "Preserve the source folder copy"
 msgstr "i Inkomoko Ububiko Gukoporora"
 
-#: mh/refile.c:46
+#: mh/refile.c:45
 #, fuzzy
 msgid "* Try to preserve message sequence numbers"
 msgstr "*Kuri Ubutumwa Imibare"
 
-#: mh/refile.c:48
+#: mh/refile.c:47
 #, fuzzy
 msgid ""
 "Specify source folder. FOLDER will become the current folder after the "
 "program exits"
 msgstr "Inkomoko Ububiko i KIGEZWEHO Ububiko Nyuma i Porogaramu"
 
-#: mh/refile.c:50
+#: mh/refile.c:49
 #, fuzzy
 msgid "Use FILE as the source message"
 msgstr "Nka i Inkomoko Ubutumwa"
 
-#: mh/refile.c:77 mh/refile.c:96
-#, fuzzy
+#: mh/refile.c:76 mh/refile.c:95
+#, fuzzy, c-format
 msgid "Cannot create folder list"
 msgstr "Kurema Ububiko Urutonde"
 
-#: mh/refile.c:90
-#, fuzzy
+#: mh/refile.c:89
+#, fuzzy, c-format
 msgid "No folder specified"
 msgstr "Oya Ububiko"
 
-#: mh/refile.c:102 mh/refile.c:127
-#, fuzzy
+#: mh/refile.c:101 mh/refile.c:126
+#, fuzzy, c-format
 msgid "Cannot create iterator"
 msgstr "Kurema"
 
-#: mh/refile.c:201
+#: mh/refile.c:200
 #, fuzzy, c-format
 msgid "Error appending message: %s"
 msgstr "Ikosa Ubutumwa"
 
-#: mh/refile.c:261
-#, fuzzy
+#: mh/refile.c:260
+#, fuzzy, c-format
 msgid "Both message set and source file given"
 msgstr "Byombi Ubutumwa Gushyiraho Na Inkomoko IDOSIYE"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/repl.c:28
-#, fuzzy
-msgid ""
-"GNU MH replOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/repl.c:27
+msgid "GNU MH repl"
+msgstr ""
 
-#: mh/repl.c:31
+#: mh/repl.c:30
 #, fuzzy
 msgid "[+folder] [msg]"
 msgstr "[+Ububiko"
 
-#: mh/repl.c:37
+#: mh/repl.c:36
 #, fuzzy
 msgid "Add Replied: header to the message being replied to"
 msgstr "*Umutwempangano Kuri i Ubutumwa Kuri"
 
-#: mh/repl.c:39
+#: mh/repl.c:38
 #, fuzzy
 msgid "Build the draft and quit immediately."
 msgstr "i Inyandiko y'agateganyo Na Kuvamo Ako kanya"
 
-#: mh/repl.c:47
+#: mh/repl.c:46
 #, fuzzy
 msgid "Specify whom to place on the Cc: list of the reply"
 msgstr "Kuri ku i Urutonde Bya i Subiza"
 
-#: mh/repl.c:49
+#: mh/repl.c:48
 #, fuzzy
 msgid "Specify whom to remove from the Cc: list of the reply"
 msgstr "Kuri Gukuraho... Bivuye i Urutonde Bya i Subiza"
 
-#: mh/repl.c:52
+#: mh/repl.c:51
 #, fuzzy
 msgid "Construct a group or followup reply"
 msgstr "a Itsinda Cyangwa Subiza"
 
-#: mh/repl.c:55
+#: mh/repl.c:54
 #, fuzzy
-msgid "* Set the folder to receive Fcc's"
+msgid "Set the folder to receive Fcc's"
 msgstr "*i Ububiko Kuri Akira"
 
-#: mh/repl.c:56
+#: mh/repl.c:55
 msgid "MHL-FILTER"
 msgstr ""
 
-#: mh/repl.c:57
+#: mh/repl.c:56
 #, fuzzy
 msgid "Set the mhl filter to preprocess the body of the message being replied"
 msgstr "i Muyunguruzi... Kuri i Umubiri Bya i Ubutumwa"
 
-#: mh/repl.c:60
+#: mh/repl.c:59
 #, fuzzy
 msgid ""
 "Include a copy of the message being replied. The message will be processed "
@@ -4856,273 +5079,298 @@ msgstr ""
 "a Gukoporora Bya i Ubutumwa Ubutumwa ikoresha i Mburabuzi Muyunguruzi... "
 "Subiza Cyangwa i Muyunguruzi... ku Muyunguruzi... Ihitamo"
 
-#: mh/repl.c:64
+#: mh/repl.c:63
 #, fuzzy
 msgid "Query for addresses to place in To: and Cc: lists"
 msgstr "kugirango Amaderesi Kuri in Na Intonde"
 
-#: mh/repl.c:69
+#: mh/repl.c:68
 #, fuzzy
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
 msgstr "*IMPINDURAGACIRO Bisanzwe Igikonoshwa"
 
-#: mh/repl.c:132
+#: mh/repl.c:134
 #, fuzzy, c-format
 msgid "%s %s is unknown"
 msgstr "%s%sni Kitazwi"
 
-#: mh/repl.c:275
+#: mh/repl.c:292
 #, fuzzy, c-format
-msgid "Draft \"%s\" exists (%lu byte).\n"
-msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
+msgid "Draft \"%s\" exists (%s byte).\n"
+msgid_plural "Draft \"%s\" exists (%s bytes).\n"
 msgstr[0] "Bayite"
 
-#: mh/repl.c:302
+#: mh/repl.c:316
 #, fuzzy, c-format
-msgid "Cannot read message %lu: %s"
+msgid "Cannot read message %s: %s"
 msgstr "Gusoma Ubutumwa"
 
-#: mh/repl.c:323
+#: mh/repl.c:337
 #, fuzzy, c-format
 msgid "Cannot create draft file stream %s: %s"
 msgstr "Kurema Inyandiko y'agateganyo IDOSIYE"
 
-#: mh/repl.c:330
+#: mh/repl.c:344
 #, fuzzy, c-format
 msgid "Cannot open draft file %s: %s"
 msgstr "Gufungura Inyandiko y'agateganyo IDOSIYE"
 
-#: mh/repl.c:395
-#, fuzzy
-msgid "only one message at a time!"
-msgstr "Ubutumwa ku a Igihe"
+#: mh/rmf.c:33
+msgid "GNU MH rmf"
+msgstr ""
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/rmf.c:35
-#, fuzzy
-msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
-
-#: mh/rmf.c:42
+#: mh/rmf.c:40
 #, fuzzy
 msgid "Specify the folder to delete"
 msgstr "i Ububiko Kuri Gusiba"
 
-#: mh/rmf.c:44
+#: mh/rmf.c:42
 #, fuzzy
 msgid "Interactive mode: ask for confirmation before removing each folder"
 msgstr "Ubwoko kugirango Iyemeza Mbere Ububiko"
 
-#: mh/rmf.c:47
+#: mh/rmf.c:45
 #, fuzzy
 msgid "Recursively delete all subfolders"
 msgstr "Gusiba Byose"
 
-#: mh/rmf.c:132
+#: mh/rmf.c:130
 #, fuzzy, c-format
 msgid "Remove folder %s"
 msgstr "Gukuraho idosiye: %s%s"
 
-#: mh/rmf.c:164
+#: mh/rmf.c:162
 #, fuzzy, c-format
 msgid "Cannot unlink %s: %s"
 msgstr "Kureka guhuza"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/rmm.c:26
-#, fuzzy
-msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/rmm.c:24
+msgid "GNU MH rmm"
+msgstr ""
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/scan.c:34
-#, fuzzy
-msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/scan.c:32
+msgid "GNU MH scan"
+msgstr ""
 
-#: mh/scan.c:41
+#: mh/scan.c:39
 #, fuzzy
 msgid "Specify folder to scan"
 msgstr "Ububiko Kuri Gusikana"
 
-#: mh/scan.c:43
+#: mh/scan.c:41
 #, fuzzy
 msgid "Clear screen after displaying the list"
 msgstr "Mugaragaza Nyuma i Urutonde"
 
-#: mh/scan.c:50
+#: mh/scan.c:48
 #, fuzzy
 msgid "Display header"
 msgstr "Umutwempangano"
 
-#: mh/scan.c:54
+#: mh/scan.c:52
 #, fuzzy
 msgid "List messages in reverse order"
 msgstr "Ubutumwa in Ihindurakerekezo Itondekanya"
 
-#: mh/scan.c:57
+#: mh/scan.c:55
 msgid "[Not yet implemented]"
 msgstr ""
 
-#: mh/scan.c:229
+#: mh/scan.c:227
 #, fuzzy, c-format
 msgid "no messages in %s"
 msgstr "Oya Ubutumwa in"
 
 # sfx2/source\explorer\explorer.src:STR_SFX_FOLDER.text
-#: mh/scan.c:250
+#: mh/scan.c:248
 #, fuzzy, c-format
 msgid "Folder %s  %s\n"
 msgstr "Ububiko"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/send.c:30
-#, fuzzy
-msgid ""
-"GNU MH sendOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
-msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/send.c:28
+msgid "GNU MH send"
+msgstr ""
 
-#: mh/send.c:33
+#: mh/send.c:31
 #, fuzzy
 msgid "file [file...]"
 msgstr "IDOSIYE IDOSIYE"
 
-#: mh/send.c:39 mh/whom.c:31
+#: mh/send.c:36 mh/whom.c:29
 #, fuzzy
 msgid "Specify additional alias file"
 msgstr "Irihimbano IDOSIYE"
 
-#: mh/send.c:41 mh/whom.c:33
+#: mh/send.c:38 mh/whom.c:31
 #, fuzzy
 msgid "Use prepared draft"
 msgstr "Inyandiko y'agateganyo"
 
-#: mh/send.c:45 mh/whom.c:37
+#: mh/send.c:42 mh/whom.c:35
 #, fuzzy
 msgid "Treat the arguments as a list of messages from the draftfolder"
 msgstr "i ingingo Nka a Urutonde Bya Ubutumwa Bivuye i"
 
-#: mh/send.c:49
+#: mh/send.c:46
 #, fuzzy
 msgid "* Use filter FILE to preprocess the body of the message"
 msgstr "*Muyunguruzi... Kuri i Umubiri Bya i Ubutumwa"
 
-#: mh/send.c:51
+#: mh/send.c:48
 #, fuzzy
 msgid "* Undo the effect of the last --filter option"
 msgstr "*i INGARUKA Bya i Iheruka Muyunguruzi... Ihitamo"
 
-#: mh/send.c:53
+#: mh/send.c:50
 #, fuzzy
 msgid "* Reformat To: and Cc: addresses"
 msgstr "*Na Amaderesi"
 
-#: mh/send.c:56
+#: mh/send.c:53
 #, fuzzy
 msgid ""
 "* In case of failure forward the draft along with the failure notice to the "
 "sender"
 msgstr "*Bya Imbere i Inyandiko y'agateganyo Na: i Kuri i Uwohereza"
 
-#: mh/send.c:59
+#: mh/send.c:56
 msgid "* Use MIME encapsulation"
 msgstr ""
 
-#: mh/send.c:62
+#: mh/send.c:59
 #, fuzzy
 msgid "Add Message-ID: field"
 msgstr "Umwanya"
 
-#: mh/send.c:65
+#: mh/send.c:62
 #, fuzzy
 msgid "Run in the backround."
 msgstr "in i"
 
-#: mh/send.c:68
+#: mh/send.c:65
 #, fuzzy
 msgid ""
-"* Split the draft into several partial messages and send them with SECONDS "
+"Split the draft into several partial messages and send them with SECONDS "
 "interval"
 msgstr "*i Inyandiko y'agateganyo Bituzuye Ubutumwa Na Kohereza Na: Intera"
 
-#: mh/send.c:70
+#: mh/send.c:67
+msgid "Set the size of chunk for --split (in bytes)"
+msgstr ""
+
+#: mh/send.c:69
 #, fuzzy
 msgid "Print the transcript of interactions with the transport system"
 msgstr "i Bya Na: i Sisitemu"
 
-#: mh/send.c:73
+#: mh/send.c:72
 #, fuzzy
 msgid "Monitor the delivery of mail"
 msgstr "i Bya Ubutumwa"
 
-#: mh/send.c:76
+#: mh/send.c:75
 #, fuzzy
 msgid "* Make header fields no longer than NUMBER columns"
 msgstr "*Umutwempangano Imyanya Oya Inkingi"
 
-#: mh/send.c:267
-#, fuzzy
+#: mh/send.c:290
+#, fuzzy, c-format
 msgid "Cannot create message list"
 msgstr "Kurema Ubutumwa Urutonde"
 
-#: mh/send.c:302
+#: mh/send.c:323
+#, fuzzy, c-format
+msgid "Cannot get system host name: %s"
+msgstr "Kubona Iheruka Ubutumwa"
+
+#: mh/send.c:340
+#, fuzzy, c-format
+msgid "Cannot set user mail domain: %s"
+msgstr "Kurema bushyinguro"
+
+#: mh/send.c:355
+#, fuzzy, c-format
+msgid "Cannot get user email: %s"
+msgstr "Kubona kugirango"
+
+#: mh/send.c:367
+#, fuzzy, c-format
+msgid "Cannot set user email (%s): %s"
+msgstr "OYA Kurema"
+
+#: mh/send.c:386
 #, fuzzy, c-format
 msgid "Creating mailer %s"
 msgstr "Uwanditse Byanze"
 
-#: mh/send.c:306
+#: mh/send.c:390
 #, fuzzy, c-format
 msgid "Cannot create mailer `%s'"
 msgstr "Kurema Uwanditse"
 
-#: mh/send.c:317
+#: mh/send.c:401
 #, fuzzy, c-format
 msgid "Opening mailer %s"
 msgstr "Byanze"
 
-#: mh/send.c:321
+#: mh/send.c:405
 #, fuzzy, c-format
 msgid "Cannot open mailer `%s'"
 msgstr "Gufungura Uwanditse"
 
-#: mh/send.c:407
+#: mh/send.c:533
 #, fuzzy, c-format
-msgid "Fixed Fcc: %s"
+msgid "fixed fcc: %s"
 msgstr "Byanze"
 
-#: mh/send.c:421
-#, fuzzy
-msgid "Getting message"
+#: mh/send.c:562
+#, fuzzy, c-format
+msgid "not enough memory"
+msgstr "Ububiko ntibuhagije"
+
+#: mh/send.c:575
+#, fuzzy, c-format
+msgid "fixed bcc: %s"
+msgstr "Byanze"
+
+#: mh/send.c:598
+#, c-format
+msgid "renaming %s to %s"
+msgstr ""
+
+#: mh/send.c:601
+#, fuzzy, c-format
+msgid "Cannot unlink file `%s': %s"
+msgstr "Kureka guhuza"
+
+#: mh/send.c:603
+#, fuzzy, c-format
+msgid "Cannot rename `%s' to `%s': %s"
+msgstr "Kongeraho... Ubutumwa"
+
+#: mh/send.c:618
+#, fuzzy, c-format
+msgid "Getting message %s"
 msgstr "Oya Komeza>> Ubutumwa"
 
-#: mh/send.c:461
-#, fuzzy
-msgid "Sending message"
+#: mh/send.c:671
+#, fuzzy, c-format
+msgid "Sending message %s"
 msgstr "Ubutumwa Byanze"
 
-#: mh/send.c:465
+#: mh/send.c:685
 #, fuzzy, c-format
 msgid "Cannot send message: %s"
 msgstr "Kohereza Ubutumwa"
 
-#: mh/send.c:469
+#: mh/send.c:689
 msgid "Destroying the mailer"
 msgstr ""
 
-#: mh/send.c:493
+#: mh/send.c:715
 #, fuzzy, c-format
 msgid "Cannot switch to background: %s"
 msgstr "Hindura Kuri Mbuganyuma"
-
-#: mh/send.c:532
-#, c-format
-msgid "cannot stat %s: %s"
-msgstr ""
 
 #: mh/whatnow.c:25
 #, fuzzy
@@ -5134,17 +5382,96 @@ msgstr "[Idosiye"
 msgid "Set the prompt"
 msgstr "i Urwinjiriro"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/whom.c:24
-#, fuzzy
-msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+#: mh/whom.c:22
+msgid "GNU MH whom"
+msgstr ""
 
-#: mh/whom.c:41
+#: mh/whom.c:39
 #, fuzzy
 msgid "Check if addresses are deliverable"
 msgstr "NIBA Amaderesi"
+
+#: mimeview/mimetypes.l:150 mimeview/mimeview.c:175
+#, fuzzy, c-format
+msgid "Cannot stat `%s': %s"
+msgstr "IDOSIYE"
+
+#: mimeview/mimetypes.y:537
+#, fuzzy, c-format
+msgid "%s: unknown function"
+msgstr "Kitazwi Igikorwa"
+
+#: mimeview/mimetypes.y:609
+#, fuzzy, c-format
+msgid "argument %d has wrong type in call to `%s'"
+msgstr "ingingo in Kuri"
+
+#: mimeview/mimeview.c:29
+msgid "GNU mimeview -- display files, using mailcap mechanism."
+msgstr ""
+
+#: mimeview/mimeview.c:31
+msgid "Default mime.types file is "
+msgstr ""
+
+#: mimeview/mimeview.c:32
+msgid ""
+"\n"
+"\n"
+"Debug flags are:\n"
+"  g - Mime.types parser traces\n"
+"  l - Mime.types lexical analyzer traces\n"
+"  0-9 - Set debugging level\n"
+msgstr ""
+
+# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
+# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFont.List.text
+# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
+# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCJK.List.text
+# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
+# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCTL.List.text
+#: mimeview/mimeview.c:40
+#, fuzzy
+msgid "TYPE-LIST"
+msgstr "Urutonde"
+
+#: mimeview/mimeview.c:41
+msgid ""
+"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
+"do not ask for confirmation before displaying such files whose MIME type "
+"matches one of the patterns from TYPE-LIST"
+msgstr ""
+
+#: mimeview/mimeview.c:43
+msgid "Disable interactive mode"
+msgstr ""
+
+#: mimeview/mimeview.c:48
+msgid "Use this mime.types file"
+msgstr ""
+
+#: mimeview/mimeview.c:50
+#, fuzzy
+msgid "Do not do anything, just print what whould be done"
+msgstr "OYA Gukora Gucapa Byakozwe"
+
+#: mimeview/mimeview.c:52
+msgid "Use metamail to display files"
+msgstr ""
+
+#: mimeview/mimeview.c:140
+msgid "FILE [FILE ...]"
+msgstr ""
+
+#: mimeview/mimeview.c:180
+#, fuzzy, c-format
+msgid "Not a regular file or symbolic link: `%s'"
+msgstr "%sni OYA a Ibisanzwe IDOSIYE Cyangwa a Ihuza"
+
+#: mimeview/mimeview.c:273
+#, c-format
+msgid "No files given"
+msgstr ""
 
 #: movemail/movemail.c:30
 msgid "GNU movemail"
@@ -5165,145 +5492,135 @@ msgstr "i Inkomoko"
 msgid "Reverse the sorting order"
 msgstr "i Ishungura Itondekanya"
 
-#: movemail/movemail.c:39
+#: movemail/movemail.c:40
 #, fuzzy
 msgid "Output information used by Emacs rmail interface"
 msgstr "Ibisobanuro ku"
 
-#: movemail/movemail.c:107
+#: movemail/movemail.c:116
 #, fuzzy, c-format
 msgid "%s:mailbox `%s': %s: %s"
 msgstr "Byanze"
 
-#: movemail/movemail.c:113
+#: movemail/movemail.c:122
 #, fuzzy, c-format
 msgid "mailbox `%s': %s: %s"
 msgstr "Byanze"
 
-#: movemail/movemail.c:126
+#: movemail/movemail.c:135
 msgid "Cannot retrieve locker"
 msgstr ""
 
-#: movemail/movemail.c:135
+#: movemail/movemail.c:144
 msgid "Cannot lock"
 msgstr ""
 
-#: movemail/movemail.c:169
+#: movemail/movemail.c:178
 #, fuzzy
 msgid "mu_mailbox_get_folder failed"
 msgstr "Byanze"
 
-#: movemail/movemail.c:172
+#: movemail/movemail.c:181
 #, fuzzy
 msgid "mu_folder_get_authority failed"
 msgstr "Byanze"
 
-#: movemail/movemail.c:175
+#: movemail/movemail.c:184
 #, fuzzy
 msgid "mu_authority_set_ticket failed"
 msgstr "Byanze"
 
-#: movemail/movemail.c:202
+#: movemail/movemail.c:211
 #, fuzzy
 msgid "Cannot open"
 msgstr "Gufungura"
 
-#: movemail/movemail.c:214
+#: movemail/movemail.c:223
 #, fuzzy, c-format
 msgid "Cannot read message %lu: %s\n"
 msgstr "Gusoma Ubutumwa"
 
-#: movemail/movemail.c:220
+#: movemail/movemail.c:229
 #, fuzzy, c-format
 msgid "Cannot append message %lu: %s\n"
 msgstr "Kongeraho... Ubutumwa"
 
-#: movemail/movemail.c:251
-#, fuzzy
+#: movemail/movemail.c:260
+#, fuzzy, c-format
 msgid "Hostname of the POP3 server is unknown"
 msgstr "Bya i Seriveri ni Kitazwi"
 
-#: movemail/movemail.c:289
-#, fuzzy
+#: movemail/movemail.c:307
+#, fuzzy, c-format
 msgid "Wrong number of arguments"
 msgstr "Umubare Bya ingingo"
 
-#: pop3d/apop.c:57
-#, fuzzy
-msgid "Bad permissions on APOP password db"
-msgstr "Uruhushya ku Ijambobanga... DB"
+#: movemail/movemail.c:343
+#, fuzzy, c-format
+msgid "Cannot close destination mailbox: %s"
+msgstr "Gufungura Mburabuzi"
 
-#: pop3d/apop.c:59
+#: pop3d/apop.c:56
 #, fuzzy, c-format
 msgid "Unable to open APOP db: %s"
 msgstr "Kuri Gufungura DB"
 
-#: pop3d/apop.c:77
+#: pop3d/apop.c:74
 #, fuzzy, c-format
 msgid "Cannot fetch APOP data: %s"
 msgstr "Ibyatanzwe"
 
-#: pop3d/apop.c:95
+#: pop3d/apop.c:96
 #, fuzzy
 msgid "Bad permissions on APOP password file"
 msgstr "Uruhushya ku Ijambobanga... IDOSIYE"
 
-#: pop3d/apop.c:102
+#: pop3d/apop.c:103
 #, fuzzy, c-format
 msgid "Unable to open APOP password file %s"
 msgstr "Kuri Gufungura Ijambobanga... IDOSIYE"
 
-#: pop3d/apop.c:166
+#: pop3d/apop.c:163
 #, fuzzy, c-format
 msgid "User name too long: %s"
 msgstr "Izina:"
 
-#: pop3d/apop.c:175
+#: pop3d/apop.c:172
 #, fuzzy, c-format
 msgid "Password for `%s' not found in the database"
 msgstr "kugirango OYA Byabonetse in i Ububikoshingiro"
 
-#: pop3d/apop.c:199
+#: pop3d/apop.c:196
 #, fuzzy, c-format
 msgid "APOP failed for `%s'"
 msgstr "Byanze kugirango"
 
-#: pop3d/apop.c:214
-#, fuzzy, c-format
-msgid "Cannot change to uid %lu: %m"
-msgstr "Guhindura>> Kuri UID"
-
-#: pop3d/apop.c:270
-#, fuzzy, c-format
-msgid "User `%s' logged in with mailbox `%s'"
-msgstr "in Na:"
-
-#: pop3d/extra.c:124
+#: pop3d/extra.c:125
 #, fuzzy, c-format
 msgid "Mailbox was updated by other party: %s"
 msgstr "ku Ikindi"
 
-#: pop3d/extra.c:167
+#: pop3d/extra.c:168
 #, fuzzy, c-format
 msgid "cannot open TLS stream: %s"
 msgstr "Gufungura"
 
-#: pop3d/extra.c:228
+#: pop3d/extra.c:229
 #, fuzzy, c-format
 msgid "Write failed: %s"
 msgstr "Kwandika Byanze"
 
-#: pop3d/extra.c:251
+#: pop3d/extra.c:252
 #, fuzzy, c-format
 msgid "Read failed: %s"
 msgstr "Gusoma Byanze"
 
-#: pop3d/extra.c:256
+#: pop3d/extra.c:257
 #, fuzzy
 msgid "unexpected eof on input"
 msgstr "ku Iyinjiza"
 
-#: pop3d/lock.c:35
+#: pop3d/lock.c:36
 #, fuzzy, c-format
 msgid "Locking mailbox `%s' failed: %s"
 msgstr "Uwanditse Byanze"
@@ -5313,67 +5630,79 @@ msgstr "Uwanditse Byanze"
 msgid "GNU pop3d -- the POP3 daemon"
 msgstr "i"
 
-#: pop3d/pop3d.c:75
+#: pop3d/pop3d.c:78
 #, fuzzy
 msgid "Undelete all messages on startup"
 msgstr "Byose Ubutumwa ku"
 
-#: pop3d/pop3d.c:78
-#, fuzzy
-msgid "Allowed delay between the two successive logins"
-msgstr "Gutinda hagati i"
-
 #: pop3d/pop3d.c:79
-#, fuzzy
-msgid "FILENAME"
-msgstr "Izina ry'idosiye"
-
-#: pop3d/pop3d.c:80
-#, fuzzy
-msgid "Name of login statistics file"
-msgstr "Bya Ifashayinjira Sitatisitiki IDOSIYE"
-
-#: pop3d/pop3d.c:82
 msgid "DAYS"
 msgstr "IMINSI"
 
-#: pop3d/pop3d.c:83
+#: pop3d/pop3d.c:80
 #, fuzzy
 msgid "Expire read messages after the given number of days"
 msgstr "Gusoma Ubutumwa Nyuma i Umubare Bya Iminsi"
 
-#: pop3d/pop3d.c:85
+#: pop3d/pop3d.c:82
 #, fuzzy
 msgid "Delete expired messages upon closing the mailbox"
 msgstr "Byarengeje igihe Ubutumwa i"
 
-#: pop3d/pop3d.c:88
+#: pop3d/pop3d.c:85
 #, fuzzy
 msgid "Always require STLS before entering authentication phase"
 msgstr "Mbere"
 
-#: pop3d/pop3d.c:278
+#: pop3d/pop3d.c:92
+#, fuzzy
+msgid "Allowed delay between the two successive logins"
+msgstr "Gutinda hagati i"
+
+#: pop3d/pop3d.c:93
+#, fuzzy
+msgid "FILENAME"
+msgstr "Izina ry'idosiye"
+
+#: pop3d/pop3d.c:94
+#, fuzzy
+msgid "Name of login statistics file"
+msgstr "Bya Ifashayinjira Sitatisitiki IDOSIYE"
+
+#: pop3d/pop3d.c:100 sieve/sieve.c:79
+msgid "MBOX"
+msgstr ""
+
+#: pop3d/pop3d.c:101
+msgid "Set source mailbox to get bulletins from"
+msgstr ""
+
+#: pop3d/pop3d.c:104
+msgid "Set the bulletin database file name"
+msgstr ""
+
+#: pop3d/pop3d.c:353
 #, fuzzy
 msgid "Failed to become a daemon:"
 msgstr "Byanze Kuri a"
 
-#: pop3d/pop3d.c:314
+#: pop3d/pop3d.c:389
 #, fuzzy, c-format
 msgid "connect from %s"
 msgstr "Kwihuza Bivuye"
 
-#: pop3d/pop3d.c:438
+#: pop3d/pop3d.c:513
 msgid "Session terminated"
 msgstr ""
 
-#: pop3d/pop3d.c:524
+#: pop3d/pop3d.c:599
 msgid "GNU pop3d started"
 msgstr ""
 
-#: pop3d/pop3d.c:531
-#, c-format
-msgid "too many children (%lu)"
-msgstr ""
+#: pop3d/pop3d.c:606
+#, fuzzy, c-format
+msgid "too many children (%s)"
+msgstr "ingingo"
 
 #: pop3d/popauth.c:58
 #, fuzzy
@@ -5454,148 +5783,149 @@ msgid "Invalid octal number: %s"
 msgstr "Sibyo Umubare"
 
 #: pop3d/popauth.c:215
-#, fuzzy
+#, fuzzy, c-format
 msgid "You may not specify more than one `-aldp' option"
 msgstr "Gicurasi OYA Birenzeho Ihitamo"
 
-#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:369
+#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:373
 #, fuzzy, c-format
 msgid "Cannot create %s: %s"
 msgstr "Kurema"
 
 #: pop3d/popauth.c:257
-#, fuzzy
+#, fuzzy, c-format
 msgid "Only the file owner can use --username"
 msgstr "i IDOSIYE Gukoresha Izina ry'ukoresha"
 
 #: pop3d/popauth.c:263
-#, fuzzy
+#, fuzzy, c-format
 msgid "Operation not allowed"
 msgstr "OYA"
 
-#: pop3d/popauth.c:399
+#: pop3d/popauth.c:403
 #, fuzzy, c-format
 msgid "%s:%d: malformed line"
 msgstr "%s:%d:Umurongo"
 
-#: pop3d/popauth.c:412
+#: pop3d/popauth.c:416
 #, fuzzy, c-format
 msgid "%s:%d: cannot store datum"
 msgstr "%s:%d:Gutandukanya Ikurikiranyanyuguti"
 
-#: pop3d/popauth.c:445
+#: pop3d/popauth.c:449
 msgid "Password:"
 msgstr "Ijambobanga:"
 
 # sfx2/source\dialog\passwd.src:DLG_PASSWD.FT_PASSWD_CONFIRM.text
 #. TRANSLATORS: Please try to format this string so that it has
 #. the same length as the translation of 'Password:' above
-#: pop3d/popauth.c:451
+#: pop3d/popauth.c:455
 #, fuzzy
 msgid "Confirm :"
 msgstr "Kwemeza"
 
-#: pop3d/popauth.c:454
-#, fuzzy
+#: pop3d/popauth.c:458
+#, fuzzy, c-format
 msgid "Passwords differ. Please retry."
 msgstr "Ongera ugerageze"
 
-#: pop3d/popauth.c:469
-#, fuzzy
+#: pop3d/popauth.c:473
+#, fuzzy, c-format
 msgid "Missing username to add"
 msgstr "Ibuze Izina ry'ukoresha Kuri Kongeramo"
 
-#: pop3d/popauth.c:487
-#, fuzzy
+#: pop3d/popauth.c:491
+#, fuzzy, c-format
 msgid "Cannot store datum"
 msgstr "Gusimbura"
 
-#: pop3d/popauth.c:502
-#, fuzzy
+#: pop3d/popauth.c:506
+#, fuzzy, c-format
 msgid "Missing username to delete"
 msgstr "Ibuze Izina ry'ukoresha Kuri Gusiba"
 
-#: pop3d/popauth.c:514
+#: pop3d/popauth.c:518
 #, fuzzy, c-format
 msgid "Cannot remove record for %s"
 msgstr "Gukuraho... Icyabitswe kugirango"
 
-#: pop3d/popauth.c:534
-#, fuzzy
+#: pop3d/popauth.c:538
+#, fuzzy, c-format
 msgid "Missing username"
 msgstr "Ibuze Izina ry'ukoresha"
 
-#: pop3d/popauth.c:556
+#: pop3d/popauth.c:560
 #, fuzzy
 msgid "Old Password:"
 msgstr "Ijambobanga rya kera"
 
-#: pop3d/popauth.c:561
+#: pop3d/popauth.c:565
+#, c-format
 msgid "Sorry"
 msgstr ""
 
-#: pop3d/popauth.c:572
-#, fuzzy
+#: pop3d/popauth.c:577
+#, fuzzy, c-format
 msgid "Cannot replace datum"
 msgstr "Gusimbura"
 
-#: pop3d/popauth.c:591
+#: pop3d/popauth.c:596
 #, fuzzy, c-format
 msgid "Database format: %s\n"
 msgstr "Imiterere"
 
-#: pop3d/popauth.c:592
+#: pop3d/popauth.c:597
 #, fuzzy, c-format
 msgid "Database location: %s\n"
 msgstr "Ahantu"
 
-#: pop3d/quit.c:46
+#: pop3d/quit.c:47
 #, fuzzy, c-format
 msgid "Session ended for user: %s"
 msgstr "kugirango Ukoresha:"
 
-#: pop3d/quit.c:49
+#: pop3d/quit.c:50
 #, fuzzy
 msgid "Session ended for no user"
 msgstr "kugirango Oya Ukoresha:"
 
-#: pop3d/user.c:68
-#, fuzzy, c-format
-msgid "APOP user %s tried to log in with USER"
-msgstr "Ukoresha: Kuri LOG in Na:"
-
-#: pop3d/user.c:87
-#, fuzzy, c-format
-msgid "User `%s': authentication failed"
-msgstr "Byanze"
-
-#: pop3d/user.c:94
-#, fuzzy, c-format
-msgid "Possible probe of account `%s'"
-msgstr "Bya Aderesi"
-
-#: pop3d/user.c:107
+#: pop3d/user.c:31
 #, fuzzy, c-format
 msgid "User `%s' tried to log in within the minimum allowed delay"
 msgstr "Kuri LOG in muri i Gito Gutinda"
 
-#: pop3d/user.c:169
+#: pop3d/user.c:78
 #, fuzzy, c-format
-msgid "User `%s' logged in with mailbox `%s' (%d message)"
-msgid_plural "User `%s' logged in with mailbox `%s' (%d messages)"
+msgid "User `%s' logged in with mailbox `%s' (%s message)"
+msgid_plural "User `%s' logged in with mailbox `%s' (%s messages)"
 msgstr[0] "in Na: Ubutumwa"
 
-#: readmsg/readmsg.c:34
+#: pop3d/user.c:131
+#, fuzzy, c-format
+msgid "APOP user %s tried to log in with USER"
+msgstr "Ukoresha: Kuri LOG in Na:"
+
+#: pop3d/user.c:150
+#, fuzzy, c-format
+msgid "User `%s': authentication failed"
+msgstr "Byanze"
+
+#: pop3d/user.c:157
+#, fuzzy, c-format
+msgid "Possible probe of account `%s'"
+msgstr "Bya Aderesi"
+
+#: readmsg/readmsg.c:35
 #, fuzzy
 msgid "GNU readmsg -- print messages"
 msgstr "Gucapa Ubutumwa"
 
-#: readmsg/readmsg.c:39
+#: readmsg/readmsg.c:40
 #, fuzzy
 msgid "Display debugging information"
 msgstr "Ibisobanuro"
 
-#: readmsg/readmsg.c:40
+#: readmsg/readmsg.c:41
 #, fuzzy
 msgid "Display entire header"
 msgstr "Umutwempangano"
@@ -5606,58 +5936,64 @@ msgstr "Umutwempangano"
 # officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCJK.List.text
 # #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
 # officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCTL.List.text
-#: readmsg/readmsg.c:41
+#: readmsg/readmsg.c:42
 #, fuzzy
 msgid "LIST"
 msgstr "Urutonde"
 
-#: readmsg/readmsg.c:42
+#: readmsg/readmsg.c:43
 #, fuzzy
 msgid "List of header names separated by whitespace or commas"
 msgstr "Bya Umutwempangano Amazina ku Cyangwa"
 
-#: readmsg/readmsg.c:43
+#: readmsg/readmsg.c:44
 #, fuzzy
 msgid "Folder to use"
 msgstr "Kuri Gukoresha"
 
-#: readmsg/readmsg.c:44
+#: readmsg/readmsg.c:45
 #, fuzzy
 msgid "Exclude all headers"
 msgstr "Byose Imitwe"
 
-#: readmsg/readmsg.c:45
+#: readmsg/readmsg.c:46
 #, fuzzy
 msgid "Output formfeeds between messages"
 msgstr "hagati Ubutumwa"
 
-#: readmsg/readmsg.c:47
+#: readmsg/readmsg.c:48
 #, fuzzy
 msgid "Print all messages matching pattern, not just the first"
 msgstr "Byose Ubutumwa Ishusho OYA i Itangira"
 
-#: readmsg/readmsg.c:249
+#: readmsg/readmsg.c:294
 #, fuzzy, c-format
 msgid "Could not create mailbox `%s': %s\n"
 msgstr "OYA Kurema"
 
-#: readmsg/readmsg.c:253
+#: readmsg/readmsg.c:298
 #, fuzzy, c-format
 msgid "Could not create default mailbox: %s\n"
 msgstr "OYA Kurema Mburabuzi"
 
-#: readmsg/readmsg.c:272
+#: readmsg/readmsg.c:317
 #, fuzzy, c-format
 msgid "Could not open mailbox `%s': %s\n"
 msgstr "Gufungura"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
+#: readmsg/readmsg.c:329
+#, fuzzy, c-format
+msgid "Cannot parse weedlist: %s"
+msgstr "Kurema Urutonde"
+
+#: sieve/sieve.c:52
+msgid "GNU sieve -- a mail filtering tool"
+msgstr ""
+
 #: sieve/sieve.c:54
 #, fuzzy
 msgid ""
-"GNU sieve -- a mail filtering tool\n"
-"Debug flags:\n"
+"Debug flags:\n"
 "  g - main parser traces\n"
 "  T - mailutils traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
@@ -5665,249 +6001,272 @@ msgid ""
 "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
 msgstr "a Ubutumwa Iyungurura Amabendera g urusobe T i Amabwiriza"
 
-#: sieve/sieve.c:70
+#: sieve/sieve.c:68
 #, fuzzy
 msgid "Do not execute any actions, just print what would be done"
 msgstr "OYA Gukora Gucapa Byakozwe"
 
-#: sieve/sieve.c:73
+#: sieve/sieve.c:71
 #, fuzzy
 msgid "Keep on going if execution fails on a message"
 msgstr "ku NIBA ku a Ubutumwa"
 
-#: sieve/sieve.c:76
+#: sieve/sieve.c:74
 #, fuzzy
 msgid "Compile script and exit"
 msgstr "IYANDIKA Na Gusohoka"
 
-#: sieve/sieve.c:79
+#: sieve/sieve.c:77
 #, fuzzy
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
 msgstr "IYANDIKA ITEGEKONGENGA Kuri Na Gusohoka"
 
-#: sieve/sieve.c:81
-msgid "MBOX"
-msgstr ""
-
-#: sieve/sieve.c:82
+#: sieve/sieve.c:80
 #, fuzzy
 msgid "Mailbox to sieve (defaults to user's mail spool)"
 msgstr "Kuri Kuri Ubutumwa"
 
-#: sieve/sieve.c:84
+#: sieve/sieve.c:82
 msgid "TICKET"
 msgstr ""
 
-#: sieve/sieve.c:85
+#: sieve/sieve.c:83
 #, fuzzy
 msgid "Ticket file for mailbox authentication"
 msgstr "IDOSIYE kugirango"
 
-#: sieve/sieve.c:88
+#: sieve/sieve.c:86
 #, fuzzy
 msgid "Debug flags (defaults to \""
 msgstr "Amabendera Kuri"
 
-# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
-# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
-# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
-#: sieve/sieve.c:88
-#, fuzzy
-msgid "\")"
-msgstr "\")"
-
-#: sieve/sieve.c:91
+#: sieve/sieve.c:89
 #, fuzzy
 msgid "Log all actions"
 msgstr "Byose"
 
-#: sieve/sieve.c:94
+#: sieve/sieve.c:92
 #, fuzzy
 msgid "Print source location along with action logs (default)"
 msgstr "Inkomoko Ahantu Na: Igikorwa Mburabuzi"
 
-#: sieve/sieve.c:97
+#: sieve/sieve.c:95
 #, fuzzy
 msgid "Override user email address"
 msgstr "Ukoresha: imeli Aderesi"
 
-#: sieve/sieve.c:150
+#: sieve/sieve.c:171
 #, fuzzy, c-format
 msgid "Invalid email: %s"
 msgstr "Sibyo imeli"
 
-#: sieve/sieve.c:171
-msgid "Only one MBOX can be specified"
-msgstr ""
-
-#: sieve/sieve.c:225
+#: sieve/sieve.c:218
 msgid "Only one SCRIPT can be specified"
 msgstr ""
 
-#: sieve/sieve.c:230
+#: sieve/sieve.c:223
 msgid "SCRIPT must be specified"
 msgstr ""
 
 # officecfg/registry\schema\org\openoffice\Office\Common.xcs:....Font.Family..4.text
-#: sieve/sieve.c:243
+#: sieve/sieve.c:236
 msgid "SCRIPT"
 msgstr "IYANDIKA"
 
-#: sieve/sieve.c:301 sieve/sieve.c:326
+#: sieve/sieve.c:253
+#, fuzzy, c-format
+msgid "%s:%d: Invalid email: %s"
+msgstr "Sibyo imeli"
+
+#: sieve/sieve.c:333 sieve/sieve.c:358
 #, fuzzy, c-format
 msgid "%s:%lu: %s on msg uid %lu"
 msgstr "%s:%lu:%sku UID"
 
-#: sieve/sieve.c:305 sieve/sieve.c:330
+#: sieve/sieve.c:337 sieve/sieve.c:362
 #, fuzzy, c-format
 msgid "%s on msg uid %lu"
 msgstr "%sku UID"
 
-#: sieve/sieve.c:416
+#: sieve/sieve.c:455
 #, fuzzy, c-format
 msgid "ticket_get failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:422
+#: sieve/sieve.c:461
 #, fuzzy, c-format
 msgid "mu_wicket_create `%s' failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:435
+#: sieve/sieve.c:474
 #, fuzzy, c-format
 msgid "mu_debug_create failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:440
+#: sieve/sieve.c:479
 #, fuzzy, c-format
 msgid "mu_debug_set_level failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:446
+#: sieve/sieve.c:485
 #, fuzzy, c-format
 msgid "mu_debug_set_print failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:468
+#: sieve/sieve.c:507
 #, fuzzy, c-format
 msgid "mu_mailbox_set_debug failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:479
+#: sieve/sieve.c:518
 #, fuzzy, c-format
 msgid "mu_mailbox_get_folder failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:486
+#: sieve/sieve.c:525
 #, fuzzy, c-format
 msgid "mu_folder_get_authority failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:494
+#: sieve/sieve.c:533
 #, fuzzy, c-format
 msgid "mu_authority_set_ticket failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:509
+#: sieve/sieve.c:548
 #, fuzzy, c-format
 msgid "Opening mailbox `%s' failed: %s"
 msgstr "Uwanditse Byanze"
 
-#: sieve/sieve.c:512
+#: sieve/sieve.c:551
 #, fuzzy, c-format
 msgid "Opening default mailbox failed: %s"
 msgstr "Byanze"
 
-#: sieve/sieve.c:533
+#: sieve/sieve.c:572
 #, fuzzy, c-format
 msgid "Expunge on mailbox `%s' failed: %s"
 msgstr "ku Byanze"
 
-#: sieve/sieve.c:536
+#: sieve/sieve.c:575
 #, fuzzy, c-format
 msgid "Expunge on default mailbox failed: %s"
 msgstr "Gufungura Mburabuzi"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mimeview/mimeview.c:31
-msgid ""
-"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
-"file is "
-msgstr ""
-
-#: mimeview/mimeview.c:33
-msgid ""
-"\n"
-"\n"
-"Debug flags are:\n"
-"  g - Mime.types parser traces\n"
-"  l - Mime.types lexical analyzer traces\n"
-"  0-9 - Set debugging level\n"
-msgstr ""
-
-# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
-# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFont.List.text
-# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
-# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCJK.List.text
-# #-#-#-#-#  officecfg.pot (PACKAGE VERSION)  #-#-#-#-#
-# officecfg/registry\schema\org\openoffice\Office\Writer.xcs:....DefaultFontCTL.List.text
-#: mimeview/mimeview.c:41
 #, fuzzy
-msgid "TYPE-LIST"
-msgstr "Urutonde"
+#~ msgid "Encryption options"
+#~ msgstr "Amahitamo"
 
-#: mimeview/mimeview.c:42
-msgid ""
-"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
-"do not ask for confirmation before displaying such files whose MIME type "
-"matches one of the patterns from TYPE-LIST"
-msgstr ""
-
-#: mimeview/mimeview.c:44
-msgid "Disable interactive mode"
-msgstr ""
-
-#: mimeview/mimeview.c:49
-msgid "Use this mime.types file"
-msgstr ""
-
-#: mimeview/mimeview.c:51
 #, fuzzy
-msgid "Do not do anything, just print what whould be done"
-msgstr "OYA Gukora Gucapa Byakozwe"
+#~ msgid "General options"
+#~ msgstr "Amahitamo"
 
-#: mimeview/mimeview.c:53
-msgid "Use metamail to display files"
-msgstr ""
+#, fuzzy
+#~ msgid "%s:%d: cannot create tag list: %s"
+#~ msgstr "%s:%d:Kurema Itagi: Urutonde"
 
-#: mimeview/mimeview.c:135
-msgid "FILE [FILE ...]"
-msgstr ""
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH anno\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mimeview/mimeview.c:153 mimeview/mimetypes.l:150
-#, fuzzy, c-format
-msgid "Cannot stat `%s': %s"
-msgstr "IDOSIYE"
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH fmtcheck\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mimeview/mimeview.c:158
-#, fuzzy, c-format
-msgid "Not a regular file or symbolic link: `%s'"
-msgstr "%sni OYA a Ibisanzwe IDOSIYE Cyangwa a Ihuza"
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH folder\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mimeview/mimeview.c:250
-msgid "No files given"
-msgstr ""
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH forw\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mimeview/mimetypes.y:537
-#, fuzzy, c-format
-msgid "%s: unknown function"
-msgstr "Kitazwi Igikorwa"
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH install-mh\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Kwinjiza porogaramu Ifashayobora Kuri i Urutonde Bya Amahitamo"
 
-#: mimeview/mimetypes.y:609
-#, fuzzy, c-format
-msgid "argument %d has wrong type in call to `%s'"
-msgstr "ingingo in Kuri"
+#, fuzzy
+#~ msgid "GNU MH mark\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "GNU MH mhl\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "storing message %lu part %s as file %s\n"
+#~ msgstr "Ubutumwa Nka IDOSIYE"
+
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH mhpath\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH pick\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH refile\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH repl\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "GNU MH rmf\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "GNU MH rmm\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "GNU MH scan\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid ""
+#~ "GNU MH send\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr "cy/ byagarajwe Na: OYA Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "GNU MH whom\vUse -help to obtain the list of traditional MH options."
+#~ msgstr "Ifashayobora Kuri i Urutonde Bya Amahitamo"
+
+#, fuzzy
+#~ msgid "Bad permissions on APOP password db"
+#~ msgstr "Uruhushya ku Ijambobanga... DB"
+
+#, fuzzy
+#~ msgid "Cannot change to uid %lu: %m"
+#~ msgstr "Guhindura>> Kuri UID"
+
+#, fuzzy
+#~ msgid "User `%s' logged in with mailbox `%s'"
+#~ msgstr "in Na:"
+
+# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
+# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
+# #-#-#-#-#  dbaccess.pot (PACKAGE VERSION)  #-#-#-#-#
+#, fuzzy
+#~ msgid "\")"
+#~ msgstr "\")"
 
 #~ msgid "out of memory"
 #~ msgstr "Ububiko bwarenzwe"
@@ -5944,10 +6303,6 @@ msgstr "ingingo in Kuri"
 # Lock column values
 #~ msgid "default"
 #~ msgstr "mburabuzi"
-
-#, fuzzy
-#~ msgid "not enough memory"
-#~ msgstr "Ububiko ntibuhagije"
 
 #, fuzzy
 #~ msgid "can't open input file %s: %s"
@@ -6065,10 +6420,6 @@ msgstr "ingingo in Kuri"
 
 #~ msgid "Success"
 #~ msgstr "Ibyatunganye"
-
-#, fuzzy
-#~ msgid "too many arguments"
-#~ msgstr "ingingo"
 
 #, fuzzy
 #~ msgid "can't write context file %s: %s"

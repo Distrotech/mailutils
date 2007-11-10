@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.4\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
-"POT-Creation-Date: 2005-11-15 20:37+0200\n"
+"POT-Creation-Date: 2007-11-09 16:51+0200\n"
 "PO-Revision-Date: 2003-12-13 20:41+0200\n"
 "Last-Translator: Eugen Hoanca <eugenh@urban-grafx.ro>\n"
 "Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
@@ -14,6 +14,410 @@ msgstr ""
 "Content-Type: text/plain; charset=ISO-8859-2\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: auth/pam.c:153 auth/sql.c:219 auth/sql.c:221 auth/sql.c:225
+#: mail.local/main.c:86 mail.local/main.c:91 mh/anno.c:41 mh/pick.c:43
+#: mh/pick.c:46 mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54
+#: mh/pick.c:56 mh/pick.c:60 mh/whatnow.c:37 pop3d/popauth.c:83
+msgid "STRING"
+msgstr "ªIR"
+
+#: auth/pam.c:154
+msgid "Use STRING as PAM service name"
+msgstr "Foloseºte ªIR ca nume serviciu PAM"
+
+#: auth/sql.c:207 auth/sql.c:217 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
+#: mailbox/argp-parse.c:84 mh/mark.c:30 mh/pick.c:85
+msgid "NAME"
+msgstr "NUME"
+
+#: auth/sql.c:208
+msgid "Type of SQL interface to use"
+msgstr ""
+
+#: auth/sql.c:209 auth/sql.c:211 auth/sql.c:213
+msgid "QUERY"
+msgstr "INTEROGARE"
+
+#: auth/sql.c:210
+msgid "SQL query to retrieve a passwd entry based on username"
+msgstr "Interogare SQL pentru a recupera o parolã bazatã pe username"
+
+#: auth/sql.c:212
+msgid "SQL query to retrieve a passwd entry based on UID"
+msgstr "Interogare SQL pentru a recupera o parolã bazatã pe UID"
+
+#: auth/sql.c:214
+msgid "SQL query to retrieve a password from the database"
+msgstr "Interogare SQL pentru a recupera o parolã din baza de date"
+
+#: auth/sql.c:215
+msgid "HOSTNAME"
+msgstr "NUMEHOST"
+
+#: auth/sql.c:216
+msgid "Name or IP of MySQL server to connect to"
+msgstr "Nume sau IP al serverului MySQL la care ne conectãm"
+
+#: auth/sql.c:218
+msgid "SQL user name"
+msgstr "Nume user SQL"
+
+#: auth/sql.c:220
+msgid "SQL connection password"
+msgstr "Parolã conexiune SQL"
+
+#: auth/sql.c:222
+msgid "Name of the database to connect to"
+msgstr "Nume al bazei de date la care ne conectãm"
+
+#: auth/sql.c:223 mailbox/mu_argp.c:322 mailbox/mu_argp.c:356
+#: mailbox/mu_argp.c:362 mh/folder.c:48 mh/forw.c:63 mh/inc.c:49 mh/mhl.c:42
+#: mh/mhl.c:44 mh/repl.c:64 mh/scan.c:49 mh/send.c:66 mh/send.c:74
+msgid "NUMBER"
+msgstr "NUMÃR"
+
+#: auth/sql.c:224
+msgid "Port to use"
+msgstr "Portul de folosit"
+
+#: auth/sql.c:226
+msgid ""
+"Type of password returned by --sql-getpass query. STRING is one of: plain, "
+"hash, scrambled"
+msgstr ""
+
+#: auth/sql.c:227
+msgid "MAP"
+msgstr ""
+
+#: auth/sql.c:228
+msgid ""
+"Declare a name translation map for SQL fields in results of sql-getpwnam and "
+"sql-getpwuid queries"
+msgstr ""
+
+#: auth/sql.c:243
+#, fuzzy, c-format
+msgid "Unknown SQL interface `%s'"
+msgstr "Escape necunoscut %s"
+
+#: auth/sql.c:280
+#, fuzzy, c-format
+msgid "Unknown password type `%s'"
+msgstr "Escape necunoscut %s"
+
+#: auth/sql.c:286
+#, c-format
+msgid "Error near element %d: %s"
+msgstr ""
+
+#: auth/sql.c:308
+#, fuzzy, c-format
+msgid "%s:%d: Unknown SQL interface `%s'"
+msgstr "Escape necunoscut %s"
+
+#: auth/sql.c:317
+#, fuzzy, c-format
+msgid "%s:%d: Unknown password type `%s'"
+msgstr "Escape necunoscut %s"
+
+#: auth/sql.c:328
+#, fuzzy, c-format
+msgid "%s:%d: Error near element %d: %s"
+msgstr "%s:%d: nu se poate analiza(parse) netdef: %s"
+
+#: auth/sql.c:413
+#, fuzzy, c-format
+msgid "Cannot get SQL field `%s' (`%s'): %s"
+msgstr "nu se poate citi mesajul %lu: %s"
+
+#: auth/sql.c:418
+#, c-format
+msgid "SQL field `%s' (`%s') has NULL value"
+msgstr ""
+
+#: auth/sql.c:453
+#, fuzzy, c-format
+msgid "Invalid value for uid: %s"
+msgstr "email invalid: %s"
+
+#: auth/sql.c:460
+#, fuzzy, c-format
+msgid "Invalid value for gid: %s"
+msgstr "email invalid: %s"
+
+#: auth/sql.c:504
+#, fuzzy, c-format
+msgid "Invalid value for quota: %s"
+msgstr "email invalid: %s"
+
+#: auth/sql.c:594 auth/sql.c:676 auth/sql.c:751 mail.local/mailquota.c:197
+#, fuzzy, c-format
+msgid "SQL Query failed: %s"
+msgstr "MySQL: interogare eºuatã: %s"
+
+#: auth/sql.c:605 auth/sql.c:687 auth/sql.c:762 mail.local/mailquota.c:208
+#, fuzzy, c-format
+msgid "Cannot store SQL result: %s"
+msgstr "MySQL: nu se poate stoca rezultatul: %s"
+
+#: auth/sql.c:772
+#, fuzzy, c-format
+msgid "Cannot get password from SQL: %s"
+msgstr "Nu se poate crea mailboxul pentru %s: %s"
+
+#: auth/tls.c:58 auth/tls.c:60 auth/tls.c:62 comsat/comsat.c:60
+#: dotlock/dotlock.c:42 frm/from.c:32 mail.local/main.c:82
+#: mailbox/mu_argp.c:366 mh/fmtcheck.c:31 mh/forw.c:51 mh/forw.c:53
+#: mh/inc.c:31 mh/inc.c:35 mh/inc.c:42 mh/mhl.c:40 mh/mhn.c:37 mh/mhn.c:63
+#: mh/refile.c:49 mh/repl.c:57 mh/scan.c:43 mh/scan.c:54 mh/send.c:35
+#: mh/send.c:45 mh/whom.c:28 mimeview/mimeview.c:47 mimeview/mimeview.c:51
+#: pop3d/pop3d.c:103 pop3d/popauth.c:81 pop3d/popauth.c:82
+msgid "FILE"
+msgstr "FIªIER"
+
+#: auth/tls.c:59
+msgid "Specify SSL certificate file"
+msgstr "Specificã fiºierul certificat SSL"
+
+#: auth/tls.c:61
+msgid "Specify SSL certificate key"
+msgstr "Specificã cheia certificat SSL"
+
+#: auth/tls.c:63
+msgid "Specify trusted CAs file"
+msgstr "Specificã fiºierul de încredere CA"
+
+#: auth/tls.c:121 auth/tls.c:149
+#, c-format
+msgid "INTERNAL ERROR: cannot register argp capability tls"
+msgstr "EROARE INTERNÃ: nu se poate înregistra capabilitatea argp tls"
+
+#: auth/tls.c:127 mh/anno.c:33 mh/anno.c:36 mh/folder.c:64 mh/folder.c:67
+#: mh/folder.c:70 mh/folder.c:73 mh/folder.c:76 mh/forw.c:31 mh/forw.c:47
+#: mh/forw.c:57 mh/forw.c:60 mh/forw.c:68 mh/forw.c:70 mh/inc.c:39 mh/inc.c:46
+#: mh/mark.c:38 mh/mark.c:41 mh/mhl.c:34 mh/mhl.c:37 mh/mhn.c:41 mh/mhn.c:46
+#: mh/mhn.c:49 mh/mhn.c:52 mh/mhn.c:57 mh/mhn.c:60 mh/mhn.c:65 mh/mhn.c:70
+#: mh/mhn.c:73 mh/mhn.c:82 mh/pick.c:82 mh/pick.c:87 mh/pick.c:90
+#: mh/refile.c:41 mh/refile.c:44 mh/repl.c:35 mh/repl.c:50 mh/repl.c:58
+#: mh/repl.c:60 mh/repl.c:62 mh/repl.c:69 mh/rmf.c:41 mh/scan.c:40
+#: mh/scan.c:47 mh/scan.c:51 mh/send.c:49 mh/send.c:52 mh/send.c:55
+#: mh/send.c:58 mh/send.c:61 mh/send.c:68 mh/send.c:71 mh/whom.c:38
+#: sieve/sieve.c:91
+msgid "BOOL"
+msgstr "BOOL"
+
+#: auth/tls.c:128
+msgid "Enable TLS support"
+msgstr "Activeazã suportul TLS"
+
+#: auth/tls.c:170 auth/tls.c:182
+#, c-format
+msgid "%s is not a regular file or a symbolic link."
+msgstr "%s nu este un fiºier regulat sau o legãturã simbolicã."
+
+#: auth/tls.c:188
+#, fuzzy, c-format
+msgid "Wrong permissions on %s. Set 0600"
+msgstr "Permisiuni greºite la %s. Setaþi 0600."
+
+#: auth/virtual.c:194
+msgid "DIR"
+msgstr "DIR"
+
+#: auth/virtual.c:195
+msgid "Search for virtual passwd file in DIR"
+msgstr "Cautã pentru fiºierul de parole virtual în DIR"
+
+#: comsat/action.c:296
+#, c-format
+msgid "%s:.biffrc:%d: No arguments for exec"
+msgstr "%s:.biffrc:%d: Nu existã argumente pentru exec"
+
+#: comsat/action.c:302
+#, c-format
+msgid "%s:.biffrc:%d: Not an absolute pathname"
+msgstr "%s:.biffrc:%d: Nu este un nume de cale absolut"
+
+#: comsat/action.c:309
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: cannot stat %s: %s"
+msgstr "%s:.biffrc:%d: nu se poate face stat %s: %s"
+
+#: comsat/action.c:316
+#, fuzzy, c-format
+msgid "%s:.biffrc:%d: will not execute set[ug]id programs"
+msgstr "%s:.biffrc:%d: nu se vor executa programele set[ug]id"
+
+#: comsat/action.c:330
+#, fuzzy, c-format
+msgid "Cannot execute %s: %s"
+msgstr "nu se poate executa %s: %s"
+
+#: comsat/action.c:348
+#, c-format
+msgid "%s's %s is not owned by %s"
+msgstr "%s's %s nu este în proprietatea(owned) lui %s"
+
+#: comsat/action.c:355
+msgid "Warning: your .biffrc has wrong permissions"
+msgstr "Avertismet: .biffrc-ul vostru are permisiuni greºite"
+
+#: comsat/action.c:356
+#, c-format
+msgid "%s's %s has wrong permissions"
+msgstr "%s's %s are permisiuni greºite"
+
+#: comsat/action.c:419
+#, c-format
+msgid ".biffrc:%d: unknown keyword"
+msgstr ".biffrc:%d: cuvânt cheie necunoscut"
+
+#: comsat/action.c:421
+#, c-format
+msgid "%s:.biffrc:%d: unknown keyword %s"
+msgstr "%s:.biffrc:%d: cuvânt cheie necunoscut %s"
+
+#: comsat/cfg.c:113 comsat/cfg.c:224 imap4d/bye.c:44 mailbox/mu_argp.c:863
+#: mailbox/mu_argp.c:905 pop3d/extra.c:105
+#, c-format
+msgid "Out of memory"
+msgstr "Memorie plinã"
+
+#: comsat/cfg.c:138
+#, fuzzy, c-format
+msgid "Cannot open config file %s: %m"
+msgstr "nu se poate deschide fiºierul de configurare %s: %m"
+
+#: comsat/cfg.c:165
+#, c-format
+msgid "%s:%d: too few fields"
+msgstr "%s:%d: prea puþine câmpuri"
+
+#: comsat/cfg.c:177
+#, c-format
+msgid "%s:%d: yes or no expected"
+msgstr "%s:%d: se aºteaptã yes sau no"
+
+#: comsat/cfg.c:197
+#, c-format
+msgid "%s:%d: unknown keyword"
+msgstr "%s:%d: cuvânt necunoscut"
+
+#: comsat/cfg.c:208
+#, fuzzy, c-format
+msgid "%s:%d: cannot parse netdef: %s"
+msgstr "%s:%d: nu se poate analiza(parse) netdef: %s"
+
+#: comsat/comsat.c:60
+msgid "Read configuration from FILE"
+msgstr "Se citeºte configuraþia din FIªIER"
+
+#: comsat/comsat.c:150
+#, c-format
+msgid "--timeout and --daemon are incompatible\n"
+msgstr "--timeout ºi --daemon sunt incompatibile\n"
+
+#: comsat/comsat.c:184
+#, fuzzy
+msgid "Restarting"
+msgstr "restartare"
+
+#: comsat/comsat.c:187
+#, fuzzy
+msgid "Cannot restart: program must be invoked using absolute pathname"
+msgstr "nu se poate restarta: nu este startat cu nume de cale absolut"
+
+#: comsat/comsat.c:217
+#, fuzzy
+msgid "Failed to become a daemon"
+msgstr "eroare în a deveni un daemon"
+
+#: comsat/comsat.c:261
+msgid "GNU comsat started"
+msgstr "GNU comsat pornit"
+
+#: comsat/comsat.c:289
+#, fuzzy, c-format
+msgid "Too many requests: pausing for %u second"
+msgid_plural "Too many requests: pausing for %u seconds"
+msgstr[0] "prea multe cereri: se face pauzã pentru %u secundã"
+msgstr[1] "prea multe cereri: se face pauzã pentru %u secunde"
+
+#: comsat/comsat.c:344
+#, c-format
+msgid "DENIED attempt to connect from %s"
+msgstr "REFUZAT: încercare de conectare de la %s"
+
+#: comsat/comsat.c:350
+#, fuzzy, c-format
+msgid "Received %d byte from %s"
+msgid_plural "Received %d bytes from %s"
+msgstr[0] "%d octet din %s"
+msgstr[1] "%d octeþi din %s"
+
+#: comsat/comsat.c:360
+#, fuzzy, c-format
+msgid "Malformed input: %s"
+msgstr "intrare(input) malformatã: %s"
+
+#: comsat/comsat.c:375
+#, fuzzy, c-format
+msgid "Malformed input: %s@%s (near %s)"
+msgstr "intrare(input) malformatã: %s@%s (aproape de %s)"
+
+#: comsat/comsat.c:441
+#, fuzzy, c-format
+msgid "Cannot open device %s: %m"
+msgstr "nu se poate deschide device-ul %s: %m"
+
+#: comsat/comsat.c:457 mail.local/main.c:761 mail.local/main.c:780
+#: mail/copy.c:77 mail/file.c:95 mail/mail.c:443 mail/quit.c:122 mh/inc.c:217
+#: mh/mh_init.c:457
+#, fuzzy, c-format
+msgid "Cannot open mailbox %s: %s"
+msgstr "Nu se poate deschide mailboxul %s: %s"
+
+#: comsat/comsat.c:464 mail.local/main.c:800
+#, fuzzy, c-format
+msgid "Cannot get stream for mailbox %s: %s"
+msgstr "nu se poate lua secvenþa(stream) din mailboxul %s: %s"
+
+#: comsat/comsat.c:471 mail.local/main.c:808
+#, fuzzy, c-format
+msgid "Cannot get stream size (mailbox %s): %s"
+msgstr "nu se poate afla mãrime secvenþei (mailboxul %s): %s"
+
+#: comsat/comsat.c:488
+#, fuzzy, c-format
+msgid "Cannot create temporary mailbox: %s"
+msgstr "nu se poate crea mailbox-ul temporar: %s"
+
+#: comsat/comsat.c:495
+#, fuzzy, c-format
+msgid "Cannot create temporary stream: %s"
+msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
+
+#: comsat/comsat.c:542
+#, fuzzy, c-format
+msgid "Bad line name in utmp record: %s"
+msgstr "nume de linie greºit în înregistrarea utmp: %s"
+
+#: comsat/comsat.c:550
+#, fuzzy, c-format
+msgid "Not a character device: %s"
+msgstr "nu este un device caracter: %s"
+
+#: comsat/comsat.c:583 pop3d/popauth.c:308 pop3d/popauth.c:549
+#, fuzzy, c-format
+msgid "No such user: %s"
+msgstr "nu existã user-ul: %s"
+
+#: comsat/comsat.c:603
+#, fuzzy, c-format
+msgid "User nonexistent: %s"
+msgstr "user inexistent: %s"
 
 #: config/mailutils-config.c:28
 msgid ""
@@ -36,7 +440,7 @@ msgstr "afiºeazã flag-urile compilatorului C cu care se va compila"
 #, fuzzy
 msgid ""
 "Print libraries to link with. Possible arguments are: auth, guile, mbox, mh, "
-"maildir, imap, pop, sieve and all"
+"maildir, mailer, imap, pop, sieve and all"
 msgstr ""
 "afiºeazã bibliotecile cu care se va face legãtura. Argumente posibile sunt:  "
 "auth, guile, all, mbox, mh, maildir, imap, pop"
@@ -57,430 +461,118 @@ msgstr ""
 "stare zero dacã toate opþiunile specificate sunt definite. În caz contrar, "
 "starea de ieºire este 1."
 
-#: config/mailutils-config.c:128 frm/from.c:128 mh/folder.c:886
+#: config/mailutils-config.c:129 frm/from.c:128 mh/folder.c:971
+#, c-format
 msgid "Too many arguments"
 msgstr "Prea multe argumente"
 
-#: auth/pam.c:153 auth/sql.c:197 auth/sql.c:199 auth/sql.c:203
-#: mail.local/main.c:87 mail.local/main.c:92 mh/anno.c:43 mh/pick.c:45
-#: mh/pick.c:48 mh/pick.c:50 mh/pick.c:52 mh/pick.c:54 mh/pick.c:56
-#: mh/pick.c:58 mh/pick.c:62 mh/whatnow.c:37 pop3d/popauth.c:83
-msgid "STRING"
-msgstr "ªIR"
-
-#: auth/pam.c:154
-msgid "Use STRING as PAM service name"
-msgstr "Foloseºte ªIR ca nume serviciu PAM"
-
-#: auth/sql.c:185 auth/sql.c:195 frm/frm.c:137 guimb/main.c:71 guimb/main.c:72
-#: mailbox/argp-parse.c:84 mh/mark.c:32 mh/pick.c:87
-msgid "NAME"
-msgstr "NUME"
-
-#: auth/sql.c:186
-msgid "Type of SQL interface to use"
+#: dotlock/dotlock.c:37
+msgid "GNU dotlock -- lock mail spool files"
 msgstr ""
 
-#: auth/sql.c:187 auth/sql.c:189 auth/sql.c:191
-msgid "QUERY"
-msgstr "INTEROGARE"
-
-#: auth/sql.c:188
-msgid "SQL query to retrieve a passwd entry based on username"
-msgstr "Interogare SQL pentru a recupera o parolã bazatã pe username"
-
-#: auth/sql.c:190
-msgid "SQL query to retrieve a passwd entry based on UID"
-msgstr "Interogare SQL pentru a recupera o parolã bazatã pe UID"
-
-#: auth/sql.c:192
-msgid "SQL query to retrieve a password from the database"
-msgstr "Interogare SQL pentru a recupera o parolã din baza de date"
-
-#: auth/sql.c:193
-msgid "HOSTNAME"
-msgstr "NUMEHOST"
-
-#: auth/sql.c:194
-msgid "Name or IP of MySQL server to connect to"
-msgstr "Nume sau IP al serverului MySQL la care ne conectãm"
-
-#: auth/sql.c:196
-msgid "SQL user name"
-msgstr "Nume user SQL"
-
-#: auth/sql.c:198
-msgid "SQL connection password"
-msgstr "Parolã conexiune SQL"
-
-#: auth/sql.c:200
-msgid "Name of the database to connect to"
-msgstr "Nume al bazei de date la care ne conectãm"
-
-#: auth/sql.c:201 mailbox/mu_argp.c:80 mailbox/mu_argp.c:115
-#: mailbox/mu_argp.c:121 mh/folder.c:50 mh/forw.c:65 mh/inc.c:51 mh/mhl.c:44
-#: mh/mhl.c:46 mh/repl.c:65 mh/scan.c:51 mh/send.c:75
-msgid "NUMBER"
-msgstr "NUMÃR"
-
-#: auth/sql.c:202
-msgid "Port to use"
-msgstr "Portul de folosit"
-
-#: auth/sql.c:204
-msgid ""
-"Type of password returned by --sql-getpass query. STRING is one of: plain, "
-"hash, scrambled"
-msgstr ""
-
-#: auth/sql.c:216
-#, fuzzy, c-format
-msgid "Unknown SQL interface `%s'"
-msgstr "Escape necunoscut %s"
-
-#: auth/sql.c:259
-#, fuzzy, c-format
-msgid "Unknown password type `%s'"
-msgstr "Escape necunoscut %s"
-
-#: auth/sql.c:325 auth/sql.c:455 auth/sql.c:574 mail.local/mailquota.c:191
-#, fuzzy, c-format
-msgid "SQL Query failed: %s"
-msgstr "MySQL: interogare eºuatã: %s"
-
-#: auth/sql.c:336 auth/sql.c:466 auth/sql.c:585 mail.local/mailquota.c:202
-#, fuzzy, c-format
-msgid "Cannot store SQL result: %s"
-msgstr "MySQL: nu se poate stoca rezultatul: %s"
-
-#: auth/sql.c:595
-#, fuzzy, c-format
-msgid "Cannot get password from SQL: %s"
-msgstr "Nu se poate crea mailboxul pentru %s: %s"
-
-#: auth/tls.c:58
-msgid "Encryption options"
-msgstr "Opþiuni de criptare(encryption)"
-
-#: auth/tls.c:59 auth/tls.c:61 auth/tls.c:63 comsat/comsat.c:59
-#: dotlock/dotlock.c:43 frm/from.c:32 mail.local/main.c:83
-#: mailbox/mu_argp.c:125 mh/fmtcheck.c:32 mh/forw.c:53 mh/forw.c:55
-#: mh/inc.c:33 mh/inc.c:37 mh/inc.c:44 mh/mhl.c:42 mh/mhn.c:39 mh/mhn.c:65
-#: mh/refile.c:50 mh/repl.c:58 mh/scan.c:45 mh/scan.c:56 mh/send.c:38
-#: mh/send.c:48 mh/whom.c:30 pop3d/popauth.c:81 pop3d/popauth.c:82
-#: mimeview/mimeview.c:48 mimeview/mimeview.c:52
-msgid "FILE"
-msgstr "FIªIER"
-
-#: auth/tls.c:60
-msgid "Specify SSL certificate file"
-msgstr "Specificã fiºierul certificat SSL"
-
-#: auth/tls.c:62
-msgid "Specify SSL certificate key"
-msgstr "Specificã cheia certificat SSL"
-
-#: auth/tls.c:64
-msgid "Specify trusted CAs file"
-msgstr "Specificã fiºierul de încredere CA"
-
-#: auth/tls.c:122 auth/tls.c:150
-msgid "INTERNAL ERROR: cannot register argp capability tls"
-msgstr "EROARE INTERNÃ: nu se poate înregistra capabilitatea argp tls"
-
-#: auth/tls.c:128 mh/anno.c:35 mh/anno.c:38 mh/folder.c:66 mh/folder.c:69
-#: mh/folder.c:72 mh/folder.c:75 mh/folder.c:78 mh/forw.c:33 mh/forw.c:49
-#: mh/forw.c:59 mh/forw.c:62 mh/forw.c:70 mh/forw.c:72 mh/inc.c:41 mh/inc.c:48
-#: mh/mark.c:40 mh/mark.c:43 mh/mhl.c:36 mh/mhl.c:39 mh/mhn.c:43 mh/mhn.c:48
-#: mh/mhn.c:51 mh/mhn.c:54 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:72
-#: mh/mhn.c:75 mh/mhn.c:84 mh/pick.c:84 mh/pick.c:89 mh/pick.c:92
-#: mh/refile.c:42 mh/refile.c:45 mh/repl.c:36 mh/repl.c:51 mh/repl.c:59
-#: mh/repl.c:61 mh/repl.c:63 mh/repl.c:70 mh/rmf.c:43 mh/scan.c:42
-#: mh/scan.c:49 mh/scan.c:53 mh/send.c:52 mh/send.c:55 mh/send.c:58
-#: mh/send.c:61 mh/send.c:64 mh/send.c:69 mh/send.c:72 mh/whom.c:40
-#: sieve/sieve.c:93
-msgid "BOOL"
-msgstr "BOOL"
-
-#: auth/tls.c:129
-msgid "Enable TLS support"
-msgstr "Activeazã suportul TLS"
-
-#: auth/tls.c:171 auth/tls.c:183
-#, c-format
-msgid "%s is not a regular file or a symbolic link."
-msgstr "%s nu este un fiºier regulat sau o legãturã simbolicã."
-
-#: auth/tls.c:189
-#, fuzzy, c-format
-msgid "Wrong permissions on %s. Set 0600"
-msgstr "Permisiuni greºite la %s. Setaþi 0600."
-
-#: auth/virtual.c:194
-msgid "DIR"
-msgstr "DIR"
-
-#: auth/virtual.c:195
-msgid "Search for virtual passwd file in DIR"
-msgstr "Cautã pentru fiºierul de parole virtual în DIR"
-
-#: comsat/action.c:265
-#, c-format
-msgid "%s:.biffrc:%d: No arguments for exec"
-msgstr "%s:.biffrc:%d: Nu existã argumente pentru exec"
-
-#: comsat/action.c:271
-#, c-format
-msgid "%s:.biffrc:%d: Not an absolute pathname"
-msgstr "%s:.biffrc:%d: Nu este un nume de cale absolut"
-
-#: comsat/action.c:278
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: cannot stat %s: %s"
-msgstr "%s:.biffrc:%d: nu se poate face stat %s: %s"
-
-#: comsat/action.c:285
-#, fuzzy, c-format
-msgid "%s:.biffrc:%d: will not execute set[ug]id programs"
-msgstr "%s:.biffrc:%d: nu se vor executa programele set[ug]id"
-
-#: comsat/action.c:299
-#, fuzzy, c-format
-msgid "Cannot execute %s: %s"
-msgstr "nu se poate executa %s: %s"
-
-#: comsat/action.c:317
-#, c-format
-msgid "%s's %s is not owned by %s"
-msgstr "%s's %s nu este în proprietatea(owned) lui %s"
-
-#: comsat/action.c:324
-msgid "Warning: your .biffrc has wrong permissions"
-msgstr "Avertismet: .biffrc-ul vostru are permisiuni greºite"
-
-#: comsat/action.c:325
-#, c-format
-msgid "%s's %s has wrong permissions"
-msgstr "%s's %s are permisiuni greºite"
-
-#: comsat/action.c:382
-#, c-format
-msgid ".biffrc:%d: unknown keyword"
-msgstr ".biffrc:%d: cuvânt cheie necunoscut"
-
-#: comsat/action.c:384
-#, c-format
-msgid "%s:.biffrc:%d: unknown keyword %s"
-msgstr "%s:.biffrc:%d: cuvânt cheie necunoscut %s"
-
-#: comsat/cfg.c:114 comsat/cfg.c:225 imap4d/bye.c:43 mailbox/mu_argp.c:868
-#: mailbox/mu_argp.c:906 pop3d/extra.c:104
-msgid "Out of memory"
-msgstr "Memorie plinã"
-
-#: comsat/cfg.c:139
-#, fuzzy, c-format
-msgid "Cannot open config file %s: %m"
-msgstr "nu se poate deschide fiºierul de configurare %s: %m"
-
-#: comsat/cfg.c:166
-#, c-format
-msgid "%s:%d: too few fields"
-msgstr "%s:%d: prea puþine câmpuri"
-
-#: comsat/cfg.c:178
-#, c-format
-msgid "%s:%d: yes or no expected"
-msgstr "%s:%d: se aºteaptã yes sau no"
-
-#: comsat/cfg.c:198
-#, c-format
-msgid "%s:%d: unknown keyword"
-msgstr "%s:%d: cuvânt necunoscut"
-
-#: comsat/cfg.c:209
-#, fuzzy, c-format
-msgid "%s:%d: cannot parse netdef: %s"
-msgstr "%s:%d: nu se poate analiza(parse) netdef: %s"
-
-#: comsat/comsat.c:59
-msgid "Read configuration from FILE"
-msgstr "Se citeºte configuraþia din FIªIER"
-
-#: comsat/comsat.c:149
-#, c-format
-msgid "--timeout and --daemon are incompatible\n"
-msgstr "--timeout ºi --daemon sunt incompatibile\n"
-
-#: comsat/comsat.c:183
-#, fuzzy
-msgid "Restarting"
-msgstr "restartare"
-
-#: comsat/comsat.c:186
-#, fuzzy
-msgid "Cannot restart: program must be invoked using absolute pathname"
-msgstr "nu se poate restarta: nu este startat cu nume de cale absolut"
-
-#: comsat/comsat.c:216
-#, fuzzy
-msgid "Failed to become a daemon"
-msgstr "eroare în a deveni un daemon"
-
-#: comsat/comsat.c:260
-msgid "GNU comsat started"
-msgstr "GNU comsat pornit"
-
-#: comsat/comsat.c:288
-#, fuzzy, c-format
-msgid "Too many requests: pausing for %u second"
-msgid_plural "Too many requests: pausing for %u seconds"
-msgstr[0] "prea multe cereri: se face pauzã pentru %u secundã"
-msgstr[1] "prea multe cereri: se face pauzã pentru %u secunde"
-
-#: comsat/comsat.c:343
-#, c-format
-msgid "DENIED attempt to connect from %s"
-msgstr "REFUZAT: încercare de conectare de la %s"
-
-#: comsat/comsat.c:349
-#, fuzzy, c-format
-msgid "Received %d byte from %s"
-msgid_plural "Received %d bytes from %s"
-msgstr[0] "%d octet din %s"
-msgstr[1] "%d octeþi din %s"
-
-#: comsat/comsat.c:359
-#, fuzzy, c-format
-msgid "Malformed input: %s"
-msgstr "intrare(input) malformatã: %s"
-
-#: comsat/comsat.c:374
-#, fuzzy, c-format
-msgid "Malformed input: %s@%s (near %s)"
-msgstr "intrare(input) malformatã: %s@%s (aproape de %s)"
-
-#: comsat/comsat.c:440
-#, fuzzy, c-format
-msgid "Cannot open device %s: %m"
-msgstr "nu se poate deschide device-ul %s: %m"
-
-#: comsat/comsat.c:456 mail/copy.c:76 mail/file.c:95 mail/mail.c:443
-#: mail/quit.c:121 mail.local/main.c:686 mail.local/main.c:705 mh/inc.c:219
-#: mh/mh_init.c:380 pop3d/apop.c:240
-#, fuzzy, c-format
-msgid "Cannot open mailbox %s: %s"
-msgstr "Nu se poate deschide mailboxul %s: %s"
-
-#: comsat/comsat.c:463 mail.local/main.c:724
-#, fuzzy, c-format
-msgid "Cannot get stream for mailbox %s: %s"
-msgstr "nu se poate lua secvenþa(stream) din mailboxul %s: %s"
-
-#: comsat/comsat.c:470 mail.local/main.c:732
-#, fuzzy, c-format
-msgid "Cannot get stream size (mailbox %s): %s"
-msgstr "nu se poate afla mãrime secvenþei (mailboxul %s): %s"
-
-#: comsat/comsat.c:487 pop3d/apop.c:230
-#, fuzzy, c-format
-msgid "Cannot create temporary mailbox: %s"
-msgstr "nu se poate crea mailbox-ul temporar: %s"
-
-#: comsat/comsat.c:494
-#, fuzzy, c-format
-msgid "Cannot create temporary stream: %s"
-msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
-
-#: comsat/comsat.c:541
-#, fuzzy, c-format
-msgid "Bad line name in utmp record: %s"
-msgstr "nume de linie greºit în înregistrarea utmp: %s"
-
-#: comsat/comsat.c:549
-#, fuzzy, c-format
-msgid "Not a character device: %s"
-msgstr "nu este un device caracter: %s"
-
-#: comsat/comsat.c:582 pop3d/popauth.c:308 pop3d/popauth.c:545
-#, fuzzy, c-format
-msgid "No such user: %s"
-msgstr "nu existã user-ul: %s"
-
-#: comsat/comsat.c:602
-#, fuzzy, c-format
-msgid "User nonexistent: %s"
-msgstr "user inexistent: %s"
-
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: dotlock/dotlock.c:38
+#: dotlock/dotlock.c:39
 #, fuzzy
 msgid ""
-"GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the "
-"file fails because it's already locked, and 1 if some other kind of error "
-"occurred."
+"Returns 0 on success, 3 if locking the file fails because it's already "
+"locked, and 1 if some other kind of error occurred."
 msgstr ""
-"GNU dotlock -- blocheazã(lock) fiºierele spool de mail.Returneazã 0 în caz "
+"GNU dotlock -- blocheazã(lock) fiºierele spool de mail.\vReturneazã 0 în caz "
 "de succes, 3 dacã blocarea fiºierului eºueazã din cauza faptului cã este "
 "deja blocat, ºi 1 dacã s-a produs un alt fel de eroare."
 
-#: dotlock/dotlock.c:47
+#: dotlock/dotlock.c:46
 msgid "Unlock"
 msgstr "Deblocheazã(unlock)"
 
-#: dotlock/dotlock.c:49
+#: dotlock/dotlock.c:48
 msgid "MINUTES"
 msgstr "MINUTE"
 
-#: dotlock/dotlock.c:50
+#: dotlock/dotlock.c:49
 msgid "Forcibly break an existing lock older than a certain time"
 msgstr ""
 "Deblocheazã cu forþa o blocare(lock) existentã mai veche de un anumit timp"
 
-#: dotlock/dotlock.c:52
+#: dotlock/dotlock.c:51
 msgid "RETRIES"
 msgstr "REÎNCERCÃRI"
 
-#: dotlock/dotlock.c:53
+#: dotlock/dotlock.c:52
 msgid "Retry the lock a few times"
 msgstr "Reîncearcã blocarea(lock) de câteva ori"
 
-#: dotlock/dotlock.c:56
+#: dotlock/dotlock.c:55
 msgid "Print details of failure reasons to stderr"
 msgstr "Afiºeazã detalii ale motivelor de eroare la stderr"
 
-#: dotlock/dotlock.c:95
+#: dotlock/dotlock.c:94
 msgid "RETRIES must be greater than 0"
 msgstr "REÎNCERCÃRI trebuie sã fie mai mare decât 0"
 
-#: dotlock/dotlock.c:105
+#: dotlock/dotlock.c:104
 msgid "MINUTES must be greater than 0"
 msgstr "MINUTE trebuie sã fie mai mare decât 0"
 
-#: dotlock/dotlock.c:113
+#: dotlock/dotlock.c:110
 #, fuzzy
 msgid "Only one FILE can be specified"
 msgstr "doar un singur FIªIER poate fi specificat"
 
-#: dotlock/dotlock.c:118
+#: dotlock/dotlock.c:115
 msgid "FILE must be specified"
 msgstr "FIªIERul trebuie specificat"
 
-#: dotlock/dotlock.c:149
+#: dotlock/dotlock.c:168
 #, fuzzy, c-format
 msgid "Creating locker failed: %s\n"
 msgstr "Crearea mailerului '%s' a eºuat: %s"
 
-#: dotlock/dotlock.c:175
+#: dotlock/dotlock.c:194
 #, fuzzy, c-format
 msgid "Unlocking the file %s failed: %s\n"
 msgstr "Deschiderea mailerului '%s' a eºuat: %s"
 
-#: dotlock/dotlock.c:176
+#: dotlock/dotlock.c:195
 #, fuzzy, c-format
 msgid "Locking the file %s failed: %s\n"
 msgstr "deschiderea lui %s a eºuat: %s\n"
+
+#: frm/common.c:127
+#, c-format
+msgid "fribidi failed to recognize charset `%s'"
+msgstr ""
+
+#: frm/common.c:374 mail/util.c:1454
+#, fuzzy, c-format
+msgid "Cannot decode line `%s': %s"
+msgstr "Nu se poate decodifica linia `%s': %s"
+
+#: frm/common.c:517 frm/common.c:597
+#, fuzzy, c-format
+msgid "Could not close mailbox `%s': %s"
+msgstr "nu s-a putut deschide mailbox-ul %s: %s\n"
+
+#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:198
+#: sieve/sieve.c:497
+#, fuzzy, c-format
+msgid "Could not create mailbox `%s': %s"
+msgstr "nu s-a putut crea mailbox-ul <%s>: %s\n"
+
+#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:202
+#: sieve/sieve.c:500
+#, fuzzy, c-format
+msgid "Could not create default mailbox: %s"
+msgstr "nu s-a putut crea mailbox: %s"
+
+#: frm/common.c:567 messages/messages.c:156
+#, fuzzy, c-format
+msgid "Could not open mailbox `%s': %s"
+msgstr "nu s-a putut deschide mailbox-ul %s: %s\n"
+
+#: frm/common.c:587
+#, fuzzy, c-format
+msgid "Could not scan mailbox `%s': %s."
+msgstr "nu s-a putut scana mailbox-ul <%s>: %s\n"
 
 #: frm/frm.c:35
 msgid "GNU frm -- display From: lines"
@@ -533,7 +625,7 @@ msgstr ""
 msgid "%s: unknown attribute"
 msgstr "%s:%d: variabilã necunoscutã: %s"
 
-#: frm/frm.c:136 frm/from.c:34 mimeview/mimeview.c:47
+#: frm/frm.c:136 frm/from.c:34 mimeview/mimeview.c:46
 msgid "Enable debugging output"
 msgstr "Activeazã output-ul de debugging"
 
@@ -636,7 +728,7 @@ msgstr "GNU from -- afiºeazã de la cine(from) ºi subiectul"
 msgid "Just print a count of messages and exit"
 msgstr "Nu s-au putut contoriza mesajele din %s.\n"
 
-#: frm/from.c:30 sieve/sieve.c:96
+#: frm/from.c:30 sieve/sieve.c:94
 msgid "ADDRESS"
 msgstr "ADRESÃ"
 
@@ -654,6 +746,7 @@ msgid "[OPTIONS] [USER]"
 msgstr ""
 
 #: frm/from.c:135
+#, c-format
 msgid "Both --from option and user name are specified"
 msgstr ""
 
@@ -664,77 +757,41 @@ msgid_plural "There are %lu messages in your incoming mailbox.\n"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frm/common.c:127
-#, c-format
-msgid "fribidi failed to recognize charset `%s'"
-msgstr ""
-
-#: frm/common.c:374 mail/util.c:1477
-#, fuzzy, c-format
-msgid "Cannot decode line `%s': %s"
-msgstr "Nu se poate decodifica linia `%s': %s"
-
-#: frm/common.c:517 frm/common.c:597
-#, fuzzy, c-format
-msgid "Could not close mailbox `%s': %s"
-msgstr "nu s-a putut deschide mailbox-ul %s: %s\n"
-
-#: frm/common.c:545 messages/messages.c:142 movemail/movemail.c:189
-#: sieve/sieve.c:458
-#, fuzzy, c-format
-msgid "Could not create mailbox `%s': %s"
-msgstr "nu s-a putut crea mailbox-ul <%s>: %s\n"
-
-#: frm/common.c:548 messages/messages.c:145 movemail/movemail.c:193
-#: sieve/sieve.c:461
-#, fuzzy, c-format
-msgid "Could not create default mailbox: %s"
-msgstr "nu s-a putut crea mailbox: %s"
-
-#: frm/common.c:567 messages/messages.c:156
-#, fuzzy, c-format
-msgid "Could not open mailbox `%s': %s"
-msgstr "nu s-a putut deschide mailbox-ul %s: %s\n"
-
-#: frm/common.c:587
-#, fuzzy, c-format
-msgid "Could not scan mailbox `%s': %s."
-msgstr "nu s-a putut scana mailbox-ul <%s>: %s\n"
-
-#: guimb/collect.c:35
+#: guimb/collect.c:36
 #, fuzzy, c-format
 msgid "Cannot construct default mailbox URL: %s"
 msgstr "nu se poate deschide mailboxul implicit %s: %s"
 
-#: guimb/collect.c:43
+#: guimb/collect.c:44
 #, fuzzy, c-format
 msgid "Cannot open default mailbox %s: %s"
 msgstr "nu se poate deschide mailboxul implicit %s: %s"
 
-#: guimb/collect.c:87
+#: guimb/collect.c:88
 #, fuzzy, c-format
 msgid "Cannot open input file %s: %s"
 msgstr "nu se poate deschide fiºierul de intrare(input) \"%s\": %s"
 
-#: guimb/collect.c:115
+#: guimb/collect.c:116
 #, fuzzy, c-format
 msgid "Cannot create temp mailbox %s: %s"
 msgstr "nu se poate crea mailbox-ul temporar %s: %s"
 
-#: guimb/collect.c:126
-#, fuzzy
+#: guimb/collect.c:127
+#, fuzzy, c-format
 msgid "Input format not recognized"
 msgstr "formatul de intrare(input) nu este recunoscut"
 
-#: guimb/collect.c:151
+#: guimb/collect.c:152
 #, fuzzy, c-format
 msgid "Cannot open output mailbox %s: %s\n"
 msgstr "Nu se poate deschide mailboxul %s: %s"
 
-#: guimb/main.c:45 imap4d/auth_gss.c:267 libsieve/sieve.l:132
-#: libsieve/sieve.l:605 libsieve/sieve.l:669 libsieve/sieve.l:723
-#: mail/folders.c:38 mail/if.c:56 mail/util.c:897 mh/mh_init.c:112
-#: mh/mh_init.c:317 mh/mh_msgset.c:606
+#: guimb/main.c:45 imap4d/auth_gss.c:268 libsieve/sieve.l:132
+#: libsieve/sieve.l:603 libsieve/sieve.l:667 libsieve/sieve.l:721
+#: mail/folders.c:38 mail/if.c:56 mail/util.c:903 mh/mh_init.c:123
+#: mh/mh_init.c:394 mh/mh_msgset.c:606
+#, c-format
 msgid "Not enough memory"
 msgstr "Nu este destulã memorie"
 
@@ -805,179 +862,200 @@ msgstr ""
 msgid "[mailbox...]"
 msgstr "[mailbox...]"
 
-#: guimb/main.c:170
+#: guimb/main.c:171
+#, c-format
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
 msgstr ""
 "Cel puþin unul dintre -fecs trebuie folosit. Încercaþi guimb --help pentru "
 "mai multe informaþii."
 
-#: guimb/util.c:51 guimb/util.c:58 mail/util.c:823 mail/util.c:830
+#: guimb/util.c:54 guimb/util.c:61 mail/util.c:829 mail/util.c:836
 #, fuzzy, c-format
 msgid "Cannot determine sender name (msg %d)"
 msgstr "nu se poate determina numele expeditorului (msj %d)"
 
-#: imap4d/auth_gss.c:70
+#: imap4d/auth_gss.c:71
 #, fuzzy, c-format
 msgid "GSS-API error %s (%s): %.*s"
 msgstr "eroare GSS-API %s: %s"
 
-#: imap4d/auth_gss.c:71
+#: imap4d/auth_gss.c:72
 msgid "major"
 msgstr ""
 
-#: imap4d/auth_gss.c:71
+#: imap4d/auth_gss.c:72
 msgid "minor"
 msgstr ""
 
-#: imap4d/auth_gss.c:254
+#: imap4d/auth_gss.c:255
 #, fuzzy, c-format
 msgid "Client requested unsupported protection mechanism (%d)"
 msgstr "clientul a cerut un mecanism de protecþie nesuportat (%d)"
 
-#: imap4d/auth_gss.c:296
+#: imap4d/auth_gss.c:297
 #, c-format
 msgid "GSSAPI user %s is NOT authorized as %s"
 msgstr "userul GSSAPI %s NU este autorizat ca %s"
 
-#: imap4d/auth_gss.c:306
+#: imap4d/auth_gss.c:307
 #, c-format
 msgid "GSSAPI user %s is authorized as %s"
 msgstr "userul GSSAPI %s este autorizat ca %s"
 
-#: imap4d/authenticate.c:134 imap4d/login.c:64
+#: imap4d/authenticate.c:137 imap4d/login.c:70
 #, fuzzy, c-format
 msgid "User `%s' logged in"
 msgstr "Userul '%s' logat"
 
-#: imap4d/imap4d.c:47
-msgid "GNU imap4d -- the IMAP4D daemon"
-msgstr "GNU imap4d -- daemonul IMAP4D"
-
-#: imap4d/imap4d.c:53 imap4d/imap4d.c:55
-msgid "PATHLIST"
-msgstr "LISTÃCÃI"
-
-#: imap4d/imap4d.c:54
-#, fuzzy
-msgid "Set the `other' namespace"
-msgstr "seteazã spaþiul de nume `other'"
-
-#: imap4d/imap4d.c:56
-#, fuzzy
-msgid "Set the `shared' namespace"
-msgstr "seteazã spaþiul de nume `shared'"
-
-#: imap4d/imap4d.c:58
-msgid "Disable LOGIN command"
-msgstr "Dezactiveazã comanda LOGIN"
-
-#: imap4d/imap4d.c:61
-msgid "Always require STARTTLS before entering authentication phase"
-msgstr ""
-
-#: imap4d/imap4d.c:176 pop3d/pop3d.c:202
-msgid "Error getting mail group"
-msgstr "Eroare în aflarea grupului mailului"
-
-#: imap4d/imap4d.c:182 pop3d/pop3d.c:208
-msgid "Error setting mail group"
-msgstr "Eroare în setarea grupului mailului"
-
-#: imap4d/imap4d.c:261 pop3d/pop3d.c:299
-msgid "Incoming connection opened"
-msgstr "Conexiune de intrare(incoming) deschisã"
-
-#: imap4d/imap4d.c:263 pop3d/pop3d.c:311
-#, fuzzy, c-format
-msgid "Cannot obtain IP address of client: %s"
-msgstr "nu se poate obþine adresa IP a clientului: %s"
-
-#: imap4d/imap4d.c:266
-#, fuzzy, c-format
-msgid "Connect from %s"
-msgstr "conectare de la %s"
-
-#: imap4d/imap4d.c:271 pop3d/pop3d.c:304
-msgid "Started in debugging mode"
-msgstr "Pornit în mod de debugging"
-
-#: imap4d/imap4d.c:303
-#, fuzzy
-msgid "could not become daemon"
-msgstr "eroare în a deveni un daemon"
-
-#: imap4d/imap4d.c:359
-msgid "GNU imap4d started"
-msgstr "GNU imap4d pornit"
-
-#: imap4d/imap4d.c:365
-#, fuzzy, c-format
-msgid "Too many children (%lu)"
-msgstr "prea multe procese children (%lu)"
-
-#: imap4d/bye.c:47 pop3d/extra.c:108
+#: imap4d/bye.c:48 pop3d/extra.c:109
 msgid "Quitting on signal"
 msgstr "Se iese la semnal"
 
-#: imap4d/bye.c:53 pop3d/extra.c:116
+#: imap4d/bye.c:54 pop3d/extra.c:117
 msgid "Session timed out for no user"
 msgstr "Sesiune expiratã pentru lipsã user"
 
-#: imap4d/bye.c:55 pop3d/extra.c:114
+#: imap4d/bye.c:56 pop3d/extra.c:115
 #, c-format
 msgid "Session timed out for user: %s"
 msgstr "Sesiune expiratã pentru user: %s"
 
-#: imap4d/bye.c:59 pop3d/extra.c:120
+#: imap4d/bye.c:60 pop3d/extra.c:121
 msgid "No socket to send to"
 msgstr "Nici un socket de trimis la"
 
-#: imap4d/bye.c:63
+#: imap4d/bye.c:64
 #, fuzzy
 msgid "Mailbox modified by third party"
 msgstr "Mailboxul a fost adus la zi(updated) de cealaltã parte: %s"
 
-#: imap4d/bye.c:69
+#: imap4d/bye.c:70
 msgid "Session terminating"
 msgstr "Terminare sesiune"
 
-#: imap4d/bye.c:71
+#: imap4d/bye.c:72
 #, c-format
 msgid "Session terminating for user: %s"
 msgstr "Terminare sesiune pentru user: %s"
 
-#: imap4d/bye.c:77 pop3d/extra.c:131
+#: imap4d/bye.c:78 pop3d/extra.c:132
 #, c-format
 msgid "Quitting (numeric reason %d)"
 msgstr "Se iese (motiv numeric %d)"
 
-#: imap4d/list.c:247 mh/folder.c:360 mh/mh_init.c:226 mh/mh_init.c:705
-#: mh/rmf.c:147 pop3d/popauth.c:246
+#: imap4d/imap4d.c:51
+msgid "GNU imap4d -- the IMAP4D daemon"
+msgstr "GNU imap4d -- daemonul IMAP4D"
+
+#: imap4d/imap4d.c:58 imap4d/imap4d.c:60
+msgid "PATHLIST"
+msgstr "LISTÃCÃI"
+
+#: imap4d/imap4d.c:59
+#, fuzzy
+msgid "Set the `other' namespace"
+msgstr "seteazã spaþiul de nume `other'"
+
+#: imap4d/imap4d.c:61
+#, fuzzy
+msgid "Set the `shared' namespace"
+msgstr "seteazã spaþiul de nume `shared'"
+
+#: imap4d/imap4d.c:63
+msgid "Disable LOGIN command"
+msgstr "Dezactiveazã comanda LOGIN"
+
+#: imap4d/imap4d.c:64
+#, fuzzy
+msgid "MODE"
+msgstr "DOSAR"
+
+#: imap4d/imap4d.c:66
+#, fuzzy
+msgid "Create home directory, if it does not exist"
+msgstr "setul mesajului %s nu existã"
+
+#: imap4d/imap4d.c:69
+msgid "Always require STARTTLS before entering authentication phase"
+msgstr ""
+
+#: imap4d/imap4d.c:135
+#, fuzzy, c-format
+msgid "Invalid mode specification: %s"
+msgstr "opþiune invalidã -- %s"
+
+#: imap4d/imap4d.c:171
+#, fuzzy, c-format
+msgid "%s:%d: Invalid mode specification: %s"
+msgstr "opþiune invalidã -- %s"
+
+#: imap4d/imap4d.c:237 pop3d/pop3d.c:280
+msgid "Error getting mail group"
+msgstr "Eroare în aflarea grupului mailului"
+
+#: imap4d/imap4d.c:243 pop3d/pop3d.c:286
+msgid "Error setting mail group"
+msgstr "Eroare în setarea grupului mailului"
+
+#: imap4d/imap4d.c:322 pop3d/pop3d.c:374
+msgid "Incoming connection opened"
+msgstr "Conexiune de intrare(incoming) deschisã"
+
+#: imap4d/imap4d.c:324 pop3d/pop3d.c:386
+#, fuzzy, c-format
+msgid "Cannot obtain IP address of client: %s"
+msgstr "nu se poate obþine adresa IP a clientului: %s"
+
+#: imap4d/imap4d.c:327
+#, fuzzy, c-format
+msgid "Connect from %s"
+msgstr "conectare de la %s"
+
+#: imap4d/imap4d.c:332 pop3d/pop3d.c:379
+msgid "Started in debugging mode"
+msgstr "Pornit în mod de debugging"
+
+#: imap4d/imap4d.c:364
+#, fuzzy
+msgid "could not become daemon"
+msgstr "eroare în a deveni un daemon"
+
+#: imap4d/imap4d.c:420
+msgid "GNU imap4d started"
+msgstr "GNU imap4d pornit"
+
+#: imap4d/imap4d.c:426
+#, fuzzy, c-format
+msgid "Too many children (%s)"
+msgstr "prea multe procese children (%lu)"
+
+#: imap4d/list.c:272 mh/folder.c:365 mh/mh_init.c:303 mh/mh_init.c:797
+#: mh/rmf.c:145 mh/send.c:754 pop3d/popauth.c:246
 #, fuzzy, c-format
 msgid "Cannot stat %s: %s"
 msgstr "nu se poate stabili(stat) %s:%s"
 
-#: imap4d/login.c:46 pop3d/user.c:78
+#: imap4d/login.c:47 pop3d/user.c:141
 #, fuzzy, c-format
 msgid "User `%s': nonexistent"
 msgstr "User '%s': inexistent"
 
-#: imap4d/login.c:54
+#: imap4d/login.c:55
 #, c-format
 msgid "Login failed: %s"
 msgstr "Login eºuat: %s"
 
-#: imap4d/search.c:485 imap4d/search.c:573 imap4d/search.c:641
+#: imap4d/search.c:586 imap4d/search.c:709 imap4d/search.c:785
 #, c-format
 msgid "%s:%d: INTERNAL ERROR (please report)"
 msgstr "%s:%d: EROARE INTERNÃ (vã rugãm raportaþi)"
 
-#: imap4d/signal.c:42 pop3d/signal.c:53
+#: imap4d/signal.c:42 pop3d/signal.c:54
 #, fuzzy, c-format
 msgid "Got signal %s"
 msgstr "s-a primimt semnal %s"
 
-#: imap4d/signal.c:46 pop3d/signal.c:58
+#: imap4d/signal.c:46 pop3d/signal.c:59
 msgid "MASTER: exiting on signal"
 msgstr "MASTER: ieºire la semnal"
 
@@ -1036,92 +1114,154 @@ msgstr "proces child terminat anormal: %d"
 msgid "Command terminated\n"
 msgstr "Terminare sesiune"
 
-#: lib/mailcap.c:550 mimeview/mimeview.c:201
+#: lib/mailcap.c:555 mimeview/mimeview.c:223
 #, c-format
 msgid "Executing %s...\n"
 msgstr ""
 
-#: lib/mailcap.c:593
+#: lib/mailcap.c:594
 #, c-format
 msgid "Trying %s...\n"
 msgstr ""
 
-#: lib/mailcap.c:635
+#: lib/mailcap.c:636
 #, fuzzy, c-format
 msgid "Found in %s\n"
 msgstr "Dosarul %s  %s\n"
 
-#: libsieve/actions.c:50
+#: libproto/imap/folder.c:2297
+#, c-format
+msgid "No tag in response: %s %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2324
+#, c-format
+msgid "ALERT: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2333
+#, c-format
+msgid "BAD CHARSET: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2433
+#, c-format
+msgid "Untagged OK: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2439
+#, c-format
+msgid "Untagged NO: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2444
+#, c-format
+msgid "Untagged BAD: %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2507
+#, c-format
+msgid "unknown untagged response: \"%s\"  %s"
+msgstr ""
+
+#: libproto/imap/folder.c:2542
+#, fuzzy, c-format
+msgid "NO/Bad Tagged: %s %s %s"
+msgstr "Adresã greºitã `%s': %s"
+
+#: libproto/mbox/mbox.c:349
+#, c-format
+msgid "* BAD : Mailbox corrupted, shrank in size"
+msgstr ""
+
+#: libproto/mbox/mbox.c:464
+#, fuzzy, c-format
+msgid "Failed to create temporary file when expunging"
+msgstr "nu se poate deschide fiºierul temporar: %s"
+
+#: libproto/mbox/mbox.c:527
+#, fuzzy, c-format
+msgid "Failed to grab the lock: %s"
+msgstr "Eroare în execuþia locker-ului extern"
+
+#: libproto/mbox/mbox.c:579 libproto/mbox/mbox.c:588 libproto/mbox/mbox.c:611
+#: libproto/mbox/mbox.c:623 libproto/mbox/mbox.c:653 libproto/mbox/mbox.c:664
+#: libproto/mbox/mbox.c:685 libproto/mbox/mbox.c:699
+#, fuzzy, c-format
+msgid "Error expunging:%d: %s"
+msgstr "eroare la adãugarea mesajului: %s"
+
+#: libsieve/actions.c:51
 msgid "marking as deleted"
 msgstr "marcare ca ºters"
 
-#: libsieve/actions.c:64
-#, fuzzy
+#: libsieve/actions.c:65
+#, fuzzy, c-format
 msgid "cannot get filename!"
 msgstr "fileinto: nu se poate afla numele de fiºier!"
 
-#: libsieve/actions.c:67
+#: libsieve/actions.c:69
 #, c-format
 msgid "delivering into %s"
 msgstr "livrare în %s"
 
-#: libsieve/actions.c:74
+#: libsieve/actions.c:76
 #, fuzzy, c-format
 msgid "cannot save to mailbox: %s"
 msgstr "fileinto: nu se poate salva în mailbox: %s"
 
-#: libsieve/actions.c:275
-#, fuzzy
+#: libsieve/actions.c:269
+#, fuzzy, c-format
 msgid "reject: cannot get text!"
 msgstr "reject: nu se poate afla textul!"
 
-#: libsieve/actions.c:291 libsieve/extensions/vacation.c:485
+#: libsieve/actions.c:285 libsieve/extensions/vacation.c:486
 #, fuzzy, c-format
 msgid "%d: cannot create recipient address <%s>: %s"
 msgstr "%d: reject - nu se poate crea înspre adresa <%s>: %s\n"
 
-#: libsieve/actions.c:303 libsieve/actions.c:432
+#: libsieve/actions.c:297 libsieve/actions.c:425
 #, fuzzy, c-format
 msgid "%d: cannot create sender address <%s>: %s"
 msgstr "%d: reject - nu se poate crea dinspre adresa <%s>: %s\n"
 
-#: libsieve/actions.c:317 libsieve/actions.c:472
-#: libsieve/extensions/vacation.c:524
+#: libsieve/actions.c:311 libsieve/actions.c:465
+#: libsieve/extensions/vacation.c:525
 #, fuzzy, c-format
 msgid "%d: cannot open mailer %s: %s"
 msgstr "nu se poate deschide fiºierul %s: %s"
 
-#: libsieve/actions.c:392
-#, fuzzy
+#: libsieve/actions.c:386
+#, fuzzy, c-format
 msgid "cannot get address!"
 msgstr "redirect: nu se poate afla adresa!"
 
-#: libsieve/actions.c:400
+#: libsieve/actions.c:394
 #, fuzzy, c-format
 msgid "%d: parsing recipient address `%s' failed: %s"
 msgstr "Analiza(parsing) adreselor to a eºuat: %s"
 
-#: libsieve/actions.c:406
+#: libsieve/actions.c:400
 #, c-format
 msgid "to %s"
 msgstr "cãtre %s"
 
-#: libsieve/actions.c:413
+#: libsieve/actions.c:407
 #, c-format
 msgid "%d: Redirection loop detected"
 msgstr "%d: Buclã de redirectare detectatã"
 
-#: libsieve/actions.c:422
+#: libsieve/actions.c:416
 #, fuzzy, c-format
 msgid "%d: cannot get envelope sender: %s"
 msgstr "%d: redirect - nu se poate afla expeditorul plicului: %s\n"
 
-#: libsieve/actions.c:445
+#: libsieve/actions.c:438
 #, fuzzy, c-format
 msgid "%d: cannot copy message: %s"
 msgstr "%d: nu se poate copia mesajul: %s"
 
-#: libsieve/actions.c:460
+#: libsieve/actions.c:453
 #, fuzzy, c-format
 msgid "%d: cannot get my email address"
 msgstr "%d: nu pot afla adresa mea de e-mail"
@@ -1132,7 +1272,7 @@ msgid "Regex error: %s"
 msgstr "regex eroare: %s"
 
 #: libsieve/comparator.c:177
-#, fuzzy
+#, fuzzy, c-format
 msgid "Regex error"
 msgstr "eroare regex"
 
@@ -1148,10 +1288,12 @@ msgid "comparator %s is incompatible with :count in call to `%s'"
 msgstr "comparatorul %s este incompatibil cu :count în apelarea cãtre `%s'"
 
 #: libsieve/comparator.c:292
+#, c-format
 msgid "second argument must be a list of one element"
 msgstr "al doilea argument trebuie sã fie o listã de un element"
 
 #: libsieve/comparator.c:300
+#, c-format
 msgid "second argument cannot be converted to number"
 msgstr "al doilea argument nu poate fi convertit într-un numãr"
 
@@ -1167,7 +1309,67 @@ msgstr ""
 "comparatorul `%s' este incompatibil cu tipul de potrivire `%s' în apelarea "
 "cãtre `%s'"
 
+#: libsieve/extensions/timestamp.c:87
+#, fuzzy, c-format
+msgid "cannot parse date specification (%s)"
+msgstr "specificaþie de parte malformatã (lângã %s)"
+
+#: libsieve/extensions/vacation.c:70
+#, fuzzy, c-format
+msgid "cannot create temporary stream: %s"
+msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
+
+#: libsieve/extensions/vacation.c:78
+#, fuzzy, c-format
+msgid "cannot open temporary stream: %s"
+msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
+
+#: libsieve/extensions/vacation.c:205
+#, fuzzy, c-format
+msgid "%d: cannot compile regular expression \"%s\""
+msgstr "nu se poate deschide fiºierul %s: %s"
+
+#: libsieve/extensions/vacation.c:296
+#, fuzzy, c-format
+msgid "%d: cannot build db file name"
+msgstr "fileinto: nu se poate afla numele de fiºier!"
+
+#: libsieve/extensions/vacation.c:307
+#, fuzzy, c-format
+msgid "%d: cannot open `%s': %s"
+msgstr "nu se poate deschide %s: %s"
+
+#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
+#. Do not translate them!
+#: libsieve/extensions/vacation.c:350
+#, c-format
+msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
+msgstr ""
+
+#: libsieve/extensions/vacation.c:378
+#, fuzzy, c-format
+msgid "%d: not enough memory"
+msgstr "%s nu este memorie suficientã\n"
+
+#. TRANSLATORS: 'vacation' is the name of the
+#. Sieve action. Do not translate it!
+#: libsieve/extensions/vacation.c:436
+#, c-format
+msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
+msgstr ""
+
+#: libsieve/extensions/vacation.c:555
+#, fuzzy, c-format
+msgid "cannot get text!"
+msgstr "reject: nu se poate afla textul!"
+
+#: libsieve/extensions/vacation.c:572
+#, fuzzy, c-format
+msgid "%d: cannot get sender address"
+msgstr "%d: nu pot afla adresa mea de e-mail"
+
 #: libsieve/prog.c:40
+#, c-format
 msgid "out of memory!"
 msgstr "memorie plinã!"
 
@@ -1183,66 +1385,72 @@ msgstr "nume etichetã(tag) invalid `%s' pentru `%s'"
 
 #: libsieve/prog.c:187
 #, fuzzy, c-format
-msgid "%s:%d: cannot create tag list: %s"
-msgstr "%s:%d: nu se poate crea lista de etichete(tag): %s"
+msgid "cannot create tag list: %s"
+msgstr "nu s-a putut crea lista de arg: %s"
 
-#: libsieve/prog.c:211
+#: libsieve/prog.c:200
+#, c-format
+msgid "required argument for tag %s is missing"
+msgstr ""
+
+#: libsieve/prog.c:219
 #, fuzzy, c-format
-msgid "%s:%d: cannot create check list: %s"
+msgid "cannot create check list: %s"
 msgstr "%s:%d: nu se poate crea lista de verificare: %s"
 
-#: libsieve/prog.c:223 mimeview/mimetypes.y:561
+#: libsieve/prog.c:231 mimeview/mimetypes.y:561
 #, c-format
 msgid "too many arguments in call to `%s'"
 msgstr "pera multe argumente în apelarea cãtre `%s'"
 
-#: libsieve/prog.c:244
+#: libsieve/prog.c:252
 #, c-format
 msgid "type mismatch in argument %d to `%s'"
 msgstr "nepotrivire de tip în argumentul %d pentru `%s'"
 
-#: libsieve/prog.c:248
+#: libsieve/prog.c:256
 #, fuzzy, c-format
 msgid "expected %s but passed %s"
 msgstr "Se aºtepta %s dar au trecut %s"
 
-#: libsieve/prog.c:259
+#: libsieve/prog.c:267
 #, fuzzy, c-format
 msgid "cannot create arg list: %s"
 msgstr "nu s-a putut crea lista de arg: %s"
 
-#: libsieve/prog.c:277 mimeview/mimetypes.y:553
+#: libsieve/prog.c:285 mimeview/mimetypes.y:553
 #, c-format
 msgid "too few arguments in call to `%s'"
 msgstr "prea puþine argumente în apelarea cãtre `%s'"
 
-#: libsieve/require.c:57
+#: libsieve/require.c:58
 msgid "required comparator"
 msgstr "comparator cerut"
 
-#: libsieve/require.c:63
+#: libsieve/require.c:64
 msgid "required test"
 msgstr "test cerut"
 
-#: libsieve/require.c:73
+#: libsieve/require.c:74
 msgid "required action"
 msgstr "acþiune cerutã"
 
-#: libsieve/require.c:79
+#: libsieve/require.c:80
 #, c-format
 msgid "source for the %s %s is not available"
 msgstr "sursa pentru %s %s nu este disponibilã"
 
-#: libsieve/runtime.c:126
-#, fuzzy
+#: libsieve/runtime.c:127
+#, fuzzy, c-format
 msgid "cannot create stack"
 msgstr "nu se poate crea stiva(stack)"
 
-#: libsieve/runtime.c:144
+#: libsieve/runtime.c:145
+#, c-format
 msgid "stack underflow"
 msgstr "subrulare(underflow) a stivei(stack)"
 
-#: libsieve/runtime.c:341
+#: libsieve/runtime.c:342
 #, fuzzy, c-format
 msgid "mu_mailbox_scan: %s"
 msgstr "mailbox_scan: %s"
@@ -1271,112 +1479,418 @@ msgstr "`%s' deja inclus la primul(top) nivel"
 msgid "cannot open `%s': %s"
 msgstr "nu se poate deschide `%s': %s"
 
-#: libsieve/sieve.l:440
+#: libsieve/sieve.l:438
 msgid "preprocessor syntax"
 msgstr "sintaxã preprocesor"
 
-#: libsieve/sieve.l:449
+#: libsieve/sieve.l:447
 msgid "missing closing quote in preprocessor statement"
 msgstr "lipsesc ghilimele de închidere în declaraþie preprocesor"
 
-#: libsieve/sieve.y:233
+#: libsieve/sieve.y:234
 #, c-format
 msgid "unknown test: %s"
 msgstr "test necunoscut: %s"
 
-#: libsieve/sieve.y:237
+#: libsieve/sieve.y:238
 #, c-format
 msgid "test `%s' has not been required"
 msgstr "testul `%s' nu a fost cerut"
 
-#: libsieve/sieve.y:259
+#: libsieve/sieve.y:260
 #, c-format
 msgid "unknown action: %s"
 msgstr "acþiune necunoscutã: %s"
 
-#: libsieve/sieve.y:263
+#: libsieve/sieve.y:264
 #, c-format
 msgid "action `%s' has not been required"
 msgstr "acþiunea `%s' nu a fost cerutã"
 
-#: libsieve/util.c:176
-#, fuzzy
+#: libsieve/util.c:177
+#, fuzzy, c-format
 msgid "invalid data type"
 msgstr "Tip de datã invalid"
 
-#: libsieve/util.c:231
+#: libsieve/util.c:232
 #, fuzzy, c-format
 msgid "cannot retrieve argument %d"
 msgstr "nu se poate crea headerul: %s"
 
-#: libsieve/extensions/vacation.c:70
-#, fuzzy, c-format
-msgid "cannot create temporary stream: %s"
-msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
+#: mail.local/mailquota.c:65
+#, c-format
+msgid "No quota retrieving mechanism"
+msgstr ""
 
-#: libsieve/extensions/vacation.c:78
+#: mail.local/mailquota.c:84 mail/escape.c:250 mail/escape.c:552
+#: mail/escape.c:607 pop3d/popauth.c:284 pop3d/popauth.c:359
+#: pop3d/popauth.c:433
 #, fuzzy, c-format
-msgid "cannot open temporary stream: %s"
-msgstr "nu se poate crea secvenþa(stream) temporarã: %s"
-
-#: libsieve/extensions/vacation.c:205
-#, fuzzy, c-format
-msgid "%d: cannot compile regular expression \"%s\"\n"
-msgstr "nu se poate deschide fiºierul %s: %s"
-
-#: libsieve/extensions/vacation.c:296
-#, fuzzy, c-format
-msgid "%d: cannot build db file name"
-msgstr "fileinto: nu se poate afla numele de fiºier!"
-
-#: libsieve/extensions/vacation.c:307
-#, fuzzy, c-format
-msgid "%d: cannot open `%s': %s"
+msgid "Cannot open %s: %s"
 msgstr "nu se poate deschide %s: %s"
 
-#. TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
-#. Do not translate them!
-#: libsieve/extensions/vacation.c:350
-#, c-format
-msgid "%d: vacation compiled without DBM support. Ignoring :days tag"
-msgstr ""
-
-#: libsieve/extensions/vacation.c:378
+#: mail.local/mailquota.c:115
 #, fuzzy, c-format
-msgid "%d: not enough memory"
-msgstr "%s nu este memorie suficientã\n"
+msgid "Mailbox quota for `%s' is too big: %d digit"
+msgid_plural "Mailbox quota for `%s' is too big: %d digits"
+msgstr[0] "quota mailbox-ului pentru `%s' este prea mare: %d digiþi"
+msgstr[1] "quota mailbox-ului pentru `%s' este prea mare: %d digiþi"
 
-#: libsieve/extensions/vacation.c:437
-#, c-format
-msgid "%d: vacation - cannot compile reply prefix regexp: %s: %s"
+#: mail.local/mailquota.c:130 mail.local/mailquota.c:240
+#, fuzzy, c-format
+msgid "Bogus mailbox quota for `%s' (near `%s')"
+msgstr "quota mailbox bogus pentru `%s' (aproape de `%s')"
+
+#: mail.local/mailquota.c:227
+#, fuzzy, c-format
+msgid "Cannot retrieve mailbox quota from SQL: %s"
+msgstr "nu se poate crea iterator: %s"
+
+#: mail.local/main.c:54
+msgid "GNU mail.local -- the local MDA"
 msgstr ""
 
-#: libsieve/extensions/vacation.c:554
+#: mail.local/main.c:56
 #, fuzzy
-msgid "cannot get text!"
-msgstr "reject: nu se poate afla textul!"
+msgid ""
+"Debug flags are:\n"
+"  g - guimb stack traces\n"
+"  T - mailutils traces (MU_DEBUG_TRACE)\n"
+"  P - network protocols (MU_DEBUG_PROT)\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+"  l - sieve action logs\n"
+"  0-9 - Set mail.local debugging level\n"
+msgstr ""
+"GNU mail.local -- opþiunille(flags)\vMDA Debug sunt:\n"
+"  g - analize(traces) stivã guimb\n"
+"  T - analize(traces) mailutil (MU_DEBUG_TRACE)\n"
+"  P - protocoale reþea (MU_DEBUG_PROT)\n"
+"  t - analizã(trace) sieve (MU_SIEVE_DEBUG_TRACE)\n"
+"  l - loguri de acþiune sieve\n"
+"  0-9 - Seteazã nivelul de debugging al mail.local\n"
 
-#: libsieve/extensions/vacation.c:571
-#, fuzzy, c-format
-msgid "%d: cannot get sender address"
-msgstr "%d: nu pot afla adresa mea de e-mail"
+#: mail.local/main.c:65
+msgid "recipient [recipient ...]"
+msgstr "recipient [recipient ...]"
 
-#: libsieve/extensions/timestamp.c:87
-#, fuzzy, c-format
-msgid "cannot parse date specification (%s)"
-msgstr "specificaþie de parte malformatã (lângã %s)"
+#: mail.local/main.c:75
+#, fuzzy
+msgid "Do not return errors when delivering to multiple recipients"
+msgstr "Nu returneazã erori când se livreazã înspre recipiente multiple"
 
-#: mail/alias.c:100
-msgid "alias hash table full"
+#: mail.local/main.c:77
+msgid "Return temporary failure if disk or mailbox quota is exceeded"
+msgstr ""
+"Returneazã eroare temporarã dacã quota disk-ului sau mailbox-ului este "
+"depãºitã"
+
+#: mail.local/main.c:78 mailbox/mu_argp.c:333
+msgid "EMAIL"
+msgstr "EMAIL"
+
+#: mail.local/main.c:79
+msgid "Specify the sender's name"
+msgstr "Specificã numele expeditorului"
+
+#: mail.local/main.c:83
+#, fuzzy
+msgid "Specify path to quota DBM database"
+msgstr "Stipuleazã calea spre baza de date quota"
+
+#: mail.local/main.c:87
+#, fuzzy
+msgid "SQL query to retrieve mailbox quota"
+msgstr "Interogare SQL pentru a recupera o parolã din baza de date"
+
+#: mail.local/main.c:89 mail.local/main.c:94
+msgid "PATTERN"
+msgstr "TIPAR"
+
+#: mail.local/main.c:90
+#, fuzzy
+msgid "Set name pattern for user-defined Sieve mail filters"
+msgstr ""
+"Seteazã numele tiparului pentru filtrele de mail sieve definite de utilizator"
+
+#: mail.local/main.c:92
+msgid ""
+"Identify messages by the value of this header when logging Sieve actions"
 msgstr ""
 
-#: mail/alias.c:195
+#: mail.local/main.c:95
+#, fuzzy
+msgid "Set name pattern for user-defined Scheme mail filters"
+msgstr ""
+"Seteazã numele tiparului pentru filtrele de mail sieve definite de utilizator"
+
+#: mail.local/main.c:97 mailbox/mu_argp.c:318 mimeview/mimeview.c:45
+#: sieve/sieve.c:85
+msgid "FLAGS"
+msgstr "MARCAJE(FLAGS)"
+
+#: mail.local/main.c:98
+msgid "Enable debugging"
+msgstr "Activeazã debugging-ul"
+
+#: mail.local/main.c:168 sieve/sieve.c:153
+#, fuzzy, c-format
+msgid "%s:%d: %c is not a valid debug flag"
+msgstr "%c nu este un flag de debug valid"
+
+#: mail.local/main.c:171 sieve/sieve.c:156
+#, c-format
+msgid "%c is not a valid debug flag"
+msgstr "%c nu este un flag de debug valid"
+
+#: mail.local/main.c:202
+#, fuzzy
+msgid "Multiple --from options"
+msgstr "opþiuni --from multiple"
+
+#: mail.local/main.c:299
+#, fuzzy, c-format
+msgid "%s:%lu: %s on msg %s"
+msgstr "%s:%lu: lipseºte %c"
+
+#: mail.local/main.c:310
+#, fuzzy, c-format
+msgid "%s:%lu: %s on msg uid %d"
+msgstr "%s în msg uid %d"
+
+#: mail.local/main.c:320
+#, c-format
+msgid "(user %s) %s: %s"
+msgstr "(user %s) %s: %s"
+
+#: mail.local/main.c:325 mail.local/main.c:343
+#, c-format
+msgid "(user %s) %s"
+msgstr "(user %s) %s"
+
+#: mail.local/main.c:392
+#, c-format
+msgid "mu_debug_create failed: %s\n"
+msgstr "mu_debug_create eºuat: %s\n"
+
+#: mail.local/main.c:397
+#, c-format
+msgid "mu_debug_set_level failed: %s\n"
+msgstr "mu_debug_set_level eºuat: %s\n"
+
+#: mail.local/main.c:403
+#, c-format
+msgid "mu_debug_set_print failed: %s\n"
+msgstr "mu_debug_set_print eºuat: %s\n"
+
+#: mail.local/main.c:421
+#, fuzzy, c-format
+msgid "Cannot get username"
+msgstr "fileinto: nu se poate afla numele de fiºier!"
+
+#: mail.local/main.c:431
+#, c-format
+msgid "Missing arguments. Try --help for more info."
+msgstr "Argumente lipsã. Încercaþi --help pentru mai multe informaþii."
+
+#: mail.local/main.c:478 mail.local/script.c:95
+#, fuzzy, c-format
+msgid "Access to %s failed: %m"
+msgstr "accesul la %s a eºuat: %m"
+
+#: mail.local/main.c:486 sieve/sieve.c:415
+#, fuzzy, c-format
+msgid "Cannot initialize sieve machine: %s"
+msgstr "nu se poate iniþializa maºina sieve: %s"
+
+#: mail.local/main.c:607
+#, fuzzy, c-format
+msgid "Unable to open temporary file: %s"
+msgstr "nu se poate deschide fiºierul temporar: %s"
+
+#: mail.local/main.c:613
+#, c-format
+msgid "unable to open temporary file: %s"
+msgstr "nu se poate deschide fiºierul temporar: %s"
+
+#: mail.local/main.c:643
+#, fuzzy, c-format
+msgid "Cannot determine sender address"
+msgstr "Nu se poate determina adresa expeditorului"
+
+#: mail.local/main.c:667 mail.local/main.c:684
+#, fuzzy, c-format
+msgid "Error writing temporary file: %s"
+msgstr "eroare în scrierea în mailbox: %s"
+
+#: mail.local/main.c:694
+#, fuzzy, c-format
+msgid "Error opening temporary file: %s"
+msgstr "nu se poate deschide fiºierul temporar: %s"
+
+#: mail.local/main.c:703
+#, fuzzy, c-format
+msgid "Error creating temporary message: %s"
+msgstr "nu se poate crea header-ul temporar: %s"
+
+#: mail.local/main.c:729
+#, c-format
+msgid "%s: no such user"
+msgstr "%s: nu existã user-ul"
+
+#: mail.local/main.c:745
+#, fuzzy, c-format
+msgid "Cannot get message from the temporary mailbox: %s"
+msgstr "nu se poate crea mailbox-ul temporar: %s"
+
+#: mail.local/main.c:753
+#, fuzzy, c-format
+msgid "Cannot get input message stream: %s"
+msgstr "nu se poate afla secvenþa(stream) de mesaj de intrare(input): %s"
+
+#: mail.local/main.c:791
+#, fuzzy, c-format
+msgid "Cannot lock mailbox `%s': %s"
+msgstr "nu se poate bloca(lock) mailbox-ul '%s': %s"
+
+#: mail.local/main.c:822
+#, c-format
+msgid "%s: mailbox quota exceeded for this recipient"
+msgstr "%s: quota maibox-ului a fost depãºitã pentru acest recipient"
+
+#: mail.local/main.c:833
+#, fuzzy, c-format
+msgid "Cannot get stream size (input message %s): %s"
+msgstr "nu se poate stabili mãrimea secvenþei (mesaj de input): %s"
+
+#: mail.local/main.c:840
+#, c-format
+msgid "%s: message would exceed maximum mailbox size for this recipient"
+msgstr ""
+"%s: mesajul va depãºi mãrimea maximã a mailbox-ului pentru acest recipient"
+
+#: mail.local/main.c:897
+#, fuzzy, c-format
+msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
+msgstr "eroare în scrierea în mailbox: %s"
+
+#: mail.local/main.c:900
+#, fuzzy, c-format
+msgid "Error writing to mailbox: %s"
+msgstr "eroare în scrierea în mailbox: %s"
+
+#: mail.remote/mail.remote.c:50
+msgid "GNU mail.remote -- pseudo-sendmail interface for mail delivery"
+msgstr ""
+
+#: mail.remote/mail.remote.c:52
+msgid ""
+"This is a simple drop-in replacement for sendmail to forward mail directly\n"
+"to an SMTP gateway.\n"
+"You should always specify your SMTP gateway using --mailer option\n"
+"(the best place to do so is in your configuration file).\n"
+"\n"
+"Examples:\n"
+"\n"
+"Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n"
+"contents for recipients of the message.\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com -t\n"
+"\n"
+"Deliver mail only to \"devnull@foo.bar\"\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
+"\n"
+"Deliver mail to \"devnull@foo.bar\" as well as to the recipients\n"
+"specified in the message itself:\n"
+"\n"
+"   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
+msgstr ""
+
+#: mail.remote/mail.remote.c:74
+msgid "ADDR"
+msgstr "ADR"
+
+#: mail.remote/mail.remote.c:74
+msgid "Override the default from address"
+msgstr "Înlocuieºte adresa from implicitã"
+
+#: mail.remote/mail.remote.c:75
+msgid "Read message for recipients."
+msgstr ""
+
+#: mail.remote/mail.remote.c:76
+msgid ""
+"Print envelope commands in the SMTP protocol transaction. If specified more "
+"than once, the data part of the protocol transaction will also be printed."
+msgstr ""
+
+#: mail.remote/mail.remote.c:77 mail.remote/mail.remote.c:78
+msgid "OPT"
+msgstr ""
+
+#: mail.remote/mail.remote.c:77 mail.remote/mail.remote.c:78
+#: mail.remote/mail.remote.c:79
+msgid "Ignored for sendmail compatibility"
+msgstr "Ignorat(ã) pentru compatibilitate sendmail"
+
+#: mail.remote/mail.remote.c:118
+msgid "[TO-ADDR]..."
+msgstr "[CÃTRE-ADR]..."
+
+#: mail.remote/mail.remote.c:181
+#, c-format
+msgid "Parsing from addresses failed: %s"
+msgstr "Analiza(parsing) adreselor from a eºuat: %s"
+
+#: mail.remote/mail.remote.c:191
+#, fuzzy, c-format
+msgid "Parsing recipient addresses failed: %s"
+msgstr "Analiza(parsing) adreselor to a eºuat: %s"
+
+#: mail.remote/mail.remote.c:199 mail.remote/mail.remote.c:211
+#: mail.remote/mail.remote.c:217
+#, c-format
+msgid "Failed: %s"
+msgstr "Eroare: %s"
+
+#: mail.remote/mail.remote.c:205
+#, c-format
+msgid "Opening stdin failed: %s"
+msgstr "Deschiderea stdin a eºuat: %s"
+
+#: mail.remote/mail.remote.c:225
+#, fuzzy, c-format
+msgid "Creating mailer `%s' failed: %s"
+msgstr "Crearea mailerului '%s' a eºuat: %s"
+
+#: mail.remote/mail.remote.c:252
+#, fuzzy, c-format
+msgid "Opening mailer `%s' failed: %s"
+msgstr "Deschiderea mailerului '%s' a eºuat: %s"
+
+#: mail.remote/mail.remote.c:259
+#, c-format
+msgid "Sending message failed: %s"
+msgstr "Trimiterea mesajului a eºuat: %s"
+
+#: mail.remote/mail.remote.c:265
+#, c-format
+msgid "Closing mailer failed: %s"
+msgstr "Închiderea mailer-ului a eºuat: %s"
+
+#: mail/alias.c:79
 #, c-format
 msgid "\"%s\": not a group"
 msgstr "\"%s\": nu este grup"
 
-#: mail/alt.c:64 mh/mh_init.c:128
-#, fuzzy
+#: mail/alias.c:163 mail/alias.c:170 mh/mh_whom.c:38
+#, fuzzy, c-format
+msgid "Cannot create list: %s"
+msgstr "nu se poate crea lista: %s"
+
+#: mail/alt.c:64 mh/mh_init.c:139
+#, fuzzy, c-format
 msgid "Cannot determine my username"
 msgstr "nu pot determina username-ul meu"
 
@@ -1387,36 +1901,37 @@ msgstr "nu pot determina adresa mea de e-mail: %s"
 
 #: mail/cd.c:40
 #, fuzzy, c-format
-msgid "cannot change to '%s': %s"
+msgid "cannot change to `%s': %s"
 msgstr "nu se poate stabili(stat) %s:%s"
 
-#: mail/copy.c:68 mail/mail.c:426 mail/quit.c:114 mail/send.c:543 mh/inc.c:210
-#: mh/mh_init.c:370
+#: mail/copy.c:69 mail/mail.c:426 mail/quit.c:115 mail/send.c:588 mh/inc.c:208
+#: mh/mh_init.c:447
 #, fuzzy, c-format
 msgid "Cannot create mailbox %s: %s"
 msgstr "Nu se poate crea mailboxul %s: %s"
 
-#: mail/copy.c:92 mail/quit.c:129 mail/send.c:536
+#: mail/copy.c:93 mail/quit.c:130 mail/send.c:581
 #, fuzzy, c-format
 msgid "Cannot append message: %s"
 msgstr "nu se poate trimite mesajul: %s"
 
-#: mail/decode.c:124
+#: mail/decode.c:126
 #, c-format
 msgid "| Message=%d"
 msgstr "| Mesaj=%d"
 
-#: mail/decode.c:131
+#: mail/decode.c:133
 #, c-format
 msgid "| Type=%s\n"
 msgstr "| Tip=%s\n"
 
-#: mail/decode.c:132
+#: mail/decode.c:134
 #, fuzzy, c-format
 msgid "| Encoding=%s\n"
 msgstr "| codare(encoding)=%s\n"
 
-#: mail/decode.c:267 mail/print.c:96
+#: mail/decode.c:269 mail/print.c:98
+#, c-format
 msgid ""
 "\n"
 "Interrupt"
@@ -1424,90 +1939,88 @@ msgstr ""
 "\n"
 "Întrerupere"
 
-#: mail/escape.c:59 mail/send.c:227 mh/mhn.c:2059 mimeview/mimeview.c:217
+#: mail/escape.c:60 mail/send.c:231 mh/mhn.c:2122 mimeview/mimeview.c:239
 #, fuzzy, c-format
 msgid "Cannot create header: %s"
 msgstr "nu se poate crea headerul: %s"
 
-#: mail/escape.c:95 mail/escape.c:121
+#: mail/escape.c:96 mail/escape.c:122
 #, c-format
 msgid "%d: not a header line"
 msgstr "%d: nu este linie de header"
 
-#: mail/escape.c:142
+#: mail/escape.c:143
 msgid "Edit again?"
 msgstr "Editaþi din nou?"
 
-#: mail/escape.c:157
+#: mail/escape.c:158
 #, c-format
 msgid "(continue)\n"
 msgstr "(continuare)\n"
 
-#: mail/escape.c:167
+#: mail/escape.c:168
 #, c-format
 msgid "%c%s requires an argument"
 msgstr "%c%s necesitã un argument"
 
-#: mail/escape.c:200 mail/util.c:140
+#: mail/escape.c:201 mail/util.c:143
 #, c-format
 msgid "Unknown command: %s"
 msgstr "Comandã necunoscutã: %s"
 
-#: mail/escape.c:205
+#: mail/escape.c:206
+#, c-format
 msgid "Command not allowed in an escape sequence\n"
 msgstr "Comanda nu este permisã într-o secvenþã escape\n"
 
-#: mail/escape.c:248 mail/escape.c:547 mail/escape.c:602 pop3d/popauth.c:284
-#: pop3d/popauth.c:355 pop3d/popauth.c:429
-#, fuzzy, c-format
-msgid "Cannot open %s: %s"
-msgstr "nu se poate deschide %s: %s"
-
-#: mail/escape.c:252
+#: mail/escape.c:254
 #, c-format
 msgid "Reading %s\n"
 msgstr "Se citeºte %s\n"
 
-#: mail/escape.c:451
+#: mail/escape.c:456
 #, c-format
 msgid "Interpolating: %d\n"
 msgstr "Interpolare: %d\n"
 
-#: mail/escape.c:519
+#: mail/escape.c:524
 #, c-format
 msgid "Message contains:\n"
 msgstr "Mesajul conþine:\n"
 
 #. TRANSLATORS: 'pipe' is a command name. Do not translate it!
-#: mail/escape.c:633
+#: mail/escape.c:638
+#, c-format
 msgid "pipe: no command specified"
 msgstr "pipe: nici o comandã specificatã"
 
-#: mail/escape.c:677
+#: mail/escape.c:682
 #, fuzzy, c-format
 msgid "Cannot exec process `%s': %s"
 msgstr "nu se poate executa procesul `%s': %s"
 
-#: mail/escape.c:710
+#: mail/escape.c:715
 #, fuzzy, c-format
 msgid "Child terminated abnormally: %d"
 msgstr "proces child terminat anormal: %d"
 
-#: mail/escape.c:717
+#: mail/escape.c:722
 #, fuzzy, c-format
 msgid "Cannot stat output file: %s"
 msgstr "nu se poate stabili(stat) fiºierul de ieºire(output): %s"
 
-#: mail/escape.c:727
+#: mail/escape.c:732
 #, c-format
 msgid "no lines out\n"
 msgstr "nici o linie rezultatã(out)\n"
 
 #: mail/file.c:41
+#, c-format
 msgid "No previous file"
 msgstr "Nu existã fiºier anterior"
 
 #: mail/file.c:51
+#, c-format
 msgid "MBOX environment variable not set"
 msgstr "variabila de mediu MBOX nu este setatã"
 
@@ -1516,37 +2029,41 @@ msgstr "variabila de mediu MBOX nu este setatã"
 msgid "%s takes only one argument"
 msgstr "%s primeºte doar un argument"
 
-#: mail/followup.c:44 mail/next.c:40 mail/next.c:63 mail/next.c:80
-#: mail/previous.c:49 mail/previous.c:66
+#: mail/followup.c:45 mail/next.c:41 mail/next.c:64 mail/next.c:81
+#: mail/previous.c:50 mail/previous.c:67
+#, c-format
 msgid "No applicable message"
 msgstr "Nici un mesaj aplicabil"
 
 #: mail/if.c:67
-#, fuzzy
+#, fuzzy, c-format
 msgid "Internal error: condition stack underflow"
 msgstr "eroare internã: subrulare(underflow) stivã condiþie"
 
 #. TRANSLATORS: 'if' is the function name. Do not translate it
 #: mail/if.c:90
+#, c-format
 msgid "if requires an argument: s | r | t"
 msgstr "if necesitã un argument: s | r | t"
 
 #: mail/if.c:96 mail/if.c:120
-#, fuzzy
+#, fuzzy, c-format
 msgid "Valid if arguments are: s | r | t"
 msgstr "argumentele if valide sunt: s | r | t"
 
 #. TRANSLATORS: 'else' and 'if' are function names. Do not translate them
 #: mail/if.c:137
+#, c-format
 msgid "else without matching if"
 msgstr "else fãrã if corespunzãtor"
 
 #. TRANSLATORS: 'endif' and 'if' are function names. Do not translate them
 #: mail/if.c:153
+#, c-format
 msgid "endif without matching if"
 msgstr "endif fãrã if corespunzãtor"
 
-#: mail/inc.c:31 mail/mail.c:205
+#: mail/inc.c:31 mail/mail.c:200
 #, c-format
 msgid "New mail has arrived.\n"
 msgstr "A venit mail nou.\n"
@@ -1568,7 +2085,7 @@ msgstr "[adresã...]"
 msgid "Return true if mail exists"
 msgstr "Returneazã true dacã existã mail"
 
-#: mail/mail.c:37 mailbox/mu_argp.c:74
+#: mail/mail.c:37 mailbox/mu_argp.c:314
 msgid "URL"
 msgstr "URL"
 
@@ -1646,13 +2163,20 @@ msgstr "DOMENIU"
 msgid "Execute COMMAND"
 msgstr ""
 
-#: mail/mail.c:212
+#: mail/mail.c:207
+#, c-format
 msgid "Interrupt"
 msgstr "Întrerupere"
 
-#: mail/mail.c:218
+#: mail/mail.c:213
+#, c-format
 msgid "Use \"quit\" to quit."
 msgstr "Folosiþi \"quit\" pentru a ieºi."
+
+#: mail/mail.c:279
+#, fuzzy
+msgid "Null message body; hope that's ok"
+msgstr "Corp mesaj null; sper cã este ok\n"
 
 #: mail/mail.c:419
 #, fuzzy, c-format
@@ -1679,19 +2203,19 @@ msgstr "%s: 0 mesaje\n"
 msgid "No mail for %s\n"
 msgstr "Nici un mail pentru %s\n"
 
-#: mail/mail.c:548
+#: mail/mail.c:547
 #, fuzzy
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software "
-"Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
+"2007 Free Software Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU Mailutils -- o suitã de utilitare pentru poºta electronicã\n"
 "Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.\n"
 "\n"
 
-#: mail/mail.c:552 mailbox/mu_argp.c:255 mh/mh_argp.c:188
+#: mail/mail.c:552 mailbox/mu_argp.c:114 mh/mh_argp.c:187
 #, fuzzy, c-format
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
@@ -1729,9 +2253,9 @@ msgstr ""
 "   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,\n"
 "   USA.\n"
 
-#: mail/mailline.c:704 mail/mailline.c:732 mail/mailline.c:779
-#: mail/mailline.c:815
-#, fuzzy
+#: mail/mailline.c:841 mail/mailline.c:869 mail/mailline.c:916
+#: mail/mailline.c:952
+#, fuzzy, c-format
 msgid "Not enough memory to edit the line"
 msgstr "nu este destulã memorie pentru a edita linia"
 
@@ -1753,38 +2277,38 @@ msgstr "aproape de %s"
 msgid "range error"
 msgstr "eroare de interval(range)"
 
-#: mail/msgset.y:735 mail/util.c:209
+#: mail/msgset.y:735 mail/util.c:212
 #, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
 msgstr "%lu: mesaj nepotrivit (a fost ºters)"
 
-#: mail/quit.c:54
+#: mail/quit.c:55
 #, c-format
 msgid "Held %d message in %s\n"
 msgid_plural "Held %d messages in %s\n"
 msgstr[0] "S-a pãstrat %d mesaj în %s\n"
 msgstr[1] "S-au pãstrat %d mesaje în %s\n"
 
-#: mail/quit.c:150
+#: mail/quit.c:151
 #, c-format
 msgid "Saved %d message in %s\n"
 msgid_plural "Saved %d messages in %s\n"
 msgstr[0] "S-a salvat %d mesaj în %s\n"
 msgstr[1] "S-au salvat %d mesaje în %s\n"
 
-#: mail/retain.c:55
+#: mail/retain.c:56
 msgid "No fields are currently being retained\n"
 msgstr "Nici un câmp nu este reþinut curent\n"
 
-#: mail/retain.c:68
+#: mail/retain.c:69
 msgid "No fields are currently being ignored\n"
 msgstr "Nici un câmp nu este ignorat curent\n"
 
-#: mail/retain.c:81 mail/retain.c:93
+#: mail/retain.c:82 mail/retain.c:94
 msgid "No fields are currently being unfolded\n"
 msgstr "Nici un câmp nu este deschis(unfolded) curent\n"
 
-#: mail/retain.c:120 mail/retain.c:129
+#: mail/retain.c:121 mail/retain.c:130
 #, c-format
 msgid "Sender address is obtained from the envelope\n"
 msgstr ""
@@ -1799,12 +2323,13 @@ msgstr "nu se poate crea headerul: %s"
 msgid "Invalid header: %s"
 msgstr "email invalid: %s"
 
-#: mail/send.c:310
-#, fuzzy
+#: mail/send.c:371
+#, fuzzy, c-format
 msgid "Cannot open temporary file"
 msgstr "Nu se poate deschide fiºierul temporar"
 
-#: mail/send.c:339
+#: mail/send.c:400
+#, c-format
 msgid ""
 "\n"
 "(Interrupt -- one more to kill letter)"
@@ -1812,53 +2337,53 @@ msgstr ""
 "\n"
 "(Întrerupere -- încã una pentru a distruge(kill) scrisoarea)"
 
-#: mail/send.c:350
+#: mail/send.c:411
+#, c-format
 msgid "Use \".\" to terminate letter."
 msgstr "Folosiþi \".\" pentru a termina scrisoarea."
 
-#: mail/send.c:351
+#: mail/send.c:412
+#, c-format
 msgid "Use \"~.\" to terminate letter."
 msgstr "Folosiþi \"~.\" pentru a termina scrisoarea."
 
-#: mail/send.c:393
+#: mail/send.c:454
 #, c-format
 msgid "Unknown escape %s"
 msgstr "Escape necunoscut %s"
 
-#: mail/send.c:396
+#: mail/send.c:457
+#, c-format
 msgid "Unfinished escape"
 msgstr ""
 
-#: mail/send.c:400
-#, fuzzy
+#: mail/send.c:461
+#, fuzzy, c-format
 msgid "Cannot parse escape sequence"
 msgstr "nu se poate analiza(parse) secvenþa de escape"
 
-#: mail/send.c:425 mh/mh_init.c:669 mh/mh_list.c:264
+#: mail/send.c:486 mh/mh_init.c:761 mh/mh_list.c:264
 #, fuzzy, c-format
 msgid "Cannot open file %s: %s"
 msgstr "nu se poate deschide fiºierul %s: %s"
 
-#: mail/send.c:486
-msgid "Null message body; hope that's ok\n"
-msgstr "Corp mesaj null; sper cã este ok\n"
-
-#: mail/send.c:580
-#, fuzzy
+#: mail/send.c:627
+#, fuzzy, c-format
 msgid "Variable sendmail not set: no mailer"
 msgstr "variabila sendmail nu este setatã: nu existã mailer"
 
-#: mail/send.c:628
+#: mail/send.c:676
 #, c-format
 msgid "Piping %s failed"
 msgstr "Legãtura(piping) %s a eºuat"
 
 #. TRANSLATORS: 'source' is a command name. Do not translate it!
 #: mail/source.c:52
+#, c-format
 msgid "source requires an argument"
 msgstr "sursa necesitã un argument"
 
-#: mail/source.c:60 mimeview/mimeview.c:166 mimeview/mimetypes.l:168
+#: mail/source.c:60 mimeview/mimetypes.l:168 mimeview/mimeview.c:188
 #, fuzzy, c-format
 msgid "Cannot open `%s': %s"
 msgstr "nu se poate deschide `%s': %s"
@@ -1893,112 +2418,117 @@ msgstr[1] " %d ºterse"
 
 #. TRANSLATORS: 'unalias' is a command name. Do not translate it!
 #: mail/unalias.c:31
+#, c-format
 msgid "unalias requires at least one argument"
 msgstr "unalias necesitã cel puþin un argument"
 
-#: mail/util.c:142
-#, fuzzy
+#: mail/util.c:145
+#, fuzzy, c-format
 msgid "Invalid command"
 msgstr "Lãþime invalidã"
 
-#: mail/util.c:296
+#: mail/util.c:299
 #, c-format
 msgid "Unknown command: %s\n"
 msgstr "Comandã necunoscutã: %s\n"
 
-#: mail/util.c:463
+#: mail/util.c:466
 #, c-format
 msgid "No value set for \"%s\""
 msgstr "Nici o valoare setatã pentru \"%s\""
 
-#: mail/util.c:618
-#, c-format
+#: mail/util.c:623
 msgid "oops?"
 msgstr "oops?"
 
-#: mail/util.c:708
+#: mail/util.c:714
+#, c-format
 msgid "Incorrect value for decode-fallback"
 msgstr ""
 
-#: mail/util.c:759
-#, fuzzy
+#: mail/util.c:765
+#, fuzzy, c-format
 msgid "Cannot get homedir"
 msgstr "nu se poate afla homedir"
 
-#: mail/util.c:1074
+#: mail/util.c:1049
 #, fuzzy, c-format
 msgid "Cannot create output mailbox `%s': %s"
 msgstr "nu se poate crea mailbox-ul temporar %s: %s"
 
-#: mail/util.c:1082
+#: mail/util.c:1057
 #, fuzzy, c-format
 msgid "Cannot open output mailbox `%s': %s"
 msgstr "Nu se poate deschide mailboxul %s: %s"
 
-#: mail/util.c:1088
+#: mail/util.c:1063
 #, fuzzy, c-format
 msgid "Cannot append message to `%s': %s"
 msgstr "nu se poate citi mesajul %lu: %s"
 
-#: mail/util.c:1143
-#, fuzzy
+#: mail/util.c:1118
+#, fuzzy, c-format
 msgid "Cannot unencapsulate message/part"
 msgstr "nu se poate decapsula mesajul/partea"
 
-#: mail/util.c:1152
+#: mail/util.c:1127
 #, fuzzy, c-format
 msgid "No such (sub)part in the message: %d"
 msgstr "nu existã nici o (sub)parte în mesaj: %d"
 
-#: mail/util.c:1159
+#: mail/util.c:1134
 #, fuzzy, c-format
 msgid "Cannot get (sub)part from the message: %d"
 msgstr "nu se poate afla nici o (sub)parte dinn mesaj: %d"
 
-#: mail/util.c:1283
+#: mail/util.c:1258
 #, fuzzy, c-format
 msgid "Cannot create temporary header: %s"
 msgstr "nu se poate crea header-ul temporar: %s"
 
-#: mail/util.c:1324
+#: mail/util.c:1301
 #, fuzzy, c-format
 msgid "Cannot parse address `%s' (while expanding `%s'): %s"
 msgstr ""
 "nu se poate analiza(parse) adresa `%s' (în timp ce se expanda `%s'): %s"
 
-#: mail/util.c:1327
+#: mail/util.c:1304
 #, fuzzy, c-format
 msgid "Cannot parse address `%s': %s"
 msgstr "nu se poate analiza(parse) adresa `%s': %s"
 
-#: mail/util.c:1380
+#: mail/util.c:1357
 #, fuzzy, c-format
 msgid "Cannot get message %lu: %s"
 msgstr "nu se poate afla mesajul: %lu: %s"
 
-#: mail/util.c:1391
+#: mail/util.c:1368
 #, c-format
 msgid "%d: invalid message number"
 msgstr "%d numãr de mesaj invalid"
 
-#: mail/util.c:1398
+#: mail/util.c:1375
+#, c-format
 msgid "No applicable messages"
 msgstr "Nici un mesaj aplicabil"
 
 #: mail/z.c:65
+#, c-format
 msgid "Bad arguments for the scrolling command"
 msgstr "Argumente greºite pentru comanda de scrolling"
 
 #: mail/z.c:80
+#, c-format
 msgid "Too many arguments for the scrolling command"
 msgstr "Prea multe argumente pentru comanda de scrolling"
 
 #: mail/z.c:88
-#, fuzzy
+#, fuzzy, c-format
 msgid "Argument not applicable for z"
 msgstr "argument inaplicabil pentru z."
 
 #: mail/z.c:94
+#, c-format
 msgid "Bad number of pages"
 msgstr "Numãr de pagini greºit"
 
@@ -2012,414 +2542,32 @@ msgstr "În primul ecran(screenful) cu mesaje\n"
 msgid "On last screenful of messages\n"
 msgstr "În ultimul ecran(screenful) cu mesaje\n"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mail.local/main.c:55
-#, fuzzy
-msgid ""
-"GNU mail.local -- the local MDADebug flags are:\n"
-"  g - guimb stack traces\n"
-"  T - mailutils traces (MU_DEBUG_TRACE)\n"
-"  P - network protocols (MU_DEBUG_PROT)\n"
-"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
-"  l - sieve action logs\n"
-"  0-9 - Set mail.local debugging level\n"
-msgstr ""
-"GNU mail.local -- opþiunille(flags)MDA Debug sunt:\n"
-"  g - analize(traces) stivã guimb\n"
-"  T - analize(traces) mailutil (MU_DEBUG_TRACE)\n"
-"  P - protocoale reþea (MU_DEBUG_PROT)\n"
-"  t - analizã(trace) sieve (MU_SIEVE_DEBUG_TRACE)\n"
-"  l - loguri de acþiune sieve\n"
-"  0-9 - Seteazã nivelul de debugging al mail.local\n"
-
-#: mail.local/main.c:66
-msgid "recipient [recipient ...]"
-msgstr "recipient [recipient ...]"
-
-#: mail.local/main.c:76
-#, fuzzy
-msgid "Do not return errors when delivering to multiple recipients"
-msgstr "Nu returneazã erori când se livreazã înspre recipiente multiple"
-
-#: mail.local/main.c:78
-msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr ""
-"Returneazã eroare temporarã dacã quota disk-ului sau mailbox-ului este "
-"depãºitã"
-
-#: mail.local/main.c:79 mailbox/mu_argp.c:91
-msgid "EMAIL"
-msgstr "EMAIL"
-
-#: mail.local/main.c:80
-msgid "Specify the sender's name"
-msgstr "Specificã numele expeditorului"
-
-#: mail.local/main.c:84
-#, fuzzy
-msgid "Specify path to quota DBM database"
-msgstr "Stipuleazã calea spre baza de date quota"
-
-#: mail.local/main.c:88
-#, fuzzy
-msgid "SQL query to retrieve mailbox quota"
-msgstr "Interogare SQL pentru a recupera o parolã din baza de date"
-
-#: mail.local/main.c:90 mail.local/main.c:95
-msgid "PATTERN"
-msgstr "TIPAR"
-
-#: mail.local/main.c:91
-#, fuzzy
-msgid "Set name pattern for user-defined Sieve mail filters"
-msgstr ""
-"Seteazã numele tiparului pentru filtrele de mail sieve definite de utilizator"
-
-#: mail.local/main.c:93
-msgid ""
-"Identify messages by the value of this header when logging Sieve actions"
+#: mailbox/argp-help.c:148
+#, c-format
+msgid "ARGP_HELP_FMT: %s value is less than or equal to %s"
 msgstr ""
 
-#: mail.local/main.c:96
-#, fuzzy
-msgid "Set name pattern for user-defined Scheme mail filters"
-msgstr ""
-"Seteazã numele tiparului pentru filtrele de mail sieve definite de utilizator"
-
-#: mail.local/main.c:98 mailbox/mu_argp.c:76 sieve/sieve.c:87
-#: mimeview/mimeview.c:46
-msgid "FLAGS"
-msgstr "MARCAJE(FLAGS)"
-
-#: mail.local/main.c:99
-msgid "Enable debugging"
-msgstr "Activeazã debugging-ul"
-
-#: mail.local/main.c:156
-#, fuzzy
-msgid "Multiple --from options"
-msgstr "opþiuni --from multiple"
-
-#: mail.local/main.c:215 sieve/sieve.c:209
-#, c-format
-msgid "%c is not a valid debug flag"
-msgstr "%c nu este un flag de debug valid"
-
-#: mail.local/main.c:262
-#, fuzzy, c-format
-msgid "%s:%lu: %s on msg %s"
-msgstr "%s:%lu: lipseºte %c"
-
-#: mail.local/main.c:273
-#, fuzzy, c-format
-msgid "%s:%lu: %s on msg uid %d"
-msgstr "%s în msg uid %d"
-
-#: mail.local/main.c:283
-#, c-format
-msgid "(user %s) %s: %s"
-msgstr "(user %s) %s: %s"
-
-#: mail.local/main.c:287 mail.local/main.c:305
-#, c-format
-msgid "(user %s) %s"
-msgstr "(user %s) %s"
-
-#: mail.local/main.c:347
-#, c-format
-msgid "mu_debug_create failed: %s\n"
-msgstr "mu_debug_create eºuat: %s\n"
-
-#: mail.local/main.c:352
-#, c-format
-msgid "mu_debug_set_level failed: %s\n"
-msgstr "mu_debug_set_level eºuat: %s\n"
-
-#: mail.local/main.c:358
-#, c-format
-msgid "mu_debug_set_print failed: %s\n"
-msgstr "mu_debug_set_print eºuat: %s\n"
-
-#: mail.local/main.c:371
-msgid "Missing arguments. Try --help for more info."
-msgstr "Argumente lipsã. Încercaþi --help pentru mai multe informaþii."
-
-#: mail.local/main.c:419 mail.local/script.c:94
-#, fuzzy, c-format
-msgid "Access to %s failed: %m"
-msgstr "accesul la %s a eºuat: %m"
-
-#: mail.local/main.c:427 sieve/sieve.c:376
-#, fuzzy, c-format
-msgid "Cannot initialize sieve machine: %s"
-msgstr "nu se poate iniþializa maºina sieve: %s"
-
-#: mail.local/main.c:548
-#, fuzzy, c-format
-msgid "Unable to open temporary file: %s"
-msgstr "nu se poate deschide fiºierul temporar: %s"
-
-#: mail.local/main.c:554
-#, c-format
-msgid "unable to open temporary file: %s"
-msgstr "nu se poate deschide fiºierul temporar: %s"
-
-#: mail.local/main.c:585
-#, fuzzy
-msgid "Cannot determine sender address"
-msgstr "Nu se poate determina adresa expeditorului"
-
-#: mail.local/main.c:603 mail.local/main.c:620
-#, fuzzy, c-format
-msgid "Error writing temporary file: %s"
-msgstr "eroare în scrierea în mailbox: %s"
-
-#: mail.local/main.c:630
-#, fuzzy, c-format
-msgid "Error opening temporary file: %s"
-msgstr "nu se poate deschide fiºierul temporar: %s"
-
-#: mail.local/main.c:639
-#, fuzzy, c-format
-msgid "Error creating temporary message: %s"
-msgstr "nu se poate crea header-ul temporar: %s"
-
-#: mail.local/main.c:664
-#, c-format
-msgid "%s: no such user"
-msgstr "%s: nu existã user-ul"
-
-#: mail.local/main.c:678
-#, fuzzy, c-format
-msgid "Cannot get input message stream: %s"
-msgstr "nu se poate afla secvenþa(stream) de mesaj de intrare(input): %s"
-
-#: mail.local/main.c:716
-#, fuzzy, c-format
-msgid "Cannot lock mailbox `%s': %s"
-msgstr "nu se poate bloca(lock) mailbox-ul '%s': %s"
-
-#: mail.local/main.c:746
-#, c-format
-msgid "%s: mailbox quota exceeded for this recipient"
-msgstr "%s: quota maibox-ului a fost depãºitã pentru acest recipient"
-
-#: mail.local/main.c:757
-#, fuzzy, c-format
-msgid "Cannot get stream size (input message): %s"
-msgstr "nu se poate stabili mãrimea secvenþei (mesaj de input): %s"
-
-#: mail.local/main.c:764
-#, c-format
-msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr ""
-"%s: mesajul va depãºi mãrimea maximã a mailbox-ului pentru acest recipient"
-
-#: mail.local/main.c:817
-#, fuzzy, c-format
-msgid "Error writing to mailbox: %s. Mailbox NOT truncated: %s"
-msgstr "eroare în scrierea în mailbox: %s"
-
-#: mail.local/main.c:820
-#, fuzzy, c-format
-msgid "Error writing to mailbox: %s"
-msgstr "eroare în scrierea în mailbox: %s"
-
-#: mail.local/mailquota.c:65
-msgid "No quota retrieving mechanism"
-msgstr ""
-
-#: mail.local/mailquota.c:109
-#, fuzzy, c-format
-msgid "Mailbox quota for `%s' is too big: %d digit"
-msgid_plural "Mailbox quota for `%s' is too big: %d digits"
-msgstr[0] "quota mailbox-ului pentru `%s' este prea mare: %d digiþi"
-msgstr[1] "quota mailbox-ului pentru `%s' este prea mare: %d digiþi"
-
-#: mail.local/mailquota.c:124 mail.local/mailquota.c:234
-#, fuzzy, c-format
-msgid "Bogus mailbox quota for `%s' (near `%s')"
-msgstr "quota mailbox bogus pentru `%s' (aproape de `%s')"
-
-#: mail.local/mailquota.c:221
-#, fuzzy, c-format
-msgid "Cannot retrieve mailbox quota from SQL: %s"
-msgstr "nu se poate crea iterator: %s"
-
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mail.remote/mail.remote.c:52
-msgid ""
-"GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
-"This is a simple drop-in replacement for sendmail to forward mail directly\n"
-"to an SMTP gateway.\n"
-"You should always specify your SMTP gateway using --mailer option\n"
-"(the best place to do so is in your configuration file).\n"
-"\n"
-"Examples:\n"
-"\n"
-"Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n"
-"contents for recipients of the message.\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com -t\n"
-"\n"
-"Deliver mail only to \"devnull@foo.bar\"\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n"
-"\n"
-"Deliver mail to \"devnull@foo.bar\" as well as to the recipients\n"
-"specified in the message itself:\n"
-"\n"
-"   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n"
-msgstr ""
-
-#: mail.remote/mail.remote.c:76
-msgid "ADDR"
-msgstr "ADR"
-
-#: mail.remote/mail.remote.c:76
-msgid "Override the default from address"
-msgstr "Înlocuieºte adresa from implicitã"
-
-#: mail.remote/mail.remote.c:77
-msgid "Read message for recipients."
-msgstr ""
-
-#: mail.remote/mail.remote.c:78
-msgid ""
-"Print envelope commands in the SMTP protocol transaction. If specified more "
-"than once, the data part of the protocol transaction will also be printed."
-msgstr ""
-
-#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
-msgid "OPT"
-msgstr ""
-
-#: mail.remote/mail.remote.c:79 mail.remote/mail.remote.c:80
-#: mail.remote/mail.remote.c:81
-msgid "Ignored for sendmail compatibility"
-msgstr "Ignorat(ã) pentru compatibilitate sendmail"
-
-#: mail.remote/mail.remote.c:120
-msgid "[TO-ADDR]..."
-msgstr "[CÃTRE-ADR]..."
-
-#: mail.remote/mail.remote.c:173
-#, c-format
-msgid "Parsing from addresses failed: %s"
-msgstr "Analiza(parsing) adreselor from a eºuat: %s"
-
-#: mail.remote/mail.remote.c:183
-#, fuzzy, c-format
-msgid "Parsing recipient addresses failed: %s"
-msgstr "Analiza(parsing) adreselor to a eºuat: %s"
-
-#: mail.remote/mail.remote.c:191 mail.remote/mail.remote.c:203
-#: mail.remote/mail.remote.c:209
-#, c-format
-msgid "Failed: %s"
-msgstr "Eroare: %s"
-
-#: mail.remote/mail.remote.c:197
-#, c-format
-msgid "Opening stdin failed: %s"
-msgstr "Deschiderea stdin a eºuat: %s"
-
-#: mail.remote/mail.remote.c:217
-#, fuzzy, c-format
-msgid "Creating mailer `%s' failed: %s"
-msgstr "Crearea mailerului '%s' a eºuat: %s"
-
-#: mail.remote/mail.remote.c:244
-#, fuzzy, c-format
-msgid "Opening mailer `%s' failed: %s"
-msgstr "Deschiderea mailerului '%s' a eºuat: %s"
-
-#: mail.remote/mail.remote.c:251
-#, c-format
-msgid "Sending message failed: %s"
-msgstr "Trimiterea mesajului a eºuat: %s"
-
-#: mail.remote/mail.remote.c:257
-#, c-format
-msgid "Closing mailer failed: %s"
-msgstr "Închiderea mailer-ului a eºuat: %s"
-
-#: mailbox/getopt.c:551 mailbox/getopt.c:570
-#, c-format
-msgid "%s: option `%s' is ambiguous\n"
-msgstr "%s: opþiunea `%s' este ambiguã\n"
-
-#: mailbox/getopt.c:603 mailbox/getopt.c:607
-#, c-format
-msgid "%s: option `--%s' doesn't allow an argument\n"
-msgstr "%s: opþiunea `--%s' nu permite argumente\n"
-
-#: mailbox/getopt.c:616 mailbox/getopt.c:621
-#, c-format
-msgid "%s: option `%c%s' doesn't allow an argument\n"
-msgstr "%s: opþiunea `%c%s' nu permite argumente\n"
-
-#: mailbox/getopt.c:667 mailbox/getopt.c:689 mailbox/getopt.c:1020
-#: mailbox/getopt.c:1042
-#, c-format
-msgid "%s: option `%s' requires an argument\n"
-msgstr "%s: opþiunea `%s' necesitã un argument\n"
-
-#: mailbox/getopt.c:727 mailbox/getopt.c:730
-#, c-format
-msgid "%s: unrecognized option `--%s'\n"
-msgstr "%s: opþiune necunoscutã `--%s'\n"
-
-#: mailbox/getopt.c:738 mailbox/getopt.c:741
-#, c-format
-msgid "%s: unrecognized option `%c%s'\n"
-msgstr "%s: opþiune necunoscutã `%c%s'\n"
-
-#: mailbox/getopt.c:796 mailbox/getopt.c:799
-#, c-format
-msgid "%s: illegal option -- %c\n"
-msgstr "%s: opþiune ilegalã -- %c\n"
-
-#: mailbox/getopt.c:805 mailbox/getopt.c:808
-#, c-format
-msgid "%s: invalid option -- %c\n"
-msgstr "%s: opþiune invalidã -- %c\n"
-
-#: mailbox/getopt.c:863 mailbox/getopt.c:882 mailbox/getopt.c:1095
-#: mailbox/getopt.c:1116
-#, c-format
-msgid "%s: option requires an argument -- %c\n"
-msgstr "%s: opþiunea necesitã un argument -- %c\n"
-
-#: mailbox/getopt.c:935 mailbox/getopt.c:954
-#, c-format
-msgid "%s: option `-W %s' is ambiguous\n"
-msgstr "%s: opþiune `-W %s' este ambiguã\n"
-
-#: mailbox/getopt.c:978 mailbox/getopt.c:999
-#, c-format
-msgid "%s: option `-W %s' doesn't allow an argument\n"
-msgstr "%s: opþiune `-W %s' nu permite argumente\n"
-
-#: mailbox/argp-help.c:194
+#: mailbox/argp-help.c:221
 #, c-format
 msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
 msgstr "%.*s: parametrul ARGP_HELP_FMT necesitã o valoare"
 
-#: mailbox/argp-help.c:203
+#: mailbox/argp-help.c:227
+#, fuzzy, c-format
+msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+msgstr "%.*s: parametrul ARGP_HELP_FMT necesitã o valoare"
+
+#: mailbox/argp-help.c:236
 #, c-format
 msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
 msgstr "%.*s: Parametru ARGP_HELP_FMT necunoscut"
 
-#: mailbox/argp-help.c:215
+#: mailbox/argp-help.c:248
 #, c-format
 msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Gunoi(garbage) în ARGP_HELP_FMT: %s"
 
-#: mailbox/argp-help.c:1194
+#: mailbox/argp-help.c:1229
 msgid ""
 "Mandatory or optional arguments to long options are also mandatory or "
 "optional for any corresponding short options."
@@ -2428,43 +2576,46 @@ msgstr ""
 "asemenea obligatorii sau opþionale pentru toate opþiunile scurte "
 "corespunzãtoare."
 
-#: mailbox/argp-help.c:1581
+#: mailbox/argp-help.c:1622
 msgid "Usage:"
 msgstr "Folosire:"
 
-#: mailbox/argp-help.c:1585
+#: mailbox/argp-help.c:1626
 msgid "  or: "
 msgstr "  sau: "
 
-#: mailbox/argp-help.c:1597
+#: mailbox/argp-help.c:1638
 msgid " [OPTION...]"
 msgstr " [OPÞIUNE...]"
 
-#: mailbox/argp-help.c:1624
+#: mailbox/argp-help.c:1665
 #, c-format
 msgid "Try `%s --help' or `%s --usage' for more information.\n"
 msgstr "Încercaþi `%s --help' sau `%s --usage' pentru mai multe informaþii.\n"
 
-#: mailbox/argp-help.c:1652
+#: mailbox/argp-help.c:1693
 #, c-format
 msgid "Report bugs to %s.\n"
 msgstr "Raportaþi bug-urile la %s.\n"
 
-#: mailbox/argp-help.c:1872
+#: mailbox/argp-help.c:1912
 #, fuzzy
 msgid "Unknown system error"
 msgstr "tip de mesaj necunoscut"
 
 #: mailbox/argp-parse.c:82
-msgid "Give this help list"
+#, fuzzy
+msgid "give this help list"
 msgstr "Afiºeazã aceastã listã de ajutor"
 
 #: mailbox/argp-parse.c:83
-msgid "Give a short usage message"
+#, fuzzy
+msgid "give a short usage message"
 msgstr "Afiºeazã un mesaj de folosire scurt"
 
 #: mailbox/argp-parse.c:84
-msgid "Set the program name"
+#, fuzzy
+msgid "set the program name"
 msgstr "Seteazã numele programului"
 
 #: mailbox/argp-parse.c:85
@@ -2473,27 +2624,254 @@ msgid "SECS"
 msgstr "SECUNDE"
 
 #: mailbox/argp-parse.c:86
-msgid "Hang for SECS seconds (default 3600)"
+#, fuzzy
+msgid "hang for SECS seconds (default 3600)"
 msgstr "Întrerupe(hang) pentru SECS secunde (implicit 3600)"
 
-#: mailbox/argp-parse.c:147
-msgid "Print program version"
+#: mailbox/argp-parse.c:143
+#, fuzzy
+msgid "print program version"
 msgstr "Afiºeazã versiunea programului"
 
-#: mailbox/argp-parse.c:163
+#: mailbox/argp-parse.c:159
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(EROARE DE PROGRAM) Nici o versiune cunoscutã!?"
 
-#: mailbox/argp-parse.c:619
+#: mailbox/argp-parse.c:612
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s: Prea multe argumente\n"
 
-#: mailbox/argp-parse.c:762
+#: mailbox/argp-parse.c:755
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(EROARE DE PROGRAM) Opþiunea ar fi trebuit recunoscutã!?"
 
-#: mailbox/file_stream.c:480
+#: mailbox/errors:19
+msgid "Operation failed"
+msgstr "Operaþiune eºuatã"
+
+#: mailbox/errors:20
+#, fuzzy
+msgid "Operation canceled"
+msgstr "Operaþiune eºuatã"
+
+#: mailbox/errors:22
+msgid "No registered handler"
+msgstr "Nici un manipulant(handler) înregistrat"
+
+#: mailbox/errors:23
+msgid "Empty virtual function"
+msgstr "Funcþie virtualã vidã"
+
+#: mailbox/errors:25
+msgid "Pointer to output null"
+msgstr "Pointer spre output null"
+
+#: mailbox/errors:26
+msgid "Pointer to output pointer null"
+msgstr "Pointer spre pointer output null"
+
+#: mailbox/errors:28
+msgid "Mailbox null"
+msgstr "Mailbox null"
+
+#: mailbox/errors:30
+msgid "Format of RFC822 object is bad"
+msgstr "Formatul obiectului RFC822este greºit"
+
+#: mailbox/errors:31
+msgid "Address contains no addr specs"
+msgstr "Adresa nu conþine specificatori de adresã"
+
+#: mailbox/errors:33
+msgid "Locker null"
+msgstr "Locker null"
+
+#: mailbox/errors:34
+msgid "Conflict with previous locker"
+msgstr "Conflic cu lockerul anterior"
+
+#: mailbox/errors:35
+msgid "Lock file check failed"
+msgstr "Verificarea fiºierului de lock a eºuat"
+
+#: mailbox/errors:36
+msgid "File check failed"
+msgstr "Verificarea fiºierului a eºuat"
+
+#: mailbox/errors:37
+msgid "Lock not held on file"
+msgstr "Blocare(lock) nu þinere(held) de fiºier"
+
+#: mailbox/errors:38
+msgid "Failed to exec external locker"
+msgstr "Eroare în execuþia locker-ului extern"
+
+#: mailbox/errors:39
+msgid "External locker failed"
+msgstr "Eroare la locker-ul extern"
+
+#: mailbox/errors:40
+msgid "External locker killed"
+msgstr "Locker-ul extern distrus(killed)"
+
+#: mailbox/errors:42
+msgid "No such user name"
+msgstr "Nu existã username-ul"
+
+#: mailbox/errors:44
+msgid "DNS name resolution failed"
+msgstr "eroare în rezoluþia numelui DNS"
+
+#: mailbox/errors:45
+#, fuzzy
+msgid "State busy must resume operation"
+msgstr "Stare ocupatã; operaþia trebuie reluatã(resume)"
+
+#: mailbox/errors:46
+msgid "Not a valid mailer from address"
+msgstr "Nu este un mailer valid pentru adresa from"
+
+#: mailbox/errors:47
+msgid "Not a valid mailer to address"
+msgstr "Nu este un mailer valid pentru adresa to"
+
+#: mailbox/errors:48
+msgid "No receipt addresses found"
+msgstr "Nu s-au gãsit adrese de primire"
+
+#: mailbox/errors:49
+msgid "Malformed or unsupported mailer URL"
+msgstr "URL mailer malformat sau nesuportat"
+
+#: mailbox/errors:50
+msgid "SMTP rcpt to command failed"
+msgstr "SMTP rcpt cãtre comandã a eºuat"
+
+#: mailbox/errors:51
+msgid "Tcp connections need a host"
+msgstr "Conexiunile tcp au nevoie de un host"
+
+#: mailbox/errors:52
+msgid "Tcp connections need a postive port"
+msgstr "Conexiunile tcp au nevoie de un port de postare(postive)"
+
+#: mailbox/errors:54
+msgid "Input string is not RFC 2047 encoded"
+msgstr "ªirul de intrare(input) nu este codat(encoded) RFC 2047"
+
+#: mailbox/errors:55
+msgid "Not a valid RFC 2047 encoding"
+msgstr ""
+
+#: mailbox/errors:57
+msgid "User name is not supplied"
+msgstr "Nu este furnizat username-ul"
+
+#: mailbox/errors:58
+msgid "User password is not supplied"
+msgstr "Nu este furnizata parola user-ului"
+
+#: mailbox/errors:60
+#, fuzzy
+msgid "Unsafe file permissions. Set 0600"
+msgstr "Permisiuni fiºier nesigure. Setaþi 0600."
+
+#: mailbox/errors:61
+msgid "Unsupported authentication scheme"
+msgstr "Schemã de autentificare nesuportatã"
+
+#: mailbox/errors:62
+msgid "Authentication failed"
+msgstr "Autentificare eºuatã"
+
+#: mailbox/errors:64
+#, fuzzy
+msgid "Cannot execute"
+msgstr "nu se poate executa %s: %s"
+
+#: mailbox/errors:65
+msgid "Process exited with a non-zero status"
+msgstr ""
+
+#: mailbox/errors:66
+#, fuzzy
+msgid "Process exited on signal"
+msgstr "MASTER: ieºire la semnal"
+
+#: mailbox/errors:67
+msgid "Unknown failure while executing subprocess"
+msgstr ""
+
+#: mailbox/errors:68
+#, fuzzy
+msgid "Connection closed by remote host"
+msgstr "Conexiunile tcp au nevoie de un host"
+
+#: mailbox/errors:69
+#, fuzzy
+msgid "Parse error"
+msgstr "eroare regex"
+
+#: mailbox/errors:70
+msgid "Requested item not found"
+msgstr ""
+
+#: mailbox/errors:71
+#, fuzzy
+msgid "Item already exists"
+msgstr "Fiºierul %s existã deja. Rescrieþi"
+
+#: mailbox/errors:72
+#, fuzzy
+msgid "Not enough buffer space"
+msgstr "Nu este destulã memorie"
+
+#: mailbox/errors:74
+#, fuzzy
+msgid "SQL error"
+msgstr "eroare de interval(range)"
+
+#: mailbox/errors:75
+msgid "Already connected to the database"
+msgstr ""
+
+#: mailbox/errors:76
+msgid "Not connected to the database"
+msgstr ""
+
+#: mailbox/errors:77
+msgid "Result of the previous query is not released"
+msgstr ""
+
+#: mailbox/errors:78
+msgid "No query was yet executed"
+msgstr ""
+
+#: mailbox/errors:79
+msgid "Bad column address"
+msgstr ""
+
+#: mailbox/errors:80
+#, fuzzy
+msgid "No result from the previous query available"
+msgstr "sursa pentru %s %s nu este disponibilã"
+
+#: mailbox/errors:81
+#, fuzzy
+msgid "No such interface"
+msgstr "Nu existã username-ul"
+
+#: mailbox/errors:83
+msgid "Badly formed file or directory name"
+msgstr ""
+
+#: mailbox/errors:84
+#, fuzzy
+msgid "Read error"
+msgstr "eroare regex"
+
+#: mailbox/file_stream.c:496
 #, c-format
 msgid "%s must be a plain file with one link\n"
 msgstr "%s trebuie sã fie un fiºier normal(plain) cu o legãturã\n"
@@ -2517,144 +2895,211 @@ msgstr "regex eroare: %s"
 msgid "Stream is closed"
 msgstr ""
 
-#: mailbox/message.c:1093
+#: mailbox/getopt.c:531 mailbox/getopt.c:547
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: opþiunea `%s' este ambiguã\n"
+
+#: mailbox/getopt.c:580 mailbox/getopt.c:584
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: opþiunea `--%s' nu permite argumente\n"
+
+#: mailbox/getopt.c:593 mailbox/getopt.c:598
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: opþiunea `%c%s' nu permite argumente\n"
+
+#: mailbox/getopt.c:641 mailbox/getopt.c:660 mailbox/getopt.c:976
+#: mailbox/getopt.c:995
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: opþiunea `%s' necesitã un argument\n"
+
+#: mailbox/getopt.c:698 mailbox/getopt.c:701
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: opþiune necunoscutã `--%s'\n"
+
+#: mailbox/getopt.c:709 mailbox/getopt.c:712
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: opþiune necunoscutã `%c%s'\n"
+
+#: mailbox/getopt.c:764 mailbox/getopt.c:767
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: opþiune ilegalã -- %c\n"
+
+#: mailbox/getopt.c:773 mailbox/getopt.c:776
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: opþiune invalidã -- %c\n"
+
+#: mailbox/getopt.c:828 mailbox/getopt.c:844 mailbox/getopt.c:1048
+#: mailbox/getopt.c:1066
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: opþiunea necesitã un argument -- %c\n"
+
+#: mailbox/getopt.c:897 mailbox/getopt.c:913
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: opþiune `-W %s' este ambiguã\n"
+
+#: mailbox/getopt.c:937 mailbox/getopt.c:955
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: opþiune `-W %s' nu permite argumente\n"
+
+#: mailbox/message.c:1122
 #, fuzzy, c-format
 msgid "mu_mailbox_create_default (%s) failed: %s\n"
 msgstr "mailbox_create_default (%s) eºuat: %s\n"
 
-#: mailbox/message.c:1124
+#: mailbox/message.c:1153
 #, fuzzy, c-format
 msgid "mu_mailbox_open (%s) failed: %s\n"
 msgstr "mailbox_open (%s) eºuat: %s\n"
 
-#: mailbox/message.c:1132
+#: mailbox/message.c:1161
 #, fuzzy, c-format
 msgid "mu_mailbox_append_message (%s) failed: %s\n"
 msgstr "mailbox_append_message (%s) eºuat: %s\n"
 
-#: mailbox/message.c:1144
+#: mailbox/message.c:1173
 #, fuzzy, c-format
 msgid "mu_mailbox_close (%s) failed: %s\n"
 msgstr "mailbox_close (%s) eºuat: %s\n"
 
-#: mailbox/mu_argp.c:60
+#: mailbox/mu_argp.c:109
+#, fuzzy, c-format
+msgid "Unknown facility `%s'\n"
+msgstr "facilitate `%s' necunoscutã\n"
+
+#: mailbox/mu_argp.c:300
 msgid "Common options"
 msgstr "Opþiuni comune"
 
-#: mailbox/mu_argp.c:62
+#: mailbox/mu_argp.c:302
 msgid "Show compilation options"
 msgstr "Afiºeazã opþiunile de compilare"
 
-#: mailbox/mu_argp.c:68
+#: mailbox/mu_argp.c:308
 msgid "Print license and exit"
 msgstr "Afiºeazã licenþa ºi iese"
 
-#: mailbox/mu_argp.c:75
+#: mailbox/mu_argp.c:315
 msgid "Use specified URL as a mailspool directory"
 msgstr "Foloseºte URL-ul specificat ca director mailspool"
 
-#: mailbox/mu_argp.c:77
+#: mailbox/mu_argp.c:316
+#, fuzzy
+msgid "PROTO"
+msgstr "PORT"
+
+#: mailbox/mu_argp.c:317
+#, fuzzy
+msgid "Default mailbox type to use"
+msgstr "Seteazã numele implicit al mailbox-ului"
+
+#: mailbox/mu_argp.c:319
 msgid "Default locker flags (E=external, R=retry, T=time, P=pid)"
 msgstr "Flag-uri locker implicite (E=extern, R=reîncercare, T=timp, P=pid)"
 
-#: mailbox/mu_argp.c:78 mailbox/mu_argp.c:82 mh/send.c:67 pop3d/pop3d.c:77
+#: mailbox/mu_argp.c:320 mailbox/mu_argp.c:324 mh/send.c:64 pop3d/pop3d.c:91
 msgid "SECONDS"
 msgstr "SECUNDE"
 
-#: mailbox/mu_argp.c:79
+#: mailbox/mu_argp.c:321
 msgid "Set timeout for acquiring the lockfile"
 msgstr ""
 "Seteazã timpul de expirare pentru achiziþionarea fiºierului de lock(lockfile)"
 
-#: mailbox/mu_argp.c:81
+#: mailbox/mu_argp.c:323
 #, fuzzy
 msgid "Set the maximum number of times to retry acquiring the lockfile"
 msgstr ""
 "Seteazã timpul de expirare pentru achiziþionarea fiºierului de lock(lockfile)"
 
-#: mailbox/mu_argp.c:83
+#: mailbox/mu_argp.c:325
 msgid "Number of seconds after which the lock expires"
 msgstr ""
 
-#: mailbox/mu_argp.c:84
+#: mailbox/mu_argp.c:326
 #, fuzzy
 msgid "PATH"
 msgstr "PART"
 
-#: mailbox/mu_argp.c:85
+#: mailbox/mu_argp.c:327
 msgid "Set full path to the external locker program"
 msgstr ""
 
-#: mailbox/mu_argp.c:92
+#: mailbox/mu_argp.c:334
 msgid "Set current user's email address (default is loginname@defaultdomain)"
 msgstr ""
 "Seteazã adresa de email a user-ului curent (implicit este "
 "loginname@defaultdomain)"
 
-#: mailbox/mu_argp.c:93
+#: mailbox/mu_argp.c:335
 msgid "DOMAIN"
 msgstr "DOMENIU"
 
-#: mailbox/mu_argp.c:94
+#: mailbox/mu_argp.c:336
 msgid "Set domain for unqualified user names (default is this host)"
 msgstr ""
 "Seteazã domeniul pentru nume de useri necalificate (implicit este acest host)"
 
-#: mailbox/mu_argp.c:100
+#: mailbox/mu_argp.c:342
 msgid "MAILER"
 msgstr "MAILER"
 
-#: mailbox/mu_argp.c:101
+#: mailbox/mu_argp.c:343
 msgid "Use specified URL as the default mailer"
 msgstr "Foloseºte URL-ul specificat ca mailer implicit"
 
-#: mailbox/mu_argp.c:107
+#: mailbox/mu_argp.c:349
 msgid "FACILITY"
 msgstr "FACILITATE"
 
-#: mailbox/mu_argp.c:108
+#: mailbox/mu_argp.c:350
 msgid "Output logs to syslog FACILITY"
 msgstr "Trimite logurile la FACILITATEa syslog"
 
-#: mailbox/mu_argp.c:116
+#: mailbox/mu_argp.c:357
 msgid "Runs in daemon mode with a maximum of NUMBER children"
 msgstr "Ruleazã în mod daemon cu un maxim de NUMÃR procese children"
 
-#: mailbox/mu_argp.c:118
+#: mailbox/mu_argp.c:359
 msgid "Run in inetd mode"
 msgstr "Ruleazã în mod inetd"
 
-#: mailbox/mu_argp.c:119
+#: mailbox/mu_argp.c:360
 msgid "PORT"
 msgstr "PORT"
 
-#: mailbox/mu_argp.c:120
+#: mailbox/mu_argp.c:361
 msgid "Listen on specified port number"
 msgstr "Ascultã pe numãrul de port specificat"
 
-#: mailbox/mu_argp.c:122
+#: mailbox/mu_argp.c:363
 msgid "Set idle timeout value to NUMBER seconds"
 msgstr "Seteazã valoarea de expirare a inactivitãþii(idle) la NUMÃR secunde"
 
-#: mailbox/mu_argp.c:124
+#: mailbox/mu_argp.c:365
 #, fuzzy
 msgid "Output session transcript via syslog"
 msgstr "afiºeazã transcrierea sesiunii via syslog"
 
-#: mailbox/mu_argp.c:126
+#: mailbox/mu_argp.c:367
 msgid "Set PID file"
 msgstr ""
 
-#: mailbox/mu_argp.c:215
+#: mailbox/mu_argp.c:456
 msgid "Daemon configuration options"
 msgstr "Opþiuni de configurare ale daemonului"
 
-#: mailbox/mu_argp.c:250
-#, fuzzy, c-format
-msgid "Unknown facility `%s'\n"
-msgstr "facilitate `%s' necunoscutã\n"
-
-#: mailbox/mu_argp.c:390
+#: mailbox/mu_argp.c:469
 #, c-format
 msgid ""
 "License for %s:\n"
@@ -2663,277 +3108,96 @@ msgstr ""
 "Licenþã pentru %s:\n"
 "\n"
 
-#: mailbox/mu_argp.c:402
+#: mailbox/mu_argp.c:530
 #, fuzzy, c-format
 msgid "Cannot set mail directory name: %s"
 msgstr "Nu se poate crea directorul %s: %s"
 
-#: mailbox/mu_argp.c:430
+#: mailbox/mu_argp.c:539
+#, fuzzy, c-format
+msgid "Invalid mailbox type: %s"
+msgstr "email invalid: %s"
+
+#: mailbox/mu_argp.c:571
 #, fuzzy, c-format
 msgid "Invalid lock flag `%c'"
 msgstr "marcaj(flag) de lock invalid '%c'"
 
-#: mailbox/mu_argp.c:470
+#: mailbox/mu_argp.c:612
 #, fuzzy, c-format
 msgid "Invalid email address `%s': %s"
 msgstr "adresã de email invalidã '%s': %s"
 
-#: mailbox/mu_argp.c:478
+#: mailbox/mu_argp.c:623
 #, fuzzy, c-format
 msgid "Invalid email domain `%s': %s"
 msgstr "domeniu de email invalid '%s': %s"
 
-#: mailbox/mu_argp.c:487
+#: mailbox/mu_argp.c:634
 #, fuzzy, c-format
 msgid "Invalid mailer URL `%s': %s"
 msgstr "url mailer invalid '%s': %s"
 
-#: mailbox/mu_argp.c:631 mailbox/mu_argp.c:670 mailbox/mu_argp.c:710
-#: mailbox/mu_argp.c:753 mailbox/mu_argp.c:782
-#, c-format
-msgid "%s: not enough memory\n"
-msgstr "%s nu este memorie suficientã\n"
+#: mailbox/mu_argp.c:702
+#, fuzzy, c-format
+msgid "Invalid daemon mode: `%s'"
+msgstr "email invalid: %s"
 
-#: mailbox/mu_argp.c:892
+#: mailbox/mu_argp.c:887
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
 msgstr ""
 "EROARE INTERNÃ: capabilitate argp cerutã necunoscutã %s (vã rugãm raportaþi)"
 
-#: mailbox/mu_argp.c:955
+#: mailbox/mu_argp.c:1015
+#, fuzzy, c-format
+msgid "invalid configuration flavor: %s"
+msgstr "Se citeºte configuraþia din FIªIER"
+
+#: mailbox/mu_argp.c:1087
+#, c-format
+msgid "Notice: reading options from `%s'"
+msgstr ""
+
+#: mailbox/mu_argp.c:1123 mailbox/mu_argp.c:1160 mailbox/mu_argp.c:1194
+#, c-format
+msgid "%s: not enough memory\n"
+msgstr "%s nu este memorie suficientã\n"
+
+#: mailbox/mu_argp.c:1237 mailbox/mu_argp.c:1266
+#, fuzzy, c-format
+msgid "%s: not enough memory"
+msgstr "%s nu este memorie suficientã\n"
+
+#: mailbox/mu_auth.c:259 mailbox/mu_auth.c:261
+msgid "MODLIST"
+msgstr "LISTÃMOD"
+
+#: mailbox/mu_auth.c:260
+msgid "Set the list of modules to be used for authentication"
+msgstr ""
+
+#: mailbox/mu_auth.c:262
+msgid "Set list of modules to be used for authorization"
+msgstr ""
+
+#: mailbox/mu_auth.c:264
+msgid "Clear the list of authorization modules"
+msgstr ""
+
+#: mailbox/mu_auth.c:266
+#, fuzzy
+msgid "Clear the list of authentication modules"
+msgstr "Autentificarea user-ului '%s' a eºuat"
+
+#: mailbox/mu_auth.c:350
+#, c-format
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
 msgstr ""
 "EROARE INTERNÃ: nu se poate înregistra capabilitatea argp auth (vã rugãm "
 "raportaþi)"
 
-#: mailbox/mu_auth.c:214 mailbox/mu_auth.c:216
-msgid "MODLIST"
-msgstr "LISTÃMOD"
-
-#: mailbox/mu_auth.c:215
-msgid "Set the list of modules to be used for authentication"
-msgstr ""
-
-#: mailbox/mu_auth.c:217
-msgid "Set list of modules to be used for authorization"
-msgstr ""
-
-#: mailbox/errors:19
-msgid "Operation failed"
-msgstr "Operaþiune eºuatã"
-
-#: mailbox/errors:21
-msgid "No registered handler"
-msgstr "Nici un manipulant(handler) înregistrat"
-
-#: mailbox/errors:22
-msgid "Empty virtual function"
-msgstr "Funcþie virtualã vidã"
-
-#: mailbox/errors:24
-msgid "Pointer to output null"
-msgstr "Pointer spre output null"
-
-#: mailbox/errors:25
-msgid "Pointer to output pointer null"
-msgstr "Pointer spre pointer output null"
-
-#: mailbox/errors:27
-msgid "Mailbox null"
-msgstr "Mailbox null"
-
-#: mailbox/errors:29
-msgid "Format of RFC822 object is bad"
-msgstr "Formatul obiectului RFC822este greºit"
-
-#: mailbox/errors:30
-msgid "Address contains no addr specs"
-msgstr "Adresa nu conþine specificatori de adresã"
-
-#: mailbox/errors:32
-msgid "Locker null"
-msgstr "Locker null"
-
-#: mailbox/errors:33
-msgid "Conflict with previous locker"
-msgstr "Conflic cu lockerul anterior"
-
-#: mailbox/errors:34
-msgid "Lock file check failed"
-msgstr "Verificarea fiºierului de lock a eºuat"
-
-#: mailbox/errors:35
-msgid "File check failed"
-msgstr "Verificarea fiºierului a eºuat"
-
-#: mailbox/errors:36
-msgid "Lock not held on file"
-msgstr "Blocare(lock) nu þinere(held) de fiºier"
-
-#: mailbox/errors:37
-msgid "Failed to exec external locker"
-msgstr "Eroare în execuþia locker-ului extern"
-
-#: mailbox/errors:38
-msgid "External locker failed"
-msgstr "Eroare la locker-ul extern"
-
-#: mailbox/errors:39
-msgid "External locker killed"
-msgstr "Locker-ul extern distrus(killed)"
-
-#: mailbox/errors:41
-msgid "No such user name"
-msgstr "Nu existã username-ul"
-
-#: mailbox/errors:43
-msgid "DNS name resolution failed"
-msgstr "eroare în rezoluþia numelui DNS"
-
-#: mailbox/errors:44
-#, fuzzy
-msgid "State busy must resume operation"
-msgstr "Stare ocupatã; operaþia trebuie reluatã(resume)"
-
-#: mailbox/errors:45
-msgid "Not a valid mailer from address"
-msgstr "Nu este un mailer valid pentru adresa from"
-
-#: mailbox/errors:46
-msgid "Not a valid mailer to address"
-msgstr "Nu este un mailer valid pentru adresa to"
-
-#: mailbox/errors:47
-msgid "No receipt addresses found"
-msgstr "Nu s-au gãsit adrese de primire"
-
-#: mailbox/errors:48
-msgid "Malformed or unsupported mailer URL"
-msgstr "URL mailer malformat sau nesuportat"
-
-#: mailbox/errors:49
-msgid "SMTP rcpt to command failed"
-msgstr "SMTP rcpt cãtre comandã a eºuat"
-
-#: mailbox/errors:50
-msgid "Tcp connections need a host"
-msgstr "Conexiunile tcp au nevoie de un host"
-
-#: mailbox/errors:51
-msgid "Tcp connections need a postive port"
-msgstr "Conexiunile tcp au nevoie de un port de postare(postive)"
-
-#: mailbox/errors:53
-msgid "Input string is not RFC 2047 encoded"
-msgstr "ªirul de intrare(input) nu este codat(encoded) RFC 2047"
-
-#: mailbox/errors:54
-msgid "Not a valid RFC 2047 encoding"
-msgstr ""
-
-#: mailbox/errors:56
-msgid "User name is not supplied"
-msgstr "Nu este furnizat username-ul"
-
-#: mailbox/errors:57
-msgid "User password is not supplied"
-msgstr "Nu este furnizata parola user-ului"
-
-#: mailbox/errors:59
-#, fuzzy
-msgid "Unsafe file permissions. Set 0600"
-msgstr "Permisiuni fiºier nesigure. Setaþi 0600."
-
-#: mailbox/errors:60
-msgid "Unsupported authentication scheme"
-msgstr "Schemã de autentificare nesuportatã"
-
-#: mailbox/errors:61
-msgid "Authentication failed"
-msgstr "Autentificare eºuatã"
-
-#: mailbox/errors:63
-#, fuzzy
-msgid "Cannot execute"
-msgstr "nu se poate executa %s: %s"
-
-#: mailbox/errors:64
-msgid "Process exited with a non-zero status"
-msgstr ""
-
-#: mailbox/errors:65
-#, fuzzy
-msgid "Process exited on signal"
-msgstr "MASTER: ieºire la semnal"
-
-#: mailbox/errors:66
-msgid "Unknown failure while executing subprocess"
-msgstr ""
-
-#: mailbox/errors:67
-#, fuzzy
-msgid "Connection closed by remote host"
-msgstr "Conexiunile tcp au nevoie de un host"
-
-#: mailbox/errors:68
-#, fuzzy
-msgid "Parse error"
-msgstr "eroare regex"
-
-#: mailbox/errors:69
-msgid "Requested item not found"
-msgstr ""
-
-#: mailbox/errors:70
-#, fuzzy
-msgid "Not enough buffer space"
-msgstr "Nu este destulã memorie"
-
-#: mailbox/errors:72
-#, fuzzy
-msgid "SQL error"
-msgstr "eroare de interval(range)"
-
-#: mailbox/errors:73
-msgid "Already connected to the database"
-msgstr ""
-
-#: mailbox/errors:74
-msgid "Not connected to the database"
-msgstr ""
-
-#: mailbox/errors:75
-msgid "Result of the previous query is not released"
-msgstr ""
-
-#: mailbox/errors:76
-msgid "No query was yet executed"
-msgstr ""
-
-#: mailbox/errors:77
-msgid "Bad column address"
-msgstr ""
-
-#: mailbox/errors:78
-#, fuzzy
-msgid "No result from the previous query available"
-msgstr "sursa pentru %s %s nu este disponibilã"
-
-#: mailbox/errors:79
-#, fuzzy
-msgid "No such interface"
-msgstr "Nu existã username-ul"
-
-#: mailbox/errors:81
-msgid "Badly formed file or directory name"
-msgstr ""
-
-#: mailbox/errors:82
-#, fuzzy
-msgid "Read error"
-msgstr "eroare regex"
-
-#: mailbox/mutil.c:590
+#: mailbox/mutil.c:623
 #, fuzzy, c-format
 msgid "Cannot open temporary file: %s"
 msgstr "Nu se poate deschide fiºierul temporar"
@@ -2944,7 +3208,7 @@ msgstr "Nu se poate deschide fiºierul temporar"
 #.
 #. msgstr "yYbB";
 #.
-#: mailbox/mutil.c:1175
+#: mailbox/mutil.c:1259
 msgid "yY"
 msgstr ""
 
@@ -2954,7 +3218,7 @@ msgstr ""
 #.
 #. msgstr "nNeE";
 #.
-#: mailbox/mutil.c:1184
+#: mailbox/mutil.c:1268
 msgid "nN"
 msgstr ""
 
@@ -2990,135 +3254,141 @@ msgstr "Numãr de mesaje în %s: %d\n"
 msgid "Could not close `%s': %s"
 msgstr "Nu s-a putut închide %s.\n"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/anno.c:26
+#: mh/anno.c:24
+msgid "GNU MH anno"
+msgstr ""
+
+#: mh/anno.c:25 mh/forw.c:25 mh/mhn.c:30 mh/pick.c:31 mh/refile.c:31
+#: mh/repl.c:28 mh/send.c:29
+#, fuzzy
 msgid ""
-"GNU MH annoOptions marked with `*' are not yet implemented.\n"
+"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH annoOpþiunile marcate cu `*' nu sunt încã implementate\n"
-"Folosiþi --help pentru a obþine lista cu opþiunile MH tradiþionale."
+"GNU MH mhn\vOpþiunile marcate cu `*' nu sunt încã implementate\n"
+"Folosiþi -help pentru a obþine o listã cu opþiuni tradiþionale MH."
 
-#: mh/anno.c:29
+#: mh/anno.c:27
 msgid "[msg [msg...]]"
 msgstr "[msg [msg...]]"
 
-#: mh/anno.c:33 mh/folder.c:52 mh/folder.c:62 mh/forw.c:37 mh/forw.c:43
-#: mh/inc.c:35 mh/mark.c:30 mh/mh_whatnow.c:84 mh/mhl.c:34 mh/mhn.c:37
-#: mh/mhpath.c:32 mh/pick.c:39 mh/refile.c:38 mh/refile.c:47 mh/repl.c:40
-#: mh/repl.c:50 mh/repl.c:55 mh/rmf.c:41 mh/rmm.c:32 mh/scan.c:40 mh/send.c:42
-#: mh/whatnow.c:29 mh/whom.c:34 readmsg/readmsg.c:43
+#: mh/anno.c:31 mh/folder.c:50 mh/folder.c:60 mh/forw.c:35 mh/forw.c:41
+#: mh/inc.c:33 mh/mark.c:28 mh/mh_whatnow.c:84 mh/mhl.c:32 mh/mhn.c:35
+#: mh/mhpath.c:30 mh/pick.c:37 mh/refile.c:37 mh/refile.c:46 mh/repl.c:39
+#: mh/repl.c:49 mh/repl.c:54 mh/rmf.c:39 mh/rmm.c:30 mh/scan.c:38 mh/send.c:39
+#: mh/whatnow.c:29 mh/whom.c:32 readmsg/readmsg.c:44
 msgid "FOLDER"
 msgstr "DOSAR"
 
-#: mh/anno.c:34 mh/folder.c:63 mh/forw.c:44 mh/mark.c:31 mh/mhl.c:35
-#: mh/mhn.c:38 mh/mhpath.c:33 mh/pick.c:40 mh/refile.c:39 mh/repl.c:50
-#: mh/rmm.c:33
+#: mh/anno.c:32 mh/folder.c:61 mh/forw.c:42 mh/mark.c:29 mh/mhl.c:33
+#: mh/mhn.c:36 mh/mhpath.c:31 mh/pick.c:38 mh/refile.c:38 mh/repl.c:49
+#: mh/rmm.c:31
 msgid "Specify folder to operate upon"
 msgstr "Specificã dosarul(folder) pe care se lucreazã"
 
-#: mh/anno.c:36 mh/forw.c:60 mh/repl.c:62
+#: mh/anno.c:34 mh/forw.c:58 mh/repl.c:61
 msgid "* Annotate the message in place"
 msgstr "* Adnoteazã mesajul în loc"
 
-#: mh/anno.c:39
+#: mh/anno.c:37
 msgid "Add FIELD: Date header"
 msgstr "Adaugã CÂMP: Header datã"
 
-#: mh/anno.c:41 mh/pick.c:43
+#: mh/anno.c:39 mh/pick.c:41
 msgid "FIELD"
 msgstr "CÂMP"
 
-#: mh/anno.c:42
+#: mh/anno.c:40
 msgid "Add this FIELD to the message header"
 msgstr "Adaugã acest CÂMP la header-ul mesajului"
 
-#: mh/anno.c:44
+#: mh/anno.c:42
 msgid "Field value for the component"
 msgstr "Valoarea câmpului pentru componentã"
 
-#: mh/anno.c:46 mh/fmtcheck.c:41 mh/folder.c:87 mh/forw.c:75 mh/inc.c:56
-#: mh/install-mh.c:33 mh/mark.c:47 mh/mhl.c:53 mh/mhn.c:90 mh/mhpath.c:35
-#: mh/pick.c:96 mh/refile.c:52 mh/repl.c:72 mh/rmf.c:50 mh/rmm.c:35
-#: mh/scan.c:60 mh/send.c:78 mh/whatnow.c:40 mh/whom.c:45
+#: mh/anno.c:44 mh/fmtcheck.c:40 mh/folder.c:85 mh/forw.c:73 mh/inc.c:54
+#: mh/install-mh.c:31 mh/mark.c:45 mh/mhl.c:51 mh/mhn.c:88 mh/mhpath.c:33
+#: mh/pick.c:94 mh/refile.c:51 mh/repl.c:71 mh/rmf.c:48 mh/rmm.c:33
+#: mh/scan.c:58 mh/send.c:77 mh/whatnow.c:40 mh/whom.c:43
 msgid "Display software license"
 msgstr "Afiºeazã licenþa software"
 
-#: mh/anno.c:133
+#: mh/anno.c:131
 #, c-format
 msgid "Component name: "
 msgstr "Nume componentã: "
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/fmtcheck.c:26
-msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
+#: mh/fmtcheck.c:25
+msgid "GNU MH fmtcheck"
 msgstr ""
-"GNU MH fmtcheckFolosiþi -helppentru a obþine o listã cu opþiunile MH "
+
+#: mh/fmtcheck.c:26 mh/folder.c:39 mh/inc.c:26 mh/install-mh.c:23 mh/mark.c:23
+#: mh/mhl.c:27 mh/mhpath.c:25 mh/rmf.c:34 mh/rmm.c:25 mh/scan.c:33
+#: mh/whom.c:23
+#, fuzzy
+msgid "Use -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH inc\vFolosiþi -help pentru a obþine o listã de opþiuni MH "
 "tradiþionale."
 
-#: mh/fmtcheck.c:33 mh/forw.c:54 mh/inc.c:45 mh/mhl.c:43 mh/repl.c:58
-#: mh/scan.c:46
+#: mh/fmtcheck.c:32 mh/forw.c:52 mh/inc.c:43 mh/mhl.c:41 mh/repl.c:57
+#: mh/scan.c:44
 msgid "Read format from given file"
 msgstr "Citeºte formatul din fiºierul dat"
 
-#: mh/fmtcheck.c:34 mh/inc.c:46 mh/scan.c:47
+#: mh/fmtcheck.c:33 mh/inc.c:44 mh/scan.c:45
 msgid "FORMAT"
 msgstr "FORMAT"
 
-#: mh/fmtcheck.c:35 mh/inc.c:47 mh/scan.c:48
+#: mh/fmtcheck.c:34 mh/inc.c:45 mh/scan.c:46
 msgid "Use this format string"
 msgstr "Foloseºte acest ºir de format"
 
-#: mh/fmtcheck.c:37
+#: mh/fmtcheck.c:36
 msgid "Dump the listing of compiled format code"
 msgstr "Afiºeazã(dump) listing-ul formatului compilat de cod"
 
-#: mh/fmtcheck.c:39
+#: mh/fmtcheck.c:38
 msgid "Enable parser debugging output"
 msgstr "Activeazã output-ul prin analizorul(parser) de debugging"
 
-#: mh/fmtcheck.c:63
-#, fuzzy
+#: mh/fmtcheck.c:62
+#, fuzzy, c-format
 msgid "Format string not specified"
 msgstr "ºirul formatului nu este specificat"
 
-#: mh/fmtcheck.c:115 mh/inc.c:192 mh/repl.c:383 mh/scan.c:189
+#: mh/fmtcheck.c:114 mh/inc.c:190 mh/repl.c:414 mh/scan.c:187
+#, c-format
 msgid "Bad format string"
 msgstr "ªirul de format este greºit"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/folder.c:40
-msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
+#: mh/folder.c:38
+msgid "GNU MH folder"
 msgstr ""
-"Dosarul(folder) GNU MHFolosiþi -help pentru a obþine o listã cu opþiunile "
-"tradiþionale MH."
 
-#: mh/folder.c:42
+#: mh/folder.c:40
 msgid "[action] [msg]"
 msgstr "[acþiune] [msj]"
 
-#: mh/folder.c:45 pop3d/popauth.c:68
+#: mh/folder.c:43 pop3d/popauth.c:68
 msgid "Actions are:"
 msgstr "Acþiunile sunt:"
 
-#: mh/folder.c:47
+#: mh/folder.c:45
 msgid "List the folders (default)"
 msgstr "Listarea dosarelor(folders) (implicit)"
 
-#: mh/folder.c:49
+#: mh/folder.c:47
 msgid "List the contents of the folder stack"
 msgstr "Listeazã conþinutul stivei(stack) de dosare(folder)"
 
-#: mh/folder.c:51
+#: mh/folder.c:49
 msgid ""
 "Remove holes in message numbering. Begin numbering from NUMBER (default: "
-"first message number"
+"first message number)"
 msgstr ""
 
-#: mh/folder.c:53
+#: mh/folder.c:51
 msgid ""
 "Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
 "Otherwise, if a folder is given in the command line (via + or --folder), it "
@@ -3134,75 +3404,75 @@ msgstr ""
 "on stack. Otherwise, the current folder and the top of the folder stack are "
 "exchanged"
 
-#: mh/folder.c:58
+#: mh/folder.c:56
 msgid "Pop the folder off the folder stack"
 msgstr "Scoate dosarul din stiva de dosare"
 
-#: mh/folder.c:60 mh/mh_whatnow.c:153 pop3d/popauth.c:80
+#: mh/folder.c:58 mh/mh_whatnow.c:153 pop3d/popauth.c:80
 msgid "Options are:"
 msgstr "Opþiuni sunt:"
 
-#: mh/folder.c:65
+#: mh/folder.c:63
 msgid "List all folders"
 msgstr "Listeazã toate dosarele"
 
-#: mh/folder.c:67
+#: mh/folder.c:65
 msgid "Create non-existing folders"
 msgstr "Creazã dosare inexistente"
 
-#: mh/folder.c:70
+#: mh/folder.c:68
 msgid "List only the folder names"
 msgstr "Listeazã doar numele dosarelor"
 
-#: mh/folder.c:73
+#: mh/folder.c:71
 msgid "Print the header line"
 msgstr "Tipãreºte linia de header"
 
-#: mh/folder.c:76
+#: mh/folder.c:74
 msgid "Scan folders recursively"
 msgstr "Scaneazã recursiv dosarele"
 
-#: mh/folder.c:79
+#: mh/folder.c:77
 msgid "Output the total statistics"
 msgstr "Afiºeazã(output) statisticile totale"
 
-#: mh/folder.c:82
+#: mh/folder.c:80
 msgid "Verbosely list actions taken"
 msgstr ""
 
-#: mh/folder.c:84
+#: mh/folder.c:82
 #, fuzzy
 msgid "Do nothing, print what would be done (with --pack)"
 msgstr "Nici o acþiune executatã, doar afiºeazã ce se va întâmpla"
 
-#: mh/folder.c:151 mh/send.c:203 mh/send.c:228 pop3d/pop3d.c:135
-#: pop3d/pop3d.c:149
+#: mh/folder.c:154 mh/send.c:141 mh/send.c:213 mh/send.c:238 pop3d/pop3d.c:194
+#: pop3d/pop3d.c:208
 msgid "Invalid number"
 msgstr "Numãr invalid"
 
-#: mh/folder.c:343 mh/rmf.c:128
+#: mh/folder.c:330 mh/rmf.c:126
 #, fuzzy, c-format
 msgid "Cannot scan folder %s: %s"
 msgstr "nu se poate scana dosarul %s: %s"
 
-#: mh/folder.c:416
+#: mh/folder.c:421
 #, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
 msgstr[0] " are %4lu mesaj  (%4lu-%4lu)"
 msgstr[1] " are %4lu mesaje  (%4lu-%4lu)"
 
-#: mh/folder.c:427
+#: mh/folder.c:432
 #, c-format
 msgid " has no messages"
 msgstr "nu are mesaje"
 
-#: mh/folder.c:436
+#: mh/folder.c:441
 #, c-format
 msgid "(others)"
 msgstr "(altele)"
 
-#: mh/folder.c:484
+#: mh/folder.c:489
 #, c-format
 msgid ""
 "Folder                  # of messages     (  range  )  cur msg   (other "
@@ -3211,339 +3481,331 @@ msgstr ""
 "Dosar                  # de mesaje      (  inteval  )  msj crt   (alte "
 "fiºiere)\n"
 
-#: mh/folder.c:490
+#: mh/folder.c:495
 msgid "TOTAL"
 msgstr "TOTAL"
 
-#: mh/folder.c:491
+#: mh/folder.c:496
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
 msgstr[0] "%4lu mesaj  "
 msgstr[1] "%4lu mesaje"
 
-#: mh/folder.c:494
+#: mh/folder.c:499
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
 msgstr[0] "în %4lu dosar"
 msgstr[1] "în %4lu dosare"
 
-#: mh/folder.c:615
+#: mh/folder.c:542 mh/mh_init.c:553
+#, fuzzy, c-format
+msgid "Cannot split line %s"
+msgstr "nu se poate împãrþi(split) linia %s"
+
+#: mh/folder.c:683
 #, fuzzy, c-format
 msgid "Renaming %s to %s\n"
 msgstr "Se citeºte %s\n"
 
-#: mh/folder.c:620
+#: mh/folder.c:688
 #, fuzzy, c-format
 msgid "cannot rename `%s' to `%s': %s"
 msgstr "nu se poate citi mesajul %lu: %s"
 
-#: mh/folder.c:657
+#: mh/folder.c:725
+#, c-format
 msgid "Rolling back changes..."
 msgstr ""
 
-#: mh/folder.c:661
+#: mh/folder.c:729
 #, c-format
 msgid ""
 "CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
 "occurred while trying to roll back the changes.\n"
-"Message range %lu-%lu has been renamed to %lu-%lu."
+"Message range %s-%s has been renamed to %s-%s."
 msgstr ""
 
-#: mh/folder.c:667
+#: mh/folder.c:737
+#, c-format
 msgid "You will have to fix it manually."
 msgstr ""
 
-#: mh/folder.c:670
+#: mh/folder.c:740
 #, c-format
 msgid "Folder `%s' restored successfully"
 msgstr ""
 
-#: mh/folder.c:775 mh/inc.c:227
+#: mh/folder.c:849 mh/inc.c:225
 #, fuzzy, c-format
 msgid "Cannot read input mailbox: %s"
 msgstr "Nu se poate citi mailboxul de intrare: %s"
 
-#: mh/folder.c:783
+#: mh/folder.c:857
 #, fuzzy, c-format
 msgid "Getting message numbers.\n"
 msgstr "nnici un mesaj urmãtor"
 
-#: mh/folder.c:791 mh/inc.c:255
+#: mh/folder.c:865 mh/inc.c:253
 #, fuzzy, c-format
 msgid "%d: cannot get message: %s"
 msgstr "%d: nu se poate primi(get) mesajul: %s"
 
-#: mh/folder.c:797
+#: mh/folder.c:871
 #, fuzzy, c-format
-msgid "%lu message number collected.\n"
-msgid_plural "%lu message numbers collected.\n"
+msgid "%s message number collected.\n"
+msgid_plural "%s message numbers collected.\n"
 msgstr[0] "%d numãr de mesaj invalid"
 msgstr[1] "%d numãr de mesaj invalid"
 
-#: mh/folder.c:815
+#: mh/folder.c:889
 #, c-format
 msgid "Reverting pack table.\n"
 msgstr ""
 
-#: mh/folder.c:823
+#: mh/folder.c:897
 #, fuzzy, c-format
 msgid "cannot change to directory `%s': %s"
 msgstr "nu se poate stabili(stat) %s:%s"
 
-#: mh/folder.c:838
+#: mh/folder.c:912
 #, fuzzy, c-format
 msgid "Finished packing messages.\n"
 msgstr "Trimiterea mesajului a eºuat: %s"
 
-#: mh/folder.c:845
+#: mh/folder.c:919
 #, c-format
 msgid "Fixing global sequences\n"
 msgstr ""
 
-#: mh/folder.c:848
+#: mh/folder.c:922
 #, fuzzy, c-format
 msgid "Fixing private sequences\n"
 msgstr "Afiºeazã secvenþa"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/forw.c:26
-msgid ""
-"GNU MH forwOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/forw.c:24
+msgid "GNU MH forw"
 msgstr ""
-"GNU MH forwOpþiunile marcate cu `*' nu sunt implementate încã\n"
-"Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
-#: mh/forw.c:34
+#: mh/forw.c:32
 msgid "Add Forwarded: header to each forwarded message"
 msgstr ""
 
-#: mh/forw.c:36
+#: mh/forw.c:34
 #, fuzzy
 msgid "Build the draft and quit immediately"
 msgstr "Construieºte ciorna ºi iese(quit) imediat."
 
-#: mh/forw.c:38 mh/repl.c:41 mh/send.c:43 mh/whatnow.c:30 mh/whom.c:35
+#: mh/forw.c:36 mh/repl.c:40 mh/send.c:40 mh/whatnow.c:30 mh/whom.c:33
 msgid "Specify the folder for message drafts"
 msgstr "Specificã dosarul pentru ciornele(drafts) mesajelor"
 
-#: mh/forw.c:40 mh/repl.c:43 mh/send.c:47 mh/whatnow.c:32 mh/whom.c:39
+#: mh/forw.c:38 mh/repl.c:42 mh/send.c:44 mh/whatnow.c:32 mh/whom.c:37
 msgid "Undo the effect of the last --draftfolder option"
 msgstr "Revine(undo) înainte de efectul ultimei opþiuni --draftfolder"
 
-#: mh/forw.c:41 mh/repl.c:44 mh/whatnow.c:33
+#: mh/forw.c:39 mh/repl.c:43 mh/whatnow.c:33
 msgid "MSG"
 msgstr "MSG"
 
-#: mh/forw.c:42 mh/repl.c:45 mh/whatnow.c:34
+#: mh/forw.c:40 mh/repl.c:44 mh/whatnow.c:34
 msgid "Invoke the draftmessage facility"
 msgstr "Invocã facilitatea mesajelor ciornã(draftmessages)"
 
-#: mh/forw.c:45 mh/forw.c:66 mh/mhl.c:48 mh/repl.c:53 mh/repl.c:66
+#: mh/forw.c:43 mh/forw.c:64 mh/mhl.c:46 mh/repl.c:52 mh/repl.c:65
 #: mh/whatnow.c:35
 msgid "PROG"
 msgstr "PROG"
 
-#: mh/forw.c:46 mh/repl.c:53 mh/whatnow.c:35
+#: mh/forw.c:44 mh/repl.c:52 mh/whatnow.c:35
 msgid "Set the editor program to use"
 msgstr "Seteazã programul de editare care va fi folosit"
 
-#: mh/forw.c:48 mh/repl.c:54 mh/whatnow.c:36
+#: mh/forw.c:46 mh/repl.c:53 mh/whatnow.c:36
 msgid "Suppress the initial edit"
 msgstr "Suprimã editarea iniþialã"
 
-#: mh/forw.c:50
+#: mh/forw.c:48
 msgid "Format messages"
 msgstr "Formateazã mesajele"
 
-#: mh/forw.c:52
+#: mh/forw.c:50
 msgid "Undo the effect of the last --format option"
 msgstr "Revine(undo) înainte de efectul ultimei opþiuni --format"
 
-#: mh/forw.c:56
+#: mh/forw.c:54
 msgid "Use filter FILE to preprocess the body of the message"
 msgstr "Foloseºte filtrul FIªIER pentru a preprocesa corpul mesajului"
 
-#: mh/forw.c:58
+#: mh/forw.c:56
 msgid "Undo the effect of the last --filter option"
 msgstr "Revine(undo) înainte de efectul ultimei opþiuni --filter"
 
-#: mh/forw.c:63
+#: mh/forw.c:61
 msgid "Use MIME encapsulation"
 msgstr "Foloseºte încapsulare MIME"
 
-#: mh/forw.c:65 mh/inc.c:52 mh/mhl.c:45 mh/repl.c:65 mh/scan.c:52
+#: mh/forw.c:63 mh/inc.c:50 mh/mhl.c:43 mh/repl.c:64 mh/scan.c:50
 msgid "Set output width"
 msgstr "Seteazã lãþimea output-ului"
 
-#: mh/forw.c:67 mh/repl.c:67
+#: mh/forw.c:65 mh/repl.c:66
 msgid "* Set the replacement for whatnow program"
 msgstr "* Seteazã înlocuitorul pentru programul whatnow"
 
-#: mh/forw.c:69
+#: mh/forw.c:67
 #, fuzzy
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead"
 msgstr ""
 "* Ignorã variabila whatnowproc. Foloseºte în loc shell standard `whatnow'."
 
-#: mh/forw.c:71 mh/repl.c:70
+#: mh/forw.c:69 mh/repl.c:69
 msgid "Use draft file preserved after the last session"
 msgstr "Foloseºte fiºierul ciornã pãstrat dupã ultima sesiune"
 
-#: mh/forw.c:152 mh/inc.c:138 mh/mhl.c:115 mh/repl.c:208 mh/scan.c:125
+#: mh/forw.c:160 mh/inc.c:136 mh/mhl.c:113 mh/repl.c:215 mh/scan.c:123
 msgid "Invalid width"
 msgstr "Lãþime invalidã"
 
-#: mh/forw.c:200 mh/repl.c:243 mh/scan.c:139
+#: mh/forw.c:208 mh/repl.c:260 mh/scan.c:137
 #, fuzzy
 msgid "Option is not yet implemented"
 msgstr "opþiunea nu este încã implementatã"
 
-#: mh/forw.c:292 mh/mh_init.c:537
+#: mh/forw.c:342 mh/mh_init.c:614
 #, fuzzy, c-format
 msgid "Cannot open output file `%s': %s"
 msgstr "nu se poate deschide fiºierul de ieºire(output) \"%s\": %s"
 
-#: mh/forw.c:341
+#: mh/forw.c:391
 msgid "Forwarded message\n"
 msgstr "Mesaj înaintat(forwarded)\n"
 
-#: mh/forw.c:346
+#: mh/forw.c:396
 msgid "Forwarded messages\n"
 msgstr "Mesaje înaintate(forwarded)\n"
 
-#: mh/forw.c:358
+#: mh/forw.c:408
 msgid "End of Forwarded message"
 msgstr "Sfârºit de mesaj înaintat(forwarded)"
 
-#: mh/forw.c:360
+#: mh/forw.c:410
 msgid "End of Forwarded messages"
 msgstr "Sfârºit de mesaje înaintate(forwarded)"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/inc.c:27
-msgid "GNU MH incUse -help to obtain the list of traditional MH options."
+#: mh/inc.c:25
+msgid "GNU MH inc"
 msgstr ""
-"GNU MH incFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
-#: mh/inc.c:29 mh/rmf.c:37
+#: mh/inc.c:27 mh/rmf.c:35
 msgid "[+folder]"
 msgstr "[+folder]"
 
-#: mh/inc.c:34
+#: mh/inc.c:32
 msgid "Incorporate mail from named file"
 msgstr "Incorporeazã mail din fiºierul numit"
 
-#: mh/inc.c:36
+#: mh/inc.c:34
 msgid "Specify folder to incorporate mail to"
 msgstr "Specificã dosarul în care se va încoropra mailul"
 
-#: mh/inc.c:38
+#: mh/inc.c:36
 msgid "Enable audit"
 msgstr "Activeazã auditul"
 
-#: mh/inc.c:40
+#: mh/inc.c:38
 msgid "Disable audit"
 msgstr "Dezactiveazã auditul"
 
-#: mh/inc.c:42
+#: mh/inc.c:40
 msgid "Mark first incorporated message as current (default)"
 msgstr "Marcheazã primul mesaj încorporat ca ºi curent (implicit)"
 
-#: mh/inc.c:49
+#: mh/inc.c:47
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr "Trunchiazã mailboxul sursã dupã încorporare (implicit)"
 
-#: mh/inc.c:54 mh/mhn.c:88
+#: mh/inc.c:52 mh/mhn.c:86
 msgid "Be quiet"
 msgstr "Este silenþios"
 
-#: mh/inc.c:201
-#, fuzzy
-msgid "Cannot create default mailbox"
+#: mh/inc.c:199
+#, fuzzy, c-format
+msgid "Cannot create default mailbox: %s"
 msgstr "Nu creazã mailbox implicit"
 
-#: mh/inc.c:234
+#: mh/inc.c:232
 #, fuzzy, c-format
 msgid "Cannot read output mailbox: %s"
 msgstr "Nu se poate citi mailboxul de ieºire: %s"
 
-#: mh/inc.c:262
+#: mh/inc.c:260
 #, c-format
 msgid "%d: error appending message: %s"
 msgstr "%d: eroare în adãugarea mesajului: %s"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/install-mh.c:24
-msgid ""
-"GNU MH install-mhUse -help to obtain the list of traditional MH options."
+#: mh/install-mh.c:22
+msgid "GNU MH install-mh"
 msgstr ""
-"GNU MH install-mhFolosiþi -help pentru a obþine o listã de opþiuni MH "
-"tradiþionale."
 
-#: mh/install-mh.c:30
+#: mh/install-mh.c:28
 msgid "Do not ask for anything"
 msgstr "Nu întreba de nimic"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mark.c:24
-msgid "GNU MH markUse -help to obtain the list of traditional MH options."
+#: mh/mark.c:22
+msgid "GNU MH mark"
 msgstr ""
-"GNU MH markFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
-#: mh/mark.c:33
+#: mh/mark.c:31
 msgid "Specify sequence name to operate upon"
 msgstr "Specificã numele secvenþei pe care se va opera"
 
-#: mh/mark.c:35
+#: mh/mark.c:33
 msgid "Add messages to the sequence"
 msgstr "Adaugã mesaje la secvenþã"
 
-#: mh/mark.c:37
+#: mh/mark.c:35
 msgid "Delete messages from the sequence"
 msgstr "ªterge mesajele din secvenþã"
 
-#: mh/mark.c:39
+#: mh/mark.c:37
 msgid "List the sequences"
 msgstr "Afiºeazã secvenþa"
 
-#: mh/mark.c:41 mh/pick.c:90
+#: mh/mark.c:39 mh/pick.c:88
 msgid "Create public sequence"
 msgstr "Creazã secvenþã publicã"
 
-#: mh/mark.c:44 mh/pick.c:93
+#: mh/mark.c:42 mh/pick.c:91
 msgid "Empty the sequence before adding messages"
 msgstr "Goleºte secvenþa înainte de adãugarea mesajelor"
 
-#: mh/mark.c:73 mh/pick.c:141
-#, fuzzy
+#: mh/mark.c:71 mh/pick.c:139
+#, fuzzy, c-format
 msgid "Cannot create sequence list"
 msgstr "nu se poate crea lista de secvenþe"
 
-#: mh/mark.c:154 mh/mark.c:171
+#: mh/mark.c:152 mh/mark.c:169
 msgid "private"
 msgstr "privat"
 
-#: mh/mark.c:219
+#: mh/mark.c:217
+#, c-format
 msgid "--add requires at least one --sequence argument"
 msgstr "--add necesitã minim un argument --sequence"
 
-#: mh/mark.c:229
+#: mh/mark.c:227
+#, c-format
 msgid "--delete requires at least one --sequence argument"
 msgstr "--delete necesitã cel puþin un argument --sequence"
 
-#: mh/mh_argp.c:176
-#, fuzzy
+#: mh/mh_argp.c:175
+#, fuzzy, c-format
 msgid "Extra arguments"
 msgstr "extra argumente"
 
-#: mh/mh_argp.c:186
+#: mh/mh_argp.c:185
 #, c-format
 msgid ""
 "This is %s\n"
@@ -3552,68 +3814,70 @@ msgstr ""
 "Acesta este %s\n"
 "\n"
 
-#: mh/mh_ctx.c:93
+#: mh/mh_ctx.c:144
 #, fuzzy, c-format
 msgid "Cannot open context file %s: %s"
 msgstr "nu se poate scrie fiºierul context %s: %s"
 
-#: mh/mh_ctx.c:143
+#: mh/mh_ctx.c:183
 #, fuzzy, c-format
 msgid "Cannot create context %s: %s"
 msgstr "Nu se poate crea contextul %s: %s"
 
-#: mh/mh_fmtgram.y:102
+#: mh/mh_fmtgram.y:103
 msgid "INTERNAL ERROR: unexpected item type (please report)"
 msgstr "EROARE INTERNÃ: tip de element necunoscut (vã rugãm raportaþi)"
 
-#: mh/mh_fmtgram.y:208
+#: mh/mh_fmtgram.y:209
 msgid "undefined function"
 msgstr "funcþie nedefinitã"
 
-#: mh/mh_fmtgram.y:634
+#: mh/mh_fmtgram.y:635
 msgid "INTERNAL ERROR: unknown argtype (please report)"
 msgstr "EROARE INTERNÃ: tip argument(argtype) necunoscut (vã rugãm raportaþi)"
 
-#: mh/mh_fmtgram.y:640
+#: mh/mh_fmtgram.y:641
 #, fuzzy, c-format
 msgid "Missing argument for %s"
 msgstr "lipseºte argumentul pentru %s"
 
-#: mh/mh_fmtgram.y:649
+#: mh/mh_fmtgram.y:650
 #, fuzzy, c-format
 msgid "Extra arguments to %s"
 msgstr "extra argumente pentru %s"
 
-#: mh/mh_format.c:604
+#: mh/mh_format.c:557
 #, c-format
 msgid "INTERNAL ERROR: Unknown opcode: %x"
 msgstr "EROARE INTERNÃ: Opcode necunoscut: %x"
 
 #. TRANSLATORS: Do not translate the word 'format'!
-#: mh/mh_format.c:947 mh/mh_format.c:959
+#: mh/mh_format.c:900 mh/mh_format.c:912
+#, c-format
 msgid "format: divide by zero"
 msgstr "format: împãrþire la zero"
 
-#: mh/mh_format.c:1875
+#: mh/mh_format.c:1817
+#, c-format
 msgid "Invalid recipient mask"
 msgstr "Mascã(mask) de recipient invalid"
 
-#: mh/mh_getopt.c:124
+#: mh/mh_getopt.c:125
 #, c-format
 msgid "Compatibility syntax:\n"
 msgstr "Sitaxã de compatibiliate:\n"
 
-#: mh/mh_getopt.c:125
+#: mh/mh_getopt.c:126
 #, c-format
 msgid "%s [switches] %s\n"
 msgstr "%s [switch-uri] %s\n"
 
-#: mh/mh_getopt.c:126
+#: mh/mh_getopt.c:127
 #, c-format
 msgid "  switches are:\n"
 msgstr "  switch-uri sunt:\n"
 
-#: mh/mh_getopt.c:148
+#: mh/mh_getopt.c:149
 #, c-format
 msgid ""
 "\n"
@@ -3624,73 +3888,78 @@ msgstr ""
 "Vã rugãm folosiþi în loc opþiunile lungi GNU.\n"
 "Rulaþi %s --help pentru mai multe informaþii despre acestea.\n"
 
-#: mh/mh_init.c:70
+#: mh/mh_init.c:81
 #, fuzzy, c-format
 msgid "Cannot stat format file %s: %s"
 msgstr "nu se poate stabili(stat) fiºierul de formatare %s: %s"
 
-#: mh/mh_init.c:77
+#: mh/mh_init.c:88
 #, fuzzy, c-format
 msgid "Cannot open format file %s: %s"
 msgstr "nu se poate deschide fiºierul de format %s: %s"
 
-#: mh/mh_init.c:207
-#, c-format
-msgid "Create folder \"%s\""
-msgstr "Creazã dosarul(folder) \"%s\""
+#: mh/mh_init.c:242
+#, fuzzy, c-format
+msgid "Cannot create directory %s: error accessing name component %s: %s"
+msgstr "nu se poate crea secvenþa(stream) proc (comanda %s): %s"
 
-#: mh/mh_init.c:215
+#: mh/mh_init.c:248
+#, fuzzy, c-format
+msgid "Cannot create directory %s: error creating name component %s: %s"
+msgstr "nu se poate crea secvenþa(stream) proc (comanda %s): %s"
+
+#: mh/mh_init.c:273
 #, fuzzy, c-format
 msgid "Cannot create directory %s: %s"
 msgstr "Nu se poate crea directorul %s: %s"
 
+#: mh/mh_init.c:296
+#, c-format
+msgid "Create folder \"%s\""
+msgstr "Creazã dosarul(folder) \"%s\""
+
 #. TRANSLATORS: See msgids "nN" and "yY".
-#: mh/mh_init.c:268
+#: mh/mh_init.c:345
 #, c-format
 msgid "Please answer yes or no: "
 msgstr "Vã rugãm rãspundeþi yes sau no: "
 
-#: mh/mh_init.c:327
+#: mh/mh_init.c:404
 #, fuzzy, c-format
 msgid "Cannot open audit file %s: %s"
 msgstr "Nu se poate deschide fiºierul de audit %s: %s"
 
-#: mh/mh_init.c:458 mh/mh_msgset.c:165
+#: mh/mh_init.c:535 mh/mh_msgset.c:165
 #, fuzzy, c-format
 msgid "Cannot get message %d: %s"
 msgstr "nu se poate afla(get) mesajul %d: %s"
 
-#: mh/mh_init.c:476
-#, fuzzy, c-format
-msgid "Cannot split line %s"
-msgstr "nu se poate împãrþi(split) linia %s"
-
-#: mh/mh_init.c:528
+#: mh/mh_init.c:605
 #, fuzzy, c-format
 msgid "Cannot open input file `%s': %s"
 msgstr "nu se poate deschide fiºierul de intrare(input) \"%s\": %s"
 
-#: mh/mh_init.c:551
+#: mh/mh_init.c:628
 #, fuzzy, c-format
 msgid "Write error on `%s': %s"
 msgstr "eroare de scriere în \"%s\": %s"
 
-#: mh/mh_init.c:580
+#: mh/mh_init.c:654
 #, fuzzy, c-format
 msgid "Cannot stat file %s: %s"
 msgstr "nu se poate stabili(stat) fiºierul %s: %s"
 
-#: mh/mh_init.c:586 mh/mhn.c:2267
+#: mh/mh_init.c:660 mh/mhn.c:2330
 #, fuzzy, c-format
 msgid "Cannot create input stream (file %s): %s"
 msgstr "nu se poate crea secvenþa(stream) de input (fiºierul %s): %s"
 
-#: mh/mh_init.c:593 mh/mhn.c:2274
+#: mh/mh_init.c:667 mh/mhn.c:2337
 #, fuzzy, c-format
 msgid "Cannot open input stream (file %s): %s"
 msgstr "nu se poate deschide secvenþa(stream) de input (fiºierul %s): %s"
 
-#: mh/mh_init.c:606
+#: mh/mh_init.c:698
 #, c-format
 msgid ""
 "Prior to using MH, it is necessary to have a file in your login\n"
@@ -3707,39 +3976,42 @@ msgstr ""
 "pentru toate operaþiile de dosar(folder) MH.  Calea MH sugeratã pentru voi\n"
 "este %s...\n"
 
-#: mh/mh_init.c:629
+#: mh/mh_init.c:721
+#, c-format
 msgid "Do you need help"
 msgstr "Doriþi ajutor"
 
-#: mh/mh_init.c:632
+#: mh/mh_init.c:724
 #, c-format
 msgid "Do you want the standard MH path \"%s\""
 msgstr "Doriþi calea MH standard \"%s\""
 
-#: mh/mh_init.c:637
+#: mh/mh_init.c:729
+#, c-format
 msgid "Do you want a path below your login directory"
 msgstr "Doriþi calea de sub(below) directorul vostru de login"
 
-#: mh/mh_init.c:639
+#: mh/mh_init.c:731
 #, c-format
 msgid "What is the path? "
 msgstr "Care este calea? "
 
-#: mh/mh_init.c:641
+#: mh/mh_init.c:733
 #, c-format
 msgid "What is the full path? "
 msgstr "Care este calea întreagã? "
 
-#: mh/mh_init.c:700
+#: mh/mh_init.c:792
 #, c-format
 msgid "I'm going to create the standard MH path for you.\n"
 msgstr "Voi crea o cale MH standard pentru voi.\n"
 
-#: mh/mh_init.c:711
+#: mh/mh_init.c:803
+#, c-format
 msgid "You already have an MH profile, use an editor to modify it"
 msgstr "Aveþi deja un profil MH; folosiþi un editor pentru a-l modifica"
 
-#: mh/mh_init.c:716
+#: mh/mh_init.c:808
 #, c-format
 msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
@@ -3748,6 +4020,21 @@ msgstr ""
 "Aveþi deja fiºierul %s care nu este un fiºier regulat sau o legãturã "
 "simbolicã.\n"
 "Vã rugãm ºtergeþi-l ºi încercaþi din nou"
+
+#: mh/mh_init.c:995
+#, fuzzy, c-format
+msgid "Cannot obtain sequence number for the new message: %s"
+msgstr "nu se poate afla nici o (sub)parte dinn mesaj: %d"
+
+#: mh/mh_init.c:1007
+#, fuzzy, c-format
+msgid "Invalid message number: %s"
+msgstr "%d numãr de mesaj invalid"
+
+#: mh/mh_init.c:1009 mh/repl.c:422
+#, c-format
+msgid "only one message at a time!"
+msgstr "doar un singur mesaj odatã!"
 
 #: mh/mh_list.c:139
 #, fuzzy, c-format
@@ -3780,29 +4067,32 @@ msgid "%s:%d: syntax error"
 msgstr "%s:%d: eroare de sintaxã"
 
 #: mh/mh_list.c:271
-#, fuzzy
+#, fuzzy, c-format
 msgid "Cannot create list"
 msgstr "nu se poate crea lista"
 
-#: mh/mh_msgset.c:42
+#: mh/mh_msgset.c:43
 #, fuzzy, c-format
 msgid "Bad message list `%s'"
 msgstr "listã greºitã de mesaje `%s'"
 
-#: mh/mh_msgset.c:64
+#: mh/mh_msgset.c:65
 #, fuzzy, c-format
 msgid "Cannot get last message: %s"
 msgstr "nu se poate afla(get) ultimul mesaj: %s"
 
-#: mh/mh_msgset.c:97
+#: mh/mh_msgset.c:98
+#, c-format
 msgid "no cur message"
 msgstr "nici un mesaj crt"
 
-#: mh/mh_msgset.c:108
+#: mh/mh_msgset.c:109
+#, c-format
 msgid "no prev message"
 msgstr "nici un mesaj anterior"
 
-#: mh/mh_msgset.c:123
+#: mh/mh_msgset.c:124
+#, c-format
 msgid "no next message"
 msgstr "nnici un mesaj urmãtor"
 
@@ -3850,10 +4140,12 @@ msgid "Command `%s' terminated abnormally"
 msgstr "proces child terminat anormal: %d"
 
 #: mh/mh_whatnow.c:374
+#, c-format
 msgid "no alternate message to display"
 msgstr "nu existã mesaj alternativ de afiºat"
 
-#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:455
+#: mh/mh_whatnow.c:398 mh/mh_whatnow.c:456
+#, c-format
 msgid "no draft file to display"
 msgstr "nu existã fiºier ciornã de afiºat"
 
@@ -3862,12 +4154,12 @@ msgstr "nu existã fiºier ciornã de afiºat"
 msgid "draft left on \"%s\".\n"
 msgstr "ciornã lãsatã în \"%s\".\n"
 
-#: mh/mh_whatnow.c:466
+#: mh/mh_whatnow.c:467
 msgid "List the message being distributed/replied-to on the terminal."
 msgstr ""
 "Listeazã mesajele care sunt distribuite/la care s-a rãspuns în terminal."
 
-#: mh/mh_whatnow.c:468
+#: mh/mh_whatnow.c:469
 msgid ""
 "Edit the message. If EDITOR is omitted use the one that was used on the "
 "preceeding round unless the profile entry \"LASTEDITOR-next\" names an "
@@ -3877,26 +4169,26 @@ msgstr ""
 "în runda precedentã în cazul în care intrarea profilului \"LASTEDITOR-next\" "
 "numeºte un editor alternativ."
 
-#: mh/mh_whatnow.c:472 mh/mh_whatnow.c:502 mh/mh_whatnow.c:592
+#: mh/mh_whatnow.c:473 mh/mh_whatnow.c:503 mh/mh_whatnow.c:601
 msgid "List the draft on the terminal."
 msgstr "Listeazã ciorna la terminal."
 
-#: mh/mh_whatnow.c:474
+#: mh/mh_whatnow.c:475
 msgid "Send the message in the background."
 msgstr "Trimite mesajul în fundal."
 
-#: mh/mh_whatnow.c:476
+#: mh/mh_whatnow.c:477
 msgid ""
 "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr ""
 "Terminã sesiunea. Pãstreazã ciorna, în cazul în care nu este dat flag-ul -"
 "delete."
 
-#: mh/mh_whatnow.c:478 mh/mh_whatnow.c:503
+#: mh/mh_whatnow.c:479 mh/mh_whatnow.c:504
 msgid "Refile the draft into the given FOLDER."
 msgstr "Pune(refile) ciorna în DOSARul(FOLDER) dat."
 
-#: mh/mh_whatnow.c:480
+#: mh/mh_whatnow.c:481
 msgid ""
 "Send the message. The -watch flag causes the delivery process to be "
 "monitored. SWITCHES are passed to send program verbatim."
@@ -3904,52 +4196,47 @@ msgstr ""
 "Trimite mesajul. Flagul -watch cauzeazã monitorizarea procesului de livrare. "
 "SWITCH-urile sunt pasate pentru a trimite programul verbatim."
 
-#: mh/mh_whatnow.c:483
+#: mh/mh_whatnow.c:484
 msgid ""
 "List the addresses and verify that they are acceptable to the transport "
 "service."
 msgstr ""
 "Listeazã adresele ºi verificã dacã sunt acceptabile serviciului de transport."
 
-#: mh/mh_whatnow.c:499
+#: mh/mh_whatnow.c:500
 msgid "Terminate the session. Preserve the draft."
 msgstr "Terminã sesiunea. Pãstreazã ciorna."
 
-#: mh/mh_whatnow.c:500
+#: mh/mh_whatnow.c:501
 msgid "Replace the draft with the newly created one"
 msgstr "Înlocuieºte ciorna cu una nouã creatã recent."
 
-#: mh/mh_whatnow.c:501
+#: mh/mh_whatnow.c:502
 msgid "Use this draft"
 msgstr "Foloseºte aceastã ciornã"
 
-#: mh/mh_whatnow.c:558
+#: mh/mh_whatnow.c:565
 msgid "What now?"
 msgstr "ªi acum?"
 
-#: mh/mh_whatnow.c:582
+#: mh/mh_whatnow.c:589
 msgid "Disposition?"
 msgstr "Dispoziþie?"
 
-#: mh/mh_whatnow.c:590
+#: mh/mh_whatnow.c:599
 msgid "Don't use the draft."
 msgstr "Nu folosi aceastã ciornã."
 
-#: mh/mh_whatnow.c:591
+#: mh/mh_whatnow.c:600
 msgid "Use the draft."
 msgstr "Foloseºte acest draft."
 
-#: mh/mh_whatnow.c:633
+#: mh/mh_whatnow.c:642
 #, c-format
 msgid "Use \"%s\"?"
 msgstr "Foloseºte \"%s\"?"
 
-#: mh/mh_whom.c:38
-#, fuzzy, c-format
-msgid "Cannot create list: %s"
-msgstr "nu se poate crea lista: %s"
-
-#: mh/mh_whom.c:107
+#: mh/mh_whom.c:109
 #, c-format
 msgid "Bad address `%s': %s"
 msgstr "Adresã greºitã `%s': %s"
@@ -3960,7 +4247,7 @@ msgid " at %s"
 msgstr " la %s"
 
 #: mh/mh_whom.c:228
-#, fuzzy
+#, fuzzy, c-format
 msgid "Malformed message"
 msgstr "mesaj malformat"
 
@@ -3973,331 +4260,313 @@ msgid "-- Network Recipients --"
 msgstr "-- Recipiente Reþea --"
 
 #: mh/mh_whom.c:253
+#, c-format
 msgid "No recipients"
 msgstr "Nu existã recipiente"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhl.c:28
-msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
+#: mh/mhl.c:26
+msgid "GNU MH mhl"
 msgstr ""
-"GNU MH mhlFolosiþi -help pentru a obþine o listã cu opþiunile tradiþionale "
-"MH."
 
-#: mh/mhl.c:30
+#: mh/mhl.c:28
 msgid "[files]"
 msgstr "[fiºiere]"
 
-#: mh/mhl.c:37
+#: mh/mhl.c:35
 msgid "Ring the bell at the end of each output page"
 msgstr "Sunã un clopoþel(bell) la sfârºitul fiecãrei pagini de output."
 
-#: mh/mhl.c:40
+#: mh/mhl.c:38
 msgid "Clear the screen after each page of output"
 msgstr "ªterge ecranul dupã fiecare paginã de output"
 
-#: mh/mhl.c:47
+#: mh/mhl.c:45
 msgid "Set output screen length"
 msgstr "Seteazã mãrimea(length) ecranului de ieºire(output)"
 
-#: mh/mhl.c:49
+#: mh/mhl.c:47
 msgid "Use given PROG instead of the default"
 msgstr "Foloseºte PROG specificat în locul celui implicit"
 
-#: mh/mhl.c:51
+#: mh/mhl.c:49
 msgid "Disable use of moreproc program"
 msgstr "Dezactiveazã folosirea programului moreproc"
 
-#: mh/mhl.c:124
+#: mh/mhl.c:122
 msgid "Invalid length"
 msgstr "Mãrime(length) invalidã"
 
-#: mh/mhl.c:168 mh/mhn.c:1465
+#: mh/mhl.c:166 mh/mhn.c:1478
 #, fuzzy, c-format
 msgid "Cannot create output stream: %s"
 msgstr "nu se poate crea secvenþa(stream) de output: %s"
 
-#: mh/mhl.c:174 mh/mhn.c:1471
+#: mh/mhl.c:172 mh/mhn.c:1484
 #, fuzzy, c-format
 msgid "Cannot open output stream: %s"
 msgstr "nu se poate deschide secvenþa(stream) de output: %s"
 
-#: mh/mhl.c:193
+#: mh/mhl.c:191
 #, fuzzy, c-format
 msgid "Cannot create input stream: %s"
 msgstr "nu se poate crea secvenþa(stream) de input: %s"
 
-#: mh/mhl.c:199
+#: mh/mhl.c:197
 #, fuzzy, c-format
 msgid "Cannot open input stream: %s"
 msgstr "nu se poate deschide secvenþa(stream) de input: %s"
 
-#: mh/mhl.c:207
+#: mh/mhl.c:205
 #, fuzzy, c-format
 msgid "Input stream %s is not a message (%s)"
 msgstr "secvenþa(stream) de intrare(input) %s nu este un mesaj (%s)"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhn.c:31
-msgid ""
-"GNU MH mhnOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/mhn.c:29
+msgid "GNU MH mhn"
 msgstr ""
-"GNU MH mhnOpþiunile marcate cu `*' nu sunt încã implementate\n"
-"Folosiþi -help pentru a obþine o listã cu opþiuni tradiþionale MH."
 
-#: mh/mhn.c:40
+#: mh/mhn.c:38
 msgid "Specify file to operate upon"
 msgstr "Specificaþi fiºierul pe care se va opera"
 
-#: mh/mhn.c:42
+#: mh/mhn.c:40
 msgid "MIME editing options"
 msgstr "Opþiuni editare MIME"
 
-#: mh/mhn.c:44
+#: mh/mhn.c:42
 msgid "Compose the MIME message (default)"
 msgstr "Compune mesajul MIME(implicit)"
 
-#: mh/mhn.c:47
+#: mh/mhn.c:45
 msgid "Listing options"
 msgstr "Opþiuni de listare"
 
-#: mh/mhn.c:49
+#: mh/mhn.c:47
 msgid "List the table of contents"
 msgstr "Listeazã tabela de conþinut"
 
-#: mh/mhn.c:52
+#: mh/mhn.c:50
 msgid "Print the banner above the listing"
 msgstr "Tipãreºte banner-ul deasupra listingului"
 
-#: mh/mhn.c:55
+#: mh/mhn.c:53
 msgid "List the decoded sizes"
 msgstr "Listeazã mãrimile decodate"
 
-#: mh/mhn.c:58
+#: mh/mhn.c:56
 msgid "Display options"
 msgstr "Afiºeazã opþiunile"
 
-#: mh/mhn.c:60
+#: mh/mhn.c:58
 msgid "Display the contents of the messages"
 msgstr "Afiºeazã conþinutul mesajelor"
 
-#: mh/mhn.c:63
+#: mh/mhn.c:61
 msgid "* Display messages serially"
 msgstr "* Afiºeazã mesajele serial"
 
-#: mh/mhn.c:66
+#: mh/mhn.c:64
 msgid "Read mhl format from FILE"
 msgstr "Citeºte formatul mhl din FIªIER"
 
-#: mh/mhn.c:68
+#: mh/mhn.c:66
 msgid "Pause prior to displaying content"
 msgstr "Pauzã înainte de a afiºa conþinutul"
 
-#: mh/mhn.c:71
+#: mh/mhn.c:69
 msgid "Saving options"
 msgstr "Opþiuni de salvare"
 
-#: mh/mhn.c:73
+#: mh/mhn.c:71
 msgid "Store the contents of the messages on disk"
 msgstr "Stocheazã conþinutul mesajelor pe disk"
 
-#: mh/mhn.c:76
+#: mh/mhn.c:74
 msgid "Use filenames from the content headers"
 msgstr "Foloseºte nume de fiºiere din conþinutul headerelor"
 
-#: mh/mhn.c:79
+#: mh/mhn.c:77
 msgid "Other options"
 msgstr "Alte opþiuni"
 
-#: mh/mhn.c:80
+#: mh/mhn.c:78
 msgid "PART"
 msgstr "PART"
 
-#: mh/mhn.c:81
+#: mh/mhn.c:79
 msgid "Limit the scope of the operation to the given part"
 msgstr "Limiteazã scopul operaþiei pe partea(part) specificatã"
 
-#: mh/mhn.c:82
+#: mh/mhn.c:80
 msgid "CONTENT"
 msgstr "CONÞINUT"
 
-#: mh/mhn.c:83
+#: mh/mhn.c:81
 msgid "Operate on message part with given multipart content"
 msgstr "Opereazã pe partea(part) de mesaj cu conþin multipart specificat"
 
-#: mh/mhn.c:85
+#: mh/mhn.c:83
 msgid "Print additional information"
 msgstr "Tipãreºte informaþii adiþionale"
 
-#: mh/mhn.c:552
+#: mh/mhn.c:550
 #, fuzzy, c-format
 msgid "Malformed part specification (near %s)"
 msgstr "specificaþie de parte malformatã (lângã %s)"
 
-#: mh/mhn.c:1218
+#: mh/mhn.c:1230
 #, c-format
 msgid " msg part type/subtype              size  description\n"
 msgstr " msj tip/subtip parte             mãrime  descriere\n"
 
-#: mh/mhn.c:1255
+#: mh/mhn.c:1267
 #, fuzzy, c-format
-msgid "%lu: cannot get message body: %s"
+msgid "%s: cannot get message body: %s"
 msgstr "%lu: nu se poate primi(get) corpul mesajului: %s"
 
-#: mh/mhn.c:1277
+#: mh/mhn.c:1289
 #, fuzzy, c-format
 msgid "Cannot create proc stream (command %s): %s"
 msgstr "nu se poate crea secvenþa(stream) proc (comanda %s): %s"
 
-#: mh/mhn.c:1284
+#: mh/mhn.c:1296
 #, fuzzy, c-format
 msgid "Cannot open proc stream (command %s): %s"
 msgstr "nu se poate deschide secvenþa(stream) proc (comanda %s): %s"
 
-#: mh/mhn.c:1325
+#: mh/mhn.c:1337
 #, fuzzy, c-format
 msgid "Cannot parse command line `%s'"
 msgstr "nu se poate analiza linia de comandã `%s'"
 
-#: mh/mhn.c:1332
+#: mh/mhn.c:1344
 #, fuzzy, c-format
 msgid "Cannot create temporary stream (file %s): %s"
 msgstr "nu se poate crea secvenþa temporarã (fiºierul %s): %s"
 
-#: mh/mhn.c:1340
+#: mh/mhn.c:1352
 #, fuzzy, c-format
 msgid "Cannot open temporary stream (file %s): %s"
 msgstr "nu se poate deschide secvenþa temporarã (fiºierul %s): %s"
 
-#: mh/mhn.c:1388
+#: mh/mhn.c:1400
 msgid "part "
 msgstr "parte "
 
-#: mh/mhn.c:1406
+#: mh/mhn.c:1419
 #, c-format
 msgid "Press <return> to show content..."
 msgstr "Apãsaþi <return> pentru a afiºa conþinutul..."
 
-#: mh/mhn.c:1650
+#: mh/mhn.c:1664 mh/mhn.c:1669
 #, c-format
 msgid "storing message %s part %s as file %s\n"
 msgstr "se stocheazã mesajul %s partea %s ca fiºier %s\n"
 
-#: mh/mhn.c:1655
-#, c-format
-msgid "storing message %lu part %s as file %s\n"
-msgstr "se stocheazã mesajul %lu partea %s ca fiºier %s\n"
-
-#: mh/mhn.c:1666
+#: mh/mhn.c:1680
 #, c-format
 msgid "File %s already exists. Rewrite"
 msgstr "Fiºierul %s existã deja. Rescrieþi"
 
-#: mh/mhn.c:1680 mh/mhn.c:2547
+#: mh/mhn.c:1694 mh/mhn.c:2724
 #, fuzzy, c-format
 msgid "Cannot create output stream (file %s): %s"
 msgstr "nu se poate crea secvenþa de output (fiºierul %s): %s"
 
-#: mh/mhn.c:1688 mh/mhn.c:2555
+#: mh/mhn.c:1702 mh/mhn.c:2732
 #, fuzzy, c-format
 msgid "Cannot open output stream (file %s): %s"
 msgstr "nu se poate deschide secvenþa de output (fiºierul %s): %s"
 
-#: mh/mhn.c:1802
+#: mh/mhn.c:1816
 #, c-format
 msgid "%s:%lu: missing %c"
 msgstr "%s:%lu: lipseºte %c"
 
-#: mh/mhn.c:1837
+#: mh/mhn.c:1851
 #, c-format
 msgid "%s:%lu: comment redefined"
 msgstr "%s:%lu: comentariu redefinit"
 
-#: mh/mhn.c:1849 mh/mhn.c:1889 mh/mhn.c:2151
+#: mh/mhn.c:1863 mh/mhn.c:1903 mh/mhn.c:2214
 #, c-format
 msgid "%s:%lu: syntax error"
 msgstr "%s:%lu: eroare de sintaxã"
 
-#: mh/mhn.c:1858 mh/mhn.c:2118
+#: mh/mhn.c:1872 mh/mhn.c:2181
 #, c-format
 msgid "%s:%lu: description redefined"
 msgstr "%s:%lu: descriere redefinitã"
 
-#: mh/mhn.c:1870 mh/mhn.c:2130
+#: mh/mhn.c:1884 mh/mhn.c:2193
 #, c-format
 msgid "%s:%lu: content id redefined"
 msgstr "%s:%lu: id conþinut redefinit"
 
-#: mh/mhn.c:1952
+#: mh/mhn.c:1966
 #, c-format
 msgid "%s:%lu: missing subtype"
 msgstr "%s:%lu: lipseºte subtip"
 
-#: mh/mhn.c:2165
+#: mh/mhn.c:2228
 #, c-format
 msgid "%s:%lu: no such message: %lu"
 msgstr "%s:%lu: nu existã mesajul: %lu"
 
-#: mh/mhn.c:2256
+#: mh/mhn.c:2319
 #, c-format
 msgid "%s:%lu: missing filename"
 msgstr "%s:%lu: lipseºte numele de fiºier"
 
-#: mh/mhn.c:2312
+#: mh/mhn.c:2375
 #, fuzzy, c-format
 msgid "Cannot open filter stream: %s"
 msgstr "nu se poate deschide secvenþa de filtru: %s"
 
-#: mh/mhn.c:2445
+#: mh/mhn.c:2511
 #, c-format
 msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu: #end fãrã corespondent"
 
-#: mh/mhn.c:2601 mh/mhn.c:2612
+#: mh/mhn.c:2664
+#, fuzzy, c-format
+msgid "cannot encode subject using %s, %s: %s"
+msgstr "Nu se poate decodifica linia `%s': %s"
+
+#: mh/mhn.c:2779 mh/mhn.c:2790
+#, c-format
 msgid "extra arguments"
 msgstr "extra argumente"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/mhpath.c:26
-msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
+#: mh/mhpath.c:24
+msgid "GNU MH mhpath"
 msgstr ""
-"GNU MH mhpathFolosiþi -help pentru a obþine o listã de opþiuni tradiþionale "
-"MH."
 
-#: mh/mhpath.c:28 mh/rmm.c:28 mh/scan.c:36
+#: mh/mhpath.c:26 mh/rmm.c:26 mh/scan.c:34
 msgid "[+folder] [msgs]"
 msgstr "[+folder] [msj]"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/pick.c:32
-msgid ""
-"GNU MH pickOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/pick.c:30
+msgid "GNU MH pick"
 msgstr ""
-"GNU MH pickOpþiunile marcate cu `*' nu sunt încã implementate\n"
-"Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
-#: mh/pick.c:35
+#: mh/pick.c:33
 msgid "[messages]"
 msgstr "[mesaje]"
 
-#: mh/pick.c:42
+#: mh/pick.c:40
 msgid "Specifying search patterns:"
 msgstr "Specificarea modelelor(patterns) de cãutare:"
 
-#: mh/pick.c:44
+#: mh/pick.c:42
 msgid "Search the named header field"
 msgstr "Cautã câmpul header numit"
 
-#: mh/pick.c:46
+#: mh/pick.c:44
 msgid "A pattern to look for"
 msgstr "Un tipar(pattern) de cãutat"
 
-#: mh/pick.c:49
+#: mh/pick.c:47
 msgid ""
 "Flags controlling the type of regular expressions. STRING must consist of "
 "one or more of the following letters: B=basic, E=extended, I=ignore case, "
@@ -4311,115 +4580,109 @@ msgstr ""
 "urmãtoarea întâlnire a opþiunii -cflags. Opþiunea trebuie sã se afle chiar "
 "înainte de opþiunile--pattern sau --component (sau aliasurile lor)."
 
-#: mh/pick.c:51
+#: mh/pick.c:49
 msgid "Same as --component cc --pattern STRING"
 msgstr "La fel ca --component cc --pattern ªIR"
 
-#: mh/pick.c:53
+#: mh/pick.c:51
 msgid "Same as --component date --pattern STRING"
 msgstr "La fel ca --component date --pattern ªIR"
 
-#: mh/pick.c:55
+#: mh/pick.c:53
 msgid "Same as --component from --pattern STRING"
 msgstr "La fel ca --component from --pattern ªIR"
 
-#: mh/pick.c:57
+#: mh/pick.c:55
 msgid "Same as --component subject --pattern STRING"
 msgstr "La fel ca --component subject --pattern ªIR"
 
-#: mh/pick.c:59
+#: mh/pick.c:57
 msgid "Same as --component to --pattern STRING"
 msgstr "La fel ca --component to --pattern ªIR"
 
-#: mh/pick.c:61
+#: mh/pick.c:59
 msgid "Date constraint operations:"
 msgstr "Operaþii constrânse de datã:"
 
-#: mh/pick.c:63
+#: mh/pick.c:61
 msgid "Search in the named date header field (default is `Date:')"
 msgstr "Cautã în câmpul header numit (Implicit este `Date:')"
 
-#: mh/pick.c:64 mh/pick.c:66
+#: mh/pick.c:62 mh/pick.c:64
 msgid "DATE"
 msgstr "DATÃ"
 
-#: mh/pick.c:65
+#: mh/pick.c:63
 msgid "Match messages after the given date"
 msgstr "Gãseºte mesajele de dupã data specificatã"
 
-#: mh/pick.c:67
+#: mh/pick.c:65
 msgid "Match messages before the given date"
 msgstr "Gãseºte mesajele înainte de data specificatã"
 
-#: mh/pick.c:69
+#: mh/pick.c:67
 msgid "Logical operations and grouping:"
 msgstr "Operaþii logice ºi grupãri:"
 
-#: mh/pick.c:71
+#: mh/pick.c:69
 msgid "Logical AND (default)"
 msgstr "AND Logic (implicit)"
 
-#: mh/pick.c:73
+#: mh/pick.c:71
 msgid "Logical OR"
 msgstr "OR logic"
 
-#: mh/pick.c:75
+#: mh/pick.c:73
 msgid "Logical NOT"
 msgstr "NOT logic"
 
-#: mh/pick.c:77
+#: mh/pick.c:75
 msgid "Open group"
 msgstr "Deschide grup"
 
-#: mh/pick.c:80
+#: mh/pick.c:78
 msgid "Close group"
 msgstr "Închide grup"
 
-#: mh/pick.c:83
+#: mh/pick.c:81
 msgid "Operations over the selected messages:"
 msgstr "Operaþii pe mesajele selectate:"
 
-#: mh/pick.c:85
+#: mh/pick.c:83
 msgid "List the numbers of the selected messages (default)"
 msgstr "Listeazã numãrul de mesaje selectate (implicit)"
 
-#: mh/pick.c:88
+#: mh/pick.c:86
 msgid "Add matching messages to the given sequence"
 msgstr "Adaugã mesajele care se potrivesc unei secvenþe specificate"
 
-#: mh/pick.c:268 mh/pick.c:281
+#: mh/pick.c:266 mh/pick.c:279
 #, fuzzy, c-format
 msgid "Invalid option -- %s"
 msgstr "opþiune invalidã -- %s"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/refile.c:31
-msgid ""
-"GNU MH refileOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/refile.c:30
+msgid "GNU MH refile"
 msgstr ""
-"GNU MH refileOpþiunile marcate u `*' nu sunt încã implementate\n"
-"Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH"
 
-#: mh/refile.c:34
+#: mh/refile.c:33
 msgid "messages folder [folder...]"
 msgstr "mesaje dosar [dosar...]"
 
-#: mh/refile.c:41
+#: mh/refile.c:40
 msgid "Use <mh-dir>/draft as the source message"
 msgstr "Folosiþi <mh-dir>/draft ca sursã de mesaje"
 
-#: mh/refile.c:43
+#: mh/refile.c:42
 #, fuzzy
 msgid "Preserve the source folder copy"
 msgstr "Pãstreazã copia dosarului sursã."
 
-#: mh/refile.c:46
+#: mh/refile.c:45
 msgid "* Try to preserve message sequence numbers"
 msgstr "* Încearcã sã pãstreze numerele secvenþei de mesaj"
 
-#: mh/refile.c:48
+#: mh/refile.c:47
 #, fuzzy
 msgid ""
 "Specify source folder. FOLDER will become the current folder after the "
@@ -4428,86 +4691,80 @@ msgstr ""
 "Specificã dosarul sursã. DOSAR va deveni dosarul curent dupã ce se iese din "
 "program."
 
-#: mh/refile.c:50
+#: mh/refile.c:49
 msgid "Use FILE as the source message"
 msgstr "Foloseºte FIªIER ca mesaj sursã"
 
-#: mh/refile.c:77 mh/refile.c:96
-#, fuzzy
+#: mh/refile.c:76 mh/refile.c:95
+#, fuzzy, c-format
 msgid "Cannot create folder list"
 msgstr "nu se poate crea lista de dosare"
 
-#: mh/refile.c:90
-#, fuzzy
+#: mh/refile.c:89
+#, fuzzy, c-format
 msgid "No folder specified"
 msgstr "nu este specificat nici un dosar"
 
-#: mh/refile.c:102 mh/refile.c:127
-#, fuzzy
+#: mh/refile.c:101 mh/refile.c:126
+#, fuzzy, c-format
 msgid "Cannot create iterator"
 msgstr "nu se poate crea iterator"
 
-#: mh/refile.c:201
+#: mh/refile.c:200
 #, fuzzy, c-format
 msgid "Error appending message: %s"
 msgstr "eroare la adãugarea mesajului: %s"
 
-#: mh/refile.c:261
-#, fuzzy
+#: mh/refile.c:260
+#, fuzzy, c-format
 msgid "Both message set and source file given"
 msgstr "sunt specificate atât setul mesajului ºi fiºierul sursã"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/repl.c:28
-msgid ""
-"GNU MH replOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/repl.c:27
+msgid "GNU MH repl"
 msgstr ""
-"GNU MH replOpþiunile marcate u `*' nu sunt încã implementate\n"
-"Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
-#: mh/repl.c:31
+#: mh/repl.c:30
 msgid "[+folder] [msg]"
 msgstr "[+folder] [msj]"
 
-#: mh/repl.c:37
+#: mh/repl.c:36
 #, fuzzy
 msgid "Add Replied: header to the message being replied to"
 msgstr "* Adaugã Rãspunse: headerul mesajului la care se rãspunde"
 
-#: mh/repl.c:39
+#: mh/repl.c:38
 msgid "Build the draft and quit immediately."
 msgstr "Construieºte ciorna ºi iese(quit) imediat."
 
-#: mh/repl.c:47
+#: mh/repl.c:46
 msgid "Specify whom to place on the Cc: list of the reply"
 msgstr "Specificã pe cine sã punã în lista de rãspunsuri Cc:"
 
-#: mh/repl.c:49
+#: mh/repl.c:48
 msgid "Specify whom to remove from the Cc: list of the reply"
 msgstr "Specificã pe cine sã elimine din lista de rãspunsuri Cc:"
 
-#: mh/repl.c:52
+#: mh/repl.c:51
 msgid "Construct a group or followup reply"
 msgstr "Construieºte un grup sau urmeazã un rãspuns"
 
-#: mh/repl.c:55
+#: mh/repl.c:54
 #, fuzzy
-msgid "* Set the folder to receive Fcc's"
+msgid "Set the folder to receive Fcc's"
 msgstr "* Seteazã dosarul unde se primesc Fcc-uri"
 
-#: mh/repl.c:56
+#: mh/repl.c:55
 msgid "MHL-FILTER"
 msgstr "FILTRU-MHL"
 
-#: mh/repl.c:57
+#: mh/repl.c:56
 msgid "Set the mhl filter to preprocess the body of the message being replied"
 msgstr ""
 "Seteazã filtrul mhl pentru preprocesarea corpului mesajului la care se "
 "rãspunde"
 
-#: mh/repl.c:60
+#: mh/repl.c:59
 #, fuzzy
 msgid ""
 "Include a copy of the message being replied. The message will be processed "
@@ -4518,159 +4775,140 @@ msgstr ""
 "folosind fie filtrul implicit \"mhl.reply\", fie filtrul specificat de "
 "opþiunea --filter."
 
-#: mh/repl.c:64
+#: mh/repl.c:63
 msgid "Query for addresses to place in To: and Cc: lists"
 msgstr "Interogheazã pentru adresele ce vor fi puse în listele To: ºi Cc:"
 
-#: mh/repl.c:69
+#: mh/repl.c:68
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
 msgstr ""
 "* Ignorã variabila whatnowproc. Foloseºte în loc shell standard `whatnow'."
 
-#: mh/repl.c:132
+#: mh/repl.c:134
 #, c-format
 msgid "%s %s is unknown"
 msgstr "%s %s este necunoscut"
 
-#: mh/repl.c:275
-#, c-format
-msgid "Draft \"%s\" exists (%lu byte).\n"
-msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
+#: mh/repl.c:292
+#, fuzzy, c-format
+msgid "Draft \"%s\" exists (%s byte).\n"
+msgid_plural "Draft \"%s\" exists (%s bytes).\n"
 msgstr[0] "Ciorna \"%s\" existã (%lu octet).\n"
 msgstr[1] "Ciorna \"%s\" existã (%lu octeþi).\n"
 
-#: mh/repl.c:302
+#: mh/repl.c:316
 #, fuzzy, c-format
-msgid "Cannot read message %lu: %s"
+msgid "Cannot read message %s: %s"
 msgstr "nu se poate citi mesajul %lu: %s"
 
-#: mh/repl.c:323
+#: mh/repl.c:337
 #, fuzzy, c-format
 msgid "Cannot create draft file stream %s: %s"
 msgstr "nu se poate crea secvenþa fiºierului ciornã %s: %s"
 
-#: mh/repl.c:330
+#: mh/repl.c:344
 #, fuzzy, c-format
 msgid "Cannot open draft file %s: %s"
 msgstr "nu se poate deschide fiºierul ciornã %s: %s"
 
-#: mh/repl.c:395
-msgid "only one message at a time!"
-msgstr "doar un singur mesaj odatã!"
-
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/rmf.c:35
-msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
+#: mh/rmf.c:33
+msgid "GNU MH rmf"
 msgstr ""
-"GNU MH rmfFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
-#: mh/rmf.c:42
+#: mh/rmf.c:40
 msgid "Specify the folder to delete"
 msgstr "Specificaþi dosarul care trebuie ºters"
 
-#: mh/rmf.c:44
+#: mh/rmf.c:42
 msgid "Interactive mode: ask for confirmation before removing each folder"
 msgstr "Mod interactiv: cere confirmare înainte de ºtergerea fiecãrui dosar"
 
-#: mh/rmf.c:47
+#: mh/rmf.c:45
 msgid "Recursively delete all subfolders"
 msgstr "ªterge recursiv toate subdosarele"
 
-#: mh/rmf.c:132
+#: mh/rmf.c:130
 #, c-format
 msgid "Remove folder %s"
 msgstr "ªterge dosarul %s"
 
-#: mh/rmf.c:164
+#: mh/rmf.c:162
 #, fuzzy, c-format
 msgid "Cannot unlink %s: %s"
 msgstr "nu se poate elimina legãtura cãtre(unlink) %s: %s"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/rmm.c:26
-msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
+#: mh/rmm.c:24
+msgid "GNU MH rmm"
 msgstr ""
-"GNU MH rmmFolosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/scan.c:34
-msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
+#: mh/scan.c:32
+msgid "GNU MH scan"
 msgstr ""
-"GNU MH scanFolosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
-#: mh/scan.c:41
+#: mh/scan.c:39
 msgid "Specify folder to scan"
 msgstr "Specificaþi dosarul de scanat"
 
-#: mh/scan.c:43
+#: mh/scan.c:41
 msgid "Clear screen after displaying the list"
 msgstr "ªterge ecranul dupã afiºarea listei"
 
-#: mh/scan.c:50
+#: mh/scan.c:48
 msgid "Display header"
 msgstr "Afiºeazã header-ul"
 
-#: mh/scan.c:54
+#: mh/scan.c:52
 msgid "List messages in reverse order"
 msgstr "Listeazã mesajele în ordine inversã"
 
-#: mh/scan.c:57
+#: mh/scan.c:55
 msgid "[Not yet implemented]"
 msgstr "[Neimplementat încã]"
 
-#: mh/scan.c:229
+#: mh/scan.c:227
 #, c-format
 msgid "no messages in %s"
 msgstr "nici un mesaj în %s"
 
-#: mh/scan.c:250
+#: mh/scan.c:248
 #, c-format
 msgid "Folder %s  %s\n"
 msgstr "Dosarul %s  %s\n"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/send.c:30
-msgid ""
-"GNU MH sendOptions marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options."
+#: mh/send.c:28
+msgid "GNU MH send"
 msgstr ""
-"GNU MH sendOpþiunile marcate cu `*' nu sunt încã implementate\n"
-"Folosiþi -help pentru a obþine o listã a opþiunilor MH tradiþionale."
 
-#: mh/send.c:33
+#: mh/send.c:31
 msgid "file [file...]"
 msgstr "fiºier [fiºier...]"
 
-#: mh/send.c:39 mh/whom.c:31
+#: mh/send.c:36 mh/whom.c:29
 msgid "Specify additional alias file"
 msgstr "Specificã fiºierul de alias adiþional"
 
-#: mh/send.c:41 mh/whom.c:33
+#: mh/send.c:38 mh/whom.c:31
 msgid "Use prepared draft"
 msgstr "Foloseºte ciornã pregãtitã"
 
-#: mh/send.c:45 mh/whom.c:37
+#: mh/send.c:42 mh/whom.c:35
 msgid "Treat the arguments as a list of messages from the draftfolder"
 msgstr ""
 "Trateazã argumentele ca o listã de mesaje din dosarul de ciorne(draftfolder)"
 
-#: mh/send.c:49
+#: mh/send.c:46
 msgid "* Use filter FILE to preprocess the body of the message"
 msgstr "* Foloseºte filtrul FIªIER pentru a preprocesa corpul mesajului"
 
-#: mh/send.c:51
+#: mh/send.c:48
 msgid "* Undo the effect of the last --filter option"
 msgstr "* Revino înainte(undo) de efectul ultimei opþiuni --filter"
 
-#: mh/send.c:53
+#: mh/send.c:50
 msgid "* Reformat To: and Cc: addresses"
 msgstr "* Reformateazã adresele To: ºi Cc:"
 
-#: mh/send.c:56
+#: mh/send.c:53
 #, fuzzy
 msgid ""
 "* In case of failure forward the draft along with the failure notice to the "
@@ -4679,96 +4917,141 @@ msgstr ""
 "* În caz de eºec înainteazã(forward) ciorna împreunã cu o notificare de "
 "eroare expeditorului."
 
-#: mh/send.c:59
+#: mh/send.c:56
 msgid "* Use MIME encapsulation"
 msgstr "* Foloseºte încapsulare MIME"
 
-#: mh/send.c:62
+#: mh/send.c:59
 msgid "Add Message-ID: field"
 msgstr "Adaugã câmp Message-ID"
 
-#: mh/send.c:65
+#: mh/send.c:62
 msgid "Run in the backround."
 msgstr "Ruleazã în fundal."
 
-#: mh/send.c:68
+#: mh/send.c:65
+#, fuzzy
 msgid ""
-"* Split the draft into several partial messages and send them with SECONDS "
+"Split the draft into several partial messages and send them with SECONDS "
 "interval"
 msgstr ""
 "* Împarte ciorna în câteva mesaje parþiale ºi trimitele într-un interval de "
 "SECUNDE"
 
-#: mh/send.c:70
+#: mh/send.c:67
+msgid "Set the size of chunk for --split (in bytes)"
+msgstr ""
+
+#: mh/send.c:69
 msgid "Print the transcript of interactions with the transport system"
 msgstr "Tipãreºte transcriptul interacþiunilor cu sistemul de transport"
 
-#: mh/send.c:73
+#: mh/send.c:72
 msgid "Monitor the delivery of mail"
 msgstr "Monitorizeazã livrarea mailului"
 
-#: mh/send.c:76
+#: mh/send.c:75
 msgid "* Make header fields no longer than NUMBER columns"
 msgstr "* Fã câmpurile header mai mici decât NUMÃR coloane"
 
-#: mh/send.c:267
-#, fuzzy
+#: mh/send.c:290
+#, fuzzy, c-format
 msgid "Cannot create message list"
 msgstr "nu se poate crea lista de mesaje"
 
-#: mh/send.c:302
+#: mh/send.c:323
+#, fuzzy, c-format
+msgid "Cannot get system host name: %s"
+msgstr "nu se poate afla(get) ultimul mesaj: %s"
+
+#: mh/send.c:340
+#, fuzzy, c-format
+msgid "Cannot set user mail domain: %s"
+msgstr "Nu se poate crea directorul %s: %s"
+
+#: mh/send.c:355
+#, fuzzy, c-format
+msgid "Cannot get user email: %s"
+msgstr "nu se poate lua secvenþa(stream) din mailboxul %s: %s"
+
+#: mh/send.c:367
+#, fuzzy, c-format
+msgid "Cannot set user email (%s): %s"
+msgstr "Nu se poate crea mailboxul %s: %s"
+
+#: mh/send.c:386
 #, fuzzy, c-format
 msgid "Creating mailer %s"
 msgstr "Crearea mailerului '%s' a eºuat: %s"
 
-#: mh/send.c:306
+#: mh/send.c:390
 #, fuzzy, c-format
 msgid "Cannot create mailer `%s'"
 msgstr "nu se poate crea mailerul \"%s\""
 
-#: mh/send.c:317
+#: mh/send.c:401
 #, fuzzy, c-format
 msgid "Opening mailer %s"
 msgstr "Deschiderea stdin a eºuat: %s"
 
-#: mh/send.c:321
+#: mh/send.c:405
 #, fuzzy, c-format
 msgid "Cannot open mailer `%s'"
 msgstr "nu se poate deschide mailerul \"%s\""
 
-#: mh/send.c:407
+#: mh/send.c:533
 #, fuzzy, c-format
-msgid "Fixed Fcc: %s"
+msgid "fixed fcc: %s"
 msgstr "Eroare: %s"
 
-#: mh/send.c:421
-#, fuzzy
-msgid "Getting message"
+#: mh/send.c:562
+#, c-format
+msgid "not enough memory"
+msgstr "nu este destulã memorie"
+
+#: mh/send.c:575
+#, fuzzy, c-format
+msgid "fixed bcc: %s"
+msgstr "Eroare: %s"
+
+#: mh/send.c:598
+#, fuzzy, c-format
+msgid "renaming %s to %s"
+msgstr "Se citeºte %s\n"
+
+#: mh/send.c:601
+#, fuzzy, c-format
+msgid "Cannot unlink file `%s': %s"
+msgstr "nu se poate elimina legãtura cãtre(unlink) %s: %s"
+
+#: mh/send.c:603
+#, fuzzy, c-format
+msgid "Cannot rename `%s' to `%s': %s"
+msgstr "nu se poate citi mesajul %lu: %s"
+
+#: mh/send.c:618
+#, fuzzy, c-format
+msgid "Getting message %s"
 msgstr "nnici un mesaj urmãtor"
 
-#: mh/send.c:461
-#, fuzzy
-msgid "Sending message"
+#: mh/send.c:671
+#, fuzzy, c-format
+msgid "Sending message %s"
 msgstr "Trimiterea mesajului a eºuat: %s"
 
-#: mh/send.c:465
+#: mh/send.c:685
 #, fuzzy, c-format
 msgid "Cannot send message: %s"
 msgstr "nu se poate trimite mesajul: %s"
 
-#: mh/send.c:469
+#: mh/send.c:689
 msgid "Destroying the mailer"
 msgstr ""
 
-#: mh/send.c:493
+#: mh/send.c:715
 #, fuzzy, c-format
 msgid "Cannot switch to background: %s"
 msgstr "nu se poate trece în fundal: %s"
-
-#: mh/send.c:532
-#, c-format
-msgid "cannot stat %s: %s"
-msgstr "nu se poate stabili(stat) %s:%s"
 
 #: mh/whatnow.c:25
 msgid "[FILE]"
@@ -4778,16 +5061,89 @@ msgstr "[FIªIER]"
 msgid "Set the prompt"
 msgstr "Seteazã promptul"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mh/whom.c:24
-msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
+#: mh/whom.c:22
+msgid "GNU MH whom"
 msgstr ""
-"GNU MH whomFolosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
-#: mh/whom.c:41
+#: mh/whom.c:39
 msgid "Check if addresses are deliverable"
 msgstr "Verificã dacã se poate livra la adrese."
+
+#: mimeview/mimetypes.l:150 mimeview/mimeview.c:175
+#, fuzzy, c-format
+msgid "Cannot stat `%s': %s"
+msgstr "nu se poate stabili(stat) %s:%s"
+
+#: mimeview/mimetypes.y:537
+#, fuzzy, c-format
+msgid "%s: unknown function"
+msgstr "acþiune necunoscutã: %s"
+
+#: mimeview/mimetypes.y:609
+#, fuzzy, c-format
+msgid "argument %d has wrong type in call to `%s'"
+msgstr "prea puþine argumente în apelarea cãtre `%s'"
+
+#: mimeview/mimeview.c:29
+msgid "GNU mimeview -- display files, using mailcap mechanism."
+msgstr ""
+
+#: mimeview/mimeview.c:31
+msgid "Default mime.types file is "
+msgstr ""
+
+#: mimeview/mimeview.c:32
+msgid ""
+"\n"
+"\n"
+"Debug flags are:\n"
+"  g - Mime.types parser traces\n"
+"  l - Mime.types lexical analyzer traces\n"
+"  0-9 - Set debugging level\n"
+msgstr ""
+
+#: mimeview/mimeview.c:40
+#, fuzzy
+msgid "TYPE-LIST"
+msgstr "LISTEAZÃ"
+
+#: mimeview/mimeview.c:41
+msgid ""
+"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
+"do not ask for confirmation before displaying such files whose MIME type "
+"matches one of the patterns from TYPE-LIST"
+msgstr ""
+
+#: mimeview/mimeview.c:43
+msgid "Disable interactive mode"
+msgstr ""
+
+#: mimeview/mimeview.c:48
+msgid "Use this mime.types file"
+msgstr ""
+
+#: mimeview/mimeview.c:50
+#, fuzzy
+msgid "Do not do anything, just print what whould be done"
+msgstr "Nici o acþiune executatã, doar afiºeazã ce se va întâmpla"
+
+#: mimeview/mimeview.c:52
+msgid "Use metamail to display files"
+msgstr ""
+
+#: mimeview/mimeview.c:140
+msgid "FILE [FILE ...]"
+msgstr ""
+
+#: mimeview/mimeview.c:180
+#, fuzzy, c-format
+msgid "Not a regular file or symbolic link: `%s'"
+msgstr "%s nu este un fiºier regulat sau o legãturã simbolicã."
+
+#: mimeview/mimeview.c:273
+#, c-format
+msgid "No files given"
+msgstr ""
 
 #: movemail/movemail.c:30
 msgid "GNU movemail"
@@ -4806,139 +5162,131 @@ msgstr "Pãstreazã copia dosarului sursã."
 msgid "Reverse the sorting order"
 msgstr ""
 
-#: movemail/movemail.c:39
+#: movemail/movemail.c:40
 msgid "Output information used by Emacs rmail interface"
 msgstr ""
 
-#: movemail/movemail.c:107
+#: movemail/movemail.c:116
 #, fuzzy, c-format
 msgid "%s:mailbox `%s': %s: %s"
 msgstr "blocarea(lock) a mailboxului '%s' a eºuat: %s"
 
-#: movemail/movemail.c:113
+#: movemail/movemail.c:122
 #, fuzzy, c-format
 msgid "mailbox `%s': %s: %s"
 msgstr "blocarea(lock) a mailboxului '%s' a eºuat: %s"
 
-#: movemail/movemail.c:126
+#: movemail/movemail.c:135
 msgid "Cannot retrieve locker"
 msgstr ""
 
-#: movemail/movemail.c:135
+#: movemail/movemail.c:144
 msgid "Cannot lock"
 msgstr ""
 
-#: movemail/movemail.c:169
+#: movemail/movemail.c:178
 #, fuzzy
 msgid "mu_mailbox_get_folder failed"
 msgstr "eroare mailbox_get_folder: %s"
 
-#: movemail/movemail.c:172
+#: movemail/movemail.c:181
 #, fuzzy
 msgid "mu_folder_get_authority failed"
 msgstr "eroare folder_get_authority: %s"
 
-#: movemail/movemail.c:175
+#: movemail/movemail.c:184
 #, fuzzy
 msgid "mu_authority_set_ticket failed"
 msgstr "eroare authority_set_ticket: %s"
 
-#: movemail/movemail.c:202
+#: movemail/movemail.c:211
 msgid "Cannot open"
 msgstr ""
 
-#: movemail/movemail.c:214
+#: movemail/movemail.c:223
 #, fuzzy, c-format
 msgid "Cannot read message %lu: %s\n"
 msgstr "nu se poate citi mesajul %lu: %s"
 
-#: movemail/movemail.c:220
+#: movemail/movemail.c:229
 #, fuzzy, c-format
 msgid "Cannot append message %lu: %s\n"
 msgstr "nu se poate citi mesajul %lu: %s"
 
-#: movemail/movemail.c:251
+#: movemail/movemail.c:260
+#, c-format
 msgid "Hostname of the POP3 server is unknown"
 msgstr ""
 
-#: movemail/movemail.c:289
-#, fuzzy
+#: movemail/movemail.c:307
+#, fuzzy, c-format
 msgid "Wrong number of arguments"
 msgstr "Numãr de pagini greºit"
 
-#: pop3d/apop.c:57
-msgid "Bad permissions on APOP password db"
-msgstr "Permisiuni greºite la parola db APOP"
+#: movemail/movemail.c:343
+#, fuzzy, c-format
+msgid "Cannot close destination mailbox: %s"
+msgstr "nu se poate deschide mailboxul implicit %s: %s"
 
-#: pop3d/apop.c:59
+#: pop3d/apop.c:56
 #, c-format
 msgid "Unable to open APOP db: %s"
 msgstr "Nu se poate deschide APOP db: %s"
 
-#: pop3d/apop.c:77
+#: pop3d/apop.c:74
 #, fuzzy, c-format
 msgid "Cannot fetch APOP data: %s"
 msgstr "Nu se pot aduce(fetch) datele APOP: %s"
 
-#: pop3d/apop.c:95
+#: pop3d/apop.c:96
 msgid "Bad permissions on APOP password file"
 msgstr "Permisiuni greºite pe fiºierul de parole APOP"
 
-#: pop3d/apop.c:102
+#: pop3d/apop.c:103
 #, c-format
 msgid "Unable to open APOP password file %s"
 msgstr "Nu se poate deschide fiºierul de parole APOP %s"
 
-#: pop3d/apop.c:166
+#: pop3d/apop.c:163
 #, c-format
 msgid "User name too long: %s"
 msgstr "Nume utilizator prea lung: %s"
 
-#: pop3d/apop.c:175
+#: pop3d/apop.c:172
 #, c-format
 msgid "Password for `%s' not found in the database"
 msgstr "Parola pentru `%s' nu a fost gãsitã în baza de date"
 
-#: pop3d/apop.c:199
+#: pop3d/apop.c:196
 #, c-format
 msgid "APOP failed for `%s'"
 msgstr "eroare de APOP pentru `%s'"
 
-#: pop3d/apop.c:214
-#, fuzzy, c-format
-msgid "Cannot change to uid %lu: %m"
-msgstr "nu se poate trece în uid %lu: %m"
-
-#: pop3d/apop.c:270
-#, fuzzy, c-format
-msgid "User `%s' logged in with mailbox `%s'"
-msgstr "Userul '%s' este intrat(logged in) cu mailboxul '%s'"
-
-#: pop3d/extra.c:124
+#: pop3d/extra.c:125
 #, c-format
 msgid "Mailbox was updated by other party: %s"
 msgstr "Mailboxul a fost adus la zi(updated) de cealaltã parte: %s"
 
-#: pop3d/extra.c:167
+#: pop3d/extra.c:168
 #, c-format
 msgid "cannot open TLS stream: %s"
 msgstr "nu se poate deschide secvenþa(stream) TLS: %s"
 
-#: pop3d/extra.c:228
+#: pop3d/extra.c:229
 #, fuzzy, c-format
 msgid "Write failed: %s"
 msgstr "eroare de scriere: %s"
 
-#: pop3d/extra.c:251
+#: pop3d/extra.c:252
 #, fuzzy, c-format
 msgid "Read failed: %s"
 msgstr "eroare de citire: %s"
 
-#: pop3d/extra.c:256
+#: pop3d/extra.c:257
 msgid "unexpected eof on input"
 msgstr "eof în intrare(input) neaºteptat"
 
-#: pop3d/lock.c:35
+#: pop3d/lock.c:36
 #, fuzzy, c-format
 msgid "Locking mailbox `%s' failed: %s"
 msgstr "Deschiderea mailerului '%s' a eºuat: %s"
@@ -4947,62 +5295,74 @@ msgstr "Deschiderea mailerului '%s' a eºuat: %s"
 msgid "GNU pop3d -- the POP3 daemon"
 msgstr "GNU pop3d -- daemon-ul POP3"
 
-#: pop3d/pop3d.c:75
+#: pop3d/pop3d.c:78
 msgid "Undelete all messages on startup"
 msgstr ""
 
-#: pop3d/pop3d.c:78
-msgid "Allowed delay between the two successive logins"
-msgstr ""
-
 #: pop3d/pop3d.c:79
-#, fuzzy
-msgid "FILENAME"
-msgstr "FIªIER"
-
-#: pop3d/pop3d.c:80
-msgid "Name of login statistics file"
-msgstr ""
-
-#: pop3d/pop3d.c:82
 msgid "DAYS"
 msgstr ""
 
-#: pop3d/pop3d.c:83
+#: pop3d/pop3d.c:80
 #, fuzzy
 msgid "Expire read messages after the given number of days"
 msgstr "Gãseºte mesajele de dupã data specificatã"
 
-#: pop3d/pop3d.c:85
+#: pop3d/pop3d.c:82
 msgid "Delete expired messages upon closing the mailbox"
 msgstr ""
 
-#: pop3d/pop3d.c:88
+#: pop3d/pop3d.c:85
 msgid "Always require STLS before entering authentication phase"
 msgstr ""
 
-#: pop3d/pop3d.c:278
+#: pop3d/pop3d.c:92
+msgid "Allowed delay between the two successive logins"
+msgstr ""
+
+#: pop3d/pop3d.c:93
+#, fuzzy
+msgid "FILENAME"
+msgstr "FIªIER"
+
+#: pop3d/pop3d.c:94
+msgid "Name of login statistics file"
+msgstr ""
+
+#: pop3d/pop3d.c:100 sieve/sieve.c:79
+msgid "MBOX"
+msgstr "MBOX"
+
+#: pop3d/pop3d.c:101
+msgid "Set source mailbox to get bulletins from"
+msgstr ""
+
+#: pop3d/pop3d.c:104
+msgid "Set the bulletin database file name"
+msgstr ""
+
+#: pop3d/pop3d.c:353
 #, fuzzy
 msgid "Failed to become a daemon:"
 msgstr "eroare în a deveni un daemon:"
 
-#: pop3d/pop3d.c:314
+#: pop3d/pop3d.c:389
 #, c-format
 msgid "connect from %s"
 msgstr "conectare de la %s"
 
-#: pop3d/pop3d.c:438
+#: pop3d/pop3d.c:513
 #, fuzzy
 msgid "Session terminated"
 msgstr "Terminare sesiune"
 
-#: pop3d/pop3d.c:524
+#: pop3d/pop3d.c:599
 msgid "GNU pop3d started"
 msgstr "GNU pop3d pornit"
 
-#: pop3d/pop3d.c:531
-#, c-format
-msgid "too many children (%lu)"
+#: pop3d/pop3d.c:606
+#, fuzzy, c-format
+msgid "too many children (%s)"
 msgstr "prea multe procese children (%lu)"
 
 #: pop3d/popauth.c:58
@@ -5073,189 +5433,200 @@ msgid "Invalid octal number: %s"
 msgstr "Numãr invalid"
 
 #: pop3d/popauth.c:215
+#, c-format
 msgid "You may not specify more than one `-aldp' option"
 msgstr "Nu puteþi specifica mai mult de o opþiune `-aldp'"
 
-#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:369
+#: pop3d/popauth.c:237 pop3d/popauth.c:293 pop3d/popauth.c:373
 #, fuzzy, c-format
 msgid "Cannot create %s: %s"
 msgstr "nu se poate crea %s: %s"
 
 #: pop3d/popauth.c:257
+#, c-format
 msgid "Only the file owner can use --username"
 msgstr "Doar proprietarul(owner) fiºierului poate folosi --username"
 
 #: pop3d/popauth.c:263
+#, c-format
 msgid "Operation not allowed"
 msgstr "Operaþiune nepermisã"
 
-#: pop3d/popauth.c:399
+#: pop3d/popauth.c:403
 #, c-format
 msgid "%s:%d: malformed line"
 msgstr "%s:%d: linie malformatã"
 
-#: pop3d/popauth.c:412
+#: pop3d/popauth.c:416
 #, fuzzy, c-format
 msgid "%s:%d: cannot store datum"
 msgstr "%s:%d: nu se poate stoca datum"
 
-#: pop3d/popauth.c:445
+#: pop3d/popauth.c:449
 msgid "Password:"
 msgstr "Parolã:"
 
 #. TRANSLATORS: Please try to format this string so that it has
 #. the same length as the translation of 'Password:' above
-#: pop3d/popauth.c:451
+#: pop3d/popauth.c:455
 msgid "Confirm :"
 msgstr "Confrimare:"
 
-#: pop3d/popauth.c:454
+#: pop3d/popauth.c:458
+#, c-format
 msgid "Passwords differ. Please retry."
 msgstr "Parolele diferã. Vã rugãm reîncercaþi."
 
-#: pop3d/popauth.c:469
-#, fuzzy
+#: pop3d/popauth.c:473
+#, fuzzy, c-format
 msgid "Missing username to add"
 msgstr "lipseºte numele user-ului de adãugat"
 
-#: pop3d/popauth.c:487
-#, fuzzy
+#: pop3d/popauth.c:491
+#, fuzzy, c-format
 msgid "Cannot store datum"
 msgstr "nu se poate stoca datum"
 
-#: pop3d/popauth.c:502
-#, fuzzy
+#: pop3d/popauth.c:506
+#, fuzzy, c-format
 msgid "Missing username to delete"
 msgstr "lipseºte numele user-ului de ºters"
 
-#: pop3d/popauth.c:514
+#: pop3d/popauth.c:518
 #, fuzzy, c-format
 msgid "Cannot remove record for %s"
 msgstr "nu se poate ºterge înregistrarea pentru %s"
 
-#: pop3d/popauth.c:534
-#, fuzzy
+#: pop3d/popauth.c:538
+#, fuzzy, c-format
 msgid "Missing username"
 msgstr "lipseºte username"
 
-#: pop3d/popauth.c:556
+#: pop3d/popauth.c:560
 msgid "Old Password:"
 msgstr "Parolã veche:"
 
-#: pop3d/popauth.c:561
+#: pop3d/popauth.c:565
+#, c-format
 msgid "Sorry"
 msgstr "Ne pare rãu"
 
-#: pop3d/popauth.c:572
-#, fuzzy
+#: pop3d/popauth.c:577
+#, fuzzy, c-format
 msgid "Cannot replace datum"
 msgstr "nu se poate înlocui datum"
 
-#: pop3d/popauth.c:591
+#: pop3d/popauth.c:596
 #, c-format
 msgid "Database format: %s\n"
 msgstr "Format bazã de date: %s\n"
 
-#: pop3d/popauth.c:592
+#: pop3d/popauth.c:597
 #, c-format
 msgid "Database location: %s\n"
 msgstr "Locaþie bazã de date: %s\n"
 
-#: pop3d/quit.c:46
+#: pop3d/quit.c:47
 #, c-format
 msgid "Session ended for user: %s"
 msgstr "Sesiune închisã pentru user: %s"
 
-#: pop3d/quit.c:49
+#: pop3d/quit.c:50
 msgid "Session ended for no user"
 msgstr "Sesiune închisã pentru user_lipsã"
 
-#: pop3d/user.c:68
-#, c-format
-msgid "APOP user %s tried to log in with USER"
-msgstr "User-ul APOP %s a încercat sã intre(log in) cu USER"
-
-#: pop3d/user.c:87
-#, fuzzy, c-format
-msgid "User `%s': authentication failed"
-msgstr "Autentificarea user-ului '%s' a eºuat"
-
-#: pop3d/user.c:94
-#, fuzzy, c-format
-msgid "Possible probe of account `%s'"
-msgstr "Posibilã probã a contului '%s'"
-
-#: pop3d/user.c:107
+#: pop3d/user.c:31
 #, c-format
 msgid "User `%s' tried to log in within the minimum allowed delay"
 msgstr ""
 
-#: pop3d/user.c:169
+#: pop3d/user.c:78
 #, fuzzy, c-format
-msgid "User `%s' logged in with mailbox `%s' (%d message)"
-msgid_plural "User `%s' logged in with mailbox `%s' (%d messages)"
+msgid "User `%s' logged in with mailbox `%s' (%s message)"
+msgid_plural "User `%s' logged in with mailbox `%s' (%s messages)"
 msgstr[0] "User-ul '%s' intrat(logged in) cu mailbox-ul '%s' (%d mesaj)"
 msgstr[1] "User-ul '%s' intrat(logged in) cu mailbox-ul '%s' (%d mesaje)"
 
-#: readmsg/readmsg.c:34
+#: pop3d/user.c:131
+#, c-format
+msgid "APOP user %s tried to log in with USER"
+msgstr "User-ul APOP %s a încercat sã intre(log in) cu USER"
+
+#: pop3d/user.c:150
+#, fuzzy, c-format
+msgid "User `%s': authentication failed"
+msgstr "Autentificarea user-ului '%s' a eºuat"
+
+#: pop3d/user.c:157
+#, fuzzy, c-format
+msgid "Possible probe of account `%s'"
+msgstr "Posibilã probã a contului '%s'"
+
+#: readmsg/readmsg.c:35
 msgid "GNU readmsg -- print messages"
 msgstr "GNU readmsg -- tipãreºte mesajele"
 
-#: readmsg/readmsg.c:39
+#: readmsg/readmsg.c:40
 msgid "Display debugging information"
 msgstr "Afiºeazã informaþii de debugging"
 
-#: readmsg/readmsg.c:40
+#: readmsg/readmsg.c:41
 msgid "Display entire header"
 msgstr "Afiºeazã tot header-ul"
 
-#: readmsg/readmsg.c:41
+#: readmsg/readmsg.c:42
 msgid "LIST"
 msgstr "LISTEAZÃ"
 
-#: readmsg/readmsg.c:42
+#: readmsg/readmsg.c:43
 msgid "List of header names separated by whitespace or commas"
 msgstr "Listeazã numele header-elor separate de spaþii sau virgule"
 
-#: readmsg/readmsg.c:43
+#: readmsg/readmsg.c:44
 msgid "Folder to use"
 msgstr "Dosarul care va fi folosit"
 
-#: readmsg/readmsg.c:44
+#: readmsg/readmsg.c:45
 msgid "Exclude all headers"
 msgstr "Exclude toate header-ele"
 
-#: readmsg/readmsg.c:45
+#: readmsg/readmsg.c:46
 msgid "Output formfeeds between messages"
 msgstr "Afiºeazã(output) formfeed-uri între mesaje"
 
-#: readmsg/readmsg.c:47
+#: readmsg/readmsg.c:48
 msgid "Print all messages matching pattern, not just the first"
 msgstr ""
 "Tipãreºte toate mesajele care se potrivesc tiparului(pattern), nu doar primul"
 
-#: readmsg/readmsg.c:249
+#: readmsg/readmsg.c:294
 #, fuzzy, c-format
 msgid "Could not create mailbox `%s': %s\n"
 msgstr "nu s-a putut crea mailbox-ul <%s>: %s\n"
 
-#: readmsg/readmsg.c:253
+#: readmsg/readmsg.c:298
 #, fuzzy, c-format
 msgid "Could not create default mailbox: %s\n"
 msgstr "nu s-a putut crea mailbox: %s"
 
-#: readmsg/readmsg.c:272
+#: readmsg/readmsg.c:317
 #, fuzzy, c-format
 msgid "Could not open mailbox `%s': %s\n"
 msgstr "nu s-a putut deschide mailbox-ul %s: %s\n"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
+#: readmsg/readmsg.c:329
+#, fuzzy, c-format
+msgid "Cannot parse weedlist: %s"
+msgstr "nu se poate crea lista: %s"
+
+#: sieve/sieve.c:52
+msgid "GNU sieve -- a mail filtering tool"
+msgstr ""
+
 #: sieve/sieve.c:54
 #, fuzzy
 msgid ""
-"GNU sieve -- a mail filtering tool\n"
-"Debug flags:\n"
+"Debug flags:\n"
 "  g - main parser traces\n"
 "  T - mailutils traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
@@ -5263,240 +5634,288 @@ msgid ""
 "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
 msgstr ""
 "GNU sieve -- un utilitar de filtrare a mail-ului\n"
-"Flag-uri de debug\n"
+"\vFlag-uri de debug\n"
 "  g - trace-uri ale analizorului(parser) principal\n"
 "  T - trace-uri mailutil (MU_DEBUG_TRACE)\n"
 "  P - protocoale de reþea (MU_DEBUG_PROT)\n"
 "  t - trace de sieve (MU_SIEVE_DEBUG_TRACE)\n"
 "  i - trace instrucþiuni sieve (MU_SIEVE_DEBUG_INSTR)\n"
 
-#: sieve/sieve.c:70
+#: sieve/sieve.c:68
 #, fuzzy
 msgid "Do not execute any actions, just print what would be done"
 msgstr "Nici o acþiune executatã, doar afiºeazã ce se va întâmpla"
 
-#: sieve/sieve.c:73
+#: sieve/sieve.c:71
 msgid "Keep on going if execution fails on a message"
 msgstr "Contiunã dacã execuþia a eºuat într-un mesaj"
 
-#: sieve/sieve.c:76
+#: sieve/sieve.c:74
 msgid "Compile script and exit"
 msgstr "Compileazã scriptul ºi iese"
 
-#: sieve/sieve.c:79
+#: sieve/sieve.c:77
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
 msgstr ""
 "Compileazã scriptul, lasã(dump) codul sieve dezasamblat la terminal ºi iese"
 
-#: sieve/sieve.c:81
-msgid "MBOX"
-msgstr "MBOX"
-
-#: sieve/sieve.c:82
+#: sieve/sieve.c:80
 msgid "Mailbox to sieve (defaults to user's mail spool)"
 msgstr "Mailbox pentru sieve (implicit spool-ul mail-ului user-ului)"
 
-#: sieve/sieve.c:84
+#: sieve/sieve.c:82
 msgid "TICKET"
 msgstr "TICKET"
 
-#: sieve/sieve.c:85
+#: sieve/sieve.c:83
 msgid "Ticket file for mailbox authentication"
 msgstr "Fiºier ticket pentru autentificare mailbox"
 
-#: sieve/sieve.c:88
+#: sieve/sieve.c:86
 msgid "Debug flags (defaults to \""
 msgstr "Flag-uri de debug (implicit \""
 
-#: sieve/sieve.c:88
-msgid "\")"
-msgstr "\")"
-
-#: sieve/sieve.c:91
+#: sieve/sieve.c:89
 msgid "Log all actions"
 msgstr "Logare toate acþiunile"
 
-#: sieve/sieve.c:94
+#: sieve/sieve.c:92
 #, fuzzy
 msgid "Print source location along with action logs (default)"
 msgstr "Trunchiazã mailboxul sursã dupã încorporare (implicit)"
 
-#: sieve/sieve.c:97
+#: sieve/sieve.c:95
 msgid "Override user email address"
 msgstr "Înlocuieºte(override) adresa de email a userului"
 
-#: sieve/sieve.c:150
+#: sieve/sieve.c:171
 #, fuzzy, c-format
 msgid "Invalid email: %s"
 msgstr "email invalid: %s"
 
-#: sieve/sieve.c:171
-#, fuzzy
-msgid "Only one MBOX can be specified"
-msgstr "doar un MBOX poate fi specificat"
-
-#: sieve/sieve.c:225
+#: sieve/sieve.c:218
 #, fuzzy
 msgid "Only one SCRIPT can be specified"
 msgstr "doar un SCRIPT poate fi specificat"
 
-#: sieve/sieve.c:230
+#: sieve/sieve.c:223
 msgid "SCRIPT must be specified"
 msgstr "SCRIPT trebuie specificat"
 
-#: sieve/sieve.c:243
+#: sieve/sieve.c:236
 msgid "SCRIPT"
 msgstr "SCRIPT"
 
-#: sieve/sieve.c:301 sieve/sieve.c:326
+#: sieve/sieve.c:253
+#, fuzzy, c-format
+msgid "%s:%d: Invalid email: %s"
+msgstr "email invalid: %s"
+
+#: sieve/sieve.c:333 sieve/sieve.c:358
 #, fuzzy, c-format
 msgid "%s:%lu: %s on msg uid %lu"
 msgstr "%s pe msj uid %lu"
 
-#: sieve/sieve.c:305 sieve/sieve.c:330
+#: sieve/sieve.c:337 sieve/sieve.c:362
 #, c-format
 msgid "%s on msg uid %lu"
 msgstr "%s pe msj uid %lu"
 
-#: sieve/sieve.c:416
+#: sieve/sieve.c:455
 #, c-format
 msgid "ticket_get failed: %s"
 msgstr "eroare ticket_get: %s"
 
-#: sieve/sieve.c:422
+#: sieve/sieve.c:461
 #, fuzzy, c-format
 msgid "mu_wicket_create `%s' failed: %s"
 msgstr "eroare wicket_create <%s>: %s"
 
-#: sieve/sieve.c:435
+#: sieve/sieve.c:474
 #, c-format
 msgid "mu_debug_create failed: %s"
 msgstr "eroare mu_debug_create: %s"
 
-#: sieve/sieve.c:440
+#: sieve/sieve.c:479
 #, c-format
 msgid "mu_debug_set_level failed: %s"
 msgstr "eroare mu_debug_set_level: %s"
 
-#: sieve/sieve.c:446
+#: sieve/sieve.c:485
 #, c-format
 msgid "mu_debug_set_print failed: %s"
 msgstr "eroare mu_debug_set_print: %s"
 
-#: sieve/sieve.c:468
+#: sieve/sieve.c:507
 #, fuzzy, c-format
 msgid "mu_mailbox_set_debug failed: %s"
 msgstr "eroare mailbox_set_debug: %s"
 
-#: sieve/sieve.c:479
+#: sieve/sieve.c:518
 #, fuzzy, c-format
 msgid "mu_mailbox_get_folder failed: %s"
 msgstr "eroare mailbox_get_folder: %s"
 
-#: sieve/sieve.c:486
+#: sieve/sieve.c:525
 #, fuzzy, c-format
 msgid "mu_folder_get_authority failed: %s"
 msgstr "eroare folder_get_authority: %s"
 
-#: sieve/sieve.c:494
+#: sieve/sieve.c:533
 #, fuzzy, c-format
 msgid "mu_authority_set_ticket failed: %s"
 msgstr "eroare authority_set_ticket: %s"
 
-#: sieve/sieve.c:509
+#: sieve/sieve.c:548
 #, fuzzy, c-format
 msgid "Opening mailbox `%s' failed: %s"
 msgstr "Deschiderea mailerului '%s' a eºuat: %s"
 
-#: sieve/sieve.c:512
+#: sieve/sieve.c:551
 #, fuzzy, c-format
 msgid "Opening default mailbox failed: %s"
 msgstr "Deschiderea mailerului '%s' a eºuat: %s"
 
-#: sieve/sieve.c:533
+#: sieve/sieve.c:572
 #, fuzzy, c-format
 msgid "Expunge on mailbox `%s' failed: %s"
 msgstr "eroare la eliminarea(expunge) %s: %s"
 
-#: sieve/sieve.c:536
+#: sieve/sieve.c:575
 #, fuzzy, c-format
 msgid "Expunge on default mailbox failed: %s"
 msgstr "eroare la eliminarea(expunge) %s: %s"
 
-#. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
-#. in this message
-#: mimeview/mimeview.c:31
-msgid ""
-"GNU mimeview -- display files, using mailcap mechanism.Default mime.types "
-"file is "
-msgstr ""
+#~ msgid "Encryption options"
+#~ msgstr "Opþiuni de criptare(encryption)"
 
-#: mimeview/mimeview.c:33
-msgid ""
-"\n"
-"\n"
-"Debug flags are:\n"
-"  g - Mime.types parser traces\n"
-"  l - Mime.types lexical analyzer traces\n"
-"  0-9 - Set debugging level\n"
-msgstr ""
-
-#: mimeview/mimeview.c:41
 #, fuzzy
-msgid "TYPE-LIST"
-msgstr "LISTEAZÃ"
+#~ msgid "General options"
+#~ msgstr "Alte opþiuni"
 
-#: mimeview/mimeview.c:42
-msgid ""
-"Do not ask for confirmation before displaying files. If TYPE-LIST is given, "
-"do not ask for confirmation before displaying such files whose MIME type "
-"matches one of the patterns from TYPE-LIST"
-msgstr ""
-
-#: mimeview/mimeview.c:44
-msgid "Disable interactive mode"
-msgstr ""
-
-#: mimeview/mimeview.c:49
-msgid "Use this mime.types file"
-msgstr ""
-
-#: mimeview/mimeview.c:51
 #, fuzzy
-msgid "Do not do anything, just print what whould be done"
-msgstr "Nici o acþiune executatã, doar afiºeazã ce se va întâmpla"
+#~ msgid "Only one MBOX can be specified"
+#~ msgstr "doar un MBOX poate fi specificat"
 
-#: mimeview/mimeview.c:53
-msgid "Use metamail to display files"
-msgstr ""
+#, fuzzy
+#~ msgid "%s:%d: cannot create tag list: %s"
+#~ msgstr "%s:%d: nu se poate crea lista de etichete(tag): %s"
 
-#: mimeview/mimeview.c:135
-msgid "FILE [FILE ...]"
-msgstr ""
+#~ msgid ""
+#~ "GNU MH anno\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH anno\vOpþiunile marcate cu `*' nu sunt încã implementate\n"
+#~ "Folosiþi --help pentru a obþine lista cu opþiunile MH tradiþionale."
 
-#: mimeview/mimeview.c:153 mimeview/mimetypes.l:150
-#, fuzzy, c-format
-msgid "Cannot stat `%s': %s"
-msgstr "nu se poate stabili(stat) %s:%s"
+#~ msgid ""
+#~ "GNU MH fmtcheck\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH fmtcheck\vFolosiþi -helppentru a obþine o listã cu opþiunile MH "
+#~ "tradiþionale."
 
-#: mimeview/mimeview.c:158
-#, fuzzy, c-format
-msgid "Not a regular file or symbolic link: `%s'"
-msgstr "%s nu este un fiºier regulat sau o legãturã simbolicã."
+#~ msgid ""
+#~ "GNU MH folder\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "Dosarul(folder) GNU MH\vFolosiþi -help pentru a obþine o listã cu "
+#~ "opþiunile tradiþionale MH."
 
-#: mimeview/mimeview.c:250
-msgid "No files given"
-msgstr ""
+#~ msgid ""
+#~ "GNU MH forw\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH forw\vOpþiunile marcate cu `*' nu sunt implementate încã\n"
+#~ "Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
-#: mimeview/mimetypes.y:537
-#, fuzzy, c-format
-msgid "%s: unknown function"
-msgstr "acþiune necunoscutã: %s"
+#~ msgid ""
+#~ "GNU MH install-mh\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH install-mh\vFolosiþi -help pentru a obþine o listã de opþiuni MH "
+#~ "tradiþionale."
 
-#: mimeview/mimetypes.y:609
-#, fuzzy, c-format
-msgid "argument %d has wrong type in call to `%s'"
-msgstr "prea puþine argumente în apelarea cãtre `%s'"
+#~ msgid "GNU MH mark\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH mark\vFolosiþi -help pentru a obþine o listã de opþiuni MH "
+#~ "tradiþionale."
+
+#~ msgid "GNU MH mhl\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH mhl\vFolosiþi -help pentru a obþine o listã cu opþiunile "
+#~ "tradiþionale MH."
+
+#~ msgid "storing message %lu part %s as file %s\n"
+#~ msgstr "se stocheazã mesajul %lu partea %s ca fiºier %s\n"
+
+#~ msgid ""
+#~ "GNU MH mhpath\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH mhpath\vFolosiþi -help pentru a obþine o listã de opþiuni "
+#~ "tradiþionale MH."
+
+#~ msgid ""
+#~ "GNU MH pick\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH pick\vOpþiunile marcate cu `*' nu sunt încã implementate\n"
+#~ "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
+
+#~ msgid ""
+#~ "GNU MH refile\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH refile\vOpþiunile marcate u `*' nu sunt încã implementate\n"
+#~ "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH"
+
+#~ msgid ""
+#~ "GNU MH repl\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH repl\vOpþiunile marcate u `*' nu sunt încã implementate\n"
+#~ "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
+
+#~ msgid "GNU MH rmf\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH rmf\vFolosiþi -help pentru a obþine o listã de opþiuni MH "
+#~ "tradiþionale."
+
+#~ msgid "GNU MH rmm\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH rmm\vFolosiþi -help pentru a obtine o listã de opþiuni MH "
+#~ "tradiþionale."
+
+#~ msgid "GNU MH scan\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH scan\vFolosiþi -help pentru a obtine o listã de opþiuni MH "
+#~ "tradiþionale."
+
+#~ msgid ""
+#~ "GNU MH send\vOptions marked with `*' are not yet implemented.\n"
+#~ "Use -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH send\vOpþiunile marcate cu `*' nu sunt încã implementate\n"
+#~ "Folosiþi -help pentru a obþine o listã a opþiunilor MH tradiþionale."
+
+#~ msgid "cannot stat %s: %s"
+#~ msgstr "nu se poate stabili(stat) %s:%s"
+
+#~ msgid "GNU MH whom\vUse -help to obtain the list of traditional MH options."
+#~ msgstr ""
+#~ "GNU MH whom\vFolosiþi -help pentru a obþine o listã de opþiuni "
+#~ "tradiþionale MH."
+
+#~ msgid "Bad permissions on APOP password db"
+#~ msgstr "Permisiuni greºite la parola db APOP"
+
+#, fuzzy
+#~ msgid "Cannot change to uid %lu: %m"
+#~ msgstr "nu se poate trece în uid %lu: %m"
+
+#, fuzzy
+#~ msgid "User `%s' logged in with mailbox `%s'"
+#~ msgstr "Userul '%s' este intrat(logged in) cu mailboxul '%s'"
+
+#~ msgid "\")"
+#~ msgstr "\")"
 
 #, fuzzy
 #~ msgid "Cannot create mailbox %s"
@@ -5599,9 +6018,6 @@ msgstr "prea puþine argumente în apelarea cãtre `%s'"
 #~ msgid "msg %d : %s\n"
 #~ msgstr "msj %d : %s\n"
 
-#~ msgid "not enough memory"
-#~ msgstr "nu este destulã memorie"
-
 #~ msgid "can't open input file %s: %s"
 #~ msgstr "nu se poate deschide fiºierul de intrare(input) %s: %s"
 
@@ -5680,7 +6096,7 @@ msgstr "prea puþine argumente în apelarea cãtre `%s'"
 
 #~ msgid ""
 #~ "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
-#~ "\n"
+#~ "\v\n"
 #~ "An RFC2822 formatted message is read from stdin and delivered using\n"
 #~ "the mailer. This utility can be used as a drop-in replacement\n"
 #~ "for /bin/sendmail to forward mail directly to an SMTP gateway.\n"
@@ -5711,7 +6127,7 @@ msgstr "prea puþine argumente în apelarea cãtre `%s'"
 #~ "stdout.\n"
 #~ msgstr ""
 #~ "GNU mail.remote -- interfaþã pseudo-sendmailpentur livrare de email\n"
-#~ " \n"
+#~ "\v \n"
 #~ "Un mesaj formatat RFC2822 este citit de la stdin ºi livrat folosind "
 #~ "mailerul.\n"
 #~ " Acest utilitar poate fi folosit ca o înlocuire mai slabã pentru /bin/"

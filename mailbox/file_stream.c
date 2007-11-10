@@ -419,11 +419,10 @@ _file_open (mu_stream_t stream)
   char* filename = 0;
   int flags = 0;
 
-  assert(fs);
-
+  if (!fs || !fs->filename)
+    return EINVAL;
+  
   filename = fs->filename;
-
-  assert(filename);
 
   if (fs->file)
     {
@@ -431,12 +430,12 @@ _file_open (mu_stream_t stream)
       fs->file = NULL;
     }
 
-  mu_stream_get_flags(stream, &flags);
+  mu_stream_get_flags (stream, &flags);
 
   /* Map the flags to the system equivalent.  */
   if (flags & MU_STREAM_WRITE && flags & MU_STREAM_READ)
     return EINVAL;
-  else if (flags & MU_STREAM_WRITE)
+  else if (flags & (MU_STREAM_WRITE|MU_STREAM_APPEND))
     flg = O_WRONLY;
   else if (flags & MU_STREAM_RDWR)
     flg = O_RDWR;
@@ -453,14 +452,14 @@ _file_open (mu_stream_t stream)
   if (flags & MU_STREAM_CREAT)
     {
       /* First see if the file already exists.  */
-      fd = open(filename, flg);
+      fd = open (filename, flg);
       if (fd == -1)
 	{
 	  /* Oops bail out.  */
 	  if (errno != ENOENT)
 	    return errno;
 	  /* Race condition here when creating the file ??.  */
-	  fd = open(filename, flg|O_CREAT|O_EXCL, 0600);
+	  fd = open (filename, flg|O_CREAT|O_EXCL, 0600);
 	  if (fd < 0)
 	    return errno;
 	}
@@ -474,16 +473,15 @@ _file_open (mu_stream_t stream)
 
   /* We have to make sure that We did not open
      a symlink. From Casper D. in bugtraq.  */
-  if ((flg & MU_STREAM_CREAT) ||
-      (flg & MU_STREAM_RDWR) ||
-      (flg & MU_STREAM_WRITE))
+  if (flg & (MU_STREAM_CREAT | MU_STREAM_RDWR
+	     | MU_STREAM_WRITE | MU_STREAM_APPEND))
     {
       struct stat fdbuf, filebuf;
 
       /* The next two stats should never fail.  */
-      if (fstat(fd, &fdbuf) == -1)
+      if (fstat (fd, &fdbuf) == -1)
 	return errno;
-      if (lstat(filename, &filebuf) == -1)
+      if (lstat (filename, &filebuf) == -1)
 	return errno;
 
       /* Now check that: file and fd reference the same file,

@@ -147,9 +147,9 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   return 0;
 }
 
-/* Observable Action this is being call at every message discover.  */
+/* Observable Action this is called at every message discover.  */
 static int
-action (mu_observer_t o, size_t type)
+action (mu_observer_t o, size_t type, void *data, void *action_data)
 {
   static int counter;
   mu_mailbox_t mbox;

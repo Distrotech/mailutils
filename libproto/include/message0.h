@@ -60,6 +60,7 @@ struct _mu_message
 
   int (*_get_uidl)       (mu_message_t, char *, size_t, size_t *);
   int (*_get_uid)        (mu_message_t, size_t *);
+  int (*_get_qid)        (mu_message_t,	mu_message_qid_t *);
   int (*_get_num_parts)  (mu_message_t, size_t *);
   int (*_get_part)       (mu_message_t, size_t, mu_message_t *);
   int (*_is_multipart)   (mu_message_t, int *);

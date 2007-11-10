@@ -623,7 +623,7 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
       size_t i;
       for (i = 0; i < amd->msg_count; i++)
 	{
-	  DISPATCH_ADD_MSG(mailbox, amd);
+	  DISPATCH_ADD_MSG(mailbox, amd, i);
 	}
     }
   

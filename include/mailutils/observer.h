@@ -24,36 +24,42 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define MU_EVT_MAILBOX_DESTROY     0x001
-#define MU_EVT_FOLDER_DESTROY      0x002
-#define MU_EVT_MAILER_DESTROY      0x004
-#define MU_EVT_MESSAGE_DESTROY     0x008
-#define MU_EVT_MESSAGE_ADD         0x010
-#define MU_EVT_MAILBOX_PROGRESS    0x020
-#define MU_EVT_AUTHORITY_FAILED    0x030
-#define MU_EVT_MAILBOX_CORRUPT     0x040
-#define MU_EVT_MAILER_MESSAGE_SENT 0x080
-
+                                          /* Call data type: */
+#define MU_EVT_MAILBOX_DESTROY     0x001  /*  mu_mailbox_t */
+#define MU_EVT_FOLDER_DESTROY      0x002  /*  mu_folder_t */ 
+#define MU_EVT_MAILER_DESTROY      0x004  /*  mu_mailer_t */
+#define MU_EVT_MESSAGE_DESTROY     0x008  /*  mu_message_t */
+#define MU_EVT_MESSAGE_ADD         0x010  /*  size_t *: FIXME */
+#define MU_EVT_MAILBOX_PROGRESS    0x020  /*  NULL: FIXME? */
+#define MU_EVT_AUTHORITY_FAILED    0x030  /*  NULL */
+#define MU_EVT_MAILBOX_CORRUPT     0x040  /*  mu_mailbox_t */
+#define MU_EVT_MAILER_MESSAGE_SENT 0x080  /*  mu_message_t */
+#define MU_EVT_MESSAGE_APPEND      0x100  /*  mu_message_qid_t: FIXME */ 
+  
 #define MU_OBSERVER_NO_CHECK 1
 
 extern int mu_observer_create      (mu_observer_t *, void *owner);
 extern void mu_observer_destroy    (mu_observer_t *, void *owner);
-extern void * mu_observer_get_owner  (mu_observer_t);
-extern int mu_observer_action      (mu_observer_t, size_t type);
+extern void * mu_observer_get_owner(mu_observer_t);
+extern int mu_observer_action      (mu_observer_t, size_t type, void *data);
 extern int mu_observer_set_action  (mu_observer_t, 
-                                 int (*_action) (mu_observer_t, size_t), 
-                                 void *owner);
+				    int (*_action) (mu_observer_t,
+						    size_t, void *, void *),
+				    void *owner);
+extern int mu_observer_set_action_data  (mu_observer_t, void *data,
+					 void *owner);
 extern int mu_observer_set_destroy (mu_observer_t, 
-                                 int (*_destroy) (mu_observer_t), void *owner);
+				    int (*_destroy) (mu_observer_t, void *),
+				    void *owner);
 extern int mu_observer_set_flags   (mu_observer_t, int flags);
 
 extern int mu_observable_create    (mu_observable_t *, void *owner);
 extern void mu_observable_destroy  (mu_observable_t *, void *owner);
 extern void * mu_observable_get_owner (mu_observable_t);
-extern int mu_observable_attach    (mu_observable_t, size_t type, mu_observer_t observer);
+extern int mu_observable_attach    (mu_observable_t, size_t type,
+				    mu_observer_t observer);
 extern int mu_observable_detach    (mu_observable_t, mu_observer_t observer);
-extern int mu_observable_notify    (mu_observable_t, int type);
+extern int mu_observable_notify    (mu_observable_t, int type, void *data);
 
 #ifdef __cplusplus
 }

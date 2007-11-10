@@ -49,7 +49,7 @@ mu_observer_destroy (mu_observer_t *pobserver, void *owner)
       if (observer->owner == owner || observer->flags & MU_OBSERVER_NO_CHECK)
 	{
 	  if (observer->_destroy)
-	    observer->_destroy (observer);
+	    observer->_destroy (observer, observer->_action_data);
 	  free (observer);
 	}
       *pobserver = NULL;
@@ -63,18 +63,19 @@ mu_observer_get_owner (mu_observer_t observer)
 }
 
 int
-mu_observer_action (mu_observer_t observer, size_t type)
+mu_observer_action (mu_observer_t observer, size_t type, void *data)
 {
   if (observer == NULL)
     return EINVAL;
   if (observer->_action)
-    return observer->_action (observer, type);
+    return observer->_action (observer, type, data, observer->_action_data);
   return 0;
 }
 
 int
 mu_observer_set_action (mu_observer_t observer,
-		     int (*_action) (mu_observer_t, size_t), void *owner)
+			int (*_action) (mu_observer_t, size_t, void *, void *),
+			void *owner)
 {
   if (observer == NULL)
     return EINVAL;
@@ -85,8 +86,20 @@ mu_observer_set_action (mu_observer_t observer,
 }
 
 int
-mu_observer_set_destroy (mu_observer_t observer, int (*_destroy) (mu_observer_t),
-		      void *owner)
+mu_observer_set_action_data  (mu_observer_t observer, void *data, void *owner)
+{
+  if (observer == NULL)
+    return EINVAL;
+  if (observer->owner != owner)
+    return EACCES;
+  observer->_action_data = data;
+  return 0;
+}
+
+int
+mu_observer_set_destroy (mu_observer_t observer,
+			 int (*_destroy) (mu_observer_t, void *),
+			 void *owner)
 {
   if (observer == NULL)
     return EINVAL;
@@ -214,7 +227,7 @@ mu_observable_detach (mu_observable_t observable, mu_observer_t observer)
 }
 
 int
-mu_observable_notify (mu_observable_t observable, int type)
+mu_observable_notify (mu_observable_t observable, int type, void *data)
 {
   mu_iterator_t iterator;
   event_t event = NULL;
@@ -231,7 +244,7 @@ mu_observable_notify (mu_observable_t observable, int type)
       mu_iterator_current (iterator, (void **)&event);
       if (event && event->type & type)
         {
-	  status |= mu_observer_action (event->observer, type);
+	  status |= mu_observer_action (event->observer, type, data);
         }
     }
   mu_iterator_destroy (&iterator);

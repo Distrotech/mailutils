@@ -1169,6 +1169,7 @@ AC_CONFIG_FILES([Makefile
  libproto/include/Makefile
  libsieve/Makefile
  libsieve/extensions/Makefile
+ maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
  mail.local/Makefile

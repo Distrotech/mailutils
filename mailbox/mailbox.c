@@ -174,8 +174,8 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
       /* Notify the observers.  */
       if (mbox->observable)
 	{
-	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_DESTROY);
-	  mu_observable_destroy (&(mbox->observable), mbox);
+	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_DESTROY, mbox);
+	  mu_observable_destroy (&mbox->observable, mbox);
 	}
 
       /* Call the concrete mailbox _destroy method. So it can clean itself.  */
@@ -244,7 +244,8 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   if (!mbox)
     return EINVAL;
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
-    return EACCES;
+    return 0;
+
   mu_mailbox_messages_count (mbox, &total);
   if (mbox->flags & MU_STREAM_APPEND)
     i = total;
@@ -258,10 +259,12 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
       mu_message_get_attribute (msg, &attr);
       mu_attribute_set_seen (attr);
     }
+
   if (expunge)
     status = mu_mailbox_expunge (mbox);
   else
-    status = mu_mailbox_save_attributes (mbox);
+    status = mu_mailbox_sync (mbox);
+
   return status;
 }
 
@@ -282,6 +285,15 @@ mu_mailbox_get_message (mu_mailbox_t mbox, size_t msgno,  mu_message_t *pmsg)
   if (mbox == NULL || mbox->_get_message == NULL)
     return MU_ERR_EMPTY_VFN;
   return mbox->_get_message (mbox, msgno, pmsg);
+}
+
+int
+mu_mailbox_quick_get_message (mu_mailbox_t mbox, mu_message_qid_t qid,
+			      mu_message_t *pmsg)
+{
+  if (mbox == NULL || mbox->_quick_get_message == NULL)
+    return MU_ERR_EMPTY_VFN;
+  return mbox->_quick_get_message (mbox, qid, pmsg);
 }
 
 int
@@ -309,13 +321,24 @@ mu_mailbox_message_unseen (mu_mailbox_t mbox, size_t *num)
 }
 
 int
+mu_mailbox_sync (mu_mailbox_t mbox)
+{
+  if (mbox == NULL || mbox->_sync == NULL)
+    return MU_ERR_EMPTY_VFN;
+  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+    return 0;
+  return mbox->_sync (mbox);
+}
+
+/* Historic alias: */
+int
 mu_mailbox_save_attributes (mu_mailbox_t mbox)
 {
-  if (mbox == NULL || mbox->_save_attributes == NULL)
+  if (mbox == NULL || mbox->_sync == NULL)
     return MU_ERR_EMPTY_VFN;
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
-  return mbox->_save_attributes (mbox);
+  return mbox->_sync (mbox);
 }
 
 int
@@ -347,9 +370,34 @@ mu_mailbox_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 int
 mu_mailbox_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 {
-  if (mbox == NULL || mbox->_get_size == NULL)
+  int status;
+  if (mbox == NULL)
     return MU_ERR_EMPTY_VFN;
-  return mbox->_get_size (mbox, psize);
+  if (mbox->_get_size == NULL
+      || (status = mbox->_get_size (mbox, psize)) == ENOSYS)
+    {
+      /* Fall back to brute-force method */
+      size_t i, total;
+      mu_off_t size = 0;
+      
+      status = mu_mailbox_messages_count (mbox, &total);
+      if (status)
+	return status;
+      for (i = 1; i <= total; i++)
+	{
+	  mu_message_t msg;
+	  size_t msgsize;
+	  status = mu_mailbox_get_message (mbox, i, &msg);
+	  if (status)
+	    return status;
+	  status = mu_message_size (msg, &msgsize);
+	  if (status)
+	    return status;
+	  size += msgsize;
+	}
+      *psize = size;
+    }
+  return status;
 }
 
 int
@@ -408,7 +456,7 @@ mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
   if (mbox->stream)
-    mu_stream_destroy (&(mbox->stream), mbox);
+    mu_stream_destroy (&mbox->stream, mbox);
   mbox->stream = stream;
   return 0;
 }
@@ -451,7 +499,7 @@ mu_mailbox_get_observable (mu_mailbox_t mbox, mu_observable_t *pobservable)
 
   if (mbox->observable == NULL)
     {
-      int status = mu_observable_create (&(mbox->observable), mbox);
+      int status = mu_observable_create (&mbox->observable, mbox);
       if (status != 0)
 	return status;
     }

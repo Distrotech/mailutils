@@ -276,7 +276,7 @@ imap4d_sync_flags (size_t msgno)
 static int mailbox_corrupt;
 
 static int
-action (mu_observer_t observer, size_t type)
+action (mu_observer_t observer, size_t type, void *data, void *action_data)
 {
   switch (type)
     {

@@ -211,7 +211,7 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
 
       for (i = 0; i < amd->msg_count; i++)
 	{
-	  DISPATCH_ADD_MSG(mailbox, amd);
+	  DISPATCH_ADD_MSG (mailbox, amd, i);
 	}
     }
   

@@ -49,7 +49,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
      currently selected mailbox without doing an expunge.  */
   if (mbox)
     {
-      mu_mailbox_save_attributes (mbox);
+      mu_mailbox_sync (mbox);
       mu_mailbox_close (mbox);
       mu_mailbox_destroy (&mbox);
       /* Destroy the old uid table.  */

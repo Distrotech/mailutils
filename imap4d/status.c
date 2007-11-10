@@ -77,7 +77,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 
   /* We may be opening the current mailbox, so make sure the attributes are
      preserved */
-  mu_mailbox_save_attributes (mbox);
+  mu_mailbox_sync (mbox);
   
   status = mu_mailbox_create_default (&smbox, mailbox_name);
   if (status == 0)

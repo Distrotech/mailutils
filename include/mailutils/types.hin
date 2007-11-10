@@ -1,4 +1,4 @@
-/* GNU Mailutils -- a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail  -*- c -*-
    Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -99,6 +99,7 @@ typedef struct _mu_url *mu_url_t;
 typedef struct _mu_wicket *mu_wicket_t;
 typedef void *mu_transport_t;
 typedef struct _mu_assoc *mu_assoc_t;
+typedef char *mu_message_qid_t;
 
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002

@@ -24,6 +24,7 @@
 #endif
 
 #include <mbox0.h>
+#include <mu_umaxtostr.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -41,7 +42,7 @@ static int mbox_messages_recent       (mu_mailbox_t, size_t *);
 static int mbox_message_unseen        (mu_mailbox_t, size_t *);
 static int mbox_expunge0              (mu_mailbox_t, int);
 static int mbox_expunge               (mu_mailbox_t);
-static int mbox_save_attributes       (mu_mailbox_t);
+static int mbox_sync                  (mu_mailbox_t);
 static int mbox_uidvalidity           (mu_mailbox_t, unsigned long *);
 static int mbox_uidnext               (mu_mailbox_t, size_t *);
 static int mbox_scan                  (mu_mailbox_t, size_t, size_t *);
@@ -49,24 +50,35 @@ static int mbox_is_updated            (mu_mailbox_t);
 static int mbox_get_size              (mu_mailbox_t, mu_off_t *);
 
 /* private stuff */
-static int mbox_append_message0       (mu_mailbox_t, mu_message_t, mu_off_t *, int, int);
+static int mbox_append_message0       (mu_mailbox_t, mu_message_t,
+				       mu_off_t *, int, int);
 static int mbox_message_uid           (mu_message_t, size_t *);
-static int mbox_header_fill           (mu_header_t, char *, size_t, mu_off_t, size_t *);
-static int mbox_get_body_transport    (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int mbox_get_transport2         (mbox_message_t, mu_transport_t *, mu_transport_t *);
+static int mbox_message_qid           (mu_message_t, mu_message_qid_t *);
+
+static int mbox_header_fill           (mu_header_t, char *, size_t,
+				       mu_off_t, size_t *);
+static int mbox_get_body_transport    (mu_stream_t, mu_transport_t *,
+				       mu_transport_t *);
+static int mbox_get_transport2        (mbox_message_t, mu_transport_t *,
+				       mu_transport_t *);
 static int mbox_get_attr_flags        (mu_attribute_t, int *);
 static int mbox_set_attr_flags        (mu_attribute_t, int);
 static int mbox_unset_attr_flags      (mu_attribute_t, int);
-static int mbox_body_read             (mu_stream_t, char *, size_t, mu_off_t, size_t *);
-static int mbox_body_readline         (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int mbox_body_read             (mu_stream_t, char *, size_t,
+				       mu_off_t, size_t *);
+static int mbox_body_readline         (mu_stream_t, char *, size_t,
+				       mu_off_t, size_t *);
 static int mbox_readstream            (mbox_message_t, char *, size_t,
-				       mu_off_t, size_t *, int, mu_off_t, mu_off_t);
+				       mu_off_t, size_t *, int, mu_off_t,
+				       mu_off_t);
 static int mbox_stream_size           (mu_stream_t stream, mu_off_t *psize);
 
 static int mbox_body_size             (mu_body_t, size_t *);
 static int mbox_body_lines            (mu_body_t, size_t *);
-static int mbox_envelope_sender       (mu_envelope_t, char *, size_t, size_t *);
-static int mbox_envelope_date         (mu_envelope_t, char *, size_t, size_t *);
+static int mbox_envelope_sender       (mu_envelope_t, char *, size_t,
+				       size_t *);
+static int mbox_envelope_date         (mu_envelope_t, char *, size_t,
+				       size_t *);
 static int mbox_tmpfile               (mu_mailbox_t, char **pbox);
 
 /* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
@@ -121,7 +133,7 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
   mailbox->_messages_recent = mbox_messages_recent;
   mailbox->_message_unseen = mbox_message_unseen;
   mailbox->_expunge = mbox_expunge;
-  mailbox->_save_attributes = mbox_save_attributes;
+  mailbox->_sync = mbox_sync;
   mailbox->_uidvalidity = mbox_uidvalidity;
   mailbox->_uidnext = mbox_uidnext;
 
@@ -297,11 +309,14 @@ mbox_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
     msgno--; /* The fist message is number "1", decrement for the C array.  */
   for (i = msgno; i < mud->messages_count; i++)
     {
-      if (mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      size_t tmp = i;
+      if (mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD,
+				&tmp) != 0)
 	break;
       if (((i +1) % 50) == 0)
 	{
-	  mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	  mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS,
+				NULL);
 	}
     }
   *pcount = mud->messages_count;
@@ -328,7 +343,8 @@ mbox_is_updated (mu_mailbox_t mailbox)
     return 1;
   if (size < mud->size)
     {
-      mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
+      mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT,
+			    mailbox);
       /* And be verbose.  ? */
       mu_error (_("* BAD : Mailbox corrupted, shrank in size"));
       /* FIXME: should I crash.  */
@@ -552,7 +568,7 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
       if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
 	  (mum->message && mu_message_is_modified (mum->message)))
 	{
-	  /* The message was not instanciated, probably the dirty flag was
+	  /* The message was not instantiated, probably the dirty flag was
 	     set by mbox_scan(), create one here.  */
 	  if (mum->message == 0)
 	    {
@@ -764,7 +780,7 @@ mbox_expunge (mu_mailbox_t mailbox)
 }
 
 static int
-mbox_save_attributes (mu_mailbox_t mailbox)
+mbox_sync (mu_mailbox_t mailbox)
 {
   return mbox_expunge0 (mailbox, 0);
 }
@@ -775,6 +791,18 @@ mbox_message_uid (mu_message_t msg, size_t *puid)
   mbox_message_t mum = mu_message_get_owner (msg);
   if (puid)
     *puid = mum->uid;
+  return 0;
+}
+
+static int
+mbox_message_qid (mu_message_t msg, mu_message_qid_t *pqid)
+{
+  mbox_message_t mum = mu_message_get_owner (msg);
+  char buf[UINTMAX_STRSIZE_BOUND];
+  const char *p = umaxtostr (mum->header_from, buf);
+  *pqid = strdup (p);
+  if (*pqid == NULL)
+    return ENOMEM;
   return 0;
 }
 
@@ -1150,7 +1178,8 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 
   /* Set the UID.  */
   mu_message_set_uid (msg, mbox_message_uid, mum);
-
+  mu_message_set_qid (msg, mbox_message_qid, mum);
+  
   /* Attach the message to the mailbox mbox data.  */
   mum->message = msg;
   mu_message_set_mailbox (msg, mailbox, mum);
@@ -1164,7 +1193,8 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 {
   int status = 0;
   mbox_data_t mud = mailbox->data;
-
+  mu_off_t size;
+  
   if (msg == NULL || mud == NULL)
     return EINVAL;
 
@@ -1184,7 +1214,6 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 
     default:
       {
-	mu_off_t size;
 	/* Move to the end of the file, not necesary if _APPEND mode.  */
 	if ((status = mu_stream_size (mailbox->stream, &size)) != 0
 	    || (status = mbox_append_message0 (mailbox, msg,
@@ -1197,6 +1226,14 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
       }
     }
   mu_locker_unlock (mailbox->locker);
+
+  if (mailbox->observable)
+    {
+      char buf[UINTMAX_STRSIZE_BOUND];
+      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND,
+			    umaxtostr (size, buf)); 
+    }
+  
   return 0;
 }
 
@@ -1294,10 +1331,10 @@ write_array (mu_stream_t stream, mu_off_t *poff, int count, const char **array)
 }
 
 
-/* FIXME: We need to escape body line that begins with "From ", this
-   will required to read the body by line instead of by chuncks hurting
-   perfomance big time when expunging.  But should not this be the
-   responsability of the client ?  */
+/* FIXME: Do we need to escape body line that begins with "From "? This
+   will require reading the body line by line instead of by chunks,
+   considerably hurting perfomance when expunging.  But should not this
+   be the responsibility of the client ?  */
 static int
 mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 		      int is_expunging, int first)
@@ -1423,7 +1460,7 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	do
 	  {
 	    status = mu_stream_readline (is, buffer, sizeof (buffer), mud->off,
-				      &nread);
+					 &nread);
 	    if (status != 0)
 	      {
 		if (status != EAGAIN)
@@ -1453,7 +1490,7 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	      continue;
 
 	    status = mu_stream_write (mailbox->stream, buffer, nread,
-				    *psize, &n);
+				      *psize, &n);
 	    if (status)
 	      break;
 	    *psize += n;
@@ -1537,7 +1574,7 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	do
 	  {
 	    status = mu_stream_read (is, buffer, sizeof (buffer), mud->off,
-				  &nread);
+				     &nread);
 	    if (status != 0)
 	      {
 		if (status != EAGAIN)

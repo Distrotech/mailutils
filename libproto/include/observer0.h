@@ -33,8 +33,9 @@ struct _mu_observer
 {
   int flags;
   void *owner;
-  int (*_action)  (mu_observer_t, size_t);
-  int (*_destroy) (mu_observer_t);
+  int (*_action)  (mu_observer_t, size_t, void *, void *);
+  void *_action_data;
+  int (*_destroy) (mu_observer_t, void *data);
 };
 
 struct _mu_observable

@@ -20,13 +20,17 @@
 #define MAX_OPEN_STREAMS 16
 
 /* Notifications ADD_MESG. */
-#define DISPATCH_ADD_MSG(mbox,mhd) \
+#define DISPATCH_ADD_MSG(mbox,mhd,n) \
 do \
 { \
   int bailing = 0; \
   mu_monitor_unlock (mbox->monitor); \
   if (mbox->observable) \
-     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
+    { \
+      size_t tmp = (n); \
+      bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD, \
+                                      &tmp); \
+    } \
   if (bailing != 0) \
     { \
       if (pcount) \

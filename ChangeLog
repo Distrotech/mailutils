@@ -1,3 +1,73 @@
+2007-11-10  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am, configure.ac: Add maidag.
+	* frm/common.c, imap4d/sync.c, libsieve/runtime.c,
+	mh/scan.c: Update declaration of observable actions.  
+	* imap4d/select.c, imap4d/status.c, mh/anno.c, mh/forw.c,
+	mh/repl.c: Use mu_mailbox_sync instead of
+	mu_mailbox_save_attributes. 
+	* include/mailutils/mailbox.h (mu_mailbox_sync): New function
+	(mu_mailbox_save_attributes): Deprecated.
+	* include/mailutils/message.h (mu_message_get_qid)
+	(mu_message_set_qid): New functions.
+	* include/mailutils/observer.h (MU_EVT_MESSAGE_APPEND): New event.
+	(mu_observer_set_action_data): New function. Registers
+	action-specific data.
+	(mu_observable_notify): Get call-specific data as the third
+	argument.
+	* include/mailutils/types.hin (mu_message_qid_t): New data type.
+	* libproto/imap/folder.c, libproto/imap/mbox.c,
+	libproto/include/amd.h, libproto/maildir/mbox.c,
+	libproto/mailer/sendmail.c, libproto/mailer/smtp.c,
+	libproto/mbox/mboxscan.c, libproto/mh/mbox.c,
+	libproto/nntp/mbox.c, libproto/pop/mbox.c, mailbox/folder.c,
+	mailbox/mailer.c : Update calls to mu_observable_notify. 
+	* libproto/include/mailbox0.h (struct _mu_mailbox): Rename
+	_save_attributes to _sync.
+	* mailbox/amd.c: Likewise.
+	(_quick_get_message): New member.
+	(MAILBOX_NOTIFY): Remove.
+	* libproto/include/message0.h (struct _mu_message): New member
+	_get_qid.
+	* libproto/include/observer0.h (struct _mu_observer): New member
+	_action_data.
+	* libproto/mbox/mbox.c: Implement mbox_message_qid. Update calls
+	to mu_observable_notify.
+	(mbox_append_message): Report MU_EVT_MESSAGE_APPEND.
+	* mailbox/observer.c (mu_observer_destroy): Call _destroy with
+	_action_data as its third argument.
+	(mu_observer_action, mu_observable_notify): Takes third argument
+	(call data) 
+	(mu_observer_set_action, mu_observer_set_destroy): Update signature.
+	(mu_observer_set_action_data): New function.
+	
+	* libproto/mbox/mbox0.h, mail.local/main.c: Minor change
+	
+	* mail.local/Makefile.am (mail_local_LDADD): Add MU_LIB_MAILER
+	
+	* mailbox/file_stream.c (_file_open): Fix handling of
+	MU_STREAM_APPEND. Remove assertion.
+
+	* mailbox/mailbox.c (mu_mailbox_quick_get_message): New function
+	(mu_mailbox_sync): New function.
+	(mu_mailbox_get_size): Implement brute-force approach in case the
+	mailbox does not provide a method.
+
+	* mailbox/message.c (mu_message_get_qid, mu_message_set_qid): New
+	function.
+
+	* maildag/: New directory. A general-purpose mail delivery agent.
+	* maildag/deliver.c: New file.
+	* maildag/lmtp.c: New file.
+	* maildag/maidag.c: New file.
+	* maildag/maidag.h: New file.
+	* maildag/mailtmp.c: New file.
+	* maildag/mailquota.c: New file.
+	* maildag/script.c: New file.
+	* maildag/util.c: New file.
+	* maildag/Makefile.am: New file.
+	* maildag/.cvsignore: New file.
+	
 2007-11-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/cfg_lexer.c: Do not use obstack.

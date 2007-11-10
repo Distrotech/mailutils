@@ -39,6 +39,7 @@ SUBDIRS = \
  frm\
  pop3d\
  imap4d\
+ maidag\
  mail\
  sieve\
  scripts\

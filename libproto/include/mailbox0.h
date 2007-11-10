@@ -55,7 +55,7 @@ struct _mu_mailbox
 
   int  (*_open)            (mu_mailbox_t, int);
   int  (*_close)           (mu_mailbox_t);
-
+  
   /* messages */
   int  (*_get_message)     (mu_mailbox_t, size_t, mu_message_t *);
   int  (*_append_message)  (mu_mailbox_t, mu_message_t);
@@ -63,7 +63,7 @@ struct _mu_mailbox
   int  (*_messages_recent) (mu_mailbox_t, size_t *);
   int  (*_message_unseen)  (mu_mailbox_t, size_t *);
   int  (*_expunge)         (mu_mailbox_t);
-  int  (*_save_attributes) (mu_mailbox_t);
+  int  (*_sync)            (mu_mailbox_t);
   int  (*_uidvalidity)     (mu_mailbox_t, unsigned long *);
   int  (*_uidnext)         (mu_mailbox_t, size_t *);
   int  (*_get_property)    (mu_mailbox_t, mu_property_t *);
@@ -73,10 +73,8 @@ struct _mu_mailbox
 
   int  (*_get_size)        (mu_mailbox_t, mu_off_t *);
 
+  int  (*_quick_get_message) (mu_mailbox_t, mu_message_qid_t, mu_message_t *);
 };
-
-#define MAILBOX_NOTIFY(mbox, type) \
-if (mbox->observer) observer_notify (mbox->observer, type)
 
 /* Moro(?)ic kluge.  */
 #define MAILBOX_DEBUG0(mbox, type, format) \

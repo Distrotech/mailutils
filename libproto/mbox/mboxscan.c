@@ -412,7 +412,11 @@ do                                                                            \
   int bailing = 0;                                                            \
   mu_monitor_unlock (mbox->monitor);                                          \
   if (mbox->observable)                                                       \
-     bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD);   \
+    {                                                                         \
+      size_t tmp = mud->messages_count + 1;                                   \
+      bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,   \
+                                      &tmp);                                  \
+    }                                                                         \
   if (bailing != 0)                                                           \
     {                                                                         \
       if (pcount)                                                             \
@@ -437,7 +441,7 @@ do                                                                           \
   mud->messages_count--;                                                     \
   if (mbox->observable)                                                      \
     bailing = mu_observable_notify (mbox->observable,                        \
-                                    MU_EVT_MAILBOX_PROGRESS);                \
+                                    MU_EVT_MAILBOX_PROGRESS, NULL);          \
   if (bailing != 0)                                                          \
     {	                                                                     \
        if (pcount)                                                           \
@@ -517,7 +521,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       return status;
     }
 
-  if((status = mu_locker_lock (mailbox->locker)))
+  if ((status = mu_locker_lock (mailbox->locker)))
     {
       mu_monitor_unlock (mailbox->monitor);
       return status;
@@ -540,7 +544,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 
   stream = mailbox->stream;
   while ((status = mu_stream_readline (mailbox->stream, buf, sizeof (buf),
-				    total, &n)) == 0 && n != 0)
+				       total, &n)) == 0 && n != 0)
     {
       int nl;
       total += n;
@@ -577,7 +581,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 		    min_uid = mum->uid;
 	  
 		  if (do_notif)
-		    DISPATCH_ADD_MSG(mailbox, mud);
+		    DISPATCH_ADD_MSG (mailbox, mud);
 
 		}
 	      /* Allocate_msgs will initialize mum.  */
@@ -640,7 +644,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	min_uid = mum->uid;
       
       if (do_notif)
-	DISPATCH_ADD_MSG(mailbox, mud);
+	DISPATCH_ADD_MSG (mailbox, mud);
     }
   if (pcount)
     *pcount = mud->messages_count;

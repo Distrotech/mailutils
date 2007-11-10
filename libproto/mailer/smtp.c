@@ -870,7 +870,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
       if (smtp->rcpt_index <= smtp->rcpt_bcc_count)
 	goto ENV_FROM;
 
-      mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
+      mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT,
+			    argmsg);
 
     default:
       break;

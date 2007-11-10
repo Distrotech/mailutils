@@ -148,7 +148,7 @@ main (int argc, char **argv)
 
   mh_msgset_current (mbox, &msgset, 0);
   mh_global_save_state ();
-  mu_mailbox_save_attributes (mbox);
+  mu_mailbox_sync (mbox);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
   return rc;

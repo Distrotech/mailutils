@@ -528,7 +528,7 @@ _pop_user (mu_authority_t auth)
 	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
-	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED, NULL);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
       status = pop_get_passwd (auth);
@@ -566,7 +566,7 @@ _pop_user (mu_authority_t auth)
 	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
-	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED, NULL);
 	  return MU_ERR_AUTH_FAILURE;
 	}
       mpd->state = POP_AUTH_DONE;
@@ -638,7 +638,7 @@ _pop_apop (mu_authority_t auth)
           mu_observable_t observable = NULL;
           mu_mailbox_get_observable (mbox, &observable);
           CLEAR_STATE (mpd);
-          mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+          mu_observable_notify (observable, MU_EVT_AUTHORITY_FAILED, NULL);
           CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
         }
       mpd->state = POP_AUTH_DONE;
@@ -1255,11 +1255,14 @@ pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
     return 0;
   for (i = msgno; i <= count; i++)
     {
-      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+      size_t tmp = i;
+      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
+				&tmp) != 0)
 	break;
       if (((i +1) % 10) == 0)
 	{
-	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS,
+				NULL);
 	}
     }
   return 0;

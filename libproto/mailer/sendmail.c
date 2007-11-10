@@ -443,7 +443,8 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	  status = MU_ERR_PROCESS_UNKNOWN_FAILURE;
 	
 	/* Shouldn't this notification only happen on success? */
-	mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
+	mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT,
+			      msg);
       }
     default:
       break;

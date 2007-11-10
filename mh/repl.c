@@ -442,7 +442,7 @@ main (int argc, char **argv)
 
   rc = mh_whatnow (&wh_env, initial_edit);
   
-  mu_mailbox_save_attributes (mbox);
+  mu_mailbox_sync (mbox);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
   return rc;

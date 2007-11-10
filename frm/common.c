@@ -421,7 +421,7 @@ static size_t msg_index;             /* Index (1-based) of the current
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
 static int
-action (mu_observer_t o, size_t type)
+action (mu_observer_t o, size_t type, void *data, void *action_data)
 {
   int status;
 
