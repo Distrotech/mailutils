@@ -21,6 +21,7 @@ moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = \
  list.la\
  moderator.la\
+ pipe.la\
  spamd.la\
  timestamp.la\
  vacation.la
@@ -49,3 +50,6 @@ vacation_la_SOURCES = vacation.c
 vacation_la_LIBADD = ../libsieve.la 
 vacation_la_LDFLAGS = -module -avoid-version -no-undefined 
 
+pipe_la_SOURCES = pipe.c
+pipe_la_LIBADD = ../libsieve.la 
+pipe_la_LDFLAGS = -module -avoid-version -no-undefined 

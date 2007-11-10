@@ -1,5 +1,8 @@
 2007-11-10  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libsieve/extensions/Makefile.am: Add pipe.c
+	* libsieve/extensions/pipe.c: New file
+
 	* Makefile.am, configure.ac: Add maidag.
 	* frm/common.c, imap4d/sync.c, libsieve/runtime.c,
 	mh/scan.c: Update declaration of observable actions.  
