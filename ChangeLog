@@ -1,5 +1,39 @@
+2007-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/sql.c, libproto/mbox/folder.c: Rename MU_READ_ERROR to
+	MU_ERR_READ, for consistency.
+
+	* comsat/Makefile.am (comsatd_LDADD): Add all mailbox formats.
+	* comsat/cfg.c: Use mu_error instead of syslog.
+	* comsat/comsat.c (comsat_daemon): Implement test mode.
+	(notify_user): Use mailbox quick access mode instead of directly
+	fiddling with the UNIX mailbox stream.
+
+	* include/mailutils/stream.h (MU_STREAM_QACCESS): New define.
+	* libproto/mbox/mbox.c: Implement _quick_get_message method.
+	* libproto/mbox/mbox0.h (mbox_scan1): New function.
+	* libproto/mbox/mboxscan.c (mbox_scan0): Split into mbox_scan0
+	proper and mbox_scan_internal.
+	(mbox_scan1): New function.
+	Remove unused defines.
+	* libsieve/load.c: Do not deallocate loaded modules.
+	* mail.local/main.c (set_debug_flags): Fix typo.
+	* mailbox/amd.c: Implement get_qid method.
+	(amd_append_message): Singal MU_EVT_MESSAGE_APPEND.
+	* mailbox/errors (MU_ERR_BADOP): New error code.
+	(MU_READ_ERROR): Rename to MU_ERR_READ, for consistency.
+	* mailbox/file_stream.c (_prog_destroy,_prog_close): Fix waiting
+	for the children to terminate. Do not forcefully kill them.
+
+	* mailbox/mailbox.c: Control allowed operations, depending on
+	MU_STREAM_QACCESS bit.
+
 2007-11-10  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update
+	* mailbox/Makefile.am: Update
+	* libsieve/extensions/pipe.c: Update
+	
 	* libsieve/extensions/Makefile.am: Add pipe.c
 	* libsieve/extensions/pipe.c: New file
 
