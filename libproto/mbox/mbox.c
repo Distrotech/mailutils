@@ -35,6 +35,9 @@ static void mbox_destroy (mu_mailbox_t);
 static int mbox_open                  (mu_mailbox_t, int);
 static int mbox_close                 (mu_mailbox_t);
 static int mbox_get_message           (mu_mailbox_t, size_t, mu_message_t *);
+static int mbox_quick_get_message (mu_mailbox_t, mu_message_qid_t,
+				   mu_message_t *);
+
 /* static int mbox_get_message_by_uid    (mu_mailbox_t, size_t, mu_message_t *); */
 static int mbox_append_message        (mu_mailbox_t, mu_message_t);
 static int mbox_messages_count        (mu_mailbox_t, size_t *);
@@ -136,6 +139,7 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
   mailbox->_sync = mbox_sync;
   mailbox->_uidvalidity = mbox_uidvalidity;
   mailbox->_uidnext = mbox_uidnext;
+  mailbox->_quick_get_message = mbox_quick_get_message;
 
   mailbox->_scan = mbox_scan;
   mailbox->_is_updated = mbox_is_updated;
@@ -1065,45 +1069,10 @@ mbox_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
+new_message (mu_mailbox_t mailbox, mbox_message_t mum, mu_message_t *pmsg)
 {
   int status;
-  mbox_data_t mud = mailbox->data;
-  mbox_message_t mum;
-  mu_message_t msg = NULL;
-
-  /* Sanity checks.  */
-  if (pmsg == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  if (mud == NULL)
-    return EINVAL;
-
-  /* If we did not start a scanning yet do it now.  */
-  if (mud->messages_count == 0)
-    {
-      status = mbox_scan0 (mailbox, 1, NULL, 0);
-      if (status != 0)
-	return status;
-    }
-
-  /* Second sanity: check the message number.  */
-  if (!(mud->messages_count > 0
-	&& msgno > 0
-	&& msgno <= mud->messages_count))
-    return EINVAL;
-
-  mum = mud->umessages[msgno - 1];
-
-  /* Check if we already have it.  */
-  if (mum->message)
-    {
-      if (pmsg)
-	*pmsg = mum->message;
-      return 0;
-    }
-
-  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_get_message (%s, %d)\n",
-		  mud->name, msgno);
+  mu_message_t msg;
 
   /* Get an empty message struct.  */
   status = mu_message_create (&msg, mum);
@@ -1185,9 +1154,109 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   mu_message_set_mailbox (msg, mailbox, mum);
 
   *pmsg = msg;
+  
   return 0;
+}  
+
+static int
+mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
+{
+  int status;
+  mbox_data_t mud = mailbox->data;
+  mbox_message_t mum;
+
+  /* Sanity checks.  */
+  if (pmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (mud == NULL)
+    return EINVAL;
+
+  /* If we did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
+
+  /* Second sanity: check the message number.  */
+  if (!(mud->messages_count > 0
+	&& msgno > 0
+	&& msgno <= mud->messages_count))
+    return EINVAL;
+
+  mum = mud->umessages[msgno - 1];
+
+  /* Check if we already have it.  */
+  if (mum->message)
+    {
+      if (pmsg)
+	*pmsg = mum->message;
+      return 0;
+    }
+
+  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_get_message (%s, %d)\n",
+		  mud->name, msgno);
+
+  return new_message (mailbox, mum, pmsg);
 }
 
+static int
+qid2off (mu_message_qid_t qid, mu_off_t *pret)
+{
+  mu_off_t ret = 0;
+  for (;*qid; qid++)
+    {
+      if (!('0' <= *qid && *qid <= '9'))
+	return 1;
+      ret = ret * 10 + *qid - '0';
+    }
+  *pret = ret;
+  return 0;
+}
+      
+static int
+mbox_quick_get_message (mu_mailbox_t mailbox, mu_message_qid_t qid,
+			mu_message_t *pmsg)
+{
+  int status;
+  mbox_data_t mud = mailbox->data;
+  mbox_message_t mum;
+  mu_off_t offset;
+  
+  if (mailbox == NULL || qid2off (qid, &offset)
+      || !(mailbox->flags & MU_STREAM_QACCESS))
+    return EINVAL;
+
+  if (mud->messages_count == 0)
+    {
+      status = mbox_scan1 (mailbox, offset, 0);
+      if (status != 0)
+	return status;
+    }
+
+  /* Quick access mode retrieves only one message */
+  mum = mud->umessages[0]; 
+
+  /* Check if we already have it and verify if it is the right one. */
+  if (mum->message)
+    {
+      char *vqid;
+      status = mu_message_get_qid (mum->message, &vqid);
+      if (status)
+	return status;
+      status = strcmp (qid, vqid);
+      free (vqid);
+      if (status)
+	return MU_ERR_EXISTS;
+      if (pmsg)
+	*pmsg = mum->message;
+      return 0;
+    }
+
+  return new_message (mailbox, mum, pmsg);
+}
+     
 static int
 mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 {

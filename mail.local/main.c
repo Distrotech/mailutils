@@ -131,7 +131,7 @@ char *saved_envelope;  /* A hack to spare mu_envelope_ calls */
 static void
 set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
 {
-  for (; *arg; arg++);
+  for (; *arg; arg++)
     {
       switch (*arg)
 	{
@@ -508,7 +508,7 @@ sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
 		  chdir (auth->dir);
 		
 		  rc = mu_sieve_message (mach, msg);
-		  if (rc == 0)
+ 		  if (rc == 0)
 		    rc = mu_attribute_is_deleted (attr) == 0;
 
 		  switch_user_id (auth, 0);

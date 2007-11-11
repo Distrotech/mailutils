@@ -358,7 +358,7 @@ list_helper (struct search_data *data,
 	  break;
 
 	case GLOB_ABORTED:
-	  status = MU_READ_ERROR;
+	  status = MU_ERR_READ;
 	  break;
 
 	case GLOB_NOMATCH:

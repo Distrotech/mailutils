@@ -417,7 +417,7 @@ get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
     {
       mu_error (_("SQL field `%s' (`%s') has NULL value"),
 		id, name ? *name : id);
-      rc = MU_READ_ERROR;
+      rc = MU_ERR_READ;
     }
 
   return rc;

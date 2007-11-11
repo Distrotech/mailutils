@@ -31,12 +31,15 @@
 
 typedef int (*sieve_module_init_t) (mu_sieve_machine_t mach);
 
+#if 0
+/* FIXME: See comment below */ 
 static void
 _free_loaded_module (void *data)
 {
   lt_dlclose ((lt_dlhandle)data);
   lt_dlexit ();
 }
+#endif
 
 static lt_dlhandle
 load_module (mu_sieve_machine_t mach, const char *name)
@@ -54,7 +57,13 @@ load_module (mu_sieve_machine_t mach, const char *name)
       if (init)
 	{
 	  init (mach);
-	  mu_sieve_machine_add_destructor (mach, _free_loaded_module, handle);
+	  /* FIXME: We used to have this:
+  	       mu_sieve_machine_add_destructor (mach, _free_loaded_module,
+ 	                                        handle);
+             However, unloading modules can lead to random segfaults in
+	     case they allocated any global-access data (e.g. mach->msg).
+	     In particular, this was the case with extensions/pipe.c. 
+	  */
 	  return handle;
 	}
       else

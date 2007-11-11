@@ -124,6 +124,9 @@ struct _mbox_data
 
 int mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
 		int do_notif);
+int mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif);
+
 #ifdef WITH_PTHREAD
 void mbox_cleanup (void *arg);
 #endif
+

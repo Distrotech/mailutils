@@ -380,6 +380,16 @@ amd_close (mu_mailbox_t mailbox)
   return 0;
 }
 
+static int
+amd_message_qid (mu_message_t msg, mu_message_qid_t *pqid)
+{
+  struct _amd_message *mhm = mu_message_get_owner (msg);
+  
+  *pqid = mhm->amd->msg_file_name (mhm,
+				   mhm->attr_flags & MU_ATTRIBUTE_DELETED);
+  return 0;
+}
+
 struct _amd_message *
 _amd_get_message (struct _amd_data *amd, size_t msgno)
 {
@@ -480,7 +490,8 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
   /* Set the UID.  */
   if (mhm->amd->message_uid)
     mu_message_set_uid (msg, mhm->amd->message_uid, mhm);
-
+  mu_message_set_qid (msg, amd_message_qid, mhm);
+  
   /* Attach the message to the mailbox mbox data.  */
   mhm->message = msg;
   mu_message_set_mailbox (msg, mailbox, mhm);
@@ -725,7 +736,15 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 
   if (amd->msg_finish_delivery)
     amd->msg_finish_delivery (amd, mhm);
-      
+
+  if (mailbox->observable)
+    {
+      char *qid = amd->msg_file_name (mhm,
+				      mhm->attr_flags & MU_ATTRIBUTE_DELETED);
+      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND, qid);
+      free (qid);
+    }
+  
   return status;
 }
 

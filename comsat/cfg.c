@@ -110,7 +110,7 @@ netdef_parse (char *str)
   netdef = malloc (sizeof *netdef);
   if (!netdef)
     {
-      syslog (LOG_ERR, _("Out of memory"));
+      mu_error (_("Out of memory"));
       exit (1);
     }
 
@@ -135,7 +135,8 @@ read_config (const char *config_file)
   fp = fopen (config_file, "r");
   if (!fp)
     {
-      syslog (LOG_ERR, _("Cannot open config file %s: %m"), config_file);
+      mu_error (_("Cannot open config file %s: %s"), config_file,
+		mu_strerror (errno));
       return;
     }
 
@@ -162,7 +163,7 @@ read_config (const char *config_file)
       mu_argcv_get (ptr, "", NULL, &argc, &argv);
       if (argc < 2)
 	{
-	  syslog (LOG_ERR, _("%s:%d: too few fields"), config_file, line);
+	  mu_error (_("%s:%d: too few fields"), config_file, line);
 	  mu_argcv_free (argc, argv);
 	  continue;
 	}
@@ -174,7 +175,7 @@ read_config (const char *config_file)
 	  else if (strcmp (argv[1], "no") == 0)
 	    allow_biffrc = 0;
 	  else
-	    syslog (LOG_ERR, _("%s:%d: yes or no expected"), config_file, line);
+	    mu_error (_("%s:%d: yes or no expected"), config_file, line);
 	}
       else if (strcmp (argv[0], "max-requests") == 0)
 	maxrequests = strtoul (argv[1], NULL, 0);
@@ -194,7 +195,7 @@ read_config (const char *config_file)
 	    action = ACT_DENY;
 	  else
 	    {
-	      syslog (LOG_ERR, _("%s:%d: unknown keyword"), config_file, line);
+	      mu_error (_("%s:%d: unknown keyword"), config_file, line);
 	      mu_argcv_free (argc, argv);
 	      continue;
 	    }
@@ -205,8 +206,8 @@ read_config (const char *config_file)
 	      netdef_t *cur = netdef_parse (argv[i]);
 	      if (!cur)
 		{
-		  syslog (LOG_ERR, _("%s:%d: cannot parse netdef: %s"),
-			  config_file, line, argv[i]);
+		  mu_error (_("%s:%d: cannot parse netdef: %s"),
+			    config_file, line, argv[i]);
 		  continue;
 		}
 	      if (!tail)
@@ -221,7 +222,7 @@ read_config (const char *config_file)
 	  acl = malloc (sizeof *acl);
 	  if (!acl)
 	    {
-	      syslog (LOG_CRIT, _("Out of memory"));
+	      mu_error (_("Out of memory"));
 	      exit (1);
 	    }
 	  acl->next = NULL;

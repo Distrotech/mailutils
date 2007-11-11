@@ -39,7 +39,9 @@ extern "C" { /*}*/
 #define MU_STREAM_NO_CLOSE    0x00000100
 #define MU_STREAM_ALLOW_LINKS 0x00000200
 #define MU_STREAM_NONLOCK     0x00000400
-  
+/* This one affects only mailboxes */  
+#define MU_STREAM_QACCESS     0x00000800  
+
 /* Functions useful to users of the pre-defined stream types. */
 
 extern int mu_file_stream_create    (mu_stream_t *stream, const char* filename,

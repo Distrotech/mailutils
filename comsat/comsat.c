@@ -57,7 +57,8 @@ static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
 {
-  {"config", 'c', N_("FILE"), 0, N_("Read configuration from FILE"), 0},
+  { "config", 'c', N_("FILE"), 0, N_("Read configuration from FILE"), 0 },
+  { "test", 't', NULL, 0, N_("Run in test mode"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -104,7 +105,8 @@ static void comsat_init (void);
 static void comsat_daemon_init (void);
 static void comsat_daemon (int _port);
 static int comsat_main (int fd);
-static void notify_user (const char *user, const char *device, const char *path, off_t offset);
+static void notify_user (const char *user, const char *device,
+			 const char *path, mu_message_qid_t qid);
 static int find_user (const char *name, char *tty);
 static char *mailbox_path (const char *user);
 static void change_user (const char *user);
@@ -112,6 +114,7 @@ static void change_user (const char *user);
 static int xargc;
 static char **xargv;
 char *config_file = NULL;
+int test_mode;
 
 static error_t
 comsatd_parse_opt (int key, char *arg, struct argp_state *state)
@@ -125,6 +128,10 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
     case 'c':
       config_file = arg;
       break;
+
+    case 't':
+      test_mode = 1;
+      break;
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -134,20 +141,59 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
 
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   int c;
-
+  int ind;
+  
   /* Native Language Support */
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, comsat_argp_capa,
-		 NULL, &daemon_param);
+		 &ind, &daemon_param);
 
+  argc -= ind;
+  argv += ind;
+  
+  if (test_mode)
+    {
+      char *user, *url, *qid;
+      
+      comsat_init ();
+      if (config_file)
+	read_config (config_file);
+      if (argc == 0)
+	exit (0);
+      if (argc < 2 || argc > 2)
+	{
+	  mu_error (_("Mailbox URL and message QID are required in test mode"));
+	  exit (EXIT_FAILURE);
+	}
+
+      user = getenv ("LOGNAME");
+      if (!user)
+	{
+	  user = getenv ("USER");
+	  if (!user)
+	    {
+	      struct passwd *pw = getpwuid (getuid ());
+	      if (!pw)
+		{
+		  mu_error (_("Cannot determine user name"));
+		  exit (EXIT_FAILURE);
+		}
+	      user = pw->pw_name;
+	    }
+	}
+		  
+      notify_user (user, "/dev/tty", argv[0], argv[1]);
+      exit (0);
+    }
+  
   if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
     {
-      fprintf (stderr, _("--timeout and --daemon are incompatible\n"));
+      mu_error (_("--timeout and --daemon are incompatible"));
       exit (EXIT_FAILURE);
     }
 
@@ -194,7 +240,8 @@ sig_hup (int sig)
 void
 comsat_init ()
 {
-  mu_registrar_record (mu_path_record);
+  /* Register mailbox formats */
+  mu_register_all_mbox_formats ();
 
   gethostname (hostname, sizeof hostname);
 
@@ -324,10 +371,10 @@ comsat_main (int fd)
   char buffer[216]; /*FIXME: Arbitrary size */
   pid_t pid;
   char tty[MAX_TTY_SIZE];
-  char *p, *endp;
-  size_t offset;
+  char *p;
   char *path = NULL;
-
+  mu_message_qid_t qid;
+  
   len = sizeof sin_from;
   rdlen = recvfrom (fd, buffer, sizeof buffer, 0,
 		    (struct sockaddr*)&sin_from, &len);
@@ -362,19 +409,8 @@ comsat_main (int fd)
     }
   *p++ = 0;
 
-  offset = strtoul (p, &endp, 0);
-  switch (*endp)
-    {
-    case 0:
-      break;
-    case ':':
-      path = endp+1;
-      break;
-    default:
-      if (!isspace (*endp))
-	syslog (LOG_ERR, _("Malformed input: %s@%s (near %s)"), buffer, p, endp);
-    }
-
+  qid = p;
+  
   if (find_user (buffer, tty) != SUCCESS)
     return 0;
 
@@ -400,7 +436,7 @@ comsat_main (int fd)
     }
 
   /* Child: do actual I/O */
-  notify_user (buffer, tty, path, offset);
+  notify_user (buffer, tty, path, qid);
   exit (0);
 }
 
@@ -423,17 +459,14 @@ get_newline_str (FILE *fp)
 /* NOTE: Do not bother to free allocated memory, as the program exits
    immediately after executing this */
 static void
-notify_user (const char *user, const char *device, const char *path, off_t offset)
+notify_user (const char *user, const char *device, const char *path,
+	     mu_message_qid_t qid)
 {
   FILE *fp;
   const char *cr;
-  char *blurb;
-  mu_mailbox_t mbox = NULL, tmp = NULL;
+  mu_mailbox_t mbox = NULL;
   mu_message_t msg;
-  mu_stream_t stream = NULL;
   int status;
-  off_t size;
-  size_t count, n;
 
   change_user (user);
   if ((fp = fopen (device, "w")) == NULL)
@@ -452,55 +485,20 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
     }
 
   if ((status = mu_mailbox_create (&mbox, path)) != 0
-      || (status = mu_mailbox_open (mbox, MU_STREAM_READ)) != 0)
+      || (status = mu_mailbox_open (mbox, MU_STREAM_READ|MU_STREAM_QACCESS)) != 0)
     {
       syslog (LOG_ERR, _("Cannot open mailbox %s: %s"),
 	      path, mu_strerror (status));
       return;
     }
 
-  if ((status = mu_mailbox_get_stream (mbox, &stream)))
+  status = mu_mailbox_quick_get_message (mbox, qid, &msg);
+  if (status)
     {
-      syslog (LOG_ERR, _("Cannot get stream for mailbox %s: %s"),
-	      path, mu_strerror (status));
-      return;
+      syslog (LOG_ERR, _("Cannot get message (mailbox %s, qid %s): %s"),
+	      path, qid, mu_strerror (status));
+      return; /* FIXME: Notify the user, anyway */
     }
-
-  if ((status = mu_stream_size (stream, &size)))
-    {
-      syslog (LOG_ERR, _("Cannot get stream size (mailbox %s): %s"),
-	      path, mu_strerror (status));
-      return;
-    }
-
-  /* Read headers */
-  size -= offset;
-  blurb = malloc (size + 1);
-  if (!blurb)
-    return;
-
-  mu_stream_read (stream, blurb, size, offset, &n);
-  blurb[size] = 0;
-
-  if ((status = mu_mailbox_create (&tmp, "/dev/null")) != 0
-      || (status = mu_mailbox_open (tmp, MU_STREAM_READ)) != 0)
-    {
-      syslog (LOG_ERR, _("Cannot create temporary mailbox: %s"),
-	      mu_strerror (status));
-      return;
-    }
-
-  if ((status = mu_memory_stream_create (&stream, 0, 0)))
-    {
-      syslog (LOG_ERR, _("Cannot create temporary stream: %s"),
-	      mu_strerror (status));
-      return;
-    }
-
-  mu_stream_write (stream, blurb, size, 0, &count);
-  mu_mailbox_set_stream (tmp, stream);
-  mu_mailbox_messages_count (tmp, &count);
-  mu_mailbox_get_message (tmp, 1, &msg);
 
   run_user_action (fp, cr, msg);
   fclose (fp);

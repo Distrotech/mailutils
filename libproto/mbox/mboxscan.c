@@ -52,8 +52,6 @@
    locks, flush the stream save the pointers  etc ... hurry and wait...
    I this point I'm pretty much ranting.  */
 
-
-/* From the C-Client, part of pine */
 /* You are not expected to understand this macro, but read the next page if
  * you are not faint of heart.
  *  
@@ -181,6 +179,7 @@ h
   }									      \
 while (0)								      
      
+
 #define ATTRIBUTE_SET(buf,mum,c0,c1,type)                                     \
 do                                                                            \
 {                                                                             \
@@ -195,215 +194,6 @@ do                                                                            \
   }                                                                           \
 } while (0)
 
-#define ISBCC(buf) (                                                          \
-(buf[0] == 'B' || buf[0] == 'b')                                              \
- && (buf[1] == 'C' || buf[1] == 'c')                                          \
- && (buf[2] == 'C' || buf[2] == 'c')                                          \
- && (buf[3] == ':' || buf[3] == ' ' || buf[3] == '\t'))
-
-#define ISCC(buf) (                                                           \
-(buf[0] == 'C' || buf[0] == 'c')                                              \
- && (buf[1] == 'C' || buf[1] == 'c')                                          \
- && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
-
-#define ISCONTENT_LANGUAGE(buf) (                                             \
-(buf[0] == 'C' || buf[0] == 'c')                                              \
- && (buf[1] == 'O' || buf[1] == 'o')                                          \
- && (buf[2] == 'N' || buf[2] == 'n')                                          \
- && (buf[3] == 'T' || buf[3] == 't')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'N' || buf[5] == 'n')                                          \
- && (buf[6] == 'T' || buf[6] == 't')                                          \
- && (buf[7] == '-')                                                           \
- && (buf[8] == 'L' || buf[8] == 'l')                                          \
- && (buf[9] == 'A' || buf[9] == 'a')                                          \
- && (buf[10] == 'N' || buf[10] == 'n')                                        \
- && (buf[11] == 'G' || buf[11] == 'g')                                        \
- && (buf[12] == 'U' || buf[12] == 'u')                                        \
- && (buf[13] == 'A' || buf[13] == 'a')                                        \
- && (buf[14] == 'G' || buf[14] == 'g')                                        \
- && (buf[15] == 'E' || buf[15] == 'e')                                        \
- && (buf[16] == ':' || buf[16] == ' ' || buf[16] == '\t'))
-
-#define ISCONTENT_TRANSFER_ENCODING(buf) (                                    \
-(buf[0] == 'C' || buf[0] == 'c')                                              \
- && (buf[1] == 'O' || buf[1] == 'o')                                          \
- && (buf[2] == 'N' || buf[2] == 'n')                                          \
- && (buf[3] == 'T' || buf[3] == 't')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'N' || buf[5] == 'n')                                          \
- && (buf[6] == 'T' || buf[6] == 't')                                          \
- && (buf[7] == '-')                                                           \
- && (buf[8] == 'T' || buf[8] == 't')                                          \
- && (buf[9] == 'R' || buf[9] == 'r')                                          \
- && (buf[10] == 'A' || buf[10] == 'a')                                        \
- && (buf[11] == 'N' || buf[11] == 'n')                                        \
- && (buf[12] == 'S' || buf[12] == 's')                                        \
- && (buf[13] == 'F' || buf[13] == 'f')                                        \
- && (buf[14] == 'E' || buf[14] == 'e')                                        \
- && (buf[15] == 'R' || buf[15] == 'r')                                        \
- && (buf[16] == '-')                                                          \
- && (buf[17] == 'E' || buf[17] == 'e')                                        \
- && (buf[18] == 'N' || buf[18] == 'n')                                        \
- && (buf[19] == 'C' || buf[19] == 'c')                                        \
- && (buf[20] == 'O' || buf[20] == 'o')                                        \
- && (buf[21] == 'D' || buf[21] == 'd')                                        \
- && (buf[22] == 'I' || buf[22] == 'i')                                        \
- && (buf[23] == 'N' || buf[23] == 'n')                                        \
- && (buf[24] == 'G' || buf[24] == 'g')                                        \
- && (buf[25] == ':' || buf[25] == ' ' || buf[25] == '\t'))
-
-#define ISCONTENT_TYPE(buf) (                                                 \
-(buf[0] == 'C' || buf[0] == 'c')                                              \
- && (buf[1] == 'O' || buf[1] == 'o')                                          \
- && (buf[2] == 'N' || buf[2] == 'n')                                          \
- && (buf[3] == 'T' || buf[3] == 't')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'N' || buf[5] == 'n')                                          \
- && (buf[6] == 'T' || buf[6] == 't')                                          \
- && (buf[7] == '-')                                                           \
- && (buf[8] == 'T' || buf[8] == 't')                                          \
- && (buf[9] == 'Y' || buf[9] == 'y')                                          \
- && (buf[10] == 'P' || buf[10] == 'p')                                        \
- && (buf[11] == 'E' || buf[11] == 'e')                                        \
- && (buf[12] == ':' || buf[12] == ' ' || buf[12] == '\t'))
-
-#define ISDATE(buf) (                                                         \
-(buf[0] == 'D' || buf[0] == 'd')                                              \
- && (buf[1] == 'A' || buf[1] == 'a')                                          \
- && (buf[2] == 'T' || buf[2] == 't')                                          \
- && (buf[3] == 'E' || buf[3] == 'e')                                          \
- && (buf[4] == ':' || buf[4] == ' ' || buf[4] == '\t'))
-
-#define ISFROM(buf) (                                                         \
-(buf[0] == 'F' || buf[0] == 'f')                                              \
- && (buf[1] == 'R' || buf[1] == 'r')                                          \
- && (buf[2] == 'O' || buf[2] == 'o')                                          \
- && (buf[3] == 'M' || buf[3] == 'm')                                          \
- && (buf[4] == ':' || buf[4] == ' ' || buf[4] == '\t'))
-
-#define ISIN_REPLY_TO(buf) (                                                  \
-(buf[0] == 'I' || buf[0] == 'i')                                              \
- && (buf[1] == 'N' || buf[1] == 'n')                                          \
- && (buf[2] == '-' || buf[2] == '-')                                          \
- && (buf[3] == 'R' || buf[3] == 'r')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'P' || buf[5] == 'p')                                          \
- && (buf[6] == 'L' || buf[6] == 'l')                                          \
- && (buf[7] == 'Y' || buf[7] == 'y')                                          \
- && (buf[8] == '-')                                                           \
- && (buf[9] == 'T' || buf[9] == 't')                                          \
- && (buf[10] == 'O' || buf[10] == 'o')                                        \
- && (buf[11] == ':' || buf[11] == ' ' || buf[11] == '\t'))
-
-#define ISMESSAGE_ID(buf) (                                                   \
-(buf[0] == 'M' || buf[0] == 'm')                                              \
- && (buf[1] == 'E' || buf[1] == 'e')                                          \
- && (buf[2] == 'S' || buf[2] == 's')                                          \
- && (buf[3] == 'S' || buf[3] == 's')                                          \
- && (buf[4] == 'A' || buf[4] == 'a')                                          \
- && (buf[5] == 'G' || buf[5] == 'g')                                          \
- && (buf[6] == 'E' || buf[6] == 'e')                                          \
- && (buf[7] == '-')                                                           \
- && (buf[8] == 'I' || buf[8] == 'i')                                          \
- && (buf[9] == 'D' || buf[9] == 'd')                                          \
- && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
-
-#define ISREFERENCE(buf) (                                                    \
-(buf[0] == 'R' || buf[0] == 'r')                                              \
- && (buf[1] == 'E' || buf[1] == 'e')                                          \
- && (buf[2] == 'F' || buf[2] == 'f')                                          \
- && (buf[3] == 'E' || buf[3] == 'e')                                          \
- && (buf[4] == 'R' || buf[4] == 'r')                                          \
- && (buf[5] == 'E' || buf[5] == 'e')                                          \
- && (buf[6] == 'n' || buf[6] == 'n')                                          \
- && (buf[7] == 'C' || buf[7] == 'c')                                          \
- && (buf[8] == 'E' || buf[8] == 'e')                                          \
- && (buf[9] == ':' || buf[9] == ' ' || buf[9] == '\t'))
-
-#define ISREPLY_TO(buf) (                                                     \
-(buf[0] == 'R' || buf[0] == 'r')                                              \
- && (buf[1] == 'E' || buf[1] == 'e')                                          \
- && (buf[2] == 'P' || buf[2] == 'p')                                          \
- && (buf[3] == 'L' || buf[3] == 'l')                                          \
- && (buf[4] == 'Y' || buf[4] == 'y')                                          \
- && (buf[5] == '-')                                                           \
- && (buf[6] == 'T' || buf[6] == 't')                                          \
- && (buf[7] == 'O' || buf[7] == 'o')                                          \
- && (buf[8] == ':' || buf[8] == ' ' || buf[8] == '\t'))
-
-#define ISSENDER(buf) (                                                       \
-(buf[0] == 'S' || buf[0] == 's')                                              \
- && (buf[1] == 'E' || buf[1] == 'e')                                          \
- && (buf[2] == 'N' || buf[2] == 'n')                                          \
- && (buf[3] == 'D' || buf[3] == 'd')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'R' || buf[5] == 'r')                                          \
- && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
-
-#define ISSTATUS(buf) (                                                       \
-(buf[0] == 'S' || buf[0] == 's')                                              \
- && (buf[1] == 'T' || buf[1] == 't')                                          \
- && (buf[2] == 'A' || buf[2] == 'a')                                          \
- && (buf[3] == 'T' || buf[3] == 't')                                          \
- && (buf[4] == 'U' || buf[4] == 'u')                                          \
- && (buf[5] == 'S' || buf[5] == 's')                                          \
- && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
-
-#define ISSUBJECT(buf) (                                                      \
-(buf[0] == 'S' || buf[0] == 's')                                              \
- && (buf[1] == 'U' || buf[1] == 'u')                                          \
- && (buf[2] == 'B' || buf[2] == 'b')                                          \
- && (buf[3] == 'J' || buf[3] == 'j')                                          \
- && (buf[4] == 'E' || buf[4] == 'e')                                          \
- && (buf[5] == 'C' || buf[5] == 'c')                                          \
- && (buf[6] == 'T' || buf[6] == 't')                                          \
- && (buf[7] == ':' || buf[7] == ' ' || buf[7] == '\t'))
-
-#define ISTO(buf) (                                                           \
-(buf[0] == 'T' || buf[0] == 't')                                              \
- && (buf[1] == 'O' || buf[1] == 'o')                                          \
- && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
-
-#define ISX_IMAPBASE(buf) (                                                   \
-(buf[0] == 'X' || buf[0] == 'x')                                              \
- && (buf[1] == '-')                                                           \
- && (buf[2] == 'I' || buf[2] == 'i')                                          \
- && (buf[3] == 'M' || buf[3] == 'm')                                          \
- && (buf[4] == 'A' || buf[4] == 'a')                                          \
- && (buf[5] == 'P' || buf[5] == 'p')                                          \
- && (buf[6] == 'B' || buf[6] == 'b')                                          \
- && (buf[7] == 'A' || buf[7] == 'a')                                          \
- && (buf[8] == 'S' || buf[8] == 's')                                          \
- && (buf[9] == 'E' || buf[9] == 'e')                                          \
- && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
-
-#define ISX_UIDL(buf) (                                                       \
-(buf[0] == 'X' || buf[0] == 'x')                                              \
- && (buf[1] == '-')                                                           \
- && (buf[2] == 'U' || buf[2] == 'u')                                          \
- && (buf[3] == 'I' || buf[3] == 'i')                                          \
- && (buf[4] == 'D' || buf[4] == 'd')                                          \
- && (buf[5] == 'L' || buf[5] == 'l')                                          \
- && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
-
-#define ISX_UID(buf) (                                                        \
-(buf[0] == 'X' || buf[0] == 'x')                                              \
- && (buf[1] == '-')                                                           \
- && (buf[2] == 'U' || buf[2] == 'u')                                          \
- && (buf[3] == 'I' || buf[3] == 'i')                                          \
- && (buf[4] == 'D' || buf[4] == 'd')                                          \
- && (buf[5] == ':' || buf[5] == ' ' || buf[5] == '\t'))
-
-/* Skip prepend spaces.  */
-#define SKIPSPACE(p) while (*p == ' ') p++
-
-#define ATOI(a,i)                                                             \
-do {                                                                          \
- SKIPSPACE(a);                                                                \
- for (i = 0; *a >= '0' && *a <= '9'; a++)                                     \
-    i = 10 * i + (*a - '0');                                                  \
-} while (0)
 
 /* Notifications ADD_MESG. */						      
 #define DISPATCH_ADD_MSG(mbox,mud)                                            \
@@ -419,8 +209,6 @@ do                                                                            \
     }                                                                         \
   if (bailing != 0)                                                           \
     {                                                                         \
-      if (pcount)                                                             \
-        *pcount = (mud)->messages_count;                                      \
       mu_locker_unlock (mbox->locker);                                        \
       return EINTR;                                                           \
     }                                                                         \
@@ -444,8 +232,6 @@ do                                                                           \
                                     MU_EVT_MAILBOX_PROGRESS, NULL);          \
   if (bailing != 0)                                                          \
     {	                                                                     \
-       if (pcount)                                                           \
-	 *pcount = (mud)->messages_count;                                    \
        mu_locker_unlock (mbox->locker);                                      \
        return EINTR;                                                         \
     }                                                                        \
@@ -481,16 +267,29 @@ do                                                                           \
   }                                                                          \
 } while (0)
 
+#define ISSTATUS(buf) (                                                       \
+(buf[0] == 'S' || buf[0] == 's')                                              \
+ && (buf[1] == 'T' || buf[1] == 't')                                          \
+ && (buf[2] == 'A' || buf[2] == 'a')                                          \
+ && (buf[3] == 'T' || buf[3] == 't')                                          \
+ && (buf[4] == 'U' || buf[4] == 'u')                                          \
+ && (buf[5] == 'S' || buf[5] == 's')                                          \
+ && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
+
+#define MBOX_SCAN_NOTIFY 0x1
+#define MBOX_SCAN_ONEMSG 0x2
+
 int
-mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
+mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
+		    mu_off_t total,
+		    size_t *pmin_uid,
+		    int flags)
 {
 #define MSGLINELEN 1024
   char buf[MSGLINELEN];
   int inheader;
   int inbody;
-  mu_off_t total = 0;
   mbox_data_t mud = mailbox->data;
-  mbox_message_t mum = NULL;
   int status = 0;
   size_t lines;
   int newline;
@@ -499,60 +298,28 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   size_t min_uid = 0;
   int zn, isfrom = 0;
   char *temp;
-
-  /* Sanity.  */
-  if (mud == NULL)
-    return EINVAL;
-
-  /* Grab the lock.  */
-  mu_monitor_wrlock (mailbox->monitor);
-
-#ifdef WITH_PTHREAD
-  /* read() is cancellation point since we're doing a potentially
-     long operation.  Lets make sure we clean the state.  */
-  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
-#endif
-
-  /* Save the timestamp and size.  */
-  status = mu_stream_size (mailbox->stream, &(mud->size));
-  if (status != 0)
-    {
-      mu_monitor_unlock (mailbox->monitor);
-      return status;
-    }
-
-  if ((status = mu_locker_lock (mailbox->locker)))
-    {
-      mu_monitor_unlock (mailbox->monitor);
-      return status;
-    }
-
-  /* Seek to the starting point.  */
-  if (mud->umessages && msgno > 0 && mud->messages_count > 0
-      && msgno <= mud->messages_count)
-    {
-      mum = mud->umessages[msgno - 1];
-      if (mum)
-	total = mum->header_from;
-      mud->messages_count = msgno - 1;
-    }
-  else
-    mud->messages_count = 0;
-
+  
   newline = 1;
   errno = lines = inheader = inbody = 0;
 
   stream = mailbox->stream;
-  while ((status = mu_stream_readline (mailbox->stream, buf, sizeof (buf),
+  while ((status = mu_stream_readline (stream, buf, sizeof (buf),
 				       total, &n)) == 0 && n != 0)
     {
       int nl;
       total += n;
 
       nl = (*buf == '\n') ? 1 : 0;
-      VALID(buf, temp, isfrom, zn);
+      VALID (buf, temp, isfrom, zn);
       isfrom = (isfrom) ? 1 : 0;
 
+      if ((flags & MBOX_SCAN_ONEMSG) && mum == NULL)
+	{
+	  /* In one-message mode, the positioning should be exact. */
+	  if (!isfrom)
+	    return EINVAL; /* FIXME: Better error code, please? */
+	}
+      
       /* Which part of the message are we in ?  */
       inheader = isfrom | ((!nl) & inheader);
       inbody = (!isfrom) & (!inheader);
@@ -579,13 +346,15 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 		    }
 		  else
 		    min_uid = mum->uid;
-	  
-		  if (do_notif)
-		    DISPATCH_ADD_MSG (mailbox, mud);
 
+		  if (flags & MBOX_SCAN_ONEMSG)
+		    break;
+		  
+		  if (flags & MBOX_SCAN_NOTIFY)
+		    DISPATCH_ADD_MSG (mailbox, mud);
 		}
 	      /* Allocate_msgs will initialize mum.  */
-	      ALLOCATE_MSGS(mailbox, mud);
+	      ALLOCATE_MSGS (mailbox, mud);
 	      mud->messages_count++;
 	      mum = mud->umessages[mud->messages_count - 1];
 	      mum->mud = mud;
@@ -623,9 +392,9 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	mu_locker_touchlock (mailbox->locker);
 
       /* Ping them every 1000 lines. Should be tunable.  */
-      if (do_notif)
+      if (flags & MBOX_SCAN_NOTIFY)
 	if (((lines +1) % 1000) == 0)
-	  DISPATCH_PROGRESS(mailbox, mud);
+	  DISPATCH_PROGRESS (mailbox, mud);
 
     } /* while */
 
@@ -643,9 +412,65 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       else
 	min_uid = mum->uid;
       
-      if (do_notif)
+      if (flags & MBOX_SCAN_NOTIFY)
 	DISPATCH_ADD_MSG (mailbox, mud);
     }
+  if (pmin_uid)
+    *pmin_uid = min_uid;
+  return status;
+}
+
+int
+mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
+{
+  int status;
+  mbox_data_t mud = mailbox->data;
+  mbox_message_t mum = NULL;
+  mu_off_t total = 0;
+  size_t min_uid;
+  
+  /* Sanity.  */
+  if (mud == NULL)
+    return EINVAL;
+
+  /* Grab the lock.  */
+  mu_monitor_wrlock (mailbox->monitor);
+
+#ifdef WITH_PTHREAD
+  /* read() is cancellation point since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
+#endif
+
+  /* Save the timestamp and size.  */
+  status = mu_stream_size (mailbox->stream, &mud->size);
+  if (status != 0)
+    {
+      mu_monitor_unlock (mailbox->monitor);
+      return status;
+    }
+
+  if ((status = mu_locker_lock (mailbox->locker)))
+    {
+      mu_monitor_unlock (mailbox->monitor);
+      return status;
+    }
+
+  /* Seek to the starting point.  */
+  if (mud->umessages && msgno > 0 && mud->messages_count > 0
+      && msgno <= mud->messages_count)
+    {
+      mum = mud->umessages[msgno - 1];
+      if (mum)
+	total = mum->header_from;
+      mud->messages_count = msgno - 1;
+    }
+  else
+    mud->messages_count = 0;
+
+  status = mbox_scan_internal (mailbox, mum, total, &min_uid,
+			       do_notif ? MBOX_SCAN_NOTIFY : 0);
+    
   if (pcount)
     *pcount = mud->messages_count;
   mu_locker_unlock (mailbox->locker);
@@ -674,5 +499,52 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
 #endif
+
+  return status;
+}
+
+int
+mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif)
+{
+  int status;
+  mbox_data_t mud = mailbox->data;
+
+  if (mud == NULL)
+    return EINVAL;
+
+  /* Grab the lock.  */
+  mu_monitor_wrlock (mailbox->monitor);
+
+#ifdef WITH_PTHREAD
+  /* read() is cancellation point since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
+#endif
+
+  if ((status = mu_locker_lock (mailbox->locker)))
+    {
+      mu_monitor_unlock (mailbox->monitor);
+      return status;
+    }
+
+  status = mu_stream_seek (mailbox->stream, offset, SEEK_SET);
+  if (status)
+    {
+      mu_monitor_unlock (mailbox->monitor);
+      mu_locker_unlock (mailbox->locker);
+      return status;
+    }
+
+  status = mbox_scan_internal (mailbox, NULL, offset, NULL,
+			       MBOX_SCAN_ONEMSG |
+			       (do_notif ? MBOX_SCAN_NOTIFY : 0));
+
+  mu_locker_unlock (mailbox->locker);
+  mu_monitor_unlock (mailbox->monitor);
+  
+#ifdef WITH_PTHREAD
+  pthread_cleanup_pop (0);
+#endif
+
   return status;
 }

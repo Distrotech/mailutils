@@ -704,28 +704,6 @@ _prog_stream_unregister (struct _prog_stream *stream)
   mu_list_remove (prog_stream_list, stream);
 }
 
-static int
-_prog_waitpid (void *item, void *data MU_ARG_UNUSED)
-{
-  struct _prog_stream *str = item;
-  int status;
-  if (str->pid > 0)
-    {
-      if (waitpid (str->pid, &str->status, WNOHANG) == str->pid)
-	str->pid = -1;
-    }
-  if (str->writer_pid > 0)
-    waitpid (str->writer_pid, &status, WNOHANG);
-  return 0;
-}
-
-static void
-_prog_stream_wait (struct _prog_stream *fs)
-{
-  if (fs->pid > 0)
-    waitpid (fs->pid, &fs->status, 0);
-}
-
 #if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
 # define getmaxfd() sysconf (_SC_OPEN_MAX)
 #elif defined (HAVE_GETDTABLESIZE)
@@ -841,23 +819,34 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv,
 }
 
 static void
+_prog_wait (pid_t pid, int *pstatus)
+{
+  if (pid > 0)
+    {
+      pid_t t;
+      do
+	t = waitpid (pid, pstatus, 0);
+      while (t == -1 && errno == EINTR);
+    }
+}
+
+static void
 _prog_destroy (mu_stream_t stream)
 {
   struct _prog_stream *fs = mu_stream_get_owner (stream);
+  int status;
+    
   mu_argcv_free (fs->argc, fs->argv);
   if (fs->in)
     mu_stream_destroy (&fs->in, mu_stream_get_owner (fs->in));
   if (fs->out)
     mu_stream_destroy (&fs->out, mu_stream_get_owner (fs->out));
-  if (fs->pid > 0)
-    {
-      kill (fs->pid, SIGTERM);
-      mu_list_do (prog_stream_list, _prog_waitpid, NULL);
-      kill (fs->pid, SIGKILL);
-      if (fs->writer_pid > 0)
-	kill (fs->writer_pid, SIGKILL);
-      mu_list_do (prog_stream_list, _prog_waitpid, NULL);
-    }
+  
+  _prog_wait (fs->pid, &fs->status);
+  fs->pid = -1;
+  _prog_wait (fs->writer_pid, &status);
+  fs->writer_pid = -1;
+  
   _prog_stream_unregister (fs);
 }
 
@@ -865,6 +854,7 @@ static int
 _prog_close (mu_stream_t stream)
 {
   struct _prog_stream *fs = mu_stream_get_owner (stream);
+  int status;
   
   if (!stream)
     return EINVAL;
@@ -875,7 +865,10 @@ _prog_close (mu_stream_t stream)
   mu_stream_close (fs->out);
   mu_stream_destroy (&fs->out, mu_stream_get_owner (fs->out));
 
-  _prog_stream_wait (fs);
+  _prog_wait (fs->pid, &fs->status);
+  fs->pid = -1;
+  _prog_wait (fs->writer_pid, &status);
+  fs->writer_pid = -1;
   
   mu_stream_close (fs->in);
   mu_stream_destroy (&fs->in, mu_stream_get_owner (fs->in));
@@ -1101,7 +1094,7 @@ mu_prog_stream_create (mu_stream_t *stream, const char *progname, int flags)
 
 int
 mu_filter_prog_stream_create (mu_stream_t *stream, const char *progname,
-			   mu_stream_t input)
+			      mu_stream_t input)
 {
   struct _prog_stream *fs;
   int rc = _prog_stream_create (&fs, stream, progname, MU_STREAM_RDWR);
