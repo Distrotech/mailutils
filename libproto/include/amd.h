@@ -55,7 +55,7 @@ struct _amd_message
   size_t header_lines;      /* Number of lines in the header part */
   size_t body_lines;        /* Number of lines in the body */
 
-  mu_message_t message;        /* Corresponding mu_message_t */
+  mu_message_t message;     /* Corresponding mu_message_t */
   struct _amd_data *amd;    /* Back pointer.  */
 };
 
@@ -68,6 +68,7 @@ struct _amd_data
   char *(*msg_file_name) (struct _amd_message *, int deleted);
   int (*scan0)     (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
 		    int do_notify);
+  int (*qfetch)    (struct _amd_data *, mu_message_qid_t qid);
   int (*msg_cmp) (struct _amd_message *, struct _amd_message *);
   int (*message_uid) (mu_message_t msg, size_t *puid);
   size_t (*next_uid) (struct _amd_data *mhd);
