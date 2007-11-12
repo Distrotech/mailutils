@@ -76,6 +76,8 @@ static void amd_destroy (mu_mailbox_t mailbox);
 static int amd_open (mu_mailbox_t, int);
 static int amd_close (mu_mailbox_t);
 static int amd_get_message (mu_mailbox_t, size_t, mu_message_t *);
+static int amd_quick_get_message (mu_mailbox_t mailbox, mu_message_qid_t qid,
+				  mu_message_t *pmsg);
 static int amd_append_message (mu_mailbox_t, mu_message_t);
 static int amd_messages_count (mu_mailbox_t, size_t *);
 static int amd_messages_recent (mu_mailbox_t, size_t *);
@@ -276,6 +278,7 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
 
   /* Overloading of the entire mailbox object methods.  */
   mailbox->_get_message = amd_get_message;
+  mailbox->_quick_get_message = amd_quick_get_message;
   mailbox->_append_message = amd_append_message;
   mailbox->_messages_count = amd_messages_count;
   mailbox->_messages_recent = amd_messages_recent;
@@ -526,6 +529,36 @@ amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   if ((mhm = _amd_get_message (amd, msgno)) == NULL)
     return EINVAL;
   return _amd_attach_message (mailbox, mhm, pmsg);
+}
+
+static int
+amd_quick_get_message (mu_mailbox_t mailbox, mu_message_qid_t qid,
+		       mu_message_t *pmsg)
+{
+  int status;
+  struct _amd_data *amd = mailbox->data;
+  if (amd->msg_count)
+    {
+      mu_message_qid_t vqid;
+      mu_message_t msg = amd->msg_array[0]->message;
+      status = mu_message_get_qid (msg, &vqid);
+      if (status)
+	return status;
+      status = strcmp (qid, vqid);
+      free (vqid);
+      if (status)
+	return MU_ERR_EXISTS;
+      *pmsg = msg;
+    }
+  else if (amd->qfetch)
+    {
+      status = amd->qfetch (amd, qid);
+      if (status)
+	return status;
+      return _amd_attach_message (mailbox, amd->msg_array[0], pmsg);
+    }
+  
+  return ENOSYS;
 }
 
 static FILE *
