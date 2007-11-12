@@ -362,7 +362,7 @@ decode_tuple_v1_0 (mu_sql_connection_t conn, int n,
       char *tmp;
       if (mu_sql_get_column (conn, 0, 6, &tmp))
 	return MU_ERR_FAILURE;
-      if ((mailbox_name = strdup (tmp)) == NULL)
+      if (tmp && (mailbox_name = strdup (tmp)) == NULL)
 	return ENOMEM;
     }
   else if (mu_construct_user_mailbox_url (&mailbox_name, name))
