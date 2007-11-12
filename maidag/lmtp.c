@@ -476,16 +476,16 @@ cfun_mail_from (FILE *out, char *arg)
 {
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.5.2", "Oj-ej");
+      lmtp_reply (out, "501", "5.5.2", "Syntax error");
       return 1;
     }
 
   if (check_address (arg, 1, &mail_from))
     {
-      lmtp_reply (out, "553", "5.1.8", "Pomyliles sie");
+      lmtp_reply (out, "553", "5.1.8", "Address format error");
       return 1;
     }
-  lmtp_reply (out, "250", "2.1.0", "Moje ty sloneczko");
+  lmtp_reply (out, "250", "2.1.0", "Go ahead");
   return 0;
 }
 
@@ -498,20 +498,20 @@ cfun_rcpt_to (FILE *out, char *arg)
   
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.5.2", "Oj-ej");
+      lmtp_reply (out, "501", "5.5.2", "Syntax error");
       return 1;
     }
 
   /* FIXME: Check if domain is OK */
   if (check_address (arg, 0, &user))
     {
-      lmtp_reply (out, "553", "5.1.8", "Pomyliles sie");
+      lmtp_reply (out, "553", "5.1.8", "Address format error");
       return 1;
     }
   auth = mu_get_auth_by_name (user);
   if (!auth)
     {
-      lmtp_reply (out, "550", "5.1.1", "Hm, nie znam takiego");
+      lmtp_reply (out, "550", "5.1.1", "User unknown");
       free (user);
       return 1;
     }
@@ -522,7 +522,7 @@ cfun_rcpt_to (FILE *out, char *arg)
       mu_list_set_destroy_item (rcpt_list, rcpt_to_destroy_item);
     }
   mu_list_append (rcpt_list, user);
-  lmtp_reply (out, "250", "2.1.5", "%s bedzie uszczesliwiony", user);
+  lmtp_reply (out, "250", "2.1.5", "Go ahead");
   return 0;
 }  
 
@@ -532,17 +532,17 @@ cfun_data (FILE *out, char *arg)
 {
   if (*arg)
     {
-      lmtp_reply (out, "501", "5.5.2", "Co za bzdury?");
+      lmtp_reply (out, "501", "5.5.2", "Syntax error");
       return 1;
     }
 
   if (mail_tmp_begin (&mtmp, mail_from))
     {
       /* FIXME: codes */
-      lmtp_reply (out, "450", "4.1.0", "Cos mi nieswojo, moze pozniej...");
+      lmtp_reply (out, "450", "4.1.0", "Temporary failure, try again later");
       return 1;
     }
-  lmtp_reply (out, "354", NULL, "Jazda!");
+  lmtp_reply (out, "354", NULL, "Go ahead");
   return 0;
 }
 
@@ -552,7 +552,7 @@ dot_temp_fail (void *item, void *cbdata)
 {
   char *name = item;
   FILE *out = cbdata;
-  lmtp_reply (out, "450", "4.1.0", "%s: cos nawalilo, sprobuj pozniej", name);
+  lmtp_reply (out, "450", "4.1.0", "%s: temporary failure", name);
   return 0;
 }
 
@@ -566,21 +566,22 @@ dot_deliver (void *item, void *cbdata)
   switch (deliver (mbox, name, &errp))
     {
     case 0:
-      lmtp_reply (out, "250", "2.0.0", "%s: dostarczono", name);
+      lmtp_reply (out, "250", "2.0.0", "%s: delivered", name);
       break;
 
     case EX_UNAVAILABLE:
       if (errp)
 	lmtp_reply (out, "553", "5.1.8", "%s", errp);
       else
-	lmtp_reply (out, "553", "5.1.8", "%s: nie dostarczono", name);
+	lmtp_reply (out, "553", "5.1.8", "%s: delivery failed", name);
       break;
 
     default:
       if (errp)
 	lmtp_reply (out, "450", "4.1.0", "%s", errp);
       else
-	lmtp_reply (out, "450", "4.1.0", "%s: cos nawalilo, sprobuj pozniej",
+	lmtp_reply (out, "450", "4.1.0",
+		    "%s: temporary failure, try again later",
 		    name);
       break;
     }
@@ -619,7 +620,7 @@ cfun_rset (FILE *out, char *arg)
   mu_list_destroy (&rcpt_list);
   mail_tmp_destroy (&mtmp);
   mu_mailbox_destroy (&mbox);
-  lmtp_reply (out, "250", "2.0.0", "Dobrze, zapomnialem");
+  lmtp_reply (out, "250", "2.0.0", "OK, forgotten");
   return 0;
 }
 
@@ -634,11 +635,11 @@ cfun_lhlo (FILE *out, char *arg)
 {
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.0.0", "Czy to wszystko?");
+      lmtp_reply (out, "501", "5.0.0", "Syntax error");
       return 1;
     }
   lhlo_domain = strdup (arg);
-  lmtp_reply (out, "250", NULL, "Czolem\n");
+  lmtp_reply (out, "250", NULL, "Hello\n");
   lmtp_reply (out, "250", NULL, capa_str);
   return 0;
 }
@@ -647,7 +648,7 @@ cfun_lhlo (FILE *out, char *arg)
 int
 cfun_quit (FILE *out, char *arg)
 {
-  lmtp_reply (out, "221", "2.0.0", "Na razie");
+  lmtp_reply (out, "221", "2.0.0", "Bye");
   return 0;
 }
 
@@ -655,7 +656,7 @@ cfun_quit (FILE *out, char *arg)
 int
 cfun_help (FILE *out, char *arg)
 {
-  lmtp_reply (out, "200", "2.0.0", "Czlowieku, pomagaj sobie sam");
+  lmtp_reply (out, "200", "2.0.0", "Man, help yourself");
   return 0;
 }
 
@@ -705,7 +706,7 @@ lmtp_loop (FILE *in, FILE *out)
   setvbuf (in, NULL, _IOLBF, 0);
   setvbuf (out, NULL, _IOLBF, 0);
 
-  lmtp_reply (out, "220", NULL, "Do uslug");
+  lmtp_reply (out, "220", NULL, "At your service");
   while (fgets (buf, sizeof buf, in))
     {
       if (state == state_data
