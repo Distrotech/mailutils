@@ -580,7 +580,8 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 }
 
 static int
-maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount, 
+maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
+	       size_t *pcount, 
 	       int do_notify)
 {
   struct _amd_data *amd = mailbox->data;
@@ -654,8 +655,33 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
   amd_cleanup (mailbox);
   return status;
 }
-
 
+
+static int
+maildir_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
+{
+  struct _maildir_message *msg;
+  char *name = strrchr (qid, '/');
+  char *p;
+  
+  if (!name)
+    return EINVAL;
+  
+  msg = calloc (1, sizeof(*msg));
+  msg->file_name = strdup (name);
+
+  p = strchr (msg->file_name, ':');
+  if (p && strcmp (p + 1, "2,") == 0)
+    msg->amd_message.attr_flags = info_to_flags (p + 3);
+  else
+    msg->amd_message.attr_flags = 0;
+  msg->amd_message.deleted = msg->amd_message.attr_flags & MU_ATTRIBUTE_DELETED;
+  msg->uid = amd->next_uid (amd);
+  _amd_message_insert (amd, (struct _amd_message*) msg);
+  return 0;
+}
+
+     
 int
 _mailbox_maildir_init (mu_mailbox_t mailbox)
 {
@@ -672,6 +698,7 @@ _mailbox_maildir_init (mu_mailbox_t mailbox)
   amd->msg_finish_delivery = maildir_msg_finish_delivery;
   amd->msg_file_name = maildir_message_name;
   amd->scan0 = maildir_scan0;
+  amd->qfetch = maildir_qfetch;
   amd->msg_cmp = maildir_message_cmp;
   amd->message_uid = maildir_message_uid;
   amd->next_uid = maildir_next_uid;
