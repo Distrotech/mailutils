@@ -1,3 +1,13 @@
+2007-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/sql.c (decode_tuple_v1_0): Allow mailbox to be NULL.
+	* comsat/comsat.c: Use mu_error for diagnostics where possible.
+	* libproto/include/amd.h (struct _amd_data. qfetch): New member.
+	* libproto/maildir/mbox.c (maildir_qfetch): Implement quick_get
+	method.
+	* libproto/mh/mbox.c (mh_qfetch): Likewise.
+	* mailbox/amd.c (amd_quick_get_message): Likewise.
+
 2007-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/sql.c, libproto/mbox/folder.c: Rename MU_READ_ERROR to
