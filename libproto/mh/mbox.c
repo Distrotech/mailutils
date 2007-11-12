@@ -246,6 +246,44 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
   return status;
 }
 
+static int
+mh_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
+{
+  char *p;
+  size_t num = 0;
+  int attr_flags = 0;
+  struct _mh_message *msg;
+
+  p = qid + strlen (qid) - 1;
+  if (!isdigit (*p))
+    return EINVAL;
+  
+  for (p--; p >= qid && isdigit (*p); p--)
+    ;
+
+  if (p == qid)
+    return EINVAL;
+
+  num = strtoul (p + 1, NULL, 10);
+  
+  if (*p == ',')
+    {
+      attr_flags |= MU_ATTRIBUTE_DELETED;
+      p--;
+    }
+
+  if (*p != '/')
+    return EINVAL;
+  
+  msg = calloc (1, sizeof (*msg));
+  msg->seq_number = num;
+  msg->amd_message.attr_flags = attr_flags;
+  msg->amd_message.deleted = attr_flags & MU_ATTRIBUTE_DELETED;
+  _amd_message_insert (amd, (struct _amd_message*) msg);
+  return 0;
+}
+
+
 /* Note: In this particular implementation the message sequence number
    serves also as its UID. This allows to avoid many problems related
    to keeping the uids in the headers of the messages. */
@@ -285,6 +323,7 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
   amd->msg_finish_delivery = NULL;
   amd->msg_file_name = _mh_message_name;
   amd->scan0 = mh_scan0;
+  amd->qfetch = mh_qfetch;
   amd->msg_cmp = mh_message_cmp;
   amd->message_uid = mh_message_uid;
   amd->next_uid = _mh_next_seq;
