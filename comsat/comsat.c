@@ -158,7 +158,7 @@ main (int argc, char **argv)
   
   if (test_mode)
     {
-      char *user, *url, *qid;
+      char *user;
       
       comsat_init ();
       if (config_file)
@@ -471,7 +471,7 @@ notify_user (const char *user, const char *device, const char *path,
   change_user (user);
   if ((fp = fopen (device, "w")) == NULL)
     {
-      syslog (LOG_ERR, _("Cannot open device %s: %m"), device);
+      mu_error (_("Cannot open device %s: %m"), device);
       exit (0);
     }
 
@@ -487,7 +487,7 @@ notify_user (const char *user, const char *device, const char *path,
   if ((status = mu_mailbox_create (&mbox, path)) != 0
       || (status = mu_mailbox_open (mbox, MU_STREAM_READ|MU_STREAM_QACCESS)) != 0)
     {
-      syslog (LOG_ERR, _("Cannot open mailbox %s: %s"),
+      mu_error (_("Cannot open mailbox %s: %s"),
 	      path, mu_strerror (status));
       return;
     }
@@ -495,8 +495,8 @@ notify_user (const char *user, const char *device, const char *path,
   status = mu_mailbox_quick_get_message (mbox, qid, &msg);
   if (status)
     {
-      syslog (LOG_ERR, _("Cannot get message (mailbox %s, qid %s): %s"),
-	      path, qid, mu_strerror (status));
+      mu_error (_("Cannot get message (mailbox %s, qid %s): %s"),
+		path, qid, mu_strerror (status));
       return; /* FIXME: Notify the user, anyway */
     }
 
