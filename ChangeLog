@@ -1,5 +1,7 @@
 2007-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* maidag/lmtp.c: Use English reply texts.
+
 	* auth/sql.c (decode_tuple_v1_0): Allow mailbox to be NULL.
 	* comsat/comsat.c: Use mu_error for diagnostics where possible.
 	* libproto/include/amd.h (struct _amd_data. qfetch): New member.
@@ -29,7 +31,7 @@
 	* libsieve/load.c: Do not deallocate loaded modules.
 	* mail.local/main.c (set_debug_flags): Fix typo.
 	* mailbox/amd.c: Implement get_qid method.
-	(amd_append_message): Singal MU_EVT_MESSAGE_APPEND.
+	(amd_append_message): Signal MU_EVT_MESSAGE_APPEND.
 	* mailbox/errors (MU_ERR_BADOP): New error code.
 	(MU_READ_ERROR): Rename to MU_ERR_READ, for consistency.
 	* mailbox/file_stream.c (_prog_destroy,_prog_close): Fix waiting
