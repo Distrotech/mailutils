@@ -58,6 +58,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
+#include <mailutils/sql.h>
 
 #include <registrar0.h>
 
@@ -1479,3 +1480,19 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
     *perr = i;
   return rc;
 }
+
+/* FIXME: should it be here? */
+int
+mu_sql_decode_password_type (const char *arg, enum mu_password_type *t)
+{
+  if (strcmp (arg, "plain") == 0)
+    *t = password_plaintext;
+  else if (strcmp (arg, "hash") == 0)
+    *t = password_hash;
+  else if (strcmp (arg, "scrambled") == 0)
+    *t = password_scrambled;
+  else
+    return 1;
+  return 0;
+}
+

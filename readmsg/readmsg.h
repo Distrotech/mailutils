@@ -47,7 +47,6 @@
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
-#include <mailutils/argp.h>
 #include <mailutils/error.h>
 #include <mailutils/envelope.h>
 #include <mailutils/argcv.h>

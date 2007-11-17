@@ -44,32 +44,18 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/argp.h>
+#include <mailutils/sql.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/mutil.h>
 #include <mailutils/sql.h>
+#include "sql.h"
 
 #ifdef USE_SQL
 
-
-int sql_interface = 0;
-char *mu_sql_getpwnam_query;
-char *mu_sql_getpass_query;
-char *mu_sql_getpwuid_query;
-
-char *mu_sql_host = NULL;          /* Hostname to connect to. NULL for UNIX
-				      socket connection */
-char *mu_sql_user = "accounts";    /* Username for mysql access */    
-char *mu_sql_passwd = "yurpass";   /* Password for mysql access */
-char *mu_sql_db = "accounts";      /* Database Name */
-int  mu_sql_port = 0;              /* Port number to connect to.
-				      0 means default port */
-enum mu_password_type mu_sql_password_type  = password_hash;
-
-static mu_assoc_t sql_field_map;
+struct mu_internal_sql_config mu_sql_module_config;
 
 static char *
 sql_escape_string (const char *ustr)
@@ -175,176 +161,6 @@ mu_sql_expand_query (const char *query, const char *ustr)
   return res;
 }
 
-static int
-set_sql_password_type (const char *arg)
-{
-  if (strcmp (arg, "plain") == 0)
-    mu_sql_password_type  = password_plaintext;
-  else if (strcmp (arg, "hash") == 0)
-    mu_sql_password_type  = password_hash;
-  else if (strcmp (arg, "scrambled") == 0)
-    mu_sql_password_type  = password_scrambled;
-  else
-    return 1;
-  return 0;
-}
-
-
-/* Command-line configuration */
-# define ARG_SQL_INTERFACE        256
-# define ARG_SQL_GETPWNAM         257
-# define ARG_SQL_GETPWUID         258
-# define ARG_SQL_GETPASS          259
-# define ARG_SQL_HOST             260
-# define ARG_SQL_USER             261
-# define ARG_SQL_PASSWD           262
-# define ARG_SQL_DB               263
-# define ARG_SQL_PORT             264
-# define ARG_SQL_MU_PASSWORD_TYPE 265
-# define ARG_SQL_FIELD_MAP        266
-
-static struct argp_option mu_sql_argp_option[] = {
-  {"sql-interface", ARG_SQL_INTERFACE, N_("NAME"), OPTION_HIDDEN,
-   N_("Type of SQL interface to use"), },
-  {"sql-getpwnam", ARG_SQL_GETPWNAM, N_("QUERY"), OPTION_HIDDEN,
-   N_("SQL query to retrieve a passwd entry based on username"), 0},
-  {"sql-getpwuid", ARG_SQL_GETPWUID, N_("QUERY"), OPTION_HIDDEN,
-   N_("SQL query to retrieve a passwd entry based on UID"), 0},
-  {"sql-getpass", ARG_SQL_GETPASS, N_("QUERY"), OPTION_HIDDEN,
-   N_("SQL query to retrieve a password from the database"), 0},
-  {"sql-host", ARG_SQL_HOST, N_("HOSTNAME"), OPTION_HIDDEN,
-   N_("Name or IP of MySQL server to connect to"), 0},
-  {"sql-user", ARG_SQL_USER, N_("NAME"), OPTION_HIDDEN,
-   N_("SQL user name"), 0},
-  {"sql-passwd", ARG_SQL_PASSWD, N_("STRING"), OPTION_HIDDEN,
-   N_("SQL connection password"), 0},
-  {"sql-db", ARG_SQL_DB, N_("STRING"), OPTION_HIDDEN,
-   N_("Name of the database to connect to"), 0},
-  {"sql-port", ARG_SQL_PORT, N_("NUMBER"), OPTION_HIDDEN,
-   N_("Port to use"), 0},
-  {"sql-password-type", ARG_SQL_MU_PASSWORD_TYPE, N_("STRING"), OPTION_HIDDEN,
-   N_("Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"), 0},
-  {"sql-field-map", ARG_SQL_FIELD_MAP, N_("MAP"), OPTION_HIDDEN,
-   N_("Declare a name translation map for SQL fields in results of sql-getpwnam and "
-      "sql-getpwuid queries"), 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  int rc, err;
-  
-  switch (key)
-    {
-    case ARG_SQL_INTERFACE:
-      sql_interface = mu_sql_interface_index (arg);
-      if (sql_interface == 0)
-	argp_error (state, _("Unknown SQL interface `%s'"), arg);
-      break;
-      
-    case ARG_SQL_GETPWNAM:
-      mu_sql_getpwnam_query = arg;
-      break;
-
-    case ARG_SQL_GETPWUID:
-      mu_sql_getpwuid_query = arg;
-      break;
-
-    case ARG_SQL_GETPASS:
-      mu_sql_getpass_query = arg;
-      break;
-
-    case ARG_SQL_HOST:
-      mu_sql_host = arg;
-      break;
-
-    case ARG_SQL_USER:
-      mu_sql_user = arg;
-      break;
-
-    case ARG_SQL_PASSWD:
-      mu_sql_passwd = arg;
-      break;
-
-    case ARG_SQL_DB:
-      mu_sql_db = arg;
-      break;
-
-    case ARG_SQL_PORT:
-      mu_sql_port = strtoul (arg, NULL, 0);
-      break;
-
-    case ARG_SQL_MU_PASSWORD_TYPE:
-      if (set_sql_password_type (arg))
-	argp_error (state, _("Unknown password type `%s'"), arg);
-      break;
-
-    case ARG_SQL_FIELD_MAP:
-      rc = mutil_parse_field_map (arg, &sql_field_map, &err);
-      if (rc)
-	argp_error (state, _("Error near element %d: %s"),
-		    err, mu_strerror (rc));
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp mu_sql_argp = {
-  mu_sql_argp_option,
-  mu_sql_argp_parser,
-};
-
-
-/* Resource file configuration */
-static int
-cb_iface (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  sql_interface = mu_sql_interface_index (arg);
-  if (sql_interface == 0)
-    mu_error (_("%s:%d: Unknown SQL interface `%s'"),
-	      locus->file, locus->line, arg);
-  return 0;
-}
-
-static int
-cb_password_type (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  if (set_sql_password_type (arg))
-    mu_error (_("%s:%d: Unknown password type `%s'"),
-	      locus->file, locus->line, arg);
-  return 0;
-}
-
-static int
-cb_field_map (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  int err;
-  int rc = mutil_parse_field_map (arg, &sql_field_map, &err);
-  if (rc)
-    mu_error (_("%s:%d: Error near element %d: %s"),
-	      locus->file, locus->line, err, mu_strerror (rc));
-  return 0;
-}
-
-static struct mu_cfg_param mu_sql_param[] = {
-  { "interface", mu_cfg_callback, NULL, cb_iface },
-  { "getwpnam", mu_cfg_string, &mu_sql_getpwnam_query },
-  { "getpwuid", mu_cfg_string, &mu_sql_getpwuid_query },
-  { "getpass", mu_cfg_string, &mu_sql_getpass_query },
-  { "host", mu_cfg_string, &mu_sql_host },
-  { "user", mu_cfg_string, &mu_sql_user },
-  { "passwd", mu_cfg_string, &mu_sql_passwd },
-  { "db", mu_cfg_string, &mu_sql_db },
-  { "port", mu_cfg_int, &mu_sql_port },
-  { "password-type", mu_cfg_callback, NULL, cb_password_type },
-  { "field-map", mu_cfg_callback, NULL, cb_field_map },
-  { NULL }
-};
-
 
 static int
 decode_tuple_v1_0 (mu_sql_connection_t conn, int n,
@@ -405,7 +221,7 @@ decode_tuple_v1_0 (mu_sql_connection_t conn, int n,
 static int
 get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
 {
-  const char **name = mu_assoc_ref (sql_field_map, id);
+  const char **name = mu_assoc_ref (mu_sql_module_config.field_map, id);
   int rc = mu_sql_get_field (conn, 0, name ? *name : id, ret);
   if (rc)
     {
@@ -536,7 +352,7 @@ static int
 decode_tuple (mu_sql_connection_t conn, int n,
 	      struct mu_auth_data **return_data)
 {
-  if (sql_field_map)
+  if (mu_sql_module_config.field_map)
     return decode_tuple_new (conn, n, return_data);
   else
     return decode_tuple_v1_0 (conn, n, return_data);
@@ -556,17 +372,18 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
   if (!key)
     return EINVAL;
 
-  query_str = mu_sql_expand_query (mu_sql_getpwnam_query, key);
+  query_str = mu_sql_expand_query (mu_sql_module_config.getpwnam_query, key);
 
   if (!query_str)
     return MU_ERR_FAILURE;
 
   status = mu_sql_connection_init (&conn,
-				   sql_interface,
-				   mu_sql_host,
-				   mu_sql_port,
-				   mu_sql_user, mu_sql_passwd,
-				   mu_sql_db);
+				   mu_sql_module_config.interface,
+				   mu_sql_module_config.host,
+				   mu_sql_module_config.port,
+				   mu_sql_module_config.user,
+				   mu_sql_module_config.passwd,
+				   mu_sql_module_config.db);
 
   if (status)
     {
@@ -638,17 +455,19 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
     return EINVAL;
 
   snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
-  query_str = mu_sql_expand_query (mu_sql_getpwuid_query, uidstr);
+  query_str = mu_sql_expand_query (mu_sql_module_config.getpwuid_query,
+				   uidstr);
 
   if (!query_str)
     return ENOMEM;
 
   status = mu_sql_connection_init (&conn,
-				   sql_interface,
-				   mu_sql_host,
-				   mu_sql_port,
-				   mu_sql_user, mu_sql_passwd,
-				   mu_sql_db);
+				   mu_sql_module_config.interface,
+				   mu_sql_module_config.host,
+				   mu_sql_module_config.port,
+				   mu_sql_module_config.user,
+				   mu_sql_module_config.passwd,
+				   mu_sql_module_config.db);
 
   if (status)
     {
@@ -713,17 +532,18 @@ mu_sql_getpass (const char *username, char **passwd)
   int status;
   char *sql_pass;
   
-  query_str = mu_sql_expand_query (mu_sql_getpass_query, username);
+  query_str = mu_sql_expand_query (mu_sql_module_config.getpass_query, username);
 
   if (!query_str)
     return MU_ERR_FAILURE;
 
   status = mu_sql_connection_init (&conn,
-				   sql_interface,
-				   mu_sql_host,
-				   mu_sql_port,
-				   mu_sql_user, mu_sql_passwd,
-				   mu_sql_db);
+				   mu_sql_module_config.interface,
+				   mu_sql_module_config.host,
+				   mu_sql_module_config.port,
+				   mu_sql_module_config.user,
+				   mu_sql_module_config.passwd,
+				   mu_sql_module_config.db);
 
   if (status)
     {
@@ -804,7 +624,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   if ((rc = mu_sql_getpass (auth_data->name, &sql_pass)))
     return rc;
 
-  switch (mu_sql_password_type)
+  switch (mu_sql_module_config.password_type)
     {
     case password_hash:
       rc = strcmp (sql_pass, crypt (pass, sql_pass));
@@ -832,6 +652,32 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   return rc == 0 ? 0 : MU_ERR_AUTH_FAILURE;
 }
 
+int
+mu_sql_module_init (void *data)
+{
+  struct mu_sql_module_config *cfg = data;
+
+  mu_sql_module_config.interface = mu_sql_interface_index (cfg->interface);
+  if (mu_sql_module_config.interface == 0)
+    {
+      mu_error (_("Unknown SQL interface `%s'"), cfg->interface);
+      return 1;
+    }
+
+  mu_sql_module_config.getpwnam_query = cfg->getpwnam_query;   
+  mu_sql_module_config.getpass_query  = cfg->getpass_query;    
+  mu_sql_module_config.getpwuid_query = cfg->getpwuid_query;   
+  mu_sql_module_config.host = cfg->host;             
+  mu_sql_module_config.user = cfg->user;             
+  mu_sql_module_config.passwd = cfg->passwd;           
+  mu_sql_module_config.db = cfg->db;               
+  mu_sql_module_config.port = cfg->port;             
+  mu_sql_module_config.password_type = cfg->password_type;    
+  mu_sql_module_config.field_map = cfg->field_map;        
+
+  return 0;
+}
+
 #else
 
 # define mu_sql_authenticate mu_auth_nosupport
@@ -844,10 +690,8 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 struct mu_auth_module mu_auth_sql_module = {
   "sql",
 #ifdef USE_SQL
-  &mu_sql_argp,
-  mu_sql_param,
+  mu_sql_module_init,
 #else
-  NULL,
   NULL,
 #endif
   mu_sql_authenticate,

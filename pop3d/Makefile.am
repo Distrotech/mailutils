@@ -50,7 +50,7 @@ pop3d_SOURCES =\
  user.c
 
 pop3d_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\
@@ -60,7 +60,7 @@ pop3d_LDADD = \
  @MU_COMMON_LIBRARIES@
 
 popauth_SOURCES = popauth.c
-popauth_LDADD = ../lib/libmuaux.la ${MU_LIB_MAILUTILS} @MU_COMMON_LIBRARIES@
+popauth_LDADD = ${MU_APP_LIBRARIES} ${MU_LIB_MAILUTILS} @MU_COMMON_LIBRARIES@
 pop3d_DEPENDENCIES = \
  @MU_AUTHLIBS_DEPENDENCY@ \
  ../lib/libmuaux.la \

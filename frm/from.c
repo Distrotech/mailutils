@@ -118,10 +118,8 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
 
   mu_argp_init (program_version, NULL);
-#ifdef WITH_TLS
-  mu_tls_init_client_argp ();
-#endif
-  mu_argp_parse (&argp, &argc, &argv, 0, capa, &c, NULL);
+  if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &c, NULL))
+    exit (1);
 
   if (argc - c > 1)
     {

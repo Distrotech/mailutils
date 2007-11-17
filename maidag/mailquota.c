@@ -162,12 +162,12 @@ sql_retrieve_quota (char *name, mu_off_t *quota)
     return RETR_FAILURE;
 
   status = mu_sql_connection_init (&conn,
-				   sql_interface,
-				   mu_sql_host,
-				   mu_sql_port,
-				   mu_sql_user,
-				   mu_sql_passwd,
-				   mu_sql_db);
+				   mu_sql_module_config.interface,
+				   mu_sql_module_config.host,
+				   mu_sql_module_config.port,
+				   mu_sql_module_config.user,
+				   mu_sql_module_config.passwd,
+				   mu_sql_module_config.db);
   
   if (status)
     {

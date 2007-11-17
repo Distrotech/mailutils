@@ -23,7 +23,7 @@ SUBDIRS  = testsuite
 bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c
 sieve_LDADD =\
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\

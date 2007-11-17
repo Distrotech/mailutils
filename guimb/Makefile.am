@@ -25,7 +25,7 @@ bin_PROGRAMS=@GUIMB@
 EXTRA_PROGRAMS=guimb
 guimb_SOURCES=main.c collect.c util.c guimb.h 
 guimb_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ../libmu_scm/libmu_scm.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\

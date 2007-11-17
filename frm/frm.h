@@ -47,7 +47,6 @@
 #endif
 
 #include <mailutils/address.h>
-#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
@@ -64,6 +63,8 @@
 #include <mailutils/error.h>
 #include <mailutils/mutil.h>
 #include <mailutils/mime.h>
+
+#include "muinit.h"
 
 typedef int (*frm_select_t) (size_t index, mu_message_t msg);
 

@@ -49,7 +49,7 @@ mimetypes-lex.c: $(srcdir)/mimetypes.l mimetypes-decl.h
 BUILT_SOURCES = mimetypes-gram.c mimetypes-lex.c mimetypes-decl.h
 
 mimeview_LDADD = \
- ../lib/libmuaux.la \
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MAILUTILS}\
  @LTLIBINTL@
  

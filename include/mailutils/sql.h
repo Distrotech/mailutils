@@ -19,7 +19,30 @@
 #ifndef _MAILUTILS_SQL_H
 #define _MAILUTILS_SQL_H
 
-/* Loadable Modules Suppert */
+/* Configuration */
+enum mu_password_type
+  {
+    password_plaintext,       /* Plaintext passwords */
+    password_scrambled,       /* Scrambled MySQL (>=3.21) password */
+    password_hash,            /* MD5 (or DES or whatever) hash */
+  };
+
+struct mu_sql_module_config
+{
+  char *interface;
+  char *getpwnam_query;
+  char *getpass_query;
+  char *getpwuid_query;
+  char *host; 
+  char *user;
+  char *passwd;
+  char *db;
+  int port;
+  enum mu_password_type password_type;
+  mu_assoc_t field_map;
+};
+
+/* Loadable Modules Support */
 #define __s_cat2__(a,b) a ## b 
 #define __s_cat3__(a,b,c) a ## b ## c
 #define RDL_EXPORT(module,name) __s_cat3__(module,_LTX_,name)
@@ -27,7 +50,7 @@
 typedef int (*mu_rdl_init_t) (void);
 typedef void (*mu_rdl_done_t) (void);
 
-#ifdef _HAVE_LIBLTDL //FIXME: Remove leading _ when SQL + ltdl works
+#ifdef _HAVE_LIBLTDL /*FIXME: Remove leading _ when SQL + ltdl works*/
 # define MU_DECL_SQL_DISPATCH_T(mod) \
   mu_sql_dispatch_t RDL_EXPORT(mod,dispatch_tab)
 #else
@@ -112,18 +135,11 @@ int mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, char *fname,
 
 const char *mu_sql_strerror (mu_sql_connection_t conn);
 
-enum mu_password_type
-  {
-    password_plaintext,       /* Plaintext passwords */
-    password_scrambled,       /* Scrambled MySQL (>=3.21) password */
-    password_hash,            /* MD5 (or DES or whatever) hash */
-  };
-
-extern enum mu_password_type mu_sql_password_type;
-
 extern char *mu_sql_expand_query (const char *query, const char *ustr);
 extern int mu_sql_getpass (const char *username, char **passwd);
 extern int mu_check_mysql_scrambled_password (const char *scrambled,
 					      const char *message);
+
+int mu_sql_decode_password_type (const char *arg, enum mu_password_type *t);
 
 #endif

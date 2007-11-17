@@ -25,6 +25,7 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
 #include <mu_asprintf.h>
+#include "muinit.h"
 
 const char *program_version = "movemail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU movemail");
@@ -85,13 +86,10 @@ struct mu_cfg_param movemail_cfg_param[] = {
 };
 
 
-static const char *mail_capa[] = {
+static const char *movemail_capa[] = {
   "common",
   "license",
   "mailbox",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL 
 };
 
@@ -292,12 +290,13 @@ main (int argc, char **argv)
   
   mu_error_set_print (movemail_error_printer);
   
-  mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
-  mu_tls_init_client_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_argp_set_config_param (movemail_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, &index, NULL);
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, movemail_capa, movemail_cfg_param, 
+		   argc, argv, 0, NULL, NULL))
+    exit (1);
 
   argc -= index;
   argv += index;

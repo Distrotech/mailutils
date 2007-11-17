@@ -19,14 +19,22 @@
 #ifndef _MAILUTILS_GSASL_H
 #define _MAILUTILS_GSASL_H
 
+struct mu_gsasl_module_data
+{
+  char *cram_md5_pwd;
+};
+
+int mu_gsasl_module_init (void *data);
+
+struct mu_gsasl_module_data mu_gsasl_module_data;
+
+#ifdef USE_GSASL
 #include <gsasl.h>
 
 int mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
-			 Gsasl_session_ctx *ctx,
-			 int flags);
+			    Gsasl_session_ctx *ctx,
+			    int flags);
 
-void mu_gsasl_init_argp (void);
-
-extern char *mu_gsasl_cram_md5_pwd;
+#endif
 
 #endif /* not _MAILUTILS_GSASL_H */

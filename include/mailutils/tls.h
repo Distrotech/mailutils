@@ -19,28 +19,35 @@
 #ifndef _MAILUTILS_TLS_H
 #define _MAILUTILS_TLS_H
 
-#ifdef WITH_TLS
-
 #include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct mu_tls_module_config
+{
+  int client_enable;
+  char *ssl_cert;
+  char *ssl_key;
+  char *ssl_cafile;
+};
+
+extern int mu_tls_module_init (void *data);
+
 extern int mu_tls_stream_create (mu_stream_t *stream, 
-                              mu_stream_t strin, mu_stream_t strout, int flags);
+				 mu_stream_t strin, mu_stream_t strout,
+				 int flags);
 extern int mu_tls_stream_create_client (mu_stream_t *stream,
-				     mu_stream_t strin, mu_stream_t strout,
-				     int flags);
+					mu_stream_t strin, mu_stream_t strout,
+					int flags);
 extern int mu_tls_stream_create_client_from_tcp (mu_stream_t *stream,
-					      mu_stream_t tcp_str,
-					      int flags);
+						 mu_stream_t tcp_str,
+						 int flags);
 
 extern int mu_check_tls_environment (void);
 extern int mu_init_tls_libs (void);
 extern void mu_deinit_tls_libs (void);
-extern void mu_tls_init_argp (void);
-extern void mu_tls_init_client_argp (void);
 
 typedef int (*mu_tls_readline_fn) (void *iodata);
 typedef int (*mu_tls_writeline_fn) (void *iodata, char *buf); 
@@ -58,6 +65,5 @@ extern int mu_tls_enable;
 }
 #endif
 
-#endif /* WITH_TLS */
 #endif /* _MAILUTILS_TLS_H */
 

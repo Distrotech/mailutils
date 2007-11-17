@@ -360,7 +360,7 @@ util_send (const char *format, ...)
   if (!buf)
       imap4d_bye (ERR_NO_MEM);
 
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -414,7 +414,7 @@ util_out (int rc, const char *format, ...)
   if (!buf)
     imap4d_bye (ERR_NO_MEM);
 
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -455,7 +455,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   strcat (buf, tempbuf);
   free (tempbuf);
 
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "sent: %s\r\n", buf);
 
   mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -503,7 +503,7 @@ imap4d_readline (void)
       size_t sz;
       int rc;
       
-      alarm (daemon_param.timeout);
+      alarm (mu_gocs_daemon.timeout);
       rc = mu_stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
       if (sz == 0)
 	{
@@ -577,7 +577,7 @@ imap4d_readline (void)
 	}
     }
   while (number > 0 || (total && line[total - 1] != '\n'));
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "recv: %s", line);
   return line;
 }

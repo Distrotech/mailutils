@@ -19,7 +19,6 @@
 
 #include <mailutils/address.h>
 #include <mailutils/argcv.h>
-#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
 #include <mailutils/body.h>
@@ -53,6 +52,7 @@
 #include <mailutils/tls.h>
 #include <mailutils/types.h>
 #include <mailutils/url.h>
+#include <mailutils/gocs.h>
 
 #ifdef MU_COMPAT
 # include <mailutils/compat.h>

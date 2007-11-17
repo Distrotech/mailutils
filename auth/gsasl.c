@@ -26,7 +26,6 @@
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
-#include <mailutils/argp.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/mu_auth.h>
@@ -36,53 +35,20 @@
 #include <gsasl.h>
 #include <lbuf.h>
 
-char *mu_gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
+struct mu_gsasl_module_data mu_gsasl_module_data;
 
-#define ARG_CRAM_PASSWD 1
-
-static struct argp_option _gsasl_argp_options[] = {
-  {"cram-passwd", ARG_CRAM_PASSWD, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify password file for CRAM-MD5 authentication"), 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-_gsasl_argp_parser (int key, char *arg, struct argp_state *state)
+int
+mu_gsasl_module_init (void *data)
 {
-  switch (key)
-    {
-    case ARG_CRAM_PASSWD:
-      mu_gsasl_cram_md5_pwd = arg;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
+  static struct mu_gsasl_module_data _default_module_data = {
+    SITE_CRAM_MD5_PWD
+  };
+  
+  if (!data)
+    mu_gsasl_module_data = _default_module_data;
+  memcpy (&mu_gsasl_module_data, data, sizeof (mu_gsasl_module_data));
   return 0;
 }
-
-static struct argp _gsasl_argp = {
-  _gsasl_argp_options,
-  _gsasl_argp_parser
-};
-
-static struct argp_child _gsasl_argp_child = {
-  &_gsasl_argp,
-  0,
-  NULL,
-  0
-};
-
-void
-mu_gsasl_init_argp ()
-{
-  if (mu_register_capa ("gsasl", &_gsasl_argp_child, NULL))
-    {
-      mu_error (_("INTERNAL ERROR: cannot register argp capability gsasl"));
-      abort ();
-    }
-}
-
 
 struct _gsasl_stream {
   Gsasl_session_ctx *sess_ctx; /* Context */

@@ -22,7 +22,7 @@ INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
 
 movemail_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

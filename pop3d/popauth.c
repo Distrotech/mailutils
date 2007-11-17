@@ -19,6 +19,7 @@
 #include "pop3d.h"
 #include <mailutils/argcv.h>
 #include <xalloc.h>
+#include "muinit.h"
 
 int db_list (char *input_name, char *output_name);
 int db_make (char *input_name, char *output_name);
@@ -201,8 +202,9 @@ main(int argc, char **argv)
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
-  mu_argp_parse (&argp, &argc, &argv, 0,
-		 popauth_argp_capa, NULL, &adata);
+  if (mu_app_init (&argp, popauth_argp_capa, NULL,
+		   argc, argv, 0, NULL, &adata))
+    exit (1);
 
   return (*ftab[adata.action]) (&adata);
 }

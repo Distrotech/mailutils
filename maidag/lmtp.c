@@ -252,7 +252,7 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
   vasprintf (&str, fmt, ap);
   va_end (ap);
 
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     {
       if (enh)
 	syslog (LOG_INFO, "LMTP reply: %s %s %s", code, enh, str);
@@ -737,7 +737,7 @@ lmtp_loop (FILE *in, FILE *out)
 
 	  trimnl (buf);
 
-	  if (daemon_param.transcript)
+	  if (mu_gocs_daemon.transcript)
 	    syslog (LOG_INFO, "LMTP recieve: %s", buf);
 	      
 	  if (next_state != state_none)
@@ -784,7 +784,7 @@ lmtp_daemon (char *urlstr)
   socklen_t addrlen;
   pid_t pid;
   
-  if (daemon_param.mode == MODE_DAEMON)
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
     {
       if (daemon (0, 0) < 0)
 	{
@@ -819,7 +819,7 @@ lmtp_daemon (char *urlstr)
   for (;;)
     {
       process_cleanup ();
-      if (children > daemon_param.maxchildren)
+      if (children > mu_gocs_daemon.maxchildren)
 	{
 	  mu_error (_("too many children (%lu)"),
 		    (unsigned long) children);
@@ -879,11 +879,11 @@ maidag_lmtp_server ()
 
   if (lmtp_url_string)
     return lmtp_daemon (lmtp_url_string);
-  else if (daemon_param.mode == MODE_INTERACTIVE)
+  else if (mu_gocs_daemon.mode == MODE_INTERACTIVE)
     return lmtp_loop (stdin, stdout);
   else
     {
-      const char *pstr = mu_umaxtostr (0, daemon_param.port);
+      const char *pstr = mu_umaxtostr (0, mu_gocs_daemon.port);
       char *urls = malloc (sizeof (DEFAULT_URL) + strlen (pstr));
       if (!urls)
 	{

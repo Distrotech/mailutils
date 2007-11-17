@@ -139,7 +139,6 @@ extern int expire_on_exit;
 # include <strings.h>
 #endif
 
-#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/daemon.h>

@@ -31,7 +31,7 @@ maidag_SOURCES=\
 maidag_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
- ../lib/libmuaux.la \
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\

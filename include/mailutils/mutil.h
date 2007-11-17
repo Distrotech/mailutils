@@ -152,7 +152,7 @@ extern size_t mu_strftime (char *s, size_t max, const char *format,
 
 extern int mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab,
 				  int *perr);
-  
+       
 #ifdef __cplusplus
 }
 #endif

@@ -49,7 +49,7 @@ imap4d_idle (struct imap4d_command *command, char *arg)
 	  if (rc)
 	    break;
 	}
-      else if (time (NULL) - start > daemon_param.timeout)
+      else if (time (NULL) - start > mu_gocs_daemon.timeout)
 	imap4d_bye (ERR_TIMEOUT);
 
       imap4d_sync ();

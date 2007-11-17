@@ -82,6 +82,7 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/libsieve.h>
 #include <mailutils/nls.h>
+#include <mailutils/daemon.h>
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
@@ -91,7 +92,8 @@
 # define USE_MAILBOX_QUOTAS 1
 #endif
 
-#include <mailutils/argp.h>
+#include "muinit.h"
+
 /* Debug */
 extern int debug_level;
 #define dbg() if (debug_level) debug
@@ -120,7 +122,6 @@ extern int lmtp_mode;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
 extern char *lmtp_group;
-extern struct daemon_param daemon_param;
 
 void close_fds (void);
 int switch_user_id (struct mu_auth_data *auth, int user);

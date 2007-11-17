@@ -25,17 +25,31 @@
 #include <syslog.h>
 #include <mailutils/error.h>
 
+const char *mu_program_name;
+
+void
+mu_set_program_name (const char *name)
+{
+  char *progname = strrchr (name, '/');
+  if (progname)
+    progname++;
+  else
+    progname = name;
+
+  if (strlen (progname) > 3 && memcmp (progname, "lt-", 3) == 0)
+    progname += 3;
+
+  mu_program_name = progname;
+}
+
 int
 mu_default_error_printer (const char *fmt, va_list ap)
 {
-  int status;
-  status = vfprintf (stderr, fmt, ap);
-  if (status >= 0)
-    {
-      if (fputc ('\n', stderr) != EOF)
-	status++;
-    }
-  return status;
+  if (mu_program_name)
+    fprintf (stderr, "%s: ", mu_program_name);
+  vfprintf (stderr, fmt, ap);
+  fputc ('\n', stderr);
+  return 0;
 }
 
 int

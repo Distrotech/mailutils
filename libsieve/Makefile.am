@@ -29,7 +29,7 @@ lib_LTLIBRARIES = libsieve.la
 
 libsieve_la_SOURCES = \
  actions.c\
- argp.c\
+ conf.c\
  comparator.c\
  load.c\
  prog.c\

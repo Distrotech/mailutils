@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include "pop3d.h"
+#include "muinit.h"
 
 static mu_stream_t istream, ostream;
 
@@ -215,7 +216,7 @@ pop3d_outf (const char *fmt, ...)
   if (!buf)
     pop3d_abquit (ERR_NO_MEM);
   
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "sent: %s", buf);
 
   rc = mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -239,7 +240,7 @@ pop3d_readline (char *buffer, size_t size)
   int rc;
   size_t nbytes;
   
-  alarm (daemon_param.timeout);
+  alarm (mu_gocs_daemon.timeout);
   rc = mu_stream_sequential_readline (istream, buffer, size, &nbytes);
   alarm (0);
 
@@ -258,7 +259,7 @@ pop3d_readline (char *buffer, size_t size)
       pop3d_abquit (ERR_NO_OFILE);
     }
 
-  if (daemon_param.transcript)
+  if (mu_gocs_daemon.transcript)
     syslog (LOG_DEBUG, "recv: %s", buffer);
 
   /* Caller should not free () this ... should we strdup() then?  */

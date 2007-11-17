@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include "mail.h"
+#include "muinit.h"
 
 /* Global variables and constants*/
 mu_mailbox_t mbox;               /* Mailbox being operated upon */
@@ -178,9 +179,6 @@ static const char *mail_capa[] = {
   "common",
   "license",
   "mailbox",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL 
 };
 			     
@@ -353,13 +351,13 @@ main (int argc, char **argv)
   args.send_mode = 0;
   
   /* argument parsing */
-
-  mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
-  mu_tls_init_client_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, NULL, &args);
-
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, mail_capa, NULL, argc, argv, 0, NULL, &args))
+    exit (1);
+  
   /* read system-wide mail.rc and user's .mailrc */
   if (util_getenv (NULL, "rc", Mail_env_boolean, 0) == 0)
     util_do_command ("source %s", SITE_MAIL_RC);

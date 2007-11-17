@@ -27,6 +27,7 @@
 #include <mh.h>
 #include <string.h>
 #include <mailutils/argcv.h>
+#include "argp.h"
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -61,7 +62,7 @@ my_argp_parse (struct argp *argp, int argc, char **argv, int flags,
   int rc;
   int f = 0;
   int index = 0;
-  
+
   if (flags & ARGP_NO_ERRS)
     {
       while (argc > 0

@@ -21,46 +21,23 @@
 #define _MAILUTILS_ARGP_H
 
 #include <mailutils/types.h>
-#include <mailutils/cfg.h>
 #include <argp.h>
 #include <errno.h> /* May declare program_invocation_name */
 
-#define MODE_INTERACTIVE 0
-#define MODE_DAEMON 1
-
-struct daemon_param {
-  int mode;
-  size_t maxchildren;
-  unsigned int port;
-  unsigned int timeout;
-  int transcript;
-  char *pidfile;
-};
-
-#ifdef USE_LIBPAM
-extern char *pam_service;
-#endif
-extern int log_facility;
-extern int mu_argp_error_code;
 extern char *mu_license_text;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void mu_argp_init (const char *vers, const char *bugaddr);
+extern void mu_argp_init (struct argp *argp, const char *vers,
+			  const char *bugaddr, const char *capa[]);
+extern void mu_argp_done (struct argp *argp);
   
-extern error_t mu_argp_parse (const struct argp * argp,
-			      int *p_argc, char ***p_argv,
-			      unsigned flags,
-			      const char *capa[],
-			      int *arg_index, void *input);
-extern int mu_register_capa (const char *name, struct argp_child *child,
-			     struct mu_cfg_param *param);
+extern int mu_register_argp_capa (const char *name, struct argp_child *child);
 
 extern void mu_print_options (void);
 extern const char *mu_check_option (char *name);
-extern void mu_argp_set_config_param (struct mu_cfg_param *);
   
 #ifdef __cplusplus
 }

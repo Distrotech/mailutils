@@ -24,7 +24,7 @@ sbin_PROGRAMS = comsatd
 comsatd_SOURCES = action.c cfg.c comsat.c comsat.h
 
 comsatd_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

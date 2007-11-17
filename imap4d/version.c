@@ -21,6 +21,6 @@
 int
 imap4d_version (struct imap4d_command *command, char *arg)
 {
-  util_send ("* %s GNU %s\r\n", command->name, argp_program_version);
+  util_send ("* %s GNU %s\r\n", command->name, program_version);
   return util_finish (command, RESP_OK, "Completed");
 }

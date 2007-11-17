@@ -24,7 +24,7 @@ AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 bin_PROGRAMS = mail
 
 mail_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

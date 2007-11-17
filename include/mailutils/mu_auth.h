@@ -20,6 +20,7 @@
 #define _MAILUTILS_MU_AUTH_H
 
 #include <mailutils/types.h>
+#include <mailutils/gocs.h>
 
 #define MU_AUTH_NAME    "name"
 #define MU_AUTH_PASSWD  "passwd"
@@ -61,8 +62,7 @@ typedef int (*mu_auth_fp) (struct mu_auth_data **data,
 struct mu_auth_module
 {
   char           *name;
-  struct argp    *argp;
-  struct mu_cfg_param *cfg;
+  gocs_init_fp   init;
   mu_auth_fp     authenticate;
   void           *authenticate_data;
   mu_auth_fp     auth_by_name;
@@ -130,7 +130,6 @@ extern struct mu_auth_module mu_auth_virtual_module;
 extern struct mu_auth_module mu_auth_radius_module;
 
 #define MU_AUTH_REGISTER_ALL_MODULES() do {\
-  mu_auth_init (); \
   mu_auth_register_module (&mu_auth_generic_module); \
   mu_auth_register_module (&mu_auth_system_module); \
   mu_auth_register_module (&mu_auth_pam_module);\

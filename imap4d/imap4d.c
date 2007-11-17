@@ -21,6 +21,7 @@
 #ifdef WITH_GSASL
 # include <mailutils/gsasl.h>
 #endif
+#include "muinit.h"
 
 mu_mailbox_t mbox;
 char *homedir;
@@ -28,7 +29,7 @@ int state = STATE_NONAUTH;
 int debug_mode = 0;
 struct mu_auth_data *auth_data;
 
-struct daemon_param daemon_param = {
+struct mu_gocs_daemon default_gocs_daemon = {
   MODE_INTERACTIVE,		/* Start in interactive (inetd) mode */
   20,				/* Default maximum number of children */
   143,				/* Standard IMAP4 port */
@@ -87,12 +88,6 @@ static struct argp argp = {
 static const char *imap4d_capa[] = {
   "daemon",
   "auth",
-#ifdef WITH_TLS
-  "tls",
-#endif /* WITH_TLS */
-#ifdef WITH_GSASL
-  "gsasl",
-#endif
   "common",
   "mailbox",
   "logging",
@@ -196,16 +191,17 @@ main (int argc, char **argv)
 
   MU_AUTH_REGISTER_ALL_MODULES ();
   imap4d_capability_init ();
-
-  mu_argp_init (program_version, NULL);
+  mu_gocs_daemon = default_gocs_daemon;
 #ifdef WITH_TLS
-  mu_tls_init_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif /* WITH_TLS */
 #ifdef WITH_GSASL
-  mu_gsasl_init_argp ();
+  mu_gocs_register ("gsasl", mu_gsasl_module_init);
 #endif
-  mu_argp_set_config_param (imap4d_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
+		   argc, argv, 0, NULL, NULL))
+    exit (1);
 
   if (login_disabled)
     imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
@@ -218,11 +214,11 @@ main (int argc, char **argv)
   auth_gsasl_init ();
   
 #ifdef USE_LIBPAM
-  if (!pam_service)
-    pam_service = "gnu-imap4d";
+  if (!mu_pam_service)
+    mu_pam_service = "gnu-imap4d";
 #endif
 
-  if (daemon_param.mode == MODE_INTERACTIVE && isatty (0))
+  if (mu_gocs_daemon.mode == MODE_INTERACTIVE && isatty (0))
     {
       /* If input is a tty, switch to debug mode */
       debug_mode = 1;
@@ -261,7 +257,7 @@ main (int argc, char **argv)
   /*signal (SIGPIPE, SIG_IGN); */
   signal (SIGABRT, imap4d_signal);
 
-  if (daemon_param.mode == MODE_DAEMON)
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
     imap4d_daemon_init ();
   else
     {
@@ -278,9 +274,9 @@ main (int argc, char **argv)
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
-  if (daemon_param.pidfile)
+  if (mu_gocs_daemon.pidfile)
     {
-      mu_daemon_create_pidfile (daemon_param.pidfile);
+      mu_daemon_create_pidfile (mu_gocs_daemon.pidfile);
     }
 
   /* Check TLS environment, i.e. cert and key files */
@@ -289,8 +285,8 @@ main (int argc, char **argv)
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */
-  if (daemon_param.mode == MODE_DAEMON)
-    imap4d_daemon (daemon_param.maxchildren, daemon_param.port);
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
+    imap4d_daemon (mu_gocs_daemon.maxchildren, mu_gocs_daemon.port);
   /* exit (0) -- no way out of daemon except a signal.  */
   else
     status = imap4d_mainloop (fileno (stdin), stdin, stdout);

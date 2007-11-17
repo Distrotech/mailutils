@@ -17,10 +17,9 @@
    MA 02110-1301 USA */
 
 #include <stdlib.h>
-#include <mailutils/mutil.h>
-#include <mailutils/argp.h>
-
 #include <stdio.h>
+#include <mailutils/mutil.h>
+#include "muinit.h"
 
 const char *capa[] = {
   "address",
@@ -32,8 +31,8 @@ main (int argc, char *argv[])
 {
   int arg = 1;
 
-  if (mu_argp_parse (NULL, &argc, &argv, 0, capa, &arg, NULL))
-    abort ();
+  if (mu_app_init (NULL, capa, NULL, argc, argv, 0, &arg, NULL))
+    exit (1);
 
   if (!argv[arg])
     printf ("current user -> %s\n", mu_get_user_email (0));

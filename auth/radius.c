@@ -34,7 +34,7 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/argp.h>
+#include <mailutils/radius.h>
 #include <mailutils/argcv.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
@@ -44,39 +44,6 @@
 #ifdef ENABLE_RADIUS
 
 #include <radius/radius.h>
-
-#define ARG_AUTH_REQUEST     256
-#define ARG_GETPWNAM_REQUEST 257
-#define ARG_GETPWUID_REQUEST 258
-#define ARG_RADIUS_DIR       259 
-
-static struct argp_option mu_radius_argp_option[] = {
-  { "radius-auth-request", ARG_AUTH_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to authenitcate the user"), 0 },
-  { "radius-getpwnam-request", ARG_GETPWNAM_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to retrieve a passwd entry based on username"), 0 },
-  { "radius-getpwuid-request", ARG_GETPWUID_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to retrieve a passwd entry based on UID"), 0 },
-  { "radius-directory", ARG_RADIUS_DIR, N_("DIR"), OPTION_HIDDEN,
-    N_("Set path to the radius configuration directory"), 0 },
-  { NULL }
-};
-
-static char *auth_request_str;
-static grad_avp_t *auth_request;
-
-static char *getpwnam_request_str;
-static grad_avp_t *getpwnam_request;
-
-static char *getpwuid_request_str;
-static grad_avp_t *getpwuid_request;
-
-/* Assume radius support is needed if any of the above requests is
-   defined. Actually, all of them should be, but it is the responsibility
-   of init to check for consistency of the configuration */
-
-#define NEED_RADIUS_P() \
-  (auth_request_str||getpwnam_request_str||getpwuid_request_str)
 
 static int radius_auth_enabled;
 
@@ -88,13 +55,22 @@ static int MU_Dir;
 static int MU_Shell;		
 static int MU_Mailbox;  
 
-void
-get_attribute (int *pattr, char *name, struct argp_state *state)
+static grad_avp_t *auth_request;
+static grad_avp_t *getpwnam_request;
+static grad_avp_t *getpwuid_request;
+
+
+int
+get_attribute (int *pattr, char *name)
 {
   grad_dict_attr_t *attr = grad_attr_name_to_dict (name);
   if (!attr)
-    argp_error (state, _("Radius attribute %s not defined"), name);
+    {
+      mu_error (_("Radius attribute %s not defined"), name);
+      return 1;
+    }
   *pattr = attr->value;
+  return 0;
 }
 
 enum parse_state
@@ -106,8 +82,7 @@ enum parse_state
   };
 
 int
-parse_pairlist (grad_avp_t **plist, const char *input,
-		struct argp_state *argp_state)
+parse_pairlist (grad_avp_t **plist, char *input)
 {
   int rc;
   int i, argc;
@@ -121,10 +96,12 @@ parse_pairlist (grad_avp_t **plist, const char *input,
     return 1;
   
   if ((rc = mu_argcv_get (input, ",", NULL, &argc, &argv)))
-    argp_error (argp_state, _("Cannot parse input `%s': %s"),
-		input, mu_strerror (rc));
+    {
+      mu_error (_("Cannot parse input `%s': %s"), input, mu_strerror (rc));
+      return 1;
+    }
 
-  loc.file = "<command line>"; /* FIXME */
+  loc.file = "<configuration>"; /*FIXME*/
   loc.line = 0;
   
   for (i = 0, state = state_lhs; i < argc; i++)
@@ -147,84 +124,81 @@ parse_pairlist (grad_avp_t **plist, const char *input,
 	  loc.line = i; /* Just to keep track of error location */
 	  pair = grad_create_pair (&loc, name, grad_operator_equal, argv[i]);
 	  if (!pair)
-	    argp_error (argp_state, _("cannot create radius A/V pair `%s'"),
-			name);
+	    {
+	      mu_error (_("cannot create radius A/V pair `%s'"), name);
+	      return 1;
+	    }
 	  grad_avl_merge (plist, &pair);
 	  state = state_delim;
 	  break;
 
 	case state_delim:
 	  if (strcmp (argv[i], ","))
-	    argp_error (argp_state, _("expected `,' but found `%s'"), argv[i]);
+	    {
+	      mu_error (_("expected `,' but found `%s'"), argv[i]);
+	      return 1;
+	    }
 	  state = state_lhs;
 	}
     }
 
   if (state != state_delim && state != state_delim)
-    argp_error (argp_state, _("malformed radius A/V list"));
+    {
+      mu_error (_("malformed radius A/V list"));
+      return 1;
+    }
   
   mu_argcv_free (argc, argv);
   return 0;
 }
 
-static void
-init (struct argp_state *state)
+/* Assume radius support is needed if any of the above requests is
+   defined. Actually, all of them should be, but it is the responsibility
+   of init to check for consistency of the configuration */
+
+#define NEED_RADIUS_P(cfg) \
+  ((cfg) && \
+   ((cfg)->auth_request || (cfg)->getpwnam_request || (cfg)->getpwuid_request))
+
+int
+mu_radius_module_init (void *data)
 {
+  struct mu_radius_module_data *cfg = data;
+
+  if (!NEED_RADIUS_P (cfg))
+    return 0;
+  
+  grad_config_dir = grad_estrdup (cfg->config_dir);
+
   grad_path_init ();
   srand (time (NULL) + getpid ());
   
   if (grad_dict_init ())
-    argp_error (state, _("Cannot read radius dictionaries"));
+    {
+      mu_error (_("Cannot read radius dictionaries"));
+      return 1;
+    }
 
   /* Check whether mailutils attributes are defined */
-  get_attribute (&MU_User_Name, "MU-User-Name", state);
-  get_attribute (&MU_UID, "MU-UID", state);
-  get_attribute (&MU_GID, "MU-GID", state);
-  get_attribute (&MU_GECOS, "MU-GECOS", state);
-  get_attribute (&MU_Dir, "MU-Dir", state);
-  get_attribute (&MU_Shell, "MU-Shell", state);
-  get_attribute (&MU_Mailbox, "MU-Mailbox", state);  
+  if (get_attribute (&MU_User_Name, "MU-User-Name")
+      || get_attribute (&MU_UID, "MU-UID")
+      || get_attribute (&MU_GID, "MU-GID")
+      || get_attribute (&MU_GECOS, "MU-GECOS")
+      || get_attribute (&MU_Dir, "MU-Dir")
+      || get_attribute (&MU_Shell, "MU-Shell")
+      || get_attribute (&MU_Mailbox, "MU-Mailbox"))
+    return 1;
   
   /* Parse saved requests */
-  parse_pairlist (&auth_request, auth_request_str, state);
-  parse_pairlist (&getpwnam_request, getpwnam_request_str, state);
-  parse_pairlist (&getpwuid_request, getpwuid_request_str, state);
+  if (parse_pairlist (&auth_request, cfg->auth_request)
+      || parse_pairlist (&getpwnam_request, cfg->getpwnam_request)
+      || parse_pairlist (&getpwuid_request, cfg->getpwuid_request))
+    return 1;
 
   radius_auth_enabled = 1;
+  return 0;
 }  
 
-static error_t
-mu_radius_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_AUTH_REQUEST:
-      auth_request_str = arg;
-      break;
-      
-    case ARG_GETPWNAM_REQUEST:
-      getpwnam_request_str = arg;
-      break;
-      
-    case ARG_GETPWUID_REQUEST:
-      getpwuid_request_str = arg;
-      break;
-      
-    case ARG_RADIUS_DIR:
-      grad_config_dir = grad_estrdup (arg);
-      break;
-      
-    case ARGP_KEY_FINI:
-      if (NEED_RADIUS_P())
-	init (state);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-      
 char *
 _expand_query (const char *query, const char *ustr, const char *passwd)
 {
@@ -320,20 +294,6 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
   return res;
 }
 
-static int
-cb_directory (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  grad_config_dir = grad_estrdup (arg);
-  return 0;
-}
-
-static struct mu_cfg_param mu_radius_cfg_param[] = {
-  { "auth-request", mu_cfg_string, &auth_request_str },
-  { "getpwnam-request", mu_cfg_string, &getpwnam_request_str },
-  { "getpwuid-request", mu_cfg_string, &getpwuid_request_str },
-  { "directory", mu_cfg_callback, NULL, cb_directory },
-  { NULL }
-};
 
 
 static grad_avp_t *
@@ -577,11 +537,6 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
   return rc;
 }
 
-struct argp mu_radius_argp = {
-  mu_radius_argp_option,
-  mu_radius_argp_parser,
-};
-
 #else
 static int
 mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
@@ -612,10 +567,8 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
 struct mu_auth_module mu_auth_radius_module = {
   "radius",
 #ifdef ENABLE_RADIUS
-  &mu_radius_argp,
-  mu_radius_cfg_param,
+  mu_radius_module_init,
 #else
-  NULL,
   NULL,
 #endif
   mu_radius_authenticate,

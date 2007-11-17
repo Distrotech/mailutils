@@ -25,6 +25,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include "muinit.h"
+
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")
 "\v"     
@@ -262,8 +264,9 @@ main (int argc, char **argv)
   
   mu_init_nls ();
   mu_argp_init (program_version, NULL);
-  mu_argp_set_config_param (mimeview_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, capa, &index, NULL);
+  if (mu_app_init (&argp, capa, mimeview_cfg_param, 
+		   argc, argv, 0, &index, NULL))
+    exit (1);
 
   argc -= index;
   argv += index;

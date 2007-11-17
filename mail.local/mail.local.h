@@ -92,7 +92,6 @@
 # define USE_MAILBOX_QUOTAS 1
 #endif
 
-#include <mailutils/argp.h>
 /* Debug */
 extern int debug_level;
 #define dbg() if (debug_level) debug

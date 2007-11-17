@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#include <mailutils/argp.h>
 #include <mailutils/error.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/tls.h>
@@ -37,6 +36,22 @@
 
 #include <lbuf.h>
 
+struct mu_tls_module_config mu_tls_module_config;
+  
+int
+mu_tls_module_init (void *data)
+{
+  if (data)
+    {
+      memcpy (&mu_tls_module_config, data, sizeof mu_tls_module_config);
+#ifdef WITH_TLS
+      if (mu_tls_module_config.client_enable)
+	mu_init_tls_libs ();
+#endif
+    }
+  return 0;
+}
+
 #ifdef WITH_TLS
 
 #include <gnutls/gnutls.h>
@@ -45,147 +60,45 @@
 
 static gnutls_dh_params dh_params;
 static gnutls_certificate_server_credentials x509_cred;
-static char *ssl_cert = NULL;
-static char *ssl_key = NULL;
-static char *ssl_cafile = NULL;
-
-#define ARG_TLS        1 
-#define ARG_SSL_CERT   2
-#define ARG_SSL_KEY    3
-#define ARG_SSL_CAFILE 4
-
-static struct argp_option _tls_argp_options[] = {
-  {"ssl-cert", ARG_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify SSL certificate file"), 0},
-  {"ssl-key", ARG_SSL_KEY, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify SSL certificate key"), },
-  {"ssl-cafile", ARG_SSL_CAFILE, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify trusted CAs file"), 0},
-  {NULL, 0, NULL, 0, NULL, 0}
-};
-
-static error_t
-_tls_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  static int tls_enable = 1;
-  
-  switch (key)
-    {
-    case ARG_TLS:
-      if (!arg || strcasecmp (arg, "yes") == 0)
-	tls_enable = 1;
-      else if (strcasecmp (arg, "no") == 0)
-	tls_enable = 0;
-      break;
-      
-    case ARG_SSL_CERT:
-      ssl_cert = arg;
-      break;
-
-    case ARG_SSL_KEY:
-      ssl_key = arg;
-      break;
-
-    case ARG_SSL_CAFILE:
-      ssl_cafile = arg;
-      break;
-
-    case ARGP_KEY_FINI:
-      if (tls_enable)
-	mu_init_tls_libs ();
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp _tls_argp = {
-  _tls_argp_options,
-  _tls_argp_parser
-};
-
-static struct argp_child _tls_argp_child = {
-  &_tls_argp,
-  0,
-  NULL,
-  0
-};
-
-void
-mu_tls_init_argp ()
-{
-  if (mu_register_capa ("tls", &_tls_argp_child, NULL))
-    {
-      mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
-      abort ();
-    }
-}
-
-static struct argp_option _tls_argp_client_options[] = {
-  {"tls", ARG_TLS, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Enable TLS support") },
-  {NULL, 0, NULL, 0, NULL, 0}
-};
-  
-static struct argp _tls_client_argp = {
-  _tls_argp_client_options,
-  _tls_argp_parser
-};
-
-static struct argp_child _tls_argp_client_child = {
-  &_tls_client_argp,
-  0,
-  NULL,
-  0
-};
-
-void
-mu_tls_init_client_argp ()
-{
-  if (mu_register_capa ("tls", &_tls_argp_client_child, NULL))
-    {
-      mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
-      abort ();
-    }
-}
 
 int
 mu_check_tls_environment (void)
 {
   /* Return: zero means NOT READY, one means READY */
 
-  if (ssl_cert && ssl_key)
+  if (mu_tls_module_config.ssl_cert && mu_tls_module_config.ssl_key)
     {
       struct stat st;
 
-      if (stat (ssl_cert, &st) == -1)
+      if (stat (mu_tls_module_config.ssl_cert, &st) == -1)
 	{
-	  mu_error ("%s: %s.", ssl_cert, mu_strerror (errno));
+	  mu_error ("%s: %s.", mu_tls_module_config.ssl_cert, 
+		    mu_strerror (errno));
 	  return 0;
 	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
 	{
 	  mu_error (_("%s is not a regular file or a symbolic link."),
-		    ssl_cert);
+		    mu_tls_module_config.ssl_cert);
 	  return 0;
 	}
 
-      if (stat (ssl_key, &st) == -1)
+      if (stat (mu_tls_module_config.ssl_key, &st) == -1)
 	{
-	  mu_error ("%s: %s.", ssl_key, mu_strerror(errno));
+	  mu_error ("%s: %s.", mu_tls_module_config.ssl_key,
+		    mu_strerror(errno));
 	  return 0;
 	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
 	{
 	  mu_error (_("%s is not a regular file or a symbolic link."),
-		    ssl_key);
+		    mu_tls_module_config.ssl_key);
 	  return 0;
 	}
       if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
 	{
-	  mu_error (_("Wrong permissions on %s. Set 0600"), ssl_key);
+	  mu_error (_("Wrong permissions on %s. Set 0600"),
+		    mu_tls_module_config.ssl_key);
 	  return 0;
 	}
     }
@@ -507,12 +420,14 @@ _tls_open (mu_stream_t stream)
 
   gnutls_certificate_allocate_credentials (&x509_cred);
 
-  if (ssl_cafile)
-    gnutls_certificate_set_x509_trust_file (x509_cred, ssl_cafile,
+  if (mu_tls_module_config.ssl_cafile)
+    gnutls_certificate_set_x509_trust_file (x509_cred,
+					    mu_tls_module_config.ssl_cafile,
 					    GNUTLS_X509_FMT_PEM);
 
   rc = gnutls_certificate_set_x509_key_file (x509_cred,
-					     ssl_cert, ssl_key,
+					     mu_tls_module_config.ssl_cert, 
+					     mu_tls_module_config.ssl_key,
 					     GNUTLS_X509_FMT_PEM);
   if (rc < 0)
     {
@@ -561,10 +476,10 @@ prepare_client_session (struct _tls_stream *s)
   gnutls_mac_set_priority (s->session, mac_priority);
 
   gnutls_certificate_allocate_credentials (&x509_cred);
-  if (ssl_cafile)
+  if (mu_tls_module_config.ssl_cafile)
     {
       rc = gnutls_certificate_set_x509_trust_file (x509_cred,
-						   ssl_cafile,
+					      mu_tls_module_config.ssl_cafile,
 						   GNUTLS_X509_FMT_PEM);
       if (rc < 0)
 	{
@@ -737,7 +652,7 @@ mu_tls_stream_create_client (mu_stream_t *stream,
 
 int
 mu_tls_stream_create_client_from_tcp (mu_stream_t *stream, mu_stream_t tcp_str,
-				   int flags)
+				      int flags)
 {
   return mu_tls_stream_create_client (stream, tcp_str, tcp_str, flags);
 }

@@ -43,11 +43,10 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 
-char *pam_service = NULL;
+char *mu_pam_service = NULL;
 
 #ifdef USE_LIBPAM
 #define COPY_STRING(s) (s) ? strdup(s) : NULL
@@ -120,7 +119,7 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
   
   _user = (char *) auth_data->name;
   _pwd = pass;
-  pamerror = pam_start (pam_service, _user, &PAM_conversation, &pamh);
+  pamerror = pam_start (mu_pam_service, _user, &PAM_conversation, &pamh);
   PAM_ERROR;
   pamerror = pam_authenticate (pamh, 0);
   PAM_ERROR;
@@ -131,39 +130,6 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
   pam_end (pamh, PAM_SUCCESS);
   return pamerror != PAM_SUCCESS;
 }
-
-#define ARG_PAM_SERVICE 1
-
-static error_t
-mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_PAM_SERVICE:
-      pam_service = arg;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp_option mu_pam_argp_option[] = {
-  { "pam-service", ARG_PAM_SERVICE, N_("STRING"), OPTION_HIDDEN,
-    N_("Use STRING as PAM service name"), 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-struct argp mu_pam_argp = {
-  mu_pam_argp_option,
-  mu_pam_argp_parser,
-};
-
-static struct mu_cfg_param pam_cfg_param[] = {
-  { "service", mu_cfg_string, &pam_service },
-  { NULL }
-};
 
 #else
 
@@ -178,16 +144,18 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
 }
 
 #endif
-  
+
+int
+mu_pam_module_init (void *data)
+{
+  if (data)
+    mu_pam_service = strdup (data);
+  return 0;
+}
+
 struct mu_auth_module mu_auth_pam_module = {
   "pam",
-#ifdef USE_LIBPAM
-  &mu_pam_argp,
-  pam_cfg_param,
-#else
-  NULL,
-  NULL,
-#endif
+  mu_pam_module_init,
   mu_authenticate_pam,
   NULL,
   mu_auth_nosupport,

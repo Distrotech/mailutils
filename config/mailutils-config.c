@@ -21,8 +21,8 @@
 #endif
 #include <string.h>
 #include <mailutils/mailutils.h>
-#include <mailutils/argp.h>
 #include <mu_asprintf.h>
+#include "muinit.h"
 
 const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
@@ -166,7 +166,7 @@ main (int argc, char **argv)
   int index;
   
   mu_argp_init (program_version, NULL);
-  if (mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &index, NULL))
+  if (mu_app_init (&argp, argp_capa, NULL, argc, argv, 0, &index, NULL))
     {
       argp_help (&argp, stdout, ARGP_HELP_SEE, program_invocation_short_name);
       return 1;

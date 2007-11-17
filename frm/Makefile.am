@@ -30,7 +30,7 @@ frm_LDADD =  $(common_ldadd)
 from_LDADD = $(common_ldadd)
 
 common_ldadd = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

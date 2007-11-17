@@ -46,13 +46,15 @@ AC_SUBST(MU_LIB_POP,'${top_builddir}/libproto/pop/libmu_pop.la')
 AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libsieve/libsieve.la')
 AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
 AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
+AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libargp/libargp.la')
 
 dnl Other variables
 AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
+AC_SUBST(MU_APP_LIBRARIES,'../lib/libmuaux.la ../libargp/libargp.a -L${top_builddir}/libcfg -lmucfg')
 
-AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox')
+AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
 
 dnl Check for programs
 AC_PROG_CC
@@ -1169,6 +1171,8 @@ AC_CONFIG_FILES([Makefile
  libproto/include/Makefile
  libsieve/Makefile
  libsieve/extensions/Makefile
+ libargp/Makefile
+ libcfg/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile

@@ -22,7 +22,7 @@ INCLUDES = @MU_COMMON_INCLUDES@
 bin_PROGRAMS = dotlock
 
 dotlock_LDADD = \
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 

@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include "comsat.h"
+#include "muinit.h"
 
 #ifndef PATH_DEV
 # define PATH_DEV "/dev"
@@ -90,7 +91,7 @@ static const char *comsat_argp_capa[] = {
 # define MAXHOSTNAMELEN 64
 #endif
 
-struct daemon_param daemon_param = {
+struct mu_gocs_daemon default_gocs_daemon = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
   20,                   /* Default maximum number of children.
 			   Currently unused */
@@ -121,10 +122,6 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      state->child_inputs[0] = state->input;
-      break;
-      
     case 'c':
       config_file = arg;
       break;
@@ -150,8 +147,9 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
-  mu_argp_parse (&argp, &argc, &argv, 0, comsat_argp_capa,
-		 &ind, &daemon_param);
+  mu_gocs_daemon = default_gocs_daemon;
+  if (mu_app_init (&argp, comsat_argp_capa, NULL, argc, argv, 0, &ind, NULL))
+    exit (1);
 
   argc -= ind;
   argv += ind;
@@ -191,7 +189,7 @@ main (int argc, char **argv)
       exit (0);
     }
   
-  if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
+  if (mu_gocs_daemon.timeout > 0 && mu_gocs_daemon.mode == MODE_DAEMON)
     {
       mu_error (_("--timeout and --daemon are incompatible"));
       exit (EXIT_FAILURE);
@@ -199,7 +197,7 @@ main (int argc, char **argv)
 
   comsat_init ();
 
-  if (daemon_param.mode == MODE_DAEMON)
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
     {
       /* Preserve invocation arguments */
       xargc = argc;
@@ -216,8 +214,8 @@ main (int argc, char **argv)
 
   chdir ("/");
 
-  if (daemon_param.mode == MODE_DAEMON)
-    comsat_daemon (daemon_param.port);
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
+    comsat_daemon (mu_gocs_daemon.port);
   else
     c = comsat_main (0);
 

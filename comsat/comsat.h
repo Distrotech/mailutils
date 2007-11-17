@@ -46,7 +46,6 @@
 # include <strings.h>
 #endif
 
-#include <mailutils/argp.h>
 #include <mailutils/body.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -60,6 +59,7 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
+#include <mailutils/daemon.h>
 
 #ifndef INADDR_NONE
 # define INADDR_NONE -1

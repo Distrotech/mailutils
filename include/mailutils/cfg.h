@@ -18,6 +18,7 @@
 #ifndef _MAILUTILS_CFG_H
 #define _MAILUTILS_CFG_H
 
+#include <mailutils/list.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -185,5 +186,7 @@ int mu_config_register_plain_section (const char *parent_path,
 
 int mu_parse_config (char *file, char *progname,
 		     struct mu_cfg_param *progparam, int global);
+
+int mu_cfg_parse_boolean (const char *str, int *res);
 
 #endif

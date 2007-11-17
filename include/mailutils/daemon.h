@@ -20,14 +20,21 @@
 #define _MAILUTILS_DAEMON_H
 
 #include <mailutils/types.h>
+#include <mailutils/gocs.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+  /* FIXME: Namespace */
+#define MODE_INTERACTIVE 0
+#define MODE_DAEMON 1
+
 extern int  mu_daemon_create_pidfile  (const char *);
 extern void mu_daemon_remove_pidfile  (void);
- 
+
+extern struct mu_gocs_daemon mu_gocs_daemon;  
+
 #ifdef __cplusplus
 }
 #endif

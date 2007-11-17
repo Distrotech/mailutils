@@ -33,6 +33,8 @@ SUBDIRS = \
  libsieve\
  libmu_cpp\
  libmu_scm\
+ libargp\
+ libcfg\
  doc\
  config\
  examples\

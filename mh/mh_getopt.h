@@ -16,8 +16,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
-#include <mailutils/argp.h>
 #include <mailutils/nls.h>
+#include "argp.h"
+#include "muinit.h"
 
 #define MH_OPT_BOOL 1
 #define MH_OPT_ARG  2
@@ -189,5 +190,6 @@ int mh_argp_parse (int *argc, char **argv[],
 		   struct mh_option *mh_option,
 		   char *argp_doc, char *doc,
 		   int (*handler)(), void *closure, int *index);
+
 void mh_help (struct mh_option *mh_option, const char *doc);
 void mh_license (const char *name);

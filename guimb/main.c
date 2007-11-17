@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include "guimb.h"
+#include "muinit.h"
 
 char *program_file;
 char *program_expr;
@@ -155,8 +156,10 @@ main (int argc, char *argv[])
   mu_init_nls ();
 
   append_arg ("");
+
   mu_argp_init (program_version, NULL);
-  mu_argp_parse (&argp, &argc, &argv, 0, guimb_argp_capa, &index, &c);
+  if (mu_app_init (&argp, guimb_argp_capa, NULL, argc, argv, 0, &index, &c))
+    exit (1);
 
   for (; c < argc; c++)
     append_arg (argv[c]);

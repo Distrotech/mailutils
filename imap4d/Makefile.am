@@ -62,7 +62,7 @@ imap4d_SOURCES = \
 
 imap4d_LDADD = \
  @IMAP_AUTHOBJS@\
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\

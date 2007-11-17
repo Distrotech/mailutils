@@ -29,53 +29,56 @@ DISTCLEANFILES = types.h
 
 pkginclude_DATA = types.h
 pkginclude_HEADERS = \
- address.h \
- argcv.h \
- argp.h \
- assoc.h \
- attribute.h \
- auth.h \
- body.h \
- cfg.h \
- compat.h \
- daemon.h \
- debug.h \
- envelope.h \
- errno.h \
- error.h \
- filter.h \
- folder.h \
- gsasl.h \
- guile.h \
- header.h \
- iterator.h \
- libsieve.h \
- list.h \
- locker.h \
- mailbox.h \
- mailcap.h \
- mailer.h \
- mailutils.h \
- message.h \
- mime.h \
- monitor.h \
- mu_auth.h \
- mutil.h \
- nls.h \
- nntp.h \
- observer.h \
- parse822.h \
- pop3.h \
- property.h \
- refcount.h \
- registrar.h \
- stream.h \
- sql.h \
- tls.h \
+ address.h\
+ argcv.h\
+ assoc.h\
+ attribute.h\
+ auth.h\
+ body.h\
+ cfg.h\
+ compat.h\
+ daemon.h\
+ debug.h\
+ envelope.h\
+ errno.h\
+ error.h\
+ filter.h\
+ folder.h\
+ gocs.h\
+ gsasl.h\
+ guile.h\
+ header.h\
+ iterator.h\
+ libsieve.h\
+ list.h\
+ locker.h\
+ mailbox.h\
+ mailcap.h\
+ mailer.h\
+ mailutils.h\
+ message.h\
+ mime.h\
+ monitor.h\
+ mu_auth.h\
+ mutil.h\
+ nls.h\
+ nntp.h\
+ observer.h\
+ pam.h\
+ parse822.h\
+ pop3.h\
+ property.h\
+ radius.h\
+ refcount.h\
+ registrar.h\
+ stream.h\
+ syslog.h\
+ sql.h\
+ tls.h\
  url.h 
 
 nobase_pkginclude_HEADERS = \
-  sys/nntp.h \
+  sys/nntp.h\
   sys/pop3.h
 SUBDIRS = gnu sys
 

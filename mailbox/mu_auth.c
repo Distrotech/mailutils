@@ -43,7 +43,6 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
@@ -53,9 +52,6 @@
    use ENOENT instead of MU_ERR_NOENT */
 /*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
 #define DEBUG(c)
-
-static void mu_auth_begin_setup (void);
-static void mu_auth_finish_setup (void);
 
 /* memory allocation */
 int 
@@ -243,117 +239,6 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 
 
 /* ************************************************************************* */
-/* Traditional configuration                                                 */
-/* ************************************************************************* */
-
-#define ARG_AUTHORIZATION 1
-#define ARG_AUTHENTICATION 2
-#define ARG_CLEAR_AUTHORIZATION 3
-#define ARG_CLEAR_AUTHENTICATION 4
-
-static error_t mu_auth_argp_parser (int key, char *arg,
-				    struct argp_state *state);
-
-/* Options used by programs that use extended authentication mechanisms. */
-static struct argp_option mu_auth_argp_option[] = {
-  { "authentication", ARG_AUTHENTICATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("Set the list of modules to be used for authentication"), 0 },
-  { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("Set list of modules to be used for authorization"), 0 },
-  { "clear-authorization", ARG_CLEAR_AUTHORIZATION, NULL, OPTION_HIDDEN,
-    N_("Clear the list of authorization modules"), 0 },
-  { "clear-authentication", ARG_CLEAR_AUTHENTICATION, NULL, OPTION_HIDDEN,
-    N_("Clear the list of authentication modules"), 0 },
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static struct argp mu_auth_argp = {
-  mu_auth_argp_option,
-  mu_auth_argp_parser,
-};
-
-static struct argp_child mu_auth_argp_child = {
-  &mu_auth_argp,
-  0,
-  NULL,
-  0
-};
-
-static error_t
-mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARGP_KEY_FINI:
-      mu_auth_finish_setup ();
-      break;
-
-      /* authentication */
-    case ARG_AUTHORIZATION:
-      mu_authorization_add_module_list (arg);
-      break;
-      
-    case ARG_AUTHENTICATION:
-      mu_authentication_add_module_list (arg);
-      break;
-      
-    case ARG_CLEAR_AUTHENTICATION:
-      mu_authentication_clear_list ();
-      break;
-      
-    case ARG_CLEAR_AUTHORIZATION:
-      mu_authorization_clear_list ();
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-
-/* ************************************************************************* */
-/* Resource-style configuration                                              */
-/* ************************************************************************* */
-static int
-cb_authentication (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  if (strcmp (arg, "clear") == 0)
-    mu_authentication_clear_list ();
-  else
-    mu_authentication_add_module_list (arg);/*FIXME: error reporting*/
-  return 0;
-}
-
-static int
-cb_authorization (mu_cfg_locus_t *locus, void *data, char *arg)
-{
-  if (strcmp (arg, "clear") == 0)
-    mu_authorization_clear_list ();
-  else
-    mu_authorization_add_module_list (arg);
-  return 0;
-}
-
-static struct mu_cfg_param mu_auth_param[] = {
-  { "authentication", mu_cfg_callback, NULL, cb_authentication },
-  { "authorization", mu_cfg_callback, NULL, cb_authorization },
-  { NULL }
-};
-
-
-void
-mu_auth_init ()
-{
-  if (mu_register_capa ("auth", &mu_auth_argp_child, mu_auth_param))
-    {
-      mu_error (_("INTERNAL ERROR: cannot register argp capability auth (please report)"));
-      abort ();
-    }
-}
-
-
-/* ************************************************************************* */
 
 struct _module_handler {
   struct auth_stack_entry authenticate;
@@ -368,42 +253,10 @@ mu_auth_register_module (struct mu_auth_module *mod)
 {
   struct _module_handler *entry;
   
-  if (mod->argp)
-    {
-      int i;
-      struct argp_child *cp;
-      
-      if (mu_auth_argp.children)
-	{
-	  struct argp_child *tmp;
-	  for (i = 0; mu_auth_argp.children[i].argp; i++)
-	    ;
-	  tmp = realloc ((void*) mu_auth_argp.children,
-			 (i + 2) * sizeof(mu_auth_argp.children[0]));
-	  mu_auth_argp.children = tmp;
-	}
-      else
-	{
-	  mu_auth_argp.children = calloc (2, sizeof(mu_auth_argp.children[0]));
-	  i = 0;
-	}
-	  
-      if (!mu_auth_argp.children)
-	{
-	  mu_error ("not enough memory");
-	  exit (1);
-	}
-      cp = (struct argp_child *) &mu_auth_argp.children[i];
-      cp->argp = mod->argp;
-      cp->flags = 0;
-      cp->header = NULL;
-      cp->group = 0; /* FIXME */
-      cp++;
-      cp->argp = NULL;
-    }
-  
-  if (mod->cfg)
-    mu_config_register_plain_section (NULL, mod->name, mod->cfg);
+  if (mod->init)
+    mu_gocs_register (mod->name, mod->init);
+  /* FIXME: Argp? */
+  /* FIXME: cfg? */
   
   if (!module_handler_list && mu_list_create (&module_handler_list))
     abort ();

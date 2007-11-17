@@ -49,14 +49,26 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/errno.h>
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
+/* FIXME: Make global, prefix with mu_ */
 static char *site_virtual_pwddir = SITE_VIRTUAL_PWDDIR;
+
+int
+mu_virtual_module_init (void *data)
+{
+  if (data)
+    {
+      site_virtual_pwddir = strdup (data);
+      if (!site_virtual_pwddir)
+	return 1;
+    }
+  return 0;
+}
 
 static struct passwd *
 getpwnam_virtual (const char *u)
@@ -173,34 +185,6 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data,
   return rc;
 }
 
-#define ARG_PWDDIR 1
-
-static error_t
-mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_PWDDIR:
-      site_virtual_pwddir = arg;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp_option mu_virt_argp_option[] = {
-  { "virtual-passwd-dir", ARG_PWDDIR, N_("DIR"), OPTION_HIDDEN,
-    N_("Search for virtual passwd file in DIR"), 0},
-    { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-struct argp mu_virt_argp = {
-  mu_virt_argp_option,
-  mu_virt_argp_parser,
-};
-
 #else
 static int
 mu_auth_virt_domain_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
@@ -215,10 +199,8 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
 struct mu_auth_module mu_auth_virtual_module = {
   "virtdomain",
 #ifdef ENABLE_VIRTUAL_DOMAINS
-  &mu_virt_argp,
-  NULL,
+  mu_virtual_module_init,
 #else
-  NULL,
   NULL,
 #endif
   mu_auth_nosupport,

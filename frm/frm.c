@@ -218,9 +218,6 @@ static const char *frm_argp_capa[] = {
   "common",
   "license",
   "mailbox",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL
 };
 
@@ -292,7 +289,7 @@ frm (char *mailbox_name)
 	  if (counter.new)
 	    {
 	      printf (ngettext ("%lu new message",
-				"%lu new messages",
+ 				"%lu new messages",
 				counter.new),
 		      (u_long) counter.new);
 	      delim = ", ";
@@ -366,12 +363,13 @@ main (int argc, char **argv)
   
   /* register the formats.  */
   mu_register_all_mbox_formats ();
-
-  mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
-  mu_tls_init_client_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_argp_parse (&argp, &argc, &argv, 0, frm_argp_capa, &c, NULL);
+  
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, frm_argp_capa, NULL, argc, argv, 0, &c, NULL))
+    exit (1);
 
   /* have an argument */
   if (c == argc)

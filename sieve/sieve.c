@@ -34,7 +34,6 @@
 #include <mu_asprintf.h>
 #include <mailutils/argcv.h>
 #include <mailutils/libsieve.h>
-#include <mailutils/argp.h>
 #include <mailutils/auth.h>
 #include <mailutils/errno.h>
 #include <mailutils/folder.h>
@@ -45,6 +44,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
+
+#include "muinit.h"
 
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 
@@ -283,10 +284,6 @@ static const char *sieve_argp_capa[] =
   "license",
   "logging",
   "mailer",
-  "sieve",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL
 };
 
@@ -389,24 +386,20 @@ main (int argc, char *argv[])
 
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
-  mu_tls_init_client_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_sieve_argp_init ();
+  mu_gocs_register ("sieve", mu_sieve_module_init);
+
   mu_register_all_formats ();
 
   tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
   tickets_default = 1;
   debug_level = MU_DEBUG_ERROR;
   log_facility = 0;
-  
-  mu_argp_set_config_param (sieve_cfg_param);  
-  rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
-		      0, 0);
 
-  if (rc)
-    return 1;
-
-  mu_register_all_formats ();
+  if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
+		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
+    exit (1);
 
   /* Sieve interpreter setup. */
   rc = mu_sieve_machine_init (&mach, NULL);

@@ -24,7 +24,7 @@ SUBDIRS = testsuite
 bin_PROGRAMS = messages
 messages_SOURCES = messages.c
 messages_LDADD =\
- ../lib/libmuaux.la\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

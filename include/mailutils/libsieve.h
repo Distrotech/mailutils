@@ -259,9 +259,19 @@ int mu_sieve_mailbox (mu_sieve_machine_t mach, mu_mailbox_t mbox);
 int mu_sieve_message (mu_sieve_machine_t mach, mu_message_t message);
 int mu_sieve_disass (mu_sieve_machine_t mach);
 
-/* Command line handling */
+/* Configuration functions */
 
-extern void mu_sieve_argp_init (void);
+#define MU_SIEVE_CLEAR_INCLUDE_PATH 0x1
+#define MU_SIEVE_CLEAR_LIBRARY_PATH 0x2
+
+struct mu_gocs_sieve
+{
+  int clearflags;
+  mu_list_t include_path;
+  mu_list_t library_path;
+};
+
+int mu_sieve_module_init (void *);
 
 #ifdef __cplusplus
 }

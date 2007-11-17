@@ -31,7 +31,6 @@
 #include <unistd.h>
 
 #include <mailutils/address.h>
-#include <mailutils/argp.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/list.h>
@@ -44,6 +43,7 @@
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
 #include <mailutils/mu_auth.h>
+#include "muinit.h"
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
@@ -171,9 +171,10 @@ main (int argc, char **argv)
 
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
-  mu_argp_set_config_param (mail_remote_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, capa, &optind, NULL);
-
+  if (mu_app_init (&argp, capa, mail_remote_cfg_param, 
+		   argc, argv, 0, &optind, NULL))
+    exit (1);
+  
   if (optfrom)
     {
       if ((status = mu_address_create (&from, optfrom)))

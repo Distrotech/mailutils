@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include <mail.local.h>
+#include "muinit.h"
 
 int multiple_delivery;     /* Don't return errors when delivering to multiple
 			      recipients */
@@ -117,7 +118,6 @@ static const char *argp_capa[] = {
   "logging",
   "mailbox",
   "mailer",
-  "sieve",
   NULL
 };
 
@@ -365,15 +365,14 @@ main (int argc, char *argv[])
   mu_locker_set_default_retry_timeout (1);
   mu_locker_set_default_retry_count (300);
 
-  /* Default error code for command line errors */
-  mu_argp_error_code = EX_CONFIG;
   /* Register needed modules */
   MU_AUTH_REGISTER_ALL_MODULES();
-  mu_argp_init (program_version, NULL);
-  mu_sieve_argp_init ();
   /* Parse command line */
-  mu_argp_set_config_param (mail_local_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
+  mu_gocs_register ("sieve", mu_sieve_module_init);
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, argp_capa, mail_local_cfg_param,
+		   argc, argv, 0, &arg_index, NULL))
+    exit (EX_CONFIG);
 
   uid = getuid ();
 

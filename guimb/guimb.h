@@ -41,7 +41,6 @@
 #include <mailutils/stream.h>
 #include <mailutils/guile.h>
 #include <mailutils/nls.h>
-#include <mailutils/argp.h>
 #include <mailutils/list.h>
 #include <mailutils/mutil.h>
 #include <mailutils/attribute.h>

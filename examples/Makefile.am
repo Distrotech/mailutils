@@ -125,6 +125,9 @@ lsf_LDADD = \
  ${MU_LIB_MAILUTILS}
 
 muauth_LDADD = \
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@ \
  ${MU_LIB_MAILUTILS}
+
+muemail_LDADD = ${MU_APP_LIBRARIES}

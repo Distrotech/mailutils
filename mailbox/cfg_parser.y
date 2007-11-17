@@ -806,22 +806,30 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_node_t *node,
   return 0;
 }	
 
+int
+mu_cfg_parse_boolean (const char *str, int *res)
+{
+  if (strcmp (str, "yes") == 0
+      || strcmp (str, "on") == 0
+      || strcmp (str, "t") == 0
+      || strcmp (str, "true") == 0
+      || strcmp (str, "1") == 0)
+    *res = 1;
+  else if (strcmp (str, "no") == 0
+	   || strcmp (str, "off") == 0
+	   || strcmp (str, "nil") == 0
+	   || strcmp (str, "false") == 0
+	   || strcmp (str, "0") == 0)
+    *res = 0;
+  else
+    return 1;
+  return 0;
+}
+
 static int
 parse_bool (struct scan_tree_data *sdata, const mu_cfg_node_t *node, int *res)
 {
-  if (strcmp (node->tag_label, "yes") == 0
-      || strcmp (node->tag_label, "on") == 0
-      || strcmp (node->tag_label, "t") == 0
-      || strcmp (node->tag_label, "true") == 0
-      || strcmp (node->tag_label, "1") == 0)
-    *res = 1;
-  else if (strcmp (node->tag_label, "no") == 0
-	   || strcmp (node->tag_label, "off") == 0
-	   || strcmp (node->tag_label, "nil") == 0
-	   || strcmp (node->tag_label, "false") == 0
-	   || strcmp (node->tag_label, "0") == 0)
-    *res = 0;
-  else
+  if (mu_cfg_parse_boolean (node->tag_label, res))
     {
       mu_cfg_perror (sdata->call_data, &node->locus, _("not a boolean"));
       return 1;

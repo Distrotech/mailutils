@@ -23,6 +23,7 @@
 
 #include "readmsg.h"
 #include "xalloc.h"
+#include "muinit.h"
 
 #define WEEDLIST_SEPARATOR " :,"
 
@@ -61,9 +62,6 @@ static struct argp argp = {
 static const char *readmsg_argp_capa[] = {
   "common",
   "mailbox",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL
 };
 
@@ -276,16 +274,17 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mu_argp_init (program_version, NULL);
-#ifdef WITH_TLS
-  mu_tls_init_client_argp ();
-#endif
-  mu_argp_set_config_param (readmsg_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
-
   /* register the formats.  */
   mu_register_all_mbox_formats ();
   mu_register_extra_formats ();
+
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, readmsg_argp_capa, readmsg_cfg_param, 
+		   argc, argv, 0, &index, NULL))
+    exit (1);
 
   status = mu_mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)

@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
+#include "muinit.h"
 
 const char *program_version = "muauth (" PACKAGE_STRING ")";
 static char doc[] =
@@ -90,7 +91,9 @@ main (int argc, char * argv [])
   
   MU_AUTH_REGISTER_ALL_MODULES ();
   mu_argp_init (program_version, NULL);
-  mu_argp_parse (&argp, &argc, &argv, 0, capa, &index, NULL);
+  if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &index, NULL))
+    exit (1);
+
   if (index == argc)
     {
       mu_error ("not enough arguments, try `%s --help' for more info",

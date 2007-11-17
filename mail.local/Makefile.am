@@ -26,7 +26,7 @@ mail_local_SOURCES = main.c mailquota.c script.c mail.local.h
 mail_local_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
- ../lib/libmuaux.la \
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\

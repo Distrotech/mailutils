@@ -61,7 +61,6 @@
 #endif
 
 #include <mailutils/address.h>
-#include <mailutils/argp.h>
 #include <mailutils/assoc.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
@@ -179,6 +178,7 @@ extern mu_mailbox_t mbox;
 extern size_t total;
 extern FILE *ofile;
 extern int interactive;
+extern const char *program_version;
 
 /* Functions */
 extern int mail_alias (int argc, char **argv);

@@ -78,9 +78,9 @@ proc mu_init {args} {
 	set MU_FOLDER_DIR "$MU_DATA_DIR/folder"
 
 	if {[llength $args] == 1 && [lindex $args 0] == "-noflags"} {
-	    set MU_TOOL_FLAGS ""
+	    set MU_TOOL_FLAGS "--no-site-rcfile --no-user-rcfile"
 	} else {
-	    set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR"
+	    set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR --no-site-rcfile --no-user-rcfile"
 	    for {set i 0} {$i < [llength $args]} {incr i} {
 		append MU_TOOL_FLAGS " [lindex $args $i]"
 	    }

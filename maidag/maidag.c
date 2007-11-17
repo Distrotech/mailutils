@@ -50,7 +50,7 @@ char *lmtp_url_string;
 int reuse_lmtp_address = 1;
 char *lmtp_group = "mail";
 
-struct daemon_param daemon_param = {
+struct mu_gocs_daemon daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
   20,                   /* Default maximum number of children */
   0,                    /* No standard port */
@@ -111,7 +111,7 @@ static struct argp argp = {
   NULL, NULL
 };
 
-static const char *argp_capa[] = {
+static const char *maidag_argp_capa[] = {
   "daemon",
   "auth",
   "common",
@@ -119,7 +119,6 @@ static const char *argp_capa[] = {
   "logging",
   "mailbox",
   "mailer",
-  "sieve",
   NULL
 };
 
@@ -255,10 +254,10 @@ struct mu_cfg_param maidag_cfg_param[] = {
 #ifdef USE_SQL
   { "quota-query", mu_cfg_string, &quota_query },
 #endif
-  { "sieve", mu_cfg_string, &sieve_pattern },
+  { "sieve-filter", mu_cfg_string, &sieve_pattern },
   { "message-id-header", mu_cfg_string, &message_id_header },
 #ifdef WITH_GUILE
-  { "source", mu_cfg_string, &progfile_pattern },
+  { "guile-filter", mu_cfg_string, &progfile_pattern },
 #endif
   { "debug", mu_cfg_callback, NULL, cb_debug },
   { "stderr", mu_cfg_bool, &log_to_stderr },
@@ -461,8 +460,6 @@ main (int argc, char *argv[])
   mu_locker_set_default_retry_timeout (1);
   mu_locker_set_default_retry_count (300);
 
-  /* Default error code for command line errors */
-  mu_argp_error_code = EX_CONFIG;
   /* Register needed modules */
   MU_AUTH_REGISTER_ALL_MODULES ();
 
@@ -473,12 +470,13 @@ main (int argc, char *argv[])
   mu_registrar_record (mu_sendmail_record);
   mu_registrar_record (mu_smtp_record);
 
-  mu_argp_init (program_version, NULL);
-  mu_sieve_argp_init ();
+  mu_gocs_register ("sieve", mu_sieve_module_init);
   
   /* Parse command line */
-  mu_argp_set_config_param (maidag_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, &daemon_param);
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
+		   argc, argv, 0, &arg_index, NULL))
+    exit (EX_CONFIG);
 
   current_uid = getuid ();
 

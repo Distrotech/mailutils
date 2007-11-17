@@ -18,13 +18,15 @@
    MA 02110-1301 USA */
 
 #include "pop3d.h"
+#include "mailutils/pam.h"
+#include "muinit.h"
 
 mu_mailbox_t mbox;
 int state;
 char *username;
 char *md5shared;
 
-struct daemon_param daemon_param = {
+struct mu_gocs_daemon default_gocs_daemon = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
   20,                   /* Default maximum number of children */
   110,                  /* Standard POP3 port */
@@ -161,9 +163,6 @@ static struct argp argp = {
 static const char *pop3d_argp_capa[] = {
   "daemon",
   "auth",
-#ifdef WITH_TLS
-  "tls",
-#endif /* WITH_TLS */
   "common",
   "mailbox",
   "logging",
@@ -248,26 +247,28 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mu_argp_init (program_version, NULL);
   MU_AUTH_REGISTER_ALL_MODULES();
   /* Register the desired formats.  */
   mu_register_local_mbox_formats ();
 
 #ifdef WITH_TLS
-  mu_tls_init_argp ();
+  mu_gocs_register ("tls", mu_tls_module_init);
 #endif /* WITH_TLS */
-  mu_argp_set_config_param (pop3d_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
+  mu_gocs_daemon = default_gocs_daemon;
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
+		   argc, argv, 0, NULL, NULL))
+    exit (1);
 
   if (expire == 0)
     expire_on_exit = 1;
 
 #ifdef USE_LIBPAM
-  if (!pam_service)
-    pam_service = "gnu-pop3d";
+  if (!mu_pam_service)
+    mu_pam_service = "gnu-pop3d";
 #endif
 
-  if (daemon_param.mode == MODE_INTERACTIVE && isatty (0))
+  if (mu_gocs_daemon.mode == MODE_INTERACTIVE && isatty (0))
     {
       /* If input is a tty, switch to debug mode */
       debug_mode = 1;
@@ -300,7 +301,7 @@ main (int argc, char **argv)
   signal (SIGPIPE, pop3d_signal);
   signal (SIGABRT, pop3d_signal);
 
-  if (daemon_param.mode == MODE_DAEMON)
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
     pop3d_daemon_init ();
   else
     {
@@ -316,9 +317,9 @@ main (int argc, char **argv)
   
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
-  if (daemon_param.pidfile)
+  if (mu_gocs_daemon.pidfile)
     {
-      mu_daemon_create_pidfile (daemon_param.pidfile);
+      mu_daemon_create_pidfile (mu_gocs_daemon.pidfile);
     }
 
   /* Check TLS environment, i.e. cert and key files */
@@ -329,8 +330,8 @@ main (int argc, char **argv)
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */
-  if (daemon_param.mode == MODE_DAEMON)
-    pop3d_daemon (daemon_param.maxchildren, daemon_param.port);
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
+    pop3d_daemon (mu_gocs_daemon.maxchildren, mu_gocs_daemon.port);
   /* exit (EXIT_SUCCESS) -- no way out of daemon except a signal.  */
   else
     status = pop3d_mainloop (fileno (stdin), stdin, stdout);

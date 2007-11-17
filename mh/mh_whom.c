@@ -54,9 +54,9 @@ ismydomain (char *p)
 int
 mh_alias_expand (const char *str, mu_address_t *paddr, int *incl)
 {
-  size_t argc;
+  int argc;
   char **argv;
-  size_t i;
+  int i;
   char *buf;
   mu_address_t exaddr = NULL;
 

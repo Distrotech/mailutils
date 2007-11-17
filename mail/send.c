@@ -514,7 +514,7 @@ mail_send0 (compose_env_t * env, int save_to)
   /* Prepare the header */
   if (util_getenv (NULL, "xmailer", Mail_env_boolean, 0) == 0)
     mu_header_set_value (env->header, MU_HEADER_X_MAILER, 
-                         argp_program_version, 1);
+                         program_version, 1);
 
   if (util_header_expand (&env->header) == 0)
     {

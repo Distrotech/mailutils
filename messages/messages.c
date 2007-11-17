@@ -27,6 +27,7 @@
 #endif
 
 #include <mailutils/mailutils.h>
+#include "muinit.h"
 
 static int messages_count (const char *);
 
@@ -47,9 +48,6 @@ static const char *argp_capa[] = {
   "common",
   "license",
   "mailbox",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL
 };
 
@@ -72,6 +70,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 's':
       silent = 1;
       break;
+      
     case ARGP_KEY_ARG:
       args->argv = realloc (args->argv,
 			    sizeof (char *) * (state->arg_num + 2));
@@ -79,6 +78,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       args->argv[state->arg_num + 1] = NULL;
       args->argc++;
       break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -104,14 +104,15 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mu_argp_init (program_version, NULL);
-#ifdef WITH_TLS
-  mu_tls_init_client_argp ();
-#endif
-  mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
-
   /* register the formats.  */
   mu_register_all_mbox_formats ();
+
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, argp_capa, NULL, argc, argv, 0, NULL, &args))
+    exit (1);
 
   if (args.argc < 1 && messages_count (NULL) < 0)
     err = 1;

@@ -1,3 +1,86 @@
+2007-11-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Move rc file and argp parsing into separate abstract layers.
+	
+	* include/mailutils/gocs.h, include/mailutils/pam.h,
+	include/mailutils/radius.h, include/mailutils/syslog.h: New files
+	* lib/argpinit.c, lib/muinit.c, lib/muinit.h: New files.
+	* libsieve/conf.c: New file.
+
+	* libcfg: New directory
+	* libcfg/libcfg.h, libcfg/auth.c, libcfg/common.c, libcfg/init.c,
+	libcfg/gsasl.c, libcfg/pam.c, libcfg/radius.c, libcfg/sieve.c,
+	libcfg/sql.c, libcfg/tls.c, libcfg/virtdomain.c,
+	libcfg/.cvsignore: New files.
+
+	* libargp: New directory
+	* libargp/auth.c, libargp/cmdline.h, libargp/common.c,
+	libargp/gsasl.c, libargp/mu_argp.h, libargp/mu_argp.c,
+	libargp/pam.c, libargp/radius.c, libargp/sieve.c, libargp/sql.c,
+	libargp/tls.c, libargp/virtdomain.c, libargp/.cvsignore: New
+	files.
+	
+	* mailbox/.cvsignore: Add cfg_parser.c and cfg_parser.h.
+	* Makefile.am (SUBDIRS): Add libargp and libcfg.
+	* configure.ac (MU_APP_LIBRARIES): New variable
+	(MU_COMMON_INCLUDES): add libargp and libcfg
+	(AC_CONFIG_FILES): Add libargp and libcfg.
+
+	* auth/gsasl.c, auth/pam.c, auth/radius.c, auth/sql.c, auth/sql.h,
+	auth/tls.c, auth/virtual.c, comsat/comsat.h, frm/frm.h,
+	guimb/guimb.h, imap4d/imap4d.h, include/mailutils/gsasl.h,
+	include/mailutils/libsieve.h, include/mailutils/mailutils.h,
+	include/mailutils/mu_auth.h, include/mailutils/tls.h,
+	include/mailutils/sql.h, maidag/maidag.h, mail/mail.h,
+	mail.local/mail.local.h, mailbox/daemon.c, mailbox/system.c,
+	mh/mh_argp.c, mh/mh_getopt.h, pop3d/pop3d.h,
+	readmsg/readmsg.h: Remove argp stuff 
+
+	* comsat/comsat.c, config/mailutils-config.c, dotlock/dotlock.c,
+	examples/muauth.c, examples/muemail.c, frm/frm.c, frm/from.c,
+	guimb/main.c, imap4d/idle.c, imap4d/imap4d.c, imap4d/util.c,
+	imap4d/version.c, maidag/lmtp.c, maidag/maidag.c,
+	maidag/mailquota.c, mail/mail.c, mail/send.c, mail/version.c,
+	mail.local/mailquota.c, mail.local/main.c,
+	mail.remote/mail.remote.c, mailbox/mu_auth.c, messages/messages.c,
+	mimeview/mimeview.c, movemail/movemail.c, pop3d/extra.c,
+	pop3d/pop3d.c, pop3d/popauth.c, readmsg/readmsg.c, sieve/sieve.c:
+	Use mu_app_init for parsing command line and
+	configuration files.
+	* comsat/Makefile.am, config/Makefile.am, dotlock/Makefile.am,
+	examples/Makefile.am, frm/Makefile.am, guimb/Makefile.am,
+	imap4d/Makefile.am, maidag/Makefile.am, mail/Makefile.am,
+	mail.local/Makefile.am, mail.remote/Makefile.am,
+	mailbox/Makefile.am, messages/Makefile.am, mimeview/Makefile.am,
+	movemail/Makefile.am, pop3d/Makefile.am, readmsg/Makefile.am,
+	sieve/Makefile.am: Use MU_APP_LIBRARIES. 
+
+	* include/mailutils/Makefile.am: Add new files.
+	* include/mailutils/argp.h: Remove.
+	* include/mailutils/cfg.h: New file.
+	* include/mailutils/daemon.h (MODE_INTERACTIVE,MODE_DAEMON): New
+	defines (from removed argp.h).
+	(mu_gocs_daemon): New decl.
+	* include/mailutils/error.h (mu_program_name): New variable
+	(mu_set_program_name): New function.
+	* lib/Makefile.am (libmuaux_la_SOURCES): Add new files.	
+	* libsieve/Makefile.am (libsieve_la_SOURCES): Remove argp.c, add
+	conf.c instead.
+	* libsieve/argp.c: Remove.
+	
+	* mailbox/cfg_parser.y (mu_cfg_parse_boolean): New function.
+	* mailbox/mu_argp.c: Remove.
+
+	* mailbox/muerror.c (mu_program_name): New variable
+	(mu_set_program_name): New function
+	(mu_default_error_printer): Print program name before diagnostic
+	string.
+	* mailbox/mutil.c (mu_sql_decode_password_type): New function.
+	* mh/mh_whom.c (mh_alias_expand): Bugfix
+	* po/POTFILES.in: Update
+	* testsuite/lib/mailutils.exp (mu_init): Pass --no-site-rcfile
+	--no-user-rcfile to all programs.
+	
 2007-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* maidag/lmtp.c: Use English reply texts.

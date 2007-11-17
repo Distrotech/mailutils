@@ -27,10 +27,11 @@
 #endif
 #include <unistd.h>
 
-#include <mailutils/argp.h>
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
 #include <mailutils/nls.h>
+
+#include "muinit.h"
 
 const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
@@ -132,6 +133,7 @@ struct mu_cfg_param dotlock_cfg_param[] = {
 
 const char *dotlock_capa[] = {
   "license",
+  "common",
   NULL
 };
 
@@ -151,11 +153,13 @@ main (int argc, char *argv[])
   if (setegid (usergid) < 0)
     return MU_DL_EX_ERROR;
 
-  mu_argp_init (program_version, NULL);
   argp_err_exit_status = MU_DL_EX_ERROR;
+  
+  mu_argp_init (program_version, NULL);
+  if (mu_app_init (&argp, dotlock_capa, dotlock_cfg_param, 
+		   argc, argv, 0, NULL, NULL))
+    exit (1);
 
-  mu_argp_set_config_param (dotlock_cfg_param);
-  mu_argp_parse (&argp, &argc, &argv, 0, dotlock_capa, NULL, NULL);
   if (force)
     {
       force *= 60;

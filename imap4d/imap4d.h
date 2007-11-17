@@ -71,7 +71,6 @@
 #endif
 
 #include <mailutils/address.h>
-#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/daemon.h>
@@ -93,6 +92,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/tls.h>
 #include <mailutils/url.h>
+#include <mailutils/daemon.h>
+#include <mailutils/pam.h>
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
@@ -161,9 +162,9 @@ extern char *rootdir;
 extern int state;
 extern size_t children;
 extern int is_virtual;
-extern struct daemon_param daemon_param;
 extern struct mu_auth_data *auth_data; 
-
+extern const char *program_version;
+  
 extern int login_disabled;
 extern int tls_required;
 	

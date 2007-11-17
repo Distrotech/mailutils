@@ -23,8 +23,8 @@ bin_PROGRAMS = mailutils-config
 
 mailutils_config_SOURCES = mailutils-config.c
 mailutils_config_LDADD = \
- ../lib/libmuaux.la \
- ${MU_LIB_MAILUTILS} \
+ ${MU_APP_LIBRARIES}\
+ ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
 mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
