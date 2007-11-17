@@ -19,7 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
+#include <ctype.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/sql.h>
 
