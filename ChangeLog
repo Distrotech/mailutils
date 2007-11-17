@@ -21,6 +21,7 @@
 	files.
 	
 	* mailbox/.cvsignore: Add cfg_parser.c and cfg_parser.h.
+	* mailbox/gocs.c: New file.
 	* Makefile.am (SUBDIRS): Add libargp and libcfg.
 	* configure.ac (MU_APP_LIBRARIES): New variable
 	(MU_COMMON_INCLUDES): add libargp and libcfg
