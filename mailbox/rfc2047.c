@@ -41,16 +41,37 @@ realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)
   return 0;
 }
 
+static char *
+getword (const char **pstr, int delim)
+{
+  size_t len;
+  char *ret;
+  const char *start = *pstr;
+  const char *end = strchr (start, delim);
+  if (!end)
+    return NULL;
+  len = end - start;
+  ret = malloc (len + 1);
+  if (!ret)
+    return NULL;
+  memcpy (ret, start, len);
+  ret[len] = 0;
+  *pstr = end + 1;
+  return ret;
+}
+    
 int
 mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 {
   int status = 0;
-  char *tmpcopy, *fromstr;
-  char *start_position = NULL;
+  const char *fromstr;
   char *buffer;
   size_t bufsize;
   size_t bufpos;
   size_t run_count = 0;
+  char *fromcode = NULL;
+  char *encoding_type = NULL;
+  char *encoded_text = NULL;
 
 #define BUFINC 128  
 #define CHKBUF(count) do {                       \
@@ -61,8 +82,10 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
         s = BUFINC;                              \
       if (realloc_buffer (&buffer, &bufsize, s)) \
 	{                                        \
-	  free (tmpcopy);                        \
 	  free (buffer);                         \
+          free (fromcode);                       \
+          free (encoding_type);                  \
+          free (encoded_text);                   \
 	  return ENOMEM;                         \
 	}                                        \
      }                                           \
@@ -73,12 +96,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   if (!ptostr)
     return MU_ERR_OUT_PTR_NULL;
 
-  /* Prepare a temporary copy of the input string (strtok_r is
-     going to modify it. */
-  tmpcopy = strdup (input);
-  if (!tmpcopy)
-    return ENOMEM;
-  fromstr = tmpcopy;
+  fromstr = input;
 
   /* Allocate the buffer. It is assumed that encoded string is always
      longer than it's decoded variant, so it's safe to use its length
@@ -86,30 +104,22 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   bufsize = strlen (fromstr) + 1;
   buffer = malloc (bufsize);
   if (buffer == NULL)
-    {
-      free (tmpcopy);
-      return ENOMEM;
-    }
+    return ENOMEM;
   bufpos = 0;
   
   while (*fromstr)
     {
       if (strncmp (fromstr, "=?", 2) == 0)
 	{
-	  char *fromcode = NULL;
-	  char *encoding_type = NULL;
-	  char *encoded_text = NULL;
 	  mu_stream_t filter = NULL;
 	  mu_stream_t in_stream = NULL;
 	  const char *filter_type = NULL;
 	  size_t nbytes = 0, size;
-	  char *sp = NULL;
+	  const char *sp = fromstr + 2;
 
-	  start_position = fromstr;
-
-	  fromcode = strtok_r (start_position + 2, "?", &sp);
-	  encoding_type = strtok_r (NULL, "?", &sp);
-	  encoded_text = strtok_r (NULL, "?", &sp);
+	  fromcode = getword (&sp, '?');
+	  encoding_type = getword (&sp, '?');
+	  encoded_text = getword (&sp, '?');
 	  if (sp == NULL || sp[0] != '=')
 	    {
 	      status = MU_ERR_BAD_2047_INPUT;
@@ -202,7 +212,10 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   CHKBUF(1);
   buffer[bufpos++] = 0;
   
-  free (tmpcopy);
+  free (fromcode);
+  free (encoding_type);
+  free (encoded_text);
+  
   *ptostr = realloc (buffer, bufpos);
   return status;
 }

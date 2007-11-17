@@ -16,11 +16,20 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef SHA1_H
-# define SHA1_H 1
+#ifndef _MAILUTILS_SHA1_H
+# define _MAILUTILS_SHA1_H 1
 
 # include <stdio.h>
 # include <stdint.h>
+
+# define sha1_ctx mu_sha1_ctx
+# define sha1_init_ctx mu_sha1_init_ctx
+# define sha1_process_block mu_sha1_process_block  
+# define sha1_process_bytes mu_sha1_process_bytes  
+# define sha1_finish_ctx mu_sha1_finish_ctx     
+# define sha1_read_ctx mu_sha1_read_ctx       
+# define sha1_stream mu_sha1_stream         
+# define sha1_buffer mu_sha1_buffer          
 
 /* Structure to save state of computation between the single steps.  */
 struct sha1_ctx

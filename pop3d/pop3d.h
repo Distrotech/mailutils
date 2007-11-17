@@ -134,7 +134,6 @@ extern int expire_on_exit;
 #include <grp.h>
 #include <syslog.h>
 #include <ctype.h>
-#include <md5.h>
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
@@ -155,6 +154,7 @@ extern int expire_on_exit;
 #include <mailutils/registrar.h>
 #include <mailutils/tls.h>
 #include <mailutils/url.h>
+#include <mailutils/md5.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

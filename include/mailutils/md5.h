@@ -18,8 +18,8 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef _MD5_H
-#define _MD5_H 1
+#ifndef _MAILUTILS_MD5_H
+#define _MAILUTILS_MD5_H 1
 
 #include <stdio.h>
 #include <stdint.h>
@@ -44,15 +44,15 @@
 # endif
 #endif
 
-#ifndef _LIBC
-# define __md5_buffer md5_buffer
-# define __md5_finish_ctx md5_finish_ctx
-# define __md5_init_ctx md5_init_ctx
-# define __md5_process_block md5_process_block
-# define __md5_process_bytes md5_process_bytes
-# define __md5_read_ctx md5_read_ctx
-# define __md5_stream md5_stream
-#endif
+#define __md5_buffer mu_md5_buffer
+#define __md5_finish_ctx mu_md5_finish_ctx
+#define __md5_init_ctx mu_md5_init_ctx
+#define __md5_process_block mu_md5_process_block
+#define __md5_process_bytes mu_md5_process_bytes
+#define __md5_read_ctx mu_md5_read_ctx
+#define __md5_stream mu_md5_stream
+
+#define md5_ctx mu_md5_ctx
 
 /* Structure to save state of computation between the single steps.  */
 struct md5_ctx

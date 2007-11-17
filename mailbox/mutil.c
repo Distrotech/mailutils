@@ -1438,12 +1438,20 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
 {
   int rc;
   int i;
-  char *copy = strdup (map);
-  char *sp, *tok;
+  int argc;
+  char **argv;
   mu_assoc_t assoc_tab = NULL;
 
-  for (tok = strtok_r (copy, ",", &sp); tok; tok = strtok_r (NULL, ",", &sp))
+  rc = mu_argcv_get (map, ":", NULL, &argc, &argv);
+  if (rc)
     {
+      mu_error (_("cannot split line `%s': %s"), map, mu_strerror (rc));
+      return rc;
+    }
+
+  for (i = 0; i < argc; i++)
+    {
+      char *tok = argv[i];
       char *p = strchr (tok, '=');
       char *pptr;
       
@@ -1475,7 +1483,7 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
 	}
     }
 
-  free (copy);
+  mu_argcv_free (argc, argv);
   if (rc && perr)
     *perr = i;
   return rc;

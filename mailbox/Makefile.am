@@ -140,8 +140,6 @@ EXTRA_DIST += regcomp.c regex.h regex_internal.c regex_internal.h regexec.c
 
 libmailutils_la_SOURCES += strtok_r.h
 
-libmailutils_la_SOURCES += md5.h
-
 BUILT_SOURCES += $(GLOB_H)
 EXTRA_DIST += glob_.h glob-libc.h
 
@@ -154,7 +152,6 @@ MOSTLYCLEANFILES += glob.h glob.h-t
 
 EXTRA_DIST += inttostr.c inttostr.h
 
-EXTRA_DIST += sha1.h
 
 
 

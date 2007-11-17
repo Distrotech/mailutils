@@ -307,21 +307,31 @@ _locate (const char *name)
 static void
 _add_module_list (const char *modlist, int (*fun)(const char *name))
 {
-  char *sp, *name;
+  int argc;
+  char **argv;
+  char *name;
+  int rc, i;
   
-  for (name = strtok_r ((char *)modlist, ":", &sp); name;
-       name = strtok_r (NULL, ":", &sp))
+  rc = mu_argcv_get (modlist, ":", NULL, &argc, &argv);
+  if (rc)
     {
-      if (fun (name))
+      mu_error (_("cannot split line `%s': %s"), modlist, mu_strerror (rc));
+      exit (1);
+    }
+
+  for (i = 0; i < argc; i++)
+    {
+      if (fun (argv[i]))
 	{
 	  if (errno == ENOENT)
-	    mu_error ("no such module: %s", name);
+	    mu_error (_("no such module: %s"), argv[i]);
 	  else
-	    mu_error ("failed to add module %s: %s",
-		      name, strerror (errno));
+	    mu_error (_("failed to add module %s: %s"),
+		      argv[i], strerror (errno));
 	  exit (1);
 	}
     }
+  mu_argcv_free (argc, argv);
 }
 
 

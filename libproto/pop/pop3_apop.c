@@ -21,12 +21,12 @@
 # include <config.h>
 #endif
 
-#include <md5.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 
 #include <mailutils/sys/pop3.h>
+#include <mailutils/md5.h>
 
 /*
  * APOP name digest
@@ -54,16 +54,16 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
       /* Generate the md5 from the secret and timestamp.  */
     case MU_POP3_NO_STATE:
       {
-	struct md5_ctx md5context;
+	struct mu_md5_ctx md5context;
 	unsigned char md5digest[16];
 	char digest[64]; /* Really it just has to be 32 + 1(null).  */
 	char *tmp;
 	size_t n;
 
-	md5_init_ctx (&md5context);
-	md5_process_bytes (pop3->timestamp, strlen (pop3->timestamp), &md5context);
-	md5_process_bytes (secret, strlen (secret), &md5context);
-	md5_finish_ctx (&md5context, md5digest);
+	mu_md5_init_ctx (&md5context);
+	mu_md5_process_bytes (pop3->timestamp, strlen (pop3->timestamp), &md5context);
+	mu_md5_process_bytes (secret, strlen (secret), &md5context);
+	mu_md5_finish_ctx (&md5context, md5digest);
 	for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
 	  {
 	    sprintf (tmp, "%02x", md5digest[n]);

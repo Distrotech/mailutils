@@ -32,8 +32,6 @@
 #include <ctype.h>
 #include <pwd.h>
 
-#include "md5.h"
-
 #include <message0.h>
 
 #include <mailutils/address.h>
@@ -51,6 +49,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
+#include <mailutils/md5.h>
 #include <mu_umaxtostr.h>
 
 #define MESSAGE_MODIFIED 0x10000;
@@ -617,7 +616,7 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
   else
     {
       size_t uid = 0;
-      struct md5_ctx md5context;
+      struct mu_md5_ctx md5context;
       mu_stream_t stream = NULL;
       char buf[1024];
       mu_off_t offset = 0;
@@ -626,14 +625,14 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
       n = 0;
       mu_message_get_uid (msg, &uid);
       mu_message_get_stream (msg, &stream);
-      md5_init_ctx (&md5context);
+      mu_md5_init_ctx (&md5context);
       while (mu_stream_read (stream, buf, sizeof (buf), offset, &n) == 0
 	     && n > 0)
 	{
-	  md5_process_bytes (buf, n, &md5context);
+	  mu_md5_process_bytes (buf, n, &md5context);
 	  offset += n;
 	}
-      md5_finish_ctx (&md5context, md5digest);
+      mu_md5_finish_ctx (&md5context, md5digest);
       tmp = buf;
       for (n = 0; n < 16; n++, tmp += 2)
 	sprintf (tmp, "%02x", md5digest[n]);

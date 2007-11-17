@@ -148,7 +148,7 @@ pop3d_apop (const char *arg)
 {
   char *tmp, *user_digest, *user, *password;
   char buf[POP_MAXCMDLEN];
-  struct md5_ctx md5context;
+  struct mu_md5_ctx md5context;
   unsigned char md5digest[16];
 
   if (state != AUTHORIZATION)
@@ -176,11 +176,11 @@ pop3d_apop (const char *arg)
       return ERR_BAD_LOGIN;
     }
 
-  md5_init_ctx (&md5context);
-  md5_process_bytes (md5shared, strlen (md5shared), &md5context);
-  md5_process_bytes (password, strlen (password), &md5context);
+  mu_md5_init_ctx (&md5context);
+  mu_md5_process_bytes (md5shared, strlen (md5shared), &md5context);
+  mu_md5_process_bytes (password, strlen (password), &md5context);
   free (password);
-  md5_finish_ctx (&md5context, md5digest);
+  mu_md5_finish_ctx (&md5context, md5digest);
 
   {
     int i;

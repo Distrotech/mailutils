@@ -24,7 +24,7 @@
 # include <config.h>
 #endif
 
-#include "md5.h"
+#include "mailutils/md5.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -40,6 +40,8 @@
 # if __BYTE_ORDER == __BIG_ENDIAN
 #  define WORDS_BIGENDIAN 1
 # endif
+#endif
+
 /* We need to keep the namespace clean so define the MD5 function
    protected using leading __ .  */
 # define md5_init_ctx __md5_init_ctx
@@ -49,7 +51,6 @@
 # define md5_read_ctx __md5_read_ctx
 # define md5_stream __md5_stream
 # define md5_buffer __md5_buffer
-#endif
 
 #ifdef WORDS_BIGENDIAN
 # define SWAP(n)							\

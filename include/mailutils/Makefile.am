@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
  mailcap.h\
  mailer.h\
  mailutils.h\
+ md5.h\
  message.h\
  mime.h\
  monitor.h\
@@ -71,6 +72,7 @@ pkginclude_HEADERS = \
  radius.h\
  refcount.h\
  registrar.h\
+ sha1.h\
  stream.h\
  syslog.h\
  sql.h\

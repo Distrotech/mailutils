@@ -42,8 +42,6 @@
 # include <strings.h>
 #endif
 
-#include <md5.h>
-
 #include <mu_umaxtostr.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
@@ -58,6 +56,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
+#include <mailutils/md5.h>
 
 #include <folder0.h>
 #include <mailbox0.h>
@@ -2176,7 +2175,7 @@ pop_get_timestamp (pop_data_t mpd)
 static int
 pop_get_md5 (pop_data_t mpd)
 {
-  struct md5_ctx md5context;
+  struct mu_md5_ctx md5context;
   unsigned char md5digest[16];
   char digest[64]; /* Really it just has to be 32 + 1(null).  */
   char *tmp;
@@ -2187,10 +2186,10 @@ pop_get_md5 (pop_data_t mpd)
   if (timestamp == NULL)
     return EINVAL;
 
-  md5_init_ctx (&md5context);
-  md5_process_bytes (timestamp, strlen (timestamp), &md5context);
-  md5_process_bytes (mpd->passwd, strlen (mpd->passwd), &md5context);
-  md5_finish_ctx (&md5context, md5digest);
+  mu_md5_init_ctx (&md5context);
+  mu_md5_process_bytes (timestamp, strlen (timestamp), &md5context);
+  mu_md5_process_bytes (mpd->passwd, strlen (mpd->passwd), &md5context);
+  mu_md5_finish_ctx (&md5context, md5digest);
   
   for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
     sprintf (tmp, "%02x", md5digest[n]);

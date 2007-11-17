@@ -20,13 +20,13 @@
 # include <config.h>
 #endif
 
-#include <md5.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 
 #include <mailutils/sys/pop3.h>
 #include <mailutils/tls.h>
+#include <mailutils/md5.h>
 
 /*
  * STLS
