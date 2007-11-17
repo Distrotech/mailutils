@@ -1,5 +1,18 @@
 2007-11-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/sha1.h: Remove.
+	* include/mailutils/sha1.h: Add.
+	* mailbox/md5.h: Remove.
+	* include/mailutils/md5.h: Add.
+	* include/mailutils/Makefile.am: Update.
+	* mailbox/Makefile.am: Update.
+	* libproto/pop/mbox.c, libproto/pop/pop3_apop.c,
+	libproto/pop/pop3_stls.c, mailbox/md5.c, mailbox/message.c,
+	mailbox/sha1.c, pop3d/apop.c, pop3d/pop3d.h, sql/mysql.c: Fix
+	usage of sha1_ and md5_.
+	* mailbox/mu_auth.c, mailbox/mutil.c, mailbox/rfc2047.c: Eliminate
+	strtok_r.
+
 	* auth/sql.h (mu_internal_sql_config): Move to ...
 	* include/mailutils/sql.h: ... here
 	* imap4d/auth_gsasl.c: Bugfix.
