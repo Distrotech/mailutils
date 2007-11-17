@@ -31,6 +31,7 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
+#include <mailutils/gsasl.h>
 
 #include <gsasl.h>
 #include <lbuf.h>
