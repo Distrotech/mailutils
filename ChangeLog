@@ -1,5 +1,9 @@
 2007-11-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/sql.h (mu_internal_sql_config): Move to ...
+	* include/mailutils/sql.h: ... here
+	* imap4d/auth_gsasl.c: Bugfix.
+
 	Move rc file and argp parsing into separate abstract layers.
 	
 	* include/mailutils/gocs.h, include/mailutils/pam.h,

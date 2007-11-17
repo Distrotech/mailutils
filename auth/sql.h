@@ -40,20 +40,4 @@
 #include <mailutils/nls.h>
 #include <mailutils/mailbox.h>
 
-struct mu_internal_sql_config
-{
-  int interface;
-  char *getpwnam_query;
-  char *getpass_query;
-  char *getpwuid_query;
-  char *host; 
-  char *user;
-  char *passwd;
-  char *db;
-  int port;
-  enum mu_password_type password_type;
-  mu_assoc_t field_map;
-};
-
-extern struct mu_internal_sql_config mu_sql_module_config;
 

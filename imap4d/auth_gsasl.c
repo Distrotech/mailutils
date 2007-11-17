@@ -269,9 +269,10 @@ cb_retrieve (Gsasl_session_ctx *ctx,
   if (username && *username == 0 && authentication_id)
     *username = strdup (authentication_id);
 
-  if (mu_gsasl_cram_md5_pwd && access (mu_gsasl_cram_md5_pwd, R_OK) == 0)
+  if (mu_gsasl_module_data.cram_md5_pwd
+      && access (mu_gsasl_module_data.cram_md5_pwd, R_OK) == 0)
     {
-      int rc = gsasl_md5pwd_get_password (mu_gsasl_cram_md5_pwd,
+      int rc = gsasl_md5pwd_get_password (mu_gsasl_module_data.cram_md5_pwd,
 					  authentication_id,
 					  key, keylen);
       if (rc == GSASL_OK)
@@ -279,7 +280,7 @@ cb_retrieve (Gsasl_session_ctx *ctx,
     }
   
 #ifdef USE_SQL
-  if (mu_sql_password_type == password_plaintext)
+  if (mu_sql_module_config.password_type == password_plaintext)
     {
       char *passwd;
       int status = mu_sql_getpass (username, &passwd);
