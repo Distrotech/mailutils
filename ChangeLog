@@ -1,3 +1,77 @@
+2007-11-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Make libmailutils independent from gnulib. Remove generated files
+	from the repository. Bootstrap directly from the gnulib CVS.
+
+	* scripts/gnulib-sync, autogen.sh: Remove.
+	* bootstrap, bootstrap.conf: New files.
+	* README-hacking: New file.
+	
+	* configure.ac: Update.
+	* lib/Makefile.am: Update.
+	* mailbox/Makefile.am: Update.
+	* include/mailutils/Makefile.am (SUBDIRS): Remove gnu
+	* include/mailutils/gnu/Makefile.am: Remove
+	* examples/argcv.c, examples/mta.c, guimb/guimb.h,
+	imap4d/imap4d.h, libargp/mu_argp.c, libargp/tls.c,
+	maidag/maidag.h, mail/mail.h, mail/send.c,
+	mail.local/mail.local.h, mh/mh.h: Remove getline.h
+	* libproto/nntp/mbox.c: Include mailutils/md5.h
+	* libargp/cmdline.h: Include strings.h
+	* m4/debug.m4, m4/enable.m4, m4/gsasl.m4, m4/guile.m4,
+	m4/mu_libobj.m4: Minor fix 
+	* m4/intmax.m4,m4/inttypes-pri.m4,m4/inttypes_h.m4: Update
+	* mailbox/alloca.h: Remove
+	* mailbox/mailbox.c: Include string.h
+	* mailbox/nls.c: Include locale.h
+	* po/Makevars: Remove.
+
+	* absolute-header.m4, alloca.m4, allocsa.m4, argp.m4, codeset.m4,
+	d-type.m4, eealloc.m4, eoverflow.m4, error.m4, exitfail.m4,
+	extensions.m4, fnmatch.m4, full-header-path.m4, getdelim.m4,
+	getline.m4, getlogin_r.m4, getndelim2.m4, getopt.m4, getpass.m4,
+	gettext.m4, glibc2.m4, glibc21.m4, glob.m4, gnulib.m4, iconv.m4,
+	intdiv0.m4, isc-posix.m4, lcmessage.m4, lib-ld.m4, lib-link.m4,
+	lib-prefix.m4, lock.m4, longdouble.m4, longlong.m4,
+	mailbox-link.m4, mbchar.m4, mbiter.m4, mbrtowc.m4, mbstate_t.m4,
+	mbswidth.m4, memchr.m4, mempcpy.m4, minmax.m4, obstack.m4,
+	onceonly.m4, po.m4, printf-posix.m4, progtest.m4, regex.m4,
+	restrict.m4, setenv.m4, signed.m4, size_max.m4, snprintf.m4,
+	ssize_t.m4, stat-macros.m4, stdbool.m4, stdint.m4, stdint_h.m4,
+	strcase.m4, strchrnul.m4, strdup.m4, strerror_r.m4, strndup.m4,
+	strnlen.m4, strtok_r.m4, sysexits.m4, uint32_t.m4, uintmax_t.m4,
+	ulonglong.m4, unistd_h.m4, unlocked-io.m4, vasnprintf.m4,
+	vasprintf.m4, visibility.m4, vsnprintf.m4, wchar_t.m4, wcwidth.m4,
+	wint_t.m4, xalloc.m4, xsize.m4: Remove.
+
+	* alloca.c, allocsa.c, allocsa.h, asprintf.c, basename.c, error.c,
+	error.h, exit.h, exitfail.c, exitfail.h, fnmatch.c, fnmatch_.h,
+	fnmatch_loop.c, getpass.c, getpass.h, intprops.h, malloc.c,
+	mbswidth.c, mbswidth.h, md5.c, md5.h, obstack.c, obstack.h,
+	realloc.c, setenv.c, setenv.h, snprintf.c, snprintf.h, stdbool.h,
+	stdbool_.h, strcasecmp.c, strncasecmp.c, strsignal.c, strtok_r.c,
+	unsetenv.c, utmp.c, vasprintf.c, vasprintf.h, vsyslog.c,
+	xalloc-die.c, xalloc.h, xalloc_die.c, xmalloc.c, xsize.h,
+	xstrdup.c: Remove.
+	
+	* alloca.c, alloca_.h, argp-ba.c, argp-eexst.c, argp-fmtstream.c,
+	argp-fmtstream.h, argp-fs-xinl.c, argp-help.c, argp-namefrob.h,
+	argp-parse.c, argp-pin.c, argp-pv.c, argp-pvh.c, argp-xinl.c,
+	argp.h, asnprintf.c, fnmatch.c, fnmatch_.h, fnmatch_loop.c,
+	getdelim.c, getdelim.h, getline.c, getline.h, getlogin_r.c,
+	getlogin_r.h, getndelim2.c, getndelim2.h, getopt.c, getopt.h,
+	getopt1.c, getopt_.h, getopt_int.h, gettext.h, glob-libc.h,
+	glob.c, glob_.h, malloc.c, mbchar.c, mbchar.h, mbuiter.h,
+	memchr.c, mempcpy.c, mempcpy.h, minmax.h, pin.c, printf-args.c,
+	printf-args.h, printf-parse.c, printf-parse.h, regcomp.c, regex.c,
+	regex.h, regex_internal.c, regex_internal.h, regexec.c,
+	stat-macros.h, stdbool_.h, stdint_.h, strcase.h, strcasecmp.c,
+	strchrnul.c, strchrnul.h, strdup.c, strdup.h, strncasecmp.c,
+	strndup.c, strndup.h, strnlen.c, strnlen.h, strnlen1.c,
+	strnlen1.h, strtok_r.c, strtok_r.h, sysexit_.h, unlocked-io.h,
+	vasnprintf.c, vasnprintf.h, vsnprintf.c, vsnprintf.h, wcwidth.h,
+	xsize.h: Remove.
+	
 2007-11-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/sha1.h: Remove.
