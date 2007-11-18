@@ -1,5 +1,8 @@
 2007-11-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* bootstrap (cp_mark_as_generated): Create target directory if
+	needed.
+
 	Make libmailutils independent from gnulib. Remove generated files
 	from the repository. Bootstrap directly from the gnulib CVS.
 
