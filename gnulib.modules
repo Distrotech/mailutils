@@ -1,21 +1,12 @@
 # List of gnulib modules needed for GNU mailutils.
 # A module name per line. Empty lines and comments are ignored.
-# A line beginning with colon starts a library section. All modules
-# below this line up to the start of the next section will be placed
-# in corresponding directory. The file is processed by scripts/gnulib-sync
-# to synchronize mailtutils tree with gnulib.
 
-:mailutils
-argp
-getline
-regex
+# FIXME: regex and glob are used by libmailutils...
+
+gettext
 strtok_r
-md5
-glob
-inttostr
-sha1
-
-:muaux
+getline
+argp
 xalloc
 alloca
 fnmatch
