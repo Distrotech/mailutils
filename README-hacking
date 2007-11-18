@@ -32,6 +32,13 @@ which are extracted from other source packages:
 
    ./bootstrap 
 
+Notice that at the one of its final stages, bootstrap may spit out
+several warnings like:
+
+pop3d_OBJECTS:.$(OBJEXT: non-POSIX variable name
+
+Ignore them, these are due to the bug in automake.
+   
 Once done, proceed as described in the file README (section
 INSTALLATION).
 
