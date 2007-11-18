@@ -367,6 +367,11 @@ cp_mark_as_generated()
       *)                  c1=     ; c2=     ;;
     esac
 
+    dst_dir=`dirname "$cp_dst"`
+    if ! test -d "$dst_dir"; then
+      mkdir -p "$dst_dir"
+    fi
+    
     if test -z "$c1"; then
       cmp -s "$cp_src" "$cp_dst" || {
 	echo "$0: cp -f $cp_src $cp_dst" &&
