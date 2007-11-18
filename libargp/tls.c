@@ -22,7 +22,6 @@
 
 #include "cmdline.h"
 #include <mailutils/tls.h>
-#include "strcase.h" /* FIXME */
 
 static struct argp_option _tls_argp_options[] = {
   {"ssl-cert", OPT_SSL_CERT, N_("FILE"), OPTION_HIDDEN,

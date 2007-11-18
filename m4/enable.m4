@@ -29,7 +29,7 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 	case "${enableval}" in
 		yes) mu_cache_var=yes;;
                 no)  mu_cache_var=no;;
-	        *)   AC_MSG_ERROR(bad value ${enableval} for --disable-$1) ;;
+	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
         esac],
                       [mu_cache_var=yes])
 

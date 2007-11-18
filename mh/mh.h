@@ -56,7 +56,6 @@
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
-#include <getline.h>
 
 #if !HAVE_DECL_STRCHRNUL
 extern char *strchrnul (const char *s, int c_in);

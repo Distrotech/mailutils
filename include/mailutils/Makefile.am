@@ -82,5 +82,5 @@ pkginclude_HEADERS = \
 nobase_pkginclude_HEADERS = \
   sys/nntp.h\
   sys/pop3.h
-SUBDIRS = gnu sys
+SUBDIRS = sys
 

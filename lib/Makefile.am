@@ -18,11 +18,11 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-noinst_LTLIBRARIES = libmuaux.la
+include gnulib.mk
 
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
-libmuaux_la_SOURCES = \
+libmuaux_la_SOURCES += \
  argpinit.c\
  daemon.c\
  mailcap.c\
@@ -30,44 +30,8 @@ libmuaux_la_SOURCES = \
  muinit.c\
  mu_dbm.c
 
-EXTRA_DIST = utmp.c 
-
-noinst_HEADERS =\
+noinst_HEADERS +=\
  mu_dbm.h\
  mu_asprintf.h
 
-libmuaux_la_LIBADD = @LTLIBOBJS@
-
-BUILT_SOURCES=
-MOSTLYCLEANFILES=
-
-##:## EOF marker for gnulib-sync script. Please, do not remove ##:##
-## Do not change anything below this line ##
-libmuaux_la_SOURCES += allocsa.h allocsa.c
-EXTRA_DIST += allocsa.valgrind
-
-
-libmuaux_la_SOURCES += exit.h
-
-EXTRA_DIST += exitfail.h
-
-EXTRA_DIST += xalloc.h
-
-EXTRA_DIST += xalloc.h
-
-EXTRA_DIST += getpass.h
-
-libmuaux_la_SOURCES += mbswidth.h mbswidth.c
-
-
-
-libmuaux_la_SOURCES += setenv.h
-
-libmuaux_la_SOURCES += snprintf.h
-
-libmuaux_la_SOURCES += vasprintf.h
-
-libmuaux_la_SOURCES += xalloc-die.c
-
-libmuaux_la_SOURCES += xsize.h
 

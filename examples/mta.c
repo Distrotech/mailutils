@@ -61,7 +61,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <mu_asprintf.h>
-#include <getline.h>
 #include <mailutils/argcv.h>
 #include <mailutils/mailutils.h>
 

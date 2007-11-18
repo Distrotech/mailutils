@@ -15,10 +15,10 @@ dnl
 
 AC_DEFUN([MU_DEBUG_MODE],
   [AC_ARG_ENABLE(debug,                     
-    [  --enable-debug          enable debugging mode],
+    AC_HELP_STRING([--enable-debug], [enable debugging mode]),
     [if test x"$enableval" = xyes; then
        if test x"$GCC" = xyes; then
-	 AC_MSG_CHECKING(whether gcc accepts -ggdb)
+	 AC_MSG_CHECKING([whether gcc accepts -ggdb])
          save_CFLAGS=$CFLAGS
          CFLAGS="-ggdb -Wall"
          AC_TRY_COMPILE([],void f(){},

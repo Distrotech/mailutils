@@ -24,7 +24,6 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <getline.h>
 #include <mailutils/argcv.h>
 #include <mailutils/errno.h>
 

@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <mailutils/nls.h>
+#include <locale.h>
 
 /* Initialize Native Language Support */
 

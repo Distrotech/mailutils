@@ -50,7 +50,7 @@ AC_DEFUN([MU_CHECK_GUILE],
      case "x$GUILE_VERSION" in
      x[[0-9]]*)
        if test $GUILE_VERSION -lt 14; then
-         AC_MSG_RESULT(Nope. Version number too low.)
+         AC_MSG_RESULT([Nope. Version number too low.])
          mu_cv_lib_guile=no
        else
          AC_DEFINE_UNQUOTED(GUILE_VERSION, $GUILE_VERSION,

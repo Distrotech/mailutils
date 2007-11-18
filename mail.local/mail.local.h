@@ -86,7 +86,6 @@
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
-#include <getline.h>
 
 #if defined (USE_DBM) || defined (USE_SQL)
 # define USE_MAILBOX_QUOTAS 1

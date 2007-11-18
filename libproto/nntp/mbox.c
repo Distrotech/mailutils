@@ -37,8 +37,7 @@
 # include <strings.h>
 #endif
 
-#include <md5.h>
-
+#include <mailutils/md5.h>
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>

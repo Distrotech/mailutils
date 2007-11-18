@@ -26,7 +26,7 @@ AC_DEFUN([MU_CHECK_GSASL],
      AC_HELP_STRING([--with-gsasl], [use libgsasl for SASL authentication]),
      [case $withval in
       yes|no) wantgsasl=$withval;;
-      *) AC_MSG_ERROR(bad value for --with-gsasl: $withval);;
+      *) AC_MSG_ERROR([bad value for --with-gsasl: $withval]);;
       esac],
      [wantgsasl=no])
 

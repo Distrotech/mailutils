@@ -21,7 +21,6 @@
 # include <config.h>
 #endif
 
-#include <getline.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>

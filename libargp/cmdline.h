@@ -30,6 +30,7 @@
 #include "mailutils/errno.h"
 #include "argp.h"
 #include <errno.h> /* May declare program_invocation_name */
+#include <strings.h>
 
 #ifdef __cplusplus
 extern "C" {

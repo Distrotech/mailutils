@@ -20,10 +20,8 @@ dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 AC_INIT([GNU Mailutils], [1.2.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
-AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
-gl_USE_SYSTEM_EXTENSIONS
 
 AC_PREREQ(2.60)
 
@@ -54,11 +52,12 @@ AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
 AC_SUBST(MU_APP_LIBRARIES,'../lib/libmuaux.la ../libargp/libargp.a -L${top_builddir}/libcfg -lmucfg')
 
-AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
+AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
 
 dnl Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
+gl_EARLY
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -91,6 +90,18 @@ AC_CHECK_TYPE(iconv_t,:,
 
 AC_SUBST(MU_LINK_POSTFLAGS,[`for opt in $LTLIBICONV; do case $opt in -[[lL]]*) echo $opt;; esac; done|tr '\n' ' '`])
 
+
+dnl Escape defuns that force automake to add their arguments
+dnl to LIBOBJS.
+dnl All dependencies has been handled by gnulib-sync.
+
+AC_DEFINE([GNULIB_ARGP_EXTERN_BASENAME],1,
+          [Define to use our own version of __argp_base_name])
+
+# Check for large file support
+AC_SYS_LARGEFILE
+
+gl_INIT
 
 dnl Check for libraries
 USE_LOADABLE_MODULES=no
@@ -368,32 +379,6 @@ AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
 
 dnl Check for working functions
 
-dnl Escape defuns that force automake to add their arguments
-dnl to LIBOBJS.
-dnl All dependencies has been handled by gnulib-sync.
-
-m4_copy([AC_REPLACE_FUNCS],[MU_SAVE_AC_REPLACE_FUNCS])
-m4_copy([AC_LIBOBJ],[MU_SAVE_AC_LIBOBJ])
-
-m4_copy([MU_LIBOBJ],[AC_LIBOBJ])
-AC_DEFUN([AC_REPLACE_FUNCS],
-[AC_CHECK_FUNCS([$1], , [MU_LIBOBJ($ac_func)])
-])
-
-libmailutils_GNULIB
-
-AC_DEFINE([GNULIB_ARGP_EXTERN_BASENAME],1,
-          [Define to use our own version of __argp_base_name])
-
-dnl Restore overridden defuns
-m4_copy([MU_SAVE_AC_REPLACE_FUNCS],[AC_REPLACE_FUNCS])
-m4_copy([MU_SAVE_AC_LIBOBJ],[AC_LIBOBJ])
-
-libmuaux_GNULIB
-
-# Check for large file support
-AC_SYS_LARGEFILE
-
 #####
 # Determine the size of off_t and define an equivalent mu_off_t type.
 # We cannot use off_t in the library since its size depends on whether
@@ -411,7 +396,6 @@ elif test $ac_cv_sizeof_off_t -eq $ac_cv_sizeof_long_long; then
 else
   AC_MSG_ERROR([Cannot find ${ac_cv_sizeof_off_t}-byte type, suitable for mu_off_t])
 fi
-
 AC_FUNC_MMAP
 
 AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf, strsignal],
@@ -452,28 +436,17 @@ AH_BOTTOM([
 #endif
 ])
 
-MU_CHECK_FUNC(fgetpwent)
+AC_CHECK_FUNC(fgetpwent)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
 
 dnl Check for libraries
 
-# FIXME: We used to allow to link against libc copy of argp (if any)
-# The gnulib version fixes a number of bugs and provides new features,
-# so currently we force to use it. This may change when gnulib and glibc
-# are synchronized.
-MU_HEADER(getopt.h,getopt_.h)
-MU_HEADER(argp.h)
-
 AH_BOTTOM([
 /* program_name is used by lib/error.c */
 #define program_name program_invocation_name
 ])
-
-if test "$ac_use_included_regex" = yes; then
-       MU_HEADER(regex.h)
-fi
 
 
 ## FriBidi support
@@ -513,7 +486,6 @@ if test "$use_fribidi" = "yes"; then
   fi
 fi
 
-
 
 ## SQL support
 
@@ -1060,18 +1032,6 @@ dnl to build tests, but this relies on being run in make to
 dnl get sysconfdir expanded.
 
 CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
-
-S=`echo "$MU_LIBOBJS" |
-	          tr ' ' '\n' | sort | uniq |
-                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,' |
-                  tr '\n' ' '`
-MU_LTLIBOBJS=`echo "$S" |
-                sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
-AC_SUBST(MU_LTLIBOBJS)
-
-MU_FINISH
-
-### Display the status
 
 AC_CONFIG_COMMANDS([status],[
 cat <<EOF
