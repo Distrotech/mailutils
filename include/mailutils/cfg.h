@@ -189,4 +189,5 @@ int mu_parse_config (char *file, char *progname,
 
 int mu_cfg_parse_boolean (const char *str, int *res);
 
+extern int mu_cfg_parser_verbose;
 #endif

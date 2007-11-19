@@ -1,5 +1,19 @@
 2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/cfg.h (mu_cfg_parser_verbose): New variable.
+	* include/mailutils/libargp.h (OPT_RCFILE_VERBOSE): New value.
+	* libargp/Makefile.am (AM_CFLAGS): Rename to AM_CPPFLAGS, define
+	SYSCONFDIR.
+	* libargp/common.c (mu_common_argp, mu_common_argp_parser): New
+	option rcfile-verbose. 
+	* mailbox/Makefile.am (AM_CPPFLAGS): define SYSCONFDIR.
+	* mailbox/cfg_lexer.c (_mu_parse_config): Implement `include'
+	statement. Add verbose logging.
+	* mailbox/cfg_parser.y (mu_cfg_parser_verbose): New variable.
+	(mu_cfg_parse): Zero out parse_tree before returning.
+	(_scan_tree_helper): Remove dependency on MU_CONFIG_VERBOSE envar.
+	Use mu_cfg_parser_verbose instead.
+
 	* config/mailutils.m4: New file
 	* config/Makefile.am: Install mailutils.m4 to $(datadir)/aclocal
 

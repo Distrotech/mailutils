@@ -28,7 +28,8 @@
 #include <mailutils/error.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>  
-  
+
+int mu_cfg_parser_verbose;
 static mu_cfg_node_t *parse_tree;
 mu_cfg_locus_t mu_cfg_locus;
 int mu_cfg_tie_in;
@@ -199,6 +200,7 @@ mu_cfg_parse (mu_cfg_node_t **ptree,
     rc = 1;
   /* FIXME if (rc) free_memory; else */
   *ptree = parse_tree;
+  parse_tree = NULL;
   return rc;
 }
 	
@@ -954,13 +956,12 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
       sec = find_subsection (sdata->list->sec, node->tag_name, 0);
       if (!sec)
 	{
-	  if (getenv ("MU_CONFIG_VERBOSE"))
+	  if (mu_cfg_parser_verbose)
 	    {
 	      mu_cfg_perror (sdata->call_data,
 			     &node->locus,
 			     _("unknown section `%s'"),
 			     node->tag_name);
-	      sdata->error++;
 	    }
 	  return MU_CFG_ITER_SKIP;
 	}

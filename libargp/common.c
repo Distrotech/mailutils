@@ -73,6 +73,8 @@ static struct argp_option mu_common_argp_options[] =
     N_("Do not load site configuration file"), 0 },
   { "rcfile", OPT_RCFILE, N_("FILE"), 0,
     N_("Load this configuration file"), 0, },
+  { "rcfile-verbose", OPT_RCFILE_VERBOSE, NULL, 0,
+    N_("Verbosely log parsing of the configuration files"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -95,6 +97,10 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       
     case OPT_RCFILE:
       mu_load_rcfile = arg;
+      break;
+
+    case OPT_RCFILE_VERBOSE:
+      mu_cfg_parser_verbose++;
       break;
       
     default:

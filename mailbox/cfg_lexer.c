@@ -589,6 +589,73 @@ prog_parser (enum mu_cfg_section_stage stage,
   return 0;
 }
 
+static char *
+make_file_name (const char *dir, const char *file)
+{
+  char *tmp;
+  size_t len = strlen (dir) + 1 + strlen (file);
+  tmp = malloc (len + 1);
+  if (!tmp)
+    {
+      mu_error ("%s", mu_strerror (errno));
+      exit (1);
+    }
+  strcpy (tmp, dir);
+  strcat (tmp, "/");
+  strcat (tmp, file);
+  return tmp;
+}
+
+struct include_data
+{
+  const char *progname;
+  struct mu_cfg_param *progparam;
+  int global;
+};
+
+static int _mu_parse_config (char *file, char *progname,
+			     struct mu_cfg_param *progparam, int global);
+
+static int
+_cb_include (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  int ret = 0;
+  struct stat sb;
+  char *dirname = arg;
+  struct include_data *idp = data;
+  char *tmp = NULL;
+  
+  if (dirname[0] != '/')
+    dirname = tmp = make_file_name (SYSCONFDIR, dirname);
+  
+  if (stat (dirname, &sb) == 0)
+    {
+      if (S_ISDIR (sb.st_mode))
+	{
+	  char *file = make_file_name (dirname, idp->progname);
+	  ret = _mu_parse_config (file, idp->progname, idp->progparam, 0);
+	}
+      else
+	ret = _mu_parse_config (dirname, idp->progname, idp->progparam,
+				idp->global);
+    }
+  else if (errno == ENOENT)
+    {
+      mu_cfg_perror (NULL, locus,
+		     _("include directory does not exist"));
+      ret = 1;
+    }
+  else
+    {
+      mu_cfg_perror (NULL, locus,
+		     _("cannot stat include directory: %s"),
+		     mu_strerror (errno));
+      ret = 1;
+    }
+  free (tmp);
+  return ret;
+}
+
 static int
 _mu_parse_config (char *file, char *progname,
 		  struct mu_cfg_param *progparam, int global)
@@ -600,23 +667,22 @@ _mu_parse_config (char *file, char *progname,
   int rc;
   mu_cfg_node_t *parse_tree;
   
-  mu_cfg_locus.file = file;
-  mu_cfg_locus.line = 1;
-
-  if (stat (mu_cfg_locus.file, &st))
-    {
-      mu_error (_("can't stat `%s'"), mu_cfg_locus.file);
-      return -1;
-    }
-  fd = open (mu_cfg_locus.file, O_RDONLY);
-  if (fd == -1)
+  if (stat (file, &st))
     {
       if (errno != ENOENT)
-	mu_error (_("can't open config file `%s'"),
-		 mu_cfg_locus.file);
+	mu_error (_("can't stat `%s'"), file);
+      return -1;
+    }
+  fd = open (file, O_RDONLY);
+  if (fd == -1)
+    {
+      mu_error (_("cannot open config file `%s'"), file);
       return -1;
     }
 
+  if (mu_cfg_parser_verbose)
+    mu_error (_("Info: parsing file `%s'"), file);
+  
   memset (&data, 0, sizeof data);
   data.buffer = malloc (st.st_size+1);
         
@@ -625,9 +691,15 @@ _mu_parse_config (char *file, char *progname,
   close (fd);
   data.curp = data.buffer;
 
-  mu_cfg_yydebug = strncmp (data.curp, "#debug", 6) == 0;
-
+  if (mu_cfg_parser_verbose > 1
+      || strncmp (data.curp, "#debug", 6) == 0)
+    mu_cfg_yydebug = 1;
+  else
+    mu_cfg_yydebug = 0;
+  
   /* Parse configuration */
+  mu_cfg_locus.file = file;
+  mu_cfg_locus.line = 1;
   rc = mu_cfg_parse (&parse_tree,
 		     &data,
 		     default_lexer,
@@ -638,8 +710,18 @@ _mu_parse_config (char *file, char *progname,
   if (rc == 0 && root_container)
     {
       struct mu_cfg_cont *cont = root_container;
+      struct include_data idata;
+      struct mu_cfg_param mu_include_param[] = {
+	{ "include", mu_cfg_callback, &idata, _cb_include },
+	{ NULL }
+      };
 
       mu_config_clone_container (cont);
+      idata.progname = progname;
+      idata.progparam = progparam;
+      idata.global = global;
+      _mu_config_register_section (&cont, NULL, NULL, NULL,
+				   progname, mu_include_param, NULL);
       if (global)
 	{
 	  mu_iterator_t iter;
@@ -685,10 +767,9 @@ _mu_parse_config (char *file, char *progname,
 	    }
 	}
       else if (progparam)
-	{
-	  _mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
-	  			       progparam, NULL);
-	}
+	_mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
+				     progparam, NULL);
+      
       rc = mu_cfg_scan_tree (parse_tree, &cont->v.section,
 			     progname, NULL, NULL, NULL);
       mu_config_destroy_container (&cont);
@@ -698,6 +779,9 @@ _mu_parse_config (char *file, char *progname,
   mu_list_destroy (&data.mpool);
   free (data.cbuf);
   free (data.buffer);
+
+  if (mu_cfg_parser_verbose)
+    mu_error (_("Info: finished parsing file `%s'"), file);
   
   return rc;
 }

@@ -29,6 +29,7 @@ lib_LTLIBRARIES = libmailutils.la
 
 localedir = $(datadir)/locale
 AM_CPPFLAGS = \
+ -DSYSCONFDIR=\"$(sysconfdir)\"\
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DLOCALEDIR=\"$(localedir)\"
 
