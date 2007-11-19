@@ -38,22 +38,24 @@ mu_app_init (struct argp *myargp, const char **capa,
   int rc, i;
   struct argp *argp;
   const struct argp argpnull = { 0 };
-  
+  char **excapa;
+    
   mu_set_program_name (argv[0]);
   mu_libargp_init ();
   for (i = 0; capa[i]; i++)
     mu_gocs_register_std (capa[i]); /*FIXME*/
   if (!myargp)
     myargp = &argpnull;
-  argp = mu_argp_build (myargp);
+  argp = mu_argp_build (myargp, &excapa);
   rc = argp_parse (argp, argc, argv, flags, pindex, data);
   mu_argp_done (argp);
   if (rc)
     return rc;
   
-  mu_libcfg_init (capa);
+  mu_libcfg_init (excapa);
+  free (excapa);
   mu_parse_config_files (cfg_param);
-
+  
   mu_gocs_flush ();
 
   return 0;

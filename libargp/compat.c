@@ -326,7 +326,7 @@ mu_argp_parse (const struct argp *myargp,
   
   if (!myargp)
     myargp = &argpnull;
-  argp = mu_argp_build (myargp);
+  argp = mu_argp_build (myargp, NULL);
   rc = argp_parse (argp, *pargc, *pargv, flags, arg_index, input);
   mu_argp_done (argp);
   if (rc)

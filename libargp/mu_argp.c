@@ -196,7 +196,7 @@ argp_reg_action (void *item, void *data)
 }
 
 struct argp *
-mu_argp_build (const struct argp *init_argp)
+mu_argp_build (const struct argp *init_argp, char ***pcapa)
 {
   struct cap_buf cb;
   struct argp *argp;
@@ -206,7 +206,10 @@ mu_argp_build (const struct argp *init_argp)
   cap_buf_add (&cb, NULL);
   mu_libargp_init ();
   argp = mu_build_argp (init_argp, cb.capa);
-  cap_buf_free (&cb);
+  if (pcapa)
+    *pcapa = cb.capa;
+  else
+    cap_buf_free (&cb);
   return argp;
 }
 

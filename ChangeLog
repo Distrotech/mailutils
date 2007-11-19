@@ -1,5 +1,12 @@
 2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/libargp.h (mu_argp_build): Change proto.
+	* libargp/compat.c (mu_argp_parse): Update call to mu_argp_build.
+	* libargp/mu_argp.c (mu_argp_build): Optionally return expanded
+	capability list in the third argument.
+	* libargp/muinit.c (mu_app_init): Pass expanded capability list to 
+	mu_libcfg_init.
+	
 	* include/mailutils/cfg.h (mu_cfg_parser_verbose): New variable.
 	* include/mailutils/libargp.h (OPT_RCFILE_VERBOSE): New value.
 	* libargp/Makefile.am (AM_CFLAGS): Rename to AM_CPPFLAGS, define

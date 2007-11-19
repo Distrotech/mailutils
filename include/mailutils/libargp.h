@@ -106,7 +106,7 @@ extern struct mu_cmdline_capa mu_auth_cmdline;
 
 extern void mu_libargp_init (void);
   
-extern struct argp *mu_argp_build (const struct argp *argp);
+extern struct argp *mu_argp_build (const struct argp *argp, char ***pcapa);
 extern void mu_argp_done (struct argp *argp);
   
 extern int mu_register_argp_capa (const char *name, struct argp_child *child);
