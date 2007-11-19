@@ -35,3 +35,6 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
+
+m4datadir = $(datadir)/aclocal
+dist_m4data_DATA = mailutils.m4

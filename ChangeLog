@@ -1,5 +1,8 @@
 2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* config/mailutils.m4: New file
+	* config/Makefile.am: Install mailutils.m4 to $(datadir)/aclocal
+
 	* configure.ac (VI_CURRENT): Raise to 3;
 	(MU_APP_LIBRARIES): Rename libargp.a to libmuargp.a
 	* NEWS: Update.
