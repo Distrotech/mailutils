@@ -1,5 +1,7 @@
 2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Add AM_PROG_LIBTOOL.
+
 	* include/mailutils/libargp.h (mu_argp_build): Change proto.
 	* libargp/compat.c (mu_argp_parse): Update call to mu_argp_build.
 	* libargp/mu_argp.c (mu_argp_build): Optionally return expanded
