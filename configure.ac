@@ -65,6 +65,7 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
+AM_PROG_LIBTOOL
 
 ## Predefine several variables used to display configuration status
 status_pam=no
