@@ -45,7 +45,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 

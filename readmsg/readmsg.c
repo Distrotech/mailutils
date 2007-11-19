@@ -23,7 +23,7 @@
 
 #include "readmsg.h"
 #include "xalloc.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 #define WEEDLIST_SEPARATOR " :,"
 

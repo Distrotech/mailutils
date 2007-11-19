@@ -16,9 +16,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#ifndef _MAILUTILS_LIBCFG_H
+#define _MAILUTILS_LIBCFG_H
+
 #include <mailutils/cfg.h>
 #include <mailutils/gocs.h>
 #include <mailutils/nls.h>
@@ -31,6 +31,10 @@
 
 #ifndef MU_USER_CONFIG_FILE
 # define MU_USER_CONFIG_FILE "~/.mailutils"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 struct mu_cfg_capa
@@ -89,3 +93,8 @@ extern struct mu_cfg_capa mu_sql_cfg_capa;
 extern struct mu_cfg_capa mu_tls_cfg_capa;
 extern struct mu_cfg_capa mu_virtdomain_cfg_capa;
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif

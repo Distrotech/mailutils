@@ -19,8 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 
 static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_common_cmdline,

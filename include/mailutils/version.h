@@ -16,37 +16,22 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
+#ifndef _MAILUTILS_VERSION_H
+#define _MAILUTILS_VERSION_H
+
+#include <stdio.h>  
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include "muinit.h"
+extern char *mu_license_text;
+extern void mu_print_options (void);
+extern void mu_fprint_options (FILE *fp);
+extern const char *mu_check_option (char *name);
 
-int
-mu_app_init (struct argp *myargp, const char **capa,
-	     struct mu_cfg_param *cfg_param,
-	     int argc, char **argv, int flags, int *pindex, void *data)
-{
-  int rc, i;
-  struct argp *argp;
-  const struct argp argpnull = { 0 };
-  
-  mu_set_program_name (argv[0]);
-  mu_libargp_init ();
-  for (i = 0; capa[i]; i++)
-    mu_gocs_register_std (capa[i]); /*FIXME*/
-  if (!myargp)
-    myargp = &argpnull;
-  argp = mu_argp_build (myargp);
-  rc = argp_parse (argp, argc, argv, flags, pindex, data);
-  mu_argp_done (argp);
-  if (rc)
-    return rc;
-  
-  mu_libcfg_init (capa);
-  mu_parse_config_files (cfg_param);
-
-  mu_gocs_flush ();
-
-  return 0;
+#ifdef __cplusplus
 }
+#endif
+
+#endif

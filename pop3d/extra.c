@@ -18,7 +18,7 @@
    MA 02110-1301 USA */
 
 #include "pop3d.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 static mu_stream_t istream, ostream;
 

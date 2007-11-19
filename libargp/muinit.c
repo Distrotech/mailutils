@@ -20,7 +20,8 @@
 # include <config.h>
 #endif
 
-#include "muinit.h"
+#include "mailutils/libcfg.h"
+#include "mailutils/libargp.h"
 
 void
 mu_argp_init (const char *vers, const char *bugaddr)
@@ -29,3 +30,31 @@ mu_argp_init (const char *vers, const char *bugaddr)
   argp_program_bug_address = bugaddr ? bugaddr : "<" PACKAGE_BUGREPORT ">";
 }
 
+int
+mu_app_init (struct argp *myargp, const char **capa,
+	     struct mu_cfg_param *cfg_param,
+	     int argc, char **argv, int flags, int *pindex, void *data)
+{
+  int rc, i;
+  struct argp *argp;
+  const struct argp argpnull = { 0 };
+  
+  mu_set_program_name (argv[0]);
+  mu_libargp_init ();
+  for (i = 0; capa[i]; i++)
+    mu_gocs_register_std (capa[i]); /*FIXME*/
+  if (!myargp)
+    myargp = &argpnull;
+  argp = mu_argp_build (myargp);
+  rc = argp_parse (argp, argc, argv, flags, pindex, data);
+  mu_argp_done (argp);
+  if (rc)
+    return rc;
+  
+  mu_libcfg_init (capa);
+  mu_parse_config_files (cfg_param);
+
+  mu_gocs_flush ();
+
+  return 0;
+}

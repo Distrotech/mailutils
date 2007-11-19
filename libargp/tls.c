@@ -20,7 +20,7 @@
 # include <config.h>
 #endif
 
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 #include <mailutils/tls.h>
 
 static struct argp_option _tls_argp_options[] = {

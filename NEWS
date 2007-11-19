@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-11-10
+GNU mailutils NEWS -- history of user-visible changes. 2007-11-19
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -93,6 +93,8 @@ Previous versions incorrectly understood such an URL as `a/b'
 * Support for new protocols: POPS (pops://) and IMAPS (imaps://),
 
 * Fixed APOP handling.
+
+* Remove v0.6 compatibility layer.
 
 
 Version 1.2:

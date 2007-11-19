@@ -23,11 +23,8 @@ include gnulib.mk
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
 libmuaux_la_SOURCES += \
- argpinit.c\
  daemon.c\
  mailcap.c\
- muinit.h\
- muinit.c\
  mu_dbm.c
 
 noinst_HEADERS +=\

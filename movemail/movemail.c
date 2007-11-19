@@ -25,7 +25,7 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
 #include <mu_asprintf.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "movemail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU movemail");

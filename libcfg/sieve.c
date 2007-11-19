@@ -15,7 +15,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "libcfg.h"
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include "mailutils/libcfg.h"
 #include <mailutils/libsieve.h>
 
 static struct mu_gocs_sieve sieve_settings;

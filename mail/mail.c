@@ -18,7 +18,7 @@
    MA 02110-1301 USA */
 
 #include "mail.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 /* Global variables and constants*/
 mu_mailbox_t mbox;               /* Mailbox being operated upon */

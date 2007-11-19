@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")

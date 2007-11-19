@@ -22,7 +22,7 @@
 #include <string.h>
 #include <mailutils/mailutils.h>
 #include <mu_asprintf.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
@@ -185,7 +185,7 @@ main (int argc, char **argv)
 	  int j;
 	  char *ptr;
 	  
-	  add_entry (-1, LINK_FLAGS);
+	  add_entry (-100, LINK_FLAGS);
 	  add_entry (100, LINK_POSTFLAGS);
 	  add_entry (1, "-lmailutils");
 #ifdef ENABLE_NLS
@@ -205,6 +205,10 @@ main (int argc, char **argv)
 		  add_entry (-1, "-lmu_scm " GUILE_LIBS);
 		}
 #endif
+	      else if (strcmp (argv[0], "cfg") == 0)
+		add_entry (-1, "-lmucfg");
+	      else if (strcmp (argv[0], "argp") == 0)
+		add_entry (-2, "-lmuargp");
 	      else if (strcmp (argv[0], "all") == 0)
 		{
 		  struct lib_descr *p;

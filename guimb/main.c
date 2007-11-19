@@ -18,7 +18,7 @@
    MA 02110-1301 USA */
 
 #include "guimb.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 char *program_file;
 char *program_expr;

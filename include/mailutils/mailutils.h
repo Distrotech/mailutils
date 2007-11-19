@@ -53,9 +53,10 @@
 #include <mailutils/types.h>
 #include <mailutils/url.h>
 #include <mailutils/gocs.h>
+#include <mailutils/version.h>
 
 #ifdef MU_COMPAT
-# include <mailutils/compat.h>
+# error "Version 0.6 is no longer supported. Please, update your program."
 #endif
 
 /* EOF */

@@ -18,7 +18,7 @@
 
 #include <mailutils/nls.h>
 #include "argp.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 #define MH_OPT_BOOL 1
 #define MH_OPT_ARG  2
@@ -182,6 +182,7 @@ enum mh_arg {
   ARG_ZERO
 };
 
+void mh_argp_init (const char *vers);
 void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);
 int mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc);
 int mh_argp_parse (int *argc, char **argv[],

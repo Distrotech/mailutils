@@ -21,7 +21,6 @@ AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
             -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
 
 lib_LTLIBRARIES = libmucfg.la
-noinst_HEADERS = libcfg.h
 libmucfg_la_SOURCES=\
  auth.c\
  common.c\

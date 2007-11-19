@@ -20,7 +20,7 @@
 # include <config.h>
 #endif
 
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 #include <mailutils/radius.h>
 
 static struct argp_option mu_radius_argp_option[] = {

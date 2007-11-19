@@ -20,16 +20,17 @@ INCLUDES = @MU_COMMON_INCLUDES@
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
             -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
 
-noinst_LIBRARIES = libargp.a
-noinst_HEADERS = cmdline.h
+lib_LIBRARIES = libmuargp.a
 
-libargp_a_SOURCES =\
+libmuargp_a_SOURCES =\
  auth.c\
  cmdline.c\
  common.c\
+ compat.c\
  gsasl.c\
  mu_argp.h\
  mu_argp.c\
+ muinit.c\
  pam.c\
  radius.c\
  sieve.c\

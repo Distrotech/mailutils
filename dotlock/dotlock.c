@@ -31,7 +31,7 @@
 #include <mailutils/locker.h>
 #include <mailutils/nls.h>
 
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =

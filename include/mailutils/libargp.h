@@ -17,20 +17,20 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MAILUTILS_CMDLINE_H
-#define _MAILUTILS_CMDLINE_H
+#ifndef _MAILUTILS_LIBARGP_H
+#define _MAILUTILS_LIBARGP_H
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
 #include "mailutils/types.h"
 #include "mailutils/gocs.h"
 #include "mailutils/nls.h"
 #include "mailutils/error.h"
 #include "mailutils/errno.h"
+#include "mailutils/version.h"
 #include "argp.h"
-#include <errno.h> /* May declare program_invocation_name */
-#include <strings.h>
+#include "errno.h" 
+#include "strings.h"
+
+#include "mailutils/libcfg.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,8 +103,6 @@ extern struct mu_cmdline_capa mu_sql_cmdline;
 extern struct mu_cmdline_capa mu_virtdomain_cmdline;
 extern struct mu_cmdline_capa mu_auth_cmdline;
 
-extern char *mu_license_text;
-
 extern void mu_libargp_init (void);
   
 extern struct argp *mu_argp_build (const struct argp *argp);
@@ -112,8 +110,17 @@ extern void mu_argp_done (struct argp *argp);
   
 extern int mu_register_argp_capa (const char *name, struct argp_child *child);
 
-extern void mu_print_options (void);
-extern const char *mu_check_option (char *name);
+void mu_argp_init (const char *vers, const char *bugaddr);
+int mu_app_init (struct argp *myargp, const char **capa,
+		 struct mu_cfg_param *cfg_param, 
+		 int argc, char **argv, int flags, int *pindex, void *data);
+
+error_t mu_argp_parse (const struct argp *myargp, 
+		       int *pargc, char **pargv[],  
+		       unsigned flags,
+		       const char *capa[],
+		       int *arg_index,     
+		       void *input) __attribute__ ((deprecated));
   
 #ifdef __cplusplus
 }

@@ -77,22 +77,6 @@ extern int  mu_folder_decrement      (mu_folder_t);
 
 extern void mu_list_response_free    (void *data);
   
-/* Deprecated calls */
-struct mu_0_6_folder_list
-{
-  struct mu_list_response **element;
-  size_t num;
-};
-
-extern int  mu_0_6_folder_list (mu_folder_t, const char *, const char *,
-		  	        struct mu_0_6_folder_list *)
-                                __attribute__((deprecated));
-extern int  mu_0_6_folder_lsub (mu_folder_t, const char *, const char *,
-			        struct mu_0_6_folder_list *)
-                                __attribute__((deprecated));
-extern int  mu_0_6_folder_list_destroy (struct mu_0_6_folder_list *)
-                                        __attribute__((deprecated));
-  
 #ifdef __cplusplus
 }
 #endif

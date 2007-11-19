@@ -27,7 +27,7 @@
 #endif
 
 #include <mailutils/mailutils.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 static int messages_count (const char *);
 

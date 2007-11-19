@@ -25,7 +25,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "muauth (" PACKAGE_STRING ")";
 static char doc[] =

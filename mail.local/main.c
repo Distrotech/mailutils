@@ -18,7 +18,7 @@
    MA 02110-1301 USA */
 
 #include <mail.local.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 int multiple_delivery;     /* Don't return errors when delivering to multiple
 			      recipients */

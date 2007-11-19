@@ -20,7 +20,7 @@
 # include <config.h>
 #endif
 
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 #include "mailutils/sql.h"
 #include "mailutils/mutil.h"
 

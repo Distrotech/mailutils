@@ -19,7 +19,7 @@
 #include "pop3d.h"
 #include <mailutils/argcv.h>
 #include <xalloc.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 int db_list (char *input_name, char *output_name);
 int db_make (char *input_name, char *output_name);

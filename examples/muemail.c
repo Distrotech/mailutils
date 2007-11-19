@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mailutils/mutil.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *capa[] = {
   "address",

@@ -95,6 +95,7 @@ libmailutils_la_SOURCES = \
  tcp.c\
  ticket.c\
  url.c\
+ version.c\
  wicket.c\
  imaxtostr.c  offtostr.c  umaxtostr.c
 

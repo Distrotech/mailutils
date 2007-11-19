@@ -36,7 +36,6 @@ pkginclude_HEADERS = \
  auth.h\
  body.h\
  cfg.h\
- compat.h\
  daemon.h\
  debug.h\
  envelope.h\
@@ -49,6 +48,8 @@ pkginclude_HEADERS = \
  guile.h\
  header.h\
  iterator.h\
+ libargp.h\
+ libcfg.h\
  libsieve.h\
  list.h\
  locker.h\
@@ -77,7 +78,8 @@ pkginclude_HEADERS = \
  syslog.h\
  sql.h\
  tls.h\
- url.h 
+ url.h\
+ version.h
 
 nobase_pkginclude_HEADERS = \
   sys/nntp.h\

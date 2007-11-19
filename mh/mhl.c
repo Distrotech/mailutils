@@ -223,7 +223,7 @@ main (int argc, char **argv)
   interactive = isatty (1) && isatty (0);
   
   mu_init_nls ();
-  mu_argp_init (program_version, NULL);
+  mh_argp_init (program_version);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

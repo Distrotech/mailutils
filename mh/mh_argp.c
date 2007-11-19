@@ -94,6 +94,13 @@ my_argp_parse (struct argp *argp, int argc, char **argv, int flags,
   return rc;
 }
 
+void
+mh_argp_init (const char *vers)
+{
+  argp_program_version = vers ? vers : PACKAGE_STRING;
+  argp_program_bug_address =  "<" PACKAGE_BUGREPORT ">";
+}
+
 int
 mh_argp_parse (int *pargc, char **pargv[],
 	       int flags,

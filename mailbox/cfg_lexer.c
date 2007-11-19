@@ -635,7 +635,7 @@ _mu_parse_config (char *file, char *progname,
 		     NULL,
 		     NULL);
 
-  if (rc == 0)
+  if (rc == 0 && root_container)
     {
       struct mu_cfg_cont *cont = root_container;
 

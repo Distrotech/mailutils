@@ -21,7 +21,7 @@
 #ifdef WITH_GSASL
 # include <mailutils/gsasl.h>
 #endif
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 mu_mailbox_t mbox;
 char *homedir;

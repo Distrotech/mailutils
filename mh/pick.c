@@ -348,7 +348,7 @@ main (int argc, char **argv)
 
   flags = mh_interactive_mode_p () ? 0 : ARGP_NO_ERRS;
   mu_init_nls ();
-  mu_argp_init (program_version, NULL);
+  mh_argp_init (program_version);
   mh_argp_parse (&argc, &argv, flags, options, mh_option,
 		 args_doc, doc, opt_handler, NULL, &index);
   if (pick_parse (lexlist))

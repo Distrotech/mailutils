@@ -18,7 +18,7 @@
    MA 02110-1301 USA */
 
 #include "comsat.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 #ifndef PATH_DEV
 # define PATH_DEV "/dev"

@@ -91,7 +91,7 @@
 # define USE_MAILBOX_QUOTAS 1
 #endif
 
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 /* Debug */
 extern int debug_level;

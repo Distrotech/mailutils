@@ -20,7 +20,7 @@
 # include <config.h>
 #endif
 
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 #include <mailutils/pam.h>
 
 static char *service_name;

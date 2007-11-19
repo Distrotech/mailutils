@@ -26,7 +26,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PREREQ(2.60)
 
 dnl Library versioning
-AC_SUBST(VI_CURRENT,  2)
+AC_SUBST(VI_CURRENT,  3)
 AC_SUBST(VI_REVISION, 2)
 AC_SUBST(VI_AGE,      1)
 
@@ -50,7 +50,7 @@ dnl Other variables
 AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'../lib/libmuaux.la ../libargp/libargp.a -L${top_builddir}/libcfg -lmucfg')
+AC_SUBST(MU_APP_LIBRARIES,'../lib/libmuaux.la ../libargp/libmuargp.a ../libcfg/libmucfg.la')
 
 AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
 

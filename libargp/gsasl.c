@@ -19,8 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include "cmdline.h"
+#include "mailutils/libargp.h"
 #include <mailutils/gsasl.h>
 
 static struct argp_option _gsasl_argp_options[] = {

@@ -43,7 +43,7 @@
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
 #include <mailutils/mu_auth.h>
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =

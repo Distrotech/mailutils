@@ -1,3 +1,64 @@
+2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (VI_CURRENT): Raise to 3;
+	(MU_APP_LIBRARIES): Rename libargp.a to libmuargp.a
+	* NEWS: Update.
+	
+	* comsat/comsat.c, dotlock/dotlock.c, examples/muauth.c,
+	examples/muemail.c, frm/frm.h, guimb/main.c, imap4d/imap4d.c,
+	libargp/auth.c, libargp/cmdline.c, libargp/common.c,
+	libargp/gsasl.c, libargp/mu_argp.c, libargp/pam.c,
+	libargp/radius.c, libargp/sieve.c, libargp/sql.c, libargp/tls.c,
+	libargp/virtdomain.c, maidag/maidag.h, mail/mail.c,
+	mail.local/main.c, mail.remote/mail.remote.c, messages/messages.c,
+	mimeview/mimetypes.y, mimeview/mimeview.c, movemail/movemail.c, 
+	pop3d/extra.c, pop3d/pop3d.c, pop3d/popauth.c, readmsg/readmsg.c,
+	sieve/sieve.c: Include mailutils/libargp.h.
+
+	* config/mailutils-config.c: New arguments to --link: cfg and argp.
+
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Remove
+	compat.h, add libargp.h, libcfg.h and version.h
+	* include/mailutils/compat.h: Remove
+	* include/mailutils/libargp.h: New file (from libargp/cmdline.h)
+	* include/mailutils/libcfg.h: New file (from (libcfg/)
+	* include/mailutils/version.h: New file
+
+	* include/mailutils/folder.h (struct mu_0_6_folder_list): Remove
+	(mu_0_6_folder_list, mu_0_6_folder_lsub)
+	(mu_0_6_folder_list_destroy): Remove.
+
+	* include/mailutils/mailutils.h: Include version.h
+	Remove 0.6 compatibility layer.
+	* mailbox/folder.c (list_to_0_6_folder_list, mu_0_6_folder_list)
+	(mu_0_6_folder_lsub, mu_0_6_folder_list_destroy): Remove.
+	
+	* lib/Makefile.am (libmuaux_la_SOURCES): Remove argpinit.c,
+	muinit.h and muinit.c
+
+	* libargp/Makefile.am (noinst_LIBRARIES, noinst_HEADERS): Remove
+	(lib_LIBRARIES): Add libmuargp.a
+	* libargp/compat.c: New file.
+	* libargp/muinit.c: New file.
+	* libargp/cmdline.h: Remove.
+	
+	* libcfg/Makefile.am (noinst_HEADERS): Remove.
+	* libcfg/auth.c, libcfg/common.c, libcfg/gsasl.c, libcfg/init.c,
+	libcfg/pam.c, libcfg/radius.c, libcfg/sieve.c, libcfg/sql.c,
+	libcfg/tls.c, libcfg/virtdomain.c: Include mailutils/libcfg.h
+	
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add version.c
+	* mailbox/cfg_lexer.c (_mu_parse_config): Do nothing if
+	root_container is NULL.
+
+	* mh/ali.c, mh/anno.c, mh/burst.c, mh/comp.c, mh/fmtcheck.c,
+	mh/folder.c, mh/forw.c, mh/inc.c, mh/install-mh.c, mh/mark.c,
+	mh/mhl.c, mh/mhn.c, mh/mhparam.c, mh/mhpath.c, mh/pick.c,
+	mh/refile.c, mh/repl.c, mh/rmf.c, mh/rmm.c, mh/scan.c, mh/send.c,
+	mh/sortm.c, mh/whatnow.c, mh/whom.c: Use mh_argp_init instead of
+	mu_argp_init. 
+	* mh/mh_argp.c, mh/mh_getopt.h (mh_argp_init): New function 
+	
 2007-11-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* bootstrap (cp_mark_as_generated): Create target directory if

@@ -19,7 +19,7 @@
 
 #include "pop3d.h"
 #include "mailutils/pam.h"
-#include "muinit.h"
+#include "mailutils/libargp.h"
 
 mu_mailbox_t mbox;
 int state;
