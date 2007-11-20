@@ -1,5 +1,8 @@
 2007-11-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libcfg/common.c (mu_logging_param): Use callback to parse the
+	facility. 
+
 	* README-alpha: Update.
 	* auth/pam.c (mu_pam_module_init): Use struct.
 	* include/mailutils/gocs.h (struct mu_gocs_pam): New data type.
