@@ -127,4 +127,24 @@ static struct mu_cfg_param mu_daemon_param[] = {
   { NULL }
 };
 
-DCL_CFG_CAPA (daemon);
+int									      
+mu_daemon_section_parser
+   (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
+    void *section_data, void *call_data)				      
+{									      
+  switch (stage)							      
+    {									      
+    case mu_cfg_section_start:
+      daemon_settings = mu_gocs_daemon;
+      break;								      
+      									      
+    case mu_cfg_section_end:						      
+      mu_gocs_store ("daemon", &daemon_settings);	      
+    }									      
+  return 0;								      
+}
+
+struct mu_cfg_capa mu_daemon_cfg_capa = {                
+  "daemon",  mu_daemon_param, mu_daemon_section_parser
+};
+

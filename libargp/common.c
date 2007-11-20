@@ -498,6 +498,10 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
       daemon_settings.transcript = 1;
       break;
 
+    case ARGP_KEY_INIT:
+      daemon_settings = mu_gocs_daemon;
+      break;
+
     case ARGP_KEY_FINI:
       mu_gocs_store ("daemon", &daemon_settings);
       break;

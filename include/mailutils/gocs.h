@@ -68,6 +68,11 @@ struct mu_gocs_mailer
   char *mailer;
 };
 
+struct mu_gocs_pam
+{
+  char *service;
+};
+
 /* Auxiliary variables for use by libargp/libcfg */
 extern int mu_load_user_rcfile;
 extern int mu_load_site_rcfile;

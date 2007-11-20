@@ -23,7 +23,7 @@
 #include "mailutils/libargp.h"
 #include <mailutils/pam.h>
 
-static char *service_name;
+static struct mu_gocs_pam pam_settings;
 
 static error_t
 mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
@@ -31,11 +31,11 @@ mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case OPT_PAM_SERVICE:
-      service_name = arg;
+      pam_settings.service = arg;
       break;
 
     case ARGP_KEY_FINI:
-      mu_gocs_store ("pam", service_name);
+      mu_gocs_store ("pam", &pam_settings);
       break;
       
     default:

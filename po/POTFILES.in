@@ -27,6 +27,9 @@ imap4d/login.c
 imap4d/search.c
 imap4d/signal.c
 imap4d/util.c
+lib/argp-help.c
+lib/argp-parse.c
+lib/getopt.c
 lib/mailcap.c
 lib/xmalloc.c
 libargp/mu_argp.c
@@ -94,12 +97,9 @@ mail/summary.c
 mail/unalias.c
 mail/util.c
 mail/z.c
-mailbox/argp-help.c
-mailbox/argp-parse.c
 mailbox/errors
 mailbox/file_stream.c
 mailbox/filter_iconv.c
-mailbox/getopt.c
 mailbox/message.c
 mailbox/mu_auth.c
 mailbox/mutil.c

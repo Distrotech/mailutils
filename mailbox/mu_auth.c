@@ -319,7 +319,7 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
       exit (1);
     }
 
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < argc; i += 2)
     {
       if (fun (argv[i]))
 	{

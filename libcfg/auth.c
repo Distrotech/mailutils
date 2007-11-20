@@ -54,5 +54,22 @@ static struct mu_cfg_param mu_auth_param[] = {
   { NULL }
 };
 
-/* FIXME: init? */
+int
+mu_auth_section_parser
+   (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,
+    void *section_data, void *call_data)
+{
+  switch (stage)
+    {
+    case mu_cfg_section_start:
+      break;
 
+    case mu_cfg_section_end:
+      mu_auth_finish_setup ();
+    }
+  return 0;
+}
+
+struct mu_cfg_capa mu_auth_cfg_capa = {
+  "auth",  mu_auth_param, mu_auth_section_parser
+};

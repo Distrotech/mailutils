@@ -87,12 +87,6 @@ mu_gocs_daemon_init (void *data)
     {
       struct mu_gocs_daemon *cfg = data;
       mu_gocs_daemon = *cfg;
-      
-      if (mu_gocs_daemon.maxchildren)
-	mu_gocs_daemon.mode = MODE_DAEMON;
-
-      if (mu_gocs_daemon.pidfile)
-	mu_gocs_daemon.mode = MODE_DAEMON;
     }
   return 0;
 }

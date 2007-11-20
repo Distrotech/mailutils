@@ -33,7 +33,7 @@ AM_CPPFLAGS = \
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = @MU_EXTRA_DIST@ errors muerrno.cin parsedate.y fgetpwent.c cfg_parser.y cfg_parser.h inttostr.c  
+EXTRA_DIST = errors muerrno.cin parsedate.y fgetpwent.c cfg_parser.y cfg_parser.h inttostr.c inttostr.h 
 
 libmailutils_la_SOURCES = \
  address.c\

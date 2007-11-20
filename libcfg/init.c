@@ -24,6 +24,7 @@
 
 struct mu_cfg_capa *cfg_capa_table[] = {
 #define S(c) &__mu_common_cat3__(mu_,c,_cfg_capa)
+  S (auth),
   S (mailbox),
   S (locking),
   S (address),
@@ -35,6 +36,8 @@ struct mu_cfg_capa *cfg_capa_table[] = {
   S (sql),
   S (tls),
   S (virtdomain),
+  S (sieve),
+  S (daemon),
   NULL
 };
 
@@ -52,7 +55,7 @@ find_cfg_capa (const char *name)
 static int
 reserved_name (const char *name)
 {
-  static char *reserved[] = { "auth", "common", "daemon", "license", NULL };
+  static char *reserved[] = { "common", "license", NULL };
   char **p;
   for (p = reserved; *p; p++)
     if (strcmp (name, *p) == 0)

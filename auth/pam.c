@@ -149,7 +149,10 @@ int
 mu_pam_module_init (void *data)
 {
   if (data)
-    mu_pam_service = strdup (data);
+    {
+      struct mu_gocs_pam *p = data;
+      mu_pam_service = p->service ? strdup (p->service) : p->service;
+    }
   return 0;
 }
 

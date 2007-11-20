@@ -1,3 +1,25 @@
+2007-11-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* README-alpha: Update.
+	* auth/pam.c (mu_pam_module_init): Use struct.
+	* include/mailutils/gocs.h (struct mu_gocs_pam): New data type.
+	* include/mailutils/libcfg.h (mu_sieve_cfg_capa)
+	(mu_daemon_cfg_capa,mu_auth_cfg_capa): New declarations.
+	* libargp/common.c (mu_daemon_argp_parser): Handle ARGP_KEY_INIT.
+	* libargp/pam.c (service_name): Remove.
+	(pam_settings): Add new variable.
+	(mu_pam_argp_parser): Reflect this.
+	* libcfg/auth.c (mu_auth_section_parser): New function.
+	(mu_auth_cfg_capa): New variable.
+	* libcfg/common.c (mu_daemon_section_parser): Handle
+	mu_cfg_section_start.
+	* libcfg/init.c (cfg_capa_table): Add auth, sieve, daemon.
+	(reserved_name): Remove auth and daemon.
+	* mailbox/Makefile.am (EXTRA_DIST): Remove @MU_EXTRA_DIST@.
+	* mailbox/daemon.c (mu_gocs_daemon_init): Remove extra checks.
+	* mailbox/mu_auth.c (_add_module_list): Skip delimiters.
+	* po/POTFILES.in: Update.
+
 2007-11-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Add AM_PROG_LIBTOOL.
