@@ -92,8 +92,8 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_locus_t locus;
       mu_sieve_get_locus (mach, &locus);
       mu_sieve_debug (mach, "%s:%lu: PIPE\n",
-		   locus.source_file,
-		   (unsigned long) locus.source_line);
+		      locus.source_file,
+		      (unsigned long) locus.source_line);
     }
 
   if (mu_sieve_is_dry_run (mach))
