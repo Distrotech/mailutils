@@ -42,7 +42,7 @@ static int
 spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 		   char *host, int port)
 {
-  int rc = mu_tcp_stream_create (stream, host, port, 0);
+  int rc = mu_tcp_stream_create (stream, host, port, MU_STREAM_NO_CHECK);
   if (rc)
     {
       mu_sieve_error (mach, "mu_tcp_stream_create: %s", mu_strerror (rc));
@@ -50,50 +50,29 @@ spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
     }
   rc = mu_stream_open (*stream);
   if (rc)
-    mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
+    {
+      mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
+      mu_stream_destroy (stream, NULL);
+    }
   return rc;
 }
 
 static int
 spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
 {
-  /* FIXME: A library deficiency: we cannot create a unix socket stream */
-  int fd, rc;
-  FILE *fp;
-  struct sockaddr_un addr;
-  
-  if ((fd = socket (PF_UNIX, SOCK_STREAM, 0)) < 0)
-    {
-      mu_sieve_error (mach, "socket: %s", mu_strerror (errno));
-      return errno;
-    }
-
-  memset (&addr, 0, sizeof addr);
-  addr.sun_family = AF_UNIX;
-  strncpy (addr.sun_path, path, sizeof addr.sun_path - 1);
-  addr.sun_path[sizeof addr.sun_path - 1] = 0;
-  if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)))
-    {
-      mu_sieve_error (mach, "connect: %s", mu_strerror (errno));
-      close (fd);
-      return errno;
-    }
-
-  fp = fdopen (fd, "w+");
-  rc = mu_stdio_stream_create (stream, fp, MU_STREAM_RDWR);
+  int rc = mu_socket_stream_create (stream, path, MU_STREAM_NO_CHECK);
   if (rc)
     {
-      mu_sieve_error (mach, "mu_stdio_stream_create: %s", mu_strerror (rc));
-      fclose (fp);
+      mu_sieve_error (mach, "mu_socket_stream_create: %s", mu_strerror (rc));
       return rc;
     }
-
   rc = mu_stream_open (*stream);
   if (rc)
     {
-      mu_sieve_error (mach, "mu_stream_open: %s", mu_strerror (rc));
-      mu_stream_destroy (stream, mu_stream_get_owner (*stream));
+      mu_sieve_error (mach, "opening socket stream: %s", mu_strerror (rc));
+      mu_stream_destroy (stream, NULL);
     }
+
   return rc;
 }
 
@@ -102,15 +81,6 @@ spamd_destroy (mu_stream_t *stream)
 {
   mu_stream_close (*stream);
   mu_stream_destroy (stream, mu_stream_get_owner (*stream));
-}
-
-static void
-spamd_shutdown (mu_stream_t stream, int flag)
-{
-  mu_transport_t trans;
-  mu_stream_flush (stream);
-  mu_stream_get_transport (stream, &trans);
-  shutdown (fileno ((FILE*)trans), flag);
 }
 
 static void
@@ -343,7 +313,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   spamd_send_command (stream, "");
   spamd_send_message (stream, msg);
-  spamd_shutdown (stream, SHUT_WR);
+  mu_stream_shutdown (stream, MU_STREAM_WRITE);
 
   spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
 
