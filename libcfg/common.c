@@ -89,8 +89,20 @@ DCL_CFG_CAPA (mailer);
 /* Logging                                                                   */
 /* ************************************************************************* */
 
+int
+cb_facility (mu_cfg_locus_t *locus, void *data, char *arg)
+{
+  if (mu_string_to_syslog_facility (arg, &logging_settings.facility))
+    {
+      mu_error (_("%s:%d: Unknown syslog facility `%s'"), 
+                locus->file, locus->line, arg);
+      return 1;
+    }
+   return 0;
+}
+
 static struct mu_cfg_param mu_logging_param[] = {
-  { "facility", mu_cfg_string, &logging_settings.facility },
+  { "facility", mu_cfg_callback, NULL, cb_facility },
   { NULL }
 };
 
