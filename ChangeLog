@@ -1,5 +1,8 @@
 2007-11-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mail.local/mail.local.h, mail.local/main.c: Limit verbosity of
+	messages printed to stderr.
+
 	* libsieve/extensions/pipe.c: Fix indentation.
 	* libsieve/extensions/spamd.c: Use socket stream.
 	* mailbox/socket_stream.c (_s_open): Default to RDWR mode.
