@@ -1,5 +1,9 @@
 2007-11-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libsieve/extensions/pipe.c: Fix indentation.
+	* libsieve/extensions/spamd.c: Use socket stream.
+	* mailbox/socket_stream.c (_s_open): Default to RDWR mode.
+
 	* libcfg/common.c (mu_logging_param): Use callback to parse the
 	facility. 
 
