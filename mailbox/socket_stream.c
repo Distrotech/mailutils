@@ -108,8 +108,10 @@ _s_open (mu_stream_t stream)
     fstr = "w";
   else if (flags & MU_STREAM_RDWR)
     fstr = "w+";
-  else /* default, also if flags & MU_STREAM_READ */
+  else if (flags & MU_STREAM_READ)
     fstr = "r";
+  else
+    fstr = "w+";
   
   fp = fdopen (fd, fstr);
   if (!fp)
