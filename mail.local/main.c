@@ -47,7 +47,6 @@ void close_fds (void);
 int make_tmp (const char *from, mu_mailbox_t *mbx);
 void deliver (mu_mailbox_t msg, char *name);
 void guess_retval (int ec);
-void mailer_err (char *fmt, ...);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 
 const char *program_version = "mail.local (" PACKAGE_STRING ")";
@@ -572,7 +571,8 @@ switch_user_id (struct mu_auth_data *auth, int user)
 # error "No way to reset user privileges?"
 #endif
   if (rc < 0)
-    mailer_err ("setreuid(0, %d): %s (r=%d, e=%d)",
+    mailer_err ("cannot set user priviledes", auth->name,
+		"setreuid(0, %d): %s (r=%d, e=%d)",
 		uid, strerror (errno), getuid (), geteuid ());
   return rc;
 }
@@ -603,13 +603,16 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
   tempfile = mu_tempname (NULL);
   if ((status = mu_file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
     {
-      mailer_err (_("Unable to open temporary file: %s"), mu_strerror (status));
+      mailer_err ("Temporary failure", NULL,
+		  _("Unable to open temporary file: %s"),
+		  mu_strerror (status));
       exit (exit_code);
     }
 
   if ((status = mu_stream_open (stream)))
     {
-      mailer_err (_("unable to open temporary file: %s"), mu_strerror (status));
+      mailer_err ("Temporary failure", NULL,
+		  _("unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
     }
   
@@ -639,7 +642,8 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
 		}
 	      else
 		{
-		  mailer_err (_("Cannot determine sender address"));
+		  mailer_err ("Cannot determine sender address", NULL,
+			      _("Cannot determine sender address"));
 		  exit (EX_UNAVAILABLE);
 		}
 	      if (auth)
@@ -663,7 +667,9 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
       
       if (status)
 	{
-	  mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
+	  mailer_err ("Temporary failure", NULL,
+		      _("Error writing temporary file: %s"),
+		      mu_strerror (status));
 	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
 	  return status;
 	}
@@ -680,7 +686,8 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
+      mailer_err ("Error writing temporary file", NULL,
+		  _("Error writing temporary file: %s"), mu_strerror (status));
       mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
     }
@@ -690,7 +697,9 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
       || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mu_mailbox_set_stream (*mbox, stream)))
     {
-      mailer_err (_("Error opening temporary file: %s"), mu_strerror (status));
+      mailer_err ("Error opening temporary file", NULL,
+		  _("Error opening temporary file: %s"),
+		  mu_strerror (status));
       mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
     }
@@ -699,7 +708,8 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("Error creating temporary message: %s"),
+      mailer_err ("Error collecting message", NULL,
+		  _("Error creating temporary message: %s"),
 		  mu_strerror (status));
       mu_stream_destroy (&stream, mu_stream_get_owner (stream));
       return status;
@@ -725,7 +735,8 @@ deliver (mu_mailbox_t imbx, char *name)
   auth = mu_get_auth_by_name (name);
   if (!auth)
     {
-      mailer_err (_("%s: no such user"), name);
+      mailer_err ("no such user", name,
+		  _("%s: no such user"), name);
       exit_code = EX_UNAVAILABLE;
       return;
     }
@@ -741,7 +752,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
     {
-      mailer_err (_("Cannot get message from the temporary mailbox: %s"),
+      mailer_err ("cannot read message", name,
+		  _("Cannot get message from the temporary mailbox: %s"),
 		  mu_strerror (status));
       mu_auth_data_free (auth);
       return;
@@ -749,7 +761,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if ((status = mu_message_get_stream (msg, &istream)) != 0)
     {
-      mailer_err (_("Cannot get input message stream: %s"),
+      mailer_err ("cannot read message", name,
+		  _("Cannot get input message stream: %s"),
 		  mu_strerror (status));
       mu_auth_data_free (auth);
       return;
@@ -757,7 +770,8 @@ deliver (mu_mailbox_t imbx, char *name)
   
   if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
     {
-      mailer_err (_("Cannot open mailbox %s: %s"),
+      mailer_err ("cannot read message", name,
+		  _("Cannot open mailbox %s: %s"),
 		  auth->mailbox, mu_strerror (status));
       mu_auth_data_free (auth);
       return;
@@ -776,7 +790,8 @@ deliver (mu_mailbox_t imbx, char *name)
     return;
   if (status != 0)
     {
-      mailer_err (_("Cannot open mailbox %s: %s"), path, mu_strerror (status));
+      mailer_err ("cannot open mailbox", name,
+		  _("Cannot open mailbox %s: %s"), path, mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       return;
     }
@@ -787,7 +802,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if (status)
     {
-      mailer_err (_("Cannot lock mailbox `%s': %s"), path,
+      mailer_err ("cannot lock mailbox", name,
+		  _("Cannot lock mailbox `%s': %s"), path,
 		  mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
@@ -796,7 +812,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if ((status = mu_mailbox_get_stream (mbox, &ostream)))
     {
-      mailer_err (_("Cannot get stream for mailbox %s: %s"),
+      mailer_err ("cannot access mailbox", name,
+		  _("Cannot get stream for mailbox %s: %s"),
 		  path, mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       return;
@@ -804,7 +821,8 @@ deliver (mu_mailbox_t imbx, char *name)
 
   if ((status = mu_stream_size (ostream, &size)))
     {
-      mailer_err (_("Cannot get stream size (mailbox %s): %s"),
+      mailer_err ("cannot access mailbox", name,
+		  _("Cannot get stream size (mailbox %s): %s"),
 		  path, mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       return;
@@ -818,7 +836,8 @@ deliver (mu_mailbox_t imbx, char *name)
     switch (check_quota (auth, size, &n))
       {
       case MQUOTA_EXCEEDED:
-	mailer_err (_("%s: mailbox quota exceeded for this recipient"), name);
+	mailer_err ("mailbox quota exceeded for this recipient", name,
+		    _("%s: mailbox quota exceeded for this recipient"), name);
 	exit_code = EX_QUOTA();
 	failed++;
 	break;
@@ -829,14 +848,17 @@ deliver (mu_mailbox_t imbx, char *name)
       default:
 	if ((status = mu_stream_size (istream, &isize)))
 	  {
-	    mailer_err (_("Cannot get stream size (input message %s): %s"),
+	    mailer_err ("cannot access mailbox", name,
+			_("Cannot get stream size (input message %s): %s"),
 			path, mu_strerror (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
 	  }
 	else if (isize > n)
 	  {
-	    mailer_err (_("%s: message would exceed maximum mailbox size for this recipient"),
+	    mailer_err ("message would exceed maximum mailbox size for this recipient",
+			name,
+			_("%s: message would exceed maximum mailbox size for this recipient"),
 			name);
 	    exit_code = EX_QUOTA();
 	    failed++;
@@ -893,10 +915,12 @@ deliver (mu_mailbox_t imbx, char *name)
 	     original size */
 	  int rc = mu_stream_truncate (ostream, size);
 	  if (rc)
-	    mailer_err (_("Error writing to mailbox: %s. Mailbox NOT truncated: %s"),
+	    mailer_err ("write error", name,
+			_("Error writing to mailbox: %s. Mailbox NOT truncated: %s"),
 			mu_strerror (status), mu_strerror (rc));
 	  else  
-	    mailer_err (_("Error writing to mailbox: %s"),
+	    mailer_err ("write error", name,
+			_("Error writing to mailbox: %s"),
 	  	        mu_strerror (status));
 	}
     }
@@ -950,16 +974,22 @@ notify_biff (mu_mailbox_t mbox, char *name, size_t size)
 }
 
 void
-mailer_err (char *fmt, ...)
+mailer_err (char *msg, char *arg, char *fmt, ...)
 {
   va_list ap;
 
   guess_retval (errno);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  fprintf (stderr, "\n");
-  mu_verror (fmt, ap);
-  va_end (ap);
+  if (arg)
+    fprintf (stderr, "<%s>: %s", arg, msg);
+  else
+    fputs (msg, stderr);
+  fputc ('\n', stderr);
+  if (fmt)
+    {
+      va_start (ap, fmt);
+      mu_verror (fmt, ap);
+      va_end (ap);
+    }
 }
 
 int temp_errors[] = {
