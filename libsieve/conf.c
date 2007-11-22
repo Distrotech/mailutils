@@ -56,6 +56,11 @@ mu_sieve_module_init (void *data)
   if (!data)
     return 0;
   p = data;
+
+#ifdef SIEVE_MODDIR
+  _path_append (SIEVE_MODDIR, &mu_sieve_library_path);
+#endif
+  
   if (p->clearflags & MU_SIEVE_CLEAR_INCLUDE_PATH)
     mu_list_destroy (&mu_sieve_include_path);
   mu_list_do (p->include_path, _path_append, &mu_sieve_include_path);
