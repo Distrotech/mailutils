@@ -1,3 +1,8 @@
+2007-11-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/conf.c (mu_sieve_module_init): Initialize
+	mu_sieve_library_path with SIEVE_MODDIR.
+
 2007-11-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mail.local/mail.local.h, mail.local/main.c: Limit verbosity of
