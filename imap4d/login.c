@@ -67,7 +67,8 @@ imap4d_login (struct imap4d_command *command, char *arg)
   util_chdir (homedir);
     
   namespace_init (homedir);
-  syslog (LOG_INFO, _("User `%s' logged in"), username);
+  syslog (LOG_INFO, _("User `%s' logged in (source: %s)"), username,
+	  auth_data->source);
   return util_finish (command, RESP_OK, "Completed");
 }
 

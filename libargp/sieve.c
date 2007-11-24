@@ -23,6 +23,10 @@
 #include "mailutils/libargp.h"
 #include "mailutils/libsieve.h"
 
+enum {
+  OPT_CLEAR_INCLUDE_PATH = 256,
+  OPT_CLEAR_LIBRARY_PATH
+};  
 
 static struct argp_option sieve_argp_option[] = {
   { "includedir", 'I', N_("DIR"), 0,

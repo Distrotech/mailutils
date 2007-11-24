@@ -265,14 +265,6 @@ struct mu_cfg_param mail_local_cfg_param[] = {
 
 
 static int
-_mu_debug_printer (mu_debug_t unused, size_t level, const char *fmt,
-		   va_list ap)
-{
-  vsyslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, fmt, ap);
-  return 0;
-}
-
-static int
 _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 {
   vsyslog (LOG_DEBUG, fmt, ap);
@@ -393,12 +385,6 @@ main (int argc, char *argv[])
       if ((rc = mu_debug_set_level (mudebug, debug_flags)))
 	{
 	  mu_error (_("mu_debug_set_level failed: %s\n"),
-		    mu_strerror (rc));
-	  exit (EX_TEMPFAIL);
-	}
-      if ((rc = mu_debug_set_print (mudebug, _mu_debug_printer, NULL)))
-	{
-	  mu_error (_("mu_debug_set_print failed: %s\n"),
 		    mu_strerror (rc));
 	  exit (EX_TEMPFAIL);
 	}

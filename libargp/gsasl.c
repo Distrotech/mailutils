@@ -22,6 +22,8 @@
 #include "mailutils/libargp.h"
 #include <mailutils/gsasl.h>
 
+#define OPT_CRAM_PASSWD 256
+
 static struct argp_option _gsasl_argp_options[] = {
   {"cram-passwd", OPT_CRAM_PASSWD, N_("FILE"), OPTION_HIDDEN,
    N_("Specify password file for CRAM-MD5 authentication"), 0},

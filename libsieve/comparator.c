@@ -28,6 +28,7 @@
 #include <sieve.h>
 #include <fnmatch.h>
 #include <regex.h>
+#include <ctype.h>
 
 typedef struct {
   const char *name;

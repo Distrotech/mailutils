@@ -25,6 +25,9 @@ pop3d_begin_session ()
 {
   int status;
 
+  syslog (LOG_INFO, _("POP3 login: user `%s', source %s"),
+	  auth_data->name, auth_data->source);
+  
   if (check_login_delay (auth_data->name))
     {
       syslog (LOG_INFO,

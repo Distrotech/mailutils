@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,30 +16,18 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _DEBUG0_H
-#define _DEBUG0_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
 #include <mailutils/debug.h>
-#include <mailutils/stream.h>
+#include <syslog.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct _mu_debug
+int
+mu_debug_syslog_printer (mu_debug_t unused, size_t level, const char *str)
 {
-  size_t level;
-  mu_stream_t stream;
-  void *owner;
-  int (*printer) (mu_debug_t, size_t level, const char *buf);
-};
-
-#ifdef __cplusplus
+  syslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, "%s", str);
+  return 0;
 }
-#endif
 
-#endif /* _DEBUG0_H */
+

@@ -28,6 +28,7 @@
 #include <string.h>
 #include <sieve.h>
 #include <ltdl.h>
+#include <ctype.h>
 
 typedef int (*sieve_module_init_t) (mu_sieve_machine_t mach);
 

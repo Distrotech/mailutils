@@ -28,6 +28,20 @@ static int sql_requested;
 static struct mu_sql_module_config sql_config;
 /* Command-line configuration */
 
+enum {
+  OPT_SQL_INTERFACE = 256,        
+  OPT_SQL_GETPWNAM,         
+  OPT_SQL_GETPWUID,         
+  OPT_SQL_GETPASS,          
+  OPT_SQL_HOST,             
+  OPT_SQL_USER,             
+  OPT_SQL_PASSWD,           
+  OPT_SQL_DB,               
+  OPT_SQL_PORT,             
+  OPT_SQL_MU_PASSWORD_TYPE, 
+  OPT_SQL_FIELD_MAP,        
+};
+
 static struct argp_option mu_sql_argp_option[] = {
   {"sql-interface", OPT_SQL_INTERFACE, N_("NAME"), OPTION_HIDDEN,
    N_("Type of SQL interface to use"), },

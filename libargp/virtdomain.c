@@ -24,6 +24,8 @@
 
 static char *virtdir;
 
+#define OPT_PWDDIR 256
+
 static error_t
 mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
 {

@@ -26,7 +26,10 @@
 #include <string.h>
 
 #include <mailutils/errno.h>
+#include <mailutils/nls.h>
 #include <debug0.h>
+
+mu_debug_printer_fp mu_debug_default_printer = mu_debug_stderr_printer;
 
 int
 mu_debug_create (mu_debug_t *pdebug, void *owner)
@@ -37,6 +40,7 @@ mu_debug_create (mu_debug_t *pdebug, void *owner)
   debug = calloc (sizeof (*debug), 1);
   if (debug == NULL)
     return ENOMEM;
+  debug->printer = mu_debug_default_printer;
   debug->owner = owner;
   *pdebug = debug;
   return 0;
@@ -50,6 +54,8 @@ mu_debug_destroy (mu_debug_t *pdebug, void *owner)
       mu_debug_t debug = *pdebug;
       if (debug->owner == owner)
 	{
+	  mu_stream_destroy (&debug->stream,
+			     mu_stream_get_owner (debug->stream));
 	  free (*pdebug);
 	  *pdebug = NULL;
 	}
@@ -82,15 +88,13 @@ mu_debug_get_level (mu_debug_t debug, size_t *plevel)
 }
 
 int
-mu_debug_set_print (mu_debug_t debug,
-    int (*_print) (mu_debug_t, size_t, const char *, va_list),
-    void *owner)
+mu_debug_set_print (mu_debug_t debug, mu_debug_printer_fp printer, void *owner)
 {
   if (debug == NULL)
     return EINVAL;
   if (debug->owner != owner)
     return EACCES;
-  debug->_print = _print;
+  debug->printer = printer;
   return 0;
 }
 
@@ -100,7 +104,7 @@ mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
   va_list ap;
 
   va_start (ap, format);
-
+  
   mu_debug_printv (debug, level, format, ap);
   
   va_end (ap);
@@ -109,7 +113,8 @@ mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
 }
 
 int
-mu_debug_printv (mu_debug_t debug, size_t level, const char *format, va_list ap)
+mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
+		 va_list ap)
 {
   if (debug == NULL || format == NULL)
     return EINVAL;
@@ -117,8 +122,59 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format, va_list ap)
   if (!(debug->level & level))
     return 0;
 
-  if (debug->_print)
-    debug->_print (debug, level, format, ap);
+  if (debug->printer)
+    {
+      mu_off_t len;
+      mu_transport_t tbuf;
+      char *ptr, *start, *p;
+      size_t nseg;
+      
+      if (debug->stream == NULL)
+	{
+	  int rc = mu_memory_stream_create (&debug->stream, NULL, 0);
+	  if (rc)
+	    {
+	      fprintf (stderr,
+		       _("cannot create memory stream for debugging output: %s\n"),
+		       mu_strerror (rc));
+	      vfprintf (stderr, format, ap);
+	      return rc;
+	    }
+	}
+
+      mu_stream_sequential_vprintf (debug->stream, format, ap);
+      mu_stream_get_transport (debug->stream, &tbuf);
+      start = (char*) tbuf;
+      mu_stream_size (debug->stream, &len);
+      ptr = start;
+      nseg = 0;
+      for (p = ptr = start; p < start + len; p++)
+	{
+	  if (*p == '\n')
+	    {
+	      int c = *++p;
+	      *p = 0;
+	      debug->printer (debug, level, ptr);
+	      *p = c;
+	      ptr = p;
+	      nseg++;
+	    }
+	}
+
+      if (nseg)
+	{
+	  if (start[len - 1] != '\n')
+	    {
+	      size_t s = len - (ptr - start);
+	      memmove (start, ptr, len);
+	    }
+	  else
+	    len = 0;
+
+	  mu_stream_truncate (debug->stream, len);
+	  mu_stream_seek (debug->stream, len, SEEK_SET);
+	}
+    }
   else
     vfprintf (stderr, format, ap);
 

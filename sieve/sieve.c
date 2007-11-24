@@ -301,22 +301,6 @@ sieve_syslog_debug_printer (void *unused, const char *fmt, va_list ap)
   return 0;
 }
 
-static int
-stderr_debug_print (mu_debug_t unused, size_t level, const char *fmt,
-		    va_list ap)
-{
-  vfprintf ((level == MU_DEBUG_ERROR) ? stderr : stdout, fmt, ap);
-  return 0;
-}
-
-static int
-syslog_debug_print (mu_debug_t unused, size_t level, const char *fmt,
-		    va_list ap)
-{
-  vsyslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, fmt, ap);
-  return 0;
-}
-
 static void
 stdout_action_log (void *unused,
 		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
@@ -379,7 +363,6 @@ main (int argc, char *argv[])
   mu_debug_t debug = 0;
   mu_mailbox_t mbox = 0;
   int rc;
-  int (*debugfp) (mu_debug_t, size_t level, const char *, va_list);
 
   /* Native Language Support */
   mu_init_nls ();
@@ -416,14 +399,12 @@ main (int argc, char *argv[])
       mu_sieve_set_debug (mach, sieve_syslog_debug_printer);
       if (verbose)
 	mu_sieve_set_logger (mach, syslog_action_log);
-      debugfp = syslog_debug_print;
     }
   else
     {
       mu_sieve_set_debug (mach, sieve_stderr_debug_printer);
       if (verbose)
 	mu_sieve_set_logger (mach, stdout_action_log);
-      debugfp = stderr_debug_print;
     }
   
   rc = mu_sieve_compile (mach, script);
@@ -470,12 +451,6 @@ main (int argc, char *argv[])
       if ((rc = mu_debug_set_level (debug, debug_level)))
 	{
 	  mu_error (_("mu_debug_set_level failed: %s"),
-		    mu_strerror (rc));
-	  goto cleanup;
-	}
-      if ((rc = mu_debug_set_print (debug, debugfp, mach)))
-	{
-	  mu_error (_("mu_debug_set_print failed: %s"),
 		    mu_strerror (rc));
 	  goto cleanup;
 	}

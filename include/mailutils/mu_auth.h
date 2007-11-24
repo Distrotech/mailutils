@@ -21,6 +21,7 @@
 
 #include <mailutils/types.h>
 #include <mailutils/gocs.h>
+#include <mailutils/debug.h>
 
 #define MU_AUTH_NAME    "name"
 #define MU_AUTH_PASSWD  "passwd"
@@ -34,6 +35,9 @@
 
 struct mu_auth_data
 {
+  /* Where this info comes from: */
+  const char *source;
+  
   /* These are from struct passwd */
   char    *name;       /* user name */
   char    *passwd;     /* user password */
@@ -42,7 +46,8 @@ struct mu_auth_data
   char    *gecos;      /* real name */
   char    *dir;        /* home directory */
   char    *shell;      /* shell program */
-  /* */
+  
+  /* Additional fields */
   char    *mailbox;
   mu_off_t quota;
 
@@ -76,6 +81,9 @@ enum mu_auth_key_type
     mu_auth_key_name,
     mu_auth_key_uid
   };
+
+void mu_auth_begin_setup (void);
+void mu_auth_finish_setup (void);
 
 extern int mu_auth_runlist (mu_list_t flist,
 			    struct mu_auth_data **return_data,
@@ -117,9 +125,10 @@ extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
 		   	       const char *shell,
 			       const char *mailbox,
 			       int change_uid);
-void mu_auth_data_set_quota (struct mu_auth_data *ptr, mu_off_t q);
+extern void mu_auth_data_set_quota (struct mu_auth_data *ptr, mu_off_t q);
 extern void mu_auth_data_free (struct mu_auth_data *ptr);
 extern void mu_auth_data_destroy (struct mu_auth_data **ptr);
+extern mu_debug_t mu_auth_set_debug (mu_debug_t debug);
 
 
 extern struct mu_auth_module mu_auth_system_module;

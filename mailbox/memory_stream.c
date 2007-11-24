@@ -125,21 +125,15 @@ _memory_truncate (mu_stream_t stream, mu_off_t len)
 {
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
 
-  if (len == 0)
-    {
-      if (mfs->ptr)
-	free (mfs->ptr);
-      mfs->ptr = NULL;
-    }
-  else if (len != (mu_off_t)mfs->size)
+  if (len > (mu_off_t)mfs->size)
     {
       char *tmp = realloc (mfs->ptr, len);
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
+      mfs->capacity = len;
     }
   mfs->size = len;
-  mfs->capacity = len;
   return 0;
 }
 
@@ -216,6 +210,17 @@ _memory_open (mu_stream_t stream)
   return status;
 }
 
+static int
+_memory_get_transport2 (mu_stream_t stream,
+			mu_transport_t *pin, mu_transport_t *pout)
+{
+  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  *pin = mfs->ptr;
+  if (pout)
+    *pout = mfs->ptr;
+  return 0;
+}
+
 int
 mu_memory_stream_create (mu_stream_t * stream, const char *filename, int flags)
 {
@@ -260,6 +265,7 @@ mu_memory_stream_create (mu_stream_t * stream, const char *filename, int flags)
   mu_stream_set_truncate (*stream, _memory_truncate, mfs);
   mu_stream_set_size (*stream, _memory_size, mfs);
   mu_stream_set_destroy (*stream, _memory_destroy, mfs);
-
+  mu_stream_set_get_transport2 (*stream, _memory_get_transport2, mfs);
+  
   return 0;
 }

@@ -23,6 +23,13 @@
 #include "mailutils/libargp.h"
 #include <mailutils/radius.h>
 
+enum {
+  OPT_AUTH_REQUEST = 256,
+  OPT_GETPWNAM_REQUEST,
+  OPT_GETPWUID_REQUEST, 
+  OPT_RADIUS_DIR
+};
+
 static struct argp_option mu_radius_argp_option[] = {
   { "radius-auth-request", OPT_AUTH_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("Radius request to authenitcate the user"), 0 },

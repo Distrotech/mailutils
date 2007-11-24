@@ -40,6 +40,7 @@
 # include <crypt.h>
 #endif
 
+#include <mailutils/argcv.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
@@ -47,24 +48,79 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/debug.h>
 
-/* FIXME: The functions from this module assign values to errno and 
-   use ENOENT instead of MU_ERR_NOENT */
-/*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
-#define DEBUG(c)
+static mu_debug_t mu_auth_debug;
 
+#define DEBUG0(str)                                                           \
+ do                                                                           \
+   {                                                                          \
+     if (mu_auth_debug)                                                       \
+       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, "%s", str);             \
+   }                                                                          \
+ while (0)
+
+#define DEBUG1(fmt, a)                                                        \
+ do                                                                           \
+   {                                                                          \
+     if (mu_auth_debug)                                                       \
+       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, fmt, a);                \
+   }                                                                          \
+ while (0)
+
+#define DEBUG2(fmt, a, b)                                                     \
+ do                                                                           \
+   {                                                                          \
+     if (mu_auth_debug)                                                       \
+       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, fmt, a, b);             \
+   }                                                                          \
+ while (0)
+
+#define S(str) ((str) ? (str) : "(none)")
+
+#define DEBUG_AUTH(a)                                                         \
+ do                                                                           \
+   {                                                                          \
+     if (mu_auth_debug)                                                       \
+       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE,                         \
+                       "source=%s, name=%s, passwd=%s, uid=%lu, gid=%lu, "    \
+                       "gecos=%s, dir=%s, shell=%s, mailbox=%s, quota=%lu, "  \
+                       "change_uid=%d\n",                                     \
+                       S ((a)->source),                                       \
+                       S ((a)->name),                                         \
+                       S ((a)->passwd),                                       \
+                       (unsigned long) (a)->uid,                              \
+                       (unsigned long) (a)->gid,                              \
+                       S ((a)->gecos),                                        \
+                       S ((a)->dir),                                          \
+                       S ((a)->shell),                                        \
+                       S ((a)->mailbox),                                      \
+                       (unsigned long) (a)->quota,                            \
+                       (a)->change_uid);                                      \
+   }                                                                          \
+while (0)
+     
+mu_debug_t
+mu_auth_set_debug (mu_debug_t debug)
+{
+  mu_debug_t prev = mu_auth_debug;
+  mu_auth_debug = debug;
+  return prev;
+}
+
+
 /* memory allocation */
 int 
 mu_auth_data_alloc (struct mu_auth_data **ptr,
-		    const char *name,
-		    const char *passwd,
-		    uid_t uid,
-		    gid_t gid,
-		    const char *gecos,
-		    const char *dir,
-		    const char *shell,
-		    const char *mailbox,
-		    int change_uid)
+                    const char *name,
+                    const char *passwd,
+                    uid_t uid,
+                    gid_t gid,
+                    const char *gecos,
+                    const char *dir,
+                    const char *shell,
+                    const char *mailbox,
+                    int change_uid)
 {
   size_t size = sizeof (**ptr) +
                 strlen (name) + 1 +
@@ -139,7 +195,7 @@ mu_insert_stack_entry (mu_list_t *pflist, struct auth_stack_entry *entry)
 
 int
 mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
-		 const void *key, void *data)
+                 const void *key, void *data)
 {
   int status = MU_ERR_AUTH_FAILURE;
   int rc;
@@ -150,20 +206,27 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
       struct auth_stack_entry *ep;
       
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
-	   mu_iterator_next (itr))
-	{
-	  mu_iterator_current (itr, (void **)&ep);
-	  DEBUG(("trying %s", ep->name));
-	  rc = ep->fun (return_data, key, ep->func_data, data);
-	  DEBUG(("Result: %d", rc));
-	  if (rc == 0)
-	    {
-	      status = rc;
-	      break;
-	    }
-	  else if (status != EAGAIN)
-	    status = rc;
-	}
+           mu_iterator_next (itr))
+        {
+          mu_iterator_current (itr, (void **)&ep);
+          DEBUG1 ("Trying %s...", ep->name);
+          rc = ep->fun (return_data, key, ep->func_data, data);
+          DEBUG2 ("result: %d=%s\n", rc, mu_strerror (rc));
+          if (rc == 0)
+            {
+              if (return_data)
+                {
+                  struct mu_auth_data *auth = *return_data;
+                  if (auth->source == NULL)
+                    auth->source = ep->name;
+                  DEBUG_AUTH (auth);
+                }
+              status = rc;
+              break;
+            }
+          else if (status != EAGAIN)
+            status = rc;
+        }
 
       mu_iterator_destroy (&itr);
     }
@@ -172,9 +235,9 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
 
 int
 mu_auth_nosupport (struct mu_auth_data **return_data MU_ARG_UNUSED,
-		   const void *key MU_ARG_UNUSED,
-		   void *func_data MU_ARG_UNUSED,
-		   void *call_data MU_ARG_UNUSED)
+                   const void *key MU_ARG_UNUSED,
+                   void *func_data MU_ARG_UNUSED,
+                   void *call_data MU_ARG_UNUSED)
 {
   return ENOSYS;
 }
@@ -186,7 +249,7 @@ static mu_list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
 
 int
 mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
-	     const void *key)
+             const void *key)
 {
   mu_list_t list;
   
@@ -195,14 +258,18 @@ mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
   switch (type)
     {
     case mu_auth_key_name:
+      DEBUG1 ("Getting auth info for user %s\n", (char*) key);
       list = mu_auth_by_name_list;
       break;
 
     case mu_auth_key_uid:
+      DEBUG1 ("Getting auth info for UID %lu\n",
+	      (unsigned long) *(uid_t*) key);
       list = mu_auth_by_uid_list;
       break;
 
     default:
+      DEBUG1 ("Unknown mu_auth_key_type: %d\n", type);
       return EINVAL;
     }
   return mu_auth_runlist (list, auth, key, NULL);
@@ -231,7 +298,10 @@ static mu_list_t mu_authenticate_list, _tmp_authenticate_list;
 int
 mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 {
-  DEBUG(("mu_authenticate"));
+  if (!auth_data)
+    return EINVAL;
+  DEBUG2 ("mu_authenticate, user %s, source %s\n", auth_data->name,
+          auth_data->source);
   if (!mu_authenticate_list)
     mu_auth_begin_setup ();
   return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, pass);
@@ -255,8 +325,6 @@ mu_auth_register_module (struct mu_auth_module *mod)
   
   if (mod->init)
     mu_gocs_register (mod->name, mod->init);
-  /* FIXME: Argp? */
-  /* FIXME: cfg? */
   
   if (!module_handler_list && mu_list_create (&module_handler_list))
     abort ();
@@ -292,12 +360,12 @@ _locate (const char *name)
       struct _module_handler *p;
       
       for (mu_iterator_first (itr); !rp && !mu_iterator_is_done (itr);
-	   mu_iterator_next (itr))
-	{
-	  mu_iterator_current (itr, (void **)&p);
-	  if (strcmp (p->authenticate.name, name) == 0)
-	    rp = p;
-	}
+           mu_iterator_next (itr))
+        {
+          mu_iterator_current (itr, (void **)&p);
+          if (strcmp (p->authenticate.name, name) == 0)
+            rp = p;
+        }
 
       mu_iterator_destroy (&itr);
     }
@@ -309,7 +377,6 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
 {
   int argc;
   char **argv;
-  char *name;
   int rc, i;
   
   rc = mu_argcv_get (modlist, ":", NULL, &argc, &argv);
@@ -322,14 +389,16 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
   for (i = 0; i < argc; i += 2)
     {
       if (fun (argv[i]))
-	{
-	  if (errno == ENOENT)
-	    mu_error (_("no such module: %s"), argv[i]);
-	  else
-	    mu_error (_("failed to add module %s: %s"),
-		      argv[i], strerror (errno));
-	  exit (1);
-	}
+        {
+          /* Historically,auth functions used ENOENT. We support this
+             return value for backward compatibility. */
+          if (errno == ENOENT || errno == MU_ERR_NOENT)
+            mu_error (_("no such module: %s"), argv[i]);
+          else
+            mu_error (_("failed to add module %s: %s"),
+                      argv[i], strerror (errno));
+          exit (1);
+        }
     }
   mu_argcv_free (argc, argv);
 }
@@ -342,7 +411,7 @@ mu_authorization_add_module (const char *name)
   
   if (!mod)
     {
-      errno = ENOENT;
+      errno = MU_ERR_NOENT;
       return 1;
     }
   mu_insert_stack_entry (&_tmp_auth_by_name_list, &mod->auth_by_name);
@@ -371,7 +440,7 @@ mu_authentication_add_module (const char *name)
 
   if (!mod)
     {
-      errno = ENOENT;
+      errno = MU_ERR_NOENT;
       return 1;
     }
   mu_insert_stack_entry (&_tmp_authenticate_list, &mod->authenticate);
@@ -416,35 +485,35 @@ mu_auth_begin_setup ()
   if (!mu_authenticate_list)
     {
       if (mu_list_get_iterator (module_handler_list, &itr) == 0)
-	{
-	  struct _module_handler *mod;
-	  
-	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
-	       mu_iterator_next (itr))
-	    {
-	      mu_iterator_current (itr, (void **)&mod);
-	      mu_insert_stack_entry (&mu_authenticate_list,
-				     &mod->authenticate);
-	    }
-	  mu_iterator_destroy (&itr);
-	}
+        {
+          struct _module_handler *mod;
+          
+          for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+               mu_iterator_next (itr))
+            {
+              mu_iterator_current (itr, (void **)&mod);
+              mu_insert_stack_entry (&mu_authenticate_list,
+                                     &mod->authenticate);
+            }
+          mu_iterator_destroy (&itr);
+        }
     }
 
   if (!mu_auth_by_name_list)
     {
       if (mu_list_get_iterator (module_handler_list, &itr) == 0)
-	{
-	  struct _module_handler *mod;
-	  
-	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
-	       mu_iterator_next (itr))
-	    {
-	      mu_iterator_current (itr, (void **)&mod);
-	      mu_insert_stack_entry (&mu_auth_by_name_list, &mod->auth_by_name);
-	      mu_insert_stack_entry (&mu_auth_by_uid_list, &mod->auth_by_uid);
-	    }
-	  mu_iterator_destroy (&itr);
-	}
+        {
+          struct _module_handler *mod;
+          
+          for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+               mu_iterator_next (itr))
+            {
+              mu_iterator_current (itr, (void **)&mod);
+              mu_insert_stack_entry (&mu_auth_by_name_list, &mod->auth_by_name);
+              mu_insert_stack_entry (&mu_auth_by_uid_list, &mod->auth_by_uid);
+            }
+          mu_iterator_destroy (&itr);
+        }
     }
 }
 

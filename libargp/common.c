@@ -62,6 +62,22 @@ assign_string (char **pstr, char *val)
 /* Common                                                                    */
 /* ************************************************************************* */
 
+enum {
+  OPT_SHOW_OPTIONS=256,          
+  OPT_NO_USER_RCFILE,
+  OPT_NO_SITE_RCFILE,
+  OPT_RCFILE,
+  OPT_RCFILE_VERBOSE,
+  OPT_LOG_FACILITY,          
+  OPT_LOCK_FLAGS,            
+  OPT_LOCK_RETRY_COUNT,      
+  OPT_LOCK_RETRY_TIMEOUT,    
+  OPT_LOCK_EXPIRE_TIMEOUT,   
+  OPT_LOCK_EXTERNAL_PROGRAM, 
+  OPT_LICENSE,               
+  OPT_MAILBOX_TYPE          
+};
+
 static struct argp_option mu_common_argp_options[] = 
 {
   { NULL, 0, NULL, 0, N_("Common options"), 0},

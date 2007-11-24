@@ -23,6 +23,13 @@
 #include "mailutils/libargp.h"
 #include <mailutils/tls.h>
 
+enum {
+  OPT_TLS = 256,         
+  OPT_SSL_CERT,   
+  OPT_SSL_KEY,    
+  OPT_SSL_CAFILE
+};
+  
 static struct argp_option _tls_argp_options[] = {
   {"ssl-cert", OPT_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
    N_("Specify SSL certificate file"), 0},

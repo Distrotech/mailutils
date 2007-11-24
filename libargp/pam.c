@@ -25,6 +25,8 @@
 
 static struct mu_gocs_pam pam_settings;
 
+#define OPT_PAM_SERVICE 256
+
 static error_t
 mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
 {

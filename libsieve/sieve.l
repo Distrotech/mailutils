@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
+#include <ctype.h>
 #include <mailutils/argcv.h>
 #include <sieve.h>
 #include <sieve-gram.h>

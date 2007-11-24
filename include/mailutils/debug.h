@@ -40,11 +40,17 @@ extern int mu_debug_print     (mu_debug_t debug, size_t level,
 			       const char *format, ...) MU_PRINTFLIKE(3,4);
 extern int mu_debug_printv    (mu_debug_t debug, size_t level,
 			       const char *format, va_list argp);
-extern int mu_debug_set_print (mu_debug_t, 
-                               int (*_print) (mu_debug_t, size_t level, 
-                                              const char *, va_list), 
-                               void *owner);
 
+typedef int (*mu_debug_printer_fp) (mu_debug_t, size_t level, const char *buf);
+  
+extern int mu_debug_set_print (mu_debug_t,
+			       mu_debug_printer_fp printer,
+                               void *owner);
+extern mu_debug_printer_fp mu_debug_default_printer;
+  
+int mu_debug_syslog_printer (mu_debug_t, size_t, const char *);
+int mu_debug_stderr_printer (mu_debug_t, size_t, const char *);
+  
 #ifdef __cplusplus
 }
 #endif

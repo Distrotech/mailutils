@@ -1,3 +1,47 @@
+2007-11-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Improve debugging.
+	
+	* imap4d/login.c, pop3d/user.c: Print user db source along with
+	the login name.
+	* include/mailutils/debug.h (mu_debug_set_print): Change
+	prototype.
+	(mu_debug_printer_fp): New data type.
+	(mu_debug_default_printer): New extern.
+	(mu_debug_syslog_printer,mu_debug_stderr_printer): New prototypes.
+
+	* libproto/include/debug0.h (struct _mu_debug): Remove unused 
+	`buffer' and `buflen'. Add `stream'. Change signature of `_print' and
+	rename it to `printer'.
+	* mailbox/debug.c: Rewrite debugging support.
+	(mu_debug_default_printer): New global.
+
+	* mailbox/gocs.c (mu_gocs_logging_init): Initialize
+	mu_debug_default_printer.
+
+	* mailbox/memory_stream.c (_memory_truncate): Bugfix.
+	(_memory_get_transport2): Implement method.
+	
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add dbgstderr.c
+	and dbgsyslog.c
+	* mailbox/dbgstderr.c, mailbox/dbgsyslog.c: New files.
+	* maidag/maidag.c, mail.local/main.c, sieve/sieve.c: Remove
+	_mu_debug_printer, the default implementation will do.
+
+	* mailbox/mu_auth.c: Improve debugging.
+	
+	* libsieve/comparator.c, libsieve/load.c, libsieve/sieve.l:
+	Include ctype.h 
+	
+	* include/mailutils/libargp.h: Remove option declarations.
+	* include/mailutils/mu_auth.h (struct mu_auth_data): New member
+	`source'.
+	(mu_auth_set_debug): New proto.
+	* libargp/common.c: Define option values. New option --debug-auth.
+	* libargp/auth.c, libargp/gsasl.c,
+	libargp/pam.c, libargp/radius.c, libargp/sieve.c, libargp/sql.c,
+	libargp/tls.c, libargp/virtdomain.c: Define option values.
+
 2007-11-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/conf.c (mu_sieve_module_init): Initialize
