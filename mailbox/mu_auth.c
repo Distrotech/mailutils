@@ -138,19 +138,19 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
     shell = "/dev/null";
   if (!mailbox)
     {
-      rc = mu_construct_user_mailbox_url (&tmp_mailbox_name, name);
+      int rc = mu_construct_user_mailbox_url (&tmp_mailbox_name, name);
       if (rc)
 	return rc;
-      mailbox_name = tmp_mailbox_name;
+      mailbox = tmp_mailbox_name;
     }
 
-  size =  = sizeof (**ptr) +
-            strlen (name) + 1 +
-            strlen (passwd) + 1 +
-            strlen (gecos) + 1 +
-            strlen (dir) + 1 +
-            strlen (shell) + 1 +
-            strlen (mailbox) + 1;
+  size = sizeof (**ptr) +
+         strlen (name) + 1 +
+         strlen (passwd) + 1 +
+         strlen (gecos) + 1 +
+         strlen (dir) + 1 +
+         strlen (shell) + 1 +
+         strlen (mailbox) + 1;
   
   *ptr = calloc (1, size);
   if (!*ptr)
