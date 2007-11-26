@@ -70,6 +70,12 @@ mu_virtual_module_init (void *data)
   return 0;
 }
 
+#if !HAVE_FGETPWENT
+/* FIXME: A temporary solution. Need proper declaration in .h */
+extern struct passwd *mu_fgetpwent (FILE *fp);
+#define fgetpwent mu_fgetpwent
+#endif
+
 static struct passwd *
 getpwnam_virtual (const char *u)
 {

@@ -28,10 +28,6 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
-
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
 #endif
@@ -74,7 +70,7 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
   mu_header_t hdr;
   mu_body_t body;
   mu_stream_t fstream = NULL, tstream = NULL;
-  char *header, *name = NULL, *fname = NULL;
+  char *header = NULL, *name = NULL, *fname = NULL;
   int ret;
 
   if (newmsg == NULL)
@@ -96,7 +92,7 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 	  else
 	    name = fname;
 	  if ((header =
-	       alloca (strlen (MSG_HDR) + strlen (content_type) +
+	       malloc (strlen (MSG_HDR) + strlen (content_type) +
 		       strlen (name) * 2 + strlen (encoding) + 1)) == NULL)
 	    ret = ENOMEM;
 	  else
@@ -124,6 +120,7 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 			}
 		    }
 		}
+              free (header);
 	    }
 	}
     }
@@ -326,7 +323,6 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
   size_t size;
   size_t nbytes;
   mu_header_t hdr;
-  char *content_encoding;
   const char *fname = NULL;
   char *partname = NULL;
 
@@ -353,20 +349,26 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
 	{
 	  if ((ret = mu_stream_open (info->fstream)) == 0)
 	    {
+              char *content_encoding;
+	      char *content_encoding_mem = NULL;
+
 	      mu_header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
 				&size);
 	      if (size)
 		{
-		  if ((content_encoding = alloca (size + 1)) == NULL)
+		  content_encoding_mem = malloc (size + 1);
+		  if (content_encoding_mem == NULL)
 		    ret = ENOMEM;
+                  content_encoding = content_encoding_mem;
 		  mu_header_get_value (hdr, "Content-Transfer-Encoding",
 				    content_encoding, size + 1, 0);
 		}
 	      else
-		content_encoding = (char *) "7bit";
+		content_encoding = "7bit";
 	      ret =
 		mu_filter_create (&info->stream, istream, content_encoding,
 			       MU_FILTER_DECODE, MU_STREAM_READ);
+              free (content_encoding_mem);
 	    }
 	}
     }
@@ -402,8 +404,8 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
     }
 
   /* Free fname if we allocated it. */
-  if(partname)
-    free(partname);
+  if (partname)
+    free (partname);
 
   return ret;
 }
@@ -473,7 +475,6 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t * newmsg, void **data)
 {
   size_t size, nbytes;
   int ret = 0;
-  char *content_type;
   mu_header_t hdr;
   mu_stream_t istream, ostream;
   struct _msg_info *info = NULL;
@@ -489,12 +490,14 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t * newmsg, void **data)
       mu_header_get_value (hdr, "Content-Type", NULL, 0, &size);
       if (size)
 	{
-	  if ((content_type = alloca (size + 1)) == NULL)
+          char *content_type;
+	  if ((content_type = malloc (size + 1)) == NULL)
 	    return ENOMEM;
 	  mu_header_get_value (hdr, "Content-Type", content_type, size + 1, 0);
-	  if (strncasecmp
-	      (content_type, "message/rfc822",
-	       strlen ("message/rfc822")) != 0)
+	  ret = strncasecmp (content_type, "message/rfc822",
+	                     strlen ("message/rfc822"));
+          free (content_type);
+          if (ret != 0)
 	    return EINVAL;
 	}
       else

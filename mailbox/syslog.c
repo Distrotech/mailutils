@@ -107,4 +107,4 @@ mu_syslog_priority_to_string (int n)
 }
 
 
-int log_facility;
+int log_facility = LOG_FACILITY;

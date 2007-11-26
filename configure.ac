@@ -50,7 +50,7 @@ dnl Other variables
 AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'../lib/libmuaux.la ../libargp/libmuargp.a ../libcfg/libmucfg.la')
+AC_SUBST(MU_APP_LIBRARIES,'../libargp/libmuargp.a ../libcfg/libmucfg.la ../lib/libmuaux.la')
 
 AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
 
@@ -438,7 +438,7 @@ AH_BOTTOM([
 #endif
 ])
 
-AC_CHECK_FUNC(fgetpwent)
+AC_CHECK_FUNCS(fgetpwent)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP

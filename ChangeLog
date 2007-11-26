@@ -1,5 +1,29 @@
 2007-11-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac (MU_APP_LIBRARIES): Load libmuaux after libmuargp
+	and libcfg.
+	(fgetpwent): Use AC_CHECK_FUNCS
+	* auth/virtual.c: Use mu_fgetpwent if fgetpwent is not available.
+
+	* lib/Makefile.am: Add back utmp.c
+	* lib/utmp.c: Restore after unintended remove.
+	* m4/utmp.m4: Fix quoting.
+	
+	* libcfg/gsasl.c, libcfg/ldap.c, libcfg/pam.c, libcfg/radius.c,
+	libcfg/sieve.c, libcfg/sql.c, libcfg/tls.c, libcfg/virtdomain.c:
+	Include stdlib.h
+
+	* libproto/imap/folder.c, libproto/mbox/mbox.c,
+	libproto/mbox/mbox0.h, libproto/pop/mbox.c, mailbox/attachment.c,
+	mailbox/mailbox.c, mailbox/parsedate.y:	Do not use alloca.
+
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add fgetpwent.c
+	and intprops.h.
+	* mailbox/fgetpwent.c (fgetpwent): Rename to mu_fgetpwent.
+	* mailbox/gocs.c: Revert recent change. It broke the testsuite in
+	sieve.
+	* mailbox/syslog.c (log_facility): Initialize to LOG_FACILITY.
+	
 	* configure.ac, NEWS: Add LDAP support.
 	* auth/Makefile.am (libmuauth_la_SOURCES): Add ldap.c.
 	* auth/ldap.c: New file.

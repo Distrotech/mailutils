@@ -52,6 +52,7 @@ libmailutils_la_SOURCES = \
  cfg_lexer.c\
  cfg_parser.c\
  envelope.c\
+ fgetpwent.c\
  file_stream.c\
  filter.c\
  filter_iconv.c\
@@ -100,7 +101,7 @@ libmailutils_la_SOURCES = \
  url.c\
  version.c\
  wicket.c\
- imaxtostr.c  offtostr.c  umaxtostr.c
+ imaxtostr.c  offtostr.c  umaxtostr.c intprops.h
 
 BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h
 MOSTLYCLEANFILES=

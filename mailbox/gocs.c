@@ -212,10 +212,7 @@ mu_gocs_logging_init (void *data)
       mu_debug_default_printer = mu_debug_syslog_printer;
     }
   else
-    {
-      log_facility = LOG_FACILITY;
-      mu_debug_default_printer = mu_debug_stderr_printer;
-    }
+    mu_debug_default_printer = mu_debug_stderr_printer;
   
   /* FIXME: Tag */
   return 0;

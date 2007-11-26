@@ -485,7 +485,9 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   /* Create temporary mu_mailbox_t.  */
   {
     mbox_data_t tmp_mud;
-    char *m = alloca (5 + strlen (tmpmboxname) + 1);
+    char *m = malloc (5 + strlen (tmpmboxname) + 1);
+    if (!m)
+      return ENOMEM;
     /* Try via the mbox: protocol.  */
     sprintf (m, "mbox:%s", tmpmboxname);
     status = mu_mailbox_create (&tmpmailbox, m);
@@ -499,11 +501,12 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	    /* Ok give up.  */
 	    close (tempfile);
 	    remove (tmpmboxname);
+            free (m);
 	    free (tmpmboxname);
 	    return status;
 	  }
       }
-
+    free (m);
     /* Must be flag CREATE if not the mu_mailbox_open will try to mmap()
        the file.  */
     status = mu_mailbox_open (tmpmailbox, MU_STREAM_CREAT | MU_STREAM_RDWR);

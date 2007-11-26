@@ -31,4 +31,8 @@ noinst_HEADERS +=\
  mu_dbm.h\
  mu_asprintf.h
 
+EXTRA_DIST += utmp.c
+gl_LIBOBJS += @LIBOBJS@
+gl_LTLIBOBJS += @LTLIBOBJS@
+
 

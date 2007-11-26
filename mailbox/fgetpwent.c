@@ -40,7 +40,6 @@ static char *buffer;
 static size_t buflen;
 static struct passwd pw;
 
-
 static char *
 parse_line (char *s, char **p)
 {
@@ -81,7 +80,7 @@ getentry (char *s)
 }
 
 struct passwd *
-fgetpwent (FILE *fp)
+mu_fgetpwent (FILE *fp)
 {
   size_t pos = 0;
   int done = 0;

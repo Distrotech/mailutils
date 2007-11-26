@@ -31,10 +31,6 @@
 #include <assert.h>
 #include <fnmatch.h>
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
-
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
@@ -1388,7 +1384,9 @@ imap_list (f_imap_t f_imap)
   int argc;
   char **argv;
   
-  buffer = alloca (len);
+  buffer = malloc (len);
+  if (!buffer)
+    return ENOMEM;
   memcpy (buffer, f_imap->buffer, len);
   buffer[len] = '\0';
 
@@ -1475,7 +1473,7 @@ imap_list (f_imap_t f_imap)
 	}
     }
   mu_argcv_free (argc, argv);
-  
+  free (buffer);
   return status;
 }
 
@@ -1769,16 +1767,22 @@ imap_body (f_imap_t f_imap, char **ptr)
   if (**ptr == '[')
     {
       char *sep = strchr (*ptr, ']');
-      (*ptr)++; /* Move pass the '[' */
+      (*ptr)++; /* Move past the '[' */
       if (sep)
 	{
 	  size_t len = sep - *ptr;
-	  char *section = alloca (len + 1);
-	  char *p = section;
+	  char *section = malloc (len + 1);
+	  char *p;
+	  
+	  if (!section)
+	    return ENOMEM;
+	  
 	  strncpy (section, *ptr, len);
 	  section[len] = '\0';
 	  /* strupper.  */
-	  for (; *p; p++) if (isupper((unsigned)*p)) *p = toupper ((unsigned)*p);
+	  for (p = section; *p; p++)
+	    *p = toupper ((unsigned)*p);
+	  
 	  /* Set the string type to update the correct line count.  */
 	  /*if (!strstr (section, "FIELD"))*/
 	    {
@@ -1795,7 +1799,8 @@ imap_body (f_imap_t f_imap, char **ptr)
                   f_imap->string.type = IMAP_MESSAGE;
                 }
 	    }
-	  sep++; /* Move pass the ']'  */
+	  free (section);
+	  sep++; /* Move past the ']'  */
 	  *ptr = sep;
 	}
     }

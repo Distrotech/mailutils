@@ -23,7 +23,6 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include <alloca.h>
 #include <string.h>
 
 #include <mailutils/debug.h>
@@ -85,28 +84,11 @@ mu_mailbox_get_default_proto ()
   return default_proto ? default_proto : "/";
 }
 
-/* The Mailbox Factory.
-   Create an iterator for registrar and see if any url scheme match,
-   Then we call the mailbox's mu_url_create() to parse the URL. Last
-   initialize the concrete mailbox and folder.  */
-int
-mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
+static int
+_create_mailbox (mu_mailbox_t *pmbox, const char *name)
 {
   mu_record_t record = NULL;
-  
-  if (pmbox == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
-  if (!mu_is_proto (name) && default_proto)
-    {
-      char *tmp_name = alloca (strlen (default_proto) + strlen (name) + 1);
-      if (!tmp_name)
-	return ENOMEM;
-      strcpy (tmp_name, default_proto);
-      strcat (tmp_name, name);
-      name = tmp_name;
-    }
-  
   if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
     {
       int (*m_init) (mu_mailbox_t) = NULL;
@@ -159,8 +141,32 @@ mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
 	  return status;
 	}
     }
-
   return MU_ERR_NO_HANDLER;
+}
+
+/* The Mailbox Factory.
+   Create an iterator for registrar and see if any url scheme match,
+   Then we call the mailbox's mu_url_create() to parse the URL. Last
+   initialize the concrete mailbox and folder.  */
+int
+mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
+{
+  int rc;
+  
+  if (pmbox == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+
+  if (!mu_is_proto (name) && default_proto)
+    {
+      char *tmp_name = malloc (strlen (default_proto) + strlen (name) + 1);
+      strcpy (tmp_name, default_proto);
+      strcat (tmp_name, name);
+      rc = _create_mailbox (pmbox, name);
+      free (name);
+    }
+  else
+    rc = _create_mailbox (pmbox, name);
+  return rc;
 }
 
 void

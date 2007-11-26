@@ -34,10 +34,6 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
-
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
