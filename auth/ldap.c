@@ -141,7 +141,7 @@ _mu_conn_setup (LDAP **pld)
 		  mu_error (_("DNS SRV: Cannot convert domain=%s into a hostlist"),
 			    domain);
 		  goto dnssrv_free;
-	    }
+		}
 	      
 	      rc = mu_argcv_get (hostlist, " ", NULL, &hostcnt, &hosts);
 	      if (rc)
@@ -243,7 +243,7 @@ _mu_conn_setup (LDAP **pld)
     }
   free (ldapuri);
   
-  if (ldap_param.tls )
+  if (ldap_param.tls)
     {
       rc = ldap_start_tls_s (ld, NULL, NULL);
       if (rc != LDAP_SUCCESS)
@@ -637,9 +637,6 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
 }
 
 
-#define MATCH(s,p,l) \
- (
-
 static int
 my_strncasecmp (const char *p, const char *q, size_t len)
 {
@@ -870,7 +867,6 @@ mu_ldap_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 	}
     }
   
-  /* FIXME: Support for {algo}octet-string */
   return strcmp (db_pass, pass) == 0 ? 0 : MU_ERR_AUTH_FAILURE;
 }
 
