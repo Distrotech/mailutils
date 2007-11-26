@@ -83,7 +83,7 @@ returned 0 and stored empty string in the output buffer.
 
 * Fixed parsing of URLs similar to file:///a/b. 
 
-It is parsed as an absolute file name `a/b'.
+It is parsed as an absolute file name `/a/b'.
 
 Previous versions incorrectly understood such an URL as `a/b'
 (relative file name). 
