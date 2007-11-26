@@ -27,6 +27,7 @@ libmuauth_la_SOURCES = \
  gsasl.c\
  lbuf.c\
  lbuf.h\
+ ldap.c\
  pam.c\
  radius.c\
  sql.c\

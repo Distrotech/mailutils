@@ -113,17 +113,12 @@ mu_build_argp (const struct argp *template, const char *capa[])
   for (n = 0; capa && capa[n]; n++)
     {
       struct argp_capa *cp = find_capa (capa[n]);
-      if (!cp)
+      if (cp)
 	{
-	  mu_error (_("INTERNAL ERROR: requested unknown argp "
-		      "capability %s (please report)"),
-		    capa[n]);
-	  abort ();
+	  ap[nchild] = *cp->child;
+	  ap[nchild].group = group++;
+	  nchild++;
 	}
-      ap[nchild] = *cp->child;
-      ap[nchild].group = group++;
-      nchild++;
-
     }
   ap[nchild].argp = NULL;
 

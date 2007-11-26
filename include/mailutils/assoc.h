@@ -40,7 +40,8 @@ int mu_assoc_get_iterator (mu_assoc_t assoc, mu_iterator_t *piterator);
 int mu_assoc_remove_ref (mu_assoc_t assoc, void *data);
 int mu_assoc_remove (mu_assoc_t assoc, const char *name);  
 int mu_assoc_set_free (mu_assoc_t assoc, mu_assoc_free_fn fn);
-  
+int mu_assoc_count (mu_assoc_t assoc, size_t *pcount);
+
 #ifdef __cplusplus
 }
 #endif

@@ -48,6 +48,7 @@ pkginclude_HEADERS = \
  guile.h\
  header.h\
  iterator.h\
+ ldap.h\
  libargp.h\
  libcfg.h\
  libsieve.h\

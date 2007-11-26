@@ -26,6 +26,7 @@ libmucfg_la_SOURCES=\
  common.c\
  init.c\
  gsasl.c\
+ ldap.c\
  pam.c\
  radius.c\
  sieve.c\

@@ -86,6 +86,9 @@ static char *mu_conf_option[] = {
 #ifdef HAVE_PGSQL
   "HAVE_PGSQL",
 #endif
+#ifdef WITH_LDAP
+  "WITH_LDAP",
+#endif
 #ifdef ENABLE_VIRTUAL_DOMAINS
   "ENABLE_VIRTUAL_DOMAINS",
 #endif

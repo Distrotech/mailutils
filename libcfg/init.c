@@ -38,6 +38,7 @@ struct mu_cfg_capa *cfg_capa_table[] = {
   S (virtdomain),
   S (sieve),
   S (daemon),
+  S (ldap),
   NULL
 };
 

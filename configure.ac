@@ -74,6 +74,7 @@ status_dbm=no
 status_gsasl=no
 status_mysql=no
 status_pgsql=no
+status_ldap=no
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
@@ -677,8 +678,29 @@ if test -n "$SQL_MODULES"; then
                       fi])
 fi
 
+
+# LDAP support
+AC_ARG_WITH(ldap,
+	AC_HELP_STRING([--with-ldap],
+	[Configure to work with OpenLDAP]),
+	[case $withval in
+	 yes)	status_ldap=maybe
+		;;
+	 no)    status_ldap=no
+                ;;
+        esac],
+        [status_ldap=maybe])
 
-dnl Virtual domain support
+if test $status_ldap = maybe; then
+  AC_CHECK_LIB(ldap, ldap_bind,[
+   status_ldap=yes
+   AC_DEFINE(WITH_LDAP, 1, [Define to 1 if you want to use -lldap])
+   MU_AUTHLIBS="$MU_AUTHLIBS -lldap"],
+   [status_ldap=no])
+fi
+
+
+# Virtual domain support
 MU_ENABLE_SUPPORT(virtual-domains)
 AC_SUBST(SITE_VIRTUAL_PWDDIR)
 AC_ARG_WITH([virtual-pwddir],
@@ -709,6 +731,7 @@ MU_ENABLE_SUPPORT(mh,
                    BUILD_MH_EXEC_HOOK=mh_finish_install])
 MU_ENABLE_SUPPORT(maildir)
 
+# FIXME: Should be --with-radius 
 MU_ENABLE_SUPPORT(radius,
                   [AC_CHECK_HEADERS([radius/radius.h],,
                                     [mu_cv_enable_radius=no])
@@ -1051,6 +1074,7 @@ Pthread support................ $status_pthread
 Readline support............... $status_readline
 MySQL support.................. $status_mysql
 PostgreSQL support............. $status_pgsql
+LDAP support................... $status_ldap
 Radius support................. $status_radius
 Support for virtual domains.... $status_virtual_domains
 
@@ -1075,6 +1099,7 @@ EOF
 [status_pam=$status_pam
 status_ltdl=$status_ltdl
 status_dbm="$status_dbm"
+status_ldap=$status_ldap
 status_gnutls=$WITH_GNUTLS
 status_gsasl=$status_gsasl
 status_gssapi=$WITH_GSSAPI

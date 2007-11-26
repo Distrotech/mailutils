@@ -1449,7 +1449,7 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
       return rc;
     }
 
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < argc; i += 2)
     {
       char *tok = argv[i];
       char *p = strchr (tok, '=');

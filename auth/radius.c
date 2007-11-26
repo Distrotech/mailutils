@@ -199,7 +199,7 @@ mu_radius_module_init (void *data)
   return 0;
 }  
 
-char *
+static char *
 _expand_query (const char *query, const char *ustr, const char *passwd)
 {
   char *p, *q, *res;
@@ -274,7 +274,7 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
 	      else
 		{
 		  *q++ = '%';
-		  *q++ = 'u';
+		  *q++ = 'p';
 		}
 	      p++;
 	      break;

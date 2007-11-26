@@ -1,3 +1,35 @@
+2007-11-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac, NEWS: Add LDAP support.
+	* auth/Makefile.am (libmuauth_la_SOURCES): Add ldap.c.
+	* auth/ldap.c: New file.
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add ldap.h.
+	* include/mailutils/ldap.h: New file.
+	* include/mailutils/libcfg.h (mu_ldap_cfg_capa): New extern.
+	* include/mailutils/mu_auth.h (mu_auth_ldap_module): New extern.
+	(MU_AUTH_REGISTER_ALL_MODULES): Register ldap.
+	* libcfg/Makefile.am (libmucfg_la_SOURCES): Add ldap.
+	* libcfg/ldap.c: New file.
+	* libcfg/init.c (cfg_capa_table): Add ldap.
+	* mailbox/gocs.c (mu_gocs_logging_init): Initialize log_facility
+	to default if not specified otherwise. Need to revise this later.
+	* mailbox/version.c (mu_conf_option): Reveal ldap, if supported.
+	
+	* mailbox/mu_auth.c (mu_auth_data_alloc): Add safety
+	checks. Provide reasonable defaults for missing arguments.
+	* mailbox/mutil.c (mutil_parse_field_map): Bugfix - increment by 2
+	on each loop.
+	
+	* libargp/mu_argp.c (mu_build_argp): Do not bail out if an unknown
+	capability is requested.
+	 
+	* include/mailutils/assoc.h (mu_assoc_count): New function.
+	* mailbox/assoc.c: Likewise.
+	
+	* auth/radius.c (_expand_query): Static	
+
+	* mailbox/cfg_lexer.c: Fixed memory management during cloning.
+	
 2007-11-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Improve debugging.

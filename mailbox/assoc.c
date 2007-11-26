@@ -488,3 +488,26 @@ mu_assoc_get_iterator (mu_assoc_t assoc, mu_iterator_t *piterator)
   *piterator = iterator;
   return 0;
 }  
+
+
+
+int
+mu_assoc_count (mu_assoc_t assoc, size_t *pcount)
+{
+  mu_iterator_t itr;
+  int rc;
+  size_t count;
+  
+  if (!assoc || !pcount)
+    return EINVAL;
+  rc = mu_assoc_get_iterator (assoc, &itr);
+  if (rc)
+    return rc;
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    count++;
+  mu_iterator_destroy (&itr);
+  *pcount = count;
+  return 0;
+}
+

@@ -308,18 +308,12 @@ mu_config_create_container (struct mu_cfg_cont **pcont,
 }  
 
 
-#define DUP_SHALLOW 0
-#define DUP_DEEP    1
-
 struct dup_data
 {
-  int duptype;
   struct mu_cfg_cont *cont;
-  struct mu_cfg_section **endsect;
 };
 
-static int dup_container (struct mu_cfg_cont **pcont,
-			  struct mu_cfg_section **endsect);
+static int dup_container (struct mu_cfg_cont **pcont);
 
 static int
 _dup_section_action (void *item, void *cbdata)
@@ -328,17 +322,10 @@ _dup_section_action (void *item, void *cbdata)
   struct mu_cfg_cont *cont = item;
   struct dup_data *pdd = cbdata;
 
-  switch (pdd->duptype)
-    {
-    case DUP_DEEP:
-      rc = dup_container (&cont, pdd->endsect);
-      if (rc)
-	return rc;
-      break;
-      
-    case DUP_SHALLOW:
-      break;
-    }
+  rc = dup_container (&cont);
+  if (rc)
+    return rc;
+
   if (!pdd->cont->v.section.subsec)
     {
       int rc = mu_list_create (&pdd->cont->v.section.subsec);
@@ -354,7 +341,7 @@ _dup_param_action (void *item, void *cbdata)
   int rc;
   struct mu_cfg_cont *cont = item;
   struct dup_data *pdd = cbdata;
-  rc = dup_container (&cont, pdd->endsect);
+  rc = dup_container (&cont);
   if (rc)
     return rc;
   if (!pdd->cont->v.section.param)
@@ -367,7 +354,7 @@ _dup_param_action (void *item, void *cbdata)
 }
     
 static int
-dup_container (struct mu_cfg_cont **pcont, struct mu_cfg_section **endsect)
+dup_container (struct mu_cfg_cont **pcont)
 {
   int rc;
   struct mu_cfg_cont *newcont, *oldcont = *pcont;
@@ -378,7 +365,6 @@ dup_container (struct mu_cfg_cont **pcont, struct mu_cfg_section **endsect)
     return rc;
 
   dd.cont = newcont;
-  dd.endsect = endsect;
   switch (oldcont->type)
     {
     case mu_cfg_cont_section:
@@ -387,14 +373,8 @@ dup_container (struct mu_cfg_cont **pcont, struct mu_cfg_section **endsect)
       newcont->v.section.data = oldcont->v.section.data;
       newcont->v.section.subsec = NULL;
       newcont->v.section.param = NULL;
-      if (endsect && &oldcont->v.section == *endsect)
-	dd.duptype = DUP_SHALLOW;
-      else
-	dd.duptype = DUP_DEEP;
       mu_list_do (oldcont->v.section.subsec, _dup_section_action, &dd);
       mu_list_do (oldcont->v.section.param, _dup_param_action, &dd);
-      if (dd.duptype == DUP_SHALLOW)
-	*endsect = &newcont->v.section;
       break;
 
     case mu_cfg_cont_param:
@@ -406,12 +386,29 @@ dup_container (struct mu_cfg_cont **pcont, struct mu_cfg_section **endsect)
 }
 
 
-static int
-_destroy_container_action (void *item, void *cbdata)
+static void
+destroy_list (mu_list_t *plist)
 {
-  struct mu_cfg_cont *cont = item;
-  mu_config_destroy_container (&cont);
-  return 0;
+  mu_list_t list = *plist;
+  mu_iterator_t itr = NULL;
+  
+  if (!list)
+    return;
+
+  mu_list_get_iterator (list, &itr);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      struct mu_cfg_cont *cont, *p;
+      mu_iterator_current (itr, (void**)&cont);
+      p = cont;
+      mu_config_destroy_container (&p);
+      if (!p)
+	mu_list_remove (list, cont);
+    }
+  mu_iterator_destroy (&itr);
+  if (mu_list_is_empty (list))
+    mu_list_destroy (plist);
 }
 
 void
@@ -419,13 +416,12 @@ mu_config_destroy_container (struct mu_cfg_cont **pcont)
 {
   struct mu_cfg_cont *cont = *pcont;
   unsigned refcount = mu_refcount_dec (cont->refcount);
+  /* printf ("destr %p-%s: %d\n", cont, cont->v.section.ident, refcount); */
   switch (cont->type)
     {
     case mu_cfg_cont_section:
-      mu_list_do (cont->v.section.subsec, _destroy_container_action, NULL);
-      mu_list_destroy (&cont->v.section.subsec);
-      mu_list_do (cont->v.section.param, _destroy_container_action, NULL);
-      mu_list_destroy (&cont->v.section.param);
+      destroy_list (&cont->v.section.subsec);
+      destroy_list (&cont->v.section.param);
       break;
 
     case mu_cfg_cont_param:
@@ -471,7 +467,8 @@ _clone_action (void *item, void *cbdata)
 int
 mu_config_clone_container (struct mu_cfg_cont *cont)
 {
-  mu_refcount_inc (cont->refcount);
+  int n = mu_refcount_inc (cont->refcount);
+  /* printf("clone %p-%s: %d\n", cont, cont->v.section.ident, n); */
   switch (cont->type)
     {
     case mu_cfg_cont_section:
@@ -520,9 +517,19 @@ _mu_config_register_section (struct mu_cfg_cont **proot,
   if (mu_refcount_value ((*proot)->refcount) > 1)
     {
       /* It is a clone, do copy-on-write */
-      rc = dup_container (proot, &parent);
+      rc = dup_container (proot);
       if (rc)
 	return rc;
+
+      root_section = &(*proot)->v.section;
+      
+      if (parent_path)
+	{
+	  if (mu_cfg_find_section (root_section, parent_path, &parent))
+	    return MU_ERR_NOENT;
+	}
+      else  
+	parent = root_section;
     }
 
   if (ident)
@@ -730,11 +737,10 @@ _mu_parse_config (char *file, char *progname,
 	  static struct mu_cfg_param empty_param = { NULL };
 	  if (!progparam)
 	    progparam = &empty_param;
+
 	  _mu_config_register_section (&cont, NULL, "program", prog_parser,
 				       progname,
 				       progparam, &prog_sect);
-
-	  mu_config_clone_container (old_root);
 
 	  if (old_root->v.section.subsec)
 	    {
@@ -744,9 +750,9 @@ _mu_parse_config (char *file, char *progname,
 	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
 		   mu_iterator_next (iter))
 		{
-		  struct mu_cfg_section *s;
-		  mu_iterator_current (iter, (void**)&s);
-		  mu_list_append (prog_sect->subsec, s);
+		  struct mu_cfg_cont *c;
+		  mu_iterator_current (iter, (void**)&c);
+		  mu_list_append (prog_sect->subsec, c);
 		}
 	      mu_iterator_destroy (&iter);
 	    }
@@ -759,9 +765,9 @@ _mu_parse_config (char *file, char *progname,
 	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
 		   mu_iterator_next (iter))
 		{
-		  struct mu_cfg_param *p;
-		  mu_iterator_current (iter, (void**)&p);
-		  mu_list_append (prog_sect->param, p);
+		  struct mu_cfg_cont *c;
+		  mu_iterator_current (iter, (void**)&c);
+		  mu_list_append (prog_sect->param, c);
 		}
 	      mu_iterator_destroy (&iter);
 	    }

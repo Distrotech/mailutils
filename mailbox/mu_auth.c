@@ -122,14 +122,35 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
                     const char *mailbox,
                     int change_uid)
 {
-  size_t size = sizeof (**ptr) +
-                strlen (name) + 1 +
-                strlen (passwd) + 1 +
-                strlen (gecos) + 1 +
-                strlen (dir) + 1 +
-                strlen (shell) + 1 +
-                strlen (mailbox) + 1;
+  size_t size;
   char *p;
+  char *tmp_mailbox_name = NULL;
+  
+  if (!name)
+    return EINVAL;
+  if (!passwd)
+    passwd = "x";
+  if (!gecos)
+    gecos = "";
+  if (!dir)
+    dir = "/nonexisting";
+  if (!shell)
+    shell = "/dev/null";
+  if (!mailbox)
+    {
+      rc = mu_construct_user_mailbox_url (&tmp_mailbox_name, name);
+      if (rc)
+	return rc;
+      mailbox_name = tmp_mailbox_name;
+    }
+
+  size =  = sizeof (**ptr) +
+            strlen (name) + 1 +
+            strlen (passwd) + 1 +
+            strlen (gecos) + 1 +
+            strlen (dir) + 1 +
+            strlen (shell) + 1 +
+            strlen (mailbox) + 1;
   
   *ptr = calloc (1, size);
   if (!*ptr)
@@ -151,6 +172,8 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
   (*ptr)->uid = uid;
   (*ptr)->gid = gid;
   (*ptr)->change_uid = change_uid;
+
+  free (tmp_mailbox_name);
   return 0;
 }
 

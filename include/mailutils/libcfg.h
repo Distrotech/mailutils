@@ -95,6 +95,7 @@ extern struct mu_cfg_capa mu_virtdomain_cfg_capa;
 extern struct mu_cfg_capa mu_sieve_cfg_capa;
 extern struct mu_cfg_capa mu_daemon_cfg_capa;
 extern struct mu_cfg_capa mu_auth_cfg_capa;
+extern struct mu_cfg_capa mu_ldap_cfg_capa;
 
 #ifdef __cplusplus
 }
