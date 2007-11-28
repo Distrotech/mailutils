@@ -3,7 +3,7 @@
 	Introduce "global debug settings". Mailutils objects are supposed
 	to set their default mu_debug_t objects basing on these settings.
 	
-	* include/mailutils/Makefile.am: Add debug.hin. Build debug.h from
+	* include/mailutils/Makefile.am: Add debug.hm4. Build debug.h from
 	it.
 	* include/mailutils/debug.hm4: New file.
 	* include/mailutils/debug.h: Remove generated file.
