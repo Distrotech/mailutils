@@ -55,8 +55,16 @@ mu_debug_destroy (mu_debug_t *pdebug, void *owner)
       mu_debug_t debug = *pdebug;
       if (debug->owner == owner)
 	{
+	  mu_off_t len = 0;
+	  int rc = mu_stream_size (debug->stream, &len);
+	  if (rc == 0 && len)
+	    /* Flush leftover data */
+	    mu_debug_printf (debug, 0, "\n");
+
 	  mu_stream_destroy (&debug->stream,
 			     mu_stream_get_owner (debug->stream));
+	  if (debug->destroy)
+	    debug->destroy (debug->data);
 	  free (*pdebug);
 	  *pdebug = NULL;
 	}
@@ -100,6 +108,19 @@ mu_debug_set_print (mu_debug_t debug, mu_debug_printer_fp printer, void *owner)
 }
 
 int
+mu_debug_set_data (mu_debug_t debug, void *data, void (*destroy) (void*),
+		   void *owner)
+{
+  if (!debug)
+    return EINVAL;
+  if (debug->owner != owner)
+    return EACCES;
+  debug->data = data;
+  debug->destroy = destroy;
+  return 0;
+}
+
+int
 mu_debug_vprintf (mu_debug_t debug, size_t level,
 		  const char *format, va_list ap)
 {
@@ -112,6 +133,7 @@ mu_debug_vprintf (mu_debug_t debug, size_t level,
       mu_transport_t tbuf;
       char *ptr, *start, *p;
       size_t nseg;
+      int need_space = 0;
       
       if (debug->stream == NULL)
 	{
@@ -139,7 +161,7 @@ mu_debug_vprintf (mu_debug_t debug, size_t level,
 	    {
 	      int c = *++p;
 	      *p = 0;
-	      debug->printer (debug, level, ptr);
+	      debug->printer (debug->data, level, ptr);
 	      *p = c;
 	      ptr = p;
 	      nseg++;
@@ -158,7 +180,26 @@ mu_debug_vprintf (mu_debug_t debug, size_t level,
 
 	  mu_stream_truncate (debug->stream, len);
 	  mu_stream_seek (debug->stream, len, SEEK_SET);
+	  if (len)
+	    return 0;
 	}
+
+      if (debug->locus.file)
+	{
+	  mu_stream_sequential_printf (debug->stream, "%s:%d:",
+				       debug->locus.file, debug->locus.line);
+	  need_space = 1;
+	}
+      
+      if (debug->function)
+	{
+	  mu_stream_sequential_printf (debug->stream, "%s:",
+				       debug->function);
+	  need_space = 1;
+	}
+      
+      if (need_space)
+	mu_stream_sequential_write (debug->stream, " ", 1);
     }
   else
     vfprintf (stderr, format, ap);
@@ -205,3 +246,41 @@ mu_debug_check_level (mu_debug_t debug, size_t level)
     return 0;
   return debug->level & MU_DEBUG_LEVEL_MASK (level);
 }
+
+int
+mu_debug_set_locus (mu_debug_t debug, const char *file, int line)
+{
+  if (!debug)
+    return EINVAL;
+  debug->locus.file = file;
+  debug->locus.line = line;
+  return 0;
+}
+
+int
+mu_debug_get_locus (mu_debug_t debug, struct mu_debug_locus *ploc)
+{
+  if (!debug)
+    return EINVAL;
+  *ploc = debug->locus;
+  return 0;
+}
+
+int
+mu_debug_set_function (mu_debug_t debug, const char *function)
+{
+  if (!debug)
+    return EINVAL;
+  debug->function = function;
+  return 0;
+}
+
+int
+mu_debug_get_function (mu_debug_t debug, const char **pfunction)
+{
+  if (!debug)
+    return EINVAL;
+  *pfunction = debug->function;
+  return 0;
+}
+

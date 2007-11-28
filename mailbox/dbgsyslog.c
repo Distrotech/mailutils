@@ -24,7 +24,7 @@
 #include <syslog.h>
 
 int
-mu_debug_syslog_printer (mu_debug_t unused, size_t level, const char *str)
+mu_debug_syslog_printer (void *unused, size_t level, const char *str)
 {
   syslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, "%s", str);
   return 0;

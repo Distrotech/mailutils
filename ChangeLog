@@ -1,5 +1,39 @@
 2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Further improvement of mu_debug_t. 
+	
+	* include/mailutils/debug.hm4 (struct mu_debug_locus): New data
+	type.
+	(mu_debug_set_locus, mu_debug_get_locus)
+	(mu_debug_set_function, mu_debug_get_function): New prototypes.
+	(mu_debug_printer_fp, mu_debug_syslog_printer)
+	(mu_debug_stderr_printer): Change type of the first argument.
+	(mu_debug_set_data): New function.
+	(all proto): Remove argument names, use only types to avoid
+	problems on some broken systems (FreeBSD comes to mind).
+	* libproto/include/debug0.h (struct _mu_debug): printer: change
+	type of the first argument.
+	locus, function, data, destroy: New fields.
+
+	* mailbox/dbgstderr.c (mu_debug_stderr_printer): Change type of
+	the first argument.
+	* mailbox/dbgsyslog.c (mu_debug_syslog_printer): Change type of
+	the first argument.
+
+	* mailbox/debug.c (mu_debug_destroy): Flush any left over data.
+	Call destroy, if supplied.
+	(mu_debug_set_data): New function.
+	(mu_debug_vprintf): Print locus and function (if supplied) at the
+	beginning of the buffer.
+	(mu_debug_set_locus, mu_debug_get_locus, mu_debug_set_function)
+	(mu_debug_get_function): New functions.
+
+	* scripts/debugdef.m4 (MKDEBUG): Use mu_debug_set_locus and
+	mu_debug_set_function to print source locations. This allows for
+	easy i18n of the MU_DEBUG[0-9]* format strings.
+
+2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Introduce "global debug settings". Mailutils objects are supposed
 	to set their default mu_debug_t objects basing on these settings.
 	

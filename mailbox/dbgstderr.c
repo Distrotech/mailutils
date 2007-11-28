@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 int
-mu_debug_stderr_printer (mu_debug_t unused, size_t level, const char *str)
+mu_debug_stderr_printer (void *unused, size_t level, const char *str)
 {
   fprintf (stderr, "%s: %s",
 	   (level == MU_DEBUG_ERROR) ? "ERROR" : "DEBUG",

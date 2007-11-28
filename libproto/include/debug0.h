@@ -35,7 +35,11 @@ struct _mu_debug
   size_t level;
   mu_stream_t stream;
   void *owner;
-  int (*printer) (mu_debug_t, size_t level, const char *buf);
+  struct mu_debug_locus locus;
+  const char *function;
+  void *data;
+  mu_debug_printer_fp printer;
+  void (*destroy) (void *data);
 };
 
 #ifdef __cplusplus

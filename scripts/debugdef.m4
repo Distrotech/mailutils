@@ -1,6 +1,8 @@
 divert(-1)
 # This file is part of Mailutils.
-# Copyright (C) 2006, 2007 Sergey Poznyakoff
+# Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+#
+# Initially written by Sergey Poznyakoff for Mailfromd project.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,11 +28,11 @@ define(`MKDEBUG',`
  do \
    { \
      if (mu_debug_line_info) \
-       mu_debug_printf (dbg, lev, "%s:%d:%s: " fmt, \
-                        __FILE__, __LINE__, __FUNCTION__, \'
-                     __arglist(1,$1)`); \
-     else \
-       mu_debug_printf (dbg, lev, fmt,'dnl
+       { \
+         mu_debug_set_locus (dbg, __FILE__, __LINE__); \
+         mu_debug_set_function (dbg, __FUNCTION__); \
+       } \
+     mu_debug_printf (dbg, lev, fmt, 'dnl
 __arglist(1,$1)`); \
    } \
  while (0)
