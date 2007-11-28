@@ -41,7 +41,14 @@ struct mu_gocs_logging
   int facility;
   char *tag;
 };
-  
+
+struct mu_gocs_debug
+{
+  char *string;
+  char *errpfx;
+  int line_info;
+};
+
 struct mu_gocs_mailbox
 {
   char *mail_spool;
@@ -84,7 +91,7 @@ extern int log_facility; /* FIXME: 1. Belongs elsewhere;
 typedef int (*gocs_init_fp) (void *data);
 
 void mu_gocs_register (char *capa, gocs_init_fp init);
-void mu_gocs_register_std (char *name);
+void mu_gocs_register_std (const char *name);
 void mu_gocs_store (char *capa, void *data);
 void mu_gocs_flush (void);
 int mu_gocs_enumerate (mu_list_action_t action, void *data);
@@ -95,7 +102,8 @@ int mu_gocs_daemon_init (void *data);
 int mu_gocs_source_email_init (void *data);
 int mu_gocs_mailer_init (void *data);
 int mu_gocs_logging_init (void *data);
-  
+int mu_gocs_debug_init (void *data);
+
 #ifdef __cplusplus
 }
 #endif

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <syslog.h>
+#include <string.h>
 #include <mailutils/error.h>
 
 const char *mu_program_name;

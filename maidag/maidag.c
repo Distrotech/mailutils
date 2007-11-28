@@ -37,12 +37,10 @@ int log_to_stderr = -1;
 
 /* Debuggig options */
 int debug_level;           /* General debugging level */ 
-int debug_flags;           /* Mailutils debugging flags */
 int sieve_debug_flags;     /* Sieve debugging flags */
 int sieve_enable_log;      /* Enables logging of executed Sieve actions */
 char *message_id_header;   /* Use the value of this header as message
 			      identifier when logging Sieve actions */
-mu_debug_t mudebug;        /* Mailutils debugging object */
 
 /* For LMTP mode */
 int lmtp_mode;
@@ -65,8 +63,6 @@ N_("GNU maildag -- the mail delivery agent")
 "\v"
 N_("Debug flags are:\n\
   g - guimb stack traces\n\
-  T - mailutils traces (MU_DEBUG_TRACE)\n\
-  P - network protocols (MU_DEBUG_PROT)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
   l - sieve action logs\n\
@@ -115,9 +111,11 @@ static const char *maidag_argp_capa[] = {
   "daemon",
   "auth",
   "common",
+  "debug",
   "license",
   "logging",
   "mailbox",
+  "locking",
   "mailer",
   NULL
 };
@@ -154,14 +152,6 @@ set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
 		sieve_enable_log = 1;
 		break;
 	  
-	      case 'T':
-		debug_flags |= MU_DEBUG_TRACE;
-		break;
-	  
-	      case 'P':
-		debug_flags |= MU_DEBUG_PROT;
-		break;
-
 	      default:
 		if (locus)
 		  mu_error (_("%s:%d: %c is not a valid debug flag"),
@@ -393,7 +383,7 @@ sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
       else
 	{
 	  mu_sieve_set_debug (mach, _sieve_debug_printer);
-	  mu_sieve_set_debug_level (mach, mudebug, sieve_debug_flags);
+	  mu_sieve_set_debug_level (mach, sieve_debug_flags);
 	  mu_sieve_set_parse_error (mach, _sieve_parse_error);
 	  if (sieve_enable_log)
 	    mu_sieve_set_logger (mach, _sieve_action_log);
@@ -475,23 +465,6 @@ main (int argc, char *argv[])
       mu_error_set_print (mu_syslog_error_printer);
     }
   
-  if (debug_flags)
-    {
-      int rc;
-      
-      if ((rc = mu_debug_create (&mudebug, NULL)))
-	{
-	  mu_error (_("mu_debug_create failed: %s\n"), mu_strerror (rc));
-	  exit (EX_TEMPFAIL);
-	}
-      if ((rc = mu_debug_set_level (mudebug, debug_flags)))
-	{
-	  mu_error (_("mu_debug_set_level failed: %s\n"),
-		    mu_strerror (rc));
- 	  exit (EX_TEMPFAIL);
-	}
-    }
-
   argc -= arg_index;
   argv += arg_index;
 

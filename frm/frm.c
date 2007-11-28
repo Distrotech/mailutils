@@ -218,6 +218,8 @@ static const char *frm_argp_capa[] = {
   "common",
   "license",
   "mailbox",
+  "locking",
+  "debug",
   NULL
 };
 

@@ -39,6 +39,7 @@ struct mu_cfg_capa *cfg_capa_table[] = {
   S (sieve),
   S (daemon),
   S (ldap),
+  S (debug),
   NULL
 };
 

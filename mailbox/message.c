@@ -925,7 +925,8 @@ message_write (mu_stream_t os, const char *buf, size_t buflen,
 }
 
 static int
-message_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+message_get_transport2 (mu_stream_t stream, mu_transport_t *pin,
+			mu_transport_t *pout)
 {
   mu_message_t msg = mu_stream_get_owner (stream);
   mu_body_t body;
@@ -1109,17 +1110,18 @@ message_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off,
 }
 
 int
-mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket, mu_debug_t debug,
-			 const char *toname)
+mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
+                            mu_debug_t debug,
+			    const char *toname)
 {
   int rc = 0;
   mu_mailbox_t to = 0;
 
   if ((rc = mu_mailbox_create_default (&to, toname)))
     {
-      mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mu_mailbox_create_default (%s) failed: %s\n"), toname,
-		      mu_strerror (rc));
+      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
+		 "mu_mailbox_create_default (%s) failed: %s\n", toname,
+		 mu_strerror (rc));
       goto end;
     }
 
@@ -1148,17 +1150,17 @@ mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket, mu_debug_t deb
 
   if ((rc = mu_mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
     {
-      mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mu_mailbox_open (%s) failed: %s\n"), toname,
-		      mu_strerror (rc));
+      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
+		 "mu_mailbox_open (%s) failed: %s\n", toname,
+		 mu_strerror (rc));
       goto end;
     }
 
   if ((rc = mu_mailbox_append_message (to, msg)))
     {
-      mu_debug_print (debug, MU_DEBUG_TRACE,
-		      _("mu_mailbox_append_message (%s) failed: %s\n"), toname,
-		      mu_strerror (rc));
+      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
+		 "mu_mailbox_append_message (%s) failed: %s\n", toname,
+		 mu_strerror (rc));
       goto end;
     }
 
@@ -1167,16 +1169,12 @@ end:
   if (!rc)
     {
       if ((rc = mu_mailbox_close (to)))
-	{
-	  mu_debug_print (debug, MU_DEBUG_TRACE,
-			  _("mu_mailbox_close (%s) failed: %s\n"), toname,
-			  mu_strerror (rc));
-	}
+	MU_DEBUG2 (debug, MU_DEBUG_ERROR,
+		   "mu_mailbox_close (%s) failed: %s\n", toname,
+		   mu_strerror (rc));
     }
   else
-    {
-      mu_mailbox_close (to);
-    }
+    mu_mailbox_close (to);
 
   mu_mailbox_destroy (&to);
 

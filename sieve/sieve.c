@@ -54,7 +54,7 @@ N_("GNU sieve -- a mail filtering tool")
 "\v"
 N_("Debug flags:\n\
   g - main parser traces\n\
-  T - mailutils traces (MU_DEBUG_TRACE)\n\
+  T - mailutils traces (MU_DEBUG_TRACE0-MU_DEBUG_TRACE1)\n\
   P - network protocols (MU_DEBUG_PROT)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
@@ -130,11 +130,11 @@ set_debug_level (mu_cfg_locus_t *locus, const char *arg)
       switch (*arg)
 	{
 	case 'T':
-	  debug_level |= MU_DEBUG_TRACE;
+	  debug_level |= MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7);
 	  break;
 
 	case 'P':
-	  debug_level |= MU_DEBUG_PROT;
+	  debug_level |= MU_DEBUG_LEVEL_MASK (MU_DEBUG_PROT);
 	  break;
 
 	case 'g':
@@ -280,7 +280,9 @@ static struct mu_cfg_param sieve_cfg_param[] = {
 static const char *sieve_argp_capa[] =
 {
   "common",
+  "debug",
   "mailbox",
+  "locking",
   "license",
   "logging",
   "mailer",
@@ -454,9 +456,10 @@ main (int argc, char *argv[])
 		    mu_strerror (rc));
 	  goto cleanup;
 	}
+      mu_sieve_set_debug_object (mach, debug);
     }
   
-  mu_sieve_set_debug_level (mach, debug, sieve_debug);
+  mu_sieve_set_debug_level (mach, sieve_debug);
     
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mu_mailbox_create_default (&mbox, mbox_url)) != 0)

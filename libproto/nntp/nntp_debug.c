@@ -35,20 +35,17 @@ mu_nntp_set_debug (mu_nntp_t nntp, mu_debug_t debug)
   return 0;
 }
 
+/* FIXME: should be a macro */
 int
 mu_nntp_debug_cmd (mu_nntp_t nntp)
 {
-  if (nntp->debug)
-    mu_debug_print(nntp->debug, MU_DEBUG_PROT, "%s", nntp->io.buf);
+  MU_DEBUG (nntp->debug, MU_DEBUG_PROT, nntp->io.buf);
   return 0;
 }
 
 int
 mu_nntp_debug_ack (mu_nntp_t nntp)
 {
-  if (nntp->debug)
-    {
-      mu_debug_print (nntp->debug, MU_DEBUG_PROT, "%s\n", nntp->ack.buf);
-    }
+  MU_DEBUG1 (nntp->debug, MU_DEBUG_PROT, "%s\n", nntp->ack.buf);
   return 0;
 }

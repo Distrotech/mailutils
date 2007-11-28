@@ -60,20 +60,6 @@ struct _mu_mailer
 #define MAILER_NOTIFY(mailer, type) \
   if (mailer->observer) observer_notify (mailer->observer, type)
 
-/* Moro(?)ic kluge.  */
-#define MAILER_DEBUGV(mailer, type, format, av) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format, av)
-#define MAILER_DEBUG0(mailer, type, format) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format)
-#define MAILER_DEBUG1(mailer, type, format, arg1) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format, arg1)
-#define MAILER_DEBUG2(mailer, type, format, arg1, arg2) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format, arg1, arg2)
-#define MAILER_DEBUG3(mailer, type, format, arg1, arg2, arg3) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format, arg1, arg2, arg3)
-#define MAILER_DEBUG4(mailer, type, format, arg1, arg2, arg3, arg4) \
-  if (mailer->debug) mu_debug_print (mailer->debug, type, format, arg1, arg2, arg3, arg4)
-
 #ifdef __cplusplus
 }
 #endif

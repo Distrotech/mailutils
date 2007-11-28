@@ -139,7 +139,9 @@ static struct argp argp = {
 
 static const char *guimb_argp_capa[] = {
   "common",
+  "debug",
   "mailbox",
+  "locking",
   "license",
   NULL
 };

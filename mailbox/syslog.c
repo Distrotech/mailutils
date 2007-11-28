@@ -29,8 +29,6 @@ struct kw_int
 static int
 syslog_to_n (struct kw_int *kw, char *str, int *pint)
 {
-  int i;
-
   if (strncasecmp (str, "LOG_", 4) == 0)
     str += 4;
 

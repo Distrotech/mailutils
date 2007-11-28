@@ -164,7 +164,9 @@ static const char *pop3d_argp_capa[] = {
   "daemon",
   "auth",
   "common",
+  "debug",
   "mailbox",
+  "locking",
   "logging",
   "license",
   NULL

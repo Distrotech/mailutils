@@ -89,7 +89,9 @@ static const char *imap4d_capa[] = {
   "daemon",
   "auth",
   "common",
+  "debug",
   "mailbox",
+  "locking",
   "logging",
   "license",
   NULL

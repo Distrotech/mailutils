@@ -44,7 +44,7 @@ static unsigned int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
 
 struct _mu_assoc_elem
 {
-  const char *name;
+  char *name;
   char data[1];
 };
 
@@ -212,7 +212,7 @@ assoc_lookup_or_install (struct _mu_assoc_elem **elp,
     {
       *install = 1;
       if (assoc->flags & MU_ASSOC_COPY_KEY)
-	elem->name = name;
+	elem->name = (char *) name;
       else
 	{
 	  elem->name = strdup (name);

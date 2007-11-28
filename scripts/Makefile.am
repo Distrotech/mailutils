@@ -18,5 +18,12 @@
 ##   02110-1301 USA
 
 SUBDIRS = guile-1.4 guile-1.6
-EXTRA_DIST = gylwrap mailutils.spec mailutils.spec.in texify.sed sqlmod.sh generr.awk
+EXTRA_DIST = \
+ debugdef.m4\
+ gylwrap\
+ mailutils.spec\
+ mailutils.spec.in\
+ texify.sed\
+ sqlmod.sh\
+ generr.awk
 

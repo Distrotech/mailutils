@@ -61,7 +61,9 @@ static struct argp argp = {
 
 static const char *readmsg_argp_capa[] = {
   "common",
+  "debug",
   "mailbox",
+  "locking",
   NULL
 };
 
@@ -304,7 +306,7 @@ main (int argc, char **argv)
     {
       mu_debug_t debug;
       mu_mailbox_get_debug (mbox, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   status = mu_mailbox_open (mbox, MU_STREAM_READ);

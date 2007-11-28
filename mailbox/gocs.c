@@ -218,6 +218,25 @@ mu_gocs_logging_init (void *data)
   return 0;
 }
 
+int
+mu_gocs_debug_init (void *data)
+{
+  struct mu_gocs_debug *p;
+  if (data)
+    {
+      p = data;
+      if (p->string && p->errpfx)
+	{
+	  mu_global_debug_from_string (p->string, p->errpfx);
+	  free (p->errpfx);
+	}
+      if (p->line_info >= 0)
+	mu_debug_line_info = p->line_info;
+    }
+  return 0;
+}
+
+
 struct mu_gocs_entry
 {
   char *name;
@@ -257,7 +276,7 @@ mu_gocs_enumerate (mu_list_action_t action, void *data)
 }
 
 static gocs_init_fp
-find_init_function (struct mu_gocs_entry *tab, char *capa)
+find_init_function (struct mu_gocs_entry *tab, const char *capa)
 {
   for (; tab->name; tab++)
     if (strcmp (tab->name, capa) == 0)
@@ -274,12 +293,13 @@ static struct mu_gocs_entry std_gocs_table[] = {
   { "address", mu_gocs_source_email_init },
   { "mailer", mu_gocs_mailer_init },
   { "logging", mu_gocs_logging_init },
+  { "debug", mu_gocs_debug_init },
   { "auth", mu_gocs_dummy },
   { NULL }
 };
 
 void
-mu_gocs_register_std (char *name)
+mu_gocs_register_std (const char *name)
 {
   gocs_init_fp init = find_init_function (std_gocs_table, name);
   if (!init)

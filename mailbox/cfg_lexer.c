@@ -139,42 +139,60 @@ copy_alpha (struct lexer_data *p)
   return cbuf_finish (p);
 }
 
+static int
+continuation_line_p (struct lexer_data *p, int quote)
+{
+  skipws (p);
+  return *p->curp == quote;
+}
+
 static char *
 copy_string (struct lexer_data *p)
 {
-  int quote = *p->curp++;
-
-  while (*p->curp)
+  int quote;
+  do
     {
-      if (*p->curp == '\\')
+      quote = *p->curp++;
+
+      while (*p->curp)
 	{
-	  char c;
-	  if (*++p->curp == 0)
+	  if (*p->curp == '\\')
 	    {
-	      cbuf_1grow (p, '\\');
+	      char c;
+	      if (*++p->curp == 0)
+		{
+		  cbuf_1grow (p, '\\');
+		  break;
+		}
+	      if (*p->curp == '\n')
+		{
+		  p->curp++;
+		  continue;
+		}
+	      c = mu_argcv_unquote_char (*p->curp);
+	      if (c == *p->curp)
+		{
+		  cbuf_1grow (p, '\\');
+		  cbuf_1grow (p, *p->curp);
+		}
+	      else
+		cbuf_1grow (p, c);
+	      p->curp++;
+	    }
+	  else if (*p->curp == quote)
+	    {
+	      p->curp++;
 	      break;
 	    }
-	  c = mu_argcv_unquote_char (*p->curp);
-	  if (c == *p->curp)
-	    {
-	      cbuf_1grow (p, '\\');
-	      cbuf_1grow (p, *p->curp);
-	    }
 	  else
-	    cbuf_1grow (p, c);
-	  p->curp++;
-	}
-      else if (*p->curp == quote)
-	{
-	  p->curp++;
-	  break;
-	}
-      else
-	{
-	  cbuf_1grow (p, *p->curp);
-	  p->curp++;
+	    {
+	      cbuf_1grow (p, *p->curp);
+	      p->curp++;
+	    }
 	}
     }
+  while (continuation_line_p (p, quote));
+  
   cbuf_1grow (p, 0);
   return cbuf_finish (p);
 }
@@ -225,7 +243,7 @@ again:
   if (*p->curp == 0)
     return 0;
 
-  if (*p->curp == '\"')
+  if (*p->curp == '"' || *p->curp == '\'')
     {
       mu_cfg_yylval.string = copy_string (p);
       return MU_CFG_STRING_TOKEN;
@@ -262,8 +280,8 @@ again:
   save_start = p->curp;
   if (*p->curp != '{')
     {
-      label = copy_alpha(p);
-      skipws(p);
+      label = copy_alpha (p);
+      skipws (p);
     }
   else
     label = NULL;

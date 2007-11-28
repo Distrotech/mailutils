@@ -86,6 +86,7 @@ extern struct mu_cfg_capa mu_locking_cfg_capa;
 extern struct mu_cfg_capa mu_address_cfg_capa;
 extern struct mu_cfg_capa mu_mailer_cfg_capa;
 extern struct mu_cfg_capa mu_logging_cfg_capa;
+extern struct mu_cfg_capa mu_debug_cfg_capa;
 extern struct mu_cfg_capa mu_gsasl_cfg_capa;
 extern struct mu_cfg_capa mu_pam_cfg_capa;
 extern struct mu_cfg_capa mu_radius_cfg_capa;

@@ -131,6 +131,7 @@ struct mu_cfg_param mail_remote_cfg_param[] = {
 static const char *capa[] = {
   "auth",
   "common",
+  "debug",
   "mailer",
   "address",
   "license",
@@ -232,7 +233,7 @@ main (int argc, char **argv)
     {
       mu_debug_t debug;
       mu_mailer_get_debug (mailer, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
+      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 
       if (optdebug > 1)
 	mailer_flags = MAILER_FLAG_DEBUG_DATA;

@@ -71,7 +71,7 @@ auth_set_debug ()
   mu_debug_t debug = NULL, prev;
   
   mu_debug_create (&debug, NULL);
-  mu_debug_set_level (debug, MU_DEBUG_TRACE);
+  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7));
   prev = mu_auth_set_debug (debug);
   if (prev)
     mu_debug_destroy (&prev, mu_debug_get_owner (prev));

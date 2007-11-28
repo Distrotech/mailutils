@@ -88,7 +88,9 @@ struct mu_cfg_param movemail_cfg_param[] = {
 
 static const char *movemail_capa[] = {
   "common",
+  "debug",
   "license",
+  "locking",
   "mailbox",
   NULL 
 };

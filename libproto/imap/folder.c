@@ -169,7 +169,7 @@ authenticate_imap_login (mu_authority_t auth)
 
   if (check_capa (f_imap, "LOGINDISABLED") == 0)
     {
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "LOGIN command disabled\n");
+      MU_DEBUG (folder->debug, MU_DEBUG_TRACE, "LOGIN command disabled\n");
       return ENOSYS;
     }
   
@@ -205,9 +205,9 @@ authenticate_imap_login (mu_authority_t auth)
 	  
 	status = imap_writeline (f_imap, "g%u LOGIN \"%s\" \"%s\"\r\n",
 				 f_imap->seq, f_imap->user, f_imap->passwd);
-	CHECK_ERROR_CLOSE(folder, f_imap, status);
-	FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "g%u LOGIN %s *\n",
-		       f_imap->seq, f_imap->user);
+	CHECK_ERROR_CLOSE (folder, f_imap, status);
+	MU_DEBUG2 (folder->debug, MU_DEBUG_TRACE, "g%u LOGIN %s *\n",
+		   f_imap->seq, f_imap->user);
 	f_imap->seq++;
 	free (f_imap->user);
 	f_imap->user = NULL;
@@ -231,7 +231,7 @@ authenticate_imap_login (mu_authority_t auth)
       status = imap_parse (f_imap);
       if (status)
 	return status;
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_AUTH_DONE;
 
     default:
@@ -295,8 +295,8 @@ authenticate_imap_sasl_anon (mu_authority_t auth)
 
   if (check_capa (f_imap, "AUTH=ANONYMOUS"))
     {
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT,
-		     "ANONYMOUS capability not present\n");
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT,
+		"ANONYMOUS capability not present\n");
       return ENOSYS;
     }
 
@@ -305,8 +305,9 @@ authenticate_imap_sasl_anon (mu_authority_t auth)
     {
     case IMAP_AUTH_ANON_REQ_WRITE:
       {
-	FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u AUTHENTICATE ANONYMOUS\n",
-		       f_imap->seq);
+	MU_DEBUG1 (folder->debug, MU_DEBUG_PROT, 
+                   "g%u AUTHENTICATE ANONYMOUS\n",
+		   f_imap->seq);
 	status = imap_writeline (f_imap, "g%u AUTHENTICATE ANONYMOUS\r\n",
 				 f_imap->seq);
 	f_imap->seq++;
@@ -322,7 +323,7 @@ authenticate_imap_sasl_anon (mu_authority_t auth)
     case IMAP_AUTH_ANON_WAIT_CONT:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       if (strncmp ("+", f_imap->buffer, 2) == 0)
 	{
 	  f_imap->auth_state = IMAP_AUTH_ANON_MSG;
@@ -334,7 +335,7 @@ authenticate_imap_sasl_anon (mu_authority_t auth)
       f_imap->auth_state = IMAP_AUTH_ANON_MSG;
 
     case IMAP_AUTH_ANON_MSG:
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "\n");
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, "\n");
       status = imap_writeline (f_imap, "\r\n");
       CHECK_ERROR_CLOSE (folder, f_imap, status);
       f_imap->auth_state = IMAP_AUTH_ANON_MSG_SEND;
@@ -348,7 +349,7 @@ authenticate_imap_sasl_anon (mu_authority_t auth)
     case IMAP_AUTH_ANON_WAIT_RESP:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;			/* We're outta here.  */
@@ -560,7 +561,7 @@ imap_reader (void *iodata)
   f_imap_t iop = iodata;
   int status = imap_parse (iop);
   CHECK_EAGAIN (iop, status);
-  FOLDER_DEBUG0 (iop->folder, MU_DEBUG_PROT, iop->buffer);
+  MU_DEBUG (iop->folder->debug, MU_DEBUG_PROT, iop->buffer);
   return status;
 }
 
@@ -568,8 +569,8 @@ static int
 imap_writer (void *iodata, char *buf)
 {
   f_imap_t iop = iodata;
-  FOLDER_DEBUG2 (iop->folder, MU_DEBUG_PROT, "g%s %s\n",
-		 mu_umaxtostr (0, iop->seq), buf);
+  MU_DEBUG2 (iop->folder->debug, MU_DEBUG_PROT, "g%s %s\n",
+             mu_umaxtostr (0, iop->seq), buf);
   int status = imap_writeline (iop, "g%s %s\r\n",
                                mu_umaxtostr (0, iop->seq++), buf);
   CHECK_ERROR (iop, status);
@@ -602,8 +603,8 @@ tls (mu_folder_t folder)
   status = mu_tls_begin (f_imap, imap_reader, imap_writer,
 			 imap_stream_ctl, keywords);
 
-  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
-		 status == 0 ? "succeeded" : "failed");
+  MU_DEBUG1 (folder->debug, MU_DEBUG_PROT, "TLS negotiation %s\n",
+	     status == 0 ? "succeeded" : "failed");
   return status;
 #else
   return -1;
@@ -696,8 +697,8 @@ folder_imap_open (mu_folder_t folder, int flags)
         }
       else
         mu_stream_close (folder->stream);
-      FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "imap_open (%s:%ld)\n",
-		     host, port);
+      MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "imap_open (%s:%ld)\n",
+		 host, port);
       f_imap->state = IMAP_OPEN_CONNECTION;
 
     case IMAP_OPEN_CONNECTION:
@@ -714,7 +715,7 @@ folder_imap_open (mu_folder_t folder, int flags)
         status = imap_readline (f_imap);
         CHECK_EAGAIN (f_imap, status);
 	f_imap->ptr = f_imap->buffer;
-        FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+        MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 	/* Are they open for business ?  The server send an untagged response
 	   for greeting. Tecnically it can be OK/PREAUTH/BYE.  The BYE is
 	   the one that we do not want, server being unfriendly.  */
@@ -783,7 +784,7 @@ folder_imap_close (mu_folder_t folder)
     case IMAP_NO_STATE:
       status = imap_writeline (f_imap, "g%u LOGOUT\r\n", f_imap->seq++);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_LOGOUT;
 
     case IMAP_LOGOUT:
@@ -795,7 +796,7 @@ folder_imap_close (mu_folder_t folder)
       /* Check for "* Bye" from the imap server.  */
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       /* This is done when we received the BYE in the parser code.  */
       /* mu_stream_close (folder->stream); */
       /* f_imap->isopen = 0 ; */
@@ -828,7 +829,7 @@ folder_imap_delete (mu_folder_t folder, const char *name)
       status = imap_writeline (f_imap, "g%u DELETE %s\r\n", f_imap->seq++,
 			       name);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_DELETE;
 
     case IMAP_DELETE:
@@ -839,7 +840,7 @@ folder_imap_delete (mu_folder_t folder, const char *name)
     case IMAP_DELETE_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -999,7 +1000,7 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
 			       f_imap->seq++, ref, path);
       free (path);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_LIST;
 
     case IMAP_LIST:
@@ -1010,7 +1011,7 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
     case IMAP_LIST_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -1046,7 +1047,7 @@ folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
       status = imap_writeline (f_imap, "g%u LSUB \"%s\" \"%s\"\r\n",
 			       f_imap->seq++, ref, name);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_LSUB;
 
     case IMAP_LSUB:
@@ -1057,7 +1058,7 @@ folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
     case IMAP_LSUB_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -1091,7 +1092,7 @@ folder_imap_rename (mu_folder_t folder, const char *oldpath,
       status = imap_writeline (f_imap, "g%u RENAME %s %s\r\n",
 			       f_imap->seq++, oldpath, newpath);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_RENAME;
 
     case IMAP_RENAME:
@@ -1102,7 +1103,7 @@ folder_imap_rename (mu_folder_t folder, const char *oldpath,
     case IMAP_RENAME_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -1129,7 +1130,7 @@ folder_imap_subscribe (mu_folder_t folder, const char *name)
       status = imap_writeline (f_imap, "g%u SUBSCRIBE %s\r\n",
 			       f_imap->seq++, name);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_SUBSCRIBE;
 
     case IMAP_SUBSCRIBE:
@@ -1140,7 +1141,7 @@ folder_imap_subscribe (mu_folder_t folder, const char *name)
     case IMAP_SUBSCRIBE_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -1167,7 +1168,7 @@ folder_imap_unsubscribe (mu_folder_t folder, const char *name)
       status = imap_writeline (f_imap, "g%u UNSUBSCRIBE %s\r\n",
 			       f_imap->seq++, name);
       CHECK_ERROR (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_UNSUBSCRIBE;
 
     case IMAP_UNSUBSCRIBE:
@@ -1178,7 +1179,7 @@ folder_imap_unsubscribe (mu_folder_t folder, const char *name)
     case IMAP_UNSUBSCRIBE_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (folder->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -2305,8 +2306,8 @@ imap_parse (f_imap_t f_imap)
       /* Is the response untagged ?  */
       else if (tag[0] == '*')
 	{
-	  FOLDER_DEBUG2(folder, MU_DEBUG_PROT, "* %s %s\n",
-	      response, remainder);
+	  MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "* %s %s\n",
+	             response, remainder);
 	  /* Is it a Status Response.  */
 	  if (strcasecmp (response, "OK") == 0)
 	    {

@@ -51,6 +51,7 @@ extern struct mu_cmdline_capa mu_address_cmdline;
 extern struct mu_cmdline_capa mu_mailer_cmdline;
 extern struct mu_cmdline_capa mu_daemon_cmdline;
 extern struct mu_cmdline_capa mu_sieve_cmdline;
+extern struct mu_cmdline_capa mu_debug_cmdline;
   
 extern struct mu_cmdline_capa mu_pam_cmdline;
 extern struct mu_cmdline_capa mu_gsasl_cmdline;

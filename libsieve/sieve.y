@@ -349,6 +349,7 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
 {
   int rc;
   mu_sieve_machine_t mach;
+  size_t level;
   
   mach = malloc (sizeof (*mach));
   if (!mach)
@@ -364,6 +365,14 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
   mach->data = data;
   mach->error_printer = _sieve_default_error_printer;
   mach->parse_error_printer = _sieve_default_parse_error;
+
+  level = mu_global_debug_level ("sieve");
+  if (level)
+    {
+      mu_debug_create (&mach->debug, mach);
+      mu_debug_set_level (mach->debug, level);
+    }
+  
   *pmach = mach;
   return 0;
 }
@@ -448,9 +457,14 @@ mu_sieve_set_debug (mu_sieve_machine_t mach, mu_sieve_printf_t debug)
 }
 
 void
-mu_sieve_set_debug_level (mu_sieve_machine_t mach, mu_debug_t dbg, int level)
+mu_sieve_set_debug_object (mu_sieve_machine_t mach, mu_debug_t dbg)
 {
   mach->debug = dbg;
+}
+
+void
+mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level)
+{
   mach->debug_level = level;
 }
 

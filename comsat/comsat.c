@@ -77,8 +77,10 @@ static struct argp argp = {
 static const char *comsat_argp_capa[] = {
   "daemon",
   "common",
+  "debug",
   "logging",
   "mailbox",
+  "locking",
   "license",
   NULL
 };

@@ -177,8 +177,10 @@ static struct argp argp = {
 
 static const char *mail_capa[] = {
   "common",
+  "debug",
   "license",
   "mailbox",
+  "locking",
   NULL 
 };
 			     
@@ -431,7 +433,7 @@ main (int argc, char **argv)
 	{
 	  mu_debug_t debug = NULL;
 	  mu_mailbox_get_debug (mbox, &debug);
-	  mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+	  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 	}
 
       if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)

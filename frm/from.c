@@ -71,8 +71,10 @@ static struct argp argp = {
 
 static const char *capa[] = {
   "common",
+  "debug",
   "license",
   "mailbox",
+  "locking",
 #ifdef WITH_TLS
   "tls",
 #endif

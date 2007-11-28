@@ -46,8 +46,10 @@ static struct argp_option options[] = {
 
 static const char *argp_capa[] = {
   "common",
+  "debug",
   "license",
   "mailbox",
+  "locking",
   NULL
 };
 

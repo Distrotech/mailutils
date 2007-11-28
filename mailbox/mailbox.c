@@ -91,6 +91,7 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 
   if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
     {
+      unsigned level;
       int (*m_init) (mu_mailbox_t) = NULL;
       int (*u_init) (mu_url_t) = NULL;
       
@@ -138,6 +139,19 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 	  else
 	    *pmbox = mbox;
 
+	  level = mu_global_debug_level ("mailbox");
+	  if (level)
+	    {
+	      int status = mu_debug_create (&mbox->debug, mbox);
+	      if (status)
+		return 0; /* FIXME: don't want to bail out just because I
+			     failed to create a *debug* object. But maybe
+			     I'm wrong... */
+	      mu_debug_set_level (mbox->debug, level);
+	      if (level & MU_DEBUG_INHERIT)
+		mu_folder_set_debug (mbox->folder, mbox->debug);
+	    }
+	  
 	  return status;
 	}
     }
@@ -162,7 +176,7 @@ mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
       strcpy (tmp_name, default_proto);
       strcat (tmp_name, name);
       rc = _create_mailbox (pmbox, name);
-      free (name);
+      free (tmp_name);
     }
   else
     rc = _create_mailbox (pmbox, name);
@@ -197,23 +211,23 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 	  /* FIXME: Is this right, should the client be responsible
 	     for closing the stream?  */
 	  /* mu_stream_close (mbox->stream); */
-	  mu_stream_destroy (&(mbox->stream), mbox);
+	  mu_stream_destroy (&mbox->stream, mbox);
 	}
 
       if (mbox->url)
-        mu_url_destroy (&(mbox->url));
+        mu_url_destroy (&mbox->url);
 
       if (mbox->locker)
-	mu_locker_destroy (&(mbox->locker));
+	mu_locker_destroy (&mbox->locker);
 
       if (mbox->debug)
-	mu_debug_destroy (&(mbox->debug), mbox);
+	mu_debug_destroy (&mbox->debug, mbox);
 
       if (mbox->folder)
-	mu_folder_destroy (&(mbox->folder));
+	mu_folder_destroy (&mbox->folder);
 
       if (mbox->property)
-	mu_property_destroy (&(mbox->property), mbox);
+	mu_property_destroy (&mbox->property, mbox);
 
       free (mbox);
       *pmbox = NULL;
@@ -553,7 +567,7 @@ mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
   
   if (mbox->property == NULL)
     {
-      int status = mu_property_create (&(mbox->property), mbox);
+      int status = mu_property_create (&mbox->property, mbox);
       if (status != 0)
 	return status;
     }
@@ -578,8 +592,9 @@ mu_mailbox_set_debug (mu_mailbox_t mbox, mu_debug_t debug)
   if (mbox->debug)
     mu_debug_destroy (&mbox->debug, mbox);
   mbox->debug = debug;
-  if(!mu_folder_has_debug(mbox->folder))
-    mu_folder_set_debug(mbox->folder, debug);
+  /* FIXME: Honor MU_DEBUG_INHERIT */
+  if (!mu_folder_has_debug (mbox->folder))
+    mu_folder_set_debug (mbox->folder, debug);
   return 0;
 }
 
@@ -592,10 +607,11 @@ mu_mailbox_get_debug (mu_mailbox_t mbox, mu_debug_t *pdebug)
     return MU_ERR_OUT_PTR_NULL;
   if (mbox->debug == NULL)
     {
-      int status = mu_debug_create (&(mbox->debug), mbox);
+      int status = mu_debug_create (&mbox->debug, mbox);
       if (status != 0)
 	return status;
-      if(!mu_folder_has_debug (mbox->folder))
+      /* FIXME: MU_DEBUG_INHERIT?? */
+      if (!mu_folder_has_debug (mbox->folder))
 	mu_folder_set_debug (mbox->folder, mbox->debug);
     }
   *pdebug = mbox->debug;

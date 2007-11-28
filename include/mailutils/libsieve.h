@@ -227,8 +227,8 @@ void mu_sieve_set_error (mu_sieve_machine_t mach,
 void mu_sieve_set_parse_error (mu_sieve_machine_t mach,
 			       mu_sieve_parse_error_t p);
 void mu_sieve_set_debug (mu_sieve_machine_t mach, mu_sieve_printf_t debug);
-void mu_sieve_set_debug_level (mu_sieve_machine_t mach, mu_debug_t dbg,
-			       int level);
+void mu_sieve_set_debug_object (mu_sieve_machine_t mach, mu_debug_t dbg);
+void mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level);
 void mu_sieve_set_logger (mu_sieve_machine_t mach,
 			  mu_sieve_action_log_t logger);
 void mu_sieve_set_ticket (mu_sieve_machine_t mach, mu_ticket_t ticket);

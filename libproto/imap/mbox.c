@@ -317,8 +317,8 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
 	      return status;
 	    status = imap_writeline (f_imap, "g%u CREATE %s\r\n",
 				     f_imap->seq, path);
-	    MAILBOX_DEBUG2 (folder, MU_DEBUG_PROT, "g%u CREATE %s\n",
-			    f_imap->seq, path);
+	    MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "g%u CREATE %s\n",
+		       f_imap->seq, path);
 	    f_imap->seq++;
 	    if (status != 0)
 	      {
@@ -396,7 +396,7 @@ mailbox_imap_close (mu_mailbox_t mailbox)
       status = imap_writeline (f_imap, "g%s CLOSE\r\n",
 			       mu_umaxtostr (0, f_imap->seq++));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_CLOSE;
 
     case IMAP_CLOSE:
@@ -409,7 +409,7 @@ mailbox_imap_close (mu_mailbox_t mailbox)
 	size_t i;
 	status = imap_parse (f_imap);
 	CHECK_EAGAIN (f_imap, status);
-	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 
 	mu_monitor_wrlock (mailbox->monitor);
 	/* Destroy the imap messages and ressources associated to them.  */
@@ -687,7 +687,7 @@ imap_messages_count (mu_mailbox_t mailbox, size_t *pnum)
                                MBX_WRITABLE(mailbox) ? "SELECT" : "EXAMINE",
                                m_imap->name);
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_SELECT;
 
     case IMAP_SELECT:
@@ -698,7 +698,7 @@ imap_messages_count (mu_mailbox_t mailbox, size_t *pnum)
     case IMAP_SELECT_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       break;
 
     default:
@@ -755,7 +755,7 @@ imap_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
 			       mu_umaxtostr (0, f_imap->seq++),
 			       MU_IMAP_CACHE_HEADERS);
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_SCAN;
 
     case IMAP_SCAN:
@@ -772,7 +772,7 @@ imap_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
     case IMAP_SCAN_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       /* Clear the callback string structure.  */
       mu_stream_truncate (f_imap->string.stream, 0);
       f_imap->string.offset = 0;
@@ -830,7 +830,7 @@ imap_is_updated (mu_mailbox_t mailbox)
       status = imap_writeline (f_imap, "g%s NOOP\r\n",
 			       mu_umaxtostr (0, f_imap->seq++));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_NOOP;
 
     case IMAP_NOOP:
@@ -841,7 +841,7 @@ imap_is_updated (mu_mailbox_t mailbox)
     case IMAP_NOOP_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       break;
 
     default:
@@ -887,7 +887,7 @@ imap_expunge (mu_mailbox_t mailbox)
 				 set);
 	free (set);
 	CHECK_ERROR (f_imap, status);
-	MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	f_imap->state = IMAP_STORE;
       }
 
@@ -900,7 +900,7 @@ imap_expunge (mu_mailbox_t mailbox)
     case IMAP_STORE_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_NO_STATE;
 
     case IMAP_EXPUNGE:
@@ -1036,7 +1036,7 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
 				 mu_umaxtostr (1, size + lines));
 	free (abuf);
 	CHECK_ERROR (f_imap, status);
-	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	f_imap->state = IMAP_APPEND;
       }
 
@@ -1048,7 +1048,7 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
     case IMAP_APPEND_CONT:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       /* If we did not receive the continuation token, it is an error
          bail out.  */
       if (f_imap->buffer[0] != '+')
@@ -1089,7 +1089,7 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
     case IMAP_APPEND_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       /* mu_error ("imap_append: unknown state\n"); */
@@ -1129,7 +1129,7 @@ imap_copy_message (mu_mailbox_t mailbox, mu_message_t msg)
 				   mu_umaxtostr (1, msg_imap->num),
 				   path);
 	CHECK_ERROR (f_imap, status);
-	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	f_imap->state = IMAP_COPY;
       }
 
@@ -1141,7 +1141,7 @@ imap_copy_message (mu_mailbox_t mailbox, mu_message_t msg)
     case IMAP_COPY_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
       break;
@@ -1205,7 +1205,7 @@ imap_message_read (mu_stream_t stream, char *buffer, size_t buflen,
       if (section)
 	free (section);
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
   status = fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
@@ -1287,7 +1287,7 @@ imap_message_size (mu_message_t msg, size_t *psize)
 				   mu_umaxtostr (0, f_imap->seq++),
 				   mu_umaxtostr (1, msg_imap->num));
 	  CHECK_ERROR (f_imap, status);
-	  MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	  MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	  f_imap->state = IMAP_FETCH;
 	}
       status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
@@ -1328,7 +1328,7 @@ imap_message_uid (mu_message_t msg, size_t *puid)
 			       mu_umaxtostr (0, f_imap->seq++),
 			       mu_umaxtostr (1, msg_imap->num));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
   status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
@@ -1373,7 +1373,7 @@ imap_is_multipart (mu_message_t msg, int *ismulti)
 			       mu_umaxtostr (0, f_imap->seq++),
 			       mu_umaxtostr (1, msg_imap->num));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
   status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
@@ -1512,7 +1512,7 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
 				   mu_umaxtostr (0, f_imap->seq++),
 				   mu_umaxtostr (1, msg_imap->num));
 	  CHECK_ERROR (f_imap, status);
-	  MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	  MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	  f_imap->state = IMAP_FETCH;
 	}
       status = fetch_operation (f_imap, msg_imap, datebuf,
@@ -1583,7 +1583,7 @@ imap_attr_get_flags (mu_attribute_t attribute, int *pflags)
 			       mu_umaxtostr (0, f_imap->seq++),
 			       mu_umaxtostr (1, msg_imap->num));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
   status = fetch_operation (f_imap, msg_imap, NULL, 0, NULL);
@@ -1641,7 +1641,7 @@ imap_attr_set_flags (mu_attribute_t attribute, int flag)
 			       abuf);
       free (abuf);
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       msg_imap->flags |= flag;
       f_imap->state = IMAP_FETCH;
     }
@@ -1690,7 +1690,7 @@ imap_attr_unset_flags (mu_attribute_t attribute, int flag)
 			       abuf);
       free (abuf);
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       msg_imap->flags &= ~flag;
       f_imap->state = IMAP_FETCH;
     }
@@ -1760,7 +1760,7 @@ imap_header_read (mu_header_t header, char *buffer,
 					       msg_imap->header_lines),
 				 mu_umaxtostr (3, buflen));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
 
     }
@@ -1875,7 +1875,7 @@ imap_body_read (mu_stream_t stream, char *buffer, size_t buflen,
 					       msg_imap->body_lines),
 				 mu_umaxtostr (3, buflen));
       CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
 
     }
@@ -1931,8 +1931,8 @@ fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
       if (f_imap->selected)
-	MAILBOX_DEBUG0 (f_imap->selected->mailbox, MU_DEBUG_PROT,
-			f_imap->buffer);
+	MU_DEBUG (f_imap->selected->mailbox->debug, MU_DEBUG_PROT,
+	   	  f_imap->buffer);
 
     default:
       break;

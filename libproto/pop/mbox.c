@@ -278,7 +278,8 @@ do \
           mu_stream_close (mbox->stream); \
           CLEAR_STATE (mpd); \
           mpd->func = (void *)-1; \
-          MAILBOX_DEBUG1(mbox, MU_DEBUG_PROT, "CHECK_ERROR_CLOSE: %s\n", mu_strerror (status));\
+          MU_DEBUG1 (mbox->debug, MU_DEBUG_PROT, \
+                     "CHECK_ERROR_CLOSE: %s\n", mu_strerror (status));\
           return status; \
        } \
   } \
@@ -292,7 +293,8 @@ do \
        { \
           CLEAR_STATE (mpd); \
           mpd->func = (void*)-1; \
-          MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_ERROR: %s\n", mu_strerror (status));\
+          MU_DEBUG1(mpd->mbox->debug, MU_DEBUG_PROT, \
+                    "CHECK_ERROR: %s\n", mu_strerror (status));\
           return status; \
        } \
   } \
@@ -308,7 +310,8 @@ do \
            { \
              CLEAR_STATE (mpd); \
              mpd->func = (void *)-1; \
-             MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_EAGAIN: %s\n", mu_strerror (status));\
+             MU_DEBUG1(mpd->mbox->debug, MU_DEBUG_PROT, \
+                       "CHECK_EAGAIN: %s\n", mu_strerror (status));\
            } \
          return status; \
       } \
@@ -423,7 +426,7 @@ pop_parse_capa (pop_data_t mpd)
       do
 	{
 	  status = pop_read_ack (mpd);
-	  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+	  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 
 	  /* Here we check some common capabilities like TOP, USER, UIDL,
 	     and STLS. The rest are ignored. Please note that some
@@ -463,7 +466,7 @@ pop_capa (mu_mailbox_t mbox)
 
   status = pop_writeline (mpd, "CAPA\r\n");
   CHECK_ERROR (mpd, status);
-  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 
   status = pop_write (mpd);
   CHECK_EAGAIN (mpd, status);
@@ -472,7 +475,7 @@ pop_capa (mu_mailbox_t mbox)
   /* POP_CAPA_ACK */
   status = pop_read_ack (mpd);
   CHECK_EAGAIN (mpd, status);
-  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 
   return pop_parse_capa (mpd);
 }
@@ -496,13 +499,13 @@ _pop_user (mu_authority_t auth)
       if (status != 0 || mpd->user == NULL || mpd->user[0] == '\0')
 	{
 	  pop_writeline (mpd, "QUIT\r\n");
-	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	  pop_write (mpd);
 	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOUSERNAME);
 	}
       status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
       CHECK_ERROR_CLOSE(mbox, mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       free (mpd->user);
       mpd->user = NULL;
       mpd->state = POP_AUTH_USER;
@@ -517,7 +520,7 @@ _pop_user (mu_authority_t auth)
       /* Get the user ack.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  mu_observable_t observable = NULL;
@@ -530,12 +533,12 @@ _pop_user (mu_authority_t auth)
       if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
 	{
 	  pop_writeline (mpd, "QUIT\r\n");
-	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	  pop_write (mpd);
 	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOPASSWORD);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS ***\n");
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, "PASS ***\n");
       /* Leave not trail of the passwd.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
@@ -555,7 +558,7 @@ _pop_user (mu_authority_t auth)
       /* Get the ack from passwd.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  mu_observable_t observable = NULL;
@@ -606,7 +609,7 @@ _pop_apop (mu_authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, status);
 	}
       status = pop_writeline (mpd, "APOP %s %s\r\n", mpd->user, mpd->passwd);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       /* We have to obscure the md5 string.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->user);
@@ -627,7 +630,7 @@ _pop_apop (mu_authority_t auth)
     case POP_APOP_ACK:
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
         {
           mu_observable_t observable = NULL;
@@ -657,7 +660,7 @@ pop_reader (void *iodata)
   pop_data_t iop = iodata;
   status = pop_read_ack (iop);
   CHECK_EAGAIN (iop, status);
-  MAILBOX_DEBUG0 (iop->mbox, MU_DEBUG_PROT, iop->buffer);
+  MU_DEBUG (iop->mbox->debug, MU_DEBUG_PROT, iop->buffer);
   return status;//strncasecmp (iop->buffer, "+OK", 3) == 0;
 }
 
@@ -665,7 +668,7 @@ static int
 pop_writer (void *iodata, char *buf)
 {
   pop_data_t iop = iodata;
-  MAILBOX_DEBUG1 (iop->mbox, MU_DEBUG_PROT, "%s\n", buf);
+  MU_DEBUG1 (iop->mbox->debug, MU_DEBUG_PROT, "%s\n", buf);
   int status = pop_writeline (iop, "%s\r\n", buf);
   CHECK_ERROR (iop, status);
   status = pop_write (iop);
@@ -697,7 +700,7 @@ pop_stls (mu_mailbox_t mbox)
   status = mu_tls_begin (mpd, pop_reader, pop_writer,
 			 pop_stream_ctl, keywords);
 
-  MAILBOX_DEBUG1 (mbox, MU_DEBUG_PROT, "TLS negotiation %s\n",
+  MU_DEBUG1 (mbox->debug, MU_DEBUG_PROT, "TLS negotiation %s\n",
 		  status == 0 ? "succeeded" : "failed");
 
   if (status == 0)
@@ -801,7 +804,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%ld)\n", host, port);
+      MU_DEBUG2 (mbox->debug, MU_DEBUG_PROT, "open (%s:%ld)\n", host, port);
       status = mu_stream_open (mbox->stream);
       CHECK_EAGAIN (mpd, status);
       /* Can't recover bailout.  */
@@ -813,7 +816,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 	int gblen = 0;
 	status = pop_read_ack (mpd);
 	CHECK_EAGAIN (mpd, status);
-	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
@@ -893,7 +896,7 @@ pop_close (mu_mailbox_t mbox)
       /* Initiate the close.  */
       status = pop_writeline (mpd, "QUIT\r\n");
       CHECK_ERROR (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_QUIT;
 
     case POP_QUIT:
@@ -906,7 +909,7 @@ pop_close (mu_mailbox_t mbox)
       /* Glob the acknowledge.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       /*  Now what ! and how can we tell them about errors ?  So far now
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
@@ -1182,7 +1185,7 @@ pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
     case POP_NO_STATE:
       status = pop_writeline (mpd, "STAT\r\n");
       CHECK_ERROR (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_STAT;
 
     case POP_STAT:
@@ -1195,7 +1198,7 @@ pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
       /* Get the ACK.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       break;
 
     default:
@@ -1296,7 +1299,7 @@ pop_expunge (mu_mailbox_t mbox)
 					  mu_umaxtostr (0,
 							mpd->pmessages[i]->num));
 		  CHECK_ERROR (mpd, status);
-		  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+		  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 		  mpd->state = POP_DELE;
 
 		case POP_DELE:
@@ -1309,7 +1312,7 @@ pop_expunge (mu_mailbox_t mbox)
 		  /* Ack Delete.  */
 		  status = pop_read_ack (mpd);
 		  CHECK_EAGAIN (mpd, status);
-		  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+		  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 		  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 		    {
 		      CHECK_ERROR (mpd, ERANGE);
@@ -1390,7 +1393,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
     case POP_NO_STATE:
       status = pop_writeline (mpd, "LIST %s\r\n", mu_umaxtostr (0, mpm->num));
       CHECK_ERROR (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_LIST;
 
     case POP_LIST:
@@ -1403,7 +1406,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
       /* Resp from LIST. */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       break;
 
     default:
@@ -1609,7 +1612,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
     case POP_NO_STATE:
       status = pop_writeline (mpd, "UIDL %s\r\n", mu_umaxtostr (0, mpm->num));
       CHECK_ERROR (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_UIDL;
 
     case POP_UIDL:
@@ -1622,7 +1625,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
       /* Resp from UIDL. */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       break;
 
     default:
@@ -1705,7 +1708,7 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
 	  status = pop_writeline (mpd, "TOP %s 0\r\n",
 				  mu_umaxtostr (0, mpm->num));
 	  CHECK_ERROR (mpd, status);
-	  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+	  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	  mpd->state = POP_TOP;
 	}
       else /* Fall back to RETR call.  */
@@ -1726,7 +1729,7 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
       /* Ack from TOP. */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       /* if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	   mu_error ("TOP not implemented\n"); */ /* FIXME */
       mpd->state = POP_TOP_RX;
@@ -1930,7 +1933,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
       mpm->body_lines = mpm->body_size = 0;
       status = pop_writeline (mpd, "RETR %s\r\n",
 			      mu_umaxtostr (0, mpm->num));
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       CHECK_ERROR (mpd, status);
       mpd->state = POP_RETR;
 
@@ -1944,7 +1947,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
       /* RETR ACK.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{

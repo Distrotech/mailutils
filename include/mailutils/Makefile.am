@@ -18,10 +18,13 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-BUILT_SOURCES=errno.h
-EXTRA_DIST=errno.hin types.hin
+BUILT_SOURCES=errno.h debug.h
+EXTRA_DIST=errno.hin debug.hm4 types.hin
 errno.h: $(top_srcdir)/mailbox/errors errno.hin
 	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
+
+debug.h: $(top_srcdir)/scripts/debugdef.m4 debug.hm4
+	m4 $(top_srcdir)/scripts/debugdef.m4 debug.hm4 > debug.h
 
 types.h: $(top_srcdir)/include/mailutils/types.hin Makefile
 	sed 's/MU_OFF_TYPE/$(MU_OFF_TYPE)/' $(top_srcdir)/include/mailutils/types.hin > $@

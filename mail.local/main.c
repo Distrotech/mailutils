@@ -55,7 +55,7 @@ N_("GNU mail.local -- the local MDA")
 "\v"
 N_("Debug flags are:\n\
   g - guimb stack traces\n\
-  T - mailutils traces (MU_DEBUG_TRACE)\n\
+  T - mailutils traces (MU_DEBUG_TRACE0-MU_DEBUG_TRACE9)\n\
   P - network protocols (MU_DEBUG_PROT)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
@@ -113,9 +113,11 @@ static struct argp argp = {
 static const char *argp_capa[] = {
   "auth",
   "common",
+  "debug",
   "license",
   "logging",
   "mailbox",
+  "locking",
   "mailer",
   NULL
 };
@@ -153,11 +155,11 @@ set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
 	  break;
 	  
 	case 'T':
-	  debug_flags |= MU_DEBUG_TRACE;
+	  debug_flags |= MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7);
 	  break;
 	  
 	case 'P':
-	  debug_flags |= MU_DEBUG_PROT;
+	  debug_flags |= MU_DEBUG_LEVEL_MASK (MU_DEBUG_PROT);
 	  break;
 
 	default:
@@ -473,7 +475,8 @@ sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
       else
 	{
 	  mu_sieve_set_debug (mach, _sieve_debug_printer);
-	  mu_sieve_set_debug_level (mach, mudebug, sieve_debug_flags);
+	  mu_sieve_set_debug_object (mach, mudebug);
+	  mu_sieve_set_debug_level (mach, sieve_debug_flags);
 	  mu_sieve_set_parse_error (mach, _sieve_parse_error);
 	  if (sieve_enable_log)
 	    mu_sieve_set_logger (mach, _sieve_action_log);

@@ -52,37 +52,9 @@
 
 static mu_debug_t mu_auth_debug;
 
-#define DEBUG0(str)                                                           \
- do                                                                           \
-   {                                                                          \
-     if (mu_auth_debug)                                                       \
-       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, "%s", str);             \
-   }                                                                          \
- while (0)
-
-#define DEBUG1(fmt, a)                                                        \
- do                                                                           \
-   {                                                                          \
-     if (mu_auth_debug)                                                       \
-       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, fmt, a);                \
-   }                                                                          \
- while (0)
-
-#define DEBUG2(fmt, a, b)                                                     \
- do                                                                           \
-   {                                                                          \
-     if (mu_auth_debug)                                                       \
-       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE, fmt, a, b);             \
-   }                                                                          \
- while (0)
-
-#define S(str) ((str) ? (str) : "(none)")
-
+#define S(s) ((s) ? (s) : "(none)")
 #define DEBUG_AUTH(a)                                                         \
- do                                                                           \
-   {                                                                          \
-     if (mu_auth_debug)                                                       \
-       mu_debug_print (mu_auth_debug, MU_DEBUG_TRACE,                         \
+     MU_DEBUG11 (mu_auth_debug, MU_DEBUG_TRACE,                               \
                        "source=%s, name=%s, passwd=%s, uid=%lu, gid=%lu, "    \
                        "gecos=%s, dir=%s, shell=%s, mailbox=%s, quota=%lu, "  \
                        "change_uid=%d\n",                                     \
@@ -96,9 +68,7 @@ static mu_debug_t mu_auth_debug;
                        S ((a)->shell),                                        \
                        S ((a)->mailbox),                                      \
                        (unsigned long) (a)->quota,                            \
-                       (a)->change_uid);                                      \
-   }                                                                          \
-while (0)
+                       (a)->change_uid)
      
 mu_debug_t
 mu_auth_set_debug (mu_debug_t debug)
@@ -232,9 +202,10 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
            mu_iterator_next (itr))
         {
           mu_iterator_current (itr, (void **)&ep);
-          DEBUG1 ("Trying %s...", ep->name);
+          MU_DEBUG1 (mu_auth_debug, MU_DEBUG_TRACE, "Trying %s...", ep->name);
           rc = ep->fun (return_data, key, ep->func_data, data);
-          DEBUG2 ("result: %d=%s\n", rc, mu_strerror (rc));
+          MU_DEBUG2 (mu_auth_debug, MU_DEBUG_TRACE, 
+                     "result: %d=%s\n", rc, mu_strerror (rc));
           if (rc == 0)
             {
               if (return_data)
@@ -281,18 +252,22 @@ mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
   switch (type)
     {
     case mu_auth_key_name:
-      DEBUG1 ("Getting auth info for user %s\n", (char*) key);
+      MU_DEBUG1 (mu_auth_debug, MU_DEBUG_TRACE, 
+                 "Getting auth info for user %s\n", 
+                 (char*) key);
       list = mu_auth_by_name_list;
       break;
 
     case mu_auth_key_uid:
-      DEBUG1 ("Getting auth info for UID %lu\n",
-	      (unsigned long) *(uid_t*) key);
+      MU_DEBUG1 (mu_auth_debug, MU_DEBUG_TRACE, 
+                 "Getting auth info for UID %lu\n",
+	         (unsigned long) *(uid_t*) key);
       list = mu_auth_by_uid_list;
       break;
 
     default:
-      DEBUG1 ("Unknown mu_auth_key_type: %d\n", type);
+      MU_DEBUG1 (mu_auth_debug, MU_DEBUG_ERROR, 
+                 "Unknown mu_auth_key_type: %d\n", type);
       return EINVAL;
     }
   return mu_auth_runlist (list, auth, key, NULL);
@@ -323,8 +298,9 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
 {
   if (!auth_data)
     return EINVAL;
-  DEBUG2 ("mu_authenticate, user %s, source %s\n", auth_data->name,
-          auth_data->source);
+  MU_DEBUG2 (mu_auth_debug, MU_DEBUG_TRACE, 
+             "mu_authenticate, user %s, source %s\n", 
+             auth_data->name, auth_data->source);
   if (!mu_authenticate_list)
     mu_auth_begin_setup ();
   return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, pass);

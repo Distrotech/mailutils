@@ -100,7 +100,7 @@ main (int argc, char **argv)
     {
       mu_debug_t debug;
       mu_mailbox_get_debug (mbox, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
+      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   /* Open the mailbox for reading only.  */

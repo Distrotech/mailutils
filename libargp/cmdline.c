@@ -30,6 +30,7 @@ static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_address_cmdline,
   &mu_mailer_cmdline,
   &mu_daemon_cmdline,
+  &mu_debug_cmdline,
   &mu_pam_cmdline,
   &mu_gsasl_cmdline,
   &mu_tls_cmdline,

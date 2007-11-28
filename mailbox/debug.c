@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004, 2005,
+   2007  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -99,28 +100,11 @@ mu_debug_set_print (mu_debug_t debug, mu_debug_printer_fp printer, void *owner)
 }
 
 int
-mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
-{
-  va_list ap;
-
-  va_start (ap, format);
-  
-  mu_debug_printv (debug, level, format, ap);
-  
-  va_end (ap);
-
-  return 0;
-}
-
-int
-mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
-		 va_list ap)
+mu_debug_vprintf (mu_debug_t debug, size_t level,
+		  const char *format, va_list ap)
 {
   if (debug == NULL || format == NULL)
     return EINVAL;
-
-  if (!(debug->level & level))
-    return 0;
 
   if (debug->printer)
     {
@@ -135,7 +119,8 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
 	  if (rc)
 	    {
 	      fprintf (stderr,
-		       _("cannot create memory stream for debugging output: %s\n"),
+		       _("cannot create memory stream for debugging "
+			 "output: %s\n"),
 		       mu_strerror (rc));
 	      vfprintf (stderr, format, ap);
 	      return rc;
@@ -166,7 +151,7 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
 	  if (start[len - 1] != '\n')
 	    {
 	      size_t s = len - (ptr - start);
-	      memmove (start, ptr, len);
+	      memmove (start, ptr, s);
 	    }
 	  else
 	    len = 0;
@@ -181,3 +166,42 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
   return 0;
 }
 
+int
+mu_debug_printf (mu_debug_t debug, size_t level, const char *format, ...)
+{
+  va_list ap;
+
+  va_start (ap, format);
+  mu_debug_vprintf (debug, level, format, ap);
+  va_end (ap);
+  return 0;
+}
+  
+
+int
+mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
+{
+  va_list ap;
+  mu_debug_printv (debug, level, format, ap);
+  va_end (ap);
+  return 0;
+}
+
+int
+mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
+		 va_list ap)
+{
+  if (debug == NULL || format == NULL)
+    return EINVAL;
+  if (debug->level & MU_DEBUG_LEVEL_MASK (level))
+    return 0;
+  return mu_debug_printf (debug, level, format, ap);
+}
+
+int
+mu_debug_check_level (mu_debug_t debug, size_t level)
+{
+  if (!debug)
+    return 0;
+  return debug->level & MU_DEBUG_LEVEL_MASK (level);
+}

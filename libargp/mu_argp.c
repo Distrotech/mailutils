@@ -139,7 +139,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
 
 struct cap_buf
 {
-  const char **capa;
+  char **capa;
   size_t numcapa;
   size_t maxcapa;
 };

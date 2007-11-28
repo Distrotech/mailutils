@@ -293,7 +293,7 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
 
   mailbox->_get_size = amd_get_size;
 
-  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "amd_init(%s)\n", amd->name);
+  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "amd_init(%s)\n", amd->name);
   *pamd = amd;
   return 0;
 }

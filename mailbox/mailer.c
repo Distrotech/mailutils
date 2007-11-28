@@ -330,9 +330,9 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 
 	  /* Use the From: header. */
 	case 0:
-	  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-			 "mu_mailer_send_message(): using From: %s\n",
-			 mail_from);
+	  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+		     "mu_mailer_send_message(): using From: %s\n",
+		     mail_from);
 	    
 	  status = mu_address_create (pfrom, mail_from);
 	  free (mail_from);
@@ -347,16 +347,12 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	  mail_from = mu_get_user_email (NULL);
 
 	  if (mail_from)
-	    {
-	      MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-			     "mu_mailer_send_message(): using user's address: %s\n",
-			     mail_from);
-	    }
+            MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+		       "mu_mailer_send_message(): using user's address: %s\n",
+		       mail_from);
 	  else
-	    {
-	      MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE,
-			     "mu_mailer_send_message(): no user's address, failing\n");
-	    }
+            MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
+		      "mu_mailer_send_message(): no user's address, failing\n");
 
 	  if (!mail_from)
 	    return errno;

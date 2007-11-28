@@ -370,8 +370,9 @@ smtp_open (mu_mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (host: %s port: %ld)\n",
-		     smtp->mailhost, port);
+      MU_DEBUG2 (mailer->debug, MU_DEBUG_PROT, 
+                 "smtp_open (host: %s port: %ld)\n",
+		 smtp->mailhost, port);
       status = mu_stream_open (mailer->stream);
       CHECK_EAGAIN (smtp, status);
       smtp->state = SMTP_GREETINGS;
@@ -536,8 +537,8 @@ smtp_starttls (smtp_t smtp)
   status = mu_tls_begin (smtp, smtp_reader, smtp_writer,
 			 smtp_stream_ctl, keywords);
 
-  MAILER_DEBUG1 (mailer, MU_DEBUG_PROT, "TLS negotiation %s\n",
-		 status == 0 ? "succeeded" : "failed");
+  MU_DEBUG1 (mailer->debug, MU_DEBUG_PROT, "TLS negotiation %s\n",
+  	     status == 0 ? "succeeded" : "failed");
 
   return status;
 #else
@@ -761,7 +762,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
       smtp->state = SMTP_SEND;
 
       if ((smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA) == 0)
-	MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_PROT, "> (data...)\n");
+	MU_DEBUG (smtp->mailer->debug, MU_DEBUG_PROT, "> (data...)\n");
 
     case SMTP_SEND:
       {
@@ -917,8 +918,8 @@ _smtp_set_rcpt (smtp_t smtp, mu_message_t msg, mu_address_t to)
       /* Use the specified mu_address_t. */
       if ((status = mu_mailer_check_to (to)) != 0)
 	{
-	  MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_ERROR,
-			 "mu_mailer_send_message(): explicit to not valid\n");
+	  MU_DEBUG (smtp->mailer->debug, MU_DEBUG_ERROR,
+	 	    "mu_mailer_send_message(): explicit to not valid\n");
 	  return status;
 	}
       smtp->rcpt_to = to;
@@ -1034,10 +1035,8 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
 
   if ((smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
       || smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA)
-    {
-      MAILER_DEBUG2 (smtp->mailer, MU_DEBUG_PROT, "> %.*s\n", len,
-		     smtp->buffer);
-    }
+    MU_DEBUG2 (smtp->mailer->debug, MU_DEBUG_PROT, "> %.*s\n", len,
+               smtp->buffer);
 
   return 0;
 }
@@ -1161,7 +1160,7 @@ smtp_readline (smtp_t smtp)
       smtp->ptr = smtp->nl;
     }
 
-  MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_PROT, "< %s", smtp->buffer);
+  MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_PROT, "< %s", smtp->buffer);
 
   return 0;
 }

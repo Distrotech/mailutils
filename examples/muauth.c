@@ -36,6 +36,7 @@ static const char *capa[] = {
   "auth",
   "license",
   "common",
+  "debug",
   NULL
 };
 

@@ -1,3 +1,79 @@
+2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Introduce "global debug settings". Mailutils objects are supposed
+	to set their default mu_debug_t objects basing on these settings.
+	
+	* include/mailutils/Makefile.am: Add debug.hin. Build debug.h from
+	it.
+	* include/mailutils/debug.hm4: New file.
+	* include/mailutils/debug.h: Remove generated file.
+	* scripts/Makefile.am (EXTRA_DIST): Add debugdef.m4
+	* scripts/debugdef.m4: New file.
+	
+	* include/mailutils/gocs.h (struct mu_gocs_debug): New data type.
+	(mu_gocs_register_std): Argument is const.
+	(mu_gocs_debug_init): New function.
+	* include/mailutils/libargp.h (mu_debug_cmdline): New extern.
+	* include/mailutils/libcfg.h (mu_debug_cfg_capa): New extern.
+	* libargp/cmdline.c: Add mu_debug_cmdline
+	* libargp/common.c: Add debug settings.
+	* libargp/mu_argp.c (struct cap_buf.capa): Remove const qualifier.
+	* libcfg/common.c (mu_locking_param): Remove superfluous `lock-'
+	prefix from the statement names.
+	(mu_debug_param): New parameter group.
+	* libcfg/init.c: Add mu_debug_param.
+	* mailbox/gocs.c (mu_gocs_debug_init): New function.
+	
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add gdebug.c
+	* mailbox/gdebug.c: New file
+	* mailbox/debug.c (mu_debug_printf, mu_debug_vprintf)
+	(mu_debug_check_level): New functions.
+	(mu_debug_printv, mu_debug_print): Rewrite using new basic calls.
+	
+	* comsat/comsat.c, dotlock/dotlock.c, examples/muauth.c,
+	mail.remote/mail.remote.c: Add debug capability.	
+	* frm/frm.c, frm/from.c, guimb/main.c, imap4d/imap4d.c,
+	mail/mail.c, mail.local/main.c, messages/messages.c,
+	pop3d/pop3d.c, readmsg/readmsg.c: Add locking and debug capabilities.
+	
+	* examples/mimetest.c, examples/msg-send.c, frm/common.c,
+	libargp/auth.c, libmu_scm/mu_message.c, mail/send.c, mh/send.c,
+	mimeview/mimeview.c, movemail/movemail.c, sieve/sieve.c: Update
+	invocation of mu_debug_set_level. 
+
+	* libproto/imap/folder.c, libproto/imap/mbox.c,
+	libproto/include/folder0.h, libproto/include/mailbox0.h,
+	libproto/include/mailer0.h, libproto/mailer/sendmail.c,
+	libproto/mailer/smtp.c, libproto/mbox/mbox.c,
+	libproto/nntp/folder.c, libproto/nntp/nntp_debug.c,
+	libproto/pop/mbox.c, libproto/pop/pop3_debug.c, mailbox/amd.c,
+	mailbox/mailer.c, mailbox/message.c, mailbox/mu_auth.c: Use
+	MU_DEBUG[0-9] for debugging.
+
+	* mailbox/muerror.c: Include string.h
+	* mailbox/syslog.c (syslog_to_n): Remove unused variable.
+	* mailbox/assoc.c (struct _mu_assoc_elem): name is not const.
+	* mailbox/cfg_lexer.c: Quoted strings can be continued to the
+	following line either by using a trailing backslash or by
+	concatenating strings together, as in C.
+	* mailbox/mailbox.c (_create_mailbox): Initialize debug object
+	using global "mailbox" level.
+	(mu_mailbox_create): Fix bug introduced on 2007-11-26.
+	
+	* include/mailutils/libsieve.h (mu_sieve_set_debug_level): Change
+	prototype.
+	(mu_sieve_set_debug_object): New prototype.
+	* libsieve/sieve.y (mu_sieve_machine_init): Initialize debug
+	object from "sieve" global level.
+	(mu_sieve_set_debug_level): Set only debug_level.
+	(mu_sieve_set_debug_object): New function.
+
+	* maidag/maidag.c: Remove explicit setting of debug object. Add
+	"debug" group, which provides the required functionality.
+	(set_debug_flags): Likewise. This function and the corresponding
+	command line option are fading out in favor of global debug
+	settings. 
+	
 2007-11-26  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac (MU_APP_LIBRARIES): Load libmuaux after libmuargp

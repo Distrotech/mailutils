@@ -76,18 +76,6 @@ struct _mu_mailbox
   int  (*_quick_get_message) (mu_mailbox_t, mu_message_qid_t, mu_message_t *);
 };
 
-/* Moro(?)ic kluge.  */
-#define MAILBOX_DEBUG0(mbox, type, format) \
-if (mbox->debug) mu_debug_print (mbox->debug, type, format)
-#define MAILBOX_DEBUG1(mbox, type, format, arg1) \
-if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1)
-#define MAILBOX_DEBUG2(mbox, type, format, arg1, arg2) \
-if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2)
-#define MAILBOX_DEBUG3(mbox, type, format, arg1, arg2, arg3) \
-if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3)
-#define MAILBOX_DEBUG4(mbox, type, format, arg1, arg2, arg3, arg4) \
-if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3, arg4)
-
 #ifdef __cplusplus
 }
 #endif

@@ -121,7 +121,7 @@ main (int argc, char *argv[])
     {
       mu_debug_t debug;
       mu_mailer_get_debug (mailer, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
+      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   C (mu_mailer_open (mailer, 0));

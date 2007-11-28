@@ -30,6 +30,7 @@ static struct mu_gocs_logging logging_settings;
 static struct mu_gocs_mailbox mailbox_settings;
 static struct mu_gocs_source_email source_email_settings;
 static struct mu_gocs_mailer mailer_settings;
+static struct mu_gocs_debug debug_settings;
 
 
 void
@@ -75,7 +76,9 @@ enum {
   OPT_LOCK_EXPIRE_TIMEOUT,   
   OPT_LOCK_EXTERNAL_PROGRAM, 
   OPT_LICENSE,               
-  OPT_MAILBOX_TYPE          
+  OPT_MAILBOX_TYPE,
+  OPT_DEBUG_LEVEL,
+  OPT_LINE_INFO
 };
 
 static struct argp_option mu_common_argp_options[] = 
@@ -485,41 +488,51 @@ static struct argp_option mu_daemon_argp_option[] = {
 static error_t
 mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static int options_given = 0;
+  
   switch (key)
     {
     case 'd':
+      options_given = 1;
       daemon_settings.mode = MODE_DAEMON;
       if (arg)
 	daemon_settings.maxchildren = strtoul (arg, NULL, 10);
       break;
 
     case 'i':
+      options_given = 1;
       daemon_settings.mode = MODE_INTERACTIVE;
       break;
       
     case 'p':
+      options_given = 1;
       daemon_settings.mode = MODE_DAEMON;
       daemon_settings.port = strtoul (arg, NULL, 10); /*FIXME: overflow */
       break;
 
     case 'P':
+      options_given = 1;
       assign_string (&daemon_settings.pidfile, arg);
       break;
 
     case 't':
+      options_given = 1;
       daemon_settings.timeout = strtoul (arg, NULL, 10);
       break;
 
     case 'x':
+      options_given = 1;
       daemon_settings.transcript = 1;
       break;
 
     case ARGP_KEY_INIT:
+      options_given = 0;
       daemon_settings = mu_gocs_daemon;
       break;
 
     case ARGP_KEY_FINI:
-      mu_gocs_store ("daemon", &daemon_settings);
+      if (options_given)
+	mu_gocs_store ("daemon", &daemon_settings);
       break;
       
     default:
@@ -544,3 +557,56 @@ struct mu_cmdline_capa mu_daemon_cmdline = {
   "daemon", &mu_daemon_argp_child
 };
 
+
+static struct argp_option mu_debug_argp_options[] = 
+{
+  { "debug-level", OPT_DEBUG_LEVEL, N_("LEVEL"), 0,
+    N_("Set Mailutils debugging level"), 0 },
+  { "debug-line-info", OPT_LINE_INFO, NULL, 0,
+    N_("Show source info with debugging messages"), 0 },
+  { NULL }
+};
+
+static error_t
+mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case OPT_DEBUG_LEVEL:
+      debug_settings.string = arg;
+      debug_settings.errpfx = strdup ("command line");
+      break;
+
+    case OPT_LINE_INFO:
+      debug_settings.line_info = 1;
+      break;
+      
+    case ARGP_KEY_INIT:
+      debug_settings.line_info = -1;
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_gocs_store ("debug", &debug_settings);
+      break;
+      
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+struct argp mu_debug_argp = {
+  mu_debug_argp_options,
+  mu_debug_argp_parser,
+};
+
+struct argp_child mu_debug_argp_child = {
+  &mu_debug_argp,
+  0,
+  N_("Global debugging settings"),
+  0
+};
+
+struct mu_cmdline_capa mu_debug_cmdline = {
+  "debug", &mu_debug_argp_child
+};

@@ -35,20 +35,17 @@ mu_pop3_set_debug (mu_pop3_t pop3, mu_debug_t debug)
   return 0;
 }
 
+/* FIXME: This should be a macro */
 int
 mu_pop3_debug_cmd (mu_pop3_t pop3)
 {
-  if (pop3->debug)
-    mu_debug_print(pop3->debug, MU_DEBUG_PROT, "%s", pop3->io.buf);
+  MU_DEBUG (pop3->debug, MU_DEBUG_PROT, pop3->io.buf);
   return 0;
 }
 
 int
 mu_pop3_debug_ack (mu_pop3_t pop3)
 {
-  if (pop3->debug)
-    {
-      mu_debug_print (pop3->debug, MU_DEBUG_PROT, "%s\n", pop3->ack.buf);
-    }
+  MU_DEBUG1 (pop3->debug, MU_DEBUG_PROT, "%s\n", pop3->ack.buf);
   return 0;
 }

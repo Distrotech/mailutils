@@ -143,7 +143,7 @@ sendmail_open (mu_mailer_t mailer, int flags)
     }
   sendmail->path = path;
   sendmail->state = SENDMAIL_OPEN;
-  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, "sendmail (%s)\n", sendmail->path);
+  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE, "sendmail (%s)\n", sendmail->path);
   return 0;
 }
 
@@ -217,9 +217,9 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 		/* the address wasn't fully qualified, choke (for now) */
 		status = EINVAL;
 
-		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-			       "envelope from (%s) not fully qualifed\n",
-			       emailfrom);
+		MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+			   "envelope from (%s) not fully qualifed\n",
+			   emailfrom);
 
 		goto OPEN_STATE_CLEANUP;
 	      }
@@ -278,9 +278,9 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 		    /* the address wasn't fully qualified, choke (for now) */
 		    status = EINVAL;
 
-		    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-				   "envelope to (%s) not fully qualifed\n",
-				   email);
+		    MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+			       "envelope to (%s) not fully qualifed\n",
+			       email);
 
 		    goto OPEN_STATE_CLEANUP;
 		  }
@@ -308,24 +308,22 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	      {
 		status = errno;
 
-		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-			       "vfork() failed: %s\n", strerror (status));
+		MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+			   "vfork() failed: %s\n", strerror (status));
 	      }
 	  }
 	else
 	  {
 	    status = errno;
-	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
-			   "pipe() failed: %s\n", strerror (status));
+	    MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+	  	       "pipe() failed: %s\n", strerror (status));
 	  }
 
       OPEN_STATE_CLEANUP:
-	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "exec argv:");
+	MU_DEBUG (mailer->debug, MU_DEBUG_TRACE, "exec argv:");
 	for (argc = 0; argvec && argvec[argc]; argc++)
-	  {
-	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, " %s", argvec[argc]);
-	  }
-	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "\n");
+          MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE, " %s", argvec[argc]);
+	MU_DEBUG (mailer->debug, MU_DEBUG_TRACE, "\n");
 	free (argvec);
 	close (tunnel[0]);
 
@@ -352,7 +350,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	mu_message_get_header (msg, &hdr);
 	mu_header_get_stream (hdr, &stream);
 
-	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending headers...\n");
+	MU_DEBUG (mailer->debug, MU_DEBUG_TRACE, "Sending headers...\n");
 	while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
 					     offset, &len)) == 0
 	       && len != 0)
@@ -360,13 +358,12 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	    if (strncasecmp (buffer, MU_HEADER_FCC,
 			     sizeof (MU_HEADER_FCC) - 1))
 	      {
-		MAILER_DEBUG1 (mailer, MU_DEBUG_PROT,
-			       "Header: %s", buffer);
+		MU_DEBUG1 (mailer->debug, MU_DEBUG_PROT, "Header: %s", buffer);
 		if (write (sendmail->fd, buffer, len) == -1)
 		  {
 		    status = errno;
 		    
-		    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		    MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
 				   "write() failed: %s\n", strerror (status));
 		    
 		    break;
@@ -384,7 +381,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	      {
 		status = errno;
 		
-		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
 			       "write() failed: %s\n", strerror (status));
 	      }
 	  }
@@ -392,7 +389,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	mu_message_get_body (msg, &body);
 	mu_body_get_stream (body, &stream);
 
-	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending body...\n");
+	MU_DEBUG (mailer->debug, MU_DEBUG_TRACE, "Sending body...\n");
 	offset = 0;
 	while ((status = mu_stream_read (stream, buffer, sizeof (buffer),
 				      offset, &len)) == 0
@@ -402,7 +399,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	      {
 		status = errno;
 
-		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
 			       "write() failed: %s\n", strerror (status));
 		
 		break;
@@ -424,7 +421,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	    else
               { 
 	        status = errno;
-	        MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
+	        MU_DEBUG2 (mailer->debug, MU_DEBUG_TRACE,
 	  		       "waitpid(%d) failed: %s\n",
 			       sendmail->pid, strerror (status));
               }
@@ -432,7 +429,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	else if (WIFEXITED (exit_status))
 	  {
 	    exit_status = WEXITSTATUS (exit_status);
-	    MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
+	    MU_DEBUG2 (mailer->debug, MU_DEBUG_TRACE,
 			   "%s exited with: %d\n",
 			   sendmail->path, exit_status);
 	    status = (exit_status == 0) ? 0 : MU_ERR_PROCESS_EXITED;

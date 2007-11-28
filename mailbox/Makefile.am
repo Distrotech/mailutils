@@ -59,6 +59,7 @@ libmailutils_la_SOURCES = \
  filter_rfc822.c\
  filter_trans.c\
  folder.c\
+ gdebug.c\
  gocs.c\
  header.c\
  iterator.c\
