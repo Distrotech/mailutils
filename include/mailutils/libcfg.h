@@ -57,7 +57,7 @@ extern int mu_parse_config_files (struct mu_cfg_param *param);
 int									      \
 __mu_common_cat3__(mu_,capa,_section_parser)				      \
      (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      \
-      void *section_data, void *call_data)				      \
+      void *section_data, void *call_data, mu_cfg_tree_t *tree)		      \
 {									      \
   switch (stage)							      \
     {									      \

@@ -1,6 +1,36 @@
 2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
-	Further improvement of mu_debug_t. 
+	III. Use mu_debug_t for diagnostics in cfg framework.
+	
+	* include/mailutils/cfg.h, mailbox/cfg_lexer.c,
+	mailbox/cfg_parser.y (mu_cfg_tree_t):
+	New data type. 
+	(mu_cfg_perror_t): Remove
+	(mu_cfg_parse): Change prototype.
+	(mu_cfg_perror): Change type.
+	(mu_cfg_format_error): New function.
+	(mu_cfg_destroy_tree): Change signature.
+	(mu_cfg_callback_t): Take mu_debug_t as its first argument,
+	instead of mu_cfg_locus_t. The mu_debug_t is to be used for error
+	reporting and debugging diagnostics. The cfg_lexer is responsible
+	for storing the necessary locus data into it before calling
+	callbacks.
+	(mu_cfg_section_fp): Take an additional argument.
+	(mu_cfg_scan_tree): Simplified prototype. The mu_cfg_tree_t passed
+	as its first argument already contains all necessary data that
+	were passed as arguments previously.
+	(mu_parse_config): First two args are consts.
+
+	* include/mailutils/libcfg.h, imap4d/imap4d.c, libcfg/auth.c,
+	libcfg/common.c, libcfg/ldap.c, libcfg/sieve.c, libcfg/sql.c,
+	maidag/maidag.c, mail.local/main.c, mimeview/mimeview.c,
+	pop3d/pop3d.c, sieve/sieve.c: Reflect changes to the cfg
+	framework. 
+
+	* mailbox/debug.c (mu_debug_vprintf): Make sure the locus info is
+	formatted on the first call.
+	
+	II. Further improvement of mu_debug_t. 
 	
 	* include/mailutils/debug.hm4 (struct mu_debug_locus): New data
 	type.
@@ -32,9 +62,7 @@
 	mu_debug_set_function to print source locations. This allows for
 	easy i18n of the MU_DEBUG[0-9]* format strings.
 
-2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
-
-	Introduce "global debug settings". Mailutils objects are supposed
+	I. Introduce "global debug settings". Mailutils objects are supposed
 	to set their default mu_debug_t objects basing on these settings.
 	
 	* include/mailutils/Makefile.am: Add debug.hm4. Build debug.h from

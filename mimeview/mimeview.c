@@ -66,7 +66,7 @@ char *mimeview_file;       /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */
 
 static void
-set_debug_flags (mu_cfg_locus_t *locus, char *arg)
+set_debug_flags (mu_debug_t debug, char *arg)
 {
   for (; *arg; arg++)
     {
@@ -147,9 +147,9 @@ static struct argp argp = {
 
 
 static int
-cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, char *arg)
 {
-  set_debug_flags (locus, arg);
+  set_debug_flags (debug, arg);
   return 0;
 }
 

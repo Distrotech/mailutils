@@ -29,22 +29,23 @@ static struct mu_sql_module_config sql_settings;
 
 /* Resource file configuration */
 static int
-cb_password_type (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_password_type (mu_debug_t debug, void *data, char *arg)
 {
   if (mu_sql_decode_password_type (arg, &sql_settings.password_type))
-    mu_error (_("%s:%d: Unknown password type `%s'"),
-	      locus->file, locus->line, arg);
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			 _("Unknown password type `%s'"),
+			 arg);
   return 0;
 }
 
 static int
-cb_field_map (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_field_map (mu_debug_t debug, void *data, char *arg)
 {
   int err;
   int rc = mutil_parse_field_map (arg, &sql_settings.field_map, &err);
   if (rc)
-    mu_error (_("%s:%d: Error near element %d: %s"),
-	      locus->file, locus->line, err, mu_strerror (rc));
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Error near element %d: %s"),
+			 err, mu_strerror (rc));
   return 0;
 }
 

@@ -19,17 +19,21 @@
 #define _MAILUTILS_CFG_H
 
 #include <mailutils/list.h>
+#include <mailutils/debug.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif  
+
 typedef enum mu_cfg_node_type mu_cfg_node_type_t;
 typedef struct mu_cfg_node mu_cfg_node_t;
 typedef struct mu_cfg_locus mu_cfg_locus_t;
+typedef struct mu_cfg_tree mu_cfg_tree_t;
 
 typedef int (*mu_cfg_lexer_t) (void *ptr);
-typedef void (*mu_cfg_perror_t) (void *ptr, const mu_cfg_locus_t *loc,
-				 const char *fmt, ...);
 typedef void *(*mu_cfg_alloc_t) (size_t size);
 typedef void (*mu_cfg_free_t) (void *ptr);
 
@@ -56,16 +60,26 @@ struct mu_cfg_node
   mu_cfg_node_t *node;
 };
 
-int mu_cfg_parse (mu_cfg_node_t **ptree,
+struct mu_cfg_tree
+{
+  mu_cfg_node_t *node;
+  mu_debug_t debug;
+  mu_cfg_alloc_t alloc;
+  mu_cfg_free_t free;
+};
+
+int mu_cfg_parse (mu_cfg_tree_t **ptree,
 		  void *data,
 		  mu_cfg_lexer_t lexer,
-		  mu_cfg_perror_t perror,
+		  mu_debug_t debug,
 		  mu_cfg_alloc_t alloc,
 		  mu_cfg_free_t free);
 
 extern mu_cfg_locus_t mu_cfg_locus;
 extern int mu_cfg_tie_in;
-extern mu_cfg_perror_t mu_cfg_perror; 
+
+void mu_cfg_perror (const mu_cfg_locus_t *, const char *, ...);
+void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...);
 
 #define MU_CFG_ITER_OK   0
 #define MU_CFG_ITER_SKIP 1
@@ -73,7 +87,7 @@ extern mu_cfg_perror_t mu_cfg_perror;
 
 typedef int (*mu_cfg_iter_func_t) (const mu_cfg_node_t *node, void *data);
 
-void mu_cfg_destroy_tree (mu_cfg_node_t **tree);
+void mu_cfg_destroy_tree (mu_cfg_tree_t **tree);
 
 int mu_cfg_preorder (mu_cfg_node_t *node,
 		     mu_cfg_iter_func_t fun, mu_cfg_iter_func_t endfun,
@@ -107,7 +121,7 @@ enum mu_cfg_param_data_type
     mu_cfg_callback
   };
 
-typedef int (*mu_cfg_callback_t) (mu_cfg_locus_t *, void *, char *);
+typedef int (*mu_cfg_callback_t) (mu_debug_t, void *, char *);
 
 struct mu_cfg_param
 {
@@ -125,7 +139,9 @@ enum mu_cfg_section_stage
 
 typedef int (*mu_cfg_section_fp) (enum mu_cfg_section_stage stage,
 				  const mu_cfg_node_t *node,
-				  void *section_data, void *call_data);
+				  void *section_data,
+				  void *call_data,
+				  mu_cfg_tree_t *tree);
 
 struct mu_cfg_section
 {
@@ -167,10 +183,8 @@ int mu_config_create_container (struct mu_cfg_cont **pcont,
 int mu_config_clone_container (struct mu_cfg_cont *cont);
 void mu_config_destroy_container (struct mu_cfg_cont **pcont);
 
-int mu_cfg_scan_tree (mu_cfg_node_t *node,
-		      struct mu_cfg_section *sections,
-		      void *data, mu_cfg_perror_t perror,
-		      mu_cfg_alloc_t palloc, mu_cfg_free_t pfree);
+int mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
+		      void *call_data);
 
 int mu_cfg_find_section (struct mu_cfg_section *root_sec,
 			 const char *path, struct mu_cfg_section **retval);
@@ -184,10 +198,15 @@ int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
 
-int mu_parse_config (char *file, char *progname,
+int mu_parse_config (const char *file, const char *progname,
 		     struct mu_cfg_param *progparam, int global);
 
 int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

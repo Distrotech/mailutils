@@ -123,7 +123,7 @@ is_true_p (char *p)
 }
 
 static void
-set_debug_level (mu_cfg_locus_t *locus, const char *arg)
+set_debug_level (mu_debug_t debug, const char *arg)
 {
   for (; *arg; arg++)
     {
@@ -150,9 +150,9 @@ set_debug_level (mu_cfg_locus_t *locus, const char *arg)
 	  break;
 	  
 	default:
-	  if (locus)
-	    mu_error (_("%s:%d: %c is not a valid debug flag"),
-		      locus->file, locus->line, *arg);
+	  if (debug)
+	    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+				 _("%c is not a valid debug flag"), *arg);
 	  else
 	    mu_error (_("%c is not a valid debug flag"), *arg);
 	}
@@ -240,24 +240,24 @@ static struct argp argp =
 
 
 static int 
-cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, char *arg)
 {
-  set_debug_level (locus, arg);
+  set_debug_level (debug, arg);
   return 0;
 }
 
 static int
-cb_email (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_email (mu_debug_t debug, void *data, char *arg)
 {
   int rc = mu_set_user_email (arg);
   if (rc)
-    mu_error (_("%s:%d: Invalid email: %s"),
-	      locus->file, locus->line, mu_strerror (rc));
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Invalid email: %s"),
+			 mu_strerror (rc));
   return rc;
 }
 
 static int
-cb_ticket (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_ticket (mu_debug_t debug, void *data, char *arg)
 {
   free (tickets);
   tickets = mu_tilde_expansion (arg, "/", NULL);

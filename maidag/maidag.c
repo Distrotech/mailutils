@@ -123,7 +123,7 @@ static const char *maidag_argp_capa[] = {
 #define D_DEFAULT "9,s"
 
 static void
-set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
+set_debug_flags (mu_debug_t debug, const char *arg)
 {
   while (*arg)
     {
@@ -153,21 +153,16 @@ set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
 		break;
 	  
 	      default:
-		if (locus)
-		  mu_error (_("%s:%d: %c is not a valid debug flag"),
-			    locus->file, locus->line, *arg);
-		else
-		  mu_error (_("%c is not a valid debug flag"), *arg);
+		mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+				     _("%c is not a valid debug flag"), *arg);
 		break;
 	      }
 	  }
       if (*arg == ',')
 	arg++;
-      else if (locus)
-	mu_error (_("%s:%d: expected comma, but found %c"),
-		  locus->file, locus->line, *arg);
       else
-	mu_error (_("expected comma, but found %c"), *arg);
+	mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			     _("expected comma, but found %c"), *arg);
     }
 }
 
@@ -229,9 +224,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 static int
-cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, char *arg)
 {
-  set_debug_flags (locus, arg);
+  set_debug_flags (debug, arg);
   return 0;
 }
 

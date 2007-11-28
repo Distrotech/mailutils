@@ -112,7 +112,7 @@ static struct argp_option options[] = {
 
 #ifdef WITH_TLS
 static int
-cb_tls_expired (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_tls_required (mu_debug_t debug, void *data, char *arg)
 {
   initial_state = INITIAL;
   return 0;
@@ -120,16 +120,16 @@ cb_tls_expired (mu_cfg_locus_t *locus, void *data, char *arg)
 #endif
 
 static int
-cb_bulletin_source (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_bulletin_source (mu_debug_t debug, void *data, char *arg)
 {
-  set_bulletin_source (arg);
+  set_bulletin_source (arg); /* FIXME: Error reporting? */
   return 0;
 }
 
 static int
-cb_bulletin_db (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_bulletin_db (mu_debug_t debug, void *data, char *arg)
 {
-  set_bulletin_db (arg);
+  set_bulletin_db (arg); /* FIXME: Error reporting? */
   return 0;
 }
 
@@ -138,7 +138,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
   { "expire", mu_cfg_time, &expire },
   { "delete-expired", mu_cfg_int, &expire_on_exit },
 #ifdef WITH_TLS
-  { "tls-required", mu_cfg_callback, NULL, cb_tls_expired },
+  { "tls-required", mu_cfg_callback, NULL, cb_tls_required },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
   { "login-delay", mu_cfg_time, &login_delay },

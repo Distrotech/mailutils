@@ -29,22 +29,23 @@
 /* Resource-style configuration                                              */
 /* ************************************************************************* */
 static int
-cb_authentication (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_authentication (mu_debug_t err, void *data, char *arg)
 {
   if (strcmp (arg, "clear") == 0)
     mu_authentication_clear_list ();
   else
-    mu_authentication_add_module_list (arg);/*FIXME: error reporting*/
+    mu_authentication_add_module_list (arg);/*FIXME: use err for error
+					      reporting*/
   return 0;
 }
 
 static int
-cb_authorization (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_authorization (mu_debug_t err, void *data, char *arg)
 {
   if (strcmp (arg, "clear") == 0)
     mu_authorization_clear_list ();
   else
-    mu_authorization_add_module_list (arg);
+    mu_authorization_add_module_list (arg);/* FIXME: see above */
   return 0;
 }
 
@@ -57,7 +58,7 @@ static struct mu_cfg_param mu_auth_param[] = {
 int
 mu_auth_section_parser
    (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,
-    void *section_data, void *call_data)
+    void *section_data, void *call_data, mu_cfg_tree_t *tree)
 {
   switch (stage)
     {

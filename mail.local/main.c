@@ -130,7 +130,7 @@ char *saved_envelope;  /* A hack to spare mu_envelope_ calls */
 #define D_DEFAULT "9s"
 
 static void
-set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
+set_debug_flags (mu_debug_t debug, const char *arg)
 {
   for (; *arg; arg++)
     {
@@ -165,9 +165,10 @@ set_debug_flags (const mu_cfg_locus_t *locus, const char *arg)
 	default:
 	  if (isdigit (*arg))
 	    debug_level = *arg - '0';
-	  else if (locus)
-	    mu_error (_("%s:%d: %c is not a valid debug flag"),
-		      locus->file, locus->line, *arg);
+	  else if (debug)
+	    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+				 _("%c is not a valid debug flag"),
+				 *arg);
 	  else
 	    mu_error (_("%c is not a valid debug flag"), *arg);
 	  break;
@@ -239,9 +240,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 static int
-cb_debug (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, char *arg)
 {
-  set_debug_flags (locus, arg);
+  set_debug_flags (debug, arg);
   return 0;
 }
 

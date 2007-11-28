@@ -94,12 +94,13 @@ DCL_CFG_CAPA (mailer);
 /* ************************************************************************* */
 
 int
-cb_facility (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_facility (mu_debug_t debug, void *data, char *arg)
 {
   if (mu_string_to_syslog_facility (arg, &logging_settings.facility))
     {
-      mu_error (_("%s:%d: Unknown syslog facility `%s'"), 
-                locus->file, locus->line, arg);
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+                           _("Unknown syslog facility `%s'"), 
+			   arg);
       return 1;
     }
    return 0;
@@ -118,7 +119,7 @@ DCL_CFG_CAPA (logging);
 /* ************************************************************************* */
 
 static int
-_cb_daemon_mode (mu_cfg_locus_t *locus, void *data, char *arg)
+_cb_daemon_mode (mu_debug_t debug, void *data, char *arg)
 {
   if (strcmp (arg, "inetd") == 0
       || strcmp (arg, "interactive") == 0)
@@ -127,7 +128,7 @@ _cb_daemon_mode (mu_cfg_locus_t *locus, void *data, char *arg)
     daemon_settings.mode = MODE_DAEMON;
   else
     {
-      mu_error ("%s:%d: unknown daemon mode", locus->file, locus->line);
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown daemon mode"));
       return 1;
     }
   return 0;
@@ -146,7 +147,7 @@ static struct mu_cfg_param mu_daemon_param[] = {
 int									      
 mu_daemon_section_parser
    (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
-    void *section_data, void *call_data)				      
+    void *section_data, void *call_data, mu_cfg_tree_t *tree)
 {									      
   switch (stage)							      
     {									      
@@ -170,23 +171,25 @@ struct mu_cfg_capa mu_daemon_cfg_capa = {
 /* ************************************************************************* */
 
 static int
-cb_debug_level (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_debug_level (mu_debug_t debug, void *data, char *arg)
 {
   char buf[UINTMAX_STRSIZE_BOUND];
   char *p;
   size_t size;
   char *pfx;
+  struct mu_debug_locus locus;
   
   debug_settings.string = arg;
-  p = umaxtostr (locus->line, buf);
-  size = strlen (locus->file) + 1 + strlen (p) + 1;
+  mu_debug_get_locus (debug, &locus);
+  p = umaxtostr (locus.line, buf);
+  size = strlen (locus.file) + 1 + strlen (p) + 1;
   pfx = malloc (size);
   if (!pfx)
     {
-      mu_error ("%s", mu_strerror (errno));
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, "%s", mu_strerror (errno));
       return 1;
     }
-  strcpy (pfx, locus->file);
+  strcpy (pfx, locus.file);
   strcat (pfx, ":");
   strcat (pfx, p);
   debug_settings.errpfx = pfx;

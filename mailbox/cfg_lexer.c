@@ -225,8 +225,7 @@ again:
 	    {
 	      if (*p->curp == 0)
 		{
-		  mu_cfg_perror (p,
-				 &mu_cfg_locus,
+		  mu_cfg_perror (&mu_cfg_locus,
                        _("unexpected EOF in comment started at line %d"),
 				 keep_line);
 		  return 0;
@@ -605,7 +604,8 @@ mu_config_register_plain_section (const char *parent_path, const char *ident,
 static int
 prog_parser (enum mu_cfg_section_stage stage,
 	     const mu_cfg_node_t *node,
-	     void *section_data, void *call_data)
+	     void *section_data, void *call_data,
+	     mu_cfg_tree_t *tree)
 {
   if (stage == mu_cfg_section_start)
     {
@@ -638,11 +638,11 @@ struct include_data
   int global;
 };
 
-static int _mu_parse_config (char *file, char *progname,
+static int _mu_parse_config (const char *file, const char *progname,
 			     struct mu_cfg_param *progparam, int global);
 
 static int
-_cb_include (mu_cfg_locus_t *locus, void *data, char *arg)
+_cb_include (mu_debug_t debug, void *data, char *arg)
 {
   int ret = 0;
   struct stat sb;
@@ -666,15 +666,15 @@ _cb_include (mu_cfg_locus_t *locus, void *data, char *arg)
     }
   else if (errno == ENOENT)
     {
-      mu_cfg_perror (NULL, locus,
-		     _("include directory does not exist"));
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("include file or directory does not exist"));
       ret = 1;
     }
   else
     {
-      mu_cfg_perror (NULL, locus,
-		     _("cannot stat include directory: %s"),
-		     mu_strerror (errno));
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("cannot stat include file or directory: %s"),
+			   mu_strerror (errno));
       ret = 1;
     }
   free (tmp);
@@ -682,7 +682,7 @@ _cb_include (mu_cfg_locus_t *locus, void *data, char *arg)
 }
 
 static int
-_mu_parse_config (char *file, char *progname,
+_mu_parse_config (const char *file, const char *progname,
 		  struct mu_cfg_param *progparam, int global)
 {
   struct lexer_data data;
@@ -690,7 +690,7 @@ _mu_parse_config (char *file, char *progname,
   int fd;
   extern int mu_cfg_yydebug;
   int rc;
-  mu_cfg_node_t *parse_tree;
+  mu_cfg_tree_t *parse_tree;
   
   if (stat (file, &st))
     {
@@ -723,7 +723,7 @@ _mu_parse_config (char *file, char *progname,
     mu_cfg_yydebug = 0;
   
   /* Parse configuration */
-  mu_cfg_locus.file = file;
+  mu_cfg_locus.file = (char*) file;
   mu_cfg_locus.line = 1;
   rc = mu_cfg_parse (&parse_tree,
 		     &data,
@@ -746,7 +746,7 @@ _mu_parse_config (char *file, char *progname,
       idata.progparam = progparam;
       idata.global = global;
       _mu_config_register_section (&cont, NULL, NULL, NULL,
-				   progname, mu_include_param, NULL);
+				   (void*) progname, mu_include_param, NULL);
       if (global)
 	{
 	  mu_iterator_t iter;
@@ -757,7 +757,7 @@ _mu_parse_config (char *file, char *progname,
 	    progparam = &empty_param;
 
 	  _mu_config_register_section (&cont, NULL, "program", prog_parser,
-				       progname,
+				       (void*) progname,
 				       progparam, &prog_sect);
 
 	  if (old_root->v.section.subsec)
@@ -794,8 +794,7 @@ _mu_parse_config (char *file, char *progname,
 	_mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
 				     progparam, NULL);
       
-      rc = mu_cfg_scan_tree (parse_tree, &cont->v.section,
-			     progname, NULL, NULL, NULL);
+      rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, (void*) progname);
       mu_config_destroy_container (&cont);
     }
 
@@ -811,7 +810,7 @@ _mu_parse_config (char *file, char *progname,
 }
 
 int
-mu_parse_config (char *file, char *progname,
+mu_parse_config (const char *file, const char *progname,
 		 struct mu_cfg_param *progparam, int global)
 {
   int rc;

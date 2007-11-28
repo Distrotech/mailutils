@@ -25,12 +25,12 @@
 static struct mu_gocs_sieve sieve_settings;
 
 static int
-cb_clear_library_path (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_clear_library_path (mu_debug_t debug, void *data, char *arg)
 {
   int flag;
   if (mu_cfg_parse_boolean (arg, &flag))
     {
-      mu_error ("%s:%u: %s", locus->file, locus->line, _("not a boolean"));
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
       return 1;
     }
   if (flag)
@@ -39,12 +39,12 @@ cb_clear_library_path (mu_cfg_locus_t *locus, void *data, char *arg)
 }
 
 static int
-cb_clear_include_path (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_clear_include_path (mu_debug_t debug, void *data, char *arg)
 {
   int flag;
   if (mu_cfg_parse_boolean (arg, &flag))
     {
-      mu_error ("%s:%u: %s", locus->file, locus->line, _("not a boolean"));
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
       return 1;
     }
   if (flag)
@@ -59,7 +59,7 @@ destroy_string (void *str)
 }
 
 static int
-_add_path (mu_list_t *plist, mu_cfg_locus_t *locus, void *data, char *arg)
+_add_path (mu_list_t *plist, mu_debug_t debug, void *data, char *arg)
 {
   char *p;
   
@@ -68,7 +68,8 @@ _add_path (mu_list_t *plist, mu_cfg_locus_t *locus, void *data, char *arg)
       int rc = mu_list_create (plist);
       if (rc)
 	{
-	  mu_error (_("cannot create list: %s"), mu_strerror (rc));
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       _("cannot create list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
       mu_list_set_destroy_item (*plist, destroy_string);
@@ -79,15 +80,15 @@ _add_path (mu_list_t *plist, mu_cfg_locus_t *locus, void *data, char *arg)
 }
 
 static int
-cb_include_path (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_include_path (mu_debug_t debug, void *data, char *arg)
 {
-  return _add_path (&sieve_settings.include_path, locus, data, arg);
+  return _add_path (&sieve_settings.include_path, debug, data, arg);
 }
 
 static int
-cb_library_path (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_library_path (mu_debug_t debug, void *data, char *arg)
 {
-  return _add_path (&sieve_settings.library_path, locus, data, arg);
+  return _add_path (&sieve_settings.library_path, debug, data, arg);
 }
 
 static struct mu_cfg_param mu_sieve_param[] = {

@@ -26,13 +26,13 @@
 static struct mu_ldap_module_config ldap_settings;
 
 static int
-cb_field_map (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_field_map (mu_debug_t debug, void *data, char *arg)
 {
   int err;
   int rc = mutil_parse_field_map (arg, &ldap_settings.field_map, &err);
   if (rc)
-    mu_error (_("%s:%d: Error near element %d: %s"),
-	      locus->file, locus->line, err, mu_strerror (rc));
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Error near element %d: %s"),
+			 err, mu_strerror (rc));
   return 0;
 }
 
@@ -53,7 +53,7 @@ static struct mu_cfg_param mu_ldap_param[] = {
 int									      
 mu_ldap_section_parser
    (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
-    void *section_data, void *call_data)				      
+    void *section_data, void *call_data, mu_cfg_tree_t *tree)
 {									      
   switch (stage)							      
     {									      

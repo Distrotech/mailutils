@@ -146,27 +146,27 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static int
-cb_other (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_other (mu_debug_t debug, void *data, char *arg)
 {
   set_namespace (NS_OTHER, arg);
   return 0;
 }
 
 static int
-cb_shared (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_shared (mu_debug_t debug, void *data, char *arg)
 {
   set_namespace (NS_SHARED, arg);
   return 0;
 }
 
 static int
-cb_mode (mu_cfg_locus_t *locus, void *data, char *arg)
+cb_mode (mu_debug_t debug, void *data, char *arg)
 {
   char *p;
   home_dir_mode = strtoul (arg, &p, 8);
   if (p || (home_dir_mode & 0777))
-    mu_error (_("%s:%d: Invalid mode specification: %s"),
-	      locus->file, locus->line, arg);
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+                         _("Invalid mode specification: %s"), arg);
   return 0;
 }
 
