@@ -62,6 +62,7 @@ N_("Debug flags:\n\
 #define D_DEFAULT "TPt"
 
 #define ARG_LINE_INFO 257
+#define ARG_NO_PROGRAM_NAME 258
 
 static struct argp_option options[] =
 {
@@ -94,6 +95,9 @@ static struct argp_option options[] =
    
   {"email", 'e', N_("ADDRESS"), 0,
    N_("Override user email address"), 0},
+
+  {"no-program-name", ARG_NO_PROGRAM_NAME, NULL, 0,
+   N_("Do not prefix diagnostic messages with the program name"), 0},
   
   {0}
 };
@@ -159,6 +163,13 @@ set_debug_level (mu_debug_t debug, const char *arg)
     }
 }
 
+int
+mu_compat_printer (void *data, size_t level, const char *buf)
+{
+  fputs (buf, stderr);
+  return 0;
+}
+
 static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
@@ -212,6 +223,14 @@ parser (int key, char *arg, struct argp_state *state)
 
     case ARG_LINE_INFO:
       sieve_print_locus = is_true_p (arg);
+      break;
+
+    case ARG_NO_PROGRAM_NAME:
+      {
+	mu_debug_t debug;
+	mu_diag_get_debug (&debug);
+	mu_debug_set_print (debug, mu_compat_printer, NULL);
+      }
       break;
       
     case ARGP_KEY_ARG:
@@ -290,70 +309,38 @@ static const char *sieve_argp_capa[] =
 };
 
 static int
-sieve_stderr_debug_printer (void *unused, const char *fmt, va_list ap)
+_sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 {
-  vfprintf (stderr, fmt, ap);
-  return 0;
-}
-
-static int
-sieve_syslog_debug_printer (void *unused, const char *fmt, va_list ap)
-{
-  vsyslog (LOG_DEBUG, fmt, ap);
+  mu_diag_vprintf (MU_DIAG_DEBUG, fmt, ap);
   return 0;
 }
 
 static void
-stdout_action_log (void *unused,
-		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
+_sieve_action_log (void *unused,
+		   const mu_sieve_locus_t *locus, size_t msgno,
+		   mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
-  
-  mu_message_get_uid (msg, &uid);
+  mu_debug_t debug;
 
   if (sieve_print_locus)
-    fprintf (stdout, _("%s:%lu: %s on msg uid %lu"),
-	     locus->source_file, (unsigned long) locus->source_line,
-	     action, (unsigned long) uid);
-  else
-    fprintf (stdout, _("%s on msg uid %lu"), action, (unsigned long) uid);
+    {
+      mu_diag_get_debug (&debug);
+      mu_debug_set_locus (debug, locus->source_file, locus->source_line);
+    }
+  
+  mu_message_get_uid (msg, &uid);
+  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %d"), action, uid);
   
   if (fmt && strlen (fmt))
     {
-      fprintf (stdout, ": ");
-      vfprintf (stdout, fmt, ap);
+      mu_diag_printf (MU_DIAG_NOTICE, ": ");
+      mu_diag_vprintf (MU_DIAG_NOTICE, fmt, ap);
     }
-  fprintf (stdout, "\n");
-}
-
-static void
-syslog_action_log (void *unused,
-		   const mu_sieve_locus_t *locus, size_t msgno, mu_message_t msg,
-		   const char *action, const char *fmt, va_list ap)
-{
-  size_t uid = 0;
-  char *text = NULL;
-  
-  mu_message_get_uid (msg, &uid);
-
+  mu_diag_printf (MU_DIAG_NOTICE, "\n");
   if (sieve_print_locus)
-    asprintf (&text, _("%s:%lu: %s on msg uid %lu"),
-	      locus->source_file, (unsigned long) locus->source_line,
-	      action, (unsigned long) uid);
-  else
-    asprintf (&text, _("%s on msg uid %lu"), action, (unsigned long) uid);
-    
-  if (fmt && strlen (fmt))
-    {
-      char *diag = NULL;
-      asprintf (&diag, fmt, ap);
-      syslog (LOG_NOTICE, "%s: %s", text, diag);
-      free (diag);
-    }
-  else
-    syslog (LOG_NOTICE, "%s", text);
-  free (text);
+    mu_debug_set_locus (debug, NULL, 0);
 }
 
 int
@@ -396,18 +383,16 @@ main (int argc, char *argv[])
 
   if (log_facility)
     {
+      mu_debug_t debug;
+
+      mu_diag_get_debug (&debug);
       openlog ("sieve", LOG_PID, log_facility);
-      mu_error_set_print (mu_syslog_error_printer);
-      mu_sieve_set_debug (mach, sieve_syslog_debug_printer);
-      if (verbose)
-	mu_sieve_set_logger (mach, syslog_action_log);
+      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
     }
-  else
-    {
-      mu_sieve_set_debug (mach, sieve_stderr_debug_printer);
-      if (verbose)
-	mu_sieve_set_logger (mach, stdout_action_log);
-    }
+
+  mu_sieve_set_debug (mach, _sieve_debug_printer);
+  if (verbose)
+    mu_sieve_set_logger (mach, _sieve_action_log);
   
   rc = mu_sieve_compile (mach, script);
   if (rc)

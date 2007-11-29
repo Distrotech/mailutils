@@ -33,7 +33,7 @@ typedef struct mu_cfg_node mu_cfg_node_t;
 typedef struct mu_cfg_locus mu_cfg_locus_t;
 typedef struct mu_cfg_tree mu_cfg_tree_t;
 
-typedef int (*mu_cfg_lexer_t) (void *ptr);
+typedef int (*mu_cfg_lexer_t) (void *ptr, mu_debug_t dbg);
 typedef void *(*mu_cfg_alloc_t) (size_t size);
 typedef void (*mu_cfg_free_t) (void *ptr);
 

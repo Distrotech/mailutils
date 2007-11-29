@@ -293,27 +293,27 @@ action_exec (FILE *tty, int line, int argc, char **argv)
 
   if (argc == 0)
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: No arguments for exec"), username, line);
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: No arguments for exec"), username, line);
       return;
     }
 
   if (argv[0][0] != '/')
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: Not an absolute pathname"),
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: Not an absolute pathname"),
 	      username, line);
       return;
     }
 
   if (stat (argv[0], &stb))
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: cannot stat %s: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: cannot stat %s: %s"),
 	      username, line, argv[0], strerror (errno));
       return;
     }
 
   if (stb.st_mode & (S_ISUID|S_ISGID))
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: will not execute set[ug]id programs"),
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: will not execute set[ug]id programs"),
 	      username, line);
       return;
     }
@@ -327,7 +327,7 @@ action_exec (FILE *tty, int line, int argc, char **argv)
       dup2 (fileno (tty), 2);
       fclose (tty);
       execv (argv[0], argv);
-      syslog (LOG_ERR, _("Cannot execute %s: %s"), argv[0], strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, _("Cannot execute %s: %s"), argv[0], strerror (errno));
       exit (0);
     }
 }
@@ -345,7 +345,7 @@ open_rc (const char *filename, FILE *tty)
     {
       if (stb.st_uid != pw->pw_uid)
 	{
-	  syslog (LOG_NOTICE, _("%s's %s is not owned by %s"),
+	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s is not owned by %s"),
 		  username, filename, username);
 	  return NULL;
 	}
@@ -353,7 +353,7 @@ open_rc (const char *filename, FILE *tty)
 	{
 	  fprintf (tty, "%s\r\n",
 		   _("Warning: your .biffrc has wrong permissions"));
-	  syslog (LOG_NOTICE, _("%s's %s has wrong permissions"),
+	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s has wrong permissions"),
 		  username, filename);
 	  return NULL;
 	}
@@ -418,7 +418,7 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		    {
 		      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
 		      fprintf (tty, "\r\n");
-		      syslog (LOG_ERR, _("%s:.biffrc:%d: unknown keyword %s"),
+		      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: unknown keyword %s"),
 			      username, line, argv[0]);
 		      break;
 		    }

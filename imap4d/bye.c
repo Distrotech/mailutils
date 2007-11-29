@@ -41,41 +41,41 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
     {
     case ERR_NO_MEM:
       util_out (RESP_BYE, "Server terminating no more resources.");
-      syslog (LOG_ERR, _("Out of memory"));
+      mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
       break;
 
     case ERR_SIGNAL:
-      syslog (LOG_ERR, _("Quitting on signal"));
+      mu_diag_output (MU_DIAG_ERROR, _("Quitting on signal"));
       exit (status);
 
     case ERR_TIMEOUT:
       util_out (RESP_BYE, "Session timed out");
       if (state == STATE_NONAUTH)
-        syslog (LOG_INFO, _("Session timed out for no user"));
+        mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
       else
-	syslog (LOG_INFO, _("Session timed out for user: %s"), auth_data->name);
+	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"), auth_data->name);
       break;
 
     case ERR_NO_OFILE:
-      syslog (LOG_INFO, _("No socket to send to"));
+      mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
       break;
 
     case ERR_MAILBOX_CORRUPTED:
-      syslog (LOG_ERR, _("Mailbox modified by third party"));
+      mu_diag_output (MU_DIAG_ERROR, _("Mailbox modified by third party"));
       break;
       
     case OK:
       util_out (RESP_BYE, "Session terminating.");
       if (state == STATE_NONAUTH)
-	syslog (LOG_INFO, _("Session terminating"));
+	mu_diag_output (MU_DIAG_INFO, _("Session terminating"));
       else
-	syslog (LOG_INFO, _("Session terminating for user: %s"), auth_data->name);
+	mu_diag_output (MU_DIAG_INFO, _("Session terminating for user: %s"), auth_data->name);
       status = EXIT_SUCCESS;
       break;
 
     default:
       util_out (RESP_BYE, "Quitting (reason unknown)");
-      syslog (LOG_ERR, _("Quitting (numeric reason %d)"), reason);
+      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"), reason);
       break;
     }
 

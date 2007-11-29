@@ -95,17 +95,6 @@ static const char *movemail_capa[] = {
   NULL 
 };
 
-int
-movemail_error_printer (const char *fmt, va_list ap)
-{
-  int n;
-  
-  n = fprintf (stderr, "%s: ", program_invocation_short_name);
-  n += vfprintf (stderr, fmt, ap);
-  fputc ('\n', stderr);
-  return n + 1;
-}
-
 void
 die (mu_mailbox_t mbox, char *msg, int status)
 {
@@ -289,8 +278,6 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
 
   /* argument parsing */
-  
-  mu_error_set_print (movemail_error_printer);
   
 #ifdef WITH_TLS
   mu_gocs_register ("tls", mu_tls_module_init);

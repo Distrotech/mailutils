@@ -53,7 +53,7 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
     }
   else
     {
-      syslog (LOG_ERR, _("Session terminated"));
+      mu_diag_output (MU_DIAG_ERROR, _("Session terminated"));
       util_bye ();
       exit (0);
     }

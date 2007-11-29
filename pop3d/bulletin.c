@@ -184,7 +184,7 @@ read_bulletin_db (size_t *pnum)
 	  n = *(long*)MU_DATUM_PTR (data);
 	  if (n >= 0)
 	    {
-	      syslog (LOG_INFO,
+	      mu_diag_output (MU_DIAG_INFO,
 		      _("assuming bulletin database is in qpopper format"));
 	      *pnum = n;
 	      rc = 0;
@@ -280,7 +280,7 @@ deliver_pending_bulletins ()
     mu_error (_("Cannot count bulletins: %s"), mu_strerror (rc));
   else
     {
-      syslog (LOG_DEBUG,
+      mu_diag_output (MU_DIAG_DEBUG,
 	      "user %s, last bulletin %lu, total bulletins %lu",
 	      username, (unsigned long) lastnum, (unsigned long) total);
 	  
@@ -289,7 +289,7 @@ deliver_pending_bulletins ()
 	  size_t i;
 	  size_t count = total - lastnum;
   
-	  syslog (LOG_INFO,
+	  mu_diag_output (MU_DIAG_INFO,
 		  ngettext ("user %s: delivering %lu pending bulletin",
 			    "user %s: delivering %lu pending bulletins",
 			    count),

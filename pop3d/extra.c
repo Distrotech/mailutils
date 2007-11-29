@@ -103,34 +103,34 @@ pop3d_abquit (int reason)
     {
     case ERR_NO_MEM:
       pop3d_outf ("-ERR Out of memory, quitting\r\n");
-      syslog (LOG_ERR, _("Out of memory"));
+      mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
       break;
 
     case ERR_SIGNAL:
-      syslog (LOG_ERR, _("Quitting on signal"));
+      mu_diag_output (MU_DIAG_ERROR, _("Quitting on signal"));
       break;
 
     case ERR_TIMEOUT:
       pop3d_outf ("-ERR Session timed out\r\n");
       if (state == TRANSACTION)
-	syslog (LOG_INFO, _("Session timed out for user: %s"), username);
+	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"), username);
       else
-	syslog (LOG_INFO, _("Session timed out for no user"));
+	mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
       break;
 
     case ERR_NO_OFILE:
-      syslog (LOG_INFO, _("No socket to send to"));
+      mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
       break;
 
     case ERR_MBOX_SYNC:
-      syslog (LOG_ERR, _("Mailbox was updated by other party: %s"), username);
+      mu_diag_output (MU_DIAG_ERROR, _("Mailbox was updated by other party: %s"), username);
       pop3d_outf
 	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
       pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
-      syslog (LOG_ERR, _("Quitting (numeric reason %d)"), reason);
+      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"), reason);
       break;
     }
 
@@ -166,7 +166,7 @@ pop3d_init_tls_server ()
     {
       const char *p;
       mu_stream_strerror (stream, &p);
-      syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"), p);
       return 0;
     }
   
@@ -217,7 +217,7 @@ pop3d_outf (const char *fmt, ...)
     pop3d_abquit (ERR_NO_MEM);
   
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "sent: %s", buf);
+    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   rc = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -227,7 +227,7 @@ pop3d_outf (const char *fmt, ...)
 
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
-      syslog (LOG_ERR, _("Write failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Write failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
     }
 }
@@ -250,17 +250,17 @@ pop3d_readline (char *buffer, size_t size)
 
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
-      syslog (LOG_ERR, _("Read failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Read failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
     }
   else if (nbytes == 0)
     {
-      syslog (LOG_ERR, _("unexpected eof on input"));
+      mu_diag_output (MU_DIAG_ERROR, _("unexpected eof on input"));
       pop3d_abquit (ERR_NO_OFILE);
     }
 
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "recv: %s", buffer);
+    mu_diag_output (MU_DIAG_DEBUG, "recv: %s", buffer);
 
   /* Caller should not free () this ... should we strdup() then?  */
   return buffer;

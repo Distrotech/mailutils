@@ -197,18 +197,54 @@ copy_string (struct lexer_data *p)
   return cbuf_finish (p);
 }
 
+#define LEX_DEBUG(tok, arg1, arg2) \
+ do \
+   { \
+     if (mu_debug_check_level (dbg, MU_DEBUG_TRACE2)) \
+       { \
+	 mu_debug_set_locus (dbg, \
+			     mu_cfg_locus.file, mu_cfg_locus.line); \
+	 mu_cfg_format_error (dbg, MU_DEBUG_TRACE2, "TOKEN %s \"%s\" \"%s\"", \
+			      tok, \
+			      arg1 ? arg1 : "", \
+			      arg2 ? arg2 : ""); \
+       } \
+   } \
+ while (0)
+
 int
-default_lexer (void *dp)
+default_lexer (void *dp, mu_debug_t dbg)
 {
   struct lexer_data *p = dp;
   char *save_start;
   char *tag, *label;
+  extern int mu_cfg_yydebug;
   
 again:
   skipws (p);
 
-  if (*p->curp == '#'
-      || (*p->curp == '/' && p->curp[1] == '/'))
+  if (*p->curp == '#')
+    {
+      const char *start = ++p->curp;
+      skipline (p);
+      if (strncmp (start, "debug=", 6) == 0)
+	{
+	  size_t lev;
+	  if (p->curp[0] == '\n')
+	    {
+	      mu_cfg_locus.line++;
+	      *p->curp++ = 0;
+	    }
+	  if (mu_debug_level_from_string (start + 6, &lev, dbg) == 0)
+	    {
+	      mu_debug_set_level (dbg, lev);
+	      mu_cfg_yydebug = lev & MU_DEBUG_LEVEL_MASK (MU_DEBUG_TRACE1);
+	    }
+	}
+      goto again;
+    }
+    
+  if (*p->curp == '/' && p->curp[1] == '/')
     {
       skipline (p);
       goto again;
@@ -240,17 +276,22 @@ again:
     }
 
   if (*p->curp == 0)
-    return 0;
+    {
+      LEX_DEBUG ("EOF", NULL, NULL);
+      return 0;
+    }
 
   if (*p->curp == '"' || *p->curp == '\'')
     {
       mu_cfg_yylval.string = copy_string (p);
+      LEX_DEBUG ("STRING", mu_cfg_yylval.string, NULL); 
       return MU_CFG_STRING_TOKEN;
     }
 
   if (mu_cfg_tie_in)
     {
       mu_cfg_yylval.string = copy_alpha (p);
+      LEX_DEBUG ("STRING", mu_cfg_yylval.string, NULL); 
       return MU_CFG_STRING_TOKEN;
     }
 	
@@ -259,12 +300,14 @@ again:
       p->curp++;
       memset (&mu_cfg_yylval.node, 0, sizeof mu_cfg_yylval.node);
       mu_cfg_yylval.node.locus = mu_cfg_locus;
+      LEX_DEBUG ("END", NULL, NULL);
       return MU_CFG_END_TOKEN;
     }
 
   if (*p->curp == ';')
     {
       p->curp++;
+      LEX_DEBUG ("EOL", NULL, NULL);
       return MU_CFG_EOL_TOKEN;
     }
 	
@@ -273,6 +316,7 @@ again:
   if (*p->curp == '"')
     {
       mu_cfg_yylval.string = tag;
+      LEX_DEBUG ("STRING", mu_cfg_yylval.string, NULL); 
       return MU_CFG_STRING_TOKEN;
     }
 	
@@ -290,6 +334,7 @@ again:
       mu_cfg_yylval.node.tag_name = tag;
       mu_cfg_yylval.node.locus = mu_cfg_locus;
       mu_cfg_yylval.node.tag_label = label;
+      LEX_DEBUG ("START", tag, label); 
       return MU_CFG_START_TOKEN;
     }
   else
@@ -297,6 +342,7 @@ again:
       p->curp = save_start;
       mu_cfg_yylval.string = tag;
     }
+  LEX_DEBUG ("STRING", mu_cfg_yylval.string, NULL); 
   return MU_CFG_STRING_TOKEN; 
 }
 
@@ -688,7 +734,6 @@ _mu_parse_config (const char *file, const char *progname,
   struct lexer_data data;
   struct stat st;
   int fd;
-  extern int mu_cfg_yydebug;
   int rc;
   mu_cfg_tree_t *parse_tree;
   
@@ -716,12 +761,6 @@ _mu_parse_config (const char *file, const char *progname,
   close (fd);
   data.curp = data.buffer;
 
-  if (mu_cfg_parser_verbose > 1
-      || strncmp (data.curp, "#debug", 6) == 0)
-    mu_cfg_yydebug = 1;
-  else
-    mu_cfg_yydebug = 0;
-  
   /* Parse configuration */
   mu_cfg_locus.file = (char*) file;
   mu_cfg_locus.line = 1;

@@ -44,10 +44,10 @@ pop3d_quit (const char *arg)
       if (mu_mailbox_close (mbox) != 0) 
 	err = ERR_FILE;
       mu_mailbox_destroy (&mbox);
-      syslog (LOG_INFO, _("Session ended for user: %s"), username);
+      mu_diag_output (MU_DIAG_INFO, _("Session ended for user: %s"), username);
     }
   else
-    syslog (LOG_INFO, _("Session ended for no user"));
+    mu_diag_output (MU_DIAG_INFO, _("Session ended for no user"));
 
   state = UPDATE;
   update_login_delay (username);

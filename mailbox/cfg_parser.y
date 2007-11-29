@@ -52,7 +52,7 @@ yyerror (char *s)
 static int
 yylex ()
 {
-  return _mu_cfg_lexer (_mu_cfg_lexer_data);
+  return _mu_cfg_lexer (_mu_cfg_lexer_data, _mu_cfg_debug);
 }
 
 static mu_cfg_node_t *
@@ -129,7 +129,29 @@ mu_cfg_perror (const mu_cfg_locus_t *loc, const char *fmt, ...)
   _mu_cfg_vperror (_mu_cfg_debug, loc, fmt, ap);
   va_end (ap);
 }
-  
+
+#define node_type_str(t) (((t) == mu_cfg_node_tag) ? "tag" : "param")
+
+static void
+debug_print_node (mu_cfg_node_t *node)
+{
+  if (mu_debug_check_level (_mu_cfg_debug, MU_DEBUG_TRACE0))
+    {
+      mu_debug_set_locus (_mu_cfg_debug,
+			  node->locus.file, node->locus.line);
+      if (node->type == mu_cfg_node_undefined)
+	/* Stay on the safe side */
+	mu_cfg_format_error (_mu_cfg_debug, MU_DEBUG_ERROR,
+			     "unknown statement type!");
+      else
+	mu_cfg_format_error (_mu_cfg_debug, MU_DEBUG_TRACE0,
+			     "statement: %s, name: %s, label: %s",
+			     node_type_str (node->type),
+			     node->tag_name ? node->tag_name : "(null)",
+			     node->tag_label ? node->tag_label : "(null)");
+    }
+}
+      
 %}
 
 %token MU_CFG_EOL_TOKEN
@@ -161,12 +183,14 @@ input   : taglist
 taglist : tag
           {
 	    $$.head = $$.tail = $1;
+	    debug_print_node ($1);
 	  }
         | taglist tag
           {
 	    $$ = $1;
 	    $$.tail->next = $2;
 	    $$.tail = $2;
+	    debug_print_node ($2);
 	  }
         ;
 

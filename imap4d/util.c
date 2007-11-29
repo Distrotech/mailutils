@@ -361,7 +361,7 @@ util_send (const char *format, ...)
       imap4d_bye (ERR_NO_MEM);
 
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "sent: %s", buf);
+    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -415,7 +415,7 @@ util_out (int rc, const char *format, ...)
     imap4d_bye (ERR_NO_MEM);
 
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "sent: %s", buf);
+    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -456,7 +456,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   free (tempbuf);
 
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "sent: %s\r\n", buf);
+    mu_diag_output (MU_DIAG_DEBUG, "sent: %s\r\n", buf);
 
   mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -507,7 +507,7 @@ imap4d_readline (void)
       rc = mu_stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
       if (sz == 0)
 	{
-	  syslog (LOG_INFO, _("Unexpected eof on input"));
+	  mu_diag_output (MU_DIAG_INFO, _("Unexpected eof on input"));
 	  imap4d_bye (ERR_NO_OFILE);
 	}
       else if (rc)
@@ -516,7 +516,7 @@ imap4d_readline (void)
 	  if (mu_stream_strerror (istream, &p))
 	    p = strerror (errno);
 
-	  syslog (LOG_INFO, _("Error reading from input file: %s"), p);
+	  mu_diag_output (MU_DIAG_INFO, _("Error reading from input file: %s"), p);
 	  imap4d_bye (ERR_NO_OFILE);
 	}
       alarm (0);
@@ -578,7 +578,7 @@ imap4d_readline (void)
     }
   while (number > 0 || (total && line[total - 1] != '\n'));
   if (mu_gocs_daemon.transcript)
-    syslog (LOG_DEBUG, "recv: %s", line);
+    mu_diag_output (MU_DIAG_DEBUG, "recv: %s", line);
   return line;
 }
 
@@ -1003,7 +1003,7 @@ util_localname ()
 	}
       if (status)
 	{
-	  syslog (LOG_CRIT, _("Cannot find out my own hostname"));
+	  mu_diag_output (MU_DIAG_CRIT, _("Cannot find out my own hostname"));
 	  exit (1);
 	}
 
@@ -1150,7 +1150,7 @@ util_wait_input (int timeout)
   status = mu_stream_wait (istream, &wflags, &tv);
   if (status)
     {
-      syslog (LOG_ERR, _("Cannot poll input stream: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("Cannot poll input stream: %s"),
 	      mu_strerror(status));
       return -1;
     }
@@ -1184,7 +1184,7 @@ imap4d_init_tls_server ()
     {
       const char *p;
       mu_stream_strerror (stream, &p);
-      syslog (LOG_ERR, _("Cannot open TLS stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Cannot open TLS stream: %s"), p);
       return 0;
     }
 

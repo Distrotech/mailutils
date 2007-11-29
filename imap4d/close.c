@@ -36,7 +36,7 @@ imap4d_close (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
       status = mu_mailbox_flush (mbox, 1);
       if (status)
 	{
-	  syslog (LOG_ERR,
+	  mu_diag_output (MU_DIAG_ERROR,
 		  _("flushing mailbox failed: %s"), mu_strerror (status));
 	  msg = "flushing mailbox failed";
 	}
@@ -47,7 +47,7 @@ imap4d_close (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
   status = mu_mailbox_close (mbox);
   if (status)
     {
-      syslog (LOG_ERR, _("closing mailbox failed: %s"), mu_strerror (status));
+      mu_diag_output (MU_DIAG_ERROR, _("closing mailbox failed: %s"), mu_strerror (status));
       msg = "closing mailbox failed";
     }
   mu_mailbox_destroy (&mbox);

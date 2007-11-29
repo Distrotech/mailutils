@@ -260,14 +260,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
 static int
 _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 {
-  if (log_to_stderr)
-    {
-      fprintf (stderr, "DEBUG: ");
-      vfprintf (stderr, fmt, ap);
-      fputc ('\n', stderr);
-    }
-  else
-    vsyslog (LOG_DEBUG, fmt, ap);
+  mu_diag_vprintf (MU_DIAG_DEBUG, fmt, ap);
   return 0;
 }
 
@@ -277,8 +270,13 @@ _sieve_action_log (void *user_name,
 		   mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
-  char *text = NULL;
+  int pfx = 0;
+  mu_debug_t debug;
+
+  mu_diag_get_debug (&debug);
+  mu_debug_set_locus (debug, locus->source_file, locus->source_line);
   
+  mu_diag_printf (MU_DIAG_NOTICE, _("(user %s) "), (char*) user_name);
   if (message_id_header)
     {
       mu_header_t hdr = NULL;
@@ -287,67 +285,42 @@ _sieve_action_log (void *user_name,
       if (mu_header_aget_value (hdr, message_id_header, &val) == 0
 	  || mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
 	{
-	  asprintf (&text, _("%s:%lu: %s on msg %s"),
-		    locus->source_file,
-		    (unsigned long) locus->source_line,
-		    action, val);
+	  pfx = 1;
+	  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg %s"), action, val);
 	  free (val);
 	}
     }
-  if (text == NULL)
+  
+  if (!pfx)
     {
       size_t uid = 0;
       mu_message_get_uid (msg, &uid);
-      asprintf (&text, _("%s:%lu: %s on msg uid %d"),
-		locus->source_file,
-		(unsigned long)	locus->source_line,
-		action, uid);
+      mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %d"), action, uid);
     }
   
   if (fmt && strlen (fmt))
     {
-      char *diag = NULL;
-      vasprintf (&diag, fmt, ap);
-      if (log_to_stderr)
-	fprintf (stderr, _("(user %s) %s: %s"), (char*) user_name,
-		 text, diag);
-      else
-	syslog (LOG_NOTICE, _("(user %s) %s: %s"), (char*) user_name,
-		text, diag);
-      free (diag);
+      mu_diag_printf (MU_DIAG_NOTICE, "; ");
+      mu_diag_vprintf (MU_DIAG_NOTICE, fmt, ap);
     }
-  else if (log_to_stderr)
-    fprintf (stderr, _("(user %s) %s"), (char*) user_name, text);
-  else
-    syslog (LOG_NOTICE, _("(user %s) %s"), (char*) user_name, text);
-  free (text);
-  if (log_to_stderr)
-    fputc ('\n', stderr);
+  mu_diag_printf (MU_DIAG_NOTICE, "\n");
+  mu_debug_set_locus (debug, NULL, 0);
 }
 
 static int
 _sieve_parse_error (void *user_name, const char *filename, int lineno,
 		    const char *fmt, va_list ap)
 {
-  char *text;
-  vasprintf (&text, fmt, ap);
+  mu_debug_t debug;
+
+  mu_diag_get_debug (&debug);
   if (filename)
-    {
-      char *loc;
-      asprintf (&loc, "%s:%d: ", filename, lineno);
-      if (log_to_stderr)
-	fprintf (stderr, "%s: %s", loc, text);
-      else
-	syslog (LOG_ERR, "%s: %s", loc, text);
-      free (loc);
-    }
-  else if (log_to_stderr)
-    fprintf (stderr, _("(user %s) %s"), (char*)user_name, text);
-  else
-    syslog (LOG_ERR, _("(user %s) %s"), (char*)user_name, text);
-  free (text);
-  if (log_to_stderr)
-    fputc ('\n', stderr);
+    mu_debug_set_locus (debug, filename, lineno);
+
+  mu_diag_printf (MU_DIAG_ERROR, _("(user %s) "), (char*) user_name);
+  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
+  mu_diag_printf (MU_DIAG_ERROR, "\n");
+  mu_debug_set_locus (debug, NULL, 0);
   return 0;
 }
 
@@ -364,7 +337,7 @@ sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
   if (access (progfile, R_OK))
     {
       if (debug_level > 2)
-	syslog (LOG_DEBUG, _("Access to %s failed: %m"), progfile);
+	mu_diag_output (MU_DIAG_DEBUG, _("Access to %s failed: %m"), progfile);
     }
   else
     {
@@ -456,8 +429,11 @@ main (int argc, char *argv[])
   
   if (!log_to_stderr)
     {
-      openlog ("mail.local", LOG_PID, log_facility);
-      mu_error_set_print (mu_syslog_error_printer);
+      mu_debug_t debug;
+
+      openlog ("maidag", LOG_PID, log_facility);
+      mu_diag_get_debug (&debug);
+      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
     }
   
   argc -= arg_index;

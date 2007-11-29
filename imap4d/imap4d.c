@@ -272,7 +272,12 @@ main (int argc, char **argv)
 
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
-  mu_error_set_print (mu_syslog_error_printer);
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+  }
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
@@ -317,17 +322,17 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
       struct sockaddr_in cs;
       int len = sizeof cs;
 
-      syslog (LOG_INFO, _("Incoming connection opened"));
+      mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
       if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
-	syslog (LOG_ERR, _("Cannot obtain IP address of client: %s"),
+	mu_diag_output (MU_DIAG_ERROR, _("Cannot obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, _("Connect from %s"), inet_ntoa (cs.sin_addr));
+	mu_diag_output (MU_DIAG_INFO, _("Connect from %s"), inet_ntoa (cs.sin_addr));
       text = "IMAP4rev1";
     }
   else
     {
-      syslog (LOG_INFO, _("Started in debugging mode"));
+      mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
       text = "IMAP4rev1 Debugging mode";
     }
 
@@ -392,7 +397,7 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
   listenfd = socket (PF_INET, SOCK_STREAM, 0);
   if (listenfd == -1)
     {
-      syslog (LOG_ERR, "socket: %s", strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, "socket: %s", strerror (errno));
       exit (1);
     }
   size = 1;			/* Use size here to avoid making a new variable.  */
@@ -405,23 +410,23 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
 
   if (bind (listenfd, (struct sockaddr *) &server, size) == -1)
     {
-      syslog (LOG_ERR, "bind: %s", strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, "bind: %s", strerror (errno));
       exit (1);
     }
 
   if (listen (listenfd, 128) == -1)
     {
-      syslog (LOG_ERR, "listen: %s", strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, "listen: %s", strerror (errno));
       exit (1);
     }
 
-  syslog (LOG_INFO, _("GNU imap4d started"));
+  mu_diag_output (MU_DIAG_INFO, _("GNU imap4d started"));
 
   for (;;)
     {
       if (children > maxchildren)
 	{
-	  syslog (LOG_ERR, _("Too many children (%s)"),
+	  mu_diag_output (MU_DIAG_ERROR, _("Too many children (%s)"),
 		  mu_umaxtostr (0, children));
 	  pause ();
 	  continue;
@@ -432,13 +437,13 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  syslog (LOG_ERR, "accept: %s", strerror (errno));
+	  mu_diag_output (MU_DIAG_ERROR, "accept: %s", strerror (errno));
 	  exit (1);
 	}
 
       pid = fork ();
       if (pid == -1)
-	syslog (LOG_ERR, "fork: %s", strerror (errno));
+	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
       else if (pid == 0)	/* Child.  */
 	{
 	  int status;

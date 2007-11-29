@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
  cfg.h\
  daemon.h\
  debug.h\
+ diag.h\
  envelope.h\
  errno.h\
  error.h\

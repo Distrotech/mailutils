@@ -134,7 +134,7 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
 
       util_chdir (homedir);
       namespace_init (homedir);
-      syslog (LOG_INFO, _("User `%s' logged in"), adata.username);
+      mu_diag_output (MU_DIAG_INFO, _("User `%s' logged in"), adata.username);
       
       return util_finish (command, RESP_OK,
 			  "%s authentication successful", auth_type);

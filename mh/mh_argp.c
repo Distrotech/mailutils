@@ -111,18 +111,11 @@ mh_argp_parse (int *pargc, char **pargv[],
 {
   struct argp argp;
   struct mh_argp_data data;
-  char *p;
   const char *val;
   int index;
   int extra  = 0;
-  
-  program_invocation_name = (*pargv)[0];
-  p = strrchr ((*pargv)[0], '/');
-  if (p)
-    program_invocation_short_name = p+1;
-  else
-    program_invocation_short_name = program_invocation_name;
 
+  mu_set_program_name ((*pargv)[0]);
   mh_init ();
   
   memset (&argp, 0, sizeof (argp));

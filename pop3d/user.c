@@ -25,12 +25,12 @@ pop3d_begin_session ()
 {
   int status;
 
-  syslog (LOG_INFO, _("POP3 login: user `%s', source %s"),
-	  auth_data->name, auth_data->source);
+  mu_diag_output (MU_DIAG_INFO, _("POP3 login: user `%s', source %s"),
+		  auth_data->name, auth_data->source);
   
   if (check_login_delay (auth_data->name))
     {
-      syslog (LOG_INFO,
+      mu_diag_output (MU_DIAG_INFO,
 	      _("User `%s' tried to log in within the minimum allowed delay"),
 	      auth_data->name);
       state = AUTHORIZATION;
@@ -77,7 +77,7 @@ pop3d_begin_session ()
     size_t total = 0;
     mu_mailbox_get_url (mbox, &url);
     mu_mailbox_messages_count (mbox, &total);
-    syslog (LOG_INFO,
+    mu_diag_output (MU_DIAG_INFO,
 	    ngettext ("User `%s' logged in with mailbox `%s' (%s message)",
 		      "User `%s' logged in with mailbox `%s' (%s messages)",
 		      (unsigned long) total),
@@ -131,7 +131,7 @@ pop3d_user (const char *arg)
       tmp = pop3d_apopuser (arg);
       if (tmp != NULL)
 	{
-	  syslog (LOG_INFO, _("APOP user %s tried to log in with USER"), arg);
+	  mu_diag_output (MU_DIAG_INFO, _("APOP user %s tried to log in with USER"), arg);
 	  free (tmp);
 	  return ERR_BAD_LOGIN;
 	}
@@ -141,7 +141,7 @@ pop3d_user (const char *arg)
 
       if (auth_data == NULL)
 	{
-	  syslog (LOG_INFO, _("User `%s': nonexistent"), arg);
+	  mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), arg);
 	  return ERR_BAD_LOGIN;
 	}
 
@@ -150,14 +150,14 @@ pop3d_user (const char *arg)
 
       if (rc)
 	{
-	  syslog (LOG_INFO, _("User `%s': authentication failed"), arg);
+	  mu_diag_output (MU_DIAG_INFO, _("User `%s': authentication failed"), arg);
 	  mu_auth_data_destroy (&auth_data);
 	  return ERR_BAD_LOGIN;
 	}
     }
   else if (strcasecmp (cmd, "QUIT") == 0)
     {
-      syslog (LOG_INFO, _("Possible probe of account `%s'"), arg);
+      mu_diag_output (MU_DIAG_INFO, _("Possible probe of account `%s'"), arg);
       free (cmd);
       return pop3d_quit (pass);
     }

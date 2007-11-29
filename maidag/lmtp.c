@@ -255,9 +255,9 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
   if (mu_gocs_daemon.transcript)
     {
       if (enh)
-	syslog (LOG_INFO, "LMTP reply: %s %s %s", code, enh, str);
+	mu_diag_output (MU_DIAG_INFO, "LMTP reply: %s %s %s", code, enh, str);
       else
-	syslog (LOG_INFO, "LMTP reply: %s %s", code, str);
+	mu_diag_output (MU_DIAG_INFO, "LMTP reply: %s %s", code, str);
     }
   
   if (!str)
@@ -738,7 +738,7 @@ lmtp_loop (FILE *in, FILE *out)
 	  trimnl (buf);
 
 	  if (mu_gocs_daemon.transcript)
-	    syslog (LOG_INFO, "LMTP recieve: %s", buf);
+	    mu_diag_output (MU_DIAG_INFO, "LMTP recieve: %s", buf);
 	      
 	  if (next_state != state_none)
 	    {
@@ -767,11 +767,11 @@ log_connection (all_addr_t *addr, socklen_t addrlen)
   switch (addr->sa.sa_family)
     {
     case PF_UNIX:
-      syslog (LOG_INFO, _("connect from socket"));
+      mu_diag_output (MU_DIAG_INFO, _("connect from socket"));
       break;
       
     case PF_INET:
-      syslog (LOG_INFO, _("connect from %s"), inet_ntoa (addr->s_in.sin_addr));
+      mu_diag_output (MU_DIAG_INFO, _("connect from %s"), inet_ntoa (addr->s_in.sin_addr));
     }
 }
 
@@ -841,7 +841,7 @@ lmtp_daemon (char *urlstr)
       
       pid = fork ();
       if (pid == -1)
-	syslog (LOG_ERR, "fork: %s", strerror (errno));
+	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
       else if (pid == 0) /* Child.  */
 	{
 	  int status;

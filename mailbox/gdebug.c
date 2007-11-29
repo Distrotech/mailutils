@@ -32,6 +32,8 @@
 #include <mailutils/errno.h>
 #include <mailutils/argcv.h>
 #include <mailutils/debug.h>
+#include <mailutils/cfg.h>
+#include <mailutils/nls.h>
 
 int mu_debug_line_info = 0;
 
@@ -97,6 +99,68 @@ decode_debug_level (const char *p, int *lev)
 }
 
 int
+mu_debug_level_from_string (const char *string, size_t *plev, mu_debug_t debug)
+{
+  char *p, *q;
+  unsigned level = MU_DEBUG_INHERIT;
+  
+  if (isdigit (*p))
+    {
+      level = strtoul (p, &q, 0);
+      if (*q)
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       _("invalid debugging specification `%s': "
+				 "expected levels or number after `=', "
+				 "but found `%s'"),
+			       string, p);
+	  return MU_ERR_FAILURE;
+	}
+    }
+  else
+    {
+      for (q = strtok (p, ","); q; q = strtok (NULL, ","))
+	{
+	  int flag;
+	  int revert = 0;
+	  int upto = 0;
+	  
+	  if (*q == '!')
+	    {
+	      q++;
+	      revert = 1;
+	    }
+	  if (*q == '<')
+	    {
+	      q++;
+	      upto = 1;
+	    }
+	  
+	  if (decode_debug_level (q, &flag))
+	    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+				 _("invalid debugging level `%s'"),
+				 q);
+	  else if (revert)
+	    {
+	      if (upto)
+		level &= ~MU_DEBUG_LEVEL_UPTO (flag);
+	      else
+		level &= ~MU_DEBUG_LEVEL_MASK (flag);
+	    }
+	  else
+	    {
+	      if (upto)
+		level |= MU_DEBUG_LEVEL_UPTO (flag);
+	      else
+		level |= MU_DEBUG_LEVEL_MASK (flag);
+	    }
+	}
+    }
+  *plev = level;
+  return 0;
+}
+
+int
 mu_global_debug_from_string (const char *string, const char *errpfx)
 {
   int rc;
@@ -119,6 +183,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
 
       if (*p == '=')
 	{
+	  /* FIXME: Use mu_debug_level_from_string */
 	  char *q;
 	  
 	  *p++ = 0;

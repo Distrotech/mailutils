@@ -34,6 +34,7 @@ proc sieve_test {args} {
     set default ""
     set sw [list "--verbose" \
                  "--line-info=no" \
+                 "--no-program-name" \
                  "-M sendmail:$top_builddir/examples/mta" \
 	         "--email foobar@nonexistent.net"]
     set reuse_spool 0

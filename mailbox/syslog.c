@@ -19,6 +19,7 @@
 #endif
 #include <syslog.h>
 #include <string.h>
+#include <mailutils/diag.h>
 
 struct kw_int
 {
@@ -102,6 +103,48 @@ const char *
 mu_syslog_priority_to_string (int n)
 {
   return n_to_syslog (kw_prio, n);
+}
+
+int
+mu_diag_level_to_syslog (int level)
+{
+  switch (level)
+    {
+    case MU_DIAG_EMERG:
+      return LOG_EMERG;
+      
+    case MU_DIAG_ALERT:
+      return LOG_ALERT;
+	
+    case MU_DIAG_CRIT:
+      return LOG_CRIT;
+      
+    case MU_DIAG_ERROR:
+      return LOG_ERR;
+      
+    case MU_DIAG_WARNING:
+      return LOG_WARNING;
+      
+    case MU_DIAG_NOTICE:
+      return LOG_NOTICE;
+      
+    case MU_DIAG_INFO:
+      return LOG_INFO;
+      
+    case MU_DIAG_DEBUG:
+      return LOG_DEBUG;
+    }
+  return LOG_EMERG;
+}
+
+int
+mu_diag_syslog_printer (void *data, size_t level, const char *buf)
+{
+  int len = strlen (buf);
+  if (len > 0 && buf[len-1] == '\n')
+    len--;
+  syslog (mu_diag_level_to_syslog (level), "%-.*s", len, buf);
+  return 0;
 }
 
 

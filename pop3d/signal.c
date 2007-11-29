@@ -51,12 +51,12 @@ pop3d_signal (int signo)
 {
   int code;
   
-  syslog (LOG_CRIT, _("Got signal %s"), strsignal (signo));
+  mu_diag_output (MU_DIAG_CRIT, _("Got signal %s"), strsignal (signo));
 
   /* Master process.  */
   if (pop3d_is_master ())
     {
-       syslog (LOG_CRIT, _("MASTER: exiting on signal"));
+       mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal"));
        exit (EXIT_FAILURE); 
     }
 

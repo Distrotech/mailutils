@@ -26,23 +26,28 @@
 #include <string.h>
 #include <mailutils/error.h>
 
-const char *mu_program_name;
+
+/* Historic shortcuts for mu_diag_ functions */
 
-void
-mu_set_program_name (const char *name)
+int
+mu_verror (const char *fmt, va_list ap)
 {
-  char *progname = strrchr (name, '/');
-  if (progname)
-    progname++;
-  else
-    progname = name;
-
-  if (strlen (progname) > 3 && memcmp (progname, "lt-", 3) == 0)
-    progname += 3;
-
-  mu_program_name = progname;
+  mu_diag_voutput (MU_DIAG_ERROR, fmt, ap);
+  return 0;
 }
 
+int
+mu_error (const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  mu_verror (fmt, ap);
+  va_end (ap);
+  return 0;
+}
+
+
+/* Compatibility layer */
 int
 mu_default_error_printer (const char *fmt, va_list ap)
 {
@@ -66,32 +71,46 @@ mu_syslog_error_printer (const char *fmt, va_list ap)
   return 0;
 }
 
-static mu_error_pfn_t mu_error_printer = mu_default_error_printer;
-
-int
-mu_verror (const char *fmt, va_list ap)
+static void
+compat_error_printer0 (mu_error_pfn_t pfn, const char *fmt, ...)
 {
-  if (mu_error_printer)
-    return (*mu_error_printer) (fmt, ap);
-  return 0;
+  va_list ap;
+  va_start (ap, fmt);
+  pfn (fmt, ap);
+  va_end (ap);
 }
 
-int
-mu_error (const char *fmt, ...)
+static int
+compat_error_printer (void *data, size_t level, const char *buf)
 {
-  int status;
-  va_list ap;
-
-  if (!mu_error_printer)
-    return 0;
-  va_start (ap, fmt);
-  status = (*mu_error_printer) (fmt, ap);
-  va_end (ap);
-  return status;
+  if (!data)
+    mu_diag_stderr_printer (NULL, level, buf);
+  else
+    {
+      int len = strlen (buf);
+      if (len > 0 && buf[len-1] == '\n')
+	len--;
+      compat_error_printer0 (data, "%-.*s", len, buf);
+    }
+  return 0;
 }
 
 void
 mu_error_set_print (mu_error_pfn_t pfn)
 {
-  mu_error_printer = pfn;
+  mu_debug_t debug;
+  mu_diag_get_debug (&debug);
+  mu_debug_set_print (debug, compat_error_printer, NULL);
+  mu_debug_set_data (debug, pfn, NULL, NULL);
+#if 0
+ {
+   static int warned;
+   if (!warned)
+     {
+       warned = 1;
+       mu_diag_output ("this program uses mu_error_set_print, which is deprecated");
+     }
+#endif
 }
+
+

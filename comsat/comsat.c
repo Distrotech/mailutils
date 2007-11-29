@@ -209,7 +209,13 @@ main (int argc, char **argv)
 
   /* Set up error messaging  */
   openlog ("gnu-comsat", LOG_PID, log_facility);
-  mu_error_set_print (mu_syslog_error_printer);
+
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+  }
 
   if (config_file)
     read_config (config_file);
@@ -227,10 +233,10 @@ main (int argc, char **argv)
 static RETSIGTYPE
 sig_hup (int sig)
 {
-  syslog (LOG_NOTICE, _("Restarting"));
+  mu_diag_output (MU_DIAG_NOTICE, _("Restarting"));
 
   if (xargv[0][0] != '/')
-    syslog (LOG_ERR, _("Cannot restart: program must be invoked using absolute pathname"));
+    mu_diag_output (MU_DIAG_ERROR, _("Cannot restart: program must be invoked using absolute pathname"));
   else
     execvp (xargv[0], xargv);
 
@@ -290,7 +296,7 @@ comsat_daemon (int port)
   fd = socket (PF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
     {
-      syslog (LOG_CRIT, "socket: %m");
+      mu_diag_output (MU_DIAG_CRIT, "socket: %m");
       exit (1);
     }
 
@@ -301,11 +307,11 @@ comsat_daemon (int port)
 
   if (bind (fd, (struct sockaddr *) &local_sin, sizeof local_sin) < 0)
     {
-      syslog (LOG_CRIT, "bind: %m");
+      mu_diag_output (MU_DIAG_CRIT, "bind: %m");
       exit (1);
     }
 
-  syslog (LOG_NOTICE, _("GNU comsat started"));
+  mu_diag_output (MU_DIAG_NOTICE, _("GNU comsat started"));
 
   last_request_time = last_overflow_time = time (NULL);
   while (1)
@@ -319,7 +325,7 @@ comsat_daemon (int port)
       if (rc == -1)
 	{
 	  if (errno != EINTR)
-	    syslog (LOG_ERR, "select: %m");
+	    mu_diag_output (MU_DIAG_ERROR, "select: %m");
 	  continue;
 	}
 
@@ -332,7 +338,7 @@ comsat_daemon (int port)
 	      unsigned delay;
 
 	      delay = overflow_delay_time << (overflow_count + 1);
-	      syslog (LOG_NOTICE,
+	      mu_diag_output (MU_DIAG_NOTICE,
 		      ngettext ("Too many requests: pausing for %u second",
 				"Too many requests: pausing for %u seconds",
 				delay),
@@ -382,18 +388,18 @@ comsat_main (int fd)
     {
       if (errno == EINTR)
 	return 0;
-      syslog (LOG_ERR, "recvfrom: %m");
+      mu_diag_output (MU_DIAG_ERROR, "recvfrom: %m");
       return 1;
     }
 
   if (acl_match (&sin_from))
     {
-      syslog (LOG_ALERT, _("DENIED attempt to connect from %s"),
+      mu_diag_output (MU_DIAG_ALERT, _("DENIED attempt to connect from %s"),
 	      inet_ntoa (sin_from.sin_addr));
       return 1;
     }
 
-  syslog (LOG_INFO,
+  mu_diag_output (MU_DIAG_INFO,
 	  ngettext ("Received %d byte from %s",
 		    "Received %d bytes from %s", rdlen),
 	  rdlen, inet_ntoa (sin_from.sin_addr));
@@ -404,7 +410,7 @@ comsat_main (int fd)
   p = strchr (buffer, '@');
   if (!p)
     {
-      syslog (LOG_ERR, _("Malformed input: %s"), buffer);
+      mu_diag_output (MU_DIAG_ERROR, _("Malformed input: %s"), buffer);
       return 1;
     }
   *p++ = 0;
@@ -421,7 +427,7 @@ comsat_main (int fd)
 
   if (pid == -1)
     {
-      syslog (LOG_ERR, "fork: %m");
+      mu_diag_output (MU_DIAG_ERROR, "fork: %m");
       return 1;
     }
 
@@ -537,7 +543,7 @@ find_user (const char *name, char *tty)
 	  if (strncmp (ftty, PATH_TTY_PFX, strlen (PATH_TTY_PFX)))
 	    {
 	      /* An attempt to break security... */
-	      syslog (LOG_ALERT, _("Bad line name in utmp record: %s"), ftty);
+	      mu_diag_output (MU_DIAG_ALERT, _("Bad line name in utmp record: %s"), ftty);
 	      return NOT_HERE;
 	    }
 
@@ -545,7 +551,7 @@ find_user (const char *name, char *tty)
 	    {
 	      if (!S_ISCHR (statb.st_mode))
 		{
-		  syslog (LOG_ALERT, _("Not a character device: %s"), ftty);
+		  mu_diag_output (MU_DIAG_ALERT, _("Not a character device: %s"), ftty);
 		  return NOT_HERE;
 		}
 
@@ -578,7 +584,7 @@ change_user (const char *user)
   pw = getpwnam (user);
   if (!pw)
     {
-      syslog (LOG_CRIT, _("No such user: %s"), user);
+      mu_diag_output (MU_DIAG_CRIT, _("No such user: %s"), user);
       exit (1);
     }
 
@@ -598,7 +604,7 @@ mailbox_path (const char *user)
 
   if (!auth)
     {
-      syslog (LOG_ALERT, _("User nonexistent: %s"), user);
+      mu_diag_output (MU_DIAG_ALERT, _("User nonexistent: %s"), user);
       return NULL;
     }
 

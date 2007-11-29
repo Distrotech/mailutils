@@ -315,7 +315,12 @@ main (int argc, char **argv)
   openlog ("gnu-pop3d", LOG_PID, log_facility);
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
-  mu_error_set_print (mu_syslog_error_printer);
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+  }
   
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
@@ -374,22 +379,22 @@ pop3d_daemon_init (void)
 void
 pop3d_log_connection (int fd)
 {
-  syslog (LOG_INFO, _("Incoming connection opened"));
+  mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
 
   /* log information on the connecting client */
   if (debug_mode)
     {
-      syslog (LOG_INFO, _("Started in debugging mode"));
+      mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
     }
   else
     {
       struct sockaddr_in cs;
       int len = sizeof cs;
       if (getpeername (fd, (struct sockaddr*)&cs, &len) < 0)
-	syslog (LOG_ERR, _("Cannot obtain IP address of client: %s"),
+	mu_diag_output (MU_DIAG_ERROR, _("Cannot obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));
+	mu_diag_output (MU_DIAG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));
     }
 }
 
@@ -513,7 +518,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	  status = pop3d_stls (arg);
 	  if (status)
 	    {
-	      syslog (LOG_ERR, _("Session terminated"));
+	      mu_diag_output (MU_DIAG_ERROR, _("Session terminated"));
 	      break;
 	    }
 	}
@@ -576,7 +581,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   listenfd = socket (PF_INET, SOCK_STREAM, 0);
   if (listenfd == -1)
     {
-      syslog (LOG_ERR, "socket: %s", strerror(errno));
+      mu_diag_output (MU_DIAG_ERROR, "socket: %s", strerror(errno));
       exit (EXIT_FAILURE);
     }
   size = 1; /* Use size here to avoid making a new variable.  */
@@ -589,24 +594,24 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
 
   if (bind (listenfd, (struct sockaddr *)&server, size) == -1)
     {
-      syslog (LOG_ERR, "bind: %s", strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, "bind: %s", strerror (errno));
       exit (EXIT_FAILURE);
     }
 
   if (listen (listenfd, 128) == -1)
     {
-      syslog (LOG_ERR, "listen: %s", strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, "listen: %s", strerror (errno));
       exit (EXIT_FAILURE);
     }
 
-  syslog (LOG_INFO, _("GNU pop3d started"));
+  mu_diag_output (MU_DIAG_INFO, _("GNU pop3d started"));
 
   for (;;)
     {
       process_cleanup ();
       if (children > maxchildren)
         {
-	  syslog (LOG_ERR, _("too many children (%s)"),
+	  mu_diag_output (MU_DIAG_ERROR, _("too many children (%s)"),
 		  mu_umaxtostr (0, children));
           pause ();
           continue;
@@ -617,14 +622,14 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
         {
           if (errno == EINTR)
 	    continue;
-          syslog (LOG_ERR, "accept: %s", strerror (errno));
+          mu_diag_output (MU_DIAG_ERROR, "accept: %s", strerror (errno));
           continue;
           /*exit (EXIT_FAILURE);*/
         }
 
       pid = fork ();
       if (pid == -1)
-	syslog(LOG_ERR, "fork: %s", strerror (errno));
+	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
       else if (pid == 0) /* Child.  */
         {
 	  int status;

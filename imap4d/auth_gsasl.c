@@ -36,7 +36,7 @@ create_gsasl_stream (mu_stream_t *newstr, mu_stream_t transport, int flags)
   rc = mu_gsasl_stream_create (newstr, transport, sess_ctx, flags);
   if (rc)
     {
-      syslog (LOG_ERR, _("cannot create SASL stream: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("cannot create SASL stream: %s"),
 	      mu_strerror (rc));
       return RESP_NO;
     }
@@ -46,7 +46,7 @@ create_gsasl_stream (mu_stream_t *newstr, mu_stream_t transport, int flags)
       const char *p;
       if (mu_stream_strerror (*newstr, &p))
 	p = mu_strerror (rc);
-      syslog (LOG_ERR, _("cannot open SASL input stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("cannot open SASL input stream: %s"), p);
       return RESP_NO;
     }
 
@@ -87,7 +87,7 @@ auth_gsasl (struct imap4d_command *command,
   rc = gsasl_server_start (ctx, auth_type, &sess_ctx);
   if (rc != GSASL_OK)
     {
-      syslog (LOG_NOTICE, _("SASL gsasl_server_start: %s"),
+      mu_diag_output (MU_DIAG_NOTICE, _("SASL gsasl_server_start: %s"),
 	      gsasl_strerror(rc));
       return 0;
     }
@@ -103,7 +103,7 @@ auth_gsasl (struct imap4d_command *command,
   
   if (rc != GSASL_OK)
     {
-      syslog (LOG_NOTICE, _("GSASL error: %s"), gsasl_strerror (rc));
+      mu_diag_output (MU_DIAG_NOTICE, _("GSASL error: %s"), gsasl_strerror (rc));
       free (output);
       return RESP_NO;
     }
@@ -116,7 +116,7 @@ auth_gsasl (struct imap4d_command *command,
 
   if (*username == NULL)
     {
-      syslog (LOG_NOTICE, _("GSASL %s: cannot get username"), auth_type);
+      mu_diag_output (MU_DIAG_NOTICE, _("GSASL %s: cannot get username"), auth_type);
       return RESP_NO;
     }
 
@@ -306,7 +306,7 @@ auth_gsasl_init ()
   rc = gsasl_init (&ctx);
   if (rc != GSASL_OK)
     {
-      syslog (LOG_NOTICE, _("cannot initialize libgsasl: %s"),
+      mu_diag_output (MU_DIAG_NOTICE, _("cannot initialize libgsasl: %s"),
 	      gsasl_strerror (rc));
     }
 

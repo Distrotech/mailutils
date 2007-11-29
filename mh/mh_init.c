@@ -39,23 +39,12 @@ char mh_list_format[] =
 "%<(zero)%17(friendly{from})%>"
 "  %{subject}%<{body}<<%{body}>>%>";
 
-static int
-mu_error_printer (const char *fmt, va_list ap)
-{
-  fprintf (stderr, "%s: ", program_invocation_short_name);
-  vfprintf (stderr, fmt, ap);
-  fprintf (stderr, "\n");
-  return 0;
-}
-
 void
 mh_init ()
 {
   /* Register all mailbox and mailer formats */
   mu_register_all_formats ();
 
-  mu_error_set_print (mu_error_printer);
-  
   /* Read user's profile */
   mh_read_profile ();
 }

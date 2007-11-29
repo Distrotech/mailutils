@@ -1,3 +1,43 @@
+2007-11-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* comsat/action.c, comsat/comsat.c, imap4d/auth_gsasl.c,
+	imap4d/auth_gss.c, imap4d/authenticate.c, imap4d/bye.c,
+	imap4d/close.c, imap4d/imap4d.c, imap4d/login.c, imap4d/search.c,
+	imap4d/signal.c, imap4d/starttls.c, imap4d/util.c, maidag/lmtp.c,
+	maidag/maidag.c, maidag/script.c, mail.local/main.c,
+	mail.local/script.c, pop3d/apop.c, pop3d/bulletin.c,
+	pop3d/extra.c, pop3d/lock.c, pop3d/logindelay.c, pop3d/pop3d.c,
+	pop3d/quit.c, pop3d/signal.c, pop3d/user.c, libsieve/util.c: Use
+	mu_diag_output instead of syslog.
+
+	* sieve/sieve.c: New option --no-program-name, for testsuite.
+	* sieve/testsuite/lib/sieve.exp: Call sieve with the
+	--no-program-name option. 
+
+	* mailbox/cfg_lexer.c, mailbox/cfg_parser.y: Improve debugging.
+	* mailbox/diag.c: New file.
+	* mailbox/gdebug.c (mu_debug_level_from_string): New function.
+	* mailbox/muerror.c (mu_verror, mu_error): Rewrite using mu_diag
+	functions.
+	* mailbox/syslog.c (mu_diag_level_to_syslog): New function.
+	(mu_diag_syslog_printer): New function.
+
+	* mh/mh_argp.c (mh_argp_parse): Set prigram name using
+	mu_set_program_name.
+	* mh/mh_init.c (mu_error_printer): No longer needed.
+	* movemail/movemail.c (movemail_error_printer): No longer needed.
+	
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add diag.h
+	* include/mailutils/diag.h: New file.
+	* include/mailutils/cfg.h (mu_cfg_lexer_t): Take mu_debug_t as its
+	second argument.
+	* include/mailutils/error.h: Include diag.h
+	(mu_program_name,mu_set_program_name): Remove. Already declared in
+	diag.h.
+	(mu_error_set_print): Deprecated.
+
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add diag.c
+	
 2007-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	III. Use mu_debug_t for diagnostics in cfg framework.

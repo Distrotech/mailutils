@@ -68,7 +68,7 @@ display_status_1 (char *m, OM_uint32 code, int type)
 	  msg.length = strlen (msg.value);
 	}
 
-      syslog (LOG_ERR, _("GSS-API error %s (%s): %.*s"),
+      mu_diag_output (MU_DIAG_ERROR, _("GSS-API error %s (%s): %.*s"),
 	      m, type == GSS_C_GSS_CODE ? _("major") : _("minor"),
 	      (int) msg.length, (char *) msg.value);
 
@@ -251,7 +251,7 @@ auth_gssapi (struct imap4d_command *command,
   mech = sec_level >> 24;
   if ((mech & SUPPORTED_P_MECH) == 0)
     {
-      syslog (LOG_NOTICE,
+      mu_diag_output (MU_DIAG_NOTICE,
 	      _("Client requested unsupported protection mechanism (%d)"),
 	      mech);
       gss_release_buffer (&min_stat, &outbuf);
@@ -265,7 +265,7 @@ auth_gssapi (struct imap4d_command *command,
   *username = malloc (outbuf.length - 4 + 1);
   if (!*username)
     {
-      syslog (LOG_NOTICE, _("Not enough memory"));
+      mu_diag_output (MU_DIAG_NOTICE, _("Not enough memory"));
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
@@ -294,7 +294,7 @@ auth_gssapi (struct imap4d_command *command,
 
   if (baduser)
     {
-      syslog (LOG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
+      mu_diag_output (MU_DIAG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
 	      (char *) client_name.value, *username);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
@@ -304,7 +304,7 @@ auth_gssapi (struct imap4d_command *command,
     }
   else
     {
-      syslog (LOG_NOTICE, _("GSSAPI user %s is authorized as %s"),
+      mu_diag_output (MU_DIAG_NOTICE, _("GSSAPI user %s is authorized as %s"),
 	      (char *) client_name.value, *username);
     }
 

@@ -277,10 +277,14 @@ int
 _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 			    const char *fmt, va_list ap)
 {
+  mu_debug_t debug;
+
+  mu_diag_get_debug (&debug);
   if (filename)
-    fprintf (stderr, "%s:%d: ", filename, lineno);
-  vfprintf (stderr, fmt, ap);
-  fprintf (stderr, "\n");
+    mu_debug_set_locus (debug, filename, lineno);
+  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
+  mu_diag_printf (MU_DIAG_ERROR, "\n");
+  mu_debug_set_locus (debug, NULL, 0);
   return 0;
 }
 

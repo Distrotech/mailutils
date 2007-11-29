@@ -51,6 +51,7 @@ libmailutils_la_SOURCES = \
  debug.c\
  cfg_lexer.c\
  cfg_parser.c\
+ diag.c\
  envelope.c\
  fgetpwent.c\
  file_stream.c\

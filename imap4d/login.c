@@ -44,7 +44,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
 
   if (auth_data == NULL)
     {
-      syslog (LOG_INFO, _("User `%s': nonexistent"), username);
+      mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
@@ -52,7 +52,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
   openlog ("gnu-imap4d", LOG_PID, log_facility);
   if (rc)
     {
-      syslog (LOG_INFO, _("Login failed: %s"), username);
+      mu_diag_output (MU_DIAG_INFO, _("Login failed: %s"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
@@ -67,7 +67,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
   util_chdir (homedir);
     
   namespace_init (homedir);
-  syslog (LOG_INFO, _("User `%s' logged in (source: %s)"), username,
+  mu_diag_output (MU_DIAG_INFO, _("User `%s' logged in (source: %s)"), username,
 	  auth_data->source);
   return util_finish (command, RESP_OK, "Completed");
 }

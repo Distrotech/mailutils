@@ -16,29 +16,47 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MAILUTILS_ERROR_H
-#define _MAILUTILS_ERROR_H
+#ifndef _MAILUTILS_DIAG_H
+#define _MAILUTILS_DIAG_H
 
 #include <stdarg.h>
 
 #include <mailutils/types.h>
-#include <mailutils/diag.h>
+#include <mailutils/debug.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef int (*mu_error_pfn_t) (const char *fmt, va_list ap);
+extern const char *mu_program_name;
 
-extern int mu_verror (const char *fmt, va_list ap);
-extern int mu_error (const char *fmt, ...) MU_PRINTFLIKE(1,2);
-extern void mu_error_set_print (mu_error_pfn_t) __attribute__((deprecated));
+#define MU_DIAG_EMERG    0
+#define MU_DIAG_ALERT    1
+#define MU_DIAG_CRIT     2
+#define MU_DIAG_ERROR    3
+#define MU_DIAG_ERR MU_DIAG_ERROR
+#define MU_DIAG_WARNING  4 
+#define MU_DIAG_NOTICE   5
+#define MU_DIAG_INFO     6 
+#define MU_DIAG_DEBUG    7
+  
+void mu_set_program_name (const char *);
+void mu_diag_init (void);
+void mu_diag_get_debug (mu_debug_t *);
+void mu_diag_set_debug (mu_debug_t);
+void mu_diag_vprintf (int, const char *, va_list);
+void mu_diag_printf (int, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_voutput (int, const char *, va_list);
+void mu_diag_output (int, const char *, ...) MU_PRINTFLIKE(2,3);
 
-int mu_default_error_printer (const char *fmt, va_list ap);
-int mu_syslog_error_printer (const char *fmt, va_list ap);
+int mu_diag_syslog_printer (void *, size_t, const char *);
+int mu_diag_stderr_printer (void *, size_t, const char *);
+
+int mu_diag_level_to_syslog (int level);
+const char *mu_diag_level_to_string (int level);
   
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_ERROR_H */
+#endif

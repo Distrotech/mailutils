@@ -39,11 +39,11 @@ imap4d_sigchld (int signo)
 RETSIGTYPE
 imap4d_signal (int signo)
 {
-  syslog (LOG_CRIT, _("Got signal %s"), strsignal (signo));
+  mu_diag_output (MU_DIAG_CRIT, _("Got signal %s"), strsignal (signo));
   /* Master process.  */
   if (util_is_master ())
     {
-      syslog (LOG_CRIT, _("MASTER: exiting on signal"));
+      mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal"));
       exit (1);			/* abort(); */
     }
 

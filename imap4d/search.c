@@ -583,7 +583,7 @@ parse_equiv_key (struct parsebuf *pb)
   if (!node)
     {
       /* shouldn't happen? */
-      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+      mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
 	     __FILE__, __LINE__);
       abort (); 
     }
@@ -706,7 +706,7 @@ parse_simple_key (struct parsebuf *pb)
 	      break;
 	      
 	    default:
-	      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+	      mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
 		     __FILE__, __LINE__);
 	      abort (); /* should never happen */
 	    }
@@ -782,7 +782,7 @@ search_run (struct parsebuf *pb)
   evaluate_node (pb->tree, pb, &value);
   if (value.type != value_number)
     {
-      syslog(LOG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
+      mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
 	     __FILE__, __LINE__);
       abort (); /* should never happen */
     }

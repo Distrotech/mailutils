@@ -27,9 +27,9 @@ open_stat_db (DBM_FILE *db, int mode)
   if (rc)
     {
       if (rc == -1)
-	syslog (LOG_INFO, _("Bad permissions on statistics db"));
+	mu_diag_output (MU_DIAG_INFO, _("Bad permissions on statistics db"));
       else
-	syslog (LOG_ERR, _("Unable to open statistics db: %s"),
+	mu_diag_output (MU_DIAG_ERROR, _("Unable to open statistics db: %s"),
 		mu_strerror (rc));
     }
   return rc;
@@ -59,7 +59,7 @@ check_login_delay (char *username)
   rc = mu_dbm_fetch (db, key, &data);
   if (rc)
     {
-      syslog (LOG_ERR, _("Can't fetch login delay data: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("Can't fetch login delay data: %s"),
 	      mu_strerror (rc));
       mu_dbm_close (db);
       return 0;
@@ -67,7 +67,7 @@ check_login_delay (char *username)
 
   if (MU_DATUM_SIZE(data) > sizeof (text) - 1)
     {
-      syslog (LOG_ERR, _("Invalid entry for '%s': wrong timestamp size"),
+      mu_diag_output (MU_DIAG_ERROR, _("Invalid entry for '%s': wrong timestamp size"),
 	      username);
       mu_dbm_close (db);
       return 0;
@@ -80,7 +80,7 @@ check_login_delay (char *username)
   prev_time = strtoul (text, &p, 0);
   if (*p)
     {
-      syslog (LOG_ERR, _("Malformed timestamp for '%s': %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("Malformed timestamp for '%s': %s"),
 	      username, text);
       return 0;
     }
