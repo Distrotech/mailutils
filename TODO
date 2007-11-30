@@ -1,5 +1,6 @@
-GNU mailutils TODO list.  2005-03-18
-Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+GNU mailutils TODO list. 2007-11-30
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
+2007 Free Software Foundation, Inc.
 
 * Documentation
 
@@ -24,10 +25,6 @@ is definitely gone.
 ** select needed
 
 ** mailboxes don't remember whether or not they've been opened
-
-** mu_error() vs. debug_t: Revise both methods of reporting the
-diagnostics. Possibly they could be merged. Possibly log_t object
-is needed.
 
 ** does IMAP do an EXAMINE instead of a select if the mailbox is being
 opened readonly? Does list return whether a mailbox is readonly?
@@ -60,15 +57,6 @@ mailer.
 and use them in mail.remote.
 
 ** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
-
-** support POP3S and IMAPS mailers (ports 995/993).
-Jeff Bailey says:
-  I think this might be the only encryption that common versions of
-  Outlook Express support.  As a low priority TODO list item, (like if it
-  never gets done, there's no worries) I think it can probably stay on.
-
-  The advantage of having it just do this itself is that other utilities
-  aren't required to get this configured up in something like Debian.
 
 ** filter_trans needs readline method.
 
@@ -109,11 +97,7 @@ of message arrival, this is supported by imap, but we'll have to fake
 for pop and local spools my polling, why can't you select() on a unix
 file?)
 
-* mail.local: Add daemon mode with LMTP support
-
 * utilities
-
-** forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
 
 ** mimeview: support nametemplate
 

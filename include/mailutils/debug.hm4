@@ -57,38 +57,40 @@ struct mu_debug_locus
 int mu_debug_create    (mu_debug_t *, void *);
 void mu_debug_destroy  (mu_debug_t *, void *);
 void *mu_debug_get_owner (mu_debug_t);
-int mu_debug_set_level (mu_debug_t, size_t);
-int mu_debug_get_level (mu_debug_t, size_t *);
+int mu_debug_set_level (mu_debug_t, mu_log_level_t);
+int mu_debug_get_level (mu_debug_t, mu_log_level_t *);
 int mu_debug_set_locus (mu_debug_t, const char *, int);
 int mu_debug_get_locus (mu_debug_t, struct mu_debug_locus *);
 int mu_debug_set_function (mu_debug_t, const char *);
 int mu_debug_get_function (mu_debug_t, const char **);
   
-int mu_debug_print     (mu_debug_t, size_t, const char *, ...)
+int mu_debug_print     (mu_debug_t, mu_log_level_t, const char *, ...)
                          MU_PRINTFLIKE(3,4);
-int mu_debug_printv    (mu_debug_t, size_t, const char *, va_list);
-int mu_debug_check_level (mu_debug_t, size_t);
+int mu_debug_printv    (mu_debug_t, mu_log_level_t, const char *, va_list);
+int mu_debug_check_level (mu_debug_t, mu_log_level_t);
 
-int mu_debug_printf (mu_debug_t, size_t, const char *, ...)
+int mu_debug_printf (mu_debug_t, mu_log_level_t, const char *, ...)
                         MU_PRINTFLIKE(3,4);
   
-int mu_debug_vprintf (mu_debug_t, size_t, const char *, va_list);
+int mu_debug_vprintf (mu_debug_t, mu_log_level_t, const char *, va_list);
 
 extern int mu_debug_line_info;
   
-typedef int (*mu_debug_printer_fp) (void*, size_t, const char *);
+typedef int (*mu_debug_printer_fp) (void*, mu_log_level_t, const char *);
   
 int mu_debug_set_print (mu_debug_t, mu_debug_printer_fp, void *);
 int mu_debug_set_data (mu_debug_t, void *, void (*) (void*), void *);
 extern mu_debug_printer_fp mu_debug_default_printer;
   
-int mu_debug_syslog_printer (void *, size_t, const char *);
-int mu_debug_stderr_printer (void *, size_t, const char *);
+int mu_debug_syslog_printer (void *, mu_log_level_t, const char *);
+int mu_debug_stderr_printer (void *, mu_log_level_t, const char *);
 
-unsigned mu_global_debug_level (const char *);
-int mu_global_debug_set_level (const char *, unsigned);
+mu_log_level_t mu_global_debug_level (const char *);
+int mu_global_debug_set_level (const char *, mu_log_level_t);
 int mu_global_debug_clear_level (const char *);
 int mu_global_debug_from_string (const char *, const char *);
+int mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
+				mu_debug_t debug);
 
 forloop(`i',1,11,`MKDEBUG(i)')
 

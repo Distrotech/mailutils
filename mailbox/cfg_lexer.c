@@ -229,7 +229,7 @@ again:
       skipline (p);
       if (strncmp (start, "debug=", 6) == 0)
 	{
-	  size_t lev;
+	  mu_log_level_t lev;
 	  if (p->curp[0] == '\n')
 	    {
 	      mu_cfg_locus.line++;

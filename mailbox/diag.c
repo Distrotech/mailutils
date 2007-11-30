@@ -87,14 +87,14 @@ mu_diag_set_debug (mu_debug_t debug)
 }
 
 void
-mu_diag_vprintf (int level, const char *fmt, va_list ap)
+mu_diag_vprintf (mu_log_level_t level, const char *fmt, va_list ap)
 {
   mu_diag_init ();  
   mu_debug_vprintf (mu_diag_debug, level, fmt, ap);
 }
 
 void
-mu_diag_printf (int level, const char *fmt, ...)
+mu_diag_printf (mu_log_level_t level, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
@@ -103,7 +103,7 @@ mu_diag_printf (int level, const char *fmt, ...)
 }
 
 void
-mu_diag_voutput (int level, const char *fmt, va_list ap)
+mu_diag_voutput (mu_log_level_t level, const char *fmt, va_list ap)
 {
   mu_diag_init ();  
   mu_debug_vprintf (mu_diag_debug, level, fmt, ap);
@@ -111,7 +111,7 @@ mu_diag_voutput (int level, const char *fmt, va_list ap)
 }
 
 void
-mu_diag_output (int level, const char *fmt, ...)
+mu_diag_output (mu_log_level_t level, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
@@ -120,7 +120,7 @@ mu_diag_output (int level, const char *fmt, ...)
 }
 
 const char *
-mu_diag_level_to_string (int level)
+mu_diag_level_to_string (mu_log_level_t level)
 {
   switch (level)
     {
@@ -152,7 +152,7 @@ mu_diag_level_to_string (int level)
 }
 
 int
-mu_diag_stderr_printer (void *data, size_t level, const char *buf)
+mu_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
 {
   if (mu_program_name)
     fprintf (stderr, "%s: ", mu_program_name);

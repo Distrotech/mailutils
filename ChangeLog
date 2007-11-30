@@ -1,3 +1,14 @@
+2007-11-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS, TODO: Update
+	* include/mailutils/types.hin: New type mu_log_level_t.
+	* include/mailutils/debug.hm4, include/mailutils/diag.h,
+	mailbox/cfg_lexer.c, mailbox/cfg_parser.y, mailbox/dbgstderr.c,
+	mailbox/dbgsyslog.c, mailbox/debug.c, mailbox/diag.c,
+	mailbox/gdebug.c, mailbox/muerror.c, mailbox/syslog.c,
+	sieve/sieve.c: Use mu_log_level_t instead of size_t for debugging
+	and logging levels.
+
 2007-11-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/action.c, comsat/comsat.c, imap4d/auth_gsasl.c,

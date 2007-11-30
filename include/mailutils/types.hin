@@ -100,7 +100,8 @@ typedef struct _mu_wicket *mu_wicket_t;
 typedef void *mu_transport_t;
 typedef struct _mu_assoc *mu_assoc_t;
 typedef char *mu_message_qid_t;
-
+typedef int mu_log_level_t;
+  
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002
 #define MU_FOLDER_ATTRIBUTE_ALL \

@@ -106,7 +106,7 @@ mu_syslog_priority_to_string (int n)
 }
 
 int
-mu_diag_level_to_syslog (int level)
+mu_diag_level_to_syslog (mu_log_level_t level)
 {
   switch (level)
     {
@@ -138,7 +138,7 @@ mu_diag_level_to_syslog (int level)
 }
 
 int
-mu_diag_syslog_printer (void *data, size_t level, const char *buf)
+mu_diag_syslog_printer (void *data, mu_log_level_t level, const char *buf)
 {
   int len = strlen (buf);
   if (len > 0 && buf[len-1] == '\n')

@@ -44,16 +44,16 @@ void mu_set_program_name (const char *);
 void mu_diag_init (void);
 void mu_diag_get_debug (mu_debug_t *);
 void mu_diag_set_debug (mu_debug_t);
-void mu_diag_vprintf (int, const char *, va_list);
-void mu_diag_printf (int, const char *, ...) MU_PRINTFLIKE(2,3);
-void mu_diag_voutput (int, const char *, va_list);
-void mu_diag_output (int, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_vprintf (mu_log_level_t, const char *, va_list);
+void mu_diag_printf (mu_log_level_t, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_voutput (mu_log_level_t, const char *, va_list);
+void mu_diag_output (mu_log_level_t, const char *, ...) MU_PRINTFLIKE(2,3);
 
-int mu_diag_syslog_printer (void *, size_t, const char *);
-int mu_diag_stderr_printer (void *, size_t, const char *);
+int mu_diag_syslog_printer (void *, mu_log_level_t, const char *);
+int mu_diag_stderr_printer (void *, mu_log_level_t, const char *);
 
-int mu_diag_level_to_syslog (int level);
-const char *mu_diag_level_to_string (int level);
+int mu_diag_level_to_syslog (mu_log_level_t level);
+const char *mu_diag_level_to_string (mu_log_level_t level);
   
 #ifdef __cplusplus
 }

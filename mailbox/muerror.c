@@ -81,7 +81,7 @@ compat_error_printer0 (mu_error_pfn_t pfn, const char *fmt, ...)
 }
 
 static int
-compat_error_printer (void *data, size_t level, const char *buf)
+compat_error_printer (void *data, mu_log_level_t level, const char *buf)
 {
   if (!data)
     mu_diag_stderr_printer (NULL, level, buf);

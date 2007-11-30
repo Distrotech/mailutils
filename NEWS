@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-11-26
+GNU mailutils NEWS -- history of user-visible changes. 2007-11-30
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -9,6 +9,56 @@ Version 1.2.90:
 
 * New configuration file format.
 
+* Diagnostic and debugging functions essentially rewritten.
+
+A set of debugging macros, MU_DEBUG0 through MU_DEBUG11, is provided.
+New functions mu_debug_printf and mu_debug_vprintf allow for flexible
+formatting of debugging messages. The mu_debug_t object features
+built-in line bufferring.
+
+The new function mu_debug_check_level(d,l) returns true if the logging
+level currently set for debugging object `d' matches that given by
+`l'.
+
+New diagnostics functions are available, among them:
+
+  void mu_diag_vprintf (int level, const char *fmt, va_list ap);
+  void mu_diag_printf (int level, const char *fmt, ...);
+  void mu_diag_voutput (int level, const char *fmt, va_list ap);
+  void mu_diag_output (int level, const char *fmt, ...);
+
+A new header file, mailutils/diag.h, declarations of these and other
+related functions.
+  
+See documentation (FIXME: Chapter?) for more information.
+
+The functions mu_error and mu_verror are shortcuts for
+mu_diag_output (MU_DIAG_ERROR, ...)  and mu_diag_voutput (MU_DIAG_ERROR, ...),
+correspondingly.
+
+The function mu_error_set_print is deprecated as well as the
+mu_error_pfn_t type. They are, however, still supported. The following
+approach is recommended to use instead of mu_error_set_print:
+
+      mu_diag_get_debug (&debug);
+      mu_debug_set_print (debug, new_printer, NULL);
+
+* Global debugging and verbosity settings.
+
+These settings provide default values for mu_debug_t objects created
+by various library objects. The following functions are provided for
+dealing with global debugging level:
+
+   unsigned mu_global_debug_level (const char *object_name);
+   int mu_global_debug_set_level (const char *object_name, unsigned level);
+   int mu_global_debug_clear_level (const char *object_name);
+
+Each Mailutils utility understands two additional command line
+options:
+
+ --debug-level=LEVEL    Set Mailutils debugging level.
+ --debug-line-info      Show source info with debugging messages.
+      
 * New utility `maidag'
 
 Maidag is a MAIl Delivery AGent. It is a general-purpose MDA able to

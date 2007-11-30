@@ -44,7 +44,7 @@ struct debug_level
 
 static mu_assoc_t debug_table;
 
-unsigned
+mu_log_level_t
 mu_global_debug_level (const char *object_name)
 {
   struct debug_level *p = mu_assoc_ref (debug_table, object_name);
@@ -54,7 +54,7 @@ mu_global_debug_level (const char *object_name)
 }
 
 int
-mu_global_debug_set_level (const char *object_name, unsigned level)
+mu_global_debug_set_level (const char *object_name, mu_log_level_t level)
 {
   int rc;
   struct debug_level *dbg;
@@ -99,7 +99,8 @@ decode_debug_level (const char *p, int *lev)
 }
 
 int
-mu_debug_level_from_string (const char *string, size_t *plev, mu_debug_t debug)
+mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
+			    mu_debug_t debug)
 {
   char *p, *q;
   unsigned level = MU_DEBUG_INHERIT;
@@ -175,7 +176,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
   for (i = 0; i < argc; i++)
     {
       char *p;
-      unsigned level = MU_DEBUG_INHERIT;
+      mu_log_level_t level = MU_DEBUG_INHERIT;
       char *object_name = argv[i];
       
       for (p = object_name; *p && *p != '='; p++)

@@ -78,7 +78,7 @@ mu_debug_get_owner (mu_debug_t debug)
 }
 
 int
-mu_debug_set_level (mu_debug_t debug, size_t level)
+mu_debug_set_level (mu_debug_t debug, mu_log_level_t level)
 {
   if (debug == NULL)
     return EINVAL;
@@ -87,7 +87,7 @@ mu_debug_set_level (mu_debug_t debug, size_t level)
 }
 
 int
-mu_debug_get_level (mu_debug_t debug, size_t *plevel)
+mu_debug_get_level (mu_debug_t debug, mu_log_level_t *plevel)
 {
   if (debug == NULL)
     return EINVAL;
@@ -143,7 +143,7 @@ debug_format_prefix (mu_debug_t debug)
 }
 
 int
-mu_debug_vprintf (mu_debug_t debug, size_t level,
+mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
 		  const char *format, va_list ap)
 {
   if (debug == NULL || format == NULL)
@@ -214,7 +214,8 @@ mu_debug_vprintf (mu_debug_t debug, size_t level,
 }
 
 int
-mu_debug_printf (mu_debug_t debug, size_t level, const char *format, ...)
+mu_debug_printf (mu_debug_t debug, mu_log_level_t level,
+		 const char *format, ...)
 {
   va_list ap;
 
@@ -226,7 +227,8 @@ mu_debug_printf (mu_debug_t debug, size_t level, const char *format, ...)
   
 
 int
-mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
+mu_debug_print (mu_debug_t debug, mu_log_level_t level,
+		const char *format, ...)
 {
   va_list ap;
   mu_debug_printv (debug, level, format, ap);
@@ -235,7 +237,7 @@ mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
 }
 
 int
-mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
+mu_debug_printv (mu_debug_t debug, mu_log_level_t level, const char *format,
 		 va_list ap)
 {
   if (debug == NULL || format == NULL)
@@ -246,7 +248,7 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format,
 }
 
 int
-mu_debug_check_level (mu_debug_t debug, size_t level)
+mu_debug_check_level (mu_debug_t debug, mu_log_level_t level)
 {
   if (!debug)
     return 0;

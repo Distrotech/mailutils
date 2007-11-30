@@ -228,7 +228,7 @@ tag     : MU_CFG_START_TOKEN opt_eol taglist MU_CFG_END_TOKEN MU_CFG_EOL_TOKEN
 %%
 
 static int	  
-_cfg_default_printer (void *unused, size_t level, const char *str)
+_cfg_default_printer (void *unused, mu_log_level_t level, const char *str)
 {
   fprintf (stderr, "%s", str);
   return 0;

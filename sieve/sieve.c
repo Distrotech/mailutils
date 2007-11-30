@@ -164,7 +164,7 @@ set_debug_level (mu_debug_t debug, const char *arg)
 }
 
 int
-mu_compat_printer (void *data, size_t level, const char *buf)
+mu_compat_printer (void *data, mu_log_level_t level, const char *buf)
 {
   fputs (buf, stderr);
   return 0;
