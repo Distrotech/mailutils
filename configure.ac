@@ -1141,7 +1141,6 @@ AC_CONFIG_FILES([Makefile
  imap4d/testsuite/Makefile
  include/Makefile
  include/mailutils/Makefile
- include/mailutils/gnu/Makefile
  include/mailutils/sys/Makefile
  lib/Makefile
  libmu_cpp/Makefile
