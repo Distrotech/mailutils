@@ -1,3 +1,7 @@
+2007-12-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac (AC_CONFIG_FILES): Remove include/gnu/Makefile.
+
 2007-11-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS, TODO: Update
