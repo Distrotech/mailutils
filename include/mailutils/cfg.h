@@ -205,6 +205,8 @@ int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 
+void mu_cfg_format_tree (mu_stream_t stream, mu_cfg_tree_t *tree);
+
 #ifdef __cplusplus
 }
 #endif
