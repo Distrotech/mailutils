@@ -49,6 +49,7 @@ libmailutils_la_SOURCES = \
  dbgstderr.c\
  dbgsyslog.c\
  debug.c\
+ cfg_format.c\
  cfg_lexer.c\
  cfg_parser.c\
  diag.c\
