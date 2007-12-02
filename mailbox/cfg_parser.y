@@ -273,73 +273,6 @@ mu_cfg_parse (mu_cfg_tree_t **ptree,
 	
 
 
-static void
-print_level (FILE *fp, int level)
-{
-  while (level--)
-    {
-      fputc (' ', fp);
-      fputc (' ', fp);
-    }
-}
-
-struct tree_print
-{
-  unsigned level;
-  FILE *fp;
-};
-
-int
-print_node (const mu_cfg_node_t *node, void *data)
-{
-  struct tree_print *tp = data;
-  
-  print_level (tp->fp, tp->level);
-  switch (node->type)
-    {
-    case mu_cfg_node_undefined:
-      fprintf (tp->fp, _("<UNDEFINED>"));
-      break;
-
-    case mu_cfg_node_tag:
-      fprintf (tp->fp, "<%s", node->tag_name);
-      if (node->tag_label)
-	fprintf (tp->fp, " %s", node->tag_label);
-      fprintf (tp->fp, ">");
-      tp->level++;
-      break;
-
-    case mu_cfg_node_param:
-      fprintf (tp->fp, "%s", node->tag_name);
-      if (node->tag_label)
-	fprintf (tp->fp, " %s", node->tag_label);
-      break;
-    }
-  fprintf (tp->fp, "\n");
-  return MU_CFG_ITER_OK;
-}
-
-int
-print_node_end (const mu_cfg_node_t *node, void *data)
-{
-  struct tree_print *tp = data;
-  tp->level--;
-  print_level (tp->fp, tp->level);
-  fprintf (tp->fp, "</%s>\n", node->tag_name);
-  return MU_CFG_ITER_OK;
-}
-
-void
-mu_cfg_print_tree (FILE *fp, mu_cfg_node_t *node)
-{
-  struct tree_print t;
-  t.level = 0;
-  t.fp = fp;
-  mu_cfg_preorder (node, print_node, print_node_end, &t);
-}
-
-
-
 static int
 _mu_cfg_preorder_recursive (mu_cfg_node_t *node,
 			    mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end,
