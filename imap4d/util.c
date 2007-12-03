@@ -676,6 +676,9 @@ sc2string (int rc)
 
     case RESP_BYE:
       return "BYE ";
+
+    case RESP_PREAUTH:
+      return "PREAUTH ";
     }
   return "";
 }

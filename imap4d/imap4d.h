@@ -128,7 +128,8 @@ struct imap4d_command
 #define RESP_NO		2
 #define RESP_BYE	3
 #define RESP_NONE	4
-
+#define RESP_PREAUTH    5
+  
 /* Error values.  */
 #define OK                    0
 #define ERR_NO_MEM            1
@@ -153,6 +154,16 @@ struct imap4d_command
 #define IMAP_CAPA_STARTTLS       "STARTTLS"
 #define IMAP_CAPA_LOGINDISABLED  "LOGINDISABLED"
 #define IMAP_CAPA_XTLSREQUIRED   "XTLSREQUIRED"  
+
+/* Preauth types */  
+enum imap4d_preauth
+  {
+    preauth_none,
+    preauth_stdio,
+    preauth_ident,
+    preauth_prog
+  };
+
   
 extern struct imap4d_command imap4d_command_table[];
 extern mu_mailbox_t mbox;
@@ -166,6 +177,12 @@ extern const char *program_version;
   
 extern int login_disabled;
 extern int tls_required;
+extern enum imap4d_preauth preauth_mode;
+extern char *preauth_program;
+extern int preauth_only;
+extern int ident_port;
+extern char *ident_keyfile;
+extern int ident_encrypt_only;
 	
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
@@ -235,6 +252,9 @@ extern int namespace_init (char *path);
 extern char * namespace_getfullpath (char *name, const char *delim);
 extern char * namespace_checkfullpath (char *name, const char *pattern,
 				       const char *delim);
+int imap4d_session_setup (char *username);
+int imap4d_session_setup0 (void);
+  
 /* Capability functions */
 extern void imap4d_capability_add (const char *str);
 extern void imap4d_capability_remove (const char *str);

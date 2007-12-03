@@ -46,6 +46,7 @@ imap4d_SOURCES = \
  lsub.c\
  namespace.c\
  noop.c\
+ preauth.c\
  rename.c\
  search.c\
  select.c\

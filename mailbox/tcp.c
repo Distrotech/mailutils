@@ -320,7 +320,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
     return ENOMEM;
   tcp->fd = -1;
   tcp->host = strdup (host);
-  if(!tcp->host)
+  if (!tcp->host)
     {
       free (tcp);
       return ENOMEM;
@@ -329,7 +329,8 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
   tcp->state = TCP_STATE_INIT;
   tcp->source_addr = source_ip;
   if ((ret = mu_stream_create (stream,
-		       flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)))
+			       flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR,
+			       tcp)))
   {
     free (tcp->host);
     free (tcp);

@@ -1,3 +1,24 @@
+2007-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* gnulib.modules: Add des. Sort lines.
+	* imap4d/Makefile.am (imap4d_SOURCES): Add preauth.c
+	* imap4d/authenticate.c (imap4d_authenticate): Use
+	imap4d_session_setup.
+	* imap4d/imap4d.c (imap4d_session_setup)
+	(imap4d_session_setup.0): New functions.
+	(imap4d_mainloop): Implement PREAUTH mode. 
+	* imap4d/imap4d.h (RESP_PREAUTH): New define.
+	(enum imap4d_preauth): New data type.
+	(preauth_mode,preauth_program,preauth_only,ident_port): New
+	globals.
+	(imap4d_session_setup,imap4d_session_setup.0): New functions.
+	* imap4d/login.c (imap4d_login): Use imap4d_session_setup0.
+	* imap4d/util.c (sc2string): Handle RESP_PREAUTH
+	
+	* lib/.cvsignore, m4/.cvsignore: Update.
+
+	* mailbox/tcp.c: Fix indentation.
+	
 2007-12-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/cfg_format.c: New file.

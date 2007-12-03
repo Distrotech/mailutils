@@ -9,6 +9,7 @@ chown.m4
 codeset.m4
 d-ino.m4
 d-type.m4
+des.m4
 dirfd.m4
 dirname.m4
 dos.m4

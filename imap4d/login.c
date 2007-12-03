@@ -56,19 +56,8 @@ imap4d_login (struct imap4d_command *command, char *arg)
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
-  homedir = mu_normalize_path (strdup (auth_data->dir), "/");
-  if (imap4d_check_home_dir (homedir, auth_data->uid, auth_data->gid))
-    return util_finish (command, RESP_NO,
-			"User name or passwd rejected");
-        
-  if (auth_data->change_uid)
-    setuid (auth_data->uid);
-
-  util_chdir (homedir);
-    
-  namespace_init (homedir);
-  mu_diag_output (MU_DIAG_INFO, _("User `%s' logged in (source: %s)"), username,
-	  auth_data->source);
+  if (imap4d_session_setup0 ())
+    return util_finish (command, RESP_NO, "User name or passwd rejected");
   return util_finish (command, RESP_OK, "Completed");
 }
 

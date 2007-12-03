@@ -30,6 +30,8 @@ chdir-long.h
 chown.c
 config.charset
 creat-safer.c
+des.c
+des.h
 dirent.h
 dirent.in.h
 dirfd.c

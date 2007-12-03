@@ -3,14 +3,13 @@
 
 # FIXME: regex and glob are used by libmailutils...
 
-gettext
-strtok_r
-getline
-argp
-xalloc
 alloca
+argp
+crypto/des
 fnmatch
+getline
 getpass-gnu
+gettext
 malloc
 mbswidth
 obstack
@@ -18,4 +17,6 @@ realloc
 setenv
 snprintf
 strcase
+strtok_r
 vasprintf
+xalloc

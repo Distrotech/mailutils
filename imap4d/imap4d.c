@@ -44,6 +44,12 @@ int create_home_dir;            /* Create home directory if it does not
 				   exist */
 int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
 
+enum imap4d_preauth preauth_mode;
+char *preauth_program;
+int preauth_only;
+int ident_port;
+char *ident_keyfile;
+int ident_encrypt_only;
 
 /* Number of child processes.  */
 size_t children;
@@ -170,6 +176,100 @@ cb_mode (mu_debug_t debug, void *data, char *arg)
   return 0;
 }
 
+int
+parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
+{
+  int rc = 0;
+  if (strcmp (scheme, "stdio") == 0)
+    preauth_mode = preauth_stdio;
+  else if (strcmp (scheme, "prog") == 0)
+    {
+      char *path;
+      rc = mu_url_aget_path (url, &path);
+      if (rc)
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       _("URL error: cannot get path: %s"),
+			       mu_strerror (rc));
+	  return 1;
+	}
+      preauth_program = path;
+      preauth_mode = preauth_prog;
+    }
+  else if (strcmp (scheme, "ident") == 0)
+    {
+      struct servent *sp;
+      long n;
+      if (url && mu_url_get_port (url, &n) == 0)
+	ident_port = (short) n;
+      else if (sp = getservbyname ("auth", "tcp"))
+	ident_port = ntohs (sp->s_port);
+      else
+	ident_port = 113;
+      preauth_mode = preauth_ident;
+    }
+  else
+    {
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown preauth scheme"));
+      rc = 1;
+    }
+
+  return rc;
+}
+      
+/* preauth prog:///usr/sbin/progname
+   preauth ident[://:port]
+   preauth stdio
+*/
+static int
+cb_preauth (mu_debug_t debug, void *data, char *arg)
+{
+  if (strcmp (arg, "stdio") == 0)
+    preauth_mode = preauth_stdio;
+  else if (strcmp (arg, "ident") == 0)
+    return parse_preauth_scheme (debug, arg, NULL);
+  else if (arg[0] == '/')
+    {
+      preauth_program = xstrdup (arg);
+      preauth_mode = preauth_prog;
+    }
+  else
+    {
+      mu_url_t url;
+      char *scheme;
+      int rc = mu_url_create (&url, arg);
+
+      if (rc)
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       _("cannot create URL: %s"), mu_strerror (rc));
+	  return 1;
+	}
+      rc = mu_url_parse (url);
+      if (rc)
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       "%s: %s", arg, mu_strerror (rc));
+	  return 1;
+	}
+
+      rc = mu_url_aget_scheme (url, &scheme);
+      if (rc)
+	{
+	  mu_url_destroy (&url);
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       _("URL error: %s"), mu_strerror (rc));
+	  return 1;
+	}
+
+      rc = parse_preauth_scheme (debug, scheme, url);
+      mu_url_destroy (&url);
+      free (scheme);
+      return rc;
+    }
+  return 0;
+}
+	
 static struct mu_cfg_param imap4d_cfg_param[] = {
   { "other-namespace", mu_cfg_callback, NULL, cb_other },
   { "shared-namespace", mu_cfg_callback, NULL, cb_shared },
@@ -177,6 +277,10 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "create-home-dir", mu_cfg_bool, &create_home_dir },
   { "home-dir-mode", mu_cfg_callback, NULL, cb_mode },
   { "tls-required", mu_cfg_int, &tls_required },
+  { "preauth", mu_cfg_callback, NULL, cb_preauth },
+  { "preauth-only", mu_cfg_bool, &preauth_only },
+  { "ident-keyfile", mu_cfg_string, &ident_keyfile },
+  { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only },
   { NULL }
 };
     
@@ -214,16 +318,16 @@ main (int argc, char **argv)
   
   auth_gssapi_init ();
   auth_gsasl_init ();
-  
+
 #ifdef USE_LIBPAM
   if (!mu_pam_service)
     mu_pam_service = "gnu-imap4d";
 #endif
 
-  if (mu_gocs_daemon.mode == MODE_INTERACTIVE && isatty (0))
+  if (mu_gocs_daemon.mode == MODE_INTERACTIVE)
     {
-      /* If input is a tty, switch to debug mode */
-      debug_mode = 1;
+      if (preauth_mode != preauth_stdio)
+	debug_mode = 1;
     }
   else
     {
@@ -304,6 +408,36 @@ main (int argc, char **argv)
   return status;
 }
 
+int
+imap4d_session_setup0 ()
+{
+  homedir = mu_normalize_path (strdup (auth_data->dir), "/");
+  if (imap4d_check_home_dir (homedir, auth_data->uid, auth_data->gid))
+    return 1;
+  
+  if (auth_data->change_uid)
+    setuid (auth_data->uid);
+
+  util_chdir (homedir);
+  namespace_init (homedir);
+  mu_diag_output (MU_DIAG_INFO,
+		  _("User `%s' logged in (source: %s)"), auth_data->name,
+		  auth_data->source);
+  return 0;
+}
+
+int
+imap4d_session_setup (char *username)
+{
+  auth_data = mu_get_auth_by_name (username);
+  if (auth_data == NULL)
+    {
+      mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), username);
+      return 1;
+    }
+  return imap4d_session_setup0 ();
+}
+
 static int
 imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
@@ -316,28 +450,21 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   util_setio (infile, outfile);
 
-  /* log information on the connecting client */
-  if (!debug_mode)
-    {
-      struct sockaddr_in cs;
-      int len = sizeof cs;
-
-      mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
-      if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
-	mu_diag_output (MU_DIAG_ERROR, _("Cannot obtain IP address of client: %s"),
-		strerror (errno));
-      else
-	mu_diag_output (MU_DIAG_INFO, _("Connect from %s"), inet_ntoa (cs.sin_addr));
-      text = "IMAP4rev1";
-    }
-  else
+  if (debug_mode)
     {
       mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
       text = "IMAP4rev1 Debugging mode";
     }
+  else if (imap4d_preauth_setup (fd) == 0)
+    text = "IMAP4rev1";
+  else
+    {
+      util_flush_output ();
+      return EXIT_SUCCESS;
+    }
 
   /* Greetings.  */
-  util_out (RESP_OK, text);
+  util_out ((state == STATE_AUTH) ? RESP_PREAUTH : RESP_OK, "%s", text);
   util_flush_output ();
 
   while (1)
