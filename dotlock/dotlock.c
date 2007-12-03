@@ -77,10 +77,12 @@ static int debug;
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case 'd':
-      debug = 1;
+      mu_argp_node_list_new (&lst, "debug", "yes");
       break;
 
     case 'u':
@@ -89,21 +91,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'r':
       if (arg)
-	{
-	  retries = atoi (arg);
-	  if (retries <= 0)
-	    argp_error (state, _("RETRIES must be greater than 0"));
-	}
-      flags |= MU_LOCKER_RETRY;
+	mu_argp_node_list_new (&lst, "retry", arg);
       break;
 
     case 'f':
-      if (arg)
-	{
-	  force = atoi (arg);
-	  if (force <= 0)
-	    argp_error (state, _("MINUTES must be greater than 0"));
-	}
+      mu_argp_node_list_new (&lst, "force", arg ? arg : "0");
       break;
 
     case ARGP_KEY_ARG:
@@ -115,6 +107,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_NO_ARGS:
       argp_error (state, _("FILE must be specified"));
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -166,6 +166,9 @@ main (int argc, char *argv[])
       force *= 60;
       flags |= MU_LOCKER_TIME;
     }
+
+  if (retries != 0)
+    flags |= MU_LOCKER_RETRY;
   
   if ((err = mu_locker_create (&locker, file, flags)))
     {

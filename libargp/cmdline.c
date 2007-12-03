@@ -19,7 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 
 static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_common_cmdline,
@@ -63,5 +63,53 @@ mu_libargp_init ()
     }
 }
 
-  
-  
+void
+mu_argp_node_list_init (struct mu_argp_node_list *lst)
+{
+  lst->count = 0;
+  lst->head = lst->tail = NULL;
+}
+
+void
+mu_argp_node_list_add (struct mu_argp_node_list *lst,  mu_cfg_node_t *node)
+{
+  lst->count++;
+  if (lst->tail)
+    lst->tail->next = node;
+  else
+    lst->head = node;
+  lst->tail = node;
+}
+		   
+void
+mu_argp_node_list_new (struct mu_argp_node_list *lst,
+		      char *tag, char *label)
+{
+  mu_cfg_node_t *node;
+  mu_cfg_locus_t loc = { "command line", 0 };
+
+  loc.line = lst->count;
+  node = mu_cfg_tree_create_node (mu_argp_tree, mu_cfg_node_param,
+				  &loc, tag, label, NULL);
+  mu_argp_node_list_add (lst, node);
+}
+
+void
+mu_argp_node_list_finish (struct mu_argp_node_list *lst, char *tag,
+			  char *label)
+{
+  mu_cfg_node_t *node;
+
+  if (!lst->head)
+    return;
+  if (tag)
+    node = mu_cfg_tree_create_node (mu_argp_tree,
+				    mu_cfg_node_tag,
+				    NULL,
+				    tag, label,
+				    lst->head);
+  else
+    node = lst->head;
+  mu_cfg_tree_add_node (mu_argp_tree, node);
+  mu_argp_node_list_init (lst);
+}

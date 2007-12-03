@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include "mailutils/libcfg.h"
 
-static char *virtdomain_settings;
+static struct mu_gocs_virtual virtdomain_settings;
 
 static struct mu_cfg_param mu_virtdomain_param[] = {
   { "passwd-dir", mu_cfg_string, &virtdomain_settings },

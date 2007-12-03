@@ -80,6 +80,11 @@ struct mu_gocs_pam
   char *service;
 };
 
+struct mu_gocs_virtual
+{
+  char *pwddir;
+};
+
 /* Auxiliary variables for use by libargp/libcfg */
 extern int mu_load_user_rcfile;
 extern int mu_load_site_rcfile;

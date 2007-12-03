@@ -55,17 +55,15 @@
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
-/* FIXME: Make global, prefix with mu_ */
-static char *site_virtual_pwddir = SITE_VIRTUAL_PWDDIR;
+struct mu_gocs_virtual mu_virtual_module_config = { SITE_VIRTUAL_PWDDIR };
 
 int
 mu_virtual_module_init (void *data)
 {
   if (data)
     {
-      site_virtual_pwddir = strdup (data);
-      if (!site_virtual_pwddir)
-	return 1;
+      struct mu_gocs_virtual *p = data;
+      mu_virtual_module_config = *p;
     }
   return 0;
 }
@@ -91,12 +89,12 @@ getpwnam_virtual (const char *u)
   if (delim == 0)
     return NULL;
 
-  filename = malloc (strlen (site_virtual_pwddir) +
+  filename = malloc (strlen (mu_virtual_module_config.pwddir) +
 		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
   if (filename == NULL)
     return NULL;
 
-  sprintf (filename, "%s/%s", site_virtual_pwddir, &u[delim + 1]);
+  sprintf (filename, "%s/%s", mu_virtual_module_config.pwddir, &u[delim + 1]);
   pfile = fopen (filename, "r");
   free (filename);
 

@@ -72,7 +72,7 @@ find_capa (const char *name)
 }
 
 static struct argp *
-mu_build_argp (const struct argp *template, const char *capa[])
+mu_build_argp (const struct argp *template, char **capa)
 {
   int n;
   int nchild;
@@ -159,7 +159,7 @@ cap_buf_init (struct cap_buf *bp)
 }
 
 static void
-cap_buf_add (struct cap_buf *bp, const char *str)
+cap_buf_add (struct cap_buf *bp, char *str)
 {
   if (bp->numcapa == bp->maxcapa)
     {

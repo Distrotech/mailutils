@@ -395,7 +395,7 @@ argcv_free (int argc, char **argv)
   return 0;
 }
 
-/* Take a argv an make string separated by ' '.  */
+/* Make a argv an make string separated by ' '.  */
 
 int
 argcv_string (int argc, char **argv, char **pstring)

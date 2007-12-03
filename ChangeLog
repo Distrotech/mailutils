@@ -1,5 +1,45 @@
 2007-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/virtual.c (site_virtual_pwddir): Replace with global
+	struct mu_gocs_virtual mu_virtual_module_config
+
+	* include/mailutils/cfg.h (MU_PARSE_CONFIG_GLOBAL)
+	(MU_PARSE_CONFIG_VERBOSE, MU_PARSE_CONFIG_DUMP): New defines.
+	(mu_cfg_tree_create,mu_cfg_tree_set_debug,mu_cfg_tree_set_alloc)
+	(mu_cfg_tree_alloc,mu_cfg_tree_free)
+	(mu_cfg_tree_create_node,mu_cfg_tree_add_node): New functions.
+	* include/mailutils/gocs.h (struct mu_gocs_virtual): New data
+	type.
+	* include/mailutils/libargp.h (struct mu_argp_node_list): New data
+	type.
+	(mu_argp_node_list_init, mu_argp_node_list_add)
+	(mu_argp_node_list_new, mu_argp_node_list_finish): New functions.
+	* libargp/cmdline.h: New header.
+	* libargp/Makefile.am (libmuargp_a_SOURCES): Add cmdline.h.
+	
+	* dotlock/dotlock.c, imap4d/imap4d.c, libargp/auth.c,
+	libargp/cmdline.c, libargp/common.c, libargp/compat.c,
+	libargp/gsasl.c, libargp/mu_argp.c, libargp/muinit.c,
+	libargp/pam.c, libargp/radius.c, libargp/sieve.c, libargp/sql.c,
+	libargp/tls.c, libargp/virtdomain.c, libcfg/common.c,
+	libcfg/init.c, libcfg/virtdomain.c, maidag/maidag.c,
+	mail.local/main.c, mail.remote/mail.remote.c, mimeview/mimeview.c,
+	movemail/movemail.c, pop3d/pop3d.c, readmsg/readmsg.c,
+	sieve/sieve.c: Change option parsing, usig mu_cfg_tree_ functions.
+	
+	* mailbox/argcv.c: Fix a typo in comment.
+	* mailbox/cfg_lexer.c (mu_parse_config_tree): New function.
+	(_mu_parse_config): Rewrite using mu_parse_config_tree.
+	* mailbox/cfg_parser.y (mu_cfg_format_error,_mu_cfg_vperror)
+	(debug_print_node): Use default diag debug_t object, if the passed
+	one is NULL. Reset locus after formatting.
+	(mu_cfg_postorder): Return immediately if node == NULL.
+	(mu_cfg_tree_create,mu_cfg_tree_set_debug,mu_cfg_tree_set_alloc)
+	(mu_cfg_tree_alloc,mu_cfg_tree_free,mu_cfg_tree_create_node)
+	(mu_cfg_tree_add_node): New functions.
+	* mailbox/gocs.c (mu_gocs_store): Make sure no capa/data tuple
+	gets registered twice.
+		
 	* NEWS: Update.
 	* gnulib.modules: Add des. Sort lines.
 	* imap4d/Makefile.am (imap4d_SOURCES): Add preauth.c
@@ -7,13 +47,13 @@
 	* imap4d/authenticate.c (imap4d_authenticate): Use
 	imap4d_session_setup.
 	* imap4d/imap4d.c (imap4d_session_setup)
-	(imap4d_session_setup.0): New functions.
+	(imap4d_session_setup0): New functions.
 	(imap4d_mainloop): Implement PREAUTH mode. 
 	* imap4d/imap4d.h (RESP_PREAUTH): New define.
 	(enum imap4d_preauth): New data type.
 	(preauth_mode,preauth_program,preauth_only,ident_port): New
 	globals.
-	(imap4d_session_setup,imap4d_session_setup.0): New functions.
+	(imap4d_session_setup,imap4d_session_setup0): New functions.
 	* imap4d/login.c (imap4d_login): Use imap4d_session_setup0.
 	* imap4d/util.c (sc2string): Handle RESP_PREAUTH
 	

@@ -20,23 +20,27 @@
 # include <config.h>
 #endif
 
-#include "mailutils/libargp.h"
-
-static char *virtdir;
+#include "cmdline.h"
 
 #define OPT_PWDDIR 256
 
 static error_t
 mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_PWDDIR:
-      virtdir = arg;
+      mu_argp_node_list_new (&lst, "passwd-dir", arg);
+      break;
+
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
 
     case ARGP_KEY_FINI:
-      mu_gocs_store ("virtdomain", virtdir);
+      mu_argp_node_list_finish (&lst, "virtdomain", NULL);
       break;
       
     default:

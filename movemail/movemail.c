@@ -49,18 +49,28 @@ static int emacs_mode;
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case 'r':
-      reverse_order++;
+      mu_argp_node_list_new (&lst, "reverse", "yes");
       break;
 
     case 'p':
-      preserve_mail++;
+      mu_argp_node_list_new (&lst, "preserve", arg);
       break;
 
     case OPT_EMACS:
-      emacs_mode++;
+      mu_argp_node_list_new (&lst, "emacs", arg);
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
       break;
       
     default:
@@ -82,6 +92,7 @@ static struct argp argp = {
 struct mu_cfg_param movemail_cfg_param[] = {
   { "preserve", mu_cfg_bool, &preserve_mail },
   { "reverse",  mu_cfg_bool, &reverse_order },
+  { "emacs", mu_cfg_bool, &emacs_mode },
   { NULL }
 };
 

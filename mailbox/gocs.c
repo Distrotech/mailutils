@@ -326,6 +326,13 @@ _destroy_data (void *item)
   free (item);
 }
 
+static int
+_gocs_comp (const void *a, const void *b)
+{
+  const struct mu_gocs_data *da = a, *db = b;
+  return !(strcmp (da->capa, db->capa) == 0 && da->data == db->data);
+}
+
 void
 mu_gocs_store (char *capa, void *data)
 {
@@ -334,6 +341,7 @@ mu_gocs_store (char *capa, void *data)
     {
       mu_list_create (&data_list);
       mu_list_set_destroy_item (data_list, _destroy_data);
+      mu_list_set_comparator (data_list, _gocs_comp);
     }
   s = malloc (sizeof *s);
   if (!s)
@@ -343,7 +351,10 @@ mu_gocs_store (char *capa, void *data)
     }
   s->capa = capa;
   s->data = data;
-  mu_list_prepend (data_list, s);
+  if (mu_list_locate (data_list, s, NULL) == 0)
+    free (s);
+  else
+    mu_list_prepend (data_list, s);
 }
 
 int

@@ -20,8 +20,7 @@
 # include <config.h>
 #endif
 
-#include "mailutils/libargp.h"
-#include <mailutils/tls.h>
+#include "cmdline.h"
 
 enum {
   OPT_TLS = 256,         
@@ -42,34 +41,35 @@ static struct argp_option _tls_argp_options[] = {
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
-static struct mu_tls_module_config tls_data = { 1, };
-
 static error_t
 _tls_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+  
   switch (key)
     {
     case OPT_TLS:
-      if (!arg || strcasecmp (arg, "yes") == 0)
-	tls_data.client_enable = 1;
-      else if (strcasecmp (arg, "no") == 0)
-	tls_data.client_enable = 0;
+      mu_argp_node_list_new (&lst, "tls", arg);
       break;
       
     case OPT_SSL_CERT:
-      tls_data.ssl_cert = arg;
+      mu_argp_node_list_new (&lst, "ssl-cert", arg);
       break;
 
     case OPT_SSL_KEY:
-      tls_data.ssl_key = arg;
+      mu_argp_node_list_new (&lst, "ssl-key", arg);
       break;
 
     case OPT_SSL_CAFILE:
-      tls_data.ssl_cafile = arg;
+      mu_argp_node_list_new (&lst, "ssl-cafile", arg);
+      break;
+
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
 
     case ARGP_KEY_FINI:
-      mu_gocs_store ("tls", &tls_data);
+      mu_argp_node_list_finish (&lst, "tls", NULL);
       break;
       
     default:

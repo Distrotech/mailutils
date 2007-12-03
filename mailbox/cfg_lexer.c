@@ -14,7 +14,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -33,6 +35,7 @@
 #include <mailutils/refcount.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
+#include <mailutils/stream.h>
 
 #include "cfg_parser.h"
 
@@ -530,7 +533,7 @@ _clone_action (void *item, void *cbdata)
 int
 mu_config_clone_container (struct mu_cfg_cont *cont)
 {
-  int n = mu_refcount_inc (cont->refcount);
+  mu_refcount_inc (cont->refcount);
   /* printf("clone %p-%s: %d\n", cont, cont->v.section.ident, n); */
   switch (cont->type)
     {
@@ -681,11 +684,11 @@ struct include_data
 {
   const char *progname;
   struct mu_cfg_param *progparam;
-  int global;
+  int flags;
 };
 
 static int _mu_parse_config (const char *file, const char *progname,
-			     struct mu_cfg_param *progparam, int global);
+			     struct mu_cfg_param *progparam, int flags);
 
 static int
 _cb_include (mu_debug_t debug, void *data, char *arg)
@@ -708,7 +711,7 @@ _cb_include (mu_debug_t debug, void *data, char *arg)
 	}
       else
 	ret = _mu_parse_config (dirname, idp->progname, idp->progparam,
-				idp->global);
+				idp->flags);
     }
   else if (errno == ENOENT)
     {
@@ -727,51 +730,13 @@ _cb_include (mu_debug_t debug, void *data, char *arg)
   return ret;
 }
 
-static int
-_mu_parse_config (const char *file, const char *progname,
-		  struct mu_cfg_param *progparam, int global)
+int
+mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
+		      struct mu_cfg_param *progparam, int flags)
 {
-  struct lexer_data data;
-  struct stat st;
-  int fd;
-  int rc;
-  mu_cfg_tree_t *parse_tree;
+  int rc = 1;
   
-  if (stat (file, &st))
-    {
-      if (errno != ENOENT)
-	mu_error (_("can't stat `%s'"), file);
-      return -1;
-    }
-  fd = open (file, O_RDONLY);
-  if (fd == -1)
-    {
-      mu_error (_("cannot open config file `%s'"), file);
-      return -1;
-    }
-
-  if (mu_cfg_parser_verbose)
-    mu_error (_("Info: parsing file `%s'"), file);
-  
-  memset (&data, 0, sizeof data);
-  data.buffer = malloc (st.st_size+1);
-        
-  read (fd, data.buffer, st.st_size);
-  data.buffer[st.st_size] = 0;
-  close (fd);
-  data.curp = data.buffer;
-
-  /* Parse configuration */
-  mu_cfg_locus.file = (char*) file;
-  mu_cfg_locus.line = 1;
-  rc = mu_cfg_parse (&parse_tree,
-		     &data,
-		     default_lexer,
-		     NULL,
-		     NULL,
-		     NULL);
-
-  if (rc == 0 && root_container)
+  if (root_container)
     {
       struct mu_cfg_cont *cont = root_container;
       struct include_data idata;
@@ -779,14 +744,14 @@ _mu_parse_config (const char *file, const char *progname,
 	{ "include", mu_cfg_callback, &idata, _cb_include },
 	{ NULL }
       };
-
+      
       mu_config_clone_container (cont);
       idata.progname = progname;
       idata.progparam = progparam;
-      idata.global = global;
+      idata.flags = flags & MU_PARSE_CONFIG_GLOBAL;
       _mu_config_register_section (&cont, NULL, NULL, NULL,
 				   (void*) progname, mu_include_param, NULL);
-      if (global)
+      if (flags & MU_PARSE_CONFIG_GLOBAL)
 	{
 	  mu_iterator_t iter;
 	  struct mu_cfg_section *prog_sect;
@@ -798,7 +763,7 @@ _mu_parse_config (const char *file, const char *progname,
 	  _mu_config_register_section (&cont, NULL, "program", prog_parser,
 				       (void*) progname,
 				       progparam, &prog_sect);
-
+	  
 	  if (old_root->v.section.subsec)
 	    {
 	      if (!prog_sect->subsec)
@@ -837,12 +802,72 @@ _mu_parse_config (const char *file, const char *progname,
       mu_config_destroy_container (&cont);
     }
 
+  if (flags & MU_PARSE_CONFIG_DUMP)
+    {
+      mu_stream_t stream;
+      mu_stdio_stream_create (&stream, stderr,
+			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
+      mu_stream_open (stream);
+      mu_cfg_format_tree (stream, parse_tree);
+      mu_stream_destroy (&stream, NULL);
+    }
+
+  return rc;
+}
+
+static int
+_mu_parse_config (const char *file, const char *progname,
+		  struct mu_cfg_param *progparam, int flags)
+{
+  struct lexer_data data;
+  struct stat st;
+  int fd;
+  int rc;
+  mu_cfg_tree_t *parse_tree;
+  
+  if (stat (file, &st))
+    {
+      if (errno != ENOENT)
+	mu_error (_("can't stat `%s'"), file);
+      return -1;
+    }
+  fd = open (file, O_RDONLY);
+  if (fd == -1)
+    {
+      mu_error (_("cannot open config file `%s'"), file);
+      return -1;
+    }
+
+  if (flags & MU_PARSE_CONFIG_VERBOSE)
+    mu_error (_("Info: parsing file `%s'"), file);
+  
+  memset (&data, 0, sizeof data);
+  data.buffer = malloc (st.st_size+1);
+        
+  read (fd, data.buffer, st.st_size);
+  data.buffer[st.st_size] = 0;
+  close (fd);
+  data.curp = data.buffer;
+
+  /* Parse configuration */
+  mu_cfg_locus.file = (char*) file;
+  mu_cfg_locus.line = 1;
+  rc = mu_cfg_parse (&parse_tree,
+		     &data,
+		     default_lexer,
+		     NULL,
+		     NULL,
+		     NULL);
+
+  if (rc == 0)
+    rc = mu_parse_config_tree (parse_tree, progname, progparam, flags);
+
   mu_cfg_destroy_tree (&parse_tree);
   mu_list_destroy (&data.mpool);
   free (data.cbuf);
   free (data.buffer);
 
-  if (mu_cfg_parser_verbose)
+  if (flags & MU_PARSE_CONFIG_VERBOSE)
     mu_error (_("Info: finished parsing file `%s'"), file);
   
   return rc;
@@ -850,7 +875,7 @@ _mu_parse_config (const char *file, const char *progname,
 
 int
 mu_parse_config (const char *file, const char *progname,
-		 struct mu_cfg_param *progparam, int global)
+		 struct mu_cfg_param *progparam, int flags)
 {
   int rc;
   char *full_name = mu_tilde_expansion (file, "/", NULL);
@@ -858,7 +883,7 @@ mu_parse_config (const char *file, const char *progname,
     {
       if (access (full_name, R_OK) == 0)
 	{
-	  rc = _mu_parse_config (full_name, progname, progparam, global);
+	  rc = _mu_parse_config (full_name, progname, progparam, flags);
 	  free (full_name);
 	}
       else

@@ -19,44 +19,10 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include <string.h>
 #include <mailutils/syslog.h>
 #include <mailutils/daemon.h>
-
-static struct mu_gocs_daemon daemon_settings;
-static struct mu_gocs_locking locking_settings;
-static struct mu_gocs_logging logging_settings;
-static struct mu_gocs_mailbox mailbox_settings;
-static struct mu_gocs_source_email source_email_settings;
-static struct mu_gocs_mailer mailer_settings;
-static struct mu_gocs_debug debug_settings;
-
-
-void
-assign_string (char **pstr, char *val)
-{
-  if (!val)
-    {
-      if (*pstr)
-	{
-	  free (*pstr);
-	  *pstr = NULL;
-	}
-    }
-  else
-    {
-      size_t size = strlen (val);
-      char *p = realloc (*pstr, size + 1);
-      if (!p)
-	{
-	  mu_error ("%s", mu_strerror (ENOMEM));
-	  exit (1);
-	}
-      strcpy (p, val);
-      *pstr = p;
-    }
-}
 
 
 /* ************************************************************************* */
@@ -158,17 +124,21 @@ static struct argp_option mu_logging_argp_option[] = {
 static error_t
 mu_logging_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+  
   switch (key)
     {
       /* log */
     case OPT_LOG_FACILITY:
-      if (mu_string_to_syslog_facility (arg, &logging_settings.facility))
-	mu_error (_("Unknown syslog facility `%s'"), arg);
-      /* FIXME: error reporting */
+      mu_argp_node_list_new (&lst, "facility", arg);
       break;
-
+	  
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
     case ARGP_KEY_FINI:
-      mu_gocs_store ("logging", &logging_settings);
+      mu_argp_node_list_finish (&lst, "logging", NULL);
       break;
 
     default:
@@ -253,19 +223,25 @@ static struct argp_option mu_mailbox_argp_option[] = {
 static error_t
 mu_mailbox_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+  
   switch (key)
     {
       /* mailbox */
     case 'm':
-      assign_string (&mailbox_settings.mail_spool, arg);
+      mu_argp_node_list_new (&lst, "mail-spool", arg);
       break;
 
     case OPT_MAILBOX_TYPE:
-      assign_string (&mailbox_settings.mailbox_type, arg);
+      mu_argp_node_list_new (&lst, "mailbox-type", arg);
       break;
       
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+
     case ARGP_KEY_FINI:
-      mu_gocs_store ("mailbox", &mailbox_settings);
+      mu_argp_node_list_finish (&lst, "mailbox", NULL);
       break;
       
     default:
@@ -314,30 +290,36 @@ static struct argp_option mu_locking_argp_option[] = {
 static error_t
 mu_locking_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_LOCK_FLAGS:
-      assign_string (&locking_settings.lock_flags, arg);
+      mu_argp_node_list_new (&lst, "flags", arg);
       break;
 
     case OPT_LOCK_RETRY_COUNT:
-      locking_settings.lock_retry_count = strtoul (arg, NULL, 0);
+      mu_argp_node_list_new (&lst, "retry-count", arg);
       break;
 	  
     case OPT_LOCK_RETRY_TIMEOUT:
-      locking_settings.lock_retry_timeout = strtoul (arg, NULL, 0);
+      mu_argp_node_list_new (&lst, "retry-timeout", arg);
       break;
 
     case OPT_LOCK_EXPIRE_TIMEOUT:
-      locking_settings.lock_expire_timeout = strtoul (arg, NULL, 0);
+      mu_argp_node_list_new (&lst, "expire-timeout", arg);
       break;
 
     case OPT_LOCK_EXTERNAL_PROGRAM:
-      assign_string (&locking_settings.external_locker, arg);
+      mu_argp_node_list_new (&lst, "external-locker", arg);
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
       
     case ARGP_KEY_FINI:
-      mu_gocs_store ("locking", &locking_settings);
+      mu_argp_node_list_finish (&lst, "locking", NULL);
       break;
       
     default:
@@ -379,18 +361,24 @@ static struct argp_option mu_address_argp_option[] = {
 static error_t
 mu_address_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case 'E':
-      assign_string (&source_email_settings.address, arg);
+      mu_argp_node_list_new (&lst, "email-addr", arg);
       break;
 
     case 'D':
-      assign_string (&source_email_settings.domain, arg);
+      mu_argp_node_list_new (&lst, "email-domain", arg);
       break;
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
     case ARGP_KEY_FINI:
-      mu_gocs_store ("address", &source_email_settings);
+      mu_argp_node_list_finish (&lst, "address", NULL);
       break;
       
     default:
@@ -430,15 +418,21 @@ static struct argp_option mu_mailer_argp_option[] = {
 static error_t
 mu_mailer_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
       /* mailer */
     case 'M':
-      assign_string (&mailer_settings.mailer, arg);
+      mu_argp_node_list_new (&lst, "url", arg);
+      break;
+
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
 
     case ARGP_KEY_FINI:
-      mu_gocs_store ("mailer", &mailer_settings);
+      mu_argp_node_list_finish (&lst, "mailer", NULL);
       break;
 
     default:
@@ -488,51 +482,40 @@ static struct argp_option mu_daemon_argp_option[] = {
 static error_t
 mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static int options_given = 0;
+  static struct mu_argp_node_list lst;
   
   switch (key)
     {
     case 'd':
-      options_given = 1;
-      daemon_settings.mode = MODE_DAEMON;
-      if (arg)
-	daemon_settings.maxchildren = strtoul (arg, NULL, 10);
+      mu_argp_node_list_new (&lst, "mode", arg);
       break;
 
     case 'i':
-      options_given = 1;
-      daemon_settings.mode = MODE_INTERACTIVE;
+      mu_argp_node_list_new (&lst, "mode", "inetd");
       break;
       
     case 'p':
-      options_given = 1;
-      daemon_settings.mode = MODE_DAEMON;
-      daemon_settings.port = strtoul (arg, NULL, 10); /*FIXME: overflow */
+      mu_argp_node_list_new (&lst, "port", arg);
       break;
 
     case 'P':
-      options_given = 1;
-      assign_string (&daemon_settings.pidfile, arg);
+      mu_argp_node_list_new (&lst, "pidfile", arg);
       break;
 
     case 't':
-      options_given = 1;
-      daemon_settings.timeout = strtoul (arg, NULL, 10);
+      mu_argp_node_list_new (&lst, "timeout", arg);
       break;
 
     case 'x':
-      options_given = 1;
-      daemon_settings.transcript = 1;
+      mu_argp_node_list_new (&lst, "transcript", "yes");
       break;
 
     case ARGP_KEY_INIT:
-      options_given = 0;
-      daemon_settings = mu_gocs_daemon;
+      mu_argp_node_list_init (&lst);
       break;
 
     case ARGP_KEY_FINI:
-      if (options_given)
-	mu_gocs_store ("daemon", &daemon_settings);
+      mu_argp_node_list_finish (&lst, "daemon", NULL);
       break;
       
     default:
@@ -570,23 +553,24 @@ static struct argp_option mu_debug_argp_options[] =
 static error_t
 mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_DEBUG_LEVEL:
-      debug_settings.string = arg;
-      debug_settings.errpfx = strdup ("command line");
+      mu_argp_node_list_new (&lst, "level", arg);
       break;
 
     case OPT_LINE_INFO:
-      debug_settings.line_info = 1;
+      mu_argp_node_list_new (&lst, "line-info", "yes");
       break;
       
     case ARGP_KEY_INIT:
-      debug_settings.line_info = -1;
+      mu_argp_node_list_init (&lst);
       break;
       
     case ARGP_KEY_FINI:
-      mu_gocs_store ("debug", &debug_settings);
+      mu_argp_node_list_finish (&lst, "debug", NULL);
       break;
       
     default:

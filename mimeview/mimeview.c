@@ -89,6 +89,8 @@ set_debug_flags (mu_debug_t debug, char *arg)
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case ARGP_KEY_INIT:
@@ -96,11 +98,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       mimetypes_gram_debug (0);
       if (interactive == -1)
 	interactive = isatty (fileno (stdin));
+      mu_argp_node_list_init (&lst);
       break;
 
     case ARGP_KEY_FINI:
       if (dry_run && !debug_level)
 	debug_level = 1;
+      mu_argp_node_list_finish (&lst, NULL, NULL);
       break;
 
     case 'a':
@@ -109,9 +113,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'd':
-      if (!arg)
-	arg = "9";
-      set_debug_flags (NULL, arg);
+      mu_argp_node_list_new (&lst, "debug", arg ? arg : "9");
       break;
 
     case 'h':
@@ -123,11 +125,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 't':
-      mimetypes_config = arg;
+      mu_argp_node_list_new (&lst, "mimetypes", arg);
       break;
 
     case OPT_METAMAIL:
-      metamail = arg ? arg : "metamail";
+      mu_argp_node_list_new (&lst, "metamail", arg ? arg : "metamail");
       break;
       
     default: 

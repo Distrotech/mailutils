@@ -15,7 +15,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-  
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>	
@@ -92,6 +94,8 @@ mu_cfg_format_error (mu_debug_t debug, size_t level, const char *fmt, ...)
 {
   va_list ap;
   
+  if (!debug)
+    mu_diag_get_debug (&debug);
   va_start (ap, fmt);
   mu_debug_vprintf (debug, 0, fmt, ap);
   mu_debug_printf (debug, 0, "\n");
@@ -102,11 +106,14 @@ static void
 _mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
 		 const char *fmt, va_list ap)
 {
-  mu_debug_set_locus (_mu_cfg_debug,
+  if (!debug)
+    mu_diag_get_debug (&debug);
+  mu_debug_set_locus (debug,
 		      loc->file ? loc->file : _("unknown file"),
 		      loc->line);
-  mu_debug_vprintf (_mu_cfg_debug, 0, fmt, ap);
-  mu_debug_printf (_mu_cfg_debug, 0, "\n");
+  mu_debug_vprintf (debug, 0, fmt, ap);
+  mu_debug_printf (debug, 0, "\n");
+  mu_debug_set_locus (debug, NULL, 0);
 }
 
 static void
@@ -149,6 +156,7 @@ debug_print_node (mu_cfg_node_t *node)
 			     node_type_str (node->type),
 			     node->tag_name ? node->tag_name : "(null)",
 			     node->tag_label ? node->tag_label : "(null)");
+      mu_debug_set_locus (_mu_cfg_debug, NULL, 0);
     }
 }
       
@@ -271,8 +279,6 @@ mu_cfg_parse (mu_cfg_tree_t **ptree,
   return rc;
 }
 	
-
-
 static int
 _mu_cfg_preorder_recursive (mu_cfg_node_t *node,
 			    mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end,
@@ -355,6 +361,8 @@ int
 mu_cfg_postorder (mu_cfg_node_t *node,
 		  mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end, void *data)
 {
+  if (!node)
+    return 1;
   if (node->next
       && mu_cfg_postorder (node->next, beg, end, data) == MU_CFG_ITER_STOP)
     return 1;
@@ -1061,6 +1069,92 @@ mu_cfg_find_section (struct mu_cfg_section *root_sec,
   return 0;
 }
 
+
+int
+mu_cfg_tree_create (struct mu_cfg_tree **ptree)
+{
+  struct mu_cfg_tree *tree = calloc (1, sizeof *tree);
+  if (!tree)
+    return errno;
+  tree->alloc = malloc;
+  tree->free = free;
+  *ptree = tree;
+  return 0;
+}
 
+void
+mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug)
+{
+  tree->debug = debug;
+}
 
+void
+mu_cfg_tree_set_alloc (struct mu_cfg_tree *tree,
+		       mu_cfg_alloc_t alloc, mu_cfg_free_t free)
+{
+  tree->alloc = malloc;
+  tree->free = free;
+}  
 
+void *
+mu_cfg_tree_alloc (struct mu_cfg_tree *tree, size_t size)
+{
+  return tree->alloc (size);
+}
+
+void 
+mu_cfg_tree_free (struct mu_cfg_tree *tree, void *mem)
+{
+  tree->free (mem);
+}
+
+mu_cfg_node_t *
+mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
+			 enum mu_cfg_node_type type, mu_cfg_locus_t *loc,
+			 char *tag, char *label, mu_cfg_node_t *node)
+{
+  char *p;
+  mu_cfg_node_t *np;
+  size_t size = sizeof *np + strlen (tag) + 1
+                + (label ? (strlen (label) + 1) : 0);
+  np = mu_cfg_tree_alloc (tree, size);
+  if (!np)
+    {
+      mu_debug_printf (tree->debug, MU_DEBUG_ERROR, "%s\n",
+		       _("Not enough memory"));
+      abort ();
+    }
+  np->type = type;
+  if (loc)
+    np->locus = *loc;
+  else
+    memset (&np->locus, 0, sizeof np->locus);
+  p = (char*) (np + 1);
+  np->tag_name = p;
+  strcpy (p, tag);
+  p += strlen (p) + 1;
+  if (label)
+    {
+      np->tag_label = p;
+      strcpy (p, label);
+    }
+  else
+    np->tag_label = label;
+  np->node = node;
+  np->next = NULL;
+  return np;
+}
+
+void
+mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node)
+{
+  if (!tree->node)
+    tree->node = node;
+  else
+    {
+      mu_cfg_node_t *p;
+      for (p = tree->node; p->next; p = p->next)
+	;
+      p->next = node;
+    }
+}

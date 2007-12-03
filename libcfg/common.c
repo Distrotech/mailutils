@@ -155,7 +155,8 @@ mu_daemon_section_parser
       daemon_settings = mu_gocs_daemon;
       break;								      
       									      
-    case mu_cfg_section_end:						      
+    case mu_cfg_section_end:
+      mu_gocs_daemon = daemon_settings;
       mu_gocs_store ("daemon", &daemon_settings);	      
     }									      
   return 0;								      
@@ -180,18 +181,23 @@ cb_debug_level (mu_debug_t debug, void *data, char *arg)
   struct mu_debug_locus locus;
   
   debug_settings.string = arg;
-  mu_debug_get_locus (debug, &locus);
-  p = umaxtostr (locus.line, buf);
-  size = strlen (locus.file) + 1 + strlen (p) + 1;
-  pfx = malloc (size);
-  if (!pfx)
+  if (mu_debug_get_locus (debug, &locus) == 0)
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, "%s", mu_strerror (errno));
-      return 1;
+      p = umaxtostr (locus.line, buf);
+      size = strlen (locus.file) + 1 + strlen (p) + 1;
+      pfx = malloc (size);
+      if (!pfx)
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			       "%s", mu_strerror (errno));
+	  return 1;
+	}
+      strcpy (pfx, locus.file);
+      strcat (pfx, ":");
+      strcat (pfx, p);
     }
-  strcpy (pfx, locus.file);
-  strcat (pfx, ":");
-  strcat (pfx, p);
+  else
+    pfx = strdup ("command line");/*FIXME*/
   debug_settings.errpfx = pfx;
   return 0;
 }

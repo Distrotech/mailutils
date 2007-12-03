@@ -169,19 +169,17 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      state->child_inputs[0] = state->input;
-      break;
-
     case MESSAGE_ID_HEADER_OPTION:
-      message_id_header = arg;
+      mu_argp_node_list_new (&lst, "message-id-header", arg);
       break;
 
     case LMTP_OPTION:
-      lmtp_mode = 1;
-      lmtp_url_string = arg;
+      mu_argp_node_list_new (&lst, "lmtp", "yes");
+      mu_argp_node_list_new (&lst, "listen", arg);
       break;
 
     case 'r':
@@ -196,27 +194,35 @@ parse_opt (int key, char *arg, struct argp_state *state)
       
 #ifdef WITH_GUILE	
     case 's':
-      progfile_pattern = arg;
+      mu_argp_node_list_new (&lst, "guile-filter", arg);
       break;
 #endif
 
     case 'S':
-      sieve_pattern = arg;
+      mu_argp_node_list_new (&lst, "sieve-filter", arg);
       break;
       
     case 'x':
-      set_debug_flags (NULL, arg ? arg : D_DEFAULT);
+      mu_argp_node_list_new (&lst, "debug", arg ? arg : D_DEFAULT);
       break;
 
     case STDERR_OPTION:
-      log_to_stderr = 1;
+      mu_argp_node_list_new (&lst, "stderr", "yes");
       break;
       
-    default:
-      return ARGP_ERR_UNKNOWN;
-
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
+      
     case ARGP_KEY_ERROR:
       exit (EX_USAGE);
+
+    default:
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

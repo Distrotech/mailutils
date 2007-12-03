@@ -179,22 +179,24 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case ARG_MULTIPLE_DELIVERY:
-      multiple_delivery = 1;
+      mu_argp_node_list_new (&lst, "ex-multiple-delivery-success", "yes");
       break;
 
     case ARG_QUOTA_TEMPFAIL:
-      ex_quota_tempfail = 1;
+      mu_argp_node_list_new (&lst, "ex-quota-tempfail", "yes");
       break;
 
     case ARG_MESSAGE_ID_HEADER:
-      message_id_header = arg;
+      mu_argp_node_list_new (&lst, "message-id-header", arg);
       break;
 
     case ARG_QUOTA_QUERY:
-      quota_query = arg;
+      mu_argp_node_list_new (&lst, "quota-query", arg);
       break;
       
     case 'r':
@@ -209,24 +211,30 @@ parse_opt (int key, char *arg, struct argp_state *state)
       
 #ifdef USE_DBM
     case 'q':
-      quotadbname = arg;
+      mu_argp_node_list_new (&lst, "quota-db", arg);
       break;
 #endif
 
 #ifdef WITH_GUILE	
     case 's':
-      progfile_pattern = arg;
+      mu_argp_node_list_new (&lst, "source", arg);
       break;
 #endif
 
     case 'S':
-      sieve_pattern = arg;
+      mu_argp_node_list_new (&lst, "sieve", arg);
       break;
       
     case 'x':
-      if (!arg)
-	arg = D_DEFAULT;
-      set_debug_flags (NULL, arg);
+      mu_argp_node_list_new (&lst, "debug", arg ? arg : D_DEFAULT);
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
       break;
       
     default:

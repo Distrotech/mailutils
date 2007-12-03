@@ -20,7 +20,7 @@
 # include <config.h>
 #endif
 
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include <mailutils/radius.h>
 
 enum {
@@ -42,32 +42,35 @@ static struct argp_option mu_radius_argp_option[] = {
   { NULL }
 };
 
-
-static struct mu_radius_module_data radius_data;
-
 static error_t
 mu_radius_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_AUTH_REQUEST:
-      radius_data.auth_request = arg;
+      mu_argp_node_list_new (&lst, "auth-request", arg);
       break;
       
     case OPT_GETPWNAM_REQUEST:
-      radius_data.getpwnam_request = arg;
+      mu_argp_node_list_new (&lst, "getwnam-request", arg);
       break;
       
     case OPT_GETPWUID_REQUEST:
-      radius_data.getpwuid_request = arg;
+      mu_argp_node_list_new (&lst, "getwuid-request", arg);
       break;
       
     case OPT_RADIUS_DIR:
-      radius_data.config_dir = arg;
+      mu_argp_node_list_new (&lst, "directory", arg);
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
       
     case ARGP_KEY_FINI:
-      mu_gocs_store ("radius", &radius_data); 
+      mu_argp_node_list_finish (&lst, "radius", NULL);
       break;
 
     default:

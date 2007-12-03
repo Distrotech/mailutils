@@ -87,14 +87,17 @@ static int read_recipients;  /* Read recipients from the message */
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+  static int dbug = 0;
+  
   switch (key)
     {
     case 'f':
-      optfrom = arg;
+      mu_argp_node_list_new (&lst, "from", arg);
       break;
 
     case 'd':
-      optdebug++;
+      dbug++;
       break;
 
     case 'o':
@@ -103,7 +106,17 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 't':
-      read_recipients = 1;
+      mu_argp_node_list_new (&lst, "read-recipients", "yes");
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      if (dbug)
+	mu_argp_node_list_new (&lst, "debug", mu_umaxtostr (0, dbug));
+      mu_argp_node_list_finish (&lst, NULL, NULL);
       break;
       
     default: 

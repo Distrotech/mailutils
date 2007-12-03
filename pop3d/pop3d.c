@@ -175,63 +175,55 @@ static const char *pop3d_argp_capa[] = {
 static error_t
 pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 {
-  char *p;
+  static struct mu_argp_node_list lst;
   
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      astate->child_inputs[0] = astate->input;
-      break;
-
     case 'u':
-      undelete_on_startup = 1;
+      mu_argp_node_list_new (&lst, "undelete", "yes");
       break;
 
 #ifdef ENABLE_LOGIN_DELAY
     case OPT_LOGIN_DELAY:
-      login_delay = strtoul (arg, &p, 10);
-      if (*p)
-	{
-	  argp_error (astate, _("Invalid number"));
-	  exit (1);
-	}
+      mu_argp_node_list_new (&lst, "login-delay", arg);
       break;
 
     case OPT_STAT_FILE:
-      login_stat_file = arg;
+      mu_argp_node_list_new (&lst, "stat-file", arg);
       break;
 #endif  
  
     case OPT_EXPIRE:
-      expire = strtoul (arg, &p, 10);
-      if (*p)
-	{
-	  argp_error (astate, _("Invalid number"));
-	  exit (1);
-	}
-      if (expire == 0)
-	expire_on_exit = 1;
+      mu_argp_node_list_new (&lst, "expire", arg);
       break;
 
     case OPT_EXPIRE_ON_EXIT:
-      expire_on_exit = 1;
+      mu_argp_node_list_new (&lst, "delete-expired", "yes");
       break;
 
 #ifdef WITH_TLS
     case OPT_TLS_REQUIRED:
-      initial_state = INITIAL;
+      mu_argp_node_list_new (&lst, "tls-required", "yes");
       break;
 #endif
 
     case OPT_BULLETIN_SOURCE:
-      set_bulletin_source (arg);
+      mu_argp_node_list_new (&lst, "bulletin-source", arg);
       break;
       
 #ifdef USE_DBM
     case OPT_BULLETIN_DB:
-      set_bulletin_db (arg);
+      mu_argp_node_list_new (&lst, "bulletin-db", arg);
       break;
 #endif
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
       
     default:
       return ARGP_ERR_UNKNOWN;

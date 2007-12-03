@@ -20,13 +20,7 @@
 # include <config.h>
 #endif
 
-#include "mailutils/libargp.h"
-#include "mailutils/sql.h"
-#include "mailutils/mutil.h"
-
-static int sql_requested;
-static struct mu_sql_module_config sql_config;
-/* Command-line configuration */
+#include "cmdline.h"
 
 enum {
   OPT_SQL_INTERFACE = 256,        
@@ -72,72 +66,60 @@ static struct argp_option mu_sql_argp_option[] = {
 static error_t
 mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  int rc, err;
+  static struct mu_argp_node_list lst;
   
   switch (key)
     {
     case OPT_SQL_INTERFACE:
-      sql_config.interface = arg;
-      sql_requested = 1;
+      mu_argp_node_list_new (&lst, "interface", arg);
       break;
       
     case OPT_SQL_GETPWNAM:
-      sql_requested = 1;
-      sql_config.getpwnam_query = arg;
+      mu_argp_node_list_new (&lst, "getpwnam", arg);
       break;
 
     case OPT_SQL_GETPWUID:
-      sql_requested = 1;
-      sql_config.getpwuid_query = arg;
+      mu_argp_node_list_new (&lst, "getpwuid", arg);
       break;
 
     case OPT_SQL_GETPASS:
-      sql_requested = 1;
-      sql_config.getpass_query = arg;
+      mu_argp_node_list_new (&lst, "getpass", arg);
       break;
 
     case OPT_SQL_HOST:
-      sql_requested = 1;
-      sql_config.host = arg;
+      mu_argp_node_list_new (&lst, "host", arg);
       break;
 
     case OPT_SQL_USER:
-      sql_requested = 1;
-      sql_config.user = arg;
+      mu_argp_node_list_new (&lst, "user", arg);
       break;
 
     case OPT_SQL_PASSWD:
-      sql_requested = 1;
-      sql_config.passwd = arg;
+      mu_argp_node_list_new (&lst, "passwd", arg);
       break;
 
     case OPT_SQL_DB:
-      sql_requested = 1;
-      sql_config.db = arg;
+      mu_argp_node_list_new (&lst, "db", arg);
       break;
 
     case OPT_SQL_PORT:
-      sql_requested = 1;
-      sql_config.port = strtoul (arg, NULL, 0);
+      mu_argp_node_list_new (&lst, "port", arg);
       break;
 
     case OPT_SQL_MU_PASSWORD_TYPE:
-      if (mu_sql_decode_password_type (arg, &sql_config.password_type))
-	argp_error (state, _("Unknown password type `%s'"), arg);
-      sql_requested = 1;
+      mu_argp_node_list_new (&lst, "password-type", arg);
       break;
 
     case OPT_SQL_FIELD_MAP:
-      rc = mutil_parse_field_map (arg, &sql_config.field_map, &err);
-      if (rc)
-	argp_error (state, _("Error near element %d: %s"),
-		    err, mu_strerror (rc));
-      sql_requested = 1;
+      mu_argp_node_list_new (&lst, "field-map", arg);
+      break;
+      
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
       break;
       
     case ARGP_KEY_FINI:
-      if (sql_requested)
-	mu_gocs_store ("sql", &sql_config);
+      mu_argp_node_list_finish (&lst, "sql", NULL);
       break;
 
     default:

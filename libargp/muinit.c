@@ -19,9 +19,10 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include "cmdline.h"
+#include <mailutils/stream.h>
 
-#include "mailutils/libcfg.h"
-#include "mailutils/libargp.h"
+struct mu_cfg_tree *mu_argp_tree;
 
 void
 mu_argp_init (const char *vers, const char *bugaddr)
@@ -29,6 +30,8 @@ mu_argp_init (const char *vers, const char *bugaddr)
   argp_program_version = vers ? vers : PACKAGE_STRING;
   argp_program_bug_address = bugaddr ? bugaddr : "<" PACKAGE_BUGREPORT ">";
 }
+
+extern struct mu_cfg_cont *mu_cfg_root_container; /* FIXME */
 
 int
 mu_app_init (struct argp *myargp, const char **capa,
@@ -39,7 +42,8 @@ mu_app_init (struct argp *myargp, const char **capa,
   struct argp *argp;
   const struct argp argpnull = { 0 };
   char **excapa;
-    
+  int flags = 0;
+  
   mu_set_program_name (argv[0]);
   mu_libargp_init ();
   for (i = 0; capa[i]; i++)
@@ -47,6 +51,8 @@ mu_app_init (struct argp *myargp, const char **capa,
   if (!myargp)
     myargp = &argpnull;
   argp = mu_argp_build (myargp, &excapa);
+
+  mu_cfg_tree_create (&mu_argp_tree);
   rc = argp_parse (argp, argc, argv, flags, pindex, data);
   mu_argp_done (argp);
   if (rc)
@@ -55,8 +61,16 @@ mu_app_init (struct argp *myargp, const char **capa,
   mu_libcfg_init (excapa);
   free (excapa);
   mu_parse_config_files (cfg_param);
+
+  if (mu_cfg_parser_verbose)
+    flags |= MU_PARSE_CONFIG_VERBOSE;
+  if (mu_cfg_parser_verbose > 1)
+    flags |= MU_PARSE_CONFIG_DUMP;
+  rc = mu_parse_config_tree (mu_argp_tree, mu_program_name, cfg_param, flags);
   
   mu_gocs_flush ();
+  mu_cfg_destroy_tree (&mu_argp_tree);
 
   return 0;
 }
+

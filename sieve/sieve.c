@@ -173,14 +173,13 @@ mu_compat_printer (void *data, mu_log_level_t level, const char *buf)
 static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
   int rc;
   
   switch (key)
     {
     case 'e':
-      rc = mu_set_user_email (arg);
-      if (rc)
-	argp_error (state, _("Invalid email: %s"), mu_strerror (rc));
+      mu_argp_node_list_new (&lst, "email", arg);
       break;
       
     case 'n':
@@ -188,7 +187,7 @@ parser (int key, char *arg, struct argp_state *state)
       break;
 
     case 'k':
-      keep_going = 1;
+      mu_argp_node_list_new (&lst, "keep-going", "yes");
       break;
 
     case 'c':
@@ -200,29 +199,24 @@ parser (int key, char *arg, struct argp_state *state)
       break;
       
     case 'f':
-      if (mbox_url)
-	free (mbox_url);
-      mbox_url = strdup (arg);
+      mu_argp_node_list_new (&lst, "mbox-url", arg);
       break;
       
     case 't':
-      free (tickets);
-      tickets = mu_tilde_expansion (arg, "/", NULL);
-      tickets_default = 0;
+      mu_argp_node_list_new (&lst, "ticket", arg);
       break;
       
     case 'd':
-      if (!arg)
-	arg = D_DEFAULT;
-      set_debug_level (NULL, arg);
+      mu_argp_node_list_new (&lst, "debug", arg ? arg : D_DEFAULT);
       break;
 
     case 'v':
-      verbose = 1;
+      mu_argp_node_list_new (&lst, "verbose", "yes");
       break;
 
     case ARG_LINE_INFO:
-      sieve_print_locus = is_true_p (arg);
+      mu_argp_node_list_new (&lst, "line-info",
+			     is_true_p (arg) ? "yes" : "no");
       break;
 
     case ARG_NO_PROGRAM_NAME:
@@ -242,6 +236,13 @@ parser (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_NO_ARGS:
       argp_error (state, _("SCRIPT must be specified"));
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
     default:
       return ARGP_ERR_UNKNOWN;
     }

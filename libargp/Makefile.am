@@ -27,6 +27,7 @@ lib_LIBRARIES = libmuargp.a
 libmuargp_a_SOURCES =\
  auth.c\
  cmdline.c\
+ cmdline.h\
  common.c\
  compat.c\
  gsasl.c\

@@ -19,7 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include "mailutils/mu_auth.h"
 
 
@@ -80,27 +80,32 @@ auth_set_debug ()
 static error_t
 mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+  
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
     case ARGP_KEY_FINI:
-      mu_auth_finish_setup ();
+      mu_argp_node_list_finish (&lst, "auth", NULL);
       break;
 
-      /* authentication */
     case OPT_AUTHORIZATION:
-      mu_authorization_add_module_list (arg);
+      mu_argp_node_list_new (&lst, "authorization", arg);
       break;
       
     case OPT_AUTHENTICATION:
-      mu_authentication_add_module_list (arg);
+      mu_argp_node_list_new (&lst, "authentication", arg);
       break;
       
     case OPT_CLEAR_AUTHENTICATION:
-      mu_authentication_clear_list ();
+      mu_argp_node_list_new (&lst, "authentication", "clear");
       break;
       
     case OPT_CLEAR_AUTHORIZATION:
-      mu_authorization_clear_list ();
+      mu_argp_node_list_new (&lst, "authorization", "clear");
       break;
 
     case OPT_DEBUG_AUTH:

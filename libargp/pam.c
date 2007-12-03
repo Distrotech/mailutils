@@ -20,24 +20,28 @@
 # include <config.h>
 #endif
 
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include <mailutils/pam.h>
-
-static struct mu_gocs_pam pam_settings;
 
 #define OPT_PAM_SERVICE 256
 
 static error_t
 mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_PAM_SERVICE:
-      pam_settings.service = arg;
+      mu_argp_node_list_new (&lst, "service", arg);
       break;
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
     case ARGP_KEY_FINI:
-      mu_gocs_store ("pam", &pam_settings);
+      mu_argp_node_list_finish (&lst, "pam", NULL);
       break;
       
     default:

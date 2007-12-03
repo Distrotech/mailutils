@@ -87,8 +87,16 @@ mu_libcfg_init (const char **cnames)
 int
 mu_parse_config_files (struct mu_cfg_param *param)
 {
+  int flags = 0;
+
+  if (mu_cfg_parser_verbose)
+    flags |= MU_PARSE_CONFIG_VERBOSE;
+  if (mu_cfg_parser_verbose > 1)
+    flags |= MU_PARSE_CONFIG_DUMP;
+  
   if (mu_load_site_rcfile)
-    mu_parse_config (MU_CONFIG_FILE, mu_program_name, param, 1);
+    mu_parse_config (MU_CONFIG_FILE, mu_program_name, param,
+		     flags | MU_PARSE_CONFIG_GLOBAL);
 
   if (mu_load_user_rcfile && mu_program_name)
     {
@@ -99,14 +107,14 @@ mu_parse_config_files (struct mu_cfg_param *param)
 	  strcpy (file_name, "~/.");
 	  strcat (file_name, mu_program_name);
 
-	  mu_parse_config (file_name, mu_program_name, param, 0);
+	  mu_parse_config (file_name, mu_program_name, param, flags);
 
 	  free (file_name);
 	}
     }
 
   if (mu_load_rcfile)
-    mu_parse_config (mu_load_rcfile, mu_program_name, param, 0);
+    mu_parse_config (mu_load_rcfile, mu_program_name, param, flags);
   
   return 0;
 }

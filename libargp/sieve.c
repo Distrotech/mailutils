@@ -20,7 +20,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif  
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include "mailutils/libsieve.h"
 
 enum {
@@ -44,54 +44,37 @@ static struct argp_option sieve_argp_option[] = {
 static error_t
 sieve_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_gocs_sieve gocs_data;
-  mu_list_t *plist = NULL;
+  static struct mu_argp_node_list lst;
   
   switch (key)
     {
     case 'I':
-      plist = &gocs_data.include_path;
+      mu_argp_node_list_new (&lst, "include-path", arg);
       break;
 
     case 'L':
-      plist = &gocs_data.library_path;
+      mu_argp_node_list_new (&lst, "library-path", arg);
       break;
 
     case OPT_CLEAR_INCLUDE_PATH:
-      gocs_data.clearflags |= MU_SIEVE_CLEAR_INCLUDE_PATH;
+      mu_argp_node_list_new (&lst, "clear-include-path", "yes");
       break;
 
     case OPT_CLEAR_LIBRARY_PATH:
-      gocs_data.clearflags |= MU_SIEVE_CLEAR_LIBRARY_PATH;
+      mu_argp_node_list_new (&lst, "clear-library-path", "yes");
       break;
       
     case ARGP_KEY_INIT:
-      memset (&gocs_data, 0, sizeof gocs_data);
+      mu_argp_node_list_init (&lst);
       break;
       
     case ARGP_KEY_FINI:
-      mu_gocs_store ("sieve", &gocs_data);
+      mu_argp_node_list_finish (&lst, "sieve", NULL);
       break;
 			   
     default:
       return ARGP_ERR_UNKNOWN;
     }
-
-  if (plist)
-    {
-      if (!*plist)
-	{
-	  int rc = mu_list_create (plist);
-	  if (rc)
-	    {
-	      argp_error (state, _("cannot create list: %s"),
-			  mu_strerror (rc));
-	      exit (1);
-	    }
-	}
-      mu_list_append (*plist, arg);
-    }
-	  
   return 0;
 }
 

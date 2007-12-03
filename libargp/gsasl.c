@@ -19,7 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include "mailutils/libargp.h"
+#include "cmdline.h"
 #include <mailutils/gsasl.h>
 
 #define OPT_CRAM_PASSWD 256
@@ -30,21 +30,23 @@ static struct argp_option _gsasl_argp_options[] = {
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-static struct mu_gsasl_module_data gsasl_data = {
-  SITE_CRAM_MD5_PWD
-};
-
 static error_t
 _gsasl_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case OPT_CRAM_PASSWD:
-      gsasl_data.cram_md5_pwd = arg;
+      mu_argp_node_list_new (&lst, "cram-passwd", arg);
       break;
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
     case ARGP_KEY_FINI:
-      mu_gocs_store ("gsasl", &gsasl_data);
+      mu_argp_node_list_finish (&lst, "gsasl", NULL);
       break;
       
     default:

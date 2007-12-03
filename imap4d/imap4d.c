@@ -110,40 +110,41 @@ static int imap4d_mainloop (int, FILE *, FILE *);
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      state->child_inputs[0] = state->input;
-      break;
-
     case 'O':
-      set_namespace (NS_OTHER, arg);
+      mu_argp_node_list_new (&lst, "other-namespace", arg);
       break;
 
     case 'S':
-      set_namespace (NS_SHARED, arg);
+      mu_argp_node_list_new (&lst, "shared-namespace", arg);
       break;
 
     case ARG_LOGIN_DISABLED:
-      login_disabled = 1;
+      mu_argp_node_list_new (&lst, "login-disabled", "yes");
       break;
 
     case ARG_CREATE_HOME_DIR:
-      create_home_dir = 1;
+      mu_argp_node_list_new (&lst, "create-home-dir", "yes");
       if (arg)
-	{
-	  char *p;
-	  home_dir_mode = strtoul (arg, &p, 8);
-	  if (p || (home_dir_mode & 0777))
-	    argp_error (state, _("Invalid mode specification: %s"), arg);
-	}
+	mu_argp_node_list_new (&lst, "home-dir-mode", arg);
       break;
 	
 #ifdef WITH_TLS
     case ARG_TLS_REQUIRED:
-      tls_required = 1;
+      mu_argp_node_list_new (&lst, "tls-required", "yes");
       break;
 #endif
+
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -170,7 +171,7 @@ cb_mode (mu_debug_t debug, void *data, char *arg)
 {
   char *p;
   home_dir_mode = strtoul (arg, &p, 8);
-  if (p || (home_dir_mode & 0777))
+  if (p[0] || (home_dir_mode & ~0777))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
                          _("Invalid mode specification: %s"), arg);
   return 0;

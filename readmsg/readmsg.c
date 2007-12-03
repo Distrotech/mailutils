@@ -78,6 +78,8 @@ int show_all = 0;
 static error_t
 readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case 'd':
@@ -85,29 +87,39 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 
     case 'h':
-      all_header = 1;
+      mu_argp_node_list_new (&lst, "header", "yes");
       break;
 
     case 'f':
-      mailbox_name = arg;
+      mu_argp_node_list_new (&lst, "folder", arg);
       break;
 
     case 'w':
-      weedlist = arg;
+      mu_argp_node_list_new (&lst, "weedlist", arg);
       break;
 
     case 'n':
-      no_header = 1;
+      mu_argp_node_list_new (&lst, "no-header", "yes");
       break;
 
     case 'p':
-      form_feed = 1;
+      mu_argp_node_list_new (&lst, "form-feeds", arg);
       break;
 	  
     case 'a':
-      show_all = 1;
+      mu_argp_node_list_new (&lst, "show-all-match", arg);
       break;
 
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      if (dbug)
+	mu_argp_node_list_new (&lst, "debug", mu_umaxtostr (0, dbug));
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
