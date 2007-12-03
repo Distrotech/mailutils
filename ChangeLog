@@ -1,7 +1,9 @@
 2007-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update.
 	* gnulib.modules: Add des. Sort lines.
 	* imap4d/Makefile.am (imap4d_SOURCES): Add preauth.c
+	* imap4d/preauth.c: New file.
 	* imap4d/authenticate.c (imap4d_authenticate): Use
 	imap4d_session_setup.
 	* imap4d/imap4d.c (imap4d_session_setup)
