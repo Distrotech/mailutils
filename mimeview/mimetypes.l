@@ -158,7 +158,7 @@ mimetypes_open (const char *name)
     }
   else
     {
-      file_name = name;
+      file_name = (char*) name;
       file_name_alloc = 0;
     }
   

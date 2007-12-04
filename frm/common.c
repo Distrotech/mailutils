@@ -122,7 +122,7 @@ puts_bidi (char *string)
 {
   if (fb_charset_num == -1)
     {
-      fb_charset_num = fribidi_parse_charset (get_charset ());
+      fb_charset_num = fribidi_parse_charset ((char*) get_charset ());
       if (fb_charset_num && frm_debug)
 	mu_error (_("fribidi failed to recognize charset `%s'"),
 		  get_charset ());

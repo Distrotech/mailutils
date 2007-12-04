@@ -26,6 +26,9 @@
 #include <sys/wait.h>
 
 #include "mailutils/libargp.h"
+#include "mailutils/argcv.h"
+
+#include "mailcap.h"
 
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")
@@ -209,7 +212,7 @@ display_file (const char *type)
   
   if (metamail)
     {
-      const char *argv[7];
+      char *argv[7];
       
       argv[0] = "metamail";
       argv[1] = "-b";
@@ -217,7 +220,7 @@ display_file (const char *type)
       argv[2] = interactive ? "-p" : "-h";
       
       argv[3] = "-c";
-      argv[4] = type;
+      argv[4] = (char*) type;
       argv[5] = mimeview_file;
       argv[6] = NULL;
       

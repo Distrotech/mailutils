@@ -25,6 +25,7 @@ INCLUDES = @MU_COMMON_INCLUDES@
 libmuaux_la_SOURCES += \
  daemon.c\
  mailcap.c\
+ mailcap.h\
  mu_dbm.c
 
 noinst_HEADERS +=\

@@ -70,6 +70,8 @@
 # include <paths.h>
 #endif
 
+#include "xalloc.h"
+
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
@@ -210,6 +212,7 @@ extern int  imap4d_login (struct imap4d_command *, char *);
 extern int  imap4d_logout (struct imap4d_command *, char *);
 extern int  imap4d_noop (struct imap4d_command *, char *);
 extern int  imap4d_rename (struct imap4d_command *, char *);
+extern int  imap4d_preauth_setup (int fd);
 extern int  imap4d_search (struct imap4d_command *, char *);
 extern int  imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize);
 extern int  imap4d_select (struct imap4d_command *, char *);

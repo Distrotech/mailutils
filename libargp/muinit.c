@@ -21,6 +21,8 @@
 #endif
 #include "cmdline.h"
 #include <mailutils/stream.h>
+#include "xalloc.h"
+#include <string.h>
 
 struct mu_cfg_tree *mu_argp_tree;
 
@@ -31,7 +33,22 @@ mu_argp_init (const char *vers, const char *bugaddr)
   argp_program_bug_address = bugaddr ? bugaddr : "<" PACKAGE_BUGREPORT ">";
 }
 
-extern struct mu_cfg_cont *mu_cfg_root_container; /* FIXME */
+static char *
+get_canonical_name ()
+{
+  char *name;
+  size_t len;
+  char *p = strchr (argp_program_version, ' ');
+  if (!p)
+    return strdup (mu_program_name);
+  len = p - argp_program_version;
+  name = xmalloc (len + 1);
+  memcpy (name, argp_program_version, len);
+  name[len] = 0;
+  return name;
+}
+
+int mu_help_config_mode;
 
 int
 mu_app_init (struct argp *myargp, const char **capa,
@@ -40,9 +57,9 @@ mu_app_init (struct argp *myargp, const char **capa,
 {
   int rc, i;
   struct argp *argp;
-  const struct argp argpnull = { 0 };
+  struct argp argpnull = { 0 };
   char **excapa;
-  int flags = 0;
+  int cfgflags = 0;
   
   mu_set_program_name (argv[0]);
   mu_libargp_init ();
@@ -62,11 +79,36 @@ mu_app_init (struct argp *myargp, const char **capa,
   free (excapa);
   mu_parse_config_files (cfg_param);
 
+  if (mu_help_config_mode)
+    {
+      char *canonical_name = get_canonical_name ();
+      mu_stream_t stream;
+      mu_stdio_stream_create (&stream, stdout,
+			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
+      mu_stream_open (stream);
+      mu_stream_sequential_printf (stream,
+		   "# Configuration file structure for %s utility.\n",
+		   mu_program_name);
+      mu_stream_sequential_printf (stream,
+		   "# For use in global configuration file (%s), enclose it\n"
+		   "# in `program %s { ... };'\n",
+		   MU_CONFIG_FILE,
+		   mu_program_name);		   
+      mu_stream_sequential_printf (stream,
+		   "# For more information, use `info %s'.\n",
+		    canonical_name);
+      
+      mu_format_config_tree (stream, mu_program_name, cfg_param, 0);
+      mu_stream_destroy (&stream, NULL);
+      exit (0);
+    }
+  
   if (mu_cfg_parser_verbose)
-    flags |= MU_PARSE_CONFIG_VERBOSE;
+    cfgflags |= MU_PARSE_CONFIG_VERBOSE;
   if (mu_cfg_parser_verbose > 1)
-    flags |= MU_PARSE_CONFIG_DUMP;
-  rc = mu_parse_config_tree (mu_argp_tree, mu_program_name, cfg_param, flags);
+    cfgflags |= MU_PARSE_CONFIG_DUMP;
+  rc = mu_parse_config_tree (mu_argp_tree, mu_program_name, cfg_param,
+			     cfgflags);
   
   mu_gocs_flush ();
   mu_cfg_destroy_tree (&mu_argp_tree);

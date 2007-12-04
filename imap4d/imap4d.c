@@ -203,7 +203,7 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
       long n;
       if (url && mu_url_get_port (url, &n) == 0)
 	ident_port = (short) n;
-      else if (sp = getservbyname ("auth", "tcp"))
+      else if ((sp = getservbyname ("auth", "tcp")))
 	ident_port = ntohs (sp->s_port);
       else
 	ident_port = 113;

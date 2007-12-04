@@ -83,7 +83,7 @@ mu_argp_node_list_add (struct mu_argp_node_list *lst,  mu_cfg_node_t *node)
 		   
 void
 mu_argp_node_list_new (struct mu_argp_node_list *lst,
-		      char *tag, char *label)
+		       const char *tag, const char *label)
 {
   mu_cfg_node_t *node;
   mu_cfg_locus_t loc = { "command line", 0 };

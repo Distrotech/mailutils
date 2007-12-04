@@ -239,7 +239,7 @@ mu_gocs_debug_init (void *data)
 
 struct mu_gocs_entry
 {
-  char *name;
+  const char *name;
   gocs_init_fp init;
 };
 
@@ -248,7 +248,7 @@ struct mu_gocs_entry
 static struct mu_gocs_entry _gocs_table[MAX_GOCS];
 
 void
-mu_gocs_register (char *capa, gocs_init_fp init)
+mu_gocs_register (const char *capa, gocs_init_fp init)
 {
   int i;
   for (i = 0; _gocs_table[i].name; i++)
@@ -268,7 +268,7 @@ mu_gocs_enumerate (mu_list_action_t action, void *data)
   
   for (i = 0; _gocs_table[i].name; i++)
     {
-      int rc = action (_gocs_table[i].name, data);
+      int rc = action ((void*) _gocs_table[i].name, data);
       if (rc)
 	return rc;
     }

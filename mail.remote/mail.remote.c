@@ -45,6 +45,8 @@
 #include <mailutils/mu_auth.h>
 #include "mailutils/libargp.h"
 
+#include "mu_umaxtostr.h"
+
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery")

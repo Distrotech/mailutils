@@ -730,6 +730,72 @@ _cb_include (mu_debug_t debug, void *data, char *arg)
   return ret;
 }
 
+struct mu_cfg_cont *
+mu_build_container (const char *progname,
+		    struct mu_cfg_param *progparam, int flags)
+{
+  struct mu_cfg_cont *cont = root_container;
+  struct include_data idata;
+  struct mu_cfg_param mu_include_param[] = {
+    { "include", mu_cfg_callback, &idata, _cb_include },
+    { NULL }
+  };
+      
+  mu_config_clone_container (cont);
+  idata.progname = progname;
+  idata.progparam = progparam;
+  idata.flags = flags & MU_PARSE_CONFIG_GLOBAL;
+  _mu_config_register_section (&cont, NULL, NULL, NULL,
+			       (void*) progname, mu_include_param, NULL);
+  if (flags & MU_PARSE_CONFIG_GLOBAL)
+    {
+      mu_iterator_t iter;
+      struct mu_cfg_section *prog_sect;
+      struct mu_cfg_cont *old_root = root_container;
+      static struct mu_cfg_param empty_param = { NULL };
+      if (!progparam)
+	progparam = &empty_param;
+      
+      _mu_config_register_section (&cont, NULL, "program", prog_parser,
+				   (void*) progname,
+				   progparam, &prog_sect);
+      
+      if (old_root->v.section.subsec)
+	{
+	  if (!prog_sect->subsec)
+	    mu_list_create (&prog_sect->subsec);
+	  mu_list_get_iterator (old_root->v.section.subsec, &iter);
+	  for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
+	       mu_iterator_next (iter))
+	    {
+	      struct mu_cfg_cont *c;
+	      mu_iterator_current (iter, (void**)&c);
+	      mu_list_append (prog_sect->subsec, c);
+	    }
+	  mu_iterator_destroy (&iter);
+	}
+      
+      if (old_root->v.section.param)
+	{
+	  if (!prog_sect->param)
+	    mu_list_create (&prog_sect->param);
+	  mu_list_get_iterator (old_root->v.section.param, &iter);
+	  for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
+	       mu_iterator_next (iter))
+	    {
+	      struct mu_cfg_cont *c;
+	      mu_iterator_current (iter, (void**)&c);
+	      mu_list_append (prog_sect->param, c);
+	    }
+	  mu_iterator_destroy (&iter);
+	}
+    }
+  else if (progparam)
+    _mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
+				 progparam, NULL);
+  return cont;
+}
+
 int
 mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
 		      struct mu_cfg_param *progparam, int flags)
@@ -738,66 +804,8 @@ mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
   
   if (root_container)
     {
-      struct mu_cfg_cont *cont = root_container;
-      struct include_data idata;
-      struct mu_cfg_param mu_include_param[] = {
-	{ "include", mu_cfg_callback, &idata, _cb_include },
-	{ NULL }
-      };
-      
-      mu_config_clone_container (cont);
-      idata.progname = progname;
-      idata.progparam = progparam;
-      idata.flags = flags & MU_PARSE_CONFIG_GLOBAL;
-      _mu_config_register_section (&cont, NULL, NULL, NULL,
-				   (void*) progname, mu_include_param, NULL);
-      if (flags & MU_PARSE_CONFIG_GLOBAL)
-	{
-	  mu_iterator_t iter;
-	  struct mu_cfg_section *prog_sect;
-	  struct mu_cfg_cont *old_root = root_container;
-	  static struct mu_cfg_param empty_param = { NULL };
-	  if (!progparam)
-	    progparam = &empty_param;
-
-	  _mu_config_register_section (&cont, NULL, "program", prog_parser,
-				       (void*) progname,
-				       progparam, &prog_sect);
-	  
-	  if (old_root->v.section.subsec)
-	    {
-	      if (!prog_sect->subsec)
-		mu_list_create (&prog_sect->subsec);
-	      mu_list_get_iterator (old_root->v.section.subsec, &iter);
-	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
-		   mu_iterator_next (iter))
-		{
-		  struct mu_cfg_cont *c;
-		  mu_iterator_current (iter, (void**)&c);
-		  mu_list_append (prog_sect->subsec, c);
-		}
-	      mu_iterator_destroy (&iter);
-	    }
-	  
-	  if (old_root->v.section.param)
-	    {
-	      if (!prog_sect->param)
-		mu_list_create (&prog_sect->param);
-	      mu_list_get_iterator (old_root->v.section.param, &iter);
-	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
-		   mu_iterator_next (iter))
-		{
-		  struct mu_cfg_cont *c;
-		  mu_iterator_current (iter, (void**)&c);
-		  mu_list_append (prog_sect->param, c);
-		}
-	      mu_iterator_destroy (&iter);
-	    }
-	}
-      else if (progparam)
-	_mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
-				     progparam, NULL);
-      
+      struct mu_cfg_cont *cont = mu_build_container (progname, progparam,
+						     flags);
       rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, (void*) progname);
       mu_config_destroy_container (&cont);
     }
@@ -808,11 +816,20 @@ mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
       mu_stdio_stream_create (&stream, stderr,
 			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
       mu_stream_open (stream);
-      mu_cfg_format_tree (stream, parse_tree);
+      mu_cfg_format_parse_tree (stream, parse_tree);
       mu_stream_destroy (&stream, NULL);
     }
 
   return rc;
+}
+
+void
+mu_format_config_tree (mu_stream_t stream, const char *progname,
+		       struct mu_cfg_param *progparam, int flags)
+{
+  struct mu_cfg_cont *cont = mu_build_container (progname, progparam, flags);
+  mu_cfg_format_container (stream, cont);
+  mu_config_destroy_container (&cont);
 }
 
 static int

@@ -1110,8 +1110,10 @@ mu_cfg_tree_free (struct mu_cfg_tree *tree, void *mem)
 
 mu_cfg_node_t *
 mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
-			 enum mu_cfg_node_type type, mu_cfg_locus_t *loc,
-			 char *tag, char *label, mu_cfg_node_t *node)
+			 enum mu_cfg_node_type type,
+			 const mu_cfg_locus_t *loc,
+			 const char *tag, const char *label,
+			 mu_cfg_node_t *node)
 {
   char *p;
   mu_cfg_node_t *np;
@@ -1139,7 +1141,7 @@ mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
       strcpy (p, label);
     }
   else
-    np->tag_label = label;
+    np->tag_label = NULL;
   np->node = node;
   np->next = NULL;
   return np;

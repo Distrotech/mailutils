@@ -658,7 +658,7 @@ mu_tempname (const char *tmpdir)
  * to find it.
  */
 int 
-mu_spawnvp (const char *prog, char * const av[], int *stat)
+mu_spawnvp (const char *prog, char *av[], int *stat)
 {
   pid_t pid;
   int err = 0;

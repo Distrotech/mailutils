@@ -48,7 +48,7 @@ extern int mu_register_cfg_capa (const char *name,
 				 struct mu_cfg_param *cfgparam,
 				 mu_cfg_section_fp *parser);
 
-extern void mu_libcfg_init (const char **cnames);
+extern void mu_libcfg_init (char **cnames);
 extern int mu_parse_config_files (struct mu_cfg_param *param);
 
 #define __mu_common_cat2__(a,b) a ## b

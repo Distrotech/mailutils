@@ -24,6 +24,7 @@
 #include "readmsg.h"
 #include "xalloc.h"
 #include "mailutils/libargp.h"
+#include "mu_umaxtostr.h"
 
 #define WEEDLIST_SEPARATOR " :,"
 

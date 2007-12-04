@@ -95,7 +95,7 @@ extern int log_facility; /* FIXME: 1. Belongs elsewhere;
 
 typedef int (*gocs_init_fp) (void *data);
 
-void mu_gocs_register (char *capa, gocs_init_fp init);
+void mu_gocs_register (const char *capa, gocs_init_fp init);
 void mu_gocs_register_std (const char *name);
 void mu_gocs_store (char *capa, void *data);
 void mu_gocs_flush (void);

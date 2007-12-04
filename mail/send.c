@@ -17,12 +17,10 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#include "mail.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <stdio.h>
-
-#include "mail.h"
 
 static int isfilename (const char *);
 static void msg_to_pipe (const char *cmd, mu_message_t msg);

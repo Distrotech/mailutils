@@ -89,7 +89,7 @@ struct mu_argp_node_list
 void mu_argp_node_list_init (struct mu_argp_node_list *);
 void mu_argp_node_list_add (struct mu_argp_node_list *, mu_cfg_node_t *);
 void mu_argp_node_list_new (struct mu_argp_node_list *, 
-			   char *, char *);
+			    const char *, const char *);
 void mu_argp_node_list_finish (struct mu_argp_node_list *, char *, char *);
   
 #ifdef __cplusplus

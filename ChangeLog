@@ -1,3 +1,52 @@
+2007-12-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/imap4d.h: Include xalloc.h
+	* frm/common.c, imap4d/imap4d.c: Shut compiler warnings.
+	* include/mailutils/cfg.h (mu_cfg_format_tree): Rename to
+	mu_cfg_format_parse_tree
+	(mu_cfg_format_container,mu_format_config_tree): New functions.
+	(mu_parse_config_tree): New prototype.
+	(mu_cfg_tree_create_node): Change signature (const char* instead
+	of char*).
+	* include/mailutils/gocs.h (mu_gocs_register): First arg is const.
+	* include/mailutils/libargp.h (mu_argp_node_list_new): Mark
+	invariable arguments as const.
+	* include/mailutils/libcfg.h (mu_libcfg_init): Remove const from
+	the arg.
+	* include/mailutils/mutil.h (mu_spawnvp): Remove const from the
+	2nd arg.
+	* libargp/cmdline.c (mu_argp_node_list_new): Mark invariable
+	arguments as const. 
+	
+	* lib/mailcap.h: New file.
+	* lib/Makefile.am (libmuaux_la_SOURCES): Add mailcap.h
+	* libargp/cmdline.h (mu_help_config_mode): New extern.
+	* libargp/common.c: New option --config-help displays a
+	configuration file summary.
+	* libargp/muinit.c (mu_app_init): Handle --config-help.
+	* libcfg/init.c (mu_libcfg_init): Remove const from the arg.
+	* maidag/maidag.h (mda): New prototype.
+	* mail/decode.c: Include mailcap.h
+	* mail/mail.h: Define _GNU_SOURCE before including stdio.h
+	* mail/send.c: Fix includes.
+	* mail.remote/mail.remote.c: Include mu_umaxtostr.h
+
+	* mailbox/cfg_format.c (mu_cfg_data_type_string)
+	(mu_cfg_format_container): New function.
+	* mailbox/cfg_lexer.c (mu_build_container): New function.
+	(mu_parse_config_tree): Use mu_build_container.
+	(mu_format_config_tree): New function.
+	* mailbox/cfg_parser.y (mu_cfg_tree_create_node): Change proto.
+	* mailbox/gocs.c (struct mu_gocs_entry): Name is const.
+	(mu_gocs_register): 1st arg (capa) is const.
+	* mailbox/mutil.c (mu_spawnvp): Remove const from the 2nd arg.
+	* mh/mh_whatnow.c (invoke): Shut compiler warnings.
+	* mimeview/mimetypes.l (mimetypes_open): Shut compiler warnings.
+	* mimeview/mimeview.c: Include mailcap.h
+	(display_file): Shut compiler warnings.
+	* readmsg/readmsg.c: Include mu_umaxtostr.h
+	* sieve/sieve.c (parser): Remove unused variable.
+	
 2007-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/virtual.c (site_virtual_pwddir): Replace with global

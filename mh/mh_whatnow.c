@@ -242,7 +242,7 @@ invoke (const char *compname, const char *defval, int argc, char **argv,
 	const char *extra0, const char *extra1)
 {
   int i, rc;
-  const char **xargv;
+  char **xargv;
   const char *progname;
   int status;
   

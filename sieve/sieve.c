@@ -174,7 +174,6 @@ static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
   static struct mu_argp_node_list lst;
-  int rc;
   
   switch (key)
     {

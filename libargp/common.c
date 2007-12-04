@@ -44,14 +44,17 @@ enum {
   OPT_LICENSE,               
   OPT_MAILBOX_TYPE,
   OPT_DEBUG_LEVEL,
-  OPT_LINE_INFO
+  OPT_LINE_INFO,
+  OPT_HELP_CONFIG
 };
 
 static struct argp_option mu_common_argp_options[] = 
 {
   { NULL, 0, NULL, 0, N_("Common options"), 0},
-  { "show-config-options", OPT_SHOW_OPTIONS, NULL, OPTION_HIDDEN,
+  { "show-config-options", OPT_SHOW_OPTIONS, NULL, 0,
     N_("Show compilation options"), 0 },
+  { "config-help", OPT_HELP_CONFIG, NULL, 0,
+    N_("Show configuration file summary"), 0 },
   { "no-user-rcfile", OPT_NO_USER_RCFILE, NULL, 0,
     N_("Do not load user configuration file"), 0 },
   { "no-site-rcfile", OPT_NO_SITE_RCFILE, NULL, 0,
@@ -87,7 +90,11 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case OPT_RCFILE_VERBOSE:
       mu_cfg_parser_verbose++;
       break;
-      
+
+    case OPT_HELP_CONFIG:
+      mu_help_config_mode = 1;
+      break;
+	
     default:
       return ARGP_ERR_UNKNOWN;
     }

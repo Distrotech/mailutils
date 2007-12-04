@@ -66,7 +66,7 @@ reserved_name (const char *name)
 }
 
 void
-mu_libcfg_init (const char **cnames)
+mu_libcfg_init (char **cnames)
 {
   int i;
   for (i = 0; cnames[i]; i++)

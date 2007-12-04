@@ -33,11 +33,10 @@ struct tree_print
 };
 
 static void
-format_level (struct tree_print *tp)
+format_level (mu_stream_t stream, int level)
 {
-  int i;
-  for (i = 0; i < tp->level; i++)
-    mu_stream_sequential_write (tp->stream, "  ", 2);
+  while (level--)
+    mu_stream_sequential_write (stream, "  ", 2);
 }
 
 static void
@@ -84,7 +83,7 @@ format_node (const mu_cfg_node_t *node, void *data)
   if (node->locus.file)
     mu_stream_sequential_printf (tp->stream, "# %d \"%s\"\n",
 				 node->locus.line, node->locus.file);
-  format_level (tp);
+  format_level (tp->stream, tp->level);
   switch (node->type)
     {
     case mu_cfg_node_undefined:
@@ -126,13 +125,13 @@ format_node_end (const mu_cfg_node_t *node, void *data)
 {
   struct tree_print *tp = data;
   tp->level--;
-  format_level (tp);
+  format_level (tp->stream, tp->level);
   mu_stream_sequential_write (tp->stream, "};\n", 3);
   return MU_CFG_ITER_OK;
 }
 
 void
-mu_cfg_format_tree (mu_stream_t stream, mu_cfg_tree_t *tree)
+mu_cfg_format_parse_tree (mu_stream_t stream, mu_cfg_tree_t *tree)
 {
   struct tree_print t;
   t.level = 0;
@@ -141,4 +140,112 @@ mu_cfg_format_tree (mu_stream_t stream, mu_cfg_tree_t *tree)
   t.bufsize = 0;
   mu_cfg_preorder (tree->node, format_node, format_node_end, &t);
   free (t.buf);
+}
+
+
+const char *
+mu_cfg_data_type_string (enum mu_cfg_param_data_type type)
+{
+  switch (type)
+    {
+    case mu_cfg_string:
+      return "string";
+    case mu_cfg_short:
+    case mu_cfg_ushort:
+    case mu_cfg_int:
+    case mu_cfg_uint:
+    case mu_cfg_long:
+    case mu_cfg_ulong:
+    case mu_cfg_size:
+    case mu_cfg_off:
+      return "number";
+    case mu_cfg_time:
+      return "time";
+    case mu_cfg_bool:
+      return "boolean";
+    case mu_cfg_ipv4:
+      return "ipv4";
+    case mu_cfg_cidr:
+      return "cidr";
+    case mu_cfg_host:
+      return "host";
+    case mu_cfg_callback:
+      return "string"; /* FIXME: opaque data */
+    }
+  return "unknown";
+}
+
+static void
+format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
+{
+  format_level (stream, level);
+  mu_stream_sequential_printf (stream, "%s <%s>;\n",
+			       param->ident,
+			       mu_cfg_data_type_string (param->type));
+}
+
+static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,
+			      int level);
+
+static int
+_f_helper (void *item, void *data)
+{
+  struct tree_print *tp = data;
+  struct mu_cfg_cont *cont = item;
+  format_container (tp->stream, cont, tp->level);
+  return 0;
+}
+  
+static void
+format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
+{
+  struct tree_print c;
+  format_level (stream, level);
+  if (sect->ident)
+    {
+      mu_stream_sequential_write (stream, sect->ident, strlen (sect->ident));
+      if (sect->data)
+	{
+	  /* FIXME: This is wrong in general. Data is an opaque data
+	     pointer. */
+	  char *s = sect->data;
+	  mu_stream_sequential_write (stream, " ", 1);
+	  mu_stream_sequential_write (stream, s, strlen (s));
+	}
+      mu_stream_sequential_write (stream, " {\n", 3);
+      c.stream = stream;
+      c.level = level + 1; 
+      mu_list_do (sect->subsec, _f_helper, &c);
+      mu_list_do (sect->param, _f_helper, &c);
+      format_level (stream, level);
+      mu_stream_sequential_write (stream, "};\n\n", 4);
+    }
+  else
+    {
+      c.stream = stream;
+      c.level = level; 
+      mu_list_do (sect->subsec, _f_helper, &c);
+      mu_list_do (sect->param, _f_helper, &c);
+    }
+}
+
+static void
+format_container (mu_stream_t stream, struct mu_cfg_cont *cont, int level)
+{
+  switch (cont->type)
+    {
+    case mu_cfg_cont_section:
+      format_section (stream, &cont->v.section, level);
+      break;
+
+    case mu_cfg_cont_param:
+      format_param (stream, &cont->v.param, level);
+      break;
+    }
+}
+
+void
+mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont)
+{
+  format_container (stream, cont, 0);
 }

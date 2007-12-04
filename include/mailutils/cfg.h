@@ -209,7 +209,12 @@ int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 
-void mu_cfg_format_tree (mu_stream_t stream, struct mu_cfg_tree *tree);
+void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree);
+void mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont);
+void mu_format_config_tree (mu_stream_t stream, const char *progname,
+			    struct mu_cfg_param *progparam, int flags);
+int mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
+			  struct mu_cfg_param *progparam, int flags);
 
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
 void mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug);
@@ -217,10 +222,11 @@ void mu_cfg_tree_set_alloc (struct mu_cfg_tree *tree,
 			    mu_cfg_alloc_t alloc, mu_cfg_free_t free);
 void *mu_cfg_tree_alloc (struct mu_cfg_tree *tree, size_t size);
 void mu_cfg_tree_free (struct mu_cfg_tree *tree, void *mem);
-mu_cfg_node_t *mu_cfg_tree_create_node
-             (struct mu_cfg_tree *tree, enum mu_cfg_node_type type,
-	      mu_cfg_locus_t *loc, char *tag, char *label,
-	      mu_cfg_node_t *node);
+mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
+					enum mu_cfg_node_type type,
+					const mu_cfg_locus_t *loc,
+					const char *tag, const char *label,
+					mu_cfg_node_t *node);
 void mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node);
 
 #ifdef __cplusplus
