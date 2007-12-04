@@ -1,9 +1,46 @@
 2007-12-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	II. Extend --config-help output.  Each configuration parameter
+	has a docstring which is displayed as a comment before it.
+	A docstring is also added to the configuration group structure,
+	for use in future.
+
+	* include/mailutils/cfg.h (struct mu_cfg_param): New members
+	`docstring' and `argname'.
+	(struct mu_cfg_section): New member `docstring'.
+	(mu_cfg_format_docstring): New function.
+	* include/mailutils/libargp.h (mu_help_config_mode): New
+	declaration.
+	* libargp/cmdline.h (mu_help_config_mode): Remove.
+	* libargp/muinit.c (mu_app_init): Better format the initial
+	comment.
+	* mailbox/cfg_format.c (mu_cfg_data_type_string): Use NLS.
+	(mu_cfg_format_docstring): New function.
+	(format_param,format_section): Use mu_cfg_format_docstring.
+	* mailbox/cfg_lexer.c (mu_config_create_container): Initialize
+	allocated memory chunk with zeros.
+	(dup_container): Duplicate docstring.
+	(mu_build_container): Document include statement.
+	
+	* dotlock/dotlock.c, imap4d/imap4d.c, libargp/tls.c,
+	libcfg/auth.c, libcfg/common.c, libcfg/gsasl.c, libcfg/ldap.c,
+	libcfg/pam.c, libcfg/radius.c, libcfg/sieve.c, libcfg/sql.c,
+	libcfg/tls.c, libcfg/virtdomain.c, maidag/maidag.c,
+	mail.local/main.c, mail.remote/mail.remote.c, mimeview/mimeview.c,
+	movemail/movemail.c, pop3d/pop3d.c, readmsg/readmsg.c,
+	sieve/sieve.c: Document configuration file statements.
+
+	* pop3d/pop3d.h (expire): Change type to unsigned int. 
+
+	* po/POTFILES.in: Add missing files.
+	
+	I. Implement --config-help option, which displays configuration
+	file statements understood by the given program.
+	
 	* imap4d/imap4d.h: Include xalloc.h
 	* frm/common.c, imap4d/imap4d.c: Shut compiler warnings.
 	* include/mailutils/cfg.h (mu_cfg_format_tree): Rename to
-	mu_cfg_format_parse_tree
+	mu_cfg_format_parse_tree.
 	(mu_cfg_format_container,mu_format_config_tree): New functions.
 	(mu_parse_config_tree): New prototype.
 	(mu_cfg_tree_create_node): Change signature (const char* instead

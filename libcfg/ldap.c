@@ -37,16 +37,38 @@ cb_field_map (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param mu_ldap_param[] = {
-  { "enable", mu_cfg_bool, &ldap_settings.enable },
-  { "url", mu_cfg_string, &ldap_settings.url },
-  { "base", mu_cfg_string, &ldap_settings.base },
-  { "binddn", mu_cfg_string, &ldap_settings.binddn },
-  { "passwd", mu_cfg_string, &ldap_settings.passwd },
-  { "tls", mu_cfg_bool, &ldap_settings.tls },
-  { "debug", mu_cfg_int, &ldap_settings.debug },
-  { "field-map", mu_cfg_callback, NULL, cb_field_map },
-  { "getpwnam", mu_cfg_string, &ldap_settings.getpwnam_filter },
-  { "getpwuid", mu_cfg_string, &ldap_settings.getpwuid_filter },
+  { "enable", mu_cfg_bool, &ldap_settings.enable, NULL,
+    N_("Enable LDAP lookups.") },
+  { "url", mu_cfg_string, &ldap_settings.url, NULL,
+    N_("Set URL of the LDAP server."),
+    N_("url") },
+  { "base", mu_cfg_string, &ldap_settings.base, NULL,
+    N_("Base DN for LDAP lookups."),
+    N_("dn") },
+  { "binddn", mu_cfg_string, &ldap_settings.binddn, NULL,
+    N_("DN for accessing LDAP database."),
+    N_("dn") },
+  { "passwd", mu_cfg_string, &ldap_settings.passwd, NULL,
+    N_("Password for use with binddn.") },
+  { "tls", mu_cfg_bool, &ldap_settings.tls, NULL,
+    N_("Use TLS encryption.") },
+  { "debug", mu_cfg_int, &ldap_settings.debug, NULL,
+    N_("Set LDAP debugging level.") },
+  { "field-map", mu_cfg_callback, NULL, cb_field_map,
+    N_("Set a field-map for parsing LDAP replies.  The map is a "
+       "column-separated list of definitions.  Each definition has the "
+       "following form:\n"
+       "   <name: string>=<attr: string>\n"
+       "where <name> is one of the following: name, passwd, uid, gid, "
+       "gecos, dir, shell, mailbox, quota, and <attr> is the name of "
+       "the correspondind LDAP attribute."),
+    N_("map") },
+  { "getpwnam", mu_cfg_string, &ldap_settings.getpwnam_filter, NULL,
+    N_("LDAP filter to use for getpwnam requests."),
+    N_("filter") },
+  { "getpwuid", mu_cfg_string, &ldap_settings.getpwuid_filter, NULL,
+    N_("LDAP filter to use for getpwuid requests."),
+    N_("filter") },
   { NULL }
 };
 

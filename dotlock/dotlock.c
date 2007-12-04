@@ -105,8 +105,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_NO_ARGS:
-      argp_error (state, _("FILE must be specified"));
-
+      if (!mu_help_config_mode)
+	argp_error (state, _("FILE must be specified"));
+      return ARGP_ERR_UNKNOWN;
+      
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;
@@ -123,9 +125,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 struct mu_cfg_param dotlock_cfg_param[] = {
-  { "force", mu_cfg_time, &force },
-  { "retry", mu_cfg_int, &retries },
-  { "debug", mu_cfg_bool, &debug },
+  { "force", mu_cfg_time, &force, NULL,
+    N_("Forcibly break an existing lock older than the specified time.") },
+  { "retry", mu_cfg_int, &retries, NULL,
+    N_("Number of times to retry acquiring the lock.") },
+  { "debug", mu_cfg_bool, &debug, NULL,
+    N_("Print details of failure reasons to stderr.") },
   { NULL }
 };
 

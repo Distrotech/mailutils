@@ -25,10 +25,17 @@
 static struct mu_radius_module_data radius_settings;
 
 static struct mu_cfg_param mu_radius_param[] = {
-  { "auth-request", mu_cfg_string, &radius_settings.auth_request },
-  { "getpwnam-request", mu_cfg_string, &radius_settings.getpwnam_request },
-  { "getpwuid-request", mu_cfg_string, &radius_settings.getpwuid_request },
-  { "directory", mu_cfg_string, &radius_settings.config_dir },
+  { "auth", mu_cfg_string, &radius_settings.auth_request, NULL,
+    N_("Radius request for authorization."),
+    N_("request") },
+  { "getpwnam", mu_cfg_string, &radius_settings.getpwnam_request, NULL,
+    N_("Radius request for getpwnam."),
+    N_("request") },
+  { "getpwuid", mu_cfg_string, &radius_settings.getpwuid_request, NULL,
+    N_("Radius request for getpwuid."),
+    N_("request") },
+  { "directory", mu_cfg_string, &radius_settings.config_dir, NULL,
+    N_("Set radius configuration directory.") },
   { NULL }
 };
 

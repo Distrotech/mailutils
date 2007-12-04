@@ -359,7 +359,7 @@ mu_config_create_container (struct mu_cfg_cont **pcont,
   struct mu_cfg_cont *cont;
   int rc;
   
-  cont = malloc (sizeof (*cont));
+  cont = calloc (1, sizeof (*cont));
   if (!cont)
     return ENOMEM;
   rc = mu_refcount_create (&cont->refcount);
@@ -437,6 +437,7 @@ dup_container (struct mu_cfg_cont **pcont)
       newcont->v.section.ident = oldcont->v.section.ident;
       newcont->v.section.parser = oldcont->v.section.parser;
       newcont->v.section.data = oldcont->v.section.data;
+      newcont->v.section.docstring = oldcont->v.section.docstring;
       newcont->v.section.subsec = NULL;
       newcont->v.section.param = NULL;
       mu_list_do (oldcont->v.section.subsec, _dup_section_action, &dd);
@@ -737,7 +738,12 @@ mu_build_container (const char *progname,
   struct mu_cfg_cont *cont = root_container;
   struct include_data idata;
   struct mu_cfg_param mu_include_param[] = {
-    { "include", mu_cfg_callback, &idata, _cb_include },
+    { "include", mu_cfg_callback, &idata, _cb_include,
+      N_("Include contents of the given file.  If a directory is given, "
+	 "include contents of the file <file>/<program>, where <program> is "
+	 "the name of the program.  This latter form is allowed only in "
+	 "the site-wide configuration file."),
+      N_("file-or-directory") },
     { NULL }
   };
       

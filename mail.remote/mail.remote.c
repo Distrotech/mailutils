@@ -136,10 +136,16 @@ static struct argp argp = {
 
 
 struct mu_cfg_param mail_remote_cfg_param[] = {
-  { "from", mu_cfg_string, &optfrom },
-  { "read-recipients", mu_cfg_string, &read_recipients },
-  { "debug", mu_cfg_int, &optdebug },
-  { NULL}
+  { "from", mu_cfg_string, &optfrom, NULL,
+    N_("Set sender email address."),
+    N_("email") },
+  { "read-recipients", mu_cfg_string, &read_recipients, NULL,
+    N_("Read recipient addresses from the message.") },
+  { "debug", mu_cfg_int, &optdebug, NULL,
+    N_("Set debug verbosity level.  Level 1 prints envelope commands in "
+       "the SMTP protocol transaction.  Levels 2 and above print the data "
+       "part of the transaction as well.") },
+  { NULL }
 };
 
 

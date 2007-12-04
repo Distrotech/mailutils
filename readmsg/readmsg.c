@@ -47,7 +47,7 @@ static struct argp_option options[] =
   { "no-header", 'n', 0, 0, N_("Exclude all headers"), 1 },
   { "form-feeds", 'p', 0, 0, N_("Output formfeeds between messages"), 1 },
   { "show-all-match", 'a', NULL, 0,
-    N_("Print all messages matching pattern, not just the first"), 1 },
+    N_("Print all messages matching pattern, not only the first"), 1 },
   {0, 0, 0, 0}
 };
 
@@ -129,13 +129,22 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
 
 
 struct mu_cfg_param readmsg_cfg_param[] = {
-  { "debug", mu_cfg_int, &dbug },
-  { "header", mu_cfg_bool, &all_header },
-  { "weedlist", mu_cfg_string, &weedlist },
-  { "folder", mu_cfg_string, &mailbox_name },
-  { "no-header", mu_cfg_bool, &no_header }, 
-  { "form-feeds", mu_cfg_bool, &form_feed },
-  { "show-all-match", mu_cfg_bool, &show_all },
+  { "debug", mu_cfg_int, &dbug, NULL,
+    N_("Set debug verbosity level.") },
+  { "header", mu_cfg_bool, &all_header, NULL,
+    N_("Display entire headers.") },
+  { "weedlist", mu_cfg_string, &weedlist, NULL,
+    N_("Display only headers from this list.  Argument is a list of header "
+       "names separated by whitespace or commas."),
+    N_("list") },
+  { "folder", mu_cfg_string, &mailbox_name, NULL,
+    N_("Read messages from this folder.") },
+  { "no-header", mu_cfg_bool, &no_header, NULL,
+    N_("Exclude all headers.") }, 
+  { "form-feeds", mu_cfg_bool, &form_feed, NULL,
+    N_("Output formfeed character between messages.") },
+  { "show-all-match", mu_cfg_bool, &show_all, NULL,
+    N_("Print all messages matching pattern, not only the first.") },
   { NULL }
 };
 

@@ -255,21 +255,42 @@ cb_debug (mu_debug_t debug, void *data, char *arg)
 }
 
 struct mu_cfg_param mail_local_cfg_param[] = {
-  { "ex-multiple-delivery-success", mu_cfg_bool, &multiple_delivery },
-  { "ex-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail },
-  { "from", mu_cfg_string, &from },
+  { "ex-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, NULL,
+    N_("In case of multiple delivery, exit with code 0 if at least one "
+       "delivery succeeded.") },
+  { "ex-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, NULL,
+    N_("Indicate temporary failure if the recipient is over his mail quota.")
+  },
 #ifdef USE_DBM
-  { "quota-db", mu_cfg_string, &quotadbname },
+  { "quota-db", mu_cfg_string, &quotadbname, NULL,
+    N_("Name of DBM quota database file."),
+    N_("file") },
 #endif
 #ifdef USE_SQL
-  { "quota-query", mu_cfg_string, &quota_query },
+  { "quota-query", mu_cfg_string, &quota_query, NULL,
+    N_("SQL query to retrieve mailbox quota.  This is deprecated, use "
+       "sql { ... } instead."),
+    N_("query") },
 #endif
-  { "sieve", mu_cfg_string, &sieve_pattern },
-  { "message-id-header", mu_cfg_string, &message_id_header },
+  { "sieve-filter", mu_cfg_string, &sieve_pattern, NULL,
+    N_("File name or name pattern for Sieve filter file."),
+    N_("file-or-pattern") },
+  { "message-id-header", mu_cfg_string, &message_id_header, NULL,
+    N_("When logging Sieve actions, identify messages by the value of "
+       "this header."),
+    N_("name") },
 #ifdef WITH_GUILE
-  { "source", mu_cfg_string, &progfile_pattern },
+  { "guile-filter", mu_cfg_string, &progfile_pattern, NULL,
+    N_("File name or name pattern for Guile filter file."),
+    N_("file-or-pattern") },
 #endif
-  { "debug", mu_cfg_callback, NULL, cb_debug },
+  { "debug", mu_cfg_callback, NULL, cb_debug,
+    N_("Set mail.local debug level.  Debug level consists of one or more "
+       "of the following letters:\n"
+       "  g - guimb stack traces\n"
+       "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+       "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+       "  l - sieve action logs\n") },
   { NULL }
 };
 

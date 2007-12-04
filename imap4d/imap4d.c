@@ -272,16 +272,34 @@ cb_preauth (mu_debug_t debug, void *data, char *arg)
 }
 	
 static struct mu_cfg_param imap4d_cfg_param[] = {
-  { "other-namespace", mu_cfg_callback, NULL, cb_other },
-  { "shared-namespace", mu_cfg_callback, NULL, cb_shared },
-  { "login-disabled", mu_cfg_int, &login_disabled },
-  { "create-home-dir", mu_cfg_bool, &create_home_dir },
-  { "home-dir-mode", mu_cfg_callback, NULL, cb_mode },
-  { "tls-required", mu_cfg_int, &tls_required },
-  { "preauth", mu_cfg_callback, NULL, cb_preauth },
-  { "preauth-only", mu_cfg_bool, &preauth_only },
-  { "ident-keyfile", mu_cfg_string, &ident_keyfile },
-  { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only },
+  { "other-namespace", mu_cfg_callback, NULL, cb_other, 
+    N_("Set other users' namespace.  Argument is a colon-separated list "
+       "of directories comprising the namespace.") },
+  { "shared-namespace", mu_cfg_callback, NULL, cb_shared,
+    N_("Set shared namespace.  Argument is a colon-separated list "
+       "of directories comprising the namespace.") },
+  { "login-disabled", mu_cfg_int, &login_disabled, NULL,
+    N_("Disable LOGIN command.") },
+  { "create-home-dir", mu_cfg_bool, &create_home_dir, NULL,
+    N_("If true, create non-existing user home directories.") },
+  { "home-dir-mode", mu_cfg_callback, NULL, cb_mode,
+    N_("File mode for creating user home directories (octal)."),
+    N_("mode") },
+  { "tls-required", mu_cfg_int, &tls_required, NULL,
+    N_("Always require STARTTLS before entering authentication phase.") },
+  { "preauth", mu_cfg_callback, NULL, cb_preauth,
+    N_("Configure PREAUTH mode.  MODE is one of:\n"
+       "  prog:///<full-program-name: string>\n"
+       "  ident[://:<port: string-or-number>]\n"
+       "  stdio"),
+    N_("MODE") },
+  { "preauth-only", mu_cfg_bool, &preauth_only, NULL,
+    N_("Use only preauth mode.  If unable to setup it, disconnect "
+       "immediately.") },
+  { "ident-keyfile", mu_cfg_string, &ident_keyfile, NULL,
+    N_("Name of DES keyfile for decoding ecrypted ident responses.") },
+  { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only, NULL,
+    N_("Use only ecrypted ident responses.") },
   { NULL }
 };
     

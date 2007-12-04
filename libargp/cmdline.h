@@ -20,4 +20,3 @@
 #include "mailutils/libargp.h"
 
 extern struct mu_cfg_tree *mu_argp_tree;
-extern int mu_help_config_mode;

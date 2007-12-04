@@ -81,22 +81,28 @@ mu_app_init (struct argp *myargp, const char **capa,
 
   if (mu_help_config_mode)
     {
+      char *comment;
       char *canonical_name = get_canonical_name ();
       mu_stream_t stream;
       mu_stdio_stream_create (&stream, stdout,
 			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
       mu_stream_open (stream);
-      mu_stream_sequential_printf (stream,
-		   "# Configuration file structure for %s utility.\n",
-		   mu_program_name);
-      mu_stream_sequential_printf (stream,
-		   "# For use in global configuration file (%s), enclose it\n"
-		   "# in `program %s { ... };'\n",
-		   MU_CONFIG_FILE,
-		   mu_program_name);		   
-      mu_stream_sequential_printf (stream,
-		   "# For more information, use `info %s'.\n",
-		    canonical_name);
+      asprintf (&comment,
+		"Configuration file structure for %s utility.",
+		mu_program_name);
+      mu_cfg_format_docstring (stream, comment, 0);
+      free (comment);
+      asprintf (&comment,
+		"For use in global configuration file (%s), enclose it "
+		"in `program %s { ... };",
+		MU_CONFIG_FILE,
+		mu_program_name);		   
+      mu_cfg_format_docstring (stream, comment, 0);
+      free (comment);
+      asprintf (&comment, "For more information, use `info %s'.",
+		canonical_name);
+      mu_cfg_format_docstring (stream, comment, 0);
+      free (comment);
       
       mu_format_config_tree (stream, mu_program_name, cfg_param, 0);
       mu_stream_destroy (&stream, NULL);

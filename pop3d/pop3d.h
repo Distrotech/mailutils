@@ -94,10 +94,10 @@ extern void login_delay_capa (void);
 #endif
 
 /* Minimum advertise retention time for messages.  */
-extern time_t expire;
+extern unsigned expire;
 extern int expire_on_exit;
 
-#define EXPIRE_NEVER ((time_t)-1)
+#define EXPIRE_NEVER ((unsigned)-1)
 
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70

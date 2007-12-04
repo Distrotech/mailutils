@@ -92,10 +92,18 @@ cb_library_path (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param mu_sieve_param[] = {
-  { "clear-library-path", mu_cfg_callback, NULL, cb_clear_library_path },
-  { "clear-include-path", mu_cfg_callback, NULL, cb_clear_include_path },
-  { "library-path", mu_cfg_callback, NULL, cb_library_path },
-  { "include-path", mu_cfg_callback, NULL, cb_include_path },
+  { "clear-library-path", mu_cfg_callback, NULL, cb_clear_library_path,
+     N_("Clear library search path.") },
+  { "clear-include-path", mu_cfg_callback, NULL, cb_clear_include_path,
+     N_("Clear include search path.") },
+  { "library-path", mu_cfg_callback, NULL, cb_library_path,
+    N_("Add directories to the library search path.  Argument is a "
+       "comma-separated list of directories."),
+    N_("list") },
+  { "include-path", mu_cfg_callback, NULL, cb_include_path,
+    N_("Add directories to the include search path.  Argument is a "
+       "comma-separated list of directories."),
+    N_("list") },
   { NULL }
 };
 

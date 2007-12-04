@@ -23,6 +23,7 @@
 #include <mailutils/cfg.h>
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
+#include <ctype.h>
 
 struct tree_print
 {
@@ -149,7 +150,7 @@ mu_cfg_data_type_string (enum mu_cfg_param_data_type type)
   switch (type)
     {
     case mu_cfg_string:
-      return "string";
+      return N_("string");
     case mu_cfg_short:
     case mu_cfg_ushort:
     case mu_cfg_int:
@@ -158,30 +159,84 @@ mu_cfg_data_type_string (enum mu_cfg_param_data_type type)
     case mu_cfg_ulong:
     case mu_cfg_size:
     case mu_cfg_off:
-      return "number";
+      return N_("number");
     case mu_cfg_time:
-      return "time";
+      return N_("time");
     case mu_cfg_bool:
-      return "boolean";
+      return N_("boolean");
     case mu_cfg_ipv4:
-      return "ipv4";
+      return N_("ipv4");
     case mu_cfg_cidr:
-      return "cidr";
+      return N_("cidr");
     case mu_cfg_host:
-      return "host";
+      return N_("host");
     case mu_cfg_callback:
-      return "string"; /* FIXME: opaque data */
+      return N_("string");
     }
-  return "unknown";
+  return N_("unknown");
+}
+
+void
+mu_cfg_format_docstring (mu_stream_t stream, const char *docstring, int level)
+{
+  size_t len = strlen (docstring);
+  int width = 78 - level * 2;
+
+  if (width < 0)
+    {
+      width = 78;
+      level = 0;
+    }
+  
+  while (len)
+    {
+      size_t seglen;
+      const char *p;
+      
+      for (seglen = 0, p = docstring; p < docstring + width && *p; p++)
+	{
+	  if (*p == '\n')
+	    {
+	      seglen = p - docstring;
+	      break;
+	    }
+	  if (isspace (*p))
+	    seglen = p - docstring;
+	}
+      if (seglen == 0 || *p == 0)
+	seglen = p - docstring;
+
+      format_level (stream, level);
+      mu_stream_sequential_write (stream, "# ", 2);
+      mu_stream_sequential_write (stream, docstring, seglen);
+      mu_stream_sequential_write (stream, "\n", 1);
+      len -= seglen;
+      docstring += seglen;
+      if (*docstring == '\n')
+	{
+	  docstring++;
+	  len--;
+	}
+      else
+	while (*docstring && isspace (*docstring))
+	  {
+	    docstring++;
+	    len--;
+	  }
+    }
 }
 
 static void
 format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
 {
+  if (param->docstring)
+    mu_cfg_format_docstring (stream, gettext (param->docstring), level);
   format_level (stream, level);
-  mu_stream_sequential_printf (stream, "%s <%s>;\n",
+  mu_stream_sequential_printf (stream, "%s <%s: %s>;\n",
 			       param->ident,
-			       mu_cfg_data_type_string (param->type));
+			       gettext (param->argname ?
+					param->argname : N_("arg")),
+			       gettext (mu_cfg_data_type_string (param->type)));
 }
 
 static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,
@@ -200,6 +255,8 @@ static void
 format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
 {
   struct tree_print c;
+  if (sect->docstring)
+    mu_cfg_format_docstring (stream, gettext (sect->docstring), level);
   format_level (stream, level);
   if (sect->ident)
     {

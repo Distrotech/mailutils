@@ -24,7 +24,10 @@
 static struct mu_gocs_virtual virtdomain_settings;
 
 static struct mu_cfg_param mu_virtdomain_param[] = {
-  { "passwd-dir", mu_cfg_string, &virtdomain_settings },
+  { "passwd-dir", mu_cfg_string, &virtdomain_settings, NULL,
+    N_("Name of the directory where virtual domain password files are "
+       "located."),
+    N_("dir") },
   { NULL }
 };
 

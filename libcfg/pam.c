@@ -24,7 +24,9 @@
 static char *pam_settings;
 
 static struct mu_cfg_param mu_pam_param[] = {
-  { "service", mu_cfg_string, &pam_settings },
+  { "service", mu_cfg_string, &pam_settings, NULL,
+    N_("Set PAM service name."),
+    N_("name") },
   { NULL }
 };
 

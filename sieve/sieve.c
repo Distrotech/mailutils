@@ -82,7 +82,7 @@ static struct argp_option options[] =
    N_("Mailbox to sieve (defaults to user's mail spool)"), 0},
 
   {"ticket", 't', N_("TICKET"), 0,
-   N_("Ticket file for mailbox authentication"), 0},
+   N_("Ticket file for user authentication"), 0},
 
   {"debug", 'd', N_("FLAGS"), OPTION_ARG_OPTIONAL,
    N_("Debug flags (defaults to \"" D_DEFAULT "\")"), 0},
@@ -233,8 +233,10 @@ parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_NO_ARGS:
-      argp_error (state, _("SCRIPT must be specified"));
-
+      if (!mu_help_config_mode)
+	argp_error (state, _("SCRIPT must be specified"));
+      return ARGP_ERR_UNKNOWN;
+      
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;
@@ -285,13 +287,28 @@ cb_ticket (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param sieve_cfg_param[] = {
-  { "keep-going", mu_cfg_int, &keep_going },
-  { "mbox-url", mu_cfg_string, &mbox_url },
-  { "ticket", mu_cfg_callback, NULL, cb_ticket },
-  { "debug", mu_cfg_callback, NULL, cb_debug },
-  { "verbose", mu_cfg_bool, &verbose },
-  { "line-info", mu_cfg_bool, &sieve_print_locus },
-  { "email", mu_cfg_callback, NULL, cb_email },
+  { "keep-going", mu_cfg_int, &keep_going, NULL,
+    N_("Do not abort if execution fails on a message.") },
+  { "mbox-url", mu_cfg_string, &mbox_url, NULL,
+    N_("Mailbox to sieve (defaults to user's mail spool)."),
+    N_("url") },
+  { "ticket", mu_cfg_callback, NULL, cb_ticket,
+    N_("Ticket file for user authentication."),
+    N_("ticket") },
+  { "debug", mu_cfg_callback, NULL, cb_debug,
+    N_("Debug flags.  Argument consists of one or more of the following "
+       "flags:\n"
+       "   g - main parser traces\n"
+       "   T - mailutils traces (MU_DEBUG_TRACE0-MU_DEBUG_TRACE1)\n"
+       "   P - network protocols (MU_DEBUG_PROT)\n"
+       "   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+       "   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR).") },
+  { "verbose", mu_cfg_bool, &verbose, NULL,
+    N_("Log all executed actions.") },
+  { "line-info", mu_cfg_bool, &sieve_print_locus, NULL,
+    N_("Print source locations along with action logs (default).") },
+  { "email", mu_cfg_callback, NULL, cb_email,
+    N_("Set user email address.") },
   { NULL }
 };
 

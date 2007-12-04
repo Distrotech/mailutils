@@ -42,6 +42,8 @@ struct mu_cmdline_capa
   struct argp_child *child;
 };
 
+extern int mu_help_config_mode;
+
 extern struct mu_cmdline_capa mu_common_cmdline;
 extern struct mu_cmdline_capa mu_logging_cmdline;
 extern struct mu_cmdline_capa mu_license_cmdline;

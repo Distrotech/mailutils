@@ -54,7 +54,7 @@ time_t login_delay = 0;
 char *login_stat_file = LOGIN_STAT_FILE;
 #endif
 
-time_t expire = EXPIRE_NEVER; /* Expire messages after this number of days */
+unsigned expire = EXPIRE_NEVER; /* Expire messages after this number of days */
 int expire_on_exit = 0;       /* Delete expired messages on exit */
 
 static int pop3d_mainloop       (int fd, FILE *, FILE *);
@@ -91,7 +91,7 @@ static struct argp_option options[] = {
 #define GRP 10
 #ifdef ENABLE_LOGIN_DELAY
   {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), OPTION_HIDDEN,
-   N_("Allowed delay between the two successive logins"), GRP+1},
+   N_("Allowed delay between two successive logins"), GRP+1},
   {"stat-file", OPT_STAT_FILE, N_("FILENAME"), OPTION_HIDDEN,
    N_("Name of login statistics file"), GRP+1},
 #endif
@@ -134,19 +134,30 @@ cb_bulletin_db (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param pop3d_cfg_param[] = {
-  { "undelete", mu_cfg_int, &undelete_on_startup },
-  { "expire", mu_cfg_time, &expire },
-  { "delete-expired", mu_cfg_int, &expire_on_exit },
+  { "undelete", mu_cfg_int, &undelete_on_startup, NULL,
+    N_("On startup, clear deletion marks from all the messages.") },
+  { "expire", mu_cfg_uint, &expire, NULL,
+    N_("Automatically expire read messages after the given number of days."),
+    N_("days") },
+  { "delete-expired", mu_cfg_int, &expire_on_exit, NULL,
+    N_("Delete expired messages upon closing the mailbox.") },
 #ifdef WITH_TLS
-  { "tls-required", mu_cfg_callback, NULL, cb_tls_required },
+  { "tls-required", mu_cfg_callback, NULL, cb_tls_required,
+     N_("Always require STLS before entering authentication phase.") },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
-  { "login-delay", mu_cfg_time, &login_delay },
-  { "stat-file", mu_cfg_string, &login_stat_file },
+  { "login-delay", mu_cfg_time, &login_delay, NULL,
+    N_("Set the minimal allowed delay between two successive logins.") },
+  { "stat-file", mu_cfg_string, &login_stat_file, NULL,
+    N_("Set the name of login statistics file (for login-delay).") },
 #endif
-  { "bulletin-source", mu_cfg_callback, NULL, cb_bulletin_source },
+  { "bulletin-source", mu_cfg_callback, NULL, cb_bulletin_source,
+    N_("Get bulletins from the specified mailbox."),
+    N_("url") },
 #ifdef USE_DBM
-  { "bulletin-db", mu_cfg_callback, NULL, cb_bulletin_db },
+  { "bulletin-db", mu_cfg_callback, NULL, cb_bulletin_db,
+    N_("Set the bulletin database file name."),
+    N_("file") },
 #endif
   { NULL }
 };

@@ -32,11 +32,12 @@ lib/argp-parse.c
 lib/getopt.c
 lib/mailcap.c
 lib/xmalloc.c
-libargp/mu_argp.c
 libargp/auth.c
 libargp/cmdline.c
 libargp/common.c
 libargp/gsasl.c
+libargp/mu_argp.c
+libargp/muinit.c
 libargp/pam.c
 libargp/radius.c
 libargp/sql.c
@@ -46,8 +47,10 @@ libcfg/auth.c
 libcfg/common.c
 libcfg/gsasl.c
 libcfg/init.c
+libcfg/ldap.c
 libcfg/pam.c
 libcfg/radius.c
+libcfg/sieve.c
 libcfg/sql.c
 libcfg/tls.c
 libcfg/virtdomain.c
@@ -67,6 +70,7 @@ libsieve/sieve.l
 libsieve/sieve.y
 libsieve/tests.c
 libsieve/util.c
+maidag/maidag.c
 mail.local/mailquota.c
 mail.local/main.c
 mail.local/script.c
@@ -97,6 +101,8 @@ mail/summary.c
 mail/unalias.c
 mail/util.c
 mail/z.c
+mailbox/cfg_format.c
+mailbox/cfg_lexer.c
 mailbox/errors
 mailbox/file_stream.c
 mailbox/filter_iconv.c

@@ -129,6 +129,8 @@ struct mu_cfg_param
   enum mu_cfg_param_data_type type;
   void *data;
   mu_cfg_callback_t callback;
+  const char *docstring;
+  const char *argname;
 };
 
 enum mu_cfg_section_stage
@@ -150,6 +152,7 @@ struct mu_cfg_section
   void *data;
   mu_list_t /* of mu_cfg_cont/mu_cfg_section */ subsec;
   mu_list_t /* of mu_cfg_cont/mu_cfg_param */ param;
+  char *docstring;
 };
 
 enum mu_cfg_cont_type
@@ -209,6 +212,8 @@ int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 
+void mu_cfg_format_docstring (mu_stream_t stream, const char *docstring,
+			      int level);
 void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree);
 void mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont);
 void mu_format_config_tree (mu_stream_t stream, const char *progname,

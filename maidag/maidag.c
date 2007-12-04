@@ -66,7 +66,7 @@ N_("Debug flags are:\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
   l - sieve action logs\n\
-  0-9 - Set mail.local debugging level\n");
+  0-9 - Set maidag debugging level\n");
 
 static char args_doc[] = N_("[recipient...]");
 
@@ -237,26 +237,58 @@ cb_debug (mu_debug_t debug, void *data, char *arg)
 }
 
 struct mu_cfg_param maidag_cfg_param[] = {
-  { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery },
-  { "exit-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail },
+  { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, NULL,
+    N_("In case of multiple delivery, exit with code 0 if at least one "
+       "delivery succeeded.") },
+  { "exit-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, NULL,
+    N_("Indicate temporary failure if the recipient is over his mail quota.")
+  },
 #ifdef USE_DBM
-  { "quota-db", mu_cfg_string, &quotadbname },
+  { "quota-db", mu_cfg_string, &quotadbname, NULL,
+    N_("Name of DBM quota database file."),
+    N_("file") },
 #endif
 #ifdef USE_SQL
-  { "quota-query", mu_cfg_string, &quota_query },
+  { "quota-query", mu_cfg_string, &quota_query, NULL,
+    N_("SQL query to retrieve mailbox quota.  This is deprecated, use "
+       "sql { ... } instead."),
+    N_("query") },
 #endif
-  { "sieve-filter", mu_cfg_string, &sieve_pattern },
-  { "message-id-header", mu_cfg_string, &message_id_header },
+  { "sieve-filter", mu_cfg_string, &sieve_pattern, NULL,
+    N_("File name or name pattern for Sieve filter file."),
+    N_("file-or-pattern") },
+  { "message-id-header", mu_cfg_string, &message_id_header, NULL,
+    N_("When logging Sieve actions, identify messages by the value of "
+       "this header."),
+    N_("name") },
 #ifdef WITH_GUILE
-  { "guile-filter", mu_cfg_string, &progfile_pattern },
+  { "guile-filter", mu_cfg_string, &progfile_pattern, NULL,
+    N_("File name or name pattern for Guile filter file."),
+    N_("file-or-pattern") },
 #endif
-  { "debug", mu_cfg_callback, NULL, cb_debug },
-  { "stderr", mu_cfg_bool, &log_to_stderr },
+  { "debug", mu_cfg_callback, NULL, cb_debug,
+    N_("Set maidag debug level.  Debug level consists of one or more "
+       "of the following letters:\n"
+       "  g - guimb stack traces\n"
+       "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+       "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+       "  l - sieve action logs\n") },
+  { "stderr", mu_cfg_bool, &log_to_stderr, NULL,
+    N_("Log to stderr instead of syslog.") },
 /* LMTP support */
-  { "lmtp", mu_cfg_bool, &lmtp_mode },
-  { "group", mu_cfg_string, &lmtp_group },
-  { "listen", mu_cfg_string, &lmtp_url_string },
-  { "reuse-address", mu_cfg_bool, &reuse_lmtp_address },
+  { "lmtp", mu_cfg_bool, &lmtp_mode, NULL,
+    N_("Run in LMTP mode.") },
+  { "group", mu_cfg_string, &lmtp_group, NULL,
+    N_("In LMTP mode, change to this group after startup.") },
+  { "listen", mu_cfg_string, &lmtp_url_string, NULL,
+    N_("In LMTP mode, listen on the given URL.  Valid URLs are:\n"
+       "   tcp://<address: string>:<port: number> (note that port is "
+       "mandatory)\n"
+       "   file://<socket-file-name>\n"
+       "or socket://<socket-file-name>"),
+    N_("url") },
+  { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, NULL,
+    N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
   { NULL }
 };
 
