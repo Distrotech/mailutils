@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-03
+GNU mailutils NEWS -- history of user-visible changes. 2007-12-05
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -9,7 +9,86 @@ Version 1.2.90:
 
 * New configuration file format.
 
-* Diagnostic and debugging functions essentially rewritten.
+* Programs
+
+** Debugging and online help
+
+Each Mailutils utility understands two additional command line
+options:
+
+ --debug-level=LEVEL    Set Mailutils debugging level.
+ --debug-line-info      Show source info with debugging messages.
+
+(see also `** Global debugging and verbosity settings.', below)
+
+The programs using configuration file facility also understand the
+--config-help command line option.  This option prints on the standard
+output the detailed description of configuration file statements that
+affect the given program.
+
+** New utility `maidag'
+
+Maidag is a MAIl Delivery AGent. It is a general-purpose MDA able to
+run in both traditional and LMTP mode and to deliver mails to various
+mailbox formats. It is also able to process incoming messages using
+Sieve or Scheme scripts and, based on results of this processing,
+to take a decision on whether to actually deliver and where to
+deliver them.
+
+** New Sieve action `pipe'
+
+Syntax: pipe [:envelope] <command line: string> 
+
+This action executes the given <command line> and pipes the message to
+its standard input. If the :envelope tag is given, the envelope of the
+message is piped as well.
+
+** Client SMTP STARTTLS support
+
+** Support for new protocols: POPS (pops://) and IMAPS (imaps://),
+
+** LDAP support (authentication and authorization).
+
+** Support for TCP wrappers.
+
+The support for TCP wrappers is added to the daemon programs (imap4d,
+pop3d, maidag). The support is controlled at compile time by the
+--with-tcpwrappers command line options to configure. By default, it
+is enabled if libwrap presence is detected. A set of configuration
+file statements are provided for fine tuning TCP wrappers at run-time.
+
+** pop3d: Fixed APOP handling.
+
+** imap4d supports PREAUTH mode.
+
+Three mechanisms are provided for authentifying the connection in
+PREAUTH mode:
+
+ 1. stdio - PREAUTH mode is enabled automatically if imap4d is started
+    from command line in interactive mode (-i command line
+    option). The current login name is used as the user name.
+
+ 2. ident - The remote machine is asked about the requester identity
+    using the identification protocol (RFC 1413). Both plaintext and
+    DES encrypted replies are understood.
+
+ 3. prog - Imap4d invokes an external program to authenticate the
+    connection. Four arguments are supplied to the program:
+
+      1) Remote IP address in dotted-quad notation;
+      2) Remote port number;
+      3) Local IP address (currently "0.0.0.0");
+      4) Local port number.
+
+    If the connection is authenticated, the program should print the
+    user name, followed by a newline character, on its standard
+    output and exit with code 0.
+
+    Otherwise, it shoud exit with a non-zero exit code.
+    
+* Libraries
+
+** Diagnostic and debugging functions essentially rewritten.
 
 A set of debugging macros, MU_DEBUG0 through MU_DEBUG11, is provided.
 New functions mu_debug_printf and mu_debug_vprintf allow for flexible
@@ -43,7 +122,7 @@ approach is recommended to use instead of mu_error_set_print:
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, new_printer, NULL);
 
-* Global debugging and verbosity settings.
+** Global debugging and verbosity settings.
 
 These settings provide default values for mu_debug_t objects created
 by various library objects. The following functions are provided for
@@ -53,27 +132,12 @@ dealing with global debugging level:
    int mu_global_debug_set_level (const char *object_name, unsigned level);
    int mu_global_debug_clear_level (const char *object_name);
 
-Each Mailutils utility understands two additional command line
-options:
-
- --debug-level=LEVEL    Set Mailutils debugging level.
- --debug-line-info      Show source info with debugging messages.
-      
-* New utility `maidag'
-
-Maidag is a MAIl Delivery AGent. It is a general-purpose MDA able to
-run in both traditional and LMTP mode and to deliver mails to various
-mailbox formats. It is also able to process incoming messages using
-Sieve or Scheme scripts and, based on results of this processing,
-to take a decision on whether to actually deliver and where to
-deliver them.
-
-* New function mu_mailbox_sync
+** New function mu_mailbox_sync
 
 It supercedes mu_mailbox_save_attributes, which is now considered
 deprecated.
 
-* Observable event handling
+** Observable event handling
 
 Each event type is associated with an event-specific data
 pointer. This pointer is passed to event handling functions along with
@@ -91,14 +155,6 @@ message is appended to the mailbox.
 
 A set of functions are provided for so-called `quick access' to mail
 messages. FIXME: describe it.
-
-* New Sieve action `pipe'
-
-Syntax: pipe [:envelope] <command line: string> 
-
-This action executes the given <command line> and pipes the message to
-its standard input. If the :envelope tag is given, the envelope of the
-message is piped as well.
 
 * New `aget' and `sget' accessors for mu_url_t
 
@@ -137,41 +193,6 @@ It is parsed as an absolute file name `/a/b'.
 
 Previous versions incorrectly understood such an URL as `a/b'
 (relative file name). 
-
-* Client SMTP STARTTLS support
-
-* Support for new protocols: POPS (pops://) and IMAPS (imaps://),
-
-* LDAP support (authentication and authorization).
-
-* Fixed APOP handling.
-
-* imap4d supports PREAUTH mode.
-
-Three mechanisms are provided for authentifying the connection in
-PREAUTH mode:
-
- 1. stdio - PREAUTH mode is enabled automatically if imap4d is started
-    from command line in interactive mode (-i command line
-    option). The current login name is used as the user name.
-
- 2. ident - The remote machine is asked about the requester identity
-    using the identification protocol (RFC 1413). Both plaintext and
-    DES encrypted replies are understood.
-
- 3. prog - Imap4d invokes an external program to authenticate the
-    connection. Four arguments are supplied to the program:
-
-      1) Remote IP address in dotted-quad notation;
-      2) Remote port number;
-      3) Local IP address (currently "0.0.0.0");
-      4) Local port number.
-
-    If the connection is authenticated, the program should print the
-    user name, followed by a newline character, on its standard
-    output and exit with code 0.
-
-    Otherwise, it shoud exit with a non-zero exit code.
 
 * Remove v0.6 compatibility layer.
 

@@ -40,7 +40,7 @@ do_preauth_stdio (struct sockaddr_in *pcs)
    
       "%*[^:]: USERID :%*[^:]:%s"
 
-   returns a malloced copy of the %s part.  Otherwise, return NULL. */
+   returns a mallocked copy of the %s part.  Otherwise, return NULL. */
 
 static char *
 ident_extract_username (char *reply)
@@ -440,14 +440,10 @@ imap4d_preauth_setup (int fd)
   int len = sizeof cs;
   char *username = NULL;
 
-  mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
   if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
     mu_diag_output (MU_DIAG_ERROR,
 		    _("Cannot obtain IP address of client: %s"),
 		    strerror (errno));
-  else
-    mu_diag_output (MU_DIAG_INFO, _("Connect from %s"), 
-		    inet_ntoa (cs.sin_addr));
 
   auth_data = NULL;
   switch (preauth_mode)

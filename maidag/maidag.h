@@ -93,6 +93,8 @@
 
 #include "mailutils/libargp.h"
 
+#include "tcpwrap.h"
+
 /* Debug */
 extern int debug_level;
 #define dbg() if (debug_level) debug

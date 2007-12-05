@@ -494,7 +494,9 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'd':
-      mu_argp_node_list_new (&lst, "mode", arg);
+      mu_argp_node_list_new (&lst, "mode", "daemon");
+      if (arg)
+	mu_argp_node_list_new (&lst, "max-children", arg);
       break;
 
     case 'i':

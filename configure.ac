@@ -75,6 +75,7 @@ status_gsasl=no
 status_mysql=no
 status_pgsql=no
 status_ldap=no
+status_tcpwrap=maybe
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
@@ -147,6 +148,43 @@ case "${enableval}" in
   no)  testpam=no ;;
   *)   AC_MSG_ERROR([bad value ${enableval} for --disable-pam]) ;;
 esac],[testpam=yes])
+
+AC_ARG_WITH(tcp-wrappers,
+	AC_HELP_STRING([--with-tcp-wrappers],
+	               [compile with TCP wrappers (libwrap) support]),
+	[status_tcpwrap=${withval}],
+	[status_tcpwrap=maybe])
+
+saved_LIBS=$LIBS
+TCPWRAP_LIBRARIES=
+case $status_tcpwrap in
+ yes) AC_CHECK_LIB(wrap, main,,
+                   [AC_MSG_ERROR([Required library libwrap not found])])
+      AC_CHECK_LIB(nsl, main,
+                   [TCPWRAP_LIBRARIES=-lnsl])
+      AC_CHECK_HEADERS(tcpd.h,,
+                       [AC_MSG_ERROR([Required header tcpd.h not found])])
+      status_tcpwrap=yes
+      ;;
+
+ maybe)
+      AC_CHECK_LIB(wrap, main,
+                   [status_tcpwrap=yes],
+                   [status_tcpwrap=no])
+      AC_CHECK_LIB(nsl, main, [TCPWRAP_LIBRARIES=-lnsl])
+      AC_CHECK_HEADERS(tcpd.h,
+                       [status_tcpwrap=yes],
+                       [status_tcpwrap=no])
+      ;;
+ no)  ;;
+esac
+LIBS=$saved_LIBS
+
+if test "$status_tcpwrap" = "yes"; then
+  AC_SUBST(TCPWRAP_LIBRARIES, "$TCPWRAP_LIBRARIES -lwrap")
+  AC_DEFINE_UNQUOTED(WITH_LIBWRAP, 1,
+                     [Define to 1 to use tcp wrappers.])
+fi
 
 AC_ARG_ENABLE([pthread],
               AC_HELP_STRING([--disable-pthread],
@@ -1070,6 +1108,7 @@ Use GNU TLS.................... $status_gnutls
 Use GSASL...................... $status_gsasl
 Use GSSAPI..................... $status_gssapi
 Use Guile...................... $status_guile
+Use TCP wrappers............... $status_tcpwrap
 Pthread support................ $status_pthread
 Readline support............... $status_readline
 MySQL support.................. $status_mysql
@@ -1104,6 +1143,7 @@ status_gnutls=$WITH_GNUTLS
 status_gsasl=$status_gsasl
 status_gssapi=$WITH_GSSAPI
 status_guile=$useguile
+status_tcpwrap=$status_tcpwrap
 status_pthread=$usepthread
 status_readline=$usereadline
 status_mysql=$status_mysql

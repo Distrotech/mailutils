@@ -1,0 +1,98 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002, 2003, 2004, 
+   2005, 2006, 2007 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301 USA */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include <syslog.h>
+#include <string.h>
+#include <mailutils/debug.h>
+#include <mailutils/nls.h>
+#include <mailutils/syslog.h>
+#include <mailutils/cfg.h>
+#include <mailutils/diag.h>
+
+int mu_tcp_wrapper_enable = 1;
+char *mu_tcp_wrapper_daemon;
+
+#ifdef WITH_LIBWRAP
+# include <tcpd.h>
+int deny_severity = LOG_INFO;
+int allow_severity = LOG_INFO;
+
+int
+mu_tcp_wrapper_cb_hosts_allow (mu_debug_t debug, void *data, char *arg)
+{
+  hosts_allow_table = strdup (arg);
+  return 0;
+}
+
+int
+mu_tcp_wrapper_cb_hosts_deny (mu_debug_t debug, void *data, char *arg)
+{
+  hosts_deny_table = strdup (arg);
+  return 0;
+}
+
+int
+mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
+				      char *arg)
+{
+  if (mu_string_to_syslog_facility (arg, &allow_severity))
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+			 _("Unknown syslog facility `%s'"), 
+			 arg);
+  return 0;
+}
+
+int
+mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data, char *arg)
+{
+  if (mu_string_to_syslog_facility (arg, &deny_severity))
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+			 _("Unknown syslog facility `%s'"), 
+			 arg);
+  return 0;
+}
+
+int
+mu_tcpwrapper_access (int fd)
+{
+  struct request_info req;
+
+  if (!mu_tcp_wrapper_enable)
+    return 1;
+  request_init (&req,
+		RQ_DAEMON,
+		mu_tcp_wrapper_daemon ?
+		     mu_tcp_wrapper_daemon : mu_program_name,
+		RQ_FILE, fd, NULL);
+  fromhost (&req);
+  return hosts_access (&req);
+}
+
+#else
+
+int
+mu_tcpwrapper_access (int fd)
+{
+  return 1;
+}
+
+#endif

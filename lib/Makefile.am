@@ -25,12 +25,14 @@ INCLUDES = @MU_COMMON_INCLUDES@
 libmuaux_la_SOURCES += \
  daemon.c\
  mailcap.c\
- mailcap.h\
- mu_dbm.c
+ mu_dbm.c\
+ tcpwrap.c
 
 noinst_HEADERS +=\
+ mailcap.h\
  mu_dbm.h\
- mu_asprintf.h
+ mu_asprintf.h\
+ tcpwrap.h
 
 EXTRA_DIST += utmp.c
 gl_LIBOBJS += @LIBOBJS@

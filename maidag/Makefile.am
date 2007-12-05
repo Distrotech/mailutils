@@ -43,7 +43,8 @@ maidag_LDADD = \
  ${MU_LIB_MAILER}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS} \
- @MU_COMMON_LIBRARIES@
+ @MU_COMMON_LIBRARIES@\
+ @TCPWRAP_LIBRARIES@
 
 install-exec-hook:
 	for i in $(sbin_PROGRAMS); do\

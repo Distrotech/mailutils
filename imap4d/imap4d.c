@@ -22,11 +22,11 @@
 # include <mailutils/gsasl.h>
 #endif
 #include "mailutils/libargp.h"
+#include "tcpwrap.h"
 
 mu_mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
-int debug_mode = 0;
 struct mu_auth_data *auth_data;
 
 struct mu_gocs_daemon default_gocs_daemon = {
@@ -299,7 +299,8 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "ident-keyfile", mu_cfg_string, &ident_keyfile, NULL,
     N_("Name of DES keyfile for decoding ecrypted ident responses.") },
   { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only, NULL,
-    N_("Use only ecrypted ident responses.") },
+    N_("Use only encrypted ident responses.") },
+  TCP_WRAPPERS_CONFIG
   { NULL }
 };
     
@@ -343,12 +344,7 @@ main (int argc, char **argv)
     mu_pam_service = "gnu-imap4d";
 #endif
 
-  if (mu_gocs_daemon.mode == MODE_INTERACTIVE)
-    {
-      if (preauth_mode != preauth_stdio)
-	debug_mode = 1;
-    }
-  else
+  if (mu_gocs_daemon.mode == MODE_DAEMON)
     {
       /* Normal operation: */
       /* First we want our group to be mail so we can access the spool.  */
@@ -457,25 +453,66 @@ imap4d_session_setup (char *username)
   return imap4d_session_setup0 ();
 }
 
+int
+get_client_address (int fd, struct sockaddr_in *pcs)
+{
+  int len = sizeof *pcs;
+
+  if (getpeername (fd, (struct sockaddr *) pcs, &len) < 0)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("Cannot obtain IP address of client: %s"),
+		      strerror (errno));
+      return 1;
+    }
+
+  mu_diag_output (MU_DIAG_INFO, _("Connect from %s"), 
+		  inet_ntoa (pcs->sin_addr));
+  return 0;
+}
+
 static int
 imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   char *text;
+  struct sockaddr_in cs;
+  int debug_mode = isatty (fd);
 
-  /* Reset hup to exit.  */
+  mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
+  if (!debug_mode)
+    {
+      if (get_client_address (fd, &cs) == 0) 
+	{
+	  if (!mu_tcpwrapper_access (fd))
+	    {
+	      mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
+	      return 1;
+	    }
+	}
+      else if (mu_tcp_wrapper_enable)
+	{
+	  mu_error (_("Rejecting connection from unknown address"));
+	  return 1;
+	}
+    }
+  
+  /* Reset hup to exit. */
   signal (SIGHUP, imap4d_signal);
-  /* Timeout alarm.  */
+  /* Timeout alarm. */
   signal (SIGALRM, imap4d_signal);
 
   util_setio (infile, outfile);
 
-  if (debug_mode)
+  if (imap4d_preauth_setup (fd) == 0)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
-      text = "IMAP4rev1 Debugging mode";
+      if (debug_mode)
+	{
+	  mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
+	  text = "IMAP4rev1 Debugging mode";
+	}
+      else
+	text = "IMAP4rev1";
     }
-  else if (imap4d_preauth_setup (fd) == 0)
-    text = "IMAP4rev1";
   else
     {
       util_flush_output ();
@@ -546,7 +583,7 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
       mu_diag_output (MU_DIAG_ERROR, "socket: %s", strerror (errno));
       exit (1);
     }
-  size = 1;			/* Use size here to avoid making a new variable.  */
+  size = 1;	      /* Use size here to avoid making a new variable.  */
   setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof (size));
   size = sizeof (server);
   memset (&server, 0, size);
@@ -593,10 +630,14 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
       else if (pid == 0)	/* Child.  */
 	{
 	  int status;
+	  
 	  close (listenfd);
+
 	  status = imap4d_mainloop (connfd,
 				    fdopen (connfd, "r"),
 				    fdopen (connfd, "w"));
+	    
+	  close (connfd);
 	  closelog ();
 	  exit (status);
 	}

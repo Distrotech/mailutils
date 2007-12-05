@@ -179,7 +179,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case LMTP_OPTION:
       mu_argp_node_list_new (&lst, "lmtp", "yes");
-      mu_argp_node_list_new (&lst, "listen", arg);
+      if (arg)
+	mu_argp_node_list_new (&lst, "listen", arg);
       break;
 
     case 'r':
@@ -289,6 +290,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
     N_("url") },
   { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
+  TCP_WRAPPERS_CONFIG
   { NULL }
 };
 
@@ -453,6 +455,8 @@ main (int argc, char *argv[])
   mu_registrar_record (mu_smtp_record);
 
   mu_gocs_register ("sieve", mu_sieve_module_init);
+
+  mu_gocs_daemon = daemon_param;
   
   /* Parse command line */
   mu_argp_init (program_version, NULL);

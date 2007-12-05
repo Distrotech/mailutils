@@ -20,6 +20,7 @@
 #include "pop3d.h"
 #include "mailutils/pam.h"
 #include "mailutils/libargp.h"
+#include "tcpwrap.h"
 
 mu_mailbox_t mbox;
 int state;
@@ -61,7 +62,6 @@ static int pop3d_mainloop       (int fd, FILE *, FILE *);
 static void pop3d_daemon_init   (void);
 static void pop3d_daemon        (unsigned int, unsigned int);
 static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
-static void pop3d_log_connection (int fd);
 
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
@@ -159,6 +159,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif
+  TCP_WRAPPERS_CONFIG
   { NULL }
 };
     
@@ -379,26 +380,32 @@ pop3d_daemon_init (void)
 #endif
 }
 
-void
-pop3d_log_connection (int fd)
+int
+pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 {
   mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
 
-  /* log information on the connecting client */
+  /* log information on the connecting client. */
   if (debug_mode)
     {
       mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
+      return 1;
     }
   else
     {
-      struct sockaddr_in cs;
-      int len = sizeof cs;
-      if (getpeername (fd, (struct sockaddr*)&cs, &len) < 0)
-	mu_diag_output (MU_DIAG_ERROR, _("Cannot obtain IP address of client: %s"),
-		strerror (errno));
+      int len = sizeof *pcs;
+      if (getpeername (fd, (struct sockaddr*) pcs, &len) < 0)
+	{
+	  mu_diag_output (MU_DIAG_ERROR,
+			  _("Cannot obtain IP address of client: %s"),
+			  strerror (errno));
+	  return 1;
+	}
       else
-	mu_diag_output (MU_DIAG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));
+	mu_diag_output (MU_DIAG_INFO,
+			_("connect from %s"), inet_ntoa (pcs->sin_addr));
     }
+  return 0;
 }
 
 /* The main part of the daemon. This function reads input from the client and
@@ -412,7 +419,22 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   int status = OK;
   char buffer[512];
+  struct sockaddr_in cs;
 
+  if (pop3d_get_client_address (fd, &cs) == 0)
+    {
+      if (!mu_tcpwrapper_access (fd))
+	{
+	  mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
+	  return 1;
+	}
+    }
+  else if (!debug_mode && mu_tcp_wrapper_enable)
+    {
+      mu_error (_("Rejecting connection from unknown address"));
+      return 1;
+    }
+    
   /* Reset hup to exit.  */
   signal (SIGHUP, pop3d_signal);
   /* Timeout alarm.  */
@@ -421,8 +443,6 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   pop3d_setio (infile, outfile);
 
   state = initial_state;
-
-  pop3d_log_connection (fd);
 
   /* Prepare the shared secret for APOP.  */
   {

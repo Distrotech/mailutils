@@ -761,8 +761,8 @@ lmtp_loop (FILE *in, FILE *out)
   return 0;
 }
 
-void
-log_connection (all_addr_t *addr, socklen_t addrlen)
+int
+check_connection (int fd, all_addr_t *addr, socklen_t addrlen)
 {
   switch (addr->sa.sa_family)
     {
@@ -771,8 +771,16 @@ log_connection (all_addr_t *addr, socklen_t addrlen)
       break;
       
     case PF_INET:
-      mu_diag_output (MU_DIAG_INFO, _("connect from %s"), inet_ntoa (addr->s_in.sin_addr));
+      if (!mu_tcpwrapper_access (fd))
+	{
+	  mu_error (_("Access from %s blocked."),
+		    inet_ntoa (addr->s_in.sin_addr));
+	  return 1;
+	}
+      mu_diag_output (MU_DIAG_INFO, _("connect from %s"),
+		      inet_ntoa (addr->s_in.sin_addr));
     }
+  return 0;
 }
 
 int
@@ -837,7 +845,11 @@ lmtp_daemon (char *urlstr)
 	  /*exit (EXIT_FAILURE);*/
 	}
 
-      log_connection (&addr, addrlen);
+      if (check_connection (connfd, &addr, addrlen))
+	{
+	  close (connfd);
+	  continue;
+	}
       
       pid = fork ();
       if (pid == -1)
