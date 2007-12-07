@@ -20,38 +20,9 @@
 #include <syslog.h>
 #include <string.h>
 #include <mailutils/diag.h>
+#include <mailutils/kwd.h>
 
-struct kw_int
-{
-  char *name;
-  int tok;
-};
-
-static int
-syslog_to_n (struct kw_int *kw, char *str, int *pint)
-{
-  if (strncasecmp (str, "LOG_", 4) == 0)
-    str += 4;
-
-  for (; kw->name; kw++)
-    if (strcasecmp (kw->name, str) == 0)
-      {
-	*pint = kw->tok;
-	return 0;
-      }
-  return 1;
-}
-
-static const char *
-n_to_syslog (struct kw_int *kw, int n)
-{
-  for (; kw->name; kw++)
-    if (kw->tok == n)
-      return kw->name;
-  return NULL;
-}
-
-static struct kw_int kw_facility[] = {
+static mu_kwd_t kw_facility[] = {
   { "USER",    LOG_USER },   
   { "DAEMON",  LOG_DAEMON },
   { "AUTH",    LOG_AUTH },
@@ -69,6 +40,14 @@ static struct kw_int kw_facility[] = {
   { NULL }
 };
 
+static int
+syslog_to_n (mu_kwd_t *kw, char *str, int *pint)
+{
+  if (strncasecmp (str, "LOG_", 4) == 0)
+    str += 4;
+  return mu_kwd_xlat_name_ci (kw, str, pint);
+}
+
 int
 mu_string_to_syslog_facility (char *str, int *pfacility)
 {
@@ -78,10 +57,12 @@ mu_string_to_syslog_facility (char *str, int *pfacility)
 const char *
 mu_syslog_facility_to_string (int n)
 {
-  return n_to_syslog (kw_facility, n);
+  const char *res = NULL;
+  mu_kwd_xlat_tok (kw_facility, n, &res);
+  return res;
 }
 
-static struct kw_int kw_prio[] = {
+static mu_kwd_t kw_prio[] = {
   { "EMERG", LOG_EMERG },
   { "ALERT", LOG_ALERT },
   { "CRIT", LOG_CRIT },
@@ -102,7 +83,9 @@ mu_string_to_syslog_priority (char *str, int *pprio)
 const char *
 mu_syslog_priority_to_string (int n)
 {
-  return n_to_syslog (kw_prio, n);
+  const char *res = NULL;
+  mu_kwd_xlat_tok (kw_prio, n, &res);
+  return res;
 }
 
 int

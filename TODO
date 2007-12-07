@@ -1,8 +1,11 @@
-GNU mailutils TODO list. 2007-11-30
+GNU mailutils TODO list. 2007-12-07
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
 2007 Free Software Foundation, Inc.
 
 * Documentation
+
+* Review the code and use mu_vartab_* and mu_kwd_* functions where
+necessary.
 
 * mailbox 
 

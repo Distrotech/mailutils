@@ -1,3 +1,30 @@
+2007-12-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS, TODO: Update.
+	* examples/Makefile.am: Add aclck
+	* examples/aclck.c: New file. Test program for ACLs.
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add acl.h,
+	kwd.h and vartab.h.
+	* include/mailutils/acl.h: New file. ACL declarations.
+	* include/mailutils/kwd.h: New file. Declarations for simple
+	string to token conversion.
+	* include/mailutils/vartab.h: New file. Declarations of functions
+	for variable expansion.	
+	* include/mailutils/mailutils.h: Include acl.h, kwd.h and
+	vartab.h.
+	* include/mailutils/types.hin: Define mu_vartab_t
+
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add acl.c, kwd.c,
+	and vartab.c.
+	* mailbox/acl.c: New file.
+	* mailbox/kwd.c: New file.
+	* mailbox/vartab.c: New file.
+
+	* mailbox/cfg_parser.y (parse_cidr): Fix typo.
+	* mailbox/list.c: Fix indentation.
+	* mailbox/mailbox.c (_create_mailbox): Fix type of level.
+	* mailbox/syslog.c: Use mu_kwd_* functions.
+
 2007-12-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Add TCP wrappers support.

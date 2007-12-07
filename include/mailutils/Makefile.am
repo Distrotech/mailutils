@@ -32,6 +32,7 @@ DISTCLEANFILES = types.h
 
 pkginclude_DATA = types.h
 pkginclude_HEADERS = \
+ acl.h\
  address.h\
  argcv.h\
  assoc.h\
@@ -52,6 +53,7 @@ pkginclude_HEADERS = \
  guile.h\
  header.h\
  iterator.h\
+ kwd.h\
  ldap.h\
  libargp.h\
  libcfg.h\
@@ -84,6 +86,7 @@ pkginclude_HEADERS = \
  sql.h\
  tls.h\
  url.h\
+ vartab.h\
  version.h
 
 nobase_pkginclude_HEADERS = \

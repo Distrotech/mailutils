@@ -36,6 +36,7 @@ AM_CPPFLAGS = \
 EXTRA_DIST = errors muerrno.cin parsedate.y fgetpwent.c cfg_parser.y cfg_parser.h inttostr.c inttostr.h 
 
 libmailutils_la_SOURCES = \
+ acl.c\
  address.c\
  amd.c\
  argcv.c\
@@ -65,6 +66,7 @@ libmailutils_la_SOURCES = \
  gocs.c\
  header.c\
  iterator.c\
+ kwd.c\
  list.c\
  locale.c\
  locker.c\
@@ -102,6 +104,7 @@ libmailutils_la_SOURCES = \
  tcp.c\
  ticket.c\
  url.c\
+ vartab.c\
  version.c\
  wicket.c\
  imaxtostr.c  offtostr.c  umaxtostr.c intprops.h

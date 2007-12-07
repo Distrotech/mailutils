@@ -20,6 +20,7 @@
 SUBDIRS = config cpp scheme
 
 noinst_PROGRAMS = \
+ aclck\
  addr\
  argcv\
  base64\

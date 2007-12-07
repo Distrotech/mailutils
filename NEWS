@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-05
+GNU mailutils NEWS -- history of user-visible changes. 2007-12-07
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -151,12 +151,12 @@ functions:
 New type of event, MU_EVT_MESSAGE_APPEND, is signalled whenever a new
 message is appended to the mailbox.
 
-* Quick access to a message
+** Quick access to a message
 
 A set of functions are provided for so-called `quick access' to mail
 messages. FIXME: describe it.
 
-* New `aget' and `sget' accessors for mu_url_t
+** New `aget' and `sget' accessors for mu_url_t
 
 The following new accessors are provided:
 
@@ -181,20 +181,48 @@ extern int mu_url_aget_path  (const mu_url_t, char **);
 extern int mu_url_sget_query  (const mu_url_t, const char **);
 extern int mu_url_aget_query  (const mu_url_t, char **);  
 
-* Incompatible change in mu_url_get_.* return value
+** ACL
+
+A set of functions implements general-purpose access control lists.
+They are declared in the header file mailutils/acl.h.  Currently,
+these functions support IPv4 and UNIX address families.  Support for
+more address families, in particular IPv6, will be added in future.
+The following actions can be defined in ACLs:
+
+ 1. mu_acl_accept       - Accept connection.
+ 2. mu_acl_deny         - Deny connection.
+ 3. mu_acl_log          - Issue a log message, using mu_diag.*
+                          diagnostics functions.
+ 4. mu_acl_exec         - Execute an external program. 
+ 5. mu_acl_ifexec       - Execute an external program and accept or
+                          deny connection depending on its exit code.
+
+** KWD
+
+A set of functions is provided for translating string values to
+integer tokens and vice-versa using simple translation tables.
+These functions are declared in the header file mailutils/kwd.h.
+
+** Vartab
+
+A set of functions is provided for performing variable expansion in
+strings. These functions are declared in the header file
+mailutils/vartab.h. 
+	  
+** Incompatible change in mu_url_get_.* return value
 
 Any mu_url_get_.* accessors return MU_ERR_ENOENT if the corresponding
 field is not present in the object. Previous versions in that case
 returned 0 and stored empty string in the output buffer.
 
-* Fixed parsing of URLs similar to file:///a/b. 
+** Fixed parsing of URLs similar to file:///a/b. 
 
 It is parsed as an absolute file name `/a/b'.
 
 Previous versions incorrectly understood such an URL as `a/b'
 (relative file name). 
 
-* Remove v0.6 compatibility layer.
+** Remove v0.6 compatibility layer.
 
 
 Version 1.2:

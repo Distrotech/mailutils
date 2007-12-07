@@ -91,7 +91,7 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 
   if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
     {
-      unsigned level;
+      mu_log_level_t level;
       int (*m_init) (mu_mailbox_t) = NULL;
       int (*u_init) (mu_url_t) = NULL;
       

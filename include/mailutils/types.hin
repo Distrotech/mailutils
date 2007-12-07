@@ -96,6 +96,7 @@ typedef struct _mu_record *mu_record_t;
 typedef struct _mu_stream *mu_stream_t;
 typedef struct _mu_ticket *mu_ticket_t;
 typedef struct _mu_url *mu_url_t;
+typedef struct _mu_vartab *mu_vartab_t;
 typedef struct _mu_wicket *mu_wicket_t;
 typedef void *mu_transport_t;
 typedef struct _mu_assoc *mu_assoc_t;

@@ -17,6 +17,7 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
+#include <mailutils/acl.h>
 #include <mailutils/address.h>
 #include <mailutils/argcv.h>
 #include <mailutils/attribute.h>
@@ -30,6 +31,7 @@
 #include <mailutils/folder.h>
 #include <mailutils/header.h>
 #include <mailutils/iterator.h>
+#include <mailutils/kwd.h>
 #include <mailutils/libsieve.h>
 #include <mailutils/list.h>
 #include <mailutils/locker.h>
@@ -54,6 +56,7 @@
 #include <mailutils/url.h>
 #include <mailutils/gocs.h>
 #include <mailutils/version.h>
+#include <mailutils/vartab.h>
 
 #ifdef MU_COMPAT
 # error "Version 0.6 is no longer supported. Please, update your program."

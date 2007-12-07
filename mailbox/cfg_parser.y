@@ -730,7 +730,7 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_node_t *node,
   char astr[16], *p, *s;
   
   p = strchr (node->tag_label, '/');
-  if (*p)
+  if (p)
     {
       int len = p - node->tag_label;
       if (len > sizeof astr - 1) {
@@ -780,10 +780,11 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_node_t *node,
       int i;
       unsigned short x;
       addr.s_addr = 0;
-      
+
+      p = node->tag_label;
       for (i = 0; i < 3; i++)
 	{
-	  STRxTONUM(p, unsigned short, x, 255, sdata->tree->debug);
+	  STRxTONUM (p, unsigned short, x, 255, sdata->tree->debug);
 	  if (*p != '.')
 	    break;
 	  addr.s_addr = (addr.s_addr << 8) + x;
