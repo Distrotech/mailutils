@@ -478,6 +478,7 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
       for (i = getmaxfd (); i > 2; i--)
 	close (i);
       execvp (argv[0], argv);
+      exit (127);
     }
 
   free (s);
