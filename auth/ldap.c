@@ -42,6 +42,7 @@
 #include "mailutils/md5.h"
 #include "mailutils/sha1.h"
 #include "mailutils/ldap.h"
+#include "mailutils/vartab.h"
 
 #include <ldap.h>
 #include <lber.h>
@@ -351,85 +352,6 @@ _mu_ldap_unbind (LDAP *ld)
     }
 }
 
-/* FIXME: 1. Duplicated in radius.c
-          2. Does not escape arguments
- */
-static char *
-_expand_query (const char *query, const char *ustr)
-{
-  char *p, *q, *res;
-  int len;
-
-  if (!query)
-    return NULL;
-  
-  /* Compute resulting query length */
-  for (len = 0, p = (char *) query; *p; )
-    {
-      if (*p == '%')
-	{
-	  if (p[1] == 'u')
-	    {
-	      len += ustr ? strlen (ustr) : 2;
-	      p += 2;
-	    }
-	  else if (p[1] == '%')
-	    {
-	      len++;
-	      p += 2;
-	    }
-	  else
-	    {
-	      len++;
-	      p++;
-	    }
-	}
-      else
-	{
-	  len++;
-	  p++;
-	}
-    }
-
-  res = malloc (len + 1);
-  if (!res)
-    return res;
-
-  for (p = (char *) query, q = res; *p; )
-    {
-      if (*p == '%')
-	{
-	  switch (*++p)
-	    {
-	    case 'u':
-	      if (ustr)
-		{
-		  strcpy (q, ustr);
-		  q += strlen (q);
-		}
-	      else
-		{
-		  *q++ = '%';
-		  *q++ = 'u';
-		}
-	      p++;
-	      break;
-
-	    case '%':
-	      *q++ = *p++;
-	      break;
-	      
-	    default:
-	      *q++ = *p++;
-	    }
-	}
-      else
-	*q++ = *p++;
-    }
-  *q = 0;
-  return res;
-}
-
 static int 
 _construct_attr_array (size_t *pargc, char ***pargv)
 {
@@ -586,12 +508,17 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
   size_t nattrs;
   LDAPMessage *res, *msg;
   ber_int_t msgid;
-  
+  mu_vartab_t vtab;
+
   rc = _construct_attr_array (&nattrs, &attrs);
   if (rc)
     return rc;
-  filter = _expand_query (filter_pat, key);
-  if (!filter)
+
+  mu_vartab_create (&vtab);
+  mu_vartab_define (vtab, "user", key, 1);
+  rc = mu_vartab_expand (vtab, filter_pat, &filter);
+  mu_vartab_destroy (&vtab);
+  if (rc)
     {
       mu_argcv_free (nattrs, attrs);
       return ENOMEM;

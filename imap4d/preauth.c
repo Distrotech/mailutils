@@ -40,7 +40,7 @@ do_preauth_stdio (struct sockaddr_in *pcs)
    
       "%*[^:]: USERID :%*[^:]:%s"
 
-   returns a mallocked copy of the %s part.  Otherwise, return NULL. */
+   return a pointer to the %s part.  Otherwise, return NULL. */
 
 static char *
 ident_extract_username (char *reply)

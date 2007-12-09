@@ -289,8 +289,40 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 		  }
 		else if (rc == MU_ERR_NOENT)
 		  p++;
+		else
+		  return rc;
 	      }
 	      break;
+	    }
+	}
+      else if (*p == '%')
+	{
+	  /* allow `%' as prefix for single-character entities, for
+	     compatibility with v. prior to 1.2.91 */
+	  if (*++p == '%')
+	    {
+	      mu_stream_sequential_write (vt->stream, str, p - str);
+	      str = p + 1;
+	      p = str + 1;
+	    }
+	  else
+	    {
+	      char *name = copy_name (vt, p, 1);
+	      const char *pvalue;
+	      rc = mu_vartab_getvar (vt, name, &pvalue);
+	      if (rc == 0)
+		{
+		  mu_stream_sequential_write (vt->stream, str,
+					      p - str - 1);
+		  mu_stream_sequential_write (vt->stream, pvalue,
+					      strlen (pvalue));
+		  str = p + 1;
+		  p = str + 1;
+		}
+	      else if (rc == MU_ERR_NOENT)
+		p++;
+	      else
+		return rc;
 	    }
 	}
       else

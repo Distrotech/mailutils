@@ -1,3 +1,11 @@
+2007-12-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/ldap.c (_construct_attr_array): Use mu_vartab_* to expand
+	filter.
+	* imap4d/preauth.c: Fix misleading comment.
+	* mailbox/vartab.c (mu_vartab_expand): Support old prefix (%) for
+	single-character variables.
+
 2007-12-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS, TODO: Update.
