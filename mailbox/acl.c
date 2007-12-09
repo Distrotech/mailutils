@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,8 +75,8 @@ prepare_sa (struct sockaddr *sa)
     {
     case AF_INET:
       {
-	struct sockaddr_in *sin = (struct sockaddr_in *)sa;
-	sin->sin_addr.s_addr = ntohl (sin->sin_addr.s_addr);
+	struct sockaddr_in *s_in = (struct sockaddr_in *)sa;
+	s_in->sin_addr.s_addr = ntohl (s_in->sin_addr.s_addr);
 	break;
       }
       
@@ -313,16 +314,16 @@ debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa)
     {
     case AF_INET:
       {
-	struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+	struct sockaddr_in *s_in = (struct sockaddr_in *)sa;
 	mu_debug_printf (dbg, lvl, "{AF_INET %s:%d}",
-			 inet_ntoa (sin->sin_addr), ntohs (sin->sin_port));
+			 inet_ntoa (s_in->sin_addr), ntohs (s_in->sin_port));
 	break;
       }
 
     case AF_UNIX:
       {
-	struct sockaddr_un *sun = (struct sockaddr_un *)sa;
-	mu_debug_printf (dbg, lvl, "{AF_UNIX %s}", sun->sun_path);
+	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
+	mu_debug_printf (dbg, lvl, "{AF_UNIX %s}", s_un->sun_path);
 	break;
       }
 
@@ -439,25 +440,25 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
     {
     case AF_INET:
       {
-	struct sockaddr_in *sin = (struct sockaddr_in *)rp->sa;
-	struct in_addr addr = sin->sin_addr;
+	struct sockaddr_in *s_in = (struct sockaddr_in *)rp->sa;
+	struct in_addr addr = s_in->sin_addr;
 	char buf[UINTMAX_STRSIZE_BOUND];
 	unsigned n;
 
 	mu_vartab_define (vtab, "family", "AF_INET", 1);
 	addr.s_addr = htonl (addr.s_addr);
 	mu_vartab_define (vtab, "address", inet_ntoa (addr), 0);
-	n = ntohs (sin->sin_port);
+	n = ntohs (s_in->sin_port);
 	mu_vartab_define (vtab, "port", umaxtostr (n, buf), 0);
       }
       break;
       
     case AF_UNIX:
       {
-	struct sockaddr_un *sun = (struct sockaddr_un *)rp->sa;
+	struct sockaddr_un *s_un = (struct sockaddr_un *)rp->sa;
 	
 	mu_vartab_define (vtab, "family", "AF_UNIX", 1);
-	mu_vartab_define (vtab, "address", sun->sun_path, 1);
+	mu_vartab_define (vtab, "address", s_un->sun_path, 1);
       }
       break;
     }

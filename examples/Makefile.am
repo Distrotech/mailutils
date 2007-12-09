@@ -25,6 +25,7 @@ noinst_PROGRAMS = \
  argcv\
  base64\
  decode2047\
+ echosrv\
  encode2047\
  header\
  http\

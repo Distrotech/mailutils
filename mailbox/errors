@@ -35,7 +35,7 @@ MU_ERR_LOCK_CONFLICT        _("Conflict with previous locker")
 MU_ERR_LOCK_BAD_LOCK        _("Lock file check failed")
 MU_ERR_LOCK_BAD_FILE        _("File check failed")
 MU_ERR_LOCK_NOT_HELD        _("Lock not held on file")
-MU_ERR_LOCK_EXT_FAIL        _("Failed to exec external locker")
+MU_ERR_LOCK_EXT_FAIL        _("Failed to execute external locker")
 MU_ERR_LOCK_EXT_ERR         _("External locker failed")
 MU_ERR_LOCK_EXT_KILLED      _("External locker killed")
 

@@ -21,8 +21,6 @@
 #include <mailutils/types.h>
 #include <mailutils/iterator.h>
 
-typedef struct _mu_acl *mu_acl_t;
-
 typedef enum mu_acl_action
   {
     mu_acl_accept,

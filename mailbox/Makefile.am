@@ -97,12 +97,14 @@ libmailutils_la_SOURCES = \
  refcount.c\
  rfc2047.c\
  sha1.c\
+ server.c\
  socket_stream.c\
  stream.c\
  syslog.c\
  system.c\
- tcp.c\
  ticket.c\
+ tcp.c\
+ tcpsrv.c\
  url.c\
  vartab.c\
  version.c\

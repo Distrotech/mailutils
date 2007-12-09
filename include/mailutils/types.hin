@@ -66,7 +66,10 @@ struct _mu_ticket;
 struct _mu_url;
 struct _mu_wicket;
 struct _mu_assoc;
-
+struct _mu_acl;  
+struct _mu_server;
+struct _mu_tcp_server;
+  
 typedef MU_OFF_TYPE mu_off_t;
   
 typedef struct _mu_address *mu_address_t;
@@ -102,6 +105,9 @@ typedef void *mu_transport_t;
 typedef struct _mu_assoc *mu_assoc_t;
 typedef char *mu_message_qid_t;
 typedef int mu_log_level_t;
+typedef struct _mu_acl *mu_acl_t;
+typedef struct _mu_server *mu_server_t;
+typedef struct _mu_tcp_server *mu_tcp_server_t;
   
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002

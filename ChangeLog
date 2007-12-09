@@ -1,5 +1,20 @@
 2007-12-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* examples/Makefile.am: add echosrv.c.
+	* examples/echosrv.c: New file.
+	* include/mailutils/Makefile.am: Add server.h.
+	* include/mailutils/server.h: New file.
+	* include/mailutils/acl.h (mu_acl_t): Move to types.hin
+	* include/mailutils/types.hin (mu_acl_t,mu_server_t)
+	(mu_tcp_server_t): New types.
+	* mailbox/Makefile.am: Add server.c and tcpsrv.c.
+	* mailbox/server.c: New file.
+	* mailbox/tcpsrv.c: New file.
+	* mailbox/acl.c: Include <sys/wait.h>
+	Rename all `sin' and `sun' to avoid name clashes.
+	* mailbox/errors (MU_ERR_LOCK_EXT_FAIL): Do not abbreviate
+	anything in error description.
+	
 	* auth/ldap.c (_construct_attr_array): Use mu_vartab_* to expand
 	filter.
 	* imap4d/preauth.c: Fix misleading comment.
