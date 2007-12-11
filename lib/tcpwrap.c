@@ -108,7 +108,7 @@ struct mu_cfg_param tcpwrapper_param[] = {
     N_("Log host allows at this syslog level.  See logging { facility } for " 
        "a description of argument syntax."),				      
     N_("level") },							      
-  { "allow-deny-level", mu_cfg_callback, NULL, 0,			      
+  { "deny-syslog-level", mu_cfg_callback, NULL, 0,			      
     mu_tcp_wrapper_cb_hosts_deny_syslog,				      
     N_("Log host denies at this syslog level.  See logging { facility } for " 
        "a description of argument syntax."),				      
