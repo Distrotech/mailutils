@@ -118,7 +118,8 @@ enum mu_cfg_param_data_type
     mu_cfg_ipv4,
     mu_cfg_cidr,
     mu_cfg_host,
-    mu_cfg_callback
+    mu_cfg_callback,
+    mu_cfg_section
   };
 
 typedef int (*mu_cfg_callback_t) (mu_debug_t, void *, char *);
@@ -128,10 +129,16 @@ struct mu_cfg_param
   const char *ident;
   enum mu_cfg_param_data_type type;
   void *data;
+  size_t offset;
   mu_cfg_callback_t callback;
   const char *docstring;
   const char *argname;
 };
+
+#define mu_offsetof(s,f) ((size_t)&((s*)0).f)
+
+#define MU_TARGET_REF(f) &f, 0
+#define MU_TARGET_OFF(s,f) NULL, mu_offsetof(s,f)
 
 enum mu_cfg_section_stage
   {
@@ -141,17 +148,18 @@ enum mu_cfg_section_stage
 
 typedef int (*mu_cfg_section_fp) (enum mu_cfg_section_stage stage,
 				  const mu_cfg_node_t *node,
-				  void *section_data,
+				  const char *label,
+				  void **section_data_ptr,
 				  void *call_data,
 				  mu_cfg_tree_t *tree);
 
 struct mu_cfg_section
 {
   const char *ident;
+  char *label;
   mu_cfg_section_fp parser;
-  void *data;
-  mu_list_t /* of mu_cfg_cont/mu_cfg_section */ subsec;
-  mu_list_t /* of mu_cfg_cont/mu_cfg_param */ param;
+  void *target;
+  mu_list_t /* of mu_cfg_cont */ children;
   char *docstring;
 };
 
@@ -187,15 +195,15 @@ int mu_config_clone_container (struct mu_cfg_cont *cont);
 void mu_config_destroy_container (struct mu_cfg_cont **pcont);
 
 int mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
-		      void *call_data);
+		      void *target, void *call_data);
 
 int mu_cfg_find_section (struct mu_cfg_section *root_sec,
 			 const char *path, struct mu_cfg_section **retval);
 
 int mu_config_register_section (const char *parent_path,
 				const char *ident,
+				const char *label,
 				mu_cfg_section_fp parser,
-				void *data,
 				struct mu_cfg_param *param);
 int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
@@ -206,7 +214,8 @@ int mu_config_register_plain_section (const char *parent_path,
 #define MU_PARSE_CONFIG_DUMP    0x4
 
 int mu_parse_config (const char *file, const char *progname,
-		     struct mu_cfg_param *progparam, int flags);
+		     struct mu_cfg_param *progparam, int flags,
+		     void *target_ptr);
 
 int mu_cfg_parse_boolean (const char *str, int *res);
 
@@ -218,8 +227,14 @@ void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree);
 void mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont);
 void mu_format_config_tree (mu_stream_t stream, const char *progname,
 			    struct mu_cfg_param *progparam, int flags);
-int mu_parse_config_tree (mu_cfg_tree_t *parse_tree, const char *progname,
-			  struct mu_cfg_param *progparam, int flags);
+int mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
+		        struct mu_cfg_param *progparam,
+		        int flags, void *target_ptr);
+
+int mu_get_config (const char *file, const char *progname,
+		   struct mu_cfg_param *progparam, int flags,
+		   void *target_ptr);
+
 
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
 void mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug);

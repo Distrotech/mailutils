@@ -134,28 +134,28 @@ cb_bulletin_db (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param pop3d_cfg_param[] = {
-  { "undelete", mu_cfg_int, &undelete_on_startup, NULL,
+  { "undelete", mu_cfg_int, &undelete_on_startup, 0, NULL,
     N_("On startup, clear deletion marks from all the messages.") },
-  { "expire", mu_cfg_uint, &expire, NULL,
+  { "expire", mu_cfg_uint, &expire, 0, NULL,
     N_("Automatically expire read messages after the given number of days."),
     N_("days") },
-  { "delete-expired", mu_cfg_int, &expire_on_exit, NULL,
+  { "delete-expired", mu_cfg_int, &expire_on_exit, 0, NULL,
     N_("Delete expired messages upon closing the mailbox.") },
 #ifdef WITH_TLS
-  { "tls-required", mu_cfg_callback, NULL, cb_tls_required,
+  { "tls-required", mu_cfg_callback, NULL, 0, cb_tls_required,
      N_("Always require STLS before entering authentication phase.") },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
-  { "login-delay", mu_cfg_time, &login_delay, NULL,
+  { "login-delay", mu_cfg_time, &login_delay, 0, NULL,
     N_("Set the minimal allowed delay between two successive logins.") },
-  { "stat-file", mu_cfg_string, &login_stat_file, NULL,
+  { "stat-file", mu_cfg_string, &login_stat_file, 0, NULL,
     N_("Set the name of login statistics file (for login-delay).") },
 #endif
-  { "bulletin-source", mu_cfg_callback, NULL, cb_bulletin_source,
+  { "bulletin-source", mu_cfg_callback, NULL, 0, cb_bulletin_source,
     N_("Get bulletins from the specified mailbox."),
     N_("url") },
 #ifdef USE_DBM
-  { "bulletin-db", mu_cfg_callback, NULL, cb_bulletin_db,
+  { "bulletin-db", mu_cfg_callback, NULL, 0, cb_bulletin_db,
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif

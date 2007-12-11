@@ -497,13 +497,15 @@ struct mu_cfg_section_list
 struct scan_tree_data
 {
   struct mu_cfg_section_list *list;
+  void *target;
   void *call_data;
   mu_cfg_tree_t *tree;
   int error;
 };
 
 static struct mu_cfg_cont *
-find_container (mu_list_t list, const char *ident, size_t len)
+find_container (mu_list_t list, enum mu_cfg_cont_type type,
+		const char *ident, size_t len)
 {
   mu_iterator_t iter;
   struct mu_cfg_cont *ret = NULL;
@@ -518,7 +520,8 @@ find_container (mu_list_t list, const char *ident, size_t len)
       struct mu_cfg_cont *cont;
       mu_iterator_current (iter, (void**) &cont);
 
-      if (strlen (cont->v.ident) == len
+      if (cont->type == type
+	  && strlen (cont->v.ident) == len
 	  && memcmp (cont->v.ident, ident, len) == 0)
 	{
 	  ret = cont;
@@ -534,9 +537,11 @@ find_subsection (struct mu_cfg_section *sec, const char *ident, size_t len)
 {
   if (sec)
     {
-      if (sec->subsec)
+      if (sec->children)
 	{
-	  struct mu_cfg_cont *cont = find_container (sec->subsec, ident, len);
+	  struct mu_cfg_cont *cont = find_container (sec->children,
+						     mu_cfg_cont_section,
+						     ident, len);
 	  if (cont)
 	    return &cont->v.section;
 	}
@@ -549,9 +554,11 @@ find_param (struct mu_cfg_section *sec, const char *ident, size_t len)
 {
   if (sec)
     {
-      if (sec->param)
+      if (sec->children)
 	{
-	  struct mu_cfg_cont *cont = find_container (sec->param, ident, len);
+	  struct mu_cfg_cont *cont = find_container (sec->children,
+						     mu_cfg_cont_param,
+						     ident, len);
 	  if (cont)
 	    return &cont->v.param;
 	}
@@ -842,8 +849,10 @@ parse_bool (struct scan_tree_data *sdata, const mu_cfg_node_t *node, int *res)
 static int
 parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 {
+  void *tgt;
   struct mu_cfg_param *param = find_param (sdata->list->sec, node->tag_name,
 					   0);
+  
   if (!param)
     {
       _mu_cfg_perror (sdata->tree->debug, &node->locus,
@@ -852,6 +861,22 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
       return 1;
     }
 
+  if (param->data)
+    tgt = param->data;
+  else if (sdata->list->sec->target)
+    tgt = (char*)sdata->list->sec->target + param->offset;
+  else if (sdata->target)
+    tgt = (char*)sdata->target + param->offset;
+  else if (param->type == mu_cfg_callback)
+    tgt = NULL;
+  else
+    {
+      _mu_cfg_perror (sdata->tree->debug, &node->locus,
+		      _("INTERNAL ERROR: cannot determine target offset for "
+			"%s"), param->ident);
+      abort ();
+    }
+  
   switch (param->type)
     {
     case mu_cfg_string:
@@ -865,80 +890,80 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 	    return 1;
 	  }
 	strcpy (s, node->tag_label);
-	/* FIXME: free param->data? */
-	*(char**)param->data = s;
+	/* FIXME: free tgt? */
+	*(char**)tgt = s;
 	break;
       }
 		
     case mu_cfg_short:
-      GETSNUM (node->tag_label, short, *(short*)param->data,
+      GETSNUM (node->tag_label, short, *(short*)tgt,
 	       sdata->tree->debug);
       break;
 		
     case mu_cfg_ushort:
-      GETUNUM (node->tag_label, unsigned short, *(unsigned short*)param->data,
+      GETUNUM (node->tag_label, unsigned short, *(unsigned short*)tgt,
 	       sdata->tree->debug);
       break;
 		
     case mu_cfg_int:
-      GETSNUM (node->tag_label, int, *(int*)param->data, sdata->tree->debug);
+      GETSNUM (node->tag_label, int, *(int*)tgt, sdata->tree->debug);
       break;
 		
     case mu_cfg_uint:
-      GETUNUM (node->tag_label, unsigned int, *(unsigned int*)param->data,
+      GETUNUM (node->tag_label, unsigned int, *(unsigned int*)tgt,
 	       sdata->tree->debug);
       break;
             
     case mu_cfg_long:
-      GETSNUM (node->tag_label, long, *(long*)param->data,
+      GETSNUM (node->tag_label, long, *(long*)tgt,
 	       sdata->tree->debug);
       break;
       
     case mu_cfg_ulong:
-      GETUNUM (node->tag_label, unsigned long, *(unsigned long*)param->data,
+      GETUNUM (node->tag_label, unsigned long, *(unsigned long*)tgt,
 	       sdata->tree->debug);
       break;
 		
     case mu_cfg_size:
-      GETUNUM (node->tag_label, size_t, *(size_t*)param->data,
+      GETUNUM (node->tag_label, size_t, *(size_t*)tgt,
 	       sdata->tree->debug);
       break;
 		
     case mu_cfg_off:
       _mu_cfg_perror (sdata->tree->debug, &node->locus,
 		      _("not implemented yet"));
-      /* GETSNUM(node->tag_label, off_t, *(off_t*)param->data); */
+      /* GETSNUM(node->tag_label, off_t, *(off_t*)tgt); */
       return 1;
 
     case mu_cfg_time:
-      GETUNUM (node->tag_label, time_t, *(time_t*)param->data,
+      GETUNUM (node->tag_label, time_t, *(time_t*)tgt,
 	       sdata->tree->debug);
       break;
       
     case mu_cfg_bool:
-      if (parse_bool (sdata, node, (int*) param->data))
+      if (parse_bool (sdata, node, (int*) tgt))
 	return 1;
       break;
 		
     case mu_cfg_ipv4: 
-      if (parse_ipv4 (sdata, node, (struct in_addr *)param->data))
+      if (parse_ipv4 (sdata, node, (struct in_addr *)tgt))
 	return 1;
       break;
       
     case mu_cfg_cidr:
-      if (parse_cidr (sdata, node, (mu_cfg_cidr_t *)param->data))
+      if (parse_cidr (sdata, node, (mu_cfg_cidr_t *)tgt))
 	return 1;
       break;
       
     case mu_cfg_host:
-      if (parse_host (sdata, node, (struct in_addr *)param->data))
+      if (parse_host (sdata, node, (struct in_addr *)tgt))
 	return 1;
       break;
 
     case mu_cfg_callback:
       mu_debug_set_locus (sdata->tree->debug, node->locus.file,
 			  node->locus.line);
-      if (param->callback (sdata->tree->debug, param->data, node->tag_label))
+      if (param->callback (sdata->tree->debug, tgt, node->tag_label))
 	  return 1;
       break;
       
@@ -972,11 +997,12 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
 	    }
 	  return MU_CFG_ITER_SKIP;
 	}
-      if (!sec->subsec && !sec->param)
+      if (!sec->children)
 	return MU_CFG_ITER_SKIP;
       if (sec->parser &&
 	  sec->parser (mu_cfg_section_start, node,
-		       sec->data, sdata->call_data, sdata->tree))
+		       sec->label, &sec->target,
+		       sdata->call_data, sdata->tree))
 	{
 	  sdata->error++;
 	  return MU_CFG_ITER_SKIP;
@@ -1010,7 +1036,8 @@ _scan_tree_end_helper (const mu_cfg_node_t *node, void *data)
       sec = pop_section (sdata);
       if (sec && sec->parser)
 	{
-	  if (sec->parser (mu_cfg_section_end, node, sec->data,
+	  if (sec->parser (mu_cfg_section_end, node,
+			   sec->label, &sec->target,
 			   sdata->call_data, sdata->tree))
 	    {
 	      sdata->error++;
@@ -1023,13 +1050,14 @@ _scan_tree_end_helper (const mu_cfg_node_t *node, void *data)
 
 int
 mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
-		  void *data)
+		  void *target, void *data)
 {
   struct scan_tree_data dat;
   dat.tree = tree;
   dat.list = NULL;
   dat.error = 0;
   dat.call_data = data;
+  dat.target = target;
   if (push_section (&dat, sections))
     return 1;
   mu_cfg_preorder (tree->node, _scan_tree_helper, _scan_tree_end_helper, &dat);

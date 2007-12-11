@@ -50,31 +50,31 @@ cb_field_map (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param mu_sql_param[] = {
-  { "interface", mu_cfg_string, &sql_settings.interface, NULL,
+  { "interface", mu_cfg_string, &sql_settings.interface, 0, NULL,
     N_("Set SQL interface to use (one of: mysql, odbc, or postgres).") },
-  { "getwpnam", mu_cfg_string, &sql_settings.getpwnam_query, NULL,
+  { "getwpnam", mu_cfg_string, &sql_settings.getpwnam_query, 0, NULL,
     N_("SQL query to use for getpwnam requests."),
     N_("query") },
-  { "getpwuid", mu_cfg_string, &sql_settings.getpwuid_query, NULL,
+  { "getpwuid", mu_cfg_string, &sql_settings.getpwuid_query, 0, NULL,
     N_("SQL query to use for getpwuid requests."),
     N_("query") },
-  { "getpass", mu_cfg_string, &sql_settings.getpass_query, NULL,
+  { "getpass", mu_cfg_string, &sql_settings.getpass_query, 0, NULL,
     N_("SQL query returning the user's password."),
     N_("query") },
-  { "host", mu_cfg_string, &sql_settings.host, NULL,
+  { "host", mu_cfg_string, &sql_settings.host, 0, NULL,
     N_("SQL server host name.") },
-  { "user", mu_cfg_string, &sql_settings.user, NULL,
+  { "user", mu_cfg_string, &sql_settings.user, 0, NULL,
     N_("SQL user name.") },
-  { "passwd", mu_cfg_string, &sql_settings.passwd, NULL,
+  { "passwd", mu_cfg_string, &sql_settings.passwd, 0, NULL,
     N_("Password for the SQL user.") },
-  { "port", mu_cfg_int, &sql_settings.port, NULL,
+  { "port", mu_cfg_int, &sql_settings.port, 0, NULL,
     N_("SQL server port.") },
-  { "db", mu_cfg_string, &sql_settings.db, NULL,
+  { "db", mu_cfg_string, &sql_settings.db, 0, NULL,
     N_("Database name.") },
-  { "password-type", mu_cfg_callback, NULL, cb_password_type,
+  { "password-type", mu_cfg_callback, NULL, 0, cb_password_type,
     N_("Type of password returned by getpass query (one of: plain, hash, "
        "scrambled).") },
-  { "field-map", mu_cfg_callback, NULL, cb_field_map,
+  { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
     N_("Set a field-map for parsing SQL replies.  The map is a "
        "column-separated list of definitions.  Each definition has the "
        "following form:\n"

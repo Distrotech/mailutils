@@ -166,13 +166,13 @@ cb_metamail (mu_debug_t debug, void *data, char *arg)
 }
 
 struct mu_cfg_param mimeview_cfg_param[] = {
-  { "debug", mu_cfg_callback, NULL, cb_debug,
+  { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set debug verbosity level."),
     N_("flags") },
-  { "mimetypes", mu_cfg_string, &mimetypes_config, NULL,
+  { "mimetypes", mu_cfg_string, &mimetypes_config, 0, NULL,
     N_("Use this mime.types file."),
     N_("file") },
-  { "metamail", mu_cfg_string, NULL, cb_metamail,
+  { "metamail", mu_cfg_string, NULL, 0, cb_metamail,
     N_("Use this program to display files."),
     N_("prog") },
   { NULL }

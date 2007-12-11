@@ -50,12 +50,12 @@ cb_authorization (mu_debug_t err, void *data, char *arg)
 }
 
 static struct mu_cfg_param mu_auth_param[] = {
-  { "authentication", mu_cfg_callback, NULL, cb_authentication,
+  { "authentication", mu_cfg_callback, NULL, 0, cb_authentication,
     N_("Set a list of modules for authentication. Modlist is a "
        "colon-separated list of module names or a word `clear' to "
        "clear the previously set up values."),
     N_("modlist") },
-  { "authorization", mu_cfg_callback, NULL, cb_authorization,
+  { "authorization", mu_cfg_callback, NULL, 0, cb_authorization,
     N_("Set a list of modules for authorization. Modlist is a "
        "colon-separated list of module names or a word `clear' to "
        "clear the previously set up values."),
@@ -66,7 +66,8 @@ static struct mu_cfg_param mu_auth_param[] = {
 int
 mu_auth_section_parser
    (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,
-    void *section_data, void *call_data, mu_cfg_tree_t *tree)
+    const char *section_label, void **section_data, void *call_data,
+    mu_cfg_tree_t *tree)
 {
   switch (stage)
     {

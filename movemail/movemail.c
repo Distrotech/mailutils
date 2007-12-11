@@ -90,11 +90,11 @@ static struct argp argp = {
 
 
 struct mu_cfg_param movemail_cfg_param[] = {
-  { "preserve", mu_cfg_bool, &preserve_mail, NULL,
+  { "preserve", mu_cfg_bool, &preserve_mail, 0, NULL,
     N_("Do not remove messages from the source mailbox.") },
-  { "reverse",  mu_cfg_bool, &reverse_order, NULL,
+  { "reverse",  mu_cfg_bool, &reverse_order, 0, NULL,
     N_("Reverse message sorting order.") },
-  { "emacs", mu_cfg_bool, &emacs_mode, NULL,
+  { "emacs", mu_cfg_bool, &emacs_mode, 0, NULL,
     N_("Output information used by Emacs rmail interface.") },
   { NULL }
 };

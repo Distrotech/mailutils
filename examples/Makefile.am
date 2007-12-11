@@ -54,7 +54,6 @@ mod_LTLIBRARIES = numaddr.la
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
 AM_LDFLAGS = \
- ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 

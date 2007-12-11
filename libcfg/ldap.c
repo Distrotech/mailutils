@@ -37,24 +37,24 @@ cb_field_map (mu_debug_t debug, void *data, char *arg)
 }
 
 static struct mu_cfg_param mu_ldap_param[] = {
-  { "enable", mu_cfg_bool, &ldap_settings.enable, NULL,
+  { "enable", mu_cfg_bool, &ldap_settings.enable, 0, NULL,
     N_("Enable LDAP lookups.") },
-  { "url", mu_cfg_string, &ldap_settings.url, NULL,
+  { "url", mu_cfg_string, &ldap_settings.url, 0, NULL,
     N_("Set URL of the LDAP server."),
     N_("url") },
-  { "base", mu_cfg_string, &ldap_settings.base, NULL,
+  { "base", mu_cfg_string, &ldap_settings.base, 0, NULL,
     N_("Base DN for LDAP lookups."),
     N_("dn") },
-  { "binddn", mu_cfg_string, &ldap_settings.binddn, NULL,
+  { "binddn", mu_cfg_string, &ldap_settings.binddn, 0, NULL,
     N_("DN for accessing LDAP database."),
     N_("dn") },
-  { "passwd", mu_cfg_string, &ldap_settings.passwd, NULL,
+  { "passwd", mu_cfg_string, &ldap_settings.passwd, 0, NULL,
     N_("Password for use with binddn.") },
-  { "tls", mu_cfg_bool, &ldap_settings.tls, NULL,
+  { "tls", mu_cfg_bool, &ldap_settings.tls, 0, NULL,
     N_("Use TLS encryption.") },
-  { "debug", mu_cfg_int, &ldap_settings.debug, NULL,
+  { "debug", mu_cfg_int, &ldap_settings.debug, 0, NULL,
     N_("Set LDAP debugging level.") },
-  { "field-map", mu_cfg_callback, NULL, cb_field_map,
+  { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
     N_("Set a field-map for parsing LDAP replies.  The map is a "
        "column-separated list of definitions.  Each definition has the "
        "following form:\n"
@@ -63,10 +63,10 @@ static struct mu_cfg_param mu_ldap_param[] = {
        "gecos, dir, shell, mailbox, quota, and <attr> is the name of "
        "the correspondind LDAP attribute."),
     N_("map") },
-  { "getpwnam", mu_cfg_string, &ldap_settings.getpwnam_filter, NULL,
+  { "getpwnam", mu_cfg_string, &ldap_settings.getpwnam_filter, 0, NULL,
     N_("LDAP filter to use for getpwnam requests."),
     N_("filter") },
-  { "getpwuid", mu_cfg_string, &ldap_settings.getpwuid_filter, NULL,
+  { "getpwuid", mu_cfg_string, &ldap_settings.getpwuid_filter, 0, NULL,
     N_("LDAP filter to use for getpwuid requests."),
     N_("filter") },
   { NULL }
@@ -75,7 +75,8 @@ static struct mu_cfg_param mu_ldap_param[] = {
 int									      
 mu_ldap_section_parser
    (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
-    void *section_data, void *call_data, mu_cfg_tree_t *tree)
+    const char *section_label, void **section_data,
+    void *call_data, mu_cfg_tree_t *tree)
 {									      
   switch (stage)							      
     {									      

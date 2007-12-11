@@ -78,14 +78,14 @@ mu_libcfg_init (char **cnames)
 	    mu_error (_("Requested unknown configuration group `%s'"),
 		      cnames[i]);
 	  else
-	    mu_config_register_section (NULL, cp->name, cp->parser, NULL,
-					cp->cfgparam);
+	    mu_config_register_section (NULL, cp->name, NULL,
+					cp->parser, cp->cfgparam);
 	}
     }
 }
   
 int
-mu_parse_config_files (struct mu_cfg_param *param)
+mu_parse_config_files (struct mu_cfg_param *param, void *target)
 {
   int flags = 0;
 
@@ -96,7 +96,7 @@ mu_parse_config_files (struct mu_cfg_param *param)
   
   if (mu_load_site_rcfile)
     mu_parse_config (MU_CONFIG_FILE, mu_program_name, param,
-		     flags | MU_PARSE_CONFIG_GLOBAL);
+		     flags | MU_PARSE_CONFIG_GLOBAL, target);
 
   if (mu_load_user_rcfile && mu_program_name)
     {
@@ -107,14 +107,14 @@ mu_parse_config_files (struct mu_cfg_param *param)
 	  strcpy (file_name, "~/.");
 	  strcat (file_name, mu_program_name);
 
-	  mu_parse_config (file_name, mu_program_name, param, flags);
+	  mu_parse_config (file_name, mu_program_name, param, flags, target);
 
 	  free (file_name);
 	}
     }
 
   if (mu_load_rcfile)
-    mu_parse_config (mu_load_rcfile, mu_program_name, param, flags);
+    mu_parse_config (mu_load_rcfile, mu_program_name, param, flags, target);
   
   return 0;
 }

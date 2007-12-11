@@ -49,7 +49,8 @@ extern int mu_register_cfg_capa (const char *name,
 				 mu_cfg_section_fp *parser);
 
 extern void mu_libcfg_init (char **cnames);
-extern int mu_parse_config_files (struct mu_cfg_param *param);
+extern int mu_parse_config_files (struct mu_cfg_param *param,
+				  void *target_ptr);
 
 #define __mu_common_cat2__(a,b) a ## b
 #define __mu_common_cat3__(a,b,c) a ## b ## c
@@ -57,7 +58,8 @@ extern int mu_parse_config_files (struct mu_cfg_param *param);
 int									      \
 __mu_common_cat3__(mu_,capa,_section_parser)				      \
      (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      \
-      void *section_data, void *call_data, mu_cfg_tree_t *tree)		      \
+      const char *section_label, void **section_data,                         \
+      void *call_data, mu_cfg_tree_t *tree)	                              \
 {									      \
   switch (stage)							      \
     {									      \

@@ -28,7 +28,6 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include "getopt.h"
 
 #include <mailutils/mailutils.h>
 #include <mailutils/server.h>
@@ -185,7 +184,8 @@ server_idle (void *server_data)
 			    (unsigned long) pid,
 			    WTERMSIG (status));
 	  else
-	    mu_diag_output (MU_DIAG_ERR, "%lu: terminated (cause unknown)");
+	    mu_diag_output (MU_DIAG_ERR, "%lu: terminated (cause unknown)",
+			    (unsigned long) pid);
 	}
     }
   return 0;

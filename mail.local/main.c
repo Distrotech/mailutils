@@ -255,36 +255,36 @@ cb_debug (mu_debug_t debug, void *data, char *arg)
 }
 
 struct mu_cfg_param mail_local_cfg_param[] = {
-  { "ex-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, NULL,
+  { "ex-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
        "delivery succeeded.") },
-  { "ex-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, NULL,
+  { "ex-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, 0, NULL,
     N_("Indicate temporary failure if the recipient is over his mail quota.")
   },
 #ifdef USE_DBM
-  { "quota-db", mu_cfg_string, &quotadbname, NULL,
+  { "quota-db", mu_cfg_string, &quotadbname, 0, NULL,
     N_("Name of DBM quota database file."),
     N_("file") },
 #endif
 #ifdef USE_SQL
-  { "quota-query", mu_cfg_string, &quota_query, NULL,
+  { "quota-query", mu_cfg_string, &quota_query, 0, NULL,
     N_("SQL query to retrieve mailbox quota.  This is deprecated, use "
        "sql { ... } instead."),
     N_("query") },
 #endif
-  { "sieve-filter", mu_cfg_string, &sieve_pattern, NULL,
+  { "sieve-filter", mu_cfg_string, &sieve_pattern, 0, NULL,
     N_("File name or name pattern for Sieve filter file."),
     N_("file-or-pattern") },
-  { "message-id-header", mu_cfg_string, &message_id_header, NULL,
+  { "message-id-header", mu_cfg_string, &message_id_header, 0, NULL,
     N_("When logging Sieve actions, identify messages by the value of "
        "this header."),
     N_("name") },
 #ifdef WITH_GUILE
-  { "guile-filter", mu_cfg_string, &progfile_pattern, NULL,
+  { "guile-filter", mu_cfg_string, &progfile_pattern, 0, NULL,
     N_("File name or name pattern for Guile filter file."),
     N_("file-or-pattern") },
 #endif
-  { "debug", mu_cfg_callback, NULL, cb_debug,
+  { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set mail.local debug level.  Debug level consists of one or more "
        "of the following letters:\n"
        "  g - guimb stack traces\n"

@@ -25,15 +25,15 @@
 static struct mu_tls_module_config tls_settings;
 
 static struct mu_cfg_param mu_tls_param[] = {
-  { "tls", mu_cfg_bool, &tls_settings.client_enable, NULL,
+  { "tls", mu_cfg_bool, &tls_settings.client_enable, 0, NULL,
     N_("Enable client TLS encryption.") },
-  { "ssl-cert", mu_cfg_string, &tls_settings.ssl_cert, NULL,
+  { "ssl-cert", mu_cfg_string, &tls_settings.ssl_cert, 0, NULL,
     N_("Specify SSL certificate file."),
     N_("file") },
-  { "ssl-key", mu_cfg_string, &tls_settings.ssl_key, NULL,
+  { "ssl-key", mu_cfg_string, &tls_settings.ssl_key, 0, NULL,
     N_("Specify SSL certificate key file."),
     N_("file") },
-  { "ssl-cafile", mu_cfg_string, &tls_settings.ssl_cafile, NULL,
+  { "ssl-cafile", mu_cfg_string, &tls_settings.ssl_cafile, 0, NULL,
     N_("Specify trusted CAs file."),
     N_("file") },
   { NULL }

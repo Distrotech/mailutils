@@ -172,6 +172,8 @@ mu_cfg_data_type_string (enum mu_cfg_param_data_type type)
       return N_("host");
     case mu_cfg_callback:
       return N_("string");
+    case mu_cfg_section:
+      return N_("section");
     }
   return N_("unknown");
 }
@@ -261,19 +263,16 @@ format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
   if (sect->ident)
     {
       mu_stream_sequential_write (stream, sect->ident, strlen (sect->ident));
-      if (sect->data)
+      if (sect->label)
 	{
-	  /* FIXME: This is wrong in general. Data is an opaque data
-	     pointer. */
-	  char *s = sect->data;
 	  mu_stream_sequential_write (stream, " ", 1);
-	  mu_stream_sequential_write (stream, s, strlen (s));
+	  mu_stream_sequential_write (stream, sect->label,
+				      strlen (sect->label));
 	}
       mu_stream_sequential_write (stream, " {\n", 3);
       c.stream = stream;
       c.level = level + 1; 
-      mu_list_do (sect->subsec, _f_helper, &c);
-      mu_list_do (sect->param, _f_helper, &c);
+      mu_list_do (sect->children, _f_helper, &c);
       format_level (stream, level);
       mu_stream_sequential_write (stream, "};\n\n", 4);
     }
@@ -281,8 +280,7 @@ format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
     {
       c.stream = stream;
       c.level = level; 
-      mu_list_do (sect->subsec, _f_helper, &c);
-      mu_list_do (sect->param, _f_helper, &c);
+      mu_list_do (sect->children, _f_helper, &c);
     }
 }
 

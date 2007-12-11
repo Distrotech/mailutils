@@ -77,7 +77,7 @@ mu_app_init (struct argp *myargp, const char **capa,
   
   mu_libcfg_init (excapa);
   free (excapa);
-  mu_parse_config_files (cfg_param);
+  mu_parse_config_files (cfg_param, data);
 
   if (mu_help_config_mode)
     {
@@ -113,8 +113,8 @@ mu_app_init (struct argp *myargp, const char **capa,
     cfgflags |= MU_PARSE_CONFIG_VERBOSE;
   if (mu_cfg_parser_verbose > 1)
     cfgflags |= MU_PARSE_CONFIG_DUMP;
-  rc = mu_parse_config_tree (mu_argp_tree, mu_program_name, cfg_param,
-			     cfgflags);
+  rc = mu_cfg_tree_reduce (mu_argp_tree, mu_program_name, cfg_param,
+			   cfgflags, data);
   
   mu_gocs_flush ();
   mu_cfg_destroy_tree (&mu_argp_tree);

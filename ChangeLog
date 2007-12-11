@@ -1,3 +1,38 @@
+2007-12-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/cfg.h (mu_cfg_section): New type.
+	(struct mu_cfg_param.offset): New member
+	(mu_offsetof): New define
+	(mu_cfg_section_fp): Change signature
+	(struct mu_cfg_section.label,target): New members.
+	(struct mu_cfg_section.data): Remove.
+	(struct mu_cfg_section.children): New member, instead of
+	param and subsec which are removed.
+	(mu_cfg_scan_tree): Change signature.
+	(mu_config_register_section): Change signature.
+	(mu_parse_config): Change signature.
+	(mu_parse_config_tree): Rename to mu_cfg_tree_reduce.
+	(mu_get_config): New proto.
+
+	* include/mailutils/libcfg.h (mu_parse_config_files): Change
+	prototype.
+	
+	* dotlock/dotlock.c, imap4d/imap4d.c, lib/tcpwrap.h,
+	libargp/muinit.c, libcfg/auth.c, libcfg/common.c, libcfg/gsasl.c,
+	libcfg/init.c, libcfg/ldap.c, libcfg/pam.c, libcfg/radius.c,
+	libcfg/sieve.c, libcfg/sql.c, libcfg/tls.c, libcfg/virtdomain.c,
+	maidag/maidag.c, mail.local/main.c, mail.remote/mail.remote.c,
+	mailbox/cfg_format.c, mailbox/cfg_parser.y, mimeview/mimeview.c,
+	movemail/movemail.c, pop3d/pop3d.c, readmsg/readmsg.c,
+	sieve/sieve.c: Reflect changes to the cfg framework.
+	
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add cfg_driver.c.
+	* mailbox/cfg_driver.c: New file.
+	* mailbox/cfg_lexer.c: Move driver part into a separate file.
+	
+	* examples/Makefile.am (AM_LDFLAGS): Remove libmuaux
+	* examples/echosrv.c: Remove getopt.h
+
 2007-12-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/Makefile.am: add echosrv.c.

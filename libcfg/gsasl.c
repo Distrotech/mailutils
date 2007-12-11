@@ -25,7 +25,7 @@
 static struct mu_gsasl_module_data gsasl_settings;
 
 static struct mu_cfg_param mu_gsasl_param[] = {
-  { "cram-passwd", mu_cfg_string, &gsasl_settings.cram_md5_pwd, NULL,
+  { "cram-passwd", mu_cfg_string, &gsasl_settings.cram_md5_pwd, 0, NULL,
     N_("Name of GSASL password file."),
     N_("file") },
   { NULL }
