@@ -260,6 +260,8 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif /* WITH_TLS */
+  mu_tcpwrapper_cfg_init ();
+
   mu_gocs_daemon = default_gocs_daemon;
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 

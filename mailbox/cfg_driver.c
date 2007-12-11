@@ -45,28 +45,40 @@ static void
 alloc_section_tab ()
 {
   if (!section_tab)
-    mu_assoc_create (&section_tab, sizeof (struct mu_cfg_cont *),
+    mu_assoc_create (&section_tab, sizeof (struct mu_cfg_cont **),
 		     MU_ASSOC_COPY_KEY);
 }
 
 int
-mu_create_canned_section (struct mu_cfg_section *section)
+mu_create_canned_section (char *name, struct mu_cfg_section **psection)
 {
-  struct mu_cfg_cont *cont;
+  int rc;
+  struct mu_cfg_cont **pcont;
   alloc_section_tab ();
-  mu_config_create_container (&cont, mu_cfg_cont_section);
-  cont->v.section = *section;
-  return mu_assoc_install (section_tab, cont->v.section.ident, &cont);
+  rc = mu_assoc_ref_install (section_tab, name, (void **)&pcont);
+  if (rc == 0 || rc == MU_ERR_EXISTS)
+    {
+      mu_config_create_container (pcont, mu_cfg_cont_section);
+      *psection = &(*pcont)->v.section;
+      (*psection)->ident = name;
+    }
+  return rc;
 }
 
 int
-mu_create_canned_param (struct mu_cfg_param *param)
+mu_create_canned_param (char *name, struct mu_cfg_param **pparam)
 {
-  struct mu_cfg_cont *cont;
+  int rc;
+  struct mu_cfg_cont **pcont;
   alloc_section_tab ();
-  mu_config_create_container (&cont, mu_cfg_cont_param);
-  cont->v.param = *param;
-  return mu_assoc_install (section_tab, cont->v.param.ident, &cont);
+  rc = mu_assoc_ref_install (section_tab, name, (void **)&pcont);
+  if (rc == 0 || rc == MU_ERR_EXISTS)
+    {
+      mu_config_create_container (pcont, mu_cfg_cont_param);
+      *pparam = &(*pcont)->v.param;
+      (*pparam)->ident = name;
+    }
+  return rc;
 }
 
 struct mu_cfg_cont *
@@ -210,13 +222,24 @@ mu_config_destroy_container (struct mu_cfg_cont **pcont)
 }
      
 
-static int
-add_parameters (struct mu_cfg_section *sect, struct mu_cfg_param *param)
+int
+mu_cfg_section_add_container (struct mu_cfg_section *sect,
+			      struct mu_cfg_cont *cont)
 {
-  if (!param)
+  if (!cont)
     return 0;
   if (!sect->children)
     mu_list_create (&sect->children);
+  return mu_list_append (sect->children, cont);
+}
+
+int
+mu_cfg_section_add_params (struct mu_cfg_section *sect,
+			   struct mu_cfg_param *param)
+{
+  if (!param)
+    return 0;
+
   for (; param->ident; param++)
     {
       int rc;
@@ -241,7 +264,7 @@ add_parameters (struct mu_cfg_section *sect, struct mu_cfg_param *param)
 	    return rc;
 	  container->v.param = *param;
 	}
-      mu_list_append (sect->children, container);
+      mu_cfg_section_add_container (sect, container);
     }
   return 0;
 }
@@ -335,13 +358,13 @@ _mu_config_register_section (struct mu_cfg_cont **proot,
       s->label = label ? strdup (label) : NULL;
       s->parser = parser;
       s->children = NULL;
-      add_parameters (s, param);
+      mu_cfg_section_add_params (s, param);
       if (psection)
 	*psection = s;
     }
   else
     {
-      add_parameters (parent, param);
+      mu_cfg_section_add_params (parent, param);
       /* FIXME: */
       if (!parent->parser)
 	parent->parser = parser;

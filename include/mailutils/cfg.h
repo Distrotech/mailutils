@@ -194,6 +194,16 @@ int mu_config_create_container (struct mu_cfg_cont **pcont,
 int mu_config_clone_container (struct mu_cfg_cont *cont);
 void mu_config_destroy_container (struct mu_cfg_cont **pcont);
 
+int mu_cfg_section_add_container (struct mu_cfg_section *sect,
+				  struct mu_cfg_cont *cont);
+int mu_cfg_section_add_params (struct mu_cfg_section *sect,
+			       struct mu_cfg_param *param);
+
+
+int mu_create_canned_section (char *name, struct mu_cfg_section **psection);
+int mu_create_canned_param (char *name, struct mu_cfg_param **pparam);
+struct mu_cfg_cont *mu_get_canned_container (const char *name);
+
 int mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
 		      void *target, void *call_data);
 

@@ -150,6 +150,7 @@ main (int argc, char **argv)
 
   mu_argp_init (program_version, NULL);
   mu_gocs_daemon = default_gocs_daemon;
+
   if (mu_app_init (&argp, comsat_argp_capa, NULL, argc, argv, 0, &ind, NULL))
     exit (1);
 

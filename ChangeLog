@@ -1,5 +1,19 @@
 2007-12-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* comsat/comsat.c, imap4d/imap4d.c, maidag/maidag.c,
+	pop3d/pop3d.c: Call mu_tcpwrapper_cfg_init.
+
+	* include/mailutils/cfg.h (mu_cfg_section_add_container)
+	(mu_cfg_section_add_params, mu_create_canned_section)
+	(mu_create_canned_param, mu_get_canned_container): New functions.
+	* lib/tcpwrap.c (mu_tcpwrapper_cfg_init): New function.
+	* lib/tcpwrap.h (TCP_WRAPPERS_CONFIG): Change definition.
+	* mailbox/cfg_driver.c (mu_create_canned_section)
+	(mu_create_canned_param): Change prototypes.
+	(add_parameters): Rename to mu_cfg_section_add_params, make
+	extern. All callers changed.
+
+
 	* include/mailutils/cfg.h (mu_cfg_section): New type.
 	(struct mu_cfg_param.offset): New member
 	(mu_offsetof): New define

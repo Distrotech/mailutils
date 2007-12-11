@@ -324,6 +324,7 @@ main (int argc, char **argv)
 #ifdef WITH_GSASL
   mu_gocs_register ("gsasl", mu_gsasl_module_init);
 #endif
+  mu_tcpwrapper_cfg_init ();
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
 		   argc, argv, 0, NULL, NULL))

@@ -87,7 +87,49 @@ mu_tcpwrapper_access (int fd)
   return hosts_access (&req);
 }
 
+struct mu_cfg_param tcpwrapper_param[] = {
+  { "enable", mu_cfg_bool, &mu_tcp_wrapper_enable, 0, NULL,	      
+    N_("Enable TCP wrapper access control.  Default is \"yes\".") },	      
+  { "daemon", mu_cfg_string, &mu_tcp_wrapper_daemon, 0, NULL,     
+    N_("Set daemon name for TCP wrapper lookups.  Default is program name."), 
+    N_("name") },							      
+  { "allow-table", mu_cfg_callback, NULL, 0,                            
+    mu_tcp_wrapper_cb_hosts_allow,                                            
+    N_("Use file for positive client address access control "		      
+       "(default: /etc/hosts.allow)."),					      
+    N_("file") },							      
+  { "deny-table", mu_cfg_callback, NULL, 0,                             
+    mu_tcp_wrapper_cb_hosts_deny,                                             
+    N_("Use file for negative client address access control "		      
+       "(default: /etc/hosts.deny)."),					      
+    N_("file") },							      
+  { "allow-syslog-level", mu_cfg_callback, NULL, 0,	       	      
+    mu_tcp_wrapper_cb_hosts_allow_syslog,				      
+    N_("Log host allows at this syslog level.  See logging { facility } for " 
+       "a description of argument syntax."),				      
+    N_("level") },							      
+  { "allow-deny-level", mu_cfg_callback, NULL, 0,			      
+    mu_tcp_wrapper_cb_hosts_deny_syslog,				      
+    N_("Log host denies at this syslog level.  See logging { facility } for " 
+       "a description of argument syntax."),				      
+    N_("level") },
+  { NULL }
+};
+
+void
+mu_tcpwrapper_cfg_init ()
+{
+  struct mu_cfg_section *section;
+  mu_create_canned_section ("tcp-wrappers", &section);
+  mu_cfg_section_add_params (section, tcpwrapper_param);
+}
+
 #else
+
+void
+mu_tcpwrapper_cfg_init ()
+{
+}
 
 int
 mu_tcpwrapper_access (int fd)

@@ -457,7 +457,9 @@ main (int argc, char *argv[])
   mu_gocs_register ("sieve", mu_sieve_module_init);
 
   mu_gocs_daemon = daemon_param;
-  
+    
+  mu_tcpwrapper_cfg_init ();
+
   /* Parse command line */
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
