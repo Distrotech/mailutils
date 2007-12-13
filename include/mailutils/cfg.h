@@ -159,6 +159,7 @@ struct mu_cfg_section
   char *label;
   mu_cfg_section_fp parser;
   void *target;
+  size_t offset;
   mu_list_t /* of mu_cfg_cont */ children;
   char *docstring;
 };

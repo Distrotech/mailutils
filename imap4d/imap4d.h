@@ -96,6 +96,7 @@
 #include <mailutils/url.h>
 #include <mailutils/daemon.h>
 #include <mailutils/pam.h>
+#include <mailutils/acl.h>
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>

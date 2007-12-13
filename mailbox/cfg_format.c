@@ -234,11 +234,16 @@ format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
   if (param->docstring)
     mu_cfg_format_docstring (stream, gettext (param->docstring), level);
   format_level (stream, level);
-  mu_stream_sequential_printf (stream, "%s <%s: %s>;\n",
-			       param->ident,
-			       gettext (param->argname ?
-					param->argname : N_("arg")),
-			       gettext (mu_cfg_data_type_string (param->type)));
+  if (param->argname && strchr (param->argname, ':'))
+    mu_stream_sequential_printf (stream, "%s <%s>;\n",
+				 param->ident,
+				 gettext (param->argname));
+  else
+    mu_stream_sequential_printf (stream, "%s <%s: %s>;\n",
+				 param->ident,
+				 gettext (param->argname ?
+					  param->argname : N_("arg")),
+				 gettext (mu_cfg_data_type_string (param->type)));
 }
 
 static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,

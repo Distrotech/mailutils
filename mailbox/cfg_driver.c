@@ -56,12 +56,14 @@ mu_create_canned_section (char *name, struct mu_cfg_section **psection)
   struct mu_cfg_cont **pcont;
   alloc_section_tab ();
   rc = mu_assoc_ref_install (section_tab, name, (void **)&pcont);
-  if (rc == 0 || rc == MU_ERR_EXISTS)
+  if (rc == 0)
     {
       mu_config_create_container (pcont, mu_cfg_cont_section);
       *psection = &(*pcont)->v.section;
       (*psection)->ident = name;
     }
+  else if (rc == MU_ERR_EXISTS)
+    *psection = &(*pcont)->v.section;
   return rc;
 }
 
@@ -72,12 +74,14 @@ mu_create_canned_param (char *name, struct mu_cfg_param **pparam)
   struct mu_cfg_cont **pcont;
   alloc_section_tab ();
   rc = mu_assoc_ref_install (section_tab, name, (void **)&pcont);
-  if (rc == 0 || rc == MU_ERR_EXISTS)
+  if (rc == 0)
     {
       mu_config_create_container (pcont, mu_cfg_cont_param);
       *pparam = &(*pcont)->v.param;
       (*pparam)->ident = name;
     }
+  else if (rc == MU_ERR_EXISTS)
+    *pparam = &(*pcont)->v.param;
   return rc;
 }
 
@@ -256,6 +260,7 @@ mu_cfg_section_add_params (struct mu_cfg_section *sect,
 	      abort ();
 	    }
 	  mu_config_clone_container (container);
+	  container->v.section.offset = param->offset;
 	}
       else
 	{

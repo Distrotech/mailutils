@@ -16,20 +16,13 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
-
-#define C(X) do                                                 \
-{                                                               \
-  int e;                                                        \
-  if ((e = X) != 0)                                             \
-    {                                                           \
-      mu_error ("%s failed: %s\n", #X, mu_strerror (e)); \
-      return 1;                                                 \
-    }                                                           \
-} while (0)
 
 static int
 ls_printer (void *item, void *data)

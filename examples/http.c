@@ -20,6 +20,9 @@
    It connects to a remote HTTP server and prints the contents of its
    index page */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

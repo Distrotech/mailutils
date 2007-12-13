@@ -232,7 +232,11 @@ cb_debug_level (mu_debug_t debug, void *data, char *arg)
     }
   else
     pfx = strdup ("command line");/*FIXME*/
-  debug_settings.errpfx = pfx;
+  /*FIXME:*/
+  mu_global_debug_from_string (debug_settings.string, pfx);
+  free (debug_settings.string);
+  free (debug_settings.errpfx);
+  memset (&debug_settings, 0, sizeof debug_settings);
   return 0;
 }
 

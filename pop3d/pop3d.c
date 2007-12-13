@@ -58,6 +58,8 @@ char *login_stat_file = LOGIN_STAT_FILE;
 unsigned expire = EXPIRE_NEVER; /* Expire messages after this number of days */
 int expire_on_exit = 0;       /* Delete expired messages on exit */
 
+mu_acl_t pop3d_acl;
+
 static int pop3d_mainloop       (int fd, FILE *, FILE *);
 static void pop3d_daemon_init   (void);
 static void pop3d_daemon        (unsigned int, unsigned int);
@@ -261,11 +263,12 @@ main (int argc, char **argv)
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif /* WITH_TLS */
   mu_tcpwrapper_cfg_init ();
-
+  mu_acl_cfg_init ();
+  
   mu_gocs_daemon = default_gocs_daemon;
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
-		   argc, argv, 0, NULL, NULL))
+		   argc, argv, 0, NULL, &pop3d_acl))
     exit (1);
 
   if (expire == 0)
@@ -326,6 +329,13 @@ main (int argc, char **argv)
 
     mu_diag_get_debug (&debug);
     mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+
+    /* FIXME: this should be done automatically by cfg */
+    if (pop3d_acl)
+      {
+	mu_acl_get_debug (pop3d_acl, &debug);
+	mu_debug_set_print (debug, mu_debug_syslog_printer, NULL);
+      }
   }
   
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
@@ -403,9 +413,6 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 			  strerror (errno));
 	  return 1;
 	}
-      else
-	mu_diag_output (MU_DIAG_INFO,
-			_("connect from %s"), inet_ntoa (pcs->sin_addr));
     }
   return 0;
 }
@@ -425,13 +432,44 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   if (pop3d_get_client_address (fd, &cs) == 0)
     {
+      if (pop3d_acl)
+	{
+	  mu_acl_result_t res;
+	  int rc = mu_acl_check_sockaddr (pop3d_acl,
+					  (struct sockaddr*) &cs,
+					  sizeof (cs),
+					  &res);
+	  if (rc)
+	    {
+	      mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
+			inet_ntoa (cs.sin_addr), mu_strerror (rc));
+	      return 1;
+	    }
+	  switch (res)
+	    {
+	    case mu_acl_result_undefined:
+	      mu_diag_output (MU_DIAG_INFO,
+			      _("%s: undefined ACL result; access allowed"),
+			      inet_ntoa (cs.sin_addr));
+	      break;
+	      
+	    case mu_acl_result_accept:
+	      break;
+	      
+	    case mu_acl_result_deny:
+	      mu_error (_("Access from %s blocked."),
+			inet_ntoa (cs.sin_addr));
+	      return 1;
+	    }
+	}
+      
       if (!mu_tcpwrapper_access (fd))
 	{
 	  mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
 	  return 1;
 	}
     }
-  else if (!debug_mode && mu_tcp_wrapper_enable)
+  else if (!debug_mode && (mu_tcp_wrapper_enable || pop3d_acl))
     {
       mu_error (_("Rejecting connection from unknown address"));
       return 1;

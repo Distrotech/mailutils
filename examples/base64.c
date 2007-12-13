@@ -17,6 +17,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <assert.h>
@@ -78,19 +81,18 @@ main (int argc, char * argv [])
       }
 
   if (input)
-    c = mu_file_stream_create (&in, input, MU_STREAM_READ);
+    MU_ASSERT (mu_file_stream_create (&in, input, MU_STREAM_READ));
   else
-    c = mu_stdio_stream_create (&in, stdin, 0);
-  assert (c == 0);
-  assert (mu_filter_create (&flt, in, encoding, mode, MU_STREAM_READ) == 0);
-  assert (mu_stream_open (in) == 0);
+    MU_ASSERT (mu_stdio_stream_create (&in, stdin, 0));
+  MU_ASSERT (mu_filter_create (&flt, in, encoding, mode, MU_STREAM_READ));
+  MU_ASSERT (mu_stream_open (in));
 
   if (output)
-    c = mu_file_stream_create (&out, output, MU_STREAM_WRITE|MU_STREAM_CREAT);
+    MU_ASSERT (mu_file_stream_create (&out, output, 
+                                      MU_STREAM_WRITE|MU_STREAM_CREAT));
   else
-    c = mu_stdio_stream_create (&out, stdout, 0);
-  assert (c == 0);
-  assert (mu_stream_open (out) == 0);
+    MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
+  MU_ASSERT (mu_stream_open (out));
   
   while (mu_stream_read (flt, &buffer, sizeof (buffer), total, &size) == 0
 	 && size > 0)

@@ -92,6 +92,21 @@ int mu_global_debug_from_string (const char *, const char *);
 int mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 				mu_debug_t debug);
 
+  
+#define MU_ASSERT(expr)						\
+ do								\
+  {								\
+    int rc = expr;						\
+    if (rc)							\
+      {								\
+	mu_error ("%s:%d: " #expr " failed: %s",                \
+                  __FILE__, __LINE__, mu_strerror (rc));	\
+	abort ();						\
+      }								\
+  }                                                             \
+ while (0)
+
+  
 forloop(`i',1,11,`MKDEBUG(i)')
 
 #ifdef __cplusplus

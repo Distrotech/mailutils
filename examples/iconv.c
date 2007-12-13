@@ -16,12 +16,14 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <assert.h>
 
 #include <mailutils/mailutils.h>
 
@@ -40,15 +42,14 @@ main (int argc, char **argv)
       return 1;
     }
 
-  rc = mu_stdio_stream_create (&in, stdin, 0);
-  assert (rc == 0);
-  assert (mu_stream_open (in) == 0);
-  assert (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 0, mu_fallback_none) == 0);
-  assert (mu_stream_open (cvt) == 0);
+  MU_ASSERT (mu_stdio_stream_create (&in, stdin, 0));
+  MU_ASSERT (mu_stream_open (in));
+  MU_ASSERT (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 
+                                     0, mu_fallback_none));
+  MU_ASSERT (mu_stream_open (cvt));
   
-  rc = mu_stdio_stream_create (&out, stdout, 0);
-  assert (rc == 0);
-  assert (mu_stream_open (out) == 0);
+  MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
+  MU_ASSERT (mu_stream_open (out));
 
   while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), total, &size)) == 0
 	 && size > 0)

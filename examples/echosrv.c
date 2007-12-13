@@ -32,18 +32,6 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/server.h>
 
-#define MU_ASSERT(expr)						\
- do								\
-  {								\
-    int rc = expr;						\
-    if (rc)							\
-      {								\
-	mu_error (#expr " failed: %s", mu_strerror (rc));	\
-	abort ();						\
-      }								\
-  }                                                             \
- while (0);
-
 mu_server_t server;
 
 int
@@ -52,8 +40,7 @@ echo_conn (int fd, struct sockaddr_in *s, void *server_data, void *call_data,
 {
   struct sockaddr_in srv_addr;
   pid_t pid;
-  char *buf = NULL;
-  size_t size = 0;
+  char buf[512];
   FILE *in, *out;
   
   mu_tcp_server_get_sockaddr (srv, &srv_addr);
@@ -82,10 +69,10 @@ echo_conn (int fd, struct sockaddr_in *s, void *server_data, void *call_data,
   setvbuf (out, NULL, _IOLBF, 0);
 
   pid = getpid ();
-  while (getline (&buf, &size, in) > 0)
+  while (fgets (buf, sizeof (buf), in) > 0)
     {
       int len = strlen (buf);
-      if (len > 0)
+      if (len > 0 && buf[len-1] == '\n')
 	{
 	  buf[--len] = 0;
 	  if (buf[len-1] == '\r')
@@ -93,7 +80,6 @@ echo_conn (int fd, struct sockaddr_in *s, void *server_data, void *call_data,
 	}
       fprintf (out, "%lu: you said: \"%s\"\r\n", (unsigned long) pid, buf);
     }
-  free (buf);
   exit (0);
 }
 

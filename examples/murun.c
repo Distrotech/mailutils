@@ -16,11 +16,13 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
@@ -62,12 +64,12 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  assert (mu_argcv_string (argc - i, &argv[i], &cmdline) == 0);
+  MU_ASSERT (mu_argcv_string (argc - i, &argv[i], &cmdline));
   if (read_stdin)
     {
       mu_stream_t in;
-      assert (mu_stdio_stream_create (&in, stdin, 0) == 0);
-      assert (mu_stream_open (in) == 0);
+      MU_ASSERT (mu_stdio_stream_create (&in, stdin, 0));
+      MU_ASSERT (mu_stream_open (in));
       rc = mu_filter_prog_stream_create (&stream, cmdline, in);
     }
   else
@@ -87,9 +89,8 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  assert (mu_stdio_stream_create (&out, stdout, 0) == 0);
-  assert (rc == 0);
-  assert (mu_stream_open (out) == 0);
+  MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
+  MU_ASSERT (mu_stream_open (out));
   
   read_and_print (stream, out);
   mu_stream_close (stream);

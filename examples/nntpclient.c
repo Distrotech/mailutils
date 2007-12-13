@@ -20,7 +20,7 @@
    MA 02110-1301 USA */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>  /* For MU_ARG_UNUSED only */
+# include <config.h>  
 #endif 
 #include <sys/types.h>
 #include <unistd.h>

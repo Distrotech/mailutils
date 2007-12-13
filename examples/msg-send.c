@@ -16,6 +16,10 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -33,14 +37,6 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-
-#define C(X) do {\
-  int e;\
-  if((e = X) != 0) { \
-       fprintf(stderr, "%s failed: %s\n", #X, mu_strerror(e)); \
-       exit(1);\
-  }\
-} while (0)
 
 const char USAGE[] =
 "usage: mailer [-hd] [-m mailer] [-f from] [to]..."
@@ -101,21 +97,21 @@ main (int argc, char *argv[])
 
   if (optfrom)
     {
-      C (mu_address_create (&from, optfrom));
+      MU_ASSERT (mu_address_create (&from, optfrom));
     }
 
   if (argv[optind])
     {
       char **av = argv + optind;
 
-      C (mu_address_createv (&to, (const char **) av, -1));
+      MU_ASSERT (mu_address_createv (&to, (const char **) av, -1));
     }
 
-  C (mu_stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
-  C (mu_stream_open (in));
-  C (mu_message_create (&msg, NULL));
-  C (mu_message_set_stream (msg, in, NULL));
-  C (mu_mailer_create (&mailer, optmailer));
+  MU_ASSERT (mu_stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
+  MU_ASSERT (mu_stream_open (in));
+  MU_ASSERT (mu_message_create (&msg, NULL));
+  MU_ASSERT (mu_message_set_stream (msg, in, NULL));
+  MU_ASSERT (mu_mailer_create (&mailer, optmailer));
 
   if (optdebug)
     {
@@ -124,9 +120,9 @@ main (int argc, char *argv[])
       mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
-  C (mu_mailer_open (mailer, 0));
+  MU_ASSERT (mu_mailer_open (mailer, 0));
 
-  C (mu_mailer_send_message (mailer, msg, from, to));
+  MU_ASSERT (mu_mailer_send_message (mailer, msg, from, to));
 
   return 0;
 }

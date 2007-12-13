@@ -426,11 +426,10 @@ _expand_aclno (const char *name, void *data, char **p)
 #endif
 
 static int
-spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
+expand_arg (const char *cmdline, struct run_closure *rp, char **s)
 {
-  char *s;
+  int rc;
   mu_vartab_t vtab;
-  pid_t pid;
   
   MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "Expanding \"%s\" => ", cmdline);
   
@@ -463,10 +462,24 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
       break;
     }
   
-  mu_vartab_expand (vtab, cmdline, &s);
+  rc = mu_vartab_expand (vtab, cmdline, s);
   mu_vartab_destroy (&vtab);
 
-  MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "\"%s\". ", s);
+  if (rc == 0)
+    MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "\"%s\". ", *s);
+  else
+    MU_DEBUG (rp->debug, MU_DEBUG_TRACE0, "failed. ");
+  return rc;
+}
+
+static int
+spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
+{
+  char *s;
+  pid_t pid;
+
+  if (expand_arg (cmdline, rp, &s))
+    s = strdup (cmdline);
 
   pid = fork ();
   if (pid == 0)
@@ -549,12 +562,19 @@ _run_entry (void *item, void *data)
       
 	case mu_acl_log:
 	  {
+	    char *s;
 	    mu_debug_t dbg = NULL;
 	    mu_diag_get_debug (&dbg);
-	    debug_sockaddr (dbg, MU_DIAG_INFO, rp->sa);
-	    if (ent->arg)
-	      mu_debug_printf (dbg, MU_DIAG_INFO, ": %s", (char*) ent->arg);
-	    mu_debug_printf (dbg, MU_DIAG_INFO, "\n");
+	    if (ent->arg && expand_arg (ent->arg, rp, &s) == 0)
+	      {
+		mu_debug_printf (dbg, MU_DIAG_INFO, "%s\n", s);
+		free (s);
+	      }
+	    else
+	      {
+		debug_sockaddr (dbg, MU_DIAG_INFO, rp->sa);
+		mu_debug_printf (dbg, MU_DIAG_INFO, "\n");
+	      }
 	  }
 	  break;
 	  

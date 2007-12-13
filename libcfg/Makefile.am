@@ -22,6 +22,7 @@ AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
 
 lib_LTLIBRARIES = libmucfg.la
 libmucfg_la_SOURCES=\
+ acl.c\
  auth.c\
  common.c\
  init.c\

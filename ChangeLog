@@ -1,3 +1,34 @@
+2007-12-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/aclck.c, examples/addr.c, examples/base64.c,
+	examples/decode2047.c, examples/echosrv.c, examples/encode2047.c,
+	examples/header.c, examples/http.c, examples/iconv.c,
+	examples/listop.c, examples/lsf.c, examples/mailcap.c,
+	examples/mimetest.c, examples/msg-send.c, examples/muemail.c,
+	examples/murun.c, examples/nntpclient.c, examples/pop3client.c,
+	examples/sfrom.c, examples/url-parse.c: Include config.h. Use
+	MU_ASSERT instead of assert.
+
+	* include/mailutils/cfg.h (struct mu_cfg_section.offset): New
+	member.
+	* include/mailutils/debug.hm4 (MU_ASSERT): New member.
+	* lib/utmp.c: Include config.h.
+	* libcfg/Makefile.am (libmucfg_la_SOURCES): Add acl.c.
+	* libcfg/acl.c: New file.
+	* libcfg/common.c (cb_debug_level): Immediately set debugging
+	level.
+	* mailbox/acl.c: mu_acl_log expands its argument.
+	* mailbox/cfg_driver.c (mu_create_canned_section)
+	(mu_create_canned_param): Avoid creating container twice.
+	* mailbox/cfg_format.c (format_param): Do not pring type if
+	argname contains a colon.
+	* mailbox/cfg_parser.y (_scan_tree_helper): Compute target
+	pointer.
+	
+	* imap4d/imap4d.c, imap4d/imap4d.h, pop3d/pop3d.c,
+	pop3d/pop3d.h: Use MU ACLs
+	
+
 2007-12-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/comsat.c, imap4d/imap4d.c, maidag/maidag.c,
