@@ -47,7 +47,8 @@ getword (char **parg)
     {
       while (*arg && !ISSPACE (*arg))
 	arg++;
-      *arg++ = 0;
+      if (*arg)
+	*arg++ = 0;
     }
   *parg = arg;
   return word;

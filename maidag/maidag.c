@@ -47,6 +47,7 @@ int lmtp_mode;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
 char *lmtp_group = "mail";
+mu_acl_t maidag_acl; /* ACLs for LMTP mode */
 
 struct mu_gocs_daemon daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
@@ -290,6 +291,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
     N_("url") },
   { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, 0, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
+  { "acl", mu_cfg_section, },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
@@ -459,11 +461,12 @@ main (int argc, char *argv[])
   mu_gocs_daemon = daemon_param;
     
   mu_tcpwrapper_cfg_init ();
+  mu_acl_cfg_init ();
 
   /* Parse command line */
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
-		   argc, argv, 0, &arg_index, NULL))
+		   argc, argv, 0, &arg_index, &maidag_acl))
     exit (EX_CONFIG);
 
   current_uid = getuid ();
@@ -478,6 +481,12 @@ main (int argc, char *argv[])
       openlog ("maidag", LOG_PID, log_facility);
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+      /* FIXME: this should be done automatically by cfg */
+      if (maidag_acl)
+	{
+	  mu_acl_get_debug (maidag_acl, &debug);
+	  mu_debug_set_print (debug, mu_debug_syslog_printer, NULL);
+	}
     }
   
   argc -= arg_index;

@@ -771,14 +771,41 @@ check_connection (int fd, all_addr_t *addr, socklen_t addrlen)
       break;
       
     case PF_INET:
+      if (maidag_acl)
+	{
+	  mu_acl_result_t res;
+	  int rc = mu_acl_check_sockaddr (maidag_acl, &addr->sa, addrlen,
+					  &res);
+	  if (rc)
+	    {
+	      mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
+			inet_ntoa (addr->s_in.sin_addr), mu_strerror (rc));
+	      return 1;
+	    }
+	  switch (res)
+	    {
+	    case mu_acl_result_undefined:
+	      mu_diag_output (MU_DIAG_INFO,
+			      _("%s: undefined ACL result; access allowed"),
+			      inet_ntoa (addr->s_in.sin_addr));
+	      break;
+	  
+	    case mu_acl_result_accept:
+	      break;
+	      
+	    case mu_acl_result_deny:
+	      mu_error (_("Access from %s blocked."),
+			inet_ntoa (addr->s_in.sin_addr));
+	      return 1;
+	    }
+	}
+  
       if (!mu_tcpwrapper_access (fd))
 	{
-	  mu_error (_("Access from %s blocked."),
+	  mu_error (_("Access from %s blocked by tcp wrappers."),
 		    inet_ntoa (addr->s_in.sin_addr));
 	  return 1;
 	}
-      mu_diag_output (MU_DIAG_INFO, _("connect from %s"),
-		      inet_ntoa (addr->s_in.sin_addr));
     }
   return 0;
 }

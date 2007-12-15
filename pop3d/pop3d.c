@@ -161,6 +161,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif
+  { "acl", mu_cfg_section, },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };

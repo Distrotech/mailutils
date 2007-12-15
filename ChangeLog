@@ -1,3 +1,9 @@
+2007-12-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libcfg/acl.c (getword): Bugfix.
+	* maidag/lmtp.c, maidag/maidag.c, maidag/maidag.h: Use ACLs.
+	* pop3d/pop3d.c (pop3d_cfg_param): Add acl section.
+
 2007-12-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/aclck.c, examples/addr.c, examples/base64.c,

@@ -83,6 +83,7 @@
 #include <mailutils/libsieve.h>
 #include <mailutils/nls.h>
 #include <mailutils/daemon.h>
+#include <mailutils/acl.h>
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
@@ -123,6 +124,7 @@ extern int lmtp_mode;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
 extern char *lmtp_group;
+extern mu_acl_t maidag_acl;
 
 void close_fds (void);
 int switch_user_id (struct mu_auth_data *auth, int user);
