@@ -1,3 +1,54 @@
+2007-12-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update.
+	* configure.ac (MU_LIB_REMOTE): New substitution variable.
+	(AC_CONFIG_FILES): Add libproto/remote/Makefile.
+	* imap4d/copy.c, imap4d/create.c, imap4d/delete.c, imap4d/fetch.c,
+	imap4d/imap4d.c, imap4d/list.c, imap4d/lsub.c, imap4d/rename.c,
+	imap4d/subscribe.c, imap4d/unsubscribe.c, imap4d/util.c: Spelling
+	fixes.
+	* include/mailutils/cfg.h (mu_cfg_error_count): New variable.
+	* include/mailutils/gocs.h (struct mu_gocs_mailbox):  New member
+	mailbox_pattern
+	* include/mailutils/libargp.h (mu_rcfile_lint): New variable.
+	* include/mailutils/mailbox.h (mu_set_mailbox_pattern): New
+	function.
+	(mu_mail_directory): Removed.
+	(mu_mailbox_url): New function.
+	* include/mailutils/mutil.h (mu_normalize_mailbox_url): Remove.
+	* include/mailutils/registrar.h (mu_0_6_registrar_lookup): Remove.
+
+	* libargp/common.c: New options --rcfile-lint and
+	--mailbox-pattern.
+	* libargp/muinit.c: Handle --rcfile-lint.
+	* libcfg/common.c: New statement mailbox-pattern
+	* libmu_scm/mu_mailbox.c (mu-mail-directory): Deprecated.
+	(mu-user-mailbox-url): New function.
+
+	* libproto/remote: New directory.
+	* libproto/remote/folder.c: New file.
+	* libproto/remote/mbox.c: New file.
+	* libproto/remote/.cvsignore: New file.
+	
+	* libproto/Makefile.am (SUBDIRS): Add remote
+	* libproto/mbox/folder.c, libproto/mbox/url.c: Indentation and
+	spelling fixes. 
+	* maidag/Makefile.am (maidag_LDADD): Add MU_LIB_REMOTE.
+	* maidag/maidag.c: Register mu_remote_mbox_record.
+	* mailbox/cfg_parser.y (mu_cfg_error_count): New variable.
+	(mu_cfg_format_error,_mu_cfg_vperror): Increment
+	mu_cfg_error_count.
+	* mailbox/debug.c (mu_debug_check_level): Do not mask out 
+	inheritance bit.
+	* mailbox/gocs.c (mu_gocs_mailbox_init): Set mailbox pattern.
+	* mailbox/mailbox.c (_create_mailbox): Bugfix.
+	* mailbox/mbx_default.c (mu_set_mailbox_pattern): New finction.
+	(mu_set_mail_directory): Rewrite.
+	(user_mailbox_name): Rewrite.
+	* mailbox/mutil.c (mu_normalize_mailbox_url): Remove.
+	* mailbox/registrar.c (mu_0_6_registrar_lookup): Remove.
+	* guimb/scm/sieve-core.scm (sieve-main): Use mu-user-mailbox-url.
+
 2007-12-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libcfg/acl.c (getword): Bugfix.

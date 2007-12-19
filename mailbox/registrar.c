@@ -118,15 +118,6 @@ mu_registrar_lookup (const char *name, int flags,
   return status;
 }
 
-/* For compatibility with earlier versions */
-int
-mu_0_6_registrar_lookup (const char *name, mu_record_t *precord, int flags)
-{
-  int status = mu_registrar_lookup (name, flags, precord, &flags);
-  return (status == 0) ? flags : 0;
-}
-    
-
 static int
 _compare_prio (const void *item, const void *value)
 {

@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2007 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -14,8 +14,16 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program; if not, write to the Free Software
-##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
+##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-SUBDIRS = include mbox pop nntp imap mh maildir mailer remote
+INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include 
+
+lib_LTLIBRARIES = libmu_remotembox.la
+libmu_remotembox_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
+libmu_remotembox_la_LIBADD = ${MU_LIB_MAILUTILS} ${MU_LIB_MAILER}
+libmu_remotembox_la_SOURCES = \
+ folder.c\
+ mbox.c
+
 

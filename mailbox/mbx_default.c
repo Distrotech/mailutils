@@ -37,18 +37,61 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/vartab.h>
 
-static char *_default_mail_dir = MU_PATH_MAILDIR;
-static char *_mu_mail_dir;
+static char *_mu_mailbox_pattern;
+
 static char *_default_folder_dir = "Mail";
 static char *_mu_folder_dir;
+
+static int
+mu_normalize_mailbox_url (char **pout, const char *dir)
+{
+  int len;
+  int addslash = 0;
+#define USERSUFFIX "${user}"
+  
+  if (!pout)
+    return MU_ERR_OUT_PTR_NULL;
+      
+  len = strlen (dir);
+  if (strncasecmp (dir, "mbox:", 5) == 0 && dir[len-1] == '=')
+    {
+      if (len > 5 && strcmp (dir + len - 5, "user=") == 0)
+	*pout = strdup (dir);
+      else
+	return MU_ERR_BAD_FILENAME;
+    }
+  else if (dir[len-1] != '/')
+    addslash = 1;
+
+  *pout = malloc (strlen (dir) + (addslash ? 1 : 0) + sizeof USERSUFFIX);
+  if (!*pout)
+    return ENOMEM;
+
+  strcpy (*pout, dir);
+  if (addslash)
+    strcat (*pout, "/");
+  strcat (*pout, USERSUFFIX);
+#undef USERSUFFIX
+  return 0;
+}
 
 int
 mu_set_mail_directory (const char *p)
 {
-  if (_mu_mail_dir != _default_mail_dir)
-    free (_mu_mail_dir);
-  return mu_normalize_mailbox_url (&_mu_mail_dir, p);
+  if (_mu_mailbox_pattern)
+    free (_mu_mailbox_pattern);
+  return mu_normalize_mailbox_url (&_mu_mailbox_pattern, p);
+}
+
+int
+mu_set_mailbox_pattern (const char *pat)
+{
+  if (_mu_mailbox_pattern)
+    free (_mu_mailbox_pattern);
+  _mu_mailbox_pattern = strdup (pat);
+  return _mu_mailbox_pattern ? 0 : ENOMEM;
 }
 
 void
@@ -60,11 +103,11 @@ mu_set_folder_directory (const char *p)
 }
 
 const char *
-mu_mail_directory ()
+mu_mailbox_url ()
 {
-  if (!_mu_mail_dir)
-    _mu_mail_dir = _default_mail_dir;
-  return _mu_mail_dir;
+  if (!_mu_mailbox_pattern)
+    mu_set_mail_directory (MU_PATH_MAILDIR);
+  return _mu_mailbox_pattern;
 }
 
 const char *
@@ -78,12 +121,15 @@ mu_folder_directory ()
 int
 mu_construct_user_mailbox_url (char **pout, const char *name)
 {
-  const char *p = mu_mail_directory ();
-  *pout = malloc (strlen (p) + strlen (name) + 1);
-  if (!*pout)
-    return errno;
-  strcat (strcpy (*pout, p), name);
-  return 0;
+  int rc;
+  const char *pat = mu_mailbox_url ();
+  mu_vartab_t vtab;
+
+  mu_vartab_create (&vtab);
+  mu_vartab_define (vtab, "user", name, 1);
+  rc = mu_vartab_expand (vtab, pat, pout);
+  mu_vartab_destroy (&vtab);
+  return rc;
 }
 
 /* Is this a security risk?  */
@@ -177,16 +223,6 @@ get_homedir (const char *user)
 static int
 user_mailbox_name (const char *user, char **mailbox_name)
 {
-  char *p;
-  const char *url = mu_mail_directory ();
-
-  p = strchr (url, ':');
-  if (p && strncmp (url, "mbox", p - url))
-    {
-      *mailbox_name = strdup (url);
-      return 0;
-    }
-  
 #ifdef USE_ENVIRON
   if (!user)
     user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
@@ -204,7 +240,7 @@ user_mailbox_name (const char *user, char **mailbox_name)
 
       if (!auth)
         {
-          mu_error ("Who am I ?\n");
+          mu_error ("Who am I?");
           return EINVAL;
         }
       *mailbox_name = strdup (auth->mailbox);

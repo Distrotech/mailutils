@@ -106,16 +106,34 @@ mu_scm_is_mailbox (SCM scm)
 
 SCM_DEFINE (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
 	    (SCM URL), 
-"If URL is given, sets it as a name of the user's mail directory.\n"
-"Returns the current value of the mail directory.")
+"Do not use this function. Use mu-user-mailbox-url instead.")
 #define FUNC_NAME s_scm_mu_mail_directory
 {
-  if (!SCM_UNBNDP (URL))
-    {
-      SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
-      mu_set_mail_directory (scm_i_string_chars (URL));
-    }
-  return scm_makfrom0str (mu_mail_directory ());
+  mu_scm_error (FUNC_NAME, ENOSYS,
+		"This function is deprecated. Use mu-user-mailbox-url instead.",
+		  scm_list_1 (URL));
+  return SCM_EOL;
+}
+#undef FUNC_NAME 
+
+SCM_DEFINE (scm_mu_user_mailbox_url, "mu-user-mailbox-url", 1, 0, 0, 
+	    (SCM USER),
+	    "")
+#define FUNC_NAME s_scm_mu_user_mailbox_url
+{
+  int rc;
+  char *p;
+  SCM ret;
+  
+  SCM_ASSERT (scm_is_string (USER), USER, SCM_ARG1, FUNC_NAME);
+  rc = mu_construct_user_mailbox_url (&p, scm_i_string_chars (USER));
+  if (rc)
+    mu_scm_error (FUNC_NAME, rc,
+		  "Cannot construct mailbox URL for ~A",
+		  scm_list_1 (USER));
+  ret = scm_makfrom0str (p);
+  free (p);
+  return ret;
 }
 #undef FUNC_NAME 
 

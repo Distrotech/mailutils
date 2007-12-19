@@ -61,7 +61,15 @@ mu_gocs_mailbox_init (void *data)
       free (p->mail_spool);
       p->mail_spool = NULL;
     }
-  
+  if (p->mailbox_pattern)
+    {
+      rc = mu_set_mailbox_pattern (p->mailbox_pattern);
+      if (rc)
+	mu_error (_("Cannot set mailbox pattern to `%s': %s"),
+		  p->mailbox_pattern, mu_strerror (rc));
+      free (p->mailbox_pattern);
+      p->mailbox_pattern = NULL;
+    }
   if (p->mailbox_type)
     {
       if (mu_mailbox_set_default_proto (p->mailbox_type))

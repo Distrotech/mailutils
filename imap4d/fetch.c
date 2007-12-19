@@ -1031,7 +1031,7 @@ fetch_operation (mu_message_t msg, char **arg, int silent)
     {
       if (!silent)
 	{
-	  /* NOTE: We violate the RFC here: Header can not take a prefix for
+	  /* NOTE: We violate the RFC here: Header cannot take a prefix for
 	     section messages it only referes to the RFC822 header .. ok
 	     see it as an extension. But according to IMAP4 we should
 	     have send an empty string: util_send (" \"\"");

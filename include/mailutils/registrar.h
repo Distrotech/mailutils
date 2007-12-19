@@ -51,8 +51,6 @@ extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
   
 extern int mu_registrar_lookup (const char *name, int flags, 
                                 mu_record_t *precord, int *pflags);
-extern int mu_0_6_registrar_lookup (const char *name, mu_record_t *precord,
-				    int flags); 
 extern int mu_registrar_record       (mu_record_t);
 extern int mu_unregistrar_record     (mu_record_t);
 
@@ -103,17 +101,20 @@ extern mu_record_t mu_path_record;
 extern mu_record_t mu_mh_record;
 /* Maildir, "maildir:" */
 extern mu_record_t mu_maildir_record;
-
-#define MU_IMAP_PRIO       100
-#define MU_POP_PRIO        200
-#define MU_MBOX_PRIO       300 
-#define MU_MH_PRIO         400
-#define MU_MAILDIR_PRIO    500 
-#define MU_NNTP_PRIO       600
-#define MU_PATH_PRIO       1000
-
-#define MU_SMTP_PRIO       10000
-#define MU_SENDMAIL_PRIO   10000
+/* Remote mailbox */
+extern mu_record_t mu_remote_mbox_record;
+  
+#define MU_IMAP_PRIO        100
+#define MU_POP_PRIO         200
+#define MU_MBOX_PRIO        300 
+#define MU_MH_PRIO          400
+#define MU_MAILDIR_PRIO     500 
+#define MU_NNTP_PRIO        600
+#define MU_PATH_PRIO        1000
+  
+#define MU_REMOTE_MBOX_PRIO 10000
+#define MU_SMTP_PRIO        10000
+#define MU_SENDMAIL_PRIO    10000
   
 /* SMTP mailer, "smtp://"  */
 extern mu_record_t mu_smtp_record;

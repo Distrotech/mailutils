@@ -492,8 +492,8 @@
 	    (name (if (and (not (null? (cdr cl)))
 			   (string? (cadr cl)))
 		      (cadr cl)
-		      (string-append (mu-mail-directory) "/"
-				     (passwd:name (mu-getpwuid (getuid)))))))
+		      (mu-user-mailbox-url
+		       (passwd:name (mu-getpwuid (getuid)))))))
 
        (set! sieve-mailbox (mu-mailbox-open name "rw"))
        (sieve-run thunk)

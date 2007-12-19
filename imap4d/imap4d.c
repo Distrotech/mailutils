@@ -59,9 +59,10 @@ size_t children;
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
-#define ARG_LOGIN_DISABLED  1
-#define ARG_TLS_REQUIRED    2
-#define ARG_CREATE_HOME_DIR 3
+#define ARG_LOGIN_DISABLED  256
+#define ARG_TLS_REQUIRED    257
+#define ARG_CREATE_HOME_DIR 258
+#define ARG_OPTION_PREAUTH  259
 
 static struct argp_option options[] = {
   {"other-namespace", 'O', N_("PATHLIST"), OPTION_HIDDEN,
@@ -73,6 +74,8 @@ static struct argp_option options[] = {
   {"create-home-dir", ARG_CREATE_HOME_DIR, N_("MODE"),
    OPTION_ARG_OPTIONAL|OPTION_HIDDEN,
    N_("Create home directory, if it does not exist")},
+  {"preauth", ARG_OPTION_PREAUTH, NULL, 0,
+   N_("Start in preauth mode") },
 #ifdef WITH_TLS
   {"tls-required", ARG_TLS_REQUIRED, NULL, OPTION_HIDDEN,
    N_("Always require STARTTLS before entering authentication phase")},
@@ -140,6 +143,10 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       break;
 #endif
 
+    case ARG_OPTION_PREAUTH:
+      preauth_mode = preauth_stdio;
+      break;
+      
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;

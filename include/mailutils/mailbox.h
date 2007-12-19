@@ -29,8 +29,9 @@ extern "C" {
 #endif
 
 int mu_set_mail_directory (const char *p);
+int mu_set_mailbox_pattern (const char *pat);
 void mu_set_folder_directory (const char *p);
-const char *mu_mail_directory (void);
+const char *mu_mailbox_url (void);
 const char *mu_folder_directory (void);
 int mu_construct_user_mailbox_url (char **pout, const char *name);
 

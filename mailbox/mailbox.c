@@ -137,19 +137,21 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 	  if (status != 0)
 	    mu_mailbox_destroy (&mbox);
 	  else
-	    *pmbox = mbox;
-
-	  level = mu_global_debug_level ("mailbox");
-	  if (level)
 	    {
-	      int status = mu_debug_create (&mbox->debug, mbox);
-	      if (status)
-		return 0; /* FIXME: don't want to bail out just because I
-			     failed to create a *debug* object. But maybe
-			     I'm wrong... */
-	      mu_debug_set_level (mbox->debug, level);
-	      if (level & MU_DEBUG_INHERIT)
-		mu_folder_set_debug (mbox->folder, mbox->debug);
+	      *pmbox = mbox;
+
+	      level = mu_global_debug_level ("mailbox");
+	      if (level)
+		{
+		  int status = mu_debug_create (&mbox->debug, mbox);
+		  if (status)
+		    return 0; /* FIXME: don't want to bail out just because I
+				 failed to create a *debug* object. But I may
+				 be wrong... */
+		  mu_debug_set_level (mbox->debug, level);
+		  if (level & MU_DEBUG_INHERIT)
+		    mu_folder_set_debug (mbox->folder, mbox->debug);
+		}
 	    }
 	  
 	  return status;

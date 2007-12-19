@@ -75,7 +75,7 @@ imap4d_rename (struct imap4d_command *command, char *arg)
       if (S_ISDIR(newst.st_mode))
 	{
 	  free (newname);
-	  return util_finish (command, RESP_NO, "Can not be a directory");
+	  return util_finish (command, RESP_NO, "Cannot be a directory");
 	}
       name = calloc (strlen ("mbox:") + strlen (newname) + 1, 1);
       sprintf (name, "mbox:%s", newname);
@@ -84,7 +84,7 @@ imap4d_rename (struct imap4d_command *command, char *arg)
 	{
 	  free (name);
 	  free (newname);
-	  return util_finish (command, RESP_NO, "Can not create new mailbox");
+	  return util_finish (command, RESP_NO, "Cannot create new mailbox");
 	}
       free (name);
       free (newname);

@@ -252,7 +252,7 @@ mu_debug_check_level (mu_debug_t debug, mu_log_level_t level)
 {
   if (!debug)
     return 0;
-  return debug->level & MU_DEBUG_LEVEL_MASK (level);
+  return debug->level & level;
 }
 
 int

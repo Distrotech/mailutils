@@ -449,13 +449,13 @@ main (int argc, char *argv[])
   /* Register needed modules */
   MU_AUTH_REGISTER_ALL_MODULES ();
 
-  /* Register mailbox formats */
+  /* Register all supported mailbox and mailer formats */
   mu_register_all_formats ();
-  
-  /* Register the supported mailers.  */
-  mu_registrar_record (mu_sendmail_record);
   mu_registrar_record (mu_smtp_record);
 
+  /* Register a special mailbox */
+  mu_registrar_record (mu_remote_mbox_record);
+  
   mu_gocs_register ("sieve", mu_sieve_module_init);
 
   mu_gocs_daemon = daemon_param;

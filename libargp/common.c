@@ -34,6 +34,7 @@ enum {
   OPT_NO_USER_RCFILE,
   OPT_NO_SITE_RCFILE,
   OPT_RCFILE,
+  OPT_RCFILE_LINT,
   OPT_RCFILE_VERBOSE,
   OPT_LOG_FACILITY,          
   OPT_LOCK_FLAGS,            
@@ -41,7 +42,8 @@ enum {
   OPT_LOCK_RETRY_TIMEOUT,    
   OPT_LOCK_EXPIRE_TIMEOUT,   
   OPT_LOCK_EXTERNAL_PROGRAM, 
-  OPT_LICENSE,               
+  OPT_LICENSE,
+  OPT_MAILBOX_PATTERN,
   OPT_MAILBOX_TYPE,
   OPT_DEBUG_LEVEL,
   OPT_LINE_INFO,
@@ -63,6 +65,8 @@ static struct argp_option mu_common_argp_options[] =
     N_("Load this configuration file"), 0, },
   { "rcfile-verbose", OPT_RCFILE_VERBOSE, NULL, 0,
     N_("Verbosely log parsing of the configuration files"), 0 },
+  { "rcfile-lint", OPT_RCFILE_LINT, NULL, 0,
+    N_("Check configuration file syntax and exit"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -87,6 +91,11 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       mu_load_rcfile = arg;
       break;
 
+    case OPT_RCFILE_LINT:
+      mu_cfg_parser_verbose++;
+      mu_rcfile_lint = 1;
+      break;
+      
     case OPT_RCFILE_VERBOSE:
       mu_cfg_parser_verbose++;
       break;
@@ -222,6 +231,8 @@ struct mu_cmdline_capa mu_license_cmdline = {
 static struct argp_option mu_mailbox_argp_option[] = {
   { "mail-spool", 'm', N_("URL"), OPTION_HIDDEN,
     N_("Use specified URL as a mailspool directory"), 0 },
+  { "mailbox-pattern", OPT_MAILBOX_PATTERN, N_("pat"), OPTION_HIDDEN,
+    "", 0 },
   { "mailbox-type", OPT_MAILBOX_TYPE, N_("PROTO"), OPTION_HIDDEN,
     N_("Default mailbox type to use"), 0 },
   { NULL }
@@ -239,6 +250,10 @@ mu_mailbox_argp_parser (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (&lst, "mail-spool", arg);
       break;
 
+    case OPT_MAILBOX_PATTERN:
+      mu_argp_node_list_new (&lst, "mailbox-pattern", arg);
+      break;
+      
     case OPT_MAILBOX_TYPE:
       mu_argp_node_list_new (&lst, "mailbox-type", arg);
       break;

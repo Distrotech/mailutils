@@ -114,8 +114,7 @@ static int folder_mbox_close       (mu_folder_t);
 static int folder_mbox_delete      (mu_folder_t, const char *);
 static int folder_mbox_rename      (mu_folder_t , const char *, const char *);
 static int folder_mbox_list        (mu_folder_t, const char *, const char *,
-				    size_t,
-				    mu_list_t);
+				    size_t, mu_list_t);
 static int folder_mbox_subscribe   (mu_folder_t, const char *);
 static int folder_mbox_unsubscribe (mu_folder_t, const char *);
 static int folder_mbox_lsub        (mu_folder_t, const char *, const char *,
@@ -380,9 +379,9 @@ list_helper (struct search_data *data,
   return status;
 }
 
-/* The listing is not recursif and we use glob() some expansion for us.
+/* The listing is not recursive and we use glob() some expansion for us.
    Unfortunately glob() does not expand the '~'.  We also return
-   The full pathname so it can be use to create other folders.  */
+   the full pathname so it can be use to create other folders.  */
 static int
 folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
 		  size_t max_level,

@@ -112,7 +112,7 @@ imap4d_unsubscribe (struct imap4d_command *command, char *arg)
 
   free (file);
   if (rc)
-    return util_finish (command, RESP_NO, "Can not unsubscribe");
+    return util_finish (command, RESP_NO, "Cannot unsubscribe");
 
   return util_finish (command, RESP_OK, "Completed");
 }

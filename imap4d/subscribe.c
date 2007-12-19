@@ -45,5 +45,5 @@ imap4d_subscribe (struct imap4d_command *command, char *arg)
       fclose (fp);
       return util_finish (command, RESP_OK, "Completed");
     }
-  return util_finish (command, RESP_NO, "Can not subscribe");
+  return util_finish (command, RESP_NO, "Cannot subscribe");
 }

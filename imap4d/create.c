@@ -71,7 +71,7 @@ imap4d_create (struct imap4d_command *command, char *arg)
   name = namespace_getfullpath (name, delim);
 
   if (!name)
-    return util_finish (command, RESP_NO, "Can not create mailbox");
+    return util_finish (command, RESP_NO, "Cannot create mailbox");
 
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
@@ -98,7 +98,7 @@ imap4d_create (struct imap4d_command *command, char *arg)
 			else
 			  {
 			    rc = RESP_NO;
-			    msg = "Can not create mailbox";
+			    msg = "Cannot create mailbox";
 			    break;
 			  }
 		      }
@@ -113,7 +113,7 @@ imap4d_create (struct imap4d_command *command, char *arg)
 	      else
 		{
 		  rc = RESP_NO;
-		  msg = "Can not create mailbox";
+		  msg = "Cannot create mailbox";
 		}
 	    }
 	}

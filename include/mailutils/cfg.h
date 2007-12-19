@@ -231,6 +231,7 @@ int mu_parse_config (const char *file, const char *progname,
 int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
+extern size_t mu_cfg_error_count;
 
 void mu_cfg_format_docstring (mu_stream_t stream, const char *docstring,
 			      int level);

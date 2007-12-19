@@ -74,5 +74,5 @@ imap4d_lsub (struct imap4d_command *command, char *arg)
     }
   else if (errno == ENOENT)
     return util_finish (command, RESP_OK, "Completed");
-  return util_finish (command, RESP_NO, "Can not list subscriber");
+  return util_finish (command, RESP_NO, "Cannot list subscriber");
 }

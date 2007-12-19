@@ -43,6 +43,10 @@ static struct mu_cfg_param mu_mailbox_param[] = {
   { "mail-spool", mu_cfg_string, &mailbox_settings.mail_spool, 0, NULL,
     N_("Use specified URL as a mailspool directory."),
     N_("url") },
+  { "mailbox-pattern", mu_cfg_string, &mailbox_settings.mailbox_pattern,
+    0, NULL,
+    N_("Create mailbox URL using <pattern>."),
+    N_("pattern") },
   { "mailbox-type", mu_cfg_string, &mailbox_settings.mailbox_type, 0, NULL,
     N_("Default mailbox type."), N_("protocol") },
   { NULL }

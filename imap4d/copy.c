@@ -109,7 +109,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
       return RESP_OK;
     }
 
-  /* Unless it is certain that the destination mailbox can not be created,
+  /* Unless it is certain that the destination mailbox cannot be created,
      the server MUST send the response code "[TRYCREATE]" as the prefix
      of the text of the tagged NO response.  This gives a hint to the
      client that it can attempt a CREATE command and retry the copy if

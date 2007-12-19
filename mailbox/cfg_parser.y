@@ -36,6 +36,7 @@ int mu_cfg_parser_verbose;
 static mu_cfg_node_t *parse_tree;
 mu_cfg_locus_t mu_cfg_locus;
 int mu_cfg_tie_in;
+size_t mu_cfg_error_count;
  
 static int _mu_cfg_errcnt;
 static mu_cfg_lexer_t _mu_cfg_lexer;
@@ -100,6 +101,7 @@ mu_cfg_format_error (mu_debug_t debug, size_t level, const char *fmt, ...)
   mu_debug_vprintf (debug, 0, fmt, ap);
   mu_debug_printf (debug, 0, "\n");
   va_end (ap);
+  mu_cfg_error_count++;
 }  
 
 static void
@@ -114,6 +116,7 @@ _mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
   mu_debug_vprintf (debug, 0, fmt, ap);
   mu_debug_printf (debug, 0, "\n");
   mu_debug_set_locus (debug, NULL, 0);
+  mu_cfg_error_count++;
 }
 
 static void

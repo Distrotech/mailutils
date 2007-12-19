@@ -36,7 +36,7 @@ struct inode_list
 };
 
 /*
-  1- IMAP4 insists: the reference argument that is include in the
+  1- IMAP4 insists: the reference argument present in the
   interpreted form SHOULD prefix the interpreted form.  It SHOULD
   also be in the same form as the reference name argument.  This
   rule permits the client to determine if the returned mailbox name
@@ -52,7 +52,7 @@ struct inode_list
 
   2- The character "*" is a wildcard, and matches zero or more characters
   at this position.  The charcater "%" is similar to "*",
-  but it does not match ahierarchy delimiter.  */
+  but it does not match a hierarchy delimiter.  */
 
 static int  match (const char *, const char *, const char *);
 static void list_file (const char *, const char *, const char *, const char *, struct inode_list *);

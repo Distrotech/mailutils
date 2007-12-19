@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-07
+GNU mailutils NEWS -- history of user-visible changes. 2007-12-19
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -30,10 +30,14 @@ affect the given program.
 
 Maidag is a MAIl Delivery AGent. It is a general-purpose MDA able to
 run in both traditional and LMTP mode and to deliver mails to various
-mailbox formats. It is also able to process incoming messages using
-Sieve or Scheme scripts and, based on results of this processing,
-to take a decision on whether to actually deliver and where to
-deliver them.
+mailbox formats.  These formats, among others, include remote+smtp and
+remote+sendmail (see `New mailbox types.', below), which are
+equivalent to forwarding a message over SMTP.  Thus, maidag supercedes
+both `mail.local' and `mail.remote' (both of which are still included
+for backward compatibility).  Maidag is also able to process incoming
+messages using Sieve or Scheme scripts and, based on results of this
+processing, to take a decision on whether to actually deliver and
+where to deliver them.
 
 ** New Sieve action `pipe'
 
@@ -215,6 +219,14 @@ Any mu_url_get_.* accessors return MU_ERR_ENOENT if the corresponding
 field is not present in the object. Previous versions in that case
 returned 0 and stored empty string in the output buffer.
 
+** New mailbox types.
+
+Two new mailbox types, "remote+smtp" and "remote+sendmail", are
+supported. These are `append-only' mailboxes, i.e. the only operation
+that can be done over them is mu_mailbox_append_message.  E.g.,
+appending to the URL `remote+smtp://127.0.0.1:24' is equivalent to
+sending a message using mailer `smtp://127.0.0.1:24'.
+
 ** Fixed parsing of URLs similar to file:///a/b. 
 
 It is parsed as an absolute file name `/a/b'.
@@ -223,6 +235,10 @@ Previous versions incorrectly understood such an URL as `a/b'
 (relative file name). 
 
 ** Remove v0.6 compatibility layer.
+
+** Function mu_mail_directory is removed.
+
+** New function mu_mailbox_url.
 
 
 Version 1.2:

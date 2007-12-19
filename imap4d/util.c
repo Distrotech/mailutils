@@ -26,7 +26,7 @@ static int add2set (size_t **, int *, unsigned long);
 static const char *sc2string (int);
 
 /* Get the next space/CR/NL separated word, some words are between double
-   quotes, strtok() can not handle it.  */
+   quotes, strtok() cannot handle it.  */
 char *
 util_getword (char *s, char **save)
 {

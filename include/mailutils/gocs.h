@@ -52,6 +52,7 @@ struct mu_gocs_debug
 struct mu_gocs_mailbox
 {
   char *mail_spool;
+  char *mailbox_pattern;
   char *mailbox_type;
 };
 

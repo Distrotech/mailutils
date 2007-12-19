@@ -44,12 +44,12 @@ imap4d_delete (struct imap4d_command *command, char *arg)
  /* Allocates memory.  */
   name = namespace_getfullpath (name, delim);
   if (!name)
-    return util_finish (command, RESP_NO, "Can not remove");
+    return util_finish (command, RESP_NO, "Cannot remove");
 
   if (remove (name) != 0)
     {
       rc = RESP_NO;
-      msg = "Can not remove";
+      msg = "Cannot remove";
     }
   free (name);
   return util_finish (command, rc, msg);

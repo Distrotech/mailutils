@@ -178,7 +178,7 @@ _url_mbox_init (mu_url_t url)
   
   /* reject the obvious */
   if (name == NULL || strncmp (MU_MBOX_SCHEME, name, MU_MBOX_SCHEME_LEN) != 0
-      || len < (MU_MBOX_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
+      || len < (MU_MBOX_SCHEME_LEN + 1) /* (scheme)+1+(path)*/)
     return EINVAL;
 
   /* do I need to decode url encoding '% hex hex' ? */
