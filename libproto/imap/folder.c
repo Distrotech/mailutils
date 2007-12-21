@@ -111,9 +111,10 @@ static int  folder_imap_open        (mu_folder_t, int);
 static int  folder_imap_close       (mu_folder_t);
 static void folder_imap_destroy     (mu_folder_t);
 static int  folder_imap_delete      (mu_folder_t, const char *);
-static int  folder_imap_list        (mu_folder_t, const char *, const char *,
+static int  folder_imap_list        (mu_folder_t, const char *, void *,
 				     size_t,
-				     mu_list_t);
+				     mu_list_t,
+				     mu_folder_enumerate_fp efp, void *edp);
 static int  folder_imap_lsub        (mu_folder_t, const char *, const char *,
 				     mu_list_t);
 static int  folder_imap_rename      (mu_folder_t, const char *,
@@ -975,9 +976,10 @@ glob_to_imap (const char *pat, int recursive)
 }
 
 static int
-folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
+folder_imap_list (mu_folder_t folder, const char *ref, void *name,
 		  size_t max_level,
-		  mu_list_t flist)
+		  mu_list_t flist,
+		  mu_folder_enumerate_fp efp, void *edp)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
@@ -991,6 +993,11 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
     ref = "";
   if (name == NULL)
     name = "";
+
+  f_imap->folder = folder;
+  f_imap->enum_fun = efp;
+  f_imap->enum_stop = 0;
+  f_imap->enum_data = edp;
 
   switch (f_imap->state)
     {
@@ -1017,6 +1024,11 @@ folder_imap_list (mu_folder_t folder, const char *ref, const char *name,
       break;
     }
 
+  f_imap->folder = NULL;
+  f_imap->enum_fun = NULL;
+  f_imap->enum_stop = 0;
+  f_imap->enum_data = NULL;
+  
   list_copy (flist, f_imap->flist, strlen (ref),
 	     imap_mailbox_name_match, name, max_level);
 
@@ -1040,6 +1052,10 @@ folder_imap_lsub (mu_folder_t folder, const char *ref, const char *name,
     ref = "";
   if (name == NULL)
     name = "";
+
+  f_imap->enum_fun = NULL;
+  f_imap->enum_stop = 0;
+  f_imap->enum_data = NULL;
 
   switch (f_imap->state)
     {
@@ -1384,7 +1400,10 @@ imap_list (f_imap_t f_imap)
   int status = 0;
   int argc;
   char **argv;
-  
+
+  if (f_imap->enum_stop)
+    return 0;
+      
   buffer = malloc (len);
   if (!buffer)
     return ENOMEM;
@@ -1400,7 +1419,6 @@ imap_list (f_imap_t f_imap)
       mu_list_create (&f_imap->flist);
       mu_list_set_destroy_item (f_imap->flist, mu_list_response_free);
     }
-  mu_list_append (f_imap->flist, lr);
 
   /* Glob untag.  */
   tok = strtok_r (buffer, " ", &sp);
@@ -1475,6 +1493,12 @@ imap_list (f_imap_t f_imap)
     }
   mu_argcv_free (argc, argv);
   free (buffer);
+
+  if (f_imap->enum_fun)
+    f_imap->enum_stop = f_imap->enum_fun (f_imap->folder, lr,
+					  f_imap->enum_data);
+  mu_list_append (f_imap->flist, lr);
+  
   return status;
 }
 

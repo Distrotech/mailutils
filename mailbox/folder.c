@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fnmatch.h>
 
 #include <mailutils/auth.h>
 #include <mailutils/debug.h>
@@ -45,13 +46,19 @@ static int is_known_folder (mu_url_t, mu_folder_t *);
 /* Static folder lock.  */
 static struct mu_monitor folder_lock = MU_MONITOR_INITIALIZER;
 
+int
+mu_folder_match (const char *name, void *pattern, int flags)
+{
+  return fnmatch (pattern, name[0] == '/' ? name + 1 : name, flags);
+}
+
 /* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
-   etc ..  We maintain a known list of folder to not generate multiple folder
-   of the same URL.  Meaning when mu_folder_create () is call we'll check if we
-   already have a folder for that URL and return the same, if not we create a
-   new one.  The downside, the scheme to detect the same URL is very weak, and
-   they maybe cases where you want a different folder for the same URL, there
-   is not easy way to do this.  */
+   etc ..  We maintain a list of known folders to avoid creating multiple
+   folders for the same URL.  So, when mu_folder_create is called we check if
+   we already have a folder for that URL and return it, otherwise we create a
+   new one.  Downsides: the scheme to detect the same URL is very weak, and
+   there could be cases where you'll want a different folder for the same URL,
+   there is not easy way to do this.  */
 int
 mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 			      mu_record_t record)
@@ -112,6 +119,8 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 		  status = f_init (folder);
 		  if (status == 0)
 		    {
+		      if (!folder->_match)
+			folder->_match = mu_folder_match;
 		      *pfolder = folder;
 		      folder->ref++;
 		      /* Put on the internal list of known folders.  */
@@ -280,6 +289,26 @@ mu_folder_get_observable (mu_folder_t folder, mu_observable_t *pobservable)
 }
 
 int
+mu_folder_set_match (mu_folder_t folder, mu_folder_match_fp pmatch)
+{
+  if (folder == NULL)
+    return EINVAL;
+  folder->_match = pmatch;
+  return 0;
+}
+
+int
+mu_folder_get_match (mu_folder_t folder, mu_folder_match_fp *pmatch)
+{
+  if (folder == NULL)
+    return EINVAL;
+  if (pmatch == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  *pmatch = folder->_match;
+  return 0;
+}
+
+int
 mu_folder_has_debug (mu_folder_t folder)
 {
   if (folder == NULL)
@@ -325,20 +354,41 @@ mu_list_response_free (void *data)
 }
 
 int
-mu_folder_list (mu_folder_t folder, const char *dirname, const char *basename,
+mu_folder_list (mu_folder_t folder, const char *dirname, void *pattern,
 		size_t max_level,
 		mu_list_t *pflist)
+{
+  return mu_folder_enumerate (folder, dirname, pattern, 0, max_level,
+			      pflist, NULL, NULL);
+}
+
+int
+mu_folder_enumerate (mu_folder_t folder, const char *name,
+		     void *pattern, int flags,
+		     size_t max_level,
+		     mu_list_t *pflist,
+		     mu_folder_enumerate_fp enumfun, void *enumdata)
 {
   int status;
   if (folder == NULL || folder->_list == NULL)
     return EINVAL;
   else
     {
-      status = mu_list_create (pflist);
-      if (status)
-	return status;
-      mu_list_set_destroy_item (*pflist, mu_list_response_free);
-      status = folder->_list (folder, dirname, basename, max_level, *pflist);
+      mu_list_t list = NULL;
+      
+      if (pflist)
+	{
+	  status = mu_list_create (&list);
+	  if (status)
+	    return status;
+	  *pflist = list;
+	  mu_list_set_destroy_item (list, mu_list_response_free);
+	}
+      else if (!enumfun)
+	return EINVAL;
+      
+      status = folder->_list (folder, name, pattern, flags, max_level,
+			      list, enumfun, enumdata);
       if (status)
 	mu_list_destroy (pflist);
     }

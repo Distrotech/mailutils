@@ -53,8 +53,6 @@ imap4d_test "LIST \"/\" \"*\""\
 
 imap4d_test -sort "LIST \"$MU_DATA_DIR\" \"*\""\
 "LIST (\\NoSelect) \"/\" $MU_DATA_DIR/etc"\
-"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/mail.rc"\
-"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/passwd"\
 "LIST (\\NoSelect) \"/\" $MU_DATA_DIR/spool"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/bigto.mbox"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/relational.mbox" \
@@ -77,13 +75,8 @@ imap4d_test "LIST \"$MU_DATA_DIR/folder\" \"one\""\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/folder/one"\
 "OK LIST Completed"
 
-# Well, I doubt if this is quite OK with the RFC, but at least it does
-# not contradict it. The first INBOX refers to the reserved word meaning
-# "the primary mailbox for this user on this server", the second one is
-# the actual filename.
 imap4d_test -sort "LIST \"\" INBOX"\
 "LIST (\\NoInferiors) NIL INBOX"\
-"LIST (\\NoInferiors) \"/\" INBOX"\
 "OK LIST Completed"	
 
 imap4d_stop

@@ -148,11 +148,6 @@ struct imap4d_command
 #define NS_SHARED  2
 #define NS_MAX     3
 
-/* Wildcard return codes */
-#define WCARD_NOMATCH        0
-#define WCARD_MATCH          1
-#define WCARD_RECURSE_MATCH  2
-
 /*  IMAP4D capability names */
 #define IMAP_CAPA_STARTTLS       "STARTTLS"
 #define IMAP_CAPA_LOGINDISABLED  "LOGINDISABLED"

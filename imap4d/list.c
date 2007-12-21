@@ -28,12 +28,89 @@
 #define NOINFERIORS      (1 << 3)
 #define NOSELECT_RECURSE (1 << 4)
 
-struct inode_list
+static int
+imap4d_match (const char *name, void *pat, int flags)
 {
-  struct inode_list *next;
-  ino_t inode;
-  dev_t dev;
+  return util_wcard_match (name, pat, "/");
+}
+
+struct refinfo
+{
+  char *refptr;   /* Original reference */
+  size_t reflen;  /* Length of the original reference */
+  size_t pfxlen;  /* Length of the current prefix */
+  size_t homelen; /* Length of homedir */
+  char *buf;
+  size_t bufsize;
 };
+
+static int
+list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
+{
+  char *name;
+  struct refinfo *refinfo = data;
+  size_t size;
+  
+  name = resp->name;
+  size = strlen (name);
+  if (size == refinfo->homelen + 6
+      && memcmp (name, homedir, refinfo->homelen) == 0
+      && memcmp (name + refinfo->homelen + 1, "INBOX", 5) == 0)
+    return 0;
+     
+  util_send ("* %s", "LIST (");
+  if ((resp->type & (MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY))
+       == (MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY))
+    /* nothing */;
+  else if (resp->type & MU_FOLDER_ATTRIBUTE_FILE)
+    util_send ("\\NoInferiors");
+  else if (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+    util_send ("\\NoSelect");
+  
+  util_send (") \"%c\" ", resp->separator);
+
+  name = resp->name + refinfo->pfxlen;
+  size = strlen (name) + refinfo->reflen + 1;
+  if (size > refinfo->bufsize)
+    {
+      if (refinfo->buf == NULL)
+	{
+	  refinfo->bufsize = size;
+	  refinfo->buf = malloc (refinfo->bufsize);
+	  if (!refinfo->buf)
+	    {
+	      mu_error ("%s", mu_strerror (errno));
+	      return 1;
+	    }
+	  memcpy (refinfo->buf, refinfo->refptr, refinfo->reflen);
+	}
+      else
+	{
+	  char *p = realloc (refinfo->buf, size);
+	  if (!p)
+	    {
+	      mu_error ("%s", mu_strerror (errno));
+	      return 1;
+	    }
+	  refinfo->buf = p;
+	  refinfo->bufsize = size;
+	}
+    }
+
+  if ((refinfo->reflen == 0 || refinfo->refptr[refinfo->reflen - 1] == '/')
+      && name[0] == '/')
+    name++;
+  strcpy (refinfo->buf + refinfo->reflen, name);
+  name = refinfo->buf;
+  
+  if (strpbrk (name, "\"{}"))
+    util_send ("{%d}\r\n%s\r\n", strlen (name), name);
+  else if (is_atom (name))
+    util_send ("%s\r\n", name);
+  else
+    util_send ("\"%s\"\r\n", name);
+  return 0;
+}
 
 /*
   1- IMAP4 insists: the reference argument present in the
@@ -42,6 +119,7 @@ struct inode_list
   rule permits the client to determine if the returned mailbox name
   is in the context of the reference argument, or if something about
   the mailbox argument overrode the reference argument.
+  
   ex:
   Reference         Mailbox         -->  Interpretation
   ~smith/Mail        foo.*          -->  ~smith/Mail/foo.*
@@ -51,13 +129,8 @@ struct inode_list
   archive            ~fred/Mail     --> ~fred/Mail/ *
 
   2- The character "*" is a wildcard, and matches zero or more characters
-  at this position.  The charcater "%" is similar to "*",
-  but it does not match a hierarchy delimiter.  */
-
-static int  match (const char *, const char *, const char *);
-static void list_file (const char *, const char *, const char *, const char *, struct inode_list *);
-static void print_file (const char *, const char *, const char *);
-static void print_dir (const char *, const char *, const char *);
+  at this position.  The character "%" is similar to "*",
+  but it does not match the hierarchy delimiter.  */
 
 int
 imap4d_list (struct imap4d_command *command, char *arg)
@@ -90,8 +163,12 @@ imap4d_list (struct imap4d_command *command, char *arg)
     }
   else
     {
+      int status;
+      mu_folder_t folder;
       char *cwd;
-      char *dir;
+      char *p, *q;
+      struct refinfo refinfo;
+      
       switch (*wcard)
 	{
 	  /* Absolute Path in wcard, dump the old ref.  */
@@ -130,20 +207,22 @@ imap4d_list (struct imap4d_command *command, char *arg)
       /* Move any directory not containing a wildcard into the reference
 	 So (ref = ~guest, wcard = Mail/folder1/%.vf) -->
 	 (ref = ~guest/Mail/folder1, wcard = %.vf).  */
-      for (; (dir = strpbrk (wcard, "/%*")); wcard = dir)
+      for (p = wcard; (q = strpbrk (p, "/%*")) && *q == '/'; p = q + 1)
+	;
+
+      if (p > wcard)
 	{
-	  if (*dir == '/')
-	    {
-	      *dir = '\0';
-	      ref = realloc (ref, strlen (ref) + 1 + (dir - wcard) + 1);
-	      if (*ref && ref[strlen (ref) - 1] != '/')
-		strcat (ref, "/");
-	      strcat (ref, wcard);
-	      dir++;
-	    }
-	  else
-	    dir = wcard;	  
-	    break;
+	  size_t seglen = p - wcard;
+	  size_t reflen = strlen (ref);
+	  int addslash = !!(reflen == 0 || ref[reflen-1] != '/'); 
+	  size_t len = seglen + reflen + addslash + 1;
+
+	  ref = realloc (ref, len);
+	  if (addslash)
+	    ref[reflen++] = '/';
+	  memcpy (ref + reflen, wcard, seglen);
+	  ref[reflen + seglen] = 0;
+	  wcard += seglen;
 	}
 
       /* Allocates.  */
@@ -154,6 +233,22 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	  return util_finish (command, RESP_NO,
 			      "The requested item could not be found.");
 	}
+      status = mu_folder_create (&folder, cwd);
+      if (status)
+	{
+	  free (ref);
+	  free (cwd);
+	  return util_finish (command, RESP_NO,
+			      "The requested item could not be found.");
+	}
+      mu_folder_set_match (folder, imap4d_match);
+
+      memset (&refinfo, 0, sizeof refinfo);
+
+      refinfo.refptr = ref;
+      refinfo.reflen = strlen (ref);
+      refinfo.pfxlen = strlen (cwd);
+      refinfo.homelen = strlen (homedir);
 
       /* The special name INBOX is included in the output from LIST, if
 	 INBOX is supported by this server for this user and if the
@@ -163,211 +258,18 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	 failure; it is not relevant whether the user's real INBOX resides
 	 on this or some other server. */
 
-      if (!*ref && (match ("INBOX", wcard, delim)
-		    || match ("inbox", wcard, delim)))
+      if (!*ref && (imap4d_match ("INBOX", wcard, 0) == 0
+		    || imap4d_match ("inbox", wcard, 0) == 0))
 	util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
-      
-      if (chdir (cwd) == 0)
-	{
-	  struct stat st;
-	  struct inode_list inode_rec;
-	  
-	  stat (cwd, &st);
-	  inode_rec.next = NULL;
-	  inode_rec.inode = st.st_ino;
-	  inode_rec.dev   = st.st_dev;
-	  list_file (cwd, ref, (dir) ? dir : wcard, delim, &inode_rec);
-	  chdir (homedir);
-	}
+
+      mu_folder_enumerate (folder, NULL, wcard, 0, 0, NULL,
+			   list_fun, &refinfo);
+      mu_folder_destroy (&folder);
+      free (refinfo.buf);
       free (cwd);
       free (ref);
     }
 
   return util_finish (command, RESP_OK, "Completed");
-}
-
-static int
-inode_list_lookup (struct inode_list *list, struct stat *st)
-{
-  for (; list; list = list->next)
-    if (list->inode == st->st_ino && list->dev == st->st_dev)
-      return 1;
-  return 0;
-}
-
-static char *
-mkfullname (const char *dir, const char *name, const char *delim)
-{
-  char *p;
-  int dlen = strlen (dir);
-
-  if (dlen == 0)
-    return strdup (name);
-  
-  if (dir[dlen-1] == delim[0])
-    dlen--;
-
-  p = malloc (dlen + 1 + strlen (name) + 1);
-  if (p)
-    {
-      memcpy (p, dir, dlen);
-      p[dlen] = '/';
-      strcpy (p + dlen + 1, name);
-    }
-  return p;
-}
-
-/* Recusively calling the files.  */
-static void
-list_file (const char *cwd, const char *ref, const char *pattern,
-	   const char *delim, struct inode_list *inode_list)
-{
-  DIR *dirp;
-  struct dirent *dp;
-  char *next;
-
-  if (!cwd || !ref)
-    return;
-  
-  /* Shortcut no wildcards.  */
-  if (*pattern == '\0' || !strpbrk (pattern, "%*"))
-    {
-      /* Equivalent to stat().  */
-      int status;
-      if (*pattern == '\0')
-	status = match (cwd, cwd, delim);
-      else
-	status = match (pattern, pattern, delim);
-      if (status & NOSELECT)
-	print_dir (ref, pattern, delim);
-      else if (status & NOINFERIORS)
-	print_file (ref, pattern, delim);
-      return ;
-    }
-
-  dirp = opendir (".");
-  if (dirp == NULL)
-    return;
-
-  next = strchr (pattern, delim[0]);
-  if (next)
-    *next++ = '\0';
-  while ((dp = readdir (dirp)) != NULL)
-    {
-      /* Skip "", ".", and "..".  "" is returned by at least one buggy
-	 implementation: Solaris 2.4 readdir on NFS filesystems.  */
-      char const *entry = dp->d_name;
-      if (entry[entry[0] != '.' ? 0 : entry[1] != '.' ? 1 : 2] != '\0' &&
-	  !(!strcmp (entry, "INBOX") && !strcmp(cwd, homedir)))
-	{
-	  int status = match (entry, pattern, delim);
-	  if (status)
-	    {
-	      if (status & NOSELECT)
-		{
-		  struct stat st;
-
-		  if (stat (entry, &st))
-		    {
-		      mu_error (_("Cannot stat %s: %s"),
-				entry, strerror (errno));
-		      continue;
-		    }
-
-		  if (next || status & RECURSE_MATCH)
-		    {
-		      if (!next)
-			print_dir (ref, entry, delim);
-
-		      if (S_ISDIR (st.st_mode)
-			  && inode_list_lookup (inode_list, &st) == 0)
-			{
-			  if (chdir (entry) == 0)
-			    {
-			      char *rf;
-			      char *cd;
-			      struct inode_list inode_rec;
-
-			      inode_rec.inode = st.st_ino;
-			      inode_rec.dev   = st.st_dev;
-			      inode_rec.next = inode_list;
-			      rf = mkfullname (ref, entry, delim);
-			      cd = mkfullname (cwd, entry, delim);
-			      list_file (cd, rf, (next) ? next : pattern,
-					 delim, &inode_rec);
-			      free (rf);
-			      free (cd);
-			      chdir (cwd);
-			    }
-			}
-		    }
-		  else
-		    print_dir (ref, entry, delim);
-		}
-	      else if (status & NOINFERIORS)
-		{
-		  print_file (ref, entry, delim);
-		}
-	    }
-	}
-    }
-  closedir (dirp);
-}
-
-static void
-print_name (const char *ref, const char *file, const char *delim,
-	     const char *attr)
-{
-  char *name = mkfullname (ref, file, delim);
-  if (strpbrk (name, "\"{}"))
-    {
-      util_out (RESP_NONE, "LIST (%s) \"%s\" {%d}",
-		attr, delim, strlen (name));
-      util_send ("%s\r\n", name);
-    }
-  else if (is_atom (name))
-    util_out (RESP_NONE, "LIST (%s) \"%s\" %s", attr, delim, name);
-  else
-    util_out (RESP_NONE, "LIST (%s) \"%s\" \"%s\"", attr, delim, name);
-  free (name);
-}
-
-static void
-print_file (const char *ref, const char *file, const char *delim)
-{
-  print_name (ref, file, delim, "\\NoInferiors");
-}
-
-static void
-print_dir (const char *ref, const char *file, const char *delim)
-{
-  print_name (ref, file, delim, "\\NoSelect");
-}
-
-/* Calls the imap_matcher if a match found out the attribute. */
-static int
-match (const char *entry, const char *pattern, const char *delim)
-{
-  struct stat stats;
-  int status = util_wcard_match (entry, pattern, delim);
-
-  switch (status)
-    {
-    case WCARD_RECURSE_MATCH:
-      status = RECURSE_MATCH;
-      break;
-    case WCARD_MATCH:
-      status = MATCH;
-      break;
-    case WCARD_NOMATCH:
-      status = NOMATCH;
-    }
-  
-  if (status)
-    {
-      if (stat (entry, &stats) == 0)
-	status |=  (S_ISREG (stats.st_mode)) ? NOINFERIORS : NOSELECT;
-    }
-  return status;
 }
 

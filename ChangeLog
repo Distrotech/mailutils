@@ -1,3 +1,36 @@
+2007-12-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/lsf.c: Use mu_folder_enumerate + callback function, for
+	speed up.
+	* imap4d/imap4d.h (WCARD_NOMATCH,WCARD_MATCH)
+	(WCARD_RECURSE_MATCH): Remove.
+	* imap4d/list.c: Rewrite using mu_folder_enumerate.
+	* imap4d/lsub.c (imap4d_lsub): Fix call to util_wcard_match.
+	* imap4d/util.c (util_wcard_match): Return 0 for match, 1
+	otherwise.
+	* imap4d/testsuite/imap4d/list.exp: Fix two testcases to match
+	the new (stricter RFC-compliant) behavior.
+	* include/mailutils/folder.h (mu_folder_match_fp): New typedef.
+	(mu_folder_enumerate_fp): New typedef.
+	(mu_folder_enumerate): New function.
+	(mu_folder_set_match, mu_folder_get_match): New functions.
+
+	* libproto/imap/folder.c, libproto/include/imap0.h,
+	libproto/nntp/folder.c : Use new folder list framework.
+	* libproto/include/folder0.h (struct _mu_folder._list): Change
+	signature.
+	(_match): New member.
+	* libproto/mbox/folder.c (_path_is_scheme): Improve automatic
+	mailbox	format detection.
+	(folder_mbox_list): Do not use glob, recursively scan
+	subdirectories instead.
+	* mailbox/folder.c (mu_folder_match): New function.
+	(mu_folder_create_from_record): Set mu_folder_match as the default
+	matcher.
+	(mu_folder_set_match, mu_folder_get_match): New functions.
+	(mu_folder_enumerate): New function.
+	(mu_folder_list): Rewrite using mu_folder_enumerate.
+
 2007-12-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update.

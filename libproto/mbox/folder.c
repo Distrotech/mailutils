@@ -41,6 +41,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
+#include <mailutils/debug.h>
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
@@ -77,11 +78,32 @@ _path_is_scheme (mu_record_t record, const char *url, int flags)
 	  struct stat st;
 	  
 	  if (stat (path, &st) < 0)
-	    return MU_FOLDER_ATTRIBUTE_ALL; /* mu_mailbox_open will complain */
+	    {
+	      if (errno == ENOENT)
+		rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	      return rc;
+	    }
 
-	  if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
-	      && (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode)))
-	    rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	  if (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode))
+	    {
+	      if (st.st_size == 0)
+		{
+		  rc |= MU_FOLDER_ATTRIBUTE_FILE;
+		}
+	      else if (flags & MU_FOLDER_ATTRIBUTE_FILE)
+		{
+		  int fd = open (path, O_RDONLY);
+		  if (fd != -1)
+		    {
+		      char buf[5];
+		      if (read (fd, buf, 5) == 5)
+			if (memcmp (buf, "From ", 5) == 0)
+			  rc |= MU_FOLDER_ATTRIBUTE_FILE;
+		      close (fd);
+		    }
+		}
+	    }
+	  
 	  if ((flags & MU_FOLDER_ATTRIBUTE_DIRECTORY)
 	      && S_ISDIR (st.st_mode))
 	    rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
@@ -113,8 +135,9 @@ static int folder_mbox_open        (mu_folder_t, int);
 static int folder_mbox_close       (mu_folder_t);
 static int folder_mbox_delete      (mu_folder_t, const char *);
 static int folder_mbox_rename      (mu_folder_t , const char *, const char *);
-static int folder_mbox_list        (mu_folder_t, const char *, const char *,
-				    size_t, mu_list_t);
+static int folder_mbox_list        (mu_folder_t, const char *, void *, int,
+				    size_t, mu_list_t, mu_folder_enumerate_fp,
+				    void *);
 static int folder_mbox_subscribe   (mu_folder_t, const char *);
 static int folder_mbox_unsubscribe (mu_folder_t, const char *);
 static int folder_mbox_lsub        (mu_folder_t, const char *, const char *,
@@ -228,7 +251,8 @@ folder_mbox_delete (mu_folder_t folder, const char *filename)
 }
 
 static int
-folder_mbox_rename (mu_folder_t folder, const char *oldpath, const char *newpath)
+folder_mbox_rename (mu_folder_t folder, const char *oldpath,
+		    const char *newpath)
 {
   fmbox_t fmbox = folder->data;
   if (oldpath && newpath)
@@ -266,8 +290,15 @@ struct inode_list           /* Inode/dev number list used to cut off
 struct search_data
 {
   mu_list_t result;
-  const char *pattern;
+  mu_folder_enumerate_fp enumfun;
+  void *enumdata;
+  char *dirname;
+  size_t dirlen;
+  void *pattern;
+  int flags;
   size_t max_level;
+  size_t errcnt;
+  mu_folder_t folder;
 };
 
 static int
@@ -279,126 +310,146 @@ inode_list_lookup (struct inode_list *list, struct stat *st)
   return 0;
 }
 
-
 static int
-list_helper (struct search_data *data,
-	     const char *dirname, size_t level, struct inode_list *ilist)
+list_helper (struct search_data *data, const char *dirname, size_t level,
+	     struct inode_list *ilist)
 {
-  int status;
-  glob_t gl;
-  char *pathname;
-
-  ++level;
+  DIR *dirp;
+  struct dirent *dp;
+  int stop = 0;
+  
   if (data->max_level && level > data->max_level)
     return 0;
-  
-  pathname = get_pathname (dirname, data->pattern);
-  if (!pathname)
-    return ENOMEM;
 
-  memset(&gl, 0, sizeof(gl));
-  status = glob (pathname, 0, NULL, &gl);
-  free (pathname);
-
-  if (status == 0)
+  dirp = opendir (dirname);
+  if (dirp == NULL)
     {
-      size_t i;
-      struct mu_list_response *resp;
+      MU_DEBUG2 (data->folder->debug, MU_DEBUG_ERROR,
+		 "list_helper cannot open directory %s: %s",
+		 dirname, mu_strerror (errno));
+      data->errcnt++;
+      return 1;
+    }
+  
+  while ((dp = readdir (dirp)))
+    {
+      char const *ename = dp->d_name;
+      char *fname;
       
-      for (i = 0; i < gl.gl_pathc; i++)
+      if (ename[ename[0] != '.' ? 0 : ename[1] != '.' ? 1 : 2] == 0)
+	continue;
+      fname = get_pathname (dirname, ename);
+      if (data->folder->_match == NULL
+	  || data->folder->_match (fname + data->dirlen +
+				   ((data->dirlen > 1
+				    && data->dirname[data->dirlen-1] != '/') ?
+				    1 : 0),
+				   data->pattern,
+				   data->flags) == 0)
 	{
 	  struct stat st;
-	  
-	  resp = malloc (sizeof (*resp));
-	  if (resp == NULL)
-	    {
-	      status = ENOMEM;
-	      break;
-	    }
-	  else if ((resp->name = strdup (gl.gl_pathv[i])) == NULL)
-	    {
-	      free (resp);
-	      status = ENOMEM;
-	      break;
-	    }
 
-	  resp->level = level;
-	  resp->separator = '/';
-	  resp->type = 0;
-	  
-	  mu_list_append (data->result, resp);
-
-	  if (stat (gl.gl_pathv[i], &st) == 0)
+	  if (stat (fname, &st) == 0)
 	    {
-	      resp->type = 0;
-	      mu_registrar_lookup (gl.gl_pathv[i], MU_FOLDER_ATTRIBUTE_ALL,
-				   NULL, &resp->type);
-	      if ((resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+	      char *refname = fname;
+	      int type = 0;
+	      struct mu_list_response *resp;
+	      
+	      resp = malloc (sizeof (*resp));
+	      if (resp == NULL)
+		{
+		  MU_DEBUG1 (data->folder->debug, MU_DEBUG_ERROR,
+			     "list_helper: %s", mu_strerror (ENOMEM));
+		  data->errcnt++;
+		  free (fname);
+		  continue;
+		}
+
+	      mu_registrar_lookup (refname, MU_FOLDER_ATTRIBUTE_ALL, NULL,
+				   &type);
+
+	      resp->name = fname;
+	      resp->level = level;
+	      resp->separator = '/';
+	      resp->type = type;
+
+	      if (resp->type == 0)
+		{
+		  free (resp->name);
+		  free (resp);
+		  continue;
+		}
+
+	      if (data->enumfun)
+		{
+		  if (data->enumfun (data->folder, resp, data->enumdata))
+		    {
+		      free (resp->name);
+		      free (resp);
+		      stop = 1;
+		      break;
+		    }
+		}
+
+	      if (data->result)
+		{
+		  fname = NULL;
+		  mu_list_append (data->result, resp);
+		}
+	      else
+		free (resp);
+
+	      if ((type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
 		  && !inode_list_lookup (ilist, &st))
 		{
 		  struct inode_list idata;
+		      
 		  idata.inode = st.st_ino;
 		  idata.dev   = st.st_dev;
 		  idata.next  = ilist;
-		  status = list_helper (data, gl.gl_pathv[i], level, &idata);
-		  if (status)
-		    break;
+		  stop = list_helper (data, refname, level + 1, &idata);
 		}
 	    }
-	}
-      globfree (&gl);
-    }
-  else
-    {
-      switch (status)
-	{
-	case GLOB_NOSPACE:
-	  status = ENOMEM;
-	  break;
-
-	case GLOB_ABORTED:
-	  status = MU_ERR_READ;
-	  break;
-
-	case GLOB_NOMATCH:
-	  if (mu_list_is_empty (data->result))
-	    status = MU_ERR_NOENT;
 	  else
-	    status = 0;
-	  break;
-
-	case GLOB_NOSYS:
-	  status = ENOSYS;
-	  break;
-	  
-	default:
-	  status = MU_ERR_FAILURE;
-	  break;
+	    {
+	      MU_DEBUG2 (data->folder->debug, MU_DEBUG_ERROR,
+			 "list_helper cannot stat %s: %s",
+			 fname, mu_strerror (errno));
+	    }
 	}
+      free (fname);
     }
-  return status;
+  closedir (dirp);
+  return stop;
 }
 
-/* The listing is not recursive and we use glob() some expansion for us.
-   Unfortunately glob() does not expand the '~'.  We also return
-   the full pathname so it can be use to create other folders.  */
 static int
-folder_mbox_list (mu_folder_t folder, const char *dirname, const char *pattern,
+folder_mbox_list (mu_folder_t folder, const char *ref,
+		  void *pattern,
+		  int flags,
 		  size_t max_level,
-		  mu_list_t flist)
+		  mu_list_t flist,
+		  mu_folder_enumerate_fp enumfun, void *enumdata)
 {
   fmbox_t fmbox = folder->data;
   struct inode_list iroot;
   struct search_data sdata;
   
   memset (&iroot, 0, sizeof iroot);
-  if (dirname == NULL || dirname[0] == '\0')
-    dirname = (const char *)fmbox->dirname;
-
+  sdata.dirname = get_pathname (fmbox->dirname, ref);
+  sdata.dirlen = strlen (sdata.dirname);
   sdata.result = flist;
+  sdata.enumfun = enumfun;
+  sdata.enumdata = enumdata;
   sdata.pattern = pattern;
+  sdata.flags = flags;
   sdata.max_level = max_level;
-  return list_helper (&sdata, dirname, 0, &iroot);
+  sdata.folder = folder;
+  sdata.errcnt = 0;
+  list_helper (&sdata, sdata.dirname, 0, &iroot);
+  free (sdata.dirname);
+  /* FIXME: error code */
+  return 0;
 }
 
 static int

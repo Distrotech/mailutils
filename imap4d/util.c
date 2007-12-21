@@ -1028,7 +1028,7 @@ util_localname ()
   return localname;
 }
 
-/* Match STRING against the IMAP4 wildard pattern PATTERN */
+/* Match STRING against the IMAP4 wildcard pattern PATTERN. */
 
 int
 util_wcard_match (const char *string, const char *pattern, const char *delim)
@@ -1041,40 +1041,39 @@ util_wcard_match (const char *string, const char *pattern, const char *delim)
       switch (c)
 	{
 	case '%':
+	  /* Matches everything except '/' */
 	  if (*p == '\0')
 	    {
-	      /* Matches everything except '/' */
-	      for (; *n && *n != delim[0]; n++)
-		;
-	      return (*n == delim[0]) ? WCARD_RECURSE_MATCH : WCARD_MATCH;
+	      for (; *n; ++n)
+		if (*n == *delim)
+		  return 1;
+	      return 0;
 	    }
 	  else
 	    for (; *n != '\0'; ++n)
-	      if (util_wcard_match (n, p, delim) == WCARD_MATCH)
-		return WCARD_MATCH;
+	      if (util_wcard_match (n, p, delim) == 0)
+		return 0;
 	  break;
 
 	case '*':
 	  if (*p == '\0')
-	    return WCARD_RECURSE_MATCH;
-	  for (; *n != '\0'; ++n)
-	    {
-	      int status = util_wcard_match (n, p, delim);
-	      if (status == WCARD_MATCH || status == WCARD_RECURSE_MATCH)
-		return status;
-	    }
+	    return 0;
+	  else
+	    for (; *n != '\0'; ++n)
+	      if (util_wcard_match (n, p, delim) == 0)
+		return 0;
 	  break;
 
 	default:
 	  if (c != *n)
-	    return WCARD_NOMATCH;
+	    return 1;
 	}
     }
 
   if (!c && !*n)
-    return WCARD_MATCH;
+    return 0;
 
-  return WCARD_NOMATCH;
+  return 1;
 }
 
 /* Return the uindvalidity of a mailbox.

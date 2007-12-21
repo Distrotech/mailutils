@@ -25,10 +25,8 @@
 #include <mailutils/mailutils.h>
 
 static int
-ls_printer (void *item, void *data)
+enumfun (mu_folder_t folder, struct mu_list_response *resp, void *data)
 {
-  struct mu_list_response *resp = item;
-
   printf ("%c%c %c %4d %s\n",
 	  (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY) ? 'd' : '-',
 	  (resp->type & MU_FOLDER_ATTRIBUTE_FILE) ? 'f' : '-',
@@ -60,13 +58,14 @@ ls_folders (char *fname, char *ref, char *pattern, int level)
       return 1;
     }
 
-  status = mu_folder_list (folder, ref, pattern, level, &flist);
+  status = mu_folder_enumerate (folder, ref, pattern, 0, level, &flist,
+				enumfun, NULL);
+  
   switch (status)
     {
     case 0:
       mu_list_count (flist, &count);
       printf ("Number of folders: %lu\n", (unsigned long) count);
-      mu_list_do (flist, ls_printer, NULL);
       mu_list_destroy (&flist);
       break;
     case MU_ERR_NOENT:
@@ -105,7 +104,5 @@ main (int argc, char *argv[])
 
   mu_register_all_mbox_formats ();
 
-  if (!ref)
-    ref = folder;
   return ls_folders (folder, ref, pattern, level);
 }

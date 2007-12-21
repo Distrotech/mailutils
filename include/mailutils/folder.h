@@ -33,6 +33,10 @@ struct mu_list_response
   char *name;
 };
 
+typedef int (*mu_folder_match_fp) (const char *, void *, int);
+typedef int (*mu_folder_enumerate_fp) (mu_folder_t, struct mu_list_response *,
+				       void *data);
+  
 /* Constructor/destructor and possible types.  */
 extern int  mu_folder_create         (mu_folder_t *, const char *);
 extern int  mu_folder_create_from_record (mu_folder_t *, const char *,
@@ -47,8 +51,12 @@ extern int  mu_folder_delete         (mu_folder_t, const char *);
 extern int  mu_folder_rename         (mu_folder_t, const char *, const char *);
 extern int  mu_folder_subscribe      (mu_folder_t, const char *);
 extern int  mu_folder_unsubscribe    (mu_folder_t, const char *);
-extern int  mu_folder_list           (mu_folder_t, const char *, const char *,
+extern int  mu_folder_list           (mu_folder_t, const char *, void *,
 				      size_t, mu_list_t *);
+extern int  mu_folder_enumerate      (mu_folder_t, const char *,
+				      void *, int, 
+				      size_t, mu_list_t *,
+				      mu_folder_enumerate_fp, void *);
 extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
 				      mu_list_t *);
 
@@ -56,6 +64,11 @@ extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
 extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *);
 extern int  mu_folder_set_stream     (mu_folder_t, mu_stream_t);
 
+  /* Match function */
+extern int mu_folder_set_match (mu_folder_t folder, mu_folder_match_fp pmatch);
+extern int mu_folder_get_match (mu_folder_t folder,
+				mu_folder_match_fp *pmatch);
+  
   /* Notifications.  */
 extern int  mu_folder_get_observable (mu_folder_t, mu_observable_t *);
 

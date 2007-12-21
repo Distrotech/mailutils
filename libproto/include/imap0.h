@@ -161,7 +161,10 @@ struct _f_imap
 
   /* Use for LIST and LSUB.  */
   mu_list_t flist;
-
+  mu_folder_enumerate_fp enum_fun;
+  void *enum_data;
+  int enum_stop;
+  
   int isopen;
 
   /* Server channel buffer I/O  */
@@ -170,8 +173,8 @@ struct _f_imap
   char *ptr;
   char *nl;
   mu_off_t offset; /* Dummy, this is used because of the stream buffering.
-                   The mu_stream_t maintains and offset and the offset we use must
-                   be in sync.  */
+                   The mu_stream_t maintains and offset and the offset we
+		   use must be in sync.  */
 
   /* Login  */
   char *user;

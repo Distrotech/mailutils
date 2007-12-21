@@ -33,6 +33,9 @@
 extern "C" {
 #endif
 
+#define MU_FOLDER_LIST 0
+#define MU_FOLDER_ENUM 1
+  
 struct _mu_folder
 {
   /* Data */
@@ -55,11 +58,11 @@ struct _mu_folder
 
   int  (*_open)        (mu_folder_t, int flag);
   int  (*_close)       (mu_folder_t);
-  int  (*_list)        (mu_folder_t, const char *, const char *,
-			size_t,
-		        mu_list_t);
+  int  (*_list)        (mu_folder_t, const char *, void *, int, size_t,
+			mu_list_t, mu_folder_enumerate_fp, void *);
   int  (*_lsub)        (mu_folder_t, const char *, const char *,
 		        mu_list_t);
+  mu_folder_match_fp   _match;
   int  (*_delete)      (mu_folder_t, const char *);
   int  (*_rename)      (mu_folder_t, const char *, const char *);
   int  (*_subscribe)   (mu_folder_t, const char *);
