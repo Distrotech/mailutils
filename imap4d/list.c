@@ -21,13 +21,6 @@
 #include <dirent.h>
 #include <pwd.h>
 
-#define NOMATCH          (0)
-#define MATCH            (1 << 0)
-#define RECURSE_MATCH    (1 << 1)
-#define NOSELECT         (1 << 2)
-#define NOINFERIORS      (1 << 3)
-#define NOSELECT_RECURSE (1 << 4)
-
 static int
 imap4d_match (const char *name, void *pat, int flags)
 {
