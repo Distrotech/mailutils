@@ -24,7 +24,7 @@ static char *bulletin_db_name;
 void
 set_bulletin_db (char *file)
 {
-  bulletin_db_name = file;
+  bulletin_db_name = strdup (file);
 }
 
 static void
@@ -67,7 +67,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
 int
 set_bulletin_source (char *source)
 {
-  bulletin_mbox_name = source;
+  bulletin_mbox_name = strdup (source);
   return 0;
 }
 
@@ -145,8 +145,14 @@ read_bulletin_db (size_t *pnum)
 
   if (rc)
     {
+      int ec = errno;
+      if (ec == ENOENT)
+        {
+           *pnum = 0;
+           return 0;
+        }
       mu_error (_("Cannot fetch bulletin db data: %s"),
-		mu_strerror (errno));
+		mu_strerror (ec));
       mu_dbm_close (db);
       return 1;
     }
@@ -236,18 +242,14 @@ write_bulletin_db (size_t num)
 }
 #endif /* USE_DBM */
       
-size_t
-get_last_delivered_num ()
+int
+get_last_delivered_num (size_t *pret)
 {
-  size_t num = 0;
-  
 #ifdef USE_DBM  
-  if (bulletin_db_name && read_bulletin_db (&num) == 0)
-    return num;
+  if (bulletin_db_name && read_bulletin_db (pret) == 0)
+    return 0;
 #endif
-
-  read_popbull_file (&num);
-  return num;
+  return read_popbull_file (pret);
 }
 
 void
@@ -271,9 +273,8 @@ deliver_pending_bulletins ()
     return;
   
   rc = open_bulletin_mailbox (&bull);
-  if (rc)
+  if (rc || get_last_delivered_num (&lastnum))
     return;
-  lastnum = get_last_delivered_num ();
 
   rc = mu_mailbox_messages_count (bull, &total);
   if (rc)

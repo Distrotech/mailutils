@@ -677,7 +677,7 @@ struct _prog_stream
   pid_t pid;
   int status;
   pid_t writer_pid;
-  size_t argc;
+  int argc;
   char **argv;
   mu_stream_t in, out;
 

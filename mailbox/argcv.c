@@ -28,6 +28,7 @@
 /* Keep mailutils namespace clean */
 #define argcv_get            mu_argcv_get 
 #define argcv_get_n          mu_argcv_get_n 
+#define argcv_get_np         mu_argcv_get_np 
 #define argcv_string         mu_argcv_string
 #define argcv_free           mu_argcv_free  
 #define argcv_unquote_char   mu_argcv_unquote_char
@@ -47,15 +48,45 @@
 #define isws(c) ((c)==' '||(c)=='\t'||(c)=='\n')
 #define isdelim(c,delim) (strchr(delim,(c))!=NULL)
 
+struct argcv_info
+{
+  int len;
+  const char *command;
+  const char *delim;
+  const char *comment;
+  int flags;
+  
+  int start;
+  int end;
+  int save;
+  int finish_pos;
+};
+
+static void
+init_argcv_info (struct argcv_info *ap, int flags,
+		 int len, const char *command, const char *delim,
+		 const char *comment)
+{
+  memset (ap, 0, sizeof *ap);
+  ap->len = len;
+  ap->command = command;
+  ap->delim = delim;
+  ap->comment = comment;
+  ap->flags = flags;
+}
+
 static int
-argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
-	    int *start, int *end, int *save)
+argcv_scan (struct argcv_info *ap)
 {
   int i = 0;
+  int len = ap->len;
+  const char *command = ap->command;
+  const char *delim = ap->delim;
+  const char *comment = ap->comment;
   
   for (;;)
     {
-      i = *save;
+      i = ap->save;
 
       if (i >= len)
 	return i + 1;
@@ -63,7 +94,7 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
       /* Skip initial whitespace */
       while (i < len && isws (command[i]))
 	i++;
-      *start = i;
+      ap->start = i;
 
       if (!isdelim (command[i], delim))
 	{
@@ -80,11 +111,11 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	      if (command[i] == '\'' || command[i] == '"')
 		{
 		  int j;
-		  for (j = i+1; j < len && command[j] != command[i]; j++)
+		  for (j = i + 1; j < len && command[j] != command[i]; j++)
 		    if (command[j] == '\\')
 		      j++;
 		  if (j < len)
-		    i = j+1;
+		    i = j + 1;
 		  else
 		    i++;
 		}
@@ -95,27 +126,36 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	    }
 	  i--;
 	}
+      else if (!(ap->flags & MU_ARGCV_RETURN_DELIMS))
+	{
+	  while (i < len && isdelim (command[i], delim))
+	    i++;
+	  ap->save = i;
+	  continue;
+	}
+      
 
-      *end = i;
-      *save = i + 1;
+      ap->end = i;
+      ap->save = ap->finish_pos = i + 1;
 
       /* If we have a token, and it starts with a comment character, skip
          to the newline and restart the token search. */
-      if (*save <= len)
+      if (ap->save <= len)
 	{
-	  if (strchr (cmnt, command[*start]) != NULL)
+	  if (strchr (comment, command[ap->start]) != NULL)
 	    {
-	      i = *save;
+	      ap->finish_pos = ap->start;
+	      i = ap->save;
 	      while (i < len && command[i] != '\n')
 		i++;
 
-	      *save = i;
+	      ap->save = i;
 	      continue;
 	    }
 	}
       break;
     }
-  return *save;
+  return ap->save;
 }
 
 static char quote_transtab[] = "\\\\a\ab\bf\fn\nr\rt\t";
@@ -312,64 +352,82 @@ argcv_quote_copy (char *dst, const char *src)
 }
 
 int
-argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
-	     int *argc, char ***argv)
+argcv_get_np (const char *command, int len,
+	      const char *delim, const char *cmnt,
+	      int flags,
+	      int *pargc, char ***pargv, char **endp)
 {
   int i = 0;
-  int start, end, save;
-
-  *argv = NULL;
-
-  /* Count number of arguments */
-  *argc = 0;
-  save = 0;
-
+  struct argcv_info info;
+  int argc;
+  char **argv;
+  
   if (!delim)
     delim = "";
   if (!cmnt)
     cmnt = "";
-  
-  while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) <= len)
-      (*argc)++;
 
-  *argv = calloc ((*argc + 1), sizeof (char *));
-  if (*argv == NULL)
+  init_argcv_info (&info, flags, len, command, delim, cmnt);
+
+  /* Count number of arguments */
+  argc = 0;
+  while (argcv_scan (&info) <= len)
+    argc++;
+
+  argv = calloc ((argc + 1), sizeof (char *));
+  if (argv == NULL)
     return ENOMEM;
   
   i = 0;
-  save = 0;
-  for (i = 0; i < *argc; i++)
+  info.save = 0;
+  for (i = 0; i < argc; i++)
     {
       int n;
       int unquote;
       
-      argcv_scan (len, command, delim, cmnt, &start, &end, &save);
+      argcv_scan (&info);
 
-      if ((command[start] == '"' || command[end] == '\'')
-	  && command[end] == command[start])
+      if ((command[info.start] == '"' || command[info.end] == '\'')
+	  && command[info.end] == command[info.start])
 	{
-	  if (start < end)
+	  if (info.start < info.end)
 	    {
-	      start++;
-	      end--;
+	      info.start++;
+	      info.end--;
 	    }
 	  unquote = 0;
 	}
       else
 	unquote = 1;
       
-      n = end - start + 1;
-      (*argv)[i] = calloc (n+1,  sizeof (char));
-      if ((*argv)[i] == NULL)
-	return ENOMEM;
+      n = info.end - info.start + 1;
+      argv[i] = calloc (n + 1,  sizeof (char));
+      if (argv[i] == NULL)
+	{
+	  argcv_free (i, argv);
+	  return ENOMEM;
+	}
       if (unquote)
-	argcv_unquote_copy ((*argv)[i], &command[start], n);
+	argcv_unquote_copy (argv[i], &command[info.start], n);
       else
-	memcpy ((*argv)[i], &command[start], n);
-      (*argv)[i][n] = 0;
+	memcpy (argv[i], &command[info.start], n);
+      argv[i][n] = 0;
     }
-  (*argv)[i] = NULL;
+  argv[i] = NULL;
+
+  *pargc = argc;
+  *pargv = argv;
+  if (endp)
+    *endp = (char*) (command + info.finish_pos);
   return 0;
+}
+
+int
+argcv_get_n (const char *command, int len, const char *delim, const char *cmnt,
+	     int *pargc, char ***pargv)
+{
+  return argcv_get_np (command, len, delim, cmnt, MU_ARGCV_RETURN_DELIMS,
+		       pargc, pargv, NULL);
 }
 
 int
@@ -445,3 +503,35 @@ argcv_string (int argc, char **argv, char **pstring)
   return 0;
 }
 
+void
+mu_argcv_remove (int *pargc, char ***pargv,
+		 int (*sel) (const char *, void *), void *data)
+{
+  int i, j;
+  int argc = *pargc;
+  char **argv = *pargv;
+  int cnt = 0;
+  
+  for (i = j = 0; i < argc; i++)
+    {
+      if (sel (argv[i], data))
+	{
+	  free (argv[i]);
+	  cnt++;
+	}
+      else
+	{
+	  if (i != j)
+	    argv[j] = argv[i];
+	  j++;
+	}
+    }
+  if (i != j)
+    argv[j] = NULL;
+  argc -= cnt;
+
+  *pargc = argc;
+  *pargv = argv;
+}
+      
+ 

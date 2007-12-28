@@ -1460,3 +1460,18 @@ util_rfc2047_decode (char **value)
     }
 }
 
+const char *
+util_url_to_string (mu_url_t url)
+{
+  const char *scheme;
+  if (mu_url_sget_scheme (url, &scheme) == 0)
+    {
+      if (strcmp (scheme, "file") == 0 || strcmp (scheme, "mbox") == 0)
+	{
+	  const char *path;
+	  if (mu_url_sget_path (url, &path) == 0)
+	    return path;
+	}
+    }
+  return mu_url_to_string (url);
+}

@@ -1,3 +1,77 @@
+2007-12-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Additional mailbox URL parameters `type', `user' and `param' can
+	appear in any local URLs.
+
+	* TODO, NEWS: Update.
+	
+	* examples/url-parse.c: Print field/value pairs.
+	* include/mailutils/argcv.h (MU_ARGCV_RETURN_DELIMS): New macro.
+	(mu_argcv_get_np): New function.
+	(mu_argcv_remove): New function.
+	* include/mailutils/mutil.h (mu_scheme_autodetect_p): Change
+	prototype.
+	* include/mailutils/registrar.h (mu_registrar_lookup_url): New
+	function.
+	(struct _mu_record._is_scheme): Change signature.
+	* include/mailutils/url.h (mu_url_sget_fvpairs)
+	(mu_url_aget_fvpairs): New functions.
+	(mu_url_expand_path): New function.
+
+	* libproto/imap/folder.c (folder_imap_list): Fix signature.
+	* libproto/nntp/folder.c (nntp_folder_list): Fix signature.
+	* libproto/include/amd.h (amd_url_init): Remove.
+	* libproto/include/registrar0.h: Fix scheme defines.
+	* libproto/include/url0.h (struct _mu_url.fvpairs,fvcount): New
+	members.
+	* libproto/maildir/folder.c (_maildir_is_scheme): Change
+	signature.
+	(_maildir_url_init): Remove
+	(_maildir_record): Remove url_init.
+	* libproto/mbox/folder.c (_path_record): Remove url_init.
+	(_mbox_record): Use mu_url_expand_path as url_init.
+	(_path_is_scheme): Change signature.
+	* libproto/mh/folder.c (_mh_is_scheme): Change signature.
+	(_mh_url_init): Remove.
+	(_mh_record): Use mu_url_expand_path as url_init.
+	* libproto/mbox/Makefile.am (libmu_mbox_la_SOURCES): Remove url.c
+	* libproto/mbox/url.c: Remove.
+	
+	* mail/mail.h, mail/util.c (util_url_to_string): New function.
+	* mail/quit.c, mail/summary.c: Use util_url_to_string where
+	appropriate.
+	* mailbox/amd.c (amd_url_destroy, amd_url_init): Remove.
+	* mailbox/argcv.c (mu_argcv_get_np): New function.
+	(argcv_scan): Change signature. All callers updated.
+	(argcv_get_n): Rewrite using argcv_get_np.
+	(mu_argcv_remove): New function.
+
+	* mailbox/file_stream.c (struct _prog_stream.argc): Fix data type.
+	* mailbox/folder.c (mu_folder_create_from_record): URL initializer
+	is optional.
+	* mailbox/gdebug.c (mu_global_debug_from_string): Fix datatype of
+	argc.
+	* mailbox/mailbox.c (mailbox_folder_create): Rewrite.
+	(_create_mailbox): Split off _create_mailbox0 function.
+	Make URL initializer optional.
+	* mailbox/mutil.c (mu_scheme_autodetect_p): Rewrite.
+	* mailbox/registrar.c (mu_registrar_lookup_url): New function.
+	(mu_registrar_lookup): Rewrite using mu_registrar_lookup_url.
+	(mu_record_is_scheme,mu_record_set_is_scheme): Change signature.
+	* mailbox/url.c (mu_url_destroy): Destroy fvpairs.
+	(url_parse0): Use scheme "file" for URLs beginning with a /.
+	Parse parameters.
+	(mu_url_sget_fvpairs, mu_url_aget_fvpairs): New functions.
+	(mu_url_expand_path): New function.
+	* mailbox/testsuite/Urls: Update.
+	
+	* pop3d/bulletin.c (set_bulletin_db,set_bulletin_source): Allocate
+	string storage.
+	(read_bulletin_db): Return 0 if no record was found.
+	(get_last_delivered_num): Return error code.
+	(deliver_pending_bulletins): Rewrite.
+	* pop3d/capa.c (pop3d_capa): Bugfix.
+
 2007-12-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/lsf.c: Use mu_folder_enumerate + callback function, for

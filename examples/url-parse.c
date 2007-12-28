@@ -39,6 +39,22 @@
         }                                                               \
       printf ("\t" #field " <%s>\n", buf)
 
+static void
+print_fvpairs (mu_url_t url)
+{
+  size_t fvc, i;
+  char **fvp;
+  int rc = mu_url_sget_fvpairs (url, &fvc, &fvp);
+  if (rc)
+    {
+      mu_error ("cannot get F/V pairs: %s", mu_strerror (rc));
+      exit (1);
+    }
+  if (fvc == 0)
+    return;
+  for (i = 0; i < fvc; i++)
+    printf ("\tparam[%d] <%s>\n", i, fvp[i]);
+}
 
 int
 main ()
@@ -84,6 +100,7 @@ main ()
       printf ("\tport %ld\n", port);
       
       GET_AND_PRINT (path, u, buf, rc);
+      print_fvpairs (u);
       GET_AND_PRINT (query, u, buf, rc);
 
       mu_url_destroy (&u);

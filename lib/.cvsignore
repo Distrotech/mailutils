@@ -143,6 +143,8 @@ streq.h
 strerror.c
 string.h
 string.in.h
+strings.h
+strings.in.h
 stripslash.c
 strncasecmp.c
 strndup.c

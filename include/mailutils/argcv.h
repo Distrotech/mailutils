@@ -28,12 +28,18 @@
 extern "C" {
 #endif
 
+#define MU_ARGCV_RETURN_DELIMS 0x01
+  
 extern int mu_argcv_get    (const char *command, const char *delim,
 			 const char* cmnt,
 			 int *argc, char ***argv);
 extern int mu_argcv_get_n (const char *command, int len,
 		        const char *delim, const char *cmnt,
 			int *argc, char ***argv);
+extern int mu_argcv_get_np (const char *command, int len,
+			    const char *delim, const char *cmnt,
+			    int flags,
+			    int *pargc, char ***pargv, char **endp);
   
 extern int mu_argcv_string (int argc, char **argv, char **string);
 extern int mu_argcv_free   (int argc, char **argv);
@@ -42,6 +48,8 @@ extern int mu_argcv_quote_char   (int c);
 extern size_t mu_argcv_quoted_length (const char *str, int *quote);
 extern void mu_argcv_unquote_copy (char *dst, const char *src, size_t n);
 extern void mu_argcv_quote_copy (char *dst, const char *src);
+extern void mu_argcv_remove (int *pargc, char ***pargv,
+			     int (*sel) (const char *, void *), void *);
   
 #ifdef __cplusplus
 }

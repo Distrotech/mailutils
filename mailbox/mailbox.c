@@ -42,20 +42,28 @@
 #include <mailutils/mutil.h>
 
 #include <mailbox0.h>
+#include <url0.h>
 
 static int
-mailbox_folder_create (mu_folder_t *pfolder, const char *name)
+mailbox_folder_create (mu_mailbox_t mbox, const char *name,
+		       mu_record_t record)
 {
   int rc;
-  char *p, *fname = strdup (name);
+  char *fname;
 
-  if (!fname)
-    return ENOMEM;
+  if ((rc = mu_url_aget_path (mbox->url, &fname)))
+    return rc;
 
-  p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
-  if (p && !(mu_is_proto (fname) && strncmp (fname, "file:", 5)))
-    *p = 0;
-  rc = mu_folder_create (pfolder, fname);
+  if (mu_url_is_scheme (mbox->url, "file")
+      || mu_url_is_scheme (mbox->url, "mbox")
+      || mu_url_is_scheme (mbox->url, "mh")
+      || mu_url_is_scheme (mbox->url, "maildir"))
+    {
+      char *p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
+      if (p)
+	*p = 0;
+    }
+  rc = mu_folder_create_from_record (&mbox->folder, fname, record);
   free (fname);
   return rc;
 }
@@ -85,22 +93,21 @@ mu_mailbox_get_default_proto ()
 }
 
 static int
-_create_mailbox (mu_mailbox_t *pmbox, const char *name)
+_create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 {
+  int status;
   mu_record_t record = NULL;
 
-  if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
+  if (mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL)
+      == 0)
     {
       mu_log_level_t level;
       int (*m_init) (mu_mailbox_t) = NULL;
-      int (*u_init) (mu_url_t) = NULL;
       
       mu_record_get_mailbox (record, &m_init);
-      mu_record_get_url (record, &u_init);
-      if (m_init && u_init)
+      if (m_init)
         {
-	  int status;
-	  mu_url_t url;
+	  int (*u_init) (mu_url_t) = NULL;
 	  mu_mailbox_t mbox;
 
 	  /* Allocate memory for mbox.  */
@@ -117,19 +124,31 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 	      return status;
 	    }
 
-	  /* Parse the url, it may be a bad one and we should bailout if this
-	     failed.  */
-	  if ((status = mu_url_create (&url, name)) != 0
-	      || (status = u_init (url)) != 0)
+	  mu_record_get_url (record, &u_init);
+	  if (u_init && (status = u_init (url)) != 0)
 	    {
 	      mu_mailbox_destroy (&mbox);
 	      return status;
 	    }
+
+	  /* Make sure scheme contains actual mailbox scheme */
+	  if (strcmp (url->scheme, record->scheme))
+	    {
+	      char *p = strdup (record->scheme);
+	      if (!p)
+		{
+		  mu_mailbox_destroy (&mbox);
+		  return errno;
+		}
+	      free (url->scheme);
+	      url->scheme = p;
+	    }
+
 	  mbox->url = url;
 	  
 	  /* Create the folder before initializing the concrete mailbox.
 	     The mailbox needs it's back pointer. */
-	  status = mailbox_folder_create (&mbox->folder, name);
+	  status = mailbox_folder_create (mbox, name, record);
 	  
 	  if (status == 0)
 	    status = m_init (mbox);   /* Create the concrete mailbox type.  */
@@ -158,6 +177,21 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 	}
     }
   return MU_ERR_NO_HANDLER;
+}
+
+static int
+_create_mailbox (mu_mailbox_t *pmbox, const char *name)
+{
+  int status;
+  mu_url_t url;
+
+  status = mu_url_create (&url, name);
+  if (status)
+    return status;
+  status = mu_url_parse (url);
+  if (status == 0)
+    status = _create_mailbox0 (pmbox, url, name);
+  return status;
 }
 
 /* The Mailbox Factory.

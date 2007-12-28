@@ -33,6 +33,7 @@
 
 #include <maildir.h>
 #include <mailutils/mutil.h>
+#include <mailutils/url.h>
 #include <amd.h>
 
 static int
@@ -56,22 +57,21 @@ dir_exists (const char *name, const char *suf)
 }
 
 static int
-_maildir_is_scheme (mu_record_t record, const char *url, int flags)
+_maildir_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
-  const char *path;
-  
-  if (!url || !record->scheme)
-    return 0;
-
-  if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
+  if (mu_url_is_scheme (url, record->scheme))
     return MU_FOLDER_ATTRIBUTE_ALL & flags; 
 
-  if (mu_scheme_autodetect_p (url, &path))
+  if (mu_scheme_autodetect_p (url))
     {
       /* Attemp auto-detection */
+      const char *path;
       struct stat st;
       int rc = 0;
       
+      if (mu_url_sget_path (url, &path))
+        return 0;
+
       if (stat (path, &st) < 0)
 	return 0; 
 
@@ -89,21 +89,11 @@ _maildir_is_scheme (mu_record_t record, const char *url, int flags)
   return 0;
 }
 
-/*
-  MAILDIR url
-  maildir:path
-*/
-int
-_maildir_url_init (mu_url_t url)
-{
-  return amd_url_init (url, MU_MAILDIR_SCHEME);
-}
-
 static struct _mu_record _maildir_record =
 {
   MU_MAILDIR_PRIO,
   MU_MAILDIR_SCHEME,
-  _maildir_url_init, /* Url init.  */
+  mu_url_expand_path, /* Url init.  */
   _mailbox_maildir_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
   _maildir_folder_init, /* Folder init.  */

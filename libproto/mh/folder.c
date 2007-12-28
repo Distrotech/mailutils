@@ -88,22 +88,22 @@ mh_dir_p (const char *name)
 }
 
 static int
-_mh_is_scheme (mu_record_t record, const char *url, int flags)
+_mh_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
-  const char *path;
   int rc = 0;
   
-  if (!url || !record->scheme)
-    return 0;
-
-  if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
+  if (mu_url_is_scheme (url, record->scheme))
     return MU_FOLDER_ATTRIBUTE_ALL & flags;
 
-  if (mu_scheme_autodetect_p (url, &path))
+  if (mu_scheme_autodetect_p (url))
     {
       /* Attemp auto-detection */
+      const char *path;
       struct stat st;
       
+      if (mu_url_sget_path (url, &path))
+        return 0;
+
       if (stat (path, &st) < 0)
 	return 0; /* mu_mailbox_open will complain*/
 
@@ -119,21 +119,11 @@ _mh_is_scheme (mu_record_t record, const char *url, int flags)
   return 0;
 }
 
-/*
-  MH url
-  mh:path
-*/
-static int
-_mh_url_init (mu_url_t url)
-{
-  return amd_url_init (url, MU_MH_SCHEME);
-}
-
 static struct _mu_record _mh_record =
 {
   MU_MH_PRIO,
   MU_MH_SCHEME,
-  _mh_url_init, /* Url init.  */
+  mu_url_expand_path, /* Url init.  */
   _mailbox_mh_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
   _mh_folder_init, /* Folder init.  */

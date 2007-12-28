@@ -128,7 +128,7 @@ extern int mu_unre_subject  (const char *subject, const char **new_subject);
 extern char *mu_charset_lookup (char *lang, char *terr);
 
 extern int mu_true_answer_p (const char *p);
-extern int mu_scheme_autodetect_p (const char *scheme, const char **path);
+extern int mu_scheme_autodetect_p (mu_url_t);
 
 struct timeval; 
   

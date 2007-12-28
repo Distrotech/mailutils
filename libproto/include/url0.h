@@ -40,8 +40,9 @@ struct _mu_url
   char  *host;
   long  port;
   char  *path;
+  char  **fvpairs;
+  int   fvcount;
   char  *query;
-
 
   void  *data;
 

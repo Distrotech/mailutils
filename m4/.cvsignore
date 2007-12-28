@@ -84,6 +84,7 @@ strchrnul.m4
 strdup.m4
 strerror.m4
 string_h.m4
+strings_h.m4
 strndup.m4
 strnlen.m4
 strtok_r.m4

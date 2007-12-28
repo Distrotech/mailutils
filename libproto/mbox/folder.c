@@ -50,7 +50,7 @@ static struct _mu_record _mbox_record =
 {
   MU_MBOX_PRIO,
   MU_MBOX_SCHEME,
-  _url_mbox_init, /* Mailbox init.  */
+  mu_url_expand_path, /* URL init.  */
   _mailbox_mbox_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
   _folder_mbox_init, /* Folder init.  */
@@ -64,19 +64,18 @@ static struct _mu_record _mbox_record =
 mu_record_t mu_mbox_record = &_mbox_record;
 
 static int
-_path_is_scheme (mu_record_t record, const char *url, int flags)
+_path_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
   int rc = 0;
-  const char *path;
   
   if (url && record->scheme)
     {
-      if (mu_scheme_autodetect_p (url, &path))
-	/* implies:
-	   if (strncmp (record->scheme, url, strlen(record->scheme)) == 0) */
+      if (mu_scheme_autodetect_p (url))
 	{
 	  struct stat st;
-	  
+	  const char *path;
+
+	  mu_url_sget_path (url, &path);
 	  if (stat (path, &st) < 0)
 	    {
 	      if (errno == ENOENT)
@@ -92,6 +91,10 @@ _path_is_scheme (mu_record_t record, const char *url, int flags)
 		}
 	      else if (flags & MU_FOLDER_ATTRIBUTE_FILE)
 		{
+#if 0
+		  /* This effectively sieves out all non-mailbox files,
+		     but it makes mu_folder_enumerate crawl, which is
+		     intolerable for imap4d LIST command. */
 		  int fd = open (path, O_RDONLY);
 		  if (fd != -1)
 		    {
@@ -101,6 +104,9 @@ _path_is_scheme (mu_record_t record, const char *url, int flags)
 			  rc |= MU_FOLDER_ATTRIBUTE_FILE;
 		      close (fd);
 		    }
+#else
+		  rc |= MU_FOLDER_ATTRIBUTE_FILE;
+#endif
 		}
 	    }
 	  
@@ -116,7 +122,7 @@ static struct _mu_record _path_record =
 {
   MU_PATH_PRIO,
   MU_PATH_SCHEME,
-  _url_path_init,     /* Mailbox init.  */
+  NULL,     /* URL init.  */
   _mailbox_mbox_init, /* Mailbox init.  */
   NULL,               /* Mailer init.  */
   _folder_mbox_init,  /* Folder init.  */

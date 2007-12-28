@@ -50,7 +50,7 @@ pop3d_capa (const char *arg)
 
   login_delay_capa ();
   /* This can be implemented by setting an header field on the message.  */
-  if (expire < 0)
+  if (expire == EXPIRE_NEVER)
     pop3d_outf ("EXPIRE NEVER\r\n");
   else 
     pop3d_outf ("EXPIRE %s\r\n", mu_umaxtostr (0, expire));

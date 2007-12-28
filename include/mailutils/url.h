@@ -59,9 +59,13 @@ extern int mu_url_get_query  (const mu_url_t, char *, size_t, size_t *);
   
 extern int mu_url_get_port    (const mu_url_t, long *);
 
+int mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp);
+int mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp);
+
+extern int mu_url_expand_path (mu_url_t url);
 extern const char *mu_url_to_string   (const mu_url_t);
 
-extern int mu_url_is_scheme   (mu_url_t, const char* scheme);
+extern int mu_url_is_scheme   (mu_url_t, const char *scheme);
 
 extern int mu_url_is_same_scheme (mu_url_t, mu_url_t);
 extern int mu_url_is_same_user   (mu_url_t, mu_url_t);
@@ -69,11 +73,11 @@ extern int mu_url_is_same_path   (mu_url_t, mu_url_t);
 extern int mu_url_is_same_host   (mu_url_t, mu_url_t);
 extern int mu_url_is_same_port   (mu_url_t, mu_url_t);
 
-extern char* mu_url_decode    (const char *s);
+extern char *mu_url_decode    (const char *s);
 
 extern int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
 extern int mu_url_init (mu_url_t url, int port, const char *scheme);
-
+  
 #ifdef __cplusplus
 }
 #endif

@@ -165,7 +165,7 @@ int
 mu_global_debug_from_string (const char *string, const char *errpfx)
 {
   int rc;
-  size_t argc;
+  int argc;
   char **argv;
   int i;
   

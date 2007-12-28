@@ -34,6 +34,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/error.h>
+#include <mailutils/url.h>
 
 #include <registrar0.h>
 
@@ -90,8 +91,8 @@ mu_registrar_get_iterator (mu_iterator_t *pitr)
 }
 
 int
-mu_registrar_lookup (const char *name, int flags,
-		     mu_record_t *precord, int *pflags)
+mu_registrar_lookup_url (mu_url_t url, int flags,
+			 mu_record_t *precord, int *pflags)
 {
   mu_iterator_t iterator;
   int status = mu_registrar_get_iterator (&iterator);
@@ -104,7 +105,7 @@ mu_registrar_lookup (const char *name, int flags,
       int rc;
       mu_record_t record;
       mu_iterator_current (iterator, (void **)&record);
-      if ((rc = mu_record_is_scheme (record, name, flags)))
+      if ((rc = mu_record_is_scheme (record, url, flags)))
 	{
 	  status = 0;
 	  if (precord)
@@ -116,6 +117,23 @@ mu_registrar_lookup (const char *name, int flags,
     }
   mu_iterator_destroy (&iterator);
   return status;
+}
+
+int
+mu_registrar_lookup (const char *name, int flags,
+		     mu_record_t *precord, int *pflags)
+{
+  int rc;
+  mu_url_t url;
+  
+  rc = mu_url_create (&url, name);
+  if (rc)
+    return rc;
+  rc = mu_url_parse (url);
+  if (rc == 0)
+    rc = mu_registrar_lookup_url (url, flags, precord, pflags);
+  mu_url_destroy (&url);
+  return rc;
 }
 
 static int
@@ -156,18 +174,16 @@ mu_unregistrar_record (mu_record_t record)
 }
 
 int
-mu_record_is_scheme (mu_record_t record, const char *scheme, int flags)
+mu_record_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
   if (record == NULL)
     return 0;
 
   /* Overload.  */
   if (record->_is_scheme)
-    return record->_is_scheme (record, scheme, flags);
+    return record->_is_scheme (record, url, flags);
 
-  if (scheme
-      && record->scheme
-      && strncasecmp (record->scheme, scheme, strlen (record->scheme)) == 0)
+  if (mu_url_is_scheme (url, record->scheme))
     return MU_FOLDER_ATTRIBUTE_ALL;
 
   return 0;
@@ -183,8 +199,8 @@ mu_record_set_scheme (mu_record_t record, const char *scheme)
 }
 
 int
-mu_record_set_is_scheme (mu_record_t record, int (*_is_scheme)
-		      (mu_record_t, const char *, int))
+mu_record_set_is_scheme (mu_record_t record,
+			 int (*_is_scheme) (mu_record_t, mu_url_t, int))
 {
   if (record == NULL)
     return EINVAL;

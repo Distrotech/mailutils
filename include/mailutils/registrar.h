@@ -38,7 +38,7 @@ struct _mu_record
   void *data; /* back pointer.  */
 
   /* Stub functions to override. The default is to return the fields.  */
-  int (*_is_scheme) (mu_record_t, const char *, int);
+  int (*_is_scheme) (mu_record_t, mu_url_t, int);
   int (*_get_url) (mu_record_t, int (*(*_mu_url)) (mu_url_t));
   int (*_get_mailbox) (mu_record_t, int (*(*_mu_mailbox)) (mu_mailbox_t));
   int (*_get_mailer) (mu_record_t, int (*(*_mu_mailer)) (mu_mailer_t));
@@ -51,14 +51,16 @@ extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
   
 extern int mu_registrar_lookup (const char *name, int flags, 
                                 mu_record_t *precord, int *pflags);
+extern int mu_registrar_lookup_url (mu_url_t url, int flags,
+				    mu_record_t *precord, int *pflags);
 extern int mu_registrar_record       (mu_record_t);
 extern int mu_unregistrar_record     (mu_record_t);
 
 /* Scheme.  */
-extern int mu_record_is_scheme       (mu_record_t, const char *, int flags);
+extern int mu_record_is_scheme       (mu_record_t, mu_url_t, int flags);
 extern int mu_record_set_scheme      (mu_record_t, const char *);
 extern int mu_record_set_is_scheme   (mu_record_t, 
-                      int (*_is_scheme) (mu_record_t, const char *, int));
+                      int (*_is_scheme) (mu_record_t, mu_url_t, int));
 
 /* Url.  */
 extern int mu_record_get_url         (mu_record_t, int (*(*)) (mu_url_t));

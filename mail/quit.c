@@ -55,7 +55,7 @@ mail_mbox_close ()
            ngettext ("Held %d message in %s\n",
                      "Held %d messages in %s\n",
                      held_count),
-           held_count, mu_url_to_string (url));
+           held_count, util_url_to_string (url));
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
   return 0;
@@ -75,7 +75,7 @@ mail_mbox_commit ()
   int is_user_mbox;
 
   mu_mailbox_get_url (mbox, &url);
-  is_user_mbox = strcmp (mu_url_to_string (url), getenv ("MBOX")) == 0;
+  is_user_mbox = strcmp (util_url_to_string (url), getenv ("MBOX")) == 0;
 
   {
     mu_mailbox_t mb;
@@ -151,7 +151,7 @@ mail_mbox_commit ()
               ngettext ("Saved %d message in %s\n",
                         "Saved %d messages in %s\n",
 			saved_count),
-              saved_count, mu_url_to_string (u));
+              saved_count, util_url_to_string (u));
       mu_mailbox_close (dest_mbox);
       mu_mailbox_destroy (&dest_mbox);
     }

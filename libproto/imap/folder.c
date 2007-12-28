@@ -112,7 +112,7 @@ static int  folder_imap_close       (mu_folder_t);
 static void folder_imap_destroy     (mu_folder_t);
 static int  folder_imap_delete      (mu_folder_t, const char *);
 static int  folder_imap_list        (mu_folder_t, const char *, void *,
-				     size_t,
+				     int, size_t,
 				     mu_list_t,
 				     mu_folder_enumerate_fp efp, void *edp);
 static int  folder_imap_lsub        (mu_folder_t, const char *, const char *,
@@ -975,9 +975,10 @@ glob_to_imap (const char *pat, int recursive)
   return ret;
 }
 
+/* FIXME: Flags unused */
 static int
 folder_imap_list (mu_folder_t folder, const char *ref, void *name,
-		  size_t max_level,
+		  int flags, size_t max_level,
 		  mu_list_t flist,
 		  mu_folder_enumerate_fp efp, void *edp)
 {

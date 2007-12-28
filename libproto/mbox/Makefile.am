@@ -26,6 +26,5 @@ libmu_mbox_la_SOURCES = \
  folder.c\
  mbox.c\
  mboxscan.c\
- mbox0.h\
- url.c
+ mbox0.h
 

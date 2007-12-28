@@ -99,7 +99,6 @@ int _amd_message_insert (struct _amd_data *mhd, struct _amd_message *msg);
 int amd_message_stream_open (struct _amd_message *mhm);
 void amd_message_stream_close (struct _amd_message *mhm);
 void amd_cleanup (void *arg);
-int amd_url_init (mu_url_t url, const char *scheme);
 struct _amd_message *_amd_get_message (struct _amd_data *amd, size_t msgno);
 int amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
 		    size_t *pret);

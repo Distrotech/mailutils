@@ -61,7 +61,7 @@ mail_summary (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   {
     mu_url_t url = NULL;
     mu_mailbox_get_url (mbox, &url);
-    printf("\"%s\": ", mu_url_to_string (url));
+    printf("\"%s\": ", util_url_to_string (url));
   }
   printf (ngettext ("%d message", "%d messages", count), count);
   if (mnew > 0)

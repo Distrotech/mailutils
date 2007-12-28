@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-19
+GNU mailutils NEWS -- history of user-visible changes. 2007-12-28
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -25,6 +25,11 @@ The programs using configuration file facility also understand the
 --config-help command line option.  This option prints on the standard
 output the detailed description of configuration file statements that
 affect the given program.
+
+** URL parameters.
+
+Additional mailbox URL parameters `type', `user' and `param' can
+appear in any local URLs.
 
 ** New utility `maidag'
 
@@ -185,6 +190,9 @@ extern int mu_url_aget_path  (const mu_url_t, char **);
 extern int mu_url_sget_query  (const mu_url_t, const char **);
 extern int mu_url_aget_query  (const mu_url_t, char **);  
 
+int mu_url_sget_fvpairs (const mu_url_t, size_t *, char ***);
+int mu_url_aget_fvpairs (const mu_url_t, size_t *, char ***);
+
 ** ACL
 
 A set of functions implements general-purpose access control lists.
@@ -227,6 +235,29 @@ that can be done over them is mu_mailbox_append_message.  E.g.,
 appending to the URL `remote+smtp://127.0.0.1:24' is equivalent to
 sending a message using mailer `smtp://127.0.0.1:24'.
 
+** New argcv functions.
+
+-  int mu_argcv_get_np (const char *command, int len,
+  		        const char *delim, const char *cmnt,
+		        int flags,
+ 		        int *pargc, char ***pargv, char **endp);
+
+This function is an alternative entry point to
+mu_argcv_get/mu_argcv_get_n functions. The resulting argv will contain
+non-whitespace delimiters only if flags contains the bit
+MU_ARGCV_RETURN_DELIMS.
+
+-  void mu_argcv_remove (int *pargc, char ***pargv,
+		         int (*sel) (const char *, void *), void *);
+
+Removes from pargc/pargv all elements for which the sel function
+returns true.
+			 
+** New registry functions.
+
+- int mu_registrar_lookup_url (mu_url_t url, int flags,
+			       mu_record_t *precord, int *pflags);
+			     
 ** Fixed parsing of URLs similar to file:///a/b. 
 
 It is parsed as an absolute file name `/a/b'.

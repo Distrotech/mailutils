@@ -627,4 +627,41 @@ ftp://ftp.example.org:111/mbox/user%40host => SUCCESS
 	path <mbox/user@host>
 	query <>
 
+ftp://ftp.example.org:111/mbox/user%40host;type=pass => SUCCESS
+	scheme <ftp>
+	user <>
+	passwd <>
+	auth <>
+	host <ftp.example.org>
+	port 111
+	path <mbox/user@host>
+	param[0] <type=pass>
+	query <>
+
+mbox:/var/spool/mail;type=index;param=2;user=gray => SUCCESS
+	scheme <mbox>
+	user <>
+	passwd <>
+	auth <>
+	host <>
+	port 0
+	path </var/spool/mail>
+	param[0] <type=index>
+	param[1] <param=2>
+	param[2] <user=gray>
+	query <>
+
+mbox:///var/spool/mail;type=index;param=2;user=gray => SUCCESS
+	scheme <mbox>
+	user <>
+	passwd <>
+	auth <>
+	host <>
+	port 0
+	path </var/spool/mail>
+	param[0] <type=index>
+	param[1] <param=2>
+	param[2] <user=gray>
+	query <>
+
 # NOTE: This file must end with an empty line

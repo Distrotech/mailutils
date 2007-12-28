@@ -373,6 +373,8 @@ void util_rfc2047_decode (char **value);
 
 void util_mark_read (mu_message_t msg);
 
+const char *util_url_to_string (mu_url_t url);
+
 int is_address_field (const char *name);
 
 extern int ml_got_interrupt (void);

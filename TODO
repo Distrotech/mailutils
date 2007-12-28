@@ -1,7 +1,9 @@
-GNU mailutils TODO list. 2007-12-07
+GNU mailutils TODO list. 2007-12-28
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
 2007 Free Software Foundation, Inc.
 
+* Fix folder_imap_list in libproto/imap/folder.c
+
 * Documentation
 
 * Review the code and use mu_vartab_* and mu_kwd_* functions where

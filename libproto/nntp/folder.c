@@ -63,7 +63,7 @@ static int  nntp_folder_open    (mu_folder_t, int);
 static int  nntp_folder_close   (mu_folder_t);
 static void nntp_folder_destroy (mu_folder_t folder);
 static int  nntp_folder_list    (mu_folder_t folder, const char *ref,
-				 void *name,
+				 void *name, int flags,
 				 size_t max,
 				 mu_list_t flist,
 				 mu_folder_enumerate_fp efp, void *edp);
@@ -186,7 +186,7 @@ nntp_folder_destroy (mu_folder_t folder)
 
 
 static int
-nntp_folder_list (mu_folder_t folder, const char *ref, void *pat,
+nntp_folder_list (mu_folder_t folder, const char *ref, void *pat, int flags,
 		  size_t max_level, mu_list_t flist,
 		  mu_folder_enumerate_fp efp, void *edp)
 {

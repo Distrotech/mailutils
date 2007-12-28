@@ -73,22 +73,37 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
       == 0)
     {
       int (*f_init) (mu_folder_t) = NULL;
-      int (*u_init) (mu_url_t) = NULL;
       
       mu_record_get_folder (record, &f_init);
-      mu_record_get_url (record, &u_init);
-      if (f_init && u_init)
+      if (f_init)
         {
 	  int status;
 	  mu_url_t url;
 	  mu_folder_t folder;
+	  int (*u_init) (mu_url_t) = NULL;
 
 	  /* Parse the url, it may be a bad one and we should bailout if this
 	     failed.  */
-	  if ((status = mu_url_create (&url, name) != 0)
-	      || (status = u_init (url)) != 0)
+	  if ((status = mu_url_create (&url, name)) != 0)
 	    return status;
 
+	  status = mu_url_parse (url);
+	  if (status)
+	    {
+	      mu_url_destroy (url);
+	      return status;
+	    }
+	  mu_record_get_url (record, &u_init);
+	  if (u_init)
+	    {
+	      status = u_init (url);
+	      if (status)
+		{
+		  mu_url_destroy (url);
+		  return status;
+		}
+	    }
+	  
 	  mu_monitor_wrlock (&folder_lock);
 
 	  /* Check if we already have the same URL folder.  */
