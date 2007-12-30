@@ -1,5 +1,8 @@
 2007-12-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* comsat/comsat.c: New config statement require-tty.
+	(main): Use /dev/null as the tty if require-tty is false.
+	
 	* examples/config/comsat.conf: Remove obsolete example file.
 	* examples/config/mailutils.rc: Remove obsolete example file.
 

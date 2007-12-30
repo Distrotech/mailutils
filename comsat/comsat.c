@@ -106,6 +106,7 @@ struct mu_gocs_daemon default_gocs_daemon = {
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 const char *username;
+int require_tty;
 mu_acl_t comsat_acl;
 
 static void comsat_init (void);
@@ -125,6 +126,8 @@ int test_mode;
 struct mu_cfg_param comsat_cfg_param[] = {
   { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
     N_("Read .biffrc file from the user home directory") },
+  { "require-tty", mu_cfg_bool, &require_tty, 0, NULL,
+    N_("Notify only if the user be logged on one of the ttys.") },
   { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
     N_("Maximum number of message body lines to be output.") },
   { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,
@@ -507,7 +510,11 @@ comsat_main (int fd)
     }
     
   if (find_user (buffer, tty) != SUCCESS)
-    return 0;
+    {
+      if (require_tty)
+	return 0;
+      strcpy (tty, "/dev/null");
+    }
 
   /* All I/O is done by child process. This is to avoid various blocking
      problems. */
