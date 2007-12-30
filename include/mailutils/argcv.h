@@ -42,7 +42,9 @@ extern int mu_argcv_get_np (const char *command, int len,
 			    int *pargc, char ***pargv, char **endp);
   
 extern int mu_argcv_string (int argc, char **argv, char **string);
-extern int mu_argcv_free   (int argc, char **argv);
+extern void mu_argcv_free   (int argc, char **argv);
+extern void mu_argv_free (char **argv);
+
 extern int mu_argcv_unquote_char (int c);
 extern int mu_argcv_quote_char   (int c);
 extern size_t mu_argcv_quoted_length (const char *str, int *quote);

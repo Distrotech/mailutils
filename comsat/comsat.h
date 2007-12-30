@@ -79,3 +79,5 @@ extern char hostname[];
 extern struct daemon_param daemon_param;
 
 void run_user_action (FILE *tty, const char *cr, mu_message_t msg);
+void convert_config (const char *config_file, FILE *outfile);
+

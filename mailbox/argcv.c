@@ -30,7 +30,8 @@
 #define argcv_get_n          mu_argcv_get_n 
 #define argcv_get_np         mu_argcv_get_np 
 #define argcv_string         mu_argcv_string
-#define argcv_free           mu_argcv_free  
+#define argcv_free           mu_argcv_free
+#define argv_free            mu_argv_free 
 #define argcv_unquote_char   mu_argcv_unquote_char
 #define argcv_quote_char     mu_argcv_quote_char  
 #define argcv_quoted_length  mu_argcv_quoted_length
@@ -443,14 +444,23 @@ argcv_get (const char *command, const char *delim, const char *cmnt,
  * argc is the number of elements
  * argv is the array
  */
-int
+void
 argcv_free (int argc, char **argv)
 {
   while (--argc >= 0)
     if (argv[argc])
       free (argv[argc]);
   free (argv);
-  return 0;
+}
+
+void
+argv_free (char **argv)
+{
+  int i;
+
+  for (i = 0; argv[i]; i++)
+    free (argv[i]);
+  free (argv);
 }
 
 /* Make a argv an make string separated by ' '.  */

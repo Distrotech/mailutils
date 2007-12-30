@@ -585,7 +585,7 @@ mu_parse_config (const char *file, const char *progname,
       if (access (full_name, R_OK) == 0)
 	{
 	  rc = mu_get_config (full_name, progname, progparam, flags,
-				 target_ptr);
+			      target_ptr);
 	  free (full_name);
 	}
       else

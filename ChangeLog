@@ -1,5 +1,13 @@
 2007-12-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* examples/config/comsat.conf: Remove obsolete example file.
+	* examples/config/mailutils.rc: Remove obsolete example file.
+
+	* comsat/oldcfg.c: New file.
+	* comsat/Makefile.am: Add oldcfg.c.
+	* comsat/comsat.c: Handle old -c option and provide a new option
+	for converting old-style config file to the new format.
+
 	* comsat/Makefile.am: Remove cfg.c
 	* comsat/cfg.c: Remove.
 	* comsat/comsat.c: Use MU configuration and acls.
