@@ -1,5 +1,11 @@
 2007-12-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* comsat/Makefile.am: Remove cfg.c
+	* comsat/cfg.c: Remove.
+	* comsat/comsat.c: Use MU configuration and acls.
+	* comsat/comsat.h: Include acl.h
+	* libproto/maildir/mbox.c (maildir_qfetch): Bugfix.
+
 	* NEWS: Update.
 	
 	* frm/testsuite/frm/test.exp: Call mu_init with -noflags option.

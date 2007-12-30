@@ -103,6 +103,7 @@ struct mu_gocs_daemon default_gocs_daemon = {
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 const char *username;
+mu_acl_t comsat_acl;
 
 static void comsat_init (void);
 static void comsat_daemon_init (void);
@@ -116,7 +117,6 @@ static void change_user (const char *user);
 
 static int xargc;
 static char **xargv;
-char *config_file = NULL;
 int test_mode;
 
 static error_t
@@ -125,7 +125,7 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'c':
-      config_file = arg;
+      /* FIXME: convert config to the new format and parse it */
       break;
 
     case 't':
@@ -138,20 +138,43 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+struct mu_cfg_param comsat_cfg_param[] = {
+  { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
+    N_("Read .biffrc file from the user home directory") },
+  { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
+    N_("Maximum number of message body lines to be output.") },
+  { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,
+    N_("Maximum number of incoming requests per `request-control-interval' "
+       "seconds.") },
+  { "request-control-interval", mu_cfg_time, &request_control_interval,
+    0, NULL,
+    N_("Set control interval.") },
+  { "overflow-control-interval", mu_cfg_time, &overflow_control_interval,
+    0, NULL,
+    N_("Set overflow control interval.") },
+  { "overflow-delay-time", mu_cfg_time, &overflow_delay_time,
+    0, NULL,
+    N_("Time to sleep after the first overflow occurs.") },
+  { "acl", mu_cfg_section, },
+  { NULL }
+};
 
 int
 main (int argc, char **argv)
 {
   int c;
   int ind;
-  
+
   /* Native Language Support */
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
   mu_gocs_daemon = default_gocs_daemon;
+  comsat_init ();
+  mu_acl_cfg_init ();
 
-  if (mu_app_init (&argp, comsat_argp_capa, NULL, argc, argv, 0, &ind, NULL))
+  if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
+		   &ind, &comsat_acl))
     exit (1);
 
   argc -= ind;
@@ -161,11 +184,6 @@ main (int argc, char **argv)
     {
       char *user;
       
-      comsat_init ();
-      if (config_file)
-	read_config (config_file);
-      if (argc == 0)
-	exit (0);
       if (argc < 2 || argc > 2)
 	{
 	  mu_error (_("Mailbox URL and message QID are required in test mode"));
@@ -198,8 +216,6 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  comsat_init ();
-
   if (mu_gocs_daemon.mode == MODE_DAEMON)
     {
       /* Preserve invocation arguments */
@@ -217,9 +233,6 @@ main (int argc, char **argv)
     mu_diag_get_debug (&debug);
     mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
   }
-
-  if (config_file)
-    read_config (config_file);
 
   chdir ("/");
 
@@ -370,11 +383,58 @@ comsat_daemon (int port)
 }
 
 int
+check_connection (int fd, struct sockaddr *addr, socklen_t addrlen)
+{
+  switch (addr->sa_family)
+    {
+    case PF_UNIX:
+      mu_diag_output (MU_DIAG_INFO, _("connect from socket"));
+      break;
+      
+    case PF_INET:
+      {
+	struct sockaddr_in *s_in = (struct sockaddr_in *)addr;
+	
+	if (comsat_acl)
+	  {
+	    mu_acl_result_t res;
+	    
+	    int rc = mu_acl_check_sockaddr (comsat_acl, addr, addrlen,
+					    &res);
+	    if (rc)
+	      {
+		mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
+			  inet_ntoa (s_in->sin_addr), mu_strerror (rc));
+		return 1;
+	      }
+	    switch (res)
+	      {
+	      case mu_acl_result_undefined:
+		mu_diag_output (MU_DIAG_INFO,
+				_("%s: undefined ACL result; access allowed"),
+				inet_ntoa (s_in->sin_addr));
+		break;
+		
+	      case mu_acl_result_accept:
+		break;
+		
+	      case mu_acl_result_deny:
+		mu_error (_("Access from %s blocked."),
+			  inet_ntoa (s_in->sin_addr));
+		return 1;
+	      }
+	  }
+      }
+    }
+  return 0;
+}
+
+int
 comsat_main (int fd)
 {
   int rdlen;
   int len;
-  struct sockaddr_in sin_from;
+  struct sockaddr fromaddr;
   char buffer[216]; /*FIXME: Arbitrary size */
   pid_t pid;
   char tty[MAX_TTY_SIZE];
@@ -382,9 +442,8 @@ comsat_main (int fd)
   char *path = NULL;
   mu_message_qid_t qid;
   
-  len = sizeof sin_from;
-  rdlen = recvfrom (fd, buffer, sizeof buffer, 0,
-		    (struct sockaddr*)&sin_from, &len);
+  len = sizeof fromaddr;
+  rdlen = recvfrom (fd, buffer, sizeof buffer, 0, &fromaddr, &len);
   if (rdlen <= 0)
     {
       if (errno == EINTR)
@@ -393,19 +452,16 @@ comsat_main (int fd)
       return 1;
     }
 
-  if (acl_match (&sin_from))
-    {
-      mu_diag_output (MU_DIAG_ALERT, _("DENIED attempt to connect from %s"),
-	      inet_ntoa (sin_from.sin_addr));
-      return 1;
-    }
+  if (check_connection (fd, &fromaddr, len))
+    return 1;
 
   mu_diag_output (MU_DIAG_INFO,
-	  ngettext ("Received %d byte from %s",
-		    "Received %d bytes from %s", rdlen),
-	  rdlen, inet_ntoa (sin_from.sin_addr));
-
+		  ngettext ("Received %d byte from %s",
+			    "Received %d bytes from %s", rdlen),
+		  rdlen, inet_ntoa (((struct sockaddr_in*)&fromaddr)->sin_addr));
+  
   buffer[rdlen] = 0;
+  mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
 
   /* Parse the buffer */
   p = strchr (buffer, '@');
@@ -417,7 +473,13 @@ comsat_main (int fd)
   *p++ = 0;
 
   qid = p;
-  
+  p = strchr (qid, ':');
+  if (p)
+    {
+      *p++ = 0;
+      path = p;
+    }
+    
   if (find_user (buffer, tty) != SUCCESS)
     return 0;
 

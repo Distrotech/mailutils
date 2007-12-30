@@ -669,7 +669,7 @@ maildir_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
   
   if (!name)
     return EINVAL;
-  
+  name++;
   msg = calloc (1, sizeof(*msg));
   msg->file_name = strdup (name);
 
