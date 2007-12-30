@@ -82,6 +82,11 @@ mu_set_mail_directory (const char *p)
 {
   if (_mu_mailbox_pattern)
     free (_mu_mailbox_pattern);
+  if (!p)
+    {
+      _mu_mailbox_pattern = NULL;
+      return 0;
+    }
   return mu_normalize_mailbox_url (&_mu_mailbox_pattern, p);
 }
 
@@ -90,6 +95,11 @@ mu_set_mailbox_pattern (const char *pat)
 {
   if (_mu_mailbox_pattern)
     free (_mu_mailbox_pattern);
+  if (!pat)
+    {
+      _mu_mailbox_pattern = NULL;
+      return 0;
+    }
   _mu_mailbox_pattern = strdup (pat);
   return _mu_mailbox_pattern ? 0 : ENOMEM;
 }
@@ -339,22 +349,26 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  /* Other utilities may not understand GNU mailutils url namespace, so
-     use FOLDER instead, to not confuse others by using MAIL.  */
   if (mail == NULL || *mail == '\0')
     {
-      mail = getenv ("FOLDER");
+      if (!_mu_mailbox_pattern)
+	{
+	  /* Other utilities may not understand GNU mailutils url namespace, so
+	     use FOLDER instead, to not confuse others by using MAIL.  */
+	  mail = getenv ("FOLDER");
+	  if (!mail)
+	    {
+	      /* Fallback to well-known environment.  */
+	      mail = getenv ("MAIL");
+	    }
+	}
 
-      /* Fallback to wellknown environment.  */
       if (!mail)
-        mail = getenv ("MAIL");
-
-      if (!mail)
-        {
-          if ((status = user_mailbox_name (NULL, &tmp_mbox)))
-            return status;
-          mail = tmp_mbox;
-        }
+	{
+	  if ((status = user_mailbox_name (NULL, &tmp_mbox)))
+	    return status;
+	  mail = tmp_mbox;
+	}
     }
 
   p = mu_tilde_expansion (mail, "/", NULL);

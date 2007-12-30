@@ -299,7 +299,7 @@ maildir_uniq (struct _amd_data *amd, int fd)
   struct timeval tv;
   unsigned long n;
   struct stat st;
-  
+
   gettimeofday (&tv, NULL);
   FMT ("%lu", tv.tv_sec);
   COPY (".");
@@ -409,24 +409,27 @@ static int
 maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amm;
-  char *name;
+  char *name, *fname;
   struct stat st;
   int i;
   
-  /* chdir (amd->name);  FIXME */
   name = maildir_uniq (amd, -1);
-
+  fname = maildir_mkfilename (amd->name, NEWSUF, name);
+  
   for (i = 0; i < NTRIES; i++)
     {
-      if (stat (name, &st) < 0 && errno == ENOENT)
+      if (stat (fname, &st) < 0 && errno == ENOENT)
 	{
 	  msg->uid = amd->next_uid (amd);
 	  msg->file_name = name;
+	  free (fname);
 	  return 0;
 	}
+      mu_diag_output (MU_DIAG_WARNING, "cannot stat %s: %s", fname,
+		      mu_strerror (errno));
       sleep (2);
     }
-
+  free (fname);
   free (name);
   return MU_ERR_BAD_RESUMPTION;
 }

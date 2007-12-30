@@ -20,7 +20,7 @@
 source $top_srcdir/testsuite/lib/mailutils.exp
 set sieve_source_dir "${srcdir}/scripts"
 
-mu_init 
+mu_init -noflags
 set env(MAIL) $MU_SPOOL_DIR/sieve.mbox
 set env(FOLDER) $env(MAIL)
 

@@ -1,3 +1,60 @@
+2007-12-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update.
+	
+	* frm/testsuite/frm/test.exp: Call mu_init with -noflags option.
+	Use --mail-folder option when necessary.
+	* messages/testsuite/messages/test.exp: Likewise.
+	* readmsg/testsuite/readmsg/test.exp: Likewise.
+	* sieve/testsuite/lib/sieve.exp: Likewise.
+	* sieve/testsuite/sieve/action.exp: Likewise.
+	* sieve/testsuite/scripts/fileinto.sv: Use +file, instead of
+	%file.
+	
+	* imap4d/imap4d.c: Register mailbox formats before parsing
+	configuration.
+	* imap4d/util.c (util_wcard_match): Replaced with a more efficient
+	implementation, based on wildmat from GNU Radius.
+	* imap4d/testsuite/imap4d/list.exp: Expect two non-mailbox files
+	to appear in the list output (see libproto/mbox/folder.c, 2007-12-28).
+
+	* libargp/common.c: New option --mail-folder.
+	* libcfg/common.c: New statement mailbox/folder
+
+	* libproto/maildir/folder.c (_maildir_is_scheme): Never return
+	MU_FOLDER_ATTRIBUTE_DIRECTORY bit: maildir folders cannot contain
+	subfolders.
+	* libproto/maildir/mbox.c (maildir_msg_init): Bugfix: use full
+	file name.
+	Print additional diagnostics if stat fails.
+	* libproto/mbox/folder.c (list_helper): Take additional argument,
+	record, specifying a mu_record_t object to match entries
+	against. If it is NULL, mu_registrar_lookup is used.
+	Fix descending into subdirectories.
+
+	* maidag/deliver.c (deliver): Split off deliver_to_user function;
+	call it with user privileges. This fixes privileges of any created
+	maildir folders.
+	* maidag/maidag.c (set_debug_flags): Bugfix.
+
+	* mail/mail.c (main): Open the mailbox with MU_STREAM_CREAT flag.
+
+	* mailbox/amd.c (amd_open): Do not initialize amd->mtime to
+	trigger initial scanning.
+	(_amd_message_save): Check rename return value.
+	(amd_is_updated): Do not check for msg_count==0, rely on the
+	timestamp.
+
+	* mailbox/mailbox.c (mu_mailbox_set_default_proto): Accept an
+	argument without trailing semicolon.
+	* mailbox/mbx_default.c (mu_set_mail_directory): Accept NULL
+	argument.
+	(mu_set_mailbox_pattern): Likewise.
+	(mu_mailbox_create_default): Use FOLDER or MAIL environment
+	variables only if _mu_mailbox_pattern is not set. In other words,
+	setting mail-spool in the configuration file overrides these
+	variables.
+
 2007-12-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Additional mailbox URL parameters `type', `user' and `param' can
@@ -33,7 +90,8 @@
 	(_path_is_scheme): Change signature.
 	* libproto/mh/folder.c (_mh_is_scheme): Change signature.
 	(_mh_url_init): Remove.
-	(_mh_record): Use mu_url_expand_path as url_init.
+	(_mh_record): Use
+	mu_url_expand_path as url_init.
 	* libproto/mbox/Makefile.am (libmu_mbox_la_SOURCES): Remove url.c
 	* libproto/mbox/url.c: Remove.
 	

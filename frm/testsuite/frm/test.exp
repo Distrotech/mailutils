@@ -19,7 +19,7 @@
 
 source $top_srcdir/testsuite/lib/mailutils.exp
 
-mu_init 
+mu_init -noflags
 set env(MAIL) $MU_SPOOL_DIR/mbox1
 set env(FOLDER) $env(MAIL)
 
@@ -48,17 +48,17 @@ mu_exec -retcode 1 -message "frm -l" -arg -l \
 mu_exec -retcode 1 -message "frm -qS" -arg -qS \
 "Folder contains 5 new messages."
 
-mu_exec -retcode 1 -arg %mbox -message "frm %mbox" \
-"Sergey Poznyakoff\tMBOX"
-
 mu_exec -retcode 1 -arg -q -message "frm -q"  \
 "There are messages in that folder."
+
+mu_exec -retcode 1 -arg "--mail-folder=$MU_SPOOL_DIR" -arg +mbox -message "frm +mbox" \
+"Sergey Poznyakoff\tMBOX"
 
 mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" \
 "No messages in that folder!"    
 
 set env(MAIL) $MU_SPOOL_DIR/bigto.mbox
-set env(FOLDER) $env(MAIL)
+unset env(FOLDER)
 mu_exec -retcode 1 -message "frm -l on long headers" -arg -l \
 "(Ayoung-Chee, Nigel Paul -- Nigel Paul Ayoung-Chee)\tPatrick Chan\tNew email address, etc."
 

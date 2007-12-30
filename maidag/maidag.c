@@ -161,7 +161,7 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 	  }
       if (*arg == ',')
 	arg++;
-      else
+      else if (*arg)
 	mu_cfg_format_error (debug, MU_DEBUG_ERROR,
 			     _("expected comma, but found %c"), *arg);
     }

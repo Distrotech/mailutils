@@ -74,12 +74,26 @@ int
 mu_mailbox_set_default_proto (const char *proto)
 {
   char *p;
+  size_t len = strlen (proto);
   
-  if (mu_registrar_lookup (proto, MU_FOLDER_ATTRIBUTE_FILE, NULL, NULL))
+  if (proto [len - 1] == ':')
+    {
+      p = strdup (proto);
+      if (!p)
+	return ENOMEM;
+    }
+  else
+    {
+      p = malloc (len + 2);
+      if (!p)
+	return ENOMEM;
+      strcpy (p, proto);
+      p[len] = ':';
+      p[len+1] = 0;
+    }
+  
+  if (mu_registrar_lookup (p, MU_FOLDER_ATTRIBUTE_FILE, NULL, NULL))
     return MU_ERR_NO_HANDLER;
-  p = strdup (proto);
-  if (!p)
-    return ENOMEM;
   if (default_proto)
     free (default_proto);
   default_proto = p;

@@ -347,8 +347,6 @@ amd_open (mu_mailbox_t mailbox, int flags)
   if (!S_ISDIR (st.st_mode))
     return EINVAL;
 
-  amd->mtime = st.st_mtime;
-
   return 0;
 }
 
@@ -711,7 +709,8 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
   fclose (fp);
 
   msg_name = amd->msg_file_name (mhm, mhm->deleted);
-  rename (name, msg_name);
+  if (rename (name, msg_name))
+    status = errno;	  
   free (name);
   free (msg_name);
 
@@ -1146,9 +1145,6 @@ amd_is_updated (mu_mailbox_t mailbox)
 {
   struct stat st;
   struct _amd_data *amd = mailbox->data;
-
-  if (amd->msg_count == 0)
-    return 0;
 
   if (stat (amd->name, &st) < 0)
     return 1;

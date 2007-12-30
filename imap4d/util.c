@@ -1030,50 +1030,59 @@ util_localname ()
 
 /* Match STRING against the IMAP4 wildcard pattern PATTERN. */
 
+#define WILD_FALSE 0
+#define WILD_TRUE  1
+#define WILD_ABORT 2
+
 int
-util_wcard_match (const char *string, const char *pattern, const char *delim)
+_wild_match (const char *expr, const char *name, const char *delim)
 {
-  const char *p = pattern, *n = string;
-  char c;
-
-  for (; (c = *p++) != '\0' && *n; n++)
+  while (expr && *expr)
     {
-      switch (c)
+      if (*name == 0 && *expr != '*')
+	return WILD_ABORT;
+      switch (*expr)
 	{
-	case '%':
-	  /* Matches everything except '/' */
-	  if (*p == '\0')
-	    {
-	      for (; *n; ++n)
-		if (*n == *delim)
-		  return 1;
-	      return 0;
-	    }
-	  else
-	    for (; *n != '\0'; ++n)
-	      if (util_wcard_match (n, p, delim) == 0)
-		return 0;
-	  break;
-
 	case '*':
-	  if (*p == '\0')
-	    return 0;
-	  else
-	    for (; *n != '\0'; ++n)
-	      if (util_wcard_match (n, p, delim) == 0)
-		return 0;
-	  break;
+	  while (*++expr == '*')
+	    ;
+	  if (*expr == 0)
+	    return WILD_TRUE;
+	  while (*name)
+	    {
+	      int res = _wild_match (expr, name++, delim);
+	      if (res != WILD_FALSE)
+		return res;
+	    }
+	  return WILD_ABORT;
 
+	case '%':
+	  while (*++expr == '%')
+	    ;
+	  if (*expr == 0)
+	    return strchr (name, delim) ? WILD_FALSE : WILD_TRUE;
+	  while (*name && *name != delim)
+	    {
+	      int res = _wild_match (expr, name++, delim);
+	      if (res != WILD_FALSE)
+		return res;
+	    }
+	  return _wild_match (expr, name, delim);
+	  
 	default:
-	  if (c != *n)
-	    return 1;
+	  if (*expr != *name)
+	    return WILD_FALSE;
+	  expr++;
+	  name++;
 	}
     }
+  return *name == 0;
+}
 
-  if (!c && !*n)
-    return 0;
-
-  return 1;
+int
+util_wcard_match (const char *name, const char *expr, const char *delim)
+{
+  return _wild_match (expr, name, delim[0]) != WILD_TRUE;
 }
 
 /* Return the uindvalidity of a mailbox.

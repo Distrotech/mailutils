@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-28
+GNU mailutils NEWS -- history of user-visible changes. 2007-12-30
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -30,6 +30,12 @@ affect the given program.
 
 Additional mailbox URL parameters `type', `user' and `param' can
 appear in any local URLs.
+
+** MAIL and FOLDER environment variables.
+
+These variables are consulted only if mail-spool directory is not
+explicitely set either in the configuration files or in the command
+line. This is different from the previous versions.
 
 ** New utility `maidag'
 

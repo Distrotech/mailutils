@@ -60,14 +60,13 @@ static int
 _maildir_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
   if (mu_url_is_scheme (url, record->scheme))
-    return MU_FOLDER_ATTRIBUTE_ALL & flags; 
+    return MU_FOLDER_ATTRIBUTE_FILE & flags; 
 
   if (mu_scheme_autodetect_p (url))
     {
       /* Attemp auto-detection */
       const char *path;
       struct stat st;
-      int rc = 0;
       
       if (mu_url_sget_path (url, &path))
         return 0;
@@ -78,13 +77,11 @@ _maildir_is_scheme (mu_record_t record, mu_url_t url, int flags)
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      rc |= (MU_FOLDER_ATTRIBUTE_DIRECTORY & flags);
-      
       if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
 	  && dir_exists (path, TMPSUF)
 	     && dir_exists (path, CURSUF)
  	     && dir_exists (path, NEWSUF))
-        return rc | MU_FOLDER_ATTRIBUTE_FILE;
+        return MU_FOLDER_ATTRIBUTE_FILE;
     }
   return 0;
 }

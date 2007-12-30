@@ -19,7 +19,7 @@
 
 source $top_srcdir/testsuite/lib/mailutils.exp
 
-mu_init 
+mu_init -noflags
 set env(MAIL) $MU_SPOOL_DIR/mbox1
 set env(FOLDER) $env(MAIL)
 

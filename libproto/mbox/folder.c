@@ -317,7 +317,8 @@ inode_list_lookup (struct inode_list *list, struct stat *st)
 }
 
 static int
-list_helper (struct search_data *data, const char *dirname, size_t level,
+list_helper (struct search_data *data, mu_record_t record,
+	     const char *dirname, size_t level,
 	     struct inode_list *ilist)
 {
   DIR *dirp;
@@ -341,21 +342,20 @@ list_helper (struct search_data *data, const char *dirname, size_t level,
     {
       char const *ename = dp->d_name;
       char *fname;
+      struct stat st;
       
       if (ename[ename[0] != '.' ? 0 : ename[1] != '.' ? 1 : 2] == 0)
 	continue;
       fname = get_pathname (dirname, ename);
-      if (data->folder->_match == NULL
-	  || data->folder->_match (fname + data->dirlen +
-				   ((data->dirlen > 1
-				    && data->dirname[data->dirlen-1] != '/') ?
-				    1 : 0),
-				   data->pattern,
-				   data->flags) == 0)
+      if (stat (fname, &st) == 0)
 	{
-	  struct stat st;
-
-	  if (stat (fname, &st) == 0)
+	  if (data->folder->_match == NULL
+	      || data->folder->_match (fname + data->dirlen +
+				       ((data->dirlen > 1
+					 && data->dirname[data->dirlen-1] != '/') ?
+					1 : 0),
+				       data->pattern,
+				       data->flags) == 0)
 	    {
 	      char *refname = fname;
 	      int type = 0;
@@ -371,8 +371,22 @@ list_helper (struct search_data *data, const char *dirname, size_t level,
 		  continue;
 		}
 
-	      mu_registrar_lookup (refname, MU_FOLDER_ATTRIBUTE_ALL, NULL,
-				   &type);
+	      if (record)
+		{
+		  mu_url_t url;
+		  int rc = mu_url_create (&url, refname);
+		  if (rc == 0)
+		    {
+		      rc = mu_url_parse (url);
+		      if (rc == 0)
+			type = mu_record_is_scheme (record, url,
+						    MU_FOLDER_ATTRIBUTE_ALL);
+		    }
+		  mu_url_destroy (&url);
+		}
+	      else
+		mu_registrar_lookup (refname, MU_FOLDER_ATTRIBUTE_ALL,
+				     &record, &type);
 
 	      resp->name = fname;
 	      resp->level = level;
@@ -413,15 +427,25 @@ list_helper (struct search_data *data, const char *dirname, size_t level,
 		  idata.inode = st.st_ino;
 		  idata.dev   = st.st_dev;
 		  idata.next  = ilist;
-		  stop = list_helper (data, refname, level + 1, &idata);
+		  stop = list_helper (data, record, refname, level + 1,
+				      &idata);
 		}
 	    }
-	  else
+	  else if (S_ISDIR (st.st_mode))
 	    {
-	      MU_DEBUG2 (data->folder->debug, MU_DEBUG_ERROR,
-			 "list_helper cannot stat %s: %s",
-			 fname, mu_strerror (errno));
+	      struct inode_list idata;
+		      
+	      idata.inode = st.st_ino;
+	      idata.dev   = st.st_dev;
+	      idata.next  = ilist;
+	      stop = list_helper (data, NULL, fname, level + 1, &idata);
 	    }
+	}
+      else
+	{
+	  MU_DEBUG2 (data->folder->debug, MU_DEBUG_ERROR,
+		     "list_helper cannot stat %s: %s",
+		     fname, mu_strerror (errno));
 	}
       free (fname);
     }
@@ -452,7 +476,7 @@ folder_mbox_list (mu_folder_t folder, const char *ref,
   sdata.max_level = max_level;
   sdata.folder = folder;
   sdata.errcnt = 0;
-  list_helper (&sdata, sdata.dirname, 0, &iroot);
+  list_helper (&sdata, NULL, sdata.dirname, 0, &iroot);
   free (sdata.dirname);
   /* FIXME: error code */
   return 0;

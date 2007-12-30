@@ -24,6 +24,7 @@
 #include <mailutils/daemon.h>
 #include <mailutils/debug.h>
 #include <mailutils/syslog.h>
+#include <mailutils/mailbox.h>
 #include <mu_umaxtostr.h>
 
 static struct mu_gocs_daemon daemon_settings;
@@ -39,6 +40,13 @@ static struct mu_gocs_debug debug_settings;
 /* Mailbox                                                                   */
 /* ************************************************************************* */
 
+static int
+_cb_folder (mu_debug_t debug, void *data, char *arg)
+{
+  mu_set_folder_directory (arg);
+  return 0;
+}
+
 static struct mu_cfg_param mu_mailbox_param[] = {
   { "mail-spool", mu_cfg_string, &mailbox_settings.mail_spool, 0, NULL,
     N_("Use specified URL as a mailspool directory."),
@@ -49,6 +57,9 @@ static struct mu_cfg_param mu_mailbox_param[] = {
     N_("pattern") },
   { "mailbox-type", mu_cfg_string, &mailbox_settings.mailbox_type, 0, NULL,
     N_("Default mailbox type."), N_("protocol") },
+  { "folder", mu_cfg_callback, NULL, 0, _cb_folder,
+    N_("Default user mail folder"),
+    N_("dir") },
   { NULL }
 };
 

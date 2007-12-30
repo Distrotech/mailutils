@@ -53,6 +53,8 @@ imap4d_test "LIST \"/\" \"*\""\
 
 imap4d_test -sort "LIST \"$MU_DATA_DIR\" \"*\""\
 "LIST (\\NoSelect) \"/\" $MU_DATA_DIR/etc"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/mail.rc"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/passwd"\
 "LIST (\\NoSelect) \"/\" $MU_DATA_DIR/spool"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/bigto.mbox"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/relational.mbox" \

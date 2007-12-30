@@ -143,66 +143,20 @@ attach_notify (mu_mailbox_t mbox)
 }  
 
 int
-deliver (mu_mailbox_t imbx, char *name, char **errp)
+deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
+		 struct mu_auth_data *auth, const char *name,
+		 char **errp)
 {
-  mu_mailbox_t mbox;
-  mu_message_t msg;
+  int status;
   char *path;
   mu_url_t url = NULL;
   mu_locker_t lock;
-  struct mu_auth_data *auth;
-  int status;
   int failed = 0;
   
-  auth = mu_get_auth_by_name (name);
-  if (!auth)
-    {
-      mailer_err (_("%s: no such user"), name);
-      if (errp)
-	asprintf (errp, "%s: no such user", name);
-      exit_code = EX_UNAVAILABLE;
-      return EX_UNAVAILABLE;
-    }
-  if (current_uid)
-    auth->change_uid = 0;
-  
-  if (!sieve_test (auth, imbx))
-    {
-      exit_code = EX_OK;
-      mu_auth_data_free (auth);
-      return 0;
-    }
-
-  if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
-    {
-      mailer_err (_("Cannot get message from the temporary mailbox: %s"),
-		  mu_strerror (status));
-      mu_auth_data_free (auth);
-      return EX_TEMPFAIL;
-    }
-
-  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
-    {
-      mailer_err (_("Cannot open mailbox %s: %s"),
-		  auth->mailbox, mu_strerror (status));
-      mu_auth_data_free (auth);
-      return EX_TEMPFAIL;
-    }
-
   mu_mailbox_get_url (mbox, &url);
   path = (char*) mu_url_to_string (url);
 
-  biff_user_name = name;
-  
-  /* Actually open the mailbox. Switch to the user's euid to make
-     sure the maildrop file will have right privileges, in case it
-     will be created */
-  if (switch_user_id (auth, 1))
-    return EX_TEMPFAIL;
   status = mu_mailbox_open (mbox, MU_STREAM_APPEND|MU_STREAM_CREAT);
-  if (switch_user_id (auth, 0))
-    return EX_TEMPFAIL;
-  
   if (status != 0)
     {
       mailer_err (_("Cannot open mailbox %s: %s"), path, mu_strerror (status));
@@ -316,4 +270,60 @@ deliver (mu_mailbox_t imbx, char *name, char **errp)
   mu_locker_unlock (lock);
   mu_mailbox_destroy (&mbox);
   return failed ? exit_code : 0;
+}
+
+int
+deliver (mu_mailbox_t imbx, char *name, char **errp)
+{
+  struct mu_auth_data *auth;
+  mu_mailbox_t mbox;
+  mu_message_t msg;
+  int status;
+
+  auth = mu_get_auth_by_name (name);
+  if (!auth)
+    {
+      mailer_err (_("%s: no such user"), name);
+      if (errp)
+	asprintf (errp, "%s: no such user", name);
+      exit_code = EX_UNAVAILABLE;
+      return EX_UNAVAILABLE;
+    }
+  if (current_uid)
+    auth->change_uid = 0;
+  
+  if (!sieve_test (auth, imbx))
+    {
+      exit_code = EX_OK;
+      mu_auth_data_free (auth);
+      return 0;
+    }
+
+  if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
+    {
+      mailer_err (_("Cannot get message from the temporary mailbox: %s"),
+		  mu_strerror (status));
+      mu_auth_data_free (auth);
+      return EX_TEMPFAIL;
+    }
+
+  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
+    {
+      mailer_err (_("Cannot open mailbox %s: %s"),
+		  auth->mailbox, mu_strerror (status));
+      mu_auth_data_free (auth);
+      return EX_TEMPFAIL;
+    }
+
+  biff_user_name = name;
+  
+  /* Actually open the mailbox. Switch to the user's euid to make
+     sure the maildrop file will have right privileges, in case it
+     will be created */
+  if (switch_user_id (auth, 1))
+    return EX_TEMPFAIL;
+  status = deliver_to_user (imbx, mbox, msg, auth, name, errp);
+  if (switch_user_id (auth, 0))
+    return EX_TEMPFAIL;
+  return status;
 }

@@ -436,14 +436,13 @@ main (int argc, char **argv)
 	  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 	}
 
-      if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)
+      if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0)
 	{
 	  mu_url_t url = NULL;
 	  mu_mailbox_get_url (mbox, &url);
 	  util_error (_("Cannot open mailbox %s: %s"),
 		      mu_url_to_string (url), mu_strerror (rc));
 	  mu_mailbox_destroy (&mbox);
-	  exit (EXIT_FAILURE);
 	}
 
       if (rc)

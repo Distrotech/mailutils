@@ -326,6 +326,9 @@ main (int argc, char **argv)
   state = STATE_NONAUTH;	/* Starting state in non-auth.  */
 
   MU_AUTH_REGISTER_ALL_MODULES ();
+  /* Register the desired formats. */
+  mu_register_local_mbox_formats ();
+  
   imap4d_capability_init ();
   mu_gocs_daemon = default_gocs_daemon;
 #ifdef WITH_TLS
@@ -374,9 +377,6 @@ main (int argc, char **argv)
 	}
     }
 
-  /* Register the desired formats. */
-  mu_register_local_mbox_formats ();
-  
   /* Set the signal handlers.  */
   signal (SIGINT, imap4d_signal);
   signal (SIGQUIT, imap4d_signal);

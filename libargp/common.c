@@ -23,6 +23,7 @@
 #include <string.h>
 #include <mailutils/syslog.h>
 #include <mailutils/daemon.h>
+#include <mailutils/mailbox.h>
 
 
 /* ************************************************************************* */
@@ -45,6 +46,7 @@ enum {
   OPT_LICENSE,
   OPT_MAILBOX_PATTERN,
   OPT_MAILBOX_TYPE,
+  OPT_MAIL_FOLDER,
   OPT_DEBUG_LEVEL,
   OPT_LINE_INFO,
   OPT_HELP_CONFIG
@@ -235,6 +237,8 @@ static struct argp_option mu_mailbox_argp_option[] = {
     "", 0 },
   { "mailbox-type", OPT_MAILBOX_TYPE, N_("PROTO"), OPTION_HIDDEN,
     N_("Default mailbox type to use"), 0 },
+  { "mail-folder", OPT_MAIL_FOLDER, N_("DIR"), OPTION_HIDDEN,
+    N_("Default user mail folder"), 0 },
   { NULL }
 };
 
@@ -256,6 +260,10 @@ mu_mailbox_argp_parser (int key, char *arg, struct argp_state *state)
       
     case OPT_MAILBOX_TYPE:
       mu_argp_node_list_new (&lst, "mailbox-type", arg);
+      break;
+
+    case OPT_MAIL_FOLDER:
+      mu_argp_node_list_new (&lst, "folder", arg);
       break;
       
     case ARGP_KEY_INIT:
