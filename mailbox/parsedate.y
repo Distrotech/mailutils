@@ -1,10 +1,10 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
+   the Free Software Foundation; either version 2, or (at your option)
    any later version.
    
    GNU Mailutils is distributed in the hope that it will be useful,
@@ -14,8 +14,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301 USA */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
   
 /* A heavily modified version of the well-known public domain getdate.y.
    It was originally written by Steven M. Bellovin <smb@research.att.com>
@@ -127,19 +126,35 @@ struct pd_date
 };
 
 #define DATE_INIT(date) memset(&(date), 0, sizeof(date))
-#define DATE_SET(date, memb, m, val) \
- do { date . memb = val; date.mask |= m; } while (0)
-
-#define SET_SECOND(d,v)   DATE_SET(d,second,PD_MASK_SECOND,v)
-#define SET_MINUTE(d,v)   DATE_SET(d,minute,PD_MASK_MINUTE,v)  
-#define SET_HOUR(d,v)     DATE_SET(d,hour,PD_MASK_HOUR,v)
-#define SET_DAY(d,v)      DATE_SET(d,day,PD_MASK_DAY,v)   
-#define SET_MONTH(d,v)    DATE_SET(d,month,PD_MASK_MONTH,v)
-#define SET_YEAR(d,v)     DATE_SET(d,year,PD_MASK_YEAR,v)  
-#define SET_TZ(d,v)       DATE_SET(d,tz,PD_MASK_TZ,v)
-#define SET_MERIDIAN(d,v) DATE_SET(d,meridian,PD_MASK_MERIDIAN,v)
-#define SET_ORDINAL(d,v)  DATE_SET(d,ordinal,PD_MASK_ORDINAL,v)
-#define SET_NUMBER(d,v)   DATE_SET(d,number,PD_MASK_NUMBER,v) 
+#define DATE_SET(date, memb, m, val, lim, onerror) \
+ do                                                \
+   {                                               \
+     if (val < 0 || (lim && val >= lim)) onerror;  \
+     date . memb = val; date.mask |= m;            \
+   }                                               \
+ while (0)
+   
+#define __SET_SECOND(d,v,a)   DATE_SET(d,second,PD_MASK_SECOND,v,60,a)
+#define __SET_MINUTE(d,v,a)   DATE_SET(d,minute,PD_MASK_MINUTE,v,60,a)  
+#define __SET_HOUR(d,v,a)     DATE_SET(d,hour,PD_MASK_HOUR,v,24,a)
+#define __SET_DAY(d,v,a)      DATE_SET(d,day,PD_MASK_DAY,v,31,a)   
+#define __SET_MONTH(d,v,a)    DATE_SET(d,month,PD_MASK_MONTH,v,12,a)
+#define __SET_YEAR(d,v,a)     DATE_SET(d,year,PD_MASK_YEAR,v,0,a)  
+#define __SET_TZ(d,v,a)       DATE_SET(d,tz,PD_MASK_TZ,v,0,a)
+#define __SET_MERIDIAN(d,v,a) DATE_SET(d,meridian,PD_MASK_MERIDIAN,v,MER24+1,a)
+#define __SET_ORDINAL(d,v,a)  DATE_SET(d,ordinal,PD_MASK_ORDINAL,v,0,a)
+#define __SET_NUMBER(d,v,a)   DATE_SET(d,number,PD_MASK_NUMBER,v,0,a) 
+ 
+#define SET_SECOND(d,v)   __SET_SECOND(d,v,YYERROR)   
+#define SET_MINUTE(d,v)   __SET_MINUTE(d,v,YYERROR)   
+#define SET_HOUR(d,v)     __SET_HOUR(d,v,YYERROR)     
+#define SET_DAY(d,v)      __SET_DAY(d,v,YYERROR)      
+#define SET_MONTH(d,v)    __SET_MONTH(d,v,YYERROR)    
+#define SET_YEAR(d,v)     __SET_YEAR(d,v,YYERROR)     
+#define SET_TZ(d,v)       __SET_TZ(d,v,YYERROR)       
+#define SET_MERIDIAN(d,v) __SET_MERIDIAN(d,v,YYERROR) 
+#define SET_ORDINAL(d,v)  __SET_ORDINAL(d,v,YYERROR)  
+#define SET_NUMBER(d,v)   __SET_NUMBER(d,v,YYERROR)   
 
 int
 pd_date_union (struct pd_date *a, struct pd_date *b)
@@ -1057,19 +1072,19 @@ mu_parse_date (const char *p, time_t *rettime, const time_t *now)
     return -1;
   
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_YEAR))
-    SET_YEAR (pd.date, tmp->tm_year + TM_YEAR_ORIGIN);
+    __SET_YEAR (pd.date, tmp->tm_year + TM_YEAR_ORIGIN, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_MONTH))
-    SET_MONTH (pd.date, tmp->tm_mon + 1);
+    __SET_MONTH (pd.date, tmp->tm_mon + 1, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_DAY))
-    SET_DAY (pd.date, tmp->tm_mday);
+    __SET_DAY (pd.date, tmp->tm_mday, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_HOUR))
-    SET_HOUR (pd.date, tmp->tm_hour);
+    __SET_HOUR (pd.date, tmp->tm_hour, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_MERIDIAN))
-    SET_MERIDIAN (pd.date, MER24);
+    __SET_MERIDIAN (pd.date, MER24, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_MINUTE))
-    SET_MINUTE (pd.date, tmp->tm_min);
+    __SET_MINUTE (pd.date, tmp->tm_min, return -1);
   if (!MASK_IS_SET (pd.date.mask, PD_MASK_SECOND))
-    SET_SECOND (pd.date, tmp->tm_sec);
+    __SET_SECOND (pd.date, tmp->tm_sec, return -1);
   
   tm.tm_year = norm_year (pd.date.year) - TM_YEAR_ORIGIN + pd.rel.year;
   tm.tm_mon = pd.date.month - 1 + pd.rel.month;

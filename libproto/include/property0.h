@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 
 #include <mailutils/property.h>
 #include <mailutils/monitor.h>
+#include <mailutils/assoc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,15 +37,12 @@ extern "C" {
 
 struct property_item
 {
-  char *key;
   char *value;
-  int set;
-  struct property_item *next;
 };
 
 struct _mu_property
 {
-  struct property_item *items;
+  mu_assoc_t assoc;
   void *owner;
   mu_monitor_t lock;
 };
