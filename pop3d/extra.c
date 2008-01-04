@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -202,6 +202,22 @@ pop3d_is_master ()
   return ostream == NULL;
 }
 
+static void
+transcript (const char *pfx, const char *buf)
+{
+  if (pop3d_transcript)
+    {
+      int len = strlen (buf);
+      if (len > 0 && buf[len-1] == '\n')
+	{
+	  len--;
+	  if (len > 0 && buf[len-1] == '\r')
+	    len--;
+	}
+      mu_diag_output (MU_DIAG_DEBUG, "%s: %-.*s", pfx, len, buf);
+    }
+}
+
 void
 pop3d_outf (const char *fmt, ...)
 {
@@ -216,8 +232,7 @@ pop3d_outf (const char *fmt, ...)
   if (!buf)
     pop3d_abquit (ERR_NO_MEM);
   
-  if (mu_gocs_daemon.transcript)
-    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
+  transcript ("sent", buf);
 
   rc = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -232,7 +247,6 @@ pop3d_outf (const char *fmt, ...)
     }
 }
 
-
 /* Gets a line of input from the client, caller should free() */
 char *
 pop3d_readline (char *buffer, size_t size)
@@ -240,7 +254,7 @@ pop3d_readline (char *buffer, size_t size)
   int rc;
   size_t nbytes;
   
-  alarm (mu_gocs_daemon.timeout);
+  alarm (idle_timeout);
   rc = mu_stream_sequential_readline (istream, buffer, size, &nbytes);
   alarm (0);
 
@@ -259,8 +273,7 @@ pop3d_readline (char *buffer, size_t size)
       pop3d_abquit (ERR_NO_OFILE);
     }
 
-  if (mu_gocs_daemon.transcript)
-    mu_diag_output (MU_DIAG_DEBUG, "recv: %s", buffer);
+  transcript ("recv", buffer);
 
   /* Caller should not free () this ... should we strdup() then?  */
   return buffer;

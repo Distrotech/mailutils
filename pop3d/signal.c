@@ -1,6 +1,6 @@
-
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2007, 2008
+   Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,30 +19,6 @@
 
 #include "pop3d.h"
 
-static int need_cleanup = 0;
-
-void
-process_cleanup ()
-{
-  pid_t pid;
-  int status;
-  
-  if (need_cleanup)
-    {
-      need_cleanup = 0;
-      while ( (pid = waitpid (-1, &status, WNOHANG)) > 0)
-	--children;
-    }
-}
-
-RETSIGTYPE
-pop3d_sigchld (int signo MU_ARG_UNUSED)
-{
-  need_cleanup = 1;
-#ifndef HAVE_SIGACTION
-  signal (signo, pop3d_sigchld);
-#endif
-}
 
 /* Default signal handler to call the pop3d_abquit() function */
 

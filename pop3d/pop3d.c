@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 
-   2005, 2007 Free Software Foundation, Inc.
+   2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,15 +27,9 @@ int state;
 char *username;
 char *md5shared;
 
-struct mu_gocs_daemon default_gocs_daemon = {
-  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
-  20,                   /* Default maximum number of children */
-  110,                  /* Standard POP3 port */
-  600,                  /* Idle timeout */
-  0,                    /* No transcript by default */
-  NULL                  /* No PID file by default */
-};
-
+mu_m_server_t server;
+unsigned int idle_timeout;
+int pop3d_transcript;
 int debug_mode;
 
 #ifdef WITH_TLS
@@ -45,8 +39,6 @@ int tls_done;
 
 int initial_state = AUTHORIZATION; 
 
-/* Number of child processes.  */
-size_t children;
 /* Should all the messages be undeleted on startup */
 int undelete_on_startup;
 #ifdef ENABLE_LOGIN_DELAY
@@ -58,11 +50,6 @@ char *login_stat_file = LOGIN_STAT_FILE;
 unsigned expire = EXPIRE_NEVER; /* Expire messages after this number of days */
 int expire_on_exit = 0;       /* Delete expired messages on exit */
 
-mu_acl_t pop3d_acl;
-
-static int pop3d_mainloop       (int fd, FILE *, FILE *);
-static void pop3d_daemon_init   (void);
-static void pop3d_daemon        (unsigned int, unsigned int);
 static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
 
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
@@ -75,9 +62,17 @@ static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 #define OPT_TLS_REQUIRED    261
 #define OPT_BULLETIN_SOURCE 262
 #define OPT_BULLETIN_DB     263
+#define OPT_FOREGROUND      264
 
 static struct argp_option options[] = {
 #define GRP 0
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), GRP+1},
+  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), GRP+1},
+  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
+    N_("Runs in daemon mode with a maximum of NUMBER children"), GRP+1 },
+#undef GRP
+
+#define GRP 5
   {"undelete", 'u', NULL, OPTION_HIDDEN,
    N_("Undelete all messages on startup"), GRP+1},
   {"expire", OPT_EXPIRE, N_("DAYS"), OPTION_HIDDEN,
@@ -161,7 +156,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif
-  { "acl", mu_cfg_section, },
+  { ".server", mu_cfg_section, NULL, 0, NULL,
+    N_("Server configuration.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
@@ -176,7 +172,6 @@ static struct argp argp = {
 };
 
 static const char *pop3d_argp_capa[] = {
-  "daemon",
   "auth",
   "common",
   "debug",
@@ -194,6 +189,20 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
   
   switch (key)
     {
+    case 'd':
+      mu_argp_node_list_new (&lst, "mode", "daemon");
+      if (arg)
+	mu_argp_node_list_new (&lst, "max-children", arg);
+      break;
+
+    case 'i':
+      mu_argp_node_list_new (&lst, "mode", "inetd");
+      break;
+
+    case OPT_FOREGROUND:
+      mu_argp_node_list_new (&lst, "foreground", "yes");
+      break;
+      
     case 'u':
       mu_argp_node_list_new (&lst, "undelete", "yes");
       break;
@@ -246,153 +255,6 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
   return 0;
 }
 
-
-int
-main (int argc, char **argv)
-{
-  struct group *gr;
-  int status = OK;
-
-  /* Native Language Support */
-  mu_init_nls ();
-
-  MU_AUTH_REGISTER_ALL_MODULES();
-  /* Register the desired formats.  */
-  mu_register_local_mbox_formats ();
-
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif /* WITH_TLS */
-  mu_tcpwrapper_cfg_init ();
-  mu_acl_cfg_init ();
-  
-  mu_gocs_daemon = default_gocs_daemon;
-  mu_argp_init (program_version, NULL);
-  if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
-		   argc, argv, 0, NULL, &pop3d_acl))
-    exit (1);
-
-  if (expire == 0)
-    expire_on_exit = 1;
-
-#ifdef USE_LIBPAM
-  if (!mu_pam_service)
-    mu_pam_service = "gnu-pop3d";
-#endif
-
-  if (mu_gocs_daemon.mode == MODE_INTERACTIVE && isatty (0))
-    {
-      /* If input is a tty, switch to debug mode */
-      debug_mode = 1;
-    }
-  else
-    {
-      gr = getgrnam ("mail");
-      if (gr == NULL)
-	{
-	  perror (_("Error getting mail group"));
-	  exit (EXIT_FAILURE);
-	}
-
-      if (setgid (gr->gr_gid) == -1)
-	{
-	  perror (_("Error setting mail group"));
-	  exit (EXIT_FAILURE);
-	}
-    }
-
-  /* Set the signal handlers.  */
-  signal (SIGINT, pop3d_signal);
-  signal (SIGQUIT, pop3d_signal);
-  signal (SIGILL, pop3d_signal);
-  signal (SIGBUS, pop3d_signal);
-  signal (SIGFPE, pop3d_signal);
-  signal (SIGSEGV, pop3d_signal);
-  signal (SIGTERM, pop3d_signal);
-  signal (SIGSTOP, pop3d_signal);
-  signal (SIGPIPE, pop3d_signal);
-  signal (SIGABRT, pop3d_signal);
-
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    pop3d_daemon_init ();
-  else
-    {
-      /* Make sure we are in the root directory.  */
-      chdir ("/");
-    }
-
-  /* Set up for syslog.  */
-  openlog ("gnu-pop3d", LOG_PID, log_facility);
-  /* Redirect any stdout error from the library to syslog, they
-     should not go to the client.  */
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-
-    /* FIXME: this should be done automatically by cfg */
-    if (pop3d_acl)
-      {
-	mu_acl_get_debug (pop3d_acl, &debug);
-	mu_debug_set_print (debug, mu_debug_syslog_printer, NULL);
-      }
-  }
-  
-  umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
-
-  if (mu_gocs_daemon.pidfile)
-    {
-      mu_daemon_create_pidfile (mu_gocs_daemon.pidfile);
-    }
-
-  /* Check TLS environment, i.e. cert and key files */
-#ifdef WITH_TLS
-  tls_available = mu_check_tls_environment ();
-  if (tls_available)
-    tls_available = mu_init_tls_libs ();
-#endif /* WITH_TLS */
-
-  /* Actually run the daemon.  */
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    pop3d_daemon (mu_gocs_daemon.maxchildren, mu_gocs_daemon.port);
-  /* exit (EXIT_SUCCESS) -- no way out of daemon except a signal.  */
-  else
-    status = pop3d_mainloop (fileno (stdin), stdin, stdout);
-
-  /* Close the syslog connection and exit.  */
-  closelog ();
-  return (OK != status);
-}
-
-/* Sets things up for daemon mode.  */
-static void
-pop3d_daemon_init (void)
-{
-  extern int daemon (int, int);
-
-  /* Become a daemon. Take care to close inherited fds and to hold
-     first three one, in, out, err   */
-  if (daemon (0, 0) < 0)
-    {
-      perror (_("Failed to become a daemon:"));
-      exit (EXIT_FAILURE);
-    }
-
-  /* SIGCHLD is not ignore but rather use to do some simple load balancing.  */
-#ifdef HAVE_SIGACTION
-  {
-    struct sigaction act;
-    act.sa_handler = pop3d_sigchld;
-    sigemptyset (&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction (SIGCHLD, &act, NULL);
-  }
-#else
-  signal (SIGCHLD, pop3d_sigchld);
-#endif
-}
-
 int
 pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 {
@@ -424,7 +286,7 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
       fd        --  socket descriptor (for diagnostics)
       infile    --  input stream
       outfile   --  output stream */
-static int
+int
 pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   int status = OK;
@@ -433,44 +295,13 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   if (pop3d_get_client_address (fd, &cs) == 0)
     {
-      if (pop3d_acl)
-	{
-	  mu_acl_result_t res;
-	  int rc = mu_acl_check_sockaddr (pop3d_acl,
-					  (struct sockaddr*) &cs,
-					  sizeof (cs),
-					  &res);
-	  if (rc)
-	    {
-	      mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
-			inet_ntoa (cs.sin_addr), mu_strerror (rc));
-	      return 1;
-	    }
-	  switch (res)
-	    {
-	    case mu_acl_result_undefined:
-	      mu_diag_output (MU_DIAG_INFO,
-			      _("%s: undefined ACL result; access allowed"),
-			      inet_ntoa (cs.sin_addr));
-	      break;
-	      
-	    case mu_acl_result_accept:
-	      break;
-	      
-	    case mu_acl_result_deny:
-	      mu_error (_("Access from %s blocked."),
-			inet_ntoa (cs.sin_addr));
-	      return 1;
-	    }
-	}
-      
       if (!mu_tcpwrapper_access (fd))
 	{
 	  mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
 	  return 1;
 	}
     }
-  else if (!debug_mode && (mu_tcp_wrapper_enable || pop3d_acl))
+  else if (!debug_mode && mu_tcp_wrapper_enable)
     {
       mu_error (_("Rejecting connection from unknown address"));
       return 1;
@@ -630,85 +461,131 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   return (status != OK);
 }
 
-/* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port
-   (default 110) then executes a pop3d_mainloop() upon accepting a connection.
-   It starts maxchildren child processes to listen to and accept socket
-   connections.  */
-static void
-pop3d_daemon (unsigned int maxchildren, unsigned int port)
+int
+pop3d_connection (int fd, void *data, time_t timeout, int transcript)
 {
-  struct sockaddr_in server, client;
-  pid_t pid;
-  int listenfd, connfd;
-  size_t size;
+  idle_timeout = timeout;
+  pop3d_transcript = transcript;
+  pop3d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
+  return 0;
+}
 
-  listenfd = socket (PF_INET, SOCK_STREAM, 0);
-  if (listenfd == -1)
+int
+main (int argc, char **argv)
+{
+  struct group *gr;
+  int status = OK;
+
+  /* Native Language Support */
+  mu_init_nls ();
+
+  MU_AUTH_REGISTER_ALL_MODULES();
+  /* Register the desired formats.  */
+  mu_register_local_mbox_formats ();
+
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif /* WITH_TLS */
+  mu_tcpwrapper_cfg_init ();
+  mu_acl_cfg_init ();
+  mu_m_server_cfg_init ();
+  
+  mu_argp_init (program_version, NULL);
+  	
+  mu_m_server_create (&server, "GNU pop3d");
+  mu_m_server_set_conn (server, pop3d_connection);
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+  mu_m_server_set_max_children (server, 20);
+  /* FIXME mu_m_server_set_pidfile (); */
+  mu_m_server_set_default_port (server, 110);
+  mu_m_server_set_timeout (server, 600);
+    
+  if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
+		   argc, argv, 0, NULL, server))
+    exit (1);
+
+  if (expire == 0)
+    expire_on_exit = 1;
+
+#ifdef USE_LIBPAM
+  if (!mu_pam_service)
+    mu_pam_service = "gnu-pop3d";
+#endif
+
+  if (mu_m_server_mode (server) == MODE_INTERACTIVE && isatty (0))
     {
-      mu_diag_output (MU_DIAG_ERROR, "socket: %s", strerror(errno));
-      exit (EXIT_FAILURE);
+      /* If input is a tty, switch to debug mode */
+      debug_mode = 1;
     }
-  size = 1; /* Use size here to avoid making a new variable.  */
-  setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
-  size = sizeof (server);
-  memset (&server, 0, size);
-  server.sin_family = AF_INET;
-  server.sin_addr.s_addr = htonl (INADDR_ANY);
-  server.sin_port = htons (port);
-
-  if (bind (listenfd, (struct sockaddr *)&server, size) == -1)
+  else
     {
-      mu_diag_output (MU_DIAG_ERROR, "bind: %s", strerror (errno));
-      exit (EXIT_FAILURE);
+      gr = getgrnam ("mail");
+      if (gr == NULL)
+	{
+	  perror (_("Error getting mail group"));
+	  exit (EXIT_FAILURE);
+	}
+
+      if (setgid (gr->gr_gid) == -1)
+	{
+	  perror (_("Error setting mail group"));
+	  exit (EXIT_FAILURE);
+	}
     }
 
-  if (listen (listenfd, 128) == -1)
+  /* Set the signal handlers.  */
+  signal (SIGINT, pop3d_signal);
+  signal (SIGQUIT, pop3d_signal);
+  signal (SIGILL, pop3d_signal);
+  signal (SIGBUS, pop3d_signal);
+  signal (SIGFPE, pop3d_signal);
+  signal (SIGSEGV, pop3d_signal);
+  signal (SIGTERM, pop3d_signal);
+  signal (SIGSTOP, pop3d_signal);
+  signal (SIGPIPE, pop3d_signal);
+  signal (SIGABRT, pop3d_signal);
+
+  /* Set up for syslog.  */
+  openlog ("gnu-pop3d", LOG_PID, log_facility);
+  /* Redirect any stdout error from the library to syslog, they
+     should not go to the client.  */
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+    
+    mu_debug_default_printer = mu_debug_syslog_printer;
+  }
+  
+  umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
+
+  /* Check TLS environment, i.e. cert and key files */
+#ifdef WITH_TLS
+  tls_available = mu_check_tls_environment ();
+  if (tls_available)
+    tls_available = mu_init_tls_libs ();
+#endif /* WITH_TLS */
+
+  /* Actually run the daemon.  */
+  if (mu_m_server_mode (server) == MODE_DAEMON)
     {
-      mu_diag_output (MU_DIAG_ERROR, "listen: %s", strerror (errno));
-      exit (EXIT_FAILURE);
+      mu_m_server_begin (server);
+      status = mu_m_server_run (server);
+      mu_m_server_end (server);
+      mu_m_server_destroy (&server);
     }
-
-  mu_diag_output (MU_DIAG_INFO, _("GNU pop3d started"));
-
-  for (;;)
+  else
     {
-      process_cleanup ();
-      if (children > maxchildren)
-        {
-	  mu_diag_output (MU_DIAG_ERROR, _("too many children (%s)"),
-		  mu_umaxtostr (0, children));
-          pause ();
-          continue;
-        }
-      connfd = accept (listenfd, (struct sockaddr *)&client,
-		       (socklen_t *) &size);
-      if (connfd == -1)
-        {
-          if (errno == EINTR)
-	    continue;
-          mu_diag_output (MU_DIAG_ERROR, "accept: %s", strerror (errno));
-          continue;
-          /*exit (EXIT_FAILURE);*/
-        }
-
-      pid = fork ();
-      if (pid == -1)
-	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
-      else if (pid == 0) /* Child.  */
-        {
-	  int status;
-	  
-	  close (listenfd);
-          status = pop3d_mainloop (connfd,
-				   fdopen (connfd, "r"), fdopen (connfd, "w"));
-	  closelog ();
-	  exit (status);
-        }
-      else
-        {
-          ++children;
-        }
-      close (connfd);
+      /* Make sure we are in the root directory.  */
+      chdir ("/");
+      status = pop3d_mainloop (fileno (stdin), stdin, stdout);
     }
+  
+  if (status)
+    mu_error (_("Main loop status: %s"), mu_strerror (status));	  
+  /* Close the syslog connection and exit.  */
+  closelog ();
+  return (OK != status);
 }
 

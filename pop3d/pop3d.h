@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -156,6 +156,7 @@ extern int expire_on_exit;
 #include <mailutils/url.h>
 #include <mailutils/md5.h>
 #include <mailutils/acl.h>
+#include <mailutils/server.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H
@@ -205,6 +206,9 @@ extern int expire_on_exit;
 #define ERR_TLS_IO      18
 #define ERR_LOGIN_DELAY 19
 
+typedef struct mu_pop_server *mu_pop_server_t;
+
+extern mu_pop_server_t pop3srv;
 extern mu_mailbox_t mbox;
 extern int state;
 extern int initial_state;
@@ -220,6 +224,8 @@ extern int tls_done;
 #endif /* WITH_TLS */
 extern int undelete_on_startup;
 extern struct mu_auth_data *auth_data;
+extern unsigned int idle_timeout;
+extern int pop3d_transcript;
 
 extern void pop3d_bye           (void);
 extern int pop3d_abquit         (int);
@@ -238,7 +244,6 @@ extern int pop3d_retr           (const char *);
 extern int pop3d_rset           (const char *);
 extern void process_cleanup     (void);
 
-extern RETSIGTYPE pop3d_sigchld (int);
 extern RETSIGTYPE pop3d_signal  (int);
 extern int pop3d_stat           (const char *);
 #ifdef WITH_TLS
