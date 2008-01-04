@@ -25,222 +25,7 @@
 #include <signal.h>
 #include <mu_umaxtostr.h>
 
-typedef union
-{
-  struct sockaddr sa;
-  struct sockaddr_in s_in;
-  struct sockaddr_un s_un;
-} all_addr_t;
-
-static int
-lmtp_open_internal (int *pfd, mu_url_t url, const char *urlstr)
-{
-  int fd;
-  int rc;
-  int t = 1;
-  char buffer[64];
-  all_addr_t addr;
-  int addrsize;
-  mode_t saved_umask;
-  
-  rc = mu_url_get_scheme (url, buffer, sizeof buffer, NULL);
-  if (rc)
-    {
-      mu_error (_("%s: cannot get scheme from URL: %s"),
-		urlstr, mu_strerror(rc));
-      return EX_CONFIG;
-    }
-
-  memset (&addr, 0, sizeof addr);
-  if (strcmp (buffer, "file") == 0 || strcmp (buffer, "socket") == 0)
-    {
-      size_t size;
-      
-      rc = mu_url_get_path (url, NULL, 0, &size);
-      if (rc)
-	{
-	  mu_error (_("%s: cannot get path: %s"), urlstr, mu_strerror(rc));
-	  return EX_CONFIG;
-	}
-
-      if (size > sizeof addr.s_un.sun_path - 1)
-	{
-	  mu_error (_("%s: file name too long"), urlstr);
-	  return EX_TEMPFAIL;
-	}
-      mu_url_get_path (url, addr.s_un.sun_path, sizeof addr.s_un.sun_path,
-		       NULL);
-
-      fd = socket (PF_UNIX, SOCK_STREAM, 0);
-      if (fd < 0)
-	{
-	  mu_error ("socket: %s", mu_strerror (errno));
-	  return EX_TEMPFAIL;
-	}
-  
-      addr.s_un.sun_family = AF_UNIX;
-      addrsize = sizeof addr.s_un;
-
-      if (reuse_lmtp_address)
-	{
-	  struct stat st;
-	  if (stat (addr.s_un.sun_path, &st))
-	    {
-	      if (errno != ENOENT)
-		{
-		  mu_error (_("file %s exists but cannot be stat'd"),
-			    addr.s_un.sun_path);
-		  return EX_TEMPFAIL;
-		}
-	    }
-	  else if (!S_ISSOCK (st.st_mode))
-	    {
-	      mu_error (_("file %s is not a socket"),
-			addr.s_un.sun_path);
-	      return EX_TEMPFAIL;
-	    }
-	  else
-	    unlink (addr.s_un.sun_path);
-	}
-      
-    }
-  else if (strcmp (buffer, "tcp") == 0)
-    {
-      size_t size;
-      long n;
-      struct hostent *hp;
-      char *path = NULL;
-      short port = 0;
-      
-      rc = mu_url_get_port (url, &n);
-      if (rc)
-	{
-	  mu_error (_("%s: cannot get port: %s"), urlstr, mu_strerror(rc));
-	  return EX_CONFIG;
-	}
-
-      if (n == 0 || (port = n) != n)
-	{
-	  mu_error (_("Port out of range: %ld"), n);
-	  return EX_CONFIG;
-	}
-			
-      rc = mu_url_get_host (url, NULL, 0, &size);
-      if (rc)
-	{
-	  mu_error (_("%s: cannot get host: %s"), urlstr, mu_strerror(rc));
-	  return EX_CONFIG;
-	}
-      path = malloc (size + 1);
-      if (!path)
-	{
-	  mu_error (_("Not enough memory"));
-	  return EX_TEMPFAIL;
-	}
-      mu_url_get_host (url, path, size + 1, NULL);
-
-      fd = socket (PF_INET, SOCK_STREAM, 0);
-      if (fd < 0)
-	{
-	  mu_error ("socket: %s", mu_strerror (errno));
-	  return EX_TEMPFAIL;
-	}
-
-      addr.s_in.sin_family = AF_INET;
-      hp = gethostbyname (path);
-      if (hp)
-	{
-	  char **ap;
-	  int count = 0;
-
-	  addr.s_in.sin_addr.s_addr = *(unsigned long*) hp->h_addr_list[0];
-	  
-	  for (ap = hp->h_addr_list; *ap; ap++)
-	    count++;
-	  if (count > 1)
-	    mu_error (_("warning: %s has several IP addresses, using %s"),
-		      path, inet_ntoa (addr.s_in.sin_addr));
-	}
-      else if (inet_aton (path, &addr.s_in.sin_addr) == 0)
-	{
-	  mu_error ("invalid IP address: %s", path);
-	  return EX_TEMPFAIL;
-	}
-      addr.s_in.sin_port = htons (port);
-      addrsize = sizeof addr.s_in;
-
-      if (reuse_lmtp_address)
-	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &t, sizeof(t));
-    }
-  else
-    {
-      mu_error (_("%s: invalid scheme"), urlstr);
-      return EX_CONFIG;
-    }
-
-  saved_umask = umask (0117);
-  if (bind (fd, &addr.sa, addrsize) == -1)
-    {
-      mu_error ("bind: %s", strerror (errno));
-      close (fd);
-      return EXIT_FAILURE;
-    }
-  umask (saved_umask);
-  *pfd = fd;
-  return 0;
-}
-
-int
-lmtp_open (int *pfd, char *urlstr)
-{
-  mu_url_t url = NULL;
-  int rc;
-  
-  rc = mu_url_create (&url, urlstr);
-  if (rc)
-    {
-      mu_error (_("%s: cannot create URL: %s"),
-		urlstr, mu_strerror (rc));
-      return EX_CONFIG;
-    }
-  rc = mu_url_parse (url);
-  if (rc)
-    {
-      mu_error (_("%s: error parsing URL: %s"),
-		urlstr, mu_strerror(rc));
-      return EX_CONFIG;
-    }
-
-  rc = lmtp_open_internal (pfd, url, urlstr);
-  mu_url_destroy (&url);
-  return rc;
-}
-
-size_t children;
-static int need_cleanup = 0;
-
-void
-process_cleanup ()
-{
-  pid_t pid;
-  int status;
-  
-  if (need_cleanup)
-    {
-      need_cleanup = 0;
-      while ( (pid = waitpid (-1, &status, WNOHANG)) > 0)
-	--children;
-    }
-}
-
-RETSIGTYPE
-lmtp_sigchld (int signo MU_ARG_UNUSED)
-{
-  need_cleanup = 1;
-#ifndef HAVE_SIGACTION
-  signal (signo, lmtp_sigchld);
-#endif
-}
+static int lmtp_transcript;
 
 void
 lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
@@ -252,7 +37,7 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
   vasprintf (&str, fmt, ap);
   va_end (ap);
 
-  if (mu_gocs_daemon.transcript)
+  if (lmtp_transcript)
     {
       if (enh)
 	mu_diag_output (MU_DIAG_INFO, "LMTP reply: %s %s %s", code, enh, str);
@@ -697,8 +482,18 @@ getcmd (char *buf, char **sp)
   return cp;
 }
 
+static char *
+to_fgets (char *buf, size_t size, FILE *fp, unsigned int timeout)
+{
+  char *p;
+  alarm (timeout);
+  p = fgets (buf, size, fp);
+  alarm (0);
+  return p;
+}
+
 int
-lmtp_loop (FILE *in, FILE *out)
+lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
 {
   char buf[1024];
   enum lmtp_state state = state_init;
@@ -707,7 +502,7 @@ lmtp_loop (FILE *in, FILE *out)
   setvbuf (out, NULL, _IOLBF, 0);
 
   lmtp_reply (out, "220", NULL, "At your service");
-  while (fgets (buf, sizeof buf, in))
+  while (to_fgets (buf, sizeof buf, in, timeout))
     {
       if (state == state_data
 	  && !(buf[0] == '.'
@@ -737,7 +532,7 @@ lmtp_loop (FILE *in, FILE *out)
 
 	  trimnl (buf);
 
-	  if (mu_gocs_daemon.transcript)
+	  if (lmtp_transcript)
 	    mu_diag_output (MU_DIAG_INFO, "LMTP recieve: %s", buf);
 	      
 	  if (next_state != state_none)
@@ -762,142 +557,13 @@ lmtp_loop (FILE *in, FILE *out)
 }
 
 int
-check_connection (int fd, all_addr_t *addr, socklen_t addrlen)
+lmtp_connection (int fd, void *data, time_t timeout, int transcript)
 {
-  switch (addr->sa.sa_family)
-    {
-    case PF_UNIX:
-      mu_diag_output (MU_DIAG_INFO, _("connect from socket"));
-      break;
-      
-    case PF_INET:
-      if (maidag_acl)
-	{
-	  mu_acl_result_t res;
-	  int rc = mu_acl_check_sockaddr (maidag_acl, &addr->sa, addrlen,
-					  &res);
-	  if (rc)
-	    {
-	      mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
-			inet_ntoa (addr->s_in.sin_addr), mu_strerror (rc));
-	      return 1;
-	    }
-	  switch (res)
-	    {
-	    case mu_acl_result_undefined:
-	      mu_diag_output (MU_DIAG_INFO,
-			      _("%s: undefined ACL result; access allowed"),
-			      inet_ntoa (addr->s_in.sin_addr));
-	      break;
-	  
-	    case mu_acl_result_accept:
-	      break;
-	      
-	    case mu_acl_result_deny:
-	      mu_error (_("Access from %s blocked."),
-			inet_ntoa (addr->s_in.sin_addr));
-	      return 1;
-	    }
-	}
-  
-      if (!mu_tcpwrapper_access (fd))
-	{
-	  mu_error (_("Access from %s blocked by tcp wrappers."),
-		    inet_ntoa (addr->s_in.sin_addr));
-	  return 1;
-	}
-    }
+  /* FIXME: TCP wrappers */
+  lmtp_transcript = transcript;
+  lmtp_loop (fdopen (fd, "r"), fdopen (fd, "w"), timeout);
   return 0;
 }
-
-int
-lmtp_daemon (char *urlstr)
-{
-  int rc;
-  int listenfd, connfd;
-  all_addr_t addr;
-  socklen_t addrlen;
-  pid_t pid;
-  
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    {
-      if (daemon (0, 0) < 0)
-	{
-	  mu_error (_("Failed to become a daemon"));
-	  return EX_UNAVAILABLE;
-	}
-    }
-
-  rc = lmtp_open (&listenfd, urlstr);
-  if (rc)
-    return rc;
-  
-  if (listen (listenfd, 128) == -1)
-    {
-      mu_error ("listen: %s", strerror (errno));
-      close (listenfd);
-      return EX_UNAVAILABLE;
-    }
-
-#ifdef HAVE_SIGACTION
-  {
-    struct sigaction act;
-    act.sa_handler = lmtp_sigchld;
-    sigemptyset (&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction (SIGCHLD, &act, NULL);
-  }
-#else
-  signal (SIGCHLD, lmtp_sigchld);
-#endif
-  
-  for (;;)
-    {
-      process_cleanup ();
-      if (children > mu_gocs_daemon.maxchildren)
-	{
-	  mu_error (_("too many children (%lu)"),
-		    (unsigned long) children);
-	  pause ();
-	  continue;
-	}
-      addrlen = sizeof addr;
-      connfd = accept (listenfd, (struct sockaddr *)&addr, &addrlen);
-      if (connfd == -1)
-	{
-	  if (errno == EINTR)
-	    continue;
-	  mu_error ("accept: %s", strerror (errno));
-	  continue;
-	  /*exit (EXIT_FAILURE);*/
-	}
-
-      if (check_connection (connfd, &addr, addrlen))
-	{
-	  close (connfd);
-	  continue;
-	}
-      
-      pid = fork ();
-      if (pid == -1)
-	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
-      else if (pid == 0) /* Child.  */
-	{
-	  int status;
-	  
-	  close (listenfd);
-	  status = lmtp_loop (fdopen (connfd, "r"), fdopen (connfd, "w"));
-	  exit (status);
-	}
-      else
-	{
-	  ++children;
-	}
-      close (connfd);
-    }
-}
-
-#define DEFAULT_URL "tcp://127.0.0.1:"
 
 int
 maidag_lmtp_server ()
@@ -916,21 +582,16 @@ maidag_lmtp_server ()
       return EX_UNAVAILABLE;
     }
 
-  if (lmtp_url_string)
-    return lmtp_daemon (lmtp_url_string);
-  else if (mu_gocs_daemon.mode == MODE_INTERACTIVE)
-    return lmtp_loop (stdin, stdout);
-  else
+  if (mu_m_server_mode (server) == MODE_DAEMON)
     {
-      const char *pstr = mu_umaxtostr (0, mu_gocs_daemon.port);
-      char *urls = malloc (sizeof (DEFAULT_URL) + strlen (pstr));
-      if (!urls)
-	{
-	  mu_error (_("Not enough memory"));
-	  return EX_TEMPFAIL;
-	}
-      strcpy (urls, DEFAULT_URL);
-      strcat (urls, pstr);
-      return lmtp_daemon (urls);
+      int status;
+      mu_m_server_begin (server);
+      status = mu_m_server_run (server);
+      mu_m_server_end (server);
+      mu_m_server_destroy (&server);
+      if (status)
+	return EX_CONFIG;
     }
+  else 
+    return lmtp_loop (stdin, stdout, 0);
 }

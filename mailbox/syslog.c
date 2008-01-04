@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -125,7 +125,11 @@ mu_diag_syslog_printer (void *data, mu_log_level_t level, const char *buf)
 {
   int len = strlen (buf);
   if (len > 0 && buf[len-1] == '\n')
-    len--;
+    {
+      len--;
+      if (len > 0 && buf[len-1] == '\r')
+	len--;
+    }
   syslog (mu_diag_level_to_syslog (level), "%-.*s", len, buf);
   return 0;
 }

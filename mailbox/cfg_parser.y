@@ -1,6 +1,6 @@
 %{
 /* cfg_parser.y -- general-purpose configuration file parser 
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -260,8 +260,17 @@ mu_cfg_parse (mu_cfg_tree_t **ptree,
     _mu_cfg_debug = debug;
   else
     {
+      mu_log_level_t level;
+
       mu_debug_create (&_mu_cfg_debug, NULL);
       mu_debug_set_print (_mu_cfg_debug, _cfg_default_printer, NULL);
+      level = mu_global_debug_level ("config");
+      if (level)
+	{
+	  mu_debug_set_level (_mu_cfg_debug, level);
+	  if (level & MU_DEBUG_LEVEL_MASK (MU_DEBUG_TRACE7))
+	    yydebug = 1;
+	}
     }
   _mu_cfg_alloc = palloc ? palloc : malloc;
   _mu_cfg_free = pfree ? pfree : free;
@@ -1006,13 +1015,19 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
 	sec->target = (char*)sdata->list->sec->target + sec->offset;
       else if (sdata->target)
 	sec->target = (char*)sdata->target + sec->offset;
-      if (sec->parser &&
-	  sec->parser (mu_cfg_section_start, node,
-		       sec->label, &sec->target,
-		       sdata->call_data, sdata->tree))
+      if (sec->parser)
 	{
-	  sdata->error++;
-	  return MU_CFG_ITER_SKIP;
+	  mu_debug_set_locus (sdata->tree->debug,
+			      node->locus.file ?
+			             node->locus.file : _("unknown file"),
+			      node->locus.line);
+	  if (sec->parser (mu_cfg_section_start, node,
+			   sec->label, &sec->target,
+			   sdata->call_data, sdata->tree))
+	    {
+	      sdata->error++;
+	      return MU_CFG_ITER_SKIP;
+	    }
 	}
       push_section(sdata, sec);
       break;
@@ -1059,15 +1074,26 @@ int
 mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
 		  void *target, void *data)
 {
+  mu_debug_t debug = NULL;
   struct scan_tree_data dat;
   dat.tree = tree;
   dat.list = NULL;
   dat.error = 0;
   dat.call_data = data;
   dat.target = target;
+  if (!tree->debug)
+    {
+      mu_diag_get_debug (&debug);
+      tree->debug = debug;
+    }
   if (push_section (&dat, sections))
     return 1;
   mu_cfg_preorder (tree->node, _scan_tree_helper, _scan_tree_end_helper, &dat);
+  if (debug)
+    {
+      mu_debug_set_locus (debug, NULL, 0);
+      tree->debug = NULL;
+    }
   pop_section (&dat);
   return dat.error;
 }

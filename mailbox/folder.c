@@ -90,7 +90,7 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 	  status = mu_url_parse (url);
 	  if (status)
 	    {
-	      mu_url_destroy (url);
+	      mu_url_destroy (&url);
 	      return status;
 	    }
 	  mu_record_get_url (record, &u_init);
@@ -99,7 +99,7 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 	      status = u_init (url);
 	      if (status)
 		{
-		  mu_url_destroy (url);
+		  mu_url_destroy (&url);
 		  return status;
 		}
 	    }

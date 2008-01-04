@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,19 +24,14 @@
 #include "mailutils/libargp.h"
 #include "tcpwrap.h"
 
+mu_m_server_t server;
+unsigned int idle_timeout;
+int imap4d_transcript;
+
 mu_mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
 struct mu_auth_data *auth_data;
-
-struct mu_gocs_daemon default_gocs_daemon = {
-  MODE_INTERACTIVE,		/* Start in interactive (inetd) mode */
-  20,				/* Default maximum number of children */
-  143,				/* Standard IMAP4 port */
-  1800,				/* RFC2060: 30 minutes. */
-  0,				/* No transcript by default */
-  NULL                          /* No PID file by default */
-};
 
 int login_disabled;             /* Disable LOGIN command */
 int tls_required;               /* Require STARTTLS */
@@ -51,33 +46,34 @@ int ident_port;
 char *ident_keyfile;
 int ident_encrypt_only;
 
-mu_acl_t imap4d_acl;
-
-/* Number of child processes.  */
-size_t children;
-
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
-#define ARG_LOGIN_DISABLED  256
-#define ARG_TLS_REQUIRED    257
-#define ARG_CREATE_HOME_DIR 258
-#define ARG_OPTION_PREAUTH  259
+#define OPT_LOGIN_DISABLED  256
+#define OPT_TLS_REQUIRED    257
+#define OPT_CREATE_HOME_DIR 258
+#define OPT_PREAUTH         259
+#define OPT_FOREGROUND      260
 
 static struct argp_option options[] = {
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), 0},
+  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0},
+  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
+    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
+
   {"other-namespace", 'O', N_("PATHLIST"), OPTION_HIDDEN,
    N_("Set the `other' namespace"), 0},
   {"shared-namespace", 'S', N_("PATHLIST"), OPTION_HIDDEN,
    N_("Set the `shared' namespace"), 0},
-  {"login-disabled", ARG_LOGIN_DISABLED, NULL, OPTION_HIDDEN,
+  {"login-disabled", OPT_LOGIN_DISABLED, NULL, OPTION_HIDDEN,
    N_("Disable LOGIN command")},
-  {"create-home-dir", ARG_CREATE_HOME_DIR, N_("MODE"),
+  {"create-home-dir", OPT_CREATE_HOME_DIR, N_("MODE"),
    OPTION_ARG_OPTIONAL|OPTION_HIDDEN,
    N_("Create home directory, if it does not exist")},
-  {"preauth", ARG_OPTION_PREAUTH, NULL, 0,
+  {"preauth", OPT_PREAUTH, NULL, 0,
    N_("Start in preauth mode") },
 #ifdef WITH_TLS
-  {"tls-required", ARG_TLS_REQUIRED, NULL, OPTION_HIDDEN,
+  {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
    N_("Always require STARTTLS before entering authentication phase")},
 #endif
   {NULL, 0, NULL, 0, NULL, 0}
@@ -97,7 +93,6 @@ static struct argp argp = {
 };
 
 static const char *imap4d_capa[] = {
-  "daemon",
   "auth",
   "common",
   "debug",
@@ -108,8 +103,6 @@ static const char *imap4d_capa[] = {
   NULL
 };
 
-static void imap4d_daemon_init (void);
-static void imap4d_daemon (unsigned int, unsigned int);
 static int imap4d_mainloop (int, FILE *, FILE *);
 
 static error_t
@@ -119,6 +112,20 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 
   switch (key)
     {
+    case 'd':
+      mu_argp_node_list_new (&lst, "mode", "daemon");
+      if (arg)
+	mu_argp_node_list_new (&lst, "max-children", arg);
+      break;
+
+    case 'i':
+      mu_argp_node_list_new (&lst, "mode", "inetd");
+      break;
+
+    case OPT_FOREGROUND:
+      mu_argp_node_list_new (&lst, "foreground", "yes");
+      break;
+      
     case 'O':
       mu_argp_node_list_new (&lst, "other-namespace", arg);
       break;
@@ -127,23 +134,23 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (&lst, "shared-namespace", arg);
       break;
 
-    case ARG_LOGIN_DISABLED:
+    case OPT_LOGIN_DISABLED:
       mu_argp_node_list_new (&lst, "login-disabled", "yes");
       break;
 
-    case ARG_CREATE_HOME_DIR:
+    case OPT_CREATE_HOME_DIR:
       mu_argp_node_list_new (&lst, "create-home-dir", "yes");
       if (arg)
 	mu_argp_node_list_new (&lst, "home-dir-mode", arg);
       break;
 	
 #ifdef WITH_TLS
-    case ARG_TLS_REQUIRED:
+    case OPT_TLS_REQUIRED:
       mu_argp_node_list_new (&lst, "tls-required", "yes");
       break;
 #endif
 
-    case ARG_OPTION_PREAUTH:
+    case OPT_PREAUTH:
       preauth_mode = preauth_stdio;
       break;
       
@@ -309,138 +316,11 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("Name of DES keyfile for decoding ecrypted ident responses.") },
   { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
     N_("Use only encrypted ident responses.") },
-  { "acl", mu_cfg_section, },
+  { ".server", mu_cfg_section, NULL, 0, NULL,
+    N_("Server configuration.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
-
-int
-main (int argc, char **argv)
-{
-  struct group *gr;
-  int status = EXIT_SUCCESS;
-
-  /* Native Language Support */
-  mu_init_nls ();
-
-  state = STATE_NONAUTH;	/* Starting state in non-auth.  */
-
-  MU_AUTH_REGISTER_ALL_MODULES ();
-  /* Register the desired formats. */
-  mu_register_local_mbox_formats ();
-  
-  imap4d_capability_init ();
-  mu_gocs_daemon = default_gocs_daemon;
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif /* WITH_TLS */
-#ifdef WITH_GSASL
-  mu_gocs_register ("gsasl", mu_gsasl_module_init);
-#endif
-  mu_tcpwrapper_cfg_init ();
-  mu_acl_cfg_init ();
-  mu_argp_init (program_version, NULL);
-  if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
-		   argc, argv, 0, NULL, &imap4d_acl))
-    exit (1);
-
-  if (login_disabled)
-    imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
-#ifdef WITH_TLS
-  if (tls_required)
-    imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
-#endif
-  
-  auth_gssapi_init ();
-  auth_gsasl_init ();
-
-#ifdef USE_LIBPAM
-  if (!mu_pam_service)
-    mu_pam_service = "gnu-imap4d";
-#endif
-
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    {
-      /* Normal operation: */
-      /* First we want our group to be mail so we can access the spool.  */
-      gr = getgrnam ("mail");
-      if (gr == NULL)
-	{
-	  perror (_("Error getting mail group"));
-	  exit (1);
-	}
-
-      if (setgid (gr->gr_gid) == -1)
-	{
-	  perror (_("Error setting mail group"));
-	  exit (1);
-	}
-    }
-
-  /* Set the signal handlers.  */
-  signal (SIGINT, imap4d_signal);
-  signal (SIGQUIT, imap4d_signal);
-  signal (SIGILL, imap4d_signal);
-  signal (SIGBUS, imap4d_signal);
-  signal (SIGFPE, imap4d_signal);
-  signal (SIGSEGV, imap4d_signal);
-  signal (SIGTERM, imap4d_signal);
-  signal (SIGSTOP, imap4d_signal);
-  signal (SIGPIPE, imap4d_signal);
-  /*signal (SIGPIPE, SIG_IGN); */
-  signal (SIGABRT, imap4d_signal);
-
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    imap4d_daemon_init ();
-  else
-    {
-      /* Make sure we are in the root.  */
-      chdir ("/");
-    }
-
-  /* Set up for syslog.  */
-  openlog ("gnu-imap4d", LOG_PID, log_facility);
-
-  /* Redirect any stdout error from the library to syslog, they
-     should not go to the client.  */
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-
-    /* FIXME: this should be done automatically by cfg */
-    if (imap4d_acl)
-      {
-	mu_acl_get_debug (imap4d_acl, &debug);
-	mu_debug_set_print (debug, mu_debug_syslog_printer, NULL);
-      }
-  }
-
-  umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
-
-  if (mu_gocs_daemon.pidfile)
-    {
-      mu_daemon_create_pidfile (mu_gocs_daemon.pidfile);
-    }
-
-  /* Check TLS environment, i.e. cert and key files */
-#ifdef WITH_TLS
-  starttls_init ();
-#endif /* WITH_TLS */
-
-  /* Actually run the daemon.  */
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    imap4d_daemon (mu_gocs_daemon.maxchildren, mu_gocs_daemon.port);
-  /* exit (0) -- no way out of daemon except a signal.  */
-  else
-    status = imap4d_mainloop (fileno (stdin), stdin, stdout);
-
-  /* Close the syslog connection and exit.  */
-  closelog ();
-
-  return status;
-}
 
 int
 imap4d_session_setup0 ()
@@ -499,44 +379,13 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
     {
       if (get_client_address (fd, &cs) == 0) 
 	{
-	  if (imap4d_acl)
-	    {
-	      mu_acl_result_t res;
-	      int rc = mu_acl_check_sockaddr (imap4d_acl,
-					      (struct sockaddr*) &cs,
-					      sizeof (cs),
-					      &res);
-	      if (rc)
-		{
-		  mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
-			    inet_ntoa (cs.sin_addr), mu_strerror (rc));
-		  return 1;
-		}
-	      switch (res)
-		{
-		case mu_acl_result_undefined:
-		  mu_diag_output (MU_DIAG_INFO,
-				 _("%s: undefined ACL result; access allowed"),
-				  inet_ntoa (cs.sin_addr));
-		  break;
-
-		case mu_acl_result_accept:
-		  break;
-		  
-		case mu_acl_result_deny:
-		  mu_error (_("Access from %s blocked."),
-			    inet_ntoa (cs.sin_addr));
-		  return 1;
-		}
-	    }
-
 	  if (!mu_tcpwrapper_access (fd))
 	    {
 	      mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
 	      return 1;
 	    }
 	}
-      else if (mu_tcp_wrapper_enable || imap4d_acl)
+      else if (mu_tcp_wrapper_enable)
 	{
 	  mu_error (_("Rejecting connection from unknown address"));
 	  return 1;
@@ -584,116 +433,13 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
   return EXIT_SUCCESS;
 }
 
-/* Sets things up for daemon mode.  */
-static void
-imap4d_daemon_init (void)
+int
+imap4d_connection (int fd, void *data, time_t timeout, int transcript)
 {
-  extern int daemon (int, int);
-
-  /* Become a daemon. Take care to close inherited fds and to hold
-     first three one, in, out, err   */
-  if (daemon (0, 0) < 0)
-    {
-      perror (_("could not become daemon"));
-      exit (1);
-    }
-
-  /* SIGCHLD is not ignore but rather use to do some simple load balancing.  */
-#ifdef HAVE_SIGACTION
-  {
-    struct sigaction act;
-    act.sa_handler = imap4d_sigchld;
-    sigemptyset (&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction (SIGCHLD, &act, NULL);
-  }
-#else
-  signal (SIGCHLD, imap4d_sigchld);
-#endif
-}
-
-/* Runs GNU imap4d in standalone daemon mode. This opens and binds to a port
-   (default 143) then executes a imap4d_mainloop() upon accepting a connection.
-   It starts maxchildren child processes to listen to and accept socket
-   connections.  */
-static void
-imap4d_daemon (unsigned int maxchildren, unsigned int port)
-{
-  struct sockaddr_in server, client;
-  pid_t pid;
-  int listenfd, connfd;
-  size_t size;
-
-  listenfd = socket (PF_INET, SOCK_STREAM, 0);
-  if (listenfd == -1)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "socket: %s", strerror (errno));
-      exit (1);
-    }
-  size = 1;	      /* Use size here to avoid making a new variable.  */
-  setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof (size));
-  size = sizeof (server);
-  memset (&server, 0, size);
-  server.sin_family = AF_INET;
-  server.sin_addr.s_addr = htonl (INADDR_ANY);
-  server.sin_port = htons (port);
-
-  if (bind (listenfd, (struct sockaddr *) &server, size) == -1)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "bind: %s", strerror (errno));
-      exit (1);
-    }
-
-  if (listen (listenfd, 128) == -1)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "listen: %s", strerror (errno));
-      exit (1);
-    }
-
-  mu_diag_output (MU_DIAG_INFO, _("GNU imap4d started"));
-
-  for (;;)
-    {
-      if (children > maxchildren)
-	{
-	  mu_diag_output (MU_DIAG_ERROR, _("Too many children (%s)"),
-		  mu_umaxtostr (0, children));
-	  pause ();
-	  continue;
-	}
-      connfd = accept (listenfd, (struct sockaddr *) &client,
-		       (socklen_t *) & size);
-      if (connfd == -1)
-	{
-	  if (errno == EINTR)
-	    continue;
-	  mu_diag_output (MU_DIAG_ERROR, "accept: %s", strerror (errno));
-	  exit (1);
-	}
-
-      pid = fork ();
-      if (pid == -1)
-	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
-      else if (pid == 0)	/* Child.  */
-	{
-	  int status;
-	  
-	  close (listenfd);
-
-	  status = imap4d_mainloop (connfd,
-				    fdopen (connfd, "r"),
-				    fdopen (connfd, "w"));
-	    
-	  close (connfd);
-	  closelog ();
-	  exit (status);
-	}
-      else
-	{
-	  ++children;
-	}
-      close (connfd);
-    }
+  idle_timeout = timeout;
+  imap4d_transcript = transcript;
+  imap4d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
+  return 0;
 }
 
 int
@@ -724,5 +470,135 @@ imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid)
     }
   
   return 0;
+}
+
+int
+main (int argc, char **argv)
+{
+  struct group *gr;
+  int status = EXIT_SUCCESS;
+
+  /* Native Language Support */
+  mu_init_nls ();
+
+  state = STATE_NONAUTH;	/* Starting state in non-auth.  */
+
+  MU_AUTH_REGISTER_ALL_MODULES ();
+  /* Register the desired formats. */
+  mu_register_local_mbox_formats ();
+  
+  imap4d_capability_init ();
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif /* WITH_TLS */
+#ifdef WITH_GSASL
+  mu_gocs_register ("gsasl", mu_gsasl_module_init);
+#endif
+  mu_tcpwrapper_cfg_init ();
+  mu_acl_cfg_init ();
+  mu_m_server_cfg_init ();
+  
+  mu_argp_init (program_version, NULL);
+
+  mu_m_server_create (&server, "GNU imap4d");
+  mu_m_server_set_conn (server, imap4d_connection);
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+  mu_m_server_set_max_children (server, 20);
+  /* FIXME mu_m_server_set_pidfile (); */
+  mu_m_server_set_default_port (server, 143);
+  mu_m_server_set_timeout (server, 1800);  /* RFC2060: 30 minutes. */
+  
+  if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
+		   argc, argv, 0, NULL, server))
+    exit (1);
+
+  if (login_disabled)
+    imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
+#ifdef WITH_TLS
+  if (tls_required)
+    imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
+#endif
+  
+  auth_gssapi_init ();
+  auth_gsasl_init ();
+
+#ifdef USE_LIBPAM
+  if (!mu_pam_service)
+    mu_pam_service = "gnu-imap4d";
+#endif
+
+  if (mu_m_server_mode (server) == MODE_DAEMON)
+    {
+      /* Normal operation: */
+      /* First we want our group to be mail so we can access the spool.  */
+      gr = getgrnam ("mail");
+      if (gr == NULL)
+	{
+	  perror (_("Error getting mail group"));
+	  exit (1);
+	}
+
+      if (setgid (gr->gr_gid) == -1)
+	{
+	  perror (_("Error setting mail group"));
+	  exit (1);
+	}
+    }
+
+  /* Set the signal handlers.  */
+  signal (SIGINT, imap4d_signal);
+  signal (SIGQUIT, imap4d_signal);
+  signal (SIGILL, imap4d_signal);
+  signal (SIGBUS, imap4d_signal);
+  signal (SIGFPE, imap4d_signal);
+  signal (SIGSEGV, imap4d_signal);
+  signal (SIGTERM, imap4d_signal);
+  signal (SIGSTOP, imap4d_signal);
+  signal (SIGPIPE, imap4d_signal);
+  /*signal (SIGPIPE, SIG_IGN); */
+  signal (SIGABRT, imap4d_signal);
+
+  /* Set up for syslog.  */
+  openlog ("gnu-imap4d", LOG_PID, log_facility);
+
+  /* Redirect any stdout error from the library to syslog, they
+     should not go to the client.  */
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+
+    mu_debug_default_printer = mu_debug_syslog_printer;
+  }
+
+  umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
+
+  /* Check TLS environment, i.e. cert and key files */
+#ifdef WITH_TLS
+  starttls_init ();
+#endif /* WITH_TLS */
+
+  /* Actually run the daemon.  */
+  if (mu_m_server_mode (server) == MODE_DAEMON)
+    {
+      mu_m_server_begin (server);
+      status = mu_m_server_run (server);
+      mu_m_server_end (server);
+      mu_m_server_destroy (&server);
+    }
+  else
+    {
+      /* Make sure we are in the root directory.  */
+      chdir ("/");
+      status = imap4d_mainloop (fileno (stdin), stdin, stdout);
+    }
+
+  if (status)
+    mu_error (_("Main loop status: %s"), mu_strerror (status));	  
+  /* Close the syslog connection and exit.  */
+  closelog ();
+
+  return status != 0;
 }
 

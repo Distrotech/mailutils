@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -307,16 +307,17 @@ mu_acl_string_to_action (const char *str, mu_acl_action_t *pres)
   return rc;
 }
 
-void
+static void
 debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa)
 {
   switch (sa->sa_family)
     {
     case AF_INET:
       {
-	struct sockaddr_in *s_in = (struct sockaddr_in *)sa;
+	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
+	s_in.sin_addr.s_addr = htonl (s_in.sin_addr.s_addr);
 	mu_debug_printf (dbg, lvl, "{AF_INET %s:%d}",
-			 inet_ntoa (s_in->sin_addr), ntohs (s_in->sin_port));
+			 inet_ntoa (s_in.sin_addr), ntohs (s_in.sin_port));
 	break;
       }
 
@@ -330,6 +331,77 @@ debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa)
     default:
       mu_debug_printf (dbg, lvl, "{Unsupported family: %d}", sa->sa_family);
     }
+}
+
+size_t
+mu_stpcpy (char **pbuf, size_t *psize, const char *src)
+{
+  size_t slen = strlen (src);
+  if (pbuf == NULL || *pbuf == NULL)
+    return slen;
+  else
+    {
+      char *buf = *pbuf;
+      size_t size = *psize;
+      if (size > slen)
+	size = slen;
+      memcpy (buf, src, size);
+      *psize -= size;
+      *pbuf += size;
+      if (*psize)
+	**pbuf = 0;
+      else
+	(*pbuf)[-1] = 0;
+      return size;
+    }
+}
+
+void
+mu_sockaddr_to_str (struct sockaddr *sa, int salen,
+		    char *bufptr, size_t buflen,
+		    size_t *plen)
+{
+  char buf[UINTMAX_STRSIZE_BOUND]; /* FIXME: too much */
+  size_t len = 0;
+  switch (sa->sa_family)
+    {
+    case AF_INET:
+      {
+	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
+	len += mu_stpcpy (&bufptr, &buflen, inet_ntoa (s_in.sin_addr));
+	len += mu_stpcpy (&bufptr, &buflen, ":");
+	len += mu_stpcpy (&bufptr, &buflen, umaxtostr (ntohs (s_in.sin_port),
+						       buf));
+	break;
+      }
+
+    case AF_UNIX:
+      {
+	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
+	len += mu_stpcpy (&bufptr, &buflen, "socket ");
+	len += mu_stpcpy (&bufptr, &buflen, s_un->sun_path);
+	break;
+      }
+
+    default:
+      len += mu_stpcpy (&bufptr, &buflen, "{Unsupported family: ");
+      len += mu_stpcpy (&bufptr, &buflen, umaxtostr (sa->sa_family, buf));
+    }
+  if (plen)
+    *plen = len + 1;
+}
+
+char *
+mu_sockaddr_to_astr (struct sockaddr *sa, int salen)
+{
+  size_t size;
+  char *p;
+  
+  mu_sockaddr_to_str (sa, salen, NULL, 0, &size);
+  p = malloc (size);
+  if (p)
+    mu_sockaddr_to_str (sa, salen, p, size, NULL);
+  return p;
 }
 
 int
@@ -348,6 +420,7 @@ _acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa)
       mu_debug_printf (debug, MU_DEBUG_TRACE0, " match ");
       debug_sockaddr (debug, MU_DEBUG_TRACE0, ent->sa);
       a.s_addr = ent->netmask;
+      a.s_addr = htonl (a.s_addr);
       mu_debug_printf (debug, MU_DEBUG_TRACE0, " netmask %s? ", inet_ntoa (a));
     }
 

@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2007-12-30
+GNU mailutils NEWS -- history of user-visible changes. 2008-01-04
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -71,6 +71,11 @@ pop3d, maidag). The support is controlled at compile time by the
 --with-tcpwrappers command line options to configure. By default, it
 is enabled if libwrap presence is detected. A set of configuration
 file statements are provided for fine tuning TCP wrappers at run-time.
+
+** pop3d and imap4d ports.
+
+Pop3d and imap4d can be configured to listen on several different
+IP addresses/ports (or even local sockets) simultaneously.
 
 ** pop3d: Fixed APOP handling.
 

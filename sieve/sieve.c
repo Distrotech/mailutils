@@ -383,7 +383,7 @@ main (int argc, char *argv[])
 
   tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
   tickets_default = 1;
-  debug_level = MU_DEBUG_ERROR;
+  debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
   log_facility = 0;
 
   if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 

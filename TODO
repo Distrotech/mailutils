@@ -1,7 +1,11 @@
-GNU mailutils TODO list. 2007-12-28
+GNU mailutils TODO list. 2008-01-03
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
-2007 Free Software Foundation, Inc.
+2007, 2008 Free Software Foundation, Inc.
 
+* Configuration callback functions should not modify node->tag and node->label.
+
+* Debug handling in cfg vs. argp
+
 * Fix folder_imap_list in libproto/imap/folder.c
 
 * Documentation

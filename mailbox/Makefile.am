@@ -82,6 +82,7 @@ libmailutils_la_SOURCES = \
  message_stream.c\
  mime.c\
  monitor.c\
+ msrv.c\
  mu_auth.c\
  mu_umaxtostr.h\
  mu_umaxtostr.c\

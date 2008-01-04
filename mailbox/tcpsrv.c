@@ -21,7 +21,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -31,12 +33,14 @@
 #include <mailutils/debug.h>
 #include <mailutils/diag.h>
 #include <mailutils/errno.h>
+#include <mailutils/nls.h>
 
 
 struct _mu_tcp_server
 {
   char *ident;
-  struct sockaddr_in addr;
+  struct sockaddr *addr;
+  int addrlen;
   int backlog;
   int fd; 
   mu_debug_t debug;
@@ -50,8 +54,8 @@ struct _mu_tcp_server
 #define IDENTSTR(s) ((s)->ident ? (s)->ident : "default")
 
 int
-mu_tcp_server_create (mu_tcp_server_t *psrv,
-		      struct sockaddr_in *addr)
+mu_tcp_server_create (mu_tcp_server_t *psrv, struct sockaddr *addr,
+		      int addrlen)
 {
   struct _mu_tcp_server *srv;
   mu_log_level_t level;
@@ -59,8 +63,15 @@ mu_tcp_server_create (mu_tcp_server_t *psrv,
   srv = calloc (1, sizeof *srv);
   if (!srv)
     return ENOMEM;
-  srv->addr = *addr;
-  level = mu_global_debug_level ("mailbox");
+  srv->addr = calloc (1, addrlen);
+  if (!srv->addr)
+    {
+      free (srv);
+      return ENOMEM;
+    }
+  memcpy (srv->addr, addr, addrlen);
+  srv->addrlen = addrlen;
+  level = mu_global_debug_level ("tcp_server");
   if (level)
     {
       mu_debug_create (&srv->debug, NULL);
@@ -84,6 +95,7 @@ mu_tcp_server_destroy (mu_tcp_server_t *psrv)
   if (srv->f_free)
     srv->f_free (srv->data);
   close (srv->fd);
+  free (srv->addr);
   free (srv->ident);
   free (srv);
   *psrv = NULL;
@@ -169,31 +181,93 @@ mu_tcp_server_set_data (mu_tcp_server_t srv,
   return 0;
 }
 
+static int
+family_to_proto (int family)
+{
+  switch (family)
+    {
+    case AF_UNIX:
+      return PF_UNIX;
+
+    case AF_INET:
+      return PF_INET;
+
+    default:
+      abort ();
+    }
+}
+
 int
 mu_tcp_server_open (mu_tcp_server_t srv)
 {
   int fd;
-  int t;
   
   if (!srv || srv->fd != -1)
     return EINVAL;
 
-  MU_DEBUG3 (srv->debug, MU_DEBUG_TRACE0,
-	     "opening server \"%s\" %s:%d\n", IDENTSTR (srv),
-	     inet_ntoa (srv->addr.sin_addr), ntohs (srv->addr.sin_port));
+  if (mu_debug_check_level (srv->debug, MU_DEBUG_TRACE0))
+    {
+      char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
+      __MU_DEBUG2 (srv->debug, MU_DEBUG_TRACE0,
+		   "opening server \"%s\" %s\n", IDENTSTR (srv),
+		   p);
+      free (p);
+    }
 
-  fd = socket (PF_INET, SOCK_STREAM, 0);
+  fd = socket (family_to_proto (srv->addr->sa_family), SOCK_STREAM, 0);
   if (fd == -1)
     {
       MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
 		 "%s: socket: %s\n", IDENTSTR (srv), mu_strerror (errno));
       return errno;
     }
+  
+  switch (srv->addr->sa_family)
+    {
+    case AF_UNIX:
+      {
+	struct stat st;
+	struct sockaddr_un *s_un = (struct sockaddr_un *) srv->addr;
+	
+	if (stat (s_un->sun_path, &st))
+	  {
+	    if (errno != ENOENT)
+	      {
+		MU_DEBUG3 (srv->debug, MU_DEBUG_ERROR,
+			   _("%s: file %s exists but cannot be stat'd: %s"),
+			   IDENTSTR (srv),
+			   s_un->sun_path,
+			   mu_strerror (errno));
+		return EAGAIN;
+	      }
+	  }
+	else if (!S_ISSOCK (st.st_mode))
+	  {
+	    MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
+		       _("%s: file %s is not a socket"),
+		       IDENTSTR (srv), s_un->sun_path);
+	    return EAGAIN;
+	  }
+	else if (unlink (s_un->sun_path))
+	  {
+	    MU_DEBUG3 (srv->debug, MU_DEBUG_ERROR,
+		       _("%s: cannot unlink file %s: %s"),
+		       IDENTSTR (srv), s_un->sun_path, mu_strerror (errno));
+	    return EAGAIN;
+	  }
+      }
+      break;
 
-  t = 1;	 
-  setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &t, sizeof (t));
-
-  if (bind (fd, (struct sockaddr *) &srv->addr, sizeof (srv->addr)) == -1)
+    case AF_INET:
+      {
+	int t;
+	
+	t = 1;	 
+	setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &t, sizeof (t));
+      }
+    }
+  
+  if (bind (fd, srv->addr, srv->addrlen) == -1)
     {
       MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
 		 "%s: bind: %s\n", IDENTSTR (srv), mu_strerror (errno));
@@ -218,10 +292,14 @@ mu_tcp_server_shutdown (mu_tcp_server_t srv)
 {
   if (!srv || srv->fd != -1)
     return EINVAL;
-  MU_DEBUG4 (srv->debug, MU_DEBUG_TRACE0,
-	     "closing server \"%s\" %s:%d, fd %d\n", IDENTSTR (srv),
-	     inet_ntoa (srv->addr.sin_addr), ntohs (srv->addr.sin_port),
-	     srv->fd);
+  if (mu_debug_check_level (srv->debug, MU_DEBUG_TRACE0))
+    {
+      char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
+      __MU_DEBUG2 (srv->debug, MU_DEBUG_TRACE0,
+		   "closing server \"%s\" %s\n", IDENTSTR (srv),
+		   p);
+      free (p);
+    }
   close (srv->fd);
   return 0;
 }
@@ -231,13 +309,18 @@ mu_tcp_server_accept (mu_tcp_server_t srv, void *call_data)
 {
   int rc;
   int connfd;
-  struct sockaddr_in client;
+  union
+  {
+    struct sockaddr sa;
+    char buffer[512];
+  } client;
+  
   socklen_t size = sizeof (client);
   
   if (!srv || srv->fd == -1)
     return EINVAL;
 
-  connfd = accept (srv->fd, (struct sockaddr *) &client, &size);
+  connfd = accept (srv->fd, &client.sa, &size);
   if (connfd == -1)
     {
       int ec = errno;
@@ -252,26 +335,26 @@ mu_tcp_server_accept (mu_tcp_server_t srv, void *call_data)
   if (srv->acl)
     {
       mu_acl_result_t res;
-      int rc = mu_acl_check_sockaddr (srv->acl, (struct sockaddr *) &client,
-				      size, &res);
+      int rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
       if (rc)
 	MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
 		   "%s: mu_acl_check_sockaddr: %s\n",
 		   IDENTSTR (srv), strerror (rc));
       if (res == mu_acl_result_deny)
 	{
-	  mu_diag_output (MU_DIAG_INFO, "Denying connection from %s:%d",
-			  inet_ntoa (client.sin_addr),
-			  ntohs (client.sin_port));
+	  char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
+	  mu_diag_output (MU_DIAG_INFO, "Denying connection from %s", p);
+	  free (p);
+	  
 	  close (connfd);
 	  return 0;
 	}
     }
-  rc = srv->f_conn (connfd, &client, srv->data, call_data, srv);
+  rc = srv->f_conn (connfd, &client.sa, size, srv->data, call_data, srv);
   if (rc)
     mu_tcp_server_shutdown (srv);
   close (connfd);
-  return 0;
+  return rc;
 }
 
 int
@@ -298,11 +381,22 @@ mu_tcp_server_get_fd (mu_tcp_server_t srv)
 }
 
 int
-mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr_in *s)
+mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr *s, int *size)
 {
+  int len;
+  
   if (!srv || !s)
     return EINVAL;
-  memcpy (s, &srv->addr, sizeof (*s));
+  if (s == 0)
+    len = srv->addrlen;
+  else
+    {
+      len = *size;
+      if (len < srv->addrlen)
+	len = srv->addrlen;
+      memcpy (s, srv->addr, len);
+    }
+  *size = len;
   return 0;
 }
   

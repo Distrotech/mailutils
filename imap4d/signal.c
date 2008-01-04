@@ -19,21 +19,6 @@
 #define __USE_MISC
 #include "imap4d.h"
 
-RETSIGTYPE
-imap4d_sigchld (int signo)
-{
-  pid_t pid;
-  int status;
-
-  while ((pid = waitpid (-1, &status, WNOHANG)) > 0)
-    --children;
-#ifndef HAVE_SIGACTION
-  /* On some system, signal implements the unreliable semantic and
-     has to be rearm.  */
-  signal (signo, imap4d_sigchld);
-#endif
-}
-
 /* Default signal handler to call the imap4d_bye() function */
 
 RETSIGTYPE

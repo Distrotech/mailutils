@@ -19,6 +19,7 @@
 #define _MAILUTILS_SERVER_H
 
 #include <mailutils/types.h>
+#include <signal.h>
 
 typedef int (*mu_conn_loop_fp) (int fd, void *conn_data, void *server_data);
 typedef void (*mu_conn_free_fp) (void *conn_data, void *server_data);
@@ -43,15 +44,16 @@ int mu_server_count (mu_server_t srv, size_t *pcount);
 
 
 /* TCP server */
-struct sockaddr_in;
-typedef int (*mu_tcp_server_conn_fp) (int fd, struct sockaddr_in *s,
+struct sockaddr;
+typedef int (*mu_tcp_server_conn_fp) (int fd, struct sockaddr *s, int len,
 				      void *server_data, void *call_data,
 				      mu_tcp_server_t srv);
 typedef int (*mu_tcp_server_intr_fp) (void *data, void *call_data);
 typedef void (*mu_tcp_server_free_fp) (void *data);
 
 
-int mu_tcp_server_create (mu_tcp_server_t *psrv, struct sockaddr_in *addr);
+int mu_tcp_server_create (mu_tcp_server_t *psrv, struct sockaddr *addr,
+			  int len);
 int mu_tcp_server_destroy (mu_tcp_server_t *psrv);
 int mu_tcp_server_set_debug (mu_tcp_server_t srv, mu_debug_t debug);
 int mu_tcp_server_get_debug (mu_tcp_server_t srv, mu_debug_t *pdebug);
@@ -67,6 +69,32 @@ int mu_tcp_server_shutdown (mu_tcp_server_t srv);
 int mu_tcp_server_accept (mu_tcp_server_t srv, void *call_data);
 int mu_tcp_server_loop (mu_tcp_server_t srv, void *call_data);
 int mu_tcp_server_get_fd (mu_tcp_server_t srv);
-int mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr_in *s);
+int mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr *s,
+				int *size);
+
+
+/* m-server */
+typedef int (*mu_m_server_conn_fp) (int, void *, time_t, int);
+
+void mu_m_server_create (mu_m_server_t *psrv, const char *ident);
+void mu_m_server_set_mode (mu_m_server_t srv, int mode);
+void mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_conn_fp f);
+void mu_m_server_set_data (mu_m_server_t srv, void *data);
+void mu_m_server_set_max_children (mu_m_server_t srv, size_t num);
+int mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile);
+void mu_m_server_set_default_port (mu_m_server_t srv, int port);
+void mu_m_server_set_timeout (mu_m_server_t srv, time_t t);
+void mu_m_server_set_mode (mu_m_server_t srv, int mode);
+void mu_m_server_set_sigset (mu_m_server_t srv, sigset_t *sigset);
+
+int mu_m_server_mode (mu_m_server_t srv);
+time_t mu_m_server_timeout (mu_m_server_t srv);
+void mu_m_server_get_sigset (mu_m_server_t srv, sigset_t *sigset);
+
+void mu_m_server_begin (mu_m_server_t msrv);
+int mu_m_server_run (mu_m_server_t msrv);
+
+void mu_m_server_cfg_init (void);
+
 
 #endif

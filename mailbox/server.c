@@ -164,7 +164,7 @@ mu_server_run (mu_server_t srv)
       if (rc == -1 && errno == EINTR)
 	{
 	  if (srv->f_idle && srv->f_idle (srv->server_data))
-	      break;
+	    break;
 	  continue;
 	}
       if (rc < 0)

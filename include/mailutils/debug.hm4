@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail -*- c -*-
-   Copyright (C) 1999, 2000, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -92,6 +92,13 @@ int mu_global_debug_from_string (const char *, const char *);
 int mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 				mu_debug_t debug);
 
+struct sockaddr;
+void mu_sockaddr_to_str (struct sockaddr *sa, int salen,
+			 char *bufptr, size_t buflen,
+			 size_t *plen);
+char *mu_sockaddr_to_astr (struct sockaddr *sa, int salen);
+
+  
   
 #define MU_ASSERT(expr)						\
  do								\

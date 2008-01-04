@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,6 +84,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/daemon.h>
 #include <mailutils/acl.h>
+#include <mailutils/server.h>
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
@@ -120,6 +121,7 @@ extern char *sender_address;
 extern char *progfile_pattern;
 extern char *sieve_pattern;
 
+extern mu_m_server_t server;
 extern int lmtp_mode;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
@@ -131,6 +133,7 @@ int switch_user_id (struct mu_auth_data *auth, int user);
 
 int maidag_stdio_delivery (int argc, char **argv);
 int maidag_lmtp_server (void);
+int lmtp_connection (int fd, void *data, time_t timeout, int transcript);
 
 void mailer_err (char *fmt, ...);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);

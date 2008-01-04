@@ -1,3 +1,58 @@
+2008-01-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* TODO, NEWS: Update.
+	* mailbox/msrv.c: New file.
+	* mailbox/Makefile.am: Add msrv.c.
+	* include/mailutils/server.h (mu_tcp_server_conn_fp): Take
+	sockaddr as argument
+	(mu_tcp_server_create,mu_tcp_server_get_sockaddr): Likewise.
+	(mu_m_server_*): New prototypes.
+	* include/mailutils/types.hin (mu_m_server_t): New type.
+	* mailbox/acl.c: Fix debugging output.
+	(mu_sockaddr_to_str, mu_sockaddr_to_astr): New functions.
+
+	* mailbox/tcpsrv.c: Handle AF_INET and AF_UNIX sockets.
+	* examples/echosrv.c: Update mu_tcp_server_* calls.
+	* examples/config/Makefile.am: Remove comsat.conf and
+	mailutils.rc.
+	
+	* imap4d/imap4d.c, imap4d/imap4d.h, imap4d/signal.c,
+	maidag/lmtp.c, maidag/maidag.c, maidag/maidag.h, pop3d/extra.c,
+	pop3d/pop3d.c, pop3d/pop3d.h, pop3d/signal.c: Rewrite using
+	m-server. 
+	
+	* include/mailutils/cfg.h (mu_offsetof): Bug fix.
+	* mailbox/cfg_driver.c (dup_container): Bugfix. Offset was not
+	copied.
+	(mu_cfg_section_add_params): If identifier starts with a dot, it
+	is hidden, i.e. its substatements are copied directly into the
+	parent structure.
+	* mailbox/cfg_lexer.c (isword): Take care of opening braces.
+	(default_lexer): Several fixes.
+	* mailbox/cfg_parser.y (mu_cfg_parse): Initialize debugging level
+	from global settings.
+	(_scan_tree_helper): Ensure debugging object has correct locus
+	information before calling the section parser.
+	(mu_cfg_scan_tree): If no debugging object is supplied, use the
+	one from diag.c
+	* mailbox/daemon.c (mu_daemon_create_pidfile): Return a meaningful
+	error code.
+	* mailbox/debug.c (mu_debug_create): Initialize printer to NULL.
+	(mu_debug_vprintf): If printer is NULL, use
+	mu_debug_default_printer.
+	(mu_debug_check_level): Bugfix.
+
+	* mailbox/server.c: Minor indentation fix.
+	* mailbox/syslog.c (mu_diag_syslog_printer): Chop off \r as well.
+	* mailbox/folder.c (mu_folder_create_from_record): Bugfixes.
+	
+	* include/mailutils/debug.hm4 (mu_sockaddr_to_str)
+	(mu_sockaddr_to_astr): New functions.
+	
+	* include/mailutils/.cvsignore: Add debug.h
+
+	* po/POTFILES.in: Update.
+	
 2008-01-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/property.h: Update

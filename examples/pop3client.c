@@ -364,7 +364,7 @@ com_verbose (char *arg)
 	{
 	  mu_debug_t debug;
 	  mu_debug_create (&debug, NULL);
-	  mu_debug_set_level (debug, MU_DEBUG_PROT);
+	  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 	  status = mu_pop3_set_debug (pop3, debug);
 	}
       else

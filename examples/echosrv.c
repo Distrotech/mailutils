@@ -35,15 +35,17 @@
 mu_server_t server;
 
 int
-echo_conn (int fd, struct sockaddr_in *s, void *server_data, void *call_data,
+echo_conn (int fd, struct sockaddr *s, int len,
+	   void *server_data, void *call_data,
 	   mu_tcp_server_t srv)
 {
-  struct sockaddr_in srv_addr;
+  struct sockaddr_in srv_addr, *s_in = (struct sockaddr_in *)s;
+  int addrlen = sizeof srv_addr;
   pid_t pid;
   char buf[512];
   FILE *in, *out;
   
-  mu_tcp_server_get_sockaddr (srv, &srv_addr);
+  mu_tcp_server_get_sockaddr (srv, (struct sockaddr *)&srv_addr, &addrlen);
 
   pid = fork ();
   if (pid == -1)
@@ -57,7 +59,7 @@ echo_conn (int fd, struct sockaddr_in *s, void *server_data, void *call_data,
       mu_diag_output (MU_DIAG_INFO, "%lu: opened connection %s:%d => %s:%d",
 		      (unsigned long) pid,
 		      inet_ntoa (srv_addr.sin_addr), ntohs (srv_addr.sin_port),
-		      inet_ntoa (s->sin_addr), ntohs (s->sin_port));
+		      inet_ntoa (s_in->sin_addr), ntohs (s_in->sin_port));
       return 0;
     }
 
@@ -132,7 +134,7 @@ create_server (char *arg)
     }      
   s.sin_port = htons (n);
 
-  MU_ASSERT (mu_tcp_server_create (&tcpsrv, &s));
+  MU_ASSERT (mu_tcp_server_create (&tcpsrv, (struct sockaddr*) &s, sizeof s));
   MU_ASSERT (mu_tcp_server_open (tcpsrv));
   MU_ASSERT (mu_tcp_server_set_conn (tcpsrv, echo_conn));
   MU_ASSERT (mu_server_add_connection (server,

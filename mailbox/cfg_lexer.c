@@ -1,5 +1,5 @@
 /* cfg_lexer.c -- default lexer for Mailutils configuration files
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -118,7 +118,7 @@ static int
 isword (int c)
 {
   if (mu_cfg_tie_in)
-    return c && c != ';';
+    return c && c != ';' && c != '{';
   
   return isalnum (c) || c == '_' || c == '-' || c == '.';
 }
@@ -133,6 +133,22 @@ copy_alpha (struct lexer_data *p)
       cbuf_1grow (p, *p->curp);
       p->curp++;
     } while (*p->curp && isword (*p->curp));
+  cbuf_1grow (p, 0);
+  return cbuf_finish (p);
+}
+
+static char *
+copy_to (struct lexer_data *p, const char *delim)
+{
+  while (*p->curp)
+    {
+      if (strchr (delim, *p->curp))
+	break;
+      if (*p->curp == '\n')
+	mu_cfg_locus.line++;
+      cbuf_1grow (p, *p->curp);
+      p->curp++;
+    } 
   cbuf_1grow (p, 0);
   return cbuf_finish (p);
 }
@@ -209,6 +225,15 @@ copy_string (struct lexer_data *p)
        } \
    } \
  while (0)
+
+static void
+rtrim (char *arg)
+{
+  int len = strlen (arg);
+  while (len > 0 && strchr (" \t\n\r", arg[len-1]))
+    len--;
+  arg[len] = 0;
+}
 
 int
 default_lexer (void *dp, mu_debug_t dbg)
@@ -308,9 +333,10 @@ again:
       LEX_DEBUG ("EOL", NULL, NULL);
       return MU_CFG_EOL_TOKEN;
     }
-	
+
   tag = copy_alpha (p);
   skipws (p);
+  
   if (*p->curp == '"')
     {
       mu_cfg_yylval.string = tag;
@@ -321,8 +347,8 @@ again:
   save_start = p->curp;
   if (*p->curp != '{')
     {
-      label = copy_alpha (p);
-      skipws (p);
+      label = copy_to (p, ";{");
+      rtrim (label);
     }
   else
     label = NULL;

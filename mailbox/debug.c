@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007  Free Software Foundation, Inc.
+   2007, 2008  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ mu_debug_create (mu_debug_t *pdebug, void *owner)
   debug = calloc (sizeof (*debug), 1);
   if (debug == NULL)
     return ENOMEM;
-  debug->printer = mu_debug_default_printer;
+  debug->printer = NULL;
   debug->owner = owner;
   *pdebug = debug;
   return 0;
@@ -146,10 +146,13 @@ int
 mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
 		  const char *format, va_list ap)
 {
+  mu_debug_printer_fp printer;
+  
   if (debug == NULL || format == NULL)
     return EINVAL;
 
-  if (debug->printer)
+  printer = debug->printer ? debug->printer : mu_debug_default_printer;
+  if (printer)
     {
       mu_off_t len;
       mu_transport_t tbuf;
@@ -186,7 +189,7 @@ mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
 	    {
 	      int c = *++p;
 	      *p = 0;
-	      debug->printer (debug->data, level, ptr);
+	      printer (debug->data, level, ptr);
 	      *p = c;
 	      ptr = p;
 	      nseg++;
@@ -252,7 +255,7 @@ mu_debug_check_level (mu_debug_t debug, mu_log_level_t level)
 {
   if (!debug)
     return 0;
-  return debug->level & level;
+  return debug->level & MU_DEBUG_LEVEL_MASK (level);
 }
 
 int

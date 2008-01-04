@@ -1,5 +1,5 @@
 /* cfg_driver.c -- Main driver for Mailutils configuration files
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -163,6 +163,7 @@ dup_container (struct mu_cfg_cont **pcont)
       newcont->v.section.label = oldcont->v.section.label;
       newcont->v.section.parser = oldcont->v.section.parser;
       newcont->v.section.target = oldcont->v.section.target;
+      newcont->v.section.offset = oldcont->v.section.offset;
       newcont->v.section.docstring = oldcont->v.section.docstring;
       newcont->v.section.children = NULL;
       mu_list_do (oldcont->v.section.children, _dup_cont_action, &dd);
@@ -259,8 +260,41 @@ mu_cfg_section_add_params (struct mu_cfg_section *sect,
 			param->ident);
 	      abort ();
 	    }
-	  mu_config_clone_container (container);
-	  container->v.section.offset = param->offset;
+	  if (param->ident[0] == '.')
+	    {
+	      mu_iterator_t itr;
+	      mu_list_get_iterator (container->v.section.children, &itr);
+	      for (mu_iterator_first (itr);
+		   !mu_iterator_is_done (itr);
+		   mu_iterator_next (itr))
+		{
+		  struct mu_cfg_cont *c;
+		  mu_iterator_current (itr, (void**)&c);
+		  mu_config_clone_container (c);
+		  if (mu_refcount_value (c->refcount) > 1)
+		    dup_container (&c);
+		  switch (c->type)
+		    {
+		    case mu_cfg_cont_section:
+		      c->v.section.offset += param->offset;
+		      break;
+
+		    case mu_cfg_cont_param:
+		      container->v.param.offset += param->offset;
+		      break;
+		    }
+		  mu_cfg_section_add_container (sect, c);
+		}
+	      mu_iterator_destroy (&itr);
+	      continue;
+	    }
+	  else
+	    {
+	      mu_config_clone_container (container);
+	      if (mu_refcount_value (container->refcount) > 1)
+		dup_container (&container);
+	      container->v.section.offset = param->offset;
+	    }
 	}
       else
 	{

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,20 +43,11 @@ char *message_id_header;   /* Use the value of this header as message
 			      identifier when logging Sieve actions */
 
 /* For LMTP mode */
+mu_m_server_t server;
 int lmtp_mode;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
 char *lmtp_group = "mail";
-mu_acl_t maidag_acl; /* ACLs for LMTP mode */
-
-struct mu_gocs_daemon daemon_param = {
-  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
-  20,                   /* Default maximum number of children */
-  0,                    /* No standard port */
-  600,                  /* Idle timeout */
-  0,                    /* No transcript by default */
-  NULL                  /* No PID file by default */
-};
 
 const char *program_version = "maidag (" PACKAGE_STRING ")";
 static char doc[] =
@@ -74,9 +65,15 @@ static char args_doc[] = N_("[recipient...]");
 #define STDERR_OPTION 256
 #define MESSAGE_ID_HEADER_OPTION 257
 #define LMTP_OPTION 258
+#define FOREGROUND_OPTION 260
 
 static struct argp_option options[] = 
 {
+  { "foreground", FOREGROUND_OPTION, 0, 0, N_("Remain in foreground."), 0 },
+  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0 },
+  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
+    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
+
   { "from", 'f', N_("EMAIL"), 0,
     N_("Specify the sender's name") },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
@@ -109,7 +106,6 @@ static struct argp argp = {
 };
 
 static const char *maidag_argp_capa[] = {
-  "daemon",
   "auth",
   "common",
   "debug",
@@ -174,6 +170,20 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
   switch (key)
     {
+    case 'd':
+      mu_argp_node_list_new (&lst, "mode", "daemon");
+      if (arg)
+	mu_argp_node_list_new (&lst, "max-children", arg);
+      break;
+
+    case 'i':
+      mu_argp_node_list_new (&lst, "mode", "inetd");
+      break;
+
+    case FOREGROUND_OPTION:
+      mu_argp_node_list_new (&lst, "foreground", "yes");
+      break;
+      
     case MESSAGE_ID_HEADER_OPTION:
       mu_argp_node_list_new (&lst, "message-id-header", arg);
       break;
@@ -291,7 +301,8 @@ struct mu_cfg_param maidag_cfg_param[] = {
     N_("url") },
   { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, 0, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
-  { "acl", mu_cfg_section, },
+  { ".server", mu_cfg_section, NULL, 0, NULL,
+    N_("LMTP server configuration.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
@@ -458,15 +469,21 @@ main (int argc, char *argv[])
   
   mu_gocs_register ("sieve", mu_sieve_module_init);
 
-  mu_gocs_daemon = daemon_param;
-    
   mu_tcpwrapper_cfg_init ();
   mu_acl_cfg_init ();
-
+  mu_m_server_cfg_init ();
+  
   /* Parse command line */
   mu_argp_init (program_version, NULL);
+
+  mu_m_server_create (&server, "GNU maidag");
+  mu_m_server_set_conn (server, lmtp_connection);
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+  mu_m_server_set_max_children (server, 20);
+  mu_m_server_set_timeout (server, 600);
+  
   if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
-		   argc, argv, 0, &arg_index, &maidag_acl))
+		   argc, argv, 0, &arg_index, server))
     exit (EX_CONFIG);
 
   current_uid = getuid ();
@@ -481,12 +498,8 @@ main (int argc, char *argv[])
       openlog ("maidag", LOG_PID, log_facility);
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-      /* FIXME: this should be done automatically by cfg */
-      if (maidag_acl)
-	{
-	  mu_acl_get_debug (maidag_acl, &debug);
-	  mu_debug_set_print (debug, mu_debug_syslog_printer, NULL);
-	}
+
+      mu_debug_default_printer = mu_debug_syslog_printer;
     }
   
   argc -= arg_index;

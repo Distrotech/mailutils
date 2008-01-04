@@ -18,10 +18,8 @@
 ##   02110-1301 USA
 
 EXTRA_DIST = \
- comsat.conf\
  dot.biffrc\
  gnu-imap4d.pam\
  gnu-pop3d.pam\
- mailutils.dict\
- mailutils.rc
+ mailutils.dict
 
