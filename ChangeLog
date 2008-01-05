@@ -1,3 +1,22 @@
+2008-01-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/server.h (mu_m_server_prefork_fp): New
+	function type.
+	(mu_m_server_destroy, mu_m_server_set_prefork)
+	(mu_m_server_configured_count, mu_m_server_end): New functions.
+	* mailbox/msrv.c (struct _mu_m_server.prefork): New member.
+	(mu_m_server_set_prefork): New function.
+	(m_srv_conn): Use prefork to decide whether to proceed with a
+	connection.
+	
+	* lib/tcpwrap.c, lib/tcpwrap.h (mu_tcp_wrapper_prefork): New
+	function.
+	
+	* imap4d/imap4d.c, maidag/lmtp.c, maidag/maidag.c,
+	pop3d/pop3d.c: Use m-server prefork to handle TCP wrappers.
+
+	* po/POTFILES.in: Add more files.
+	
 2008-01-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* TODO, NEWS: Update.
