@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -347,6 +347,9 @@ amd_open (mu_mailbox_t mailbox, int flags)
   if (!S_ISDIR (st.st_mode))
     return EINVAL;
 
+  if (mailbox->locker == NULL)
+    mu_locker_create (&mailbox->locker, "/dev/null", 0);
+  
   return 0;
 }
 
@@ -582,7 +585,8 @@ _amd_delim (char *str)
 }
 
 static int
-_amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
+_amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
+		   int expunge)
 {
   mu_stream_t stream = NULL;
   char *name = NULL, *buf = NULL, *msg_name;
@@ -708,6 +712,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
   free (buf);
   fclose (fp);
 
+  /* FIXME: This does not work for maildir. */
   msg_name = amd->msg_file_name (mhm, mhm->deleted);
   if (rename (name, msg_name))
     status = errno;	  

@@ -371,7 +371,6 @@ static int
 imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   char *text;
-  struct sockaddr_in cs;
   int debug_mode = isatty (fd);
 
   /* Reset hup to exit. */
@@ -416,7 +415,8 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 }
 
 int
-imap4d_connection (int fd, void *data, time_t timeout, int transcript)
+imap4d_connection (int fd, struct sockaddr *sa, int salen, void *data,
+		   mu_ip_server_t srv, time_t timeout, int transcript)
 {
   idle_timeout = timeout;
   imap4d_transcript = transcript;

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -360,7 +360,7 @@ util_send (const char *format, ...)
   if (!buf)
       imap4d_bye (ERR_NO_MEM);
 
-  if (mu_gocs_daemon.transcript)
+  if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -414,7 +414,7 @@ util_out (int rc, const char *format, ...)
   if (!buf)
     imap4d_bye (ERR_NO_MEM);
 
-  if (mu_gocs_daemon.transcript)
+  if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -455,7 +455,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   strcat (buf, tempbuf);
   free (tempbuf);
 
-  if (mu_gocs_daemon.transcript)
+  if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s\r\n", buf);
 
   mu_stream_sequential_write (ostream, buf, strlen (buf));
@@ -503,7 +503,7 @@ imap4d_readline (void)
       size_t sz;
       int rc;
       
-      alarm (mu_gocs_daemon.timeout);
+      alarm (idle_timeout);
       rc = mu_stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
       if (sz == 0)
 	{
@@ -577,7 +577,7 @@ imap4d_readline (void)
 	}
     }
   while (number > 0 || (total && line[total - 1] != '\n'));
-  if (mu_gocs_daemon.transcript)
+  if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "recv: %s", line);
   return line;
 }
@@ -1035,7 +1035,7 @@ util_localname ()
 #define WILD_ABORT 2
 
 int
-_wild_match (const char *expr, const char *name, const char *delim)
+_wild_match (const char *expr, const char *name, char delim)
 {
   while (expr && *expr)
     {

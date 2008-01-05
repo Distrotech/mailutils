@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -43,42 +43,57 @@ int mu_server_set_timeout (mu_server_t srv, struct timeval *to);
 int mu_server_count (mu_server_t srv, size_t *pcount);
 
 
-/* TCP server */
+/* IP (TCP and UDP) server */
 struct sockaddr;
-typedef int (*mu_tcp_server_conn_fp) (int fd, struct sockaddr *s, int len,
-				      void *server_data, void *call_data,
-				      mu_tcp_server_t srv);
-typedef int (*mu_tcp_server_intr_fp) (void *data, void *call_data);
-typedef void (*mu_tcp_server_free_fp) (void *data);
+typedef int (*mu_ip_server_conn_fp) (int fd, struct sockaddr *s, int len,
+				     void *server_data, void *call_data,
+				     mu_ip_server_t srv);
+typedef int (*mu_ip_server_intr_fp) (void *data, void *call_data);
+typedef void (*mu_ip_server_free_fp) (void *data);
 
+#define MU_IP_TCP 0
+#define MU_IP_UDP 1
 
-int mu_tcp_server_create (mu_tcp_server_t *psrv, struct sockaddr *addr,
-			  int len);
-int mu_tcp_server_destroy (mu_tcp_server_t *psrv);
-int mu_tcp_server_set_debug (mu_tcp_server_t srv, mu_debug_t debug);
-int mu_tcp_server_get_debug (mu_tcp_server_t srv, mu_debug_t *pdebug);
-int mu_tcp_server_set_backlog (mu_tcp_server_t srv, int backlog);
-int mu_tcp_server_set_ident (mu_tcp_server_t srv, const char *ident);
-int mu_tcp_server_set_acl (mu_tcp_server_t srv, mu_acl_t acl);
-int mu_tcp_server_set_conn (mu_tcp_server_t srv, mu_tcp_server_conn_fp conn);
-int mu_tcp_server_set_intr (mu_tcp_server_t srv, mu_tcp_server_intr_fp intr);
-int mu_tcp_server_set_data (mu_tcp_server_t srv,
-			    void *data, mu_tcp_server_free_fp free);
-int mu_tcp_server_open (mu_tcp_server_t srv);
-int mu_tcp_server_shutdown (mu_tcp_server_t srv);
-int mu_tcp_server_accept (mu_tcp_server_t srv, void *call_data);
-int mu_tcp_server_loop (mu_tcp_server_t srv, void *call_data);
-int mu_tcp_server_get_fd (mu_tcp_server_t srv);
-int mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr *s,
-				int *size);
+int mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
+			 int len, int type);
+int mu_ip_server_destroy (mu_ip_server_t *psrv);
+int mu_ip_server_get_type (mu_ip_server_t srv, int *ptype);
+int mu_ip_server_set_debug (mu_ip_server_t srv, mu_debug_t debug);
+int mu_ip_server_get_debug (mu_ip_server_t srv, mu_debug_t *pdebug);
+int mu_ip_server_set_ident (mu_ip_server_t srv, const char *ident);
+int mu_ip_server_set_acl (mu_ip_server_t srv, mu_acl_t acl);
+int mu_ip_server_set_conn (mu_ip_server_t srv, mu_ip_server_conn_fp conn);
+int mu_ip_server_set_intr (mu_ip_server_t srv, mu_ip_server_intr_fp intr);
+int mu_ip_server_set_data (mu_ip_server_t srv,
+			    void *data, mu_ip_server_free_fp free);
+int mu_ip_server_open (mu_ip_server_t srv);
+int mu_ip_server_shutdown (mu_ip_server_t srv);
+int mu_ip_server_accept (mu_ip_server_t srv, void *call_data);
+int mu_ip_server_loop (mu_ip_server_t srv, void *call_data);
+int mu_ip_server_get_fd (mu_ip_server_t srv);
+int mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct sockaddr *s,
+			       int *size);
+
+int mu_tcp_server_set_backlog (mu_ip_server_t srv, int backlog);
+int mu_udp_server_set_bufsize (mu_ip_server_t srv, size_t size);
+int mu_udp_server_get_bufsize (mu_ip_server_t srv, size_t *psize);
+int mu_udp_server_get_rdata (mu_ip_server_t srv, char **pbuf,
+			     size_t *pbufsize);
 
 
 /* m-server */
-typedef int (*mu_m_server_conn_fp) (int, void *, time_t, int);
-typedef int (*mu_m_server_prefork_fp) (int, struct sockaddr *s, int size);
+typedef struct mu_m_server_connect_data mu_m_server_connect_data_t;
+typedef int (*mu_m_server_conn_fp) (int fd, struct sockaddr *sa, int salen,
+				    void *data, mu_ip_server_t srv,
+				    time_t timeout, int transcript);
+typedef int (*mu_m_server_prefork_fp) (int, void *,
+				       struct sockaddr *s, int size);
+
 void mu_m_server_create (mu_m_server_t *psrv, const char *ident);
 void mu_m_server_destroy (mu_m_server_t *pmsrv);
 void mu_m_server_set_mode (mu_m_server_t srv, int mode);
+void mu_m_server_set_type (mu_m_server_t srv, int type);
+void mu_m_server_get_type (mu_m_server_t srv, int *ptype);
 void mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_conn_fp f);
 void mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_prefork_fp fun);
 void mu_m_server_set_data (mu_m_server_t srv, void *data);
@@ -98,6 +113,9 @@ void mu_m_server_configured_count (mu_m_server_t msrv, size_t count);
 void mu_m_server_begin (mu_m_server_t msrv);
 int mu_m_server_run (mu_m_server_t msrv);
 void mu_m_server_end (mu_m_server_t msrv);
+
+void mu_m_server_stop (int code);
+int mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen);
 
 void mu_m_server_cfg_init (void);
 

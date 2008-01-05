@@ -182,7 +182,9 @@ extern int preauth_only;
 extern int ident_port;
 extern char *ident_keyfile;
 extern int ident_encrypt_only;
-	
+extern unsigned int idle_timeout;
+extern int imap4d_transcript;
+  
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
 #endif

@@ -447,7 +447,8 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 }
 
 int
-pop3d_connection (int fd, void *data, time_t timeout, int transcript)
+pop3d_connection (int fd, struct sockaddr *sa, int salen, void *data,
+		  mu_ip_server_t srv, time_t timeout, int transcript)
 {
   idle_timeout = timeout;
   pop3d_transcript = transcript;

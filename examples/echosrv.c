@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ mu_server_t server;
 int
 echo_conn (int fd, struct sockaddr *s, int len,
 	   void *server_data, void *call_data,
-	   mu_tcp_server_t srv)
+	   mu_ip_server_t srv)
 {
   struct sockaddr_in srv_addr, *s_in = (struct sockaddr_in *)s;
   int addrlen = sizeof srv_addr;
@@ -45,7 +45,7 @@ echo_conn (int fd, struct sockaddr *s, int len,
   char buf[512];
   FILE *in, *out;
   
-  mu_tcp_server_get_sockaddr (srv, (struct sockaddr *)&srv_addr, &addrlen);
+  mu_ip_server_get_sockaddr (srv, (struct sockaddr *)&srv_addr, &addrlen);
 
   pid = fork ();
   if (pid == -1)
@@ -63,7 +63,7 @@ echo_conn (int fd, struct sockaddr *s, int len,
       return 0;
     }
 
-  mu_tcp_server_shutdown (srv);
+  mu_ip_server_shutdown (srv);
 
   in = fdopen (fd, "r");
   out = fdopen (fd, "w");
@@ -88,11 +88,11 @@ echo_conn (int fd, struct sockaddr *s, int len,
 int
 tcp_conn_handler (int fd, void *conn_data, void *server_data)
 {
-  mu_tcp_server_t tcpsrv = (mu_tcp_server_t) conn_data;
-  int rc = mu_tcp_server_accept (tcpsrv, server_data);
+  mu_ip_server_t tcpsrv = (mu_ip_server_t) conn_data;
+  int rc = mu_ip_server_accept (tcpsrv, server_data);
   if (rc && rc != EINTR)
     {
-      mu_tcp_server_shutdown (tcpsrv);
+      mu_ip_server_shutdown (tcpsrv);
       return MU_SERVER_CLOSE_CONN;
     }
   return MU_SERVER_SUCCESS;
@@ -101,8 +101,8 @@ tcp_conn_handler (int fd, void *conn_data, void *server_data)
 void
 tcp_conn_free (void *conn_data, void *server_data)
 {
-  mu_tcp_server_t tcpsrv = (mu_tcp_server_t) conn_data;
-  mu_tcp_server_destroy (&tcpsrv);
+  mu_ip_server_t tcpsrv = (mu_ip_server_t) conn_data;
+  mu_ip_server_destroy (&tcpsrv);
 }
 
 void
@@ -110,7 +110,7 @@ create_server (char *arg)
 {
   char *p, *q;
   struct sockaddr_in s;
-  mu_tcp_server_t tcpsrv;
+  mu_ip_server_t tcpsrv;
   unsigned n;
   
   p = strchr (arg, ':');
@@ -134,11 +134,12 @@ create_server (char *arg)
     }      
   s.sin_port = htons (n);
 
-  MU_ASSERT (mu_tcp_server_create (&tcpsrv, (struct sockaddr*) &s, sizeof s));
-  MU_ASSERT (mu_tcp_server_open (tcpsrv));
-  MU_ASSERT (mu_tcp_server_set_conn (tcpsrv, echo_conn));
+  MU_ASSERT (mu_ip_server_create (&tcpsrv, (struct sockaddr*) &s, sizeof s,
+				  MU_IP_TCP));
+  MU_ASSERT (mu_ip_server_open (tcpsrv));
+  MU_ASSERT (mu_ip_server_set_conn (tcpsrv, echo_conn));
   MU_ASSERT (mu_server_add_connection (server,
-				       mu_tcp_server_get_fd (tcpsrv),
+				       mu_ip_server_get_fd (tcpsrv),
 				       tcpsrv,
 				       tcp_conn_handler, tcp_conn_free));
 }

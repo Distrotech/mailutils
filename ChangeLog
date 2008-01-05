@@ -1,5 +1,52 @@
 2008-01-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update.
+	
+	* mailbox/Makefile.am: Replace tcpsrv.c with ipsrv.c.
+	* mailbox/tcpsrv.c: Replace with ...
+	* mailbox/ipsrv.c: ... this file, which supports both TCP and UDP.
+
+	* mailbox/msrv.c: Use mu_ip_server_t.
+	* mailbox/server.c (mu_server_destroy): Bugfix.
+	* comsat/comsat.c, comsat/comsat.h: Use m-server.
+
+	* maidag/lmtp.c, maidag/maidag.h, pop3d/pop3d.c: Update to match
+	changed m-server types.
+	
+	* include/mailutils/server.h (mu_tcp_*): Replace with mu_ip_*.
+	Add new prototypes.
+	* include/mailutils/types.hin: Likewise.
+
+	* lib/tcpwrap.c, lib/tcpwrap.h (mu_tcp_wrapper_prefork): Update
+	signature to match mu_m_server_prefork_fp.
+
+	* examples/echosrv.c: Use mu_ip_server_t
+	* imap4d/idle.c, imap4d/imap4d.c, imap4d/imap4d.h,
+	imap4d/preauth.c, imap4d/util.c: Remove mu_gocs_daemon.
+	* include/mailutils/gocs.h, include/mailutils/libargp.h,
+	include/mailutils/libargp.h, libargp/cmdline.c,
+	libargp/common.c, libcfg/common.c, libcfg/init.c,
+	mailbox/daemon.c, mailbox/gocs.c: Remove mu_gocs_daemon.
+	
+	* mailbox/amd.c (amd_open): Provide a null-locker.
+	* include/mailutils/locker.h, mailbox/locker.c
+	(mu_locker_mod_flags): New function. 
+	
+	* examples/config/mailutils.schema: LDAP schema for Mailutils.
+	* examples/config/Makefile.am: Add mailutils.schema
+	
+	* dotlock/dotlock.c (main): Remove superfluous invocation of
+	mu_locker_set_flags.
+
+	* libproto/mbox/mbox.c (mbox_quick_get_message): Return
+	MU_ERR_NOENT if mailbox is empty.
+
+	* mailbox/tcpsrv.c (family_to_proto): Rename to
+	mu_address_family_to_domain.
+	* po/POTFILES.in: Update.
+	* pop3d/lock.c (pop3d_lock): use mu_locker_mod_flags, instead of
+	mu_locker_set_flags.
+	
 	* include/mailutils/server.h (mu_m_server_prefork_fp): New
 	function type.
 	(mu_m_server_destroy, mu_m_server_set_prefork)

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 
-   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1236,6 +1236,8 @@ mbox_quick_get_message (mu_mailbox_t mailbox, mu_message_qid_t qid,
       status = mbox_scan1 (mailbox, offset, 0);
       if (status != 0)
 	return status;
+      if (mud->messages_count == 0)
+	return MU_ERR_NOENT;
     }
 
   /* Quick access mode retrieves only one message */

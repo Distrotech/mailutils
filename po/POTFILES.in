@@ -1,6 +1,6 @@
 #
 # List of source files containing translatable strings.
-# Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004, 2005, 2008 Free Software Foundation, Inc.
 #
 
 auth/pam.c
@@ -8,7 +8,7 @@ auth/sql.c
 auth/tls.c
 auth/virtual.c
 comsat/action.c
-comsat/cfg.c
+comsat/oldcfg.c
 comsat/comsat.c
 config/mailutils-config.c
 dotlock/dotlock.c
@@ -107,6 +107,7 @@ mailbox/cfg_lexer.c
 mailbox/errors
 mailbox/file_stream.c
 mailbox/filter_iconv.c
+mailbox/ipsrv.c
 mailbox/message.c
 mailbox/mu_auth.c
 mailbox/mutil.c

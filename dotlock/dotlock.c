@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -181,8 +181,6 @@ main (int argc, char *argv[])
 	fprintf (stderr, _("Creating locker failed: %s\n"), mu_strerror (err));
       return MU_DL_EX_ERROR;
     }
-
-  mu_locker_set_flags (locker, flags);
 
   if (force != 0)
     mu_locker_set_expire_time (locker, force);

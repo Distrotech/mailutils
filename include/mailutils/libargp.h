@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,6 @@ extern struct mu_cmdline_capa mu_mailbox_cmdline;
 extern struct mu_cmdline_capa mu_locking_cmdline;
 extern struct mu_cmdline_capa mu_address_cmdline;
 extern struct mu_cmdline_capa mu_mailer_cmdline;
-extern struct mu_cmdline_capa mu_daemon_cmdline;
 extern struct mu_cmdline_capa mu_sieve_cmdline;
 extern struct mu_cmdline_capa mu_debug_cmdline;
   

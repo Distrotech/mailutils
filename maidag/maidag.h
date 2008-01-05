@@ -133,7 +133,8 @@ int switch_user_id (struct mu_auth_data *auth, int user);
 
 int maidag_stdio_delivery (int argc, char **argv);
 int maidag_lmtp_server (void);
-int lmtp_connection (int fd, void *data, time_t timeout, int transcript);
+int lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
+		     mu_ip_server_t srv, time_t timeout, int transcript);
 
 void mailer_err (char *fmt, ...);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);

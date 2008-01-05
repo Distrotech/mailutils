@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007 
+##   Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008 
 ##   Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ libmailutils_la_SOURCES = \
  gocs.c\
  header.c\
  iterator.c\
+ ipsrv.c\
  kwd.c\
  list.c\
  locale.c\
@@ -106,7 +107,6 @@ libmailutils_la_SOURCES = \
  system.c\
  ticket.c\
  tcp.c\
- tcpsrv.c\
  url.c\
  vartab.c\
  version.c\

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,13 +20,14 @@
 /* Preauth support for imap4d */
 
 #include "imap4d.h"
+#include <mailutils/vartab.h>
 #include "des.h"
 
 
 /* Stdio preauth */
 
 static char *
-do_preauth_stdio (struct sockaddr_in *pcs)
+do_preauth_stdio ()
 {
   struct passwd *pw = getpwuid (getuid ());
   return pw ? strdup (pw->pw_name) : NULL;
@@ -321,15 +322,32 @@ ident_decrypt (const char *file, const char *name)
 }
 
 static char *
-do_preauth_ident (struct sockaddr_in *pcs)
+do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
 {
   mu_stream_t stream;
   char hostaddr[16];
-  char *p = inet_ntoa (pcs->sin_addr);
   int rc;
   char *buf = NULL;
   size_t size = 0;
   char *name = NULL;
+  struct sockaddr_in *srv_addr, *clt_addr;
+  char *p;
+
+  if (!srv_sa || !clt_sa)
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("Not enough data for IDENT preauth"));
+      return NULL;
+    }
+  if (srv_sa->sa_family != AF_INET)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("Invalid socket family (%d) IDENT preauth"),
+		      srv_sa->sa_family);
+      return NULL;
+    }
+  srv_addr = (struct sockaddr_in *) srv_sa;
+  clt_addr = (struct sockaddr_in *) clt_sa;
+  p = inet_ntoa (clt_addr->sin_addr);
   
   memcpy (hostaddr, p, 15);
   hostaddr[15] = 0;
@@ -350,8 +368,9 @@ do_preauth_ident (struct sockaddr_in *pcs)
       return NULL;
     }
 
-  mu_stream_sequential_printf (stream, "%u , %u\r\n", ntohs (pcs->sin_port),
-			       mu_gocs_daemon.port);
+  mu_stream_sequential_printf (stream, "%u , %u\r\n",
+			       ntohs (clt_addr->sin_port),
+			       ntohs (srv_addr->sin_port));
   mu_stream_shutdown (stream, MU_STREAM_WRITE);
 
   rc = mu_stream_sequential_getline (stream, &buf, &size, NULL);
@@ -402,21 +421,35 @@ do_preauth_ident (struct sockaddr_in *pcs)
 
 /* External (program) preauth */
 static char *
-do_preauth_program (struct sockaddr_in *pcs)
+do_preauth_program (struct sockaddr *pcs, struct sockaddr *sa)
 {
+  int rc;
+  mu_vartab_t vtab;
+  char *cmd;
   FILE *fp;
-  char *p = inet_ntoa (pcs->sin_addr);
-  char *cmd = 0;
   char *buf = NULL;
-  size_t size;
-  ssize_t rc;
+  size_t size = 0;
+  
+  mu_vartab_create (&vtab);
+  if (pcs && pcs->sa_family == AF_INET)
+    {
+      struct sockaddr_in *s_in = (struct sockaddr_in *)pcs;
+      mu_vartab_define (vtab, "client_address", inet_ntoa (s_in->sin_addr), 0);
+      mu_vartab_define (vtab, "client_port",
+			mu_umaxtostr (0, ntohs (s_in->sin_port)), 0);
+    }
+  if (sa && sa->sa_family == AF_INET)
+    {
+      struct sockaddr_in *s_in = (struct sockaddr_in *) sa;
+      mu_vartab_define (vtab, "server_address", inet_ntoa (s_in->sin_addr), 0);
+      mu_vartab_define (vtab, "server_port",
+			mu_umaxtostr (0, ntohs (s_in->sin_port)), 0);
+    }
+  rc = mu_vartab_expand (vtab, preauth_program, &cmd);
+  mu_vartab_destroy (&vtab);
+  if (rc)
+    return NULL;
 
-  asprintf (&cmd, "%s %s %u %s %u",
-	    preauth_program,
-	    p,
-	    ntohs (pcs->sin_port),
-	    "0.0.0.0", /* FIXME */
-	    mu_gocs_daemon.port);
   fp = popen (cmd, "r");
   free (cmd);
   rc = getline (&buf, &size, fp);
@@ -436,14 +469,30 @@ do_preauth_program (struct sockaddr_in *pcs)
 int
 imap4d_preauth_setup (int fd)
 {
-  struct sockaddr_in cs;
-  int len = sizeof cs;
+  struct sockaddr clt_sa, *pclt_sa; 
+  int clt_len = sizeof clt_sa;
+  struct sockaddr srv_sa, *psrv_sa;
+  int srv_len = sizeof srv_sa;
   char *username = NULL;
 
-  if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
-    mu_diag_output (MU_DIAG_ERROR,
-		    _("Cannot obtain IP address of client: %s"),
-		    strerror (errno));
+  if (getsockname (fd, &srv_sa, &srv_len) == -1)
+    {
+      psrv_sa = NULL;
+      srv_len = 0;
+    }
+  else
+    psrv_sa = &srv_sa;
+  
+  if (getpeername (fd, (struct sockaddr *) &clt_sa, &clt_len) == -1)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("Cannot obtain IP address of client: %s"),
+		      strerror (errno));
+      pclt_sa = NULL;
+      clt_len = 0;
+    }
+  else
+    pclt_sa = &clt_sa;
 
   auth_data = NULL;
   switch (preauth_mode)
@@ -452,15 +501,15 @@ imap4d_preauth_setup (int fd)
       return 0;
       
     case preauth_stdio:
-      username = do_preauth_stdio (&cs);
+      username = do_preauth_stdio ();
       break;
       
     case preauth_ident:
-      username = do_preauth_ident (&cs);
+      username = do_preauth_ident (pclt_sa, psrv_sa);
       break;
       
     case preauth_prog:
-      username = do_preauth_program (&cs);
+      username = do_preauth_program (pclt_sa, psrv_sa);
       break;
     }
 

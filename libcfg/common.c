@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -21,13 +21,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mailutils/libcfg.h"
-#include <mailutils/daemon.h>
 #include <mailutils/debug.h>
 #include <mailutils/syslog.h>
 #include <mailutils/mailbox.h>
 #include <mu_umaxtostr.h>
 
-static struct mu_gocs_daemon daemon_settings;
 static struct mu_gocs_locking locking_settings;
 static struct mu_gocs_logging logging_settings;
 static struct mu_gocs_mailbox mailbox_settings;
@@ -150,68 +148,6 @@ static struct mu_cfg_param mu_logging_param[] = {
 };
 
 DCL_CFG_CAPA (logging);
-
-
-/* ************************************************************************* */
-/* Daemon                                                                    */
-/* ************************************************************************* */
-
-static int
-_cb_daemon_mode (mu_debug_t debug, void *data, char *arg)
-{
-  if (strcmp (arg, "inetd") == 0
-      || strcmp (arg, "interactive") == 0)
-    daemon_settings.mode = MODE_INTERACTIVE;
-  else if (strcmp (arg, "daemon") == 0)
-    daemon_settings.mode = MODE_DAEMON;
-  else
-    {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown daemon mode"));
-      return 1;
-    }
-  return 0;
-}
-  
-static struct mu_cfg_param mu_daemon_param[] = {
-  { "max-children", mu_cfg_ulong, &daemon_settings.maxchildren, 0, NULL,
-    N_("Maximum number of children processes to run simultaneously.") },
-  { "mode", mu_cfg_callback, NULL, 0, _cb_daemon_mode,
-    N_("Set daemon mode (either inetd (or interactive) or daemon)."),
-    N_("mode") },
-  { "transcript", mu_cfg_bool, &daemon_settings.transcript, 0, NULL,
-    N_("Log the session transcript.") },
-  { "pidfile", mu_cfg_string, &daemon_settings.pidfile, 0, NULL,
-    N_("Store PID of the master process in this file."),
-    N_("file") },
-  { "port", mu_cfg_ushort, &daemon_settings.port, 0, NULL,
-    N_("Listen on the specified port number.") },
-  { "timeout", mu_cfg_ulong, &daemon_settings.timeout, 0, NULL,
-    N_("Set idle timeout.") },
-  { NULL }
-};
-
-int									      
-mu_daemon_section_parser
-   (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
-    const char *section_label, void **section_data,
-    void *call_data, mu_cfg_tree_t *tree)
-{									      
-  switch (stage)							      
-    {									      
-    case mu_cfg_section_start:
-      daemon_settings = mu_gocs_daemon;
-      break;								      
-      									      
-    case mu_cfg_section_end:
-      mu_gocs_daemon = daemon_settings;
-      mu_gocs_store ("daemon", &daemon_settings);	      
-    }									      
-  return 0;								      
-}
-
-struct mu_cfg_capa mu_daemon_cfg_capa = {                
-  "daemon",  mu_daemon_param, mu_daemon_section_parser
-};
 
 
 /* ************************************************************************* */

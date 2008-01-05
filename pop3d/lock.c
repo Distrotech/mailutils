@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ pop3d_lock ()
   mu_mailbox_get_url (mbox, &url);
   name = mu_url_to_string (url);
   mu_mailbox_get_locker (mbox, &lock);
-  mu_locker_set_flags (lock, MU_LOCKER_PID);
+  mu_locker_mod_flags (lock, MU_LOCKER_PID, mu_locker_set_bit);
   if ((status = mu_locker_lock (lock)))
     {
       mu_diag_output (MU_DIAG_NOTICE, _("Locking mailbox `%s' failed: %s"),

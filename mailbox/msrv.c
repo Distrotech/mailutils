@@ -15,6 +15,10 @@
    Public License along with this library; If not, see
    <http://www.gnu.org/licenses/>.  */
 
+/* This is an `m-server' - a universal framework for multi-process TCP
+   servers. An `m-' stands for `mail-', or `multi-' or maybe `meta-',
+   I don't remember what. */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -62,27 +66,51 @@ set_signal (int sig, mu_sig_handler_t handler)
 
 struct _mu_m_server
 {
-  char *ident;
-  mu_server_t server;
-  mu_list_t srvlist;
-  mu_m_server_conn_fp conn;
-  mu_m_server_prefork_fp prefork;
-  void *data;
-  int mode;
-  int foreground;
-  size_t max_children;
-  char *pidfile;
-  unsigned short defport;
-  time_t timeout;
-  mu_acl_t acl;
+  char *ident;                   /* Server identifier, for logging purposes.*/
+  int deftype;                   /* Default server type: MU_IP_TCP/MU_IP_UDP */
+  mu_server_t server;            /* The server object. */
+  mu_list_t srvlist;             /* A list of configured mu_ip_server_t
+				    objects. It is cleared after the objects
+				    are opened and attached to the server. */
+  
+  mu_m_server_conn_fp conn;      /* Connection handler function. */
+  mu_m_server_prefork_fp prefork;/* Pre-fork function. */
+  void *data;                    /* User-supplied data for conn and prefork. */
+  
+  int mode;                      /* Server mode: should be removed. */
+  
+  int foreground;                /* Should the server remain in foregorund? */
+  size_t max_children;           /* Maximum number of sub-processes to run. */
+  char *pidfile;                 /* Name of a PID-file. */ 
+  unsigned short defport;        /* Default port number. */
+  time_t timeout;                /* Default idle timeout. */
+  mu_acl_t acl;                  /* Global access control list. */
 
-  sigset_t sigmask;
-  mu_sig_handler_t sigtab[NSIG]; 
+  sigset_t sigmask;              /* A set of signals to handle by the
+				    m-server.  */
+  mu_sig_handler_t sigtab[NSIG]; /* Keeps old signal handlers. */
 };
 
+struct m_srv_config        /* Configuration data for a single TCP server. */
+{
+  mu_m_server_t msrv;      /* Parent m-server. */  
+  mu_ip_server_t tcpsrv;  /* TCP server these data are for. */
+  mu_acl_t acl;            /* Access control list for this server. */ 
+  int single_process;      /* Should it run as a single process? */
+  int transcript;          /* Enable session transcript. */
+  time_t timeout;          /* Idle timeout for this server. */
+};
+
+
 static int need_cleanup = 0;
 static int stop = 0;
 static size_t children;
+
+void
+mu_m_server_stop (int code)
+{
+  stop = code;
+}
 
 static int
 mu_m_server_idle (void *server_data MU_ARG_UNUSED)
@@ -156,6 +184,7 @@ mu_m_server_create (mu_m_server_t *psrv, const char *ident)
 	  exit (1);
 	}
     }
+  srv->deftype = MU_IP_TCP;
   MU_ASSERT (mu_server_create (&srv->server));
   mu_server_set_idle (srv->server, mu_m_server_idle);
   sigemptyset (&srv->sigmask);
@@ -165,6 +194,18 @@ mu_m_server_create (mu_m_server_t *psrv, const char *ident)
   sigaddset (&srv->sigmask, SIGQUIT);
   sigaddset (&srv->sigmask, SIGHUP);
   *psrv = srv;
+}
+
+void
+mu_m_server_set_type (mu_m_server_t srv, int type)
+{
+  srv->deftype = type;
+}
+
+void
+mu_m_server_get_type (mu_m_server_t srv, int *type)
+{
+  *type = srv->deftype;
 }
 
 void
@@ -242,16 +283,6 @@ mu_m_server_timeout (mu_m_server_t srv)
   return srv->timeout;
 }
 
-struct m_srv_config
-{
-  mu_m_server_t msrv;
-  mu_tcp_server_t tcpsrv;
-  mu_acl_t acl;
-  int single_process;
-  int transcript;
-  time_t timeout;
-};
-
 void
 m_srv_config_free (void *data)
 {
@@ -262,16 +293,16 @@ m_srv_config_free (void *data)
 
 static int m_srv_conn (int fd, struct sockaddr *sa, int salen,
 		       void *server_data, void *call_data,
-		       mu_tcp_server_t srv);
+		       mu_ip_server_t srv);
 
 static struct m_srv_config *
-add_server (mu_m_server_t msrv, struct sockaddr *s, int slen)
+add_server (mu_m_server_t msrv, struct sockaddr *s, int slen, int type)
 {
-  mu_tcp_server_t tcpsrv;
+  mu_ip_server_t tcpsrv;
   struct m_srv_config *pconf;
 
-  MU_ASSERT (mu_tcp_server_create (&tcpsrv, s, slen));
-  MU_ASSERT (mu_tcp_server_set_conn (tcpsrv, m_srv_conn));
+  MU_ASSERT (mu_ip_server_create (&tcpsrv, s, slen, type)); /* FIXME: type */
+  MU_ASSERT (mu_ip_server_set_conn (tcpsrv, m_srv_conn));
   pconf = calloc (1, sizeof (*pconf));
   if (!pconf)
     {
@@ -282,7 +313,7 @@ add_server (mu_m_server_t msrv, struct sockaddr *s, int slen)
   pconf->tcpsrv = tcpsrv;
   pconf->single_process = 0;
   pconf->timeout = msrv->timeout;
-  MU_ASSERT (mu_tcp_server_set_data (tcpsrv, pconf, m_srv_config_free));
+  MU_ASSERT (mu_ip_server_set_data (tcpsrv, pconf, m_srv_config_free));
   if (!msrv->srvlist)
     MU_ASSERT (mu_list_create (&msrv->srvlist));
   MU_ASSERT (mu_list_append (msrv->srvlist, tcpsrv));
@@ -306,9 +337,10 @@ mu_m_server_begin (mu_m_server_t msrv)
     {
       /* Add default server */
       struct sockaddr_in s;
+      s.sin_family = AF_INET;
       s.sin_addr.s_addr = htonl (INADDR_ANY);
       s.sin_port = htons (msrv->defport);
-      add_server (msrv, (struct sockaddr *)&s, sizeof s);	  
+      add_server (msrv, (struct sockaddr *)&s, sizeof s, msrv->deftype);
     }
   
   if (!msrv->foreground)
@@ -363,11 +395,11 @@ mu_m_server_destroy (mu_m_server_t *pmsrv)
 static int
 tcp_conn_handler (int fd, void *conn_data, void *server_data)
 {
-  mu_tcp_server_t tcpsrv = (mu_tcp_server_t) conn_data;
-  int rc = mu_tcp_server_accept (tcpsrv, server_data);
+  mu_ip_server_t tcpsrv = (mu_ip_server_t) conn_data;
+  int rc = mu_ip_server_accept (tcpsrv, server_data);
   if (rc && rc != EINTR)
     {
-      mu_tcp_server_shutdown (tcpsrv);
+      mu_ip_server_shutdown (tcpsrv);
       return MU_SERVER_CLOSE_CONN;
     }
   return stop ? MU_SERVER_SHUTDOWN : MU_SERVER_SUCCESS;
@@ -376,8 +408,8 @@ tcp_conn_handler (int fd, void *conn_data, void *server_data)
 static void
 tcp_conn_free (void *conn_data, void *server_data)
 {
-  mu_tcp_server_t tcpsrv = (mu_tcp_server_t) conn_data;
-  mu_tcp_server_destroy (&tcpsrv);
+  mu_ip_server_t tcpsrv = (mu_ip_server_t) conn_data;
+  mu_ip_server_destroy (&tcpsrv);
 }
 
 static int
@@ -391,29 +423,29 @@ _open_conn (void *item, void *data)
   addr;
   int addrlen = sizeof addr;
   char *p;
-  mu_tcp_server_t tcpsrv = item;
+  mu_ip_server_t tcpsrv = item;
   mu_m_server_t msrv = data;
-  int rc = mu_tcp_server_open (tcpsrv);
+  int rc = mu_ip_server_open (tcpsrv);
   if (rc)
     {
-      mu_tcp_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
+      mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
       p = mu_sockaddr_to_astr (&addr.sa, addrlen);
       mu_error (_("Cannot open connection on %s: %s"), p, mu_strerror (rc));
       free (p);
       return 0;
     }
   rc = mu_server_add_connection (msrv->server,
-				 mu_tcp_server_get_fd (tcpsrv),
+				 mu_ip_server_get_fd (tcpsrv),
 				 tcpsrv,
 				 tcp_conn_handler, tcp_conn_free);
   if (rc)
     {
-      mu_tcp_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
+      mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
       p = mu_sockaddr_to_astr (&addr.sa, addrlen);
       mu_error (_("Cannot add connection %s: %s"), p, mu_strerror (rc));
       free (p);
-      mu_tcp_server_shutdown (tcpsrv);
-      mu_tcp_server_destroy (&tcpsrv);
+      mu_ip_server_shutdown (tcpsrv);
+      mu_ip_server_destroy (&tcpsrv);
     }
   return 0;
 }  
@@ -443,8 +475,8 @@ mu_m_server_run (mu_m_server_t msrv)
 
 
 
-static int
-check_global_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
+int
+mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
 {
   if (msrv->acl)
     {
@@ -488,14 +520,14 @@ check_global_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
 int
 m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	    void *server_data, void *call_data,
-	    mu_tcp_server_t srv)
+	    mu_ip_server_t srv)
 {
   int status;
   struct m_srv_config *pconf = server_data;
-
-  if (check_global_acl (pconf->msrv, sa, salen))
-    return 0;
   
+  if (mu_m_server_check_acl (pconf->msrv, sa, salen))
+    return 0;
+
   if (!pconf->single_process)
     {
       pid_t pid;
@@ -509,7 +541,8 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
           pause ();
           return 0;
         }
-      if (pconf->msrv->prefork && pconf->msrv->prefork (fd, sa, salen))
+      if (pconf->msrv->prefork
+	  && pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen))
 	return 0;
       
       pid = fork ();
@@ -517,8 +550,8 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));
       else if (pid == 0) /* Child.  */
 	{
-	  mu_tcp_server_shutdown (srv);
-	  status = pconf->msrv->conn (fd, pconf->msrv->data,
+	  mu_ip_server_shutdown (srv); /* FIXME: does it harm for MU_IP_UDP? */
+	  status = pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
 				      pconf->timeout, pconf->transcript);
 	  closelog ();
 	  exit (status);
@@ -528,10 +561,10 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	  children++;
 	}
     }
-  else
-    pconf->msrv->conn (fd, pconf->msrv->data,
+  else if (pconf->msrv->prefork
+	   && pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen) == 0)
+    pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
 		       pconf->timeout, pconf->transcript);
-  
   return 0;
 }
 
@@ -718,7 +751,7 @@ server_block_begin (mu_debug_t debug, char *arg, mu_m_server_t msrv,
 	}
     }
       
-  *pdata = add_server (msrv, &s.s_sa, salen);
+  *pdata = add_server (msrv, &s.s_sa, salen, msrv->deftype);
   return 0;
 }
 
@@ -743,7 +776,7 @@ server_section_parser (enum mu_cfg_section_stage stage,
       {
 	struct m_srv_config *pconf = *section_data;
 	if (pconf->acl)
-	  mu_tcp_server_set_acl (pconf->tcpsrv, pconf->acl);
+	  mu_ip_server_set_acl (pconf->tcpsrv, pconf->acl);
       }
       break;
     }

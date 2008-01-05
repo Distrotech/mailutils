@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,6 @@ static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_locking_cmdline,
   &mu_address_cmdline,
   &mu_mailer_cmdline,
-  &mu_daemon_cmdline,
   &mu_debug_cmdline,
   &mu_pam_cmdline,
   &mu_gsasl_cmdline,

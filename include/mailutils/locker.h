@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007, 
+   2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -112,6 +113,8 @@ extern void mu_locker_destroy (mu_locker_t *);
 /* Time is measured in seconds. */
 
 extern int mu_locker_set_flags (mu_locker_t, int);
+extern int mu_locker_mod_flags (mu_locker_t locker, int flags,
+				enum mu_locker_set_mode mode);
 extern int mu_locker_set_expire_time (mu_locker_t, int);
 extern int mu_locker_set_retries (mu_locker_t, int);
 extern int mu_locker_set_retry_sleep (mu_locker_t, int);

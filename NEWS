@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-01-04
+GNU mailutils NEWS -- history of user-visible changes. 2008-01-05
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -93,12 +93,13 @@ PREAUTH mode:
     DES encrypted replies are understood.
 
  3. prog - Imap4d invokes an external program to authenticate the
-    connection. Four arguments are supplied to the program:
+    connection. The command line is obtained from the supplied string,
+    by expandind the following variables:
 
-      1) Remote IP address in dotted-quad notation;
-      2) Remote port number;
-      3) Local IP address (currently "0.0.0.0");
-      4) Local port number.
+      1) ${client_address} - Remote IP address in dotted-quad notation;
+      2) ${client_port}    - Remote port number;
+      3) ${server_address} - Local IP address;
+      4) ${server_port}    - Local port number.
 
     If the connection is authenticated, the program should print the
     user name, followed by a newline character, on its standard

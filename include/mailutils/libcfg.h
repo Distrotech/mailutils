@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,7 +96,6 @@ extern struct mu_cfg_capa mu_sql_cfg_capa;
 extern struct mu_cfg_capa mu_tls_cfg_capa;
 extern struct mu_cfg_capa mu_virtdomain_cfg_capa;
 extern struct mu_cfg_capa mu_sieve_cfg_capa;
-extern struct mu_cfg_capa mu_daemon_cfg_capa;
 extern struct mu_cfg_capa mu_auth_cfg_capa;
 extern struct mu_cfg_capa mu_ldap_cfg_capa;
 

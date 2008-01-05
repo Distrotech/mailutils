@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,16 +25,6 @@
 #ifdef __cplusplus
 extern "C" { 
 #endif
-
-struct mu_gocs_daemon
-{
-  int mode;
-  size_t maxchildren;
-  unsigned int port;
-  unsigned int timeout;
-  int transcript;
-  char *pidfile;
-};
 
 struct mu_gocs_logging
 {
@@ -104,7 +94,6 @@ int mu_gocs_enumerate (mu_list_action_t action, void *data);
 
 int mu_gocs_mailbox_init (void *data);
 int mu_gocs_locking_init (void *data);
-int mu_gocs_daemon_init (void *data);
 int mu_gocs_source_email_init (void *data);
 int mu_gocs_mailer_init (void *data);
 int mu_gocs_logging_init (void *data);

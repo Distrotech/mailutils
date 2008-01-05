@@ -142,7 +142,7 @@ mu_tcpwrapper_access (int fd)
 #endif
 
 int
-mu_tcp_wrapper_prefork (int fd, struct sockaddr *sa, int salen)
+mu_tcp_wrapper_prefork (int fd, void *data, struct sockaddr *sa, int salen)
 {
   if (mu_tcp_wrapper_enable && !mu_tcpwrapper_access (fd))
     {

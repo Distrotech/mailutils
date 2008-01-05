@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,12 +56,18 @@ typedef struct utmp UTMP;
 const char *program_version = "comsatd (" PACKAGE_STRING ")";
 static char doc[] = "GNU comsatd";
 
+#define OPT_FOREGROUND 256
+
 static struct argp_option options[] = 
 {
   { "config", 'c', N_("FILE"), OPTION_HIDDEN, "", 0 },
   { "convert-config", 'C', N_("FILE"), 0,
     N_("Convert the configuration FILE to new format."), 0 },
   { "test", 't', NULL, 0, N_("Run in test mode"), 0 },
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), 0},
+  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0 },
+  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
+    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -78,7 +84,6 @@ static struct argp argp = {
 };
 
 static const char *comsat_argp_capa[] = {
-  "daemon",
   "common",
   "debug",
   "logging",
@@ -96,31 +101,21 @@ static const char *comsat_argp_capa[] = {
 # define MAXHOSTNAMELEN 64
 #endif
 
-struct mu_gocs_daemon default_gocs_daemon = {
-  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
-  20,                   /* Default maximum number of children.
-			   Currently unused */
-  512,                  /* Default biff port */
-  0,                    /* Default timeout */
-};
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 const char *username;
 int require_tty;
-mu_acl_t comsat_acl;
+mu_m_server_t server;
 
 static void comsat_init (void);
-static void comsat_daemon_init (void);
-static void comsat_daemon (int _port);
 static int comsat_main (int fd);
 static void notify_user (const char *user, const char *device,
 			 const char *path, mu_message_qid_t qid);
 static int find_user (const char *name, char *tty);
 static char *mailbox_path (const char *user);
-static void change_user (const char *user);
+static int change_user (const char *user);
 
-static int xargc;
-static char **xargv;
+static int reload = 0;
 int test_mode;
 
 struct mu_cfg_param comsat_cfg_param[] = {
@@ -142,13 +137,16 @@ struct mu_cfg_param comsat_cfg_param[] = {
   { "overflow-delay-time", mu_cfg_time, &overflow_delay_time,
     0, NULL,
     N_("Time to sleep after the first overflow occurs.") },
-  { "acl", mu_cfg_section, },
+  { ".server", mu_cfg_section, NULL, 0, NULL,
+    N_("Server configuration.") },
   { NULL }
 };
 
 static error_t
 comsatd_parse_opt (int key, char *arg, struct argp_state *state)
 {
+  static struct mu_argp_node_list lst;
+
   switch (key)
     {
     case 'c':
@@ -178,112 +176,43 @@ _("The old configuration file format and the --config command\n"
       convert_config (arg, stdout);
       exit (0);
 
+    case 'd':
+      mu_argp_node_list_new (&lst, "mode", "daemon");
+      if (arg)
+	mu_argp_node_list_new (&lst, "max-children", arg);
+      break;
+
+    case 'i':
+      mu_argp_node_list_new (&lst, "mode", "inetd");
+      break;
+
+    case OPT_FOREGROUND:
+      mu_argp_node_list_new (&lst, "foreground", "yes");
+      break;
+
     case 't':
       test_mode = 1;
       break;
       
+    case ARGP_KEY_INIT:
+      mu_argp_node_list_init (&lst);
+      break;
+      
+    case ARGP_KEY_FINI:
+      mu_argp_node_list_finish (&lst, NULL, NULL);
+      break;
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }
 
-int
-main (int argc, char **argv)
-{
-  int c;
-  int ind;
-
-  /* Native Language Support */
-  mu_init_nls ();
-
-  mu_argp_init (program_version, NULL);
-  mu_gocs_daemon = default_gocs_daemon;
-  comsat_init ();
-  mu_acl_cfg_init ();
-
-  if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
-		   &ind, &comsat_acl))
-    exit (1);
-
-  argc -= ind;
-  argv += ind;
-  
-  if (test_mode)
-    {
-      char *user;
-      
-      if (argc < 2 || argc > 2)
-	{
-	  mu_error (_("Mailbox URL and message QID are required in test mode"));
-	  exit (EXIT_FAILURE);
-	}
-
-      user = getenv ("LOGNAME");
-      if (!user)
-	{
-	  user = getenv ("USER");
-	  if (!user)
-	    {
-	      struct passwd *pw = getpwuid (getuid ());
-	      if (!pw)
-		{
-		  mu_error (_("Cannot determine user name"));
-		  exit (EXIT_FAILURE);
-		}
-	      user = pw->pw_name;
-	    }
-	}
-		  
-      notify_user (user, "/dev/tty", argv[0], argv[1]);
-      exit (0);
-    }
-  
-  if (mu_gocs_daemon.timeout > 0 && mu_gocs_daemon.mode == MODE_DAEMON)
-    {
-      mu_error (_("--timeout and --daemon are incompatible"));
-      exit (EXIT_FAILURE);
-    }
-
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    {
-      /* Preserve invocation arguments */
-      xargc = argc;
-      xargv = argv;
-      comsat_daemon_init ();
-    }
-
-  /* Set up error messaging  */
-  openlog ("gnu-comsat", LOG_PID, log_facility);
-
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-  }
-
-  chdir ("/");
-
-  if (mu_gocs_daemon.mode == MODE_DAEMON)
-    comsat_daemon (mu_gocs_daemon.port);
-  else
-    c = comsat_main (0);
-
-  return c != 0;
-}
-
 static RETSIGTYPE
 sig_hup (int sig)
 {
-  mu_diag_output (MU_DIAG_NOTICE, _("Restarting"));
-
-  if (xargv[0][0] != '/')
-    mu_diag_output (MU_DIAG_ERROR, _("Cannot restart: program must be invoked using absolute pathname"));
-  else
-    execvp (xargv[0], xargv);
-
-  signal (sig, sig_hup);
+  mu_m_server_stop (1);
+  reload = 1;
 }
 
 void
@@ -300,21 +229,6 @@ comsat_init ()
   signal (SIGHUP, SIG_IGN);	/* Ignore SIGHUP.  */
 }
 
-/* Set up for daemon mode.  */
-static void
-comsat_daemon_init (void)
-{
-  extern int daemon (int, int);
-
-  /* Become a daemon. Take care to close inherited fds and to hold
-     first three ones, in, out, err.  Do not do the chdir("/").   */
-  if (daemon (1, 0) < 0)
-    {
-      perror (_("Failed to become a daemon"));
-      exit (EXIT_FAILURE);
-    }
-}
-
 int allow_biffrc = 1;            /* Allow per-user biffrc files */
 unsigned maxrequests = 16;       /* Maximum number of request allowed per
 			            control interval */
@@ -322,182 +236,20 @@ time_t request_control_interval = 10;  /* Request control interval */
 time_t overflow_control_interval = 10; /* Overflow control interval */
 time_t overflow_delay_time = 5;
 
-
 void
-comsat_daemon (int port)
+comsat_process (char *buffer, size_t rdlen)
 {
-  int fd;
-  struct sockaddr_in local_sin;
-  time_t last_request_time;    /* Timestamp of the last received request */
-  unsigned reqcount = 0;       /* Number of request received in the
-				  current control interval */
-  time_t last_overflow_time;   /* Timestamp of last overflow */
-  unsigned overflow_count = 0; /* Number of overflows achieved during
-				  the current interval */
-  time_t now;
-
-  fd = socket (PF_INET, SOCK_DGRAM, 0);
-  if (fd == -1)
-    {
-      mu_diag_output (MU_DIAG_CRIT, "socket: %m");
-      exit (1);
-    }
-
-  memset (&local_sin, 0, sizeof local_sin);
-  local_sin.sin_family = AF_INET;
-  local_sin.sin_addr.s_addr = INADDR_ANY; /*FIXME*/
-  local_sin.sin_port = htons (port);
-
-  if (bind (fd, (struct sockaddr *) &local_sin, sizeof local_sin) < 0)
-    {
-      mu_diag_output (MU_DIAG_CRIT, "bind: %m");
-      exit (1);
-    }
-
-  mu_diag_output (MU_DIAG_NOTICE, _("GNU comsat started"));
-
-  last_request_time = last_overflow_time = time (NULL);
-  while (1)
-    {
-      fd_set fdset;
-      int rc;
-
-      FD_ZERO (&fdset);
-      FD_SET (fd, &fdset);
-      rc = select (fd+1, &fdset, NULL, NULL, NULL);
-      if (rc == -1)
-	{
-	  if (errno != EINTR)
-	    mu_diag_output (MU_DIAG_ERROR, "select: %m");
-	  continue;
-	}
-
-      /* Control the request flow */
-      if (maxrequests != 0)
-	{
-	  now = time (NULL);
-	  if (reqcount > maxrequests)
-	    {
-	      unsigned delay;
-
-	      delay = overflow_delay_time << (overflow_count + 1);
-	      mu_diag_output (MU_DIAG_NOTICE,
-		      ngettext ("Too many requests: pausing for %u second",
-				"Too many requests: pausing for %u seconds",
-				delay),
-		      delay);
-	      sleep (delay);
-	      reqcount = 0;
-	      if (now - last_overflow_time <= overflow_control_interval)
-		{
-		  if ((overflow_delay_time << (overflow_count + 2)) >
-		      overflow_delay_time)
-		    ++overflow_count;
-		}
-	      else
-		overflow_count = 0;
-	      last_overflow_time = time (NULL);
-	    }
-
-	  if (now - last_request_time <= request_control_interval)
-	    reqcount++;
-	  else
-	    {
-	      last_request_time = now;
-	      reqcount = 1;
-	    }
-	}
-      comsat_main (fd);
-    }
-}
-
-int
-check_connection (int fd, struct sockaddr *addr, socklen_t addrlen)
-{
-  switch (addr->sa_family)
-    {
-    case PF_UNIX:
-      mu_diag_output (MU_DIAG_INFO, _("connect from socket"));
-      break;
-      
-    case PF_INET:
-      {
-	struct sockaddr_in *s_in = (struct sockaddr_in *)addr;
-	
-	if (comsat_acl)
-	  {
-	    mu_acl_result_t res;
-	    
-	    int rc = mu_acl_check_sockaddr (comsat_acl, addr, addrlen,
-					    &res);
-	    if (rc)
-	      {
-		mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
-			  inet_ntoa (s_in->sin_addr), mu_strerror (rc));
-		return 1;
-	      }
-	    switch (res)
-	      {
-	      case mu_acl_result_undefined:
-		mu_diag_output (MU_DIAG_INFO,
-				_("%s: undefined ACL result; access allowed"),
-				inet_ntoa (s_in->sin_addr));
-		break;
-		
-	      case mu_acl_result_accept:
-		break;
-		
-	      case mu_acl_result_deny:
-		mu_error (_("Access from %s blocked."),
-			  inet_ntoa (s_in->sin_addr));
-		return 1;
-	      }
-	  }
-      }
-    }
-  return 0;
-}
-
-int
-comsat_main (int fd)
-{
-  int rdlen;
-  int len;
-  struct sockaddr fromaddr;
-  char buffer[216]; /*FIXME: Arbitrary size */
-  pid_t pid;
   char tty[MAX_TTY_SIZE];
   char *p;
   char *path = NULL;
   mu_message_qid_t qid;
-  
-  len = sizeof fromaddr;
-  rdlen = recvfrom (fd, buffer, sizeof buffer, 0, &fromaddr, &len);
-  if (rdlen <= 0)
-    {
-      if (errno == EINTR)
-	return 0;
-      mu_diag_output (MU_DIAG_ERROR, "recvfrom: %m");
-      return 1;
-    }
-
-  if (check_connection (fd, &fromaddr, len))
-    return 1;
-
-  mu_diag_output (MU_DIAG_INFO,
-		  ngettext ("Received %d byte from %s",
-			    "Received %d bytes from %s", rdlen),
-		  rdlen, inet_ntoa (((struct sockaddr_in*)&fromaddr)->sin_addr));
-  
-  buffer[rdlen] = 0;
-  mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
 
   /* Parse the buffer */
   p = strchr (buffer, '@');
   if (!p)
     {
       mu_diag_output (MU_DIAG_ERROR, _("Malformed input: %s"), buffer);
-      return 1;
+      return;
     }
   *p++ = 0;
 
@@ -512,34 +264,127 @@ comsat_main (int fd)
   if (find_user (buffer, tty) != SUCCESS)
     {
       if (require_tty)
-	return 0;
+	return;
       strcpy (tty, "/dev/null");
-    }
-
-  /* All I/O is done by child process. This is to avoid various blocking
-     problems. */
-
-  pid = fork ();
-
-  if (pid == -1)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "fork: %m");
-      return 1;
-    }
-
-  if (pid > 0)
-    {
-      struct timeval tv;
-      tv.tv_sec = 0;
-      tv.tv_usec = 100000;
-      select (0, NULL, NULL, NULL, &tv);
-      kill (pid, SIGKILL); /* Just in case the child is hung */
-      return 0;
     }
 
   /* Child: do actual I/O */
   notify_user (buffer, tty, path, qid);
-  exit (0);
+}
+
+int
+comsat_main (int fd)
+{
+  int rdlen;
+  int len;
+  struct sockaddr fromaddr;
+  char buffer[216]; /*FIXME: Arbitrary size */
+
+  len = sizeof fromaddr;
+  rdlen = recvfrom (fd, buffer, sizeof buffer, 0, &fromaddr, &len);
+  if (rdlen <= 0)
+    {
+      if (errno == EINTR)
+	return 0;
+      mu_diag_output (MU_DIAG_ERROR, "recvfrom: %m");
+      return 1;
+    }
+  buffer[rdlen] = 0;
+  
+  if (mu_m_server_check_acl (server, &fromaddr, len))
+    return 0;
+
+  comsat_process (buffer, rdlen);
+  return 0;
+}
+
+static time_t last_request_time;    /* Timestamp of the last received
+				       request */
+static unsigned reqcount = 0;       /* Number of request received in the
+				       current control interval */
+static time_t last_overflow_time;   /* Timestamp of last overflow */
+static unsigned overflow_count = 0; /* Number of overflows detected during
+				       the current interval */
+
+int
+comsat_prefork (int fd, void *data, struct sockaddr *s, int size)
+{
+  int retval = 0;
+  time_t now;
+  
+  /* Control the request flow */
+  if (maxrequests != 0)
+    {
+      now = time (NULL);
+      if (reqcount > maxrequests)
+	{
+	  unsigned delay;
+
+	  delay = overflow_delay_time << (overflow_count + 1);
+	  mu_diag_output (MU_DIAG_NOTICE,
+			 ngettext ("Too many requests: pausing for %u second",
+				   "Too many requests: pausing for %u seconds",
+				    delay),
+			  delay);
+	  /* FIXME: drain the socket? */
+	  sleep (delay);
+	  reqcount = 0;
+	  if (now - last_overflow_time <= overflow_control_interval)
+	    {
+	      if ((overflow_delay_time << (overflow_count + 2)) >
+		  overflow_delay_time)
+		++overflow_count;
+	    }
+	  else
+	    overflow_count = 0;
+	  last_overflow_time = time (NULL);
+	  retval = 1;
+	}
+
+      if (now - last_request_time <= request_control_interval)
+	reqcount++;
+      else
+	{
+	  last_request_time = now;
+	  reqcount = 1;
+	}
+    }
+  return retval;
+}
+
+int
+comsat_connection (int fd, struct sockaddr *sa, int salen,
+		   void *data, mu_ip_server_t srv,
+		   time_t to, int transcript)
+{
+  char *buffer;
+  size_t rdlen, size;
+
+  if (mu_udp_server_get_rdata (srv, &buffer, &rdlen))
+    return 0;
+  if (transcript)
+    {
+      char *p = mu_sockaddr_to_astr (sa, salen);
+      mu_diag_output (MU_DIAG_INFO,
+		      ngettext ("Received %d byte from %s",
+				"Received %d bytes from %s", rdlen),
+		      rdlen, p);
+      mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
+      free (p);
+    }
+  mu_udp_server_get_bufsize (srv, &size);
+  if (size < rdlen + 1)
+    {
+      int rc = mu_udp_server_set_bufsize (srv, rdlen + 1);
+      if (rc)
+	{
+	  mu_error (_("Cannot resize buffer: %s"), mu_strerror (rc));
+	  return 0;
+	}
+    }
+  buffer[rdlen] = 0;
+  comsat_process (buffer, rdlen);
+  return 0;
 }
 
 static const char *
@@ -570,11 +415,12 @@ notify_user (const char *user, const char *device, const char *path,
   mu_message_t msg;
   int status;
 
-  change_user (user);
+  if (change_user (user))
+    return;
   if ((fp = fopen (device, "w")) == NULL)
     {
       mu_error (_("Cannot open device %s: %m"), device);
-      exit (0);
+      return;
     }
 
   cr = get_newline_str (fp);
@@ -672,7 +518,7 @@ find_user (const char *name, char *tty)
   return status;
 }
 
-void
+int
 change_user (const char *user)
 {
   struct passwd *pw;
@@ -681,13 +527,14 @@ change_user (const char *user)
   if (!pw)
     {
       mu_diag_output (MU_DIAG_CRIT, _("No such user: %s"), user);
-      exit (1);
+      return 1;
     }
 
   setgid (pw->pw_gid);
   setuid (pw->pw_uid);
   chdir (pw->pw_dir);
   username = user;
+  return 0;
 }
 
 char *
@@ -707,5 +554,113 @@ mailbox_path (const char *user)
   mailbox_name = strdup (auth->mailbox);
   mu_auth_data_free (auth);
   return mailbox_name;
+}
+
+
+int
+main (int argc, char **argv)
+{
+  int c;
+  int ind;
+
+  /* Native Language Support */
+  mu_init_nls ();
+
+  mu_argp_init (program_version, NULL);
+  comsat_init ();
+  mu_acl_cfg_init ();
+  mu_m_server_cfg_init ();
+  mu_m_server_create (&server, "GNU comsat");
+  mu_m_server_set_type (server, MU_IP_UDP);
+  mu_m_server_set_conn (server, comsat_connection);
+  mu_m_server_set_prefork (server, comsat_prefork);
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+  mu_m_server_set_max_children (server, 20);
+  /* FIXME mu_m_server_set_pidfile (); */
+  mu_m_server_set_default_port (server, 512);
+  /* FIXME: timeout is not needed. How to disable it? */
+  
+  if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
+		   &ind, server))
+    exit (1);
+
+  if (test_mode)
+    {
+      char *user;
+      
+      argc -= ind;
+      argv += ind;
+  
+      if (argc < 2 || argc > 2)
+	{
+	  mu_error (_("Mailbox URL and message QID are required in test mode"));
+	  exit (EXIT_FAILURE);
+	}
+
+      user = getenv ("LOGNAME");
+      if (!user)
+	{
+	  user = getenv ("USER");
+	  if (!user)
+	    {
+	      struct passwd *pw = getpwuid (getuid ());
+	      if (!pw)
+		{
+		  mu_error (_("Cannot determine user name"));
+		  exit (EXIT_FAILURE);
+		}
+	      user = pw->pw_name;
+	    }
+	}
+		  
+      notify_user (user, "/dev/tty", argv[0], argv[1]);
+      exit (0);
+    }
+  
+  /* Set up error messaging  */
+  openlog ("gnu-comsat", LOG_PID, log_facility);
+
+  {
+    mu_debug_t debug;
+
+    mu_diag_get_debug (&debug);
+    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+
+    mu_debug_default_printer = mu_debug_syslog_printer;
+  }
+
+  if (mu_m_server_mode (server) == MODE_DAEMON)
+    {
+      if (argv[0][0] != '/')
+	mu_diag_output (MU_DIAG_NOTICE,
+			_("Program name is not absolute; reloading will not "
+			  "be possible"));
+      else
+	{
+	  sigset_t set;
+
+	  mu_m_server_get_sigset (server, &set);
+	  sigdelset (&set, SIGHUP);
+	  mu_m_server_set_sigset (server, &set);
+	  signal (SIGHUP, sig_hup);
+	}
+      
+      mu_m_server_begin (server);
+      c = mu_m_server_run (server);
+      mu_m_server_end (server);
+      mu_m_server_destroy (&server);
+      if (reload)
+	{
+	  mu_diag_output (MU_DIAG_NOTICE, _("Restarting"));
+	  execvp (argv[0], argv);
+	}
+    }
+  else
+    {
+      chdir ("/");
+      c = comsat_main (0);
+    }
+  
+  return c != 0;
 }
 

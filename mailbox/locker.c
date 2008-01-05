@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2005, 2006, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -103,11 +103,15 @@ static int unlock_kernel (mu_locker_t);
 static int prelock_common (mu_locker_t);
 
 static struct locker_tab locker_tab[] = {
+  /* MU_LOCKER_TYPE_DOTLOCK */
   { init_dotlock, destroy_dotlock, prelock_common,
     lock_dotlock, unlock_dotlock },
+  /* MU_LOCKER_TYPE_EXTERNAL */
   { init_external, destroy_external, prelock_common,
     lock_external, unlock_external },
+  /* MU_LOCKER_TYPE_KERNEL */
   { init_kernel, NULL, NULL, lock_kernel, unlock_kernel },
+  /* MU_LOCKER_TYPE_NULL */
   { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -246,17 +250,37 @@ mu_locker_set_default_external_program (char *path)
 }
 
 int
-mu_locker_set_flags (mu_locker_t locker, int flags)
+mu_locker_mod_flags (mu_locker_t locker, int flags,
+		     enum mu_locker_set_mode mode)
 {
   unsigned otype, ntype;
+  int new_flags;
   
   if (!locker)
     return MU_ERR_LOCKER_NULL;
-  
+
+  switch (mode)
+    {
+    case mu_locker_assign:
+      new_flags = flags;
+      break;
+
+    case mu_locker_set_bit:
+      new_flags = locker->flags | flags;
+      break;
+
+    case mu_locker_clear_bit:
+      new_flags = locker->flags & ~flags;
+      break;
+
+    default:
+      return EINVAL;
+    }
+
   otype = MU_LOCKER_TYPE (locker);
   if (otype >= MU_LOCKER_NTYPES)
     return EINVAL;
-  ntype = MU_LOCKER_FLAG_TO_TYPE (flags);
+  ntype = MU_LOCKER_FLAG_TO_TYPE (new_flags);
   if (ntype >= MU_LOCKER_NTYPES)
     return EINVAL;
 
@@ -266,19 +290,25 @@ mu_locker_set_flags (mu_locker_t locker, int flags)
       
       if (locker_tab[otype].destroy)
 	locker_tab[otype].destroy (locker);
-      locker->flags = flags;
-      if (locker_tab[otype].init)
+      locker->flags = new_flags;
+      if (locker_tab[ntype].init)
 	{
-	  rc = locker_tab[otype].init (locker);
+	  rc = locker_tab[ntype].init (locker);
 	  if (rc)
 	    locker->flags = MU_LOCKER_NULL;
 	  return rc;
 	}
     }
   else
-    locker->flags = flags;
+    locker->flags = new_flags;
 
   return 0;
+}
+
+int
+mu_locker_set_flags (mu_locker_t locker, int flags)
+{
+  return mu_locker_mod_flags (locker, flags, mu_locker_assign);
 }
 
 int

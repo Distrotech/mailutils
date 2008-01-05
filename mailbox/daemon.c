@@ -78,18 +78,5 @@ mu_daemon_remove_pidfile (void)
     }
 }
 
-
-struct mu_gocs_daemon mu_gocs_daemon;
-
-int
-mu_gocs_daemon_init (void *data)
-{
-  if (data)
-    {
-      struct mu_gocs_daemon *cfg = data;
-      mu_gocs_daemon = *cfg;
-    }
-  return 0;
-}
 
 

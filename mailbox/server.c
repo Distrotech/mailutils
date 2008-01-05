@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -201,8 +201,12 @@ mu_server_destroy (mu_server_t *psrv)
   if (!srv)
     return 0;
 
-  for (p = srv->head; p; p = p->next)
-    destroy_connection (srv, p);
+  for (p = srv->head; p; )
+    {
+      struct _mu_connection *next = p->next;
+      destroy_connection (srv, p);
+      p = next;
+    }
 
   if (srv->f_free)
     srv->f_free (srv->server_data);

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -297,7 +297,6 @@ static struct mu_gocs_entry std_gocs_table[] = {
   { "license", mu_gocs_dummy },
   { "mailbox", mu_gocs_mailbox_init },
   { "locking", mu_gocs_locking_init },
-  { "daemon", mu_gocs_daemon_init },
   { "address", mu_gocs_source_email_init },
   { "mailer", mu_gocs_mailer_init },
   { "logging", mu_gocs_logging_init },

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,6 @@
 #include "cmdline.h"
 #include <string.h>
 #include <mailutils/syslog.h>
-#include <mailutils/daemon.h>
 #include <mailutils/mailbox.h>
 
 
@@ -488,91 +487,6 @@ struct mu_cmdline_capa mu_mailer_cmdline = {
 };
 
 
-/* ************************************************************************* */
-/* Daemon                                                                    */
-/* ************************************************************************* */
-
-/* Options used by programs that become daemons. */
-static struct argp_option mu_daemon_argp_option[] = {
-  {"daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-   N_("Runs in daemon mode with a maximum of NUMBER children")},
-  {"inetd",  'i', 0, 0,
-   N_("Run in inetd mode"), 0},
-  {"port", 'p', N_("PORT"), 0,
-   N_("Listen on specified port number"), 0},
-  {"timeout", 't', N_("NUMBER"), OPTION_HIDDEN,
-   N_("Set idle timeout value to NUMBER seconds"), 0},
-  {"transcript", 'x', NULL, 0,
-   N_("Output session transcript via syslog"), 0},
-  {"pidfile", 'P', N_("FILE"), OPTION_HIDDEN,
-   N_("Set PID file"), 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  static struct mu_argp_node_list lst;
-  
-  switch (key)
-    {
-    case 'd':
-      mu_argp_node_list_new (&lst, "mode", "daemon");
-      if (arg)
-	mu_argp_node_list_new (&lst, "max-children", arg);
-      break;
-
-    case 'i':
-      mu_argp_node_list_new (&lst, "mode", "inetd");
-      break;
-      
-    case 'p':
-      mu_argp_node_list_new (&lst, "port", arg);
-      break;
-
-    case 'P':
-      mu_argp_node_list_new (&lst, "pidfile", arg);
-      break;
-
-    case 't':
-      mu_argp_node_list_new (&lst, "timeout", arg);
-      break;
-
-    case 'x':
-      mu_argp_node_list_new (&lst, "transcript", "yes");
-      break;
-
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "daemon", NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-struct argp mu_daemon_argp = {
-  mu_daemon_argp_option,
-  mu_daemon_argp_parser,
-};
-
-struct argp_child mu_daemon_argp_child = {
-  &mu_daemon_argp,
-  0,
-  N_("Daemon configuration options"),
-  0
-};
-
-struct mu_cmdline_capa mu_daemon_cmdline = {
-  "daemon", &mu_daemon_argp_child
-};
-
-
 static struct argp_option mu_debug_argp_options[] = 
 {
   { "debug-level", OPT_DEBUG_LEVEL, N_("LEVEL"), 0,
@@ -590,7 +504,8 @@ mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case OPT_DEBUG_LEVEL:
-      mu_argp_node_list_new (&lst, "level", arg);
+      mu_global_debug_from_string (arg, "command line");
+      //mu_argp_node_list_new (&lst, "level", arg);
       break;
 
     case OPT_LINE_INFO:
