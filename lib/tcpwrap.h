@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ extern int mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
 extern int mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data,
 						char *arg);
 extern int mu_tcpwrapper_access (int fd);
-
 extern void mu_tcpwrapper_cfg_init (void);
+extern int mu_tcp_wrapper_prefork (int fd, struct sockaddr *sa, int salen);
 
 #ifdef WITH_LIBWRAP
 # define TCP_WRAPPERS_CONFIG { "tcp-wrappers", mu_cfg_section },

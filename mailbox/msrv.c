@@ -66,6 +66,7 @@ struct _mu_m_server
   mu_server_t server;
   mu_list_t srvlist;
   mu_m_server_conn_fp conn;
+  mu_m_server_prefork_fp prefork;
   void *data;
   int mode;
   int foreground;
@@ -189,6 +190,12 @@ void
 mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_conn_fp conn)
 {
   srv->conn = conn;
+}
+
+void
+mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_prefork_fp fun)
+{
+  srv->prefork = fun;
 }
 
 void
@@ -502,7 +509,9 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
           pause ();
           return 0;
         }
-
+      if (pconf->msrv->prefork && pconf->msrv->prefork (fd, sa, salen))
+	return 0;
+      
       pid = fork ();
       if (pid == -1)
 	mu_diag_output (MU_DIAG_ERROR, "fork: %s", strerror (errno));

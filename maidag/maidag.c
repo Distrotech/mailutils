@@ -478,6 +478,7 @@ main (int argc, char *argv[])
 
   mu_m_server_create (&server, "GNU maidag");
   mu_m_server_set_conn (server, lmtp_connection);
+  mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
   mu_m_server_set_max_children (server, 20);
   mu_m_server_set_timeout (server, 600);

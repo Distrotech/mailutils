@@ -291,21 +291,6 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   int status = OK;
   char buffer[512];
-  struct sockaddr_in cs;
-
-  if (pop3d_get_client_address (fd, &cs) == 0)
-    {
-      if (!mu_tcpwrapper_access (fd))
-	{
-	  mu_error (_("Access from %s blocked."), inet_ntoa (cs.sin_addr));
-	  return 1;
-	}
-    }
-  else if (!debug_mode && mu_tcp_wrapper_enable)
-    {
-      mu_error (_("Rejecting connection from unknown address"));
-      return 1;
-    }
     
   /* Reset hup to exit.  */
   signal (SIGHUP, pop3d_signal);
@@ -494,6 +479,7 @@ main (int argc, char **argv)
   	
   mu_m_server_create (&server, "GNU pop3d");
   mu_m_server_set_conn (server, pop3d_connection);
+  mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
   mu_m_server_set_max_children (server, 20);
   /* FIXME mu_m_server_set_pidfile (); */

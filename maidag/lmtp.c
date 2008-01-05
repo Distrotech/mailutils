@@ -556,10 +556,16 @@ lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
   return 0;
 }
 
+typedef union
+{
+  struct sockaddr sa;
+  struct sockaddr_in s_in;
+  struct sockaddr_un s_un;
+} all_addr_t;
+
 int
 lmtp_connection (int fd, void *data, time_t timeout, int transcript)
 {
-  /* FIXME: TCP wrappers */
   lmtp_transcript = transcript;
   lmtp_loop (fdopen (fd, "r"), fdopen (fd, "w"), timeout);
   return 0;

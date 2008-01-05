@@ -75,10 +75,12 @@ int mu_tcp_server_get_sockaddr (mu_tcp_server_t srv, struct sockaddr *s,
 
 /* m-server */
 typedef int (*mu_m_server_conn_fp) (int, void *, time_t, int);
-
+typedef int (*mu_m_server_prefork_fp) (int, struct sockaddr *s, int size);
 void mu_m_server_create (mu_m_server_t *psrv, const char *ident);
+void mu_m_server_destroy (mu_m_server_t *pmsrv);
 void mu_m_server_set_mode (mu_m_server_t srv, int mode);
 void mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_conn_fp f);
+void mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_prefork_fp fun);
 void mu_m_server_set_data (mu_m_server_t srv, void *data);
 void mu_m_server_set_max_children (mu_m_server_t srv, size_t num);
 int mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile);
@@ -91,8 +93,11 @@ int mu_m_server_mode (mu_m_server_t srv);
 time_t mu_m_server_timeout (mu_m_server_t srv);
 void mu_m_server_get_sigset (mu_m_server_t srv, sigset_t *sigset);
 
+void mu_m_server_configured_count (mu_m_server_t msrv, size_t count);
+
 void mu_m_server_begin (mu_m_server_t msrv);
 int mu_m_server_run (mu_m_server_t msrv);
+void mu_m_server_end (mu_m_server_t msrv);
 
 void mu_m_server_cfg_init (void);
 

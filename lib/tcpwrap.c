@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
 #include <syslog.h>
 #include <string.h>
 #include <mailutils/debug.h>
@@ -27,6 +28,7 @@
 #include <mailutils/syslog.h>
 #include <mailutils/cfg.h>
 #include <mailutils/diag.h>
+#include <mailutils/error.h>
 
 int mu_tcp_wrapper_enable = 1;
 char *mu_tcp_wrapper_daemon;
@@ -138,3 +140,17 @@ mu_tcpwrapper_access (int fd)
 }
 
 #endif
+
+int
+mu_tcp_wrapper_prefork (int fd, struct sockaddr *sa, int salen)
+{
+  if (mu_tcp_wrapper_enable && !mu_tcpwrapper_access (fd))
+    {
+      char *p = mu_sockaddr_to_astr (sa, salen);
+      mu_error (_("Access from %s blocked by TCP wrappers."), p);
+      free (p);
+      return 1;
+    }
+  return 0;
+}
+     
