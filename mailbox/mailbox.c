@@ -325,18 +325,15 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
     return 0;
 
   mu_mailbox_messages_count (mbox, &total);
-  if (mbox->flags & MU_STREAM_APPEND)
-    i = total;
-  else
-    i = 1;
-  for ( ; i <= total; i++)
-    {
-      mu_message_t msg = NULL;
-      mu_attribute_t attr = NULL;
-      mu_mailbox_get_message (mbox, i, &msg);
-      mu_message_get_attribute (msg, &attr);
-      mu_attribute_set_seen (attr);
-    }
+  if (!(mbox->flags & MU_STREAM_APPEND))
+    for (i = 1; i <= total; i++)
+      {
+	mu_message_t msg = NULL;
+	mu_attribute_t attr = NULL;
+	mu_mailbox_get_message (mbox, i, &msg);
+	mu_message_get_attribute (msg, &attr);
+	mu_attribute_set_seen (attr);
+      }
 
   if (expunge)
     status = mu_mailbox_expunge (mbox);

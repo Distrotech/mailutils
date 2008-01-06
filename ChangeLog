@@ -1,3 +1,36 @@
+2008-01-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix message delivery to maildir boxes.
+	
+	* libproto/include/amd.h (struct _amd_message): Remove `deleted',
+	add `orig_flags' instead.
+	(struct _amd_data): Remove `msg_file_name', add `cur_msg_file_name'
+	and `new_msg_file_name'.
+	Add `mailbox_size'.
+	* libproto/maildir/mbox.c (struct _maildir_message): Remove
+	`newflag', add `dir'.
+	(maildir_name_info_ptr): New function.
+	(mk_info_filename): Bugfix.
+	(maildir_cur_message_name, maildir_new_message_name): New
+	functions.
+	(maildir_msg_init): Set ->dir
+	(maildir_msg_finish_delivery): Handle error conditions.
+	(maildir_scan_dir): New argument `dirname'. Initialize orig_flags.
+	(maildir_qfetch): Initialize dir.
+	(_mailbox_maildir_init): Set cur_msg_file_name and
+	new_msg_file_name.
+	* libproto/mh/mbox.c (_mh_cur_message_name)
+	(_mh_new_message_name): New functions.
+	(mh_scan0): Initialize orig_flags.
+	(_mailbox_mh_init): Set cur_msg_file_name and
+	new_msg_file_name.
+	* mailbox/amd.c (amd_message_qid, _amd_message_save)
+	(amd_append_message, amd_expunge, amd_scan_message)
+	(amd_pool_open, amd_header_fill): Use appropriate msg_file_name
+	functions. 
+	(amd_get_size): Implemented.
+	* mailbox/mailbox.c (mu_mailbox_flush): Bugfix.
+
 2008-01-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS: Update.

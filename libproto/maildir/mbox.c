@@ -78,7 +78,7 @@
 struct _maildir_message
 {
   struct _amd_message amd_message;
-  int newflag;
+  char *dir;
   char *file_name;
   unsigned long uid;
 };
@@ -121,6 +121,15 @@ info_to_flags (char *buf)
     if (strchr (buf, p->letter))
       flags |= p->flag;
   return 0;
+}
+
+static char *
+maildir_name_info_ptr (char *name)
+{
+  char *p = strchr (name, ':');
+  if (p && memcmp (p + 1, "2,", 2) == 0)
+    return p + 3;
+  return NULL;
 }
 
 
@@ -269,7 +278,7 @@ mk_info_filename (char *directory, char *suffix, char *name, int flags)
   size += 3 + strlen (fbuf);
 
   tmp = malloc (size);
-  if (fbuf[0])
+  if (!fbuf[0])
     sprintf (tmp, "%s/%s/%*.*s:2", directory, suffix, namelen, namelen, name);
   else
     sprintf (tmp, "%s/%s/%*.*s:2,%s", directory, suffix, namelen, namelen, name, fbuf);
@@ -324,16 +333,31 @@ maildir_uniq (struct _amd_data *amd, int fd)
   return strdup (buffer);
 }
 
-char *
-maildir_message_name (struct _amd_message *amsg, int deleted)
+/* FIXME: The following two functions dump core on ENOMEM */
+static int
+maildir_cur_message_name (struct _amd_message *amsg, char **pname)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amsg;
-  if (deleted)
-    return NULL; /* Force amd.c to unlink the file.
-		    FIXME: We could also add a 'T' info to it. Should
-		    we have an option deciding which approach to take? */
-  return maildir_mkfilename (amsg->amd->name,
-			     msg->newflag ? NEWSUF : CURSUF, msg->file_name);
+  *pname = maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name);
+  return 0;
+}
+
+static int
+maildir_new_message_name (struct _amd_message *amsg, int flags, char **pname)
+{
+  struct _maildir_message *msg = (struct _maildir_message *) amsg;
+  if (flags & MU_ATTRIBUTE_DELETED)
+    {
+      /* Force amd.c to unlink the file.
+	 FIXME: We could also add a 'T' info to it. Should
+	 we have an option deciding which approach to take? */
+      *pname = NULL;
+    }
+  else if (strcmp (msg->dir, CURSUF) == 0)
+    *pname = mk_info_filename (amsg->amd->name, CURSUF, msg->file_name, flags);
+  else
+    *pname = maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name);
+  return 0;
 }
 
 static void
@@ -415,6 +439,8 @@ maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
   
   name = maildir_uniq (amd, -1);
   fname = maildir_mkfilename (amd->name, NEWSUF, name);
+
+  msg->dir = TMPSUF;
   
   for (i = 0; i < NTRIES; i++)
     {
@@ -442,11 +468,13 @@ maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm)
   char *newname = maildir_mkfilename (amd->name, NEWSUF, msg->file_name);
 
   unlink (newname);
-  if (link (oldname, newname))
+  if (link (oldname, newname) == 0)
+    unlink (oldname);
+  else
     {
-      unlink (oldname);
-      msg->newflag = 1;
+      return errno; /* FIXME? */
     }
+  msg->dir = NEWSUF;
   free (oldname);
   free (newname);
   return 0;
@@ -535,16 +563,15 @@ maildir_message_lookup (struct _amd_data *amd, char *file_name)
 }
 
 static int
-maildir_scan_dir (struct _amd_data *amd, DIR *dir)
+maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 {
-  struct _maildir_message *msg;
   struct dirent *entry;
+  struct _maildir_message *msg;
+  char *p;
+  int insert;
 
   while ((entry = readdir (dir)))
     {
-      char *p;
-      int insert;
-      
       switch (entry->d_name[0])
 	{
 	case '.':
@@ -555,7 +582,6 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 	  if (msg)
 	    {
 	      free (msg->file_name);
-	      msg->newflag = 0;
 	      insert = 0;
 	    }
 	  else
@@ -564,14 +590,15 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 	      insert = 1;
 	    }
 	  
+	  msg->dir = dirname;
 	  msg->file_name = strdup (entry->d_name);
 
-	  p = strchr (msg->file_name, ':');
-	  if (p && strcmp (p+1, "2,") == 0)
-	    msg->amd_message.attr_flags = info_to_flags (p+3);
+	  p = maildir_name_info_ptr (msg->file_name);
+	  if (p)
+	    msg->amd_message.attr_flags = info_to_flags (p);
 	  else
 	    msg->amd_message.attr_flags = 0;
-	  msg->amd_message.deleted = msg->amd_message.attr_flags & MU_ATTRIBUTE_DELETED;
+	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
 	  if (insert)
 	    {
 	      msg->uid = amd->next_uid (amd);
@@ -595,7 +622,8 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   
   if (amd == NULL)
     return EINVAL;
-
+  if (mailbox->flags & MU_STREAM_APPEND)
+    return 0;
   mu_monitor_wrlock (mailbox->monitor);
 
   /* 1st phase: Flush tmp/ */
@@ -617,7 +645,7 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   status = maildir_opendir (&dir, name, PERMS);
   if (status == 0)
     {
-      status = maildir_scan_dir (amd, dir);
+      status = maildir_scan_dir (amd, dir, CURSUF);
       closedir (dir);
     }
   free (name);
@@ -666,19 +694,32 @@ maildir_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
   struct _maildir_message *msg;
   char *name = strrchr (qid, '/');
   char *p;
+  char *dir;
   
   if (!name)
     return EINVAL;
   name++;
+  if (name - qid < 4)
+    return EINVAL;
+  else if (memcmp (name - 4, CURSUF, sizeof (CURSUF) - 1) == 0)
+    dir = CURSUF;
+  else if (memcmp (name - 4, NEWSUF, sizeof (NEWSUF) - 1) == 0)
+    dir = NEWSUF;
+  else if (memcmp (name - 4, TMPSUF, sizeof (TMPSUF) - 1) == 0)
+    dir = TMPSUF;
+  else
+    return EINVAL;
+  
   msg = calloc (1, sizeof(*msg));
   msg->file_name = strdup (name);
-
-  p = strchr (msg->file_name, ':');
-  if (p && strcmp (p + 1, "2,") == 0)
-    msg->amd_message.attr_flags = info_to_flags (p + 3);
+  msg->dir = dir;
+  
+  p = maildir_name_info_ptr (msg->file_name);
+  if (p)
+    msg->amd_message.attr_flags = info_to_flags (p);
   else
     msg->amd_message.attr_flags = 0;
-  msg->amd_message.deleted = msg->amd_message.attr_flags & MU_ATTRIBUTE_DELETED;
+  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
   msg->uid = amd->next_uid (amd);
   _amd_message_insert (amd, (struct _amd_message*) msg);
   return 0;
@@ -699,7 +740,8 @@ _mailbox_maildir_init (mu_mailbox_t mailbox)
   amd->msg_free = maildir_msg_free;
   amd->msg_init_delivery = maildir_msg_init;
   amd->msg_finish_delivery = maildir_msg_finish_delivery;
-  amd->msg_file_name = maildir_message_name;
+  amd->cur_msg_file_name = maildir_cur_message_name;
+  amd->new_msg_file_name = maildir_new_message_name;
   amd->scan0 = maildir_scan0;
   amd->qfetch = maildir_qfetch;
   amd->msg_cmp = maildir_message_cmp;

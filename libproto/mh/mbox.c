@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -66,6 +66,7 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <amd.h>
+#include <mu_umaxtostr.h>
 
 struct _mh_message
 {
@@ -93,22 +94,55 @@ _mh_next_seq (struct _amd_data *amd)
   return (msg ? msg->seq_number : 0) + 1;
 }
 
-/* Return filename for the message.
+/* Return current filename for the message.
    NOTE: Allocates memory. */
-static char *
-_mh_message_name (struct _amd_message *amsg, int deleted)
+static int
+_mh_cur_message_name (struct _amd_message *amsg, char **pname)
 {
+  int status = 0;
   struct _mh_message *mhm = (struct _mh_message *) amsg;
   char *filename;
-  size_t len = strlen (amsg->amd->name) + 32;
+  char buf[UINTMAX_STRSIZE_BOUND];
+  char *pnum = umaxtostr (mhm->seq_number, buf);
+  size_t len = strlen (amsg->amd->name) + 1 + strlen (pnum) + 1;
   filename = malloc (len);
-  if (deleted)
-    snprintf (filename, len, "%s/,%lu", amsg->amd->name,
-	      (unsigned long) mhm->seq_number);
+  if (filename)
+    {
+      strcpy (filename, amsg->amd->name);
+      strcat (filename, "/");
+      strcat (filename, pnum);
+      *pname = filename;
+    }
   else
-    snprintf (filename, len, "%s/%lu", amsg->amd->name,
-	      (unsigned long) mhm->seq_number);
-  return filename;
+    status = ENOMEM;
+  return status;
+}
+
+/* Return newfilename for the message.
+   NOTE: Allocates memory. */
+static int
+_mh_new_message_name (struct _amd_message *amsg, int flags, char **pname)
+{
+  int status = 0;
+  struct _mh_message *mhm = (struct _mh_message *) amsg;
+  char *filename;
+  char buf[UINTMAX_STRSIZE_BOUND];
+  char *pnum = umaxtostr (mhm->seq_number, buf);
+  size_t len = strlen (amsg->amd->name) + 1 +
+               ((flags & MU_ATTRIBUTE_DELETED) ? 1 : 0) + strlen (pnum) + 1;
+  filename = malloc (len);
+  if (filename)
+    {
+      strcpy (filename, amsg->amd->name);
+      strcat (filename, "/");
+      if (flags & MU_ATTRIBUTE_DELETED)
+	strcat (filename, ",");
+      strcat (filename, pnum);
+      *pname = filename;
+    }
+  else
+    status = ENOMEM;
+  return status;
 }
 
 /* Find the message with the given sequence number */
@@ -193,13 +227,14 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
 
 	  msg->seq_number = num;
 	  msg->amd_message.attr_flags = attr_flags;
-	  msg->amd_message.deleted = attr_flags & MU_ATTRIBUTE_DELETED;
+	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
 
 	  _amd_message_insert (amd, (struct _amd_message*) msg);
 	}
       else
 	{
 	  msg->amd_message.attr_flags = attr_flags;
+	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
 	}
     }
 
@@ -278,7 +313,7 @@ mh_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
   msg = calloc (1, sizeof (*msg));
   msg->seq_number = num;
   msg->amd_message.attr_flags = attr_flags;
-  msg->amd_message.deleted = attr_flags & MU_ATTRIBUTE_DELETED;
+  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
   _amd_message_insert (amd, (struct _amd_message*) msg);
   return 0;
 }
@@ -321,7 +356,8 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
   amd->msg_free = NULL;
   amd->msg_init_delivery = _mh_msg_init;
   amd->msg_finish_delivery = NULL;
-  amd->msg_file_name = _mh_message_name;
+  amd->cur_msg_file_name = _mh_cur_message_name;
+  amd->new_msg_file_name = _mh_new_message_name;
   amd->scan0 = mh_scan0;
   amd->qfetch = mh_qfetch;
   amd->msg_cmp = mh_message_cmp;

@@ -389,9 +389,7 @@ amd_message_qid (mu_message_t msg, mu_message_qid_t *pqid)
 {
   struct _amd_message *mhm = mu_message_get_owner (msg);
   
-  *pqid = mhm->amd->msg_file_name (mhm,
-				   mhm->attr_flags & MU_ATTRIBUTE_DELETED);
-  return 0;
+  return mhm->amd->cur_msg_file_name (mhm, pqid);
 }
 
 struct _amd_message *
@@ -644,7 +642,8 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
     }
 
   /* Add imapbase */
-  if (amd->next_uid
+  if (!(amd->mailbox->flags & MU_STREAM_APPEND)
+      && amd->next_uid
       && (!amd->msg_array || (amd->msg_array[0] == mhm))) /*FIXME*/
     {
       nbytes += fprintf (fp, "X-IMAPbase: %lu %u\n",
@@ -712,14 +711,29 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   free (buf);
   fclose (fp);
 
-  /* FIXME: This does not work for maildir. */
-  msg_name = amd->msg_file_name (mhm, mhm->deleted);
-  if (rename (name, msg_name))
-    status = errno;	  
+  status = amd->new_msg_file_name (mhm, mhm->attr_flags, &msg_name);
+  if (status == 0)
+    {
+      char *old_name;
+      status = amd->cur_msg_file_name (mhm, &old_name);
+      if (status == 0)
+	{
+	  if (rename (name, msg_name))
+	    status = errno;
+	  else
+	    {
+	      if (strcmp (old_name, msg_name))
+		/* Unlink original message */
+		unlink (old_name);
+	    }
+	  free (old_name);
+	  mhm->orig_flags = mhm->attr_flags;
+	}
+      free (msg_name);
+    }
   free (name);
-  free (msg_name);
 
-  return 0;
+  return status;
 }
 
 static int
@@ -772,14 +786,17 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
     }
 
   if (amd->msg_finish_delivery)
-    amd->msg_finish_delivery (amd, mhm);
+    status = amd->msg_finish_delivery (amd, mhm);
 
-  if (mailbox->observable)
+  if (status == 0 && mailbox->observable)
     {
-      char *qid = amd->msg_file_name (mhm,
-				      mhm->attr_flags & MU_ATTRIBUTE_DELETED);
-      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND, qid);
-      free (qid);
+      char *qid;
+      if (amd->cur_msg_file_name (mhm, &qid) == 0)
+	{
+	  mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND,
+				qid);
+	  free (qid);
+	}
     }
   
   return status;
@@ -883,10 +900,22 @@ amd_expunge (mu_mailbox_t mailbox)
       
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
-	  if (!mhm->deleted)
+	  if (!(mhm->orig_flags & MU_ATTRIBUTE_DELETED))
 	    {
-	      char *old_name = amd->msg_file_name (mhm, 0);
-	      char *new_name = amd->msg_file_name (mhm, 1);
+	      int rc;
+	      char *old_name;
+	      char *new_name;
+
+	      rc = amd->cur_msg_file_name (mhm, &old_name);
+	      if (rc)
+		return rc;
+	      rc = amd->new_msg_file_name (mhm, mhm->attr_flags, &new_name);
+	      if (rc)
+		{
+		  free (old_name);
+		  return rc;
+		}
+	      
 	      if (new_name)
 		{
 		  /* Rename original message */
@@ -907,7 +936,6 @@ amd_expunge (mu_mailbox_t mailbox)
 	      || (mhm->message && mu_message_is_modified (mhm->message)))
 	    {
 	      _amd_attach_message (mailbox, mhm, NULL);
-	      mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
 	      _amd_message_save (amd, mhm, 1);
 	    }
 	  i++; /* Move to the next message */
@@ -947,7 +975,6 @@ amd_sync (mu_mailbox_t mailbox)
 	  || (mhm->message && mu_message_is_modified (mhm->message)))
 	{
 	  _amd_attach_message (mailbox, mhm, NULL);
-	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
 	  _amd_message_save (amd, mhm, 0);
 	}
     }
@@ -1074,7 +1101,11 @@ amd_scan_message (struct _amd_message *mhm)
   if (mhm->mtime)
     {
       struct stat st;
-      char *msg_name = mhm->amd->msg_file_name (mhm, mhm->deleted);
+      char *msg_name;
+
+      status = mhm->amd->cur_msg_file_name (mhm, &msg_name);
+      if (status)
+	return status;
 
       if (stat (msg_name, &st) == 0 && st.st_mtime == mhm->mtime)
 	{
@@ -1158,10 +1189,80 @@ amd_is_updated (mu_mailbox_t mailbox)
 }
 
 static int
-amd_get_size (mu_mailbox_t mailbox MU_ARG_UNUSED, mu_off_t *psize MU_ARG_UNUSED)
+compute_mailbox_size (const char *name, mu_off_t *psize)
 {
-  /*FIXME*/
-  return ENOSYS;
+  DIR *dir;
+  struct dirent *entry;
+  char *buf;
+  size_t bufsize;
+  size_t dirlen;
+  size_t flen;
+  int status = 0;
+  struct stat sb;
+  
+  dir = opendir (name);
+  if (!dir)
+    return errno;
+
+  dirlen = strlen (name);
+  bufsize = dirlen + 32;
+  buf = malloc (bufsize);
+  if (!buf)
+    {
+      closedir (dir);
+      return ENOMEM;
+    }
+  
+  strcpy (buf, name);
+  if (buf[dirlen-1] != '/')
+    buf[++dirlen - 1] = '/';
+	  
+  while ((entry = readdir (dir)))
+    {
+      switch (entry->d_name[0])
+	{
+	case '.':
+	  break;
+
+	default:
+	  flen = strlen (entry->d_name);
+	  if (dirlen + flen + 1 > bufsize)
+	    {
+	      bufsize = dirlen + flen + 1;
+	      buf = realloc (buf, bufsize);
+	      if (!buf)
+		{
+		  status = ENOMEM;
+		  break;
+		}
+	    }
+	  strcpy (buf + dirlen, entry->d_name);
+	  if (stat (buf, &sb) == 0)
+	    {
+	      if (S_ISREG (sb.st_mode))
+		*psize += sb.st_size;
+	      else if (S_ISDIR (sb.st_mode))
+		compute_mailbox_size (buf, psize);
+	    }
+	  /* FIXME: else? */
+	  break;
+	}
+    }
+
+  free (buf);
+  
+  closedir (dir);
+  return 0;
+}
+
+static int
+amd_get_size (mu_mailbox_t mailbox, mu_off_t *psize)
+{
+  struct _amd_data *amd = mailbox->data;
+  if (amd->mailbox_size)
+    return amd->mailbox_size (mailbox, psize);
+  *psize = 0;
+  return compute_mailbox_size (amd->name, psize);
 }
 
 /* Return number of open streams residing in a message pool */
@@ -1202,6 +1303,7 @@ amd_pool_lookup (struct _amd_message *mhm)
 static int
 amd_pool_open (struct _amd_message *mhm)
 {
+  int status;
   struct _amd_data *amd = mhm->amd;
   if (amd_pool_lookup (mhm))
     return 0;
@@ -1210,7 +1312,9 @@ amd_pool_open (struct _amd_message *mhm)
       amd_message_stream_close (amd->msg_pool[amd->pool_first++]);
       amd->pool_first %= MAX_OPEN_STREAMS;
     }
-  amd_message_stream_open (mhm);
+  status = amd_message_stream_open (mhm);
+  if (status)
+    return status;
   amd->msg_pool[amd->pool_last++] = mhm;
   amd->pool_last %= MAX_OPEN_STREAMS;
   return 0;
@@ -1237,12 +1341,13 @@ int
 amd_message_stream_open (struct _amd_message *mhm)
 {
   struct _amd_data *amd = mhm->amd;
-  char *filename = amd->msg_file_name (mhm, mhm->deleted);
+  char *filename;
   int status;
   int flags = MU_STREAM_ALLOW_LINKS;
-  
-  if (!filename)
-    return ENOMEM;
+
+  status = amd->cur_msg_file_name (mhm, &filename);
+  if (status)
+    return status;
 
   /* The message should be at least readable */
   if (amd->mailbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND))
@@ -1399,8 +1504,9 @@ amd_header_fill (mu_header_t header, char *buffer, size_t len,
 {
   mu_message_t msg = mu_header_get_owner (header);
   struct _amd_message *mhm = mu_message_get_owner (msg);
-
-  amd_pool_open (mhm);
+  int status = amd_pool_open (mhm);
+  if (status)
+    return status;
   return amd_readstream (mhm, buffer, len, off, pnread, 0,
 			 0, mhm->body_start);
 }

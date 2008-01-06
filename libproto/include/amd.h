@@ -48,8 +48,9 @@ struct _amd_message
   mu_off_t body_start;         /* Offset of body start in the message file */
   mu_off_t body_end;           /* Offset of body end (size of file, effectively)*/
 
-  int attr_flags;           /* Attribute flags */
-  int deleted;              /* Was the message originally deleted */
+  int orig_flags;           /* Original attribute flags */
+  int attr_flags;           /* Current attribute flags */
+	
 
   time_t mtime;             /* Time of last modification */
   size_t header_lines;      /* Number of lines in the header part */
@@ -65,9 +66,11 @@ struct _amd_data
   int (*msg_init_delivery) (struct _amd_data *, struct _amd_message *);
   int (*msg_finish_delivery) (struct _amd_data *, struct _amd_message *);
   void (*msg_free) (struct _amd_message *);
-  char *(*msg_file_name) (struct _amd_message *, int deleted);
+  int (*cur_msg_file_name) (struct _amd_message *, char **);	
+  int (*new_msg_file_name) (struct _amd_message *, int attr_flags, char **);
   int (*scan0)     (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
 		    int do_notify);
+  int (*mailbox_size) (mu_mailbox_t mailbox, mu_off_t *psize);
   int (*qfetch)    (struct _amd_data *, mu_message_qid_t qid);
   int (*msg_cmp) (struct _amd_message *, struct _amd_message *);
   int (*message_uid) (mu_message_t msg, size_t *puid);
