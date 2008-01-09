@@ -99,14 +99,22 @@ void mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_prefork_fp fun);
 void mu_m_server_set_data (mu_m_server_t srv, void *data);
 void mu_m_server_set_max_children (mu_m_server_t srv, size_t num);
 int mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile);
+int mu_m_server_set_foreground (mu_m_server_t srv, int enable);
 void mu_m_server_set_default_port (mu_m_server_t srv, int port);
+void mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
+				      int salen);
 void mu_m_server_set_timeout (mu_m_server_t srv, time_t t);
 void mu_m_server_set_mode (mu_m_server_t srv, int mode);
 void mu_m_server_set_sigset (mu_m_server_t srv, sigset_t *sigset);
 
 int mu_m_server_mode (mu_m_server_t srv);
+int mu_m_server_foreground (mu_m_server_t srv);
 time_t mu_m_server_timeout (mu_m_server_t srv);
+const char * mu_m_server_pidfile (mu_m_server_t srv);
 void mu_m_server_get_sigset (mu_m_server_t srv, sigset_t *sigset);
+int mu_m_server_get_srvlist (mu_m_server_t srv, mu_list_t *plist);
+int mu_m_server_get_default_address (mu_m_server_t srv, struct sockaddr *sa,
+				     int *salen);
 
 void mu_m_server_configured_count (mu_m_server_t msrv, size_t count);
 

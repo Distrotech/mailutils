@@ -42,7 +42,9 @@ get_canonical_name ()
   if (!p)
     return strdup (mu_program_name);
   len = p - argp_program_version;
-  name = xmalloc (len + 1);
+  name = malloc (len + 1);
+  if (!name)
+    abort ();
   memcpy (name, argp_program_version, len);
   name[len] = 0;
   return name;

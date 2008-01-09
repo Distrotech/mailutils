@@ -1,3 +1,22 @@
+2008-01-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* TODO: Update.
+	* include/mailutils/server.h (mu_m_server_set_foreground)
+	(mu_m_server_foreground,mu_m_server_pidfile)
+	(mu_m_server_set_default_address)
+	(mu_m_server_get_srvlist)
+	(mu_m_server_get_default_address): New functions.
+	* libargp/muinit.c (get_canonical_name): Do not use xmalloc.
+	* mailbox/ipsrv.c (mu_ip_server_get_sockaddr): Return
+	MU_ERR_BUFSPACE if provided buffer is not long enough to
+	accomodate the result.
+	* mailbox/msrv.c (mu_m_server_set_foreground)
+	(mu_m_server_foreground,mu_m_server_pidfile)
+	(mu_m_server_set_default_address)
+	(mu_m_server_get_srvlist)
+	(mu_m_server_get_default_address)
+	(mu_m_server_parse_url): New functions.
+
 2008-01-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix message delivery to maildir boxes.

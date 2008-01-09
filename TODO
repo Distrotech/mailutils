@@ -31,8 +31,6 @@ read locks don't do anything.
 is closed or destroyed it can make sure that the lock
 is definitely gone.
 
-** select needed
-
 ** mailboxes don't remember whether or not they've been opened
 
 ** does IMAP do an EXAMINE instead of a select if the mailbox is being

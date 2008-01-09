@@ -569,9 +569,9 @@ mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct sockaddr *s, int *size)
     len = srv->addrlen;
   else
     {
-      len = *size;
-      if (len < srv->addrlen)
-	len = srv->addrlen;
+      len = srv->addrlen;
+      if (*size < len)
+	return MU_ERR_BUFSPACE;
       memcpy (s, srv->addr, len);
     }
   *size = len;

@@ -64,6 +64,19 @@ set_signal (int sig, mu_sig_handler_t handler)
 # define NSIG 64
 #endif
 
+union m_sockaddr
+{
+  struct sockaddr s_sa;
+  struct sockaddr_in s_in;
+  struct sockaddr_un s_un;
+};
+
+struct m_default_address
+{
+  union m_sockaddr s;
+  int len;
+};
+
 struct _mu_m_server
 {
   char *ident;                   /* Server identifier, for logging purposes.*/
@@ -81,8 +94,8 @@ struct _mu_m_server
   
   int foreground;                /* Should the server remain in foregorund? */
   size_t max_children;           /* Maximum number of sub-processes to run. */
-  char *pidfile;                 /* Name of a PID-file. */ 
-  unsigned short defport;        /* Default port number. */
+  char *pidfile;                 /* Name of a PID-file. */
+  struct m_default_address defaddr;  /* Default address. */
   time_t timeout;                /* Default idle timeout. */
   mu_acl_t acl;                  /* Global access control list. */
 
@@ -259,10 +272,66 @@ mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile)
   return srv->pidfile ? 0 : errno;
 }
 
-void
-mu_m_server_set_default_port (mu_m_server_t srv, int port)
+int
+mu_m_server_set_foreground (mu_m_server_t srv, int enable)
 {
-  srv->defport = port;
+  srv->foreground = enable;
+  return 0;
+}
+
+int
+mu_m_server_get_srvlist (mu_m_server_t srv, mu_list_t *plist)
+{
+  *plist = srv->srvlist;
+  return 0;
+}
+
+const char *
+mu_m_server_pidfile (mu_m_server_t srv)
+{
+  return srv->pidfile;
+}
+
+void
+mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
+				 int salen)
+{
+  if (salen > sizeof srv->defaddr.s)
+    {
+      mu_error (_("Unhandled sockaddr size"));
+      abort ();
+    }
+  memcpy (&srv->defaddr.s.s_sa, sa, salen);
+  srv->defaddr.len = salen;
+}
+
+int
+mu_m_server_get_default_address (mu_m_server_t srv, struct sockaddr *sa,
+				 int *salen)
+{
+  int len;
+  
+  if (!sa)
+    return EINVAL;
+  len = srv->defaddr.len;
+  if (sa)
+    {
+      if (*salen < len)
+	return MU_ERR_BUFSPACE;
+      memcpy (sa, &srv->defaddr.s.s_sa, len);
+    }
+  return 0;
+}
+
+
+void
+mu_m_server_set_default_port (mu_m_server_t srv, int num)
+{
+  struct sockaddr_in s_in;
+  s_in.sin_family = AF_INET;
+  s_in.sin_addr.s_addr = htonl (INADDR_ANY);
+  s_in.sin_port = htons (num);
+  mu_m_server_set_default_address (srv, (struct sockaddr*) &s_in, sizeof s_in);
 }
 
 void
@@ -281,6 +350,12 @@ time_t
 mu_m_server_timeout (mu_m_server_t srv)
 {
   return srv->timeout;
+}
+
+int
+mu_m_server_foreground (mu_m_server_t srv)
+{
+  return srv->foreground;
 }
 
 void
@@ -333,15 +408,8 @@ mu_m_server_begin (mu_m_server_t msrv)
   size_t count = 0;
 
   mu_list_count (msrv->srvlist, &count);
-  if (count == 0 && msrv->defport)
-    {
-      /* Add default server */
-      struct sockaddr_in s;
-      s.sin_family = AF_INET;
-      s.sin_addr.s_addr = htonl (INADDR_ANY);
-      s.sin_port = htons (msrv->defport);
-      add_server (msrv, (struct sockaddr *)&s, sizeof s, msrv->deftype);
-    }
+  if (count == 0 && msrv->defaddr.len)
+    add_server (msrv, &msrv->defaddr.s.s_sa, msrv->defaddr.len, msrv->deftype);
   
   if (!msrv->foreground)
     {
@@ -357,6 +425,9 @@ mu_m_server_begin (mu_m_server_t msrv)
   if (msrv->pidfile)
     switch (rc = mu_daemon_create_pidfile (msrv->pidfile))
       {
+      case 0:
+	break;
+	
       case EINVAL:
 	mu_error (_("%s: Invalid name for a pidfile"), msrv->pidfile);
 	break;
@@ -534,7 +605,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 
       if (mu_m_server_idle (server_data))
 	return MU_SERVER_SHUTDOWN;
-      if (children >= pconf->msrv->max_children)
+      if (pconf->msrv->max_children && children >= pconf->msrv->max_children)
         {
 	  mu_diag_output (MU_DIAG_ERROR, _("too many children (%lu)"),
 			  (unsigned long) children);
@@ -581,7 +652,7 @@ get_port (mu_debug_t debug, char *p)
 	{
 	  if (n > USHRT_MAX)
 	    {
-	      mu_debug_printf (debug, MU_DEBUG_ERROR,
+	      mu_debug_printf (debug, MU_DIAG_ERROR,
 				   _("invalid port number: %s\n"), p);
 	      return 1;
 	    }
@@ -659,98 +730,115 @@ is_ip_addr (const char *arg)
   return dot_count == 3;
 }  
 
+int
+_mu_m_server_parse_url (mu_debug_t debug, char *arg, union m_sockaddr *s,
+			int *psalen, struct sockaddr *defsa)
+{
+  char *p;
+  unsigned short n;
+  int len;
+      
+  if (is_ip_addr (arg))
+    s->s_sa.sa_family = AF_INET;
+  else if (get_family (&arg, &s->s_sa.sa_family))
+    {
+      mu_debug_printf (debug, MU_DIAG_ERROR, _("invalid family\n"));
+      return EINVAL;
+    }
+      
+  switch (s->s_sa.sa_family)
+    {
+    case AF_INET:
+      *psalen = sizeof (s->s_in);
+      if ((n = get_port (debug, arg)))
+	{
+	  s->s_in.sin_addr.s_addr = htonl (INADDR_ANY);
+	  s->s_in.sin_port = htons (n);	  
+	}
+      else
+	{
+	  p = strchr (arg, ':');
+	  if (p)
+	    *p++ = 0;
+	  if (inet_aton (arg, &s->s_in.sin_addr) == 0)
+	    {
+	      struct hostent *hp = gethostbyname (arg);
+	      if (hp)
+		s->s_in.sin_addr.s_addr = *(unsigned long *)hp->h_addr;
+	      else
+		{
+		  mu_debug_printf (debug, MU_DIAG_ERROR,
+				   _("invalid IP address: %s\n"), arg);
+		  return EINVAL;
+		}
+	    }
+	  if (p)
+	    {
+	      n = get_port (debug, p);
+	      if (!n)
+		{
+		  mu_debug_printf (debug, MU_DIAG_ERROR,
+				   _("invalid port number: %s\n"), p);
+		  return EINVAL;
+		}
+	      s->s_in.sin_port = n;
+	    }
+	  else if (defsa && defsa->sa_family == AF_INET)
+	    s->s_in.sin_port = ((struct sockaddr_in*)defsa)->sin_port;
+	  else
+	    {
+	      mu_debug_printf (debug, MU_DIAG_ERROR,
+			       _("missing port number\n"));
+	      return EINVAL;
+	    }
+	}
+      break;
+
+    case AF_UNIX:
+      *psalen = sizeof (s->s_un);
+      len = strlen (arg);
+      if (len > sizeof s->s_un.sun_path - 1)
+	{
+	  mu_error (_("%s: file name too long"), arg);
+	  return EINVAL;
+	}
+      strcpy (s->s_un.sun_path, arg);
+      break;
+    }
+  return 0;
+}
+
+int
+mu_m_server_parse_url (mu_m_server_t msrv, char *arg,
+		       struct sockaddr *sa, int *psalen)
+{
+  int rc;
+  union m_sockaddr s;
+  int salen;
+  mu_debug_t debug;
+  
+  mu_diag_get_debug (&debug);
+  rc = _mu_m_server_parse_url (debug, arg, &s, &salen, &msrv->defaddr.s.s_sa);
+  if (rc)
+    return rc;
+  if (sa)
+    {
+      if (*psalen < salen)
+	return MU_ERR_BUFSPACE;
+      memcpy (sa, &s.s_sa, salen);
+    }
+  *psalen = salen;
+  return 0;
+}
+
 static int
 server_block_begin (mu_debug_t debug, char *arg, mu_m_server_t msrv,
 		    void **pdata)
 {
-  char *p;
-  union
-  {
-    struct sockaddr s_sa;
-    struct sockaddr_in s_in;
-    struct sockaddr_un s_un;
-  }
-  s;
-  int salen = sizeof s.s_in;
-  
-  s.s_sa.sa_family = AF_INET;
-  
-  if (!arg)
-    {
-      s.s_in.sin_addr.s_addr = htonl (INADDR_ANY);
-      s.s_in.sin_port = htons (msrv->defport);
-    }
-  else
-    {
-      unsigned short n;
-      int len;
-      
-      if (!is_ip_addr (arg) && get_family (&arg, &s.s_sa.sa_family))
-	{
-	  mu_debug_printf (debug, MU_DEBUG_ERROR, _("invalid family\n"));
-	  return 1;
-	}
-      
-      switch (s.s_in.sin_family)
-	{
-	case AF_INET:
-	  if ((n = get_port (debug, arg)))
-	    {
-	      s.s_in.sin_addr.s_addr = htonl (INADDR_ANY);
-	      s.s_in.sin_port = htons (n);	  
-	    }
-	  else
-	    {
-	      p = strchr (arg, ':');
-	      if (p)
-		*p++ = 0;
-	      if (inet_aton (arg, &s.s_in.sin_addr) == 0)
-		{
-		  struct hostent *hp = gethostbyname (arg);
-		  if (hp)
-		    s.s_in.sin_addr.s_addr = *(unsigned long *)hp->h_addr;
-		  else
-		    {
-		      mu_debug_printf (debug, MU_DEBUG_ERROR,
-				       _("invalid IP address: %s\n"), arg);
-		      return 1;
-		    }
-		}
-	      if (p)
-		{
-		  n = get_port (debug, p);
-		  if (!n)
-		    {
-		      mu_debug_printf (debug, MU_DEBUG_ERROR,
-				       _("invalid port number: %s\n"), p);
-		      return 1;
-		    }
-		  s.s_in.sin_port = n;
-		}
-	      else if (msrv->defport)
-		s.s_in.sin_port = htons (msrv->defport);
-	      else
-		{
-		  mu_debug_printf (debug, MU_DEBUG_ERROR,
-				   _("missing port number\n"));
-		  return 1;
-		}
-	    }
-	  break;
-
-	case AF_UNIX:
-	  salen = sizeof s.s_un;
-	  len = strlen (arg);
-	  if (len > sizeof s.s_un.sun_path - 1)
-	    {
-	      mu_error (_("%s: file name too long"), arg);
-	      return 1;
-	    }
-	  strcpy (s.s_un.sun_path, arg);
-	  break;
-	}
-    }
-      
+  union m_sockaddr s;
+  int salen;
+  if (_mu_m_server_parse_url (debug, arg, &s, &salen, &msrv->defaddr.s.s_sa))
+    return 1;
   *pdata = add_server (msrv, &s.s_sa, salen, msrv->deftype);
   return 0;
 }
@@ -801,6 +889,21 @@ _cb_daemon_mode (mu_debug_t debug, void *data, char *arg)
   return 0;
 }
 
+static int
+_cb_port (mu_debug_t debug, void *data, char *arg)
+{
+  struct m_default_address *ap = data;
+  unsigned short num = get_port (debug, arg);
+
+  if (!num)
+    return 1;
+  ap->s.s_in.sin_family = AF_INET;
+  ap->s.s_in.sin_addr.s_addr = htonl (INADDR_ANY);
+  ap->s.s_in.sin_port = num;
+  ap->len = sizeof ap->s.s_in;
+  return 0;
+}
+
 static struct mu_cfg_param dot_server_cfg_param[] = {
   { "max-children", mu_cfg_size,
     NULL, mu_offsetof (struct _mu_m_server,max_children), NULL,
@@ -816,8 +919,8 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
     NULL, mu_offsetof (struct _mu_m_server,pidfile), NULL,
     N_("Store PID of the master process in this file."),
     N_("file") },
-  { "port", mu_cfg_ushort,
-    NULL, mu_offsetof (struct _mu_m_server,defport), NULL,
+  { "port", mu_cfg_callback,
+    NULL, mu_offsetof (struct _mu_m_server,defaddr), _cb_port,
     N_("Default port number.") },
   { "timeout", mu_cfg_time,
     NULL, mu_offsetof (struct _mu_m_server,timeout), NULL,
