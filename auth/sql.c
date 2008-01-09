@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002, 2003, 2004, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,6 +51,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/mutil.h>
 #include <mailutils/sql.h>
+#include <mailutils/vartab.h>
 #include "sql.h"
 
 #ifdef USE_SQL
@@ -88,74 +89,22 @@ sql_escape_string (const char *ustr)
 char *
 mu_sql_expand_query (const char *query, const char *ustr)
 {
-  char *p, *q, *res;
-  int len;
+  int rc;
+  char *res;
   char *esc_ustr;
+  mu_vartab_t vtab;
   
   if (!query)
     return NULL;
 
   esc_ustr = sql_escape_string (ustr);
-  
-  /* Compute resulting query length */
-  for (len = 0, p = (char *) query; *p; )
-    {
-      if (*p == '%')
-	{
-	  if (p[1] == 'u')
-	    {
-	      len += strlen (esc_ustr);
-	      p += 2;
-	    }
-	  else if (p[1] == '%')
-	    {
-	      len++;
-	      p += 2;
-	    }
-	  else
-	    {
-	      len++;
-	      p++;
-	    }
-	}
-      else
-	{
-	  len++;
-	  p++;
-	}
-    }
-
-  res = malloc (len + 1);
-  if (!res)
-    {
-      free (esc_ustr);
-      return res;
-    }
-
-  for (p = (char *) query, q = res; *p; )
-    {
-      if (*p == '%')
-	{
-	  switch (*++p)
-	    {
-	    case 'u':
-	      strcpy (q, esc_ustr);
-	      q += strlen (q);
-	      p++;
-	      break;
-	      
-	    case '%':
-	      *q++ = *p++;
-	      break;
-	      
-	    default:
-	      *q++ = *p++;
-	    }
-	}
-      else
-	*q++ = *p++;
-    }
-  *q = 0;
+  mu_vartab_create (&vtab);
+  mu_vartab_define (vtab, "user", ustr, 1);
+  mu_vartab_define (vtab, "u", ustr, 1);
+  rc = mu_vartab_expand (vtab, query, &res);
+  if (rc)
+    res = NULL;
+  mu_vartab_destroy (&vtab);
 
   free (esc_ustr);
   return res;

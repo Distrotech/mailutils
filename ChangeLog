@@ -1,5 +1,27 @@
 2008-01-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/ldap.c (_mu_ldap_search): Provide %u expansion for backward
+	compatibility with other modules.
+	* auth/radius.c, auth/sql.c: Use mu_vartab_t for expansion.
+	* include/mailutils/mailutils.h: Include mailutils/assoc.h
+	* lib/tcpwrap.c (mu_tcpwrapper_access): Ignore local sockets.
+	* libargp/muinit.c (mu_app_init): Re-assign mu_program_name after
+	command line parsing, so that --program-name takes effect.
+	* libcfg/sql.c (mu_sql_param): Fix typo in statement name.
+	* libproto/include/amd.h (struct _amd_message.create): New member.
+	* libproto/maildir/mbox.c (maildir_create): New function.
+	(_mailbox_maildir_init): Set amd->create.
+	* mailbox/amd.c (amd_open): Call amd->create after successfully
+	creating the directory.
+	* mailbox/cfg_driver.c (_cb_include): Mask out
+	MU_PARSE_CONFIG_GLOBAL in the flags.
+	(mu_build_container): Bugfix. Take struct include_data as
+	argument, instead of using an auto variable. All callers updated.
+	* mailbox/ipsrv.c (mu_ip_tcp_accept): Bugfix: use client address,
+	not server, to print diagnostics.
+	* mailbox/msrv.c (m_srv_conn): Fix prefork condition for
+	single-process mode.
+
 	* TODO: Update.
 	* include/mailutils/server.h (mu_m_server_set_foreground)
 	(mu_m_server_foreground,mu_m_server_pidfile)

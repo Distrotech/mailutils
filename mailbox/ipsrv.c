@@ -416,7 +416,7 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
 		   IDENTSTR (srv), strerror (rc));
       if (res == mu_acl_result_deny)
 	{
-	  char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
+	  char *p = mu_sockaddr_to_astr (&client.sa, size);
 	  mu_diag_output (MU_DIAG_INFO, "Denying connection from %s", p);
 	  free (p);
 	  

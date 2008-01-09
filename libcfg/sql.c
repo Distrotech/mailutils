@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -52,7 +52,7 @@ cb_field_map (mu_debug_t debug, void *data, char *arg)
 static struct mu_cfg_param mu_sql_param[] = {
   { "interface", mu_cfg_string, &sql_settings.interface, 0, NULL,
     N_("Set SQL interface to use (one of: mysql, odbc, or postgres).") },
-  { "getwpnam", mu_cfg_string, &sql_settings.getpwnam_query, 0, NULL,
+  { "getpwnam", mu_cfg_string, &sql_settings.getpwnam_query, 0, NULL,
     N_("SQL query to use for getpwnam requests."),
     N_("query") },
   { "getpwuid", mu_cfg_string, &sql_settings.getpwuid_query, 0, NULL,

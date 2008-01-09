@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -404,7 +404,7 @@ maildir_delete_file (char *dirname, char *filename)
 
 
 
-int
+static int
 maildir_opendir (DIR **dir, char *name, int permissions)
 {
   *dir = opendir (name);
@@ -420,6 +420,25 @@ maildir_opendir (DIR **dir, char *name, int permissions)
 	}
       else
 	return errno;
+    }
+  return 0;
+}
+
+static int
+maildir_create (struct _amd_data *amd, int flags)
+{
+  static char *dirs[] = { TMPSUF, NEWSUF, CURSUF };
+  int i;
+
+  for (i = 0; i < 3; i++)
+    {
+      DIR *dir;
+      char *tmpname = maildir_mkfilename (amd->name, dirs[i], NULL);
+      int rc = maildir_opendir (&dir, tmpname, PERMS);
+      if (rc)
+	return rc;
+      closedir (dir);
+      free (tmpname);
     }
   return 0;
 }
@@ -738,6 +757,7 @@ _mailbox_maildir_init (mu_mailbox_t mailbox)
 
   amd->msg_size = sizeof (struct _maildir_message);
   amd->msg_free = maildir_msg_free;
+  amd->create = maildir_create;
   amd->msg_init_delivery = maildir_msg_init;
   amd->msg_finish_delivery = maildir_msg_finish_delivery;
   amd->cur_msg_file_name = maildir_cur_message_name;

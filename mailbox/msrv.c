@@ -632,8 +632,8 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	  children++;
 	}
     }
-  else if (pconf->msrv->prefork
-	   && pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen) == 0)
+  else if (!pconf->msrv->prefork
+	   || pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen) == 0)
     pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
 		       pconf->timeout, pconf->transcript);
   return 0;

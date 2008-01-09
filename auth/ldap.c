@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -516,6 +516,7 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
 
   mu_vartab_create (&vtab);
   mu_vartab_define (vtab, "user", key, 1);
+  mu_vartab_define (vtab, "u", key, 1);
   rc = mu_vartab_expand (vtab, filter_pat, &filter);
   mu_vartab_destroy (&vtab);
   if (rc)

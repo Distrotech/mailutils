@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -77,6 +77,10 @@ mu_app_init (struct argp *myargp, const char **capa,
   mu_argp_done (argp);
   if (rc)
     return rc;
+
+  /* Reset program name, it may have been changed using the `--program-name'
+     option. */
+  mu_set_program_name (program_invocation_name);
   
   mu_libcfg_init (excapa);
   free (excapa);

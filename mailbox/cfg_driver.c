@@ -488,7 +488,8 @@ _cb_include (mu_debug_t debug, void *data, char *arg)
       if (S_ISDIR (sb.st_mode))
 	{
 	  char *file = make_file_name (dirname, idp->progname);
-	  ret = mu_get_config (file, idp->progname, idp->progparam, 0,
+	  ret = mu_get_config (file, idp->progname, idp->progparam,
+			       idp->flags & ~MU_PARSE_CONFIG_GLOBAL,
 			       idp->target);
 	}
       else
@@ -513,13 +514,11 @@ _cb_include (mu_debug_t debug, void *data, char *arg)
 }
 
 struct mu_cfg_cont *
-mu_build_container (const char *progname,
-		    struct mu_cfg_param *progparam, int flags, void *target)
+mu_build_container (const char *progname, struct include_data *idp)
 {
   struct mu_cfg_cont *cont = root_container;
-  struct include_data idata;
   struct mu_cfg_param mu_include_param[] = {
-    { "include", mu_cfg_callback, &idata, 0, _cb_include,
+    { "include", mu_cfg_callback, NULL, 0, _cb_include,
       N_("Include contents of the given file.  If a directory is given, "
 	 "include contents of the file <file>/<program>, where <program> is "
 	 "the name of the program.  This latter form is allowed only in "
@@ -527,25 +526,23 @@ mu_build_container (const char *progname,
       N_("file-or-directory") },
     { NULL }
   };
-      
+
+  mu_include_param[0].data = idp;
   mu_config_clone_container (cont);
-  idata.progname = progname;
-  idata.progparam = progparam;
-  idata.flags = flags & MU_PARSE_CONFIG_GLOBAL;
-  idata.target = target;
   _mu_config_register_section (&cont, NULL, NULL, NULL,
 			       (void*) progname, mu_include_param, NULL);
-  if (flags & MU_PARSE_CONFIG_GLOBAL)
+  if (idp->flags & MU_PARSE_CONFIG_GLOBAL)
     {
       mu_iterator_t iter;
       struct mu_cfg_section *prog_sect;
       struct mu_cfg_cont *old_root = root_container;
       static struct mu_cfg_param empty_param = { NULL };
-      if (!progparam)
-	progparam = &empty_param;
       
       _mu_config_register_section (&cont, NULL, "program", progname,
-				   prog_parser, progparam, &prog_sect);
+				   prog_parser,
+				   idp->progparam ?
+				     idp->progparam : &empty_param,
+				   &prog_sect);
       
       if (old_root->v.section.children)
 	{
@@ -562,9 +559,9 @@ mu_build_container (const char *progname,
 	  mu_iterator_destroy (&iter);
 	}
     }
-  else if (progparam)
+  else if (idp->progparam)
     _mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
-				 progparam, NULL);
+				 idp->progparam, NULL);
   return cont;
 }
 
@@ -577,8 +574,16 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
   
   if (root_container)
     {
-      struct mu_cfg_cont *cont = mu_build_container (progname, progparam,
-						     flags, target_ptr);
+      struct include_data idata;
+      struct mu_cfg_cont *cont;
+
+      idata.progname = progname;
+      idata.progparam = progparam;
+      idata.flags = flags;
+      idata.target = target_ptr;
+
+      cont = mu_build_container (progname, &idata);
+
       rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, target_ptr,
 			     (void*) progname);
       mu_config_destroy_container (&cont);
@@ -601,8 +606,14 @@ void
 mu_format_config_tree (mu_stream_t stream, const char *progname,
 		       struct mu_cfg_param *progparam, int flags)
 {
-  struct mu_cfg_cont *cont = mu_build_container (progname, progparam, flags,
-						 NULL);
+  struct include_data idata;
+  struct mu_cfg_cont *cont;
+  
+  idata.progname = progname;
+  idata.progparam = progparam;
+  idata.flags = flags;
+  idata.target = NULL;
+  cont = mu_build_container (progname, &idata);
   mu_cfg_format_container (stream, cont);
   mu_config_destroy_container (&cont);
 }

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,7 @@ struct _amd_message
 struct _amd_data
 {
   size_t msg_size;               /* Size of struct _amd_message */
+  int (*create) (struct _amd_data *, int flags);	
   int (*msg_init_delivery) (struct _amd_data *, struct _amd_message *);
   int (*msg_finish_delivery) (struct _amd_data *, struct _amd_message *);
   void (*msg_free) (struct _amd_message *);

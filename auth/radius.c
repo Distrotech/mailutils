@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,7 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/vartab.h>
 
 #ifdef ENABLE_RADIUS
 
@@ -202,96 +203,38 @@ mu_radius_module_init (void *data)
 static char *
 _expand_query (const char *query, const char *ustr, const char *passwd)
 {
-  char *p, *q, *res;
-  int len;
-
+  int rc;
+  mu_vartab_t vtab;
+  char *str, *ret;
+  
   if (!query)
     return NULL;
+
+  mu_vartab_create (&vtab);
+  if (ustr)
+    {
+      mu_vartab_define (vtab, "user", ustr, 1);
+      mu_vartab_define (vtab, "u", ustr, 1);
+    }
   
-  /* Compute resulting query length */
-  for (len = 0, p = (char *) query; *p; )
+  if (passwd)
     {
-      if (*p == '%')
-	{
-	  if (p[1] == 'u')
-	    {
-	      len += ustr ? strlen (ustr) : 2;
-	      p += 2;
-	    }
-	  else if (p[1] == 'p')
-	    {
-	      len += passwd ? strlen (passwd) : 2;
-	      p += 2;
-	    }
-	  else if (p[1] == '%')
-	    {
-	      len++;
-	      p += 2;
-	    }
-	  else
-	    {
-	      len++;
-	      p++;
-	    }
-	}
-      else
-	{
-	  len++;
-	  p++;
-	}
+      mu_vartab_define (vtab, "passwd", passwd, 1);
+      mu_vartab_define (vtab, "p", ustr, 1);
     }
 
-  res = grad_emalloc (len + 1);
-  if (!res)
-    return res;
-
-  for (p = (char *) query, q = res; *p; )
+  rc = mu_vartab_expand (vtab, query, &str);
+  if (rc == 0)
     {
-      if (*p == '%')
-	{
-	  switch (*++p)
-	    {
-	    case 'u':
-	      if (ustr)
-		{
-		  strcpy (q, ustr);
-		  q += strlen (q);
-		}
-	      else
-		{
-		  *q++ = '%';
-		  *q++ = 'u';
-		}
-	      p++;
-	      break;
-
-	    case 'p':
-	      if (passwd)
-		{
-		  strcpy (q, passwd);
-		  q += strlen (q);
-		}
-	      else
-		{
-		  *q++ = '%';
-		  *q++ = 'p';
-		}
-	      p++;
-	      break;
-	      
-	    case '%':
-	      *q++ = *p++;
-	      break;
-	      
-	    default:
-	      *q++ = *p++;
-	    }
-	}
-      else
-	*q++ = *p++;
+      ret = grad_emalloc (strlen (str) + 1);
+      strcpy (ret, str);
+      free (str);
     }
-  *q = 0;
-  return res;
+  else
+    ret = NULL;
+
+  mu_vartab_destroy (&vtab);
+  return ret;
 }
 
 
