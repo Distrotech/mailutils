@@ -102,7 +102,7 @@ int
 mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 			    mu_debug_t debug)
 {
-  char *p, *q;
+  char *p = string, *q;
   unsigned level = MU_DEBUG_INHERIT;
   
   if (isdigit (*p))
