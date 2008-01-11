@@ -1,3 +1,7 @@
+2008-01-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/gdebug.c (mu_debug_level_from_string): Bugfix.
+
 2008-01-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/ldap.c (_mu_ldap_search): Provide %u expansion for backward
