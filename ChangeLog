@@ -1,4 +1,10 @@
+2008-01-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/msrv.c: Include limits.h
+
 2008-01-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS, configure.ac: Version 1.2.91.
 
 	* mailbox/gdebug.c (mu_debug_level_from_string): Bugfix.
 
