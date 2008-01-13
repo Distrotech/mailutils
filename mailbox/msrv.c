@@ -33,6 +33,7 @@
 #include <sys/un.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <limits.h>
 #include <mailutils/server.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
