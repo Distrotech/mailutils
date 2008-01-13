@@ -22,6 +22,7 @@
 #include <stdarg.h>
 
 #include <mailutils/types.h>
+#include <mailutils/error.h>
 
 #define MU_DEBUG(d,l,s) MU_DEBUG1(d,l,"%s",s)
 

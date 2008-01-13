@@ -564,7 +564,7 @@ main (int argc, char **argv)
   int ind;
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   mu_argp_init (program_version, NULL);
   comsat_init ();

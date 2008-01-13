@@ -21,7 +21,7 @@
 #include "mailutils/libargp.h"
 
 /* Global variables and constants*/
-mu_mailbox_t mbox;               /* Mailbox being operated upon */
+mu_mailbox_t mbox;            /* Mailbox being operated upon */
 size_t total;                 /* Total number of messages in the mailbox */
 FILE *ofile;                  /* Output file */
 int interactive;              /* Is the session interactive */  
@@ -295,8 +295,8 @@ main (int argc, char **argv)
   set_cursor (1);
 
   /* Native Language Support */
-  mu_init_nls ();
-
+  MU_APP_INIT_NLS ();
+  
   /* Register the desired formats.  */
   mu_register_all_formats ();
 

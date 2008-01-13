@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ static const char *movemail_capa[] = {
 };
 
 void
-die (mu_mailbox_t mbox, char *msg, int status)
+die (mu_mailbox_t mbox, const char *msg, int status)
 {
   mu_url_t url = NULL;
   
@@ -287,7 +287,7 @@ main (int argc, char **argv)
   int flags;
   
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
   /* Register the desired mailbox formats.  */
   mu_register_all_mbox_formats ();
 

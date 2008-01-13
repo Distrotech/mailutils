@@ -92,6 +92,10 @@ AC_CHECK_TYPE(iconv_t,:,
 #endif
 ])
 
+AH_BOTTOM([
+#define DEFAULT_TEXT_DOMAIN PACKAGE
+])
+
 AC_SUBST(MU_LINK_POSTFLAGS,[`for opt in $LTLIBICONV; do case $opt in -[[lL]]*) echo $opt;; esac; done|tr '\n' ' '`])
 
 

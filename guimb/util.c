@@ -20,7 +20,7 @@
 #include "guimb.h"
 
 void
-util_error (char *fmt, ...)
+util_error (const char *fmt, ...)
 {
   va_list ap;
 

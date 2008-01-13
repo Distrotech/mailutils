@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -548,7 +548,7 @@ main (int argc, char **argv)
   const char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
   
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   mh_argp_init (program_version);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,

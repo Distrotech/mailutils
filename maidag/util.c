@@ -64,7 +64,7 @@ switch_user_id (struct mu_auth_data *auth, int user)
 }
 
 void
-mailer_err (char *fmt, ...)
+mailer_err (const char *fmt, ...)
 {
   va_list ap;
 

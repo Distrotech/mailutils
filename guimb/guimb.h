@@ -64,7 +64,7 @@ void collect_create_mailbox (void);
 void collect_drop_mailbox (void);
 int collect_output (void);
 
-void util_error (char *fmt, ...) MU_PRINTFLIKE(1, 2);
+void util_error (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
 int util_tempfile (char **namep);
 
 struct guimb_data

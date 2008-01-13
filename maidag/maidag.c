@@ -449,7 +449,7 @@ main (int argc, char *argv[])
   umask (0077);
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   /* Default locker settings */
   mu_locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,

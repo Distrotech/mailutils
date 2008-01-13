@@ -20,31 +20,23 @@
 #define _MAILUTILS_NLS_H
 
 #include <mailutils/types.h>
-
-/*
-   Native Language Support
-*/
-
-#ifdef ENABLE_NLS
-# ifdef WITH_INCLUDED_LIBINTL
-#  include <libgnuintl.h>
-# else
-#  include <libintl.h>
-# endif
-# define _(String) gettext(String)
-# define N_(String) String
-#ifdef HAVE_LOCALE_H
+#if defined(DEFAULT_TEXT_DOMAIN)
 # include <locale.h>
-#endif /* HAVE_LOCALE_H */
-#else
-# define _(String) (String)
-# define N_(String) String
-# define gettext(msgid) (msgid)
-# define dgettext(domain, msgid) (msgid)
-# define ngettext(sg,pl,cnt) (cnt == 1) ? (sg) : (pl)
-# define textdomain(Domain)
-# define bindtextdomain(Package, Directory)
-#endif /* ENABLE_NLS */
+# include <gettext.h>
+# define _(string) gettext (string)
+# define N_(string) string
+# ifdef ENABLE_NLS
+#  define MU_APP_INIT_NLS()                                    \
+    do                                                         \
+      {                                                        \
+        setlocale (LC_ALL, "");                                \
+        mu_init_nls ();                                        \
+      }                                                        \
+    while (0)
+# else
+#  define MU_APP_INIT_NLS()
+# endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {

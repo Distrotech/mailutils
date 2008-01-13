@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -375,7 +375,7 @@ main (int argc, char *argv[])
   umask (0077);
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   /* Default locker settings */
   mu_locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,
@@ -991,7 +991,7 @@ notify_biff (mu_mailbox_t mbox, char *name, size_t size)
 }
 
 void
-mailer_err (char *msg, char *arg, char *fmt, ...)
+mailer_err (const char *msg, const char *arg, const char *fmt, ...)
 {
   va_list ap;
 

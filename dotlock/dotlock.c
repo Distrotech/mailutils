@@ -152,7 +152,7 @@ main (int argc, char *argv[])
   pid_t mailgid = getegid ();
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   /* Drop permissions during argument parsing. */
 

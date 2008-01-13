@@ -1,5 +1,28 @@
 2008-01-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Fix NLS issues.
+	
+	* configure.ac: Define DEFAULT_TEXT_DOMAIN
+	* comsat/comsat.c, dotlock/dotlock.c, frm/frm.c, frm/from.c,
+	guimb/main.c, imap4d/imap4d.c, maidag/maidag.c, mail/mail.c,
+	mail.local/main.c, mail.remote/mail.remote.c, messages/messages.c,
+	mh/ali.c, mh/anno.c, mh/burst.c, mh/comp.c, mh/fmtcheck.c,
+	mh/folder.c, mh/forw.c, mh/inc.c, mh/install-mh.c, mh/mark.c,
+	mh/mhl.c, mh/mhn.c, mh/mhparam.c, mh/mhpath.c, mh/pick.c,
+	mh/refile.c, mh/repl.c, mh/rmf.c, mh/rmm.c, mh/scan.c, mh/send.c,
+	mh/sortm.c, mh/whatnow.c, mh/whom.c, mimeview/mimeview.c,
+	movemail/movemail.c, pop3d/pop3d.c, pop3d/popauth.c,
+	readmsg/readmsg.c, sieve/sieve.c, 
+	Use MU_APP_INIT_NLS instead of mu_init_nls.
+	* mailbox/nls.c (mu_init_nls): Do not call textdomain.
+	
+	* guimb/guimb.h, guimb/util.c (util_error): fmt is const.
+	* include/mailutils/debug.hm4: include <mailutils/error.h>
+	* include/mailutils/nls.h: Define _ and N_ only if
+	DEFAULT_TEXT_DOMAIN is defined (for use in the library).
+	* maidag/maidag.h, maidag/util.c (mailer_err) : fmt is const.
+	* mail.local/mail.local.h (mailer_err): All mandatory args are
+	consts. 
 	* mailbox/msrv.c: Include limits.h
 
 2008-01-12  Sergey Poznyakoff  <gray@gnu.org.ua>

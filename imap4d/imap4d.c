@@ -461,7 +461,7 @@ main (int argc, char **argv)
   int status = EXIT_SUCCESS;
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   state = STATE_NONAUTH;	/* Starting state in non-auth.  */
 

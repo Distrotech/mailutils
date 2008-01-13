@@ -463,7 +463,7 @@ main (int argc, char **argv)
   int status = OK;
 
   /* Native Language Support */
-  mu_init_nls ();
+  MU_APP_INIT_NLS ();
 
   MU_AUTH_REGISTER_ALL_MODULES();
   /* Register the desired formats.  */
