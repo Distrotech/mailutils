@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -57,10 +57,6 @@ mu_sieve_module_init (void *data)
     return 0;
   p = data;
 
-#ifdef SIEVE_MODDIR
-  _path_append (SIEVE_MODDIR, &mu_sieve_library_path);
-#endif
-  
   if (p->clearflags & MU_SIEVE_CLEAR_INCLUDE_PATH)
     mu_list_destroy (&mu_sieve_include_path);
   mu_list_do (p->include_path, _path_append, &mu_sieve_include_path);

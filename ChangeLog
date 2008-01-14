@@ -1,3 +1,13 @@
+2008-01-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/conf.c (mu_sieve_module_init): Remove initial call to
+	_path_append.
+	* libsieve/load.c (sieve_init_load_path): New function.
+	(load_module,sieve_load_add_path,sieve_load_add_dir): Call
+	sieve_init_load_path.
+	* mail.local/main.c (parse_opt): Bugfix. Translate -S option to
+	sieve-filter configuration statement.
+
 2008-01-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix NLS issues.

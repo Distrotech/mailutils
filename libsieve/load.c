@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -42,12 +42,30 @@ _free_loaded_module (void *data)
 }
 #endif
 
+static int
+sieve_init_load_path ()
+{
+  static int inited = 0;
+
+  if (!inited)
+    {
+      if (lt_dlinit ())
+	return 1;
+#ifdef SIEVE_MODDIR
+      _add_load_dir (SIEVE_MODDIR, NULL);
+      inited = 1;
+#endif
+    }
+  return 0;
+}
+  
+     
 static lt_dlhandle
 load_module (mu_sieve_machine_t mach, const char *name)
 {
   lt_dlhandle handle;
 
-  if (lt_dlinit ())
+  if (sieve_init_load_path ())
     return NULL;
 
   handle = lt_dlopenext (name);
@@ -76,7 +94,7 @@ load_module (mu_sieve_machine_t mach, const char *name)
 
   if (!handle)
     {
-      mu_sieve_error (mach, "%s", lt_dlerror ());
+      mu_sieve_error (mach, "%s: %s", name, lt_dlerror ());
       lt_dlexit ();
     }
   return handle;
@@ -117,7 +135,7 @@ _add_load_dir (void *item, void *unused)
 int
 sieve_load_add_path (mu_list_t path)
 {
-  if (lt_dlinit ())
+  if (sieve_init_load_path ())
     return 1;
   return mu_list_do (path, _add_load_dir, NULL);
 }
@@ -125,7 +143,7 @@ sieve_load_add_path (mu_list_t path)
 int
 sieve_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
-  if (lt_dlinit ())
+  if (sieve_init_load_path ())
     return 1;
   mu_sieve_machine_add_destructor (mach, (mu_sieve_destructor_t) lt_dlexit, NULL);
   return lt_dladdsearchdir (name);

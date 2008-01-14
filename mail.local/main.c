@@ -222,7 +222,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #endif
 
     case 'S':
-      mu_argp_node_list_new (&lst, "sieve", arg);
+      mu_argp_node_list_new (&lst, "sieve-filter", arg);
+      
       break;
       
     case 'x':
