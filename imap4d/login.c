@@ -49,7 +49,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
     }
 
   rc = mu_authenticate (auth_data, pass);
-  openlog ("gnu-imap4d", LOG_PID, log_facility);
+  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
   if (rc)
     {
       mu_diag_output (MU_DIAG_INFO, _("Login failed: %s"), username);

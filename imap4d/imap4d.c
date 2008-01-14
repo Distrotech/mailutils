@@ -482,7 +482,7 @@ main (int argc, char **argv)
   
   mu_argp_init (program_version, NULL);
 
-  mu_m_server_create (&server, "GNU imap4d");
+  mu_m_server_create (&server, program_version);
   mu_m_server_set_conn (server, imap4d_connection);
   mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
@@ -542,7 +542,7 @@ main (int argc, char **argv)
   signal (SIGABRT, imap4d_signal);
 
   /* Set up for syslog.  */
-  openlog ("gnu-imap4d", LOG_PID, log_facility);
+  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
 
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */

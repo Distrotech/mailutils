@@ -31,6 +31,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/debug.h>
+#include <mailutils/syslog.h>
 #include <syslog.h>
 
 int mu_load_user_rcfile = 1;
@@ -216,12 +217,14 @@ mu_gocs_logging_init (void *data)
   
   if (p->facility)
     {
-      log_facility = p->facility;
+      mu_log_facility = p->facility;
       mu_debug_default_printer = mu_debug_syslog_printer;
     }
   else
     mu_debug_default_printer = mu_debug_stderr_printer;
-  
+
+  if (p->tag)
+    mu_log_tag = strdup (p->tag);
   /* FIXME: Tag */
   return 0;
 }

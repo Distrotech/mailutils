@@ -476,7 +476,7 @@ main (int argc, char *argv[])
   /* Parse command line */
   mu_argp_init (program_version, NULL);
 
-  mu_m_server_create (&server, "GNU maidag");
+  mu_m_server_create (&server, program_version);
   mu_m_server_set_conn (server, lmtp_connection);
   mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
@@ -496,7 +496,7 @@ main (int argc, char *argv[])
     {
       mu_debug_t debug;
 
-      openlog ("maidag", LOG_PID, log_facility);
+      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
 

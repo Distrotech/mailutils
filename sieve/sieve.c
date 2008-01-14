@@ -384,7 +384,7 @@ main (int argc, char *argv[])
   tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
   tickets_default = 1;
   debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
-  log_facility = 0;
+  mu_log_facility = 0;
 
   if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
 		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
@@ -398,12 +398,12 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  if (log_facility)
+  if (mu_log_facility)
     {
       mu_debug_t debug;
 
       mu_diag_get_debug (&debug);
-      openlog ("sieve", LOG_PID, log_facility);
+      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
     }
 

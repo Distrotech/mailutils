@@ -398,8 +398,7 @@ main (int argc, char *argv[])
   if (uid == 0)
     {
       mu_debug_t debug;
-
-      openlog ("mail.local", LOG_PID, log_facility);
+      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
     }

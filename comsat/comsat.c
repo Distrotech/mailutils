@@ -570,7 +570,7 @@ main (int argc, char **argv)
   comsat_init ();
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();
-  mu_m_server_create (&server, "GNU comsat");
+  mu_m_server_create (&server, program_version);
   mu_m_server_set_type (server, MU_IP_UDP);
   mu_m_server_set_conn (server, comsat_connection);
   mu_m_server_set_prefork (server, comsat_prefork);
@@ -618,7 +618,7 @@ main (int argc, char **argv)
     }
   
   /* Set up error messaging  */
-  openlog ("gnu-comsat", LOG_PID, log_facility);
+  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
 
   {
     mu_debug_t debug;

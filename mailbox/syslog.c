@@ -135,4 +135,5 @@ mu_diag_syslog_printer (void *data, mu_log_level_t level, const char *buf)
 }
 
 
-int log_facility = LOG_FACILITY;
+int mu_log_facility = LOG_FACILITY;
+char *mu_log_tag = NULL;

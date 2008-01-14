@@ -144,6 +144,8 @@ static struct mu_cfg_param mu_logging_param[] = {
     N_("Set syslog facility. Arg is one of the following: user, daemon, "
        "auth, authpriv, mail, cron, local0 through local7 (case-insensitive), "
        "or a facility number.") },
+  { "tag", mu_cfg_string, &mu_log_tag, 0, NULL,
+    N_("Tag syslog messages with this string.") },
   { NULL }
 };
 

@@ -25,6 +25,10 @@
 extern "C" { 
 #endif
   
+extern int mu_log_facility;
+extern char *mu_log_tag;
+#define MU_LOG_TAG() (mu_log_tag ? mu_log_tag : mu_program_name)
+  
 int mu_string_to_syslog_facility (char *str, int *pfacility);
 const char *mu_syslog_facility_to_string (int n);
 int mu_string_to_syslog_priority (char *str, int *pprio);

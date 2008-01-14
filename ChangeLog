@@ -1,5 +1,17 @@
 2008-01-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/gocs.h (log_facility): Remove.
+	* include/mailutils/syslog.h (mu_log_facility, mu_log_tag): New
+	declarations.
+	(MU_LOG_TAG): New define.
+	* mailbox/gocs.c (mu_gocs_logging_init): Set mu_log_tag.
+	* mailbox/syslog.c (mu_log_facility, mu_log_tag): New variables.
+	* libcfg/common.c (mu_logging_param): New statement `tag'. 
+	* comsat/comsat.c, imap4d/imap4d.c, imap4d/login.c,
+	maidag/maidag.c, mail.local/main.c, pop3d/pop3d.c, pop3d/user.c,
+	sieve/sieve.c: Use MU_LOG_TAG in openlog, and
+	program_version in mu_m_server_create calls.
+
 	* libsieve/conf.c (mu_sieve_module_init): Remove initial call to
 	_path_append.
 	* libsieve/load.c (sieve_init_load_path): New function.

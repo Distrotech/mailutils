@@ -21,6 +21,7 @@
 
 #include <mailutils/types.h>
 #include <mailutils/list.h>
+#include <mailutils/syslog.h>
 
 #ifdef __cplusplus
 extern "C" { 
@@ -80,9 +81,6 @@ struct mu_gocs_virtual
 extern int mu_load_user_rcfile;
 extern int mu_load_site_rcfile;
 extern char *mu_load_rcfile;
-
-extern int log_facility; /* FIXME: 1. Belongs elsewhere;
-      			           2. Does not begin with `mu_' */
 
 typedef int (*gocs_init_fp) (void *data);
 

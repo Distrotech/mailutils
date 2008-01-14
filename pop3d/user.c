@@ -146,7 +146,7 @@ pop3d_user (const char *arg)
 	}
 
       rc = mu_authenticate (auth_data, pass);
-      openlog ("gnu-pop3d", LOG_PID, log_facility);
+      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
 
       if (rc)
 	{
