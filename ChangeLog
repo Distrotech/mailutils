@@ -1,3 +1,12 @@
+2008-01-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/cfg.h (mu_offsetof): Move mu_offsetof to
+	types.hin.
+	* include/mailutils/types.hin (mu_offsetof): New macro.
+	* mailbox/acl.c (MU_S_UN_NAME): New macro.
+	(debug_sockaddr, mu_sockaddr_to_str, _acl_match)
+	(_run_entry): Take into account salen for AF_UNIX.
+
 2008-01-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/gocs.h (log_facility): Remove.

@@ -91,8 +91,8 @@ prepare_sa (struct sockaddr *sa)
 
 int
 mu_acl_entry_create (struct _mu_acl_entry **pent,
-		    mu_acl_action_t action, void *data,
-		    struct sockaddr *sa, int salen, unsigned long netmask)
+		     mu_acl_action_t action, void *data,
+		     struct sockaddr *sa, int salen, unsigned long netmask)
 {
   struct _mu_acl_entry *p = malloc (mu_acl_entry_size (salen));
   if (!p)
@@ -307,8 +307,12 @@ mu_acl_string_to_action (const char *str, mu_acl_action_t *pres)
   return rc;
 }
 
+#define MU_S_UN_NAME(sa, salen) \
+  ((salen < mu_offsetof (struct sockaddr_un,sun_path)) ? "" : (sa)->sun_path)
+
 static void
-debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa)
+debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa,
+		int salen)
 {
   switch (sa->sa_family)
     {
@@ -324,7 +328,10 @@ debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa)
     case AF_UNIX:
       {
 	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	mu_debug_printf (dbg, lvl, "{AF_UNIX %s}", s_un->sun_path);
+	if (MU_S_UN_NAME(s_un, salen)[0] == 0)
+	  mu_debug_printf (dbg, lvl, "{AF_UNIX}");
+	else
+	  mu_debug_printf (dbg, lvl, "{AF_UNIX %s}", s_un->sun_path);
 	break;
       }
 
@@ -378,14 +385,20 @@ mu_sockaddr_to_str (struct sockaddr *sa, int salen,
     case AF_UNIX:
       {
 	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	len += mu_stpcpy (&bufptr, &buflen, "socket ");
-	len += mu_stpcpy (&bufptr, &buflen, s_un->sun_path);
+	if (MU_S_UN_NAME(s_un, salen)[0] == 0)
+	  len += mu_stpcpy (&bufptr, &buflen, "anonymous socket");
+	else
+	  {
+	    len += mu_stpcpy (&bufptr, &buflen, "socket ");
+	    len += mu_stpcpy (&bufptr, &buflen, s_un->sun_path);
+	  }
 	break;
       }
 
     default:
       len += mu_stpcpy (&bufptr, &buflen, "{Unsupported family: ");
       len += mu_stpcpy (&bufptr, &buflen, umaxtostr (sa->sa_family, buf));
+      len += mu_stpcpy (&bufptr, &buflen, "}");
     }
   if (plen)
     *plen = len + 1;
@@ -405,7 +418,8 @@ mu_sockaddr_to_astr (struct sockaddr *sa, int salen)
 }
 
 int
-_acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa)
+_acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa,
+	    int salen)
 {
 #define RESMATCH(word)                                   \
   if (mu_debug_check_level (debug, MU_DEBUG_TRACE0))     \
@@ -416,9 +430,9 @@ _acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa)
       struct in_addr a;
       
       __MU_DEBUG1 (debug, MU_DEBUG_TRACE0, "%s", "Does ");
-      debug_sockaddr (debug, MU_DEBUG_TRACE0, sa);
+      debug_sockaddr (debug, MU_DEBUG_TRACE0, sa, salen);
       mu_debug_printf (debug, MU_DEBUG_TRACE0, " match ");
-      debug_sockaddr (debug, MU_DEBUG_TRACE0, ent->sa);
+      debug_sockaddr (debug, MU_DEBUG_TRACE0, ent->sa, salen);
       a.s_addr = ent->netmask;
       a.s_addr = htonl (a.s_addr);
       mu_debug_printf (debug, MU_DEBUG_TRACE0, " netmask %s? ", inet_ntoa (a));
@@ -458,7 +472,8 @@ _acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa)
 	struct sockaddr_un *sun_ent = (struct sockaddr_un *)ent->sa;
 	struct sockaddr_un *sun_item = (struct sockaddr_un *)sa;
 
-	if (sun_ent->sun_path[0] && sun_item->sun_path[0]
+	if (MU_S_UN_NAME (sun_ent, ent->salen)[0]
+	    && MU_S_UN_NAME (sun_item, salen)[0]
 	    && strcmp (sun_ent->sun_path, sun_item->sun_path))
 	  {
 	    RESMATCH ("no");
@@ -619,7 +634,7 @@ _run_entry (void *item, void *data)
       __MU_DEBUG2 (rp->debug, MU_DEBUG_TRACE0, "%d:%s: ", rp->idx, s);
     }
   
-  if (_acl_match (rp->debug, ent, rp->sa) == 0)
+  if (_acl_match (rp->debug, ent, rp->sa, rp->salen) == 0)
     {
       switch (ent->action)
 	{
@@ -645,7 +660,7 @@ _run_entry (void *item, void *data)
 	      }
 	    else
 	      {
-		debug_sockaddr (dbg, MU_DIAG_INFO, rp->sa);
+		debug_sockaddr (dbg, MU_DIAG_INFO, rp->sa, rp->salen);
 		mu_debug_printf (dbg, MU_DIAG_INFO, "\n");
 	      }
 	  }
@@ -707,7 +722,7 @@ mu_acl_check_sockaddr (mu_acl_t acl, struct sockaddr *sa, int salen,
   if (mu_debug_check_level (acl->debug, MU_DEBUG_TRACE0))
     {
       __MU_DEBUG1 (acl->debug, MU_DEBUG_TRACE0, "%s", "Checking sockaddr ");
-      debug_sockaddr (acl->debug, MU_DEBUG_TRACE0, r.sa);
+      debug_sockaddr (acl->debug, MU_DEBUG_TRACE0, r.sa, r.salen);
       mu_debug_printf (acl->debug, MU_DEBUG_TRACE0, "\n");
     }
 

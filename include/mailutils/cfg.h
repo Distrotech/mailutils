@@ -135,8 +135,6 @@ struct mu_cfg_param
   const char *argname;
 };
 
-#define mu_offsetof(s,f) ((size_t)&((s*)0)->f)
-
 #define MU_TARGET_REF(f) &f, 0
 #define MU_TARGET_OFF(s,f) NULL, mu_offsetof(s,f)
 
