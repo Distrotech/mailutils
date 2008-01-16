@@ -94,10 +94,10 @@ int mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 				mu_debug_t debug);
 
 struct sockaddr;
-void mu_sockaddr_to_str (struct sockaddr *sa, int salen,
+void mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
 			 char *bufptr, size_t buflen,
 			 size_t *plen);
-char *mu_sockaddr_to_astr (struct sockaddr *sa, int salen);
+char *mu_sockaddr_to_astr (const struct sockaddr *sa, int salen);
 
   
   

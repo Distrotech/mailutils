@@ -58,9 +58,9 @@ int mu_acl_insert (mu_acl_t acl, size_t pos, int before,
 		   struct sockaddr *sa, int salen, unsigned long netmask);
 
 int mu_acl_check_ipv4 (mu_acl_t acl, unsigned int addr, mu_acl_result_t *pres);
-int mu_acl_check_inaddr (mu_acl_t acl, struct in_addr *inp,
+int mu_acl_check_inaddr (mu_acl_t acl, const struct in_addr *inp,
 			 mu_acl_result_t *pres);
-int mu_acl_check_sockaddr (mu_acl_t acl, struct sockaddr *sa, int salen,
+int mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
 			   mu_acl_result_t *pres);
 int mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres);
 

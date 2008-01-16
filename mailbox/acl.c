@@ -364,7 +364,7 @@ mu_stpcpy (char **pbuf, size_t *psize, const char *src)
 }
 
 void
-mu_sockaddr_to_str (struct sockaddr *sa, int salen,
+mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
 		    char *bufptr, size_t buflen,
 		    size_t *plen)
 {
@@ -405,7 +405,7 @@ mu_sockaddr_to_str (struct sockaddr *sa, int salen,
 }
 
 char *
-mu_sockaddr_to_astr (struct sockaddr *sa, int salen)
+mu_sockaddr_to_astr (const struct sockaddr *sa, int salen)
 {
   size_t size;
   char *p;
@@ -700,7 +700,7 @@ _run_entry (void *item, void *data)
 }
 
 int
-mu_acl_check_sockaddr (mu_acl_t acl, struct sockaddr *sa, int salen,
+mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
 		       mu_acl_result_t *pres)
 {
   struct run_closure r;
@@ -736,7 +736,8 @@ mu_acl_check_sockaddr (mu_acl_t acl, struct sockaddr *sa, int salen,
 }
 	       
 int
-mu_acl_check_inaddr (mu_acl_t acl, struct in_addr *inp, mu_acl_result_t *pres)
+mu_acl_check_inaddr (mu_acl_t acl, const struct in_addr *inp,
+		     mu_acl_result_t *pres)
 {
   struct sockaddr_in cs;
   int len = sizeof cs;

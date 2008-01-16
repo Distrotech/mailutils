@@ -1,5 +1,10 @@
 2008-01-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/acl.h, include/mailutils/debug.hm4,
+	mailbox/acl.c (mu_sockaddr_to_str, mu_sockaddr_to_astr)
+	(mu_acl_check_sockaddr, mu_acl_check_inaddr): Use const pointers
+	when appropriate.
+
 	* include/mailutils/cfg.h (mu_offsetof): Move mu_offsetof to
 	types.hin.
 	* include/mailutils/types.hin (mu_offsetof): New macro.
