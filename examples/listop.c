@@ -253,6 +253,7 @@ shell (mu_list_t list)
   mu_iterator_t itr[NITR];
   int rc;
 
+  memset (&itr, 0, sizeof itr);
   num = 0;
   while (1)
     {
@@ -260,6 +261,14 @@ shell (mu_list_t list)
       char buf[80];
       int argc;
       char **argv;
+
+      if (!itr[num])
+	{
+	  rc = mu_list_get_iterator (list, &itr[num]);
+	  if (rc)
+	    lperror ("mu_list_get_iterator", rc);
+	  mu_iterator_first (itr[num]);
+	}
       
       rc = mu_iterator_current (itr[num], (void**) &text);
       if (rc)
