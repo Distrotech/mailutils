@@ -183,7 +183,7 @@ repl (mu_list_t list, int argc, char **argv)
 
 #define NITR 4
 
-void
+int
 iter (int *pnum, int argc, char **argv)
 {
   int n;
@@ -191,16 +191,17 @@ iter (int *pnum, int argc, char **argv)
   if (argc != 2)
     {
       fprintf (stderr, "iter num?\n");
-      return;
+      return 1;
     }
 
   n = strtoul (argv[1], NULL, 0);
   if (n < 0 || n >= NITR)
     {
       fprintf (stderr, "iter [0-3]?\n");
-      return;
+      return 1;
     }
   *pnum = n;
+  return 0;
 }
 
 void
@@ -225,15 +226,6 @@ find (mu_iterator_t itr, char *arg)
     }
 
   fprintf (stderr, "%s not in list\n", arg);
-  
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
-    {
-      char *item;
-
-      mu_iterator_current (itr, (void**)&item);
-      if (strcmp (text, item) == 0)
-	return;
-    }
 }
 
 void
@@ -260,14 +252,6 @@ shell (mu_list_t list)
   int num = 0;
   mu_iterator_t itr[NITR];
   int rc;
-
-  for (num = 0; num < NITR; num++)
-    {
-      rc = mu_list_get_iterator (list, &itr[num]);
-      if (rc)
-	lperror ("mu_list_get_iterator", rc);
-      mu_iterator_first (itr[num]);
-    }
 
   num = 0;
   while (1)
@@ -310,7 +294,27 @@ shell (mu_list_t list)
 	  else if (strcmp (argv[0], "quit") == 0)
 	    return;
 	  else if (strcmp (argv[0], "iter") == 0)
-	    iter (&num, argc, argv);
+	    {
+	      int n;
+	      if (iter (&n, argc, argv) == 0 && !itr[n])
+		{
+		  rc = mu_list_get_iterator (list, &itr[n]);
+		  if (rc)
+		    lperror ("mu_list_get_iterator", rc);
+		  mu_iterator_first (itr[n]);
+		}
+	      num = n;
+	    }
+	  else if (strcmp (argv[0], "close") == 0)
+	    {
+	      int n;
+	      if (iter (&n, argc, argv) == 0)
+		{
+		  mu_iterator_destroy (&itr[n]);
+		  if (n == num && ++num == NITR)
+		    num = 0;
+		}
+	    }
 	  else if (strcmp (argv[0], "find") == 0)
 	    find (itr[num], argv[1]);
 	  else if (strcmp (argv[0], "help") == 0)
