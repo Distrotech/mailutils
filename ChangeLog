@@ -1,3 +1,12 @@
+2008-01-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* examples/listop.c (find): Fix copy-n-paste error.
+	(iter): Return error code.
+	(main): Create iterators on demand.
+	New command `close'.
+
+	* mailbox/iterator.c (mu_iterator_detach): Bugfix.
+	
 2008-01-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/acl.h, include/mailutils/debug.hm4,
