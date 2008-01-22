@@ -35,7 +35,7 @@ mu_iterator_create (mu_iterator_t *piterator, void *owner)
     return MU_ERR_OUT_PTR_NULL;
   if (owner == NULL)
     return EINVAL;
-  iterator = calloc (sizeof (*iterator), 1);
+  iterator = calloc (1, sizeof (*iterator));
   if (iterator == NULL)
     return ENOMEM;
   iterator->owner = owner;
@@ -239,7 +239,7 @@ mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator)
   if (itr)
     {
       if (prev)
-	prev->next = itr->next;
+	prev->next_itr = itr->next_itr;
       else
 	*root = itr->next_itr;
     }
