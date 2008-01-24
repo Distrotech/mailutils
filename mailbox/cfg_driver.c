@@ -293,6 +293,7 @@ mu_cfg_section_add_params (struct mu_cfg_section *sect,
 	      mu_config_clone_container (container);
 	      if (mu_refcount_value (container->refcount) > 1)
 		dup_container (&container);
+	      container->v.section.target = param->data;
 	      container->v.section.offset = param->offset;
 	    }
 	}
