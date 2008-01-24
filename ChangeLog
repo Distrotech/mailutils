@@ -1,3 +1,9 @@
+2008-01-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/cfg_driver.c (mu_cfg_section_add_params): Initialize
+	section.target with param->data;
+	* mailbox/stream.c (mu_stream_vprintf): Bugfix.
+
 2008-01-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/listop.c (find): Fix copy-n-paste error.
