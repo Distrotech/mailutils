@@ -515,7 +515,7 @@ mu_stream_vprintf (mu_stream_t os, mu_off_t *poff, const char *fmt, va_list ap)
 	      free (buf);
 	      return ENOMEM;
 	    }
-	  newbuf = realloc (buf, buflen);
+	  newbuf = realloc (buf, newlen);
 	  if (newbuf == NULL)
 	    {
 	      free (buf);
