@@ -52,7 +52,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
 
   if ((status = mu_mailbox_open (tmbox, MU_STREAM_READ)) != 0)
     {
-      mu_mailbox_destroy (pmbox);
+      mu_mailbox_destroy (&tmbox);
       mu_error (_("Cannot open bulletin mailbox `%s': %s"),
 		bulletin_mbox_name, mu_strerror (status));
       return 1;
