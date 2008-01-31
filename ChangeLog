@@ -1,3 +1,11 @@
+2008-01-31  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/radius.c (_expand_query): Fix typo.
+	* mailbox/cfg_lexer.c (copy_string0): New function.
+	(copy_string): Rewrite using copy_string0.
+	(copy_to): Parse strings correctly.
+	(default_lexer): Bugfix. Return string if tag is quoted.
+
 2008-01-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* pop3d/bulletin.c (open_bulletin_mailbox): Bugfix.

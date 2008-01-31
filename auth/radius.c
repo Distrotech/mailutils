@@ -220,7 +220,7 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
   if (passwd)
     {
       mu_vartab_define (vtab, "passwd", passwd, 1);
-      mu_vartab_define (vtab, "p", ustr, 1);
+      mu_vartab_define (vtab, "p", passwd, 1);
     }
 
   rc = mu_vartab_expand (vtab, query, &str);

@@ -115,53 +115,14 @@ skipline (struct lexer_data *p)
 }
 
 static int
-isword (int c)
-{
-  if (mu_cfg_tie_in)
-    return c && c != ';' && c != '{';
-  
-  return isalnum (c) || c == '_' || c == '-' || c == '.';
-}
-
-static char *
-copy_alpha (struct lexer_data *p)
-{
-  do
-    {
-      if (*p->curp == '\n')
-	mu_cfg_locus.line++;
-      cbuf_1grow (p, *p->curp);
-      p->curp++;
-    } while (*p->curp && isword (*p->curp));
-  cbuf_1grow (p, 0);
-  return cbuf_finish (p);
-}
-
-static char *
-copy_to (struct lexer_data *p, const char *delim)
-{
-  while (*p->curp)
-    {
-      if (strchr (delim, *p->curp))
-	break;
-      if (*p->curp == '\n')
-	mu_cfg_locus.line++;
-      cbuf_1grow (p, *p->curp);
-      p->curp++;
-    } 
-  cbuf_1grow (p, 0);
-  return cbuf_finish (p);
-}
-
-static int
 continuation_line_p (struct lexer_data *p, int quote)
 {
   skipws (p);
   return *p->curp == quote;
 }
 
-static char *
-copy_string (struct lexer_data *p)
+static void
+copy_string0 (struct lexer_data *p, int unquote)
 {
   int quote;
   do
@@ -183,14 +144,11 @@ copy_string (struct lexer_data *p)
 		  p->curp++;
 		  continue;
 		}
-	      c = mu_argcv_unquote_char (*p->curp);
-	      if (c == *p->curp)
-		{
-		  cbuf_1grow (p, '\\');
-		  cbuf_1grow (p, *p->curp);
-		}
+	      if (!unquote)
+		c = *p->curp;
 	      else
-		cbuf_1grow (p, c);
+		c = mu_argcv_unquote_char (*p->curp);
+	      cbuf_1grow (p, c);
 	      p->curp++;
 	    }
 	  else if (*p->curp == quote)
@@ -206,7 +164,69 @@ copy_string (struct lexer_data *p)
 	}
     }
   while (continuation_line_p (p, quote));
+}
   
+static char *
+copy_string (struct lexer_data *p)
+{
+  copy_string0 (p, 1);
+  cbuf_1grow (p, 0);
+  return cbuf_finish (p);
+}
+
+static char *
+copy_to (struct lexer_data *p, const char *delim)
+{
+  while (*p->curp)
+    {
+      if (*p->curp == '"' || *p->curp == '\'')
+	{
+	  int quote = *p->curp;
+	  cbuf_1grow (p, quote);
+	  copy_string0 (p, 0);
+	  cbuf_1grow (p, quote);
+	  continue;
+	}
+      
+      if (strchr (delim, *p->curp))
+	break;
+      if (*p->curp == '\n')
+	mu_cfg_locus.line++;
+      cbuf_1grow (p, *p->curp);
+      p->curp++;
+    } 
+  cbuf_1grow (p, 0);
+  return cbuf_finish (p);
+}
+
+static int
+isword (int c)
+{
+  if (mu_cfg_tie_in)
+    return c && c != ';' && c != '{';
+  
+  return isalnum (c) || c == '_' || c == '-' || c == '.';
+}
+
+static char *
+copy_alpha (struct lexer_data *p)
+{
+  do
+    {
+      if (mu_cfg_tie_in && (*p->curp == '"' || *p->curp == '\''))
+	{
+	  int quote = *p->curp;
+	  cbuf_1grow (p, quote);
+	  copy_string0 (p, 0);
+	  cbuf_1grow (p, quote);
+	  continue;
+	}
+
+      if (*p->curp == '\n')
+	mu_cfg_locus.line++;
+      cbuf_1grow (p, *p->curp);
+      p->curp++;
+    } while (*p->curp && isword (*p->curp));
   cbuf_1grow (p, 0);
   return cbuf_finish (p);
 }
@@ -337,7 +357,7 @@ again:
   tag = copy_alpha (p);
   skipws (p);
   
-  if (*p->curp == '"')
+  if (*tag == '"')
     {
       mu_cfg_yylval.string = tag;
       LEX_DEBUG ("STRING", mu_cfg_yylval.string, NULL); 
