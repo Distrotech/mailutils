@@ -27,6 +27,7 @@
 
 char *file;
 mu_header_t header;
+mu_iterator_t iterator;
 
 char *ps[] = { "> ", ". " };
 int interactive;
@@ -132,6 +133,7 @@ cmd_free (int argc, char **argv)
 {
   if (check_args (argv[0], argc, 1, 1))
     return;
+  mu_iterator_destroy (&iterator);
   mu_header_destroy (&header, NULL);
 }
 
@@ -285,7 +287,55 @@ cmd_write (int argc, char **argv)
 	break;
     }
 }
-	 
+
+void
+cmd_iterate (int argc, char **argv)
+{
+  if (check_args (argv[0], argc, 1, 2))
+    return;
+  if (argc == 1)
+    {
+      mu_iterator_t itr;
+      MU_ASSERT (mu_header_get_iterator (header, &itr));
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  const char *hdr, *val;
+	  MU_ASSERT (mu_iterator_current_kv (itr,
+					     (const void**)&hdr,
+					     (void**)&val));
+	  printf ("%s: %s\n", hdr, val);
+	}
+      mu_iterator_destroy (&itr);
+    }
+  else
+    {
+      const char *hdr, *val;
+
+      if (!iterator)
+	MU_ASSERT (mu_header_get_iterator (header, &iterator));
+
+      if (strcmp (argv[1], "first") == 0 || strcmp (argv[1], "1") == 0)
+	mu_iterator_first (iterator);
+      else if (strcmp (argv[1], "next") == 0 || strcmp (argv[1], "n") == 0)
+	{
+	  mu_iterator_next (iterator);
+	  if (mu_iterator_is_done (iterator))
+	    {
+	      printf ("Past end of headers. Use `itr first'.\n");
+	      return;
+	    }
+	}
+
+      MU_ASSERT (mu_iterator_current_kv (iterator,
+					 (const void **)&hdr,
+					 (void**)&val));
+      printf ("%s: %s\n", hdr, val);
+    }
+}
+
+  
+
 struct cmdtab
 {
   char *name;
@@ -303,6 +353,7 @@ static struct cmdtab cmdtab[] = {
   { "print", cmd_print, "NAME [N]",
     "find and print the Nth (by default, 1st) instance of header named NAME" },
   { "dump", cmd_dump, NULL, "dump all headers on screen" },
+  { "itr", cmd_iterate, "[first|1|next|n]", "iterate over headers" },
   { "remove", cmd_remove, "NAME [N]",
     "remove the Nth (by default, 1st) instance of header named NAME" },
   { "insert", cmd_insert, "NAME VALUE [REF [NUM] [before|after] [replace]]",
@@ -392,11 +443,27 @@ cmd_help (int argc, char **argv)
 }
 
 int
+docmd (int argc, char **argv)
+{
+  struct cmdtab *cmd = find_cmd (argv[0]);
+  if (!cmd)
+    {
+      mu_error ("%u: unknown command %s", line_num, argv[0]);
+      return 1;
+    }
+  else
+    cmd->fun (argc, argv);
+  return 0;
+}
+
+int
 main (int argc, char **argv)
 {
   int c;
   char buf[512];
-
+  char **prevv;
+  int prevc = 0;
+  
   interactive = isatty (0);
   while ((c = getopt (argc, argv, "f:h")) != EOF)
     {
@@ -434,7 +501,6 @@ main (int argc, char **argv)
     {
       int c;
       char **v;
-      struct cmdtab *cmd;
       int status;
 
       line_num++;
@@ -446,17 +512,20 @@ main (int argc, char **argv)
 	  continue;
 	}
 
-      cmd = find_cmd (v[0]);
-      if (!cmd)
+      if (c == 0)
 	{
-	  mu_error ("%u: unknown command %s",
-		   line_num, v[0]);
+	  if (prevc)
+	    docmd (prevc, prevv);
+	  else
+	    mu_argcv_free (c, v);
 	}
       else
-	cmd->fun (c, v);
-
-      mu_argcv_free (c, v);
-
+	{
+	  docmd (c, v);
+	  mu_argcv_free (prevc, prevv);
+	  prevc = c;
+	  prevv = v;
+	}
     }
   exit (0);
 }

@@ -25,6 +25,7 @@
 
 #include <mailutils/header.h>
 #include <mailutils/assoc.h>
+#include <mailutils/iterator.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -67,7 +68,10 @@ struct _mu_header
   /* Stream.  */
   mu_stream_t stream;
   size_t strpos;
-  
+
+  /* Iterators */
+  mu_iterator_t itr;
+
   /* Methods */
   int (*_fill)      (mu_header_t, char *, size_t, mu_off_t, size_t *);
 };

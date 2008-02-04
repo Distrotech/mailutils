@@ -154,6 +154,8 @@ extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
 extern int mu_header_size (mu_header_t, size_t *);
 extern int mu_header_lines (mu_header_t, size_t *);
 
+extern int mu_header_get_iterator (mu_header_t, mu_iterator_t *);
+  
 
 extern int mu_header_set_fill (mu_header_t,
       int (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *), void *owner);

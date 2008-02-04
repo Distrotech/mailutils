@@ -579,6 +579,7 @@ mu_header_remove (mu_header_t header, const char *fn, int n)
     return MU_ERR_NOENT;
 
   mu_hdrent_remove (header, ent);
+  HEADER_SET_MODIFIED (header);
   free (ent);
   return 0;
 }

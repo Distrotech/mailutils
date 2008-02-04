@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-01-12
+GNU mailutils NEWS -- history of user-visible changes. 2008-02-04
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -142,6 +142,24 @@ approach is recommended to use instead of mu_error_set_print:
 
       mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, new_printer, NULL);
+
+** Header iteration
+
+New function `mu_header_get_iterator' returns an iterator for this
+header object. Thus, the following code loops over all headers:
+
+      mu_iterator_t itr;
+      mu_header_get_iterator (header, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  const char *hdr, *val;
+	  mu_iterator_current_kv (itr,
+				  (const void**)&hdr,
+				  (void**)&val));
+	  /* Do something with hdr and val */			  
+	}
+      mu_iterator_destroy (&itr);
 
 ** Global debugging and verbosity settings.
 

@@ -1,3 +1,16 @@
+2008-02-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update.
+	* examples/header.c: New command `itr'.
+	(main): Empty input repeats the recent command.
+	* include/mailutils/header.h (mu_header_get_iterator): New
+	function.
+	* libproto/include/header0.h (struct _mu_header): New member itr.
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add hdritr.c
+	* mailbox/hdritr.c: New file.
+	* mailbox/header.c (mu_header_remove): Bugfix. Invalidate the
+	header after removal.
+	
 2008-01-31  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/radius.c (_expand_query): Fix typo.
