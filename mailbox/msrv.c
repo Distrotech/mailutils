@@ -95,6 +95,8 @@ struct _mu_m_server
   
   int foreground;                /* Should the server remain in foregorund? */
   size_t max_children;           /* Maximum number of sub-processes to run. */
+  size_t num_children;               /* Current number of running sub-processes. */
+  pid_t *child_pid;
   char *pidfile;                 /* Name of a PID-file. */
   struct m_default_address defaddr;  /* Default address. */
   time_t timeout;                /* Default idle timeout. */
@@ -117,8 +119,86 @@ struct m_srv_config        /* Configuration data for a single TCP server. */
 
 
 static int need_cleanup = 0;
-static int stop = 0;
-static size_t children;
+static int stop = 0; /* FIXME: Must be per-m-server */
+static mu_list_t m_server_list;
+
+#define UNUSED_PID ((pid_t)-1)
+
+static void
+alloc_children (mu_m_server_t srv, size_t num)
+{
+  int i;
+  size_t size = num * sizeof (srv->child_pid[0]);
+  size_t last;
+  
+  if (srv->child_pid)
+    {
+      srv->child_pid = realloc (srv->child_pid, size);
+      last = srv->max_children;
+    }
+  else
+    {
+      srv->child_pid = malloc (size);
+      last = 0;
+    }
+  
+  if (!srv->child_pid)
+    {
+      mu_error ("%s", mu_strerror (ENOMEM));
+      abort ();
+    }
+  
+  for (i = last; i < num; i++)
+    srv->child_pid[i] = UNUSED_PID;
+
+  srv->max_children = num;
+}
+
+static void
+register_child (mu_m_server_t msrv, pid_t pid)
+{
+  int i;
+  
+  msrv->num_children++;
+  if (!msrv->child_pid)
+    alloc_children (msrv, msrv->max_children);
+  for (i = 0; i < msrv->max_children; i++)
+    if (msrv->child_pid[i] == UNUSED_PID)
+      {
+	msrv->child_pid[i] = pid;
+	return;
+      }
+  mu_error ("%s:%d: cannot find free PID slot (internal error?)",
+	    __FILE__, __LINE__);
+}
+
+static int
+unregister_child (mu_m_server_t msrv, pid_t pid)
+{
+  int i;
+
+  msrv->num_children--;
+  for (i = 0; i < msrv->max_children; i++)
+    if (msrv->child_pid[i] == pid)
+      {
+	msrv->child_pid[i] = UNUSED_PID;
+	return 0;
+      }
+  return 1;
+}
+
+static void
+terminate_children (mu_m_server_t msrv)
+{
+  if (msrv->child_pid)
+    {
+      int i;
+      
+      for (i = 0; i < msrv->max_children; i++)
+	if (msrv->child_pid[i] != UNUSED_PID)
+	  kill (msrv->child_pid[i], SIGTERM);
+    }
+}
 
 void
 mu_m_server_stop (int code)
@@ -126,38 +206,54 @@ mu_m_server_stop (int code)
   stop = code;
 }
 
-static int
-mu_m_server_idle (void *server_data MU_ARG_UNUSED)
+struct exit_data
 {
   pid_t pid;
   int status;
+};
+
+static int
+m_server_cleanup (void *item, void *data)
+{
+  mu_m_server_t msrv = item;
+  struct exit_data *datp = data;
   
+  if (unregister_child (msrv, datp->pid) == 0)
+    {
+      if (WIFEXITED (datp->status))
+	{
+	  int prio = MU_DIAG_INFO;
+	  int code = WEXITSTATUS (datp->status);
+	  if (code == 0)
+	    prio = MU_DIAG_DEBUG;
+	  mu_diag_output (prio, "process %lu finished with code %d",
+			  (unsigned long) datp->pid,
+			  code);
+	}
+      else if (WIFSIGNALED (datp->status))
+	mu_diag_output (MU_DIAG_ERR, "process %lu terminated on signal %d",
+			(unsigned long) datp->pid,
+			WTERMSIG (datp->status));
+      else
+	mu_diag_output (MU_DIAG_ERR,
+			"process %lu terminated (cause unknown)",
+			(unsigned long) datp->pid);
+      return 1;
+    }
+  return 0;
+}
+
+static int
+mu_m_server_idle (void *server_data MU_ARG_UNUSED)
+{
   if (need_cleanup)
     {
+      struct exit_data ex;
+
       need_cleanup = 0;
-      while ( (pid = waitpid (-1, &status, WNOHANG)) > 0)
-	{
-	  --children;
-	  if (WIFEXITED (status))
-	    {
-	      int prio = MU_DIAG_INFO;
-	      
-	      status = WEXITSTATUS (status);
-	      if (status == 0)
-		prio = MU_DIAG_DEBUG;
-	      mu_diag_output (prio, "process %lu finished with code %d",
-			      (unsigned long) pid,
-			      status);
-	    }
-	  else if (WIFSIGNALED (status))
-	    mu_diag_output (MU_DIAG_ERR, "process %lu terminated on signal %d",
-			    (unsigned long) pid,
-			    WTERMSIG (status));
-	  else
-	    mu_diag_output (MU_DIAG_ERR,
-			    "process %lu terminated (cause unknown)",
-			    (unsigned long) pid);
-	}
+      while ( (ex.pid = waitpid (-1, &ex.status, WNOHANG)) > 0)
+	/* Iterate over all m-servers and notify them about the fact. */
+	mu_list_do (m_server_list, m_server_cleanup, &ex);
     }
   return stop;
 }
@@ -208,6 +304,9 @@ mu_m_server_create (mu_m_server_t *psrv, const char *ident)
   sigaddset (&srv->sigmask, SIGQUIT);
   sigaddset (&srv->sigmask, SIGHUP);
   *psrv = srv;
+  if (!m_server_list)
+    mu_list_create (&m_server_list);
+  mu_list_append (m_server_list, srv);
 }
 
 void
@@ -262,7 +361,7 @@ mu_m_server_set_data (mu_m_server_t srv, void *data)
 void
 mu_m_server_set_max_children (mu_m_server_t srv, size_t num)
 {
-  srv->max_children = num;
+  alloc_children (srv, num);
 }
 
 int
@@ -457,8 +556,10 @@ void
 mu_m_server_destroy (mu_m_server_t *pmsrv)
 {
   mu_m_server_t msrv = *pmsrv;
+  mu_list_remove (m_server_list, msrv);
   mu_server_destroy (&msrv->server);
-  /* FIXME: Send processes the TERM signal */
+  free (msrv->child_pid);
+  /* FIXME: Send processes the TERM signal here?*/
   free (msrv->ident);
   free (msrv);
   *pmsrv = NULL;
@@ -540,6 +641,7 @@ mu_m_server_run (mu_m_server_t msrv)
   if (msrv->ident)
     mu_diag_output (MU_DIAG_INFO, _("%s started"), msrv->ident);
   rc = mu_server_run (msrv->server);
+  terminate_children (msrv);
   if (msrv->ident)
     mu_diag_output (MU_DIAG_INFO, _("%s terminated"), msrv->ident);
   return rc;
@@ -606,10 +708,11 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 
       if (mu_m_server_idle (server_data))
 	return MU_SERVER_SHUTDOWN;
-      if (pconf->msrv->max_children && children >= pconf->msrv->max_children)
+      if (pconf->msrv->max_children
+	  && pconf->msrv->num_children >= pconf->msrv->max_children)
         {
 	  mu_diag_output (MU_DIAG_ERROR, _("too many children (%lu)"),
-			  (unsigned long) children);
+			  (unsigned long) pconf->msrv->num_children);
           pause ();
           return 0;
         }
@@ -630,7 +733,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	}
       else
 	{
-	  children++;
+	  register_child (pconf->msrv, pid);
 	}
     }
   else if (!pconf->msrv->prefork

@@ -1,5 +1,20 @@
 2008-02-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/msrv.c (struct _mu_m_server): New member `num_children'.
+	New member `child_pid'.
+	(children): Remove global.
+	(m_server_list): New variable. Keeps track of created m_servers.
+	(alloc_children, register_child, unregister_child)
+	(terminate_children): New functions.
+	(m_server_cleanup): New function.
+	(mu_m_server_idle): Iterate over all registered m-servers until
+	one of them recognizes the child.
+	(mu_m_server_create,mu_m_server_destroy): Keep track of existing
+	m-servers using m_server_list.
+	(mu_m_server_set_max_children): Rewrite using alloc_children.
+	(mu_m_server_run): Terminate all children before returning.
+	(m_srv_conn): Use register_child to remember created children.
+
 	* NEWS: Update.
 	* examples/header.c: New command `itr'.
 	(main): Empty input repeats the recent command.
