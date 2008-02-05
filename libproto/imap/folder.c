@@ -995,7 +995,6 @@ folder_imap_list (mu_folder_t folder, const char *ref, void *name,
   if (name == NULL)
     name = "";
 
-  f_imap->folder = folder;
   f_imap->enum_fun = efp;
   f_imap->enum_stop = 0;
   f_imap->enum_data = edp;
@@ -1025,7 +1024,6 @@ folder_imap_list (mu_folder_t folder, const char *ref, void *name,
       break;
     }
 
-  f_imap->folder = NULL;
   f_imap->enum_fun = NULL;
   f_imap->enum_stop = 0;
   f_imap->enum_data = NULL;

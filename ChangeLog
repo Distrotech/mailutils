@@ -1,3 +1,20 @@
+2008-02-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/header.c (header_readline): Bugfix: account for
+	multi-line headers.
+
+	* imap4d/list.c (imap4d_list): Speed up LIST "" INBOX.
+	* libproto/imap/folder.c (folder_imap_list): Remove erroneous
+	assignments to f_imap->folder.
+
+	Fix handling of remote mailboxes in clients:
+	
+	* libproto/imap/url.c (_url_imap_init,_url_imaps_init): Remove
+	call to mu_url_init.
+	* libproto/pop/url.c (_url_pop_init): Remove call to mu_url_init.
+	* mailbox/mailbox.c (mailbox_folder_create): Bugfix: Lack of path
+	component is not an error.
+	
 2008-02-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/msrv.c (struct _mu_m_server): New member `num_children'.

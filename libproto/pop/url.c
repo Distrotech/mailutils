@@ -49,10 +49,9 @@ url_pop_destroy (mu_url_t url MU_ARG_UNUSED)
 int
 _url_pop_init (mu_url_t url)
 {
-  int status = mu_url_init (url, MU_POP_PORT, "pop");
-  if (status)
-    return status;
-
+  if (url->port == 0)
+    url->port = MU_POP_PORT;
+  
   url->_destroy = url_pop_destroy;
 
   /* not valid in pop url */

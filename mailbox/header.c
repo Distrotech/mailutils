@@ -1039,6 +1039,7 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
   size_t ent_off;
   int status;
   size_t strsize;
+  char *start, *end;
   
   if (is == NULL || buflen == 0)
     return EINVAL;
@@ -1055,11 +1056,18 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
       return 0;
     }
 
-  strsize = MU_STR_SIZE (ent->nlen, ent->vlen) - ent_off;
   buflen--; /* Account for the terminating nul */
-  if (buflen > strsize)
-    buflen = strsize;
+
   mu_hdrent_fixup (header, ent);
+  start = MU_HDRENT_NAME (header, ent) + ent_off;
+  end = strchr (start, '\n');
+  if (end)
+    strsize = end - start + 1;
+  else
+    strsize = strlen (start);
+  if (strsize < buflen)
+    buflen = strsize;
+  
   memcpy (buffer, MU_HDRENT_NAME (header, ent) + ent_off, buflen);
   buffer[buflen] = 0;
   mu_hdrent_unroll_fixup (header, ent);

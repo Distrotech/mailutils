@@ -49,10 +49,9 @@ url_imap_destroy (mu_url_t url MU_ARG_UNUSED)
 int
 _url_imap_init (mu_url_t url)
 {
-  int status = mu_url_init (url, MU_IMAP_PORT, "imap");
-  if (status)
-    return status;
-
+  if (url->port == 0)
+    url->port = MU_IMAP_PORT;
+  
   url->_destroy = url_imap_destroy;
 
   if(!url->host || url->query)
@@ -81,13 +80,12 @@ _url_imap_init (mu_url_t url)
 int
 _url_imaps_init (mu_url_t url)
 {
-  int status = mu_url_init (url, MU_IMAPS_PORT, "imaps");
-  if (status)
-    return status;
-
+  if (url->port == 0)
+    url->port = MU_IMAPS_PORT;
+  
   url->_destroy = url_imap_destroy;
 
-  if(!url->host || url->query)
+  if (!url->host || url->query)
     return EINVAL;
 
   /* fill in default auth, if necessary */
