@@ -52,7 +52,16 @@ mailbox_folder_create (mu_mailbox_t mbox, const char *name,
   char *fname;
 
   if ((rc = mu_url_aget_path (mbox->url, &fname)))
-    return rc;
+    {
+      if (rc == MU_ERR_NOENT)
+	{
+	  fname = strdup (mu_url_to_string (mbox->url));
+	  if (!fname)
+	    return ENOMEM;
+	}
+      else
+	return rc;
+    }
 
   if (mu_url_is_scheme (mbox->url, "file")
       || mu_url_is_scheme (mbox->url, "mbox")
