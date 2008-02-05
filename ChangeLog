@@ -1,5 +1,47 @@
 2008-02-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* NEWS: Update.
+	* imap4d/bye.c, imap4d/starttls.c, imap4d/util.c: Use exit codes
+	from sysexits.h
+	* imap4d/imap4d.c: Use mu_set_signals to install signals.
+	Use exit codes from sysexits.h.
+	* imap4d/imap4d.h: Include sysexits.h and muaux.h
+	(ERR_TERMINATE): New define.
+	(imap4d_sigchld,imap4d_signal): Remove.
+	(imap4d_master_signal,imap4d_child_signal): New prototypes.
+	* imap4d/signal.c (imap4d_master_signal,imap4d_child_signal): New
+	functions.
+
+	* pop3d/pop3d.h Include sysexits.h and muaux.h
+	(ERR_TERMINATE): New define.
+	(pop3d_signal): Remove.
+	(pop3d_master_signal, pop3d_child_signal): New protos.
+	* pop3d/signal.c (pop3d_master_signal, pop3d_child_signal): New
+	functions.
+	
+	* pop3d/extra.c, pop3d/popauth.c
+	* pop3d/pop3d.c: Use mu_set_signals to install signals.
+	Use exit codes from sysexits.h.
+	
+	* include/mailutils/server.h (mu_m_server_set_strexit): New
+	prototype.
+	* include/mailutils/types.hin (MU_ARRAY_SIZE): New define.
+	
+	* lib/Makefile.am (libmuaux_la_SOURCES): Add signal.c, strexit.c.
+	(noinst_HEADERS): Add muaux.h
+	* lib/muaux.h: New file.
+
+	* libsieve/extensions/spamd.c: Add NLS markers.
+
+	* mailbox/header.c (header_readline): Minor rewrite.
+	* mailbox/msrv.c (struct _mu_m_server): New member `strexit'.
+	(mu_m_server_begin): Call alloc_children.
+	(mu_m_server_restore_signals): New function.
+	(mu_m_server_end): Call mu_m_server_restore_signals.
+	(m_srv_conn): Reset signals in child branch.
+
+	* po/POTFILES.in: Update.
+	
 	* mailbox/header.c (header_readline): Bugfix: account for
 	multi-line headers.
 
