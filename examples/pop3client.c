@@ -2,7 +2,7 @@
    GNU Mailutils pop3 functions.  This application interactively allows users
    to contact a pop3 server.
 
-   Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation
+   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 # include <config.h>  
 #endif 
 #include <sys/types.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -42,6 +44,8 @@
 #include <mailutils/iterator.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
+#include <mailutils/vartab.h>
+#include <mailutils/argcv.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -73,6 +77,7 @@ int com_top (char *);
 int com_uidl (char *);
 int com_user (char *);
 int com_verbose (char *);
+int com_prompt (char *);
 
 void initialize_readline (void);
 char *stripwhite (char *);
@@ -84,30 +89,28 @@ int valid_argument (const char *, char *);
 void sig_int (int);
 
 COMMAND commands[] = {
-  {"apop", com_apop, "Authenticate with APOP: APOP user secret"},
-  {"capa", com_capa, "List capabilities: capa"},
-  {"disconnect", com_disconnect, "Close connection: disconnect"},
-  {"dele", com_dele, "Mark message: DELE msgno"},
-  {"exit", com_exit, "exit program"},
-  {"help", com_help, "Display this text"},
-  {"?", com_help, "Synonym for `help'"},
-  {"list", com_list, "List messages: LIST [msgno]"},
-  {"noop", com_noop, "Send no operation: NOOP"},
-  {"pass", com_pass, "Send passwd: PASS [passwd]"},
-  {"connect", com_connect, "Open connection: connect hostname [port]"},
-  {"quit", com_quit, "Go to Update state : QUIT"},
-  {"retr", com_retr, "Dowload message: RETR msgno"},
-  {"rset", com_rset, "Unmark all messages: RSET"},
-  {"stat", com_stat, "Get the size and count of mailbox : STAT [msgno]"},
-  {"top", com_top, "Get the header of message: TOP msgno [lines]"},
-  {"uidl", com_uidl, "Get the unique id of message: UIDL [msgno]"},
-  {"user", com_user, "send login: USER user"},
-  {"verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]"},
-  {NULL, NULL, NULL}
+  { "apop", com_apop, "Authenticate with APOP: APOP user secret" },
+  { "capa", com_capa, "List capabilities: capa" },
+  { "disconnect", com_disconnect, "Close connection: disconnect" },
+  { "dele", com_dele, "Mark message: DELE msgno" },
+  { "exit", com_exit, "exit program" },
+  { "help", com_help, "Display this text" },
+  { "?", com_help, "Synonym for `help'" },
+  { "list", com_list, "List messages: LIST [msgno]" },
+  { "noop", com_noop, "Send no operation: NOOP" },
+  { "pass", com_pass, "Send passwd: PASS [passwd]" },
+  { "prompt", com_prompt, "Set command prompt" },
+  { "connect", com_connect, "Open connection: connect hostname [port]" },
+  { "quit", com_quit, "Go to Update state : QUIT" },
+  { "retr", com_retr, "Dowload message: RETR msgno" },
+  { "rset", com_rset, "Unmark all messages: RSET" },
+  { "stat", com_stat, "Get the size and count of mailbox : STAT [msgno]" },
+  { "top", com_top, "Get the header of message: TOP msgno [lines]" },
+  { "uidl", com_uidl, "Get the unique id of message: UIDL [msgno]" },
+  { "user", com_user, "send login: USER user" },
+  { "verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]" },
+  { NULL, NULL, NULL }
 };
-
-/* The name of this program, as taken from argv[0]. */
-char *progname;
 
 /* Global handle for pop3.  */
 mu_pop3_t pop3;
@@ -118,6 +121,69 @@ int verbose;
 /* When non-zero, this global means the user is done using this program. */
 int done;
 
+enum pop_session_status
+  {
+    pop_session_disconnected,
+    pop_session_connected,
+    pop_session_logged_in
+  };
+
+enum pop_session_status pop_session_status;
+
+int connect_argc;
+char **connect_argv;
+
+/* Host we are connected to. */
+#define host connect_argv[0]
+int port = 110;
+char *username;
+
+/* Command line prompt */
+#define DEFAULT_PROMPT "pop3> "
+char *prompt;
+
+const char *
+pop_session_str (enum pop_session_status stat)
+{
+  switch (stat)
+    {
+    case pop_session_disconnected:
+      return "disconnected";
+      
+    case pop_session_connected:
+      return "connected";
+      
+    case pop_session_logged_in:
+      return "logged in";
+    }
+}
+
+char *
+expand_prompt ()
+{
+  mu_vartab_t vtab;
+  char *str;
+  
+  if (mu_vartab_create (&vtab))
+    return strdup (prompt);
+  mu_vartab_define (vtab, "user",
+		    (pop_session_status == pop_session_logged_in) ?
+		      username : "not logged in", 1);
+  mu_vartab_define (vtab, "host",
+		    (pop_session_status != pop_session_disconnected) ?
+		      host : "not connected", 1);
+  mu_vartab_define (vtab, "program-name", mu_program_name, 1);
+  mu_vartab_define (vtab, "canonical-program-name", "pop3client", 1);
+  mu_vartab_define (vtab, "package", PACKAGE, 1);
+  mu_vartab_define (vtab, "version", PACKAGE_VERSION, 1);
+  mu_vartab_define (vtab, "status", pop_session_str (pop_session_status), 1);
+  
+  if (mu_vartab_expand (vtab, prompt, &str))
+    str = strdup (prompt);
+  mu_vartab_destroy (&vtab);
+  return str;
+}
+
 char *
 dupstr (const char *s)
 {
@@ -126,7 +192,7 @@ dupstr (const char *s)
   r = malloc (strlen (s) + 1);
   if (!r)
     {
-      fprintf (stderr, "Memory exhausted\n");
+      mu_error ("Memory exhausted");
       exit (1);
     }
   strcpy (r, s);
@@ -159,11 +225,10 @@ initialize_readline ()
    in case we want to do some simple parsing.  Return the array of matches,
    or NULL if there aren't any. */
 char **
-pop_completion (char *text, int start, int end)
+pop_completion (char *text, int start, int end MU_ARG_UNUSED)
 {
   char **matches;
 
-  (void) end;
   matches = (char **) NULL;
 
   /* If this word is at the start of the line, then it is a command
@@ -203,7 +268,7 @@ command_generator (const char *text, int state)
     }
 
   /* If no names matched, then return NULL. */
-  return ((char *) NULL);
+  return NULL;
 }
 
 #else
@@ -240,20 +305,17 @@ main (int argc MU_ARG_UNUSED, char **argv)
 {
   char *line, *s;
 
-  progname = strrchr (argv[0], '/');
-  if (progname)
-    progname++;
-  else
-    progname = argv[0];
-
+  mu_set_program_name (argv[0]);
+  prompt = strdup (DEFAULT_PROMPT);
   initialize_readline ();	/* Bind our completer. */
 
   /* Loop reading and executing lines until the user quits. */
   while (!done)
     {
-
-      line = readline ((char *) "pop3> ");
-
+      char *p = expand_prompt ();
+      line = readline (p);
+      free (p);
+      
       if (!line)
 	break;
 
@@ -268,7 +330,7 @@ main (int argc MU_ARG_UNUSED, char **argv)
 	  add_history (s);
 	  status = execute_line (s);
 	  if (status != 0)
-	    fprintf (stderr, "Error: %s\n", mu_strerror (status));
+	    mu_error ("Error: %s", mu_strerror (status));
 	}
 
       free (line);
@@ -300,8 +362,8 @@ execute_line (char *line)
 
   if (!command)
     {
-      fprintf (stderr, "%s: No such command for %s.\n", word, progname);
-      return (-1);
+      mu_error ("%s: No such command.", word);
+      return 0;
     }
 
   /* Get argument to command, if any. */
@@ -378,14 +440,20 @@ com_verbose (char *arg)
 int
 com_user (char *arg)
 {
+  int status;
+  
   if (!valid_argument ("user", arg))
     return EINVAL;
-  return mu_pop3_user (pop3, arg);
+  status = mu_pop3_user (pop3, arg);
+  if (status == 0)
+    username = strdup (arg);
+  return status;
 }
 
 int
 com_apop (char *arg)
 {
+  int status;
   char *user, *digest;
 
   if (!valid_argument ("apop", arg))
@@ -394,7 +462,13 @@ com_apop (char *arg)
   digest = strtok (NULL, " ");
   if (!valid_argument ("apop", user) || !valid_argument ("apop", digest))
     return EINVAL;
-  return mu_pop3_apop (pop3, user, digest);
+  status = mu_pop3_apop (pop3, user, digest);
+  if (status == 0)
+    {
+      username = strdup (user);
+      pop_session_status = pop_session_logged_in;
+    }
+  return status;
 }
 
 int
@@ -505,9 +579,32 @@ echo_on (struct termios *stored_settings)
 }
 
 int
+com_prompt (char *arg)
+{
+  int quote;
+  size_t size;
+  
+  if (!valid_argument ("prompt", arg))
+    return EINVAL;
+
+  free (prompt);
+  size = mu_argcv_quoted_length (arg, &quote);
+  prompt = malloc (size + 1);
+  if (!prompt)
+    {
+      mu_error ("Memory exhausted");
+      exit (1);
+    }
+  mu_argcv_unquote_copy (prompt, arg, size);
+  return 0;
+}
+
+int
 com_pass (char *arg)
 {
+  int status;
   char pass[256];
+  
   if (!arg || *arg == '\0')
     {
       struct termios stored_settings;
@@ -522,7 +619,10 @@ com_pass (char *arg)
       pass[strlen (pass) - 1] = '\0';	/* nuke the trailing line.  */
       arg = pass;
     }
-  return mu_pop3_pass (pop3, arg);
+  status = mu_pop3_pass (pop3, arg);
+  if (status == 0)
+    pop_session_status = pop_session_logged_in;
+  return status;
 }
 
 int
@@ -533,7 +633,7 @@ com_stat (char *arg MU_ARG_UNUSED)
 
   count = size = 0;
   status = mu_pop3_stat (pop3, &count, &size);
-  fprintf (stdout, "Mesgs: %d Size %d\n", count, size);
+  printf ("Mesgs: %d Size %d\n", count, size);
   return status;
 }
 
@@ -653,19 +753,74 @@ com_retr (char *arg)
 }
 
 int
+get_port (const char *port_str, int *pn)
+{
+  short port_num;
+  long num;
+  char *p;
+  
+  num = port_num = strtol (port_str, &p, 0);
+  if (*p == 0)
+    {
+      if (num != port_num)
+	{
+	  mu_error ("bad port number: %s", port_str);
+	  return 1;
+	}
+    }
+  else
+    {
+      struct servent *sp = getservbyname (port_str, "tcp");
+      if (!sp)
+	{
+	  mu_error ("unknown port name");
+	  return 1;
+	}
+      port_num = ntohs (sp->s_port);
+    }
+  *pn = port_num;
+  return 0;
+}
+
+int
 com_connect (char *arg)
 {
-  char host[256];
-  int port = 110;
   int status;
+  int n = 110;
+  int argc;
+  char **argv;
+  
   if (!valid_argument ("connect", arg))
     return 1;
-  *host = '\0';
-  sscanf (arg, "%256s %d", host, &port);
-  if (!valid_argument ("connect", host))
-    return EINVAL;
-  if (pop3)
+  
+  if (mu_argcv_get (arg, NULL, NULL, &argc, &argv))
+    {
+      mu_error ("Cannot parse arguments");
+      return 0;
+    }
+  
+  if (!valid_argument ("connect", argv[0]))
+    {
+      mu_argcv_free (argc, argv);
+      return EINVAL;
+    }
+  
+  if (argc > 2)
+    {
+      mu_error ("Too many arguments");
+      mu_argcv_free (argc, argv);
+      return 0;
+    }
+
+  if (argc == 2 && get_port (argv[1], &n))
+    {
+      mu_argcv_free (argc, argv);
+      return 0;
+    }
+  
+  if (pop_session_status != pop_session_disconnected)
     com_disconnect (NULL);
+  
   status = mu_pop3_create (&pop3);
   if (status == 0)
     {
@@ -674,8 +829,8 @@ com_connect (char *arg)
       if (verbose)
 	com_verbose ("on");
       status =
-	mu_tcp_stream_create (&tcp, host, port,
-			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
+	mu_tcp_stream_create (&tcp, argv[0], n,
+			      MU_STREAM_READ | MU_STREAM_NO_CHECK);
       if (status == 0)
 	{
 	  mu_pop3_set_carrier (pop3, tcp);
@@ -688,20 +843,35 @@ com_connect (char *arg)
 	}
     }
 
-  if (status != 0)
-    fprintf (stderr, "Failed to create pop3: %s\n", mu_strerror (status));
+  if (status)
+    {
+      mu_error ("Failed to create pop3: %s", mu_strerror (status));
+      mu_argcv_free (argc, argv);
+    }
+  else
+    {
+      connect_argc = argc;
+      connect_argv = argv;
+      port = n;
+      pop_session_status = pop_session_connected;
+    }
+  
   return status;
 }
 
 int
 com_disconnect (char *arg MU_ARG_UNUSED)
 {
-  (void) arg;
   if (pop3)
     {
       mu_pop3_disconnect (pop3);
       mu_pop3_destroy (&pop3);
       pop3 = NULL;
+      
+      mu_argcv_free (connect_argc, connect_argv);
+      connect_argc = 0;
+      connect_argv = NULL;
+      pop_session_status = pop_session_disconnected;
     }
   return 0;
 }
@@ -718,11 +888,11 @@ com_quit (char *arg MU_ARG_UNUSED)
 	}
       else
 	{
-	  fprintf (stdout, "Try 'exit' to leave %s\n", progname);
+	  printf ("Try 'exit' to leave %s\n", mu_program_name);
 	}
     }
   else
-    fprintf (stdout, "Try 'exit' to leave %s\n", progname);
+    printf ("Try 'exit' to leave %s\n", mu_program_name);
   return status;
 }
 
@@ -745,7 +915,7 @@ valid_argument (const char *caller, char *arg)
 {
   if (!arg || !*arg)
     {
-      fprintf (stderr, "%s: Argument required.\n", caller);
+      mu_error ("%s: Argument required", caller);
       return 0;
     }
 
