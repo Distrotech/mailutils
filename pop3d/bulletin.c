@@ -130,9 +130,17 @@ read_bulletin_db (size_t *pnum)
   rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_READ, 0660);
   if (rc)
     {
-      mu_error (_("Unable to open bulletin db for reading: %s"),
-		mu_strerror (errno));
-      return rc;
+      if (errno == ENOENT)
+	{
+	  *pnum = 0;
+	  return 0;
+	}
+      else
+	{
+	  mu_error (_("Unable to open bulletin db for reading: %s"),
+		    mu_strerror (errno));
+	  return rc;
+	}
     }
 
   memset (&key, 0, sizeof key);
