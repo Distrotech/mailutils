@@ -1,5 +1,10 @@
 2008-02-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* examples/pop3client.c: Implement variable expansions in the
+	prompt. 
+
+	* NEWS: Update.
+
 	* pop3d/bulletin.c (read_bulletin_db): Return success if db does
 	not exist.
 	* lib/strexit.c: New file.
