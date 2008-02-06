@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2007, 
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,18 +23,40 @@
 /* Default signal handler to call the imap4d_bye() function */
 
 RETSIGTYPE
-imap4d_signal (int signo)
+imap4d_master_signal (int signo)
 {
-  mu_diag_output (MU_DIAG_CRIT, _("Got signal %s"), strsignal (signo));
-  /* Master process.  */
-  if (util_is_master ())
+  int code;
+
+  mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal (%s)"),
+		  strsignal (signo));
+  switch (signo)
     {
-      mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal"));
-      exit (1);			/* abort(); */
+    case SIGTERM:
+    case SIGHUP:
+    case SIGQUIT:
+    case SIGINT:
+      code = EX_OK;
+      break;
+
+    default:
+      code = EX_SOFTWARE;
+      break;
     }
+
+  exit (code); 
+}
+
+RETSIGTYPE
+imap4d_child_signal (int signo)
+{
+  mu_diag_output (MU_DIAG_CRIT, _("Got signal `%s'"), strsignal (signo));
 
   switch (signo)
     {
+    case SIGTERM:
+    case SIGHUP:
+      imap4d_bye (ERR_TERMINATE);
+
     case SIGALRM:
       imap4d_bye (ERR_TIMEOUT);
 

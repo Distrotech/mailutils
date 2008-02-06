@@ -95,7 +95,7 @@ struct _mu_m_server
   
   int foreground;                /* Should the server remain in foregorund? */
   size_t max_children;           /* Maximum number of sub-processes to run. */
-  size_t num_children;               /* Current number of running sub-processes. */
+  size_t num_children;           /* Current number of running sub-processes. */
   pid_t *child_pid;
   char *pidfile;                 /* Name of a PID-file. */
   struct m_default_address defaddr;  /* Default address. */
@@ -105,6 +105,8 @@ struct _mu_m_server
   sigset_t sigmask;              /* A set of signals to handle by the
 				    m-server.  */
   mu_sig_handler_t sigtab[NSIG]; /* Keeps old signal handlers. */
+  const char *(*strexit) (int);  /* Convert integer exit code to textual
+				    description. */
 };
 
 struct m_srv_config        /* Configuration data for a single TCP server. */
@@ -125,22 +127,12 @@ static mu_list_t m_server_list;
 #define UNUSED_PID ((pid_t)-1)
 
 static void
-alloc_children (mu_m_server_t srv, size_t num)
+alloc_children (mu_m_server_t srv)
 {
   int i;
-  size_t size = num * sizeof (srv->child_pid[0]);
-  size_t last;
+  size_t size = srv->max_children * sizeof (srv->child_pid[0]);
   
-  if (srv->child_pid)
-    {
-      srv->child_pid = realloc (srv->child_pid, size);
-      last = srv->max_children;
-    }
-  else
-    {
-      srv->child_pid = malloc (size);
-      last = 0;
-    }
+  srv->child_pid = malloc (size);
   
   if (!srv->child_pid)
     {
@@ -148,10 +140,8 @@ alloc_children (mu_m_server_t srv, size_t num)
       abort ();
     }
   
-  for (i = last; i < num; i++)
+  for (i = 0; i < srv->max_children; i++)
     srv->child_pid[i] = UNUSED_PID;
-
-  srv->max_children = num;
 }
 
 static void
@@ -160,8 +150,6 @@ register_child (mu_m_server_t msrv, pid_t pid)
   int i;
   
   msrv->num_children++;
-  if (!msrv->child_pid)
-    alloc_children (msrv, msrv->max_children);
   for (i = 0; i < msrv->max_children; i++)
     if (msrv->child_pid[i] == UNUSED_PID)
       {
@@ -226,9 +214,17 @@ m_server_cleanup (void *item, void *data)
 	  int code = WEXITSTATUS (datp->status);
 	  if (code == 0)
 	    prio = MU_DIAG_DEBUG;
-	  mu_diag_output (prio, "process %lu finished with code %d",
-			  (unsigned long) datp->pid,
-			  code);
+	  if (msrv->strexit)
+	    mu_diag_output (prio,
+			    _("process %lu finished with code %d (%s)"),
+			    (unsigned long) datp->pid,
+			    code,
+			    msrv->strexit (code));
+	  else
+	    mu_diag_output (prio,
+			    _("process %lu finished with code %d"),
+			    (unsigned long) datp->pid,
+			    code);
 	}
       else if (WIFSIGNALED (datp->status))
 	mu_diag_output (MU_DIAG_ERR, "process %lu terminated on signal %d",
@@ -361,7 +357,7 @@ mu_m_server_set_data (mu_m_server_t srv, void *data)
 void
 mu_m_server_set_max_children (mu_m_server_t srv, size_t num)
 {
-  alloc_children (srv, num);
+  srv->max_children = num;
 }
 
 int
@@ -377,6 +373,12 @@ mu_m_server_set_foreground (mu_m_server_t srv, int enable)
 {
   srv->foreground = enable;
   return 0;
+}
+
+void
+mu_m_server_set_strexit (mu_m_server_t srv, const char *(*fun) (int))
+{
+  srv->strexit = fun;
 }
 
 int
@@ -507,6 +509,9 @@ mu_m_server_begin (mu_m_server_t msrv)
   int i, rc;
   size_t count = 0;
 
+  if (!msrv->child_pid)
+    alloc_children (msrv);
+
   mu_list_count (msrv->srvlist, &count);
   if (count == 0 && msrv->defaddr.len)
     add_server (msrv, &msrv->defaddr.s.s_sa, msrv->defaddr.len, msrv->deftype);
@@ -543,13 +548,19 @@ mu_m_server_begin (mu_m_server_t msrv)
 }
 
 void
-mu_m_server_end (mu_m_server_t msrv)
+mu_m_server_restore_signals (mu_m_server_t msrv)
 {
   int i;
   
   for (i = 0; i < NSIG; i++)
     if (sigismember (&msrv->sigmask, i))
       set_signal (i, msrv->sigtab[i]);
+}
+
+void
+mu_m_server_end (mu_m_server_t msrv)
+{
+  mu_m_server_restore_signals (msrv);
 }
 
 void
@@ -726,6 +737,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
       else if (pid == 0) /* Child.  */
 	{
 	  mu_ip_server_shutdown (srv); /* FIXME: does it harm for MU_IP_UDP? */
+	  mu_m_server_restore_signals (pconf->msrv);
 	  status = pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
 				      pconf->timeout, pconf->transcript);
 	  closelog ();

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 #include <signal.h>
 #include <mailutils/libsieve.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/nls.h>
 
 #define DEFAULT_SPAMD_PORT 783
 
@@ -319,20 +320,20 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   if (got_sigpipe)
     {
-      mu_sieve_error (mach, "remote side has closed connection");
+      mu_sieve_error (mach, _("remote side has closed connection"));
       spamd_abort (mach, &stream, handler);
     }
 
   if (sscanf (buffer, "SPAMD/%18s %d %*s", version_str, &response) != 2)
     {
-      mu_sieve_error (mach, "spamd responded with bad string '%s'", buffer);
+      mu_sieve_error (mach, _("spamd responded with bad string '%s'"), buffer);
       spamd_abort (mach, &stream, handler);
     }
   
   decode_float (&version, version_str, 1);
   if (version < 10)
     {
-      mu_sieve_error (mach, "unsupported SPAMD version: %s", version_str);
+      mu_sieve_error (mach, _("unsupported SPAMD version: %s"), version_str);
       spamd_abort (mach, &stream, handler);
     }
 
@@ -345,7 +346,8 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (sscanf (buffer, "Spam: %5s ; %20s / %20s",
 	      spam_str, score_str, threshold_str) != 3)
     {
-      mu_sieve_error (mach, "spamd responded with bad Spam header '%s'", buffer);
+      mu_sieve_error (mach, _("spamd responded with bad Spam header '%s'"), 
+                      buffer);
       spamd_abort (mach, &stream, handler);
     }
 
@@ -376,7 +378,8 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   rc = mu_message_get_header (msg, &hdr);
   if (rc)
     {
-      mu_sieve_error (mach, "cannot get message header: %s", mu_strerror (rc));
+      mu_sieve_error (mach, _("cannot get message header: %s"), 
+                      mu_strerror (rc));
       spamd_abort (mach, &stream, handler);
     }
 

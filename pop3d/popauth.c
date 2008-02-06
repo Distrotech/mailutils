@@ -115,7 +115,7 @@ set_db_perms (struct argp_state *astate, char *opt, int *pperm)
       if (*p)
 	{
 	  argp_error (astate, _("Invalid octal number: %s"), opt);
-	  exit (1);
+	  exit (EX_USAGE);
 	}
     }
   *pperm = perm;
@@ -205,7 +205,7 @@ main(int argc, char **argv)
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, popauth_argp_capa, NULL,
 		   argc, argv, 0, NULL, &adata))
-    exit (1);
+    exit (EX_USAGE);
 
   return (*ftab[adata.action]) (&adata);
 }
@@ -216,7 +216,7 @@ check_action (int action)
   if (action != -1)
     {
       mu_error (_("You may not specify more than one `-aldp' option"));
-      exit (1);
+      exit (EX_USAGE);
     }
 }
 
@@ -239,15 +239,16 @@ check_user_perm (int action, struct action_data *ap)
 	    {
 	      mu_error (_("Cannot create %s: %s"),
 			ap->input_name, mu_strerror (errno));
-	      exit (1);
+	      exit (EX_SOFTWARE);
 	    }
 	  mu_dbm_close (db);
 	  mu_dbm_stat (ap->input_name, &sb);
 	}
       else
 	{
-	  mu_error (_("Cannot stat %s: %s"), ap->input_name, mu_strerror (errno));
-	  exit (1);
+	  mu_error (_("Cannot stat %s: %s"), ap->input_name, 
+                    mu_strerror (errno));
+	  exit (EX_OSERR);
 	}
     }
 
@@ -258,17 +259,17 @@ check_user_perm (int action, struct action_data *ap)
   if (ap->username)
     {
       mu_error (_("Only the file owner can use --username"));
-      exit (1);
+      exit (EX_USAGE);
     }
 
   if (action != ACT_CHPASS)
     {
       mu_error (_("Operation not allowed"));
-      exit (1);
+      exit (EX_USAGE);
     }
   pw = getpwuid (uid);
   if (!pw)
-    exit (1);
+    exit (EX_OSERR);
   ap->username = pw->pw_name;
   return 1;
 }
@@ -451,7 +452,7 @@ fill_pass (struct action_data *ap)
 	  free (ap->passwd);
 	p = getpass (_("Password:"));
 	if (!p)
-	  exit (1);
+	  exit (EX_DATAERR);
 	ap->passwd = strdup (p);
 	/* TRANSLATORS: Please try to format this string so that it has
 	   the same length as the translation of 'Password:' above */
@@ -598,5 +599,5 @@ popauth_version (FILE *stream, struct argp_state *state)
   printf ("%s\n", argp_program_version);
   printf (_("Database format: %s\n"), FORMAT);
   printf (_("Database location: %s\n"), APOP_PASSFILE);
-  exit (EXIT_SUCCESS);
+  exit (EX_OK);
 }

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ imap4d_bye (int reason)
 int
 imap4d_bye0 (int reason, struct imap4d_command *command)
 {
-  int status = EXIT_FAILURE;
+  int status = EX_SOFTWARE;
 
   if (mbox)
     {
@@ -40,8 +40,14 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
   switch (reason)
     {
     case ERR_NO_MEM:
-      util_out (RESP_BYE, "Server terminating no more resources.");
+      util_out (RESP_BYE, "Server terminating: no more resources.");
       mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
+      break;
+
+    case ERR_TERMINATE:
+      status = EX_OK;
+      util_out (RESP_BYE, "Server terminating on request.");
+      mu_diag_output (MU_DIAG_NOTICE, _("Terminating on request"));
       break;
 
     case ERR_SIGNAL:
@@ -49,6 +55,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       exit (status);
 
     case ERR_TIMEOUT:
+      status = EX_TEMPFAIL;
       util_out (RESP_BYE, "Session timed out");
       if (state == STATE_NONAUTH)
         mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
@@ -57,20 +64,22 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       break;
 
     case ERR_NO_OFILE:
+      status = EX_IOERR;
       mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
       break;
 
     case ERR_MAILBOX_CORRUPTED:
+      status = EX_OSERR;
       mu_diag_output (MU_DIAG_ERROR, _("Mailbox modified by third party"));
       break;
       
     case OK:
+      status = EX_OK;
       util_out (RESP_BYE, "Session terminating.");
       if (state == STATE_NONAUTH)
 	mu_diag_output (MU_DIAG_INFO, _("Session terminating"));
       else
 	mu_diag_output (MU_DIAG_INFO, _("Session terminating for user: %s"), auth_data->name);
-      status = EXIT_SUCCESS;
       break;
 
     default:
@@ -79,7 +88,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       break;
     }
 
-  if (status == EXIT_SUCCESS && command)
+  if (status == EX_OK && command)
      util_finish (command, RESP_OK, "Completed");
 
   util_bye ();

@@ -118,6 +118,7 @@ typedef struct _mu_m_server *mu_m_server_t;
           (MU_FOLDER_ATTRIBUTE_DIRECTORY|MU_FOLDER_ATTRIBUTE_FILE)
 
 #define mu_offsetof(s,f) ((size_t)&((s*)0)->f)
+#define MU_ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
   
 #ifdef __cplusplus
 }

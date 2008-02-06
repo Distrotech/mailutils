@@ -26,6 +26,7 @@
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
+#include <muaux.h>
 
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"
@@ -137,6 +138,7 @@ extern int expire_on_exit;
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <sysexits.h>
 
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
@@ -198,13 +200,17 @@ extern int expire_on_exit;
 #define ERR_NO_MEM	10
 #define ERR_SIGNAL	11
 #define ERR_FILE        12
-#define ERR_NO_OFILE    13
-#define ERR_TIMEOUT	14
-#define ERR_UNKNOWN	15
-#define ERR_MBOX_SYNC   16
-#define ERR_TLS_ACTIVE  17
-#define ERR_TLS_IO      18
-#define ERR_LOGIN_DELAY 19
+#define ERR_NO_IFILE    13
+#define ERR_NO_OFILE    14
+#define ERR_IO          15
+#define ERR_PROTO       16
+#define ERR_TIMEOUT	17
+#define ERR_UNKNOWN	18
+#define ERR_MBOX_SYNC   19
+#define ERR_TLS_ACTIVE  20
+#define ERR_TLS_IO      21
+#define ERR_LOGIN_DELAY 22
+#define ERR_TERMINATE   23
 
 typedef struct mu_pop_server *mu_pop_server_t;
 
@@ -244,7 +250,9 @@ extern int pop3d_retr           (const char *);
 extern int pop3d_rset           (const char *);
 extern void process_cleanup     (void);
 
-extern RETSIGTYPE pop3d_signal  (int);
+extern RETSIGTYPE pop3d_master_signal  (int);
+extern RETSIGTYPE pop3d_child_signal  (int);
+
 extern int pop3d_stat           (const char *);
 #ifdef WITH_TLS
 extern int pop3d_stls           (const char *);

@@ -291,11 +291,10 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   int status = OK;
   char buffer[512];
-    
-  /* Reset hup to exit.  */
-  signal (SIGHUP, pop3d_signal);
-  /* Timeout alarm.  */
-  signal (SIGALRM, pop3d_signal);
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
+			  SIGABRT, SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM };
+
+  mu_set_signals (pop3d_child_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
   pop3d_setio (infile, outfile);
 
@@ -443,7 +442,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   pop3d_bye ();
 
-  return (status != OK);
+  return status;
 }
 
 int
@@ -461,6 +460,8 @@ main (int argc, char **argv)
 {
   struct group *gr;
   int status = OK;
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
+			  SIGABRT };
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -486,10 +487,11 @@ main (int argc, char **argv)
   /* FIXME mu_m_server_set_pidfile (); */
   mu_m_server_set_default_port (server, 110);
   mu_m_server_set_timeout (server, 600);
-    
+  mu_m_server_set_strexit (server, mu_strexit);
+  
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
 		   argc, argv, 0, NULL, server))
-    exit (1);
+    exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
 
   if (expire == 0)
     expire_on_exit = 1;
@@ -506,31 +508,32 @@ main (int argc, char **argv)
     }
   else
     {
+      errno = 0;
       gr = getgrnam ("mail");
       if (gr == NULL)
 	{
-	  perror (_("Error getting mail group"));
-	  exit (EXIT_FAILURE);
+	  if (errno == 0 || errno == ENOENT)
+            {
+               mu_error (_("%s: No such group"), "mail");
+               exit (EX_CONFIG);
+            }
+          else
+            {
+	       mu_error (_("Error getting mail group: %s"), 
+                         mu_strerror (errno));
+	       exit (EX_OSERR);
+            }
 	}
 
       if (setgid (gr->gr_gid) == -1)
 	{
-	  perror (_("Error setting mail group"));
-	  exit (EXIT_FAILURE);
+	  mu_error (_("Error setting mail group: %s"), mu_strerror (errno));
+	  exit (EX_OSERR);
 	}
     }
 
   /* Set the signal handlers.  */
-  signal (SIGINT, pop3d_signal);
-  signal (SIGQUIT, pop3d_signal);
-  signal (SIGILL, pop3d_signal);
-  signal (SIGBUS, pop3d_signal);
-  signal (SIGFPE, pop3d_signal);
-  signal (SIGSEGV, pop3d_signal);
-  signal (SIGTERM, pop3d_signal);
-  signal (SIGSTOP, pop3d_signal);
-  signal (SIGPIPE, pop3d_signal);
-  signal (SIGABRT, pop3d_signal);
+  mu_set_signals (pop3d_master_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
   /* Set up for syslog.  */
   openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
@@ -573,6 +576,6 @@ main (int argc, char **argv)
     mu_error (_("Main loop status: %s"), mu_strerror (status));	  
   /* Close the syslog connection and exit.  */
   closelog ();
-  return (OK != status);
+  return status ? EX_SOFTWARE : EX_OK;
 }
 

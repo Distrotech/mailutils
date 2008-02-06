@@ -106,6 +106,7 @@ void mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
 void mu_m_server_set_timeout (mu_m_server_t srv, time_t t);
 void mu_m_server_set_mode (mu_m_server_t srv, int mode);
 void mu_m_server_set_sigset (mu_m_server_t srv, sigset_t *sigset);
+void mu_m_server_set_strexit (mu_m_server_t srv, const char *(*fun) (int));
 
 int mu_m_server_mode (mu_m_server_t srv);
 int mu_m_server_foreground (mu_m_server_t srv);

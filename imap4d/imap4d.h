@@ -69,6 +69,7 @@
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
+#include <sysexits.h>
 
 #include "xalloc.h"
 
@@ -101,6 +102,7 @@
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
+#include <muaux.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -142,6 +144,7 @@ struct imap4d_command
 #define ERR_SIGNAL            4
 #define ERR_TLS               5
 #define ERR_MAILBOX_CORRUPTED 6
+#define ERR_TERMINATE         7
   
 /* Namespace numbers */
 #define NS_PRIVATE 0
@@ -243,8 +246,8 @@ extern size_t uid_to_msgno (size_t);
 extern void imap4d_set_observer (mu_mailbox_t mbox);
   
 /* Signal handling.  */
-extern RETSIGTYPE imap4d_sigchld (int);
-extern RETSIGTYPE imap4d_signal (int);
+extern RETSIGTYPE imap4d_master_signal (int);
+extern RETSIGTYPE imap4d_child_signal (int);
 extern int imap4d_bye (int);
 extern int imap4d_bye0 (int reason, struct imap4d_command *command);
 

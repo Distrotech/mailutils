@@ -90,6 +90,8 @@ pop3d_cmd (const char *cmd)
 int
 pop3d_abquit (int reason)
 {
+  int code;
+  
   /* Unlock spool */
   if (state != AUTHORIZATION)
     {
@@ -102,52 +104,85 @@ pop3d_abquit (int reason)
   switch (reason)
     {
     case ERR_NO_MEM:
+      code = EX_SOFTWARE;
       pop3d_outf ("-ERR Out of memory, quitting\r\n");
       mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
       break;
 
     case ERR_SIGNAL:
+      code = EX_SOFTWARE;
       mu_diag_output (MU_DIAG_ERROR, _("Quitting on signal"));
       break;
 
+    case ERR_TERMINATE:
+      code = EX_OK;
+      mu_diag_output (MU_DIAG_NOTICE, _("Terminating on request"));
+      break;
+
     case ERR_TIMEOUT:
+      code = EX_TEMPFAIL;
       pop3d_outf ("-ERR Session timed out\r\n");
       if (state == TRANSACTION)
-	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"), username);
+	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"),
+			username);
       else
 	mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
       break;
 
+    case ERR_NO_IFILE:
+      code = EX_NOINPUT;
+      mu_diag_output (MU_DIAG_INFO, _("No input stream"));
+      break;
+
     case ERR_NO_OFILE:
+      code = EX_IOERR;
       mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
       break;
 
+    case ERR_PROTO:
+      code = EX_PROTOCOL;
+      mu_diag_output (MU_DIAG_INFO, _("Remote protocol error"));
+      break;
+
+    case ERR_IO:
+      code = EX_IOERR;
+      mu_diag_output (MU_DIAG_INFO, _("I/O error"));
+      break;
+
     case ERR_MBOX_SYNC:
-      mu_diag_output (MU_DIAG_ERROR, _("Mailbox was updated by other party: %s"), username);
+      code = EX_OSERR; /* FIXME: This could be EX_SOFTWARE as well? */
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("Mailbox was updated by other party: %s"),
+		      username);
       pop3d_outf
 	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
+      code = EX_SOFTWARE;
       pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
-      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"), reason);
+      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"),
+		      reason);
       break;
     }
 
   closelog ();
-  exit (EXIT_FAILURE);
+  exit (code);
 }
 
 void
 pop3d_setio (FILE *in, FILE *out)
 {
-  if (!in || !out)
+  if (!in)
+    pop3d_abquit (ERR_NO_IFILE);
+  if (!out)
     pop3d_abquit (ERR_NO_OFILE);
 
   setvbuf (in, NULL, _IOLBF, 0);
   setvbuf (out, NULL, _IOLBF, 0);
-  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
-      || mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE))
+    pop3d_abquit (ERR_NO_IFILE);
+  if (mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_OFILE);
 }
 
@@ -243,7 +278,7 @@ pop3d_outf (const char *fmt, ...)
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
       mu_diag_output (MU_DIAG_ERROR, _("Write failed: %s"), p);
-      pop3d_abquit (ERR_NO_OFILE);
+      pop3d_abquit (ERR_IO);
     }
 }
 
@@ -265,17 +300,21 @@ pop3d_readline (char *buffer, size_t size)
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
       mu_diag_output (MU_DIAG_ERROR, _("Read failed: %s"), p);
-      pop3d_abquit (ERR_NO_OFILE);
+      pop3d_abquit (ERR_IO);
     }
   else if (nbytes == 0)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("unexpected eof on input"));
-      pop3d_abquit (ERR_NO_OFILE);
+      /* After a failed authorization attempt many clients simply disconnect
+	 without issuing QUIT. We do not count this as a protocol error. */
+      if (state == AUTHORIZATION)
+	exit (EX_OK);
+
+      mu_diag_output (MU_DIAG_ERROR, _("Unexpected eof on input"));
+      pop3d_abquit (ERR_PROTO);
     }
 
   transcript ("recv", buffer);
 
-  /* Caller should not free () this ... should we strdup() then?  */
   return buffer;
 }
 

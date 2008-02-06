@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1059,16 +1059,20 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
   buflen--; /* Account for the terminating nul */
 
   mu_hdrent_fixup (header, ent);
+  strsize = MU_STR_SIZE (ent->nlen, ent->vlen) - ent_off;
   start = MU_HDRENT_NAME (header, ent) + ent_off;
   end = strchr (start, '\n');
   if (end)
-    strsize = end - start + 1;
-  else
-    strsize = strlen (start);
+    {
+      size_t len = end - start + 1;
+      if (len < strsize)
+	strsize = len;
+    }
+
   if (strsize < buflen)
     buflen = strsize;
   
-  memcpy (buffer, MU_HDRENT_NAME (header, ent) + ent_off, buflen);
+  memcpy (buffer, start, buflen);
   buffer[buflen] = 0;
   mu_hdrent_unroll_fixup (header, ent);
   if (pnread)

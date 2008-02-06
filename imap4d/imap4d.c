@@ -372,12 +372,12 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   char *text;
   int debug_mode = isatty (fd);
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
+			  SIGABRT, SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM };
 
-  /* Reset hup to exit. */
-  signal (SIGHUP, imap4d_signal);
-  /* Timeout alarm. */
-  signal (SIGALRM, imap4d_signal);
-
+  /* Reset signals */
+  mu_set_signals (imap4d_child_signal, sigtab, MU_ARRAY_SIZE (sigtab));
+  
   util_setio (infile, outfile);
 
   if (imap4d_preauth_setup (fd) == 0)
@@ -393,7 +393,7 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
   else
     {
       util_flush_output ();
-      return EXIT_SUCCESS;
+      return 0;
     }
 
   /* Greetings.  */
@@ -411,7 +411,7 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
       util_flush_output ();
     }
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 int
@@ -458,7 +458,9 @@ int
 main (int argc, char **argv)
 {
   struct group *gr;
-  int status = EXIT_SUCCESS;
+  int status = 0;
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
+			  SIGABRT };
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -490,10 +492,11 @@ main (int argc, char **argv)
   /* FIXME mu_m_server_set_pidfile (); */
   mu_m_server_set_default_port (server, 143);
   mu_m_server_set_timeout (server, 1800);  /* RFC2060: 30 minutes. */
+  mu_m_server_set_strexit (server, mu_strexit);
   
   if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
 		   argc, argv, 0, NULL, server))
-    exit (1);
+    exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
 
   if (login_disabled)
     imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
@@ -514,32 +517,32 @@ main (int argc, char **argv)
     {
       /* Normal operation: */
       /* First we want our group to be mail so we can access the spool.  */
+      errno = 0;
       gr = getgrnam ("mail");
       if (gr == NULL)
 	{
-	  perror (_("Error getting mail group"));
-	  exit (1);
+	  if (errno == 0 || errno == ENOENT)
+            {
+               mu_error (_("%s: No such group"), "mail");
+               exit (EX_CONFIG);
+            }
+          else
+            {
+	       mu_error (_("Error getting mail group: %s"), 
+                         mu_strerror (errno));
+	       exit (EX_OSERR);
+            }
 	}
 
       if (setgid (gr->gr_gid) == -1)
 	{
-	  perror (_("Error setting mail group"));
-	  exit (1);
+	  mu_error (_("Error setting mail group: %s"), mu_strerror (errno));
+	  exit (EX_OSERR);
 	}
     }
 
   /* Set the signal handlers.  */
-  signal (SIGINT, imap4d_signal);
-  signal (SIGQUIT, imap4d_signal);
-  signal (SIGILL, imap4d_signal);
-  signal (SIGBUS, imap4d_signal);
-  signal (SIGFPE, imap4d_signal);
-  signal (SIGSEGV, imap4d_signal);
-  signal (SIGTERM, imap4d_signal);
-  signal (SIGSTOP, imap4d_signal);
-  signal (SIGPIPE, imap4d_signal);
-  /*signal (SIGPIPE, SIG_IGN); */
-  signal (SIGABRT, imap4d_signal);
+  mu_set_signals (imap4d_master_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
   /* Set up for syslog.  */
   openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
@@ -582,6 +585,6 @@ main (int argc, char **argv)
   /* Close the syslog connection and exit.  */
   closelog ();
 
-  return status != 0;
+  return status ? EX_SOFTWARE : EX_OK;
 }
 

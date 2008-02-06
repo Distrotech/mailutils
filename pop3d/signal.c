@@ -19,22 +19,37 @@
 
 #include "pop3d.h"
 
-
 /* Default signal handler to call the pop3d_abquit() function */
 
 RETSIGTYPE
-pop3d_signal (int signo)
+pop3d_master_signal (int signo)
+{
+  int code;
+  mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal (%s)"),
+		  strsignal (signo));
+  switch (signo)
+    {
+    case SIGTERM:
+    case SIGHUP:
+    case SIGQUIT:
+    case SIGINT:
+      code = EX_OK;
+      break;
+
+    default:
+      code = EX_SOFTWARE;
+      break;
+    }
+  
+  exit (code); 
+}
+
+RETSIGTYPE
+pop3d_child_signal (int signo)
 {
   int code;
   
-  mu_diag_output (MU_DIAG_CRIT, _("Got signal %s"), strsignal (signo));
-
-  /* Master process.  */
-  if (pop3d_is_master ())
-    {
-       mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal"));
-       exit (EXIT_FAILURE); 
-    }
+  mu_diag_output (MU_DIAG_CRIT, _("Got signal `%s'"), strsignal (signo));
 
   switch (signo)
     {
@@ -44,6 +59,11 @@ pop3d_signal (int signo)
       
     case SIGPIPE:
       code = ERR_NO_OFILE;
+      break;
+
+    case SIGTERM:
+    case SIGHUP:
+      code = ERR_TERMINATE;
       break;
       
     default:

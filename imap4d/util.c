@@ -1007,7 +1007,7 @@ util_localname ()
       if (status)
 	{
 	  mu_diag_output (MU_DIAG_CRIT, _("Cannot find out my own hostname"));
-	  exit (1);
+	  exit (EX_OSERR);
 	}
 
       hp = gethostbyname (name);

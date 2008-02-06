@@ -1,5 +1,9 @@
 2008-02-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* pop3d/extra.c (pop3d_readline): After a failed authorization
+	attempt many clients simply disconnect without issuing QUIT. 
+	Do not count this as a protocol error.    
+
 	* NEWS: Update.
 	* imap4d/bye.c, imap4d/starttls.c, imap4d/util.c: Use exit codes
 	from sysexits.h
