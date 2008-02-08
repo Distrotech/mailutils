@@ -1,3 +1,8 @@
+2008-02-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* comsat/action.c (act_getline): Bugfix. Do not return eof
+	on an empty line. Reported by Damon Harper.
+
 2008-02-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/pop3client.c: Implement variable expansions in the
