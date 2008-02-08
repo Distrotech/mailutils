@@ -48,17 +48,20 @@ act_getline (FILE *fp, char **sptr, size_t *size)
   size_t used = 0;
   unsigned lines = 0;
   
+  if (feof (fp))
+    return 0;
+  
   while (cont && fgets (buf, sizeof buf, fp))
     {
       int len = strlen (buf);
       if (buf[len-1] == '\n')
 	{
+	  lines++;
 	  buf[--len] = 0;
 	  if (buf[len-1] == '\\')
 	    {
 	      buf[--len] = 0;
 	      cont = 1;
-	      lines++;
 	    }
 	  else
 	    cont = 0;
@@ -80,8 +83,6 @@ act_getline (FILE *fp, char **sptr, size_t *size)
   if (*sptr)
     (*sptr)[used] = 0;
 
-  if (used && !feof (fp))
-    lines++;
   return lines;
 }
 
