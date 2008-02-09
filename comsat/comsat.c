@@ -122,7 +122,7 @@ struct mu_cfg_param comsat_cfg_param[] = {
   { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
     N_("Read .biffrc file from the user home directory") },
   { "require-tty", mu_cfg_bool, &require_tty, 0, NULL,
-    N_("Notify only if the user be logged on one of the ttys.") },
+    N_("Notify only if the user is logged on one of the ttys.") },
   { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
     N_("Maximum number of message body lines to be output.") },
   { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,

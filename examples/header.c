@@ -334,6 +334,25 @@ cmd_iterate (int argc, char **argv)
     }
 }
 
+void
+cmd_readline (int argc, char **argv)
+{
+  char *buf;
+  size_t size;
+  mu_stream_t stream;
+  size_t nbytes;
+  
+  if (check_args (argv[0], argc, 1, 2))
+    return;
+  size = atoi (argv[1]);
+  buf = malloc (size);
+  if (!buf)
+    abort ();
+  mu_header_get_stream (header, &stream);
+  mu_stream_readline (stream, buf, size, 0, &nbytes);
+  printf ("\"%*.*s\"", nbytes, nbytes, buf);
+  free (buf);
+}
   
 
 struct cmdtab
@@ -354,6 +373,7 @@ static struct cmdtab cmdtab[] = {
     "find and print the Nth (by default, 1st) instance of header named NAME" },
   { "dump", cmd_dump, NULL, "dump all headers on screen" },
   { "itr", cmd_iterate, "[first|1|next|n]", "iterate over headers" },
+  { "readline", cmd_readline, "[SIZE]", "read line" },
   { "remove", cmd_remove, "NAME [N]",
     "remove the Nth (by default, 1st) instance of header named NAME" },
   { "insert", cmd_insert, "NAME VALUE [REF [NUM] [before|after] [replace]]",

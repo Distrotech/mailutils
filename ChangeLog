@@ -1,3 +1,11 @@
+2008-02-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* comsat/comsat.c (comsat_cfg_param): Reword a help message
+	for require-tty.
+	* examples/header.c (cmd_readline): New function.
+	New command 'readline'.
+	* po/POTFILES.in: Remove stray reference to muerrno.c
+
 2008-02-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/action.c (act_getline): Bugfix. Do not return eof

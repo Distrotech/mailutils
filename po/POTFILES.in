@@ -150,7 +150,6 @@ mailbox/ipsrv.c
 mailbox/message.c
 mailbox/msrv.c
 mailbox/mu_auth.c
-mailbox/muerrno.c
 mailbox/mutil.c
 mailbox/parsedate.y
 mailbox/registrar.c
