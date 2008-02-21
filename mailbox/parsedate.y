@@ -126,12 +126,13 @@ struct pd_date
 };
 
 #define DATE_INIT(date) memset(&(date), 0, sizeof(date))
-#define DATE_SET(date, memb, m, val, lim, onerror) \
- do                                                \
-   {                                               \
-     if (val < 0 || (lim && val >= lim)) onerror;  \
-     date . memb = val; date.mask |= m;            \
-   }                                               \
+#define DATE_SET(date, memb, m, val, lim, onerror)                        \
+ do                                                                       \
+   {                                                                      \
+     int __x = val;                                                       \
+     if (((m) != PD_MASK_TZ && __x < 0) || (lim && __x >= lim)) onerror;  \
+     date . memb = __x; date.mask |= m;                                   \
+   }                                                                      \
  while (0)
    
 #define __SET_SECOND(d,v,a)   DATE_SET(d,second,PD_MASK_SECOND,v,60,a)
@@ -313,6 +314,7 @@ time	: T_UNUMBER T_MERIDIAN
 	    SET_TZ ($$, ($4 < 0
 			   ? -$4 % 100 + (-$4 / 100) * 60
 			   : - ($4 % 100 + ($4 / 100) * 60)));
+
 	  }
 	| T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER o_merid
           {
@@ -1190,8 +1192,7 @@ main (int argc, char *argv[])
   buff[MAX_BUFF_LEN] = 0;
   while (fgets (buff, MAX_BUFF_LEN, stdin) && buff[0])
     {
-      d = get_date (buff, (time_t *) NULL);
-      if (d == -1)
+      if (mu_parse_date (buff, &d, NULL))
 	printf ("Bad format - couldn't convert.\n");
       else
 	printf ("%s", ctime (&d));
