@@ -57,6 +57,11 @@ AM_LDFLAGS = \
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
+aclck_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+
 argcv_LDADD =\
  ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}
