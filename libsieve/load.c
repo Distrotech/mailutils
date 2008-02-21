@@ -42,6 +42,8 @@ _free_loaded_module (void *data)
 }
 #endif
 
+static int _add_load_dir (void *, void *);
+
 static int
 sieve_init_load_path ()
 {
