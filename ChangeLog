@@ -1,3 +1,10 @@
+2008-02-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libsieve/load.c: Add forward declaration of _add_load_dir
+	* mailbox/parsedate.y (DATE_SET): Fix bug introduced 2008-01-02:
+	val can sometimes be negative.
+	* examples/Makefile.am (aclck_LDADD): Define.
+
 2008-02-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/comsat.c (comsat_cfg_param): Reword a help message
