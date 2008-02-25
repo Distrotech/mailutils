@@ -61,10 +61,34 @@ aclck_LDADD =\
  ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}
 
-
 argcv_LDADD =\
  ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}
+
+base64_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+decode2047_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+echosrv_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+encode2047_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+header_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
+listop_LDADD =\
+ ../lib/libmuaux.la\
+ ${MU_LIB_MAILUTILS}
+
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ${MU_LIB_SIEVE}
