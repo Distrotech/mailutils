@@ -632,10 +632,10 @@ mu_parse_config (const char *file, const char *progname,
 	{
 	  rc = mu_get_config (full_name, progname, progparam, flags,
 			      target_ptr);
-	  free (full_name);
 	}
       else
 	rc = ENOENT;
+      free (full_name);
     }
   else
     rc = ENOMEM;
