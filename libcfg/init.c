@@ -87,15 +87,23 @@ int
 mu_parse_config_files (struct mu_cfg_param *param, void *target)
 {
   int flags = 0;
-
+  int rc;
+  
   if (mu_cfg_parser_verbose)
     flags |= MU_PARSE_CONFIG_VERBOSE;
   if (mu_cfg_parser_verbose > 1)
     flags |= MU_PARSE_CONFIG_DUMP;
   
   if (mu_load_site_rcfile)
-    mu_parse_config (MU_CONFIG_FILE, mu_program_name, param,
-		     flags | MU_PARSE_CONFIG_GLOBAL, target);
+    {
+      rc = mu_parse_config (MU_CONFIG_FILE, mu_program_name, param,
+			    flags | MU_PARSE_CONFIG_GLOBAL, target);
+      if (rc == ENOMEM)
+	{
+	  mu_error ("%s", mu_strerror (rc));
+	  return rc;
+	}
+    }
 
   if (mu_load_user_rcfile && mu_program_name)
     {
@@ -106,14 +114,29 @@ mu_parse_config_files (struct mu_cfg_param *param, void *target)
 	  strcpy (file_name, "~/.");
 	  strcat (file_name, mu_program_name);
 
-	  mu_parse_config (file_name, mu_program_name, param, flags, target);
+	  rc = mu_parse_config (file_name, mu_program_name, param, flags,
+				target);
+	  if (rc == ENOMEM)
+	    {
+	      mu_error ("%s", mu_strerror (rc));
+	      return rc;
+	    }
 
 	  free (file_name);
 	}
     }
 
   if (mu_load_rcfile)
-    mu_parse_config (mu_load_rcfile, mu_program_name, param, flags, target);
-  
+    {
+      rc = mu_parse_config (mu_load_rcfile, mu_program_name, param,
+			    flags, target);
+      if (rc)
+	{
+	  mu_error (_("Cannot open file %s: %s"), mu_load_rcfile,
+		    mu_strerror (rc));
+	  return rc;
+	}
+    }
+	
   return 0;
 }
