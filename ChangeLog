@@ -1,3 +1,8 @@
+2008-02-26  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libcfg/init.c: Fix error reporting.
+	* mailbox/cfg_driver.c (mu_parse_config): Fix memory leek.
+
 2008-02-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/load.c: Add forward declaration of _add_load_dir
