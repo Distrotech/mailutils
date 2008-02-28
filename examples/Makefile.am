@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2003, 2004, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2004, 2007, 2008 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -53,42 +53,10 @@ mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
-AM_LDFLAGS = \
+LDADD = \
+ ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
-
-aclck_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-argcv_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-base64_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-decode2047_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-echosrv_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-encode2047_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-header_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
-listop_LDADD =\
- ../lib/libmuaux.la\
- ${MU_LIB_MAILUTILS}
-
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ${MU_LIB_SIEVE}
@@ -160,4 +128,7 @@ muauth_LDADD = \
  @MU_AUTHLIBS@ \
  ${MU_LIB_MAILUTILS}
 
-muemail_LDADD = ${MU_APP_LIBRARIES}
+muemail_LDADD = \
+ ${MU_APP_LIBRARIES} \
+ ${MU_LIB_MAILUTILS}
+
