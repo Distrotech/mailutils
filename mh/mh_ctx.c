@@ -116,7 +116,7 @@ mh_context_read (mh_context_t *ctx)
       if (!*q || *q == '#')
 	continue;
       
-      while (*q)
+      for (q = buf; *q;)
 	*p++ = *q++;
     }
   fclose (fp);
