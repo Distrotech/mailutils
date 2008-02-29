@@ -223,9 +223,13 @@ mh_whom (const char *filename, int check)
 
   mh_read_aliases ();
   ctx = mh_context_create (filename, 1);
-  if (mh_context_read (ctx))
+  if ((rc = mh_context_read (ctx)))
     {
-      mu_error (_("Malformed message"));
+      if (rc == ENOENT)
+	mu_error ("%s: %s", filename, mu_strerror (rc));
+      else
+	mu_error ("%s: %s (%s)", filename, _("Malformed message"),
+		  mu_strerror (rc));
       rc = -1;
     }
   else
