@@ -402,7 +402,7 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
   mu_mailbox_get_url (mbox, &url);
   
   fprintf (fp, "<<%s>> %s %s\n",
-	   program_invocation_short_name,
+	   mu_program_name,
 	   date,
 	   mu_url_to_string (url));
   return fp;

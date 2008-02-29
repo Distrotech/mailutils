@@ -123,7 +123,7 @@ mh_help (struct mh_option *mh_opt, const char *doc)
   struct mh_option *p;
 
   printf (_("Compatibility syntax:\n"));
-  printf (_("%s [switches] %s\n"), program_invocation_short_name, doc);
+  printf (_("%s [switches] %s\n"), mu_program_name, doc);
   printf (_("  switches are:\n"));
   
   for (p = mh_opt; p->opt; p++)
@@ -148,5 +148,5 @@ mh_help (struct mh_option *mh_opt, const char *doc)
   printf ("  -version\n");
   printf (_("\nPlease use GNU long options instead.\n"
             "Run %s --help for more info on these.\n"),
-            program_invocation_short_name);
+            mu_program_name);
 }

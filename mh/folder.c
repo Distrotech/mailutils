@@ -943,7 +943,7 @@ main (int argc, char **argv)
 
   /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
      `-all'  is  assumed */
-  if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
+  if (mu_program_name[strlen (mu_program_name) - 1] == 's')
     show_all = 1;
   
   if (has_folder)

@@ -1,3 +1,9 @@
+2008-03-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mh/folder.c, mh/mh_argp.c, mh/mh_getopt.c, mh/mh_init.c,
+	mh/rmf.c: Use mu_program_name instead of
+	program_invocation_short_name. 
+
 2008-02-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/mh_ctx.c (mh_context_read): Allow for header continuation

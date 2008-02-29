@@ -129,7 +129,7 @@ mh_argp_parse (int *pargc, char **pargv[],
   data.doc = argp_doc;
   data.errind = -1;
   
-  val = mh_global_profile_get (program_invocation_short_name, NULL);
+  val = mh_global_profile_get (mu_program_name, NULL);
   if (val)
     {
       int argc;

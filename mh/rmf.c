@@ -151,7 +151,7 @@ rmf (const char *name)
 	  else
 	    {
 	      printf ("%s: file `%s' not deleted, continuing...\n",
-		      program_invocation_short_name, p);
+		      mu_program_name, p);
 	      failures++;
 	    }
 	}
@@ -171,7 +171,7 @@ rmf (const char *name)
     failures += rmdir (name);
   else
     printf ("%s: folder `%s' not removed\n",
-	    program_invocation_short_name, name);
+	    mu_program_name, name);
 
   if (failures == 0)
     {
