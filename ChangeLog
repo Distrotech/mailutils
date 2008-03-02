@@ -1,3 +1,9 @@
+2008-03-02  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* po/ca.po, po/es.po, po/fr.po, po/pl.po, po/ro.po, po/ru.po,
+	po/rw.po, po/sv.po, po/uk.po, po/LINGUAS, po/ChangeLog: Remove.
+	We will get po files directly from translationproject.org.
+
 2008-03-01  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh/folder.c, mh/mh_argp.c, mh/mh_getopt.c, mh/mh_init.c,
