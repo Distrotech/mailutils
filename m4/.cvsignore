@@ -16,6 +16,7 @@ dos.m4
 double-slash-root.m4
 dup2.m4
 eealloc.m4
+environ.m4
 eoverflow.m4
 error.m4
 exitfail.m4

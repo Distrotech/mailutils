@@ -1,5 +1,9 @@
 2008-03-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* bootstrap.conf (XGETTEXT_OPTIONS): Update flags.
+	* configure.ac, NEWS: Version 1.9.90
+	* m4/.cvsignore: Add environ.m4
+
 	* po/ca.po, po/es.po, po/fr.po, po/pl.po, po/ro.po, po/ru.po,
 	po/rw.po, po/sv.po, po/uk.po, po/LINGUAS, po/ChangeLog: Remove.
 	We will get po files directly from translationproject.org.

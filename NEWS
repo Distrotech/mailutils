@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-02-04
+GNU mailutils NEWS -- history of user-visible changes. 2008-03-02
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -6,7 +6,7 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 1.2.91:
+Version 1.9.90:
 
 * New configuration file format.
 
@@ -45,11 +45,21 @@ run in both traditional and LMTP mode and to deliver mails to various
 mailbox formats.  These formats, among others, include remote+smtp and
 remote+sendmail (see `New mailbox types.', below), which are
 equivalent to forwarding a message over SMTP.  Thus, maidag supercedes
-both `mail.local' and `mail.remote' (both of which are still included
-for backward compatibility).  Maidag is also able to process incoming
+both `mail.local' and `mail.remote' (which are still included for
+backward compatibility).  Maidag is also able to process incoming 
 messages using Sieve or Scheme scripts and, based on results of this
 processing, to take a decision on whether to actually deliver and
 where to deliver them.
+
+** Comsat
+
+The `comsat' utility is able to notify about messages delivered to
+a mailbox of any `local' type, i.e.: UNIX mailbox, MH and Maildir.
+This is implemented using quick access mode.  See `Quick access to a
+message', below.
+
+The communication protocol has been modified to make this possible.
+The traditional comsat protocol is supported as well.
 
 ** New Sieve action `pipe'
 
@@ -194,7 +204,25 @@ message is appended to the mailbox.
 ** Quick access to a message
 
 A set of functions are provided for so-called `quick access' to mail
-messages. FIXME: describe it.
+messages.
+
+Quick access is used when an application needs to quickly read one
+message from the mailbox. In particular, this mode is used by comsat.
+
+To use quick access functions, the mailbox must be opened with flags
+MU_STREAM_READ|MU_STREAM_QACCESS.  The function
+mu_mailbox_quick_get_message can then be used to retrieve the message:
+
+   int mu_mailbox_quick_get_message (mu_mailbox_t mbox,
+ 				    mu_message_qid_t qid,
+ 				    mu_message_t *pmsg);	
+
+The message is identified by the second argument, qid.
+
+The function mu_message_get_qid can be used to retrieve
+mu_message_qid_t identifier for a message:
+
+   int mu_message_get_qid (mu_message_t msg, mu_message_qid_t *pqid);
 
 ** New `aget' and `sget' accessors for mu_url_t
 
