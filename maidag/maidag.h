@@ -136,7 +136,7 @@ int maidag_lmtp_server (void);
 int lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
 		     mu_ip_server_t srv, time_t timeout, int transcript);
 
-void mailer_err (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
+void maidag_error (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 void guess_retval (int ec);
 

@@ -44,16 +44,16 @@ mail_tmp_begin (struct mail_tmp **pmtmp, const char *from)
 				       MU_STREAM_RDWR)))
     {
       free (mtmp);
-      mailer_err (_("Unable to open temporary file: %s"),
-		  mu_strerror (status));
+      maidag_error (_("Unable to open temporary file: %s"),
+		    mu_strerror (status));
       return status;
     }
 
   if ((status = mu_stream_open (mtmp->stream)))
     {
       free (mtmp);
-      mailer_err (_("unable to open temporary file: %s"),
-		  mu_strerror (status));
+      maidag_error (_("unable to open temporary file: %s"),
+		    mu_strerror (status));
       return status;
     }
   mtmp->from = from;
@@ -94,7 +94,7 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
 	    }
 	  else
 	    {
-	      mailer_err (_("Cannot determine sender address"));
+	      maidag_error (_("Cannot determine sender address"));
 	      return EINVAL;
 	    }
 	  if (auth)
@@ -112,7 +112,8 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
       
   if (status)
     {
-      mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
+      maidag_error (_("Error writing temporary file: %s"), 
+                    mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
     }
   mtmp->had_nl = buf[buflen-1] == '\n';
@@ -137,7 +138,8 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
+      maidag_error (_("Error writing temporary file: %s"), 
+                    mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;
     }
@@ -147,7 +149,8 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
       || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mu_mailbox_set_stream (*mbox, mtmp->stream)))
     {
-      mailer_err (_("Error opening temporary file: %s"), mu_strerror (status));
+      maidag_error (_("Error opening temporary file: %s"), 
+                    mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;
     }
@@ -156,8 +159,8 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("Error creating temporary message: %s"),
-		  mu_strerror (status));
+      maidag_error (_("Error creating temporary message: %s"),
+		    mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;
     }

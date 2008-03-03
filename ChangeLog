@@ -1,5 +1,11 @@
 2008-03-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* maidag/maidag.c (main): Fix autodetection of log_to_stderr.
+	* maidag/deliver.c, maidag/maidag.h, maidag/mailtmp.c: Rename
+	mailer_err to maidag_error.
+	* maidag/util.c (mailer_err): Rename to maidag_error. Print to
+	stderr only if log_to_stderr is set.
+
 	Fix bootstrapping with gettext 0.17.
 	
 	* bootstrap.conf (avoided_gnulib_modules): Remove size_max

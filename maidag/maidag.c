@@ -490,7 +490,7 @@ main (int argc, char *argv[])
   current_uid = getuid ();
 
   if (log_to_stderr == -1)
-    log_to_stderr = (getuid () != 0);
+    log_to_stderr = !lmtp_mode && (current_uid != 0);
   
   if (!log_to_stderr)
     {
@@ -502,7 +502,7 @@ main (int argc, char *argv[])
 
       mu_debug_default_printer = mu_debug_syslog_printer;
     }
-  
+
   argc -= arg_index;
   argv += arg_index;
 

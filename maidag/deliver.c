@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -159,7 +159,8 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
   status = mu_mailbox_open (mbox, MU_STREAM_APPEND|MU_STREAM_CREAT);
   if (status != 0)
     {
-      mailer_err (_("Cannot open mailbox %s: %s"), path, mu_strerror (status));
+      maidag_error (_("Cannot open mailbox %s: %s"), 
+                    path, mu_strerror (status));
       mu_mailbox_destroy (&mbox);
       return EX_TEMPFAIL;
     }
@@ -176,8 +177,8 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 
       if (status)
 	{
-	  mailer_err (_("Cannot lock mailbox `%s': %s"), path,
-		      mu_strerror (status));
+	  maidag_error (_("Cannot lock mailbox `%s': %s"), path,
+		        mu_strerror (status));
 	  mu_mailbox_destroy (&mbox);
 	  exit_code = EX_TEMPFAIL;
 	  return EX_TEMPFAIL;
@@ -192,8 +193,8 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 
     if ((status = mu_mailbox_get_size (mbox, &mbsize)))
       {
-	mailer_err (_("Cannot get size of mailbox %s: %s"),
-		    path, mu_strerror (status));
+	maidag_error (_("Cannot get size of mailbox %s: %s"),
+		      path, mu_strerror (status));
 	if (status == ENOSYS)
 	  mbsize = 0; /* Try to continue anyway */
 	else
@@ -206,7 +207,7 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
     switch (check_quota (auth, mbsize, &n))
       {
       case MQUOTA_EXCEEDED:
-	mailer_err (_("%s: mailbox quota exceeded for this recipient"), name);
+	maidag_error (_("%s: mailbox quota exceeded for this recipient"), name);
 	if (errp)
 	  asprintf (errp, "%s: mailbox quota exceeded for this recipient",
 		    name);
@@ -220,16 +221,16 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
       default:
 	if ((status = mu_mailbox_get_size (imbx, &msg_size)))
 	  {
-	    mailer_err (_("Cannot get message size (input message %s): %s"),
-			path, mu_strerror (status));
+	    maidag_error (_("Cannot get message size (input message %s): %s"),
+			  path, mu_strerror (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
 	  }
 	else if (msg_size > n)
 	  {
-	    mailer_err (_("%s: message would exceed maximum mailbox size for "
+	    maidag_error (_("%s: message would exceed maximum mailbox size for "
 			  "this recipient"),
-			name);
+			  name);
 	    if (errp)
 	      asprintf (errp,
 			"%s: message would exceed maximum mailbox size "
@@ -248,8 +249,8 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
       status = mu_mailbox_append_message (mbox, msg);
       if (status)
 	{
-	  mailer_err (_("Error writing to mailbox %s: %s"),
-		      path, mu_strerror (status));
+	  maidag_error (_("Error writing to mailbox %s: %s"),
+		        path, mu_strerror (status));
 	  failed++;
 	}
       else
@@ -257,8 +258,8 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 	  status = mu_mailbox_sync (mbox);
 	  if (status)
 	    {
-	      mailer_err (_("Error flushing mailbox %s: %s"),
-			  path, mu_strerror (status));
+	      maidag_error (_("Error flushing mailbox %s: %s"),
+			    path, mu_strerror (status));
 	      failed++;
 	    }
 	}
@@ -283,7 +284,7 @@ deliver (mu_mailbox_t imbx, char *name, char **errp)
   auth = mu_get_auth_by_name (name);
   if (!auth)
     {
-      mailer_err (_("%s: no such user"), name);
+      maidag_error (_("%s: no such user"), name);
       if (errp)
 	asprintf (errp, "%s: no such user", name);
       exit_code = EX_UNAVAILABLE;
@@ -301,16 +302,16 @@ deliver (mu_mailbox_t imbx, char *name, char **errp)
 
   if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
     {
-      mailer_err (_("Cannot get message from the temporary mailbox: %s"),
-		  mu_strerror (status));
+      maidag_error (_("Cannot get message from the temporary mailbox: %s"),
+		    mu_strerror (status));
       mu_auth_data_free (auth);
       return EX_TEMPFAIL;
     }
 
   if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
     {
-      mailer_err (_("Cannot open mailbox %s: %s"),
-		  auth->mailbox, mu_strerror (status));
+      maidag_error (_("Cannot open mailbox %s: %s"),
+		    auth->mailbox, mu_strerror (status));
       mu_auth_data_free (auth);
       return EX_TEMPFAIL;
     }

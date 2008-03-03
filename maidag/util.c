@@ -58,19 +58,19 @@ switch_user_id (struct mu_auth_data *auth, int user)
 # error "No way to reset user privileges?"
 #endif
   if (rc < 0)
-    mailer_err ("setreuid(0, %d): %s (r=%d, e=%d)",
-		uid, strerror (errno), getuid (), geteuid ());
+    maidag_error ("setreuid(0, %d): %s (r=%d, e=%d)",
+		  uid, strerror (errno), getuid (), geteuid ());
   return rc;
 }
 
 void
-mailer_err (const char *fmt, ...)
+maidag_error (const char *fmt, ...)
 {
   va_list ap;
 
   guess_retval (errno);
   va_start (ap, fmt);
-  if (!lmtp_mode && !log_to_stderr)
+  if (log_to_stderr)
     {
       vfprintf (stderr, fmt, ap);
       fputc ('\n', stderr);
