@@ -126,6 +126,7 @@ save-cwd.c
 save-cwd.h
 setenv.c
 setenv.h
+size_max.h
 sleep.c
 snprintf.c
 stdbool.h

@@ -1,3 +1,15 @@
+2008-03-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix bootstrapping with gettext 0.17.
+	
+	* bootstrap.conf (avoided_gnulib_modules): Remove size_max
+	(excluded_files): Remove m4/size_max.m4.
+	(gnulib_extra_files): Add m4/inttostr.m4
+	* gnulib.modules: Add intprops and stdint.
+
+	* m4/intmax.m4, m4/intmax_t.m4, m4/inttostr.m4, m4/inttypes-h.m4,
+	m4/inttypes-pri.m4, m4/inttypes.m4, m4/inttypes_h.m4: Remove
+
 2008-03-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* bootstrap.conf (XGETTEXT_OPTIONS): Update flags.

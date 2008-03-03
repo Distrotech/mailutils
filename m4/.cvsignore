@@ -47,6 +47,12 @@ inline.m4
 intl.m4
 intldir.m4
 intlmacosx.m4
+intmax.m4
+intmax_t.m4
+inttostr.m4
+inttypes-h.m4
+inttypes-pri.m4
+inttypes_h.m4
 lchown.m4
 lib-ld.m4
 lib-link.m4
@@ -72,6 +78,7 @@ regex.m4
 save-cwd.m4
 setenv.m4
 signed.m4
+size_max.m4
 sleep.m4
 snprintf.m4
 ssize_t.m4
