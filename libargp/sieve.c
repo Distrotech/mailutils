@@ -36,7 +36,7 @@ static struct argp_option sieve_argp_option[] = {
   { "clear-include-path", OPT_CLEAR_INCLUDE_PATH, NULL, 0,
     N_("Clear Sieve include path"), 0 },
   { "clear-library-path", OPT_CLEAR_LIBRARY_PATH, NULL, 0,
-    N_("Clear Sieve lobrary path"), 0 },
+    N_("Clear Sieve library path"), 0 },
   { "clearpath", 0, NULL, OPTION_ALIAS, NULL },
   { NULL,      0, NULL, 0, NULL, 0 }
 };

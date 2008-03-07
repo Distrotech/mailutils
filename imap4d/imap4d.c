@@ -308,7 +308,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
        "  prog:///<full-program-name: string>\n"
        "  ident[://:<port: string-or-number>]\n"
        "  stdio"),
-    N_("MODE") },
+    N_("mode") },
   { "preauth-only", mu_cfg_bool, &preauth_only, 0, NULL,
     N_("Use only preauth mode.  If unable to setup it, disconnect "
        "immediately.") },

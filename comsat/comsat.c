@@ -126,8 +126,7 @@ struct mu_cfg_param comsat_cfg_param[] = {
   { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
     N_("Maximum number of message body lines to be output.") },
   { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,
-    N_("Maximum number of incoming requests per `request-control-interval' "
-       "seconds.") },
+    N_("Maximum number of incoming requests per request control interval.") },
   { "request-control-interval", mu_cfg_time, &request_control_interval,
     0, NULL,
     N_("Set control interval.") },

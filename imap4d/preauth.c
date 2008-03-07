@@ -341,7 +341,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   if (srv_sa->sa_family != AF_INET)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Invalid socket family (%d) IDENT preauth"),
+		      _("Invalid address family (%d) for IDENT preauth"),
 		      srv_sa->sa_family);
       return NULL;
     }
@@ -394,7 +394,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
       if (!ident_keyfile)
 	{
 	  mu_diag_output (MU_DIAG_ERROR,
-			  _("Keydile not specified in config; "
+			  _("Keyfile not specified in config; "
 			    "use `ident-keyfile FILE'"));
 	  name = NULL;
 	}

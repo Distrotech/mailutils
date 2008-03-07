@@ -1,5 +1,11 @@
 2008-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* comsat/comsat.c, imap4d/imap4d.c, imap4d/preauth.c,
+	libargp/sieve.c, libcfg/ldap.c, libcfg/sieve.c: Fix translatable
+	strings.
+
+2008-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* configure.ac: Require gettext 0.17
 	* auth/ldap.c, auth/radius.c, libargp/tls.c, mailbox/cfg_lexer.c,
 	pop3d/logindelay.c: Fix diagnostic messages.
