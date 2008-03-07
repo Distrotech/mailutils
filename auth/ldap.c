@@ -236,7 +236,7 @@ _mu_conn_setup (LDAP **pld)
   rc = ldap_initialize (&ld, ldapuri);
   if (rc != LDAP_SUCCESS)
     {
-      mu_error (_("Cannot create LDAP session handle for URI=%s (%d): %s\n"),
+      mu_error (_("Cannot create LDAP session handle for URI=%s (%d): %s"),
 		ldapuri, rc, ldap_err2string (rc));
 
       free (ldapuri);
@@ -434,7 +434,7 @@ _mu_entry_to_auth_data (LDAP *ld, LDAPMessage *msg,
   /* FIXME: should use mu_debug_t */
   rc = ldap_get_dn_ber (ld, msg, &ber, &bv);
   ufn = ldap_dn2ufn (bv.bv_val);
-  mu_error ("INFO: %s\n", ufn);
+  mu_error ("INFO: %s", ufn);
   ldap_memfree (ufn);
   
   mu_assoc_get_iterator (ldap_param.field_map, &itr);

@@ -59,7 +59,7 @@ check_login_delay (char *username)
   rc = mu_dbm_fetch (db, key, &data);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Can't fetch login delay data: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("Cannot fetch login delay data: %s"),
 	      mu_strerror (rc));
       mu_dbm_close (db);
       return 0;

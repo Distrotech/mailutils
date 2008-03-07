@@ -404,13 +404,14 @@ mu_get_config (const char *file, const char *progname,
   if (stat (file, &st))
     {
       if (errno != ENOENT)
-	mu_error (_("can't stat `%s'"), file);
+	mu_error (_("can't stat `%s': %s"), file, mu_strerror (errno));
       return -1;
     }
   fd = open (file, O_RDONLY);
   if (fd == -1)
     {
-      mu_error (_("cannot open config file `%s'"), file);
+      mu_error (_("cannot open config file `%s': %s"), file,
+		mu_strerror (errno));
       return -1;
     }
 

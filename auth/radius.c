@@ -378,7 +378,7 @@ mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   
   if (!auth_request)
     {
-      mu_error (_("--radius-auth-request is not specified"));
+      mu_error (_("radius request for auth is not specified"));
       return EINVAL;
     }
   
@@ -416,7 +416,7 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
 
   if (!getpwnam_request)
     {
-      mu_error (_("--radius-getpwnam-request is not specified"));
+      mu_error (_("radius request for getpwnam is not specified"));
       return MU_ERR_FAILURE;
     }
   
@@ -457,7 +457,7 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
 
   if (!getpwuid_request)
     {
-      mu_error (_("--radius-getpwuid-request is not specified"));
+      mu_error (_("radius request for getpwuid is not specified"));
       return MU_ERR_FAILURE;
     }
   

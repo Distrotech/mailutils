@@ -31,7 +31,7 @@ enum {
   
 static struct argp_option _tls_argp_options[] = {
   {"ssl-cert", OPT_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify SSL certificate filep"), 0},
+   N_("Specify SSL certificate file"), 0},
   {"ssl-key", OPT_SSL_KEY, N_("FILE"), OPTION_HIDDEN,
    N_("Specify SSL certificate key"), },
   {"ssl-cafile", OPT_SSL_CAFILE, N_("FILE"), OPTION_HIDDEN,
