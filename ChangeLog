@@ -1,3 +1,9 @@
+2008-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Require gettext 0.17
+	* auth/ldap.c, auth/radius.c, libargp/tls.c, mailbox/cfg_lexer.c,
+	pop3d/logindelay.c: Fix diagnostic messages.
+	
 2008-03-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* maidag/maidag.c (main): Fix autodetection of log_to_stderr.
