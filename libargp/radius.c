@@ -38,7 +38,7 @@ static struct argp_option mu_radius_argp_option[] = {
   { "radius-getpwuid-request", OPT_GETPWUID_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("Radius request to retrieve a passwd entry based on UID"), 0 },
   { "radius-directory", OPT_RADIUS_DIR, N_("DIR"), OPTION_HIDDEN,
-    N_("Set path to the radius configuration directory"), 0 },
+    N_("Set name of the radius configuration directory"), 0 },
   { NULL }
 };
 

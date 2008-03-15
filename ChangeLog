@@ -1,3 +1,8 @@
+2008-03-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libargp/tls.c (_tls_argp_parser): Take care not to pass NULL as
+	the argument to the "tls" statement.
+
 2008-03-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* comsat/comsat.c, imap4d/imap4d.c, imap4d/preauth.c,
