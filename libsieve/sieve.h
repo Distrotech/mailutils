@@ -102,6 +102,7 @@ int _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 			        const char *fmt, va_list ap);
 
 int sieve_lex_begin (const char *name);
+int sieve_lex_begin_string (const char *buf, int bufsize, const char *fname, int line);
 void sieve_lex_finish (void);
 int mu_sieve_yyerror (char *s);
 int mu_sieve_yylex (); 

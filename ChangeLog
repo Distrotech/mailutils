@@ -1,3 +1,17 @@
+2008-04-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement compilation of Sieve sources from the memory.
+	
+	* include/mailutils/libsieve.h (mu_sieve_compile_buffer): New
+	function.
+	* libsieve/sieve.h (sieve_lex_begin_string): New function.
+	* libsieve/sieve.l: Remove support for AT&T lex.
+	(sieve_lex_begin_string): New function.
+	* libsieve/sieve.y (mu_sieve_compile_buffer): New
+	function.
+
+	* mailbox/header.c: Fix indentation.
+
 2008-03-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libargp/tls.c (_tls_argp_parser): Take care not to pass NULL as

@@ -56,20 +56,31 @@ static void sieve_include (void);
 static void sieve_searchpath (void);
 static char *str_unescape (char *text, size_t len);
 static int isemptystr (char *text);
+
+static const char *input_string_ptr;
+static int input_string_level; 
  
-#ifdef FLEX_SCANNER
-#define xinput() (yyin ? getc(yyin) : EOF)
+static int
+fillbuf(char *buf, int max_size)
+{
+  if (input_string_ptr)
+    {
+      int n = input_string_level;
+      if (n > max_size)
+	n = max_size;
+      memcpy (buf, input_string_ptr, n);
+      input_string_ptr += n;
+      input_string_level -= n;
+      return n;
+    }
+  else if (feof (yyin))
+    return 0;
+  else
+    return fread (buf, 1, max_size, yyin);
+} 
+ 
 #undef YY_INPUT
-#define YY_INPUT(buf,result,max_size)  do { \
-        int i;                                  \
-        for (i = 0; i < max_size; i++) {        \
-                int ch = xinput();              \
-                if (ch == EOF)                  \
-                        break;                  \
-                buf[i] = ch;                    \
-        }                                       \
-        result = i;                             \
-} while (0) 
+#define YY_INPUT(buf,result,max_size) result = fillbuf(buf, max_size)
 #define LEX_BUFFER_STATE YY_BUFFER_STATE
 #define SET_BUFFER_STATE(s) do { \
         (s) = YY_CURRENT_BUFFER; \
@@ -79,122 +90,6 @@ static int isemptystr (char *text);
         yy_delete_buffer(YY_CURRENT_BUFFER); \
         yy_switch_to_buffer(s); \
 } while (0)
-
-#else
-/* AT&T Lex */
-                                               
-static void lex_set_buffer (FILE *fp);
-static void lex_delete_buffer (LEX_BUFFER_STATE buf);
-static int xinput (void); 
-static int xunput (void);
-        
-#undef unput
-#define unput(c) xunput(c)
-#undef input
-#define input() xinput()
-
-#define LEX_BUF_SIZE 16384
-#define LEX_PUTBACK_SIZE 32
-                                               
-typedef struct {
-  FILE *yyin;
-  char *buffer;
-  size_t bufsize;
-  size_t level;
-  char *ptr;
-  char *putback;
-  size_t pb_size;
-  size_t pb_level;
-} LEX_BUFFER_STATE;
-LEX_BUFFER_STATE current_buffer;
- 
-#define SET_BUFFER_STATE(s) do { \
-        (s) = current_buffer;    \
-        lex_set_buffer(yyin);    \
-} while (0)
-#define RESTORE_BUFFER_STATE(s) do { \
-        lex_delete_buffer(current_buffer); \
-        current_buffer = (s); \
-        yyin = current_buffer.yyin;  \
-} while (0)
-                                    
-void
-lex_set_buffer (FILE *fp)
-{
-  char *buf;
-  size_t size;
-        
-  for (size = LEX_BUF_SIZE; size > 1; size /= 2)
-    if (buf = malloc (size))
-      break;
-  
-  if (!buf)
-    {
-      sieve_compile_error (sieve_filename, sieve_line_num, _("Not enough memory"));
-      abort ();
-    }
-
-  current_buffer.yyin = yyin;
-  current_buffer.buffer = buf;
-  current_buffer.bufsize = size;
-  current_buffer.level = 0;
-  current_buffer.ptr = current_buffer.buffer;
-  current_buffer.pb_size = current_buffer.pb_level = 0;
-  current_buffer.putback = NULL;
-}
-                
-void
-lex_delete_buffer (LEX_BUFFER_STATE buf)
-{
-  free (buf.buffer);
-  if (buf.putback)
-    free (buf.putback);
-}
-
-int
-xinput ()
-{
-  if (!yyin)
-    return EOF;
-  
-  if (current_buffer.pb_level) 
-    return current_buffer.putback[--current_buffer.pb_level];
-
-  if (current_buffer.level <= 0)
-    {
-      int n;
-
-      if (feof (yyin))
-	return 0;
-      n = fread (current_buffer.buffer, 1,
-		 current_buffer.bufsize, yyin);
-      if (n <= 0)
-	return 0;
-      current_buffer.level = n;
-      current_buffer.ptr = current_buffer.buffer;
-    }
-  current_buffer.level--;
-  return *current_buffer.ptr++;
-}
-
-int
-xunput (int c)
-{
-  if (current_buffer.pb_level == current_buffer.pb_size)
-    {
-      char *putback;
-      current_buffer.pb_size += LEX_PUTBACK_SIZE;
-      putback = mu_sieve_alloc (current_buffer.pb_size);
-      memcpy (putback, current_buffer.putback,
-	      current_buffer.pb_level);
-      free (current_buffer.putback);
-      current_buffer.putback = putback;
-    }
-  current_buffer.putback[current_buffer.pb_level++] = c;
-  return c;
-}
-                
-#endif                                         
 
 struct buffer_ctx {
   struct buffer_ctx *prev;
@@ -279,14 +174,8 @@ push_source (const char *name)
       SET_BUFFER_STATE (ctx->state);
     }
   else
-    {
-#ifdef FLEX_SCANNER
-      yyrestart (fp);
-#else           
-      yyin = fp;
-      lex_set_buffer (yyin);
-#endif
-    }
+    yyrestart (fp);
+  
   sieve_filename = strdup (name);
   sieve_line_num = 1;
   sieve_source_inode = st.st_ino;
@@ -303,9 +192,7 @@ pop_source ()
 
   if (yyin)
     fclose (yyin);
-#ifndef FLEX_SCANNER
-  lex_delete_buffer (current_buffer);
-#endif
+
   if (sieve_filename)
     free (sieve_filename);
   if (!context_stack)
@@ -532,6 +419,24 @@ int
 sieve_lex_begin (const char *name)
 {
   return push_source (name);
+}
+
+int
+sieve_lex_begin_string (const char *buf, int bufsize,
+			const char *fname, int line)
+{
+  if (!fname)
+    return 1;
+  yyrestart (NULL);
+
+  input_string_ptr = buf;
+  input_string_level = bufsize;
+  sieve_filename = strdup (fname);
+  sieve_line_num = line;
+  sieve_source_inode = 0;
+
+  sieve_change_source ();
+  return 0;
 }
 
 void

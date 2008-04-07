@@ -628,6 +628,30 @@ mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
   return rc;
 }
 
+int
+mu_sieve_compile_buffer (mu_sieve_machine_t mach,
+			 const char *buf, int bufsize, const char *fname, int line)
+{
+  int rc;
+  
+  mu_sieve_machine_begin (mach, fname);
+
+  if (sieve_lex_begin_string (buf, bufsize, fname, line) == 0)
+    {
+      rc = yyparse ();
+      if (sieve_error_count)
+	rc = 1;
+      sieve_lex_finish ();
+    }
+  else
+    rc = 1;
+  
+  mu_sieve_machine_finish (mach);
+  if (rc)
+    mu_sieve_machine_destroy (&mach);
+  return rc;
+}
+
 static void
 _branch_fixup (size_t start, size_t end)
 {

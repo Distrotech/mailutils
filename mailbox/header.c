@@ -667,8 +667,8 @@ mu_header_insert (mu_header_t header,
 
 int
 mu_header_sget_value_n (mu_header_t header,
-		      const char *name, int n,
-		      const char **pval)
+			const char *name, int n,
+			const char **pval)
 {
   int status;
   struct mu_hdrent *ent;
