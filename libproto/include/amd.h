@@ -65,7 +65,8 @@ struct _amd_data
   size_t msg_size;               /* Size of struct _amd_message */
   int (*create) (struct _amd_data *, int flags);	
   int (*msg_init_delivery) (struct _amd_data *, struct _amd_message *);
-  int (*msg_finish_delivery) (struct _amd_data *, struct _amd_message *);
+  int (*msg_finish_delivery) (struct _amd_data *, struct _amd_message *,
+			      const mu_message_t);
   void (*msg_free) (struct _amd_message *);
   int (*cur_msg_file_name) (struct _amd_message *, char **);	
   int (*new_msg_file_name) (struct _amd_message *, int attr_flags, char **);
