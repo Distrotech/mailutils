@@ -16,6 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+int mu_switch_to_privs (uid_t uid, gid_t gid, mu_list_t retain_groups);
 void mu_set_signals (RETSIGTYPE (*handler) (int signo), int *sigv, int sigc);
 const char *mu_strexit (int code);
 

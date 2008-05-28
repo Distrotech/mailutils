@@ -1,3 +1,22 @@
+2008-05-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* lib/Makefile.am (libmuaux_la_SOURCES): Add userprivs.c.
+	* lib/userprivs.c: New file.
+	* lib/muaux.h (mu_switch_to_privs): New prototype.
+
+	* libproto/include/amd.h (_amd_data.msg_finish_delivery): Pass
+	original message as the 3rd argument.
+	* libproto/maildir/mbox.c (maildir_msg_finish_delivery): Take
+	original message as the 3rd argument.
+	Use message attributes to select the subdirectory to place it
+	into.
+	* mailbox/amd.c (amd_append_message): Pass original message as the
+	3rd argument to msg_finish_delivery.
+
+	* mailbox/filter_trans.c (SOFTBRK): Remove unused macro.
+
+	* movemail/movemail.c: New option --copy-permissions (-P).
+
 2008-04-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement compilation of Sieve sources from the memory.
