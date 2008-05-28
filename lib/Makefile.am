@@ -28,7 +28,8 @@ libmuaux_la_SOURCES += \
  mu_dbm.c\
  signal.c\
  strexit.c\
- tcpwrap.c
+ tcpwrap.c\
+ userprivs.c
 
 noinst_HEADERS +=\
  mailcap.h\
