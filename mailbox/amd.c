@@ -790,8 +790,8 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
     }
 
   if (amd->msg_finish_delivery)
-    status = amd->msg_finish_delivery (amd, mhm);
-
+    status = amd->msg_finish_delivery (amd, mhm, msg);
+  
   if (status == 0 && mailbox->observable)
     {
       char *qid;
