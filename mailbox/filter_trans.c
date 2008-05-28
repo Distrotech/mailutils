@@ -274,15 +274,6 @@ qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
   return consumed - wscount;
 }
 
-#define SOFTBRK() \
-      /* check if we have enough room for the soft linebreak */\
-      if (*nbytes + 2 > osize) \
-  	break;\
-      *optr++ = '=';\
-      *optr++ = '\n';\
-      (*nbytes) += 2;\
-      *line_len = 0;
-
 static int
 qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	   size_t *nbytes, int *line_len)
