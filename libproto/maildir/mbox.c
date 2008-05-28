@@ -480,12 +480,28 @@ maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
 }
 
 static int
-maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm)
+maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm,
+			     const mu_message_t orig_msg)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amm;
   char *oldname = maildir_mkfilename (amd->name, TMPSUF, msg->file_name);
-  char *newname = maildir_mkfilename (amd->name, NEWSUF, msg->file_name);
-
+  char *newname;
+  mu_attribute_t attr;
+  int flags;
+  
+  if (mu_message_get_attribute (orig_msg, &attr) == 0
+      && mu_attribute_is_read (attr)
+      && mu_attribute_get_flags (attr, &flags) == 0)
+    {
+      msg->dir = CURSUF;
+      newname = mk_info_filename (amd->name, CURSUF, msg->file_name, flags);
+    }
+  else
+    {
+      msg->dir = NEWSUF;
+      newname = maildir_mkfilename (amd->name, NEWSUF, msg->file_name);
+    }
+    
   unlink (newname);
   if (link (oldname, newname) == 0)
     unlink (oldname);
@@ -493,7 +509,7 @@ maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm)
     {
       return errno; /* FIXME? */
     }
-  msg->dir = NEWSUF;
+
   free (oldname);
   free (newname);
   return 0;
