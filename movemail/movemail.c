@@ -22,6 +22,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <grp.h>
+#include <unistd.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
 #include <mu_asprintf.h>
@@ -39,12 +42,16 @@ static struct argp_option options[] = {
   { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
   { "emacs", OPT_EMACS, NULL, 0,
     N_("Output information used by Emacs rmail interface"), 0 },
+  { "copy-permissions", 'P', NULL, 0,
+    N_("Copy original mailbox permissions and ownership when applicable"),
+    0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 static int reverse_order;
 static int preserve_mail; 
 static int emacs_mode;
+static int copy_meta;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -58,11 +65,15 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'p':
-      mu_argp_node_list_new (&lst, "preserve", arg);
+      mu_argp_node_list_new (&lst, "preserve", "yes");
       break;
 
+    case 'P':
+      copy_meta = 1;
+      break;
+      
     case OPT_EMACS:
-      mu_argp_node_list_new (&lst, "emacs", arg);
+      mu_argp_node_list_new (&lst, "emacs", "yes");
       break;
       
     case ARGP_KEY_INIT:
@@ -106,6 +117,7 @@ static const char *movemail_capa[] = {
   "license",
   "locking",
   "mailbox",
+  "auth",
   NULL 
 };
 
@@ -277,6 +289,69 @@ close_mailboxes (void)
   mu_mailbox_close (source);
 }  
 
+static void
+set_permissions (mu_mailbox_t mbox)
+{
+  mu_url_t url = NULL;
+  const char *s;
+  int rc;
+  uid_t uid;
+  gid_t gid;
+  
+  if (getuid () != 0)
+    {
+      mu_error (_("must be root to use --copy-permissions"));
+      exit (1);
+    }
+  mu_mailbox_get_url (mbox, &url);
+  rc = mu_url_sget_scheme  (url, &s);
+  if (rc)
+    die (mbox, _("Cannot get scheme"), rc);
+  if (strcmp (s, "/") == 0
+      || strcmp (s, "mbox") == 0
+      || strcmp (s, "mh") == 0
+      || strcmp (s, "maildir") == 0)
+    {
+      struct stat st;
+      
+      rc = mu_url_sget_path  (url, &s);
+      if (rc)
+	die (mbox, _("Cannot get path"), rc);
+      if (stat (s, &st))
+	{
+	  mu_error (_("Cannot stat mailbox `%s': %s"), s,
+		    mu_strerror (errno));
+	  exit (1);
+	}
+      uid = st.st_uid;
+      gid = st.st_gid;
+    }
+  else
+    {
+      struct mu_auth_data *auth;
+      
+      rc = mu_url_sget_user (url, &s);
+      if (rc)
+	die (mbox, _("Cannot get user"), rc);
+      
+      auth = mu_get_auth_by_name (s);
+      if (!auth)
+	{
+	  mu_error (_("No such user: %s"), s);
+	  exit (1);
+	}
+      else
+	{
+	  uid = auth->uid;
+	  gid = auth->gid;
+	}
+      mu_auth_data_free (auth);
+    }
+
+  if (mu_switch_to_privs (uid, gid, NULL))
+    exit (1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -288,6 +363,8 @@ main (int argc, char **argv)
   
   /* Native Language Support */
   MU_APP_INIT_NLS ();
+  MU_AUTH_REGISTER_ALL_MODULES ();
+  
   /* Register the desired mailbox formats.  */
   mu_register_all_mbox_formats ();
 
@@ -298,7 +375,7 @@ main (int argc, char **argv)
 #endif
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, movemail_capa, movemail_cfg_param, 
-		   argc, argv, 0, NULL, NULL))
+		   argc, argv, 0, &index, NULL))
     exit (1);
 
   argc -= index;
@@ -321,6 +398,9 @@ main (int argc, char **argv)
     compatibility_mode (&source, source_name, argv[2], flags);
   else
     open_mailbox (&source, source_name, flags, argv[2]);
+
+  if (copy_meta) 
+    set_permissions (source);
   
   open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
   
