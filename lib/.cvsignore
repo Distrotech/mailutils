@@ -109,6 +109,8 @@ printf-args.c
 printf-args.h
 printf-parse.c
 printf-parse.h
+rawmemchr.c
+rawmemchr.valgrind
 readlink.c
 realloc.c
 ref-add.sed
@@ -139,6 +141,7 @@ stdlib.h
 stdlib.in.h
 strcasecmp.c
 strchrnul.c
+strchrnul.valgrind
 strdup.c
 streq.h
 strerror.c

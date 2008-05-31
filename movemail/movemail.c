@@ -419,6 +419,7 @@ main (int argc, char **argv)
   if (rc)
     return rc;
   
+  mu_mailbox_sync (dest);
   rc = mu_mailbox_close (dest);
   mu_mailbox_destroy (&dest);
   if (rc)

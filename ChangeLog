@@ -1,3 +1,19 @@
+2008-05-31  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libproto/include/amd.h (struct _amd_message.has_new_msg): New
+	field.
+	* mailbox/amd.c (amd_append_message): Cache information about
+	mailbox size in file .mu-size.
+	(make_size_file_name, read_size_file, write_size_file): New
+	functions.
+	(amd_expunge, amd_sync): Update size cache file.
+	(amd_get_size): Use size cache file if no mailbox_size method is
+	provided. 
+	* mailbox/mbx_default.c (mu_normalize_mailbox_url): Accept `='
+	suffix for all mailbox types.
+	* movemail/movemail.c (main): Call mu_mailbox_sync before closing
+	destination mailbox.
+
 2008-05-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* lib/Makefile.am (libmuaux_la_SOURCES): Add userprivs.c.

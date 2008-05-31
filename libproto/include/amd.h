@@ -44,9 +44,9 @@ do \
 struct _amd_data;
 struct _amd_message
 {
-  mu_stream_t stream;          /* Associated file stream */
-  mu_off_t body_start;         /* Offset of body start in the message file */
-  mu_off_t body_end;           /* Offset of body end (size of file, effectively)*/
+  mu_stream_t stream;       /* Associated file stream */
+  mu_off_t body_start;      /* Offset of body start in the message file */
+  mu_off_t body_end;        /* Offset of body end (size of file, effectively)*/
 
   int orig_flags;           /* Original attribute flags */
   int attr_flags;           /* Current attribute flags */
@@ -84,7 +84,7 @@ struct _amd_data
   struct _amd_message **msg_array;
 
   unsigned long uidvalidity;
-
+  int has_new_msg;  /* New messages have been appended */
   char *name;                    /* Directory name */
 
   /* Pool of open message streams */

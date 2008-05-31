@@ -71,7 +71,9 @@ memrchr.m4
 openat.m4
 pathmax.m4
 po.m4
+printf.m4
 progtest.m4
+rawmemchr.m4
 readlink.m4
 realloc.m4
 regex.m4

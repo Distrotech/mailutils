@@ -767,6 +767,8 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 	}
     }
 
+  amd->has_new_msg = 1;
+  
   mhm->amd = amd;
   if (amd->msg_init_delivery)
     {
@@ -875,12 +877,142 @@ amd_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
   return 0;
 }
 
+#define SIZE_FILE_NAME ".mu-size"
+
+static char *
+make_size_file_name (struct _amd_data *amd)
+{
+  size_t size = strlen (amd->name) + 1 + sizeof (SIZE_FILE_NAME);
+  char *name = malloc (size);
+  if (name)
+    {
+      strcpy (name, amd->name);
+      strcat (name, "/");
+      strcat (name, SIZE_FILE_NAME);
+    }
+  return name;
+}
+
+static int
+read_size_file (struct _amd_data *amd, mu_off_t *psize)
+{
+  FILE *fp;
+  int rc;
+  char *name = make_size_file_name (amd);
+  if (!name)
+    return 1;
+  fp = fopen (name, "r");
+  if (fp)
+    {
+      unsigned long size;
+      if (fscanf (fp, "%lu", &size) == 1)
+	{
+	  *psize = size;
+	  rc = 0;
+	}
+      else
+	rc = 1;
+      fclose (fp);
+    }
+  free (name);
+  return rc;
+}
+
+static int
+write_size_file (struct _amd_data *amd, mu_off_t size)
+{
+  FILE *fp;
+  int rc;
+  char *name = make_size_file_name (amd);
+  if (!name)
+    return 1;
+  fp = fopen (name, "w");
+  if (fp)
+    {
+      fprintf (fp, "%lu", (unsigned long) size);
+      fclose (fp);
+      rc = 0;
+    }
+  else
+    rc = 1;
+  free (name);
+  return rc;
+}
+      
+static int
+compute_mailbox_size (struct _amd_data *amd, const char *name, mu_off_t *psize)
+{
+  DIR *dir;
+  struct dirent *entry;
+  char *buf;
+  size_t bufsize;
+  size_t dirlen;
+  size_t flen;
+  int status = 0;
+  struct stat sb;
+
+  dir = opendir (name);
+  if (!dir)
+    return errno;
+
+  dirlen = strlen (name);
+  bufsize = dirlen + 32;
+  buf = malloc (bufsize);
+  if (!buf)
+    {
+      closedir (dir);
+      return ENOMEM;
+    }
+  
+  strcpy (buf, name);
+  if (buf[dirlen-1] != '/')
+    buf[++dirlen - 1] = '/';
+	  
+  while ((entry = readdir (dir)))
+    {
+      switch (entry->d_name[0])
+	{
+	case '.':
+	  break;
+
+	default:
+	  flen = strlen (entry->d_name);
+	  if (dirlen + flen + 1 > bufsize)
+	    {
+	      bufsize = dirlen + flen + 1;
+	      buf = realloc (buf, bufsize);
+	      if (!buf)
+		{
+		  status = ENOMEM;
+		  break;
+		}
+	    }
+	  strcpy (buf + dirlen, entry->d_name);
+	  if (stat (buf, &sb) == 0)
+	    {
+	      if (S_ISREG (sb.st_mode))
+		*psize += sb.st_size;
+	      else if (S_ISDIR (sb.st_mode))
+		compute_mailbox_size (amd, buf, psize);
+	    }
+	  /* FIXME: else? */
+	  break;
+	}
+    }
+
+  free (buf);
+  
+  closedir (dir);
+  return 0;
+}
+
 static int
 amd_expunge (mu_mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
   size_t i;
+  int updated = amd->has_new_msg;
   
   if (amd == NULL)
     return EINVAL;
@@ -932,6 +1064,7 @@ amd_expunge (mu_mailbox_t mailbox)
 	      free (old_name);
 	    }
 	  _amd_message_delete (amd, mhm);
+	  updated = 1;
 	  /* Do not increase i! */
 	}
       else
@@ -941,11 +1074,19 @@ amd_expunge (mu_mailbox_t mailbox)
 	    {
 	      _amd_attach_message (mailbox, mhm, NULL);
 	      _amd_message_save (amd, mhm, 1);
+	      updated = 1;
 	    }
 	  i++; /* Move to the next message */
 	}
     }
 
+  if (updated && !amd->mailbox_size)
+    {
+      mu_off_t size = 0;
+      int rc = compute_mailbox_size (amd, amd->name, &size);
+      if (rc == 0)
+	write_size_file (amd, size);
+    }
   return 0;
 }
 
@@ -955,6 +1096,7 @@ amd_sync (mu_mailbox_t mailbox)
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
   size_t i;
+  int updated = amd->has_new_msg;
   
   if (amd == NULL)
     return EINVAL;
@@ -980,7 +1122,16 @@ amd_sync (mu_mailbox_t mailbox)
 	{
 	  _amd_attach_message (mailbox, mhm, NULL);
 	  _amd_message_save (amd, mhm, 0);
+	  updated = 1;
 	}
+    }
+
+  if (updated && !amd->mailbox_size)
+    {
+      mu_off_t size = 0;
+      int rc = compute_mailbox_size (amd, amd->name, &size);
+      if (rc == 0)
+	write_size_file (amd, size);
     }
 
   return 0;
@@ -1193,80 +1344,20 @@ amd_is_updated (mu_mailbox_t mailbox)
 }
 
 static int
-compute_mailbox_size (const char *name, mu_off_t *psize)
-{
-  DIR *dir;
-  struct dirent *entry;
-  char *buf;
-  size_t bufsize;
-  size_t dirlen;
-  size_t flen;
-  int status = 0;
-  struct stat sb;
-  
-  dir = opendir (name);
-  if (!dir)
-    return errno;
-
-  dirlen = strlen (name);
-  bufsize = dirlen + 32;
-  buf = malloc (bufsize);
-  if (!buf)
-    {
-      closedir (dir);
-      return ENOMEM;
-    }
-  
-  strcpy (buf, name);
-  if (buf[dirlen-1] != '/')
-    buf[++dirlen - 1] = '/';
-	  
-  while ((entry = readdir (dir)))
-    {
-      switch (entry->d_name[0])
-	{
-	case '.':
-	  break;
-
-	default:
-	  flen = strlen (entry->d_name);
-	  if (dirlen + flen + 1 > bufsize)
-	    {
-	      bufsize = dirlen + flen + 1;
-	      buf = realloc (buf, bufsize);
-	      if (!buf)
-		{
-		  status = ENOMEM;
-		  break;
-		}
-	    }
-	  strcpy (buf + dirlen, entry->d_name);
-	  if (stat (buf, &sb) == 0)
-	    {
-	      if (S_ISREG (sb.st_mode))
-		*psize += sb.st_size;
-	      else if (S_ISDIR (sb.st_mode))
-		compute_mailbox_size (buf, psize);
-	    }
-	  /* FIXME: else? */
-	  break;
-	}
-    }
-
-  free (buf);
-  
-  closedir (dir);
-  return 0;
-}
-
-static int
 amd_get_size (mu_mailbox_t mailbox, mu_off_t *psize)
 {
   struct _amd_data *amd = mailbox->data;
   if (amd->mailbox_size)
     return amd->mailbox_size (mailbox, psize);
   *psize = 0;
-  return compute_mailbox_size (amd->name, psize);
+  if (read_size_file (amd, psize))
+    {
+      int rc = compute_mailbox_size (amd, amd->name, psize);
+      if (rc == 0)
+	write_size_file (amd, *psize);
+      return rc;
+    }
+  return 0;
 }
 
 /* Return number of open streams residing in a message pool */
