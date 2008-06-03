@@ -1,3 +1,8 @@
+2008-06-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/radius.c (mu_grad_logger): New function.
+	(mu_radius_module_init): Install a custom logger function.
+
 2008-05-31  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libproto/include/amd.h (struct _amd_message.has_new_msg): New

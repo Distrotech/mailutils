@@ -30,6 +30,7 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <inttostr.h>
 
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
@@ -161,6 +162,53 @@ parse_pairlist (grad_avp_t **plist, char *input)
   ((cfg) && \
    ((cfg)->auth_request || (cfg)->getpwnam_request || (cfg)->getpwuid_request))
 
+static void
+mu_grad_logger(int level,
+	       const grad_request_t *req,
+	       const grad_locus_t *loc,
+	       const char *func_name, int en,
+	       const char *fmt, va_list ap)
+{
+  static int mlevel[] = {
+    MU_DIAG_EMERG,
+    MU_DIAG_ALERT,
+    MU_DIAG_CRIT,
+    MU_DIAG_ERROR,
+    MU_DIAG_WARNING,
+    MU_DIAG_NOTICE,
+    MU_DIAG_INFO,
+    MU_DIAG_DEBUG
+  };
+
+  char *pfx = NULL;
+  if (loc)
+    {
+      char buf[INT_STRLEN_BOUND(uintmax_t)];
+      char *p = umaxtostr (loc->line, buf);
+      size_t size = strlen (loc->file) + 1 + strlen (p) + 2 + strlen (fmt) + 1;
+      if (func_name)
+	size += strlen (func_name) + 1;
+      pfx = malloc (size);
+      if (pfx)
+	{
+	  strcpy (pfx, loc->file);
+	  strcat (pfx, ":");
+	  strcat (pfx, p);
+	  strcat (pfx, ":");
+	  if (func_name)
+	    {
+	      strcat (pfx, func_name);
+	      strcat (pfx, ":");
+	    }
+	  strcat (pfx, " ");
+	  strcat (pfx, fmt);
+	}
+    }
+  mu_diag_voutput (mlevel[level & L_PRIMASK], pfx ? pfx : fmt, ap);
+  if (pfx)
+    free(pfx);
+}
+
 int
 mu_radius_module_init (void *data)
 {
@@ -169,6 +217,7 @@ mu_radius_module_init (void *data)
   if (!NEED_RADIUS_P (cfg))
     return 0;
   
+  grad_set_logger (mu_grad_logger);
   grad_config_dir = grad_estrdup (cfg->config_dir);
 
   grad_path_init ();
