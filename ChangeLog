@@ -1,3 +1,10 @@
+2008-06-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/ldap.c (chk_sha): Remove useless return.
+	* mailbox/header.c (mu_hdrent_find_stream_pos): Check for
+	hrd->tail != NULL.
+	(header_readline): Return immediately if header size is 0.
+
 2008-06-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/radius.c (mu_grad_logger): New function.
