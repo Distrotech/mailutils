@@ -682,7 +682,6 @@ chk_sha (const char *db_pass, const char *pass)
   
   return memcmp (sha1digest, d1, sizeof sha1digest) == 0 ?
                   0 : MU_ERR_AUTH_FAILURE;
-  return ENOSYS;
 }
 
 static int
