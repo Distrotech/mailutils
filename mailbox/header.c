@@ -1048,12 +1048,6 @@ header_readline (mu_stream_t is, char *buffer, size_t buflen,
   status = mu_header_fill (header);
   if (status)
     return status;
-  if (header->size == 0)
-    {
-      if (pnread)
-	*pnread = 0;
-      return 0;
-    }
   if (mu_hdrent_find_stream_pos (header, off, &ent, &ent_off))
     {
       if (pnread)
