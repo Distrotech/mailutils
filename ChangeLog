@@ -1,3 +1,15 @@
+2008-07-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix converting RFC822 streams to messages.
+	
+	* mailbox/message_stream.c (_mu_rfc822_stream): New members
+	envelope, and envelope_length.
+	(_mu_rfc822_read, _mu_rfc822_readline, _mu_rfc822_size): Skip
+	eventual envelope string.
+	(_mu_rfc822_open): Save envelope.
+	(_mu_rfc822_destroy): Free envelope.
+	(restore_envelope): Use message envelope, if it is present.
+
 2008-06-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/header.c (header_readline): Revert yesterday's change.

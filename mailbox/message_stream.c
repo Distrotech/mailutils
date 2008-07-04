@@ -43,6 +43,8 @@
 struct _mu_rfc822_stream
 {
   mu_stream_t stream;  /* Actual stream */
+  char *envelope;
+  size_t envelope_length; 
   size_t mark_offset;  /* Offset of the header separator */
   size_t mark_length;  /* Length of the header separator (not counting the
 			  newline) */
@@ -54,6 +56,7 @@ _mu_rfc822_read (mu_stream_t stream, char *optr, size_t osize,
 {
   struct _mu_rfc822_stream *s = mu_stream_get_owner (stream);
 
+  offset += s->envelope_length;
   if (offset < s->mark_offset)
     {
       if (offset + osize >= s->mark_offset)
@@ -70,6 +73,7 @@ _mu_rfc822_readline (mu_stream_t stream, char *optr, size_t osize,
 {
   struct _mu_rfc822_stream *s = mu_stream_get_owner (stream);
     
+  offset += s->envelope_length;
   if (offset < s->mark_offset)
     {
       if (offset + osize >= s->mark_offset)
@@ -100,7 +104,7 @@ _mu_rfc822_size (mu_stream_t stream, mu_off_t *psize)
   int rc = mu_stream_size (s->stream, psize);
   
   if (rc == 0)
-    *psize -= s->mark_length;
+    *psize -= s->envelope_length + s->mark_length;
   return rc;
 }
   
@@ -118,7 +122,15 @@ _mu_rfc822_open (mu_stream_t stream)
 				  offset, &len)) == 0
 	 && len > 0)
     {
-      if (mu_mh_delim (buffer))
+      if (offset == 0 && memcmp (buffer, "From ", 5) == 0)
+	{
+	  s->envelope_length = len;
+	  s->envelope = strdup (buffer);
+	  if (!s->envelope)
+	    return ENOMEM;
+	  s->envelope[len - 1] = 0;
+	}
+      else if (mu_mh_delim (buffer))
 	{
 	  s->mark_offset = offset;
 	  s->mark_length = len - 1; /* do not count the terminating newline */
@@ -142,6 +154,8 @@ static void
 _mu_rfc822_destroy (mu_stream_t stream)
 {
   struct _mu_rfc822_stream *s = mu_stream_get_owner (stream);
+
+  free (s->envelope);
   if (s->stream)
     mu_stream_destroy (&s->stream, mu_stream_get_owner (s->stream));
   free (s);
@@ -201,6 +215,7 @@ struct _mu_rfc822_message
 {
   char *from;
   char *date;
+  mu_off_t header_start;
   mu_off_t body_start;
   mu_off_t body_end;
 };
@@ -217,23 +232,52 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
   size_t bufsize = 0;
   size_t len;
   mu_off_t body_start, body_end;
+  struct _mu_rfc822_stream *s822 = mu_stream_get_owner (str);
+
+  if (s822->envelope)
+    {
+      char *s = s822->envelope + 5;
+      char *p = strchr (s, ' ');
+      size_t len;
+
+      if (p)
+	{
+	  len = p - s;
+	  env_from = malloc (len + 1);
+	  if (!env_from)
+	    return ENOMEM;
+	  memcpy(env_from, s, len);
+	  env_from[len] = 0;
+	  env_date = strdup (p + 1);
+	  if (!env_date)
+	    {
+	      free (env_from);
+	      return ENOMEM;
+	    }
+	}
+    }
   
   while ((rc = mu_stream_getline (str, &buffer, &bufsize, offset, &len)) == 0
 	 && len > 0)
     {
       if (buffer[0] == '\n')
 	break;
-      buffer[len] = 0;
       offset += len;
-      if (strncasecmp (buffer, MU_HEADER_FROM,
-		       sizeof (MU_HEADER_FROM) - 1) == 0)
-	from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
-      else if (strncasecmp (buffer, MU_HEADER_ENV_SENDER,
-			    sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
-	env_from = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_SENDER)));
-      else if (strncasecmp (buffer, MU_HEADER_ENV_DATE,
-			    sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
-	env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
+
+      if (!env_from || !env_date)
+	{
+      	  if (!from && strncasecmp (buffer, MU_HEADER_FROM,
+				    sizeof (MU_HEADER_FROM) - 1) == 0)
+	    from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
+	  else if (!env_from
+		   && strncasecmp (buffer, MU_HEADER_ENV_SENDER,
+				   sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
+	    env_from = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_SENDER)));
+	  else if (!env_date
+		   && strncasecmp (buffer, MU_HEADER_ENV_DATE,
+				   sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
+	    env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
+	}
     }
 
   free (buffer);
