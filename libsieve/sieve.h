@@ -37,7 +37,7 @@ typedef union {
   size_t line;
 } sieve_op_t;
 
-struct sieve_machine {
+struct mu_sieve_machine {
   /* Static data */
   mu_sieve_locus_t locus;    /* Approximate location in the code */
 
@@ -81,51 +81,42 @@ struct sieve_machine {
 };
 
 extern mu_sieve_locus_t mu_sieve_locus;
-extern mu_sieve_machine_t sieve_machine;
-extern int sieve_error_count; 
+extern mu_sieve_machine_t mu_sieve_machine;
+extern int mu_sieve_error_count; 
 
 #define TAG_COMPFUN "__compfun__"
 #define TAG_RELFUN  "__relfun__"
 
-void sieve_compile_error (mu_sieve_locus_t *locus,
+void mu_sv_compile_error (mu_sieve_locus_t *locus,
 			  const char *fmt, ...) MU_PRINTFLIKE(2,3);
-void sieve_debug_internal (mu_sieve_printf_t printer, void *data,
-			   const char *fmt, ...) MU_PRINTFLIKE(3,4);
-void sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer,
-		        void *data);
-void sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer,
+void mu_sv_print_value_list (mu_list_t list, mu_sieve_printf_t printer,
 			     void *data);
-void sieve_print_tag_list (mu_list_t list, mu_sieve_printf_t printer,
+void mu_sv_print_tag_list (mu_list_t list, mu_sieve_printf_t printer,
 			   void *data);
 
-int _sieve_default_error_printer (void *data, const char *fmt, va_list ap);
-int _sieve_default_parse_error (void *unused,
-				const char *filename, int lineno,
-			        const char *fmt, va_list ap);
-
-int sieve_lex_begin (const char *name);
-int sieve_lex_begin_string (const char *buf, int bufsize,
+int mu_sv_lex_begin (const char *name);
+int mu_sv_lex_begin_string (const char *buf, int bufsize,
 			    const char *fname, int line);
-void sieve_lex_finish (void);
+void mu_sv_lex_finish (void);
 int mu_sieve_yyerror (char *s);
 int mu_sieve_yylex (); 
 
-void sieve_register_standard_actions (mu_sieve_machine_t mach);
-void sieve_register_standard_tests (mu_sieve_machine_t mach);
-void sieve_register_standard_comparators (mu_sieve_machine_t mach);
+void mu_sv_register_standard_actions (mu_sieve_machine_t mach);
+void mu_sv_register_standard_tests (mu_sieve_machine_t mach);
+void mu_sv_register_standard_comparators (mu_sieve_machine_t mach);
 
-int sieve_code (sieve_op_t *op);
-int sieve_code_instr (sieve_instr_t instr);
-int sieve_code_handler (mu_sieve_handler_t handler);
-int sieve_code_list (mu_list_t list);
-int sieve_code_number (long num);
-int sieve_code_test (mu_sieve_register_t *reg, mu_list_t arglist);
-int sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist);
-void sieve_code_anyof (size_t start);
-void sieve_code_allof (size_t start);
-int sieve_code_source (const char *name);
-int sieve_code_line (size_t line);
-void sieve_change_source (void);
+int mu_sv_code (sieve_op_t *op);
+int mu_sv_code_instr (sieve_instr_t instr);
+int mu_sv_code_handler (mu_sieve_handler_t handler);
+int mu_sv_code_list (mu_list_t list);
+int mu_sv_code_number (long num);
+int mu_sv_code_test (mu_sieve_register_t *reg, mu_list_t arglist);
+int mu_sv_code_action (mu_sieve_register_t *reg, mu_list_t arglist);
+void mu_sv_code_anyof (size_t start);
+void mu_sv_code_allof (size_t start);
+int mu_sv_code_source (const char *name);
+int mu_sv_code_line (size_t line);
+void mu_sv_change_source (void);
 
 void _mu_sv_instr_action (mu_sieve_machine_t mach);
 void _mu_sv_instr_test (mu_sieve_machine_t mach);
@@ -139,10 +130,8 @@ void _mu_sv_instr_nop (mu_sieve_machine_t mach);
 void _mu_sv_instr_source (mu_sieve_machine_t mach);
 void _mu_sv_instr_line (mu_sieve_machine_t mach);
 
-int sieve_mark_deleted (mu_message_t msg, int deleted);
+int mu_sv_match_part_checker (const char *name, mu_list_t tags,
+			      mu_list_t args);
 
-int mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args);
-int sieve_relational_checker (const char *name, mu_list_t tags, mu_list_t args);
-
-int sieve_load_add_path (mu_list_t path);
-int sieve_load_add_dir (mu_sieve_machine_t mach, const char *name);
+int mu_sv_load_add_path (mu_list_t path);
+int mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name);

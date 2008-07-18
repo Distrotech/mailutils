@@ -63,7 +63,7 @@ mu_sieve_module_init (void *data)
   if (p->clearflags & MU_SIEVE_CLEAR_LIBRARY_PATH)
     mu_list_destroy (&mu_sieve_library_path);
   mu_list_do (p->library_path, _path_append, &mu_sieve_library_path);
-  sieve_load_add_path (mu_sieve_library_path);
+  mu_sv_load_add_path (mu_sieve_library_path);
   mu_list_destroy (&p->library_path);
   mu_list_destroy (&p->include_path);
   return 0;

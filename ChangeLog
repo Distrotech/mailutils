@@ -1,5 +1,15 @@
 2008-07-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Finish namespace cleanup in libsieve.
+
+	* libsieve/actions.c, libsieve/comparator.c, libsieve/conf.c,
+	libsieve/load.c, libsieve/prog.c, libsieve/register.c,
+	libsieve/relational.c, libsieve/require.c, libsieve/runtime.c,
+	libsieve/sieve.h, libsieve/sieve.l, libsieve/sieve.y,
+	libsieve/tests.c, libsieve/util.c: Prefix all external
+	identifiers, that are not intended for use by application
+	programs, with mu_sv_.
+	
 	Minor fixes.
 	
 	* NEWS, configure.ac: Raise version to 1.9.91

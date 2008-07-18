@@ -36,7 +36,7 @@ mu_sieve_require (mu_list_t slist)
   status = mu_list_get_iterator (slist, &itr);
   if (status)
     {
-      sieve_compile_error (&mu_sieve_locus,
+      mu_sv_compile_error (&mu_sieve_locus,
 			   _("cannot create iterator: %s"),
 			   mu_strerror (status));
       return;
@@ -74,9 +74,9 @@ mu_sieve_require (mu_list_t slist)
 	  text = _("required action");
 	}
 
-      if (reqfn (sieve_machine, name))
+      if (reqfn (mu_sieve_machine, name))
 	{
-	  sieve_compile_error (&mu_sieve_locus,
+	  mu_sv_compile_error (&mu_sieve_locus,
 			       _("source for the %s %s is not available"),
 			       text,
 			       name);

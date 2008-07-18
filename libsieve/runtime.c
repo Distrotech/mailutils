@@ -76,9 +76,9 @@ instr_run (mu_sieve_machine_t mach)
   if (INSTR_DEBUG (mach))
     {
       mu_sieve_debug (mach, "Arguments: ");
-      sieve_print_value_list (arg_list, mach->debug_printer, mach->data);
+      mu_sv_print_value_list (arg_list, mach->debug_printer, mach->data);
       mu_sieve_debug (mach, "\nTags:");
-      sieve_print_tag_list (tag_list, mach->debug_printer, mach->data);
+      mu_sv_print_tag_list (tag_list, mach->debug_printer, mach->data);
       mu_sieve_debug (mach, "\n");
     }
 

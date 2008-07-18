@@ -173,7 +173,7 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
       break;
 	
     default:
-      sieve_compile_error (&mu_sieve_locus, _("invalid data type"));
+      mu_sv_compile_error (&mu_sieve_locus, _("invalid data type"));
       abort ();
     }
   return val;
@@ -188,16 +188,16 @@ mu_sieve_value_get (mu_list_t vlist, size_t index)
 }
 
 void
-sieve_compile_error (mu_sieve_locus_t *ploc, const char *fmt, ...)
+mu_sv_compile_error (mu_sieve_locus_t *ploc, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  sieve_error_count++;
-  sieve_machine->parse_error_printer (sieve_machine->data,
-				      ploc->source_file,
-				      ploc->source_line,
-                                      fmt, ap);
+  mu_sieve_error_count++;
+  mu_sieve_machine->parse_error_printer (mu_sieve_machine->data,
+				         ploc->source_file,
+				         ploc->source_line,
+                                         fmt, ap);
   va_end (ap);
 }
 
@@ -233,8 +233,12 @@ mu_sieve_arg_error (mu_sieve_machine_t mach, int n)
   mu_sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
 
-void
-sieve_debug_internal (mu_sieve_printf_t printer, void *data, const char *fmt, ...)
+static void sieve_debug_internal (mu_sieve_printf_t printer, void *data,
+				  const char *fmt, ...) MU_PRINTFLIKE(3,4);
+
+static void
+sieve_debug_internal (mu_sieve_printf_t printer, void *data,
+                      const char *fmt, ...)
 {
   va_list ap;
 
@@ -267,28 +271,6 @@ mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
   va_end (ap);
 }
   
-
-int
-_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
-{
-  return mu_verror (fmt, ap);
-}
-
-int
-_sieve_default_parse_error (void *unused, const char *filename, int lineno,
-			    const char *fmt, va_list ap)
-{
-  mu_debug_t debug;
-
-  mu_diag_get_debug (&debug);
-  if (filename)
-    mu_debug_set_locus (debug, filename, lineno);
-  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
-  mu_diag_printf (MU_DIAG_ERROR, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-  return 0;
-}
-
 const char *
 mu_sieve_type_str (mu_sieve_data_type type)
 {
@@ -334,6 +316,9 @@ string_printer (char *s, struct debug_data *dbg)
   return 0;
 }
 
+static void sieve_print_value (mu_sieve_value_t *, mu_sieve_printf_t,
+			       void *);
+
 static int
 value_printer (mu_sieve_value_t *val, struct debug_data *dbg)
 {
@@ -342,8 +327,9 @@ value_printer (mu_sieve_value_t *val, struct debug_data *dbg)
   return 0;
 }
 
-void
-sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer, void *data)
+static void
+sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer,
+		   void *data)
 {
   struct debug_data dbg;
 
@@ -381,7 +367,7 @@ sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer, void *data)
 } 
 
 void
-sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
+mu_sv_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
 {
   mu_sieve_value_t val;
   
@@ -405,7 +391,7 @@ tag_printer (mu_sieve_runtime_tag_t *val, struct debug_data *dbg)
 }
 
 void
-sieve_print_tag_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
+mu_sv_print_tag_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
 {
   struct debug_data dbg;
 
@@ -441,25 +427,6 @@ mu_sieve_tag_lookup (mu_list_t taglist, char *name, mu_sieve_value_t **arg)
       return 1;
     }
   return 0;
-}
-
-int
-sieve_mark_deleted (mu_message_t msg, int deleted)
-{
-  mu_attribute_t attr = 0;
-  int rc;
-
-  rc = mu_message_get_attribute (msg, &attr);
-
-  if (!rc)
-    {
-      if (deleted)
-	rc = mu_attribute_set_deleted (attr);
-      else
-	rc = mu_attribute_unset_deleted (attr);
-    }
-
-  return rc;
 }
 
 int

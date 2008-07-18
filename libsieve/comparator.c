@@ -40,7 +40,8 @@ int
 mu_sieve_register_comparator (mu_sieve_machine_t mach,
 			   const char *name,
 			   int required,
-			   mu_sieve_comparator_t is, mu_sieve_comparator_t contains,
+			   mu_sieve_comparator_t is,
+			   mu_sieve_comparator_t contains,
 			   mu_sieve_comparator_t matches,
 			   mu_sieve_comparator_t regex,
 			   mu_sieve_comparator_t eq)
@@ -103,7 +104,8 @@ mu_sieve_require_comparator (mu_sieve_machine_t mach, const char *name)
 }
 
 mu_sieve_comparator_t 
-mu_sieve_comparator_lookup (mu_sieve_machine_t mach, const char *name, int matchtype)
+mu_sieve_comparator_lookup (mu_sieve_machine_t mach, const char *name, 
+                            int matchtype)
 {
   sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (reg && reg->comp[matchtype])
@@ -159,7 +161,7 @@ _regex_compile (void *item, void *data)
 {
   struct regex_data *rd = data;
   int rc;
-  regex_t *preg = mu_sieve_malloc (sieve_machine, sizeof (*preg));
+  regex_t *preg = mu_sieve_malloc (mu_sieve_machine, sizeof (*preg));
   
   rc = regcomp (preg, (char*)item, rd->flags);
   if (rc)
@@ -169,11 +171,11 @@ _regex_compile (void *item, void *data)
       if (errbuf)
 	{
 	  regerror (rc, preg, errbuf, size);
-	  sieve_compile_error (&mu_sieve_locus, _("Regex error: %s"), errbuf);
+	  mu_sv_compile_error (&mu_sieve_locus, _("Regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
-	sieve_compile_error (&mu_sieve_locus, _("Regex error"));
+	mu_sv_compile_error (&mu_sieve_locus, _("Regex error"));
       return rc;
     }
 
@@ -204,7 +206,7 @@ comp_false (const char *pattern, const char *text)
 }
 
 int
-mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
+mu_sv_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 {
   mu_iterator_t itr;
   mu_sieve_runtime_tag_t *match = NULL;
@@ -234,7 +236,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	{
 	  if (match)
 	    {
-	      sieve_compile_error (&mu_sieve_locus, 
+	      mu_sv_compile_error (&mu_sieve_locus, 
 			     _("match type specified twice in call to `%s'"),
 				   name);
 	      err = 1;
@@ -270,7 +272,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  
 	  if (comp && strcmp (comp->arg->v.string, "i;ascii-numeric"))
 	    {
-	      sieve_compile_error (&mu_sieve_locus, 
+	      mu_sv_compile_error (&mu_sieve_locus, 
 				   /* TRANSLATORS: Do not translate ':count'.
 				      It is the name of a Sieve tag */
 				   _("comparator %s is incompatible with "
@@ -289,7 +291,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  mu_list_count (val->v.list, &count);
 	  if (count > 1)
 	    {
-	      sieve_compile_error (&mu_sieve_locus, 
+	      mu_sv_compile_error (&mu_sieve_locus, 
 			_("second argument must be a list of one element"));
 	      return 1;
 	    }
@@ -297,7 +299,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  count = strtoul (str, &str, 10);
 	  if (*str)
 	    {
-	      sieve_compile_error (&mu_sieve_locus, 
+	      mu_sv_compile_error (&mu_sieve_locus, 
 			   _("second argument cannot be converted to number"));
 	      return 1;
 	    }
@@ -307,7 +309,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 
       if (mu_sieve_str_to_relcmp (str, NULL, NULL))
 	{
-	  sieve_compile_error (&mu_sieve_locus, 
+	  mu_sv_compile_error (&mu_sieve_locus, 
 			       _("invalid relational match `%s' in call to `%s'"),
 			       str, name);
 	  return 1;
@@ -317,17 +319,18 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
   if (!compfun)
     {
       compname = comp ? comp->arg->v.string : "i;ascii-casemap";
-      compfun = mu_sieve_comparator_lookup (sieve_machine, compname, matchtype);
+      compfun = mu_sieve_comparator_lookup (mu_sieve_machine, compname, 
+                                            matchtype);
       if (!compfun)
 	{
-	  sieve_compile_error (&mu_sieve_locus, 
+	  mu_sv_compile_error (&mu_sieve_locus, 
 			   _("comparator `%s' is incompatible with match type `%s' in call to `%s'"),
 			       compname, match ? match->tag : "is", name);
 	  return 1;
 	}
     }
 
-  tmp = mu_sieve_malloc (sieve_machine, sizeof (*tmp));
+  tmp = mu_sieve_malloc (mu_sieve_machine, sizeof (*tmp));
   tmp->tag = TAG_COMPFUN;
   tmp->arg = mu_sieve_value_create (SVT_POINTER, compfun);
   mu_list_append (tags, tmp);
@@ -351,7 +354,8 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
       
       rc = mu_sieve_vlist_do (val, _regex_compile, &rd);
 
-      mu_sieve_machine_add_destructor (sieve_machine, _free_reglist, rd.list);
+      mu_sieve_machine_add_destructor (mu_sieve_machine, _free_reglist, 
+                                       rd.list);
 
       if (rc)
 	return rc;
@@ -489,7 +493,7 @@ i_ascii_numeric_eq (const char *pattern, const char *text)
 }
 
 void
-sieve_register_standard_comparators (mu_sieve_machine_t mach)
+mu_sv_register_standard_comparators (mu_sieve_machine_t mach)
 {
   mu_sieve_register_comparator (mach,
 			     "i;octet",

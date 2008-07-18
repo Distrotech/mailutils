@@ -31,7 +31,7 @@ extern "C" {
 #define __s_cat3__(a,b,c) a ## b ## c
 #define SIEVE_EXPORT(module,name) __s_cat3__(module,_LTX_,name)
 
-typedef struct sieve_machine *mu_sieve_machine_t;
+typedef struct mu_sieve_machine *mu_sieve_machine_t;
 
 typedef struct
 {

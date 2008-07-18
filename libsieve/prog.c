@@ -26,69 +26,70 @@
 #include <sieve.h>
 
 int
-sieve_code (sieve_op_t *op)
+mu_sv_code (sieve_op_t *op)
 {
-  if (sieve_machine->pc >= sieve_machine->progsize)
+  if (mu_sieve_machine->pc >= mu_sieve_machine->progsize)
     {
-      size_t newsize = sieve_machine->progsize + SIEVE_CODE_INCR;
-      sieve_op_t *newprog = mu_sieve_mrealloc (sieve_machine, sieve_machine->prog,
-					    newsize *
-					    sizeof sieve_machine->prog[0]);
+      size_t newsize = mu_sieve_machine->progsize + SIEVE_CODE_INCR;
+      sieve_op_t *newprog = mu_sieve_mrealloc (mu_sieve_machine, 
+                                               mu_sieve_machine->prog,
+					       newsize *
+					     sizeof mu_sieve_machine->prog[0]);
       if (!newprog)
 	{
-	  sieve_compile_error (&mu_sieve_locus, _("out of memory!"));
+	  mu_sv_compile_error (&mu_sieve_locus, _("out of memory!"));
 	  return 1;
 	}
-      sieve_machine->prog = newprog;
-      sieve_machine->progsize = newsize;
+      mu_sieve_machine->prog = newprog;
+      mu_sieve_machine->progsize = newsize;
     }
-  sieve_machine->prog[sieve_machine->pc++] = *op;
+  mu_sieve_machine->prog[mu_sieve_machine->pc++] = *op;
   return 0;
 }
 
 int
-sieve_code_instr (sieve_instr_t instr)
+mu_sv_code_instr (sieve_instr_t instr)
 {
   sieve_op_t op;
 
   op.instr = instr;
-  return sieve_code (&op);
+  return mu_sv_code (&op);
 }
 
 int
-sieve_code_handler (mu_sieve_handler_t handler)
+mu_sv_code_handler (mu_sieve_handler_t handler)
 {
   sieve_op_t op;
 
   op.handler = handler;
-  return sieve_code (&op);
+  return mu_sv_code (&op);
 }
 
 int
-sieve_code_list (mu_list_t list)
+mu_sv_code_list (mu_list_t list)
 {
   sieve_op_t op;
 
   op.list = list;
-  return sieve_code (&op);
+  return mu_sv_code (&op);
 }
 
 int
-sieve_code_number (long num)
+mu_sv_code_number (long num)
 {
   sieve_op_t op;
 
   op.number = num;
-  return sieve_code (&op);
+  return mu_sv_code (&op);
 }
 
 int
-sieve_code_string (const char *string)
+mu_sv_code_string (const char *string)
 {
   sieve_op_t op;
 
   op.string = string;
-  return sieve_code (&op);
+  return mu_sv_code (&op);
 }
 
 mu_sieve_tag_def_t *
@@ -133,7 +134,7 @@ _run_checker (void *item, void *data)
 }
 
 int
-sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
+mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   mu_iterator_t itr;
   mu_list_t arg_list = NULL;
@@ -143,7 +144,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
   
-  if (sieve_code_handler (reg->handler))
+  if (mu_sv_code_handler (reg->handler))
     return 1;
 
   exp_arg = reg->req_args ? reg->req_args : empty;
@@ -154,7 +155,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
       if (rc)
 	{
-	  sieve_compile_error (&mu_sieve_locus, 
+	  mu_sv_compile_error (&mu_sieve_locus, 
                                _("cannot create iterator: %s"),
   		               mu_strerror (rc));
 	  return 1;
@@ -173,7 +174,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
 	      if (!tag)
 		{
-		  sieve_compile_error (&mu_sieve_locus, 
+		  mu_sv_compile_error (&mu_sieve_locus, 
 				       _("invalid tag name `%s' for `%s'"),
 				       val->v.string, reg->name);
 		  err = 1;
@@ -182,7 +183,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      
 	      if (!tag_list && (rc = mu_list_create (&tag_list)))
 		{
-		  sieve_compile_error (&mu_sieve_locus, 
+		  mu_sv_compile_error (&mu_sieve_locus, 
                                        _("cannot create tag list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
@@ -195,7 +196,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		  mu_iterator_next (itr);
 		  if (mu_iterator_is_done (itr))
 		    {
-		      sieve_compile_error (&mu_sieve_locus, 
+		      mu_sv_compile_error (&mu_sieve_locus, 
 			   _("required argument for tag %s is missing"),
 					   tag->name);
 		      err = 1;
@@ -206,7 +207,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      else
 		tagrec.arg = NULL;
 	      
-	      tagptr = mu_sieve_malloc (sieve_machine, sizeof (*tagptr));
+	      tagptr = mu_sieve_malloc (mu_sieve_machine, sizeof (*tagptr));
 	      *tagptr = tagrec;
 	      mu_list_append (tag_list, tagptr);
 
@@ -214,7 +215,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		{
 		  if (!chk_list && (rc = mu_list_create (&chk_list)))
 		    {
-		      sieve_compile_error (&mu_sieve_locus, 
+		      mu_sv_compile_error (&mu_sieve_locus, 
  			  	         _("cannot create check list: %s"),
 					   mu_strerror (rc));
 		      err = 1;
@@ -226,7 +227,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	    }
 	  else if (*exp_arg == SVT_VOID)
 	    {
-	      sieve_compile_error (&mu_sieve_locus, 
+	      mu_sv_compile_error (&mu_sieve_locus, 
                                    _("too many arguments in call to `%s'"),
  			           reg->name);
 	      err = 1;
@@ -242,16 +243,16 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
 		      mu_list_create (&list);
 		      mu_list_append (list, val->v.string);
-		      mu_sieve_mfree (sieve_machine, val);
+		      mu_sieve_mfree (mu_sieve_machine, val);
 		      val = mu_sieve_value_create (SVT_STRING_LIST, list);
 		    }
 		  else
 		    {
-		      sieve_compile_error (&mu_sieve_locus, 
+		      mu_sv_compile_error (&mu_sieve_locus, 
                                       _("type mismatch in argument %d to `%s'"),
 				      exp_arg - reg->req_args + 1,
 				      reg->name);
-		      sieve_compile_error (&mu_sieve_locus, 
+		      mu_sv_compile_error (&mu_sieve_locus, 
 					   _("expected %s but passed %s"),
 					   mu_sieve_type_str (*exp_arg),
 					   mu_sieve_type_str (val->type));
@@ -262,7 +263,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
 	      if (!arg_list && (rc = mu_list_create (&arg_list)))
 		{
-		  sieve_compile_error (&mu_sieve_locus, 
+		  mu_sv_compile_error (&mu_sieve_locus, 
                                        _("cannot create arg list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
@@ -280,7 +281,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
     {
       if (*exp_arg != SVT_VOID)
 	{
-	  sieve_compile_error (&mu_sieve_locus, 
+	  mu_sv_compile_error (&mu_sieve_locus, 
                                _("too few arguments in call to `%s'"),
 			       reg->name);
 	  err = 1;
@@ -298,9 +299,9 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
     }
   
   if (!err)
-    err = sieve_code_list (arg_list)
-          || sieve_code_list (tag_list)
-          || sieve_code_string (reg->name);
+    err = mu_sv_code_list (arg_list)
+          || mu_sv_code_list (tag_list)
+          || mu_sv_code_string (reg->name);
 
   if (err)
     {
@@ -313,34 +314,35 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 }
 
 int
-sieve_code_source (const char *name)
+mu_sv_code_source (const char *name)
 {
   char *s;
   
-  if (mu_list_locate (sieve_machine->source_list, (void*) name, (void **) &s))
+  if (mu_list_locate (mu_sieve_machine->source_list, 
+                      (void*) name, (void **) &s))
     {
-      s = mu_sieve_mstrdup (sieve_machine, name);
-      mu_list_append (sieve_machine->source_list, s);
+      s = mu_sieve_mstrdup (mu_sieve_machine, name);
+      mu_list_append (mu_sieve_machine->source_list, s);
     }
   
-  return sieve_code_instr (_mu_sv_instr_source)
-	 || sieve_code_string (s);
+  return mu_sv_code_instr (_mu_sv_instr_source)
+	 || mu_sv_code_string (s);
 }
 
 int
-sieve_code_line (size_t line)
+mu_sv_code_line (size_t line)
 {
   sieve_op_t op;
 
   op.line = line;
-  return sieve_code_instr (_mu_sv_instr_line)
-	 || sieve_code (&op);
+  return mu_sv_code_instr (_mu_sv_instr_line)
+	 || mu_sv_code (&op);
 }
 
 static int sieve_source_changed;
 
 void
-sieve_change_source ()
+mu_sv_change_source ()
 {
   sieve_source_changed = 1;
 }
@@ -351,56 +353,56 @@ sieve_check_source_changed ()
   if (sieve_source_changed)
     {
       sieve_source_changed = 0;
-      return sieve_code_source (mu_sieve_locus.source_file);
+      return mu_sv_code_source (mu_sieve_locus.source_file);
     }
   return 0;
 }
 
 int
-sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
+mu_sv_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || sieve_code_line (mu_sieve_locus.source_line)
-         || sieve_code_instr (_mu_sv_instr_action)
-         || sieve_code_command (reg, arglist);
+         || mu_sv_code_line (mu_sieve_locus.source_line)
+         || mu_sv_code_instr (_mu_sv_instr_action)
+         || mu_sv_code_command (reg, arglist);
 }
 
 int
-sieve_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
+mu_sv_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || sieve_code_line (mu_sieve_locus.source_line)
-         || sieve_code_instr (_mu_sv_instr_test)
-         || sieve_code_command (reg, arglist);
+         || mu_sv_code_line (mu_sieve_locus.source_line)
+         || mu_sv_code_instr (_mu_sv_instr_test)
+         || mu_sv_code_command (reg, arglist);
 }
 
 void
-sieve_code_anyof (size_t start)
+mu_sv_code_anyof (size_t start)
 {
-  size_t end = sieve_machine->pc;
-  while (sieve_machine->prog[start+1].pc != 0)
+  size_t end = mu_sieve_machine->pc;
+  while (mu_sieve_machine->prog[start+1].pc != 0)
     {
-      size_t next = sieve_machine->prog[start+1].pc;
-      sieve_machine->prog[start].instr = _mu_sv_instr_brnz;
-      sieve_machine->prog[start+1].pc = end - start - 2;
+      size_t next = mu_sieve_machine->prog[start+1].pc;
+      mu_sieve_machine->prog[start].instr = _mu_sv_instr_brnz;
+      mu_sieve_machine->prog[start+1].pc = end - start - 2;
       start = next;
     }
-  sieve_machine->prog[start].instr = _mu_sv_instr_nop;
-  sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
+  mu_sieve_machine->prog[start].instr = _mu_sv_instr_nop;
+  mu_sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
 }
 
 void
-sieve_code_allof (size_t start)
+mu_sv_code_allof (size_t start)
 {
-  size_t end = sieve_machine->pc;
+  size_t end = mu_sieve_machine->pc;
   
-  while (sieve_machine->prog[start+1].pc != 0)
+  while (mu_sieve_machine->prog[start+1].pc != 0)
     {
-      size_t next = sieve_machine->prog[start+1].pc;
-      sieve_machine->prog[start+1].pc = end - start - 2;
+      size_t next = mu_sieve_machine->prog[start+1].pc;
+      mu_sieve_machine->prog[start+1].pc = end - start - 2;
       start = next;
     }
-  sieve_machine->prog[start].instr = _mu_sv_instr_nop;
-  sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
+  mu_sieve_machine->prog[start].instr = _mu_sv_instr_nop;
+  mu_sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
 }
 		

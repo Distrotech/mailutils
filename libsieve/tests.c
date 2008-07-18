@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -407,7 +407,7 @@ static mu_sieve_tag_def_t mime_tags[] = {
   { address_part_tags, NULL }
 
 #define MATCH_PART_GROUP \
-  { match_part_tags, mu_sieve_match_part_checker }
+  { match_part_tags, mu_sv_match_part_checker }
 
 #define SIZE_GROUP { size_tags, NULL }
 
@@ -454,7 +454,7 @@ mu_sieve_tag_group_t header_tag_groups[] = {
 };
 
 void
-sieve_register_standard_tests (mu_sieve_machine_t mach)
+mu_sv_register_standard_tests (mu_sieve_machine_t mach)
 {
   mu_sieve_register_test (mach, "false", sieve_test_false, NULL, NULL, 1);
   mu_sieve_register_test (mach, "true", sieve_test_true, NULL, NULL, 1);

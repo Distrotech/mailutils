@@ -26,10 +26,13 @@
 #include <assert.h>
 #include <sieve.h>
 
-mu_sieve_machine_t sieve_machine;
-int sieve_error_count;
+mu_sieve_machine_t mu_sieve_machine;
+int mu_sieve_error_count;
 
 static void branch_fixup (size_t start, size_t end);
+static int _sieve_default_error_printer (void *, const char *, va_list);
+static int _sieve_default_parse_error (void *, const char *, int,
+				       const char *, va_list);
 %}
 
 %union {
@@ -83,32 +86,32 @@ statement    : REQUIRE stringorlist ';'
 		 /*  All the items in $2 are registered in memory_pool,
 		     so we don't free them */
 		 mu_list_destroy (&$2);
-		 $$ = sieve_machine->pc;
+		 $$ = mu_sieve_machine->pc;
 	       }
              | action ';'
 	     /* 1  2     3       4    */ 
              | if cond block else_part
                {
-		 sieve_machine->prog[$2].pc = $4.begin - $2 - 1;
+		 mu_sieve_machine->prog[$2].pc = $4.begin - $2 - 1;
 		 if ($4.branch)
-		   branch_fixup ($4.branch, sieve_machine->pc);
+		   branch_fixup ($4.branch, mu_sieve_machine->pc);
 	       }		 
              ;
 
 if           : IF
                {
-		 $$ = sieve_machine->pc;
+		 $$ = mu_sieve_machine->pc;
 	       }
              ;
 
 else_part    : maybe_elsif
                {
 		 if ($1.begin)
-		   sieve_machine->prog[$1.cond].pc =
-		                  sieve_machine->pc - $1.cond - 1;
+		   mu_sieve_machine->prog[$1.cond].pc =
+		                  mu_sieve_machine->pc - $1.cond - 1;
 		 else
 		   {
-		     $$.begin = sieve_machine->pc;
+		     $$.begin = mu_sieve_machine->pc;
 		     $$.branch = 0;
 		   }
 	       }
@@ -116,8 +119,8 @@ else_part    : maybe_elsif
                {
 		 if ($1.begin)
 		   {
-		     sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
-		     sieve_machine->prog[$2].pc = $1.branch;
+		     mu_sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
+		     mu_sieve_machine->prog[$2].pc = $1.branch;
 		     $$.begin = $1.begin;
 		     $$.branch = $2;
 		   }
@@ -144,8 +147,8 @@ elsif_branch : elsif begin cond block
 	       }
              | elsif_branch elsif begin cond block
                {
-		 sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
-		 sieve_machine->prog[$2].pc = $1.branch;
+		 mu_sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
+		 mu_sieve_machine->prog[$2].pc = $1.branch;
 		 $$.begin = $1.begin;
 		 $$.branch = $2;
 		 $$.cond = $4;
@@ -154,17 +157,17 @@ elsif_branch : elsif begin cond block
 
 elsif        : ELSIF
                {
-		 sieve_code_instr (_mu_sv_instr_branch);
-		 $$ = sieve_machine->pc;
-		 sieve_code_number (0);
+		 mu_sv_code_instr (_mu_sv_instr_branch);
+		 $$ = mu_sieve_machine->pc;
+		 mu_sv_code_number (0);
 	       }
              ;
 
 else         : ELSE
                {
-		 sieve_code_instr (_mu_sv_instr_branch);
-		 $$ = sieve_machine->pc;
-		 sieve_code_number (0);
+		 mu_sv_code_instr (_mu_sv_instr_branch);
+		 $$ = mu_sieve_machine->pc;
+		 mu_sv_code_number (0);
 	       }
              ;
 
@@ -176,17 +179,17 @@ block        : '{' list '}'
 
 testlist     : cond_expr
                {
-		 $$.start = $$.end = sieve_machine->pc;
-		 if (sieve_code_instr (_mu_sv_instr_brz)
-		     || sieve_code_number (0))
+		 $$.start = $$.end = mu_sieve_machine->pc;
+		 if (mu_sv_code_instr (_mu_sv_instr_brz)
+		     || mu_sv_code_number (0))
 		   YYERROR;
 	       }
              | testlist ',' cond_expr
                {
-		 sieve_machine->prog[$1.end+1].pc = sieve_machine->pc;
-		 $1.end = sieve_machine->pc;
-		 if (sieve_code_instr (_mu_sv_instr_brz)
-		     || sieve_code_number (0))
+		 mu_sieve_machine->prog[$1.end+1].pc = mu_sieve_machine->pc;
+		 $1.end = mu_sieve_machine->pc;
+		 if (mu_sv_code_instr (_mu_sv_instr_brz)
+		     || mu_sv_code_number (0))
 		   YYERROR;
 		 $$ = $1;
 	       }
@@ -194,9 +197,9 @@ testlist     : cond_expr
 
 cond         : cond_expr
                {
-		 sieve_code_instr (_mu_sv_instr_brz);
-		 $$ = sieve_machine->pc;
-		 sieve_code_number (0);
+		 mu_sv_code_instr (_mu_sv_instr_brz);
+		 $$ = mu_sieve_machine->pc;
+		 mu_sv_code_number (0);
 	       }
              ;
 
@@ -204,40 +207,40 @@ cond_expr    : test
                { /* to placate bison */ }
              | ANYOF '(' testlist ')'
                {
-		 sieve_code_anyof ($3.start);
+		 mu_sv_code_anyof ($3.start);
 	       }
              | ALLOF '(' testlist ')'
                {
-		 sieve_code_allof ($3.start);
+		 mu_sv_code_allof ($3.start);
 	       }
              | NOT cond_expr
                {
-		 if (sieve_code_instr (_mu_sv_instr_not))
+		 if (mu_sv_code_instr (_mu_sv_instr_not))
 		   YYERROR;
 	       }
              ;
 
 begin        : /* empty */
                {
-		 $$ = sieve_machine->pc;
+		 $$ = mu_sieve_machine->pc;
 	       }
              ; 
 
 test         : command
                {
-		 mu_sieve_register_t *reg = mu_sieve_test_lookup (sieve_machine,
-							    $1.ident);
-		 $$ = sieve_machine->pc;
+		 mu_sieve_register_t *reg = 
+		        mu_sieve_test_lookup (mu_sieve_machine, $1.ident);
+		 $$ = mu_sieve_machine->pc;
 
 		 if (!reg)
-		   sieve_compile_error (&mu_sieve_locus,
+		   mu_sv_compile_error (&mu_sieve_locus,
 					_("unknown test: %s"),
 					$1.ident);
 		 else if (!reg->required)
-		   sieve_compile_error (&mu_sieve_locus,
+		   mu_sv_compile_error (&mu_sieve_locus,
 					_("test `%s' has not been required"),
 					$1.ident);
-		 else if (sieve_code_test (reg, $1.args))
+		 else if (mu_sv_code_test (reg, $1.args))
 		   YYERROR;
 	       }
              ;
@@ -251,19 +254,19 @@ command      : IDENT maybe_arglist
 
 action       : command
                {
-		 mu_sieve_register_t *reg = mu_sieve_action_lookup (sieve_machine,
-							      $1.ident);
+		 mu_sieve_register_t *reg = 
+		        mu_sieve_action_lookup (mu_sieve_machine, $1.ident);
 		 
-		 $$ = sieve_machine->pc;
+		 $$ = mu_sieve_machine->pc;
 		 if (!reg)
-		   sieve_compile_error (&mu_sieve_locus,
+		   mu_sv_compile_error (&mu_sieve_locus,
 					_("unknown action: %s"),
 					$1.ident);
 		 else if (!reg->required)
-		   sieve_compile_error (&mu_sieve_locus,
+		   mu_sv_compile_error (&mu_sieve_locus,
 					_("action `%s' has not been required"),
 					$1.ident);
-		 else if (sieve_code_action (reg, $1.args))
+		 else if (mu_sv_code_action (reg, $1.args))
 		   YYERROR;
 	       }
              ;
@@ -340,7 +343,7 @@ slist        : STRING
 int
 yyerror (char *s)
 {
-  sieve_compile_error (&mu_sieve_locus, "%s", s);
+  mu_sv_compile_error (&mu_sieve_locus, "%s", s);
   return 0;
 }
 
@@ -587,22 +590,22 @@ string_comp (const void *item, const void *value)
 void
 mu_sieve_machine_begin (mu_sieve_machine_t mach, const char *file)
 {
-  sieve_machine = mach;
-  sieve_error_count = 0;
-  sieve_code_instr (NULL);
+  mu_sieve_machine = mach;
+  mu_sieve_error_count = 0;
+  mu_sv_code_instr (NULL);
 
   mu_list_create (&mach->source_list);
   mu_list_set_comparator (mach->source_list, string_comp);
   
-  sieve_register_standard_actions (mach);
-  sieve_register_standard_tests (mach);
-  sieve_register_standard_comparators (mach);
+  mu_sv_register_standard_actions (mach);
+  mu_sv_register_standard_tests (mach);
+  mu_sv_register_standard_comparators (mach);
 }
 
 void
 mu_sieve_machine_finish (mu_sieve_machine_t mach)
 {
-  sieve_code_instr (NULL);
+  mu_sv_code_instr (NULL);
 }
 
 int
@@ -612,12 +615,12 @@ mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
   
   mu_sieve_machine_begin (mach, name);
 
-  if (sieve_lex_begin (name) == 0)
+  if (mu_sv_lex_begin (name) == 0)
     {
       rc = yyparse ();
-      if (sieve_error_count)
+      if (mu_sieve_error_count)
 	rc = 1;
-      sieve_lex_finish ();
+      mu_sv_lex_finish ();
     }
   else
     rc = 1;
@@ -637,12 +640,12 @@ mu_sieve_compile_buffer (mu_sieve_machine_t mach,
   
   mu_sieve_machine_begin (mach, fname);
 
-  if (sieve_lex_begin_string (buf, bufsize, fname, line) == 0)
+  if (mu_sv_lex_begin_string (buf, bufsize, fname, line) == 0)
     {
       rc = yyparse ();
-      if (sieve_error_count)
+      if (mu_sieve_error_count)
 	rc = 1;
-      sieve_lex_finish ();
+      mu_sv_lex_finish ();
     }
   else
     rc = 1;
@@ -656,16 +659,38 @@ mu_sieve_compile_buffer (mu_sieve_machine_t mach,
 static void
 _branch_fixup (size_t start, size_t end)
 {
-  size_t prev = sieve_machine->prog[start].pc;
+  size_t prev = mu_sieve_machine->prog[start].pc;
   if (!prev)
     return;
   branch_fixup (prev, end);
-  sieve_machine->prog[prev].pc = end - prev - 1;
+  mu_sieve_machine->prog[prev].pc = end - prev - 1;
 }
 
-void
+static void
 branch_fixup (size_t start, size_t end)
 {
   _branch_fixup (start, end);
-  sieve_machine->prog[start].pc = end - start - 1;
+  mu_sieve_machine->prog[start].pc = end - start - 1;
 }
+
+static int
+_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
+{
+  return mu_verror (fmt, ap);
+}
+
+static int
+_sieve_default_parse_error (void *unused, const char *filename, int lineno,
+			    const char *fmt, va_list ap)
+{
+  mu_debug_t debug;
+
+  mu_diag_get_debug (&debug);
+  if (filename)
+    mu_debug_set_locus (debug, filename, lineno);
+  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
+  mu_diag_printf (MU_DIAG_ERROR, "\n");
+  mu_debug_set_locus (debug, NULL, 0);
+  return 0;
+}
+

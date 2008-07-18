@@ -124,7 +124,7 @@ push_source (const char *name)
         
   if (stat (name, &st))
     {
-      sieve_compile_error (&mu_sieve_locus,
+      mu_sv_compile_error (&mu_sieve_locus,
                            _("cannot stat `%s': %s"), name, strerror (errno));
       return 1;
     }
@@ -138,11 +138,11 @@ push_source (const char *name)
     {
       yyerror (_("recursive inclusion"));
       if (ctx->prev)
-	sieve_compile_error (&ctx->prev->locus,
+	mu_sv_compile_error (&ctx->prev->locus,
                              _("`%s' already included here"),
                              name);
       else
-	sieve_compile_error (&mu_sieve_locus, 
+	mu_sv_compile_error (&mu_sieve_locus, 
                              _("`%s' already included at top level"),
 		             name);
       return 1;
@@ -151,7 +151,7 @@ push_source (const char *name)
   fp = fopen (name, "r");
   if (!fp)
     {
-      sieve_compile_error (&mu_sieve_locus, 
+      mu_sv_compile_error (&mu_sieve_locus, 
                            _("cannot open `%s': %s"), name, strerror (errno));
       return 1;
     }
@@ -177,7 +177,7 @@ push_source (const char *name)
   mu_sieve_locus.source_line = 1;
   sieve_source_inode = st.st_ino;
 
-  sieve_change_source ();
+  mu_sv_change_source ();
   
   return 0;
 }
@@ -207,7 +207,7 @@ pop_source ()
   free (context_stack);
   context_stack = ctx;
 
-  sieve_change_source ();
+  mu_sv_change_source ();
 
   return 0;
 }
@@ -410,19 +410,19 @@ sieve_searchpath ()
   name = get_file_name (p, endp, NULL);
   if (name)
     {
-      sieve_load_add_dir (sieve_machine, name);
+      mu_sv_load_add_dir (mu_sieve_machine, name);
       free (name);
     }
 }
 
 int
-sieve_lex_begin (const char *name)
+mu_sv_lex_begin (const char *name)
 {
   return push_source (name);
 }
 
 int
-sieve_lex_begin_string (const char *buf, int bufsize,
+mu_sv_lex_begin_string (const char *buf, int bufsize,
 			const char *fname, int line)
 {
   if (!fname)
@@ -435,12 +435,12 @@ sieve_lex_begin_string (const char *buf, int bufsize,
   mu_sieve_locus.source_line = line;
   sieve_source_inode = 0;
 
-  sieve_change_source ();
+  mu_sv_change_source ();
   return 0;
 }
 
 void
-sieve_lex_finish ()
+mu_sv_lex_finish ()
 {
   while (pop_source () == 0)
     ;
@@ -473,7 +473,7 @@ number ()
 static int
 string ()
 {
-  yylval.string = mu_sieve_malloc (sieve_machine, yyleng - 1);
+  yylval.string = mu_sieve_malloc (mu_sieve_machine, yyleng - 1);
   memcpy (yylval.string, yytext + 1, yyleng - 2);
   yylval.string[yyleng - 2] = 0;
   return STRING; 
@@ -532,7 +532,7 @@ line_begin ()
   status = mu_list_create (&string_list);
   if (status)
     {
-      sieve_compile_error (&mu_sieve_locus,
+      mu_sv_compile_error (&mu_sieve_locus,
                            "mu_list_create: %s", mu_strerror (status));
       exit (1);
     }
@@ -597,9 +597,10 @@ line_finish ()
     }
 
   /* Copy the contents */
-  yylval.string = mu_sieve_malloc (sieve_machine, length + 1);
+  yylval.string = mu_sieve_malloc (mu_sieve_machine, length + 1);
   p = yylval.string;
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       char *s;
       mu_iterator_current (itr, (void **)&s);

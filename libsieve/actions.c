@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,27 @@
 #include <string.h>  
 #include <sieve.h>
 
-int
+static int
+sieve_mark_deleted (mu_message_t msg, int deleted)
+{
+  mu_attribute_t attr = 0;
+  int rc;
+
+  rc = mu_message_get_attribute (msg, &attr);
+
+  if (!rc)
+    {
+      if (deleted)
+	rc = mu_attribute_set_deleted (attr);
+      else
+	rc = mu_attribute_unset_deleted (attr);
+    }
+
+  return rc;
+}
+
+
+static int
 sieve_action_stop (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "STOP", NULL);
@@ -35,7 +55,7 @@ sieve_action_stop (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   return 0;
 }
 
-int
+static int
 sieve_action_keep (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "KEEP", NULL);
@@ -45,7 +65,7 @@ sieve_action_keep (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   return 0;
 }
 
-int
+static int
 sieve_action_discard (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_sieve_log_action (mach, "DISCARD", _("marking as deleted"));
@@ -55,7 +75,7 @@ sieve_action_discard (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   return 0;
 }
 
-int
+static int
 sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
@@ -253,7 +273,7 @@ build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
   return 0;
 }
 
-int
+static int
 sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_mime_t mime = NULL;
@@ -370,7 +390,7 @@ check_redirect_loop (mu_message_t msg)
   return loop;
 }
 
-int
+static int
 sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   mu_message_t msg, newmsg = NULL;
@@ -487,7 +507,7 @@ mu_sieve_data_type fileinto_args[] = {
 };
 
 void
-sieve_register_standard_actions (mu_sieve_machine_t mach)
+mu_sv_register_standard_actions (mu_sieve_machine_t mach)
 {
   mu_sieve_register_action (mach, "stop", sieve_action_stop, NULL, NULL, 1);
   mu_sieve_register_action (mach, "keep", sieve_action_keep, NULL, NULL, 1);
