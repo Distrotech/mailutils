@@ -1,5 +1,12 @@
 2008-07-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Minor fixes.
+	
+	* NEWS, configure.ac: Raise version to 1.9.91
+	* mail/mailline.c (ml_getc): Fix indentation.
+	* mailbox/mime.c (mu_mime_get_part): Return MU_ERR_NOENT if part
+	is out of range.
+
 	Keep namespace clean
 	
 	* libsieve/comparator.c, libsieve/prog.c, libsieve/require.c,

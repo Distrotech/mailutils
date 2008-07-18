@@ -69,22 +69,22 @@ ml_got_interrupt ()
 static int
 ml_getc (FILE *stream)
 {
-    unsigned char c;
+  unsigned char c;
 
-    while (1)
-      {
-	if (read (fileno (stream), &c, 1) == 1)
-	  return c;
-	if (errno == EINTR)
-	  {
-	    if (_interrupted)
-	      break;
-	    /* keep going if we handled the signal */
-	  }
-	else
-	  break;
-      }
-    return EOF;
+  while (1)
+    {
+      if (read (fileno (stream), &c, 1) == 1)
+	return c;
+      if (errno == EINTR)
+	{
+	  if (_interrupted)
+	    break;
+	  /* keep going if we handled the signal */
+	}
+      else
+	break;
+    }
+  return EOF;
 }
 
 void

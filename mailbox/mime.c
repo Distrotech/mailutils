@@ -903,7 +903,7 @@ mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t *msg)
   if ((ret = mu_mime_get_num_parts (mime, &nmtp_parts)) == 0)
     {
       if (part < 1 || part > nmtp_parts)
-	return EINVAL;
+	return MU_ERR_NOENT;
       if (nmtp_parts == 1 && mime->mtp_parts == NULL)
 	*msg = mime->msg;
       else
