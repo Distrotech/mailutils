@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -173,8 +173,7 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
       break;
 	
     default:
-      sieve_compile_error (sieve_filename, sieve_line_num,
-			   _("invalid data type"));
+      sieve_compile_error (&mu_sieve_locus, _("invalid data type"));
       abort ();
     }
   return val;
@@ -189,13 +188,15 @@ mu_sieve_value_get (mu_list_t vlist, size_t index)
 }
 
 void
-sieve_compile_error (const char *filename, int linenum, const char *fmt, ...)
+sieve_compile_error (mu_sieve_locus_t *ploc, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
   sieve_error_count++;
-  sieve_machine->parse_error_printer (sieve_machine->data, filename, linenum,
+  sieve_machine->parse_error_printer (sieve_machine->data,
+				      ploc->source_file,
+				      ploc->source_line,
                                       fmt, ap);
   va_end (ap);
 }

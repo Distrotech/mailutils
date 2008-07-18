@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
 #define INSTR_DISASS(m) ((m)->debug_level & MU_SIEVE_DEBUG_DISAS)
 
 void
-instr_nop (mu_sieve_machine_t mach)
+_mu_sv_instr_nop (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     mu_sieve_debug (mach, "%4lu: NOP\n",
@@ -42,7 +42,7 @@ instr_nop (mu_sieve_machine_t mach)
 }
 
 void
-instr_source (mu_sieve_machine_t mach)
+_mu_sv_instr_source (mu_sieve_machine_t mach)
 {
   mach->locus.source_file = SIEVE_ARG (mach, 0, string);
   if (INSTR_DEBUG (mach))
@@ -53,7 +53,7 @@ instr_source (mu_sieve_machine_t mach)
 }
 		 
 void
-instr_line (mu_sieve_machine_t mach)
+_mu_sv_instr_line (mu_sieve_machine_t mach)
 {
   mach->locus.source_line = SIEVE_ARG (mach, 0, line);
   if (INSTR_DEBUG (mach))
@@ -88,7 +88,7 @@ instr_run (mu_sieve_machine_t mach)
 }
 
 void
-instr_action (mu_sieve_machine_t mach)
+_mu_sv_instr_action (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
@@ -101,7 +101,7 @@ instr_action (mu_sieve_machine_t mach)
 }
 
 void
-instr_test (mu_sieve_machine_t mach)
+_mu_sv_instr_test (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
@@ -113,7 +113,7 @@ instr_test (mu_sieve_machine_t mach)
 }
 
 void
-instr_push (mu_sieve_machine_t mach)
+_mu_sv_instr_push (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
@@ -131,7 +131,7 @@ instr_push (mu_sieve_machine_t mach)
 }
 
 void
-instr_pop (mu_sieve_machine_t mach)
+_mu_sv_instr_pop (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
@@ -150,7 +150,7 @@ instr_pop (mu_sieve_machine_t mach)
 }
 
 void
-instr_not (mu_sieve_machine_t mach)
+_mu_sv_instr_not (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
     {
@@ -162,7 +162,7 @@ instr_not (mu_sieve_machine_t mach)
 }
 
 void
-instr_branch (mu_sieve_machine_t mach)
+_mu_sv_instr_branch (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
 
@@ -180,7 +180,7 @@ instr_branch (mu_sieve_machine_t mach)
 }
 
 void
-instr_brz (mu_sieve_machine_t mach)
+_mu_sv_instr_brz (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
   SIEVE_ADJUST (mach, 1);
@@ -199,7 +199,7 @@ instr_brz (mu_sieve_machine_t mach)
 }
   
 void
-instr_brnz (mu_sieve_machine_t mach)
+_mu_sv_instr_brnz (mu_sieve_machine_t mach)
 {
   long num = SIEVE_ARG (mach, 0, number);
   SIEVE_ADJUST (mach, 1);

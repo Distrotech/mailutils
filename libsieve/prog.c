@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,7 @@ sieve_code (sieve_op_t *op)
 					    sizeof sieve_machine->prog[0]);
       if (!newprog)
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num, 
-                               _("out of memory!"));
+	  sieve_compile_error (&mu_sieve_locus, _("out of memory!"));
 	  return 1;
 	}
       sieve_machine->prog = newprog;
@@ -155,7 +154,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
       if (rc)
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num,
+	  sieve_compile_error (&mu_sieve_locus, 
                                _("cannot create iterator: %s"),
   		               mu_strerror (rc));
 	  return 1;
@@ -174,7 +173,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
 	      if (!tag)
 		{
-		  sieve_compile_error (sieve_filename, sieve_line_num,
+		  sieve_compile_error (&mu_sieve_locus, 
 				       _("invalid tag name `%s' for `%s'"),
 				       val->v.string, reg->name);
 		  err = 1;
@@ -183,7 +182,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      
 	      if (!tag_list && (rc = mu_list_create (&tag_list)))
 		{
-		  sieve_compile_error (sieve_filename, sieve_line_num,
+		  sieve_compile_error (&mu_sieve_locus, 
                                        _("cannot create tag list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
@@ -196,7 +195,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		  mu_iterator_next (itr);
 		  if (mu_iterator_is_done (itr))
 		    {
-		      sieve_compile_error (sieve_filename, sieve_line_num,
+		      sieve_compile_error (&mu_sieve_locus, 
 			   _("required argument for tag %s is missing"),
 					   tag->name);
 		      err = 1;
@@ -215,7 +214,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		{
 		  if (!chk_list && (rc = mu_list_create (&chk_list)))
 		    {
-		      sieve_compile_error (sieve_filename, sieve_line_num,
+		      sieve_compile_error (&mu_sieve_locus, 
  			  	         _("cannot create check list: %s"),
 					   mu_strerror (rc));
 		      err = 1;
@@ -227,7 +226,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	    }
 	  else if (*exp_arg == SVT_VOID)
 	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
+	      sieve_compile_error (&mu_sieve_locus, 
                                    _("too many arguments in call to `%s'"),
  			           reg->name);
 	      err = 1;
@@ -248,11 +247,11 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		    }
 		  else
 		    {
-		      sieve_compile_error (sieve_filename, sieve_line_num,
+		      sieve_compile_error (&mu_sieve_locus, 
                                       _("type mismatch in argument %d to `%s'"),
 				      exp_arg - reg->req_args + 1,
 				      reg->name);
-		      sieve_compile_error (sieve_filename, sieve_line_num,
+		      sieve_compile_error (&mu_sieve_locus, 
 					   _("expected %s but passed %s"),
 					   mu_sieve_type_str (*exp_arg),
 					   mu_sieve_type_str (val->type));
@@ -263,7 +262,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
 	      if (!arg_list && (rc = mu_list_create (&arg_list)))
 		{
-		  sieve_compile_error (sieve_filename, sieve_line_num,
+		  sieve_compile_error (&mu_sieve_locus, 
                                        _("cannot create arg list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
@@ -281,7 +280,7 @@ sieve_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
     {
       if (*exp_arg != SVT_VOID)
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num, 
+	  sieve_compile_error (&mu_sieve_locus, 
                                _("too few arguments in call to `%s'"),
 			       reg->name);
 	  err = 1;
@@ -324,7 +323,7 @@ sieve_code_source (const char *name)
       mu_list_append (sieve_machine->source_list, s);
     }
   
-  return sieve_code_instr (instr_source)
+  return sieve_code_instr (_mu_sv_instr_source)
 	 || sieve_code_string (s);
 }
 
@@ -334,7 +333,7 @@ sieve_code_line (size_t line)
   sieve_op_t op;
 
   op.line = line;
-  return sieve_code_instr (instr_line)
+  return sieve_code_instr (_mu_sv_instr_line)
 	 || sieve_code (&op);
 }
 
@@ -352,7 +351,7 @@ sieve_check_source_changed ()
   if (sieve_source_changed)
     {
       sieve_source_changed = 0;
-      return sieve_code_source (sieve_filename);
+      return sieve_code_source (mu_sieve_locus.source_file);
     }
   return 0;
 }
@@ -361,8 +360,8 @@ int
 sieve_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || sieve_code_line (sieve_line_num)
-         || sieve_code_instr (instr_action)
+         || sieve_code_line (mu_sieve_locus.source_line)
+         || sieve_code_instr (_mu_sv_instr_action)
          || sieve_code_command (reg, arglist);
 }
 
@@ -370,8 +369,8 @@ int
 sieve_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || sieve_code_line (sieve_line_num)
-         || sieve_code_instr (instr_test)
+         || sieve_code_line (mu_sieve_locus.source_line)
+         || sieve_code_instr (_mu_sv_instr_test)
          || sieve_code_command (reg, arglist);
 }
 
@@ -382,12 +381,12 @@ sieve_code_anyof (size_t start)
   while (sieve_machine->prog[start+1].pc != 0)
     {
       size_t next = sieve_machine->prog[start+1].pc;
-      sieve_machine->prog[start].instr = instr_brnz;
+      sieve_machine->prog[start].instr = _mu_sv_instr_brnz;
       sieve_machine->prog[start+1].pc = end - start - 2;
       start = next;
     }
-  sieve_machine->prog[start].instr = instr_nop;
-  sieve_machine->prog[start+1].instr = instr_nop;
+  sieve_machine->prog[start].instr = _mu_sv_instr_nop;
+  sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
 }
 
 void
@@ -401,7 +400,7 @@ sieve_code_allof (size_t start)
       sieve_machine->prog[start+1].pc = end - start - 2;
       start = next;
     }
-  sieve_machine->prog[start].instr = instr_nop;
-  sieve_machine->prog[start+1].instr = instr_nop;
+  sieve_machine->prog[start].instr = _mu_sv_instr_nop;
+  sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
 }
 		

@@ -1,7 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -154,7 +154,7 @@ elsif_branch : elsif begin cond block
 
 elsif        : ELSIF
                {
-		 sieve_code_instr (instr_branch);
+		 sieve_code_instr (_mu_sv_instr_branch);
 		 $$ = sieve_machine->pc;
 		 sieve_code_number (0);
 	       }
@@ -162,7 +162,7 @@ elsif        : ELSIF
 
 else         : ELSE
                {
-		 sieve_code_instr (instr_branch);
+		 sieve_code_instr (_mu_sv_instr_branch);
 		 $$ = sieve_machine->pc;
 		 sieve_code_number (0);
 	       }
@@ -177,7 +177,7 @@ block        : '{' list '}'
 testlist     : cond_expr
                {
 		 $$.start = $$.end = sieve_machine->pc;
-		 if (sieve_code_instr (instr_brz)
+		 if (sieve_code_instr (_mu_sv_instr_brz)
 		     || sieve_code_number (0))
 		   YYERROR;
 	       }
@@ -185,7 +185,7 @@ testlist     : cond_expr
                {
 		 sieve_machine->prog[$1.end+1].pc = sieve_machine->pc;
 		 $1.end = sieve_machine->pc;
-		 if (sieve_code_instr (instr_brz)
+		 if (sieve_code_instr (_mu_sv_instr_brz)
 		     || sieve_code_number (0))
 		   YYERROR;
 		 $$ = $1;
@@ -194,7 +194,7 @@ testlist     : cond_expr
 
 cond         : cond_expr
                {
-		 sieve_code_instr (instr_brz);
+		 sieve_code_instr (_mu_sv_instr_brz);
 		 $$ = sieve_machine->pc;
 		 sieve_code_number (0);
 	       }
@@ -212,7 +212,7 @@ cond_expr    : test
 	       }
              | NOT cond_expr
                {
-		 if (sieve_code_instr (instr_not))
+		 if (sieve_code_instr (_mu_sv_instr_not))
 		   YYERROR;
 	       }
              ;
@@ -230,13 +230,13 @@ test         : command
 		 $$ = sieve_machine->pc;
 
 		 if (!reg)
-		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                _("unknown test: %s"),
-				$1.ident);
+		   sieve_compile_error (&mu_sieve_locus,
+					_("unknown test: %s"),
+					$1.ident);
 		 else if (!reg->required)
-		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                _("test `%s' has not been required"),
-				$1.ident);
+		   sieve_compile_error (&mu_sieve_locus,
+					_("test `%s' has not been required"),
+					$1.ident);
 		 else if (sieve_code_test (reg, $1.args))
 		   YYERROR;
 	       }
@@ -256,13 +256,13 @@ action       : command
 		 
 		 $$ = sieve_machine->pc;
 		 if (!reg)
-		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                _("unknown action: %s"),
-				$1.ident);
+		   sieve_compile_error (&mu_sieve_locus,
+					_("unknown action: %s"),
+					$1.ident);
 		 else if (!reg->required)
-		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                _("action `%s' has not been required"),
-				$1.ident);
+		   sieve_compile_error (&mu_sieve_locus,
+					_("action `%s' has not been required"),
+					$1.ident);
 		 else if (sieve_code_action (reg, $1.args))
 		   YYERROR;
 	       }
@@ -340,7 +340,7 @@ slist        : STRING
 int
 yyerror (char *s)
 {
-  sieve_compile_error (sieve_filename, sieve_line_num, "%s", s);
+  sieve_compile_error (&mu_sieve_locus, "%s", s);
   return 0;
 }
 
@@ -630,7 +630,8 @@ mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
 
 int
 mu_sieve_compile_buffer (mu_sieve_machine_t mach,
-			 const char *buf, int bufsize, const char *fname, int line)
+			 const char *buf, int bufsize,
+			 const char *fname, int line)
 {
   int rc;
   

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -80,29 +80,32 @@ struct sieve_machine {
   void *data;
 };
 
-extern char *sieve_filename;
-extern int sieve_line_num;
+extern mu_sieve_locus_t mu_sieve_locus;
 extern mu_sieve_machine_t sieve_machine;
 extern int sieve_error_count; 
 
 #define TAG_COMPFUN "__compfun__"
 #define TAG_RELFUN  "__relfun__"
 
-void sieve_compile_error (const char *filename, int linenum,
-			  const char *fmt, ...) MU_PRINTFLIKE(3,4);
+void sieve_compile_error (mu_sieve_locus_t *locus,
+			  const char *fmt, ...) MU_PRINTFLIKE(2,3);
 void sieve_debug_internal (mu_sieve_printf_t printer, void *data,
 			   const char *fmt, ...) MU_PRINTFLIKE(3,4);
 void sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer,
 		        void *data);
-void sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data);
-void sieve_print_tag_list (mu_list_t list, mu_sieve_printf_t printer, void *data);
+void sieve_print_value_list (mu_list_t list, mu_sieve_printf_t printer,
+			     void *data);
+void sieve_print_tag_list (mu_list_t list, mu_sieve_printf_t printer,
+			   void *data);
 
 int _sieve_default_error_printer (void *data, const char *fmt, va_list ap);
-int _sieve_default_parse_error (void *unused, const char *filename, int lineno,
+int _sieve_default_parse_error (void *unused,
+				const char *filename, int lineno,
 			        const char *fmt, va_list ap);
 
 int sieve_lex_begin (const char *name);
-int sieve_lex_begin_string (const char *buf, int bufsize, const char *fname, int line);
+int sieve_lex_begin_string (const char *buf, int bufsize,
+			    const char *fname, int line);
 void sieve_lex_finish (void);
 int mu_sieve_yyerror (char *s);
 int mu_sieve_yylex (); 
@@ -124,17 +127,17 @@ int sieve_code_source (const char *name);
 int sieve_code_line (size_t line);
 void sieve_change_source (void);
 
-void instr_action (mu_sieve_machine_t mach);
-void instr_test (mu_sieve_machine_t mach);
-void instr_push (mu_sieve_machine_t mach);
-void instr_pop (mu_sieve_machine_t mach);
-void instr_not (mu_sieve_machine_t mach);
-void instr_branch (mu_sieve_machine_t mach);
-void instr_brz (mu_sieve_machine_t mach);
-void instr_brnz (mu_sieve_machine_t mach);
-void instr_nop (mu_sieve_machine_t mach);
-void instr_source (mu_sieve_machine_t mach);
-void instr_line (mu_sieve_machine_t mach);
+void _mu_sv_instr_action (mu_sieve_machine_t mach);
+void _mu_sv_instr_test (mu_sieve_machine_t mach);
+void _mu_sv_instr_push (mu_sieve_machine_t mach);
+void _mu_sv_instr_pop (mu_sieve_machine_t mach);
+void _mu_sv_instr_not (mu_sieve_machine_t mach);
+void _mu_sv_instr_branch (mu_sieve_machine_t mach);
+void _mu_sv_instr_brz (mu_sieve_machine_t mach);
+void _mu_sv_instr_brnz (mu_sieve_machine_t mach);
+void _mu_sv_instr_nop (mu_sieve_machine_t mach);
+void _mu_sv_instr_source (mu_sieve_machine_t mach);
+void _mu_sv_instr_line (mu_sieve_machine_t mach);
 
 int sieve_mark_deleted (mu_message_t msg, int deleted);
 

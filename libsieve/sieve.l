@@ -1,7 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,8 +34,7 @@
 #include <sieve.h>
 #include <sieve-gram.h>
   
-char *sieve_filename;  
-int sieve_line_num;  
+mu_sieve_locus_t mu_sieve_locus;
 ino_t sieve_source_inode;
 
 static mu_list_t string_list;
@@ -93,8 +92,7 @@ fillbuf(char *buf, int max_size)
 
 struct buffer_ctx {
   struct buffer_ctx *prev;
-  char *filename;
-  int line;
+  mu_sieve_locus_t locus;
   ino_t i_node;
   FILE *yyin;
   LEX_BUFFER_STATE state;
@@ -126,12 +124,12 @@ push_source (const char *name)
         
   if (stat (name, &st))
     {
-      sieve_compile_error (sieve_filename, sieve_line_num,
+      sieve_compile_error (&mu_sieve_locus,
                            _("cannot stat `%s': %s"), name, strerror (errno));
       return 1;
     }
 
-  if (sieve_filename && st.st_ino == sieve_source_inode)
+  if (mu_sieve_locus.source_file && st.st_ino == sieve_source_inode)
     {
       yyerror (_("recursive inclusion"));
       return 1;
@@ -140,11 +138,11 @@ push_source (const char *name)
     {
       yyerror (_("recursive inclusion"));
       if (ctx->prev)
-	sieve_compile_error (ctx->prev->filename, ctx->prev->line,
+	sieve_compile_error (&ctx->prev->locus,
                              _("`%s' already included here"),
                              name);
       else
-	sieve_compile_error (sieve_filename, sieve_line_num, 
+	sieve_compile_error (&mu_sieve_locus, 
                              _("`%s' already included at top level"),
 		             name);
       return 1;
@@ -153,17 +151,16 @@ push_source (const char *name)
   fp = fopen (name, "r");
   if (!fp)
     {
-      sieve_compile_error (sieve_filename, sieve_line_num, 
+      sieve_compile_error (&mu_sieve_locus, 
                            _("cannot open `%s': %s"), name, strerror (errno));
       return 1;
     }
 
   /* Push current context */
-  if (sieve_filename)
+  if (mu_sieve_locus.source_file)
     {
       ctx = mu_sieve_alloc (sizeof (*ctx));
-      ctx->filename = sieve_filename;
-      ctx->line = sieve_line_num;
+      ctx->locus = mu_sieve_locus;
       ctx->i_node = sieve_source_inode;
       ctx->yyin = yyin;
       ctx->prev = context_stack;
@@ -176,8 +173,8 @@ push_source (const char *name)
   else
     yyrestart (fp);
   
-  sieve_filename = strdup (name);
-  sieve_line_num = 1;
+  mu_sieve_locus.source_file = strdup (name);
+  mu_sieve_locus.source_line = 1;
   sieve_source_inode = st.st_ino;
 
   sieve_change_source ();
@@ -193,18 +190,17 @@ pop_source ()
   if (yyin)
     fclose (yyin);
 
-  if (sieve_filename)
-    free (sieve_filename);
+  if (mu_sieve_locus.source_file)
+    free (mu_sieve_locus.source_file);
   if (!context_stack)
     {
       yyin = NULL;
-      sieve_filename = NULL;
+      mu_sieve_locus.source_file = NULL;
       return 1;
     }
   /* Restore previous context */
-  sieve_filename = context_stack->filename;
-  sieve_line_num = context_stack->line + 1; /* #include rule did not increment
-					       it */
+  mu_sieve_locus = context_stack->locus;
+  mu_sieve_locus.source_line++; /* #include rule did not increment it */
   sieve_source_inode = context_stack->i_node;
   RESTORE_BUFFER_STATE (context_stack->state);
   ctx = context_stack->prev;
@@ -227,13 +223,13 @@ SIZESUF [kKmMgG]
 "/*"         BEGIN(COMMENT);
 <COMMENT>[^*\n]*        /* eat anything that's not a '*' */
 <COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
-<COMMENT>\n             ++sieve_line_num;
+<COMMENT>\n             ++mu_sieve_locus.source_line;
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
          /* Preprocessor directives (an extension) */
 #[ \t]*include.*\n      { sieve_include (); }
 #[ \t]*searchpath.*\n          { sieve_searchpath (); } 
          /* End-of-line comments */
-#.*\n   { sieve_line_num++; }
+#.*\n   { mu_sieve_locus.source_line++; }
 #.*     /* end-of-file comment */;
          /* Reserved words */
 require return REQUIRE; 
@@ -262,21 +258,25 @@ not     return NOT;
                    line_finish ();
 		   return STRING; }
          /* Multiline strings */
-text:-?[ \t]*#.*\n       { BEGIN(ML); multiline_begin (); sieve_line_num++; }
-text:-?[ \t]*\n          { BEGIN(ML); multiline_begin (); sieve_line_num++; }
+text:-?[ \t]*#.*\n       { BEGIN(ML);
+                           multiline_begin ();
+			   mu_sieve_locus.source_line++; }
+text:-?[ \t]*\n          { BEGIN(ML);
+                           multiline_begin ();
+			   mu_sieve_locus.source_line++; }
 text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML); multiline_begin ();
-                               sieve_line_num++; }
+                               mu_sieve_locus.source_line++; }
 text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin ();
-                               sieve_line_num++; }
+                               mu_sieve_locus.source_line++; }
 <ML>#[ \t]*include.*\n    { if (multiline_delimiter[0] == '\\')
                               {
-				sieve_line_num++;
+				mu_sieve_locus.source_line++;
                                 multiline_add (NULL);
 			      }
                             else
                               sieve_include (); }
 <ML>.*\n { char *p = multiline_strip_tabs (yytext);
-           sieve_line_num++;
+           mu_sieve_locus.source_line++;
 	   
            if (strncmp (p, multiline_delimiter, strlen (multiline_delimiter))
 	        == 0
@@ -291,7 +291,7 @@ text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin ();
 	    multiline_add (NULL); } 
 {WS}     ;
          /* Other tokens */
-\n { sieve_line_num++; } 
+\n { mu_sieve_locus.source_line++; } 
 . return yytext[0];
 
 %%
@@ -361,7 +361,7 @@ _try_include (void *item, void *data)
   return 0;
 }
 
-void
+static void
 sieve_include ()
 {
   char *p, *endp = yytext + yyleng, *name;
@@ -392,7 +392,7 @@ sieve_include ()
   free (name);
 }
 
-void
+static void
 sieve_searchpath ()
 {
   int append = 0;
@@ -431,8 +431,8 @@ sieve_lex_begin_string (const char *buf, int bufsize,
 
   input_string_ptr = buf;
   input_string_level = bufsize;
-  sieve_filename = strdup (fname);
-  sieve_line_num = line;
+  mu_sieve_locus.source_file = strdup (fname);
+  mu_sieve_locus.source_line = line;
   sieve_source_inode = 0;
 
   sieve_change_source ();
@@ -446,7 +446,7 @@ sieve_lex_finish ()
     ;
 }
   
-int
+static int
 number ()
 {
   char *p;
@@ -470,7 +470,7 @@ number ()
   return NUMBER;
 }
 
-int
+static int
 string ()
 {
   yylval.string = mu_sieve_malloc (sieve_machine, yyleng - 1);
@@ -479,7 +479,7 @@ string ()
   return STRING; 
 }
 
-int
+static int
 isemptystr (char *text)
 {
   for (; *text && isspace (*text); text++)
@@ -487,7 +487,7 @@ isemptystr (char *text)
   return *text == 0;
 }
 
-char *
+static char *
 multiline_strip_tabs (char *text)
 {
   if (strip_tabs)
@@ -496,7 +496,7 @@ multiline_strip_tabs (char *text)
   return text;
 }
 
-void
+static void
 line_add (char *text, size_t len)
 {
   char *s;
@@ -514,7 +514,7 @@ line_add (char *text, size_t len)
   mu_list_append (string_list, s);
 }
 
-void
+static void
 multiline_add (char *s)
 {
   if (!s)
@@ -522,7 +522,7 @@ multiline_add (char *s)
   line_add (s, 0);
 }
 
-void
+static void
 line_begin ()
 {
   int status;
@@ -532,13 +532,13 @@ line_begin ()
   status = mu_list_create (&string_list);
   if (status)
     {
-      sieve_compile_error (sieve_filename, sieve_line_num,
+      sieve_compile_error (&mu_sieve_locus,
                            "mu_list_create: %s", mu_strerror (status));
       exit (1);
     }
 }
 
-void
+static void
 multiline_begin ()
 {
   char *p = yytext + 5; /* past the text: keyword */
@@ -578,7 +578,7 @@ multiline_begin ()
   line_begin ();
 }
 
-void
+static void
 line_finish ()
 {
   mu_iterator_t itr;
@@ -612,13 +612,13 @@ line_finish ()
   mu_list_destroy (&string_list);
 }
 
-void
+static void
 multiline_finish ()
 {
   line_finish ();
 }
 
-void
+static void
 ident (const char *text)
 {
   yylval.string = strdup (text);
@@ -630,7 +630,7 @@ ident (const char *text)
 }
 
 /* Escapes the last character from yytext */
-char *
+static char *
 str_unescape (char *text, size_t len)
 {
   char *str = mu_sieve_alloc (len);

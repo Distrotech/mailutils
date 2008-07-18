@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ mu_sieve_require (mu_list_t slist)
   status = mu_list_get_iterator (slist, &itr);
   if (status)
     {
-      sieve_compile_error (sieve_filename, sieve_line_num,
+      sieve_compile_error (&mu_sieve_locus,
 			   _("cannot create iterator: %s"),
 			   mu_strerror (status));
       return;
@@ -76,7 +76,7 @@ mu_sieve_require (mu_list_t slist)
 
       if (reqfn (sieve_machine, name))
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num,
+	  sieve_compile_error (&mu_sieve_locus,
 			       _("source for the %s %s is not available"),
 			       text,
 			       name);

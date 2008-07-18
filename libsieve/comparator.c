@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2007 Free Software Foundation, Inc.
+   2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -169,13 +169,11 @@ _regex_compile (void *item, void *data)
       if (errbuf)
 	{
 	  regerror (rc, preg, errbuf, size);
-	  sieve_compile_error (sieve_filename, sieve_line_num,
-			       _("Regex error: %s"), errbuf);
+	  sieve_compile_error (&mu_sieve_locus, _("Regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
-	 sieve_compile_error (sieve_filename, sieve_line_num,
-			      _("Regex error"));
+	sieve_compile_error (&mu_sieve_locus, _("Regex error"));
       return rc;
     }
 
@@ -236,7 +234,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	{
 	  if (match)
 	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
+	      sieve_compile_error (&mu_sieve_locus, 
 			     _("match type specified twice in call to `%s'"),
 				   name);
 	      err = 1;
@@ -272,9 +270,11 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  
 	  if (comp && strcmp (comp->arg->v.string, "i;ascii-numeric"))
 	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
-				   /* TRANSLATORS: Do not translate ':count'. It is the name of a Sieve tag */
-			   _("comparator %s is incompatible with :count in call to `%s'"),
+	      sieve_compile_error (&mu_sieve_locus, 
+				   /* TRANSLATORS: Do not translate ':count'.
+				      It is the name of a Sieve tag */
+				   _("comparator %s is incompatible with "
+				     ":count in call to `%s'"),
 				   comp->arg->v.string,
 				   name);
 	      return 1;
@@ -289,7 +289,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  mu_list_count (val->v.list, &count);
 	  if (count > 1)
 	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
+	      sieve_compile_error (&mu_sieve_locus, 
 			_("second argument must be a list of one element"));
 	      return 1;
 	    }
@@ -297,7 +297,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 	  count = strtoul (str, &str, 10);
 	  if (*str)
 	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
+	      sieve_compile_error (&mu_sieve_locus, 
 			   _("second argument cannot be converted to number"));
 	      return 1;
 	    }
@@ -307,7 +307,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 
       if (mu_sieve_str_to_relcmp (str, NULL, NULL))
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num,
+	  sieve_compile_error (&mu_sieve_locus, 
 			       _("invalid relational match `%s' in call to `%s'"),
 			       str, name);
 	  return 1;
@@ -320,7 +320,7 @@ mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
       compfun = mu_sieve_comparator_lookup (sieve_machine, compname, matchtype);
       if (!compfun)
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num,
+	  sieve_compile_error (&mu_sieve_locus, 
 			   _("comparator `%s' is incompatible with match type `%s' in call to `%s'"),
 			       compname, match ? match->tag : "is", name);
 	  return 1;

@@ -1,3 +1,14 @@
+2008-07-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Keep namespace clean
+	
+	* libsieve/comparator.c, libsieve/prog.c, libsieve/require.c,
+	libsieve/runtime.c, libsieve/sieve.h, libsieve/sieve.l,
+	libsieve/sieve.y, libsieve/util.c: Prefix instr_ functions with
+	mu_.
+	(sieve_filename, sieve_line_num): Removed.  Use new global
+	mu_sieve_locus instead.
+
 2008-07-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix converting RFC822 streams to messages.
