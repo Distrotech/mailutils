@@ -1512,7 +1512,7 @@ mhn_show ()
 /* ***************************** Store Mode ****************************** */
 
 char *
-normalize_path (char *cwd, char *path)
+normalize_path (const char *cwd, char *path)
 {
   int len;
   char *p;
@@ -1615,7 +1615,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 			  && argv[i][0] == '='
 			  && ++i < argc)
 			{
-			  name = normalize_path (xstrdup (dir), argv[i]);
+			  name = normalize_path (dir, argv[i]);
 			  break;
 			}
 		    }
@@ -1639,7 +1639,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 			  && argv[i][0] == '='
 			  && ++i < argc)
 			{
-			  name = normalize_path (xstrdup (dir), argv[i]);
+			  name = normalize_path (dir, argv[i]);
 			  break;
 			}
 		    }

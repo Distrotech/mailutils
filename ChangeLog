@@ -1,5 +1,11 @@
 2008-07-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Minor fix.
+	
+	* mh/mhn.c (normalize_path): First arg is const char *.
+	(store_handler): Avoid unnecessary allocations (and coredumps,
+	if mhn-storage profile is not set.
+
 	Finish namespace cleanup in libsieve.
 
 	* libsieve/actions.c, libsieve/comparator.c, libsieve/conf.c,
