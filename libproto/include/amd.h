@@ -20,25 +20,26 @@
 #define MAX_OPEN_STREAMS 16
 
 /* Notifications ADD_MESG. */
-#define DISPATCH_ADD_MSG(mbox,mhd,n) \
-do \
-{ \
-  int bailing = 0; \
-  mu_monitor_unlock (mbox->monitor); \
-  if (mbox->observable) \
-    { \
-      size_t tmp = (n); \
-      bailing = mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD, \
-                                      &tmp); \
-    } \
-  if (bailing != 0) \
-    { \
-      if (pcount) \
-        *pcount = (mhd)->msg_count; \
-      mu_locker_unlock (mbox->locker); \
-      return EINTR; \
-    } \
-  mu_monitor_wrlock (mbox->monitor); \
+#define DISPATCH_ADD_MSG(mbox,mhd,n)					\
+  do									\
+    {									\
+      int bailing = 0;							\
+      mu_monitor_unlock (mbox->monitor);				\
+      if (mbox->observable)						\
+	{								\
+	  size_t tmp = n;						\
+	  bailing = mu_observable_notify (mbox->observable,		\
+					  MU_EVT_MESSAGE_ADD,		\
+					  &tmp);			\
+	}								\
+      if (bailing != 0)							\
+	{								\
+	  if (pcount)							\
+	    *pcount = (mhd)->msg_count;					\
+	  mu_locker_unlock (mbox->locker);				\
+	  return EINTR;							\
+	}								\
+      mu_monitor_wrlock (mbox->monitor);				\
 } while (0);
 
 struct _amd_data;

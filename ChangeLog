@@ -1,3 +1,10 @@
+2008-07-31  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libproto/include/amd.h: Fix indentation.
+	* libproto/maildir/mbox.c (maildir_scan_dir): Do not assign uids
+	before inserting message, it breaks their ordering.
+	(maildir_scan0): Assign uids here.  A temporary solution.
+
 2008-07-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Minor fix.

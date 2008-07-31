@@ -635,10 +635,7 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	    msg->amd_message.attr_flags = 0;
 	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
 	  if (insert)
-	    {
-	      msg->uid = amd->next_uid (amd);
-	      _amd_message_insert (amd, (struct _amd_message*) msg);
-	    }
+	    _amd_message_insert (amd, (struct _amd_message*) msg);
 	}
     }
   return 0;
@@ -654,6 +651,7 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   int status = 0;
   char *name;
   struct stat st;
+  size_t i;
   
   if (amd == NULL)
     return EINVAL;
@@ -685,13 +683,13 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
     }
   free (name);
 
-  if (do_notify)
+  for (i = 1; i <= amd->msg_count; i++)
     {
-      size_t i;
-      for (i = 0; i < amd->msg_count; i++)
-	{
-	  DISPATCH_ADD_MSG(mailbox, amd, i);
-	}
+      struct _maildir_message *msg = (struct _maildir_message *)
+	_amd_get_message (amd, i);
+      msg->uid = i;
+      if (do_notify)
+	DISPATCH_ADD_MSG (mailbox, amd, i);
     }
   
   if (stat (amd->name, &st) == 0)
