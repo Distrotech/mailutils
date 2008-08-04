@@ -1004,7 +1004,7 @@ util_localname ()
 	  name_len *= 2;
 	  name = realloc (name, name_len);
 	}
-      if (status)
+      if (status || name == NULL)
 	{
 	  mu_diag_output (MU_DIAG_CRIT, _("Cannot find out my own hostname"));
 	  exit (EX_OSERR);
