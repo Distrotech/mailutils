@@ -1,3 +1,10 @@
+2008-08-04  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* pop3d/retr.c (pop3d_retr): Use constant-size buffer.  This
+	avoids running out of memory on messages that do not contain
+	trailing newline.
+	* pop3d/top.c (pop3d_top): Likewise.
+
 2008-07-31  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libproto/include/amd.h: Fix indentation.

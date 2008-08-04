@@ -31,8 +31,7 @@ pop3d_top (const char *arg)
   mu_body_t body;
   mu_stream_t stream;
   char *mesgc, *linesc;
-  char *buf;
-  size_t buflen = BUFFERSIZE;
+  char buf[BUFFERSIZE];
   size_t n;
   off_t off;
 
@@ -65,11 +64,8 @@ pop3d_top (const char *arg)
   /* Header.  */
   mu_message_get_header (msg, &hdr);
   mu_header_get_stream (hdr, &stream);
-  buf = malloc (buflen * sizeof (*buf));
-  if (buf == NULL)
-    pop3d_abquit (ERR_NO_MEM);
   off = n = 0;
-  while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
+  while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
 	 && n > 0)
     {
       /* Nuke the trainline newline.  */
@@ -86,33 +82,35 @@ pop3d_top (const char *arg)
   /* Lines of body.  */
   if (lines)
     {
+      int prev_nl = 1;
+
       mu_message_get_body (msg, &body);
       mu_body_get_stream (body, &stream);
       n = off = 0;
-      while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
+      while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
 	     && n > 0 && lines > 0)
 	{
-	  /* Nuke the trailing newline.  */
+	  if (prev_nl && buf[0] == '.')
+	    pop3d_outf (".");
+      
 	  if (buf[n - 1] == '\n')
-	    buf[n - 1] = '\0';
-	  else /* make room for the line.  */
 	    {
-	      buflen *= 2;
-	      buf = realloc (buf, buflen * sizeof (*buf));
-	      if (buf == NULL)
-		pop3d_abquit (ERR_NO_MEM);
-	      continue;
+	      buf[n - 1] = '\0';
+	      pop3d_outf ("%s\r\n", buf);
+	      prev_nl = 1;
+	      lines--;
 	    }
-	  if (buf[0] == '.')
-	    pop3d_outf (".%s\r\n", buf);
 	  else
-	    pop3d_outf ("%s\r\n", buf);
-	  lines--;
+	    {
+	      pop3d_outf ("%s", buf);
+	      prev_nl = 0;
+	    }
 	  off += n;
 	}
+      if (!prev_nl)
+	pop3d_outf ("\r\n");
     }
 
-  free (buf);
   pop3d_outf (".\r\n");
 
   return OK;

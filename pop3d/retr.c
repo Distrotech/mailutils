@@ -24,13 +24,13 @@ int
 pop3d_retr (const char *arg)
 {
   size_t mesgno, n;
-  char *buf;
-  size_t buflen = BUFFERSIZE;
+  char buf[BUFFERSIZE];
   mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
   mu_stream_t stream = NULL;
-  off_t off;
-
+  mu_off_t off;
+  int prev_nl;
+  
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
 
@@ -50,37 +50,36 @@ pop3d_retr (const char *arg)
   pop3d_outf ("+OK\r\n");
 
   off = n = 0;
-  buf = malloc (buflen * sizeof (*buf));
-  if (buf == NULL)
-    pop3d_abquit (ERR_NO_MEM);
 
-  while (mu_stream_readline (stream, buf, buflen, off, &n) == 0
+  prev_nl = 1;
+  while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
 	 && n > 0)
     {
-      /* Nuke the trailing newline.  */
+      if (prev_nl && buf[0] == '.')
+	pop3d_outf (".");
+      
       if (buf[n - 1] == '\n')
-	buf[n - 1] = '\0';
-      else /* Make room for the line.  */
 	{
-	  buflen *= 2;
-	  buf = realloc (buf, buflen * sizeof (*buf));
-	  if (buf == NULL)
-	    pop3d_abquit (ERR_NO_MEM);
-	  continue;
+	  buf[n - 1] = '\0';
+	  pop3d_outf ("%s\r\n", buf);
+	  prev_nl = 1;
 	}
-      if (buf[0] == '.')
-	pop3d_outf (".%s\r\n", buf);
       else
-	pop3d_outf ("%s\r\n", buf);
+	{
+	  pop3d_outf ("%s", buf);
+	  prev_nl = 0;
+	}
       off += n;
     }
+
+  if (!prev_nl)
+    pop3d_outf ("\r\n");
 
   if (!mu_attribute_is_read (attr))
     mu_attribute_set_read (attr);
 
   pop3d_mark_retr (attr);
 
-  free (buf);
   pop3d_outf (".\r\n");
 
   return OK;
