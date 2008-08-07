@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,12 +97,6 @@ imap4d_create (struct imap4d_command *command, char *arg)
 
      The trailing delimiter will be removed by namespace normalizer, so
      test for it now.
-
-     The RFC goes on:
-         Server implementations that do not require this declaration MUST
-	 ignore the declaration.
-
-     That's it! If isdir is set, we do all checks but do not create anything.
   */
   if (name[strlen (name) - 1] == delim[0])
     isdir = 1;
