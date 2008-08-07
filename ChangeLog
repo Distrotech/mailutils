@@ -1,3 +1,9 @@
+2008-08-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* imap4d/create.c: Rewrite to create mailboxes honoring
+	mailbox-type. 
+	* mailbox/mailbox.c (mu_mailbox_create): Bugfix.
+
 2008-08-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* pop3d/retr.c (pop3d_retr): Use constant-size buffer.  This

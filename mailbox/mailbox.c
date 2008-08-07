@@ -234,7 +234,7 @@ mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
       char *tmp_name = malloc (strlen (default_proto) + strlen (name) + 1);
       strcpy (tmp_name, default_proto);
       strcat (tmp_name, name);
-      rc = _create_mailbox (pmbox, name);
+      rc = _create_mailbox (pmbox, tmp_name);
       free (tmp_name);
     }
   else

@@ -19,9 +19,49 @@
 #include "imap4d.h"
 #include <unistd.h>
 
-/*
- * Must create a new mailbox
- */
+#define MKDIR_PERMISSIONS 0700
+
+static int
+mkdir_p (char *name, int delim)
+{
+  char *p, *dir;
+  int rc = 0;
+
+  dir = name;
+  if (dir[0] == delim)
+    dir++;
+  for (; rc == 0 && (p = strchr (dir, delim)); dir = p)
+    {
+      struct stat st;
+      
+      *p++ = 0;
+      if (stat (name, &st) == 0)
+	{
+	  if (!S_ISDIR (st.st_mode))
+	    {
+	      mu_diag_output (MU_DIAG_ERR,
+			      _("component %s is not a directory"), name);
+	      rc = 1;
+	    }
+	}
+      else if (errno != ENOENT)
+	{
+	  mu_diag_output (MU_DIAG_ERR,
+			  _("cannot stat file %s: %s"),
+			  name, mu_strerror (errno));
+	  rc = 1;
+	}
+      else if (mkdir (name, MKDIR_PERMISSIONS))
+	{
+	  mu_diag_output (MU_DIAG_ERR,
+			  _("cannot create directory %s: %s"), name,
+			  mu_strerror (errno));
+	  rc = 1;
+	}
+      p[-1] = delim;
+    }
+  return 0;
+}
 
 /* FIXME: How do we do this ??????:
    IF a new mailbox is created with the same name as a mailbox which was
@@ -76,45 +116,39 @@ imap4d_create (struct imap4d_command *command, char *arg)
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
     {
-      if (!isdir)
+      if (mkdir_p (name, delim[0]))
 	{
-	  char *dir;
-	  char *d = name + strlen (delim); /* Pass the root delimeter.  */
-
-	  /* If the server's hierarchy separtor character appears elsewhere in
-	     name, the server SHOULD create any superior hierarchcal names
-	     that are needed for the CREATE command to complete successfully.
-	  */
-	  if (chdir (delim) == 0) /* start on the root.  */
-	    for (; (dir = strchr (d, delim[0])); d = dir)
-	      {
-		*dir++ = '\0';
-		if (chdir (d) != 0)
-		  {
-		    if (mkdir (d, 0700) == 0)
-		      {
-			if (chdir (d) == 0)
-			  continue;
-			else
-			  {
-			    rc = RESP_NO;
-			    msg = "Cannot create mailbox";
-			    break;
-			  }
-		      }
-		  }
-	      }
-
-	  if (rc == RESP_OK && d && *d != '\0')
+	  rc = RESP_NO;
+	  msg = "Cannot create mailbox";
+	}
+      
+      if (rc == RESP_OK && !isdir)
+	{
+	  mu_mailbox_t mbox;
+	  
+	  rc = mu_mailbox_create_default (&mbox, name);
+	  if (rc)
 	    {
-	      int fd = creat (d, 0600);
-	      if (fd != -1)
-		close (fd);
-	      else
-		{
-		  rc = RESP_NO;
-		  msg = "Cannot create mailbox";
-		}
+	      mu_diag_output (MU_DIAG_ERR,
+			      _("Cannot create mailbox %s: %s"), name,
+			      mu_strerror (rc));
+	      rc = RESP_NO;
+	      msg = "Cannot create mailbox";
+	    }
+	  else if ((rc = mu_mailbox_open (mbox,
+					  MU_STREAM_RDWR|MU_STREAM_CREAT)))
+	    {
+	      mu_diag_output (MU_DIAG_ERR,
+			      _("Cannot open mailbox %s: %s"),
+			      name, mu_strerror (rc));
+	      rc = RESP_NO;
+	      msg = "Cannot create mailbox";
+	    }
+	  else
+	    {
+	      mu_mailbox_close (mbox);
+	      mu_mailbox_destroy (&mbox);
+	      rc = RESP_OK;
 	    }
 	}
     }
@@ -123,7 +157,7 @@ imap4d_create (struct imap4d_command *command, char *arg)
       rc = RESP_NO;
       msg = "already exists";
     }
-  chdir (homedir);
+
   free (name);
   return util_finish (command, rc, msg);
 }
