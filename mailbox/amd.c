@@ -782,6 +782,12 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   
   mhm->message = msg;
   status = _amd_message_save (amd, mhm, 0);
+  if (status)
+    {
+      free (mhm);
+      return status;
+    }
+
   mhm->message = NULL;
   /* Insert and re-scan the message */
   status = _amd_message_insert (amd, mhm);

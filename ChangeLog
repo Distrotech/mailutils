@@ -1,3 +1,12 @@
+2008-08-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix imap appends for AMD mailboxes.
+
+	* imap4d/append.c (imap4d_append0): Provide size method for the
+	message	stream.
+	* imap4d/select.c (imap4d_select0): Call mu_mailbox_create_default.
+	* mailbox/amd.c (amd_append_message): Improve error checking.
+
 2008-08-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/create.c: Rewrite to create mailboxes honoring

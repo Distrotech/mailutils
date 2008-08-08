@@ -63,7 +63,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Couldn't open mailbox");
 
-  if ((status = mu_mailbox_create (&mbox, mailbox_name)) == 0
+  if ((status = mu_mailbox_create_default (&mbox, mailbox_name)) == 0
       && (status = mu_mailbox_open (mbox, flags)) == 0)
     {
       select_flags = flags;

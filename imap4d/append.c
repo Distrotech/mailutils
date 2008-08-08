@@ -87,6 +87,16 @@ _append_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   return 0;
 }
 
+static int
+_append_size (mu_message_t msg, size_t *psize)
+{
+  mu_stream_t str;
+  int status = mu_message_get_stream (msg, &str);
+  if (status == 0)
+    status = mu_stream_size (str, psize);
+  return status;
+}
+
 int
 imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
 {
@@ -127,6 +137,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
 
   mu_stream_write (stream, text, strlen (text), len, &len);
   mu_message_set_stream (msg, stream, &tm);
+  mu_message_set_size (msg, _append_size, &tm);
 
   mu_envelope_create (&env, msg);
   mu_envelope_set_date (env, _append_date, msg);
