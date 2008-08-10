@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -71,19 +71,34 @@ unsubscribe (struct scan_data *data, char *name)
   return 0;
 }
 
+/*
+6.3.7.  UNSUBSCRIBE Command
+
+   Arguments:  mailbox name
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - unsubscribe completed
+               NO - unsubscribe failure: can't unsubscribe that name
+               BAD - command unknown or arguments invalid
+
+      The UNSUBSCRIBE command removes the specified mailbox name from
+      the server's set of "active" or "subscribed" mailboxes as returned
+      by the LSUB command.  This command returns a tagged OK response
+      only if the unsubscription is successful.
+*/
 int
-imap4d_unsubscribe (struct imap4d_command *command, char *arg)
+imap4d_unsubscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   char *name;
   char *file;
   struct scan_data sd;
   int rc;
   
-  name = util_getword (arg, &sp);
-  util_unquote (&name);
-  if (!name || *name == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+
+  name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   asprintf (&file, "%s/.mailboxlist", homedir);
   sd.result = 0;

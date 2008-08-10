@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,8 +89,9 @@ print_namespace (int n)
   util_send ("(");
   for (i = 0; i < namespace[n].subdir_c; i++)
     {
-      util_send ("(\"%s\" \"/\")",
-		 printable_pathname (namespace[n].subdir_v[i]));
+      char *dir = printable_pathname (namespace[n].subdir_v[i]);
+      char *suf = (dir[0] && dir[strlen (dir) - 1] != '/') ? "/" : "";
+      util_send ("(\"%s%s\" \"/\")", dir, suf);
     }
   util_send (")");
 }
@@ -114,11 +115,27 @@ namespace_enumerate_all (nsfp_t f, void *closure)
     || namespace_enumerate (NS_SHARED, f, closure);
 }
 
+/*
+5. NAMESPACE Command
+
+   Arguments: none
+
+   Response:  an untagged NAMESPACE response that contains the prefix
+                 and hierarchy delimiter to the server's Personal
+                 Namespace(s), Other Users' Namespace(s), and Shared
+                 Namespace(s) that the server wishes to expose. The
+                 response will contain a NIL for any namespace class
+                 that is not available. Namespace_Response_Extensions
+                 MAY be included in the response.
+                 Namespace_Response_Extensions which are not on the IETF
+                 standards track, MUST be prefixed with an "X-".
+*/
+
 int
-imap4d_namespace (struct imap4d_command *command, char *arg)
+imap4d_namespace (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  if (*arg)
-    return util_finish (command, RESP_BAD, "Too many arguments");
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
 
   util_send ("* NAMESPACE ");
 

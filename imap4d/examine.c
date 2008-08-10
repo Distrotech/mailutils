@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,11 +19,23 @@
 #include "imap4d.h"
 
 /*
- * copy things from select.c
- */
+6.3.2.  EXAMINE Command
 
+   Arguments:  mailbox name
+
+   Responses:  REQUIRED untagged responses: FLAGS, EXISTS, RECENT
+               OPTIONAL OK untagged responses: UNSEEN, PERMANENTFLAGS
+
+   Result:     OK - examine completed, now in selected state
+               NO - examine failure, now in authenticated state: no
+                    such mailbox, can't access mailbox
+               BAD - command unknown or arguments invalid
+*/
 int
-imap4d_examine (struct imap4d_command *command, char *arg)
+imap4d_examine (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  return imap4d_select0 (command, arg, MU_STREAM_READ);
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  return imap4d_select0 (command, imap4d_tokbuf_getarg (tok, IMAP4_ARG_1),
+			 MU_STREAM_READ);
 }

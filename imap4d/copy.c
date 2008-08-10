@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,55 +19,69 @@
 #include "imap4d.h"
 
 /*
- * copy messages in argv[2] to mailbox in argv[3]
+6.4.7.  COPY Command
+
+   Arguments:  message set
+               mailbox name
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - copy completed
+               NO - copy error: can't copy those messages or to that
+                    name
+               BAD - command unknown or arguments invalid
+
+  copy messages in argv[2] to mailbox in argv[3]
  */
 
 int
-imap4d_copy (struct imap4d_command *command, char *arg)
+imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
-  char buffer[64];
+  char *text;
 
-  rc = imap4d_copy0 (arg, 0, buffer, sizeof buffer);
+  if (imap4d_tokbuf_argc (tok) != 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  rc = imap4d_copy0 (tok, 0, &text);
+  
   if (rc == RESP_NONE)
     {
       /* Reset the state ourself.  */
       int new_state = (rc == RESP_OK) ? command->success : command->failure;
       if (new_state != STATE_NONE)
 	state = new_state;
-      return util_send ("%s %s\r\n", command->tag, buffer);
+      return util_send ("%s %s\r\n", command->tag, text);
     }
-  return util_finish (command, rc, "%s", buffer);
+  return util_finish (command, rc, "%s", text);
 }
 
 int
-imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
+imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 {
   int status;
   char *msgset;
   char *name;
   char *mailbox_name;
   const char *delim = "/";
-  char *sp = NULL;
   size_t *set = NULL;
   int n = 0;
   mu_mailbox_t cmbox = NULL;
+  int arg = IMAP4_ARG_1 + !!isuid;
 
-  msgset = util_getword (arg, &sp);
-  name = util_getword (NULL, &sp);
-
-  util_unquote (&name);
-  if (!msgset || !name || *name == '\0')
+  if (imap4d_tokbuf_argc (tok) != arg + 2)
     {
-      snprintf (resp, resplen, "Too few args");
-      return RESP_BAD;
+      *err_text = "Invalid arguments";
+      return 1;
     }
-
+  
+  msgset = imap4d_tokbuf_getarg (tok, arg);
+  name = imap4d_tokbuf_getarg (tok, arg + 1);
   /* Get the message numbers in set[].  */
   status = util_msgset (msgset, &set, &n, isuid);
   if (status != 0)
     {
-      snprintf (resp, resplen, "Bogus number set");
+      *err_text = "Bogus number set";
       return RESP_BAD;
     }
 
@@ -75,7 +89,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 
   if (!mailbox_name)
     {
-      snprintf (resp, resplen, "NO Create failed.");
+      *err_text = "NO Create failed.";
       return RESP_NO;
     }
 
@@ -105,7 +119,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 
   if (status == 0)
     {
-      snprintf (resp, resplen, "Completed");
+      *err_text = "Completed";
       return RESP_OK;
     }
 
@@ -114,6 +128,6 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
      of the text of the tagged NO response.  This gives a hint to the
      client that it can attempt a CREATE command and retry the copy if
      the CREATE is successful.  */
-  snprintf (resp, resplen, "NO [TRYCREATE] failed");
+  *err_text = "NO [TRYCREATE] failed";
   return RESP_NONE;
 }

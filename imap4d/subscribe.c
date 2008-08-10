@@ -19,21 +19,27 @@
 #include "imap4d.h"
 
 /*
-  FIXME: We need to lock the file to prevent simultaneous access.
- */
+6.3.6.  SUBSCRIBE Command
 
+   Arguments:  mailbox
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - subscribe completed
+               NO - subscribe failure: can't subscribe to that name
+               BAD - command unknown or arguments invalid
+*/
 int
-imap4d_subscribe (struct imap4d_command *command, char *arg)
+imap4d_subscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   char *name;
   char *file;
   FILE *fp;
 
-  name = util_getword (arg, &sp);
-  util_unquote (&name);
-  if (!name || *name == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+
+  name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   asprintf (&file, "%s/.mailboxlist", homedir);
   fp = fopen (file, "a");

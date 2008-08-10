@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2003, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,24 +24,21 @@ static int select_flags;
 /* select          ::= "SELECT" SPACE mailbox  */
 
 int
-imap4d_select (struct imap4d_command *command, char *arg)
+imap4d_select (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  return imap4d_select0 (command, arg, MU_STREAM_RDWR);
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  return imap4d_select0 (command, imap4d_tokbuf_getarg (tok, IMAP4_ARG_1),
+			 MU_STREAM_RDWR);
 }
 
 /* This code is share with EXAMINE.  */
 int
-imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
+imap4d_select0 (struct imap4d_command *command, char *mailbox_name, int flags)
 {
-  char *mailbox_name, *sp = NULL;
   int status;
 
   /* FIXME: Check state.  */
-
-  mailbox_name = util_getword (arg, &sp);
-  util_unquote (&mailbox_name);
-  if (mailbox_name == NULL || *mailbox_name == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
 
   /* Even if a mailbox is selected, a SELECT EXAMINE or LOGOUT
      command MAY be issued without previously issuing a CLOSE command.

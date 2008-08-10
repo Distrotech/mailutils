@@ -51,7 +51,7 @@ _memory_destroy (mu_stream_t stream)
   struct _memory_stream *mfs = mu_stream_get_owner (stream);
   if (mfs && mfs->ptr != NULL)
     free (mfs->ptr);
-  if(mfs->filename)
+  if (mfs->filename)
     free (mfs->filename);
   free (mfs);
 }

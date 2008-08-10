@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006, 2007,
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -93,24 +94,30 @@ imap4d_auth_capability ()
   mu_list_do (imap_auth_list, _auth_capa, NULL);
 }
 
+/*
+6.2.1.  AUTHENTICATE Command
+
+   Arguments:  authentication mechanism name
+*/
+
 int
-imap4d_authenticate (struct imap4d_command *command, char *arg)
+imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   char *auth_type;
   struct auth_data adata;
+
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   
-  auth_type = util_getword (arg, &sp);
-  util_unquote (&auth_type);
-  if (!auth_type)
-    return util_finish (command, RESP_BAD, "Too few arguments");
+  auth_type = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   if (tls_required)
-    return util_finish (command, RESP_NO, "Command disabled: Use STARTTLS first");
+    return util_finish (command, RESP_NO,
+			"Command disabled: Use STARTTLS first");
   
   adata.command = command;
   adata.auth_type = auth_type;
-  adata.arg = sp;
+  adata.arg = NULL;
   adata.username = NULL;
 
   if (mu_list_do (imap_auth_list, _auth_try, &adata) == 0)

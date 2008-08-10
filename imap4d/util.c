@@ -25,92 +25,6 @@ static mu_stream_t ostream;
 static int add2set (size_t **, int *, unsigned long);
 static const char *sc2string (int);
 
-/* Get the next space/CR/NL separated word, some words are between double
-   quotes, strtok() cannot handle it.  */
-char *
-util_getword (char *s, char **save)
-{
-  return util_getitem (s, " \r\n", save);
-}
-
-/* Take care of words between double quotes.  */
-char *
-util_getitem (char *s, const char *delim, char **save)
-{
-  {
-    char *p;
-    if ((p = s) || (p = *save))
-      {
-	while (isspace ((unsigned) *p))
-	  p++;
-	if (*p == '"')
-	  {
-	    s = p;
-	    p++;
-	    while (*p && *p != '"')
-	      p++;
-	    if (*p == '"')
-	      p++;
-	    *save = (*p) ? p + 1 : p;
-	    *p = '\0';
-	    return s;
-	  }
-      }
-  }
-  return strtok_r (s, delim, save);
-}
-
-/* Stop at the first char that represents an IMAP4 special character. */
-int
-util_token (char *buf, size_t len, char **ptr)
-{
-  char *start = *ptr;
-  size_t i;
-  /* Skip leading space.  */
-  while (**ptr && **ptr == ' ')
-    (*ptr)++;
-
-  /* Break the string by token, i.e when we reconize IMAP special
-     atoms we stop and send it.  */
-  for (i = 1; **ptr && i < len; (*ptr)++, buf++, i++)
-    {
-      if (**ptr == ' ' || **ptr == '.'
-	  || **ptr == '(' || **ptr == ')'
-	  || **ptr == '[' || **ptr == ']'
-	  || **ptr == '<' || **ptr == '>' || **ptr == '\r' || **ptr == '\n')
-	{
-	  /* Advance.  */
-	  if (start == (*ptr))
-	    (*ptr)++;
-	  break;
-	}
-      *buf = **ptr;
-    }
-  *buf = '\0';
-  /* Skip trailing space.  */
-  while (**ptr && **ptr == ' ')
-    (*ptr)++;
-  return *ptr - start;
-}
-
-/* Remove the surrounding double quotes.  */
-/* FIXME:  Check if the quote was escaped and ignore it.  */
-void
-util_unquote (char **ptr)
-{
-  char *s = *ptr;
-  size_t len;
-  if (s && *s == '"' && (len = strlen (s)) > 1 && s[len - 1] == '"')
-    {
-      char *p = ++s;
-      while (*p && *p != '"')
-	p++;
-      if (*p == '"')
-	*p = '\0';
-    }
-  *ptr = s;
-}
-
 /* NOTE: Allocates Memory.  */
 /* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
 char *
@@ -266,8 +180,8 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	  s++;
 	  break;
 
-	  /* As a convenience. '*' is provided to refer to the highest message
-	     number int the mailbox:
+	  /* As a convenience. '*' is provided to refer to the highest
+	     message number int the mailbox:
 	     5:*  --> 5 6 7 8
 	   */
 	case '*':
@@ -479,143 +393,30 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   return status;
 }
 
-/* Clients are allowed to send literal string to the servers.  this
-   means that it can occur everywhere where a string is allowed.
-   A literal is a sequence of zero or more octets (including CR and LF)
-   prefix-quoted with an octet count in the form of an open brace ("{"),
-   the number of octets, close brace ("}"), and CRLF.
- */
-char *
-imap4d_readline (void)
-{
-  char buffer[512];
-  size_t len;
-  long number = 0;
-  size_t total = 0;
-  char *line = malloc (1);
-
-  if (!line)
-    imap4d_bye (ERR_NO_MEM);
-
-  line[0] = '\0';		/* start with a empty string.  */
-  do
-    {
-      size_t sz;
-      int rc;
-      
-      alarm (idle_timeout);
-      rc = mu_stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
-      if (sz == 0)
-	{
-	  mu_diag_output (MU_DIAG_INFO, _("Unexpected eof on input"));
-	  imap4d_bye (ERR_NO_OFILE);
-	}
-      else if (rc)
-	{
-	  const char *p;
-	  if (mu_stream_strerror (istream, &p))
-	    p = strerror (errno);
-
-	  mu_diag_output (MU_DIAG_INFO, _("Error reading from input file: %s"), p);
-	  imap4d_bye (ERR_NO_OFILE);
-	}
-      alarm (0);
-
-      len = strlen (buffer);
-      /* If we were in a litteral substract. We have to do it here since the CR
-         is part of the count in a literal.  */
-      if (number)
-	number -= len;
-
-      /* Remove CR.  */
-      if (len > 1 && buffer[len - 1] == '\n')
-	{
-	  if (buffer[len - 2] == '\r')
-	    {
-	      buffer[len - 2] = '\n';
-	      buffer[len - 1] = '\0';
-	    }
-	}
-      line = realloc (line, total + len + 1);
-      if (!line)
-	imap4d_bye (ERR_NO_MEM);
-      strcat (line, buffer);
-
-      total = strlen (line);
-
-      /* I observe some client requesting long FETCH operations since, I did
-         not see any limit in the command length in the RFC, catch things
-         here.  */
-      /* Check that we do have a terminated NL line and we are not retrieving
-         a literal. If we don't continue the read.  */
-      if (number <= 0 && total && line[total - 1] != '\n')
-	continue;
-
-      /* Check if the client try to send a literal and make sure we are not
-         already retrieving a literal.  */
-      if (number <= 0 && len > 2)
-	{
-	  size_t n = total - 1;	/* C arrays are 0-based.  */
-	  /* A literal is this "{number}\n".  The CR is already strip.  */
-	  if (line[n] == '\n' && line[n - 1] == '}')
-	    {
-	      /* Search for the matching bracket.  */
-	      while (n && line[n] != '{')
-		n--;
-	      if (line[n] == '{')
-		{
-		  char *sp = NULL;
-		  /* Truncate where the literal number was.  */
-		  line[n] = '\0';
-		  number = strtoul (line + n + 1, &sp, 10);
-		  /* Client can ask for non synchronise literal,
-		     if a '+' is append to the octet count. */
-		  if (*sp != '+')
-		    util_send ("+ GO AHEAD\r\n");
-		}
-	    }
-	}
-    }
-  while (number > 0 || (total && line[total - 1] != '\n'));
-  if (imap4d_transcript)
-    mu_diag_output (MU_DIAG_DEBUG, "recv: %s", line);
-  return line;
-}
-
-char *
-imap4d_readline_ex (void)
-{
-  int len;
-  char *s = imap4d_readline ();
-
-  if (s && (len = strlen (s)) > 0 && s[len - 1] == '\n')
-    s[len - 1] = 0;
-  return s;
-}
-
 int
-util_do_command (char *prompt)
+util_do_command (imap4d_tokbuf_t tok)
 {
-  char *sp = NULL, *tag, *cmd;
+  char *tag, *cmd;
   struct imap4d_command *command;
   static struct imap4d_command nullcommand;
-  size_t len;
-
-  tag = util_getword (prompt, &sp);
-  cmd = util_getword (NULL, &sp);
-  if (!tag)
+  int argc = imap4d_tokbuf_argc (tok);
+  
+  if (argc == 0)
     {
       nullcommand.name = "";
       nullcommand.tag = (char *) "*";
       return util_finish (&nullcommand, RESP_BAD, "Null command");
     }
-  else if (!cmd)
+  else if (argc == 1)
     {
       nullcommand.name = "";
       nullcommand.tag = tag;
-      return util_finish (&nullcommand, RESP_BAD, "Missing arguments");
+      return util_finish (&nullcommand, RESP_BAD, "Missing command");
     }
 
+  tag = imap4d_tokbuf_getarg (tok, 0);
+  cmd = imap4d_tokbuf_getarg (tok, 1);
+  
   command = util_getcommand (cmd, imap4d_command_table);
   if (command == NULL)
     {
@@ -629,10 +430,7 @@ util_do_command (char *prompt)
   if (command->states && (command->states & state) == 0)
     return util_finish (command, RESP_BAD, "Wrong state");
 
-  len = strlen (sp);
-  if (len && sp[len - 1] == '\n')
-    sp[len - 1] = '\0';
-  return command->func (command, sp);
+  return command->func (command, tok);
 }
 
 int
@@ -702,7 +500,7 @@ add2set (size_t ** set, int *n, unsigned long val)
 }
 
 int
-util_parse_internal_date0 (char *date, time_t * timep, char **endp)
+util_parse_internal_date (char *date, time_t * timep)
 {
   struct tm tm;
   mu_timezone tz;
@@ -717,17 +515,8 @@ util_parse_internal_date0 (char *date, time_t * timep, char **endp)
     return 2;
 
   *timep = time;
-  if (endp)
-    *endp = *datep;
   return 0;
 }
-
-int
-util_parse_internal_date (char *date, time_t * timep)
-{
-  return util_parse_internal_date0 (date, timep, NULL);
-}
-
 
 int
 util_parse_822_date (const char *date, time_t * timep)
@@ -873,35 +662,6 @@ util_attribute_matches_flag (mu_attribute_t attr, const char *item)
     return MU_ATTRIBUTE_IS_UNSEEN (flags);
 
   return flags & mask;
-}
-
-
-int
-util_parse_attributes (char *items, char **save, int *flags)
-{
-  int rc = 0;
-
-  *flags = 0;
-  while (*items)
-    {
-      int type = 0;
-      char item[64] = "";
-
-      util_token (item, sizeof (item), &items);
-      if (!util_attribute_to_type (item, &type))
-	*flags |= type;
-      /*FIXME: else? */
-
-      if (*items == ')')
-	{
-	  items++;
-	  rc = 0;
-	  break;
-	}
-    }
-
-  *save = items;
-  return rc;
 }
 
 int
@@ -1324,3 +1084,327 @@ is_atom (const char *s)
   return 1;
 }
      
+
+static size_t
+remove_cr (char *line, size_t len)
+{
+  char *prev = NULL;
+  size_t rlen = len;
+  char *p;
+  while ((p = memchr (line, '\r', len)))
+    {
+      if (prev)
+	{
+	  memmove (prev, line, p - line);
+	  prev += p - line;
+	}
+      else
+	prev = p;
+      rlen--;
+      len -= p - line + 1;
+      line = p + 1;
+    }
+  if (prev)
+    memmove (prev, line, len);
+  return rlen;
+}
+
+static size_t
+unquote (char *line, size_t len)
+{
+  char *prev = NULL;
+  size_t rlen = len;
+  char *p;
+  int off = 0;
+  while ((p = memchr (line + off, '\\', len - off)))
+    {
+      if (p[1] == '\\' || p[1] == '"')
+	{
+	  if (prev)
+	    {
+	      memmove (prev, line, p - line);
+	      prev += p - line;
+	    }
+	  else
+	    prev = p;
+	  off = p[1] == '\\';
+	  rlen--;
+	  len -= p - line + 1;
+	  line = p + 1;
+	}
+    }
+  if (prev)
+    memmove (prev, line, len);
+  return rlen;
+}
+
+struct imap4d_tokbuf {
+  char *buffer;
+  size_t size;
+  size_t level;
+  int argc;
+  int argmax;
+  size_t *argp;
+};
+
+struct imap4d_tokbuf *
+imap4d_tokbuf_init ()
+{
+  struct imap4d_tokbuf *tok = malloc (sizeof (tok[0]));
+  if (!tok)
+    imap4d_bye (ERR_NO_MEM);
+  memset (tok, 0, sizeof (*tok));
+  return tok;
+}
+
+void
+imap4d_tokbuf_destroy (struct imap4d_tokbuf **ptok)
+{
+  struct imap4d_tokbuf *tok = *ptok;
+  free (tok->buffer);
+  free (tok->argp);
+  free (tok);
+  *ptok = NULL;
+}
+
+int
+imap4d_tokbuf_argc (struct imap4d_tokbuf *tok)
+{
+  return tok->argc;
+}
+
+char *
+imap4d_tokbuf_getarg (struct imap4d_tokbuf *tok, int n)
+{
+  if (n < tok->argc)
+    return tok->buffer + tok->argp[n];
+  return NULL;
+}
+
+static void
+imap4d_tokbuf_unquote (struct imap4d_tokbuf *tok, size_t *poff, size_t *plen)
+{
+  char *buf = tok->buffer + *poff;
+  if (buf[0] == '"' && buf[*plen - 1] == '"')
+    {
+      ++*poff;
+      *plen = unquote (buf + 1, *plen - 1);
+    }
+}
+
+static void
+imap4d_tokbuf_expand (struct imap4d_tokbuf *tok, size_t size)
+{
+  if (tok->size - tok->level < size)	       
+    {						
+      tok->size = tok->level + size;
+      tok->buffer = realloc (tok->buffer, tok->size);
+      if (!tok->buffer)				
+	imap4d_bye (ERR_NO_MEM);
+    }
+}
+
+#define ISDELIM(c) (strchr (".()[]<>", (c)) != NULL)
+#define ISWS(c) (c == ' ' || c == '\t')
+
+int
+util_isdelim (const char *str)
+{
+  return str[1] == 0 && ISDELIM (str[0]);
+}
+
+static size_t
+insert_nul (struct imap4d_tokbuf *tok, size_t off)
+{
+  imap4d_tokbuf_expand (tok, 1);
+  if (off < tok->level)
+    {
+      memmove (tok->buffer + off + 1, tok->buffer + off, tok->level - off);
+      tok->level++;
+    }
+  tok->buffer[off] = 0;
+  return off + 1;
+}
+
+static size_t
+gettok (struct imap4d_tokbuf *tok, size_t off)
+{
+  char *buf = tok->buffer;
+  
+  while (off < tok->level && ISWS (buf[off]))
+    off++;
+
+  if (tok->argc == tok->argmax)
+    {
+      if (tok->argmax == 0)
+	tok->argmax = 16;
+      else
+	tok->argmax *= 2;
+      tok->argp = realloc(tok->argp, tok->argmax * sizeof (tok->argp[0]));
+      if (!tok->argp)
+	imap4d_bye (ERR_NO_MEM);
+    }
+  
+  if (buf[off] == '"')
+    {
+      char *start = buf + off + 1;
+      char *p = NULL;
+      
+      while (*start && (p = strchr (start, '"')))
+	{
+	  if (p == start || p[-1] != '\\')
+	    break;
+	  start = p + 1;
+	}
+
+      if (p)
+	{
+	  size_t len;
+	  off++;
+	  len  = unquote(buf + off, p - (buf + off));
+	  buf[off + len] = 0;
+	  tok->argp[tok->argc++] = off;
+	  return p - buf + 1;
+	}
+    }
+
+  tok->argp[tok->argc++] = off;
+  if (ISDELIM (buf[off]))
+    return insert_nul (tok, off + 1);
+
+  while (off < tok->level && !ISWS (buf[off]))
+    {
+      if (ISDELIM (buf[off]))
+	return insert_nul (tok, off);
+      off++;
+    }
+  buf[off++] = 0;
+  
+  return off;
+}
+
+static void
+imap4d_tokbuf_tokenize (struct imap4d_tokbuf *tok, size_t off)
+{
+  while (off < tok->level)
+    off = gettok (tok, off);
+}
+
+static void
+check_input_err (int rc, size_t sz)
+{
+  if (rc)
+    {
+      const char *p;
+      if (mu_stream_strerror (istream, &p))
+	p = mu_strerror (rc);
+      
+      mu_diag_output (MU_DIAG_INFO,
+		      _("Error reading from input file: %s"), p);
+      imap4d_bye (ERR_NO_OFILE);
+    }
+  else if (sz == 0)
+    {
+      mu_diag_output (MU_DIAG_INFO, _("Unexpected eof on input"));
+      imap4d_bye (ERR_NO_OFILE);
+    }
+}
+
+static size_t
+imap4d_tokbuf_getline (struct imap4d_tokbuf *tok)
+{
+  char buffer[512];
+  size_t level = tok->level;
+  
+  do
+    {
+      size_t len;
+      int rc;
+      
+      rc = mu_stream_sequential_readline (istream,
+					  buffer, sizeof (buffer), &len);
+      check_input_err (rc, len);
+      imap4d_tokbuf_expand (tok, len);
+      
+      memcpy (tok->buffer + tok->level, buffer, len);
+      tok->level += len;
+    }
+  while (tok->level && tok->buffer[tok->level - 1] != '\n');
+  tok->buffer[--tok->level] = 0;
+  if (tok->buffer[tok->level - 1] == '\r')
+    tok->buffer[--tok->level] = 0;
+  return level;
+}
+
+void
+imap4d_readline (struct imap4d_tokbuf *tok)
+{
+  tok->argc = 0;
+  for (;;)
+    {
+      char *last_arg;
+      size_t off = imap4d_tokbuf_getline (tok);
+      imap4d_tokbuf_tokenize (tok, off);
+      last_arg = tok->buffer + tok->argp[tok->argc - 1];
+      if (last_arg[0] == '{' && last_arg[strlen(last_arg)-1] == '}')
+	{
+	  int rc;
+	  unsigned long number;
+	  char *sp = NULL;
+	  char *buf;
+	  size_t len;
+	  
+	  number = strtoul (last_arg + 1, &sp, 10);
+	  /* Client can ask for non-synchronised literal,
+	     if a '+' is appended to the octet count. */
+	  if (*sp == '}')
+	    util_send ("+ GO AHEAD\r\n");
+	  else if (*sp != '+')
+	    break;
+	  imap4d_tokbuf_expand (tok, number + 1);
+	  off = tok->level;
+	  buf = tok->buffer + off;
+	  rc = mu_stream_sequential_read (istream, buf, number, &len);
+	  check_input_err (rc, len);
+	  len = remove_cr (buf, len);
+	  imap4d_tokbuf_unquote (tok, &off, &len);
+	  tok->level += len;
+	  tok->buffer[tok->level++] = 0;
+	  tok->argp[tok->argc - 1] = off;
+	  if (buf[len-1] != '\n')
+	    continue;
+	}
+      break;
+    }
+}  
+
+struct imap4d_tokbuf *
+imap4d_tokbuf_from_string (char *str)
+{
+  struct imap4d_tokbuf *tok = imap4d_tokbuf_init ();
+  tok->buffer = strdup (str);
+  if (!tok->buffer)
+    imap4d_bye (ERR_NO_MEM);
+  tok->level = strlen (str);
+  tok->size = tok->level + 1;
+  imap4d_tokbuf_tokenize (tok, 0);
+  return tok;
+}
+
+int
+imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
+{
+  size_t len;
+  int rc = mu_stream_sequential_getline (istream, pbuf, psize, &len);
+  if (rc == 0)
+    {
+      char *s = *pbuf;
+      if (s && len > 0 && s[len - 1] == '\n')
+	s[--len] = 0;
+      if (s && len > 0 && s[len - 1] == '\r')
+	s[--len] = 0;
+      if (pnbytes)
+	*pnbytes = len;
+    }
+  return rc;
+}

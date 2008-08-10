@@ -370,6 +370,7 @@ get_client_address (int fd, struct sockaddr_in *pcs)
 static int
 imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
+  imap4d_tokbuf_t tokp;
   char *text;
   int debug_mode = isatty (fd);
   static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
@@ -400,14 +401,14 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
   util_out ((state == STATE_AUTH) ? RESP_PREAUTH : RESP_OK, "%s", text);
   util_flush_output ();
 
+  tokp = imap4d_tokbuf_init ();
   while (1)
     {
-      char *cmd = imap4d_readline ();
+      imap4d_readline (tokp);
       /* check for updates */
       imap4d_sync ();
-      util_do_command (cmd);
+      util_do_command (tokp);
       imap4d_sync ();
-      free (cmd);
       util_flush_output ();
     }
 

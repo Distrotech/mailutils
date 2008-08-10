@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006, 2007,
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,9 +21,6 @@
 #include <ctype.h>
 #include <mailutils/argcv.h>
 
-/* This will suck, too.
-   Alain: Yes it does.  */
-
 /*  Taken from RFC2060
     fetch           ::= "FETCH" SPACE set SPACE ("ALL" / "FULL" /
     "FAST" / fetch_att / "(" 1#fetch_att ")")
@@ -34,494 +32,92 @@
     ["<" number "." nz_number ">"]
 */
 
-struct fetch_command;
-
-static int fetch_all               (struct fetch_command *, char**);
-static int fetch_full              (struct fetch_command *, char**);
-static int fetch_fast              (struct fetch_command *, char**);
-static int fetch_envelope          (struct fetch_command *, char**);
-static int fetch_flags             (struct fetch_command *, char**);
-static int fetch_internaldate      (struct fetch_command *, char**);
-static int fetch_rfc822_header     (struct fetch_command *, char**);
-static int fetch_rfc822_size       (struct fetch_command *, char**);
-static int fetch_rfc822_text       (struct fetch_command *, char**);
-static int fetch_rfc822            (struct fetch_command *, char**);
-static int fetch_bodystructure     (struct fetch_command *, char**);
-static int fetch_body              (struct fetch_command *, char**);
-static int fetch_uid               (struct fetch_command *, char**);
-
-/* Helper functions.  */
-static int fetch_envelope0         (mu_message_t);
-static int fetch_bodystructure0    (mu_message_t, int);
-static int bodystructure           (mu_message_t, int);
-static void send_parameter_list    (const char *);
-static int fetch_operation         (mu_message_t, char **, int);
-static int fetch_message           (mu_message_t, unsigned long, unsigned long);
-static int fetch_header            (mu_message_t, unsigned long, unsigned long);
-static int fetch_body_content      (mu_message_t, unsigned long, unsigned long);
-static int fetch_io                (mu_stream_t, unsigned long, unsigned long, unsigned long);
-static int fetch_header_fields     (mu_message_t, char **, unsigned long, unsigned long);
-static int fetch_header_fields_not (mu_message_t, char **, unsigned long, unsigned long);
-static int fetch_send_address      (const char *);
-
-static struct fetch_command* fetch_getcommand (char *, struct fetch_command*);
-
-struct fetch_command
+struct fetch_runtime_closure
 {
-  const char *name;
-  int (*func) (struct fetch_command *, char **);
+  int eltno;
+  size_t msgno;
   mu_message_t msg;
-} fetch_command_table [] =
-{
-#define F_ALL 0
-  {"ALL", fetch_all, 0},
-#define F_FULL 1
-  {"FULL", fetch_full, 0},
-#define F_FAST 2
-  {"FAST", fetch_fast, 0},
-#define F_ENVELOPE 3
-  {"ENVELOPE", fetch_envelope, 0},
-#define F_FLAGS 4
-  {"FLAGS", fetch_flags, 0},
-#define F_INTERNALDATE 5
-  {"INTERNALDATE", fetch_internaldate, 0},
-#define F_RFC822_HEADER 6
-   {"RFC822.HEADER", fetch_rfc822_header, 0},
-#define F_RFC822_SIZE 7
-  {"RFC822.SIZE", fetch_rfc822_size, 0},
-#define F_RFC822_TEXT 8
-  {"RFC822.TEXT", fetch_rfc822_text, 0},
-#define F_RFC822 9
-  {"RFC822", fetch_rfc822, 0},
-#define F_BODYSTRUCTURE 10
-  {"BODYSTRUCTURE", fetch_bodystructure, 0},
-#define F_BODY 11
-  {"BODY", fetch_body, 0},
-#define F_UID 12
-  {"UID", fetch_uid, 0},
-  { NULL, 0, 0}
+  char *err_text;
 };
 
-/* Go through the fetch array sub command and returns the the structure.  */
+struct fetch_function_closure;
 
-static struct fetch_command *
-fetch_getcommand (char *cmd, struct fetch_command *command_table)
+typedef int (*fetch_function_t) (struct fetch_function_closure *,
+				 struct fetch_runtime_closure *);
+
+struct fetch_function_closure
 {
-  size_t i, len = strlen (cmd);
+  fetch_function_t fun;            /* Handler function */
+  const char *name;                /* Response tag */
+  size_t *section_part;            /* Section-part */
+  size_t nset;                     /* Number of elements in section_part */
+  int peek;
+  int not;                         /* Negate header set */  
+  mu_list_t headers;               /* Headers */
+  size_t start;                    /* Substring start */ 
+  size_t size;                     /* Substring length */
+};
 
-  for (i = 0; command_table[i].name != 0; i++)
+
+static int
+fetch_send_address (const char *addr)
+{
+  mu_address_t address;
+  size_t i, count = 0;
+
+  /* Short circuit.  */
+  if (addr == NULL || *addr == '\0')
     {
-      if (strlen (command_table[i].name) == len &&
-          !strcasecmp (command_table[i].name, cmd))
-        return &command_table[i];
-    }
-  return NULL;
-}
-
-/* The FETCH command retrieves data associated with a message in the
-   mailbox.  The data items to be fetched can be either a single atom
-   or a parenthesized list.  */
-int
-imap4d_fetch (struct imap4d_command *command, char *arg)
-{
-  int rc;
-  char buffer[64];
-
-  rc = imap4d_fetch0 (arg, 0, buffer, sizeof buffer);
-  return util_finish (command, rc, "%s", buffer);
-}
-
-/* Where the real implementation is.  It is here since UID command also
-   calls FETCH.  */
-int
-imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
-{
-  struct fetch_command *fcmd = NULL;
-  int rc = RESP_OK;
-  char *sp = NULL;
-  char *msgset;
-  size_t *set = NULL;
-  int n = 0;
-  int i;
-  int status;
-
-  msgset = util_getword (arg, &sp);
-  if (!msgset || !sp || *sp == '\0')
-    {
-      snprintf (resp, resplen, "Too few args");
-      return RESP_BAD;
-    }
-
-  /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &set, &n, isuid);
-  if (status != 0)
-    {
-      snprintf (resp, resplen, "Bogus number set");
-      return RESP_BAD;
-    }
-
-  /* Prepare status code. It will be replaced if an error occurs in the
-     loop below */
-  snprintf (resp, resplen, "Completed");
-  
-  for (i = 0; i < n && rc == RESP_OK; i++)
-    {
-      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-      mu_message_t msg = NULL;
-
-      if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
-	{
-	  char item[32];
-	  char *items = strdup (sp);
-	  char *p = items;
-	  int space = 0;
-
-	  fcmd = NULL;
-	  util_send ("* %s FETCH (", mu_umaxtostr (0, msgno));
-	  item[0] = '\0';
-	  /* Server implementations MUST implicitly
-	     include the UID message data item as part of any FETCH
-	     response caused by a UID command, regardless of whether
-	     a UID was specified as a message data item to the FETCH. */
-	  if (isuid)
-	    {
-	      fcmd = &fetch_command_table[F_UID];
-	      fcmd->msg = msg;
-	      rc = fetch_uid (fcmd, &items);
-	    }
-	  /* Get the fetch command names.  */
-	  while (*items && *items != ')')
-	    {
-	      util_token (item, sizeof (item), &items);
-	      /* Do not send the UID again.  */
-	      if (isuid && strcasecmp (item, "UID") == 0)
-		continue;
-	      if (fcmd)
-		space = 1;
-	      /* Search in the table.  */
-	      fcmd = fetch_getcommand (item, fetch_command_table);
-	      if (fcmd)
-		{
-		  if (space)
-		    {
-		      util_send (" ");
-		      space = 0;
-		    }
-		  fcmd->msg = msg;
-		  rc = fcmd->func (fcmd, &items);
-		}
-	    }
-	  util_send (")\r\n");
-	  free (p);
-	}
-      else if (!isuid)
-	/* According to RFC 3501, "A non-existent unique identifier is
-	   ignored without any error message generated." */
-	{
-	  snprintf (resp, resplen,
-		    "Bogus message set: message number out of range");
-	  rc = RESP_BAD;
-	  break;
-	}
-    }
-  free (set);
-  return rc;
-}
-
-/* ALL:
-   Macro equivalent to: (FLAGS INTERNALDATE RFC822.SIZE ENVELOPE)
-   Combination of FAST and ENVELOPE.  */
-static int
-fetch_all (struct fetch_command *command, char **arg)
-{
-  struct fetch_command c_env = fetch_command_table[F_ENVELOPE];
-  fetch_fast (command, arg);
-  util_send (" ");
-  c_env.msg = command->msg;
-  fetch_envelope (&c_env, arg);
-  return RESP_OK;
-}
-
-/* FULL:
-   Macro equivalent to: (FLAGS INTERNALDATE
-   RFC822.SIZE ENVELOPE BODY).
-   Combination of (ALL BODY).  */
-static int
-fetch_full (struct fetch_command *command, char **arg)
-{
-  struct fetch_command c_body = fetch_command_table[F_BODY];
-  fetch_all (command, arg);
-  util_send (" ");
-  c_body.msg = command->msg;
-  return fetch_body (&c_body, arg);
-}
-
-/* FAST:
-   Macro equivalent to: (FLAGS INTERNALDATE RFC822.SIZE)
-   Combination of (FLAGS INTERNALDATE RFC822.SIZE).  */
-static int
-fetch_fast (struct fetch_command *command, char **arg)
-{
-  struct fetch_command c_idate = fetch_command_table[F_INTERNALDATE];
-  struct fetch_command c_rfc = fetch_command_table[F_RFC822_SIZE];
-  struct fetch_command c_flags = fetch_command_table[F_FLAGS];
-  c_flags.msg = command->msg;
-  fetch_flags (&c_flags, arg);
-  util_send (" ");
-  c_idate.msg = command->msg;
-  fetch_internaldate (&c_idate, arg);
-  util_send (" ");
-  c_rfc.msg = command->msg;
-  fetch_rfc822_size (&c_rfc, arg);
-  return RESP_OK;
-}
-
-/* ENVELOPE:
-   Header: Date, Subject, From, Sender, Reply-To, To, Cc, Bcc, In-Reply-To,
-   and Message-Id.  */
-static int
-fetch_envelope (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  int status;
-  util_send ("%s (", command->name);
-  status = fetch_envelope0 (command->msg);
-  util_send (")");
-  return status;
-}
-
-/* FLAGS: The flags that are set for this message.  */
-/* FIXME: User flags not done. If enable change the PERMANENTFLAGS in SELECT */
-void
-fetch_flags0 (const char *prefix, mu_message_t msg, int isuid)
-{
-  mu_attribute_t attr = NULL;
-
-  mu_message_get_attribute (msg, &attr);
-  if (isuid)
-    {
-      struct fetch_command *fcmd = &fetch_command_table[F_UID];
-      fcmd->msg = msg;
-      fetch_uid (fcmd, NULL);
-      util_send (" ");
-    }
-  util_send ("%s (", prefix);
-  util_print_flags(attr);
-  util_send (")");
-}
-
-static int
-fetch_flags (struct fetch_command *command, char **arg)
-{
-  fetch_flags0 (command->name, command->msg, 0);
-  return RESP_OK;
-}
-
-
-/* INTERNALDATE   The internal date of the message.
-   Format:
-
-   date_time       ::= <"> date_day_fixed "-" date_month "-" date_year
-   SPACE time SPACE zone <">
-
-   date_day        ::= 1*2digit
-   ;; Day of month
-
-   date_day_fixed  ::= (SPACE digit) / 2digit
-   ;; Fixed-format version of date_day
-
-   date_month      ::= "Jan" / "Feb" / "Mar" / "Apr" / "May" / "Jun" /
-   "Jul" / "Aug" / "Sep" / "Oct" / "Nov" / "Dec"
-
-   date_text       ::= date_day "-" date_month "-" date_year
-
-   date_year       ::= 4digit
-
-   time            ::= 2digit ":" 2digit ":" 2digit
-   ;; Hours minutes seconds
-
-   zone            ::= ("+" / "-") 4digit
-   ;; Signed four-digit value of hhmm representing
-   ;; hours and minutes west of Greenwich (that is,
-   ;; (the amount that the given time differs from
-   ;; Universal Time).  Subtracting the timezone
-   ;; from the given time will give the UT form.
-   ;; The Universal Time zone is "+0000".  */
-static int
-fetch_internaldate (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  const char *date;
-  mu_envelope_t env = NULL;
-  struct tm tm, *tmp = NULL;
-  mu_timezone tz;
-  char datebuf[sizeof ("13-Jul-2002 00:00:00")];
-
-  mu_message_get_envelope (command->msg, &env);
-  if (mu_envelope_sget_date (env, &date) == 0
-      && mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
-    tmp = &tm;
-  else
-    {
-      time_t t = time (NULL);
-      tmp = localtime (&t);
-    }
-  mu_strftime (datebuf, sizeof (datebuf), "%d-%b-%Y %H:%M:%S", tmp);
-  util_send ("%s", command->name);
-  util_send (" \"%s +0000\"", datebuf);
-  return RESP_OK;
-}
-
-/*
-  RFC822.HEADER:
-  Functionally equivalent to BODY.PEEK[HEADER], differing in the syntax of
-  the resulting untagged FETCH data (RFC822.HEADER is returned). */
-static int
-fetch_rfc822_header (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  char buffer[32];
-  char *p = buffer;
-
-  strcpy (buffer, ".PEEK[HEADER]");
-  return fetch_body (command, &p);
-}
-
-/* RFC822.TEXT:
-   Functionally equivalent to BODY[TEXT], differing in the syntax of the
-   resulting untagged FETCH data (RFC822.TEXT is returned). */
-static int
-fetch_rfc822_text (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  char buffer[16];
-  char *p = buffer;
-
-  strcpy (buffer, "[TEXT]");
-  return fetch_body (command, &p);
-}
-
-/* The [RFC-822] size of the message.  */
-static int
-fetch_rfc822_size (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  size_t size = 0;
-  size_t lines = 0;
-  
-  mu_message_size (command->msg, &size);
-  mu_message_lines (command->msg, &lines);
-  util_send ("%s %u", command->name, size + lines);
-  return RESP_OK;
-}
-
-/* RFC822:
-   Functionally equivalent to BODY[], differing in the syntax of the
-   resulting untagged FETCH data (RFC822 is returned). */
-static int
-fetch_rfc822 (struct fetch_command *command, char **arg)
-{
-  if (**arg == '.')
-    {
-      /* We have to catch the other RFC822.XXX commands here.  This is because
-	 util_token() in imap4d_fetch0 will return the RFC822 token only.  */
-      if (strncasecmp (*arg, ".SIZE", 5) == 0)
-	{
-	  struct fetch_command c_rfc= fetch_command_table[F_RFC822_SIZE];
-	  c_rfc.msg = command->msg;
-	  (*arg) += 5;
-	  fetch_rfc822_size (&c_rfc, arg);
-	}
-      else if (strncasecmp (*arg, ".TEXT", 5) == 0)
-	{
-	  struct fetch_command c_rfc = fetch_command_table[F_RFC822_TEXT];
-	  c_rfc.msg = command->msg;
-	  (*arg) += 5;
-	  fetch_rfc822_text (&c_rfc, arg);
-	}
-      else if (strncasecmp (*arg, ".HEADER", 7) == 0)
-	{
-	  struct fetch_command c_rfc = fetch_command_table[F_RFC822_HEADER];
-	  c_rfc.msg = command->msg;
-	  (*arg) += 7;
-	  fetch_rfc822_header (&c_rfc, arg);
-	}
-    }
-  else
-    {
-      char buffer[16];
-      char *p = buffer;
-      strcpy (buffer, "[]");
-      fetch_body (command, &p);
-    }
-  return RESP_OK;
-}
-
-/* UID: The unique identifier for the message.  */
-static int
-fetch_uid (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  size_t uid = 0;
-
-  mu_message_get_uid (command->msg, &uid);
-  util_send ("%s %s", command->name, mu_umaxtostr (0, uid));
-  return RESP_OK;
-}
-
-/* BODYSTRUCTURE:
-   The [MIME-IMB] body structure of the message.  This is computed by the
-   server by parsing the [MIME-IMB] header fields in the [RFC-822] header and
-   [MIME-IMB] headers.  */
-static int
-fetch_bodystructure (struct fetch_command *command, char **arg MU_ARG_UNUSED)
-{
-  util_send ("%s (", command->name);
-  fetch_bodystructure0 (command->msg, 1); /* 1 means with extension data.  */
-  util_send (")");
-  return RESP_OK;
-}
-
-/* BODY:          Non-extensible form of BODYSTRUCTURE.
-   BODY[<section>]<<partial>> :
-   The text of a particular body section.  The section specification is a set
-   of zero or more part specifiers delimited by periods.  A part specifier
-   is either a part number or one of the following: HEADER, HEADER.FIELDS,
-   HEADER.FIELDS.NOT, MIME, and TEXT.  An empty section specification refers
-   to the entire message, including the header.
-
-   Note: for body section, the \Seen flag is implicitly set;
-         if this causes the flags to change they SHOULD be
-	 included as part of the FETCH responses. */
-static int
-fetch_body (struct fetch_command *command, char **arg)
-{
-  /* It's body section, set the message as seen  */
-  if (**arg == '[')
-    {
-      mu_attribute_t attr = NULL;
-      mu_message_get_attribute (command->msg, &attr);
-      if (!mu_attribute_is_read (attr))
-	{
-	  util_send ("FLAGS (\\Seen) ");
-	  mu_attribute_set_read (attr);
-	}
-    }
-  else if (strncasecmp (*arg,".PEEK", 5) == 0)
-    {
-      /* Move pass the .peek  */
-      (*arg) += 5;
-      while (isspace ((unsigned)**arg))
-	(*arg)++;
-    }
-  else if (**arg != '[' && **arg != '.')
-    {
-      /* Call body structure without the extension.  */
-      util_send ("%s (", command->name);
-      fetch_bodystructure0 (command->msg, 0);
-      util_send (")");
+      util_send ("NIL");
       return RESP_OK;
     }
-  util_send ("%s", command->name);
-  return fetch_operation (command->msg, arg,
-			  strcasecmp (command->name, "BODY"));
-}
 
-/* Helper Functions: Where the Beef is.  */
+  mu_address_create (&address, addr);
+  mu_address_get_count (address, &count);
+
+  /* We failed: can't parse.  */
+  if (count == 0)
+    {
+      util_send ("NIL");
+      return RESP_OK;
+    }
+
+  util_send ("(");
+  for (i = 1; i <= count; i++)
+    {
+      const char *str;
+      int is_group = 0;
+
+      util_send ("(");
+
+      mu_address_sget_personal (address, i, &str);
+      util_send_qstring (str);
+      util_send (" ");
+
+      mu_address_sget_route (address, i, &str);
+      util_send_qstring (str);
+
+      util_send (" ");
+
+      mu_address_is_group (address, i, &is_group);
+      str = NULL;
+      if (is_group)
+	mu_address_sget_personal (address, i, &str);
+      else
+	mu_address_sget_local_part (address, i, &str);
+
+      util_send_qstring (str);
+
+      util_send (" ");
+
+      mu_address_sget_domain (address, i, &str);
+      util_send_qstring (str);
+
+      util_send (")");
+    }
+  util_send (")");
+  return RESP_OK;
+}
 
 static void
 fetch_send_header_value (mu_header_t header, const char *name,
@@ -543,6 +139,99 @@ fetch_send_header_value (mu_header_t header, const char *name,
 }
 
 static void
+fetch_send_header_address (mu_header_t header, const char *name,
+			   const char *defval, int space)
+{
+  char *buffer;
+  
+  if (space)
+    util_send (" ");
+  if (mu_header_aget_value (header, name, &buffer) == 0)
+    {
+      fetch_send_address (buffer);
+      free (buffer);
+    }
+  else
+    fetch_send_address (defval);
+}
+
+/* Send parameter list for the bodystructure.  */
+static void
+send_parameter_list (const char *buffer)
+{
+  int argc = 0;
+  char **argv;
+  
+  if (!buffer)
+    {
+      util_send ("NIL");
+      return;
+    }
+
+  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+  
+  if (argc == 0)
+    util_send ("NIL");
+  else
+    {
+      char *p;
+      
+      util_send ("(");
+        
+      p = argv[0];
+      util_send_qstring (p);
+
+      if (argc > 1)
+	{
+	  int i, space = 0;
+	  char *lvalue = NULL;
+
+	  util_send ("(");
+	  for (i = 1; i < argc; i++)
+	    {
+	      if (lvalue)
+		{
+		  if (space)
+		    util_send (" ");
+		  util_send_qstring (lvalue);
+		  lvalue = NULL;
+		  space = 1;
+		}
+	      
+	      switch (argv[i][0])
+		{
+		case ';':
+		  continue;
+		  
+		case '=':
+		  if (++i < argc)
+		    {
+		      char *p = argv[i];
+		      util_send (" ");
+		      util_send_qstring (p);
+		    }
+		  break;
+		  
+		default:
+		  lvalue = argv[i];
+		}
+	    }
+	  if (lvalue)
+	    {
+	      if (space)
+		util_send (" ");
+	      util_send_qstring (lvalue);
+	    }
+	  util_send (")");
+	}
+      else
+	util_send (" NIL");
+      util_send (")");
+    }
+  mu_argcv_free (argc, argv);
+}
+
+static void
 fetch_send_header_list (mu_header_t header, const char *name,
 			const char *defval, int space)
 {
@@ -559,23 +248,6 @@ fetch_send_header_list (mu_header_t header, const char *name,
     send_parameter_list (defval);
   else
     util_send ("NIL");
-}
-
-static void
-fetch_send_header_address (mu_header_t header, const char *name,
-			   const char *defval, int space)
-{
-  char *buffer;
-  
-  if (space)
-    util_send (" ");
-  if (mu_header_aget_value (header, name, &buffer) == 0)
-    {
-      fetch_send_address (buffer);
-      free (buffer);
-    }
-  else
-    fetch_send_address (defval);
 }
 
 /* ENVELOPE:
@@ -613,139 +285,6 @@ fetch_envelope0 (mu_message_t msg)
   fetch_send_header_value (header, "Message-ID", NULL, 1);
 
   free (from);
-  return RESP_OK;
-}
-
-/* The beef BODYSTRUCTURE.
-   A parenthesized list that describes the [MIME-IMB] body structure of a
-   message. Multiple parts are indicated by parenthesis nesting.  Instead of
-   a body type as the first element of the parenthesized list there is a nested
-   body.  The second element of the parenthesized list is the multipart
-   subtype (mixed, digest, parallel, alternative, etc.).
-
-   The extension data of a multipart body part are in the following order:
-   body parameter parenthesized list:
-   A parenthesized list of attribute/value pairs [e.g. ("foo" "bar" "baz"
-   "rag") where "bar" is the value of "foo" and "rag" is the value of
-   "baz"] as defined in [MIME-IMB].
-
-   body disposition:
-   A parenthesized list, consisting of a disposition type string followed by a
-   parenthesized list of disposition attribute/value pairs.  The disposition
-   type and attribute names will be defined in a future standards-track
-   revision to [DISPOSITION].
-
-   body language:
-   A string or parenthesized list giving the body language value as defined
-   in [LANGUAGE-TAGS].  */
-static int
-fetch_bodystructure0 (mu_message_t message, int extension)
-{
-  size_t nparts = 1;
-  size_t i;
-  int is_multipart = 0;
-
-  mu_message_is_multipart (message, &is_multipart);
-  if (is_multipart)
-    {
-      char *buffer = NULL;
-      mu_header_t header = NULL;
-
-      mu_message_get_num_parts (message, &nparts);
-
-      /* Get all the sub messages.  */
-      for (i = 1; i <= nparts; i++)
-        {
-          mu_message_t msg = NULL;
-          mu_message_get_part (message, i, &msg);
-          util_send ("(");
-          fetch_bodystructure0 (msg, extension);
-          util_send (")");
-        } /* for () */
-
-      mu_message_get_header (message, &header);
-
-
-      /* The subtype.  */
-      if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
-	{
-	  int argc = 0;
-	  char **argv;
-	  char *s;
-	  
-	  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
-
-	  s = strchr (argv[0], '/');
-	  if (s)
-	    s++;
-	  util_send (" ");
-	  util_send_qstring (s);
-
-	  /* The extension data for multipart. */
-	  if (extension)
-	    {
-	      int space = 0;
-	      char *lvalue = NULL;
-	      
-	      util_send (" (");
-	      for (i = 1; i < argc; i++)
-		{
-		  /* body parameter parenthesized list:
-		     Content-type parameter list. */
-		  if (lvalue)
-		    {
-		      if (space)
-			util_send (" ");
-		      util_send_qstring (lvalue);
-		      lvalue = NULL;
-		      space = 1;
-		    }
-
-		  switch (argv[i][0])
-		    {
-		    case ';':
-		      continue;
-		      
-		    case '=':
-		      if (++i < argc)
-			{
-			  char *p = argv[i];
-			  util_send (" ");
-			  util_unquote (&p);
-			  util_send_qstring (p);
-			}
-		      break;
-		      
-		    default:
-		      lvalue = argv[i];
-		    }
-		}
-	      if (lvalue)
-		{
-		  if (space)
-		    util_send (" ");
-		  util_send_qstring (lvalue);
-		}
-	      util_send (")");
-	    }
-	  else
-	    util_send (" NIL");
-	  mu_argcv_free (argc, argv);
-          free (buffer);
-	}
-      else
-	/* No content-type header */
-	util_send (" NIL");
-
-      /* body disposition: Content-Disposition.  */
-      fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION,
-			      NULL, 1);
-      /* body language: Content-Language.  */
-      fetch_send_header_list (header, MU_HEADER_CONTENT_LANGUAGE,
-			      NULL, 1);
-    }
-  else
-    bodystructure (message, extension);
   return RESP_OK;
 }
 
@@ -857,7 +396,6 @@ bodystructure (mu_message_t msg, int extension)
 		    {
 		      char *p = argv[i];
 		      util_send (" ");
-		      util_unquote (&p);
 		      util_send_qstring (p);
 		    }
 		  break;
@@ -955,195 +493,187 @@ bodystructure (mu_message_t msg, int extension)
   return RESP_OK;
 }
 
+/* The beef BODYSTRUCTURE.
+   A parenthesized list that describes the [MIME-IMB] body structure of a
+   message. Multiple parts are indicated by parenthesis nesting.  Instead of
+   a body type as the first element of the parenthesized list there is a nested
+   body.  The second element of the parenthesized list is the multipart
+   subtype (mixed, digest, parallel, alternative, etc.).
+
+   The extension data of a multipart body part are in the following order:
+   body parameter parenthesized list:
+   A parenthesized list of attribute/value pairs [e.g. ("foo" "bar" "baz"
+   "rag") where "bar" is the value of "foo" and "rag" is the value of
+   "baz"] as defined in [MIME-IMB].
+
+   body disposition:
+   A parenthesized list, consisting of a disposition type string followed by a
+   parenthesized list of disposition attribute/value pairs.  The disposition
+   type and attribute names will be defined in a future standards-track
+   revision to [DISPOSITION].
+
+   body language:
+   A string or parenthesized list giving the body language value as defined
+   in [LANGUAGE-TAGS].  */
 static int
-fetch_operation (mu_message_t msg, char **arg, int silent)
+fetch_bodystructure0 (mu_message_t message, int extension)
 {
-  unsigned long start = ULONG_MAX; /* No starting offset.  */
-  unsigned long end = ULONG_MAX; /* No limit. */
-  char *section; /* Hold the section number string.  */
-  char *partial = strchr (*arg, '<');
-  int rc;
-  
-  /* Check for section specific offset.  */
-  if (partial)
+  size_t nparts = 1;
+  size_t i;
+  int is_multipart = 0;
+
+  mu_message_is_multipart (message, &is_multipart);
+  if (is_multipart)
     {
-      /* NOTE: should this should be move in imap4d_fetch() and have a more
-	 draconian check?  */
-      *partial = '\0';
-      partial++;
-      start = strtoul (partial, &partial, 10);
-      if (*partial == '.')
+      char *buffer = NULL;
+      mu_header_t header = NULL;
+
+      mu_message_get_num_parts (message, &nparts);
+
+      /* Get all the sub messages.  */
+      for (i = 1; i <= nparts; i++)
+        {
+          mu_message_t msg = NULL;
+          mu_message_get_part (message, i, &msg);
+          util_send ("(");
+          fetch_bodystructure0 (msg, extension);
+          util_send (")");
+        } /* for () */
+
+      mu_message_get_header (message, &header);
+
+
+      /* The subtype.  */
+      if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
 	{
-	  partial++;
-	  end = strtoul (partial, NULL, 10);
+	  int argc = 0;
+	  char **argv;
+	  char *s;
+	  
+	  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+
+	  s = strchr (argv[0], '/');
+	  if (s)
+	    s++;
+	  util_send (" ");
+	  util_send_qstring (s);
+
+	  /* The extension data for multipart. */
+	  if (extension)
+	    {
+	      int space = 0;
+	      char *lvalue = NULL;
+	      
+	      util_send (" (");
+	      for (i = 1; i < argc; i++)
+		{
+		  /* body parameter parenthesized list:
+		     Content-type parameter list. */
+		  if (lvalue)
+		    {
+		      if (space)
+			util_send (" ");
+		      util_send_qstring (lvalue);
+		      lvalue = NULL;
+		      space = 1;
+		    }
+
+		  switch (argv[i][0])
+		    {
+		    case ';':
+		      continue;
+		      
+		    case '=':
+		      if (++i < argc)
+			{
+			  char *p = argv[i];
+			  util_send (" ");
+			  util_send_qstring (p);
+			}
+		      break;
+		      
+		    default:
+		      lvalue = argv[i];
+		    }
+		}
+	      if (lvalue)
+		{
+		  if (space)
+		    util_send (" ");
+		  util_send_qstring (lvalue);
+		}
+	      util_send (")");
+	    }
+	  else
+	    util_send (" NIL");
+	  mu_argcv_free (argc, argv);
+          free (buffer);
 	}
-    }
-
-  /* Pass the first bracket '['  */
-  (*arg)++;
-  section = *arg;
-
-  /* Retreive the section message.  */
-  while (isdigit ((unsigned)**arg))
-    {
-      unsigned long j = strtoul (*arg, arg, 10);
-      int status;
-
-      /* Wrong section message number bail out.  */
-      if (j == 0 || j == ULONG_MAX) /* Technical: I should check errno too.  */
-	break;
-
-      /* If the section message did not exist bail out here.  */
-      status = mu_message_get_part (msg, j, &msg);
-      if (status != 0)
-	{
-	  util_send (" \"\"");
-	  return RESP_OK;
-	}
-      if (**arg == '.')
-	(*arg)++;
       else
-	break;
-    }
+	/* No content-type header */
+	util_send (" NIL");
 
-  /* Did we have a section message?  */
-  if (((*arg) - section) > 0)
-    {
-      char *p = section;
-      section = calloc ((*arg) - p + 1, 1);
-      if (section)
-	memcpy (section, p, (*arg) - p);
+      /* body disposition: Content-Disposition.  */
+      fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION,
+			      NULL, 1);
+      /* body language: Content-Language.  */
+      fetch_send_header_list (header, MU_HEADER_CONTENT_LANGUAGE,
+			      NULL, 1);
     }
   else
-    section = calloc (1, 1);
+    bodystructure (message, extension);
+  return RESP_OK;
+}
 
-  rc = RESP_OK;
+static void
+set_seen (struct fetch_function_closure *ffc,
+	  struct fetch_runtime_closure *frt)
+{
+  if (!ffc->peek)
+    {
+      mu_attribute_t attr = NULL;
+      mu_message_get_attribute (frt->msg, &attr);
+      if (!mu_attribute_is_read (attr))
+	{
+	  util_send ("FLAGS (\\Seen) ");
+	  mu_attribute_set_read (attr);
+	}
+    }
+}
+
+static mu_message_t 
+fetch_get_part (struct fetch_function_closure *ffc,
+		struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg = frt->msg;
+  size_t i;
+
+  for (i = 0; i < ffc->nset; i++)
+    if (mu_message_get_part (msg, ffc->section_part[i], &msg))
+      return NULL;
+  return msg;
+}
+
+static void
+fetch_send_section_part (struct fetch_function_closure *ffc,
+			 const char *prefix, const char *suffix)
+{
+  int i;
   
-  /* Choose the right fetch attribute.  */
-  if (*section == '\0' && **arg == ']')
+  util_send ("%s", prefix);
+  for (i = 0; i < ffc->nset; i++)
     {
-      if (!silent)
-	util_send ("[]");
-      (*arg)++;
-      rc = fetch_message (msg, start, end);
+      if (i)
+	util_send (".");
+      util_send ("%lu",  (unsigned long) ffc->section_part[i]);
     }
-  else if (strncasecmp (*arg, "HEADER]", 7) == 0)
-    {
-      if (!silent)
-	{
-	  /* NOTE: We violate the RFC here: Header cannot take a prefix for
-	     section messages it only referes to the RFC822 header .. ok
-	     see it as an extension. But according to IMAP4 we should
-	     have send an empty string: util_send (" \"\"");
-	  */
-	  util_send ("[%sHEADER]", section);
-	}
-      (*arg) += 7;
-      rc = fetch_header (msg, start, end);
-    }
-  else if (strncasecmp (*arg, "MIME]", 5) == 0)
-    {
-      if (!silent)
-	{
-	  if (*section)
-	    util_send ("[%sMIME]", section);
-	  else
-	    util_send ("[%s", *arg);
-	}
-      (*arg) += 5;
-      rc = fetch_header (msg, start, end);
-    }
-  else if (strncasecmp (*arg, "HEADER.FIELDS.NOT", 17) == 0)
-    {
-      /* NOTE: we should flag an error if section is not empty: accept
-	 as an extension for now.  */
-      if (*section)
-	util_send ("[%s", section);
-      else
-	util_send ("[");
-      (*arg) += 17;
-      rc = fetch_header_fields_not (msg, arg, start, end);
-    }
-  else if (strncasecmp (*arg, "HEADER.FIELDS", 13) == 0)
-    {
-      /* NOTE: we should flag an error if section is not empty: accept
-	 as an extension for now.  */
-      if (*section)
-	util_send ("[%s", section);
-      else
-	util_send ("[");
-      (*arg) += 13;
-      rc = fetch_header_fields (msg, arg, start, end);
-    }
-
-  else if (strncasecmp (*arg, "TEXT]", 5) == 0)
-    {
-      if (!silent)
-	{
-	  if (*section)
-	    util_send ("[%sTEXT]", section);
-	  else
-	    util_send ("[TEXT]");
-	}
-      (*arg) += 5;
-      rc = fetch_body_content (msg, start, end);
-    }
-  else if (**arg == ']')
-    {
-      if (!silent)
-	util_send ("[%s]", section);
-      (*arg)++;
-      rc = fetch_body_content (msg, start, end);
-    }
-  else
-    {
-      util_send (" \"\"");/*FIXME: ERROR Message!*/
-      rc = RESP_BAD;
-    }
-  free (section);
-  return rc;
+  if (i && suffix[0] != ']')
+    util_send (".");
+  util_send ("%s", suffix);
 }
 
 static int
-fetch_message (mu_message_t msg, unsigned long start, unsigned long end)
-{
-  mu_stream_t stream = NULL;
-  size_t size = 0, lines = 0;
-  mu_message_get_stream (msg, &stream);
-  mu_message_size (msg, &size);
-  mu_message_lines (msg, &lines);
-  return fetch_io (stream, start, end, size + lines);
-}
-
-static int
-fetch_header (mu_message_t msg, unsigned long start, unsigned long end)
-{
-  mu_header_t header = NULL;
-  mu_stream_t stream = NULL;
-  size_t size = 0, lines = 0;
-  mu_message_get_header (msg, &header);
-  mu_header_size (header, &size);
-  mu_header_lines (header, &lines);
-  mu_header_get_stream (header, &stream);
-  return fetch_io (stream, start, end, size + lines);
-}
-
-static int
-fetch_body_content (mu_message_t msg, unsigned long start, unsigned long end)
-{
-  mu_body_t body = NULL;
-  mu_stream_t stream = NULL;
-  size_t size = 0, lines = 0;
-  mu_message_get_body (msg, &body);
-  mu_body_size (body, &size);
-  mu_body_lines (body, &lines);
-  mu_body_get_stream (body, &stream);
-  return fetch_io (stream, start, end, size + lines);
-}
-
-static int
-fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
-	  unsigned long max)
+fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 {
   mu_stream_t rfc = NULL;
   size_t n = 0;
@@ -1151,25 +681,26 @@ fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
 
   mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
 
-  if (start == ULONG_MAX || end == ULONG_MAX)
+  if (start == 0 && size == (size_t) -1)
     {
       char buffer[512];
       offset = 0;
       if (max)
 	{
-	  util_send (" {%lu}\r\n", max);
+	  util_send (" {%lu}\r\n", (unsigned long) max);
 	  while (mu_stream_read (rfc, buffer, sizeof (buffer) - 1, offset,
-			      &n) == 0 && n > 0)
+				 &n) == 0 && n > 0)
 	    {
 	      buffer[n] = '\0';
 	      util_send ("%s", buffer);
 	      offset += n;
 	    }
+	  /* FIXME: Make sure exactly max bytes were sent */
 	}
       else
 	util_send (" \"\"");
     }
-  else if (end + 2 < end) /* Check for integer overflow */
+  else if (size + 2 < size) /* Check for integer overflow */
     {
       return RESP_BAD;
     }
@@ -1178,393 +709,944 @@ fetch_io (mu_stream_t stream, unsigned long start, unsigned long end,
       char *buffer, *p;
       size_t total = 0;
       offset = start;
-      p = buffer = calloc (end + 2, 1);
-      while (end > 0
-	     && mu_stream_read (rfc, buffer, end + 1, offset, &n) == 0 && n > 0)
+      p = buffer = malloc (size + 1);
+      if (!p)
+	imap4d_bye (ERR_NO_MEM);
+      
+      while (total < size
+	     && mu_stream_read (rfc, p, size - total + 1, offset, &n) == 0
+	     && n > 0)
 	{
 	  offset += n;
 	  total += n;
-	  end -= n;
-	  buffer += n;
+	  p += n;
 	}
-      /* Make sure we null terminate.  */
-      *buffer = '\0';
-      util_send ("<%lu>", start);
+      *p = 0;
+      util_send ("<%lu>", (unsigned long) start);
       if (total)
 	{
-	  util_send (" {%s}\r\n", mu_umaxtostr (0, total));
-	  util_send ("%s", p);
+	  util_send (" {%lu}\r\n", (unsigned long) total);
+	  util_send ("%s", buffer);
 	}
       else
 	util_send (" \"\"");
-      free (p);
+      free (buffer);
     }
   return RESP_OK;
 }
 
+
+/* Runtime functions */
 static int
-fetch_header_fields (mu_message_t msg, char **arg, unsigned long start,
-		     unsigned long end)
+_frt_uid (struct fetch_function_closure *ffc,
+	  struct fetch_runtime_closure *frt)
 {
-  char *buffer = NULL;
-  char **array = NULL;
-  size_t array_len = 0;
-  size_t off = 0;
-  size_t lines = 0;
-  mu_stream_t stream = NULL;
-  int status;
+  size_t uid = 0;
 
-  status = mu_memory_stream_create (&stream, 0, 0);
-  if (status != 0)
-    imap4d_bye (ERR_NO_MEM);
-
-  /* Save the fields in an array.  */
-  {
-    char *field;
-    char *sp = NULL;
-    char *f = *arg;
-    /* Find the end of the header.field tag.  */
-    field = strchr (f, ']');
-    if (field)
-      {
-	*field++ = '\0';
-	*arg = field;
-      }
-    else
-      *arg += strlen (*arg);
-
-    for (;(field = util_getitem (f, " ()]\r\n", &sp)); f = NULL, array_len++)
-      {
-	array = realloc (array, (array_len + 1) * sizeof (*array));
-	if (!array)
-	  imap4d_bye (ERR_NO_MEM);
-	array[array_len] = field;
-      }
-  }
-
-  /* Get the header values.  */
-  {
-    size_t j;
-    mu_header_t header = NULL;
-    mu_message_get_header (msg, &header);
-    for (j = 0; j < array_len; j++)
-      {
-	char *value = NULL;
-	size_t n = 0;
-	if (mu_header_aget_value (header, array[j], &value))
-	    continue;
-
-	n = asprintf (&buffer, "%s: %s\n", array[j], value);
-	status = mu_stream_write (stream, buffer, n, off, &n);
-	off += n;
-	/* count the lines.  */
-	{
-	  char *nl = buffer;
-	  for (;(nl = strchr (nl, '\n')); nl++)
-	    lines++;
-	}
-	free (value);
-	free (buffer);
-	buffer = NULL;
-	if (status != 0)
-	  {
-	    free (array);
-	    imap4d_bye (ERR_NO_MEM);
-	  }
-      }
-  }
-  /* Headers are always sent with the NL separator.  */
-  mu_stream_write (stream, "\n", 1, off, NULL);
-  off++;
-  lines++;
-
-  /* Send the command back. The first braket was already sent.  */
-  util_send ("HEADER.FIELDS");
-  {
-    size_t j;
-    util_send (" (");
-    for (j = 0; j < array_len; j++)
-      {
-	util_upper (array[j]);
-	if (j)
-	  util_send (" ");
-	util_send_qstring (array[j]);
-      }
-    util_send (")");
-    util_send ("]");
-  }
-
-  fetch_io (stream, start, end, off + lines);
-  if (array)
-    free (array);
+  mu_message_get_uid (frt->msg, &uid);
+  util_send ("%s %s", ffc->name, mu_umaxtostr (0, uid));
   return RESP_OK;
 }
 
 static int
-fetch_header_fields_not (mu_message_t msg, char **arg, unsigned long start,
-			 unsigned long end)
+_frt_envelope (struct fetch_function_closure *ffc,
+	       struct fetch_runtime_closure *frt)
 {
-  char **array = NULL;
-  size_t array_len = 0;
-  char *buffer = NULL;
-  size_t off = 0;
-  size_t lines = 0;
-  mu_stream_t stream = NULL;
-  int status;
-
-  status = mu_memory_stream_create (&stream, 0, 0);
-  if (status)
-    imap4d_bye (ERR_NO_MEM);
-
-  /* Save the field we want to ignore.  */
-  {
-    char *field;
-    char *sp = NULL;
-    char *f = *arg;
-    /* Find the end of the header.field.no tag.  */
-    field = strchr (f, ']');
-    if (field)
-      {
-	*field++ = '\0';
-	*arg = field;
-      }
-    else
-      *arg += strlen (*arg);
-
-    for (;(field = strtok_r (f, " ()\r\n", &sp)); f = NULL, array_len++)
-      {
-	array = realloc (array, (array_len + 1) * sizeof (*array));
-	if (!array)
-	  imap4d_bye (ERR_NO_MEM);
-	array[array_len] = field;
-      }
-  }
-
-  /* Build the memory buffer.  */
-  {
-    size_t i;
-    mu_header_t header = NULL;
-    size_t count = 0;
-    mu_message_get_header (msg, &header);
-    mu_header_get_field_count (header, &count);
-    for (i = 1; i <= count; i++)
-      {
-	char *name = NULL;
-	char *value ;
-	size_t n = 0;
-	size_t ignore = 0;
-
-	/* Get the field name.  */
-	status = mu_header_aget_field_name (header, i, &name);
-	if (*name == '\0')
-	  {
-	    free (name);
-	    continue;
-	  }
-
-	/* Should we ignore the field?  */
-	{
-	  size_t j;
-	  for (j = 0; j < array_len; j++)
-	    {
-	      if (strcasecmp (array[j], name) == 0)
-		{
-		  ignore = 1;
-		  break;
-		}
-	    }
-	  if (ignore)
-	    {
-	      free (name);
-	      continue;
-	    }
-	}
-
-	if (mu_header_aget_field_value (header, i, &value) == 0)
-	  {
-	    char *nl;
-	    
-	    /* Save the field.  */
-	    n = asprintf (&buffer, "%s: %s\n", name, value);
-	    status = mu_stream_write (stream, buffer, n, off, &n);
-	    off += n;
-	    /* count the lines.  */
-	    for (nl = buffer;(nl = strchr (nl, '\n')); nl++)
-	      lines++;
-
-	    free (value);
-	  }
-        free (name);
-        free (buffer);
-        buffer = NULL;
-        if (status != 0)
-	  {
-	    free (array);
-	    imap4d_bye (ERR_NO_MEM);
-	  }
-      }
-  }
-  /* Headers are always sent with a NL separator.  */
-  mu_stream_write (stream, "\n", 1, off, NULL);
-  off++;
-  lines++;
-
-  util_send ("HEADER.FIELDS.NOT");
-  {
-    size_t j;
-    util_send (" (");
-    for (j = 0; j < array_len; j++)
-      {
-	util_upper (array[j]);
-	if (j)
-	  util_send (" ");
-	util_send_qstring (array[j]);
-      }
-    util_send (")");
-    util_send ("]");
-  }
-
-  fetch_io (stream, start, end, off + lines);
-  if (array)
-    free (array);
-  return RESP_OK;
-}
-
-static int
-fetch_send_address (const char *addr)
-{
-  mu_address_t address;
-  size_t i, count = 0;
-
-  /* Short circuit.  */
-  if (addr == NULL || *addr == '\0')
-    {
-      util_send ("NIL");
-      return RESP_OK;
-    }
-
-  mu_address_create (&address, addr);
-  mu_address_get_count (address, &count);
-
-  /* We failed: can't parse.  */
-  if (count == 0)
-    {
-      util_send ("NIL");
-      return RESP_OK;
-    }
-
-  util_send ("(");
-  for (i = 1; i <= count; i++)
-    {
-      const char *str;
-      int is_group = 0;
-
-      util_send ("(");
-
-      mu_address_sget_personal (address, i, &str);
-      util_send_qstring (str);
-      util_send (" ");
-
-      mu_address_sget_route (address, i, &str);
-      util_send_qstring (str);
-
-      util_send (" ");
-
-      mu_address_is_group (address, i, &is_group);
-      str = NULL;
-      if (is_group)
-	mu_address_sget_personal (address, i, &str);
-      else
-	mu_address_sget_local_part (address, i, &str);
-
-      util_send_qstring (str);
-
-      util_send (" ");
-
-      mu_address_sget_domain (address, i, &str);
-      util_send_qstring (str);
-
-      util_send (")");
-    }
+  util_send ("%s (", ffc->name);
+  fetch_envelope0 (frt->msg);
   util_send (")");
   return RESP_OK;
 }
 
-/* Send parameter list for the bodystructure.  */
-static void
-send_parameter_list (const char *buffer)
+static int
+_frt_flags (struct fetch_function_closure *ffc,
+	    struct fetch_runtime_closure *frt)
 {
-  int argc = 0;
-  char **argv;
-  
-  if (!buffer)
-    {
-      util_send ("NIL");
-      return;
-    }
+  mu_attribute_t attr = NULL;
 
-  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
-  
-  if (argc == 0)
-    util_send ("NIL");
+  mu_message_get_attribute (frt->msg, &attr);
+  util_send ("%s (", ffc->name);
+  util_print_flags (attr);
+  util_send (")");
+  return 0;
+}
+
+/* INTERNALDATE   The internal date of the message.
+   Format:
+
+   date_time       ::= <"> date_day_fixed "-" date_month "-" date_year
+   SPACE time SPACE zone <">
+
+   date_day        ::= 1*2digit
+   ;; Day of month
+
+   date_day_fixed  ::= (SPACE digit) / 2digit
+   ;; Fixed-format version of date_day
+
+   date_month      ::= "Jan" / "Feb" / "Mar" / "Apr" / "May" / "Jun" /
+   "Jul" / "Aug" / "Sep" / "Oct" / "Nov" / "Dec"
+
+   date_text       ::= date_day "-" date_month "-" date_year
+
+   date_year       ::= 4digit
+
+   time            ::= 2digit ":" 2digit ":" 2digit
+   ;; Hours minutes seconds
+
+   zone            ::= ("+" / "-") 4digit
+   ;; Signed four-digit value of hhmm representing
+   ;; hours and minutes west of Greenwich (that is,
+   ;; (the amount that the given time differs from
+   ;; Universal Time).  Subtracting the timezone
+   ;; from the given time will give the UT form.
+   ;; The Universal Time zone is "+0000".  */
+static int
+_frt_internaldate (struct fetch_function_closure *ffc,
+		   struct fetch_runtime_closure *frt)
+{
+  const char *date;
+  mu_envelope_t env = NULL;
+  struct tm tm, *tmp = NULL;
+  mu_timezone tz;
+  char datebuf[sizeof ("13-Jul-2002 00:00:00")];
+
+  mu_message_get_envelope (frt->msg, &env);
+  if (mu_envelope_sget_date (env, &date) == 0
+      && mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
+    tmp = &tm;
   else
     {
-      char *p;
+      time_t t = time (NULL);
+      tmp = localtime (&t);
+    }
+  mu_strftime (datebuf, sizeof (datebuf), "%d-%b-%Y %H:%M:%S", tmp);
+  util_send ("%s", ffc->name);
+  util_send (" \"%s +0000\"", datebuf);
+  return 0;
+}
+
+static int
+_frt_bodystructure (struct fetch_function_closure *ffc,
+		    struct fetch_runtime_closure *frt)
+{
+  util_send ("%s (", ffc->name);
+  fetch_bodystructure0 (frt->msg, 1); /* 1 means with extension data.  */
+  util_send (")");
+  return RESP_OK;
+}
+
+static int
+_frt_bodystructure0 (struct fetch_function_closure *ffc,
+		     struct fetch_runtime_closure *frt)
+{
+  util_send ("%s (", ffc->name);
+  fetch_bodystructure0 (frt->msg, 0);
+  util_send (")");
+  return RESP_OK;
+}
+
+/* BODY[] */
+static int
+_frt_body (struct fetch_function_closure *ffc,
+	   struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg;
+  mu_stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+
+  set_seen (ffc, frt);
+  if (ffc->name)
+    util_send ("%s", ffc->name);
+  else
+    fetch_send_section_part (ffc, "BODY[", "]");
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      util_send (" \"\"");
+      return RESP_OK;
+    }
+  mu_message_get_stream (msg, &stream);
+  mu_message_size (msg, &size);
+  mu_message_lines (msg, &lines);
+  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+}
+
+static int
+_frt_body_text (struct fetch_function_closure *ffc,
+		struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+
+  set_seen (ffc, frt);
+  if (ffc->name)
+    util_send ("%s",  ffc->name);
+  else
+    fetch_send_section_part (ffc, "BODY[", "TEXT]");
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      util_send (" \"\"");
+      return RESP_OK;
+    }
+
+  mu_message_get_body (msg, &body);
+  mu_body_size (body, &size);
+  mu_body_lines (body, &lines);
+  mu_body_get_stream (body, &stream);
+  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+}
+
+static int
+_frt_size (struct fetch_function_closure *ffc,
+	   struct fetch_runtime_closure *frt)
+{
+  size_t size = 0;
+  size_t lines = 0;
+  
+  mu_message_size (frt->msg, &size);
+  mu_message_lines (frt->msg, &lines);
+  util_send ("%s %u", ffc->name, size + lines);
+  return RESP_OK;
+}
+
+static int
+_frt_header0 (struct fetch_function_closure *ffc,
+	      struct fetch_runtime_closure *frt,
+	      const char *suffix)
+{
+  mu_message_t msg;
+  mu_header_t header = NULL;
+  mu_stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+  
+  set_seen (ffc, frt);
+  if (ffc->name)
+    util_send ("%s",  ffc->name);
+  else
+    fetch_send_section_part (ffc, "BODY[", suffix);
+
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      util_send (" \"\"");
+      return RESP_OK;
+    }
+  mu_message_get_header (msg, &header);
+  mu_header_size (header, &size);
+  mu_header_lines (header, &lines);
+  mu_header_get_stream (header, &stream);
+  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+}
+
+static int
+_frt_header (struct fetch_function_closure *ffc,
+	     struct fetch_runtime_closure *frt)
+{
+  return _frt_header0 (ffc, frt, "HEADER]");
+}
+
+static int
+_frt_mime (struct fetch_function_closure *ffc,
+	   struct fetch_runtime_closure *frt)
+{
+  return _frt_header0 (ffc, frt, "MIME]");
+}
+
+static int
+_send_header_name (void *item, void *data)
+{
+  int *pf = data;
+  if (*pf)
+    util_send (" ");
+  else
+    *pf = 1;
+  util_send ("\"%s\"", (char*) item);
+  return 0;
+}
+
+static int
+count_nl (const char *str)
+{
+  int n = 0;
+  for (;(str = strchr (str, '\n')); str++)
+    n++;
+  return n;
+}
+
+static int
+_frt_header_fields (struct fetch_function_closure *ffc,
+		    struct fetch_runtime_closure *frt)
+{
+  int status;
+  mu_message_t msg;
+  mu_off_t size = 0;
+  size_t lines = 0;
+  mu_stream_t stream;
+  mu_header_t header;
+  mu_iterator_t itr;
+  
+  set_seen (ffc, frt);
+
+  fetch_send_section_part (ffc, "BODY[", "HEADER.FIELDS");
+  if (ffc->not)
+    util_send (".NOT");
+  util_send (" (");
+  status = 0;
+  mu_list_do (ffc->headers, _send_header_name, &status);
+  util_send (")]");
+  
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      util_send (" \"\"");
+      return RESP_OK;
+    }
+
+  /* Collect headers: */
+  if (mu_message_get_header (msg, &header)
+      || mu_header_get_iterator (header, &itr))
+    {
+      util_send (" \"\"");
+      return RESP_OK;
+    }
+
+  status = mu_memory_stream_create (&stream, NULL, MU_STREAM_NO_CHECK);
+  if (status != 0)
+    imap4d_bye (ERR_NO_MEM);
+
+  for (mu_iterator_first (itr);
+       !mu_iterator_is_done (itr); mu_iterator_next (itr))
+    {
+      const char *hf;
+      char *hv;
+      const char *item;
       
-      util_send ("(");
-        
-      p = argv[0];
-      util_send_qstring (p);
-
-      if (argc > 1)
+      mu_iterator_current_kv (itr, (const void **)&hf, (void **)&hv);
+      status = mu_list_locate (ffc->headers, (void *)hf, (void**) &item) == 0;
+      if (ffc->not)
 	{
-	  int i, space = 0;
-	  char *lvalue = NULL;
+	  status = !status;
+	  item = hf;
+	}
+      
+      if (status)
+	{
+	  mu_stream_sequential_printf (stream, "%s: %s\n", item, hv);
+	  lines += 1 + count_nl (hv);
+	}
+    }
+  mu_stream_sequential_write (stream, "\n", 1);
+  lines++;
+  
+  /* Output collected data */
+  mu_stream_size (stream, &size);
+  status = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream, NULL);
+  
+  return status;
+}
 
-	  util_send ("(");
-	  for (i = 1; i < argc; i++)
-	    {
-	      if (lvalue)
-		{
-		  if (space)
-		    util_send (" ");
-		  util_send_qstring (lvalue);
-		  lvalue = NULL;
-		  space = 1;
-		}
-	      
-	      switch (argv[i][0])
-		{
-		case ';':
-		  continue;
-		  
-		case '=':
-		  if (++i < argc)
-		    {
-		      char *p = argv[i];
-		      util_send (" ");
-		      util_unquote (&p);
-		      util_send_qstring (p);
-		    }
-		  break;
-		  
-		default:
-		  lvalue = argv[i];
-		}
-	    }
-	  if (lvalue)
-	    {
-	      if (space)
-		util_send (" ");
-	      util_send_qstring (lvalue);
-	    }
-	  util_send (")");
+
+static void
+ffc_init (struct fetch_function_closure *ffc)
+{
+  memset(ffc, 0, sizeof *ffc);
+  ffc->start = 0;
+  ffc->size = (size_t) -1;
+}
+
+static void
+_free_ffc (void *item)
+{
+  struct fetch_function_closure *ffc = item;
+  mu_list_destroy (&ffc->headers);
+  free (ffc);
+}
+
+static int
+_do_fetch (void *item, void *data)
+{
+  struct fetch_function_closure *ffc = item;
+  struct fetch_runtime_closure *frt = data;
+  if (frt->eltno++)
+    util_send (" ");
+  return ffc->fun (ffc, frt);
+}
+    
+struct parsebuf
+{
+  imap4d_tokbuf_t tok;
+  int arg;
+  char *token;
+  int isuid;
+  mu_list_t fnlist;
+  jmp_buf errjmp;
+  char *err_text;
+};
+
+static void
+parsebuf_exit (struct parsebuf *p, char *text)
+{
+  p->err_text = text;
+  longjmp (p->errjmp, 1);
+}
+
+static char *
+parsebuf_peek (struct parsebuf *p)
+{
+  return imap4d_tokbuf_getarg (p->tok, p->arg);
+}
+
+static char *
+parsebuf_next (struct parsebuf *p, int req)
+{
+  p->token = imap4d_tokbuf_getarg (p->tok, p->arg++);
+  if (!p->token && req)
+    parsebuf_exit (p, "Too few arguments");
+  return p->token;
+}
+
+static void
+append_ffc (struct parsebuf *p, struct fetch_function_closure *ffc)
+{
+  struct fetch_function_closure *new_ffc = malloc (sizeof (*new_ffc));
+  if (!new_ffc)
+    imap4d_bye (ERR_NO_MEM);
+  *new_ffc = *ffc;
+  mu_list_append (p->fnlist, new_ffc);
+}
+
+static void
+append_simple_function (struct parsebuf *p, const char *name,
+			fetch_function_t fun)
+{
+  struct fetch_function_closure ffc;
+  ffc_init (&ffc);
+  ffc.fun = fun;
+  ffc.name = name;
+  append_ffc (p, &ffc);
+}
+
+
+static struct fetch_macro
+{
+  char *macro;
+  char *exp;
+} fetch_macro_tab[] = {
+  { "ALL",  "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE" },
+  { "FULL", "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE BODY" },
+  { "FAST", "FLAGS INTERNALDATE RFC822.SIZE" },
+  { NULL }
+};
+
+static char *
+find_macro (const char *name)
+{
+  int i;
+  for (i = 0; fetch_macro_tab[i].macro; i++)
+    if (strcasecmp (fetch_macro_tab[i].macro, name) == 0)
+      return fetch_macro_tab[i].exp;
+  return NULL;
+}
+
+
+struct fetch_att_tab
+{
+  char *name;
+  fetch_function_t fun;
+};
+
+static struct fetch_att_tab fetch_att_tab[] = {
+  { "ENVELOPE", _frt_envelope },
+  { "FLAGS", _frt_flags },
+  { "INTERNALDATE", _frt_internaldate },
+  { "UID", _frt_uid },
+  { NULL }
+};
+
+static struct fetch_att_tab *
+find_fetch_att_tab (char *name)
+{
+  struct fetch_att_tab *p;
+  for (p = fetch_att_tab; p->name; p++)
+    if (strcasecmp (p->name, name) == 0)
+      return p;
+  return NULL;
+}
+
+/*
+fetch-att       = "ENVELOPE" / "FLAGS" / "INTERNALDATE" /
+                  "RFC822" [".HEADER" / ".SIZE" / ".TEXT"] /
+                  "BODY" ["STRUCTURE"] / "UID" /
+                  "BODY" section ["<" number "." nz-number ">"] /
+                  "BODY.PEEK" section ["<" number "." nz-number ">"]
+
+*/
+
+/*  "RFC822" [".HEADER" / ".SIZE" / ".TEXT"]  */
+static void
+parse_fetch_rfc822 (struct parsebuf *p)
+{
+  struct fetch_function_closure ffc;
+  ffc_init (&ffc);
+  ffc.name = "RFC822";
+  parsebuf_next (p, 0);
+  if (p->token == NULL || p->token[0] == ')') 
+    {
+      /* Equivalent to BODY[]. */
+      ffc.fun = _frt_body;
+    }
+  else if (p->token[0] == '.')
+    {
+      parsebuf_next (p, 1);
+      if (strcasecmp (p->token, "HEADER") == 0)
+	{
+	  /* RFC822.HEADER
+	     Equivalent to BODY[HEADER].  Note that this did not result in
+	     \Seen being set, because RFC822.HEADER response data occurs as
+	     a result of a FETCH of RFC822.HEADER.  BODY[HEADER] response
+	     data occurs as a result of a FETCH of BODY[HEADER] (which sets
+	     \Seen) or BODY.PEEK[HEADER] (which does not set \Seen). */
+
+	  ffc.name = "RFC822.HEADER";
+	  ffc.fun = _frt_header;
+	  ffc.peek = 1;
+	  parsebuf_next (p, 0);
+	}
+      else if (strcasecmp (p->token, "SIZE") == 0)
+	{
+	  /* A number expressing the [RFC-2822] size of the message. */
+	  ffc.name = "RFC822.SIZE";
+	  ffc.fun = _frt_size;
+	  parsebuf_next (p, 0);
+	}
+      else if (strcasecmp (p->token, "TEXT") == 0)
+	{
+	  /* RFC822.TEXT
+	     Equivalent to BODY[TEXT]. */
+	  ffc.name = "RFC822.TEXT";
+	  ffc.fun = _frt_body_text;
+	  parsebuf_next (p, 0);
 	}
       else
-	util_send (" NIL");
-      util_send (")");
+	parsebuf_exit (p, "Syntax error after RFC822.");
     }
-  mu_argcv_free (argc, argv);
+  else
+    parsebuf_exit (p, "Syntax error after RFC822");
+  append_ffc (p, &ffc);
 }
-	  
+
+static int
+_header_cmp (const void *a, const void *b)
+{
+  return strcasecmp ((char*)a, (char*)b);
+}
+
+/*
+header-fld-name = astring
+
+header-list     = "(" header-fld-name *(SP header-fld-name) ")"
+*/
+static void
+parse_header_list (struct parsebuf *p, struct fetch_function_closure *ffc)
+{
+  if (p->token[0] != '(')
+    parsebuf_exit (p, "Syntax error: expected (");
+  mu_list_create (&ffc->headers);
+  mu_list_set_comparator (ffc->headers, _header_cmp);
+  for (parsebuf_next (p, 1); p->token[0] != ')'; parsebuf_next (p, 1))
+    {
+      if (util_isdelim (p->token))
+	parsebuf_exit (p, "Syntax error: unexpected delimiter");
+      mu_list_append (ffc->headers, p->token);
+    }
+  parsebuf_next (p, 1);
+}
+
+/*
+section-msgtext = "HEADER" / "HEADER.FIELDS" [".NOT"] SP header-list /
+                  "TEXT"
+                    ; top-level or MESSAGE/RFC822 part
+section-text    = section-msgtext / "MIME"
+                    ; text other than actual body part (headers, etc.)
+*/  
+static int
+parse_section_text (struct parsebuf *p, struct fetch_function_closure *ffc,
+		    int allow_mime)
+{
+  if (strcasecmp (p->token, "HEADER") == 0)
+    {
+      /* "HEADER" / "HEADER.FIELDS" [".NOT"] SP header-list  */
+      parsebuf_next (p, 1);
+      if (p->token[0] == '.')
+	{
+	  parsebuf_next (p, 1);
+	  if (strcasecmp (p->token, "FIELDS"))
+	    parsebuf_exit (p, "Expected FIELDS");
+	  ffc->fun = _frt_header_fields;
+	  parsebuf_next (p, 1);
+	  if (p->token[0] == '.')
+	    {
+	      parsebuf_next (p, 1);
+	      if (strcasecmp (p->token, "NOT") == 0)
+		{
+		  ffc->not = 1;
+		  parsebuf_next (p, 1);
+		}
+	      else
+		parsebuf_exit (p, "Expected NOT");
+	    }
+	  parse_header_list (p, ffc);
+	}
+      else
+	ffc->fun = _frt_header;
+    }
+  else if (strcasecmp (p->token, "TEXT") == 0)
+    {
+      parsebuf_next (p, 1);
+      ffc->fun = _frt_body_text;
+    }
+  else if (allow_mime && strcasecmp (p->token, "MIME") == 0)
+    {
+      parsebuf_next (p, 1);
+      ffc->fun = _frt_mime;
+    }
+  else
+    return 1;
+ return 0;
+}
+
+static size_t
+parsebuf_get_number (struct parsebuf *p)
+{
+  char *cp;
+  unsigned n = strtoul (p->token, &cp, 10);
+
+  if (*cp)
+    parsebuf_exit (p, "Syntax error: expected number");
+  return n;
+}
+    
+/*
+section-part    = nz-number *("." nz-number)
+                    ; body part nesting
+*/  
+static void
+parse_section_part (struct parsebuf *p, struct fetch_function_closure *ffc)
+{
+  size_t *parts;
+  size_t nmax = 0;
+  size_t ncur = 0;
+
+  for (;;)
+    {
+      char *cp;
+      size_t n = parsebuf_get_number (p);
+      if (ncur == nmax)
+	{
+	  if (nmax == 0)
+	    {
+	      nmax = 16;
+	      parts = calloc (nmax, sizeof (parts[0]));
+	    }
+	  else
+	    {
+	      nmax *= 2;
+	      parts = realloc (parts, nmax * sizeof (parts[0]));
+	    }
+	  if (!parts)
+	    imap4d_bye (ERR_NO_MEM);
+	}
+      parts[ncur++] = n;
+
+      parsebuf_next (p, 1);
+      if (p->token[0] == '.'
+	  && (cp = parsebuf_peek (p)) && isascii (*cp) && isdigit (cp[0]))
+	parsebuf_next (p, 1);
+      else
+	break;
+    }
+  ffc->section_part = parts;
+  ffc->nset = ncur;
+}
+  
+/*
+section         = "[" [section-spec] "]"
+section-spec    = section-msgtext / (section-part ["." section-text])
+*/  
+static int
+parse_section (struct parsebuf *p, struct fetch_function_closure *ffc)
+{
+  if (p->token[0] != '[')
+    return 1;
+  ffc_init (ffc);
+  ffc->name = NULL;
+  ffc->fun = _frt_body;
+  parsebuf_next (p, 1);
+  if (parse_section_text (p, ffc, 0))
+    {
+      if (p->token[0] == ']')
+	/* OK */;
+      else if (isascii (p->token[0]) && isdigit (p->token[0]))
+	{
+	  parse_section_part (p, ffc);
+	  if (p->token[0] == '.')
+	    {
+	      parsebuf_next (p, 1);
+	      parse_section_text (p, ffc, 1);
+	    }
+	}
+      else
+	parsebuf_exit (p, "Syntax error");
+    }
+  if (p->token[0] != ']')
+    parsebuf_exit (p, "Syntax error: missing ]");
+  parsebuf_next (p, 0);
+  return 0;
+}
+
+static void
+parse_substring (struct parsebuf *p, struct fetch_function_closure *ffc)
+{
+  if (p->token && p->token[0] == '<')
+    {
+      parsebuf_next (p, 1);
+      ffc->start = parsebuf_get_number (p);
+      parsebuf_next (p, 1);
+      if (p->token[0] != '.')
+	parsebuf_exit (p, "Syntax error: expected .");
+      parsebuf_next (p, 1);
+      ffc->size = parsebuf_get_number (p);
+      parsebuf_next (p, 1);
+      if (p->token[0] != '>')
+	parsebuf_exit (p, "Syntax error: expected >");
+      parsebuf_next (p, 0);
+    }
+}
+	
+/* section ["<" number "." nz-number ">"]  */
+static int
+parse_body_args (struct parsebuf *p, int peek)
+{
+  struct fetch_function_closure ffc;
+  if (parse_section (p, &ffc) == 0)
+    {
+      parse_substring (p, &ffc);
+      ffc.peek = peek;
+      append_ffc (p, &ffc);
+      return 0;
+    }
+  return 1;
+}
+
+static void
+parse_body_peek (struct parsebuf *p)
+{
+  parsebuf_next (p, 1);
+  if (strcasecmp (p->token, "PEEK") == 0)
+    {
+      parsebuf_next (p, 1);
+      if (parse_body_args (p, 1))
+	parsebuf_exit (p, "Syntax error");
+    }
+  else
+    parsebuf_exit (p, "Syntax error: expected PEEK");
+}
+
+/*  "BODY" ["STRUCTURE"] / 
+    "BODY" section ["<" number "." nz-number ">"] /
+    "BODY.PEEK" section ["<" number "." nz-number ">"] */
+static void
+parse_fetch_body (struct parsebuf *p)
+{
+  if (parsebuf_next (p, 0) == NULL || p->token[0] == ')')
+    append_simple_function (p, "BODY", _frt_bodystructure0);
+  else if (p->token[0] == '.')
+    parse_body_peek (p);
+  else if (strcasecmp (p->token, "STRUCTURE") == 0)
+    {
+      /* For compatibility with previous versions */
+      append_simple_function (p, "BODYSTRUCTURE", _frt_bodystructure);
+      parsebuf_next (p, 0);
+    }
+  else if (parse_body_args (p, 0))
+    parsebuf_exit (p, "Syntax error");
+}
+
+static int
+parse_fetch_att (struct parsebuf *p)
+{
+  struct fetch_att_tab *ent;
+
+  ent = find_fetch_att_tab (p->token);
+  if (ent)
+    {
+      if (!(ent->fun == _frt_uid && p->isuid))
+	append_simple_function (p, ent->name, ent->fun);
+      parsebuf_next (p, 0);
+    }
+  else if (strcasecmp (p->token, "RFC822") == 0)
+    parse_fetch_rfc822 (p);
+  else if (strcasecmp (p->token, "BODY") == 0)
+    parse_fetch_body (p);
+  else if (strcasecmp (p->token, "BODYSTRUCTURE") == 0)
+    {
+      append_simple_function (p, "BODYSTRUCTURE", _frt_bodystructure);
+      parsebuf_next (p, 0);
+    }
+  else
+    return 1;
+  return 0;
+}
+
+/* fetch-att *(SP fetch-att) */
+static void
+parse_fetch_att_list (struct parsebuf *p)
+{
+  while (p->token && parse_fetch_att (p) == 0)
+    ;
+}
+
+/* "ALL" / "FULL" / "FAST" / fetch-att / "(" */
+static void
+parse_macro (struct parsebuf *p)
+{  
+  char *exp;
+  
+  parsebuf_next (p, 1);
+  if (p->token[0] == '(')
+    {
+      parsebuf_next (p, 1);
+      parse_fetch_att_list (p);
+      if (p->token[0] != ')')
+	parsebuf_exit (p, "Missing closing parenthesis");
+    }
+  else if ((exp = find_macro (p->token))) 
+    {
+      imap4d_tokbuf_t save_tok = p->tok;
+      int save_arg = p->arg;
+      p->tok = imap4d_tokbuf_from_string (exp);
+      p->arg = 0;
+      parsebuf_next (p, 1);
+      parse_fetch_att_list (p);
+      imap4d_tokbuf_destroy (&p->tok);
+  
+      p->arg = save_arg;
+      p->tok = save_tok;
+
+      if (parsebuf_peek (p))
+	parsebuf_exit (p, "Too many arguments");
+    }     
+  else
+    {
+      parse_fetch_att (p);
+      if (p->token)
+	parsebuf_exit (p, "Too many arguments");
+    }
+}
+    
+/* Where the real implementation is.  It is here since UID command also
+   calls FETCH.  */
+int
+imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
+{
+  int rc = RESP_OK;
+  char *msgset;
+  size_t *set = NULL;
+  int n = 0;
+  int i;
+  int status;
+  struct fetch_runtime_closure frc;
+  struct parsebuf pb;
+
+  if (imap4d_tokbuf_argc (tok) - (IMAP4_ARG_1 + isuid) < 2)
+    {
+      *err_text = "Invalid arguments";
+      return 1;
+    }
+  
+  pb.tok = tok;
+  pb.arg = IMAP4_ARG_1 + isuid;
+  pb.isuid = isuid;
+  pb.err_text = "Syntax error";
+  mu_list_create (&pb.fnlist);
+  mu_list_set_destroy_item (pb.fnlist, _free_ffc);
+  if (setjmp (pb.errjmp))
+    {
+      *err_text = pb.err_text;
+      mu_list_destroy (&pb.fnlist);
+      return RESP_BAD;
+    }
+  
+  msgset = parsebuf_next (&pb, 1);
+
+  /* Get the message numbers in set[].  */
+  status = util_msgset (msgset, &set, &n, isuid);
+  if (status != 0)
+    {
+      *err_text = "Bogus number set";
+      return RESP_BAD;
+    }
+
+  /* Compile the expression */
+
+  /* Server implementations MUST implicitly
+     include the UID message data item as part of any FETCH
+     response caused by a UID command, regardless of whether
+     a UID was specified as a message data item to the FETCH. */
+  if (isuid)
+    append_simple_function (&pb, "UID", _frt_uid);
+
+  parse_macro (&pb);
+  
+  /* Prepare status code. It will be replaced if an error occurs in the
+     loop below */
+  frc.err_text = "Completed";
+  
+  for (i = 0; i < n && rc == RESP_OK; i++)
+    {
+      frc.msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
+
+      if (frc.msgno && mu_mailbox_get_message (mbox, frc.msgno, &frc.msg) == 0)
+	{
+	  util_send ("* %lu FETCH (", (unsigned long) frc.msgno);
+	  frc.eltno = 0;
+	  rc = mu_list_do (pb.fnlist, _do_fetch, &frc);
+	  util_send (")\r\n");
+	}
+    }
+  
+  mu_list_destroy (&pb.fnlist);
+  free (set);
+  return rc;
+}
+
+/*
+6.4.5.  FETCH Command
+
+   Arguments:  message set
+               message data item names
+
+   Responses:  untagged responses: FETCH
+
+   Result:     OK - fetch completed
+               NO - fetch error: can't fetch that data
+               BAD - command unknown or arguments invalid
+*/
+
+/* The FETCH command retrieves data associated with a message in the
+   mailbox.  The data items to be fetched can be either a single atom
+   or a parenthesized list.  */
+int
+imap4d_fetch (struct imap4d_command *command, imap4d_tokbuf_t tok)
+{
+  int rc;
+  char *err_text = "Completed";
+
+  rc = imap4d_fetch0 (tok, 0, &err_text);
+  return util_finish (command, rc, "%s", err_text);
+}
 

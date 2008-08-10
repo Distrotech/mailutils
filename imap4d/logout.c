@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,15 +19,21 @@
 #include "imap4d.h"
 
 /*
- * This needs to properly close the mailbox
- */
+6.1.3.  LOGOUT Command
+
+   Arguments:  none
+
+   Responses:  REQUIRED untagged response: BYE
+
+   Result:     OK - logout completed
+               BAD - command unknown or arguments invalid
+*/
 
 int
-imap4d_logout (struct imap4d_command *command, char *arg)
+imap4d_logout (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
-  if (util_getword (arg, &sp))
-    return util_finish (command, RESP_BAD, "Too many args");
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   imap4d_bye0 (OK, command);
   return 0;
 }

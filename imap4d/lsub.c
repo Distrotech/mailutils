@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,13 +19,20 @@
 #include "imap4d.h"
 
 /*
- *  
- */
+6.3.9.  LSUB Command
 
+   Arguments:  reference name
+               mailbox name with possible wildcards
+
+   Responses:  untagged responses: LSUB
+
+   Result:     OK - lsub completed
+               NO - lsub failure: can't list that reference or name
+               BAD - command unknown or arguments invalid
+*/
 int
-imap4d_lsub (struct imap4d_command *command, char *arg)
+imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp;
   char *ref;
   char *wcard;
   char *file = NULL;
@@ -33,14 +40,11 @@ imap4d_lsub (struct imap4d_command *command, char *arg)
   const char *delim = "/";
   FILE *fp;
   
-  ref = util_getword (arg, &sp);
-  wcard = util_getword (NULL, &sp);
-  if (!ref || !wcard)
-    return util_finish (command, RESP_BAD, "Too few arguments");
-
-  /* Remove the double quotes.  */
-  util_unquote (&ref);
-  util_unquote (&wcard);
+  if (imap4d_tokbuf_argc (tok) != 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  ref = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  wcard = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   asprintf (&pattern, "%s%s", ref, wcard);
   if (!pattern)

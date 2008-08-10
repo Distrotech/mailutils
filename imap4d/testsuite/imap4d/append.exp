@@ -48,7 +48,7 @@ Hello Joe, do you think we can meet at 3:30 tomorrow?
 
 " 
 
-imap4d_test -long "APPEND mbox 25-Aug-2002 18:00:00 +0200"\
+imap4d_test -long "APPEND mbox \"25-Aug-2002 18:00:00 +0200\""\
 "Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
 From: Fred Foobar <foobar@Blurdybloop.COM>
 Subject: afternoon meeting again
@@ -72,7 +72,7 @@ imap4d_test "SELECT mbox"\
 "OK"
 
 imap4d_test "FETCH 2:3 BODY\[\]"\
-"2 FETCH (FLAGS (\\Seen) BODY\[\] {310}"\
+"2 FETCH (FLAGS (\\Seen) BODY\[\] {312}"\
 -literal\
 "Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)"\
 "From: Fred Foobar <foobar@Blurdybloop.COM>"\
@@ -83,9 +83,10 @@ imap4d_test "FETCH 2:3 BODY\[\]"\
 "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII"\
 ""\
 "Hello Joe, do you think we can meet at 3:30 tomorrow?"\
+""\
 ")"\
 -noliteral\
-"3 FETCH (FLAGS (\\Seen) BODY\[\] {283}"\
+"3 FETCH (FLAGS (\\Seen) BODY\[\] {285}"\
 -literal\
 "Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)"\
 "From: Fred Foobar <foobar@Blurdybloop.COM>"\

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,6 +106,19 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
 }
 
 /*
+6.3.8.  LIST Command
+
+   Arguments:  reference name
+               mailbox name with possible wildcards
+
+   Responses:  untagged responses: LIST
+
+   Result:     OK - list completed
+               NO - list failure: can't list that reference or name
+               BAD - command unknown or arguments invalid
+*/
+
+/*
   1- IMAP4 insists: the reference argument present in the
   interpreted form SHOULD prefix the interpreted form.  It SHOULD
   also be in the same form as the reference name argument.  This
@@ -126,21 +139,17 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
   but it does not match the hierarchy delimiter.  */
 
 int
-imap4d_list (struct imap4d_command *command, char *arg)
+imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   char *ref;
   char *wcard;
   const char *delim = "/";
 
-  ref = util_getword (arg, &sp);
-  wcard = util_getword (NULL, &sp);
-  if (!ref || !wcard)
-    return util_finish (command, RESP_BAD, "Too few arguments");
-
-  /* Remove the double quotes.  */
-  util_unquote (&ref);
-  util_unquote (&wcard);
+  if (imap4d_tokbuf_argc (tok) != 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  ref = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  wcard = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   /* If wildcard is empty, it is a special case: we have to
      return the hierarchy.  */

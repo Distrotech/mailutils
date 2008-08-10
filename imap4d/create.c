@@ -63,25 +63,34 @@ mkdir_p (char *name, int delim)
   return 0;
 }
 
+/*
+6.3.3.  CREATE Command
+
+   Arguments:  mailbox name
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - create completed
+               NO - create failure: can't create mailbox with that name
+               BAD - command unknown or arguments invalid
+*/  
 /* FIXME: How do we do this ??????:
    IF a new mailbox is created with the same name as a mailbox which was
    deleted, its unique identifiers MUST be greater than any unique identifiers
    used in the previous incarnation of the mailbox.  */
 int
-imap4d_create (struct imap4d_command *command, char *arg)
+imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *name;
-  char *sp = NULL;
   const char *delim = "/";
   int isdir = 0;
   int rc = RESP_OK;
   const char *msg = "Completed";
 
-  name = util_getword (arg, &sp);
-  if (!name)
-    return util_finish (command, RESP_BAD, "Too few arguments");
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
 
-  util_unquote (&name);
+  name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   if (*name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
@@ -152,6 +161,5 @@ imap4d_create (struct imap4d_command *command, char *arg)
       msg = "already exists";
     }
 
-  free (name);
   return util_finish (command, rc, msg);
 }

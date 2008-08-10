@@ -37,7 +37,7 @@ imap4d_test "CREATE flat"
 
 imap4d_test "CREATE en/to/tre"
 
-imap4d_test -long "APPEND en/to/tre 25-Aug-2002 18:00:00 +0200"\
+imap4d_test -long "APPEND en/to/tre \"25-Aug-2002 18:00:00 +0200\""\
 "Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
 From: Fred Foobar <foobar@Blurdybloop.COM>
 Subject: afternoon meeting again
@@ -65,7 +65,7 @@ imap4d_test "SELECT en/to/tre"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 imap4d_test "FETCH 1 ALL"\
-"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"25-Aug-2002 16:00:00 +0000\" RFC822.SIZE 283 ENVELOPE (\"Mon, 7 Feb 1994 21:52:25 -0800 (PST)\" \"afternoon meeting again\" ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((NIL NIL \"mooch\" \"owatagu.siam.edu\")) NIL NIL NIL \"<B27397-0200000@Blurdybloop.COM>\"))"\
+"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"25-Aug-2002 16:00:00 +0000\" RFC822.SIZE 285 ENVELOPE (\"Mon, 7 Feb 1994 21:52:25 -0800 (PST)\" \"afternoon meeting again\" ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((NIL NIL \"mooch\" \"owatagu.siam.edu\")) NIL NIL NIL \"<B27397-0200000@Blurdybloop.COM>\"))"\
 "OK"
 
 	

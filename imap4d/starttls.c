@@ -23,17 +23,26 @@
 static int tls_available;
 static int tls_done;
 
+/*
+6.2.1.  STARTTLS Command
+
+   Arguments:  none
+
+   Responses:  no specific response for this command
+
+   Result:     OK - starttls completed, begin TLS negotiation
+               BAD - command unknown or arguments invalid
+*/
 int
-imap4d_starttls (struct imap4d_command *command, char *arg)
+imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int status;
-  char *sp = NULL;
 
   if (!tls_available || tls_done)
     return util_finish (command, RESP_BAD, "Invalid command");
 
-  if (util_getword (arg, &sp))
-    return util_finish (command, RESP_BAD, "Too many args");
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
 
   util_atexit (mu_deinit_tls_libs);
 

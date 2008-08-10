@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,8 +19,10 @@
 #include "imap4d.h"
 
 int
-imap4d_version (struct imap4d_command *command, char *arg)
+imap4d_version (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   util_send ("* %s GNU %s\r\n", command->name, program_version);
   return util_finish (command, RESP_OK, "Completed");
 }

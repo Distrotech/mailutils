@@ -165,7 +165,7 @@ imap4d_test "FETCH 1 BODY\[HEADER\]"\
 # The subset returned by HEADER.FIELDS contains only those header fields
 # with a field-name that matches one of the names in the list;
 
-imap4d_test "FETCH 1 BODY\[HEADER.FIELDS FROM TO SUBJECT\]"\
+imap4d_test "FETCH 1 BODY\[HEADER.FIELDS (FROM TO SUBJECT)\]"\
 "1 FETCH (BODY\[HEADER.FIELDS (\"FROM\" \"TO\" \"SUBJECT\")\] {94}"\
 -literal\
 "FROM: Foo Bar <foobar@nonexistent.net>"\
@@ -178,7 +178,7 @@ imap4d_test "FETCH 1 BODY\[HEADER.FIELDS FROM TO SUBJECT\]"\
 # similarly, the subset returned by HEADER.FIELDS.NOT contains only
 # the header fields with a non-matching field-name. 
 
-imap4d_test "FETCH 1 BODY\[HEADER.FIELDS.NOT FROM TO SUBJECT\]"\
+imap4d_test "FETCH 1 BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\]"\
 "1 FETCH (BODY\[HEADER.FIELDS.NOT (\"FROM\" \"TO\" \"SUBJECT\")\] {235}"\
 -literal\
 "Received: (from foobar@nonexistent.net) "\
@@ -330,8 +330,13 @@ imap4d_test "FETCH 3 BODY\[1.MIME\]"\
 "OK"
 
 imap4d_test "FETCH 4 BODY\[2.2.1\]"\
-"4 FETCH (FLAGS (\\Seen) BODY\[2.2.1\] {490}"\
+"4 FETCH (FLAGS (\\Seen) BODY\[2.2.1\] {680}"\
 -literal\
+"Content-Type: application/octet-stream; name=\"msg.23\""\
+"Content-ID: <5122.1026510654.6@Mirddin.farlep.net>"\
+"Content-Description: Father William Part III"\
+"Content-Transfer-Encoding: base64"\
+""\
 "YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhbmQgeW91ciBqYXdzIGFyZSB0b28gd2Vh"\
 "awpGb3IgYW55dGhpbmcgdG91Z2hlciB0aGFuIHN1ZXQ7CllldCB5b3UgZmluaXNoZWQgdGhlIGdv"\
 "b3NlLCB3aXRoIHRoZSBib25lcyBhbmQgdGhlIGJlYWstLQpQcmF5IGhvdyBkaWQgeW91IG1hbmFn"\

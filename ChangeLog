@@ -1,3 +1,49 @@
+2008-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix input operations and RFC-compliance in imap4d.
+	
+	* imap4d/util.c (util_getword, util_getitem, util_token)
+	(util_unquote): Remove.
+	(imap4d_readline): Rewrite to reduce memory reallocation.  Add 
+	support for non-synchronizing literals (RFC 2088).
+	(imap4d_readline_ex): Remove.
+	(util_do_command): Rewrite using new imap4d_readline.
+	(util_parse_internal_date0): Remove.
+	(imap4d_tokbuf_init, imap4d_tokbuf_destroy, imap4d_tokbuf_argc)
+	(imap4d_tokbuf_getarg, util_isdelim)
+	(imap4d_tokbuf_from_string): New functions.
+	* imap4d/append.c, imap4d/auth_gss.c, imap4d/authenticate.c,
+	imap4d/check.c, imap4d/close.c, imap4d/commands.c, imap4d/copy.c,
+	imap4d/create.c, imap4d/delete.c, imap4d/examine.c,
+	imap4d/imap4d.h, imap4d/list.c, imap4d/login.c, imap4d/logout.c,
+	imap4d/lsub.c, imap4d/expunge.c, imap4d/idle.c, imap4d/noop.c,
+	imap4d/rename.c, imap4d/search.c, imap4d/select.c,
+	imap4d/starttls.c, imap4d/status.c, imap4d/store.c,
+	imap4d/subscribe.c, imap4d/uid.c, imap4d/unsubscribe.c,
+	imap4d/version.c: Rewrite using new imap4d_readline.
+	* imap4d/namespace.c: Use new imap4d_readline.  Ensure that
+	each reported prefix ends with a hierarchy delimiter.
+	* imap4d/imap4d.c (imap4d_mainloop): Use new imap4d_readline.
+	* imap4d/fetch.c: Rewrite parser from scratch.
+	* imap4d/capability.c (imap4d_capability_init): Report LITERAL+
+	capability.
+
+	* imap4d/testsuite/imap4d/anystate.exp: Account for the LITERAL+
+	capability.
+	* imap4d/testsuite/imap4d/append.exp: Fix APPEND arguments (imap4d
+	requires exactly three arguments, as per RFC3501.
+	Fix octet count in literals returned by fetch (previous versions
+	failed to include the trailing CRLF).
+	* imap4d/testsuite/imap4d/create.exp: Likewise.
+	* imap4d/testsuite/imap4d/fetch.exp: Fix FETCH arguments (previous
+	versions incorrectly accepted header-list without parentheses.
+	Fix result of FETCH 4 BODY[2.2.1]: it returns entire part, in the
+	contrast to previous versions, which treated it as
+	BODY[2.2.1.TEXT].
+
+	* maidag/mailtmp.c (mail_tmp_finish): Ensure /dev/null is treated
+	as mailbox.
+
 2008-08-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix imap appends for AMD mailboxes.

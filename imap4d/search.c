@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005, 2007,
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -223,11 +224,9 @@ struct mem_chain
 /* Parse buffer structure */
 struct parsebuf
 {
-  char *token;                  /* Current token. Either points to tokbuf
-				   or is allocated within `alloc' chain */
-  char tokbuf[MAXTOKEN+1];      /* Token buffer for short tokens */
-
-  char *arg;                    /* Rest of command line to be parsed */
+  imap4d_tokbuf_t tok;          /* Token buffer */   
+  int arg;                      /* Argument number */
+  char *token;                  /* Current token */
   int isuid;                    /* UIDs instead of msgnos are required */ 
   char *err_mesg;               /* Error message if a parse error occured */
   struct mem_chain *alloc;      /* Chain of objects allocated during parsing */
@@ -249,30 +248,45 @@ static int parse_gettoken (struct parsebuf *pb, int req);
 static int search_run (struct parsebuf *pb);
 static void do_search (struct parsebuf *pb);
 
+/*
+6.4.4.  SEARCH Command
+
+   Arguments:  OPTIONAL [CHARSET] specification
+               searching criteria (one or more)
+
+   Responses:  REQUIRED untagged response: SEARCH
+
+   Result:     OK - search completed
+               NO - search error: can't search that [CHARSET] or
+                    criteria
+               BAD - command unknown or arguments invalid
+*/
+
 int
-imap4d_search (struct imap4d_command *command, char *arg)
+imap4d_search (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
-  char buffer[64];
+  char *err_text= "";
   
-  rc = imap4d_search0 (arg, 0, buffer, sizeof buffer);
-  return util_finish (command, rc, "%s", buffer);
+  rc = imap4d_search0 (tok, 0, &err_text);
+  return util_finish (command, rc, "%s", err_text);
 }
   
 int
-imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
+imap4d_search0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 {
   struct parsebuf parsebuf;
   
   memset (&parsebuf, 0, sizeof(parsebuf));
-  parsebuf.arg = arg;
+  parsebuf.tok = tok;
+  parsebuf.arg = IMAP4_ARG_1 + !!isuid;
   parsebuf.err_mesg = NULL;
   parsebuf.alloc = NULL;
   parsebuf.isuid = isuid;
 
   if (!parse_gettoken (&parsebuf, 0))
     {
-      snprintf (replybuf, replysize, "Too few args");
+      *err_text = "Too few args";
       return RESP_BAD;
     }
   
@@ -280,20 +294,20 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
     {
       if (!parse_gettoken (&parsebuf, 0))
 	{
-	  snprintf (replybuf, replysize, "Too few args");
+	  *err_text = "Too few args";
 	  return RESP_BAD;
 	}
 
       /* Currently only ASCII is supported */
       if (strcasecmp (parsebuf.token, "US-ASCII"))
 	{
-	  snprintf (replybuf, replysize, "Charset not supported");
+	  *err_text = "Charset not supported";
 	  return RESP_NO;
 	}
 
       if (!parse_gettoken (&parsebuf, 0))
 	{
-	  snprintf (replybuf, replysize, "Too few args");
+	  *err_text = "Too few args";
 	  return RESP_BAD;
 	}
 
@@ -304,16 +318,14 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
   if (!parsebuf.tree)
     {
       parse_free_mem (&parsebuf);
-      snprintf (replybuf, replysize, "%s (near %s)",
-			  parsebuf.err_mesg,
-			  *parsebuf.arg ? parsebuf.arg : "end");
+      *err_text = "Parse error";
       return RESP_BAD;
     }
 
-  if (parsebuf.token[0] != 0)
+  if (parsebuf.token)
     {
       parse_free_mem (&parsebuf);
-      snprintf (replybuf, replysize, "Junk at the end of statement");
+      *err_text = "Junk at the end of statement";
       return RESP_BAD;
     }
   
@@ -322,7 +334,7 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
   
   parse_free_mem (&parsebuf);
   
-  snprintf (replybuf, replysize, "Completed");
+  *err_text = "Completed";
   return RESP_OK;
 }
 
@@ -359,41 +371,13 @@ do_search (struct parsebuf *pb)
 int
 parse_gettoken (struct parsebuf *pb, int req)
 {
-  int rc;
-  char *s;
-  
-  pb->token = pb->tokbuf;
-  while (*pb->arg && *pb->arg == ' ')
-    pb->arg++;
-  switch (*pb->arg)
+  if (req && pb->arg >= imap4d_tokbuf_argc (pb->tok))
     {
-    case '(':
-    case ')':
-      pb->token[0] = *pb->arg++;
-      pb->token[1] = 0;
-      rc = 1;
-      break;
-    case '"':
-      s = ++pb->arg;
-      while (*pb->arg && *pb->arg != '"')
-	pb->arg++;
-      rc = pb->arg - s;
-      if (*pb->arg)
-	pb->arg++;
-
-      if (rc >= sizeof(pb->tokbuf))
-	pb->token = parse_alloc (pb, rc+1);
-      memcpy (pb->token, s, rc);
-      pb->token[rc] = 0;
-      break;
-      
-    default:
-      rc = util_token (pb->token, sizeof(pb->tokbuf), &pb->arg);
-      break;
+      pb->err_mesg = "Unexpected end of statement";
+      return 0;
     }
-  if (req && rc == 0)
-    pb->err_mesg = "Unexpected end of statement";
-  return rc;
+  pb->token = imap4d_tokbuf_getarg (pb->tok, pb->arg++);
+  return 1;
 }
 
 /* Memory handling */
@@ -468,7 +452,7 @@ parse_search_key_list (struct parsebuf *pb)
 {
   struct search_node *leftarg = NULL;
   
-  while (pb->token[0] && pb->token[0] != ')')
+  while (pb->token && pb->token[0] != ')')
     {
       struct search_node *rightarg = parse_search_key (pb);
       if (!rightarg)
@@ -563,8 +547,8 @@ parse_equiv_key (struct parsebuf *pb)
 {
   struct search_node *node;
   struct cond_equiv *condp;
-  char *arg;
-  char *save_arg;
+  int save_arg;
+  imap4d_tokbuf_t save_tok;
   
   for (condp = equiv_list; condp->name && strcasecmp (condp->name, pb->token);
        condp++)
@@ -574,8 +558,9 @@ parse_equiv_key (struct parsebuf *pb)
     return parse_simple_key (pb);
 
   save_arg = pb->arg;
-  arg = parse_strdup (pb, condp->equiv);
-  pb->arg = arg;
+  save_tok = pb->tok;
+  pb->tok = imap4d_tokbuf_from_string (condp->equiv);
+  pb->arg = 0;
 
   parse_gettoken (pb, 0);
 
@@ -584,11 +569,13 @@ parse_equiv_key (struct parsebuf *pb)
     {
       /* shouldn't happen? */
       mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
-	     __FILE__, __LINE__);
+		      __FILE__, __LINE__);
       abort (); 
     }
+  imap4d_tokbuf_destroy (&pb->tok);
   
   pb->arg = save_arg;
+  pb->tok = save_tok;
   parse_gettoken (pb, 0);
   return node;
 }
@@ -658,7 +645,7 @@ parse_simple_key (struct parsebuf *pb)
 	      return NULL;
 	    }
 	  
-	  if (!pb->token[0])
+	  if (!pb->token)
 	    {
 	      pb->err_mesg = "Not enough arguments for criterion";
 	      return NULL;

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2004, 2005, 2007,
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,16 +20,27 @@
 #include "imap4d.h"
 
 /*
- */
+6.4.2.  CLOSE Command
 
-/* The CLOSE command permanently removes from the currently selected
+   Arguments:  none
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - close completed, now in authenticated state
+               NO - close failure: no mailbox selected
+               BAD - command unknown or arguments invalid
+
+   The CLOSE command permanently removes from the currently selected
    mailbox all messages that have the \\Deleted flag set, and returns
    to authenticated state from selected state.  */
 int
-imap4d_close (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
+imap4d_close (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   const char *msg = NULL;
   int status, flags;
+
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   
   mu_mailbox_get_flags (mbox, &flags);
   if ((flags & MU_STREAM_READ) == 0)

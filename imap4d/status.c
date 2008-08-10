@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,11 +52,22 @@ status_get_handler (const char *name)
       return p->fun;
   return NULL;
 }
-  
+
+/*
+6.3.10. STATUS Command
+
+   Arguments:  mailbox name
+               status data item names
+
+   Responses:  untagged responses: STATUS
+
+   Result:     OK - status completed
+               NO - status failure: no status for that name
+               BAD - command unknown or arguments invalid
+*/
 int
-imap4d_status (struct imap4d_command *command, char *arg)
+imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   char *name;
   char *mailbox_name;
   const char *delim = "/";
@@ -64,11 +75,12 @@ imap4d_status (struct imap4d_command *command, char *arg)
   int status;
   int count = 0;
   char *err_msg = NULL;
+  int argc = imap4d_tokbuf_argc (tok);
+
+  if (argc < 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   
-  name = util_getword (arg, &sp);
-  util_unquote (&name);
-  if (!name || *name == '\0' || !sp || *sp == '\0')
-    return util_finish (command, RESP_BAD, "Too few args");
+  name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   mailbox_name = namespace_getfullpath (name, delim);
 
@@ -85,20 +97,22 @@ imap4d_status (struct imap4d_command *command, char *arg)
       status = mu_mailbox_open (smbox, MU_STREAM_READ);
       if (status == 0)
 	{
-	  char item[32];
-	  item[0] = '\0';
-
-	  if (*sp == '(')
-	    sp++;
-	  else
-	    *sp = 0;
+	  int i = IMAP4_ARG_2;
+	  char *item = imap4d_tokbuf_getarg (tok, i);
 	  
-	  /* Get the status item names.  */
-	  while (*sp && *sp != ')')
+	  if (item[0] == '(')
+	    {
+	      if (imap4d_tokbuf_getarg (tok, argc - 1)[0] != ')')
+		return util_finish (command, RESP_BAD, "Invalid arguments");
+	      argc--;
+	      i++;
+	    }
+	  
+	  for (; i < argc; i++)
 	    {
 	      status_funcp fun;
-	      
-	      util_token (item, sizeof (item), &sp);
+
+	      item = imap4d_tokbuf_getarg (tok, i);
 	      fun = status_get_handler (item);
 	      if (!fun)
 		{
@@ -112,6 +126,8 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	      if (!fun (smbox))
 		util_send (" ");
 	    }
+
+	  
 	  if (count > 0)
 	    util_send (")\r\n");
 	  mu_mailbox_close (smbox);
@@ -193,5 +209,4 @@ status_unseen (mu_mailbox_t smbox)
     }
   util_send ("UNSEEN %d", unseen);
   return 0;
-
 }

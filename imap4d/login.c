@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,26 +19,32 @@
 
 #include "imap4d.h"
 
+/*
+6.2.2.  LOGIN Command
+
+   Arguments:  user name
+               password
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - login completed, now in authenticated state
+               NO - login failure: user name or password rejected
+               BAD - command unknown or arguments invalid
+*/  
 int
-imap4d_login (struct imap4d_command *command, char *arg)
+imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL, *username, *pass;
+  char *username, *pass;
   int rc;
 
   if (login_disabled || tls_required)    
     return util_finish (command, RESP_NO, "Command disabled");
 
-  username = util_getword (arg, &sp);
-  pass = util_getword (NULL, &sp);
-
-  /* Remove the double quotes.  */
-  util_unquote (&username);
-  util_unquote (&pass);
-
-  if (username == NULL || *username == '\0' || pass == NULL)
-    return util_finish (command, RESP_NO, "Too few args");
-  else if (util_getword (NULL, &sp))
-    return util_finish (command, RESP_NO, "Too many args");
+  if (imap4d_tokbuf_argc (tok) != 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  username = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  pass = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   auth_data = mu_get_auth_by_name (username);
 

@@ -119,7 +119,9 @@ auth_gssapi (struct imap4d_command *command,
   gss_ctx_id_t context;
   gss_cred_id_t cred_handle, server_creds;
   gss_OID mech_type;
-  char *token_str;
+  char *token_str = NULL;
+  size_t token_size = 0;
+  size_t token_len;
   unsigned char *tmp = NULL;
   size_t size;
   gss_name_t server_name;
@@ -168,11 +170,10 @@ auth_gssapi (struct imap4d_command *command,
 
   for (;;)
     {
-      token_str = imap4d_readline_ex ();
-      util_base64_decode (token_str, strlen (token_str), &tmp, &size);
+      imap4d_getline (&token_str, &token_size, &token_len);
+      util_base64_decode (token_str, token_len, &tmp, &size);
       tokbuf.value = tmp;
       tokbuf.length = size;
-      free (token_str);
 
       maj_stat = gss_accept_sec_context (&min_stat,
 					 &context,
@@ -202,6 +203,7 @@ auth_gssapi (struct imap4d_command *command,
       display_status ("accept context", maj_stat, min_stat);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
+      free (token_str);
       return RESP_NO;
     }
 
@@ -211,8 +213,7 @@ auth_gssapi (struct imap4d_command *command,
       util_send ("+ %*.*s\r\n", size, size, tmp);
       free (tmp);
       gss_release_buffer (&min_stat, &outbuf);
-      token_str = imap4d_readline_ex ();
-      free (token_str);
+      imap4d_getline (&token_str, &token_size, &token_len);
     }
 
   /* Construct security-level data */
@@ -224,6 +225,7 @@ auth_gssapi (struct imap4d_command *command,
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("wrap", maj_stat, min_stat);
+      free (token_str);
       return RESP_NO;
     }
   
@@ -231,8 +233,8 @@ auth_gssapi (struct imap4d_command *command,
   util_send ("+ %*.*s\r\n", size, size, tmp);
   free (tmp);
 
-  token_str = imap4d_readline_ex ();
-  util_base64_decode (token_str, strlen (token_str),
+  imap4d_getline (&token_str, &token_size, &token_len);
+  util_base64_decode (token_str, token_len,
 		      (unsigned char **) &tokbuf.value, &tokbuf.length);
   free (token_str);
 

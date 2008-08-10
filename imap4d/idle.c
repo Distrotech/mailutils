@@ -19,13 +19,12 @@
 #include "imap4d.h"
 
 int
-imap4d_idle (struct imap4d_command *command, char *arg)
+imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp;
   time_t start;
   
-  if (util_getword (arg, &sp))
-    return util_finish (command, RESP_BAD, "Too many args");
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
 
   if (util_wait_input (0) == -1)
     return util_finish (command, RESP_NO, "Cannot idle");
@@ -38,15 +37,10 @@ imap4d_idle (struct imap4d_command *command, char *arg)
     {
       if (util_wait_input (5))
 	{
-	  int rc;
-	  char *p;
-	  char *cmd = imap4d_readline ();
-	  
-	  p = util_getword (cmd, &sp);
-	  rc = strcasecmp (p, "done") == 0;
-
-	  free (cmd);
-	  if (rc)
+	  imap4d_readline (tok);
+	  if (imap4d_tokbuf_argc (tok) == 1
+	      && strcasecmp (imap4d_tokbuf_getarg (tok, IMAP4_ARG_TAG),
+			     "done") == 0)
 	    break;
 	}
       else if (time (NULL) - start > idle_timeout)

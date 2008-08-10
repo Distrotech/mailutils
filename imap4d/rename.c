@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,30 +19,37 @@
 #include "imap4d.h"
 
 /*
+6.3.5.  RENAME Command
+
+   Arguments:  existing mailbox name
+               new mailbox name
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - rename completed
+               NO - rename failure: can't rename mailbox with that name,
+                    can't rename to mailbox with that name
+               BAD - command unknown or arguments invalid
+*/  
+/*
   FIXME: Renaming a mailbox we must change the UIDVALIDITY
   of the mailbox.  */
 
 int
-imap4d_rename (struct imap4d_command *command, char *arg)
+imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *oldname;
   char *newname;
-  char *sp = NULL;
   int rc = RESP_OK;
   const char *msg = "Completed";
   struct stat newst;
   const char *delim = "/";
 
-  oldname = util_getword (arg, &sp);
-  newname = util_getword (NULL, &sp);
-  if (!newname || !oldname)
-    return util_finish (command, RESP_BAD, "Too few arguments");
-
-  util_unquote (&newname);
-  util_unquote (&oldname);
-
-  if (*newname == '\0' || *oldname == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
+  if (imap4d_tokbuf_argc (tok) != 4)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  oldname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  newname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   if (strcasecmp (newname, "INBOX") == 0)
     return util_finish (command, RESP_NO, "Name Inbox is reservered");

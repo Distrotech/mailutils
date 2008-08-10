@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,36 +24,29 @@
  */
 
 int
-imap4d_uid (struct imap4d_command *command, char *arg)
+imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *cmd;
-  char *sp = NULL;
   int rc = RESP_NO;
-  char buffer[64];
+  char *err_text = "Completed";
 
-  cmd = util_getword (arg, &sp);
-  if (!cmd)
-    util_finish (command, RESP_BAD, "Too few args");
+  if (imap4d_tokbuf_argc (tok) < 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+
+  cmd = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  
   if (strcasecmp (cmd, "FETCH") == 0)
-    {
-      rc = imap4d_fetch0 (sp, 1, buffer, sizeof buffer);
-    }
+    rc = imap4d_fetch0 (tok, 1, &err_text);
   else if (strcasecmp (cmd, "COPY") == 0)
-    {
-      rc = imap4d_copy0 (sp, 1, buffer, sizeof buffer);
-    }
+    rc = imap4d_copy0 (tok, 1, &err_text);
   else if (strcasecmp (cmd, "STORE") == 0)
-    {
-      rc = imap4d_store0 (sp, 1, buffer, sizeof buffer);
-    }
+    rc = imap4d_store0 (tok, 1, &err_text);
   else if (strcasecmp (cmd, "SEARCH") == 0)
-    {
-      rc = imap4d_search0 (sp, 1, buffer, sizeof buffer);
-    }
+    rc = imap4d_search0 (tok, 1, &err_text);
   else
     {
-      snprintf (buffer, sizeof buffer, "Error uknown uid command");
+      err_text = "Uknown uid command";
       rc = RESP_BAD;
     }
-  return util_finish (command, rc, "%s %s", cmd, buffer);
+  return util_finish (command, rc, "%s %s", cmd, err_text);
 }

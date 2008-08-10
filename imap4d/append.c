@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2006, 2007,
+   2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,49 +18,6 @@
    MA 02110-1301 USA */
 
 #include "imap4d.h"
-
-/* APPEND mbox [(flags)] [date_time] message_literal */
-int
-imap4d_append (struct imap4d_command *command, char *arg)
-{
-  char *sp;
-  char *mboxname;
-  int flags = 0;
-  mu_mailbox_t dest_mbox = NULL;
-  int status;
-
-  mboxname = util_getword (arg, &sp);
-  if (!mboxname)
-    return util_finish (command, RESP_BAD, "Too few arguments");
-
-  util_unquote (&mboxname);
-  
-  if (*sp == '(' && util_parse_attributes (sp+1, &sp, &flags))
-    return util_finish (command, RESP_BAD, "Missing closing parenthesis");
-  
-  mboxname = namespace_getfullpath (mboxname, "/");
-  if (!mboxname)
-    return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
-
-  status = mu_mailbox_create_default (&dest_mbox, mboxname);
-  if (status == 0)
-    {
-      /* It SHOULD NOT automatifcllly create the mailbox. */
-      status = mu_mailbox_open (dest_mbox, MU_STREAM_RDWR);
-      if (status == 0)
-	{
-	  status = imap4d_append0 (dest_mbox, flags, sp);
-	  mu_mailbox_close (dest_mbox);
-	}
-      mu_mailbox_destroy (&dest_mbox);
-    }
-  
-  free (mboxname);
-  if (status == 0)
-    return util_finish (command, RESP_OK, "Completed");
-
-  return util_finish (command, RESP_NO, "[TRYCREATE] failed");
-}
 
 static int
 _append_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
@@ -93,12 +51,18 @@ _append_size (mu_message_t msg, size_t *psize)
   mu_stream_t str;
   int status = mu_message_get_stream (msg, &str);
   if (status == 0)
-    status = mu_stream_size (str, psize);
+    {
+      mu_off_t size;
+      status = mu_stream_size (str, &size);
+      if (status == 0 && psize)
+	*psize = size;
+    }
   return status;
 }
 
 int
-imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
+imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
+		char **err_text)
 {
   mu_stream_t stream;
   int rc = 0;
@@ -118,22 +82,24 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
       return 1;
     }
 
-  while (*text && isspace (*text))
-    text++;
-
   /* If a date_time is specified, the internal date SHOULD be set in the
      resulting message; otherwise, the internal date of the resulting
      message is set to the current date and time by default. */
-  if (util_parse_internal_date0 (text, &t, &text) == 0)
+  if (date_time)
     {
-      while (*text && isspace(*text))
-	text++;
+      if (util_parse_internal_date (date_time, &t))
+	{
+	  *err_text = "Invalid date/time format";
+	  return 1;
+	}
     }
   else
-    {
-      time(&t);
-    }
+    time(&t);
+  
   tm = gmtime(&t);
+
+  while (*text && isspace (*text))
+    text++;
 
   mu_stream_write (stream, text, strlen (text), len, &len);
   mu_message_set_stream (msg, stream, &tm);
@@ -156,6 +122,89 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *text)
 
   mu_message_destroy (&msg, &tm);
   return rc;
+}
+
+
+/* APPEND mbox [(flags)] [date_time] message_literal */
+int
+imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
+{
+  int i;
+  char *mboxname;
+  int flags = 0;
+  mu_mailbox_t dest_mbox = NULL;
+  int status;
+  int argc = imap4d_tokbuf_argc (tok);
+  char *date_time;
+  char *msg_text;
+  char *err_text = "[TRYCREATE] failed";
+  
+  if (argc < 4)
+    return util_finish (command, RESP_BAD, "Too few arguments");
+      
+  mboxname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
+  if (!mboxname)
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  i = IMAP4_ARG_2;
+  if (imap4d_tokbuf_getarg (tok, i)[0] == '(')
+    {
+      while (++i < argc)
+	{
+	  int type;
+	  char *arg = imap4d_tokbuf_getarg (tok, i);
+	  
+	  if (!util_attribute_to_type (arg, &type))
+	    flags |= type;
+	  else if (arg[0] == ')')
+	    break;
+	}
+      if (i == argc)
+	return util_finish (command, RESP_BAD, "Missing closing parenthesis");
+      i++;
+    }
+
+  switch (argc - i)
+    {
+    case 2:
+      /* Date/time is present */
+      date_time = imap4d_tokbuf_getarg (tok, i);
+      i++;
+      break;
+
+    case 1:
+      date_time = NULL;
+      break;
+
+    default:
+      return util_finish (command, RESP_BAD, "Too many arguments");
+    }
+
+  msg_text = imap4d_tokbuf_getarg (tok, i);
+  
+  mboxname = namespace_getfullpath (mboxname, "/");
+  if (!mboxname)
+    return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
+
+  status = mu_mailbox_create_default (&dest_mbox, mboxname);
+  if (status == 0)
+    {
+      /* It SHOULD NOT automatically create the mailbox. */
+      status = mu_mailbox_open (dest_mbox, MU_STREAM_RDWR);
+      if (status == 0)
+	{
+	  status = imap4d_append0 (dest_mbox, flags, date_time, msg_text,
+				   &err_text);
+	  mu_mailbox_close (dest_mbox);
+	}
+      mu_mailbox_destroy (&dest_mbox);
+    }
+  
+  free (mboxname);
+  if (status == 0)
+    return util_finish (command, RESP_OK, "Completed");
+
+  return util_finish (command, RESP_NO, err_text);
 }
 
 

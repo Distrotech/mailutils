@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,20 +19,27 @@
 #include "imap4d.h"
 
 /*
- *  
- */
+6.3.4.  DELETE Command
 
+   Arguments:  mailbox name
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - delete completed
+               NO - delete failure: can't delete mailbox with that name
+               BAD - command unknown or arguments invalid
+*/  
 int
-imap4d_delete (struct imap4d_command *command, char *arg)
+imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *sp = NULL;
   int rc = RESP_OK;
   const char *msg = "Completed";
   const char *delim = "/";
   char *name;
 
-  name = util_getword (arg, &sp);
-  util_unquote (&name);
+  if (imap4d_tokbuf_argc (tok) != 3)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   if (!name || *name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
 
@@ -51,6 +58,5 @@ imap4d_delete (struct imap4d_command *command, char *arg)
       rc = RESP_NO;
       msg = "Cannot remove";
     }
-  free (name);
   return util_finish (command, rc, msg);
 }

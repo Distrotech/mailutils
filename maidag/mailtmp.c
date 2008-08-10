@@ -145,7 +145,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
     }
 
   mu_stream_flush (mtmp->stream);
-  if ((status = mu_mailbox_create (mbox, "/dev/null")) 
+  if ((status = mu_mailbox_create (mbox, "mbox:/dev/null")) 
       || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mu_mailbox_set_stream (*mbox, mtmp->stream)))
     {

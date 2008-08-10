@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,13 +19,20 @@
 #include "imap4d.h"
 
 /*
- * Do we need to do anything here?
- * FIXME: This is like noop we need to notify the client of
- *        new mails etc ... and do housekeeping.
- */
+6.4.1.  CHECK Command
+
+   Arguments:  none
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - check completed
+               BAD - command unknown or arguments invalid
+*/
 
 int
-imap4d_check (struct imap4d_command *command, char *arg MU_ARG_UNUSED)
+imap4d_check (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
   return util_finish (command, RESP_OK, "Completed");
 }
