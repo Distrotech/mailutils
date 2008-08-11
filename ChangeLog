@@ -1,5 +1,18 @@
 2008-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* imap4d/fetch.c (fetch_send_section_part): Make sure the item tag
+	always reflects peek status.  All callers updated.
+	(fetch_io): Try to allocate as large a buffer as possible.
+	Use util_send_bytes where fit.
+	* imap4d/imap4d.h (imap4d_auth_handler_fp): Remove unused argument.
+	* imap4d/store.c (imap4d_store0): Take into account eventual UID
+	prefix. 
+	* imap4d/util.c (util_send_bytes): New function.
+	(util_send): Comment out transcript.
+	(util_do_command): Fix coredump on invalid commands.
+	(imap4d_readline): Transcript only first line of the input.
+	Ensure entire literal is read.
+
 	Fix input operations and RFC-compliance in imap4d.
 	
 	* imap4d/util.c (util_getword, util_getitem, util_token)

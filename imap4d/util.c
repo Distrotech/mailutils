@@ -262,6 +262,12 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 }
 
 int
+util_send_bytes (const char *buf, size_t size)
+{
+  return mu_stream_sequential_write (ostream, buf, size);
+}
+
+int
 util_send (const char *format, ...)
 {
   char *buf = NULL;
@@ -274,8 +280,10 @@ util_send (const char *format, ...)
   if (!buf)
       imap4d_bye (ERR_NO_MEM);
 
+#if 0  
   if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
+#endif
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -410,7 +418,7 @@ util_do_command (imap4d_tokbuf_t tok)
   else if (argc == 1)
     {
       nullcommand.name = "";
-      nullcommand.tag = tag;
+      nullcommand.tag = imap4d_tokbuf_getarg (tok, 0);
       return util_finish (&nullcommand, RESP_BAD, "Missing command");
     }
 
@@ -1339,11 +1347,15 @@ imap4d_tokbuf_getline (struct imap4d_tokbuf *tok)
 void
 imap4d_readline (struct imap4d_tokbuf *tok)
 {
+  int transcript = imap4d_transcript;
   tok->argc = 0;
+  tok->level = 0;
   for (;;)
     {
       char *last_arg;
       size_t off = imap4d_tokbuf_getline (tok);
+      if (transcript)
+        mu_diag_output (MU_DIAG_DEBUG, "recv: %s", tok->buffer);
       imap4d_tokbuf_tokenize (tok, off);
       last_arg = tok->buffer + tok->argp[tok->argc - 1];
       if (last_arg[0] == '{' && last_arg[strlen(last_arg)-1] == '}')
@@ -1354,6 +1366,9 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  char *buf;
 	  size_t len;
 	  
+          if (transcript)
+            mu_diag_output (MU_DIAG_DEBUG, "(literal follows)");
+          transcript = 0;
 	  number = strtoul (last_arg + 1, &sp, 10);
 	  /* Client can ask for non-synchronised literal,
 	     if a '+' is appended to the octet count. */
@@ -1364,7 +1379,16 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  imap4d_tokbuf_expand (tok, number + 1);
 	  off = tok->level;
 	  buf = tok->buffer + off;
-	  rc = mu_stream_sequential_read (istream, buf, number, &len);
+          len = 0;
+          while (len < number)
+            {
+               size_t sz;
+	       rc = mu_stream_sequential_read (istream, 
+                                               buf + len, number - len, &sz);
+               if (rc || sz == 0)
+                 break;
+               len += sz;
+            }
 	  check_input_err (rc, len);
 	  len = remove_cr (buf, len);
 	  imap4d_tokbuf_unquote (tok, &off, &len);
@@ -1403,6 +1427,8 @@ imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
 	s[--len] = 0;
       if (s && len > 0 && s[len - 1] == '\r')
 	s[--len] = 0;
+      if (imap4d_transcript)
+        mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
       if (pnbytes)
 	*pnbytes = len;
     }

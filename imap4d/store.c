@@ -72,7 +72,7 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
   int type = 0;
   
   pb.tok = tok;
-  pb.arg = IMAP4_ARG_1;
+  pb.arg = IMAP4_ARG_1 + !!isuid;
   pb.err_text = NULL;
   if (setjmp (pb.errjmp))
     {

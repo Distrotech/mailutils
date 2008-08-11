@@ -347,7 +347,7 @@ int imap4d_init_tls_server (void);
 #endif /* WITH_TLS */
 
 typedef int (*imap4d_auth_handler_fp) (struct imap4d_command *,
-				       char *, char *, char **);
+				       char *, char **);
   
 extern void auth_add (char *name, imap4d_auth_handler_fp handler);
 extern void auth_remove (char *name);

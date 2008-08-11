@@ -102,8 +102,8 @@ rfc822_readline (mu_filter_t filter, char *buffer, size_t buflen,
 }
 
 /* RFC 822 converter "\n" --> "\r\n"
-   We maintain to offset, the rfc822 offset (r_offset) and the offset of
-   the stream (s_offset).  If they do not match we go back as for as possible
+   We maintain two offsets, the rfc822 offset (r_offset) and the offset of
+   the stream (s_offset).  If they do not match we go back as far as possible
    and start to read by 1 'till we reach the current offset.  */
 
 static int
@@ -118,7 +118,7 @@ rfc822_read0 (mu_filter_t filter, char *buffer, size_t buflen,
   if (rfc822->r_offset != off)
     {
       rfc822->residue = 0;
-
+ 
       /* Try to find a starting point.  */
       if (rfc822->lines)
 	{
@@ -162,7 +162,7 @@ rfc822_read0 (mu_filter_t filter, char *buffer, size_t buflen,
     {
       size_t nread = 0;
       status = mu_stream_readline (filter->stream, buffer, buflen,
-				rfc822->s_offset, &nread);
+				   rfc822->s_offset, &nread);
       if (status != 0)
 	return status;
       if (nread == 0)
