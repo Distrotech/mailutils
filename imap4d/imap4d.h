@@ -286,6 +286,7 @@ extern void imap4d_capability_init (void);
 /* Helper functions.  */
 extern int  util_out (int, const char *, ...) MU_PRINTFLIKE(2,3);
 extern int  util_send (const char *, ...) MU_PRINTFLIKE(1,2);
+extern int  util_send_bytes (const char *buf, size_t size);
 extern int  util_send_qstring (const char *);
 extern int  util_send_literal (const char *);
 extern int  util_start (char *);
@@ -341,6 +342,7 @@ void util_atexit (void (*fp) (void));
 void util_chdir (const char *homedir);
 int is_atom (const char *s);
 int util_isdelim (const char *str);
+int util_trim_nl (char *s, size_t len);
   
 #ifdef WITH_TLS
 int imap4d_init_tls_server (void);

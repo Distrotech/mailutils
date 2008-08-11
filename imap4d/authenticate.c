@@ -81,8 +81,7 @@ _auth_try (void *item, void *data)
 
   if (strcmp (p->name, ap->auth_type) == 0)
     {
-      ap->result = p->handler (ap->command,
-			       ap->auth_type, ap->arg, &ap->username);
+      ap->result = p->handler (ap->command, ap->auth_type, &ap->username);
       return 1;
     }
   return 0;

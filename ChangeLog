@@ -1,5 +1,19 @@
 2008-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	More bugfixes in imap4d.
+	* imap4d/authenticate.c (_auth_try): Fix call to p->handler.
+	* imap4d/fetch.c (fetch_send_section_part): New argument
+	close_bracket. 
+	Never print .PEEK, it confuses some clients (notably Thunderbird).
+	I need to verify RFC, though.
+	All callers updated.
+	* imap4d/idle.c: Use imap4d_getline to get the reply, to avod modifying
+	tok and command.
+	* imap4d/imap4d.h (util_send_bytes, util_trim_nl): New prototypes.
+	* imap4d/util.c (util_trim_nl): New function.
+	(imap4d_getline): Use util_trim_nl.
+	
+	Bugfixes.
 	* imap4d/fetch.c (fetch_send_section_part): Make sure the item tag
 	always reflects peek status.  All callers updated.
 	(fetch_io): Try to allocate as large a buffer as possible.

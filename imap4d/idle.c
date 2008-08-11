@@ -22,6 +22,8 @@ int
 imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   time_t start;
+  char *token_str = NULL;
+  size_t token_size = 0, token_len;
   
   if (imap4d_tokbuf_argc (tok) != 2)
     return util_finish (command, RESP_BAD, "Invalid arguments");
@@ -37,10 +39,9 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
     {
       if (util_wait_input (5))
 	{
-	  imap4d_readline (tok);
-	  if (imap4d_tokbuf_argc (tok) == 1
-	      && strcasecmp (imap4d_tokbuf_getarg (tok, IMAP4_ARG_TAG),
-			     "done") == 0)
+          imap4d_getline (&token_str, &token_size, &token_len); 	  
+	  token_len = util_trim_nl (token_str, token_len);
+	  if (token_len == 4 && strcasecmp (token_str, "done") == 0)
 	    break;
 	}
       else if (time (NULL) - start > idle_timeout)
@@ -49,7 +50,7 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
       imap4d_sync ();
       util_flush_output ();
     }
-
+  free (token_str);
   return util_finish (command, RESP_OK, "terminated");
 }
 

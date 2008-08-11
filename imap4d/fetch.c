@@ -656,11 +656,11 @@ fetch_get_part (struct fetch_function_closure *ffc,
 
 static void
 fetch_send_section_part (struct fetch_function_closure *ffc,
-                         const char *suffix)
+                         const char *suffix, int close_bracket)
 {
   int i;
   
-  util_send ("BODY%s[", ffc->peek ? ".PEEK" : "");
+  util_send ("BODY[");
   for (i = 0; i < ffc->nset; i++)
     {
       if (i)
@@ -673,7 +673,8 @@ fetch_send_section_part (struct fetch_function_closure *ffc,
 	util_send (".");
       util_send ("%s", suffix);
     }
-  util_send ("]");
+  if (close_bracket)
+    util_send ("]");
 }
 
 static int
@@ -868,7 +869,7 @@ _frt_body (struct fetch_function_closure *ffc,
   if (ffc->name)
     util_send ("%s", ffc->name);
   else
-    fetch_send_section_part (ffc, NULL);
+    fetch_send_section_part (ffc, NULL, 1);
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
@@ -894,7 +895,7 @@ _frt_body_text (struct fetch_function_closure *ffc,
   if (ffc->name)
     util_send ("%s",  ffc->name);
   else
-    fetch_send_section_part (ffc, "TEXT");
+    fetch_send_section_part (ffc, "TEXT", 1);
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
@@ -936,7 +937,7 @@ _frt_header0 (struct fetch_function_closure *ffc,
   if (ffc->name)
     util_send ("%s",  ffc->name);
   else
-    fetch_send_section_part (ffc, suffix);
+    fetch_send_section_part (ffc, suffix, 1);
 
   msg = fetch_get_part (ffc, frt);
   if (!msg)
@@ -973,7 +974,7 @@ _send_header_name (void *item, void *data)
     util_send (" ");
   else
     *pf = 1;
-  util_send ("\"%s\"", (char*) item);
+  util_send ("%s", (char*) item);
   return 0;
 }
 
@@ -1000,7 +1001,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   
   set_seen (ffc, frt);
 
-  fetch_send_section_part (ffc, "HEADER.FIELDS");
+  fetch_send_section_part (ffc, "HEADER.FIELDS", 0);
   if (ffc->not)
     util_send (".NOT");
   util_send (" (");

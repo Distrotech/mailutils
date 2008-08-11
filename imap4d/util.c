@@ -280,7 +280,7 @@ util_send (const char *format, ...)
   if (!buf)
       imap4d_bye (ERR_NO_MEM);
 
-#if 0  
+#if 0
   if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 #endif
@@ -1416,6 +1416,16 @@ imap4d_tokbuf_from_string (char *str)
 }
 
 int
+util_trim_nl (char *s, size_t len)
+{
+  if (s && len > 0 && s[len - 1] == '\n')
+    s[--len] = 0;
+  if (s && len > 0 && s[len - 1] == '\r')
+    s[--len] = 0;
+  return len;
+}
+
+int
 imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
 {
   size_t len;
@@ -1423,10 +1433,7 @@ imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
   if (rc == 0)
     {
       char *s = *pbuf;
-      if (s && len > 0 && s[len - 1] == '\n')
-	s[--len] = 0;
-      if (s && len > 0 && s[len - 1] == '\r')
-	s[--len] = 0;
+      len = util_trim_nl (s, len);
       if (imap4d_transcript)
         mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
       if (pnbytes)
