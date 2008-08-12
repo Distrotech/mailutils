@@ -1598,8 +1598,19 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   status = util_msgset (msgset, &set, &n, isuid);
   if (status != 0)
     {
-      *err_text = "Bogus number set";
-      return RESP_BAD;
+      /* RFC3501, section 6.4.8.
+	 
+	 A non-existent unique identifier is ignored without any error
+	 message generated.  Thus, it is possible for a UID FETCH command
+	 to return an OK without any data or a UID COPY or UID STORE to
+	 return an OK without performing any operations.
+
+	 Obviously the same holds true for non-existing message numbers
+	 as well, although I did not find any explicit mention thereof
+	 in the RFC. */
+      
+      *err_text = "Completed";
+      return RESP_OK;
     }
 
   /* Compile the expression */

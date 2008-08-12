@@ -116,7 +116,12 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
   /* Get the message numbers in set[].  */
   status = util_msgset (msgset, &set, &n, isuid);
   if (status != 0)
-    parsebuf_exit (&pb, "Bogus number set");
+    {
+      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
+	 in fetch.c */
+      *ptext = "Completed";
+      return RESP_OK;
+    }      
 
   if (pb.token[0] != '(')
     parsebuf_exit (&pb, "Syntax error");

@@ -166,7 +166,7 @@ imap4d_test "FETCH 1 BODY\[HEADER\]"\
 # with a field-name that matches one of the names in the list;
 
 imap4d_test "FETCH 1 BODY\[HEADER.FIELDS (FROM TO SUBJECT)\]"\
-"1 FETCH (BODY\[HEADER.FIELDS (\"FROM\" \"TO\" \"SUBJECT\")\] {94}"\
+"1 FETCH (BODY\[HEADER.FIELDS (FROM TO SUBJECT)\] {94}"\
 -literal\
 "FROM: Foo Bar <foobar@nonexistent.net>"\
 "TO: Bar <bar@dontmailme.org>"\
@@ -179,7 +179,7 @@ imap4d_test "FETCH 1 BODY\[HEADER.FIELDS (FROM TO SUBJECT)\]"\
 # the header fields with a non-matching field-name. 
 
 imap4d_test "FETCH 1 BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\]"\
-"1 FETCH (BODY\[HEADER.FIELDS.NOT (\"FROM\" \"TO\" \"SUBJECT\")\] {235}"\
+"1 FETCH (BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\] {235}"\
 -literal\
 "Received: (from foobar@nonexistent.net) "\
 "	by nonexistent.net id fBSKI8N04906"\

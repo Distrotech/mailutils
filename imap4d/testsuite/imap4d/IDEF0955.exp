@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2005, 2007 Free Software Foundation
+# Copyright (C) 2005, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ if { $MU_ULONG_MAX > 0 } {
     set limit [expr $MU_ULONG_MAX - 1]
     verbose "LIMIT is $limit"
     imap4d_test "FETCH 1:$limit FLAGS" \
-	"BAD FETCH Bogus number set"
+	"OK"
 
     imap4d_test "UID FETCH 1:$limit FLAGS" \
 	"OK"

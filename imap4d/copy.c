@@ -81,8 +81,10 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   status = util_msgset (msgset, &set, &n, isuid);
   if (status != 0)
     {
-      *err_text = "Bogus number set";
-      return RESP_BAD;
+      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
+	 in fetch.c */
+      *err_text = "Completed";
+      return RESP_OK;
     }
 
   mailbox_name = namespace_getfullpath (name, delim);

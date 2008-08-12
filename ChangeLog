@@ -1,3 +1,12 @@
+2008-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Bugfixes.
+	* imap4d/copy.c, imap4d/fetch.c, imap4d/store.c: Do not report
+	error on non-existing message sets (RFC 3501, section 6.4.8).
+	* imap4d/testsuite/imap4d/IDEF0955.exp: Reflect this behavior.
+	* imap4d/testsuite/imap4d/fetch.exp: Header names in replies 
+	to BODY[HEADER.FIELDS...] are no longer quoted.
+
 2008-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	More bugfixes in imap4d.
