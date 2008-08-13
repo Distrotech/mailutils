@@ -1395,10 +1395,9 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  tok->level += len;
 	  tok->buffer[tok->level++] = 0;
 	  tok->argp[tok->argc - 1] = off;
-	  if (buf[len-1] != '\n')
-	    continue;
 	}
-      break;
+      else
+	break;
     }
 }  
 

@@ -1,5 +1,8 @@
 2008-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* imap4d/util.c (imap4d_readline): Fix loop break condition.
+	* imap4d/testsuite/lib/imap4d.exp: Send newline after a literal.
+
 	Bugfixes.
 	* imap4d/copy.c, imap4d/fetch.c, imap4d/store.c: Do not report
 	error on non-existing message sets (RFC 3501, section 6.4.8).

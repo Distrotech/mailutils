@@ -282,7 +282,7 @@ proc imap4d_test {args} {
 	}
 
 	verbose "Sending $command_data" 3
-	mu_send $command_data
+	mu_send "$command_data\n"
 
 	set s [split $command_data "\n"]
         set s [lrange $s 0 [expr [llength $s] - 2]]
