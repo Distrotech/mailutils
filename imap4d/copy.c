@@ -130,6 +130,6 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
      of the text of the tagged NO response.  This gives a hint to the
      client that it can attempt a CREATE command and retry the copy if
      the CREATE is successful.  */
-  *err_text = "NO [TRYCREATE] failed";
-  return RESP_NONE;
+  *err_text = "[TRYCREATE] failed";
+  return RESP_NO;
 }

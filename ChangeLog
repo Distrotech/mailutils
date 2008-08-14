@@ -1,3 +1,17 @@
+2008-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix GSASL in imap4d.
+	* auth/gsasl.c (_gsasl_readline): Prevent stucking in
+	blocking streams.
+	* imap4d/auth_gsasl.c: Remove deprecated functions and data types.
+	* imap4d/auth_gss.c (auth_gssapi): Fix signature.
+	* imap4d/copy.c (imap4d_copy0): Fix return value.
+	* imap4d/imap4d.c (imap4d_cfg_param): Fix type of login-disabled.
+	* include/mailutils/gsasl.h (struct mu_gsasl_module_data): New
+	members: service, realm, hostname, anon_user.
+	* libcfg/gsasl.c (mu_gsasl_param): New keywords: service,
+	realm, hostname, anonymous-user.
+
 2008-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/util.c (imap4d_readline): Fix loop break condition.

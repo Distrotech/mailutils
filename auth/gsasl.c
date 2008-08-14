@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -90,11 +90,11 @@ _gsasl_readline (mu_stream_t stream, char *optr, size_t osize,
 
   do
     {
-      char buf[80];
+      char c;
       size_t sz;
       int status;
       
-      status = mu_stream_sequential_read (s->stream, buf, sizeof (buf), &sz);
+      status = mu_stream_sequential_read (s->stream, &c, 1, &sz);
       if (status == EINTR)
 	continue;
       else if (status)
@@ -102,10 +102,10 @@ _gsasl_readline (mu_stream_t stream, char *optr, size_t osize,
 	  free (bufp);
 	  return status;
 	}
-      rc = _auth_lb_grow (s->lb, buf, sz);
+      rc = _auth_lb_grow (s->lb, &c, sz);
       if (rc)
 	return rc;
-
+      
       rc = gsasl_decode (s->sess_ctx,
 			 _auth_lb_data (s->lb),
 			 _auth_lb_level (s->lb),

@@ -294,7 +294,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "shared-namespace", mu_cfg_callback, NULL, 0, cb_shared,
     N_("Set shared namespace.  Argument is a colon-separated list "
        "of directories comprising the namespace.") },
-  { "login-disabled", mu_cfg_int, &login_disabled, 0, NULL,
+  { "login-disabled", mu_cfg_bool, &login_disabled, 0, NULL,
     N_("Disable LOGIN command.") },
   { "create-home-dir", mu_cfg_bool, &create_home_dir, 0, NULL,
     N_("If true, create non-existing user home directories.") },

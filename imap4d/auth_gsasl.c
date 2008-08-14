@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 # include <mailutils/sql.h>
 #endif
 
-static Gsasl_ctx *ctx;   
-static Gsasl_session_ctx *sess_ctx; 
+static Gsasl *ctx;   
+static Gsasl_session *sess_ctx; 
 
 static void auth_gsasl_capa_init (int disable);
 
@@ -69,20 +69,17 @@ gsasl_replace_streams (void *self, void *data)
 static void
 finish_session (void)
 {
-  gsasl_server_finish (sess_ctx);
+  gsasl_finish (sess_ctx);
 }
 
 static int
-auth_gsasl (struct imap4d_command *command,
-	    char *auth_type, char *arg, char **username)
+auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
 {
-  char *input = NULL;
+  char *input_str = NULL;
+  size_t input_size = 0;
+  size_t input_len;
   char *output;
-  char *s;
   int rc;
-
-  input = util_getword (arg, &s);
-  util_unquote (&input);
   
   rc = gsasl_server_start (ctx, auth_type, &sess_ctx);
   if (rc != GSASL_OK)
@@ -92,18 +89,21 @@ auth_gsasl (struct imap4d_command *command,
       return 0;
     }
 
-  gsasl_server_application_data_set (sess_ctx, username);
+  gsasl_callback_hook_set (ctx, username);
 
   output = NULL;
-  while ((rc = gsasl_step64 (sess_ctx, input, &output)) == GSASL_NEEDS_MORE)
+  while ((rc = gsasl_step64 (sess_ctx, input_str, &output))
+	   == GSASL_NEEDS_MORE)
     {
       util_send ("+ %s\r\n", output);
-      input = imap4d_readline_ex ();
+      imap4d_getline (&input_str, &input_size, &input_len);
     }
   
+  free (input_str);
   if (rc != GSASL_OK)
     {
-      mu_diag_output (MU_DIAG_NOTICE, _("GSASL error: %s"), gsasl_strerror (rc));
+      mu_diag_output (MU_DIAG_NOTICE, _("GSASL error: %s"),
+		      gsasl_strerror (rc));
       free (output);
       return RESP_NO;
     }
@@ -169,126 +169,39 @@ auth_gsasl_capa_init (int disable)
   free (listmech);
 }
 
-/* This is for DIGEST-MD5 */
-static int
-cb_realm (Gsasl_session_ctx *ctx, char *out, size_t *outlen, size_t nth)
-{
-  char *realm = util_localname ();
-
-  if (nth > 0)
-    return GSASL_NO_MORE_REALMS;
-
-  if (out)
-    {
-      if (*outlen < strlen (realm))
-	return GSASL_TOO_SMALL_BUFFER;
-      memcpy (out, realm, strlen (realm));
-    }
-
-  *outlen = strlen (realm);
-
-  return GSASL_OK;
-}
+#define IMAP_GSSAPI_SERVICE "imap"
 
 static int
-cb_validate (Gsasl_session_ctx *ctx,
-	     const char *authorization_id,
-	     const char *authentication_id,
-	     const char *password)
+retrieve_password (Gsasl *ctx, Gsasl_session *sctx)
 {
-  int rc;
-  struct mu_auth_data *auth;
-  char **username = gsasl_server_application_data_get (ctx);
-
-  *username = strdup (authentication_id ?
-		      authentication_id : authorization_id);
+  char **username = gsasl_callback_hook_get (ctx);
+  char *authid = gsasl_property_get (sctx, GSASL_AUTHID);
   
-  auth_data = mu_get_auth_by_name (*username);
-
-  if (auth_data == NULL)
-    return GSASL_AUTHENTICATION_ERROR;
-
-  rc = mu_authenticate (auth, password);
-  mu_auth_data_free (auth);
-  
-  return rc == 0 ? GSASL_OK : GSASL_AUTHENTICATION_ERROR;
-}
-
-#define GSSAPI_SERVICE "imap"
-
-static int
-cb_service (Gsasl_session_ctx *ctx, char *srv, size_t *srvlen,
-	    char *host, size_t *hostlen)
-{
-  char *hostname = util_localname ();
-
-  if (srv)
-    {
-      if (*srvlen < strlen (GSSAPI_SERVICE))
-       return GSASL_TOO_SMALL_BUFFER;
-
-      memcpy (srv, GSSAPI_SERVICE, strlen (GSSAPI_SERVICE));
-    }
-
-  if (srvlen)
-    *srvlen = strlen (GSSAPI_SERVICE);
-
-  if (host)
-    {
-      if (*hostlen < strlen (hostname))
-       return GSASL_TOO_SMALL_BUFFER;
-
-      memcpy (host, hostname, strlen (hostname));
-    }
-
-  if (hostlen)
-    *hostlen = strlen (hostname);
-
-  return GSASL_OK;
-}
-
-/* This gets called when SASL mechanism EXTERNAL is invoked */
-static int
-cb_external (Gsasl_session_ctx *ctx)
-{
-  return GSASL_AUTHENTICATION_ERROR;
-}
-
-/* This gets called when SASL mechanism CRAM-MD5 or DIGEST-MD5 is invoked */
-
-static int
-cb_retrieve (Gsasl_session_ctx *ctx,
-	     const char *authentication_id,
-	     const char *authorization_id,
-	     const char *realm,
-	     char *key,
-	     size_t *keylen)
-{
-  char **username = gsasl_server_application_data_get (ctx);
-
-  if (username && *username == 0 && authentication_id)
-    *username = strdup (authentication_id);
+  if (username && *username == 0)
+    *username = strdup (authid);
 
   if (mu_gsasl_module_data.cram_md5_pwd
       && access (mu_gsasl_module_data.cram_md5_pwd, R_OK) == 0)
     {
-      int rc = gsasl_md5pwd_get_password (mu_gsasl_module_data.cram_md5_pwd,
-					  authentication_id,
-					  key, keylen);
+      char *key;
+      int rc = gsasl_simple_getpass (mu_gsasl_module_data.cram_md5_pwd,
+				     authid, &key);
       if (rc == GSASL_OK)
-	return rc;
+	{
+	  gsasl_property_set (sctx, GSASL_PASSWORD, key);
+	  free (key);
+	  return rc;
+	}
     }
   
 #ifdef USE_SQL
   if (mu_sql_module_config.password_type == password_plaintext)
     {
       char *passwd;
-      int status = mu_sql_getpass (username, &passwd);
+      int status = mu_sql_getpass (*username, &passwd);
       if (status == 0)
 	{
-	  *keylen = strlen (passwd);
-	  if (key)
-	    memcpy (key, passwd, *keylen);
+	  gsasl_property_set (sctx, GSASL_PASSWORD, passwd);
 	  free (passwd);
 	  return GSASL_OK;
 	}
@@ -296,6 +209,102 @@ cb_retrieve (Gsasl_session_ctx *ctx,
 #endif
   
   return GSASL_AUTHENTICATION_ERROR; 
+}
+
+static int
+cb_validate (Gsasl *ctx, Gsasl_session *sctx)
+{
+  int rc;
+  struct mu_auth_data *auth;
+  char **username = gsasl_callback_hook_get (ctx);
+  const char *authid = gsasl_property_get (sctx, GSASL_AUTHID);
+  const char *pass = gsasl_property_get (sctx, GSASL_PASSWORD);
+
+  if (!authid)
+    return GSASL_NO_AUTHID;
+  if (!pass)
+    return GSASL_NO_PASSWORD;
+  
+  *username = strdup (authid);
+  
+  auth = mu_get_auth_by_name (*username);
+
+  if (auth == NULL)
+    return GSASL_AUTHENTICATION_ERROR;
+
+  rc = mu_authenticate (auth, pass);
+  mu_auth_data_free (auth);
+  
+  return rc == 0 ? GSASL_OK : GSASL_AUTHENTICATION_ERROR;
+}
+  
+static int
+callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
+{
+    int rc = GSASL_OK;
+
+    switch (prop) {
+    case GSASL_PASSWORD:
+      rc = retrieve_password (ctx, sctx);
+      break;
+      
+    case GSASL_SERVICE:
+      gsasl_property_set (sctx, prop,
+			  mu_gsasl_module_data.service ?
+			    mu_gsasl_module_data.service :IMAP_GSSAPI_SERVICE);
+      break;
+      
+    case GSASL_REALM:
+      gsasl_property_set (sctx, prop,
+			  mu_gsasl_module_data.realm ?
+			    mu_gsasl_module_data.realm : util_localname ());
+      break;
+      
+    case GSASL_HOSTNAME:
+      gsasl_property_set (sctx, prop,
+			  mu_gsasl_module_data.hostname ?
+			    mu_gsasl_module_data.hostname : util_localname ());
+      break;
+      
+#if 0
+    FIXME:
+    case GSASL_VALIDATE_EXTERNAL:
+    case GSASL_VALIDATE_SECURID:
+#endif
+      
+    case GSASL_VALIDATE_SIMPLE:
+      rc = cb_validate (ctx, sctx);
+      break;
+      
+    case GSASL_VALIDATE_ANONYMOUS:
+      if (mu_gsasl_module_data.anon_user)
+	{
+	  char **username = gsasl_callback_hook_get (ctx);
+	  mu_diag_output (MU_DIAG_INFO, _("Anonymous user %s logged in"),
+			  gsasl_property_get (sctx, GSASL_ANONYMOUS_TOKEN));
+	  *username = strdup (mu_gsasl_module_data.anon_user);
+	}
+      else
+	{
+	  mu_diag_output (MU_DIAG_ERR,
+			  _("Attempt to log in as anonymous user denied"));
+	}
+      break;
+      
+    case GSASL_VALIDATE_GSSAPI:
+      {
+	char **username = gsasl_callback_hook_get (ctx);
+	*username = strdup (gsasl_property_get(sctx, GSASL_AUTHZID));
+	break;
+      }
+      
+    default:
+	rc = GSASL_NO_CALLBACK;
+	mu_error (_("Unsupported callback property %d"), prop);
+	break;
+    }
+
+    return rc;
 }
 
 void
@@ -310,12 +319,7 @@ auth_gsasl_init ()
 	      gsasl_strerror (rc));
     }
 
-  gsasl_server_callback_realm_set (ctx, cb_realm);
-  gsasl_server_callback_external_set (ctx, cb_external);
-  gsasl_server_callback_validate_set (ctx, cb_validate);
-  gsasl_server_callback_service_set (ctx, cb_service);
-
-  gsasl_server_callback_retrieve_set (ctx, cb_retrieve);
+  gsasl_callback_set (ctx, callback);
   
   auth_gsasl_capa_init (0);
 }

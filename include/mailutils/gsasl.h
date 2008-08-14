@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,10 @@
 
 struct mu_gsasl_module_data
 {
+  char *service;
+  char *realm;
+  char *hostname;
+  char *anon_user;
   char *cram_md5_pwd;
 };
 

@@ -110,7 +110,7 @@ imap4d_gss_userok (gss_buffer_t client_name, char *name)
 
 static int
 auth_gssapi (struct imap4d_command *command,
-	     char *auth_type_unused, char *arg_unused, char **username)
+	     char *auth_type_unused, char **username)
 {
   gss_buffer_desc tokbuf, outbuf;
   OM_uint32 maj_stat, min_stat, min_stat2;
