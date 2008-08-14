@@ -1,5 +1,11 @@
 2008-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	New functions.
+	* include/mailutils/list.h (mu_list_get_comparator)
+	(mu_list_intersect_dup, mu_list_intersect): New prototypes.
+	* mailbox/list.c (mu_list_get_comparator)
+	(mu_list_intersect_dup, mu_list_intersect): New functions.
+
 	Fix GSASL in imap4d.
 	* auth/gsasl.c (_gsasl_readline): Prevent stucking in
 	blocking streams.

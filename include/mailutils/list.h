@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,11 +46,18 @@ extern int mu_list_do       (mu_list_t list, mu_list_action_t * action, void *cb
 
 typedef int (*mu_list_comparator_t) (const void*, const void*);
 
-extern mu_list_comparator_t mu_list_set_comparator (mu_list_t, mu_list_comparator_t);
+extern mu_list_comparator_t mu_list_set_comparator (mu_list_t,
+						    mu_list_comparator_t);
+extern int mu_list_get_comparator (mu_list_t, mu_list_comparator_t *);
 
 extern int mu_list_set_destroy_item (mu_list_t list,
 				     void (*destroy_item) (void *));
 
+
+extern int mu_list_intersect_dup (mu_list_t *, mu_list_t, mu_list_t,
+				  int (*dup_item) (void **, void *, void *),
+				  void *);
+extern int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);  
   
 #ifdef __cplusplus
 }

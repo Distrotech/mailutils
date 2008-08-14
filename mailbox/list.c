@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software
+   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2008 Free Software
    Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
@@ -153,6 +153,14 @@ mu_list_set_comparator (mu_list_t list, mu_list_comparator_t comp)
   old_comp = list->comp;
   list->comp = comp;
   return old_comp;
+}
+
+int
+mu_list_get_comparator (mu_list_t list, mu_list_comparator_t *comp)
+{
+  if (!list)
+    return EINVAL;
+  *comp = list->comp;
 }
 
 static int
@@ -383,6 +391,72 @@ mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount)
   if (pcount)
     *pcount = total;
   return 0;
+}
+
+/* Computes an intersection of the two lists. The resulting list,
+   stored into PDEST, contains elements from the list A that are
+   also encountered in the list B, using the comparison function of
+   the latter.
+
+   If DUP_ITEM is not NULL, it is used to create copies of the
+   items to be stored in PDEST.  In this case, the destroy_item
+   function of B is also attached to PDEST.  Otherwise, if
+   DUP_ITEM is NULL, the pointers to the elements are stored and
+   no destroy_item function is assigned. */
+int
+mu_list_intersect_dup (mu_list_t *pdest, mu_list_t a, mu_list_t b,
+		       int (*dup_item) (void **, void *, void *),
+		       void *dup_closure)
+{
+  mu_list_t dest;
+  int rc;
+  mu_iterator_t itr;
+  
+  rc = mu_list_create (&dest);
+  if (rc)
+    return rc;
+
+  mu_list_set_comparator (dest, b->comp);
+  if (dup_item)
+    mu_list_set_destroy_item (dest, b->destroy_item);
+  
+  rc = mu_list_get_iterator (a, &itr);
+  if (rc)
+    {
+      mu_list_destroy (&dest);
+      return rc;
+    }
+
+  rc = 0;
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      void *data;
+      mu_iterator_current (itr, &data);
+      if (mu_list_locate (b, data, NULL) == 0)
+	{
+	  void *new_data;
+	  if (dup_item && data)
+	    {
+	      rc = dup_item (&new_data, data, dup_closure);
+	      if (rc)
+		break;
+	    }
+	  else
+	    new_data = data;
+	
+	  mu_list_append (dest, new_data); /* FIXME: Check return, and? */
+	}
+    }
+  mu_iterator_destroy (&itr);
+  *pdest = dest;
+  return rc;
+}
+
+int
+mu_list_intersect (mu_list_t *pdest, mu_list_t a, mu_list_t b)
+{
+  return mu_list_intersect_dup (pdest, a, b, NULL, NULL);
 }
 
 
