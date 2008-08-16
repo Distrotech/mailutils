@@ -1,5 +1,8 @@
 2008-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* imap4d/status.c (imap4d_status): Remove extra whitespace 
+	before closing parenthesis in untagged reply.
+
 	Bugfixes.
 	* imap4d/fetch.c (parse_fetch_body): Bugfix, allow another tokens
 	after BODY.

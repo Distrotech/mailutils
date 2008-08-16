@@ -97,6 +97,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
       status = mu_mailbox_open (smbox, MU_STREAM_READ);
       if (status == 0)
 	{
+          int space_sent = 0;
 	  int i = IMAP4_ARG_2;
 	  char *item = imap4d_tokbuf_getarg (tok, i);
 	  
@@ -122,9 +123,14 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 		  
 	      if (count++ == 0)
 		util_send ("* STATUS %s (", name);
+	      else if (!space_sent)
+                {
+                  space_sent = 1;
+		  util_send (" ");
+                }     
 
 	      if (!fun (smbox))
-		util_send (" ");
+                space_sent = 0;
 	    }
 
 	  
