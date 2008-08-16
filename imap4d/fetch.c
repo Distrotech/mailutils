@@ -1484,7 +1484,7 @@ parse_fetch_body (struct parsebuf *p)
       parsebuf_next (p, 0);
     }
   else if (parse_body_args (p, 0))
-    parsebuf_exit (p, "Syntax error");
+    append_simple_function (p, "BODY", _frt_bodystructure0);
 }
 
 static int

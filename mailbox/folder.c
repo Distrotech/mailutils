@@ -494,7 +494,7 @@ is_known_folder (mu_url_t url, mu_folder_t *pfolder)
 	  && mu_url_is_same_scheme (url, folder->url)
 	  && mu_url_is_same_user (url, folder->url)
 	  && mu_url_is_same_host (url, folder->url)
-	  /*&& mu_url_is_same_path (url, folder->url) */
+	  && mu_url_is_same_path (url, folder->url) 
 	  && mu_url_is_same_port (url, folder->url))
 	{
 	  ret = 1;

@@ -426,10 +426,10 @@ ACCESSOR(is_same,field) (mu_url_t url1, mu_url_t url2)		          \
   const char *s1, *s2;							  \
   int status1, status2;							  \
 									  \
-  status1 = mu_url_sget_scheme (url1, &s1);				  \
+  status1 = ACCESSOR(sget, field) (url1, &s1);				  \
   if (status1 && status1 != MU_ERR_NOENT)				  \
     return 0;								  \
-  status2 = mu_url_sget_scheme (url2, &s2);				  \
+  status2 = ACCESSOR(sget, field) (url2, &s2);				  \
   if (status2 && status2 != MU_ERR_NOENT)				  \
     return 0;								  \
 									  \

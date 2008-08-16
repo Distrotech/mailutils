@@ -215,6 +215,9 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	break;
     }				/* while */
 
+  if (*n == 0)
+    return 0;
+  
   /* For message sets in form X:Y where Y is a not-existing UID greater
      than max UID, replace Y with the max UID in the mailbox */
   if (*n == 1 && invalid_uid)

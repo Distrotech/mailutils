@@ -1,3 +1,16 @@
+2008-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Bugfixes.
+	* imap4d/fetch.c (parse_fetch_body): Bugfix, allow another tokens
+	after BODY.
+	* imap4d/util.c (util_msgset): Make sure returned number of
+	elements in set is always correct.
+	* mailbox/folder.c (is_known_folder): Compare paths as well.  It
+	was commented out on 2001-04-10 (7 years ago!!!) for unknown
+	reasons.
+	* mailbox/url.c (DECL_CMP): Bugfix. The macro effectively created
+	a scheme comparator, no matter what its second argument was.
+
 2008-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	New functions.
