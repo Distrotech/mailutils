@@ -119,6 +119,22 @@ _mh_is_scheme (mu_record_t record, mu_url_t url, int flags)
   return 0;
 }
 
+static int
+_mh_list_p (mu_record_t record, const char *name, int flags MU_ARG_UNUSED)
+{
+  int len;
+  
+  if (strcmp (name, MU_AMD_SIZE_FILE_NAME) == 0
+      || name[0] == ','
+      || (((len = strlen (name)) > 3) && memcmp (name, ".mh", 3) == 0))
+    return 0;
+
+  for (; *name; name++)
+    if (!(isascii (*name) && isdigit (*name)))
+      return 1;
+  return 0;
+}
+
 static struct _mu_record _mh_record =
 {
   MU_MH_PRIO,
@@ -132,7 +148,8 @@ static struct _mu_record _mh_record =
   NULL, /* _get_url method.  */
   NULL, /* _get_mailbox method.  */
   NULL, /* _get_mailer method.  */
-  NULL  /* _get_folder method.  */
+  NULL, /* _get_folder method.  */
+  _mh_list_p
 };
 mu_record_t mu_mh_record = &_mh_record;
 

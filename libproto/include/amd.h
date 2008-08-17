@@ -42,6 +42,8 @@
       mu_monitor_wrlock (mbox->monitor);				\
 } while (0);
 
+#define MU_AMD_SIZE_FILE_NAME ".mu-size"
+
 struct _amd_data;
 struct _amd_message
 {

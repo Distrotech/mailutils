@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2004, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,8 @@ struct _mu_record
   int (*_get_mailbox) (mu_record_t, int (*(*_mu_mailbox)) (mu_mailbox_t));
   int (*_get_mailer) (mu_record_t, int (*(*_mu_mailer)) (mu_mailer_t));
   int (*_get_folder) (mu_record_t, int (*(*_mu_folder)) (mu_folder_t));
+
+  int (*_list_p) (mu_record_t, const char *, int);
 };
 
 /* Registration.  */
@@ -84,6 +86,8 @@ extern int mu_record_set_folder      (mu_record_t, int (*) (mu_folder_t));
 extern int mu_record_set_get_folder  (mu_record_t, 
          int (*_get_folder) (mu_record_t, int (*(*)) (mu_folder_t)));
 
+extern int mu_record_list_p (mu_record_t record, const char *name, int);
+  
 /* Records provided by the library.  */
 
 /* Remote Folder "imap://"  */

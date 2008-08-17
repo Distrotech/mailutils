@@ -1,5 +1,23 @@
 2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Improve folder listing.
+	* include/mailutils/registrar.h (_mu_record): New method
+	`_list_p'.
+	(mu_record_list_p): New function.
+	* libproto/include/amd.h (MU_AMD_SIZE_FILE_NAME): New define.
+	* libproto/maildir/folder.c (_maildir_is_scheme): Return
+	MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY, on
+	success.
+	Implement _list_p method.
+	* libproto/mbox/folder.c (list_helper): Change semantics of the
+	2nd argument.  The record is used to determine whether or not
+	to list a particular file.
+	* libproto/mh/folder.c: Implement _list_p method.
+	* mailbox/amd.c (SIZE_FILE_NAME): Replace with
+	MU_AMD_SIZE_FILE_NAME from amd.h.
+	* mailbox/registrar.c (mu_record_list_p): New function.
+	
+	Bugfix.
 	* libproto/maildir/mbox.c (info_to_flags): Fix return value.
 
 	Implement UNSELECT extension.

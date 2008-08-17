@@ -81,9 +81,18 @@ _maildir_is_scheme (mu_record_t record, mu_url_t url, int flags)
 	  && dir_exists (path, TMPSUF)
 	     && dir_exists (path, CURSUF)
  	     && dir_exists (path, NEWSUF))
-        return MU_FOLDER_ATTRIBUTE_FILE;
+        return MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY;
     }
   return 0;
+}
+
+static int
+_maildir_list_p (mu_record_t record, const char *name, int flags MU_ARG_UNUSED)
+{
+  return strcmp (name, TMPSUF)
+    && strcmp (name, CURSUF) 
+    && strcmp (name, NEWSUF)
+    && strcmp (name, MU_AMD_SIZE_FILE_NAME);
 }
 
 static struct _mu_record _maildir_record =
@@ -99,7 +108,8 @@ static struct _mu_record _maildir_record =
   NULL, /* _get_url method.  */
   NULL, /* _get_mailbox method.  */
   NULL, /* _get_mailer method.  */
-  NULL  /* _get_folder method.  */
+  NULL, /* _get_folder method.  */
+  _maildir_list_p
 };
 mu_record_t mu_maildir_record = &_maildir_record;
 

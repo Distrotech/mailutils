@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -337,6 +337,13 @@ list_helper (struct search_data *data, mu_record_t record,
       data->errcnt++;
       return 1;
     }
+
+  if (!record)
+    {
+      int type;
+      mu_registrar_lookup (dirname, MU_FOLDER_ATTRIBUTE_ALL,
+			   &record, &type);
+    }
   
   while ((dp = readdir (dirp)))
     {
@@ -349,96 +356,93 @@ list_helper (struct search_data *data, mu_record_t record,
       fname = get_pathname (dirname, ename);
       if (stat (fname, &st) == 0)
 	{
-	  if (data->folder->_match == NULL
-	      || data->folder->_match (fname + data->dirlen +
-				       ((data->dirlen > 1
-					 && data->dirname[data->dirlen-1] != '/') ?
-					1 : 0),
-				       data->pattern,
-				       data->flags) == 0)
+	  int f;
+	  if (S_ISDIR (st.st_mode))
+	    f = MU_FOLDER_ATTRIBUTE_DIRECTORY;
+	  else if (S_ISREG (st.st_mode))
+	    f = MU_FOLDER_ATTRIBUTE_FILE;
+	  else
+	    f = 0;
+	  if (mu_record_list_p (record, ename, f))
 	    {
-	      char *refname = fname;
-	      int type = 0;
-	      struct mu_list_response *resp;
-	      
-	      resp = malloc (sizeof (*resp));
-	      if (resp == NULL)
+	      if (data->folder->_match == NULL
+		  || data->folder->_match (fname + data->dirlen +
+					   ((data->dirlen > 1
+					     && data->dirname[data->dirlen-1] != '/') ?
+					    1 : 0),
+					   data->pattern,
+					   data->flags) == 0)
 		{
-		  MU_DEBUG1 (data->folder->debug, MU_DEBUG_ERROR,
-			     "list_helper: %s", mu_strerror (ENOMEM));
-		  data->errcnt++;
-		  free (fname);
-		  continue;
-		}
-
-	      if (record)
-		{
-		  mu_url_t url;
-		  int rc = mu_url_create (&url, refname);
-		  if (rc == 0)
+		  char *refname = fname;
+		  int type = 0;
+		  struct mu_list_response *resp;
+		  mu_record_t rec = NULL;
+		  
+		  resp = malloc (sizeof (*resp));
+		  if (resp == NULL)
 		    {
-		      rc = mu_url_parse (url);
-		      if (rc == 0)
-			type = mu_record_is_scheme (record, url,
-						    MU_FOLDER_ATTRIBUTE_ALL);
+		      MU_DEBUG1 (data->folder->debug, MU_DEBUG_ERROR,
+				 "list_helper: %s", mu_strerror (ENOMEM));
+		      data->errcnt++;
+		      free (fname);
+		      continue;
 		    }
-		  mu_url_destroy (&url);
-		}
-	      else
-		mu_registrar_lookup (refname, MU_FOLDER_ATTRIBUTE_ALL,
-				     &record, &type);
-
-	      resp->name = fname;
-	      resp->level = level;
-	      resp->separator = '/';
-	      resp->type = type;
-
-	      if (resp->type == 0)
-		{
-		  free (resp->name);
-		  free (resp);
-		  continue;
-		}
-
-	      if (data->enumfun)
-		{
-		  if (data->enumfun (data->folder, resp, data->enumdata))
+		  
+		  mu_registrar_lookup (refname, MU_FOLDER_ATTRIBUTE_ALL,
+				       &rec, &type);
+		  
+		  resp->name = fname;
+		  resp->level = level;
+		  resp->separator = '/';
+		  resp->type = type;
+		  
+		  if (resp->type == 0)
 		    {
 		      free (resp->name);
 		      free (resp);
-		      stop = 1;
-		      break;
+		      continue;
+		    }
+		  
+		  if (data->enumfun)
+		    {
+		      if (data->enumfun (data->folder, resp, data->enumdata))
+			{
+			  free (resp->name);
+			  free (resp);
+			  stop = 1;
+			  break;
+			}
+		    }
+		  
+		  if (data->result)
+		    {
+		      fname = NULL;
+		      mu_list_append (data->result, resp);
+		    }
+		  else
+		    free (resp);
+		  
+		  if ((type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+		      && !inode_list_lookup (ilist, &st))
+		    {
+		      struct inode_list idata;
+		      
+		      idata.inode = st.st_ino;
+		      idata.dev   = st.st_dev;
+		      idata.next  = ilist;
+		      stop = list_helper (data, rec, refname, level + 1,
+					  &idata);
 		    }
 		}
-
-	      if (data->result)
-		{
-		  fname = NULL;
-		  mu_list_append (data->result, resp);
-		}
-	      else
-		free (resp);
-
-	      if ((type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
-		  && !inode_list_lookup (ilist, &st))
+	      else if (S_ISDIR (st.st_mode))
 		{
 		  struct inode_list idata;
-		      
+		  
 		  idata.inode = st.st_ino;
 		  idata.dev   = st.st_dev;
 		  idata.next  = ilist;
-		  stop = list_helper (data, record, refname, level + 1,
-				      &idata);
+		  stop = list_helper (data, NULL, fname, level + 1, &idata);
 		}
-	    }
-	  else if (S_ISDIR (st.st_mode))
-	    {
-	      struct inode_list idata;
-		      
-	      idata.inode = st.st_ino;
-	      idata.dev   = st.st_dev;
-	      idata.next  = ilist;
-	      stop = list_helper (data, NULL, fname, level + 1, &idata);
 	    }
 	}
       else

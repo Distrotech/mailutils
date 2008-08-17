@@ -883,18 +883,16 @@ amd_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
   return 0;
 }
 
-#define SIZE_FILE_NAME ".mu-size"
-
 static char *
 make_size_file_name (struct _amd_data *amd)
 {
-  size_t size = strlen (amd->name) + 1 + sizeof (SIZE_FILE_NAME);
+  size_t size = strlen (amd->name) + 1 + sizeof (MU_AMD_SIZE_FILE_NAME);
   char *name = malloc (size);
   if (name)
     {
       strcpy (name, amd->name);
       strcat (name, "/");
-      strcat (name, SIZE_FILE_NAME);
+      strcat (name, MU_AMD_SIZE_FILE_NAME);
     }
   return name;
 }
