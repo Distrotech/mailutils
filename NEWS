@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-04-14
+GNU mailutils NEWS -- history of user-visible changes. 2008-08-17
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -6,7 +6,7 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 1.9.91:
+Version 1.9.92:
 
 * New configuration file format.
 
@@ -89,6 +89,8 @@ Pop3d and imap4d can be configured to listen on several different
 IP addresses/ports (or even local sockets) simultaneously.
 
 ** pop3d: Fixed APOP handling.
+
+** Imap4d supports UNSELECT extension.
 
 ** imap4d supports PREAUTH mode.
 

@@ -1,5 +1,9 @@
 2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Version 1.9.92.
+
+	* imap4d/list.c (imap4d_list): Fix addslash condition.
+
 	Improve folder listing.
 	* include/mailutils/registrar.h (_mu_record): New method
 	`_list_p'.

@@ -217,7 +217,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	{
 	  size_t seglen = p - wcard;
 	  size_t reflen = strlen (ref);
-	  int addslash = !!(reflen == 0 || ref[reflen-1] != '/'); 
+	  int addslash = (reflen > 0 && ref[reflen-1] != '/'); 
 	  size_t len = seglen + reflen + addslash + 1;
 
 	  ref = realloc (ref, len);
