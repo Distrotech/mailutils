@@ -94,7 +94,6 @@ static struct info_map {
   { 'R', MU_ATTRIBUTE_READ },
   { 'S', MU_ATTRIBUTE_SEEN },
   { 'T', MU_ATTRIBUTE_DELETED },
-  { 0 },
 };
 #define info_map_size (sizeof (info_map) / sizeof (info_map[0]))
 
@@ -120,7 +119,7 @@ info_to_flags (char *buf)
   for (p = info_map; p < info_map + info_map_size; p++)
     if (strchr (buf, p->letter))
       flags |= p->flag;
-  return 0;
+  return flags;
 }
 
 static char *

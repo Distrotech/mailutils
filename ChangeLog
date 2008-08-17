@@ -1,5 +1,7 @@
 2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libproto/maildir/mbox.c (info_to_flags): Fix return value.
+
 	Implement UNSELECT extension.
 	* doc/rfc/Makefile.am: Add rfc3691.txt
 	* doc/rfc/rfc3691.txt: New file.
