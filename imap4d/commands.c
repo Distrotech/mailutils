@@ -38,6 +38,7 @@ struct imap4d_command imap4d_command_table [] =
   { "APPEND", imap4d_append, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "CHECK", imap4d_check, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "CLOSE", imap4d_close, STATE_SEL, STATE_AUTH, STATE_AUTH, NULL },
+  { "UNSELECT", imap4d_unselect, STATE_SEL, STATE_AUTH, STATE_AUTH, NULL },
   { "EXPUNGE", imap4d_expunge, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "SEARCH", imap4d_search, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "FETCH", imap4d_fetch, STATE_SEL, STATE_NONE, STATE_NONE, NULL },

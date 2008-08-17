@@ -19,6 +19,44 @@
 
 #include "imap4d.h"
 
+static int
+imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
+	       int expunge)
+{
+  const char *msg = NULL;
+  int status, flags;
+
+  if (imap4d_tokbuf_argc (tok) != 2)
+    return util_finish (command, RESP_BAD, "Invalid arguments");
+  
+  mu_mailbox_get_flags (mbox, &flags);
+  if ((flags & MU_STREAM_READ) == 0)
+    {
+      status = mu_mailbox_flush (mbox, expunge);
+      if (status)
+	{
+	  mu_diag_output (MU_DIAG_ERROR,
+		  _("flushing mailbox failed: %s"), mu_strerror (status));
+	  msg = "flushing mailbox failed";
+	}
+    }
+  
+  /* No messages are removed, and no error is given, if the mailbox is
+     selected by an EXAMINE command or is otherwise selected read-only.  */
+  status = mu_mailbox_close (mbox);
+  if (status)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("closing mailbox failed: %s"), mu_strerror (status));
+      msg = "closing mailbox failed";
+    }
+  mu_mailbox_destroy (&mbox);
+
+  if (msg)
+    return util_finish (command, RESP_NO, msg);
+  return util_finish (command, RESP_OK, "Completed");
+}
+
 /*
 6.4.2.  CLOSE Command
 
@@ -36,35 +74,29 @@
 int
 imap4d_close (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  const char *msg = NULL;
-  int status, flags;
+  return imap4d_close0 (command, tok, 1);
+}
 
-  if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
-  
-  mu_mailbox_get_flags (mbox, &flags);
-  if ((flags & MU_STREAM_READ) == 0)
-    {
-      status = mu_mailbox_flush (mbox, 1);
-      if (status)
-	{
-	  mu_diag_output (MU_DIAG_ERROR,
-		  _("flushing mailbox failed: %s"), mu_strerror (status));
-	  msg = "flushing mailbox failed";
-	}
-    }
-  
-  /* No messages are removed, and no error is given, if the mailbox is
-     selected by an EXAMINE command or is otherwise selected read-only.  */
-  status = mu_mailbox_close (mbox);
-  if (status)
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("closing mailbox failed: %s"), mu_strerror (status));
-      msg = "closing mailbox failed";
-    }
-  mu_mailbox_destroy (&mbox);
+/* RFC 3691:
+   
+2.  UNSELECT Command
 
-  if (msg)
-    return util_finish (command, RESP_NO, msg);
-  return util_finish (command, RESP_OK, "Completed");
+   Arguments:  none
+
+   Responses:  no specific responses for this command
+
+   Result:     OK - unselect completed, now in authenticated state
+               BAD - no mailbox selected, or argument supplied but
+                     none permitted
+
+      The UNSELECT command frees server's resources associated with the
+      selected mailbox and returns the server to the authenticated
+      state.  This command performs the same actions as CLOSE, except
+      that no messages are permanently removed from the currently
+      selected mailbox.
+*/
+int
+imap4d_unselect (struct imap4d_command *command, imap4d_tokbuf_t tok)
+{
+  return imap4d_close0 (command, tok, 0);
 }

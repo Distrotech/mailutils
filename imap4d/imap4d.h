@@ -218,6 +218,7 @@ extern void imap4d_auth_capability (void);
 extern int  imap4d_capability (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_check (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_close (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_unselect (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_copy (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_copy0 (imap4d_tokbuf_t, int isuid, char **err_text);
 extern int  imap4d_create (struct imap4d_command *, imap4d_tokbuf_t);

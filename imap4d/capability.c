@@ -52,6 +52,7 @@ imap4d_capability_init ()
     "NAMESPACE",
     "IDLE",
     "LITERAL+",
+    "UNSELECT",
     "X-VERSION",
     NULL
   };

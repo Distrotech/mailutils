@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,11 +40,11 @@ imap4d_test "SELECT INBOX"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 imap4d_test "STATUS INBOX (MESSAGES RECENT UNSEEN UIDVALIDITY UIDNEXT)" \
--re {STATUS INBOX \(MESSAGES 95 RECENT 95 UNSEEN 95 UIDVALIDITY [0-9]+ UIDNEXT 96 \)} \
+-re {STATUS INBOX \(MESSAGES 95 RECENT 95 UNSEEN 95 UIDVALIDITY [0-9]+ UIDNEXT 96\)} \
 "OK"
 
 imap4d_test "STATUS mbox1 (MESSAGES RECENT UNSEEN UIDNEXT)" \
-"STATUS mbox1 (MESSAGES 5 RECENT 5 UNSEEN 5 UIDNEXT 6 )" \
+"STATUS mbox1 (MESSAGES 5 RECENT 5 UNSEEN 5 UIDNEXT 6)" \
 "OK"
 
 imap4d_test "EXAMINE mbox1" \

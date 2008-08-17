@@ -1,3 +1,17 @@
+2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement UNSELECT extension.
+	* doc/rfc/Makefile.am: Add rfc3691.txt
+	* doc/rfc/rfc3691.txt: New file.
+	* imap4d/capability.c: Announce UNSELECT capability.
+	* imap4d/close.c: Implement UNSELECT command.
+	* imap4d/commands.c: Add UNSELECT command.
+	* imap4d/imap4d.h (imap4d_unselect): New proto.
+	* imap4d/testsuite/imap4d/anystate.exp: Reflect UNSELECT
+	capability.
+	* imap4d/testsuite/imap4d/examine.exp: Reflect yesterday's changes
+	to STATUS output.
+
 2008-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* imap4d/status.c (imap4d_status): Remove extra whitespace 
