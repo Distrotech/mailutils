@@ -56,9 +56,9 @@ int
 mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
 				      char *arg)
 {
-  if (mu_string_to_syslog_facility (arg, &allow_severity))
+  if (mu_string_to_syslog_priority (arg, &allow_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("Unknown syslog facility `%s'"), 
+			 _("Unknown syslog priority `%s'"), 
 			 arg);
   return 0;
 }
@@ -66,9 +66,9 @@ mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
 int
 mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data, char *arg)
 {
-  if (mu_string_to_syslog_facility (arg, &deny_severity))
+  if (mu_string_to_syslog_priority (arg, &deny_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("Unknown syslog facility `%s'"), 
+			 _("Unknown syslog priority `%s'"), 
 			 arg);
   return 0;
 }
@@ -105,15 +105,13 @@ struct mu_cfg_param tcpwrapper_param[] = {
     N_("Use file for negative client address access control "		      
        "(default: /etc/hosts.deny)."),					      
     N_("file") },							      
-  { "allow-syslog-level", mu_cfg_callback, NULL, 0,	       	      
+  { "allow-syslog-priority", mu_cfg_callback, NULL, 0,	       	      
     mu_tcp_wrapper_cb_hosts_allow_syslog,				      
-    N_("Log host allows at this syslog level.  See logging { facility } for " 
-       "a description of argument syntax."),				      
+    N_("Log host allows at this syslog priority."),
     N_("level") },							      
-  { "deny-syslog-level", mu_cfg_callback, NULL, 0,			      
+  { "deny-syslog-priority", mu_cfg_callback, NULL, 0,			      
     mu_tcp_wrapper_cb_hosts_deny_syslog,				      
-    N_("Log host denies at this syslog level.  See logging { facility } for " 
-       "a description of argument syntax."),				      
+    N_("Log host denies at this syslog priority."),
     N_("level") },
   { NULL }
 };

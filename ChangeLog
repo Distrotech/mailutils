@@ -1,5 +1,13 @@
 2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Bugfix.
+	* lib/tcpwrap.c (mu_tcp_wrapper_cb_hosts_deny_syslog):
+	(mu_tcp_wrapper_cb_hosts_allow_syslog): Use syslog priorities,
+	not facilities.
+	(tcpwrapper_param): Rename allow-syslog-level and
+	deny-syslog-level to allow-syslog-priority and
+	deny-syslog-priority, correspondingly.	
+
 	Version 1.9.92.
 
 	* imap4d/list.c (imap4d_list): Fix addslash condition.
