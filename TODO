@@ -1,4 +1,4 @@
-GNU mailutils TODO list. 2008-01-03
+GNU mailutils TODO list. 2008-08-18
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
 2007, 2008 Free Software Foundation, Inc.
 
@@ -82,6 +82,19 @@ mail (from mailutils itself), mutt, pine, netscape, mozilla.
 ** implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
 ** implement AUTHENTICATE KERBEROS_V4 and SKEY and SRP?
+
+* Implement extensions:
+
+ - ID        : RFC 2971
+ - QUOTA     : RFC 2087
+ - ACL       : RFC 4314
+ - CHILDREN  : RFC 3348
+ 
+** Consider implementing the following extensions:
+
+ - CONDSTORE : RFC 4551
+ - ESEARCH   : RFC 4731
+ - SEARCHRES : RFC 5182
 
 * Mailcap API
 

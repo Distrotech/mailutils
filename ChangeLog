@@ -1,5 +1,14 @@
 2008-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Bugfixes.
+	* TODO: Update.
+	* imap4d/fetch.c: Prevent coredumps on inexpected end of statement
+	(e.g. `FETCH 1:* (uid')
+	* imap4d/imap4d.h (imap4d_select0): Update protottype.
+	* imap4d/select.c (imap4d_select0): Do not advertise actual
+	mailbox name with a NO response.
+	Return to authenticated state on failure.
+	
 	* doc/rfc/Makefile.am (EXTRA_DIST): Add new rfcs.
 	* doc/rfc/rfc1413.txt, doc/rfc/rfc2087.txt, doc/rfc/rfc2180.txt,
 	doc/rfc/rfc2683.txt, doc/rfc/rfc3348.txt,

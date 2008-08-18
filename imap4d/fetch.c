@@ -1264,7 +1264,7 @@ header-list     = "(" header-fld-name *(SP header-fld-name) ")"
 static void
 parse_header_list (struct parsebuf *p, struct fetch_function_closure *ffc)
 {
-  if (p->token[0] != '(')
+  if (!(p->token && p->token[0] == '('))
     parsebuf_exit (p, "Syntax error: expected (");
   mu_list_create (&ffc->headers);
   mu_list_set_comparator (ffc->headers, _header_cmp);
@@ -1532,8 +1532,8 @@ parse_macro (struct parsebuf *p)
     {
       parsebuf_next (p, 1);
       parse_fetch_att_list (p);
-      if (p->token[0] != ')')
-	parsebuf_exit (p, "Missing closing parenthesis");
+      if (!(p->token && p->token[0] == ')'))
+	parsebuf_exit (p, "Unknown token or missing closing parenthesis");
     }
   else if ((exp = find_macro (p->token))) 
     {

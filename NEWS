@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-08-17
+GNU mailutils NEWS -- history of user-visible changes. 2008-08-18
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -140,8 +140,8 @@ New diagnostics functions are available, among them:
   void mu_diag_voutput (int level, const char *fmt, va_list ap);
   void mu_diag_output (int level, const char *fmt, ...);
 
-A new header file, mailutils/diag.h, declarations of these and other
-related functions.
+A new header file, mailutils/diag.h, provides declarations for these
+and other related functions.
   
 See documentation (FIXME: Chapter?) for more information.
 

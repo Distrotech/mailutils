@@ -34,10 +34,12 @@ imap4d_select (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
 /* This code is share with EXAMINE.  */
 int
-imap4d_select0 (struct imap4d_command *command, char *mailbox_name, int flags)
+imap4d_select0 (struct imap4d_command *command, const char *mboxname,
+		int flags)
 {
   int status;
-
+  char *mailbox_name;
+  
   /* FIXME: Check state.  */
 
   /* Even if a mailbox is selected, a SELECT EXAMINE or LOGOUT
@@ -53,9 +55,9 @@ imap4d_select0 (struct imap4d_command *command, char *mailbox_name, int flags)
       imap4d_sync ();
     }
 
-  if (strcmp (mailbox_name, "INBOX") == 0)
+  if (strcmp (mboxname, "INBOX") == 0)
     flags |= MU_STREAM_CREAT;
-  mailbox_name = namespace_getfullpath (mailbox_name, "/");
+  mailbox_name = namespace_getfullpath (mboxname, "/");
 
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Couldn't open mailbox");
@@ -77,9 +79,12 @@ imap4d_select0 (struct imap4d_command *command, char *mailbox_name, int flags)
 			    "READ-ONLY" : "READ-WRITE", command->name);
 	}
     }
-  status = util_finish (command, RESP_NO, "Couldn't open %s, %s",
-			mailbox_name, mu_strerror (status));
+  
+  mu_mailbox_destroy (&mbox);
+  status = util_finish (command, RESP_NO, "Could not open %s: %s",
+			mboxname, mu_strerror (status));
   free (mailbox_name);
+  state = STATE_AUTH;
   return status;
 }
 

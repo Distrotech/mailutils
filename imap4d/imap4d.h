@@ -237,7 +237,7 @@ extern int  imap4d_preauth_setup (int fd);
 extern int  imap4d_search (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_search0 (imap4d_tokbuf_t, int isuid, char **repyptr);
 extern int  imap4d_select (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_select0 (struct imap4d_command *, char *, int);
+extern int  imap4d_select0 (struct imap4d_command *, const char *, int);
 extern int  imap4d_select_status (void);
 #ifdef WITH_TLS
 extern int  imap4d_starttls (struct imap4d_command *, imap4d_tokbuf_t);
