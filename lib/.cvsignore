@@ -60,6 +60,7 @@ fnmatch.c
 fnmatch.h
 fnmatch.in.h
 fnmatch_loop.c
+fseeko.c
 fstatat.c
 getcwd.c
 getdelim.c
@@ -84,6 +85,7 @@ libmailutils.la
 libmuaux.la
 localcharset.c
 localcharset.h
+lseek.c
 lstat.c
 lstat.h
 malloc.c
@@ -135,6 +137,7 @@ stdbool.h
 stdbool.in.h
 stdint.h
 stdint.in.h
+stdio-impl.h
 stdio.h
 stdio.in.h
 stdlib.h

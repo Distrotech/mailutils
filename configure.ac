@@ -25,6 +25,9 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_PREREQ(2.60)
 
+dnl Autobuild stuff
+AB_INIT
+
 dnl Library versioning
 AC_SUBST(VI_CURRENT,  3)
 AC_SUBST(VI_REVISION, 2)
