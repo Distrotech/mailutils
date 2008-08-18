@@ -1,3 +1,9 @@
+2008-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/rfc/Makefile.am (EXTRA_DIST): Add new rfcs.
+	* doc/rfc/rfc1413.txt, doc/rfc/rfc2087.txt, doc/rfc/rfc2180.txt,
+	doc/rfc/rfc2683.txt, doc/rfc/rfc3348.txt: New files.
+
 2008-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Bugfix.

@@ -21,6 +21,7 @@ EXTRA_DIST = \
  rfc821.txt\
  rfc822.txt\
  rfc934.txt\
+ rfc1413.txt\
  rfc1521.txt\
  rfc1731.txt\
  rfc1734.txt\
@@ -33,9 +34,11 @@ EXTRA_DIST = \
  rfc2049.txt\
  rfc2060.txt\
  rfc2060-errata\
+ rfc2087.txt\
  rfc2088.txt\
  rfc2111.txt\
  rfc2177.txt\
+ rfc2180.txt\
  rfc2192.txt\
  rfc2193.txt\
  rfc2221.txt\
@@ -47,10 +50,12 @@ EXTRA_DIST = \
  rfc2384.txt\
  rfc2449.txt\
  rfc2595.txt\
+ rfc2683.txt\
  rfc2821.txt\
  rfc2822.txt\
  rfc3028.txt\
  rfc3206.txt\
  rfc3431.txt\
  rfc3501.txt\
- rfc3691.txt
+ rfc3691.txt\
+ rfc3348.txt
