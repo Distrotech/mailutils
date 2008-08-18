@@ -4,7 +4,7 @@
 	* TODO: Update.
 	* imap4d/fetch.c: Prevent coredumps on inexpected end of statement
 	(e.g. `FETCH 1:* (uid')
-	* imap4d/imap4d.h (imap4d_select0): Update protottype.
+	* imap4d/imap4d.h (imap4d_select0): Update prototype.
 	* imap4d/select.c (imap4d_select0): Do not advertise actual
 	mailbox name with a NO response.
 	Return to authenticated state on failure.
