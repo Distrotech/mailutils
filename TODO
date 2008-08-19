@@ -1,4 +1,4 @@
-GNU mailutils TODO list. 2008-08-18
+GNU mailutils TODO list. 2008-08-20
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
 2007, 2008 Free Software Foundation, Inc.
 
@@ -85,7 +85,6 @@ mail (from mailutils itself), mutt, pine, netscape, mozilla.
 
 * Implement extensions:
 
- - ID        : RFC 2971
  - QUOTA     : RFC 2087
  - ACL       : RFC 4314
  - CHILDREN  : RFC 3348

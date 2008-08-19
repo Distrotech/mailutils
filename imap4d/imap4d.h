@@ -192,6 +192,9 @@ extern char *ident_keyfile;
 extern int ident_encrypt_only;
 extern unsigned int idle_timeout;
 extern int imap4d_transcript;
+extern mu_list_t imap4d_id_list;
+extern int imap4d_argc;                 
+extern char **imap4d_argv;
   
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
@@ -254,6 +257,7 @@ extern int  imap4d_unsubscribe (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_namespace (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_version (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_idle (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_id (struct imap4d_command *, imap4d_tokbuf_t);
   
 extern int imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid);
 

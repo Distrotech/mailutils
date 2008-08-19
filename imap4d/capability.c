@@ -50,10 +50,10 @@ imap4d_capability_init ()
   static char *capa[] = {
     "IMAP4rev1",
     "NAMESPACE",
+    "ID",
     "IDLE",
     "LITERAL+",
     "UNSELECT",
-    "X-VERSION",
     NULL
   };
   int i;

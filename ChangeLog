@@ -1,3 +1,25 @@
+2008-08-20  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement ID extension.
+	* imap4d/id.c: New file.
+	* imap4d/Makefile.am (imap4d_SOURCES): Add id.c, remove version.c.
+	* imap4d/commands.c: Add ID command.
+	Remove X-VERSION command.
+	(SELECT,EXAMINE): Switch to authenticated mode on failure.
+	* imap4d/imap4d.c (imap4d_argc, imap4d_argv): New variables.
+	(imap4d_cfg_param): New keyword `id-fields'.
+	(main): Save command line arguments.
+	* imap4d/imap4d.h (imap4d_argc, imap4d_argv): New declarations.
+	* imap4d/select.c (imap4d_select0): Do not reset state to auth on
+	failure, this is done by util_finish.
+	* imap4d/version.c: Remove.
+	* imap4d/capability.c: Announce ID capability, remove X-VERSION.
+	* imap4d/testsuite/imap4d/x.exp: Use ID instead of X-VERSION.
+	
+	* TODO, NEWS: Update.
+	
+	* mailbox/cfg_parser.y (_set_fun,parse_param): Bugfix.
+	
 2008-08-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Bugfixes.

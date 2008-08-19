@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,13 +19,12 @@
 
 imap4d_start 
 
-imap4d_test -message "X-VERSION in initail state" "X-VERSION"\
-"BAD X-VERSION Wrong state"
+imap4d_test -message "ID in initail state" "ID NIL"\
+"BAD ID Wrong state"
 
 imap4d_auth "user!passwd" "guessme"
 
-imap4d_test -message "X-VERSION in auth state" "X-VERSION"\
-"X-VERSION GNU imap4d (GNU Mailutils [mu_check_capability VERSION])"\
+imap4d_test -message "ID in auth state" "ID NIL"\
 "OK"
 
 imap4d_stop

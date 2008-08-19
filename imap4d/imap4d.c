@@ -39,6 +39,10 @@ int create_home_dir;            /* Create home directory if it does not
 				   exist */
 int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
 
+/* Saved command line. */
+int imap4d_argc;                 
+char **imap4d_argv;
+
 enum imap4d_preauth preauth_mode;
 char *preauth_program;
 int preauth_only;
@@ -328,6 +332,8 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("Name of DES keyfile for decoding ecrypted ident responses.") },
   { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
     N_("Use only encrypted ident responses.") },
+  { "id-fields", MU_CFG_LIST_OF(mu_cfg_string), &imap4d_id_list, 0, NULL,
+    N_("List of fields to return in response to ID command.") },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
   TCP_WRAPPERS_CONFIG
@@ -475,6 +481,9 @@ main (int argc, char **argv)
   static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
 			  SIGABRT };
 
+  imap4d_argc = argc;
+  imap4d_argv = argv;
+  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 

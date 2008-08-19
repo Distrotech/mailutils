@@ -1045,7 +1045,7 @@ _set_fun (void *item, void *data)
       return 1;
     }
   
-  if (valcvt (clos->sdata, clos->locus, tgt, clos->type, val) == 0)
+  if (valcvt (clos->sdata, clos->locus, &tgt, clos->type, val) == 0)
     mu_list_append (clos->list, tgt);
   return 0;
 }
@@ -1086,13 +1086,11 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
   clos.type = MU_CFG_TYPE (param->type);
   if (MU_CFG_IS_LIST (param->type))
     {
-      mu_list_t list;
-
       clos.sdata = sdata;
       clos.locus = &node->locus;
       mu_list_create (&clos.list);
       mu_list_do (node->label->v.list, _set_fun, &clos);
-      *(mu_list_t*)tgt = list;
+      *(mu_list_t*)tgt = clos.list;
     }
   else if (clos.type == mu_cfg_callback)
     {

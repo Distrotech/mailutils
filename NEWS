@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-08-18
+GNU mailutils NEWS -- history of user-visible changes. 2008-08-20
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -91,6 +91,8 @@ IP addresses/ports (or even local sockets) simultaneously.
 ** pop3d: Fixed APOP handling.
 
 ** Imap4d supports UNSELECT extension.
+
+** Imap4d supports ID extension.
 
 ** imap4d supports PREAUTH mode.
 

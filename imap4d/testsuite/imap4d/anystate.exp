@@ -20,7 +20,7 @@
 imap4d_start 
 
 imap4d_test "CAPABILITY" \
-            "CAPABILITY IMAP4rev1 NAMESPACE IDLE LITERAL+ UNSELECT X-VERSION" \
+            "CAPABILITY IMAP4rev1 NAMESPACE ID IDLE LITERAL+ UNSELECT" \
 	    "OK"
 imap4d_test "NOOP"
 

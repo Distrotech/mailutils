@@ -84,7 +84,6 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
   status = util_finish (command, RESP_NO, "Could not open %s: %s",
 			mboxname, mu_strerror (status));
   free (mailbox_name);
-  state = STATE_AUTH;
   return status;
 }
 
