@@ -1,5 +1,7 @@
 2008-08-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Bugfixes.
+	
 	* libcfg/acl.c (parsearg): Initialize size.
 	* mailbox/cfg_driver.c (mu_cfg_assert_value_type): Bugfix.
 	* mailbox/cfg_lexer.l (mu_get_config): Close file.
