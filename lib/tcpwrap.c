@@ -39,37 +39,28 @@ int deny_severity = LOG_INFO;
 int allow_severity = LOG_INFO;
 
 int
-mu_tcp_wrapper_cb_hosts_allow (mu_debug_t debug, void *data, char *arg)
-{
-  hosts_allow_table = strdup (arg);
-  return 0;
-}
-
-int
-mu_tcp_wrapper_cb_hosts_deny (mu_debug_t debug, void *data, char *arg)
-{
-  hosts_deny_table = strdup (arg);
-  return 0;
-}
-
-int
 mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
-				      char *arg)
+				      mu_config_value_t *val)
 {
-  if (mu_string_to_syslog_priority (arg, &allow_severity))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (mu_string_to_syslog_priority (val->v.string, &allow_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
 			 _("Unknown syslog priority `%s'"), 
-			 arg);
+			 val->v.string);
   return 0;
 }
 
 int
-mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data, char *arg)
+mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data,
+				     mu_config_value_t *val)
 {
-  if (mu_string_to_syslog_priority (arg, &deny_severity))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (mu_string_to_syslog_priority (val->v.string, &deny_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
 			 _("Unknown syslog priority `%s'"), 
-			 arg);
+			 val->v.string);
   return 0;
 }
 
@@ -95,13 +86,13 @@ struct mu_cfg_param tcpwrapper_param[] = {
   { "daemon", mu_cfg_string, &mu_tcp_wrapper_daemon, 0, NULL,     
     N_("Set daemon name for TCP wrapper lookups.  Default is program name."), 
     N_("name") },							      
-  { "allow-table", mu_cfg_callback, NULL, 0,                            
-    mu_tcp_wrapper_cb_hosts_allow,                                            
+  { "allow-table", mu_cfg_string, &hosts_allow_table,
+    0, NULL,
     N_("Use file for positive client address access control "		      
        "(default: /etc/hosts.allow)."),					      
     N_("file") },							      
-  { "deny-table", mu_cfg_callback, NULL, 0,                             
-    mu_tcp_wrapper_cb_hosts_deny,                                             
+  { "deny-table", mu_cfg_string, &hosts_deny_table,
+    0, NULL,                                             
     N_("Use file for negative client address access control "		      
        "(default: /etc/hosts.deny)."),					      
     N_("file") },							      

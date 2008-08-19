@@ -18,6 +18,8 @@
 
 #include "imap4d.h"
 
+/* FIXME: Rewrite using mu_list_t */
+
 /*FIXME: should be global? */
 typedef int (*nsfp_t) (void *closure, int ns, char *path, int delim);
 
@@ -31,34 +33,20 @@ struct namespace_t namespace[NS_MAX];
 
 /* Note: str is not supposed to be NULL */
 int
-set_namespace (int i, char *str)
+set_namespace (int i, const char *str)
 {
-  char *p, *save;
-  struct namespace_t ns;
+  struct namespace_t *ns = namespace + i;
+  int argc;
+  char **argv;
 
-  /* first, estimate the number of items in subdir_v array: */
-  ns.subdir_c = 1;
-  for (p = strchr (str, ':'); p && *p; p = strchr (p + 1, ':'))
-    ns.subdir_c++;
-
-  /* Now allocate the memory */
-  ns.subdir_v = calloc (ns.subdir_c, sizeof (ns.subdir_v[0]));
-
-  /* Fill in the array */
-  if (ns.subdir_c == 1)
-    {
-      ns.subdir_v[0] = mu_normalize_path (strdup (str), "/");
-    }
-  else
-    {
-      ns.subdir_c = 0;
-      for (p = strtok_r (str, ":", &save); p; p = strtok_r (NULL, ":", &save))
-	{
-	  ns.subdir_v[ns.subdir_c++] = mu_normalize_path (strdup (p), "/");
-	}
-    }
-
-  namespace[i] = ns;
+  mu_argcv_get (str, ":", NULL, &argc, &argv);
+  
+  ns->subdir_v = mu_realloc (ns->subdir_v,
+			    (ns->subdir_c + argc) * sizeof (ns->subdir_v[0]));
+  for (i = 0; i < argc; i++)
+    ns->subdir_v[ns->subdir_c++] = mu_normalize_path (argv[i], "/");
+  /* Free only argv, not its members */
+  free (argv);
 
   return 0;
 }

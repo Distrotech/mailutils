@@ -19,6 +19,7 @@
 
 #include <mailutils/acl.h>
 #include <mailutils/address.h>
+#include <mailutils/alloc.h>
 #include <mailutils/assoc.h>
 #include <mailutils/argcv.h>
 #include <mailutils/attribute.h>

@@ -52,7 +52,7 @@ mu_gsasl_module_init (void *data)
 }
 
 struct _gsasl_stream {
-  Gsasl_session_ctx *sess_ctx; /* Context */
+  Gsasl_session *sess_ctx; /* Context */
   int last_err;        /* Last Gsasl error code */
   
   mu_stream_t stream;     /* I/O stream */
@@ -238,7 +238,7 @@ _gsasl_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
 int
 mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
-		     Gsasl_session_ctx *ctx, int flags)
+		     Gsasl_session *ctx, int flags)
 {
   struct _gsasl_stream *s;
   int rc;

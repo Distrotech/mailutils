@@ -161,6 +161,7 @@ mu_list_get_comparator (mu_list_t list, mu_list_comparator_t *comp)
   if (!list)
     return EINVAL;
   *comp = list->comp;
+  return 0;
 }
 
 static int

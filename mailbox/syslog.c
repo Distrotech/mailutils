@@ -21,6 +21,7 @@
 #include <string.h>
 #include <mailutils/diag.h>
 #include <mailutils/kwd.h>
+#include <mailutils/syslog.h>
 
 static mu_kwd_t kw_facility[] = {
   { "USER",    LOG_USER },   
@@ -41,7 +42,7 @@ static mu_kwd_t kw_facility[] = {
 };
 
 static int
-syslog_to_n (mu_kwd_t *kw, char *str, int *pint)
+syslog_to_n (mu_kwd_t *kw, const char *str, int *pint)
 {
   if (strncasecmp (str, "LOG_", 4) == 0)
     str += 4;
@@ -49,7 +50,7 @@ syslog_to_n (mu_kwd_t *kw, char *str, int *pint)
 }
 
 int
-mu_string_to_syslog_facility (char *str, int *pfacility)
+mu_string_to_syslog_facility (const char *str, int *pfacility)
 {
   return syslog_to_n (kw_facility, str, pfacility);
 }
@@ -75,7 +76,7 @@ static mu_kwd_t kw_prio[] = {
 };
 
 int
-mu_string_to_syslog_priority (char *str, int *pprio)
+mu_string_to_syslog_priority (const char *str, int *pprio)
 {
   return syslog_to_n (kw_prio, str, pprio);
 }

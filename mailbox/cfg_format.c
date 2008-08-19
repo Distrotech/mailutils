@@ -1,5 +1,5 @@
 /* cfg_print.c -- convert configuration parse tree to human-readable format.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -18,11 +18,13 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <mailutils/alloc.h>
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
 #include <mailutils/cfg.h>
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
+#include <mailutils/iterator.h>
 #include <ctype.h>
 
 struct tree_print
@@ -41,25 +43,19 @@ format_level (mu_stream_t stream, int level)
 }
 
 static void
-format_label (struct tree_print *tp, const char *label)
+format_string_value (struct tree_print *tp, const char *str)
 {
   size_t size;
   int quote;
   char *p;
-	
-  size = mu_argcv_quoted_length (label, &quote);
+
+  size = mu_argcv_quoted_length (str, &quote);
   if (quote)
     size += 2;
   size++;
   if (size > tp->bufsize)
     {
-      p = realloc (tp->buf, size);
-      if (!p)
-	{
-	  mu_stream_sequential_printf (tp->stream, "%s\n",
-				       _("ERROR: not enough memory"));
-	  return;
-	}
+      p = mu_realloc (tp->buf, size);
       tp->bufsize = size;
       tp->buf = p;
     }
@@ -72,8 +68,62 @@ format_label (struct tree_print *tp, const char *label)
       p++;
     }
   tp->buf[size-1] = 0;
-  mu_argcv_quote_copy (p, label);
+  mu_argcv_quote_copy (p, str);
   mu_stream_sequential_write (tp->stream, tp->buf, size - 1);
+}
+
+static void format_value (struct tree_print *tp, mu_config_value_t *val);
+
+static void
+format_list_value (struct tree_print *tp, mu_config_value_t *val)
+{
+  int i;
+  mu_iterator_t itr;
+  mu_stream_sequential_write (tp->stream, "(", 1);
+  mu_list_get_iterator (val->v.list, &itr);
+  
+  for (mu_iterator_first (itr), i = 0;
+       !mu_iterator_is_done (itr); mu_iterator_next (itr), i++)
+    {
+      mu_config_value_t *p;
+      mu_iterator_current (itr, (void**)&p);
+      if (i)
+	mu_stream_sequential_write (tp->stream, ", ", 2);
+      format_value (tp, p);
+    }
+  mu_iterator_destroy (&itr);
+  mu_stream_sequential_write (tp->stream, ")", 1);
+}
+
+static void
+format_array_value (struct tree_print *tp, mu_config_value_t *val)
+{
+  int i;
+
+  for (i = 0; i < val->v.arg.c; i++)
+    {
+      if (i)
+	mu_stream_sequential_write (tp->stream, " ", 1);
+      format_value (tp, &val->v.arg.v[i]);
+    }
+}
+    
+static void
+format_value (struct tree_print *tp, mu_config_value_t *val)
+{
+  switch (val->type)
+    {
+    case MU_CFG_STRING:
+      format_string_value (tp, val->v.string);
+      break;
+
+    case MU_CFG_LIST:
+      format_list_value (tp, val);
+      break;
+
+    case MU_CFG_ARRAY:
+      format_array_value (tp, val);
+    }
 }
 
 static int
@@ -94,12 +144,12 @@ format_node (const mu_cfg_node_t *node, void *data)
 
     case mu_cfg_node_tag:
       {
-	mu_stream_sequential_write (tp->stream, node->tag_name,
-				    strlen (node->tag_name));
-	if (node->tag_label)
+	mu_stream_sequential_write (tp->stream, node->tag,
+				    strlen (node->tag));
+	if (node->label)
 	  {
 	    mu_stream_sequential_write (tp->stream, " ", 1);
-	    format_label (tp, node->tag_label);
+	    format_value (tp, node->label);
 	  }
 	mu_stream_sequential_write (tp->stream, " {", 2);
 	tp->level++;
@@ -107,12 +157,12 @@ format_node (const mu_cfg_node_t *node, void *data)
       break;
 
     case mu_cfg_node_param:
-      mu_stream_sequential_write (tp->stream, node->tag_name,
-				  strlen (node->tag_name));
-      if (node->tag_label)
+      mu_stream_sequential_write (tp->stream, node->tag,
+				  strlen (node->tag));
+      if (node->label)
 	{
 	  mu_stream_sequential_write (tp->stream, " ", 1);
-	  format_label (tp, node->tag_label);
+	  format_value (tp, node->label);
 	  mu_stream_sequential_write (tp->stream, ";", 1);
 	}
       break;
@@ -238,12 +288,20 @@ format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
     mu_stream_sequential_printf (stream, "%s <%s>;\n",
 				 param->ident,
 				 gettext (param->argname));
+  else if (MU_CFG_IS_LIST (param->type))
+    mu_stream_sequential_printf
+       (stream, "%s <%s: list of %s>;\n",
+	param->ident,
+	gettext (param->argname ?
+		 param->argname : N_("arg")),
+	gettext (mu_cfg_data_type_string (MU_CFG_TYPE (param->type))));
   else
-    mu_stream_sequential_printf (stream, "%s <%s: %s>;\n",
-				 param->ident,
-				 gettext (param->argname ?
-					  param->argname : N_("arg")),
-				 gettext (mu_cfg_data_type_string (param->type)));
+    mu_stream_sequential_printf
+      (stream, "%s <%s: %s>;\n",
+       param->ident,
+       gettext (param->argname ?
+		param->argname : N_("arg")),
+       gettext (mu_cfg_data_type_string (param->type)));
 }
 
 static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,

@@ -22,6 +22,7 @@ INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include
 
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
 AM_YFLAGS=-vt
+AM_LFLAGS=-dvp
 
 SUBDIRS = testsuite 
 
@@ -33,11 +34,21 @@ AM_CPPFLAGS = \
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = errors muerrno.cin parsedate.y fgetpwent.c cfg_parser.y cfg_parser.h inttostr.c inttostr.h 
+EXTRA_DIST = \
+ errors\
+ muerrno.cin\
+ parsedate.y\
+ fgetpwent.c\
+ cfg_lexer.l\
+ cfg_parser.y\
+ cfg_parser.h\
+ inttostr.c\
+ inttostr.h 
 
 libmailutils_la_SOURCES = \
  acl.c\
  address.c\
+ alloc.c\
  amd.c\
  argcv.c\
  assoc.c\
@@ -94,6 +105,7 @@ libmailutils_la_SOURCES = \
  muerrno.c\
  nls.c\
  observer.c\
+ opool.c\
  parse822.c\
  parsedate.c\
  property.c\
@@ -114,7 +126,7 @@ libmailutils_la_SOURCES = \
  wicket.c\
  imaxtostr.c  offtostr.c  umaxtostr.c intprops.h
 
-BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h
+BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h cfg_lexer.c
 MOSTLYCLEANFILES=
 
 parsedate.c: $(srcdir)/parsedate.y
@@ -126,6 +138,11 @@ cfg_parser.c cfg_parser.h: $(srcdir)/cfg_parser.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
 	          y.tab.c cfg_parser.c y.tab.h cfg_parser.h \
                   y.output cfg_parser.y.output \
+                  -- -yy mu_cfg_yy
+
+cfg_lexer.c: $(srcdir)/cfg_lexer.l cfg_parser.h
+	$(YLWRAP) "$(LEX) $(AM_LFLAGS) $(LFLAGS)" \
+                  $(srcdir)/cfg_lexer.l lex.yy.c cfg_lexer.c \
                   -- -yy mu_cfg_yy
 
 muerrno.c: errors muerrno.cin

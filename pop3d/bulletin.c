@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ static char *bulletin_mbox_name;
 static char *bulletin_db_name;
 
 void
-set_bulletin_db (char *file)
+set_bulletin_db (const char *file)
 {
   bulletin_db_name = strdup (file);
 }
@@ -65,7 +65,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
 }
 
 int
-set_bulletin_source (char *source)
+set_bulletin_source (const char *source)
 {
   bulletin_mbox_name = strdup (source);
   return 0;

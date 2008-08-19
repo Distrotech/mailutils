@@ -69,7 +69,7 @@ char *mimeview_file;       /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */
 
 static void
-set_debug_flags (mu_debug_t debug, char *arg)
+set_debug_flags (mu_debug_t debug, const char *arg)
 {
   for (; *arg; arg++)
     {
@@ -152,16 +152,11 @@ static struct argp argp = {
 
 
 static int
-cb_debug (mu_debug_t debug, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  set_debug_flags (debug, arg);
-  return 0;
-}
-
-static int
-cb_metamail (mu_debug_t debug, void *data, char *arg)
-{
-  metamail = strdup ("metamail");
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  set_debug_flags (debug, val->v.string);
   return 0;
 }
 
@@ -172,7 +167,7 @@ struct mu_cfg_param mimeview_cfg_param[] = {
   { "mimetypes", mu_cfg_string, &mimetypes_config, 0, NULL,
     N_("Use this mime.types file."),
     N_("file") },
-  { "metamail", mu_cfg_string, NULL, 0, cb_metamail,
+  { "metamail", mu_cfg_string, &metamail, 0, NULL,
     N_("Use this program to display files."),
     N_("prog") },
   { NULL }

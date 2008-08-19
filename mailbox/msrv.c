@@ -758,7 +758,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 
 
 unsigned short
-get_port (mu_debug_t debug, char *p)
+get_port (mu_debug_t debug, const char *p)
 {
   if (p)
     {
@@ -787,7 +787,7 @@ get_port (mu_debug_t debug, char *p)
 }
 
 static int
-get_family (char **pstr, sa_family_t *pfamily)
+get_family (const char **pstr, sa_family_t *pfamily)
 {
   static struct family_tab
   {
@@ -807,7 +807,7 @@ get_family (char **pstr, sa_family_t *pfamily)
   };
   struct family_tab *fp;
   
-  char *str = *pstr;
+  const char *str = *pstr;
   int len = strlen (str);
   for (fp = ftab; fp->len; fp++)
     {
@@ -847,7 +847,7 @@ is_ip_addr (const char *arg)
 }  
 
 int
-_mu_m_server_parse_url (mu_debug_t debug, char *arg, union m_sockaddr *s,
+_mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
 			int *psalen, struct sockaddr *defsa)
 {
   char *p;
@@ -948,7 +948,7 @@ mu_m_server_parse_url (mu_m_server_t msrv, char *arg,
 }
 
 static int
-server_block_begin (mu_debug_t debug, char *arg, mu_m_server_t msrv,
+server_block_begin (mu_debug_t debug, const char *arg, mu_m_server_t msrv,
 		    void **pdata)
 {
   union m_sockaddr s;
@@ -970,8 +970,10 @@ server_section_parser (enum mu_cfg_section_stage stage,
     {
     case mu_cfg_section_start:
       {
+	if (node->label->type != MU_CFG_STRING)
+	  return 1;
 	/* FIXME: should not modify 2nd arg, or it should not be const */
-	return server_block_begin (tree->debug, node->tag_label,
+	return server_block_begin (tree->debug, node->label->v.string,
 				   *section_data, section_data);
       }
       break;
@@ -988,14 +990,16 @@ server_section_parser (enum mu_cfg_section_stage stage,
 }
 
 static int
-_cb_daemon_mode (mu_debug_t debug, void *data, char *arg)
+_cb_daemon_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   int *pmode = data;
   
-  if (strcmp (arg, "inetd") == 0
-      || strcmp (arg, "interactive") == 0)
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (strcmp (val->v.string, "inetd") == 0
+      || strcmp (val->v.string, "interactive") == 0)
     *pmode = MODE_INTERACTIVE;
-  else if (strcmp (arg, "daemon") == 0)
+  else if (strcmp (val->v.string, "daemon") == 0)
     *pmode = MODE_DAEMON;
   else
     {
@@ -1006,11 +1010,14 @@ _cb_daemon_mode (mu_debug_t debug, void *data, char *arg)
 }
 
 static int
-_cb_port (mu_debug_t debug, void *data, char *arg)
+_cb_port (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   struct m_default_address *ap = data;
-  unsigned short num = get_port (debug, arg);
+  unsigned short num;
 
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  num = get_port (debug, val->v.string);
   if (!num)
     return 1;
   ap->s.s_in.sin_family = AF_INET;

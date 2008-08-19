@@ -39,9 +39,11 @@ static struct mu_gocs_debug debug_settings;
 /* ************************************************************************* */
 
 static int
-_cb_folder (mu_debug_t debug, void *data, char *arg)
+_cb_folder (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  mu_set_folder_directory (arg);
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  mu_set_folder_directory (val->v.string);
   return 0;
 }
 
@@ -127,13 +129,16 @@ DCL_CFG_CAPA (mailer);
 /* ************************************************************************* */
 
 int
-cb_facility (mu_debug_t debug, void *data, char *arg)
+cb_facility (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  if (mu_string_to_syslog_facility (arg, &logging_settings.facility))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  
+  if (mu_string_to_syslog_facility (val->v.string, &logging_settings.facility))
     {
       mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
                            _("Unknown syslog facility `%s'"), 
-			   arg);
+			   val->v.string);
       return 1;
     }
    return 0;
@@ -157,7 +162,7 @@ DCL_CFG_CAPA (logging);
 /* ************************************************************************* */
 
 static int
-cb_debug_level (mu_debug_t debug, void *data, char *arg)
+_cb2_debug_level (mu_debug_t debug, const char *arg, void *data MU_ARG_UNUSED)
 {
   char buf[UINTMAX_STRSIZE_BOUND];
   char *p;
@@ -185,12 +190,19 @@ cb_debug_level (mu_debug_t debug, void *data, char *arg)
     }
   else
     pfx = strdup ("command line");/*FIXME*/
-  /*FIXME:*/
+  /*FIXME: this is suboptimal, there's no use parsing 1st arg in
+    mu_global_debug_from_string */
   mu_global_debug_from_string (debug_settings.string, pfx);
   free (debug_settings.string);
   free (debug_settings.errpfx);
   memset (&debug_settings, 0, sizeof debug_settings);
   return 0;
+}
+
+static int
+cb_debug_level (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  return mu_cfg_string_value_cb (debug, val, _cb2_debug_level, NULL);
 }
 
 static struct mu_cfg_param mu_debug_param[] = {

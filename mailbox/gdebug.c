@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007  Free Software Foundation, Inc.
+   2007, 2008  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -102,24 +102,26 @@ int
 mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 			    mu_debug_t debug)
 {
-  char *p = string, *q;
+  char *q;
   unsigned level = MU_DEBUG_INHERIT;
   
-  if (isdigit (*p))
+  if (isdigit (*string))
     {
-      level = strtoul (p, &q, 0);
+      level = strtoul (string, &q, 0);
       if (*q)
 	{
 	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
 			       _("invalid debugging specification `%s': "
 				 "expected levels or number after `=', "
 				 "but found `%s'"),
-			       string, p);
+			       string, string);
 	  return MU_ERR_FAILURE;
 	}
     }
   else
     {
+      char *p = strdup (string);
+
       for (q = strtok (p, ","); q; q = strtok (NULL, ","))
 	{
 	  int flag;
@@ -156,6 +158,7 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 		level |= MU_DEBUG_LEVEL_MASK (flag);
 	    }
 	}
+      free (p);
     }
   *plev = level;
   return 0;

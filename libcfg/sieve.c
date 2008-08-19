@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -25,10 +25,13 @@
 static struct mu_gocs_sieve sieve_settings;
 
 static int
-cb_clear_library_path (mu_debug_t debug, void *data, char *arg)
+cb_clear_library_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   int flag;
-  if (mu_cfg_parse_boolean (arg, &flag))
+
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (mu_cfg_parse_boolean (val->v.string, &flag))
     {
       mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
       return 1;
@@ -39,10 +42,13 @@ cb_clear_library_path (mu_debug_t debug, void *data, char *arg)
 }
 
 static int
-cb_clear_include_path (mu_debug_t debug, void *data, char *arg)
+cb_clear_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   int flag;
-  if (mu_cfg_parse_boolean (arg, &flag))
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (mu_cfg_parse_boolean (val->v.string, &flag))
     {
       mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
       return 1;
@@ -59,10 +65,11 @@ destroy_string (void *str)
 }
 
 static int
-_add_path (mu_list_t *plist, mu_debug_t debug, void *data, char *arg)
+_add_path (mu_debug_t debug, const char *arg, void *data)
 {
-  char *p;
-  
+  char *p, *tmp;
+  mu_list_t *plist = data;
+    
   if (!*plist)
     {
       int rc = mu_list_create (plist);
@@ -74,21 +81,26 @@ _add_path (mu_list_t *plist, mu_debug_t debug, void *data, char *arg)
 	}
       mu_list_set_destroy_item (*plist, destroy_string);
     }
-  for (p = strtok (arg, ":"); p; p = strtok (NULL, ":"))
+  /* FIXME: Use mu_argcv */
+  tmp = strdup (arg);
+  for (p = strtok (tmp, ":"); p; p = strtok (NULL, ":"))
     mu_list_append (*plist, strdup (p));
+  free (tmp);
   return 0;
 }
 
 static int
-cb_include_path (mu_debug_t debug, void *data, char *arg)
+cb_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  return _add_path (&sieve_settings.include_path, debug, data, arg);
-}
+  return mu_cfg_string_value_cb (debug, val, _add_path,
+				 &sieve_settings.include_path);
+}  
 
 static int
-cb_library_path (mu_debug_t debug, void *data, char *arg)
+cb_library_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  return _add_path (&sieve_settings.library_path, debug, data, arg);
+  return mu_cfg_string_value_cb (debug, val, _add_path,
+				 &sieve_settings.library_path);
 }
 
 static struct mu_cfg_param mu_sieve_param[] = {

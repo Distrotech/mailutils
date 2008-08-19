@@ -261,16 +261,20 @@ static struct argp argp =
 
 
 static int 
-cb_debug (mu_debug_t debug, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  set_debug_level (debug, arg);
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  set_debug_level (debug, val->v.string);
   return 0;
 }
 
 static int
-cb_email (mu_debug_t debug, void *data, char *arg)
+cb_email (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  int rc = mu_set_user_email (arg);
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  int rc = mu_set_user_email (val->v.string);
   if (rc)
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Invalid email: %s"),
 			 mu_strerror (rc));
@@ -278,10 +282,12 @@ cb_email (mu_debug_t debug, void *data, char *arg)
 }
 
 static int
-cb_ticket (mu_debug_t debug, void *data, char *arg)
+cb_ticket (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
   free (tickets);
-  tickets = mu_tilde_expansion (arg, "/", NULL);
+  tickets = mu_tilde_expansion (val->v.string, "/", NULL);
   tickets_default = 0;
   return 0;
 }

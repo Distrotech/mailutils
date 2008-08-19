@@ -287,8 +287,8 @@ extern void pop3d_unmark_retr (mu_attribute_t attr);
 extern void expire_mark_message (mu_message_t msg, char **value);
 
 extern void deliver_pending_bulletins (void);
-extern void set_bulletin_db (char *file);
-extern int set_bulletin_source (char *source);
+extern void set_bulletin_db (const char *file);
+extern int set_bulletin_source (const char *source);
 extern int pop3d_begin_session (void);
 
 

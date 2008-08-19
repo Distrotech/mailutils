@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -35,23 +35,21 @@
 
 #define SKIPWS(p) while (*(p) && ISSPACE (*(p))) (p)++;
 
-static char *
-getword (char **parg)
+static const char *
+getword (mu_config_value_t *val, int *pn, mu_debug_t err)
 {
-  char *arg = *parg;
-  char *word;
+  int n = (*pn)++;
+  mu_config_value_t *v;
 
-  SKIPWS (arg);
-  word = arg;
-  if (*arg)
+  if (n >= val->v.arg.c)
     {
-      while (*arg && !ISSPACE (*arg))
-	arg++;
-      if (*arg)
-	*arg++ = 0;
+      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("not enough arguments"));
+      return NULL;
     }
-  *parg = arg;
-  return word;
+  v = &val->v.arg.v[n];
+  if (mu_cfg_assert_value_type (v, MU_CFG_STRING, err))
+    return NULL;
+  return v->v.string;
 }
 
 struct netdef
@@ -66,7 +64,7 @@ struct netdef
 #endif
 
 int
-parse_address (mu_debug_t err, char *str, struct netdef *nd)
+parse_address (mu_debug_t err, const char *str, struct netdef *nd)
 {
   struct sockaddr_in in;
   
@@ -94,21 +92,33 @@ parse_address (mu_debug_t err, char *str, struct netdef *nd)
 }
 
 static int
-parsearg (mu_debug_t err, char *arg, struct netdef *pnd, char **prest)
+parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
+	  char **prest) 
 {
-  char *w, *p;
+  const char *w;
+  char *p;  
   unsigned long netmask;
-  
-  w = getword (&arg);
-  if (strcmp (w, "from") == 0)
-    w = getword (&arg);
+  int n = 0;
 
+  if (mu_cfg_assert_value_type (val, MU_CFG_ARRAY, err))
+    return 1;
+  
+  w = getword (val, &n, err);
+  if (!w)
+    return 1;
+  if (strcmp (w, "from") == 0) {
+    w = getword (val, &n, err);
+    if (!w)
+      return 1;
+  }
+  
   p = strchr (w, '/');
   if (p)
     {
       char *q;
       unsigned netlen;
-	  
+
+      /* FIXME: This modifies a const char! */
       *p++ = 0;
       netlen = strtoul (p, &q, 10);
       if (*q == 0)
@@ -146,28 +156,44 @@ parsearg (mu_debug_t err, char *arg, struct netdef *pnd, char **prest)
   if (parse_address (err, w, pnd))
     return 1;
 
-  SKIPWS (arg);
   if (prest)
     {
-      if (*arg == 0)
+      if (n == val->v.arg.c)
 	*prest = NULL;
       else
 	{
-	  int len = strlen (arg);
-	  *prest = malloc (len);
-	  if (!prest)
+	  size_t size;
+	  int i;
+	  char *buf;
+	  
+	  for (i = n; i < val->v.arg.c; i++)
+	    {
+	      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING,
+					    err))
+		return 1;
+	      size += strlen (val->v.arg.v[i].v.string) + 1;
+	    }
+
+	  buf = malloc (size);
+	  if (!buf)
 	    {
 	      mu_cfg_format_error (err, MU_DEBUG_ERROR,
 				   "%s", mu_strerror (errno));
 	      return 1;
+	    }	    
+
+	  *prest = buf;
+	  for (i = n; i < val->v.arg.c; i++)
+	    {
+	      if (i > n)
+		*buf++ = ' ';
+	      strcpy (buf, val->v.arg.v[i].v.string);
+	      buf += strlen (buf);
 	    }
-	  if (arg[0] == '"' || arg[0] == '\'')
-	    mu_argcv_unquote_copy (*prest, arg, len);
-	  else
-	    strcpy (*prest, arg);
+	  *buf = 0;
 	}
     }
-  else if (*arg != 0)
+  else if (n != val->v.arg.c)
     {
       mu_cfg_format_error (err, MU_DEBUG_ERROR, _("junk after IP address"));
       return 1;
@@ -176,13 +202,13 @@ parsearg (mu_debug_t err, char *arg, struct netdef *pnd, char **prest)
 }
 
 static int
-cb_allow (mu_debug_t err, void *data, char *arg)
+cb_allow (mu_debug_t err, void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   
-  if (parsearg (err, arg, &ndef, NULL))
+  if (parsearg (err, val, &ndef, NULL))
     return 1;
   rc = mu_acl_append (acl, mu_acl_accept, NULL, ndef.sa, ndef.len,
 		      ndef.netmask);
@@ -195,13 +221,13 @@ cb_allow (mu_debug_t err, void *data, char *arg)
 }
 
 static int
-cb_deny (mu_debug_t err, void *data, char *arg)
+cb_deny (mu_debug_t err, void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   
-  if (parsearg (err, arg, &ndef, NULL))
+  if (parsearg (err, val, &ndef, NULL))
     return 1;
   rc = mu_acl_append (acl, mu_acl_deny, NULL, ndef.sa, ndef.len,
 		      ndef.netmask);
@@ -214,14 +240,14 @@ cb_deny (mu_debug_t err, void *data, char *arg)
 }
 
 static int
-cb_log (mu_debug_t err, void *data, char *arg)
+cb_log (mu_debug_t err, void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, arg, &ndef, &rest))
+  if (parsearg (err, val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_log, rest, ndef.sa, ndef.len,
 		      ndef.netmask);
@@ -234,14 +260,14 @@ cb_log (mu_debug_t err, void *data, char *arg)
 }
 
 static int
-cb_exec (mu_debug_t err, void *data, char *arg)
+cb_exec (mu_debug_t err, void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, arg, &ndef, &rest))
+  if (parsearg (err, val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_exec, rest, ndef.sa, ndef.len,
 		      ndef.netmask);
@@ -254,14 +280,14 @@ cb_exec (mu_debug_t err, void *data, char *arg)
 }
 
 static int
-cb_ifexec (mu_debug_t err, void *data, char *arg)
+cb_ifexec (mu_debug_t err, void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, arg, &ndef, &rest))
+  if (parsearg (err, val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_ifexec, rest, ndef.sa, ndef.len,
 		      ndef.netmask);

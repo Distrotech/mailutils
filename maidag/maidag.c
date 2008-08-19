@@ -242,9 +242,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 static int
-cb_debug (mu_debug_t debug, void *data, char *arg)
+cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  set_debug_flags (debug, arg);
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  set_debug_flags (debug, val->v.string);
   return 0;
 }
 

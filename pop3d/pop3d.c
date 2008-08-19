@@ -31,6 +31,7 @@ mu_m_server_t server;
 unsigned int idle_timeout;
 int pop3d_transcript;
 int debug_mode;
+int tls_required;
 
 #ifdef WITH_TLS
 int tls_available;
@@ -107,26 +108,21 @@ static struct argp_option options[] = {
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
-#ifdef WITH_TLS
 static int
-cb_tls_required (mu_debug_t debug, void *data, char *arg)
+cb_bulletin_source (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  initial_state = INITIAL;
-  return 0;
-}
-#endif
-
-static int
-cb_bulletin_source (mu_debug_t debug, void *data, char *arg)
-{
-  set_bulletin_source (arg); /* FIXME: Error reporting? */
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  set_bulletin_source (val->v.string); /* FIXME: Error reporting? */
   return 0;
 }
 
 static int
-cb_bulletin_db (mu_debug_t debug, void *data, char *arg)
+cb_bulletin_db (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  set_bulletin_db (arg); /* FIXME: Error reporting? */
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  set_bulletin_db (val->v.string); /* FIXME: Error reporting? */
   return 0;
 }
 
@@ -139,7 +135,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
   { "delete-expired", mu_cfg_int, &expire_on_exit, 0, NULL,
     N_("Delete expired messages upon closing the mailbox.") },
 #ifdef WITH_TLS
-  { "tls-required", mu_cfg_callback, NULL, 0, cb_tls_required,
+  { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,
      N_("Always require STLS before entering authentication phase.") },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
@@ -493,6 +489,9 @@ main (int argc, char **argv)
 		   argc, argv, 0, NULL, server))
     exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
 
+  if (tls_required)
+    initial_state = INITIAL;
+  
   if (expire == 0)
     expire_on_exit = 1;
 

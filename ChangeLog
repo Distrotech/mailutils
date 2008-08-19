@@ -1,3 +1,69 @@
+2008-08-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Change configuration file parser based on the lexer/parser from
+	GNU Dico.
+	
+	* auth/gsasl.c: Remove deprecated data types.
+	* imap4d/auth_gsasl.c (retrieve_password): Minor fix.
+
+	* imap4d/imap4d.c, imap4d/imap4d.h, imap4d/namespace.c,
+	lib/tcpwrap.c, libcfg/acl.c, libcfg/auth.c, libcfg/common.c,
+	libcfg/ldap.c, libcfg/sieve.c, libcfg/sql.c, maidag/maidag.c,
+	mail.local/main.c, mailbox/gdebug.c, mailbox/msrv.c,
+	mimeview/mimeview.c, pop3d/bulletin.c, pop3d/pop3d.c,
+	pop3d/pop3d.h, sieve/sieve.c: Reflect changes to the configuration
+	system. 
+
+	* mailbox/Makefile.am (AM_LFLAGS): New variable.
+	(EXTRA_DIST) Add cfg_lexer.l.
+	(libmailutils_la_SOURCES): Add alloc.c and opool.c
+	(BUILT_SOURCES): Add cfg_lexer.c.
+	(cfg_lexer.c): New goal.
+	* mailbox/alloc.c, mailbox/opool.c: New files.
+	* mailbox/cfg_lexer.c: Remove.
+	* mailbox/cfg_lexer.l: New file.
+	* mailbox/.cvsignore: Add cfg_lexer.c.
+	
+	* include/mailutils/Makefile.am: Add alloc.h and opool.h
+	* include/mailutils/alloc.h: New file.
+	* include/mailutils/opool.h: New file.
+	
+	* include/mailutils/cfg.h (mu_cfg_lexer_t,mu_cfg_alloc_t)
+	(mu_cfg_free_t): Remove types.
+	(MU_CFG_STRING, MU_CFG_LIST, MU_CFG_ARRAY): New defines.
+	(mu_config_value_t): New data type.
+	(struct mu_cfg_node): Change type of `label'.
+	(struct mu_cfg_tree): Remove `alloc', `free'.
+	New member `pool'.
+	(mu_cfg_parse): Simplify the signature by removing superfluous
+	arguments.
+	(mu_cfg_tie_in): Remove.
+	(mu_cfg_lexer_pool): New function.
+	(mu_cfg_find_node, mu_cfg_find_node_label): Remove.
+	(mu_cfg_callback_t): Change signature.
+	(MU_CFG_LIST_MASK): New define.
+	(MU_CFG_LIST_OF, MU_CFG_TYPE, MU_CFG_IS_LIST): New defines.
+	(mu_cfg_get_debug): New function.
+	(mu_cfg_assert_value_type, mu_cfg_string_value_cb): New functions.
+	(mu_cfg_tree_set_alloc, mu_cfg_tree_alloc): Remove.
+	* mailbox/cfg_driver.c: Adapt for new node structure.
+	(mu_cfg_assert_value_type, mu_cfg_string_value_cb): New function.
+	* mailbox/cfg_format.c: Adapt for new node structure.
+	* mailbox/cfg_parser.y: Adapt for changes in cfg data types and
+	lexer.
+	
+	* include/mailutils/mailutils.h: Include alloc.h and opool.h
+	* include/mailutils/mu_auth.h (mu_authorization_add_module)
+	(mu_authentication_add_module): New prototypes.
+
+	* include/mailutils/syslog.h (mu_string_to_syslog_facility)
+	(mu_string_to_syslog_priority): First argument is const char *.
+	* mailbox/syslog.c: Likewise.
+	
+	* include/mailutils/types.hin (mu_opool_t): New type.
+	* mailbox/list.c (mu_list_get_comparator): Add missing return
+	statement.
+	
 2008-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Autobuild setup.

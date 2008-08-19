@@ -175,7 +175,7 @@ static int
 retrieve_password (Gsasl *ctx, Gsasl_session *sctx)
 {
   char **username = gsasl_callback_hook_get (ctx);
-  char *authid = gsasl_property_get (sctx, GSASL_AUTHID);
+  const char *authid = gsasl_property_get (sctx, GSASL_AUTHID);
   
   if (username && *username == 0)
     *username = strdup (authid);

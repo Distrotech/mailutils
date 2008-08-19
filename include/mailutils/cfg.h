@@ -20,6 +20,7 @@
 
 #include <mailutils/list.h>
 #include <mailutils/debug.h>
+#include <mailutils/opool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -33,14 +34,32 @@ typedef struct mu_cfg_node mu_cfg_node_t;
 typedef struct mu_cfg_locus mu_cfg_locus_t;
 typedef struct mu_cfg_tree mu_cfg_tree_t;
 
-typedef int (*mu_cfg_lexer_t) (void *ptr, mu_debug_t dbg);
-typedef void *(*mu_cfg_alloc_t) (size_t size);
-typedef void (*mu_cfg_free_t) (void *ptr);
+#define MU_CFG_STRING 0
+#define MU_CFG_LIST   1
+#define MU_CFG_ARRAY  2
 
+typedef struct mu_config_value mu_config_value_t;
+
+struct mu_config_value   
+{
+  int type;
+  union
+  {
+    mu_list_t list;
+    const char *string;
+    struct
+    {
+      size_t c;
+      mu_config_value_t *v;
+    } arg;
+  } v;
+};
+  
 enum mu_cfg_node_type
   {
     mu_cfg_node_undefined,
-    mu_cfg_node_tag,
+    mu_cfg_statement,
+    mu_cfg_node_tag=mu_cfg_statement, /* FIXME: remove */
     mu_cfg_node_param
   };
 
@@ -55,8 +74,8 @@ struct mu_cfg_node
   mu_cfg_node_t *next;
   mu_cfg_locus_t locus;
   enum mu_cfg_node_type type;
-  char *tag_name;
-  char *tag_label;
+  char *tag;
+  mu_config_value_t *label;
   mu_cfg_node_t *node;
 };
 
@@ -64,19 +83,14 @@ struct mu_cfg_tree
 {
   mu_cfg_node_t *node;
   mu_debug_t debug;
-  mu_cfg_alloc_t alloc;
-  mu_cfg_free_t free;
+  mu_opool_t pool;
 };
 
-int mu_cfg_parse (mu_cfg_tree_t **ptree,
-		  void *data,
-		  mu_cfg_lexer_t lexer,
-		  mu_debug_t debug,
-		  mu_cfg_alloc_t alloc,
-		  mu_cfg_free_t free);
+int mu_cfg_parse (mu_cfg_tree_t **ptree);
 
 extern mu_cfg_locus_t mu_cfg_locus;
-extern int mu_cfg_tie_in;
+
+mu_opool_t mu_cfg_lexer_pool (void);
 
 void mu_cfg_perror (const mu_cfg_locus_t *, const char *, ...);
 void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...);
@@ -96,10 +110,6 @@ int mu_cfg_postorder (mu_cfg_node_t *node,
 		      mu_cfg_iter_func_t fun, mu_cfg_iter_func_t endfun,
 		      void *data);
 
-int mu_cfg_find_node (mu_cfg_node_t *tree, const char *path,
-		      mu_cfg_node_t **pval);
-int mu_cfg_find_node_label (mu_cfg_node_t *tree, const char *path,
-			    const char **pval);
 
 /* Table-driven parsing */
 enum mu_cfg_param_data_type
@@ -122,7 +132,12 @@ enum mu_cfg_param_data_type
     mu_cfg_section
   };
 
-typedef int (*mu_cfg_callback_t) (mu_debug_t, void *, char *);
+#define MU_CFG_LIST_MASK 0x8000
+#define MU_CFG_LIST_OF(t) ((t) | MU_CFG_LIST_MASK)
+#define MU_CFG_TYPE(t) ((t) & ~MU_CFG_LIST_MASK)
+#define MU_CFG_IS_LIST(t) ((t) & MU_CFG_LIST_MASK)
+  
+typedef int (*mu_cfg_callback_t) (mu_debug_t, void *, mu_config_value_t *);
 
 struct mu_cfg_param
 {
@@ -218,6 +233,8 @@ int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
 
+mu_debug_t mu_cfg_get_debug (void);
+
 #define MU_PARSE_CONFIG_GLOBAL  0x1
 #define MU_PARSE_CONFIG_VERBOSE 0x2
 #define MU_PARSE_CONFIG_DUMP    0x4
@@ -240,6 +257,11 @@ void mu_format_config_tree (mu_stream_t stream, const char *progname,
 int mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 		        struct mu_cfg_param *progparam,
 		        int flags, void *target_ptr);
+int mu_cfg_assert_value_type (mu_config_value_t *val, int type,
+			      mu_debug_t debug);
+int mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
+			    int (*fun) (mu_debug_t, const char *, void *),
+			    void *data);
 
 int mu_get_config (const char *file, const char *progname,
 		   struct mu_cfg_param *progparam, int flags,
@@ -248,14 +270,12 @@ int mu_get_config (const char *file, const char *progname,
 
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
 void mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug);
-void mu_cfg_tree_set_alloc (struct mu_cfg_tree *tree,
-			    mu_cfg_alloc_t alloc, mu_cfg_free_t free);
-void *mu_cfg_tree_alloc (struct mu_cfg_tree *tree, size_t size);
 void mu_cfg_tree_free (struct mu_cfg_tree *tree, void *mem);
 mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					enum mu_cfg_node_type type,
 					const mu_cfg_locus_t *loc,
-					const char *tag, const char *label,
+					const char *tag,
+					const char *label,
 					mu_cfg_node_t *node);
 void mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node);
 

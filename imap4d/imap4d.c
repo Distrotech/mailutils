@@ -169,27 +169,37 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static int
-cb_other (mu_debug_t debug, void *data, char *arg)
+cb2_namespace (mu_debug_t debug, const char *arg, void *data)
 {
-  set_namespace (NS_OTHER, arg);
+  int what = (int) data;
+  set_namespace (what, arg);
   return 0;
 }
 
 static int
-cb_shared (mu_debug_t debug, void *data, char *arg)
+cb_other (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  set_namespace (NS_SHARED, arg);
+  return mu_cfg_string_value_cb (debug, val, cb2_namespace, (void*)NS_OTHER);
+}
+
+static int
+cb_shared (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  return mu_cfg_string_value_cb (debug, val, cb2_namespace, (void*)NS_SHARED);
   return 0;
 }
 
 static int
-cb_mode (mu_debug_t debug, void *data, char *arg)
+cb_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   char *p;
-  home_dir_mode = strtoul (arg, &p, 8);
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  home_dir_mode = strtoul (val->v.string, &p, 8);
   if (p[0] || (home_dir_mode & ~0777))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-                         _("Invalid mode specification: %s"), arg);
+                         _("Invalid mode specification: %s"),
+			 val->v.string);
   return 0;
 }
 
@@ -239,22 +249,24 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
    preauth stdio
 */
 static int
-cb_preauth (mu_debug_t debug, void *data, char *arg)
+cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  if (strcmp (arg, "stdio") == 0)
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (strcmp (val->v.string, "stdio") == 0)
     preauth_mode = preauth_stdio;
-  else if (strcmp (arg, "ident") == 0)
-    return parse_preauth_scheme (debug, arg, NULL);
-  else if (arg[0] == '/')
+  else if (strcmp (val->v.string, "ident") == 0)
+    return parse_preauth_scheme (debug, val->v.string, NULL);
+  else if (val->v.string[0] == '/')
     {
-      preauth_program = xstrdup (arg);
+      preauth_program = xstrdup (val->v.string);
       preauth_mode = preauth_prog;
     }
   else
     {
       mu_url_t url;
       char *scheme;
-      int rc = mu_url_create (&url, arg);
+      int rc = mu_url_create (&url, val->v.string);
 
       if (rc)
 	{
@@ -266,7 +278,7 @@ cb_preauth (mu_debug_t debug, void *data, char *arg)
       if (rc)
 	{
 	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       "%s: %s", arg, mu_strerror (rc));
+			       "%s: %s", val->v.string, mu_strerror (rc));
 	  return 1;
 	}
 
@@ -301,7 +313,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "home-dir-mode", mu_cfg_callback, NULL, 0, cb_mode,
     N_("File mode for creating user home directories (octal)."),
     N_("mode") },
-  { "tls-required", mu_cfg_int, &tls_required, 0, NULL,
+  { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,
     N_("Always require STARTTLS before entering authentication phase.") },
   { "preauth", mu_cfg_callback, NULL, 0, cb_preauth,
     N_("Configure PREAUTH mode.  MODE is one of:\n"

@@ -100,6 +100,8 @@
 #include <mailutils/pam.h>
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
+#include <mailutils/argcv.h>
+#include <mailutils/alloc.h>
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
@@ -271,7 +273,7 @@ extern int imap4d_bye (int);
 extern int imap4d_bye0 (int reason, struct imap4d_command *command);
 
 /* Namespace functions */
-extern int set_namespace (int i, char *str);
+extern int set_namespace (int i, const char *str);
 extern int namespace_init (char *path);
 extern char * namespace_getfullpath (char *name, const char *delim);
 extern char * namespace_checkfullpath (char *name, const char *pattern,

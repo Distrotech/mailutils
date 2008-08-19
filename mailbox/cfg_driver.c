@@ -442,8 +442,11 @@ prog_parser (enum mu_cfg_section_stage stage,
 	     mu_cfg_tree_t *tree)
 {
   if (stage == mu_cfg_section_start)
-    return strcmp (node->tag_label, label);
-
+    {
+      return node->label->type == MU_CFG_STRING
+	     && strcmp (node->label->v.string, label);
+    }
+  
   return 0;
 }
 
@@ -473,14 +476,18 @@ struct include_data
 };
 
 static int
-_cb_include (mu_debug_t debug, void *data, char *arg)
+_cb_include (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   int ret = 0;
   struct stat sb;
-  char *dirname = arg;
+  const char *dirname;
   struct include_data *idp = data;
   char *tmp = NULL;
-  
+
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+
+  dirname = val->v.string;
   if (dirname[0] != '/')
     dirname = tmp = make_file_name (SYSCONFDIR, dirname);
   
@@ -640,4 +647,60 @@ mu_parse_config (const char *file, const char *progname,
   else
     rc = ENOMEM;
   return rc;
+}
+
+int
+mu_cfg_assert_value_type (mu_config_value_t *val, int type, mu_debug_t debug)
+{
+  if (val->type != MU_CFG_STRING)
+    {
+      /* FIXME */
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("expected string value"));
+      return 1;
+    }
+  return 0;
+}
+
+int
+mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
+			int (*fun) (mu_debug_t, const char *, void *),
+			void *data)
+{
+  switch (val->type)
+    {
+    case MU_CFG_STRING:
+      return fun (debug, val->v.string, data);
+      break;
+
+    case MU_CFG_ARRAY:
+      {
+	int i;
+
+	for (i = 0; i < val->v.arg.c; i++)
+	  {
+	    if (mu_cfg_assert_value_type (&val->v.arg.v[i],
+					  MU_CFG_STRING, debug))
+	      return 1;
+	    fun (debug, val->v.arg.v[i].v.string, data);
+	  }
+      }
+      break;
+
+    case MU_CFG_LIST:
+      {
+	mu_iterator_t itr;
+	mu_list_get_iterator (val->v.list, &itr);
+	for (mu_iterator_first (itr);
+	     !mu_iterator_is_done (itr); mu_iterator_next (itr))
+	  {
+	    mu_config_value_t *pval;
+	    mu_iterator_current (itr, (void*) &pval);
+	    if (mu_cfg_assert_value_type (pval, MU_CFG_STRING, debug))
+	      fun (debug, pval->v.string, data);
+	  }
+	mu_iterator_destroy (&itr);
+      }
+    }
+  return 0;
 }

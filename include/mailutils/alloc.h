@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,28 +16,22 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MAILUTILS_SYSLOG_H
-#define _MAILUTILS_SYSLOG_H
+#ifndef _MAILUTILS_ALLOC_H
+#define _MAILUTILS_ALLOC_H
 
-#include <syslog.h>
+#include <mailutils/types.h>
 
-#ifdef __cplusplus
-extern "C" { 
-#endif
-  
-extern int mu_log_facility;
-extern char *mu_log_tag;
-#define MU_LOG_TAG() (mu_log_tag ? mu_log_tag : mu_program_name)
-  
-int mu_string_to_syslog_facility (const char *str, int *pfacility);
-const char *mu_syslog_facility_to_string (int n);
-int mu_string_to_syslog_priority (const char *str, int *pprio);
-const char *mu_syslog_priority_to_string (int n);
+# ifndef MU_ATTRIBUTE_NORETURN
+#  define MU_ATTRIBUTE_NORETURN __attribute__ ((__noreturn__))
+# endif
 
-#ifdef __cplusplus
-} 
-#endif
+extern void (*mu_alloc_die_hook) (void);
+void mu_alloc_die (void) MU_ATTRIBUTE_NORETURN;
+void *mu_alloc (size_t);
+void *mu_calloc (size_t, size_t);
+void *mu_zalloc (size_t size);
+void *mu_realloc (void *, size_t);
+char *mu_strdup (const char *);
+void *mu_2nrealloc (void *, size_t *, size_t);
 
 #endif
-
-  
