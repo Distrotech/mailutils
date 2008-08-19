@@ -162,7 +162,7 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
 	*prest = NULL;
       else
 	{
-	  size_t size;
+	  size_t size = 0;
 	  int i;
 	  char *buf;
 	  

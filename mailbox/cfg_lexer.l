@@ -324,7 +324,7 @@ mu_get_config (const char *file, const char *progname,
   mu_cfg_locus.line = 1;
   yyrestart (fp);
   rc = mu_cfg_parse (&parse_tree);
-
+  fclose (fp);
   if (rc == 0)
     rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
 			     target_ptr);

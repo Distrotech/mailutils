@@ -1,5 +1,10 @@
 2008-08-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libcfg/acl.c (parsearg): Initialize size.
+	* mailbox/cfg_driver.c (mu_cfg_assert_value_type): Bugfix.
+	* mailbox/cfg_lexer.l (mu_get_config): Close file.
+	* mailbox/cfg_parser.y: Fix array creation.
+	
 	Change configuration file parser based on the lexer/parser from
 	GNU Dico.
 	

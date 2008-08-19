@@ -268,7 +268,11 @@ vallist : vlist
 		  }
 		
 		for (i = 0; i < n; i++)
-		  mu_list_get ($1, i, (void **) &val.v.arg.v[i]);
+		  {
+		    mu_config_value_t *v;
+		    mu_list_get ($1, i, (void **) &v);
+		    val.v.arg.v[i] = *v;
+		  }
 		$$ = config_value_dup (&val);
 	      }
 	    mu_list_destroy (&$1);	      

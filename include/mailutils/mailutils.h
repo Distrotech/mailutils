@@ -47,6 +47,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/nls.h>
 #include <mailutils/observer.h>
+#include <mailutils/opool.h>
 #include <mailutils/parse822.h>
 #include <mailutils/pop3.h>
 #include <mailutils/property.h>

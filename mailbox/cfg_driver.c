@@ -649,14 +649,40 @@ mu_parse_config (const char *file, const char *progname,
   return rc;
 }
 
+static const char *
+_first_value_ptr (mu_config_value_t *val)
+{
+  switch (val->type)
+    {
+    case MU_CFG_STRING:
+      return val->v.string;
+      
+    case MU_CFG_ARRAY:
+      return _first_value_ptr (val->v.arg.v);
+      
+    case MU_CFG_LIST:
+      mu_list_get (val->v.list, 0, (void**) &val);
+      return _first_value_ptr (val);
+    }
+  return "";  
+}
+
 int
 mu_cfg_assert_value_type (mu_config_value_t *val, int type, mu_debug_t debug)
 {
-  if (val->type != MU_CFG_STRING)
+  if (!val)
+    { 
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+                           _("required argument missing"));
+      return 1;
+    }
+
+  if (val->type != type)
     {
       /* FIXME */
       mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("expected string value"));
+			   _("unexpected value: %s"), 
+			   _first_value_ptr (val));
       return 1;
     }
   return 0;
