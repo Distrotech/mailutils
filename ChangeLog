@@ -1,3 +1,18 @@
+2008-08-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Rewrite IMAP namespace support.
+	* imap4d/imap4d.c (imap4d_cfg_param): other-namespace and
+	shared-namespace take proper lists as arguments.
+	(imap4d_session_setup0): Call namespace_init_session.
+	(main): Call namespace_init.
+	* imap4d/imap4d.h (set_namespace): Remove.
+	(namespace_init): Change proto.
+	(namespace_init_session): New prototype.
+	(namespace): New declaration.
+	* imap4d/namespace.c: Rewrite using lists.
+	* mailbox/cfg_parser.y (parse_param): Cast string to lists if
+	the parameter has list type.
+
 2008-08-20  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement ID extension.

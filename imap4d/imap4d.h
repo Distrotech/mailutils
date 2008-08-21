@@ -277,8 +277,10 @@ extern int imap4d_bye (int);
 extern int imap4d_bye0 (int reason, struct imap4d_command *command);
 
 /* Namespace functions */
-extern int set_namespace (int i, const char *str);
-extern int namespace_init (char *path);
+extern mu_list_t namespace[NS_MAX];
+  
+extern int namespace_init_session (char *path);
+extern void namespace_init (void);
 extern char * namespace_getfullpath (char *name, const char *delim);
 extern char * namespace_checkfullpath (char *name, const char *pattern,
 				       const char *delim);

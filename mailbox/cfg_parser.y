@@ -1088,6 +1088,27 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
     {
       clos.sdata = sdata;
       clos.locus = &node->locus;
+      switch (node->label->type)
+	{
+	case MU_CFG_LIST:
+	  break;
+	  
+	case MU_CFG_STRING:
+	  {
+	    mu_list_t list;
+	    mu_list_create (&list);
+	    mu_list_append (list, config_value_dup (node->label));
+	    node->label->type = MU_CFG_LIST;
+	    node->label->v.list = list;
+	  }
+	  break;
+
+	case MU_CFG_ARRAY:
+	  _mu_cfg_perror (sdata->tree->debug, &node->locus,
+			  _("expected list, but found array"));
+	  return 1;
+	}
+
       mu_list_create (&clos.list);
       mu_list_do (node->label->v.list, _set_fun, &clos);
       *(mu_list_t*)tgt = clos.list;

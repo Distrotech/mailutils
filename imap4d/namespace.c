@@ -18,38 +18,9 @@
 
 #include "imap4d.h"
 
-/* FIXME: Rewrite using mu_list_t */
-
-/*FIXME: should be global? */
 typedef int (*nsfp_t) (void *closure, int ns, char *path, int delim);
 
-struct namespace_t
-{
-  int subdir_c;
-  char **subdir_v;
-};
-
-struct namespace_t namespace[NS_MAX];
-
-/* Note: str is not supposed to be NULL */
-int
-set_namespace (int i, const char *str)
-{
-  struct namespace_t *ns = namespace + i;
-  int argc;
-  char **argv;
-
-  mu_argcv_get (str, ":", NULL, &argc, &argv);
-  
-  ns->subdir_v = mu_realloc (ns->subdir_v,
-			    (ns->subdir_c + argc) * sizeof (ns->subdir_v[0]));
-  for (i = 0; i < argc; i++)
-    ns->subdir_v[ns->subdir_c++] = mu_normalize_path (argv[i], "/");
-  /* Free only argv, not its members */
-  free (argv);
-
-  return 0;
-}
+mu_list_t namespace[NS_MAX];
 
 static char *
 printable_pathname (char *str)
@@ -63,36 +34,59 @@ printable_pathname (char *str)
   return str;
 }
 
-static void
-print_namespace (int n)
+static int
+print_namespace_fun (void *item, void *data)
 {
-  int i;
-
-  if (namespace[n].subdir_c == 0)
-    {
-      util_send ("NIL");
-      return;
-    }
-
-  util_send ("(");
-  for (i = 0; i < namespace[n].subdir_c; i++)
-    {
-      char *dir = printable_pathname (namespace[n].subdir_v[i]);
-      char *suf = (dir[0] && dir[strlen (dir) - 1] != '/') ? "/" : "";
-      util_send ("(\"%s%s\" \"/\")", dir, suf);
-    }
-  util_send (")");
+  int *pcount = data;
+  char *dir = printable_pathname (item);
+  char *suf = (dir[0] && dir[strlen (dir) - 1] != '/') ? "/" : "";
+  if ((*pcount)++)
+    util_send (" ");
+  util_send ("(\"%s%s\" \"/\")", dir, suf);
+  return 0;
 }
 
+static void
+print_namespace (int nsid)
+{
+  mu_list_t list = namespace[nsid];
+  if (!list)
+    util_send ("NIL");
+  else
+    {
+      int count;
+      count = 0;
+      util_send ("(");
+      mu_list_do (list, print_namespace_fun, &count);
+      util_send (")");
+    }
+}
+
+struct ns_closure
+{
+  int id;
+  nsfp_t fun;
+  void *closure;
+};
+
 static int
-namespace_enumerate (int ns, nsfp_t f, void *closure)
+_enum_fun (void *item, void *data)
+{
+  struct ns_closure *nsp = data;
+  return nsp->fun (nsp->closure, nsp->id, (char*) item, '/');
+}
+  
+static int
+namespace_enumerate (int id, nsfp_t f, void *closure)
 {
   int i, rc;
+  struct ns_closure nsc;
 
-  for (i = 0; i < namespace[ns].subdir_c; i++)
-    if ((rc = (*f) (closure, ns, namespace[ns].subdir_v[i], '/')))
-      return rc;
-  return 0;
+  nsc.id = id;
+  nsc.fun = f;
+  nsc.closure = closure;
+  return namespace[id] == 0 ? 0 :
+          mu_list_do (namespace[id], _enum_fun, &nsc);
 }
 
 static int
@@ -137,7 +131,7 @@ imap4d_namespace (struct imap4d_command *command, imap4d_tokbuf_t tok)
   return util_finish (command, RESP_OK, "Completed");
 }
 
-
+
 struct namespace_info
 {
   char *name;
@@ -240,8 +234,45 @@ namespace_getfullpath (char *name, const char *delim)
 }
 
 int
-namespace_init (char *path)
+namespace_init_session (char *path)
 {
-  set_namespace (NS_PRIVATE, path);
+  mu_list_create (&namespace[NS_PRIVATE]);
+  mu_list_append (namespace[NS_PRIVATE],
+		  mu_strdup (mu_normalize_path (path, "/")));
   return 0;
+}
+
+static int
+normalize_fun (void *item, void *data)
+{
+  char *name = item;
+  mu_list_t list = data;
+  return mu_list_append (list,
+			 mu_strdup (mu_normalize_path (name, "/")));
+}
+
+static void
+free_item (void *item)
+{
+  free (item);
+}
+  
+void
+namespace_init ()
+{
+  int i;
+
+  for (i = 0; i < NS_MAX; i++)
+    {
+      if (namespace[i])
+	{
+	  mu_list_t list;
+	  mu_list_create (&list);
+	  mu_list_set_destroy_item (list, free_item);
+	  mu_list_do (namespace[i], normalize_fun, list);
+	  mu_list_set_destroy_item (namespace[i], free_item);
+	  mu_list_destroy (&namespace[i]);
+	  namespace[i] = list;
+	}
+    }
 }

@@ -173,27 +173,6 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static int
-cb2_namespace (mu_debug_t debug, const char *arg, void *data)
-{
-  int what = (int) data;
-  set_namespace (what, arg);
-  return 0;
-}
-
-static int
-cb_other (mu_debug_t debug, void *data, mu_config_value_t *val)
-{
-  return mu_cfg_string_value_cb (debug, val, cb2_namespace, (void*)NS_OTHER);
-}
-
-static int
-cb_shared (mu_debug_t debug, void *data, mu_config_value_t *val)
-{
-  return mu_cfg_string_value_cb (debug, val, cb2_namespace, (void*)NS_SHARED);
-  return 0;
-}
-
-static int
 cb_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   char *p;
@@ -304,12 +283,12 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 	
 static struct mu_cfg_param imap4d_cfg_param[] = {
-  { "other-namespace", mu_cfg_callback, NULL, 0, cb_other, 
-    N_("Set other users' namespace.  Argument is a colon-separated list "
-       "of directories comprising the namespace.") },
-  { "shared-namespace", mu_cfg_callback, NULL, 0, cb_shared,
-    N_("Set shared namespace.  Argument is a colon-separated list "
-       "of directories comprising the namespace.") },
+  { "other-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_OTHER],
+    0, NULL, 
+    N_("Set other users' namespace.") },
+  { "shared-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_SHARED],
+    0, NULL,
+    N_("Set shared namespace.") },
   { "login-disabled", mu_cfg_bool, &login_disabled, 0, NULL,
     N_("Disable LOGIN command.") },
   { "create-home-dir", mu_cfg_bool, &create_home_dir, 0, NULL,
@@ -351,7 +330,7 @@ imap4d_session_setup0 ()
     setuid (auth_data->uid);
 
   util_chdir (homedir);
-  namespace_init (homedir);
+  namespace_init_session (homedir);
   mu_diag_output (MU_DIAG_INFO,
 		  _("User `%s' logged in (source: %s)"), auth_data->name,
 		  auth_data->source);
@@ -526,6 +505,8 @@ main (int argc, char **argv)
   if (tls_required)
     imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
 #endif
+
+  namespace_init ();
   
   auth_gssapi_init ();
   auth_gsasl_init ();
