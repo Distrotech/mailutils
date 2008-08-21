@@ -1,5 +1,8 @@
 2008-08-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/mutil.h, mailbox/mutil.c (mu_normalize_path):
+	Remove useless second argument.  All uses changed.
+
 	Rewrite IMAP namespace support.
 	* imap4d/imap4d.c (imap4d_cfg_param): other-namespace and
 	shared-namespace take proper lists as arguments.

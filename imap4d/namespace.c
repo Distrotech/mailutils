@@ -79,7 +79,6 @@ _enum_fun (void *item, void *data)
 static int
 namespace_enumerate (int id, nsfp_t f, void *closure)
 {
-  int i, rc;
   struct ns_closure nsc;
 
   nsc.id = id;
@@ -238,7 +237,7 @@ namespace_init_session (char *path)
 {
   mu_list_create (&namespace[NS_PRIVATE]);
   mu_list_append (namespace[NS_PRIVATE],
-		  mu_strdup (mu_normalize_path (path, "/")));
+		  mu_strdup (mu_normalize_path (path)));
   return 0;
 }
 
@@ -248,7 +247,7 @@ normalize_fun (void *item, void *data)
   char *name = item;
   mu_list_t list = data;
   return mu_list_append (list,
-			 mu_strdup (mu_normalize_path (name, "/")));
+			 mu_strdup (mu_normalize_path (name)));
 }
 
 static void

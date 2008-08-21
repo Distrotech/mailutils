@@ -47,7 +47,7 @@ util_getfullpath (char *name, const char *delim)
       free (p);
       p = s;
     }
-  return mu_normalize_path (p, delim);
+  return mu_normalize_path (p);
 }
 
 static int

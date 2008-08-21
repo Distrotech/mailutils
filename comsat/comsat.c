@@ -480,7 +480,7 @@ find_user (const char *name, char *tty)
 		   sizeof (ftty) - sizeof (PATH_DEV) - 2);
 	  ftty[sizeof (ftty) - 1] = 0;
 
-	  mu_normalize_path (ftty, "/");
+	  mu_normalize_path (ftty);
 	  if (strncmp (ftty, PATH_TTY_PFX, strlen (PATH_TTY_PFX)))
 	    {
 	      /* An attempt to break security... */

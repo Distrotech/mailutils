@@ -495,10 +495,9 @@ mu_get_user_email (const char *name)
          /home/user/../smith   -->   /home/smith
 	 /home/user/../..      -->   /
 
-   FIXME: delim is superfluous. The function deals with unix filesystem
-   paths, so delim should be always "/" */
+*/
 char *
-mu_normalize_path (char *path, const char *delim)
+mu_normalize_path (char *path)
 {
   int len;
   char *p;
@@ -513,21 +512,21 @@ mu_normalize_path (char *path, const char *delim)
     return path;
 
   /* delete trailing delimiter if any */
-  if (len && path[len-1] == delim[0])
+  if (len && path[len-1] == '/')
     path[len-1] = 0;
 
   /* Eliminate any /../ */
   for (p = strchr (path, '.'); p; p = strchr (p, '.'))
     {
-      if (p > path && p[-1] == delim[0])
+      if (p > path && p[-1] == '/')
 	{
-	  if (p[1] == '.' && (p[2] == 0 || p[2] == delim[0]))
+	  if (p[1] == '.' && (p[2] == 0 || p[2] == '/'))
 	    /* found */
 	    {
 	      char *q, *s;
 
 	      /* Find previous delimiter */
-	      for (q = p-2; *q != delim[0] && q >= path; q--)
+	      for (q = p-2; *q != '/' && q >= path; q--)
 		;
 
 	      if (q < path)
@@ -546,7 +545,7 @@ mu_normalize_path (char *path, const char *delim)
 
   if (path[0] == 0)
     {
-      path[0] = delim[0];
+      path[0] = '/';
       path[1] = 0;
     }
 

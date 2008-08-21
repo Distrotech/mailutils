@@ -322,7 +322,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
 int
 imap4d_session_setup0 ()
 {
-  homedir = mu_normalize_path (strdup (auth_data->dir), "/");
+  homedir = mu_normalize_path (mu_strdup (auth_data->dir));
   if (imap4d_check_home_dir (homedir, auth_data->uid, auth_data->gid))
     return 1;
   
