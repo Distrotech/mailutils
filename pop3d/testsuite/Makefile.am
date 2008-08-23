@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2007, 2008 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -20,7 +20,8 @@
 AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = pop3d
 RUNTESTFLAGS = 
-CLEANFILES = *.log
+CLEANFILES = *.log pop3d.rc
+EXTRA_DIST = pop3d.rcin
 test_dirs = config lib pop3d
 
 dist-hook:

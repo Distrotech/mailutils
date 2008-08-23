@@ -2,6 +2,7 @@ Makefile
 Makefile.in
 *.log
 *.sum
+pop3d.rc
 site.exp
 remote.exp
 data

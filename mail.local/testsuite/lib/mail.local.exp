@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,13 +31,7 @@ mu_prepare_spools
 
 set ETC_DIR "$MU_DATA_DIR/etc"
 
-set output [remote_exec host "$MU_MAKESPOOL \
-	                  -subst \"s,@MU_SPOOL_DIR@,$MU_SPOOL_DIR,\" \
-			                    $MU_RC_DIR $ETC_DIR" ]
-if [lindex $output 0] {
-        perror "Cannot create ETC_DIR: [lindex $output 1]"
-        exit 1
-}
+mu_makespool "$MU_RC_DIR" "$ETC_DIR"
 append MU_TOOL_FLAGS " --virtual-passwd-dir $ETC_DIR"
 
 set mu_filename "$MU_SPOOL_DIR/INBOX"

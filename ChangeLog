@@ -1,3 +1,30 @@
+2008-08-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix testsuite to avoid spawning /bin/cp.
+	* imap4d/testsuite/imap4d.rcin: New file.
+	* imap4d/testsuite/Makefile.am (EXTRA_DIST): Add imap4d.rcin
+	* imap4d/testsuite/.cvsignore: Add imap4d.rc
+	* imap4d/testsuite/lib/imap4d.exp: Use mu_makespool to prepare
+	mailspools and mu_create_config to create test configuration
+	file.  Specify the maximum amount of configuration data in the
+	latter, instead of using command line options.
+	* mail.local/testsuite/lib/mail.local.exp: Likewise.
+	* pop3d/testsuite/lib/pop3d.exp: Likewise.
+	
+	* pop3d/testsuite/pop3d.rcin: New file.
+	* pop3d/testsuite/Makefile.am (EXTRA_DIST): Add pop3d.rcin
+	* pop3d/testsuite/.cvsignore: Add pop3d.rc.
+	
+	* testsuite/etc/passwd.in: Use Tcl variable for expansion.
+	* testsuite/lib/mailutils.exp (mu_copy_file): New function.
+	(mu_makespool, mu_create_config): New function.
+	(mu_init): Remove unused variable MU_MAKESPOOL.
+	(mu_prepare_spools): Use mu_makespool.
+	(mu_cleanup_spools): Remove.
+	
+	* libcfg/init.c (mu_parse_config_files): Minor change.
+	* mailbox/cfg_lexer.l (mu_get_config): Fix return value.	
+
 2008-08-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/mutil.h, mailbox/mutil.c (mu_normalize_path):

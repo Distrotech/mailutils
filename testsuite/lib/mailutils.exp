@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2005, 2007 Free Software Foundation
+# Copyright (C) 2002, 2005, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,80 @@ verbose "STARTED" 1
 set env(LC_ALL) "C"
 set env(MU_CONFIG_FLAVOR) "none"
 
+proc mu_copy_file {src dst} {
+    global tool
+    global top_srcdir
+    global srcdir
+    global objdir
+    global host_alias
+    global host_triplet
+    global target_alias
+    global target_triplet
+    global build_alias
+    global build_triplet
+    global MU_TOOL
+    global MU_SPOOL_SOURCE 
+    global MU_FOLDER_SOURCE
+    global MU_SPOOL_DIR 
+    global MU_FOLDER_DIR
+    global MU_RC_DIR 
+    global MU_DATA_DIR
+    
+    set input [open $src r]
+    set output [open $dst w]
+    for {gets $input line} {![eof $input]} {gets $input line} {
+	puts $output [subst -nobackslashes $line]
+    }
+    close $input
+    close $output
+}
+
+proc mu_makespool args {
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set src [lindex $args $i]
+	if {![file isdirectory $src]} {
+	    perror "$src is not a directory"
+	    exit 1
+	}
+	incr i
+	set dst [lindex $args $i]
+	verbose "MU_MAKESPOOL $src => $dst"
+	if [file exists $dst] {
+	    if {![file isdirectory $dst]} {
+		perror "$dst exists but is not a directory"
+		exit 1
+	    }
+	    file delete -force "$dst"
+	} 
+	file mkdir "$dst"
+
+        file attributes "$dst" -permissions "u=rwx"
+	set input [open $src/DISTFILES r]
+	for {gets $input line} {![eof $input]} {gets $input line} {
+	    switch -regexp -- "$line" {
+		"^#.*" { }
+		"^\$"  { }
+		".*\\.in" {
+		    regexp "(.*)\\.in" $line dummy name
+		    verbose "copying $src/$line => $dst/$name #(with edits)"
+		    mu_copy_file "$src/$line" "$dst/$name"
+		}
+		default {
+		    verbose "copying $src/$line => $dst/$line"
+		    file copy -force -- "$src/$line" "$dst/$line"
+		    file attributes "$dst/$line" -permissions "u=rw"
+		}
+	    }
+	}
+	close $input
+    }
+}
+
+proc mu_create_config {name} {
+    global objdir
+    mu_copy_file $objdir/$name.rcin $objdir/$name.rc
+}
+
 proc mu_init {args} {
     global TOOL_EXECUTABLE
     global MU_TOOL
@@ -31,7 +105,6 @@ proc mu_init {args} {
     global MU_SPOOL_DIR 
     global MU_FOLDER_DIR
     global MU_RC_DIR 
-    global MU_MAKESPOOL
     global tool
     global MU_TOOL_FLAGS
     global MU_DATA_DIR
@@ -51,7 +124,6 @@ proc mu_init {args} {
 	    set MU_FOLDER_SOURCE "$top_srcdir/testsuite/folder"
 	    set MU_DATA_DIR "$objdir/data"
 	    set MU_RC_DIR "$top_srcdir/testsuite/etc"
-	    set MU_MAKESPOOL "$top_srcdir/testsuite/makespool"
 	} else {
 	    if [info exists host_board] {
 		if [board_info $host_board exists top_builddir] {
@@ -71,7 +143,6 @@ proc mu_init {args} {
 	    set MU_SPOOL_SOURCE "[board_info $host_board top_srcdir]/spool"
 	    set MU_FOLDER_SOURCE "[board_info $host_board top_srcdir]/folder" 
 	    set MU_DATA_DIR "[board_info $host_board objdir]/data"
-	    set MU_MAKESPOOL "[board_info $host_board top_srcdir]/testsuite/makespool"
 	}
 
         set MU_SPOOL_DIR "$MU_DATA_DIR/spool"
@@ -279,30 +350,15 @@ proc mu_exec {args} {
 ### Only procedures should come after this point.
 
 proc mu_prepare_spools {} {
-    global MU_SPOOL_SOURCE
-    global MU_SPOOL_DIR
+    global MU_SPOOL_SOURCE 
+    global MU_SPOOL_DIR 
     global MU_FOLDER_SOURCE
     global MU_FOLDER_DIR
-    global MU_MAKESPOOL
-
-    set output [remote_exec host "$MU_MAKESPOOL \
-		    $MU_SPOOL_SOURCE $MU_SPOOL_DIR\
-	            $MU_FOLDER_SOURCE $MU_FOLDER_DIR"]
+    
+    mu_makespool $MU_SPOOL_SOURCE $MU_SPOOL_DIR\
+	         $MU_FOLDER_SOURCE $MU_FOLDER_DIR
 }
 
-proc mu_cleanup_spools {} {
-    global MU_SPOOL_SOURCE
-    global MU_SPOOL_DIR
-    global MU_FOLDER_SOURCE
-    global MU_FOLDER_DIR
-    global MU_MAKESPOOL
-
-    if { $MU_SPOOL_SOURCE != $MU_SPOOL_DIR } {
-	set output [remote_exec host "$MU_MAKESPOOL -r \
-		    $MU_SPOOL_DIR $MU_FOLDER_DIR"]
-    }
-}
-	    
 proc mu_version {} {
     global MU_TOOL
     global MU_TOOL_FLAGS

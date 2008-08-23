@@ -304,14 +304,14 @@ mu_get_config (const char *file, const char *progname,
     {
       if (errno != ENOENT)
 	mu_error (_("cannot stat `%s': %s"), file, mu_strerror (errno));
-      return -1;
+      return ENOENT;
     }
   fp = fopen (file, "r");
   if (!fp)
     {
       mu_error (_("cannot open config file `%s': %s"), file,
 		mu_strerror (errno));
-      return -1;
+      return errno;
     }
 
   if (flags & MU_PARSE_CONFIG_VERBOSE)
@@ -334,7 +334,7 @@ mu_get_config (const char *file, const char *progname,
   if (flags & MU_PARSE_CONFIG_VERBOSE)
     mu_error (_("Info: finished parsing file `%s'"), file);
   
-  return rc;
+  return rc == 0 ? 0 : MU_ERR_FAILURE;
 }
 
 mu_opool_t 

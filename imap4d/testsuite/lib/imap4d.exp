@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2005, 2007 Free Software Foundation
+# Copyright (C) 2002, 2005, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 source $top_srcdir/testsuite/lib/mailutils.exp
     
-mu_init "--authentication generic --authorization virtdomain"
+mu_init "--rcfile=$objdir/imap4d.rc"
 mu_version
 if ![mu_check_capability ENABLE_VIRTUAL_DOMAINS] {
     clone_output "WARNING: Support for virtual domains not compiled in"
@@ -29,15 +29,8 @@ if ![mu_check_capability ENABLE_VIRTUAL_DOMAINS] {
 
 set IMAP4D_ETC_DIR "$MU_DATA_DIR/etc"
 
-set output [remote_exec host "$MU_MAKESPOOL \
-	          -subst \"s,@MU_SPOOL_DIR@,$MU_SPOOL_DIR,\" \
-		  $MU_RC_DIR $IMAP4D_ETC_DIR" ]
-if [lindex $output 0] {
-    perror "Cannot create $IMAP4D_ETC_DIR: [lindex $output 1]"
-    exit 1
-}
-append MU_TOOL_FLAGS " --virtual-passwd-dir $IMAP4D_ETC_DIR \
-	 --shared-namespace $MU_DATA_DIR"
+mu_makespool "$MU_RC_DIR" "$IMAP4D_ETC_DIR"
+mu_create_config imap4d
 
 set IMAP4D_TAG 0
 
@@ -76,12 +69,6 @@ proc default_imap4d_start {args} {
 	append sw $args
     } 
     
-    if [info exists host_board] {
-	if [board_info $host_board exists top_srcdir] {
-	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
-	}
-    }
-
     set imap4d_cmd "$MU_TOOL $sw"
     verbose "Spawning $imap4d_cmd"
 
@@ -92,7 +79,7 @@ proc default_imap4d_start {args} {
     }
 
     mu_expect 360 {
-	-re "\\* OK IMAP4rev1 Debugging mode.*\r\n" {
+	-re "\\* (OK)|(PREAUTH) IMAP4rev1 Debugging mode.*\r\n" {
 	    verbose "imap4d initialized."
 	}
 	default {
@@ -111,6 +98,7 @@ proc default_imap4d_stop {} {
 	perror "LOGOUT failed"
 	exit 1
     }
+    remote_close host;
     return 0
 }
 
@@ -131,12 +119,7 @@ proc imap4d_start {args} {
 
     if {$reuse_spool == 0} {
 	mu_prepare_spools
-	set output [remote_exec host \
-		         "cp $MU_SPOOL_DIR/teaparty.mbox $MU_SPOOL_DIR/INBOX"]
-	if [lindex $output 0] {
-		perror "Cannot create $MU_SPOOL_DIR/INBOX: [lindex $output 1]"
-		exit 1
-	}
+	mu_copy_file $MU_SPOOL_DIR/teaparty.mbox $MU_SPOOL_DIR/INBOX
     }
     return [default_imap4d_start [concat [lrange $args $i end]]]
 }

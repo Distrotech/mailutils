@@ -132,7 +132,7 @@ mu_parse_config_files (struct mu_cfg_param *param, void *target)
 			    flags, target);
       if (rc)
 	{
-	  mu_error (_("Cannot open file %s: %s"), mu_load_rcfile,
+	  mu_error (_("Errors parsing file %s: %s"), mu_load_rcfile,
 		    mu_strerror (rc));
 	  return rc;
 	}
