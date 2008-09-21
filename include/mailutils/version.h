@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,10 +25,17 @@
 extern "C" {
 #endif
 
+struct mu_conf_option
+{
+  char *name;
+  char *descr;
+};
+  
 extern char *mu_license_text;
 extern void mu_print_options (void);
 extern void mu_fprint_options (FILE *fp);
-extern const char *mu_check_option (char *name);
+extern void mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt);
+extern const struct mu_conf_option *mu_check_option (char *name);
 
 #ifdef __cplusplus
 }

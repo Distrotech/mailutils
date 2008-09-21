@@ -1,12 +1,26 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 @c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-@sc{gnu} Mailutils provides a set of programs for handling the e-mail.
+GNU Mailutils provides a broad set of utilities for handling
+electronic mail.  These utilities address the needs of both system
+adminsitrators and users.
+
+All utilities are built around a single core subsistem and share many
+common aspects.  All of them are able to work with almost any existing
+mailbox formats.  They use a common configuration file syntax, and
+their configuration files are located in a single subdirectory.
+
+In this chapter we will discuss each utility, and give some advices on
+how to use them in various real life situations.
+
+First of all we will describe command line and configuration file
+syntax.
 
 @menu
+* command line::      Command Line Syntax.  
 * configuration::     Common Configuration File.
 * authentication::    Authorization and Authentication Principles.
 
@@ -33,351 +47,537 @@
 * mailutils-config::  Get the Information about the Mailutils Build.
 @end menu
 
+@node command line
+@section Command Line
+@UNREVISED
+
+@menu
+* Option Basics::       Basic Notions About Command Line Options.
+* Common Options::      Options That are Common for All Utilities.
+@end menu
+
+@node Option Basics
+@subsection Basic Notions About Command Line Options
+
+  Many command line options have two forms, called short and long
+forms.  Both forms are absolutely identical in function; they are
+interchangeable. 
+
+  The @dfn{short} form is a traditional form for UNIX utilities.
+In this form, the option consists of a single dash, followed by a
+single letter, e.g. @option{-c}.
+
+  Short options which require arguments take their arguments
+immediately following the option letter, optionally separated by white
+space.  For example, you might write @option{-f name}, or @option{-fname}.
+Here, @option{-f} is the option, and @option{name} is its argument.
+
+  Short options which allow optional arguments take their arguments
+immediately following the option letter, @emph{without any intervening
+white space characters}.  This is important, so that the command line
+parser might discern that the text following option is its argument,
+not the next command line parameter.  For example, if option @option{-d}
+took an optional argument, then @option{-dname} would mean the option
+with its argument (@option{name} in this case), and @option{-d name} would
+mean the @option{-d} option without any argument, followed by command
+line argument @option{name}.
+
+  Short options' letters may be clumped together, but you are not
+required to do this.  When short options are clumped as a set, use one
+(single) dash for them all, e.g. @option{-cvl} is equivalent to @option{-c
+-v -l}.  However, only options that do not take arguments may be
+clustered this way.  If an option takes an argument, it can only be
+the last option in such a cluster, otherwise it would be impossible to
+specify the argument for it.  Anyway, it is much more readable to
+specify such options separated.
+
+  The @dfn{long} option names are probably easier to memorize than
+their short counterparts.  They consist of two dashes, followed by a
+multi-letter option name, which is usually selected to be a mnemonics
+for the operation it requests.  For example, @option{--verbose} is a
+long option that increases the verbosity of a utility.  In addition,
+long option names can abbreviated, provided that such an abbreviation
+is unique among the options understood by a given utility.  For
+example, if a utility takes options @option{--foreground} and
+@option{--forward}, then the shortest possible abbreviations for these
+options are @option{--fore} and @option{--forw}, correspondingly.  If
+you try to use @option{--for}, the utility will abort and inform you
+that the abbreviation you use is ambiguous, so it is not clear which
+of the options you intended to use.
+
+  Long options which require arguments take those arguments following
+the option name.  There are two ways of specifying a mandatory
+argument.  It can be separated from the option name either by an equal
+sign, or by any amount of white space characters. For example, if the
+@option{--file} option requires an argument, and you wish to supply
+@file{name} as its argument, then you can do so using any of the
+following notations: @option{--file=name} or @option{--file name}.
+
+  In contrast, optional arguments must always be introduced using an
+equal sign.
+
+@node Common Options
+@subsection Options That are Common for All Utilities.
+
+  All GNU Mailutils programs understand a common subset of options.
+
+@table @option
+@xopindex{help, described}
+@item --help
+@itemx -?
+  Display a short summary of the command line options understood by
+this utilities, along with a terse description of each.
+
+  The output of this option consists of three major parts.  First, a
+usage synopsis is displayed.  For example:
+
+@smallexample
+@group
+Usage: sieve [OPTION...] SCRIPT
+GNU sieve -- a mail filtering tool
+@end group
+@end smallexample
+
+  The first line tells that the @command{sieve} utility takes any
+number of options (brackets indicate optional part) and a single
+mandatory argument (@samp{SCRIPT}).  The second lines summarizes the
+purpose of the utility.
+
+  Following this header is an option summary.  It consists of two
+columns:
+
+@verbatim
+  -c, --compile-only         Compile script and exit
+  -d, --debug[=FLAGS]        Debug flags
+  -e, --email=ADDRESS        Override user email address
+@end verbatim
+
+
+The leftmost column contains a comma-separated list of option
+names.  Short options are listed first.  The options are ordered
+alphabetically.  Arguments, if any, are specified after the last
+option name in the list, so that, e.g. the option @samp{-e} in the
+example above requires an argument: @samp{-e ADDRESS}.  Optional
+arguments are enclosed in square brackets, as in @option{--debug}
+option in the example above.
+
+The rightmost column contains a short description of the option
+purpose. 
+
+  The last part of @option{--help} output contains some additional
+notices and lists the email address for reporting bugs.
+
+@xopindex{usage, described}
+@item --usage
+Display a short summary of options.  In the contrast to the
+@option{--help} option, only option names and arguments
+are printed, without any textual description.  For example:
+
+@smallexample
+@group
+Usage: sieve [-cv?V] [--compile-only] [--debug[=FLAGS]]
+             [--email=ADDRESS] SCRIPT
+@end group
+@end smallexample
+@end table
+
+  The exact formatting of the output produced by these two options is
+configurable.  @xref{Usage Vars}, for a detailed descriptions of it.
+
+@table @option
+@xopindex{version, described}
+@item --version 
+@itemx -V
+Print program version and exit.
+
+@xopindex{show-config-options, described}
+@item --show-config-options
+Show configuration options used when compiling the package.  You can
+use this option to verify if support for a particular mailbox format
+or other functionality is compiled in the binary.  The output of this
+option is intended to be both machine-readable and understandable by
+humans.
+@end table
+
+  The following command line options affect parsing of configuration
+files.  Here we provide a short summary, the next section will
+describe them in detail.
+
+@table @option
+@xopindex{config-file, introduced}
+@item --config-file=@var{file}
+Load this configuration file, instead of the default.
+
+@xopindex{config-help, introduced}
+@item --config-help
+Show configuration file summary.
+
+@xopindex{config-lint, introduced}
+@item --config-lint
+Check configuration file syntax and exit
+
+@xopindex{config-verbose, introduced}
+@item --config-verbose
+Verbosely log parsing of the configuration files.
+
+@xopindex{no-site-config, introduced}
+@item --no-site-config
+Do not load site-wide configuration file.
+
+@xopindex{no-user-config, introduced}
+@item --no-user-config
+Do not load user configuration file.
+@end table
+
 @node configuration
 @section Mailutils Configuration File
 @cindex Mailutils configuration file
 @cindex mailutils.rc
+@UNREVISED
 
-There are some command line options that are used so often that it is
-inconvenient to specify them in the command line each time you run
-a Mailutils utility. The @dfn{configuration files} provide a way to
-add default command line arguments without having to type them in
-the command line. Upon startup, each Mailutils utility scans and
-processes the contents of the three startup files, none of which
-are required to exist:
+  Configuration files are the principal means of configuring any GNU
+Mailutil component.  When started, each utility tries to load its
+configuration from the following locations, in that order:
 
-@enumerate
-@item the site-wide configuration file
+@enumerate 1
+@item Main site-wide configuration file.
 
-@file{mailutils.rc}, found in your your system configuration directory
-(usually @file{/etc} or @file{/usr/local/etc}).
+It is named @file{@var{sysconfdir}/mailutils.rc}, where @var{sysconfdir} stands
+for the system configuration directory set when compiling the package.
+Usually @var{sysconfdir} is @file{/etc} (or @file{/usr/local/etc}).
 
-@item the user-specific configuration file
+@xopindex{no-site-config, described}
+This configuration file is not read if the @option{--no-site-config}
+command line option was given.
 
-Usually @file{~/.mailutils}, unless @file{~/.mailutils} is a directory,
-in which case @file{~/.mailutils/mailutils} is used.
+@item Per-user configuration file.
 
-@item the programs-specific configuration file
+A per user configuration file is located in the user home directory
+and is named @samp{.@var{prog}}, where @var{prog} is the name of the
+utility.  For example, the per-user configuration file for
+@command{sieve} utility is named @file{.sieve}.
 
-Usually @file{~/.mu.@var{program}rc}, unless @file{~/.mailutils} is a
-directory, in which case @file{~/.mailutils/@var{program}rc} is used
-(where @var{program} means the program name).
+@xopindex{no-user-config, described}
+This configuration file is not read if the @option{--no-user-config}
+command line option was given.
+
+@xopindex{config-file, described}
+@item Additional configuration file, if specified using the
+@option{--config-file} command line option.
 @end enumerate
 
-These files have simple line-oriented syntax. Comments begin with the
-pound sign (@samp{#}) and extend through the end of the line
-@footnote{If @samp{#} is not the first character on the line, it
-should be separated from the previous word by any amount of whitespace.}.
-Very long lines may be split across several lines by escaping final newline
-with a backslash (@samp{\}) character.
+The order in which configuration files are loaded defines the
+precedence of their settings.  Thus, the settings from additional
+configuration file override those set in per-user configuration file.
+The latter, in their turn, take precedence over the settings from the
+site-wide configuration file.
 
-In the non-program-specific configuration files, any configuration line
-must start with a @dfn{tag}. In the program-specific configuration
-file the tag must not be present, all options are for that specific
-program.
+@xopindex{config-verbose, described}
+Neither site-wide nor user configuration files are required to
+exist. If any or both of them are absent, GNU Mailutils does not
+complain, and the utility falls back to its default settings. To make
+configuration processing more verbose, use the
+@option{--config-verbose} command line option.  Here is an example of
+what you might get using this option:
 
-A tag is either a name of a particular Mailutils utility or @dfn{option
-group}, prefixed with colon (@samp{:}). The command line options common for
-several Mailutils programs are divided into @dfn{option groups} or
-@dfn{capabilities}, e.g. the options @option{--mail-spool} and
-@option{--lock-flags} form group @samp{mailbox}. These groups are discussed
-in detail below.
+@smallexample
+imap4d: Info: parsing file `/etc/mailutils.rc'
+imap4d: Info: finished parsing file `/etc/mailutils.rc'
+@end smallexample
 
-When processing the non-program-specific configuration files,
-a Mailutils utility selects those lines whose tag is either the name
-of that utility or the name of the option group supported by it.
-In the program-specific configuration file, all lines are selected.
-For each line found, its tag (if present) is stripped away, and the
-rest of the line is split up into words. These words are regarded as
-command line options and are inserted to the program arguments
-@emph{before} any options from the command line. Thus the options
-from @file{.mailutils} take precedence over those from @file{mailutils.rc},
-and the options from the command line take precedence over those from
-all three configuration files.
+Specifying this option more than once adds more verbosity to this
+output.  If this option is given two times, GNU Mailutils will print
+any configuration file statement it parsed, along with the exact
+location where it occurred (the exact meaning of each statement will
+be described later in this chapter):
 
-The word splitting occurs at whitespace characters and is similar to
-that performed by the shell. If an option must contain embedded
-whitespace, it should be enclosed in a pair of quotes (either double
-or single quotes).
+@smallexample
+imap4d: Info: parsing file `/etc/mailutils.rc'
+# 1 "/etc/mailutils.rc"
+mailbox @{
+# 2 "/etc/mailutils.rc"
+  mailbox-pattern maildir:/var/spool/mail;type=index;param=2;user=$@{user@};
+# 3 "/etc/mailutils.rc"
+  mailbox-type maildir;
+@};
+# 6 "/etc/mailutils.rc"
+include /etc/mailutils.d;
+imap4d: Info: parsing file `/etc/mailutils.d/imap4d'
+...
+@end smallexample
+
+@xopindex{config-lint, described}
+  To test configuration file without actually starting the utility,
+use the @option{--config-lint} command line option.  With this option,
+any Mailutils utility exits after finishing parsing of the
+configuration files.  Any errors occurred during parsing are displayed
+on the standard error output.  This option can be combined with
+@option{--config-verbose} to obtain more detailed output.
+
+@xopindex{config-help, described}
+  The @option{--config-help} command line option produces on the
+standard output the summary of all configuration statements understood
+by the utility, with detailed comments and in the form suitable for
+configuration file.  For example, the simplest way to write a
+configuration file for, say, @command{imap4d} is to run
+
+@smallexample
+$ imap4d --config-help > imap4d.rc
+@end smallexample
+
+@noindent
+and to edit the @file{imap4d.rc} file with your editor of choice.
 
 @menu
-* common::             Options understood by most @sc{gnu} utilities.
-* mailbox::            Specifies the mail spool location, and locking strategy.
-* mailer::             Sets the mailer URL.
-* address::            Specifies the default email address and domain.
-* daemon::             Options common for daemon programs.
-* auth::               Authentication-specific options.
-* encryption::         Encryption options.
-* logging::            Logging control options.
-* sieve: sieve group.  Sieve specific options
-* config sample::      A sample configuration file.
+* conf-syntax::      Configuration File Syntax
 @end menu
 
-@node common
-@subsection Common
+@node conf-syntax
+@subsection Configuration File Syntax
+@UNREVISED
+  Configuration files consist of a series of statements.  Blanks,
+tabs, newlines and comments, collectively called @dfn{white space} are
+ignored except as they serve to separate tokens.  Some white space is
+required to separate otherwise adjacent keywords and values.
 
-Each program understands the following informational options:
+@menu
+* Comments::
+* Statements::
+* Includes::
+* Block Statements::
+@end menu
 
-@table @option
-@item -u
-@itemx --usage
-Display a short usage message and exit.
-@item -h
-@itemx --help
-Display help message and exit.
-@item -L
-@itemx --license
-Display @sc{gnu} General Public License and exit.
-@item -v
-@itemx --version
-Display program version and exit.
-@end table
+@node Comments
+@subsubsection Comments
+@cindex comments, configuration file
+@cindex comments, single-line
+@cindex single-line comments
+  @dfn{Comments} may appear anywhere where white space may appear in the
+configuration file.  There are two kinds of comments:
+single-line and multi-line comments.  @dfn{Single-line} comments start
+with @samp{#} or @samp{//} and continue to the end of the line:
 
-@node mailbox
-@subsection Mailbox
-@cindex :mailbox
+@smallexample
+# This is a comment
+// This too is a comment
+@end smallexample
 
-Option group @samp{mailbox} consists of options used to specify the
-location of the mail spool, and the locking strategy.
+@cindex comments, multi-line
+@cindex multi-line comments
+  @dfn{Multi-line} or @dfn{C-style} comments start with the two
+characters @samp{/*} (slash, star) and continue until the first
+occurrence of @samp{*/} (star, slash).
 
-@table @option
-@item -m @var{path}
-@itemx --mail-spool=@var{path}
-Set path to the mailspool directory
-@item --lock-flags=@var{flags}
-Set the default mailbox lock flags (E=external, R=retry, T=time, P=pid).
-@end table
+  Multi-line comments cannot be nested.
 
-@node mailer
-@subsection Mailer
-@cindex :mailer
+@node Statements
+@subsubsection Statements
+@cindex statements, configuration file
+@cindex configuration file statements
+@cindex statement, simple
+@cindex simple statements
+  A @dfn{simple statement}, consists of a keyword and value 
+separated by any amount of whitespace.  Simple statement is terminated
+with a semicolon (@samp{;}), unless it contains a @dfn{here-document}
+(see below), in which case semicolon is optional.
 
-This option group overrides the default mailer URL (@url{sendmail:}).
+  Examples of simple statements:
 
-@table @option
-@item -m @var{url}
-@itemx --mailer @var{url}
-@end table
+@smallexample
+pidfile /var/run/imap4d.pid;
+transcript yes;
+@end smallexample
 
-@node address
-@subsection Address
-@cindex :address
+  A @dfn{keyword} begins with a letter and may contain letters,
+decimal digits, underscores (@samp{_}) and dashes (@samp{-}).
+Examples of keywords are: @samp{group}, @samp{identity-check}.
 
-Option group @samp{address} consists of options used to specify how to
-qualify email addresses.
-
-An unqualified address (one without an @var{@@}) is qualified by appending
-@var{@@}@var{defaultdomain}. @var{defaultdomain} is the return of
-@code{gethostname()}, or the result of @code{gethostbyname()} on the return
-of @code{gethostname()} (if the DNS lookup is successful).
-
-If the email address of the current user is needed, either the address set by
-@option{--email-addr} is returned, or the current uid is looked up in the user
-database, and qualified with the @var{defaultdomain}.
-
-@table @option
-@item -E @var{email}
-@itemx --email-addr=@var{email}
-Set the current user's email address, this it makes more sense to use
-this in one of the per-user configuration files.
-@item -D @var{domain}
-@itemx --email-domain=@var{domain}
-Set the default email domain, this might make sense to use in either
-the global or one of the per-user configuration files.
-@end table
-
-@node daemon
-@subsection Daemon
-@cindex :daemon
-
-@table @option
-@item -d[@var{number}]
-@itemx --daemon[=@var{number}]
-Run in standalone mode. An optional @var{number} specifies the maximum number
-of child processes the daemon is allowed to fork. When it is omitted,
-it defaults to 20 processes.
-@emph{Please note}, that there should be no whitespace between the
-@option{-d} and its parameter.
-@item -i
-@itemx --inetd
-Run in inetd mode.
-@item -p @var{number}
-@itemx --port @var{number}
-Listen on given port @var{number}. This option is meaningful only in
-standalone mode. It defaults to port 143.
-@item -t @var{number}
-@itemx --timeout @var{number}
-Set idle timeout to given @var{number} of seconds. The daemon breaks the
-connection if it receives no commands from the client within that number
-of seconds.
-@end table
-
-@node auth
-@subsection Auth
-@cindex :auth
-
-These options control the authorization and authentication module
-lists. For a description of authentication concepts, refer to
-@xref{authentication}.
-
-@table @option
-@item --authorization @var{modlist}
-
-This option allows to set up a list of modules to be used for
-authorization. @var{modlist} is a colon-separated list of
-modules. Valid modules are:
+  A @dfn{value} can be one of the following:
 
 @table @asis
-@item system
-User credentials are retrieved from the system user database
-(@file{/etc/password}).
-@item sql
-User credentials are retrieved from the @acronym{sql} database. The set
-of @option{--sql-} options (see below) is used to configure
-access to the database.
-@item virtdomain
-User credentials are retrieved from a ``virtual domain'' user
-database.
-@end table
+@item number
+  A number is a sequence of decimal digits.
 
-@item --authentication @var{modlist}
+@item boolean
+@cindex boolean value
+  A boolean value is one of the following: @samp{yes}, @samp{true},
+@samp{t} or @samp{1}, meaning @dfn{true}, and @samp{no},
+@samp{false}, @samp{nil}, @samp{0} meaning @dfn{false}.
+  
+@item unquoted string
+@cindex string, unquoted
+  An unquoted string may contain letters, digits, and any of the
+following characters: @samp{_}, @samp{-}, @samp{.}, @samp{/},
+@samp{:}.
 
-This option allows to set up a list of modules to be used for
-authentication. @var{modlist} is a colon-separated list of
-modules. Valid modules are:
+@item quoted string
+@cindex quoted string
+@cindex string, quoted
+@cindex escape sequence
+  A quoted string is any sequence of characters enclosed in
+double-quotes (@samp{"}).  A backslash appearing within a quoted
+string introduces an @dfn{escape sequence}, which is replaced
+with a single character according to the following rules:
 
-@table @asis
-@item generic
-The generic authentication type. User password is hashed and compared
-against the hash value returned in authorization stage.
-@item system
-The hashed value of the user password is retrieved from
-@file{/etc/shadow} file on systems that support it.
-@item sql
-The hashed value of the user password is retrieved from the @acronym{sql}
-database using query supplied by @option{--sql-getpass} option
-(see below).
-@item pam
-The user is authenticated via pluggable authentication module
-(@acronym{pam}). The @acronym{pam} service name to be used is
-configured via @option{--pam-service} option (see below).
-@end table
+@float Table, backslash-interpretation
+@caption{Backslash escapes}
+@multitable @columnfractions 0.30 .5
+@item Sequence @tab Replaced with
+@item \a @tab Audible bell character (@acronym{ASCII} 7)
+@item \b @tab Backspace character (@acronym{ASCII} 8)
+@item \f @tab Form-feed character (@acronym{ASCII} 12)
+@item \n @tab Newline character (@acronym{ASCII} 10)
+@item \r @tab Carriage return character (@acronym{ASCII} 13)
+@item \t @tab Horizontal tabulation character (@acronym{ASCII} 9)
+@item \\ @tab A single backslash (@samp{\})
+@item \" @tab A double-quote.
+@end multitable
+@end float
 
-@item --pam-service @var{name}
-When compiled with @acronym{pam} support, this option specifies the
-name of @acronym{pam} service to be used when authenticating.
-@end table
-
-The following options exist in this group if the package was configured
-with @option{--enable-sql} option. They take effect only if the
-@samp{sql} module is used in authentication and/or authorization.
-
-@table @option
-@item --sql-interface @var{iface}
-Specify @sc{sql} interface to use. @var{Iface} is either @samp{mysql}
-or @samp{postgres}. This allows to select @sc{sql} subsystem on
-runtime if @code{mailutils} was compiled with support for several
-@sc{sql} drivers.
-
-If this option is omitted, @code{mailutils} will use the first
-available @sc{sql} driver. 
-
-@item --sql-host @var{name}
-Name or IP of MySQL server to connect to.
-
-@item --sql-user @var{name}
-@acronym{sql} user name
-
-@item --sql-passwd @var{string}
-@acronym{sql} connection password
-
-@item --sql-db @var{string}
-Name of the database to connect to.
-
-@item --sql-port @var{number}
-Port to use
-
-@item --sql-getpwnam @var{query}
-@acronym{sql} query to retrieve a passwd entry based on username
-
-@item --sql-getpwuid @var{query}
-@acronym{sql} query to retrieve a passwd entry based on user ID
- 
-@item --sql-getpass @var{query}
-@acronym{sql} query to retrieve a password from the database
-@end table
-
-@node encryption
-@subsection Encryption
-@cindex :encryption
-
-These options control TLS/SSL encryption in @command{imap4d}
-and @command{pop3d} daemons.
-
-@table @option
-@item --ssl-cert @var{file}
-This option specifies the file name of the server side SSL certificate
-(accepts PEM format).
-@item --ssl-key @var{file}
-This option specifies the file name of the server side private SSL key
-(accepts PEM format). The key must be protected with 0600 file permissions
-(u=rw,g=,o=), otherwise @command{imap4d} or @command{pop3d} daemons will
-refuse to support TLS/SSL encryption.
-@item --ssl-cafile @var{file}
-This option specifies a file containing the list of trusted CAs (PEM list)
-in order to verify client's certificates. This option is not required.
-@end table
-
-@node logging
-@subsection Logging
-@cindex :logging
-
-@table @option
-@item --log-facility @var{facility}
-Output logs to the specified @command{syslog} facility. The following
-facility names are recognized: @samp{user}, @samp{daemon}, @samp{mail},
-@samp{auth} and @samp{local0} through @samp{local7}. These names are
-case-insensitive.
-@end table
-
-@node sieve group
-@subsection Sieve Specific Options
-@cindex :sieve
-
-The following options comprise this group:
-
-@table @option
-@item -I @var{dir}
-@itemx --includedir=@var{dir}
-Append directory @var{dir} to the list of directories searched for
-include files.
-
-@item -L @var{dir}
-@itemx --libdir=@var{dir}
-Append directory @var{dir} to the list of directories searched for
-library files.
-@end table
-
-@node config sample
-@subsection A Sample Configuration File
-@cindex mailutils.rc, an example
-
-The following configuration file specifies that all Mailutils programs
-should use @file{/var/spool/mail} as a local mailspool
-directory. Programs performing authentication will use @acronym{pam}
-service @samp{mailutils}. All programs, except @command{imap4d} will
-issue log messages via @samp{mail} facility, @command{imap4d} will use
-facility @samp{local1}.
+  In addition, the sequence @samp{\@var{newline}} is removed from
+the string.  This allows to split long strings over several
+physical lines, e.g.:
 
 @smallexample
 @group
-:mailbox --mail-spool /var/spool/mail
-:auth --authentication pam --pam-service mailutils
-:logging --log-facility mail
-imap4d --daemon=20 --timeout=1800 --log-facility local1
+"a long string may be\
+ split over several lines"
 @end group
-@end smallexample 
+@end smallexample
 
+  If the character following a backslash is not one of those specified
+above, the backslash is ignored and a warning is issued.
+
+  Two or more adjacent quoted strings are concatenated, which gives
+another way to split long strings over several lines to improve
+readability.  The following fragment produces the same result as the
+example above:
+
+@smallexample
+@group
+"a long string may be"
+" split over several lines"
+@end group
+@end smallexample
+
+@anchor{here-document}
+@item Here-document
+@cindex here-document
+  @dfn{Here-document} is a special construct that allows to introduce
+strings of text containing embedded newlines.  
+
+  The @code{<<@var{word}} construct instructs the parser to read all
+the lines that follow up to the line containing only @var{word}, with
+possible trailing blanks.  Any lines thus read are concatenated
+together into a single string.  For example:
+
+@smallexample
+@group
+<<EOT
+A multiline
+string
+EOT
+@end group
+@end smallexample
+
+  Body of a here-document is interpreted the same way as
+double-quoted string, unless @var{word} is preceded by a backslash
+(e.g. @samp{<<\EOT}) or enclosed in double-quotes, in which case
+the text is read as is, without interpretation of escape sequences.
+
+  If @var{word} is prefixed with @code{-} (a dash), then all leading
+tab characters are stripped from input lines and the line containing
+@var{word}.  Furthermore, if @code{-} is followed by a single space,
+all leading whitespace is stripped from them.  This allows to indent
+here-documents in a natural fashion.  For example:
+
+@smallexample
+@group
+<<- TEXT
+    All leading whitespace will be
+    ignored when reading these lines.
+TEXT
+@end group
+@end smallexample
+
+  It is important that the terminating delimiter be the only token on
+its line.  The only exception to this rule is allowed if a
+here-document appears as the last element of a statement.  In this
+case a semicolon can be placed on the same line with its terminating 
+delimiter, as in: 
+
+@smallexample
+help-text <<-EOT
+        A sample help text.
+EOT;
+@end smallexample
+
+  However, terminated semicolon after a here-document is optional.
+
+@item list
+@cindex list
+  A @dfn{list} is a comma-separated list of values.  Lists are
+enclosed in parentheses.  The following example shows a statement
+whose value is a list of strings:
+
+@smallexample
+shared-namespace ("/home", "/var/spool/common");
+@end smallexample
+
+  In any case where a list is appropriate, a single value is allowed
+without being a member of a list: it is equivalent to a list with a
+single member.  This means that, e.g. @samp{shared-namespace /home;} is
+equivalent to @samp{shared-namespace (/home);}.
+@end table
+
+@node Includes
+@subsubsection Include Statement 
+@cindex include statement, configuration file
+  An @dfn{include statement} is a special statement that causes
+inclusion of a named file.  This statement has the following syntax:
+
+@smallexample
+include @var{file};
+@end smallexample
+
+If @var{file} names a regular file, the contents of this file is
+included in this point.  Otherwise, if @var{file} names a directory,
+Mailutils searches in that directory for a file whose name coincides
+with the name of utility being executed, and includes this file, if it
+exists.
+
+It is a common approach to end the site-wide configuration file with
+an include statement, e.g.:
+
+@smallexample
+include /etc/mailutils.d;
+@end smallexample
+
+This allows each particular utility to have its own configuration
+file.  Thus. @command{imap4d} will read
+@file{/etc/mailutils.d/imap4d}, etc.
+  
+@node Block Statements
+@subsubsection Block Statements
+@cindex block statement, configuration file
+  A @dfn{block statement} introduces a logical group of another
+statements.  It consists of a keyword, followed by an optional value,
+and a sequence of statements enclosed in curly braces, as shown in
+example below:
+
+@smallexample
+@group
+tcp-wrappers @{
+  enable yes;
+  allow-syslog-priority info;
+  deny-syslog-priority notice;
+@}
+@end group
+@end smallexample
+
+  The closing curly brace may be followed by a semicolon, although
+this is not required.
+  
 @node authentication
 @section Authorization and Authentication Principles
 @cindex authorization
@@ -437,7 +637,7 @@ User credentials are retrieved from the system user database
 (@file{/etc/password}).
 @item sql
 User credentials are retrieved from the @acronym{sql} database. The set
-of @option{--sql-} options (@pxref{auth}) is used to configure
+of @option{--sql-} options (@FIXME-pxref{auth}) is used to configure
 access to the database.
 @item virtdomain
 User credentials are retrieved from a ``virtual domain'' user
@@ -456,11 +656,11 @@ The hashed value of the user password is retrieved from
 @item sql
 The hashed value of the user password is retrieved from the @acronym{sql}
 database using query supplied by @option{--sql-getpass} option
-(@pxref{auth}).
+(@FIXME-pxref{auth}).
 @item pam
 The user is authenticated via pluggable authentication module
 (@acronym{pam}). The @acronym{pam} service name to be used is
-configured via @option{--pam-service} option (@pxref{auth})
+configured via @option{--pam-service} option (@FIXME-pxref{auth})
 @end table
 
 Unless overridden by @option{--authentication} command line option,
@@ -495,7 +695,7 @@ user's system mailbox and outputs the contents of @code{From} and
 the command line, the program reads that folder rather than the default
 mailbox.
 
-The program uses following option groups: @xref{mailbox}.
+The program uses following option groups: @FIXME-xref{mailbox}.
 
 The following command line options alter the behavior of the program:
 
@@ -612,7 +812,7 @@ General usage of @command{mail} program is:
 If [@var{address}...] part is present, @command{mail} switches to
 mail sending mode, otherwise it operates in mail reading mode.
 
-The program uses following option groups: @xref{mailbox}.
+The program uses following option groups: @FIXME-xref{mailbox}.
 
 @command{Mail} understands following command line options:
 
@@ -2345,7 +2545,7 @@ Number of messages in @var{folder}: @var{number}
 where @var{folder} represents the folder name, @var{number} represents
 the number of messages.
 
-The program uses following option groups: @xref{mailbox}.
+The program uses following option groups: @FIXME-xref{mailbox}.
 
 The program accepts following command line options:
 
@@ -2743,7 +2943,7 @@ sieve program.
 
 By default @command{sieve} output all diagnostics on standard error and verbose
 logs on standard output. This behaviour is changed when
-@option{--log-facility} is given in the command line (@pxref{logging}).
+@option{--log-facility} is given in the command line (@FIXME-pxref{logging}).
 This option causes @command{sieve} to output its diagnostics to
 the given syslog facility.
 
@@ -2863,7 +3063,7 @@ It processes mailboxes, applying the user-supplied scheme procedures
 to each of them in turn and saves the resulting output in mailbox
 format.
 
-The program uses following option groups: @xref{mailbox}.
+The program uses following option groups: @FIXME-xref{mailbox}.
 
 @menu
 * Specifying Scheme Program to Execute::
@@ -3040,8 +3240,8 @@ General usage of @command{mail.local} program is:
 If recipient part is present is a FQDN, @command{mail.local} 
 will attempt to deliver to a virtual host.
                                                                                 
-The program uses following option groups: @xref{mailbox}, @xref{auth},
-@xref{logging}, @xref{sieve}.
+The program uses following option groups: @FIXME-xref{mailbox}, @FIXME-xref{auth},
+@FIXME-xref{logging}, @FIXME-xref{sieve}.
 
 @table @option
 @item -f @var{addr}
@@ -3307,7 +3507,7 @@ Option @option{--quota-query} allows to specify a special query to
 retrieve the quota from the database. Currently (as of mailutils
 version @value{VERSION}) it is assumed that this table can be accessed
 using the same credentials as @sc{sql} authentication tables
-(@xref{daemon}, for the detailed discussion of @option{--sql-} options).
+(@FIXME-xref{daemon}, for the detailed discussion of @option{--sql-} options).
 
 For example, suppose you have the following quota table:
 
@@ -3547,8 +3747,8 @@ The server runs as daemon, forking a child for each new connection. This
 mode is triggered by @option{-d} command line switch.
 @end table
 
-The program uses following option groups: @xref{mailbox},
-@xref{daemon}, @xref{logging}, @xref{auth}.
+The program uses following option groups: @FIXME-xref{mailbox},
+@FIXME-xref{daemon}, @FIXME-xref{logging}, @FIXME-xref{auth}.
 
 @menu
 * Login delay::
@@ -3864,8 +4064,8 @@ The ``inetd'' mode allows to start the server from
 imap4  stream tcp nowait  root  /usr/local/sbin/imap4d imap4d
 @end smallexample
 
-The program uses following option groups: @xref{mailbox},
-@xref{daemon}, @xref{logging}, @xref{auth}.
+The program uses following option groups: @FIXME-xref{mailbox},
+@FIXME-xref{daemon}, @FIXME-xref{logging}, @FIXME-xref{auth}.
 
 @subheading Command Line Options
 
@@ -3932,8 +4132,8 @@ either from @file{inetd.conf} or as a standalone daemon.
 @node Starting comsatd
 @subsection Starting @command{comsatd}
 
-@command{Comsatd} uses following option groups: @xref{mailbox},
-@xref{daemon}, @xref{logging}.
+@command{Comsatd} uses following option groups: @FIXME-xref{mailbox},
+@FIXME-xref{daemon}, @FIXME-xref{logging}.
 
 @table @option
 @item -c @var{file}

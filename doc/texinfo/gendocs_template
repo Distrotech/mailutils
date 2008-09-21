@@ -34,7 +34,7 @@
 </p>
 <hr />
 
-The manual for %%PACKAGE%% is available in the following formats:</p>
+<p>The manual for %%PACKAGE%% is available in the following formats:</p>
 
 <ul>
   <li><a href="%%PACKAGE%%.html">HTML 
@@ -44,10 +44,10 @@ The manual for %%PACKAGE%% is available in the following formats:</p>
   <li><a href="%%PACKAGE%%.html.gz">HTML compressed
       (%%HTML_MONO_GZ_SIZE%%K gzipped characters)</a> - entirely on 
       one web page.</li>
-  <li><a href="%%PACKAGE%%_html_node.tar.gz">HTML compressed
+  <li><a href="%%PACKAGE%%.html_node.tar.gz">HTML compressed
       (%%HTML_NODE_TGZ_SIZE%%K gzipped tar file)</a> -
       with one web page per node.</li>
-  <li><a href="%%PACKAGE%%-info.tar.gz">Info document
+  <li><a href="%%PACKAGE%%.info.tar.gz">Info document
       (%%INFO_TGZ_SIZE%%K characters gzipped tar file)</a>.</li>
   <li><a href="%%PACKAGE%%.txt">ASCII text
       (%%ASCII_SIZE%%K characters)</a>.</li>
@@ -77,7 +77,9 @@ href="%%SCRIPTURL%%">%%SCRIPTNAME%%</a> script.)
 <p>
 Return to the <a href="/home.html">GNU Project home page</a>.
 </p>
-
+<p>
+Return to <a href="/software/%%PACKAGE%%">GNU %%PACKAGE%% home page</a>.
+</p>
 <p>
 Please send FSF &amp; GNU inquiries to 
 <a href="mailto:gnu@gnu.org"><em>gnu@gnu.org</em></a>.
@@ -89,8 +91,8 @@ Please send broken links and other corrections (or suggestions) to
 </p>
 
 <p>
-Copyright (C) 2004 Free Software Foundation, Inc.,
-59 Temple Place - Suite 330, Boston, MA 02111, USA
+Copyright (C) 2005 Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02111, USA
 <br />
 Verbatim copying and distribution of this entire article is
 permitted in any medium, provided this notice is preserved.

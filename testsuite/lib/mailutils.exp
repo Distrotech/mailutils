@@ -370,12 +370,13 @@ proc mu_version {} {
     }
 
     set output [remote_exec host "$MU_TOOL --show-config-options"]
-    set flg [split [lindex $output 1]]   	
+    set flg [split [lindex $output 1] "\n"]
     for {set i 0} {$i < [llength $flg]} {incr i} {
-	if [regexp "(.*)=(.*)" [lindex $flg $i] var name value] {
+	regsub "(\t.*)?\r" [lindex $flg $i] "" string
+	if [regexp "(.*)=(.*)" $string var name value] {
 	    set MU_CAPABILITY($name) $value
-	} else {
-	    set MU_CAPABILITY([lindex $flg $i]) 1
+	} elseif {$string != ""} {
+	    set MU_CAPABILITY($string) 1
 	}
     }
     if [info exists MU_CAPABILITY(VERSION)] {

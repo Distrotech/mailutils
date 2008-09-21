@@ -484,7 +484,7 @@ follows:
 int
 _sieve_default_parse_error (void *unused,
                             const char *filename, int lineno,
-			    const char *fmt, va_list ap)
+                            const char *fmt, va_list ap)
 @{
   if (filename)
     fprintf (stderr, "%s:%d: ", filename, lineno);

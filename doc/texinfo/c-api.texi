@@ -16,49 +16,41 @@
 @end menu
 
 @node POP3
-@comment  node-name,  next,  previous,  up
 @section POP3
 @cindex POP3
 @include pop3.texi
 
 @node IMAP4
-@comment  node-name,  next,  previous,  up
 @section IMAP4
 @cindex IMAP4
 @include imap4.texi
 
 @node Mbox
-@comment  node-name,  next,  previous,  up
 @section Mbox
 @cindex Mbox
 @include mbox.texi
 
 @node Mh
-@comment  node-name,  next,  previous,  up
 @section Mh
 @cindex Mh
 @include mh.texi
 
 @node Maildir
-@comment  node-name,  next,  previous,  up
 @section Maildir
 @cindex Maildir
 @include maildir.texi
 
 @node SMTP
-@comment  node-name,  next,  previous,  up
 @section SMTP
 @cindex SMTP
 @include smtp.texi
 
 @node Sendmail
-@comment  node-name,  next,  previous,  up
 @section Sendmail
 @cindex Sendmail
 @include sendmail.texi
 
 @node Parse822
-@comment  node-name,  next,  previous,  up
 @section Parse822
 @cindex Parse822
 @include parse822.texi

@@ -21,6 +21,7 @@
 #endif
 
 #include <mailutils/nls.h>
+#include <mailutils/version.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -42,121 +43,130 @@ char *mu_license_text =
     "\n"
 );
 
-static char *mu_conf_option[] = {
-  "VERSION=" VERSION,
+static struct mu_conf_option mu_conf_option[] = {
+  { "VERSION=" VERSION, N_("Version of this package") },
 #ifdef USE_LIBPAM
-  "USE_LIBPAM",
+  { "USE_LIBPAM", N_("PAM support") },
 #endif
 #ifdef HAVE_LIBLTDL
-  "HAVE_LIBLTDL",
+  { "HAVE_LIBLTDL", N_("a portable `dlopen' wrapper library") },
 #endif
 #ifdef WITH_BDB2
-  "WITH_BDB2",
+  { "WITH_BDB2", N_("Berkeley DB v. 2") },
 #endif
 #ifdef WITH_NDBM
-  "WITH_NDBM",
+  { "WITH_NDBM", },
 #endif
 #ifdef WITH_OLD_DBM
-  "WITH_OLD_DBM",
+  { "WITH_OLD_DBM", N_("Old DBM support") },
 #endif
 #ifdef WITH_GDBM
-  "WITH_GDBM",
+  { "WITH_GDBM", N_("GNU DBM") },
 #endif
 #ifdef WITH_GNUTLS
-  "WITH_GNUTLS",
+  { "WITH_GNUTLS", N_("TLS support using GNU TLS") },
 #endif
 #ifdef WITH_GSASL
-  "WITH_GSASL",
+  { "WITH_GSASL", N_("SASL support using GNU SASL") },
 #endif
 #ifdef WITH_GSSAPI
-  "WITH_GSSAPI",
+  { "WITH_GSSAPI", N_("GSSAPI support") },
 #endif
 #ifdef WITH_GUILE
-  "WITH_GUILE",
+  { "WITH_GUILE", N_("Support for Guile as extension language") },
 #endif
 #ifdef WITH_PTHREAD
-  "WITH_PTHREAD",
+  { "WITH_PTHREAD", N_("Support for POSIX threads") },
 #endif
 #ifdef WITH_READLINE
-  "WITH_READLINE",
+  { "WITH_READLINE", N_("GNU Readline") },
 #endif
 #ifdef HAVE_MYSQL
-  "HAVE_MYSQL",
+  { "HAVE_MYSQL", N_("MySQL") },
 #endif
 #ifdef HAVE_PGSQL
-  "HAVE_PGSQL",
+  { "HAVE_PGSQL", N_("PostgreSQL") },
 #endif
 #ifdef WITH_LDAP
-  "WITH_LDAP",
+  { "WITH_LDAP", },
 #endif
 #ifdef ENABLE_VIRTUAL_DOMAINS
-  "ENABLE_VIRTUAL_DOMAINS",
+  { "ENABLE_VIRTUAL_DOMAINS", N_("Support for virtual mail domains") },
 #endif
 #ifdef ENABLE_IMAP
-  "ENABLE_IMAP",
+  { "ENABLE_IMAP", N_("IMAP4D protocol support") },
 #endif
 #ifdef ENABLE_POP
-  "ENABLE_POP", 
+  { "ENABLE_POP",  N_("POP3D protocol support") },
 #endif
 #ifdef ENABLE_MH
-  "ENABLE_MH",
+  { "ENABLE_MH", N_("MH mail storage support") },
 #endif
 #ifdef ENABLE_MAILDIR
-  "ENABLE_MAILDIR",
+  { "ENABLE_MAILDIR", N_("Maildir mail storage support") },
 #endif
 #ifdef ENABLE_SMTP
-  "ENABLE_SMTP",
+  { "ENABLE_SMTP", N_("SMTP protocol support") },
 #endif
 #ifdef ENABLE_SENDMAIL
-  "ENABLE_SENDMAIL",
+  { "ENABLE_SENDMAIL", N_("Sendmail command line interface support")},
 #endif
 #ifdef ENABLE_NNTP
-  "ENABLE_NNTP",
+  { "ENABLE_NNTP", N_("NNTP protocol support") },
 #endif
 #ifdef ENABLE_RADIUS
-  "ENABLE_RADIUS",
+  { "ENABLE_RADIUS", N_("RADIUS protocol support") },
 #endif
 #ifdef WITH_INCLUDED_LIBINTL
-  "WITH_INCLUDED_LIBINTL",
+  { "WITH_INCLUDED_LIBINTL", N_("GNU libintl compiled in") },
 #endif
-  NULL
+  { NULL }
 };
+
+void
+mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt)
+{
+  fprintf (fp, "%s", opt->name);
+  if (opt->descr)
+    fprintf (fp, "\t- %s", _(opt->descr));
+  fputc('\n', fp);
+}
 
 void
 mu_fprint_options (FILE *fp)
 {
   int i;
   
-  for (i = 0; mu_conf_option[i]; i++)
-    fprintf (fp, "%s\n", mu_conf_option[i]);
+  for (i = 0; mu_conf_option[i].name; i++)
+    mu_fprint_conf_option (fp, mu_conf_option + i);
 }
 
 void
-mu_print_options (FILE *fp)
+mu_print_options ()
 {
   mu_fprint_options (stdout);
 }
 
-const char *
+const struct mu_conf_option *
 mu_check_option (char *name)
 {
   int i;
   
-  for (i = 0; mu_conf_option[i]; i++)
+  for (i = 0; mu_conf_option[i].name; i++)
     {
       int len;
-      char *q, *p = strchr (mu_conf_option[i], '=');
+      char *q, *p = strchr (mu_conf_option[i].name, '=');
       if (p)
-	len = p - mu_conf_option[i];
+	len = p - mu_conf_option[i].name;
       else
-	len = strlen (mu_conf_option[i]);
+	len = strlen (mu_conf_option[i].name);
 
-      if (strncasecmp (mu_conf_option[i], name, len) == 0) 
-	return mu_conf_option[i];
-      else if ((q = strchr (mu_conf_option[i], '_')) != NULL
+      if (strncasecmp (mu_conf_option[i].name, name, len) == 0)
+	return &mu_conf_option[i];
+      else if ((q = strchr (mu_conf_option[i].name, '_')) != NULL
 	       && strncasecmp (q + 1, name,
-			       len - (q - mu_conf_option[i]) - 1) == 0)
-	return mu_conf_option[i];
+			       len - (q - mu_conf_option[i].name) - 1) == 0)
+	return &mu_conf_option[i];
     }
   return NULL;
 }  

@@ -392,7 +392,7 @@ If @var{filename} starts with a directory separator character
 The @code{#searchpath} directive adds its argument to the list of
 directories searched for loadable modules. It has the same effect
 as @option{-L} command line switch used by @sc{gnu} sieve utility
-(@pxref{sieve group}). 
+(@FIXME-pxref{sieve group}). 
 
 @node Require Statement
 @section Require Statement

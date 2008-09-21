@@ -6,14 +6,9 @@
 @finalout
 @c %**end of header
 
-@c This file has the new style title page commands.
-@c Run `makeinfo' rather than `texinfo-format-buffer'.
-@c smallbook
-@c tex
-@c \overfullrule=0pt
-@c end tex
-
 @include version.texi
+@include macros.texi
+@include rendition.texi
 
 @c Combine indices.
 @defcodeindex op
@@ -23,7 +18,7 @@
 @ifinfo
 @dircategory Email
 @direntry
-* Mailutils: (mailutils).       Utilities & library for mailboxes, protocols.
+* Mailutils: (mailutils).       GNU Mail Utilities.
 @end direntry
 @dircategory Individual utilities
 @direntry
@@ -45,7 +40,7 @@ Published by the Free Software Foundation,
 51 Franklin Street, Fifth Floor
 Boston, MA 02110-1301, USA
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2008
 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -63,7 +58,7 @@ Software Foundation raise funds for GNU development.''
 @titlepage
 @title GNU Mailutils
 @subtitle version @value{VERSION}, @value{UPDATED}
-@author Alain Magloire et al.
+@author Alain Magloire, Sergey Pozbyakoff et al.
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -74,14 +69,13 @@ Software Foundation raise funds for GNU development.''
 @page
 @contents
 
-@node Top, Introduction, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@ifnottex
+@node Top
+@top GNU Mailutils
 
-@ifinfo
-@chapter GNU Mailutils
-This edition of the @cite{GNU Mailutils Manual}, last updated @value{UPDATED},
-documents GNU Mailutils Version @value{VERSION}.
-@end ifinfo
+This edition of the @cite{GNU Mailutils Manual}, last updated on
+@value{UPDATED}, documents GNU Mailutils Version @value{VERSION}.
+@end ifnottex
 
 @menu
 * Introduction::            Preliminary Information.
@@ -89,12 +83,13 @@ documents GNU Mailutils Version @value{VERSION}.
 * Libraries::               Mailutils Libraries.
 * Sieve Language::          The Sieve Language.
 * Reporting Bugs::          How to Report a Bug.
-* News::                    Getting News About @sc{gnu} Mailutils.
+* News::                    Getting News About GNU Mailutils.
 * Acknowledgement::         Thanks and Credits.
 
 Appendices
 
 * References::              References.
+* Usage Vars::              Configuring Help Summary
 * GNU FDL::                 This manual is under the GNU Free
                             Documentation License.
 
@@ -136,18 +131,6 @@ Mailutils Programs
 
 * mailutils-config::  Get the Information about the Mailutils Build.
 
-Mailutils Configuration File
-
-* common::             Options understood by most @sc{gnu} utilities.
-* mailbox::            Specifies the mail spool location, and locking strategy.
-* mailer::             Sets the mailer URL.
-* address::            Specifies the default email address and domain.
-* daemon::             Options common for daemon programs.
-* auth::               Authentication-specific options.
-* encryption::         Encryption options.
-* logging::            Logging control options.
-* sieve: sieve group.  Sieve specific options
-* config sample::      A sample configuration file.
 
 @command{mail} --- Send and Receive Mail
 
@@ -360,24 +343,60 @@ Preprocessor
 @end detailmenu
 @end menu
 
-@node Introduction, Programs, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
-@sc{gnu} Mailutils contains a series of useful mail clients, servers,
+GNU Mailutils contains a series of useful mail clients, servers,
 and libraries.  These are the primary mail utilities of the GNU system.
 Specifically, this package contains a POP3 server, an IMAP4 server,
 and a Sieve mail filter.  It also provides a POSIX `mailx' client,
-and a collection of other tools.  The central library is capable of
-accessing different mailbox formats and mailers as well as off of
-local or remote POP3 and IMAP4 servers.
+and a collection of other tools.  All utilities can manipulate the
+mailboxes of various formats, both local, stored on the hard disk,
+and remote, accessed via network protocols, such as POP3 or IMAP4.
+
+The GNU Mailutils libraries supply a rich set of primitives for
+handling electronic mail in programs written in C, C++ or Scheme.
 
 This software is part of the GNU Project and belongs to the Free
 Software Foundation.  All libraries are licensed using the GNU LGPL.
 The documentation is licensed under the GNU FDL, and everything
 else is licensed using the GNU GPL.
 
-@subheading Why use this package?
+@menu
+* Book Contents::               What this Book Contains
+* History::                     A bit of History
+@end menu
+
+@node Book Contents
+@section What this Book Contains
+@UNREVISED
+
+@FIXME{This is more a plan on how the document should be structured,
+than a description of its actual structure.  However it is:}
+
+  This book addresses a wide audience of both system administrators
+and users that aim to use Mailutils programs, and programmers who wish
+to use Mailutils libraries in their programs.  Given this audience,
+the book is divided in three major parts.
+
+  The first part provides a detailed description of each Mailutils
+utility, and advices on how to use them in various situations.  This
+part is intended for users and system administrators who are using
+Mailutils programs.  If you are not interested in programming using
+Mailutils, this is the only part you need to read.
+
+  Subsequent parts address programmers.
+
+  The second part is a tutorial which provides an introduction to
+programming techniques for writing mail applications using GNU
+Mailutils.
+
+  Finally, the third part contains a complete Mailutils library
+reference. 
+
+@node History
+@section A bit of History, and why use this package?
+@UNREVISED
 
 This package started off to try and handle large mailbox files more
 gracefully then current POP3 servers did.  While it handles this task,
@@ -386,14 +405,12 @@ without any real effort on your part.  Also, if a new format is added
 at a later date, your program will support that new format
 automatically as soon as it is compiled against the new library.
 
-@node Programs, Libraries, Introduction, Top
-@comment  node-name,  next,  previous,  up
+@node Programs
 @chapter Mailutils Programs
 @cindex Programs
 @include programs.texi
 
-@node Libraries, Sieve Language, Programs, Top
-@comment  node-name,  next,  previous,  up
+@node Libraries
 @chapter Mailutils Libraries
 @cindex Libraries
 
@@ -404,46 +421,38 @@ automatically as soon as it is compiled against the new library.
 * libsieve::        GNU Implementation of Sieve Mail Filtering.
 @end menu
 
-@node libmailbox, libmuauth, Libraries, Libraries
-@comment  node-name,  next,  previous,  up
+@node libmailbox
 @section Framework
 @cindex Framework
 @include framework.texi
 
-@node libmuauth, libmu_scm, libmailbox, Libraries
-@comment node-name,  next,  previous,  up
+@node libmuauth
 @section Authentication Library
 @cindex Authentication Library
 @cindex libmuauth
 @include libmuauth.texi
 
-@node libmu_scm, libsieve, libmuauth, Libraries
-@comment node-name,  next,  previous,  up
+@node libmu_scm
 @section Mailutils to Scheme Interface
 @cindex Scheme
 @cindex libmu_scm
 @include libmu_scm.texi
 
-@node libsieve,  , libmu_scm, Libraries
-@comment node-name,  next,  previous,  up
+@node libsieve
 @section Sieve Library
 @cindex Sieve Library
 @cindex libsieve
 @include libsieve.texi
 
-@node Sieve Language, Reporting Bugs, Libraries, Top
-@comment node-name,  next,  previous,  up
+@node Sieve Language
 @chapter Sieve Language
 @cindex Sieve Language
 @include sieve.texi
 
-@node Reporting Bugs, News, Sieve Language, Top
-@comment node-name,  next,  previous,  up
+@node Reporting Bugs
 @chapter Reporting Bugs
 
 Email bug reports to @email{bug-mailutils@@gnu.org}.
-Be sure to include the word ``mailutils'' somewhere
-in the ``Subject:'' field.
 
 As the purpose of bug reporting is to improve software, please be sure
 to include maximum information when reporting a bug. The information
@@ -458,19 +467,17 @@ needed is:
 The archives of bug-mailutils mailing list are available from
 @url{http://mail.gnu.org/@/mailman/@/listinfo/@/bug-mailutils}.
 
-@node News, Acknowledgement, Reporting Bugs, Top
-@comment node-name,  next,  previous,  up
-@chapter Getting News About @sc{gnu} Mailutils
+@node News
+@chapter Getting News About GNU Mailutils
 
-The two places to look for any news regarding @sc{gnu} Mailutils are the
+The two places to look for any news regarding GNU Mailutils are the
 Mailutils homepage at @url{http://www.gnu.org/@/software/@/mailutils}, and the
 project page at @url{http://savannah.gnu.org/@/projects/@/mailutils}.
 
 The updated versions of this manual are available online from
 @url{http://www.gnu.org/@/software/@/mailutils/@/manual}.
 
-@node Acknowledgement, References, News, Top
-@comment node-name,  next,  previous,  up
+@node Acknowledgement
 @chapter Acknowledgement
 
 In no particular order,
@@ -500,8 +507,7 @@ Jordi Mallach @email{jordi@@sindominio.net}
 Wojciech Polak @email{polak@@gnu.org}
 @end itemize
 
-@node References, GNU FDL, Acknowledgement, Top
-@comment node-name,  next,  previous,  up
+@node References
 @appendix References
 
 @itemize @bullet
@@ -619,12 +625,11 @@ Notifications}
 @end itemize
 @end itemize
 
-@node GNU FDL, Function Index, References, Top
-@comment node-name,  next,  previous,  up
+@include usage.texi
+
 @include fdl.texi
 
-@node Function Index, Variable Index, GNU FDL, Top
-@comment node-name,  next,  previous,  up
+@node Function Index
 @unnumbered Function Index
 
 This is an alphabetical list of all Mailutils functions.
@@ -632,25 +637,23 @@ This is an alphabetical list of all Mailutils functions.
 @printindex fn
 @page
 
-@node Variable Index, Keyword Index, Function Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @printindex vr
 @page
 
-@node Keyword Index, Program Index, Variable Index, Top
+@node Keyword Index
 @unnumbered Keyword Index
 @printindex ky
 @page
 
-@node Program Index, Concept Index, Keyword Index, Top
-@comment node-name,  next,  previous,  up
+@node Program Index
 @unnumbered Program Index
 
 @printindex pg
 @page
 
-@node Concept Index,  , Program Index, Top
-@comment node-name,  next,  previous,  up
+@node Concept Index
 @unnumbered Concept Index
 
 This is a general index of all issues discussed in this manual

@@ -1,4 +1,5 @@
 @setfilename fdl.info
+@node GNU FDL
 @appendix GNU Free Documentation License
 @cindex FDL, GNU Free Documentation License
 @center Version 1.2, November 2002

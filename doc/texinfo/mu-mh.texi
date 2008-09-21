@@ -324,7 +324,7 @@ aliases, like @option{--cc}, @option{--from}, etc.)
 The argument to this option is a string of type specifications:
 
 @multitable @columnfractions 0.20 0.80
-@item B	@tab Use basic regular expressions
+@item B @tab Use basic regular expressions
 @item E @tab Use extended regular expressions
 @item I @tab Ignore case
 @item C @tab Case sensitive

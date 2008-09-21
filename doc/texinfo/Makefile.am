@@ -28,6 +28,8 @@ INCFILES = \
  sfrom.inc\
  url-parse.inc
 
+RENDITION_TEXI=rendition.texi macros.texi
+
 mailutils_TEXINFOS = \
  address.texi\
  attribute.texi\
@@ -70,11 +72,8 @@ mailutils_TEXINFOS = \
  smtp.texi\
  stream.texi\
  url.texi\
+ $(RENDITION_TEXI)\
  $(INCFILES)
-
-muint_TEXINFOS = \
- muint.texi\
- mom.texi
 
 ## Fake configure into including srcdir to VPATH:
 s=${srcdir}:${top_srcdir}/examples/
@@ -89,9 +88,12 @@ MAINTAINERCLEANFILES=$(INCFILES)
 clean-local:
 	rm -rf manual
 
+# The rendering level is one of PUBLISH, DISTRIB or PROOF.
+# Just call `make RENDITION=PROOF [target]' if you want PROOF rendition.
+
+MAKEINFOFLAGS=-D$(RENDITION)
 GENDOCS=gendocs.sh
-TEXI2DVI=texi2dvi
-MAKEINFOFLAGS=
+TEXI2DVI=texi2dvi -t '@set $(RENDITION)' -E
 
 # Make sure you set TEXINPUTS.
 # TEXINPUTS=/usr/share/texmf/pdftex/plain/misc/ is ok for most distributions
@@ -114,3 +116,57 @@ untabify:
 	emacs -batch -l untabify.el $(info_TEXINFOS) $(mailutils_TEXINFOS)
 
 final: untabify master-menu
+
+
+# Checks
+check-format:
+	@if test -n "`cat $(info_TEXINFOS) $(mailutils_TEXINFOS) |\
+             tr -d -c '\t'`"; then \
+		echo "Sources contain tabs; run make untabify"; \
+		false; \
+	fi
+
+check-refs:
+	@for file in $(info_TEXINFOS) $(dico_TEXINFOS); \
+	do \
+	  sed -e = $$file | \
+           sed -n 'N;/@FIXME-.*ref/{s/\(^[0-9][0-9]*\).*@FIXME-.*ref{\([^}]*\)}.*/'$$file':\1: \2/gp}'; \
+	done > $@-t; \
+	if [ -s $@-t ]; then \
+	  echo "Unresolved cross-references:"; \
+	  cat $@-t;\
+	  rm $@-t; \
+	else \
+	  rm -f $@-t; \
+	fi
+
+check-fixmes:
+	@for file in $(info_TEXINFOS); \
+	do \
+	  sed -e = $$file | \
+           sed -n 'N;/@FIXME{/{s/\(^[0-9][0-9]*\).*@FIXME{\([^}]*\).*/'$$file':\1: \2/gp}'; \
+	done > $@-t; \
+	if [ -s $@-t ]; then \
+	  echo "Unresolved FIXMEs:"; \
+	  cat $@-t; \
+	  rm $@-t; \
+	  false; \
+	else \
+          rm -f $@-t; \
+	fi
+
+check-unrevised:
+	@grep -Hn @UNREVISED $(info_TEXINFOS) $(dico_TEXINFOS) > $@-t; \
+	if [ -s $@-t ]; then \
+	  echo "Unrevised nodes:"; \
+	  cat $@-t; \
+	  rm $@-t; \
+	  false;\
+	else \
+          rm $@-t; \
+	fi
+
+all-check-docs: check-format check-refs check-fixmes check-unrevised
+
+check-docs: 
+	$(MAKE) -k all-check-docs

@@ -276,11 +276,11 @@ main (int argc, char **argv)
 	  
 	  for (i = 0; i < argc; i++)
 	    {
-	      const char *val = mu_check_option (argv[i]);
-	      if (val)
+	      const struct mu_conf_option *opt = mu_check_option (argv[i]);
+	      if (opt)
 		{
 		  found++;
-		  printf ("%s\n", val);
+		  mu_fprint_conf_option (stdout, opt);
 		}
 	    }
 	  return found == argc ? 0 : 1;

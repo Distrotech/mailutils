@@ -216,7 +216,7 @@ credentials for accessing the database are taken from global variables
 and @code{sql_db}. The SQL queries for retrieving user information
 from global variables @code{sql_getpwnam_query} and
 @code{sql_getpwuid_query}. The variable @code{sql_getpass_query} keeps
-the query used for retrieving user's password. @xref{auth}, for
+the query used for retrieving user's password. @FIXME-xref{auth}, for
 information on command line options used to set these variables.
 @end defvar
 

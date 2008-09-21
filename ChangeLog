@@ -1,3 +1,39 @@
+2008-09-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Configure doc hints.
+	* config/mailutils-config.c (main): Use mu_fprint_conf_option.
+	* mailbox/version.c (mu_conf_option): Change type.
+	(mu_fprint_conf_option): New function.
+	(mu_fprint_options): Use mu_fprint_conf_option.
+	(mu_print_options): Fix signature
+	(mu_check_option): Change return type.
+	* testsuite/lib/mailutils.exp (mu_version): Reflect changes in the
+	output produced by --show-config-options.
+	
+	* include/mailutils/version.h (struct mu_conf_option): New data
+	type.
+	(mu_check_option): Change return type.
+	(mu_fprint_conf_option): New prototype.
+	* libargp/common.c (mu_common_argp): Rename --rcfile-* options
+	to --config-*. Retain old names for a while.
+	
+	* doc/texinfo/Makefile.am (RENDITION_TEXI): New variable.
+	(check-format, check-refs, check-fixmes, check-unrevised)
+	(all-check-docs, check-docs): New rules.
+	* doc/texinfo/rendition.texi: New file.
+	* doc/texinfo/macros.texi: New file.
+	* doc/texinfo/mailutils.texi: Start rewriting
+	* doc/texinfo/programs.texi: Likewise.
+	
+	* doc/texinfo/c-api.texi: Reformat.
+	* doc/texinfo/fdl.texi: Likewise.
+	* doc/texinfo/libmuauth.texi: Likewise.
+	* doc/texinfo/libsieve.texi: Likewise.
+	* doc/texinfo/mu-mh.texi: Likewise.
+	* doc/texinfo/sieve.texi: Likewise.
+	
+	* doc/texinfo/gendocs_template: Rewrite.
+
 2008-08-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix testsuite to avoid spawning /bin/cp.
