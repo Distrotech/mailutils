@@ -94,10 +94,10 @@ static struct mu_conf_option mu_conf_option[] = {
   { "ENABLE_VIRTUAL_DOMAINS", N_("Support for virtual mail domains") },
 #endif
 #ifdef ENABLE_IMAP
-  { "ENABLE_IMAP", N_("IMAP4D protocol support") },
+  { "ENABLE_IMAP", N_("IMAP4 protocol support") },
 #endif
 #ifdef ENABLE_POP
-  { "ENABLE_POP",  N_("POP3D protocol support") },
+  { "ENABLE_POP",  N_("POP3 protocol support") },
 #endif
 #ifdef ENABLE_MH
   { "ENABLE_MH", N_("MH mail storage support") },
