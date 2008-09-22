@@ -392,9 +392,16 @@ mu_cfg_get_debug ()
     {
       mu_debug_create (&_mu_cfg_debug, NULL);
       mu_debug_set_print (_mu_cfg_debug, _cfg_default_printer, NULL);
+      mu_debug_set_level (_mu_cfg_debug, mu_global_debug_level ("config"));
     }
-  mu_debug_set_level (_mu_cfg_debug, mu_global_debug_level ("config"));
   return _mu_cfg_debug;
+}
+
+void
+mu_cfg_set_debug ()
+{
+  if (mu_debug_check_level (mu_cfg_get_debug (), MU_DEBUG_TRACE7))
+    yydebug = 1;
 }
 
 int
@@ -403,8 +410,7 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
   int rc;
   mu_cfg_tree_t *tree;
 
-  if (mu_debug_check_level (mu_cfg_get_debug (), MU_DEBUG_TRACE7))
-    yydebug = 1;
+  mu_cfg_set_debug ();
   
   _mu_cfg_errcnt = 0;
   rc = yyparse ();

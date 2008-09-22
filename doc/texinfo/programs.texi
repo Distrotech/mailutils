@@ -244,10 +244,24 @@ configuration from the following locations, in that order:
 
 It is named @file{@var{sysconfdir}/mailutils.rc}, where @var{sysconfdir} stands
 for the system configuration directory set when compiling the package.
-Usually @var{sysconfdir} is @file{/etc} (or @file{/usr/local/etc}).
+You can obtain the value of @var{sysconfdir} by running
+
+@smallexample
+$ mailutils-config --info sysconfdir
+@end smallexample
+
+@noindent
+or
+
+@smallexample
+$ @var{prog} --show-config-options | grep SYSCONFDIR
+@end smallexample
+
+@noindent
+where @var{prog} stands for any GNU Mailutils utility.
 
 @xopindex{no-site-config, described}
-This configuration file is not read if the @option{--no-site-config}
+The site-wide configuration file is not read if the @option{--no-site-config}
 command line option was given.
 
 @item Per-user configuration file.
@@ -329,7 +343,23 @@ $ imap4d --config-help > imap4d.rc
 and to edit the @file{imap4d.rc} file with your editor of choice.
 
 @menu
-* conf-syntax::      Configuration File Syntax
+* conf-syntax::         Configuration File Syntax
+* Include::             Include Statement
+* Logging Statement::
+* Debug Statement::
+* Mailbox Statement::
+* Locking Statement::
+* ACL Statement::
+* Tcp-wrappers Statement::
+* Server Settings::
+* Auth Statement::
+* PAM Statement::
+* Virtdomain Statement::
+* Radius Statement::
+* SQL Statement::
+* LDAP Statement::
+* TLS Statement::
+* GSASL Statement::
 @end menu
 
 @node conf-syntax
@@ -343,7 +373,6 @@ required to separate otherwise adjacent keywords and values.
 @menu
 * Comments::
 * Statements::
-* Includes::
 * Block Statements::
 @end menu
 
@@ -368,7 +397,8 @@ with @samp{#} or @samp{//} and continue to the end of the line:
 characters @samp{/*} (slash, star) and continue until the first
 occurrence of @samp{*/} (star, slash).
 
-  Multi-line comments cannot be nested.
+  Multi-line comments cannot be nested.  However, single-line comments
+are allowed to appear within a multi-line one.
 
 @node Statements
 @subsubsection Statements
@@ -398,6 +428,7 @@ Examples of keywords are: @samp{group}, @samp{identity-check}.
 @item number
   A number is a sequence of decimal digits.
 
+@anchor{boolean value}
 @item boolean
 @cindex boolean value
   A boolean value is one of the following: @samp{yes}, @samp{true},
@@ -514,6 +545,7 @@ EOT;
 
   However, terminated semicolon after a here-document is optional.
 
+@anchor{list values}
 @item list
 @cindex list
   A @dfn{list} is a comma-separated list of values.  Lists are
@@ -530,9 +562,31 @@ single member.  This means that, e.g. @samp{shared-namespace /home;} is
 equivalent to @samp{shared-namespace (/home);}.
 @end table
 
-@node Includes
-@subsubsection Include Statement 
+@node Block Statements
+@subsubsection Block Statements
+@cindex block statement, configuration file
+  A @dfn{block statement} introduces a logical group of another
+statements.  It consists of a keyword, followed by an optional value,
+and a sequence of statements enclosed in curly braces, as shown in
+example below:
+
+@smallexample
+@group
+tcp-wrappers @{
+  enable yes;
+  allow-syslog-priority info;
+  deny-syslog-priority notice;
+@}
+@end group
+@end smallexample
+
+  The closing curly brace may be followed by a semicolon, although
+this is not required.
+  
+@node Include
+@subsection Include Statement 
 @cindex include statement, configuration file
+@kwindex include
   An @dfn{include statement} is a special statement that causes
 inclusion of a named file.  This statement has the following syntax:
 
@@ -556,30 +610,494 @@ include /etc/mailutils.d;
 This allows each particular utility to have its own configuration
 file.  Thus. @command{imap4d} will read
 @file{/etc/mailutils.d/imap4d}, etc.
-  
-@node Block Statements
-@subsubsection Block Statements
-@cindex block statement, configuration file
-  A @dfn{block statement} introduces a logical group of another
-statements.  It consists of a keyword, followed by an optional value,
-and a sequence of statements enclosed in curly braces, as shown in
-example below:
 
+@node Logging Statement
+@subsection Logging Statement
+@kwindex logging
+@subheading Syntax
 @smallexample
-@group
-tcp-wrappers @{
-  enable yes;
-  allow-syslog-priority info;
-  deny-syslog-priority notice;
+logging @{
+  # @r{Set syslog facility.}
+  facility @var{name};
+  # @r{Tag syslog messages with this string.}
+  tag @var{text};
 @}
-@end group
 @end smallexample
 
-  The closing curly brace may be followed by a semicolon, although
-this is not required.
-  
+@subheading Description
+  The @code{logging} block statement provides configuration for
+programs that use @command{syslog} for diagnostics.  The default
+syslog facility is determined at compile time, it can be inspected
+using the following command:
+
+@smallexample
+$ mailutils-config --info log_facility
+@end smallexample
+
+@anchor{syslog facility}
+@deffn {Configuration} facility name
+Use syslog facility @var{name}.  Valid argument values are: @samp{user},
+@samp{daemon}, @samp{auth}, @samp{authpriv}, @samp{mail}, @samp{cron},
+@samp{local0} through @samp{local7} (all names case-insensitive), or
+a facility number.
+@end deffn
+
+@deffn {Configuration} tag text
+Tag syslog messages with @var{text}.  By default, program name is used
+as syslog tag.
+@end deffn
+
+@node Debug Statement
+@subsection Debug Statement
+@kwindex debug
+@subheading Syntax
+@smallexample
+debug @{
+  # @r{Set Mailutils debugging level.}
+  level @var{spec};
+  # @r{Prefix debug messages with Mailutils source locations.}
+  line-info @var{bool};
+@}
+@end smallexample
+
+@subheading Description
+The @code{debug} statement configures debugging output.  Although it
+is mostly useful for Mailutils developers, it may be of interest for
+casual users as well.  In particular, you may use it to obtain more
+information about Mailutils actions, which may help in configuring it,
+or in filling a bug report.
+
+Debugging output is controlled by a set of levels, each of which can be
+enabled or disabled independently of others.  A @dfn{debugging
+level} consists of a module name, which defines a Mailutils module
+affected by this level, and a level number, which defines the
+verbosity of the debugging output.  Valid debugging levels are:
+
+@float Table, debugging levels
+@caption{Debugging levels}
+@table @asis
+@item error
+Display only error messages.
+
+@item trace0 through trace7
+Eight levels of verbosity, @samp{trace0} producing less output,
+@samp{trace7} producing maximum possible output.
+
+@item prot
+Display network protocol interactions, where appropriate.
+@end table
+@end float
+
+The most important debugging modules are:
+
+@table @asis
+@item acl
+Debug access control lists. @FIXME-xref{Debugging ACLs}.
+
+@item config
+Debug configuration parser and/or lexical analizer.  The following
+levels are supported:
+
+@table @asis
+@item trace0
+Minimal information about configuration statements.
+
+@item trace2
+Trace lexical structure of the configuration files.
+
+@item trace7
+Trace execution of the configuration parser.
+@end table
+
+Due to its specific nature, this debugging module cannot be enabled
+using @code{level} statement below.  The @option{--debug-level}
+command line option should be used instead
+(@FIXME-pxref{debug-level}).  Alternatively, you may use the following
+hook, provided to facilitate debugging of the configuration parser: a
+@dfn{pragmatic comment} in form:
+
+@smallexample
+#debug=@var{level}
+@end smallexample
+
+is understood as a request to set debugging level of module
+@samp{config} to @var{level}.
+
+@item ip_server
+IP based servers, such as @command{imap4d} and @command{pop3d}.  This
+module supports @samp{trace0} and @samp{error} levels.  @xref{Server
+Settings}, for more information about servers.
+
+@item udp_server
+UDP based servers, such as @command{comsatd}.  This module supports
+@samp{trace0} and @samp{error} levels.  @xref{Server Settings}, for
+more information about servers. 
+
+@item mailbox
+Operations over mailboxes.  This module supports the following levels:
+@samp{error}, @samp{trace0}, @samp{trace1}, and @samp{proto}.  The
+latter is used by remote mailbox support libraries.
+
+@item sieve
+Debug Sieve parser and run-time evaluator.  Currently supported levels
+are @samp{error}, @samp{trace1} and @samp{trace7}.
+@end table
+
+@deffn {Configuration} level spec
+This statement enables debugging levels given by @var{spec}.  The
+argument is an list of debugging specifications or a string with
+specifications delimited by semicolons.  The syntax of a specification
+is:
+
+@smallexample
+  @var{module}[[:]=@var{level}]
+@end smallexample
+
+@noindent
+where @var{module} is the name of a module, and @var{level} is the
+level to be set.  The level may be optionally prefixed with the
+following symbols:
+
+@table @samp
+@item !
+All levels except this one.  E.g. @samp{config=!trace7} means
+set all debugging levels, except @samp{trace7} for the @samp{config}
+module.
+
+@item <
+All levels up to and including this.  The words @samp{up to} refer to
+the position of levels in @ref{debugging levels} table, so that, e.g.
+@samp{<trace2} means levels @samp{error}, @samp{trace0}, @samp{trace1}
+and @samp{trace2}.
+@end table
+
+Both prefixes can be used together, in this order: @samp{!<}.  This
+means all levels except this one and ones listed before it in
+the table.
+
+A comma before equal sign, as in @samp{mailbox:=<trace7} means set
+this debugging levels in all modules, invoked by this one.
+
+The @var{level} in the level specification can also be a
+comma-separated list of valid levels, e.g.:
+
+@smallexample
+   mailbox=<trace2,!<trace4
+@end smallexample
+
+@noindent
+which means ``levels trace3 and trace4''.
+
+The following example illustrates two equivalent ways of setting
+debugging level in a configuration file:
+
+@smallexample
+  level ("mailbox=!proto", "acl=<trace7");
+  level "mailbox=!proto;acl=<trace7";
+@end smallexample
+
+The @option{--debug-level} command line option overrides the settings
+of the @code{level} configuration statement.
+@end deffn
+
+@deffn {Configuration} line-info @var{bool}
+If @var{bool} is @samp{true} (@pxref{boolean value}), each debugging
+message will be preceded by a corresponding source file location,
+i.e. the file name and line number where this message was generated.
+@end deffn
+
+
+@node Mailbox Statement
+@subsection Mailbox Statement
+@UNREVISED
+@kwindex mailbox
+@subheading Syntax
+@smallexample
+mailbox @{
+  # @r{Use specified @var{url} as a mailspool.}
+  mail-spool @var{url};
+  # @r{Create mailbox @var{url} using @var{pattern}.}
+  mailbox-pattern @var{pattern};
+  # @r{Default mailbox type.}
+  mailbox-type @var{proto};
+  # @r{Default user mail folder.}
+  folder @var{dir};
+@}
+@end smallexample
+
+@node Locking Statement
+@subsection Locking Statement
+@UNREVISED
+@kwindex locking
+@subheading Syntax
+@smallexample
+locking @{
+  # @r{Default locker flags.}
+  flags @var{arg};
+  # @r{Set timeout for acquiring the lock.}
+  retry-timeout @var{arg};
+  # @r{Set the maximum number of times to retry acquiring the lock.}
+  retry-count @var{number};
+  # @r{Expire locks older than this amount of time.}
+  expire-timeout @var{number};
+  # @r{Use @var{prog} as external locker program.}
+  external-locker @var{prog};
+@}
+@end smallexample
+
+@node ACL Statement
+@subsection ACL Statement
+@UNREVISED
+@kwindex acl
+@subheading Syntax
+@smallexample
+acl @{
+  # @r{Allow connections from this IP address.}
+  allow [from] @var{ip};
+  # @r{Deny connections from this IP address.}
+  deny [from] @var{ip};
+  # @r{Log connections from this IP address.}
+  log [from] @var{ip} [@var{string}];
+  /* @r{Execute supplied program if a connection from this
+     IP address is requested.} */
+  exec [from] @var{ip} @var{program};
+  /* Use @var{program} to decide whether to allow connection
+     from @var{ip}. */
+  ifexec [from] @var{ip} @var{program};
+@}
+@end smallexample
+
+@node Tcp-wrappers Statement
+@subsection Tcp-wrappers Statement
+@UNREVISED
+@kwindex tcp-wrappers
+@subheading Syntax
+@smallexample
+tcp-wrappers @{
+  # @r{Enable TCP wrapper access control.}
+  enable @var{bool};
+  # @r{Set daemon name for TCP wrapper lookups.}
+  daemon @var{name};
+  # @r{Use @var{file} for positive client address access control.}
+  allow-table @var{file};
+  # @r{Use file for negative client address access control.}
+  deny-table @var{file};
+  # @r{Log allowed accesses at this syslog priority.}
+  allow-syslog-priority @var{prio};
+  # @r{Log denied accesses at this syslog priority.}
+  deny-syslog-priority @var{prio};
+@}
+@end smallexample
+
+@node Server Settings
+@subsection Server Settings
+@UNREVISED
+
+@menu
+* General Server Configuration::
+* Server Statement::
+@end menu
+
+@node General Server Configuration
+@subsubsection General Server Configuration
+@UNREVISED
+@subsubheading Syntax
+@smallexample
+# @r{Maximum number of children processes to run simultaneously.}
+max-children @var{number};
+# @r{Set daemon mode.}
+mode @samp{inetd|daemon};
+# @r{Run in foreground.}
+foreground @var{bool};
+# @r{Store PID of the master process in @var{file}.}
+pidfile @var{file};
+# @r{Default port number.}
+port @var{portspec};
+# @r{Set idle timeout.}
+timeout @var{time};
+@end smallexample
+
+@node Server Statement
+@subsubsection Server Statement
+@UNREVISED
+@kwindex server
+@subsubheading Syntax
+@smallexample
+server @var{ipaddr}[:@var{port}] @{
+  # @r{Run this server as a single process.}
+  single-process @var{bool};
+  # @r{Log the session transcript.}
+  transcript @var{bool};
+  # @r{Set idle timeout.}
+  timeout @var{time};
+  # @r{Set server specific ACLs.}
+  acl @{ /* @xref{ACL Statement}. */ @};
+@}
+@end smallexample
+
+@node Auth Statement
+@subsection Auth Statement
+@UNREVISED
+@kwindex auth
+@subheading Syntax
+@smallexample
+auth @{
+  # @r{Set a list of modules for authentication.}
+  authentication @var{module-list};
+  # @r{Set a list of modules for authorization.}
+  authorization @var{module-list};
+@}
+@end smallexample
+
+@node PAM Statement
+@subsection PAM Statement
+@UNREVISED
+@kwindex pam
+@subheading Syntax
+@smallexample
+pam @{
+  # @r{Set PAM service name.}
+  service @var{text};
+@}
+@end smallexample
+
+@node Virtdomain Statement
+@subsection Virtdomain Statement
+@UNREVISED 
+@kwindex virtdomain
+@subheading Syntax
+@smallexample
+virtdomain @{
+  # @r{Name of the virtdomain password directory.}
+  passwd-dir @var{dir};
+@}
+@end smallexample
+
+@node Radius Statement
+@subsection Radius Statement
+@UNREVISED
+@kwindex radius
+@subheading Syntax
+@smallexample
+radius @{
+  # @r{Radius request for authorization.}
+  auth @var{request};
+  # @r{Radius request for getpwnam.}
+  getpwnam @var{request};
+  # Radius request for getpwuid.
+  getpwuid @var{request};
+  # Set radius configuration directory.
+  directory @var{dir};
+@}
+@end smallexample
+
+@node SQL Statement
+@subsection SQL Statement
+@UNREVISED
+@kwindex sql
+@subheading Syntax
+@smallexample
+sql @{
+  # @r{Set SQL interface to use.}
+  interface @samp{mysql|odbc|postgres};
+  # @r{SQL query to use for getpwnam requests.}
+  getpwnam @var{query};
+  # @r{SQL query to use for getpwuid requests.}
+  getpwuid @var{query};
+  # @r{SQL query returning the user's password.}
+  getpass @var{query};
+  # @r{SQL server host name.}
+  host @var{arg};
+  # @r{SQL user name.}
+  user @var{arg};
+  # @r{Password for the SQL user.}
+  passwd @var{arg};
+  # @r{SQL server port.}
+  port @var{arg};
+  # @r{Database name.}
+  db @var{arg};
+  # @r{Type of password returned by getpass query.}
+  password-type @samp{plain | hash | scrambled};
+  # @r{Set a field-map for parsing SQL replies.}
+  field-map @var{map};
+@}
+@end smallexample
+
+@node LDAP Statement
+@subsection LDAP Statement
+@UNREVISED
+@kwindex ldap
+@subheading Syntax
+@smallexample
+ldap @{
+  # @r{Enable LDAP lookups.}
+  enable @var{bool};
+  # @r{Set URL of the LDAP server.}
+  url @var{url};
+  # @r{Base DN for LDAP lookups.}
+  base @var{string};
+  # @r{DN for accessing LDAP database.}
+  binddn @var{string};
+  # @r{Password for use with binddn.}
+  passwd @var{string};
+  # @r{Use TLS encryption.}
+  tls @var{bool};
+  # @r{Set LDAP debugging level.}
+  debug @var{number};
+  # @r{Set a field-map for parsing LDAP replies.}
+  field-map @var{map};
+  # @r{LDAP filter to use for getpwnam requests.}
+  getpwnam @var{string};
+  # @r{LDAP filter to use for getpwuid requests.}
+  getpwuid @var{filter};
+@}
+@end smallexample
+
+@node TLS Statement
+@subsection TLS Statement
+@UNREVISED
+@kwindex tls
+@subheading Syntax
+@smallexample
+tls @{
+  # @r{Enable client TLS encryption.}
+  tls @var{bool};
+  # @r{Specify SSL certificate file.}
+  ssl-cert @var{bool};
+  # @r{Specify SSL certificate key file.}
+  ssl-key @var{file};
+  # @r{Specify trusted CAs file.}
+  ssl-cafile @var{file};
+@}
+@end smallexample
+
+@node GSASL Statement
+@subsection GSASL Statement
+@UNREVISED
+@kwindex gsasl
+@subheading Syntax
+@smallexample
+gsasl @{
+  # @r{Name of GSASL password file.}
+  cram-passwd @var{file};
+  # @r{SASL service name.}
+  service @var{string};
+  # @r{SASL realm name.}
+  realm @var{string};
+  # @r{SASL host name.}
+  hostname @var{string};
+  # @r{Anonymous user name.}
+  anonymous-user @var{string};
+@}
+@end smallexample
+
+
+
+
+@c -------------------------------------------------------------------
 @node authentication
 @section Authorization and Authentication Principles
+@UNREVISED
 @cindex authorization
 @cindex authentication
 

@@ -1,3 +1,22 @@
+2008-09-22  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Define LOG_FACILITY_STRING, a string
+	representation of syslog facility.
+	* mailbox/cfg_lexer.l: Re-introduce pragmatic comment
+	#debug=, for setting debugging level in config module.
+	* mailbox/cfg_parser.y: Likewise.
+	* mailbox/gdebug.c (mu_debug_level_from_string): Ignore trailing
+	newline.
+	* mailbox/version.c (mu_conf_option): Add SYSCONFDIR, MAILSPOOLDIR
+	and LOG_FACILITY.
+
+	* mh/mh_init.c (mh_list_format): Reformat to make it more
+	readable. Use decode primitive on header fields that may be
+	encoded.
+	
+	* doc/texinfo/mailutils.texi: Further update.
+	* doc/texinfo/programs.texi: Likewise.
+
 2008-09-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Configure doc hints.

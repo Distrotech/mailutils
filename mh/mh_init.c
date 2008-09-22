@@ -32,12 +32,14 @@
 #include <fnmatch.h>
 
 char mh_list_format[] = 
-"%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
-"%02(mon{date})/%02(mday{date})"
-"%<{date} %|*%>"
-"%<(mymbox{from})%<{to}To:%14(friendly{to})%>%>"
-"%<(zero)%17(friendly{from})%>"
-"  %{subject}%<{body}<<%{body}>>%>";
+  "%4(msg)"
+  "%<(cur)+%| %>"
+  "%<{replied}-%?{encrypted}E%| %>"
+  "%02(mon{date})/%02(mday{date})"
+  "%<{date} %|*%>"
+  "%<(mymbox{from})%<{to}To:%14(decode(friendly{to}))%>%>"
+  "%<(zero)%17(decode(friendly{from}))%>"
+  "  %(decode{subject})%<{body}<<%{body}>>%>";
 
 void
 mh_init ()

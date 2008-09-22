@@ -41,6 +41,14 @@ void _mu_line_begin (void);
 void _mu_line_add (char *text, size_t len);
 char *_mu_line_finish (void);
 
+extern void mu_cfg_set_debug (void);
+static void
+mu_cfg_set_lex_debug (void)
+{
+  yy_flex_debug = mu_debug_check_level (mu_cfg_get_debug (),
+					MU_DEBUG_TRACE2);
+}
+ 
 static void _mu_line_add_unescape_last (char *text, size_t len);
 static void multiline_begin (char *p);
 static char *multiline_strip_tabs (char *text);
@@ -72,6 +80,16 @@ P [1-9][0-9]*
 <COMMENT>\n             ++mu_cfg_locus.line;
 <COMMENT>"*"+"/"        BEGIN (INITIAL);
          /* End-of-line comments */
+#debug=.*\n {
+          mu_log_level_t lev;
+          mu_debug_t dbg = mu_cfg_get_debug ();
+          if (mu_debug_level_from_string (yytext + 7, &lev, dbg) == 0)
+            {
+	      mu_debug_set_level (dbg, lev);
+	      mu_cfg_set_debug ();
+	      mu_cfg_set_lex_debug ();
+	    }
+          }
 #.*\n     { mu_cfg_locus.line++; }
 #.*     /* end-of-file comment */;
 "//".*\n  { mu_cfg_locus.line++; }
@@ -317,7 +335,7 @@ mu_get_config (const char *file, const char *progname,
   if (flags & MU_PARSE_CONFIG_VERBOSE)
     mu_error (_("Info: parsing file `%s'"), file);
 
-  yy_flex_debug = mu_debug_check_level (mu_cfg_get_debug (), MU_DEBUG_TRACE2);
+  mu_cfg_set_lex_debug ();
   
   /* Parse configuration */
   mu_cfg_locus.file = (char*) file;

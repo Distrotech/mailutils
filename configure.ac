@@ -296,7 +296,7 @@ esac])
 
 if test "x$MU_CONF_MAILDIR" != x; then
   AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR,
-                     [Pathname of the configuration directory])
+                     [Pathname of the mail spool directory])
 fi
 AH_BOTTOM([
 #ifdef HAVE_PATHS_H
@@ -363,7 +363,11 @@ AC_ARG_WITH([log-facility],
             [AC_TRY_COMPILE([#include <syslog.h>], int lf = $withval,
 	     log_facility=$withval)])
 AC_DEFINE_UNQUOTED(LOG_FACILITY, $log_facility,
-                   [Default syslog facility to use])
+                   [Default syslog facility])
+fstr=`echo "$log_facility" | tr A-Z a-z | sed 's/log_//'`
+AC_DEFINE_UNQUOTED(LOG_FACILITY_STRING, "$fstr",
+                   [String representation of the default syslog facility])
+		   
 AC_MSG_RESULT($log_facility)
 
 dnl Check for headers

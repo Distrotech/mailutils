@@ -10,10 +10,18 @@
 @include macros.texi
 @include rendition.texi
 
-@c Combine indices.
+@c Define indices
 @defcodeindex op
+@defcodeindex fl
+@c Same as ky, but used for configuration keywords.
+@defcodeindex kw
+
+@c Combine indices.
 @syncodeindex op fn
 @syncodeindex tp fn
+@syncodeindex fl cp
+@c FIXME: Should kw be separate?
+@syncodeindex kw ky
 
 @ifinfo
 @dircategory Email

@@ -121,7 +121,9 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
   else
     {
       char *p = strdup (string);
-
+      size_t len = strlen (p);
+      if (len > 0 && p[len-1] == '\n')
+	p[len-1] = 0;
       for (q = strtok (p, ","); q; q = strtok (NULL, ","))
 	{
 	  int flag;

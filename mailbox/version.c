@@ -45,6 +45,9 @@ char *mu_license_text =
 
 static struct mu_conf_option mu_conf_option[] = {
   { "VERSION=" VERSION, N_("Version of this package") },
+  { "SYSCONFDIR=" SYSCONFDIR, N_("System configuration directory") },
+  { "MAILSPOOLDIR=" MU_PATH_MAILDIR, N_("Default mail spool directory") },
+  { "LOG_FACILITY=" LOG_FACILITY_STRING, N_("Default syslog facility") },
 #ifdef USE_LIBPAM
   { "USE_LIBPAM", N_("PAM support") },
 #endif
