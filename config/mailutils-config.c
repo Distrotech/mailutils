@@ -40,6 +40,8 @@ static struct argp_option options[] = {
    "for. In this case the program prints those options from this list that "
    "have been defined. It exits with zero status if all of the "
    "specified options are defined. Otherwise, the exit status is 1."), 0},
+  {"verbose", 'v', NULL, 0,
+   N_("Increase output verbosity"), 0},
   {0, 0, 0, 0}
 };
 
@@ -51,6 +53,7 @@ enum config_mode {
 };
 
 enum config_mode mode;
+int verbose;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -67,6 +70,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'i':
       mode = MODE_INFO;
+      break;
+
+    case 'v':
+      verbose++;
       break;
       
     default: 
@@ -269,7 +276,7 @@ main (int argc, char **argv)
 
     case MODE_INFO:
       if (argc == 0)
-	mu_print_options ();
+	mu_fprint_options (stdout, verbose);
       else
 	{
 	  int i, found = 0;
@@ -280,7 +287,7 @@ main (int argc, char **argv)
 	      if (opt)
 		{
 		  found++;
-		  mu_fprint_conf_option (stdout, opt);
+		  mu_fprint_conf_option (stdout, opt, verbose);
 		}
 	    }
 	  return found == argc ? 0 : 1;

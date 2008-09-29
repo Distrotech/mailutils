@@ -693,6 +693,8 @@ mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
 			int (*fun) (mu_debug_t, const char *, void *),
 			void *data)
 {
+  int rc = 0;
+  
   switch (val->type)
     {
     case MU_CFG_STRING:
@@ -723,10 +725,14 @@ mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
 	    mu_config_value_t *pval;
 	    mu_iterator_current (itr, (void*) &pval);
 	    if (mu_cfg_assert_value_type (pval, MU_CFG_STRING, debug))
-	      fun (debug, pval->v.string, data);
+	      {
+		rc = 1;
+		break;
+	      }
+	    fun (debug, pval->v.string, data);
 	  }
 	mu_iterator_destroy (&itr);
       }
     }
-  return 0;
+  return rc;
 }

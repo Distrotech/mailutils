@@ -101,7 +101,7 @@ P [1-9][0-9]*
 			yylval.string = _mu_line_finish ();
 			return MU_TOK_IDENT; }
          /* Strings */
-[a-zA-Z0-9_\./:-]+    { _mu_line_begin ();
+[a-zA-Z0-9_\./:\*=-]+ { _mu_line_begin ();
                         _mu_line_add (yytext, yyleng);
                         yylval.string = _mu_line_finish ();
                         return MU_TOK_STRING; }
@@ -149,7 +149,14 @@ P [1-9][0-9]*
          /* Other tokens */
 \n       { mu_cfg_locus.line++; } 
 [,;{}()] return yytext[0];
-.        mu_cfg_perror (&mu_cfg_locus, _("stray character \\%03o"), yytext[0]);
+.        { if (isascii (yytext[0]) && isprint (yytext[0]))
+              mu_cfg_perror (&mu_cfg_locus,
+			     _("stray character %c"), yytext[0]);
+           else 
+              mu_cfg_perror (&mu_cfg_locus,
+			     _("stray character \\%03o"),
+			     (unsigned char) yytext[0]);
+         }
 %%
 
 int
@@ -164,7 +171,7 @@ unescape_to_line (int c)
   if (c != '\n')
     {
       char t = mu_argcv_unquote_char (c);
-      if (t == c)
+      if (t == c && t != '\\' && t != '\"')
 	mu_cfg_perror (&mu_cfg_locus, _("unknown escape sequence '\\%c'"), c);
       mu_opool_append_char (pool, t);
     }

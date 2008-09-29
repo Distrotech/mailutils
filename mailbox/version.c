@@ -127,27 +127,27 @@ static struct mu_conf_option mu_conf_option[] = {
 };
 
 void
-mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt)
+mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt, int verbose)
 {
   fprintf (fp, "%s", opt->name);
-  if (opt->descr)
-    fprintf (fp, "\t- %s", _(opt->descr));
+  if (verbose && opt->descr)
+    fprintf (fp, " \t- %s", _(opt->descr));
   fputc('\n', fp);
 }
 
 void
-mu_fprint_options (FILE *fp)
+mu_fprint_options (FILE *fp, int verbose)
 {
   int i;
   
   for (i = 0; mu_conf_option[i].name; i++)
-    mu_fprint_conf_option (fp, mu_conf_option + i);
+    mu_fprint_conf_option (fp, mu_conf_option + i, verbose);
 }
 
 void
 mu_print_options ()
 {
-  mu_fprint_options (stdout);
+  mu_fprint_options (stdout, 1);
 }
 
 const struct mu_conf_option *

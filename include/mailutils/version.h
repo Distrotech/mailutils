@@ -33,8 +33,9 @@ struct mu_conf_option
   
 extern char *mu_license_text;
 extern void mu_print_options (void);
-extern void mu_fprint_options (FILE *fp);
-extern void mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt);
+extern void mu_fprint_options (FILE *fp, int verbose);
+extern void mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt,
+				   int verbose);
 extern const struct mu_conf_option *mu_check_option (char *name);
 
 #ifdef __cplusplus
