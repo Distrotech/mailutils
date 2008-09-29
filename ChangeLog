@@ -1,3 +1,22 @@
+2008-09-29  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* config/mailutils-config.c (main): Do not print flag descriptions
+	on --info, this breaks existing scripts.
+	New option --verbose makes --info print verbose descriptions.
+	* include/mailutils/version.h (mu_fprint_options)
+	(mu_fprint_conf_option): Take additional argument.
+	* mailbox/argcv.c (quote_transtab): Handle \".
+	* mailbox/cfg_driver.c (mu_cfg_string_value_cb): Bugfix
+	* mailbox/cfg_lexer.l: Allow * and = in non-quoted words.
+	Improve 'stray character' diagnostics'.
+	(unescape_to_line): Handle \\ and \".
+	* mailbox/version.c (mu_fprint_options)
+	(mu_fprint_conf_option): New argument `verbose' instructs whether
+	to print textual descriptions.
+	(mu_fprint_conf_option): Print single space after the flag to
+	facilitate writing parser scripts.
+	* testsuite/lib/mailutils.exp: Reflect this change.
+
 2008-09-22  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Define LOG_FACILITY_STRING, a string
