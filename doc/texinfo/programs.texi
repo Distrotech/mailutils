@@ -809,7 +809,6 @@ i.e. the file name and line number where this message was generated.
 
 @node Mailbox Statement
 @subsection Mailbox Statement
-@UNREVISED
 @kwindex mailbox
 @subheading Syntax
 @smallexample
@@ -819,11 +818,203 @@ mailbox @{
   # @r{Create mailbox @var{url} using @var{pattern}.}
   mailbox-pattern @var{pattern};
   # @r{Default mailbox type.}
-  mailbox-type @var{proto};
+  mailbox-type @var{type};
   # @r{Default user mail folder.}
   folder @var{dir};
 @}
 @end smallexample
+
+@subheading Description
+The @code{mailbox} statement configures the location, name and type of
+user mailboxes.
+
+The mailbox location can be specified using @code{mail-spool} or
+@code{mail-pattern} statements.
+
+@deffn {Configuration} mail-spool @var{path}
+The @code{mail-spool} statement specifies directory that holds user
+mailboxes.  Once this statement is given, the @command{libmailutils}
+library will assume that the mailbox of user @var{login} is kept in
+file @file{@var{path}/@var{login}}.
+
+Historically, @var{path} can contain mailbox type prefix, e.g.:
+@samp{maildir:///var/spool/mail}, but such usage is discouraged in
+favor of @code{mailbox-pattern} statement.
+@end deffn
+
+@deffn {Configuration} mailbox-pattern @var{pattern}
+The @code{mailbox-pattern} statement is a modern way of configuring
+mailbox locations.  It superceeds @code{mail-spool} statement.
+
+The @var{pattern} is valid @dfn{mailbox URL}, which 
+may contain references to @samp{user} macro-variable
+(@FIXME-pxref{macro-variables}).  This macro-variable will be expanded
+to the actual user name.  The full syntax for @var{pattern} is:
+
+@smallexample
+  [@var{type}://]@var{path}[;@var{args}]
+@end smallexample
+
+@noindent
+where:
+
+@table @var
+@item type
+Specifies the mailbox type.  It must be one of mailbox types,
+supported by Mailutils.  @FIXME-xref{Mailbox URLs}.  By default,
+@samp{local} is assumed. @FIXME{Verify this}.
+
+@item path
+The path pattern.
+
+@item args
+A semicolon-separated list of optional arguments, configuring
+indexed directory structure.
+
+@cindex directory indexing
+An @dfn{indexed directory structure} is a special way of storing
+mailboxes, which allowes for faster access in case of very large
+number of users. 
+
+By default, all user mailboxes are stored in a single directory and
+are named after user login names.  To find the mailbox for a given
+user, the system scans the directory for the corresponding
+file.  This usually implies linear search, so the time needed to
+locate a mailbox is directly proportional to the ordinal number of
+the mailbox in the directory.
+
+GNU Mailutils supports three types of indexed directories:
+@samp{direct}, @samp{reverse}, and @samp{hashed}.
+
+@cindex direct indexing
+@cindex indexing, direct
+In direct indexed directory structure, @var{path} contains 26 subdirectories
+named with lower-case letters of Latin alphabet.  The location of the
+user mailbox is determined using the following algorithm:
+
+@enumerate 1
+@item Take the first letter of the user name.
+@item Map it to a lower-case letter using @dfn{index mapping}
+table. The result gives sub-directory name.
+@item Descend into this directory.
+@end enumerate
+
+For example, using this algorithm, the mailbox of the user
+@samp{smith} is stored in file @file{@var{path}/s/smith}.
+
+If each of single-letter subirectories contains the
+indexed directory structure, we have second level of indexing.  In
+this case the file name of @samp{smith}'s mailbox is
+@file{@var{path}/s/m/smith}.
+
+@cindex reverse indexing
+@cindex indexing, reverse
+The @dfn{reverse} indexed structure uses the same principles, but the
+indexing letters are taken from the @emph{end} of the user name,
+instead of from the beginning.  For example, in the 2nd level reverse
+indexed structure, the @samp{smith}'s mailbix is located in
+@file{@var{path}/h/t/smith}.
+
+@cindex hashed indexing
+@cindex indexing, hashed
+Finally, the @dfn{hashed} structure consists of 256 subdirectories
+under @var{path}, named by 2-letter hex codes from @samp{00} to
+@samp{FF}.  Mailboxes are stored in these subdirectories.  The name
+of the subdirectory is computed by hashing first @var{level} letters
+of the user name.  The hashing alorithm is:
+
+@enumerate 1
+@item Take next letter from the user name
+@item Add its ASCII value to the hash sum.
+@item Continue (1-2) until @var{level} letters are processed, or all
+letters from the file name are used, whichever occurs first.
+@item Convert the computed sum modulo 256 to a hex code.
+@end enumerate
+
+Indexed directory structures are configured using the following
+arguments:
+
+@table @asis
+@kwindex type
+@item type=@var{value}
+Specifies type of indexing. Valid values are @samp{index}, for direct
+indexed structure, @samp{rev-index} for reverse indexing, and
+@samp{hash} for hashed structure.
+
+@kwindex param
+@item param=@var{number}
+Specifies indexing level.
+
+@kwindex user
+@item user=@var{string}
+Specifies indexing key.  The only meaningful value, as of Mailutils
+version @value{VERSION} is @samp{user=$@{user@}}.
+@end table
+
+Let's assume the traditional mail layout, in which user incoming
+mails are stored in UNIX mailbox format in @file{/var/mail} directory.
+The @code{mailbox-pattern} for this case is:
+
+@smallexample
+  mailbox-pattern "/var/mail/$@{user@}";
+@end smallexample
+
+It is entirely equivalent to specifying @samp{mail-spool "/var/mail"}.
+
+Now, if the layout is the same, but mailboxes are kept in
+@samp{maildir} format, then the corresponding statement is:
+
+@smallexample
+  mailbox-pattern "maildir:///var/mail/$@{user@}";
+@end smallexample
+
+Finally, if the mailboxes are stored in a directly-indexed directory with
+two levels of indexing, than:
+
+@smallexample
+  mailbox-pattern "maildir:///var/mail;type=index;param=2;user=$@{user@}";
+@end smallexample
+@end table
+@end deffn
+
+If neither @code{mailbox-pattern} nor @code{mail-spool} are given, the
+mailbox names are determined using the following algorithm:
+
+@enumerate 1
+@item If environment variable @env{FOLDER} its value is used.
+@item Otherwise, if environment variable @env{MAIL} is set, its value
+is used.
+@item If neither of these is set, the mailbox name is constructed by
+concatenating the built-in mail spool directory name, a directory
+separator, and the user name.
+
+The built-in mail spool directory name is determined at compile
+time, using @samp{_PATH_MAILDIR} define from the include file
+@file{paths.h}.  If this value is not defined, @file{/var/mail} or
+@file{/usr/spool/mail} is used.
+@end enumerate
+
+@deffn {Configuration} mailbox-type @var{type}
+Specifies type of mailboxes.  By default, @samp{mbox} (UNIX mailbox)
+is assumed.
+
+Notice that, in Mailutils version @value{VERSION}, using this
+statement effectively disables mailbox type autodetection. @FIXME{More
+info on this.}
+@end deffn
+
+@deffn {Configuration} folder @var{dir}
+@cindex plus expansion
+Sets user mail folder directory.  Its value is using when expanding
+@samp{plus-notation}, i.e. such mailbox names as @file{+inbox}.  The
+@samp{+} sign is replaced by @var{dir}, followed by a directory
+separator (@samp{/}).
+
+The @var{dir} argument can contain mailbox type prefix, e.g
+@samp{mh://Mail}.
+
+The default folder name is @samp{Mail/}.
+@end deffn
 
 @node Locking Statement
 @subsection Locking Statement
