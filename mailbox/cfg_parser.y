@@ -238,10 +238,7 @@ tag     : /* empty */
           {
 	    $$ = NULL;
 	  }
-        | value
-          {
-	    $$ = config_value_dup (&$1);
-	  }
+        | vallist
         ;
 
 vallist : vlist

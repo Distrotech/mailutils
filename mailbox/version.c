@@ -93,6 +93,9 @@ static struct mu_conf_option mu_conf_option[] = {
 #ifdef WITH_LDAP
   { "WITH_LDAP", },
 #endif
+#ifdef WITH_LIBWRAP
+  { "WITH_LIBWRAP", N_("Support for TCP wrappers") },
+#endif
 #ifdef ENABLE_VIRTUAL_DOMAINS
   { "ENABLE_VIRTUAL_DOMAINS", N_("Support for virtual mail domains") },
 #endif

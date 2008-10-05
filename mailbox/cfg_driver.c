@@ -37,6 +37,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/stream.h>
 #include <mailutils/assoc.h>
+#include <mailutils/alloc.h>
 
 
 static mu_assoc_t section_tab;
@@ -677,6 +678,18 @@ mu_cfg_assert_value_type (mu_config_value_t *val, int type, mu_debug_t debug)
       return 1;
     }
 
+  if (type == MU_CFG_ARRAY)
+    {
+      if (val->type == MU_CFG_STRING)
+	{
+	  mu_config_value_t *arr = mu_calloc (1, sizeof arr[0]);
+	  arr[0] = *val;
+	  val->v.arg.c = 1;
+	  val->v.arg.v = arr;
+	  val->type = MU_CFG_ARRAY;
+	}
+    }
+  
   if (val->type != type)
     {
       /* FIXME */

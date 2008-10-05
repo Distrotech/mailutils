@@ -1,3 +1,14 @@
+2008-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/texinfo/programs.texi: Document Locking, ACL, and
+	Tcp-wrappers.
+	* mailbox/cfg_driver.c (mu_cfg_assert_value_type): Convert
+	MU_CFG_STRING to MU_CFG_ARRAY.
+	* mailbox/cfg_parser.y: Replace `tag: value' with `tag: vallist'.
+	This allows for constructs like `acl a b c {', which were
+	understood by the previous version.
+	* mailbox/version.c (mu_conf_opt): Add WITH_LIBWRAP.
+
 2008-09-29  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* config/mailutils-config.c (main): Do not print flag descriptions

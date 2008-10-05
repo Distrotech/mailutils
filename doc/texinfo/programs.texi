@@ -1018,7 +1018,6 @@ The default folder name is @samp{Mail/}.
 
 @node Locking Statement
 @subsection Locking Statement
-@UNREVISED
 @kwindex locking
 @subheading Syntax
 @smallexample
@@ -1036,9 +1035,60 @@ locking @{
 @}
 @end smallexample
 
+@subheading Description
+This block statement configures various parameters used when locking
+UNIX mailboxes in order to prevent simultaneous writes.
+
+It is important to note, that locking applies only to maildrops in
+UNIX mailbox format.  All other mailbox types do not require locking.
+
+@deffn {Configuration} flags @var{string}
+Set locking flags.  Argument is a string consisting of one or more of
+the following letters:
+
+@table @asis
+@item E
+Use an external program to manage locks.  The program is given by
+@code{external-locker} statement (see below).
+
+@item R
+If the locking attempt failed, retry it.  This is the default.  The
+number of retries, and time interval between the two successive
+attempts is given by @code{retry-count} and @code{retry-timeout}
+statements, correspondingly.
+
+@item T
+If a lock file exists, check its modification time and, if it is
+older than a predefined amount of time, remove the lock.  The amount
+of time is specified by @code{expire-timeout} statement.
+
+@item P
+Store the PID of the locking process in a lock file.
+@end table
+@end deffn
+
+@deffn {Configuration} retry-count @var{number}
+Number of locking attemtps.  The @samp{P} flag must be set for this to
+take effect.
+@end deffn
+
+@deffn {Configuration} retry-timeout @var{seconds}
+Time interval, in seconds, between the two successive locking
+attempts.  The @samp{P} flag must be set for this to take effect.
+@end deffn
+
+@deffn {Configuration} expire-timeout @var{seconds}
+Remove existing lock file, if it is created more than this number of
+seconds ago.  The @samp{T} flag must be set for this to take effect.
+@end deffn
+
+@deffn {Configuration} external-locker @var{string}
+Set command line of an external locker program.  The @samp{E} flag
+must be set for this to take effect. 
+@end deffn
+
 @node ACL Statement
 @subsection ACL Statement
-@UNREVISED
 @kwindex acl
 @subheading Syntax
 @smallexample
@@ -1058,9 +1108,119 @@ acl @{
 @}
 @end smallexample
 
+@subheading Description
+The ACL statement defines an @dfn{Access Control List}, a special
+structure that controls who can access the given Mailutils resource.
+
+The @code{acl} block contains a list of access controls.  Each control
+can be regarded as a function that returns a tree-state value:
+@samp{True}, @samp{False} and @samp{Don't know}.  When a
+remote party connects to the server, each of controls is tried in
+turn.  If a control returns @samp{False}, access is denied.  If it
+retruns @samp{True}, access is allowed.  If it returns @samp{Don't
+know}, then the next control is tried.  It is unclear whether to allow
+access if the last control in list returned @samp{Don't know}.  GNU
+Mailutils @value{VERSION} issues a warning message and allows access.
+This default may change in future versions.  Users are advised to
+write their ACLs so that the last control returns a definitive answer
+(either @code{True} or @code{False}).
+
+In the discussion below, wherever @var{ip} appears as an argument, it
+can be replaced by any of: 
+
+@itemize @bullet
+@item An IPv4 address in dotted-quad notation.
+@item A CIDR in the form @samp{@var{ip}/@var{mask}}, where @var{ip} is
+an IPv4 address, and @var{mask} is a decimal number in the range
+@samp{0--32}.
+@item A symbolic host name.
+@kwindex any
+@item A word @samp{any}, that stands for @samp{0.0.0.0/0}.
+@end itemize
+
+The following controls are understood:
+
+@deffn {Configuration} allow [from] @var{cidr}
+Allow connections from IP addresses matching this @var{cidr} block.
+@end deffn
+
+@deffn {Configuration} deny [from] @var{cidr}
+Deny connections from IP addresses matching this @var{cidr} block.
+@end deffn
+
+@deffn {Configuration} ifexec [from] @var{cidr} @var{program}
+When a connection from the @var{cidr} block is requested, execute
+the program @var{program}.  If its exit code is @samp{0}, then allow
+connection.  Otherwise, deny it.
+@end deffn
+
+The following two controls are provided for logging purposes and as a
+means of extensions.  They always return a @samp{Don't know} answer,
+and therefore should not be used at the end of an ACL:
+
+@deffn {Configuration} log [from] @var{cidr} [@var{string}]
+Log connections from addresses in this @var{cidr}.  The
+@code{MU_DIAG_INFO} channel is used.  If the logging goes to syslog,
+it is translated to the @code{LOG_INFO} priority.
+
+If @var{string} is not given, the format of the log entry depends on
+the connection family, as described in the table below:
+
+@table @asis
+@item @{AF_INET @var{ip}:@var{port}@}
+For inet IPv4 connections.  The variables @var{ip} and @var{port} are
+replaced by the remote IP address and port number, correspondingly.
+
+@item @{AF_UNIX@}
+For connections over UNIX sockets.  The socket name, if available, may
+be printed before the closing curly brace.
+@end table
+
+If the @var{string} is specified, it undergoes macro expansion and the
+result of it is used as the log entry.  The following macro variables
+are expanded:
+
+@table @code
+@item aclno
+Ordinal number of the control in the ACL.  Numbers begin from
+@samp{0}.
+
+@item family
+Connection family.  Mailutils version @value{VERSION} supports two
+families: @samp{AF_INET} and @samp{AF_UNIX}.
+
+@item address
+Remote IP address (for @samp{AF_INET}) or socket name (for
+@samp{AF_UNIX}).  Notice that most Unices return empty string instead
+of the @samp{AF_UNIX} socket name, so do not rely on it.
+
+@item port
+Remote port number (for @samp{AF_INET}).
+@end table
+
+For example, the following ACL makes a Mailutils server log every
+incoming connection:
+
+@smallexample
+  acl @{
+     log from any "Connect from $@{address@}";
+     ...
+  @}
+@end smallexample
+
+This was the default behavior for the versions of Mailutils up to
+@samp{1.2}, so if you got used to its logs you might wish to add the
+above in your configuration files.
+@end deffn
+
+@deffn {Configuration} exec [from] @var{cidr} @var{program}
+If a connection from the @var{cidr} block is requested, execute
+the given @var{program}.  Do not wait for it to teminate, and ignore
+its exit code.
+@end deffn
+
 @node Tcp-wrappers Statement
 @subsection Tcp-wrappers Statement
-@UNREVISED
 @kwindex tcp-wrappers
 @subheading Syntax
 @smallexample
@@ -1079,6 +1239,55 @@ tcp-wrappers @{
   deny-syslog-priority @var{prio};
 @}
 @end smallexample
+
+@subsection Description
+The @code{tcp-wrappers} statements provides an alternative way to
+control accesses to the resources served by GNU Mailutils.  This
+statement is enabled if Mailutils is compiled with TCP wrappers
+library @command{libwrap}.
+
+Access control using TCP wrappers is based on two files, called
+@dfn{tables}, containing access rules.  There are two tables: the
+@dfn{allow table}, usually stored in file @file{/etc/hosts.allow}, and
+the @dfn{deny table}, kept in file @file{/etc/hosts.deny}.  The rules
+in each table begin with an identifier called @dfn{daemon name}.  Each
+utility wishing to verify a connection, select the entries having
+its daemon name from the allow table.  A connection is allowed if it
+matches any of these entries.  Otherwise, the utility retrieves all
+entries with its daemon name from the deny table.  If any of these
+matches the connection, then it is refused.  Otherwise, if neither
+table contains matching entries, the connection is allowed.
+
+Description of a TCP wrapper table format lies outside the scope of
+this document.  Please, see @cite{man 5 hosts_access} for details.
+
+@deffn {Configuration} enable @var{bool}
+Enable access control using TCP wrappers.  It is on by default.
+@end deffn
+
+@deffn {Configuration} daemon @var{name}
+Set daemon name for TCP wrapper lookups.  By default, the name of the
+utility is used.  E.g. @command{imap4d} uses @samp{imap4d} as the
+daemon name.
+@end deffn
+
+@deffn {Configuration} allow-table @var{file}
+Use @var{file} as allow table.  By default, @file{/etc/hosts.allow} is
+used. 
+@end deffn
+  
+@deffn {Configuration} deny-table @var{file}
+Use @var{file} as negative table.  By default, @file{/etc/hosts.deny}
+is used.
+@end deffn
+
+@deffn {Configuration} allow-syslog-priority @var{prio};
+Log allowed accesses using syslog priority @var{prio}.
+@end deffn
+
+@deffn {Configuration} deny-syslog-priority @var{prio};
+Log denied accesses using syslog priority @var{prio}.
+@end deffn
 
 @node Server Settings
 @subsection Server Settings
