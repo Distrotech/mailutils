@@ -35,44 +35,31 @@
 
 extern int remote_mbox_init (mu_mailbox_t mailbox);
 
-int
-remote_url_init (mu_url_t url)
+static int
+remote_folder_init (mu_folder_t folder MU_ARG_UNUSED)
 {
-  const char *name = mu_url_to_string (url);
-  const char *p;
-  size_t len = strlen (name);
-  int rc;
-  
-  if (!name)
-    return 0;
-  /* reject the obvious */
-  if (name == NULL
-      || len < MU_REMOTE_MBOX_PREFIX_LEN
-      || strncmp (MU_REMOTE_MBOX_PREFIX, name, MU_REMOTE_MBOX_PREFIX_LEN) != 0)
-    return EINVAL;
-
-  rc = mu_registrar_lookup (name + MU_REMOTE_MBOX_PREFIX_LEN, 0, NULL, NULL);
-  if (rc)
-    return rc;
-
-  p = strchr (name, ':');
-  if (!p)
-    return EINVAL;
-  p++;
-
-  len = p - name;
-  url->scheme = malloc (len + 1);
-  if (!url->scheme)
-    return ENOMEM;
-  memcpy (url->scheme, name, len);
-  url->scheme[len] = 0;
-  
   return 0;
 }
 
 static int
-remote_folder_init (mu_folder_t folder MU_ARG_UNUSED)
+_remote_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
+  char *scheme = url->scheme;
+  size_t scheme_len = scheme ? strlen (scheme) : 0;
+  int rc;
+  struct _mu_url s_url;
+  
+  if (!scheme
+      || scheme_len < MU_REMOTE_MBOX_PREFIX_LEN
+      || memcmp (MU_REMOTE_MBOX_PREFIX, scheme,
+		 MU_REMOTE_MBOX_PREFIX_LEN) != 0)
+    return EINVAL;
+
+  
+  memcpy (&s_url, url, sizeof (s_url));
+  s_url.scheme = scheme + MU_REMOTE_MBOX_PREFIX_LEN;
+  if (mu_registrar_lookup_url (&s_url, 0, NULL, NULL) == 0)
+    return MU_FOLDER_ATTRIBUTE_FILE;
   return 0;
 }
 
@@ -80,12 +67,12 @@ static struct _mu_record _remote_mbox_record =
 {
   MU_REMOTE_MBOX_PRIO,
   MU_REMOTE_MBOX_PREFIX,
-  remote_url_init, /* Mailbox init.  */
+  NULL, /* URL init.  */
   remote_mbox_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
   remote_folder_init, /* Folder init.  */
   NULL, /* No need for back pointer.  */
-  NULL, /* _is_scheme method.  */
+  _remote_is_scheme, /* _is_scheme method.  */
   NULL, /* _get_url method.  */
   NULL, /* _get_mailbox method.  */
   NULL, /* _get_mailer method.  */

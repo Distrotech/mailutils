@@ -246,7 +246,7 @@ mu_assoc_clear (mu_assoc_t assoc)
 {
   unsigned i, hs;
   
-  if (!assoc)
+  if (!assoc || !assoc->tab)
     return;
 
   hs = hash_size[assoc->hash_num];

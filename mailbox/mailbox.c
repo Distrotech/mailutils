@@ -155,7 +155,12 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 	    }
 
 	  /* Make sure scheme contains actual mailbox scheme */
-	  if (strcmp (url->scheme, record->scheme))
+	  /* FIXME: It is appropriate not for all record types.  For now we
+	     assume that if the record scheme ends with a plus sign, this
+	     should not be done.  Probably it requires some flag in struct
+	     _mu_record? */
+	  if (record->scheme[strlen(record->scheme)-1] != '+' 
+	      && strcmp (url->scheme, record->scheme))
 	    {
 	      char *p = strdup (record->scheme);
 	      if (!p)

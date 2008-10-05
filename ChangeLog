@@ -1,5 +1,19 @@
 2008-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Fix remote+ records.
+	
+	* libproto/remote/folder.c (remote_url_init): Remove.
+	(_remote_is_scheme): New function.
+	(_remote_mbox_record): Add _is_scheme method.
+	* libproto/remote/mbox.c (remote_mbox_init): Remove useless
+	check. 
+	* mailbox/assoc.c (mu_assoc_clear): Return immediately if assoc
+	tab is NULL.
+	* mailbox/mailbox.c (_create_mailbox0): Do not enforce exact record
+	scheme match if the scheme ends with a plus sign.
+
+	Minor fixes in configuration.
+	
 	* doc/texinfo/programs.texi: Document Locking, ACL, and
 	Tcp-wrappers.
 	* mailbox/cfg_driver.c (mu_cfg_assert_value_type): Convert

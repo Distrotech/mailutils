@@ -177,12 +177,6 @@ remote_mbox_init (mu_mailbox_t mailbox)
     return EINVAL;
 
   s = mu_url_to_string (mailbox->url);
-  if (rc)
-    {
-      MU_DEBUG1 (mailbox->debug, MU_DEBUG_ERROR,
-		 "remote_mbox_init: cannot get url: %s\n", mu_strerror (rc));
-      return rc;
-    }
   
   MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "remote_mbox_init (%s)\n", s);
 
