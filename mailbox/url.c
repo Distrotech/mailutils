@@ -260,12 +260,17 @@ url_parse0 (mu_url_t u, char *name)
 	      /* Try to split the user into a:
 		 <user>:<password>
 		 or
-		 <user>;AUTH=<auth>
+		 <user>:<password>;AUTH=<auth>
 	      */
 
 	      for (; *name; name++)
 		{
-		  if (*name == ';')
+		  if (*name == ':')
+		    {
+		      *name++ = 0;
+		      u->passwd = name;
+		    }
+		  else if (*name == ';')
 		    {
 		      /* Make sure it's the auth token. */
 		      if (strncasecmp (name + 1, "auth=", 5) == 0)
@@ -275,12 +280,6 @@ url_parse0 (mu_url_t u, char *name)
 			  u->auth = name;
 			  break;
 			}
-		    }
-		  if (*name == ':')
-		    {
-		      *name++ = 0;
-		      u->passwd = name;
-		      break;
 		    }
 		}
 	    }
