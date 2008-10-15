@@ -137,7 +137,7 @@ mail/z.c
 
 mailbox/cfg_driver.c
 mailbox/cfg_format.c
-mailbox/cfg_lexer.c
+mailbox/cfg_lexer.l
 mailbox/cfg_parser.y
 mailbox/debug.c
 mailbox/diag.c
