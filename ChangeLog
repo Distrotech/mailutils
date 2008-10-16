@@ -1,3 +1,8 @@
+2008-10-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libproto/mailer/smtp.c: Implement SIZE extension (RFC 1870).
+	* doc/rfc/rfc1870.txt: New file.
+
 2008-10-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* po/POTFILES.in: Change cfg_lexer.c to cfg_lexer.l

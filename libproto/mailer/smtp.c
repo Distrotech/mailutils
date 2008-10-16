@@ -97,7 +97,9 @@ struct _smtp
 
   int extended;
   unsigned long capa;           /* Server capabilities */
-
+  size_t max_size;              /* Maximum message size the server is willing
+				   to accept */
+  
   const char *mail_from;
   mu_address_t rcpt_to;		/* Destroy this if not the same as argto below. */
   mu_address_t rcpt_bcc;
@@ -121,6 +123,7 @@ typedef struct _smtp *smtp_t;
 /* ESMTP capabilities */
 #define CAPA_STARTTLS        0x00000001
 #define CAPA_8BITMIME        0x00000002
+#define CAPA_SIZE            0x00000004
 
 static void smtp_destroy (mu_mailer_t);
 static int smtp_open (mu_mailer_t, int);
@@ -670,7 +673,15 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     case SMTP_ENV_FROM:
     ENV_FROM:
       {
-	status = smtp_writeline (smtp, "MAIL FROM:<%s>\r\n", smtp->mail_from);
+	size_t size;
+
+	if ((smtp->capa & CAPA_SIZE)
+	    && mu_message_size (smtp->msg, &size) == 0)
+	  status = smtp_writeline (smtp, "MAIL FROM:<%s> SIZE=%lu\r\n",
+				   smtp->mail_from, size);
+	else
+	  status = smtp_writeline (smtp, "MAIL FROM:<%s>\r\n",
+				   smtp->mail_from);
 	CHECK_ERROR (smtp, status);
 	smtp->state = SMTP_MAIL_FROM;
       }
@@ -1104,6 +1115,21 @@ smtp_parse_ehlo_ack (smtp_t smtp)
 
 	if (!strncasecmp (smtp->buffer, "250-STARTTLS", 12))
 	  smtp->capa |= CAPA_STARTTLS;
+	else if (!strncasecmp (smtp->buffer, "250-SIZE", 8))
+	  {
+	    smtp->capa |= CAPA_SIZE;
+	    if (smtp->buffer[8] == '=')
+	      {
+		char *p;
+		size_t n = strtoul (smtp->buffer + 9, &p, 10);
+		if (*p != '\n')
+		  MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_ERROR,
+			     "suspicious size declaration: %s",
+			     smtp->buffer);
+		else
+		  smtp->max_size = n;
+	      }
+	  }
       }
     }
   while (multi && status == 0);

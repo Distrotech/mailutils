@@ -26,6 +26,7 @@ EXTRA_DIST = \
  rfc1731.txt\
  rfc1734.txt\
  rfc1738.txt\
+ rfc1870.txt\
  rfc1939.txt\
  rfc1957.txt\
  rfc2045.txt\
