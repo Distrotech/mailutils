@@ -1259,7 +1259,8 @@ matches the connection, then it is refused.  Otherwise, if neither
 table contains matching entries, the connection is allowed.
 
 Description of a TCP wrapper table format lies outside the scope of
-this document.  Please, see @cite{man 5 hosts_access} for details.
+this document.  Please, see @ref{ACCESS CONTROL FILES,,ACCESS CONTROL FILES,
+hosts_access(5), hosts_access(5) man page}, for details.
 
 @deffn {Configuration} enable @var{bool}
 Enable access control using TCP wrappers.  It is on by default.
@@ -1291,7 +1292,22 @@ Log denied accesses using syslog priority @var{prio}.
 
 @node Server Settings
 @subsection Server Settings
-@UNREVISED
+@cindex server settings, configuration
+@cindex configuring servers
+  GNU Mailutils offers several server applications: @command{pop3d},
+@command{imap4d}, @command{comsatd}, to name a few.  Being quite
+different in their purpose, they are very similar in some aspects of
+their architecture.  First of all, they all support two operating
+mode: a @dfn{daemon} mode, where a program disconnects from the controlling
+terminal and works in background, and an @dfn{inetd} mode, where it
+remains in foreground and communicates with the remote party via
+standard input and output streams.  Secondly, when operating as
+daemons, they listen to a preconfigured set of IP addresses and
+ports, reacting to requests that arrive.
+
+  To configure these aspects of functionality, GNU Mailutils provides
+@dfn{Server Configuration Settings}, which we will describe in this
+subsection. 
 
 @menu
 * General Server Configuration::
@@ -1300,15 +1316,15 @@ Log denied accesses using syslog priority @var{prio}.
 
 @node General Server Configuration
 @subsubsection General Server Configuration
-@UNREVISED
+@cindex server configuration, general
 @subsubheading Syntax
 @smallexample
-# @r{Maximum number of children processes to run simultaneously.}
-max-children @var{number};
 # @r{Set daemon mode.}
 mode @samp{inetd|daemon};
 # @r{Run in foreground.}
 foreground @var{bool};
+# @r{Maximum number of children processes to run simultaneously.}
+max-children @var{number};
 # @r{Store PID of the master process in @var{file}.}
 pidfile @var{file};
 # @r{Default port number.}
@@ -1317,9 +1333,78 @@ port @var{portspec};
 timeout @var{time};
 @end smallexample
 
+@subsubheading Description
+These statements configure general server-related issues.
+
+@deffn {Configuration} mode @var{string};
+Set operation mode of the server.  Two operation modes are supported:
+
+@anchor{server mode}
+@table @asis
+@cindex daemon, server mode
+@item daemon
+Run as a standalone daemon, disconnecting from the controlling
+terminal and continuing to run in the background.  In this case, it is
+the server that controls what IP addresses and ports to listen on, who
+is allowed to connect and from where, how many clients are allowed to
+connect simultaneously, etc.  Most remaining configuration statements
+are valid only in the daemon mode.
+
+This is the preferred mode of operation for GNU Mailutils servers.
+
+@cindex inetd, server mode
+@item inetd
+Operate as a subprocess of UNIX internet super-server program,
+@command{inetd}.  @xref{Internet super-server,,,inetd(8), inetd(8) man
+page}, for a detailed description of the operation of @command{inetd}
+and its configuration.  In this case it is @command{inetd} that
+controls all major connectivity aspects, the Mailutils server itself
+communicates with it via standard input and output streams.
+
+For historical reasons, this mode is the default, if no @code{mode}
+statement is specified.  This will change in the future.
+@end table
+@end deffn
+
+@deffn {Configuration} foreground @var{bool};
+@*[daemon mode only]
+@*Do not disconnect from the controlling terminal and remain in the
+foreground. 
+@end deffn
+
+@deffn {Configuration} max-children @var{number};
+@*[daemon mode only]
+@*Set maximum number of child processes allowed to run simultaneously.
+This equals the number of clients that can use the server
+simultaneously.
+
+The default is 20 clients.
+@end deffn
+
+@deffn {Configuration} pidfile @var{file};
+After startup, store the PID of the main server process in
+@var{file}.  When the process terminates, the file is removed.  As of
+version @value{VERSION}, GNU Mailutils servers make no further use of
+this file.  It is intended for use by automated startup scripts and
+controlling programs (@FIXME-pxref{mention pies}).
+@end deffn
+
+@deffn {Configuration} port @var{portspec};
+@*[daemon mode only]
+@*Set default port to listen to.  The @var{portspec} argument is either
+a port number in decimal, or a symbolic service name, as listed in
+@file{/etc/services} (@pxref{Internet network services list,,,
+services(5), services(5) man page}).
+@end deffn
+
+@deffn {Configuration} timeout @var{time};
+Set maximum idle time out in seconds.  If a client does not send any
+requests during @var{time} seconds, the child process terminates.
+@end deffn
+
 @node Server Statement
 @subsubsection Server Statement
-@UNREVISED
+@cindex server statement
 @kwindex server
 @subsubheading Syntax
 @smallexample
@@ -1335,9 +1420,63 @@ server @var{ipaddr}[:@var{port}] @{
 @}
 @end smallexample
 
+@subsubheading Description
+The @code{server} block statement configures a single TCP or UDP
+server.  It takes effect only in daemon mode (@pxref{server mode}).
+The argument to this statement specifies the IP address, and,
+optionally, the port, to listen on for requests.  The @var{ipaddr}
+part is either an IPv4 address in dotted-quad form, or a symbolic host
+name which can be resolved to such an address via DNS.  Specifying
+@samp{0.0.0.0} as the @var{ipaddr} means listen on all available
+network interfaces.  The @var{port} argument is either a port number
+in decimal, or a symbolic service name, as listed in
+@file{/etc/services} (@pxref{Internet network services
+list,,,services(5), services(5) man page}).  If @var{port} is omitted,
+Mailutils uses the port set by @code{port} statement (@pxref{General
+Server Configuration, port}), or, in its absence, the default port
+number, which depends on a server being used (e.g. 110, for
+@command{pop3d}, 143, for @command{imap4d}, etc.).   
+
+Any number of @code{server} statements may be specified in a single
+configuration file, allowing to set up the same service on several IP
+addresses and/or port numbers, and with different configurations.
+
+Statements within the @code{server} block statement configure this
+particular server.
+
+@deffn {Configuration} single-process @var{bool};
+If set to true, this server will operate in single-process mode.  This
+mode is intended for debugging only, do not use it on production
+servers.
+@end deffn
+
+@deffn {Configuration} transcript @var{bool};
+Enable transcript of the client-server interaction.  This may generate
+exessive amounts of logging, which in turn may slow down the operation
+considerably.
+
+Session transcripts are useful in fine-tuning your configurations and
+in debugging.  They should be turned off on most production servers.
+@end deffn
+
+@deffn {Configuration} timeout @var{time};
+Set idle timeout for this server.  This overrides global timeout
+settings (@pxref{General Server Configuration, timeout}).
+@end deffn
+
+@deffn {Configuration} acl
+This statement defines a per-server Access Control List.  Its syntax
+is as described in @ref{ACL Statement}.  Per-server ACLs complement,
+but not override, global ACLs, i.e. if both global ACL and per-server
+ACL are used, the connection is allowed only if both of them allow it,
+and is denied if any one of them denies it.
+@end deffn
+
 @node Auth Statement
 @subsection Auth Statement
 @UNREVISED
+@cindex authorization
+@cindex authentication
 @kwindex auth
 @subheading Syntax
 @smallexample
@@ -1348,6 +1487,100 @@ auth @{
   authorization @var{module-list};
 @}
 @end smallexample
+
+@subheading Description
+Some mail utilities provide access to their services only after
+verifying that the user is actually the person he is claiming
+to be.  Such programs are, for example, @command{pop3d} and
+@command{imap4d}.  The process of the verification is broken
+down into two stages: @dfn{authorization} and @dfn{authentication}.
+In @dfn{authorization} stage the program retrieves the information
+about a particular user.  In @dfn{authentication} stage, this
+information is compared against the user-supplied credentials. Only if
+both stages succeed is the user allowed to use the service.
+
+A set of @dfn{modules} is involved in performing each stage.  For
+example, the authorization stage can retrieve the user description
+from various sources: system database, sql database, virtual domain
+table, etc.  Each module is responsible for retrieving the description
+from a particular source of information.  The modules are arranged in
+a @dfn{module list}.  The modules from the list are invoked in turn,
+until one of them succeeds or the list is exhausted. In the latter case 
+the authorization fails.  Otherwise, the data returned by the succeeded
+module are used in authentication.
+
+Similarly, authentication may be performed in several ways. The
+authentication modules are also grouped in a list. Each module
+is tried in turn until either a module succeeds, in which case the
+authentication succeeds, or the end of the list is reached.
+
+For example, the authorization list
+
+@smallexample
+  (system, sql, virtdomains)
+@end smallexample
+
+@noindent
+means that first the system user database (@file{/etc/password}) is
+searched for a description of a user in question.  If the search fails,
+the @acronym{sql} database is searched.  Finally, if it also fails, the
+search is performed in the virtual domain database.
+
+@emph{Note}, that some authentication and/or authorization modules may
+be disabled when configuring the package before compilation.  The names
+of the disabled modules are nevertheless available for use in runtime
+configuration options, but they represent a ``fail-only'' functionality,
+e.g. if the package was compiled without @acronym{sql} support then
+the module @samp{sql} in the above example will always fail, thus
+passing the execution on to the next module.
+
+The modules available for use in authorization list are:
+
+@table @asis
+@item system
+User credentials are retrieved from the system user database
+(@file{/etc/password}).
+@item sql
+User credentials are retrieved from a @acronym{SQL} database.
+Separate configuration statement, @code{sql}, is used to configure
+it (@pxref{SQL Statement}).
+@item virtdomain
+User credentials are retrieved from a ``virtual domain'' user
+database.
+@end table
+
+@table @asis
+@item generic
+The generic authentication type.  User password is hashed and compared
+against the hash value returned in authorization stage.
+@item system
+The hashed value of the user password is retrieved from
+@file{/etc/shadow} file on systems that support it.
+@item sql
+The hashed value of the user password is retrieved from a
+@acronym{SQL} database using query supplied by @code{getpass}
+statement (@pxref{SQL Statement, getpass}).
+@item pam
+The user is authenticated via pluggable authentication module
+(@acronym{PAM}). The @acronym{PAM} service name to be used is
+configured in @code{pam} statement (@pxref{PAM Statement}).
+@end table
+
+Unless overridden by @code{authentication} statement,
+the list of authentication modules is:
+
+@smallexample
+  (generic, system, pam, sql)
+@end smallexample
+
+@noindent
+Unless overridden by @code{authorization} statement,
+the list of authorization modules is:
+
+@smallexample
+  (system, sql, virtdomains)
+@end smallexample
+
 
 @node PAM Statement
 @subsection PAM Statement
