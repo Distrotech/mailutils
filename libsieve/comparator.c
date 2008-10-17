@@ -206,7 +206,7 @@ comp_false (const char *pattern, const char *text)
 }
 
 int
-mu_sv_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
+mu_sieve_match_part_checker (const char *name, mu_list_t tags, mu_list_t args)
 {
   mu_iterator_t itr;
   mu_sieve_runtime_tag_t *match = NULL;

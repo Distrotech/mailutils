@@ -407,7 +407,7 @@ static mu_sieve_tag_def_t mime_tags[] = {
   { address_part_tags, NULL }
 
 #define MATCH_PART_GROUP \
-  { match_part_tags, mu_sv_match_part_checker }
+  { match_part_tags, mu_sieve_match_part_checker }
 
 #define SIZE_GROUP { size_tags, NULL }
 

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -191,7 +191,8 @@ int mu_sieve_tag_lookup (mu_list_t taglist, char *name,
 int mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
 int mu_sieve_match_part_checker (const char *name, mu_list_t tags,
 				 mu_list_t args);
-
+int mu_sieve_match_part_checker (const char *name, mu_list_t tags,
+				 mu_list_t args);
 /* Operations in value lists */
 mu_sieve_value_t *mu_sieve_value_get (mu_list_t vlist, size_t index);
 int mu_sieve_vlist_do (mu_sieve_value_t * val, mu_list_action_t * ac,

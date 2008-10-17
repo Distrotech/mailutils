@@ -1,5 +1,13 @@
 2008-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* include/mailutils/libsieve.h (mu_sieve_match_part_checker): New
+	prototype.
+	* libsieve/comparator.c (mu_sv_match_part_checker): Rename back to
+	mu_sieve_match_part_checker.  The function was mistakingly renamed
+	on 2008-07-19.  All references updated.
+	* libsieve/tests.c: Likewise.
+	* libsieve/sieve.h (mu_sv_match_part_checker): Remove prototype.
+
 	* doc/texinfo/programs.texi: Update.
 
 2008-10-16  Sergey Poznyakoff  <gray@gnu.org.ua>

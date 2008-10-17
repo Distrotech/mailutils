@@ -130,8 +130,5 @@ void _mu_sv_instr_nop (mu_sieve_machine_t mach);
 void _mu_sv_instr_source (mu_sieve_machine_t mach);
 void _mu_sv_instr_line (mu_sieve_machine_t mach);
 
-int mu_sv_match_part_checker (const char *name, mu_list_t tags,
-			      mu_list_t args);
-
 int mu_sv_load_add_path (mu_list_t path);
 int mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name);
