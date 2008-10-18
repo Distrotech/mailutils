@@ -82,7 +82,7 @@ maidag_stdio_delivery (int argc, char **argv)
 
 static int biff_fd = -1;
 static struct sockaddr_in biff_in;
-static char *biff_user_name;
+static const char *biff_user_name;
 
 static int
 notify_action (mu_observer_t obs, size_t type, void *data, void *action_data)
@@ -161,7 +161,6 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
     {
       maidag_error (_("Cannot open mailbox %s: %s"), 
                     path, mu_strerror (status));
-      mu_mailbox_destroy (&mbox);
       return EX_TEMPFAIL;
     }
 
@@ -179,7 +178,6 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 	{
 	  maidag_error (_("Cannot lock mailbox `%s': %s"), path,
 		        mu_strerror (status));
-	  mu_mailbox_destroy (&mbox);
 	  exit_code = EX_TEMPFAIL;
 	  return EX_TEMPFAIL;
 	}
@@ -198,10 +196,7 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 	if (status == ENOSYS)
 	  mbsize = 0; /* Try to continue anyway */
 	else
-	  {
-	    mu_mailbox_destroy (&mbox);
-	    return EX_TEMPFAIL;
-	  }
+	  return EX_TEMPFAIL;
       }
     
     switch (check_quota (auth, mbsize, &n))
@@ -266,40 +261,51 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
       switch_user_id (auth, 0);
     }
 
-  mu_auth_data_free (auth);
   mu_mailbox_close (mbox);
   mu_locker_unlock (lock);
-  mu_mailbox_destroy (&mbox);
   return failed ? exit_code : 0;
 }
 
-int
-deliver (mu_mailbox_t imbx, char *name, char **errp)
+static int
+is_remote_url (mu_url_t url)
 {
-  struct mu_auth_data *auth;
+  const char *scheme;
+  int rc = mu_url_sget_scheme (url, &scheme);
+  return rc == 0 && strncasecmp (scheme, "remote+", 7) == 0;
+}
+
+int
+deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
+{
+  struct mu_auth_data *auth = NULL;
   mu_mailbox_t mbox;
   mu_message_t msg;
   int status;
 
-  auth = mu_get_auth_by_name (name);
-  if (!auth)
+  if (is_remote_url (url))
+    auth = NULL;
+  else
     {
-      maidag_error (_("%s: no such user"), name);
-      if (errp)
-	asprintf (errp, "%s: no such user", name);
-      exit_code = EX_UNAVAILABLE;
-      return EX_UNAVAILABLE;
-    }
-  if (current_uid)
-    auth->change_uid = 0;
+      auth = mu_get_auth_by_name (name);
+      if (!auth)
+	{
+	  maidag_error (_("%s: no such user"), name);
+	  if (errp)
+	    asprintf (errp, "%s: no such user", name);
+	  exit_code = EX_UNAVAILABLE;
+	  return EX_UNAVAILABLE;
+	}
+      if (current_uid)
+	auth->change_uid = 0;
   
-  if (!sieve_test (auth, imbx))
-    {
-      exit_code = EX_OK;
-      mu_auth_data_free (auth);
-      return 0;
+      if (!sieve_test (auth, imbx))
+	{
+	  exit_code = EX_OK;
+	  mu_auth_data_free (auth);
+	  return 0;
+	}
     }
-
+  
   if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
     {
       maidag_error (_("Cannot get message from the temporary mailbox: %s"),
@@ -308,10 +314,16 @@ deliver (mu_mailbox_t imbx, char *name, char **errp)
       return EX_TEMPFAIL;
     }
 
-  if ((status = mu_mailbox_create (&mbox, auth->mailbox)) != 0)
+  if (url)
+    status = mu_mailbox_create_from_url (&mbox, url);
+  else
+    status = mu_mailbox_create (&mbox, auth->mailbox);
+
+  if (status)
     {
       maidag_error (_("Cannot open mailbox %s: %s"),
-		    auth->mailbox, mu_strerror (status));
+		    url ? mu_url_to_string (url): auth->mailbox,
+		    mu_strerror (status));
       mu_auth_data_free (auth);
       return EX_TEMPFAIL;
     }
@@ -326,5 +338,53 @@ deliver (mu_mailbox_t imbx, char *name, char **errp)
   status = deliver_to_user (imbx, mbox, msg, auth, name, errp);
   if (switch_user_id (auth, 0))
     return EX_TEMPFAIL;
+
+  mu_auth_data_free (auth);
+  mu_mailbox_destroy (&mbox);
+
   return status;
 }
+
+int
+deliver (mu_mailbox_t imbx, char *dest_id, char **errp)
+{
+  int status;
+  const char *name;
+  mu_url_t url = NULL;
+  
+  if (url_option)
+    {
+      status = mu_url_create (&url, dest_id);
+      if (status)
+	{
+	  maidag_error (_("%s: cannot create url: %s"), dest_id,
+			mu_strerror (status));
+	  return EX_NOUSER;
+	}
+      status = mu_url_parse (url);
+      if (status)
+	{
+	  maidag_error (_("%s: cannot parse url: %s"), dest_id,
+			mu_strerror (status));
+	  mu_url_destroy (&url);
+	  return EX_NOUSER;
+	}
+      status = mu_url_sget_user (url, &name);
+      if (status == MU_ERR_NOENT)
+	name = NULL;
+      else if (status)
+	{
+	  maidag_error (_("%s: cannot get user name from url: %s"),
+			dest_id, mu_strerror (status));
+	  mu_url_destroy (&url);
+	  return EX_NOUSER;
+	}
+    }
+  else
+    {
+      name = dest_id;
+      dest_id = NULL;
+    }
+  return deliver_url (url, imbx, name, errp);
+}
+  

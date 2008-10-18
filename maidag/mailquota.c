@@ -274,6 +274,9 @@ int
 check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest)
 {
   mu_off_t quota;
+
+  if (!auth)
+    return MQUOTA_OK;
   
   switch (retrieve_quota (auth, &quota))
     {
@@ -292,7 +295,6 @@ check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest)
     }
   
   return MQUOTA_OK;
-      
 }
   
 #endif /* USE_MAIL_QUOTA */

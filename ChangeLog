@@ -1,3 +1,30 @@
+2008-10-19  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS: Update.
+	* doc/texinfo/libmuauth.texi: Update.
+	* doc/texinfo/mailutils.texi: Update.
+	* doc/texinfo/programs.texi: Update.
+	
+	* include/mailutils/mailbox.h (mu_mailbox_create_from_url): New
+	function.
+	* include/mailutils/mutil.h (mu_aget_user_email_domain): New
+	function.
+	* libproto/include/address0.h: Remove obsolete comment.
+	* libproto/remote/mbox.c (remote_mbox_append_message): If
+	recipient address is not given, try to construct it from the URL.
+	* mailbox/mailbox.c (mu_mailbox_create_from_url): New function.
+	* mailbox/mutil.c (mu_aget_user_email_domain): New function.
+	
+	* maidag/deliver.c (deliver_to_user): Mailbox and auth must be
+	freed by the caller.
+	(deliver_url): New function.
+	(deliver): Rewrite to allow for delivering to mailboxes explicitly
+	specified by URLs (--url command line option).
+	* maidag/maidag.c (options): New option --url.
+	(main): Handle --url.
+	* maidag/maidag.h (url_option): New global.
+	* maidag/mailquota.c (check_quota): Return if auth == NULL.
+
 2008-10-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/libsieve.h (mu_sieve_match_part_checker): New

@@ -55,9 +55,6 @@ struct _mu_address
   char *route;
   	/* the optional ROUTE in the ROUTE-ADDR form of MAILBOX */
 
-/*  size_t num; this didn't appear to be used anywhere... so I commented
- it out, is that ok? -sam */
-
   struct _mu_address *next;
 };
 

@@ -112,10 +112,15 @@ Indices
 @detailmenu
  --- The Detailed Node Listing ---
 
+Introduction
+
+* Book Contents::               What this Book Contains
+* History::                     A bit of History
+
 Mailutils Programs
 
+* command line::      Command Line Syntax.  
 * configuration::     Common Configuration File.
-* authentication::    Authorization and Authentication Principles.
 
 * frm and from::      List Headers from a Mailbox.
 * mail::              Send and Receive Mail.
@@ -139,6 +144,41 @@ Mailutils Programs
 
 * mailutils-config::  Get the Information about the Mailutils Build.
 
+Command Line
+
+* Option Basics::       Basic Notions About Command Line Options.
+* Common Options::      Options That are Common for All Utilities.
+
+Mailutils Configuration File
+
+* conf-syntax::         Configuration File Syntax
+* Include::             Include Statement
+* Logging Statement::
+* Debug Statement::
+* Mailbox Statement::
+* Locking Statement::
+* ACL Statement::
+* Tcp-wrappers Statement::
+* Server Settings::
+* Auth Statement::
+* PAM Statement::
+* Virtdomain Statement::
+* Radius Statement::
+* SQL Statement::
+* LDAP Statement::
+* TLS Statement::
+* GSASL Statement::
+
+Configuration File Syntax
+
+* Comments::
+* Statements::
+* Block Statements::
+
+Server Settings
+
+* General Server Configuration::
+* Server Statement::
 
 @command{mail} --- Send and Receive Mail
 

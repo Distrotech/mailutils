@@ -29,6 +29,7 @@
 #include <mailutils/property.h>
 #include <mailutils/mailer.h>
 #include <mailutils/url.h>
+#include <mailutils/mutil.h>
 #include <mailbox0.h>
 
 struct remote_mbox_data
@@ -134,6 +135,39 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 
   mkaddr (mbox, property, "FROM", &from);
   mkaddr (mbox, property, "TO", &to);
+  if (!to)
+    {
+      const char *rcpt, *host;
+      char *domain = NULL;
+      
+      status = mu_url_sget_user (mbox->url, &rcpt);
+      if (status != MU_ERR_NOENT)
+	{
+	  if (status)
+	    {
+	      MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
+			 "failed to get recipient from the url: %s\n",
+			 mu_strerror (status));
+	      return status;
+	    }
+
+	  /* FIXME: Set before if? */
+	  mu_aget_user_email_domain (&domain);
+	  mu_url_sget_host (mbox->url, &host);
+	  mu_set_user_email_domain (host);
+	  status = mu_address_create (&to, rcpt);
+	  mu_set_user_email_domain (domain);
+	  free (domain);
+      
+	  if (status)
+	    {
+	      MU_DEBUG3 (mbox->debug, MU_DEBUG_ERROR,
+			 "%s: %s mu_address_create failed: %s\n",
+			 rcpt, "TO", mu_strerror (status));
+	      return status;
+	    }
+	}
+    }
   
   status = mu_mailer_send_message (dat->mailer, msg, from, to);
 

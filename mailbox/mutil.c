@@ -411,6 +411,7 @@ mu_set_user_email_domain (const char *domain)
   return 0;
 }
 
+/* FIXME: must be called _sget_ */
 int
 mu_get_user_email_domain (const char **domain)
 {
@@ -424,6 +425,24 @@ mu_get_user_email_domain (const char **domain)
 
   *domain = mu_user_email_domain;
 
+  return 0;
+}
+
+int
+mu_aget_user_email_domain (char **pdomain)
+{
+  const char *domain;
+  int status = mu_get_user_email_domain (&domain);
+  if (status)
+    return status;
+  if (domain == NULL)
+    *pdomain = domain;
+  else
+    {
+      *pdomain = strdup (domain);
+      if (*pdomain == NULL)
+	return ENOMEM;
+    }
   return 0;
 }
 

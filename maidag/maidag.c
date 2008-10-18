@@ -45,6 +45,7 @@ char *message_id_header;   /* Use the value of this header as message
 /* For LMTP mode */
 mu_m_server_t server;
 int lmtp_mode;
+int url_option;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
 char *lmtp_group = "mail";
@@ -66,6 +67,7 @@ static char args_doc[] = N_("[recipient...]");
 #define MESSAGE_ID_HEADER_OPTION 257
 #define LMTP_OPTION 258
 #define FOREGROUND_OPTION 260
+#define URL_OPTION 261
 
 static struct argp_option options[] = 
 {
@@ -73,7 +75,7 @@ static struct argp_option options[] =
   { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0 },
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
     N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
-
+  { "url", URL_OPTION, 0, 0, N_("Deliver to given URLs"), 0 },
   { "from", 'f', N_("EMAIL"), 0,
     N_("Specify the sender's name") },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
@@ -220,6 +222,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case STDERR_OPTION:
       mu_argp_node_list_new (&lst, "stderr", "yes");
+      break;
+
+    case URL_OPTION:
+      url_option = 1;
       break;
       
     case ARGP_KEY_INIT:
@@ -492,7 +498,7 @@ main (int argc, char *argv[])
   current_uid = getuid ();
 
   if (log_to_stderr == -1)
-    log_to_stderr = !lmtp_mode && (current_uid != 0);
+    log_to_stderr = url_option || (!lmtp_mode && (current_uid != 0));
   
   if (!log_to_stderr)
     {
@@ -508,7 +514,7 @@ main (int argc, char *argv[])
   argc -= arg_index;
   argv += arg_index;
 
-  if (lmtp_mode)
+  if (lmtp_mode && !url_option)
     {
       if (argc)
 	{
@@ -521,24 +527,30 @@ main (int argc, char *argv[])
     {
       if (current_uid)
 	{
-	  static char *s_argv[2];
-	  struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
-
-	  if (!current_uid)
+	  if (url_option)
 	    {
-	      mu_error (_("Cannot get username"));
-	      return EX_UNAVAILABLE;
+	      /* FIXME: Verify if the urls are deliverable? */
 	    }
-
-	  if (argc > 1 || (argc > 0 && strcmp (auth->name, argv[0])))
+	  else
 	    {
-	      mu_error (_("Recipients given when running as non-root"));
-	      return EX_USAGE;
+	      static char *s_argv[2];
+	      struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
+	      
+	      if (!current_uid)
+		{
+		  mu_error (_("Cannot get username"));
+		  return EX_UNAVAILABLE;
+		}
+	      
+	      if (argc > 0 && strcmp (auth->name, argv[0]))
+		{
+		  mu_error (_("Recipients given when running as non-root"));
+		  return EX_USAGE;
+		}
+	      s_argv[0] = auth->name;
+	      argv = s_argv;
+	      argc = 1;
 	    }
-
-	  s_argv[0] = auth->name;
-	  argv = s_argv;
-	  argc = 1;
 	}
       return maidag_stdio_delivery (argc, argv);
     }

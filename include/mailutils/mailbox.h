@@ -41,6 +41,8 @@ const char *mu_mailbox_get_default_proto (void);
   
 /* Constructor/destructor and possible types.  */
 extern int  mu_mailbox_create          (mu_mailbox_t *, const char *);
+extern int  mu_mailbox_create_from_url (mu_mailbox_t *, mu_url_t);
+
 extern void mu_mailbox_destroy         (mu_mailbox_t *);
 extern int  mu_mailbox_create_default  (mu_mailbox_t *, const char *);
 

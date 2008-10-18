@@ -8,9 +8,9 @@ The functions from @file{libmailbox} library get user information from
 the system user database. The library @file{libmuauth} extends this
 functionality, allowing @file{libmailbox} functions to obtain
 information about a user from several places, like @sc{sql} database,
-etc. The method used is described in detail in @ref{authentication}.
-This chapter contains a very succinct description of the underlying
-library mechanism.
+etc. The method used is described in detail in @ref{Auth Statement,
+authentication}.  This chapter contains a very succinct description of
+the underlying library mechanism.
 
 @menu
 * Data Types::

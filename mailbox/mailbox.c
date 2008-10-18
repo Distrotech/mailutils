@@ -247,6 +247,14 @@ mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
   return rc;
 }
 
+int
+mu_mailbox_create_from_url (mu_mailbox_t *pmbox, mu_url_t url)
+{
+  if (pmbox == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  return _create_mailbox0 (pmbox, url, mu_url_to_string (url));
+}
+
 void
 mu_mailbox_destroy (mu_mailbox_t *pmbox)
 {

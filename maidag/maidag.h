@@ -123,6 +123,7 @@ extern char *sieve_pattern;
 
 extern mu_m_server_t server;
 extern int lmtp_mode;
+extern int url_option;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
 extern char *lmtp_group;

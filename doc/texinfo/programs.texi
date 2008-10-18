@@ -22,7 +22,6 @@ syntax.
 @menu
 * command line::      Command Line Syntax.  
 * configuration::     Common Configuration File.
-* authentication::    Authorization and Authentication Principles.
 
 * frm and from::      List Headers from a Mailbox.
 * mail::              Send and Receive Mail.
@@ -1474,7 +1473,6 @@ and is denied if any one of them denies it.
 
 @node Auth Statement
 @subsection Auth Statement
-@UNREVISED
 @cindex authorization
 @cindex authentication
 @kwindex auth
@@ -1534,6 +1532,12 @@ e.g. if the package was compiled without @acronym{sql} support then
 the module @samp{sql} in the above example will always fail, thus
 passing the execution on to the next module.
 
+The @code{auth} statement configures authentication and authorization.
+
+@deffn {Configuration} authorization @var{module-list}
+Define a sequence of modules to use for authorization.  Modules will
+be tried in the same order as listed in @var{module-list}.
+
 The modules available for use in authorization list are:
 
 @table @asis
@@ -1548,6 +1552,20 @@ it (@pxref{SQL Statement}).
 User credentials are retrieved from a ``virtual domain'' user
 database.
 @end table
+
+Unless overridden by @code{authorization} statement,
+the default list of authorization modules is:
+
+@smallexample
+  (system, sql, virtdomains)
+@end smallexample
+@end deffn
+
+@deffn {Configuration} authentication @var{module-list}
+Define a sequence of modules to use for authentication.  Modules will
+be tried in the same order as listed in @var{module-list}.
+
+The following table lists modules available for use in @var{module-list}:
 
 @table @asis
 @item generic
@@ -1572,19 +1590,10 @@ the list of authentication modules is:
 @smallexample
   (generic, system, pam, sql)
 @end smallexample
-
-@noindent
-Unless overridden by @code{authorization} statement,
-the list of authorization modules is:
-
-@smallexample
-  (system, sql, virtdomains)
-@end smallexample
-
+@end deffn
 
 @node PAM Statement
 @subsection PAM Statement
-@UNREVISED
 @kwindex pam
 @subheading Syntax
 @smallexample
@@ -1593,6 +1602,18 @@ pam @{
   service @var{text};
 @}
 @end smallexample
+
+@subheading Description
+The @code{pam} statement configures @acronym{PAM} authentication.  It
+contains a single sub-statement:
+
+@deffn {Configuration} service @var{text}
+Define service name to look for in @acronym{PAM} configuration.  By
+default, the base name of the Mailutils binary is used.
+@end deffn
+
+This statement takes effect only if @samp{pam} is listed in
+@code{authentication} statement (@pxref{Auth Statement}).
 
 @node Virtdomain Statement
 @subsection Virtdomain Statement
@@ -1605,6 +1626,10 @@ virtdomain @{
   passwd-dir @var{dir};
 @}
 @end smallexample
+
+@subheading Description
+The @code{virtdomain} statement configures virtual mail domain
+database.  @dfn{Virtual mail domain}...@FIXME
 
 @node Radius Statement
 @subsection Radius Statement
@@ -1728,108 +1753,7 @@ gsasl @{
 
 
 @c -------------------------------------------------------------------
-@node authentication
-@section Authorization and Authentication Principles
-@UNREVISED
-@cindex authorization
-@cindex authentication
 
-Some mail utilities provide access to their services only after
-verifying that the user is actually the person he is claiming
-to be. Such programs are, for example, @command{pop3d} and
-@command{imap4d}. The process of the verification is broken
-down into two stages: @dfn{authorization} and @dfn{authentication}.
-In @dfn{authorization} stage the program retrieves the information
-about a particular user. In @dfn{authentication} stage, this information
-is compared against the user-supplied credentials. Only if both stages
-succeed is the user allowed to use the service.
-
-A set of @dfn{modules} is involved in performing each stage. For
-example, the authorization stage can retrieve the user description
-from various sources: system database, sql database, virtual domain
-table, etc. Each module is responsible for retrieving the description
-from a particular source of information. The modules are arranged in
-a @dfn{module list}. The modules from the list are invoked in turn, until
-either a one of them succeeds or the list is exhausted. In latter case
-the authorization fails. Otherwise the data returned by the succeeded
-module are used in authentication.
-
-Similarly, authentication may be performed in several ways. The
-authentication modules are also grouped in a list. Each module
-is tried in turn until either a module succeeds, in which case the
-authentication succeeds, or the end of the list is reached.
-
-We represent the module lists as column-separated lists of module
-names. For example, the authorization list
-
-@smallexample
-system:sql:virtdomains
-@end smallexample
-
-@noindent
-means that first the system user database (@file{/etc/password}) is
-searched for a description of a user in question. If the search fails,
-the @acronym{sql} database is searched. Finally, if it also fails, the
-search is performed in the virtual domain database.
-
-@emph{Note}, that some authentication and/or authorization modules may
-be disabled when configuring the package before compilation. The names
-of the disabled modules are nevertheless available for use in runtime
-configuration options, but they represent a ``fail-only'' functionality,
-e.g. if the package was compiled without @acronym{sql} support then the
-module @samp{sql} in the above example will always fail, thus passing
-the execution on to the next module.
-
-The modules available for use in authorization list are:
-
-@table @asis
-@item system
-User credentials are retrieved from the system user database
-(@file{/etc/password}).
-@item sql
-User credentials are retrieved from the @acronym{sql} database. The set
-of @option{--sql-} options (@FIXME-pxref{auth}) is used to configure
-access to the database.
-@item virtdomain
-User credentials are retrieved from a ``virtual domain'' user
-database.
-@end table
-
-The modules available for use in authentication list are:
-
-@table @asis
-@item generic
-The generic authentication type. User password is hashed and compared
-against the hash value returned in authorization stage.
-@item system
-The hashed value of the user password is retrieved from
-@file{/etc/shadow} file on systems that support it.
-@item sql
-The hashed value of the user password is retrieved from the @acronym{sql}
-database using query supplied by @option{--sql-getpass} option
-(@FIXME-pxref{auth}).
-@item pam
-The user is authenticated via pluggable authentication module
-(@acronym{pam}). The @acronym{pam} service name to be used is
-configured via @option{--pam-service} option (@FIXME-pxref{auth})
-@end table
-
-Unless overridden by @option{--authentication} command line option,
-the list of authentication modules is:
-
-@smallexample
-generic:system:pam:sql
-@end smallexample
-
-@noindent
-Unless overridden by @option{--authorization} command line option,
-the list of authorization modules is:
-
-@smallexample
-system:sql:virtdomains
-@end smallexample
-
-@page
 @node frm and from
 @section @command{frm} and @command{from} --- List Headers from a Mailbox
 

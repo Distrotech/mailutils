@@ -88,6 +88,9 @@ extern int mu_set_user_email_domain (const char *domain);
 /* Return the currently set user email domain, or NULL if not set. */
 extern int mu_get_user_email_domain (const char** domain);
 
+/* Same, but allocates memory */
+extern int mu_aget_user_email_domain (char **pdomain);
+
 /*
  * Get the default email address for user name. A NULL name is taken
  * to mean the current user.
