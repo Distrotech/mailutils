@@ -39,6 +39,7 @@ struct mu_sql_module_config
   char *db;
   int port;
   enum mu_password_type password_type;
+  int positional;
   mu_assoc_t field_map;
 };
 
@@ -56,6 +57,7 @@ struct mu_internal_sql_config
   char *db;
   int port;
   enum mu_password_type password_type;
+  int positional;
   mu_assoc_t field_map;
 };
 

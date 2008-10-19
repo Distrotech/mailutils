@@ -1,5 +1,11 @@
 2008-10-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/sql.c (decode_tuple): Use new tuple parsing mode, unless
+	`positional' is set to true.
+	* include/mailutils/sql.h (struct mu_sql_module_config)
+	(struct mu_internal_sql_config): New member `positional'.
+	* libcfg/sql.c (mu_sql_param): New statement `positional'.
+
 	* auth/virtual.c (getpwnam_virtual): Close file.
 	* doc/texinfo/programs.texi: Document virtmode.
 	* testsuite/Makefile.am (EXTRA_DIST): Remove

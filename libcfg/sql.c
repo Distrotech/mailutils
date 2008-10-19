@@ -84,6 +84,8 @@ static struct mu_cfg_param mu_sql_param[] = {
   { "password-type", mu_cfg_callback, NULL, 0, cb_password_type,
     N_("Type of password returned by getpass query (one of: plain, hash, "
        "scrambled).") },
+  { "positional", mu_cfg_bool, &sql_settings.positional, 0, NULL,
+    N_("Use positional (v1.0 compatible) field interface.") },
   { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
     N_("Set a field-map for parsing SQL replies.  The map is a "
        "column-separated list of definitions.  Each definition has the "

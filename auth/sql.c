@@ -301,7 +301,7 @@ static int
 decode_tuple (mu_sql_connection_t conn, int n,
 	      struct mu_auth_data **return_data)
 {
-  if (mu_sql_module_config.field_map)
+  if (mu_sql_module_config.field_map || !mu_sql_module_config.positional)
     return decode_tuple_new (conn, n, return_data);
   else
     return decode_tuple_v1_0 (conn, n, return_data);
