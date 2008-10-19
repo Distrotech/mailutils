@@ -1,5 +1,10 @@
 2008-10-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* auth/virtual.c (getpwnam_virtual): Close file.
+	* doc/texinfo/programs.texi: Document virtmode.
+	* testsuite/Makefile.am (EXTRA_DIST): Remove
+	* testsuite/makespool: Remove.
+
 	* NEWS: Update.
 	* doc/texinfo/libmuauth.texi: Update.
 	* doc/texinfo/mailutils.texi: Update.

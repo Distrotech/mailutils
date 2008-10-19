@@ -1617,7 +1617,6 @@ This statement takes effect only if @samp{pam} is listed in
 
 @node Virtdomain Statement
 @subsection Virtdomain Statement
-@UNREVISED 
 @kwindex virtdomain
 @subheading Syntax
 @smallexample
@@ -1628,8 +1627,49 @@ virtdomain @{
 @end smallexample
 
 @subheading Description
-The @code{virtdomain} statement configures virtual mail domain
-database.  @dfn{Virtual mail domain}...@FIXME
+@dfn{Virtual mail domains} make it possible to handle several
+mail domains each having a separate set of users, on a single server.
+The domains are completely independent of each other, i.e. the same
+user name can be present in several domains and represent different
+users.
+
+When authenticating to a server with virtual domain support enabled,
+users must supply their usernames with domain parts.  The server strips
+off the domain part and uses it as a name of UNIX-format password
+database file, located in the @dfn{domain password directory}.  The
+latter is set using @code{passwd-dir} statement.
+
+@deffn {Configuration} passwd-dir @var{dir}
+Set virtual domain password directory.
+@end deffn
+
+For example, when authenticating user @samp{smith@@domain.tld},
+the server will use password file named @file{@var{dir}/domain.tld}.
+This file must be in UNIX passwd format (@pxref{password
+file,,,passwd(5), passwd(5) man page}), with encrypted passwords
+stored in it (as of GNU Mailutils version @value{VERSION}, there is no
+support for shadow files in virtual password directories, although
+this is planned for future versions).  Here is an example record from
+this file:
+
+@smallexample
+smith:Wbld/G2Q2Le2w:1000:1000:Email Account:/var/mail/domain/smith:/dev/null
+@end smallexample
+
+Notice, that it must contain user names without domain parts.
+
+The @code{pw_dir} field (the 6th field) is used to determine the
+location of the maildrop for this user.  It is defined as
+@file{@var{pw_dir}/INBOX}.  In our example, the maildrop for user
+@samp{smith} will be located in file @file{/var/mail/domain/smith}.
+
+If user did not supply his domain name, or if no matching record was
+found in the password file, or if the file matching the domain name
+does not exist, then GNU Mailutils falls back to alternative method.
+First, it tries to determine the IP address of the remote party.  Then
+the domain name corresponding to that address is looked up in the DNS
+system.  Finally, this domain name is used as a name of the password
+file.
 
 @node Radius Statement
 @subsection Radius Statement

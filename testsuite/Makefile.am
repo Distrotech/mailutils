@@ -17,7 +17,6 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-EXTRA_DIST = makespool
 test_dirs = lib etc spool folder
 
 dist-hook:

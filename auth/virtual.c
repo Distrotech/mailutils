@@ -99,12 +99,15 @@ getpwnam_virtual (const char *u)
   free (filename);
 
   if (pfile)
-    while ((pw = fgetpwent (pfile)) != NULL)
-      {
-	if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
-	  break;
-      }
-
+    {
+      while ((pw = fgetpwent (pfile)) != NULL)
+	{
+	  if (strlen (pw->pw_name) == delim
+	      && strncmp (u, pw->pw_name, delim) == 0)
+	    break;
+	}
+      fclose (pfile);
+    }
   return pw;
 }
 
