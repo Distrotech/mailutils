@@ -235,6 +235,7 @@ sigpipe_handler (int sig MU_ARG_UNUSED)
 /* Syntax: spamd [":host" <tcp-host: string]
                  [":port" <tcp-port: number> /
                   ":socket" <unix-socket: string>]
+		 [":user" <name: string>] 
 		 [":over" / ":under" <limit: string>]
 
    The "spamd" test is an interface to "spamd" facility of
@@ -269,11 +270,10 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_sieve_value_t *arg;
   mu_message_t msg;
   size_t m_size, m_lines, size;
-  struct mu_auth_data *auth;
   signal_handler handler;
   char *host;
   mu_header_t hdr;
-
+  
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
       mu_sieve_locus_t locus;
@@ -302,12 +302,17 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_message_size (msg, &m_size);
   mu_message_lines (msg, &m_lines);
 
-  auth = mu_get_auth_by_uid (geteuid ());
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
   spamd_send_command (stream, "Content-length: %lu",
 		      (u_long) (m_size + m_lines));
-  spamd_send_command (stream, "User: %s", auth ? auth->name : "root");
-  mu_auth_data_free (auth);
+  if (mu_sieve_tag_lookup (tags, "user", &arg))
+    spamd_send_command (stream, "User: %s", arg);
+  else
+    {
+      struct mu_auth_data *auth = mu_get_auth_by_uid (geteuid ());
+      spamd_send_command (stream, "User: %s", auth ? auth->name : "root");
+      mu_auth_data_free (auth);
+    }
 
   got_sigpipe = 0;
   handler = set_signal_handler (SIGPIPE, sigpipe_handler);
@@ -411,6 +416,7 @@ static mu_sieve_tag_def_t spamd_tags[] = {
   { "host", SVT_STRING },
   { "port", SVT_NUMBER },
   { "socket", SVT_STRING },
+  { "user", SVT_STRING },
   { "over", SVT_STRING },
   { "under", SVT_STRING },
   { NULL }
