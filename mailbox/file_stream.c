@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,10 @@ struct _file_stream
   mu_off_t offset;
   int tempfile;
   char *filename;
+  /* The following three members are used for stdio streams only. */
+  int size_computed;
   mu_stream_t cache;
+  mu_off_t size;
 };
 
 static void
@@ -208,7 +211,7 @@ _stdin_file_read (mu_stream_t stream, char *optr, size_t osize,
   int status = 0;
   size_t nbytes;
   struct _file_stream *fs = mu_stream_get_owner (stream);
-  int fs_offset = fs->offset;
+  mu_off_t fs_offset = fs->offset;
 
   if (offset < fs_offset)
     return mu_stream_read (fs->cache, optr, osize, offset, pnbytes);
@@ -269,7 +272,7 @@ _stdin_file_readline (mu_stream_t stream, char *optr, size_t osize,
   int status;
   size_t nbytes;
   struct _file_stream *fs = mu_stream_get_owner (stream);
-  int fs_offset = fs->offset;
+  mu_off_t fs_offset = fs->offset;
   
   if (offset < fs->offset)
     return mu_stream_readline (fs->cache, optr, osize, offset, pnbytes);
@@ -291,6 +294,31 @@ _stdin_file_readline (mu_stream_t stream, char *optr, size_t osize,
   if (pnbytes)
     *pnbytes = nbytes;
   return status;
+}
+
+/* Used only if stream->cache is not NULL */ 
+static int
+_stdin_file_size (mu_stream_t stream, mu_off_t *psize)
+{
+  struct _file_stream *fs = mu_stream_get_owner (stream);
+
+  if (!fs->size_computed)
+    {
+      char buf[512];
+      mu_off_t fs_offset = fs->offset;
+      size_t n;
+      int status;
+      
+      /* Fill in the cache */ 
+      while ((status = mu_stream_read (stream, buf, sizeof (buf),
+				       fs_offset, &n)) == 0
+	     && n > 0)
+	fs_offset += n;
+      fs->size = fs_offset;
+      fs->size_computed = 1;
+    }
+  *psize = fs->size;
+  return 0;
 }
 
 static int
@@ -651,6 +679,7 @@ mu_stdio_stream_create (mu_stream_t *stream, FILE *file, int flags)
       mu_stream_set_read (*stream, _stdin_file_read, fs);
       mu_stream_set_readline (*stream, _stdin_file_readline, fs);
       mu_stream_set_write (*stream, _stdout_file_write, fs);
+      mu_stream_set_size (*stream, _stdin_file_size, fs);
     }
   else
     {

@@ -368,7 +368,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 	  decode_float (&limit, arg->v.string, 3);
 	  result = score >= limit;
 	}
-      else if (mu_sieve_tag_lookup (tags, "over", &arg))
+      else if (mu_sieve_tag_lookup (tags, "under", &arg))
 	{
 	  decode_float (&limit, arg->v.string, 3);
 	  result = score <= limit;	  

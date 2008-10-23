@@ -1,3 +1,18 @@
+2008-10-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix handling of stdin stream (in particular, in sieve).
+	
+	* libsieve/extensions/spamd.c (spamd_test): Fix typo.
+	*  mailbox/file_stream.c (struct _file_stream): New members
+	size and size_computed.
+	(_stdin_file_read, _stdin_file_readline): Fix types of fs_offset.
+	(_stdin_file_size): New function.
+	(_stdout_file_write): Register _stdin_file_size as stream_size
+	method if seekable flag is set.
+	* mailbox/message_stream.c (struct _mu_rfc822_message): Remove
+	unused member.
+	* sieve/sieve.c (sieve_message): Create a seekable stream.
+
 2008-10-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libsieve/extensions/spamd.c: New tag :user.

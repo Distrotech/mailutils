@@ -215,7 +215,6 @@ struct _mu_rfc822_message
 {
   char *from;
   char *date;
-  mu_off_t header_start;
   mu_off_t body_start;
   mu_off_t body_end;
 };

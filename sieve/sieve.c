@@ -375,7 +375,7 @@ sieve_message (mu_sieve_machine_t mach)
   mu_message_t msg;
   mu_attribute_t attr;
 
-  rc = mu_stdio_stream_create (&instr, stdin, 0);
+  rc = mu_stdio_stream_create (&instr, stdin, MU_STREAM_SEEKABLE);
   if (rc)
     {
       mu_error (_("Cannot create stream: %s"), mu_strerror (rc));
