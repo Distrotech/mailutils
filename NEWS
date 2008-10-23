@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-10-16
+GNU mailutils NEWS -- history of user-visible changes. 2008-10-23
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -473,6 +473,14 @@ from the available data.
 
 New options `--bulletin-db' and `--bulletin-source' implement bulletin
 facility.
+
+* The `sieve' utility.
+
+Exit codes conform to sysexits.h.
+
+New working mode: if `-f -' is given, treat stdin as an RFC2822
+message, apply the script to it and exit with 1 if the message gets
+deleted, 0 if it is not and EX_SOFTWARE on software errors.
 
 * MH changes
 

@@ -1,3 +1,13 @@
+2008-10-23  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* sieve/sieve.c: New working mode: if `-f -' is given, treat
+	stdin as an RFC2822 message, apply the script to it and exit with
+	1 if the message gets deleted, 0 if it is not and EX_SOFTWARE on
+	software errors.
+	In traditional mode, exit with standard sysexit codes.
+	* testsuite/sieve/i-numeric.exp: Reflect changes in sieve.
+	* NEWS: Update.
+	
 2008-10-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* auth/sql.c (decode_tuple): Use new tuple parsing mode, unless

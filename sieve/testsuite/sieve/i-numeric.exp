@@ -22,7 +22,7 @@ sieve_test i-numeric-is.sv -pattern \
 	"DISCARD on msg uid 2: marking as deleted"\
 	"IMPLICIT KEEP on msg uid 3"
 
-sieve_test i-numeric-contains.sv -retcode 1 -pattern \
+sieve_test i-numeric-contains.sv -retcode 78 -pattern \
 	-re ".*i-numeric-contains.sv:9: comparator `i;ascii-numeric' is incompatible with match type `contains' in call to `header'"
 
 # end of i-numeric.exp

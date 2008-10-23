@@ -30,6 +30,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <sysexits.h>
 
 #include <mu_asprintf.h>
 #include <mailutils/argcv.h>
@@ -366,109 +367,49 @@ _sieve_action_log (void *unused,
     mu_debug_set_locus (debug, NULL, 0);
 }
 
-int
-main (int argc, char *argv[])
+static int
+sieve_message (mu_sieve_machine_t mach)
 {
-  mu_sieve_machine_t mach;
-  mu_wicket_t wicket = 0;
-  mu_ticket_t ticket = 0;
-  mu_debug_t debug = 0;
-  mu_mailbox_t mbox = 0;
   int rc;
+  mu_stream_t instr;
+  mu_message_t msg;
+  mu_attribute_t attr;
 
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
-  mu_argp_init (program_version, NULL);
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_gocs_register ("sieve", mu_sieve_module_init);
-
-  mu_register_all_formats ();
-
-  tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
-  tickets_default = 1;
-  debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
-  mu_log_facility = 0;
-
-  if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
-		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
-    exit (1);
-
-  /* Sieve interpreter setup. */
-  rc = mu_sieve_machine_init (&mach, NULL);
+  rc = mu_stdio_stream_create (&instr, stdin, 0);
   if (rc)
     {
-      mu_error (_("Cannot initialize sieve machine: %s"), mu_strerror (rc));
-      return 1;
+      mu_error (_("Cannot create stream: %s"), mu_strerror (rc));
+      return EX_SOFTWARE;
     }
-
-  if (mu_log_facility)
-    {
-      mu_debug_t debug;
-
-      mu_diag_get_debug (&debug);
-      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-    }
-
-  mu_sieve_set_debug (mach, _sieve_debug_printer);
-  if (verbose)
-    mu_sieve_set_logger (mach, _sieve_action_log);
-  
-  rc = mu_sieve_compile (mach, script);
+  rc = mu_stream_open (instr);
   if (rc)
-    return 1;
-
-  /* We can finish if its only a compilation check. */
-  if (compile_only)
     {
-      if (compile_only == 2)
-	mu_sieve_disass (mach);
-      return 0;
+      mu_error (_("Cannot open stream: %s"), mu_strerror (rc));
+      return EX_SOFTWARE;
     }
-
-  /* Create a ticket, if we can. */
-  if (tickets)
+  rc = mu_stream_to_message (instr, &msg);
+  if (rc)
     {
-      if ((rc = mu_wicket_create (&wicket, tickets)) == 0)
-        {
-          if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
-            {
-              mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
-              goto cleanup;
-            }
-        }
-      else if (!(tickets_default && errno == ENOENT))
-        {
-          mu_error (_("mu_wicket_create `%s' failed: %s"),
-                    tickets, mu_strerror (rc));
-          goto cleanup;
-        }
-      if (ticket)
-        mu_sieve_set_ticket (mach, ticket);
+      mu_error (_("Cannot create message from stream: %s"),
+		mu_strerror (rc));
+      return EX_SOFTWARE;
     }
+  mu_message_get_attribute (msg, &attr);
+  mu_attribute_unset_deleted (attr);
+  rc = mu_sieve_message (mach, msg);
+  if (rc)
+    /* FIXME: switch (rc)...*/
+    return EX_SOFTWARE;
 
-  /* Create a debug object, if needed. */
-  if (debug_level)
-    {
-      if ((rc = mu_debug_create (&debug, mach)))
-	{
-	  mu_error (_("mu_debug_create failed: %s"), mu_strerror (rc));
-	  goto cleanup;
-	}
-      if ((rc = mu_debug_set_level (debug, debug_level)))
-	{
-	  mu_error (_("mu_debug_set_level failed: %s"),
-		    mu_strerror (rc));
-	  goto cleanup;
-	}
-      mu_sieve_set_debug_object (mach, debug);
-    }
+  return mu_attribute_is_deleted (attr) ? 1 : EX_OK;
+}
+
+static int
+sieve_mailbox (mu_sieve_machine_t mach, mu_ticket_t ticket, mu_debug_t debug)
+{
+  int rc;
+  mu_mailbox_t mbox = NULL;
   
-  mu_sieve_set_debug_level (mach, sieve_debug);
-    
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mu_mailbox_create_default (&mbox, mbox_url)) != 0)
     {
@@ -491,36 +432,36 @@ main (int argc, char *argv[])
     {
       mu_folder_t folder = NULL;
       mu_authority_t auth = NULL;
-
+      
       if ((rc = mu_mailbox_get_folder (mbox, &folder)))
 	{
 	  mu_error (_("mu_mailbox_get_folder failed: %s"),
-		   mu_strerror (rc));
+		    mu_strerror (rc));
 	  goto cleanup;
 	}
-
+      
       if ((rc = mu_folder_get_authority (folder, &auth)))
 	{
 	  mu_error (_("mu_folder_get_authority failed: %s"),
-		   mu_strerror (rc));
+		    mu_strerror (rc));
 	  goto cleanup;
 	}
-
+      
       /* Authentication-less folders don't have authorities. */
       if (auth && (rc = mu_authority_set_ticket (auth, ticket)))
 	{
 	  mu_error (_("mu_authority_set_ticket failed: %s"),
-		   mu_strerror (rc));
+		    mu_strerror (rc));
 	  goto cleanup;
 	}
     }
-
+  
   /* Open the mailbox read-only if we aren't going to modify it. */
   if (sieve_debug & MU_SIEVE_DRY_RUN)
     rc = mu_mailbox_open (mbox, MU_STREAM_READ);
   else
     rc = mu_mailbox_open (mbox, MU_STREAM_RDWR);
-
+  
   if (rc != 0)
     {
       if (mbox)
@@ -532,15 +473,15 @@ main (int argc, char *argv[])
       mu_mailbox_destroy (&mbox);
       goto cleanup;
     }
-
+  
   /* Process the mailbox */
   rc = mu_sieve_mailbox (mach, mbox);
-
-cleanup:
+  
+ cleanup:
   if (mbox && !(sieve_debug & MU_SIEVE_DRY_RUN))
     {
       int e;
-
+      
       /* A message won't be marked deleted unless the script executed
          succesfully on it, so we always do an expunge, it will delete
          any messages that were marked DELETED even if execution failed
@@ -558,12 +499,122 @@ cleanup:
       if (e && !rc)
 	rc = e;
     }
-
+  
   mu_sieve_machine_destroy (&mach);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
+  /* FIXME: switch (rc) ... */
+  return rc ? EX_SOFTWARE : EX_OK;
+}
+
+int
+main (int argc, char *argv[])
+{
+  mu_sieve_machine_t mach;
+  mu_wicket_t wicket = 0;
+  mu_ticket_t ticket = 0;
+  mu_debug_t debug = 0;
+  int rc;
+
+  /* Native Language Support */
+  MU_APP_INIT_NLS ();
+
+  mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif
+  mu_gocs_register ("sieve", mu_sieve_module_init);
+
+  mu_register_all_formats ();
+
+  tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
+  tickets_default = 1;
+  debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
+  mu_log_facility = 0;
+
+  if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
+		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
+    exit (EX_USAGE);
+
+  /* Sieve interpreter setup. */
+  rc = mu_sieve_machine_init (&mach, NULL);
+  if (rc)
+    {
+      mu_error (_("Cannot initialize sieve machine: %s"), mu_strerror (rc));
+      return EX_SOFTWARE;
+    }
+
+  if (mu_log_facility)
+    {
+      mu_debug_t debug;
+
+      mu_diag_get_debug (&debug);
+      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
+      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
+    }
+
+  mu_sieve_set_debug (mach, _sieve_debug_printer);
+  if (verbose)
+    mu_sieve_set_logger (mach, _sieve_action_log);
+  
+  rc = mu_sieve_compile (mach, script);
+  if (rc)
+    return EX_CONFIG;
+
+  /* We can finish if its only a compilation check. */
+  if (compile_only)
+    {
+      if (compile_only == 2)
+	mu_sieve_disass (mach);
+      return EX_OK;
+    }
+
+  /* Create a ticket, if we can. */
+  if (tickets)
+    {
+      if ((rc = mu_wicket_create (&wicket, tickets)) == 0)
+        {
+          if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
+            {
+              mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
+              return EX_SOFTWARE; /* FIXME: really? */
+            }
+        }
+      else if (!(tickets_default && errno == ENOENT))
+        {
+          mu_error (_("mu_wicket_create `%s' failed: %s"),
+                    tickets, mu_strerror (rc));
+          return EX_SOFTWARE;
+        }
+      if (ticket)
+        mu_sieve_set_ticket (mach, ticket);
+    }
+
+  /* Create a debug object, if needed. */
+  if (debug_level)
+    {
+      if ((rc = mu_debug_create (&debug, mach)))
+	{
+	  mu_error (_("mu_debug_create failed: %s"), mu_strerror (rc));
+	  return EX_SOFTWARE;
+	}
+      if ((rc = mu_debug_set_level (debug, debug_level)))
+	{
+	  mu_error (_("mu_debug_set_level failed: %s"),
+		    mu_strerror (rc));
+	  return EX_SOFTWARE;
+	}
+      mu_sieve_set_debug_object (mach, debug);
+    }
+  
+  mu_sieve_set_debug_level (mach, sieve_debug);
+
+  if (mbox_url && strcmp (mbox_url, "-") == 0)
+    rc = sieve_message (mach);
+  else
+    rc = sieve_mailbox (mach, ticket, debug);
   mu_debug_destroy (&debug, mach);
 
-  return rc ? 1 : 0;
+  return rc;
 }
 
