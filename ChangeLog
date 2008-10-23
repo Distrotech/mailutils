@@ -1,5 +1,7 @@
 2008-10-23  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libsieve/extensions/spamd.c: New tag :user.
+
 	* sieve/sieve.c: New working mode: if `-f -' is given, treat
 	stdin as an RFC2822 message, apply the script to it and exit with
 	1 if the message gets deleted, 0 if it is not and EX_SOFTWARE on
