@@ -1,5 +1,9 @@
 2008-10-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* examples/config/mailutils.dict: Use GNU OID number.
+	* examples/config/mailutils.schema: Use sub-OID assigned to GNU
+	Mailutils.
+
 	* libsieve/prog.c (mu_sv_code_command): Ensure tag arguments have
 	the proper type.
 
