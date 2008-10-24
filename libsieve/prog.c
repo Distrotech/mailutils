@@ -203,6 +203,20 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		      break;
 		    }
 		  mu_iterator_current (itr, (void **)&tagrec.arg);
+		  if (tagrec.arg->type != tag->argtype)
+		    {
+		      mu_sv_compile_error (&mu_sieve_locus, 
+					   _("type mismatch in argument to "
+					     "tag `%s'"),
+					   tag->name);
+		      mu_sv_compile_error (&mu_sieve_locus, 
+					   _("expected %s but passed %s"),
+					   mu_sieve_type_str (tag->argtype),
+					   mu_sieve_type_str
+					                 (tagrec.arg->type));
+		      err = 1;
+		      break;
+		    }
 		}
 	      else
 		tagrec.arg = NULL;

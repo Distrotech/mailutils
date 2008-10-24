@@ -1,5 +1,8 @@
 2008-10-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* libsieve/prog.c (mu_sv_code_command): Ensure tag arguments have
+	the proper type.
+
 	Fix handling of stdin stream (in particular, in sieve).
 	
 	* libsieve/extensions/spamd.c (spamd_test): Fix typo.
