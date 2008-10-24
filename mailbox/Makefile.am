@@ -108,6 +108,7 @@ libmailutils_la_SOURCES = \
  opool.c\
  parse822.c\
  parsedate.c\
+ progmailer.c\
  property.c\
  registrar.c\
  refcount.c\

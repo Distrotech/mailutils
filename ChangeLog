@@ -1,3 +1,31 @@
+2008-10-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Initial implementation of a `prog' mailer.
+	
+	* configure.ac: Enable/disable prog mailer support.
+	* include/mailutils/progmailer.h: New file.
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Add
+	progmailer.h
+	* include/mailutils/mailutils.h: Include progmailer.h
+	* include/mailutils/registrar.h (MU_PROG_PRIO): New define.
+	(mu_prog_record): New extern.
+	(mu_register_all_mailer_formats): Register mu_prog_record.
+	* include/mailutils/types.hin (mu_progmailer_t): New typedef.
+	* libproto/include/registrar0.h (MU_PROG_SCHEME)
+	(MU_PROG_SCHEME_LEN): New defines.
+	* libproto/mailer/prog.c: New file.
+	* libproto/mailer/Makefile.am (libmu_mailer_la_SOURCES): Add
+	prog.c
+	* libproto/mailer/sendmail.c: Rewrite using mu_progmailer_t
+	* libproto/remote/folder.c (_remote_is_scheme): Remove unused
+	variable.
+	* mailbox/progmailer.c: New file 
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add progmailer.c
+
+	* mailbox/acl.c (_expand_aclno): Add a fixme.
+	* mail/send.c (msg_to_pipe): Bugfix: use pclose, instead of fclose.
+	* examples/config/mailutils.schema: Update.
+
 2008-10-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* examples/config/mailutils.dict: Use GNU OID number.

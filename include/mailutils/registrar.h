@@ -121,12 +121,15 @@ extern mu_record_t mu_remote_mbox_record;
 #define MU_REMOTE_MBOX_PRIO 10000
 #define MU_SMTP_PRIO        10000
 #define MU_SENDMAIL_PRIO    10000
+#define MU_PROG_PRIO        10000
   
 /* SMTP mailer, "smtp://"  */
 extern mu_record_t mu_smtp_record;
 /* Sendmail, "sendmail:"  */
 extern mu_record_t mu_sendmail_record;
-
+/* Program mailer, "prog://", "|" */
+extern mu_record_t mu_prog_record;
+  
 #define mu_register_all_mbox_formats() do {\
   mu_registrar_record (mu_path_record);\
   mu_registrar_record (mu_mbox_record);\
@@ -156,6 +159,7 @@ extern mu_record_t mu_sendmail_record;
 #define mu_register_all_mailer_formats() do {\
   mu_registrar_record (mu_sendmail_record);\
   mu_registrar_record (mu_smtp_record);\
+  mu_registrar_record (mu_prog_record);\
 } while (0)
 
 #define mu_register_extra_formats() do {\

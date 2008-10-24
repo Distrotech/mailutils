@@ -78,6 +78,7 @@ pkginclude_HEADERS = \
  pam.h\
  parse822.h\
  pop3.h\
+ progmailer.h\
  property.h\
  radius.h\
  refcount.h\

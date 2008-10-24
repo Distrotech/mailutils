@@ -501,6 +501,7 @@ _expand_aclno (const char *name, void *data, char **p)
 {
   struct run_closure *rp = data;
   char buf[UINTMAX_STRSIZE_BOUND];
+  /*FIXME: memory leak*/
   *p = strdup (umaxtostr (rp->idx, buf));
   return 0;
 }

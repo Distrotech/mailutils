@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,10 +18,6 @@
 
 #ifndef _REGISTRAR0_H
 #define _REGISTRAR0_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
 
 #include <mailutils/registrar.h>
 
@@ -85,6 +81,9 @@ extern int _mailer_smtp_init      (mu_mailer_t);
 extern int _url_sendmail_init     (mu_url_t);
 extern int _mailer_sendmail_init  (mu_mailer_t);
 
+#define MU_PROG_SCHEME "prog"
+#define MU_PROG_SCHEME_LEN (sizeof (MU_PROG_SCHEME) - 1)
+  
 #define MU_MH_SCHEME "mh"
 #define MU_MH_SCHEME_LEN (sizeof (MU_MH_SCHEME) - 1)
 extern int _mailbox_mh_init (mu_mailbox_t mailbox);

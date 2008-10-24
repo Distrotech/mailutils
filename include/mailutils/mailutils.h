@@ -50,6 +50,7 @@
 #include <mailutils/opool.h>
 #include <mailutils/parse822.h>
 #include <mailutils/pop3.h>
+#include <mailutils/progmailer.h>
 #include <mailutils/property.h>
 #include <mailutils/refcount.h>
 #include <mailutils/registrar.h>

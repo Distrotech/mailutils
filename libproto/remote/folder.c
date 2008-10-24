@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,6 @@ _remote_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
   char *scheme = url->scheme;
   size_t scheme_len = scheme ? strlen (scheme) : 0;
-  int rc;
   struct _mu_url s_url;
   
   if (!scheme
