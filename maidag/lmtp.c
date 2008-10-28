@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <mu_umaxtostr.h>
 
+mu_list_t lmtp_groups;
 static int lmtp_transcript;
 
 void
@@ -572,22 +573,67 @@ lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
   return 0;
 }
 
-int
-maidag_lmtp_server ()
+static int
+lmtp_set_privs ()
 {
-  struct group *gr = getgrnam (lmtp_group);
-
-  if (gr == NULL)
-    {
-      mu_error (_("Error getting mail group"));
-      return EX_UNAVAILABLE;
-    }
+  gid_t gid;
   
-  if (setgid (gr->gr_gid) == -1)
+  if (lmtp_groups)
+    {
+      gid_t *gidset = NULL;
+      size_t size = 0;
+      size_t j = 0;
+      mu_iterator_t itr;
+      int rc;
+
+      mu_list_count (lmtp_groups, &size);
+      gidset = calloc (size, sizeof (gidset[0]));
+      if (!gidset)
+	{
+	  mu_error (_("Not enough memory"));
+	  return EX_UNAVAILABLE;
+	}
+      if (mu_list_get_iterator (lmtp_groups, &itr) == 0)
+	{
+	  for (mu_iterator_first (itr);
+	       !mu_iterator_is_done (itr); mu_iterator_next (itr)) 
+	    mu_iterator_current (itr,
+				 (void **)(gidset + j++));
+	  mu_iterator_destroy (&itr);
+	}
+      gid = gidset[0];
+      rc = setgroups (j, gidset);
+      free (gidset);
+      if (rc)
+	{
+	  mu_error(_("setgroups failed: %s"), mu_strerror (errno));
+	  return EX_UNAVAILABLE;
+	}
+    }
+  else
+    {
+      struct group *gr = getgrnam ("mail");
+      if (gr == NULL)
+	{
+	  mu_error (_("Error getting group `mail'"));
+	  return EX_UNAVAILABLE;
+	}
+      gid = gr->gr_gid;
+    }
+  if (setgid (gid) == -1)
     {
       mu_error (_("Error setting mail group"));
       return EX_UNAVAILABLE;
     }
+  return 0;
+}
+		
+int
+maidag_lmtp_server ()
+{
+  int rc = lmtp_set_privs ();
+  if (rc)
+    return rc;
 
   if (mu_m_server_mode (server) == MODE_DAEMON)
     {

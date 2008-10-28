@@ -48,7 +48,6 @@ int lmtp_mode;
 int url_option;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
-char *lmtp_group = "mail";
 
 const char *program_version = "maidag (" PACKAGE_STRING ")";
 static char doc[] =
@@ -256,6 +255,28 @@ cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
   return 0;
 }
 
+static int
+cb2_group (mu_debug_t debug, const char *gname, void *data)
+{
+  mu_list_t *plist = data;
+  struct group *group;
+
+  if (!*plist)
+    mu_list_create (plist);
+  group = getgrnam (gname);
+  if (!group)
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Unknown group: %s"), gname);
+  else
+    mu_list_append (*plist, (void*)group->gr_gid);
+  return 0;
+}
+  
+static int
+cb_group (mu_debug_t debug, void *data, mu_config_value_t *arg)
+{
+  return mu_cfg_string_value_cb (debug, arg, cb2_group, data);
+}
+
 struct mu_cfg_param maidag_cfg_param[] = {
   { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
@@ -298,8 +319,9 @@ struct mu_cfg_param maidag_cfg_param[] = {
 /* LMTP support */
   { "lmtp", mu_cfg_bool, &lmtp_mode, 0, NULL,
     N_("Run in LMTP mode.") },
-  { "group", mu_cfg_string, &lmtp_group, 0, NULL,
-    N_("In LMTP mode, change to this group after startup.") },
+  { "group", mu_cfg_callback, &lmtp_groups, 0, cb_group,
+    N_("In LMTP mode, retain these supplementary groups."),
+    N_("groups: list of string") },
   { "listen", mu_cfg_string, &lmtp_url_string, 0, NULL,
     N_("In LMTP mode, listen on the given URL.  Valid URLs are:\n"
        "   tcp://<address: string>:<port: number> (note that port is "

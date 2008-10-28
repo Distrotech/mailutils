@@ -1,5 +1,28 @@
 2008-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Make maidag hanlde mailer URLs.
+
+	This makes it possible to `deliver' mails to mailers without
+	explicitly specifying `remote+mailer' mailbox URLs.  In
+	particular, it is handy for implementing mailing lists using
+	`prog' mailers (as with Mailman).
+	
+	* maidag/deliver.c (notify_action): Do nothing if biff_user_name
+	is empty.
+	(deliver_to_user): Remove `name' argument.  Allow for auth==NULL.
+	(is_remote_url): Use case-sensitive comparison.
+	(is_mailer_url): New function.
+	(deliver_url): Handle mailer URLs as if they were corresponding
+	`remote+' mailbox URLs.  This allows to handle mailing lists.
+	* maidag/lmtp.c (lmtp_groups): New global.
+	(lmtp_set_privs): New function. Sets primary and
+	supplementary group privileges.
+	(maidag_lmtp_server): Call lmtp_set_privs.
+	* maidag/maidag.c (lmtp_group): Remove.  It is superceded by
+	lmtp_groups.
+	(maidag_cfg_param): Allow to specify supplementary groups.
+	* maidag/maidag.h (lmtp_group): Replace with lmtp_groups.
+	
 	Change mailer creation mechanism.
 	
 	* include/mailutils/mailer.h (mu_mailer_create_from_url): New

@@ -87,7 +87,7 @@ static const char *biff_user_name;
 static int
 notify_action (mu_observer_t obs, size_t type, void *data, void *action_data)
 {
-  if (type == MU_EVT_MESSAGE_APPEND)
+  if (type == MU_EVT_MESSAGE_APPEND && biff_user_name)
     {
       mu_message_qid_t qid = data;
       mu_mailbox_t mbox = mu_observer_get_owner (obs);
@@ -144,7 +144,7 @@ attach_notify (mu_mailbox_t mbox)
 
 int
 deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
-		 struct mu_auth_data *auth, const char *name,
+		 struct mu_auth_data *auth,
 		 char **errp)
 {
   int status;
@@ -184,59 +184,61 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
     }
   
 #if defined(USE_MAILBOX_QUOTAS)
-  {
-    mu_off_t n;
-    mu_off_t msg_size;
-    mu_off_t mbsize;
-
-    if ((status = mu_mailbox_get_size (mbox, &mbsize)))
-      {
-	maidag_error (_("Cannot get size of mailbox %s: %s"),
-		      path, mu_strerror (status));
-	if (status == ENOSYS)
-	  mbsize = 0; /* Try to continue anyway */
-	else
-	  return EX_TEMPFAIL;
-      }
+  if (auth)
+    {
+      mu_off_t n;
+      mu_off_t msg_size;
+      mu_off_t mbsize;
+      
+      if ((status = mu_mailbox_get_size (mbox, &mbsize)))
+	{
+	  maidag_error (_("Cannot get size of mailbox %s: %s"),
+			path, mu_strerror (status));
+	  if (status == ENOSYS)
+	    mbsize = 0; /* Try to continue anyway */
+	  else
+	    return EX_TEMPFAIL;
+	}
     
-    switch (check_quota (auth, mbsize, &n))
-      {
-      case MQUOTA_EXCEEDED:
-	maidag_error (_("%s: mailbox quota exceeded for this recipient"), name);
-	if (errp)
-	  asprintf (errp, "%s: mailbox quota exceeded for this recipient",
-		    name);
-	exit_code = EX_QUOTA();
-	failed++;
-	break;
-	
-      case MQUOTA_UNLIMITED:
-	break;
-	
-      default:
-	if ((status = mu_mailbox_get_size (imbx, &msg_size)))
-	  {
-	    maidag_error (_("Cannot get message size (input message %s): %s"),
-			  path, mu_strerror (status));
-	    exit_code = EX_UNAVAILABLE;
-	    failed++;
-	  }
-	else if (msg_size > n)
-	  {
-	    maidag_error (_("%s: message would exceed maximum mailbox size for "
-			  "this recipient"),
-			  name);
-	    if (errp)
-	      asprintf (errp,
-			"%s: message would exceed maximum mailbox size "
-			"for this recipient",
-			name);
-	    exit_code = EX_QUOTA();
-	    failed++;
-	  }
-	break;
-      }
-  }
+      switch (check_quota (auth, mbsize, &n))
+	{
+	case MQUOTA_EXCEEDED:
+	  maidag_error (_("%s: mailbox quota exceeded for this recipient"),
+			auth->name);
+	  if (errp)
+	    asprintf (errp, "%s: mailbox quota exceeded for this recipient",
+		      auth->name);
+	  exit_code = EX_QUOTA();
+	  failed++;
+	  break;
+	  
+	case MQUOTA_UNLIMITED:
+	  break;
+	  
+	default:
+	  if ((status = mu_mailbox_get_size (imbx, &msg_size)))
+	    {
+	      maidag_error (_("Cannot get message size (input message %s): %s"),
+			    path, mu_strerror (status));
+	      exit_code = EX_UNAVAILABLE;
+	      failed++;
+	    }
+	  else if (msg_size > n)
+	    {
+	      maidag_error (_("%s: message would exceed maximum mailbox size for "
+			      "this recipient"),
+			    auth->name);
+	      if (errp)
+		asprintf (errp,
+			  "%s: message would exceed maximum mailbox size "
+			  "for this recipient",
+			  auth->name);
+	      exit_code = EX_QUOTA();
+	      failed++;
+	    }
+	  break;
+	}
+    }
 #endif
   
   if (!failed && switch_user_id (auth, 1) == 0)
@@ -271,8 +273,23 @@ is_remote_url (mu_url_t url)
 {
   const char *scheme;
   int rc = mu_url_sget_scheme (url, &scheme);
-  return rc == 0 && strncasecmp (scheme, "remote+", 7) == 0;
+  return rc == 0 && strncmp (scheme, "remote+", 7) == 0;
 }
+
+static int
+is_mailer_url (mu_url_t url)
+{
+  mu_record_t record = NULL;
+  int (*pfn) (mu_mailer_t) = NULL;
+  
+  return mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE,
+				  &record, NULL) == 0
+         && mu_record_get_mailer (record, &pfn) == 0
+         && pfn;
+}
+
+#define REMOTE_PREFIX "remote+"
+#define REMOTE_PREFIX_LEN (sizeof(REMOTE_PREFIX)-1)
 
 int
 deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
@@ -282,9 +299,7 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
   mu_message_t msg;
   int status;
 
-  if (is_remote_url (url))
-    auth = NULL;
-  else
+  if (name)
     {
       auth = mu_get_auth_by_name (name);
       if (!auth)
@@ -292,9 +307,10 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
 	  maidag_error (_("%s: no such user"), name);
 	  if (errp)
 	    asprintf (errp, "%s: no such user", name);
-	  exit_code = EX_UNAVAILABLE;
-	  return EX_UNAVAILABLE;
+	  exit_code = EX_NOUSER;
+	  return EX_NOUSER;
 	}
+
       if (current_uid)
 	auth->change_uid = 0;
   
@@ -314,16 +330,59 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
       return EX_TEMPFAIL;
     }
 
-  if (url)
-    status = mu_mailbox_create_from_url (&mbox, url);
-  else
-    status = mu_mailbox_create (&mbox, auth->mailbox);
+  if (!url)
+    {
+      status = mu_url_create (&url, auth->mailbox);
+      if (status)
+	{
+	  maidag_error (_("Cannot create URL for %s: %s"),
+			auth->mailbox, mu_strerror (status));
+	  return exit_code = EX_UNAVAILABLE;
+	}
+      status = mu_url_parse (url);
+      if (status)
+	{
+	  maidag_error (_("Error parsing URL %s: %s"),
+			auth->mailbox, mu_strerror (status));
+	  return exit_code = EX_UNAVAILABLE;
+	}
+    }      
+
+  if (is_mailer_url (url))
+    {
+      const char *scheme;
+      size_t len;
+      char *new_scheme;
+      
+      mu_url_sget_scheme (url, &scheme);
+      len = REMOTE_PREFIX_LEN + strlen (scheme);
+      new_scheme = malloc (len + 1);
+      if (!new_scheme)
+	{
+	  mu_error (_("Not enough memory"));
+	  exit (EX_SOFTWARE);
+	}
+      strcat (strcpy (new_scheme, REMOTE_PREFIX), scheme);
+      status = mu_url_set_scheme (url, new_scheme);
+      free (new_scheme);
+      if (status)
+	{
+	  errno = status;
+	  maidag_error (_("Cannot modify URL %s: %s"),
+			mu_url_to_string (url),
+			mu_strerror (status));
+	  mu_auth_data_free (auth);
+	  return EX_TEMPFAIL;
+	}
+    }
+  status = mu_mailbox_create_from_url (&mbox, url);
 
   if (status)
     {
       maidag_error (_("Cannot open mailbox %s: %s"),
-		    url ? mu_url_to_string (url): auth->mailbox,
+		    mu_url_to_string (url),
 		    mu_strerror (status));
+      mu_url_destroy (&url);
       mu_auth_data_free (auth);
       return EX_TEMPFAIL;
     }
@@ -335,7 +394,7 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
      will be created */
   if (switch_user_id (auth, 1))
     return EX_TEMPFAIL;
-  status = deliver_to_user (imbx, mbox, msg, auth, name, errp);
+  status = deliver_to_user (imbx, mbox, msg, auth, errp);
   if (switch_user_id (auth, 0))
     return EX_TEMPFAIL;
 
@@ -371,7 +430,18 @@ deliver (mu_mailbox_t imbx, char *dest_id, char **errp)
 	}
       status = mu_url_sget_user (url, &name);
       if (status == MU_ERR_NOENT)
-	name = NULL;
+	{
+	  if (!is_mailer_url (url) && !is_remote_url (url))
+	    {
+	      maidag_error (_("no user name"));
+	      if (errp)
+		asprintf (errp, "no user such");
+	      exit_code = EX_NOUSER;
+	      return EX_NOUSER;
+	    }
+	  else
+	    name = NULL;
+	}
       else if (status)
 	{
 	  maidag_error (_("%s: cannot get user name from url: %s"),

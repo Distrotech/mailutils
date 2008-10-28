@@ -126,7 +126,7 @@ extern int lmtp_mode;
 extern int url_option;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
-extern char *lmtp_group;
+extern mu_list_t lmtp_groups;
 extern mu_acl_t maidag_acl;
 
 void close_fds (void);
