@@ -31,8 +31,8 @@ extern "C" {
 #define MU_ARGCV_RETURN_DELIMS 0x01
   
 extern int mu_argcv_get    (const char *command, const char *delim,
-			 const char* cmnt,
-			 int *argc, char ***argv);
+			    const char *cmnt,
+			    int *argc, char ***argv);
 extern int mu_argcv_get_n (const char *command, int len,
 		        const char *delim, const char *cmnt,
 			int *argc, char ***argv);

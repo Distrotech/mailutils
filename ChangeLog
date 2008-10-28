@@ -1,3 +1,46 @@
+2008-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Minor fixes.
+	
+	* mailbox/mailbox.c (_create_mailbox0): Take care not to destroy
+	url, if creation of the mailbox failed.
+	(_create_mailbox): Destroy url if unable to create mailbox.
+	
+	* mailbox/mutil.c (mu_is_proto): Take starting | as a protocol
+	specification. A kludge. 
+
+	* include/mailutils/argcv.h: Fix indentation.
+
+	Change handling of query part in a URL.
+
+	Queries are now parsed into arguments and returned as arrays
+	of arguments.
+	
+	* libproto/include/url0.h (struct _mu_url): Replace query with
+	array of query arguments.	
+	* include/mailutils/url.h (mu_url_dup): New proto.
+	(mu_url_get_query): Remove.
+	(mu_url_sget_query, mu_url_aget_query): Return query split into
+	arguments.
+	(mu_url_set_scheme): New function.
+	(mu_url_decode_len): New function.
+	* mailbox/url.c (mu_url_dup): New function.
+	(mu_url_get_query): Remove.
+	(mu_url_sget_query, mu_url_aget_query): Return query split into
+	arguments.
+	(mu_url_set_scheme): New function.
+	(mu_url_decode_len): New function.
+
+	* libproto/remote/mbox.c (remote_mbox_init): Use parsed out URL,
+	instead of the full URL string.
+	
+	* examples/url-parse.c: Change query output.
+	* mailbox/testsuite/Urls: Reflect changes to url-parse.  Add new
+	testcases.
+	
+	* libproto/imap/url.c, libproto/pop/url.c: Reflect changes to URL
+	functions.
+
 2008-10-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Initial implementation of a `prog' mailer.

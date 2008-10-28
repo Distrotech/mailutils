@@ -173,7 +173,7 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 	    }
 
 	  mbox->url = url;
-	  
+
 	  /* Create the folder before initializing the concrete mailbox.
 	     The mailbox needs it's back pointer. */
 	  status = mailbox_folder_create (mbox, name, record);
@@ -182,7 +182,11 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 	    status = m_init (mbox);   /* Create the concrete mailbox type.  */
 
 	  if (status != 0)
-	    mu_mailbox_destroy (&mbox);
+	    {
+	      /* Take care not to destroy url.  Leave it to caller. */
+	      mbox->url = NULL;
+	      mu_mailbox_destroy (&mbox);
+	    }
 	  else
 	    {
 	      *pmbox = mbox;
@@ -219,6 +223,8 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
   status = mu_url_parse (url);
   if (status == 0)
     status = _create_mailbox0 (pmbox, url, name);
+  if (status)
+    mu_url_destroy (&url);
   return status;
 }
 

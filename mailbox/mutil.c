@@ -1373,6 +1373,8 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 int
 mu_is_proto (const char *p)
 {
+  if (*p == '|')
+    return 1;
   for (; *p && *p != '/'; p++)
     if (*p == ':')
       return 1;
