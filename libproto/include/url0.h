@@ -42,8 +42,10 @@ struct _mu_url
   char  *path;
   char  **fvpairs;
   int   fvcount;
-  char  *query;
 
+  char  **qargv;
+  int   qargc;
+  
   void  *data;
 
   void  (*_destroy)    (mu_url_t url);

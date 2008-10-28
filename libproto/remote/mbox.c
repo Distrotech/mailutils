@@ -206,29 +206,43 @@ remote_mbox_init (mu_mailbox_t mailbox)
   const char *s, *p;
   int rc;
   mu_mailer_t mailer;
+  mu_url_t url;
   
   if (mailbox == NULL)
     return EINVAL;
 
-  s = mu_url_to_string (mailbox->url);
-  
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "remote_mbox_init (%s)\n", s);
-
+  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
+	     "remote_mbox_init (%s)\n", mu_url_to_string (mailbox->url));
+  rc = mu_url_sget_scheme (mailbox->url, &s);
+  if (rc)
+    return rc;
   p = strchr (s, '+');
   if (!p)
     {
       MU_DEBUG2 (mailbox->debug, MU_DEBUG_ERROR,
-		 "remote_mbox_init(%s): invalid url: %s\n", s,
+		 "remote_mbox_init(%s): invalid url: %s\n",
+		 mu_url_to_string (mailbox->url),
 		 mu_strerror (rc));
       return MU_ERR_MAILER_BAD_URL;
     }
-  p++;
-  rc = mu_mailer_create (&mailer, p);
+
+  rc = mu_url_dup (mailbox->url, &url);
+  if (rc)
+    return rc;
+  rc = mu_url_set_scheme (url, p + 1);
+  if (rc)
+    {
+      mu_url_destroy (&url);
+      return rc;
+    }
+
+  rc = mu_mailer_create_from_url (&mailer, url);
   if (rc)
     {
       MU_DEBUG2 (mailbox->debug, MU_DEBUG_ERROR,
 		 "remote_mbox_init(%s): cannot create mailer: %s\n",
-		 s, mu_strerror (rc));
+		 mu_url_to_string (url), mu_strerror (rc));
+      mu_url_destroy (&url);
       return rc;
     }
   

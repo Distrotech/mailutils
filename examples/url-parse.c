@@ -56,6 +56,23 @@ print_fvpairs (mu_url_t url)
     printf ("\tparam[%d] <%s>\n", i, fvp[i]);
 }
 
+static void
+print_query (mu_url_t url)
+{
+  size_t qargc, i;
+  char **qargv;
+  int rc = mu_url_sget_query (url, &qargc, &qargv);
+  if (rc)
+    {
+      mu_error ("cannot get query: %s", mu_strerror (rc));
+      exit (1);
+    }
+  if (qargc == 0)
+    return;
+  for (i = 0; i < qargc; i++)
+    printf ("\tquery[%d] <%s>\n", i, qargv[i]);
+}
+
 int
 main ()
 {
@@ -101,7 +118,7 @@ main ()
       
       GET_AND_PRINT (path, u, buf, rc);
       print_fvpairs (u);
-      GET_AND_PRINT (query, u, buf, rc);
+      print_query (u); 
 
       mu_url_destroy (&u);
 

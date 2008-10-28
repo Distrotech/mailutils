@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,14 +33,56 @@
 #include <mailutils/argcv.h>
 #include <url0.h>
 
-/*
-  TODO: implement functions to create a url and encode it properly.
-*/
+#define AC2(a,b) a ## b
+#define AC4(a,b,c,d) a ## b ## c ## d
 
 static int url_parse0 (mu_url_t, char *);
 
+static int
+parse_query (const char *query,
+	     char *delim,
+	     int *pargc, char ***pargv, const char **pend)
+{
+  size_t count, i;
+  char **v;
+  const char *p;
+
+  for (p = query, count = 0; ; count++)
+    {
+      size_t len = strcspn (p, delim);
+      p += len;
+      if (!*p || *p == delim[1])
+	break;
+      p++;
+    }
+
+  if (pend)
+    *pend = p;
+  if (p == query)
+    return 0;
+  count++;
+  
+  v = calloc (count + 1, sizeof (v[0]));
+  for (i = 0, p = query; i < count; i++)
+    {
+      size_t len = strcspn (p, delim);
+      v[i] = mu_url_decode_len (p, len);
+      if (v[i] == NULL)
+	{
+	  mu_argcv_free (i, v);
+	  return 1;
+	}
+      p += len + 1;
+    }
+  v[i] = NULL;
+
+  *pargc = count;
+  *pargv = v;
+  return 0;
+}
+  
 int
-mu_url_create (mu_url_t * purl, const char *name)
+mu_url_create (mu_url_t *purl, const char *name)
 {
   mu_url_t url = calloc (1, sizeof (*url));
   if (url == NULL)
@@ -54,6 +96,89 @@ mu_url_create (mu_url_t * purl, const char *name)
     }
   *purl = url;
   return 0;
+}
+
+static char **
+argcv_copy (size_t argc, char **argv)
+{
+  size_t i;
+  char **nv = calloc (argc + 1, sizeof (nv[0]));
+  if (!nv)
+    return NULL;
+  for (i = 0; i < argc; i++)
+    if ((nv[i] = strdup (argv[i])) == NULL)
+      {
+	mu_argcv_free (i, nv);
+	free (nv);
+	return NULL;
+      }
+  return nv;
+}
+
+static int
+mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
+{
+  const char *str;
+  size_t argc;
+  char **argv;
+  int rc;
+  
+#define URLCOPY(what)						\
+  do								\
+    {								\
+      rc = AC2(mu_url_sget_,what) (old_url, &str);		\
+      if (rc == 0)						\
+	{							\
+	  if ((new_url->what = strdup (str)) == NULL)		\
+	    return ENOMEM;					\
+  	}							\
+      else if (rc != MU_ERR_NOENT)				\
+	return rc;						\
+    }								\
+  while (0);
+
+  URLCOPY (scheme);
+  URLCOPY (user);
+  URLCOPY (passwd);
+  URLCOPY (auth);
+  URLCOPY (host);
+  new_url->port = old_url->port;
+  URLCOPY (path);
+
+  rc = mu_url_sget_fvpairs (old_url, &argc, &argv);
+  if (rc == 0 && argc)
+    {
+      if ((new_url->fvpairs = argcv_copy (argc, argv)) == NULL)
+	return ENOMEM;
+      new_url->fvcount = argc;
+    }
+  
+  rc = mu_url_sget_query (old_url, &argc, &argv);
+  if (rc == 0 && argc)
+    {
+      if ((new_url->qargv = argcv_copy (argc, argv)) == NULL)
+	return ENOMEM;
+      new_url->qargc = argc;
+    }
+  return 0;
+#undef URLCOPY
+} 
+  
+int
+mu_url_dup (mu_url_t old_url, mu_url_t *new_url)
+{
+  mu_url_t url;
+  int rc = mu_url_create (&url, mu_url_to_string (old_url));
+  
+  if (rc)
+    return rc;
+
+  rc = mu_url_copy0 (old_url, url);
+  if (rc == 0)
+    *new_url = url;
+  else
+    mu_url_destroy (&url);
+  return rc;
 }
 
 void
@@ -89,9 +214,8 @@ mu_url_destroy (mu_url_t * purl)
 
       if (url->fvcount)
 	mu_argcv_free (url->fvcount, url->fvpairs);
-      
-      if (url->query)
-	free (url->query);
+
+      mu_argcv_free (url->qargc, url->qargv);
 
       free (url);
 
@@ -112,7 +236,7 @@ mu_url_parse (mu_url_t url)
   memset (&u, 0, sizeof u);
   /* can't have been parsed already */
   if (url->scheme || url->user || url->passwd || url->auth ||
-      url->host || url->path || url->query)
+      url->host || url->path || url->qargc)
     return EINVAL;
 
   n = strdup (url->name);
@@ -148,10 +272,14 @@ mu_url_parse (mu_url_t url)
       UALLOC (auth);
       UALLOC (host);
       UALLOC (path);
-      UALLOC (query);
+      
 #undef UALLOC
       url->fvcount = u.fvcount;
       url->fvpairs = u.fvpairs;
+
+      url->qargc = u.qargc;
+      url->qargv = u.qargv;
+      
       url->port = u.port;
     }
 
@@ -168,7 +296,8 @@ CLEANUP:
       UFREE (url->auth);
       UFREE (url->host);
       UFREE (url->path);
-      UFREE (url->query);
+      mu_argcv_free (url->fvcount, url->fvpairs);
+      mu_argcv_free (url->qargc, url->qargv);
 #undef UFREE
     }
 
@@ -212,6 +341,19 @@ url_parse0 (mu_url_t u, char *name)
   if (name[0] == '/')
     {
       u->scheme = "file";
+    }
+  else if (name[0] == '|')
+    {
+      int rc;
+      u->scheme = "prog";
+      rc = mu_argcv_get (name + 1, NULL, NULL, &u->qargc, &u->qargv);
+      if (rc == 0)
+	{
+	  u->path = strdup (u->qargv[0]);
+	  if (!u->path)
+	    rc = ENOMEM;
+	}
+      return rc;
     }
   else
     {
@@ -318,15 +460,16 @@ url_parse0 (mu_url_t u, char *name)
   if (*p == ';')
     {
       *p++ = 0;
-      mu_argcv_get_np (p, strlen (p), ";", "?", 0,
-		       &u->fvcount, &u->fvpairs, &p);
+      if (parse_query (p, ";?", &u->fvcount, &u->fvpairs, (const char **)&p))
+	return ENOMEM;
     }
 
   if (*p == '?')
     {
       /* found a query */
       *p++ = 0;
-      u->query = p;
+      if (parse_query (p, "&", &u->qargc, &u->qargv, NULL))
+	return ENOMEM;
     }
 
   return 0;
@@ -334,8 +477,6 @@ url_parse0 (mu_url_t u, char *name)
 
 
 /* General accessors: */
-#define AC2(a,b) a ## b
-#define AC4(a,b,c,d) a ## b ## c ## d
 #define ACCESSOR(action,field) AC4(mu_url_,action,_,field)
 
 #define DECL_SGET(field)						  \
@@ -453,7 +594,45 @@ DECL_ACCESSORS (passwd)
 DECL_ACCESSORS (auth)
 DECL_ACCESSORS (host)
 DECL_ACCESSORS (path)
-DECL_ACCESSORS (query)     
+
+int
+mu_url_sget_query (const mu_url_t url, size_t *qc, char ***qv)
+{
+  if (url == NULL)							  
+    return EINVAL;
+  /* See FIXME below */
+  *qc = url->qargc;
+  *qv = url->qargv;
+  return 0;
+}
+
+int
+mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv)
+{
+  size_t qargc, i;
+  char **qargv;
+  char **qcopy;
+  
+  int rc = mu_url_sget_fvpairs (url, &qargc, &qargv);
+  if (rc)
+    return rc;
+
+  qcopy = calloc (qargc + 1, sizeof (qcopy[0]));
+  if (!qcopy)
+    return errno;
+  for (i = 0; i < qargc; i++)
+    {
+      if (!(qcopy[i] = strdup (qargv[i])))
+	{
+	  mu_argcv_free (i, qcopy);
+	  return errno;
+	}
+    }
+  qcopy[i] = NULL;
+  *qc = qargc;
+  *qv = qcopy;
+  return 0;
+}
 
 /* field-value pairs accessors */
 int
@@ -507,13 +686,25 @@ mu_url_get_port (const mu_url_t url, long *pport)
   return 0;
 }
 
-
 const char *
 mu_url_to_string (const mu_url_t url)
 {
   if (url == NULL || url->name == NULL)
     return "";
   return url->name;
+}
+
+int
+mu_url_set_scheme (mu_url_t url, const char *scheme)
+{
+  char *p;
+  if (!url || !scheme)
+    return EINVAL;
+  p = realloc (url->scheme, strlen (scheme) + 1);
+  if (!p)
+    return ENOMEM;
+  strcpy (url->scheme, scheme);
+  return 0;
 }
 
 int
@@ -537,12 +728,13 @@ mu_url_is_same_port (mu_url_t url1, mu_url_t url2)
 
 /* From RFC 1738, section 2.2 */
 char *
-mu_url_decode (const char *s)
+mu_url_decode_len (const char *s, size_t len)
 {
-  char *d = strdup (s);
-  const char *eos = s + strlen (s);
+  char *d;
+  const char *eos = s + len;
   int i;
 
+  d = malloc (len + 1);
   if (!d)
     return NULL;
 
@@ -574,6 +766,12 @@ mu_url_decode (const char *s)
   d[i] = 0;
 
   return d;
+}
+
+char *
+mu_url_decode (const char *s)
+{
+  return mu_url_decode_len (s, strlen (s));
 }
 
 static int

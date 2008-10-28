@@ -1,5 +1,5 @@
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2008 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ scheme: => SUCCESS
 	host <>
 	port 0
 	path <>
-	query <>
 
 scheme:/absolute/path => SUCCESS
 	scheme <scheme>
@@ -35,7 +34,6 @@ scheme:/absolute/path => SUCCESS
 	host <>
 	port 0
 	path </absolute/path>
-	query <>
 
 scheme:relative/path => SUCCESS
 	scheme <scheme>
@@ -45,7 +43,6 @@ scheme:relative/path => SUCCESS
 	host <>
 	port 0
 	path <relative/path>
-	query <>
 
 scheme:///absolute/path => SUCCESS
 	scheme <scheme>
@@ -55,7 +52,6 @@ scheme:///absolute/path => SUCCESS
 	host <>
 	port 0
 	path </absolute/path>
-	query <>
 
 scheme://%75%73%65%72:%70%61%73%73@%68%6f%73%74 => SUCCESS
 	scheme <scheme>
@@ -65,7 +61,6 @@ scheme://%75%73%65%72:%70%61%73%73@%68%6f%73%74 => SUCCESS
 	host <hest>
 	port 0
 	path <>
-	query <>
 
 ftp://user:pass@host//a/path => SUCCESS
 	scheme <ftp>
@@ -75,7 +70,6 @@ ftp://user:pass@host//a/path => SUCCESS
 	host <host>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://:pass@host//a/path => SUCCESS
 	scheme <ftp>
@@ -85,7 +79,6 @@ ftp://:pass@host//a/path => SUCCESS
 	host <host>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://user:@host//a/path => SUCCESS
 	scheme <ftp>
@@ -95,7 +88,6 @@ ftp://user:@host//a/path => SUCCESS
 	host <host>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://user:pass@//a/path => SUCCESS
 	scheme <ftp>
@@ -105,7 +97,6 @@ ftp://user:pass@//a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://user:@//a/path => SUCCESS
 	scheme <ftp>
@@ -115,7 +106,6 @@ ftp://user:@//a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://:@host//a/path => SUCCESS
 	scheme <ftp>
@@ -125,7 +115,6 @@ ftp://:@host//a/path => SUCCESS
 	host <host>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://:pass@//a/path => SUCCESS
 	scheme <ftp>
@@ -135,7 +124,6 @@ ftp://:pass@//a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://:@//a/path => SUCCESS
 	scheme <ftp>
@@ -145,7 +133,6 @@ ftp://:@//a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://://a/path => SUCCESS
 	scheme <ftp>
@@ -155,7 +142,6 @@ ftp://://a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://@//a/path => SUCCESS
 	scheme <ftp>
@@ -165,7 +151,6 @@ ftp://@//a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp:/a/path => SUCCESS
 	scheme <ftp>
@@ -175,7 +160,6 @@ ftp:/a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 ftp://user:pass@host/a/path => SUCCESS
 	scheme <ftp>
@@ -185,7 +169,6 @@ ftp://user:pass@host/a/path => SUCCESS
 	host <host>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://:pass@host/a/path => SUCCESS
 	scheme <ftp>
@@ -195,7 +178,6 @@ ftp://:pass@host/a/path => SUCCESS
 	host <host>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://user:@host/a/path => SUCCESS
 	scheme <ftp>
@@ -205,7 +187,6 @@ ftp://user:@host/a/path => SUCCESS
 	host <host>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://user:pass@/a/path => SUCCESS
 	scheme <ftp>
@@ -215,7 +196,6 @@ ftp://user:pass@/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://user:@/a/path => SUCCESS
 	scheme <ftp>
@@ -225,7 +205,6 @@ ftp://user:@/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://:@host/a/path => SUCCESS
 	scheme <ftp>
@@ -235,7 +214,6 @@ ftp://:@host/a/path => SUCCESS
 	host <host>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://:pass@/a/path => SUCCESS
 	scheme <ftp>
@@ -245,7 +223,6 @@ ftp://:pass@/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://:@/a/path => SUCCESS
 	scheme <ftp>
@@ -255,7 +232,6 @@ ftp://:@/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://:/a/path => SUCCESS
 	scheme <ftp>
@@ -265,7 +241,6 @@ ftp://:/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp://@/a/path => SUCCESS
 	scheme <ftp>
@@ -275,7 +250,6 @@ ftp://@/a/path => SUCCESS
 	host <>
 	port 0
 	path <a/path>
-	query <>
 
 ftp:///a/path => SUCCESS
 	scheme <ftp>
@@ -285,7 +259,6 @@ ftp:///a/path => SUCCESS
 	host <>
 	port 0
 	path </a/path>
-	query <>
 
 pop://pop.example.net => SUCCESS
 	scheme <pop>
@@ -295,7 +268,6 @@ pop://pop.example.net => SUCCESS
 	host <pop.example.net>
 	port 0
 	path <>
-	query <>
 
 pop://user@pop.example.net => SUCCESS
 	scheme <pop>
@@ -305,7 +277,6 @@ pop://user@pop.example.net => SUCCESS
 	host <pop.example.net>
 	port 0
 	path <>
-	query <>
 
 pop://user:passwd@pop.example.net => SUCCESS
 	scheme <pop>
@@ -315,7 +286,6 @@ pop://user:passwd@pop.example.net => SUCCESS
 	host <pop.example.net>
 	port 0
 	path <>
-	query <>
 
 pop://user;auth=*@pop.example.net => SUCCESS
 	scheme <pop>
@@ -325,7 +295,6 @@ pop://user;auth=*@pop.example.net => SUCCESS
 	host <pop.example.net>
 	port 0
 	path <>
-	query <>
 
 pop://pop.example.net:111 => SUCCESS
 	scheme <pop>
@@ -335,7 +304,6 @@ pop://pop.example.net:111 => SUCCESS
 	host <pop.example.net>
 	port 111
 	path <>
-	query <>
 
 pop://user@pop.example.net:111 => SUCCESS
 	scheme <pop>
@@ -345,7 +313,6 @@ pop://user@pop.example.net:111 => SUCCESS
 	host <pop.example.net>
 	port 111
 	path <>
-	query <>
 
 pop://user:passwd@pop.example.net:111 => SUCCESS
 	scheme <pop>
@@ -355,7 +322,6 @@ pop://user:passwd@pop.example.net:111 => SUCCESS
 	host <pop.example.net>
 	port 111
 	path <>
-	query <>
 
 pop://user;auth=*@pop.example.net:111 => SUCCESS
 	scheme <pop>
@@ -365,7 +331,6 @@ pop://user;auth=*@pop.example.net:111 => SUCCESS
 	host <pop.example.net>
 	port 111
 	path <>
-	query <>
 
 imap://imap.example.net => SUCCESS
 	scheme <imap>
@@ -375,7 +340,6 @@ imap://imap.example.net => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <>
-	query <>
 
 imap://user@imap.example.net => SUCCESS
 	scheme <imap>
@@ -385,7 +349,6 @@ imap://user@imap.example.net => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <>
-	query <>
 
 imap://user:passwd@imap.example.net => SUCCESS
 	scheme <imap>
@@ -395,7 +358,6 @@ imap://user:passwd@imap.example.net => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <>
-	query <>
 
 imap://user;auth=*@imap.example.net => SUCCESS
 	scheme <imap>
@@ -405,7 +367,6 @@ imap://user;auth=*@imap.example.net => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <>
-	query <>
 
 imap://imap.example.net:111 => SUCCESS
 	scheme <imap>
@@ -415,7 +376,6 @@ imap://imap.example.net:111 => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <>
-	query <>
 
 imap://user@imap.example.net:111 => SUCCESS
 	scheme <imap>
@@ -425,7 +385,6 @@ imap://user@imap.example.net:111 => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <>
-	query <>
 
 imap://user:passwd@imap.example.net:111 => SUCCESS
 	scheme <imap>
@@ -435,7 +394,6 @@ imap://user:passwd@imap.example.net:111 => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <>
-	query <>
 
 imap://user;auth=*@imap.example.net:111 => SUCCESS
 	scheme <imap>
@@ -445,7 +403,6 @@ imap://user;auth=*@imap.example.net:111 => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <>
-	query <>
 
 imap://imap.example.net/mbox => SUCCESS
 	scheme <imap>
@@ -455,7 +412,6 @@ imap://imap.example.net/mbox => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox>
-	query <>
 
 imap://user@imap.example.net/mbox => SUCCESS
 	scheme <imap>
@@ -465,7 +421,6 @@ imap://user@imap.example.net/mbox => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox>
-	query <>
 
 imap://user:passwd@imap.example.net/mbox => SUCCESS
 	scheme <imap>
@@ -475,7 +430,6 @@ imap://user:passwd@imap.example.net/mbox => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox>
-	query <>
 
 imap://user;auth=*@imap.example.net/mbox => SUCCESS
 	scheme <imap>
@@ -485,7 +439,6 @@ imap://user;auth=*@imap.example.net/mbox => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox>
-	query <>
 
 imap://imap.example.net:111/mbox => SUCCESS
 	scheme <imap>
@@ -495,7 +448,6 @@ imap://imap.example.net:111/mbox => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox>
-	query <>
 
 imap://user@imap.example.net:111/mbox => SUCCESS
 	scheme <imap>
@@ -505,7 +457,6 @@ imap://user@imap.example.net:111/mbox => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox>
-	query <>
 
 imap://user:passwd@imap.example.net:111/mbox => SUCCESS
 	scheme <imap>
@@ -515,7 +466,6 @@ imap://user:passwd@imap.example.net:111/mbox => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox>
-	query <>
 
 imap://user;auth=*@imap.example.net:111/mbox => SUCCESS
 	scheme <imap>
@@ -525,7 +475,6 @@ imap://user;auth=*@imap.example.net:111/mbox => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox>
-	query <>
 
 imap://imap.example.net/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -535,7 +484,6 @@ imap://imap.example.net/mbox/user@host => SUCCESS
 	host <host>
 	port 0
 	path <>
-	query <>
 
 imap://user@imap.example.net/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -545,7 +493,6 @@ imap://user@imap.example.net/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox/user@host>
-	query <>
 
 imap://user:passwd@imap.example.net/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -555,7 +502,6 @@ imap://user:passwd@imap.example.net/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox/user@host>
-	query <>
 
 imap://user;auth=*@imap.example.net/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -565,7 +511,6 @@ imap://user;auth=*@imap.example.net/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 0
 	path <mbox/user@host>
-	query <>
 
 imap://imap.example.net:111/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -575,7 +520,6 @@ imap://imap.example.net:111/mbox/user@host => SUCCESS
 	host <host>
 	port 0
 	path <>
-	query <>
 
 imap://user@imap.example.net:111/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -585,7 +529,6 @@ imap://user@imap.example.net:111/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox/user@host>
-	query <>
 
 imap://user:passwd@imap.example.net:111/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -595,7 +538,6 @@ imap://user:passwd@imap.example.net:111/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox/user@host>
-	query <>
 
 imap://user;auth=*@imap.example.net:111/mbox/user@host => SUCCESS
 	scheme <imap>
@@ -605,7 +547,6 @@ imap://user;auth=*@imap.example.net:111/mbox/user@host => SUCCESS
 	host <imap.example.net>
 	port 111
 	path <mbox/user@host>
-	query <>
 
 ftp://ftp.example.org/mbox/user%40host => SUCCESS
 	scheme <ftp>
@@ -615,7 +556,6 @@ ftp://ftp.example.org/mbox/user%40host => SUCCESS
 	host <ftp.example.org>
 	port 0
 	path <mbox/user@host>
-	query <>
 
 ftp://ftp.example.org:111/mbox/user%40host => SUCCESS
 	scheme <ftp>
@@ -625,7 +565,6 @@ ftp://ftp.example.org:111/mbox/user%40host => SUCCESS
 	host <ftp.example.org>
 	port 111
 	path <mbox/user@host>
-	query <>
 
 ftp://ftp.example.org:111/mbox/user%40host;type=pass => SUCCESS
 	scheme <ftp>
@@ -636,7 +575,6 @@ ftp://ftp.example.org:111/mbox/user%40host;type=pass => SUCCESS
 	port 111
 	path <mbox/user@host>
 	param[0] <type=pass>
-	query <>
 
 mbox:/var/spool/mail;type=index;param=2;user=gray => SUCCESS
 	scheme <mbox>
@@ -649,7 +587,6 @@ mbox:/var/spool/mail;type=index;param=2;user=gray => SUCCESS
 	param[0] <type=index>
 	param[1] <param=2>
 	param[2] <user=gray>
-	query <>
 
 mbox:///var/spool/mail;type=index;param=2;user=gray => SUCCESS
 	scheme <mbox>
@@ -662,6 +599,31 @@ mbox:///var/spool/mail;type=index;param=2;user=gray => SUCCESS
 	param[0] <type=index>
 	param[1] <param=2>
 	param[2] <user=gray>
-	query <>
+
+http:///gnu.org.ua/home/gray?prog&arg1&arg2
+        scheme <http>
+        user <>
+        passwd <>
+        auth <>
+        host <gnu.org.ua>
+        port 0
+        path <home/gray>
+        query[0] <prog>
+        query[1] <arg1>
+        query[2] <arg2>
+
+http:///gnu.org.ua/home/gray;foo=bar;baz=qux?prog&arg%201&arg%202
+        scheme <http>
+        user <>
+        passwd <>
+        auth <>
+        host <gnu.org.ua>
+        port 0
+        path <home/gray>
+	param[0] <foo=bar>
+	param[1] <baz=qux>
+        query[0] <prog>
+        query[1] <arg 1>
+        query[2] <arg 2>
 
 # NOTE: This file must end with an empty line

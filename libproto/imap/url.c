@@ -54,7 +54,7 @@ _url_imap_init (mu_url_t url)
   
   url->_destroy = url_imap_destroy;
 
-  if(!url->host || url->query)
+  if (!url->host || url->qargc)
     return EINVAL;
 
   /* fill in default auth, if necessary */
@@ -85,7 +85,7 @@ _url_imaps_init (mu_url_t url)
   
   url->_destroy = url_imap_destroy;
 
-  if (!url->host || url->query)
+  if (!url->host || url->qargc)
     return EINVAL;
 
   /* fill in default auth, if necessary */

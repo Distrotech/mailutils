@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2007,
+   2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -55,7 +56,7 @@ _url_pop_init (mu_url_t url)
   url->_destroy = url_pop_destroy;
 
   /* not valid in pop url */
-  if (url->path || url->query || !url->host)
+  if (url->path || url->qargc || !url->host)
     return EINVAL;
 
   return 0;
@@ -77,7 +78,7 @@ _url_pops_init (mu_url_t url)
   url->_destroy = url_pop_destroy;
 
   /* not valid in pops url */
-  if (url->path || url->query || !url->host)
+  if (url->path || url->qargc || !url->host)
     return EINVAL;
 
   return 0;
