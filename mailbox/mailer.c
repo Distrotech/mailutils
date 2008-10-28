@@ -89,28 +89,21 @@ mu_mailer_get_url_default (const char **url)
 }
 
 int
-mu_mailer_create (mu_mailer_t * pmailer, const char *name)
+mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url)
 {
   mu_record_t record;
 
-  if (pmailer == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  if (name == NULL)
-    mu_mailer_get_url_default (&name);
-
-  if (mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL) == 0)
+  if (mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record,
+			       NULL) == 0)
     {
       int (*m_init) (mu_mailer_t) = NULL;
-      int (*u_init) (mu_url_t) = NULL;
 
       mu_record_get_mailer (record, &m_init);
-      mu_record_get_url (record, &u_init);
-      if (m_init && u_init)
+      if (m_init)
         {
 	  int status;
-	  mu_url_t url;
 	  mu_mailer_t mailer;
+	  int (*u_init) (mu_url_t) = NULL;
 	  
 	  /* Allocate memory for mailer.  */
 	  mailer = calloc (1, sizeof (*mailer));
@@ -124,27 +117,48 @@ mu_mailer_create (mu_mailer_t * pmailer, const char *name)
 	      return status;
 	    }
 
-	  /* Parse the url, it may be a bad one and we should bail out if this
-	     failed.  */
-	  if ((status = mu_url_create (&url, name)) != 0
-	      || (status = u_init (url)) != 0)
+	  status = m_init (mailer);
+	  if (status)
 	    {
 	      mu_mailer_destroy (&mailer);
 	      return status;
 	    }
-	  mailer->url = url;
 
-	  status = m_init (mailer);
-	  if (status)
-	    mu_mailer_destroy (&mailer);
-	  else
-	    *pmailer = mailer;
+	  mu_record_get_url (record, &u_init);
+	  if (u_init && (status = u_init (url)) != 0)
+	    {
+	      mu_mailer_destroy (&mailer);
+	      return status;
+	    }
+	  
+	  mailer->url = url;
+	  *pmailer = mailer;
 
 	  return status;
 	}
     }
-
+  
     return MU_ERR_MAILER_BAD_URL;
+}
+
+int
+mu_mailer_create (mu_mailer_t * pmailer, const char *name)
+{
+  int status;
+  mu_url_t url;
+
+  if (name == NULL)
+    mu_mailer_get_url_default (&name);
+
+  status = mu_url_create (&url, name);
+  if (status)
+    return status;
+  status = mu_url_parse (url);
+  if (status == 0)
+    status = mu_mailer_create_from_url (pmailer, url);
+  if (status)
+    mu_url_destroy (&url);
+  return status;
 }
 
 void

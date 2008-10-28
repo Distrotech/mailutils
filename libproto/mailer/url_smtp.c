@@ -32,10 +32,6 @@
 int
 _url_smtp_init (mu_url_t url)
 {
-  int status = mu_url_init (url, MU_SMTP_PORT, "smtp");
-  if (status)
-    return status;
-
   /* host isn't optional */
   if (!url->host)
     return EINVAL;
@@ -44,9 +40,12 @@ _url_smtp_init (mu_url_t url)
      for the ESMTP authentication */
 
   /* all other fields must be NULL */
-  if (url->path || url->query)
+  if (url->path || url->qargc)
     return EINVAL;
 
+  if (url->port == 0)
+    url->port = MU_SMTP_PORT;
+  
   return 0;
 }
 

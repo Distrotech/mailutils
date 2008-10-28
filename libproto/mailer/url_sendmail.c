@@ -37,13 +37,6 @@
 #include <registrar0.h>
 #include <url0.h>
 
-static void url_sendmail_destroy (mu_url_t purl);
-
-static void
-url_sendmail_destroy (mu_url_t url MU_ARG_UNUSED)
-{
-}
-
 /*
   Sendmail URL:
     sendmail:/path/to/sendmail
@@ -52,22 +45,16 @@ url_sendmail_destroy (mu_url_t url MU_ARG_UNUSED)
 int
 _url_sendmail_init (mu_url_t url)
 {
-  int status = mu_url_init (url, 0, "sendmail");
-  if (status)
-    return status;
-
-  url->_destroy = url_sendmail_destroy;
-
   /* not valid in a sendmail url */
-  if (url->user || url->passwd || url->auth || url->query
+  if (url->user || url->passwd || url->auth || url->qargc
       || url->host || url->port)
     return EINVAL;
 
   if (url->path == 0)
     if ((url->path = strdup (_PATH_SENDMAIL)) == 0)
-      status = ENOMEM;
+      return ENOMEM;
 
-  return status;
+  return 0;
 }
 
 #endif /* ENABLE_SENDMAIL */

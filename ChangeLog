@@ -1,5 +1,19 @@
 2008-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Change mailer creation mechanism.
+	
+	* include/mailutils/mailer.h (mu_mailer_create_from_url): New
+	proto.
+	* mailbox/mailer.c (mu_mailer_create_from_url): New
+	function.
+	(mu_mailer_create): Rewrite using mu_mailer_create_from_url.
+	* libproto/mailer/prog.c (_url_prog_init): Do not call
+	mu_url_init.
+	(url_to_argv): Reflect changes to mu_url functions.
+	* libproto/mailer/url_sendmail.c (_url_sendmail_init): Do not call
+	mu_url_init.
+	* libproto/mailer/url_smtp.c (_url_smtp_init): Likewise.
+
 	Minor fixes.
 	
 	* mailbox/mailbox.c (_create_mailbox0): Take care not to destroy

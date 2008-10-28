@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,8 @@ extern "C" {
 
 /* A url of NULL will cause the default to be used. */
 extern int mu_mailer_create         (mu_mailer_t *, const char *url);
+extern int mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url);
+  
 extern void mu_mailer_destroy       (mu_mailer_t *);
 extern int mu_mailer_open           (mu_mailer_t, int flags);
 extern int mu_mailer_close          (mu_mailer_t);

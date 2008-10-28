@@ -39,7 +39,6 @@
 #include <registrar0.h>
 
 static int _url_prog_init     (mu_url_t);
-static int _url_pipe_init     (mu_url_t);
 static int _mailer_prog_init  (mu_mailer_t);  
 
 static struct _mu_record _prog_record =
@@ -64,11 +63,8 @@ mu_record_t mu_prog_record = &_prog_record;
 static int
 _url_prog_init (mu_url_t url)
 {
-  int status = mu_url_init (url, 0, "prog");
-  if (status)
-    return status;
-  /* not valid in a sendmail url */
-  if (url->user || url->passwd || url->auth || url->host || url->port)
+  /* not valid in a prog url */
+  if (url->passwd || url->auth || url->host || url->port)
     return EINVAL;
   if (!url->path)
     return EINVAL;
@@ -283,11 +279,11 @@ url_to_argv (mu_url_t url, mu_message_t msg,
   int rc;
   mu_vartab_t vtab;
   struct ex_rcpt ex_rcpt;
-  const char *query;
-  char *cmdargs;
-  int argc;
+  char **query;
+  size_t i;
+  size_t argc;
   char **argv;
-
+  
   ex_rcpt.msg = msg;
   ex_rcpt.addr = to;
   ex_rcpt.string = NULL;
@@ -295,26 +291,28 @@ url_to_argv (mu_url_t url, mu_message_t msg,
   mu_vartab_define_exp (vtab, "sender", _expand_sender, NULL, from);
   mu_vartab_define_exp (vtab, "rcpt", _expand_rcpt, _free_rcpt, &ex_rcpt);
 
-  rc = mu_url_sget_query (url, &query);
+  rc = mu_url_sget_query (url, &argc, &query);
   if (rc)
     return rc;
+
+  argv = calloc (argc + 1, sizeof (argv[0]));
+  if (!argv)
+    return ENOMEM;
+
+  for (i = 0; i < argc; i++)
+    {
+      if ((rc = mu_vartab_expand (vtab, query[i], &argv[i])))
+	{
+	  mu_argcv_free (i, argv);
+	  mu_vartab_destroy (&vtab);
+	  return rc;
+	}
+    }
+  argv[i] = NULL;
   
-  rc = mu_vartab_expand (vtab, query, &cmdargs);
   mu_vartab_destroy (&vtab);
-  if (rc)
-    return rc;
 
-  rc = mu_argcv_get_np (cmdargs, strlen (cmdargs),
-			"&", NULL,
-			0, &argc, &argv, NULL);
-  free (cmdargs);
-  if (rc)
-    return rc;
-  argv = realloc (argv, (argc + 2) * sizeof (argv[0]));
-  memmove (argv + 1, argv, (argc + 1) * sizeof (argv[0]));
-  mu_url_aget_path (url, &argv[0]);
-
-  *pargc = argc + 1;
+  *pargc = argc;
   *pargv = argv;
   return 0;
 }
@@ -327,8 +325,26 @@ prog_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
   int argc;
   char **argv;
   int status;
+  const char *command;
 
-  status = url_to_argv(mailer->url, msg, from, to, &argc, &argv);
+  status = mu_url_sget_path (mailer->url, &command);
+  if (status && status != MU_ERR_NOENT)
+    {
+      MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
+		 "cannot get path from URL: %s\n",
+		 mu_strerror (status));
+      return status;
+    }
+  status = mu_progmailer_set_command (pm, command);
+  if (status)
+    {
+      MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
+		 "cannot set progmailer command: %s\n",
+		 mu_strerror (status));
+      return status;
+    }
+      
+  status = url_to_argv (mailer->url, msg, from, to, &argc, &argv);
   if (status)
     {
       MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
