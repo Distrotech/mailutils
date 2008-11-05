@@ -348,8 +348,20 @@ dot_deliver (void *item, void *cbdata)
   char *name = item;
   FILE *out = cbdata;
   char *errp = NULL;
+  mu_message_t msg;
+  int status;
   
-  switch (deliver (mbox, name, &errp))
+  if ((status = mu_mailbox_get_message (mbox, 1, &msg)) != 0)
+    {
+      mu_error (_("Cannot get message from the temporary mailbox: %s"),
+		mu_strerror (status));
+      lmtp_reply (out, "450", "4.1.0",
+		  "%s: temporary failure, try again later",
+		  name);
+      return 0;
+    }
+
+  switch (deliver (msg, name, &errp))
     {
     case 0:
       lmtp_reply (out, "250", "2.0.0", "%s: delivered", name);

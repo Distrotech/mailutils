@@ -88,6 +88,19 @@ mu_mailer_get_url_default (const char **url)
   return 0;
 }
 
+static void
+set_default_debug (mu_mailer_t mailer)
+{
+  mu_log_level_t level = mu_global_debug_level ("mailer");
+  if (level)
+    {
+      mu_debug_t debug;
+      if (mu_mailer_get_debug (mailer, &debug))
+	return;
+      mu_debug_set_level (debug, level);
+    }
+}
+
 int
 mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url)
 {
@@ -134,6 +147,7 @@ mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url)
 	  mailer->url = url;
 	  *pmailer = mailer;
 
+	  set_default_debug (mailer);
 	  return status;
 	}
     }

@@ -93,7 +93,7 @@ mu_mysql_connect (mu_sql_connection_t conn)
   
   mysql_init (mp->mysql);
 
-  if (conn->server[0] == '/')
+  if (conn->server && conn->server[0] == '/')
     {
       host = "localhost";
       socket_name = conn->server;

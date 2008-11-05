@@ -142,8 +142,8 @@ void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 void guess_retval (int ec);
 
 int mda (mu_mailbox_t mbx, char *username);
-int deliver (mu_mailbox_t imbx, char *name, char **errp);
-int sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx);
+int deliver (mu_message_t msg, char *name, char **errp);
+int sieve_test (struct mu_auth_data *auth, mu_message_t msg);
 int check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest);
 
 #ifdef WITH_GUILE

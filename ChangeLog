@@ -1,3 +1,22 @@
+2008-11-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Simplify calls to final delivery functions.
+	
+	* maidag/deliver.c (mda): Pass msg as a 1st argument to deliver.
+	(deliver_to_user): Remove 1st argument.
+	(deliver): Change type of the 1st argument to mu_message_t.
+	* maidag/lmtp.c (dot_deliver): Pass msg as a 1st argument to
+	deliver.
+	* maidag/maidag.c (sieve_test): Change type of the 2nd argument to
+	mu_message_t.
+	* maidag/maidag.h (sieve_test, deliver): Pass mu_message_t,
+	instead of mu_message_t.
+	
+	* mailbox/mailer.c (mu_mailer_create_from_url): Set default debug
+	level.
+	* sql/mysql.c (mu_mysql_connect): Avoid coredumps if conn->server
+	is NULL.
+
 2008-10-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Make maidag hanlde mailer URLs.

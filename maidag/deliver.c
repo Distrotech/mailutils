@@ -44,7 +44,17 @@ make_tmp (const char *from, mu_mailbox_t *mbox)
 int
 mda (mu_mailbox_t mbx, char *username)
 {
-  deliver (mbx, username, NULL);
+  int status;
+  mu_message_t msg;
+  
+  if ((status = mu_mailbox_get_message (mbx, 1, &msg)) != 0)
+    {
+      maidag_error (_("Cannot get message from the temporary mailbox: %s"),
+		    mu_strerror (status));
+      return EX_TEMPFAIL;
+    }
+
+  deliver (msg, username, NULL);
 
   if (multiple_delivery)
     exit_code = EX_OK;
@@ -143,7 +153,7 @@ attach_notify (mu_mailbox_t mbox)
 }  
 
 int
-deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
+deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
 		 struct mu_auth_data *auth,
 		 char **errp)
 {
@@ -187,7 +197,7 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
   if (auth)
     {
       mu_off_t n;
-      mu_off_t msg_size;
+      size_t msg_size;
       mu_off_t mbsize;
       
       if ((status = mu_mailbox_get_size (mbox, &mbsize)))
@@ -216,7 +226,7 @@ deliver_to_user (mu_mailbox_t imbx, mu_mailbox_t mbox, mu_message_t msg,
 	  break;
 	  
 	default:
-	  if ((status = mu_mailbox_get_size (imbx, &msg_size)))
+	  if ((status = mu_message_size (msg, &msg_size)))
 	    {
 	      maidag_error (_("Cannot get message size (input message %s): %s"),
 			    path, mu_strerror (status));
@@ -292,11 +302,10 @@ is_mailer_url (mu_url_t url)
 #define REMOTE_PREFIX_LEN (sizeof(REMOTE_PREFIX)-1)
 
 int
-deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
+deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 {
   struct mu_auth_data *auth = NULL;
   mu_mailbox_t mbox;
-  mu_message_t msg;
   int status;
 
   if (name)
@@ -314,7 +323,7 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
       if (current_uid)
 	auth->change_uid = 0;
   
-      if (!sieve_test (auth, imbx))
+      if (!sieve_test (auth, msg))
 	{
 	  exit_code = EX_OK;
 	  mu_auth_data_free (auth);
@@ -322,14 +331,6 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
 	}
     }
   
-  if ((status = mu_mailbox_get_message (imbx, 1, &msg)) != 0)
-    {
-      maidag_error (_("Cannot get message from the temporary mailbox: %s"),
-		    mu_strerror (status));
-      mu_auth_data_free (auth);
-      return EX_TEMPFAIL;
-    }
-
   if (!url)
     {
       status = mu_url_create (&url, auth->mailbox);
@@ -394,7 +395,7 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
      will be created */
   if (switch_user_id (auth, 1))
     return EX_TEMPFAIL;
-  status = deliver_to_user (imbx, mbox, msg, auth, errp);
+  status = deliver_to_user (mbox, msg, auth, errp);
   if (switch_user_id (auth, 0))
     return EX_TEMPFAIL;
 
@@ -405,7 +406,7 @@ deliver_url (mu_url_t url, mu_mailbox_t imbx, const char *name, char **errp)
 }
 
 int
-deliver (mu_mailbox_t imbx, char *dest_id, char **errp)
+deliver (mu_message_t msg, char *dest_id, char **errp)
 {
   int status;
   const char *name;
@@ -455,6 +456,6 @@ deliver (mu_mailbox_t imbx, char *dest_id, char **errp)
       name = dest_id;
       dest_id = NULL;
     }
-  return deliver_url (url, imbx, name, errp);
+  return deliver_url (url, msg, name, errp);
 }
   

@@ -408,7 +408,7 @@ _sieve_parse_error (void *user_name, const char *filename, int lineno,
 }
 
 int
-sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
+sieve_test (struct mu_auth_data *auth, mu_message_t msg)
 {
   int rc = 1;
   char *progfile;
@@ -443,9 +443,7 @@ sieve_test (struct mu_auth_data *auth, mu_mailbox_t mbx)
 	  if (rc == 0)
 	    {
 	      mu_attribute_t attr;
-	      mu_message_t msg = NULL;
-		
-	      mu_mailbox_get_message (mbx, 1, &msg);
+
 	      mu_message_get_attribute (msg, &attr);
 	      mu_attribute_unset_deleted (attr);
 	      if (switch_user_id (auth, 1) == 0)
