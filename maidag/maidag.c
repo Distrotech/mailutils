@@ -33,6 +33,9 @@ char *sender_address = NULL;
 char *progfile_pattern = NULL;
 char *sieve_pattern = NULL;
 
+char *forward_file = NULL;
+int forward_file_checks = FWD_ALL;
+
 int log_to_stderr = -1;
 
 /* Debuggig options */
@@ -277,6 +280,55 @@ cb_group (mu_debug_t debug, void *data, mu_config_value_t *arg)
   return mu_cfg_string_value_cb (debug, arg, cb2_group, data);
 }
 
+static struct mu_kwd forward_checks[] = {
+  { "all", FWD_ALL },
+  { "groupwritablefile", FWD_IWGRP },
+  { "file_iwgrp", FWD_IWGRP },
+  { "worldwritablefile", FWD_IWOTH },
+  { "file_iwoth", FWD_IWOTH },
+  { "linkedfileinwritabledir", FWD_LINK },
+  { "link", FWD_LINK },
+  { "fileingroupwritabledir", FWD_DIR_IWGRP },
+  { "dir_iwgrp", FWD_DIR_IWGRP },
+  { "fileinworldwritabledir", FWD_DIR_IWOTH },
+  { "dir_iwoth", FWD_DIR_IWOTH },
+  { NULL }
+};
+
+static int
+cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
+{
+  int negate = 0;
+  const char *str;
+  int val;
+  
+  if (strlen (name) > 2 && strncasecmp (name, "no", 2) == 0)
+    {
+      negate = 1;
+      str = name + 2;
+    }
+  else
+    str = name;
+
+  if (mu_kwd_xlat_name_ci (forward_checks, str, &val))
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Unknown keyword: %s"),
+			 name);
+  else
+    {
+      if (negate)
+	forward_file_checks &= ~val;
+      else
+	forward_file_checks |= val;
+    }
+  return 0;
+}
+
+static int
+cb_forward_file_checks (mu_debug_t debug, void *data, mu_config_value_t *arg)
+{
+  return mu_cfg_string_value_cb (debug, arg, cb2_forward_file_checks, data);
+}
+
 struct mu_cfg_param maidag_cfg_param[] = {
   { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
@@ -316,6 +368,11 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "  l - sieve action logs\n") },
   { "stderr", mu_cfg_bool, &log_to_stderr, 0, NULL,
     N_("Log to stderr instead of syslog.") },
+  { "forward-file", mu_cfg_string, &forward_file, 0, NULL,
+    N_("Process forward file.") },
+  { "forward-file-checks", mu_cfg_callback, NULL, 0, cb_forward_file_checks,
+    N_("Configure safety checks for the forward file."),
+    N_("arg: list") },
 /* LMTP support */
   { "lmtp", mu_cfg_bool, &lmtp_mode, 0, NULL,
     N_("Run in LMTP mode.") },

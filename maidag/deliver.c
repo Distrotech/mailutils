@@ -329,6 +329,22 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 	  mu_auth_data_free (auth);
 	  return 0;
 	}
+ 
+      if (forward_file)
+	switch (maidag_forward (msg, auth, forward_file))
+	  {
+	  case maidag_forward_none:
+	  case maidag_forward_metoo:
+	    break;
+	    
+	  case maidag_forward_ok:
+	    mu_auth_data_free (auth);
+	    return 0;
+
+	  case maidag_forward_error:
+	    mu_auth_data_free (auth);
+	    return exit_code = EX_TEMPFAIL;
+	  }
     }
   
   if (!url)

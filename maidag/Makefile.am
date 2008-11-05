@@ -20,6 +20,7 @@ INCLUDES = -I${top_srcdir} @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@
 sbin_PROGRAMS=maidag
 maidag_SOURCES=\
  deliver.c\
+ forward.c\
  lmtp.c\
  maidag.c\
  maidag.h\

@@ -1,5 +1,21 @@
 2008-11-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement forwarding functionality in Maidag.
+	
+	* maidag/forward.c: New file.
+	* maidag/Makefile.am (maidag_SOURCES): Add forward.c.
+	* maidag/deliver.c (deliver_url): Call maidag_forward for local
+	users.
+	* maidag/maidag.c (forward_file, forward_file_checks): New
+	variables.
+	(maidag_cfg_param): New keywords forward-file and
+	forward-file-checks.
+	* maidag/maidag.h (FWD_IWGRP, FWD_IWOTH, FWD_LINK, FWD_DIR_IWGRP)
+	(FWD_DIR_IWOTH, FWD_ALL): New defines.
+	(forward_file, forward_file_checks): New variables.
+	(enum maidag_forward_result): New data type.
+	(maidag_forward): New prototype.
+
 	Simplify calls to final delivery functions.
 	
 	* maidag/deliver.c (mda): Pass msg as a 1st argument to deliver.

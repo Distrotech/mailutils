@@ -109,6 +109,14 @@ extern int debug_level;
 #define MAXFD 64
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
+/* .forward file checks */
+#define FWD_IWGRP     0x0001 /* group writable forward file */
+#define FWD_IWOTH     0x0002 /* world writable forward file */
+#define FWD_LINK      0x0004 /* linked forward file in writable dir */
+#define FWD_DIR_IWGRP 0x0008 /* forward file in group writable directory */
+#define FWD_DIR_IWOTH 0x0010 /* forward file in world writable directory */
+#define FWD_ALL (FWD_IWGRP|FWD_IWOTH|FWD_LINK|FWD_DIR_IWOTH|FWD_DIR_IWGRP)
+
 extern int exit_code;
 extern int log_to_stderr;
 extern int multiple_delivery;
@@ -116,6 +124,9 @@ extern int ex_quota_tempfail;
 extern uid_t current_uid;
 extern char *quotadbname;  
 extern char *quota_query;  
+
+extern char *forward_file;
+extern int forward_file_checks;
 
 extern char *sender_address;       
 extern char *progfile_pattern;
@@ -165,3 +176,15 @@ int mail_tmp_begin (struct mail_tmp **pmtmp, const char *from);
 int mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen);
 int mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox);
 void mail_tmp_destroy (struct mail_tmp **pmtmp);
+
+enum maidag_forward_result
+  {
+    maidag_forward_none,
+    maidag_forward_ok,
+    maidag_forward_metoo,
+    maidag_forward_error
+  };
+
+enum maidag_forward_result maidag_forward (mu_message_t msg,
+					   struct mu_auth_data *auth,
+					   char *fwfile);
