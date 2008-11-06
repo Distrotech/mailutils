@@ -40,8 +40,14 @@ extern "C" { /*}*/
 #define MU_STREAM_ALLOW_LINKS 0x00000200
 #define MU_STREAM_NONLOCK     0x00000400
 /* This one affects only mailboxes */  
-#define MU_STREAM_QACCESS     0x00000800  
-
+#define MU_STREAM_QACCESS     0x00000800
+  
+#define MU_STREAM_IRGRP       0x00001000
+#define MU_STREAM_IWGRP       0x00002000
+#define MU_STREAM_IROTH       0x00004000
+#define MU_STREAM_IWOTH       0x00008000
+#define MU_STREAM_IMASK       0x0000F000
+  
 /* Functions useful to users of the pre-defined stream types. */
 
 extern int mu_file_stream_create    (mu_stream_t *stream, const char* filename,

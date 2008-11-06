@@ -55,7 +55,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return util_finish (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
-  newname = namespace_getfullpath (newname, delim);
+  newname = namespace_getfullpath (newname, delim, NULL);
   if (!newname)
     return util_finish (command, RESP_NO, "Permission denied");
 
@@ -122,7 +122,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
       return util_finish (command, RESP_OK, "Already exist");
     }
 
-  oldname = namespace_getfullpath (oldname, delim);
+  oldname = namespace_getfullpath (oldname, delim, NULL);
 
   /* It must exist.  */
   if (!oldname || rename (oldname, newname) != 0)

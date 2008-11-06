@@ -1,3 +1,37 @@
+2008-11-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Allow to set file permissions of the local mailboxes during
+	creation.
+	
+	* include/mailutils/stream.h (MU_STREAM_IRGRP, MU_STREAM_IWGRP)
+	(MU_STREAM_IROTH, MU_STREAM_IWOTH, MU_STREAM_IMASK): New defines.
+	* include/mailutils/mutil.h (mu_stream_flags_to_mode): New
+	prototype.
+	* libproto/maildir/mbox.c (maildir_create, maildir_flush)
+	(maildir_scan0): Consider mailbox flags	to determine its file
+	mode.
+	* mailbox/amd.c (amd_open, amd_message_stream_open): Likewise.
+	* mailbox/file_stream.c (_file_open): Likewise.
+	* mailbox/mutil.c (mu_stream_flags_to_mode): New file.
+	
+	* imap4d/namespace.c (namespace_getfullpath)
+	(namespace_checkfullpath): Return the namespace number in the last
+	argument (if not null).
+	* imap4d/append.c, imap4d/copy.c, imap4d/delete.c, imap4d/list.c,
+	imap4d/rename.c, imap4d/select.c, imap4d/status.c: Update calls to
+	namespace_getfullpath.  
+	* imap4d/create.c (imap4d_create): Set mailbox flags depending on
+	the namespace it is created in.
+	* imap4d/imap4d.c (mailbox_mode): New variable.
+	(parse_mode_spec): New function.
+	(imap4d_cfg_param): New statements other-mailbox-mode and
+	shared-mailbox-mode.
+	* imap4d/imap4d.h (mailbox_mode): New proto.
+	(namespace_getfullpath, namespace_checkfullpath): Add a parameter.
+	
+	* mailbox/progmailer.c (mu_progmailer_set_debug): Add missing
+	return statement.	
+
 2008-11-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement forwarding functionality in Maidag.

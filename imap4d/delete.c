@@ -49,7 +49,7 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return util_finish (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */
-  name = namespace_getfullpath (name, delim);
+  name = namespace_getfullpath (name, delim, NULL);
   if (!name)
     return util_finish (command, RESP_NO, "Cannot remove");
 

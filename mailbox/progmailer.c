@@ -99,6 +99,7 @@ mu_progmailer_set_debug (mu_progmailer_t pm, mu_debug_t debug)
   if (!pm)
     return EINVAL;
   pm->debug = debug;
+  return 0;
 }
 
 void

@@ -82,7 +82,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  mailbox_name = namespace_getfullpath (name, delim);
+  mailbox_name = namespace_getfullpath (name, delim, NULL);
 
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Error opening mailbox");

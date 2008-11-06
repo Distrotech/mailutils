@@ -68,7 +68,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   int n = 0;
   mu_mailbox_t cmbox = NULL;
   int arg = IMAP4_ARG_1 + !!isuid;
-
+  
   if (imap4d_tokbuf_argc (tok) != arg + 2)
     {
       *err_text = "Invalid arguments";
@@ -87,7 +87,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       return RESP_OK;
     }
 
-  mailbox_name = namespace_getfullpath (name, delim);
+  mailbox_name = namespace_getfullpath (name, delim, NULL);
 
   if (!mailbox_name)
     {

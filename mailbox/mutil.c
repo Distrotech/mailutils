@@ -33,8 +33,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/param.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/select.h>
@@ -1490,3 +1490,17 @@ mu_sql_decode_password_type (const char *arg, enum mu_password_type *t)
   return 0;
 }
 
+int
+mu_stream_flags_to_mode (int flags)
+{
+  int mode = 0;
+  if (flags & MU_STREAM_IRGRP)
+    mode |= S_IRGRP;
+  if (flags & MU_STREAM_IWGRP)
+    mode |= S_IWGRP;
+  if (flags & MU_STREAM_IROTH)
+    mode |= S_IROTH;
+  if (flags & MU_STREAM_IWOTH)
+    mode |= S_IWOTH;
+  return mode;
+}

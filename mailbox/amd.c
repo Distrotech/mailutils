@@ -337,7 +337,8 @@ amd_open (mu_mailbox_t mailbox, int flags)
 	{
 	  int rc;
 	  
-	  if (mkdir (amd->name, S_IRUSR|S_IWUSR|S_IXUSR))
+	  if (mkdir (amd->name,
+		     S_IRUSR|S_IWUSR|S_IXUSR|mu_stream_flags_to_mode (flags)))
 	    return errno;
 	  if (stat (amd->name, &st) < 0)
 	    return errno;
@@ -1453,6 +1454,7 @@ amd_message_stream_open (struct _amd_message *mhm)
     flags |= MU_STREAM_RDWR;
   else 
     flags |= MU_STREAM_READ;
+  flags |= (amd->mailbox->flags & MU_STREAM_IMASK);
   status = mu_file_stream_create (&mhm->stream, filename, flags);
 
   free (filename);

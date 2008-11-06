@@ -446,7 +446,7 @@ _file_open (mu_stream_t stream)
   const char *mode;
   char* filename = 0;
   int flags = 0;
-
+  
   if (!fs || !fs->filename)
     return EINVAL;
   
@@ -487,7 +487,8 @@ _file_open (mu_stream_t stream)
 	  if (errno != ENOENT)
 	    return errno;
 	  /* Race condition here when creating the file ??.  */
-	  fd = open (filename, flg|O_CREAT|O_EXCL, 0600);
+	  fd = open (filename, flg|O_CREAT|O_EXCL,
+		     0600 | mu_stream_flags_to_mode (flags));
 	  if (fd < 0)
 	    return errno;
 	}

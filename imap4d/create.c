@@ -21,6 +21,7 @@
 
 #define MKDIR_PERMISSIONS 0700
 
+/* FIXME: take permissions as argument */
 static int
 mkdir_p (char *name, int delim)
 {
@@ -84,6 +85,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *name;
   const char *delim = "/";
   int isdir = 0;
+  int ns;
   int rc = RESP_OK;
   const char *msg = "Completed";
 
@@ -111,7 +113,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
     isdir = 1;
   
   /* Allocates memory.  */
-  name = namespace_getfullpath (name, delim);
+  name = namespace_getfullpath (name, delim, &ns);
 
   if (!name)
     return util_finish (command, RESP_NO, "Cannot create mailbox");
@@ -139,7 +141,8 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	      msg = "Cannot create mailbox";
 	    }
 	  else if ((rc = mu_mailbox_open (mbox,
-					  MU_STREAM_RDWR|MU_STREAM_CREAT)))
+					  MU_STREAM_RDWR | MU_STREAM_CREAT
+					  | mailbox_mode[ns])))
 	    {
 	      mu_diag_output (MU_DIAG_ERR,
 			      _("Cannot open mailbox %s: %s"),

@@ -229,7 +229,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
 
       /* Allocates.  */
-      cwd = namespace_checkfullpath (ref, wcard, delim);
+      cwd = namespace_checkfullpath (ref, wcard, delim, NULL);
       if (!cwd)
 	{
 	  free (ref);

@@ -433,7 +433,9 @@ maildir_create (struct _amd_data *amd, int flags)
     {
       DIR *dir;
       char *tmpname = maildir_mkfilename (amd->name, dirs[i], NULL);
-      int rc = maildir_opendir (&dir, tmpname, PERMS);
+      int rc = maildir_opendir (&dir, tmpname,
+				PERMS |
+				mu_stream_flags_to_mode (amd->mailbox->flags));
       if (rc)
 	return rc;
       closedir (dir);
@@ -525,7 +527,8 @@ maildir_flush (struct _amd_data *amd)
   struct dirent *entry;
   char *tmpname = maildir_mkfilename (amd->name, TMPSUF, NULL);
 
-  rc = maildir_opendir (&dir, tmpname, PERMS);
+  rc = maildir_opendir (&dir, tmpname,
+			PERMS | mu_stream_flags_to_mode (amd->mailbox->flags));
   if (rc)
     {
       free (tmpname);
@@ -664,7 +667,8 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   /* 2nd phase: Scan and deliver messages from new */
   name = maildir_mkfilename (amd->name, NEWSUF, NULL);
 
-  status = maildir_opendir (&dir, name, PERMS);
+  status = maildir_opendir (&dir, name,
+			    PERMS | mu_stream_flags_to_mode (mailbox->flags));
   if (status == 0)
     {
       maildir_deliver_new (amd, dir);
@@ -674,7 +678,8 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
 
   name = maildir_mkfilename (amd->name, CURSUF, NULL);
   /* 3rd phase: Scan cur/ */
-  status = maildir_opendir (&dir, name, PERMS);
+  status = maildir_opendir (&dir, name,
+			    PERMS | mu_stream_flags_to_mode (mailbox->flags));
   if (status == 0)
     {
       status = maildir_scan_dir (amd, dir, CURSUF);

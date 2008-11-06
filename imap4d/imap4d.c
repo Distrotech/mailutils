@@ -39,6 +39,8 @@ int create_home_dir;            /* Create home directory if it does not
 				   exist */
 int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
 
+int mailbox_mode[NS_MAX];
+
 /* Saved command line. */
 int imap4d_argc;                 
 char **imap4d_argv;
@@ -281,7 +283,107 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
     }
   return 0;
 }
-	
+
+#define FILE_MODE_READ 0x1
+#define FILE_MODE_WRITE 0x2
+
+static int
+parse_mode_bits (int *pmode, const char *str, const char **endp)
+{
+  switch (*str)
+    {
+    case '+':
+    case '=':
+      str++;
+      break;
+
+    default:
+      *endp = str;
+      return 1;
+    }
+
+  for (; *str; str++)
+    {
+      switch (*str)
+	{
+	case 'r':
+	  *pmode |= FILE_MODE_READ;
+	  break;
+
+	case 'w':
+	  *pmode |= FILE_MODE_WRITE;
+	  break;
+
+	case ',':
+	  *endp = str;
+	  return 0;
+	  
+	default:
+	  *endp = str;
+	  return 1;
+	}
+    }
+  *endp = str;
+  return 0;
+}
+
+static int
+parse_mode_spec (int *pmode, const char *str, const char **endp)
+{
+  int mode = 0;
+  int f;
+  while (*str)
+    {
+      switch (*str)
+	{
+	case 'g':
+	  if (parse_mode_bits (&f, str + 1, &str))
+	    {
+	      *endp = str;
+	      return 1;
+	    }
+	  if (f & FILE_MODE_READ)
+	    mode |= MU_STREAM_IRGRP;
+	  if (f & FILE_MODE_WRITE)
+	    mode |= MU_STREAM_IWGRP;
+	  break;
+	  
+	case 'o':
+	  if (parse_mode_bits (&f, str + 1, &str))
+	    {
+	      *endp = str;
+	      return 1;
+	    }
+	  if (f & FILE_MODE_READ)
+	    mode |= MU_STREAM_IROTH;
+	  if (f & FILE_MODE_WRITE)
+	    mode |= MU_STREAM_IWOTH;
+	  break;
+	  
+	default:
+	  *endp = str;
+	  return 1;
+	}
+      if (*str == ',')
+	str++;
+    }
+  *pmode = mode;
+  *endp = str;
+  return 0;
+}
+      
+static int
+cb_mailbox_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  char *p;
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  if (parse_mode_spec ((int *)data, val->v.string, &p))
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			 _("invalid mode string near %s"), p);
+  return 0;
+}
+
 static struct mu_cfg_param imap4d_cfg_param[] = {
   { "other-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_OTHER],
     0, NULL, 
@@ -289,6 +391,12 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "shared-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_SHARED],
     0, NULL,
     N_("Set shared namespace.") },
+  { "other-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_OTHER], 0,
+    cb_mailbox_mode,
+    N_("File mode for mailboxes in other namespace.") },
+  { "shared-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_SHARED], 0,
+    cb_mailbox_mode,
+    N_("File mode for mailboxes in shared namespace.") },
   { "login-disabled", mu_cfg_bool, &login_disabled, 0, NULL,
     N_("Disable LOGIN command.") },
   { "create-home-dir", mu_cfg_bool, &create_home_dir, 0, NULL,
