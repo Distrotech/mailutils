@@ -124,7 +124,8 @@ extern int mu_message_get_attachment_name (mu_message_t, char *name,
 extern int mu_message_aget_attachment_name (mu_message_t, char **name);
 
 extern int mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
-				       mu_debug_t debug, const char *toname);
+				       mu_debug_t debug, const char *toname,
+				       int perms);
 
 
 extern int mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg);

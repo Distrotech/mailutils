@@ -336,9 +336,8 @@ amd_open (mu_mailbox_t mailbox, int flags)
       if ((flags & MU_STREAM_CREAT) && errno == ENOENT)
 	{
 	  int rc;
-	  
-	  if (mkdir (amd->name,
-		     S_IRUSR|S_IWUSR|S_IXUSR|mu_stream_flags_to_mode (flags)))
+	  int perms = mu_stream_flags_to_mode (flags, 1);
+	  if (mkdir (amd->name, S_IRUSR|S_IWUSR|S_IXUSR|perms))
 	    return errno;
 	  if (stat (amd->name, &st) < 0)
 	    return errno;

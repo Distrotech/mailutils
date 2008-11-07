@@ -284,101 +284,13 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
   return 0;
 }
 
-#define FILE_MODE_READ 0x1
-#define FILE_MODE_WRITE 0x2
-
-static int
-parse_mode_bits (int *pmode, const char *str, const char **endp)
-{
-  switch (*str)
-    {
-    case '+':
-    case '=':
-      str++;
-      break;
-
-    default:
-      *endp = str;
-      return 1;
-    }
-
-  for (; *str; str++)
-    {
-      switch (*str)
-	{
-	case 'r':
-	  *pmode |= FILE_MODE_READ;
-	  break;
-
-	case 'w':
-	  *pmode |= FILE_MODE_WRITE;
-	  break;
-
-	case ',':
-	  *endp = str;
-	  return 0;
-	  
-	default:
-	  *endp = str;
-	  return 1;
-	}
-    }
-  *endp = str;
-  return 0;
-}
-
-static int
-parse_mode_spec (int *pmode, const char *str, const char **endp)
-{
-  int mode = 0;
-  int f;
-  while (*str)
-    {
-      switch (*str)
-	{
-	case 'g':
-	  if (parse_mode_bits (&f, str + 1, &str))
-	    {
-	      *endp = str;
-	      return 1;
-	    }
-	  if (f & FILE_MODE_READ)
-	    mode |= MU_STREAM_IRGRP;
-	  if (f & FILE_MODE_WRITE)
-	    mode |= MU_STREAM_IWGRP;
-	  break;
-	  
-	case 'o':
-	  if (parse_mode_bits (&f, str + 1, &str))
-	    {
-	      *endp = str;
-	      return 1;
-	    }
-	  if (f & FILE_MODE_READ)
-	    mode |= MU_STREAM_IROTH;
-	  if (f & FILE_MODE_WRITE)
-	    mode |= MU_STREAM_IWOTH;
-	  break;
-	  
-	default:
-	  *endp = str;
-	  return 1;
-	}
-      if (*str == ',')
-	str++;
-    }
-  *pmode = mode;
-  *endp = str;
-  return 0;
-}
-      
 static int
 cb_mailbox_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
-  char *p;
+  const char *p;
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
     return 1;
-  if (parse_mode_spec ((int *)data, val->v.string, &p))
+  if (mu_parse_stream_perm_string ((int *)data, val->v.string, &p))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR,
 			 _("invalid mode string near %s"), p);
   return 0;

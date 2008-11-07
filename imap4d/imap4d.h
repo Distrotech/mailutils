@@ -283,8 +283,9 @@ extern mu_list_t namespace[NS_MAX];
   
 extern int namespace_init_session (char *path);
 extern void namespace_init (void);
-extern char *namespace_getfullpath (char *name, const char *delim, int *pns);
-extern char *namespace_checkfullpath (char *name, const char *pattern,
+extern char *namespace_getfullpath (const char *name, const char *delim,
+				    int *pns);
+extern char *namespace_checkfullpath (const char *name, const char *pattern,
 				       const char *delim, int *pns);
 int imap4d_session_setup (char *username);
 int imap4d_session_setup0 (void);

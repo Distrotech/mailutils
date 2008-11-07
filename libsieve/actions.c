@@ -79,19 +79,34 @@ static int
 sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
+  int mbflags = 0;
+  mu_sieve_value_t *opt;
   mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
   if (!val)
     {
       mu_sieve_error (mach, _("cannot get filename!"));
       mu_sieve_abort (mach);
     }
+
+  if (mu_sieve_tag_lookup (tags, "permissions", &opt))
+    {
+      const char *p;
+      
+      if (mu_parse_stream_perm_string (&mbflags, opt->v.string, &p))
+	{
+	  /* Should not happen, but anyway... */
+	  mu_sieve_error (mach, _("invalid permissions (near %s)"), p);
+	  return 1;
+	}
+    }
+  
   mu_sieve_log_action (mach, "FILEINTO",
 		       _("delivering into %s"), val->v.string);
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
   rc = mu_message_save_to_mailbox (mach->msg, mach->ticket, mach->debug,
-				   val->v.string);
+				   val->v.string, mbflags);
   if (rc)
     mu_sieve_error (mach, _("cannot save to mailbox: %s"),
 		    mu_strerror (rc));
@@ -506,17 +521,57 @@ mu_sieve_data_type fileinto_args[] = {
   SVT_VOID
 };
 
+static int
+perms_tag_checker (const char *name, mu_list_t tags, mu_list_t args)
+{
+  mu_iterator_t itr;
+  int err = 0;
+  
+  if (!tags || mu_list_get_iterator (tags, &itr))
+    return 0;
+  for (mu_iterator_first (itr); !err && !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      int flag;
+      char *p;
+      mu_sieve_runtime_tag_t *t;
+      mu_iterator_current (itr, (void **)&t);
+      if (strcmp (t->tag, "permissions") == 0)
+	{
+	  if (mu_parse_stream_perm_string (&flag, t->arg->v.string, &p))
+	    {
+	      mu_sv_compile_error (&mu_sieve_locus, 
+				   _("invalid permissions (near %s)"), p);
+	      err = 1;
+	    }
+	}
+    }
+  mu_iterator_destroy (&itr);
+  return err;
+}
+
+static mu_sieve_tag_def_t perms_tags[] = {
+  { "permissions", SVT_STRING },
+  { NULL }
+};
+  
+static mu_sieve_tag_group_t fileinto_tag_groups[] = {
+  { perms_tags, perms_tag_checker },
+  { NULL }
+};
+  
 void
 mu_sv_register_standard_actions (mu_sieve_machine_t mach)
 {
   mu_sieve_register_action (mach, "stop", sieve_action_stop, NULL, NULL, 1);
   mu_sieve_register_action (mach, "keep", sieve_action_keep, NULL, NULL, 1);
-  mu_sieve_register_action (mach, "discard", sieve_action_discard, NULL, NULL, 1);
+  mu_sieve_register_action (mach, "discard", sieve_action_discard,
+			    NULL, NULL, 1);
   mu_sieve_register_action (mach, "fileinto", sieve_action_fileinto,
-			 fileinto_args, NULL, 0);
+			    fileinto_args, fileinto_tag_groups, 0);
   mu_sieve_register_action (mach, "reject", sieve_action_reject, fileinto_args,
-			 NULL, 0);
+			    NULL, 0);
   mu_sieve_register_action (mach, "redirect", sieve_action_redirect, 
-			 fileinto_args, NULL, 0);
+			    fileinto_args, NULL, 0);
 }
 

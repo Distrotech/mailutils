@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-10-23
+GNU mailutils NEWS -- history of user-visible changes. 2008-11-07
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -61,13 +61,27 @@ message', below.
 The communication protocol has been modified to make this possible.
 The traditional comsat protocol is supported as well.
 
-** New Sieve action `pipe'
+** Sieve
+
+*** New Sieve action `pipe'
 
 Syntax: pipe [:envelope] <command line: string> 
 
 This action executes the given <command line> and pipes the message to
 its standard input. If the :envelope tag is given, the envelope of the
 message is piped as well.
+
+*** Fileinto :permissions
+
+The `fileinto' action takes a tag :permissions that allows to set
+permissions on the mailbox, in case it is created.  Its argument is a
+string, similar to that used in chmod(1):
+
+	[go](+|=)[rw]
+
+For example:
+
+	fileinto :permissions "g=rw,o=r" "/shared/mailbox"
 
 ** Client SMTP STARTTLS support
 

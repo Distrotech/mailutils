@@ -1491,7 +1491,7 @@ mu_sql_decode_password_type (const char *arg, enum mu_password_type *t)
 }
 
 int
-mu_stream_flags_to_mode (int flags)
+mu_stream_flags_to_mode (int flags, int isdir)
 {
   int mode = 0;
   if (flags & MU_STREAM_IRGRP)
@@ -1502,5 +1502,14 @@ mu_stream_flags_to_mode (int flags)
     mode |= S_IROTH;
   if (flags & MU_STREAM_IWOTH)
     mode |= S_IWOTH;
+
+  if (isdir)
+    {
+      if (mode & (S_IRGRP|S_IWGRP))
+	mode |= S_IXGRP;
+      if (mode & (S_IROTH|S_IWOTH))
+	mode |= S_IXOTH;
+    }
+  
   return mode;
 }

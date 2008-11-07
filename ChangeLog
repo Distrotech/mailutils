@@ -1,5 +1,33 @@
 2008-11-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Allow to set mailbox permissions using fileinto Sieve action.
+	
+	* mailbox/permstr.c: New file.
+	* mailbox/Makefile.am (libmailutils_la_SOURCES): Add permstr.c.
+	* imap4d/imap4d.c (parse_mode_spec): Remove function.
+	(cb_mailbox_mode): Use mu_parse_stream_perm_string instead of
+	parse_mode_spec.
+	* imap4d/imap4d.h (namespace_getfullpath)
+	(namespace_checkfullpath): First arg is const.
+	* imap4d/namespace.c (namespace_getfullpath)
+	(namespace_checkfullpath): First arg is const.
+	* include/mailutils/message.h (mu_message_save_to_mailbox): Add
+	5th argument (permissions).
+	* mailbox/message.c: Likewise.
+	* include/mailutils/mutil.h (mu_parse_stream_perm_string): New
+	proto.
+	(mu_stream_flags_to_mode): Add isdir argument.
+	* libsieve/actions.c (sieve_action_fileinto): New tag :permissions
+	allows to set permissions to the mailbox being created.
+	* mailbox/mutil.c (mu_stream_flags_to_mode): Add 2nd argument
+	(isdir). Any bits in [go] sets imply raising 'x' bit for
+	directories (i.e. if isdir != 0).
+	
+	* libproto/maildir/mbox.c, mailbox/amd.c: Update calls to
+	mu_stream_flags_to_mode. 
+
+	* NEWS, doc/texinfo/sieve.texi: Update.
+	
 	Allow to set file permissions of the local mailboxes during
 	creation.
 	

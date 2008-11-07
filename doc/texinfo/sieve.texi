@@ -1,6 +1,6 @@
 @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001,2002,2003,2004,
-@c 2007 Free Software Foundation, Inc.
+@c 2007, 2008 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -929,7 +929,7 @@ if header :contains ["from"] ["idiot@@example.edu"]
 @end smallexample
 @end deffn
 
-@deffn Action fileinto @var{folder}
+@deffn Action fileinto [:permissions @var{mode}] @var{folder}
 @noindent
 
 Required arguments:
@@ -939,7 +939,74 @@ Required arguments:
 A string representing the folder name
 @end table
 
-The @code{fileinto} action delivers the message into the specified folder.
+@noindent
+Tagged arguments:
+
+@table @code
+@item :permissions @var{mode}
+Specifies the permissions to use, if the mailbox is created.
+@end table
+
+The @code{fileinto} action delivers the message into the specified
+folder.  If the folder is local, it is created using permissions
+@samp{0600}, for regular files, and @samp{0700} for directories.  This
+default can be changed by using the @code{:permissions} tag.  Its
+argument is a mode specification, similar to that used by
+@command{chmod} shell utility.  It is a list of permissions settings
+separated by commas.  Each setting begins with one of the following
+letters:
+
+@table @asis
+@item g
+Set permissions for the users in the file group.
+
+@item o
+Set permissions for users not in the file's group.
+@end table
+
+This letter must be followed by either @samp{+} or @samp{=} and the
+list of permissions to be set.  This latter list is a string
+containing any one or both of the following characters:
+
+@table @asis
+@item r
+Grant permission to read.
+
+@item w
+Grant permission to write.
+@end table
+
+For example, the following instruction creates the mailbox
+@file{~/shared} which will be world readable and writable
+for the group:
+
+@smallexample
+  fileinto :permissions "g=rw,o=r" "~/shared"
+@end smallexample
+
+Notice that:
+
+@enumerate 1
+@item
+The @code{:permissions} setting are affected by the current umask
+value.
+
+@item
+Only @code{r} and @code{w} permissions can be set, since other
+permissions do not seem to be useful for mailboxes.  However, for
+mailboxes that have a directory structure (such as maildir and MH),
+any settings in @samp{g} and @samp{o} sets imply setting the
+executable bit.
+
+@item
+Owner's permissions cannot be set.  The owner always has all
+permissions on the mailbox he created.
+
+@item
+The @code{:permissions} settings apply only to local mailboxes.  They
+are ignored for remote mailboxes.
+@end enumerate
+
 @end deffn
 
 @deffn Action reject @var{reason}

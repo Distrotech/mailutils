@@ -488,7 +488,7 @@ _file_open (mu_stream_t stream)
 	    return errno;
 	  /* Race condition here when creating the file ??.  */
 	  fd = open (filename, flg|O_CREAT|O_EXCL,
-		     0600 | mu_stream_flags_to_mode (flags));
+		     0600 | mu_stream_flags_to_mode (flags, 0));
 	  if (fd < 0)
 	    return errno;
 	}

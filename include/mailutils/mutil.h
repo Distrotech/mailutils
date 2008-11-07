@@ -155,8 +155,11 @@ extern size_t mu_strftime (char *s, size_t max, const char *format,
 extern int mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab,
 				  int *perr);
 
-extern int mu_stream_flags_to_mode (int flags);
+extern int mu_stream_flags_to_mode (int flags, int isdir);
 
+extern int mu_parse_stream_perm_string (int *pmode, const char *str,
+					const char **endp);
+  
   
 #ifdef __cplusplus
 }

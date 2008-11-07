@@ -1112,7 +1112,7 @@ message_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off,
 int
 mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
                             mu_debug_t debug,
-			    const char *toname)
+			    const char *toname, int perms)
 {
   int rc = 0;
   mu_mailbox_t to = 0;
@@ -1148,7 +1148,9 @@ mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
 	}
     }
 
-  if ((rc = mu_mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
+  if ((rc = mu_mailbox_open (to,
+			     MU_STREAM_WRITE | MU_STREAM_CREAT
+			     | (perms & MU_STREAM_IMASK))))
     {
       MU_DEBUG2 (debug, MU_DEBUG_ERROR,
 		 "mu_mailbox_open (%s) failed: %s\n", toname,
