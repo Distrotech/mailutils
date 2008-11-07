@@ -726,11 +726,27 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
 	    status = errno;
 	  else
 	    {
+	      mode_t perms;
+	  
+	      perms = mu_stream_flags_to_mode (amd->mailbox->flags, 0);
+	      if (perms != 0)
+		{
+		  /* It is documented that the mailbox permissions are
+		     affected by the current umask, so take it into account
+		     here.
+		     FIXME: I'm still not sure we should honor umask, though.
+		     --gray
+		  */
+		  mode_t mask = umask (0);
+		  chmod (msg_name, (0600 | perms) & ~mask);
+		  umask (mask);
+		}
 	      if (strcmp (old_name, msg_name))
 		/* Unlink original message */
 		unlink (old_name);
 	    }
 	  free (old_name);
+
 	  mhm->orig_flags = mhm->attr_flags;
 	}
       free (msg_name);
@@ -1453,7 +1469,6 @@ amd_message_stream_open (struct _amd_message *mhm)
     flags |= MU_STREAM_RDWR;
   else 
     flags |= MU_STREAM_READ;
-  flags |= (amd->mailbox->flags & MU_STREAM_IMASK);
   status = mu_file_stream_create (&mhm->stream, filename, flags);
 
   free (filename);
