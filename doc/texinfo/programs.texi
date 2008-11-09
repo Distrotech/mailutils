@@ -6,9 +6,9 @@
 
 GNU Mailutils provides a broad set of utilities for handling
 electronic mail. These utilities address the needs of both system
-adminsitrators and users.
+administrators and users.
 
-All utilities are built around a single core subsistem and share many
+All utilities are built around a single core subsystem and share many
 common aspects. All of them are able to work with almost any existing
 mailbox formats. They use a common configuration file syntax, and
 their configuration files are located in a single subdirectory.
@@ -235,7 +235,7 @@ Do not load user configuration file.
 @UNREVISED
 
   Configuration files are the principal means of configuring any GNU
-Mailutil component. When started, each utility tries to load its
+Mailutils component. When started, each utility tries to load its
 configuration from the following locations, in that order:
 
 @enumerate 1
@@ -694,7 +694,7 @@ The most important debugging modules are:
 Debug access control lists. @FIXME-xref{Debugging ACLs}.
 
 @item config
-Debug configuration parser and/or lexical analizer. The following
+Debug configuration parser and/or lexical analyzer. The following
 levels are supported:
 
 @table @asis
@@ -872,7 +872,7 @@ indexed directory structure.
 
 @cindex directory indexing
 An @dfn{indexed directory structure} is a special way of storing
-mailboxes, which allowes for faster access in case of very large
+mailboxes, which allows for faster access in case of very large
 number of users. 
 
 By default, all user mailboxes are stored in a single directory and
@@ -911,7 +911,7 @@ this case the file name of @samp{smith}'s mailbox is
 The @dfn{reverse} indexed structure uses the same principles, but the
 indexing letters are taken from the @emph{end} of the user name,
 instead of from the beginning. For example, in the 2nd level reverse
-indexed structure, the @samp{smith}'s mailbix is located in
+indexed structure, the @samp{smith}'s mailbox is located in
 @file{@var{path}/h/t/smith}.
 
 @cindex hashed indexing
@@ -920,7 +920,7 @@ Finally, the @dfn{hashed} structure consists of 256 subdirectories
 under @var{path}, named by 2-letter hex codes from @samp{00} to
 @samp{FF}. Mailboxes are stored in these subdirectories. The name
 of the subdirectory is computed by hashing first @var{level} letters
-of the user name. The hashing alorithm is:
+of the user name. The hashing algorithm is:
 
 @enumerate 1
 @item Take next letter from the user name
@@ -1066,7 +1066,7 @@ Store the PID of the locking process in a lock file.
 @end deffn
 
 @deffn {Configuration} retry-count @var{number}
-Number of locking attemtps. The @samp{P} flag must be set for this to
+Number of locking attempts. The @samp{P} flag must be set for this to
 take effect.
 @end deffn
 
@@ -1115,7 +1115,7 @@ can be regarded as a function that returns a tree-state value:
 @samp{True}, @samp{False} and @samp{Don't know}. When a
 remote party connects to the server, each of controls is tried in
 turn. If a control returns @samp{False}, access is denied. If it
-retruns @samp{True}, access is allowed. If it returns @samp{Don't
+returns @samp{True}, access is allowed. If it returns @samp{Don't
 know}, then the next control is tried. It is unclear whether to allow
 access if the last control in list returned @samp{Don't know}. GNU
 Mailutils @value{VERSION} issues a warning message and allows access.
@@ -1189,7 +1189,7 @@ families: @samp{AF_INET} and @samp{AF_UNIX}.
 
 @item address
 Remote IP address (for @samp{AF_INET}) or socket name (for
-@samp{AF_UNIX}). Notice that most Unices return empty string instead
+@samp{AF_UNIX}). Notice that most Unixes return empty string instead
 of the @samp{AF_UNIX} socket name, so do not rely on it.
 
 @item port
@@ -1213,7 +1213,7 @@ above in your configuration files.
 
 @deffn {Configuration} exec [from] @var{cidr} @var{program}
 If a connection from the @var{cidr} block is requested, execute
-the given @var{program}. Do not wait for it to teminate, and ignore
+the given @var{program}. Do not wait for it to terminate, and ignore
 its exit code.
 @end deffn
 
@@ -1450,7 +1450,7 @@ servers.
 
 @deffn {Configuration} transcript @var{bool};
 Enable transcript of the client-server interaction. This may generate
-exessive amounts of logging, which in turn may slow down the operation
+excessive amounts of logging, which in turn may slow down the operation
 considerably.
 
 Session transcripts are useful in fine-tuning your configurations and
@@ -1755,20 +1755,20 @@ $INCLUDE dict/mailutils.dict
 Requests to use for authentication and authorization are
 configured using three statements: @code{auth}, @code{getpwnam} and
 @code{getpwuid}. Each statement takes a single argument: a string,
-containing a comma-separated list of assignements. An assignement
+containing a comma-separated list of assignments. An assignment
 specifies a particular @dfn{attribute-value pair} (@pxref{Overview,
 RADIUS Attributes,, radius, GNU Radius Reference Manual}) to send to
-the server. The left-hand side of the assignement is a symbolic attribute
+the server. The left-hand side of the assignment is a symbolic attribute
 name, as defined in one of Radius dictionaries (@pxref{dictionary
 file, Dictionary of Attributes,, radius, GNU Radius Reference
 Manual}). The value is specified by the right-hand side of
-assignement. For example:
+assignment. For example:
 
 @smallexample
 "Service-Type = Authenticate-Only, NAS-Identifier = \"mail\""
 @end smallexample
 
-An assignement may contain references to the following macro-variables
+An assignment may contain references to the following macro-variables
 (@FIXME-pxref{macro-variables}):
 
 @table @asis
@@ -2081,7 +2081,7 @@ Prints only a count of messages in the mailbox and exit.
 
 @item -d
 @itemx --debug
-Prints additional debugging outut.
+Prints additional debugging output.
 
 @item -s @var{string}
 @itemx --sender=@var{string}
@@ -3591,7 +3591,7 @@ set metamail="metamail -m mail -p"
 @*Default: Empty
 @vrindex mimenoask, mail variable
 
-By default @command{mail} asks for comnfirmation before running
+By default @command{mail} asks for confirmation before running
 interpreter to view a part of the multi-part message. If this variable
 is set, its value is treated as a comma-separated list of MIME types
 for which no confirmation is needed. Elements of this list may include
@@ -4736,12 +4736,12 @@ Sometimes it is necessary to limit the maximum size of a user's
 mailbox. Such maximum size is called @dfn{mailbox quota} for this
 user.
 
-When delivering a message, @command{mail.local} first cheks if
+When delivering a message, @command{mail.local} first checks if
 the mailbox quota is specified for the recipient. If so,
 @command{mail.local} computes the difference between the quota
 value and the actual size of the recipient's mailbox. This difference
 represents the maximum size of the message the receipient's mailbox is
-able to accomodate. Let's call it @var{msize}. Depending on its value,
+able to accommodate. Let's call it @var{msize}. Depending on its value,
 @command{mail.local} takes decision on whether to deliver the message.
 There are three possible cases:
 
@@ -4788,7 +4788,7 @@ The  quota database should have the following structure:
 @table @asis
 @item Key
 Key represents the user name. Special key @samp{DEFAULT} means default
-quota value, i.e. the one to be used if the user is not explicitely
+quota value, i.e. the one to be used if the user is not explicitly
 listed in the database.
 
 @item Value
@@ -5035,8 +5035,8 @@ a @asis{tty} device.
 
 @item -n
 @itemx --dry-run
-Do not do anything, just print what whould be done. Implies
-@option{--debug=1}, unless the debugging level is set up explicitely.
+Do not do anything, just print what would be done. Implies
+@option{--debug=1}, unless the debugging level is set up explicitly.
 
 @item -t @var{file}
 @itemx --mimetypes @var{file}

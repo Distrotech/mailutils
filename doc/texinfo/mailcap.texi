@@ -1,6 +1,6 @@
 @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001,2002,2003,2004,2006,
-@c 2007 Free Software Foundation, Inc.
+@c 2007,2008 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -23,7 +23,7 @@ application/pgp; gpg < %s | metamail; needsterminal; \
 @end group
 @end smallexample
 
-A mailcap file consits of a set of mailcap entries per line, lines
+A mailcap file consists of a set of mailcap entries per line, lines
 beginning with @samp{#} are considered comments and ignored. Long
 mailcap entry may be continued on multiple lines if each line ends
 with a backslash character @samp{\}, the multiline will be considered
@@ -39,8 +39,8 @@ Newline = <newline as defined by OS convention>
 @end smallexample
 
 Each mailcap entry consists of a number of fields, separated
-by semi-colons. The first two filds are required and must occur
-in the secified order, the remaining fields are optional.
+by semi-colons. The first two fields are required and must occur
+in the specified order, the remaining fields are optional.
 
 @smallexample
 Mailcap-Entry = @var{typefield} ";" @var{view-command} ";" *[ ";" @var{field} ]

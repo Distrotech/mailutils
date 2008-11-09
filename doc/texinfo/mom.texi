@@ -1,6 +1,6 @@
 @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001,2002,2003,2004,
-@c 2007 Free Software Foundation, Inc.
+@c 2007,2008 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -21,7 +21,7 @@ extends it:
 struct _mu_object;
 typedef struct _mu_object* mu_object_t;
 
-/* Defintion of the interface for mu_object */
+/* Definition of the interface for mu_object */
 struct _mu_object_vtable
 @{
   int  (*create)   (mu_object_t *object);
@@ -58,8 +58,8 @@ Instead of using macros or the vtable directly.
 @section Implementing an Interface
 
 @comment ***********************************************************
-@comment This is not a very good/usefull example, we should do one using
-@comment header or message, something usefull that would clarify the concepts
+@comment This is not a very good/useful example, we should do one using
+@comment header or message, something usefully that would clarify the concepts
 @comment better and at the same could be reuse in code by clients.
 @comment
 @comment For example mime_t "extends" message_t, this is a good example

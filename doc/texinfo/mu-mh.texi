@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+@c Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -246,7 +246,7 @@ it must be enclosed in double-quotes. Dangling equal sign is an error,
 to set a string variable to the empty value assign it an empty string, e.g.:
 @code{overflowtext=""} (see the supplied @file{mhl.format} file).
 
-Ineractive prompting is not yet implemented.
+Interactive prompting is not yet implemented.
 
 @item mhn
 

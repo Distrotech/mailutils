@@ -1,3 +1,12 @@
+2008-11-09  Wojciech Polak  <polak@gnu.org>
+
+	Fix typos.
+	
+	* doc/texinfo/mailcap.texi, doc/texinfo/mailutils.texi
+	doc/texinfo/mom.texi, doc/texinfo/mu-mh.texi,
+	doc/texinfo/mu_message.texi, doc/texinfo/programs.texi,
+	doc/texinfo/sieve.texi: Fix typos.
+
 2008-11-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Rewrite default mailbox format support to make sure it does not

@@ -92,8 +92,8 @@ markers are taken verbatim. For example:
 
 @smallexample
 text:
-** This is an authomatic response from my message **
-** filtering program.                             **
+** This is an automatic response from my message **
+** filtering program.                            **
 
 I can not attend your message right now. However it
 will be saved, and I will read it as soon as I am back.
@@ -1558,7 +1558,7 @@ may disappear from the subsequent releases.
 
 @item @code{fileinto} action
 
-The @code{fileinto} action allows to specify permissons on the mailbox,
+The @code{fileinto} action allows to specify permissions on the mailbox,
 in case it is created (@pxref{fileinto}).
 
 @item Match type optional argument.
