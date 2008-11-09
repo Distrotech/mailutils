@@ -124,9 +124,9 @@ $ @kbd{ARGP_HELP_FMT=long-opt-col=16 sieve --help|grep ADDRESS}
 @end deftypevr
 
 @deftypevr {Help Output} offset doc-opt-col
-Column in which @dfn{doc options} start.  A doc option isn't actually
+Column in which @dfn{doc options} start. A doc option isn't actually
 an option, but rather an arbitrary piece of documentation that is
-displayed in much the same manner as the options.  For example, in
+displayed in much the same manner as the options. For example, in
 the output of @command{folder --help}:
 
 @verbatim
@@ -138,7 +138,7 @@ GNU MH folder
 @end verbatim
 
 @noindent
-the string @samp{Actions are:} is a doc option.  Thus, if you set
+the string @samp{Actions are:} is a doc option. Thus, if you set
 @kbd{ARGP_HELP_FMT=doc-opt-col=6} the above part of the help output
 will look as follows:
 
@@ -172,8 +172,8 @@ Notice, that the description starts on a separate line if
 @end deftypevr
 
 @deftypevr {Help Output} offset header-col
-Column in which @dfn{group headers} are printed.  A group header is a
-descriptive text preceding an option group.  For example, in the
+Column in which @dfn{group headers} are printed. A group header is a
+descriptive text preceding an option group. For example, in the
 following text:
 
 @verbatim

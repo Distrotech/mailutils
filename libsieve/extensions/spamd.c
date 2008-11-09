@@ -232,7 +232,7 @@ sigpipe_handler (int sig MU_ARG_UNUSED)
 
 /* The test proper */
 
-/* Syntax: spamd [":host" <tcp-host: string]
+/* Syntax: spamd [":host" <tcp-host: string>]
                  [":port" <tcp-port: number> /
                   ":socket" <unix-socket: string>]
 		 [":user" <name: string>] 

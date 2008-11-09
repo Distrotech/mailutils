@@ -27,7 +27,7 @@ debug.h: $(top_srcdir)/scripts/debugdef.m4 debug.hm4
 	m4 $(top_srcdir)/scripts/debugdef.m4 debug.hm4 > debug.h
 
 types.h: $(top_srcdir)/include/mailutils/types.hin Makefile
-	sed 's/MU_OFF_TYPE/$(MU_OFF_TYPE)/' $(top_srcdir)/include/mailutils/types.hin > $@
+	sed 's/_MU_OFF_TYPE_/$(MU_OFF_TYPE)/;s/_MU_DEFAULT_RECORD_/$(MU_DEFAULT_RECORD)/' $(top_srcdir)/include/mailutils/types.hin > $@
 DISTCLEANFILES = types.h
 
 pkginclude_DATA = types.h

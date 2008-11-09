@@ -219,5 +219,6 @@ mu_scm_init ()
   mu_scm_mime_init ();
 #include "mu_scm.x"
 
-  mu_registrar_record (mu_path_record);
+  mu_registrar_record (MU_DEFAULT_RECORD);
+  mu_registrar_set_default_record (MU_DEFAULT_RECORD);
 }

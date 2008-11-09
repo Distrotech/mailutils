@@ -533,7 +533,7 @@ perms_tag_checker (const char *name, mu_list_t tags, mu_list_t args)
        mu_iterator_next (itr))
     {
       int flag;
-      char *p;
+      const char *p;
       mu_sieve_runtime_tag_t *t;
       mu_iterator_current (itr, (void **)&t);
       if (strcmp (t->tag, "permissions") == 0)

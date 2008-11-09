@@ -250,9 +250,10 @@ make_tmp (FILE *input, const char *from, char **tempfile)
 void
 register_handlers ()
 {
-  mu_registrar_record (mu_path_record);
+  mu_registrar_record (mu_mbox_record);
   mu_registrar_record (mu_sendmail_record);
   mu_registrar_record (mu_smtp_record);
+  mu_registrar_set_default_record (mu_mbox_record);
 }
 
 int

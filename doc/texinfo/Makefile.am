@@ -41,6 +41,7 @@ mailutils_TEXINFOS = \
  fdl.texi\
  folder.texi\
  framework.texi\
+ getdate.texi\
  headers.texi\
  imap4.texi\
  iterator.texi\
@@ -115,40 +116,57 @@ master-menu:
 untabify:
 	emacs -batch -l untabify.el $(info_TEXINFOS) $(mailutils_TEXINFOS)
 
+fix-sentence-spacing:
+	for file in $(info_TEXINFOS) $(mailutils_TEXINFOS); \
+	do \
+		if grep -q '\.  [@A-Z]' $$file; then \
+			mv $$file $${file}~; \
+			sed -r 's/\.  ([@A-Z])/. \1/g' $${file}~ > $$file; \
+		fi; \
+	done
+
 final: untabify master-menu
 
 
 # Checks
-check-format:
+check-tabs:
 	@if test -n "`cat $(info_TEXINFOS) $(mailutils_TEXINFOS) |\
              tr -d -c '\t'`"; then \
-		echo "Sources contain tabs; run make untabify"; \
+		echo >&2 "Sources contain tabs; run make untabify"; \
 		false; \
 	fi
 
+check-sentence-spacing:
+	@if grep -q '\.  [@A-Z]' $(info_TEXINFOS) $(mailutils_TEXINFOS); then \
+		echo >&2 "Sources contain double-space sentence separators"; \
+		echo >&2 "Run make fix-sentence-spacing to fix"; \
+	fi
+
+check-format: check-tabs check-sentence-spacing
+
 check-refs:
-	@for file in $(info_TEXINFOS) $(dico_TEXINFOS); \
+	@for file in $(info_TEXINFOS) $(mailutils_TEXINFOS); \
 	do \
 	  sed -e = $$file | \
            sed -n 'N;/@FIXME-.*ref/{s/\(^[0-9][0-9]*\).*@FIXME-.*ref{\([^}]*\)}.*/'$$file':\1: \2/gp}'; \
 	done > $@-t; \
 	if [ -s $@-t ]; then \
-	  echo "Unresolved cross-references:"; \
-	  cat $@-t;\
+	  echo >&2 "Unresolved cross-references:"; \
+	  cat $@-t >&2;\
 	  rm $@-t; \
 	else \
 	  rm -f $@-t; \
 	fi
 
 check-fixmes:
-	@for file in $(info_TEXINFOS); \
+	@for file in $(info_TEXINFOS) $(mailutils_TEXINFOS); \
 	do \
 	  sed -e = $$file | \
            sed -n 'N;/@FIXME{/{s/\(^[0-9][0-9]*\).*@FIXME{\([^}]*\).*/'$$file':\1: \2/gp}'; \
 	done > $@-t; \
 	if [ -s $@-t ]; then \
-	  echo "Unresolved FIXMEs:"; \
-	  cat $@-t; \
+	  echo >&2 "Unresolved FIXMEs:"; \
+	  cat $@-t >&2; \
 	  rm $@-t; \
 	  false; \
 	else \
@@ -156,10 +174,10 @@ check-fixmes:
 	fi
 
 check-unrevised:
-	@grep -Hn @UNREVISED $(info_TEXINFOS) $(dico_TEXINFOS) > $@-t; \
+	@grep -Hn @UNREVISED $(info_TEXINFOS) $(mailutils_TEXINFOS) > $@-t; \
 	if [ -s $@-t ]; then \
-	  echo "Unrevised nodes:"; \
-	  cat $@-t; \
+	  echo >&2 "Unrevised nodes:"; \
+	  cat $@-t >&2; \
 	  rm $@-t; \
 	  false;\
 	else \

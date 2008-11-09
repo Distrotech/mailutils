@@ -25,7 +25,7 @@
 
 Wherever the mail is and whatever format it is stored in, it is operated
 upon using the same set of functions. To unified the C API,
-@sc{gnu} Mailutils offers a heteroclite set of objects that work in
+GNU Mailutils offers a heteroclite set of objects that work in
 aggregation to do operations on emails.
 Each object does a specific task and delegates non-related tasks to others.
 The object comes alive by specifying a @emph{URL} parameter when created,

@@ -47,9 +47,18 @@ struct _mu_record
   int (*_list_p) (mu_record_t, const char *, int);
 };
 
+/* Defaults */  
+extern int mu_registrar_set_default_scheme (const char *scheme);
+extern const char *mu_registrar_get_default_scheme (void);
+extern int mu_registrar_get_default_record (mu_record_t *prec);
+extern void mu_registrar_set_default_record (mu_record_t record);
+  
 /* Registration.  */
 extern int mu_registrar_get_iterator (mu_iterator_t *);
 extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
+
+extern int mu_registrar_lookup_scheme (const char *scheme,
+				       mu_record_t *precord);
   
 extern int mu_registrar_lookup (const char *name, int flags, 
                                 mu_record_t *precord, int *pflags);
@@ -101,8 +110,6 @@ extern mu_record_t mu_nntp_record;
 
 /* Local Mailbox Unix Mailbox, "mbox:"  */
 extern mu_record_t mu_mbox_record;
-/* Local Folder/Mailbox, /  */
-extern mu_record_t mu_path_record;
 /* Local MH, "mh:" */
 extern mu_record_t mu_mh_record;
 /* Maildir, "maildir:" */
@@ -131,7 +138,6 @@ extern mu_record_t mu_sendmail_record;
 extern mu_record_t mu_prog_record;
   
 #define mu_register_all_mbox_formats() do {\
-  mu_registrar_record (mu_path_record);\
   mu_registrar_record (mu_mbox_record);\
   mu_registrar_record (mu_pop_record);\
   mu_registrar_record (mu_pops_record);\
@@ -139,13 +145,14 @@ extern mu_record_t mu_prog_record;
   mu_registrar_record (mu_imaps_record);\
   mu_registrar_record (mu_mh_record);\
   mu_registrar_record (mu_maildir_record);\
+  mu_registrar_set_default_record (MU_DEFAULT_RECORD);\
 } while (0)
 
 #define mu_register_local_mbox_formats() do {\
-  mu_registrar_record (mu_path_record);\
   mu_registrar_record (mu_mbox_record);\
   mu_registrar_record (mu_mh_record);\
   mu_registrar_record (mu_maildir_record);\
+  mu_registrar_set_default_record (MU_DEFAULT_RECORD);\
 } while (0)
 
 #define mu_register_remote_mbox_formats() do {\

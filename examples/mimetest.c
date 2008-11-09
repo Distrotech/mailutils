@@ -80,9 +80,9 @@ main (int argc, char **argv)
 
   /* Registration.  */
   mu_registrar_record (mu_imap_record);
-  mu_registrar_record (mu_mbox_record);
-  mu_registrar_record (mu_path_record);
   mu_registrar_record (mu_pop_record);
+  mu_registrar_record (mu_mbox_record);
+  mu_registrar_set_default_record (mu_mbox_record);
 
   MU_ASSERT (mu_mailbox_create_default (&mbox, mailbox_name));
   

@@ -5,12 +5,12 @@
 @comment *******************************************************************
 
 GNU Mailutils provides a broad set of utilities for handling
-electronic mail.  These utilities address the needs of both system
+electronic mail. These utilities address the needs of both system
 adminsitrators and users.
 
 All utilities are built around a single core subsistem and share many
-common aspects.  All of them are able to work with almost any existing
-mailbox formats.  They use a common configuration file syntax, and
+common aspects. All of them are able to work with almost any existing
+mailbox formats. They use a common configuration file syntax, and
 their configuration files are located in a single subdirectory.
 
 In this chapter we will discuss each utility, and give some advices on
@@ -59,7 +59,7 @@ syntax.
 @subsection Basic Notions About Command Line Options
 
   Many command line options have two forms, called short and long
-forms.  Both forms are absolutely identical in function; they are
+forms. Both forms are absolutely identical in function; they are
 interchangeable. 
 
   The @dfn{short} form is a traditional form for UNIX utilities.
@@ -68,45 +68,45 @@ single letter, e.g. @option{-c}.
 
   Short options which require arguments take their arguments
 immediately following the option letter, optionally separated by white
-space.  For example, you might write @option{-f name}, or @option{-fname}.
+space. For example, you might write @option{-f name}, or @option{-fname}.
 Here, @option{-f} is the option, and @option{name} is its argument.
 
   Short options which allow optional arguments take their arguments
 immediately following the option letter, @emph{without any intervening
-white space characters}.  This is important, so that the command line
+white space characters}. This is important, so that the command line
 parser might discern that the text following option is its argument,
-not the next command line parameter.  For example, if option @option{-d}
+not the next command line parameter. For example, if option @option{-d}
 took an optional argument, then @option{-dname} would mean the option
 with its argument (@option{name} in this case), and @option{-d name} would
 mean the @option{-d} option without any argument, followed by command
 line argument @option{name}.
 
   Short options' letters may be clumped together, but you are not
-required to do this.  When short options are clumped as a set, use one
+required to do this. When short options are clumped as a set, use one
 (single) dash for them all, e.g. @option{-cvl} is equivalent to @option{-c
--v -l}.  However, only options that do not take arguments may be
-clustered this way.  If an option takes an argument, it can only be
+-v -l}. However, only options that do not take arguments may be
+clustered this way. If an option takes an argument, it can only be
 the last option in such a cluster, otherwise it would be impossible to
-specify the argument for it.  Anyway, it is much more readable to
+specify the argument for it. Anyway, it is much more readable to
 specify such options separated.
 
   The @dfn{long} option names are probably easier to memorize than
-their short counterparts.  They consist of two dashes, followed by a
+their short counterparts. They consist of two dashes, followed by a
 multi-letter option name, which is usually selected to be a mnemonics
-for the operation it requests.  For example, @option{--verbose} is a
-long option that increases the verbosity of a utility.  In addition,
+for the operation it requests. For example, @option{--verbose} is a
+long option that increases the verbosity of a utility. In addition,
 long option names can abbreviated, provided that such an abbreviation
-is unique among the options understood by a given utility.  For
+is unique among the options understood by a given utility. For
 example, if a utility takes options @option{--foreground} and
 @option{--forward}, then the shortest possible abbreviations for these
-options are @option{--fore} and @option{--forw}, correspondingly.  If
+options are @option{--fore} and @option{--forw}, correspondingly. If
 you try to use @option{--for}, the utility will abort and inform you
 that the abbreviation you use is ambiguous, so it is not clear which
 of the options you intended to use.
 
   Long options which require arguments take those arguments following
-the option name.  There are two ways of specifying a mandatory
-argument.  It can be separated from the option name either by an equal
+the option name. There are two ways of specifying a mandatory
+argument. It can be separated from the option name either by an equal
 sign, or by any amount of white space characters. For example, if the
 @option{--file} option requires an argument, and you wish to supply
 @file{name} as its argument, then you can do so using any of the
@@ -127,8 +127,8 @@ equal sign.
   Display a short summary of the command line options understood by
 this utilities, along with a terse description of each.
 
-  The output of this option consists of three major parts.  First, a
-usage synopsis is displayed.  For example:
+  The output of this option consists of three major parts. First, a
+usage synopsis is displayed. For example:
 
 @smallexample
 @group
@@ -139,10 +139,10 @@ GNU sieve -- a mail filtering tool
 
   The first line tells that the @command{sieve} utility takes any
 number of options (brackets indicate optional part) and a single
-mandatory argument (@samp{SCRIPT}).  The second lines summarizes the
+mandatory argument (@samp{SCRIPT}). The second lines summarizes the
 purpose of the utility.
 
-  Following this header is an option summary.  It consists of two
+  Following this header is an option summary. It consists of two
 columns:
 
 @verbatim
@@ -153,10 +153,10 @@ columns:
 
 
 The leftmost column contains a comma-separated list of option
-names.  Short options are listed first.  The options are ordered
-alphabetically.  Arguments, if any, are specified after the last
+names. Short options are listed first. The options are ordered
+alphabetically. Arguments, if any, are specified after the last
 option name in the list, so that, e.g. the option @samp{-e} in the
-example above requires an argument: @samp{-e ADDRESS}.  Optional
+example above requires an argument: @samp{-e ADDRESS}. Optional
 arguments are enclosed in square brackets, as in @option{--debug}
 option in the example above.
 
@@ -168,9 +168,9 @@ notices and lists the email address for reporting bugs.
 
 @xopindex{usage, described}
 @item --usage
-Display a short summary of options.  In the contrast to the
+Display a short summary of options. In the contrast to the
 @option{--help} option, only option names and arguments
-are printed, without any textual description.  For example:
+are printed, without any textual description. For example:
 
 @smallexample
 @group
@@ -181,7 +181,7 @@ Usage: sieve [-cv?V] [--compile-only] [--debug[=FLAGS]]
 @end table
 
   The exact formatting of the output produced by these two options is
-configurable.  @xref{Usage Vars}, for a detailed descriptions of it.
+configurable. @xref{Usage Vars}, for a detailed descriptions of it.
 
 @table @option
 @xopindex{version, described}
@@ -191,15 +191,15 @@ Print program version and exit.
 
 @xopindex{show-config-options, described}
 @item --show-config-options
-Show configuration options used when compiling the package.  You can
+Show configuration options used when compiling the package. You can
 use this option to verify if support for a particular mailbox format
-or other functionality is compiled in the binary.  The output of this
+or other functionality is compiled in the binary. The output of this
 option is intended to be both machine-readable and understandable by
 humans.
 @end table
 
   The following command line options affect parsing of configuration
-files.  Here we provide a short summary, the next section will
+files. Here we provide a short summary, the next section will
 describe them in detail.
 
 @table @option
@@ -235,7 +235,7 @@ Do not load user configuration file.
 @UNREVISED
 
   Configuration files are the principal means of configuring any GNU
-Mailutil component.  When started, each utility tries to load its
+Mailutil component. When started, each utility tries to load its
 configuration from the following locations, in that order:
 
 @enumerate 1
@@ -267,7 +267,7 @@ command line option was given.
 
 A per user configuration file is located in the user home directory
 and is named @samp{.@var{prog}}, where @var{prog} is the name of the
-utility.  For example, the per-user configuration file for
+utility. For example, the per-user configuration file for
 @command{sieve} utility is named @file{.sieve}.
 
 @xopindex{no-user-config, described}
@@ -280,7 +280,7 @@ command line option was given.
 @end enumerate
 
 The order in which configuration files are loaded defines the
-precedence of their settings.  Thus, the settings from additional
+precedence of their settings. Thus, the settings from additional
 configuration file override those set in per-user configuration file.
 The latter, in their turn, take precedence over the settings from the
 site-wide configuration file.
@@ -290,7 +290,7 @@ Neither site-wide nor user configuration files are required to
 exist. If any or both of them are absent, GNU Mailutils does not
 complain, and the utility falls back to its default settings. To make
 configuration processing more verbose, use the
-@option{--config-verbose} command line option.  Here is an example of
+@option{--config-verbose} command line option. Here is an example of
 what you might get using this option:
 
 @smallexample
@@ -299,7 +299,7 @@ imap4d: Info: finished parsing file `/etc/mailutils.rc'
 @end smallexample
 
 Specifying this option more than once adds more verbosity to this
-output.  If this option is given two times, GNU Mailutils will print
+output. If this option is given two times, GNU Mailutils will print
 any configuration file statement it parsed, along with the exact
 location where it occurred (the exact meaning of each statement will
 be described later in this chapter):
@@ -321,17 +321,17 @@ imap4d: Info: parsing file `/etc/mailutils.d/imap4d'
 
 @xopindex{config-lint, described}
   To test configuration file without actually starting the utility,
-use the @option{--config-lint} command line option.  With this option,
+use the @option{--config-lint} command line option. With this option,
 any Mailutils utility exits after finishing parsing of the
-configuration files.  Any errors occurred during parsing are displayed
-on the standard error output.  This option can be combined with
+configuration files. Any errors occurred during parsing are displayed
+on the standard error output. This option can be combined with
 @option{--config-verbose} to obtain more detailed output.
 
 @xopindex{config-help, described}
   The @option{--config-help} command line option produces on the
 standard output the summary of all configuration statements understood
 by the utility, with detailed comments and in the form suitable for
-configuration file.  For example, the simplest way to write a
+configuration file. For example, the simplest way to write a
 configuration file for, say, @command{imap4d} is to run
 
 @smallexample
@@ -364,9 +364,9 @@ and to edit the @file{imap4d.rc} file with your editor of choice.
 @node conf-syntax
 @subsection Configuration File Syntax
 @UNREVISED
-  Configuration files consist of a series of statements.  Blanks,
+  Configuration files consist of a series of statements. Blanks,
 tabs, newlines and comments, collectively called @dfn{white space} are
-ignored except as they serve to separate tokens.  Some white space is
+ignored except as they serve to separate tokens. Some white space is
 required to separate otherwise adjacent keywords and values.
 
 @menu
@@ -381,8 +381,8 @@ required to separate otherwise adjacent keywords and values.
 @cindex comments, single-line
 @cindex single-line comments
   @dfn{Comments} may appear anywhere where white space may appear in the
-configuration file.  There are two kinds of comments:
-single-line and multi-line comments.  @dfn{Single-line} comments start
+configuration file. There are two kinds of comments:
+single-line and multi-line comments. @dfn{Single-line} comments start
 with @samp{#} or @samp{//} and continue to the end of the line:
 
 @smallexample
@@ -396,7 +396,7 @@ with @samp{#} or @samp{//} and continue to the end of the line:
 characters @samp{/*} (slash, star) and continue until the first
 occurrence of @samp{*/} (star, slash).
 
-  Multi-line comments cannot be nested.  However, single-line comments
+  Multi-line comments cannot be nested. However, single-line comments
 are allowed to appear within a multi-line one.
 
 @node Statements
@@ -406,7 +406,7 @@ are allowed to appear within a multi-line one.
 @cindex statement, simple
 @cindex simple statements
   A @dfn{simple statement}, consists of a keyword and value 
-separated by any amount of whitespace.  Simple statement is terminated
+separated by any amount of whitespace. Simple statement is terminated
 with a semicolon (@samp{;}), unless it contains a @dfn{here-document}
 (see below), in which case semicolon is optional.
 
@@ -445,7 +445,7 @@ following characters: @samp{_}, @samp{-}, @samp{.}, @samp{/},
 @cindex string, quoted
 @cindex escape sequence
   A quoted string is any sequence of characters enclosed in
-double-quotes (@samp{"}).  A backslash appearing within a quoted
+double-quotes (@samp{"}). A backslash appearing within a quoted
 string introduces an @dfn{escape sequence}, which is replaced
 with a single character according to the following rules:
 
@@ -465,7 +465,7 @@ with a single character according to the following rules:
 @end float
 
   In addition, the sequence @samp{\@var{newline}} is removed from
-the string.  This allows to split long strings over several
+the string. This allows to split long strings over several
 physical lines, e.g.:
 
 @smallexample
@@ -480,7 +480,7 @@ above, the backslash is ignored and a warning is issued.
 
   Two or more adjacent quoted strings are concatenated, which gives
 another way to split long strings over several lines to improve
-readability.  The following fragment produces the same result as the
+readability. The following fragment produces the same result as the
 example above:
 
 @smallexample
@@ -498,8 +498,8 @@ strings of text containing embedded newlines.
 
   The @code{<<@var{word}} construct instructs the parser to read all
 the lines that follow up to the line containing only @var{word}, with
-possible trailing blanks.  Any lines thus read are concatenated
-together into a single string.  For example:
+possible trailing blanks. Any lines thus read are concatenated
+together into a single string. For example:
 
 @smallexample
 @group
@@ -517,9 +517,9 @@ the text is read as is, without interpretation of escape sequences.
 
   If @var{word} is prefixed with @code{-} (a dash), then all leading
 tab characters are stripped from input lines and the line containing
-@var{word}.  Furthermore, if @code{-} is followed by a single space,
-all leading whitespace is stripped from them.  This allows to indent
-here-documents in a natural fashion.  For example:
+@var{word}. Furthermore, if @code{-} is followed by a single space,
+all leading whitespace is stripped from them. This allows to indent
+here-documents in a natural fashion. For example:
 
 @smallexample
 @group
@@ -531,8 +531,8 @@ TEXT
 @end smallexample
 
   It is important that the terminating delimiter be the only token on
-its line.  The only exception to this rule is allowed if a
-here-document appears as the last element of a statement.  In this
+its line. The only exception to this rule is allowed if a
+here-document appears as the last element of a statement. In this
 case a semicolon can be placed on the same line with its terminating 
 delimiter, as in: 
 
@@ -547,8 +547,8 @@ EOT;
 @anchor{list values}
 @item list
 @cindex list
-  A @dfn{list} is a comma-separated list of values.  Lists are
-enclosed in parentheses.  The following example shows a statement
+  A @dfn{list} is a comma-separated list of values. Lists are
+enclosed in parentheses. The following example shows a statement
 whose value is a list of strings:
 
 @smallexample
@@ -557,7 +557,7 @@ shared-namespace ("/home", "/var/spool/common");
 
   In any case where a list is appropriate, a single value is allowed
 without being a member of a list: it is equivalent to a list with a
-single member.  This means that, e.g. @samp{shared-namespace /home;} is
+single member. This means that, e.g. @samp{shared-namespace /home;} is
 equivalent to @samp{shared-namespace (/home);}.
 @end table
 
@@ -565,7 +565,7 @@ equivalent to @samp{shared-namespace (/home);}.
 @subsubsection Block Statements
 @cindex block statement, configuration file
   A @dfn{block statement} introduces a logical group of another
-statements.  It consists of a keyword, followed by an optional value,
+statements. It consists of a keyword, followed by an optional value,
 and a sequence of statements enclosed in curly braces, as shown in
 example below:
 
@@ -587,14 +587,14 @@ this is not required.
 @cindex include statement, configuration file
 @kwindex include
   An @dfn{include statement} is a special statement that causes
-inclusion of a named file.  This statement has the following syntax:
+inclusion of a named file. This statement has the following syntax:
 
 @smallexample
 include @var{file};
 @end smallexample
 
 If @var{file} names a regular file, the contents of this file is
-included in this point.  Otherwise, if @var{file} names a directory,
+included in this point. Otherwise, if @var{file} names a directory,
 Mailutils searches in that directory for a file whose name coincides
 with the name of utility being executed, and includes this file, if it
 exists.
@@ -607,7 +607,7 @@ include /etc/mailutils.d;
 @end smallexample
 
 This allows each particular utility to have its own configuration
-file.  Thus. @command{imap4d} will read
+file. Thus. @command{imap4d} will read
 @file{/etc/mailutils.d/imap4d}, etc.
 
 @node Logging Statement
@@ -625,7 +625,7 @@ logging @{
 
 @subheading Description
   The @code{logging} block statement provides configuration for
-programs that use @command{syslog} for diagnostics.  The default
+programs that use @command{syslog} for diagnostics. The default
 syslog facility is determined at compile time, it can be inspected
 using the following command:
 
@@ -635,14 +635,14 @@ $ mailutils-config --info log_facility
 
 @anchor{syslog facility}
 @deffn {Configuration} facility name
-Use syslog facility @var{name}.  Valid argument values are: @samp{user},
+Use syslog facility @var{name}. Valid argument values are: @samp{user},
 @samp{daemon}, @samp{auth}, @samp{authpriv}, @samp{mail}, @samp{cron},
 @samp{local0} through @samp{local7} (all names case-insensitive), or
 a facility number.
 @end deffn
 
 @deffn {Configuration} tag text
-Tag syslog messages with @var{text}.  By default, program name is used
+Tag syslog messages with @var{text}. By default, program name is used
 as syslog tag.
 @end deffn
 
@@ -660,17 +660,17 @@ debug @{
 @end smallexample
 
 @subheading Description
-The @code{debug} statement configures debugging output.  Although it
+The @code{debug} statement configures debugging output. Although it
 is mostly useful for Mailutils developers, it may be of interest for
-casual users as well.  In particular, you may use it to obtain more
+casual users as well. In particular, you may use it to obtain more
 information about Mailutils actions, which may help in configuring it,
 or in filling a bug report.
 
 Debugging output is controlled by a set of levels, each of which can be
-enabled or disabled independently of others.  A @dfn{debugging
+enabled or disabled independently of others. A @dfn{debugging
 level} consists of a module name, which defines a Mailutils module
 affected by this level, and a level number, which defines the
-verbosity of the debugging output.  Valid debugging levels are:
+verbosity of the debugging output. Valid debugging levels are:
 
 @float Table, debugging levels
 @caption{Debugging levels}
@@ -694,7 +694,7 @@ The most important debugging modules are:
 Debug access control lists. @FIXME-xref{Debugging ACLs}.
 
 @item config
-Debug configuration parser and/or lexical analizer.  The following
+Debug configuration parser and/or lexical analizer. The following
 levels are supported:
 
 @table @asis
@@ -709,9 +709,9 @@ Trace execution of the configuration parser.
 @end table
 
 Due to its specific nature, this debugging module cannot be enabled
-using @code{level} statement below.  The @option{--debug-level}
+using @code{level} statement below. The @option{--debug-level}
 command line option should be used instead
-(@FIXME-pxref{debug-level}).  Alternatively, you may use the following
+(@FIXME-pxref{debug-level}). Alternatively, you may use the following
 hook, provided to facilitate debugging of the configuration parser: a
 @dfn{pragmatic comment} in form:
 
@@ -723,29 +723,29 @@ is understood as a request to set debugging level of module
 @samp{config} to @var{level}.
 
 @item ip_server
-IP based servers, such as @command{imap4d} and @command{pop3d}.  This
-module supports @samp{trace0} and @samp{error} levels.  @xref{Server
+IP based servers, such as @command{imap4d} and @command{pop3d}. This
+module supports @samp{trace0} and @samp{error} levels. @xref{Server
 Settings}, for more information about servers.
 
 @item udp_server
-UDP based servers, such as @command{comsatd}.  This module supports
-@samp{trace0} and @samp{error} levels.  @xref{Server Settings}, for
+UDP based servers, such as @command{comsatd}. This module supports
+@samp{trace0} and @samp{error} levels. @xref{Server Settings}, for
 more information about servers. 
 
 @item mailbox
-Operations over mailboxes.  This module supports the following levels:
-@samp{error}, @samp{trace0}, @samp{trace1}, and @samp{proto}.  The
+Operations over mailboxes. This module supports the following levels:
+@samp{error}, @samp{trace0}, @samp{trace1}, and @samp{proto}. The
 latter is used by remote mailbox support libraries.
 
 @item sieve
-Debug Sieve parser and run-time evaluator.  Currently supported levels
+Debug Sieve parser and run-time evaluator. Currently supported levels
 are @samp{error}, @samp{trace1} and @samp{trace7}.
 @end table
 
 @deffn {Configuration} level spec
-This statement enables debugging levels given by @var{spec}.  The
+This statement enables debugging levels given by @var{spec}. The
 argument is an list of debugging specifications or a string with
-specifications delimited by semicolons.  The syntax of a specification
+specifications delimited by semicolons. The syntax of a specification
 is:
 
 @smallexample
@@ -754,23 +754,23 @@ is:
 
 @noindent
 where @var{module} is the name of a module, and @var{level} is the
-level to be set.  The level may be optionally prefixed with the
+level to be set. The level may be optionally prefixed with the
 following symbols:
 
 @table @samp
 @item !
-All levels except this one.  E.g. @samp{config=!trace7} means
+All levels except this one. E.g. @samp{config=!trace7} means
 set all debugging levels, except @samp{trace7} for the @samp{config}
 module.
 
 @item <
-All levels up to and including this.  The words @samp{up to} refer to
+All levels up to and including this. The words @samp{up to} refer to
 the position of levels in @ref{debugging levels} table, so that, e.g.
 @samp{<trace2} means levels @samp{error}, @samp{trace0}, @samp{trace1}
 and @samp{trace2}.
 @end table
 
-Both prefixes can be used together, in this order: @samp{!<}.  This
+Both prefixes can be used together, in this order: @samp{!<}. This
 means all levels except this one and ones listed before it in
 the table.
 
@@ -832,7 +832,7 @@ The mailbox location can be specified using @code{mail-spool} or
 
 @deffn {Configuration} mail-spool @var{path}
 The @code{mail-spool} statement specifies directory that holds user
-mailboxes.  Once this statement is given, the @command{libmailutils}
+mailboxes. Once this statement is given, the @command{libmailutils}
 library will assume that the mailbox of user @var{login} is kept in
 file @file{@var{path}/@var{login}}.
 
@@ -843,12 +843,12 @@ favor of @code{mailbox-pattern} statement.
 
 @deffn {Configuration} mailbox-pattern @var{pattern}
 The @code{mailbox-pattern} statement is a modern way of configuring
-mailbox locations.  It superceeds @code{mail-spool} statement.
+mailbox locations. It superceeds @code{mail-spool} statement.
 
 The @var{pattern} is valid @dfn{mailbox URL}, which 
 may contain references to @samp{user} macro-variable
-(@FIXME-pxref{macro-variables}).  This macro-variable will be expanded
-to the actual user name.  The full syntax for @var{pattern} is:
+(@FIXME-pxref{macro-variables}). This macro-variable will be expanded
+to the actual user name. The full syntax for @var{pattern} is:
 
 @smallexample
   [@var{type}://]@var{path}[;@var{args}]
@@ -859,8 +859,8 @@ where:
 
 @table @var
 @item type
-Specifies the mailbox type.  It must be one of mailbox types,
-supported by Mailutils.  @FIXME-xref{Mailbox URLs}.  By default,
+Specifies the mailbox type. It must be one of mailbox types,
+supported by Mailutils. @FIXME-xref{Mailbox URLs}. By default,
 @samp{local} is assumed. @FIXME{Verify this}.
 
 @item path
@@ -876,9 +876,9 @@ mailboxes, which allowes for faster access in case of very large
 number of users. 
 
 By default, all user mailboxes are stored in a single directory and
-are named after user login names.  To find the mailbox for a given
+are named after user login names. To find the mailbox for a given
 user, the system scans the directory for the corresponding
-file.  This usually implies linear search, so the time needed to
+file. This usually implies linear search, so the time needed to
 locate a mailbox is directly proportional to the ordinal number of
 the mailbox in the directory.
 
@@ -888,7 +888,7 @@ GNU Mailutils supports three types of indexed directories:
 @cindex direct indexing
 @cindex indexing, direct
 In direct indexed directory structure, @var{path} contains 26 subdirectories
-named with lower-case letters of Latin alphabet.  The location of the
+named with lower-case letters of Latin alphabet. The location of the
 user mailbox is determined using the following algorithm:
 
 @enumerate 1
@@ -902,7 +902,7 @@ For example, using this algorithm, the mailbox of the user
 @samp{smith} is stored in file @file{@var{path}/s/smith}.
 
 If each of single-letter subirectories contains the
-indexed directory structure, we have second level of indexing.  In
+indexed directory structure, we have second level of indexing. In
 this case the file name of @samp{smith}'s mailbox is
 @file{@var{path}/s/m/smith}.
 
@@ -910,7 +910,7 @@ this case the file name of @samp{smith}'s mailbox is
 @cindex indexing, reverse
 The @dfn{reverse} indexed structure uses the same principles, but the
 indexing letters are taken from the @emph{end} of the user name,
-instead of from the beginning.  For example, in the 2nd level reverse
+instead of from the beginning. For example, in the 2nd level reverse
 indexed structure, the @samp{smith}'s mailbix is located in
 @file{@var{path}/h/t/smith}.
 
@@ -918,9 +918,9 @@ indexed structure, the @samp{smith}'s mailbix is located in
 @cindex indexing, hashed
 Finally, the @dfn{hashed} structure consists of 256 subdirectories
 under @var{path}, named by 2-letter hex codes from @samp{00} to
-@samp{FF}.  Mailboxes are stored in these subdirectories.  The name
+@samp{FF}. Mailboxes are stored in these subdirectories. The name
 of the subdirectory is computed by hashing first @var{level} letters
-of the user name.  The hashing alorithm is:
+of the user name. The hashing alorithm is:
 
 @enumerate 1
 @item Take next letter from the user name
@@ -946,7 +946,7 @@ Specifies indexing level.
 
 @kwindex user
 @item user=@var{string}
-Specifies indexing key.  The only meaningful value, as of Mailutils
+Specifies indexing key. The only meaningful value, as of Mailutils
 version @value{VERSION} is @samp{user=$@{user@}}.
 @end table
 
@@ -989,23 +989,22 @@ separator, and the user name.
 
 The built-in mail spool directory name is determined at compile
 time, using @samp{_PATH_MAILDIR} define from the include file
-@file{paths.h}.  If this value is not defined, @file{/var/mail} or
+@file{paths.h}. If this value is not defined, @file{/var/mail} or
 @file{/usr/spool/mail} is used.
 @end enumerate
 
 @deffn {Configuration} mailbox-type @var{type}
-Specifies type of mailboxes.  By default, @samp{mbox} (UNIX mailbox)
-is assumed.
-
-Notice that, in Mailutils version @value{VERSION}, using this
-statement effectively disables mailbox type autodetection. @FIXME{More
-info on this.}
+@vrindex MU_DEFAULT_SCHEME
+Specifies type of mailboxes. By default, @samp{mbox} (UNIX mailbox)
+is assumed. This can be changed while configuring the package by
+setting @code{MU_DEFAULT_SCHEME} configuration variable. The default
+value can be verified by running @command{mailutils-config --info scheme}.
 @end deffn
 
 @deffn {Configuration} folder @var{dir}
 @cindex plus expansion
-Sets user mail folder directory.  Its value is using when expanding
-@samp{plus-notation}, i.e. such mailbox names as @file{+inbox}.  The
+Sets user mail folder directory. Its value is using when expanding
+@samp{plus-notation}, i.e. such mailbox names as @file{+inbox}. The
 @samp{+} sign is replaced by @var{dir}, followed by a directory
 separator (@samp{/}).
 
@@ -1039,26 +1038,26 @@ This block statement configures various parameters used when locking
 UNIX mailboxes in order to prevent simultaneous writes.
 
 It is important to note, that locking applies only to maildrops in
-UNIX mailbox format.  All other mailbox types do not require locking.
+UNIX mailbox format. All other mailbox types do not require locking.
 
 @deffn {Configuration} flags @var{string}
-Set locking flags.  Argument is a string consisting of one or more of
+Set locking flags. Argument is a string consisting of one or more of
 the following letters:
 
 @table @asis
 @item E
-Use an external program to manage locks.  The program is given by
+Use an external program to manage locks. The program is given by
 @code{external-locker} statement (see below).
 
 @item R
-If the locking attempt failed, retry it.  This is the default.  The
+If the locking attempt failed, retry it. This is the default. The
 number of retries, and time interval between the two successive
 attempts is given by @code{retry-count} and @code{retry-timeout}
 statements, correspondingly.
 
 @item T
 If a lock file exists, check its modification time and, if it is
-older than a predefined amount of time, remove the lock.  The amount
+older than a predefined amount of time, remove the lock. The amount
 of time is specified by @code{expire-timeout} statement.
 
 @item P
@@ -1067,22 +1066,22 @@ Store the PID of the locking process in a lock file.
 @end deffn
 
 @deffn {Configuration} retry-count @var{number}
-Number of locking attemtps.  The @samp{P} flag must be set for this to
+Number of locking attemtps. The @samp{P} flag must be set for this to
 take effect.
 @end deffn
 
 @deffn {Configuration} retry-timeout @var{seconds}
 Time interval, in seconds, between the two successive locking
-attempts.  The @samp{P} flag must be set for this to take effect.
+attempts. The @samp{P} flag must be set for this to take effect.
 @end deffn
 
 @deffn {Configuration} expire-timeout @var{seconds}
 Remove existing lock file, if it is created more than this number of
-seconds ago.  The @samp{T} flag must be set for this to take effect.
+seconds ago. The @samp{T} flag must be set for this to take effect.
 @end deffn
 
 @deffn {Configuration} external-locker @var{string}
-Set command line of an external locker program.  The @samp{E} flag
+Set command line of an external locker program. The @samp{E} flag
 must be set for this to take effect. 
 @end deffn
 
@@ -1111,16 +1110,16 @@ acl @{
 The ACL statement defines an @dfn{Access Control List}, a special
 structure that controls who can access the given Mailutils resource.
 
-The @code{acl} block contains a list of access controls.  Each control
+The @code{acl} block contains a list of access controls. Each control
 can be regarded as a function that returns a tree-state value:
-@samp{True}, @samp{False} and @samp{Don't know}.  When a
+@samp{True}, @samp{False} and @samp{Don't know}. When a
 remote party connects to the server, each of controls is tried in
-turn.  If a control returns @samp{False}, access is denied.  If it
-retruns @samp{True}, access is allowed.  If it returns @samp{Don't
-know}, then the next control is tried.  It is unclear whether to allow
-access if the last control in list returned @samp{Don't know}.  GNU
+turn. If a control returns @samp{False}, access is denied. If it
+retruns @samp{True}, access is allowed. If it returns @samp{Don't
+know}, then the next control is tried. It is unclear whether to allow
+access if the last control in list returned @samp{Don't know}. GNU
 Mailutils @value{VERSION} issues a warning message and allows access.
-This default may change in future versions.  Users are advised to
+This default may change in future versions. Users are advised to
 write their ACLs so that the last control returns a definitive answer
 (either @code{True} or @code{False}).
 
@@ -1149,17 +1148,17 @@ Deny connections from IP addresses matching this @var{cidr} block.
 
 @deffn {Configuration} ifexec [from] @var{cidr} @var{program}
 When a connection from the @var{cidr} block is requested, execute
-the program @var{program}.  If its exit code is @samp{0}, then allow
-connection.  Otherwise, deny it.
+the program @var{program}. If its exit code is @samp{0}, then allow
+connection. Otherwise, deny it.
 @end deffn
 
 The following two controls are provided for logging purposes and as a
-means of extensions.  They always return a @samp{Don't know} answer,
+means of extensions. They always return a @samp{Don't know} answer,
 and therefore should not be used at the end of an ACL:
 
 @deffn {Configuration} log [from] @var{cidr} [@var{string}]
-Log connections from addresses in this @var{cidr}.  The
-@code{MU_DIAG_INFO} channel is used.  If the logging goes to syslog,
+Log connections from addresses in this @var{cidr}. The
+@code{MU_DIAG_INFO} channel is used. If the logging goes to syslog,
 it is translated to the @code{LOG_INFO} priority.
 
 If @var{string} is not given, the format of the log entry depends on
@@ -1167,30 +1166,30 @@ the connection family, as described in the table below:
 
 @table @asis
 @item @{AF_INET @var{ip}:@var{port}@}
-For inet IPv4 connections.  The variables @var{ip} and @var{port} are
+For inet IPv4 connections. The variables @var{ip} and @var{port} are
 replaced by the remote IP address and port number, correspondingly.
 
 @item @{AF_UNIX@}
-For connections over UNIX sockets.  The socket name, if available, may
+For connections over UNIX sockets. The socket name, if available, may
 be printed before the closing curly brace.
 @end table
 
 If the @var{string} is specified, it undergoes macro expansion and the
-result of it is used as the log entry.  The following macro variables
+result of it is used as the log entry. The following macro variables
 are expanded:
 
 @table @code
 @item aclno
-Ordinal number of the control in the ACL.  Numbers begin from
+Ordinal number of the control in the ACL. Numbers begin from
 @samp{0}.
 
 @item family
-Connection family.  Mailutils version @value{VERSION} supports two
+Connection family. Mailutils version @value{VERSION} supports two
 families: @samp{AF_INET} and @samp{AF_UNIX}.
 
 @item address
 Remote IP address (for @samp{AF_INET}) or socket name (for
-@samp{AF_UNIX}).  Notice that most Unices return empty string instead
+@samp{AF_UNIX}). Notice that most Unices return empty string instead
 of the @samp{AF_UNIX} socket name, so do not rely on it.
 
 @item port
@@ -1214,7 +1213,7 @@ above in your configuration files.
 
 @deffn {Configuration} exec [from] @var{cidr} @var{program}
 If a connection from the @var{cidr} block is requested, execute
-the given @var{program}.  Do not wait for it to teminate, and ignore
+the given @var{program}. Do not wait for it to teminate, and ignore
 its exit code.
 @end deffn
 
@@ -1241,43 +1240,43 @@ tcp-wrappers @{
 
 @subsection Description
 The @code{tcp-wrappers} statements provides an alternative way to
-control accesses to the resources served by GNU Mailutils.  This
+control accesses to the resources served by GNU Mailutils. This
 statement is enabled if Mailutils is compiled with TCP wrappers
 library @command{libwrap}.
 
 Access control using TCP wrappers is based on two files, called
-@dfn{tables}, containing access rules.  There are two tables: the
+@dfn{tables}, containing access rules. There are two tables: the
 @dfn{allow table}, usually stored in file @file{/etc/hosts.allow}, and
-the @dfn{deny table}, kept in file @file{/etc/hosts.deny}.  The rules
-in each table begin with an identifier called @dfn{daemon name}.  Each
+the @dfn{deny table}, kept in file @file{/etc/hosts.deny}. The rules
+in each table begin with an identifier called @dfn{daemon name}. Each
 utility wishing to verify a connection, select the entries having
-its daemon name from the allow table.  A connection is allowed if it
-matches any of these entries.  Otherwise, the utility retrieves all
-entries with its daemon name from the deny table.  If any of these
-matches the connection, then it is refused.  Otherwise, if neither
+its daemon name from the allow table. A connection is allowed if it
+matches any of these entries. Otherwise, the utility retrieves all
+entries with its daemon name from the deny table. If any of these
+matches the connection, then it is refused. Otherwise, if neither
 table contains matching entries, the connection is allowed.
 
 Description of a TCP wrapper table format lies outside the scope of
-this document.  Please, see @ref{ACCESS CONTROL FILES,,ACCESS CONTROL FILES,
+this document. Please, see @ref{ACCESS CONTROL FILES,,ACCESS CONTROL FILES,
 hosts_access(5), hosts_access(5) man page}, for details.
 
 @deffn {Configuration} enable @var{bool}
-Enable access control using TCP wrappers.  It is on by default.
+Enable access control using TCP wrappers. It is on by default.
 @end deffn
 
 @deffn {Configuration} daemon @var{name}
-Set daemon name for TCP wrapper lookups.  By default, the name of the
-utility is used.  E.g. @command{imap4d} uses @samp{imap4d} as the
+Set daemon name for TCP wrapper lookups. By default, the name of the
+utility is used. E.g. @command{imap4d} uses @samp{imap4d} as the
 daemon name.
 @end deffn
 
 @deffn {Configuration} allow-table @var{file}
-Use @var{file} as allow table.  By default, @file{/etc/hosts.allow} is
+Use @var{file} as allow table. By default, @file{/etc/hosts.allow} is
 used. 
 @end deffn
   
 @deffn {Configuration} deny-table @var{file}
-Use @var{file} as negative table.  By default, @file{/etc/hosts.deny}
+Use @var{file} as negative table. By default, @file{/etc/hosts.deny}
 is used.
 @end deffn
 
@@ -1294,13 +1293,13 @@ Log denied accesses using syslog priority @var{prio}.
 @cindex server settings, configuration
 @cindex configuring servers
   GNU Mailutils offers several server applications: @command{pop3d},
-@command{imap4d}, @command{comsatd}, to name a few.  Being quite
+@command{imap4d}, @command{comsatd}, to name a few. Being quite
 different in their purpose, they are very similar in some aspects of
-their architecture.  First of all, they all support two operating
+their architecture. First of all, they all support two operating
 mode: a @dfn{daemon} mode, where a program disconnects from the controlling
 terminal and works in background, and an @dfn{inetd} mode, where it
 remains in foreground and communicates with the remote party via
-standard input and output streams.  Secondly, when operating as
+standard input and output streams. Secondly, when operating as
 daemons, they listen to a preconfigured set of IP addresses and
 ports, reacting to requests that arrive.
 
@@ -1336,17 +1335,17 @@ timeout @var{time};
 These statements configure general server-related issues.
 
 @deffn {Configuration} mode @var{string};
-Set operation mode of the server.  Two operation modes are supported:
+Set operation mode of the server. Two operation modes are supported:
 
 @anchor{server mode}
 @table @asis
 @cindex daemon, server mode
 @item daemon
 Run as a standalone daemon, disconnecting from the controlling
-terminal and continuing to run in the background.  In this case, it is
+terminal and continuing to run in the background. In this case, it is
 the server that controls what IP addresses and ports to listen on, who
 is allowed to connect and from where, how many clients are allowed to
-connect simultaneously, etc.  Most remaining configuration statements
+connect simultaneously, etc. Most remaining configuration statements
 are valid only in the daemon mode.
 
 This is the preferred mode of operation for GNU Mailutils servers.
@@ -1354,14 +1353,14 @@ This is the preferred mode of operation for GNU Mailutils servers.
 @cindex inetd, server mode
 @item inetd
 Operate as a subprocess of UNIX internet super-server program,
-@command{inetd}.  @xref{Internet super-server,,,inetd(8), inetd(8) man
+@command{inetd}. @xref{Internet super-server,,,inetd(8), inetd(8) man
 page}, for a detailed description of the operation of @command{inetd}
-and its configuration.  In this case it is @command{inetd} that
+and its configuration. In this case it is @command{inetd} that
 controls all major connectivity aspects, the Mailutils server itself
 communicates with it via standard input and output streams.
 
 For historical reasons, this mode is the default, if no @code{mode}
-statement is specified.  This will change in the future.
+statement is specified. This will change in the future.
 @end table
 @end deffn
 
@@ -1382,22 +1381,22 @@ The default is 20 clients.
 
 @deffn {Configuration} pidfile @var{file};
 After startup, store the PID of the main server process in
-@var{file}.  When the process terminates, the file is removed.  As of
+@var{file}. When the process terminates, the file is removed. As of
 version @value{VERSION}, GNU Mailutils servers make no further use of
-this file.  It is intended for use by automated startup scripts and
+this file. It is intended for use by automated startup scripts and
 controlling programs (@FIXME-pxref{mention pies}).
 @end deffn
 
 @deffn {Configuration} port @var{portspec};
 @*[daemon mode only]
-@*Set default port to listen to.  The @var{portspec} argument is either
+@*Set default port to listen to. The @var{portspec} argument is either
 a port number in decimal, or a symbolic service name, as listed in
 @file{/etc/services} (@pxref{Internet network services list,,,
 services(5), services(5) man page}).
 @end deffn
 
 @deffn {Configuration} timeout @var{time};
-Set maximum idle time out in seconds.  If a client does not send any
+Set maximum idle time out in seconds. If a client does not send any
 requests during @var{time} seconds, the child process terminates.
 @end deffn
 
@@ -1421,16 +1420,16 @@ server @var{ipaddr}[:@var{port}] @{
 
 @subsubheading Description
 The @code{server} block statement configures a single TCP or UDP
-server.  It takes effect only in daemon mode (@pxref{server mode}).
+server. It takes effect only in daemon mode (@pxref{server mode}).
 The argument to this statement specifies the IP address, and,
-optionally, the port, to listen on for requests.  The @var{ipaddr}
+optionally, the port, to listen on for requests. The @var{ipaddr}
 part is either an IPv4 address in dotted-quad form, or a symbolic host
-name which can be resolved to such an address via DNS.  Specifying
+name which can be resolved to such an address via DNS. Specifying
 @samp{0.0.0.0} as the @var{ipaddr} means listen on all available
-network interfaces.  The @var{port} argument is either a port number
+network interfaces. The @var{port} argument is either a port number
 in decimal, or a symbolic service name, as listed in
 @file{/etc/services} (@pxref{Internet network services
-list,,,services(5), services(5) man page}).  If @var{port} is omitted,
+list,,,services(5), services(5) man page}). If @var{port} is omitted,
 Mailutils uses the port set by @code{port} statement (@pxref{General
 Server Configuration, port}), or, in its absence, the default port
 number, which depends on a server being used (e.g. 110, for
@@ -1444,28 +1443,28 @@ Statements within the @code{server} block statement configure this
 particular server.
 
 @deffn {Configuration} single-process @var{bool};
-If set to true, this server will operate in single-process mode.  This
+If set to true, this server will operate in single-process mode. This
 mode is intended for debugging only, do not use it on production
 servers.
 @end deffn
 
 @deffn {Configuration} transcript @var{bool};
-Enable transcript of the client-server interaction.  This may generate
+Enable transcript of the client-server interaction. This may generate
 exessive amounts of logging, which in turn may slow down the operation
 considerably.
 
 Session transcripts are useful in fine-tuning your configurations and
-in debugging.  They should be turned off on most production servers.
+in debugging. They should be turned off on most production servers.
 @end deffn
 
 @deffn {Configuration} timeout @var{time};
-Set idle timeout for this server.  This overrides global timeout
+Set idle timeout for this server. This overrides global timeout
 settings (@pxref{General Server Configuration, timeout}).
 @end deffn
 
 @deffn {Configuration} acl
-This statement defines a per-server Access Control List.  Its syntax
-is as described in @ref{ACL Statement}.  Per-server ACLs complement,
+This statement defines a per-server Access Control List. Its syntax
+is as described in @ref{ACL Statement}. Per-server ACLs complement,
 but not override, global ACLs, i.e. if both global ACL and per-server
 ACL are used, the connection is allowed only if both of them allow it,
 and is denied if any one of them denies it.
@@ -1489,22 +1488,22 @@ auth @{
 @subheading Description
 Some mail utilities provide access to their services only after
 verifying that the user is actually the person he is claiming
-to be.  Such programs are, for example, @command{pop3d} and
-@command{imap4d}.  The process of the verification is broken
+to be. Such programs are, for example, @command{pop3d} and
+@command{imap4d}. The process of the verification is broken
 down into two stages: @dfn{authorization} and @dfn{authentication}.
 In @dfn{authorization} stage the program retrieves the information
-about a particular user.  In @dfn{authentication} stage, this
+about a particular user. In @dfn{authentication} stage, this
 information is compared against the user-supplied credentials. Only if
 both stages succeed is the user allowed to use the service.
 
-A set of @dfn{modules} is involved in performing each stage.  For
+A set of @dfn{modules} is involved in performing each stage. For
 example, the authorization stage can retrieve the user description
 from various sources: system database, sql database, virtual domain
-table, etc.  Each module is responsible for retrieving the description
-from a particular source of information.  The modules are arranged in
-a @dfn{module list}.  The modules from the list are invoked in turn,
+table, etc. Each module is responsible for retrieving the description
+from a particular source of information. The modules are arranged in
+a @dfn{module list}. The modules from the list are invoked in turn,
 until one of them succeeds or the list is exhausted. In the latter case 
-the authorization fails.  Otherwise, the data returned by the succeeded
+the authorization fails. Otherwise, the data returned by the succeeded
 module are used in authentication.
 
 Similarly, authentication may be performed in several ways. The
@@ -1520,12 +1519,12 @@ For example, the authorization list
 
 @noindent
 means that first the system user database (@file{/etc/password}) is
-searched for a description of a user in question.  If the search fails,
-the @acronym{sql} database is searched.  Finally, if it also fails, the
+searched for a description of a user in question. If the search fails,
+the @acronym{sql} database is searched. Finally, if it also fails, the
 search is performed in the virtual domain database.
 
 @emph{Note}, that some authentication and/or authorization modules may
-be disabled when configuring the package before compilation.  The names
+be disabled when configuring the package before compilation. The names
 of the disabled modules are nevertheless available for use in runtime
 configuration options, but they represent a ``fail-only'' functionality,
 e.g. if the package was compiled without @acronym{sql} support then
@@ -1535,7 +1534,7 @@ passing the execution on to the next module.
 The @code{auth} statement configures authentication and authorization.
 
 @deffn {Configuration} authorization @var{module-list}
-Define a sequence of modules to use for authorization.  Modules will
+Define a sequence of modules to use for authorization. Modules will
 be tried in the same order as listed in @var{module-list}.
 
 The modules available for use in authorization list are:
@@ -1546,13 +1545,22 @@ User credentials are retrieved from the system user database
 (@file{/etc/password}).
 @item sql
 User credentials are retrieved from a @acronym{SQL} database.
-Separate configuration statement, @code{sql}, is used to configure
+A separate configuration statement, @code{sql}, is used to configure
 it (@pxref{SQL Statement}).
 @item virtdomain
 User credentials are retrieved from a ``virtual domain'' user
-database.
+database. Virtual domains are configured using @code{virtdomain}
+statement (@pxref{Virtdomain Statement}).
+@item radius
+User credentials are retrieved using @acronym{RADIUS}. @xref{Radius
+Statement}, for a detailed description on how to configure it.
+@item ldap
+User credentials are retrieved from an @acronym{LDAP}
+database. @xref{LDAP Statement}, for an information on how to
+configure it.
 @end table
 
+@FIXME{This may be inaccurate:}
 Unless overridden by @code{authorization} statement,
 the default list of authorization modules is:
 
@@ -1562,14 +1570,14 @@ the default list of authorization modules is:
 @end deffn
 
 @deffn {Configuration} authentication @var{module-list}
-Define a sequence of modules to use for authentication.  Modules will
+Define a sequence of modules to use for authentication. Modules will
 be tried in the same order as listed in @var{module-list}.
 
 The following table lists modules available for use in @var{module-list}:
 
 @table @asis
 @item generic
-The generic authentication type.  User password is hashed and compared
+The generic authentication type. User password is hashed and compared
 against the hash value returned in authorization stage.
 @item system
 The hashed value of the user password is retrieved from
@@ -1582,8 +1590,14 @@ statement (@pxref{SQL Statement, getpass}).
 The user is authenticated via pluggable authentication module
 (@acronym{PAM}). The @acronym{PAM} service name to be used is
 configured in @code{pam} statement (@pxref{PAM Statement}).
+@item radius
+The user is authenticated on a remote @acronym{RADIUS}
+server. @xref{Radius Statement}.
+@item ldap
+The user is authenticated using @acronym{LDAP}. @xref{LDAP Statement}.
 @end table
 
+@FIXME{This list is inaccurate:}
 Unless overridden by @code{authentication} statement,
 the list of authentication modules is:
 
@@ -1604,11 +1618,11 @@ pam @{
 @end smallexample
 
 @subheading Description
-The @code{pam} statement configures @acronym{PAM} authentication.  It
+The @code{pam} statement configures @acronym{PAM} authentication. It
 contains a single sub-statement:
 
 @deffn {Configuration} service @var{text}
-Define service name to look for in @acronym{PAM} configuration.  By
+Define service name to look for in @acronym{PAM} configuration. By
 default, the base name of the Mailutils binary is used.
 @end deffn
 
@@ -1634,9 +1648,9 @@ user name can be present in several domains and represent different
 users.
 
 When authenticating to a server with virtual domain support enabled,
-users must supply their usernames with domain parts.  The server strips
+users must supply their usernames with domain parts. The server strips
 off the domain part and uses it as a name of UNIX-format password
-database file, located in the @dfn{domain password directory}.  The
+database file, located in the @dfn{domain password directory}. The
 latter is set using @code{passwd-dir} statement.
 
 @deffn {Configuration} passwd-dir @var{dir}
@@ -1649,7 +1663,7 @@ This file must be in UNIX passwd format (@pxref{password
 file,,,passwd(5), passwd(5) man page}), with encrypted passwords
 stored in it (as of GNU Mailutils version @value{VERSION}, there is no
 support for shadow files in virtual password directories, although
-this is planned for future versions).  Here is an example record from
+this is planned for future versions). Here is an example record from
 this file:
 
 @smallexample
@@ -1659,35 +1673,175 @@ smith:Wbld/G2Q2Le2w:1000:1000:Email Account:/var/mail/domain/smith:/dev/null
 Notice, that it must contain user names without domain parts.
 
 The @code{pw_dir} field (the 6th field) is used to determine the
-location of the maildrop for this user.  It is defined as
-@file{@var{pw_dir}/INBOX}.  In our example, the maildrop for user
+location of the maildrop for this user. It is defined as
+@file{@var{pw_dir}/INBOX}. In our example, the maildrop for user
 @samp{smith} will be located in file @file{/var/mail/domain/smith}.
 
 If user did not supply his domain name, or if no matching record was
 found in the password file, or if the file matching the domain name
 does not exist, then GNU Mailutils falls back to alternative method.
-First, it tries to determine the IP address of the remote party.  Then
+First, it tries to determine the IP address of the remote party. Then
 the domain name corresponding to that address is looked up in the DNS
-system.  Finally, this domain name is used as a name of the password
+system. Finally, this domain name is used as a name of the password
 file.
 
 @node Radius Statement
 @subsection Radius Statement
-@UNREVISED
 @kwindex radius
 @subheading Syntax
 @smallexample
 radius @{
+  # Set radius configuration directory.
+  directory @var{dir};
   # @r{Radius request for authorization.}
   auth @var{request};
   # @r{Radius request for getpwnam.}
   getpwnam @var{request};
   # Radius request for getpwuid.
   getpwuid @var{request};
-  # Set radius configuration directory.
-  directory @var{dir};
 @}
 @end smallexample
+@subheading Description
+The @code{radius} block statement configures @acronym{RADIUS
+authentication} and authorization.
+
+Mailutils uses GNU Radius library, which is configured via
+@file{raddb/client.conf} file (@pxref{client.conf, Client Configuration,
+Client Configuration, radius, GNU Radius Reference Manual}). Its exact
+location depends on configuration settings that were used while
+compiling GNU Radius. Usually it is @file{/usr/local/etc}, or
+@file{/etc}. This default can also be changed at run time using
+@code{directory} statement:
+
+@deffn {Configuration} directory @var{dir}
+Set full path name to the GNU Radius configuration directory.
+@end deffn
+
+It authorization is used, the Radius dictionary file must declare the
+the following attributes:
+
+@multitable @columnfractions 0.4 0.2 0.4
+@headitem Attribute    @tab Type    @tab Description
+@kwindex GNU-MU-User-Name
+@item GNU-MU-User-Name @tab string  @tab User login name
+@kwindex GNU-MU-UID
+@item GNU-MU-UID       @tab integer @tab UID
+@kwindex GNU-MU-GID
+@item GNU-MU-GID       @tab integer @tab GID
+@kwindex GNU-MU-GECOS
+@item GNU-MU-GECOS     @tab string  @tab GECOS
+@kwindex GNU-MU-Dir
+@item GNU-MU-Dir       @tab string  @tab Home directory
+@kwindex GNU-MU-Shell
+@item GNU-MU-Shell     @tab string  @tab User shell
+@kwindex GNU-MU-Mailbox
+@item GNU-MU-Mailbox   @tab string  @tab User mailbox
+@kwindex GNU-MU-Quota
+@item GNU-MU-Quota     @tab integer @tab Mail quota (in bytes)
+@end multitable
+
+@flindex mailutils.dict
+A dictionary file with appropriate definitions is included in the
+Mailutils distribution: @file{examples/config/mailutils.dict}. This
+file is not installed by default, you will have to manually copy it to
+the GNU Radius @file{raddb/dict} directory and include it in the main
+dictionary file @file{raddb/dictionary} by adding the following
+statement:
+
+@smallexample
+$INCLUDE dict/mailutils.dict
+@end smallexample
+
+Requests to use for authentication and authorization are
+configured using three statements: @code{auth}, @code{getpwnam} and
+@code{getpwuid}. Each statement takes a single argument: a string,
+containing a comma-separated list of assignements. An assignement
+specifies a particular @dfn{attribute-value pair} (@pxref{Overview,
+RADIUS Attributes,, radius, GNU Radius Reference Manual}) to send to
+the server. The left-hand side of the assignement is a symbolic attribute
+name, as defined in one of Radius dictionaries (@pxref{dictionary
+file, Dictionary of Attributes,, radius, GNU Radius Reference
+Manual}). The value is specified by the right-hand side of
+assignement. For example:
+
+@smallexample
+"Service-Type = Authenticate-Only, NAS-Identifier = \"mail\""
+@end smallexample
+
+An assignement may contain references to the following macro-variables
+(@FIXME-pxref{macro-variables}):
+
+@table @asis
+@item user
+The actual user name (for @code{auth} and @code{getpwnam}), or user ID
+(for @code{getpwuid}). For example:
+
+@smallexample
+User-Name = $@{user@}
+@end smallexample
+
+@item passwd
+User password. For examples:
+@smallexample
+User-Password = $@{passwd@}
+@end smallexample
+@end table
+
+@deffn {Configuration} auth @var{pairlist}
+Specifies the request to be sent to authenticate the user. For example:
+
+@smallexample
+auth "User-Name = $@{user@}, User-Password = $@{passwd@}";
+@end smallexample
+
+The user is authenticated only if this request returns
+@code{Access-Accept} (@pxref{Authentication Requests, Access-Accept,,
+radius, GNU Radius Reference Manual}). Any returned attribute-value
+pairs are ignored. 
+@end deffn
+
+@deffn {Configuration} getpwnam @var{pairlist}
+Specifies the request that returns user information for the
+given user name. For example:
+
+@smallexample
+getpwnam "User-Name = $@{user@}, State = getpwnam, "
+         "Service-Type = Authenticate-Only";
+@end smallexample
+
+If the requested user account exists, the Radius server must return
+@code{Access-Accept} packet with the following attributes:
+@code{GNU-MU-User-Name}, @code{GNU-MU-UID}, @code{GNU-MU-GID},
+@code{GNU-MU-GECOS}, @code{GNU-MU-Dir}, @code{GNU-MU-Shell}.
+
+The attributes @code{GNU-MU-Mailbox} and @code{GNU-MU-Quota} are
+optional.
+
+If @code{GNU-MU-Mailbox} is present, it must contain a
+valid mailbox @acronym{URL} (@FIXME-pxref{urls}). If
+@code{GNU-MU-Mailbox} is not present, Mailutils constructs the
+mailbox name using the settings from the @code{mailbox} configuration
+statement (@pxref{Mailbox Statement}), or built-in defaults, if it is
+not present.
+
+If @code{GNU-MU-Quota} is present, it specifies the maximum mailbox
+size for this user, in bytes. In the absence of this attribute, 
+mailbox size is unlimited.
+@end deffn
+
+@deffn {Configuration} getpwuid @var{pairlist}
+Specifies the request that returns user information for the
+given user ID. In @var{pairlist}, the @samp{user} macro-variable is
+expanded to the numeric value of ID. For example:
+
+@smallexample
+getpwuid "User-Name = $@{user@}, State = getpwuid, "
+         "Service-Type = Authenticate-Only";
+@end smallexample
+
+The reply to @code{getpwuid} request is the same as to @code{getpwnam}
+request (see above).
+@end deffn
 
 @node SQL Statement
 @subsection SQL Statement
@@ -1698,12 +1852,6 @@ radius @{
 sql @{
   # @r{Set SQL interface to use.}
   interface @samp{mysql|odbc|postgres};
-  # @r{SQL query to use for getpwnam requests.}
-  getpwnam @var{query};
-  # @r{SQL query to use for getpwuid requests.}
-  getpwuid @var{query};
-  # @r{SQL query returning the user's password.}
-  getpass @var{query};
   # @r{SQL server host name.}
   host @var{arg};
   # @r{SQL user name.}
@@ -1718,8 +1866,68 @@ sql @{
   password-type @samp{plain | hash | scrambled};
   # @r{Set a field-map for parsing SQL replies.}
   field-map @var{map};
+  # @r{SQL query returning the user's password.}
+  getpass @var{query};
+  # @r{SQL query to use for getpwnam requests.}
+  getpwnam @var{query};
+  # @r{SQL query to use for getpwuid requests.}
+  getpwuid @var{query};
 @}
 @end smallexample
+@subsection Description
+
+The @code{sql} statement configures access credentials to
+@acronym{SQL} database and the queries for authentication and
+authorization.
+
+GNU Mailutils supports three types of @acronym{SQL} interfaces:
+MySQL, PostgreSQL and ODBC. The latter is a standard API for using
+database management systems, which can be used to communicate with a
+wide variety of DBMS.
+
+@deffn {Configuration} interface @var{type}
+Configures type of DBMS interface. Allowed values for @var{type} are:
+
+@table @asis
+@item mysql
+Interface with a MySQL server (@uref{http://www.mysql.org}).
+
+@item odbc
+Use ODBC interface. See @uref{http://www.unixodbc.org}, for a detailed
+description of ODBC configuration.
+
+@item postgres
+Interface with a PostgreSQL server (@uref{http://www.postgres.org}).
+@end table
+@end deffn
+
+The database and database access credentials are configured using the
+following statements:
+
+@deffn {Configuration} host @var{arg}
+The host running the @acronym{SQL} server. The value can be either a
+host name or an IP address in dotted-quad notation, in which case an
+@acronym{INET} connection is used, or a full pathname to a file, in
+which case a connection to @acronym{UNIX} socket is used.
+@end deffn
+
+@deffn {Configuration} port @var{arg}
+TCP port the server is listening on (for @acronym{INET}
+connections). This parameter is optional. Its default value depends on
+the type of database being used.
+@end deffn
+
+@deffn {Configuration} db @var{arg};
+Name of the database.
+@end deffn
+
+@deffn {Configuration} user @var{arg}
+@acronym{SQL} user name.
+@end deffn
+  
+@deffn {Configuration} passwd @var{arg};
+Password to access the database.
+@end deffn
 
 @node LDAP Statement
 @subsection LDAP Statement
@@ -2577,7 +2785,7 @@ contain in order to be piped through pager command specified
 by environment variable @code{PAGER}. If @code{crt} is set to a numeric
 value, this value is taken as the minimum number of lines. Otherwise,
 if @code{crt} is set without a value then the height of the terminal
- screen is used to compute the threshold.  The number of lines on
+ screen is used to compute the threshold. The number of lines on
 screen is controlled by @code{screen} variable.
 @item Print [@var{msglist}]
 @itemx P [@var{msglist}]
@@ -2602,7 +2810,7 @@ Content-Type: message/delivery-status
 @end smallexample
 @item top [@var{msglist}]
 @itemx to [@var{msglist}]
-Prints the top few lines of each message in @var{msglist}.  The number
+Prints the top few lines of each message in @var{msglist}. The number
 of lines printed is controlled by the variable @code{toplines} and
 defaults to five.
 @item pipe [@var{msglist}] [@var{shell-command}]
@@ -2766,13 +2974,13 @@ With more than one argument, creates a new alias or changes an old one.
 @item unalias [@var{alias}...]
 @itemx una [@var{alias}...]
 Takes a list of names defined by alias commands and discards the
-remembered groups of users.  The alias names no longer have any
+remembered groups of users. The alias names no longer have any
 significance.
 @item alternates @var{name}...
 @itemx alt @var{name}...
 The alternates command is useful if you have accounts on several
 machines. It can be used to inform mail that the listed addresses are
-really you.  When you reply to messages, mail will not send a copy of
+really you. When you reply to messages, mail will not send a copy of
 the message to any of the addresses listed on the alternates list.
 If the alternates command is given with no argument, the current set of
 alternate names is displayed.
@@ -3094,7 +3302,7 @@ set
 @node Mail Variables
 @subsection How to Alter the Behavior of @command{mail}
 
-Following variables control the behavior of @sc{gnu} @command{mail}:
+Following variables control the behavior of GNU @command{mail}:
 
 @table @code
 @item appenddeadletter
@@ -3201,7 +3409,7 @@ of the message must contain in order to be piped through pager command
 specified by environment variable @code{PAGER}. If @code{crt} is set
 to a numeric value, this value is taken as the threshold. Otherwise,
 if @code{crt} is set without a value, then the height of the terminal
-screen is used to compute the threshold.  The number of lines on
+screen is used to compute the threshold. The number of lines on
 screen is controlled by @code{screen} variable.
 
 @item decode-fallback
@@ -3404,7 +3612,7 @@ type @samp{image/jpeg}.
 @vrindex metoo, mail variable
 
 Usually, when an alias is expanded that contains the sender, the sender
-is removed from the expansion.  Setting this option causes the sender to
+is removed from the expansion. Setting this option causes the sender to
 be included in the group.
 
 @item mode
@@ -3420,14 +3628,14 @@ Setting this variable does not affect the operation mode of the program.
 @vrindex nullbody, mail variable
 
 Controls whether @command{mail} accepts messages with an empty
-body.  The default value, @code{true}, means such messages are sent,
+body. The default value, @code{true}, means such messages are sent,
 and a warning (traditionally saying @samp{Null message body; hope
-that's ok}) is displayed.  The text of the warning can be set using
+that's ok}) is displayed. The text of the warning can be set using
 @code{nullbodymsg} variable (see below).
 
 If @code{nullbody} is unset, @command{mail} will silently ignore such
-messages.  This can be useful in @file{crontab} files, to avoid sending
-mails when nothing important happens.  For example, the @file{crontab}
+messages. This can be useful in @file{crontab} files, to avoid sending
+mails when nothing important happens. For example, the @file{crontab}
 entry below will send mail only if the utility @command{some-prog}
 outputs something on its standard output or error:
 
@@ -3444,7 +3652,7 @@ outputs something on its standard output or error:
 @vrindex nullbodymsg
 
 Keeps the text of the warning, displayed by @command{mail} before
-sending an empty message.  When available, the translation of
+sending an empty message. When available, the translation of
 this text, in accordance with the current locale, is displayed.
 
 Unsetting this variable disables the warning.
@@ -3849,23 +4057,23 @@ Enable (default) or disable TLS support
 @pindex readmsg
 
 The program, readmsg, extracts with the selection argument messages from
-a mailbox.  Selection can be specify by:
+a mailbox. Selection can be specify by:
 
 @enumerate
 @item A lone ``*'' means select all messages in the mailbox.
 
 @item
-A list of message numbers may be specified.  Values
+A list of message numbers may be specified. Values
 of  ``0''  and ``$'' in the list both mean the last
-message in the mailbox.  For example:
+message in the mailbox. For example:
 @smallexample
 readmsg 1 3 0
 @end smallexample
 extracts  three messages from the folder:  the first, the third, and the last.
 
 @item
-Finally, the selection may be some text to match.  This  will  select  a  mail
-message which exactly matches the specified text.  For example,
+Finally, the selection may be some text to match. This  will  select  a  mail
+message which exactly matches the specified text. For example,
 @smallexample
 readmsg staff meeting
 @end smallexample
@@ -3916,7 +4124,7 @@ Default is --weedlist=''From Subject Date To CC Apparently-''
 @pindex sieve
 
 Sieve is a language for filtering e-mail messages at time of final
-delivery, described in RFC 3028. @sc{gnu} Mailutils provides two
+delivery, described in RFC 3028. GNU Mailutils provides two
 implementations of this language: a stand-alone @dfn{sieve interpreter}
 and a @dfn{sieve translator and filter}. The following sections describe these
 utilities in detail.
@@ -3930,10 +4138,10 @@ utilities in detail.
 @subsection A Sieve Interpreter
 
 Sieve interpreter @command{sieve} allows to apply Sieve scripts to an
-arbitrary number of mailboxes. @sc{gnu} @command{sieve} implements a superset
+arbitrary number of mailboxes. GNU @command{sieve} implements a superset
 of the Sieve language as described in RFC 3028. @xref{Sieve Language},
 for a description of the Sieve language. @xref{GNU Extensions}, for a
-discussion of differences between the @sc{gnu} implementation of Sieve and
+discussion of differences between the GNU implementation of Sieve and
 its standard.
 
 @menu
@@ -4047,7 +4255,7 @@ for debugging the code generator.
 
 @emph{Note}, that there should be no whitespace
 between the short variant of the option (@option{-d}), and its
-argument.  Similarly, when using long option (@option{--debug}),
+argument. Similarly, when using long option (@option{--debug}),
 its argument must be preceded by equal sign.
 
 If the argument to @option{--debug} is omitted, it defaults to
@@ -4374,7 +4582,7 @@ Display usage summary and exit.
 
 @item -L
 @itemx --license
-Display @sc{gnu} General Public License and exit.
+Display GNU General Public License and exit.
 
 @item -m @var{path}
 @itemx --mail-spool @var{path}
@@ -4558,7 +4766,7 @@ not delivered and the sender receives following notification message:
 message. In this case @command{mail.local} does deliver the message.
 @end enumerate
 
-Version @value{VERSION} of @sc{gnu} mailutils is able to retrieve 
+Version @value{VERSION} of GNU mailutils is able to retrieve 
 mailbox quotas from a @sc{dbm} or @sc{sql} database.
 
 @menu
@@ -4950,7 +5158,7 @@ days, for retrieved messages on the server.
 downloaded by @code{RETR} or @code{TOP} command, it is marked with
 @samp{X-Expire-Timestamp: @var{n}} header, where @var{n} is current
 value of UNIX timestamp. The exact expiration mechanism 
-depends on you.  Mailutils allows you two options:
+depends on you. Mailutils allows you two options:
 
 @enumerate
 @item
@@ -5084,7 +5292,7 @@ Sets the name of the login timestamp database, used with
 @item -t @var{number}
 @itemx --timeout @var{number}
 Set idle timeout to given @var{number} of seconds. Default is 600 seconds (10
-minutes).  The daemon breaks the connection if it receives no commands
+minutes). The daemon breaks the connection if it receives no commands
 from the client within that number of seconds.
 
 @item --tls-required
@@ -5104,7 +5312,7 @@ Remove all deletion marks from the messages after opening the mailbox.
 @section IMAP4 Daemon
 @pindex imap4d
 
-@sc{gnu} @command{imap4d} is a daemon implementing @sc{imap4} rev1 protocol
+GNU @command{imap4d} is a daemon implementing @sc{imap4} rev1 protocol
 for accessing and handling electronic mail messages on a server. It can
 be run either as a standalone program or from @file{inetd.conf} file.
 
@@ -5118,7 +5326,7 @@ be run either as a standalone program or from @file{inetd.conf} file.
 @cindex namespace
 @cindex IMAP4 namespace
 
-@sc{gnu} @command{imap4d} supports a notion of @dfn{namespaces} defined
+GNU @command{imap4d} supports a notion of @dfn{namespaces} defined
 in RFC 2342. A namespace is a set of directories upon which the user
 has certain permissions. It should be understood that these permissions
 apply only if the underlying filesystem allows them.
@@ -5222,7 +5430,7 @@ namespace. @var{pathlist} is a list of directory names separated by colons.
 @item -t @var{number}
 @itemx --timeout @var{number}
 Set idle timeout to given @var{number} of seconds. Default is 1800 seconds (30
-minutes).  The daemon breaks the connection if it receives no commands
+minutes). The daemon breaks the connection if it receives no commands
 from the client within that number of seconds.
 @item -v
 @itemx --version
@@ -5664,7 +5872,7 @@ The flags and their meanings are:
 The Mailutils uses @sc{pam} libraries.
 
 @item HAVE_LIBLTDL
-The @sc{gnu} wrapper library @file{libltdl} is present and is used
+The GNU wrapper library @file{libltdl} is present and is used
 by Mailutils. @xref{Using libltdl,,,libtool,Using libltdl}, for
 more information on @file{libltdl} library.
 

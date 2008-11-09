@@ -11,7 +11,7 @@ properly.
 
 @subsubheading POP3
 The POP URL scheme contains a POP server, optional port number
-and the authentication mechanism.  The general form is
+and the authentication mechanism. The general form is
 
 @smallexample
 @group
@@ -91,7 +91,7 @@ If @emph{:port} is omitted the default value is 993.
 
 @subsubheading File
 
-Local folder should be handle by this URL.  It is preferable to let
+Local folder should be handle by this URL. It is preferable to let
 the mailbox recognize the type of mailbox and take the appropriate
 action.
 

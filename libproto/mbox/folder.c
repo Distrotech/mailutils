@@ -46,6 +46,57 @@
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 
+static int
+_mbox_is_scheme (mu_record_t record, mu_url_t url, int flags)
+{
+  int rc = 0;
+  
+  if (mu_url_is_scheme (url, record->scheme))
+    return MU_FOLDER_ATTRIBUTE_FILE & flags;
+  
+  if (mu_scheme_autodetect_p (url))
+    {
+      struct stat st;
+      const char *path;
+
+      mu_url_sget_path (url, &path);
+      if (stat (path, &st) < 0)
+	return 0;
+
+      if (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode))
+	{
+	  if (st.st_size == 0)
+	    {
+	      rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	    }
+	  else if (flags & MU_FOLDER_ATTRIBUTE_FILE)
+	    {
+#if 0
+	      /* This effectively sieves out all non-mailbox files,
+		 but it makes mu_folder_enumerate crawl, which is
+		 intolerable for imap4d LIST command. */
+	      int fd = open (path, O_RDONLY);
+	      if (fd != -1)
+		{
+		  char buf[5];
+		  if (read (fd, buf, 5) == 5)
+		    if (memcmp (buf, "From ", 5) == 0)
+		      rc |= MU_FOLDER_ATTRIBUTE_FILE;
+		  close (fd);
+		}
+#else
+	      rc |= MU_FOLDER_ATTRIBUTE_FILE;
+#endif
+	    }
+	}
+	  
+      if ((flags & MU_FOLDER_ATTRIBUTE_DIRECTORY)
+	  && S_ISDIR (st.st_mode))
+	rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
+    }
+  return rc;
+}
+
 static struct _mu_record _mbox_record =
 {
   MU_MBOX_PRIO,
@@ -55,85 +106,13 @@ static struct _mu_record _mbox_record =
   NULL, /* Mailer init.  */
   _folder_mbox_init, /* Folder init.  */
   NULL, /* No need for an back pointer.  */
-  NULL, /* _is_scheme method.  */
+  _mbox_is_scheme, /* _is_scheme method.  */
   NULL, /* _get_url method.  */
   NULL, /* _get_mailbox method.  */
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
 mu_record_t mu_mbox_record = &_mbox_record;
-
-static int
-_path_is_scheme (mu_record_t record, mu_url_t url, int flags)
-{
-  int rc = 0;
-  
-  if (url && record->scheme)
-    {
-      if (mu_scheme_autodetect_p (url))
-	{
-	  struct stat st;
-	  const char *path;
-
-	  mu_url_sget_path (url, &path);
-	  if (stat (path, &st) < 0)
-	    {
-	      if (errno == ENOENT)
-		rc |= MU_FOLDER_ATTRIBUTE_FILE;
-	      return rc;
-	    }
-
-	  if (S_ISREG (st.st_mode) || S_ISCHR (st.st_mode))
-	    {
-	      if (st.st_size == 0)
-		{
-		  rc |= MU_FOLDER_ATTRIBUTE_FILE;
-		}
-	      else if (flags & MU_FOLDER_ATTRIBUTE_FILE)
-		{
-#if 0
-		  /* This effectively sieves out all non-mailbox files,
-		     but it makes mu_folder_enumerate crawl, which is
-		     intolerable for imap4d LIST command. */
-		  int fd = open (path, O_RDONLY);
-		  if (fd != -1)
-		    {
-		      char buf[5];
-		      if (read (fd, buf, 5) == 5)
-			if (memcmp (buf, "From ", 5) == 0)
-			  rc |= MU_FOLDER_ATTRIBUTE_FILE;
-		      close (fd);
-		    }
-#else
-		  rc |= MU_FOLDER_ATTRIBUTE_FILE;
-#endif
-		}
-	    }
-	  
-	  if ((flags & MU_FOLDER_ATTRIBUTE_DIRECTORY)
-	      && S_ISDIR (st.st_mode))
-	    rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
-	}
-    }
-  return rc;
-}
-
-static struct _mu_record _path_record =
-{
-  MU_PATH_PRIO,
-  MU_PATH_SCHEME,
-  NULL,     /* URL init.  */
-  _mailbox_mbox_init, /* Mailbox init.  */
-  NULL,               /* Mailer init.  */
-  _folder_mbox_init,  /* Folder init.  */
-  NULL, /* No need for an owner.  */
-  _path_is_scheme, /* is_scheme method.  */
-  NULL, /* get_url method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL  /* get_folder method.  */
-};
-mu_record_t mu_path_record = &_path_record;
 
 /* lsub/subscribe/unsubscribe are not needed.  */
 static void folder_mbox_destroy    (mu_folder_t);

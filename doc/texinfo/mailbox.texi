@@ -69,7 +69,7 @@ Destroys and releases resources held by @var{mbox}.
 
 @deftypefun  int mu_mailbox_open (mu_mailbox_t @var{mbox}, int @var{flag})
 A connection is open, if no stream was provided, a stream
-is created based on the @var{mbox} type.  The @var{flag} can be OR'ed.
+is created based on the @var{mbox} type. The @var{flag} can be OR'ed.
 See @code{stream_create()} for @var{flag}'s description.
 
 The return value is @code{0} on success and a code number on error conditions:

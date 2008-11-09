@@ -5,10 +5,10 @@
 
 @c ======================================================================
 @c This document has three levels of rendition: PUBLISH, DISTRIB or PROOF,
-@c as decided by @set symbols.  The PUBLISH rendition does not show
-@c notes or marks asking for revision.  Most users will prefer having more
+@c as decided by @set symbols. The PUBLISH rendition does not show
+@c notes or marks asking for revision. Most users will prefer having more
 @c information, even if this information is not fully revised for adequacy,
-@c so DISTRIB is the default for distributions.  The PROOF rendition
+@c so DISTRIB is the default for distributions. The PROOF rendition
 @c show all marks to the point of ugliness, but is nevertheless useful to
 @c those working on the manual itself.
 @c ======================================================================

@@ -55,11 +55,11 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
-and with the Back-Cover Texts as in (a) below.  A copy of the license
+and with the Back-Cover Texts as in (a) below. A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
+this GNU Manual, like GNU software. Copies published by the Free
 Software Foundation raise funds for GNU development.''
 @end copying
 
@@ -97,6 +97,7 @@ This edition of the @cite{GNU Mailutils Manual}, last updated on
 Appendices
 
 * References::              References.
+* Date Input Formats::
 * Usage Vars::              Configuring Help Summary
 * GNU FDL::                 This manual is under the GNU Free
                             Documentation License.
@@ -388,6 +389,29 @@ Preprocessor
 * #include::        Include the contents of a file.
 * #searchpath::     Modify the current search path.
 
+Tests
+
+* Built-in Tests::
+* External Tests::
+
+Actions
+
+* Built-in Actions::
+* External Actions::
+
+Date Input Formats
+
+* General date syntax::            Common rules.
+* Calendar date items::            19 Dec 1994.
+* Time of day items::              9:20pm.
+* Time zone items::                @sc{est}, @sc{pdt}, @sc{gmt}.
+* Day of week items::              Monday and others.
+* Relative items in date strings:: next tuesday, 2 years ago.
+* Pure numbers in date strings::   19931219, 1440.
+* Seconds since the Epoch::        @@1078100502.
+* Specifying time zone rules::     TZ="America/New_York", TZ="UTC0".
+* Authors of get_date::            Bellovin, Eggert, Salz, Berets, et al.
+
 @end detailmenu
 @end menu
 
@@ -395,10 +419,10 @@ Preprocessor
 @chapter Introduction
 
 GNU Mailutils contains a series of useful mail clients, servers,
-and libraries.  These are the primary mail utilities of the GNU system.
+and libraries. These are the primary mail utilities of the GNU system.
 Specifically, this package contains a POP3 server, an IMAP4 server,
-and a Sieve mail filter.  It also provides a POSIX `mailx' client,
-and a collection of other tools.  All utilities can manipulate the
+and a Sieve mail filter. It also provides a POSIX `mailx' client,
+and a collection of other tools. All utilities can manipulate the
 mailboxes of various formats, both local, stored on the hard disk,
 and remote, accessed via network protocols, such as POP3 or IMAP4.
 
@@ -406,7 +430,7 @@ The GNU Mailutils libraries supply a rich set of primitives for
 handling electronic mail in programs written in C, C++ or Scheme.
 
 This software is part of the GNU Project and belongs to the Free
-Software Foundation.  All libraries are licensed using the GNU LGPL.
+Software Foundation. All libraries are licensed using the GNU LGPL.
 The documentation is licensed under the GNU FDL, and everything
 else is licensed using the GNU GPL.
 
@@ -420,17 +444,17 @@ else is licensed using the GNU GPL.
 @UNREVISED
 
 @FIXME{This is more a plan on how the document should be structured,
-than a description of its actual structure.  However it is:}
+than a description of its actual structure. However it is:}
 
   This book addresses a wide audience of both system administrators
 and users that aim to use Mailutils programs, and programmers who wish
-to use Mailutils libraries in their programs.  Given this audience,
+to use Mailutils libraries in their programs. Given this audience,
 the book is divided in three major parts.
 
   The first part provides a detailed description of each Mailutils
-utility, and advices on how to use them in various situations.  This
+utility, and advices on how to use them in various situations. This
 part is intended for users and system administrators who are using
-Mailutils programs.  If you are not interested in programming using
+Mailutils programs. If you are not interested in programming using
 Mailutils, this is the only part you need to read.
 
   Subsequent parts address programmers.
@@ -447,9 +471,9 @@ reference.
 @UNREVISED
 
 This package started off to try and handle large mailbox files more
-gracefully then current POP3 servers did.  While it handles this task,
+gracefully then current POP3 servers did. While it handles this task,
 it also allows you to support a variety of different mailbox formats
-without any real effort on your part.  Also, if a new format is added
+without any real effort on your part. Also, if a new format is added
 at a later date, your program will support that new format
 automatically as soon as it is compiled against the new library.
 
@@ -672,6 +696,10 @@ Notifications}
 @cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
 @end itemize
 @end itemize
+
+@node Date Input Formats
+@appendix Date Input Formats
+@include getdate.texi
 
 @include usage.texi
 

@@ -1,8 +1,8 @@
 @c snarfed from "mu_mime.c":95
 @deffn {Scheme procedure} mu-mime-create flags mesg
-Creates a new @acronym{MIME} object.  Both arguments are optional.
+Creates a new @acronym{MIME} object. Both arguments are optional.
 @var{flags} specifies the type of the object to create (@samp{0} is a reasonable
-value).  @var{mesg} gives the message to create the @acronym{MIME} object from.
+value). @var{mesg} gives the message to create the @acronym{MIME} object from.
 @end deffn
 
 @c snarfed from "mu_mime.c":131

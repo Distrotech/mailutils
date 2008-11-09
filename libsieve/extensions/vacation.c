@@ -23,7 +23,7 @@
 		    [:reply_regex <expr: string>]
 		    [:reply_prefix <prefix: string>]
 		    <reply text: string>
- */
+*/
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>

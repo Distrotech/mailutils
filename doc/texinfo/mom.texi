@@ -14,7 +14,7 @@ but by using structures and pointers to function, it is possible to provide
 a simple framework.
 
 Every Mailutils object has a corresponding C structure holding its interface
-and specific data.  For example mu_object_t, is the root object and all mailutils objects
+and specific data. For example mu_object_t, is the root object and all mailutils objects
 extends it:
 
 @smallexample
@@ -37,7 +37,7 @@ struct _mu_object
 @end smallexample
 
 The @var{vtable} is an array of pointers to function, it provides the interface
-or the list of function for this object.  The library provides wrapper to
+or the list of function for this object. The library provides wrapper to
 access the functions instead using the @var{vtable} directly.
 
 @smallexample

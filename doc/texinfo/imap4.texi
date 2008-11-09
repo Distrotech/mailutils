@@ -10,8 +10,8 @@
 
 @end smallexample
 
-Internet Message Access Protocol - Version (4rev1).  In IMAP4, the client
-must be prepared to accept any responses at all times.  The server responses
+Internet Message Access Protocol - Version (4rev1). In IMAP4, the client
+must be prepared to accept any responses at all times. The server responses
 have three forms: status responses, server data and command continuation
 request. Untagged responses, for historical reasons are also call
 "unsolicited responses".

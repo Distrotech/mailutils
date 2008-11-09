@@ -10,14 +10,14 @@
 
 @end smallexample
 
-There are many ways to authenticate to a server.  To be flexible the
+There are many ways to authenticate to a server. To be flexible the
 authentication process is provided by three objects @code{mu_authority_t},
-@code{mu_ticket_t}, and @code{mu_wicket_t}.  The @code{mu_authority_t} can implement
+@code{mu_ticket_t}, and @code{mu_wicket_t}. The @code{mu_authority_t} can implement
 different protocol like APOP, MD5-AUTH, One Time Passwd, etc. By default
 if a mailbox does not understand or know how to authenticate it falls back
-to user/passwd authentication.  The @code{mu_ticket_t} is a way for
+to user/passwd authentication. The @code{mu_ticket_t} is a way for
 Mailboxes and Mailers provide a way to authenticate when the URL does not
-contain enough information.  The default action is to call the function
+contain enough information. The default action is to call the function
 @code{mu_authority_authenticate()} which will get the @emph{user} and @emph{passwd}
 if not set, this function can be overridden by a custom method.
 

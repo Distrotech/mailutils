@@ -16,8 +16,12 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-/* Syntax: pipe [:envelope] <program call: string>
-		
+/* Syntax: pipe [:envelope] <program: string>
+
+   The pipe action executes a shell command specified by its
+   argument and pipes the entire message to its standard input.
+   The envelope of the message is included, if the :envelope tag is given.
+   
    Notes/FIXME: 1. it would be nice to implement meta-variables in
                 <program call> which would expand to various
 		items from the message being handled.

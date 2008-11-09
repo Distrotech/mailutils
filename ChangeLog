@@ -1,3 +1,83 @@
+2008-11-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Rewrite default mailbox format support to make sure it does not
+	break format autodetection. Improve the docs.
+	
+	* configure.ac (MU_DEFAULT_SCHEME): New configuration variable.
+	* mailbox/version.c (mu_conf_opt): Include default scheme.
+	
+	* examples/mimetest.c, examples/mta.c, libmu_scm/mu_scm.c: Remove
+	mu_path_record. Use mu_registrar_set_default_record.
+
+	* libproto/mbox/folder.c (_path_is_scheme): Rename to
+	_mbox_is_scheme. Minor changes as well.
+	(_path_record, mu_path_record): Removed.
+	(_mbox_record): Use _mbox_is_scheme.
+
+	* libsieve/actions.c: Remove unused variable.
+	
+	* include/mailutils/Makefile.am (types.h rule): Replace
+	_MU_DEFAULT_RECORD_. Change MU_OFF_TYPE replacement pattern to
+	_MU_OFF_TYPE_.
+	
+	* include/mailutils/mailbox.h (mu_mailbox_set_default_proto)
+	(mu_mailbox_get_default_proto): Remove. See below.
+	* include/mailutils/registrar.h (mu_registrar_set_default_scheme)
+	(mu_registrar_get_default_scheme)
+	(mu_registrar_get_default_record)
+	(mu_registrar_set_default_record)
+	(mu_registrar_lookup_scheme): New prototypes.
+	(mu_path_record): Remove.
+	(mu_register_all_mbox_formats): Remove mu_path_record.
+	Set default scheme using mu_registrar_set_default_record.
+	(mu_register_local_mbox_formats): Likewise.
+	* include/mailutils/types.hin (MU_OFF_TYPE): Rename to
+	_MU_OFF_TYPE_.
+	(MU_DEFAULT_RECORD): New define.
+
+	* mailbox/mailbox.c (mu_mailbox_set_default_proto)
+	(mu_mailbox_get_default_proto): Remove.
+	(mu_mailbox_create): Remove default_proto kludge. mu_registrar
+	stuff is responsible for finding the correct record.
+	* mailbox/registrar.c (mu_registrar_set_default_record)
+	(mu_registrar_get_default_record)
+	(mu_registrar_set_default_scheme)
+	(mu_registrar_get_default_scheme)
+	(mu_registrar_lookup_scheme): New functions.
+	(mu_registrar_lookup_url): Fall back to default record if no
+	matching record is found and the URL was not set explicitly
+	(i.e. does not begin with a scheme).
+	
+	* mailbox/gocs.c: Use mu_registrar_set_default_scheme instead of
+	mu_mailbox_set_default_proto.
+	* libsieve/extensions/pipe.c, libsieve/extensions/spamd.c,
+	libsieve/extensions/vacation.c: Fix comments.
+	
+	* doc/texinfo/getdate.texi: New file (from gnulib).
+	* doc/texinfo/Makefile.am (mailutils_TEXINFOS): Add getdate.texi
+	(fix-sentence-spacing): New rule. Forces single-space
+	inter-sentence spacing.
+	(check-tabs, check-sentence-spacing): New rules.
+	(check-format): Depend on the above two.
+	(check-refs, check-fixmes, check-unrevised): Fix copy-paste
+	errors. Print diagnostics to stderr.
+
+	* doc/texinfo/auth.texi, doc/texinfo/fdl.texi,
+	doc/texinfo/framework.texi, doc/texinfo/imap4.texi,
+	doc/texinfo/libmuauth.texi, doc/texinfo/mailbox.texi,
+	doc/texinfo/mailcap.texi, doc/texinfo/mailutils.texi,
+	doc/texinfo/mbox.texi, doc/texinfo/message.texi,
+	doc/texinfo/mom.texi, doc/texinfo/mu_message.texi,
+	doc/texinfo/mu_mime.texi, doc/texinfo/mu_scm.texi,
+	doc/texinfo/muint.texi, doc/texinfo/pop3.texi,
+	doc/texinfo/rendition.texi, doc/texinfo/sieve.texi,
+	doc/texinfo/url.texi, doc/texinfo/usage.texi: Use GNU instead of
+	@sc{gnu}, because latter looks awful when typeset (especially when
+	followed by a capitalized word). Fix format by running `make final'.
+
+	* doc/texinfo/programs.texi: Document more config statements.
+	* doc/texinfo/libsieve.texi: Document loadable actions and tests.
+
 2008-11-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Bugfix

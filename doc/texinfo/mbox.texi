@@ -10,7 +10,7 @@
 
 @end smallexample
 
-The most common mailbox format on UNIX platform is @emph{mbox}.  Mbox is a
+The most common mailbox format on UNIX platform is @emph{mbox}. Mbox is a
 text file that contains messages separated by a special format string.
 
 @smallexample
@@ -34,7 +34,7 @@ check to see if the format is a valid format or an empty file. The scanning
 of the mailbox is done by @code{mu_mbox_scan ()}, the function, takes callback
 functions called during the scanning to provide information on progress and
 new messages found. The scanning will cache some of the headers fields for
-speed, new fields could be add with @code{mu_mbox_add_hcache ()}.  On Closing
+speed, new fields could be add with @code{mu_mbox_add_hcache ()}. On Closing
 the @var{mu_mbox_t}, @code{mu_mbox_close ()} will free any resources like, headers
 cache, locks etc ... The messages with attributes marked deleted will only
 be removed on @code{mu_mbox_expunge ()}, if there is a need to save the
@@ -68,8 +68,8 @@ reclaim memory.
 @deftypefun int mu_mbox_set_carrier (mu_mbox_t, stream_t @var{carrier});
 
 Another type of stream can be provided, the @var{carrier}
-is set in the @var{mu_mbox_t} handle.  Any  previous @var{carrier} stream in
-the handle, will be close and destroy.  Since the parsing code
+is set in the @var{mu_mbox_t} handle. Any  previous @var{carrier} stream in
+the handle, will be close and destroy. Since the parsing code
 maintain only the offsets off the message the @var{carrier} stream must be
 seekable.
 
@@ -80,7 +80,7 @@ seekable.
 
 @deftypefun int mu_mbox_get_carrier (mu_mbox_t, stream_t *@var{carrier});
 
-Return the @var{mu_mbox_t} carrier.  If none was set, a new file stream will be
+Return the @var{mu_mbox_t} carrier. If none was set, a new file stream will be
 created.
 
 @table @code
@@ -91,7 +91,7 @@ created.
 
 @deftypefun int mu_mbox_open (mu_mbox_t, const char *@var{filename}, int @var{flags})
 
-Open carrier stream with @var{filename} and @var{flags}.  The stream will be
+Open carrier stream with @var{filename} and @var{flags}. The stream will be
 quickly examine to see if it is a mbox format.
 
 @table @code
@@ -285,7 +285,7 @@ Add to the current cache for the scan, the fields in @var{array}.
 
 @deftypefun int mu_mbox_value_hcache (mu_mbox_t, unsigned int @var{msgno}, const char *@var{field}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{writen})
 
-Get the value of @var{field} in the header cache for @var{msgno}.  The
+Get the value of @var{field} in the header cache for @var{msgno}. The
 result is copied in a @var{buffer} of @var{buflen} and @var{writen} is set
 to the number of byte put in @var{buffer}.
 
@@ -329,7 +329,7 @@ NULL to get the default.
 @deftypefun int mu_mbox_append_hb (mu_mbox_t, const char *@var{sep}, stream_t @var{hstream}, stream_t @var{bstream})
 
 Append to the mailbox an rfc822 message represented by a header, @var{hstream},
-and a body, @var{bstream}.  The variable @var{sep} should contain a valid
+and a body, @var{bstream}. The variable @var{sep} should contain a valid
 "From " separator or NULL to get the default.
 
 @table @code
@@ -339,11 +339,11 @@ and a body, @var{bstream}.  The variable @var{sep} should contain a valid
 
 @deftypefun int mu_mbox_scan (mu_mbox_t, unsigned int @var{start}, unsigned int *@var{count})
 
-Start scanning the mailbox for new messages.  The variable @var{start} can be
-a message number starting point.  The result of the scanning will be in
-@var{count}.  The scanning will trigger the @code{mu_mbox_newmsg_cb()} callback
+Start scanning the mailbox for new messages. The variable @var{start} can be
+a message number starting point. The result of the scanning will be in
+@var{count}. The scanning will trigger the @code{mu_mbox_newmsg_cb()} callback
 for each new message and @code{mu_mbox_progress_cb ()} at different interval
-to notify progression.  The return values of the those callback should be
+to notify progression. The return values of the those callback should be
 0 is different then 0 the scanning will be stop an the function returns
 MU_ERROR_INTERRUPTED.
 
@@ -361,8 +361,8 @@ Same as @code{mu_mbox_scan ()} but does not call the callbacks.
 @end deftypefun
 @deftypefun int mu_mbox_set_progress_cb (mu_mbox_t, int (*@var{callback}) (int @var{percentage}, void *)), void *@var{arg})
 
-Set the callback function for progress.  The variable @var{arg} will be pass
-back in the callback as the second argument.  The first argument of the
+Set the callback function for progress. The variable @var{arg} will be pass
+back in the callback as the second argument. The first argument of the
 callback represents a @var{percentage} of the scanning progress.
 
 @table @code
@@ -372,8 +372,8 @@ callback represents a @var{percentage} of the scanning progress.
 
 @deftypefun int mu_mbox_set_newmsg_cb (mu_mbox_t, int (*@var{callback}) (int @var{count}, void *)), void *@var{arg})
 
-Set the callback function for new messages.  The variable @var{arg} will be
-pass back in the callback as the second argument.  The  first argument
+Set the callback function for new messages. The variable @var{arg} will be
+pass back in the callback as the second argument. The  first argument
 is the total of messages found.
 
 @table @code
@@ -383,7 +383,7 @@ is the total of messages found.
 
 @deftypefun int mu_mbox_set_error_cb (mu_mbox_t, int (*@var{callback}) (int, void *)), void *@var{arg})
 
-Set the callback function for errors.  The variable @var{arg} will be
+Set the callback function for errors. The variable @var{arg} will be
 pass back in the callback as the second argument.
 
 @table @code

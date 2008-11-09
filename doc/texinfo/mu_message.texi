@@ -57,7 +57,7 @@ Returns the list of headers in the message @var{mesg}. Optional argument
 @c snarfed from "mu_message.c":510
 @deffn {Scheme procedure} mu-message-set-header-fields mesg list replace
 Set the headers in the message @var{mesg} from @var{list}
-@var{list} is a list of conses (cons HEADER VALUE).  The function sets
+@var{list} is a list of conses (cons HEADER VALUE). The function sets
 these headers in the message @var{mesg}.
 Optional parameter @var{replace} specifies whether the new header
 values should replace the headers already present in the

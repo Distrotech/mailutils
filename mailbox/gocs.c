@@ -32,6 +32,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/debug.h>
 #include <mailutils/syslog.h>
+#include <mailutils/registrar.h>
 #include <syslog.h>
 
 int mu_load_user_rcfile = 1;
@@ -73,7 +74,7 @@ mu_gocs_mailbox_init (void *data)
     }
   if (p->mailbox_type)
     {
-      if (mu_mailbox_set_default_proto (p->mailbox_type))
+      if (mu_registrar_set_default_scheme (p->mailbox_type))
 	mu_error (_("Invalid mailbox type: %s"), p->mailbox_type);
       free (p->mailbox_type);
       p->mailbox_type = NULL;

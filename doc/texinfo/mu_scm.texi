@@ -1,6 +1,6 @@
 @c snarfed from "mu_scm.c":130
 @deffn {Scheme procedure} mu-register-format rest
-Registers desired mailutils formats.  Any number of arguments can be given.
+Registers desired mailutils formats. Any number of arguments can be given.
 Each argument must be one of the following strings:
 
 @multitable @columnfractions 0.3 0.6

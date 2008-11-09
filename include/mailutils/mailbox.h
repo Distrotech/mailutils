@@ -35,10 +35,6 @@ const char *mu_mailbox_url (void);
 const char *mu_folder_directory (void);
 int mu_construct_user_mailbox_url (char **pout, const char *name);
 
-/* Default mailbox protocol */
-int mu_mailbox_set_default_proto (const char *proto);
-const char *mu_mailbox_get_default_proto (void);
-  
 /* Constructor/destructor and possible types.  */
 extern int  mu_mailbox_create          (mu_mailbox_t *, const char *);
 extern int  mu_mailbox_create_from_url (mu_mailbox_t *, mu_url_t);

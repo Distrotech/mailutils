@@ -71,7 +71,7 @@ struct _mu_acl;
 struct _mu_server;
 struct _mu_tcp_server;
   
-typedef MU_OFF_TYPE mu_off_t;
+typedef _MU_OFF_TYPE_ mu_off_t;
   
 typedef struct _mu_address *mu_address_t;
 typedef struct _mu_attribute *mu_attribute_t;
@@ -121,6 +121,8 @@ typedef struct _mu_progmailer *mu_progmailer_t;
 
 #define mu_offsetof(s,f) ((size_t)&((s*)0)->f)
 #define MU_ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
+
+#define MU_DEFAULT_RECORD _MU_DEFAULT_RECORD_
   
 #ifdef __cplusplus
 }

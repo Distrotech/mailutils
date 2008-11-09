@@ -4,7 +4,7 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-@code{Libsieve} is @sc{gnu} implementation of the mail filtering
+@code{Libsieve} is GNU implementation of the mail filtering
 language Sieve. The library is built around a @dfn{Sieve Machine} --- an
 abstract computer constructed specially to handle mail filtering tasks.
 This computer has two registers: program counter and numeric accumulator;
@@ -620,7 +620,7 @@ string @var{str}.
 
 @deftypefun {void *} mu_sieve_mrealloc (mu_sieve_machine_t @var{mach}, void *@var{ptr}, size_t @var{size})
 Changes the size of the memory block pointed to by @var{ptr} to
-@var{size} bytes.  The contents will be unchanged to the minimum of the
+@var{size} bytes. The contents will be unchanged to the minimum of the
 old and new sizes; newly allocated memory will be uninitialized. If
 @var{ptr} is @code{NULL}, the call is equivalent to
 @code{mu_sieve_malloc(@var{mach}, @var{size})}; if @var{size} is equal to
@@ -664,7 +664,7 @@ Dump the disassembled code of the sieve machine @var{mach}.
 @subsection Writing Loadable Commands
 
 This section contains an example of how to write external loadable
-commands for @sc{gnu} libsieve.
+commands for GNU libsieve.
 
 @smallexample
 @include numaddr.inc

@@ -12,7 +12,7 @@
 
 The standard @cite{RFC 1524} (A User Agent Configuration Mechanism)
 suggests a file format to be used to inform a mail user agent about
-facilities for handling mail in various format.  The configuration
+facilities for handling mail in various format. The configuration
 file is known also as mailcap and it is tipically found in UNIX
 platforms, a example of @file{/etc/mailcap}:
 
@@ -24,10 +24,10 @@ application/pgp; gpg < %s | metamail; needsterminal; \
 @end smallexample
 
 A mailcap file consits of a set of mailcap entries per line, lines
-beginning with @samp{#} are considered comments and ignored.  Long
+beginning with @samp{#} are considered comments and ignored. Long
 mailcap entry may be continued on multiple lines if each line ends
 with a backslash character @samp{\}, the multiline will be considered
-a single mailcap entry.  The overall format in @acronym{BNF}:
+a single mailcap entry. The overall format in @acronym{BNF}:
 
 @smallexample
 @group

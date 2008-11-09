@@ -77,44 +77,6 @@ mailbox_folder_create (mu_mailbox_t mbox, const char *name,
   return rc;
 }
 
-static char *default_proto;
-
-int
-mu_mailbox_set_default_proto (const char *proto)
-{
-  char *p;
-  size_t len = strlen (proto);
-  
-  if (proto [len - 1] == ':')
-    {
-      p = strdup (proto);
-      if (!p)
-	return ENOMEM;
-    }
-  else
-    {
-      p = malloc (len + 2);
-      if (!p)
-	return ENOMEM;
-      strcpy (p, proto);
-      p[len] = ':';
-      p[len+1] = 0;
-    }
-  
-  if (mu_registrar_lookup (p, MU_FOLDER_ATTRIBUTE_FILE, NULL, NULL))
-    return MU_ERR_NO_HANDLER;
-  if (default_proto)
-    free (default_proto);
-  default_proto = p;
-  return 0;
-}
-
-const char *
-mu_mailbox_get_default_proto ()
-{
-  return default_proto ? default_proto : "/";
-}
-
 static int
 _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 {
@@ -235,22 +197,10 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 int
 mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
 {
-  int rc;
-  
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (!mu_is_proto (name) && default_proto)
-    {
-      char *tmp_name = malloc (strlen (default_proto) + strlen (name) + 1);
-      strcpy (tmp_name, default_proto);
-      strcat (tmp_name, name);
-      rc = _create_mailbox (pmbox, tmp_name);
-      free (tmp_name);
-    }
-  else
-    rc = _create_mailbox (pmbox, name);
-  return rc;
+  return _create_mailbox (pmbox, name);
 }
 
 int

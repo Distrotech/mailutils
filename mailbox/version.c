@@ -47,6 +47,7 @@ static struct mu_conf_option mu_conf_option[] = {
   { "VERSION=" VERSION, N_("Version of this package") },
   { "SYSCONFDIR=" SYSCONFDIR, N_("System configuration directory") },
   { "MAILSPOOLDIR=" MU_PATH_MAILDIR, N_("Default mail spool directory") },
+  { "SCHEME=" MU_DEFAULT_SCHEME, N_("Default mailbox type") },
   { "LOG_FACILITY=" LOG_FACILITY_STRING, N_("Default syslog facility") },
 #ifdef USE_LIBPAM
   { "USE_LIBPAM", N_("PAM support") },

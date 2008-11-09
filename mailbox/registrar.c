@@ -35,13 +35,51 @@
 #include <mailutils/nls.h>
 #include <mailutils/error.h>
 #include <mailutils/url.h>
-
+#include <mailutils/mutil.h>
 #include <registrar0.h>
 
 /* NOTE: We will leak here since the monitor and the registrar will never
    be released. That's ok we can live with this, it's only done once.  */
 static mu_list_t registrar_list;
 struct mu_monitor registrar_monitor = MU_MONITOR_INITIALIZER;
+
+static mu_record_t mu_default_record;
+
+void
+mu_registrar_set_default_record (mu_record_t record)
+{
+  mu_default_record = record;
+}
+
+int
+mu_registrar_get_default_record (mu_record_t *prec)
+{
+  if (mu_default_record)
+    {
+      if (prec)
+	*prec = mu_default_record;
+      return 0;
+    }
+  return MU_ERR_NOENT;
+}
+
+int
+mu_registrar_set_default_scheme (const char *scheme)
+{
+  int status;
+  mu_record_t rec;
+  
+  status = mu_registrar_lookup_scheme (scheme, &rec);
+  if (status == 0)
+    mu_default_record = rec;
+  return status;
+}
+
+const char *
+mu_registrar_get_default_scheme ()
+{
+  return mu_default_record ? mu_default_record->scheme : NULL;
+}
 
 static int
 _registrar_get_list (mu_list_t *plist)
@@ -91,6 +129,34 @@ mu_registrar_get_iterator (mu_iterator_t *pitr)
 }
 
 int
+mu_registrar_lookup_scheme (const char *scheme, mu_record_t *precord)
+{
+  size_t len;
+  mu_iterator_t iterator;
+  int status = mu_registrar_get_iterator (&iterator);
+  if (status != 0)
+    return status;
+  status = MU_ERR_NOENT;
+  len = strcspn (scheme, ":");
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
+    {
+      mu_record_t record;
+      mu_iterator_current (iterator, (void **)&record);
+      if (strlen (record->scheme) == len
+	  && memcmp (record->scheme, scheme, len) == 0)
+	{
+	  if (precord)
+	    *precord = record;
+	  status = 0;
+	  break;
+	}
+    }
+  mu_iterator_destroy (&iterator);
+  return status;
+}
+
+int
 mu_registrar_lookup_url (mu_url_t url, int flags,
 			 mu_record_t *precord, int *pflags)
 {
@@ -116,6 +182,17 @@ mu_registrar_lookup_url (mu_url_t url, int flags,
 	}
     }
   mu_iterator_destroy (&iterator);
+
+  if (status &&
+      /*s FIXME: This check is not enough. */
+      !mu_is_proto (mu_url_to_string (url))
+      && mu_registrar_get_default_record (precord) == 0)
+    {
+      status = 0;
+      if (pflags)
+	*pflags = flags & MU_FOLDER_ATTRIBUTE_FILE; /* FIXME? */
+    }
+  
   return status;
 }
 

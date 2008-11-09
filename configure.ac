@@ -1095,6 +1095,29 @@ if test "$EMACS" != "no"; then
 fi
 AC_SUBST(lisp_LISP)
 
+# Default mailbox record
+# Note: 1. Support for mbox type is always enabled.
+#       2. Only local mailbox types are allowed for MU_DEFAULT_SCHEME
+AC_ARG_VAR([MU_DEFAULT_SCHEME],
+           [Default mailbox record. Allowed values are: mbox (default), mh, and maildir.])
+if test -z "$MU_DEFAULT_SCHEME"; then
+  MU_DEFAULT_SCHEME=mbox
+fi  
+case $MU_DEFAULT_SCHEME in
+mbox)
+   ;;
+mh|maildir)
+   eval testval=\$mu_cv_enable_$MU_DEFAULT_SCHEME
+   if test "$testval" != yes; then
+     AC_MSG_ERROR([Cannot set default mailbox record type: support for $MU_DEFAULT_SCHEME is disabled])
+   fi
+   ;;
+*) AC_MSG_ERROR([Unknown or not allowed mailbox scheme: $MU_DEFAULT_SCHEME]);;
+esac
+AC_DEFINE_UNQUOTED(MU_DEFAULT_SCHEME, "$MU_DEFAULT_SCHEME",
+                   [Default mailbox scheme.])
+AC_SUBST(MU_DEFAULT_RECORD,mu_${MU_DEFAULT_SCHEME}_record)
+
 AC_ARG_VAR([DEFAULT_CUPS_CONFDIR],
            [Set the location of CUPS configuration directory. Default is \$sysconfdir/cups])
 
@@ -1134,6 +1157,7 @@ cat <<EOF
 *******************************************************************
 GNU Mailutils configured with the following settings:
 
+Default mailbox scheme......... $status_scheme
 Use PAM........................ $status_pam
 Use -ltdl...................... $status_ltdl
 Use DBM........................ $status_dbm
@@ -1168,7 +1192,8 @@ Sendmail....................... $status_sendmail
 Before proceeding, verify if these satisfy your requirements. 
 EOF
 ],
-[status_pam=$status_pam
+[status_scheme=$MU_DEFAULT_SCHEME
+status_pam=$status_pam
 status_ltdl=$status_ltdl
 status_dbm="$status_dbm"
 status_ldap=$status_ldap
