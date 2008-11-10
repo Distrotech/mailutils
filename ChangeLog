@@ -1,3 +1,8 @@
+2008-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* libargp/muinit.c (mu_app_init): Do not parse configs if
+	--config-help was given.
+
 2008-11-09  Wojciech Polak  <polak@gnu.org>
 
 	Fix typos.

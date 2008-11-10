@@ -84,7 +84,6 @@ mu_app_init (struct argp *myargp, const char **capa,
   
   mu_libcfg_init (excapa);
   free (excapa);
-  mu_parse_config_files (cfg_param, data);
 
   if (mu_help_config_mode)
     {
@@ -115,7 +114,9 @@ mu_app_init (struct argp *myargp, const char **capa,
       mu_stream_destroy (&stream, NULL);
       exit (0);
     }
-  
+  else
+    mu_parse_config_files (cfg_param, data);
+
   if (mu_cfg_parser_verbose)
     cfgflags |= MU_PARSE_CONFIG_VERBOSE;
   if (mu_cfg_parser_verbose > 1)
