@@ -53,6 +53,8 @@ get_canonical_name ()
 int mu_help_config_mode;
 int mu_rcfile_lint;
 
+int (*mu_app_cfg_verifier) (void) = NULL;
+
 int
 mu_app_init (struct argp *myargp, const char **capa,
 	     struct mu_cfg_param *cfg_param,
@@ -123,12 +125,19 @@ mu_app_init (struct argp *myargp, const char **capa,
     cfgflags |= MU_PARSE_CONFIG_DUMP;
   rc = mu_cfg_tree_reduce (mu_argp_tree, mu_program_name, cfg_param,
 			   cfgflags, data);
-  if (mu_rcfile_lint)
-    exit ((rc || mu_cfg_error_count) ? 1 : 0);
 
+  if (mu_rcfile_lint)
+    {
+      if (rc || mu_cfg_error_count)
+	exit (1);
+      if (mu_app_cfg_verifier)
+	rc = mu_app_cfg_verifier ();
+      exit (rc ? 1 : 0);
+    }
+  
   mu_gocs_flush ();
   mu_cfg_destroy_tree (&mu_argp_tree);
 
-  return 0;
+  return !!(rc || mu_cfg_error_count);
 }
 

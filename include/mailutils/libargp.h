@@ -44,6 +44,7 @@ struct mu_cmdline_capa
 
 extern int mu_help_config_mode;
 extern int mu_rcfile_lint;
+extern int (*mu_app_cfg_verifier) (void);
   
 extern struct mu_cmdline_capa mu_common_cmdline;
 extern struct mu_cmdline_capa mu_logging_cmdline;

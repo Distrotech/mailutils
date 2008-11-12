@@ -1,3 +1,10 @@
+2008-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac, NEWS: Version 1.9.93.
+	* include/mailutils/libargp.h (mu_app_cfg_verifier): New extern.
+	* libargp/muinit.c (mu_app_cfg_verifier): New variable.
+	(mu_app_init): Call mu_app_cfg_verifier if in lint mode.
+	
 2008-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* libargp/muinit.c (mu_app_init): Do not parse configs if
