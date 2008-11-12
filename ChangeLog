@@ -1,5 +1,9 @@
 2008-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* mailbox/cfg_parser.y (mu_cfg_format_error): Raise
+	mu_cfg_error_count only if level is less or equal to error.
+	(_scan_tree_helper): "unknown section" is a warning.
+
 	* configure.ac, NEWS: Version 1.9.93.
 	* include/mailutils/libargp.h (mu_app_cfg_verifier): New extern.
 	* libargp/muinit.c (mu_app_cfg_verifier): New variable.

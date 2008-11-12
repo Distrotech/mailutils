@@ -99,8 +99,16 @@ mu_cfg_format_error (mu_debug_t debug, size_t level, const char *fmt, ...)
   mu_debug_vprintf (debug, 0, fmt, ap);
   mu_debug_printf (debug, 0, "\n");
   va_end (ap);
-  mu_cfg_error_count++;
+  if (level <= MU_DEBUG_ERROR)
+    mu_cfg_error_count++;
 }  
+
+static void
+_mu_cfg_debug_set_locus (mu_debug_t debug, const mu_cfg_locus_t *loc)
+{
+  mu_debug_set_locus (debug, loc->file ? loc->file : _("unknown file"),
+		      loc->line);
+}
 
 static void
 _mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
@@ -108,9 +116,7 @@ _mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
 {
   if (!debug)
     mu_diag_get_debug (&debug);
-  mu_debug_set_locus (debug,
-		      loc->file ? loc->file : _("unknown file"),
-		      loc->line);
+  _mu_cfg_debug_set_locus (debug, loc);
   mu_debug_vprintf (debug, 0, fmt, ap);
   mu_debug_printf (debug, 0, "\n");
   mu_debug_set_locus (debug, NULL, 0);
@@ -1148,9 +1154,10 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
 	{
 	  if (mu_cfg_parser_verbose)
 	    {
-	      _mu_cfg_perror (sdata->tree->debug, &node->locus,
-			      _("unknown section `%s'"),
-			      node->tag);
+	      _mu_cfg_debug_set_locus (sdata->tree->debug, &node->locus);
+	      mu_cfg_format_error (sdata->tree->debug, MU_DIAG_WARNING,
+				   _("unknown section `%s'"),
+				   node->tag);
 	    }
 	  return MU_CFG_ITER_SKIP;
 	}
