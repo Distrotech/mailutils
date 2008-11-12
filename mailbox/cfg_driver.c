@@ -579,7 +579,7 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 		    struct mu_cfg_param *progparam, int flags,
 		    void *target_ptr)
 {
-  int rc = 1;
+  int rc = 0;
   
   if (root_container)
     {

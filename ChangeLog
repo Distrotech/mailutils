@@ -4,6 +4,8 @@
 	* include/mailutils/libargp.h (mu_app_cfg_verifier): New extern.
 	* libargp/muinit.c (mu_app_cfg_verifier): New variable.
 	(mu_app_init): Call mu_app_cfg_verifier if in lint mode.
+	* mailbox/cfg_driver.c (mu_cfg_tree_reduce): Return 0 if no
+	configuration is supplied.
 	
 2008-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
