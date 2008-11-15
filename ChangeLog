@@ -1,3 +1,15 @@
+2008-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/cfg_driver.c (mu_cfg_tree_reduce): Format parse tree
+	before scanning the tree.
+	* mailbox/cfg_parser.y (block rule): Accept empty blocks.
+	(parse_param): bail out if callback is not declared when it
+	should.
+	* mailbox/daemon.c (mu_daemon_create_pidfile)
+	(mu_daemon_remove_pidfile): If running with UID=0 and EUID != 0,
+	temporarily switch to EUID=0 for accessing pidfile (when
+	creating or deleting).
+
 2008-11-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/cfg_parser.y (mu_cfg_format_error): Raise

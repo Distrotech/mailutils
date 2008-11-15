@@ -224,7 +224,14 @@ simple  : ident vallist ';'
 	  }
         ;
 
-block   : ident tag '{' stmtlist '}' opt_sc
+block   : ident tag '{' '}' opt_sc
+          {
+	    $$ = mu_cfg_alloc_node (mu_cfg_node_tag, &$1.locus,
+				    $1.name, $2,
+				    NULL);
+	    
+	  }
+        | ident tag '{' stmtlist '}' opt_sc
 	  {
 	    $$ = mu_cfg_alloc_node (mu_cfg_node_tag, &$1.locus,
 				    $1.name, $2,
@@ -1126,6 +1133,13 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
     {
       mu_debug_set_locus (sdata->tree->debug, node->locus.file,
 			  node->locus.line);
+      if (!param->callback)
+	{
+	  _mu_cfg_perror (sdata->tree->debug, &node->locus,
+			  _("INTERNAL ERROR: %s: callback not defined"),
+			  node->tag);
+	  abort ();
+	}
       if (param->callback (sdata->tree->debug, tgt, node->label))
 	return 1;
       
