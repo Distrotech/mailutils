@@ -159,7 +159,7 @@ argcv_scan (struct argcv_info *ap)
   return ap->save;
 }
 
-static char quote_transtab[] = "\\\\\"\"a\ab\bf\fn\nr\rt\t";
+static char quote_transtab[] = "\\\\\"\"a\ab\bf\fn\nr\rt\tv\v";
 
 int
 argcv_unquote_char (int c)
