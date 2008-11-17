@@ -1,3 +1,9 @@
+2008-11-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* mailbox/amd.c (_amd_attach_message): Call mu_body_clear_modified
+	and mu_message_clear_modified after constructing the message to
+	make sure it is not marked as modified.
+
 2008-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/argcv.c (quote_transtab): Add vertical tabulation

@@ -474,6 +474,7 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
     mu_stream_set_readline (stream, amd_body_readline, body);
     mu_stream_set_size (stream, amd_stream_size, body);
     mu_body_set_stream (body, stream, msg);
+    mu_body_clear_modified (body);
     mu_body_set_size (body, amd_body_size, msg);
     mu_body_set_lines (body, amd_body_lines, msg);
     mu_message_set_body (msg, body, mhm);
@@ -501,6 +502,14 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
   /* Attach the message to the mailbox mbox data.  */
   mhm->message = msg;
   mu_message_set_mailbox (msg, mailbox, mhm);
+
+  /* Some of mu_message_set_ functions above mark message as modified.
+     Undo it now.
+
+     FIXME: Marking message as modified is not always appropriate. Find
+     a better way. */
+     
+  mu_message_clear_modified (msg);
 
   if (pmsg)
     *pmsg = msg;
