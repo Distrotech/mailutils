@@ -180,9 +180,14 @@ get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
     }
   else if (!*ret)
     {
-      mu_error (_("SQL field `%s' (`%s') has NULL value"),
-		id, name ? *name : id);
-      rc = MU_ERR_READ;
+      if (mandatory)
+	{
+	  mu_error (_("SQL field `%s' (`%s') has NULL value"),
+		    id, name ? *name : id);
+	  rc = MU_ERR_READ;
+	}
+      else
+	rc = MU_ERR_NOENT;
     }
 
   return rc;

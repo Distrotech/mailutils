@@ -1,3 +1,8 @@
+2008-11-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* auth/sql.c (get_field): NULL value in an optional field is
+	equivalent to MU_ERR_NOENT.
+
 2008-11-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mailbox/amd.c (_amd_attach_message): Call mu_body_clear_modified
