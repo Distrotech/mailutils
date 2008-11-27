@@ -75,9 +75,6 @@ static const char *capa[] = {
   "license",
   "mailbox",
   "locking",
-#ifdef WITH_TLS
-  "tls",
-#endif
   NULL
 };
 
@@ -118,6 +115,9 @@ main (int argc, char **argv)
 
   /* register the formats.  */
   mu_register_all_mbox_formats ();
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif
 
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &c, NULL))

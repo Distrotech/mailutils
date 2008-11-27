@@ -106,10 +106,13 @@ hdr_curitem_p (void *owner, void *item)
 static int
 hdr_data_dup (void **ptr, void *owner)
 {
+  struct header_iterator *itr = owner;
+
   *ptr = malloc (sizeof (struct header_iterator));
   if (*ptr == NULL)
     return ENOMEM;
   memcpy (*ptr, owner, sizeof (struct header_iterator));
+  mu_iterator_attach (&itr->header->itr, *ptr);
   return 0;
 }
 

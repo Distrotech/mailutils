@@ -23,10 +23,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <mailutils/types.h>
 #include <mailutils/alloc.h>
 #include <mailutils/opool.h>
+#include <mailutils/errno.h>
+#include <mailutils/error.h>
+#include <mailutils/nls.h>
+#include <mailutils/iterator.h>
 
 struct mu_opool_bucket
 {
@@ -39,6 +42,7 @@ struct mu_opool_bucket
 struct _mu_opool
 {
   int memerr;
+  size_t itr_count;
   struct mu_opool_bucket *head, *tail;
   struct mu_opool_bucket *free;
 };
@@ -104,6 +108,7 @@ mu_opool_create (mu_opool_t *pret, int memerr)
       return ENOMEM;
     }
   x->memerr = memerr;
+  x->itr_count = 0;
   x->head = x->tail = x->free = 0;
   *pret = x;
   return 0;
@@ -185,6 +190,8 @@ mu_opool_coalesce (mu_opool_t opool, size_t *psize)
 {
   size_t size;
 
+  if (opool->itr_count)
+    return MU_ERR_FAILURE;
   if (opool->head && opool->head->next == NULL)
     size = opool->head->level;
   else {
@@ -228,3 +235,130 @@ mu_opool_finish (mu_opool_t opool, size_t *psize)
   return opool->free->buf;
 }
   
+
+/* Iterator support */
+struct opool_iterator
+{
+  mu_opool_t opool;
+  struct mu_opool_bucket *cur;
+};
+
+static int
+opitr_first (void *owner)
+{
+  struct opool_iterator *itr = owner;
+  itr->cur = itr->opool->head;
+  return 0;
+}
+
+static int
+opitr_next (void *owner)
+{
+  struct opool_iterator *itr = owner;
+  if (itr->cur)
+    {
+      itr->cur = itr->cur->next;
+      return 0;
+    }
+  return EINVAL;
+}
+
+static int
+opitr_getitem (void *owner, void **pret, const void **pkey)
+{
+  struct opool_iterator *itr = owner;
+  if (!itr->cur)
+    return MU_ERR_NOENT;
+
+  *pret = itr->cur->buf;
+  if (pkey)
+    *(size_t*) pkey = itr->cur->level;
+  return 0;
+}
+
+static int
+opitr_finished_p (void *owner)
+{
+  struct opool_iterator *itr = owner;
+  return itr->cur == NULL;
+}
+
+static int
+opitr_curitem_p (void *owner, void *item)
+{
+  struct opool_iterator *itr = owner;
+  return itr->cur && itr->cur->buf == item;
+}
+
+static int
+opitr_destroy (mu_iterator_t iterator, void *data)
+{
+  struct opool_iterator *itr = data;
+  if (itr->opool->itr_count == 0)
+    {
+      /* oops! */
+      mu_error (_("%s: INTERNAL ERROR: zero reference count"),
+		"opool_destroy");
+    }
+  else
+    itr->opool->itr_count--;
+  free (data);
+  return 0;
+}
+
+static int
+opitr_data_dup (void **ptr, void *owner)
+{
+  struct opool_iterator *itr = owner;
+
+  *ptr = malloc (sizeof (struct opool_iterator));
+  if (*ptr == NULL)
+    return ENOMEM;
+  memcpy (*ptr, owner, sizeof (struct opool_iterator));
+  itr->opool->itr_count++;
+  return 0;
+}
+
+int
+mu_opool_get_iterator (mu_opool_t opool, mu_iterator_t *piterator)
+{
+  mu_iterator_t iterator;
+  int status;
+  struct opool_iterator *itr;
+
+  if (!opool)
+    return EINVAL;
+
+  itr = calloc (1, sizeof *itr);
+  if (!itr)
+    return ENOMEM;
+  itr->opool = opool;
+  itr->cur = opool->head;
+  
+  status = mu_iterator_create (&iterator, itr);
+  if (status)
+    {
+      free (itr);
+      return status;
+    }
+
+  mu_iterator_set_first (iterator, opitr_first);
+  mu_iterator_set_next (iterator, opitr_next);
+  mu_iterator_set_getitem (iterator, opitr_getitem);
+  mu_iterator_set_finished_p (iterator, opitr_finished_p);
+  mu_iterator_set_curitem_p (iterator, opitr_curitem_p);
+  mu_iterator_set_destroy (iterator, opitr_destroy);
+  mu_iterator_set_dup (iterator, opitr_data_dup);
+
+  opool->itr_count++;
+
+  *piterator = iterator;
+  return 0;
+}
+
+
+
+
+  
+  
+ 

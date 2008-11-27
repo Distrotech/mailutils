@@ -68,4 +68,6 @@ void *mu_opool_head (mu_opool_t opool, size_t *psize);
    return p; */
 void *mu_opool_finish (mu_opool_t opool, size_t *psize);
 
+int mu_opool_get_iterator (mu_opool_t opool, mu_iterator_t *piterator);
+
 #endif
