@@ -29,6 +29,8 @@
    resulting pool (including mu_opool_create itself) will abort on
    not enough memory condition, using mu_alloc_die. */
 int mu_opool_create (mu_opool_t *pret, int memerr);
+int mu_opool_set_bucket_size (mu_opool_t opool, size_t size);
+int mu_opool_get_bucket_size (mu_opool_t opool, size_t *psize);
 
 /* Clear all data from the pool, so next mu_opool_append* call will
    begin a new object. */

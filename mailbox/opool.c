@@ -42,6 +42,7 @@ struct mu_opool_bucket
 struct _mu_opool
 {
   int memerr;
+  size_t bucket_size;
   size_t itr_count;
   struct mu_opool_bucket *head, *tail;
   struct mu_opool_bucket *free;
@@ -69,7 +70,7 @@ alloc_bucket (struct _mu_opool *opool, size_t size)
 static int
 alloc_pool (mu_opool_t opool, size_t size)
 {
-  struct mu_opool_bucket *p = alloc_bucket (opool, MU_OPOOL_BUCKET_SIZE);
+  struct mu_opool_bucket *p = alloc_bucket (opool, opool->bucket_size);
   if (!p)
     return ENOMEM;
   if (opool->tail)
@@ -86,7 +87,7 @@ copy_chars (mu_opool_t opool, const char *str, size_t n, size_t *psize)
   size_t rest;
 
   if (!opool->head || opool->tail->level == opool->tail->size)
-    if (alloc_pool (opool, MU_OPOOL_BUCKET_SIZE))
+    if (alloc_pool (opool, opool->bucket_size))
       return ENOMEM;
   rest = opool->tail->size - opool->tail->level;
   if (n > rest)
@@ -108,9 +109,28 @@ mu_opool_create (mu_opool_t *pret, int memerr)
       return ENOMEM;
     }
   x->memerr = memerr;
+  x->bucket_size = MU_OPOOL_BUCKET_SIZE;
   x->itr_count = 0;
   x->head = x->tail = x->free = 0;
   *pret = x;
+  return 0;
+}
+
+int
+mu_opool_set_bucket_size (mu_opool_t opool, size_t size)
+{
+  if (!opool)
+    return EINVAL;
+  opool->bucket_size = size;
+  return 0;
+}
+
+int
+mu_opool_get_bucket_size (mu_opool_t opool, size_t *psize)
+{
+  if (!opool || !psize)
+    return EINVAL;
+  *psize = opool->bucket_size;
   return 0;
 }
 

@@ -1,3 +1,15 @@
+2008-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* include/mailutils/opool.h (mu_opool_set_bucket_size)
+	(mu_opool_get_bucket_size): New protos.
+	* mailbox/opool.c (struct _mu_opool.bucket_size): New member.
+	(alloc_pool, copy_chars): Use opool->bucket_size to set bucket
+	size.
+	(mu_opool_create): Initialize bucket_size with the default
+	value.
+	(mu_opool_set_bucket_size,mu_opool_get_bucket_size): New
+	functions.
+
 2008-11-27  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Add iterator support to opool.
