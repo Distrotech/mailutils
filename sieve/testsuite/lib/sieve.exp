@@ -24,21 +24,29 @@ mu_init -noflags
 set env(MAIL) $MU_SPOOL_DIR/sieve.mbox
 set env(FOLDER) $env(MAIL)
 
+set SIEVE_ETC_DIR "$MU_DATA_DIR/etc"
+
+mu_makespool "$MU_RC_DIR" "$SIEVE_ETC_DIR"
+
 # sieve_test [-retcode N][-message MESSAGE][-default (FAIL|XFAIL)]
 #            [-reuse-spool]
 #            [ARGS...][-pattern PATTERN...]
 proc sieve_test {args} {
     global sieve_source_dir
     global top_builddir
+    global SIEVE_ETC_DIR
+    global MU_SPOOL_DIR
     
     set default ""
-    set sw [list "--verbose" \
+    set sw [list "--config-file=$SIEVE_ETC_DIR/mailutils.rc" \
+	         "--verbose" \
                  "--line-info=no" \
                  "--no-program-name" \
                  "-M sendmail:$top_builddir/examples/mta" \
 	         "--email foobar@nonexistent.net"]
     set reuse_spool 0
     set retcode 0
+    set mailbox "$MU_SPOOL_DIR/sieve.mbox"
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
@@ -57,6 +65,9 @@ proc sieve_test {args} {
 	} elseif {"$a" == "-retcode"} {
 	    incr i
 	    set retcode [lindex $args $i]
+	} elseif {"$a" == "-f"} {
+	    incr i
+	    set mailbox [lindex $args $i]
 	} else {
 	    set sw [concat $sw [lindex $args $i]]
 	}
@@ -66,9 +77,11 @@ proc sieve_test {args} {
 	^/.*   { }
 	default {
 	    set sw [concat [lrange $sw 0 [expr [llength $sw] - 2]] \
-		    [list "${sieve_source_dir}/[lindex $sw end]"]]
+			[list "${sieve_source_dir}/[lindex $sw end]"]]
 	}
     }
+    
+    set sw [concat "-f$mailbox" $sw]
 
     if {![info exists message]} {
 	set message "[lindex $sw end]"

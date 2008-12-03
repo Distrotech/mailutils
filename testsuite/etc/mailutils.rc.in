@@ -1,0 +1,3 @@
+mailbox {
+  mailbox-pattern "$MU_SPOOL_DIR/$arg{user}";
+}

@@ -44,6 +44,7 @@ proc mu_copy_file {src dst} {
     
     set input [open $src r]
     set output [open $dst w]
+    set arg "$"
     for {gets $input line} {![eof $input]} {gets $input line} {
 	puts $output [subst -nobackslashes $line]
     }

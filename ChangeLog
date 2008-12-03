@@ -1,3 +1,21 @@
+2008-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* testsuite/etc/mailutils.rc.in: New file.
+	* testsuite/etc/DISTFILES: Add mailutils.rc.in
+	* testsuite/lib/mailutils.exp (mu_copy_file): Define $arg
+	variable to simplify using $ in template files.
+	
+	* sieve/testsuite/lib/sieve.exp (SIEVE_ETC_DIR): New global
+	(sieve_test): Explicitly pass -f.
+	Use SIEVE_ETC_DIR/mailutils.rc as configuration file.
+	
+	* imap4d/testsuite/imap4d/list.exp: Update the '*' test to match 
+	new contents of $MU_DATA_DIR/etc
+	* libproto/pop/url.c (_url_pop_init): Remove obsolete call to
+	mu_url_init.
+	* sieve/sieve.c (sieve_mailbox): Print actual mailbox URL in case
+	of failure.
+
 2008-11-28  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* include/mailutils/opool.h (mu_opool_set_bucket_size)

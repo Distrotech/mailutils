@@ -465,8 +465,13 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_ticket_t ticket, mu_debug_t debug)
   if (rc != 0)
     {
       if (mbox)
-	mu_error (_("Opening mailbox `%s' failed: %s"),
-		  mbox_url, mu_strerror (rc));
+	{
+	  mu_url_t url = NULL;
+
+	  mu_mailbox_get_url (mbox, &url);
+	  mu_error (_("Opening mailbox `%s' failed: %s"),
+		    mu_url_to_string (url), mu_strerror (rc));
+	}
       else
 	mu_error (_("Opening default mailbox failed: %s"),
 		  mu_strerror (rc));
