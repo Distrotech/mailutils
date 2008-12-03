@@ -71,9 +71,8 @@ _url_pop_init (mu_url_t url)
 int
 _url_pops_init (mu_url_t url)
 {
-  int status = mu_url_init (url, MU_POPS_PORT, "pops");
-  if (status)
-    return status;
+  if (url->port == 0)
+    url->port = MU_POPS_PORT;
 
   url->_destroy = url_pop_destroy;
 
