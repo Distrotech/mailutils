@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <vector>
 #include <mailutils/cpp/mailutils.h>
 
 #include <cstdlib>
@@ -49,7 +50,11 @@ main ()
 	cout << "\thost <"   << url.getHost   () << ">" << endl;
 	cout << "\tport "    << url.getPort   () << endl;
 	cout << "\tpath <"   << url.getPath   () << ">" << endl;
-	cout << "\tquery <"  << url.getQuery  () << ">" << endl;
+
+	vector<string> params = url.getQuery ();
+	for (vector<string>::size_type i = 0; i != params.size (); i++) {
+	  cout << "\tquery[" << i << "] <"  << params[i] << ">" << endl;
+	}
       }
       catch (Exception& e) {
 	cerr << e.method () << ": " << e.msgError () << endl;

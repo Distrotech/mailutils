@@ -1,3 +1,9 @@
+2008-12-04  Wojciech Polak  <polak@gnu.org>
+
+	* include/mailutils/cpp/url.h, libmu_cpp/url.cc,
+	examples/cpp/addr.cc, examples/cpp/url-parse.cc:
+	Reflect recent API changes.
+
 2008-12-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* testsuite/etc/mailutils.rc.in: New file.

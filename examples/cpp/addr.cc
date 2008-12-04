@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <cstring>
 #include <mailutils/cpp/mailutils.h>
 
 #include <mailutils/filter.h>
