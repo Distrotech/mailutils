@@ -1,0 +1,15 @@
+config.rpath
+gitlog-to-changelog
+link-warning.h
+compile
+config.guess
+config.sub
+depcomp
+elisp-comp
+install-sh
+ltmain.sh
+mailutils.spec
+mdate-sh
+missing
+texinfo.tex
+ylwrap
