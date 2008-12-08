@@ -58,12 +58,10 @@ SUBDIRS = \
 
 EXTRA_DIST = COPYING.LESSER
 
-gen_start_date = 2008-05-05
 .PHONY: make-ChangeLog
 make-ChangeLog: 
 	if test -d .git; then                                           \
-	  $(top_srcdir)/scripts/gitlog-to-changelog                     \
-	    --since=$(gen_start_date) |                                 \
+	  $(top_srcdir)/scripts/gitlog-to-changelog |                   \
             sed '/<unknown>$$/d' | fmt -s > $(distdir)/cl-t;            \
 	  echo "" >> $(distdir)/cl-t;                                 \
 	  echo "Local Variables:" >> $(distdir)/cl-t;                   \
@@ -80,8 +78,7 @@ dist-hook: make-ChangeLog
 .PHONY: ChangeLog
 ChangeLog: 
 	if test -d .git; then                                           \
-	  $(top_srcdir)/scripts/gitlog-to-changelog                     \
-	    --since=$(gen_start_date) |                                 \
+	  $(top_srcdir)/scripts/gitlog-to-changelog |                   \
             sed '/<unknown>$$/d' | fmt -s > ChangeLog;                  \
 	  echo "" >> ChangeLog;                                       \
 	  echo "Local Variables:" >> ChangeLog;                         \
