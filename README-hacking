@@ -1,9 +1,9 @@
-These notes intend to help people working on the CVS version of
+These notes intend to help people working on the Git version of
 this package.
 
 * Requirements
 
-You need the following packages to build the CVS version of GNU
+You need the following packages to build the Git version of GNU
 Mailutils.  We do not make any efforts to accommodate older versions of
 these packages, so please make sure that you have the latest stable
 version. 
@@ -20,8 +20,8 @@ version.
 
 * Bootstrapping
 
-Obviously, if you are reading these notes, you did manage to check out
-Mailutils from CVS. The next step is to get other files needed to build,
+Obviously, if you are reading these notes, you did manage to clone
+Mailutils from Git. The next step is to get other files needed to build,
 which are extracted from other source packages: 
 
 1. Change to the source tree directory
@@ -59,7 +59,7 @@ For more information about `bootstrap', run `bootstrap --help'.
 
 * Copyright information
 
- Copyright (C) 2007 Free Software Foundation, Inc.
+ Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
  Permission is granted to anyone to make or distribute verbatim copies
  of this document as received, in any medium, provided that the

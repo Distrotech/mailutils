@@ -204,7 +204,7 @@ mu_grad_logger(int level,
 	  strcat (pfx, fmt);
 	}
     }
-  mu_diag_voutput (mlevel[level & L_PRIMASK], pfx ? pfx : fmt, ap);
+  mu_diag_voutput (mlevel[level & GRAD_LOG_PRIMASK], pfx ? pfx : fmt, ap);
   if (pfx)
     free(pfx);
 }

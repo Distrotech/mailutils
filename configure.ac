@@ -786,13 +786,10 @@ MU_ENABLE_SUPPORT(maildir)
 
 # FIXME: Should be --with-radius 
 MU_ENABLE_SUPPORT(radius,
-                  [AC_CHECK_HEADERS([radius/radius.h],,
-                                    [mu_cv_enable_radius=no])
-                   if test $mu_cv_enable_radius = yes; then
-		       AC_CHECK_LIB(gnuradius, grad_dict_init,
-                                    [MU_AUTHLIBS="$MU_AUTHLIBS -lgnuradius"],
-                                    [mu_cv_enable_radius=no])
-                   fi])
+                  [AM_GNU_RADIUS(1.6,
+		                 [MU_AUTHLIBS="$MU_AUTHLIBS -lgnuradius"
+				  mu_cv_enable_radius=yes],
+				 [mu_cv_enable_radius=no])]) 
 
 AC_ARG_ENABLE([mh-utils],
               AC_HELP_STRING([--enable-mh-utils],

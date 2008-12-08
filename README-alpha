@@ -1,17 +1,17 @@
 This is the GNU mailutils package.
 This document describes the actions needed to build the pre-release
-or CVS version of the package. See end of file for copying conditions.
+or Git version of the package. See end of file for copying conditions.
 
 * Introduction
 
 This is a *pre-release* version, and not ready for production use
-yet. If you are taking source from CVS, you will need to have several
+yet. If you are taking source from Git, you will need to have several
 special tools to help contribute. See the file README-hacking for more
 information, See chapter `Building' for the detailed instructions on
 how to build the package.
 
 Please, note that the accompanying documentation may be inaccurate
-or incomplete. The ChangeLog file is the authoritative documentation of
+or incomplete. The Git logs are the authoritative documentation of
 all recent changes.
 
 Report bugs to <bug-mailutils@gnu.org>
@@ -19,11 +19,11 @@ Report bugs to <bug-mailutils@gnu.org>
 * Checking Out the Sources
 
 The following instructions apply if you wish to obtain sources from
-the CVS repository:
+the Git repository:
 
-To checkout the source tree from CVS issue the following command:
+To clone the source tree from the repository, issue the following command:
 
- cvs -d :pserver:anoncvs@cvs.savannah.gnu.org:/cvsroot/mailutils checkout mailutils
+  git clone git://git.savannah.gnu.org/mailutils.git
 
 This will give you read-only access.  If you think you need write access,
 contact the mailing list.
@@ -69,7 +69,7 @@ Now set your breakpoints and proceed as usual.
 
 * Copyright information:
 
-Copyright (C) 2002, 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+Copyright (C) 2002, 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
