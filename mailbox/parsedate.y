@@ -130,19 +130,19 @@ struct pd_date
  do                                                                       \
    {                                                                      \
      int __x = val;                                                       \
-     if (((m) != PD_MASK_TZ && __x < 0) || (lim && __x >= lim)) onerror;  \
+     if (((m) != PD_MASK_TZ && __x < 0) || (lim && __x > lim)) onerror;   \
      date . memb = __x; date.mask |= m;                                   \
    }                                                                      \
  while (0)
    
-#define __SET_SECOND(d,v,a)   DATE_SET(d,second,PD_MASK_SECOND,v,60,a)
-#define __SET_MINUTE(d,v,a)   DATE_SET(d,minute,PD_MASK_MINUTE,v,60,a)  
-#define __SET_HOUR(d,v,a)     DATE_SET(d,hour,PD_MASK_HOUR,v,24,a)
+#define __SET_SECOND(d,v,a)   DATE_SET(d,second,PD_MASK_SECOND,v,59,a)
+#define __SET_MINUTE(d,v,a)   DATE_SET(d,minute,PD_MASK_MINUTE,v,59,a)  
+#define __SET_HOUR(d,v,a)     DATE_SET(d,hour,PD_MASK_HOUR,v,23,a)
 #define __SET_DAY(d,v,a)      DATE_SET(d,day,PD_MASK_DAY,v,31,a)   
 #define __SET_MONTH(d,v,a)    DATE_SET(d,month,PD_MASK_MONTH,v,12,a)
 #define __SET_YEAR(d,v,a)     DATE_SET(d,year,PD_MASK_YEAR,v,0,a)  
 #define __SET_TZ(d,v,a)       DATE_SET(d,tz,PD_MASK_TZ,v,0,a)
-#define __SET_MERIDIAN(d,v,a) DATE_SET(d,meridian,PD_MASK_MERIDIAN,v,MER24+1,a)
+#define __SET_MERIDIAN(d,v,a) DATE_SET(d,meridian,PD_MASK_MERIDIAN,v,MER24,a)
 #define __SET_ORDINAL(d,v,a)  DATE_SET(d,ordinal,PD_MASK_ORDINAL,v,0,a)
 #define __SET_NUMBER(d,v,a)   DATE_SET(d,number,PD_MASK_NUMBER,v,0,a) 
  
