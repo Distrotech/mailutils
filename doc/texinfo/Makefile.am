@@ -173,6 +173,17 @@ check-fixmes:
           rm -f $@-t; \
 	fi
 
+check-writeme:
+	@grep -Hn @WRITEME $(info_TEXINFOS) $(mailutils_TEXINFOS) > $@-t; \
+	if [ -s $@-t ]; then \
+	  echo "Empty nodes:"; \
+	  cat $@-t; \
+	  rm $@-t; \
+	  false;\
+	else \
+          rm $@-t; \
+	fi
+
 check-unrevised:
 	@grep -Hn @UNREVISED $(info_TEXINFOS) $(mailutils_TEXINFOS) > $@-t; \
 	if [ -s $@-t ]; then \
@@ -184,7 +195,7 @@ check-unrevised:
           rm $@-t; \
 	fi
 
-all-check-docs: check-format check-refs check-fixmes check-unrevised
+all-check-docs: check-format check-writeme check-unrevised check-refs check-fixmes 
 
 check-docs: 
 	$(MAKE) -k all-check-docs

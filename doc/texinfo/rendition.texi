@@ -37,6 +37,14 @@
 @set RENDITION Proof reading version
 @end ifset
 
+@macro WRITEME
+@ifclear PUBLISH
+@quotation
+@emph{This node is to be written.}
+@end quotation
+@end ifclear
+@end macro
+
 @c Output marks for nodes needing revision, but not in PUBLISH rendition.
 
 @macro UNREVISED

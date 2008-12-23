@@ -1931,7 +1931,7 @@ Password to access the database.
 
 @node LDAP Statement
 @subsection LDAP Statement
-@UNREVISED
+@WRITEME
 @kwindex ldap
 @subheading Syntax
 @smallexample
@@ -1979,7 +1979,7 @@ tls @{
 
 @node GSASL Statement
 @subsection GSASL Statement
-@UNREVISED
+@WRITEME
 @kwindex gsasl
 @subheading Syntax
 @smallexample
@@ -1997,9 +1997,6 @@ gsasl @{
 @}
 @end smallexample
 
-
-
-
 @c -------------------------------------------------------------------
 
 @node frm and from
@@ -2008,21 +2005,33 @@ gsasl @{
 GNU mailutils provides two commands for listing messages in a mailbox.
 These are @command{from} and @command{frm}.
 
+The behavior of both programs is affected by the following
+configuration file statements:
+
+@multitable @columnfractions 0.3 0.6
+@headitem Statement @tab Reference
+@item debug @tab @xref{Debug Statement}.
+@item tls @tab @xref{TLS Statement}.
+@item mailbox @xref{Mailbox Statement}.
+@item locking @xref{Locking Statement}.
+@end multitable
+
 @subheading @command{frm}
 @pindex frm
 
-The @command{frm} command outputs a header information of
-the selected messages in a mailbox. By default, @command{frm} reads the
+The @command{frm} utility outputs a header information of
+the selected messages in a mailbox. By default, @command{frm} reads 
 user's system mailbox and outputs the contents of @code{From} and
 @code{Subject} headers for each message. If a folder is specified in
 the command line, the program reads that folder rather than the default
 mailbox.
 
-The program uses following option groups: @FIXME-xref{mailbox}.
-
 The following command line options alter the behavior of the program:
 
 @table @option
+@item -d
+@itemx --debug
+Enable debugging output.
 @item -f @var{string}
 @itemx --field @var{string}
 Display the header named by @var{string} instead of @code{From}
@@ -2064,12 +2073,12 @@ orientation (such as Arabic or Hebrew).
 
 The @command{from} utility displays sender and subject of each message
 in a mailbox. By default, it reads the user's system mailbox. If the
-program is given a single argument, it is interpreted as a user
-name whose mailbox is to be read. Obviously, permissions are required
+program is given a single argument, it is interpreted as a name of the
+user whose mailbox is to be read. Obviously, permissions are required
 to access that user's mailbox, so such invocations may be used only
 by superuser.
 
-Option @option{-f} (@option{--file}) instructs the program to read
+The option @option{-f} (@option{--file}) instructs @command{from} to read
 the given mailbox.
 
 The full list of options, supported by @command{from} follows:
@@ -2085,8 +2094,8 @@ Prints additional debugging output.
 
 @item -s @var{string}
 @itemx --sender=@var{string}
-Prints only mail from addresses containing the supplied string.
-FIXME: only @code{From:} header is examined.
+Prints only mail whose @samp{From:} headers contain the supplied string.
+@FIXME{Probably, this should test envelopes as well.}
 
 @item -f @var{url}
 @itemx --file=@var{url}
@@ -2112,6 +2121,11 @@ contents of a mailbox. The URL of the mailbox to operate upon is
 taken from the argument of @option{--file} command line option. If it
 is not specified, the user's system mailbox is assumed. For more
 detail, see @ref{Reading Mail}.
+
+In contrast to other GNU Mailutils programs, @command{mail} does not
+use the Mailutils configuration file. Instead, it uses the traditional
+@samp{mailrc}-style configuration. @xref{Mail Configuration Files},
+for a detailed description of its format.
 
 @menu
 * Invoking Mail::            Command Line Options.
@@ -3868,7 +3882,16 @@ Number of messages in @var{folder}: @var{number}
 where @var{folder} represents the folder name, @var{number} represents
 the number of messages.
 
-The program uses following option groups: @FIXME-xref{mailbox}.
+Following configuration file statements affect the behaviour of 
+@command{messages}:
+
+@multitable @columnfractions 0.3 0.6
+@headitem Statement @tab Reference
+@item debug @tab @xref{Debug Statement}.
+@item tls @tab @xref{TLS Statement}.
+@item mailbox @xref{Mailbox Statement}.
+@item locking @xref{Locking Statement}.
+@end multitable
 
 The program accepts following command line options:
 
@@ -3916,9 +3939,42 @@ being developed at the time of this writing, will contain improved
 @code{Rmail} interface for work with mailutils @command{movemail}.
 
 @menu
+* Movemail Configuration::
 * Movemail Options::     Description of the Available Options
 * Summary::              Short Movemail Invocation Summary
 @end menu
+
+@node Movemail Configuration
+@subsection Movemail Configuration
+
+Following configuration file statements affect the behavior of
+@command{movemail}:
+
+@deffn {Movemail Config} preserve @var{bool}
+If @var{bool} is @samp{true}, do not remove messages from the source mailbox.
+@end deffn
+
+@deffn {Movemail Config} reverse @var{bool}
+If @var{bool} is @samp{true}, reverse message sorting order.
+@end deffn
+
+@deffn {Movemail Config} emacs @var{bool}
+If @var{bool} is @samp{true}, output information used by Emacs rmail interface.
+@end deffn
+
+@multitable @columnfractions 0.3 0.6
+@headitem Statement @tab Reference
+@item debug @tab @xref{Debug Statement}.
+@item tls @tab @xref{TLS Statement}.
+@item mailbox @xref{Mailbox Statement}.
+@item locking @xref{Locking Statement}.
+@item pam @xref{PAM Statement}.
+@item sql @xref{SQL Statement}.
+@item virtdomain @xref{Virtdomain Statement}.
+@item radius @xref{Radius Statement}.
+@item ldap @xref{LDAP Statement}.
+@item auth @xref{Auth Statement}.
+@end multitable
 
 @node Movemail Options
 @subsection Movemail Options
@@ -4056,37 +4112,43 @@ Enable (default) or disable TLS support
 @section @command{readmsg} --- Extract Messages from a Folder
 @pindex readmsg
 
-The program, readmsg, extracts with the selection argument messages from
-a mailbox. Selection can be specify by:
+The @command{readmsg} utility extracts messages from a mailbox
+according to the criteria specified in the command line. These
+criteria are:
 
 @enumerate
-@item A lone ``*'' means select all messages in the mailbox.
+@item A lone @samp{*} means ``select all messages in the mailbox''.
 
 @item
 A list of message numbers may be specified. Values
-of  ``0''  and ``$'' in the list both mean the last
+of  @samp{0}  and @samp{$} in the list both mean the last
 message in the mailbox. For example:
 @smallexample
 readmsg 1 3 0
 @end smallexample
-extracts  three messages from the folder:  the first, the third, and the last.
+extracts three messages from the folder: the first, the third, and the last.
 
 @item
-Finally, the selection may be some text to match. This  will  select  a  mail
+Finally, the selection may be some text to match. This will select a mail
 message which exactly matches the specified text. For example,
 @smallexample
 readmsg staff meeting
 @end smallexample
-extracts the message which contains the words ``staff meeting.''  Note that it
-will not match a message containing ``Staff Meeting'' - the matching  is  case
-sensitive.   Normally only the first message which matches the pattern will be
-printed.
+extracts the message which contains the words @samp{staff meeting}.
+Note that it will not match a message containing @samp{Staff Meeting}
+-- the matching is case sensitive. Normally only the first message
+which matches the pattern is printed.
 @end enumerate
 
-@subsubheading Command line options
+@menu
+* Opt-readmsg::   Invocation of @command{readmsg}.
+* Conf-readmsg::  Configuration of @command{readmsg}.
+@end menu
+
+@node Opt-readmsg
+@subsection Invocation of @command{readmsg}.
 
 @table @option
-
 @item -a
 @itemx --show-all
 If a pattern is use for selection show all messages that match pattern
@@ -4112,15 +4174,59 @@ Do not print the message header.
 @itemx --form-feed
 Put form-feed (Control-L) between messages instead of newline.
 
+@anchor{weedlist option}
 @item  -w @var{weedlist}
 @itemx --weedlist=@var{weedlist}
 A whitespace or coma separated list of header names to show per message.
-Default is --weedlist=''From Subject Date To CC Apparently-''
+Default is @option{--weedlist="From Subject Date To CC Apparently-"}.
 @end table
 
-@page
+@node Conf-readmsg
+@subsection Configuration of @command{readmsg}.
+
+Following configuration statements affect the behavior of
+@command{readmsg}:
+
+@deffn {Readmsg Conf} header @var{bool}
+If @var{bool} is @samp{true}, display entire headers.
+@end deffn
+
+@deffn {Readmsg Conf} weedlist @var{str}
+Set the weedlist. The @var{str} argument is
+a string, containig a list of header names, separated by whitespace,
+commans or colons. This corresponds to the @option{--weedlist} command
+line option (@pxref{Opt-readmsg, --weedlist}).
+@end deffn
+
+@deffn {Readmsg Conf} no-header @var{bool}
+If @var{bool} is @samp{true}, exclude all headers.
+@end deffn
+
+@deffn {Readmsg Conf} form-feeds @var{bool}
+If @var{bool} is @samp{true}, output formfeed character between
+messages.
+@end deffn
+
+@deffn {Readmsg Conf} folder @var{url}
+Set the @acronym{URL} of the mailbox folder to read.
+@end deffn
+
+@deffn {Readmsg Conf} show-all-match @var{bool}
+If @var{bool} is @samp{true}, print all messages matching pattern, not
+only the first.
+@end deffn
+
+@multitable @columnfractions 0.3 0.6
+@headitem Statement @tab Reference
+@item debug @tab @xref{Debug Statement}.
+@item tls @tab @xref{TLS Statement}.
+@item mailbox @xref{Mailbox Statement}.
+@item locking @xref{Locking Statement}.
+@end multitable
+
 @node sieve
 @section @command{sieve}
+@UNREVISED
 @pindex sieve
 
 Sieve is a language for filtering e-mail messages at time of final
