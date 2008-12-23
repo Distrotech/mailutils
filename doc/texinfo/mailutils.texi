@@ -227,8 +227,14 @@ Reading Mail
 
 @command{movemail} --- Moves Mail from the User Maildrop to the Local File
 
+* Movemail Configuration::
 * Movemail Options::     Description of the Available Options
 * Summary::              Short Movemail Invocation Summary
+
+@command{readmsg} --- Extract Messages from a Folder
+
+* Opt-readmsg::   Invocation of @command{readmsg}.
+* Conf-readmsg::  Configuration of @command{readmsg}.
 
 @command{sieve}
 

@@ -127,12 +127,12 @@ cb_bulletin_db (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static struct mu_cfg_param pop3d_cfg_param[] = {
-  { "undelete", mu_cfg_int, &undelete_on_startup, 0, NULL,
+  { "undelete", mu_cfg_bool, &undelete_on_startup, 0, NULL,
     N_("On startup, clear deletion marks from all the messages.") },
   { "expire", mu_cfg_uint, &expire, 0, NULL,
     N_("Automatically expire read messages after the given number of days."),
     N_("days") },
-  { "delete-expired", mu_cfg_int, &expire_on_exit, 0, NULL,
+  { "delete-expired", mu_cfg_bool, &expire_on_exit, 0, NULL,
     N_("Delete expired messages upon closing the mailbox.") },
 #ifdef WITH_TLS
   { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,

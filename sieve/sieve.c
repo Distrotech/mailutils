@@ -294,7 +294,7 @@ cb_ticket (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static struct mu_cfg_param sieve_cfg_param[] = {
-  { "keep-going", mu_cfg_int, &keep_going, 0, NULL,
+  { "keep-going", mu_cfg_bool, &keep_going, 0, NULL,
     N_("Do not abort if execution fails on a message.") },
   { "mbox-url", mu_cfg_string, &mbox_url, 0, NULL,
     N_("Mailbox to sieve (defaults to user's mail spool)."),

@@ -125,7 +125,7 @@ fix-sentence-spacing:
 		fi; \
 	done
 
-final: untabify master-menu
+final: untabify fix-sentence-spacing master-menu
 
 
 # Checks
