@@ -49,7 +49,7 @@ _tls_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case OPT_TLS:
-      mu_argp_node_list_new (&lst, "tls", arg ? arg : "yes");
+      mu_argp_node_list_new (&lst, "enable", arg ? arg : "yes");
       break;
       
     case OPT_SSL_CERT:
