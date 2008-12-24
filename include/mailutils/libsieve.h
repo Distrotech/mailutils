@@ -275,7 +275,7 @@ struct mu_gocs_sieve
   mu_list_t library_path;
 };
 
-int mu_sieve_module_init (void *);
+int mu_sieve_module_init (enum mu_gocs_op, void *);
 
 #ifdef __cplusplus
 }

@@ -59,9 +59,13 @@ const char *default_field_map =
 static struct mu_ldap_module_config ldap_param;
 
 int
-mu_ldap_module_init (void *data)
+mu_ldap_module_init (enum mu_gocs_op op, void *data)
 {
   struct mu_ldap_module_config *cfg = data;
+
+  if (op != mu_gocs_op_set)
+    return 0;
+  
   if (cfg)
     ldap_param = *cfg;
 

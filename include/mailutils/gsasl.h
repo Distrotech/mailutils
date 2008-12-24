@@ -28,7 +28,7 @@ struct mu_gsasl_module_data
   char *cram_md5_pwd;
 };
 
-int mu_gsasl_module_init (void *data);
+int mu_gsasl_module_init (enum mu_gocs_op, void *);
 
 struct mu_gsasl_module_data mu_gsasl_module_data;
 

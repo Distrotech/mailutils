@@ -123,7 +123,13 @@ typedef struct _mu_progmailer *mu_progmailer_t;
 #define MU_ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
 
 #define MU_DEFAULT_RECORD _MU_DEFAULT_RECORD_
-  
+
+enum mu_gocs_op
+  {
+    mu_gocs_op_set,
+    mu_gocs_op_flush
+  };
+
 #ifdef __cplusplus
 }
 #endif

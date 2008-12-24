@@ -36,18 +36,15 @@
 #include <gsasl.h>
 #include <lbuf.h>
 
-struct mu_gsasl_module_data mu_gsasl_module_data;
+struct mu_gsasl_module_data mu_gsasl_module_data = {
+    SITE_CRAM_MD5_PWD
+};
 
 int
-mu_gsasl_module_init (void *data)
+mu_gsasl_module_init (enum mu_gocs_op op, void *data)
 {
-  static struct mu_gsasl_module_data _default_module_data = {
-    SITE_CRAM_MD5_PWD
-  };
-  
-  if (!data)
-    mu_gsasl_module_data = _default_module_data;
-  memcpy (&mu_gsasl_module_data, data, sizeof (mu_gsasl_module_data));
+  if (op == mu_gocs_op_set && data)
+    memcpy (&mu_gsasl_module_data, data, sizeof (mu_gsasl_module_data));
   return 0;
 }
 

@@ -2042,8 +2042,8 @@ ldap @{
 @subheading Syntax
 @smallexample
 tls @{
-  # @r{Enable client TLS encryption.}
-  tls @var{bool};
+  # @r{Enable TLS support.}
+  enable @var{bool};
   # @r{Specify SSL certificate file.}
   ssl-cert @var{bool};
   # @r{Specify SSL certificate key file.}

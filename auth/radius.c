@@ -210,10 +210,12 @@ mu_grad_logger(int level,
 }
 
 int
-mu_radius_module_init (void *data)
+mu_radius_module_init (enum mu_gocs_op op, void *data)
 {
   struct mu_radius_module_data *cfg = data;
 
+  if (op != mu_gocs_op_set)
+    return 0;
   if (!NEED_RADIUS_P (cfg))
     return 0;
   

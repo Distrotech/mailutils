@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,9 +58,9 @@
 struct mu_gocs_virtual mu_virtual_module_config = { SITE_VIRTUAL_PWDDIR };
 
 int
-mu_virtual_module_init (void *data)
+mu_virtual_module_init (enum mu_gocs_op op, void *data)
 {
-  if (data)
+  if (op == mu_gocs_op_set && data)
     {
       struct mu_gocs_virtual *p = data;
       mu_virtual_module_config = *p;

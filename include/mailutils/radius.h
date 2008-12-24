@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,6 @@ struct mu_radius_module_data
   char *getpwuid_request;
 };
 
-extern int mu_radius_module_init (void *data);
+extern int mu_radius_module_init (enum mu_gocs_op, void *data);
 
 #endif

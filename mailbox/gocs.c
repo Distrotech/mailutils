@@ -41,53 +41,54 @@ char *mu_load_rcfile = NULL;
 
 
 int
-mu_gocs_dummy (void *data)
+mu_gocs_dummy (enum mu_gocs_op op, void *data)
 {
   return 0;
 }
 
 int
-mu_gocs_mailbox_init (void *data)
+mu_gocs_mailbox_init (enum mu_gocs_op op, void *data)
 {
   int rc;
   struct mu_gocs_mailbox *p = data;
 
-  if (!p)
-    return 0;
-  if (p->mail_spool)
+  if (op == mu_gocs_op_set && p)
     {
-      rc = mu_set_mail_directory (p->mail_spool);
-      if (rc)
-	mu_error (_("Cannot set mail directory name to `%s': %s"),
-		  p->mail_spool, mu_strerror (rc));
-      free (p->mail_spool);
-      p->mail_spool = NULL;
-    }
-  if (p->mailbox_pattern)
-    {
-      rc = mu_set_mailbox_pattern (p->mailbox_pattern);
-      if (rc)
-	mu_error (_("Cannot set mailbox pattern to `%s': %s"),
-		  p->mailbox_pattern, mu_strerror (rc));
-      free (p->mailbox_pattern);
-      p->mailbox_pattern = NULL;
-    }
-  if (p->mailbox_type)
-    {
-      if (mu_registrar_set_default_scheme (p->mailbox_type))
-	mu_error (_("Invalid mailbox type: %s"), p->mailbox_type);
-      free (p->mailbox_type);
-      p->mailbox_type = NULL;
+      if (p->mail_spool)
+	{
+	  rc = mu_set_mail_directory (p->mail_spool);
+	  if (rc)
+	    mu_error (_("Cannot set mail directory name to `%s': %s"),
+		      p->mail_spool, mu_strerror (rc));
+	  free (p->mail_spool);
+	  p->mail_spool = NULL;
+	}
+      if (p->mailbox_pattern)
+	{
+	  rc = mu_set_mailbox_pattern (p->mailbox_pattern);
+	  if (rc)
+	    mu_error (_("Cannot set mailbox pattern to `%s': %s"),
+		      p->mailbox_pattern, mu_strerror (rc));
+	  free (p->mailbox_pattern);
+	  p->mailbox_pattern = NULL;
+	}
+      if (p->mailbox_type)
+	{
+	  if (mu_registrar_set_default_scheme (p->mailbox_type))
+	    mu_error (_("Invalid mailbox type: %s"), p->mailbox_type);
+	  free (p->mailbox_type);
+	  p->mailbox_type = NULL;
+	}
     }
   return 0;
 }
 
 int
-mu_gocs_locking_init (void *data)
+mu_gocs_locking_init (enum mu_gocs_op op, void *data)
 {
   struct mu_gocs_locking *p = data;
   
-  if (!p)
+  if (!(op == mu_gocs_op_set && p))
     return 0;
 
   if (p->lock_flags)
@@ -156,12 +157,12 @@ mu_gocs_locking_init (void *data)
 }
 
 int
-mu_gocs_source_email_init (void *data)
+mu_gocs_source_email_init (enum mu_gocs_op op, void *data)
 {
   struct mu_gocs_source_email *p = data;
   int rc;
 
-  if (!p)
+  if (!(op == mu_gocs_op_set && p))
     return 0;
   
   if (p->address)
@@ -186,12 +187,12 @@ mu_gocs_source_email_init (void *data)
 }
 
 int
-mu_gocs_mailer_init (void *data)
+mu_gocs_mailer_init (enum mu_gocs_op op, void *data)
 {
   struct mu_gocs_mailer *p = data;
   int rc;
 
-  if (!p)
+  if (!(op == mu_gocs_op_set && p))
     return 0;
   
   if (p->mailer)
@@ -206,37 +207,38 @@ mu_gocs_mailer_init (void *data)
 }
 
 int
-mu_gocs_logging_init (void *data)
+mu_gocs_logging_init (enum mu_gocs_op op, void *data)
 {
   struct mu_gocs_logging *p = data;
-  
-  if (!p)
-    {
-      static struct mu_gocs_logging default_gocs_logging = { LOG_FACILITY };
-      p = &default_gocs_logging;
-    }
-  
-  if (p->facility)
-    {
-      mu_log_facility = p->facility;
-      mu_debug_default_printer = mu_debug_syslog_printer;
-    }
-  else
-    mu_debug_default_printer = mu_debug_stderr_printer;
 
-  if (p->tag)
-    mu_log_tag = strdup (p->tag);
-  /* FIXME: Tag */
+  if (op == mu_gocs_op_set)
+    {
+      if (!p)
+	{
+	  static struct mu_gocs_logging default_gocs_logging = { LOG_FACILITY };
+	  p = &default_gocs_logging;
+	}
+  
+      if (p->facility)
+	{
+	  mu_log_facility = p->facility;
+	  mu_debug_default_printer = mu_debug_syslog_printer;
+	}
+      else
+	mu_debug_default_printer = mu_debug_stderr_printer;
+
+      if (p->tag)
+	mu_log_tag = strdup (p->tag);
+    }
   return 0;
 }
 
 int
-mu_gocs_debug_init (void *data)
+mu_gocs_debug_init (enum mu_gocs_op op, void *data)
 {
-  struct mu_gocs_debug *p;
-  if (data)
+  if (op == mu_gocs_op_set && data)
     {
-      p = data;
+      struct mu_gocs_debug *p = data;
       if (p->string && p->errpfx)
 	{
 	  mu_global_debug_from_string (p->string, p->errpfx);
@@ -252,7 +254,7 @@ mu_gocs_debug_init (void *data)
 struct mu_gocs_entry
 {
   const char *name;
-  gocs_init_fp init;
+  mu_gocs_init_fp init;
 };
 
 #define MAX_GOCS 512
@@ -260,7 +262,7 @@ struct mu_gocs_entry
 static struct mu_gocs_entry _gocs_table[MAX_GOCS];
 
 void
-mu_gocs_register (const char *capa, gocs_init_fp init)
+mu_gocs_register (const char *capa, mu_gocs_init_fp init)
 {
   int i;
   for (i = 0; _gocs_table[i].name; i++)
@@ -287,7 +289,7 @@ mu_gocs_enumerate (mu_list_action_t action, void *data)
   return 0;
 }
 
-static gocs_init_fp
+static mu_gocs_init_fp
 find_init_function (struct mu_gocs_entry *tab, const char *capa)
 {
   for (; tab->name; tab++)
@@ -312,7 +314,7 @@ static struct mu_gocs_entry std_gocs_table[] = {
 void
 mu_gocs_register_std (const char *name)
 {
-  gocs_init_fp init = find_init_function (std_gocs_table, name);
+  mu_gocs_init_fp init = find_init_function (std_gocs_table, name);
   if (!init)
     {
       mu_error (_("INTERNAL ERROR at %s:%d: unknown standard capability `%s'"),
@@ -372,7 +374,7 @@ int
 _gocs_flush (void *item, void *data)
 {
   struct mu_gocs_data *s = item;
-  gocs_init_fp initfun = find_init_function (_gocs_table, s->capa);
+  mu_gocs_init_fp initfun = find_init_function (_gocs_table, s->capa);
 
   if (!initfun)
     {
@@ -381,7 +383,7 @@ _gocs_flush (void *item, void *data)
       abort ();
     }
 
-  if (initfun (s->data))
+  if (initfun (mu_gocs_op_set, s->data))
     {
       mu_error (_("Initialization of GOCS `%s' failed"), s->capa);
       return 1;
@@ -393,5 +395,9 @@ _gocs_flush (void *item, void *data)
 void
 mu_gocs_flush ()
 {
+  int i;
   mu_list_do (data_list, _gocs_flush, NULL);
+
+  for (i = 0; _gocs_table[i].name; i++)
+    _gocs_table[i].init (mu_gocs_op_flush, NULL);
 }

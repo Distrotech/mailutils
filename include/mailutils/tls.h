@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,13 +27,13 @@ extern "C" {
 
 struct mu_tls_module_config
 {
-  int client_enable;
+  int enable;
   char *ssl_cert;
   char *ssl_key;
   char *ssl_cafile;
 };
 
-extern int mu_tls_module_init (void *data);
+extern int mu_tls_module_init (enum mu_gocs_op, void *);
 
 extern int mu_tls_stream_create (mu_stream_t *stream, 
 				 mu_stream_t strin, mu_stream_t strout,

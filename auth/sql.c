@@ -607,10 +607,12 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 }
 
 int
-mu_sql_module_init (void *data)
+mu_sql_module_init (enum mu_gocs_op op, void *data)
 {
   struct mu_sql_module_config *cfg = data;
 
+  if (op != mu_gocs_op_set)
+    return 0;
   mu_sql_module_config.interface = mu_sql_interface_index (cfg->interface);
   if (mu_sql_module_config.interface == 0)
     {

@@ -66,14 +66,14 @@ typedef int (*mu_auth_fp) (struct mu_auth_data **data,
 
 struct mu_auth_module
 {
-  char           *name;
-  gocs_init_fp   init;
-  mu_auth_fp     authenticate;
-  void           *authenticate_data;
-  mu_auth_fp     auth_by_name;
-  void           *auth_by_name_data;
-  mu_auth_fp     auth_by_uid;
-  void           *auth_by_uid_data;
+  char            *name;
+  mu_gocs_init_fp init;
+  mu_auth_fp      authenticate;
+  void            *authenticate_data;
+  mu_auth_fp      auth_by_name;
+  void            *auth_by_name_data;
+  mu_auth_fp      auth_by_uid;
+  void            *auth_by_uid_data;
 };
 
 enum mu_auth_key_type

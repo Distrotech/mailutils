@@ -50,10 +50,10 @@ _path_append (void *item, void *data)
 }
 
 int
-mu_sieve_module_init (void *data)
+mu_sieve_module_init (enum mu_gocs_op op, void *data)
 {
   struct mu_gocs_sieve *p;
-  if (!data)
+  if (!(op == mu_gocs_op_set && data))
     return 0;
   p = data;
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,18 +36,22 @@
 
 #include <lbuf.h>
 
-struct mu_tls_module_config mu_tls_module_config;
+struct mu_tls_module_config mu_tls_module_config = { 1, NULL, NULL, NULL };
   
 int
-mu_tls_module_init (void *data)
+mu_tls_module_init (enum mu_gocs_op op, void *data)
 {
-  if (data)
+  switch (op)
     {
-      memcpy (&mu_tls_module_config, data, sizeof mu_tls_module_config);
+    case mu_gocs_op_set:
+      if (data)
+	memcpy (&mu_tls_module_config, data, sizeof mu_tls_module_config);
+      break;
+
+    case mu_gocs_op_flush:
 #ifdef WITH_TLS
-      if (mu_tls_module_config.client_enable)
-	mu_init_tls_libs ();
-#endif
+      mu_init_tls_libs ();
+#endif    
     }
   return 0;
 }
@@ -113,7 +117,7 @@ int mu_tls_enable = 0;
 int
 mu_init_tls_libs (void)
 {
-  if (!mu_tls_enable)
+  if (mu_tls_module_config.enable && !mu_tls_enable)
     mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
   return mu_tls_enable;
 }

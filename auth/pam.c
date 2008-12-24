@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2007, 2008 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -146,9 +146,9 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
 #endif
 
 int
-mu_pam_module_init (void *data)
+mu_pam_module_init (enum mu_gocs_op op, void *data)
 {
-  if (data)
+  if (op == mu_gocs_op_set && data)
     {
       struct mu_gocs_pam *p = data;
       mu_pam_service = p->service ? strdup (p->service) : p->service;

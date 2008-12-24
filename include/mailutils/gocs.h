@@ -82,20 +82,20 @@ extern int mu_load_user_rcfile;
 extern int mu_load_site_rcfile;
 extern char *mu_load_rcfile;
 
-typedef int (*gocs_init_fp) (void *data);
+typedef int (*mu_gocs_init_fp) (enum mu_gocs_op op, void *data);
 
-void mu_gocs_register (const char *capa, gocs_init_fp init);
+void mu_gocs_register (const char *capa, mu_gocs_init_fp init);
 void mu_gocs_register_std (const char *name);
 void mu_gocs_store (char *capa, void *data);
 void mu_gocs_flush (void);
 int mu_gocs_enumerate (mu_list_action_t action, void *data);
 
-int mu_gocs_mailbox_init (void *data);
-int mu_gocs_locking_init (void *data);
-int mu_gocs_source_email_init (void *data);
-int mu_gocs_mailer_init (void *data);
-int mu_gocs_logging_init (void *data);
-int mu_gocs_debug_init (void *data);
+int mu_gocs_mailbox_init (enum mu_gocs_op, void *data);
+int mu_gocs_locking_init (enum mu_gocs_op, void *data);
+int mu_gocs_source_email_init (enum mu_gocs_op, void *data);
+int mu_gocs_mailer_init (enum mu_gocs_op, void *data);
+int mu_gocs_logging_init (enum mu_gocs_op, void *data);
+int mu_gocs_debug_init (enum mu_gocs_op, void *data);
 
 #ifdef __cplusplus
 }
