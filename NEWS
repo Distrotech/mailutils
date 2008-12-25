@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2008-11-12
+GNU mailutils NEWS -- history of user-visible changes. 2008-12-26
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -6,9 +6,12 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 1.9.93:
+Version 2.0:
 
 * New configuration file format.
+
+See documentation, chapter 2.2, `Mailutils Configuration File', for a
+detailed description.
 
 * Programs
 
@@ -306,6 +309,17 @@ Any mu_url_get_.* accessors return MU_ERR_ENOENT if the corresponding
 field is not present in the object. Previous versions in that case
 returned 0 and stored empty string in the output buffer.
 
+** Prog mailer.
+
+New mailer type, `prog' is introduced. It is a generalization of the
+`sendmail' message. The syntax for this mailer type is:
+
+  prog://progname?args
+
+where `args' is a list of command line arguments separated by `&'
+signs. When using this mailer, mailutils executes `progname' with the
+given arguments and pipes the message to its standard input.
+
 ** New mailbox types.
 
 Two new mailbox types, "remote+smtp" and "remote+sendmail", are
@@ -313,6 +327,9 @@ supported. These are `append-only' mailboxes, i.e. the only operation
 that can be done over them is mu_mailbox_append_message.  E.g.,
 appending to the URL `remote+smtp://127.0.0.1:24' is equivalent to
 sending a message using mailer `smtp://127.0.0.1:24'.
+
+In addirion, "remote+prog" mailbox (abbreviated as "|") is useful for
+piping messages to the standard input of an external program.
 
 ** New argcv functions.
 

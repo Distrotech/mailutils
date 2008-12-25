@@ -329,7 +329,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
        "immediately.") },
   { "ident-keyfile", mu_cfg_string, &ident_keyfile, 0, NULL,
     N_("Name of DES keyfile for decoding ecrypted ident responses.") },
-  { "ident-entrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
+  { "ident-encrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
     N_("Use only encrypted ident responses.") },
   { "id-fields", MU_CFG_LIST_OF(mu_cfg_string), &imap4d_id_list, 0, NULL,
     N_("List of fields to return in response to ID command.") },

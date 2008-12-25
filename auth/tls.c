@@ -52,6 +52,7 @@ mu_tls_module_init (enum mu_gocs_op op, void *data)
 #ifdef WITH_TLS
       mu_init_tls_libs ();
 #endif    
+      break;
     }
   return 0;
 }

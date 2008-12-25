@@ -1,12 +1,12 @@
-config.rpath
-gitlog-to-changelog
-link-warning.h
 compile
 config.guess
+config.rpath
 config.sub
 depcomp
 elisp-comp
+gitlog-to-changelog
 install-sh
+link-warning.h
 ltmain.sh
 mailutils.spec
 mdate-sh

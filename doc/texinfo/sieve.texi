@@ -406,8 +406,8 @@ If @var{filename} starts with a directory separator character
 
 The @code{#searchpath} directive adds its argument to the list of
 directories searched for loadable modules. It has the same effect
-as @option{-L} command line switch used by GNU sieve utility
-(@FIXME-pxref{sieve group}). 
+as @command{library-path} Sieve configuration statement
+(@pxref{Sieve Configuration, library-path}). 
 
 @node Require Statement
 @section Require Statement
@@ -1437,7 +1437,7 @@ is given.
 
 @subsubheading Example
 The example below uses the @command{maidag} utility
-(@FIXME-pxref{maidag}) to forward the message to user @samp{gray} on
+(@pxref{maidag}) to forward the message to user @samp{gray} on
 the machine @samp{mail.gnu.org}.
 
 @smallexample

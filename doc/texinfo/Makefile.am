@@ -72,6 +72,7 @@ mailutils_TEXINFOS = \
  sieve.texi\
  smtp.texi\
  stream.texi\
+ usage.texi\
  url.texi\
  $(RENDITION_TEXI)\
  $(INCFILES)

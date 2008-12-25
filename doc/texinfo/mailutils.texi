@@ -30,16 +30,20 @@
 @end direntry
 @dircategory Individual utilities
 @direntry
-* comsatd: (mailutils)comsatd.                  Comsat daemon.
-* frm: (mailutils)frm.                          List headers from a mailbox.
-* guimb: (mailutils)guimb.                      Mailbox processing language.
-* imap4d: (mailutils)imap4d.                    IMAP4 daemon.
-* mail.local: (mailutils)mail.local.            Deliver mail to local mailbox.
-* mail: (mailutils)mail.                        Send and receive mail.
-* messages: (mailutils)messages.                Count messages in mailbox.
-* pop3d: (mailutils)pop3d.                      POP3 daemon.
-* readmsg: (mailutils)readmsg.                  Extract messages from a folder.
-* sieve: (mailutils)sieve.                      Mail filtering utility.
+* comsatd: (mailutils)comsatd.          Comsat Daemon.
+* frm: (mailutils)frm.                  List Headers from a Mailbox.
+* guimb: (mailutils)guimb.              Mailbox Processing Language.
+* imap4d: (mailutils)imap4d.            IMAP4 Daemon.
+* mail: (mailutils)mail.                Send and Receive Mail.
+* maidag: (mailutils)maidag.            A General-Purpose Mail Delivery Agent.
+* messages: (mailutils)messages.        Count Messages in a Mailbox.
+* pop3d: (mailutils)pop3d.              POP3 Daemon.
+* readmsg: (mailutils)readmsg.          Extract Messages from a Folder.
+* sieve: (mailutils)sieve.              Mail Filtering Utility.
+* mimeview: (mailutils)mimeview.        View MIME Messages.
+* mailutils-config: (mailutils)mailutils-config. List Information about Mailutils.
+* mail.local: (mailutils)mail.local.    Deliver Mail to UNIX Mailboxes.
+* mail.remote: (mailutils)mail.remote. Forward Mail to Remote Machine.
 @end direntry
 @end ifinfo
 
@@ -132,6 +136,7 @@ Mailutils Programs
 * sieve::             Mail Filtering Utility.
 * guimb::             Mailbox Scanning and Processing Language.
 
+* maidag::            General-purpose Mail Delivery Agent.
 * mail.local::        Deliver Mail to the Local Mailbox.
 * mail.remote::       Pseudo-Sendmail Interface for Mail Delivery.
 
@@ -158,6 +163,7 @@ Mailutils Configuration File
 * Debug Statement::
 * Mailbox Statement::
 * Locking Statement::
+* Mailer Statement::
 * ACL Statement::
 * Tcp-wrappers Statement::
 * Server Settings::
@@ -244,6 +250,7 @@ Reading Mail
 A Sieve Interpreter
 
 * Invoking Sieve::
+* Sieve Configuration::
 * Logging and Debugging::
 * Extending Sieve::
 
@@ -254,34 +261,50 @@ A Sieve Interpreter
 * Passing Options to Scheme::
 * Command Line Option Summary::
 
-@command{mail.local} --- Deliver Mail to the Local Mailbox
+maidag
+
+* Sendmail-maidag::          Using @command{maidag} with Sendmail.
+* Exim-maidag::             Using @command{maidag} with Exim.
+* MeTA1-maidag::            Using @command{maidag} with MeTA1.
+* Mailbox Quotas::
+* Maidag Scripting::
+* Forwarding::
+* Url-mode::                Delivering Messages to a URL.
+* Remote Mailbox Delivery::
+* Conf-maidag::             Maidag Configuration File Summary
+
+Mailbox Quotas
+
+* DBM Quotas::          Keeping Quotas in DBM File.
+* SQL Quotas::          Keeping Quotas in SQL Database.
+
+Maidag Scripting
+
+* Sieve Maidag Filters::
+* Scheme Maidag Filters::
+
+@command{mail.local} --- Deliver Mail to the Local UNIX Mailbox
 
 * Invocation::     Mail.local options
-* MTA::            Using mail.local with various MTAs
-* Mailbox Quotas:: Setting up mailbox quotas.
-* Sieve Filters::  Implementing user-defined Sieve mail filters.
-* Scheme Filters:: Implementing user-defined Scheme mail filters. 
+* Mail.local Config::
 
-Using @command{mail.local} with Various MTAs
+mimeview
 
-* Sendmail::    Using @command{mail.local} with Sendmail.
-* Exim::        Using @command{mail.local} with Exim.
-
-Setting up Mailbox Quotas
-
-* DBM Quotas::          Keeping Quotas in DBM Database.
-* SQL Quotas::          Keeping Quotas in SQL Database.
+* Mimeview Invocation::
+* Mimeview Config::
 
 POP3 Daemon
 
 * Login delay::
 * Auto-expire::
 * Bulletins::
+* Conf-pop3d::           Pop3d Configuration
 * Command line options::
 
 IMAP4 Daemon
 
 * Namespace::       Namespace.
+* Conf-imap4d::     Configuration.
 * Starting imap4d:: Invocation Options.
 
 Comsat Daemon
@@ -446,7 +469,6 @@ else is licensed using the GNU GPL.
 
 @node Book Contents
 @section What this Book Contains
-@UNREVISED
 
 @FIXME{This is more a plan on how the document should be structured,
 than a description of its actual structure. However it is:}
@@ -470,6 +492,13 @@ Mailutils.
 
   Finally, the third part contains a complete Mailutils library
 reference. 
+
+  This version of the book is not finished. The places that may
+contain inaccurate information carry prominent notices stating so.
+For updated versions of the documentation, visit
+@uref{http://www.gnu.org/software/mailutils/manual}. If you have any
+questions, feel free to ask them at the mailing list
+@email{bug-mailutils@@gnu.org}. 
 
 @node History
 @section A bit of History, and why use this package?
