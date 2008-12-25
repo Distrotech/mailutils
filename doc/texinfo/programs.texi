@@ -6097,13 +6097,22 @@ either from @file{inetd.conf} or as a standalone daemon.
 @FIXME-xref{daemon}, @FIXME-xref{logging}.
 
 @table @option
-@item -c @var{file}
-@itemx --config @var{file}
-Read configuration from given @var{file}. For more information about
-comsatd configuration files, see @ref{Configuring comsatd}.
+@item -C @var{file}
+@itemx --convert-config=@var{file}
+Convert the configuration file @var{file} to the new
+format. @var{File} must be a @command{comsatd} configuration file in
+Mailutils v. 1.x format. The converted file is printed on the standard
+output. For example, the following command can be used to convert old
+@command{comsatd} configuration file to new format:
+
+@smallexample
+$ comsatd --convert-config=/etc/comsatd.conf > /etc/mailutils.d/comsatd
+@end smallexample
+
 @item -d
 @itemx --daemon
 Run as a standalone daemon.
+
 @item -i
 @itemx --inetd
 The server is started from @file{/etc/inetd.conf} file:
@@ -6114,129 +6123,79 @@ comsatd -c /etc/comsat.conf
 @end smallexample
 
 This is the default operation mode.
-@item -m @var{path}
-@itemx --mail-spool=@var{path}
-Set path to the mailspool directory
-@item -p @var{number}
-@itemx --port @var{number}
-Specify the port number to listen on. Default is 512.
-@item -v
-@itemx --version
-Output version and exit successfully.
-@item -h
-@itemx --help
-Display short help message and exit.
+
+@item -t
+@itemx --test
+Test mode. In this mode, @command{comsatd} takes two arguments:
+@acronym{URL} of a mailbox and @acronym{QID} of the message from that
+mailbox, e.g.:
+
+@smallexample
+$ comsatd --test /var/mail/root 34589
+@end smallexample
+
 @end table
 
 @node Configuring comsatd
 @subsection Configuring @command{comsatd}
 
-The configuration parameters for @command{comsatd} are kept in a single
-configuration file. The file uses line-oriented format: each line
-contains a single statement. Comments are introduced with the @samp{#}
-sign and empty lines are ignored. You can specify the configuration
-file to use by using @option{-c} or @option{--config} command line switch.
+Following configuration statements affect the behavior of
+@command{comsatd}:
 
-The configuration file statements can logically be subdivided into
-@dfn{General Settings}, @dfn{Security Settings} and @dfn{Access Control
-Lists}. The following sections address each of these statement group in
-detail.
+@multitable @columnfractions 0.3 0.6
+@headitem Statement @tab Reference
+@item debug   @tab @xref{Debug Statement}.
+@item logging @tab @xref{Logging Statement}.
+@item mailbox @tab @xref{Mailbox Statement}.
+@item locking @tab @xref{Locking Statement}.
+@item acl     @tab @xref{ACL Statement}.
+@end multitable
 
 @menu
 * General Settings::
 * Security Settings::
-* Access Control Lists::
 @end menu
 
 @node General Settings
-@subsubheading General Settings
+@subsubsection General Settings
 
 These statements control the general behavior of the comsat daemon:
 
-@table @asis
-@item max-lines @var{number}
+@deffn {Comsatd Conf} max-lines @var{number}
 Set maximum number of message body lines to be output.
-@item allow-biffrc ( yes | no )
+@end deffn
+
+@deffn {Comsatd Conf} allow-biffrc @var{bool}
 Enable or disable processing of user's @file{.biffrc} file. By default,
 it is enabled.
-@end table
+@end deffn
 
 @node Security Settings
-@subsubheading Security Settings
+@subsubsection Security Settings
 
 These statements control the way @command{comsatd} fights possible
 flooding attacks.
 
-@table @asis
-@item max-requests @var{number}
-Set maximum number of incoming requests per @samp{request-control-interval}.
-@item request-control-interval @var{number}
-Set the request control interval (seconds).
-@item overflow-delay-time @var{number}
-Set the initial amount of time to sleep, after the first overflow occurs.
-@item overflow-control-interval @var{number}
-Set the overflow control interval. If two consecutive overflows happen
-within @var{number} seconds, the overflow-delay-time is doubled.
-@end table
+@deffn {Comsatd Conf} max-requests @var{number}
+Set maximum number of incoming requests per
+@samp{request-control-interval}.
+@end deffn
 
-@node Access Control Lists
-@subsubheading Access Control Lists
+@deffn {Comsatd Conf} request-control-interval @var{duration}
+Set the request control interval.
+@end deffn
 
-Access control lists determine from which addresses @command{comsatd}
-will receive mail notification messages.
+@deffn {Comsatd Conf} overflow-delay-time @var{duration}
+Set initial amount of time to sleep, after the first overflow occurs.
+@end deffn
 
-The access control lists are introduced in configuration file using
-keyword @samp{acl}. General format for an ACL rule is
-
-@smallexample
-acl @var{action} @var{netlist}
-@end smallexample
-
-@noindent
-Here, @var{action} specifies the action to be taken when a request
-arrives from one of the networks, listed in @var{netlist}. There are
-two possible actions: @samp{allow} and @samp{deny}.
-
-The @var{netlist} is a whitespace-separated list of network numbers.
-Each network number may be specified in one of the following forms:
-
-@table @asis
-@item @var{netnum}
-Means a single host with IP address @var{netnum}.
-@item @var{netnum}/@var{netmask}
-@item @var{netnum}/@var{masklen}
-@item @samp{any}
-Denotes any IP address. It is equivalent to @samp{0.0.0.0/0}.
-@end table
-
-Upon receiving a notification message, @command{comsatd} compares its
-source address against each ACL rule in the order of their appearance
-in the configuration file. The first rule that matches the packet
-determines whether the message will be processed or rejected. If
-no matching rule was found, the default rule applies. Currently, default
-rule is
-
-@smallexample
-acl allow any
-@end smallexample
-
-@noindent
-If you don't need such behavior, specify the default rule explicitly.
-For example, the common use would be:
-
-@smallexample
-@group
-acl allow 127.0.0.1
-acl deny any
-@end group
-@end smallexample
-
-@noindent
-which makes @command{comsatd} receive the notification messages from
-localhost only.
+@deffn {Comsatd Conf} overflow-control-interval @var{duration}
+Set overflow control interval. If two consecutive overflows happen
+within that interval, the overflow-delay-time is doubled.
+@end deffn
 
 @node dot.biffrc
-@subheading A per-user Configuration File
+@subsection A per-user Configuration File
 
 By default, when a notification arrives, @command{comsatd} prints subject,
 from headers and the first five lines from the new message to the user's
@@ -6289,7 +6248,7 @@ Expands to message body. @var{c} and @var{l} give maximum number of
 characters and lines in the expansion. When omitted, they default to 400, 5.
 @end table
 
-@subheading Example I
+@subsubheading Example I
 
 Dump to the user's terminal the contents of @samp{From} and
 @samp{Subject} headers followed by at most 5 lines of message body.
@@ -6437,7 +6396,11 @@ build flags, e.g.:
 
 @smallexample
 $ mailutils-config --info
-VERSION=0.4.1
+VERSION=@value{VERSION}
+SYSCONFDIR=/usr/local/etc
+MAILSPOOLDIR=/var/mail/
+SCHEME=mbox
+LOG_FACILITY=mail
 USE_LIBPAM
 HAVE_LIBLTDL
 WITH_GDBM
@@ -6454,6 +6417,23 @@ ENABLE_MH
 ENABLE_MAILDIR
 ENABLE_SMTP
 ENABLE_SENDMAIL
+@end smallexample
+
+When this option is used in conjunction with the @option{--verbose}
+option, a short description is printed to the right of each keyword,
+e.g.:
+
+@smallexample
+$ mailutils-config --info --verbose
+VERSION=1.9.93             - Version of this package
+SYSCONFDIR=/usr/local/etc  - System configuration directory
+MAILSPOOLDIR=/var/mail/    - Default mail spool directory
+SCHEME=mbox                - Default mailbox type
+LOG_FACILITY=mail          - Default syslog facility
+USE_LIBPAM                 - PAM support
+HAVE_LIBLTDL               - a portable `dlopen' wrapper library
+WITH_GDBM                  - GNU DBM
+@dots{}
 @end smallexample
 
 This option also accepts any number of arguments. When these are

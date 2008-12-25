@@ -294,7 +294,6 @@ Configuring @command{comsatd}
 
 * General Settings::
 * Security Settings::
-* Access Control Lists::
 
 @acronym{MH} --- The MH Message Handling System
 
