@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -64,12 +64,12 @@ Mailer :: close ()
 }
 
 void
-Mailer :: sendMessage (const Message& msg, const Address& from,
-		       const Address& to)
+Mailer :: send_message (const Message& msg, const Address& from,
+			const Address& to)
 {
   int status = mu_mailer_send_message (mailer, msg.msg,
 				       from.addr, to.addr);
   if (status)
-    throw Exception ("Mailer::sendMessage", status);
+    throw Exception ("Mailer::send_message", status);
 }
 

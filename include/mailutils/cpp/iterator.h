@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,12 +21,13 @@
 #ifndef _MUCPP_ITERATOR_H
 #define _MUCPP_ITERATOR_H
 
-#include <iostream>
 #include <mailutils/iterator.h>
 #include <mailutils/cpp/list.h>
 
 namespace mailutils
 {
+
+class List;
 
 class Iterator
 {
@@ -34,19 +35,28 @@ class Iterator
   mu_iterator_t mu_iter;
   List* pList;
 
+  friend class List;
+
  public:
   Iterator (const List&);
   Iterator (const mu_iterator_t);
   ~Iterator ();
 
+  bool operator == (const Iterator&);
+  bool operator != (const Iterator&);
+
   void dup (Iterator*&, const Iterator&);
   void first ();
   void next ();
   Iterator& operator ++ (int);
-  void current (void**);
+  void current (void** pitem);
   void* current ();
-  bool isDone ();
-  List& getList ();
+  bool is_done ();
+  List& get_list ();
+
+  inline void* operator * () {
+    return this->current ();
+  }
 };
 
 }

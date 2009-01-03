@@ -1,6 +1,6 @@
 ##   Process this file with GNU Automake to create Makefile.in
 ##
-##   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -25,6 +25,8 @@ EXTRA_LTLIBRARIES = $(MU_CXX_LIBS)
 
 libmu_cpp_la_SOURCES = \
  address.cc\
+ attribute.cc\
+ body.cc\
  filter.cc\
  header.cc\
  iterator.cc\
@@ -33,7 +35,10 @@ libmu_cpp_la_SOURCES = \
  mailcap.cc\
  mailer.cc\
  message.cc\
+ mime.cc\
+ mutil.cc\
  pop3.cc\
+ registrar.cc\
  stream.cc\
  url.cc
 

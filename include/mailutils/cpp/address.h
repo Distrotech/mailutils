@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _ADDRESS_H
 #define _ADDRESS_H
 
-#include <iostream>
 #include <mailutils/address.h>
 #include <mailutils/cpp/error.h>
 
@@ -43,25 +42,25 @@ class Address
   Address (const mu_address_t);
   ~Address ();
 
-  size_t getCount ();
-  bool isGroup (size_t);
+  size_t get_count ();
+  bool is_group (size_t n);
 
-  std::string getEmail (size_t);
-  std::string getLocalPart (size_t);
-  std::string getDomain (size_t);
-  std::string getPersonal (size_t);
-  std::string getComments (size_t);
-  std::string getRoute (size_t);
+  std::string get_email (size_t n);
+  std::string get_local_part (size_t n);
+  std::string get_domain (size_t n);
+  std::string get_personal (size_t n);
+  std::string get_comments (size_t n);
+  std::string get_route (size_t n);
 
   // Address Exceptions
   class EInval : public Exception {
   public:
-    EInval (const std::string& m, int s) : Exception (m, s) {}
+    EInval (const char* m, int s) : Exception (m, s) {}
   };
 
   class ENoent : public Exception {
   public:
-    ENoent (const std::string& m, int s) : Exception (m, s) {}
+    ENoent (const char* m, int s) : Exception (m, s) {}
   };
 };
 

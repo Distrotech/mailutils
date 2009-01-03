@@ -18,34 +18,56 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _MUCPP_MAILER_H
-#define _MUCPP_MAILER_H
+#ifndef _MUCPP_ATTRIBUTE_H
+#define _MUCPP_ATTRIBUTE_H
 
-#include <string>
-#include <mailutils/mailer.h>
-#include <mailutils/cpp/message.h>
-#include <mailutils/cpp/address.h>
+#include <mailutils/attribute.h>
 
 namespace mailutils
 {
 
-class Mailer
+class Attribute
 {
  protected:
-  mu_mailer_t mailer;
+  mu_attribute_t attr;
 
  public:
-  Mailer (const std::string&);
-  Mailer (const mu_mailer_t);
-  ~Mailer ();
+  Attribute ();
+  Attribute (const mu_attribute_t);
 
-  void open (int flags);
-  void close ();
-  void send_message (const Message& msg, const Address& from,
-		     const Address& to);
+  bool is_modified ();
+  void clear_modified ();
+  void set_modified ();
+
+  bool is_userflag (int flag);
+  bool is_seen ();
+  bool is_answered ();
+  bool is_flagged ();
+  bool is_deleted ();
+  bool is_draft ();
+  bool is_recent ();
+  bool is_read ();
+
+  void set_userflag (int flag);
+  void set_seen ();
+  void set_answered ();
+  void set_flagged ();
+  void set_deleted ();
+  void set_draft ();
+  void set_recent ();
+  void set_read ();
+
+  void unset_userflag (int flag);
+  void unset_seen ();
+  void unset_answered ();
+  void unset_flagged ();
+  void unset_deleted ();
+  void unset_draft ();
+  void unset_recent ();
+  void unset_read ();
 };
 
 }
 
-#endif // not _MUCPP_MAILER_H
+#endif // not _MUCPP_ATTRIBUTE_H
 

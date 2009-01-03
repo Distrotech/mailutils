@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,58 +27,48 @@ using namespace mailutils;
 int
 main (int argc, char **argv)
 {
-  int status = 0;
-  char* file = "/etc/mailcap";
+  string file ("/etc/mailcap");
 
   try {
-    FileStream stream ((std::string) file, MU_STREAM_READ);
+    FileStream stream (file, MU_STREAM_READ);
     stream.open ();
 
     Mailcap mailcap (stream);
 
-    int i;
-    size_t count = 0;
-    string buffer;
+    int count = mailcap.entries_count ();
 
-    count = mailcap.getCount ();
-    for (i = 1; i <= count; i++)
+    for (int i = 1; i <= count; i++)
       {
-	size_t j;
-	size_t fields_count = 0;
-
 	cout << "entry[" << i << "]\n";
 
-	MailcapEntry entry = mailcap.getEntry (i);
+	MailcapEntry entry = mailcap[i];
 
-	/* typefield.  */
-	buffer = entry.getTypeField ();
-	cout << "\ttypefield: " << buffer << endl;
+	/* typefield. */
+	cout << "\ttypefield: " << entry.get_typefield () << endl;
 
-	/* view-command.  */
-	buffer = entry.getViewCommand ();
-	cout << "\tview-command: " << buffer << endl;
+	/* view-command. */
+	cout << "\tview-command: " << entry.get_viewcommand () << endl;
 
-	/* fields.  */
-	fields_count = entry.fieldsCount ();
-	for (j = 1; j <= fields_count; j++)
+	/* fields. */
+	size_t fields_count = entry.fields_count ();
+	for (size_t j = 1; j <= fields_count; j++)
 	  {
 	    try {
-	      buffer = entry.getField (j);
+	      cout << "\tfields[" << j << "]: " << entry[j] << endl;
 	    }
 	    catch (Exception& e) {
 	      cerr << e.method () << ": cannot retrieve field "
-		   << j << ": " << e.msgError () << endl;
+		   << j << ": " << e.what () << endl;
 	    }
-	    cout << "\tfields[" << j << "]: " << buffer << endl;
 	  }
-
 	cout << endl;
       }
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
     exit (1);
   }
   
   return 0;
 }
+

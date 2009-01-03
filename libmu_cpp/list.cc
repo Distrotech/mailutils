@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -108,18 +108,43 @@ List :: get (size_t index)
   return pitem;
 }
 
-void*
-List :: operator [] (size_t index)
+inline void*
+List :: front ()
 {
-  return this->get (index);
+  return this->get (0);
+}
+
+void*
+List :: back ()
+{
+  size_t count = this->count ();
+  if (count)
+    return this->get (count - 1);
+  else
+    return NULL;
+}
+
+Iterator
+List :: begin ()
+{
+  mu_iterator_t mu_iter;
+  int status = mu_list_get_iterator (this->mu_list, &mu_iter);
+  if (status)
+    throw Exception ("Iterator::begin", status);
+
+  Iterator itr = Iterator (mu_iter);
+
+  this->iter = &itr;
+  this->iter->first ();
+  return itr;
 }
 
 void
-List :: toArray (void** array, size_t count, size_t* pcount)
+List :: to_array (void** array, size_t count, size_t* pcount)
 {
   int status = mu_list_to_array (mu_list, array, count, pcount);
   if (status)
-    throw Exception ("List::toArray", status);
+    throw Exception ("List::to_array", status);
 }
 
 void
@@ -131,7 +156,7 @@ List :: locate (void* item, void** ret_item)
 }
 
 bool
-List :: isEmpty ()
+List :: is_empty ()
 {
   return (bool) mu_list_is_empty (mu_list);
 }
@@ -148,6 +173,12 @@ List :: count ()
   return count;
 }
 
+inline size_t
+List :: size ()
+{
+  return this->count ();
+}
+
 void
 List :: apply (mu_list_action_t* action, void* cbdata)
 {
@@ -157,16 +188,16 @@ List :: apply (mu_list_action_t* action, void* cbdata)
 }
 
 mu_list_comparator_t
-List :: setComparator (mu_list_comparator_t comp)
+List :: set_comparator (mu_list_comparator_t comp)
 {
   return mu_list_set_comparator (mu_list, comp);
 }
 
 void
-List :: setDestroyItem (void (*mu_destroy_item) (void *item))
+List :: set_destroy_item (void (*mu_destroy_item) (void *item))
 {
   int status = mu_list_set_destroy_item (mu_list, mu_destroy_item);
   if (status)
-    throw Exception ("List::setDestroyItem", status);
+    throw Exception ("List::set_destroy_item", status);
 }
 

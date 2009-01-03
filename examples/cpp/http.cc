@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@
 using namespace std;
 using namespace mailutils;
 
-std::string wbuf = "GET / HTTP/1.0\r\n\r\n";
-std::string rbuf;
+string wbuf = "GET / HTTP/1.0\r\n\r\n";
+string rbuf;
 
 int
 main ()
@@ -55,13 +55,13 @@ main ()
     }
     catch (Stream::EAgain) {
       stream.wait (MU_STREAM_READY_WR);
-      off += stream.getWriten ();
+      off += stream.get_write_count ();
       goto write_again;
     }
 
-    if (stream.getWriten () != wbuf.length ())
+    if (stream.get_write_count () != wbuf.length ())
       {
-	cerr << "stream.getWriten() != wbuf length" << endl;
+	cerr << "stream.get_write_count() != wbuf length" << endl;
 	exit (1);
       }
 
@@ -75,12 +75,12 @@ main ()
 	  stream.wait (MU_STREAM_READY_RD);
 	  goto read_again;
 	}
-	cout << rbuf.substr (0, stream.getReadn ());
+	cout << rbuf.substr (0, stream.get_read_count ());
       }
-    while (stream.getReadn ());
+    while (stream.get_read_count ());
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
     exit (1);
   }
 

@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -64,90 +64,90 @@ Url :: parse ()
 }
 
 long
-Url :: getPort ()
+Url :: get_port ()
 {
   long port;
   int status = mu_url_get_port (url, &port);
   if (status)
-    throw Exception ("Url::getPort", status);
+    throw Exception ("Url::get_port", status);
   return port;
 }
 
 std::string
-Url :: getScheme ()
+Url :: get_scheme ()
 {
   int status = mu_url_get_scheme (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getScheme", status);
+    throw Exception ("Url::get_scheme", status);
   return std::string (buf);
 }
 
 std::string
-Url :: getUser ()
+Url :: get_user ()
 {
   int status = mu_url_get_user (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getUser", status);
+    throw Exception ("Url::get_user", status);
   return std::string (buf);
 }
 
 std::string
-Url :: getPasswd ()
+Url :: get_passwd ()
 {
   int status = mu_url_get_passwd (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getPasswd", status);
+    throw Exception ("Url::get_passwd", status);
   return std::string (buf);
 }
 
 std::string
-Url :: getAuth ()
+Url :: get_auth ()
 {
   int status = mu_url_get_auth (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getAuth", status);
+    throw Exception ("Url::get_auth", status);
   return std::string (buf);
 }
  
 std::string
-Url :: getHost ()
+Url :: get_host ()
 {
   int status = mu_url_get_host (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getHost", status);
+    throw Exception ("Url::get_host", status);
   return std::string (buf);
 }
 
 std::string
-Url :: getPath ()
+Url :: get_path ()
 {
   int status = mu_url_get_path (url, buf, sizeof (buf), NULL);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
-    throw Exception ("Url::getPath", status);
+    throw Exception ("Url::get_path", status);
   return std::string (buf);
 }
 
 std::vector<std::string>
-Url :: getQuery ()
+Url :: get_query ()
 {
   size_t argc;
   char **argv;
   
   int status = mu_url_sget_query (url, &argc, &argv);
   if (status)
-    throw Exception ("Url::getQuery", status);
+    throw Exception ("Url::get_query", status);
 
   std::vector<std::string> params;
 

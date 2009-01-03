@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,16 +32,16 @@ read_and_print (Stream *in, Stream& out)
 {
   char buffer[128];
   
-  in->sequentialReadLine (buffer, sizeof (buffer));
-  while (in->getReadn ())
+  in->sequential_readline (buffer, sizeof (buffer));
+  while (in->get_read_count ())
     {
-      out.sequentialWrite (buffer, in->getReadn ());
-      in->sequentialReadLine (buffer, sizeof (buffer));
+      out.sequential_write (buffer, in->get_read_count ());
+      in->sequential_readline (buffer, sizeof (buffer));
     }
 }
 
 Stream *
-createFilter (bool read_stdin, char *cmdline, int flags)
+create_filter (bool read_stdin, char *cmdline, int flags)
 {
   try {
     if (read_stdin)
@@ -61,7 +61,7 @@ createFilter (bool read_stdin, char *cmdline, int flags)
   }
   catch (Exception& e) {
     cerr << progname << ": cannot create program filter stream: "
-	 << e.method () << ": " << e.msgError () << endl;
+	 << e.method () << ": " << e.what () << endl;
     exit (1);
   }
 }
@@ -92,7 +92,7 @@ main (int argc, char *argv[])
 
   mu_argcv_string (argc - i, &argv[i], &cmdline);
 
-  stream = createFilter (read_stdin, cmdline, flags);
+  stream = create_filter (read_stdin, cmdline, flags);
 
   try {
     StdioStream out (stdout, 0);
@@ -103,7 +103,7 @@ main (int argc, char *argv[])
     delete stream;
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
     exit (1);
   }
 

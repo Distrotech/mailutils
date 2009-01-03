@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
 #ifndef _MUCPP_LIST_H
 #define _MUCPP_LIST_H
 
-#include <iostream>
 #include <mailutils/list.h>
+#include <mailutils/cpp/iterator.h>
 
 typedef int mu_list_action_t (void*, void*);
 typedef int (*mu_list_comparator_t) (const void*, const void*);
@@ -30,10 +30,13 @@ typedef int (*mu_list_comparator_t) (const void*, const void*);
 namespace mailutils
 {
 
+class Iterator;
+
 class List
 {
  protected:
   mu_list_t mu_list;
+  Iterator* iter;
 
   friend class Iterator;
 
@@ -42,25 +45,33 @@ class List
   List (const mu_list_t);
   ~List ();
 
-  void append (void*);
-  void prepend (void*);
-  void insert (void*, void*, int);
-  void remove (void*);
-  void replace (void*, void*);
+  void append (void* item);
+  void prepend (void* item);
+  void insert (void* item, void* new_item, int insert_before);
+  void remove (void* item);
+  void replace (void* old_item, void* new_item);
 
-  void  get (size_t, void**);
-  void* get (size_t);
-  void* operator [] (size_t);
+  void  get (size_t index, void** pitem);
+  void* get (size_t index);
+  void* front ();
+  void* back ();
 
-  void toArray (void**, size_t, size_t*);
-  void locate (void*, void**);
+  Iterator begin ();
 
-  void apply (mu_list_action_t*, void*);
-  mu_list_comparator_t setComparator (mu_list_comparator_t);
-  void setDestroyItem (void (*mu_destoy_item) (void *));
+  void to_array (void** array, size_t count, size_t* pcount);
+  void locate (void* item, void** ret_item);
 
-  bool isEmpty ();
+  void apply (mu_list_action_t* action, void* cbdata);
+  mu_list_comparator_t set_comparator (mu_list_comparator_t comp);
+  void set_destroy_item (void (*mu_destoy_item) (void *item));
+
+  bool is_empty ();
   size_t count ();
+  size_t size ();
+
+  inline void* operator [] (size_t index) {
+    return this->get (index);
+  }
 };
 
 }

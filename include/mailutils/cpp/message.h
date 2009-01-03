@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,8 @@
 
 #include <mailutils/message.h>
 #include <mailutils/cpp/header.h>
+#include <mailutils/cpp/body.h>
+#include <mailutils/cpp/stream.h>
 
 namespace mailutils
 {
@@ -31,14 +33,31 @@ class Message
 {
  protected:
   mu_message_t msg;
+  bool owner;
 
   friend class Mailer;
+  friend class Mime;
 
  public:
   Message ();
   Message (const mu_message_t);
+  Message& operator = (const Message&);
+  ~Message ();
 
-  Header& getHeader ();
+  Header& get_header ();
+  Body& get_body ();
+  Stream& get_stream ();
+
+  bool is_multipart ();
+  size_t size ();
+  size_t lines ();
+  size_t get_num_parts ();
+  Message& get_part (const size_t npart);
+
+  void save_attachment ();
+  void save_attachment (const std::string& filename);
+  Message& unencapsulate ();
+  std::string get_attachment_name ();
 };
 
 }

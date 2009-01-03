@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_URL_H
 #define _MUCPP_URL_H
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <mailutils/url.h>
@@ -44,14 +43,14 @@ class Url
   ~Url ();
 
   void parse ();
-  long getPort ();
-  std::string getScheme ();
-  std::string getUser ();
-  std::string getPasswd ();
-  std::string getAuth ();
-  std::string getHost ();
-  std::string getPath ();
-  std::vector<std::string> getQuery ();
+  long get_port ();
+  std::string get_scheme ();
+  std::string get_user ();
+  std::string get_passwd ();
+  std::string get_auth ();
+  std::string get_host ();
+  std::string get_path ();
+  std::vector<std::string> get_query ();
 };
 
 }

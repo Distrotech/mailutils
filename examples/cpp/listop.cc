@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,11 +36,9 @@ usage (int code)
 void
 print (List& lst)
 {
-  Iterator itr (lst);
-
-  for (itr.first (); !itr.isDone (); itr++)
+  for (Iterator itr = lst.begin (); !itr.is_done (); itr++)
     {
-      char* text = (char *) itr.current ();
+      char* text = (char *) *itr;
       cout << text << endl;
     }
 }
@@ -72,7 +70,7 @@ del (List& lst, int argc, char **argv)
 	lst.remove (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.method () << ": " << e.msgError () << endl;
+	cerr << e.method () << ": " << e.what () << endl;
       }
     }
 }
@@ -94,7 +92,7 @@ add (List& lst, int argc, char **argv)
 	lst.append (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.method () << ": " << e.msgError () << endl;
+	cerr << e.method () << ": " << e.what () << endl;
       }
     }
 }
@@ -115,7 +113,7 @@ prep (List& lst, int argc, char **argv)
 	lst.prepend (strdup (*++argv));
       }
       catch (Exception& e) {
-	cerr << e.method () << ": " << e.msgError () << endl;
+	cerr << e.method () << ": " << e.what () << endl;
       }
     }
 }
@@ -134,7 +132,7 @@ repl (List& lst, int argc, char **argv)
     lst.replace (argv[1], strdup (argv[2]));
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
   }
 }
 
@@ -170,7 +168,7 @@ find (Iterator* itr, char* arg)
     }
 
   itr->current ((void**) &text);
-  for (itr->first (); !itr->isDone (); itr->next ())
+  for (itr->first (); !itr->is_done (); itr->next ())
     {
       char *item;
 
@@ -181,7 +179,7 @@ find (Iterator* itr, char* arg)
 
   cerr << arg << " not in list" << endl;
 
-  for (itr->first (); !itr->isDone (); itr->next ())
+  for (itr->first (); !itr->is_done (); itr->next ())
     {
       char *item;
 
@@ -233,7 +231,7 @@ shell (List& lst)
 	itr[num]->current ((void**) &text);
       }
       catch (Exception& e) {
-	cerr << e.method () << ": " << e.msgError () << endl;
+	cerr << e.method () << ": " << e.what () << endl;
       }
 
       cout << num << ":(" << (text ? text : "NULL") << ")> ";
@@ -246,27 +244,29 @@ shell (List& lst)
 
       if (argc > 0)
 	{
-	  if (!strcmp (argv[0], "next"))
+	  string cmd (argv[0]);
+
+	  if (cmd == "next")
 	    next (itr[num], argv[1]);
-	  else if (!strcmp (argv[0], "first"))
+	  else if (cmd == "first")
 	    itr[num]->first ();
-	  else if (!strcmp (argv[0], "del"))
+	  else if (cmd == "del")
 	    del (lst, argc, argv);
-	  else if (!strcmp (argv[0], "add"))
+	  else if (cmd == "add")
 	    add (lst, argc, argv);
-	  else if (!strcmp (argv[0], "prep"))
+	  else if (cmd == "prep")
 	    prep (lst, argc, argv);
-	  else if (!strcmp (argv[0], "repl"))
+	  else if (cmd == "repl")
 	    repl (lst, argc, argv);
-	  else if (!strcmp (argv[0], "print"))
+	  else if (cmd == "print")
 	    print (lst);
-	  else if (!strcmp (argv[0], "quit"))
+	  else if (cmd == "quit")
 	    return;
-	  else if (!strcmp (argv[0], "iter"))
+	  else if (cmd == "iter")
 	    iter (&num, argc, argv);
-	  else if (!strcmp (argv[0], "find"))
+	  else if (cmd == "find")
 	    find (itr[num], argv[1]);
-	  else if (!strcmp (argv[0], "help"))
+	  else if (cmd == "help")
 	    help ();
 	  else if (argc == 1)
 	    {
@@ -280,7 +280,7 @@ shell (List& lst)
 		    text = (char*) lst[n];
 		  }
 		  catch (Exception& e) {
-		    cerr << e.method () << ": " << e.msgError () << endl;
+		    cerr << e.method () << ": " << e.what () << endl;
 		  }
 
 		  // else
@@ -320,7 +320,7 @@ main (int argc, char **argv)
 
   try {
     List lst;
-    lst.setComparator (string_comp);
+    lst.set_comparator (string_comp);
     
     while (argc--)
       {
@@ -330,7 +330,7 @@ main (int argc, char **argv)
     shell (lst);
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
   }
 
   return 0;

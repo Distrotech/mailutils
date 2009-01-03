@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,14 @@ using namespace mailutils;
 //
 
 void
+MailboxBase :: open ()
+{
+  int status = mu_mailbox_open (mbox, MU_STREAM_READ);
+  if (status)
+    throw Exception ("MailboxBase::open", status);
+}
+
+void
 MailboxBase :: open (int flag)
 {
   int status = mu_mailbox_open (mbox, flag);
@@ -46,7 +54,7 @@ MailboxBase :: close ()
 }
 
 size_t
-MailboxBase :: messagesCount ()
+MailboxBase :: messages_count ()
 {
   size_t total;
   mu_mailbox_messages_count (mbox, &total);
@@ -54,21 +62,15 @@ MailboxBase :: messagesCount ()
 }
 
 Message&
-MailboxBase :: getMessage (size_t num)
+MailboxBase :: get_message (size_t num)
 {
   mu_message_t c_msg;
 
   int status = mu_mailbox_get_message (mbox, num, &c_msg);
   if (status)
-    throw Exception ("MailboxBase::getMessage", status);
+    throw Exception ("MailboxBase::get_message", status);
 
   return *new Message (c_msg);
-}
-
-Message&
-MailboxBase :: operator [] (size_t num)
-{
-  return this->getMessage (num);
 }
 
 //

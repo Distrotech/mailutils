@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,47 +22,40 @@
 #include <cstring>
 #include <mailutils/cpp/mailutils.h>
 
-#include <mailutils/filter.h>
-#include <mailutils/mutil.h>
-
 using namespace std;
 using namespace mailutils;
 
 static int
 parse (const char *str)
 {
-  size_t no = 0;
-  size_t count = 0;
-  std::string buf;
-
-  mu_set_user_email_domain ("localhost");
+  set_user_email_domain ("localhost");
 
   try {
     Address address (str);
-    count = address.getCount ();
+    size_t count = address.get_count ();
     cout << str << "=> count " << count << endl;
 
-    for (no = 1; no <= count; no++)
+    for (size_t no = 1; no <= count; no++)
       {
-	bool isgroup = address.isGroup (no);
+	bool isgroup = address.is_group (no);
 	cout << no << " ";
 	
 	if (isgroup)
-	  cout << "group " << address.getPersonal (no) << endl;
+	  cout << "group " << address.get_personal (no) << endl;
 	else
-	  cout << "email " << address.getEmail (no) << endl;
+	  cout << "email " << address.get_email (no) << endl;
 	
 	if (!isgroup)
-	  cout << "   personal " << address.getPersonal (no) << endl;
+	  cout << "   personal " << address.get_personal (no) << endl;
 	
-	cout << "   comments " << address.getComments (no) << endl;
-	cout << "   local-part " << address.getLocalPart (no)
-	     << " domain "  << address.getDomain (no) << endl;
-	cout << "   route " << address.getRoute (no) << endl;
+	cout << "   comments " << address.get_comments (no) << endl;
+	cout << "   local-part " << address.get_local_part (no)
+	     << " domain "  << address.get_domain (no) << endl;
+	cout << "   route " << address.get_route (no) << endl;
       }
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
   }
 
   cout << endl;

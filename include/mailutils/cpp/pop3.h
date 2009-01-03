@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_POP3_H
 #define _MUCPP_POP3_H
 
-#include <iostream>
 #include <mailutils/pop3.h>
 #include <mailutils/cpp/list.h>
 #include <mailutils/cpp/iterator.h>
@@ -41,30 +40,33 @@ class Pop3
   Pop3 (const mu_pop3_t);
   ~Pop3 ();
 
-  void setCarrier (const Stream&);
-  Stream& getCarrier ();
+  void set_carrier (const Stream& carrier);
+  Stream& get_carrier ();
   void connect ();
   void disconnect ();
-  void setTimeout (int);
-  int getTimeout ();
+  void set_timeout (int timeout);
+  int get_timeout ();
 
+  void apop (const char* name, const char* digest);
   void stls ();
   Iterator& capa ();
-  void dele (unsigned int);
-  size_t list (unsigned int);
-  Iterator& listAll ();
+  void dele (unsigned int msgno);
+  size_t list (unsigned int msgno);
+  Iterator& list_all ();
   void noop ();
-  void pass (const char*);
+  void pass (const char* pass);
   void quit ();
-  Stream& retr (unsigned int);
+  Stream& retr (unsigned int msgno);
   void rset ();
-  void stat (unsigned int*, size_t*);
-  Stream& top (unsigned int, unsigned int);
-  void user (const char*);
+  void stat (unsigned int* count, size_t* octets);
+  Stream& top (unsigned int msgno, unsigned int lines);
+  std::string uidl  (unsigned int msgno);
+  Iterator& uidl_all ();
+  void user (const char* user);
 
-  size_t readLine (char*, size_t);
-  size_t response (char*, size_t);
-  void sendLine (const char*);
+  size_t readline (char* buf, size_t buflen);
+  size_t response (char* buf, size_t buflen);
+  void sendline (const char* line);
   void send ();
 };
 

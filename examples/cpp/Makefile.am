@@ -1,6 +1,6 @@
 ##   Process this file with GNU Automake to create Makefile.in
 ##
-##   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -23,6 +23,7 @@ CXX_EXAMPLES = \
  iconv\
  listop\
  mailcap\
+ mimetest\
  murun\
  sfrom\
  url-parse
@@ -43,6 +44,7 @@ http_SOURCES = http.cc
 iconv_SOURCES = iconv.cc
 listop_SOURCES = listop.cc
 mailcap_SOURCES = mailcap.cc
+mimetest_SOURCES = mimetest.cc
 murun_SOURCES = murun.cc
 sfrom_SOURCES = sfrom.cc
 url_parse_SOURCES = url-parse.cc

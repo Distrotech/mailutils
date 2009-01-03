@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,36 +21,27 @@
 #include <iostream>
 #include <mailutils/cpp/mailutils.h>
 
-#include <mailutils/registrar.h> // tmp
-#include <mailutils/list.h> // tmp
-
 using namespace std;
 using namespace mailutils;
 
 int main (int argc, char* argv[])
 {
-  size_t total = 0;
-
   if (argc == 1)
     exit (0);
 
-  mu_register_local_mbox_formats ();
-
-  Message msg;
-  Header  hdr;
+  register_local_mbox_formats ();
 
   try {
-
     MailboxDefault mbox (argv[1]);
+    mbox.open ();
 
-    mbox.open (MU_STREAM_READ);
-    total = mbox.messagesCount ();
+    size_t total = mbox.messages_count ();
     cout << "Total: " << total << endl;
 
     for (int msgno = 1; msgno <= total; msgno++)
     {
-      msg = mbox[msgno];
-      hdr = msg.getHeader ();
+      Message msg = mbox[msgno];
+      Header hdr = msg.get_header ();
       cout << hdr[MU_HEADER_FROM] << " "
 	   << hdr[MU_HEADER_SUBJECT] << endl;
     }
@@ -58,7 +49,7 @@ int main (int argc, char* argv[])
     mbox.close ();
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
     exit (1);
   }
 

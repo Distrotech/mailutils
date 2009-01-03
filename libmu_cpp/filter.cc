@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -41,18 +41,18 @@ FilterStream :: create (Stream& transport,
 }
 
 void
-FilterStream :: iconvCreate (Stream& transport,
-			     const std::string& fromcode,
-			     const std::string& tocode,
-			     int flags,
-			     enum mu_iconv_fallback_mode fallback_mode)
+FilterStream :: iconv_create (Stream& transport,
+			      const std::string& fromcode,
+			      const std::string& tocode,
+			      int flags,
+			      enum mu_iconv_fallback_mode fallback_mode)
 {
   int status = mu_filter_iconv_create (&this->stm, transport.stm,
 				       fromcode.c_str (),
 				       tocode.c_str (),
 				       flags, fallback_mode);
   if (status)
-    throw Exception ("FilterStream::iconvCreate", status);
+    throw Exception ("FilterStream::iconv_create", status);
   this->input = new Stream (transport);
 }
 

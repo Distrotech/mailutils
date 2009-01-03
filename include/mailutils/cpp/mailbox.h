@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_MAILBOX_H
 #define _MUCPP_MAILBOX_H
 
-#include <iostream>
 #include <mailutils/mailbox.h>
 #include <mailutils/cpp/message.h>
 
@@ -34,12 +33,16 @@ class MailboxBase
   mu_mailbox_t mbox;
 
  public:
-  void open (int);
+  void open ();
+  void open (int flag);
   void close ();
 
-  size_t messagesCount ();
-  Message& getMessage (size_t);
-  Message& operator [] (size_t);
+  size_t messages_count ();
+  Message& get_message (size_t num);
+
+  inline Message& operator [] (size_t num) {
+    return this->get_message (num);
+  }
 };
 
 class Mailbox : public MailboxBase

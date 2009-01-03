@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,48 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _MUCPP_MAILER_H
-#define _MUCPP_MAILER_H
-
 #include <string>
-#include <mailutils/mailer.h>
-#include <mailutils/cpp/message.h>
-#include <mailutils/cpp/address.h>
+#include <mailutils/cpp/mutil.h>
 
-namespace mailutils
+using namespace mailutils;
+
+//
+// MUtil
+//
+
+int
+mailutils :: set_user_email (const std::string& str)
 {
-
-class Mailer
-{
- protected:
-  mu_mailer_t mailer;
-
- public:
-  Mailer (const std::string&);
-  Mailer (const mu_mailer_t);
-  ~Mailer ();
-
-  void open (int flags);
-  void close ();
-  void send_message (const Message& msg, const Address& from,
-		     const Address& to);
-};
-
+  return mu_set_user_email (str.c_str ());
 }
 
-#endif // not _MUCPP_MAILER_H
+int
+mailutils :: set_user_email_domain (const std::string& str)
+{
+   return mu_set_user_email_domain (str.c_str ());
+}
+
+std::string
+mailutils :: tempname ()
+{
+  std::string name;
+  char *c_str = mu_tempname (NULL);
+  if (c_str) {
+    name = c_str;
+    free (c_str);
+  }
+  return name;
+}
+
+std::string
+mailutils :: tempname (const std::string& tmpdir)
+{
+  std::string name;
+  char *c_str = mu_tempname (tmpdir.c_str ());
+  if (c_str) {
+    name = c_str;
+    free (c_str);
+  }
+  return name;
+}
 

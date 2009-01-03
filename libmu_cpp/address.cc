@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -49,20 +49,20 @@ Address :: ~Address ()
 }
 
 bool
-Address :: isGroup (size_t n)
+Address :: is_group (size_t n)
 {
   int isgroup;
   int status = mu_address_is_group (addr, n, &isgroup);
   if (status == EINVAL)
-    throw Address::EInval ("Address::isGroup", status);
+    throw Address::EInval ("Address::is_group", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::isGroup", status);
+    throw Address::ENoent ("Address::is_group", status);
 
   return (bool) isgroup;
 }
 
 size_t
-Address :: getCount ()
+Address :: get_count ()
 {
   size_t count;
   mu_address_get_count (addr, &count);
@@ -70,73 +70,73 @@ Address :: getCount ()
 }
 
 std::string
-Address :: getEmail (size_t n)
+Address :: get_email (size_t n)
 {
   int status = mu_address_get_email (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getEmail", status);
+    throw Address::EInval ("Address::get_email", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getEmail", status);
+    throw Address::ENoent ("Address::get_email", status);
 
   return std::string (buf);
 }
 
 std::string
-Address :: getLocalPart (size_t n)
+Address :: get_local_part (size_t n)
 {
   int status = mu_address_get_local_part (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getLocalPart", status);
+    throw Address::EInval ("Address::get_local_part", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getLocalPart", status);
+    throw Address::ENoent ("Address::get_local_part", status);
 
   return std::string (buf);
 }
 
 std::string
-Address :: getDomain (size_t n)
+Address :: get_domain (size_t n)
 {
   int status = mu_address_get_domain (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getDomain", status);
+    throw Address::EInval ("Address::get_domain", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getDomain", status);
+    throw Address::ENoent ("Address::get_domain", status);
 
   return std::string (buf);
 }
 
 std::string
-Address :: getPersonal (size_t n)
+Address :: get_personal (size_t n)
 {
   int status = mu_address_get_personal (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getPersonal", status);
+    throw Address::EInval ("Address::get_personal", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getPersonal", status);
+    throw Address::ENoent ("Address::get_personal", status);
 
   return std::string (buf);
 }
 
 std::string
-Address :: getComments (size_t n)
+Address :: get_comments (size_t n)
 {
   int status = mu_address_get_comments (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getComments", status);
+    throw Address::EInval ("Address::get_comments", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getComments", status);
+    throw Address::ENoent ("Address::get_comments", status);
 
   return std::string (buf);
 }
 
 std::string
-Address :: getRoute (size_t n)
+Address :: get_route (size_t n)
 {
   int status = mu_address_get_route (addr, n, buf, sizeof (buf), 0);
   if (status == EINVAL)
-    throw Address::EInval ("Address::getRoute", status);
+    throw Address::EInval ("Address::get_route", status);
   else if (status == ENOENT)
-    throw Address::ENoent ("Address::getRoute", status);
+    throw Address::ENoent ("Address::get_route", status);
 
   return std::string (buf);
 }

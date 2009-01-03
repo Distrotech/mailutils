@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_HEADER_H
 #define _MUCPP_HEADER_H
 
-#include <iostream>
 #include <string>
 #include <mailutils/header.h>
 
@@ -37,8 +36,13 @@ class Header
   Header ();
   Header (const mu_header_t);
 
-  std::string getValue (const std::string&);
-  std::string operator [] (const std::string&);
+  std::string get_value (const std::string& name);
+  size_t size ();
+  size_t lines ();
+
+  inline std::string operator [] (const std::string& name) {
+    return this->get_value (name);
+  }
 };
 
 }

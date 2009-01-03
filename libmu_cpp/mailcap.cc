@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,23 +50,23 @@ Mailcap :: ~Mailcap ()
 }
 
 size_t
-Mailcap :: getCount ()
+Mailcap :: entries_count ()
 {
   size_t count = 0;
   int status = mu_mailcap_entries_count (mailcap, &count);
   if (status)
-    throw Exception ("Mailcap::getCount", status);
+    throw Exception ("Mailcap::entries_count", status);
   return count;
 }
 
 MailcapEntry&
-Mailcap :: getEntry (size_t i)
+Mailcap :: get_entry (size_t i)
 {
   mu_mailcap_entry_t c_entry;
 
   int status = mu_mailcap_get_entry (mailcap, i, &c_entry);
   if (status)
-    throw Exception ("Mailcap::getEntry", status);
+    throw Exception ("Mailcap::get_entry", status);
 
   MailcapEntry* entry = new MailcapEntry (c_entry);
   return *entry;
@@ -85,42 +85,42 @@ MailcapEntry :: MailcapEntry (mu_mailcap_entry_t entry)
 }
 
 size_t
-MailcapEntry :: fieldsCount ()
+MailcapEntry :: fields_count ()
 {
   size_t count = 0;
   int status = mu_mailcap_entry_fields_count (entry, &count);
   if (status)
-    throw Exception ("MailcapEntry::fieldsCount", status);
+    throw Exception ("MailcapEntry::fields_count", status);
   return count;
 }
 
 std::string
-MailcapEntry :: getField (size_t i)
+MailcapEntry :: get_field (size_t i)
 {
   int status = mu_mailcap_entry_get_field (entry, i, buf, 
 					   sizeof (buf), NULL);
   if (status)
-    throw Exception ("MailcapEntry::getField", status);
+    throw Exception ("MailcapEntry::get_field", status);
   return std::string (buf);
 }
 
 std::string
-MailcapEntry :: getTypeField ()
+MailcapEntry :: get_typefield ()
 {
   int status = mu_mailcap_entry_get_typefield (entry, buf,
 					       sizeof (buf), NULL);
   if (status)
-    throw Exception ("MailcapEntry::getTypeField", status);
+    throw Exception ("MailcapEntry::get_typefield", status);
   return std::string (buf);
 }
 
 std::string
-MailcapEntry :: getViewCommand ()
+MailcapEntry :: get_viewcommand ()
 {
   int status = mu_mailcap_entry_get_viewcommand (entry, buf, 
 						 sizeof (buf), NULL);
   if (status)
-    throw Exception ("MailcapEntry::getViewCommand", status);
+    throw Exception ("MailcapEntry::get_viewcommand", status);
   return std::string (buf);
 }
 

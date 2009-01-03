@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,17 +52,17 @@ Pop3 :: ~Pop3 ()
 }
 
 void
-Pop3 :: setCarrier (const Stream& carrier)
+Pop3 :: set_carrier (const Stream& carrier)
 {
   int status = mu_pop3_set_carrier (pop3, carrier.stm);
   if (status)
-    throw Exception ("Pop3::setCarrier", status);
+    throw Exception ("Pop3::set_carrier", status);
 
   this->pStream = (Stream*) &carrier;
 }
 
 Stream&
-Pop3 :: getCarrier ()
+Pop3 :: get_carrier ()
 {
   return *pStream;
 }
@@ -84,23 +84,31 @@ Pop3 :: disconnect ()
 }
 
 void
-Pop3 :: setTimeout (int timeout)
+Pop3 :: set_timeout (int timeout)
 {
   int status = mu_pop3_set_timeout (pop3, timeout);
   if (status)
-    throw Exception ("Pop3::setTimeout", status);
+    throw Exception ("Pop3::set_timeout", status);
 }
 
 int
-Pop3 :: getTimeout ()
+Pop3 :: get_timeout ()
 {
   int timeout;
 
   int status = mu_pop3_get_timeout (pop3, &timeout);
   if (status)
-    throw Exception ("Pop3::getTimeout", status);
+    throw Exception ("Pop3::get_timeout", status);
 
   return timeout;
+}
+
+void
+Pop3 :: apop (const char* name, const char* digest)
+{
+  int status = mu_pop3_apop (pop3, name, digest);
+  if (status)
+    throw Exception ("Pop3::apop", status);
 }
 
 void
@@ -144,13 +152,13 @@ Pop3 :: list (unsigned int msgno)
 }
 
 Iterator&
-Pop3 :: listAll ()
+Pop3 :: list_all ()
 {
   mu_iterator_t mu_itr;
 
   int status = mu_pop3_list_all (pop3, &mu_itr);
   if (status)
-    throw Exception ("Pop3::listAll", status);
+    throw Exception ("Pop3::list_all", status);
 
   return *new Iterator (mu_itr);
 }
@@ -219,6 +227,35 @@ Pop3 :: top (unsigned int msgno, unsigned int lines)
   return *new Stream (c_stm);
 }
 
+std::string
+Pop3 :: uidl  (unsigned int msgno)
+{
+  char *c_uidl = NULL;
+
+  int status = mu_pop3_uidl (pop3, msgno, &c_uidl);
+  if (status)
+    throw Exception ("Pop3::uidl", status);
+
+  if (c_uidl) {
+    std::string uidl (c_uidl);
+    free (c_uidl);
+    return uidl;
+  }
+  return NULL;
+}
+
+Iterator&
+Pop3 :: uidl_all ()
+{
+  mu_iterator_t mu_itr;
+
+  int status = mu_pop3_uidl_all (pop3, &mu_itr);
+  if (status)
+    throw Exception ("Pop3::uidl_all", status);
+
+  return *new Iterator (mu_itr);
+}
+
 void
 Pop3 :: user (const char* user)
 {
@@ -228,13 +265,13 @@ Pop3 :: user (const char* user)
 }
 
 size_t
-Pop3 :: readLine (char* buf, size_t buflen)
+Pop3 :: readline (char* buf, size_t buflen)
 {
   size_t nread;
 
   int status = mu_pop3_readline (pop3, buf, buflen, &nread);
   if (status)
-    throw Exception ("Pop3::readLine", status);
+    throw Exception ("Pop3::readline", status);
 }
 
 size_t
@@ -248,11 +285,11 @@ Pop3 :: response (char* buf, size_t buflen)
 }
 
 void
-Pop3 :: sendLine (const char* line)
+Pop3 :: sendline (const char* line)
 {
   int status = mu_pop3_sendline (pop3, line);
   if (status)
-    throw Exception ("Pop3::sendLine", status);
+    throw Exception ("Pop3::sendline", status);
 }
 
 void

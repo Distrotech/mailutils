@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -86,7 +86,7 @@ Stream :: close ()
 }
 
 void
-Stream :: setWaitFlags (int flags)
+Stream :: set_waitflags (int flags)
 {
   this->wflags = flags;
 }
@@ -108,50 +108,54 @@ Stream :: wait (int flags)
     throw Exception ("Stream::wait", status);
 }
 
-void
+int
 Stream :: read (char* rbuf, size_t size, off_t offset)
 {
-  int status = mu_stream_read (stm, rbuf, size, offset, &readn);
+  int status = mu_stream_read (stm, rbuf, size, offset, &read_count);
   if (status == EAGAIN)
     throw Stream::EAgain ("Stream::read", status);
   else if (status)
     throw Exception ("Stream::read", status);
+  return status;
 }
 
-void
+int
 Stream :: write (const std::string& wbuf, size_t size, off_t offset)
 {
-  int status = mu_stream_write (stm, wbuf.c_str (), size, offset, &writen);
+  int status = mu_stream_write (stm, wbuf.c_str (), size, offset,
+				&write_count);
   if (status == EAGAIN)
     throw Stream::EAgain ("Stream::write", status);
   else if (status)
     throw Exception ("Stream::write", status);
+  return status;
 }
 
-void
-Stream :: readLine (char* rbuf, size_t size, off_t offset)
+int
+Stream :: readline (char* rbuf, size_t size, off_t offset)
 {
-  int status = mu_stream_readline (stm, rbuf, size, offset, &readn);
+  int status = mu_stream_readline (stm, rbuf, size, offset, &read_count);
   if (status == EAGAIN)
-    throw Stream::EAgain ("Stream::readLine", status);
+    throw Stream::EAgain ("Stream::readline", status);
   else if (status)
-    throw Exception ("Stream::readLine", status);
+    throw Exception ("Stream::readline", status);
+  return status;
 }
 
 void
-Stream :: sequentialReadLine (char* rbuf, size_t size)
+Stream :: sequential_readline (char* rbuf, size_t size)
 {
-  int status = mu_stream_sequential_readline (stm, rbuf, size, &readn);
+  int status = mu_stream_sequential_readline (stm, rbuf, size, &read_count);
   if (status)
-    throw Exception ("Stream::sequentialReadLine", status);
+    throw Exception ("Stream::sequential_readline", status);
 }
 
 void
-Stream :: sequentialWrite (const std::string& wbuf, size_t size)
+Stream :: sequential_write (const std::string& wbuf, size_t size)
 {
   int status = mu_stream_sequential_write (stm, wbuf.c_str (), size);
   if (status)
-    throw Exception ("Stream::sequentialWrite", status);
+    throw Exception ("Stream::sequential_write", status);
 }
 
 void

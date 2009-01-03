@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,8 @@
 
 #include <mailutils/cpp/message.h>
 #include <mailutils/cpp/header.h>
+#include <mailutils/cpp/body.h>
+#include <mailutils/cpp/stream.h>
 #include <mailutils/cpp/error.h>
 #include <errno.h>
 
@@ -30,7 +32,12 @@ using namespace mailutils;
 //
 
 Message :: Message ()
-{
+{  
+  int status = mu_message_create (&msg, this);
+  if (status)
+    throw Exception ("Message::Message", status);
+
+  this->owner = true;
 }
 
 Message :: Message (const mu_message_t msg)
@@ -39,17 +46,161 @@ Message :: Message (const mu_message_t msg)
     throw Exception ("Message::Message", EINVAL);
 
   this->msg = msg;
+  this->owner = false;
+}
+
+Message&
+Message :: operator = (const Message& m)
+{
+  if (this != &m)
+    {
+      if (this->owner)
+	mu_message_destroy (&this->msg, this);
+
+      int status = mu_message_create_copy (&this->msg, m.msg);
+      if (status)
+	throw Exception ("Message::operator=", status);
+
+      this->owner = true;
+    }
+  return *this;
+}
+
+Message :: ~Message ()
+{
+  if (this->owner)
+    mu_message_destroy (&msg, this);
 }
 
 Header&
-Message :: getHeader ()
+Message :: get_header ()
 {
   mu_header_t c_hdr;
 
   int status = mu_message_get_header (msg, &c_hdr);
   if (status)
-    throw Exception ("Message::getHeader", status);
+    throw Exception ("Message::get_header", status);
 
   return *new Header (c_hdr);
+}
+
+Body&
+Message :: get_body ()
+{
+  mu_body_t c_body;
+
+  int status = mu_message_get_body (msg, &c_body);
+  if (status)
+    throw Exception ("Message::get_body", status);
+
+  return *new Body (c_body);
+}
+
+Stream&
+Message :: get_stream ()
+{
+  mu_stream_t c_stream;
+
+  int status = mu_message_get_stream (msg, &c_stream);
+  if (status)
+    throw Exception ("Message::get_stream", status);
+
+  return *new Stream (c_stream);
+}
+
+bool
+Message :: is_multipart ()
+{
+  int pmulti;
+  int status = mu_message_is_multipart (msg, &pmulti);
+  if (status)
+    throw Exception ("Message::is_multipart", status);
+  return (bool) pmulti;
+}
+
+size_t
+Message :: size ()
+{
+  size_t c_size;
+  int status = mu_message_size (msg, &c_size);
+  if (status)
+    throw Exception ("Message::size", status);
+  return c_size;
+}
+
+size_t
+Message :: lines ()
+{
+  size_t c_lines;
+  int status = mu_message_lines (msg, &c_lines);
+  if (status)
+    throw Exception ("Message::lines", status);
+  return c_lines;
+}
+
+size_t
+Message :: get_num_parts ()
+{
+  size_t c_parts;
+  int status = mu_message_get_num_parts (msg, &c_parts);
+  if (status)
+    throw Exception ("Message::get_num_parts", status);
+  return c_parts;
+}
+
+Message&
+Message :: get_part (const size_t npart)
+{
+  mu_message_t c_part;
+
+  int status = mu_message_get_part (msg, npart, &c_part);
+  if (status)
+    throw Exception ("Message::get_part", status);
+
+  return *new Message (c_part);
+}
+
+void
+Message :: save_attachment ()
+{
+  int status = mu_message_save_attachment (msg, NULL, NULL);
+  if (status)
+    throw Exception ("Message::save_attachment", status);
+}
+
+void
+Message :: save_attachment (const std::string& filename)
+{
+  int status = mu_message_save_attachment (msg, filename.c_str (), NULL);
+  if (status)
+    throw Exception ("Message::save_attachment", status);
+}
+
+Message&
+Message :: unencapsulate ()
+{
+  mu_message_t c_msg;
+
+  int status = mu_message_unencapsulate (msg, &c_msg, NULL);
+  if (status)
+    throw Exception ("Message::unencapsulate", status);
+
+  return *new Message (c_msg);
+}
+
+std::string
+Message :: get_attachment_name ()
+{
+  char *c_name;
+  std::string name;
+
+  int status = mu_message_aget_attachment_name (msg, &c_name);
+  if (status)
+    throw Exception ("Message::get_attachment_name", status);
+  if (c_name) {
+    name = c_name;
+    free (c_name);
+  }
+  return name;
 }
 

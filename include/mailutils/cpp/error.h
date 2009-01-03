@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_ERROR_H
 #define _MUCPP_ERROR_H
 
-#include <iostream>
 #include <string>
 #include <mailutils/errno.h>
 
@@ -31,20 +30,36 @@ namespace mailutils
 class Exception
 {
  protected:
-  std::string pmethod;
-  std::string pmsgerr;
+  int pstatus;
+  const char* pmethod;
+  const char* pmsgerr;
 
  public:
-  Exception (const std::string m, int s) {
-    pmethod = m;
-    pmsgerr = mu_strerror (s);
+  Exception (const char* method_name, int status) {
+    pstatus = status;
+    pmethod = method_name;
+    pmsgerr = mu_strerror (status);
   }
 
-  std::string method () const {
+  Exception (const std::string method_name, int status) {
+    pstatus = status;
+    pmethod = method_name.c_str ();
+    pmsgerr = mu_strerror (status);
+  }
+
+  int status () const {
+    return pstatus;
+  }
+
+  const char* method () const {
     return pmethod;
   }
 
-  std::string msgError () const {
+  const char* msg_error () const {
+    return pmsgerr;
+  }
+
+  const char* what () const {
     return pmsgerr;
   }
 };

@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,8 @@ main (int argc, char **argv)
     in->open ();
 
     FilterStream cvt;
-    cvt.iconvCreate (*in, (string)argv[1], (string)argv[2], 0, mu_fallback_none);
+    cvt.iconv_create (*in, (string)argv[1], (string)argv[2], 0,
+		      mu_fallback_none);
     cvt.open ();
     delete in;
     
@@ -50,15 +51,15 @@ main (int argc, char **argv)
 
     do {
       cvt.read (buffer, sizeof (buffer), total);
-      out.sequentialWrite (buffer, cvt.getReadn ());
-      total += cvt.getReadn ();
-    } while (cvt.getReadn ());
+      out.sequential_write (buffer, cvt.get_read_count ());
+      total += cvt.get_read_count ();
+    } while (cvt.get_read_count ());
 
     out.flush ();
     delete in;
   }
   catch (Exception& e) {
-    cerr << e.method () << ": " << e.msgError () << endl;
+    cerr << e.method () << ": " << e.what () << endl;
     exit (1);
   }
 

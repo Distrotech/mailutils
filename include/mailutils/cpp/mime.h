@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,40 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _MUCPP_MAILER_H
-#define _MUCPP_MAILER_H
+#ifndef _MUCPP_MIME_H
+#define _MUCPP_MIME_H
 
 #include <string>
-#include <mailutils/mailer.h>
+#include <mailutils/mime.h>
 #include <mailutils/cpp/message.h>
-#include <mailutils/cpp/address.h>
 
 namespace mailutils
 {
 
-class Mailer
+class Mime
 {
  protected:
-  mu_mailer_t mailer;
+  mu_mime_t mime;
 
  public:
-  Mailer (const std::string&);
-  Mailer (const mu_mailer_t);
-  ~Mailer ();
+  Mime (const Message&, int);
+  Mime (const mu_mime_t);
+  ~Mime ();
 
-  void open (int flags);
-  void close ();
-  void send_message (const Message& msg, const Address& from,
-		     const Address& to);
+  bool is_multipart ();
+  size_t get_num_parts ();
+
+  Message& get_part (size_t part);
+  void add_part (const Message& msg);
+  Message& get_message ();
 };
+
+extern int rfc2047_decode (const char* tocode, const char* fromstr,
+			   char** ptostr);
+extern int rfc2047_encode (const char* charset, const char* encoding,
+			   const char* text, char** result);
 
 }
 
-#endif // not _MUCPP_MAILER_H
+#endif // not _MUCPP_MIME_H
 

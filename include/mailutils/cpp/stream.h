@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,9 +21,7 @@
 #ifndef _MUCPP_STREAM_H
 #define _MUCPP_STREAM_H
 
-#include <iostream>
 #include <string>
-#include <cstdio>
 #include <mailutils/stream.h>
 #include <mailutils/cpp/error.h>
 
@@ -34,8 +32,8 @@ class Stream
 {
  protected:
   mu_stream_t stm;
-  size_t readn;
-  size_t writen;
+  size_t read_count;
+  size_t write_count;
   int wflags;
   bool opened;
   size_t reference_count;
@@ -62,22 +60,22 @@ class Stream
 
   void open ();
   void close ();
-  void setWaitFlags (int);
+  void set_waitflags (int flags);
   void wait (); // timeval is missing
-  void wait (int); // timeval is missing
-  void read (char*, size_t, off_t);
-  void write (const std::string&, size_t, off_t);
-  void readLine (char*, size_t, off_t);
-  void sequentialReadLine (char*, size_t);
-  void sequentialWrite (const std::string&, size_t);
+  void wait (int flags); // timeval is missing
+  int  read (char* rbuf, size_t size, off_t offset);
+  int  write (const std::string& wbuf, size_t size, off_t offset);
+  int  readline (char* rbuf, size_t size, off_t offset);
+  void sequential_readline (char* rbuf, size_t size);
+  void sequential_write (const std::string& wbuf, size_t size);
   void flush ();
 
   // Inlines
-  size_t getReadn () const {
-    return readn;
+  size_t get_read_count () const {
+    return read_count;
   };
-  size_t getWriten () const {
-    return writen;
+  size_t get_write_count () const {
+    return write_count;
   };
 
   friend Stream& operator << (Stream&, const std::string&);
@@ -86,7 +84,7 @@ class Stream
   // Stream Exceptions
   class EAgain : public Exception {
   public:
-    EAgain (const std::string& m, int s) : Exception (m, s) {}
+    EAgain (const char* m, int s) : Exception (m, s) {}
   };
 };
 

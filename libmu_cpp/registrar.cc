@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,59 +18,64 @@
    Boston, MA 02110-1301 USA
 */
 
-#include <mailutils/cpp/header.h>
+#include <string>
+#include <mailutils/cpp/registrar.h>
 #include <mailutils/cpp/error.h>
 #include <errno.h>
 
 using namespace mailutils;
 
 //
-// Header
+// Registrar
 //
 
-Header :: Header ()
+Record :: Record (const mu_record_t record)
+{
+  if (record == 0)
+    throw Exception ("Record::Record", EINVAL);
+
+  this->record = record;
+}
+
+Record :: ~Record ()
 {
 }
 
-Header :: Header (const mu_header_t hdr)
+// Record Class Defaults
+int
+Record :: set_default_scheme (const std::string& scheme)
 {
-  if (hdr == 0)
-    throw Exception ("Header::Header", EINVAL);
-
-  this->hdr = hdr;
+  return mu_registrar_set_default_scheme (scheme.c_str ());
 }
 
 std::string
-Header :: get_value (const std::string& name)
+Record :: get_default_scheme ()
 {
-  char* c_val;
-
-  int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
-  if (status)
-    throw Exception ("Header::get_value", status);
-
-  std::string val (c_val);
-  free (c_val);
-  return val;
+  return std::string (mu_registrar_get_default_scheme ());
 }
 
-size_t
-Header :: size ()
+int
+Record :: get_default_record (mu_record_t* prec)
 {
-  size_t c_size;
-  int status = mu_header_size (hdr, &c_size);
-  if (status)
-    throw Exception ("Header::size", status);
-  return c_size;
+  return mu_registrar_get_default_record (prec);
 }
 
-size_t
-Header :: lines ()
+void
+Record :: set_default_record ()
 {
-  size_t c_lines;
-  int status = mu_header_lines (hdr, &c_lines);
-  if (status)
-    throw Exception ("Header::lines", status);
-  return c_lines;
+  mailutils::registrar_set_default_record (this->record);
+}
+
+// Record Class Registration
+int
+Record :: registrar ()
+{
+  return mailutils::registrar_record (this->record);
+}
+
+int
+Record :: unregistrar ()
+{
+  return mailutils::unregistrar_record (this->record);
 }
 

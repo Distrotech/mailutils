@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,6 +51,18 @@ Iterator :: ~Iterator ()
   mu_iterator_destroy (&mu_iter);
 }
 
+bool
+Iterator :: operator == (const Iterator& iter)
+{
+  return mu_iter == iter.mu_iter;
+}
+
+bool
+Iterator :: operator != (const Iterator& iter)
+{
+  return mu_iter != iter.mu_iter;
+}
+
 void
 Iterator :: first ()
 {
@@ -91,16 +103,16 @@ Iterator :: current ()
 }
 
 bool
-Iterator :: isDone ()
+Iterator :: is_done ()
 {
   return (bool) mu_iterator_is_done (mu_iter);
 }
 
 List&
-Iterator :: getList ()
+Iterator :: get_list ()
 {
   if (!pList)
-    throw Exception ("Iterator::getList", ENOTSUP);
+    throw Exception ("Iterator::get_list", ENOTSUP);
   return *pList;
 }
 

@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _MUCPP_MAILCAP_H
 #define _MUCPP_MAILCAP_H
 
-#include <iostream>
 #include <mailutils/mailcap.h>
 #include <mailutils/cpp/stream.h>
 
@@ -39,10 +38,14 @@ class MailcapEntry
  public:
   MailcapEntry (mu_mailcap_entry_t);
 
-  size_t fieldsCount ();
-  std::string getTypeField ();
-  std::string getViewCommand ();
-  std::string getField (size_t);
+  size_t fields_count ();
+  std::string get_typefield ();
+  std::string get_viewcommand ();
+  std::string get_field (size_t i);
+
+  inline std::string operator [] (size_t i) {
+    return this->get_field (i);
+  }
 };
 
 class Mailcap
@@ -55,8 +58,12 @@ class Mailcap
   Mailcap (const mu_mailcap_t);
   ~Mailcap ();
 
-  size_t getCount ();
-  MailcapEntry& getEntry (size_t);
+  size_t entries_count ();
+  MailcapEntry& get_entry (size_t i);
+
+  inline MailcapEntry& operator [] (size_t i) {
+    return this->get_entry (i);
+  }
 };
 
 }
