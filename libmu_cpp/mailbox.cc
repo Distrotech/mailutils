@@ -19,7 +19,6 @@
 */
 
 #include <mailutils/cpp/mailbox.h>
-#include <mailutils/cpp/message.h>
 #include <mailutils/cpp/error.h>
 #include <errno.h>
 
@@ -51,6 +50,18 @@ MailboxBase :: close ()
   int status = mu_mailbox_close (mbox);
   if (status)
     throw Exception ("MailboxBase::close", status);
+}
+
+Debug&
+MailboxBase :: get_debug ()
+{
+  mu_debug_t c_dbg;
+
+  int status = mu_mailbox_get_debug (mbox, &c_dbg);
+  if (status)
+    throw Exception ("MailboxBase::get_debug", status);
+
+  return *new Debug (c_dbg);
 }
 
 size_t

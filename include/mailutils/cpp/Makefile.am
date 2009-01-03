@@ -20,6 +20,7 @@ MU_CXX_INCLUDES = \
  address.h\
  attribute.h\
  body.h\
+ debug.h\
  error.h\
  filter.h\
  header.h\

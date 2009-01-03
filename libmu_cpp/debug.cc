@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,34 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _MUCPP_HEADER_H
-#define _MUCPP_HEADER_H
+#include <mailutils/cpp/debug.h>
+#include <mailutils/cpp/error.h>
+#include <errno.h>
 
-#include <string>
-#include <mailutils/header.h>
+using namespace mailutils;
 
-namespace mailutils
+//
+// Debug
+//
+
+Debug :: Debug ()
 {
-
-class Header
-{
- protected:
-  mu_header_t hdr;
-
- public:
-  Header ();
-  Header (const mu_header_t);
-
-  std::string get_value (const std::string& name);
-  std::string get_value (const std::string& name, const std::string& def);
-  size_t size ();
-  size_t lines ();
-
-  inline std::string operator [] (const std::string& name) {
-    return this->get_value (name);
-  }
-};
-
+  this->debug = NULL;
 }
 
-#endif // not _MUCPP_HEADER_H
+Debug :: Debug (const mu_debug_t debug)
+{
+  if (debug == 0)
+    throw Exception ("Debug::Debug", EINVAL);
+
+  this->debug = debug;
+}
+
+void
+Debug :: set_level (const mu_log_level_t level)
+{
+  int status = mu_debug_set_level (debug, level);
+  if (status)
+    throw Exception ("Debug::set_level", status);
+}
 

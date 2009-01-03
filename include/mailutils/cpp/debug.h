@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,28 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _MUCPP_HEADER_H
-#define _MUCPP_HEADER_H
+#ifndef _MUCPP_DEBUG_H
+#define _MUCPP_DEBUG_H
 
 #include <string>
-#include <mailutils/header.h>
+#include <mailutils/debug.h>
 
 namespace mailutils
 {
 
-class Header
+class Debug
 {
  protected:
-  mu_header_t hdr;
+  mu_debug_t debug;
 
  public:
-  Header ();
-  Header (const mu_header_t);
+  Debug ();
+  Debug (const mu_debug_t);
 
-  std::string get_value (const std::string& name);
-  std::string get_value (const std::string& name, const std::string& def);
-  size_t size ();
-  size_t lines ();
-
-  inline std::string operator [] (const std::string& name) {
-    return this->get_value (name);
-  }
+  void set_level (const mu_log_level_t level);
 };
 
 }
 
-#endif // not _MUCPP_HEADER_H
+#endif // not _MUCPP_DEBUG_H
 

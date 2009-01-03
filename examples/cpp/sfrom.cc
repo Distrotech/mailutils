@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
       Message msg = mbox[msgno];
       Header hdr = msg.get_header ();
       cout << hdr[MU_HEADER_FROM] << " "
-	   << hdr[MU_HEADER_SUBJECT] << endl;
+	   << hdr.get_value (MU_HEADER_SUBJECT, "[none]") << endl;
     }
 
     mbox.close ();

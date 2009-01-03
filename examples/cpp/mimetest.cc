@@ -74,7 +74,12 @@ main (int argc, char **argv)
 
   MailboxDefault mbox (argv[i]);
   
-  /* Debugging trace. FIXME: ADD MISSING */
+  /* Debugging trace. */
+  if (debug)
+    {
+      Debug debug = mbox.get_debug ();
+      debug.set_level (MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+    }
 
   /* Open the mailbox for reading only. */
   mbox.open ();
@@ -89,7 +94,7 @@ main (int argc, char **argv)
 
     cout << "Message: " << i << endl;
     cout << "From: " << hdr[MU_HEADER_FROM] << endl;
-    cout << "Subject: " << hdr[MU_HEADER_SUBJECT] << endl;
+    cout << "Subject: " << hdr.get_value (MU_HEADER_SUBJECT, "[none]") << endl;
     cout << "Number of parts in message - " << msg.get_num_parts () << endl;
     cout << "Total message size - "
 	 << msg.size () << "/" << msg.lines () << endl;
@@ -162,7 +167,7 @@ message_display_parts (Message& msg, int indent)
 
 	  Header hdr = part.get_header ();
 	  string from = hdr[MU_HEADER_FROM];
-	  string subject = hdr[MU_HEADER_SUBJECT];
+	  string subject = hdr.get_value (MU_HEADER_SUBJECT, "[none]");
 
 	  cout << setw (indent) << setfill (' ')
 	       << "Encapsulated message : " << from << "\t" << subject << endl;

@@ -30,6 +30,7 @@ using namespace mailutils;
 
 Header :: Header ()
 {
+  this->hdr = NULL;
 }
 
 Header :: Header (const mu_header_t hdr)
@@ -47,6 +48,22 @@ Header :: get_value (const std::string& name)
 
   int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
   if (status)
+    throw Exception ("Header::get_value", status);
+
+  std::string val (c_val);
+  free (c_val);
+  return val;
+}
+
+std::string
+Header :: get_value (const std::string& name, const std::string& def)
+{
+  char* c_val;
+
+  int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
+  if (status == MU_ERR_NOENT)
+    return std::string (def);
+  else if (status)
     throw Exception ("Header::get_value", status);
 
   std::string val (c_val);

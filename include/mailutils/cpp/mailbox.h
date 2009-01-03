@@ -22,6 +22,7 @@
 #define _MUCPP_MAILBOX_H
 
 #include <mailutils/mailbox.h>
+#include <mailutils/cpp/debug.h>
 #include <mailutils/cpp/message.h>
 
 namespace mailutils
@@ -36,6 +37,8 @@ class MailboxBase
   void open ();
   void open (int flag);
   void close ();
+
+  Debug& get_debug ();
 
   size_t messages_count ();
   Message& get_message (size_t num);
