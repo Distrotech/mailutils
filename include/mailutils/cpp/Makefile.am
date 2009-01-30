@@ -23,6 +23,7 @@ MU_CXX_INCLUDES = \
  debug.h\
  error.h\
  filter.h\
+ folder.h\
  header.h\
  iterator.h\
  list.h\

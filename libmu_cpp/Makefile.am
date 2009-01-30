@@ -29,6 +29,7 @@ libmu_cpp_la_SOURCES = \
  body.cc\
  debug.cc\
  filter.cc\
+ folder.cc\
  header.cc\
  iterator.cc\
  list.cc\

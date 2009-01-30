@@ -23,6 +23,7 @@
 
 #include <string>
 #include <mailutils/errno.h>
+#include <mailutils/error.h>
 
 namespace mailutils
 {
@@ -63,6 +64,22 @@ class Exception
     return pmsgerr;
   }
 };
+
+inline int
+verror (const char* fmt, va_list ap)
+{
+  return mu_verror (fmt, ap);
+}
+
+inline int
+error (const char* fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  mu_verror (fmt, ap);
+  va_end (ap);
+  return 0;
+}
 
 }
 

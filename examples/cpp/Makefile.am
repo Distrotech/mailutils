@@ -22,8 +22,10 @@ CXX_EXAMPLES = \
  http\
  iconv\
  listop\
+ lsf\
  mailcap\
  mimetest\
+ msg-send\
  murun\
  sfrom\
  url-parse
@@ -43,8 +45,10 @@ addr_SOURCES = addr.cc
 http_SOURCES = http.cc
 iconv_SOURCES = iconv.cc
 listop_SOURCES = listop.cc
+lsf_SOURCES = lsf.cc
 mailcap_SOURCES = mailcap.cc
 mimetest_SOURCES = mimetest.cc
+msg_send_SOURCES = msg-send.cc
 murun_SOURCES = murun.cc
 sfrom_SOURCES = sfrom.cc
 url_parse_SOURCES = url-parse.cc
@@ -59,5 +63,6 @@ LDADD =\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\
  ${MU_LIB_AUTH}\
+ ${MU_LIB_MAILER}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}

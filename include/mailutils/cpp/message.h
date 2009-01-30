@@ -47,6 +47,7 @@ class Message
   Header& get_header ();
   Body& get_body ();
   Stream& get_stream ();
+  void set_stream (const Stream& stream);
 
   bool is_multipart ();
   size_t size ();

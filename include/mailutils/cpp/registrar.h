@@ -68,7 +68,8 @@ unregistrar_record (const mu_record_t record)
 }
 
 
-inline void register_all_mbox_formats ()
+inline void
+register_all_mbox_formats ()
 {
   mu_register_all_mbox_formats ();
 }

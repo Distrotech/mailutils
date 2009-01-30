@@ -108,6 +108,15 @@ Message :: get_stream ()
   return *new Stream (c_stream);
 }
 
+void
+Message :: set_stream (const Stream& stream)
+{
+  int status = mu_message_set_stream (msg, stream.stm, this);
+  if (status)
+    throw Exception ("Message::set_stream", status);
+}
+
+
 bool
 Message :: is_multipart ()
 {

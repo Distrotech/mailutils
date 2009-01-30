@@ -28,9 +28,21 @@ using namespace mailutils;
 // Address
 //
 
+Address :: Address ()
+{
+  addr = NULL;
+}
+
 Address :: Address (const std::string& str)
 {
   int status = mu_address_create (&addr, str.c_str ());
+  if (status)
+    throw Exception ("Address::Address", status);
+}
+
+Address :: Address (const char *sv[], size_t len)
+{
+  int status = mu_address_createv (&addr, sv, len);
   if (status)
     throw Exception ("Address::Address", status);
 }
@@ -45,7 +57,20 @@ Address :: Address (const mu_address_t addr)
 
 Address :: ~Address ()
 {
-  mu_address_destroy (&addr);
+  if (addr)
+    mu_address_destroy (&addr);
+}
+
+Address&
+Address :: operator = (const Address& a)
+{
+  if (this != &a)
+    {
+      if (this->addr)
+	mu_address_destroy (&this->addr);
+      this->addr = mu_address_dup (a.addr);
+    }
+  return *this;
 }
 
 bool

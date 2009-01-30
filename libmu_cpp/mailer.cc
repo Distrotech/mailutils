@@ -48,6 +48,14 @@ Mailer :: ~Mailer ()
 }
 
 void
+Mailer :: open ()
+{
+  int status = mu_mailer_open (mailer, 0);
+  if (status)
+    throw Exception ("Mailer::open", status);
+}
+
+void
 Mailer :: open (int flags)
 {
   int status = mu_mailer_open (mailer, flags);
@@ -71,5 +79,17 @@ Mailer :: send_message (const Message& msg, const Address& from,
 				       from.addr, to.addr);
   if (status)
     throw Exception ("Mailer::send_message", status);
+}
+
+Debug&
+Mailer :: get_debug ()
+{
+  mu_debug_t c_dbg;
+
+  int status = mu_mailer_get_debug (mailer, &c_dbg);
+  if (status)
+    throw Exception ("Mailer::get_debug", status);
+
+  return *new Debug (c_dbg);
 }
 

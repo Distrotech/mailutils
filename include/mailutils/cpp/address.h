@@ -38,9 +38,13 @@ class Address
   friend class Mailer;
 
  public:
+  Address ();
   Address (const std::string&);
+  Address (const char *sv[], size_t len);
   Address (const mu_address_t);
   ~Address ();
+
+  Address& operator = (const Address&);
 
   size_t get_count ();
   bool is_group (size_t n);
