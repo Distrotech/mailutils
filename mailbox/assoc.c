@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,7 +58,19 @@ struct _mu_assoc
   mu_iterator_t itr;
 };
 
-#define ASSOC_ELEM_SIZE(a) ((a)->elsize + sizeof(struct _mu_assoc_elem) - 1)
+struct _mu_assoc_elem_align
+{
+  char c;
+  struct _mu_assoc_elem x;
+};
+
+#define __ASSOC_ELEM_ALIGNMENT (mu_offsetof(struct _mu_assoc_elem_align, x))
+
+#define __ASSOC_ELEM_SIZE(a) \
+   ((a)->elsize + mu_offsetof(struct _mu_assoc_elem, data))
+#define __ASSOC_ALIGN(a, b) (((a) + (b) - 1) & ~((b) - 1))
+#define ASSOC_ELEM_SIZE(a) \
+   __ASSOC_ALIGN(__ASSOC_ELEM_SIZE(a),__ASSOC_ELEM_ALIGNMENT)
 
 #define __ASSOC_ELEM(a,p,n) \
  ((struct _mu_assoc_elem*) ((char*) (p) + ASSOC_ELEM_SIZE (a) * n))
