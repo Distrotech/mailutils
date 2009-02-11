@@ -1453,7 +1453,7 @@ imap_envelope_sender (mu_envelope_t envelope, char *buffer, size_t buflen,
 {
   mu_message_t msg = mu_envelope_get_owner (envelope);
   mu_header_t header;
-  const char *sender, *email = NULL;
+  const char *sender;
   int status;
 
   mu_message_get_header (msg, &header);
@@ -1464,18 +1464,19 @@ imap_envelope_sender (mu_envelope_t envelope, char *buffer, size_t buflen,
     status = mu_header_sget_value (header, MU_HEADER_FROM, &sender);
   if (status == 0)
     {
+      const char *email = NULL;
       size_t len;
       mu_address_t address;
       if (mu_address_create (&address, sender) == 0)
 	{
-	  mu_address_sget_email (address, 1, &email);
+	  if (mu_address_sget_email (address, 1, &email) == 0)
+	    len = mu_cpystr (buffer, email, buflen);
 	  mu_address_destroy (&address);
 	}
 
       if (!email)
 	return MU_ERR_NOENT;
-
-      len = mu_cpystr (buffer, email, buflen);
+      
       if (plen)
 	*plen = len;
     }
