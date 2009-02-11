@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2005, 2007,
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@ extern "C" {
 
 extern int  mu_url_create    (mu_url_t *, const char *name);
 extern int  mu_url_dup       (mu_url_t old_url, mu_url_t *new_url);
+extern int  mu_url_uplevel   (mu_url_t url, mu_url_t *upurl);
 
 extern void mu_url_destroy   (mu_url_t *);
 extern int  mu_url_parse     (mu_url_t);

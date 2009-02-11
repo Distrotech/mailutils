@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -49,31 +49,23 @@ mailbox_folder_create (mu_mailbox_t mbox, const char *name,
 		       mu_record_t record)
 {
   int rc;
-  char *fname;
-
-  if ((rc = mu_url_aget_path (mbox->url, &fname)))
+  mu_url_t url;
+  
+  if ((rc = mu_url_uplevel (mbox->url, &url)))
     {
       if (rc == MU_ERR_NOENT)
 	{
-	  fname = strdup (mu_url_to_string (mbox->url));
-	  if (!fname)
-	    return ENOMEM;
+	  rc = mu_url_dup (mbox->url, &url);
+	  if (rc)
+	    return rc;
 	}
       else
 	return rc;
     }
 
-  if (mu_url_is_scheme (mbox->url, "file")
-      || mu_url_is_scheme (mbox->url, "mbox")
-      || mu_url_is_scheme (mbox->url, "mh")
-      || mu_url_is_scheme (mbox->url, "maildir"))
-    {
-      char *p = strrchr (fname, '/'); /* FIXME: Is this always appropriate? */
-      if (p)
-	*p = 0;
-    }
-  rc = mu_folder_create_from_record (&mbox->folder, fname, record);
-  free (fname);
+  rc = mu_folder_create_from_record (&mbox->folder, url, record);
+  if (rc)
+    mu_url_destroy (&url);
   return rc;
 }
 

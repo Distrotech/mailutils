@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 2006, 
-   2007 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ mu_folder_match (const char *name, void *pattern, int flags)
    there could be cases where you'll want a different folder for the same URL,
    there is not easy way to do this.  */
 int
-mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
+mu_folder_create_from_record (mu_folder_t *pfolder, mu_url_t url,
 			      mu_record_t record)
 {
   if (!pfolder)
@@ -69,8 +69,8 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
   if (record || 
       /* Look in the registrar list(iterator), for a possible concrete mailbox
 	 implementation that could match the URL.  */
-      mu_registrar_lookup (name, MU_FOLDER_ATTRIBUTE_DIRECTORY, &record, NULL)
-      == 0)
+      mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_DIRECTORY, &record,
+			       NULL) == 0)
     {
       int (*f_init) (mu_folder_t) = NULL;
       
@@ -78,30 +78,15 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
       if (f_init)
         {
 	  int status;
-	  mu_url_t url;
 	  mu_folder_t folder;
 	  int (*u_init) (mu_url_t) = NULL;
 
-	  /* Parse the url, it may be a bad one and we should bailout if this
-	     failed.  */
-	  if ((status = mu_url_create (&url, name)) != 0)
-	    return status;
-
-	  status = mu_url_parse (url);
-	  if (status)
-	    {
-	      mu_url_destroy (&url);
-	      return status;
-	    }
 	  mu_record_get_url (record, &u_init);
 	  if (u_init)
 	    {
 	      status = u_init (url);
 	      if (status)
-		{
-		  mu_url_destroy (&url);
-		  return status;
-		}
+		return status;
 	    }
 	  
 	  mu_monitor_wrlock (&folder_lock);
@@ -111,7 +96,7 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 	    {
 	      folder->ref++;
 	      *pfolder = folder;
-	      mu_url_destroy (&url);
+	      mu_url_destroy (&url); /* FIXME: Hmm */
 	      mu_monitor_unlock (&folder_lock);
 	      return  0;
 	    }
@@ -149,8 +134,6 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 		{
 		  if (folder->monitor)
 		    mu_monitor_destroy (&folder->monitor, folder);
-		  if (folder->url)
-		    mu_url_destroy (&folder->url);
 		  free (folder);
 		}
 	    }
@@ -164,7 +147,18 @@ mu_folder_create_from_record (mu_folder_t *pfolder, const char *name,
 int
 mu_folder_create (mu_folder_t *pfolder, const char *name)
 {
-  return mu_folder_create_from_record (pfolder, name, NULL);
+  int rc;
+  mu_url_t url;
+  
+  rc = mu_url_create (&url, name);
+  if (rc)
+    return rc;
+  rc = mu_url_parse (url);
+  if (rc == 0)
+    rc = mu_folder_create_from_record (pfolder, url, NULL);
+  if (rc)
+    mu_url_destroy (&url);
+  return 0;
 }
 
 /* The folder is destroy if it is the last reference.  */
@@ -213,7 +207,6 @@ mu_folder_destroy (mu_folder_t *pfolder)
 	  if (folder->stream)
 	    mu_stream_destroy (&(folder->stream), folder);
 	  if (folder->url)
-
 	    mu_url_destroy (&(folder->url));
 	  free (folder);
 	}

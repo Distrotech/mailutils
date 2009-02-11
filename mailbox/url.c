@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -178,6 +179,42 @@ mu_url_dup (mu_url_t old_url, mu_url_t *new_url)
     *new_url = url;
   else
     mu_url_destroy (&url);
+  return rc;
+}
+
+int
+mu_url_uplevel (mu_url_t url, mu_url_t *upurl)
+{
+  int rc;
+  char *p;
+  mu_url_t new_url;
+  
+  if (!url->path)
+    return MU_ERR_NOENT;
+  p = strrchr (url->path, '/');
+  
+  rc = mu_url_dup (url, &new_url);
+  if (rc == 0)
+    {
+      if (!p || p == url->path)
+	{
+	  free (new_url->path);
+	  new_url->path = NULL;
+	}
+      else
+	{
+	  size_t size = p - url->path;
+	  new_url->path = realloc (new_url->path, size + 1);
+	  if (!new_url->path)
+	    {
+	      mu_url_destroy (&new_url);
+	      return ENOMEM;
+	    }
+	  memcpy (new_url->path, url->path, size);
+	  new_url->path[size] = 0;
+	}
+      *upurl = new_url;
+    }
   return rc;
 }
 

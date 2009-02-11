@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,7 +40,7 @@ typedef int (*mu_folder_enumerate_fp) (mu_folder_t, struct mu_list_response *,
   
 /* Constructor/destructor and possible types.  */
 extern int  mu_folder_create         (mu_folder_t *, const char *);
-extern int  mu_folder_create_from_record (mu_folder_t *, const char *,
+extern int  mu_folder_create_from_record (mu_folder_t *, mu_url_t url,
 					  mu_record_t);
   
 extern void mu_folder_destroy        (mu_folder_t *);
