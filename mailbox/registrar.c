@@ -161,6 +161,8 @@ mu_registrar_lookup_url (mu_url_t url, int flags,
 			 mu_record_t *precord, int *pflags)
 {
   mu_iterator_t iterator;
+  mu_record_t last_record = NULL;
+  int last_flags = 0;
   int status = mu_registrar_get_iterator (&iterator);
   if (status != 0)
     return status;
@@ -173,20 +175,33 @@ mu_registrar_lookup_url (mu_url_t url, int flags,
       mu_iterator_current (iterator, (void **)&record);
       if ((rc = mu_record_is_scheme (record, url, flags)))
 	{
-	  status = 0;
-	  if (precord)
-	    *precord = record;
-	  if (pflags)
-	    *pflags = rc;
-	  break;
+	  if (rc == flags)
+	    {
+	      status = 0;
+	      last_record = record;
+	      last_flags = rc;
+	      break;
+	    }
+	  else if (rc > last_flags)
+	    {
+	      status = 0;
+	      last_record = record;
+	      last_flags = rc;
+	    }
 	}
     }
   mu_iterator_destroy (&iterator);
 
-  if (status &&
-      /*s FIXME: This check is not enough. */
-      !mu_is_proto (mu_url_to_string (url))
-      && mu_registrar_get_default_record (precord) == 0)
+  if (status == 0)
+    {
+      if (precord)
+	*precord = last_record;
+      if (pflags)
+	*pflags = last_flags;
+    }
+  else if (!mu_is_proto (mu_url_to_string (url)) /* FIXME: This check is not
+						    enough. */
+	   && mu_registrar_get_default_record (precord) == 0)
     {
       status = 0;
       if (pflags)
