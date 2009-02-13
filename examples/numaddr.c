@@ -40,7 +40,7 @@
 #endif  
 
 #include <stdlib.h>
-#include <mailutils/libsieve.h>
+#include <mailutils/sieve.h>
 
 struct val_ctr {  /* Data passed to the counter function */
   mu_header_t hdr;   /* Headers of the current message */

@@ -58,7 +58,6 @@ pkginclude_HEADERS = \
  ldap.h\
  libargp.h\
  libcfg.h\
- libsieve.h\
  list.h\
  locker.h\
  mailbox.h\
@@ -85,6 +84,7 @@ pkginclude_HEADERS = \
  registrar.h\
  sha1.h\
  server.h\
+ sieve.h\
  stream.h\
  syslog.h\
  sql.h\

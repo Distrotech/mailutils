@@ -34,7 +34,7 @@
 
 #include <mu_asprintf.h>
 #include <mailutils/argcv.h>
-#include <mailutils/libsieve.h>
+#include <mailutils/sieve.h>
 #include <mailutils/auth.h>
 #include <mailutils/errno.h>
 #include <mailutils/folder.h>

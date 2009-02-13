@@ -1,7 +1,7 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
 dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005,
-dnl 2006,2007,2008 Free Software Foundation, Inc.
+dnl 2006,2007,2008,2009 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-AC_INIT([GNU Mailutils], [2.0], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [2.0.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AM_INIT_AUTOMAKE
@@ -34,7 +34,7 @@ AC_SUBST(VI_REVISION, 2)
 AC_SUBST(VI_AGE,      1)
 
 dnl Library paths
-AC_SUBST(MU_LIB_AUTH,'${top_builddir}/auth/libmuauth.la')
+AC_SUBST(MU_LIB_AUTH,'${top_builddir}/libmu_auth/libmu_auth.la')
 AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/mailbox/libmailutils.la')
 AC_SUBST(MU_LIB_SQL,'${top_builddir}/sql/libsql.la')
 AC_SUBST(MU_LIB_IMAP,'${top_builddir}/libproto/imap/libmu_imap.la')
@@ -45,18 +45,18 @@ AC_SUBST(MU_LIB_MH,'${top_builddir}/libproto/mh/libmu_mh.la')
 AC_SUBST(MU_LIB_NNTP,'${top_builddir}/libproto/nntp/libmu_nntp.la')
 AC_SUBST(MU_LIB_POP,'${top_builddir}/libproto/pop/libmu_pop.la')
 AC_SUBST(MU_LIB_REMOTE,'${top_builddir}/libproto/remote/libmu_remotembox.la')
-AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libsieve/libsieve.la')
+AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libmu_sieve/libmu_sieve.la')
 AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
 AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
-AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libargp/libargp.la')
+AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libmu_argp/libmu_argp.la')
 
 dnl Other variables
 AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'../libargp/libmuargp.a ../libcfg/libmucfg.la ../lib/libmuaux.la')
+AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.la')
 
-AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libargp -I${top_srcdir}/libcfg')
+AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
 
 dnl Check for programs
 AC_PROG_CC
@@ -144,7 +144,7 @@ AC_SUBST(MU_AUTHLIBS_DEPENDENCY)
 AC_SUBST(MU_AUTHINCS)
 
 MU_AUTHLIBS=
-MU_AUTHLIBS_DEPENDENCY=../auth/libmuauth.la
+MU_AUTHLIBS_DEPENDENCY=../libmu_auth/libmu_auth.la
 
 dnl Check for arguments
 AC_ARG_ENABLE([pam],
@@ -1216,7 +1216,6 @@ status_sendmail=$mu_cv_enable_sendmail
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
  sql/Makefile
- auth/Makefile
  comsat/Makefile
  config/Makefile
  doc/Makefile
@@ -1238,8 +1237,13 @@ AC_CONFIG_FILES([Makefile
  include/mailutils/Makefile
  include/mailutils/sys/Makefile
  lib/Makefile
+ libmu_argp/Makefile
+ libmu_auth/Makefile
+ libmu_cfg/Makefile
  libmu_cpp/Makefile
  libmu_scm/Makefile
+ libmu_sieve/Makefile
+ libmu_sieve/extensions/Makefile
  libproto/Makefile
  libproto/mbox/Makefile
  libproto/mh/Makefile
@@ -1250,10 +1254,6 @@ AC_CONFIG_FILES([Makefile
  libproto/imap/Makefile
  libproto/include/Makefile
  libproto/remote/Makefile
- libsieve/Makefile
- libsieve/extensions/Makefile
- libargp/Makefile
- libcfg/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
