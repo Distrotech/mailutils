@@ -1,12 +1,12 @@
 @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001,2002,2003,2004,
-@c 2007 Free Software Foundation, Inc.
+@c 2007,2009 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-The functions from @file{libmailbox} library get user information from
-the system user database. The library @file{libmuauth} extends this
-functionality, allowing @file{libmailbox} functions to obtain
+The functions from @file{libmailutils} library get user information from
+the system user database. The library @file{libmu_auth} extends this
+functionality, allowing @file{libmailutils} functions to obtain
 information about a user from several places, like @sc{sql} database,
 etc. The method used is described in detail in @ref{Auth Statement,
 authentication}. This chapter contains a very succinct description of
@@ -14,16 +14,16 @@ the underlying library mechanism.
 
 @menu
 * Data Types::
-* Initializing libmuauth::
+* Initializing libmu_auth::
 * Module Creation and Destruction::
 * Obtaining Authorization Information::
 * Existing Modules::
-* Using libmuauth in Your Programs::
+* Using libmu_auth in Your Programs::
 @end menu
 
 @node Data Types
 @subsection Data Types
-@cindex libmuauth, data types
+@cindex libmu_auth, data types
 
 @deftp {Data Type} mu_auth_fp
 
@@ -98,7 +98,7 @@ struct mu_auth_data @{
 @deftp {Data Type} mu_auth_module
 
 The @code{mu_auth_module} structure contains full information about a
-libmuauth module. It is declared as follows:
+libmu_auth module. It is declared as follows:
 
 @smallexample
 @group
@@ -116,12 +116,12 @@ struct mu_auth_module @{
 @end smallexample
 @end deftp
 
-@node Initializing libmuauth
-@subsection Initializing @file{libmuauth}
+@node Initializing libmu_auth
+@subsection Initializing @file{libmu_auth}
 
 @deftypefun void mu_auth_init (void)
 This function registers the command line capability ``auth''. It must be
-called after registering @file{libmuauth} modules and before calling
+called after registering @file{libmu_auth} modules and before calling
 @code{mu_agrp_parse()}. If an error occurs, this function prints
 diagnostic message and aborts the program.
 @end deftypefun
@@ -150,7 +150,7 @@ Register the module defined by the @var{mod} argument.
 
 @node Obtaining Authorization Information
 @subsection Obtaining Authorization Information
-@cindex libmuauth, obtaining authorization information
+@cindex libmu_auth, obtaining authorization information
 
 @deftypefun int mu_auth_runlist (list_t @var{flist}, struct mu_auth_data **@var{return_data}, void *@var{key}, void *@var{call_data});
 The list is expected to contain @code{mu_auth_fp} pointers. Each of them
@@ -183,20 +183,20 @@ Authenticate the user whose data are in @var{auth_data} using password
 
 @node Existing Modules
 @subsection Existing Modules
-@cindex libmuauth modules
+@cindex libmu_auth modules
 
 @deftypefun  int mu_auth_nosupport (struct mu_auth_data **@var{return_data}, void *@var{key}, void *@var{func_data}, void *@var{call_data});
 The ``not-supported'' module. Always returns @code{ENOSYS}.
 @end deftypefun
 
 @defvar mu_auth_system_module
-This module is always registered even if @file{libmuauth} is not linked.
+This module is always registered even if @file{libmu_auth} is not linked.
 It performs usual authentication using system user database
 (@file{/etc/password} et al.)
 @end defvar
 
 @defvar mu_auth_generic_module
-This module is always registered even if @file{libmuauth} is not linked.
+This module is always registered even if @file{libmu_auth} is not linked.
 Both its authorization handlers are @code{mu_auth_nosupport}. Its
 authentication handler computes the MD5 or DES hash over the supplied
 password with the seed taken from @code{passwd} member of its @var{key}
@@ -228,13 +228,13 @@ module.
 @end defvar
 
 
-@node Using libmuauth in Your Programs
-@subsection Using @file{libmuauth} in Your Programs
-@cindex Using @file{libmuauth}
-@cindex Linking with @file{libmuauth}
-@cindex libmuauth, linking with
+@node Using libmu_auth in Your Programs
+@subsection Using @file{libmu_auth} in Your Programs
+@cindex Using @file{libmu_auth}
+@cindex Linking with @file{libmu_auth}
+@cindex libmu_auth, linking with
 
-To link your program against @file{libmuauth}, obtain loader arguments
+To link your program against @file{libmu_auth}, obtain loader arguments
 by running @command{mailutils-config} as follows:
 
 @smallexample

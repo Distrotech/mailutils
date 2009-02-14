@@ -1,10 +1,10 @@
 @c This is part of the GNU Mailutils manual.
 @c Copyright (C) 1999,2000,2001,2002,2003,2004,2006,
-@c 2007 Free Software Foundation, Inc.
+@c 2007,2009 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-@code{Libsieve} is GNU implementation of the mail filtering
+@code{Libmu_sieve} is GNU implementation of the mail filtering
 language Sieve. The library is built around a @dfn{Sieve Machine} --- an
 abstract computer constructed specially to handle mail filtering tasks.
 This computer has two registers: program counter and numeric accumulator;
@@ -13,7 +13,7 @@ functions is provided for creating and destroying instances of Sieve
 Machine, manipulating its internal data, compiling and executing a
 sieve program.
 
-The following is a typical scenario of using @code{libsieve}:
+The following is a typical scenario of using @code{libmu_sieve}:
 
 @enumerate
 @item Application program creates the instance of sieve machine.
@@ -664,7 +664,7 @@ Dump the disassembled code of the sieve machine @var{mach}.
 @subsection Writing Loadable Commands
 
 This section contains an example of how to write external loadable
-commands for GNU libsieve.
+commands for GNU libmu_sieve.
 
 @smallexample
 @include numaddr.inc

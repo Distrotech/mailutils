@@ -1,7 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
 ##   Copyright (C) 2001, 2002, 2003, 2004, 2006, 
-##   2007 Free Software Foundation, Inc.
+##   2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -46,8 +46,8 @@ mailutils_TEXINFOS = \
  imap4.texi\
  iterator.texi\
  libmu_scm.texi\
- libmuauth.texi\
- libsieve.texi\
+ libmu_auth.texi\
+ libmu_sieve.texi\
  locker.texi\
  mailbox.texi\
  mailcap.texi\

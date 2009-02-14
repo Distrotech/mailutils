@@ -131,7 +131,7 @@ text:
 This results in the contents of file @file{myresponse.txt} being read
 and interpreted as the contents of the multiline string.
 
-GNU libsieve extends the described syntax as follows. If the keyword
+GNU libmu_sieve extends the described syntax as follows. If the keyword
 @code{text:} is immediately followed by a dash (@samp{-}), then all
 leading tab characters are stripped from input lines and the line
 containing delimiter (@samp{.}). This allows multiline strings within
@@ -460,7 +460,7 @@ require "fileinto";
 require "comparator-i;ascii-numeric";
 @end smallexample
 
-When processing arguments for @code{require} statement, GNU libsieve
+When processing arguments for @code{require} statement, GNU libmu_sieve
 uses the following algorithm:
 
 @enumerate 1
@@ -504,7 +504,7 @@ The value of @env{LTDL_LIBRARY_PATH} and @env{LD_LIBRARY_PATH} must be a
 colon-separated list of absolute directories, for example,
 @samp{"/usr/lib/mypkg:/lib/foo"}.
 
-In any of these directories, @command{libsieve} first attempts to find
+In any of these directories, @command{libmu_sieve} first attempts to find
 and load the given filename. If this fails, it tries to append the
 following suffixes to the file name:
 
@@ -515,13 +515,13 @@ following suffixes to the file name:
 platform, e.g., @samp{.so}, @samp{.sl}, etc.
 @end enumerate
 
-@item If the module is found, @command{libsieve} executes its
+@item If the module is found, @command{libmu_sieve} executes its
 initialization function (see below) and again looks up the name
 in the symbol table. If found, search terminates successfully.
 
 @item If either the module is not found, or the symbol wasn't
 found after execution of the module initialization function,
-search is terminated with an error status. @command{libsieve} then
+search is terminated with an error status. @command{libmu_sieve} then
 issues the following diagnostic message:
 
 @smallexample
@@ -533,7 +533,7 @@ source for the required action NAME is not available
 @section Comparators
 @cindex comparator, sieve
 
-GNU libsieve supports the following built-in comparators:
+GNU libmu_sieve supports the following built-in comparators:
 
 @table @code
 @item i;octet
@@ -553,7 +553,7 @@ be explicitly required prior to use.
 @section Tests
 @cindex test, sieve
 
-This section describes the built-in tests supported by GNU libsieve.
+This section describes the built-in tests supported by GNU libmu_sieve.
 In the discussion below the following macro-notations are used:
 
 @table @var
@@ -1130,7 +1130,7 @@ loadable modules that can be linked in at run time using the
 @node Built-in Actions
 @subsection Built-in Actions
 
-The GNU libsieve supports the following built-in actions:
+The GNU libmu_sieve supports the following built-in actions:
 
 @itemize
 @item stop
@@ -1510,7 +1510,7 @@ This section summarizes the GNU extensions to the sieve language
 @enumerate 1
 @item Multiline strings syntax
 
-GNU libsieve understands the following multiline string syntax:
+GNU libmu_sieve understands the following multiline string syntax:
 
 @smallexample
 @group
