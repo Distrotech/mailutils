@@ -1,18 +1,27 @@
-# -*- Shell-script -*-
-%define rel    1
-%define prefix /usr
-
+# -*- rpm-spec -*-
 Summary: GNU Mailutils
 Name: mailutils
 Version: @VERSION@
-Release: %rel
-Copyright: GPL
+Release: 1%{?dist}
+License: GPLv3+ and LGPLv3+
 Source: ftp://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.gz
-BuildRoot: /var/tmp/%{name}-%{version}-root
-URL: http://www.gnu.org/software/%{name}/%{name}.html
-Group: Console/Mail
-Requires: libmailutils, guile >= 1.6, readline
-BuildRequires: guile >= 1.6, readline-devel, emacs
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+URL: http://www.gnu.org/software/%{name}/
+Group: System Environment/Libraries
+Requires: libmailutils = %{version}-%{release}
+Requires: gnutls >= 1.0.18
+Requires: libgsasl >= 0.2.3
+Requires: gdbm
+Requires: mysql-libs
+Requires: readline
+BuildRequires: gettext
+BuildRequires: gnutls-devel >= 1.0.18
+BuildRequires: libgsasl-devel >= 0.2.3
+BuildRequires: guile-devel >= 1.6
+BuildRequires: gdbm-devel
+BuildRequires: mysql-devel
+BuildRequires: readline-devel
+BuildRequires: emacs
 
 %description
 GNU Mailutils contains a series of useful mail clients, servers, and
@@ -24,189 +33,213 @@ frm.
 
 %package -n libmailutils
 Summary: GNU Mailutils: mailbox access library.
-Copyright: LGPL
+License: LGPLv3+
 Group: System Environment/Libraries
 
+%package devel
+Summary: GNU Mailutils: mailbox access library development.
+License: LGPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Development/Libraries
+
+%package comsatd
+Summary: GNU Mailutils: Comsat daemon.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Networking/Daemons
+
+%package maidag
+Summary: GNU Mailutils: General-purpose Mail Delivery Agent.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Networking/Daemons
+
+%package pop3d
+Summary: GNU Mailutils: POP3 daemon.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Networking/Daemons
+
+%package imap4d
+Summary: GNU Mailutils: IMAP4 daemon.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Networking/Daemons
+
+%package guile
+Summary: GNU Mailutils: Guile bindings.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Requires: guile >= 1.6
+Group: System Environment/Libraries
+
+%package mh
+Summary: GNU Mailutils: The Message Handling System.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Group: Console/Mail
+
+
 %description -n libmailutils
-The runtime library libmailbox contains various mailbox access
+The runtime library libmailutils contains various mailbox access
 routines and support for a number of mailbox types, such as mbox,
 maildir, mh, POP3, and IMAP4. It also supports MIME message
 handling, and sending mail via SMTP and /sbin/sendmail.
 
-%package -n libmailutils-dev
-Summary: GNU Mailutils: mailbox access library development.
-Copyright: LGPL
-Requires: libmailutils
-Group: Development/Libraries
-
-%description -n libmailutils-dev
+%description devel
 The static libraries and header files for GNU Mailutils.
 
-%package doc
-Summary: GNU Mailutils: documentation.
-Copyright: FDL
-Prereq: /sbin/install-info
-Group: Development/Libraries
+%description comsatd
+GNU Comsatd is the server which receives reports of incoming mail and
+notifies users, wishing to get this service. It can be started either
+from `inetd.conf' or as a standalone daemon.
 
-%description doc
-API reference for libmailbox and user documentation for the rest of
-the GNU Mailutils.
+%description maidag
+The name `maidag' stands for Mail Delivery Agent. It is a
+general-purpose MDA offering a rich set of features. It can operate
+both in traditional mode, reading the message from its standard input,
+and in LMTP mode. Maidag is able to deliver mail to any mailbox
+format, supported by GNU Mailutils.
 
-%package -n mailutils-pop3d
-Summary: GNU Mailutils: POP3 daemon.
-Copyright: GPL
-Requires: libmailutils
-Group: Networking/Daemons
-
-%description -n mailutils-pop3d
-The GNU POP3 daemon. Uses libmailbox to support different styles of
+%description pop3d
+The GNU POP3 daemon. Uses libmailutils to support different styles of
 mailboxes.
 
-%package -n mailutils-imap4d
-Summary: GNU Mailutils: IMAP4 daemon.
-Copyright: GPL
-Requires: libmailutils
-Group: Networking/Daemons
-
-%description -n mailutils-imap4d
-The GNU IMAP4 daemon. Uses libmailbox to support different styles of
+%description imap4d
+The GNU IMAP4 daemon. Uses libmailutils to support different styles of
 mailboxes.
 
-%package -n mailutils-sieve
-Summary: GNU Mailutils: mail filtering language Sieve.
-Copyright: LGPL
-Requires: libmailutils
-Group: System Environment/Libraries
+%description guile
+This package contains Guile bindings for the GNU Mailutils.
 
-%description -n mailutils-sieve
-Libsieve is the GNU implementation of the mail filtering language Sieve,
-described in RFC 3028 and RFC 3431. This packages contains also the
-Sieve interpreter and Sieve to Scheme translator and filter.
-
-%package -n mailutils-comsatd
-Summary: GNU Mailutils: Comsat daemon.
-Copyright: GPL
-Requires: libmailutils
-Group: Networking/Daemons
-
-%description -n mailutils-comsatd
-The GNU Comsat daemon.
-
-%package -n mailutils-mh
-Summary: GNU Mailutils: The Message Handling System.
-Copyright: GPL
-Requires: libmailutils
-Group: Console/Mail
-
-%description -n mailutils-mh
+%description mh
 The GNU MH (Message Handling System).
+
 
 %prep
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --enable-mh-utils
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix} \
+			--with-guiledir=%{_datadir}/guile/site \
+			--with-gnutls --with-gsasl --with-gdbm \
+			--with-mysql --enable-mh-utils
 make
+
+%check
+make check
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT
-make prefix=$RPM_BUILD_ROOT%{prefix} install
+make DESTDIR=$RPM_BUILD_ROOT install
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+%find_lang %{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
-make distclean
 
 %post -n libmailutils -p /sbin/ldconfig
+/sbin/install-info %{_infodir}/mailutils.info.gz %{_infodir}/dir
+
 %postun -n libmailutils -p /sbin/ldconfig
-%post -n mailutils-sieve -p /sbin/ldconfig
-%postun -n mailutils-sieve -p /sbin/ldconfig
 
-%post doc
-/sbin/install-info %{prefix}/info/mailutils.info.gz %{prefix}/info/dir
+%preun -n libmailutils
+/sbin/install-info --delete %{_infodir}/mailutils.info.gz %{_infodir}/dir
 
-%preun doc
-/sbin/install-info --delete %{prefix}/info/mailutils.info.gz %{prefix}/info/dir
-
-%files -n mailutils
-%defattr(-, root, root)
-%{prefix}/bin/dotlock
-%{prefix}/bin/frm
-%{prefix}/bin/from
-%{prefix}/bin/guimb
-%{prefix}/bin/mail
-%{prefix}/bin/messages
-%{prefix}/bin/movemail
-%{prefix}/bin/readmsg
-%{prefix}/libexec/*
-%{prefix}/share/mailutils/*.scm
+%files -f %{name}.lang
+%defattr(-,root,root,-)
+%doc AUTHORS COPYING* ChangeLog NEWS README* THANKS TODO
+%{_bindir}/dotlock
+%{_bindir}/frm
+%{_bindir}/from
+%{_bindir}/guimb
+%{_bindir}/mail
+%{_bindir}/messages
+%{_bindir}/mimeview
+%{_bindir}/movemail
+%{_bindir}/readmsg
+%{_bindir}/sieve
+%{_libexecdir}/*
+%{_libdir}/mailutils/list*
+%{_libdir}/mailutils/moderator*
+%{_libdir}/mailutils/numaddr*
+%{_libdir}/mailutils/pipe*
+%{_libdir}/mailutils/spamd*
+%{_libdir}/mailutils/timestamp*
+%{_libdir}/mailutils/vacation*
+%{_mandir}/man1/mail*
 
 %files -n libmailutils
-%defattr(-, root, root)
-%{prefix}/lib/libmailbox.so.*
-%{prefix}/lib/libmu*.so.*
-%{prefix}/share/mailutils/mailutils.scm
-%{prefix}/share/mailutils/*.txt
-%{prefix}/share/locale/*/LC_MESSAGES/mailutils.mo
+%defattr(-,root,root,-)
+%{_libdir}/libguile-mailutils*.so
+%{_libdir}/libmailutils.so.*
+%{_libdir}/libmu_*.so.*
+%{_infodir}/*
 
-%files -n libmailutils-dev
-%defattr(-, root, root)
-%{prefix}/bin/mailutils-config
-%{prefix}/lib/libmailbox.*a
-%{prefix}/lib/libsieve.*a
-%{prefix}/lib/libmu*.*a
-%{prefix}/include
+%files devel
+%defattr(-,root,root,-)
+%{_bindir}/mailutils-config
+%{_libdir}/libmailutils.a
+%{_libdir}/libmailutils.so
+%{_libdir}/libmu_*.a
+%{_libdir}/libmu_*.so
+%{_includedir}/mailutils/*.h
+%{_includedir}/mailutils/sys/*.h
+%{_datadir}/aclocal/mailutils.m4
 
-%files doc
-%defattr(-, root, root)
-%doc AUTHORS COPYING* ChangeLog NEWS README THANKS TODO
-%{prefix}/info/*
+%files comsatd
+%defattr(-,root,root,-)
+%{_sbindir}/comsatd
 
-%files -n mailutils-pop3d
-%defattr(-, root, root)
-%{prefix}/sbin/pop3d
-%{prefix}/man/*/pop*
+%files maidag
+%defattr(-,root,root,-)
+%{_sbindir}/maidag
 
-%files -n mailutils-imap4d
-%defattr(-, root, root)
-%{prefix}/sbin/imap4d
-%{prefix}/man/*/imap4d*
+%files pop3d
+%defattr(-,root,root,-)
+%{_bindir}/popauth
+%{_sbindir}/pop3d
+%{_mandir}/man1/pop*
 
-%files -n mailutils-comsatd
-%defattr(-, root, root)
-%{prefix}/sbin/comsatd
+%files imap4d
+%defattr(-,root,root,-)
+%{_sbindir}/imap4d
+%{_mandir}/man1/imap4d*
 
-%files -n mailutils-sieve
-%defattr(-, root, root)
-%{prefix}/bin/sieve*
-%{prefix}/lib/libsieve.so.*
-%{prefix}/lib/mailutils/list*
-%{prefix}/lib/mailutils/numaddr*
-%{prefix}/lib/mailutils/spamd*
-%{prefix}/lib/mailutils/timestamp*
+%files guile
+%defattr(-,root,root,-)
+%{_bindir}/sieve.scm
+%{_datadir}/guile/site/mailutils/*.scm
+%{_datadir}/guile/site/mailutils/*.txt
+%{_datadir}/guile/site/sieve-modules/*.scm
 
-%files -n mailutils-mh
-%defattr(-, root, root)
-%{prefix}/bin/mu-mh/anno
-%{prefix}/bin/mu-mh/comp
-%{prefix}/bin/mu-mh/fmtcheck
-%{prefix}/bin/mu-mh/folder
-%{prefix}/bin/mu-mh/forw
-%{prefix}/bin/mu-mh/inc
-%{prefix}/bin/mu-mh/install-mh
-%{prefix}/bin/mu-mh/mark
-%{prefix}/bin/mu-mh/mhl
-%{prefix}/bin/mu-mh/mhn
-%{prefix}/bin/mu-mh/mhpath
-%{prefix}/bin/mu-mh/pick
-%{prefix}/bin/mu-mh/refile
-%{prefix}/bin/mu-mh/repl
-%{prefix}/bin/mu-mh/rmf
-%{prefix}/bin/mu-mh/rmm
-%{prefix}/bin/mu-mh/scan
-%{prefix}/bin/mu-mh/send
-%{prefix}/bin/mu-mh/sortm
-%{prefix}/bin/mu-mh/whatnow
-%{prefix}/bin/mu-mh/whom
-%{prefix}/share/mailutils/mh/*
-%{prefix}/share/emacs/site-lisp/*
+%files mh
+%defattr(-,root,root,-)
+%{_bindir}/mu-mh/ali
+%{_bindir}/mu-mh/anno
+%{_bindir}/mu-mh/burst
+%{_bindir}/mu-mh/comp
+%{_bindir}/mu-mh/fmtcheck
+%{_bindir}/mu-mh/folder
+%{_bindir}/mu-mh/folders
+%{_bindir}/mu-mh/forw
+%{_bindir}/mu-mh/inc
+%{_bindir}/mu-mh/install-mh
+%{_bindir}/mu-mh/mark
+%{_bindir}/mu-mh/mhl
+%{_bindir}/mu-mh/mhn
+%{_bindir}/mu-mh/mhparam
+%{_bindir}/mu-mh/mhpath
+%{_bindir}/mu-mh/pick
+%{_bindir}/mu-mh/refile
+%{_bindir}/mu-mh/repl
+%{_bindir}/mu-mh/rmf
+%{_bindir}/mu-mh/rmm
+%{_bindir}/mu-mh/scan
+%{_bindir}/mu-mh/send
+%{_bindir}/mu-mh/sortm
+%{_bindir}/mu-mh/whatnow
+%{_bindir}/mu-mh/whom
+%{_datadir}/mailutils/mh/*
+%{_datadir}/emacs/site-lisp/*
