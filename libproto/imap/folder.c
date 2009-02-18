@@ -2428,23 +2428,27 @@ imap_parse (f_imap_t f_imap)
 		      /* Followed by a decimal number, indicates the next
 			 unique identifier value.  Refer to section 2.3.1.1
 			 for more information.  */
-		      char *value = strtok_r (NULL, " ", &sp);
-		      f_imap->selected->uidnext = strtol (value, NULL, 10);
+		      char *value = strtok_r (NULL, " ", &sp1);
+		      if (value)
+			f_imap->selected->uidnext = strtol (value, NULL, 10);
 		    }
 		  else if (strcasecmp (subtag, "UIDVALIDITY") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the unique
 			 identifier validity value.  Refer to section 2.3.1.1
 			 for more information.  */
-		      char *value = strtok_r (NULL, " ", &sp);
-		      f_imap->selected->uidvalidity = strtol (value, NULL, 10);
+		      char *value = strtok_r (NULL, " ", &sp1);
+		      if (value)
+			f_imap->selected->uidvalidity = strtol (value,
+								NULL, 10);
 		    }
 		  else if (strcasecmp (subtag, "UNSEEN") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the number of
 			 the first message without the \Seen flag set.  */
-		      char *value = strtok_r (NULL, " ", &sp);
-		      f_imap->selected->unseen = strtol (value, NULL, 10);
+		      char *value = strtok_r (NULL, " ", &sp1);
+		      if (value)
+			f_imap->selected->unseen = strtol (value, NULL, 10);
 		    }
 		  else
 		    {
