@@ -337,10 +337,10 @@ Major differences between Mailutils MH and other MH implementations
 
 Mailutils Libraries
 
-* libmailbox::      The Core Library.
-* libmuauth::       Auxiliary Library for Authenticating Users.
+* libmailutils::    The Core Library.
+* libmu_auth::      Auxiliary Library for Authenticating Users.
 * libmu_scm::       Mailutils to Scheme Interface.
-* libsieve::        GNU Implementation of Sieve Mail Filtering.
+* libmu_sieve::     GNU Implementation of Sieve Mail Filtering.
 
 Framework
 
@@ -364,11 +364,11 @@ Framework
 Authentication Library
 
 * Data Types::
-* Initializing libmuauth::
+* Initializing libmu_auth::
 * Module Creation and Destruction::
 * Obtaining Authorization Information::
 * Existing Modules::
-* Using libmuauth in Your Programs::
+* Using libmu_auth in Your Programs::
 
 Mailutils to Scheme Interface
 
@@ -521,22 +521,22 @@ automatically as soon as it is compiled against the new library.
 @cindex Libraries
 
 @menu
-* libmailbox::      The Core Library.
-* libmuauth::       Auxiliary Library for Authenticating Users.
+* libmailutils::    The Core Library.
+* libmu_auth::      Auxiliary Library for Authenticating Users.
 * libmu_scm::       Mailutils to Scheme Interface.
-* libsieve::        GNU Implementation of Sieve Mail Filtering.
+* libmu_sieve::     GNU Implementation of Sieve Mail Filtering.
 @end menu
 
-@node libmailbox
+@node libmailutils
 @section Framework
 @cindex Framework
 @include framework.texi
 
-@node libmuauth
+@node libmu_auth
 @section Authentication Library
 @cindex Authentication Library
-@cindex libmuauth
-@include libmuauth.texi
+@cindex libmu_auth
+@include libmu_auth.texi
 
 @node libmu_scm
 @section Mailutils to Scheme Interface
@@ -544,11 +544,11 @@ automatically as soon as it is compiled against the new library.
 @cindex libmu_scm
 @include libmu_scm.texi
 
-@node libsieve
+@node libmu_sieve
 @section Sieve Library
 @cindex Sieve Library
-@cindex libsieve
-@include libsieve.texi
+@cindex libmu_sieve
+@include libmu_sieve.texi
 
 @node Sieve Language
 @chapter Sieve Language

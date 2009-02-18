@@ -12,8 +12,8 @@ AC_DEFUN([MU_CHECK_LIB],
   [
    for path in $6
    do
-      LIBS="$save_LIBS -L$path"
-      AC_CHECK_LIB($1, $2,
+      LIBS="$save_LIBS $3 -L$path -l$1"
+      AC_TRY_LINK_FUNC($2,
                    [mu_cv_lib_$1="$3 -L$path -l$1"
                     break],
                    [mu_cv_lib_$1=no],$3)

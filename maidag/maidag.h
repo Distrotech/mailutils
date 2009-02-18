@@ -80,7 +80,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/mu_auth.h>
-#include <mailutils/libsieve.h>
+#include <mailutils/sieve.h>
 #include <mailutils/nls.h>
 #include <mailutils/daemon.h>
 #include <mailutils/acl.h>

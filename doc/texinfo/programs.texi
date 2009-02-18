@@ -6679,7 +6679,7 @@ $B(,5)\
 @pindex mailutils-config
 
 This program is designed for developers wishing to link their programs
-against libmailbox. It allows to examine the particulars of the
+against libmailutils. It allows to examine the particulars of the
 current build of Mailutils and to get the command line parameters
 necessary for compiling and linking an application with Mailutils
 libraries.
@@ -6710,14 +6710,14 @@ standard output the loader flags necessary to link a program against
 Mailutils libraries.
 
 When invoked without arguments, it produces the flags necessary to
-link against the basic library of Mailutils: @file{libmailbox}.
+link against the basic library of Mailutils: @file{libmailutils}.
 Arguments may be given that alter this behavior. These are:
 
 @table @samp
 
 @item auth
-Print flags to link against @file{libmuauth}, the library adding new
-authentication methods to @file{libmailbox}.
+Print flags to link against @file{libmu_auth}, the library adding new
+authentication methods to @file{libmailutils}.
 
 @item guile
 Print flags to link against @file{libmu_scm}, the Guile interface

@@ -145,8 +145,8 @@ dbm_retrieve_quota (char *name, mu_off_t *quota)
 #ifdef USE_SQL
 #include <mailutils/sql.h>
 
-/* FIXME: defined in auth/sql.c */
-#include <auth/sql.h>
+/* FIXME: defined in libmu_auth/sql.c */
+#include <libmu_auth/sql.h>
 
 int
 sql_retrieve_quota (char *name, mu_off_t *quota)

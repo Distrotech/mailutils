@@ -34,7 +34,7 @@
 #include <mailutils/header.h>
 #include <mailutils/iterator.h>
 #include <mailutils/kwd.h>
-#include <mailutils/libsieve.h>
+#include <mailutils/sieve.h>
 #include <mailutils/list.h>
 #include <mailutils/locker.h>
 #include <mailutils/mailbox.h>

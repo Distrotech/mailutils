@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008
+##   Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ##   Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
@@ -27,14 +27,14 @@ SUBDIRS = \
  testsuite\
  mailbox\
  sql\
- auth\
+ libmu_auth\
  libproto\
  lib\
- libsieve\
+ libmu_argp\
+ libmu_cfg\
  libmu_cpp\
  libmu_scm\
- libargp\
- libcfg\
+ libmu_sieve\
  doc\
  config\
  examples\
