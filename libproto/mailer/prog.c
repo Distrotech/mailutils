@@ -138,12 +138,12 @@ static int
 _expand_sender (const char *name, void *data, char **p)
 {
   mu_address_t addr = data;
-  const char *email;
-  int status = mu_address_sget_email (addr, 1, &email);
+  char *email;
+  int status = mu_address_aget_email (addr, 1, &email);
 
   if (status != 0)
     return status;
-  *(const char**)p = email;
+  *p = email;
   return 0;
 }
 
