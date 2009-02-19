@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2007, 2009
+   Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,7 +117,7 @@ struct lib_descr {
   { "pop",    "mu_pop",  NEEDAUTH },
   { "nntp",   "mu_nntp", 0 },
   { "mailer", "mu_mailer", 0 },
-  { "sieve",  "sieve",   NOTALL },
+  { "sieve",  "mu_sieve", NOTALL },
   { NULL }
 };
 
@@ -145,7 +146,7 @@ add_entry (int level, char *ptr)
   nentry++;
 }
 
-/* Sort the entires by their level. */
+/* Sort the entries by their level. */
 void
 sort_entries ()
 {
@@ -204,7 +205,7 @@ main (int argc, char **argv)
 	    {
 	      if (strcmp (argv[0], "auth") == 0)
 		{
-		  add_entry (2, "-lmuauth " AUTHLIBS);
+		  add_entry (2, "-lmu_auth " AUTHLIBS);
 		}
 #ifdef WITH_GUILE	      
 	      else if (strcmp (argv[0], "guile") == 0)
@@ -213,9 +214,9 @@ main (int argc, char **argv)
 		}
 #endif
 	      else if (strcmp (argv[0], "cfg") == 0)
-		add_entry (-1, "-lmucfg");
+		add_entry (-1, "-lmu_cfg");
 	      else if (strcmp (argv[0], "argp") == 0)
-		add_entry (-2, "-lmuargp");
+		add_entry (-2, "-lmu_argp");
 	      else if (strcmp (argv[0], "all") == 0)
 		{
 		  struct lib_descr *p;
@@ -227,7 +228,7 @@ main (int argc, char **argv)
 		      asprintf (&ptr, "-l%s", p->libname);
 		      add_entry (0, ptr);
 		      if (p->flags & NEEDAUTH)
-			add_entry (2, "-lmuauth " AUTHLIBS);
+			add_entry (2, "-lmu_auth " AUTHLIBS);
 		    }
 		}
 	      else
@@ -243,7 +244,7 @@ main (int argc, char **argv)
 		      asprintf (&ptr, "-l%s", p->libname);
 		      add_entry (0, ptr);
 		      if (p->flags & NEEDAUTH)
-			add_entry (2, "-lmuauth " AUTHLIBS);
+			add_entry (2, "-lmu_auth " AUTHLIBS);
 		    }
 		  else
 		    {
@@ -299,4 +300,3 @@ main (int argc, char **argv)
   return 0;
 }
   
-
