@@ -1360,6 +1360,8 @@ imap4d_readline (struct imap4d_tokbuf *tok)
       if (transcript)
         mu_diag_output (MU_DIAG_DEBUG, "recv: %s", tok->buffer);
       imap4d_tokbuf_tokenize (tok, off);
+      if (tok->argc == 0)
+	break;
       last_arg = tok->buffer + tok->argp[tok->argc - 1];
       if (last_arg[0] == '{' && last_arg[strlen(last_arg)-1] == '}')
 	{
