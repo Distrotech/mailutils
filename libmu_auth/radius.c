@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -183,26 +183,12 @@ mu_grad_logger(int level,
   char *pfx = NULL;
   if (loc)
     {
-      char buf[INT_STRLEN_BOUND(uintmax_t)];
-      char *p = umaxtostr (loc->line, buf);
-      size_t size = strlen (loc->file) + 1 + strlen (p) + 2 + strlen (fmt) + 1;
       if (func_name)
-	size += strlen (func_name) + 1;
-      pfx = malloc (size);
-      if (pfx)
-	{
-	  strcpy (pfx, loc->file);
-	  strcat (pfx, ":");
-	  strcat (pfx, p);
-	  strcat (pfx, ":");
-	  if (func_name)
-	    {
-	      strcat (pfx, func_name);
-	      strcat (pfx, ":");
-	    }
-	  strcat (pfx, " ");
-	  strcat (pfx, fmt);
-	}
+	mu_asprintf (&pfx, "%s:%lu:%s: %s",
+		     loc->file, (unsigned long) loc->line, func_name, fmt);
+      else
+	mu_asprintf (&pfx, "%s:%lu: %s",
+		     loc->file, (unsigned long) loc->line, fmt);
     }
   mu_diag_voutput (mlevel[level & GRAD_LOG_PRIMASK], pfx ? pfx : fmt, ap);
   if (pfx)

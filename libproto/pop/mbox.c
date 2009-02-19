@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999,2000,2001,2003,2005,2007 Free Software Foundation, Inc.
+   Copyright (C) 1999,2000,2001,2003,2005,2007, 
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,7 +39,6 @@
 # include <strings.h>
 #endif
 
-#include <mu_umaxtostr.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
 #include <mailutils/body.h>
@@ -53,6 +53,7 @@
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
 #include <mailutils/md5.h>
+#include <mailutils/io.h>
 
 #include <folder0.h>
 #include <mailbox0.h>
@@ -147,7 +148,8 @@ static int fill_buffer         (pop_data_t, char *, size_t);
 static int pop_sleep           (int);
 static int pop_readline        (pop_data_t);
 static int pop_read_ack        (pop_data_t);
-static int pop_writeline       (pop_data_t, const char *, ...);
+static int pop_writeline       (pop_data_t, const char *, ...)
+                                 MU_PRINTFLIKE(2,3);
 static int pop_write           (pop_data_t);
 static int pop_get_user        (mu_authority_t);
 static int pop_get_passwd      (mu_authority_t);
@@ -1295,9 +1297,9 @@ pop_expunge (mu_mailbox_t mbox)
 	      switch (mpd->state)
 		{
 		case POP_NO_STATE:
-		  status = pop_writeline (mpd, "DELE %s\r\n",
-					  mu_umaxtostr (0,
-							mpd->pmessages[i]->num));
+		  status = pop_writeline (mpd, "DELE %lu\r\n",
+					  (unsigned long)
+					    mpd->pmessages[i]->num);
 		  CHECK_ERROR (mpd, status);
 		  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 		  mpd->state = POP_DELE;
@@ -1391,7 +1393,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      status = pop_writeline (mpd, "LIST %s\r\n", mu_umaxtostr (0, mpm->num));
+      status = pop_writeline (mpd, "LIST %lu\r\n", (unsigned long) mpm->num);
       CHECK_ERROR (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_LIST;
@@ -1610,7 +1612,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      status = pop_writeline (mpd, "UIDL %s\r\n", mu_umaxtostr (0, mpm->num));
+      status = pop_writeline (mpd, "UIDL %lu\r\n", (unsigned long) mpm->num);
       CHECK_ERROR (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_UIDL;
@@ -1705,8 +1707,8 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
     case POP_NO_STATE:
       if (mpd->capa & CAPA_TOP)
         {
-	  status = pop_writeline (mpd, "TOP %s 0\r\n",
-				  mu_umaxtostr (0, mpm->num));
+	  status = pop_writeline (mpd, "TOP %lu 0\r\n",
+				  (unsigned long) mpm->num);
 	  CHECK_ERROR (mpd, status);
 	  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	  mpd->state = POP_TOP;
@@ -1931,8 +1933,8 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
     {
     case POP_NO_STATE:
       mpm->body_lines = mpm->body_size = 0;
-      status = pop_writeline (mpd, "RETR %s\r\n",
-			      mu_umaxtostr (0, mpm->num));
+      status = pop_writeline (mpd, "RETR %lu\r\n",
+			      (unsigned long) mpm->num);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       CHECK_ERROR (mpd, status);
       mpd->state = POP_RETR;

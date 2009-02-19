@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
 #include <mailutils/vartab.h>
-#include <mu_umaxtostr.h>
+#include <mailutils/io.h>
 
 struct _mu_acl_entry
 {
@@ -368,7 +368,7 @@ mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
 		    char *bufptr, size_t buflen,
 		    size_t *plen)
 {
-  char buf[UINTMAX_STRSIZE_BOUND]; /* FIXME: too much */
+  char *nbuf;
   size_t len = 0;
   switch (sa->sa_family)
     {
@@ -377,8 +377,11 @@ mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
 	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
 	len += mu_stpcpy (&bufptr, &buflen, inet_ntoa (s_in.sin_addr));
 	len += mu_stpcpy (&bufptr, &buflen, ":");
-	len += mu_stpcpy (&bufptr, &buflen, umaxtostr (ntohs (s_in.sin_port),
-						       buf));
+	if (mu_asprintf (&nbuf, "%hu", ntohs (s_in.sin_port)) == 0)
+	  {
+	    len += mu_stpcpy (&bufptr, &buflen, nbuf);
+	    free (nbuf);
+	  }
 	break;
       }
 
@@ -396,8 +399,12 @@ mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
       }
 
     default:
-      len += mu_stpcpy (&bufptr, &buflen, "{Unsupported family: ");
-      len += mu_stpcpy (&bufptr, &buflen, umaxtostr (sa->sa_family, buf));
+      len += mu_stpcpy (&bufptr, &buflen, "{Unsupported family");
+      if (mu_asprintf (&nbuf, ": %d", sa->sa_family) == 0)
+	{
+	  len += mu_stpcpy (&bufptr, &buflen, nbuf);
+	  free (nbuf);
+	}
       len += mu_stpcpy (&bufptr, &buflen, "}");
     }
   if (plen)
@@ -500,10 +507,8 @@ static int
 _expand_aclno (const char *name, void *data, char **p)
 {
   struct run_closure *rp = data;
-  char buf[UINTMAX_STRSIZE_BOUND];
   /*FIXME: memory leak*/
-  *p = strdup (umaxtostr (rp->idx, buf));
-  return 0;
+  return mu_asprintf (p, "%u", rp->idx);
 }
 
 #if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
@@ -530,14 +535,13 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
       {
 	struct sockaddr_in *s_in = (struct sockaddr_in *)rp->sa;
 	struct in_addr addr = s_in->sin_addr;
-	char buf[UINTMAX_STRSIZE_BOUND];
-	unsigned n;
-
+	char *p;
+	
 	mu_vartab_define (vtab, "family", "AF_INET", 1);
 	addr.s_addr = htonl (addr.s_addr);
 	mu_vartab_define (vtab, "address", inet_ntoa (addr), 0);
-	n = ntohs (s_in->sin_port);
-	mu_vartab_define (vtab, "port", umaxtostr (n, buf), 0);
+	if (mu_asprintf (&p, "%hu", ntohs (s_in->sin_port)) == 0)
+	  mu_vartab_define (vtab, "port", p, 0);
       }
       break;
       
@@ -768,7 +772,7 @@ mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
     {
       MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, 
 		 "Cannot obtain IP address of client: %s",
-		 strerror (errno));
+		 mu_strerror (errno));
       return MU_ERR_FAILURE;
     }
 

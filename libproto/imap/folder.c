@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,7 +50,6 @@
 #include <mailutils/argcv.h>
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
-#include <mu_umaxtostr.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -570,10 +569,10 @@ static int
 imap_writer (void *iodata, char *buf)
 {
   f_imap_t iop = iodata;
-  MU_DEBUG2 (iop->folder->debug, MU_DEBUG_PROT, "g%s %s\n",
-             mu_umaxtostr (0, iop->seq), buf);
-  int status = imap_writeline (iop, "g%s %s\r\n",
-                               mu_umaxtostr (0, iop->seq++), buf);
+  MU_DEBUG2 (iop->folder->debug, MU_DEBUG_PROT, "g%lu %s\n",
+             (unsigned long)iop->seq, buf);
+  int status = imap_writeline (iop, "g%lu %s\r\n",
+                               (unsigned long)iop->seq++, buf);
   CHECK_ERROR (iop, status);
   status = imap_send (iop);
   CHECK_ERROR (iop, status);

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/mutil.h>
 #include <mailutils/mime.h>
-#include <mu_umaxtostr.h>
+#include <mailutils/io.h>
 
 #include <mailer0.h>
 
@@ -404,19 +404,19 @@ create_part (mu_mime_t mime, mu_stream_t istr,
   mu_body_t body;
   mu_stream_t ostr;
   char buffer[512], *str;
-  const char *nstr, *npartstr;
+  size_t slen;
   
   mu_message_create (&newmsg, NULL);
   mu_message_get_header (newmsg, &newhdr); 
 
-  nstr = mu_umaxtostr (0, n);
-  npartstr = mu_umaxtostr (1, nparts);
-  asprintf (&str,
-	    "message/partial; id=\"%s\"; number=%s; total=%s",
-	    msgid, nstr, npartstr);
+  str = NULL;
+  slen = 0;
+  mu_asnprintf (&str, &slen,
+		"message/partial; id=\"%s\"; number=%lu; total=%lu",
+		msgid, (unsigned long)n, (unsigned long)nparts);
   mu_header_append (newhdr, MU_HEADER_CONTENT_TYPE, str);
-  free (str);
-  asprintf (&str, "part %s of %s", nstr, npartstr);
+  mu_asnprintf (&str, &slen, "part %lu of %lu",
+		(unsigned long)n, (unsigned long)nparts);
   mu_header_append (newhdr, MU_HEADER_CONTENT_DESCRIPTION, str);
   free (str);
   

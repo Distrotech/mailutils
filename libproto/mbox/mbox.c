@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 
-   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 #endif
 
 #include <mbox0.h>
-#include <mu_umaxtostr.h>
+#include <mailutils/io.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -805,12 +805,7 @@ static int
 mbox_message_qid (mu_message_t msg, mu_message_qid_t *pqid)
 {
   mbox_message_t mum = mu_message_get_owner (msg);
-  char buf[UINTMAX_STRSIZE_BOUND];
-  const char *p = umaxtostr (mum->header_from, buf);
-  *pqid = strdup (p);
-  if (*pqid == NULL)
-    return ENOMEM;
-  return 0;
+  return mu_asprintf (pqid, "%lu", (unsigned long) mum->header_from);
 }
 
 static int
@@ -1303,9 +1298,10 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 
   if (mailbox->observable)
     {
-      char buf[UINTMAX_STRSIZE_BOUND];
-      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND,
-			    umaxtostr (size, buf)); 
+      char *buf = NULL;
+      mu_asprintf (&buf, "%lu", (unsigned long) size);
+      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND, buf);
+      free (buf);
     }
   
   return 0;

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2006, 2007, 
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
    Boston, MA 02110-1301 USA */
 
 #include "mu_scm.h"
-#include <mu_umaxtostr.h>
+#include <mailutils/io.h>
 
 struct mu_port
 {
@@ -276,10 +277,13 @@ mu_port_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts ("mu-port", port);
   if (mu_stream_size (mp->stream, &size) == 0)
     {
-      char buffer[64];
-      snprintf (buffer, sizeof (buffer), " %-5s", mu_umaxtostr (0, size));
-      scm_puts (buffer, port);
-      scm_puts (" chars", port);
+      char *buf;
+      if (mu_asprintf (&buf, " %5lu", (unsigned long) size) == 0)
+	{
+	  scm_puts (buf, port);
+	  scm_puts (" chars", port);
+	  free (buf);
+	}
     }
   scm_putc ('>', port);
   return 1;

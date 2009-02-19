@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -60,6 +60,7 @@
 #include <mailutils/filter.h>
 #include <mailutils/sql.h>
 #include <mailutils/url.h>
+#include <mailutils/io.h>
 
 #include <registrar0.h>
 
@@ -611,7 +612,7 @@ mu_tempfile (const char *tmpdir, char **namep)
 
   if (fd == -1)
     {
-      mu_error (_("Cannot open temporary file: %s"), strerror (errno));
+      mu_error (_("Cannot open temporary file: %s"), mu_strerror (errno));
       free (filename);
       return -1;
     }
@@ -1031,14 +1032,14 @@ mu_rfc2822_msg_id (int subpart, char **pval)
     {
       struct timeval tv;
       gettimeofday (&tv, NULL);
-      asprintf (&p, "<%s.%lu.%d@%s>",
-		date,
-		(unsigned long) getpid (),
-		subpart,
-		host);
+      mu_asprintf (&p, "<%s.%lu.%d@%s>",
+		   date,
+		   (unsigned long) getpid (),
+		   subpart,
+		   host);
     }
   else
-    asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
+    mu_asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
   free (host);
   *pval = p;
   return 0;

@@ -1,7 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
 ##   Copyright (C) 1999, 2000, 2001, 2002, 2005,
-##   2007, 2008 Free Software Foundation, Inc.
+##   2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -29,7 +29,9 @@ libmuaux_la_SOURCES += \
  signal.c\
  strexit.c\
  tcpwrap.c\
- userprivs.c
+ userprivs.c\
+ mu_umaxtostr.c\
+ mu_umaxtostr.h
 
 noinst_HEADERS +=\
  mailcap.h\

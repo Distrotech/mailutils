@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,6 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
-#include <mu_umaxtostr.h>
 
 static char *pidfile;
 static pid_t current_pid;
@@ -80,7 +79,6 @@ int
 mu_daemon_create_pidfile (const char *filename)
 {
   char *p;
-  const char *pid_string; 
   int fd;
   uid_t uid = 0;
   int rc;
@@ -122,10 +120,19 @@ mu_daemon_create_pidfile (const char *filename)
   
   if ((fd = open (pidfile, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, 0644)) != -1)
     {
-      pid_string = mu_umaxtostr (0, current_pid);
-      write (fd, pid_string, strlen (pid_string));
-      close (fd);
-      atexit (mu_daemon_remove_pidfile);
+      FILE *fp = fdopen (fd, "w");
+      if (!fp)
+	{
+	  rc = errno;
+	  free (pidfile);
+	  close (fd);
+	}
+      else
+	{
+	  fprintf (fp, "%lu", (unsigned long) current_pid);
+	  fclose (fp);
+	  atexit (mu_daemon_remove_pidfile);
+	}
     }
   else
     {

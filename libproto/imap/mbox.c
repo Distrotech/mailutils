@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,6 @@
 #include <assert.h>
 #include <time.h>
 
-#include <mu_umaxtostr.h>
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
@@ -46,6 +45,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
+#include <mailutils/io.h>
 
 #include <imap0.h>
 #include <mailbox0.h>
@@ -393,8 +393,8 @@ mailbox_imap_close (mu_mailbox_t mailbox)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%s CLOSE\r\n",
-			       mu_umaxtostr (0, f_imap->seq++));
+      status = imap_writeline (f_imap, "g%lu CLOSE\r\n",
+			       (unsigned long) f_imap->seq++);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_CLOSE;
@@ -682,8 +682,8 @@ imap_messages_count (mu_mailbox_t mailbox, size_t *pnum)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%s %s %s\r\n",
-			       mu_umaxtostr (0, f_imap->seq++), 
+      status = imap_writeline (f_imap, "g%lu %s %s\r\n",
+			       (unsigned long) f_imap->seq++, 
                                MBX_WRITABLE(mailbox) ? "SELECT" : "EXAMINE",
                                m_imap->name);
       CHECK_ERROR (f_imap, status);
@@ -751,8 +751,8 @@ imap_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
     {
     case IMAP_NO_STATE:
       status = imap_writeline (f_imap,
-			       "g%s FETCH 1:* (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
+			       "g%lu FETCH 1:* (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
+			       (unsigned long) f_imap->seq++,
 			       MU_IMAP_CACHE_HEADERS);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
@@ -827,8 +827,8 @@ imap_is_updated (mu_mailbox_t mailbox)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%s NOOP\r\n",
-			       mu_umaxtostr (0, f_imap->seq++));
+      status = imap_writeline (f_imap, "g%lu NOOP\r\n",
+			       (unsigned long) f_imap->seq++);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_NOOP;
@@ -882,8 +882,8 @@ imap_expunge (mu_mailbox_t mailbox)
 	    return 0;
 	  }
 	status = imap_writeline (f_imap,
-				 "g%s STORE %s +FLAGS.SILENT (\\Deleted)\r\n",
-				 mu_umaxtostr (0, f_imap->seq++),
+				 "g%lu STORE %s +FLAGS.SILENT (\\Deleted)\r\n",
+				 (unsigned long) f_imap->seq++,
 				 set);
 	free (set);
 	CHECK_ERROR (f_imap, status);
@@ -905,8 +905,8 @@ imap_expunge (mu_mailbox_t mailbox)
 
     case IMAP_EXPUNGE:
     case IMAP_EXPUNGE_ACK:
-      status = imap_writeline (f_imap, "g%s EXPUNGE\r\n",
-			       mu_umaxtostr (0, f_imap->seq++));
+      status = imap_writeline (f_imap, "g%lu EXPUNGE\r\n",
+			       (unsigned long) f_imap->seq++);
       CHECK_ERROR (f_imap, status);
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
@@ -1029,11 +1029,11 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
 	mu_message_size (msg, &size);
 	mu_message_lines (msg, &lines);
 	total = size + lines;
-	status = imap_writeline (f_imap, "g%s APPEND %s %s {%s}\r\n",
-				 mu_umaxtostr (0, f_imap->seq++),
+	status = imap_writeline (f_imap, "g%lu APPEND %s %s {%lu}\r\n",
+				 (unsigned long) f_imap->seq++,
 				 path,
 				 abuf,
-				 mu_umaxtostr (1, size + lines));
+				 (unsigned long) (size + lines));
 	free (abuf);
 	CHECK_ERROR (f_imap, status);
 	MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
@@ -1124,9 +1124,9 @@ imap_copy_message (mu_mailbox_t mailbox, mu_message_t msg)
 	/* Check for a valid mailbox name.  */
 	status = mu_url_sget_path (mailbox->url, &path);
 	if (status == 0)
-  	  status = imap_writeline (f_imap, "g%s COPY %s %s\r\n",
-	 			   mu_umaxtostr (0, f_imap->seq++),
-				   mu_umaxtostr (1, msg_imap->num),
+  	  status = imap_writeline (f_imap, "g%lu COPY %lu %s\r\n",
+	 			   (unsigned long) f_imap->seq++,
+				   (unsigned long) msg_imap->num,
 				   path);
 	CHECK_ERROR (f_imap, status);
 	MU_DEBUG (mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
@@ -1195,13 +1195,13 @@ imap_message_read (mu_stream_t stream, char *buffer, size_t buflen,
       /* We have strip the \r, but the offset on the imap server is with that
 	 octet(CFLF) so add it in the offset, it's the number of lines.  */
       status = imap_writeline (f_imap,
-			       "g%s FETCH %s BODY.PEEK[%s]<%s.%s>\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num),
+			       "g%lu FETCH %lu BODY.PEEK[%s]<%lu.%lu>\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num,
 			       (section) ? section : "",
-			       mu_umaxtostr (2, offset +
-					     msg_imap->mu_message_lines),
-			       mu_umaxtostr (3, buflen));
+			       (unsigned long) (offset +
+						msg_imap->mu_message_lines),
+			       (unsigned long) buflen);
       if (section)
 	free (section);
       CHECK_ERROR (f_imap, status);
@@ -1283,9 +1283,9 @@ imap_message_size (mu_message_t msg, size_t *psize)
 	     that octet so add it in the offset, since it's the number of
 	     lines.  */
 	  status = imap_writeline (f_imap,
-				   "g%s FETCH %s RFC822.SIZE\r\n",
-				   mu_umaxtostr (0, f_imap->seq++),
-				   mu_umaxtostr (1, msg_imap->num));
+				   "g%lu FETCH %lu RFC822.SIZE\r\n",
+				   (unsigned long) f_imap->seq++,
+				   (unsigned long) msg_imap->num);
 	  CHECK_ERROR (f_imap, status);
 	  MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	  f_imap->state = IMAP_FETCH;
@@ -1324,9 +1324,9 @@ imap_message_uid (mu_message_t msg, size_t *puid)
 	  *puid = msg_imap->uid;
 	  return 0;
 	}
-      status = imap_writeline (f_imap, "g%s FETCH %s UID\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num));
+      status = imap_writeline (f_imap, "g%lu FETCH %lu UID\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -1369,9 +1369,9 @@ imap_is_multipart (mu_message_t msg, int *ismulti)
 	  return 0;
 	}
       status = imap_writeline (f_imap,
-			       "g%s FETCH %s BODYSTRUCTURE\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num));
+			       "g%lu FETCH %lu BODYSTRUCTURE\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -1509,9 +1509,9 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
       if (f_imap->state == IMAP_NO_STATE)
 	{
 	  status = imap_writeline (f_imap,
-				   "g%s FETCH %s INTERNALDATE\r\n",
-				   mu_umaxtostr (0, f_imap->seq++),
-				   mu_umaxtostr (1, msg_imap->num));
+				   "g%lu FETCH %lu INTERNALDATE\r\n",
+				   (unsigned long) f_imap->seq++,
+				   (unsigned long) msg_imap->num);
 	  CHECK_ERROR (f_imap, status);
 	  MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
 	  f_imap->state = IMAP_FETCH;
@@ -1580,9 +1580,9 @@ imap_attr_get_flags (mu_attribute_t attribute, int *pflags)
 
   if (f_imap->state == IMAP_NO_STATE)
     {
-      status = imap_writeline (f_imap, "g%s FETCH %s FLAGS\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num));
+      status = imap_writeline (f_imap, "g%lu FETCH %lu FLAGS\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -1636,9 +1636,9 @@ imap_attr_set_flags (mu_attribute_t attribute, int flag)
 	  free (abuf);
 	  return 0;
 	}
-      status = imap_writeline (f_imap, "g%s STORE %s +FLAGS.SILENT (%s)\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num),
+      status = imap_writeline (f_imap, "g%lu STORE %lu +FLAGS.SILENT (%s)\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num,
 			       abuf);
       free (abuf);
       CHECK_ERROR (f_imap, status);
@@ -1685,9 +1685,9 @@ imap_attr_unset_flags (mu_attribute_t attribute, int flag)
 	  free (abuf);
 	  return 0;
 	}
-      status = imap_writeline (f_imap, "g%s STORE %s -FLAGS.SILENT (%s)\r\n",
-			       mu_umaxtostr (0, f_imap->seq++),
-			       mu_umaxtostr (1, msg_imap->num),
+      status = imap_writeline (f_imap, "g%lu STORE %lu -FLAGS.SILENT (%s)\r\n",
+			       (unsigned long) f_imap->seq++,
+			       (unsigned long) msg_imap->num,
 			       abuf);
       free (abuf);
       CHECK_ERROR (f_imap, status);
@@ -1742,24 +1742,24 @@ imap_header_read (mu_header_t header, char *buffer,
         {
           char *section = section_name (msg_imap);
           status = imap_writeline (f_imap,
-                                   "g%s FETCH %s BODY.PEEK[%s.MIME]<%s.%s>\r\n",
-                                   mu_umaxtostr (0, f_imap->seq++),
-				   mu_umaxtostr (1, msg_imap->num),
+                                   "g%lu FETCH %lu BODY.PEEK[%s.MIME]<%lu.%lu>\r\n",
+                                   (unsigned long) f_imap->seq++,
+				   (unsigned long) msg_imap->num,
                                    (section) ? section : "",
-                                   mu_umaxtostr (2, offset +
-						 msg_imap->header_lines),
-				   mu_umaxtostr (3, buflen));
+                                   (unsigned long) (offset +
+						    msg_imap->header_lines),
+				   (unsigned long) buflen);
           if (section)
             free (section);
         }
       else
         status = imap_writeline (f_imap,
-                                 "g%s FETCH %s BODY.PEEK[HEADER]<%s.%s>\r\n",
-                                 mu_umaxtostr (0, f_imap->seq++),
-				 mu_umaxtostr (1, msg_imap->num),
-                                 mu_umaxtostr (2, offset +
-					       msg_imap->header_lines),
-				 mu_umaxtostr (3, buflen));
+                                 "g%lu FETCH %lu BODY.PEEK[HEADER]<%lu.%lu>\r\n",
+                                 (unsigned long) f_imap->seq++,
+				 (unsigned long) msg_imap->num,
+                                 (unsigned long) (offset +
+						  msg_imap->header_lines),
+				 (unsigned long) buflen);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -1857,24 +1857,24 @@ imap_body_read (mu_stream_t stream, char *buffer, size_t buflen,
         {
           char *section = section_name (msg_imap);
           status = imap_writeline (f_imap,
-                                   "g%s FETCH %s BODY.PEEK[%s]<%s.%s>\r\n",
-                                   mu_umaxtostr (0, f_imap->seq++),
-				   mu_umaxtostr (1, msg_imap->num),
+                                   "g%lu FETCH %lu BODY.PEEK[%s]<%lu.%lu>\r\n",
+                                   (unsigned long) f_imap->seq++,
+				   (unsigned long) msg_imap->num,
                                    (section) ? section: "",
-                                   mu_umaxtostr (2, offset +
-						 msg_imap->body_lines),
-				   mu_umaxtostr (3, buflen));
+                                   (unsigned long) (offset +
+						    msg_imap->body_lines),
+				   (unsigned long) buflen);
           if (section)
             free (section);
         }
       else
         status = imap_writeline (f_imap,
-                                 "g%s FETCH %s BODY.PEEK[TEXT]<%s.%s>\r\n",
-                                 mu_umaxtostr (0, f_imap->seq++),
-				 mu_umaxtostr (1, msg_imap->num),
-                                 mu_umaxtostr (2, offset +
-					       msg_imap->body_lines),
-				 mu_umaxtostr (3, buflen));
+                                 "g%lu FETCH %lu BODY.PEEK[TEXT]<%lu.%lu>\r\n",
+                                 (unsigned long) f_imap->seq++,
+				 (unsigned long) msg_imap->num,
+                                 (unsigned long) (offset +
+						  msg_imap->body_lines),
+				 (unsigned long) buflen);
       CHECK_ERROR (f_imap, status);
       MU_DEBUG (m_imap->mailbox->debug, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
@@ -2047,7 +2047,7 @@ flags_to_string (char **pbuf, int flag)
 static int
 add_number (char **pset, size_t start, size_t end)
 {
-  char buf[2*UINTMAX_STRSIZE_BOUND+2];
+  char *buf = NULL;
   char *set;
   char *tmp;
   size_t set_len = 0;
@@ -2062,13 +2062,12 @@ add_number (char **pset, size_t start, size_t end)
 
   /* We had a previous seqence.  */
   if (start == 0)
-    *buf = '\0';
+    /* nothing */;
   else if (start != end)
-    snprintf (buf, sizeof buf, "%s:%s",
-	      mu_umaxtostr (0, start),
-	      mu_umaxtostr (1, end));
+    mu_asprintf (&buf, "%lu:%lu",
+		  (unsigned long) start, (unsigned long) end);
   else
-    snprintf (buf, sizeof buf, "%s", mu_umaxtostr (0, start));
+    mu_asprintf (&buf, "%lu", (unsigned long) start);
 
   if (set_len)
     tmp = realloc (set, set_len + strlen (buf) + 2 /* null and comma */);
@@ -2078,6 +2077,7 @@ add_number (char **pset, size_t start, size_t end)
   if (tmp == NULL)
     {
       free (set);
+      free (buf);
       return ENOMEM;
     }
   set = tmp;
@@ -2086,7 +2086,8 @@ add_number (char **pset, size_t start, size_t end)
   if (set_len)
     strcat (set, ",");
   strcat (set, buf);
-
+  free (buf);
+  
   *pset = set;
   return 0;
 }

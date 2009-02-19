@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -63,10 +63,10 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
+#include <mailutils/io.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <amd.h>
-#include <mu_umaxtostr.h>
 
 struct _mh_message
 {
@@ -102,9 +102,13 @@ _mh_cur_message_name (struct _amd_message *amsg, char **pname)
   int status = 0;
   struct _mh_message *mhm = (struct _mh_message *) amsg;
   char *filename;
-  char buf[UINTMAX_STRSIZE_BOUND];
-  char *pnum = umaxtostr (mhm->seq_number, buf);
-  size_t len = strlen (amsg->amd->name) + 1 + strlen (pnum) + 1;
+  char *pnum;
+  size_t len;
+
+  status = mu_asprintf (&pnum, "%lu", (unsigned long) mhm->seq_number);
+  if (status)
+    return status;
+  len = strlen (amsg->amd->name) + 1 + strlen (pnum) + 1;
   filename = malloc (len);
   if (filename)
     {
@@ -115,6 +119,7 @@ _mh_cur_message_name (struct _amd_message *amsg, char **pname)
     }
   else
     status = ENOMEM;
+  free (pnum);
   return status;
 }
 
@@ -126,9 +131,13 @@ _mh_new_message_name (struct _amd_message *amsg, int flags, char **pname)
   int status = 0;
   struct _mh_message *mhm = (struct _mh_message *) amsg;
   char *filename;
-  char buf[UINTMAX_STRSIZE_BOUND];
-  char *pnum = umaxtostr (mhm->seq_number, buf);
-  size_t len = strlen (amsg->amd->name) + 1 +
+  char *pnum;
+  size_t len;
+
+  status = mu_asprintf (&pnum, "%lu", (unsigned long) mhm->seq_number);
+  if (status)
+    return status;
+  len = strlen (amsg->amd->name) + 1 +
                ((flags & MU_ATTRIBUTE_DELETED) ? 1 : 0) + strlen (pnum) + 1;
   filename = malloc (len);
   if (filename)
@@ -142,6 +151,7 @@ _mh_new_message_name (struct _amd_message *amsg, int flags, char **pname)
     }
   else
     status = ENOMEM;
+  free (pnum);
   return status;
 }
 

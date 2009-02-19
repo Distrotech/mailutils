@@ -40,6 +40,7 @@
 
 #include <mailutils/property.h>
 #include <mailutils/errno.h>
+#include <mailutils/io.h>
 #include <stream0.h>
 
 static int refill (mu_stream_t, mu_off_t);
@@ -493,43 +494,16 @@ mu_stream_write (mu_stream_t os, const char *buf, size_t count,
 int
 mu_stream_vprintf (mu_stream_t os, mu_off_t *poff, const char *fmt, va_list ap)
 {
-  char *buf, *p;
-  size_t buflen = 512;
+  char *buf = NULL, *p;
+  size_t buflen = 0;
   size_t n;
-  int done = 0;
   int rc;
 
-  buf = calloc (1, buflen);
-  if (buf == NULL)
-    return ENOMEM;
-
-  do
-    {
-      n = vsnprintf (buf, buflen, fmt, ap);
-      if (n < 0 || n >= buflen || !memchr (buf, '\0', n + 1))
-	{
-	  char *newbuf;
-	  size_t newlen = buflen * 2;
-	  if (newlen < buflen)
-	    {
-	      free (buf);
-	      return ENOMEM;
-	    }
-	  newbuf = realloc (buf, newlen);
-	  if (newbuf == NULL)
-	    {
-	      free (buf);
-	      return ENOMEM;
-	    }
-	  buflen = newlen;
-	  buf = newbuf;
-	}
-      else
-	done = 1;
-    }
-  while (!done);
-
+  rc = mu_vasnprintf (&buf, &buflen, fmt, ap);
+  if (rc)
+    return rc;
   p = buf;
+  n = strlen (buf);
   do
     {
       size_t wrs;

@@ -1,7 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008 
-##   Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 
+##   2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -41,9 +41,7 @@ EXTRA_DIST = \
  fgetpwent.c\
  cfg_lexer.l\
  cfg_parser.y\
- cfg_parser.h\
- inttostr.c\
- inttostr.h 
+ cfg_parser.h
 
 libmailutils_la_SOURCES = \
  acl.c\
@@ -51,6 +49,8 @@ libmailutils_la_SOURCES = \
  alloc.c\
  amd.c\
  argcv.c\
+ asnprintf.c\
+ asprintf.c\
  assoc.c\
  attachment.c\
  attribute.c\
@@ -97,8 +97,6 @@ libmailutils_la_SOURCES = \
  monitor.c\
  msrv.c\
  mu_auth.c\
- mu_umaxtostr.h\
- mu_umaxtostr.c\
  munre.c\
  mutil.c\
  muerror.c\
@@ -124,10 +122,10 @@ libmailutils_la_SOURCES = \
  tcp.c\
  url.c\
  vartab.c\
+ vasnprintf.c\
  version.c\
- wicket.c\
- imaxtostr.c  offtostr.c  umaxtostr.c intprops.h
-
+ wicket.c
+ 
 BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h cfg_lexer.c
 MOSTLYCLEANFILES=
 

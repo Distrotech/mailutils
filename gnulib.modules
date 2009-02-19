@@ -2,9 +2,6 @@
 # A module name per line. Empty lines and comments are ignored.
 
 # FIXME: regex and glob are used by libmailutils...
-# FIXME: intprops and stdint are not used directly, they are needed for
-# inttostr, which is included in mailbox. Another inttostr dependency,
-# m4/inttostr.m4, is set in bootstrap.conf.
 
 alloca
 autobuild
@@ -16,6 +13,7 @@ getpass-gnu
 gettext
 gitlog-to-changelog
 intprops
+inttostr
 malloc
 mbswidth
 obstack

@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -24,7 +24,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/syslog.h>
 #include <mailutils/mailbox.h>
-#include <mu_umaxtostr.h>
+#include <mailutils/io.h>
 
 static struct mu_gocs_locking locking_settings;
 static struct mu_gocs_logging logging_settings;
@@ -164,9 +164,6 @@ DCL_CFG_CAPA (logging);
 static int
 _cb2_debug_level (mu_debug_t debug, const char *arg, void *data MU_ARG_UNUSED)
 {
-  char buf[UINTMAX_STRSIZE_BOUND];
-  char *p;
-  size_t size;
   char *pfx;
   struct mu_debug_locus locus;
 
@@ -175,24 +172,21 @@ _cb2_debug_level (mu_debug_t debug, const char *arg, void *data MU_ARG_UNUSED)
   debug_settings.string = strdup (arg);
   if (mu_debug_get_locus (debug, &locus) == 0)
     {
-      p = umaxtostr (locus.line, buf);
-      size = strlen (locus.file) + 1 + strlen (p) + 1;
-      pfx = malloc (size);
-      if (!pfx)
+      int status = mu_asprintf (&pfx, "%s:%lu",
+				locus.file, (unsigned long) locus.line);
+      if (status)
 	{
 	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       "%s", mu_strerror (errno));
+			       "%s", mu_strerror (status));
 	  return 1;
 	}
-      strcpy (pfx, locus.file);
-      strcat (pfx, ":");
-      strcat (pfx, p);
     }
   else
     pfx = strdup ("command line");/*FIXME*/
   /*FIXME: this is suboptimal, there's no use parsing 1st arg in
     mu_global_debug_from_string */
   mu_global_debug_from_string (debug_settings.string, pfx);
+  free (pfx);
   free (debug_settings.string);
   free (debug_settings.errpfx);
   memset (&debug_settings, 0, sizeof debug_settings);
