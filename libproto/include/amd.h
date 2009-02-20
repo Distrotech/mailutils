@@ -72,7 +72,7 @@ struct _amd_data
 			      const mu_message_t);
   void (*msg_free) (struct _amd_message *);
   int (*cur_msg_file_name) (struct _amd_message *, char **);	
-  int (*new_msg_file_name) (struct _amd_message *, int attr_flags, char **);
+  int (*new_msg_file_name) (struct _amd_message *, int, int, char **);
   int (*scan0)     (mu_mailbox_t mailbox, size_t msgno, size_t *pcount,
 		    int do_notify);
   int (*mailbox_size) (mu_mailbox_t mailbox, mu_off_t *psize);

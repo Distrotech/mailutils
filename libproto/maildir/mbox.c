@@ -342,14 +342,13 @@ maildir_cur_message_name (struct _amd_message *amsg, char **pname)
 }
 
 static int
-maildir_new_message_name (struct _amd_message *amsg, int flags, char **pname)
+maildir_new_message_name (struct _amd_message *amsg, int flags, int expunge,
+			  char **pname)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amsg;
-  if (flags & MU_ATTRIBUTE_DELETED)
+  if (expunge && (flags & MU_ATTRIBUTE_DELETED))
     {
-      /* Force amd.c to unlink the file.
-	 FIXME: We could also add a 'T' info to it. Should
-	 we have an option deciding which approach to take? */
+      /* Force amd.c to unlink the file. */
       *pname = NULL;
     }
   else if (strcmp (msg->dir, CURSUF) == 0)

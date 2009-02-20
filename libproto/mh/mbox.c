@@ -126,7 +126,9 @@ _mh_cur_message_name (struct _amd_message *amsg, char **pname)
 /* Return newfilename for the message.
    NOTE: Allocates memory. */
 static int
-_mh_new_message_name (struct _amd_message *amsg, int flags, char **pname)
+_mh_new_message_name (struct _amd_message *amsg, int flags,
+		      int expunge MU_ARG_UNUSED,
+		      char **pname)
 {
   int status = 0;
   struct _mh_message *mhm = (struct _mh_message *) amsg;

@@ -600,7 +600,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
 		   int expunge)
 {
   mu_stream_t stream = NULL;
-  char *name = NULL, *buf = NULL, *msg_name;
+  char *name = NULL, *buf = NULL, *msg_name, *old_name;
   size_t n, off = 0;
   size_t bsize;
   size_t nlines, nbytes;
@@ -618,9 +618,27 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   if (status)
     return status;
 
+  status = amd->new_msg_file_name (mhm, mhm->attr_flags, expunge, &msg_name);
+  if (status)
+    return status;
+  if (!msg_name)
+    {
+      /* Unlink the original file */
+      char *old_name;
+      status = amd->cur_msg_file_name (mhm, &old_name);
+      free (msg_name);
+      if (status == 0 && unlink (old_name))
+	status = errno;
+      free (old_name);
+      return status;
+    }      
+    
   fp = _amd_tempfile (mhm->amd, &name);
   if (!fp)
-    return errno;
+    {
+      free (msg_name);
+      return errno;
+    }
 
   /* Try to allocate large buffer */
   for (; bsize > 1; bsize /= 2)
@@ -628,7 +646,12 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
       break;
 
   if (!bsize)
-    return ENOMEM;
+    {
+      unlink (name);
+      free (name);
+      free (msg_name);
+      return ENOMEM;
+    }
 
   /* Copy flags */
   mu_message_get_header (msg, &hdr);
@@ -724,42 +747,37 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   free (buf);
   fclose (fp);
 
-  status = amd->new_msg_file_name (mhm, mhm->attr_flags, &msg_name);
+  status = amd->cur_msg_file_name (mhm, &old_name);
   if (status == 0)
     {
-      char *old_name;
-      status = amd->cur_msg_file_name (mhm, &old_name);
-      if (status == 0)
+      if (rename (name, msg_name))
+	status = errno;
+      else
 	{
-	  if (rename (name, msg_name))
-	    status = errno;
-	  else
-	    {
-	      mode_t perms;
+	  mode_t perms;
 	  
-	      perms = mu_stream_flags_to_mode (amd->mailbox->flags, 0);
-	      if (perms != 0)
-		{
-		  /* It is documented that the mailbox permissions are
-		     affected by the current umask, so take it into account
-		     here.
-		     FIXME: I'm still not sure we should honor umask, though.
-		     --gray
-		  */
-		  mode_t mask = umask (0);
-		  chmod (msg_name, (0600 | perms) & ~mask);
-		  umask (mask);
-		}
-	      if (strcmp (old_name, msg_name))
-		/* Unlink original message */
-		unlink (old_name);
+	  perms = mu_stream_flags_to_mode (amd->mailbox->flags, 0);
+	  if (perms != 0)
+	    {
+	      /* It is documented that the mailbox permissions are
+		 affected by the current umask, so take it into account
+		 here.
+		 FIXME: I'm still not sure we should honor umask, though.
+		 --gray
+	      */
+	      mode_t mask = umask (0);
+	      chmod (msg_name, (0600 | perms) & ~mask);
+	      umask (mask);
 	    }
-	  free (old_name);
-
-	  mhm->orig_flags = mhm->attr_flags;
+	  if (strcmp (old_name, msg_name))
+	    /* Unlink original message */
+	    unlink (old_name);
 	}
-      free (msg_name);
+      free (old_name);
+      
+      mhm->orig_flags = mhm->attr_flags;
     }
+  free (msg_name);
   free (name);
 
   return status;
@@ -1065,33 +1083,38 @@ amd_expunge (mu_mailbox_t mailbox)
       
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
-	  if (!(mhm->orig_flags & MU_ATTRIBUTE_DELETED))
-	    {
-	      int rc;
-	      char *old_name;
-	      char *new_name;
+	  int rc;
+	  char *old_name;
+	  char *new_name;
 
-	      rc = amd->cur_msg_file_name (mhm, &old_name);
-	      if (rc)
-		return rc;
-	      rc = amd->new_msg_file_name (mhm, mhm->attr_flags, &new_name);
-	      if (rc)
-		{
-		  free (old_name);
-		  return rc;
-		}
-	      
-	      if (new_name)
-		{
-		  /* Rename original message */
-		  rename (old_name, new_name);
-		  free (new_name);
-		}
-	      else
-		/* Unlink original file */
-		unlink (old_name);
+	  rc = amd->cur_msg_file_name (mhm, &old_name);
+	  if (rc)
+	    return rc;
+	  rc = amd->new_msg_file_name (mhm, mhm->attr_flags, 1,
+				       &new_name);
+	  if (rc)
+	    {
 	      free (old_name);
+	      return rc;
 	    }
+
+	  if (new_name)
+	    {
+	      /* FIXME: It may be a good idea to have a capability flag
+		 in struct _amd_data indicating that no actual removal
+		 is needed (e.g. for traditional MH). It will allow to
+		 bypass lots of no-op code here. */
+	      if (strcmp (old_name, new_name))
+		/* Rename original message */
+		rename (old_name, new_name);
+	    }
+	  else
+	    /* Unlink original file */
+	    unlink (old_name);
+	  
+	  free (old_name);
+	  free (new_name);
+
 	  _amd_message_delete (amd, mhm);
 	  updated = 1;
 	  /* Do not increase i! */
