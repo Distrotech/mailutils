@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -22,6 +22,10 @@
 #include <mailutils/diag.h>
 #include <mailutils/kwd.h>
 #include <mailutils/syslog.h>
+
+#ifndef LOG_AUTHPRIV
+# define LOG_AUTHPRIV
+#endif
 
 static mu_kwd_t kw_facility[] = {
   { "USER",    LOG_USER },   
