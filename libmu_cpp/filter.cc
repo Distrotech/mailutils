@@ -26,33 +26,35 @@ using namespace mailutils;
 // FilterStream
 //
 
-void
-FilterStream :: create (Stream& transport,
-			const std::string& code,
-			int mode, int flag)
+FilterStream :: FilterStream (Stream& transport,
+			      const std::string& code,
+			      int mode, int flag)
 {
   int status = mu_filter_create (&this->stm,
 				 transport.stm,
 				 code.c_str (),
 				 mode, flag);
   if (status)
-    throw Exception ("FilterStream::create", status);
+    throw Exception ("FilterStream::FilterStream", status);
   this->input = new Stream (transport);
 }
 
-void
-FilterStream :: iconv_create (Stream& transport,
-			      const std::string& fromcode,
-			      const std::string& tocode,
-			      int flags,
-			      enum mu_iconv_fallback_mode fallback_mode)
+//
+// FilterIconvStream
+//
+
+FilterIconvStream :: FilterIconvStream (Stream& transport,
+					const std::string& fromcode,
+					const std::string& tocode,
+					int flags,
+					enum mu_iconv_fallback_mode fm)
 {
   int status = mu_filter_iconv_create (&this->stm, transport.stm,
 				       fromcode.c_str (),
 				       tocode.c_str (),
-				       flags, fallback_mode);
+				       flags, fm);
   if (status)
-    throw Exception ("FilterStream::iconv_create", status);
+    throw Exception ("FilterIconvStream::FilterIconvStream", status);
   this->input = new Stream (transport);
 }
 

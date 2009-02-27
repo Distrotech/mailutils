@@ -188,8 +188,7 @@ message_display_parts (Message& msg, int indent)
 	  Body body = part.get_body ();
 	  Stream stream = body.get_stream ();
 
-	  FilterStream filter;
-	  filter.create (stream, encoding, 0, 0);
+	  FilterStream filter (stream, encoding, 0, 0);
           int offset = 0;
 	  char buf[2048];
 

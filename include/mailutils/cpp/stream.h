@@ -49,6 +49,7 @@ class Stream
   // Friends
   friend class FilterStream;
   friend class FilterProgStream;
+  friend class FilterIconvStream;
   friend class Folder;
   friend class Mailcap;
   friend class Message;

@@ -72,6 +72,22 @@ MailboxBase :: messages_count ()
   return total;
 }
 
+size_t
+MailboxBase :: messages_recent ()
+{
+  size_t recent;
+  mu_mailbox_messages_recent (mbox, &recent);
+  return recent;
+}
+
+size_t
+MailboxBase :: message_unseen ()
+{
+  size_t unseen;
+  mu_mailbox_message_unseen (mbox, &unseen);
+  return unseen;
+}
+
 Message&
 MailboxBase :: get_message (size_t num)
 {
@@ -82,6 +98,22 @@ MailboxBase :: get_message (size_t num)
     throw Exception ("MailboxBase::get_message", status);
 
   return *new Message (c_msg);
+}
+
+void
+MailboxBase :: append_message (const Message& msg)
+{
+  int status = mu_mailbox_append_message (mbox, msg.msg);
+  if (status)
+    throw Exception ("MailboxBase::append_message", status);
+}
+
+void
+MailboxBase :: expunge ()
+{
+  int status = mu_mailbox_expunge (mbox);
+  if (status)
+    throw Exception ("MailboxBase::expunge", status);
 }
 
 //

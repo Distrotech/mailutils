@@ -28,16 +28,19 @@
 using namespace std;
 using namespace mailutils;
 
-string wbuf = "GET / HTTP/1.0\r\n\r\n";
-string rbuf;
-
 int
-main ()
+main (int argc, char **argv)
 {
   int off = 0;
-  
+  string host;
+
+  if (argc == 1)
+    host = "www.gnu.org";
+  else
+    host = argv[1];
+
   try {
-    TcpStream stream ("www.gnu.org", 80, MU_STREAM_NONBLOCK);
+    TcpStream stream (host, 80, MU_STREAM_NONBLOCK);
 
   connect_again:
     try {
@@ -47,11 +50,13 @@ main ()
       stream.wait (MU_STREAM_READY_WR);
       goto connect_again;
     }
-    
+
+  string path = argc == 3 ? argv[2] : "/";
+  string wbuf = "GET " + path + " HTTP/1.0\r\n\r\n";
+
   write_again:
     try {
-      string wbuf (wbuf, off, wbuf.length ());
-      stream << wbuf;
+      stream << wbuf.substr (off);
     }
     catch (Stream::EAgain) {
       stream.wait (MU_STREAM_READY_WR);
@@ -65,6 +70,7 @@ main ()
 	exit (1);
       }
 
+  string rbuf;
   read_again:
     do
       {

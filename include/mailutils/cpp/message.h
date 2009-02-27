@@ -35,6 +35,7 @@ class Message
   mu_message_t msg;
   bool owner;
 
+  friend class MailboxBase;
   friend class Mailer;
   friend class Mime;
 

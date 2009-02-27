@@ -33,10 +33,17 @@ class FilterStream : public Stream
   Stream *input;
 
  public:
-  void create (Stream& transport, const std::string& code, int mode,
-	       int flag);
+  FilterStream (Stream& transport, const std::string& code,
+		int mode, int flag);
+};
 
-  void iconv_create (Stream& transport,
+class FilterIconvStream : public Stream
+{
+ private:
+  Stream *input;
+
+ public:
+  FilterIconvStream (Stream& transport,
 		     const std::string& fromcode,
 		     const std::string& tocode,
 		     int flags,

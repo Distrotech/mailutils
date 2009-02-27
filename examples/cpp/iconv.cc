@@ -40,9 +40,8 @@ main (int argc, char **argv)
     StdioStream *in = new StdioStream (stdin, 0);
     in->open ();
 
-    FilterStream cvt;
-    cvt.iconv_create (*in, (string)argv[1], (string)argv[2], 0,
-		      mu_fallback_none);
+    FilterIconvStream cvt (*in, (string)argv[1], (string)argv[2], 0,
+			   mu_fallback_none);
     cvt.open ();
     delete in;
     

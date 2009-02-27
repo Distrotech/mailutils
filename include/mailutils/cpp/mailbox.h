@@ -41,7 +41,11 @@ class MailboxBase
   Debug& get_debug ();
 
   size_t messages_count ();
+  size_t messages_recent ();
+  size_t message_unseen ();
   Message& get_message (size_t num);
+  void append_message (const Message& msg);
+  void expunge ();
 
   inline Message& operator [] (size_t num) {
     return this->get_message (num);
