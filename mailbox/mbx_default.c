@@ -34,10 +34,17 @@
 
 #include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
+#include <mailutils/debug.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/vartab.h>
+#include <mailutils/folder.h>
+#include <mailutils/auth.h>
+
+#include <mailbox0.h>
+
+char *mu_ticket_file = "~/.mu-tickets";
 
 static char *_mu_mailbox_pattern;
 
@@ -328,6 +335,44 @@ percent_expand (const char *file, char **mbox)
   return status;
 }
 
+static void
+attach_auth_ticket (mu_mailbox_t mbox)
+{
+  mu_folder_t folder = NULL;
+  mu_authority_t auth = NULL;
+
+  if (mu_mailbox_get_folder (mbox, &folder) == 0
+      && mu_folder_get_authority (folder, &auth) == 0)
+    {
+      char *filename = mu_tilde_expansion (mu_ticket_file, "/", NULL);
+      mu_wicket_t wicket;
+      int rc;
+  
+      MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,
+		 "Reading user ticket file %s\n", filename);
+      if ((rc = mu_wicket_create (&wicket, filename)) == 0)
+	{
+	  mu_ticket_t ticket;
+      
+	  if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) == 0)
+	    {
+	      rc = mu_authority_set_ticket (auth, ticket);
+	      MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,
+			 "Retrieved and set ticket: %d\n", rc);
+	    }
+	  else
+	    MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
+		       "Error retrieving ticket: %s\n",
+		       mu_strerror (rc));
+	  mu_wicket_destroy (&wicket);
+	}
+      else
+	MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
+		   "Error creating wicket: %s\n", mu_strerror (rc));
+      free (filename);
+    }
+}
+
 /* We are trying to be smart about the location of the mail.
    mu_mailbox_create() is not doing this.
    %           --> system mailbox for the real uid
@@ -415,5 +460,8 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
   
   status = mu_mailbox_create (pmbox, mbox);
   free (mbox);
+  if (status == 0)
+    attach_auth_ticket (*pmbox);
+      
   return status;
 }

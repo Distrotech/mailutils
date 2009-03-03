@@ -477,18 +477,6 @@ mu_sieve_set_logger (mu_sieve_machine_t mach, mu_sieve_action_log_t logger)
   mach->logger = logger;
 }
 
-void
-mu_sieve_set_ticket (mu_sieve_machine_t mach, mu_ticket_t ticket)
-{
-  mach->ticket = ticket;
-}
-
-mu_ticket_t
-mu_sieve_get_ticket (mu_sieve_machine_t mach)
-{
-  return mach->ticket;
-}
-
 mu_mailer_t
 mu_sieve_get_mailer (mu_sieve_machine_t mach)
 {

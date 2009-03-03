@@ -42,6 +42,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/vartab.h>
+#include <mailutils/io.h>
 
 #ifdef ENABLE_RADIUS
 

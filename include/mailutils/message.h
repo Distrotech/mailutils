@@ -123,7 +123,7 @@ extern int mu_message_get_attachment_name (mu_message_t, char *name,
 					   size_t bufsz, size_t* sz);
 extern int mu_message_aget_attachment_name (mu_message_t, char **name);
 
-extern int mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
+extern int mu_message_save_to_mailbox (mu_message_t msg, 
 				       mu_debug_t debug, const char *toname,
 				       int perms);
 

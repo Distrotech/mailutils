@@ -217,7 +217,6 @@ void *mu_sieve_get_data (mu_sieve_machine_t mach);
 mu_message_t mu_sieve_get_message (mu_sieve_machine_t mach);
 size_t mu_sieve_get_message_num (mu_sieve_machine_t mach);
 int mu_sieve_get_debug_level (mu_sieve_machine_t mach);
-mu_ticket_t mu_sieve_get_ticket (mu_sieve_machine_t mach);
 mu_mailer_t mu_sieve_get_mailer (mu_sieve_machine_t mach);
 int mu_sieve_get_locus (mu_sieve_machine_t mach, mu_sieve_locus_t *);
 char *mu_sieve_get_daemon_email (mu_sieve_machine_t mach);
@@ -232,7 +231,6 @@ void mu_sieve_set_debug_object (mu_sieve_machine_t mach, mu_debug_t dbg);
 void mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level);
 void mu_sieve_set_logger (mu_sieve_machine_t mach,
 			  mu_sieve_action_log_t logger);
-void mu_sieve_set_ticket (mu_sieve_machine_t mach, mu_ticket_t ticket);
 void mu_sieve_set_mailer (mu_sieve_machine_t mach, mu_mailer_t mailer);
 void mu_sieve_set_daemon_email (mu_sieve_machine_t mach, const char *email);
 

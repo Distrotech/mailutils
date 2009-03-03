@@ -91,11 +91,11 @@ mu_wicket_destroy (mu_wicket_t *pwicket)
 
 int
 mu_wicket_get_filename (mu_wicket_t wicket, char *filename, size_t len,
-		     size_t *pwriten)
+			size_t *pwriten)
 {
- size_t n;
- if (wicket == NULL)
-   return EINVAL;
+  size_t n;
+  if (wicket == NULL)
+    return EINVAL;
   n = mu_cpystr (filename, wicket->filename, len);
   if (pwriten)
     *pwriten = n;
@@ -107,10 +107,10 @@ mu_wicket_set_filename (mu_wicket_t wicket, const char *filename)
 {
   if (wicket == NULL)
     return EINVAL;
-
+  
   if (wicket->filename)
     free (wicket->filename);
-
+  
   wicket->filename = (filename) ? strdup (filename) : NULL;
   return 0;
 }
@@ -127,8 +127,9 @@ mu_wicket_set_ticket (mu_wicket_t wicket, int (*get_ticket)
 }
 
 int
-mu_wicket_get_ticket (mu_wicket_t wicket, mu_ticket_t *pticket, const char *user,
-		   const char *type)
+mu_wicket_get_ticket (mu_wicket_t wicket, mu_ticket_t *pticket,
+		      const char *user,
+		      const char *type)
 {
   if (wicket == NULL || pticket == NULL)
     return EINVAL;
@@ -142,7 +143,8 @@ mu_wicket_get_ticket (mu_wicket_t wicket, mu_ticket_t *pticket, const char *user
 }
 
 static int
-myticket_create (mu_ticket_t *pticket, const char *user, const char *pass, const char *filename)
+myticket_create (mu_ticket_t *pticket, const char *user,
+		 const char *pass, const char *filename)
 {
   struct myticket_data *mdata;
   int status = mu_ticket_create (pticket, NULL);
@@ -197,42 +199,35 @@ myticket_create (mu_ticket_t *pticket, const char *user, const char *pass, const
 }
 
 static int
-myticket_pop (mu_ticket_t ticket, mu_url_t url, const char *challenge, char **parg)
+myticket_pop (mu_ticket_t ticket, mu_url_t url,
+	      const char *challenge, char **parg)
 {
   struct myticket_data *mdata = NULL;
   int e = 0;
-
+  
   mu_ticket_get_data (ticket, (void **)&mdata);
-  if (challenge &&
-    (
-      strstr (challenge, "ass") != NULL ||
-      strstr (challenge, "ASS") != NULL
-   )
-      )
-  {
-    if(mdata->pass)
+  if (challenge && (strstr (challenge, "ass") != NULL ||
+		    strstr (challenge, "ASS") != NULL))
     {
-      *parg = strdup(mdata->pass);
-      if(!*parg)
-	e = ENOMEM;
+      if (mdata->pass)
+	{
+	  *parg = strdup (mdata->pass);
+	  if (!*parg)
+	    e = ENOMEM;
+	}
+      else
+	e = get_pass (url, mdata->user, mdata->filename, parg);
     }
-    else
-    {
-      e = get_pass (url, mdata->user, mdata->filename, parg);
-    }
-  }
   else
-  {
-    if(mdata->user)
     {
-      *parg = strdup(mdata->user);
-      if(!*parg)
-	e = ENOMEM;
-    }
-    else
-    {
-      e = get_user (url, mdata->filename, parg);
-    }
+      if (mdata->user)
+	{
+	  *parg = strdup(mdata->user);
+	  if (!*parg)
+	    e = ENOMEM;
+	}
+      else
+	e = get_user (url, mdata->filename, parg);
   }
   return e;
 }
@@ -255,7 +250,8 @@ myticket_destroy (mu_ticket_t ticket)
 }
 
 static int
-get_ticket (mu_url_t url, const char *user, const char *filename, mu_url_t * ticket)
+get_ticket (mu_url_t url, const char *user, const char *filename,
+	    mu_url_t * ticket)
 {
   int err = 0;
   FILE *fp = NULL;

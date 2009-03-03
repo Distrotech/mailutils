@@ -1110,7 +1110,7 @@ message_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off,
 }
 
 int
-mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
+mu_message_save_to_mailbox (mu_message_t msg, 
                             mu_debug_t debug,
 			    const char *toname, int perms)
 {
@@ -1127,26 +1127,6 @@ mu_message_save_to_mailbox (mu_message_t msg, mu_ticket_t ticket,
 
   if (debug && (rc = mu_mailbox_set_debug (to, debug)))
 	goto end;
-
-  if (ticket)
-    {
-      mu_folder_t folder = NULL;
-
-      if ((rc = mu_mailbox_get_folder (to, &folder)))
-	goto end;
-
-      /* FIXME: not all mailboxes have folders, thus this hack. */
-      if (folder)
-	{
-	  mu_authority_t auth = NULL;
-	  if ((rc = mu_folder_get_authority (folder, &auth)))
-	    goto end;
-
-	  /* FIXME: not all folders have authentication, thus this hack. */
-	  if (auth && (rc = mu_authority_set_ticket (auth, ticket)))
-	    goto end;
-	}
-    }
 
   if ((rc = mu_mailbox_open (to,
 			     MU_STREAM_WRITE | MU_STREAM_CREAT

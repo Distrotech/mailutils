@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+extern char *mu_ticket_file;
+  
 int mu_set_mail_directory (const char *p);
 int mu_set_mailbox_pattern (const char *pat);
 void mu_set_folder_directory (const char *p);

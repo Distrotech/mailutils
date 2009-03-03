@@ -106,8 +106,6 @@ static struct argp_option options[] =
 int keep_going;
 int compile_only;
 char *mbox_url;
-char *tickets;
-int tickets_default;
 int debug_level;
 int sieve_debug;
 int verbose;
@@ -282,24 +280,13 @@ cb_email (mu_debug_t debug, void *data, mu_config_value_t *val)
   return rc;
 }
 
-static int
-cb_ticket (mu_debug_t debug, void *data, mu_config_value_t *val)
-{
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
-    return 1;
-  free (tickets);
-  tickets = mu_tilde_expansion (val->v.string, "/", NULL);
-  tickets_default = 0;
-  return 0;
-}
-
 static struct mu_cfg_param sieve_cfg_param[] = {
   { "keep-going", mu_cfg_bool, &keep_going, 0, NULL,
     N_("Do not abort if execution fails on a message.") },
   { "mbox-url", mu_cfg_string, &mbox_url, 0, NULL,
     N_("Mailbox to sieve (defaults to user's mail spool)."),
     N_("url") },
-  { "ticket", mu_cfg_callback, NULL, 0, cb_ticket,
+  { "ticket", mu_cfg_string, &mu_ticket_file, 0, NULL,
     N_("Ticket file for user authentication."),
     N_("ticket") },
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
@@ -405,12 +392,12 @@ sieve_message (mu_sieve_machine_t mach)
 }
 
 static int
-sieve_mailbox (mu_sieve_machine_t mach, mu_ticket_t ticket, mu_debug_t debug)
+sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
 {
   int rc;
   mu_mailbox_t mbox = NULL;
   
-  /* Create, give a ticket to, and open the mailbox. */
+  /* Create and open the mailbox. */
   if ((rc = mu_mailbox_create_default (&mbox, mbox_url)) != 0)
     {
       if (mbox)
@@ -428,34 +415,6 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_ticket_t ticket, mu_debug_t debug)
       goto cleanup;
     }
 
-  if (ticket)
-    {
-      mu_folder_t folder = NULL;
-      mu_authority_t auth = NULL;
-      
-      if ((rc = mu_mailbox_get_folder (mbox, &folder)))
-	{
-	  mu_error (_("mu_mailbox_get_folder failed: %s"),
-		    mu_strerror (rc));
-	  goto cleanup;
-	}
-      
-      if ((rc = mu_folder_get_authority (folder, &auth)))
-	{
-	  mu_error (_("mu_folder_get_authority failed: %s"),
-		    mu_strerror (rc));
-	  goto cleanup;
-	}
-      
-      /* Authentication-less folders don't have authorities. */
-      if (auth && (rc = mu_authority_set_ticket (auth, ticket)))
-	{
-	  mu_error (_("mu_authority_set_ticket failed: %s"),
-		    mu_strerror (rc));
-	  goto cleanup;
-	}
-    }
-  
   /* Open the mailbox read-only if we aren't going to modify it. */
   if (sieve_debug & MU_SIEVE_DRY_RUN)
     rc = mu_mailbox_open (mbox, MU_STREAM_READ);
@@ -516,8 +475,6 @@ int
 main (int argc, char *argv[])
 {
   mu_sieve_machine_t mach;
-  mu_wicket_t wicket = 0;
-  mu_ticket_t ticket = 0;
   mu_debug_t debug = 0;
   int rc;
 
@@ -532,8 +489,6 @@ main (int argc, char *argv[])
 
   mu_register_all_formats ();
 
-  tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
-  tickets_default = 1;
   debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
   mu_log_facility = 0;
 
@@ -574,27 +529,6 @@ main (int argc, char *argv[])
       return EX_OK;
     }
 
-  /* Create a ticket, if we can. */
-  if (tickets)
-    {
-      if ((rc = mu_wicket_create (&wicket, tickets)) == 0)
-        {
-          if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
-            {
-              mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
-              return EX_SOFTWARE; /* FIXME: really? */
-            }
-        }
-      else if (!(tickets_default && errno == ENOENT))
-        {
-          mu_error (_("mu_wicket_create `%s' failed: %s"),
-                    tickets, mu_strerror (rc));
-          return EX_SOFTWARE;
-        }
-      if (ticket)
-        mu_sieve_set_ticket (mach, ticket);
-    }
-
   /* Create a debug object, if needed. */
   if (debug_level)
     {
@@ -617,7 +551,7 @@ main (int argc, char *argv[])
   if (mbox_url && strcmp (mbox_url, "-") == 0)
     rc = sieve_message (mach);
   else
-    rc = sieve_mailbox (mach, ticket, debug);
+    rc = sieve_mailbox (mach, debug);
   mu_debug_destroy (&debug, mach);
 
   return rc;

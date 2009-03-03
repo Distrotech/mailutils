@@ -74,7 +74,6 @@ struct mu_sieve_machine {
   mu_sieve_action_log_t logger;
   
   mu_mailer_t mailer;
-  mu_ticket_t ticket;
   mu_debug_t debug;
   char *daemon_email;
   void *data;
