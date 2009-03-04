@@ -253,7 +253,7 @@ static int
 get_ticket (mu_url_t url, const char *user, const char *filename,
 	    mu_url_t * ticket)
 {
-  int err = 0;
+  int status = MU_ERR_NOENT;
   FILE *fp = NULL;
   size_t buflen = 128;
   char *buf = NULL;
@@ -279,7 +279,8 @@ get_ticket (mu_url_t url, const char *user, const char *filename,
       char *ptr = buf;
       int len = 0;
       mu_url_t u = NULL;
-
+      int err;
+      
       /* fgets:
 	 1) return true, read some data
            1a) read a newline, so break
@@ -310,26 +311,21 @@ get_ticket (mu_url_t url, const char *user, const char *filename,
 
       /* Truncate a trailing newline. */
       if (len && buf[len - 1] == '\n')
-	buf[len - 1] = 0;
+	buf[--len] = 0;
 
       /* Skip leading spaces.  */
       ptr = buf;
       while (isspace (*ptr))
 	ptr++;
 
-      /* Skip comments. */
-      if (*ptr == '#')
-	continue;
-
-      /* Skip empty lines. */
-      if ((len = strlen (ptr)) == 0)
+      /* Skip empty lines and comments. */
+      if (!*ptr || *ptr == '#')
 	continue;
 
       if ((err = mu_url_create (&u, ptr)) != 0)
 	{
-	  free (buf);
-	  fclose (fp);
-	  return err;
+	  status = err;
+	  break;
 	}
       if ((err = mu_url_parse (u)) != 0)
 	{
@@ -361,13 +357,14 @@ get_ticket (mu_url_t url, const char *user, const char *filename,
       /* Looks like a match! */
       *ticket = u;
       u = NULL;
+      status = 0;
       break;
     }
 
   fclose (fp);
   free (buf);
 
-  return 0;
+  return status;
 }
 
 static int
