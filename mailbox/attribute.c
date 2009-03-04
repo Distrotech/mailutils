@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,9 +31,8 @@
 #endif
 
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 #include <attribute0.h>
-
-static int flags_to_string (int, char *, size_t, size_t *);
 
 int
 mu_attribute_create (mu_attribute_t *pattr, void *owner)
@@ -384,6 +383,31 @@ mu_attribute_copy (mu_attribute_t dest, mu_attribute_t src)
   return 0;
 }
 
+struct flagtrans
+{
+  int flag;
+  char letter;
+};
+
+/* The two macros below are taken from gnulib module verify.h */
+#define mu_verify_true(R) \
+  (!!sizeof \
+   (struct { unsigned int verify_error_if_negative_size__: (R) ? 1 : -1; }))
+#define mu_verify(R) extern int (* verify_function__ (void)) [mu_verify_true (R)]
+
+static struct flagtrans flagtrans[] = {
+  { MU_ATTRIBUTE_SEEN, 'O' },
+  { MU_ATTRIBUTE_ANSWERED, 'A' },
+  { MU_ATTRIBUTE_FLAGGED, 'F' },
+  { MU_ATTRIBUTE_READ, 'R' },
+  { MU_ATTRIBUTE_DELETED, 'd' },
+  { 0 }
+};
+
+/* If cc reports an error in this statement, fix the MU_STATUS_BUF_SIZE
+   declaration in include/mailutils/attribute.h */
+mu_verify (MU_ARRAY_SIZE (flagtrans) == MU_STATUS_BUF_SIZE);
+
 int
 mu_string_to_flags (const char *buffer, int *pflags)
 {
@@ -401,64 +425,43 @@ mu_string_to_flags (const char *buffer, int *pflags)
   else
     sep = buffer;
 
-  while (*sep)
+  for (; *sep; sep++)
     {
-      if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-	*pflags |= MU_ATTRIBUTE_READ;
-      if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-	*pflags |= MU_ATTRIBUTE_SEEN;
-      if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-	*pflags |= MU_ATTRIBUTE_ANSWERED;
-      if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-	*pflags |= MU_ATTRIBUTE_FLAGGED;
-      sep++;
+      struct flagtrans *ft;
+
+      for (ft = flagtrans; ft->flag; ft++)
+	if (ft->letter == *sep)
+	  {
+	    *pflags |= ft->flag;
+	    break;
+	  }
     }
   return 0;
 }
 
+/* NOTE: When adding/removing flags, make sure to update the
+   MU_STATUS_BUF_SIZE define in include/mailutils/attribute.h */
 int
-mu_attribute_to_string (mu_attribute_t attr, char *buffer, size_t len, size_t *pn)
+mu_attribute_to_string (mu_attribute_t attr, char *buffer, size_t len,
+			size_t *pn)
 {
-  int flags = 0;;
-  mu_attribute_get_flags (attr, &flags);
-  return flags_to_string (flags, buffer, len, pn);
-}
+  int flags = 0;
+  char buf[MU_STATUS_BUF_SIZE];
+  int i;
+  int rc;
+  struct flagtrans *ft;
+  
+  rc = mu_attribute_get_flags (attr, &flags);
+  if (rc)
+    return rc;
 
-static int
-flags_to_string (int flags, char *buffer, size_t len, size_t *pn)
-{
-  char status[32];
-  char a[8];
-  size_t i;
+  i = 0;
+  for (ft = flagtrans; ft->flag; ft++)
+    if (ft->flag & flags)
+      buf[i++] = ft->letter;
+  buf[i++] = 0;
 
-  *status = *a = '\0';
-
-  if (flags & MU_ATTRIBUTE_SEEN)
-    strcat (a, "O");
-  if (flags & MU_ATTRIBUTE_ANSWERED)
-    strcat (a, "A");
-  if (flags & MU_ATTRIBUTE_FLAGGED)
-    strcat (a, "F");
-  if (flags & MU_ATTRIBUTE_READ)
-    strcat (a, "R");
-  if (flags & MU_ATTRIBUTE_DELETED)
-    strcat (a, "d");
-
-  if (*a != '\0')
-    {
-      strcpy (status, "Status: ");
-      strcat (status, a);
-      strcat (status, "\n");
-    }
-
-  i = strlen (status);
-
-  if (buffer && len != 0)
-    {
-      strncpy (buffer, status, len - 1);
-      buffer[len - 1] = '\0';
-      i = strlen (buffer);
-    }
+  i = mu_cpystr (buffer, buf, i);
   if (pn)
     *pn = i;
   return 0;

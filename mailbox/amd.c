@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -613,7 +613,8 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   mu_body_t body;
   const char *sbuf;
   mu_envelope_t env = NULL;
-  
+  char statbuf[MU_STATUS_BUF_SIZE];
+
   status = mu_message_size (msg, &bsize);
   if (status)
     return status;
@@ -661,7 +662,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   while ((status = mu_stream_readline (stream, buf, bsize, off, &n)) == 0
 	 && n != 0)
     {
-      if (_amd_delim(buf))
+      if (_amd_delim (buf))
 	break;
 
       if (!(strncasecmp (buf, "status:", 7) == 0
@@ -710,10 +711,10 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   
   /* Add status */
   mu_message_get_attribute (msg, &attr);
-  mu_attribute_to_string (attr, buf, bsize, &n);
+  mu_attribute_to_string (attr, statbuf, sizeof (statbuf), &n);
   if (n)
     {
-      nbytes += fprintf (fp, "%s", buf);
+      nbytes += fprintf (fp, "Status: %s\n", statbuf);
       nlines++;
     }
   nbytes += fprintf (fp, "\n");

@@ -1585,14 +1585,19 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
       case MBOX_STATE_APPEND_ATTRIBUTE:
       /* Put the new attributes.  */
       {
-	char abuf[64];
+#define STATUS_PREFIX_LEN (sizeof(MU_HEADER_STATUS) - 1 + 2)
+	char abuf[STATUS_PREFIX_LEN + MU_STATUS_BUF_SIZE + 1];
 	size_t na = 0;
 	mu_attribute_t attr = NULL;
-	abuf[0] = '\0';
-	mu_message_get_attribute (msg, &attr);
-	mu_attribute_to_string (attr, abuf, sizeof(abuf), &na);
 
-	status = mu_stream_write (mailbox->stream, abuf, na, *psize, &n);
+	strcpy(abuf, MU_HEADER_STATUS);
+	strcat(abuf, ": ");
+	mu_message_get_attribute (msg, &attr);
+	mu_attribute_to_string (attr, abuf + STATUS_PREFIX_LEN, 
+	                        sizeof(abuf) - STATUS_PREFIX_LEN - 1, &na);
+	strcat (abuf, "\n");
+	na = strlen (abuf);
+	mu_stream_write (mailbox->stream, abuf, na, *psize, &n);
 	if (status != 0)
 	  break;
 	*psize += n;

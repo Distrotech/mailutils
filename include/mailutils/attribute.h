@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,6 +97,9 @@ extern int mu_attribute_is_equal        (mu_attribute_t, mu_attribute_t att2);
 
 extern int mu_attribute_copy            (mu_attribute_t, mu_attribute_t);
 
+/* Maximum size of buffer for mu_attribute_to_string call, including nul */
+#define MU_STATUS_BUF_SIZE sizeof("OAFRd")
+  
 extern int mu_attribute_to_string       (mu_attribute_t, char *, size_t, size_t *);
 extern int mu_string_to_flags           (const char *, int *);
 
