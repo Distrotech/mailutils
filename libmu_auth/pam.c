@@ -39,63 +39,96 @@
 #ifdef HAVE_CRYPT_H
 # include <crypt.h>
 #endif
-
 #include <mailutils/list.h>
+#include <mailutils/errno.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 
-char *mu_pam_service = NULL;
+char *mu_pam_service = PACKAGE;
 
 #ifdef USE_LIBPAM
 #define COPY_STRING(s) (s) ? strdup(s) : NULL
 
 static char *_pwd;
 static char *_user;
-static int _perr = 0;
+
+#define overwrite_and_free(ptr)			\
+  do						\
+    {						\
+      char *s = ptr;				\
+      while (*s)				\
+	*s++ = 0;				\
+    }						\
+  while (0)
+
 
 static int
 mu_pam_conv (int num_msg, const struct pam_message **msg,
 	     struct pam_response **resp, void *appdata_ptr MU_ARG_UNUSED)
 {
-  int replies = 0;
+  int status = PAM_SUCCESS;
+  int i;
   struct pam_response *reply = NULL;
 
-  reply = malloc (sizeof (*reply) * num_msg);
+  reply = calloc (num_msg, sizeof (*reply));
   if (!reply)
     return PAM_CONV_ERR;
 
-  for (replies = 0; replies < num_msg; replies++)
+  for (i = 0; i < num_msg && status == PAM_SUCCESS; i++)
     {
-      switch (msg[replies]->msg_style)
+      switch (msg[i]->msg_style)
 	{
 	case PAM_PROMPT_ECHO_ON:
-	  reply[replies].resp_retcode = PAM_SUCCESS;
-	  reply[replies].resp = COPY_STRING (_user);
+	  reply[i].resp_retcode = PAM_SUCCESS;
+	  reply[i].resp = COPY_STRING (_user);
 	  /* PAM frees resp */
 	  break;
 
 	case PAM_PROMPT_ECHO_OFF:
-	  reply[replies].resp_retcode = PAM_SUCCESS;
-	  reply[replies].resp = COPY_STRING (_pwd);
-	  /* PAM frees resp */
+	  if (_pwd)
+	    {
+	      reply[i].resp_retcode = PAM_SUCCESS;
+	      reply[i].resp = COPY_STRING (_pwd);
+	      /* PAM frees resp */
+	    }
+	  else
+	    status = PAM_AUTHTOK_RECOVER_ERR;
 	  break;
 
 	case PAM_TEXT_INFO:
 	case PAM_ERROR_MSG:
-	  reply[replies].resp_retcode = PAM_SUCCESS;
-	  reply[replies].resp = NULL;
+	  reply[i].resp_retcode = PAM_SUCCESS;
+	  reply[i].resp = NULL;
 	  break;
  
 	default:
-	  free (reply);
-	  _perr = 1;
-	  return PAM_CONV_ERR;
+	  status = PAM_CONV_ERR;
 	}
     }
-  *resp = reply;
-  return PAM_SUCCESS;
+  if (status != PAM_SUCCESS)
+    {
+      for (i = 0; i < num_msg; i++)
+	if (reply[i].resp)
+	  {
+	    switch (msg[i]->msg_style)
+	      {
+	      case PAM_PROMPT_ECHO_ON:
+	      case PAM_PROMPT_ECHO_OFF:
+		overwrite_and_free (reply[i].resp);
+		break;
+		
+	      case PAM_ERROR_MSG:
+	      case PAM_TEXT_INFO:
+		free (reply[i].resp);
+	      }
+	  }
+      free (reply);
+    }
+  else
+    *resp = reply;
+  return status;
 }
 
 static struct pam_conv PAM_conversation = { &mu_pam_conv, NULL };
@@ -111,11 +144,10 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
   pam_handle_t *pamh;
   int pamerror;
 
-#define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) \
-    goto pam_errlab;
+#define PAM_ERROR if (pamerror != PAM_SUCCESS) goto pam_errlab;
 
   if (!auth_data)
-    return 1;
+    return EINVAL;
   
   _user = (char *) auth_data->name;
   _pwd = pass;
@@ -128,7 +160,14 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
   pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
  pam_errlab:
   pam_end (pamh, PAM_SUCCESS);
-  return pamerror != PAM_SUCCESS;
+  switch (pamerror)
+    {
+    case PAM_SUCCESS:
+      return 0;
+    case PAM_AUTH_ERR:
+      return MU_ERR_AUTH_FAILURE;
+    }
+  return MU_ERR_FAILURE;
 }
 
 #else
@@ -139,8 +178,7 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
 		     void *func_data MU_ARG_UNUSED,
 		     void *call_data MU_ARG_UNUSED)
 {
-  errno = ENOSYS;
-  return 1;
+  return ENOSYS;
 }
 
 #endif

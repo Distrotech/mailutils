@@ -769,7 +769,7 @@ mu_ldap_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   char *db_pass = auth_data->passwd;
   char *pass = call_data;
 
-  if (auth_data->passwd == NULL)
+  if (auth_data->passwd == NULL || !pass)
     return EINVAL;
 
   if (db_pass[0] == '{')
