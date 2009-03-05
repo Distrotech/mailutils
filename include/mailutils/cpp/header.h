@@ -22,7 +22,9 @@
 #define _MUCPP_HEADER_H
 
 #include <string>
+#include <errno.h>
 #include <mailutils/header.h>
+#include <mailutils/cpp/error.h>
 
 namespace mailutils
 {

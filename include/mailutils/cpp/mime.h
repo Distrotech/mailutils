@@ -22,7 +22,9 @@
 #define _MUCPP_MIME_H
 
 #include <string>
+#include <errno.h>
 #include <mailutils/mime.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/message.h>
 
 namespace mailutils

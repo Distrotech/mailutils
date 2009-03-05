@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/pop3.h>
-#include <mailutils/cpp/iterator.h>
-#include <errno.h>
 
 using namespace mailutils;
 

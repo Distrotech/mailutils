@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/iterator.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 

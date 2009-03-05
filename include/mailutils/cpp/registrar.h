@@ -21,7 +21,10 @@
 #ifndef _MUCPP_REGISTRAR_H
 #define _MUCPP_REGISTRAR_H
 
+#include <string>
+#include <errno.h>
 #include <mailutils/registrar.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/url.h>
 
 namespace mailutils

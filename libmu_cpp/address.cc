@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/address.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -97,72 +95,97 @@ Address :: get_count ()
 std::string
 Address :: get_email (size_t n)
 {
-  int status = mu_address_get_email (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_email (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_email", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_email", status);
 
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Address :: get_local_part (size_t n)
 {
-  int status = mu_address_get_local_part (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_local_part (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_local_part", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_local_part", status);
 
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Address :: get_domain (size_t n)
 {
-  int status = mu_address_get_domain (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_domain (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_domain", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_domain", status);
 
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Address :: get_personal (size_t n)
 {
-  int status = mu_address_get_personal (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_personal (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_personal", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_personal", status);
 
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Address :: get_comments (size_t n)
 {
-  int status = mu_address_get_comments (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_comments (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_comments", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_comments", status);
 
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Address :: get_route (size_t n)
 {
-  int status = mu_address_get_route (addr, n, buf, sizeof (buf), 0);
+  char *buf = NULL;
+  int status = mu_address_aget_route (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_route", status);
   else if (status == ENOENT)
     throw Address::ENoent ("Address::get_route", status);
 
+  return std::string (buf ? buf : "");
+}
+
+std::string
+Address :: to_string ()
+{
+  size_t n;
+  char buf[1024];
+  int status = mu_address_to_string (addr, buf, sizeof (buf), &n);
+  if (status)
+    throw Exception ("Address::to_string", status);
+
   return std::string (buf);
+}
+
+namespace mailutils
+{
+  std::ostream& operator << (std::ostream& os, Address& addr) {
+    return os << addr.to_string ();
+  };
 }
 

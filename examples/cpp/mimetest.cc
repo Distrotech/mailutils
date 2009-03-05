@@ -127,8 +127,6 @@ print_message_part_sizes (Message& part, int indent)
 void
 message_display_parts (Message& msg, int indent)
 {
-  size_t nbytes;
-
   /* How many parts does the message has? */
   size_t nparts = msg.get_num_parts ();
 
@@ -140,8 +138,8 @@ message_display_parts (Message& msg, int indent)
       Message part = msg.get_part (j);
       Header hdr = part.get_header ();
 
-      string type;
-      string encoding ("");
+      string type ("text/plain");
+      string encoding ("7bit");
       try {
 	type = hdr[MU_HEADER_CONTENT_TYPE];
 	encoding = hdr[MU_HEADER_CONTENT_TRANSFER_ENCODING];

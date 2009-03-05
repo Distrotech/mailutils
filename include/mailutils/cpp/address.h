@@ -21,6 +21,8 @@
 #ifndef _ADDRESS_H
 #define _ADDRESS_H
 
+#include <ostream>
+#include <errno.h>
 #include <mailutils/address.h>
 #include <mailutils/cpp/error.h>
 
@@ -29,9 +31,6 @@ namespace mailutils
 
 class Address
 {
- private:
-  char buf[256];
-
  protected:
   mu_address_t addr;
 
@@ -55,6 +54,9 @@ class Address
   std::string get_personal (size_t n);
   std::string get_comments (size_t n);
   std::string get_route (size_t n);
+
+  std::string to_string ();
+  friend std::ostream& operator << (std::ostream&, Address&);
 
   // Address Exceptions
   class EInval : public Exception {

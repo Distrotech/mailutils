@@ -21,6 +21,7 @@
 #ifndef _MUCPP_POP3_H
 #define _MUCPP_POP3_H
 
+#include <errno.h>
 #include <mailutils/pop3.h>
 #include <mailutils/cpp/list.h>
 #include <mailutils/cpp/iterator.h>

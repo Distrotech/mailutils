@@ -22,6 +22,7 @@
 #define _MUCPP_MAILER_H
 
 #include <string>
+#include <errno.h>
 #include <mailutils/mailer.h>
 #include <mailutils/cpp/debug.h>
 #include <mailutils/cpp/message.h>

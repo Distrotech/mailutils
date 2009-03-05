@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/mailbox.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -52,23 +50,21 @@ MailboxBase :: close ()
     throw Exception ("MailboxBase::close", status);
 }
 
-Debug&
-MailboxBase :: get_debug ()
+void
+MailboxBase :: flush (bool expunge = false)
 {
-  mu_debug_t c_dbg;
-
-  int status = mu_mailbox_get_debug (mbox, &c_dbg);
+  int status = mu_mailbox_flush (mbox, expunge);
   if (status)
-    throw Exception ("MailboxBase::get_debug", status);
-
-  return *new Debug (c_dbg);
+    throw Exception ("MailboxBase::flush", status);
 }
 
 size_t
 MailboxBase :: messages_count ()
 {
   size_t total;
-  mu_mailbox_messages_count (mbox, &total);
+  int status = mu_mailbox_messages_count (mbox, &total);
+  if (status)
+    throw Exception ("MailboxBase::messages_count", status);
   return total;
 }
 
@@ -76,7 +72,9 @@ size_t
 MailboxBase :: messages_recent ()
 {
   size_t recent;
-  mu_mailbox_messages_recent (mbox, &recent);
+  int status = mu_mailbox_messages_recent (mbox, &recent);
+  if (status)
+    throw Exception ("MailboxBase::messages_recent", status);
   return recent;
 }
 
@@ -84,7 +82,9 @@ size_t
 MailboxBase :: message_unseen ()
 {
   size_t unseen;
-  mu_mailbox_message_unseen (mbox, &unseen);
+  int status = mu_mailbox_message_unseen (mbox, &unseen);
+  if (status)
+    throw Exception ("MailboxBase::message_unseen", status);
   return unseen;
 }
 
@@ -114,6 +114,76 @@ MailboxBase :: expunge ()
   int status = mu_mailbox_expunge (mbox);
   if (status)
     throw Exception ("MailboxBase::expunge", status);
+}
+
+void
+MailboxBase :: sync ()
+{
+  int status = mu_mailbox_sync (mbox);
+  if (status)
+    throw Exception ("MailboxBase::sync", status);
+}
+
+void
+MailboxBase :: lock ()
+{
+  int status = mu_mailbox_lock (mbox);
+  if (status)
+    throw Exception ("MailboxBase::lock", status);
+}
+
+void
+MailboxBase :: unlock ()
+{
+  int status = mu_mailbox_unlock (mbox);
+  if (status)
+    throw Exception ("MailboxBase::unlock", status);
+}
+
+mu_off_t
+MailboxBase :: get_size ()
+{
+  mu_off_t size;
+  int status = mu_mailbox_get_size (mbox, &size);
+  if (status)
+    throw Exception ("MailboxBase::get_size", status);
+  return size;
+}
+
+Debug&
+MailboxBase :: get_debug ()
+{
+  mu_debug_t c_dbg;
+
+  int status = mu_mailbox_get_debug (mbox, &c_dbg);
+  if (status)
+    throw Exception ("MailboxBase::get_debug", status);
+
+  return *new Debug (c_dbg);
+}
+
+Folder&
+MailboxBase :: get_folder ()
+{
+  mu_folder_t c_folder;
+
+  int status = mu_mailbox_get_folder (mbox, &c_folder);
+  if (status)
+    throw Exception ("MailboxBase::get_folder", status);
+
+  return *new Folder (c_folder);
+}
+
+Url&
+MailboxBase :: get_url ()
+{
+  mu_url_t c_url;
+
+  int status = mu_mailbox_get_url (mbox, &c_url);
+  if (status)
+    throw Exception ("MailboxBase::get_url", status);
+
+  return *new Url (c_url);
 }
 
 //

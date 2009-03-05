@@ -19,7 +19,6 @@
 */
 
 #include <mailutils/cpp/stream.h>
-#include <errno.h>
 
 using namespace mailutils;
 

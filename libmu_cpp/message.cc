@@ -19,11 +19,6 @@
 */
 
 #include <mailutils/cpp/message.h>
-#include <mailutils/cpp/header.h>
-#include <mailutils/cpp/body.h>
-#include <mailutils/cpp/stream.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -72,16 +67,16 @@ Message :: ~Message ()
     mu_message_destroy (&msg, this);
 }
 
-Header&
-Message :: get_header ()
+Attribute&
+Message :: get_attribute ()
 {
-  mu_header_t c_hdr;
+  mu_attribute_t c_attr;
 
-  int status = mu_message_get_header (msg, &c_hdr);
+  int status = mu_message_get_attribute (msg, &c_attr);
   if (status)
-    throw Exception ("Message::get_header", status);
+    throw Exception ("Message::get_attribute", status);
 
-  return *new Header (c_hdr);
+  return *new Attribute (c_attr);
 }
 
 Body&
@@ -94,6 +89,30 @@ Message :: get_body ()
     throw Exception ("Message::get_body", status);
 
   return *new Body (c_body);
+}
+
+Envelope&
+Message :: get_envelope ()
+{
+  mu_envelope_t c_env;
+
+  int status = mu_message_get_envelope (msg, &c_env);
+  if (status)
+    throw Exception ("Message::get_envelope", status);
+
+  return *new Envelope (c_env);
+}
+
+Header&
+Message :: get_header ()
+{
+  mu_header_t c_hdr;
+
+  int status = mu_message_get_header (msg, &c_hdr);
+  if (status)
+    throw Exception ("Message::get_header", status);
+
+  return *new Header (c_hdr);
 }
 
 Stream&

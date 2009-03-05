@@ -21,7 +21,9 @@
 #ifndef _MUCPP_LIST_H
 #define _MUCPP_LIST_H
 
+#include <errno.h>
 #include <mailutils/list.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/iterator.h>
 
 typedef int mu_list_action_t (void*, void*);

@@ -33,7 +33,7 @@ parse (const char *str)
   try {
     Address address (str);
     size_t count = address.get_count ();
-    cout << str << "=> count " << count << endl;
+    cout << address << " => count " << count << endl;
 
     for (size_t no = 1; no <= count; no++)
       {
@@ -41,17 +41,17 @@ parse (const char *str)
 	cout << no << " ";
 	
 	if (isgroup)
-	  cout << "group " << address.get_personal (no) << endl;
+	  cout << "group <" << address.get_personal (no) << ">" << endl;
 	else
-	  cout << "email " << address.get_email (no) << endl;
+	  cout << "email <" << address.get_email (no) << ">" << endl;
 	
 	if (!isgroup)
-	  cout << "   personal " << address.get_personal (no) << endl;
+	  cout << "   personal <" << address.get_personal (no) << ">" << endl;
 	
-	cout << "   comments " << address.get_comments (no) << endl;
-	cout << "   local-part " << address.get_local_part (no)
-	     << " domain "  << address.get_domain (no) << endl;
-	cout << "   route " << address.get_route (no) << endl;
+	cout << "   comments <" << address.get_comments (no) << ">" << endl;
+	cout << "   local-part <" << address.get_local_part (no) << ">"
+	     << " domain <"  << address.get_domain (no) << ">" << endl;
+	cout << "   route <" << address.get_route (no) << ">" << endl;
       }
   }
   catch (Exception& e) {

@@ -18,47 +18,52 @@
    Boston, MA 02110-1301 USA
 */
 
-#include <mailutils/cpp/mutil.h>
+#include <mailutils/cpp/envelope.h>
 
 using namespace mailutils;
 
 //
-// MUtil
+// Envelope
 //
 
-int
-mailutils :: set_user_email (const std::string& str)
+Envelope :: Envelope ()
 {
-  return mu_set_user_email (str.c_str ());
+  this->env = NULL;
 }
 
-int
-mailutils :: set_user_email_domain (const std::string& str)
+Envelope :: Envelope (const mu_envelope_t env)
 {
-   return mu_set_user_email_domain (str.c_str ());
-}
+  if (env == 0)
+    throw Exception ("Envelope::Envelope", EINVAL);
 
-std::string
-mailutils :: tempname ()
-{
-  std::string name;
-  char *c_str = mu_tempname (NULL);
-  if (c_str) {
-    name = c_str;
-    free (c_str);
-  }
-  return name;
+  this->env = env;
 }
 
 std::string
-mailutils :: tempname (const std::string& tmpdir)
+Envelope :: get_sender ()
 {
-  std::string name;
-  char *c_str = mu_tempname (tmpdir.c_str ());
-  if (c_str) {
-    name = c_str;
-    free (c_str);
-  }
-  return name;
+  char* c_val = NULL;
+
+  int status = mu_envelope_aget_sender (env, &c_val);
+  if (status)
+    throw Exception ("Envelope::get_sender", status);
+
+  std::string val (c_val);
+  free (c_val);
+  return val;
+}
+
+std::string
+Envelope :: get_date ()
+{
+  char* c_val;
+
+  int status = mu_envelope_aget_date (env, &c_val);
+  if (status)
+    throw Exception ("Envelope::get_date", status);
+
+  std::string val (c_val);
+  free (c_val);
+  return val;
 }
 

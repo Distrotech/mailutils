@@ -18,47 +18,31 @@
    Boston, MA 02110-1301 USA
 */
 
-#include <mailutils/cpp/mutil.h>
+#ifndef _MUCPP_ENVELOPE_H
+#define _MUCPP_ENVELOPE_H
 
-using namespace mailutils;
+#include <string>
+#include <errno.h>
+#include <mailutils/envelope.h>
+#include <mailutils/cpp/error.h>
 
-//
-// MUtil
-//
-
-int
-mailutils :: set_user_email (const std::string& str)
+namespace mailutils
 {
-  return mu_set_user_email (str.c_str ());
+
+class Envelope
+{
+ protected:
+  mu_envelope_t env;
+
+ public:
+  Envelope ();
+  Envelope (const mu_envelope_t);
+
+  std::string get_sender ();
+  std::string get_date ();
+};
+
 }
 
-int
-mailutils :: set_user_email_domain (const std::string& str)
-{
-   return mu_set_user_email_domain (str.c_str ());
-}
-
-std::string
-mailutils :: tempname ()
-{
-  std::string name;
-  char *c_str = mu_tempname (NULL);
-  if (c_str) {
-    name = c_str;
-    free (c_str);
-  }
-  return name;
-}
-
-std::string
-mailutils :: tempname (const std::string& tmpdir)
-{
-  std::string name;
-  char *c_str = mu_tempname (tmpdir.c_str ());
-  if (c_str) {
-    name = c_str;
-    free (c_str);
-  }
-  return name;
-}
+#endif // not _MUCPP_ENVELOPE_H
 

@@ -21,9 +21,13 @@
 #ifndef _MUCPP_MESSAGE_H
 #define _MUCPP_MESSAGE_H
 
+#include <errno.h>
 #include <mailutils/message.h>
-#include <mailutils/cpp/header.h>
+#include <mailutils/cpp/error.h>
+#include <mailutils/cpp/attribute.h>
 #include <mailutils/cpp/body.h>
+#include <mailutils/cpp/envelope.h>
+#include <mailutils/cpp/header.h>
 #include <mailutils/cpp/stream.h>
 
 namespace mailutils
@@ -45,8 +49,10 @@ class Message
   Message& operator = (const Message&);
   ~Message ();
 
-  Header& get_header ();
+  Attribute& get_attribute ();
   Body& get_body ();
+  Envelope& get_envelope ();
+  Header& get_header ();
   Stream& get_stream ();
   void set_stream (const Stream& stream);
 

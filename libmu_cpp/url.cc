@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/url.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -76,67 +74,73 @@ Url :: get_port ()
 std::string
 Url :: get_scheme ()
 {
-  int status = mu_url_get_scheme (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_scheme (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_scheme", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Url :: get_user ()
 {
-  int status = mu_url_get_user (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_user (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_user", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Url :: get_passwd ()
 {
-  int status = mu_url_get_passwd (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_passwd (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_passwd", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Url :: get_auth ()
 {
-  int status = mu_url_get_auth (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_auth (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_auth", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
  
 std::string
 Url :: get_host ()
 {
-  int status = mu_url_get_host (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_host (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_host", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::string
 Url :: get_path ()
 {
-  int status = mu_url_get_path (url, buf, sizeof (buf), NULL);
+  char *buf = NULL;
+  int status = mu_url_aget_path (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
     throw Exception ("Url::get_path", status);
-  return std::string (buf);
+  return std::string (buf ? buf : "");
 }
 
 std::vector<std::string>
@@ -155,5 +159,19 @@ Url :: get_query ()
     params.push_back (argv[i]);
 
   return params;
+}
+
+std::string
+Url :: to_string ()
+{
+  const char *str = mu_url_to_string (url);
+  return std::string (str ? str : "");
+}
+
+namespace mailutils
+{
+  std::ostream& operator << (std::ostream& os, Url& url) {
+    return os << url.to_string ();
+  };
 }
 

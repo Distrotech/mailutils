@@ -22,7 +22,9 @@
 #define _MUCPP_DEBUG_H
 
 #include <string>
+#include <errno.h>
 #include <mailutils/debug.h>
+#include <mailutils/cpp/error.h>
 
 namespace mailutils
 {

@@ -21,7 +21,10 @@
 #ifndef _MUCPP_ATTRIBUTE_H
 #define _MUCPP_ATTRIBUTE_H
 
+#include <ostream>
+#include <errno.h>
 #include <mailutils/attribute.h>
+#include <mailutils/cpp/error.h>
 
 namespace mailutils
 {
@@ -65,6 +68,9 @@ class Attribute
   void unset_draft ();
   void unset_recent ();
   void unset_read ();
+
+  std::string to_string ();
+  friend std::ostream& operator << (std::ostream&, Attribute&);
 };
 
 }

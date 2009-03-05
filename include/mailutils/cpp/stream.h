@@ -22,6 +22,7 @@
 #define _MUCPP_STREAM_H
 
 #include <string>
+#include <errno.h>
 #include <mailutils/stream.h>
 #include <mailutils/cpp/error.h>
 

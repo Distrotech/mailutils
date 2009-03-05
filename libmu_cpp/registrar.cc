@@ -18,10 +18,7 @@
    Boston, MA 02110-1301 USA
 */
 
-#include <string>
 #include <mailutils/cpp/registrar.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 

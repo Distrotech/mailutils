@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/attribute.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -211,5 +209,21 @@ inline void
 Attribute :: unset_read ()
 {
   mu_attribute_unset_read (attr);
+}
+
+std::string
+Attribute :: to_string ()
+{
+  char buf[MU_STATUS_BUF_SIZE];
+  size_t na = 0;
+  mu_attribute_to_string (attr, buf, sizeof (buf), &na);
+  return std::string (buf);
+}
+
+namespace mailutils
+{
+  std::ostream& operator << (std::ostream& os, Attribute& attr) {
+    return os << attr.to_string ();
+  };
 }
 

@@ -21,9 +21,13 @@
 #ifndef _MUCPP_MAILBOX_H
 #define _MUCPP_MAILBOX_H
 
+#include <errno.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/debug.h>
+#include <mailutils/cpp/folder.h>
 #include <mailutils/cpp/message.h>
+#include <mailutils/cpp/url.h>
 
 namespace mailutils
 {
@@ -37,15 +41,21 @@ class MailboxBase
   void open ();
   void open (int flag);
   void close ();
-
-  Debug& get_debug ();
-
+  void flush (bool expunge);
   size_t messages_count ();
   size_t messages_recent ();
   size_t message_unseen ();
   Message& get_message (size_t num);
   void append_message (const Message& msg);
   void expunge ();
+  void sync ();
+  void lock ();
+  void unlock ();
+  mu_off_t get_size ();
+
+  Debug& get_debug ();
+  Folder& get_folder ();
+  Url& get_url ();
 
   inline Message& operator [] (size_t num) {
     return this->get_message (num);

@@ -21,7 +21,9 @@
 #ifndef _MUCPP_MAILCAP_H
 #define _MUCPP_MAILCAP_H
 
+#include <errno.h>
 #include <mailutils/mailcap.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/stream.h>
 
 namespace mailutils

@@ -21,6 +21,7 @@ MU_CXX_INCLUDES = \
  attribute.h\
  body.h\
  debug.h\
+ envelope.h\
  error.h\
  filter.h\
  folder.h\

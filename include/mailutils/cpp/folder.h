@@ -21,9 +21,12 @@
 #ifndef _MUCPP_FOLDER_H
 #define _MUCPP_FOLDER_H
 
+#include <errno.h>
 #include <mailutils/folder.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/list.h>
 #include <mailutils/cpp/stream.h>
+#include <mailutils/cpp/url.h>
 
 namespace mailutils
 {
@@ -50,6 +53,8 @@ class Folder
 
   Stream& get_stream ();
   void set_stream (const Stream& stream);
+
+  Url& get_url ();
 };
 
 }

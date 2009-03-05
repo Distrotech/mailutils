@@ -26,13 +26,10 @@ using namespace mailutils;
 
 int main (int argc, char* argv[])
 {
-  if (argc == 1)
-    exit (0);
-
   register_local_mbox_formats ();
 
   try {
-    MailboxDefault mbox (argv[1]);
+    MailboxDefault mbox ((argc > 1) ? argv[1] : "");
     mbox.open ();
 
     size_t total = mbox.messages_count ();
@@ -43,7 +40,7 @@ int main (int argc, char* argv[])
       Message msg = mbox[msgno];
       Header hdr = msg.get_header ();
       cout << hdr[MU_HEADER_FROM] << " "
-	   << hdr.get_value (MU_HEADER_SUBJECT, "[none]") << endl;
+	   << hdr.get_value (MU_HEADER_SUBJECT, "(NO SUBJECT)") << endl;
     }
 
     mbox.close ();

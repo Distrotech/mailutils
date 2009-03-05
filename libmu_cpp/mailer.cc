@@ -19,7 +19,6 @@
 */
 
 #include <mailutils/cpp/mailer.h>
-#include <errno.h>
 
 using namespace mailutils;
 

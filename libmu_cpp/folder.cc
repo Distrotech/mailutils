@@ -19,8 +19,6 @@
 */
 
 #include <mailutils/cpp/folder.h>
-#include <mailutils/cpp/error.h>
-#include <errno.h>
 
 using namespace mailutils;
 
@@ -86,7 +84,8 @@ Folder :: close ()
 }
 
 List&
-Folder :: list (const std::string& dirname, void* pattern, size_t max_level)
+Folder :: list (const std::string& dirname, void* pattern,
+		size_t max_level = 0)
 {
   mu_list_t c_list;
 
@@ -132,5 +131,17 @@ Folder :: set_stream (const Stream& stream)
   int status = mu_folder_set_stream (folder, stream.stm);
   if (status)
     throw Exception ("Folder::set_stream", status);
+}
+
+Url&
+Folder :: get_url ()
+{
+  mu_url_t c_url;
+
+  int status = mu_folder_get_url (folder, &c_url);
+  if (status)
+    throw Exception ("Folder::get_url", status);
+
+  return *new Url (c_url);
 }
 

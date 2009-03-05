@@ -23,16 +23,16 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
+#include <errno.h>
 #include <mailutils/url.h>
+#include <mailutils/cpp/error.h>
 
 namespace mailutils
 {
 
 class Url
 {
- private:
-  char buf[1024];
-
  protected:
   mu_url_t url;
 
@@ -51,6 +51,9 @@ class Url
   std::string get_host ();
   std::string get_path ();
   std::vector<std::string> get_query ();
+
+  std::string to_string ();
+  friend std::ostream& operator << (std::ostream&, Url&);
 };
 
 }

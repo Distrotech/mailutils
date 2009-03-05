@@ -21,7 +21,9 @@
 #ifndef _MUCPP_ITERATOR_H
 #define _MUCPP_ITERATOR_H
 
+#include <errno.h>
 #include <mailutils/iterator.h>
+#include <mailutils/cpp/error.h>
 #include <mailutils/cpp/list.h>
 
 namespace mailutils
