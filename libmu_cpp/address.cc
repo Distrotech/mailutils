@@ -95,8 +95,8 @@ Address :: get_count ()
 std::string
 Address :: get_email (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_email (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_email (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_email", status);
   else if (status == ENOENT)
@@ -108,8 +108,8 @@ Address :: get_email (size_t n)
 std::string
 Address :: get_local_part (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_local_part (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_local_part (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_local_part", status);
   else if (status == ENOENT)
@@ -121,8 +121,8 @@ Address :: get_local_part (size_t n)
 std::string
 Address :: get_domain (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_domain (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_domain (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_domain", status);
   else if (status == ENOENT)
@@ -134,8 +134,8 @@ Address :: get_domain (size_t n)
 std::string
 Address :: get_personal (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_personal (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_personal (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_personal", status);
   else if (status == ENOENT)
@@ -147,8 +147,8 @@ Address :: get_personal (size_t n)
 std::string
 Address :: get_comments (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_comments (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_comments (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_comments", status);
   else if (status == ENOENT)
@@ -160,8 +160,8 @@ Address :: get_comments (size_t n)
 std::string
 Address :: get_route (size_t n)
 {
-  char *buf = NULL;
-  int status = mu_address_aget_route (addr, n, &buf);
+  const char* buf = NULL;
+  int status = mu_address_sget_route (addr, n, &buf);
   if (status == EINVAL)
     throw Address::EInval ("Address::get_route", status);
   else if (status == ENOENT)

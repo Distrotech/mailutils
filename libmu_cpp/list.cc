@@ -22,6 +22,29 @@
 
 using namespace mailutils;
 
+std::list<void*>
+mailutils :: mulist_to_stl (mu_list_t mu_list)
+{
+  size_t list_count;
+  std::list<void *> list;
+
+  if (!mu_list)
+    return list;
+
+  int status = mu_list_count (mu_list, &list_count);
+  if (status)
+    return list;
+
+  for (int i = 0; i < list_count; i++)
+    {
+      void *item = NULL;
+      status = mu_list_get (mu_list, i, &item);
+      if (!status && item)
+	list.push_back (item);
+    }
+  return list;
+}
+
 //
 // List
 //
@@ -197,5 +220,11 @@ List :: set_destroy_item (void (*mu_destroy_item) (void *item))
   int status = mu_list_set_destroy_item (mu_list, mu_destroy_item);
   if (status)
     throw Exception ("List::set_destroy_item", status);
+}
+
+std::list<void*>
+List :: to_stl ()
+{
+  return mulist_to_stl (mu_list);
 }
 

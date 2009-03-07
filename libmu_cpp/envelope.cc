@@ -42,28 +42,20 @@ Envelope :: Envelope (const mu_envelope_t env)
 std::string
 Envelope :: get_sender ()
 {
-  char* c_val = NULL;
-
-  int status = mu_envelope_aget_sender (env, &c_val);
+  const char* buf = NULL;
+  int status = mu_envelope_sget_sender (env, &buf);
   if (status)
     throw Exception ("Envelope::get_sender", status);
-
-  std::string val (c_val);
-  free (c_val);
-  return val;
+  return std::string (buf);
 }
 
 std::string
 Envelope :: get_date ()
 {
-  char* c_val;
-
-  int status = mu_envelope_aget_date (env, &c_val);
+  const char* buf = NULL;
+  int status = mu_envelope_sget_date (env, &buf);
   if (status)
     throw Exception ("Envelope::get_date", status);
-
-  std::string val (c_val);
-  free (c_val);
-  return val;
+  return std::string (buf);
 }
 

@@ -42,31 +42,27 @@ Header :: Header (const mu_header_t hdr)
 std::string
 Header :: get_value (const std::string& name)
 {
-  char* c_val;
+  const char* buf = NULL;
 
-  int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
+  int status = mu_header_sget_value (hdr, name.c_str (), &buf);
   if (status)
     throw Exception ("Header::get_value", status);
 
-  std::string val (c_val);
-  free (c_val);
-  return val;
+  return std::string (buf);
 }
 
 std::string
 Header :: get_value (const std::string& name, const std::string& def)
 {
-  char* c_val;
+  const char* buf = NULL;
 
-  int status = mu_header_aget_value (hdr, name.c_str (), &c_val);
+  int status = mu_header_sget_value (hdr, name.c_str (), &buf);
   if (status == MU_ERR_NOENT)
     return std::string (def);
   else if (status)
     throw Exception ("Header::get_value", status);
 
-  std::string val (c_val);
-  free (c_val);
-  return val;
+  return std::string (buf);
 }
 
 size_t

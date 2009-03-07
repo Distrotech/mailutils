@@ -74,8 +74,8 @@ Url :: get_port ()
 std::string
 Url :: get_scheme ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_scheme (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_scheme (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
@@ -86,8 +86,8 @@ Url :: get_scheme ()
 std::string
 Url :: get_user ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_user (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_user (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
@@ -98,8 +98,8 @@ Url :: get_user ()
 std::string
 Url :: get_passwd ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_passwd (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_passwd (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
@@ -110,8 +110,8 @@ Url :: get_passwd ()
 std::string
 Url :: get_auth ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_auth (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_auth (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
@@ -122,8 +122,8 @@ Url :: get_auth ()
 std::string
 Url :: get_host ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_host (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_host (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)
@@ -134,8 +134,8 @@ Url :: get_host ()
 std::string
 Url :: get_path ()
 {
-  char *buf = NULL;
-  int status = mu_url_aget_path (url, &buf);
+  const char* buf = NULL;
+  int status = mu_url_sget_path (url, &buf);
   if (status == MU_ERR_NOENT)
     return "";
   else if (status)

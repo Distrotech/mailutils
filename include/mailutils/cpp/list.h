@@ -21,6 +21,7 @@
 #ifndef _MUCPP_LIST_H
 #define _MUCPP_LIST_H
 
+#include <list>
 #include <errno.h>
 #include <mailutils/list.h>
 #include <mailutils/cpp/error.h>
@@ -31,6 +32,8 @@ typedef int (*mu_list_comparator_t) (const void*, const void*);
 
 namespace mailutils
 {
+
+std::list<void*> mulist_to_stl (mu_list_t mu_list);
 
 class Iterator;
 
@@ -70,6 +73,8 @@ class List
   bool is_empty ();
   size_t count ();
   size_t size ();
+
+  std::list<void*> to_stl ();
 
   inline void* operator [] (size_t index) {
     return this->get (index);
