@@ -17,7 +17,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-SUBDIRS = config cpp scheme
+SUBDIRS = config cpp python scheme
 
 noinst_PROGRAMS = \
  aclck\

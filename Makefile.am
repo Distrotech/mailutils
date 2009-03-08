@@ -54,7 +54,8 @@ SUBDIRS = \
  dotlock\
  mh\
  movemail\
- mimeview
+ mimeview\
+ python
 
 EXTRA_DIST = COPYING.LESSER
 

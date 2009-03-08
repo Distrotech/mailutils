@@ -158,6 +158,10 @@ mailutils-specific configuration options:
 	Enable GSSAPI authentication. For this to work, you will have
 	to have Kerberos V installed on your system.
 
+    --without-python
+
+	Do not build Python interface library.
+
     --without-guile
 
 	Do not build Guile interface library.

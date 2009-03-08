@@ -11,5 +11,6 @@ ltmain.sh
 mailutils.spec
 mdate-sh
 missing
+py-compile
 texinfo.tex
 ylwrap

@@ -22,6 +22,7 @@ AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_PREREQ(2.60)
 
@@ -1092,6 +1093,35 @@ if test "$EMACS" != "no"; then
 fi
 AC_SUBST(lisp_LISP)
 
+# Check for Python
+AC_ARG_WITH([python],
+            AC_HELP_STRING([--without-python],
+                           [do not build Python interface]),
+            [
+case "${withval}" in
+  yes) status_python=yes ;;
+  no)  status_python=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --without-python) ;;
+esac],[status_python=yes])
+
+if test "$status_python" = yes; then
+  AM_PATH_PYTHON(2.5.0,, [status_python=no])
+  if test "$status_python" = yes; then
+    AC_ARG_VAR([PYTHON_CONFIG], [The name of python-config binary])
+    AC_PATH_PROG([PYTHON_CONFIG], python-config)
+    if test -n "$PYTHON_CONFIG"; then
+      AC_SUBST(PYTHON_LIBS,`python-config --libs`)
+      AC_SUBST(PYTHON_INCLUDES,`python-config --includes`)
+    else
+      status_python=no     
+    fi
+
+    if test "$status_python" = yes; then
+      AC_SUBST(MU_PYTHON_LTLIBS,'$(MU_PYTHON_LTLIBS)')
+    fi
+  fi
+fi
+
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
 #       2. Only local mailbox types are allowed for MU_DEFAULT_SCHEME
@@ -1162,6 +1192,7 @@ Use GNU TLS.................... $status_gnutls
 Use GSASL...................... $status_gsasl
 Use GSSAPI..................... $status_gssapi
 Use Guile...................... $status_guile
+Use Python..................... $status_python
 Use TCP wrappers............... $status_tcpwrap
 Pthread support................ $status_pthread
 Readline support............... $status_readline
@@ -1198,6 +1229,7 @@ status_gnutls=$WITH_GNUTLS
 status_gsasl=$status_gsasl
 status_gssapi=$WITH_GSSAPI
 status_guile=$useguile
+status_python=$status_python
 status_tcpwrap=$status_tcpwrap
 status_pthread=$usepthread
 status_readline=$usereadline
@@ -1226,6 +1258,7 @@ AC_CONFIG_FILES([Makefile
  examples/Makefile
  examples/config/Makefile
  examples/cpp/Makefile
+ examples/python/Makefile
  examples/scheme/Makefile
  frm/Makefile
  frm/testsuite/Makefile
@@ -1271,6 +1304,9 @@ AC_CONFIG_FILES([Makefile
  po/Makefile.in
  pop3d/Makefile
  pop3d/testsuite/Makefile
+ python/Makefile
+ python/c_api/Makefile
+ python/mailutils/Makefile
  readmsg/Makefile
  readmsg/testsuite/Makefile
  scripts/Makefile
