@@ -65,7 +65,12 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
     case ERR_NO_OFILE:
       status = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
+      mu_diag_output (MU_DIAG_INFO, _("Write error on control stream"));
+      break;
+
+    case ERR_NO_IFILE:
+      status = EX_IOERR;
+      mu_diag_output (MU_DIAG_INFO, _("Read error on control stream"));
       break;
 
     case ERR_MAILBOX_CORRUPTED:

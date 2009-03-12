@@ -340,7 +340,10 @@ util_out (int rc, const char *format, ...)
     imap4d_bye (ERR_NO_MEM);
 
   if (imap4d_transcript)
-    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
+    {
+      int len = strcspn (buf, "\r\n");
+      mu_diag_output (MU_DIAG_DEBUG, "sent: %*.*s", len, len, buf);
+    }
 
   status = mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -381,7 +384,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   free (tempbuf);
 
   if (imap4d_transcript)
-    mu_diag_output (MU_DIAG_DEBUG, "sent: %s\r\n", buf);
+    mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
   mu_stream_sequential_write (ostream, buf, strlen (buf));
   free (buf);
@@ -882,13 +885,16 @@ util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp)
 void
 util_setio (FILE *in, FILE *out)
 {
-  if (!out || !in)
+  if (!in)
+    imap4d_bye (ERR_NO_IFILE);
+  if (!out)
     imap4d_bye (ERR_NO_OFILE);
 
   setvbuf (in, NULL, _IOLBF, 0);
   setvbuf (out, NULL, _IOLBF, 0);
-  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
-      || mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE))
+    imap4d_bye (ERR_NO_IFILE);
+  if (mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_OFILE);
 }
 
@@ -1312,12 +1318,12 @@ check_input_err (int rc, size_t sz)
       
       mu_diag_output (MU_DIAG_INFO,
 		      _("Error reading from input file: %s"), p);
-      imap4d_bye (ERR_NO_OFILE);
+      imap4d_bye (ERR_NO_IFILE);
     }
   else if (sz == 0)
     {
       mu_diag_output (MU_DIAG_INFO, _("Unexpected eof on input"));
-      imap4d_bye (ERR_NO_OFILE);
+      imap4d_bye (ERR_NO_IFILE);
     }
 }
 
@@ -1358,10 +1364,30 @@ imap4d_readline (struct imap4d_tokbuf *tok)
       char *last_arg;
       size_t off = imap4d_tokbuf_getline (tok);
       if (transcript)
-        mu_diag_output (MU_DIAG_DEBUG, "recv: %s", tok->buffer);
+        {
+          int len;
+          char *p = strcasestr (tok->buffer, "LOGIN");
+          if (p && p > tok->buffer && isspace(p[-1]))
+            {
+              char *q = p + 5;
+              while (*q && isspace (*q))
+                q++;
+              while (*q && !isspace (*q))
+                q++;
+              len = q - tok->buffer; 
+              mu_diag_output (MU_DIAG_DEBUG, "recv: %*.*s {censored}", len, len,
+                              tok->buffer);
+             }
+           else
+             {
+               len = strcspn (tok->buffer, "\r\n");
+               mu_diag_output (MU_DIAG_DEBUG, "recv: %*.*s", 
+                               len, len, tok->buffer);
+             }
+        }
       imap4d_tokbuf_tokenize (tok, off);
       if (tok->argc == 0)
-	break;
+        break;  
       last_arg = tok->buffer + tok->argp[tok->argc - 1];
       if (last_arg[0] == '{' && last_arg[strlen(last_arg)-1] == '}')
 	{
@@ -1439,7 +1465,17 @@ imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
       char *s = *pbuf;
       len = util_trim_nl (s, len);
       if (imap4d_transcript)
-        mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
+        {
+          if (len)
+            mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
+          else
+            mu_diag_output (MU_DIAG_DEBUG, "got EOF");
+        }
+      if (len == 0)
+        {
+          imap4d_bye (ERR_NO_IFILE);
+          /*FIXME rc = ECONNABORTED;*/
+        }
       if (pnbytes)
 	*pnbytes = len;
     }

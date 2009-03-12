@@ -145,11 +145,12 @@ struct imap4d_command
 #define OK                    0
 #define ERR_NO_MEM            1
 #define ERR_NO_OFILE          2
-#define ERR_TIMEOUT           3
-#define ERR_SIGNAL            4
-#define ERR_TLS               5
-#define ERR_MAILBOX_CORRUPTED 6
-#define ERR_TERMINATE         7
+#define ERR_NO_IFILE          3
+#define ERR_TIMEOUT           4
+#define ERR_SIGNAL            5
+#define ERR_TLS               6
+#define ERR_MAILBOX_CORRUPTED 7
+#define ERR_TERMINATE         8
   
 /* Namespace numbers */
 #define NS_PRIVATE 0
