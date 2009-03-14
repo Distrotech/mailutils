@@ -80,6 +80,7 @@ pkginclude_HEADERS = \
  pop3.h\
  progmailer.h\
  property.h\
+ python.h\
  radius.h\
  refcount.h\
  registrar.h\

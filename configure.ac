@@ -50,6 +50,7 @@ AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libmu_sieve/libmu_sieve.la')
 AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
 AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
 AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libmu_argp/libmu_argp.la')
+AC_SUBST(MU_LIB_PY, '${top_builddir}/python/libmu_py/libmu_py.la')
 
 dnl Other variables
 AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
@@ -1104,9 +1105,11 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --without-python) ;;
 esac],[status_python=yes])
 
+AC_SUBST(MU_PY)
 if test "$status_python" = yes; then
   AM_PATH_PYTHON(2.5.0,, [status_python=no])
   if test "$status_python" = yes; then
+    MU_PY=libmu_py.la
     AC_ARG_VAR([PYTHON_CONFIG], [The name of python-config binary])
     AC_PATH_PROG([PYTHON_CONFIG], python-config)
     if test -n "$PYTHON_CONFIG"; then
@@ -1117,6 +1120,7 @@ if test "$status_python" = yes; then
     fi
 
     if test "$status_python" = yes; then
+      AC_DEFINE(WITH_PYTHON,1,[Enable Python support])
       AC_SUBST(MU_PYTHON_LTLIBS,'$(MU_PYTHON_LTLIBS)')
     fi
   fi
@@ -1305,7 +1309,7 @@ AC_CONFIG_FILES([Makefile
  pop3d/Makefile
  pop3d/testsuite/Makefile
  python/Makefile
- python/c_api/Makefile
+ python/libmu_py/Makefile
  python/mailutils/Makefile
  readmsg/Makefile
  readmsg/testsuite/Makefile

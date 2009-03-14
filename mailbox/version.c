@@ -79,6 +79,9 @@ static struct mu_conf_option mu_conf_option[] = {
 #ifdef WITH_GUILE
   { "WITH_GUILE", N_("Support for Guile as extension language") },
 #endif
+#ifdef WITH_PYTHON
+  { "WITH_PYTHON", N_("Support for Python as extension language") },
+#endif
 #ifdef WITH_PTHREAD
   { "WITH_PTHREAD", N_("Support for POSIX threads") },
 #endif
