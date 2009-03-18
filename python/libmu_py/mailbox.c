@@ -73,6 +73,12 @@ static PyTypeObject PyMailboxType = {
   0,                         /* tp_new */
 };
 
+PyMailbox *
+PyMailbox_NEW ()
+{
+  return (PyMailbox *)PyObject_NEW (PyMailbox, &PyMailboxType);
+}
+
 static PyObject *
 api_mailbox_create (PyObject *self, PyObject *args)
 {

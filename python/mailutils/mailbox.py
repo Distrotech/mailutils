@@ -161,14 +161,20 @@ class MailboxBase:
 
 
 class Mailbox (MailboxBase):
+    __owner = False
     def __init__ (self, name):
-        self.mbox = mailbox.MailboxType ()
-        status = mailbox.create (self.mbox, name)
-        if status:
-            raise MailboxError (status)
+        if isinstance (name, mailbox.MailboxType):
+            self.mbox = name
+        else:
+            self.mbox = mailbox.MailboxType ()
+            self.__owner = True
+            status = mailbox.create (self.mbox, name)
+            if status:
+                raise MailboxError (status)
 
     def __del__ (self):
-        mailbox.destroy (self.mbox)
+        if self.__owner:
+            mailbox.destroy (self.mbox)
         del self.mbox
 
 class MailboxDefault (MailboxBase):

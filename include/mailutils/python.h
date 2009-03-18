@@ -156,6 +156,7 @@ extern PyFolder * PyFolder_NEW ();
 extern PyHeader * PyHeader_NEW ();
 extern PyMailcap * PyMailcap_NEW ();
 extern PyMailcapEntry * PyMailcapEntry_NEW ();
+extern PyMailbox * PyMailbox_NEW ();
 extern PyMailer * PyMailer_NEW ();
 extern PyMessage * PyMessage_NEW ();
 extern PyMime * PyMime_NEW ();
@@ -169,6 +170,26 @@ extern int PyWicket_Check (PyObject *x);
 extern int PyAuthData_Check (PyObject *x);
 extern int PyMessage_Check (PyObject *x);
 extern int PyStream_Check (PyObject *x);
+
+typedef struct {
+  char *name;
+  PyObject *obj;
+} mu_py_dict;
+
+typedef struct {
+  char *module_name;
+  mu_py_dict *attrs;
+} mu_py_script_data;
+
+extern void mu_py_script_init (int argc, char *argv[]);
+extern void mu_py_script_finish (void);
+extern int  mu_py_script_run (const char *filename,
+			      mu_py_script_data *data);
+
+extern int  mu_py_script_process_mailbox (int argc, char *argv[],
+					  const char *python_filename,
+					  const char *module_name,
+					  mu_mailbox_t mbox);
 
 #ifdef __cplusplus
 }
