@@ -52,7 +52,6 @@ util_do_command (const char *c, ...)
   const struct mail_command_entry *entry = NULL;
   char *cmd = NULL;
   va_list ap;
-  static const char *delim = "=";
   
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
@@ -82,7 +81,7 @@ util_do_command (const char *c, ...)
 	    return 0;
 	}
 
-      if (mu_argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
+      if (mu_argcv_get (cmd, NULL, NULL, &argc, &argv) == 0 && argc > 0)
 	{
 	  char *p;
 
@@ -93,7 +92,7 @@ util_do_command (const char *c, ...)
 	    {
 	      asprintf (&p, "print %s", argv[0]);
 	      mu_argcv_free (argc, argv);
-	      mu_argcv_get (p, delim, NULL, &argc, &argv);
+	      mu_argcv_get (p, NULL, NULL, &argc, &argv);
 	      free (p);
 	    }
 
@@ -690,7 +689,7 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 	  abort();
 	}
     }
-
+    
   /* Special handling for some variables */
   if (strcmp (variable, "replyregex") == 0)
     { 

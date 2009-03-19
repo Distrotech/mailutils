@@ -40,25 +40,24 @@ mail_set (int argc, char **argv)
 
       for (i = 1; i < argc; i++)
 	{
-	  if (!strncmp ("no", argv[i], 2))
+	  char *value = strchr (argv[i], '=');
+	  if (value)
+	    *value++ = 0;
+	  
+	  if (!strncmp ("no", argv[i], 2) && !value)
 	    {
 	      util_setenv (&argv[i][2], NULL, Mail_env_boolean, 1);
 	    }
-	  else if (i+1 < argc && argv[i+1][0] == '=')
+	  else if (value)
 	    {
 	      int nval;
-	      char *name = argv[i];
 	      char *p;
 	      
-	      i += 2;
-	      if (i >= argc)
-		break;
-
-	      nval = strtoul (argv[i], &p, 0);
+	      nval = strtoul (value, &p, 0);
 	      if (*p == 0)
-		util_setenv (name, &nval, Mail_env_number, 1);
+		util_setenv (argv[i], &nval, Mail_env_number, 1);
 	      else
-		util_setenv (name, argv[i], Mail_env_string, 1);
+		util_setenv (argv[i], value, Mail_env_string, 1);
 	    }
 	  else
 	    {

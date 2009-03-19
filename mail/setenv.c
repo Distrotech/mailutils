@@ -39,21 +39,12 @@ mail_setenv (int argc, char **argv)
       /* Note: POSIX requires that the argument to putenv become part
 	 of the environment itself, hence the memory allocation. */
 
-      for (i = 1; i < argc;)
+      for (i = 1; i < argc; i++)
 	{
-	  char *p;
-	  
-	  if (i+1 < argc && argv[i+1][0] == '=')
-	    {
-	      asprintf (&p, "%s=%s", argv[i], argv[i+2]);
-	      i += 3;
-	    }
-	  else
-	    {
-	      p = argv[i];
-	      i++;
-	    }
-	  putenv (p);
+	  char *value = strchr (argv[i], '=');
+	  if (value)
+	    *value++ = 0;
+	  setenv (argv[i], value ? value : "", 1);
 	}
     }
   return 0;
