@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -298,7 +298,7 @@ mu_stream_readline (mu_stream_t is, char *buf, size_t count,
       size_t n, nr = 0;
       char c;
       /* Grossly inefficient hopefully they override this */
-      for (n = 1; n < count; n++)
+      for (n = 0; n < count; )
 	{
 	  status = is->_read (is, &c, 1, offset, &nr);
 	  if (status != 0) /* Error.  */
@@ -307,19 +307,16 @@ mu_stream_readline (mu_stream_t is, char *buf, size_t count,
 	    {
 	      *buf++ = c;
 	      offset++;
+	      n++;
 	      if (c == '\n') /* Newline is stored like fgets().  */
 		break;
 	    }
 	  else if (nr == 0)
-	    {
-	      if (n == 1) /* EOF, no data read.  */
-		n = 0;
-	      break; /* EOF, some data was read.  */
-	    }
+	    break; /* EOF */
 	}
       *buf = '\0';
       if (pnread)
-	*pnread = (n == count) ? n - 1: n;
+	*pnread = n;
     }
   else /* Buffered.  */
     {
