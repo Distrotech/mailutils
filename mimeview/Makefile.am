@@ -29,7 +29,7 @@ mimeview_SOURCES = \
  mimetypes-decl.h \
  mimeview.h 
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
+YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
 AM_LEXFLAGS=-d
 AM_CPPFLAGS=-D_GNU_SOURCE=1

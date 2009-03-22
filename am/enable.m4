@@ -16,11 +16,12 @@ dnl along with this program; if not, write to the Free Software Foundation,
 dnl Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 dnl
 
-dnl MU_ENABLE_SUPPORT(feature, [action-if-true], [action-if-false])
+dnl MU_ENABLE_SUPPORT(feature, [action-if-true], [action-if-false],
+dnl                   [action-default])
 
 AC_DEFUN([MU_ENABLE_SUPPORT], [
-	pushdef([mu_upcase],translit($1,[a-z-],[A-Z_]))
-	pushdef([mu_cache_var],[mu_cv_enable_]translit($1,[-],[_]))
+	pushdef([mu_upcase],translit($1,[a-z+-],[A-ZX_]))
+	pushdef([mu_cache_var],[mu_cv_enable_]translit($1,[+-],[x_]))
 
 	AC_ARG_ENABLE($1, 
 	              AC_HELP_STRING([--disable-]$1,
@@ -31,7 +32,7 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
                 no)  mu_cache_var=no;;
 	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
         esac],
-                      [mu_cache_var=yes])
+                      [ifelse([$4],,mu_cache_var=yes,[$4])])
 
 	if test x"[$]mu_cache_var" = x"yes"; then
 		ifelse([$2],,:,[$2])

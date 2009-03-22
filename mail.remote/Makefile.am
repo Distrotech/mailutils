@@ -20,9 +20,9 @@
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
 SUBDIRS = testsuite
-PROGRAMS_SMTP = mail.remote$(EXEEXT)
+MU_SMTP_PROGRAMS_LIST = mail.remote$(EXEEXT)
 EXTRA_PROGRAMS = mail.remote
-libexec_PROGRAMS = @BUILD_SMTP_PROGRAMS@
+libexec_PROGRAMS = @MU_SMTP_PROGRAMS_BUILD@
 
 mail_remote_SOURCES = mail.remote.c 
 

@@ -31,11 +31,11 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
   SCM result;
   struct mu_auth_data *entry;
   SCM *ve;
-  DECL_SCM_T_ARRAY_HANDLE(handle);
+  scm_t_array_handle handle;
   
   result = scm_c_make_vector (8, SCM_UNSPECIFIED);
   ve = scm_vector_writable_elements (result,
-				     SCM_T_ARRAY_HANDLE_PTR(handle),
+				     &handle,
 				     NULL, NULL);
   
   if (scm_is_integer (USER))
@@ -69,7 +69,7 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
     ve[6] = scm_makfrom0str (entry->shell);
   ve[7] = scm_makfrom0str (entry->mailbox);
 
-  scm_array_handle_release (SCM_T_ARRAY_HANDLE_PTR (handle));
+  scm_array_handle_release (&handle);
   
   mu_auth_data_free (entry);
   return result;

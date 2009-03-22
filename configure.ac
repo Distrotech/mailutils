@@ -19,7 +19,7 @@ dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 AC_INIT([GNU Mailutils], [2.0.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
-AC_CONFIG_AUX_DIR([scripts])
+AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -53,7 +53,8 @@ AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libmu_argp/libmu_argp.la')
 AC_SUBST(MU_LIB_PY, '${top_builddir}/python/libmu_py/libmu_py.la')
 
 dnl Other variables
-AC_SUBST(SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
+AC_SUBST(mu_aux_dir,'$(top_srcdir)/mu-aux')
+AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
 AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.la')
@@ -722,7 +723,7 @@ if test -n "$SQL_MODULES"; then
                   sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 
   AC_CONFIG_COMMANDS([sql/modlist.h],
-                     [$srcdir/scripts/sqlmod.sh $SQL_MODULES > sql/modlist.h],
+                     [$srcdir/mu-aux/sqlmod.sh $SQL_MODULES > sql/modlist.h],
                      [if test $USE_LOADABLE_MODULES = yes; then
 			SQL_MODULES=
                       else
@@ -767,23 +768,24 @@ MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
 MU_ENABLE_SUPPORT(nntp)
 
-AC_SUBST(BUILD_SMTP_PROGRAMS)
-AC_SUBST(RUN_SMTP_DEJATOOL)
+AC_SUBST(MU_SMTP_PROGRAMS_BUILD)
+AC_SUBST(MU_SMTP_DEJATOOL)
 
-MU_ENABLE_SUPPORT(smtp, [BUILD_SMTP_PROGRAMS='$(PROGRAMS_SMTP)'
-RUN_SMTP_DEJATOOL='$(SMTP_DEJATOOL)'])
+MU_ENABLE_SUPPORT(smtp,
+                  [MU_SMTP_PROGRAMS_BUILD='$(MU_SMTP_PROGRAMS_LIST)'
+                   MU_SMTP_DEJATOOL='$(SMTP_DEJATOOL)'])
 MU_ENABLE_SUPPORT(sendmail)
 
 MU_ENABLE_SUPPORT(prog)
 
-AC_SUBST(BUILD_MH_PROGRAMS)
-AC_SUBST(BUILD_MH_LIBRARIES)
-AC_SUBST(BUILD_MH_EXEC_HOOK)
+AC_SUBST(MU_MH_PROGRAMS_BUILD)
+AC_SUBST(MU_MH_LIBRARIES_BUILD)
+AC_SUBST(MU_MH_EXEC_HOOK)
 
 MU_ENABLE_SUPPORT(mh,
-                  [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
-                   BUILD_MH_LIBRARIES='$(LIBRARIES_MH)';
-                   BUILD_MH_EXEC_HOOK=mh_finish_install])
+                  [MU_MH_PROGRAMS_BUILD='$(MU_MH_PROGRAMS_LIST)';
+                   MU_MH_LIBRARIES_BUILD='$(MU_MH_LIBRARIES_LIST)';
+                   MU_MH_EXEC_HOOK=mh_finish_install])
 MU_ENABLE_SUPPORT(maildir)
 
 # FIXME: Should be --with-radius 
@@ -793,18 +795,7 @@ MU_ENABLE_SUPPORT(radius,
 				  mu_cv_enable_radius=yes],
 				 [mu_cv_enable_radius=no])]) 
 
-AC_ARG_ENABLE([mh-utils],
-              AC_HELP_STRING([--enable-mh-utils],
-                             [Build MH utilities]),
-              [MU_BUILD_MH="${enableval}"],
-              [MU_BUILD_MH=no])
-
 AC_SUBST(MH_BIN_DIR)
-if test ".$MU_BUILD_MH" = ".no"; then
-	BUILD_MH_PROGRAMS=
-	BUILD_MH_LIBRARIES=
-	BUILD_MH_EXEC_HOOK=
-fi
 
 AC_ARG_WITH([mh-bindir],
 	    AC_HELP_STRING([--with-mh-bindir],
@@ -818,15 +809,8 @@ AC_ARG_WITH([mh-bindir],
 AC_ARG_ENABLE([experimental],
               AC_HELP_STRING([--enable-experimental],
                              [build experimental and/or unfinished utilities]),
-              [MU_BUILD_EXPERIMENTAL="${enableval}"],
-              [MU_BUILD_EXPERIMENTAL=no])
-
-AC_SUBST(MU_CXX_LIBS)
-AC_SUBST(MU_BUILT_CXX_EXAMPLES)
-if test "$MU_BUILD_EXPERIMENTAL" = yes; then
-	MU_CXX_LIBS='$(MU_CXX_LIBS)'
-	MU_BUILT_CXX_EXAMPLES='$(CXX_EXAMPLES)'
-fi
+              [mu_build_experimental="${enableval}"],
+              [mu_build_experimental=no])
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
@@ -1047,12 +1031,9 @@ if test "$status_dbm" != no; then
 fi
 
 dnl Check for Guile
-AC_SUBST(GUILE_INCLUDES)
-AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUILE_BINDIR)
-AC_SUBST(GUILE_SNARF_VERSION)
 AC_SUBST(GUIMB)
-AC_SUBST(MU_SCM)
+AC_SUBST(MU_SCM_LTLIBRARIES_BUILD)
 AC_SUBST(LIBMU_SCM)
 AC_SUBST(LIBMU_SCM_DEPS)
 AC_SUBST(GUILE_SITE_DATA)
@@ -1062,29 +1043,46 @@ AC_SUBST(MU_GUILE_SIEVE_MOD_DIR)
 AC_SUBST(MU_GUILE_SIEVE_SCRIPTS)
 AC_SUBST(MU_GUILE_SIEVE_MOD_DATA)
 
-if test x"$useguile" = x"yes"; then
-	MU_CHECK_GUILE(,[
-            AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
-            GUILE_INCLUDES=`guile-config compile`
-  	    GUILE_LIBS=`guile-config link`
-	    GUILE_BINDIR=`guile-config info bindir`
-	    GUIMB='guimb$(EXEEXT)'
-            MU_SCM=libmu_scm.la
-            LIBMU_SCM=../libmu_scm/libmu_scm.la
-	    LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
-            GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
-	    MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
-	    MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
-	    MU_GUILE_SIEVE_SCRIPTS='$(MU_GUILE_SIEVE_SCRIPTS_X)'
-	    MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
-	    GUILE_BUILT_SOURCES='$(GUILE_BUILT_SOURCES_X)'
-            case "$GUILE_VERSION" in
-	      14) GUILE_SNARF_VERSION="1.4";;
-	      16|17) GUILE_SNARF_VERSION="1.6";;
-	      *) GUILE_SNARF_VERSION="1.6";;
-            esac
-         ],[useguile=no])
+if test "$useguile" != "no"; then
+  MU_CHECK_GUILE(1.8,
+         [useguile=yes
+   	  AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
+          GUILE_BINDIR=`guile-config info bindir`
+          GUIMB='guimb$(EXEEXT)'  # FIXME
+          MU_SCM_LTLIBRARIES_BUILD='$(MU_SCM_LTLIBRARIES_LIST)'
+          LIBMU_SCM=../libmu_scm/libmu_scm.la
+          LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
+          GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
+          MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
+          MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
+          MU_GUILE_SIEVE_SCRIPTS='$(MU_GUILE_SIEVE_SCRIPTS_X)'
+          MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
+          GUILE_BUILT_SOURCES='$(GUILE_BUILT_SOURCES_X)'
+  ],[useguile=no])
+
+ if test "$useguile" = "yes"; then
+  AC_ARG_WITH([guiledir],
+           AC_HELP_STRING([--with-guiledir=DIR],
+                          [Specify the directory to install guile modules to]),
+           [case $withval in
+            /*)  GUILE_SITE=$withval;;
+            yes) GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site;;
+            *)   AC_MSG_ERROR([Argument to --with-guiledir must be an absolute directory name]);;
+            esac],
+            [GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site
+             pfx=$prefix
+             test "$pfx" = NONE && pfx=$ac_default_prefix
+             case $GUILE_SITE in
+             $pfx/*) ;; # OK
+             *)  AC_MSG_WARN([guile site directory "$GUILE_SITE" lies outside your current prefix ($pfx).])
+                 GUILE_SITE='$(pkgdatadir)/$(VERSION)/guile'
+                 AC_MSG_WARN([Falling back to ${GUILE_SITE} instead. Use --with-guiledir to force using site directory.])
+                 ;;
+             esac])
+ fi 
 fi
+
+AC_SUBST(GUILE_SITE)
 
 dnl Check for Emacs site-lisp directory
 AM_PATH_LISPDIR
@@ -1105,11 +1103,9 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --without-python) ;;
 esac],[status_python=yes])
 
-AC_SUBST(MU_PY)
 if test "$status_python" = yes; then
   AM_PATH_PYTHON(2.5.0,, [status_python=no])
   if test "$status_python" = yes; then
-    MU_PY=libmu_py.la
     AC_ARG_VAR([PYTHON_CONFIG], [The name of python-config binary])
     AC_PATH_PROG([PYTHON_CONFIG], python-config)
     if test -n "$PYTHON_CONFIG"; then
@@ -1121,10 +1117,20 @@ if test "$status_python" = yes; then
 
     if test "$status_python" = yes; then
       AC_DEFINE(WITH_PYTHON,1,[Enable Python support])
-      AC_SUBST(MU_PYTHON_LTLIBS,'$(MU_PYTHON_LTLIBS)')
+      AC_SUBST(MU_PY_LIB_LTLIBRARIES_BUILD, '$(MU_PY_LIB_LTLIBRARIES_LIST)')
+      AC_SUBST(MU_PY_PKGPYEXEC_LTLIBRARIES_BUILD,'$(MU_PY_PKGPYEXEC_LTLIBRARIES_LIST)')
+      AC_SUBST(MU_PY_PKGPYTHON_BUILD,'$(MU_PY_PKGPYTHON_LIST)')
     fi
   fi
 fi
+
+AC_SUBST(MU_CXX_LTLIBRARIES_BUILD)
+AC_SUBST(MU_CXX_EXAMPLES_BUILD)
+MU_ENABLE_SUPPORT(c++,
+  	          [MU_CXX_LTLIBRARIES_BUILD='$(MU_CXX_LTLIBRARIES_LIST)'
+	           MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'],
+		  :,
+		  [mu_cv_enable_cxx=$mu_build_experimental])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1188,35 +1194,39 @@ cat <<EOF
 *******************************************************************
 GNU Mailutils configured with the following settings:
 
-Default mailbox scheme......... $status_scheme
-Use PAM........................ $status_pam
-Use -ltdl...................... $status_ltdl
-Use DBM........................ $status_dbm
-Use GNU TLS.................... $status_gnutls
-Use GSASL...................... $status_gsasl
-Use GSSAPI..................... $status_gssapi
-Use Guile...................... $status_guile
-Use Python..................... $status_python
-Use TCP wrappers............... $status_tcpwrap
-Pthread support................ $status_pthread
-Readline support............... $status_readline
-MySQL support.................. $status_mysql
-PostgreSQL support............. $status_pgsql
-LDAP support................... $status_ldap
-Radius support................. $status_radius
-Support for virtual domains.... $status_virtual_domains
+Default mailbox scheme ........ $status_scheme
+Use PAM ....................... $status_pam
+Use -ltdl ..................... $status_ltdl
+Use DBM ....................... $status_dbm
+Use GNU TLS ................... $status_gnutls
+Use GSASL ..................... $status_gsasl
+Use GSSAPI .................... $status_gssapi
+Use TCP wrappers .............. $status_tcpwrap
+Pthread support ............... $status_pthread
+Readline support .............. $status_readline
+MySQL support ................. $status_mysql
+PostgreSQL suppor ............. $status_pgsql
+LDAP support .................. $status_ldap
+Radius support ................ $status_radius
+Support for virtual domains ... $status_virtual_domains
 
-Protocols:
+Interfaces:
 
-IMAP........................... $status_imap
-POP............................ $status_pop
-MH............................. $status_mh
-maildir........................ $status_maildir
+Guile ......................... $status_guile
+C++ ........................... $status_cxx
+Python ........................ $status_python
+
+Mailbox formats:
+
+IMAP .......................... $status_imap
+POP ........................... $status_pop
+MH ............................ $status_mh
+maildir ....................... $status_maildir
 
 Mailers:
 
-SMTP........................... $status_smtp
-Sendmail....................... $status_sendmail
+SMTP .......................... $status_smtp
+Sendmail ...................... $status_sendmail
 
 
 *******************************************************************
@@ -1234,6 +1244,7 @@ status_gsasl=$status_gsasl
 status_gssapi=$WITH_GSSAPI
 status_guile=$useguile
 status_python=$status_python
+status_cxx=$mu_cv_enable_cxx
 status_tcpwrap=$status_tcpwrap
 status_pthread=$usepthread
 status_readline=$usereadline
@@ -1313,10 +1324,8 @@ AC_CONFIG_FILES([Makefile
  python/mailutils/Makefile
  readmsg/Makefile
  readmsg/testsuite/Makefile
- scripts/Makefile
- scripts/guile-1.4/Makefile
- scripts/guile-1.6/Makefile
- scripts/mailutils.spec
+ mu-aux/Makefile
+ mu-aux/mailutils.spec
  sieve/Makefile
  sieve/testsuite/Makefile
  testsuite/Makefile

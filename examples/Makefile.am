@@ -1,6 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2003, 2004, 2007, 2008 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2004, 2007, 2008,
+##   2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -48,7 +49,7 @@ noinst_PROGRAMS = \
 ## will not create a shared library and `make check' will fail in
 ## sieve. Pity.
 ## -Sergey
-moddir=@SIEVE_MODDIR@
+moddir=@MU_SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = @MU_COMMON_INCLUDES@ 
@@ -60,7 +61,7 @@ LDADD = \
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ${MU_LIB_SIEVE}
-numaddr_la_LDFLAGS = -module -avoid-version -no-undefined
+numaddr_la_LDFLAGS = -module -avoid-version -no-undefined -rpath '$(moddir)'
 
 mimetest_LDADD =\
  ../lib/libmuaux.la\

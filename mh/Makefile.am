@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002, 2003, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2003, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 
 # All MH programs. Note that we have to explicitely append EXEEXT, Makefile
 # won't do that.
-PROGRAMS_MH = \
+MU_MH_PROGRAMS_LIST = \
  ali$(EXEEXT)\
  anno$(EXEEXT)\
  burst$(EXEEXT)\
@@ -71,13 +71,13 @@ EXTRA_PROGRAMS = \
  whatnow\
  whom
 
-LIBRARIES_MH = libmh.a
+MU_MH_LIBRARIES_LIST = libmh.a
 EXTRA_LIBRARIES = libmh.a
 
 bindir = @MH_BIN_DIR@
 mhlibdir = $(pkgdatadir)/mh
-bin_PROGRAMS = @BUILD_MH_PROGRAMS@
-noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
+bin_PROGRAMS = @MU_MH_PROGRAMS_BUILD@
+noinst_LIBRARIES = @MU_MH_LIBRARIES_BUILD@
 
 libmh_a_SOURCES= \
  compcommon.c\
@@ -143,7 +143,7 @@ LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 pick_SOURCES = pick.c pick.h pick-gram.c pick-gram.h
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
+YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
 
 pick-gram.c pick-gram.h: $(srcdir)/pick.y
@@ -168,7 +168,7 @@ mh_alias_lex.c: $(srcdir)/mh_alias.l mh_alias.h
                   $(srcdir)/mh_alias.l lex.yy.c mh_alias_lex.c \
                   -- -yy ali_yy
 
-install-exec-hook: @BUILD_MH_EXEC_HOOK@
+install-exec-hook: @MU_MH_EXEC_HOOK@
 
 mh_finish_install:
 	@here=`pwd`; \

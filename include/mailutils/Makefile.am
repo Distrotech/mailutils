@@ -21,10 +21,10 @@
 BUILT_SOURCES=errno.h debug.h
 EXTRA_DIST=errno.hin debug.hm4 types.hin
 errno.h: $(top_srcdir)/mailbox/errors errno.hin
-	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
+	$(AWK) -f $(mu_aux_dir)/generr.awk $^ > $@
 
-debug.h: $(top_srcdir)/scripts/debugdef.m4 debug.hm4
-	m4 $(top_srcdir)/scripts/debugdef.m4 debug.hm4 > debug.h
+debug.h: $(mu_aux_dir)/debugdef.m4 debug.hm4
+	m4 $(mu_aux_dir)/debugdef.m4 debug.hm4 > debug.h
 
 types.h: $(top_srcdir)/include/mailutils/types.hin Makefile
 	sed 's/_MU_OFF_TYPE_/$(MU_OFF_TYPE)/;s/_MU_DEFAULT_RECORD_/$(MU_DEFAULT_RECORD)/' $(top_srcdir)/include/mailutils/types.hin > $@

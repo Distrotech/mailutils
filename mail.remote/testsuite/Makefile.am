@@ -19,7 +19,7 @@
 
 AUTOMAKE_OPTIONS = dejagnu
 SMTP_DEJATOOL = mail.remote
-DEJATOOL = @RUN_SMTP_DEJATOOL@
+DEJATOOL = @MU_SMTP_DEJATOOL@
 RUNTESTFLAGS = 
 CLEANFILES = *.log
 test_dirs = lib mail.remote

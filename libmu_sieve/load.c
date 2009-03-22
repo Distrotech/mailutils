@@ -53,8 +53,8 @@ sieve_init_load_path ()
     {
       if (lt_dlinit ())
 	return 1;
-#ifdef SIEVE_MODDIR
-      _add_load_dir (SIEVE_MODDIR, NULL);
+#ifdef MU_SIEVE_MODDIR
+      _add_load_dir (MU_SIEVE_MODDIR, NULL);
       inited = 1;
 #endif
     }

@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-moddir=@SIEVE_MODDIR@
+moddir=@MU_SIEVE_MODDIR@
 mod_LTLIBRARIES = \
  list.la\
  moderator.la\
@@ -29,28 +29,17 @@ mod_LTLIBRARIES = \
 
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
-AM_LDFLAGS = ../../lib/libmuaux.la ${MU_LIB_MAILUTILS} 
+AM_LDFLAGS = -module -avoid-version -no-undefined -rpath '$(moddir)' 
 
 list_la_SOURCES = list.c
-list_la_LIBADD = ../libmu_sieve.la 
-list_la_LDFLAGS = -module -avoid-version -no-undefined 
+LIBS = ../libmu_sieve.la 
 
 moderator_la_SOURCES = moderator.c
-moderator_la_LIBADD = ../libmu_sieve.la 
-moderator_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 spamd_la_SOURCES = spamd.c
-spamd_la_LIBADD = ../libmu_sieve.la 
-spamd_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 timestamp_la_SOURCES = timestamp.c
-timestamp_la_LIBADD = ../libmu_sieve.la 
-timestamp_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 vacation_la_SOURCES = vacation.c
-vacation_la_LIBADD = ../libmu_sieve.la 
-vacation_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 pipe_la_SOURCES = pipe.c
-pipe_la_LIBADD = ../libmu_sieve.la 
-pipe_la_LDFLAGS = -module -avoid-version -no-undefined 

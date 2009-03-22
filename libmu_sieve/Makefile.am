@@ -20,9 +20,9 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ 
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
+YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS = -dtv
-AM_CPPFLAGS = -DSIEVE_MODDIR=\"@SIEVE_MODDIR@\"
+AM_CPPFLAGS = -DMU_SIEVE_MODDIR=\"@MU_SIEVE_MODDIR@\"
 
 SUBDIRS = . extensions
 

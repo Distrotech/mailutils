@@ -1,6 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2006, 2007,
+##   2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,7 +20,8 @@
 
 INCLUDES = -I. @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
 
-lib_LTLIBRARIES=@MU_SCM@
+MU_SCM_LTLIBRARIES_LIST = libmu_scm.la
+lib_LTLIBRARIES=@MU_SCM_LTLIBRARIES_BUILD@
 EXTRA_LTLIBRARIES=libmu_scm.la
 C_SRCS=\
  mu_address.c\
@@ -90,7 +92,7 @@ AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-GUILE_DOC_SNARF=$(top_srcdir)/scripts/guile-$(GUILE_SNARF_VERSION)/guile-doc-snarf
+GUILE_DOC_SNARF=$(mu_aux_dir)/guile-doc-snarf
 
 SUFFIXES=.x .doc .inc .in
 

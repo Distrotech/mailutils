@@ -20,7 +20,7 @@
 
 INCLUDES = @MU_COMMON_INCLUDES@ -I${top_srcdir}/libproto/include 
 
-YLWRAP = $(SHELL) $(top_srcdir)/scripts/gylwrap
+YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
 AM_LFLAGS=-dvp
 
@@ -146,7 +146,7 @@ cfg_lexer.c: $(srcdir)/cfg_lexer.l cfg_parser.h
                   -- -yy mu_cfg_yy
 
 muerrno.c: errors muerrno.cin
-	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
+	$(AWK) -f $(mu_aux_dir)/generr.awk $^ > $@
 
 libmailutils_la_LIBADD = @MU_COMMON_LIBRARIES@
 libmailutils_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@

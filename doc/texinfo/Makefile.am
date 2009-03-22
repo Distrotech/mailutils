@@ -83,7 +83,7 @@ VPATH = $(s)
 
 SUFFIXES=.c .inc 
 .c.inc:
-	sed -f $(top_srcdir)/scripts/texify.sed $< > $@
+	sed -f $(mu_aux_dir)/texify.sed $< > $@
 
 DISTCLEANFILES=*.pgs *.kys *.vrs
 MAINTAINERCLEANFILES=$(INCFILES)

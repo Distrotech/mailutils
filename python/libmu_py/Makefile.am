@@ -21,7 +21,8 @@ INCLUDES = @MU_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
 
 EXTRA_LTLIBRARIES = libmu_py.la c_api.la
 
-lib_LTLIBRARIES=@MU_PY@
+MU_PY_LIB_LTLIBRARIES_LIST=libmu_py.la
+lib_LTLIBRARIES=@MU_PY_LIB_LTLIBRARIES_BUILD@
 libmu_py_la_SOURCES = \
  error.c \
  address.c \
@@ -61,8 +62,8 @@ libmu_py_la_LIBADD = $(PYTHON_LIBS) @MU_COMMON_LIBRARIES@ \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
-MU_PYTHON_LTLIBS = c_api.la
-pkgpyexec_LTLIBRARIES = @MU_PYTHON_LTLIBS@
+MU_PY_PKGPYEXEC_LTLIBRARIES_LIST = c_api.la
+pkgpyexec_LTLIBRARIES = @MU_PY_PKGPYEXEC_LTLIBRARIES_BUILD@
 c_api_la_LDFLAGS = -avoid-version -module -rpath $(pkgpyexecdir)
 c_api_la_LIBADD = $(PYTHON_LIBS) ${MU_LIB_PY}
 c_api_la_SOURCES = c_api.c

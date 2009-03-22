@@ -16,110 +16,58 @@ dnl along with this program; if not, write to the Free Software Foundation,
 dnl Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 dnl
 
-dnl MU_RESULT_ACTIONS -- generate shell code for the result of a test
-dnl   $1 -- CVAR  -- cache variable to check
-dnl   $2 -- NAME  -- if not empty, used to generate a default value TRUE:
-dnl                  `AC_DEFINE(HAVE_NAME)'
-dnl   $2 -- TRUE  -- what to do if the CVAR is not `no'
-dnl   $3 -- FALSE -- what to do otherwise; defaults to `:'
-dnl
-AC_DEFUN([MU_RESULT_ACTIONS], [
-[if test "$$1" != "" -a "$$1" != no; then
-  ]ifelse([$3], ,
-          [AC_DEFINE(HAVE_]translit($2, [a-z ./<>], [A-Z___])[,1,[FIXME])],
-          [$3])[
-else
-  ]ifelse([$4], , [:], [$4])[
-fi]])dnl
-
+dnl MU_CHECK_GUILE(minversion, [act-if-found], [ac-if-not-found])
+dnl                    $1            $2               $3
 AC_DEFUN([MU_CHECK_GUILE],
 [
- if test "x$mu_cv_lib_guile" = x; then
-   cached=""
-   AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
-   if test $GUILE_CONFIG = no; then
-     mu_cv_lib_guile=no
-   else
-     GUILE_INCLUDES=`$GUILE_CONFIG compile`
-     GUILE_LIBS=`$GUILE_CONFIG link`
-   fi
+  AS_VAR_SET([mu_cv_guile], [no])
+  AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
+  if test "$GUILE_CONFIG" = no; then
+    m4_if($3,,[AC_MSG_ERROR(cannot find Guile)], [$3])
+  else
+    AC_SUBST(GUILE_INCLUDES)
+    AC_SUBST(GUILE_LIBS)
+    AC_SUBST(GUILE_VERSION)
+    AC_SUBST(GUILE_VERSION_NUMBER)
+  
+    GUILE_INCLUDES=`$GUILE_CONFIG compile`
+    GUILE_LIBS=`$GUILE_CONFIG link`
+    GUILE_VERSION=`($GUILE_CONFIG --version 2>&1; echo '')|sed 's/guile-config [[^0-9]]* \([[0-9]][[0-9.]]*\)$/\1/'`
+    VEX=`echo $GUILE_VERSION | sed 's/\./ \\\\* 1000 + /;s/\./ \\\\* 100 + /'`
+    GUILE_VERSION_NUMBER=`eval expr "$VEX"`
 
-   if test $GUILE_CONFIG != no; then
-     AC_MSG_CHECKING(for guile version 1.4 or higher)
-     GUILE_VERSION=`($GUILE_CONFIG --version 2>&1; echo '')|sed -n 's/guile-config [[^0-9]]* \([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1\2/p'`
-     case "x$GUILE_VERSION" in
-     x[[0-9]]*)
-       if test $GUILE_VERSION -lt 14; then
-         AC_MSG_RESULT([Nope. Version number too low.])
-         mu_cv_lib_guile=no
-       else
-         AC_DEFINE_UNQUOTED(GUILE_VERSION, $GUILE_VERSION,
-                            [Guile version number: MAX*10 + MIN])
-         AC_MSG_RESULT(OK)
-         save_LIBS=$LIBS
-         save_CFLAGS=$CFLAGS
-         LIBS="$LIBS $GUILE_LIBS"
-         CFLAGS="$CFLAGS $GUILE_INCLUDES"
-         AC_TRY_LINK([#include <libguile.h>],
-                     ifelse([$1], , scm_shell(0, NULL);, [$1]),
-                     [mu_cv_lib_guile=yes],
-                     [mu_cv_lib_guile=no])
-         LIBS=$save_LIBS
-         CFLAGS=$save_CFLAGS
-       fi ;;
-     *) AC_MSG_RESULT(Nope. Unknown version number)
-        mu_cv_lib_guile=no;;
-     esac
-   fi
- else
-   cached=" (cached) "
-   GUILE_INCLUDES=`$GUILE_CONFIG compile`
-   GUILE_LIBS=`$GUILE_CONFIG link`
- fi
- AC_MSG_CHECKING(whether to build guile support)
- MU_RESULT_ACTIONS([mu_cv_lib_guile],[LIBGUILE],[$2],[$3])
- AC_MSG_RESULT(${cached}$mu_cv_lib_guile)
- if test $mu_cv_lib_guile = yes; then
-    if test $GUILE_VERSION -gt 14; then
-      LIBS="$LIBS $GUILE_LIBS"
-      CFLAGS="$CFLAGS $GUILE_INCLUDES"
-      AC_CHECK_FUNCS(scm_long2num scm_cell scm_list_1 scm_list_n scm_c_define\
-                     scm_c_lookup)
-      if test $ac_cv_func_scm_cell = no; then
-         AC_MSG_CHECKING(for inline scm_cell)
-         AC_TRY_LINK([#include <libguile.h>],
-                     [scm_cell(SCM_EOL, SCM_EOL)],
-                     [ac_cv_func_scm_cell=yes
-                     AC_DEFINE(HAVE_SCM_CELL,1,
-                               Define if you have scm_cell function)])
-         AC_MSG_RESULT($ac_cv_func_scm_cell)
-      fi
-      CFLAGS=$save_CFLAGS
-      LIBS=$save_LIBS
-    fi
-   AC_ARG_WITH([guiledir],
-               AC_HELP_STRING([--with-guiledir=DIR],
-                              [Specify the directory to install guile modules to]),
-               [case $withval in
-                /*) GUILE_SITE=$withval;;
-                yes) GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site;;
-                *)  AC_MSG_ERROR([Argument to --with-guiledir must be an absolute directory name]);;
-                esac],
-               [GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site
-                pfx=$prefix 
-                test "x$pfx" = xNONE && pfx=$ac_default_prefix
-                case $GUILE_SITE in
-                $pfx/*) ;; # OK
-	        *) AC_MSG_WARN([guile site directory "$GUILE_SITE" lies outside your current prefix ($pfx).])
-                   GUILE_SITE='$(pkgdatadir)/$(VERSION)/guile'
-                   AC_MSG_WARN([Falling back to ${GUILE_SITE} instead. Use --with-guiledir to force using site directory.])
-                   ;;
-                esac])
- fi
- AC_SUBST(GUILE_SITE) 
- AC_SUBST(GUILE_INCLUDES)
- AC_SUBST(GUILE_LIBS)
-])
- 
-	
+    ifelse($1,,,[
+      VEX=`echo $1 | sed 's/\./ \\\\* 1000 + /;s/\./ \\\\* 100 + /'`
+      min=`eval expr "$VEX"`
+      if test $GUILE_VERSION_NUMBER -lt $min; then
+        m4_if($3,,
+	        [AC_MSG_ERROR([Guile version too old; required is at least ]$1)],
+	        [$3])
+      fi])
+
+    save_LIBS=$LIBS
+    save_CFLAGS=$CFLAGS
+    LIBS="$LIBS $GUILE_LIBS"
+    CFLAGS="$CFLAGS $GUILE_INCLUDES"
+    AC_TRY_LINK([#include <libguile.h>],
+                 m4_if([$1], , scm_shell(0, NULL);, [$1]),
+                [AS_VAR_SET([mu_cv_guile], $GUILE_VERSION)])
+    LIBS=$save_LIBS
+    CFLAGS=$save_CFLAGS
+  fi
+
+  if test $mu_cv_guile = no; then
+    GUILE_INCLUDES=
+    GUILE_LIBS=
+    GUILE_VERSION=
+    GUILE_VERSION_NUMBER=
+    m4_if($3,,[AC_MSG_ERROR(required library libguile not found)], [$3])
+  else    
+    AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION",
+                       [Guile version number])
+    AC_DEFINE_UNQUOTED(GUILE_VERSION_NUMBER, $GUILE_VERSION_NUMBER,
+                       [Guile version number: MAX*10 + MIN])
+    m4_if($2,,,[$2])
+  fi
+])     
 

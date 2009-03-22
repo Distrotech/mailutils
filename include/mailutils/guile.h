@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006, 2007 
-   Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,58 +22,7 @@
 
 #include <libguile.h>
 
-#if GUILE_VERSION == 14
-
-# define SCM_STRING_CHARS SCM_CHARS
-# define scm_list_1 SCM_LIST1
-# define scm_list_2 SCM_LIST2
-# define scm_list_3 SCM_LIST3
-# define scm_list_4 SCM_LIST4
-# define scm_list_5 SCM_LIST5
-# define scm_list_n SCM_LISTN
-# define scm_c_define scm_sysintern
-# define scm_primitive_eval_x scm_eval_x
-# define scm_i_big2dbl scm_big2dbl
-# define scm_c_eval_string scm_eval_0str
-# define MU_SCM_SYMBOL_VALUE(p) scm_symbol_value0(p)
-
-extern SCM scm_long2num (long val);
-
-#else
-# define MU_SCM_SYMBOL_VALUE(p) SCM_VARIABLE_REF(scm_c_lookup(p))
-#endif
-
-#if GUILE_VERSION < 18
-
-# define scm_i_string_chars SCM_ROCHARS 
-# define scm_i_string_length SCM_ROLENGTH 
-# define scm_is_string(s) (SCM_NIMP(s) && SCM_STRINGP(s))
-# define scm_from_locale_stringn(s,l) scm_makfromstr(s,l,0) 
-# define scm_from_locale_string(s) scm_makfrom0str(s)
-
-# define scm_from_locale_symbol(s) scm_str2symbol(s)
-
-# define scm_from_int SCM_MAKINUM 
-# define scm_from_size_t mu_scm_makenum
-
-# define scm_gc_malloc scm_must_malloc 
-
-/* FIXME */
-# define scm_is_integer SCM_INUMP 
-# define scm_to_int32 SCM_INUM 
-# define scm_to_int SCM_INUM 
-
-# define DECL_SCM_T_ARRAY_HANDLE(name) 
-# define SCM_T_ARRAY_HANDLE_PTR(name) 0
-# define scm_vector_writable_elements(res,handle,a,b) SCM_VELTS(res)
-# define scm_array_handle_release(h)
-
-#else
-
-# define DECL_SCM_T_ARRAY_HANDLE(name) scm_t_array_handle name
-# define SCM_T_ARRAY_HANDLE_PTR(name) &(name)
-
-#endif
+#define MU_SCM_SYMBOL_VALUE(p) SCM_VARIABLE_REF(scm_c_lookup(p))
 
 typedef struct
 {
