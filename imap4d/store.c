@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,9 +19,157 @@
 
 #include "imap4d.h"
 
-/*
- * Now you're messing with a sumbitch
- */
+enum value_type { STORE_SET, STORE_ADD, STORE_UNSET };
+
+struct store_parse_closure
+{
+  enum value_type how;
+  int ack;
+  int type;
+  int isuid;
+  size_t *set;
+  size_t count;
+};
+  
+static int
+store_thunk (imap4d_parsebuf_t p)
+{
+  struct store_parse_closure *pclos = imap4d_parsebuf_data (p);
+  char *msgset;
+  char *data;
+  int status;
+  
+  msgset = imap4d_parsebuf_next (p, 1);
+  data = imap4d_parsebuf_next (p, 1);
+
+  if (*data == '+')
+    {
+      pclos->how = STORE_ADD;
+      data++;
+    }
+  else if (*data == '-')
+    {
+      pclos->how = STORE_UNSET;
+      data++;
+    }
+  else
+    pclos->how = STORE_SET;
+  
+  if (strcasecmp (data, "FLAGS"))
+    imap4d_parsebuf_exit (p, "Bogus data item");
+  data = imap4d_parsebuf_next (p, 1);
+
+  if (*data == '.')
+    {
+      data = imap4d_parsebuf_next (p, 1);
+      if (strcasecmp (data, "SILENT") == 0)
+	{
+	  pclos->ack = 0;
+	  imap4d_parsebuf_next (p, 1);
+	}
+      else
+	imap4d_parsebuf_exit (p, "Bogus data suffix");
+    }
+
+  /* Get the message numbers in set[].  */
+  status = util_msgset (msgset, &pclos->set, &pclos->count, pclos->isuid);
+  switch (status)
+    {
+    case 0:
+      break;
+
+    case EINVAL:
+      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
+	 in fetch.c */
+      p->err_text = "Completed";
+      return RESP_OK;
+
+    default:
+      p->err_text = "Failed to parse message set";
+      return RESP_NO;
+    }      
+
+  if (p->token[0] != '(')
+    imap4d_parsebuf_exit (p, "Syntax error");
+  imap4d_parsebuf_next (p, 1);
+  
+  do
+    {
+      int t;
+      if (!util_attribute_to_type (p->token, &t))
+	pclos->type |= t;
+    }
+  while (imap4d_parsebuf_next (p, 1) && p->token[0] != ')');
+  return RESP_OK;
+}
+
+int
+imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
+{
+  int rc;
+  struct store_parse_closure pclos;
+
+  memset (&pclos, 0, sizeof pclos);
+  pclos.ack = 1;
+  pclos.isuid = isuid;
+  
+  rc = imap4d_with_parsebuf (tok,
+			     IMAP4_ARG_1 + !!isuid,
+			     ".",
+			     store_thunk, &pclos,
+			     ptext);
+  if (rc == RESP_OK)
+    {
+      size_t i;
+      
+      for (i = 0; i < pclos.count; i++)
+	{
+	  mu_message_t msg = NULL;
+	  mu_attribute_t attr = NULL;
+	  size_t msgno = isuid ? uid_to_msgno (pclos.set[i]) : pclos.set[i];
+      
+	  if (msgno)
+	    {
+	      mu_mailbox_get_message (mbox, msgno, &msg);
+	      mu_message_get_attribute (msg, &attr);
+	      
+	      switch (pclos.how)
+		{
+		case STORE_ADD:
+		  mu_attribute_set_flags (attr, pclos.type);
+		  break;
+		  
+		case STORE_UNSET:
+		  mu_attribute_unset_flags (attr, pclos.type);
+		  break;
+      
+		case STORE_SET:
+		  mu_attribute_unset_flags (attr, 0xffffffff); /* FIXME */
+		  mu_attribute_set_flags (attr, pclos.type);
+		}
+	    }
+	  
+	  if (pclos.ack)
+	    {
+	      util_send ("* %d FETCH (", msgno);
+	      
+	      if (isuid)
+		util_send ("UID %lu ", (unsigned long) msgno);
+	      util_send ("FLAGS (");
+	      util_print_flags (attr);
+	      util_send ("))\r\n");
+	    }
+	  /* Update the flags of uid table.  */
+	  imap4d_sync_flags (pclos.set[i]);
+	}
+
+      *ptext = "Completed";
+    }
+
+  free (pclos.set);
+  
+  return rc;
+}
 
 int
 imap4d_store (struct imap4d_command *command, imap4d_tokbuf_t tok)
@@ -30,153 +179,5 @@ imap4d_store (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   rc = imap4d_store0 (tok, 0, &err_text);
   return util_finish (command, rc, "%s", err_text);
-}
-
-struct parsebuf
-{
-  char *token;
-  imap4d_tokbuf_t tok;
-  int arg;
-  jmp_buf errjmp;
-  char *err_text;
-};
-
-static void
-parsebuf_exit (struct parsebuf *p, char *text)
-{
-  p->err_text = text;
-  longjmp (p->errjmp, 1);
-}
-
-static char *
-parsebuf_next (struct parsebuf *p, int req)
-{
-  p->token = imap4d_tokbuf_getarg (p->tok, p->arg++);
-  if (!p->token && req)
-    parsebuf_exit (p, "Too few arguments");
-  return p->token;
-}
-
-int
-imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
-{
-  char *msgset;
-  int status;
-  int ack = 1;
-  size_t i;
-  int n = 0;
-  size_t *set = NULL;
-  enum value_type { STORE_SET, STORE_ADD, STORE_UNSET } how;
-  struct parsebuf pb;
-  char *data;
-  int type = 0;
-  
-  pb.tok = tok;
-  pb.arg = IMAP4_ARG_1 + !!isuid;
-  pb.err_text = NULL;
-  if (setjmp (pb.errjmp))
-    {
-      *ptext = pb.err_text;
-      free (set);
-      return RESP_BAD;
-    }
-      
-  msgset = parsebuf_next (&pb, 1);
-  data = parsebuf_next (&pb, 1);
-
-  if (*data == '+')
-    {
-      how = STORE_ADD;
-      data++;
-    }
-  else if (*data == '-')
-    {
-      how = STORE_UNSET;
-      data++;
-    }
-  else
-    how = STORE_SET;
-  
-  if (strcasecmp (data, "FLAGS"))
-    parsebuf_exit (&pb, "Bogus data item");
-  data = parsebuf_next (&pb, 1);
-
-  if (*data == '.')
-    {
-      data = parsebuf_next (&pb, 1);
-      if (strcasecmp (data, "SILENT") == 0)
-	{
-	  ack = 0;
-	  parsebuf_next (&pb, 1);
-	}
-      else
-	parsebuf_exit (&pb, "Bogus data suffix");
-    }
-
-  /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &set, &n, isuid);
-  if (status != 0)
-    {
-      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
-	 in fetch.c */
-      *ptext = "Completed";
-      return RESP_OK;
-    }      
-
-  if (pb.token[0] != '(')
-    parsebuf_exit (&pb, "Syntax error");
-  parsebuf_next (&pb, 1);
-  
-  do
-    {
-      int t;
-      if (!util_attribute_to_type (pb.token, &t))
-	type |= t;
-    }
-  while (parsebuf_next (&pb, 1) && pb.token[0] != ')');
-
-  for (i = 0; i < n; i++)
-    {
-      mu_message_t msg = NULL;
-      mu_attribute_t attr = NULL;
-      size_t msgno = isuid ? uid_to_msgno (set[i]) : set[i];
-      
-      if (msgno)
-	{
-	  mu_mailbox_get_message (mbox, msgno, &msg);
-	  mu_message_get_attribute (msg, &attr);
-
-	  switch (how)
-	    {
-	    case STORE_ADD:
-	      mu_attribute_set_flags (attr, type);
-	      break;
-      
-	    case STORE_UNSET:
-	      mu_attribute_unset_flags (attr, type);
-	      break;
-      
-	    case STORE_SET:
-	      mu_attribute_unset_flags (attr, 0xffffffff); /* FIXME */
-	      mu_attribute_set_flags (attr, type);
-	    }
-	}
-
-      if (ack)
-	{
-	  util_send ("* %d FETCH (", msgno);
-
-	  if (isuid)
-	    util_send ("UID %lu ", (unsigned long) msgno);
-	  util_send ("FLAGS (");
-	  util_print_flags (attr);
-	  util_send ("))\r\n");
-	}
-      /* Update the flags of uid table.  */
-      imap4d_sync_flags (set[i]);
-    }
-  free (set);
-  *ptext = "Completed";
-  return RESP_OK;
 }
 

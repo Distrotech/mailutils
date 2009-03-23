@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -121,6 +121,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	      {
 		if (*set)
 		  free (*set);
+		*set = NULL;
 		*n = 0;
 		return EINVAL;
 	      }
@@ -133,6 +134,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 		  }
 		if (*set)
 		  free (*set);
+		*set = NULL;
 		*n = 0;
 		return EINVAL;
 	      }
@@ -147,6 +149,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 		    if (tmp < 0 || val == 0)
 		      {
 			free (*set);
+			*set = NULL;
 			*n = 0;
 			return EINVAL;
 		      }
@@ -206,6 +209,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	  done = 1;
 	  if (*set)
 	    free (*set);
+	  *set = NULL;
 	  *n = 0;
 	  return EINVAL;
 
@@ -238,6 +242,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 	  if (tmp < 0 || val == 0)
 	    {
 	      free (*set);
+	      *set = NULL;
 	      *n = 0;
 	      return EINVAL;
 	    }
@@ -1221,7 +1226,7 @@ imap4d_tokbuf_expand (struct imap4d_tokbuf *tok, size_t size)
     }
 }
 
-#define ISDELIM(c) (strchr (".()[]<>", (c)) != NULL)
+#define ISDELIM(c) (strchr ("()", (c)) != NULL)
 #define ISWS(c) (c == ' ' || c == '\t')
 
 int
@@ -1257,7 +1262,7 @@ gettok (struct imap4d_tokbuf *tok, size_t off)
 	tok->argmax = 16;
       else
 	tok->argmax *= 2;
-      tok->argp = realloc(tok->argp, tok->argmax * sizeof (tok->argp[0]));
+      tok->argp = realloc (tok->argp, tok->argmax * sizeof (tok->argp[0]));
       if (!tok->argp)
 	imap4d_bye (ERR_NO_MEM);
     }
@@ -1278,7 +1283,7 @@ gettok (struct imap4d_tokbuf *tok, size_t off)
 	{
 	  size_t len;
 	  off++;
-	  len  = unquote(buf + off, p - (buf + off));
+	  len  = unquote (buf + off, p - (buf + off));
 	  buf[off + len] = 0;
 	  tok->argp[tok->argc++] = off;
 	  return p - buf + 1;

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2005, 2006, 2007,
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,6 +56,14 @@ struct fetch_function_closure
   mu_list_t headers;               /* Headers */
   size_t start;                    /* Substring start */ 
   size_t size;                     /* Substring length */
+};
+
+struct fetch_parse_closure
+{
+  int isuid;
+  mu_list_t fnlist;
+  size_t *set;
+  size_t count;
 };
 
 
@@ -1086,42 +1094,9 @@ _do_fetch (void *item, void *data)
     util_send (" ");
   return ffc->fun (ffc, frt);
 }
-    
-struct parsebuf
-{
-  imap4d_tokbuf_t tok;
-  int arg;
-  char *token;
-  int isuid;
-  mu_list_t fnlist;
-  jmp_buf errjmp;
-  char *err_text;
-};
 
 static void
-parsebuf_exit (struct parsebuf *p, char *text)
-{
-  p->err_text = text;
-  longjmp (p->errjmp, 1);
-}
-
-static char *
-parsebuf_peek (struct parsebuf *p)
-{
-  return imap4d_tokbuf_getarg (p->tok, p->arg);
-}
-
-static char *
-parsebuf_next (struct parsebuf *p, int req)
-{
-  p->token = imap4d_tokbuf_getarg (p->tok, p->arg++);
-  if (!p->token && req)
-    parsebuf_exit (p, "Too few arguments");
-  return p->token;
-}
-
-static void
-append_ffc (struct parsebuf *p, struct fetch_function_closure *ffc)
+append_ffc (struct fetch_parse_closure *p, struct fetch_function_closure *ffc)
 {
   struct fetch_function_closure *new_ffc = malloc (sizeof (*new_ffc));
   if (!new_ffc)
@@ -1131,7 +1106,7 @@ append_ffc (struct parsebuf *p, struct fetch_function_closure *ffc)
 }
 
 static void
-append_simple_function (struct parsebuf *p, const char *name,
+append_simple_function (struct fetch_parse_closure *p, const char *name,
 			fetch_function_t fun)
 {
   struct fetch_function_closure ffc;
@@ -1199,12 +1174,12 @@ fetch-att       = "ENVELOPE" / "FLAGS" / "INTERNALDATE" /
 
 /*  "RFC822" [".HEADER" / ".SIZE" / ".TEXT"]  */
 static void
-parse_fetch_rfc822 (struct parsebuf *p)
+parse_fetch_rfc822 (imap4d_parsebuf_t p)
 {
   struct fetch_function_closure ffc;
   ffc_init (&ffc);
   ffc.name = "RFC822";
-  parsebuf_next (p, 0);
+  imap4d_parsebuf_next (p, 0);
   if (p->token == NULL || p->token[0] == ')') 
     {
       /* Equivalent to BODY[]. */
@@ -1212,7 +1187,7 @@ parse_fetch_rfc822 (struct parsebuf *p)
     }
   else if (p->token[0] == '.')
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       if (strcasecmp (p->token, "HEADER") == 0)
 	{
 	  /* RFC822.HEADER
@@ -1225,14 +1200,14 @@ parse_fetch_rfc822 (struct parsebuf *p)
 	  ffc.name = "RFC822.HEADER";
 	  ffc.fun = _frt_header;
 	  ffc.peek = 1;
-	  parsebuf_next (p, 0);
+	  imap4d_parsebuf_next (p, 0);
 	}
       else if (strcasecmp (p->token, "SIZE") == 0)
 	{
 	  /* A number expressing the [RFC-2822] size of the message. */
 	  ffc.name = "RFC822.SIZE";
 	  ffc.fun = _frt_size;
-	  parsebuf_next (p, 0);
+	  imap4d_parsebuf_next (p, 0);
 	}
       else if (strcasecmp (p->token, "TEXT") == 0)
 	{
@@ -1240,14 +1215,14 @@ parse_fetch_rfc822 (struct parsebuf *p)
 	     Equivalent to BODY[TEXT]. */
 	  ffc.name = "RFC822.TEXT";
 	  ffc.fun = _frt_body_text;
-	  parsebuf_next (p, 0);
+	  imap4d_parsebuf_next (p, 0);
 	}
       else
-	parsebuf_exit (p, "Syntax error after RFC822.");
+	imap4d_parsebuf_exit (p, "Syntax error after RFC822.");
     }
   else
-    parsebuf_exit (p, "Syntax error after RFC822");
-  append_ffc (p, &ffc);
+    imap4d_parsebuf_exit (p, "Syntax error after RFC822");
+  append_ffc (imap4d_parsebuf_data (p), &ffc);
 }
 
 static int
@@ -1262,19 +1237,19 @@ header-fld-name = astring
 header-list     = "(" header-fld-name *(SP header-fld-name) ")"
 */
 static void
-parse_header_list (struct parsebuf *p, struct fetch_function_closure *ffc)
+parse_header_list (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
 {
   if (!(p->token && p->token[0] == '('))
-    parsebuf_exit (p, "Syntax error: expected (");
+    imap4d_parsebuf_exit (p, "Syntax error: expected (");
   mu_list_create (&ffc->headers);
   mu_list_set_comparator (ffc->headers, _header_cmp);
-  for (parsebuf_next (p, 1); p->token[0] != ')'; parsebuf_next (p, 1))
+  for (imap4d_parsebuf_next (p, 1); p->token[0] != ')'; imap4d_parsebuf_next (p, 1))
     {
-      if (util_isdelim (p->token))
-	parsebuf_exit (p, "Syntax error: unexpected delimiter");
+      if (p->token[1] == 0 && strchr ("()[]<>.", p->token[0]))
+	imap4d_parsebuf_exit (p, "Syntax error: unexpected delimiter");
       mu_list_append (ffc->headers, p->token);
     }
-  parsebuf_next (p, 1);
+  imap4d_parsebuf_next (p, 1);
 }
 
 /*
@@ -1285,30 +1260,30 @@ section-text    = section-msgtext / "MIME"
                     ; text other than actual body part (headers, etc.)
 */  
 static int
-parse_section_text (struct parsebuf *p, struct fetch_function_closure *ffc,
+parse_section_text (imap4d_parsebuf_t p, struct fetch_function_closure *ffc,
 		    int allow_mime)
 {
   if (strcasecmp (p->token, "HEADER") == 0)
     {
       /* "HEADER" / "HEADER.FIELDS" [".NOT"] SP header-list  */
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       if (p->token[0] == '.')
 	{
-	  parsebuf_next (p, 1);
+	  imap4d_parsebuf_next (p, 1);
 	  if (strcasecmp (p->token, "FIELDS"))
-	    parsebuf_exit (p, "Expected FIELDS");
+	    imap4d_parsebuf_exit (p, "Expected FIELDS");
 	  ffc->fun = _frt_header_fields;
-	  parsebuf_next (p, 1);
+	  imap4d_parsebuf_next (p, 1);
 	  if (p->token[0] == '.')
 	    {
-	      parsebuf_next (p, 1);
+	      imap4d_parsebuf_next (p, 1);
 	      if (strcasecmp (p->token, "NOT") == 0)
 		{
 		  ffc->not = 1;
-		  parsebuf_next (p, 1);
+		  imap4d_parsebuf_next (p, 1);
 		}
 	      else
-		parsebuf_exit (p, "Expected NOT");
+		imap4d_parsebuf_exit (p, "Expected NOT");
 	    }
 	  parse_header_list (p, ffc);
 	}
@@ -1317,12 +1292,12 @@ parse_section_text (struct parsebuf *p, struct fetch_function_closure *ffc,
     }
   else if (strcasecmp (p->token, "TEXT") == 0)
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       ffc->fun = _frt_body_text;
     }
   else if (allow_mime && strcasecmp (p->token, "MIME") == 0)
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       ffc->fun = _frt_mime;
     }
   else
@@ -1331,13 +1306,13 @@ parse_section_text (struct parsebuf *p, struct fetch_function_closure *ffc,
 }
 
 static size_t
-parsebuf_get_number (struct parsebuf *p)
+parsebuf_get_number (imap4d_parsebuf_t p)
 {
   char *cp;
   unsigned n = strtoul (p->token, &cp, 10);
 
   if (*cp)
-    parsebuf_exit (p, "Syntax error: expected number");
+    imap4d_parsebuf_exit (p, "Syntax error: expected number");
   return n;
 }
     
@@ -1346,7 +1321,7 @@ section-part    = nz-number *("." nz-number)
                     ; body part nesting
 */  
 static void
-parse_section_part (struct parsebuf *p, struct fetch_function_closure *ffc)
+parse_section_part (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
 {
   size_t *parts;
   size_t nmax = 0;
@@ -1373,10 +1348,12 @@ parse_section_part (struct parsebuf *p, struct fetch_function_closure *ffc)
 	}
       parts[ncur++] = n;
 
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
+      
       if (p->token[0] == '.'
-	  && (cp = parsebuf_peek (p)) && isascii (*cp) && isdigit (cp[0]))
-	parsebuf_next (p, 1);
+	  && (cp = imap4d_parsebuf_peek (p))
+	  && isascii (*cp) && isdigit (*cp))
+	imap4d_parsebuf_next (p, 1);
       else
 	break;
     }
@@ -1389,14 +1366,14 @@ section         = "[" [section-spec] "]"
 section-spec    = section-msgtext / (section-part ["." section-text])
 */  
 static int
-parse_section (struct parsebuf *p, struct fetch_function_closure *ffc)
+parse_section (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
 {
   if (p->token[0] != '[')
     return 1;
   ffc_init (ffc);
   ffc->name = NULL;
   ffc->fun = _frt_body;
-  parsebuf_next (p, 1);
+  imap4d_parsebuf_next (p, 1);
   if (parse_section_text (p, ffc, 0))
     {
       if (p->token[0] == ']')
@@ -1406,98 +1383,102 @@ parse_section (struct parsebuf *p, struct fetch_function_closure *ffc)
 	  parse_section_part (p, ffc);
 	  if (p->token[0] == '.')
 	    {
-	      parsebuf_next (p, 1);
+	      imap4d_parsebuf_next (p, 1);
 	      parse_section_text (p, ffc, 1);
 	    }
 	}
       else
-	parsebuf_exit (p, "Syntax error");
+	imap4d_parsebuf_exit (p, "Syntax error");
     }
   if (p->token[0] != ']')
-    parsebuf_exit (p, "Syntax error: missing ]");
-  parsebuf_next (p, 0);
+    imap4d_parsebuf_exit (p, "Syntax error: missing ]");
+  imap4d_parsebuf_next (p, 0);
   return 0;
 }
 
 static void
-parse_substring (struct parsebuf *p, struct fetch_function_closure *ffc)
+parse_substring (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
 {
   if (p->token && p->token[0] == '<')
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       ffc->start = parsebuf_get_number (p);
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       if (p->token[0] != '.')
-	parsebuf_exit (p, "Syntax error: expected .");
-      parsebuf_next (p, 1);
+	imap4d_parsebuf_exit (p, "Syntax error: expected .");
+      imap4d_parsebuf_next (p, 1);
       ffc->size = parsebuf_get_number (p);
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       if (p->token[0] != '>')
-	parsebuf_exit (p, "Syntax error: expected >");
-      parsebuf_next (p, 0);
+	imap4d_parsebuf_exit (p, "Syntax error: expected >");
+      imap4d_parsebuf_next (p, 0);
     }
 }
 	
 /* section ["<" number "." nz-number ">"]  */
 static int
-parse_body_args (struct parsebuf *p, int peek)
+parse_body_args (imap4d_parsebuf_t p, int peek)
 {
   struct fetch_function_closure ffc;
   if (parse_section (p, &ffc) == 0)
     {
       parse_substring (p, &ffc);
       ffc.peek = peek;
-      append_ffc (p, &ffc);
+      append_ffc (imap4d_parsebuf_data (p), &ffc);
       return 0;
     }
   return 1;
 }
 
 static void
-parse_body_peek (struct parsebuf *p)
+parse_body_peek (imap4d_parsebuf_t p)
 {
-  parsebuf_next (p, 1);
+  imap4d_parsebuf_next (p, 1);
   if (strcasecmp (p->token, "PEEK") == 0)
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       if (parse_body_args (p, 1))
-	parsebuf_exit (p, "Syntax error");
+	imap4d_parsebuf_exit (p, "Syntax error");
     }
   else
-    parsebuf_exit (p, "Syntax error: expected PEEK");
+    imap4d_parsebuf_exit (p, "Syntax error: expected PEEK");
 }
 
 /*  "BODY" ["STRUCTURE"] / 
     "BODY" section ["<" number "." nz-number ">"] /
     "BODY.PEEK" section ["<" number "." nz-number ">"] */
 static void
-parse_fetch_body (struct parsebuf *p)
+parse_fetch_body (imap4d_parsebuf_t p)
 {
-  if (parsebuf_next (p, 0) == NULL || p->token[0] == ')')
-    append_simple_function (p, "BODY", _frt_bodystructure0);
+  if (imap4d_parsebuf_next (p, 0) == NULL || p->token[0] == ')')
+    append_simple_function (imap4d_parsebuf_data (p),
+			    "BODY", _frt_bodystructure0);
   else if (p->token[0] == '.')
     parse_body_peek (p);
   else if (strcasecmp (p->token, "STRUCTURE") == 0)
     {
       /* For compatibility with previous versions */
-      append_simple_function (p, "BODYSTRUCTURE", _frt_bodystructure);
-      parsebuf_next (p, 0);
+      append_simple_function (imap4d_parsebuf_data (p),
+			      "BODYSTRUCTURE", _frt_bodystructure);
+      imap4d_parsebuf_next (p, 0);
     }
   else if (parse_body_args (p, 0))
-    append_simple_function (p, "BODY", _frt_bodystructure0);
+    append_simple_function (imap4d_parsebuf_data (p),
+			    "BODY", _frt_bodystructure0);
 }
 
 static int
-parse_fetch_att (struct parsebuf *p)
+parse_fetch_att (imap4d_parsebuf_t p)
 {
   struct fetch_att_tab *ent;
-
+  struct fetch_parse_closure *pclos = imap4d_parsebuf_data (p);
+  
   ent = find_fetch_att_tab (p->token);
   if (ent)
     {
-      if (!(ent->fun == _frt_uid && p->isuid))
-	append_simple_function (p, ent->name, ent->fun);
-      parsebuf_next (p, 0);
+      if (!(ent->fun == _frt_uid && pclos->isuid))
+	append_simple_function (pclos, ent->name, ent->fun);
+      imap4d_parsebuf_next (p, 0);
     }
   else if (strcasecmp (p->token, "RFC822") == 0)
     parse_fetch_rfc822 (p);
@@ -1505,8 +1486,8 @@ parse_fetch_att (struct parsebuf *p)
     parse_fetch_body (p);
   else if (strcasecmp (p->token, "BODYSTRUCTURE") == 0)
     {
-      append_simple_function (p, "BODYSTRUCTURE", _frt_bodystructure);
-      parsebuf_next (p, 0);
+      append_simple_function (pclos, "BODYSTRUCTURE", _frt_bodystructure);
+      imap4d_parsebuf_next (p, 0);
     }
   else
     return 1;
@@ -1515,7 +1496,7 @@ parse_fetch_att (struct parsebuf *p)
 
 /* fetch-att *(SP fetch-att) */
 static void
-parse_fetch_att_list (struct parsebuf *p)
+parse_fetch_att_list (imap4d_parsebuf_t p)
 {
   while (p->token && parse_fetch_att (p) == 0)
     ;
@@ -1523,17 +1504,17 @@ parse_fetch_att_list (struct parsebuf *p)
 
 /* "ALL" / "FULL" / "FAST" / fetch-att / "(" */
 static void
-parse_macro (struct parsebuf *p)
+parse_macro (imap4d_parsebuf_t p)
 {  
   char *exp;
   
-  parsebuf_next (p, 1);
+  imap4d_parsebuf_next (p, 1);
   if (p->token[0] == '(')
     {
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       parse_fetch_att_list (p);
       if (!(p->token && p->token[0] == ')'))
-	parsebuf_exit (p, "Unknown token or missing closing parenthesis");
+	imap4d_parsebuf_exit (p, "Unknown token or missing closing parenthesis");
     }
   else if ((exp = find_macro (p->token))) 
     {
@@ -1541,63 +1522,43 @@ parse_macro (struct parsebuf *p)
       int save_arg = p->arg;
       p->tok = imap4d_tokbuf_from_string (exp);
       p->arg = 0;
-      parsebuf_next (p, 1);
+      imap4d_parsebuf_next (p, 1);
       parse_fetch_att_list (p);
       imap4d_tokbuf_destroy (&p->tok);
   
       p->arg = save_arg;
       p->tok = save_tok;
 
-      if (parsebuf_peek (p))
-	parsebuf_exit (p, "Too many arguments");
+      if (imap4d_parsebuf_peek (p))
+	imap4d_parsebuf_exit (p, "Too many arguments");
     }     
   else
     {
       parse_fetch_att (p);
       if (p->token)
-	parsebuf_exit (p, "Too many arguments");
+	imap4d_parsebuf_exit (p, "Too many arguments");
     }
 }
     
-/* Where the real implementation is.  It is here since UID command also
-   calls FETCH.  */
-int
-imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
-{
-  int rc = RESP_OK;
-  char *msgset;
-  size_t *set = NULL;
-  int n = 0;
-  int i;
-  int status;
-  struct fetch_runtime_closure frc;
-  struct parsebuf pb;
 
-  if (imap4d_tokbuf_argc (tok) - (IMAP4_ARG_1 + isuid) < 2)
-    {
-      *err_text = "Invalid arguments";
-      return 1;
-    }
+static int
+fetch_thunk (imap4d_parsebuf_t pb)
+{
+  int status;
+  char *msgset;
+  struct fetch_parse_closure *pclos = imap4d_parsebuf_data (pb);
   
-  pb.tok = tok;
-  pb.arg = IMAP4_ARG_1 + isuid;
-  pb.isuid = isuid;
-  pb.err_text = "Syntax error";
-  mu_list_create (&pb.fnlist);
-  mu_list_set_destroy_item (pb.fnlist, _free_ffc);
-  if (setjmp (pb.errjmp))
-    {
-      *err_text = pb.err_text;
-      mu_list_destroy (&pb.fnlist);
-      return RESP_BAD;
-    }
-  
-  msgset = parsebuf_next (&pb, 1);
+  msgset = imap4d_parsebuf_next (pb, 1);
 
   /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &set, &n, isuid);
-  if (status != 0)
+  status = util_msgset (msgset, &pclos->set, &pclos->count, pclos->isuid);
+  switch (status)
     {
+    case 0:
+      /* Very good! */
+      break;
+      
+    case EINVAL:
       /* RFC3501, section 6.4.8.
 	 
 	 A non-existent unique identifier is ignored without any error
@@ -1609,8 +1570,12 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	 as well, although I did not find any explicit mention thereof
 	 in the RFC. */
       
-      *err_text = "Completed";
+      pb->err_text = "Completed";
       return RESP_OK;
+
+    default:
+      pb->err_text = "Failed to parse message set";
+      return RESP_NO;
     }
 
   /* Compile the expression */
@@ -1619,32 +1584,66 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
      include the UID message data item as part of any FETCH
      response caused by a UID command, regardless of whether
      a UID was specified as a message data item to the FETCH. */
-  if (isuid)
-    append_simple_function (&pb, "UID", _frt_uid);
+  if (pclos->isuid)
+    append_simple_function (pclos, "UID", _frt_uid);
 
-  parse_macro (&pb);
+  parse_macro (pb);
+  return RESP_OK;
+}
+
+/* Where the real implementation is.  It is here since UID command also
+   calls FETCH.  */
+int
+imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
+{
+  int rc;
+  struct fetch_parse_closure pclos;
   
-  /* Prepare status code. It will be replaced if an error occurs in the
-     loop below */
-  frc.err_text = "Completed";
-  
-  for (i = 0; i < n && rc == RESP_OK; i++)
+  if (imap4d_tokbuf_argc (tok) - (IMAP4_ARG_1 + isuid) < 2)
     {
-      frc.msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-
-      if (frc.msgno && mu_mailbox_get_message (mbox, frc.msgno, &frc.msg) == 0)
-	{
-	  util_send ("* %lu FETCH (", (unsigned long) frc.msgno);
-	  frc.eltno = 0;
-	  rc = mu_list_do (pb.fnlist, _do_fetch, &frc);
-	  util_send (")\r\n");
-	}
+      *err_text = "Invalid arguments";
+      return 1;
     }
+
+  memset (&pclos, 0, sizeof (pclos));
+  pclos.isuid = isuid;
+  mu_list_create (&pclos.fnlist);
+  mu_list_set_destroy_item (pclos.fnlist, _free_ffc);
   
-  mu_list_destroy (&pb.fnlist);
-  free (set);
+  rc = imap4d_with_parsebuf (tok, IMAP4_ARG_1 + isuid,
+			     ".[]<>",
+			     fetch_thunk, &pclos,
+			     err_text);
+
+  if (rc == RESP_OK)
+    {
+      size_t i;
+      struct fetch_runtime_closure frc;
+      
+      /* Prepare status code. It will be replaced if an error occurs in the
+	 loop below */
+      frc.err_text = "Completed";
+  
+      for (i = 0; i < pclos.count && rc == RESP_OK; i++)
+	{
+	  frc.msgno = (isuid) ? uid_to_msgno (pclos.set[i]) : pclos.set[i];
+	  
+	  if (frc.msgno &&
+	      mu_mailbox_get_message (mbox, frc.msgno, &frc.msg) == 0)
+	    {
+	      util_send ("* %lu FETCH (", (unsigned long) frc.msgno);
+	      frc.eltno = 0;
+	      rc = mu_list_do (pclos.fnlist, _do_fetch, &frc);
+	      util_send (")\r\n");
+	    }
+	}
+      }
+  
+  mu_list_destroy (&pclos.fnlist);
+  free (pclos.set);
   return rc;
 }
+
 
 /*
 6.4.5.  FETCH Command

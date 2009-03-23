@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -218,7 +218,35 @@ int imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes);
 #define IMAP4_ARG_2       3
 #define IMAP4_ARG_3       4
 #define IMAP4_ARG_4       5
+
+  /* Specialized buffer parsing */
+struct imap4d_parsebuf
+{
+  imap4d_tokbuf_t tok;
+  int arg;            /* Argument number in tok */
+  char *tokptr;       /* Current token */
+  size_t tokoff;      /* Offset of next delimiter in tokptr */
+  int save_char;      /* Character saved from tokptr[tokoff] */
+  char *token;        /* Pointer to the current token */
+  const char *delim;  /* Array of delimiters */
+  char *peek_ptr;     /* Peeked token */
+  jmp_buf errjmp;
+  char *err_text;
+  void *data;
+};
+
+typedef struct imap4d_parsebuf *imap4d_parsebuf_t;
   
+void imap4d_parsebuf_exit (imap4d_parsebuf_t pb, char *text);
+char *imap4d_parsebuf_peek (imap4d_parsebuf_t pb);
+char *imap4d_parsebuf_next (imap4d_parsebuf_t pb, int req);
+int imap4d_with_parsebuf (imap4d_tokbuf_t tok, int arg,
+			  const char *delim,
+			  int (*thunk) (imap4d_parsebuf_t), void *data,
+			  char **err_text);
+#define imap4d_parsebuf_token(p) ((p)->token)
+#define imap4d_parsebuf_data(p) ((p)->data)
+
   /* Imap4 commands */
 extern int  imap4d_append (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_authenticate (struct imap4d_command *, imap4d_tokbuf_t);
