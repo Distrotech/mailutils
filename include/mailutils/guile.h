@@ -69,10 +69,20 @@ extern SCM mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode);
 extern void mu_scm_mime_init (void);
 extern void mu_scm_message_add_owner (SCM MESG, SCM owner);
 
-extern void mu_process_mailbox (int argc, char *argv[], mu_guimb_param_t *param);
-
 extern void mu_scm_mutil_init (void);
 
+extern void mu_process_mailbox (int argc, char *argv[], mu_guimb_param_t *param);
+
+extern void mu_guile_init (int debug);
+extern int mu_guile_load (char *filename, int argc, char **argv);
+extern int mu_guile_eval (const char *string);
+extern int mu_guile_mailbox_apply (mu_mailbox_t mbx, char *funcname);
+extern int mu_guile_message_apply (mu_message_t msg, char *funcname);
+
+extern int mu_guile_safe_exec (SCM (*handler) (void *data), void *data,
+			       SCM *result);
+extern int mu_guile_safe_proc_call (SCM proc, SCM arglist, SCM *presult);
+  
 #ifdef __cplusplus
 }
 #endif

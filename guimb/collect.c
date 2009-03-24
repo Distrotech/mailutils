@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -189,33 +189,5 @@ collect_drop_mailbox ()
       unlink (temp_filename);
       free (temp_filename);
     }
-}
-
-SCM
-guimb_catch_body (void *data, mu_mailbox_t unused)
-{
-  struct guimb_data *gd = data;
-  if (gd->program_file)
-    scm_primitive_load (scm_makfrom0str (gd->program_file));
-
-  if (gd->program_expr)
-    scm_c_eval_string (gd->program_expr);
-
-  return SCM_BOOL_F;
-}
-
-SCM
-guimb_catch_handler (void *unused, SCM tag, SCM throw_args)
-{
-  collect_drop_mailbox ();
-  return scm_handle_by_message ("guimb", tag, throw_args);
-}
-
-int
-guimb_exit (void *unused1, mu_mailbox_t unused2)
-{
-  int rc = collect_output ();
-  collect_drop_mailbox ();
-  return rc;
 }
 

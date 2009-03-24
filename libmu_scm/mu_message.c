@@ -103,7 +103,7 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
       else
 	scm_puts ("UNKNOWN", port);
       
-      if (mu_envelope_sget_date (env, &buffer) == 0
+      if (mu_envelope_sget_date (env, &p) == 0
           && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
 	{
 	  strftime (datebuf, sizeof (datebuf), "%a %b %e %H:%M", &tm);

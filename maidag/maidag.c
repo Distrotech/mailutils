@@ -30,8 +30,10 @@ char *quotadbname = NULL;  /* Name of mailbox quota database */
 char *quota_query = NULL;  /* SQL query to retrieve mailbox quota */
 
 char *sender_address = NULL;       
-char *progfile_pattern = NULL;
-char *sieve_pattern = NULL;
+
+maidag_script_fun script_handler;
+
+mu_list_t script_list;
 
 char *forward_file = NULL;
 int forward_file_checks = FWD_ALL;
@@ -73,28 +75,40 @@ static char args_doc[] = N_("[recipient...]");
 
 static struct argp_option options[] = 
 {
-  { "foreground", FOREGROUND_OPTION, 0, 0, N_("Remain in foreground."), 0 },
-  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0 },
+#define GRID 0
+ { NULL, 0, NULL, 0,
+   N_("General options"), GRID },
+      
+  { "foreground", FOREGROUND_OPTION, 0, 0, N_("Remain in foreground."),
+    GRID + 1 },
+  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), GRID + 1 },
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
-  { "url", URL_OPTION, 0, 0, N_("Deliver to given URLs"), 0 },
+    N_("Runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
+  { "url", URL_OPTION, 0, 0, N_("Deliver to given URLs"), GRID + 1 },
   { "from", 'f', N_("EMAIL"), 0,
-    N_("Specify the sender's name") },
+    N_("Specify the sender's name"), GRID + 1 },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
-  { "sieve", 'S', N_("PATTERN"), 0,
-    N_("Set name pattern for user-defined Sieve mail filters"), 0 },
-  { "message-id-header", MESSAGE_ID_HEADER_OPTION, N_("STRING"), 0,
-    N_("Identify messages by the value of this header when logging Sieve actions"), 0 },
-#ifdef WITH_GUILE
-  { "source", 's', N_("PATTERN"), 0,
-    N_("Set name pattern for user-defined Scheme mail filters"), 0 },
-#endif
   { "lmtp", LMTP_OPTION, N_("URL"), OPTION_ARG_OPTIONAL,
-    N_("Operate in LMTP mode"), 0 },
+    N_("Operate in LMTP mode"), GRID + 1 },
   { "debug", 'x', N_("FLAGS"), 0,
-    N_("Enable debugging"), 0 },
+    N_("Enable debugging"), GRID + 1 },
   { "stderr", STDERR_OPTION, NULL, 0,
-    N_("Log to standard error"), 0 },
+    N_("Log to standard error"), GRID + 1 },
+#undef GRID
+
+#define GRID 2
+ { NULL, 0, NULL, 0,
+   N_("Scripting options"), GRID },
+ 
+  { "language", 'l', N_("STRING"), 0,
+    N_("Define scripting language for the next --script option"),
+    GRID + 1 },
+  { "script", 's', N_("PATTERN"), 0,
+    N_("Set name pattern for user-defined mail filter"), GRID + 1 },
+  { "message-id-header", MESSAGE_ID_HEADER_OPTION, N_("STRING"), 0,
+    N_("Use this header to identify messages when logging Sieve actions"),
+    GRID + 1 },
+#undef GRID
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -201,21 +215,30 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'r':
     case 'f':
       if (sender_address != NULL)
-	{
-	  argp_error (state, _("Multiple --from options"));
-	  return EX_USAGE;
-	}
+	argp_error (state, _("Multiple --from options"));
       sender_address = arg;
       break;
       
-#ifdef WITH_GUILE	
-    case 's':
-      mu_argp_node_list_new (&lst, "guile-filter", arg);
+    case 'l':
+      script_handler = script_lang_handler (arg);
+      if (!script_handler)
+	argp_error (state, _("Unknown or unsupported language: %s"),
+		    arg);
       break;
-#endif
+      
+    case 's':
+      switch (script_register (arg))
+	{
+	case 0:
+	  break;
 
-    case 'S':
-      mu_argp_node_list_new (&lst, "sieve-filter", arg);
+	case EINVAL:
+	  argp_error (state, _("%s has unknown file suffix"), arg);
+	  break;
+
+	default:
+	  argp_error (state, _("error registering script"));
+	}
       break;
       
     case 'x':
@@ -329,6 +352,54 @@ cb_forward_file_checks (mu_debug_t debug, void *data, mu_config_value_t *arg)
   return mu_cfg_string_value_cb (debug, arg, cb2_forward_file_checks, data);
 }
 
+static int
+cb_script_language (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  script_handler = script_lang_handler (val->v.string);
+  if (!script_handler)
+    {
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("Unsupported language: %s"),
+			   val->v.string);
+      return 1;
+    }
+  return 0;
+}
+
+static int
+cb_script_pattern (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+  
+  switch (script_register (val->v.string))
+    {
+    case 0:
+      break;
+
+    case EINVAL:
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("%s has unknown file suffix"),
+			   val->v.string);
+      break;
+
+    default:
+      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			   _("error registering script"));
+    }
+  return 0;
+}
+
+struct mu_cfg_param filter_cfg_param[] = {
+  { "language", mu_cfg_callback, NULL, 0, cb_script_language,
+    N_("Set script language.") },
+  { "pattern", mu_cfg_callback, NULL, 0, cb_script_pattern,
+    N_("Set script pattern.") },
+  { NULL }
+};
+    
 struct mu_cfg_param maidag_cfg_param[] = {
   { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
@@ -347,18 +418,10 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "sql { ... } instead."),
     N_("query") },
 #endif
-  { "sieve-filter", mu_cfg_string, &sieve_pattern, 0, NULL,
-    N_("File name or name pattern for Sieve filter file."),
-    N_("file-or-pattern") },
   { "message-id-header", mu_cfg_string, &message_id_header, 0, NULL,
     N_("When logging Sieve actions, identify messages by the value of "
        "this header."),
     N_("name") },
-#ifdef WITH_GUILE
-  { "guile-filter", mu_cfg_string, &progfile_pattern, 0, NULL,
-    N_("File name or name pattern for Guile filter file."),
-    N_("file-or-pattern") },
-#endif
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set maidag debug level.  Debug level consists of one or more "
        "of the following letters:\n"
@@ -388,138 +451,23 @@ struct mu_cfg_param maidag_cfg_param[] = {
     N_("url") },
   { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, 0, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
+  { "filter", mu_cfg_section, NULL, 0, NULL,
+    N_("Add a message filter") },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("LMTP server configuration.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
 
-
-/* Logging */
-
-static int
-_sieve_debug_printer (void *unused, const char *fmt, va_list ap)
-{
-  mu_diag_vprintf (MU_DIAG_DEBUG, fmt, ap);
-  return 0;
-}
-
 static void
-_sieve_action_log (void *user_name,
-		   const mu_sieve_locus_t *locus, size_t msgno,
-		   mu_message_t msg,
-		   const char *action, const char *fmt, va_list ap)
+maidag_cfg_init ()
 {
-  int pfx = 0;
-  mu_debug_t debug;
-
-  mu_diag_get_debug (&debug);
-  mu_debug_set_locus (debug, locus->source_file, locus->source_line);
-  
-  mu_diag_printf (MU_DIAG_NOTICE, _("(user %s) "), (char*) user_name);
-  if (message_id_header)
+  struct mu_cfg_section *section;
+  if (mu_create_canned_section ("filter", &section) == 0)
     {
-      mu_header_t hdr = NULL;
-      char *val = NULL;
-      mu_message_get_header (msg, &hdr);
-      if (mu_header_aget_value (hdr, message_id_header, &val) == 0
-	  || mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
-	{
-	  pfx = 1;
-	  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg %s"), action, val);
-	  free (val);
-	}
+      section->docstring = N_("Add new message filter.");
+      mu_cfg_section_add_params (section, filter_cfg_param);
     }
-  
-  if (!pfx)
-    {
-      size_t uid = 0;
-      mu_message_get_uid (msg, &uid);
-      mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %d"), action, uid);
-    }
-  
-  if (fmt && strlen (fmt))
-    {
-      mu_diag_printf (MU_DIAG_NOTICE, "; ");
-      mu_diag_vprintf (MU_DIAG_NOTICE, fmt, ap);
-    }
-  mu_diag_printf (MU_DIAG_NOTICE, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-}
-
-static int
-_sieve_parse_error (void *user_name, const char *filename, int lineno,
-		    const char *fmt, va_list ap)
-{
-  mu_debug_t debug;
-
-  mu_diag_get_debug (&debug);
-  if (filename)
-    mu_debug_set_locus (debug, filename, lineno);
-
-  mu_diag_printf (MU_DIAG_ERROR, _("(user %s) "), (char*) user_name);
-  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
-  mu_diag_printf (MU_DIAG_ERROR, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-  return 0;
-}
-
-int
-sieve_test (struct mu_auth_data *auth, mu_message_t msg)
-{
-  int rc = 1;
-  char *progfile;
-    
-  if (!sieve_pattern)
-    return 1;
-
-  progfile = mu_expand_path_pattern (sieve_pattern, auth->name);
-  if (access (progfile, R_OK))
-    {
-      if (debug_level > 2)
-	mu_diag_output (MU_DIAG_DEBUG, _("Access to %s failed: %m"), progfile);
-    }
-  else
-    {
-      mu_sieve_machine_t mach;
-      rc = mu_sieve_machine_init (&mach, auth->name);
-      if (rc)
-	{
-	  mu_error (_("Cannot initialize sieve machine: %s"),
-		    mu_strerror (rc));
-	}
-      else
-	{
-	  mu_sieve_set_debug (mach, _sieve_debug_printer);
-	  mu_sieve_set_debug_level (mach, sieve_debug_flags);
-	  mu_sieve_set_parse_error (mach, _sieve_parse_error);
-	  if (sieve_enable_log)
-	    mu_sieve_set_logger (mach, _sieve_action_log);
-	  
-	  rc = mu_sieve_compile (mach, progfile);
-	  if (rc == 0)
-	    {
-	      mu_attribute_t attr;
-
-	      mu_message_get_attribute (msg, &attr);
-	      mu_attribute_unset_deleted (attr);
-	      if (switch_user_id (auth, 1) == 0)
-		{
-		  chdir (auth->dir);
-		
-		  rc = mu_sieve_message (mach, msg);
-		  if (rc == 0)
-		    rc = mu_attribute_is_deleted (attr) == 0;
-
-		  switch_user_id (auth, 0);
-		  chdir ("/");
-		}
-	      mu_sieve_machine_destroy (&mach);
-	    }
-	}
-    }
-  free (progfile);
-  return rc;
 }
 
 
@@ -557,6 +505,7 @@ main (int argc, char *argv[])
   mu_tcpwrapper_cfg_init ();
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();
+  maidag_cfg_init ();
   
   /* Parse command line */
   mu_argp_init (program_version, NULL);

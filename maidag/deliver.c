@@ -72,19 +72,6 @@ maidag_stdio_delivery (int argc, char **argv)
   if (multiple_delivery)
     multiple_delivery = argc > 1;
 
-#ifdef WITH_GUILE
-  if (progfile_pattern)
-    {
-      struct mda_data mda_data;
-      
-      memset (&mda_data, 0, sizeof mda_data);
-      mda_data.mbox = mbox;
-      mda_data.argv = argv;
-      mda_data.progfile_pattern = progfile_pattern;
-      return prog_mda (&mda_data);
-    }
-#endif
-  
   for (; *argv; argv++)
     mda (mbox, *argv);
   return exit_code;
@@ -322,8 +309,8 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 
       if (current_uid)
 	auth->change_uid = 0;
-  
-      if (!sieve_test (auth, msg))
+
+      if (script_apply (msg, auth))
 	{
 	  exit_code = EX_OK;
 	  mu_auth_data_free (auth);

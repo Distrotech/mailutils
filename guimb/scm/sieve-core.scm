@@ -457,8 +457,15 @@
 	 (lambda args #f)))
 
 ;;; Sieve-main
-(define sieve-mailbox #f)
-(define sieve-current-message #f)
+(define-public sieve-mailbox #f)
+(define-public sieve-current-message #f)
+
+(define-public (sieve-run-current-message thunk)
+  (and (catch 'sieve-stop
+	      thunk
+	      (lambda args
+		#f))
+       (sieve-verbose-print "IMPLICIT KEEP")))
 
 (define (sieve-run thunk)
   (if (not sieve-my-email)
@@ -470,11 +477,7 @@
 	((> n count) #f)
 	(set! sieve-current-message
 	      (mu-mailbox-get-message sieve-mailbox n))
-	(and (catch 'sieve-stop
-		    thunk
-		    (lambda args
-		      #f))
-	     (sieve-verbose-print "IMPLICIT KEEP")))
+	(sieve-run-current-message thunk))
     (sieve-close-mailboxes)))
 
 (define (sieve-command-line)

@@ -26,6 +26,7 @@ EXTRA_LTLIBRARIES=libmu_scm.la
 C_SRCS=\
  mu_address.c\
  mu_body.c\
+ mu_guile.c\
  mu_guimb.c\
  mu_mailbox.c\
  mu_message.c\

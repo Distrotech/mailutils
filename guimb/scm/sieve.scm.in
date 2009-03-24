@@ -1,8 +1,9 @@
 #! %GUILE_BINDIR%/guile -s
-# Emacs, its -*- scheme -*-
+# Emacs, it's -*- scheme -*-
 !#
 ;;;; GNU Mailutils -- a suite of utilities for electronic mail
-;;;; Copyright (C) 1999, 2000, 2001, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2006, 2007,
+;;;; 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; GNU Mailutils is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -931,39 +932,53 @@
       outfile
     (lambda ()
       (display "#! ")
-      (if guimb-header
-	 (display "/home/gray/alpha/bin/guimb -s\n")
-	 (display "/usr/bin/guile -s\n"))
-     (display (string-append
-	       "# Guile mailbox parser made from " filename))
-     (newline) 
-     (display "# by sieve.scm, GNU %PACKAGE% %VERSION%\n!#")
-     (newline)
-
-     (display 
-      "(if (not (member \"%GUILE_SITE%\" %load-path))\n
+      (cond
+       (guimb-header
+	(display "/home/gray/alpha/bin/guimb -s\n"))
+       (else
+	(display "/bin/sh\n\
+# aside from this initial boilerplate, this is actually -*- scheme -*- code\n\
+exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
+      (display (string-append
+		"# This Guile mailbox parser was made from " filename))
+      (newline) 
+      (display "# by sieve.scm, GNU %PACKAGE% %VERSION%\n!#")
+      (newline)
+      
+      (display 
+       "(if (not (member \"%GUILE_SITE%\" %load-path))\n
            (set! %load-path (cons \"%GUILE_SITE%\" %load-path)))\n")
-     
-     (display "(use-modules (mailutils sieve-core))\n")
-     (display (string-append
-	       "(set! sieve-source \"" filename "\")"))
-     (newline)
+      
+      (display "(use-modules (mailutils sieve-core))\n")
+      (display (string-append
+		"(set! sieve-source \"" filename "\")"))
+      (newline)
+      
+      (for-each
+       (lambda (file)
+	 (display (string-append
+		   "(load \"" file "\")"))
+	 (newline))
+       sieve-load-files)
+      (newline)
+      (if request-verbose
+	  (display "(set! sieve-verbose #t)\n"))
+      (display "(define (sieve-filter-thunk) ")
+      
+      (sieve-code-print-list (car sieve-code-list))
+      (display ")\n\n")
 
-     (for-each
-      (lambda (file)
-	(display (string-append
-		  "(load \"" file "\")"))
-	(newline))
-      sieve-load-files)
-     (newline)
-     (if request-verbose
-	 (display "(set! sieve-verbose #t)\n"))
-     (display "(sieve-main ")
+      (display "(define (mailutils-main . rest)\n")
+      (display "  (sieve-main sieve-filter-thunk))\n\n")
 
-     (sieve-code-print-list
-      (append '(lambda ())
-	      sieve-code-list))
-     (display ")"))))
+      (display "(define (mailutils-check-message msg)\n\
+  (set! sieve-current-message msg)\n\
+  (sieve-run-current-message sieve-filter-thunk))\n")
+      
+      (display "\n\
+;;;; Local Variables:\n\
+;;;; buffer-read-only: t\n\
+;;;; End:\n"))))
 
 ;;;;
 

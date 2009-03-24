@@ -129,8 +129,10 @@ extern char *forward_file;
 extern int forward_file_checks;
 
 extern char *sender_address;       
-extern char *progfile_pattern;
-extern char *sieve_pattern;
+extern mu_list_t script_list;
+extern char *message_id_header;
+extern int sieve_debug_flags; 
+extern int sieve_enable_log;  
 
 extern mu_m_server_t server;
 extern int lmtp_mode;
@@ -157,20 +159,6 @@ int deliver (mu_message_t msg, char *name, char **errp);
 int sieve_test (struct mu_auth_data *auth, mu_message_t msg);
 int check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest);
 
-#ifdef WITH_GUILE
-struct mda_data
-{
-  mu_mailbox_t mbox;
-  char *progfile;
-  char *progfile_pattern;
-  char **argv;
-};
-
-int prog_mda (struct mda_data *data);
-
-extern int debug_guile;
-#endif
-
 struct mail_tmp;
 int mail_tmp_begin (struct mail_tmp **pmtmp, const char *from);
 int mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen);
@@ -188,3 +176,31 @@ enum maidag_forward_result
 enum maidag_forward_result maidag_forward (mu_message_t msg,
 					   struct mu_auth_data *auth,
 					   char *fwfile);
+
+/* Scripting support */
+typedef int (*maidag_script_fun) (mu_message_t msg,
+				  struct mu_auth_data *auth,
+				  const char *prog);
+
+extern maidag_script_fun script_handler;
+
+struct maidag_script
+{
+  maidag_script_fun fun;   /* Handler function */
+  const char *pat;         /* Script name pattern */
+};
+
+maidag_script_fun script_lang_handler (const char *lang);
+maidag_script_fun script_suffix_handler (const char *name);
+int script_register (const char *pattern);
+int script_apply (mu_message_t msg, struct mu_auth_data *auth);
+
+/* guile.c */
+extern int debug_guile;
+int scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
+		      const char *prog);
+
+/* sieve.c */
+int sieve_check_msg (mu_message_t msg, struct mu_auth_data *auth,
+		     const char *prog);
+

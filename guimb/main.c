@@ -145,19 +145,21 @@ static const char *guimb_argp_capa[] = {
   "license",
   NULL
 };
-    
+
+const char *main_sym = "mailutils-main";
+
 int
 main (int argc, char *argv[])
 {
+  int rc;
   int c = argc;
   int index;
-  mu_guimb_param_t param;
-  struct guimb_data gd;
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  append_arg ("");
+  /* Register the desired formats. */
+  mu_register_all_formats ();
 
   mu_argp_init (program_version, NULL);
   if (mu_app_init (&argp, guimb_argp_capa, NULL, argc, argv, 0, &index, &c))
@@ -169,17 +171,12 @@ main (int argc, char *argv[])
   if (!user_name)
     user_name = who_am_i ();
   
-  if (program_file)
-    g_argv[0] = program_file;
-  else if (!program_expr)
+  if (!program_file && !program_expr)
     {
       mu_error (_("At least one of -fecs must be used. Try guimb --help for more info."));
-      exit (0);
+      exit (1);
     }
     
-  /* Register the desired formats. */
-  mu_register_all_formats ();
-
   if (!argv[index])
     {
       if (default_mailbox)
@@ -202,27 +199,42 @@ main (int argc, char *argv[])
 	collect_append_file ("-");
     }
 
-  append_arg (NULL);
-  g_argc--;
-
   /* Finish creating input mailbox */
   collect_create_mailbox ();
 
-  gd.program_file = program_file;
-  gd.program_expr = program_expr;
+  mu_guile_init (debug_guile);
+  if (program_file)
+    mu_guile_load (program_file, g_argc, g_argv);
+  if (program_expr)
+    mu_guile_eval (program_expr);
+
+  rc = mu_guile_mailbox_apply (mbox, main_sym);
+  switch (rc)
+    {
+    case 0:
+      collect_output ();
+      break;
+
+    case MU_ERR_NOENT:
+      mu_error (_("%s not defined"), main_sym);
+      break;
+      
+    case EINVAL:
+      mu_error (_("%s is not a procedure object"), main_sym);
+      break;
+
+    case MU_ERR_FAILURE:
+      mu_error (_("execution of %s failed"), main_sym);
+      break;
+      
+    default:
+      mu_error (_("unrecognized error"));
+      break;
+    }
+
+  collect_drop_mailbox ();
   
-  param.debug_guile = debug_guile;
-  param.mbox = mbox;
-  param.user_name = user_name;
-  param.init = NULL;
-  param.catch_body = guimb_catch_body;
-  param.catch_handler = guimb_catch_handler;
-  param.next = NULL;
-  param.exit = guimb_exit;
-  param.data = &gd;
-  mu_process_mailbox (g_argc, g_argv, &param);
-  /*NOTREACHED*/
-  return 0;
+  return !!rc;
 }
 
 char *

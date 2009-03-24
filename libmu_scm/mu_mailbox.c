@@ -25,6 +25,7 @@ long mailbox_tag;
 struct mu_mailbox
 {
   mu_mailbox_t mbox;       /* Mailbox */
+  int noclose;
 };
 
 /* SMOB functions: */
@@ -38,8 +39,11 @@ static scm_sizet
 mu_scm_mailbox_free (SCM mailbox_smob)
 {
   struct mu_mailbox *mum = (struct mu_mailbox *) SCM_CDR (mailbox_smob);
-  mu_mailbox_close (mum->mbox);
-  mu_mailbox_destroy (&mum->mbox);
+  if (!mum->noclose)
+    {
+      mu_mailbox_close (mum->mbox);
+      mu_mailbox_destroy (&mum->mbox);
+    }
   free (mum);
   /* NOTE: Currently there is no way for this function to return the
      amount of memory *actually freed* by mu_mailbox_destroy */
@@ -85,14 +89,36 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
 
 /* Internal functions */
 
+/* There are two C interfaces for creating mailboxes in Scheme.
+   The first one, mu_scm_mailbox_create0, allows to set `noclose'
+   bit, which disables closing and releasing the underlying mu_mailbox_t
+   after the hosting SCM object is freed. Use this, if this mailbox
+   is referenced elsewhere.
+
+   Another one, mu_scm_mailbox_create, always create an object that
+   will cause closing the mu_mailbox_t object and releasing its memory
+   after the hosting SCM object is swept away by GC. This is the only
+   official one.
+
+   The mu_scm_mailbox_create0 function is a kludge, needed because
+   mu_mailbox_t objects don't have reference counters. When it is fixed in
+   the library, the interface will be removed. */
+
 SCM
-mu_scm_mailbox_create (mu_mailbox_t mbox)
+mu_scm_mailbox_create0 (mu_mailbox_t mbox, int noclose)
 {
   struct mu_mailbox *mum;
 
   mum = scm_gc_malloc (sizeof (struct mu_mailbox), "mailbox");
   mum->mbox = mbox;
+  mum->noclose = noclose;
   SCM_RETURN_NEWSMOB (mailbox_tag, mum);
+}
+
+SCM
+mu_scm_mailbox_create (mu_mailbox_t mbox)
+{
+  return mu_scm_mailbox_create0 (mbox, 0);
 }
 
 int

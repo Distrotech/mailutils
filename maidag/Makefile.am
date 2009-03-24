@@ -21,11 +21,13 @@ sbin_PROGRAMS=maidag
 maidag_SOURCES=\
  deliver.c\
  forward.c\
+ guile.c\
  lmtp.c\
  maidag.c\
  maidag.h\
  mailtmp.c\
  mailquota.c\
+ sieve.c\
  script.c\
  util.c
 
