@@ -27,6 +27,9 @@ struct script_tab
 };
 
 struct script_tab script_tab[] = {
+#ifdef WITH_PYTHON
+  { "python", "py\0pyc\0", python_check_msg },
+#endif
   { "sieve",  "sv\0siv\0sieve\0", sieve_check_msg },
 #ifdef WITH_GUILE
   { "scheme", "scm\0", scheme_check_msg },

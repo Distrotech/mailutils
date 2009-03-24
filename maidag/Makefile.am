@@ -1,4 +1,4 @@
-# Copyright (C) 2007 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 #
 # GNU Mailutils is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -15,7 +15,8 @@
 # Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA
 
-INCLUDES = -I${top_srcdir} @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
+INCLUDES = -I${top_srcdir} @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ \
+ @PYTHON_INCLUDES@
 
 sbin_PROGRAMS=maidag
 maidag_SOURCES=\
@@ -27,6 +28,7 @@ maidag_SOURCES=\
  maidag.h\
  mailtmp.c\
  mailquota.c\
+ python.c\
  sieve.c\
  script.c\
  util.c
@@ -34,6 +36,7 @@ maidag_SOURCES=\
 maidag_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
+ @MU_LIB_PY@ @PYTHON_LIBS@\
  ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
