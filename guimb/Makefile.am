@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -21,8 +21,9 @@ INCLUDES = @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@
 
 SUBDIRS=scm
 
-bin_PROGRAMS=@GUIMB@
-EXTRA_PROGRAMS=guimb
+MU_SCM_BIN_PROGRAMS_LIST=guimb # FIXME: does it need $(EXEEXT)?
+bin_PROGRAMS=@MU_SCM_BIN_PROGRAMS_BUILD@
+EXTRA_PROGRAMS=$(MU_SCM_BIN_PROGRAMS_LIST)
 guimb_SOURCES=main.c collect.c util.c guimb.h 
 guimb_LDADD = \
  ${MU_APP_LIBRARIES}\

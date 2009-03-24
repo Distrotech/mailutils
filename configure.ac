@@ -1032,7 +1032,7 @@ fi
 
 dnl Check for Guile
 AC_SUBST(GUILE_BINDIR)
-AC_SUBST(GUIMB)
+AC_SUBST(MU_SCM_BIN_PROGRAMS_BUILD)
 AC_SUBST(MU_SCM_LTLIBRARIES_BUILD)
 AC_SUBST(LIBMU_SCM)
 AC_SUBST(LIBMU_SCM_DEPS)
@@ -1048,7 +1048,7 @@ if test "$useguile" != "no"; then
          [useguile=yes
    	  AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
           GUILE_BINDIR=`guile-config info bindir`
-          GUIMB='guimb$(EXEEXT)'  # FIXME
+	  MU_SCM_BIN_PROGRAMS_BUILD='$(MU_SCM_BIN_PROGRAMS_LIST)'
           MU_SCM_LTLIBRARIES_BUILD='$(MU_SCM_LTLIBRARIES_LIST)'
           LIBMU_SCM=../libmu_scm/libmu_scm.la
           LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
