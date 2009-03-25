@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -34,6 +34,7 @@ mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -DLINK_POSTFLAGS="\"$(MU_LINK_POSTFLAGS)\"" \
   -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
+  -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
 
 m4datadir = $(datadir)/aclocal

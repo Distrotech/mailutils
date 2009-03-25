@@ -35,6 +35,7 @@ SUBDIRS = \
  libmu_cfg\
  libmu_cpp\
  libmu_scm\
+ python\
  libmu_sieve\
  doc\
  config\
@@ -54,8 +55,7 @@ SUBDIRS = \
  dotlock\
  mh\
  movemail\
- mimeview\
- python
+ mimeview
 
 EXTRA_DIST = COPYING.LESSER
 

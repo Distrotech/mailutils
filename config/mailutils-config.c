@@ -213,6 +213,12 @@ main (int argc, char **argv)
 		  add_entry (-1, "-lmu_scm " GUILE_LIBS);
 		}
 #endif
+#ifdef WITH_PYTHON
+	      else if (strcmp (argv[0], "python") == 0)
+		{
+		  add_entry (-1, "-lmu_py " PYTHON_LIBS);
+		}
+#endif
 	      else if (strcmp (argv[0], "cfg") == 0)
 		add_entry (-1, "-lmu_cfg");
 	      else if (strcmp (argv[0], "argp") == 0)
