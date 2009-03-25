@@ -1,4 +1,7 @@
 # -*- rpm-spec -*-
+
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
 Summary: GNU Mailutils
 Name: mailutils
 Version: @VERSION@
@@ -22,6 +25,7 @@ BuildRequires: gdbm-devel
 BuildRequires: mysql-devel
 BuildRequires: readline-devel
 BuildRequires: emacs
+BuildRequires: python
 
 %description
 GNU Mailutils contains a series of useful mail clients, servers, and
@@ -73,6 +77,13 @@ Requires: libmailutils = %{version}-%{release}
 Requires: guile >= 1.6
 Group: System Environment/Libraries
 
+%package python
+Summary: GNU Mailutils: Python bindings.
+License: GPLv3+
+Requires: libmailutils = %{version}-%{release}
+Requires: python >= 2.5
+Group: System Environment/Libraries
+
 %package mh
 Summary: GNU Mailutils: The Message Handling System.
 License: GPLv3+
@@ -110,7 +121,10 @@ The GNU IMAP4 daemon. Uses libmailutils to support different styles of
 mailboxes.
 
 %description guile
-This package contains Guile bindings for the GNU Mailutils.
+This package contains Guile bindings for GNU Mailutils.
+
+%description python
+This package contains Python bindings for GNU Mailutils.
 
 %description mh
 The GNU MH (Message Handling System).
@@ -213,6 +227,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/guile/site/mailutils/*.scm
 %{_datadir}/guile/site/mailutils/*.txt
 %{_datadir}/guile/site/sieve-modules/*.scm
+
+%files python
+%defattr(-,root,root,-)
+%dir %{python_sitelib}/mailutils
+%{python_sitelib}/mailutils/c_api.*
+%{python_sitelib}/mailutils/*.py*
 
 %files mh
 %defattr(-,root,root,-)
