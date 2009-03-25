@@ -100,10 +100,10 @@ TEXI2DVI=texi2dvi -t '@set $(RENDITION)' -E
 # Make sure you set TEXINPUTS.
 # TEXINPUTS=/usr/share/texmf/pdftex/plain/misc/ is ok for most distributions
 
-TEXINPUTS=$(srcdir):$(top_srcdir)/scripts:$$TEXINPUTS
+TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$$TEXINPUTS
 
 manual:
-	 TEXINPUTS=$(srcdir):$(top_srcdir)/scripts:$(TEXINPUTS) \
+	 TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
 	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
 	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
 	$(GENDOCS) $(PACKAGE) '$(PACKAGE_NAME) manual'
