@@ -124,21 +124,21 @@ typedef int (*mulist_extractor_fp) (void *data, PyObject **dst);
 
 extern void mu_py_init (void);
 
-extern void mu_py_init_address (void);
-extern void mu_py_init_attribute (void);
-extern void mu_py_init_auth (void);
-extern void mu_py_init_body (void);
-extern void mu_py_init_debug (void);
-extern void mu_py_init_envelope (void);
-extern void mu_py_init_header (void);
-extern void mu_py_init_folder (void);
-extern void mu_py_init_mailer (void);
-extern void mu_py_init_mailbox (void);
-extern void mu_py_init_mailcap (void);
-extern void mu_py_init_message (void);
-extern void mu_py_init_mime (void);
-extern void mu_py_init_stream (void);
-extern void mu_py_init_url (void);
+extern int mu_py_init_address (void);
+extern int mu_py_init_attribute (void);
+extern int mu_py_init_auth (void);
+extern int mu_py_init_body (void);
+extern int mu_py_init_debug (void);
+extern int mu_py_init_envelope (void);
+extern int mu_py_init_header (void);
+extern int mu_py_init_folder (void);
+extern int mu_py_init_mailer (void);
+extern int mu_py_init_mailbox (void);
+extern int mu_py_init_mailcap (void);
+extern int mu_py_init_message (void);
+extern int mu_py_init_mime (void);
+extern int mu_py_init_stream (void);
+extern int mu_py_init_url (void);
 
 extern PyObject * mu_py_mulist_to_pylist (mu_list_t list,
 					  mulist_extractor_fp fnc);

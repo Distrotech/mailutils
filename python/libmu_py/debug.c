@@ -100,12 +100,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_debug (void)
 {
   PyDebugType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyDebugType) < 0)
-    return;
+  return PyType_Ready (&PyDebugType);
 }
 
 void

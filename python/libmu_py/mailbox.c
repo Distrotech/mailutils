@@ -418,12 +418,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_mailbox (void)
 {
   PyMailboxType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyMailboxType) < 0)
-    return;
+  return PyType_Ready (&PyMailboxType);
 }
 
 void

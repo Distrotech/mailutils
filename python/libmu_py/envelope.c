@@ -148,12 +148,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_envelope ()
 {
   PyEnvelopeType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyEnvelopeType) < 0)
-    return;
+  return PyType_Ready (&PyEnvelopeType);
 }
 
 void

@@ -297,12 +297,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_folder (void)
 {
   PyFolderType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyFolderType) < 0)
-    return;
+  return PyType_Ready (&PyFolderType);
 }
 
 void

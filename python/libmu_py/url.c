@@ -276,12 +276,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_url (void)
 {
   PyUrlType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyUrlType) < 0)
-    return;
+  return PyType_Ready (&PyUrlType);
 }
 
 void

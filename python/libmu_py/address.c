@@ -324,12 +324,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_address (void)
 {
   PyAddressType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyAddressType) < 0)
-    return;
+  return PyType_Ready (&PyAddressType);
 }
 
 void

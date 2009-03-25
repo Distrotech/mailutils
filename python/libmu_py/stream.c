@@ -391,12 +391,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_stream (void)
 {
   PyStreamType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyStreamType) < 0)
-    return;
+  return PyType_Ready (&PyStreamType);
 }
 
 void

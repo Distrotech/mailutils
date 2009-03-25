@@ -666,7 +666,7 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_auth (void)
 {
   PyAuthorityType.tp_new = PyType_GenericNew;
@@ -675,13 +675,14 @@ mu_py_init_auth (void)
   PyAuthDataType.tp_new = PyType_GenericNew;
 
   if (PyType_Ready (&PyAuthorityType) < 0)
-    return;
+    return -1;
   if (PyType_Ready (&PyTicketType) < 0)
-    return;
+    return -1;
   if (PyType_Ready (&PyWicketType) < 0)
-    return;
+    return -1;
   if (PyType_Ready (&PyAuthDataType) < 0)
-    return;
+    return -1;
+  return 0;
 }
 
 void

@@ -251,12 +251,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_mime (void)
 {
   PyMimeType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyMimeType) < 0)
-    return;
+  return PyType_Ready (&PyMimeType);
 }
 
 void

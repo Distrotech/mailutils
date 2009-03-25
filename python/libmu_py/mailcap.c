@@ -292,14 +292,16 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_mailcap (void)
 {
   PyMailcapType.tp_new = PyType_GenericNew;
   PyMailcapEntryType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyMailcapType) < 0 ||
-      PyType_Ready (&PyMailcapEntryType) < 0)
-    return;
+  if (PyType_Ready (&PyMailcapType) < 0)
+    return -1;
+  if (PyType_Ready (&PyMailcapEntryType) < 0)
+    return -1;
+  return 0;
 }
 
 void

@@ -404,12 +404,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_message (void)
 {
   PyMessageType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyMessageType) < 0)
-    return;
+  return PyType_Ready (&PyMessageType);
 }
 
 void

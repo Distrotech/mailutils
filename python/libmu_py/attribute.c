@@ -227,12 +227,11 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
-void
+int
 mu_py_init_attribute (void)
 {
   PyAttributeType.tp_new = PyType_GenericNew;
-  if (PyType_Ready (&PyAttributeType) < 0)
-    return;
+  return PyType_Ready (&PyAttributeType);
 }
 
 void
