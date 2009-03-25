@@ -137,8 +137,6 @@ Mailutils Programs
 * guimb::             Mailbox Scanning and Processing Language.
 
 * maidag::            General-purpose Mail Delivery Agent.
-* mail.local::        Deliver Mail to the Local Mailbox.
-* mail.remote::       Pseudo-Sendmail Interface for Mail Delivery.
 
 * mimeview::          Universal File Viewer.
 
@@ -282,11 +280,6 @@ Maidag Scripting
 
 * Sieve Maidag Filters::
 * Scheme Maidag Filters::
-
-@command{mail.local} --- Deliver Mail to the Local UNIX Mailbox
-
-* Invocation::     Mail.local options
-* Mail.local Config::
 
 mimeview
 

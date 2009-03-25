@@ -1312,10 +1312,6 @@ AC_CONFIG_FILES([Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
- mail.local/Makefile
- mail.local/testsuite/Makefile
- mail.remote/Makefile
- mail.remote/testsuite/Makefile
  mailbox/Makefile
  mailbox/testsuite/Makefile
  messages/Makefile

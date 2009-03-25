@@ -50,8 +50,6 @@ SUBDIRS = \
  messages\
  comsat\
  readmsg\
- mail.local\
- mail.remote\
  dotlock\
  mh\
  movemail\
