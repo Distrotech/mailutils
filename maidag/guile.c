@@ -32,6 +32,17 @@ scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
   if (!initialized)
     {
       mu_guile_init (debug_guile);
+      if (!log_to_stderr)
+	{
+	  mu_debug_t debug;
+	  SCM port;
+	  
+	  mu_diag_get_debug (&debug);
+	  port = mu_scm_make_debug_port (debug, MU_DIAG_ERROR);
+	  scm_set_current_error_port(port);
+	  port = mu_scm_make_debug_port (debug, MU_DIAG_INFO);
+	  scm_set_current_output_port(port);
+	}
       initialized = 1;
     }
   mu_guile_load (prog, 0, NULL);

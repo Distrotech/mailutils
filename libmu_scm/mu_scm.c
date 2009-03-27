@@ -217,6 +217,8 @@ mu_scm_init ()
   mu_scm_logger_init ();
   mu_scm_port_init ();
   mu_scm_mime_init ();
+  mu_scm_debug_port_init ();
+  
 #include "mu_scm.x"
 
   mu_registrar_record (MU_DEFAULT_RECORD);

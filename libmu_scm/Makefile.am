@@ -26,8 +26,8 @@ EXTRA_LTLIBRARIES=libmu_scm.la
 C_SRCS=\
  mu_address.c\
  mu_body.c\
+ mu_dbgport.c\
  mu_guile.c\
- mu_guimb.c\
  mu_mailbox.c\
  mu_message.c\
  mu_mime.c\
@@ -61,7 +61,6 @@ site_DATA=@GUILE_SITE_DATA@
 DOT_X_FILES=\
  mu_address.x\
  mu_body.x\
- mu_guimb.x\
  mu_mailbox.x\
  mu_message.x\
  mu_mime.x\
@@ -73,7 +72,6 @@ DOT_X_FILES=\
 DOT_DOC_FILES=\
  mu_address.doc\
  mu_body.doc\
- mu_guimb.doc\
  mu_mailbox.doc\
  mu_message.doc\
  mu_mime.doc\

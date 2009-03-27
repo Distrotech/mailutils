@@ -819,10 +819,10 @@ mu_unroll_symlink (char *out, size_t outsz, const char *in)
 char *
 mu_expand_path_pattern (const char *pattern, const char *username)
 {
-  const char *p, *startp;
+  const char *p;
   char *q;
   char *path;
-  int len = 0;
+  size_t len = 0;
   struct mu_auth_data *auth = NULL;
   
   for (p = pattern; *p; p++)
@@ -869,39 +869,43 @@ mu_expand_path_pattern (const char *pattern, const char *username)
   if (!path)
     return NULL;
 
-  startp = pattern;
+  p = pattern;
   q = path;
-  while (*startp && (p = strchr (startp, '%')) != NULL)
+  while (*p)
     {
-      memcpy (q, startp, p - startp);
-      q += p - startp;
-      switch (*++p)
+      size_t off = strcspn (p, "~%");
+      memcpy (q, p, off);
+      q += off;
+      p += off;
+      if (*p == '~')
 	{
-	case 'u':
-	  strcpy (q, username);
-	  q += strlen (username);
-	  break;
-	  
-	case 'h':
 	  strcpy (q, auth->dir);
 	  q += strlen (auth->dir);
-	  break;
-	  
-	case '%':
-	  *q++ = '%';
-	  break;
-	  
-	default:
-	  *q++ = '%';
-	  *q++ = *p;
+	  p++;
 	}
-      startp = p + 1;
+      else if (*p)
+	switch (*++p)
+	  {
+	  case 'u':
+	    strcpy (q, username);
+	    q += strlen (username);
+	    break;
+	    
+	  case 'h':
+	    strcpy (q, auth->dir);
+	    q += strlen (auth->dir);
+	    break;
+	  
+	  case '%':
+	    *q++ = '%';
+	    break;
+	  
+	  default:
+	    *q++ = '%';
+	    *q++ = *p;
+	  }
     }
-  if (*startp)
-    {
-      strcpy (q, startp);
-      q += strlen (startp);
-    }
+
   *q = 0;
   if (auth)
     mu_auth_data_free (auth);

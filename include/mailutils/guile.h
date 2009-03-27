@@ -71,8 +71,10 @@ extern void mu_scm_message_add_owner (SCM MESG, SCM owner);
 
 extern void mu_scm_mutil_init (void);
 
-extern void mu_process_mailbox (int argc, char *argv[], mu_guimb_param_t *param);
+SCM mu_scm_make_debug_port (mu_debug_t debug, mu_log_level_t level);
+void mu_scm_debug_port_init (void);
 
+  
 extern void mu_guile_init (int debug);
 extern int mu_guile_load (char *filename, int argc, char **argv);
 extern int mu_guile_eval (const char *string);
