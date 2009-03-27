@@ -42,8 +42,6 @@
 * sieve: (mailutils)sieve.              Mail Filtering Utility.
 * mimeview: (mailutils)mimeview.        View MIME Messages.
 * mailutils-config: (mailutils)mailutils-config. List Information about Mailutils.
-* mail.local: (mailutils)mail.local.    Deliver Mail to UNIX Mailboxes.
-* mail.remote: (mailutils)mail.remote. Forward Mail to Remote Machine.
 @end direntry
 @end ifinfo
 

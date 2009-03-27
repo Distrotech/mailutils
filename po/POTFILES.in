@@ -99,12 +99,6 @@ maidag/mailquota.c
 maidag/mailtmp.c
 maidag/script.c
 
-mail.local/mailquota.c
-mail.local/main.c
-mail.local/script.c
-
-mail.remote/mail.remote.c
-
 mail/alias.c
 mail/alt.c
 mail/cd.c

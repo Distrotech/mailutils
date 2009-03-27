@@ -12,8 +12,8 @@ mailbox.
   To invoke the script directly by its name, add executable bit to its 
 permissions. 
 
-  The same script may be used by mail.local to sieve the incoming mail upon
-its arrival, see node "Programs -> mail.local" in the accompanying 
+  The same script may be used by maidag to sieve the incoming mail upon
+its arrival, see node "Programs -> maidag" in the accompanying 
 documentation for more information on this.
 
   To execute the sieve script directly, without saving the produced Scheme

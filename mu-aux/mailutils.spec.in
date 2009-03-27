@@ -31,8 +31,8 @@ BuildRequires: python
 GNU Mailutils contains a series of useful mail clients, servers, and
 libraries. These are the primary mail utilities of the GNU system.
 This package provides a replacement for /bin/mail(x) conforming to
-the UNIX98 specification for mailx. Provides also mail.local,
-mail.remote, and other tools including guimb, dotlock, movemail,
+the UNIX98 specification for mailx. It provides also a mail delivery
+agent maidag, and other tools including guimb, dotlock, movemail,
 frm.
 
 %package -n libmailutils

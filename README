@@ -244,7 +244,7 @@ mailutils-specific configuration options:
 
 The following options enable DBM support in Mailutils. DBM support is
 necessary if you wish to use APOP authentication in POP3 daemon or to
-use DBM-based mail box quotas with mail.local.
+use DBM-based mail box quotas with maildag.
 
     --with-gdbm
 
