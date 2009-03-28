@@ -90,7 +90,6 @@ changequote([,])dnl
 
 include(BUILDDIR/mu_address.inc)
 include(BUILDDIR/mu_body.inc)
-include(BUILDDIR/mu_guimb.inc)
 include(BUILDDIR/mu_mailbox.inc)
 include(BUILDDIR/mu_message.inc)
 include(BUILDDIR/mu_mime.inc)
