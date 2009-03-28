@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +45,8 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   const char *msg = "Completed";
   struct stat newst;
   const char *delim = "/";
-
+  int ns;
+  
   if (imap4d_tokbuf_argc (tok) != 4)
     return util_finish (command, RESP_BAD, "Invalid arguments");
   
@@ -55,7 +57,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return util_finish (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
-  newname = namespace_getfullpath (newname, delim, NULL);
+  newname = namespace_getfullpath (newname, delim, &ns);
   if (!newname)
     return util_finish (command, RESP_NO, "Permission denied");
 
@@ -77,23 +79,20 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
     {
       mu_mailbox_t newmbox = NULL;
       mu_mailbox_t inbox = NULL;
-      char *name;
 
-      if (S_ISDIR(newst.st_mode))
+      if (S_ISDIR (newst.st_mode))
 	{
 	  free (newname);
 	  return util_finish (command, RESP_NO, "Cannot be a directory");
 	}
-      name = calloc (strlen ("mbox:") + strlen (newname) + 1, 1);
-      sprintf (name, "mbox:%s", newname);
       if (mu_mailbox_create (&newmbox, newname) != 0
-	  || mu_mailbox_open (newmbox, MU_STREAM_CREAT | MU_STREAM_RDWR) != 0)
+	  || mu_mailbox_open (newmbox,
+			      MU_STREAM_CREAT | MU_STREAM_RDWR
+			        | mailbox_mode[ns]) != 0)
 	{
-	  free (name);
 	  free (newname);
 	  return util_finish (command, RESP_NO, "Cannot create new mailbox");
 	}
-      free (name);
       free (newname);
 
       if (mu_mailbox_create_default (&inbox, auth_data->name) == 0 &&
@@ -125,6 +124,9 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   oldname = namespace_getfullpath (oldname, delim, NULL);
 
   /* It must exist.  */
+  /* FIXME: 1. What if odlname or newname is a remote mailbox?
+            2. If newname is local and is in another namespace, its
+  	       permissions must be fixed */
   if (!oldname || rename (oldname, newname) != 0)
     {
       rc = RESP_NO;
