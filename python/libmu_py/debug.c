@@ -100,6 +100,65 @@ static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
+static mu_debug_t _mu_prog_debug_stdout;
+static mu_debug_t _mu_prog_debug_stderr;
+
+static PyObject *
+_capture_stdout (PyObject *self, PyObject *args)
+{
+  char *buf = "";
+  if (!PyArg_ParseTuple (args, "s", &buf))
+    return NULL;
+  if (_mu_prog_debug_stdout)
+    mu_debug_printf (_mu_prog_debug_stdout, MU_DIAG_INFO, "%.*s",
+		     strlen (buf), buf);
+  return _ro (Py_None);
+}
+
+static PyObject *
+_capture_stderr (PyObject *self, PyObject *args)
+{
+  char *buf = "";
+  if (!PyArg_ParseTuple (args, "s", &buf))
+    return NULL;
+  if (_mu_prog_debug_stderr)
+    mu_debug_printf (_mu_prog_debug_stderr, MU_DIAG_ERROR, "%.*s",
+		     strlen (buf), buf);
+  return _ro (Py_None);
+}
+
+static PyMethodDef capture_stdout_method[] =
+{
+  { "write", _capture_stdout, 1 },
+  { NULL, NULL, 0, NULL }
+};
+
+static PyMethodDef capture_stderr_method[] =
+{
+  { "write", _capture_stderr, 1 },
+  { NULL, NULL, 0, NULL }
+};
+
+void
+mu_py_capture_stdout (mu_debug_t debug)
+{
+  PyObject *py_out;
+  _mu_prog_debug_stdout = debug;
+  py_out = Py_InitModule ("stdout", capture_stdout_method);
+  if (py_out)
+    PySys_SetObject ("stdout", py_out);
+}
+
+void
+mu_py_capture_stderr (mu_debug_t debug)
+{
+  PyObject *py_err;
+  _mu_prog_debug_stderr = debug;
+  py_err = Py_InitModule ("stderr", capture_stderr_method);
+  if (py_err)
+    PySys_SetObject ("stderr", py_err);
+}
+
 int
 mu_py_init_debug (void)
 {

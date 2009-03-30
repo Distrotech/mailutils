@@ -186,6 +186,9 @@ extern void mu_py_script_finish (void);
 extern int  mu_py_script_run (const char *filename,
 			      mu_py_script_data *data);
 
+extern void mu_py_capture_stdout (mu_debug_t debug);
+extern void mu_py_capture_stderr (mu_debug_t debug);
+
 extern int  mu_py_script_process_mailbox (int argc, char *argv[],
 					  const char *python_filename,
 					  const char *module_name,

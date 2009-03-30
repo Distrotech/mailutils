@@ -33,6 +33,14 @@ python_check_msg (mu_message_t msg, struct mu_auth_data *auth,
 
   mu_py_script_init (1, argv);
 
+  if (!log_to_stderr)
+    {
+      mu_debug_t debug;
+      mu_diag_get_debug (&debug);
+      mu_py_capture_stderr (debug);
+      mu_py_capture_stdout (debug);
+    }
+
   py_msg = PyMessage_NEW ();
   py_msg->msg = msg;
   Py_INCREF (py_msg);
