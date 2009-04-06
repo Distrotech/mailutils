@@ -52,7 +52,7 @@ _remote_is_scheme (mu_record_t record, mu_url_t url, int flags)
       || scheme_len < MU_REMOTE_MBOX_PREFIX_LEN
       || memcmp (MU_REMOTE_MBOX_PREFIX, scheme,
 		 MU_REMOTE_MBOX_PREFIX_LEN) != 0)
-    return EINVAL;
+    return 0;
 
   
   memcpy (&s_url, url, sizeof (s_url));
