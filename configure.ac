@@ -45,7 +45,6 @@ AC_SUBST(MU_LIB_MBOX,'${top_builddir}/libproto/mbox/libmu_mbox.la')
 AC_SUBST(MU_LIB_MH,'${top_builddir}/libproto/mh/libmu_mh.la')
 AC_SUBST(MU_LIB_NNTP,'${top_builddir}/libproto/nntp/libmu_nntp.la')
 AC_SUBST(MU_LIB_POP,'${top_builddir}/libproto/pop/libmu_pop.la')
-AC_SUBST(MU_LIB_REMOTE,'${top_builddir}/libproto/remote/libmu_remotembox.la')
 AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libmu_sieve/libmu_sieve.la')
 AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
 AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
@@ -1308,7 +1307,6 @@ AC_CONFIG_FILES([Makefile
  libproto/nntp/Makefile
  libproto/imap/Makefile
  libproto/include/Makefile
- libproto/remote/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile

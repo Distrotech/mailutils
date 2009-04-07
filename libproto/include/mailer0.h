@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -57,6 +58,9 @@ struct _mu_mailer
   int (*_send_message) (mu_mailer_t, mu_message_t, mu_address_t, mu_address_t);
 };
 
+int _mu_mailer_mailbox_init (mu_mailbox_t mailbox);
+int _mu_mailer_folder_init (mu_folder_t folder MU_ARG_UNUSED);
+  
 #define MAILER_NOTIFY(mailer, type) \
   if (mailer->observer) observer_notify (mailer->observer, type)
 

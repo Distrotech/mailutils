@@ -39,9 +39,9 @@ scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
 	  
 	  mu_diag_get_debug (&debug);
 	  port = mu_scm_make_debug_port (debug, MU_DIAG_ERROR);
-	  scm_set_current_error_port(port);
+	  scm_set_current_error_port (port);
 	  port = mu_scm_make_debug_port (debug, MU_DIAG_INFO);
-	  scm_set_current_output_port(port);
+	  scm_set_current_output_port (port);
 	}
       initialized = 1;
     }

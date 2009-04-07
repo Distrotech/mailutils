@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,15 +51,38 @@
 #include <mailutils/tls.h>
 
 #include <mailer0.h>
+#include <url0.h>
 #include <registrar0.h>
+
+static int _mailer_smtp_init (mu_mailer_t);
+
+static int
+_url_smtp_init (mu_url_t url)
+{
+  /* host isn't optional */
+  if (!url->host)
+    return EINVAL;
+
+  /* accept url->user, pass, and auth
+     for the ESMTP authentication */
+
+  /* all other fields must be NULL */
+  if (url->path || url->qargc)
+    return EINVAL;
+
+  if (url->port == 0)
+    url->port = MU_SMTP_PORT;
+  
+  return 0;
+}
 
 static struct _mu_record _smtp_record = {
   MU_SMTP_PRIO,
   MU_SMTP_SCHEME,
   _url_smtp_init,		/* url init.  */
-  NULL,				/* Mailbox init.  */
-  &_mailer_smtp_init,		/* Mailer init.  */
-  NULL,				/* Folder init.  */
+  _mu_mailer_mailbox_init,      /* Mailbox init.  */
+  _mailer_smtp_init,		/* Mailer init.  */
+  _mu_mailer_folder_init,	/* Folder init.  */
   NULL,				/* No need for a back pointer.  */
   NULL,				/* _is_scheme method.  */
   NULL,				/* _get_url method.  */
@@ -248,7 +271,7 @@ do \
    }  \
 while (0)
 
-int
+static int
 _mailer_smtp_init (mu_mailer_t mailer)
 {
   smtp_t smtp;
@@ -486,6 +509,7 @@ smtp_close (mu_mailer_t mailer)
   return mu_stream_close (mailer->stream);
 }
 
+#ifdef WITH_TLS
 /*
   Client side STARTTLS support.
  */
@@ -524,6 +548,7 @@ smtp_stream_ctl (void *iodata, mu_stream_t *pold, mu_stream_t new)
   if (new)
     iop->mailer->stream = new;
 }
+#endif
 
 static int
 smtp_starttls (smtp_t smtp)
@@ -1195,4 +1220,5 @@ smtp_readline (smtp_t smtp)
 #include <stdio.h>
 #include <registrar0.h>
 mu_record_t mu_smtp_record = NULL;
+mu_record_t mu_remote_smtp_record = NULL;
 #endif

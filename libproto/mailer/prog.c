@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,16 +39,15 @@
 #include <registrar0.h>
 
 static int _url_prog_init     (mu_url_t);
-static int _mailer_prog_init  (mu_mailer_t);  
 
 static struct _mu_record _prog_record =
 {
   MU_PROG_PRIO,
   MU_PROG_SCHEME,
   _url_prog_init,    /* url init.  */
-  NULL,              /* Mailbox entry.  */
-  _mailer_prog_init, /* Mailer entry.  */
-  NULL, /* Folder entry.  */
+  _mu_mailer_mailbox_init,  /* Mailbox entry.  */
+  _mu_mailer_prog_init, /* Mailer entry.  */
+  _mu_mailer_folder_init, /* Folder entry.  */
   NULL, /* No need for a back pointer.  */
   NULL, /* _is_scheme method.  */
   NULL, /* _get_url method.  */
@@ -61,6 +60,12 @@ mu_record_t mu_prog_record = &_prog_record;
 
 
 static int
+_url_prog_uplevel (const mu_url_t orig, mu_url_t *up)
+{
+  return MU_ERR_NOENT;
+}
+
+static int
 _url_prog_init (mu_url_t url)
 {
   /* not valid in a prog url */
@@ -68,6 +73,7 @@ _url_prog_init (mu_url_t url)
     return EINVAL;
   if (!url->path)
     return EINVAL;
+  url->_uplevel = _url_prog_uplevel;
   return 0;
 }
 
@@ -78,8 +84,8 @@ static int prog_close (mu_mailer_t);
 static int prog_send_message (mu_mailer_t, mu_message_t, mu_address_t,
 			      mu_address_t);
 
-static int
-_mailer_prog_init (mu_mailer_t mailer)
+int
+_mu_mailer_prog_init (mu_mailer_t mailer)
 {
   int status;
   mu_progmailer_t pm;

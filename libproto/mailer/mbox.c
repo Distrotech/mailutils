@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,7 @@
 #include <mailutils/url.h>
 #include <mailutils/mutil.h>
 #include <mailbox0.h>
+#include <mailer0.h>
 
 struct remote_mbox_data
 {
@@ -200,10 +201,9 @@ remote_sync (mu_mailbox_t mbox)
 }
 
 int
-remote_mbox_init (mu_mailbox_t mailbox)
+_mu_mailer_mailbox_init (mu_mailbox_t mailbox)
 {
   struct remote_mbox_data *dat;
-  const char *s, *p;
   int rc;
   mu_mailer_t mailer;
   mu_url_t url;
@@ -212,35 +212,18 @@ remote_mbox_init (mu_mailbox_t mailbox)
     return EINVAL;
 
   MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-	     "remote_mbox_init (%s)\n", mu_url_to_string (mailbox->url));
-  rc = mu_url_sget_scheme (mailbox->url, &s);
-  if (rc)
-    return rc;
-  p = strchr (s, '+');
-  if (!p)
-    {
-      MU_DEBUG2 (mailbox->debug, MU_DEBUG_ERROR,
-		 "remote_mbox_init(%s): invalid url: %s\n",
-		 mu_url_to_string (mailbox->url),
-		 mu_strerror (rc));
-      return MU_ERR_MAILER_BAD_URL;
-    }
+	     "_mu_mailer_mailbox_init(%s)\n",
+	     mu_url_to_string (mailbox->url));
 
   rc = mu_url_dup (mailbox->url, &url);
   if (rc)
     return rc;
-  rc = mu_url_set_scheme (url, p + 1);
-  if (rc)
-    {
-      mu_url_destroy (&url);
-      return rc;
-    }
 
   rc = mu_mailer_create_from_url (&mailer, url);
   if (rc)
     {
       MU_DEBUG2 (mailbox->debug, MU_DEBUG_ERROR,
-		 "remote_mbox_init(%s): cannot create mailer: %s\n",
+		 "_mu_mailer_mailbox_init(%s): cannot create mailer: %s\n",
 		 mu_url_to_string (url), mu_strerror (rc));
       mu_url_destroy (&url);
       return rc;
@@ -264,4 +247,9 @@ remote_mbox_init (mu_mailbox_t mailbox)
 
   return 0;
 }
-  
+
+int
+_mu_mailer_folder_init (mu_folder_t folder MU_ARG_UNUSED)
+{
+  return 0;
+}

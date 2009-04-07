@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+##   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -24,9 +24,9 @@ libmu_mailer_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_mailer_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 
 libmu_mailer_la_SOURCES = \
+ mbox.c\
  prog.c\
  sendmail.c\
  smtp.c\
- url_sendmail.c\
- url_smtp.c
+ remote.c
 

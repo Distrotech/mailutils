@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2004, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -114,8 +114,6 @@ extern mu_record_t mu_mbox_record;
 extern mu_record_t mu_mh_record;
 /* Maildir, "maildir:" */
 extern mu_record_t mu_maildir_record;
-/* Remote mailbox */
-extern mu_record_t mu_remote_mbox_record;
   
 #define MU_IMAP_PRIO        100
 #define MU_POP_PRIO         200
@@ -125,7 +123,6 @@ extern mu_record_t mu_remote_mbox_record;
 #define MU_NNTP_PRIO        600
 #define MU_PATH_PRIO        1000
   
-#define MU_REMOTE_MBOX_PRIO 10000
 #define MU_SMTP_PRIO        10000
 #define MU_SENDMAIL_PRIO    10000
 #define MU_PROG_PRIO        10000

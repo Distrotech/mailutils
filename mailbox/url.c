@@ -188,6 +188,9 @@ mu_url_uplevel (mu_url_t url, mu_url_t *upurl)
   int rc;
   char *p;
   mu_url_t new_url;
+
+  if (url->_uplevel)
+    return url->_uplevel (url, upurl);
   
   if (!url->path)
     return MU_ERR_NOENT;

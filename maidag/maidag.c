@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -470,6 +470,12 @@ maidag_cfg_init ()
     }
 }
 
+/* FIXME: These are for compatibility with MU 2.0.
+   Remove in 2.2 */
+extern mu_record_t mu_remote_smtp_record;
+extern mu_record_t mu_remote_sendmail_record;
+extern mu_record_t mu_remote_prog_record;
+
 
 int
 main (int argc, char *argv[])
@@ -497,8 +503,11 @@ main (int argc, char *argv[])
   mu_register_all_formats ();
   mu_registrar_record (mu_smtp_record);
 
-  /* Register a special mailbox */
-  mu_registrar_record (mu_remote_mbox_record);
+  /* FIXME: These are for compatibility with MU 2.0.
+     Remove in 2.1 */
+  mu_registrar_record (mu_remote_smtp_record);
+  mu_registrar_record (mu_remote_sendmail_record);
+  mu_registrar_record (mu_remote_prog_record);
   
   mu_gocs_register ("sieve", mu_sieve_module_init);
 

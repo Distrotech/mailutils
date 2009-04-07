@@ -101,20 +101,12 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 	      return status;
 	    }
 
-	  mu_record_get_url (record, &u_init);
-	  if (u_init && (status = u_init (url)) != 0)
-	    {
-	      mu_mailbox_destroy (&mbox);
-	      return status;
-	    }
-
 	  /* Make sure scheme contains actual mailbox scheme */
 	  /* FIXME: It is appropriate not for all record types.  For now we
 	     assume that if the record scheme ends with a plus sign, this
 	     should not be done.  Probably it requires some flag in struct
 	     _mu_record? */
-	  if (record->scheme[strlen(record->scheme)-1] != '+' 
-	      && strcmp (url->scheme, record->scheme))
+	  if (strcmp (url->scheme, record->scheme))
 	    {
 	      char *p = strdup (record->scheme);
 	      if (!p)
@@ -124,6 +116,13 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 		}
 	      free (url->scheme);
 	      url->scheme = p;
+	    }
+
+	  mu_record_get_url (record, &u_init);
+	  if (u_init && (status = u_init (url)) != 0)
+	    {
+	      mu_mailbox_destroy (&mbox);
+	      return status;
 	    }
 
 	  mbox->url = url;

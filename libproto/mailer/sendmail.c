@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2006, 2007, 2008 Free Software Foundation, Inc.
+   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,27 +38,9 @@
 #include <mailutils/errno.h>
 #include <mailutils/progmailer.h>
 
+#include <url0.h>
 #include <mailer0.h>
 #include <registrar0.h>
-
-static struct _mu_record _sendmail_record =
-{
-  MU_SENDMAIL_PRIO,
-  MU_SENDMAIL_SCHEME,
-  _url_sendmail_init,    /* url init.  */
-  NULL,                  /* Mailbox entry.  */
-  _mailer_sendmail_init, /* Mailer entry.  */
-  NULL, /* Folder entry.  */
-  NULL, /* No need for a back pointer.  */
-  NULL, /* _is_scheme method.  */
-  NULL, /* _get_url method.  */
-  NULL, /* _get_mailbox method.  */
-  NULL, /* _get_mailer method.  */
-  NULL  /* _get_folder method.  */
-};
-/* We export, url parsing and the initialisation of
-   the mailbox, via the register entry/record.  */
-mu_record_t mu_sendmail_record = &_sendmail_record;
 
 static void sendmail_destroy (mu_mailer_t);
 static int sendmail_open (mu_mailer_t, int);
@@ -66,8 +48,24 @@ static int sendmail_close (mu_mailer_t);
 static int sendmail_send_message (mu_mailer_t, mu_message_t, mu_address_t,
 				  mu_address_t);
 
+
+static int
+_url_sendmail_init (mu_url_t url)
+{
+  /* not valid in a sendmail url */
+  if (url->user || url->passwd || url->auth || url->qargc
+      || url->host || url->port)
+    return EINVAL;
+
+  if (url->path == 0)
+    if ((url->path = strdup (_PATH_SENDMAIL)) == 0)
+      return ENOMEM;
+
+  return 0;
+}
+
 int
-_mailer_sendmail_init (mu_mailer_t mailer)
+_mu_mailer_sendmail_init (mu_mailer_t mailer)
 {
   int status;
   mu_progmailer_t pm;
@@ -271,6 +269,25 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
   free (argvec);
   return status;
 }
+
+static struct _mu_record _sendmail_record =
+{
+  MU_SENDMAIL_PRIO,
+  MU_SENDMAIL_SCHEME,
+  _url_sendmail_init,    /* url init.  */
+  _mu_mailer_mailbox_init,     /* Mailbox entry.  */
+  _mu_mailer_sendmail_init, /* Mailer entry.  */
+  _mu_mailer_folder_init, /* Folder entry.  */
+  NULL, /* No need for a back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+/* We export, url parsing and the initialisation of
+   the mailbox, via the register entry/record.  */
+mu_record_t mu_sendmail_record = &_sendmail_record;
 
 #else
 #include <stdio.h>

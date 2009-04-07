@@ -59,6 +59,7 @@ struct _mu_url
   int   (*_get_port)   (const mu_url_t, long *);
   int   (*_get_path)   (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_query)  (const mu_url_t, char *, size_t, size_t *);
+  int   (*_uplevel)    (const mu_url_t, mu_url_t *);
 };
 
 

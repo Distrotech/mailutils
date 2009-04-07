@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,6 @@ extern void mu_argp_done (struct argp *argp);
 extern int mu_register_argp_capa (const char *name, struct argp_child *child);
 
 extern void mu_print_options (void);
-extern const char *mu_check_option (char *name);
   
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004, 2005, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -73,16 +74,14 @@ extern int _folder_path_init      (mu_folder_t);
 #define MU_SMTP_SCHEME "smtp"
 #define MU_SMTP_SCHEME_LEN (sizeof (MU_SMTP_SCHEME) - 1)
 #define MU_SMTP_PORT 25
-extern int _url_smtp_init         (mu_url_t);
-extern int _mailer_smtp_init      (mu_mailer_t);
 
 #define MU_SENDMAIL_SCHEME "sendmail"
 #define MU_SENDMAIL_SCHEME_LEN (sizeof (MU_SENDMAIL_SCHEME) - 1)
-extern int _url_sendmail_init     (mu_url_t);
-extern int _mailer_sendmail_init  (mu_mailer_t);
-
+extern int _mu_mailer_sendmail_init (mu_mailer_t mailer);
+  
 #define MU_PROG_SCHEME "prog"
 #define MU_PROG_SCHEME_LEN (sizeof (MU_PROG_SCHEME) - 1)
+  extern int _mu_mailer_prog_init  (mu_mailer_t);  
   
 #define MU_MH_SCHEME "mh"
 #define MU_MH_SCHEME_LEN (sizeof (MU_MH_SCHEME) - 1)

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -285,9 +285,6 @@ is_mailer_url (mu_url_t url)
          && pfn;
 }
 
-#define REMOTE_PREFIX "remote+"
-#define REMOTE_PREFIX_LEN (sizeof(REMOTE_PREFIX)-1)
-
 int
 deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 {
@@ -352,33 +349,6 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 	}
     }      
 
-  if (is_mailer_url (url))
-    {
-      const char *scheme;
-      size_t len;
-      char *new_scheme;
-      
-      mu_url_sget_scheme (url, &scheme);
-      len = REMOTE_PREFIX_LEN + strlen (scheme);
-      new_scheme = malloc (len + 1);
-      if (!new_scheme)
-	{
-	  mu_error (_("Not enough memory"));
-	  exit (EX_SOFTWARE);
-	}
-      strcat (strcpy (new_scheme, REMOTE_PREFIX), scheme);
-      status = mu_url_set_scheme (url, new_scheme);
-      free (new_scheme);
-      if (status)
-	{
-	  errno = status;
-	  maidag_error (_("Cannot modify URL %s: %s"),
-			mu_url_to_string (url),
-			mu_strerror (status));
-	  mu_auth_data_free (auth);
-	  return EX_TEMPFAIL;
-	}
-    }
   status = mu_mailbox_create_from_url (&mbox, url);
 
   if (status)
@@ -439,7 +409,7 @@ deliver (mu_message_t msg, char *dest_id, char **errp)
 	    {
 	      maidag_error (_("no user name"));
 	      if (errp)
-		asprintf (errp, "no user such");
+		asprintf (errp, "no such user");
 	      exit_code = EX_NOUSER;
 	      return EX_NOUSER;
 	    }
