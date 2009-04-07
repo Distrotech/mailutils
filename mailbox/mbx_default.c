@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -394,7 +394,10 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (mail == NULL || *mail == '\0')
+  if (mail && *mail == 0)
+    mail = NULL;
+  
+  if (mail == NULL)
     {
       if (!_mu_mailbox_pattern)
 	{
