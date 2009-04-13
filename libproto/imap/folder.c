@@ -1402,13 +1402,13 @@ imap_list (f_imap_t f_imap)
   if (f_imap->enum_stop)
     return 0;
       
-  buffer = malloc (len);
+  buffer = malloc (len + 1);
   if (!buffer)
     return ENOMEM;
   memcpy (buffer, f_imap->buffer, len);
   buffer[len] = '\0';
 
-  lr = malloc (sizeof (*lr));
+  lr = calloc (1, sizeof (*lr));
   if (!lr)
     return ENOMEM;
       
@@ -1487,6 +1487,23 @@ imap_list (f_imap_t f_imap)
 	  lr->name = strdup (tok);
 	  if (!lr->name)
 	    status = ENOMEM;
+	}
+      if (lr->separator)
+	{
+	  size_t off;
+	  char delim[2];
+	  size_t n = 0;
+	  
+	  delim[0] = lr->separator;
+	  delim[1] = 0;
+	  s = lr->name;
+	  while (off = strcspn (s, delim), s[off])
+	    {
+	      n++;
+	      off++;
+	      s += off;
+	    }
+	  lr->level = n;
 	}
     }
   mu_argcv_free (argc, argv);
