@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,10 +28,12 @@ mu_m_server_t server;
 unsigned int idle_timeout;
 int imap4d_transcript;
 
-mu_mailbox_t mbox;
-char *homedir;
-int state = STATE_NONAUTH;
-struct mu_auth_data *auth_data;
+mu_mailbox_t mbox;              /* Current mailbox */
+char *real_homedir;             /* Homedir as returned by user database */
+char *imap4d_homedir;           /* Homedir as visible for the remote party */
+char *modify_homedir;           /* Expression to produce imap4d_homedir */
+int state = STATE_NONAUTH;      /* Current IMAP4 state */
+struct mu_auth_data *auth_data; 
 
 int login_disabled;             /* Disable LOGIN command */
 int tls_required;               /* Require STARTTLS */
@@ -297,6 +299,11 @@ cb_mailbox_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static struct mu_cfg_param imap4d_cfg_param[] = {
+  { "homedir", mu_cfg_string, &modify_homedir, 0, NULL,
+    N_("Modify home directory") },
+  { "personal-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_PRIVATE],
+    0, NULL, 
+    N_("Set personal namespace.") },
   { "other-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_OTHER],
     0, NULL, 
     N_("Set other users' namespace.") },
@@ -342,15 +349,48 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
 int
 imap4d_session_setup0 ()
 {
-  homedir = mu_normalize_path (mu_strdup (auth_data->dir));
-  if (imap4d_check_home_dir (homedir, auth_data->uid, auth_data->gid))
+  real_homedir = mu_normalize_path (mu_strdup (auth_data->dir));
+  if (imap4d_check_home_dir (real_homedir, auth_data->uid, auth_data->gid))
     return 1;
+
+  if (modify_homedir)
+    {
+      int rc;
+      mu_vartab_t vtab;
+      char *expr = mu_tilde_expansion (modify_homedir, "/", real_homedir);
+
+      mu_vartab_create (&vtab);
+      mu_vartab_define (vtab, "user", auth_data->name, 0);
+      mu_vartab_define (vtab, "home", real_homedir, 0);
+      rc = mu_vartab_expand (vtab, expr, &imap4d_homedir);
+      mu_vartab_destroy (&vtab);
+      free (expr);
+      if (rc)
+	{
+	  free (real_homedir);
+	  mu_diag_output (MU_DIAG_ERR,
+			  _("Error expanding %s: %s"),
+			  modify_homedir, mu_strerror (rc));
+	  return 1;
+	}
+    }
+  else
+    imap4d_homedir = strdup (real_homedir);
+
+  if (strcmp (imap4d_homedir, real_homedir)
+      && imap4d_check_home_dir (imap4d_homedir,
+				auth_data->uid, auth_data->gid))
+    {
+      free (imap4d_homedir);
+      free (real_homedir);
+      return 1;
+    }
   
   if (auth_data->change_uid)
     setuid (auth_data->uid);
 
-  util_chdir (homedir);
-  namespace_init_session (homedir);
+  util_chdir (imap4d_homedir);
+  namespace_init_session (imap4d_homedir);
   mu_diag_output (MU_DIAG_INFO,
 		  _("User `%s' logged in (source: %s)"), auth_data->name,
 		  auth_data->source);
@@ -447,23 +487,23 @@ imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid)
 {
   struct stat st;
 
-  if (stat (homedir, &st))
+  if (stat (dir, &st))
     {
       if (errno == ENOENT && create_home_dir)
 	{
 	  mode_t mode = umask (0);
-	  int rc = mkdir (homedir, home_dir_mode);
+	  int rc = mkdir (dir, home_dir_mode);
 	  umask (mode);
 	  if (rc)
 	    {
 	      mu_error ("Cannot create home directory `%s': %s",
-			homedir, mu_strerror (errno));
+			dir, mu_strerror (errno));
 	      return 1;
 	    }
-	  if (chown (homedir, uid, gid))
+	  if (chown (dir, uid, gid))
 	    {
 	      mu_error ("Cannot set owner for home directory `%s': %s",
-			homedir, mu_strerror (errno));
+			dir, mu_strerror (errno));
 	      return 1;
 	    }
 	}

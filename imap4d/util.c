@@ -30,7 +30,7 @@ static const char *sc2string (int);
 char *
 util_tilde_expansion (const char *ref, const char *delim)
 {
-  return mu_tilde_expansion (ref, delim, homedir);
+  return mu_tilde_expansion (ref, delim, imap4d_homedir);
 }
 
 /* Get the absolute path.  */
@@ -42,8 +42,8 @@ util_getfullpath (char *name, const char *delim)
   if (*p != delim[0])
     {
       char *s =
-	calloc (strlen (homedir) + strlen (delim) + strlen (p) + 1, 1);
-      sprintf (s, "%s%s%s", homedir, delim, p);
+	calloc (strlen (imap4d_homedir) + strlen (delim) + strlen (p) + 1, 1);
+      sprintf (s, "%s%s%s", imap4d_homedir, delim, p);
       free (p);
       p = s;
     }
@@ -1085,12 +1085,12 @@ util_run_events (int old_state, int new_state)
 }
   
 void
-util_chdir (const char *homedir)
+util_chdir (const char *dir)
 {
-  int rc = chdir (homedir);
+  int rc = chdir (dir);
   if (rc)
     mu_error ("Cannot change to home directory `%s': %s",
-	      homedir, mu_strerror (errno));
+	      dir, mu_strerror (errno));
 }
 
 int

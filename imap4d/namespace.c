@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,9 +26,9 @@ mu_list_t namespace[NS_MAX];
 static char *
 printable_pathname (char *str)
 {
-  if (strncmp (str, homedir, strlen (homedir)) == 0)
+  if (strncmp (str, imap4d_homedir, strlen (imap4d_homedir)) == 0)
     {
-      str += strlen (homedir);
+      str += strlen (imap4d_homedir);
       if (str[0] == '/')
 	str++;
     }
@@ -244,9 +245,10 @@ namespace_getfullpath (const char *name, const char *delim, int *nspace)
 int
 namespace_init_session (char *path)
 {
-  mu_list_create (&namespace[NS_PRIVATE]);
-  mu_list_append (namespace[NS_PRIVATE],
-		  mu_strdup (mu_normalize_path (path)));
+  if (!namespace[NS_PRIVATE])
+    mu_list_create (&namespace[NS_PRIVATE]);
+  mu_list_prepend (namespace[NS_PRIVATE],
+		   mu_strdup (mu_normalize_path (path)));
   return 0;
 }
 

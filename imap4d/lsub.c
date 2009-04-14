@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (!pattern)
     return util_finish (command, RESP_NO, "Not enough memory");
   
-  asprintf (&file, "%s/.mailboxlist", homedir);
+  asprintf (&file, "%s/.mailboxlist", real_homedir);
   if (!file)
     {
       free (pattern);

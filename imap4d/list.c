@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
   name = resp->name;
   size = strlen (name);
   if (size == refinfo->homelen + 6
-      && memcmp (name, homedir, refinfo->homelen) == 0
+      && memcmp (name, imap4d_homedir, refinfo->homelen) == 0
       && memcmp (name + refinfo->homelen + 1, "INBOX", 5) == 0)
     return 0;
      
@@ -251,7 +251,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
       refinfo.refptr = ref;
       refinfo.reflen = strlen (ref);
       refinfo.pfxlen = strlen (cwd);
-      refinfo.homelen = strlen (homedir);
+      refinfo.homelen = strlen (imap4d_homedir);
 
       /* The special name INBOX is included in the output from LIST, if
 	 INBOX is supported by this server for this user and if the

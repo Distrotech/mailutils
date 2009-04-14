@@ -102,6 +102,7 @@
 #include <mailutils/server.h>
 #include <mailutils/argcv.h>
 #include <mailutils/alloc.h>
+#include <mailutils/vartab.h>
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
@@ -175,8 +176,9 @@ enum imap4d_preauth
   
 extern struct imap4d_command imap4d_command_table[];
 extern mu_mailbox_t mbox;
-extern char *homedir;
-extern char *rootdir;
+extern char *imap4d_homedir;
+extern char *real_homedir;  
+extern char *modify_homedir;
 extern int state;
 extern size_t children;
 extern int is_virtual;
