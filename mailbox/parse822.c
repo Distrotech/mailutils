@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -87,10 +88,9 @@ actually help.
 # include <strings.h>
 #endif
 
-#include "address0.h"
-
 #include <mailutils/errno.h>
 #include <mailutils/parse822.h>
+#include <mailutils/address.h>
 
 #ifdef EOK
 # undef EOK
@@ -478,7 +478,7 @@ mu_parse822_atom (const char **p, const char *e, char **atom)
 
   save = *p;
 
-  while ((*p != e) && mu_parse822_is_atom_char (**p))
+  while ((*p != e) && (**p == '.' || mu_parse822_is_atom_char (**p)))
     {
       rc = str_append_char (atom, **p);
       *p += 1;
@@ -495,24 +495,18 @@ int
 parse822_atom_ex (const char **p, const char *e, char **atom)
 {
   /* atom = 1*<an atom char> */
-
-  const char *save = *p;
-  int rc = EPARSE;
+  const char *ptr;
+  int rc;
 
   mu_parse822_skip_comments (p, e);
 
-  save = *p;
-
-  while ((*p != e) && parse822_is_atom_char_ex (**p))
-    {
-      rc = str_append_char (atom, **p);
-      *p += 1;
-      if (rc != EOK)
-	{
-	  *p = save;
-	  break;
-	}
-    }
+  for (ptr = *p; (ptr != e) && parse822_is_atom_char_ex (*ptr); ptr++)
+    ;
+  if (ptr - *p == 0)
+    return EPARSE;
+  rc = str_append_n (atom, *p, ptr - *p);
+  if (rc == 0)
+    *p = ptr;
   return rc;
 }
 
@@ -714,59 +708,133 @@ new_mb (void)
   return calloc (1, sizeof (struct _mu_address));
 }
 
+static char *
+addr_field_by_mask (mu_address_t addr, int mask)
+{
+  switch (mask)						
+    {
+    case MU_ADDR_HINT_ADDR:
+      return addr->addr;
+	  
+    case MU_ADDR_HINT_COMMENTS:				
+      return addr->comments;					
+	  
+    case MU_ADDR_HINT_PERSONAL:				
+      return addr->personal;					
+
+    case MU_ADDR_HINT_EMAIL:
+      return addr->email;
+
+    case MU_ADDR_HINT_LOCAL:
+      return addr->local_part;
+      
+    case MU_ADDR_HINT_DOMAIN:				
+      return addr->domain;					
+
+    case MU_ADDR_HINT_ROUTE:
+      return addr->route;
+    }
+  return NULL;
+}							
+
+static char *
+get_val (mu_address_t hint, int hflags, char *value, int mask, int *memflag)
+{
+  if (!value && hint && (hflags & mask))
+    {
+      char *p = addr_field_by_mask (hint, mask);
+      if (p)							
+	{
+	  if (memflag)
+	    *memflag |= mask;
+	  value = strdup (p);
+	}
+    }
+  return value;
+}
+
+static void
+addr_free_fields (mu_address_t a, int memflag)
+{
+  char *p;
+  
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_ADDR)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_COMMENTS)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_PERSONAL)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_EMAIL)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_LOCAL)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_DOMAIN)))
+    free (p);
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_ROUTE)))
+    free (p);
+}
+
 static int
-fill_mb (mu_address_t * a,
-	 char *comments, char *personal, char *local, char *domain)
+fill_mb (mu_address_t *pa,
+	 char *comments, char *personal, char *local, char *domain,
+	 mu_address_t hint, int hflags)
 {
   int rc = EOK;
+  mu_address_t a;
+  int memflag = 0;
 
-  *a = new_mb ();
+  a = new_mb ();
 
-  if (!*a)
-    {
-      return ENOMEM;
-    }
+  if (!a)
+    return ENOMEM;
 
-  (*a)->comments = comments;
-  (*a)->personal = personal;
+  a->comments = get_val (hint, hflags, comments, MU_ADDR_HINT_COMMENTS,
+			 &memflag);
+  a->personal = get_val (hint, hflags, personal, MU_ADDR_HINT_PERSONAL,
+			 &memflag);
 
+  domain = get_val (hint, hflags, domain, MU_ADDR_HINT_DOMAIN,
+		    &memflag);
+  local = get_val (hint, hflags, local, MU_ADDR_HINT_LOCAL,
+		   &memflag);
   do
     {
       /* loop exists only to break out of */
-      const char *d = domain;
-      if (!d)
+      if (!local)
+	/* no email to construct */
+	break;
+
+      if ((rc = mu_parse822_quote_local_part (&a->email, local)))
+	break;
+      if (domain)
 	{
-	  mu_get_user_email_domain (&d);
+	  if ((rc = str_append (&a->email, "@")))
+	    break;
+	  if ((rc = str_append (&a->email, domain)))
+	    break;
 	}
-      if (!local || !d)
-	{
-	  /* no email to construct */
-	  break;
-	}
-      if ((rc = mu_parse822_quote_local_part (&(*a)->email, local)))
-	break;
-      if ((rc = str_append (&(*a)->email, "@")))
-	break;
-      if ((rc = str_append (&(*a)->email, d)))
-	break;
     }
   while (0);
 
-  (*a)->local_part = local;
-  (*a)->domain = domain;
+  a->local_part = local;
+  a->domain = domain;
 
   if (rc != EOK)
     {
+      addr_free_fields (a, memflag);
       /* note that the arguments have NOT been freed, we only own
        * them on success. */
-      free (*a);
+      free (a);
     }
+  else
+    *pa = a;
 
   return rc;
 }
 
 int
-mu_parse822_address_list (mu_address_t * a, const char *s)
+mu_parse822_address_list (mu_address_t *a, const char *s,
+			  mu_address_t hint, int hflags)
 {
   /* address-list = #(address) */
 
@@ -775,7 +843,7 @@ mu_parse822_address_list (mu_address_t * a, const char *s)
   int rc = EOK;
   mu_address_t *n = a;		/* the next address we'll be creating */
 
-  rc = mu_parse822_address (p, e, n);
+  rc = mu_parse822_address (p, e, n, hint, hflags);
 
   /* A list may start with a leading <,>, we'll find out if
    * that's not the case at the top of the while, but give
@@ -808,7 +876,7 @@ mu_parse822_address_list (mu_address_t * a, const char *s)
 	}
       mu_parse822_skip_comments (p, e);
 
-      rc = mu_parse822_address (p, e, n);
+      rc = mu_parse822_address (p, e, n, hint, hflags);
 
       if (rc == EOK || rc == EPARSE)
 	{
@@ -833,19 +901,23 @@ mu_parse822_address_list (mu_address_t * a, const char *s)
 }
 
 int
-mu_parse822_address (const char **p, const char *e, mu_address_t * a)
+mu_parse822_address (const char **p, const char *e, mu_address_t *a,
+		     mu_address_t hint, int hflags)
 {
   /* address = mailbox / group / unix-mbox */
 
   int rc;
 
-  if ((rc = mu_parse822_mail_box (p, e, a)) == EPARSE)
+  if ((rc = mu_parse822_mail_box (p, e, a, hint, hflags)) == EPARSE)
     {
-      if ((rc = mu_parse822_group (p, e, a)) == EPARSE)
+      if ((rc = mu_parse822_group (p, e, a, hint, hflags)) == EPARSE)
 	{
-	  rc = mu_parse822_unix_mbox (p, e, a);
+	  rc = mu_parse822_unix_mbox (p, e, a, hint, hflags);
 	}
     }
+
+  if (rc == 0 && *a && !(*a)->route)
+    (*a)->route = get_val (hint, hflags, NULL, MU_ADDR_HINT_ROUTE, NULL);
 
   return rc;
 }
@@ -856,7 +928,8 @@ mu_parse822_address (const char **p, const char *e, mu_address_t * a)
  */
 #undef ADD_GROUPS
 int
-mu_parse822_group (const char **p, const char *e, mu_address_t * a)
+mu_parse822_group (const char **p, const char *e, mu_address_t *a,
+		   mu_address_t hint, int hflags)
 {
   /* group = phrase ":" [#mailbox] ";" */
 
@@ -886,7 +959,7 @@ mu_parse822_group (const char **p, const char *e, mu_address_t * a)
   /* fake up an address node for the group's descriptive phrase, if
    * it fails, clean-up will happen after the loop
    */
-  if ((rc = fill_mb (a, 0, phrase, 0, 0)) == EOK)
+  if ((rc = fill_mb (a, 0, phrase, 0, 0, hint, hflags)) == EOK)
     {
       a = &(*a)->next;
     }
@@ -907,7 +980,7 @@ mu_parse822_group (const char **p, const char *e, mu_address_t * a)
       mu_parse822_skip_comments (p, e);
 
       /* it's ok not be a mailbox, but other errors are fatal */
-      rc = mu_parse822_mail_box (p, e, a);
+      rc = mu_parse822_mail_box (p, e, a, hint, hflags);
       if (rc == EOK)
 	{
 	  a = &(*a)->next;
@@ -941,7 +1014,8 @@ mu_parse822_group (const char **p, const char *e, mu_address_t * a)
 }
 
 int
-mu_parse822_mail_box (const char **p, const char *e, mu_address_t * a)
+mu_parse822_mail_box (const char **p, const char *e, mu_address_t *a,
+		      mu_address_t hint, int hflags)
 {
   /* mailbox =
    *     addr-spec [ "(" comment ")" ] /
@@ -956,7 +1030,7 @@ mu_parse822_mail_box (const char **p, const char *e, mu_address_t * a)
   int rc;
 
   /* -> addr-spec */
-  if ((rc = mu_parse822_addr_spec (p, e, a)) == EOK)
+  if ((rc = mu_parse822_addr_spec (p, e, a, hint, hflags)) == EOK)
     {
       mu_parse822_skip_lwsp (p, e);
 
@@ -987,7 +1061,7 @@ mu_parse822_mail_box (const char **p, const char *e, mu_address_t * a)
 	return rc;
       }
 
-    if ((rc = mu_parse822_route_addr (p, e, a)) == EOK)
+    if ((rc = mu_parse822_route_addr (p, e, a, hint, hflags)) == EOK)
       {
 	/* add the phrase */
 	(*a)->personal = phrase;
@@ -1005,14 +1079,16 @@ mu_parse822_mail_box (const char **p, const char *e, mu_address_t * a)
 }
 
 int
-mu_parse822_route_addr (const char **p, const char *e, mu_address_t * a)
+mu_parse822_route_addr (const char **p, const char *e, mu_address_t *a,
+			mu_address_t hint, int hflags)
 {
   /* route-addr = "<" [route] addr-spec ">" */
 
   const char *save = *p;
-  char *route = 0;
+  char *route = NULL;
   int rc;
-
+  int memflag = 0;
+  
   mu_parse822_skip_comments (p, e);
 
   if ((rc = mu_parse822_special (p, e, '<')))
@@ -1023,15 +1099,15 @@ mu_parse822_route_addr (const char **p, const char *e, mu_address_t * a)
     }
   if (!(rc = mu_parse822_special (p, e, '>')))
     {
-      (void) (((rc = fill_mb (a, 0, 0, 0, 0)) == EOK)
-          && ((rc = str_append (&(*a)->email, "")) == EOK));
+      if ((rc = fill_mb (a, 0, 0, 0, 0, hint, hflags)) == EOK)
+	rc = str_append (&(*a)->email, "");
        
       return rc;
     }
 
   mu_parse822_route (p, e, &route);
 
-  if ((rc = mu_parse822_addr_spec (p, e, a)))
+  if ((rc = mu_parse822_addr_spec (p, e, a, hint, hflags)))
     {
       *p = save;
 
@@ -1040,7 +1116,8 @@ mu_parse822_route_addr (const char **p, const char *e, mu_address_t * a)
       return rc;
     }
 
-  (*a)->route = route;		/* now we don't have to free our local */
+  (*a)->route = get_val (hint, hflags, route, MU_ADDR_HINT_ROUTE,
+			 &memflag);
 
   mu_parse822_skip_comments (p, e);
 
@@ -1121,7 +1198,8 @@ mu_parse822_route (const char **p, const char *e, char **route)
 }
 
 int
-mu_parse822_addr_spec (const char **p, const char *e, mu_address_t * a)
+mu_parse822_addr_spec (const char **p, const char *e, mu_address_t *a,
+		       mu_address_t hint, int hflags)
 {
   /* addr-spec = local-part "@" domain */
 
@@ -1137,18 +1215,16 @@ mu_parse822_addr_spec (const char **p, const char *e, mu_address_t * a)
   if (!rc)
     {
       rc = mu_parse822_special (p, e, '@');
-    }
+      
+      if (!rc)
+	{
+	  rc = mu_parse822_domain (p, e, &domain);
 
-  if (!rc)
-    {
-      rc = mu_parse822_domain (p, e, &domain);
+	  if (!rc)
+	    rc = fill_mb (a, 0, 0, local_part, domain, hint, hflags);
+	}
     }
-
-  if (!rc)
-    {
-      rc = fill_mb (a, 0, 0, local_part, domain);
-    }
-
+  
   if (rc)
     {
       *p = save;
@@ -1159,7 +1235,8 @@ mu_parse822_addr_spec (const char **p, const char *e, mu_address_t * a)
 }
 
 int
-mu_parse822_unix_mbox (const char **p, const char *e, mu_address_t * a)
+mu_parse822_unix_mbox (const char **p, const char *e, mu_address_t *a,
+		       mu_address_t hint, int hflags)
 {
   /* unix-mbox = atom */
 
@@ -1172,9 +1249,7 @@ mu_parse822_unix_mbox (const char **p, const char *e, mu_address_t * a)
   rc = mu_parse822_atom (p, e, &mbox);
 
   if (!rc)
-    {
-      rc = fill_mb (a, 0, 0, mbox, 0);
-    }
+    rc = fill_mb (a, 0, 0, mbox, 0, hint, hflags);
 
   if (rc)
     {

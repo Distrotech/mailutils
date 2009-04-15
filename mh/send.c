@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,6 +62,9 @@ static struct argp_option options[] = {
   {"push",          ARG_PUSH,          N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Run in the backround.") },
   {"nopush",        ARG_NOPUSH,        NULL, OPTION_HIDDEN, "" },
+  {"preserve",      ARG_PRESERVE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Keep draft files") },
+  {"keep",          0, NULL, OPTION_ALIAS, NULL},
   {"split",         ARG_SPLIT,         N_("SECONDS"), 0,
    N_("Split the draft into several partial messages and send them with SECONDS interval") },
   {"chunksize",     ARG_CHUNKSIZE,     N_("NUMBER"), 0,
@@ -91,7 +95,9 @@ struct mh_option mh_option[] = {
   {"forward",       4, MH_OPT_BOOL, NULL},
   {"mime",          2, MH_OPT_BOOL, NULL},
   {"msgid",         2, MH_OPT_BOOL, NULL},
-  {"push",          1, MH_OPT_BOOL, NULL},
+  {"push",          2, MH_OPT_BOOL, NULL},
+  {"preserve",      2, MH_OPT_BOOL, NULL},
+  {"keep",          1, MH_OPT_BOOL, NULL},
   {"split",         1, 0, "seconds"},
   {"verbose",       1, MH_OPT_BOOL, NULL},
   {"watch",         2, MH_OPT_BOOL, NULL},
@@ -115,6 +121,8 @@ static size_t split_size = 76*632;   /* Size of split parts */
 static int verbose;              /* Produce verbose diagnostics */
 static int watch;                /* Watch the delivery process */
 static unsigned width = 76;      /* Maximum width of header fields */
+
+static int keep_files;           /* Keep draft files */
 
 #define DEFAULT_X_MAILER "MH (" PACKAGE_STRING ")"
 
@@ -195,6 +203,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       
     case ARG_NOMSGID:
       append_msgid = 0;
+      break;
+
+    case ARG_PRESERVE:
+      keep_files = is_true (arg);
       break;
       
     case ARG_PUSH:
@@ -690,7 +702,8 @@ _action_send (void *item, void *data)
   mu_mailer_close (mailer);
   mu_mailer_destroy (&mailer);
 
-  backup_file (elt->file_name);
+  if (!keep_files)
+    backup_file (elt->file_name);
   
   return 0;
 }

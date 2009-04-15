@@ -1,6 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2007,
+##   2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -18,7 +19,6 @@
 ##   02110-1301 USA
 
 noinst_HEADERS = \
-address0.h \
 attribute0.h \
 amd.h \
 auth0.h \

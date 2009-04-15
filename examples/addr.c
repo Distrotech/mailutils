@@ -26,9 +26,13 @@
 
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
+#include <mailutils/kwd.h>
 #include <mailutils/mutil.h>
 
 #define EPARSE MU_ERR_NOENT
+
+struct _mu_address hint;
+int hflags;
 
 static int
 parse (const char *str)
@@ -39,8 +43,7 @@ parse (const char *str)
   const char *buf;
   mu_address_t address = NULL;
 
-  mu_set_user_email_domain ("localhost");
-  status = mu_address_create (&address, str);
+  status = mu_address_create_hint (&address, str, &hint, hflags);
   mu_address_get_count (address, &pcount);
 
   if (status)
@@ -96,6 +99,73 @@ parse (const char *str)
   return 0;
 }
 
+struct mu_kwd hintnames[] = {
+  { "comments", MU_ADDR_HINT_COMMENTS },
+  { "personal", MU_ADDR_HINT_PERSONAL },
+  { "email", MU_ADDR_HINT_EMAIL },
+  { "local", MU_ADDR_HINT_LOCAL },
+  { "domain", MU_ADDR_HINT_DOMAIN },
+  { "route", MU_ADDR_HINT_ROUTE },
+  { NULL }
+};
+
+static char **
+addr_fieldptr_by_mask (mu_address_t addr, int mask)
+{
+  switch (mask)						
+    {
+    case MU_ADDR_HINT_ADDR:
+      return &addr->addr;
+	  
+    case MU_ADDR_HINT_COMMENTS:				
+      return &addr->comments;					
+	  
+    case MU_ADDR_HINT_PERSONAL:				
+      return &addr->personal;					
+
+    case MU_ADDR_HINT_EMAIL:
+      return &addr->email;
+
+    case MU_ADDR_HINT_LOCAL:
+      return &addr->local_part;
+      
+    case MU_ADDR_HINT_DOMAIN:				
+      return &addr->domain;					
+
+    case MU_ADDR_HINT_ROUTE:
+      return &addr->route;
+    }
+  return NULL;
+}							
+
+void
+sethint (char *str)
+{
+  int mask;
+  char *p = strchr (str, '=');
+
+  if (!p)
+    {
+      printf ("%s=> bad assignment\n\n", str);
+      return;
+    }
+  *p++ = 0;
+  if (mu_kwd_xlat_name (hintnames, str, &mask) == 0)
+    {
+      char **fptr = addr_fieldptr_by_mask (&hint, mask);
+
+      if (*p == 0)
+	hflags &= ~mask;
+      else
+	{
+	  *fptr = strdup (p);
+	  hflags |= mask;
+	}
+    }
+  else
+    printf ("%s=> unknown hint name\n\n", str);
+}
+	
 static int
 parseinput (void)
 {
@@ -104,26 +174,34 @@ parseinput (void)
   while (fgets (buf, sizeof (buf), stdin) != 0)
     {
       buf[strlen (buf) - 1] = 0;
-      parse (buf);
+      if (buf[0] == '\\')
+	sethint (buf + 1);
+      else
+	parse (buf);
     }
 
   return 0;
 }
 
 int
-main (int argc, const char *argv[])
+main (int argc, char *argv[])
 {
-  argc = 1;
-
-  if (!argv[argc])
+  int i;
+  
+  hint.domain = "localhost";
+  hflags = MU_ADDR_HINT_DOMAIN;
+  
+  if (argc == 1)
     return parseinput ();
-
-  for (; argv[argc]; argc++)
+  
+  for (i = 1; i < argc; i++)
     {
-      if (strcmp (argv[argc], "-") == 0)
+      if (strcmp (argv[i], "-") == 0)
 	parseinput ();
+      else if (strncmp (argv[i], "-v", 2) == 0)
+	sethint (argv[i] + 2);
       else
-	parse (argv[argc]);
+	parse (argv[i]);
     }
 
   return 0;

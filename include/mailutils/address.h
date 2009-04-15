@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005, 2006, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,6 +26,46 @@
 extern "C" {
 #endif
 
+#define MU_ADDR_HINT_ADDR       0x0001 /* Not used yet */
+#define MU_ADDR_HINT_COMMENTS   0x0002
+#define MU_ADDR_HINT_PERSONAL   0x0004
+#define MU_ADDR_HINT_EMAIL      0x0008
+#define MU_ADDR_HINT_LOCAL      0x0010
+#define MU_ADDR_HINT_DOMAIN     0x0020
+#define MU_ADDR_HINT_ROUTE      0x0040
+
+/*
+ * The data-structure representing an RFC822 MAILBOX. It may be
+ * one MAILBOX or a list of them, as found in an ADDRESS or
+ * a MAILBOX list (as found in a GROUP).
+ *  
+ * Capitalized names are from RFC 822, section 6.1 (Address Syntax).
+ */
+struct _mu_address
+{
+  char *addr;
+  	/* the original string that this list of addresses was created
+	 * from, only present at the head of the list */
+
+  char *comments;
+  	/* the collection of comments stripped during parsing this MAILBOX */
+  char *personal;
+  	/* the PHRASE portion of a MAILBOX, called the DISPLAY-NAME in drums */
+  char *email;
+  	/* the ADDR-SPEC, the LOCAL-PART@DOMAIN */
+  char *local_part;
+  	/* the LOCAL-PART of a MAILBOX */
+  char *domain;
+  	/* the DOMAIN of a MAILBOX */
+  char *route;
+  	/* the optional ROUTE in the ROUTE-ADDR form of MAILBOX */
+
+  struct _mu_address *next;
+};
+
+extern int mu_address_create_hint (mu_address_t *, const char *,
+				   mu_address_t, int);
+  
 extern int mu_address_create   (mu_address_t *, const char *);
 extern int mu_address_createv  (mu_address_t *, const char *v[], size_t);
 extern void mu_address_destroy (mu_address_t *);

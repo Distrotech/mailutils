@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,12 +34,12 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
-
-#include <address0.h>
+#include <mailutils/address.h>
 
 /* Get email addresses from rfc822 address.  */
 int
-mu_address_create (mu_address_t * a, const char *s)
+mu_address_create_hint (mu_address_t *a, const char *s, mu_address_t hint,
+			int hflags)
 {
   /* 'a' must exist, and can't already have been initialized
    */
@@ -52,7 +52,7 @@ mu_address_create (mu_address_t * a, const char *s)
     return EINVAL;
 
   *a = NULL;
-  status = mu_parse822_address_list (a, s);
+  status = mu_parse822_address_list (a, s, hint, hflags);
   if (status == 0)
     {
       /* And address-list may contain 0 addresses but parse correctly.
@@ -70,9 +70,20 @@ mu_address_create (mu_address_t * a, const char *s)
   return status;
 }
 
-/* Get email addresses from array of rfc822 addresses. */
 int
-mu_address_createv (mu_address_t * a, const char *sv[], size_t len)
+mu_address_create (mu_address_t *a, const char *s)
+{
+  struct _mu_address hint;
+  const char *d;
+  mu_get_user_email_domain (&d);
+  hint.domain = (char*) d;
+  return mu_address_create_hint (a, s, &hint, MU_ADDR_HINT_DOMAIN);
+}
+
+/* Get email addresses from array of rfc822 addresses.
+   FIXME: No hints? */
+int
+mu_address_createv (mu_address_t *a, const char *sv[], size_t len)
 {
   int status = 0;
   size_t buflen = 0;
@@ -130,7 +141,7 @@ mu_address_createv (mu_address_t * a, const char *sv[], size_t len)
 }
 
 void
-mu_address_destroy (mu_address_t * paddress)
+mu_address_destroy (mu_address_t *paddress)
 {
   if (paddress && *paddress)
     {
@@ -160,7 +171,7 @@ mu_address_destroy (mu_address_t * paddress)
 }
 
 int
-mu_address_concatenate (mu_address_t to, mu_address_t * from)
+mu_address_concatenate (mu_address_t to, mu_address_t *from)
 {
   if (!to || !from || !*from)
     return EINVAL;
@@ -254,7 +265,6 @@ ACCESSOR(sget,field) (mu_address_t addr, size_t no, char const **sptr)	\
   subaddr = _address_get_nth (addr, no);				\
   if (!subaddr)								\
     return MU_ERR_NOENT;						\
-  									\
   *sptr = subaddr->field;						\
   return 0;								\
 }
@@ -262,7 +272,7 @@ ACCESSOR(sget,field) (mu_address_t addr, size_t no, char const **sptr)	\
 #define DECL_GET(field)							  \
 int									  \
 ACCESSOR(get,field) (mu_address_t addr, size_t no, char *buf, size_t len, \
-		     size_t * n)					  \
+		     size_t *n)						  \
 {									  \
   size_t i;								  \
   const char *str;							  \
@@ -429,7 +439,7 @@ mu_address_is_group (mu_address_t addr, size_t no, int *yes)
 }
 
 int
-mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t * n)
+mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t *n)
 {
   size_t i;
   if (addr == NULL)
@@ -453,7 +463,7 @@ mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t * n)
 }
 
 int
-mu_address_get_count (mu_address_t addr, size_t * pcount)
+mu_address_get_count (mu_address_t addr, size_t *pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next, j++)
@@ -464,7 +474,7 @@ mu_address_get_count (mu_address_t addr, size_t * pcount)
 }
 
 int
-mu_address_get_group_count (mu_address_t addr, size_t * pcount)
+mu_address_get_group_count (mu_address_t addr, size_t *pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
@@ -478,7 +488,7 @@ mu_address_get_group_count (mu_address_t addr, size_t * pcount)
 }
 
 int
-mu_address_get_email_count (mu_address_t addr, size_t * pcount)
+mu_address_get_email_count (mu_address_t addr, size_t *pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
@@ -492,7 +502,7 @@ mu_address_get_email_count (mu_address_t addr, size_t * pcount)
 }
 
 int
-mu_address_get_unix_mailbox_count (mu_address_t addr, size_t * pcount)
+mu_address_get_unix_mailbox_count (mu_address_t addr, size_t *pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
@@ -522,6 +532,11 @@ mu_address_dup (mu_address_t src)
   if (!dst)
     return NULL;
 
+  /* FIXME: How about:
+    if (src->addr)
+      dst->addr = strdup (src->addr);
+    ?
+  */
   if (src->comments)
     dst->comments = strdup (src->comments);
   if (src->personal)

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -931,13 +931,13 @@ mh_expand_aliases (mu_message_t msg,
 {
   mu_header_t hdr;
   size_t i, num;
-  char *buf;
+  const char *buf;
   
   mu_message_get_header (msg, &hdr);
   mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      if (mu_header_aget_field_name (hdr, i, &buf) == 0)
+      if (mu_header_sget_field_name (hdr, i, &buf) == 0)
 	{
 	  if (strcasecmp (buf, MU_HEADER_TO) == 0
 	      || strcasecmp (buf, MU_HEADER_CC) == 0
@@ -958,7 +958,6 @@ mh_expand_aliases (mu_message_t msg,
 	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
 		mu_address_union (addr_bcc ? addr_bcc : addr_to, addr);
 	    }
-	  free (buf);
 	}
     }
 }

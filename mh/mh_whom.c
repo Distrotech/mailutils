@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,69 +51,47 @@ ismydomain (char *p)
   return strcasecmp (domain, p + 1) == 0;
 }
 
+/* FIXME: incl is not used */
 int
 mh_alias_expand (const char *str, mu_address_t *paddr, int *incl)
 {
-  int argc;
-  char **argv;
-  int i;
-  char *buf;
-  mu_address_t exaddr = NULL;
-
+  size_t i, count;
+  mu_address_t addr;
+  int status;
+  
   if (incl)
     *incl = 0;
-  mu_argcv_get (str, ",", NULL, &argc, &argv);
-  for (i = 0; i < argc;)
+  status = mu_address_create_hint (&addr, str, NULL, 0);
+  if (status)
     {
-      if (i + 1 == argc)
-	{
-	  if (mh_alias_get_address (argv[i], &exaddr, incl) == 0)
-	    {
-	      free (argv[i]);
-	      memcpy (&argv[i], &argv[i+1],
-		      (argc - i + 1) * sizeof (argv[0]));
-	      argc--;
-	    }
-	  else
-	    i++;
-	}
-      else if (argv[i + 1][0] == ',')
-	{
-	  if (mh_alias_get_address (argv[i], &exaddr, incl) == 0)
-	    {
-	      free (argv[i]);
-	      free (argv[i+1]);
-	      memcpy (&argv[i], &argv[i+2],
-		      (argc - i) * sizeof (argv[0]));
-	      argc -= 2;
-	    }
-	  else
-	    i += 2;
-	}
-      else
-	{
-	  for (; i < argc; i++)
-	    if (argv[i][0] == ',')
-	      {
-		i++;
-		break;
-	      }
-	}
+      mu_error (_("Bad address `%s': %s"), str, mu_strerror (status));
+      return 1;
     }
 
-  if (argc)
+  mu_address_get_count (addr, &count);
+  for (i = 1; i <= count; i++)
     {
-      int status;
-      mu_argcv_string (argc, argv, &buf);
-      if ((status = mu_address_create (paddr, buf)))
-	mu_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
-      free (buf);
-    }
+      mu_address_t subaddr = NULL;
+      const char *key;
 
-  mu_argcv_free (argc, argv);
-  
-  mu_address_union (paddr, exaddr);
-  mu_address_destroy (&exaddr);
+      if (mu_address_sget_domain (addr, i, &key) == 0 && key == NULL)
+	{
+	  if (mu_address_sget_local_part (addr, i, &key) == 0
+	      && mh_alias_get_address (key, paddr, incl) == 0)
+	    continue;
+	}
+
+      status = mu_address_get_nth (addr, i, &subaddr);
+      if (status)
+	{
+	  mu_error (_("%s: cannot get address #%lu: %s"),
+		    str, (unsigned long) i, mu_strerror (status));
+	  continue;
+	}
+
+      mu_address_union (paddr, subaddr);
+      mu_address_destroy (&subaddr);
+    }
   return 0;
 }
 
