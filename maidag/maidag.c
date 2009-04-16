@@ -481,6 +481,7 @@ int
 main (int argc, char *argv[])
 {
   int arg_index;
+  mu_debug_t debug;
 
   /* Preparative work: close inherited fds, force a reasonable umask
      and prepare a logging. */
@@ -535,15 +536,17 @@ main (int argc, char *argv[])
   if (log_to_stderr == -1)
     log_to_stderr = url_option || (!lmtp_mode && (current_uid != 0));
   
+  mu_diag_get_debug (&debug);
   if (!log_to_stderr)
     {
-      mu_debug_t debug;
-
       openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-      mu_diag_get_debug (&debug);
       mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-
       mu_debug_default_printer = mu_debug_syslog_printer;
+    }
+  else
+    {
+      mu_debug_set_print (debug, mu_diag_stderr_printer, NULL);
+      mu_debug_default_printer = mu_debug_stderr_printer;
     }
 
   argc -= arg_index;

@@ -31,7 +31,7 @@
 
 #define EPARSE MU_ERR_NOENT
 
-struct _mu_address hint;
+struct mu_address hint;
 int hflags;
 
 static int

@@ -73,7 +73,7 @@ mu_address_create_hint (mu_address_t *a, const char *s, mu_address_t hint,
 int
 mu_address_create (mu_address_t *a, const char *s)
 {
-  struct _mu_address hint;
+  struct mu_address hint;
   const char *d;
   mu_get_user_email_domain (&d);
   hint.domain = (char*) d;

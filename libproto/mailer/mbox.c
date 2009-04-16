@@ -138,12 +138,14 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
   mkaddr (mbox, property, "TO", &to);
   if (!to)
     {
-      const char *rcpt, *host;
-      char *domain = NULL;
+      const char *rcpt;
       
       status = mu_url_sget_user (mbox->url, &rcpt);
       if (status != MU_ERR_NOENT)
 	{
+	  const char *host;
+	  struct mu_address hint;
+	  
 	  if (status)
 	    {
 	      MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
@@ -152,13 +154,10 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	      return status;
 	    }
 
-	  /* FIXME: Set before if? */
-	  mu_aget_user_email_domain (&domain);
 	  mu_url_sget_host (mbox->url, &host);
-	  mu_set_user_email_domain (host);
-	  status = mu_address_create (&to, rcpt);
-	  mu_set_user_email_domain (domain);
-	  free (domain);
+	  hint.domain = (char*) host;
+	  status = mu_address_create_hint (&to, rcpt, &hint, 
+	                                   MU_ADDR_HINT_DOMAIN);
       
 	  if (status)
 	    {

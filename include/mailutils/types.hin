@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail  -*- c -*-
    Copyright (C) 1999, 2000, 2001, 2005, 2007, 
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-struct _mu_address;
+struct mu_address;
 struct _mu_attribute;
 struct _mu_authority;
 struct _mu_body;
@@ -73,7 +73,7 @@ struct _mu_tcp_server;
   
 typedef _MU_OFF_TYPE_ mu_off_t;
   
-typedef struct _mu_address *mu_address_t;
+typedef struct mu_address *mu_address_t;
 typedef struct _mu_attribute *mu_attribute_t;
 typedef struct _mu_authority *mu_authority_t;
 typedef struct _mu_body *mu_body_t;

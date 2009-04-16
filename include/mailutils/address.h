@@ -41,7 +41,7 @@ extern "C" {
  *  
  * Capitalized names are from RFC 822, section 6.1 (Address Syntax).
  */
-struct _mu_address
+struct mu_address
 {
   char *addr;
   	/* the original string that this list of addresses was created
@@ -60,7 +60,7 @@ struct _mu_address
   char *route;
   	/* the optional ROUTE in the ROUTE-ADDR form of MAILBOX */
 
-  struct _mu_address *next;
+  struct mu_address *next;
 };
 
 extern int mu_address_create_hint (mu_address_t *, const char *,

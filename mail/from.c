@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2007 Free Software Foundation, Inc.
+   2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,8 +42,7 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
       mu_address_t address = NULL;
       if (mu_address_create (&address, from) == 0)
 	{
-	  char name[128];
-	  size_t len;
+	  char *name;
 	  const char *email;
 	  
 	  if (mu_address_sget_email (address, 1, &email) == 0)
@@ -53,7 +52,8 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
 		{
 		  char *tmp;
 
-		  if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, &tmp) == 0)
+		  if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, 
+		                                   &tmp) == 0)
 		    {
 		      mu_address_t addr_to;
 		      if (mu_address_create (&addr_to, tmp) == 0)
@@ -66,16 +66,14 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
 		}
 	    }
 	      
-	  len = strlen (from) + 1;
-	  *name = '\0';
-	  mu_address_get_personal (address, 1, name, sizeof name, NULL);
-	  if (*name && len)
+	  if ((mu_address_aget_personal (address, 1, &name) == 0
+	       && name)
+	      || (mu_address_aget_email (address, 1, &name) == 0
+		  && name))
 	    {
-	      strncpy (from, name, len - 1);
-	      from[len - 1] = '\0';
+	      free (from);
+	      from = name;
 	    }
-	  else
-	    mu_address_get_email (address, 1, from, len, NULL);
 	  mu_address_destroy (&address);
 	}
     }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -478,60 +478,63 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
     return -1;
   mu_mime_get_message (mime, &newmsg);
   mu_message_get_header (newmsg, &newhdr);
-
+  
   rc = mu_address_create (&to_addr, to);
   if (rc)
     {
       mu_sieve_error (mach,
 		      _("%d: cannot create recipient address <%s>: %s"),
 		      mu_sieve_get_message_num (mach), from, mu_strerror (rc));
-      return -1;
-    }
-
-  mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
-  
-  vacation_subject (mach, tags, msg, newhdr);
-    
-  if (from)
-    {
-      if (mu_address_create (&from_addr, from))
-	from_addr = NULL;
     }
   else
     {
-      from_addr = NULL;
-    }
-  
-  if (mu_rfc2822_in_reply_to (msg, &value) == 0)
-    {
-      mu_header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
-      free (value);
-    }
-  
-  if (mu_rfc2822_references (msg, &value) == 0)
-    {
-      mu_header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
-      free (value);
-    }
-  
-  mailer = mu_sieve_get_mailer (mach);
-  rc = mu_mailer_open (mailer, 0);
-  if (rc)
-    {
-      mu_url_t url = NULL;
-      mu_mailer_get_url (mailer, &url);
+      mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
       
-      mu_sieve_error (mach,
-		      _("%d: cannot open mailer %s: %s"),
-		      mu_sieve_get_message_num (mach),
-		      mu_url_to_string (url), mu_strerror (rc));
-      return -1;
+      vacation_subject (mach, tags, msg, newhdr);
+      
+      if (from)
+        {
+          if (mu_address_create (&from_addr, from))
+	    from_addr = NULL;
+        }
+      else
+        {
+          from_addr = NULL;
+        }
+      
+      if (mu_rfc2822_in_reply_to (msg, &value) == 0)
+        {
+          mu_header_set_value (newhdr, MU_HEADER_IN_REPLY_TO, value, 1);
+          free (value);
+        }
+      
+      if (mu_rfc2822_references (msg, &value) == 0)
+        {
+          mu_header_set_value (newhdr, MU_HEADER_REFERENCES, value, 1);
+          free (value);
+        }
+      
+      mailer = mu_sieve_get_mailer (mach);
+      rc = mu_mailer_open (mailer, 0);
+      if (rc)
+	{
+	  mu_url_t url = NULL;
+	  mu_mailer_get_url (mailer, &url);
+      
+	  mu_sieve_error (mach,
+			  _("%d: cannot open mailer %s: %s"),
+			  mu_sieve_get_message_num (mach),
+			  mu_url_to_string (url), mu_strerror (rc));
+	}
+      else
+	{
+	  rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
+	  mu_mailer_close (mailer);
+	}
+      mu_mailer_destroy (&mailer);
     }
-  else
-    {
-      rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
-      mu_mailer_close (mailer);
-    }
+  mu_address_destroy (&to_addr);
+  mu_address_destroy (&from_addr);
   mu_mime_destroy (&mime);
   return rc;
 }

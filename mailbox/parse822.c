@@ -705,7 +705,7 @@ mu_parse822_phrase (const char **p, const char *e, char **phrase)
 static mu_address_t
 new_mb (void)
 {
-  return calloc (1, sizeof (struct _mu_address));
+  return calloc (1, sizeof (struct mu_address));
 }
 
 static char *

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -761,9 +761,7 @@ mu_header_get_address_n (mu_header_t header, const char *name, int n,
   if (status)
     return status;
 
-  status = mu_address_create(addr, value);
-
-  return status;
+  return mu_address_create (addr, value);
 }
 
 
