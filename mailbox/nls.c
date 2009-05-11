@@ -36,7 +36,7 @@ char *mu_locale_set;
 char *
 mu_set_locale (const char *locale)
 {
-#if defined HAVE_SETLOCALE && defined ENABLE_NLS
+#if defined HAVE_SETLOCALE
   return setlocale (LC_ALL, locale);
 #else
   return NULL;

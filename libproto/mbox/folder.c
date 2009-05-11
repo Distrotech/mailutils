@@ -159,11 +159,23 @@ _folder_mbox_init (mu_folder_t folder)
     return ENOMEM;
 
   status = mu_url_aget_path (folder->url, &dfolder->dirname);
+  if (status == MU_ERR_NOENT)
+    {
+      dfolder->dirname = malloc (2);
+      if (dfolder->dirname == NULL)
+	status = ENOMEM;
+      else
+	{
+	  strcpy (dfolder->dirname, ".");
+	  status = 0;
+	}
+    }
+  
   if (status)  
     {
       free (dfolder);
       folder->data = NULL;
-      return ENOMEM;
+      return status;
     }
 
   folder->_destroy = folder_mbox_destroy;

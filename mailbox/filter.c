@@ -35,7 +35,7 @@ First draft: Alain Magloire.
 #endif
 
 #include <filter0.h>
-
+#include <stream0.h>
 #include <mailutils/iterator.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
@@ -124,6 +124,8 @@ static int
 filter_close (mu_stream_t stream)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
+  if (stream->flags & MU_STREAM_NO_CLOSE)
+    return 0;
   return mu_stream_close (filter->stream);
 }
 
@@ -161,7 +163,7 @@ mu_filter_get_list (mu_list_t *plist)
 
 int
 mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
-	       int type, int direction)
+		  int type, int direction)
 {
   mu_iterator_t iterator = NULL;
   mu_filter_record_t filter_record = NULL;

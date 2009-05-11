@@ -149,8 +149,9 @@ extern int mu_header_aget_field_value_unfold (mu_header_t header, size_t num,
 					      char **pvalue);
 
 extern int mu_header_get_stream (mu_header_t, mu_stream_t *);
-extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
-
+/* FIXME: This function does not exist:
+   extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
+*/
 extern int mu_header_size (mu_header_t, size_t *);
 extern int mu_header_lines (mu_header_t, size_t *);
 

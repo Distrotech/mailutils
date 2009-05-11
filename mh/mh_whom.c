@@ -59,6 +59,12 @@ mh_alias_expand (const char *str, mu_address_t *paddr, int *incl)
   mu_address_t addr;
   int status;
   
+  if (!str || !*str)
+    {
+      *paddr = NULL;
+      return 0;
+    }
+
   if (incl)
     *incl = 0;
   status = mu_address_create_hint (&addr, str, NULL, 0);

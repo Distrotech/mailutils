@@ -692,7 +692,8 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
   size_t n = 0;
   mu_off_t offset;
 
-  mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
+  mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE,
+		    MU_STREAM_READ|MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
 
   if (start == 0 && size == (size_t) -1)
     {
@@ -721,6 +722,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
     }
   else if (size + 2 < size) /* Check for integer overflow */
     {
+      mu_stream_destroy (&rfc, NULL);
       return RESP_BAD;
     }
   else
@@ -751,6 +753,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 	util_send (" \"\"");
       free (buffer);
     }
+  mu_stream_destroy (&rfc, NULL);
   return RESP_OK;
 }
 
