@@ -883,27 +883,30 @@ mu_expand_path_pattern (const char *pattern, const char *username)
 	  q += strlen (auth->dir);
 	  p++;
 	}
-      else if (*p)
-	switch (*++p)
-	  {
-	  case 'u':
-	    strcpy (q, username);
-	    q += strlen (username);
-	    break;
+      else if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'u':
+	      strcpy (q, username);
+	      q += strlen (username);
+	      break;
 	    
-	  case 'h':
-	    strcpy (q, auth->dir);
-	    q += strlen (auth->dir);
-	    break;
+	    case 'h':
+	      strcpy (q, auth->dir);
+	      q += strlen (auth->dir);
+	      break;
 	  
-	  case '%':
-	    *q++ = '%';
-	    break;
+	    case '%':
+	      *q++ = '%';
+	      break;
 	  
-	  default:
-	    *q++ = '%';
-	    *q++ = *p;
-	  }
+	    default:
+	      *q++ = '%';
+	      *q++ = *p;
+	    }
+	  p++;
+	}
     }
 
   *q = 0;

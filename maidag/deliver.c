@@ -307,7 +307,12 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
       if (current_uid)
 	auth->change_uid = 0;
 
-      if (script_apply (msg, auth))
+      if (switch_user_id (auth, 1))
+	return EX_TEMPFAIL;
+      status = script_apply (msg, auth);
+      if (switch_user_id (auth, 0))
+	return EX_TEMPFAIL;
+      if (status)
 	{
 	  exit_code = EX_OK;
 	  mu_auth_data_free (auth);

@@ -120,12 +120,18 @@ apply_script (void *item, void *data)
   struct apply_script_closure *clos = data;
   char *progfile;
   int rc;
+  struct stat st;
   
   progfile = mu_expand_path_pattern (scr->pat, clos->auth->name);
-  if (access (progfile, R_OK))
+  if (stat (progfile, &st))
     {
       if (debug_level > 2)
-	mu_diag_output (MU_DIAG_DEBUG, _("Access to %s failed: %m"), progfile);
+	mu_diag_output (MU_DIAG_DEBUG, _("cannot stat %s: %s"),
+			progfile, mu_strerror (errno));
+      else if (errno != ENOENT)
+	mu_diag_output (MU_DIAG_NOTICE, _("cannot stat %s: %s"),
+			progfile, mu_strerror (errno));
+      
       free (progfile);
       return 0;
     }
