@@ -62,9 +62,6 @@
 #include <mailutils/version.h>
 #include <mailutils/vartab.h>
 #include <mailutils/io.h>
-
-#ifdef MU_COMPAT
-# error "Version 0.6 is no longer supported. Please, update your program."
-#endif
+#include <mailutils/secret.h>
 
 /* EOF */

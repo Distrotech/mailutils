@@ -69,7 +69,7 @@ static int
 _url_prog_init (mu_url_t url)
 {
   /* not valid in a prog url */
-  if (url->passwd || url->auth || url->host || url->port)
+  if (url->secret || url->auth || url->host || url->port)
     return EINVAL;
   if (!url->path)
     return EINVAL;

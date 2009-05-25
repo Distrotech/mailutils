@@ -434,7 +434,7 @@ api_ticket_destroy (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PyTicketType, &py_ticket))
     return NULL;
 
-  mu_ticket_destroy (&py_ticket->ticket, NULL);
+  mu_ticket_destroy (&py_ticket->ticket);
   return _ro (Py_None);
 }
 
@@ -452,7 +452,7 @@ api_wicket_create (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!s", &PyWicketType, &py_wicket, &filename))
     return NULL;
 
-  status = mu_wicket_create (&py_wicket->wicket, filename);
+  status = mu_file_wicket_create (&py_wicket->wicket, filename);
   return _ro (PyInt_FromLong (status));
 }
 
@@ -466,38 +466,6 @@ api_wicket_destroy (PyObject *self, PyObject *args)
 
   mu_wicket_destroy (&py_wicket->wicket);
   return _ro (Py_None);
-}
-
-static PyObject *
-api_wicket_get_filename (PyObject *self, PyObject *args)
-{
-  int status;
-  size_t n;
-  char filename[512];
-  PyWicket *py_wicket;
-
-  memset (filename, 0, sizeof (filename));
-
-  if (!PyArg_ParseTuple (args, "O!", &PyWicketType, &py_wicket))
-    return NULL;
-
-  status = mu_wicket_get_filename (py_wicket->wicket, filename,
-				   sizeof (filename), &n);
-  return status_object (status, PyString_FromString (filename));
-}
-
-static PyObject *
-api_wicket_set_filename (PyObject *self, PyObject *args)
-{
-  int status;
-  char *filename;
-  PyWicket *py_wicket;
-
-  if (!PyArg_ParseTuple (args, "O!s", &PyWicketType, &py_wicket, &filename))
-    return NULL;
-
-  status = mu_wicket_set_filename (py_wicket->wicket, filename);
-  return _ro (PyInt_FromLong (status));
 }
 
 /*
@@ -643,12 +611,6 @@ static PyMethodDef methods[] = {
     "" },
 
   { "wicket_destroy", (PyCFunction) api_wicket_destroy, METH_VARARGS,
-    "" },
-
-  { "wicket_get_filename", (PyCFunction) api_wicket_get_filename, METH_VARARGS,
-    "" },
-
-  { "wicket_set_filename", (PyCFunction) api_wicket_set_filename, METH_VARARGS,
     "" },
 
   { "register_module", (PyCFunction) api_register_module, METH_VARARGS,

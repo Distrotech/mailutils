@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/url.h>
+#include <mailutils/secret.h>
 
 #define CAT2(a,b) a ## b
 
@@ -84,6 +85,7 @@ main ()
     {
       int rc;
       const char *buf;
+      mu_secret_t secret;
       
       str[strlen (str) - 1] = '\0';     /* chop newline */
       if (strspn (str, " \t") == strlen (str))
@@ -104,7 +106,21 @@ main ()
 
       GET_AND_PRINT (scheme, u, buf, rc);
       GET_AND_PRINT (user, u, buf, rc);
-      GET_AND_PRINT (passwd, u, buf, rc);
+
+      rc = mu_url_get_secret (u, &secret);
+      if (rc == MU_ERR_NOENT)
+	printf ("\tpasswd <>\n");
+      else if (rc)
+	{
+	  mu_error ("cannot get %s: %s", "passwd", mu_strerror (rc));
+	  exit (1);
+        }
+      else
+	{
+	  printf ("\tpasswd <%s>\n", mu_secret_password (secret));
+	  mu_secret_password_unref (secret);
+	}
+      
       GET_AND_PRINT (auth, u, buf, rc);
       GET_AND_PRINT (host, u, buf, rc);
 

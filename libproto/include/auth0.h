@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,11 +34,17 @@ extern "C" {
 
 struct _mu_ticket
 {
-  void *owner;
-  char *challenge;
+  void *owner;           /* Object owner.  Not actually needed, but retained
+			    for a while. */
+  unsigned int refcnt;   /* Reference counter */
+  char *plain;           /* Plaintext credential (if any) */
+  mu_secret_t secret;    /* Secret credential (if any) */
+  void (*_destroy)  (mu_ticket_t); /* Destroy function */
+  /* Function for obtaining credentials */
+  int  (*_get_cred) (mu_ticket_t, mu_url_t, const char *, char **,
+		     mu_secret_t *);
+  /* Additional data for _get_cred */
   void *data;
-  int  (*_pop)      (mu_ticket_t, mu_url_t, const char *challenge, char **);
-  void (*_destroy)  (mu_ticket_t);
 };
 
 struct _mu_authority
@@ -49,8 +56,10 @@ struct _mu_authority
 
 struct _mu_wicket
 {
-  char *filename;
-  int (*_get_ticket) (mu_wicket_t, const char *, const char *, mu_ticket_t *);
+  unsigned int refcnt;   /* Reference counter */
+  void *data;
+  int (*_get_ticket) (mu_wicket_t, void *, const char *, mu_ticket_t *);
+  void (*_destroy) (mu_wicket_t);
 };
 
 

@@ -51,6 +51,7 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/secret.h>
 #include <mailutils/tls.h>
 #include <mailutils/md5.h>
 #include <mailutils/io.h>
@@ -207,7 +208,8 @@ struct _pop_data
 
   int is_updated;
   char *user;     /* Temporary holders for user and passwd.  */
-  char *passwd;   /* Temporary holders for passwd memset (0) when finish.  */
+  mu_secret_t secret;
+  char *digest;
   mu_mailbox_t mbox; /* Back pointer.  */
 } ;
 
@@ -532,22 +534,23 @@ _pop_user (mu_authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
       status = pop_get_passwd (auth);
-      if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
+      if (status != 0 || mpd->secret == NULL)
 	{
 	  pop_writeline (mpd, "QUIT\r\n");
 	  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 	  pop_write (mpd);
 	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOPASSWORD);
 	}
-      status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
+      status = pop_writeline (mpd, "PASS %s\r\n",
+			      mu_secret_password (mpd->secret));
+      mu_secret_password_unref (mpd->secret);
+      mu_secret_unref (mpd->secret);
+      mpd->secret = NULL;
       MU_DEBUG (mbox->debug, MU_DEBUG_PROT, "PASS ***\n");
-      /* Leave not trail of the passwd.  */
-      memset (mpd->passwd, '\0', strlen (mpd->passwd));
-      free (mpd->passwd);
-      mpd->passwd = NULL;
       CHECK_ERROR_CLOSE (mbox, mpd, status);
       mpd->state = POP_AUTH_PASS;
-
+      /* FIXME: Merge these two cases */
+	 
     case POP_AUTH_PASS:
       /* Send passwd.  */
       status = pop_write (mpd);
@@ -599,7 +602,7 @@ _pop_apop (mu_authority_t auth)
 
       /* Fetch the secret from them.  */
       status = pop_get_passwd (auth);
-      if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
+      if (status != 0 || mpd->secret == NULL)
 	{
 	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
 	}
@@ -610,14 +613,14 @@ _pop_apop (mu_authority_t auth)
 	{
 	  CHECK_ERROR_CLOSE (mbox, mpd, status);
 	}
-      status = pop_writeline (mpd, "APOP %s %s\r\n", mpd->user, mpd->passwd);
+      status = pop_writeline (mpd, "APOP %s %s\r\n", mpd->user, mpd->digest);
       MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       /* We have to obscure the md5 string.  */
-      memset (mpd->passwd, '\0', strlen (mpd->passwd));
+      memset (mpd->digest, '\0', strlen (mpd->digest));
       free (mpd->user);
-      free (mpd->passwd);
+      free (mpd->digest);
       mpd->user = NULL;
-      mpd->passwd = NULL;
+      mpd->digest = NULL;
       CHECK_ERROR_CLOSE (mbox, mpd, status);
       mpd->state = POP_APOP;
 
@@ -2114,10 +2117,11 @@ pop_get_user (mu_authority_t auth)
   /* Was it in the URL? */
   status = mu_url_aget_user (mbox->url, &mpd->user);
   if (status == MU_ERR_NOENT)
-    mu_ticket_pop (ticket, mbox->url, "Pop User: ",  &mpd->user);
-  else if (status)
-    return status;
-  return 0;
+    status = mu_ticket_get_cred (ticket, mbox->url, "Pop User: ",
+				 &mpd->user, NULL);
+  if (status == MU_ERR_NOENT || mpd->user == NULL)
+    return MU_ERR_NOUSERNAME;  
+  return status;
 }
 
 /* Extract the User from the URL or the ticket.  */
@@ -2131,17 +2135,15 @@ pop_get_passwd (mu_authority_t auth)
   int status;
 
   mu_authority_get_ticket (auth, &ticket);
-  if (mpd->passwd)
-    {
-      free (mpd->passwd);
-      mpd->passwd = NULL;
-    }
   /* Was it in the URL? */
-  status = mu_url_aget_passwd (mbox->url, &mpd->passwd);
+  status = mu_url_get_secret (mbox->url, &mpd->secret);
   if (status == MU_ERR_NOENT)
-    mu_ticket_pop (ticket, mbox->url, "Pop Passwd: ",  &mpd->passwd);
-  else if (status)
-    return status;
+    status = mu_ticket_get_cred (ticket, mbox->url, "Pop Passwd: ",
+				 NULL, &mpd->secret);
+  if (status == MU_ERR_NOENT || !mpd->secret)
+    /* FIXME: Is this always right? The user might legitimately have
+       no password */
+    return MU_ERR_NOPASSWORD;
   return 0;
 }
 
@@ -2189,15 +2191,19 @@ pop_get_md5 (pop_data_t mpd)
 
   mu_md5_init_ctx (&md5context);
   mu_md5_process_bytes (timestamp, strlen (timestamp), &md5context);
-  mu_md5_process_bytes (mpd->passwd, strlen (mpd->passwd), &md5context);
+  mu_md5_process_bytes (mu_secret_password (mpd->secret),
+			mu_secret_length (mpd->secret),
+			&md5context);
+  mu_secret_password_unref (mpd->secret);
+  mu_secret_unref (mpd->secret);
+  mpd->secret = NULL;
   mu_md5_finish_ctx (&md5context, md5digest);
   
   for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
     sprintf (tmp, "%02x", md5digest[n]);
   *tmp = '\0';
   free (timestamp);
-  free (mpd->passwd);
-  mpd->passwd = strdup (digest);
+  mpd->digest = strdup (digest);
   return 0;
 }
 

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2005, 2007 Free Software Foundation, Inc.
+   2005, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,410 +34,327 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/stream.h>
 
 #include <auth0.h>
 #include <url0.h>
 
-struct myticket_data
-{
-  char *user;
-  char *pass;
-  char *filename;
-};
-
-static int   myticket_create  (mu_ticket_t *, const char *, const char *, const char *);
-static void  myticket_destroy (mu_ticket_t);
-static int   myticket_pop     (mu_ticket_t, mu_url_t, const char *, char **);
-static int   get_pass         (mu_url_t, const char *, const char *, char**);
-static int   get_user         (mu_url_t, const char *, char **);
-
 int
-mu_wicket_create (mu_wicket_t *pwicket, const char *filename)
+mu_wicket_create (mu_wicket_t *pwicket)
 {
-  struct stat st;
-
-  if (pwicket == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  if (filename)
-    {
-      if (stat (filename, &st) == -1)
-	return errno;
-      if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
-	return MU_ERR_UNSAFE_PERMS;
-    }
-
-  *pwicket = calloc (1, sizeof (**pwicket));
-  if (*pwicket == NULL)
+  mu_wicket_t wicket = calloc (1, sizeof (*wicket));
+  if (!wicket)
     return ENOMEM;
-
-  if (filename)
-    (*pwicket)->filename = strdup (filename);
+  wicket->refcnt = 1;
   return 0;
 }
+
+int
+mu_wicket_get_ticket (mu_wicket_t wicket, const char *user, mu_ticket_t *pticket)
+{
+  if (!wicket)
+    return EINVAL;
+  if (!pticket)
+    return EINVAL;
+  if (!wicket->_get_ticket)
+    return ENOSYS;
+  return wicket->_get_ticket (wicket, wicket->data, user, pticket);
+}
+
+int
+mu_wicket_ref (mu_wicket_t wicket)
+{
+  if (!wicket)
+    return EINVAL;
+  wicket->refcnt++;
+  return 0;
+}
+
+int
+mu_wicket_unref (mu_wicket_t wicket)
+{
+  if (!wicket)
+    return EINVAL;
+  if (wicket->refcnt)
+    wicket->refcnt--;
+  if (wicket->refcnt == 0)
+    {
+      if (wicket->_destroy)
+	wicket->_destroy (wicket);
+      free (wicket);
+      return 0;
+    }
+  return MU_ERR_EXISTS;
+}
+
 
 void
 mu_wicket_destroy (mu_wicket_t *pwicket)
 {
-  if (pwicket && *pwicket)
-    {
-      mu_wicket_t wicket = *pwicket;
-      if (wicket->filename)
-	free (wicket->filename);
-      free (wicket);
-      *pwicket = NULL;
-    }
+  if (pwicket && *pwicket && mu_wicket_unref (*pwicket) == 0)
+    *pwicket = NULL;
 }
 
 int
-mu_wicket_get_filename (mu_wicket_t wicket, char *filename, size_t len,
-			size_t *pwriten)
+mu_wicket_set_destroy (mu_wicket_t wicket, void (*_destroy) (mu_wicket_t))
 {
-  size_t n;
-  if (wicket == NULL)
+  if (!wicket)
     return EINVAL;
-  n = mu_cpystr (filename, wicket->filename, len);
-  if (pwriten)
-    *pwriten = n;
+  wicket->_destroy = _destroy;
   return 0;
 }
 
 int
-mu_wicket_set_filename (mu_wicket_t wicket, const char *filename)
+mu_wicket_set_data (mu_wicket_t wicket, void *data)
 {
-  if (wicket == NULL)
+  if (!wicket)
     return EINVAL;
-  
-  if (wicket->filename)
-    free (wicket->filename);
-  
-  wicket->filename = (filename) ? strdup (filename) : NULL;
+  wicket->data = data;
   return 0;
+}
+
+void *
+mu_wicket_get_data (mu_wicket_t wicket)
+{
+  if (!wicket)
+    return NULL;
+  return wicket->data;
 }
 
 int
-mu_wicket_set_ticket (mu_wicket_t wicket, int (*get_ticket)
-		      (mu_wicket_t, const char *, const char *, mu_ticket_t *))
+mu_wicket_set_get_ticket (mu_wicket_t wicket,
+			  int (*_get_ticket) (mu_wicket_t, void *,
+					      const char *, mu_ticket_t *))
 {
-  if (wicket == NULL)
+  if (!wicket)
     return EINVAL;
-
-  wicket->_get_ticket = get_ticket;
+  wicket->_get_ticket = _get_ticket;
   return 0;
 }
 
-int
-mu_wicket_get_ticket (mu_wicket_t wicket, mu_ticket_t *pticket,
-		      const char *user,
-		      const char *type)
+
+/* A "file wicket" implementation */
+
+struct file_wicket
 {
-  if (wicket == NULL || pticket == NULL)
-    return EINVAL;
-
-  if (wicket->filename == NULL)
-    return EINVAL;
-
-  if (wicket->_get_ticket)
-    return wicket->_get_ticket (wicket, user, type, pticket);
-  return myticket_create (pticket, user, NULL, wicket->filename);
-}
-
-static int
-myticket_create (mu_ticket_t *pticket, const char *user,
-		 const char *pass, const char *filename)
-{
-  struct myticket_data *mdata;
-  int status = mu_ticket_create (pticket, NULL);
-  if (status != 0)
-    return status;
-
-  mdata = calloc (1, sizeof *mdata);
-  if (mdata == NULL)
-    {
-      mu_ticket_destroy (pticket, NULL);
-      return ENOMEM;
-    }
-
-  mu_ticket_set_destroy (*pticket, myticket_destroy, NULL);
-  mu_ticket_set_pop (*pticket, myticket_pop, NULL);
-  mu_ticket_set_data (*pticket, mdata, NULL);
-
-  if (filename)
-    {
-      mdata->filename = strdup (filename);
-      if (mdata->filename == NULL)
-	{
-	  mu_ticket_destroy (pticket, NULL);
-	  status = ENOMEM;
-	  return status;
-	}
-    }
-
-  if (user)
-    {
-      mdata->user = strdup (user);
-      if (mdata->user == NULL)
-	{
-	  mu_ticket_destroy (pticket, NULL);
-	  status = ENOMEM;
-	  return status;
-	}
-    }
-
-  if (pass)
-    {
-      mdata->pass = strdup (pass);
-      if (mdata->pass == NULL)
-	{
-	  mu_ticket_destroy (pticket, NULL);
-	  status = ENOMEM;
-	  return status;
-	}
-    }
-
-  return 0;
-}
-
-static int
-myticket_pop (mu_ticket_t ticket, mu_url_t url,
-	      const char *challenge, char **parg)
-{
-  struct myticket_data *mdata = NULL;
-  int e = 0;
-  
-  mu_ticket_get_data (ticket, (void **)&mdata);
-  if (challenge && (strstr (challenge, "ass") != NULL ||
-		    strstr (challenge, "ASS") != NULL))
-    {
-      if (mdata->pass)
-	{
-	  *parg = strdup (mdata->pass);
-	  if (!*parg)
-	    e = ENOMEM;
-	}
-      else
-	e = get_pass (url, mdata->user, mdata->filename, parg);
-    }
-  else
-    {
-      if (mdata->user)
-	{
-	  *parg = strdup(mdata->user);
-	  if (!*parg)
-	    e = ENOMEM;
-	}
-      else
-	e = get_user (url, mdata->filename, parg);
-  }
-  return e;
-}
+  char *filename;
+};
 
 static void
-myticket_destroy (mu_ticket_t ticket)
+_file_wicket_destroy (mu_wicket_t wicket)
 {
-  struct myticket_data *mdata = NULL;
-  mu_ticket_get_data (ticket, (void **)&mdata);
-  if (mdata)
+  struct file_wicket *fw = mu_wicket_get_data (wicket);
+  free (fw->filename);
+  free (fw);
+}
+
+struct file_ticket
+{
+  char *filename;
+  char *user;
+  mu_url_t tickurl;
+};
+
+static void
+file_ticket_destroy (mu_ticket_t ticket)
+{
+  struct file_ticket *ft = mu_ticket_get_data (ticket);
+  if (ft)
     {
-      if (mdata->user)
-	free (mdata->user);
-      if (mdata->pass)
-	free (mdata->pass);
-      if (mdata->filename)
-	free (mdata->filename);
-      free (mdata);
+      free (ft->filename);
+      free (ft->user);
+      mu_url_destroy (&ft->tickurl);
+      free (ft);
     }
 }
 
-static int
-get_ticket (mu_url_t url, const char *user, const char *filename,
-	    mu_url_t * ticket)
+static int get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url);
+
+int
+file_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
+		      char **pplain, mu_secret_t *psec)
 {
-  int status = MU_ERR_NOENT;
-  FILE *fp = NULL;
-  size_t buflen = 128;
-  char *buf = NULL;
+  struct file_ticket *ft = mu_ticket_get_data (ticket);
 
-  if (!filename || !url)
-    return EINVAL;
-
-  fp = fopen (filename, "r");
-
-  if (!fp)
-    return errno;
-
-  buf = malloc (buflen);
-
-  if (!buf)
+  if (!ft->tickurl)
     {
-      fclose (fp);
+      int rc = get_ticket_url (ticket, url, &ft->tickurl);
+      if (rc)
+	return rc;
+    }
+  if (pplain)
+    {
+      if (ft->user)
+	{
+	  *pplain = strdup (ft->user);
+	  if (!*pplain)
+	    return ENOMEM;
+	}
+      else
+	return mu_url_aget_user (ft->tickurl, pplain);
+    }
+  else
+    return mu_url_get_secret (ft->tickurl, psec);
+}
+
+static int
+_file_wicket_get_ticket (mu_wicket_t wicket, void *data,
+			 const char *user, mu_ticket_t *pticket)
+{
+  int rc;
+  mu_ticket_t ticket;
+  struct file_wicket *fw = data;
+  struct file_ticket *ft = calloc (1, sizeof (*ft));
+  ft->filename = strdup (fw->filename);
+  if (!ft->filename)
+    {
+      free (ft);
       return ENOMEM;
     }
-
-  while (!feof (fp) && !ferror (fp))
+  if (user)
     {
-      char *ptr = buf;
-      int len = 0;
-      mu_url_t u = NULL;
-      int err;
-      
-      /* fgets:
-	 1) return true, read some data
-           1a) read a newline, so break
-           1b) didn't read newline, so realloc & continue
-         2) returned NULL, so no more data
-       */
-      while (fgets (ptr, buflen, fp) != NULL)
+      ft->user = strdup (user);
+      if (!ft->user)
 	{
-	  char *tmp = NULL;
-	  len = strlen (buf);
-	  /* Check if a complete line.  */
+	  free (ft->filename);
+	  free (ft);
+	  return ENOMEM;
+	}
+    }
+  else
+    ft->user = NULL;
+
+  rc = mu_ticket_create (&ticket, NULL);
+  if (rc)
+    {
+      free (ft->filename);
+      free (ft->user);
+      free (ft);
+      return rc;
+    }
+	
+  mu_ticket_set_destroy (ticket, file_ticket_destroy, NULL);
+  mu_ticket_set_data (ticket, ft, NULL);
+  mu_ticket_set_get_cred (ticket, file_ticket_get_cred, NULL);
+
+  *pticket = ticket;
+  return 0;
+}
+  
+static int
+get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
+{
+  mu_stream_t stream;
+  struct file_ticket *ft = mu_ticket_get_data (ticket);
+  int rc;
+  mu_url_t u = NULL;
+  
+  rc = mu_file_stream_create (&stream, ft->filename, MU_STREAM_READ);
+  if (rc)
+    return rc;
+  rc = mu_stream_open (stream);
+  if (rc == 0)
+    {
+      char *buf = NULL;
+      size_t bufsize = 0;
+      size_t len;
+
+      while ((rc = mu_stream_sequential_getline (stream,
+						 &buf, &bufsize, &len)) == 0
+	     && len > 0)
+	{
+	  char *p;
+	  int err;
+	  
+	  /* Truncate a trailing newline. */
 	  if (len && buf[len - 1] == '\n')
-	    break;
+	    buf[--len] = 0;
 
-	  buflen *= 2;
-	  tmp = realloc (buf, buflen);
-	  if (tmp == NULL)
+	  /* Skip leading spaces  */
+	  for (p = buf; *p == ' ' || *p == '\t'; p++)
+	    ;
+	  /* Skip trailing spaces */
+	  for (; len > 0 && (p[len-1] == ' ' || p[len-1] == '\t'); )
+	    p[--len] = 0;
+	  
+	  /* Skip empty lines and comments. */
+	  if (*p == 0 || *p == '#')
+	    continue;
+
+	  if ((err = mu_url_create (&u, p)) != 0)
 	    {
-	      free (buf);
-	      fclose (fp);
-	      return ENOMEM;
+	      /* Skip erroneous entry */
+	      /* FIXME: Error message */
+	      continue;
 	    }
-	  buf = tmp;
-	  ptr = buf + len;
-	}
-
-      len = strlen (buf);
-
-      /* Truncate a trailing newline. */
-      if (len && buf[len - 1] == '\n')
-	buf[--len] = 0;
-
-      /* Skip leading spaces.  */
-      ptr = buf;
-      while (isspace (*ptr))
-	ptr++;
-
-      /* Skip empty lines and comments. */
-      if (!*ptr || *ptr == '#')
-	continue;
-
-      if ((err = mu_url_create (&u, ptr)) != 0)
-	{
-	  status = err;
-	  break;
-	}
-      if ((err = mu_url_parse (u)) != 0)
-	{
-	  /* TODO: send output to the debug stream */
-	  /*
-	     printf ("mu_url_parse %s failed: [%d] %s\n", str, err, mu_strerror (err));
-	   */
-	  mu_url_destroy (&u);
-	  continue;
-	}
-
-
-      if (!mu_url_is_ticket (u, url))
-	{
-	  mu_url_destroy (&u);
-	  continue;
-	}
-      /* Also needs to be for name, if we required. */
-      if (user)
-	{
-	  if (u->name && strcmp (u->name, "*") != 0
-	      && strcmp (user, u->name) != 0)
+	  if ((err = mu_url_parse (u)) != 0)
+	    {
+	      /* FIXME: See above */
+	      mu_url_destroy (&u);
+	      continue;
+	    }
+	  
+	  if (!mu_url_is_ticket (u, url))
 	    {
 	      mu_url_destroy (&u);
 	      continue;
 	    }
+	  
+	  if (ft->user)
+	    {
+	      if (u->name && strcmp (u->name, "*") != 0
+		  && strcmp (ft->user, u->name) != 0)
+		{
+		  mu_url_destroy (&u);
+		  continue;
+		}
+	    }
+	  
+	  break;
 	}
-
-      /* Looks like a match! */
-      *ticket = u;
-      u = NULL;
-      status = 0;
-      break;
+      mu_stream_close (stream);
+      free (buf);
     }
+  mu_stream_destroy (&stream, NULL);
 
-  fclose (fp);
-  free (buf);
-
-  return status;
+  if (rc == 0)
+    {
+      if (u)
+	*pticket_url = u;
+      else
+	rc = MU_ERR_NOENT;
+    }
+  
+  return rc;
 }
 
-static int
-get_user (mu_url_t url, const char *filename, char **user)
+int
+mu_file_wicket_create (mu_wicket_t *pwicket, const char *filename)
 {
-  char *u = 0;
-  int status;
+  mu_wicket_t wicket;
+  int rc;
+  struct file_wicket *fw = calloc (1, sizeof (*fw));
 
-  if (url)
+  if (!fw)
+    return ENOMEM;
+  fw->filename = strdup (filename);
+  if (!fw->filename)
     {
-      status = mu_url_aget_user (url, &u);
-      if (status && status != MU_ERR_NOENT)
-        return status;
+      free (fw);
+      return ENOMEM;
     }
-
-  if (!u && filename)
+  
+  rc = mu_wicket_create (&wicket);
+  if (rc)
     {
-      mu_url_t ticket = 0;
-      status = get_ticket (url, NULL, filename, &ticket);
-      if (status)
-	return status;
-
-      if (ticket)
-	{
-	  status = mu_url_aget_user (ticket, &u);
-          if (status && status != MU_ERR_NOENT)
-            return status;
-	  mu_url_destroy (&ticket);
-	}
+      free (fw->filename);
+      free (fw);
+      return rc;
     }
-  else
-    {
-      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
-      if (auth)
-	{
-	  u = strdup (auth->name);
-	  mu_auth_data_free (auth);
-	  if (!u)
-	    return ENOMEM;
-	}
-    }
-  *user = u;
+  mu_wicket_set_data (wicket, fw);
+  mu_wicket_set_destroy (wicket, _file_wicket_destroy);
+  mu_wicket_set_get_ticket (wicket, _file_wicket_get_ticket);
+  *pwicket = wicket;
   return 0;
 }
 
-static int
-get_pass (mu_url_t url, const char *user, const char *filename, char **pass)
-{
-  int status;
-  char *u = 0;
-
-  if (url)
-    {
-      status = mu_url_aget_passwd (url, &u);
-      if (status && status != MU_ERR_NOENT)
-	return status;
-    }
-
-  if (!u && filename)
-    {
-      mu_url_t ticket = 0;
-      status = get_ticket (url, user, filename, &ticket);
-      if (status)
-	return status;
-
-      if (ticket)
-	{
-	  status = mu_url_aget_passwd (ticket, &u);
-          if (status && status != MU_ERR_NOENT)
-	    return status;
-	  mu_url_destroy (&ticket);
-	}
-    }
-  *pass = u;
-  return 0;
-}

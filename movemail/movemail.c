@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -161,34 +162,24 @@ lock_mailbox (mu_mailbox_t mbox)
 }
 
 
-/* A password ticket: returns the cleantext password. */
-void
-password_destroy (mu_ticket_t t)
-{
-  char *p = mu_ticket_get_owner (t);
-  free (p);
-}
-
-int
-password_pop (mu_ticket_t t, mu_url_t u, const char *challenge, char **ppwd)
-{
-  char *p = mu_ticket_get_owner (t);
-  *ppwd = strdup (p);
-  return 0;
-}
-
 void
 attach_passwd_ticket (mu_mailbox_t mbx, char *passwd)
 {
   mu_folder_t folder = NULL;
   mu_authority_t auth = NULL;
-  char *p = strdup (passwd);
+  mu_secret_t secret;
   mu_ticket_t t;
   int rc;
+
+  rc = mu_secret_create (&secret, passwd, strlen (passwd));
+  if (rc)
+    {
+      mu_error ("mu_secret_create: %s", mu_strerror (rc));
+      exit (1);
+    }
   
-  mu_ticket_create (&t, p);
-  mu_ticket_set_destroy (t, password_destroy, p);
-  mu_ticket_set_pop (t, password_pop, p);
+  mu_ticket_create (&t, NULL);
+  mu_ticket_set_secret (t, secret);
 
   if ((rc = mu_mailbox_get_folder (mbx, &folder)))
     die (mbx, _("mu_mailbox_get_folder failed"), rc);

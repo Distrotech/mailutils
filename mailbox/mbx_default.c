@@ -350,11 +350,11 @@ attach_auth_ticket (mu_mailbox_t mbox)
   
       MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,
 		 "Reading user ticket file %s\n", filename);
-      if ((rc = mu_wicket_create (&wicket, filename)) == 0)
+      if ((rc = mu_file_wicket_create (&wicket, filename)) == 0)
 	{
 	  mu_ticket_t ticket;
       
-	  if ((rc = mu_wicket_get_ticket (wicket, &ticket, 0, 0)) == 0)
+	  if ((rc = mu_wicket_get_ticket (wicket, NULL, &ticket)) == 0)
 	    {
 	      rc = mu_authority_set_ticket (auth, ticket);
 	      MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,

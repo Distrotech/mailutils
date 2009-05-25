@@ -41,9 +41,7 @@ extern int mu_url_sget_user  (const mu_url_t, const char **);
 extern int mu_url_aget_user  (const mu_url_t, char **);  
 extern int mu_url_get_user  (const mu_url_t, char *, size_t, size_t *);
 
-extern int mu_url_sget_passwd  (const mu_url_t, const char **);
-extern int mu_url_aget_passwd  (const mu_url_t, char **);  
-extern int mu_url_get_passwd  (const mu_url_t, char *, size_t, size_t *);
+extern int mu_url_get_secret (const mu_url_t url, mu_secret_t *psecret);
   
 extern int mu_url_sget_auth  (const mu_url_t, const char **);
 extern int mu_url_aget_auth  (const mu_url_t, char **);  

@@ -23,8 +23,8 @@ typedef int (*nsfp_t) (void *closure, int ns, char *path, int delim);
 
 mu_list_t namespace[NS_MAX];
 
-static char *
-printable_pathname (char *str)
+static const char *
+printable_pathname (const char *str)
 {
   if (strncmp (str, imap4d_homedir, strlen (imap4d_homedir)) == 0)
     {
@@ -39,7 +39,7 @@ static int
 print_namespace_fun (void *item, void *data)
 {
   int *pcount = data;
-  char *dir = printable_pathname (item);
+  const char *dir = printable_pathname (item);
   char *suf = (dir[0] && dir[strlen (dir) - 1] != '/') ? "/" : "";
   if ((*pcount)++)
     util_send (" ");

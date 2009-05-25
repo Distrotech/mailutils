@@ -35,7 +35,7 @@ struct _mu_url
   char  *name;
   char  *scheme;
   char  *user;
-  char  *passwd;
+  mu_secret_t secret;
   char  *auth;
   char  *host;
   long  port;
@@ -53,7 +53,7 @@ struct _mu_url
   /* Methods */
   int   (*_get_scheme) (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_user)   (const mu_url_t, char *, size_t, size_t *);
-  int   (*_get_passwd) (const mu_url_t, char *, size_t, size_t *);
+  int   (*_get_secret) (const mu_url_t, mu_secret_t *);
   int   (*_get_auth)   (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_host)   (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_port)   (const mu_url_t, long *);

@@ -160,6 +160,9 @@ api_url_get_user (PyObject *self, PyObject *args)
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
 
+#if 0
+/* FIXME: Returning plaintext (unobfuscated) password from
+   a secret actually makes the latter useless. */
 static PyObject *
 api_url_get_passwd (PyObject *self, PyObject *args)
 {
@@ -173,6 +176,7 @@ api_url_get_passwd (PyObject *self, PyObject *args)
   status = mu_url_sget_passwd (py_url->url, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
+#endif
 
 static PyObject *
 api_url_get_auth (PyObject *self, PyObject *args)
@@ -267,7 +271,9 @@ static PyMethodDef methods[] = {
   { "get_port", (PyCFunction) api_url_get_port, METH_VARARGS, "" },
   { "get_scheme", (PyCFunction) api_url_get_scheme, METH_VARARGS, "" },
   { "get_user", (PyCFunction) api_url_get_user, METH_VARARGS, "" },
+#if 0 /*FIXME: See above */
   { "get_passwd", (PyCFunction) api_url_get_passwd, METH_VARARGS, "" },
+#endif
   { "get_auth", (PyCFunction) api_url_get_auth, METH_VARARGS, "" },
   { "get_host", (PyCFunction) api_url_get_host, METH_VARARGS, "" },
   { "get_path", (PyCFunction) api_url_get_path, METH_VARARGS, "" },

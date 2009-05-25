@@ -32,12 +32,13 @@
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
 #include <mailutils/argcv.h>
+#include <mailutils/secret.h>
 #include <url0.h>
 
 #define AC2(a,b) a ## b
 #define AC4(a,b,c,d) a ## b ## c ## d
 
-static int url_parse0 (mu_url_t, char *);
+static int url_parse0 (mu_url_t, char *, size_t *poff);
 
 static int
 parse_query (const char *query,
@@ -62,7 +63,7 @@ parse_query (const char *query,
   if (p == query)
     return 0;
   count++;
-  
+
   v = calloc (count + 1, sizeof (v[0]));
   for (i = 0, p = query; i < count; i++)
     {
@@ -81,7 +82,7 @@ parse_query (const char *query,
   *pargv = v;
   return 0;
 }
-  
+
 int
 mu_url_create (mu_url_t *purl, const char *name)
 {
@@ -123,7 +124,8 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
   size_t argc;
   char **argv;
   int rc;
-  
+  mu_secret_t sec;
+
 #define URLCOPY(what)						\
   do								\
     {								\
@@ -132,7 +134,7 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
 	{							\
 	  if ((new_url->what = strdup (str)) == NULL)		\
 	    return ENOMEM;					\
-  	}							\
+	}							\
       else if (rc != MU_ERR_NOENT)				\
 	return rc;						\
     }								\
@@ -140,7 +142,19 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
 
   URLCOPY (scheme);
   URLCOPY (user);
-  URLCOPY (passwd);
+
+  rc = mu_url_get_secret (old_url, &sec);
+  if (rc == MU_ERR_NOENT)
+    new_url->secret = NULL;
+  else if (rc)
+    return rc;
+  else
+    {
+      rc = mu_secret_dup (sec, &new_url->secret);
+      if (rc)
+	return rc;
+    }
+  
   URLCOPY (auth);
   URLCOPY (host);
   new_url->port = old_url->port;
@@ -153,7 +167,7 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
 	return ENOMEM;
       new_url->fvcount = argc;
     }
-  
+
   rc = mu_url_sget_query (old_url, &argc, &argv);
   if (rc == 0 && argc)
     {
@@ -163,14 +177,14 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
     }
   return 0;
 #undef URLCOPY
-} 
-  
+}
+
 int
 mu_url_dup (mu_url_t old_url, mu_url_t *new_url)
 {
   mu_url_t url;
   int rc = mu_url_create (&url, mu_url_to_string (old_url));
-  
+
   if (rc)
     return rc;
 
@@ -191,11 +205,11 @@ mu_url_uplevel (mu_url_t url, mu_url_t *upurl)
 
   if (url->_uplevel)
     return url->_uplevel (url, upurl);
-  
+
   if (!url->path)
     return MU_ERR_NOENT;
   p = strrchr (url->path, '/');
-  
+
   rc = mu_url_dup (url, &new_url);
   if (rc == 0)
     {
@@ -240,8 +254,7 @@ mu_url_destroy (mu_url_t * purl)
       if (url->user)
 	free (url->user);
 
-      if (url->passwd)
-	free (url->passwd);
+      mu_secret_destroy (&url->secret);
 
       if (url->auth)
 	free (url->auth);
@@ -269,13 +282,15 @@ mu_url_parse (mu_url_t url)
   int err = 0;
   char *n = NULL;
   struct _mu_url u;
+  size_t pstart;
+  mu_secret_t newsec;
 
   if (!url || !url->name)
     return EINVAL;
 
   memset (&u, 0, sizeof u);
   /* can't have been parsed already */
-  if (url->scheme || url->user || url->passwd || url->auth ||
+  if (url->scheme || url->user || url->secret || url->auth ||
       url->host || url->path || url->qargc)
     return EINVAL;
 
@@ -284,14 +299,34 @@ mu_url_parse (mu_url_t url)
   if (!n)
     return ENOMEM;
 
-  err = url_parse0 (&u, n);
+  err = url_parse0 (&u, n, &pstart);
 
   if (!err)
     {
+      if (u.secret)
+	{
+	  /* Obfuscate the password */
+#define PASS_REPL "***"
+#define PASS_REPL_LEN (sizeof (PASS_REPL) - 1)
+	  size_t plen = mu_secret_length (u.secret);
+	  size_t nlen = strlen (url->name);
+	  size_t len = nlen - plen + PASS_REPL_LEN + 1;
+	  char *newname;
+
+	  memset (url->name + pstart, 0, plen);
+	  newname = realloc (url->name, len);
+	  if (!newname)
+	    goto CLEANUP;
+	  memmove (newname + pstart + PASS_REPL_LEN, newname + pstart + plen,
+		   nlen - (pstart + plen) + 1);
+	  memcpy (newname + pstart, PASS_REPL, PASS_REPL_LEN);
+	  url->name = newname;
+	}
+
       /* Dup the strings we found. We wouldn't have to do this
-         if we did a single alloc of the source url name, and
-         kept it around. It's also a good time to do hex decoding,
-         though.
+	 if we did a single alloc of the source url name, and
+	 kept it around. It's also a good time to do hex decoding,
+	 though.
        */
 
 #define UALLOC(X)                                          \
@@ -308,22 +343,35 @@ mu_url_parse (mu_url_t url)
 
       UALLOC (scheme);
       UALLOC (user);
-      UALLOC (passwd);
+
+      if (u.secret)
+	{
+	  char *pass = mu_url_decode (mu_secret_password (u.secret));
+	  err = mu_secret_create (&newsec, pass, strlen (pass));
+	  memset (pass, 0, strlen (pass));
+	  mu_secret_destroy (&u.secret);
+	  if (err)
+	    goto CLEANUP;
+
+	  url->secret = newsec;
+	}
+
       UALLOC (auth);
       UALLOC (host);
       UALLOC (path);
-      
+
 #undef UALLOC
       url->fvcount = u.fvcount;
       url->fvpairs = u.fvpairs;
 
       url->qargc = u.qargc;
       url->qargv = u.qargv;
-      
+
       url->port = u.port;
     }
 
 CLEANUP:
+  memset (n, 0, strlen (n));
   free (n);
 
   if (err)
@@ -332,7 +380,7 @@ CLEANUP:
 
       UFREE (url->scheme);
       UFREE (url->user);
-      UFREE (url->passwd);
+      mu_secret_destroy (&u.secret);
       UFREE (url->auth);
       UFREE (url->host);
       UFREE (url->path);
@@ -370,8 +418,9 @@ Is this required to be % quoted, though? I hope so!
 */
 
 static int
-url_parse0 (mu_url_t u, char *name)
+url_parse0 (mu_url_t u, char *name, size_t *poff)
 {
+  char *start = name;
   char *p;			/* pointer into name */
 
   /* reject the obvious */
@@ -409,10 +458,10 @@ url_parse0 (mu_url_t u, char *name)
       /* RFC 1738, section 2.1, lower the scheme case */
       for (; name < p; name++)
 	*name = tolower (*name);
-  
+
       name = p;
     }
-  
+
   /* Check for nothing following the scheme. */
   if (!*name)
     return 0;
@@ -434,6 +483,8 @@ url_parse0 (mu_url_t u, char *name)
 	    u->host = name;
 	  else
 	    {
+	      char *pass = NULL;
+
 	      /* Parse the LHS into an identification/authentication pair. */
 	      *u->host++ = 0;
 
@@ -450,7 +501,8 @@ url_parse0 (mu_url_t u, char *name)
 		  if (*name == ':')
 		    {
 		      *name++ = 0;
-		      u->passwd = name;
+		      pass = name;
+		      *poff = pass - start;
 		    }
 		  else if (*name == ';')
 		    {
@@ -463,6 +515,15 @@ url_parse0 (mu_url_t u, char *name)
 			  break;
 			}
 		    }
+		}
+
+	      if (pass)
+		{
+		  if (mu_secret_create (&u->secret, pass, strlen (pass)))
+		    return ENOMEM;
+		  else
+		    /* Obfuscate password */
+		    memset (pass, 0, strlen (pass));
 		}
 	    }
 
@@ -487,7 +548,7 @@ url_parse0 (mu_url_t u, char *name)
       u->path = name;
       p = u->path + strcspn (u->path, ";?");
     }
-  
+
   /* Either way, if we're not at a nul, we're at a path or query. */
   if (u->path == NULL && *p == '/')
     {
@@ -531,31 +592,31 @@ ACCESSOR(sget,field) (mu_url_t url, char const **sptr)	                  \
 	{								  \
 	  size_t n;							  \
 	  char *buf;							  \
-	  								  \
+									  \
 	  int status = url->AC2(_get_,field) (url, NULL, 0, &n);	  \
 	  if (status)							  \
 	    return status;						  \
-	  								  \
+									  \
 	  buf = malloc (n + 1);						  \
 	  if (!buf)							  \
 	    return ENOMEM;						  \
-	  								  \
+									  \
 	  status = url->AC2(_get_,field) (url, buf, n + 1, NULL);	  \
-	  if (status)		                     		          \
-            return status;						  \
-	  								  \
-          if (buf[0])                                                     \
-            {                                                             \
+	  if (status)				          \
+	    return status;						  \
+									  \
+	  if (buf[0])                                                     \
+	    {                                                             \
 	       url->field = mu_url_decode (buf);			  \
 	       free (buf);						  \
 	    }                                                             \
-          else                                                            \
-            url->field = buf;                                             \
+	  else                                                            \
+	    url->field = buf;                                             \
 	  if (!url->field)						  \
 	    return ENOMEM;						  \
 	}								  \
       else								  \
-        return MU_ERR_NOENT; 			                          \
+	return MU_ERR_NOENT;			                          \
     }									  \
   *sptr = url->field;							  \
   return 0;								  \
@@ -568,7 +629,7 @@ ACCESSOR(get,field) (mu_url_t url, char *buf, size_t len, size_t *n)      \
   size_t i;								  \
   const char *str;							  \
   int status = ACCESSOR(sget, field) (url, &str);			  \
-  									  \
+									  \
   if (status)								  \
     return status;							  \
 									  \
@@ -628,17 +689,26 @@ DECL_CMP(field)
 /* Declare particular accessors */
 DECL_ACCESSORS (scheme)
 DECL_ACCESSORS (user)
-/* FIXME: We should not store passwd in clear, but rather
-   have a simple encoding, and decoding mechanism */
-DECL_ACCESSORS (passwd)
 DECL_ACCESSORS (auth)
 DECL_ACCESSORS (host)
 DECL_ACCESSORS (path)
 
 int
+mu_url_get_secret (const mu_url_t url, mu_secret_t *psecret)
+{
+  if (url->_get_secret)
+    return url->_get_secret (url, psecret);
+  if (url->secret == NULL)
+    return MU_ERR_NOENT;
+  mu_secret_ref (url->secret);
+  *psecret = url->secret;
+  return 0;
+}
+
+int
 mu_url_sget_query (const mu_url_t url, size_t *qc, char ***qv)
 {
-  if (url == NULL)							  
+  if (url == NULL)
     return EINVAL;
   /* See FIXME below */
   *qc = url->qargc;
@@ -652,7 +722,7 @@ mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv)
   size_t qargc, i;
   char **qargv;
   char **qcopy;
-  
+
   int rc = mu_url_sget_fvpairs (url, &qargc, &qargv);
   if (rc)
     return rc;
@@ -677,8 +747,8 @@ mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv)
 /* field-value pairs accessors */
 int
 mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp)
-{									  
-  if (url == NULL)							  
+{
+  if (url == NULL)
     return EINVAL;
   /* FIXME: no _get_fvpairs method, but the method stuff needs to be rewritten
      anyway */
@@ -686,14 +756,14 @@ mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp)
   *fvp = url->fvpairs;
   return 0;
 }
-     
+
 int
 mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp)
 {
   size_t fvc, i;
   char **fvp;
   char **fvcopy;
-  
+
   int rc = mu_url_sget_fvpairs (url, &fvc, &fvp);
   if (rc)
     return rc;
@@ -898,7 +968,7 @@ _url_path_hashed (const char *spooldir, const char *user, int param)
 
   if (param > ulen)
     param = ulen;
-  for (i = 0, hash = 0; i < param; i++) 
+  for (i = 0, hash = 0; i < param; i++)
     hash += user[i];
 
   mbox = malloc (ulen + strlen (spooldir) + 5);
@@ -908,36 +978,36 @@ _url_path_hashed (const char *spooldir, const char *user, int param)
 
 static int transtab[] = {
   'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
-  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
-  'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 
-  'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
-  'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
-  'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 
-  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 
-  'm', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
-  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
-  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
-  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f', 
-  'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
-  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
-  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
-  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f', 
-  'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 
-  'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 
-  'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 
-  'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
-  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
-  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
-  'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 
-  'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
-  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 
-  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
-  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
-  'y', 'z', 'b', 'c', 'd', 'e', 'f', 'g', 
-  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 
-  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
-  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+  'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f',
+  'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+  'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+  'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd',
+  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+  'm', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f',
+  'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f',
+  'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+  'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
+  'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
+  'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+  'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e',
+  'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+  'y', 'z', 'b', 'c', 'd', 'e', 'f', 'g',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
   'y', 'z', 'b', 'c', 'd', 'e', 'f', 'g'
 };
 
@@ -948,10 +1018,10 @@ _url_path_index (const char *spooldir, const char *iuser, int index_depth)
   const unsigned char* user = (const unsigned char*) iuser;
   int i, ulen = strlen (iuser);
   char *mbox, *p;
-  
+
   if (ulen == 0)
     return NULL;
-  
+
   mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 2);
   strcpy (mbox, spooldir);
   p = mbox + strlen (mbox);
@@ -977,10 +1047,10 @@ _url_path_rev_index (const char *spooldir, const char *iuser, int index_depth)
   const unsigned char* user = (const unsigned char*) iuser;
   int i, ulen = strlen (iuser);
   char *mbox, *p;
-  
+
   if (ulen == 0)
     return NULL;
-  
+
   mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 1);
   strcpy (mbox, spooldir);
   p = mbox + strlen (mbox);
@@ -1003,10 +1073,10 @@ static int
 rmselector (const char *p, void *data MU_ARG_UNUSED)
 {
   return strncmp (p, "type=", 5) == 0
-         || strncmp (p, "user=", 5) == 0
-         || strncmp (p, "param=", 6) == 0;
+	 || strncmp (p, "user=", 5) == 0
+	 || strncmp (p, "param=", 6) == 0;
 }
-  
+
 int
 mu_url_expand_path (mu_url_t url)
 {
@@ -1015,7 +1085,7 @@ mu_url_expand_path (mu_url_t url)
   int param = 0;
   char *p;
   char *(*fun) (const char *, const char *, int) = _url_path_default;
-  
+
   if (url->fvcount == 0)
     return 0;
 
@@ -1044,7 +1114,7 @@ mu_url_expand_path (mu_url_t url)
 	  param = strtoul (p + 6, NULL, 0);
 	}
     }
-  
+
   if (user)
     {
       char *p = fun (url->path, user, param);

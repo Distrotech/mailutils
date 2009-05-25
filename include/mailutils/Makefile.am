@@ -85,6 +85,7 @@ pkginclude_HEADERS = \
  refcount.h\
  registrar.h\
  sha1.h\
+ secret.h\
  server.h\
  sieve.h\
  stream.h\

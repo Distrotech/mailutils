@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@ mu_authority_destroy (mu_authority_t *pauthority, void *owner)
       mu_authority_t authority = *pauthority;
       if (authority->owner == owner)
 	{
-	  mu_ticket_destroy (&(authority->ticket), authority);
+	  mu_ticket_destroy (&authority->ticket);
 	  free (authority);
 	}
       *pauthority = NULL;
@@ -87,7 +87,7 @@ mu_authority_set_ticket (mu_authority_t authority, mu_ticket_t ticket)
   if (authority == NULL)
     return EINVAL;
   if (authority->ticket)
-    mu_ticket_destroy (&(authority->ticket), authority);
+    mu_ticket_destroy (&authority->ticket);
   authority->ticket = ticket;
   return 0;
 }

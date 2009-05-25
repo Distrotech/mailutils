@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -178,7 +179,7 @@ struct _f_imap
 
   /* Login  */
   char *user;
-  char *passwd;
+  mu_secret_t secret;
 
   /* AUTHENTICATE states */
   enum imap_auth_state auth_state;

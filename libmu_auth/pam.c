@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,10 @@ static char *_user;
     }						\
   while (0)
 
+
+#ifndef PAM_AUTHTOK_RECOVER_ERR
+# define PAM_AUTHTOK_RECOVER_ERR PAM_CONV_ERR
+#endif
 
 static int
 mu_pam_conv (int num_msg, const struct pam_message **msg,

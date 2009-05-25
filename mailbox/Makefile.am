@@ -113,6 +113,7 @@ libmailutils_la_SOURCES = \
  refcount.c\
  rfc2047.c\
  sha1.c\
+ secret.c\
  server.c\
  socket_stream.c\
  stream.c\

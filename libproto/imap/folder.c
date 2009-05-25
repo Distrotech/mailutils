@@ -50,6 +50,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
+#include <mailutils/secret.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -181,40 +182,42 @@ authenticate_imap_login (mu_authority_t auth)
 	mu_authority_get_ticket (auth, &ticket);
 	if (f_imap->user)
 	  free (f_imap->user);
-	if (f_imap->passwd)
-	  free (f_imap->passwd);
 	/* Was it in the URL?  */
 	status = mu_url_aget_user (folder->url, &f_imap->user);
         if (status == MU_ERR_NOENT)
-	  mu_ticket_pop (ticket, folder->url, "Imap User: ",  &f_imap->user);
-	else if (status)
-	  return status;
-
-	status = mu_url_aget_passwd (folder->url, &f_imap->passwd);
-        if (status == MU_ERR_NOENT)
-	  mu_ticket_pop (ticket, folder->url, "Imap Passwd: ",  
-	                 &f_imap->passwd);
-	else if (status)
-	  return status;
-
-	if (f_imap->user == NULL)
+	  status = mu_ticket_get_cred (ticket, folder->url,
+				       "Imap User: ", &f_imap->user, NULL);
+	if (status == MU_ERR_NOENT || f_imap->user == NULL)
 	  return MU_ERR_NOUSERNAME;
-	  
-	if (f_imap->passwd == NULL)
+	else if (status)
+	  return status;
+
+	status = mu_url_get_secret (folder->url, &f_imap->secret);
+        if (status == MU_ERR_NOENT)
+	  status = mu_ticket_get_cred (ticket, folder->url,
+				       "Imap Passwd: ",
+				       NULL, &f_imap->secret);
+	
+	if (status == MU_ERR_NOENT || !f_imap->secret)
+	  /* FIXME: Is this always right? The user might legitimately have
+	     no password */
 	  return MU_ERR_NOPASSWORD;
-	  
+	else if (status)
+	  return status;
+	
 	status = imap_writeline (f_imap, "g%u LOGIN \"%s\" \"%s\"\r\n",
-				 f_imap->seq, f_imap->user, f_imap->passwd);
+				 f_imap->seq, f_imap->user,
+				 mu_secret_password (f_imap->secret));
+	mu_secret_password_unref (f_imap->secret);
+	mu_secret_unref (f_imap->secret);
+	f_imap->secret = NULL;
 	CHECK_ERROR_CLOSE (folder, f_imap, status);
 	MU_DEBUG2 (folder->debug, MU_DEBUG_TRACE, "g%u LOGIN %s *\n",
 		   f_imap->seq, f_imap->user);
 	f_imap->seq++;
 	free (f_imap->user);
 	f_imap->user = NULL;
-	/* We have to nuke the passwd.  */
-	memset (f_imap->passwd, '\0', strlen (f_imap->passwd));
-	free (f_imap->passwd);
-	f_imap->passwd = NULL;
+	f_imap->secret = NULL;
 	f_imap->state = IMAP_LOGIN;
       }
 

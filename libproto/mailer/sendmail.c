@@ -53,7 +53,7 @@ static int
 _url_sendmail_init (mu_url_t url)
 {
   /* not valid in a sendmail url */
-  if (url->user || url->passwd || url->auth || url->qargc
+  if (url->user || url->secret || url->auth || url->qargc
       || url->host || url->port)
     return EINVAL;
 

@@ -112,6 +112,7 @@ typedef struct _mu_ip_server *mu_ip_server_t;
 typedef struct _mu_m_server *mu_m_server_t;
 typedef struct _mu_opool *mu_opool_t;
 typedef struct _mu_progmailer *mu_progmailer_t;
+typedef struct _mu_secret *mu_secret_t;
   
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002
