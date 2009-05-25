@@ -68,8 +68,9 @@ mu_app_init (struct argp *myargp, const char **capa,
   
   mu_set_program_name (argv[0]);
   mu_libargp_init ();
-  for (i = 0; capa[i]; i++)
-    mu_gocs_register_std (capa[i]); /*FIXME*/
+  if (capa)
+    for (i = 0; capa[i]; i++)
+      mu_gocs_register_std (capa[i]); /*FIXME*/
   if (!myargp)
     myargp = &argpnull;
   argp = mu_argp_build (myargp, &excapa);

@@ -320,6 +320,8 @@ _clone_action (void *item, void *cbdata)
 int
 mu_config_clone_container (struct mu_cfg_cont *cont)
 {
+  if (!cont)
+    return 0;
   mu_refcount_inc (cont->refcount);
   /* printf("clone %p-%s: %d\n", cont, cont->v.section.ident, n); */
   switch (cont->type)
