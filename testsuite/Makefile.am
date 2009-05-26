@@ -20,7 +20,7 @@
 test_dirs = lib etc spool folder
 
 dist-hook:
-	here=`cd $(top_builddir)/$(subdir) && pwd`; \
+	@here=`cd $(top_builddir)/$(subdir) && pwd`; \
 	srcdir=`cd $(srcdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	for dir in $(test_dirs); \

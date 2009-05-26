@@ -18,7 +18,6 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-AUTOMAKE_OPTIONS = gnits 1.8.5 dist-bzip2 std-options
 ACLOCAL_AMFLAGS = -I m4 -I am
 
 SUBDIRS = \

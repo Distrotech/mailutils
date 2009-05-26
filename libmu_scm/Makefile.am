@@ -96,27 +96,27 @@ GUILE_DOC_SNARF=$(mu_aux_dir)/guile-doc-snarf
 SUFFIXES=.x .doc .inc .in
 
 .c.x:
-	AWK=$(AWK) \
+	$(AM_V_GEN)AWK=$(AWK) \
 	$(GUILE_DOC_SNARF) -o $@ \
                            $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
 
 .c.doc:
-	AWK=$(AWK) \
+	$(AM_V_GEN)AWK=$(AWK) \
 	$(GUILE_DOC_SNARF) -d -o $@ \
                            $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
 
 .c.inc:
-	sed -n 's/SCM_DEFINE *(.[^,]*, *\"\([^"][^"]*\)\".*/[(export \1)]/p' $< > $@
+	$(AM_V_GEN)sed -n 's/SCM_DEFINE *(.[^,]*, *\"\([^"][^"]*\)\".*/[(export \1)]/p' $< > $@
 
 guile-procedures.texi: $(DOT_DOC_FILES)
-	cat $(DOT_DOC_FILES) > $@
+	$(AM_V_GEN)cat $(DOT_DOC_FILES) > $@
 
 guile-procedures.txt: guile-procedures.texi
-	rm -f $@
-	$(MAKEINFO) --force -o $@ guile-procedures.texi || test -f $@
+	$(AM_V_GEN) rm -f $@; \
+	  $(MAKEINFO) --force -o $@ guile-procedures.texi || test -f $@
 
 mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
-	m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
+	$(AM_V_GEN)m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
 	   -DSITEDIR=$(sitedir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm \
             $(srcdir)/mailutils.scm.in > $@

@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2006, 2007, 2009 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -24,15 +24,15 @@ EXTRA_SCRIPTS=sieve.scm
 sievemoddir=@MU_GUILE_SIEVE_MOD_DIR@
 
 sieve.scm: sieve.scm.in sieve.sed
-	sed -f sieve.sed $(srcdir)/sieve.scm.in > sieve.scm
+	$(AM_V_GEN)sed -f sieve.sed $(srcdir)/sieve.scm.in > sieve.scm
 
 sieve.sed: Makefile
-	echo 's,%GUILE_BINDIR%,@GUILE_BINDIR@,g' > sieve.sed
-	echo 's,%BINDIR%,$(bindir),g' >> sieve.sed
-	echo 's,%GUILE_SITE%,$(GUILE_SITE),g' >> sieve.sed
-	echo 's,%LIBDIR%,$(sievemoddir),g' >> sieve.sed
-	echo 's,%PACKAGE%,$(PACKAGE),g' >> sieve.sed
-	echo 's,%VERSION%,$(VERSION),g' >> sieve.sed
+	$(AM_V_GEN)echo 's,%GUILE_BINDIR%,@GUILE_BINDIR@,g' > sieve.sed
+	$(AM_V_at)echo 's,%BINDIR%,$(bindir),g' >> sieve.sed
+	$(AM_V_at)echo 's,%GUILE_SITE%,$(GUILE_SITE),g' >> sieve.sed
+	$(AM_V_at)echo 's,%LIBDIR%,$(sievemoddir),g' >> sieve.sed
+	$(AM_V_at)echo 's,%PACKAGE%,$(PACKAGE),g' >> sieve.sed
+	$(AM_V_at)echo 's,%VERSION%,$(VERSION),g' >> sieve.sed
 
 CLEANFILES = sieve.scm sieve.sed
 

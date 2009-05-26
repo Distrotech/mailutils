@@ -2,7 +2,7 @@
 
 # Bootstrap this package from checked-out sources.
 
-# Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+# Copyright (C) 2003-2008 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -96,6 +96,11 @@ package=`sed -n "$extract_package_name" configure.ac` || exit
 gnulib_name=lib$package
 
 build_aux=build-aux
+source_base=lib
+m4_base=m4
+doc_base=doc
+tests_base=tests
+
 # Extra files from gnulib, which override files from other sources.
 gnulib_extra_files="
 	$build_aux/install-sh
@@ -120,6 +125,9 @@ XGETTEXT_OPTIONS='\\\
  --flag=N_:1:pass-c-format\\\
  --flag=error:3:c-format --flag=error_at_line:5:c-format\\\
 '
+
+# Package bug report address for gettext files
+MSGID_BUGS_ADDRESS=bug-$package@gnu.org
 
 # Files we don't want to import.
 excluded_files=
@@ -270,6 +278,7 @@ update_po_files() {
     new_po="$ref_po_dir/$po.po"
     cksum_file="$ref_po_dir/$po.s1"
     if ! test -f "$cksum_file" ||
+	! test -f "$po_dir/$po.po" ||
 	! sha1sum -c --status "$cksum_file" < "$new_po" > /dev/null; then
       echo "updated $po_dir/$po.po..."
       cp "$new_po" "$po_dir/$po.po" && sha1sum < "$new_po" > "$cksum_file"
@@ -367,11 +376,11 @@ cp_mark_as_generated()
       *)                  c1=     ; c2=     ;;
     esac
 
+    # If the destination directory doesn't exist, create it.
+    # This is required at least for "lib/uniwidth/cjk.h".
     dst_dir=`dirname "$cp_dst"`
-    if ! test -d "$dst_dir"; then
-      mkdir -p "$dst_dir"
-    fi
-    
+    test -d "$dst_dir" || mkdir -p "$dst_dir"
+
     if test -z "$c1"; then
       cmp -s "$cp_src" "$cp_dst" || {
 	echo "$0: cp -f $cp_src $cp_dst" &&
@@ -405,11 +414,76 @@ version_controlled_file() {
     grep -F "/$file/" $dir/CVS/Entries 2>/dev/null |
 	     grep '^/[^/]*/[0-9]' > /dev/null && found=yes
   elif test -d .git; then
-    git-rm -n "$dir/$file" > /dev/null 2>&1 && found=yes
+    git rm -n "$dir/$file" > /dev/null 2>&1 && found=yes
+  elif test -d .svn; then
+    svn log -r HEAD "$dir/$file" > /dev/null 2>&1 && found=yes  
   else
     echo "$0: no version control for $dir/$file?" >&2
   fi
   test $found = yes
+}
+
+# AWK program to convert a Makefile(.am) file rules to Automake 1.11
+# silent mode.
+silent_rules_prog='
+# state = 0 - outside rules
+# state = 1 - first line inside a rule
+# state = 2 - subsequent lines inside a rule
+# cont  = 1 - this line is a continuation of the previous one
+# defn  = 1 - insert AM_V_GEN/AM_V_at definitions after the initail comment
+# Print comment lines
+/^[ \t]*#/ { print; next }
+# Insert AM_V_ definitions, if required.
+state == 0 && defn == 1 {
+   print "AM_DEFAULT_VERBOSITY=0" # FIXME
+   print "AM_V_GEN = $(am__v_GEN_$(V))"
+   print "am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))"
+   print "am__v_GEN_0 = @echo \"  GEN   \" $@;"
+   print "AM_V_at = $(am__v_at_$(V))"
+   print "am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))"
+   print "am__v_at_0 = @"
+   defn = 0
+}
+# Start of a rule
+/^[^ \t].*:/ { print; state = 1; cont = 0; next }
+# First action within the rule
+state == 1 && /^\t/ {
+	# Print silent rules without changes.  The second match
+	# is necessary to handle @VAR@ substitutions.
+	if (!(match($1, /^@/) && !match($1, /.@$/)))
+		sub(/^\t[\t ]*/, "&$(AM_V_GEN)")
+	print
+	cont = match($0, /\\$/)
+	state = 2
+	next
+}
+# All non-continuation lines within the rule are prefixed
+# with $(AM_V_at).
+state == 2 && /^\t/ && NF > 0 {
+	if (!cont) 
+		sub(/^\t[\t ]*/, "&$(AM_V_at)")
+	print
+	cont = match($0, /\\$/)
+	next
+}
+# Everything else is output verbatim
+{ print }
+'
+
+silent_rules=yes
+grep 'AM_SILENT_RULES' configure.ac > /dev/null ||
+  grep '^[	]*AM_INIT_AUTOMAKE([^)][^)]*silent-rules' configure.ac > /dev/null ||
+  silent_rules=no
+
+silentize() {
+  if test "$silent_rules" = yes; then
+    case $1 in
+    *.am)  defn=0;;
+    *.in)  defn=1;;
+    esac
+    awk -v defn=$defn "$silent_rules_prog" $1 > ${1}-t &&
+    mv ${1}-t $1
+  fi
 }
 
 slurp() {
@@ -433,6 +507,7 @@ slurp() {
 	  rm -f $dir/$gnulib_mk &&
 	  sed "$remove_intl" $1/$dir/$file >$dir/$gnulib_mk
 	}
+	silentize $dir/$gnulib_mk
       elif { test "${2+set}" = set && test -r $2/$dir/$file; } ||
 	   version_controlled_file $dir $file; then
 	echo "$0: $dir/$file overrides $1/$dir/$file"
@@ -487,13 +562,13 @@ gnulib_tool_options="\
  --import\
  --no-changelog\
  --aux-dir $bt/$build_aux\
- --doc-base $bt/doc\
+ --doc-base $bt/$doc_base\
  --lib $gnulib_name\
- --m4-base $bt/m4/\
- --source-base $bt/lib/\
- --tests-base $bt/tests\
+ --m4-base $bt/$m4_base/\
+ --source-base $bt/$source_base/\
+ --tests-base $bt/$tests_base\
  --local-dir $local_gl_dir\
-$gnulib_tool_option_extras\
+ $gnulib_tool_option_extras\
 "
 echo "$0: $gnulib_tool $gnulib_tool_options --import ..."
 $gnulib_tool $gnulib_tool_options --import $gnulib_modules &&
@@ -537,6 +612,16 @@ if test -f $mam_template; then
   done
 fi
 
+# Remove any dangling symlink matching "*.m4" in the gnulib-populated
+# $m4_base directory, since such a file would cause aclocal to fail.
+# The following requires GNU find 4.2.3 or newer.  Considering the usual
+# portability constraints of this script, that may seem a very demanding
+# requirement, but it should be ok.  Ignore any failure, which is fine,
+# since this is only a convenience to help developers avoid the relatively
+# unusual case in which a symlinked-to .m4 file is git-removed from gnulib
+# between successive runs of this script.
+find "$m4_base" -name '*.m4' -depth -type l -xtype l -delete > /dev/null 2>&1
+
 # Reconfigure, getting other files.
 
 aclocal_flags=`sed -n 's/ACLOCAL_AMFLAGS *=//p' Makefile.am`
@@ -573,14 +658,15 @@ if test $with_gettext = yes; then
   rm -f po/Makevars
   sed '
     /^EXTRA_LOCALE_CATEGORIES *=/s/=.*/= '"$EXTRA_LOCALE_CATEGORIES"'/
-    /^MSGID_BUGS_ADDRESS *=/s/=.*/= bug-'"$package"'@gnu.org/
+    /^MSGID_BUGS_ADDRESS *=/s/=.*/= '"$MSGID_BUGS_ADDRESS"'/
+    /^COPYRIGHT_HOLDER *=/s/=.*/= '"$COPYRIGHT_HOLDER"'/
     /^XGETTEXT_OPTIONS *=/{
       s/$/ \\/
       a\
 	  '"$XGETTEXT_OPTIONS"' $${end_of_xgettext_options+}
     }
   ' po/Makevars.template >po/Makevars
-
+  silentize po/Makefile.in.in
   if test -d runtime-po; then
     # Similarly for runtime-po/Makevars, but not quite the same.
     rm -f runtime-po/Makevars
@@ -588,6 +674,7 @@ if test $with_gettext = yes; then
       /^DOMAIN *=.*/s/=.*/= '"$package"'-runtime/
       /^subdir *=.*/s/=.*/= runtime-po/
       /^MSGID_BUGS_ADDRESS *=/s/=.*/= bug-'"$package"'@gnu.org/
+      /^COPYRIGHT_HOLDER *=/s/=.*/= '"$COPYRIGHT_HOLDER"'/
       /^XGETTEXT_OPTIONS *=/{
 	s/$/ \\/
 	a\

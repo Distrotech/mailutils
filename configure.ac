@@ -17,14 +17,16 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+AC_PREREQ(2.63)
 AC_INIT([GNU Mailutils], [2.0.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([gnits 1.8.5 dist-bzip2 std-options silent-rules])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_PREREQ(2.60)
+# Enable silent rules by default:
+test -z "$enable_silent_rules" && AM_DEFAULT_VERBOSITY=0
 
 dnl Autobuild stuff
 AB_INIT
