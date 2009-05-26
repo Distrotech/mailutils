@@ -50,13 +50,13 @@
 
 static int radius_auth_enabled;
 
-static int MU_User_Name;		
-static int MU_UID;		
-static int MU_GID;		
-static int MU_GECOS;	
-static int MU_Dir;		
-static int MU_Shell;		
-static int MU_Mailbox;  
+static int MU_User_Name;
+static int MU_UID;
+static int MU_GID;
+static int MU_GECOS;
+static int MU_Dir;
+static int MU_Shell;
+static int MU_Mailbox;
 
 static grad_avp_t *auth_request;
 static grad_avp_t *getpwnam_request;
@@ -78,8 +78,8 @@ get_attribute (int *pattr, char *name)
 
 enum parse_state
   {
-    state_lhs, 
-    state_op,  
+    state_lhs,
+    state_op,
     state_rhs,
     state_delim
   };
@@ -97,7 +97,7 @@ parse_pairlist (grad_avp_t **plist, char *input)
 
   if (!input)
     return 1;
-  
+
   if ((rc = mu_argcv_get (input, ",", NULL, &argc, &argv)))
     {
       mu_error (_("Cannot parse input `%s': %s"), input, mu_strerror (rc));
@@ -106,23 +106,23 @@ parse_pairlist (grad_avp_t **plist, char *input)
 
   loc.file = "<configuration>"; /*FIXME*/
   loc.line = 0;
-  
+
   for (i = 0, state = state_lhs; i < argc; i++)
     {
       grad_avp_t *pair;
-      
+
       switch (state)
 	{
 	case state_lhs:
 	  name = argv[i];
 	  state = state_op;
 	  break;
-	  
+
 	case state_op:
 	  op = argv[i];
 	  state = state_rhs;
 	  break;
-	  
+
 	case state_rhs:
 	  loc.line = i; /* Just to keep track of error location */
 	  pair = grad_create_pair (&loc, name, grad_operator_equal, argv[i]);
@@ -150,7 +150,7 @@ parse_pairlist (grad_avp_t **plist, char *input)
       mu_error (_("malformed radius A/V list"));
       return 1;
     }
-  
+
   mu_argcv_free (argc, argv);
   return 0;
 }
@@ -205,13 +205,13 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
     return 0;
   if (!NEED_RADIUS_P (cfg))
     return 0;
-  
+
   grad_set_logger (mu_grad_logger);
   grad_config_dir = grad_estrdup (cfg->config_dir);
 
   grad_path_init ();
   srand (time (NULL) + getpid ());
-  
+
   if (grad_dict_init ())
     {
       mu_error (_("Cannot read radius dictionaries"));
@@ -227,7 +227,7 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
       || get_attribute (&MU_Shell, "MU-Shell")
       || get_attribute (&MU_Mailbox, "MU-Mailbox"))
     return 1;
-  
+
   /* Parse saved requests */
   if (parse_pairlist (&auth_request, cfg->auth_request)
       || parse_pairlist (&getpwnam_request, cfg->getpwnam_request)
@@ -236,7 +236,7 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
 
   radius_auth_enabled = 1;
   return 0;
-}  
+}
 
 static char *
 _expand_query (const char *query, const char *ustr, const char *passwd)
@@ -244,7 +244,7 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
   int rc;
   mu_vartab_t vtab;
   char *str, *ret;
-  
+
   if (!query)
     return NULL;
 
@@ -254,7 +254,7 @@ _expand_query (const char *query, const char *ustr, const char *passwd)
       mu_vartab_define (vtab, "user", ustr, 1);
       mu_vartab_define (vtab, "u", ustr, 1);
     }
-  
+
   if (passwd)
     {
       mu_vartab_define (vtab, "passwd", passwd, 1);
@@ -325,7 +325,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
 {
   grad_avp_t *p;
   int rc;
-  
+
   uid_t uid = -1;
   gid_t gid = -1;
   char *gecos = "RADIUS User";
@@ -345,7 +345,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
       mu_error (_("Radius did not return UID for `%s'"),  user_name);
       return -1;
     }
-		
+
   p = grad_avl_find (reply->avlist, MU_GID);
   if (p)
     gid = p->avp_lvalue;
@@ -354,11 +354,11 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
       mu_error (_("Radius did not return GID for `%s'"),  user_name);
       return -1;
     }
-  
+
   p = grad_avl_find (reply->avlist, MU_GECOS);
   if (p)
     gecos = p->avp_strvalue;
-  
+
   p = grad_avl_find (reply->avlist, MU_Dir);
   if (p)
     dir = strdup (p->avp_strvalue);
@@ -369,13 +369,13 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
 	return 1;
       strcat (strcpy (dir, DEFAULT_HOME_PREFIX), user_name);
     }
-  
+
   p = grad_avl_find (reply->avlist, MU_Shell);
   if (p)
     shell = p->avp_strvalue;
   else
     shell = DEFAULT_SHELL;
-  
+
   p = grad_avl_find (reply->avlist, MU_Mailbox);
   if (p)
     mailbox = strdup (p->avp_strvalue);
@@ -385,7 +385,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
       if (rc)
 	return rc;
     }
-  
+
   rc = mu_auth_data_alloc (return_data,
 			   user_name,
 			   password,
@@ -396,7 +396,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
 			   shell,
 			   mailbox,
 			   1);
-  
+
   free (dir);
   free (mailbox);
   return rc;
@@ -413,13 +413,13 @@ mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 
   if (!radius_auth_enabled)
     return ENOSYS;
-  
+
   if (!auth_request)
     {
       mu_error (_("radius request for auth is not specified"));
       return EINVAL;
     }
-  
+
   reply = send_request (auth_request, RT_ACCESS_REQUEST,
 			auth_data->name, (char*) call_data);
   if (!reply)
@@ -435,7 +435,7 @@ mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   default:
     rc = MU_ERR_AUTH_FAILURE;
   }
-      
+
   grad_request_free (reply);
 
   return rc;
@@ -448,7 +448,7 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
 {
   int rc = MU_ERR_AUTH_FAILURE;
   grad_request_t *reply;
-  
+
   if (!radius_auth_enabled)
     return ENOSYS;
 
@@ -457,7 +457,7 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
       mu_error (_("radius request for getpwnam is not specified"));
       return MU_ERR_FAILURE;
     }
-  
+
   reply = send_request (getpwnam_request, RT_ACCESS_REQUEST, key, NULL);
   if (!reply)
     {
@@ -472,7 +472,7 @@ mu_auth_radius_user_by_name (struct mu_auth_data **return_data,
 		  grad_request_code_to_name (reply->code));
       else
 	rc = decode_reply (reply, key, "x", return_data);
-      
+
       grad_request_free (reply);
     }
   return rc;
@@ -486,7 +486,7 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
   int rc = MU_ERR_AUTH_FAILURE;
   grad_request_t *reply;
   char uidstr[64];
-  
+
   if (!radius_auth_enabled)
     return ENOSYS;
 
@@ -498,7 +498,7 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
       mu_error (_("radius request for getpwuid is not specified"));
       return MU_ERR_FAILURE;
     }
-  
+
   snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
   reply = send_request (getpwuid_request, RT_ACCESS_REQUEST, uidstr, NULL);
   if (!reply)
@@ -559,4 +559,3 @@ struct mu_auth_module mu_auth_radius_module = {
   mu_auth_radius_user_by_uid,
   NULL
 };
-    

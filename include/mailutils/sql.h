@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@ struct mu_sql_module_config
   char *getpwnam_query;
   char *getpass_query;
   char *getpwuid_query;
-  char *host; 
+  char *host;
   char *user;
   char *passwd;
   char *db;
@@ -51,7 +51,7 @@ struct mu_internal_sql_config
   char *getpwnam_query;
   char *getpass_query;
   char *getpwuid_query;
-  char *host; 
+  char *host;
   char *user;
   char *passwd;
   char *db;
@@ -64,7 +64,7 @@ struct mu_internal_sql_config
 extern struct mu_internal_sql_config mu_sql_module_config;
 
 /* Loadable Modules Support */
-#define __s_cat2__(a,b) a ## b 
+#define __s_cat2__(a,b) a ## b
 #define __s_cat3__(a,b,c) a ## b ## c
 #define RDL_EXPORT(module,name) __s_cat3__(module,_LTX_,name)
 
@@ -107,7 +107,7 @@ struct mu_sql_dispatch
 {
   char *name;
   int port;
-  
+
   int (*init) (mu_sql_connection_t conn);
   int (*destroy) (mu_sql_connection_t conn);
 
@@ -117,7 +117,7 @@ struct mu_sql_dispatch
   int (*query) (mu_sql_connection_t conn, char *query);
   int (*store_result) (mu_sql_connection_t conn);
   int (*release_result) (mu_sql_connection_t conn);
-  
+
   int (*num_tuples) (mu_sql_connection_t conn, size_t *np);
   int (*num_columns) (mu_sql_connection_t conn, size_t *np);
 
@@ -126,7 +126,7 @@ struct mu_sql_dispatch
 
   int (*get_field_number) (mu_sql_connection_t conn, const char *fname,
 			   size_t *fno);
-  
+
   const char *(*errstr) (mu_sql_connection_t conn);
 };
 
@@ -151,7 +151,7 @@ int mu_sql_num_columns (mu_sql_connection_t conn, size_t *np);
 
 int mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
 		       char **pdata);
-int mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, char *fname,
+int mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, const char *fname,
 		      char **pdata);
 
 const char *mu_sql_strerror (mu_sql_connection_t conn);

@@ -146,7 +146,7 @@ static const char *guimb_argp_capa[] = {
   NULL
 };
 
-const char *main_sym = "mailutils-main";
+char *main_sym = "mailutils-main";
 
 int
 main (int argc, char *argv[])

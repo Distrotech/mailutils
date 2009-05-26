@@ -338,7 +338,7 @@ extern int  util_finish (struct imap4d_command *, int, const char *, ...)
 extern int  util_getstate (void);
 extern int  util_do_command (imap4d_tokbuf_t);
 extern char *util_tilde_expansion (const char *, const char *);
-extern char *util_getfullpath (char *, const char *);
+extern char *util_getfullpath (const char *, const char *);
 extern int  util_msgset (char *, size_t **, int *, int);
 extern int  util_upper (char *);
 extern struct imap4d_command *util_getcommand (char *, 

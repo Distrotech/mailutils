@@ -36,7 +36,7 @@ util_tilde_expansion (const char *ref, const char *delim)
 /* Get the absolute path.  */
 /* NOTE: Path is allocated and must be free()d by the caller.  */
 char *
-util_getfullpath (char *name, const char *delim)
+util_getfullpath (const char *name, const char *delim)
 {
   char *p = util_tilde_expansion (name, delim);
   if (*p != delim[0])

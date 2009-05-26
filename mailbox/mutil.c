@@ -437,7 +437,7 @@ mu_aget_user_email_domain (char **pdomain)
   if (status)
     return status;
   if (domain == NULL)
-    *pdomain = domain;
+    *pdomain = NULL;
   else
     {
       *pdomain = strdup (domain);

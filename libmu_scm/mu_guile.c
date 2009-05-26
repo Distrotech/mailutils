@@ -51,7 +51,7 @@ mu_guile_safe_exec (SCM (*handler) (void *data), void *data, SCM *result)
 {
   jmp_buf jmp_env;
   struct scheme_exec_data ed;
-	
+
   if (setjmp (jmp_env))
     return 1;
   ed.handler = handler;
@@ -85,10 +85,10 @@ mu_guile_safe_proc_call (SCM proc, SCM arglist, SCM *presult)
 {
   jmp_buf jmp_env;
   SCM cell, result;
-    
+
   if (setjmp (jmp_env))
     return 1;
-    
+
   cell = scm_cons (proc, arglist);
   result = scm_internal_lazy_catch (SCM_BOOL_T,
 				    eval_catch_body, cell,
@@ -119,7 +119,7 @@ mu_guile_init (int debug)
 
 struct load_closure
 {
-  char *filename;
+  const char *filename;
   int argc;
   char **argv;
 };
@@ -128,14 +128,14 @@ static SCM
 load_path_handler (void *data)
 {
   struct load_closure *lp = data;
-    
-  scm_set_program_arguments (lp->argc, lp->argv, lp->filename);
+
+  scm_set_program_arguments (lp->argc, lp->argv, (char*)lp->filename);
   scm_primitive_load (scm_makfrom0str (lp->filename));
   return SCM_UNDEFINED;
 }
 
 int
-mu_guile_load (char *filename, int argc, char **argv)
+mu_guile_load (const char *filename, int argc, char **argv)
 {
   struct load_closure lc;
   lc.filename = filename;
@@ -161,7 +161,7 @@ mu_guile_eval (const char *string)
 
 /* See comment on this function in mu_mailbox.c */
 extern SCM mu_scm_mailbox_create0 (mu_mailbox_t mbox, int noclose);
-  
+
 int
 mu_guile_mailbox_apply (mu_mailbox_t mbx, char *funcname)
 {

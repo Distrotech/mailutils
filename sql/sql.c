@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -56,7 +56,7 @@ add_disptab (mu_sql_dispatch_t *tab)
   if (sql_disptab_next == sql_disptab_size)
     {
       mu_sql_dispatch_t **tmp;
-      
+
       tmp = realloc (sql_disptab, sql_disptab_size + 4);
       if (!tmp)
 	return ENOMEM;
@@ -73,7 +73,7 @@ mu_sql_interface_index (char *name)
 {
   int i;
   //mu_sql_dispatch_t *tab;
-  
+
   init_disptab ();
   for (i = 1; i < sql_disptab_next; i++)
     if (sql_disptab[i] && (!name || strcmp (sql_disptab[i]->name, name) == 0))
@@ -81,7 +81,7 @@ mu_sql_interface_index (char *name)
   /* FIXME: For dynamic loading
       if (name && mu_sql_load_ext (name, "dispatch_tab", &tab))
        return add_disptab (tab);
-  */  
+  */
   return 0;
 }
 
@@ -116,7 +116,7 @@ mu_sql_connection_init (mu_sql_connection_t *pconn, int interface,
 {
   static mu_sql_dispatch_t *tab;
   mu_sql_connection_t conn;
-  
+
   tab = get_sql_entry (interface);
   if (!tab)
     return MU_ERR_NO_INTERFACE;
@@ -161,7 +161,7 @@ int
 mu_sql_connect (mu_sql_connection_t conn)
 {
   int rc;
-  
+
   if (!conn)
     return EINVAL;
 
@@ -173,7 +173,7 @@ mu_sql_connect (mu_sql_connection_t conn)
     case mu_sql_connected:
     case mu_sql_query_run:
       return MU_ERR_DB_ALREADY_CONNECTED;
-      
+
     case mu_sql_result_available:
       return MU_ERR_RESULT_NOT_RELEASED;
     }
@@ -187,7 +187,7 @@ int
 mu_sql_disconnect (mu_sql_connection_t conn)
 {
   int rc;
-  
+
   if (!conn)
     return EINVAL;
 
@@ -199,7 +199,7 @@ mu_sql_disconnect (mu_sql_connection_t conn)
     case mu_sql_connected:
     case mu_sql_query_run:
       break;
-      
+
     case mu_sql_result_available:
       return MU_ERR_RESULT_NOT_RELEASED;
     }
@@ -229,7 +229,7 @@ mu_sql_query (mu_sql_connection_t conn, char *query)
     case mu_sql_result_available:
       return MU_ERR_RESULT_NOT_RELEASED;
     }
-  
+
   rc = SQL_F (conn, query) (conn, query);
   if (rc == 0)
     conn->state = mu_sql_query_run;
@@ -240,7 +240,7 @@ int
 mu_sql_store_result (mu_sql_connection_t conn)
 {
   int rc;
-  
+
   if (!conn)
     return EINVAL;
 
@@ -251,14 +251,14 @@ mu_sql_store_result (mu_sql_connection_t conn)
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       break;
 
     case mu_sql_result_available:
       return MU_ERR_RESULT_NOT_RELEASED;
     }
-      
+
   rc = SQL_F (conn, store_result) (conn);
   if (rc == 0)
     conn->state = mu_sql_result_available;
@@ -269,7 +269,7 @@ int
 mu_sql_release_result (mu_sql_connection_t conn)
 {
   int rc;
-  
+
   if (!conn)
     return EINVAL;
 
@@ -280,14 +280,14 @@ mu_sql_release_result (mu_sql_connection_t conn)
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       return MU_ERR_NO_RESULT;
 
     case mu_sql_result_available:
       break;
     }
-  
+
   rc = SQL_F (conn, release_result) (conn);
   if (rc == 0)
     conn->state = mu_sql_connected;
@@ -307,7 +307,7 @@ mu_sql_num_tuples (mu_sql_connection_t conn, size_t *np)
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       return MU_ERR_NO_RESULT;
 
@@ -330,7 +330,7 @@ mu_sql_num_columns (mu_sql_connection_t conn, size_t *np)
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       return MU_ERR_NO_RESULT;
 
@@ -339,7 +339,7 @@ mu_sql_num_columns (mu_sql_connection_t conn, size_t *np)
     }
   return SQL_F (conn, num_columns) (conn, np);
 }
-  
+
 
 int
 mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
@@ -354,7 +354,7 @@ mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       return MU_ERR_NO_RESULT;
 
@@ -365,12 +365,12 @@ mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
 }
 
 int
-mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, char *fname,
+mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, const char *fname,
 		  char **pdata)
 {
   int rc;
   size_t fno;
-  
+
   if (!conn)
     return EINVAL;
 
@@ -381,7 +381,7 @@ mu_sql_get_field (mu_sql_connection_t conn, size_t nrow, char *fname,
 
     case mu_sql_connected:
       return MU_ERR_NO_QUERY;
-      
+
     case mu_sql_query_run:
       return MU_ERR_NO_RESULT;
 
@@ -402,4 +402,3 @@ mu_sql_strerror (mu_sql_connection_t conn)
     return strerror (EINVAL);
   return SQL_F (conn, errstr) (conn);
 }
-  
