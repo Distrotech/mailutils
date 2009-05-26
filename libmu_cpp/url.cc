@@ -95,16 +95,16 @@ Url :: get_user ()
   return std::string (buf ? buf : "");
 }
 
-std::string
-Url :: get_passwd ()
+Secret&
+Url :: get_secret ()
 {
-  const char* buf = NULL;
-  int status = mu_url_sget_passwd (url, &buf);
+  mu_secret_t c_secret;
+  int status = mu_url_get_secret (url, &c_secret);
   if (status == MU_ERR_NOENT)
-    return "";
+    return *new Secret ("");
   else if (status)
-    throw Exception ("Url::get_passwd", status);
-  return std::string (buf ? buf : "");
+    throw Exception ("Url::get_secret", status);
+  return *new Secret (c_secret);
 }
 
 std::string

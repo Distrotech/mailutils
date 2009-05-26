@@ -37,6 +37,7 @@ MU_CXX_INCLUDES = \
  mutil.h\
  pop3.h\
  registrar.h\
+ secret.h\
  stream.h\
  url.h
 

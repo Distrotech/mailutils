@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <mailutils/url.h>
 #include <mailutils/cpp/error.h>
+#include <mailutils/cpp/secret.h>
 
 namespace mailutils
 {
@@ -46,11 +47,11 @@ class Url
   long get_port ();
   std::string get_scheme ();
   std::string get_user ();
-  std::string get_passwd ();
   std::string get_auth ();
   std::string get_host ();
   std::string get_path ();
   std::vector<std::string> get_query ();
+  Secret& get_secret ();
 
   std::string to_string ();
   friend std::ostream& operator << (std::ostream&, Url&);

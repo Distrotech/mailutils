@@ -45,7 +45,11 @@ main ()
 
 	cout << "\tscheme <" << url.get_scheme () << ">" << endl;
 	cout << "\tuser <"   << url.get_user   () << ">" << endl;
-	cout << "\tpasswd <" << url.get_passwd () << ">" << endl;
+
+	Secret sec = url.get_secret ();
+	cout << "\tpasswd <" << sec.password () << ">" << endl;
+	sec.password_unref ();
+
 	cout << "\tauth <"   << url.get_auth   () << ">" << endl;
 	cout << "\thost <"   << url.get_host   () << ">" << endl;
 	cout << "\tport "    << url.get_port   () << endl;
