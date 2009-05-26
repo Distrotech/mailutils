@@ -46,6 +46,7 @@ mu_wicket_create (mu_wicket_t *pwicket)
   if (!wicket)
     return ENOMEM;
   wicket->refcnt = 1;
+  *pwicket = wicket;
   return 0;
 }
 
