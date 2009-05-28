@@ -84,6 +84,7 @@ mu_py_init (void)
   mu_py_init_mailcap ();
   mu_py_init_message ();
   mu_py_init_mime ();
+  mu_py_init_secret ();
   mu_py_init_stream ();
   mu_py_init_url ();
 }
@@ -123,6 +124,7 @@ mu_py_attach_modules (void)
   _mu_py_attach_message ();
   _mu_py_attach_mime ();
   _mu_py_attach_registrar ();
+  _mu_py_attach_secret ();
   _mu_py_attach_stream ();
   _mu_py_attach_url ();
   _mu_py_attach_util ();

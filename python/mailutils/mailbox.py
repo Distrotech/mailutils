@@ -18,6 +18,7 @@
 #  Boston, MA 02110-1301 USA
 #
 
+import types
 from mailutils.c_api import mailbox
 from mailutils import message
 from mailutils import folder
@@ -26,9 +27,21 @@ from mailutils import debug
 from mailutils.error import MailboxError
 
 class MailboxBase:
-    def open (self, flags = 0):
+    def open (self, mode = 0):
         """Open the connection."""
-        status = mailbox.open (self.mbox, flags)
+        if isinstance (mode, types.StringType):
+            from mailutils import stream
+            flags = 0
+            if mode == 'r':
+                flags = flags | stream.MU_STREAM_READ
+            elif mode == 'w':
+                flags = flags | stream.MU_STREAM_WRITE
+            elif mode == 'a':
+                flags = flags | stream.MU_STREAM_APPEND
+            elif mode == 'c':
+                flags = flags | stream.MU_STREAM_CREAT
+            mode = flags
+        status = mailbox.open (self.mbox, mode)
         if status:
             raise MailboxError (status)
 

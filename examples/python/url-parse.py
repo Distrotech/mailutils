@@ -28,7 +28,11 @@ def parse (str):
 
 	print "\tscheme <%s>" % u.get_scheme ()
 	print "\tuser <%s>" %   u.get_user ()
-	print "\tpasswd <%s>" % u.get_passwd ()
+
+        sec = u.get_secret ()
+	print "\tpasswd <%s>" % sec.password ()
+	sec.password_unref ()
+
  	print "\tauth <%s>" %   u.get_auth ()
  	print "\thost <%s>" %   u.get_host ()
  	print "\tport %d" %     u.get_port ()

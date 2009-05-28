@@ -100,6 +100,11 @@ class Ticket:
             auth.ticket_destroy (self.ticket)
         del self.ticket
 
+    def set_secret (self, secret):
+        status = auth.ticket_set_secret (self.ticket, secret.secret)
+        if status:
+            raise AuthError (status)
+
 class Wicket:
     __owner = False
 
@@ -118,16 +123,8 @@ class Wicket:
             auth.wicket_destroy (self.wicket)
         del self.wicket
 
-    def __str__ (self):
-        return self.get_filename ()
-
-    def get_filename (self):
-        status, filename = auth.wicket_get_filename (self.wicket)
+    def get_ticket (self, user):
+        status, ticket = auth.wicket_get_ticket (self.wicket, user)
         if status:
             raise AuthError (status)
-        return filename
-
-    def set_filename (self, filename):
-        status = auth.wicket_set_filename (self.wicket, filename)
-        if status:
-            raise AuthError (status)
+        return Ticket (ticket)

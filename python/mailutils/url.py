@@ -19,6 +19,7 @@
 #
 
 from mailutils.c_api import url
+from mailutils import secret
 from mailutils.error import *
 
 class Url:
@@ -72,13 +73,13 @@ class Url:
             raise UrlError (status)
         return user
 
-    def get_passwd (self):
-        status, passwd = url.get_passwd (self.url)
+    def get_secret (self):
+        status, sec = url.get_secret (self.url)
         if status == MU_ERR_NOENT:
-           return ''
+            return secret.Secret ('')
         elif status:
             raise UrlError (status)
-        return passwd
+        return secret.Secret (sec)
 
     def get_auth (self):
         status, auth = url.get_auth (self.url)

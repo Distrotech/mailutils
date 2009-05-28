@@ -43,6 +43,7 @@ libmu_py_la_SOURCES = \
  message.c \
  mime.c \
  script.c \
+ secret.c \
  stream.c \
  registrar.c \
  url.c \

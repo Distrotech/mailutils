@@ -33,6 +33,7 @@ __all__ = [
     "message",
     "mime",
     "registrar",
+    "secret",
     "stream",
     "url",
     "util",

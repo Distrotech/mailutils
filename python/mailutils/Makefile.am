@@ -35,6 +35,7 @@ MU_PY_PKGPYTHON_LIST=\
  message.py \
  mime.py \
  registrar.py \
+ secret.py \
  stream.py \
  url.py \
  util.py

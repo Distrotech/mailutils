@@ -438,6 +438,27 @@ api_ticket_destroy (PyObject *self, PyObject *args)
   return _ro (Py_None);
 }
 
+static PyObject *
+api_ticket_set_secret (PyObject *self, PyObject *args)
+{
+  int status;
+  PyTicket *py_ticket;
+  PySecret *py_secret;
+
+  if (!PyArg_ParseTuple (args, "O!O", &PyTicketType, &py_ticket, &py_secret))
+    return NULL;
+
+  if (!PySecret_Check ((PyObject *)py_secret))
+    {
+      PyErr_SetString (PyExc_TypeError, "");
+      return NULL;
+    }
+
+  status = mu_ticket_set_secret (py_ticket->ticket,
+				 py_secret->secret);
+  return _ro (PyInt_FromLong (status));
+}
+
 /*
  *  Wicket
  */
@@ -466,6 +487,24 @@ api_wicket_destroy (PyObject *self, PyObject *args)
 
   mu_wicket_destroy (&py_wicket->wicket);
   return _ro (Py_None);
+}
+
+static PyObject *
+api_wicket_get_ticket (PyObject *self, PyObject *args)
+{
+  int status;
+  char *user;
+  PyWicket *py_wicket;
+  PyTicket *py_ticket = PyTicket_NEW ();
+
+  if (!PyArg_ParseTuple (args, "O!s", &PyWicketType, &py_wicket, &user))
+    return NULL;
+
+  Py_INCREF (py_ticket);
+
+  status = mu_wicket_get_ticket (py_wicket->wicket, user,
+				 &py_ticket->ticket);
+  return status_object (status, (PyObject *)py_ticket);
 }
 
 /*
@@ -607,10 +646,16 @@ static PyMethodDef methods[] = {
   { "ticket_destroy", (PyCFunction) api_ticket_destroy, METH_VARARGS,
     "" },
 
+  { "ticket_set_secret", (PyCFunction) api_ticket_set_secret, METH_VARARGS,
+    "" },
+
   { "wicket_create", (PyCFunction) api_wicket_create, METH_VARARGS,
     "" },
 
   { "wicket_destroy", (PyCFunction) api_wicket_destroy, METH_VARARGS,
+    "" },
+
+  { "wicket_get_ticket", (PyCFunction) api_wicket_get_ticket, METH_VARARGS,
     "" },
 
   { "register_module", (PyCFunction) api_register_module, METH_VARARGS,

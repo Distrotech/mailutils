@@ -112,6 +112,11 @@ typedef struct {
 
 typedef struct {
   PyObject_HEAD;
+  mu_secret_t secret;
+} PySecret;
+
+typedef struct {
+  PyObject_HEAD;
   mu_stream_t stm;
 } PyStream;
 
@@ -137,6 +142,7 @@ extern int mu_py_init_mailbox (void);
 extern int mu_py_init_mailcap (void);
 extern int mu_py_init_message (void);
 extern int mu_py_init_mime (void);
+extern int mu_py_init_secret (void);
 extern int mu_py_init_stream (void);
 extern int mu_py_init_url (void);
 
@@ -160,6 +166,7 @@ extern PyMailbox * PyMailbox_NEW ();
 extern PyMailer * PyMailer_NEW ();
 extern PyMessage * PyMessage_NEW ();
 extern PyMime * PyMime_NEW ();
+extern PySecret * PySecret_NEW ();
 extern PyStream * PyStream_NEW ();
 extern PyUrl * PyUrl_NEW ();
 
@@ -169,6 +176,7 @@ extern int PyTicket_Check (PyObject *x);
 extern int PyWicket_Check (PyObject *x);
 extern int PyAuthData_Check (PyObject *x);
 extern int PyMessage_Check (PyObject *x);
+extern int PySecret_Check (PyObject *x);
 extern int PyStream_Check (PyObject *x);
 
 typedef struct {
