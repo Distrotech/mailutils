@@ -1303,10 +1303,10 @@ mu_fd_wait (int fd, int *pflags, struct timeval *tvp)
       if (tvp)
 	{
 	  struct timeval tv = *tvp; 
-	  rc = select (fd + 1, &rdset, &wrset, NULL, &tv);
+	  rc = select (fd + 1, &rdset, &wrset, &exset, &tv);
 	}
       else
-	rc = select (fd + 1, &rdset, &wrset, NULL, NULL);
+	rc = select (fd + 1, &rdset, &wrset, &exset, NULL);
     }
   while (rc == -1 && errno == EINTR);
 
