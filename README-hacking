@@ -49,6 +49,34 @@ sources reside.
    
 For more information about `bootstrap', run `bootstrap --help'.
 
+* Flowgraphs
+
+To obtain flowgraphs, you need GNU cflow v.1.3 or higher.
+
+To create or update all flowgraphs, run the following command
+from the source tree root directory:
+
+  make -f maint.mk
+
+The flowgraphs will be created in the subdirectories and
+named COMP.cflow, where COMP is the name of the corresponding
+Mailutils component.
+
+To create or update the flowgraph for a given component, change
+into this component's subdirectory and run
+
+  make -f ../maint.mk flowgraph
+
+If the component in question has its own maint.mk, run
+
+  make -f maint.mk flowgraph
+  
+instead.
+  
+To clean all flowgraphs, run (from the source tree root directory):
+
+  make -f maint.mk maintclean-recursive
+
 
 * Copyright information
 
