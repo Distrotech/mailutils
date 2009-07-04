@@ -247,7 +247,7 @@ mu_debug_printv (mu_debug_t debug, mu_log_level_t level, const char *format,
     return EINVAL;
   if (debug->level & MU_DEBUG_LEVEL_MASK (level))
     return 0;
-  return mu_debug_printf (debug, level, format, ap);
+  return mu_debug_vprintf (debug, level, format, ap);
 }
 
 int

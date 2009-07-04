@@ -293,7 +293,7 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
 	  mu_address_create (&addr, from);
 	  if (!addr
 	      || mu_address_aget_email (addr, 1, &env_from))
-	    env_from = strdup ("GNU Mailutils");
+	    env_from = strdup ("GNU-Mailutils");
 	  mu_address_destroy (&addr);
 	}
       else
