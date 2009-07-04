@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
 sbin_PROGRAMS = pop3d
 bin_PROGRAMS = @POPAUTH@
@@ -69,10 +69,3 @@ pop3d_DEPENDENCIES = \
  ${MU_LIB_MAILDIR}\
  ${MU_LIB_MAILUTILS}
 
-CFLOW_FLAGS=-i^s --brief -v
-pop3d_CFLOW_INPUT=$(pop3d_OBJECTS:.$(OBJEXT)=.c)
-pop3d.cflow: $(pop3d_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(pop3d_CFLOW_INPUT)

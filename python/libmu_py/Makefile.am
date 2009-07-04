@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
 
 EXTRA_LTLIBRARIES = libmu_py.la c_api.la
 

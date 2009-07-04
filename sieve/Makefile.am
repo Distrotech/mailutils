@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 SUBDIRS  = testsuite
 
 bin_PROGRAMS = sieve
@@ -39,10 +39,3 @@ sieve_LDADD =\
 
 sieve_LDFLAGS = -export-dynamic
 
-CFLOW_FLAGS=-i^s --brief -v
-sieve_CFLOW_INPUT=$(sieve_OBJECTS:.$(OBJEXT)=.c)
-sieve.cflow: $(sieve_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(sieve_CFLOW_INPUT)

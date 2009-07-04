@@ -16,7 +16,9 @@
 # Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+# This library uses gnulib calls and is always linked with gnulib, therefore
+# we use application includes here.
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 AM_CPPFLAGS = \
  -DSYSCONFDIR=\"$(sysconfdir)\"\
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\

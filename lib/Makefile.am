@@ -20,7 +20,7 @@
 
 include gnulib.mk
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
 libmuaux_la_SOURCES += \
  daemon.c\

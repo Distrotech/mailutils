@@ -17,7 +17,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
 SUBDIRS = testsuite
 
@@ -36,10 +36,3 @@ messages_LDADD =\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
-CFLOW_FLAGS=-i^s --brief -v
-messages_CFLOW_INPUT=$(messages_OBJECTS:.$(OBJEXT)=.c)
-messages.cflow: $(messages_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(messages_CFLOW_INPUT)

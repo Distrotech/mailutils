@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ 
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d
@@ -86,11 +86,3 @@ imap4d_DEPENDENCIES = \
  ${MU_LIB_MAILUTILS}
 
 EXTRA_DIST=auth_gss.c auth_gsasl.c
-
-CFLOW_FLAGS=-i^s --brief 
-imap4d_CFLOW_INPUT=$(imap4d_OBJECTS:.$(OBJEXT)=.c)
-imap4d.cflow: $(imap4d_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(imap4d_CFLOW_INPUT)

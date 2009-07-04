@@ -52,7 +52,7 @@ noinst_PROGRAMS = \
 moddir=@MU_SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
 LDADD = \
  ../lib/libmuaux.la\

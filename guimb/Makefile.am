@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
 
 SUBDIRS=scm
 

@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I. @MU_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
+INCLUDES = -I. @MU_LIB_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
 
 MU_SCM_LTLIBRARIES_LIST = libmu_scm.la
 lib_LTLIBRARIES=@MU_SCM_LTLIBRARIES_BUILD@
@@ -133,10 +133,3 @@ install-data-hook:
 	 fi; \
 	 cd $$here
 
-CFLOW_FLAGS=-i^s --brief -v
-libmu_scm_CFLOW_INPUT=$(libmu_scm_la_OBJECTS:.lo=.c)
-libmu_scm.cflow: $(libmu_scm_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(libmu_scm_CFLOW_INPUT)

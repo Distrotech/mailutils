@@ -1,13 +1,12 @@
 # List of gnulib modules needed for GNU mailutils.
 # A module name per line. Empty lines and comments are ignored.
 
-# FIXME: regex and glob are used by libmailutils...
+# FIXME: fnmatch, regex and glob are used by libmailutils...
 
 alloca
 autobuild
 argp
 crypto/des
-fnmatch
 getline
 getpass-gnu
 gettext

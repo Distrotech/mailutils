@@ -27,7 +27,7 @@ mod_LTLIBRARIES = \
  timestamp.la\
  vacation.la
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
 AM_LDFLAGS = -module -avoid-version -no-undefined -rpath '$(moddir)' 
 

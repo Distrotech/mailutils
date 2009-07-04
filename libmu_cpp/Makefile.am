@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
 MU_CXX_LTLIBRARIES_LIST = libmu_cpp.la
 lib_LTLIBRARIES = @MU_CXX_LTLIBRARIES_BUILD@

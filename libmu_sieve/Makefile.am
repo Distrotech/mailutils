@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS = -dtv
@@ -67,10 +67,3 @@ sieve-gram.c sieve-gram.h: $(srcdir)/sieve.y
                   -- -yy mu_sieve_yy
 
 
-CFLOW_FLAGS=-i^s --brief -v
-libmu_sieve_CFLOW_INPUT=$(libmu_sieve_la_OBJECTS:.lo=.c)
-libmu_sieve.cflow: $(libmu_sieve_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(libmu_sieve_CFLOW_INPUT)

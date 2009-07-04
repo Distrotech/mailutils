@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 AM_YFLAGS=-vt
-INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@ 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
@@ -98,10 +98,3 @@ mail_SOURCES = \
 
 SUBDIRS = testsuite
 
-CFLOW_FLAGS=-i^s --brief -v
-mail_CFLOW_INPUT=$(mail_OBJECTS:.$(OBJEXT)=.c)
-mail.cflow: $(mail_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(mail_CFLOW_INPUT)

@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ @MU_AUTHINCS@
+INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@
 bin_PROGRAMS = movemail
 
 movemail_LDADD = \
@@ -34,10 +34,3 @@ movemail_LDADD = \
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
-CFLOW_FLAGS=-i^s --brief -v
-movemail_CFLOW_INPUT=$(movemail_OBJECTS:.$(OBJEXT)=.c)
-movemail.cflow: $(movemail_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(movemail_CFLOW_INPUT)

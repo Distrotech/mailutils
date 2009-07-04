@@ -18,7 +18,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_COMMON_INCLUDES@ 
+INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
 SUBDIRS = testsuite
 
@@ -42,10 +42,3 @@ common_ldadd = \
  ${MU_LIB_MAILUTILS}\
  @FRIBIDI_LIBS@ @MU_COMMON_LIBRARIES@
 
-CFLOW_FLAGS=-i^s --brief -v
-frm_CFLOW_INPUT=$(frm_OBJECTS:.$(OBJEXT)=.c)
-frm.cflow: $(frm_CFLOW_INPUT) Makefile
-	cflow -o$@ $(CFLOW_FLAGS) $(DEFS) \
-		$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) \
-	$(frm_CFLOW_INPUT)

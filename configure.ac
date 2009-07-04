@@ -60,7 +60,18 @@ AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
 AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.la')
 
-AC_SUBST(MU_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
+# There are two sets of include directories: MU_LIB_COMMON_INCLUDES, used
+# by the libraries, and MU_APP_COMMON_INCLUDES, which is used by applications.
+# The principal difference between them is that the latter contains gnulib
+# directory.
+#
+# Libraries are isolated from gnulib and are not allowed to include its
+# header files. There are two exceptions, though. See NOTE before the
+# AC_CONFIG_LINKS statements, below.
+
+AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libproto/include')
+
+AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
 
 dnl Check for programs
 AC_PROG_CC
@@ -98,6 +109,17 @@ AC_CHECK_TYPE(iconv_t,:,
 # include <iconv.h>
 #endif
 ])
+
+# NOTE: Generally speaking, Mailutils libraries are not allowed to include
+# gnulib headers.  The only exceptions are: gettext.h, which is needed for
+# proper i18n, and intprops.h, which is used in mailbox/cfg_parser.y.
+# This latter will probably be rewritten to remove the need for intprops.h.
+#
+# To make these two headers accessible for the libraries, they are linked
+# to include/.
+#
+AC_CONFIG_LINKS(include/gettext.h:lib/gettext.h)
+AC_CONFIG_LINKS(include/intprops.h:lib/intprops.h)
 
 AH_BOTTOM([
 #define DEFAULT_TEXT_DOMAIN PACKAGE
