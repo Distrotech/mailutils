@@ -58,7 +58,7 @@ _mu_debug_port_mark (SCM port)
 static void
 _mu_debug_port_flush (SCM port)
 {
-  struct _mu_debug_port *dp = MU_DEBUG_PORT (port);
+  /* struct _mu_debug_port *dp = MU_DEBUG_PORT (port); */
 
   /* FIXME: */
 }

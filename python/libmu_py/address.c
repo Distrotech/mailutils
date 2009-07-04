@@ -103,7 +103,6 @@ static PyObject *
 api_address_createv (PyObject *self, PyObject *args)
 {
   int status;
-  char *str;
   PyAddress *py_addr;
   PyObject *py_seq;
   char **sv;

@@ -25,7 +25,6 @@
 static PyObject *
 api_util_get_user_email (PyObject *self, PyObject *args)
 {
-  int status;
   char *name = NULL;
   char *email = NULL;
 

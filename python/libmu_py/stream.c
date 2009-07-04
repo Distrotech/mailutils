@@ -119,7 +119,6 @@ static PyObject *
 api_stdio_stream_create (PyObject *self, PyObject *args)
 {
   int status, flags;
-  char *filename;
   FILE *fp;
   PyStream *py_stm;
   PyFileObject *py_file;

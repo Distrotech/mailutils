@@ -242,7 +242,6 @@ api_url_get_query (PyObject *self, PyObject *args)
 static PyObject *
 api_url_to_string (PyObject *self, PyObject *args)
 {
-  int status;
   const char *str;
   PyUrl *py_url;
 

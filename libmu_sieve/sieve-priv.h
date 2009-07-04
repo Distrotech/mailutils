@@ -18,7 +18,6 @@
    Boston, MA 02110-1301 USA */
 
 #include <mailutils/sieve.h>
-#include <mu_asprintf.h>
 #include <setjmp.h>
 #include <string.h>
 

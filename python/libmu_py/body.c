@@ -111,7 +111,6 @@ static PyObject *
 api_body_get_stream (PyObject *self, PyObject *args)
 {
   int status;
-  size_t lines;
   PyBody *py_body;
   PyStream *py_stm = PyStream_NEW ();
 

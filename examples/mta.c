@@ -60,7 +60,6 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <mu_asprintf.h>
 #include <mailutils/argcv.h>
 #include <mailutils/mailutils.h>
 

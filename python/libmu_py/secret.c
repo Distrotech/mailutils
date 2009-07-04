@@ -116,7 +116,6 @@ api_secret_destroy (PyObject *self, PyObject *args)
 static PyObject *
 api_secret_password (PyObject *self, PyObject *args)
 {
-  int status;
   const char *pass;
   PySecret *py_secret;
 

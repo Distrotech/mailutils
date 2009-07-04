@@ -25,7 +25,6 @@ int
 python_check_msg (mu_message_t msg, struct mu_auth_data *auth,
 		  const char *prog)
 {
-  int status;
   PyMessage *py_msg;
   mu_py_dict dict[2];
   mu_py_script_data data[1];

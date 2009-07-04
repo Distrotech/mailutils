@@ -30,7 +30,6 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#include <inttostr.h>
 
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>

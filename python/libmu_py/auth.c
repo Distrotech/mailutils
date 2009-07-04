@@ -574,7 +574,6 @@ api_register_module (PyObject *self, PyObject *args)
 static PyObject *
 api_get_auth_by_name (PyObject *self, PyObject *args)
 {
-  int status;
   char *username;
   PyAuthData *py_ad = PyAuthData_NEW ();
 
@@ -593,7 +592,6 @@ api_get_auth_by_name (PyObject *self, PyObject *args)
 static PyObject *
 api_get_auth_by_uid (PyObject *self, PyObject *args)
 {
-  int status;
   uid_t uid;
   PyAuthData *py_ad = PyAuthData_NEW ();
 

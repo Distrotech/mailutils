@@ -39,7 +39,6 @@
 #include <string.h>
 #include <signal.h>
 #include <regex.h>
-#include <mu_dbm.h>
 #include <mailutils/sieve.h>
 
 #define ASSERT(expr, diag, ec)                                                \
