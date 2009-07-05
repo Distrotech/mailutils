@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <cstdlib>
 #include <mailutils/cpp/mailutils.h>
 
 using namespace std;

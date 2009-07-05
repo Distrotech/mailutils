@@ -18,6 +18,7 @@
    Boston, MA 02110-1301 USA
 */
 
+#include <cstdlib>
 #include <mailutils/cpp/mutil.h>
 
 using namespace mailutils;
