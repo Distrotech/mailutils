@@ -1,6 +1,6 @@
 /* utmp.c -- Replacements for {set,get,end}utmp functions
 
-Copyright (C) 2002 Free Software Foundation, Inc.
+Copyright (C) 2002, 2009 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -28,7 +28,7 @@ MA 02110-1301 USA. */
 #include <string.h>
 #include <stdio.h>
 
-static char *utmp_name = _PATH_UTMP;
+static char *utmp_name = PATH_UTMP;
 static int fd = -1;
 static struct utmp ut;
 

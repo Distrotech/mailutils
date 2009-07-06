@@ -4,6 +4,7 @@
 *.o
 *.so
 *~
+*.cflow
 .bootstrap
 .deps
 .emacs*

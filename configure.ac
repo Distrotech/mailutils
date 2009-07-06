@@ -324,17 +324,14 @@ if test "x$MU_CONF_MAILDIR" != x; then
   AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR,
                      [Pathname of the mail spool directory])
 fi
-AH_BOTTOM([
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
-#ifndef _PATH_MAILDIR
-# if (defined(sun) && defined(__svr4__)) || defined(__SVR4)
-#  define _PATH_MAILDIR "/var/mail"
-# else
-#  define _PATH_MAILDIR "/usr/spool/mail"
-# endif
-#endif
+
+PATHDEFS_H=pathdefs.h
+MU_CONFIG_PATHS($srcdir/paths,PATHDEFS_H)
+
+AH_BOTTOM(
+[/* Defaults for PATH_ variables.  */
+#include <confpaths.h>
+
 #ifdef MU_CONF_MAILDIR
 # define MU_PATH_MAILDIR MU_CONF_MAILDIR
 #else
@@ -1291,7 +1288,9 @@ status_sendmail=$mu_cv_enable_sendmail
 ])
 
 dnl Output Makefiles
-AC_CONFIG_FILES([Makefile
+AC_CONFIG_FILES([
+ include/confpaths.h
+ Makefile
  sql/Makefile
  comsat/Makefile
  config/Makefile

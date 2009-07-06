@@ -1,2 +1,3 @@
 Makefile
 Makefile.in
+confpaths.h

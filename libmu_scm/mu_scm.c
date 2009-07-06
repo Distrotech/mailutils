@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2006, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,8 +19,8 @@
 
 #include "mu_scm.h"
 
-#ifndef _PATH_SENDMAIL
-# define _PATH_SENDMAIL "/usr/lib/sendmail"
+#ifndef PATH_SENDMAIL
+# define PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
 
 void
@@ -190,7 +191,7 @@ mu_scm_init ()
 {
   int i;
 
-  _mu_scm_mailer = scm_makfrom0str ("sendmail:" _PATH_SENDMAIL);
+  _mu_scm_mailer = scm_makfrom0str ("sendmail:" PATH_SENDMAIL);
   mu_set_variable ("mu-mailer", _mu_scm_mailer);
 
   _mu_scm_debug = mu_scm_makenum(0);

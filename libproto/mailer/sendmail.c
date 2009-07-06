@@ -58,7 +58,7 @@ _url_sendmail_init (mu_url_t url)
     return EINVAL;
 
   if (url->path == 0)
-    if ((url->path = strdup (_PATH_SENDMAIL)) == 0)
+    if ((url->path = strdup (PATH_SENDMAIL)) == 0)
       return ENOMEM;
 
   return 0;

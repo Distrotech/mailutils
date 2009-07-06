@@ -18,3 +18,4 @@
 ##   02110-1301 USA
 
 SUBDIRS=mailutils
+EXTRA_DIST=confpaths.h.in

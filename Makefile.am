@@ -54,7 +54,9 @@ SUBDIRS = \
  movemail\
  mimeview
 
-EXTRA_DIST = COPYING.LESSER
+EXTRA_DIST = COPYING.LESSER paths
+
+DISTCLEANFILES = pathdefs.h
 
 gen_start_date = 
 prev_change_log = 

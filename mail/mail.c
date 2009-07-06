@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -341,8 +341,8 @@ main (int argc, char **argv)
   /* Set the default mailer to sendmail.  */
   {
     char *mailer_name = alloca (strlen ("sendmail:")
-				+ strlen (_PATH_SENDMAIL) + 1);
-    sprintf (mailer_name, "sendmail:%s", _PATH_SENDMAIL);
+				+ strlen (PATH_SENDMAIL) + 1);
+    sprintf (mailer_name, "sendmail:%s", PATH_SENDMAIL);
     util_setenv ("sendmail", mailer_name, Mail_env_string, 1);
   }
 

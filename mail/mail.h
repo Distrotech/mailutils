@@ -416,10 +416,6 @@ void compose_destroy (compose_env_t *env);
 extern char *readline (char *prompt);
 #endif
 
-#ifndef _PATH_SENDMAIL
-#define _PATH_SENDMAIL "/usr/lib/sendmail"
-#endif
-
 /* Flags for util_get_message */
 #define MSG_ALL       0
 #define MSG_NODELETED 0x0001
