@@ -458,7 +458,7 @@ pop_parse_capa (pop_data_t mpd)
     }
   else
     {
-      /* mu_error ("CAPA not implemented\n"); */ /* FIXME */
+      /* mu_error ("CAPA not implemented"); */ /* FIXME */
       return -1;
     }
 }
@@ -864,7 +864,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 
     default:
       /*
-	mu_error ("pop_open unknown state\n");
+	mu_error ("pop_open: unknown state");
       */
       break;
     }/* End AUTHORISATION state. */
@@ -920,13 +920,13 @@ pop_close (mu_mailbox_t mbox)
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
       if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	mu_error ("pop_close: %s\n", mpd->buffer);
+	mu_error ("pop_close: %s", mpd->buffer);
       mu_stream_close (mbox->stream);
       break;
 
     default:
       /*
-	mu_error ("pop_close unknown state");
+	mu_error ("pop_close: unknown state");
       */
       break;
     } /* UPDATE state.  */
@@ -1209,7 +1209,7 @@ pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
 
     default:
       /*
-	mu_error ("pop_messages_count: unknow state\n");
+	mu_error ("pop_messages_count: unknown state");
       */
       break;
     }
@@ -1327,7 +1327,7 @@ pop_expunge (mu_mailbox_t mbox)
 		  break;
 
 		default:
-		  /* mu_error ("pop_expunge: unknow state\n"); */
+		  /* mu_error ("pop_expunge: unknown state); */
 		  break;
 		} /* switch (state) */
 	    } /* if mu_attribute_is_deleted() */
@@ -1417,7 +1417,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
 
     default:
       /*
-	mu_error ("pop_message_size state\n");
+	mu_error ("pop_message_size: unknown state");
       */
       break;
     }
@@ -1636,7 +1636,7 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
     default:
       /*
-	mu_error ("pop_uidl state\n");
+	mu_error ("pop_uidl: unknown state");
       */
       break;
     }
@@ -1737,7 +1737,7 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
       /* if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	   mu_error ("TOP not implemented\n"); */ /* FIXME */
+	   mu_error ("TOP not implemented"); */ /* FIXME */
       mpd->state = POP_TOP_RX;
 
     case POP_TOP_RX:
@@ -2089,7 +2089,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
       /* A convenient break, this is here we can return 0, we're done.  */
 
     default:
-      /* mu_error ("pop_retr unknow state\n"); */
+      /* mu_error ("pop_retr: unknown state"); */
       break;
     } /* Switch state.  */
 

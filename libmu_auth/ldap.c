@@ -745,7 +745,7 @@ find_pwcheck (const char *algo, int len)
 {
   struct passwd_algo *p;
   for (p = pwtab; p->algo; p++)
-    if (len == p->len && mu_strncasecmp (p->algo, algo, len) == 0)
+    if (len == p->len && mu_c_strncasecmp (p->algo, algo, len) == 0)
       return p->pwcheck;
   return NULL;
 }
