@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -486,7 +486,7 @@ getcmd (char *buf, char **sp)
   for (cp = command_tab; cp->cmd_verb; cp++)
     {
       if (cp->cmd_len <= len
-	  && strncasecmp (cp->cmd_verb, buf, cp->cmd_len) == 0)
+	  && mu_c_strncasecmp (cp->cmd_verb, buf, cp->cmd_len) == 0)
 	{
 	  *sp = buf + cp->cmd_len;
 	  return cp;
@@ -552,7 +552,7 @@ lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
 	    {
 	      if (cp->cmd_fun)
 		{
-		  while (*sp && isspace (*sp))
+		  while (*sp && mu_isblank (*sp))
 		    sp++;
 		  if (cp->cmd_fun (out, sp))
 		    continue;

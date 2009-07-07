@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ mu_pop3_connect (mu_pop3_t pop3)
 	status = mu_pop3_response (pop3, NULL, 0, &len);
 	MU_POP3_CHECK_EAGAIN (pop3, status);
 	mu_pop3_debug_ack (pop3);
-	if (strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
+	if (mu_c_strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
 	  {
 	    mu_stream_close (pop3->carrier);
 	    pop3->state = MU_POP3_NO_STATE;

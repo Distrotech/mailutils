@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
 
 #include <mailutils/nls.h>
 #include <mailutils/version.h>
+#include <mailutils/cstr.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -171,10 +172,10 @@ mu_check_option (char *name)
       else
 	len = strlen (mu_conf_option[i].name);
 
-      if (strncasecmp (mu_conf_option[i].name, name, len) == 0)
+      if (mu_c_strncasecmp (mu_conf_option[i].name, name, len) == 0)
 	return &mu_conf_option[i];
       else if ((q = strchr (mu_conf_option[i].name, '_')) != NULL
-	       && strncasecmp (q + 1, name,
+	       && mu_c_strncasecmp (q + 1, name,
 			       len - (q - mu_conf_option[i].name) - 1) == 0)
 	return &mu_conf_option[i];
     }

@@ -359,9 +359,9 @@ bodystructure (mu_message_t msg, int extension)
 	  
       mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
 
-      if (strcasecmp (argv[0], "MESSAGE/RFC822") == 0)
+      if (mu_c_strcasecmp (argv[0], "MESSAGE/RFC822") == 0)
         message_rfc822 = 1;
-      else if (strcasecmp (argv[0], "TEXT/PLAIN") == 0)
+      else if (mu_c_strcasecmp (argv[0], "TEXT/PLAIN") == 0)
         text_plain = 1;
 
       s = strchr (argv[0], '/');
@@ -410,7 +410,7 @@ bodystructure (mu_message_t msg, int extension)
 		  
 		default:
 		  lvalue = argv[i];
-		  if (strcasecmp (lvalue, "charset") == 0)
+		  if (mu_c_strcasecmp (lvalue, "charset") == 0)
 		    have_charset = 1;
 
 		}
@@ -1136,7 +1136,7 @@ find_macro (const char *name)
 {
   int i;
   for (i = 0; fetch_macro_tab[i].macro; i++)
-    if (strcasecmp (fetch_macro_tab[i].macro, name) == 0)
+    if (mu_c_strcasecmp (fetch_macro_tab[i].macro, name) == 0)
       return fetch_macro_tab[i].exp;
   return NULL;
 }
@@ -1161,7 +1161,7 @@ find_fetch_att_tab (char *name)
 {
   struct fetch_att_tab *p;
   for (p = fetch_att_tab; p->name; p++)
-    if (strcasecmp (p->name, name) == 0)
+    if (mu_c_strcasecmp (p->name, name) == 0)
       return p;
   return NULL;
 }
@@ -1191,7 +1191,7 @@ parse_fetch_rfc822 (imap4d_parsebuf_t p)
   else if (p->token[0] == '.')
     {
       imap4d_parsebuf_next (p, 1);
-      if (strcasecmp (p->token, "HEADER") == 0)
+      if (mu_c_strcasecmp (p->token, "HEADER") == 0)
 	{
 	  /* RFC822.HEADER
 	     Equivalent to BODY[HEADER].  Note that this did not result in
@@ -1205,14 +1205,14 @@ parse_fetch_rfc822 (imap4d_parsebuf_t p)
 	  ffc.peek = 1;
 	  imap4d_parsebuf_next (p, 0);
 	}
-      else if (strcasecmp (p->token, "SIZE") == 0)
+      else if (mu_c_strcasecmp (p->token, "SIZE") == 0)
 	{
 	  /* A number expressing the [RFC-2822] size of the message. */
 	  ffc.name = "RFC822.SIZE";
 	  ffc.fun = _frt_size;
 	  imap4d_parsebuf_next (p, 0);
 	}
-      else if (strcasecmp (p->token, "TEXT") == 0)
+      else if (mu_c_strcasecmp (p->token, "TEXT") == 0)
 	{
 	  /* RFC822.TEXT
 	     Equivalent to BODY[TEXT]. */
@@ -1231,7 +1231,7 @@ parse_fetch_rfc822 (imap4d_parsebuf_t p)
 static int
 _header_cmp (const void *a, const void *b)
 {
-  return strcasecmp ((char*)a, (char*)b);
+  return mu_c_strcasecmp ((char*)a, (char*)b);
 }
 
 /*
@@ -1266,21 +1266,21 @@ static int
 parse_section_text (imap4d_parsebuf_t p, struct fetch_function_closure *ffc,
 		    int allow_mime)
 {
-  if (strcasecmp (p->token, "HEADER") == 0)
+  if (mu_c_strcasecmp (p->token, "HEADER") == 0)
     {
       /* "HEADER" / "HEADER.FIELDS" [".NOT"] SP header-list  */
       imap4d_parsebuf_next (p, 1);
       if (p->token[0] == '.')
 	{
 	  imap4d_parsebuf_next (p, 1);
-	  if (strcasecmp (p->token, "FIELDS"))
+	  if (mu_c_strcasecmp (p->token, "FIELDS"))
 	    imap4d_parsebuf_exit (p, "Expected FIELDS");
 	  ffc->fun = _frt_header_fields;
 	  imap4d_parsebuf_next (p, 1);
 	  if (p->token[0] == '.')
 	    {
 	      imap4d_parsebuf_next (p, 1);
-	      if (strcasecmp (p->token, "NOT") == 0)
+	      if (mu_c_strcasecmp (p->token, "NOT") == 0)
 		{
 		  ffc->not = 1;
 		  imap4d_parsebuf_next (p, 1);
@@ -1293,12 +1293,12 @@ parse_section_text (imap4d_parsebuf_t p, struct fetch_function_closure *ffc,
       else
 	ffc->fun = _frt_header;
     }
-  else if (strcasecmp (p->token, "TEXT") == 0)
+  else if (mu_c_strcasecmp (p->token, "TEXT") == 0)
     {
       imap4d_parsebuf_next (p, 1);
       ffc->fun = _frt_body_text;
     }
-  else if (allow_mime && strcasecmp (p->token, "MIME") == 0)
+  else if (allow_mime && mu_c_strcasecmp (p->token, "MIME") == 0)
     {
       imap4d_parsebuf_next (p, 1);
       ffc->fun = _frt_mime;
@@ -1355,7 +1355,7 @@ parse_section_part (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
       
       if (p->token[0] == '.'
 	  && (cp = imap4d_parsebuf_peek (p))
-	  && isascii (*cp) && isdigit (*cp))
+	  && mu_isdigit (*cp))
 	imap4d_parsebuf_next (p, 1);
       else
 	break;
@@ -1381,7 +1381,7 @@ parse_section (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
     {
       if (p->token[0] == ']')
 	/* OK */;
-      else if (isascii (p->token[0]) && isdigit (p->token[0]))
+      else if (mu_isdigit (p->token[0]))
 	{
 	  parse_section_part (p, ffc);
 	  if (p->token[0] == '.')
@@ -1437,7 +1437,7 @@ static void
 parse_body_peek (imap4d_parsebuf_t p)
 {
   imap4d_parsebuf_next (p, 1);
-  if (strcasecmp (p->token, "PEEK") == 0)
+  if (mu_c_strcasecmp (p->token, "PEEK") == 0)
     {
       imap4d_parsebuf_next (p, 1);
       if (parse_body_args (p, 1))
@@ -1458,7 +1458,7 @@ parse_fetch_body (imap4d_parsebuf_t p)
 			    "BODY", _frt_bodystructure0);
   else if (p->token[0] == '.')
     parse_body_peek (p);
-  else if (strcasecmp (p->token, "STRUCTURE") == 0)
+  else if (mu_c_strcasecmp (p->token, "STRUCTURE") == 0)
     {
       /* For compatibility with previous versions */
       append_simple_function (imap4d_parsebuf_data (p),
@@ -1483,11 +1483,11 @@ parse_fetch_att (imap4d_parsebuf_t p)
 	append_simple_function (pclos, ent->name, ent->fun);
       imap4d_parsebuf_next (p, 0);
     }
-  else if (strcasecmp (p->token, "RFC822") == 0)
+  else if (mu_c_strcasecmp (p->token, "RFC822") == 0)
     parse_fetch_rfc822 (p);
-  else if (strcasecmp (p->token, "BODY") == 0)
+  else if (mu_c_strcasecmp (p->token, "BODY") == 0)
     parse_fetch_body (p);
-  else if (strcasecmp (p->token, "BODYSTRUCTURE") == 0)
+  else if (mu_c_strcasecmp (p->token, "BODYSTRUCTURE") == 0)
     {
       append_simple_function (pclos, "BODYSTRUCTURE", _frt_bodystructure);
       imap4d_parsebuf_next (p, 0);

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -569,16 +569,6 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
 }
 
 
-static int
-my_strncasecmp (const char *p, const char *q, size_t len)
-{
-  for ( ;len; len--, p++, q++)
-    {
-      if (*p != toupper (*q))
-	return 1;
-    }
-  return 0;
-}
 
 typedef int (*pwcheck_fp) (const char *, const char *);
 
@@ -755,7 +745,7 @@ find_pwcheck (const char *algo, int len)
 {
   struct passwd_algo *p;
   for (p = pwtab; p->algo; p++)
-    if (len == p->len && my_strncasecmp (p->algo, algo, len) == 0)
+    if (len == p->len && mu_strncasecmp (p->algo, algo, len) == 0)
       return p->pwcheck;
   return NULL;
 }

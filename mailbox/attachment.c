@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ctype.h>
 
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
@@ -36,12 +35,15 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/body.h>
 #include <mailutils/filter.h>
 #include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 
 #define MAX_HDR_LEN 256
 #define BUF_SIZE	2048
@@ -203,13 +205,13 @@ _header_get_param (char *field_body, const char *param, size_t * len)
   while (p)
     {
       p++;
-      while (isspace ((unsigned) *p))	/* walk upto start of param */
+      while (mu_isspace (*p))	/* walk upto start of param */
 	p++;
       if ((v = strchr (p, '=')) == NULL)
 	break;
       *len = 0;
       v = e = v + 1;
-      while (*e && (quoted || (!_ISSPECIAL (*e) && !isspace ((unsigned) *e))))
+      while (*e && (quoted || (!_ISSPECIAL (*e) && !mu_isspace (*e))))
 	{			/* skip pass value and calc len */
 	  if (*e == '\"')
 	    quoted = ~quoted, was_quoted = 1;
@@ -217,7 +219,7 @@ _header_get_param (char *field_body, const char *param, size_t * len)
 	    (*len)++;
 	  e++;
 	}
-      if (strncasecmp (p, param, strlen (param)))
+      if (mu_c_strncasecmp (p, param, strlen (param)))
 	{			/* no match jump to next */
 	  p = strchr (e, ';');
 	  continue;
@@ -494,8 +496,8 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t * newmsg, void **data)
 	  if ((content_type = malloc (size + 1)) == NULL)
 	    return ENOMEM;
 	  mu_header_get_value (hdr, "Content-Type", content_type, size + 1, 0);
-	  ret = strncasecmp (content_type, "message/rfc822",
-	                     strlen ("message/rfc822"));
+	  ret = mu_c_strncasecmp (content_type, "message/rfc822",
+	                          strlen ("message/rfc822"));
           free (content_type);
           if (ret != 0)
 	    return EINVAL;

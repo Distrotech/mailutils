@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,18 +25,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <time.h>
 #include <unistd.h>
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
 
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
 #include <mailutils/header.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 #include <mime0.h>
 
 #ifndef TRUE
@@ -53,7 +55,7 @@ static int
 _mime_is_multipart_digest (mu_mime_t mime)
 {
   if (mime->content_type)
-    return (strncasecmp
+    return (mu_c_strncasecmp
 	    ("multipart/digest", mime->content_type,
 	     strlen ("multipart/digest")) ? 0 : 1);
   return 0;
@@ -136,7 +138,7 @@ _strltrim (char *str)
 {
   char *p;
 
-  for (p = str; isspace ((unsigned char) *p) && *p != '\0'; ++p);
+  for (p = str; mu_isspace (*p) && *p != '\0'; ++p);
   return ((p != str) ? memmove (str, p, strlen (p) + 1) : str);
 }
 
@@ -146,7 +148,7 @@ _strttrim (char *str)
   char *p;
 
   for (p = str + strlen (str) - 1;
-       isspace ((unsigned char) *p) && p >= str; --p);
+       mu_isspace (*p) && p >= str; --p);
   *++p = '\0';
   return (str);
 }
@@ -175,7 +177,7 @@ _mime_munge_content_header (char *field_body)
     {
       p = e;
       e++;
-      while (*e && isspace ((unsigned char) *e)) /* remove space up to param */
+      while (*e && mu_isspace (*e)) /* remove space up to param */
 	e++;
       memmove (p + 1, e, strlen (e) + 1);
       e = p + 1;
@@ -185,7 +187,7 @@ _mime_munge_content_header (char *field_body)
       e = p = e + 1;
       while (*e
 	     && (quoted
-		 || (!_ISSPECIAL (*e) && !isspace ((unsigned char) *e))))
+		 || (!_ISSPECIAL (*e) && !mu_isspace (*e))))
 	{
 	  if (*e == '\\')
 	    {			/* escaped */
@@ -218,7 +220,7 @@ _mime_get_param (char *field_body, const char *param, int *len)
       was_quoted = 0;
       while (*e
 	     && (quoted
-		 || (!_ISSPECIAL (*e) && !isspace ((unsigned char) *e))))
+		 || (!_ISSPECIAL (*e) && !mu_isspace (*e))))
 	{			/* skip pass value and calc len */
 	  if (*e == '\"')
 	    quoted = ~quoted, was_quoted = 1;
@@ -226,7 +228,7 @@ _mime_get_param (char *field_body, const char *param, int *len)
 	    (*len)++;
 	  e++;
 	}
-      if (strncasecmp (p, param, strlen (param)))
+      if (mu_c_strncasecmp (p, param, strlen (param)))
 	{			/* no match jump to next */
 	  p = strchr (e, ';');
 	  continue;
@@ -328,10 +330,10 @@ _mime_parse_mpart_message (mu_mime_t mime)
 		    '\n' ? mime->cur_line + 1 : mime->cur_line;
 		  if (mime->line_ndx >= blength)
 		    {
-		      if ((!strncasecmp (cp2, "--", 2)
-			   && !strncasecmp (cp2 + 2, mime->boundary,
-					    blength))
-			  || !strncasecmp (cp2, mime->boundary, blength))
+		      if ((!strncmp (cp2, "--", 2)
+			   && !mu_c_strncasecmp (cp2 + 2, mime->boundary,
+				  	         blength))
+			  || !mu_c_strncasecmp (cp2, mime->boundary, blength))
 			{
 			  mime->parser_state = MIME_STATE_HEADERS;
 			  mime->flags &= ~MIME_PARSER_HAVE_CR;
@@ -365,10 +367,10 @@ _mime_parse_mpart_message (mu_mime_t mime)
 
 			  if ((&mime->cur_line[mime->line_ndx] - cp2 - 1 >
 			       blength
-			       && !strncasecmp (cp2 + blength + 2, "--", 2))
+			       && !strncmp (cp2 + blength + 2, "--", 2))
 			      || (&mime->cur_line[mime->line_ndx] - cp2 - 1 ==
 				  blength
-				  && !strncasecmp (cp2 + blength, "--", 2)))
+				  && !strncmp (cp2 + blength, "--", 2)))
 			    {	/* last boundary */
 			      mime->parser_state = MIME_STATE_BEGIN_LINE;
 			      mime->header_length = 0;
@@ -1027,7 +1029,7 @@ int
 mu_mime_is_multipart (mu_mime_t mime)
 {
   if (mime->content_type)
-    return (strncasecmp ("multipart", mime->content_type,
-			 strlen ("multipart")) ? 0 : 1);
+    return (mu_c_strncasecmp ("multipart", mime->content_type,
+			      strlen ("multipart")) ? 0 : 1);
   return 0;
 }

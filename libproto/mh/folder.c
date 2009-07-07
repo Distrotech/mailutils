@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2003, 2004, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -37,6 +36,7 @@
 #include <registrar0.h>
 #include <amd.h>
 #include <mailutils/mutil.h>
+#include <mailutils/cctype.h>
 
 static int
 _mh_folder_init (mu_folder_t folder MU_ARG_UNUSED)
@@ -49,7 +49,7 @@ static int
 mh_message_name_p (const char *name)
 {
   for ( ; *name; name++)
-    if (!isdigit (*name))
+    if (!mu_isdigit (*name))
       return 0;
   return 1;
 }
@@ -130,7 +130,7 @@ _mh_list_p (mu_record_t record, const char *name, int flags MU_ARG_UNUSED)
     return 0;
 
   for (; *name; name++)
-    if (!(isascii (*name) && isdigit (*name)))
+    if (!mu_isdigit (*name))
       return 1;
   return 0;
 }

@@ -55,14 +55,14 @@ store_thunk (imap4d_parsebuf_t p)
   else
     pclos->how = STORE_SET;
   
-  if (strcasecmp (data, "FLAGS"))
+  if (mu_c_strcasecmp (data, "FLAGS"))
     imap4d_parsebuf_exit (p, "Bogus data item");
   data = imap4d_parsebuf_next (p, 1);
 
   if (*data == '.')
     {
       data = imap4d_parsebuf_next (p, 1);
-      if (strcasecmp (data, "SILENT") == 0)
+      if (mu_c_strcasecmp (data, "SILENT") == 0)
 	{
 	  pclos->ack = 0;
 	  imap4d_parsebuf_next (p, 1);

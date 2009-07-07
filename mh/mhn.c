@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -616,7 +617,7 @@ mhn_compose_command (char *typestr, int *flags, char *file)
     %s  subtype */
 
   obstack_init (&stk);
-  for (p = str; *p && isspace (*p); p++)
+  for (p = str; *p && mu_isspace (*p); p++)
     ;
   
   if (*p == '|')
@@ -660,7 +661,7 @@ mhn_compose_command (char *typestr, int *flags, char *file)
   free (subtype);
 
   str = obstack_finish (&stk);
-  for (p = str; *p && isspace (*p); p++)
+  for (p = str; *p && mu_isspace (*p); p++)
     ;
   if (!*p)
     str = NULL;
@@ -699,7 +700,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
     %d  content description */
 
   obstack_init (&stk);
-  for (p = str; *p && isspace (*p); p++)
+  for (p = str; *p && mu_isspace (*p); p++)
     ;
   
   if (*p == '|')
@@ -776,7 +777,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   free (subtype);
 
   str = obstack_finish (&stk);
-  for (p = str; *p && isspace (*p); p++)
+  for (p = str; *p && mu_isspace (*p); p++)
     ;
   if (!*p)
     str = NULL;
@@ -868,7 +869,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   free (subtype);
   
   str = obstack_finish (&stk);
-  for (p = str; *p && isspace (*p); p++)
+  for (p = str; *p && mu_isspace (*p); p++)
     ;
   if (!*p)
     str = NULL;
@@ -941,7 +942,7 @@ _get_env (char **env, char *name)
       int len = strlen (*env);
       if (nlen < len
 	  && (*env)[len+1] == '='
-	  && strncasecmp (*env, name, nlen) == 0)
+	  && mu_c_strncasecmp (*env, name, nlen) == 0)
 	return *env + len + 1;
     }
   return NULL;
@@ -981,21 +982,21 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	buf[len-1] = 0;
 
       if (descr
-	  && strncasecmp (buf, MU_HEADER_CONTENT_DESCRIPTION ":",
-			  sizeof (MU_HEADER_CONTENT_DESCRIPTION)) == 0)
+	  && mu_c_strncasecmp (buf, MU_HEADER_CONTENT_DESCRIPTION ":",
+			       sizeof (MU_HEADER_CONTENT_DESCRIPTION)) == 0)
 	{
 	  for (p = buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION);
-	       *p && isspace (*p); p++)
+	       *p && mu_isspace (*p); p++)
 	    ;
 	  *descr = strdup (p);
 	}
       else if (content
-	       && strncasecmp (buf, MU_HEADER_CONTENT_TYPE ":",
-			       sizeof (MU_HEADER_CONTENT_TYPE)) == 0)
+	       && mu_c_strncasecmp (buf, MU_HEADER_CONTENT_TYPE ":",
+			            sizeof (MU_HEADER_CONTENT_TYPE)) == 0)
 	{
 	  char *q;
 	  for (p = buf + sizeof (MU_HEADER_CONTENT_TYPE);
-	       *p && isspace (*p); p++)
+	       *p && mu_isspace (*p); p++)
 	    ;
 	  q = strchr (p, ';');
 	  if (q)
@@ -1027,13 +1028,13 @@ match_content (char *content)
 
   split_content (content, &type, &subtype);
 
-  if ((rc = strcasecmp (content_type, type)) == 0)
+  if ((rc = mu_c_strcasecmp (content_type, type)) == 0)
     {
       if (content_subtype)
-	rc = strcasecmp (content_subtype, subtype);
+	rc = mu_c_strcasecmp (content_subtype, subtype);
     }
   else 
-    rc = strcasecmp (content_type, subtype);
+    rc = mu_c_strcasecmp (content_type, subtype);
 
   free (type);
   free (subtype);
@@ -1828,8 +1829,8 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
   return 0;
 }
 
-#define isdelim(c) (isspace (c) || strchr (";<[(", c))
-#define skipws(ptr) do { while (*ptr && isspace (*ptr)) ptr++; } while (0)
+#define isdelim(c) (mu_isspace (c) || strchr (";<[(", c))
+#define skipws(ptr) do { while (*ptr && mu_isspace (*ptr)) ptr++; } while (0)
 
 int
 parse_content_type (struct compose_env *env,
@@ -1895,7 +1896,7 @@ parse_content_type (struct compose_env *env,
 	  obstack_1grow (stk, ' ');
 	  skipws (rest);
 	  sp = rest;
-	  for (; *rest && !isspace (*rest) && *rest != '='; rest++)
+	  for (; *rest && !mu_isspace (*rest) && *rest != '='; rest++)
 	    obstack_1grow (stk, *rest);
 	  skipws (rest);
 	  if (*rest != '=')
@@ -2300,7 +2301,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   if (rc)
     return 1;
   
-  for (p = cmd + strlen (cmd) - 1; p > cmd && isspace (*p); p--)
+  for (p = cmd + strlen (cmd) - 1; p > cmd && mu_isspace (*p); p--)
     ;
   p[1] = 0;
 
@@ -2349,9 +2350,9 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       
       _get_content_type (hdr, &typestr, NULL);
       split_content (typestr, &type, &subtype);
-      if (strcasecmp (type, "message") == 0)
+      if (mu_c_strcasecmp (type, "message") == 0)
 	encoding = strdup ("7bit");
-      else if (strcasecmp (type, "text") == 0)
+      else if (mu_c_strcasecmp (type, "text") == 0)
 	encoding = strdup ("quoted-printable");
       else
 	encoding = strdup ("base64");
@@ -2393,7 +2394,7 @@ has_nonascii (char *buf, size_t n)
 {
   size_t i;
   for (i = 0; i < n; i++)
-    if (!isascii (buf[i]))
+    if (!mu_isascii (buf[i]))
       return 1;
   return 0;
 }
@@ -2463,7 +2464,7 @@ mhn_edit (struct compose_env *env, int level)
 	      
 	      /* Execute the directive */
 	      tok = sp = buf;
-	      while (*sp && !isspace (*sp))
+	      while (*sp && !mu_isspace (*sp))
 		sp++;
 	      c = *sp;
 	      *sp = 0;

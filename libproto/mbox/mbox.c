@@ -24,6 +24,7 @@
 #endif
 
 #include <mbox0.h>
+#include <mailutils/cstr.h>
 #include <mailutils/io.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
@@ -1550,11 +1551,11 @@ mbox_append_message0 (mu_mailbox_t mailbox, mu_message_t msg, mu_off_t *psize,
 	       FIXME:
 	       - We have a problem here the header may not fit the buffer.
 	       - Should  we skip the IMAP "X-Status"? */
-	    if ((strncasecmp (buffer, "Status", 6) == 0)
-		|| (strncasecmp (buffer, "X-IMAPbase", 10) == 0)
+	    if ((mu_c_strncasecmp (buffer, "Status", 6) == 0)
+		|| (mu_c_strncasecmp (buffer, "X-IMAPbase", 10) == 0)
 		/* FIXME: isn't the length of "X-UID" 5, not 4? And
 		 this will match X-UID and X-UIDL, is this intended? */
-		|| (strncasecmp (buffer, "X-UID", 4) == 0
+		|| (mu_c_strncasecmp (buffer, "X-UID", 4) == 0
 		    && (buffer[5] == ':' || buffer[5] == ' '
 			|| buffer[5] == '\t')))
 	      continue;

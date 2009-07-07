@@ -27,6 +27,8 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 #include <iterator0.h>
 
 /* |hash_size| defines a sequence of symbol table sizes. These are prime
@@ -177,7 +179,7 @@ assoc_remove (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
 }
 
 #define name_cmp(assoc,a,b) (((assoc)->flags & MU_ASSOC_ICASE) ? \
-                             strcasecmp(a,b) : strcmp(a,b))
+                             mu_c_strcasecmp(a,b) : strcmp(a,b))
 
 static int
 assoc_lookup_or_install (struct _mu_assoc_elem **elp,

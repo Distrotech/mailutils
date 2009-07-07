@@ -45,6 +45,7 @@
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
+#include <mailutils/cstr.h>
 
 #include <header0.h>
 
@@ -79,13 +80,13 @@ mu_hdrent_find (struct _mu_header *hdr, const char *name, int pos)
   if (pos > 0)
     {
       for (p = hdr->head; p; p = p->next)
-	if (strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && pos-- == 1)
+	if (mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && pos-- == 1)
 	  break;
     }
   else if (pos < 0)
     {
       for (p = hdr->tail; p; p = p->prev)
-	if (strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && ++pos == 0)
+	if (mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && ++pos == 0)
 	  break;
     }
   else

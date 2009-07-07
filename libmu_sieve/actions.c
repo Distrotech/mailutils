@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2006, 2007, 2008 Free Software Foundation, Inc.
+   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -382,7 +382,7 @@ check_redirect_loop (mu_message_t msg)
   for (i = 1; !loop && i <= num; i++)
     {
       mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, "X-Loop-Prevention") == 0)
+      if (mu_c_strcasecmp (buf, "X-Loop-Prevention") == 0)
 	{
 	  size_t j, cnt = 0;
 	  mu_address_t addr;
@@ -395,7 +395,7 @@ check_redirect_loop (mu_message_t msg)
 	  for (j = 1; !loop && j <= cnt; j++)
 	    {
 	      mu_address_get_email (addr, j, buf, sizeof buf, NULL);
-	      if (strcasecmp (buf, email) == 0)
+	      if (mu_c_strcasecmp (buf, email) == 0)
 		loop = 1;
 	    }
 	  mu_address_destroy (&addr);

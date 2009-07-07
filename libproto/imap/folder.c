@@ -24,7 +24,6 @@
 #ifdef ENABLE_IMAP
 
 #include <stdlib.h>
-#include <ctype.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <string.h>
@@ -51,6 +50,9 @@
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
 #include <mailutils/secret.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -382,7 +384,7 @@ find_auth_method (const char *name)
   struct auth_tab *p;
 
   for (p = auth_tab; p->name; p++)
-    if (strcasecmp (p->name, name) == 0)
+    if (mu_c_strcasecmp (p->name, name) == 0)
       return p->method;
 
   return NULL;
@@ -484,7 +486,7 @@ folder_imap_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 	return EINVAL;
 
       if (folder->url->auth == NULL
-	  || strcasecmp (folder->url->auth, "*") == 0)
+	  || strcmp (folder->url->auth, "*") == 0)
 	{
 	  status = folder_set_auth_method (folder, authenticate_imap_select);
 	}
@@ -552,7 +554,7 @@ check_capa (f_imap_t f_imap, char *capa)
 
   read_capa (f_imap, 0);
   for (i = 0; i < f_imap->capac; i++)
-    if (strcasecmp (f_imap->capav[i], capa) == 0)
+    if (mu_c_strcasecmp (f_imap->capav[i], capa) == 0)
       return 0;
   return 1;
 }
@@ -722,13 +724,13 @@ folder_imap_open (mu_folder_t folder, int flags)
 	/* Are they open for business ?  The server send an untagged response
 	   for greeting. Tecnically it can be OK/PREAUTH/BYE.  The BYE is
 	   the one that we do not want, server being unfriendly.  */
-	if (strncasecmp (f_imap->buffer, "* PREAUTH", 9) == 0)
+	if (mu_c_strncasecmp (f_imap->buffer, "* PREAUTH", 9) == 0)
 	  {
 	    f_imap->state = IMAP_AUTH_DONE;
 	  }
 	else
 	  {
-            if (strncasecmp (f_imap->buffer, "* OK", 4) != 0)
+            if (mu_c_strncasecmp (f_imap->buffer, "* OK", 4) != 0)
               CHECK_ERROR_CLOSE (folder, f_imap, EACCES);
             f_imap->state = IMAP_AUTH;
 	  }
@@ -1334,7 +1336,7 @@ imap_digits (f_imap_t f_imap, char **ptr)
   char *start = *ptr;
   int len;
   
-  for (++*ptr; **ptr && isdigit(**ptr); ++*ptr)
+  for (++*ptr; **ptr && mu_isdigit(**ptr); ++*ptr)
     ;
   len = *ptr - start;
   mu_stream_write (f_imap->string.stream, start, len,
@@ -1379,7 +1381,7 @@ imap_string (f_imap_t f_imap, char **ptr)
       break;
       
     default:
-      if (isdigit (**ptr))
+      if (mu_isdigit (**ptr))
 	status = imap_digits (f_imap, ptr);
       else
 	/* Problem. FIXME: Return a more appropriate error code */
@@ -1433,12 +1435,12 @@ imap_list (f_imap_t f_imap)
       char *p = tok;
       while ((tok = strtok_r (p, " ()", &s)) != NULL)
 	{
-	  if (strcasecmp (tok, "\\Noselect") == 0)
+	  if (mu_c_strcasecmp (tok, "\\Noselect") == 0)
 	    lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
-	  else if (strcasecmp (tok, "\\Noinferiors") == 0)
+	  else if (mu_c_strcasecmp (tok, "\\Noinferiors") == 0)
 	    lr->type |= MU_FOLDER_ATTRIBUTE_FILE;
-	  else if (strcasecmp (tok, "\\Marked") == 0
-		   || strcasecmp (tok, "\\Unmarked") == 0)
+	  else if (mu_c_strcasecmp (tok, "\\Marked") == 0
+		   || mu_c_strcasecmp (tok, "\\Unmarked") == 0)
 	    /* nothing */;
 	  else
 	    lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
@@ -1453,7 +1455,7 @@ imap_list (f_imap_t f_imap)
       
       /* Hiearchy delimeter.  */
       tok = argv[0];
-      if (tok && tok[1] == 0 && strcasecmp (tok, "NIL"))
+      if (tok && tok[1] == 0 && mu_c_strcasecmp (tok, "NIL"))
 	lr->separator = tok[0];
       /* The path.  */
       tok = argv[1];
@@ -1607,7 +1609,7 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **ptr)
 	    no_arg = 0;
 	}
 
-      if (isdigit ((unsigned)**ptr))
+      if (mu_isdigit ((unsigned)**ptr))
 	{
 	  char *start = *ptr;
 	  size_t size = strtoul (*ptr, ptr, 10);
@@ -1751,7 +1753,7 @@ imap_flags (char **ptr, int *pflags)
       while (**ptr && **ptr != ' ' && **ptr != ')')
         ++(*ptr);
 
-      /* Save the end for the strcasecmp.  */
+      /* Save the end for the mu_c_strcasecmp.  */
       end = *ptr;
 
       /* Bail out.  */
@@ -1763,27 +1765,27 @@ imap_flags (char **ptr, int *pflags)
 	flags |= MU_ATTRIBUTE_SEEN;
       else
 	{
-	  if (strncasecmp (start, "\\Seen", end - start) == 0)
+	  if (mu_c_strncasecmp (start, "\\Seen", end - start) == 0)
 	    {
 	      flags |= MU_ATTRIBUTE_READ;
 	    }
-	  else if (strncasecmp (start, "\\Answered", end - start) == 0)
+	  else if (mu_c_strncasecmp (start, "\\Answered", end - start) == 0)
 	    {
 	      flags |= MU_ATTRIBUTE_ANSWERED;
 	    }
-	  else if (strncasecmp (start, "\\Flagged", end - start) == 0)
+	  else if (mu_c_strncasecmp (start, "\\Flagged", end - start) == 0)
 	    {
 	      flags |= MU_ATTRIBUTE_FLAGGED;
 	    }
-	  else if (strncasecmp (start, "\\Deleted", end - start) == 0)
+	  else if (mu_c_strncasecmp (start, "\\Deleted", end - start) == 0)
 	    {
 	      flags |= MU_ATTRIBUTE_DELETED;
 	    }
-	  else if (strncasecmp (start, "\\Draft", end - start) == 0)
+	  else if (mu_c_strncasecmp (start, "\\Draft", end - start) == 0)
 	    {
 	      flags |= MU_ATTRIBUTE_DRAFT;
 	    }
-	  else if (strncasecmp (start, "\\Recent", end - start))
+	  else if (mu_c_strncasecmp (start, "\\Recent", end - start))
 	    flags |= MU_ATTRIBUTE_SEEN;
 	}
     }
@@ -1823,8 +1825,7 @@ imap_body (f_imap_t f_imap, char **ptr)
 	  strncpy (section, *ptr, len);
 	  section[len] = '\0';
 	  /* strupper.  */
-	  for (p = section; *p; p++)
-	    *p = toupper ((unsigned)*p);
+	  mu_strupper (section);
 	  
 	  /* Set the string type to update the correct line count.  */
 	  /*if (!strstr (section, "FIELD"))*/
@@ -2007,14 +2008,14 @@ imap_fetch (f_imap_t f_imap)
 	{
 	  status = imap_fetch_flags (f_imap, &sp);
 	}
-      else if (strcasecmp (token, "BODY") == 0)
+      else if (mu_c_strcasecmp (token, "BODY") == 0)
 	{
 	  if (*sp == '[')
 	    status = imap_body (f_imap, &sp);
 	  else
 	    status = imap_bodystructure (f_imap, &sp);
 	}
-      else if (strcasecmp (token, "BODYSTRUCTURE") == 0)
+      else if (mu_c_strcasecmp (token, "BODYSTRUCTURE") == 0)
 	{
 	  status = imap_bodystructure (f_imap, &sp);
 	}
@@ -2028,15 +2029,15 @@ imap_fetch (f_imap_t f_imap)
 	    {
 	      sp++;
 	      imap_token (token, sizeof token, &sp);
-	      if (strcasecmp (token, "SIZE") == 0)
+	      if (mu_c_strcasecmp (token, "SIZE") == 0)
 		{
 		  status = imap_rfc822_size (f_imap, &sp);
 		}
-	      else if (strcasecmp (token, "TEXT") == 0)
+	      else if (mu_c_strcasecmp (token, "TEXT") == 0)
 		{
 		  status = imap_rfc822_text (f_imap, &sp);
 		}
-	      else if (strcasecmp (token, "HEADER") == 0)
+	      else if (mu_c_strcasecmp (token, "HEADER") == 0)
 		{
 		  status = imap_rfc822_header (f_imap, &sp);
 		}
@@ -2117,13 +2118,13 @@ imap_token (char *buf, size_t len, char **ptr)
    name no matter what the case is).
    */
 static int
-imap_mailbox_name_match(const char* pattern, const char* mailbox)
+imap_mailbox_name_match (const char* pattern, const char* mailbox)
 {
-  if(strcasecmp(pattern, "inbox") == 0)
-  {
-    return strcasecmp(pattern, mailbox);
-  }
-  return fnmatch(pattern, mailbox, 0);
+  if (mu_c_strcasecmp (pattern, "inbox") == 0)
+    {
+      return mu_c_strcasecmp (pattern, mailbox);
+    }
+  return fnmatch (pattern, mailbox, 0);
 }
 
 /* C99 says that a conforming implementations of snprintf () should return the
@@ -2351,7 +2352,7 @@ imap_parse (f_imap_t f_imap)
 	  MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "* %s %s\n",
 	             response, remainder);
 	  /* Is it a Status Response.  */
-	  if (strcasecmp (response, "OK") == 0)
+	  if (mu_c_strcasecmp (response, "OK") == 0)
 	    {
 	      /* Check for status response [code].  */
 	      if (*remainder == '[')
@@ -2364,14 +2365,14 @@ imap_parse (f_imap_t f_imap)
 		  subtag = strtok_r (cruft, " ", &sp1);
 		  if (!subtag) subtag = empty;
 
-		  if (strcasecmp (subtag, "ALERT") == 0)
+		  if (mu_c_strcasecmp (subtag, "ALERT") == 0)
 		    {
 		      /* The human-readable text contains a special alert that
 			 MUST be presented to the user in a fashion that calls
 			 the user's attention to the message.  */
 		      mu_error (_("ALERT: %s"), (sp) ? sp : "");
 		    }
-		  else if (strcasecmp (subtag, "BADCHARSET") == 0)
+		  else if (mu_c_strcasecmp (subtag, "BADCHARSET") == 0)
 		    {
 		      /* Optionally followed by a parenthesized list of
 			 charsets.  A SEARCH failed because the given charset
@@ -2380,7 +2381,7 @@ imap_parse (f_imap_t f_imap)
 			 charsets that are supported by this implementation. */
 		      mu_error (_("BAD CHARSET: %s"), (sp) ? sp : "");
 		    }
-		  else if (strcasecmp (subtag, "CAPABILITY") == 0)
+		  else if (mu_c_strcasecmp (subtag, "CAPABILITY") == 0)
 		    {
 		      /* Followed by a list of capabilities.  This can appear
 			 in the initial OK or PREAUTH response to transmit an
@@ -2389,7 +2390,7 @@ imap_parse (f_imap_t f_imap)
 			 it recognizes this response.  */
 		      parse_capa (f_imap, cruft);
 		    }
-		  else if (strcasecmp (subtag, "NEWNAME") == 0)
+		  else if (mu_c_strcasecmp (subtag, "NEWNAME") == 0)
 		    {
 		      /* Followed by a mailbox name and a new mailbox name.  A
 			 SELECT or EXAMINE failed because the target mailbox
@@ -2399,14 +2400,14 @@ imap_parse (f_imap_t f_imap)
 			 reissued with the new mailbox name. */
 		      mu_error ("NEWNAME: %s", (sp) ? sp : "");
 		    }
-		  else if (strcasecmp (subtag, "PARSE") == 0)
+		  else if (mu_c_strcasecmp (subtag, "PARSE") == 0)
 		    {
 		      /* The human-readable text represents an error in
 			 parsing the [RFC-822] header or [MIME-IMB] headers
 			 of a message in the mailbox.  */
 		      mu_error ("PARSE: %s", (sp) ? sp : "");
 		    }
-		  else if (strcasecmp (subtag, "PERMANENTFLAGS") == 0)
+		  else if (mu_c_strcasecmp (subtag, "PERMANENTFLAGS") == 0)
 		    {
 		      /* Followed by a parenthesized list of flags, indicates
 			 which of the known flags that the client can change
@@ -2421,19 +2422,19 @@ imap_parse (f_imap_t f_imap)
 			 that it is possible to create new keywords by
 			 attempting to store those flags in the mailbox.  */
 		    }
-		  else if (strcasecmp (subtag, "READ-ONLY") == 0)
+		  else if (mu_c_strcasecmp (subtag, "READ-ONLY") == 0)
 		    {
 		      /* The mailbox is selected read-only, or its access
 			 while selected has changed from read-write to
 			 read-only.  */
 		    }
-		  else if (strcasecmp (subtag, "READ-WRITE") == 0)
+		  else if (mu_c_strcasecmp (subtag, "READ-WRITE") == 0)
 		    {
 		      /* The mailbox is selected read-write, or its access
 			 while selected has changed from read-only to
 			 read-write.  */
 		    }
-		  else if (strcasecmp (subtag, "TRYCREATE") == 0)
+		  else if (mu_c_strcasecmp (subtag, "TRYCREATE") == 0)
 		    {
 		      /* An APPEND or COPY attempt is failing because the
 			 target mailbox does not exist (as opposed to some
@@ -2442,7 +2443,7 @@ imap_parse (f_imap_t f_imap)
 			 created by the CREATE command.  */
 		      mu_error ("TRYCREATE: %s", (sp) ? sp : "");
 		    }
-		  else if (strcasecmp (subtag, "UIDNEXT") == 0)
+		  else if (mu_c_strcasecmp (subtag, "UIDNEXT") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the next
 			 unique identifier value.  Refer to section 2.3.1.1
@@ -2451,7 +2452,7 @@ imap_parse (f_imap_t f_imap)
 		      if (value)
 			f_imap->selected->uidnext = strtol (value, NULL, 10);
 		    }
-		  else if (strcasecmp (subtag, "UIDVALIDITY") == 0)
+		  else if (mu_c_strcasecmp (subtag, "UIDVALIDITY") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the unique
 			 identifier validity value.  Refer to section 2.3.1.1
@@ -2461,7 +2462,7 @@ imap_parse (f_imap_t f_imap)
 			f_imap->selected->uidvalidity = strtol (value,
 								NULL, 10);
 		    }
-		  else if (strcasecmp (subtag, "UNSEEN") == 0)
+		  else if (mu_c_strcasecmp (subtag, "UNSEEN") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the number of
 			 the first message without the \Seen flag set.  */
@@ -2485,21 +2486,21 @@ imap_parse (f_imap_t f_imap)
 		  mu_error (_("Untagged OK: %s"), remainder);
 		}
 	    }
-	  else if (strcasecmp (response, "NO") == 0)
+	  else if (mu_c_strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
 	      mu_error (_("Untagged NO: %s"), remainder);
 	    }
-	  else if (strcasecmp (response, "BAD") == 0)
+	  else if (mu_c_strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
 	      mu_error (_("Untagged BAD: %s"), remainder);
 	    }
-	  else if (strcasecmp (response, "PREAUTH") == 0)
+	  else if (mu_c_strcasecmp (response, "PREAUTH") == 0)
 	    {
 	      /* Should we be dealing with this?  */
 	    }
-	  else if (strcasecmp (response, "BYE") == 0)
+	  else if (mu_c_strcasecmp (response, "BYE") == 0)
 	    {
 	      /* We should close the stream. This is not recoverable.  */
 	      done = 1;
@@ -2509,47 +2510,47 @@ imap_parse (f_imap_t f_imap)
 	      mu_monitor_unlock (f_imap->folder->monitor);
 	      mu_stream_close (f_imap->folder->stream);
 	    }
-	  else if (strcasecmp (response, "CAPABILITY") == 0)
+	  else if (mu_c_strcasecmp (response, "CAPABILITY") == 0)
 	    {
 	      parse_capa (f_imap, remainder);
 	    }
-	  else if (strcasecmp (remainder, "EXISTS") == 0)
+	  else if (mu_c_strcasecmp (remainder, "EXISTS") == 0)
 	    {
 	      f_imap->selected->messages_count = strtol (response, NULL, 10);
 	    }
-	  else if (strcasecmp (remainder, "EXPUNGE") == 0)
+	  else if (mu_c_strcasecmp (remainder, "EXPUNGE") == 0)
 	    {
 	      unsigned int msgno = strtol (response, NULL, 10);
 	      status = imap_expunge (f_imap, msgno);
 	    }
-	  else if (strncasecmp (remainder, "FETCH", 5) == 0)
+	  else if (mu_c_strncasecmp (remainder, "FETCH", 5) == 0)
 	    {
 	      status = imap_fetch (f_imap);
 	      if (status != 0)
 		break;
 	    }
-	  else if (strcasecmp (response, "FLAGS") == 0)
+	  else if (mu_c_strcasecmp (response, "FLAGS") == 0)
 	    {
 	      /* Flags define on the mailbox not a message flags.  */
 	      status = imap_permanentflags (f_imap, &remainder);
 	    }
-	  else if (strcasecmp (response, "LIST") == 0)
+	  else if (mu_c_strcasecmp (response, "LIST") == 0)
 	    {
 	      status = imap_list (f_imap);
 	    }
-	  else if (strcasecmp (response, "LSUB") == 0)
+	  else if (mu_c_strcasecmp (response, "LSUB") == 0)
 	    {
 	      status = imap_list (f_imap);
 	    }
-	  else if (strcasecmp (remainder, "RECENT") == 0)
+	  else if (mu_c_strcasecmp (remainder, "RECENT") == 0)
 	    {
 	      f_imap->selected->recent = strtol (response, NULL, 10);
 	    }
-	  else if (strcasecmp (response, "SEARCH") == 0)
+	  else if (mu_c_strcasecmp (response, "SEARCH") == 0)
 	    {
 	      status = imap_search (f_imap);
 	    }
-	  else if (strcasecmp (response, "STATUS") == 0)
+	  else if (mu_c_strcasecmp (response, "STATUS") == 0)
 	    {
 	      status = imap_status (f_imap);
 	    }
@@ -2569,13 +2570,13 @@ imap_parse (f_imap_t f_imap)
 	{
 	  /* Every transaction ends with a tagged response.  */
 	  done = 1;
-	  if (strcasecmp (response, "OK") == 0)
+	  if (mu_c_strcasecmp (response, "OK") == 0)
 	    {
 	      /* Cool we are doing ok.  */
 	    }
-	  else if (strcasecmp (response, "NO") == 0)
+	  else if (mu_c_strcasecmp (response, "NO") == 0)
 	    {
-	      if (strncasecmp (remainder, "LOGIN", 5) == 0)
+	      if (mu_c_strncasecmp (remainder, "LOGIN", 5) == 0)
 		{
 		  mu_observable_t observable = NULL;
 		  mu_folder_get_observable (f_imap->folder, &observable);
@@ -2583,7 +2584,7 @@ imap_parse (f_imap_t f_imap)
 					NULL);
 		  status = MU_ERR_AUTH_FAILURE;
 		}
-	      else if (strncasecmp (remainder, "LIST", 4) == 0)
+	      else if (mu_c_strncasecmp (remainder, "LIST", 4) == 0)
 		status = MU_ERR_NOENT;
 	      else
 		status = MU_ERR_FAILURE;

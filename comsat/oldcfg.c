@@ -1,5 +1,6 @@
 /* This file is part of GNU Mailutils.
-   Copyright (C) 1998, 2001, 2002, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001, 2002, 2005, 2007, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,7 +71,7 @@ convert_config (const char *config_file, FILE *outfile)
       if (len > 0 && ptr[len-1] == '\n')
 	ptr[--len] = 0;
 
-      while (*ptr && isspace (*ptr))
+      while (*ptr && mu_isblank (*ptr))
 	ptr++;
       if (!*ptr || *ptr == '#')
 	{

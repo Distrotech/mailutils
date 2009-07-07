@@ -1,6 +1,6 @@
 %{
 /* cfg_lexer.l -- default lexer for Mailutils configuration files
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -25,7 +25,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
-#include <ctype.h>
+#include <mailutils/cctype.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/debug.h>  
@@ -149,7 +149,7 @@ P [1-9][0-9]*
          /* Other tokens */
 \n       { mu_cfg_locus.line++; } 
 [,;{}()] return yytext[0];
-.        { if (isascii (yytext[0]) && isprint (yytext[0]))
+.        { if (mu_isprint (yytext[0]))
               mu_cfg_perror (&mu_cfg_locus,
 			     _("stray character %c"), yytext[0]);
            else 
@@ -223,13 +223,13 @@ is_ws (char c)
 static int
 isemptystr (int off)
 {
-  for (; yytext[off] && isspace (yytext[off]); off++)
+  for (; yytext[off] && mu_isspace (yytext[off]); off++)
     ;
   if (yytext[off] == ';')
     {
       int i;
       for (i = off + 1; yytext[i]; i++) 
-	if (!isspace (yytext[i]))
+	if (!mu_isspace (yytext[i]))
 	  return 0;
       yyless (off);
       return 1;

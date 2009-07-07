@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,16 +23,16 @@
 #ifdef HAVE_PGSQL
 #include <mailutils/mailutils.h>
 #include <mailutils/sql.h>
+#include <mailutils/cctype.h>
 
 #include <libpq-fe.h>
-#include <ctype.h>
 
 static char *
 chop (char *str)
 {
   int len;
   
-  for (len = strlen(str); len > 0 && isspace(str[len-1]); len--)
+  for (len = strlen(str); len > 0 && mu_isspace(str[len-1]); len--)
     ;
   str[len] = 0;
   return str;

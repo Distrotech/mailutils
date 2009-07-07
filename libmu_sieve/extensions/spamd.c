@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2008, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -185,9 +186,9 @@ decode_float (long *vn, char *str, int digits)
 static int
 decode_boolean (char *str)
 {
-  if (strcasecmp (str, "true") == 0)
+  if (mu_c_strcasecmp (str, "true") == 0)
     return 1;
-  else if (strcasecmp (str, "false") == 0)
+  else if (mu_c_strcasecmp (str, "false") == 0)
     return 0;
   /*else?*/
   return 0;

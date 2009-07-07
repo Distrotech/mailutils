@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
-#include <ctype.h>
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
@@ -55,6 +54,8 @@
 #include <mailutils/tls.h>
 #include <mailutils/md5.h>
 #include <mailutils/io.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cctype.h>
 
 #include <folder0.h>
 #include <mailbox0.h>
@@ -424,7 +425,7 @@ static int
 pop_parse_capa (pop_data_t mpd)
 {
   int status;
-  if (!strncasecmp (mpd->buffer, "+OK", 3))
+  if (!mu_c_strncasecmp (mpd->buffer, "+OK", 3))
     {
       mpd->capa = 0;
       do
@@ -443,13 +444,13 @@ pop_parse_capa (pop_data_t mpd)
 	     Note that there is no APOP capability, even though APOP
 	     is an optional command in POP3. -- W.P. */
 
-	  if (!strncasecmp (mpd->buffer, "TOP", 3))
+	  if (!mu_c_strncasecmp (mpd->buffer, "TOP", 3))
 	    mpd->capa |= CAPA_TOP;
-	  else if (!strncasecmp (mpd->buffer, "USER", 4))
+	  else if (!mu_c_strncasecmp (mpd->buffer, "USER", 4))
 	    mpd->capa |= CAPA_USER;
-	  else if (!strncasecmp (mpd->buffer, "UIDL", 4))
+	  else if (!mu_c_strncasecmp (mpd->buffer, "UIDL", 4))
 	    mpd->capa |= CAPA_UIDL;
-	  else if (!strncasecmp (mpd->buffer, "STLS", 4))
+	  else if (!mu_c_strncasecmp (mpd->buffer, "STLS", 4))
 	    mpd->capa |= CAPA_STLS;
 	}
       while (mpd->nl);
@@ -525,7 +526,7 @@ _pop_user (mu_authority_t auth)
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
@@ -564,7 +565,7 @@ _pop_user (mu_authority_t auth)
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  mu_observable_t observable = NULL;
 	  mu_mailbox_get_observable (mbox, &observable);
@@ -636,7 +637,7 @@ _pop_apop (mu_authority_t auth)
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
         {
           mu_observable_t observable = NULL;
           mu_mailbox_get_observable (mbox, &observable);
@@ -666,7 +667,7 @@ pop_reader (void *iodata)
   status = pop_read_ack (iop);
   CHECK_EAGAIN (iop, status);
   MU_DEBUG (iop->mbox->debug, MU_DEBUG_PROT, iop->buffer);
-  return status;//strncasecmp (iop->buffer, "+OK", 3) == 0;
+  return status;/*mu_c_strncasecmp (iop->buffer, "+OK", 3) == 0;*/
 }
 
 static int
@@ -822,7 +823,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 	status = pop_read_ack (mpd);
 	CHECK_EAGAIN (mpd, status);
 	MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-	if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	  }
@@ -918,7 +919,7 @@ pop_close (mu_mailbox_t mbox)
       /*  Now what ! and how can we tell them about errors ?  So far now
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	mu_error ("pop_close: %s\n", mpd->buffer);
       mu_stream_close (mbox->stream);
       break;
@@ -1111,10 +1112,10 @@ parse_answer0 (const char *buffer, size_t *n1, size_t *n2)
   if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
     return 1;
   m = *n1 = strtoul (buffer + 3, &p, 10);
-  if (!isspace (*p) || m != *n1)
+  if (!mu_isspace (*p) || m != *n1)
     return 1;
   m = *n2 = strtoul (p, &p, 10);
-  if (!(*p == 0 || isspace (*p)) || m != *n2)
+  if (!(*p == 0 || mu_isspace (*p)) || m != *n2)
     return 1;
   return 0;
 }
@@ -1128,9 +1129,9 @@ parse_answer1 (const char *buffer, size_t *n1, char *buf, size_t bufsize)
   if (strlen (buffer) < 3 || memcmp (buffer, "+OK", 3))
     return 1;
   m = *n1 = strtoul (buffer + 3, &p, 0);
-  if (!isspace (*p) || m != *n1)
+  if (!mu_isspace (*p) || m != *n1)
     return 1;
-  while (*p && isspace (*p))
+  while (*p && mu_isspace (*p))
     p++;
   if (strlen (p) >= bufsize)
     return 1;
@@ -1318,7 +1319,7 @@ pop_expunge (mu_mailbox_t mbox)
 		  status = pop_read_ack (mpd);
 		  CHECK_EAGAIN (mpd, status);
 		  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-		  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+		  if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 		    {
 		      CHECK_ERROR (mpd, ERANGE);
 		    }
@@ -1735,7 +1736,7 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-      /* if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      /* if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	   mu_error ("TOP not implemented\n"); */ /* FIXME */
       mpd->state = POP_TOP_RX;
 
@@ -1954,7 +1955,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen,
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
 
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  CHECK_ERROR (mpd, EACCES);
 	}

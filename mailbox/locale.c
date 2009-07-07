@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 struct langtab
 {
@@ -230,10 +232,10 @@ mu_charset_lookup (char *lang, char *terr)
   if (!lang)
     return NULL;
   for (p = langtab; p->lang; p++)
-    if (strcasecmp (p->lang, lang) == 0
+    if (mu_c_strcasecmp (p->lang, lang) == 0
 	&& (terr == NULL 
 	    || p->terr == NULL
-	    || !strcasecmp (p->terr, terr) == 0))
+	    || !mu_c_strcasecmp (p->terr, terr) == 0))
       return p->charset;
   return NULL;
 }

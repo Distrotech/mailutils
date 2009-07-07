@@ -242,7 +242,7 @@ main (int argc, char **argv)
 		  struct lib_descr *p;
 		  
 		  for (p = lib_descr; p->name; p++)
-		    if (strcasecmp (p->name, argv[0]) == 0)
+		    if (mu_c_strcasecmp (p->name, argv[0]) == 0)
 		      break;
 
 		  if (p->name)

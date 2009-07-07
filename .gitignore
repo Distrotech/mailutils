@@ -1,10 +1,10 @@
 *.a
+*.cflow
 *.la
 *.lo
 *.o
 *.so
 *~
-*.cflow
 .bootstrap
 .deps
 .emacs*

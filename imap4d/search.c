@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2005, 2007,
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -290,7 +290,7 @@ imap4d_search0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       return RESP_BAD;
     }
   
-  if (strcasecmp (parsebuf.token, "CHARSET") == 0)
+  if (mu_c_strcasecmp (parsebuf.token, "CHARSET") == 0)
     {
       if (!parse_gettoken (&parsebuf, 0))
 	{
@@ -299,7 +299,7 @@ imap4d_search0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	}
 
       /* Currently only ASCII is supported */
-      if (strcasecmp (parsebuf.token, "US-ASCII"))
+      if (mu_c_strcasecmp (parsebuf.token, "US-ASCII"))
 	{
 	  *err_text = "Charset not supported";
 	  return RESP_NO;
@@ -493,7 +493,7 @@ parse_search_key (struct parsebuf *pb)
       parse_gettoken (pb, 0);
       return node;
     }
-  else if (strcasecmp (pb->token, "ALL") == 0)
+  else if (mu_c_strcasecmp (pb->token, "ALL") == 0)
     {
       node = parse_alloc (pb, sizeof *node);
       node->type = node_value;
@@ -503,7 +503,7 @@ parse_search_key (struct parsebuf *pb)
       parse_gettoken (pb, 0);
       return node;
     }
-  else if (strcasecmp (pb->token, "NOT") == 0)
+  else if (mu_c_strcasecmp (pb->token, "NOT") == 0)
     {
       struct search_node *np;
       
@@ -520,7 +520,7 @@ parse_search_key (struct parsebuf *pb)
       
       return node;
     }
-  else if (strcasecmp (pb->token, "OR") == 0)
+  else if (mu_c_strcasecmp (pb->token, "OR") == 0)
     {
       struct search_node *leftarg, *rightarg;
       
@@ -550,7 +550,7 @@ parse_equiv_key (struct parsebuf *pb)
   int save_arg;
   imap4d_tokbuf_t save_tok;
   
-  for (condp = equiv_list; condp->name && strcasecmp (condp->name, pb->token);
+  for (condp = equiv_list; condp->name && mu_c_strcasecmp (condp->name, pb->token);
        condp++)
     ;
 
@@ -589,7 +589,7 @@ parse_simple_key (struct parsebuf *pb)
   size_t *set = NULL;
   int n = 0;
   
-  for (condp = condlist; condp->name && strcasecmp (condp->name, pb->token);
+  for (condp = condlist; condp->name && mu_c_strcasecmp (condp->name, pb->token);
        condp++)
     ;
 

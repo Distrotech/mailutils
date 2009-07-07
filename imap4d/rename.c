@@ -53,7 +53,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   oldname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   newname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
-  if (strcasecmp (newname, "INBOX") == 0)
+  if (mu_c_strcasecmp (newname, "INBOX") == 0)
     return util_finish (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
@@ -75,7 +75,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   /* Renaming INBOX is permitted, and has special behavior.  It moves
      all messages in INBOX to a new mailbox with the given name,
      leaving INBOX empty.  */
-  if (strcasecmp (oldname, "INBOX") == 0)
+  if (mu_c_strcasecmp (oldname, "INBOX") == 0)
     {
       mu_mailbox_t newmbox = NULL;
       mu_mailbox_t inbox = NULL;

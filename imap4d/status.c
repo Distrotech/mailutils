@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2008, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,7 +49,7 @@ status_get_handler (const char *name)
   struct status_table *p;
 
   for (p = status_table; p->name; p++)
-    if (strcasecmp (p->name, name) == 0)
+    if (mu_c_strcasecmp (p->name, name) == 0)
       return p->fun;
   return NULL;
 }

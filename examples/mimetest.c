@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -199,7 +200,7 @@ message_display_parts (mu_message_t msg, int indent)
 	encoding = "";
       ismulti = 0;
       if ((type[0]
-           && strncasecmp (type, "message/rfc822", strlen (type)) == 0)
+           && mu_c_strncasecmp (type, "message/rfc822", strlen (type)) == 0)
           || (mu_message_is_multipart (part, &ismulti) == 0 && ismulti))
         {
           if (!ismulti)
@@ -218,9 +219,9 @@ message_display_parts (mu_message_t msg, int indent)
           mu_message_destroy (&part, NULL);
         }
       else if (type[0] == '\0'
-               || (strncasecmp (type, "text/plain", strlen ("text/plain")) ==
+               || (mu_c_strncasecmp (type, "text/plain", strlen ("text/plain")) ==
                    0)
-               || (strncasecmp (type, "text/html", strlen ("text/html")) ==
+               || (mu_c_strncasecmp (type, "text/html", strlen ("text/html")) ==
                    0))
         {
           printf ("%*.*sText Message\n", indent, indent, "");

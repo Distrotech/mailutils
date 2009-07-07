@@ -22,6 +22,7 @@
 #include <mailutils/diag.h>
 #include <mailutils/kwd.h>
 #include <mailutils/syslog.h>
+#include <mailutils/cstr.h>
 
 #ifndef LOG_AUTHPRIV
 # define LOG_AUTHPRIV
@@ -48,7 +49,7 @@ static mu_kwd_t kw_facility[] = {
 static int
 syslog_to_n (mu_kwd_t *kw, const char *str, int *pint)
 {
-  if (strncasecmp (str, "LOG_", 4) == 0)
+  if (mu_c_strncasecmp (str, "LOG_", 4) == 0)
     str += 4;
   return mu_kwd_xlat_name_ci (kw, str, pint);
 }

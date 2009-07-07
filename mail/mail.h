@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,7 +51,6 @@
 # include <varargs.h>
 #endif
 #include <signal.h>
-#include <ctype.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
@@ -85,6 +84,8 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 #include <mailutils/argcv.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mu_asprintf.h>
 
 #ifdef __cplusplus
@@ -351,7 +352,6 @@ extern void util_slist_remove (mu_list_t *list, char *value);
 extern void util_slist_destroy (mu_list_t *list);
 extern char *util_slist_to_string (mu_list_t list, const char *delim);
 extern void util_strcat (char **dest, const char *str);
-extern void util_strupper (char *str);
 extern char *util_outfolder_name (char *str);
 extern void util_save_outgoing (mu_message_t msg, char *savefile);
 extern void util_error (const char *format, ...) MU_PRINTFLIKE(1,2);

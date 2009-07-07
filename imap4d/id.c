@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ eat_args (imap4d_tokbuf_t tok)
   p = imap4d_tokbuf_getarg (tok, n++);
   if (!p)
     return RESP_BAD;
-  if (strcasecmp (p, "NIL") == 0)
+  if (mu_c_strcasecmp (p, "NIL") == 0)
     {
       if (imap4d_tokbuf_getarg (tok, n))
 	return RESP_BAD;

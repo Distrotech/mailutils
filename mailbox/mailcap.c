@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2003, 2004, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2003, 2004, 2005, 2007, 
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,12 +22,14 @@
 #endif
 
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
 #include <errno.h>
 
+#include <mailutils/cctype.h>
 #include <mailutils/mailcap.h>
 #include <mailutils/stream.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 /* Definition of the structure, this should be in mailutils/sys/mailcap.h.  */
 struct _mu_mailcap_entry
@@ -299,7 +302,7 @@ mu_mailcap_entry_needsterminal (mu_mailcap_entry_t entry, int *on)
       int i;
       for (i = 0; i < entry->fields_count; i++)
 	{
-	  int n = strcasecmp (entry->fields[i], "needsterminal");
+	  int n = mu_c_strcasecmp (entry->fields[i], "needsterminal");
 	  if (n == 0)
 	    {
 	      found = 1;
@@ -326,7 +329,7 @@ mu_mailcap_entry_copiousoutput (mu_mailcap_entry_t entry, int *on)
       int i;
       for (i = 0; i < entry->fields_count; i++)
 	{
-	  int n = strcasecmp (entry->fields[i], "copiousoutput");
+	  int n = mu_c_strcasecmp (entry->fields[i], "copiousoutput");
 	  if (n == 0)
 	    {
 	      found = 1;
@@ -354,7 +357,7 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
       int key_len = strlen (key);
       for (i = 0; i < entry->fields_count; i++)
 	{
-	  int n = strncasecmp (entry->fields[i], key, key_len);
+	  int n = mu_c_strncasecmp (entry->fields[i], key, key_len);
 	  if (n == 0)
 	    {
 	      int field_len = strlen(entry->fields[i]);
@@ -362,14 +365,14 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
 	      if (field_len > key_len)
 		{
 		  int c = entry->fields[i][key_len];
-		  if (isspace(c) || c == '=')
+		  if (mu_isspace (c) || c == '=')
 		    {
 		      char *value = strchr (entry->fields[i], '=');
 		      if (value != NULL)
 			{
 			  value++; /* Pass the equal.  */
 			  /* Remove prepend space.  */
-			  for (; isspace ((unsigned char)*value); value++)
+			  for (; mu_isspace ((unsigned char)*value); value++)
 			    ;
 			  len = strlen (value);
 			  /* Strip surrounding double quotes */
@@ -404,14 +407,14 @@ stripwhite (char *string)
 {
   register char *s, *t;
 
-  for (s = string; isspace ((unsigned char)*s); s++)
+  for (s = string; mu_isspace ((unsigned char)*s); s++)
     ;
 
   if (*s == 0)
     return (s);
 
   t = s + strlen (s) - 1;
-  while (t > s && isspace (*t))
+  while (t > s && mu_isspace (*t))
     t--;
   *++t = '\0';
 

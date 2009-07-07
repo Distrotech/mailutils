@@ -159,8 +159,8 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 		(*ref) ? delim : "");
     }
   /* There is only one mailbox in the "INBOX" hierarchy ... INBOX.  */
-  else if (strcasecmp (ref, "INBOX") == 0
-	   || (ref[0] == 0 && strcasecmp (wcard, "INBOX") == 0))
+  else if (mu_c_strcasecmp (ref, "INBOX") == 0
+	   || (ref[0] == 0 && mu_c_strcasecmp (wcard, "INBOX") == 0))
     {
       util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
     }

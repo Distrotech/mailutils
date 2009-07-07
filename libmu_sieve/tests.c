@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -166,7 +166,7 @@ retrieve_header (void *item, void *data, int idx, char **pval)
   while (!mu_header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
     {
       int i = hc->index++;
-      if (strcasecmp (buf, (char*)item) == 0)
+      if (mu_c_strcasecmp (buf, (char*)item) == 0)
 	{
 	  if (mu_header_aget_field_value_unfold (hc->header, i, pval))
 	    return 1;
@@ -245,7 +245,7 @@ retrieve_envelope (void *item, void *data, int idx, char **pval)
     {
       const char *buf;
       
-      if (strcasecmp ((char*)item, "from") != 0)
+      if (mu_c_strcasecmp ((char*)item, "from") != 0)
 	return 1;
 
       if (mu_envelope_sget_sender ((mu_envelope_t)ap->data, &buf))

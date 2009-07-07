@@ -85,6 +85,7 @@
 #include <mailutils/daemon.h>
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
+#include <mailutils/cctype.h>
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>

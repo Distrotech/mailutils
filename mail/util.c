@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,8 +35,6 @@
 #include <mu_asprintf.h>
 
 mu_list_t environment = NULL;
-
-#define is_ascii_alpha(c) (isascii(c) && isalpha(c))
 
 /*
  * expands command into its command and arguments, then runs command
@@ -111,7 +109,7 @@ util_do_command (const char *c, ...)
       char *p;
       
       for (p = argv[0] + strlen (argv[0]) - 1;
-	   p > argv[0] && !is_ascii_alpha (*p);
+	   p > argv[0] && !mu_isalpha (*p);
 	   p--)
 	;
 
@@ -344,12 +342,12 @@ char *
 util_stripwhite (char *string)
 {
   register char *s, *t;
-  for (s = string; isspace ((unsigned)*s); s++)
+  for (s = string; mu_isspace ((unsigned)*s); s++)
     ;
   if (*s == 0)
     return s;
   t = s + strlen (s) - 1;
-  while (t > s && isspace ((unsigned)*t))
+  while (t > s && mu_isspace ((unsigned)*t))
     t--;
   *++t = '\0';
   return s;
@@ -879,7 +877,7 @@ util_slist_lookup (mu_list_t list, const char *str)
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       mu_iterator_current (itr, (void **)&name);
-      if (strcasecmp (name, str) == 0)
+      if (mu_c_strcasecmp (name, str) == 0)
 	{
 	  rc = 1;
 	  break;
@@ -980,20 +978,6 @@ util_strcat(char **dest, const char *str)
       memcpy (newp + dlen - 1, str, slen);
     }
 }
-
-/* Upper case the entire string.  Assume it is NULL terminated.  */
-void
-util_strupper (char *s)
-{
-  if (s)
-    {
-      size_t i;
-      size_t len = strlen (s);
-      for (i = 0; i < len; i++)
-	s[i] = toupper ((unsigned int)(s[i]));
-    }
-}
-
 
 char *
 util_outfolder_name (char *str)
@@ -1110,7 +1094,7 @@ util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
 
       mu_message_get_header (mesg, &hdr);
       util_get_content_type (hdr, &type);
-      if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
+      if (mu_c_strncasecmp (type, "message/rfc822", strlen (type)) == 0)
 	{
 	  if (mu_message_unencapsulate (mesg, &submsg, NULL))
 	    {
@@ -1239,7 +1223,7 @@ is_address_field (const char *name)
   char **p;
   
   for (p = address_fields; *p; p++)
-    if (strcasecmp (*p, name) == 0)
+    if (mu_c_strcasecmp (*p, name) == 0)
       return 1;
   return 0;
 }
@@ -1287,7 +1271,7 @@ util_header_expand (mu_header_t *phdr)
 	    {
 	      mu_address_t new_addr;
 	      
-	      while (*p && isspace (*p))
+	      while (*p && mu_isspace (*p))
 		p++;
 	      /* If inplacealiases was set, the value was already expanded */
 	      if (util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0))
@@ -1416,7 +1400,7 @@ util_rfc2047_decode (char **value)
   if (!*value || util_getenv (&charset, "charset", Mail_env_string, 0))
     return;
 
-  if (strcasecmp (charset, "auto") == 0)
+  if (mu_c_strcasecmp (charset, "auto") == 0)
     {
       memset (locale, 0, sizeof (locale));
 

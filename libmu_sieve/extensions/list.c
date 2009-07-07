@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ retrieve_next_header (struct header_closure *hc, char *name, char **pval)
   while (!mu_header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
     {
       int i = hc->index++;
-      if (strcasecmp (buf, name) == 0)
+      if (mu_c_strcasecmp (buf, name) == 0)
 	{
 	  if (mu_header_aget_field_value (hc->header, i, &hc->value))
 	    return 1;

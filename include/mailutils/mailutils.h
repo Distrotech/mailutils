@@ -63,5 +63,7 @@
 #include <mailutils/vartab.h>
 #include <mailutils/io.h>
 #include <mailutils/secret.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 /* EOF */

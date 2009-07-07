@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007  Free Software Foundation, Inc.
+   2007, 2009  Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,12 +27,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
 #include <time.h>
 
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>

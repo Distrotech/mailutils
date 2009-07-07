@@ -2,7 +2,7 @@
    GNU Mailutils nntp functions.  This application interactively allows users
    to contact a nntp server.
 
-   Copyright (C) 2003, 2004, 2005, 2007 Free Software Foundation
+   Copyright (C) 2003, 2004, 2005, 2007, 2009 Free Software Foundation
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <signal.h>
-#include <ctype.h>
 #include <time.h>
 
 #ifdef WITH_READLINE
@@ -43,6 +42,8 @@
 #include <mailutils/iterator.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cctype.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -299,11 +300,11 @@ execute_line (char *line)
 
   /* Isolate the command word. */
   i = 0;
-  while (line[i] && isspace (line[i]))
+  while (line[i] && mu_isblank (line[i]))
     i++;
   word = line + i;
 
-  while (line[i] && !isspace (line[i]))
+  while (line[i] && !mu_isblank (line[i]))
     i++;
 
   if (line[i])
@@ -318,7 +319,7 @@ execute_line (char *line)
     }
 
   /* Get argument to command, if any. */
-  while (isspace (line[i]))
+  while (mu_isblank (line[i]))
     i++;
 
   word = line + i;
@@ -349,14 +350,14 @@ stripwhite (char *string)
 {
   register char *s, *t;
 
-  for (s = string; isspace (*s); s++)
+  for (s = string; mu_isblank (*s); s++)
     ;
 
   if (*s == 0)
     return (s);
 
   t = s + strlen (s) - 1;
-  while (t > s && isspace (*t))
+  while (t > s && mu_isblank (*t))
     t--;
   *++t = '\0';
 
@@ -392,7 +393,7 @@ int com_mode (char *arg)
 {
   if (!valid_argument("mode", arg))
     return EINVAL;
-  if (strncasecmp (arg, "READER", 6) == 0)
+  if (mu_c_strncasecmp (arg, "READER", 6) == 0)
     return com_mode_reader (arg);
   return EINVAL;
 }
@@ -533,27 +534,27 @@ int com_list (char *arg)
     {
       status = com_list_active (arg);
    }
-  else if (strncasecmp (keyword, "ACTIVE.TIMES", 12) == 0)
+  else if (mu_c_strncasecmp (keyword, "ACTIVE.TIMES", 12) == 0)
     {
       status = com_list_active_times (arg);
     }
-  else if (strncasecmp (keyword, "ACTIVE", 6) == 0)
+  else if (mu_c_strncasecmp (keyword, "ACTIVE", 6) == 0)
     {
       status = com_list_active (arg);
     }
-  else if (strncasecmp (keyword, "EXTENSIONS", 10) == 0)
+  else if (mu_c_strncasecmp (keyword, "EXTENSIONS", 10) == 0)
     {
       status = com_list_extensions (arg);
     }
-  else if (strncasecmp (keyword, "DISTRIBUTIONS", 13) == 0)
+  else if (mu_c_strncasecmp (keyword, "DISTRIBUTIONS", 13) == 0)
     {
       status = com_list_distributions (arg);
     }
-  else if (strncasecmp (keyword, "DISTRIB.PATS", 12) == 0)
+  else if (mu_c_strncasecmp (keyword, "DISTRIB.PATS", 12) == 0)
     {
       status = com_list_distrib_pats (arg);
     }
-  else if (strncasecmp (keyword, "NEWSGROUPS", 10) == 0)
+  else if (mu_c_strncasecmp (keyword, "NEWSGROUPS", 10) == 0)
     {
       status = com_list_newsgroups (arg);
     }
@@ -806,7 +807,7 @@ com_newgroups (char *arg)
       char gmt[4];
       memset (gmt, 0, 4);
       sscanf (arg, "%4d%2d%2d %2d%2d%2d %3s", &year, &month, &day, &hour, &min, &sec, gmt);
-      is_gmt = strncasecmp ("GMT", gmt, 3) == 0;
+      is_gmt = mu_c_strncasecmp ("GMT", gmt, 3) == 0;
     }
 
   /* If nothing defined take the current time.  */
@@ -865,7 +866,7 @@ com_newnews (char *arg)
 
   wildmat = calloc (1, 512);
   sscanf (arg, "%511s %4d%2d%2d %2d%2d%2d %3s", wildmat, &year, &month, &day, &hour, &min, &sec, gmt);
-  is_gmt = strncasecmp ("GMT", gmt, 3) == 0;
+  is_gmt = mu_c_strncasecmp ("GMT", gmt, 3) == 0;
 
   if (year == 0)
     {

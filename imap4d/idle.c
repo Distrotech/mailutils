@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	{
           imap4d_getline (&token_str, &token_size, &token_len); 	  
 	  token_len = util_trim_nl (token_str, token_len);
-	  if (token_len == 4 && strcasecmp (token_str, "done") == 0)
+	  if (token_len == 4 && mu_c_strcasecmp (token_str, "done") == 0)
 	    break;
 	}
       else if (time (NULL) - start > idle_timeout)

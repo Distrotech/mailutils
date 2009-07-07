@@ -32,6 +32,7 @@
 
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 #include <attribute0.h>
 
 int
@@ -417,7 +418,7 @@ mu_string_to_flags (const char *buffer, int *pflags)
     return EINVAL;
 
   /* Set the attribute */
-  if (strncasecmp (buffer, "Status:", 7) == 0)
+  if (mu_c_strncasecmp (buffer, "Status:", 7) == 0)
     {
       sep = strchr(buffer, ':'); /* pass the ':' */
       sep++;

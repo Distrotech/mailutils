@@ -452,16 +452,6 @@ util_do_command (imap4d_tokbuf_t tok)
   return command->func (command, tok);
 }
 
-int
-util_upper (char *s)
-{
-  if (!s)
-    return 0;
-  for (; *s; s++)
-    *s = toupper ((unsigned) *s);
-  return 0;
-}
-
 struct imap4d_command *
 util_getcommand (char *cmd, struct imap4d_command command_table[])
 {
@@ -470,7 +460,7 @@ util_getcommand (char *cmd, struct imap4d_command command_table[])
   for (i = 0; command_table[i].name != 0; i++)
     {
       if (strlen (command_table[i].name) == len &&
-	  !strcasecmp (command_table[i].name, cmd))
+	  !mu_c_strcasecmp (command_table[i].name, cmd))
 	return &command_table[i];
     }
   return NULL;
@@ -598,7 +588,7 @@ util_attribute_to_type (const char *item, int *type)
 {
   int i;
   for (i = 0; i < _imap4d_nattr; i++)
-    if (strcasecmp (item, _imap4d_attrlist[i].name) == 0)
+    if (mu_c_strcasecmp (item, _imap4d_attrlist[i].name) == 0)
       {
 	*type = _imap4d_attrlist[i].flag;
 	return 0;
@@ -1100,7 +1090,7 @@ is_atom (const char *s)
     return 0;
   for (; *s; s++)
     {
-      if (*(const unsigned char *)s > 127 || iscntrl (*s))
+      if (mu_iscntrl (*s))
 	return 0;
     }
   return 1;
@@ -1227,7 +1217,6 @@ imap4d_tokbuf_expand (struct imap4d_tokbuf *tok, size_t size)
 }
 
 #define ISDELIM(c) (strchr ("()", (c)) != NULL)
-#define ISWS(c) (c == ' ' || c == '\t')
 
 int
 util_isdelim (const char *str)
@@ -1253,7 +1242,7 @@ gettok (struct imap4d_tokbuf *tok, size_t off)
 {
   char *buf = tok->buffer;
   
-  while (off < tok->level && ISWS (buf[off]))
+  while (off < tok->level && mu_isblank (buf[off]))
     off++;
 
   if (tok->argc == tok->argmax)
@@ -1294,7 +1283,7 @@ gettok (struct imap4d_tokbuf *tok, size_t off)
   if (ISDELIM (buf[off]))
     return insert_nul (tok, off + 1);
 
-  while (off < tok->level && !ISWS (buf[off]))
+  while (off < tok->level && !mu_isblank (buf[off]))
     {
       if (ISDELIM (buf[off]))
 	return insert_nul (tok, off);
@@ -1371,13 +1360,13 @@ imap4d_readline (struct imap4d_tokbuf *tok)
       if (transcript)
         {
           int len;
-          char *p = strcasestr (tok->buffer, "LOGIN");
-          if (p && p > tok->buffer && isspace(p[-1]))
+          char *p = mu_strcasestr (tok->buffer, "LOGIN");
+          if (p && p > tok->buffer && mu_isblank (p[-1]))
             {
               char *q = p + 5;
-              while (*q && isspace (*q))
+              while (*q && mu_isblank (*q))
                 q++;
-              while (*q && !isspace (*q))
+              while (*q && !mu_isblank (*q))
                 q++;
               len = q - tok->buffer; 
               mu_diag_output (MU_DIAG_DEBUG, "recv: %*.*s {censored}", len, len,

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002, 2003, 2004, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -250,7 +250,7 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
   rc = get_field (conn, MU_AUTH_QUOTA, &squota, 0);
   if (rc == 0)
     {
-      if (strcasecmp (squota, "none") == 0)
+      if (mu_c_strcasecmp (squota, "none") == 0)
 	quota = 0;
       else
 	{

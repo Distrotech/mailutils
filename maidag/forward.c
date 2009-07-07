@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -221,14 +221,14 @@ process_forward (mu_message_t msg, char *filename, const char *myname)
   while (getline (&buf, &size, fp) > 0)
     {
       char *p, *q;
-      for (p = buf; *p && isascii (*p) && isspace (*p); p++)
+      for (p = buf; *p && mu_isblank (*p); p++)
 	;
       q = p + strlen (p);
       if (q > p)
 	{
 	  if (*--q == '\n')
 	    q--;
-	  for (; q > p && isascii (*q) && isspace (*q); q--)
+	  for (; q > p && mu_isblank (*q); q--)
 	    ;
 	  q[1] = 0;
 	}

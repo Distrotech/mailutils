@@ -56,15 +56,18 @@ libmailutils_la_SOURCES = \
  attribute.c\
  auth.c\
  body.c\
+ cstrcasecmp.c\
+ cfg_driver.c\
+ cfg_format.c\
+ cfg_lexer.c\
+ cfg_parser.c\
+ cstrlower.c\
+ cstrupper.c\
  daemon.c\
  date.c\
  dbgstderr.c\
  dbgsyslog.c\
  debug.c\
- cfg_driver.c\
- cfg_format.c\
- cfg_lexer.c\
- cfg_parser.c\
  diag.c\
  envelope.c\
  fgetpwent.c\
@@ -97,6 +100,7 @@ libmailutils_la_SOURCES = \
  monitor.c\
  msrv.c\
  mu_auth.c\
+ muctype.c\
  munre.c\
  mutil.c\
  muerror.c\
@@ -117,6 +121,9 @@ libmailutils_la_SOURCES = \
  server.c\
  socket_stream.c\
  stream.c\
+ strltrim.c\
+ strskip.c\
+ strrtrim.c\
  syslog.c\
  system.c\
  ticket.c\

@@ -1,7 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
-#include <ctype.h>
+#include <mailutils/cctype.h>
 #include <mailutils/argcv.h>
 #include <sieve-priv.h>
 #include <sieve-gram.h>
@@ -368,7 +368,7 @@ sieve_include ()
   int usepath;
   
   p = strstr (yytext, "include");
-  for (p += 7; p < endp && isspace (*p); p++)
+  for (p += 7; p < endp && mu_isspace (*p); p++)
     ;
 
   name = get_file_name (p, endp, &usepath);
@@ -399,12 +399,12 @@ sieve_searchpath ()
   char *p, *endp = yytext + yyleng, *name;
   
   p = strstr (yytext, "searchpath");
-  for (p += 10; p < endp && isspace (*p); p++)
+  for (p += 10; p < endp && mu_isspace (*p); p++)
     ;
   if (strcmp (p, "add") == 0)
     {
       append = 1;
-      for (p += 3; p < endp && isspace (*p); p++)
+      for (p += 3; p < endp && mu_isspace (*p); p++)
 	;
     }
   name = get_file_name (p, endp, NULL);
@@ -482,7 +482,7 @@ string ()
 static int
 isemptystr (char *text)
 {
-  for (; *text && isspace (*text); text++)
+  for (; *text && mu_isspace (*text); text++)
     ;
   return *text == 0;
 }
@@ -551,13 +551,13 @@ multiline_begin ()
   else
     strip_tabs = 0;
 
-  if (!isspace (*p))
+  if (!mu_isspace (*p))
     {
       char *endp;
       int len;
       
       for (endp = p; *endp; endp++)
-	if (isspace (*endp))
+	if (mu_isspace (*endp))
 	  break;
 
       len = endp - p;

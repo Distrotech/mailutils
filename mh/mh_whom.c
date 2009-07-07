@@ -48,7 +48,7 @@ ismydomain (char *p)
   if (!p)
     return 1;
   mu_get_user_email_domain (&domain);
-  return strcasecmp (domain, p + 1) == 0;
+  return mu_c_strcasecmp (domain, p + 1) == 0;
 }
 
 /* FIXME: incl is not used */

@@ -2,7 +2,7 @@
    GNU Mailutils pop3 functions.  This application interactively allows users
    to contact a pop3 server.
 
-   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation
+   Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009 Free Software Foundation
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <signal.h>
-#include <ctype.h>
 
 #ifdef WITH_READLINE
 # include <readline/readline.h>
@@ -46,6 +45,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/vartab.h>
 #include <mailutils/argcv.h>
+#include <mailutils/cctype.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -348,11 +348,11 @@ execute_line (char *line)
 
   /* Isolate the command word. */
   i = 0;
-  while (line[i] && isspace (line[i]))
+  while (line[i] && mu_isblank (line[i]))
     i++;
   word = line + i;
 
-  while (line[i] && !isspace (line[i]))
+  while (line[i] && !mu_isblank (line[i]))
     i++;
 
   if (line[i])
@@ -367,7 +367,7 @@ execute_line (char *line)
     }
 
   /* Get argument to command, if any. */
-  while (isspace (line[i]))
+  while (mu_isblank (line[i]))
     i++;
 
   word = line + i;
@@ -398,14 +398,14 @@ stripwhite (char *string)
 {
   register char *s, *t;
 
-  for (s = string; isspace (*s); s++)
+  for (s = string; mu_isblank (*s); s++)
     ;
 
   if (*s == 0)
     return (s);
 
   t = s + strlen (s) - 1;
-  while (t > s && isspace (*t))
+  while (t > s && mu_isblank (*t))
     t--;
   *++t = '\0';
 

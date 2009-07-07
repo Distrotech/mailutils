@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
   /* Creating, "Inbox" should always fail.  */
-  if (strcasecmp (name, "INBOX") == 0)
+  if (mu_c_strcasecmp (name, "INBOX") == 0)
     return util_finish (command, RESP_BAD, "Already exist");
 
   /* RFC 3501:

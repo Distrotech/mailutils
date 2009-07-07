@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -136,12 +137,14 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  size = strlen (encoded_text);
 
-	  switch (toupper (encoding_type[0]))
+	  switch (encoding_type[0])
 	    {
+            case 'b':
 	    case 'B':
 	      filter_type = "base64";
 	      break;
-	      
+	     
+            case 'q': 
 	    case 'Q':
 	      filter_type = "Q";
 	      break;

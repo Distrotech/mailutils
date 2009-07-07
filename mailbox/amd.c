@@ -36,7 +36,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <ctype.h>
 #include <dirent.h>
 
 #ifdef WITH_PTHREAD
@@ -53,6 +52,8 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
@@ -665,11 +666,13 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
       if (_amd_delim (buf))
 	break;
 
-      if (!(strncasecmp (buf, "status:", 7) == 0
-	    || strncasecmp (buf, "x-imapbase:", 11) == 0
-	    || strncasecmp (buf, "x-uid:", 6) == 0
-	    || strncasecmp (buf, MU_HEADER_ENV_DATE ":", sizeof (MU_HEADER_ENV_DATE)) == 0
-	    || strncasecmp (buf, MU_HEADER_ENV_SENDER ":", sizeof (MU_HEADER_ENV_SENDER)) == 0))
+      if (!(mu_c_strncasecmp (buf, "status:", 7) == 0
+	    || mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0
+	    || mu_c_strncasecmp (buf, "x-uid:", 6) == 0
+	    || mu_c_strncasecmp (buf, 
+                MU_HEADER_ENV_DATE ":", sizeof (MU_HEADER_ENV_DATE)) == 0
+	    || mu_c_strncasecmp (buf, 
+                MU_HEADER_ENV_SENDER ":", sizeof (MU_HEADER_ENV_SENDER)) == 0))
 	{
 	  nlines++;
 	  nbytes += fprintf (fp, "%s", buf);
@@ -693,7 +696,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   if (mu_envelope_sget_date (env, &sbuf) == 0)
     {
       /* NOTE: buffer might be terminated with \n */
-      while (*sbuf && isspace (*sbuf))
+      while (*sbuf && mu_isspace (*sbuf))
 	sbuf++;
       nbytes += fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, sbuf);
 
@@ -1338,13 +1341,13 @@ amd_scan_message (struct _amd_message *mhm)
 	    hlines++;
 
 	  /* Process particular attributes */
-	  if (strncasecmp (buf, "status:", 7) == 0)
+	  if (mu_c_strncasecmp (buf, "status:", 7) == 0)
 	    {
 	      int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
 	      mu_string_to_flags (buf, &mhm->attr_flags);
 	      mhm->attr_flags |= deleted;
 	    }
-	  else if (strncasecmp (buf, "x-imapbase:", 11) == 0)
+	  else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
 	    {
 	      char *p;
 	      mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);

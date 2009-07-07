@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ header_is_expired (mu_header_t hdr)
 			buf, sizeof buf, NULL))
     return 0;
   timestamp = strtoul (buf, &p, 0);
-  while (*p && isspace (*p))
+  while (*p && mu_isspace (*p))
     p++;
   if (*p)
     return 0;

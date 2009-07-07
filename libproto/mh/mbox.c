@@ -33,7 +33,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <ctype.h>
 #include <dirent.h>
 
 #ifdef WITH_PTHREAD
@@ -64,6 +63,7 @@
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/io.h>
+#include <mailutils/cctype.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <amd.h>
@@ -302,10 +302,10 @@ mh_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
   struct _mh_message *msg;
 
   p = qid + strlen (qid) - 1;
-  if (!isdigit (*p))
+  if (!mu_isdigit (*p))
     return EINVAL;
   
-  for (p--; p >= qid && isdigit (*p); p--)
+  for (p--; p >= qid && mu_isdigit (*p); p--)
     ;
 
   if (p == qid)

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2004, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <mailutils/pop3.h>
 #include <mailutils/errno.h>
+#include <mailutils/cstr.h>
 
 #ifdef DMALLOC
 # include <dmalloc.h>
@@ -138,7 +139,7 @@ while (0)
 #define MU_POP3_CHECK_OK(pop3) \
 do \
   { \
-     if (strncasecmp (pop3->ack.buf, "+OK", 3) != 0) \
+     if (mu_c_strncasecmp (pop3->ack.buf, "+OK", 3) != 0) \
        { \
           pop3->state = MU_POP3_NO_STATE; \
           return EACCES; \

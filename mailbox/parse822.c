@@ -79,7 +79,6 @@ actually help.
 
 #include <assert.h>
 #include <errno.h>
-#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -88,6 +87,8 @@ actually help.
 # include <strings.h>
 #endif
 
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/errno.h>
 #include <mailutils/parse822.h>
 #include <mailutils/address.h>
@@ -189,7 +190,7 @@ str_free (char **s)
 int
 mu_parse822_is_char (char c)
 {
-  return isascii (c);
+  return mu_isascii (c);
 }
 
 int
@@ -197,13 +198,13 @@ mu_parse822_is_digit (char c)
 {
   /* digit = <any ASCII decimal digit> */
 
-  return isdigit ((unsigned) c);
+  return mu_isdigit ((unsigned) c);
 }
 
 int
 mu_parse822_is_ctl (char c)
 {
-  return iscntrl ((unsigned) c) || c == 127 /* DEL */ ;
+  return mu_iscntrl ((unsigned) c) || c == 127 /* DEL */ ;
 }
 
 int
@@ -1509,7 +1510,7 @@ mu_parse822_day (const char **p, const char *e, int *day)
 
   for (d = 0; days[d]; d++)
     {
-      if (strncasecmp (*p, days[d], 3) == 0)
+      if (mu_c_strncasecmp (*p, days[d], 3) == 0)
 	{
 	  *p += 3;
 	  if (day)
@@ -1566,7 +1567,7 @@ mu_parse822_date (const char **p, const char *e, int *day, int *mon, int *year)
 
   for (m = 0; mons[m]; m++)
     {
-      if (strncasecmp (*p, mons[m], 3) == 0)
+      if (mu_c_strncasecmp (*p, mons[m], 3) == 0)
 	{
 	  *p += 3;
 	  if (mon)
@@ -1701,7 +1702,7 @@ mu_parse822_time (const char **p, const char *e,
   /* see if it's a timezone */
   for (; tzs[z].tzname; z++)
     {
-      if (strcasecmp (zone, tzs[z].tzname) == 0)
+      if (mu_c_strcasecmp (zone, tzs[z].tzname) == 0)
 	break;
     }
   if (tzs[z].tzname)

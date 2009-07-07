@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
+#include <mailutils/cstr.h>
 
 struct _mu_rfc822_stream
 {
@@ -265,16 +266,16 @@ restore_envelope (mu_stream_t str, struct _mu_rfc822_message **pmenv)
 
       if (!env_from || !env_date)
 	{
-      	  if (!from && strncasecmp (buffer, MU_HEADER_FROM,
-				    sizeof (MU_HEADER_FROM) - 1) == 0)
+      	  if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
+				         sizeof (MU_HEADER_FROM) - 1) == 0)
 	    from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
 	  else if (!env_from
-		   && strncasecmp (buffer, MU_HEADER_ENV_SENDER,
-				   sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
+		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_SENDER,
+				        sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
 	    env_from = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_SENDER)));
 	  else if (!env_date
-		   && strncasecmp (buffer, MU_HEADER_ENV_DATE,
-				   sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
+		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_DATE,
+				        sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
 	    env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
 	}
     }

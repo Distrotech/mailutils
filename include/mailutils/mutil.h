@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -128,7 +128,7 @@ extern int mu_string_unfold (char *text, size_t *plen);
 extern int mu_unre_set_regex (const char *str, int caseflag, char **errp);
 extern int mu_unre_subject  (const char *subject, const char **new_subject);
 
-extern char *mu_charset_lookup (char *lang, char *terr);
+extern const char *mu_charset_lookup (char *lang, char *terr);
 
 extern int mu_true_answer_p (const char *p);
 extern int mu_scheme_autodetect_p (mu_url_t);
@@ -160,7 +160,7 @@ extern int mu_stream_flags_to_mode (int flags, int isdir);
 extern int mu_parse_stream_perm_string (int *pmode, const char *str,
 					const char **endp);
   
-  
+
 #ifdef __cplusplus
 }
 #endif

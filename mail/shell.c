@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ mail_execute (int shell, int argc, char **argv)
       argv0 = argv[0]; 
   
       /* Skip leading whitespace from argv[0] */
-      while (isspace (**argv))
+      while (mu_isspace (**argv))
 	(*argv)++;
     }
 

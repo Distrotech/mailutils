@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -275,13 +275,13 @@ yylex()
       return yylex ();
     }
 
-  if (isdigit (*cur_p))
+  if (mu_isdigit (*cur_p))
     {
       yylval.number = strtoul (cur_p, &cur_p, 10);
       return NUMBER;
     }
 
-  if (isalpha (*cur_p))
+  if (mu_isalpha (*cur_p))
     {
       char *p = cur_p;
       int len;
@@ -584,7 +584,7 @@ select_header (mu_message_t msg, void *closure)
           int status;
 	  int flags = REG_EXTENDED;
 
-	  if (islower (header[0]))
+	  if (mu_islower (header[0]))
 	    flags |= REG_ICASE;
           if (regcomp (&re, hd->expr, flags) != 0)
 	    {
@@ -599,7 +599,7 @@ select_header (mu_message_t msg, void *closure)
       else
 	{
 	  int rc;
-	  util_strupper (contents);
+	  mu_strupper (contents);
 	  rc = strstr (contents, hd->expr) != NULL;
 	  free (contents);
 	  return rc;
@@ -623,7 +623,7 @@ select_body (mu_message_t msg, void *closure)
   off_t offset = 0;
 
   if (noregex)
-    util_strupper (expr);
+    mu_strupper (expr);
   else if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
     return 0;
 
@@ -639,7 +639,7 @@ select_body (mu_message_t msg, void *closure)
       offset += n;
       if (noregex)
 	{
-	  util_strupper (buffer);
+	  mu_strupper (buffer);
 	  status = strstr (buffer, expr) != NULL;
 	}
       else

@@ -231,7 +231,7 @@ char *
 namespace_getfullpath (const char *name, const char *delim, int *nspace)
 {
   char *ret;
-  if (strcasecmp (name, "INBOX") == 0 && auth_data->change_uid)
+  if (mu_c_strcasecmp (name, "INBOX") == 0 && auth_data->change_uid)
     {
       ret = strdup (auth_data->mailbox);
       if (nspace)

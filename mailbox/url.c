@@ -33,6 +33,8 @@
 #include <mailutils/errno.h>
 #include <mailutils/argcv.h>
 #include <mailutils/secret.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <url0.h>
 
 #define AC2(a,b) a ## b
@@ -457,7 +459,7 @@ url_parse0 (mu_url_t u, char *name, size_t *poff)
 
       /* RFC 1738, section 2.1, lower the scheme case */
       for (; name < p; name++)
-	*name = tolower (*name);
+	*name = mu_tolower (*name);
 
       name = p;
     }
@@ -507,7 +509,7 @@ url_parse0 (mu_url_t u, char *name, size_t *poff)
 		  else if (*name == ';')
 		    {
 		      /* Make sure it's the auth token. */
-		      if (strncasecmp (name + 1, "auth=", 5) == 0)
+		      if (mu_c_strncasecmp (name + 1, "auth=", 5) == 0)
 			{
 			  *name++ = 0;
 			  name += 5;
@@ -676,7 +678,7 @@ ACCESSOR(is_same,field) (mu_url_t url1, mu_url_t url2)		          \
 									  \
   if (status1 && status1 == status2) /* Both fields are missing */	  \
     return 1;								  \
-  return strcasecmp (s1, s2) == 0;					  \
+  return mu_c_strcasecmp (s1, s2) == 0;					  \
 }
 
 #define DECL_ACCESSORS(field)			                          \
@@ -820,7 +822,8 @@ mu_url_set_scheme (mu_url_t url, const char *scheme)
 int
 mu_url_is_scheme (mu_url_t url, const char *scheme)
 {
-  if (url && scheme && url->scheme && strcasecmp (url->scheme, scheme) == 0)
+  if (url && scheme && url->scheme 
+      && mu_c_strcasecmp (url->scheme, scheme) == 0)
     return 1;
 
   return 0;
@@ -902,12 +905,12 @@ mu_url_is_ticket (mu_url_t ticket, mu_url_t url)
      equivalent must be defined and match. */
   if (defined (ticket->scheme))
     {
-      if (!url->scheme || strcasecmp (ticket->scheme, url->scheme) != 0)
+      if (!url->scheme || mu_c_strcasecmp (ticket->scheme, url->scheme) != 0)
 	return 0;
     }
   if (defined (ticket->host))
     {
-      if (!url->host || strcasecmp (ticket->host, url->host) != 0)
+      if (!url->host || mu_c_strcasecmp (ticket->host, url->host) != 0)
 	return 0;
     }
   if (ticket->port && ticket->port != url->port)

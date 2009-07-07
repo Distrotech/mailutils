@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 
-   2005, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -361,34 +361,34 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	status = ERR_TOO_LONG;
       else if (strlen (cmd) > 4)
 	status = ERR_BAD_CMD;
-      else if (strncasecmp (cmd, "RETR", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "RETR", 4) == 0)
 	status = pop3d_retr (arg);
-      else if (strncasecmp (cmd, "DELE", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "DELE", 4) == 0)
 	status = pop3d_dele (arg);
-      else if (strncasecmp (cmd, "USER", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "USER", 4) == 0)
 	status = pop3d_user (arg);
-      else if (strncasecmp (cmd, "QUIT", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "QUIT", 4) == 0)
 	status = pop3d_quit (arg);
-      else if (strncasecmp (cmd, "APOP", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "APOP", 4) == 0)
 	status = pop3d_apop (arg);
-      else if (strncasecmp (cmd, "AUTH", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "AUTH", 4) == 0)
 	status = pop3d_auth (arg);
-      else if (strncasecmp (cmd, "STAT", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "STAT", 4) == 0)
 	status = pop3d_stat (arg);
-      else if (strncasecmp (cmd, "LIST", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "LIST", 4) == 0)
 	status = pop3d_list (arg);
-      else if (strncasecmp (cmd, "NOOP", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "NOOP", 4) == 0)
 	status = pop3d_noop (arg);
-      else if (strncasecmp (cmd, "RSET", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "RSET", 4) == 0)
 	status = pop3d_rset (arg);
-      else if ((strncasecmp (cmd, "TOP", 3) == 0) && (strlen (cmd) == 3))
+      else if ((mu_c_strncasecmp (cmd, "TOP", 3) == 0) && (strlen (cmd) == 3))
 	status = pop3d_top (arg);
-      else if (strncasecmp (cmd, "UIDL", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "UIDL", 4) == 0)
 	status = pop3d_uidl (arg);
-      else if (strncasecmp (cmd, "CAPA", 4) == 0)
+      else if (mu_c_strncasecmp (cmd, "CAPA", 4) == 0)
 	status = pop3d_capa (arg);
 #ifdef WITH_TLS
-      else if ((strncasecmp (cmd, "STLS", 4) == 0) && tls_available)
+      else if ((mu_c_strncasecmp (cmd, "STLS", 4) == 0) && tls_available)
 	{
 	  status = pop3d_stls (arg);
 	  if (status)

@@ -30,6 +30,7 @@
 
 #include <sys/time.h>
 
+#include <mailutils/cstr.h>
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
@@ -304,7 +305,7 @@ save_fcc (mu_message_t msg)
       mu_mailbox_t mbox;
       
       mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, MU_HEADER_FCC) == 0
+      if (mu_c_strcasecmp (buf, MU_HEADER_FCC) == 0
 	  && mu_header_aget_field_value (hdr, i, &fcc) == 0)
 	{
 	  int i, argc;
@@ -461,15 +462,15 @@ merge_headers (mu_message_t newmsg, mu_header_t hdr)
 
       mu_header_sget_field_name (hdr, i, &fn);
       mu_header_sget_field_value (hdr, i, &fv);
-      if (strcasecmp (fn, MU_HEADER_MESSAGE_ID) == 0)
+      if (mu_c_strcasecmp (fn, MU_HEADER_MESSAGE_ID) == 0)
 	continue;
-      else if (strcasecmp (fn, MU_HEADER_MIME_VERSION) == 0)
+      else if (mu_c_strcasecmp (fn, MU_HEADER_MIME_VERSION) == 0)
 	mu_header_append (newhdr, "X-Orig-" MU_HEADER_MIME_VERSION,
 			  fv);
-      else if (strcasecmp (fn, MU_HEADER_CONTENT_TYPE) == 0)
+      else if (mu_c_strcasecmp (fn, MU_HEADER_CONTENT_TYPE) == 0)
 	mu_header_append (newhdr, "X-Orig-" MU_HEADER_CONTENT_TYPE,
 			  fv);
-      else if (strcasecmp (fn, MU_HEADER_CONTENT_DESCRIPTION) == 0)
+      else if (mu_c_strcasecmp (fn, MU_HEADER_CONTENT_DESCRIPTION) == 0)
 	mu_header_append (newhdr, "X-Orig-" MU_HEADER_CONTENT_DESCRIPTION,
 			  fv);
       else

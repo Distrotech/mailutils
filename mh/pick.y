@@ -1,6 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -303,7 +304,7 @@ match_header (mu_message_t msg, char *comp, regex_t *regex)
   for (i = 1; i <= count; i++)
     {
       mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, comp) == 0)
+      if (mu_c_strcasecmp (buf, comp) == 0)
 	{
 	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
 	  if (regexec (regex, buf, 0, NULL, 0) == 0)

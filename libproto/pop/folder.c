@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2003, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/mutil.h>
 
 #include <folder0.h>
 #include <registrar0.h>
@@ -131,7 +132,7 @@ folder_pop_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 	return EINVAL;
 
       if (folder->url->auth == NULL
-	  || strcasecmp (folder->url->auth, "*") == 0)
+	  || strcmp (folder->url->auth, "*") == 0)
 	{
 	  status = mu_authority_create (&folder->authority, NULL, folder);
 	  mu_authority_set_authenticate (folder->authority, _pop_user, folder);
@@ -141,7 +142,7 @@ folder_pop_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 	Anything else starting with "+" is an extension mechanism.
 	Without a "+" it's a SASL mechanism.
       */
-      else if (strcasecmp (folder->url->auth, "+APOP") == 0)
+      else if (mu_c_strcasecmp (folder->url->auth, "+APOP") == 0)
 	{
 	  status = mu_authority_create (&folder->authority, NULL, folder);
 	  mu_authority_set_authenticate (folder->authority, _pop_apop, folder);

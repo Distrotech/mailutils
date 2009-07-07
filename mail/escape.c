@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2005, 2006, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ parse_headers (FILE *fp, compose_env_t *env)
       switch (state)
 	{
 	case STATE_INIT:
-	  if (!buf[0] || isspace (buf[0]))
+	  if (!buf[0] || mu_isspace (buf[0]))
 	    continue;
 	  else
 	    state = STATE_READ;
@@ -81,7 +81,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	case STATE_READ:
 	  if (buf[0] == 0)
 	    state = STATE_BODY;
-	  else if (isspace (buf[0]))
+	  else if (mu_isspace (buf[0]))
 	    {
 	      /* A continuation line */
 	      if (name)
@@ -112,7 +112,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	      if (p)
 		{
 		  *p++ = 0;
-		  while (*p && isspace (*p))
+		  while (*p && mu_isspace (*p))
 		    p++;
 		  value = strdup (p);
 		  name = strdup (buf);
@@ -234,11 +234,11 @@ escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env MU_ARG_UNUS
 {
   char *p;
 
-  if (util_getenv (&p, isupper (argv[0][0]) ? "Sign" : "sign",
+  if (util_getenv (&p, mu_isupper (argv[0][0]) ? "Sign" : "sign",
 		   Mail_env_string, 1) == 0)
     {
       fputs ("-- \n", ofile);
-      if (isupper (argv[0][0]))
+      if (mu_isupper (argv[0][0]))
 	{
 	  char *name = util_fullpath (p);
 	  FILE *fp = fopen (name, "r");
@@ -509,7 +509,7 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 int
 escape_quote (int argc, char **argv, compose_env_t *env)
 {
-  int lower = islower (argv[0][0]);
+  int lower = mu_islower (argv[0][0]);
   util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT, quote0, &lower);
   escape_continue ();
   return 0;

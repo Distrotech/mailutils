@@ -40,7 +40,9 @@ pkginclude_HEADERS = \
  attribute.h\
  auth.h\
  body.h\
+ cctype.h\
  cfg.h\
+ cstr.h\
  daemon.h\
  debug.h\
  diag.h\

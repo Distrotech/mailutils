@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 int
 mail_print (int argc, char **argv)
 {
-  int lower = islower (argv[0][0]);
+  int lower = mu_islower (argv[0][0]);
   int rc = util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT,
 			     mail_print_msg, &lower);
   return rc;

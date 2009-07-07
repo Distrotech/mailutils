@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -153,7 +154,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     case ARG_VERBOSE:
-      if (!arg || isalpha (arg[0]))
+      if (!arg || mu_isalpha (arg[0]))
 	verbose = is_true (arg);
       else
 	verbose = arg[0] - '0';
@@ -276,11 +277,11 @@ compare_action (void *item, void *data)
 
   ap = a;
   bp = b;
-  if (strcasecmp (op->field, MU_HEADER_SUBJECT) == 0)
+  if (mu_c_strcasecmp (op->field, MU_HEADER_SUBJECT) == 0)
     {
-      if (strncasecmp (ap, "re:", 3) == 0)
+      if (mu_c_strncasecmp (ap, "re:", 3) == 0)
 	ap += 3;
-      if (strncasecmp (b, "re:", 3) == 0)
+      if (mu_c_strncasecmp (b, "re:", 3) == 0)
 	bp += 3;
     }
   
@@ -316,7 +317,7 @@ compare_messages (mu_message_t a, mu_message_t b, size_t anum, size_t bnum)
 static int
 comp_text (void *a, void *b)
 {
-  return strcasecmp (a, b);
+  return mu_c_strcasecmp (a, b);
 }
 
 static int

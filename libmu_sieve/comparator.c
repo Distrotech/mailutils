@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,8 @@
 #include <sieve-priv.h>
 #include <fnmatch.h>
 #include <regex.h>
-#include <ctype.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 typedef struct {
   const char *name;
@@ -148,10 +149,7 @@ struct regex_data {
 static int
 _pattern_upcase (void *item, void *data)
 {
-  char *p;
-
-  for (p = item; *p; p++)
-    *p = toupper (*p);
+  mu_strupper (item);
   return 0;
 }
 #endif
@@ -417,7 +415,7 @@ i_octet_eq (const char *pattern, const char *text)
 static int
 i_ascii_casemap_is (const char *pattern, const char *text)
 {
-  return strcasecmp (pattern, text) == 0;
+  return mu_c_strcasecmp (pattern, text) == 0;
 }
 
 static int
@@ -450,21 +448,21 @@ i_ascii_casemap_regex (const char *pattern, const char *text)
 static int
 i_ascii_casemap_eq (const char *pattern, const char *text)
 {
-  return strcasecmp (text, pattern);
+  return mu_c_strcasecmp (text, pattern);
 }
 
 /* :comparator i;ascii-numeric */
 static int
 i_ascii_numeric_is (const char *pattern, const char *text)
 {
-  if (isdigit ((int) *pattern))
+  if (mu_isdigit (*pattern))
     {
-      if (isdigit ((int) *text))
+      if (mu_isdigit (*text))
 	return strtol (pattern, NULL, 10) == strtol (text, NULL, 10);
       else 
 	return 0;
     }
-  else if (isdigit ((int) *text))
+  else if (mu_isdigit (*text))
     return 0;
   else
     return 1;
@@ -473,9 +471,9 @@ i_ascii_numeric_is (const char *pattern, const char *text)
 static int
 i_ascii_numeric_eq (const char *pattern, const char *text)
 {
-  if (isdigit ((int) *pattern))
+  if (mu_isdigit (*pattern))
     {
-      if (isdigit ((int) *text))
+      if (mu_isdigit (*text))
 	{
 	  size_t a = strtoul (pattern, NULL, 10);
 	  size_t b = strtoul (text, NULL, 10);

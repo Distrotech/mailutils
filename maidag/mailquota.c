@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004,
-   2005, 2007 Free Software Foundation, Inc.
+   2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,9 +106,9 @@ dbm_retrieve_quota (char *name, mu_off_t *quota)
 	return RETR_FAILURE;
     }
 
-  if (strncasecmp("none",
-		  MU_DATUM_PTR (contentd),
-		  MU_DATUM_SIZE (contentd)) == 0) 
+  if (mu_c_strncasecmp("none",
+		       MU_DATUM_PTR (contentd),
+		       MU_DATUM_SIZE (contentd)) == 0) 
       unlimited = 1;
   else if (MU_DATUM_SIZE (contentd) > sizeof(buffer)-1)
     {
@@ -229,7 +229,7 @@ sql_retrieve_quota (char *name, mu_off_t *quota)
 		    mu_strerror (status));
 	  rc = RETR_FAILURE;
 	}
-      else if (tmp == NULL || tmp[0] == 0 || strcasecmp (tmp, "none") == 0)
+      else if (tmp == NULL || tmp[0] == 0 || mu_c_strcasecmp (tmp, "none") == 0)
 	rc = RETR_UNLIMITED;
       else
 	{

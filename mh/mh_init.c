@@ -145,7 +145,7 @@ emailcmp (char *pattern, char *name)
   p = strchr (pattern, '@');
   if (p)
     for (p++; *p; p++)
-      *p = toupper (*p);
+      *p = mu_toupper (*p);
 
   return fnmatch (pattern, name, 0);
 }
@@ -160,7 +160,7 @@ mh_is_my_name (const char *name)
   p = strchr (pname, '@');
   if (p)
     for (p++; *p; p++)
-      *p = toupper (*p);
+      *p = mu_toupper (*p);
   
   if (!my_email)
     mh_get_my_name (NULL);
@@ -178,7 +178,7 @@ mh_is_my_name (const char *name)
 	  for (p = nlist; rc == 0 && *p; p = end)
 	    {
 	      
-	      while (*p && isspace (*p))
+	      while (*p && mu_isspace (*p))
 		p++;
 
 	      end = strchr (p, ',');
@@ -193,7 +193,7 @@ mh_is_my_name (const char *name)
 		  end = p + len;
 		}
 
-	      while (len > 0 && isspace (p[len-1]))
+	      while (len > 0 && mu_isspace (p[len-1]))
 		len--;
 
 	      pat = xmalloc (len + 1);
@@ -864,7 +864,7 @@ mh_decode_2047 (char *text, char **decoded_text)
 
   if (!charset)
     return 1;
-  if (strcasecmp (charset, "auto") == 0)
+  if (mu_c_strcasecmp (charset, "auto") == 0)
     {
       /* Try to deduce the charset from LC_ALL variable */
 
@@ -939,9 +939,9 @@ mh_expand_aliases (mu_message_t msg,
     {
       if (mu_header_sget_field_name (hdr, i, &buf) == 0)
 	{
-	  if (strcasecmp (buf, MU_HEADER_TO) == 0
-	      || strcasecmp (buf, MU_HEADER_CC) == 0
-	      || strcasecmp (buf, MU_HEADER_BCC) == 0)
+	  if (mu_c_strcasecmp (buf, MU_HEADER_TO) == 0
+	      || mu_c_strcasecmp (buf, MU_HEADER_CC) == 0
+	      || mu_c_strcasecmp (buf, MU_HEADER_BCC) == 0)
 	    {
 	      char *value;
 	      mu_address_t addr = NULL;
@@ -951,11 +951,11 @@ mh_expand_aliases (mu_message_t msg,
 	      
 	      mh_alias_expand (value, &addr, &incl);
 	      free (value);
-	      if (strcasecmp (buf, MU_HEADER_TO) == 0)
+	      if (mu_c_strcasecmp (buf, MU_HEADER_TO) == 0)
 		mu_address_union (addr_to, addr);
-	      else if (strcasecmp (buf, MU_HEADER_CC) == 0)
+	      else if (mu_c_strcasecmp (buf, MU_HEADER_CC) == 0)
 		mu_address_union (addr_cc ? addr_cc : addr_to, addr);
-	      else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
+	      else if (mu_c_strcasecmp (buf, MU_HEADER_BCC) == 0)
 		mu_address_union (addr_bcc ? addr_bcc : addr_to, addr);
 	    }
 	}

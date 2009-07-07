@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005,
-   2007, 2008  Free Software Foundation, Inc.
+   2007, 2008, 2009  Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,8 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
-
+#include <mailutils/cctype.h>
 #include <mailutils/assoc.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
@@ -89,7 +88,7 @@ decode_debug_level (const char *p, int *lev)
 {
   if (strcmp (p, "error") == 0)
     *lev = MU_DEBUG_ERROR;
-  else if (strncmp (p, "trace", 5) == 0 && isdigit (p[5]) && p[6] == 0)
+  else if (strncmp (p, "trace", 5) == 0 && mu_isdigit (p[5]) && p[6] == 0)
     *lev = MU_DEBUG_TRACE0 + atoi (p + 5);
   else if (strcmp (p, "proto") == 0)
     *lev = MU_DEBUG_PROT;
@@ -105,7 +104,7 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
   char *q;
   unsigned level = MU_DEBUG_INHERIT;
   
-  if (isdigit (*string))
+  if (mu_isdigit (*string))
     {
       level = strtoul (string, &q, 0);
       if (*q)
@@ -193,7 +192,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
 	  char *q;
 	  
 	  *p++ = 0;
-	  if (isdigit (*p))
+	  if (mu_isdigit (*p))
 	    {
 	      level = strtoul (p, &q, 0);
 	      if (*q)

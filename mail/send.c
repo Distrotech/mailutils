@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ send_append_header (char *text)
   name = xmalloc (len + 1);
   memcpy (name, text, len);
   name[len] = 0;
-  for (p++; *p && isspace (*p); p++)
+  for (p++; *p && mu_isspace (*p); p++)
     ;
 
   add_header (name, strdup (p), COMPOSE_APPEND);
@@ -166,7 +166,7 @@ mail_send (int argc, char **argv)
 {
   compose_env_t env;
   int status;
-  int save_to = isupper (argv[0][0]);
+  int save_to = mu_isupper (argv[0][0]);
   compose_init (&env);
 
   if (argc < 2)

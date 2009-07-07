@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include "mailutils/cctype.h"
 #include "mailutils/libargp.h"
 #include "mailutils/argcv.h"
 #include "mailutils/mutil.h"
@@ -83,7 +84,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
       char *kwp, *p;
       int len;
       
-      for (kwp = buf; *kwp && isspace (*kwp); kwp++)
+      for (kwp = buf; *kwp && mu_isspace (*kwp); kwp++)
 	;
 
       if (*kwp == '#' || *kwp == 0)
@@ -125,7 +126,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
       len = 0;
       if (progname)
 	{
-	  for (p = kwp; *p && !isspace (*p); p++)
+	  for (p = kwp; *p && !mu_isspace (*p); p++)
 	    len++;
 	}
       else

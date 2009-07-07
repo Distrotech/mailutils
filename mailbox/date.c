@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2007, 
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 #define SECS_PER_DAY 86400
 #define ADJUSTMENT -719162L
@@ -145,7 +147,7 @@ mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
 
   for (i = 0; i < 12; i++)
     {
-      if (strncasecmp (month, months[i], 3) == 0)
+      if (mu_c_strncasecmp (month, months[i], 3) == 0)
 	{
 	  mon = i;
 	  break;
@@ -203,7 +205,7 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
 
   for (i = 0; i < 7; i++)
     {
-      if (strncasecmp (weekday, wdays[i], 3) == 0)
+      if (mu_c_strncasecmp (weekday, wdays[i], 3) == 0)
 	{
 	  wday = i;
 	  break;
@@ -212,7 +214,7 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
 
   for (i = 0; i < 12; i++)
     {
-      if (strncasecmp (month, months[i], 3) == 0)
+      if (mu_c_strncasecmp (month, months[i], 3) == 0)
 	{
 	  mon = i;
 	  break;

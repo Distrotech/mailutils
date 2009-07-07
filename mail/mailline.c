@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -237,7 +237,7 @@ ml_command_completion (char *cmd, int start, int end)
   char **ret;
   char *p;
 
-  for (p = rl_line_buffer; p < rl_line_buffer + start && isspace (*p); p++)
+  for (p = rl_line_buffer; p < rl_line_buffer + start && mu_isblank (*p); p++)
     ;
   
   if (mu_argcv_get_n (p, end, NULL, NULL, &argc, &argv))

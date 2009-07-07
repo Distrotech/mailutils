@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2005, 2006, 2007,
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   
   tm = gmtime(&t);
 
-  while (*text && isspace (*text))
+  while (*text && mu_isblank (*text))
     text++;
 
   mu_stream_write (stream, text, strlen (text), len, &len);

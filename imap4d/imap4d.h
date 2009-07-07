@@ -57,7 +57,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <ctype.h>
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -103,6 +102,8 @@
 #include <mailutils/argcv.h>
 #include <mailutils/alloc.h>
 #include <mailutils/vartab.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
@@ -340,7 +341,6 @@ extern int  util_do_command (imap4d_tokbuf_t);
 extern char *util_tilde_expansion (const char *, const char *);
 extern char *util_getfullpath (const char *, const char *);
 extern int  util_msgset (char *, size_t **, int *, int);
-extern int  util_upper (char *);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
 extern int util_parse_internal_date (char *date, time_t *timep);

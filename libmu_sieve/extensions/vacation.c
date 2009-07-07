@@ -252,8 +252,8 @@ bulk_precedence_p (mu_header_t hdr)
   char *str;
   if (mu_header_aget_value (hdr, MU_HEADER_PRECEDENCE, &str) == 0)
     {
-      rc = strcasecmp (str, "bulk") == 0
-	   || strcasecmp (str, "junk") == 0;
+      rc = mu_c_strcasecmp (str, "bulk") == 0
+	   || mu_c_strcasecmp (str, "junk") == 0;
       free (str);
     }
   return rc;

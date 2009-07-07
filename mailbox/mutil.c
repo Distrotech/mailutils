@@ -61,6 +61,8 @@
 #include <mailutils/sql.h>
 #include <mailutils/url.h>
 #include <mailutils/io.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 #include <registrar0.h>
 
@@ -1122,7 +1124,7 @@ mu_strcasestr (const char *a_haystack, const char *a_needle)
     *needle = (unsigned char*) a_needle;
   register unsigned int b, c;
 
-#define U(c) toupper (c)
+#define U(c) mu_toupper (c)
   if ((b = U (*needle)))
     {
       haystack--;		
@@ -1354,7 +1356,7 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
   if (status)
     return status;
 
-  if (fromcode && tocode && strcasecmp (fromcode, tocode))
+  if (fromcode && tocode && mu_c_strcasecmp (fromcode, tocode))
     {
       mu_stream_t cvt;
       status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,

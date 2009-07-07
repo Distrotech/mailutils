@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 #include <string.h>
 #include <sieve-priv.h>
 #include <ltdl.h>
-#include <ctype.h>
+#include <mailutils/cctype.h>
 
 typedef int (*sieve_module_init_t) (mu_sieve_machine_t mach);
 
@@ -107,7 +107,7 @@ fix_module_name (char *name)
 {
   for (; *name; name++)
     {
-      if (isalnum (*name) || *name == '.' || *name == ',')
+      if (mu_isalnum (*name) || *name == '.' || *name == ',')
 	continue;
       *name = '-';
     }

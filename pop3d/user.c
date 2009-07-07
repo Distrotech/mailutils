@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2005, 2007, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -120,7 +121,7 @@ pop3d_user (const char *arg)
       free (tmp);
     }
 
-  if (strcasecmp (cmd, "PASS") == 0)
+  if (mu_c_strcasecmp (cmd, "PASS") == 0)
     {
       int rc;
 
@@ -155,7 +156,7 @@ pop3d_user (const char *arg)
 	  return ERR_BAD_LOGIN;
 	}
     }
-  else if (strcasecmp (cmd, "QUIT") == 0)
+  else if (mu_c_strcasecmp (cmd, "QUIT") == 0)
     {
       mu_diag_output (MU_DIAG_INFO, _("Possible probe of account `%s'"), arg);
       free (cmd);

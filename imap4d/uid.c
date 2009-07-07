@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,13 +35,13 @@ imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   cmd = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   
-  if (strcasecmp (cmd, "FETCH") == 0)
+  if (mu_c_strcasecmp (cmd, "FETCH") == 0)
     rc = imap4d_fetch0 (tok, 1, &err_text);
-  else if (strcasecmp (cmd, "COPY") == 0)
+  else if (mu_c_strcasecmp (cmd, "COPY") == 0)
     rc = imap4d_copy0 (tok, 1, &err_text);
-  else if (strcasecmp (cmd, "STORE") == 0)
+  else if (mu_c_strcasecmp (cmd, "STORE") == 0)
     rc = imap4d_store0 (tok, 1, &err_text);
-  else if (strcasecmp (cmd, "SEARCH") == 0)
+  else if (mu_c_strcasecmp (cmd, "SEARCH") == 0)
     rc = imap4d_search0 (tok, 1, &err_text);
   else
     {

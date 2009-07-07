@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007  Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,12 +20,8 @@
 #include <mh.h>
 #include <mh_alias.h>
 #include <sys/stat.h>
-#include <ctype.h>
+#include <mailutils/cctype.h>
 #include <mu_asprintf.h>
-  
-#ifndef isblank
-# define isblank(c) ((c)==' ' || (c)=='\t')
-#endif  
   
 char *ali_filename;  
 size_t ali_line_num;  
@@ -349,7 +345,7 @@ SPEC [,:;+=\*]
 ^[ \t]*\;.*\n  ali_line_num++; 
 ^[ \t]*{WORD}\*  { char *p;
                    for (p = yytext; p < yytext + yyleng; p++)
-		     if (!isspace (*p))
+		     if (!mu_isspace (*p))
 		       break;
 		   yylval.string = strdup (p);
 		   return STRING;}
@@ -357,10 +353,10 @@ SPEC [,:;+=\*]
 {WORD}         { yylval.string = strdup (yytext); return STRING;}
 ^{WS}?"<"{WS}?{WORD} {
                  char *p;
-                 for (p = yytext; p < yytext + yyleng && isblank(*p); p++)
+                 for (p = yytext; p < yytext + yyleng && mu_isblank(*p); p++)
 		   ;
                  for (p++; p < yytext + yyleng; p++)
-		   if (!isspace (*p))
+		   if (!mu_isspace (*p))
 		     break;
                  push_source (p, 1); }
 {SPEC}         return yytext[0];

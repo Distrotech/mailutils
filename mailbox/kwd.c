@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,8 @@
 #include <string.h>
 #include <mailutils/kwd.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 int
 mu_kwd_xlat_name_len (mu_kwd_t *kwtab, const char *str, size_t len, int *pres)
@@ -45,7 +47,7 @@ mu_kwd_xlat_name_len_ci (mu_kwd_t *kwtab, const char *str, size_t len,
   for (; kwtab->name; kwtab++)
     {
       size_t kwlen = strlen (kwtab->name);
-      if (kwlen == len && strncasecmp (kwtab->name, str, len) == 0)
+      if (kwlen == len && mu_c_strncasecmp (kwtab->name, str, len) == 0)
 	{
 	  *pres = kwtab->tok;
 	  return 0;
@@ -70,7 +72,7 @@ int
 mu_kwd_xlat_name_ci (mu_kwd_t *kwtab, const char *str, int *pres)
 {
   for (; kwtab->name; kwtab++)
-    if (strcasecmp (kwtab->name, str) == 0)
+    if (mu_c_strcasecmp (kwtab->name, str) == 0)
       {
 	*pres = kwtab->tok;
 	return 0;

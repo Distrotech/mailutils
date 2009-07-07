@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -537,7 +538,7 @@ smtp_kw (const char *name)
   int i;
 
   for (i = 0; kw[i].name != NULL; i++)
-    if (strcasecmp (name, kw[i].name) == 0)
+    if (mu_c_strcasecmp (name, kw[i].name) == 0)
       return kw[i].code;
   return -1;
 }
@@ -546,7 +547,7 @@ static char *
 check_prefix (char *str, const char *prefix)
 {
   int pflen = strlen (prefix);
-  if (strlen (str) > pflen && strncasecmp (str, prefix, pflen) == 0)
+  if (strlen (str) > pflen && mu_c_strncasecmp (str, prefix, pflen) == 0)
     return str + pflen;
   else
     return NULL;
@@ -622,7 +623,7 @@ smtp (int fd)
 	    case KW_MAIL:
 	      if (argc == 2)
 		from_person = check_prefix (argv[1], "from:");
-	      else if (argc == 3 && strcasecmp (argv[1], "from:") == 0)
+	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "from:") == 0)
 		from_person = argv[2];
 	      else
 		from_person = NULL;
@@ -648,7 +649,7 @@ smtp (int fd)
 	    case KW_RCPT:
 	      if (argc == 2)
 		rcpt_addr = check_prefix (argv[1], "to:");
-	      else if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "to:") == 0)
 		rcpt_addr = argv[2];
 	      else
 		rcpt_addr = NULL;
@@ -678,7 +679,7 @@ smtp (int fd)
 	    case KW_RCPT:
 	      if (argc == 2)
 		rcpt_addr = check_prefix (argv[1], "to:");
-	      else if (argc == 3 && strcasecmp (argv[1], "to:") == 0)
+	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "to:") == 0)
 		rcpt_addr = argv[2];
 	      else
 		rcpt_addr = NULL;

@@ -1,7 +1,7 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ escape    : component
 
 component : fmtspec OCURLY STRING CCURLY
             {
-	      if (strcasecmp ($3, "body") == 0)
+	      if (mu_c_strcasecmp ($3, "body") == 0)
 		{
 		  mh_code_op (mhop_body);
 		}
@@ -382,7 +382,7 @@ yylex ()
     {
       curp++;
       percent = 1;
-      if (isdigit (*curp) || *curp == '-')
+      if (mu_isdigit (*curp) || *curp == '-')
 	{
 	  int num = 0;
 	  int flags = 0;
@@ -394,7 +394,7 @@ yylex ()
 	    }
 	  if (*curp == '0')
 	    flags |= MH_FMT_ZEROPAD;
-	  while (*curp && isdigit (*curp))
+	  while (*curp && mu_isdigit (*curp))
 	    num = num * 10 + *curp++ - '0';
 	  yylval.num = num | flags;
 	  return FMTSPEC;
@@ -480,7 +480,7 @@ yylex ()
 	{
 	  curp -= rest;
 	  yylval.builtin = bp;
-	  while (*curp && isspace(*curp))
+	  while (*curp && mu_isspace(*curp))
 	    curp++;
 	  return FUNCTION;
 	}

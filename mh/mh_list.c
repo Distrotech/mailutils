@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ compdecl (char **str, char **compname)
 {
   char *p;
   
-  for (p = *str; *p && !isspace (*p); p++)
+  for (p = *str; *p && !mu_isspace (*p); p++)
     {
       if (*p == ':')
 	{
@@ -278,7 +278,7 @@ mhl_format_compile (char *name)
     {
       char *p = buf;
 
-      while (*p && isspace (*p))
+      while (*p && mu_isspace (*p))
 	;
 
       if (*p == 0 || *p == ';')
@@ -461,7 +461,7 @@ static void print (struct eval_env *env, char *str, int nloff);
 static int
 _comp_name (void *item, void *date)
 {
-  return strcasecmp (item, date) == 0;
+  return mu_c_strcasecmp (item, date) == 0;
 }
 
 int
@@ -477,7 +477,7 @@ want_header (struct eval_env *env, char *name)
 
   for (p = strchrnul (str, ','); *str; p = strchrnul (str, ','))
     {
-      if (strncasecmp (name, str, p - str) == 0)
+      if (mu_c_strncasecmp (name, str, p - str) == 0)
 	return 0;
       str = p;
       if (*str)
@@ -579,7 +579,7 @@ print (struct eval_env *env, char *str, int nloff)
 	  if (*p)
 	    {
 	      newline (env);
-	      for (str++; *str && isspace (*str); str++)
+	      for (str++; *str && mu_isspace (*str); str++)
 		;
 	    }
 	}
@@ -629,10 +629,7 @@ print_header_value (struct eval_env *env, char *val)
     }
   
   if (env->bvar[B_UPPERCASE])
-    {
-      for (p = val; *p; p++)
-	*p = toupper (*p);
-    }
+    mu_toupper (val);
 
   if (env->bvar[B_COMPRESS])
     for (p = val; *p; p++)
@@ -641,7 +638,7 @@ print_header_value (struct eval_env *env, char *val)
 
   if (env->bvar[B_LEFTADJUST])
     {
-      for (p = val; *p && isspace (*p); p++)
+      for (p = val; *p && mu_isspace (*p); p++)
 	;
     }
   else

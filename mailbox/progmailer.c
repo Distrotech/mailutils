@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2006, 2007, 2008 Free Software Foundation, Inc.
+   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,8 @@
 #include <mailutils/body.h>
 #include <mailutils/message.h>
 #include <mailutils/progmailer.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 struct _mu_progmailer
 {
@@ -194,7 +196,7 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 				       offset, &len)) == 0
 	 && len != 0)
     {
-      if (strncasecmp (buffer, MU_HEADER_FCC, sizeof (MU_HEADER_FCC) - 1))
+      if (mu_c_strncasecmp (buffer, MU_HEADER_FCC, sizeof (MU_HEADER_FCC) - 1))
 	{
 	  MU_DEBUG1 (pm->debug, MU_DEBUG_PROT, "Header: %s", buffer);
 	  if (write (pm->fd, buffer, len) == -1)

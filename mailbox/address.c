@@ -35,6 +35,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
 #include <mailutils/address.h>
+#include <mailutils/cstr.h>
 
 /* Get email addresses from rfc822 address.  */
 int
@@ -519,7 +520,7 @@ int
 mu_address_contains_email (mu_address_t addr, const char *email)
 {
   for (; addr; addr = addr->next)
-    if (strcasecmp (addr->email, email) == 0)
+    if (mu_c_strcasecmp (addr->email, email) == 0)
       return 1;
   return 0;
 }

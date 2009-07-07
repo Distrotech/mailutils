@@ -28,7 +28,6 @@
 #ifdef ENABLE_SMTP
 
 #include <errno.h>
-#include <ctype.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdarg.h>
@@ -49,6 +48,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 #include <mailer0.h>
 #include <url0.h>
@@ -529,7 +530,7 @@ smtp_writer (void *iodata, char *buf)
 {
   smtp_t iop = iodata;
   int status;
-  if (strncasecmp (buf, "EHLO", 4) == 0)
+  if (mu_c_strncasecmp (buf, "EHLO", 4) == 0)
     status = smtp_writeline (iop, "%s %s\r\n", buf, iop->localhost);
   else
     status = smtp_writeline (iop, "%s\r\n", buf);
@@ -829,8 +830,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 		status = smtp_writeline (smtp, ".%s", data);
 		CHECK_ERROR (smtp, status);
 	      }
-	    else if (strncasecmp (data, MU_HEADER_FCC,
-				  sizeof (MU_HEADER_FCC) - 1))
+	    else if (mu_c_strncasecmp (data, MU_HEADER_FCC,
+				       sizeof (MU_HEADER_FCC) - 1))
 	      {
 		status = smtp_writeline (smtp, "%s", data);
 		CHECK_ERROR (smtp, status);
@@ -1066,7 +1067,7 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
 
   smtp->ptr = smtp->buffer + len;
 
-  while (len > 0 && isspace (smtp->buffer[len - 1]))
+  while (len > 0 && mu_isblank (smtp->buffer[len - 1]))
     len--;
 
   if ((smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
@@ -1138,9 +1139,9 @@ smtp_parse_ehlo_ack (smtp_t smtp)
       if (status == 0) {
 	smtp->ptr = smtp->buffer;
 
-	if (!strncasecmp (smtp->buffer, "250-STARTTLS", 12))
+	if (!mu_c_strncasecmp (smtp->buffer, "250-STARTTLS", 12))
 	  smtp->capa |= CAPA_STARTTLS;
-	else if (!strncasecmp (smtp->buffer, "250-SIZE", 8))
+	else if (!mu_c_strncasecmp (smtp->buffer, "250-SIZE", 8))
 	  {
 	    smtp->capa |= CAPA_SIZE;
 	    if (smtp->buffer[8] == '=')

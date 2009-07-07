@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <ctype.h>
+#include <mailutils/cctype.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/sql.h>
 
@@ -340,7 +340,7 @@ mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
 
   /* Try to normalize it by cutting off trailing whitespace */
   for (p = scrambled + strlen (scrambled) - 1;
-       p > scrambled && isspace (*p); p--)
+       p > scrambled && mu_isspace (*p); p--)
     ;
   switch (p - scrambled)
     {

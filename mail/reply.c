@@ -132,7 +132,7 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
 int
 mail_reply (int argc, char **argv)
 {
-  int lower = islower (argv[0][0]);
+  int lower = mu_islower (argv[0][0]);
   if (util_getenv (NULL, "flipr", Mail_env_boolean, 0) == 0)
     lower = !lower;
   return util_foreach_msg (argc, argv, MSG_NODELETED, reply0, &lower);

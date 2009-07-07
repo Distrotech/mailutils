@@ -142,7 +142,7 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 {
   while (*arg)
     {
-      if (isdigit (*arg))
+      if (mu_isdigit (*arg))
 	debug_level = strtoul (arg, (char**)&arg, 10);
       else
 	for (; *arg && *arg != ','; arg++)
@@ -325,7 +325,7 @@ cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
   const char *str;
   int val;
   
-  if (strlen (name) > 2 && strncasecmp (name, "no", 2) == 0)
+  if (strlen (name) > 2 && mu_c_strncasecmp (name, "no", 2) == 0)
     {
       negate = 1;
       str = name + 2;

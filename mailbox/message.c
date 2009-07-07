@@ -29,11 +29,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
-#include <ctype.h>
 #include <pwd.h>
 
 #include <message0.h>
 
+#include <mailutils/cctype.h>
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
@@ -605,7 +605,7 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
       char *s, *e;
       for (s = buffer, e = buffer + n; s <= e; s++)
 	{
-	  if (isspace ((unsigned char)*s) || *s == '<' || *s == '>')
+	  if (mu_isspace ((unsigned char)*s) || *s == '<' || *s == '>')
 	    {
 	      memmove (s, s + 1, e - (s + 1));
 	      e -= 1;

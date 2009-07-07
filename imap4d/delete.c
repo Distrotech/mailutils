@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   /* It is an error to attempt to delele "INBOX or a mailbox
      name that dos not exists.  */
-  if (strcasecmp (name, "INBOX") == 0)
+  if (mu_c_strcasecmp (name, "INBOX") == 0)
     return util_finish (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */

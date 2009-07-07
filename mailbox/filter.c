@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,6 +39,8 @@ First draft: Alain Magloire.
 #include <mailutils/iterator.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 
 static void
 filter_destroy (mu_stream_t stream)
@@ -188,7 +190,7 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
       mu_iterator_current (iterator, (void **)&filter_record);
       if ((filter_record->_is_filter
 	   && filter_record->_is_filter (filter_record, name))
-	  || (strcasecmp (filter_record->name, name) == 0))
+	  || (mu_c_strcasecmp (filter_record->name, name) == 0))
         {
 	  found = 1;
 	  if (filter_record->_get_filter)
