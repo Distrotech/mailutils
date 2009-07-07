@@ -77,16 +77,6 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
 }
 
 void
-trimnl (char *arg)
-{
-  size_t len = strlen (arg);
-  if (len > 0 && arg[len-1] == '\n')
-    arg[--len] = 0;
-  if (len > 0 && arg[len-1] == '\r')
-    arg[--len] = 0;
-}
-
-void
 xlatnl (char *arg)
 {
   size_t len = strlen (arg);
@@ -543,7 +533,7 @@ lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
 	  enum lmtp_command cmd = cp->cmd_code;
 	  enum lmtp_state next_state = transtab[cmd][state];
 
-	  trimnl (buf);
+	  mu_rtrim_cset (sp, "\r\n");
 
 	  if (lmtp_transcript)
 	    mu_diag_output (MU_DIAG_INFO, "LMTP recieve: %s", buf);
@@ -552,8 +542,7 @@ lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
 	    {
 	      if (cp->cmd_fun)
 		{
-		  while (*sp && mu_isblank (*sp))
-		    sp++;
+		  sp = mu_str_skip_class (sp, MU_CTYPE_SPACE);
 		  if (cp->cmd_fun (out, sp))
 		    continue;
 		}

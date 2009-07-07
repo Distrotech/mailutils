@@ -1363,13 +1363,11 @@ imap4d_readline (struct imap4d_tokbuf *tok)
           char *p = mu_strcasestr (tok->buffer, "LOGIN");
           if (p && p > tok->buffer && mu_isblank (p[-1]))
             {
-              char *q = p + 5;
-              while (*q && mu_isblank (*q))
-                q++;
-              while (*q && !mu_isblank (*q))
-                q++;
+	      char *q = mu_str_skip_class (p + 5, MU_CTYPE_SPACE);
+	      q = mu_str_skip_class_comp (q, MU_CTYPE_SPACE);
               len = q - tok->buffer; 
-              mu_diag_output (MU_DIAG_DEBUG, "recv: %*.*s {censored}", len, len,
+              mu_diag_output (MU_DIAG_DEBUG,
+			      "recv: %*.*s {censored}", len, len,
                               tok->buffer);
              }
            else

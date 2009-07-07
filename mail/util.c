@@ -336,24 +336,6 @@ util_command_list (void *table, size_t nmemb, size_t size)
 }
 
 /*
- * removes whitespace from the beginning and end of a string
- */
-char *
-util_stripwhite (char *string)
-{
-  register char *s, *t;
-  for (s = string; mu_isspace ((unsigned)*s); s++)
-    ;
-  if (*s == 0)
-    return s;
-  t = s + strlen (s) - 1;
-  while (t > s && mu_isspace ((unsigned)*t))
-    t--;
-  *++t = '\0';
-  return s;
-}
-
-/*
  * Get the number of columns on the screen
  * First try an ioctl() call not all shells set the COLUMNS environ.
  */

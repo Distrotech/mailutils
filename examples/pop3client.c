@@ -46,6 +46,7 @@
 #include <mailutils/vartab.h>
 #include <mailutils/argcv.h>
 #include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -80,7 +81,6 @@ int com_verbose (char *);
 int com_prompt (char *);
 
 void initialize_readline (void);
-char *stripwhite (char *);
 COMMAND *find_command (char *);
 char *dupstr (const char *);
 int execute_line (char *);
@@ -322,7 +322,7 @@ main (int argc MU_ARG_UNUSED, char **argv)
       /* Remove leading and trailing whitespace from the line.
          Then, if there is anything left, add it to the history list
          and execute it. */
-      s = stripwhite (line);
+      s = mu_str_stripws (line);
 
       if (*s)
 	{
@@ -342,22 +342,18 @@ main (int argc MU_ARG_UNUSED, char **argv)
 int
 execute_line (char *line)
 {
-  register int i;
   COMMAND *command;
-  char *word;
+  char *word, *arg;
 
   /* Isolate the command word. */
-  i = 0;
-  while (line[i] && mu_isblank (line[i]))
-    i++;
-  word = line + i;
-
-  while (line[i] && !mu_isblank (line[i]))
-    i++;
-
-  if (line[i])
-    line[i++] = '\0';
-
+  word = mu_str_skip_class (line, MU_CTYPE_SPACE);
+  arg = mu_str_skip_class_comp (word, MU_CTYPE_SPACE);
+  if (*arg)
+    {
+      *arg++ = 0;
+      arg = mu_str_skip_class (arg, MU_CTYPE_SPACE);
+    }
+      
   command = find_command (word);
 
   if (!command)
@@ -366,21 +362,14 @@ execute_line (char *line)
       return 0;
     }
 
-  /* Get argument to command, if any. */
-  while (mu_isblank (line[i]))
-    i++;
-
-  word = line + i;
-
   /* Call the function. */
-  return ((*(command->func)) (word));
+  return ((*(command->func)) (arg));
 }
 
 /* Look up NAME as the name of a command, and return a pointer to that
    command.  Return a NULL pointer if NAME isn't a command name. */
 COMMAND *
-find_command (name)
-     char *name;
+find_command (char *name)
 {
   register int i;
 
@@ -389,27 +378,6 @@ find_command (name)
       return (&commands[i]);
 
   return ((COMMAND *) NULL);
-}
-
-/* Strip whitespace from the start and end of STRING.  Return a pointer
-   into STRING. */
-char *
-stripwhite (char *string)
-{
-  register char *s, *t;
-
-  for (s = string; mu_isblank (*s); s++)
-    ;
-
-  if (*s == 0)
-    return (s);
-
-  t = s + strlen (s) - 1;
-  while (t > s && mu_isblank (*t))
-    t--;
-  *++t = '\0';
-
-  return s;
 }
 
 int

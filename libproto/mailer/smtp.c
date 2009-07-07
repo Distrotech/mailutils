@@ -1067,14 +1067,15 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
 
   smtp->ptr = smtp->buffer + len;
 
-  while (len > 0 && mu_isblank (smtp->buffer[len - 1]))
-    len--;
-
   if ((smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
       || smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA)
-    MU_DEBUG2 (smtp->mailer->debug, MU_DEBUG_PROT, "> %.*s\n", len,
-               smtp->buffer);
-
+    {
+      while (len > 0 && mu_isblank (smtp->buffer[len - 1]))
+	len--;
+      MU_DEBUG2 (smtp->mailer->debug, MU_DEBUG_PROT, "> %.*s\n", len,
+		 smtp->buffer);
+    }
+  
   return 0;
 }
 

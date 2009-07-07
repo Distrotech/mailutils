@@ -220,19 +220,11 @@ process_forward (mu_message_t msg, char *filename, const char *myname)
 
   while (getline (&buf, &size, fp) > 0)
     {
-      char *p, *q;
-      for (p = buf; *p && mu_isblank (*p); p++)
-	;
-      q = p + strlen (p);
-      if (q > p)
-	{
-	  if (*--q == '\n')
-	    q--;
-	  for (; q > p && mu_isblank (*q); q--)
-	    ;
-	  q[1] = 0;
-	}
-      
+      char *p;
+
+      mu_rtrim_class (buf, MU_CTYPE_SPACE);
+      p = mu_str_skip_class (buf, MU_CTYPE_SPACE);
+
       if (*p && *p != '#')
 	{
 	  if (strchr (p, '@'))

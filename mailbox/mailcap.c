@@ -50,7 +50,6 @@ struct _mu_mailcap
 
 static int mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream);
 static int mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer);
-static char * stripwhite (char *string);
 static char * tokenize (char *s, char **save_ptr);
 
 int
@@ -371,8 +370,8 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
 		      if (value != NULL)
 			{
 			  value++; /* Pass the equal.  */
-			  /* Remove prepend space.  */
-			  for (; mu_isspace ((unsigned char)*value); value++)
+			  /* Remove leading space.  */
+			  for (; mu_isspace (*value); value++)
 			    ;
 			  len = strlen (value);
 			  /* Strip surrounding double quotes */
@@ -398,27 +397,6 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
   if (pn)
     *pn = len;
   return status;
-}
-
-/* Strip whitespace from the start and end of STRING.  Return a pointer
-   into STRING. */
-static char *
-stripwhite (char *string)
-{
-  register char *s, *t;
-
-  for (s = string; mu_isspace ((unsigned char)*s); s++)
-    ;
-
-  if (*s == 0)
-    return (s);
-
-  t = s + strlen (s) - 1;
-  while (t > s && mu_isspace (*t))
-    t--;
-  *++t = '\0';
-
-  return s;
 }
 
 /*
@@ -479,12 +457,12 @@ mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer)
 	{
 	  /* The first entry in a mailcap line is the typefield.  */
 	case 0:
-	  entry->typefield = strdup (stripwhite (token));
+	  entry->typefield = strdup (mu_str_stripws (token));
 	  break;
 
 	  /* The second entry in a mailcap line is the view-command.  */
 	case 1:
-	  entry->viewcommand = strdup (stripwhite(token));
+	  entry->viewcommand = strdup (mu_str_stripws (token));
 	  break;
 
 	  /* The rest are the optional fields.  */
@@ -496,7 +474,8 @@ mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer)
 	    if (fields != NULL)
 	      {
 		entry->fields = fields;
-		entry->fields[entry->fields_count] = strdup (stripwhite (token));
+		entry->fields[entry->fields_count] =
+		  strdup (mu_str_stripws (token));
 		entry->fields_count++;
 	      }
 	  }
@@ -643,7 +622,7 @@ mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
       /* Parse the well-form mailcap line entry.  */
       if (previous == NULL) {
 	/* Nuke the trailing/prepend spaces.  */
-	char *line = stripwhite(buffer);
+	char *line = mu_str_stripws (buffer);
 	/* Ignore comments or empty lines  */
 	if (*line != '#' && *line != '\0')
 	  {

@@ -313,7 +313,6 @@ extern size_t util_range_msg (size_t low, size_t high, int flags,
 			      msg_handler_t func, void *data);
 
 extern function_t* util_command_get (const char *cmd);
-extern char *util_stripwhite (char *string);
 
 extern void *util_find_entry (void *table, size_t nmemb, size_t size,
 			      const char *cmd);

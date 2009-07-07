@@ -529,7 +529,7 @@ mail_mainloop (char *(*input) (void *, int),
 	  command = buf;
 	  len = strlen (command);
 	}
-      cmd = util_stripwhite (command);
+      cmd = mu_str_stripws (command);
       util_do_command ("%s", cmd);
 #ifdef WITH_READLINE
       if (do_history && !(mu_isspace(cmd[0]) || cmd[0] == '#'))

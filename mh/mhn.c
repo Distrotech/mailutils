@@ -617,8 +617,7 @@ mhn_compose_command (char *typestr, int *flags, char *file)
     %s  subtype */
 
   obstack_init (&stk);
-  for (p = str; *p && mu_isspace (*p); p++)
-    ;
+  p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
   if (*p == '|')
     p++;
@@ -661,12 +660,11 @@ mhn_compose_command (char *typestr, int *flags, char *file)
   free (subtype);
 
   str = obstack_finish (&stk);
-  for (p = str; *p && mu_isspace (*p); p++)
-    ;
+  p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     str = NULL;
   else
-    str = strdup (str);
+    str = strdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -700,8 +698,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
     %d  content description */
 
   obstack_init (&stk);
-  for (p = str; *p && mu_isspace (*p); p++)
-    ;
+  p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
   if (*p == '|')
     p++;
@@ -777,12 +774,11 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   free (subtype);
 
   str = obstack_finish (&stk);
-  for (p = str; *p && mu_isspace (*p); p++)
-    ;
+  p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     str = NULL;
   else
-    str = strdup (str);
+    str = strdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -869,12 +865,11 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   free (subtype);
   
   str = obstack_finish (&stk);
-  for (p = str; *p && mu_isspace (*p); p++)
-    ;
+  p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     str = NULL;
   else
-    str = strdup (str);
+    str = strdup (p);
   
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -985,9 +980,8 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	  && mu_c_strncasecmp (buf, MU_HEADER_CONTENT_DESCRIPTION ":",
 			       sizeof (MU_HEADER_CONTENT_DESCRIPTION)) == 0)
 	{
-	  for (p = buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION);
-	       *p && mu_isspace (*p); p++)
-	    ;
+	  p = mu_str_skip_class (buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION),
+				 MU_CTYPE_SPACE);
 	  *descr = strdup (p);
 	}
       else if (content
@@ -995,9 +989,8 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 			            sizeof (MU_HEADER_CONTENT_TYPE)) == 0)
 	{
 	  char *q;
-	  for (p = buf + sizeof (MU_HEADER_CONTENT_TYPE);
-	       *p && mu_isspace (*p); p++)
-	    ;
+	  p = mu_str_skip_class (buf + sizeof (MU_HEADER_CONTENT_TYPE),
+				 MU_CTYPE_SPACE);
 	  q = strchr (p, ';');
 	  if (q)
 	    *q = 0;
@@ -1830,7 +1823,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
 }
 
 #define isdelim(c) (mu_isspace (c) || strchr (";<[(", c))
-#define skipws(ptr) do { while (*ptr && mu_isspace (*ptr)) ptr++; } while (0)
+#define skipws(ptr) (ptr) = mu_str_skip_class (ptr, MU_CTYPE_SPACE)
 
 int
 parse_content_type (struct compose_env *env,
@@ -2300,10 +2293,8 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   rc = parse_type_command (&cmd, env, hdr);
   if (rc)
     return 1;
-  
-  for (p = cmd + strlen (cmd) - 1; p > cmd && mu_isspace (*p); p--)
-    ;
-  p[1] = 0;
+
+  mu_rtrim_class (cmd, MU_CTYPE_SPACE);
 
   _get_content_type (hdr, &typestr, NULL);
   shell_cmd = mhn_compose_command (typestr, &flags, cmd);
@@ -2463,9 +2454,8 @@ mhn_edit (struct compose_env *env, int level)
 		finish_text_msg (env, &msg, ascii_buf);
 	      
 	      /* Execute the directive */
-	      tok = sp = buf;
-	      while (*sp && !mu_isspace (*sp))
-		sp++;
+	      tok = buf;
+	      sp = mu_str_skip_class_comp (buf, MU_CTYPE_SPACE);
 	      c = *sp;
 	      *sp = 0;
 

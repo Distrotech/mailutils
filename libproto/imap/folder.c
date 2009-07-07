@@ -1817,7 +1817,6 @@ imap_body (f_imap_t f_imap, char **ptr)
 	{
 	  size_t len = sep - *ptr;
 	  char *section = malloc (len + 1);
-	  char *p;
 	  
 	  if (!section)
 	    return ENOMEM;

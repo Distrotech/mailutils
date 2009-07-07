@@ -480,7 +480,7 @@ yylex ()
 	{
 	  curp -= rest;
 	  yylval.builtin = bp;
-	  while (*curp && mu_isspace(*curp))
+	  while (*curp && mu_isspace (*curp))
 	    curp++;
 	  return FUNCTION;
 	}

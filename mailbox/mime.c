@@ -133,31 +133,7 @@ _mime_append_part (mu_mime_t mime, mu_message_t msg, int offset, int len, int li
   return 0;
 }
 
-static char *
-_strltrim (char *str)
-{
-  char *p;
-
-  for (p = str; mu_isspace (*p) && *p != '\0'; ++p);
-  return ((p != str) ? memmove (str, p, strlen (p) + 1) : str);
-}
-
-static char *
-_strttrim (char *str)
-{
-  char *p;
-
-  for (p = str + strlen (str) - 1;
-       mu_isspace (*p) && p >= str; --p);
-  *++p = '\0';
-  return (str);
-}
-
-char *_strtrim (char *str);
-
-#define _strtrim(str) _strltrim(_strttrim(str))
-
-#define _ISSPECIAL(c) ( \
+#define _ISSPECIAL(c) (						 \
     ((c) == '(') || ((c) == ')') || ((c) == '<') || ((c) == '>') \
     || ((c) == '@') || ((c) == ',') || ((c) == ';') || ((c) == ':') \
     || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
@@ -169,7 +145,7 @@ _mime_munge_content_header (char *field_body)
   char           *p, *e, *str = field_body;
   int             quoted = 0;
 
-  _strtrim (field_body);
+  mu_str_stripws (field_body);
 
   if ((e = strchr (str, ';')) == NULL)
     return;

@@ -123,6 +123,7 @@ libmailutils_la_SOURCES = \
  stream.c\
  strltrim.c\
  strskip.c\
+ stripws.c\
  strrtrim.c\
  syslog.c\
  system.c\
