@@ -1,3 +1,5 @@
 Makefile
 Makefile.in
 confpaths.h
+gettext.h
+intprops.h
