@@ -719,14 +719,14 @@ imap_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
   return imap_scan0 (mailbox, msgno, pcount , 1);
 }
 
-/* Usually when this function is call it is because there is an oberver
-   attach an the client is try to build some sort of list/tree header
-   as the scanning progress.  But doing this for each message can be
-   time consuming and inefficient.  So we bundle all the request
-   into one and ask the server for everything "FETCH 1:*".  The good
-   side is that everything will be faster and we do not do lot of small
-   transcation but rather a big one.  The bad thing is that every thing
-   will be cache in the structure using a lot of memory.  */
+/* Normally this function is called when an observer is trying to build
+   some sort of list/tree header as the scanning progresses.  But doing
+   this for each message can be time consuming and inefficient.  So we
+   bundle all requests into one and ask the server for everything:
+   "FETCH 1:*".  The good side is that everything will be faster and we
+   do not do lots of small transcations, but rather a big one.  The bad
+   side is that everything will be cached in the structure using a lot of
+   memory.  */
 static int
 imap_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
 {

@@ -66,6 +66,16 @@ extern int  mu_mailbox_sync            (mu_mailbox_t);
 extern int  mu_mailbox_save_attributes (mu_mailbox_t)
                                        __attribute__ ((deprecated));
 
+#define MU_UIDL_LENGTH 70
+#define MU_UIDL_BUFFER_SIZE (MU_UIDL_LENGTH+1)
+				       
+struct mu_uidl
+{
+  size_t msgno;
+  char uidl[MU_UIDL_BUFFER_SIZE];
+};
+extern int  mu_mailbox_get_uidls       (mu_mailbox_t, mu_list_t *);
+
 /* Update and scanning.  */
 extern int  mu_mailbox_get_size        (mu_mailbox_t, mu_off_t *size);
 extern int  mu_mailbox_is_updated      (mu_mailbox_t);

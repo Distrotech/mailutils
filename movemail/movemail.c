@@ -47,6 +47,12 @@ static struct argp_option options[] = {
   { "copy-permissions", 'P', NULL, 0,
     N_("Copy original mailbox permissions and ownership when applicable"),
     0 },
+  { "uidl", 'u', NULL, 0,
+    N_("Use UIDLs to avoid downloading the same message twice"),
+    0 },
+  { "verbose", 'v', NULL, 0,
+    N_("Increase verbosity level"),
+    0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -54,6 +60,8 @@ static int reverse_order;
 static int preserve_mail; 
 static int emacs_mode;
 static int copy_meta;
+static int uidl_option;
+static int verbose_option;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -72,6 +80,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'P':
       copy_meta = 1;
+      break;
+
+    case 'u':
+      mu_argp_node_list_new (&lst, "uidl", "yes");
+      break;
+
+    case 'v':
+      verbose_option++;
       break;
       
     case OPT_EMACS:
@@ -109,6 +125,10 @@ struct mu_cfg_param movemail_cfg_param[] = {
     N_("Reverse message sorting order.") },
   { "emacs", mu_cfg_bool, &emacs_mode, 0, NULL,
     N_("Output information used by Emacs rmail interface.") },
+  { "uidl", mu_cfg_bool, &uidl_option, 0, NULL,
+    N_("Use UIDLs to avoid downloading the same message twice.") },
+  { "verbose", mu_cfg_int, &verbose_option, 0, NULL,
+    N_("Increase verbosity level.") },
   { NULL }
 };
 
@@ -227,14 +247,14 @@ move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
 
   if ((rc = mu_mailbox_get_message (src, msgno, &msg)) != 0)
     {
-      fprintf (stderr, _("Cannot read message %lu: %s\n"),
-	       (unsigned long) msgno, mu_strerror (rc));
+      mu_error (_("Cannot read message %lu: %s"),
+		(unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
   if ((rc = mu_mailbox_append_message (dst, msg)) != 0)
     {
-      fprintf (stderr, _("Cannot append message %lu: %s\n"),
-	       (unsigned long) msgno, mu_strerror (rc));
+      mu_error (_("Cannot append message %lu: %s\n"),
+		(unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
   if (!preserve_mail)
@@ -344,6 +364,36 @@ set_permissions (mu_mailbox_t mbox)
     exit (1);
 }
 
+static int
+_compare_uidls (const void *item, const void *value)
+{
+  const struct mu_uidl *a = item;
+  const struct mu_uidl *b = value;
+
+  return strcmp (a->uidl, b->uidl);
+}
+
+static int
+_compare_msgno (const void *item, const void *value)
+{
+  const struct mu_uidl *a = item;
+  const struct mu_uidl *b = value;
+
+  if (a->msgno < b->msgno)
+    return -1;
+  if (a->msgno > b->msgno)
+    return 1;
+  return 0;
+}
+
+static int
+msgno_in_list (mu_list_t list, size_t num)
+{
+  struct mu_uidl t;
+  t.msgno = num;
+  return mu_list_locate (list, &t, NULL) == 0;
+}  
+
 int
 main (int argc, char **argv)
 {
@@ -352,6 +402,8 @@ main (int argc, char **argv)
   int rc = 0;
   char *source_name, *dest_name;
   int flags;
+  mu_list_t src_uidl_list = NULL;
+  size_t msg_count = 0;
   
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -395,18 +447,90 @@ main (int argc, char **argv)
     set_permissions (source);
   
   open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
+
+  rc = mu_mailbox_messages_count (source, &total);
+  if (rc)
+    {
+      mu_error(_("Cannot count messages: %s"), mu_strerror (rc));
+      exit (1);
+    }
   
-  mu_mailbox_messages_count (source, &total);
+  if (verbose_option)
+    mu_diag_output (MU_DIAG_INFO,
+		    _("Number of messages in source mailbox: %lu"),
+		    (unsigned long) total);
+
+  if (uidl_option)
+    {
+      mu_iterator_t itr;
+      mu_list_t dst_uidl_list = NULL;
+
+      rc = mu_mailbox_get_uidls (source, &src_uidl_list);
+      if (rc)
+	die (source, _("Cannot get UIDLs"), rc);
+      rc = mu_mailbox_get_uidls (dest, &dst_uidl_list);
+      if (rc)
+	die (dest, _("Cannot get UIDLs"), rc);
+
+      mu_list_set_comparator (src_uidl_list, NULL);
+      mu_list_set_comparator (dst_uidl_list, _compare_uidls);
+      
+      mu_list_get_iterator (src_uidl_list, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  struct mu_uidl *uidl;
+	      
+	  mu_iterator_current (itr, (void **)&uidl);
+	  if (mu_list_locate (dst_uidl_list, uidl, NULL) == 0)
+	    mu_list_remove (src_uidl_list, uidl);
+	}
+      mu_iterator_destroy (&itr);
+      mu_list_destroy (&dst_uidl_list);
+      mu_list_set_comparator (src_uidl_list, _compare_msgno);
+    }
+  
   if (reverse_order)
     {
-      for (i = total; rc == 0 && i > 0; i--)
-	rc = move_message (source, dest, i);
+      for (i = total; i > 0; i--)
+	{
+	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
+	    {
+	      if (verbose_option > 1)
+		mu_diag_output (MU_DIAG_INFO, _("Ignoring message %lu"),
+				(unsigned long) i);
+	      continue;
+	    }
+	  rc = move_message (source, dest, i);
+	  if (rc == 0)
+	    msg_count++;
+	  else
+	    break;
+	}
     }
   else
     {
-      for (i = 1; rc == 0 && i <= total; i++)
-	rc = move_message (source, dest, i);
+      for (i = 1; i <= total; i++)
+	{
+	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
+	    {
+	      if (verbose_option > 1)
+		mu_diag_output (MU_DIAG_INFO, _("Ignoring message %lu"),
+				(unsigned long) i);
+	      continue;
+	    }
+	  rc = move_message (source, dest, i);
+	  if (rc == 0)
+	    msg_count++;
+	  else
+	    break;
+	}
     }
+  
+  if (verbose_option)
+    mu_diag_output (MU_DIAG_INFO,
+		    _("Number of processed messages: %lu"),
+		    (unsigned long) msg_count);
   
   if (rc)
     return rc;

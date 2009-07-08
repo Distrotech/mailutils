@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+@c Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 @c Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
@@ -4034,6 +4034,15 @@ If @var{bool} is @samp{true}, reverse message sorting order.
 If @var{bool} is @samp{true}, output information used by Emacs rmail interface.
 @end deffn
 
+@deffn {Movemail Config} uidl @var{bool}
+Avoid copying the message if a message with the same UIDL already
+exists in the destination mailbox.
+@end deffn
+
+@deffn {Movemail Config} verbose @var{level}
+Set verbosity level.
+@end deffn
+
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
 @item debug         @tab @xref{Debug Statement}.
@@ -4147,9 +4156,6 @@ Preserve the source mailbox
 @itemx --reverse
 Reverse the sorting order
 
-@item --license
-Print GPL license and exit
-
 @item --external-locker=@var{program}
 Use given @var{program} as the external locker program.
 
@@ -4177,6 +4183,13 @@ Use specified URL as a mailspool directory
 @item --tls[=@var{bool}]
 Enable (default) or disable TLS support
 
+@item -u
+@item --uidl
+Use UIDLs to avoid downloading the same message twice.
+
+@item -v
+@item --verbose
+Increase verbosity level.
 @end table
 
 @page

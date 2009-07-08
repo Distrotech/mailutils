@@ -34,7 +34,8 @@
 #include <mailutils/auth.h>
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
+#include <mailutils/cctype.h>
 
 #include <folder0.h>
 #include <registrar0.h>

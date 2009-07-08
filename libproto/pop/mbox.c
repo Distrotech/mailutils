@@ -55,6 +55,7 @@
 #include <mailutils/md5.h>
 #include <mailutils/io.h>
 #include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 
 #include <folder0.h>
@@ -417,6 +418,57 @@ pop_destroy (mu_mailbox_t mbox)
     }
 }
 
+static int
+pop_mbox_uidls (mu_mailbox_t mbox, mu_list_t list)
+{
+  pop_data_t mpd = mbox->data;
+  int status;
+
+  status = pop_writeline (mpd, "UIDL\r\n");
+  CHECK_ERROR (mpd, status);
+  MU_DEBUG (mbox->debug, MU_DEBUG_PROT, mpd->buffer);
+
+  status = pop_write (mpd);
+  CHECK_EAGAIN (mpd, status);
+
+  status = pop_read_ack (mpd);
+  CHECK_EAGAIN (mpd, status);
+  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
+
+  if (!mu_c_strncasecmp (mpd->buffer, "+OK", 3))
+    {
+      do
+	{
+	  char *p;
+	  size_t num;
+	  struct mu_uidl *uidl;
+	  
+	  status = pop_read_ack (mpd);
+	  MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
+
+	  num = strtoul (mpd->buffer, &p, 10);
+	  if (*p == 0 || !mu_isblank (*p))
+	    continue; /* FIXME: or error? */
+	  p = mu_str_skip_class (p, MU_CTYPE_SPACE);
+	  mu_rtrim_cset (p, "\r\n");
+
+	  uidl = malloc (sizeof (uidl[0]));
+	  if (!uidl)
+	    {
+	      status = ENOMEM;
+	      break;
+	    }
+	  uidl->msgno = num;
+	  strncpy (uidl->uidl, p, MU_UIDL_BUFFER_SIZE);
+	  status = mu_list_append (list, uidl);
+	}
+      while (mpd->nl);
+    }
+  else
+    status = ENOSYS;
+  return status;
+}
+
 /*
   POP3 CAPA support.
  */
@@ -454,12 +506,16 @@ pop_parse_capa (pop_data_t mpd)
 	    mpd->capa |= CAPA_STLS;
 	}
       while (mpd->nl);
+
+      if (mpd->capa & CAPA_UIDL)
+	mpd->mbox->_get_uidls = pop_mbox_uidls;
+  
       return status;
     }
   else
     {
       /* mu_error ("CAPA not implemented"); */ /* FIXME */
-      return -1;
+      return ENOSYS;
     }
 }
 
@@ -484,7 +540,6 @@ pop_capa (mu_mailbox_t mbox)
 
   return pop_parse_capa (mpd);
 }
-
 
 /* Simple User/pass authentication for pop. We ask for the info
    from the standard input.  */
@@ -1074,7 +1129,7 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
   /* Set the UIDL call on the message. */
   if (mpd->capa & CAPA_UIDL)
     mu_message_set_uidl (msg, pop_uidl, mpm);
-
+  
   /* Set the UID on the message. */
   mu_message_set_uid (msg, pop_uid, mpm);
 
@@ -1427,7 +1482,7 @@ pop_message_size (mu_message_t msg, size_t *psize)
   CLEAR_STATE (mpd);
 
   if (status != 0)
-    status = MU_ERR_PARSE;
+    return MU_ERR_PARSE;
 
   /* The size of the message is with the extra '\r' octet for everyline.
      Substract to get, hopefully, a good count.  */
@@ -1570,7 +1625,7 @@ pop_uid (mu_message_t msg,  size_t *puid)
   return 0;
 }
 
-/* Get the UIDL.  Client should be prepare since it may fail.  UIDL is
+/* Get the UIDL.  The client should be prepared, since it may fail.  UIDL is
    optional on many POP servers.
    FIXME:  We should check the "mpd->capa & CAPA_UIDL" and fall back to
    a md5 scheme ? Or maybe check for "X-UIDL" a la Qpopper ?  */
@@ -1582,14 +1637,12 @@ pop_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   int status = 0;
   void *func = (void *)pop_uidl;
   size_t num;
-  /* According to the RFC uidl's are no longer then 70 chars.  Still playit
-     safe  */
-  char uniq[128];
+  char uniq[MU_UIDL_BUFFER_SIZE];
 
   if (mpm == NULL)
     return EINVAL;
 
-  /* Is it cache ?  */
+  /* Is it cached ?  */
   if (mpm->uidl)
     {
       size_t len = strlen (mpm->uidl);

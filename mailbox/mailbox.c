@@ -287,7 +287,7 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
 {
   size_t i, total = 0;
   int status = 0;
-
+  
   if (!mbox)
     return EINVAL;
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
@@ -680,4 +680,67 @@ mu_mailbox_unlock (mu_mailbox_t mbox)
   mu_mailbox_get_locker (mbox, &lock);
   return mu_locker_unlock (lock);
 }
-  
+
+static void
+free_uidl (void *item)
+{
+  free (item);
+}
+
+int
+mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
+{
+  mu_list_t list;
+  int status;
+
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (plist == NULL)
+    return EINVAL;
+  status = mu_list_create (&list);
+  if (status)
+    return status;
+  mu_list_set_destroy_item (list, free_uidl);
+  if (mbox->_get_uidls)
+    status = mbox->_get_uidls (mbox, list);
+  else
+    {
+      size_t i, total;
+
+      status = mu_mailbox_messages_count (mbox, &total);
+      if (status)
+	return status;
+      for (i = 1; i <= total; i++)
+	{
+	  mu_message_t msg = NULL;
+	  char buf[MU_UIDL_BUFFER_SIZE];
+	  size_t n;
+	  struct mu_uidl *uidl;
+	  
+	  status = mu_mailbox_get_message (mbox, i, &msg);
+	  if (status)
+	    break;
+	  status = mu_message_get_uidl (msg, buf, sizeof (buf), &n);
+	  if (status)
+	    break;
+	  uidl = malloc (sizeof (uidl[0]));
+	  if (!uidl)
+	    {
+	      status = ENOMEM;
+	      break;
+	    }
+	  uidl->msgno = i;
+	  strncpy (uidl->uidl, strdup (buf), MU_UIDL_BUFFER_SIZE);
+	  status = mu_list_append (list, uidl);
+	  if (status)
+	    {
+	      free_uidl (uidl);
+	      break;
+	    }
+	}
+    }
+  *plist = list;
+  return status;
+}
+
+	  
