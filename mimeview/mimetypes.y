@@ -392,7 +392,7 @@ b_istring (union argument *args)
   for (i = 0; i < str->len; i++)
     {
       int c = getc (mimeview_fp);
-      if (c == EOF || tolower (c) != tolower (str->ptr[i]))
+      if (c == EOF || mu_tolower (c) != mu_tolower (str->ptr[i]))
 	return 0;
     }
   return 1;

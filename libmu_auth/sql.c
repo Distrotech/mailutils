@@ -44,7 +44,6 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/sql.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
@@ -52,6 +51,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/sql.h>
 #include <mailutils/vartab.h>
+#include <mailutils/cstr.h>
 #include "sql.h"
 
 #ifdef USE_SQL

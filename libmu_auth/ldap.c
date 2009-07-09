@@ -24,6 +24,7 @@
 #include <ctype.h>
 
 #include <mailutils/mu_auth.h>
+#include <mailutils/cstr.h>
 
 #ifdef WITH_LDAP
 #include "mailutils/argcv.h"
