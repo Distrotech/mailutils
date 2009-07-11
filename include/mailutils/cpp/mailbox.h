@@ -49,6 +49,7 @@ class MailboxBase
   void append_message (const Message& msg);
   void expunge ();
   void sync ();
+  List& get_uidls ();
   void lock ();
   void unlock ();
   mu_off_t get_size ();

@@ -124,6 +124,18 @@ MailboxBase :: sync ()
     throw Exception ("MailboxBase::sync", status);
 }
 
+List&
+MailboxBase :: get_uidls ()
+{
+  mu_list_t c_list;
+
+  int status = mu_mailbox_get_uidls (mbox, &c_list);
+  if (status)
+    throw Exception ("MailboxBase::get_uidls", status);
+
+  return *new List (c_list);
+}
+
 void
 MailboxBase :: lock ()
 {

@@ -103,6 +103,13 @@ class MailboxBase:
         if status:
             raise MailboxError (status)
 
+    def get_uidls (self):
+        """Get UIDL list."""
+        status, uidls = mailbox.get_uidls (self.mbox)
+        if status:
+            raise MailboxError (status)
+        return uidls
+
     def lock (self):
         """Lock the mailbox."""
         status = mailbox.lock (self.mbox)
