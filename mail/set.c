@@ -29,9 +29,11 @@
 int
 mail_set (int argc, char **argv)
 {
+  int flags = MOPTF_OVERWRITE | ((strcmp (argv[0], "setq") == 0) ? MOPTF_QUIET : 0);
+
   if (argc < 2)
     {
-      util_printenv (1);
+      mailvar_print (1);
       return 0;
     }
   else
@@ -46,7 +48,7 @@ mail_set (int argc, char **argv)
 	  
 	  if (!strncmp ("no", argv[i], 2) && !value)
 	    {
-	      util_setenv (&argv[i][2], NULL, Mail_env_boolean, 1);
+	      mailvar_set (&argv[i][2], NULL, mailvar_type_boolean, flags);
 	    }
 	  else if (value)
 	    {
@@ -55,14 +57,14 @@ mail_set (int argc, char **argv)
 	      
 	      nval = strtoul (value, &p, 0);
 	      if (*p == 0)
-		util_setenv (argv[i], &nval, Mail_env_number, 1);
+		mailvar_set (argv[i], &nval, mailvar_type_number, flags);
 	      else
-		util_setenv (argv[i], value, Mail_env_string, 1);
+		mailvar_set (argv[i], value, mailvar_type_string, flags);
 	    }
 	  else
 	    {
 	      int dummy = 1;
-	      util_setenv (argv[i], &dummy, Mail_env_boolean, 1);
+	      mailvar_set (argv[i], &dummy, mailvar_type_boolean, flags);
 	    }
 	}
       return 0;

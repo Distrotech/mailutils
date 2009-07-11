@@ -39,7 +39,9 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   int pagelines = util_get_crt ();
   
   mu_message_lines (mesg, &lines);
-
+  if (mailvar_get (NULL, "showenvelope", mailvar_type_boolean, 0) == 0)
+    lines++;
+  
   /* If it is POP or IMAP the lines number is not known, so try
      to be smart about it.  */
   if (lines == 0)
@@ -59,6 +61,9 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   if (pagelines && lines > pagelines)
     out = popen (getenv ("PAGER"), "w");
 
+  if (mailvar_get (NULL, "showenvelope", mailvar_type_boolean, 0) == 0)
+    print_envelope (mspec, mesg, "From");
+  
   if (*(int *) data) /* print was called with a lowercase 'p' */
     {
       size_t i, num = 0;

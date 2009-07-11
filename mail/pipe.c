@@ -37,7 +37,7 @@ mail_pipe (int argc, char **argv)
 
   if (argc > 2)
     cmd = argv[--argc];
-  else if (util_getenv (&cmd, "cmd", Mail_env_string, 1))
+  else if (mailvar_get (&cmd, "cmd", mailvar_type_string, 1))
     return 1;
 
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list))
@@ -58,7 +58,7 @@ mail_pipe (int argc, char **argv)
 	      fprintf (tube, "%s", buffer);
 	      off += n;
 	    }
-	  if (util_getenv (NULL, "page", Mail_env_boolean, 0) == 0)
+	  if (mailvar_get (NULL, "page", mailvar_type_boolean, 0) == 0)
 	    fprintf (tube, "\f\n");
 	}
       util_mark_read (msg);

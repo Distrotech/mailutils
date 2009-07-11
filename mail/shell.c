@@ -25,7 +25,7 @@ expand_bang (char **pbuf)
   char *tmp, *p, *q;
   size_t count = 0;
   
-  util_getenv (&last, "gnu-last-command", Mail_env_string, 0);
+  mailvar_get (&last, "gnu-last-command", mailvar_type_string, 0);
 
   for (p = *pbuf; *p; p++)
     if (*p == '!')
@@ -75,7 +75,7 @@ mail_execute (int shell, int argc, char **argv)
     }
 
   /* Expand arguments if required */
-  if (util_getenv (NULL, "bang", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "bang", mailvar_type_boolean, 0) == 0)
     {
       int i;
 
@@ -85,7 +85,8 @@ mail_execute (int shell, int argc, char **argv)
 
   /* Construct command line and save it to gnu-last-command variable */
   mu_argcv_string (argc, argv, &buf);
-  util_setenv ("gnu-last-command", buf, Mail_env_string, 1);
+  mailvar_set ("gnu-last-command", buf, mailvar_type_string, 
+             MOPTF_QUIET|MOPTF_OVERWRITE);
 
   /* Do actual work */
   

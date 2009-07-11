@@ -85,7 +85,7 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
 	  const char *email;
 	  if (mu_address_sget_email (addr, i, &email) || email == NULL)
 	    continue;
-	  if ((util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
+	  if ((mailvar_get (NULL, "metoo", mailvar_type_boolean, 0) == 0)
 	      || !mail_is_my_name (email))
 	    compose_header_set (&env, MU_HEADER_TO,
 				email,
@@ -133,7 +133,7 @@ int
 mail_reply (int argc, char **argv)
 {
   int lower = mu_islower (argv[0][0]);
-  if (util_getenv (NULL, "flipr", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "flipr", mailvar_type_boolean, 0) == 0)
     lower = !lower;
   return util_foreach_msg (argc, argv, MSG_NODELETED, reply0, &lower);
 }

@@ -77,7 +77,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'e':
-      util_cache_command (&command_list, "set mode=exist");
+      util_cache_command (&command_list, "setq mode=exist");
       break;
       
     case 'f':
@@ -102,7 +102,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       
     case 'p':
     case 'r':
-      util_cache_command (&command_list, "set mode=print");
+      util_cache_command (&command_list, "setq mode=print");
       break;
       
     case 'q':
@@ -110,11 +110,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 't':
-      util_cache_command (&command_list, "set mode=send");
+      util_cache_command (&command_list, "setq mode=send");
       break;
       
     case 'H':
-      util_cache_command (&command_list, "set mode=headers");
+      util_cache_command (&command_list, "setq mode=headers");
       break;
       
     case 'i':
@@ -144,7 +144,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'F':
-      util_cache_command (&command_list, "set byname");
+      /* FIXME */
+      util_cache_command (&command_list, "setq byname");
       break;
 
     case ARGP_KEY_ARG:
@@ -157,7 +158,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_FINI:
       if (args->send_mode)
-	util_cache_command (&command_list, "set mode=send");
+	util_cache_command (&command_list, "setq mode=send");
       break;
       
     default:
@@ -192,7 +193,7 @@ mail_cmdline (void *closure, int cont MU_ARG_UNUSED)
 
   while (1)
     {
-      if (util_getenv (NULL, "autoinc", Mail_env_boolean, 0) == 0
+      if (mailvar_get (NULL, "autoinc", mailvar_type_boolean, 0) == 0
           && !mu_mailbox_is_updated (mbox))
 	{
 	  mu_mailbox_messages_count (mbox, &total);
@@ -208,7 +209,7 @@ mail_cmdline (void *closure, int cont MU_ARG_UNUSED)
 	  continue;
 	}
 
-      if (!rc && util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
+      if (!rc && mailvar_get (NULL, "ignoreeof", mailvar_type_boolean, 0) == 0)
 	{
 	  util_error (_("Use \"quit\" to quit."));
 	  continue;
@@ -220,8 +221,8 @@ mail_cmdline (void *closure, int cont MU_ARG_UNUSED)
 }
 
 static char *default_setup[] = {
-  "set noallnet",
-  "set noappend",
+  /* "set noallnet", */
+  "setq append",
   "set asksub",
   "set crt",
   "set noaskbcc",
@@ -239,7 +240,7 @@ static char *default_setup[] = {
   "set noignore",
   "set noignoreeof",
   "set indentprefix=\"\t\"",
-  "set nokeep",
+  "setq keep",
   "set nokeepsave",
   "set nometoo",
   "set noonehop",
@@ -265,9 +266,10 @@ static char *default_setup[] = {
   "set metamail",
   "set recursivealiases",
   "set noinplacealiases",
+  "set fromfield",
   
   /* Start in mail reading mode */
-  "set mode=read",
+  "setq mode=read",
   "set noquit",
   "set rc",
 
@@ -343,7 +345,7 @@ main (int argc, char **argv)
     char *mailer_name = alloca (strlen ("sendmail:")
 				+ strlen (PATH_SENDMAIL) + 1);
     sprintf (mailer_name, "sendmail:%s", PATH_SENDMAIL);
-    util_setenv ("sendmail", mailer_name, Mail_env_string, 1);
+    mailvar_set ("sendmail", mailer_name, mailvar_type_string, MOPTF_OVERWRITE);
   }
 
 
@@ -361,7 +363,7 @@ main (int argc, char **argv)
     exit (1);
   
   /* read system-wide mail.rc and user's .mailrc */
-  if (util_getenv (NULL, "rc", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "rc", mailvar_type_boolean, 0) == 0)
     util_do_command ("source %s", SITE_MAIL_RC);
   util_do_command ("source %s", getenv ("MAILRC"));
 
@@ -376,7 +378,7 @@ main (int argc, char **argv)
     }
 
   /* how should we be running? */
-  if (util_getenv (&mode, "mode", Mail_env_string, 1))
+  if (mailvar_get (&mode, "mode", mailvar_type_string, 1))
     exit (EXIT_FAILURE);
 
   /* Interactive mode */
@@ -396,7 +398,7 @@ main (int argc, char **argv)
 	  num++;
       mu_argcv_string (num, args.args, &buf);
       rc = util_do_command ("mail %s", buf);
-      return util_getenv (NULL, "mailx", Mail_env_boolean, 0) ? rc : 0;
+      return mailvar_get (NULL, "mailx", mailvar_type_boolean, 0) ? rc : 0;
     }
   /* Or acting as a normal reader */
   else 
@@ -474,7 +476,7 @@ main (int argc, char **argv)
       
       if (total == 0
 	  && (strcmp (mode, "read")
-	      || util_getenv (NULL, "emptystart", Mail_env_boolean, 0)))
+	      || mailvar_get (NULL, "emptystart", mailvar_type_boolean, 0)))
         {
 	  if (args.file)
 	    fprintf (ofile, _("%s: 0 messages\n"), args.file);
@@ -485,13 +487,13 @@ main (int argc, char **argv)
         }
 
       /* initial commands */
-      if (util_getenv (NULL, "header", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "header", mailvar_type_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
 	  util_do_command ("z.");
 	}
 
-      util_getenv (&prompt, "prompt", Mail_env_string, 0);
+      mailvar_get (&prompt, "prompt", mailvar_type_string, 0);
       mail_mainloop (mail_cmdline, (void*) prompt, 1);
       fprintf (ofile, "\n");
       util_do_command ("quit");

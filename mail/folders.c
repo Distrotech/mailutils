@@ -27,7 +27,7 @@ mail_folders (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   char *path;
 
-  if (util_getenv (&path, "folder", Mail_env_string, 1))
+  if (mailvar_get (&path, "folder", mailvar_type_string, 1))
     return 1;
 
   if (path[0] != '/' && path[0] != '~')

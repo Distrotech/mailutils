@@ -34,8 +34,6 @@
 #endif
 #include <mu_asprintf.h>
 
-mu_list_t environment = NULL;
-
 /*
  * expands command into its command and arguments, then runs command
  * cmd is the command to parse and run
@@ -269,13 +267,14 @@ util_help (void *table, size_t nmemb, size_t size, const char *word)
       FILE *out = stdout;
       char *p;
 
-      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "crt", mailvar_type_boolean, 0) == 0)
 	out = popen (getenv ("PAGER"), "w");
 
-  
       for (p = table, i = 0; i < nmemb; i++, p += size)
 	{
 	  struct mail_command *cp = (struct mail_command *)p;
+	  if (cp->synopsis == NULL)
+	    continue;
 	  fprintf (out, "%s\n", cp->synopsis);
 	}
       
@@ -288,7 +287,7 @@ util_help (void *table, size_t nmemb, size_t size, const char *word)
     {
       int status = 0;
       struct mail_command *cp = util_find_entry (table, nmemb, size, word);
-      if (cp)
+      if (cp && cp->synopsis)
 	fprintf (stdout, "%s\n", cp->synopsis);
       else
 	{
@@ -385,7 +384,7 @@ util_screen_lines ()
   int screen;
   size_t n;
 
-  if (util_getenv (&screen, "screen", Mail_env_number, 0) == 0)
+  if (mailvar_get (&screen, "screen", mailvar_type_number, 0) == 0)
     return screen;
   n = util_getlines();
   util_do_command ("set screen=%d", n);
@@ -398,7 +397,7 @@ util_screen_columns ()
   int cols;
   size_t n;
 
-  if (util_getenv (&cols, "columns", Mail_env_number, 0) == 0)
+  if (mailvar_get (&cols, "columns", mailvar_type_number, 0) == 0)
     return cols;
   n = util_getcols();
   util_do_command ("set columns=%d", n);
@@ -410,291 +409,10 @@ util_get_crt ()
 {
   int lines;
 
-  if (util_getenv (&lines, "crt", Mail_env_number, 0) == 0)
+  if (mailvar_get (&lines, "crt", mailvar_type_number, 0) == 0)
     return lines;
-  else if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+  else if (mailvar_get (NULL, "crt", mailvar_type_boolean, 0) == 0)
     return util_getlines ();
-  return 0;
-}
-
-/* Functions for dealing with internal environment variables */
-
-/* Retrieve the value of a specified variable of given type.
-   The value is stored in the location pointed to by PTR variable.
-   VARIABLE and TYPE specify the variable name and type. If the
-   variable is not found and WARN is not null, the warning message
-   is issued.
-
-   Return value is 0 if the variable is found, 1 otherwise.
-   If PTR is not NULL, it must point to
-
-   int           if TYPE is Mail_env_number or Mail_env_boolean
-   const char *  if TYPE is Mail_env_string. 
-
-   Passing PTR=NULL may be used to check whether the variable is set
-   without retrieving its value. */
-   
-int
-util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
-{
-  struct mail_env_entry *env = util_find_env (variable, 0);
-
-  if (!mail_env_entry_is_set (env) || env->type != type)
-    {
-      if (warn)
-	util_error (_("No value set for \"%s\""), variable);
-      return 1;
-    }
-  if (ptr)
-    switch (type)
-      {
-      case Mail_env_string:
-	*(char**)ptr = env->value.string;
-	break;
-
-      case Mail_env_number:
-	*(int*)ptr = env->value.number;
-	break;
-
-      case Mail_env_boolean:
-	*(int*)ptr = env->value.bool;
-	break;
-
-      default:
-	break;
-      }
-	
-  return 0;
-}
-
-static int
-env_comp (const void *a, const void *b)
-{
-  const struct mail_env_entry *epa = a;
-  const struct mail_env_entry *epb = b;
-
-  return strcmp (epa->var, epb->var);
-}
-
-/* Find environment entry var. If not found and CREATE is not null, then
-   create the (unset and untyped) variable */
-struct mail_env_entry *
-util_find_env (const char *var, int create)
-{
-  struct mail_env_entry entry, *p;
-
-  if (strcmp (var, "ask") == 0)
-    entry.var = "asksub";
-  else
-    entry.var = var;
-  
-  if (environment == NULL)
-    {
-      mu_list_create (&environment);
-      mu_list_set_comparator (environment, env_comp);
-    }
-  
-  if (mu_list_locate (environment, &entry, (void**)&p))
-    {
-      if (!create)
-	return 0;
-	
-      p = xmalloc (sizeof *p);
-      p->var = xstrdup (entry.var);
-      mu_list_prepend (environment, p);
-      p->set = 0;
-      p->type = Mail_env_whatever;
-      p->value.number = 0;
-    }
-
-  return p;
-}
-
-struct var_iterator
-{
-  const char *prefix;
-  int prefixlen;
-  mu_iterator_t itr;
-};
-  
-const char *
-var_iterate_next (var_iterator_t itr)
-{
-  struct mail_env_entry *ep;
-  
-  while (!mu_iterator_is_done (itr->itr))
-    {
-      if (mu_iterator_current (itr->itr, (void **)&ep))
-	return NULL;
-      mu_iterator_next (itr->itr);
-  
-      if (strlen (ep->var) >= itr->prefixlen
-	  && strncmp (ep->var, itr->prefix, itr->prefixlen) == 0)
-	return ep->var;
-    }
-  return NULL;
-}
-
-const char *
-var_iterate_first (const char *prefix, var_iterator_t *pitr)
-{
-  if (environment)
-    {
-      var_iterator_t itr = xmalloc (sizeof *itr);
-      itr->prefix = prefix;
-      itr->prefixlen = strlen (prefix);
-      mu_list_get_iterator (environment, &itr->itr);
-      mu_iterator_first (itr->itr);
-      *pitr = itr;
-      return var_iterate_next (itr);
-    }
-  *pitr = NULL;
-  return NULL;
-}
-
-void
-var_iterate_end (var_iterator_t *itr)
-{
-  mu_iterator_destroy (&(*itr)->itr);
-  free (*itr);
-  *itr = NULL;
-}
-
-/* print the environment */
-static int
-envp_comp (const void *a, const void *b)
-{
-  struct mail_env_entry * const *epa = a;
-  struct mail_env_entry * const *epb = b;
-
-  return strcmp ((*epa)->var, (*epb)->var);
-}
-
-void
-util_printenv (int set)
-{
-  struct mail_env_entry **ep;
-  size_t i, count = 0;
-  
-  mu_list_count (environment, &count);
-  ep = xcalloc (count, sizeof *ep);
-  mu_list_to_array (environment, (void**) ep, count, NULL);
-  qsort (ep, count, sizeof *ep, envp_comp);
-  for (i = 0; i < count; i++)
-    {
-      switch (ep[i]->type)
-	{
-	case Mail_env_number:
-	  fprintf (ofile, "%s=%d", ep[i]->var, ep[i]->value.number);
-	  break;
-	  
-	case Mail_env_string:
-	  fprintf (ofile, "%s=\"%s\"", ep[i]->var, ep[i]->value.string);
-	  break;
-	  
-	case Mail_env_boolean:
-	  if (!ep[i]->value.bool)
-	    fprintf (ofile, "no");
-	  fprintf (ofile, "%s", ep[i]->var);
-	  break;
-	  
-	case Mail_env_whatever:
-	  fprintf (ofile, "%s %s", ep[i]->var, _("oops?"));
-	}
-      fprintf (ofile, "\n");
-    }
-  free (ep);
-}
-
-/* Initialize environment entry: clear set indicator and free any memory
-   associated with the data */
-void
-util_mail_env_free (struct mail_env_entry *ep)
-{
-  if (!mail_env_entry_is_set (ep))
-    return;
-  
-  switch (ep->type)
-    {
-    case Mail_env_string:
-      free (ep->value.string);
-      ep->value.string = NULL;
-      break;
-	      
-    default:
-      break;
-    }
-  ep->set = 0;
-}
-
-/* Set environement
-   The  util_setenv() function adds the variable name to the envi-
-   ronment with the value value, if  name  does  not  already
-   exist.   If  name  does exist in the environment, then its
-   value is changed to value if  overwrite  is  non-zero;  if
-   overwrite  is zero, then the value of name is not changed.
- 
-   A side effect of the code is if value is null the variable name
-   will be unset. */
-int
-util_setenv (const char *variable, void *value, mail_env_data_t type,
-	     int overwrite)
-{
-  struct mail_env_entry *ep =  util_find_env (variable, 1);
-
-  if (ep->set && !overwrite)
-    return 0;
-
-  util_mail_env_free (ep);
-  
-  ep->type = type;
-  if (value)
-    {
-      ep->set = 1;
-      switch (type)
-	{
-	case Mail_env_number:
-	  ep->value.number = *(int*)value;
-	  break;
-	  
-	case Mail_env_string:
-	  ep->value.string = strdup (value);
-	  break;
-	  
-	case Mail_env_boolean:
-	  ep->value.bool = *(int*)value;
-	  break;
-		  
-	default:
-	  abort();
-	}
-    }
-    
-  /* Special handling for some variables */
-  if (strcmp (variable, "replyregex") == 0)
-    { 
-      int rc;
-      char *err;
-	      
-      if ((rc = mu_unre_set_regex (value, 0, &err)))
-	{
-	  fprintf (stderr, "%s", mu_strerror (rc));
-	  if (err)
-	    {
-	      fprintf (stderr, "%s", err);
-	      free (err);
-	    }
-	  fprintf (stderr, "\n");
-	}
-    }
-  else if (strcmp (variable, "decode-fallback") == 0)
-    {
-      if (mu_set_default_fallback (value))
-	mu_error (_("Incorrect value for decode-fallback"));
-    }
-  else if (strcmp (variable, "screen") == 0)
-    page_invalidate (1);
-  
   return 0;
 }
 
@@ -702,7 +420,7 @@ const char *
 util_reply_prefix ()
 {
   char *prefix = "Re: ";
-  util_getenv (&prefix, "replyprefix", Mail_env_string, 0);
+  mailvar_get (&prefix, "replyprefix", mailvar_type_string, 0);
   return prefix;
 }
 
@@ -760,7 +478,7 @@ util_folder_path (const char *name)
   char *tmp;
   char *p;
   
-  if (util_getenv (&folder, "folder", Mail_env_string, 1))
+  if (mailvar_get (&folder, "folder", mailvar_type_string, 1))
     return NULL;
       
   if (!name)
@@ -981,7 +699,7 @@ util_outfolder_name (char *str)
       break;
 
     default:
-      if (util_getenv (&outfolder, "outfolder", Mail_env_string, 0) == 0)
+      if (mailvar_get (&outfolder, "outfolder", mailvar_type_string, 0) == 0)
 	{
 	  char *ns = NULL;
 	  asprintf (&ns, "%s/%s", outfolder, str);
@@ -1002,7 +720,7 @@ util_save_outgoing (mu_message_t msg, char *savefile)
 {
   char *record;
   
-  if (util_getenv (&record, "record", Mail_env_string, 0) == 0)
+  if (mailvar_get (&record, "record", mailvar_type_string, 0) == 0)
     {
       int rc;
       mu_mailbox_t outbox;
@@ -1256,7 +974,7 @@ util_header_expand (mu_header_t *phdr)
 	      while (*p && mu_isspace (*p))
 		p++;
 	      /* If inplacealiases was set, the value was already expanded */
-	      if (util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0))
+	      if (mailvar_get (NULL, "inplacealiases", mailvar_type_boolean, 0))
 		exp = alias_expand (p);
 	      rc = mu_address_create (&new_addr, exp ? exp : p);
 	      if (rc)
@@ -1379,7 +1097,7 @@ util_rfc2047_decode (char **value)
   char *tmp;
   int rc;
 
-  if (!*value || util_getenv (&charset, "charset", Mail_env_string, 0))
+  if (!*value || mailvar_get (&charset, "charset", mailvar_type_string, 0))
     return;
 
   if (mu_c_strcasecmp (charset, "auto") == 0)
@@ -1415,7 +1133,7 @@ util_rfc2047_decode (char **value)
   rc = mu_rfc2047_decode (charset, *value, &tmp);
   if (rc)
     {
-      if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0) == 0)
 	mu_error (_("Cannot decode line `%s': %s"), *value, mu_strerror (rc));
     }
   else

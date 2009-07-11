@@ -27,7 +27,7 @@ mail_unset (int argc, char **argv)
 {
   if (argc < 2)
     {
-      util_printenv (0);
+      mailvar_print (0);
       return 0;
     }
   else

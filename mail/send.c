@@ -138,10 +138,10 @@ mail_sendheader (int argc, char **argv)
 static void
 read_cc_bcc (compose_env_t *env)
 {
-  if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "askcc", mailvar_type_boolean, 0) == 0)
     compose_header_set (env, MU_HEADER_CC,
 			ml_readline_with_intr ("Cc: "), COMPOSE_REPLACE);
-  if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "askbcc", mailvar_type_boolean, 0) == 0)
     compose_header_set (env, MU_HEADER_BCC,
 			ml_readline_with_intr ("Bcc: "), COMPOSE_REPLACE);
 }
@@ -193,10 +193,10 @@ mail_send (int argc, char **argv)
 	}
     }
 
-  if (util_getenv (NULL, "mailx", Mail_env_boolean, 0))
+  if (mailvar_get (NULL, "mailx", mailvar_type_boolean, 0))
     read_cc_bcc (&env);
 
-  if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "asksub", mailvar_type_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_SUBJECT,
 			ml_readline_with_intr ("Subject: "), COMPOSE_REPLACE);
 
@@ -234,7 +234,7 @@ compose_header_set (compose_env_t * env, const char *name,
     case COMPOSE_REPLACE:
     case COMPOSE_APPEND:
       if (is_address_field (name)
-	  && util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0) == 0)
+	  && mailvar_get (NULL, "inplacealiases", mailvar_type_boolean, 0) == 0)
 	{
 	  char *exp = alias_expand (value);
 	  status = mu_header_set_value (env->header, name, exp ? exp : value,
@@ -250,7 +250,7 @@ compose_header_set (compose_env_t * env, const char *name,
 	  && old_value[0])
 	{
 	  if (is_address_field (name)
-	      && util_getenv (NULL, "inplacealiases", Mail_env_boolean, 0) == 0)
+	      && mailvar_get (NULL, "inplacealiases", mailvar_type_boolean, 0) == 0)
 	    {
 	      char *exp = alias_expand (value);
 	      status = util_merge_addresses (&old_value, exp ? exp : value);
@@ -322,10 +322,10 @@ fill_body (mu_message_t msg, FILE *file)
 
   if (offset == 0)
     {
-      if (util_getenv (NULL, "nullbody", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "nullbody", mailvar_type_boolean, 0) == 0)
 	{
 	  char *str;
-	  if (util_getenv (&str, "nullbodymsg", Mail_env_string, 0) == 0)
+	  if (mailvar_get (&str, "nullbodymsg", mailvar_type_string, 0) == 0)
 	    util_error ("%s\n", _(str));
 	}
       else
@@ -384,7 +384,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
       if (ml_got_interrupt ())
 	{
-	  if (util_getenv (NULL, "ignore", Mail_env_boolean, 0) == 0)
+	  if (mailvar_get (NULL, "ignore", mailvar_type_boolean, 0) == 0)
 	    {
 	      fprintf (stdout, "@\n");
 	    }
@@ -402,9 +402,9 @@ mail_send0 (compose_env_t * env, int save_to)
       if (!buf)
 	{
 	  if (interactive 
-	      && util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
+	      && mailvar_get (NULL, "ignoreeof", mailvar_type_boolean, 0) == 0)
 	    {
-	      util_error (util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0 ?
+	      util_error (mailvar_get (NULL, "dot", mailvar_type_boolean, 0) == 0 ?
 			  _("Use \".\" to terminate letter.") :
 			  _("Use \"~.\" to terminate letter."));
 	      continue;
@@ -416,9 +416,9 @@ mail_send0 (compose_env_t * env, int save_to)
       int_cnt = 0;
 
       if (strcmp (buf, ".") == 0
-	  && util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0)
+	  && mailvar_get (NULL, "dot", mailvar_type_boolean, 0) == 0)
 	done = 1;
-      else if (util_getenv (&escape, "escape", Mail_env_string, 0) == 0
+      else if (mailvar_get (&escape, "escape", mailvar_type_string, 0) == 0
 	       && buf[0] == escape[0])
 	{
 	  if (buf[1] == buf[0])
@@ -471,11 +471,11 @@ mail_send0 (compose_env_t * env, int save_to)
   /* If interrupted dump the file to dead.letter.  */
   if (int_cnt)
     {
-      if (util_getenv (NULL, "save", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
 	{
 	  FILE *fp = fopen (getenv ("DEAD"),
-			    util_getenv (NULL, "appenddeadletter",
-					 Mail_env_boolean, 0) == 0 ?
+			    mailvar_get (NULL, "appenddeadletter",
+					 mailvar_type_boolean, 0) == 0 ?
 			    "a" : "w");
 
 	  if (!fp)
@@ -505,11 +505,11 @@ mail_send0 (compose_env_t * env, int save_to)
 
   /* In mailx compatibility mode, ask for Cc and Bcc after editing
      the body of the message */
-  if (util_getenv (NULL, "mailx", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "mailx", mailvar_type_boolean, 0) == 0)
     read_cc_bcc (env);
 
   /* Prepare the header */
-  if (util_getenv (NULL, "xmailer", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "xmailer", mailvar_type_boolean, 0) == 0)
     mu_header_set_value (env->header, MU_HEADER_X_MAILER, 
                          program_version, 1);
 
@@ -594,13 +594,13 @@ mail_send0 (compose_env_t * env, int save_to)
 		  || compose_header_get (env, MU_HEADER_BCC, NULL))
 		{
 		  char *sendmail;
-		  if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) 
+		  if (mailvar_get (&sendmail, "sendmail", mailvar_type_string, 0) 
                        == 0)
 		    {
 		      int status = mu_mailer_create (&mailer, sendmail);
 		      if (status == 0)
 			{
-			  if (util_getenv (NULL, "verbose", Mail_env_boolean, 0)
+			  if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0)
 			      == 0)
 			    {
 			      mu_debug_t debug = NULL;

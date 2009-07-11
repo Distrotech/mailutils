@@ -41,7 +41,7 @@ mail_mbox_close ()
   if (!mbox)
     return 0;
 
-  if (util_getenv (NULL, "readonly", Mail_env_boolean, 0))
+  if (mailvar_get (NULL, "readonly", mailvar_type_boolean, 0))
     {
       if (mail_mbox_commit ())
 	return 1;
@@ -69,8 +69,8 @@ mail_mbox_commit ()
   int saved_count = 0;
   mu_message_t msg;
   mu_attribute_t attr;
-  int keepsave = util_getenv (NULL, "keepsave", Mail_env_boolean, 0) == 0;
-  int hold = util_getenv (NULL, "hold", Mail_env_boolean, 0) == 0;
+  int keepsave = mailvar_get (NULL, "keepsave", mailvar_type_boolean, 0) == 0;
+  int hold = mailvar_get (NULL, "hold", mailvar_type_boolean, 0) == 0;
   mu_url_t url;
   int is_user_mbox;
 

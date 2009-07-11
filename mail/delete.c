@@ -40,7 +40,7 @@ mail_delete (int argc, char **argv)
   int rc = util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT,
 			     mail_delete_msg, NULL);
 
-  if (util_getenv (NULL, "autoprint", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "autoprint", mailvar_type_boolean, 0) == 0)
     util_do_command("print");
 
   return rc;

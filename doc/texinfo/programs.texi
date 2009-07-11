@@ -3282,11 +3282,12 @@ The @samp{echo} (@samp{ec}) command prints its arguments to stdout.
 The command @samp{source @var{filename}} reads commands from the named
 file. Its minimal abbreviation is @samp{so}.
 
+@anchor{Setting and Unsetting the Variables}
 @subsubheading Setting and Unsetting the Variables
 @kyindex set, mail command
 @kyindex unset, mail command
 
-The mail variables may be set using @samp{set} (@samp{se}) command. The
+The mail variables are set using @samp{set} (@samp{se}) command. The
 command takes a list of assignments. The syntax of an assignment is
 
 @table @samp
@@ -3320,6 +3321,58 @@ To undo the effect of the previous example, do:
 
 @smallexample
 & unset askcc crt indentprefix
+@end smallexample
+
+When used without arguments, both @command{set} or @command{unset}
+list all currently defined variables. The form of this listing is
+controlled by @code{variable-pretty-print} (@code{varpp}) variable. If
+it is set, a description precedes each variable, e.g.:
+
+@smallexample
+# prompt user for subject before composing the message
+ask
+# prompt user for cc before composing the message
+askcc
+# output character set for decoded header fields
+charset="auto"
+# number of columns on terminal screen
+columns=80
+@end smallexample
+
+If @code{variable-pretty-print} is not set, only the settings are
+shown, e.g.:
+
+@smallexample
+ask
+askcc
+charset="auto"
+columns=80
+@end smallexample
+
+@kyindex variable, mail command
+A special command is provided to list all internal @command{mail}
+variables:
+
+@smallexample
+variable [@var{names...}]
+@end smallexample
+
+If used without arguments, it prints all known internal variables. If
+arguments are given, it displays only those internal variables that
+are listed in command line. For each variable, this command prints its
+name, data type, current value and a short description. For example:
+
+@smallexample
+& variable ask datefield
+ask, asksub
+Type: boolean
+Current value: yes
+prompt user for subject before composing the message
+
+datefield
+Type: boolean
+Current value: [not set]
+get date from the `Date:' header, instead of the envelope
 @end smallexample
 
 @subsubheading Setting and Unsetting Shell Environment Variables
@@ -3391,6 +3444,15 @@ set
 Following variables control the behavior of GNU @command{mail}:
 
 @table @code
+@item append
+@*Type: Boolean, Read-Only
+@*Default: True
+@vrindex append, mail variable
+
+Messages saved in mbox are appended to the end rather than prepended.
+This is the default and cannot be changed. This variable exists only
+for compatibility with other @command{mailx} implementations.
+
 @item appenddeadletter
 @*Type: Boolean.
 @*Default: False.
@@ -3447,16 +3509,19 @@ message, the next one will be typed automatically.
 When set, every occurrence of @code{!} in arguments to @code{!}
 command is replaced with the last executed command.
 
+@anchor{datefield}
 @item datefield
 @*Type: Boolean.
 @*Default: False.
 @vrindex datefield, mail variable
 
-By default the date in a header summary is taken from the SMTP
+By default the date in a header summary is taken from the @acronym{SMTP}
 envelope of the message. Setting this variable tells @command{mail}
 to use the date from @code{Date:} header field, converted to
 local time. Notice, that for messages lacking this field @command{mail}
-will fall back to using SMTP envelope.
+will fall back to using @acronym{SMTP} envelope.
+
+@xref{fromfield}.
 
 @item charset
 @*Type: string
@@ -3520,6 +3585,14 @@ Unprintable characters are represented by their octal codes. Printable
 ones are printed @samp{as is}.
 @end table
 
+@item debug
+@*Type: Boolean
+@*Default: Unset
+@vrindex debug, mail variable
+
+This variable is not used.  It exists for compatibility with other
+@command{mailx} implementations and for future use.
+
 @item dot
 @*Type: Boolean.
 @*Default: False.
@@ -3559,7 +3632,7 @@ denoting escapes.
 @*Default: Unset
 @vrindex flipr, mail variable
 
-The variable @code{flipr} if set swaps the meanings of @code{reply}
+If set, the variable @code{flipr} swaps the meanings of @code{reply}
 and @code{Reply} commands (@pxref{Replying}).
 
 @item folder
@@ -3569,6 +3642,17 @@ and @code{Reply} commands (@pxref{Replying}).
 
 The name of the directory to use for storing folders of messages. If
 unset, @env{$HOME} is assumed.
+
+@anchor{fromfield}
+@item fromfield
+@*Type: Boolean.
+@*Default: True.
+
+By default the sender address is taken from the @samp{From} header.
+Unsetting this variable tells @command{mail} to obtain it from the
+@acronym{SMTP} envelope, instead.
+
+@xref{datefield}.
 
 @item header
 @*Type: Boolean.
@@ -3620,6 +3704,15 @@ If set, @command{mail} will expand aliases in the address header field
 before entering send mode (@pxref{Composing Mail}). By default, the
 address header fields are left intact while composing, the alias
 expansion takes place immediately before sending message.
+
+@item keep
+@*Type: Boolean, Read-Only
+@*Default: True
+@vrindex append, mail variable
+
+Truncate the user's system mailbox when it is empty, instead of
+removing it. This is the default and cannot be changed. This variable
+exists only for compatibility with other @command{mailx} implementations.
 
 @item keepsave
 @*Type: Boolean.
@@ -3702,11 +3795,33 @@ is removed from the expansion. Setting this option causes the sender to
 be included in the group.
 
 @item mode
-@*Type: String.
+@*Type: String, Read-Only
 @*Default: The name of current operation mode.
 @vrindex mode, mail variable
 
-Setting this variable does not affect the operation mode of the program.
+This variable keeps the name of the current operation mode. Its
+possible values are:
+
+@table @asis
+@item headers
+The program is started with the @option{--headers} (@option{-H}) command
+line option (@pxref{Invoking Mail}).
+
+@item exist
+The program is started with the @option{--exist} (@option{-e}) command
+line option (@pxref{Invoking Mail}).
+
+@item print
+The program is started with the @option{--print} (@option{-p}) command
+line option (@pxref{Invoking Mail}).
+
+@item read
+The progran operates in read mode. This is the default.
+
+@item send
+The program operates in send mode. This means it was given one or more
+recipient addresses in the command line.
+@end table
 
 @item nullbody
 @* Type: Boolean
@@ -3732,6 +3847,13 @@ outputs something on its standard output or error:
 @end group
 @end smallexample
 
+@item showenvelope
+@*Type: Boolean
+@*Default: Unset
+
+If this variable is set, the @code{print} command will include the
+@acronym{STMP} envelope in its output.
+
 @item nullbodymsg
 @*Type: String
 @*Default: Null message body; hope that's ok 
@@ -3742,6 +3864,14 @@ sending an empty message. When available, the translation of
 this text, in accordance with the current locale, is displayed.
 
 Unsetting this variable disables the warning.
+
+@item onehop
+@*Type: Boolean
+@*Default: Unset
+@vrindex onehop, mail variable
+
+This variable is not used.  It exists for compatibility with other
+@command{mailx} implementations and for future use.
 
 @item outfolder
 @*Type: String.
@@ -3767,6 +3897,14 @@ character after printing each message.
 
 Contains the command prompt sequence.
 
+@item quiet
+@*Type: Boolean
+@*Default: Unset
+@vrindex quiet, mail variable
+
+This variable is not used.  It exists for compatibility with other
+@command{mailx} implementations and for future use.
+
 @item quit
 @*Type: Boolean.
 @*Default: False, unless started with @option{--quit} (@option{-q}) option.
@@ -3781,6 +3919,16 @@ When set, causes keyboard interrupts to terminate the program.
 
 When this variable is set, @command{mail} will read the system-wide
 configuration file upon startup. See @ref{Mail Configuration Files}.
+
+@item readonly
+@*Type: Boolean
+@*Default: False
+@vrindex readonly, mail variable
+
+When set, mailboxes are opened in readonly mode.  In this mode, any
+@command{mail} commands that alter the contents of the mailbox are
+disabled.  These commands include, but are not limited to: 
+@code{delete}, @code{save} and @code{mbox}.
 
 @item record
 @*Type: String.
@@ -3853,7 +4001,23 @@ This variable contains the number of lines on terminal screen.
 @*Default: sendmail:/usr/lib/sendmail
 @vrindex sendmail, mail variable
 
-Contains the URL of mail transport agent.
+Contains URL of the mail transport agent.
+
+@item sendwait
+@*Type: Boolean
+@*Default: Unset
+@vrindex sendwait, mail variable
+
+This variable is not used.  It exists for compatibility with other
+@command{mailx} implementations and for future use.
+
+@item showto
+@*Type: Boolean
+@*Default: False
+@vrindex showto, mail variable
+
+If the message was sent by the user, print its recipient address in
+the header summary.
 
 @item Sign
 @*Type: String.
@@ -3896,6 +4060,26 @@ off.
 @vrindex toplines, mail variable
 
 Number of lines to be displayed by @code{top} and @code{Top} commands.
+
+@item variable-strict
+@itemx varstrict
+@*Type: Boolean.
+@*Default: False.
+
+Setting this variable enables strict control over variable
+settings. In this mode, @command{mail} refuses to set read-only
+variables. Also, if the user is trying to set an unknown variable,
+@command{mail} prints a warning.
+
+@xref{Setting and Unsetting the Variables}.
+
+@item variable-pretty-print
+@itemx varpp
+@*Type: Boolean.
+@*Default: False.
+
+If this variable is set, the listing ouput by @command{set} contains short
+descriptions before each variable. @xref{Setting and Unsetting the Variables}. 
 
 @item verbose
 @*Type: Boolean.

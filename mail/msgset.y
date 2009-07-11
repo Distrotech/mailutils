@@ -574,7 +574,7 @@ select_header (mu_message_t msg, void *closure)
   mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, header, &contents) == 0)
     {
-      if (util_getenv (NULL, "regex", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "regex", mailvar_type_boolean, 0) == 0)
 	{
 	  /* Match string against the extended regular expression(ignoring
 	     case) in pattern, treating errors as no match.
@@ -612,7 +612,7 @@ int
 select_body (mu_message_t msg, void *closure)
 {
   char *expr = closure;
-  int noregex = util_getenv (NULL, "regex", Mail_env_boolean, 0);
+  int noregex = mailvar_get (NULL, "regex", mailvar_type_boolean, 0);
   regex_t re;
   int status;
   mu_body_t body = NULL;

@@ -35,7 +35,7 @@ sig_handler (int signo)
   switch (signo)
     {
     case SIGINT:
-      if (util_getenv (NULL, "quit", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "quit", mailvar_type_boolean, 0) == 0)
 	exit (0);
       _interrupted++;
       break;
@@ -561,32 +561,6 @@ alias_compl (int argc, char **argv, int ws)
 {
   ml_attempted_completion_over ();
   return rl_completion_matches (ws ? "" : argv[argc-1], alias_generator);
-}
-
-static char *
-var_generator (const char *text, int state)
-{
-  static var_iterator_t itr;
-  const char *p;
-  
-  if (!state)
-    p = var_iterate_first (text, &itr);
-  else
-    p = var_iterate_next (itr);
-
-  if (!p)
-    {
-      var_iterate_end (&itr);
-      return NULL;
-    }
-  return strdup (p);
-}
-
-char **
-var_compl (int argc, char **argv, int ws)
-{
-  ml_attempted_completion_over ();
-  return rl_completion_matches (ws ? "" : argv[argc-1], var_generator);
 }
 
 static char *

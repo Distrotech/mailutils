@@ -118,7 +118,7 @@ mail_file (int argc, char **argv)
       mbox = newbox;
       mu_mailbox_messages_count (mbox, &total);
       set_cursor (1);
-      if (util_getenv (NULL, "header", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "header", mailvar_type_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
 	  util_do_command ("z.");

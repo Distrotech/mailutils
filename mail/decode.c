@@ -182,7 +182,7 @@ display_message0 (mu_message_t mesg, const msgset_t *msgset,
       if (mu_message_unencapsulate (mesg, &submsg, NULL) == 0)
 	display_message0 (submsg, msgset, select_hdr);
     }
-  else if (util_getenv (&tmp, "metamail", Mail_env_string, 0) == 0)
+  else if (mailvar_get (&tmp, "metamail", mailvar_type_string, 0) == 0)
     {
       /* If `metamail' is set to a string, treat it as command line
 	 of external metamail program. */
@@ -212,13 +212,13 @@ display_message0 (mu_message_t mesg, const msgset_t *msgset,
 
       /* If `metamail' is set to true, enable internal mailcap
 	 support */
-      if (util_getenv (NULL, "metamail", Mail_env_boolean, 0) == 0)
+      if (mailvar_get (NULL, "metamail", mailvar_type_boolean, 0) == 0)
 	{
 	  char *no_ask = NULL;
 	  int debug = 0;
 	  
-	  util_getenv (&no_ask, "mimenoask", Mail_env_string, 0);
-	  if (util_getenv (&debug, "verbose", Mail_env_boolean, 0) == 0
+	  mailvar_get (&no_ask, "mimenoask", mailvar_type_string, 0);
+	  if (mailvar_get (&debug, "verbose", mailvar_type_boolean, 0) == 0
 	      && debug)
 	    debug = 9;
 	  
@@ -347,7 +347,7 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	  char *no_ask;
 	  
 	  setenv ("METAMAIL_PAGER", getenv ("PAGER"), 0);
-	  if (util_getenv (&no_ask, "mimenoask", Mail_env_string, 0))
+	  if (mailvar_get (&no_ask, "mimenoask", mailvar_type_string, 0))
 	    setenv ("MM_NOASK", no_ask, 1);
 	  
 	  status = mu_message_get_stream (mesg, &stream);

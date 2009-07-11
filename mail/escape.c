@@ -164,7 +164,7 @@ escape_check_args (int argc, char **argv)
   if (argc == 1)
     {
       char *escape = "~";
-      util_getenv (&escape, "escape", Mail_env_string, 0);
+      mailvar_get (&escape, "escape", mailvar_type_string, 0);
       util_error (_("%c%s requires an argument"), escape[0], argv[0]);
       return 1;
     }
@@ -234,8 +234,8 @@ escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env MU_ARG_UNUS
 {
   char *p;
 
-  if (util_getenv (&p, mu_isupper (argv[0][0]) ? "Sign" : "sign",
-		   Mail_env_string, 1) == 0)
+  if (mailvar_get (&p, mu_isupper (argv[0][0]) ? "Sign" : "sign",
+		   mailvar_type_string, 1) == 0)
     {
       fputs ("-- \n", ofile);
       if (mu_isupper (argv[0][0]))
@@ -315,7 +315,7 @@ run_editor (char *ed, char *arg)
 static int
 escape_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
 {
-  if (!util_getenv (NULL, "editheaders", Mail_env_boolean, 0))
+  if (!mailvar_get (NULL, "editheaders", mailvar_type_boolean, 0))
     {
       char *filename;
       int fd = mu_tempfile (NULL, &filename);
@@ -413,29 +413,9 @@ escape_headers (int argc, char **argv, compose_env_t *env)
 int
 escape_insert (int argc, char **argv, compose_env_t *send_env MU_ARG_UNUSED)
 {
-  struct mail_env_entry *env;
-
   if (escape_check_args (argc, argv))
     return 1;
-  env = util_find_env (argv[1], 0);
-  if (env)
-    switch (env->type)
-      {
-      case Mail_env_string:
-	fprintf (ofile, "%s", env->value.string);
-	break;
-
-      case Mail_env_number:
-	fprintf (ofile, "%d", env->value.number);
-	break;
-
-      case Mail_env_boolean:
-	fprintf (ofile, "%s", env->set ? "yes" : "no");
-	break;
-
-      default:
-	break;
-      }
+  mailvar_variable_format (ofile, mailvar_find_variable (argv[1], 0), NULL);
   return 0;
 }
 
@@ -455,7 +435,7 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   
   fprintf (stdout, _("Interpolating: %d\n"), mspec->msg_part[0]);
 
-  util_getenv (&prefix, "indentprefix", Mail_env_string, 0);
+  mailvar_get (&prefix, "indentprefix", mailvar_type_string, 0);
 
   if (*(int*)data)
     {

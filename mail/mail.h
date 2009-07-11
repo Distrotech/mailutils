@@ -98,10 +98,11 @@ typedef int function_t (int, char **);
 #endif
 
 /* Values for mail_command_entry.flags */
-#define EF_REG  0x00    /* Regular command */
-#define EF_FLOW 0x01    /* Flow control command */
-#define EF_SEND 0x02    /* Send command */
-
+#define EF_REG    0x00    /* Regular command */
+#define EF_FLOW   0x01    /* Flow control command */
+#define EF_SEND   0x02    /* Send command */
+#define EF_HIDDEN 0x04    /* Hiddent command */
+  
 typedef struct compose_env
 {
   mu_header_t header;   /* The message headers */
@@ -139,31 +140,29 @@ struct mail_escape_entry
   int (*escfunc) (int, char **, compose_env_t *);
 };
 
-typedef enum
+enum mailvar_type
   {
-    Mail_env_whatever,
-    Mail_env_number,
-    Mail_env_string,
-    Mail_env_boolean
-  }
-mail_env_data_t;
+    mailvar_type_whatever,
+    mailvar_type_number,
+    mailvar_type_string,
+    mailvar_type_boolean
+  };
 
-struct mail_env_entry
+union mailvar_value
 {
-  const char *var;
-  mail_env_data_t type;
-  int set;
-  union
-  {
-    char *string;
-    int number;
-    int bool;
-  }
-  value;
+  char *string;
+  int number;
+  int bool;
 };
 
-#define mail_env_entry_is_set(ep) ((ep) && (ep)->set)
-  
+struct mailvar_variable
+{
+  char *name;
+  enum mailvar_type type;
+  int set;
+  union mailvar_value value;
+};
+
 typedef struct message_set msgset_t;
 
 struct message_set
@@ -212,6 +211,7 @@ extern int mail_send (int argc, char **argv);	/* command mail */
 extern int mail_mbox (int argc, char **argv);
 extern int mail_next (int argc, char **argv);
 extern int mail_nounfold (int argc, char **argv);
+extern int mail_variable (int argc, char **argv);
 extern int mail_pipe (int argc, char **argv);
 extern int mail_previous (int argc, char **argv);
 extern int mail_print (int argc, char **argv);
@@ -240,6 +240,8 @@ extern int mail_write (int argc, char **argv);
 extern int mail_z (int argc, char **argv);
 extern int mail_eq (int argc, char **argv);	/* command = */
 extern int mail_setenv (int argc, char **argv);
+extern int mail_envelope (int argc, char **argv);
+extern int print_envelope (msgset_t *mspec, mu_message_t msg, void *data);
 
 extern int if_cond (void);
 
@@ -331,13 +333,19 @@ extern int util_getlines (void);
 extern int util_screen_lines (void);
 extern int util_screen_columns (void);
 extern int util_get_crt (void);
-extern struct mail_env_entry *util_find_env (const char *var, int create);
-extern int util_getenv (void *ptr, const char *variable,
-			mail_env_data_t type, int warn);
+extern struct mailvar_variable *mailvar_find_variable (const char *var, int create);
+extern int mailvar_get (void *ptr, const char *variable,
+			enum mailvar_type type, int warn);
 
-extern void util_printenv (int set);
-extern int util_setenv (const char *name, void *value,
-		        mail_env_data_t type, int overwrite);
+extern void mailvar_print (int set);
+extern void mailvar_variable_format (FILE *fp,
+				     const struct mailvar_variable *,
+				     const char *defval);
+
+#define MOPTF_OVERWRITE 0x001
+#define MOPTF_QUIET     0x002
+extern int mailvar_set (const char *name, void *value,
+		      enum mailvar_type type, int flags);
 extern int util_isdeleted (size_t msgno);
 extern char *util_get_homedir (void);
 extern char *util_fullpath (const char *inpath);
@@ -396,11 +404,6 @@ extern int mail_sender    (int argc, char **argv);
 extern int mail_nosender  (int argc, char **argv);
 extern mu_address_t get_sender_address (mu_message_t msg);
 
-typedef struct var_iterator *var_iterator_t;
-extern const char *var_iterate_next (var_iterator_t itr);
-extern const char *var_iterate_first (const char *prefix, var_iterator_t *pitr);
-extern void var_iterate_end (var_iterator_t *itr);
-
 #define COMPOSE_APPEND      0
 #define COMPOSE_REPLACE     1
 #define COMPOSE_SINGLE_LINE 2
@@ -427,6 +430,8 @@ extern char *readline (char *prompt);
 #define MAIL_ATTRIBUTE_TAGGED   0x0004
 #define MAIL_ATTRIBUTE_SHOWN    0x0008
 
+extern void ml_attempted_completion_over (void);
+
 #ifdef WITH_READLINE
 extern char **file_compl (int argc, char **argv, int ws);
 extern char **no_compl (int argc, char **argv, int ws);
@@ -435,7 +440,7 @@ extern char **msglist_file_compl (int argc, char **argv, int ws);
 extern char **dir_compl (int argc, char **argv, int ws);
 extern char **command_compl (int argc, char **argv, int ws);
 extern char **alias_compl (int argc, char **argv, int ws);
-extern char **var_compl (int argc, char **argv, int ws);
+extern char **mailvar_set_compl (int argc, char **argv, int ws);
 extern char **exec_compl (int argc, char **argv, int ws);
 #else
 # define file_compl NULL

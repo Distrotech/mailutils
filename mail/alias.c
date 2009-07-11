@@ -152,7 +152,7 @@ alias_expand (const char *name)
   alias_t al;
   mu_list_t list;
   
-  if (util_getenv (NULL, "recursivealiases", Mail_env_boolean, 0) == 0)
+  if (mailvar_get (NULL, "recursivealiases", mailvar_type_boolean, 0) == 0)
     {
       char *s;
       mu_list_t origlist;

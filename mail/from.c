@@ -36,48 +36,60 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
   int cflag;
   size_t m_size = 0, m_lines = 0;
 
-  mu_message_get_header (msg, &hdr);
-  if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
-    {
-      mu_address_t address = NULL;
-      if (mu_address_create (&address, from) == 0)
+  if (mailvar_get (NULL, "fromfield", mailvar_type_boolean, 0) == 0)
+    {  
+      mu_message_get_header (msg, &hdr);
+      if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
 	{
-	  char *name;
-	  const char *email;
-	  
-	  if (mu_address_sget_email (address, 1, &email) == 0)
+	  mu_address_t address = NULL;
+	  if (mu_address_create (&address, from) == 0)
 	    {
-	      if (util_getenv (NULL, "showto", Mail_env_boolean, 0) == 0
-		  && mail_is_my_name (email))
+	      char *name;
+	      const char *email;
+	  
+	      if (mu_address_sget_email (address, 1, &email) == 0)
 		{
-		  char *tmp;
-
-		  if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, 
-		                                   &tmp) == 0)
+		  if (mailvar_get (NULL, "showto", mailvar_type_boolean, 0) == 0
+		      && mail_is_my_name (email))
 		    {
-		      mu_address_t addr_to;
-		      if (mu_address_create (&addr_to, tmp) == 0)
+		      char *tmp;
+
+		      if (mu_header_aget_value_unfold (hdr, MU_HEADER_TO, 
+						       &tmp) == 0)
 			{
-			  mu_address_destroy (&address);
-			  address = addr_to;
+			  mu_address_t addr_to;
+			  if (mu_address_create (&addr_to, tmp) == 0)
+			    {
+			      mu_address_destroy (&address);
+			      address = addr_to;
+			    }
+			  free (tmp);
 			}
-		      free (tmp);
 		    }
 		}
-	    }
 	      
-	  if ((mu_address_aget_personal (address, 1, &name) == 0
-	       && name)
-	      || (mu_address_aget_email (address, 1, &name) == 0
-		  && name))
-	    {
-	      free (from);
-	      from = name;
+	      if ((mu_address_aget_personal (address, 1, &name) == 0
+		   && name)
+		  || (mu_address_aget_email (address, 1, &name) == 0
+		      && name))
+		{
+		  free (from);
+		  from = name;
+		}
+	      mu_address_destroy (&address);
 	    }
-	  mu_address_destroy (&address);
 	}
+      util_rfc2047_decode (&from);
     }
-  util_rfc2047_decode (&from);
+  else
+    {
+      mu_envelope_t env = NULL;
+      const char *sender = "";
+      
+      if (mu_message_get_envelope (msg, &env) == 0)
+	mu_envelope_sget_sender (env, &sender);
+      from = strdup (sender);
+    }
 
   mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
   util_rfc2047_decode (&subj);
@@ -100,7 +112,7 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
     cflag = ' ';
 
   date[0] = 0;
-  if (util_getenv (NULL, "datefield", Mail_env_boolean, 0) == 0
+  if (mailvar_get (NULL, "datefield", mailvar_type_boolean, 0) == 0
       && mu_header_get_value (hdr, MU_HEADER_DATE, date, sizeof (date), NULL) == 0)
     {
       time_t t;

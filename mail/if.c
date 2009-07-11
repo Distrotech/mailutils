@@ -97,7 +97,7 @@ mail_if (int argc, char **argv)
       return 1;
     }
 
-  if (util_getenv (&mode, "mode", Mail_env_string, 1))
+  if (mailvar_get (&mode, "mode", mailvar_type_string, 1))
     exit (EXIT_FAILURE);
 
   if (if_cond() == 0)

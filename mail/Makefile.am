@@ -49,6 +49,7 @@ mail_SOURCES = \
  dp.c\
  echo.c\
  edit.c\
+ envelope.c\
  eq.c\
  escape.c\
  exit.c\
@@ -65,6 +66,7 @@ mail_SOURCES = \
  mail.c\
  mail.h\
  mailline.c\
+ mailvar.c\
  mbox.c\
  msgset.y\
  next.c\

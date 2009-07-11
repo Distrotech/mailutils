@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2005, 2007 Free Software Foundation
+# Copyright (C) 2002, 2005, 2007, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ mu_test_file "$MU_FOLDER_DIR/if.out" \
     "Held 5 messages in $MU_SPOOL_DIR/mbox1"
 
 mu_exec -message "Send mode on TTY" \
-        -arg "--exec='set mode=send'" \
+        -arg "--exec='setq mode=send'" \
         -arg "--exec='source ${srcdir}/if.mail'" \
         -arg "--exec=quit" \
     "Begin test" \
@@ -51,7 +51,7 @@ mu_exec -message "Send mode on TTY" \
     "End test"
 
 mu_exec -message "Send mode not on TTY" \
-        -arg "--exec='set mode=send'" \
+        -arg "--exec='setq mode=send'" \
         -arg "--exec='source ${srcdir}/if.mail'" \
         -arg "--exec=quit" \
         -arg "> $MU_FOLDER_DIR/if.out"
@@ -62,7 +62,7 @@ mu_test_file "$MU_FOLDER_DIR/if.out" \
     "End test"
 
 mu_exec -message "Nomode on TTY" \
-        -arg "--exec='set mode=nomode'" \
+        -arg "--exec='setq mode=nomode'" \
         -arg "--exec='source ${srcdir}/if.mail'" \
         -arg "--exec=quit" \
     "Begin test" \
@@ -70,7 +70,7 @@ mu_exec -message "Nomode on TTY" \
     "End test"
 
 mu_exec -message "Nomode not on TTY" \
-        -arg "--exec='set mode=nomode'" \
+        -arg "--exec='setq mode=nomode'" \
         -arg "--exec='source ${srcdir}/if.mail'" \
         -arg "--exec=quit" \
         -arg "> $MU_FOLDER_DIR/if.out"

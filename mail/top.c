@@ -32,7 +32,7 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
   off_t off;
   int lines;
   
-  if (util_getenv (&lines, "toplines", Mail_env_number, 1)
+  if (mailvar_get (&lines, "toplines", mailvar_type_number, 1)
       || lines < 0)
     return 1;
 
