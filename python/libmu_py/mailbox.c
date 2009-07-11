@@ -264,6 +264,38 @@ api_mailbox_sync (PyObject *self, PyObject *args)
   return _ro (PyInt_FromLong (status));
 }
 
+static int
+uidls_extractor (void *data, PyObject **dst)
+{
+  struct mu_uidl *uidl = (struct mu_uidl *)data;
+
+  *dst = PyTuple_New (2);
+  PyTuple_SetItem (*dst, 0, PyInt_FromLong (uidl->msgno));
+  PyTuple_SetItem (*dst, 1, PyString_FromString (uidl->uidl));
+  return 0;
+}
+
+static PyObject *
+api_mailbox_get_uidls (PyObject *self, PyObject *args)
+{
+  int status;
+  PyMailbox *py_mbox;
+  PyObject *py_list;
+  mu_list_t c_list = NULL;
+
+  if (!PyArg_ParseTuple (args, "O!", &PyMailboxType, &py_mbox))
+    return NULL;
+
+  status = mu_mailbox_get_uidls (py_mbox->mbox, &c_list);
+
+  if (c_list)
+    py_list = mu_py_mulist_to_pylist (c_list, uidls_extractor);
+  else
+    py_list = PyTuple_New (0);
+
+  return status_object (status, py_list);
+}
+
 static PyObject *
 api_mailbox_lock (PyObject *self, PyObject *args)
 {
@@ -395,6 +427,9 @@ static PyMethodDef methods[] = {
     "Expunge deleted messages from the mailbox MBOX." },
 
   { "sync", (PyCFunction) api_mailbox_sync, METH_VARARGS,
+    "" },
+
+  { "get_uidls", (PyCFunction) api_mailbox_get_uidls, METH_VARARGS,
     "" },
 
   { "lock", (PyCFunction) api_mailbox_lock, METH_VARARGS,
