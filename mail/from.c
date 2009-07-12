@@ -98,16 +98,18 @@ mail_from0 (msgset_t *mspec, mu_message_t msg, void *data)
   
   if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
     cflag = 'M';
+  else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_PRESERVED))
+    cflag = 'P';
   else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
     cflag = '*';
   else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED))
     cflag = 'T';
-  else if (mu_attribute_is_read (attr))
+  else if (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SHOWN))
     cflag = 'R';
-  else if (mu_attribute_is_seen (attr))
-    cflag = 'U';
   else if (mu_attribute_is_recent (attr))
     cflag = 'N';
+  else if (!mu_attribute_is_read (attr))
+    cflag = 'U';
   else
     cflag = ' ';
 

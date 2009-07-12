@@ -427,9 +427,11 @@ extern char *readline (char *prompt);
 
 /* Message attributes */
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
-#define MAIL_ATTRIBUTE_SAVED    0x0002
-#define MAIL_ATTRIBUTE_TAGGED   0x0004
-#define MAIL_ATTRIBUTE_SHOWN    0x0008
+#define MAIL_ATTRIBUTE_PRESERVED 0x0002
+#define MAIL_ATTRIBUTE_SAVED    0x0004
+#define MAIL_ATTRIBUTE_TAGGED   0x0008
+#define MAIL_ATTRIBUTE_SHOWN    0x0010
+#define MAIL_ATTRIBUTE_TOUCHED  0x0020
 
 extern void ml_attempted_completion_over (void);
 

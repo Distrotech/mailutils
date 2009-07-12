@@ -87,6 +87,7 @@ mail_mbox_commit ()
 	/* The mailbox we are closing is not a system one (%). Raise
 	   hold flag */
 	hold = 1;
+	keepsave = 1;
       }
     mu_mailbox_destroy (&mb);
   }
@@ -102,7 +103,12 @@ mail_mbox_commit ()
 	  && (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
 	      || (!hold
 		  && !mu_attribute_is_deleted (attr)
-		  && mu_attribute_is_read (attr))))
+		  && !mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_PRESERVED)
+		  && ((mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED)
+		       && keepsave)
+		      || (!mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED)
+			  && (mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SHOWN)
+			      || mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_TOUCHED)))))))
 	{
 	  int status;
 	  
@@ -136,7 +142,9 @@ mail_mbox_commit ()
 	}
       else if (mu_attribute_is_deleted (attr))
 	/* Skip this one */;
-      else if (!keepsave && mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+      else if (!keepsave
+	       && !mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_PRESERVED)
+	       && mu_attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
 	mu_attribute_set_deleted (attr);
       else if (mu_attribute_is_read (attr))
 	mu_attribute_set_seen (attr);

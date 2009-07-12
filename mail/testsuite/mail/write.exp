@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ mail_test "headers" \
 	" *   2 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"
 
 mail_test -noprompt "quit" \
-	  "Held 0 messages in $MU_SPOOL_DIR/mbox"
+	  "Held 2 messages in $MU_SPOOL_DIR/mbox"
 
 # Examine its contents
 mail_start -reuse-spool "--file=$MU_FOLDER_DIR/three"
@@ -88,7 +88,7 @@ mail_test "Save" \
 	"\"$MU_FOLDER_DIR/gray\"  12/425"
 
 mail_test "file \"$MU_FOLDER_DIR/gray\"" \
-	"Held 1 message in $MU_FOLDER_DIR/three"
+	"Held 2 messages in $MU_FOLDER_DIR/three"
 
 mail_test "headers" \
 	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"
