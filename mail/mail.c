@@ -30,13 +30,18 @@ static mu_list_t command_list;   /* List of commands to be executed after parsin
 				 command line */
 
 const char *program_version = "mail (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mail -- the standard /bin/mail interface");
-static char args_doc[] = N_("[address...]");
+static char doc[] = N_("GNU mail -- process mail messages.\n"
+"If -f or --file is given, mail operates on the mailbox named "
+"by the first argument, or the user's mbox, if no argument given.\n");
+static char args_doc[] = N_("[address...]\n-f [OPTION...] [file]\n--file [OPTION...] [file]\n--file=file [OPTION...]");
+
+#define F_OPTION 256
 
 static struct argp_option options[] = {
+  { NULL,     'f', 0,      OPTION_HIDDEN, NULL, 0 },
+  {"file",    F_OPTION,    "FILE",   OPTION_ARG_OPTIONAL|OPTION_HIDDEN, 0},
+
   {"exist",   'e', 0,      0, N_("Return true if mail exists"), 0},
-  {"file",    'f', N_("URL"), OPTION_ARG_OPTIONAL,
-			      N_("Operate on given mailbox URL (default ~/mbox)"), 0},
   {"byname",  'F', 0,      0, N_("Save messages according to sender"), 0},
   {"headers", 'H', 0,      0, N_("Write a header summary and exit"), 0},
   {"ignore",  'i', 0,      0, N_("Ignore interrupts"), 0},
@@ -56,12 +61,16 @@ static struct argp_option options[] = {
 };
 
 
+#define HINT_SEND_MODE   0x1
+#define HINT_FILE_OPTION 0x2
+
 struct arguments
 {
-  char **args;
+  int argc;
+  char **argv;
   char *file;
   char *user;
-  int send_mode;
+  int hint;
 };
 
 static error_t
@@ -72,32 +81,20 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'a':
-      args->send_mode = 1;
+      args->hint |= HINT_SEND_MODE;
       send_append_header (arg);
       break;
       
     case 'e':
       util_cache_command (&command_list, "setq mode=exist");
       break;
-      
-    case 'f':
-      if (arg != NULL)
+
+    case F_OPTION:
+      if (arg)
 	args->file = arg;
-      /* People often tend to separate -f option from its argument
-	 with a whitespace. This heuristics tries to catch the
-	 error: */
-      else if (state->next < state->argc
-	       && state->argv[state->next][0] != '-')
-	args->file = state->argv[state->next++];
-      else
-	{
-	  int len;
-	  char *home = getenv("HOME");
-	  len = strlen (home) + strlen ("/mbox") + 1;
-	  args->file = xmalloc(len * sizeof (char));
-	  strcpy (args->file, home);
-	  strcat (args->file, "/mbox");
-	}
+      /* fall through */
+    case 'f':
+      args->hint |= HINT_FILE_OPTION;
       break;
       
     case 'p':
@@ -130,9 +127,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 's':
+      args->hint |= HINT_SEND_MODE;
       send_append_header2 (MU_HEADER_SUBJECT, arg, COMPOSE_REPLACE);
       util_cache_command (&command_list, "set noasksub");
-      args->send_mode = 1;
       break;
       
     case 'u':
@@ -149,15 +146,39 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_ARG:
-      args->args = realloc (args->args,
+      args->argv = realloc (args->argv,
 			    sizeof (char *) * (state->arg_num + 2));
-      args->args[state->arg_num] = arg;
-      args->args[state->arg_num + 1] = NULL;
-      args->send_mode = 1;
+      args->argv[state->arg_num] = arg;
+      args->argv[state->arg_num + 1] = NULL;
+      args->argc = state->arg_num + 1;
       break;
 
     case ARGP_KEY_FINI:
-      if (args->send_mode)
+      if ((args->hint & (HINT_SEND_MODE|HINT_FILE_OPTION)) ==
+	  (HINT_SEND_MODE|HINT_FILE_OPTION))
+	argp_error (state, _("conflicting options"));
+      else if (args->hint & HINT_FILE_OPTION)
+	{
+	  if (args->file)
+	    {
+	      if (args->argc > 1)
+		argp_error (state,
+			    _("-f requires at most one command line argument"));
+	    }
+	  else if (args->argc)
+	    {
+	      args->file = args->argv[0];
+	  
+	      if (args->argc > 1)
+		argp_error (state,
+			    _("-f requires at most one command line argument"));
+	    }
+	  else if (args->user)
+	    asprintf (&args->file, "~/%s/mbox", args->user);
+	  else
+	    args->file = "~/mbox";
+	}
+      else if (args->argc || (args->hint & HINT_SEND_MODE))
 	util_cache_command (&command_list, "setq mode=send");
       break;
       
@@ -230,7 +251,7 @@ static char *default_setup[] = {
   "set noautoprint",
   "set nobang",
   "set nocmd",
-  "set nodebug",
+  /*  "set nodebug",*/
   "set nodot",
   "set escape=~",
   "set noflipr",
@@ -281,10 +302,18 @@ static char *default_setup[] = {
   "set nullbodymsg=\"" N_("Null message body; hope that's ok") "\"",
   
   /* These settings are not yet used */
-  "set nodebug",
   "set noonehop",
   "set nosendwait",
 };
+
+static int
+mail_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
+{
+  if (level != MU_DIAG_ERROR)
+    fprintf (stderr, "%s: ", mu_diag_level_to_string (level));
+  fputs (buf, stderr);
+  return 0;
+}
 
 int
 main (int argc, char **argv)
@@ -345,14 +374,15 @@ main (int argc, char **argv)
     char *mailer_name = alloca (strlen ("sendmail:")
 				+ strlen (PATH_SENDMAIL) + 1);
     sprintf (mailer_name, "sendmail:%s", PATH_SENDMAIL);
-    mailvar_set ("sendmail", mailer_name, mailvar_type_string, MOPTF_OVERWRITE);
+    mailvar_set ("sendmail", mailer_name, mailvar_type_string,
+		 MOPTF_OVERWRITE);
   }
 
-
-  args.args = NULL;
+  args.argc = 0;
+  args.argv = NULL;
   args.file = NULL;
   args.user = NULL;
-  args.send_mode = 0;
+  args.hint = 0;
   
   /* argument parsing */
 #ifdef WITH_TLS
@@ -369,7 +399,14 @@ main (int argc, char **argv)
 
   util_run_cached_commands (&command_list);
 
-  if (!interactive)
+  if (interactive)
+    {
+      mu_debug_t debug;
+
+      mu_diag_get_debug (&debug);
+      mu_debug_set_print (debug, mail_diag_stderr_printer, NULL);
+    }
+  else
     {
       util_do_command ("set nocrt");
       util_do_command ("set noasksub");
@@ -384,58 +421,31 @@ main (int argc, char **argv)
   /* Interactive mode */
 
   ml_readline_init ();
-  mail_set_my_name(args.user);
+  mail_set_my_name (args.user);
 
   /* Mode is just sending */
   if (strcmp (mode, "send") == 0)
     {
       /* FIXME: set cmd to "mail [add1...]" */
       char *buf = NULL;
-      int num = 0;
       int rc;
-      if (args.args != NULL)
-	while (args.args[num] != NULL)
-	  num++;
-      mu_argcv_string (num, args.args, &buf);
+
+      mu_argcv_string (args.argc, args.argv, &buf);
       rc = util_do_command ("mail %s", buf);
       return mailvar_get (NULL, "mailx", mailvar_type_boolean, 0) ? rc : 0;
     }
   /* Or acting as a normal reader */
   else 
     {
-      /* open the mailbox */
-      if (args.file == NULL)
+      if ((rc = mu_mailbox_create_default (&mbox, args.file)) != 0)
 	{
-	  if (args.user)
-	    {
-	      char *p = xmalloc (strlen (args.user) + 2);
-	      p[0] = '%';
-	      strcpy (p + 1, args.user);
-	      rc = mu_mailbox_create_default (&mbox, p);
-	      free (p);
-	    }
+	  if (args.file)
+	    util_error (_("Cannot create mailbox %s: %s"), args.file,
+			mu_strerror (rc));
 	  else
-	    rc = mu_mailbox_create_default (&mbox, NULL);
-	  if (rc != 0)
-	    {
-	      util_error (_("Cannot create mailbox for %s: %s"), args.user,
-			  mu_strerror (rc));
-	      exit (EXIT_FAILURE);
-	    }
-	}
-      else if ((rc = mu_mailbox_create_default (&mbox, args.file)) != 0)
-	{
-	  util_error (_("Cannot create mailbox %s: %s"), args.file,
-		      mu_strerror (rc));
+	    util_error (_("Cannot create mailbox: %s"),
+			mu_strerror (rc));
 	  exit (EXIT_FAILURE);
-	}
-
-      /* Could we enable this at runtime, via the a set environment?  */
-      if (0)
-	{
-	  mu_debug_t debug = NULL;
-	  mu_mailbox_get_debug (mbox, &debug);
-	  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 	}
 
       if ((rc = mu_mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0)
@@ -547,7 +557,7 @@ mail_warranty (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   fputs (_("GNU Mailutils -- a suite of utilities for electronic mail\n"
            "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
-           "2007 Free Software Foundation, Inc.\n\n"),
+           "2007, 2009 Free Software Foundation, Inc.\n\n"),
            ofile);
   fputs (
   _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"

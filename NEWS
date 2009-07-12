@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2009-07-11
+GNU mailutils NEWS -- history of user-visible changes. 2009-07-12
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008, 2009 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -29,6 +29,25 @@ information.
 
 * Mail
 
+** The -f option
+
+The semantics of -f (--file) option fully complies to the POSIX
+standard. Namely, this option instructs mail to read messages
+from the file named by the first non-optional command line
+argument. Therefore, the following four usage patterns are
+entirely equivalent:
+
+  mail -fin mymbox
+  mail -f mymbox -in
+  mail --file -in mymbox
+  mail --file -i mymbox -n
+
+In addition, the form
+
+  mail --file=mymbox
+
+is also allowed.  
+  
 ** envelope command
 
 The env[elope] command displays the SMTP envelopes of the messages

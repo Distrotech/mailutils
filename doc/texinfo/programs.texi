@@ -2189,9 +2189,8 @@ See @ref{Composing Mail}, for a detailed description of this behavior.
 
 If the command line contained no email addresses, @command{mail} switches
 to reading mode. In this mode it allows to read and manipulate the
-contents of a mailbox. The URL of the mailbox to operate upon is
-taken from the argument of @option{--file} command line option. If it
-is not specified, the user's system mailbox is assumed. For more
+contents of the user system mailbox. The @option{--file} (@option{-f})
+command line option allows to specify another mailbox name. For more
 detail, see @ref{Reading Mail}.
 
 In contrast to other GNU Mailutils programs, @command{mail} does not
@@ -2237,16 +2236,12 @@ Execute @var{command} before opening the mailbox. Any number of
 @option{--exec} options can be given. The commands will be executed
 after sourcing configuration files (@pxref{Mail Configuration Files}),
 but before opening the mailbox. 
-@item --exec
-@item -f[@var{file}]
-@itemx --file[=@var{file}]
-Operate on mailbox @var{file}. If this option is not specified, the default
-is user's system mailbox. If it is specified without argument, the
-default is @file{$HOME/mbox}.
-@emph{Please note}, that there should be no whitespace between the
-short variant of the option (@option{-f}), and its parameter. Similarly,
-when using long option (@option{--file}), its argument must be preceded by
-equal sign.
+@item -f
+@itemx --file
+Operate on the mailbox given by the first non-optional command line
+argument. If there is no such argument, read messages from the
+user's @file{mbox} file. @xref{Reading Mail} for more details about
+using this option.
 @item -F
 @itemx --byname
 Save messages according to sender. Currently this option is not implemented.
@@ -2628,10 +2623,15 @@ invoking @command{mail}:
 @table @code
 @item mail
 To read messages from your system mailbox.
-@item mail --file
-To read messages from your mailbox (@file{$HOME/mbox}).
-@item mail --file=@var{path_to_mailbox}
+@item mail -f
+@itemx mail --file
+To read messages from your mailbox (@file{$HOME/mbox}).  If the
+@option{--user} option (see below) is also given, read messages
+from that user's @file{mbox}.
+@item mail -f @var{path_to_mailbox}
+@itemx mail --file @var{path_to_mailbox}
 To read messages from the specified mailbox.
+@itemx mail -u @var{user}
 @item mail --user=@var{user}
 To read messages from the system mailbox belonging to @var{user}.
 @end table
@@ -2640,6 +2640,25 @@ To read messages from the system mailbox belonging to @var{user}.
 to use the last variant of invocation, unless you are a super-user.
 Similarly, the last but one variant is also greatly affected by the
 permissions the target mailbox has.
+
+Notice that @var{path_to_mailbox} is not an argument to
+@option{--file} (@option{-f}) option, but rather the first
+non-optional argument on the command line. Therefore, the
+following three invocations are equivalent:
+
+@smallexample
+$ mail -fin mymbox
+$ mail -f mymbox -in
+$ mail --file -in mymbox
+$ mail --file -i mymbox -n
+@end smallexample
+
+Additionally, for conformance to the GNU standards, the
+following form is also accepted:
+
+@smallexample
+$ mail --file=mymbox -i -n
+@end smallexample
 
 Unless you have started mail with @option{--norc} command line option,
 it will read the contents of the system-wide configuration file.
@@ -3562,6 +3581,20 @@ to a numeric value, this value is taken as the threshold. Otherwise,
 if @code{crt} is set without a value, then the height of the terminal
 screen is used to compute the threshold. The number of lines on
 screen is controlled by @code{screen} variable.
+
+@item debug
+@*Type: String to boolean
+@*Default: Not set
+@vrindex debug, mail variable
+
+Sets mailutils debug level.  If set to string, the value must be a
+valid Mailutils debugging specification.  @xref{Debug Statement}, for
+a description.
+
+If unset (i.e. @code{set nodebug}), clears and disables all debugging
+information.  If set to @samp{true} (i.e. @code{set debug}), sets
+maximum debugging (@samp{<trace7}) on mailbox and its underlying
+objects.
 
 @item decode-fallback
 @*Type: String.
