@@ -123,7 +123,9 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
   
   make_in_reply_to (&env, msg);
   make_references (&env, msg);
-  status = mail_send0 (&env, 0);
+  status = mail_send0 (&env,
+		       mailvar_get (NULL, "byname", mailvar_type_boolean, 0)
+		                     == 0);
   compose_destroy (&env);
 
   return status;

@@ -2244,7 +2244,10 @@ user's @file{mbox} file. @xref{Reading Mail} for more details about
 using this option.
 @item -F
 @itemx --byname
-Save messages according to sender. Currently this option is not implemented.
+Record outgoing messages in a file named after the first recipient.
+The name is the login-name portion of the address found first on the
+@samp{To:} line in the mail header. This option sets the @samp{byname}
+variable, which see (@xref{byname}).
 @item -H
 @itemx --headers
 Print header summary to stdout and exit.
@@ -3527,6 +3530,19 @@ message, the next one will be typed automatically.
 
 When set, every occurrence of @code{!} in arguments to @code{!}
 command is replaced with the last executed command.
+
+@anchor{byname}
+@item byname
+@*Type: Boolean
+@*Default: Unset
+@vrindex byname, mail variable
+
+Record outgoing messages in a file named after the first recipient.
+The name is the login-name portion of the address found first on the
+@samp{To:} line in the mail header. This variable overrides the
+@samp{record} variable.
+
+It is set by the @option{--byname} (@option{-F}) command line option.
 
 @anchor{datefield}
 @item datefield

@@ -48,6 +48,11 @@ In addition, the form
 
 is also allowed.  
 
+** The -F option
+
+The -F option (record outgoing messages in a file named after the
+first recipient) is implemented.
+
 ** error locations
 
 Diagnostic messages issued while processing `source' command

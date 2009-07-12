@@ -141,8 +141,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'F':
-      /* FIXME */
-      util_cache_command (&command_list, "setq byname");
+      util_cache_command (&command_list, "set byname");
       break;
 
     case ARGP_KEY_ARG:

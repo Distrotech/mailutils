@@ -66,6 +66,10 @@ struct mailvar_symbol mailvar_tab[] =
     { { "autoprint", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("delete command behaves like dp") },
+    { { "byname" },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
+      N_("record outgoing messages in a file named after the first recipient; "
+	 "overrides the `record' variable") },
     { { "bang", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("replace every occurrence of ! in arguments to the shell command"

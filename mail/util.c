@@ -713,7 +713,7 @@ util_outfolder_name (char *str)
   return strdup (str);
 }
 
-/* Save an outgoing message. "savefile" allows to override the setting
+/* Save an outgoing message. The SAVEFILE argument overrides the setting
    of the "record" variable. */
 void
 util_save_outgoing (mu_message_t msg, char *savefile)
