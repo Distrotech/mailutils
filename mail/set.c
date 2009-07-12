@@ -48,7 +48,8 @@ mail_set (int argc, char **argv)
 	  
 	  if (!strncmp ("no", argv[i], 2) && !value)
 	    {
-	      mailvar_set (&argv[i][2], NULL, mailvar_type_boolean, flags);
+	      mailvar_set (&argv[i][2], NULL, mailvar_type_boolean,
+			   flags | MOPTF_UNSET);
 	    }
 	  else if (value)
 	    {

@@ -20,160 +20,241 @@
 #define MAILVAR_RDONLY 0x0002
 #define MAILVAR_HIDDEN 0x0004
 
+#define MAILVAR_TYPEMASK(type) (1<<(8+(type)))
+
 struct mailvar_symbol
 {
   struct mailvar_variable var;
-  enum mailvar_type type;
   int flags;
   char *descr;
+  void (*handler) (struct mailvar_variable *);
 };
 
 mu_list_t mailvar_list = NULL;
 
+static void set_decode_fallback (struct mailvar_variable *);
+static void set_replyregex (struct mailvar_variable *);
+static void set_screen (struct mailvar_variable *);
+static void set_debug (struct mailvar_variable *);
+  
 struct mailvar_symbol mailvar_tab[] =
   {
+    /* FIXME: */
+    { { "allnet", }, MAILVAR_HIDDEN },
+    
     /* For compatibility with other mailx implementations.
        Never used, always true. */
-    { { "append", }, mailvar_type_boolean, MAILVAR_RDONLY,
+    { { "append", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean) | MAILVAR_RDONLY,
       N_("messages saved in mbox are appended to the end rather than prepended") },
-    { { "appenddeadletter", }, mailvar_type_boolean, 0,
+    { { "appenddeadletter", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("append the contents of canceled letter to dead.letter file") },
-    { { "askbcc", }, mailvar_type_boolean, 0,
+    { { "askbcc", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("prompt user for bcc before composing the message") },
-    { { "askcc", }, mailvar_type_boolean, 0, 
+    { { "askcc", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("prompt user for cc before composing the message") },
-    { { "ask", }, mailvar_type_boolean, 0,
+    { { "ask", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("prompt user for subject before composing the message") },
-    { { "asksub", }, mailvar_type_whatever, MAILVAR_ALIAS, NULL },
-    { { "autoinc", }, mailvar_type_boolean, 0,
+    { { "asksub", }, MAILVAR_ALIAS, NULL },
+    { { "autoinc", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("automatically incorporate newly arrived messages")},
-    { { "autoprint", }, mailvar_type_boolean, 0,
+    { { "autoprint", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("delete command behaves like dp") },
-    { { "bang", }, mailvar_type_boolean, 0,
+    { { "bang", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("replace every occurrence of ! in arguments to the shell command"
 	 " with the last executed command") },
-    { { "charset", }, mailvar_type_string, 0,
+    { { "charset", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("output character set for decoded header fields") },
-    { { "cmd", }, mailvar_type_string, 0,
+    { { "cmd", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("default shell command for pipe") },
-    { { "columns", }, mailvar_type_number, 0,
+    { { "columns", },
+      MAILVAR_TYPEMASK (mailvar_type_number),
       N_("number of columns on terminal screen") },
-    { { "crt", }, mailvar_type_number, 0,
+    { { "crt", },
+      MAILVAR_TYPEMASK (mailvar_type_number) |
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("if numeric, sets the minimum number of output lines needed "
 	 "to engage paging; if boolean, use the height of the terminal "
 	 "screen to compute the threshold") },
-    { { "datefield", }, mailvar_type_boolean, 0,
+    { { "datefield", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("get date from the `Date:' header, instead of the envelope") },
-    { { "dot", }, mailvar_type_boolean, 0,
+    { { "debug", },
+      MAILVAR_TYPEMASK (mailvar_type_string) |
+        MAILVAR_TYPEMASK (mailvar_type_boolean),
+      N_("set Mailutils debug level"),
+      set_debug },
+    { { "decode-fallback", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
+      N_("how to represent characters that cannot be rendered using the "
+	 "current character set"),
+      set_decode_fallback },
+    { { "dot", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("input message is terminated with a dot alone on a line") },
-    { { "editheaders", }, mailvar_type_boolean, 0,
+    { { "editheaders", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("allow to edit message headers while composing") },
-    { { "emptystart", }, mailvar_type_boolean, 0,
+    { { "emptystart", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("start interactive mode if the mailbox is empty") },
-    { { "escape", }, mailvar_type_string, 0,
+    { { "escape", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("character denoting escapes") },
-    { { "flipr", }, mailvar_type_boolean, 0,
+    { { "flipr", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("swap the meaning of reply and Reply commands") },
-    { { "folder", }, mailvar_type_string, 0,
+    { { "folder", },
+      MAILVAR_TYPEMASK (mailvar_type_string), 
       N_("folder directory name") },
-    { { "fromfield", }, mailvar_type_boolean, 0,
+    { { "fromfield", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("get sender address from the `From:' header, instead of "
 	 "the envelope") },
-    { { "gnu-last-command", }, mailvar_type_boolean, MAILVAR_RDONLY,
+    { { "gnu-last-command", },
+      MAILVAR_TYPEMASK (mailvar_type_string) | MAILVAR_RDONLY,
       N_("last executed command line") },
-    { { "header", }, mailvar_type_boolean, 0,
+    { { "header", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("run the `headers' command after entering interactive mode") },
-    { { "hold", }, mailvar_type_boolean, 0,
+    { { "hold", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("hold the read or saved messages in the system mailbox") },
-    { { "ignore", }, mailvar_type_boolean, 0,
+    { { "ignore", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("ignore keyboard interrupts when composing messages") },
-    { { "ignoreeof", }, mailvar_type_boolean, 0,
+    { { "ignoreeof", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("typing the EOF character terminates the letter being composed") },
-    { { "indentprefix", }, mailvar_type_string, 0,
+    { { "indentprefix", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("string used by the ~m escape for indenting quoted messages") },
-    { { "inplacealiases", }, mailvar_type_boolean, 0,
+    { { "inplacealiases", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("expand aliases in the address header field "
 	 "before entering send mode") },
     /* For compatibility with other mailx implementations.
        Never used, always true. */
-    { { "keep", }, mailvar_type_boolean, MAILVAR_RDONLY,
+    { { "keep", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean) | MAILVAR_RDONLY,
       N_("truncate the user's system mailbox when it is empty") },
-    { { "keepsave", }, mailvar_type_boolean, 0,
+    { { "keepsave", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("keep saved messages in system mailbox too") },
-    { { "mailx", }, mailvar_type_boolean, 0,
+    { { "mailx", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("enable mailx compatibility mode") },
-    { { "metamail", }, mailvar_type_boolean, 0,
+    { { "metamail", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("interpret the content of message parts; if set to a string "
 	 "specifies the name of the externam metamail command") },
-    { { "metoo", }, mailvar_type_boolean, 0,
+    { { "metoo", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("do not remove sender addresses from the recipient list") },
-    { { "mimenoask", }, mailvar_type_string, 0,
+    { { "mimenoask", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("a comma-separated list of MIME types for which "
 	 "no confirmation is needed before running metamail interpreter") },
-    { { "mode", }, mailvar_type_string, MAILVAR_RDONLY,
+    { { "mode", },
+      MAILVAR_TYPEMASK (mailvar_type_string) | MAILVAR_RDONLY,
       N_("the name of current operation mode") },
-    { { "nullbody", }, mailvar_type_boolean, 0,
+    { { "nullbody", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("accept messages with an empty body") },
-    { { "nullbodymsg", }, mailvar_type_string, 0,
+    { { "nullbodymsg", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("display this text when sending a message with empty body") },
-    { { "outfolder", }, mailvar_type_string, 0,
+    { { "outfolder", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("keep created files in this folder") },
-    { { "page", }, mailvar_type_boolean, 0,
+    { { "page", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("pipe command terminates each message with a linefeed") },
-    { { "prompt", }, mailvar_type_string, 0,
+    { { "prompt", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("command prompt sequence") },
-    { { "quit", }, mailvar_type_boolean, 0,
+    { { "quit", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("keyboard interrupts terminate the program") },
-    { { "rc", }, mailvar_type_boolean, 0,
+    { { "rc", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("read the system-wide configuration file upon startup") },
-    { { "readonly", }, mailvar_type_boolean, 0,
+    { { "readonly", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("mailboxes are opened in readonly mode") },
-    { { "record", }, mailvar_type_string, 0,
+    { { "record", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("save outgoing messages in this file") },
-    { { "recursivealiases", }, mailvar_type_boolean, 0,
+    { { "recursivealiases", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("recursively expand aliases") },
-    { { "regex", }, mailvar_type_boolean, 0,
+    { { "regex", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("use regular expressions in message specifications") },
-    { { "replyprefix", }, mailvar_type_string, 0,
+    { { "replyprefix", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("prefix for the subject line of a reply message") },
-    { { "replyregex", }, mailvar_type_string, 0,
-      N_("regexp for recognizing subject lines of reply messages") },
-    { { "save", }, mailvar_type_boolean, 0,
+    { { "replyregex", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
+      N_("regexp for recognizing subject lines of reply messages"),
+      set_replyregex },
+    { { "save", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("stored aborted messages in the user's dead.file") },
-    { { "screen", }, mailvar_type_number, 0,
-      N_("number of lines on terminal screen") },
-    { { "sendmail", }, mailvar_type_string, 0,
+    { { "screen", },
+      MAILVAR_TYPEMASK (mailvar_type_number),
+      N_("number of lines on terminal screen"),
+      set_screen },
+    { { "sendmail", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("URL of the mail transport agent") },
     /* FIXME: Not yet used. */
-    { { "sendwait", }, mailvar_type_boolean, MAILVAR_HIDDEN, NULL },
-    { { "sign", }, mailvar_type_string, 0,
+    { { "sendwait", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean) | MAILVAR_HIDDEN, NULL },
+    { { "sign", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("signature for use with the ~a command") },
-    { { "Sign", }, mailvar_type_string, 0,
+    { { "Sign", },
+      MAILVAR_TYPEMASK (mailvar_type_string),
       N_("signature for use with the ~A command") },
-    { { "showenvelope", }, mailvar_type_boolean, 0,
+    { { "showenvelope", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("`print' command includes the SMTP envelope in its output") },
-    { { "showto", }, mailvar_type_boolean, 0,
+    { { "showto", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("if the message was sent by the user, print its recipient address "
 	 "in the header summary") },
-    { { "toplines", }, mailvar_type_number, 0,
+    { { "toplines", },
+      MAILVAR_TYPEMASK (mailvar_type_number),
       N_("number of lines to be displayed by `top' or `Top'") },
-    { { "verbose", }, mailvar_type_boolean, 0,
+    { { "variable-pretty-print", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
+      N_("print variables with short descriptions") },
+    { { "varpp", }, MAILVAR_ALIAS },
+    { { "variable-strict", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
+      N_("perform strict checking when setting options") },
+    { { "varstrict", }, MAILVAR_ALIAS },
+    { { "verbose", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("verbosely trace the process of message delivery") },
-    { { "xmailer", }, mailvar_type_boolean, 0,
+    { { "xmailer", },
+      MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("add the `X-Mailer' header to the outgoing messages") },
 
-    { { "variable-pretty-print", }, mailvar_type_boolean, 0,
-      N_("print variables with short descriptions") },
-    { { "varpp", }, mailvar_type_whatever, MAILVAR_ALIAS },
-    { { "variable-strict", }, mailvar_type_boolean, 0,
-      N_("perform strict checking when setting options") },
-    { { "varstrict", }, mailvar_type_whatever, MAILVAR_ALIAS },
-
     /* These will be implemented later */
-    { { "debug", }, mailvar_type_whatever, MAILVAR_HIDDEN, NULL },
-    { { "onehop", }, mailvar_type_whatever, MAILVAR_HIDDEN, NULL },
+    { { "onehop", }, MAILVAR_HIDDEN, NULL },
 
-    { { "quiet", }, mailvar_type_boolean, MAILVAR_HIDDEN,
+    { { "quiet", }, MAILVAR_TYPEMASK (mailvar_type_boolean) | MAILVAR_HIDDEN,
       "suppresses the printing of the version when first invoked" },
     
     { { NULL }, }
@@ -381,12 +462,12 @@ mailvar_set (const char *variable, void *value, enum mailvar_type type,
 	     int flags)
 {
   struct mailvar_variable *var;
+  const struct mailvar_symbol *sym = find_mailvar_symbol (variable);
+  int unset = flags & MOPTF_UNSET;
   
   if (!(flags & MOPTF_QUIET)
       && mailvar_get (NULL, "variable-strict", mailvar_type_boolean, 0) == 0)
     {
-      const struct mailvar_symbol *sym = find_mailvar_symbol (variable);
-
       if (!sym)
 	mu_diag_output (MU_DIAG_WARNING, _("setting unknown variable %s"),
 			variable);
@@ -396,64 +477,149 @@ mailvar_set (const char *variable, void *value, enum mailvar_type type,
 		    variable);
 	  return 1;
 	}
+      else if (!(sym->flags & MAILVAR_TYPEMASK (type))
+	       && !unset)
+	{
+	  mu_error (_("Wrong type for %s"), variable);
+	  return 1;
+	}
     }
 
-  var = mailvar_find_variable (variable, 1);
+  var = mailvar_find_variable (variable, !unset);
 
   if (!var || (var->set && !(flags & MOPTF_OVERWRITE)))
     return 0;
 
   mailvar_variable_reset (var);
-  
-  var->type = type;
-  if (value)
+  if (!unset)
     {
-      var->set = 1;
-      switch (type)
+      var->type = type;
+      if (value)
 	{
-	case mailvar_type_number:
-	  var->value.number = *(int*)value;
-	  break;
+	  var->set = 1;
+	  switch (type)
+	    {
+	    case mailvar_type_number:
+	      var->value.number = *(int*)value;
+	      break;
 	  
-	case mailvar_type_string:
-	  var->value.string = strdup (value);
-	  break;
+	    case mailvar_type_string:
+	      var->value.string = strdup (value);
+	      break;
 	  
-	case mailvar_type_boolean:
-	  var->value.bool = *(int*)value;
-	  break;
+	    case mailvar_type_boolean:
+	      var->value.bool = *(int*)value;
+	      break;
 		  
-	default:
-	  abort();
+	    default:
+	      abort();
+	    }
 	}
     }
     
   /* Special handling for some variables */
-  if (strcmp (variable, "replyregex") == 0)
-    { 
-      int rc;
-      char *err;
-	      
-      if ((rc = mu_unre_set_regex (value, 0, &err)))
-	{
-	  fprintf (stderr, "%s", mu_strerror (rc));
-	  if (err)
-	    {
-	      fprintf (stderr, "%s", err);
-	      free (err);
-	    }
-	  fprintf (stderr, "\n");
-	}
-    }
-  else if (strcmp (variable, "decode-fallback") == 0)
-    {
-      if (mu_set_default_fallback (value))
-	mu_error (_("Incorrect value for decode-fallback"));
-    }
-  else if (strcmp (variable, "screen") == 0)
-    page_invalidate (1);
+  if (sym && sym->flags & MAILVAR_TYPEMASK (type) && sym->handler)
+    sym->handler (var);
   
   return 0;
+}
+
+
+static void
+set_decode_fallback (struct mailvar_variable *var)
+{
+  if (mu_set_default_fallback (var->value.string))
+    mu_error (_("Incorrect value for decode-fallback"));
+}
+
+static void
+set_replyregex (struct mailvar_variable *var)
+{
+  int rc;
+  char *err;
+  
+  if ((rc = mu_unre_set_regex (var->value.string, 0, &err)))
+    {
+      if (err)
+	mu_error ("%s: %s", mu_strerror (rc), err);
+      else
+	mu_error ("%s", mu_strerror (rc));
+    }
+}
+
+static void
+set_screen (struct mailvar_variable *var)
+{
+  page_invalidate (1);
+}
+
+static void
+set_mailbox_debug_level (mu_log_level_t level)
+{
+  if (mbox)
+    {
+      mu_debug_t mdbg;
+      mu_mailbox_get_debug (mbox, &mdbg);
+      mu_debug_set_level (mdbg, level);
+    }
+}  
+
+#define DEFAULT_DEBUG_LEVEL  \
+  (MU_DEBUG_INHERIT | MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7))
+
+static void
+set_debug (struct mailvar_variable *var)
+{
+  int rc;
+  int argc;
+  char **argv;
+  int i;
+  mu_debug_t dbg;
+
+  mu_global_debug_clear_level (NULL);
+  set_mailbox_debug_level (0);
+
+  if (var->type == mailvar_type_boolean)
+    {
+      if (var->set)
+	{
+	  /* FIXME: What to set here? 
+	     mu_global_debug_set_level ("*", DEFAULT_DEBUG_LEVEL); */
+	  set_mailbox_debug_level (DEFAULT_DEBUG_LEVEL);
+	}
+      return;
+    }
+  
+  mu_diag_get_debug (&dbg);
+  
+  rc = mu_argcv_get (var->value.string, ";", NULL, &argc, &argv);
+  if (rc)
+    {
+      mu_error (_("Cannot parse string: %s"), mu_strerror (rc));
+      return;
+    }
+
+  for (i = 0; i < argc; i++)
+    {
+      char *p;
+      mu_log_level_t level = MU_DEBUG_INHERIT;
+      char *object_name = argv[i];
+      
+      for (p = object_name; *p && *p != '='; p++)
+	;
+
+      if (*p == '=')
+	{
+	  *p++ = 0;
+	  mu_debug_level_from_string (p, &level, dbg);
+	}
+      else
+	level |= MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT);
+      
+      if (strcmp (object_name, "mailbox") == 0)
+	set_mailbox_debug_level (level);
+      mu_global_debug_set_level (object_name, level);
+    }
 }
 
 
@@ -654,6 +820,7 @@ static void
 describe_symbol (FILE *out, int width, const struct mailvar_symbol *sym)
 {
   int n;
+  int i, t;
   const struct mailvar_symbol *ali;
 
   n = fprintf (out, "%s", sym->var.name);
@@ -667,7 +834,18 @@ describe_symbol (FILE *out, int width, const struct mailvar_symbol *sym)
     }
   fputc ('\n', out);
   
-  fprintf (out, _("Type: %s\n"), gettext (typestr[sym->type]));
+  fprintf (out, _("Type: "));
+  for (i = 0, t = 0; i < sizeof (typestr) / sizeof (typestr[0]); i++)
+    if (sym->flags & MAILVAR_TYPEMASK (i))
+      {
+	if (t++)
+	  fprintf (out, " %s ", _("or"));
+	fprintf (out, "%s", gettext (typestr[i]));
+      }
+  if (!t)
+    fprintf (out, "%s", gettext (typestr[0]));
+  fputc ('\n', out);
+  
   fprintf (out, "%s", _("Current value: "));
   mailvar_variable_format (out, &sym->var, _("[not set]"));
 

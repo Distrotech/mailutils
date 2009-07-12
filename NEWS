@@ -47,7 +47,14 @@ In addition, the form
   mail --file=mymbox
 
 is also allowed.  
-  
+
+** error locations
+
+Diagnostic messages issued while processing `source' command
+include file locations, in compliance with the GNU standards. This
+also includes diagnostics issued during processing of the
+system or user configuration file.
+
 ** envelope command
 
 The env[elope] command displays the SMTP envelopes of the messages

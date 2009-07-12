@@ -344,6 +344,7 @@ extern void mailvar_variable_format (FILE *fp,
 
 #define MOPTF_OVERWRITE 0x001
 #define MOPTF_QUIET     0x002
+#define MOPTF_UNSET     0x004
 extern int mailvar_set (const char *name, void *value,
 		      enum mailvar_type type, int flags);
 extern int util_isdeleted (size_t msgno);
