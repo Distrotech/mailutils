@@ -136,6 +136,8 @@ static const struct mail_command_entry mail_command_table[] = {
     mail_size, msglist_compl },
   { "so",	"source",	"so[urce] file",		0,
     mail_source, NULL },
+  { "st",       "struct",       "st[ruct] [msglist]",           0,
+    mail_struct, NULL },
   { "su",	"summary",	"su[mmary]",			0,
     mail_summary, no_compl },
   { "T",	"Type",		"T[ype] [msglist]",		0,

@@ -84,6 +84,7 @@ mail_SOURCES = \
  shell.c\
  size.c\
  source.c\
+ struct.c\
  summary.c\
  table.c\
  tag.c\

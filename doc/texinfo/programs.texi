@@ -2878,6 +2878,7 @@ Displays current mailbox summary. E.g.:
 @kyindex Print, mail command
 @kyindex Type, mail command
 @kyindex decode, mail command
+@kyindex struct, mail command
 @kyindex top, mail command
 @kyindex pipe, mail command
 @kyindex |, mail command
@@ -2926,6 +2927,21 @@ defaults to five.
 Pipe the contents of specified messages through @var{shell-command}. If
 @var{shell-command} is empty but the string variable @code{cmd} is set,
 the value of this variable is used as a command name.
+@item struct [@var{msglist}]
+Prints the @acronym{MIME} structure of each message from
+@var{msglist}. Empty @var{msglist} means current message.
+
+Example:
+
+@smallexample
+@cartouche
+& struct 2
+2      multipart/mixed            14k
+2[1]   text/plain                 296
+2[2]   application/octet-stream    5k
+2[3]   text/x-diff                31k
+@end cartouche
+@end smallexample
 @end table
 
 @node Marking Messages

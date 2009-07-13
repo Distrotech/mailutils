@@ -33,7 +33,8 @@ struct decode_closure
 
 static int print_stream (mu_stream_t, FILE *);
 static int display_message (mu_message_t, msgset_t *msgset, void *closure);
-static int display_message0 (mu_message_t, const msgset_t *, int);
+static int display_submessage (struct mime_descend_closure *closure,
+			       void *data);
 static int get_content_encoding (mu_header_t hdr, char **value);
 static void run_metamail (const char *mailcap, mu_message_t mesg);
 
@@ -59,12 +60,20 @@ display_message (mu_message_t mesg, msgset_t *msgset, void *arg)
 {
   struct decode_closure *closure = arg;
   mu_attribute_t attr = NULL;
-
+  struct mime_descend_closure mclos;
+  
   mu_message_get_attribute (mesg, &attr);
   if (mu_attribute_is_deleted (attr))
     return 1;
 
-  display_message0 (mesg, msgset, closure->select_hdr);
+  mclos.hints = closure->select_hdr ? MDHINT_SELECTED_HEADERS : 0;
+  mclos.msgset = msgset;
+  mclos.message = mesg;
+  mclos.type = NULL;
+  mclos.encoding = NULL;
+  mclos.parent = NULL;
+
+  mime_descend (&mclos, display_submessage, NULL);
 
   /* Mark enclosing message as read */
   if (mu_mailbox_get_message (mbox, msgset->msg_part[0], &mesg) == 0)
@@ -112,9 +121,23 @@ display_headers (FILE *out, mu_message_t mesg,
     }
 }
 
+size_t
+fprint_msgset (FILE *fp, const msgset_t *msgset)
+{
+  int i;
+  size_t n = 0;
+  
+  n = fprintf (fp, "%d", msgset->msg_part[0]);
+  for (i = 1; i < msgset->npart; i++)
+    n += fprintf (fp, "[%d", msgset->msg_part[i]);
+  for (i = 1; i < msgset->npart; i++)
+    n += fprintf (fp, "]");
+  return n;
+}
+
 static void
 display_part_header (FILE *out, const msgset_t *msgset,
-		     char *type, char *encoding)
+		     const char *type, const char *encoding)
 {
   int size = util_screen_columns () - 3;
   unsigned int i;
@@ -124,11 +147,8 @@ display_part_header (FILE *out, const msgset_t *msgset,
     fputc ('-', out);
   fputc ('+', out);
   fputc ('\n', out);
-  fprintf (out, _("| Message=%d"), msgset->msg_part[0]);
-  for (i = 1; i < msgset->npart; i++)
-    fprintf (out, "[%d", msgset->msg_part[i]);
-  for (i = 1; i < msgset->npart; i++)
-    fprintf (out, "]");
+  fprintf (out, "%s", _("| Message="));
+  fprint_msgset (out, msgset);
   fprintf (out, "\n");
 
   fprintf (out, _("| Type=%s\n"), type);
@@ -140,38 +160,49 @@ display_part_header (FILE *out, const msgset_t *msgset,
   fputc ('\n', out);
 }
 
-static int
-display_message0 (mu_message_t mesg, const msgset_t *msgset,
-		  int select_hdr)
+int
+mime_descend (struct mime_descend_closure *closure,
+	      mime_descend_fn fun, void *data)
 {
+  int status = 0;
   size_t nparts = 0;
   mu_header_t hdr = NULL;
   char *type;
   char *encoding;
   int ismime = 0;
-  char *tmp;
+  struct mime_descend_closure subclosure;
 
-  mu_message_get_header (mesg, &hdr);
-  util_get_content_type (hdr, &type);
+  mu_message_get_header (closure->message, &hdr);
+  util_get_content_type (hdr, &type, NULL);
   get_content_encoding (hdr, &encoding);
 
-  mu_message_is_multipart (mesg, &ismime);
+  closure->type = type;
+  closure->encoding = encoding;
+  
+  subclosure.hints = 0;
+  subclosure.parent = closure;
+  
+  mu_message_is_multipart (closure->message, &ismime);
   if (ismime)
     {
       unsigned int j;
-      
-      mu_message_get_num_parts (mesg, &nparts);
+
+      mu_message_get_num_parts (closure->message, &nparts);
 
       for (j = 1; j <= nparts; j++)
 	{
 	  mu_message_t message = NULL;
 
-	  if (mu_message_get_part (mesg, j, &message) == 0)
+	  if (mu_message_get_part (closure->message, j, &message) == 0)
 	    {
-	      msgset_t *set = msgset_expand (msgset_dup (msgset),
+	      msgset_t *set = msgset_expand (msgset_dup (closure->msgset),
 					     msgset_make_1 (j));
-	      display_message0 (message, set, 0);
+	      subclosure.msgset = set;
+	      subclosure.message = message;
+	      status = mime_descend (&subclosure, fun, data);
 	      msgset_free (set);
+	      if (status)
+		break;
 	    }
 	}
     }
@@ -179,14 +210,36 @@ display_message0 (mu_message_t mesg, const msgset_t *msgset,
     {
       mu_message_t submsg = NULL;
 
-      if (mu_message_unencapsulate (mesg, &submsg, NULL) == 0)
-	display_message0 (submsg, msgset, select_hdr);
+      if (mu_message_unencapsulate (closure->message, &submsg, NULL) == 0)
+	{
+	  subclosure.hints = MDHINT_SELECTED_HEADERS;
+	  subclosure.msgset = closure->msgset;
+	  subclosure.message = submsg;
+	  status = mime_descend (&subclosure, fun, data);
+	}
     }
-  else if (mailvar_get (&tmp, "metamail", mailvar_type_string, 0) == 0)
+  else
+    status = fun (closure, data);
+
+  closure->type = NULL;
+  closure->encoding = NULL;
+  
+  free (type);
+  free (encoding);
+
+  return status;
+}
+
+static int
+display_submessage (struct mime_descend_closure *closure, void *data)
+{
+  char *tmp;
+  
+  if (mailvar_get (&tmp, "metamail", mailvar_type_string, 0) == 0)
     {
       /* If `metamail' is set to a string, treat it as command line
 	 of external metamail program. */
-      run_metamail (tmp, mesg);
+      run_metamail (tmp, closure->message);
     }
   else
     {
@@ -197,19 +250,20 @@ display_message0 (mu_message_t mesg, const msgset_t *msgset,
       mu_stream_t stream = NULL;
       mu_header_t hdr = NULL;
       
-      mu_message_get_body (mesg, &body);
-      mu_message_get_header (mesg, &hdr);
+      mu_message_get_body (closure->message, &body);
+      mu_message_get_header (closure->message, &hdr);
       mu_body_get_stream (body, &b_stream);
 
       /* Can we decode.  */
-      if (mu_filter_create(&d_stream, b_stream, encoding,
-			MU_FILTER_DECODE, MU_STREAM_READ) == 0)
+      if (mu_filter_create(&d_stream, b_stream, closure->encoding,
+			   MU_FILTER_DECODE, MU_STREAM_READ) == 0)
 	stream = d_stream;
       else
 	stream = b_stream;
-
-      display_part_header (ofile, msgset, type, encoding);
-
+      
+      display_part_header (ofile, closure->msgset,
+			   closure->type, closure->encoding);
+      
       /* If `metamail' is set to true, enable internal mailcap
 	 support */
       if (mailvar_get (NULL, "metamail", mailvar_type_boolean, 0) == 0)
@@ -225,33 +279,31 @@ display_message0 (mu_message_t mesg, const msgset_t *msgset,
 	  builtin_display = display_stream_mailcap (NULL, stream, hdr, no_ask,
 						    interactive, 0, debug);
 	}
-
+      
       if (builtin_display)
 	{
 	  size_t lines = 0;
 	  int pagelines = util_get_crt ();
 	  FILE *out;
 	  
-	  mu_message_lines (mesg, &lines);
+	  mu_message_lines (closure->message, &lines);
 	  if (pagelines && lines > pagelines)
 	    out = popen (getenv ("PAGER"), "w");
 	  else
 	    out = ofile;
-
-	  display_headers (out, mesg, msgset, select_hdr);
-
+	  
+	  display_headers (out, closure->message, closure->msgset,
+			   closure->hints & MDHINT_SELECTED_HEADERS);
+	  
 	  print_stream (stream, out);
-
+	  
 	  if (out != ofile)
 	    pclose (out);
 	}
       if (d_stream)
 	mu_stream_destroy (&d_stream, NULL);
     }
-
-  free (type);
-  free (encoding);
-
+  
   return 0;
 }
 

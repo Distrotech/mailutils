@@ -242,6 +242,7 @@ extern int mail_eq (int argc, char **argv);	/* command = */
 extern int mail_setenv (int argc, char **argv);
 extern int mail_envelope (int argc, char **argv);
 extern int print_envelope (msgset_t *mspec, mu_message_t msg, void *data);
+extern int mail_struct (int argc, char **argv);
 
 extern int if_cond (void);
 
@@ -307,6 +308,27 @@ extern int msgset_member (msgset_t *set, size_t n);
 extern msgset_t *msgset_negate (msgset_t *set);
 extern size_t msgset_count (msgset_t *set);
 
+
+#define MDHINT_SELECTED_HEADERS 0x1
+
+struct mime_descend_closure
+{
+  int hints;
+  const msgset_t *msgset;
+  mu_message_t message;
+  const char *type;
+  const char *encoding;
+  const struct mime_descend_closure *parent;
+};
+
+typedef int (*mime_descend_fn) (struct mime_descend_closure *closure,
+				void *data);
+
+extern int mime_descend (struct mime_descend_closure *closure,
+			 mime_descend_fn fun, void *data);
+
+
+
 extern int util_do_command (const char *cmd, ...) MU_PRINTFLIKE(1,2);
 
 extern int util_foreach_msg (int argc, char **argv, int flags,
@@ -369,7 +391,7 @@ extern int util_tempfile (char **namep);
 extern void util_msgset_iterate (msgset_t *msgset, 
                                  int (*fun) (mu_message_t, msgset_t *, void *), 
                                  void *closure);
-extern int util_get_content_type (mu_header_t hdr, char **value);
+extern int util_get_content_type (mu_header_t hdr, char **value, char **args);
 extern int util_get_hdr_value (mu_header_t hdr, const char *name, char **value);
 extern int util_merge_addresses (char **addr_str, const char *value);
 extern int util_header_expand (mu_header_t *hdr);
@@ -382,6 +404,8 @@ void util_rfc2047_decode (char **value);
 void util_mark_read (mu_message_t msg);
 
 const char *util_url_to_string (mu_url_t url);
+
+size_t fprint_msgset (FILE *fp, const msgset_t *msgset);
 
 int is_address_field (const char *name);
 

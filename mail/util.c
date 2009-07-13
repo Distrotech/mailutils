@@ -793,7 +793,7 @@ util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
       mu_header_t hdr = NULL;
 
       mu_message_get_header (mesg, &hdr);
-      util_get_content_type (hdr, &type);
+      util_get_content_type (hdr, &type, NULL);
       if (mu_c_strncasecmp (type, "message/rfc822", strlen (type)) == 0)
 	{
 	  if (mu_message_unencapsulate (mesg, &submsg, NULL))
@@ -839,12 +839,12 @@ util_msgset_iterate (msgset_t *msgset,
 	return;
 
       if (util_descend_subparts (mesg, msgset, &mesg) == 0)
-	  (*fun)(mesg, msgset, closure);
+	(*fun) (mesg, msgset, closure);
     }
 }
 
 int
-util_get_content_type (mu_header_t hdr, char **value)
+util_get_content_type (mu_header_t hdr, char **value, char **args)
 {
   char *type = NULL;
   util_get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
@@ -854,6 +854,17 @@ util_get_content_type (mu_header_t hdr, char **value)
 	free (type);
       type = strdup ("text/plain"); /* Default.  */
     }
+  else
+    {
+      char *p;
+      p = strchr (type, ';');
+      if (p)
+	{
+	  *p++ = 0;
+	  if (args)
+	    *args = p;
+	}
+    }
   *value = type;
   return 0;
 }
@@ -861,16 +872,9 @@ util_get_content_type (mu_header_t hdr, char **value)
 int
 util_get_hdr_value (mu_header_t hdr, const char *name, char **value)
 {
-  int status = mu_header_aget_value (hdr, name, value);
+  int status = mu_header_aget_value_unfold (hdr, name, value);
   if (status == 0)
-    {
-      /* Remove the newlines.  */
-      char *nl;
-      while ((nl = strchr (*value, '\n')) != NULL)
-	{
-	  *nl = ' ';
-	}
-    }
+    mu_rtrim_class (*value, MU_CTYPE_SPACE);
   return status;
 }
 
