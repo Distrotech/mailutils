@@ -32,14 +32,19 @@ class MailboxBase:
         if isinstance (mode, types.StringType):
             from mailutils import stream
             flags = 0
-            if mode == 'r':
-                flags = flags | stream.MU_STREAM_READ
-            elif mode == 'w':
-                flags = flags | stream.MU_STREAM_WRITE
-            elif mode == 'a':
-                flags = flags | stream.MU_STREAM_APPEND
-            elif mode == 'c':
-                flags = flags | stream.MU_STREAM_CREAT
+            for m in mode:
+                if m == 'r':
+                    flags = flags | stream.MU_STREAM_READ
+                elif m == 'w':
+                    flags = flags | stream.MU_STREAM_WRITE
+                elif m == 'a':
+                    flags = flags | stream.MU_STREAM_APPEND
+                elif m == 'c':
+                    flags = flags | stream.MU_STREAM_CREAT
+            if flags & stream.MU_STREAM_READ and flags & stream.MU_STREAM_WRITE:
+                flags = (flags & ~(stream.MU_STREAM_READ | \
+                                   stream.MU_STREAM_WRITE)) | \
+                                   stream.MU_STREAM_RDWR
             mode = flags
         status = mailbox.open (self.mbox, mode)
         if status:

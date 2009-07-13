@@ -81,3 +81,79 @@ class Attribute:
         if flags & flag:
             return True
         return False
+
+    def set_userflag (self, flag):
+        status = attribute.set_userflag (self.attr, flag)
+        if status:
+            raise Error (status)
+
+    def unset_userflag (self, flag):
+        status = attribute.unset_userflag (self.attr, flag)
+        if status:
+            raise Error (status)
+
+    def is_userflag (self, flag):
+        return attribute.is_userflag (self.attr, flag)
+
+
+    def is_answered (self):
+        return self.is_flag (MU_ATTRIBUTE_ANSWERED)
+
+    def is_flagged (self):
+        return self.is_flag (MU_ATTRIBUTE_FLAGGED)
+
+    def is_deleted (self):
+        return self.is_flag (MU_ATTRIBUTE_DELETED)
+
+    def is_draft (self):
+        return self.is_flag (MU_ATTRIBUTE_DRAFT)
+
+    def is_seen (self):
+        return self.is_flag (MU_ATTRIBUTE_SEEN)
+
+    def is_read (self):
+        return self.is_flag (MU_ATTRIBUTE_READ)
+
+
+    def set_answered (self):
+        self.set_flags (MU_ATTRIBUTE_ANSWERED)
+
+    def set_flagged (self):
+        self.set_flags (MU_ATTRIBUTE_FLAGGED)
+
+    def set_deleted (self):
+        self.set_flags (MU_ATTRIBUTE_DELETED)
+
+    def set_draft (self):
+        self.set_flags (MU_ATTRIBUTE_DRAFT)
+
+    def set_seen (self):
+        self.set_flags (MU_ATTRIBUTE_SEEN)
+
+    def set_read (self):
+        self.set_flags (MU_ATTRIBUTE_READ)
+
+    def set_recent (self):
+        self.unset_flags (MU_ATTRIBUTE_READ | MU_ATTRIBUTE_SEEN)
+
+
+    def unset_answered (self):
+        self.unset_flags (MU_ATTRIBUTE_ANSWERED)
+
+    def unset_flagged (self):
+        self.unset_flags (MU_ATTRIBUTE_FLAGGED)
+
+    def unset_deleted (self):
+        self.unset_flags (MU_ATTRIBUTE_DELETED)
+
+    def unset_draft (self):
+        self.unset_flags (MU_ATTRIBUTE_DRAFT)
+
+    def unset_seen (self):
+        self.unset_flags (MU_ATTRIBUTE_SEEN)
+
+    def unset_read (self):
+        self.unset_flags (MU_ATTRIBUTE_READ)
+
+    def unset_recent (self):
+        self.unset_flags (MU_ATTRIBUTE_SEEN)

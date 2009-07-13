@@ -181,6 +181,45 @@ api_attribute_unset_flags (PyObject *self, PyObject *args)
 }
 
 static PyObject *
+api_attribute_is_userflag (PyObject *self, PyObject *args)
+{
+  int state, flag;
+  PyAttribute *py_attr;
+
+  if (!PyArg_ParseTuple (args, "O!i", &PyAttributeType, &py_attr, &flag))
+    return NULL;
+
+  state = mu_attribute_is_userflag (py_attr->attr, flag);
+  return _ro (PyBool_FromLong (state));
+}
+
+static PyObject *
+api_attribute_set_userflag (PyObject *self, PyObject *args)
+{
+  int status, flag;
+  PyAttribute *py_attr;
+
+  if (!PyArg_ParseTuple (args, "O!i", &PyAttributeType, &py_attr, &flag))
+    return NULL;
+
+  status = mu_attribute_set_userflag (py_attr->attr, flag);
+  return _ro (PyInt_FromLong (status));
+}
+
+static PyObject *
+api_attribute_unset_userflag (PyObject *self, PyObject *args)
+{
+  int status, flag;
+  PyAttribute *py_attr;
+
+  if (!PyArg_ParseTuple (args, "O!i", &PyAttributeType, &py_attr, &flag))
+    return NULL;
+
+  status = mu_attribute_unset_userflag (py_attr->attr, flag);
+  return _ro (PyInt_FromLong (status));
+}
+
+static PyObject *
 api_attribute_to_string (PyObject *self, PyObject *args)
 {
   char buf[MU_STATUS_BUF_SIZE];
@@ -220,6 +259,15 @@ static PyMethodDef methods[] = {
 
   { "unset_flags", (PyCFunction) api_attribute_unset_flags, METH_VARARGS,
     "" },
+
+  { "is_userflag", (PyCFunction) api_attribute_is_userflag, METH_VARARGS,
+    "" },
+
+  { "set_userflag", (PyCFunction) api_attribute_set_userflag, METH_VARARGS,
+    "" },
+
+  { "unset_userflag", (PyCFunction) api_attribute_unset_userflag,
+    METH_VARARGS, "" },
 
   { "to_string", (PyCFunction) api_attribute_to_string, METH_VARARGS,
     "" },
