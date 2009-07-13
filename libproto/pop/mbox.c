@@ -1028,7 +1028,14 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
   size_t i;
 
   /* Sanity.  */
-  if (pmsg == NULL || mpd == NULL || msgno > mpd->messages_count)
+  if (pmsg == NULL || mpd == NULL)
+    return EINVAL;
+
+  /* If we did not start a scanning yet do it now.  */
+  if (!pop_is_updated (mbox))
+    pop_scan (mbox, 1, NULL);
+
+  if (msgno > mpd->messages_count)
     return EINVAL;
 
   mu_monitor_rdlock (mbox->monitor);
@@ -1405,7 +1412,7 @@ pop_get_size (mu_mailbox_t mbox, mu_off_t *psize)
   if (mpd == NULL)
     return EINVAL;
 
-  if (! pop_is_updated (mbox))
+  if (!pop_is_updated (mbox))
     status = pop_messages_count (mbox, &mpd->size);
   if (psize)
     *psize = mpd->size;
@@ -1789,8 +1796,8 @@ pop_top (mu_header_t header, char *buffer, size_t buflen,
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MU_DEBUG (mpd->mbox->debug, MU_DEBUG_PROT, mpd->buffer);
-      /* if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	   mu_error ("TOP not implemented"); */ /* FIXME */
+      if (mu_c_strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	CHECK_ERROR (mpd, EINVAL);
       mpd->state = POP_TOP_RX;
 
     case POP_TOP_RX:
