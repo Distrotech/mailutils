@@ -40,6 +40,7 @@
 #include <mailutils/mime.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/mutil.h>
+#include <mailutils/nls.h>
 #include <mailutils/registrar.h>
 #include <mailutils/tls.h>
 #include <mailutils/secret.h>
@@ -73,6 +74,7 @@ extern void _mu_py_attach_mailbox (void);
 extern void _mu_py_attach_mailcap (void);
 extern void _mu_py_attach_message (void);
 extern void _mu_py_attach_mime (void);
+extern void _mu_py_attach_nls (void);
 extern void _mu_py_attach_registrar (void);
 extern void _mu_py_attach_secret (void);
 extern void _mu_py_attach_stream (void);

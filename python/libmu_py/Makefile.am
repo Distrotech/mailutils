@@ -42,6 +42,7 @@ libmu_py_la_SOURCES = \
  mailcap.c \
  message.c \
  mime.c \
+ nls.c \
  script.c \
  secret.c \
  stream.c \

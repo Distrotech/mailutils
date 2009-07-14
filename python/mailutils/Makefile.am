@@ -34,6 +34,7 @@ MU_PY_PKGPYTHON_LIST=\
  mailcap.py \
  message.py \
  mime.py \
+ nls.py \
  registrar.py \
  secret.py \
  stream.py \

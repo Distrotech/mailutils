@@ -123,6 +123,7 @@ mu_py_attach_modules (void)
   _mu_py_attach_mailcap ();
   _mu_py_attach_message ();
   _mu_py_attach_mime ();
+  _mu_py_attach_nls ();
   _mu_py_attach_registrar ();
   _mu_py_attach_secret ();
   _mu_py_attach_stream ();

@@ -32,6 +32,7 @@ __all__ = [
     "mailcap",
     "message",
     "mime",
+    "nls",
     "registrar",
     "secret",
     "stream",
