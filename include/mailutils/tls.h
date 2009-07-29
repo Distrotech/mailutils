@@ -52,7 +52,7 @@ extern void mu_deinit_tls_libs (void);
 typedef int (*mu_tls_readline_fn) (void *iodata);
 typedef int (*mu_tls_writeline_fn) (void *iodata, char *buf); 
 typedef void (*mu_tls_stream_ctl_fn) (void *iodata, mu_stream_t *pold,
-				      mu_stream_t new);
+				      mu_stream_t __new);
 
 extern int mu_tls_begin (void *iodata, mu_tls_readline_fn reader,
 			 mu_tls_writeline_fn writer,

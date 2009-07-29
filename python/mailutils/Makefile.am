@@ -37,6 +37,7 @@ MU_PY_PKGPYTHON_LIST=\
  nls.py \
  registrar.py \
  secret.py \
+ sieve.py \
  stream.py \
  url.py \
  util.py

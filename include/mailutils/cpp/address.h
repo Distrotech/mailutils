@@ -18,8 +18,8 @@
    Boston, MA 02110-1301 USA
 */
 
-#ifndef _ADDRESS_H
-#define _ADDRESS_H
+#ifndef _MUCPP_ADDRESS_H
+#define _MUCPP_ADDRESS_H
 
 #include <ostream>
 #include <errno.h>
@@ -72,5 +72,5 @@ class Address
 
 }
 
-#endif // not _ADDRESS_H
+#endif // not _MUCPP_ADDRESS_H
 

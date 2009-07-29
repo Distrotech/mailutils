@@ -79,6 +79,12 @@ PyMailbox_NEW ()
   return (PyMailbox *)PyObject_NEW (PyMailbox, &PyMailboxType);
 }
 
+int
+PyMailbox_Check (PyObject *x)
+{
+  return x->ob_type == &PyMailboxType;
+}
+
 static PyObject *
 api_mailbox_create (PyObject *self, PyObject *args)
 {

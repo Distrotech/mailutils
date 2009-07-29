@@ -1,6 +1,6 @@
 /*
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,25 +18,42 @@
    Boston, MA 02110-1301 USA
 */
 
-#include <mailutils/cpp/address.h>
-#include <mailutils/cpp/attribute.h>
-#include <mailutils/cpp/body.h>
+#ifndef _MUCPP_SIEVE_H
+#define _MUCPP_SIEVE_H
+
+#include <string>
+#include <errno.h>
+#include <mailutils/sieve.h>
 #include <mailutils/cpp/error.h>
-#include <mailutils/cpp/filter.h>
-#include <mailutils/cpp/folder.h>
-#include <mailutils/cpp/header.h>
-#include <mailutils/cpp/iterator.h>
-#include <mailutils/cpp/list.h>
 #include <mailutils/cpp/mailbox.h>
-#include <mailutils/cpp/mailcap.h>
-#include <mailutils/cpp/mailer.h>
 #include <mailutils/cpp/message.h>
-#include <mailutils/cpp/mime.h>
-#include <mailutils/cpp/mutil.h>
-#include <mailutils/cpp/pop3.h>
-#include <mailutils/cpp/registrar.h>
-#include <mailutils/cpp/secret.h>
-#include <mailutils/cpp/sieve.h>
-#include <mailutils/cpp/stream.h>
-#include <mailutils/cpp/url.h>
+
+namespace mailutils
+{
+
+class SieveMachine
+{
+ protected:
+  mu_sieve_machine_t mach;
+
+ public:
+  SieveMachine ();
+  SieveMachine (const mu_sieve_machine_t);
+  ~SieveMachine ();
+
+  SieveMachine& operator = (const SieveMachine&);
+
+  void compile (const std::string& name);
+  void disass ();
+  void mailbox (const Mailbox& mbox);
+  void message (const Message& msg);
+  void set_debug (mu_sieve_printf_t printer);
+  void set_error (mu_sieve_printf_t printer);
+  void set_parse_error (mu_sieve_parse_error_t printer);
+  void set_logger (mu_sieve_action_log_t printer);
+};
+
+}
+
+#endif // not _MUCPP_SIEVE_H
 

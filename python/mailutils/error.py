@@ -43,6 +43,7 @@ class MailcapError (Error): pass
 class MessageError (Error): pass
 class MimeError (Error): pass
 class SecretError (Error): pass
+class SieveMachineError (Error): pass
 class StreamError (Error): pass
 class UrlError (Error): pass
 

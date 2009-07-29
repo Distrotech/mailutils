@@ -28,15 +28,15 @@ int mu_strupper (char *);
 int mu_c_strcasecmp (const char *a, const char *b);
 int mu_c_strncasecmp (const char *a, const char *b, size_t n);
 
-size_t mu_rtrim_class (char *str, int class);
+size_t mu_rtrim_class (char *str, int __class);
 size_t mu_rtrim_cset (char *str, const char *cset);
-size_t mu_ltrim_class (char *str, int class);
+size_t mu_ltrim_class (char *str, int __class);
 size_t mu_ltrim_cset (char *str, const char *cset);
 
-char *mu_str_skip_class (const char *str, int class);
+char *mu_str_skip_class (const char *str, int __class);
 char *mu_str_skip_cset (const char *str, const char *cset);
 
-char *mu_str_skip_class_comp (const char *str, int class);
+char *mu_str_skip_class_comp (const char *str, int __class);
 char *mu_str_skip_cset_comp (const char *str, const char *cset);
 
 char *mu_str_stripws (char *string);  

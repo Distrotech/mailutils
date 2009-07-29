@@ -41,7 +41,7 @@ main (int argc, char *argv[])
 {
   int opt;
   int optdebug = 0;
-  char *optmailer = "sendmail:";
+  const char *optmailer = "sendmail:";
   char *optfrom = 0;
 
   while ((opt = getopt (argc, argv, "hdm:f:")) != -1)

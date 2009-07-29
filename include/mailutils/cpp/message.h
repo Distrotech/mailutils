@@ -42,6 +42,7 @@ class Message
   friend class MailboxBase;
   friend class Mailer;
   friend class Mime;
+  friend class SieveMachine;
 
  public:
   Message ();

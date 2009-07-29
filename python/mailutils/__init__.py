@@ -35,6 +35,7 @@ __all__ = [
     "nls",
     "registrar",
     "secret",
+    "sieve",
     "stream",
     "url",
     "util",

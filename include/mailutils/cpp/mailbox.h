@@ -37,6 +37,8 @@ class MailboxBase
  protected:
   mu_mailbox_t mbox;
 
+  friend class SieveMachine;
+
  public:
   void open ();
   void open (int flag);

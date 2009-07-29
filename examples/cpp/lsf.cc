@@ -66,7 +66,7 @@ main (int argc, char *argv[])
 {
   string folder;
   string ref;
-  char *pattern = "*";
+  const char *pattern = "*";
   int level = 0;
 
   switch (argc)
@@ -87,6 +87,6 @@ main (int argc, char *argv[])
 
   register_all_mbox_formats ();
 
-  return ls_folders (folder, ref, pattern, level);
+  return ls_folders (folder, ref, (char *)pattern, level);
 }
 

@@ -117,6 +117,11 @@ typedef struct {
 
 typedef struct {
   PyObject_HEAD;
+  mu_sieve_machine_t mach;
+} PySieveMachine;
+
+typedef struct {
+  PyObject_HEAD;
   mu_stream_t stm;
 } PyStream;
 
@@ -143,6 +148,7 @@ extern int mu_py_init_mailcap (void);
 extern int mu_py_init_message (void);
 extern int mu_py_init_mime (void);
 extern int mu_py_init_secret (void);
+extern int mu_py_init_sieve (void);
 extern int mu_py_init_stream (void);
 extern int mu_py_init_url (void);
 
@@ -175,6 +181,7 @@ extern int PyAuthority_Check (PyObject *x);
 extern int PyTicket_Check (PyObject *x);
 extern int PyWicket_Check (PyObject *x);
 extern int PyAuthData_Check (PyObject *x);
+extern int PyMailbox_Check (PyObject *x);
 extern int PyMessage_Check (PyObject *x);
 extern int PySecret_Check (PyObject *x);
 extern int PyStream_Check (PyObject *x);

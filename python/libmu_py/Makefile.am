@@ -45,6 +45,7 @@ libmu_py_la_SOURCES = \
  nls.c \
  script.c \
  secret.c \
+ sieve.c \
  stream.c \
  registrar.c \
  url.c \
@@ -61,6 +62,7 @@ libmu_py_la_LIBADD = $(PYTHON_LIBS) @MU_COMMON_LIBRARIES@ \
  ${MU_LIB_MAILDIR}\
  ${MU_LIB_AUTH}\
  ${MU_LIB_MAILER}\
+ ${MU_LIB_SIEVE}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 

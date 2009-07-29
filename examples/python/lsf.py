@@ -53,6 +53,7 @@ if __name__ == '__main__':
         ref = sys.argv[2]
         fname = sys.argv[1]
     elif argc == 2:
+        ref = None
         fname = sys.argv[1]
     else:
         print "usage: lsf folder [ref] [pattern] [recursion-level]"

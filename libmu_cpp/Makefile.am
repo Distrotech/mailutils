@@ -43,6 +43,7 @@ libmu_cpp_la_SOURCES = \
  pop3.cc\
  registrar.cc\
  secret.cc\
+ sieve.cc\
  stream.cc\
  url.cc
 

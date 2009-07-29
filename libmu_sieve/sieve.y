@@ -614,8 +614,6 @@ mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
     rc = 1;
   
   mu_sieve_machine_finish (mach);
-  if (rc)
-    mu_sieve_machine_destroy (&mach);
   return rc;
 }
 
@@ -639,8 +637,6 @@ mu_sieve_compile_buffer (mu_sieve_machine_t mach,
     rc = 1;
   
   mu_sieve_machine_finish (mach);
-  if (rc)
-    mu_sieve_machine_destroy (&mach);
   return rc;
 }
 

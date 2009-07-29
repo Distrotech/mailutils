@@ -44,6 +44,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/tls.h>
 #include <mailutils/secret.h>
+#include <mailutils/sieve.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/python.h>
@@ -77,6 +78,7 @@ extern void _mu_py_attach_mime (void);
 extern void _mu_py_attach_nls (void);
 extern void _mu_py_attach_registrar (void);
 extern void _mu_py_attach_secret (void);
+extern void _mu_py_attach_sieve (void);
 extern void _mu_py_attach_stream (void);
 extern void _mu_py_attach_url (void);
 extern void _mu_py_attach_util (void);
