@@ -34,8 +34,8 @@ SUBDIRS = \
  libmu_cfg\
  libmu_cpp\
  libmu_scm\
- python\
  libmu_sieve\
+ python\
  doc\
  config\
  examples\
