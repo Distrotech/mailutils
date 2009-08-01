@@ -142,10 +142,10 @@ mailutils-specific configuration options:
 
 	Build 'mail' without readline support.
 
-    --with-gnutls
+    --without-gnutls
 
-	Enable the TLS/SSL server-side encryption via GnuTLS
-	(a Transport Layer Security Library) in IMAP4/POP3 daemons.
+	Disable the TLS/SSL encryption via GnuTLS (a Transport Layer
+	Security Library) in IMAP4/POP3 daemons and utilities.
 
     --with-gsasl
 

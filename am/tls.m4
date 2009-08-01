@@ -1,5 +1,5 @@
 dnl This file is part of GNU mailutils.
-dnl Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+dnl Copyright (C) 2003, 2007, 2009 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@ AC_DEFUN([MU_CHECK_TLS],
  if test "x$WITH_GNUTLS" = x; then
    cached=""
    AC_ARG_WITH([gnutls],
-               AC_HELP_STRING([--with-gnutls],
-                              [use GNU TLS library]),
+               AC_HELP_STRING([--without-gnutls],
+                              [do not use GNU TLS library]),
                [WITH_GNUTLS=$withval],
-               [WITH_GNUTLS=no])
+               [WITH_GNUTLS=yes])
 
    if test "$WITH_GNUTLS" != "no"; then
      AC_CHECK_HEADER(gnutls/gnutls.h,
