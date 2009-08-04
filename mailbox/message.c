@@ -570,7 +570,8 @@ mu_message_get_uid (mu_message_t msg, size_t *puid)
 }
 
 int
-mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwriten)
+mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen,
+		     size_t *pwriten)
 {
   mu_header_t header = NULL;
   size_t n = 0;
@@ -591,29 +592,8 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
   /* Be compatible with Qpopper ? qppoper saves the UIDL in "X-UIDL".
      We generate a chksum and save it in the header.  */
   mu_message_get_header (msg, &header);
-  status = mu_header_get_value (header, "X-UIDL", buffer, buflen, &n);
-  if (status == 0 && n > 0)
-    {
-      /* FIXME: Is this necessary ? I did not see so far a x-uidl message
-	 that broken i.e.
-	 X-UIDL:  <abaceekeke\n
-	       jakdkjaja>
-      */
-      /* We need to collapse the header if it was mutiline.  e points to the
-	 last char meaning in a C string that's '\0', s to the start. We also
-	 remove the spesky '<' '>' if they are around.  */
-      char *s, *e;
-      for (s = buffer, e = buffer + n; s <= e; s++)
-	{
-	  if (mu_isspace ((unsigned char)*s) || *s == '<' || *s == '>')
-	    {
-	      memmove (s, s + 1, e - (s + 1));
-	      e -= 1;
-	      *e = '\0';
-	    }
-	}
-    }
-  else
+  status = mu_header_get_value_unfold (header, "X-UIDL", buffer, buflen, &n);
+  if (status != 0 || n == 0)
     {
       size_t uid = 0;
       struct mu_md5_ctx md5context;
@@ -644,6 +624,7 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen, size_t *pwri
       mu_header_set_value (header, "X-UIDL", buf, 1);
       buflen--; /* leave space for the NULL.  */
       strncpy (buffer, buf, buflen)[buflen] = '\0';
+      status = 0;
     }
   return status;
 }
