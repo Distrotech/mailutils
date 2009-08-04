@@ -330,7 +330,7 @@ main (int argc, char **argv)
   /* Register the desired formats.  */
   mu_register_all_formats ();
 
-  interactive = isatty (fileno(stdin));
+  interactive = isatty (fileno (stdin));
 #ifdef HAVE_SIGACTION
   {
     struct sigaction act;
@@ -351,11 +351,11 @@ main (int argc, char **argv)
     }
 
   /* Set up the default environment */
-  setenv ("DEAD", util_fullpath("~/dead.letter"), 0);
+  setenv ("DEAD", util_fullpath ("~/dead.letter"), 0);
   setenv ("EDITOR", "ed", 0);
   setenv ("LISTER", "ls", 0);
-  setenv ("MAILRC", util_fullpath("~/.mailrc"), 0);
-  setenv ("MBOX", util_fullpath("~/mbox"), 0);
+  setenv ("MAILRC", util_fullpath ("~/.mailrc"), 0);
+  setenv ("MBOX", util_fullpath ("~/mbox"), 0);
   setenv ("PAGER", "more", 0);
   setenv ("SHELL", "sh", 0);
   setenv ("VISUAL", "vi", 0);
@@ -363,7 +363,7 @@ main (int argc, char **argv)
   setenv ("LINES", "24", 0);
 
   /* set defaults for execution */
-  for (i = 0; i < sizeof(default_setup)/sizeof(default_setup[0]); i++)
+  for (i = 0; i < sizeof (default_setup)/sizeof (default_setup[0]); i++)
     util_do_command (default_setup[i]);
   util_do_command ("set screen=%d", util_getlines ());
   util_do_command ("set columns=%d", util_getcols ());
@@ -425,7 +425,6 @@ main (int argc, char **argv)
   /* Mode is just sending */
   if (strcmp (mode, "send") == 0)
     {
-      /* FIXME: set cmd to "mail [add1...]" */
       char *buf = NULL;
       int rc;
 
@@ -477,7 +476,7 @@ main (int argc, char **argv)
 	    return util_do_command ("from *");
 	  else if (strcmp (mode, "read"))
 	    {
-	      util_error(_("Unknown mode `%s'"), mode);
+	      util_error (_("Unknown mode `%s'"), mode);
 	      util_do_command ("quit");
 	      return 1;
 	    }
@@ -519,7 +518,7 @@ mail_mainloop (char *(*input) (void *, int),
 {
   char *command, *cmd;
 
-  while ((command = (*input)(closure, 0)) != NULL)
+  while ((command = (*input) (closure, 0)) != NULL)
     {
       int len = strlen (command);
       while (command[len-1] == '\\')
@@ -543,7 +542,7 @@ mail_mainloop (char *(*input) (void *, int),
       cmd = mu_str_stripws (command);
       util_do_command ("%s", cmd);
 #ifdef WITH_READLINE
-      if (do_history && !(mu_isspace(cmd[0]) || cmd[0] == '#'))
+      if (do_history && !(mu_isspace (cmd[0]) || cmd[0] == '#'))
 	add_history (cmd);
 #endif
       if (command)

@@ -158,7 +158,7 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
     rc = mu_folder_create_from_record (pfolder, url, NULL);
   if (rc)
     mu_url_destroy (&url);
-  return 0;
+  return rc;
 }
 
 /* The folder is destroy if it is the last reference.  */
