@@ -216,7 +216,7 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
       while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	     && len != 0)
 	{
-	  buf[len] ='\0';
+	  buf[len] = '\0';
 	  printf ("%s", buf);
 	  offset += len;
 	}
@@ -271,17 +271,12 @@ print_body (mu_message_t message)
   while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
 	 && len != 0)
     {
-      buf[len] ='\0';
+      buf[len] = '\0';
       printf ("%s", buf);
       offset += len;
     }
 }
 
-/* This is still work in progress  */
-/* FIXME: Parse options:  See readmsg(1) part of elm:
-   readmsg 1 3 0
-   extracts three messages from the folder: the first, the third, and
-   the last. */
 int
 main (int argc, char **argv)
 {

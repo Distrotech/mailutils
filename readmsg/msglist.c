@@ -19,7 +19,6 @@
 
 #include "readmsg.h"
 
-
 static int
 addset (int **set, int *n, unsigned val)
 {
@@ -59,28 +58,33 @@ is_number (const char *s)
 /*
   According to ELM readmsg(1):
 
-  1.     A lone ``*'' means select all messages in the mailbox.
+  1. A lone ``*'' means select all messages in the mailbox.
 
-  2.     A list of message numbers may be specified.  Values of ``0'' and ``$'' in  the
-  list both mean the last message in the mailbox.  For example:
+  2. A list of message numbers may be specified.  Values of ``0'' and
+  ``$'' in the list both mean the last message in the mailbox.  For
+  example:
 
   readmsg 1 3 0
 
-  extracts  three messages from the folder:  the first, the third, and the last.
+  extracts three messages from the folder: the first, the third, and
+  the last.
 
-  3.     Finally, the selection may be some text to match.  This  will  select  a  mail
-  message which exactly matches the specified text.  For example,
+  3. Finally, the selection may be some text to match.  This will
+  select a mail message which exactly matches the specified text. For
+  example,
 
   readmsg staff meeting
 
-  extracts the message which contains the words ``staff meeting.''  Note that it
-  will not match a message containing ``Staff Meeting'' - the matching  is  case
-  sensitive.   Normally only the first message which matches the pattern will be
-  printed.  The -a option discussed in a moment changes this.
+  extracts the message which contains the words ``staff meeting.''
+  Note that it will not match a message containing ``Staff Meeting'' -
+  the matching is case sensitive.  Normally only the first message
+  which matches the pattern will be printed.  The -a option discussed
+  in a moment changes this.
 */
 
 int
-msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
+msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv,
+	 int **set, int *n)
 {
   int i = 0;
   size_t total = 0;
@@ -89,7 +93,7 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int 
 
   for (i = 0; i < argc; i++)
     {
-      /* 1.     A lone ``*'' means select all messages in the mailbox. */
+      /* 1. A lone ``*'' means select all messages in the mailbox. */
       if (!strcmp (argv[i], "*"))
 	{
 	  size_t j;
@@ -98,18 +102,17 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int 
 	    addset (set, n, j);
 	  j = argc + 1;
 	}
-      /* 2.     A list of message numbers may be specified.  Values of ``0'' and ``$'' in  the
-	 list both mean the last message in the mailbox.  */
+      /* 2. A list of message numbers may be specified.  Values of
+	 ``0'' and ``$'' in the list both mean the last message in the
+	 mailbox. */
       else if (!strcmp (argv[i], "$") || !strcmp (argv[i], "0"))
 	{
-	  size_t j;
-	  mu_mailbox_messages_count (mbox, &total);
-	  for (j = 1; j < total; j++)
-	    addset (set, n, j);
+	  addset (set, n, total);
 	}
-      /* 3.     Finally, the selection may be some text to match.  This  will  select  a  mail
-	 message which exactly matches the specified text.  */
-      else if (!is_number(argv[i]))
+      /* 3. Finally, the selection may be some text to match.  This
+	 will select a mail message which exactly matches the
+	 specified text. */
+      else if (!is_number (argv[i]))
 	{
 	  size_t j;
 	  int found = 0;
@@ -117,12 +120,14 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int 
 	    {
 	      char buf[128];
 	      size_t len = 0;
-	      off_t offset = 0;
+	      mu_off_t offset = 0;
 	      mu_message_t msg = NULL;
 	      mu_stream_t stream = NULL;
+
 	      mu_mailbox_get_message (mbox, j, &msg);
 	      mu_message_get_stream (msg, &stream);
-	      while (mu_stream_readline (stream, buf, sizeof buf, offset, &len) == 0 && len > 0)
+	      while (mu_stream_readline (stream, buf, sizeof buf,
+					 offset, &len) == 0 && len > 0)
 		{
 		  if (strstr (buf, argv[i]) != NULL)
 		    {
@@ -132,6 +137,7 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int 
 		    }
 		  offset += len;
 		}
+	      mu_stream_destroy (&stream, NULL);
 	      if (found && !show_all)
 		break;
 	    }
