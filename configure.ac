@@ -1232,7 +1232,7 @@ Use TCP wrappers .............. $status_tcpwrap
 Pthread support ............... $status_pthread
 Readline support .............. $status_readline
 MySQL support ................. $status_mysql
-PostgreSQL suppor ............. $status_pgsql
+PostgreSQL support ............ $status_pgsql
 LDAP support .................. $status_ldap
 Radius support ................ $status_radius
 Support for virtual domains ... $status_virtual_domains
