@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2006,
-   2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2006, 2007, 2009
+   Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -141,7 +141,7 @@ mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
       errno = EINVAL;
       return 1;
     }
-  *db = gdbm_open(pfname, 512, f, mode, NULL);
+  *db = gdbm_open (pfname, 512, f, mode, NULL);
   free (pfname);
   return *db == NULL;
 }
@@ -156,7 +156,7 @@ mu_dbm_close (DBM_FILE db)
 int
 mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
-  *ret = gdbm_fetch(db, key);
+  *ret = gdbm_fetch (db, key);
   return ret->dptr == NULL;
 }
 
@@ -169,8 +169,8 @@ mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
 int
 mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
-  return gdbm_store(db, key, contents,
-		    replace ? GDBM_REPLACE : GDBM_INSERT);
+  return gdbm_store (db, key, contents,
+		     replace ? GDBM_REPLACE : GDBM_INSERT);
 }
 
 DBM_DATUM
@@ -304,16 +304,16 @@ mu_dbm_firstkey (DBM_FILE db)
   DBT key, data;
   int ret;
 
-  memset(&key, 0, sizeof key);
-  memset(&data, 0, sizeof data);
+  memset (&key, 0, sizeof key);
+  memset (&data, 0, sizeof data);
 
   if (!db->dbc)
     {
-      if (db->db->cursor(db->db, NULL, &db->dbc BDB2_CURSOR_LASTARG) != 0)
+      if (db->db->cursor (db->db, NULL, &db->dbc BDB2_CURSOR_LASTARG) != 0)
 	return key;
     }
 
-  if ((ret = db->dbc->c_get(db->dbc, &key, &data, DB_FIRST)) != 0)
+  if ((ret = db->dbc->c_get (db->dbc, &key, &data, DB_FIRST)) != 0)
     {
       key.data = NULL;
       key.size = 0;
@@ -331,13 +331,13 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
   DBT key, data;
   int ret;
 
-  memset(&key, 0, sizeof key);
-  memset(&data, 0, sizeof data);
+  memset (&key, 0, sizeof key);
+  memset (&data, 0, sizeof data);
 
   if (!db->dbc)
     return key;
 
-  if ((ret = db->dbc->c_get(db->dbc, &key, &data, DB_NEXT)) != 0)
+  if ((ret = db->dbc->c_get (db->dbc, &key, &data, DB_NEXT)) != 0)
     {
       key.data = NULL;
       key.size = 0;
@@ -452,5 +452,125 @@ mu_dbm_datum_free (DBM_DATUM *datum)
 {
   /* empty */
 }
+
+#elif defined(WITH_TOKYOCABINET)
+
+#define DB_SUFFIX ".tch"
+
+int
+mu_dbm_stat (char *name, struct stat *sb)
+{
+  int rc;
+  char *pfname = make_db_name (name, DB_SUFFIX);
+  rc = stat (pfname, sb);
+  free (pfname);
+  return rc;
+}
+
+int
+mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
+{
+  int f, ecode;
+  char *pfname = make_db_name (name, DB_SUFFIX);
+
+  if (mu_check_perm (pfname, mode))
+    {
+      free (pfname);
+      return -1;
+    }
+
+  switch (flags)
+    {
+    case MU_STREAM_CREAT:
+      f = HDBOWRITER | HDBOCREAT;
+      break;
+      
+    case MU_STREAM_READ:
+      f = HDBOREADER;
+      break;
+      
+    case MU_STREAM_RDWR:
+      f = HDBOREADER | HDBOWRITER;
+      break;
+      
+    default:
+      free (pfname);
+      errno = EINVAL;
+      return 1;
+    }
+
+  *db = malloc (sizeof **db);
+  if (!*db)
+    {
+      errno = ENOMEM;
+      return -1;
+    }
+  (*db)->hdb = tchdbnew ();
+
+  if (!tchdbopen ((*db)->hdb, pfname, f))
+    ecode = tchdbecode ((*db)->hdb);
+
+  free (pfname);
+  return 0;
+}
+
+int
+mu_dbm_close (DBM_FILE db)
+{
+  tchdbclose (db->hdb);
+  tchdbdel (db->hdb);
+  return 0;
+}
+
+int
+mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
+{
+  ret->data = tchdbget (db->hdb, key.data, key.size, &ret->size);
+  return ret->data == NULL;
+}
+
+int
+mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
+{
+  return !tchdbout (db->hdb, key.data, key.size);
+}
+
+int
+mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
+{
+  if (replace)
+    return !tchdbput (db->hdb, key.data, key.size, contents.data, contents.size);
+  else
+    return !tchdbputkeep (db->hdb, key.data, key.size,
+			  contents.data, contents.size);
+}
+
+DBM_DATUM
+mu_dbm_firstkey (DBM_FILE db)
+{
+  DBM_DATUM key;
+  memset (&key, 0, sizeof key);
+
+  tchdbiterinit (db->hdb);
+  key.data = tchdbiternext (db->hdb, &key.size);
+  return key;
+}
+
+DBM_DATUM
+mu_dbm_nextkey (DBM_FILE db, DBM_DATUM unused)
+{
+  DBM_DATUM key;
+  memset (&key, 0, sizeof key);
+
+  key.data = tchdbiternext (db->hdb, &key.size);
+  return key;
+}
+
+void
+mu_dbm_datum_free (DBM_DATUM *datum)
+{
+  /* empty */
+}
+
 #endif
 

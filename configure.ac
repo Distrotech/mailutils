@@ -378,6 +378,16 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --with-ndbm) ;;
 esac])
 
+AC_ARG_WITH([tokyocabinet],
+            AC_HELP_STRING([--with-tokyocabinet],
+                           [use Tokyo Cabinet]),
+            [
+case "${withval}" in
+  yes) use_dbm=TC ;;
+  no)  use_dbm=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --with-tokyocabinet) ;;
+esac])
+
 AC_MSG_CHECKING(for log facility)
 log_facility="LOG_MAIL"
 AC_ARG_WITH([log-facility],
@@ -1043,6 +1053,14 @@ NDBM)
                                                  [Enable use of NDBM]))
                      LIBS="$LIBS -lndbm"
                      status_dbm="NDBM"]);;
+
+TC)
+	AC_CHECK_LIB(tokyocabinet, tchdbnew,
+                     [AC_CHECK_HEADERS(tchdb.h,
+                                       AC_DEFINE(WITH_TOKYOCABINET,1,
+                                                 [Enable use of Tokyo Cabinet]))
+                     LIBS="$LIBS -ltokyocabinet -lz -lbz2 -lrt"
+                     status_dbm="Tokyo Cabinet"]);;
 esac
 
 AC_SUBST(POPAUTH)

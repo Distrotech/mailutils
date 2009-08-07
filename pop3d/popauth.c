@@ -592,9 +592,11 @@ popauth_version (FILE *stream, struct argp_state *state)
 #elif defined(WITH_BDB)
 # define FORMAT "Berkeley DB"
 #elif defined(WITH_NDBM)
-# define FORMAT "NDBM"  
+# define FORMAT "NDBM"
 #elif defined(WITH_OLD_DBM)
-# define FORMAT "Old DBM"  
+# define FORMAT "Old DBM"
+#elif defined(WITH_TOKYOCABINET)
+# define FORMAT "Tokyo Cabinet"
 #endif
   printf ("%s\n", argp_program_version);
   printf (_("Database format: %s\n"), FORMAT);

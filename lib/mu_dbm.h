@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007, 2009
+   Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,6 +53,27 @@ typedef datum DBM_DATUM;
 #define MU_DATUM_SIZE(d) (d).dsize
 #define MU_DATUM_PTR(d) (d).dptr
 
+#elif defined(WITH_TOKYOCABINET)
+
+#include <tcutil.h>
+#include <tchdb.h>
+#define USE_DBM
+
+struct tokyocabinet_file
+{
+  TCHDB *hdb;
+};
+
+struct tokyocabinet_datum {
+  void *data;
+  int size;
+};
+
+typedef struct tokyocabinet_file *DBM_FILE;
+typedef struct tokyocabinet_datum DBM_DATUM;
+#define MU_DATUM_SIZE(d) (d).size
+#define MU_DATUM_PTR(d) (d).data
+
 #endif
 
 #ifdef USE_DBM
@@ -65,7 +87,7 @@ int mu_dbm_delete (DBM_FILE db, DBM_DATUM key);
 DBM_DATUM mu_dbm_firstkey (DBM_FILE db);
 DBM_DATUM mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key);
 void mu_dbm_datum_free(DBM_DATUM *datum);
-#endif
+#endif /* USE_DBM */
 
 int mu_fcheck_perm (int fd, int mode);
 int mu_check_perm (const char *name, int mode);
