@@ -46,7 +46,13 @@ int mu_rfc2047_decode   (const char *tocode, const char *fromstr,
 
 int mu_rfc2047_encode   (const char *charset, const char *encoding, 
 			 const char *text, char **result);
-  
+
+int mu_base64_encode    (const unsigned char *input, size_t input_len,
+			 unsigned char **output, size_t * output_len);
+
+int mu_base64_decode    (const unsigned char *input, size_t input_len,
+			 unsigned char **output, size_t * output_len);
+
 #ifdef __cplusplus
 }
 #endif

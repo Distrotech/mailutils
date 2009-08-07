@@ -55,6 +55,7 @@ libmailutils_la_SOURCES = \
  attachment.c\
  attribute.c\
  auth.c\
+ base64.c\
  body.c\
  cstrcasecmp.c\
  cfg_driver.c\

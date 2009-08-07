@@ -87,6 +87,7 @@
 #include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
+#include <mailutils/mime.h>
 #include <mailutils/mutil.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
@@ -347,15 +348,6 @@ extern int util_parse_internal_date (char *date, time_t *timep);
 extern int util_parse_822_date (const char *date, time_t *timep);
 extern int util_parse_ctime_date (const char *date, time_t *timep);
 extern char *util_strcasestr (const char *haystack, const char *needle);
-
-extern int util_base64_encode (const unsigned char *input,
-			       size_t input_len,
-			       unsigned char **output,
-			       size_t *output_len);
-extern int util_base64_decode (const unsigned char *input,
-			       size_t input_len,
-			       unsigned char **output,
-			       size_t *output_len);
 extern char *util_localname (void);
 
 extern int util_wcard_match (const char *string, const char *pattern,

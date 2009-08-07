@@ -171,7 +171,7 @@ auth_gssapi (struct imap4d_command *command,
   for (;;)
     {
       imap4d_getline (&token_str, &token_size, &token_len);
-      util_base64_decode (token_str, token_len, &tmp, &size);
+      mu_base64_decode (token_str, token_len, &tmp, &size);
       tokbuf.value = tmp;
       tokbuf.length = size;
 
@@ -189,7 +189,7 @@ auth_gssapi (struct imap4d_command *command,
 	{
 	  if (outbuf.length)
 	    {
-	      util_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
+	      mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
 	      util_send ("+ %*.*s\r\n", size, size, tmp);
 	      free (tmp);
 	      gss_release_buffer (&min_stat, &outbuf);
@@ -209,7 +209,7 @@ auth_gssapi (struct imap4d_command *command,
 
   if (outbuf.length)
     {
-      util_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
+      mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
       util_send ("+ %*.*s\r\n", size, size, tmp);
       free (tmp);
       gss_release_buffer (&min_stat, &outbuf);
@@ -229,13 +229,13 @@ auth_gssapi (struct imap4d_command *command,
       return RESP_NO;
     }
   
-  util_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
+  mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
   util_send ("+ %*.*s\r\n", size, size, tmp);
   free (tmp);
 
   imap4d_getline (&token_str, &token_size, &token_len);
-  util_base64_decode (token_str, token_len,
-		      (unsigned char **) &tokbuf.value, &tokbuf.length);
+  mu_base64_decode (token_str, token_len,
+		    (unsigned char **) &tokbuf.value, &tokbuf.length);
   free (token_str);
 
   maj_stat = gss_unwrap (&min_stat, context, &tokbuf, &outbuf, &cflags,
