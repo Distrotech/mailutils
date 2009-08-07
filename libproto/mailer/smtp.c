@@ -42,12 +42,14 @@
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/message.h>
+#include <mailutils/mime.h>
 #include <mailutils/mutil.h>
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
+#include <mailutils/md5.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 
@@ -115,7 +117,7 @@ struct _smtp
     SMTP_HELO, SMTP_HELO_ACK, SMTP_QUIT, SMTP_QUIT_ACK, SMTP_ENV_FROM,
     SMTP_ENV_RCPT, SMTP_MAIL_FROM, SMTP_MAIL_FROM_ACK, SMTP_RCPT_TO,
     SMTP_RCPT_TO_ACK, SMTP_DATA, SMTP_DATA_ACK, SMTP_SEND, SMTP_SEND_ACK,
-    SMTP_SEND_DOT, SMTP_STARTTLS, SMTP_STARTTLS_ACK
+    SMTP_SEND_DOT, SMTP_STARTTLS, SMTP_STARTTLS_ACK, SMTP_AUTH, SMTP_AUTH_ACK,
   }
   state;
 
@@ -123,6 +125,7 @@ struct _smtp
   unsigned long capa;           /* Server capabilities */
   size_t max_size;              /* Maximum message size the server is willing
 				   to accept */
+  unsigned long auth_mechs;     /* Available ESMTP AUTH mechanisms */
   
   const char *mail_from;
   mu_address_t rcpt_to;		/* Destroy this if not the same as argto below. */
@@ -148,17 +151,43 @@ typedef struct _smtp *smtp_t;
 #define CAPA_STARTTLS        0x00000001
 #define CAPA_8BITMIME        0x00000002
 #define CAPA_SIZE            0x00000004
+#define CAPA_AUTH            0x00000008
+
+/* ESMTP AUTH mechanisms */
+#define AUTH_LOGIN           0x00000001
+#define AUTH_PLAIN           0x00000002
+#define AUTH_CRAM_MD5        0x00000004
+#define AUTH_DIGEST_MD5      0x00000008
+#define AUTH_GSSAPI          0x00000010
+#define AUTH_EXTERNAL        0x00000020
+
+struct auth_mech_record {
+  unsigned long id;
+  char *name;
+};
+
+static struct auth_mech_record auth_mech_list[] = {
+  { AUTH_LOGIN, "login" },
+  { AUTH_PLAIN, "plain" },
+  { AUTH_CRAM_MD5, "cram-md5" },
+  { AUTH_DIGEST_MD5, "digest-md5" },
+  { AUTH_GSSAPI, "gssapi" },
+  { AUTH_EXTERNAL, "external" },
+  { 0, NULL },
+};
 
 static void smtp_destroy (mu_mailer_t);
 static int smtp_open (mu_mailer_t, int);
 static int smtp_close (mu_mailer_t);
-static int smtp_send_message (mu_mailer_t, mu_message_t, mu_address_t, mu_address_t);
+static int smtp_send_message (mu_mailer_t, mu_message_t, mu_address_t,
+			      mu_address_t);
 static int smtp_writeline (smtp_t smtp, const char *format, ...);
 static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
 static int smtp_parse_ehlo_ack (smtp_t);
 static int smtp_write (smtp_t);
 static int smtp_starttls (smtp_t);
+static int smtp_auth (smtp_t);
 
 static int _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
 
@@ -414,6 +443,8 @@ smtp_open (mu_mailer_t mailer, int flags)
 	  mu_stream_close (mailer->stream);
 	  return EACCES;
 	}
+
+ehlo:
       status = smtp_writeline (smtp, "EHLO %s\r\n", smtp->localhost);
       CHECK_ERROR (smtp, status);
 
@@ -442,14 +473,26 @@ smtp_open (mu_mailer_t mailer, int flags)
 
 	  if (smtp->capa & CAPA_STARTTLS)
 	    smtp->state = SMTP_STARTTLS;
+	  else if (smtp->capa & CAPA_AUTH && mailer->url->user) {
+	    smtp->state = SMTP_AUTH;
+	  }
 	  else
 	    break;
 	}
 
     case SMTP_STARTTLS:
     case SMTP_STARTTLS_ACK:
-      smtp_starttls (smtp);
-      break;
+      if (smtp->capa & CAPA_STARTTLS) {
+	smtp_starttls (smtp);
+	goto ehlo;
+      }
+
+    case SMTP_AUTH:
+    case SMTP_AUTH_ACK:
+      if (smtp->capa & CAPA_AUTH) {
+	smtp_auth (smtp);
+	break;
+      }
 
     case SMTP_HELO:
       if (!smtp->extended)	/* FIXME: this will always be false! */
@@ -557,12 +600,13 @@ smtp_starttls (smtp_t smtp)
 #ifdef WITH_TLS
   int status;
   mu_mailer_t mailer = smtp->mailer;
-  char *keywords[] = { "STARTTLS", "EHLO", NULL };
+  char *keywords[] = { "STARTTLS", NULL };
 
   if (!mu_tls_enable || !(smtp->capa & CAPA_STARTTLS))
     return -1;
 
   smtp->capa = 0;
+  smtp->auth_mechs = 0;
   status = mu_tls_begin (smtp, smtp_reader, smtp_writer,
 			 smtp_stream_ctl, keywords);
 
@@ -573,6 +617,209 @@ smtp_starttls (smtp_t smtp)
 #else
   return -1;
 #endif /* WITH_TLS */
+}
+
+static void
+cram_md5 (char *secret, char *challenge, unsigned char *digest)
+{
+  struct mu_md5_ctx context;
+  unsigned char ipad[64];
+  unsigned char opad[64];
+  int secret_len;
+  int challenge_len;
+  int i;
+
+  if (secret == 0 || challenge == 0)
+    return;
+
+  secret_len = strlen (secret);
+  challenge_len = strlen (challenge);
+  memset (ipad, 0, sizeof (ipad));
+  memset (opad, 0, sizeof (opad));
+
+  if (secret_len > 64)
+    {
+      mu_md5_init_ctx (&context);
+      mu_md5_process_bytes ((unsigned char *)secret, secret_len, &context);
+      mu_md5_finish_ctx (&context, ipad);
+      mu_md5_finish_ctx (&context, opad);
+    }
+  else
+    {
+      memcpy (ipad, secret, secret_len);
+      memcpy (opad, secret, secret_len);
+    }
+
+  for (i = 0; i < 64; i++)
+    {
+      ipad[i] ^= 0x36;
+      opad[i] ^= 0x5c;
+    }
+
+  mu_md5_init_ctx (&context);
+  mu_md5_process_bytes (ipad, sizeof (ipad), &context);
+  mu_md5_process_bytes ((unsigned char *)challenge, challenge_len, &context);
+  mu_md5_finish_ctx (&context, digest);
+
+  mu_md5_init_ctx (&context);
+  mu_md5_process_bytes (opad, sizeof (opad), &context);
+  mu_md5_process_bytes (digest, 16, &context);
+  mu_md5_finish_ctx (&context, digest);
+}
+
+static int
+smtp_auth (smtp_t smtp)
+{
+  int status;
+  mu_mailer_t mailer = smtp->mailer;
+  struct auth_mech_record *mechs = auth_mech_list;
+  const char *chosen_mech_name = NULL;
+  int chosen_mech_id = 0;
+
+  status = mu_url_sget_auth (mailer->url, &chosen_mech_name);
+  if (status != MU_ERR_NOENT)
+    {
+      for (; mechs->name; mechs++)
+	{
+	  if (!mu_c_strcasecmp (mechs->name, chosen_mech_name))
+	    {
+	      chosen_mech_id = mechs->id;
+	      break;
+	    }
+	}
+    }
+  if (chosen_mech_id)
+    {
+      if (smtp->auth_mechs & chosen_mech_id)
+	{
+	  smtp->auth_mechs = 0;
+	  smtp->auth_mechs |= chosen_mech_id;
+	}
+      else
+	{
+	  MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
+		     "mailer does not support AUTH '%s' mechanism\n",
+		     chosen_mech_name);
+	  return -1;
+	}
+    }
+
+#if 0 && defined(WITH_GSASL)
+
+  /* FIXME: Add GNU SASL support. */
+
+#else
+
+  /* Provide basic AUTH mechanisms when GSASL is not enabled. */
+
+  if (smtp->auth_mechs & AUTH_CRAM_MD5)
+    {
+      int i;
+      char *p, *buf = NULL;
+      const char *user = NULL;
+      mu_secret_t secret;
+      unsigned char *chl;
+      size_t chlen, buflen = 0, b64buflen = 0;
+      unsigned char *b64buf = NULL;
+      unsigned char digest[16];
+      static char ascii_digest[33];
+      memset (digest, 0, 16);
+
+      status = mu_url_sget_user (mailer->url, &user);
+      if (status == MU_ERR_NOENT)
+	return -1;
+
+      status = mu_url_get_secret (mailer->url, &secret);
+      if (status == MU_ERR_NOENT)
+	{
+	  MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
+		    "AUTH CRAM-MD5 mechanism requires giving a password\n");
+	  return -1;
+	}
+
+      status = smtp_writeline (smtp, "AUTH CRAM-MD5\r\n");
+      CHECK_ERROR (smtp, status);
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+      status = smtp_read_ack (smtp);
+      CHECK_EAGAIN (smtp, status);
+
+      if (strncmp (smtp->buffer, "334 ", 4))
+	{
+	  MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
+		    "mailer rejected the AUTH CRAM-MD5 command\n");
+	  return -1;
+	}
+
+      p = strchr (smtp->buffer, ' ') + 1;
+      mu_rtrim_cset (p, "\r\n");
+      mu_base64_decode (p, strlen (p), &chl, &chlen);
+
+      cram_md5 ((char *)mu_secret_password (secret), chl, digest);
+      mu_secret_password_unref (secret);
+      free (chl);
+
+      for (i = 0; i < 16; i++)
+	sprintf (ascii_digest + 2 * i, "%02x", digest[i]);
+
+      mu_asnprintf (&buf, &buflen, "%s %s", user, ascii_digest);
+      buflen = strlen (buf);
+      mu_base64_encode (buf, buflen, &b64buf, &b64buflen);
+      b64buf[b64buflen] = '\0';
+      free (buf);
+
+      status = smtp_writeline (smtp, "%s\r\n", b64buf);
+      CHECK_ERROR (smtp, status);
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+      status = smtp_read_ack (smtp);
+      CHECK_EAGAIN (smtp, status);
+    }
+
+  else if (smtp->auth_mechs & AUTH_PLAIN)
+    {
+      int c;
+      char *buf = NULL;
+      unsigned char *b64buf = NULL;
+      size_t buflen = 0, b64buflen = 0;
+      const char *user = NULL;
+      mu_secret_t secret;
+
+      status = mu_url_sget_user (mailer->url, &user);
+      if (status == MU_ERR_NOENT)
+	return -1;
+
+      status = mu_url_get_secret (mailer->url, &secret);
+      if (status == MU_ERR_NOENT)
+	{
+	  MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
+		    "AUTH PLAIN mechanism requires giving a password\n");
+	  return -1;
+	}
+
+      mu_asnprintf (&buf, &buflen, "^%s^%s",
+		    user, mu_secret_password (secret));
+      mu_secret_password_unref (secret);
+      buflen = strlen (buf);
+      for (c = buflen - 1; c >= 0; c--)
+	{
+	  if (buf[c] == '^')
+	    buf[c] = '\0';
+	}
+      mu_base64_encode (buf, buflen, &b64buf, &b64buflen);
+      b64buf[b64buflen] = '\0';
+      free (buf);
+
+      status = smtp_writeline (smtp, "AUTH PLAIN %s\r\n", b64buf);
+      CHECK_ERROR (smtp, status);
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+      status = smtp_read_ack (smtp);
+      CHECK_EAGAIN (smtp, status);
+    }
+
+#endif /* not WITH_GSASL */
+  return 0;
 }
 
 static int
@@ -1157,6 +1404,27 @@ smtp_parse_ehlo_ack (smtp_t smtp)
 		  smtp->max_size = n;
 	      }
 	  }
+	else if (!mu_c_strncasecmp (smtp->buffer, "250-AUTH", 8))
+	  {
+	    char *name, *s;
+	    smtp->capa |= CAPA_AUTH;
+
+	    for (name = strtok_r (smtp->buffer + 8, " ", &s); name;
+		 name = strtok_r (NULL, " ", &s))
+	      {
+		struct auth_mech_record *mechs = auth_mech_list;
+		for (; mechs->name; mechs++)
+		  {
+		    mu_rtrim_cset (name, "\r\n");
+		    if (!mu_c_strcasecmp (mechs->name, name))
+		      {
+			smtp->auth_mechs |= mechs->id;
+			break;
+		      }
+		  }
+	      }
+	  }
+
       }
     }
   while (multi && status == 0);
