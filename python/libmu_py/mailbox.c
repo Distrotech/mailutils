@@ -106,7 +106,7 @@ api_mailbox_create_default (PyObject *self, PyObject *args)
   char *name;
   PyMailbox *py_mbox;
 
-  if (!PyArg_ParseTuple (args, "O!s", &PyMailboxType, &py_mbox, &name))
+  if (!PyArg_ParseTuple (args, "O!z", &PyMailboxType, &py_mbox, &name))
     return NULL;
 
   status = mu_mailbox_create_default (&py_mbox->mbox, name);

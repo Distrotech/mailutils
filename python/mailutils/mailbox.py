@@ -203,7 +203,7 @@ class Mailbox (MailboxBase):
         del self.mbox
 
 class MailboxDefault (MailboxBase):
-    def __init__ (self, name):
+    def __init__ (self, name = None):
         self.mbox = mailbox.MailboxType ()
         status = mailbox.create_default (self.mbox, name)
         if status:
