@@ -38,6 +38,14 @@ class Header:
     def __setitem__ (self, name, value):
         self.set_value (name, value)
 
+    def __contains__ (self, name):
+        status, value = header.get_value (self.hdr, name)
+        if status == MU_ERR_NOENT:
+            return False
+        elif status:
+            raise HeaderError (status)
+        return True
+
     def __getattr__ (self, name):
         if name == 'size':
             return self.get_size ()
@@ -61,6 +69,9 @@ class Header:
         else:
             self.__count += 1
             return self.__getitem__ (self.__count)
+
+    def has_key (self, name):
+        return self.__contains__ (name)
 
     def get_size (self):
         status, size = header.size (self.hdr)

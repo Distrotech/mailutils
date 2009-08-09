@@ -39,6 +39,20 @@ Header :: Header (const mu_header_t hdr)
   this->hdr = hdr;
 }
 
+bool
+Header :: has_key (const std::string& name)
+{
+  const char* buf = NULL;
+
+  int status = mu_header_sget_value (hdr, name.c_str (), &buf);
+  if (status == MU_ERR_NOENT)
+    return false;
+  else if (status)
+    throw Exception ("Header::has_key", status);
+
+  return true;
+}
+
 std::string
 Header :: get_value (const std::string& name)
 {

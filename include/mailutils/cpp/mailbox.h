@@ -76,6 +76,7 @@ class Mailbox : public MailboxBase
 class MailboxDefault : public MailboxBase
 {
  public:
+  MailboxDefault ();
   MailboxDefault (const std::string&);
   MailboxDefault (const mu_mailbox_t);
   ~MailboxDefault ();

@@ -226,6 +226,13 @@ Mailbox :: ~Mailbox ()
 // MailboxDefault
 //
 
+MailboxDefault :: MailboxDefault ()
+{
+  int status = mu_mailbox_create_default (&mbox, NULL);
+  if (status)
+    throw Exception ("MailboxDefault::MailboxDefault", status);
+}
+
 MailboxDefault :: MailboxDefault (const std::string& name)
 {
   int status = mu_mailbox_create_default (&mbox, name.c_str ());

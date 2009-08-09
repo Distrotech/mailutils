@@ -38,6 +38,7 @@ class Header
   Header ();
   Header (const mu_header_t);
 
+  bool has_key (const std::string& name);
   std::string get_value (const std::string& name);
   std::string get_value (const std::string& name, const std::string& def);
   size_t size ();
