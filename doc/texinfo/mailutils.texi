@@ -50,7 +50,7 @@ Published by the Free Software Foundation,
 51 Franklin Street, Fifth Floor
 Boston, MA 02110-1301, USA
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2008
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2008, 2009
 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -437,21 +437,44 @@ Date Input Formats
 @node Introduction
 @chapter Introduction
 
-GNU Mailutils contains a series of useful mail clients, servers,
-and libraries. These are the primary mail utilities of the GNU system.
-Specifically, this package contains a POP3 server, an IMAP4 server,
-and a Sieve mail filter. It also provides a POSIX `mailx' client,
-and a collection of other tools. All utilities can manipulate the
-mailboxes of various formats, both local, stored on the hard disk,
-and remote, accessed via network protocols, such as POP3 or IMAP4.
+GNU Mailutils is a rich and powerful protocol-independent mail
+framework.  It contains a series of useful mail libraries, clients,
+and servers.  These are the primary mail utilities for the GNU system.
+The central library is capable of handling electronic mail in various
+mailbox formats and protocols, both local and remote.  Specifically,
+this project contains a POP3 server, an IMAP4 server, and a Sieve mail
+filter. It also provides a POSIX `mailx' client, and a collection of
+other handy tools.
 
-The GNU Mailutils libraries supply a rich set of primitives for
-handling electronic mail in programs written in C, C++ or Scheme.
+The GNU Mailutils libraries supply an ample set of primitives for
+handling electronic mail in programs written in C, C++, Python or
+Scheme.
 
-This software is part of the GNU Project and belongs to the Free
-Software Foundation. All libraries are licensed using the GNU LGPL.
-The documentation is licensed under the GNU FDL, and everything
-else is licensed using the GNU GPL.
+At the core of Mailutils is libmailutils, a library which provides
+universal access to various mailboxes and protocols: UNIX mailbox,
+Maildir, MH, POP3, IMAP4, Sendmail, SMTP.  Mailutils offers functions
+for almost any mail-related task, such as parsing of messages, email
+addresses and URLs, handling MIME messages, listing mail folders,
+mailcap facilities, extensible Sieve filtering, access control lists.
+It supports various modern data security and authentication
+techniques: TLS encryption, SASL and GSSAPI, to name a few.
+The framework is able to work with a wide variety of authorization
+databases, ranging from traditional system password database up to
+RADIUS, SQL and LDAP.
+
+The utilities provided by Mailutils include imap4d and pop3d mail
+servers, mail reporting utility comsatd, general-purpose mail delivery
+agent maidag, mail filtering program sieve, and an implementation of
+MH message handling system.
+
+All utilities share the same subset of command line options and use
+a unified configuration mechanism, which allows to easily configure
+the package as a whole.
+
+This software is part of the GNU Project and is copyrighted by the
+Free Software Foundation.  All libraries are distributed under the
+terms of the Lesser GNU Public License.  The documentation is licensed
+under the GNU FDL, and everything else is licensed under the GNU GPL.
 
 @menu
 * Book Contents::               What this Book Contains

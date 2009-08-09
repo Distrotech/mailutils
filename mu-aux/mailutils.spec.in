@@ -20,7 +20,7 @@ Requires: readline
 BuildRequires: gettext
 BuildRequires: gnutls-devel >= 1.0.18
 BuildRequires: libgsasl-devel >= 0.2.3
-BuildRequires: guile-devel >= 1.6
+BuildRequires: guile-devel >= 1.8
 BuildRequires: gdbm-devel
 BuildRequires: mysql-devel
 BuildRequires: readline-devel
@@ -28,12 +28,14 @@ BuildRequires: emacs
 BuildRequires: python
 
 %description
-GNU Mailutils contains a series of useful mail clients, servers, and
-libraries. These are the primary mail utilities of the GNU system.
-This package provides a replacement for /bin/mail(x) conforming to
-the UNIX98 specification for mailx. It provides also a mail delivery
-agent maidag, and other tools including guimb, dotlock, movemail,
-frm.
+GNU Mailutils is a rich and powerful protocol-independent mail
+framework.  It contains a series of useful mail libraries, clients,
+and servers.  These are the primary mail utilities for the GNU system.
+The central library is capable of handling electronic mail in various
+mailbox formats and protocols, both local and remote.  Specifically,
+this project contains a POP3 server, an IMAP4 server, and a Sieve mail
+filter. It also provides a POSIX 'mailx' client, and a collection of
+other handy tools.
 
 %package -n libmailutils
 Summary: GNU Mailutils: mailbox access library.
@@ -74,7 +76,7 @@ Group: Networking/Daemons
 Summary: GNU Mailutils: Guile bindings.
 License: GPLv3+
 Requires: libmailutils = %{version}-%{release}
-Requires: guile >= 1.6
+Requires: guile >= 1.8
 Group: System Environment/Libraries
 
 %package python
@@ -94,8 +96,8 @@ Group: Console/Mail
 %description -n libmailutils
 The runtime library libmailutils contains various mailbox access
 routines and support for a number of mailbox types, such as mbox,
-maildir, mh, POP3, and IMAP4. It also supports MIME message
-handling, and sending mail via SMTP and /sbin/sendmail.
+Maildir, MH, POP3, and IMAP4. It also supports MIME message
+handling, and sending mail via SMTP and Sendmail.
 
 %description devel
 The static libraries and header files for GNU Mailutils.
@@ -186,7 +188,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n libmailutils
 %defattr(-,root,root,-)
-%{_libdir}/libguile-mailutils*.so
 %{_libdir}/libmailutils.so.*
 %{_libdir}/libmu_*.so.*
 %{_infodir}/*
@@ -224,6 +225,7 @@ rm -rf $RPM_BUILD_ROOT
 %files guile
 %defattr(-,root,root,-)
 %{_bindir}/sieve.scm
+%{_libdir}/libguile-mailutils*.so
 %{_datadir}/guile/site/mailutils/*.scm
 %{_datadir}/guile/site/mailutils/*.txt
 %{_datadir}/guile/site/sieve-modules/*.scm
