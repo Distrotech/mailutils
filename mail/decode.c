@@ -173,7 +173,9 @@ mime_descend (struct mime_descend_closure *closure,
   struct mime_descend_closure subclosure;
 
   mu_message_get_header (closure->message, &hdr);
-  util_get_content_type (hdr, &type, NULL);
+  util_get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+  if (type == NULL)
+    type = xstrdup ("text/plain");
   get_content_encoding (hdr, &encoding);
 
   closure->type = type;
