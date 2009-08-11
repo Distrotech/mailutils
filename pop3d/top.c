@@ -12,16 +12,14 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301 USA */
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
 
 /* Prints the header of a message plus a specified number of lines.  */
 
 int
-pop3d_top (const char *arg)
+pop3d_top (char *arg)
 {
   size_t mesgno;
   int lines;
@@ -41,12 +39,10 @@ pop3d_top (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  mesgc = pop3d_cmd (arg);
-  linesc = pop3d_args (arg);
+  pop3d_parse_command (arg, &mesgc, &linesc);
+  
   mesgno = strtoul (mesgc, NULL, 10);
-  lines = strlen (linesc) > 0 ? strtol (linesc, NULL, 10) : -1;
-  free (mesgc);
-  free (linesc);
+  lines = *linesc ? strtol (linesc, NULL, 10) : -1;
 
   if (lines < 0)
     return ERR_BAD_ARGS;

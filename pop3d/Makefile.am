@@ -30,6 +30,7 @@ pop3d_SOURCES =\
  auth.c\
  bulletin.c\
  capa.c\
+ cmd.c\
  dele.c\
  expire.c\
  extra.c\

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,9 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301 USA */
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
 
@@ -23,7 +21,7 @@
 #ifdef WITH_TLS
 
 int
-pop3d_stls (const char *arg)
+pop3d_stls (char *arg)
 {
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -40,7 +38,11 @@ pop3d_stls (const char *arg)
   tls_done = pop3d_init_tls_server ();
 
   if (!tls_done)
-    return ERR_UNKNOWN;
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("Session terminated"));
+      state = ABORT;
+      return ERR_UNKNOWN;
+    }
 
   state = AUTHORIZATION;  /* Confirm we're in this state. Necessary for
 			     --tls-required to work */

@@ -117,6 +117,7 @@ cb_bulletin_source (mu_debug_t debug, void *data, mu_config_value_t *val)
   return 0;
 }
 
+#ifdef USE_DBM
 static int
 cb_bulletin_db (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
@@ -125,6 +126,7 @@ cb_bulletin_db (mu_debug_t debug, void *data, mu_config_value_t *val)
   set_bulletin_db (val->v.string); /* FIXME: Error reporting? */
   return 0;
 }
+#endif
 
 static struct mu_cfg_param pop3d_cfg_param[] = {
   { "undelete", mu_cfg_bool, &undelete_on_startup, 0, NULL,
@@ -327,15 +329,16 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   /* Lets boogie.  */
   pop3d_outf ("+OK POP3 Ready %s\r\n", md5shared);
 
-  while (state != UPDATE)
+  while (state != UPDATE && state != ABORT)
     {
-      char *buf, *arg, *cmd;
-
+      char *buf;
+      char *arg, *cmd;
+      pop3d_command_handler_t handler;
+      
       pop3d_flush_output ();
       status = OK;
       buf = pop3d_readline (buffer, sizeof (buffer));
-      cmd = pop3d_cmd (buf);
-      arg = pop3d_args (buf);
+      pop3d_parse_command (buf, &cmd, &arg);
 
       /* The mailbox size needs to be check to make sure that we are in
 	 sync.  Some other applications may not respect the *.lock or
@@ -361,79 +364,13 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	status = ERR_TOO_LONG;
       else if (strlen (cmd) > 4)
 	status = ERR_BAD_CMD;
-      else if (mu_c_strncasecmp (cmd, "RETR", 4) == 0)
-	status = pop3d_retr (arg);
-      else if (mu_c_strncasecmp (cmd, "DELE", 4) == 0)
-	status = pop3d_dele (arg);
-      else if (mu_c_strncasecmp (cmd, "USER", 4) == 0)
-	status = pop3d_user (arg);
-      else if (mu_c_strncasecmp (cmd, "QUIT", 4) == 0)
-	status = pop3d_quit (arg);
-      else if (mu_c_strncasecmp (cmd, "APOP", 4) == 0)
-	status = pop3d_apop (arg);
-      else if (mu_c_strncasecmp (cmd, "AUTH", 4) == 0)
-	status = pop3d_auth (arg);
-      else if (mu_c_strncasecmp (cmd, "STAT", 4) == 0)
-	status = pop3d_stat (arg);
-      else if (mu_c_strncasecmp (cmd, "LIST", 4) == 0)
-	status = pop3d_list (arg);
-      else if (mu_c_strncasecmp (cmd, "NOOP", 4) == 0)
-	status = pop3d_noop (arg);
-      else if (mu_c_strncasecmp (cmd, "RSET", 4) == 0)
-	status = pop3d_rset (arg);
-      else if ((mu_c_strncasecmp (cmd, "TOP", 3) == 0) && (strlen (cmd) == 3))
-	status = pop3d_top (arg);
-      else if (mu_c_strncasecmp (cmd, "UIDL", 4) == 0)
-	status = pop3d_uidl (arg);
-      else if (mu_c_strncasecmp (cmd, "CAPA", 4) == 0)
-	status = pop3d_capa (arg);
-#ifdef WITH_TLS
-      else if ((mu_c_strncasecmp (cmd, "STLS", 4) == 0) && tls_available)
-	{
-	  status = pop3d_stls (arg);
-	  if (status)
-	    {
-	      mu_diag_output (MU_DIAG_ERROR, _("Session terminated"));
-	      break;
-	    }
-	}
-#endif /* WITH_TLS */
+      else if ((handler = pop3d_find_command (cmd)) != NULL)
+	status = handler (arg);
       else
 	status = ERR_BAD_CMD;
 
-      if (status == OK)
-	; /* Everything is good.  */
-      else if (status == ERR_WRONG_STATE)
-	pop3d_outf ("-ERR " BAD_STATE "\r\n");
-      else if (status == ERR_BAD_ARGS)
-	pop3d_outf ("-ERR " BAD_ARGS "\r\n");
-      else if (status == ERR_NO_MESG)
-	pop3d_outf ("-ERR " NO_MESG "\r\n");
-      else if (status == ERR_MESG_DELE)
-	pop3d_outf ("-ERR " MESG_DELE "\r\n");
-      else if (status == ERR_NOT_IMPL)
-	pop3d_outf ("-ERR " NOT_IMPL "\r\n");
-      else if (status == ERR_BAD_CMD)
-	pop3d_outf ("-ERR " BAD_COMMAND "\r\n");
-      else if (status == ERR_BAD_LOGIN)
-	pop3d_outf ("-ERR " BAD_LOGIN "\r\n");
-      else if (status == ERR_MBOX_LOCK)
-	pop3d_outf ("-ERR [IN-USE] " MBOX_LOCK "\r\n");
-      else if (status == ERR_TOO_LONG)
-	pop3d_outf ("-ERR " TOO_LONG "\r\n");
-      else if (status == ERR_FILE)
-	pop3d_outf ("-ERR " FILE_EXP "\r\n");
-#ifdef WITH_TLS
-      else if (status == ERR_TLS_ACTIVE)
-	pop3d_outf ("-ERR " TLS_ACTIVE "\r\n");
-#endif /* WITH_TLS */
-      else if (status == ERR_LOGIN_DELAY)
-	pop3d_outf ("-ERR [LOGIN-DELAY] " LOGIN_DELAY "\r\n");
-      else
-	pop3d_outf ("-ERR unknown error\r\n");
-
-      free (cmd);
-      free (arg);
+      if (status != OK)
+	pop3d_outf ("-ERR %s\r\n", pop3d_error_string (status));
     }
 
   pop3d_bye ();
@@ -553,7 +490,11 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   tls_available = mu_check_tls_environment ();
   if (tls_available)
-    tls_available = mu_init_tls_libs ();
+    {
+      tls_available = mu_init_tls_libs ();
+      if (tls_available)
+	enable_stls ();
+    }
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */

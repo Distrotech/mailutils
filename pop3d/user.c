@@ -13,9 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301 USA */
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
 
@@ -89,7 +87,7 @@ pop3d_begin_session ()
 }
 
 int
-pop3d_user (const char *arg)
+pop3d_user (char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
   char buffer[512];
@@ -104,28 +102,20 @@ pop3d_user (const char *arg)
   pop3d_flush_output ();
 
   buf = pop3d_readline (buffer, sizeof (buffer));
-  cmd = pop3d_cmd (buf);
-  tmp = pop3d_args (buf);
+  pop3d_parse_command (buf, &cmd, &tmp);
 
   if (strlen (tmp) > POP_MAXCMDLEN)
-    {
-      free (cmd);
-      free (tmp);
-      return ERR_TOO_LONG;
-    }
+    return ERR_TOO_LONG;
   else
     {
       strncpy (pass, tmp, POP_MAXCMDLEN);
       /* strncpy () is lame, make sure the string is null terminated.  */
       pass[POP_MAXCMDLEN - 1] = '\0';
-      free (tmp);
     }
 
   if (mu_c_strcasecmp (cmd, "PASS") == 0)
     {
       int rc;
-
-      free (cmd);
 
 #ifdef _USE_APOP
       /* Check to see if they have an APOP password. If so, refuse USER/PASS */
@@ -133,7 +123,6 @@ pop3d_user (const char *arg)
       if (tmp != NULL)
 	{
 	  mu_diag_output (MU_DIAG_INFO, _("APOP user %s tried to log in with USER"), arg);
-	  free (tmp);
 	  return ERR_BAD_LOGIN;
 	}
 #endif
@@ -159,12 +148,10 @@ pop3d_user (const char *arg)
   else if (mu_c_strcasecmp (cmd, "QUIT") == 0)
     {
       mu_diag_output (MU_DIAG_INFO, _("Possible probe of account `%s'"), arg);
-      free (cmd);
       return pop3d_quit (pass);
     }
   else
     {
-      free (cmd);
       return ERR_BAD_CMD;
     }
 

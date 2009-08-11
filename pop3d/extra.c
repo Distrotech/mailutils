@@ -22,66 +22,22 @@
 
 static mu_stream_t istream, ostream;
 
-/* Takes a string as input and returns either the remainder of the string
-   after the first space, or a zero length string if no space */
-
-char *
-pop3d_args (const char *cmd)
+void
+pop3d_parse_command (char *cmd, char **pcmd, char **parg)
 {
-  int space = -1, i = 0, len;
-  char *buf;
-
-  len = strlen (cmd) + 1;
-  buf = malloc (len * sizeof (char));
-  if (buf == NULL)
-    pop3d_abquit (ERR_NO_MEM);
-
-  while (space < 0 && i < len)
+  char *p;
+  
+  cmd = mu_str_skip_class (cmd, MU_CTYPE_BLANK);
+  *pcmd = cmd;
+  p = mu_str_skip_class_comp (cmd, MU_CTYPE_SPACE);
+  *p++ = 0;
+  if (*p)
     {
-      if (cmd[i] == ' ')
-	space = i + 1;
-      else if (cmd[i] == '\0' || cmd[i] == '\r' || cmd[i] == '\n')
-	len = i;
-      i++;
+      *parg = p;
+      mu_rtrim_class (p, MU_CTYPE_SPACE);
     }
-
-  if (space < 0)
-    buf[0] = '\0';
   else
-    {
-      for (i = space; i < len; i++)
-	if (cmd[i] == '\0' || cmd[i] == '\r' || cmd[i] == '\n')
-	  buf[i - space] = '\0';
-	else
-	  buf[i - space] = cmd[i];
-    }
-
-  return buf;
-}
-
-/* This takes a string and returns the string up to the first space or end of
-   the string, whichever occurs first */
-
-char *
-pop3d_cmd (const char *cmd)
-{
-  char *buf;
-  int i = 0, len;
-
-  len = strlen (cmd) + 1;
-  buf = malloc (len * sizeof (char));
-  if (buf == NULL)
-    pop3d_abquit (ERR_NO_MEM);
-
-  for (i = 0; i < len; i++)
-    {
-      if (cmd[i] == ' ' || cmd[i] == '\0' || cmd[i] == '\r' || cmd[i] == '\n')
-	len = i;
-      else
-	buf[i] = cmd[i];
-    }
-  buf[i - 1] = '\0';
-  return buf;
+    *parg = "";
 }
 
 /* This is called if GNU POP3 needs to quit without going to the UPDATE stage.
@@ -105,7 +61,7 @@ pop3d_abquit (int reason)
     {
     case ERR_NO_MEM:
       code = EX_SOFTWARE;
-      pop3d_outf ("-ERR Out of memory, quitting\r\n");
+      pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
       mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
       break;
 
@@ -121,7 +77,7 @@ pop3d_abquit (int reason)
 
     case ERR_TIMEOUT:
       code = EX_TEMPFAIL;
-      pop3d_outf ("-ERR Session timed out\r\n");
+      pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
       if (state == TRANSACTION)
 	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"),
 			username);
@@ -160,7 +116,7 @@ pop3d_abquit (int reason)
 
     default:
       code = EX_SOFTWARE;
-      pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
+      pop3d_outf ("-ERR Quitting: %s\r\n", pop3d_error_string (reason));
       mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"),
 		      reason);
       break;

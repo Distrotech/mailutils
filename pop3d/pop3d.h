@@ -31,44 +31,6 @@
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"
 
-/* You can edit the messages the POP server prints out here */
-
-/* A command that doesn't exist */
-#define BAD_COMMAND	"Invalid command"
-
-/* Incorrect number of arguments passed to a command */
-#define BAD_ARGS	"Invalid arguments"
-
-/* Command issued in wrong state */
-#define BAD_STATE	"Incorrect state"
-
-/* An action on a message that doesn't exist */
-#define NO_MESG		"No such message"
-
-/* An action on a message that doesn't exist */
-#define MESG_DELE	"Message has been deleted"
-
-/* A command that is known but not implemented */
-#define NOT_IMPL	"Not implemented"
-
-/* Invalid username or password */
-#define BAD_LOGIN	"Bad login"
-
-/* User authenticated, but mailbox is locked */
-#define MBOX_LOCK	"Mailbox in use"
-
-/* The command argument was > 40 characters */
-#define TOO_LONG	"Argument too long"
-
-/* An error occured when expunging.  */
-#define FILE_EXP        "Some deleted messages not removed"
-
-/* Command not permitted when TLS active. */
-#define TLS_ACTIVE      "Command not permitted when TLS active"
-
-/* Trying to log in within the minimum login delay interval */
-#define LOGIN_DELAY     "Attempt to log in within the minimum login delay interval"
-
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
 #define APOP_PASSFILE_NAME "apop"
@@ -183,10 +145,11 @@ extern int expire_on_exit;
 #define POP3_ATTRIBUTE_DELE 0x0001
 #define POP3_ATTRIBUTE_RETR 0x0010
 
-#define INITIAL        -1
+#define INITIAL         -1
 #define AUTHORIZATION	0
 #define TRANSACTION	1
 #define UPDATE		2
+#define ABORT           3
 
 #define OK		0
 #define ERR_WRONG_STATE	1
@@ -214,6 +177,13 @@ extern int expire_on_exit;
 #define ERR_TERMINATE   23
 
 typedef struct mu_pop_server *mu_pop_server_t;
+typedef int (*pop3d_command_handler_t) (char *);
+
+struct pop3d_command
+{
+  const char *name;
+  pop3d_command_handler_t handler;
+};
 
 extern mu_pop_server_t pop3srv;
 extern mu_mailbox_t mbox;
@@ -234,34 +204,38 @@ extern struct mu_auth_data *auth_data;
 extern unsigned int idle_timeout;
 extern int pop3d_transcript;
 
+extern pop3d_command_handler_t pop3d_find_command (const char *name);
+
+extern int pop3d_stat           (char *);
+extern int pop3d_top            (char *);
+extern int pop3d_uidl           (char *);
+extern int pop3d_user           (char *);
+extern int pop3d_apop           (char *);
+extern int pop3d_auth           (char *);
+extern int pop3d_capa           (char *);
+extern int pop3d_dele           (char *);
+extern int pop3d_list           (char *);
+extern int pop3d_noop           (char *);
+extern int pop3d_quit           (char *);
+extern int pop3d_retr           (char *);
+extern int pop3d_rset           (char *);
+
 extern void pop3d_bye           (void);
 extern int pop3d_abquit         (int);
-extern int pop3d_apop           (const char *);
 extern char *pop3d_apopuser     (const char *);
-extern char *pop3d_args         (const char *);
-extern int pop3d_auth           (const char *);
-extern int pop3d_capa           (const char *);
-extern char *pop3d_cmd          (const char *);
-extern int pop3d_dele           (const char *);
-extern int pop3d_list           (const char *);
 extern int pop3d_lock           (void);
-extern int pop3d_noop           (const char *);
-extern int pop3d_quit           (const char *);
-extern int pop3d_retr           (const char *);
-extern int pop3d_rset           (const char *);
 extern void process_cleanup     (void);
+
+extern void pop3d_parse_command (char *cmd, char **pcmd, char **parg);
 
 extern RETSIGTYPE pop3d_master_signal  (int);
 extern RETSIGTYPE pop3d_child_signal  (int);
 
-extern int pop3d_stat           (const char *);
 #ifdef WITH_TLS
-extern int pop3d_stls           (const char *);
+extern int pop3d_stls           (char *);
+extern void enable_stls (void);
 #endif /* WITH_TLS */
-extern int pop3d_top            (const char *);
 extern int pop3d_touchlock      (void);
-extern int pop3d_uidl           (const char *);
-extern int pop3d_user           (const char *);
 extern int pop3d_unlock         (void);
 extern void pop3d_outf          (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 
@@ -291,7 +265,6 @@ extern void deliver_pending_bulletins (void);
 extern void set_bulletin_db (const char *file);
 extern int set_bulletin_source (const char *source);
 extern int pop3d_begin_session (void);
-
-
+extern const char *pop3d_error_string (int code);
 
 #endif /* _POP3D_H */

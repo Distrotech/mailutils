@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,9 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301 USA */
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
 
@@ -144,9 +143,9 @@ pop3d_apopuser (const char *user)
 }
 
 int
-pop3d_apop (const char *arg)
+pop3d_apop (char *arg)
 {
-  char *tmp, *user_digest, *user, *password;
+  char *tmp, *password, *user_digest, *user;
   char buf[POP_MAXCMDLEN];
   struct mu_md5_ctx md5context;
   unsigned char md5digest[16];
@@ -157,22 +156,18 @@ pop3d_apop (const char *arg)
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
 
-  user = pop3d_cmd (arg);
+  pop3d_parse_command (arg, &user, &user_digest);
   if (strlen (user) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
       mu_diag_output (MU_DIAG_INFO, _("User name too long: %s"), user);
-      free (user);
       return ERR_BAD_ARGS;
     }
-  user_digest = pop3d_args (arg);
 
   password = pop3d_apopuser (user);
   if (password == NULL)
     {
       mu_diag_output (MU_DIAG_INFO, _("Password for `%s' not found in the database"),
 	      user);
-      free (user);
-      free (user_digest);
       return ERR_BAD_LOGIN;
     }
 
@@ -194,14 +189,10 @@ pop3d_apop (const char *arg)
   if (strcmp (user_digest, buf))
     {
       mu_diag_output (MU_DIAG_INFO, _("APOP failed for `%s'"), user);
-      free (user);
-      free (user_digest);
       return ERR_BAD_LOGIN;
     }
 
-  free (user_digest);
   auth_data = mu_get_auth_by_name (user);
-  free (user);
   if (auth_data == NULL)
     return ERR_BAD_LOGIN;
 
