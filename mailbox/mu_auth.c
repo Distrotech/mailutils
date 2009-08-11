@@ -218,7 +218,9 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
               status = rc;
               break;
             }
-          else if (status != EAGAIN)
+          else if (rc == ENOSYS && status != 0)
+	    /* nothing: do not overwrite last meaningful return code */;
+	  else if (status != EAGAIN)
             status = rc;
         }
 
