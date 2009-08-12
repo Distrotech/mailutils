@@ -1142,10 +1142,7 @@ AM_CONDITIONAL([MU_COND_PYTHON], [test "$status_python" = yes])
 AC_SUBST(MU_CXX_LTLIBRARIES_BUILD)
 AC_SUBST(MU_CXX_EXAMPLES_BUILD)
 MU_ENABLE_SUPPORT(c++,
-  	          [MU_CXX_LTLIBRARIES_BUILD='$(MU_CXX_LTLIBRARIES_LIST)'
-	           MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'],
-		  :,
-		  [mu_cv_enable_cxx=$mu_build_experimental])
+  	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1189,18 +1186,14 @@ MU_ENABLE_BUILD(comsat)
 MU_ENABLE_BUILD(maidag)
 MU_ENABLE_BUILD(mail)
 MU_ENABLE_BUILD(sieve)
-if test "$useguile" = yes; then
-  MU_ENABLE_BUILD(guimb)
-fi
+MU_ENABLE_BUILD(guimb,,,[test "$useguile" = yes])
 MU_ENABLE_BUILD(messages)
 MU_ENABLE_BUILD(readmsg)
 MU_ENABLE_BUILD(dotlock)
 MU_ENABLE_BUILD(movemail)
 MU_ENABLE_BUILD(mimeview)
 
-if test "$mu_cv_enable_mh" = yes; then
-  MU_ENABLE_BUILD(mh)
-fi
+MU_ENABLE_BUILD(mh,,,[test "$mu_cv_enable_mh" = yes])
 
 AC_SUBST(MH_BIN_DIR)
 
