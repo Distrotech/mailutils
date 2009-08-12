@@ -122,8 +122,8 @@ EXTRA_DIST = COPYING.LESSER paths
 
 DISTCLEANFILES = pathdefs.h
 
-gen_start_date = 
-prev_change_log = 
+gen_start_date = "2008-12-08"
+prev_change_log = "doc/ChangeLog.CVS"
 
 .PHONY: ChangeLog
 ChangeLog:
@@ -132,7 +132,7 @@ ChangeLog:
 	  if test -n "$(gen_start_date)"; then                             \
 	    cmd="$$cmd --since=\"$(gen_start_date)\"";                     \
 	  fi;                                                              \
-	  $$cmd |                                                          \
+	  $$cmd --format='%s%n%n%b%n' |                                    \
             sed '/<unknown>$$/d' | fmt -s > cl-t;                          \
           if test -n "$(prev_change_log)" && test -f "$(prev_change_log)"; \
 	  then                                                             \
