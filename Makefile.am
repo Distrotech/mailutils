@@ -20,6 +20,70 @@
 
 ACLOCAL_AMFLAGS = -I m4 -I am
 
+if MU_COND_PYTHON
+  PYTHON_DIR = python
+endif
+
+if MU_COND_MH
+  MH_DIR = mh
+endif
+
+if MU_COND_FRM
+  FRM_DIR = frm
+endif
+
+if MU_COND_POP3D
+  POP3D_DIR = pop3d
+endif
+
+if MU_COND_IMAP4D
+  IMAP4D_DIR = imap4d
+endif
+
+if MU_COND_MAIDAG
+  MAIDAG_DIR = maidag
+endif
+
+if MU_COND_MAIL
+  MAIL_DIR = mail
+endif
+
+if MU_COND_SIEVE
+  SIEVE_DIR = sieve
+endif
+
+if MU_COND_GUIMB
+  GUIMB_DIR = guimb
+endif
+
+if MU_COND_MESSAGES
+  MESSAGES_DIR = messages
+endif
+
+if MU_COND_COMSAT
+  COMSAT_DIR = comsat
+endif
+
+if MU_COND_READMSG
+  READMSG_DIR = readmsg
+endif
+
+if MU_COND_DOTLOCK
+  DOTLOCK_DIR = dotlock
+endif
+
+if MU_COND_MOVEMAIL
+  MOVEMAIL_DIR = movemail
+endif
+
+if MU_COND_MIMEVIEW
+  MIMEVIEW_DIR = mimeview
+endif
+
+if MU_COND_LIBMU_SCM
+  LIBMU_SCM_DIR = libmu_scm
+endif
+
 SUBDIRS = \
  mu-aux\
  include\
@@ -33,26 +97,26 @@ SUBDIRS = \
  libmu_argp\
  libmu_cfg\
  libmu_cpp\
- libmu_scm\
+ $(LIBMU_SCM_DIR)\
  libmu_sieve\
- python\
+ $(PYTHON_DIR)\
  doc\
  config\
  examples\
- frm\
- pop3d\
- imap4d\
- maidag\
- mail\
- sieve\
- guimb\
- messages\
- comsat\
- readmsg\
- dotlock\
- mh\
- movemail\
- mimeview
+ $(FRM_DIR)\
+ $(POP3D_DIR)\
+ $(IMAP4D_DIR)\
+ $(MAIDAG_DIR)\
+ $(MAIL_DIR)\
+ $(SIEVE_DIR)\
+ $(GUIMB_DIR)\
+ $(MESSAGES_DIR)\
+ $(COMSAT_DIR)\
+ $(READMSG_DIR)\
+ $(DOTLOCK_DIR)\
+ $(MH_DIR)\
+ $(MOVEMAIL_DIR)\
+ $(MIMEVIEW_DIR)
 
 EXTRA_DIST = COPYING.LESSER paths
 

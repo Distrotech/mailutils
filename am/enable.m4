@@ -46,5 +46,36 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 	popdef([mu_cache_var])
 ])
 
+AC_DEFUN([MU_ENABLE_BUILD], [
+	pushdef([mu_upcase],translit($1,[a-z+-],[A-ZX_]))
+	pushdef([mu_cache_var],[mu_cv_enable_build_]translit($1,[+-],[x_]))
+	pushdef([mu_cond],[MU_COND_]mu_upcase)
+
+	AC_ARG_ENABLE(build-$1, 
+	              AC_HELP_STRING([--disable-build-]$1,
+		                     [do not build ]$1),
+	              [
+	case "${enableval}" in
+		yes) mu_cache_var=yes;;
+                no)  mu_cache_var=no;;
+	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
+        esac],
+                      [ifelse([$4],,mu_cache_var=yes,[$4])])
+
+	if test x"[$]mu_cache_var" = x"yes"; then
+		ifelse([$2],,:,[$2])
+	ifelse([$3],,,else
+               [$3])
+	fi
+	if test x"[$]mu_cache_var" = x"yes"; then
+		AC_DEFINE([MU_BUILD_]mu_upcase,1,[Define this if you build $1])
+        fi
+	AM_CONDITIONAL(mu_cond,
+	               [test x"[$]mu_cache_var" = x"yes"])
+	
+	popdef([mu_upcase])
+	popdef([mu_cache_var])
+	popdef([mu_cond])
+])
 
 

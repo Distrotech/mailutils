@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 MU_GUILE_SIEVE_SCRIPTS_X=sieve.scm
-bin_SCRIPTS = @MU_GUILE_SIEVE_SCRIPTS@
+bin_SCRIPTS = sieve.scm
 EXTRA_SCRIPTS=sieve.scm
 
 sievemoddir=@MU_GUILE_SIEVE_MOD_DIR@
@@ -37,8 +37,7 @@ sieve.sed: Makefile
 CLEANFILES = sieve.scm sieve.sed
 
 sitedir=@MU_GUILE_SITE_DIR@
-GUILE_SITE_DATA_X=sieve-core.scm
-site_DATA=@GUILE_SITE_DATA@
+site_DATA=sieve-core.scm
 
 MU_GUILE_SIEVE_MOD_DATA_X=\
  mimeheader.scm\

@@ -17,35 +17,9 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-# All MH programs. Note that we have to explicitely append EXEEXT, Makefile
-# won't do that.
-MU_MH_PROGRAMS_LIST = \
- ali$(EXEEXT)\
- anno$(EXEEXT)\
- burst$(EXEEXT)\
- comp$(EXEEXT)\
- fmtcheck$(EXEEXT)\
- folder$(EXEEXT)\
- forw$(EXEEXT)\
- inc$(EXEEXT)\
- install-mh$(EXEEXT)\
- mark$(EXEEXT)\
- mhl$(EXEEXT)\
- mhn$(EXEEXT)\
- mhparam$(EXEEXT)\
- mhpath$(EXEEXT)\
- pick$(EXEEXT)\
- refile$(EXEEXT)\
- repl$(EXEEXT)\
- rmf$(EXEEXT)\
- rmm$(EXEEXT)\
- scan$(EXEEXT)\
- send$(EXEEXT)\
- sortm$(EXEEXT)\
- whatnow$(EXEEXT)\
- whom$(EXEEXT)
-
-EXTRA_PROGRAMS = \
+bindir = @MH_BIN_DIR@
+mhlibdir = $(pkgdatadir)/mh
+bin_PROGRAMS = \
  ali\
  anno\
  burst\
@@ -71,13 +45,7 @@ EXTRA_PROGRAMS = \
  whatnow\
  whom
 
-MU_MH_LIBRARIES_LIST = libmh.a
-EXTRA_LIBRARIES = libmh.a
-
-bindir = @MH_BIN_DIR@
-mhlibdir = $(pkgdatadir)/mh
-bin_PROGRAMS = @MU_MH_PROGRAMS_BUILD@
-noinst_LIBRARIES = @MU_MH_LIBRARIES_BUILD@
+noinst_LIBRARIES = libmh.a
 
 libmh_a_SOURCES= \
  compcommon.c\
@@ -168,9 +136,7 @@ mh_alias_lex.c: $(srcdir)/mh_alias.l mh_alias.h
                   $(srcdir)/mh_alias.l lex.yy.c mh_alias_lex.c \
                   -- -yy ali_yy
 
-install-exec-hook: @MU_MH_EXEC_HOOK@
-
-mh_finish_install:
+install-exec-hook: 
 	@here=`pwd`; \
 	cd $(DESTDIR)$(bindir); \
 	rm -f folders; \

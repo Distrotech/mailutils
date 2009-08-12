@@ -20,9 +20,8 @@
 
 INCLUDES = -I. @MU_LIB_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
 
-MU_SCM_LTLIBRARIES_LIST = libmu_scm.la
-lib_LTLIBRARIES=@MU_SCM_LTLIBRARIES_BUILD@
-EXTRA_LTLIBRARIES=libmu_scm.la
+lib_LTLIBRARIES=libmu_scm.la
+
 C_SRCS=\
  mu_address.c\
  mu_body.c\
@@ -52,11 +51,10 @@ libmu_scm_la_LIBADD = \
  ${MU_LIB_MAILUTILS}\
  @GUILE_LIBS@
 
-EXTRA_DIST=mailutils.scm mailutils.scm.in
+EXTRA_DIST=mailutils.scm mailutils.scm.in guile-procedures.texi guile-procedures.txt
 
 sitedir=@MU_GUILE_SITE_DIR@
-GUILE_SITE_DATA_X=guile-procedures.txt mailutils.scm
-site_DATA=@GUILE_SITE_DATA@
+site_DATA=guile-procedures.txt mailutils.scm
 
 DOT_X_FILES=\
  mu_address.x\
@@ -80,11 +78,15 @@ DOT_DOC_FILES=\
  mu_scm.doc\
  mu_util.doc 
 
-GUILE_BUILT_SOURCES_X=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi
+BUILT_SOURCES=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi
 
-BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
+DISTCLEANFILES=\
+ $(DOT_X_FILES)\
+ $(DOT_DOC_FILES)\
+ guile-procedures.texi\
+ guile-procedures.txt\
+ mailutils.scm
 
-DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi @GUILE_SITE_DATA@
 CLEANFILES=*.inc
 
 AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"

@@ -21,7 +21,7 @@ AC_PREREQ(2.63)
 AC_INIT([GNU Mailutils], [2.0.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([gnits 1.8.5 dist-bzip2 std-options silent-rules])
+AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 std-options silent-rules])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -808,14 +808,8 @@ MU_ENABLE_SUPPORT(sendmail)
 
 MU_ENABLE_SUPPORT(prog)
 
-AC_SUBST(MU_MH_PROGRAMS_BUILD)
-AC_SUBST(MU_MH_LIBRARIES_BUILD)
-AC_SUBST(MU_MH_EXEC_HOOK)
+MU_ENABLE_SUPPORT(mh)
 
-MU_ENABLE_SUPPORT(mh,
-                  [MU_MH_PROGRAMS_BUILD='$(MU_MH_PROGRAMS_LIST)';
-                   MU_MH_LIBRARIES_BUILD='$(MU_MH_LIBRARIES_LIST)';
-                   MU_MH_EXEC_HOOK=mh_finish_install])
 MU_ENABLE_SUPPORT(maildir)
 
 # FIXME: Should be --with-radius 
@@ -824,17 +818,6 @@ MU_ENABLE_SUPPORT(radius,
 		                 [MU_AUTHLIBS="$MU_AUTHLIBS -lgnuradius"
 				  mu_cv_enable_radius=yes],
 				 [mu_cv_enable_radius=no])]) 
-
-AC_SUBST(MH_BIN_DIR)
-
-AC_ARG_WITH([mh-bindir],
-	    AC_HELP_STRING([--with-mh-bindir],
-                           [Set the directory where to install the MH binaries. If it starts with '/' it is taken as an absolute path specification, otherwise ${prefix} is prepended to it. (Default: ${exec_prefix}/bin/mu-mh)]),
-		    [case "${withval}" in
-		     /*)  MH_BIN_DIR=${withval};;
-                     *)   MH_BIN_DIR="\${prefix}/${withval}";;
-                     esac],
-                    [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
 
 AC_ARG_ENABLE([experimental],
               AC_HELP_STRING([--enable-experimental],
@@ -1070,15 +1053,10 @@ fi
 
 dnl Check for Guile
 AC_SUBST(GUILE_BINDIR)
-AC_SUBST(MU_SCM_BIN_PROGRAMS_BUILD)
-AC_SUBST(MU_SCM_LTLIBRARIES_BUILD)
 AC_SUBST(LIBMU_SCM)
 AC_SUBST(LIBMU_SCM_DEPS)
-AC_SUBST(GUILE_SITE_DATA)
-AC_SUBST(GUILE_BUILT_SOURCES)
 AC_SUBST(MU_GUILE_SITE_DIR)
 AC_SUBST(MU_GUILE_SIEVE_MOD_DIR)
-AC_SUBST(MU_GUILE_SIEVE_SCRIPTS)
 AC_SUBST(MU_GUILE_SIEVE_MOD_DATA)
 
 if test "$useguile" != "no"; then
@@ -1086,16 +1064,11 @@ if test "$useguile" != "no"; then
          [useguile=yes
    	  AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
           GUILE_BINDIR=`guile-config info bindir`
-	  MU_SCM_BIN_PROGRAMS_BUILD='$(MU_SCM_BIN_PROGRAMS_LIST)'
-          MU_SCM_LTLIBRARIES_BUILD='$(MU_SCM_LTLIBRARIES_LIST)'
           LIBMU_SCM=../libmu_scm/libmu_scm.la
           LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
-          GUILE_SITE_DATA='$(GUILE_SITE_DATA_X)'
           MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
           MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
-          MU_GUILE_SIEVE_SCRIPTS='$(MU_GUILE_SIEVE_SCRIPTS_X)'
           MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
-          GUILE_BUILT_SOURCES='$(GUILE_BUILT_SOURCES_X)'
   ],[useguile=no])
 
  if test "$useguile" = "yes"; then
@@ -1120,6 +1093,8 @@ if test "$useguile" != "no"; then
  fi 
 fi
 
+AM_CONDITIONAL([MU_COND_LIBMU_SCM],[test "$useguile" = "yes"])
+
 AC_SUBST(GUILE_SITE)
 
 dnl Check for Emacs site-lisp directory
@@ -1143,9 +1118,6 @@ esac],[status_python=yes])
 
 AC_SUBST(PYTHON_LIBS)
 AC_SUBST(PYTHON_INCLUDES)
-AC_SUBST(MU_PY_LIB_LTLIBRARIES_BUILD)
-AC_SUBST(MU_PY_PKGPYEXEC_LTLIBRARIES_BUILD)
-AC_SUBST(MU_PY_PKGPYTHON_BUILD)
 
 if test "$status_python" = yes; then
   AM_PATH_PYTHON(2.5.0,, [status_python=no])
@@ -1161,13 +1133,11 @@ if test "$status_python" = yes; then
 
     if test "$status_python" = yes; then
       AC_DEFINE(WITH_PYTHON,1,[Enable Python support])
-      MU_PY_LIB_LTLIBRARIES_BUILD='$(MU_PY_LIB_LTLIBRARIES_LIST)'
-      MU_PY_PKGPYEXEC_LTLIBRARIES_BUILD='$(MU_PY_PKGPYEXEC_LTLIBRARIES_LIST)'
-      MU_PY_PKGPYTHON_BUILD='$(MU_PY_PKGPYTHON_LIST)'
       MU_LIB_PY='${top_builddir}/python/libmu_py/libmu_py.la'
     fi
   fi
 fi
+AM_CONDITIONAL([MU_COND_PYTHON], [test "$status_python" = yes])
 
 AC_SUBST(MU_CXX_LTLIBRARIES_BUILD)
 AC_SUBST(MU_CXX_EXAMPLES_BUILD)
@@ -1207,6 +1177,43 @@ AC_SUBST(DEFAULT_CUPS_CONFDIR)
 if test -z "$DEFAULT_CUPS_CONFDIR"; then
   DEFAULT_CUPS_CONFDIR='$(sysconfdir)/cups'
 fi
+
+dnl ***********************************************************************
+dnl Configure particular utilities
+dnl ***********************************************************************
+
+MU_ENABLE_BUILD(frm)
+MU_ENABLE_BUILD(pop3d)
+MU_ENABLE_BUILD(imap4d)
+MU_ENABLE_BUILD(comsat)
+MU_ENABLE_BUILD(maidag)
+MU_ENABLE_BUILD(mail)
+MU_ENABLE_BUILD(sieve)
+if test "$useguile" = yes; then
+  MU_ENABLE_BUILD(guimb)
+fi
+MU_ENABLE_BUILD(messages)
+MU_ENABLE_BUILD(readmsg)
+MU_ENABLE_BUILD(dotlock)
+MU_ENABLE_BUILD(movemail)
+MU_ENABLE_BUILD(mimeview)
+
+if test "$mu_cv_enable_mh" = yes; then
+  MU_ENABLE_BUILD(mh)
+fi
+
+AC_SUBST(MH_BIN_DIR)
+
+AC_ARG_WITH([mh-bindir],
+	    AC_HELP_STRING([--with-mh-bindir],
+                           [Set the directory where to install the MH binaries. If it starts with '/' it is taken as an absolute path specification, otherwise ${prefix} is prepended to it. (Default: ${exec_prefix}/bin/mu-mh)]),
+		    [case "${withval}" in
+		     /*)  MH_BIN_DIR=${withval};;
+                     *)   MH_BIN_DIR="\${prefix}/${withval}";;
+                     esac],
+                    [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
+
+
 
 dnl Make sysconfdir available to the application
 dnl This must be done LAST, since CPPFLAGS is passed by configure
@@ -1272,7 +1279,6 @@ Mailers:
 
 SMTP .......................... $status_smtp
 Sendmail ...................... $status_sendmail
-
 
 *******************************************************************
 

@@ -134,18 +134,6 @@ mailutils-specific configuration options:
 	You may have to explicitly specify LIBS and CPPFLAGS (see
 	above). 
 
-    --enable-mh-utils
-
-        Build a suite of MH utilities. The GNU implementation of MH
-        primarily aims to provide an interface between Mailutils' 
-        functionality and Emacs, using the mh-e module. 
-        For more information, refer to the TODO file in the mh
-        subdirectory, and to the section `MH' in the accompanying
-	documentation. To access it, run
-	`info -f ./doc/texinfo/mailutils.info mh' from the Mailutils
-	root directory. After installation, it will become available
-	by running `info mailutils mh'.
-
     --with-mh-bindir=DIR
 
         By default the MH binaries are installed in
@@ -308,13 +296,30 @@ features:
 
     --disable-imap        Disables IMAP protocol support. 
     --disable-pop         Disables POP protocol support. 
-    --disable-smtp        Disables support for SMTP mailer. With this
-                          option `mail.remote' is not built.
+    --disable-smtp        Disables support for SMTP mailer.
     --disable-sendmail    Disables support for `Sendmail' mailer.
     --disable-mh          Disables support for MH mailbox format.  
     --disable-virtual-domains 
                           Disables support for authentication using
                           virtual mail domains.
+
+Special options are provided that control whether each particular
+Mailutils program is built. These are:
+
+    --disable-build-frm        do not build frm
+    --disable-build-pop3d      do not build pop3d
+    --disable-build-imap4d     do not build imap4d
+    --disable-build-comsat     do not build comsat
+    --disable-build-maidag     do not build maidag
+    --disable-build-mail       do not build mail
+    --disable-build-sieve      do not build sieve
+    --disable-build-guimb      do not build guimb
+    --disable-build-messages   do not build messages
+    --disable-build-readmsg    do not build readmsg
+    --disable-build-dotlock    do not build dotlock
+    --disable-build-movemail   do not build movemail
+    --disable-build-mimeview   do not build mimeview
+    --disable-build-mh         do not build mh utilities
 
 Several environment variables affect the configuration. Currently,
 the only mailutils-specific variable is DEFAULT_CUPS_CONFDIR. It

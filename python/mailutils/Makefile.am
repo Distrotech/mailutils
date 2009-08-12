@@ -17,7 +17,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-MU_PY_PKGPYTHON_LIST=\
+pkgpython_PYTHON=\
  __init__.py \
  error.py \
  address.py \
@@ -42,5 +42,3 @@ MU_PY_PKGPYTHON_LIST=\
  url.py \
  util.py
 
-pkgpython_PYTHON=@MU_PY_PKGPYTHON_BUILD@
-EXTRA_PYTHON=$(MU_PY_PKGPYTHON_LIST)
