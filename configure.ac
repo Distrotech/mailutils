@@ -409,7 +409,7 @@ AC_HEADER_DIRENT
 AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h libgen.h limits.h\
  malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
  stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
- termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h)
+ termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h wchar.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -535,6 +535,8 @@ AH_BOTTOM([
 
 
 ## FriBidi support
+
+AC_CHECK_FUNCS(wcwidth)
 
 AC_SUBST(FRIBIDI_LIBS)
 

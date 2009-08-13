@@ -62,10 +62,10 @@ static char *output_charset = NULL;
 const char *
 get_charset ()
 {
-  char *tmp;
-  
   if (!output_charset)
     {
+      char *tmp;
+      const char *str = NULL;
       char locale[32];
       
       memset (locale, 0, sizeof (locale));
@@ -86,22 +86,36 @@ get_charset ()
 	  
 	  lang = strtok_r (locale, "_", &sp);
 	  terr = strtok_r (NULL, ".", &sp);
-	  output_charset = strtok_r (NULL, "@", &sp);
+	  str = strtok_r (NULL, "@", &sp);
 
-	  if (output_charset)
-	    output_charset = xstrdup (output_charset);
-	  else
-	    output_charset = mu_charset_lookup (lang, terr);
+	  if (!str)
+	    str = mu_charset_lookup (lang, terr);
 	}
       
-      if (!output_charset)
-	output_charset = "ASCII";
+      if (!str)
+	str = "ASCII";
+
+      output_charset = xstrdup (str);
     }
   return output_charset;
 }
 
 
 /* BIDI support (will be moved to lib when it's ready) */
+#ifdef HAVE_LIBFRIBIDI
+
+# ifdef HAVE_FRIBIDI_WCWIDTH
+#  define mu_fribidi_wcwidth fribidi_wcwidth
+# else
+#  if defined(HAVE_WCHAR_H) && defined(HAVE_WCWIDTH)
+#   include <wchar.h>
+#   define mu_fribidi_wcwidth(c) wcwidth((wchar_t)c)
+#  else
+#   undef HAVE_LIBFRIBIDI
+#  endif
+# endif
+#endif
+
 #ifdef HAVE_LIBFRIBIDI
 
 static int fb_charset_num = -1;
@@ -170,7 +184,7 @@ puts_bidi (char *string)
 	      if (fb_charset_num != FRIBIDI_CHARSET_CAP_RTL)
 		{
 		  while (wid > 0 && idx < len)
-		    wid -= fribidi_wcwidth (visual[idx++]);
+		    wid -= mu_fribidi_wcwidth (visual[idx++]);
 		}
 	      else
 		{
