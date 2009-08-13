@@ -101,6 +101,7 @@ extern int expire_on_exit;
 #endif
 #include <sysexits.h>
 
+#include <mailutils/alloc.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/attribute.h>

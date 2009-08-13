@@ -301,9 +301,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   /* Prepare the shared secret for APOP.  */
   {
     char *local_hostname;
-    local_hostname = malloc (MAXHOSTNAMELEN + 1);
-    if (local_hostname == NULL)
-      pop3d_abquit (ERR_NO_MEM);
+    local_hostname = mu_alloc (MAXHOSTNAMELEN + 1);
 
     /* Get our canonical hostname. */
     {
@@ -317,9 +315,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	}
     }
 
-    md5shared = malloc (strlen (local_hostname) + 51);
-    if (md5shared == NULL)
-      pop3d_abquit (ERR_NO_MEM);
+    md5shared = mu_alloc (strlen (local_hostname) + 51);
 
     snprintf (md5shared, strlen (local_hostname) + 50, "<%u.%u@%s>", getpid (),
 	      (unsigned)time (NULL), local_hostname);
@@ -388,6 +384,12 @@ pop3d_connection (int fd, struct sockaddr *sa, int salen, void *data,
   return 0;
 }
 
+static void
+pop3d_alloc_die ()
+{
+  pop3d_abquit (ERR_NO_MEM);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -421,6 +423,8 @@ main (int argc, char **argv)
   mu_m_server_set_default_port (server, 110);
   mu_m_server_set_timeout (server, 600);
   mu_m_server_set_strexit (server, mu_strexit);
+
+  mu_alloc_die_hook = pop3d_alloc_die;
   
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
 		   argc, argv, 0, NULL, server))
