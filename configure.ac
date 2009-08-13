@@ -1141,10 +1141,10 @@ if test "$status_python" = yes; then
 fi
 AM_CONDITIONAL([MU_COND_PYTHON], [test "$status_python" = yes])
 
-AC_SUBST(MU_CXX_LTLIBRARIES_BUILD)
 AC_SUBST(MU_CXX_EXAMPLES_BUILD)
-MU_ENABLE_SUPPORT(c++,
+MU_ENABLE_SUPPORT(cxx,
   	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'])
+AM_CONDITIONAL([MU_COND_LIBMU_CPP], [test "$mu_cv_enable_cxx" = yes])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1332,6 +1332,7 @@ AC_CONFIG_FILES([
  include/Makefile
  include/mailutils/Makefile
  include/mailutils/sys/Makefile
+ include/mailutils/cpp/Makefile
  lib/Makefile
  libmu_argp/Makefile
  libmu_auth/Makefile

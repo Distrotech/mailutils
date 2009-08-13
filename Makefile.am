@@ -84,6 +84,10 @@ if MU_COND_LIBMU_SCM
   LIBMU_SCM_DIR = libmu_scm
 endif
 
+if MU_COND_LIBMU_CPP
+  LIBMU_CPP_DIR = libmu_cpp
+endif
+
 SUBDIRS = \
  mu-aux\
  include\
@@ -96,7 +100,7 @@ SUBDIRS = \
  lib\
  libmu_argp\
  libmu_cfg\
- libmu_cpp\
+ $(LIBMU_CPP_DIR)\
  $(LIBMU_SCM_DIR)\
  libmu_sieve\
  $(PYTHON_DIR)\

@@ -98,8 +98,9 @@ pkginclude_HEADERS = \
  vartab.h\
  version.h
 
-nobase_pkginclude_HEADERS = \
-  sys/nntp.h\
-  sys/pop3.h
-SUBDIRS = sys
+if MU_COND_LIBMU_CPP
+  CPP_DIR = cpp
+endif
+
+SUBDIRS = sys $(CPP_DIR)
 

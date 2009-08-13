@@ -16,7 +16,8 @@
 ##   along with GNU Mailutils; if not, write to the Free Software
 ##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-MU_CXX_INCLUDES = \
+cppincludedir=$(pkgincludedir)/cpp
+cppinclude_HEADERS = \
  address.h\
  attribute.h\
  body.h\
@@ -41,6 +42,3 @@ MU_CXX_INCLUDES = \
  sieve.h\
  stream.h\
  url.h
-
-pkginclude_HEADERS = @MU_CXX_INCLUDES@
-EXTRA_HEADERS = '$(MU_CXX_INCLUDES)'
