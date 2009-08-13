@@ -38,12 +38,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <confpaths.h>
 
-#ifndef _PATH_DEVNULL
-# define _PATH_DEVNULL   "/dev/null"
+#ifndef PATH_DEVNULL
+# define PATH_DEVNULL   "/dev/null"
 #endif
 
 /*
@@ -180,7 +178,7 @@ waitdaemon (int nochdir, int noclose, int maxwait)
       for (i = 0; i < fdlimit; i++)
 	close (i);
 
-      fd = open (_PATH_DEVNULL, O_RDWR, 0);
+      fd = open (PATH_DEVNULL, O_RDWR, 0);
       if (fd != -1)
 	{
 	  dup2 (fd, STDIN_FILENO);

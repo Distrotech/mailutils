@@ -38,6 +38,9 @@ extern int mu_mailer_open           (mu_mailer_t, int flags);
 extern int mu_mailer_close          (mu_mailer_t);
 extern int mu_mailer_send_message   (mu_mailer_t, mu_message_t,
 				     mu_address_t from, mu_address_t to);
+
+struct timeval;
+
 extern int mu_mailer_send_fragments (mu_mailer_t mailer, mu_message_t msg,
 				     size_t fragsize, struct timeval *delay,
 				     mu_address_t from, mu_address_t to);

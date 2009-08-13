@@ -30,6 +30,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <confpaths.h>
+
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
 #include <mailutils/observer.h>

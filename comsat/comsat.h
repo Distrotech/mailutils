@@ -38,9 +38,7 @@
 #include <string.h>
 #include <pwd.h>
 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <confpaths.h>
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>

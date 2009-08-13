@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <string.h>
+#include <confpaths.h>
 
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>

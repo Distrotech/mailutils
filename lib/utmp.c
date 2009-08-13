@@ -27,6 +27,7 @@ MA 02110-1301 USA. */
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <confpaths.h>
 
 static char *utmp_name = PATH_UTMP;
 static int fd = -1;

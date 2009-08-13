@@ -51,9 +51,8 @@
 # include <varargs.h>
 #endif
 #include <signal.h>
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+
+#include <confpaths.h>
 
 #include <xalloc.h>
 

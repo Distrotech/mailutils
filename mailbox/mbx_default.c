@@ -28,9 +28,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
+#include <confpaths.h>
 
 #include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
