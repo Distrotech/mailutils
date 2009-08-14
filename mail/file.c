@@ -121,7 +121,7 @@ mail_file (int argc, char **argv)
       if (mailvar_get (NULL, "header", mailvar_type_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
-	  util_do_command ("z.");
+	  util_do_command ("headers");
 	}
       return 0;
     }

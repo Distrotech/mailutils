@@ -1068,7 +1068,7 @@ util_cache_command (mu_list_t *list, const char *fmt, ...)
 static int
 _run_and_free (void *item, void *data)
 {
-  util_do_command ((char *) item);
+  util_do_command ("%s", (char *) item);
   free (item);
   return 0;
 }

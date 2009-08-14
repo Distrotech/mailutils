@@ -137,7 +137,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'E':
-      util_cache_command (&command_list, arg);
+      util_cache_command (&command_list, "%s", arg);
       break;
       
     case 'F':
@@ -499,7 +499,7 @@ main (int argc, char **argv)
       if (mailvar_get (NULL, "header", mailvar_type_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
-	  util_do_command ("z.");
+	  util_do_command ("headers");
 	}
 
       mailvar_get (&prompt, "prompt", mailvar_type_string, 0);
