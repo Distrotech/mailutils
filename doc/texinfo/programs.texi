@@ -2240,14 +2240,14 @@ but before opening the mailbox.
 @itemx --file
 Operate on the mailbox given by the first non-optional command line
 argument. If there is no such argument, read messages from the
-user's @file{mbox} file. @xref{Reading Mail} for more details about
+user's @file{mbox} file. @xref{Reading Mail}, for more details about
 using this option.
 @item -F
 @itemx --byname
 Record outgoing messages in a file named after the first recipient.
 The name is the login-name portion of the address found first on the
 @samp{To:} line in the mail header. This option sets the @samp{byname}
-variable, which see (@xref{byname}).
+variable, which see (@pxref{byname}).
 @item -H
 @itemx --headers
 Print header summary to stdout and exit.
@@ -3482,6 +3482,7 @@ set
 Following variables control the behavior of GNU @command{mail}:
 
 @table @code
+@kwindex append
 @item append
 @*Type: Boolean, Read-Only
 @*Default: True
@@ -3491,6 +3492,7 @@ Messages saved in mbox are appended to the end rather than prepended.
 This is the default and cannot be changed. This variable exists only
 for compatibility with other @command{mailx} implementations.
 
+@kwindex appenddeadletter
 @item appenddeadletter
 @*Type: Boolean.
 @*Default: False.
@@ -3500,6 +3502,7 @@ If this variable is @code{True}, the contents of canceled letter is
 appended to the user's @file{dead.letter} file. Otherwise it overwrites
 its contents.
 
+@kwindex askbcc
 @item askbcc
 @*Type: Boolean.
 @*Default: False.
@@ -3508,6 +3511,7 @@ its contents.
 When set to @code{True} the user will be prompted to enter @code{Bcc}
 field before composing the message.
 
+@kwindex askcc
 @item askcc
 @*Type: Boolean.
 @*Default: True.
@@ -3516,6 +3520,7 @@ field before composing the message.
 When set to @code{True} the user will be prompted to enter @code{Cc}
 field before composing the message.
 
+@kwindex asksub
 @item asksub
 @*Type: Boolean.
 @*Default: True in interactive mode, False otherwise.
@@ -3524,6 +3529,7 @@ field before composing the message.
 When set to @code{True} the user will be prompted to enter @code{Subject}
 field before composing the message.
 
+@kwindex autoinc
 @item autoinc
 @*Type: Boolean.
 @*Default: True.
@@ -3531,6 +3537,7 @@ field before composing the message.
 
 Automatically incorporate newly arrived messages.
 
+@kwindex autoprint
 @item autoprint
 @*Type: Boolean.
 @*Default: False.
@@ -3539,6 +3546,7 @@ Automatically incorporate newly arrived messages.
 Causes the delete command to behave like dp - thus, after deleting a
 message, the next one will be typed automatically.
 
+@kwindex bang
 @item bang
 @*Type: Boolean.
 @*Default: False.
@@ -3548,6 +3556,7 @@ When set, every occurrence of @code{!} in arguments to @code{!}
 command is replaced with the last executed command.
 
 @anchor{byname}
+@kwindex byname
 @item byname
 @*Type: Boolean
 @*Default: Unset
@@ -3561,6 +3570,7 @@ The name is the login-name portion of the address found first on the
 It is set by the @option{--byname} (@option{-F}) command line option.
 
 @anchor{datefield}
+@kwindex datefield
 @item datefield
 @*Type: Boolean.
 @*Default: False.
@@ -3574,6 +3584,7 @@ will fall back to using @acronym{SMTP} envelope.
 
 @xref{fromfield}.
 
+@kwindex charset
 @item charset
 @*Type: string
 @*Default: @samp{auto}
@@ -3586,6 +3597,7 @@ variable is set to @samp{auto}, @command{mail} tries to deduce the
 name of the character set from the value of @code{LC_ALL} environment
 variable. Otherwise, its value is taken as the name of the charset.
 
+@kwindex cmd
 @item cmd
 @*Type: String.
 @*Default: Unset.
@@ -3593,6 +3605,7 @@ variable. Otherwise, its value is taken as the name of the charset.
 
 Contains default shell command for @code{pipe}.
 
+@kwindex columns
 @item columns
 @*Type: Numeric.
 @*Default: Detected at startup by querying the terminal device. If this
@@ -3601,6 +3614,7 @@ fails, the value of environment variable @code{COLUMNS} is used.
 
 This variable contains the number of columns on terminal screen.
 
+@kwindex crt
 @item crt
 @*Type: Boolean or Numeric
 @*Default: True in interactive mode, False otherwise.
@@ -3614,6 +3628,7 @@ if @code{crt} is set without a value, then the height of the terminal
 screen is used to compute the threshold. The number of lines on
 screen is controlled by @code{screen} variable.
 
+@kwindex debug
 @item debug
 @*Type: String to boolean
 @*Default: Not set
@@ -3628,6 +3643,7 @@ information.  If set to @samp{true} (i.e. @code{set debug}), sets
 maximum debugging (@samp{<trace7}) on mailbox and its underlying
 objects.
 
+@kwindex decode-fallback
 @item decode-fallback
 @*Type: String.
 @*Default: @samp{none}.
@@ -3650,6 +3666,7 @@ Unprintable characters are represented by their octal codes. Printable
 ones are printed @samp{as is}.
 @end table
 
+@kwindex debug
 @item debug
 @*Type: Boolean
 @*Default: Unset
@@ -3658,6 +3675,7 @@ ones are printed @samp{as is}.
 This variable is not used.  It exists for compatibility with other
 @command{mailx} implementations and for future use.
 
+@kwindex dot
 @item dot
 @*Type: Boolean.
 @*Default: False.
@@ -3666,6 +3684,7 @@ This variable is not used.  It exists for compatibility with other
 If @code{True}, causes @command{mail} to interpret a period alone on a line as the
 terminator of a message you are sending.
 
+@kwindex emptystart
 @item emptystart
 @*Type: Boolean.
 @*Default: False.
@@ -3675,6 +3694,7 @@ If the mailbox is empty, @command{mail} normally prints @samp{No mail for user} 
 exits immediately. If this option is set, @command{mail} will start no matter is
 the mailbox empty or not.
 
+@kwindex editheaders
 @item editheaders
 @*Type: Boolean.
 @*Default: False.
@@ -3684,6 +3704,7 @@ When set, @command{mail} will include message headers in the text to
 be the @code{~e} and @code{~v} escapes, thus allowing you to customize
 the headers.
 
+@kwindex escape
 @item escape
 @*Type: String.
 @*Default: ~
@@ -3692,6 +3713,7 @@ the headers.
 If defined, the first character of this option gives the character to
 denoting escapes.
 
+@kwindex flipr
 @item flipr
 @*Type: Boolean
 @*Default: Unset
@@ -3700,6 +3722,7 @@ denoting escapes.
 If set, the variable @code{flipr} swaps the meanings of @code{reply}
 and @code{Reply} commands (@pxref{Replying}).
 
+@kwindex folder
 @item folder
 @*Type: String.
 @*Default: Unset.
@@ -3709,6 +3732,7 @@ The name of the directory to use for storing folders of messages. If
 unset, @env{$HOME} is assumed.
 
 @anchor{fromfield}
+@kwindex fromfield
 @item fromfield
 @*Type: Boolean.
 @*Default: True.
@@ -3719,6 +3743,7 @@ Unsetting this variable tells @command{mail} to obtain it from the
 
 @xref{datefield}.
 
+@kwindex header
 @item header
 @*Type: Boolean.
 @*Default: True, unless started with @option{--nosum} (@option{-N}) option.
@@ -3727,6 +3752,56 @@ Unsetting this variable tells @command{mail} to obtain it from the
 Whether to run @code{headers} command automatically after entering
 interactive mode.
 
+@kwindex headline
+@item headline
+@*Type: String
+@*Default: @samp{%>%a%4m %18f %16d %3l/%-5o %s}
+
+A format string to use for the header summary.  The @samp{%} character
+introduces a @dfn{format specifier}.  Valid format specifiers are:
+
+@multitable @columnfractions 0.2 0.8
+@headitem Letter @tab Meaning
+@item %a @tab Message attributes.
+@item %d @tab The date when the message was received.
+@item %f @tab The address of the message sender.
+@item %l @tab The number of lines of the message.
+@item %m @tab Message number.
+@item %o @tab The number of octets (bytes) in the message.
+@item %s @tab Message subject (if any).
+@item %S @tab Message subject (if any) in double quotes.
+@item %> @tab A @samp{>} for the current message, otherwise a space.
+@item %< @tab A @samp{<} for the current message, otherwise a space.
+@item %% @tab A `%' character.
+@end multitable
+
+Some additional symbols are allowed between @samp{%} and the specifier
+letter. The @samp{-} character immediately following @samp{%}
+indicates that this field should be left aligned. Similarly, the
+@samp{+} character indicates right alignment. Default alignment
+depends on the type of the specifier: the specifiers that produce
+numeric values (@samp{%l}, @samp{%m}, and @samp{%o}) are aligned to
+the right, whereas the ones producing string values are aligned to the
+left.
+
+A number following @samp{%} or the alignment flag, indicates the
+field width. Consider, for example, the following specifiers:
+
+@table @asis
+@item %m
+Print current message number. Take as much screen columns as necessary
+to output it.
+
+@item %4m
+@itemx %+4m
+Print current message number. Occupy 4 screen columns, truncate the
+output if it does not fit that width. Align the output to the right. 
+
+@item %-4m
+Same as above, but align to the left.
+@end table
+
+@kwindex hold
 @item hold
 @*Type: Boolean.
 @*Default: False.
@@ -3737,6 +3812,7 @@ user's mailbox (@file{$HOME/mbox}). Otherwise, they will be held in
 system mailbox also. This option is in effect only when operating
 upon user's system mailbox.
 
+@kwindex ignore 
 @item ignore
 @*Type: Boolean.
 @*Default: False.
@@ -3746,6 +3822,7 @@ When set to @code{True}, @command{mail} will ignore keyboard interrupts
 when composing messages. Otherwise an interrupt will be taken as a
 signal to abort composing.
 
+@kwindex ignoreeof
 @item ignoreeof
 @*Type: Boolean.
 @*Default: False.
@@ -3754,6 +3831,7 @@ signal to abort composing.
 Controls whether typing EOF character terminates the letter being
 composed.
 
+@kwindex indentprefix
 @item indentprefix
 @*Type: String.
 @*Default: "\t" (a tab character).
@@ -3761,6 +3839,7 @@ composed.
 
 String used by the @code{~m} tilde escape for indenting quoted messages.
 
+@kwindex inplacealiases
 @item inplacealiases
 @*Type: Boolean
 @*Default: False
@@ -3770,6 +3849,7 @@ before entering send mode (@pxref{Composing Mail}). By default, the
 address header fields are left intact while composing, the alias
 expansion takes place immediately before sending message.
 
+@kwindex keep
 @item keep
 @*Type: Boolean, Read-Only
 @*Default: True
@@ -3779,6 +3859,7 @@ Truncate the user's system mailbox when it is empty, instead of
 removing it. This is the default and cannot be changed. This variable
 exists only for compatibility with other @command{mailx} implementations.
 
+@kwindex keepsave
 @item keepsave
 @*Type: Boolean.
 @*Default: False.
@@ -3788,6 +3869,7 @@ Controls whether saved messages should be kept in system mailbox too.
 This variable is in effect only when operating upon a user's system
 mailbox.
 
+@kwindex mailx
 @item mailx
 @*Type: Boolean.
 @*Default: False.
@@ -3807,6 +3889,7 @@ will exit with zero status. By default it exits with zero status only
 if the message was sent successfully.
 @end itemize
 
+@kwindex metamail
 @item metamail
 @*Type: Boolean or String.
 @*Default: True.
@@ -3830,6 +3913,7 @@ set metamail
 set metamail="metamail -m mail -p"
 @end smallexample
 
+@kwindex mimenoask
 @item mimenoask
 @*Type: String
 @*Default: Empty
@@ -3850,6 +3934,7 @@ will disable prompting before displaying any textual files, no
 matter what their subtype is, and before displaying files with
 type @samp{image/jpeg}.
 
+@kwindex metoo
 @item metoo
 @*Type: Boolean.
 @*Default: False.
@@ -3859,6 +3944,7 @@ Usually, when an alias is expanded that contains the sender, the sender
 is removed from the expansion. Setting this option causes the sender to
 be included in the group.
 
+@kwindex mode
 @item mode
 @*Type: String, Read-Only
 @*Default: The name of current operation mode.
@@ -3888,6 +3974,7 @@ The program operates in send mode. This means it was given one or more
 recipient addresses in the command line.
 @end table
 
+@kwindex nullbody
 @item nullbody
 @* Type: Boolean
 @* Default: True
@@ -3912,6 +3999,7 @@ outputs something on its standard output or error:
 @end group
 @end smallexample
 
+@kwindex showenvelope
 @item showenvelope
 @*Type: Boolean
 @*Default: Unset
@@ -3919,6 +4007,7 @@ outputs something on its standard output or error:
 If this variable is set, the @code{print} command will include the
 @acronym{STMP} envelope in its output.
 
+@kwindex nullbodymsg
 @item nullbodymsg
 @*Type: String
 @*Default: Null message body; hope that's ok 
@@ -3930,6 +4019,7 @@ this text, in accordance with the current locale, is displayed.
 
 Unsetting this variable disables the warning.
 
+@kwindex onehop
 @item onehop
 @*Type: Boolean
 @*Default: Unset
@@ -3938,6 +4028,7 @@ Unsetting this variable disables the warning.
 This variable is not used.  It exists for compatibility with other
 @command{mailx} implementations and for future use.
 
+@kwindex outfolder
 @item outfolder
 @*Type: String.
 @*Default: Unset.
@@ -3947,6 +4038,7 @@ Contains the directory in which files created by @code{save},
 @code{write}, etc. commands will be stored. When unset, current
 directory is assumed.
 
+@kwindex page
 @item page
 @*Type: Boolean.
 @*Default: False.
@@ -3955,6 +4047,7 @@ directory is assumed.
 If set to @code{True}, the @code{pipe} command will emit a linefeed
 character after printing each message.
 
+@kwindex prompt
 @item prompt
 @*Type: String.
 @*Default: "? "
@@ -3962,6 +4055,7 @@ character after printing each message.
 
 Contains the command prompt sequence.
 
+@kwindex quiet
 @item quiet
 @*Type: Boolean
 @*Default: Unset
@@ -3970,6 +4064,7 @@ Contains the command prompt sequence.
 This variable is not used.  It exists for compatibility with other
 @command{mailx} implementations and for future use.
 
+@kwindex quit
 @item quit
 @*Type: Boolean.
 @*Default: False, unless started with @option{--quit} (@option{-q}) option.
@@ -3977,6 +4072,7 @@ This variable is not used.  It exists for compatibility with other
 
 When set, causes keyboard interrupts to terminate the program.
 
+@kwindex rc
 @item rc
 @*Type: Boolean.
 @*Default: True, unless started with @option{--norc} (@option{-N}) option.
@@ -3985,6 +4081,7 @@ When set, causes keyboard interrupts to terminate the program.
 When this variable is set, @command{mail} will read the system-wide
 configuration file upon startup. See @ref{Mail Configuration Files}.
 
+@kwindex readonly
 @item readonly
 @*Type: Boolean
 @*Default: False
@@ -3995,6 +4092,7 @@ When set, mailboxes are opened in readonly mode.  In this mode, any
 disabled.  These commands include, but are not limited to: 
 @code{delete}, @code{save} and @code{mbox}.
 
+@kwindex record
 @item record
 @*Type: String.
 @*Default: Unset.
@@ -4002,12 +4100,14 @@ disabled.  These commands include, but are not limited to:
 
 When set, any outgoing message will be saved to the named file.
 
+@kwindex recursivealiases
 @item recursivealiases
 @*Type: Boolean
 @*Default: True
 
 When set, @command{mail} will expand aliases recursively.
 
+@kwindex regex
 @item regex
 @*Type: Boolean.
 @*Default: True.
@@ -4016,6 +4116,7 @@ When set, @command{mail} will expand aliases recursively.
 Setting this to @code{True} enables use of regular expressions in
 @samp{/.../} message specifications.
 
+@kwindex replyprefix
 @item replyprefix
 @*Type: String
 @*Default: @samp{Re: }
@@ -4024,6 +4125,7 @@ Setting this to @code{True} enables use of regular expressions in
 Sets the prefix that will be used when constructing the subject line
 of a reply message.
 
+@kwindex replyregex
 @item replyregex
 @*Type: String
 @*Default: @samp{^re: *}
@@ -4045,6 +4147,7 @@ set replyregex="^(re|odp|aw|ang)(\\[[0-9]+\\])?:[[:blank:]]"
 @noindent
 (Notice the quoting of backslash characters).
 
+@kwindex save
 @item save
 @*Type: Boolean.
 @*Default: True.
@@ -4053,6 +4156,7 @@ set replyregex="^(re|odp|aw|ang)(\\[[0-9]+\\])?:[[:blank:]]"
 When set, the aborted messages will be stored in the user's
 @file{dead.file}. See also @code{appenddeadletter}.
 
+@kwindex screen
 @item screen
 @*Type: Numeric.
 @*Default: Detected at startup by querying the terminal device. If this
@@ -4061,6 +4165,7 @@ fails, the value of environment variable @code{LINES} is used.
 
 This variable contains the number of lines on terminal screen.
 
+@kwindex sendmail
 @item sendmail
 @*Type: String.
 @*Default: sendmail:/usr/lib/sendmail
@@ -4068,6 +4173,7 @@ This variable contains the number of lines on terminal screen.
 
 Contains URL of the mail transport agent.
 
+@kwindex sendwait
 @item sendwait
 @*Type: Boolean
 @*Default: Unset
@@ -4076,6 +4182,7 @@ Contains URL of the mail transport agent.
 This variable is not used.  It exists for compatibility with other
 @command{mailx} implementations and for future use.
 
+@kwindex showto
 @item showto
 @*Type: Boolean
 @*Default: False
@@ -4084,6 +4191,7 @@ This variable is not used.  It exists for compatibility with other
 If the message was sent by the user, print its recipient address in
 the header summary.
 
+@kwindex Sign
 @item Sign
 @*Type: String.
 @*Default: Unset.
@@ -4093,6 +4201,7 @@ Contains the filename holding users signature. The contents of this
 file is appended to the end of a message being composed by @code{~A}
 escape.
 
+@kwindex sign
 @item sign
 @*Type: String.
 @*Default: Unset.
@@ -4102,6 +4211,7 @@ Contains the user's signature. The contents of this variable is appended
 to the end of a message being composed by @code{~a} escape. Use
 @code{Sign} variable, if your signature occupies more than one line.
 
+@kwindex showto
 @item showto
 @*Type: Boolean
 @*Default: unset
@@ -4111,6 +4221,7 @@ If this variable is set, @command{mail} will show @code{To:} addresses
 instead of @code{From:} for all messages that come from the user that
 invoked the program.
 
+@kwindex subject
 @item subject
 @*Type: String.
 @*Default: Unset.
@@ -4119,6 +4230,7 @@ invoked the program.
 Contains default subject line. This will be used when @code{asksub} is
 off.
 
+@kwindex toplines
 @item toplines
 @*Type: Numeric.
 @*Default: 5
@@ -4126,6 +4238,7 @@ off.
 
 Number of lines to be displayed by @code{top} and @code{Top} commands.
 
+@kwindex variable-strict
 @item variable-strict
 @itemx varstrict
 @*Type: Boolean.
@@ -4138,6 +4251,7 @@ variables. Also, if the user is trying to set an unknown variable,
 
 @xref{Setting and Unsetting the Variables}.
 
+@kwindex variable-pretty-print
 @item variable-pretty-print
 @itemx varpp
 @*Type: Boolean.
@@ -4146,6 +4260,7 @@ variables. Also, if the user is trying to set an unknown variable,
 If this variable is set, the listing ouput by @command{set} contains short
 descriptions before each variable. @xref{Setting and Unsetting the Variables}. 
 
+@kwindex verbose
 @item verbose
 @*Type: Boolean.
 @*Default: False.
@@ -4153,6 +4268,7 @@ descriptions before each variable. @xref{Setting and Unsetting the Variables}.
 
 When set, the actual delivery of messages is displayed on the user's terminal.
 
+@kwindex xmailer
 @item xmailer
 @*Type: Boolean.
 @*Default: Set.

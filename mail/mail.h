@@ -45,11 +45,7 @@
 #endif
 #include <sys/wait.h>
 #include <sys/types.h>
-#ifdef HAVE_STDARG_H
-# include <stdarg.h>
-#else
-# include <varargs.h>
-#endif
+#include <stdarg.h>
 #include <signal.h>
 
 #include <confpaths.h>
@@ -200,6 +196,8 @@ extern int mail_folders (int argc, char **argv);
 extern int mail_followup (int argc, char **argv);
 extern int mail_from (int argc, char **argv);
 extern int mail_from0 (msgset_t *mspec, mu_message_t msg, void *data);
+extern void mail_compile_headline (struct mailvar_variable *var);
+
 extern int mail_headers (int argc, char **argv);
 extern int mail_hold (int argc, char **argv);
 extern int mail_help (int argc, char **argv);

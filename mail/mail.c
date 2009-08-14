@@ -287,6 +287,7 @@ static char *default_setup[] = {
   "set recursivealiases",
   "set noinplacealiases",
   "set fromfield",
+  "set headline=\"%>%a%4m %18f %16d %3l/%-5o %s\"",
   
   /* Start in mail reading mode */
   "setq mode=read",
@@ -364,7 +365,7 @@ main (int argc, char **argv)
 
   /* set defaults for execution */
   for (i = 0; i < sizeof (default_setup)/sizeof (default_setup[0]); i++)
-    util_do_command (default_setup[i]);
+    util_do_command ("%s", default_setup[i]);
   util_do_command ("set screen=%d", util_getlines ());
   util_do_command ("set columns=%d", util_getcols ());
   

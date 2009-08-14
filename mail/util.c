@@ -468,7 +468,7 @@ util_get_homedir ()
 char *
 util_fullpath (const char *inpath)
 {
-  return mu_tilde_expansion(inpath, "/", NULL);
+  return mu_tilde_expansion (inpath, "/", NULL);
 }
 
 char *
@@ -661,7 +661,7 @@ util_slist_to_string (mu_list_t list, const char *delim)
 }
 
 void
-util_strcat(char **dest, const char *str)
+util_strcat (char **dest, const char *str)
 {
   if (!*dest)
     *dest = strdup (str);
@@ -754,26 +754,13 @@ util_save_outgoing (mu_message_t msg, char *savefile)
     }
 }
 
-#ifdef HAVE_STDARG_H
 void
 util_error (const char *format, ...)
-#else
-void
-util_error (va_alist)
-     va_dcl
-#endif
 {
   va_list ap;
 
-#ifdef HAVE_STDARG_H
-  va_start(ap, format);
-#else
-  char *format;
-
-  va_start (ap);
-  format = va_arg (ap, char *);
-#endif
-
+  va_start (ap, format);
+  
   vfprintf (stderr, format, ap);
   fprintf (stderr, "\n");
 
