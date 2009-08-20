@@ -629,7 +629,10 @@ print_header_value (struct eval_env *env, char *val)
     }
   
   if (env->bvar[B_UPPERCASE])
-    mu_toupper (val);
+    {
+      for (p = val; *p; p++)
+	*p = mu_toupper (*p);
+    }
 
   if (env->bvar[B_COMPRESS])
     for (p = val; *p; p++)

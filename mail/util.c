@@ -1084,7 +1084,7 @@ void
 util_rfc2047_decode (char **value)
 {
   char locale[32];
-  char *charset = NULL;
+  const char *charset = NULL;
   char *tmp;
   int rc;
 

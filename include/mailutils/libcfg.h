@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,6 +51,7 @@ extern int mu_register_cfg_capa (const char *name,
 extern void mu_libcfg_init (char **cnames);
 extern int mu_parse_config_files (struct mu_cfg_param *param,
 				  void *target_ptr);
+extern void mu_acl_cfg_init (void);
 
 #define __mu_common_cat2__(a,b) a ## b
 #define __mu_common_cat3__(a,b,c) a ## b ## c

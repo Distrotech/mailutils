@@ -50,6 +50,8 @@
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
 #include <mailutils/md5.h>
+#include <mailutils/io.h>
+#include <mailutils/secret.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 

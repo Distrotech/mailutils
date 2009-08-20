@@ -206,7 +206,7 @@ _sieve_error_printer (void *data, const char *fmt, va_list ap)
       PyObject *py_fnc = s->py_error_printer;
 
       if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return;
+	return 0;
       PyTuple_SetItem (py_args, 0, PyString_FromString (buf ? buf : ""));
       if (buf)
 	free (buf);
@@ -237,7 +237,7 @@ _sieve_parse_error_printer (void *data, const char *filename, int lineno,
       PyDict_SetItemString (py_dict, "lineno", PyInt_FromLong (lineno));
 
       if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return;
+	return 0;
       PyDict_SetItemString (py_dict, "text",
 			    PyString_FromString (buf ? buf : ""));
       if (buf)
@@ -259,6 +259,7 @@ _sieve_parse_error_printer (void *data, const char *filename, int lineno,
 	  Py_DECREF (py_args);
 	}
     }
+  return 0;
 }
 
 static int
@@ -274,7 +275,7 @@ _sieve_debug_printer (void *data, const char *fmt, va_list ap)
       PyObject *py_fnc = s->py_debug_printer;
 
       if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return;
+	return 0;
       PyTuple_SetItem (py_args, 0, PyString_FromString (buf ? buf : ""));
       if (buf)
 	free (buf);

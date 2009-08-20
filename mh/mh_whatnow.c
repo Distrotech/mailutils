@@ -257,13 +257,13 @@ invoke (const char *compname, const char *defval, int argc, char **argv,
       return -1;
     }
 
-  xargv[0] = progname;
+  xargv[0] = (char*) progname;
   for (i = 1; i < argc; i++)
     xargv[i] = argv[i];
   if (extra0)
-    xargv[i++] = extra0;
+    xargv[i++] = (char*) extra0;
   if (extra1)
-    xargv[i++] = extra1;
+    xargv[i++] = (char*) extra1;
   xargv[i++] = NULL;
   rc = mu_spawnvp (xargv[0], xargv, &status);
   free (xargv);

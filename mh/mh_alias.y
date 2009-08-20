@@ -225,7 +225,7 @@ ali_list_dup (mu_list_t src)
 }
 
 static int
-ali_member (mu_list_t list, char *name)
+ali_member (mu_list_t list, const char *name)
 {
   mu_iterator_t itr;
   int found = 0;
@@ -252,7 +252,7 @@ ali_member (mu_list_t list, char *name)
 }
 
 int
-aliascmp (char *pattern, char *name)
+aliascmp (const char *pattern, const char *name)
 {
   int len = strlen (pattern);
 
@@ -281,7 +281,7 @@ _insert_list (mu_list_t list, void *prev, mu_list_t new_list)
   return 0;
 }
 
-static int mh_alias_get_internal (char *name, mu_iterator_t start,
+static int mh_alias_get_internal (const char *name, mu_iterator_t start,
 				  mu_list_t *return_list, int *inclusive);
 
 int
@@ -311,7 +311,8 @@ alias_expand_list (mu_list_t name_list, mu_iterator_t orig_itr, int *inclusive)
 /* Look up the named alias. If found, return the list of recipient
    names associated with it */
 static int
-mh_alias_get_internal (char *name, mu_iterator_t start, mu_list_t *return_list,
+mh_alias_get_internal (const char *name,
+		       mu_iterator_t start, mu_list_t *return_list,
 		       int *inclusive) 
 {
   mu_iterator_t itr;
@@ -349,13 +350,13 @@ mh_alias_get_internal (char *name, mu_iterator_t start, mu_list_t *return_list,
 }
 
 int
-mh_alias_get (char *name, mu_list_t *return_list)
+mh_alias_get (const char *name, mu_list_t *return_list)
 {
   return mh_alias_get_internal (name, NULL, return_list, NULL);
 }
 
 int
-mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
+mh_alias_get_address (const char *name, mu_address_t *paddr, int *incl)
 {
   mu_iterator_t itr;
   mu_list_t list;
@@ -403,7 +404,7 @@ mh_alias_get_address (char *name, mu_address_t *paddr, int *incl)
 /* Look up the given user name in the aliases. Return the list of
    alias names this user is member of */
 int
-mh_alias_get_alias (char *uname, mu_list_t *return_list)
+mh_alias_get_alias (const char *uname, mu_list_t *return_list)
 {
   mu_iterator_t itr;
   int rc = 1;

@@ -156,6 +156,7 @@ pop_session_str (enum pop_session_status stat)
     case pop_session_logged_in:
       return "logged in";
     }
+  return "unknown";
 }
 
 char *

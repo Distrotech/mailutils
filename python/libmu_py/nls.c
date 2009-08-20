@@ -32,7 +32,6 @@ api_nls_init (PyObject *self)
 static PyObject *
 api_nls_set_locale (PyObject *self, PyObject *args)
 {
-  int status;
   char *lset;
   const char *locale;
 

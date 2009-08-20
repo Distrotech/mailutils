@@ -46,6 +46,7 @@
 #ifdef ENABLE_RADIUS
 
 #include <radius/radius.h>
+#include <radius/debug.h>
 
 static int radius_auth_enabled;
 

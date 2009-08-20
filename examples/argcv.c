@@ -28,12 +28,11 @@
 #include <mailutils/errno.h>
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   char *delim = "";
   char *comment = "#";
   char buf[512];
-  size_t n = 0;
   
   while (fgets (buf, sizeof buf, stdin))
     {

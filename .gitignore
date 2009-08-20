@@ -24,4 +24,5 @@ config.status
 configure
 libtool
 m4
+pathdefs.h
 stamp-h1

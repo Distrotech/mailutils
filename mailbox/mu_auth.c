@@ -296,7 +296,7 @@ mu_get_auth_by_uid (uid_t uid)
 static mu_list_t mu_authenticate_list, _tmp_authenticate_list;
 
 int
-mu_authenticate (struct mu_auth_data *auth_data, char *pass)
+mu_authenticate (struct mu_auth_data *auth_data, const char *pass)
 {
   if (!auth_data)
     return EINVAL;
@@ -305,7 +305,7 @@ mu_authenticate (struct mu_auth_data *auth_data, char *pass)
              auth_data->name, auth_data->source);
   if (!mu_authenticate_list)
     mu_auth_begin_setup ();
-  return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, pass);
+  return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, (void*) pass);
 }
 
 

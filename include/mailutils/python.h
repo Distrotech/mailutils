@@ -25,107 +25,128 @@
 extern "C" {
 #endif
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_address_t addr;
 } PyAddress;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_attribute_t attr;
 } PyAttribute;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_authority_t auth;
 } PyAuthority;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_ticket_t ticket;
 } PyTicket;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_wicket_t wicket;
 } PyWicket;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   struct mu_auth_data *auth_data;
 } PyAuthData;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_body_t body;
 } PyBody;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_debug_t dbg;
 } PyDebug;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_envelope_t env;
 } PyEnvelope;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_folder_t folder;
 } PyFolder;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_header_t hdr;
 } PyHeader;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_mailbox_t mbox;
 } PyMailbox;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_mailcap_t mc;
 } PyMailcap;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_mailcap_entry_t entry;
 } PyMailcapEntry;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_mailer_t mlr;
 } PyMailer;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_message_t msg;
 } PyMessage;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_mime_t mime;
 } PyMime;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_secret_t secret;
 } PySecret;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_sieve_machine_t mach;
 } PySieveMachine;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_stream_t stm;
 } PyStream;
 
-typedef struct {
+typedef struct
+{
   PyObject_HEAD;
   mu_url_t url;
 } PyUrl;
@@ -186,13 +207,15 @@ extern int PyMessage_Check (PyObject *x);
 extern int PySecret_Check (PyObject *x);
 extern int PyStream_Check (PyObject *x);
 
-typedef struct {
+typedef struct
+{
   char *name;
   PyObject *obj;
 } mu_py_dict;
 
-typedef struct {
-  char *module_name;
+typedef struct
+{
+  const char *module_name;
   mu_py_dict *attrs;
 } mu_py_script_data;
 

@@ -335,9 +335,9 @@ void mh_set_reply_regex (const char *str);
 int mh_decode_2047 (char *text, char **decoded_text);
 
 int mh_alias_read (char *name, int fail);
-int mh_alias_get (char *name, mu_list_t *return_list);
-int mh_alias_get_address (char *name, mu_address_t *addr, int *incl);
-int mh_alias_get_alias (char *uname, mu_list_t *return_list);
+int mh_alias_get (const char *name, mu_list_t *return_list);
+int mh_alias_get_address (const char *name, mu_address_t *addr, int *incl);
+int mh_alias_get_alias (const char *uname, mu_list_t *return_list);
 int mh_read_aliases (void);
 int mh_alias_expand (const char *str, mu_address_t *paddr, int *incl);
 
