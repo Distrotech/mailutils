@@ -4371,13 +4371,15 @@ description of @code{Rmail} interface.
 
 Mailutils version of @command{movemail} is completely
 backward-compatible with its Emacs predecessor, so it should run
-flawlessly with older versions of Emacs. Emacs version 21.4, which is
-being developed at the time of this writing, will contain improved
-@code{Rmail} interface for work with mailutils @command{movemail}.
+flawlessly with older versions of Emacs. Emacs versions
+starting from 22.1 contain improved @code{Rmail} interface and
+are able to take advantage of all new features mailutils
+@command{movemail} provides.
 
 @menu
 * Movemail Configuration::
 * Movemail Options::     Description of the Available Options
+* Ownership::            Setting Destination Mailbox Ownership
 * Summary::              Short Movemail Invocation Summary
 @end menu
 
@@ -4406,6 +4408,31 @@ exists in the destination mailbox.
 
 @deffn {Movemail Config} verbose @var{level}
 Set verbosity level.
+@end deffn
+
+@deffn {Movemail Config} mailbox-ownership @var{method-list}
+Define list of methods for setting ownership of the destination
+mailbox.  The @var{method-list} argument can contain the following
+elements:
+
+@anchor{mailbox-ownership-methods}
+@table @asis
+@item copy-id
+Copy owner UID and GID from the source mailbox. This method works only
+with local mailboxes, i.e.: @samp{mbox} (UNIX mailbox), @samp{maildir}
+and @samp{mh}.
+
+@item copy-name
+Get owner name from the source mailbox URL and obtain UID and GID for
+this user using mailutils authorization methods.
+
+@item set-id=@var{uid}[:@var{gid}]
+Set supplied @var{uid} and @var{gid}. If @var{gid} is not supplied,
+it is read from the @file{/etc/passwd} record for this UID.
+
+@item set-name=@var{user}
+Make destination mailbox owned by @var{user}.
+@end table
 @end deffn
 
 @multitable @columnfractions 0.3 0.6
@@ -4439,58 +4466,13 @@ If the remote server supports @acronym{TLS} encryption, use
 @option{--tls} to instruct @command{movemail} to initiate encrypted
 connection.
 
-Quite a few options control how @command{movemail} handles mail
-locking (a way of preventing simultaneous access to the source
-mailbox). By default, before accessing mailbox @var{file},
-@command{movemail} will first see if the file named
-@file{@var{file}.lock} (so called @dfn{lock file}) exists. If so, it
-will assume that the mailbox is being used by another program and will
-sleep one second. If @file{@var{file}.lock} file disappears after this
-wait period, the program will proceed. Otherwise, it will repeat this
-action ten times. If after ten wait periods the lock file does not
-disappear, @command{movemail} gives up and exits.
+@node Ownership
+@subsection Setting Destination Mailbox Ownership
+@UNREVISED
 
-If the lock file does not exist, @command{movemail} will create it,
-thereby indicating to other programs that the mailbox is being used,
-and will proceed to copying messages to the destination file. When
-finished, @command{movemail} closes the mailbox and removes the lock
-file.
-
-Several options control this behavior. To change the default sleep period
-use @option{--lock-retry-timeout}. Its argument is the timeout value
-in seconds.
-
-To change number of retries, use @option{--lock-retry-count}. For
-example, setting @code{rmail-movemail-flags} to
-
-@smallexample
---lock-retry-timeout=2 --lock-retry-count=5
-@end smallexample
-
-@noindent
-instructs @command{movemail} to make five attempts to acquire the lock
-file, with two-second intervals between the attempts.
-
-You may also force @command{movemail} to remove the lock file if it is
-older than a given amount of time (a so called @dfn{stale lock
-file}). To do so, use the following option:
-
-@smallexample
---lock-expire-timeout=@var{seconds}
-@end smallexample
-
-The @option{--lock-expire-timeout} sets the number of seconds after
-which a lock file is considered stale.
-
-There are special programs that can be used to lock and unlock
-mailboxes. A common example of such programs is @command{dotlock}. If
-you wish to use such @dfn{external locking program} instead of the
-default mailutils locking mechanism, use option
-@option{--external-locker}. Argument to this option specifies the full
-name of the external program to use.
 
 @node Summary
-@subsection Summary of Movemail Usage
+@subsection Movemail Usage Summary
 
 @smallexample
 movemail [@var{option}...] @var{inbox} @var{destfile} [@var{remote-password}]
@@ -4500,7 +4482,7 @@ The first argument, @var{inbox}, is the @acronym{url} (@pxref{URL}) of
 the source mailbox. The second argument, @var{destfile}, traditionally
 means destination file, i.e. the UNIX mailbox to copy messages
 to. However, mailutils @command{movemail} extends the meaning of this
-parameter. You may actually specify any valid @acronym{url} as
+parameter. You may actually specify any valid @acronym{URL} as
 @var{destfile} parameter.@footnote{Rmail does not use this
 feature}. Finally, optional third argument is a traditional way of
 specifying user passwords for remote (@acronym{POP} or @acronym{IMAP})
@@ -4521,36 +4503,19 @@ Preserve the source mailbox
 @itemx --reverse
 Reverse the sorting order
 
-@item --external-locker=@var{program}
-Use given @var{program} as the external locker program.
-
-@item --lock-expire-timeout=@var{seconds}
-Set number of seconds after which the lock expires
-
-@item --lock-flags=@var{flags}
-Set locker flags. @var{flags} is composed of the following letters:
-@samp{E} -- use external locker program @command{dotlock},
-@samp{R} -- retry 10 times if acquiring of the lock failed (see also
-@option{--lock-retry-count} below), @samp{T} -- remove stale locks
-after 10 minutes (see also @option{--lock-expire-timeout},
-and @samp{P} -- write process @acronym{PID} to the lock file.
-
-@item --lock-retry-count=@var{number}
-Set the maximum number of times to retry acquiring the lockfile
-
-@item --lock-retry-timeout=@var{seconds}
-Set timeout for acquiring the lockfile
-
-@item -m @var{url}
-@itemx --mail-spool @var{URL}
-Use specified URL as a mailspool directory
-
 @item --tls[=@var{bool}]
 Enable (default) or disable TLS support
 
 @item -u
 @item --uidl
 Use UIDLs to avoid downloading the same message twice.
+
+@item -P @var{method-list}
+@itemx --owner=@var{method-list}
+Define list of methods for setting ownership of the destination
+mailbox. @xref{mailbox-ownership-methods}, for a description of
+@var{method-list}. This option is useful only when running
+@command{movemail} as root.
 
 @item -v
 @item --verbose

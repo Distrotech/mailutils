@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <pwd.h>
 #include <grp.h>
 #include <unistd.h>
 #include <mailutils/mailutils.h>
@@ -39,29 +40,73 @@ static char args_doc[] = N_("inbox-url destfile [POP-password]");
 #define OPT_EMACS 256
 
 static struct argp_option options[] = {
-  { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
+  { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox") },
   { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
-  { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
+  { "reverse",  'r', NULL, 0, N_("Reverse the sorting order") },
   { "emacs", OPT_EMACS, NULL, 0,
-    N_("Output information used by Emacs rmail interface"), 0 },
-  { "copy-permissions", 'P', NULL, 0,
-    N_("Copy original mailbox permissions and ownership when applicable"),
-    0 },
+    N_("Output information used by Emacs rmail interface") },
   { "uidl", 'u', NULL, 0,
-    N_("Use UIDLs to avoid downloading the same message twice"),
-    0 },
+    N_("Use UIDLs to avoid downloading the same message twice") },
   { "verbose", 'v', NULL, 0,
-    N_("Increase verbosity level"),
-    0 },
+    N_("Increase verbosity level") },
+  { "owner", 'P', N_("MODELIST"), 0,
+    N_("Control mailbox ownership") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 static int reverse_order;
 static int preserve_mail; 
 static int emacs_mode;
-static int copy_meta;
 static int uidl_option;
 static int verbose_option;
+
+enum set_ownership_mode
+  {
+    copy_owner_id,
+    copy_owner_name,
+    set_owner_id,
+    set_owner_name
+  };
+#define SET_OWNERSHIP_MAX 4
+
+struct user_id
+{
+  uid_t uid;
+  gid_t gid;
+};
+
+struct set_ownership_method
+{
+  enum set_ownership_mode mode;
+  union
+  {
+    char *name;
+    struct user_id id;
+  } owner;
+};
+
+static struct set_ownership_method so_methods[SET_OWNERSHIP_MAX];
+static int so_method_num;
+
+struct set_ownership_method *
+get_next_so_method ()
+{
+  if (so_method_num == MU_ARRAY_SIZE (so_methods))
+    {
+      mu_error (_("ownership method table overflow"));
+      exit (1);
+    }
+  return so_methods + so_method_num++;
+}
+
+mu_kwd_t method_kwd[] = {
+  { "copy-id", copy_owner_id }, 
+  { "copy-name", copy_owner_name },
+  { "set-name", set_owner_name },
+  { "user", set_owner_name },
+  { "set-id", set_owner_id },
+  { NULL }
+};
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -79,7 +124,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'P':
-      copy_meta = 1;
+      mu_argp_node_list_new (&lst, "mailbox-ownership", arg);
       break;
 
     case 'u':
@@ -93,7 +138,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case OPT_EMACS:
       mu_argp_node_list_new (&lst, "emacs", "yes");
       break;
-      
+
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;
@@ -118,6 +163,130 @@ static struct argp argp = {
 };
 
 
+static int
+_cb_mailbox_ownership (mu_debug_t debug, const char *str)
+{
+  if (strcmp (str, "clear") == 0)
+    so_method_num = 0;
+  else
+    {
+      int code;
+      char *p;
+      size_t len = strcspn (str, "=");
+      struct set_ownership_method *meth;
+	  
+      if (mu_kwd_xlat_name_len (method_kwd, str, len, &code))
+	{
+	  mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+			       _("Invalid ownership method: %s"),
+			       str);
+	  return 1;
+	}
+      
+      meth = get_next_so_method ();
+      meth->mode = code;
+      switch (meth->mode)
+	{
+	case copy_owner_id:
+	case copy_owner_name:
+	  break;
+	  
+	case set_owner_id:
+	  if (!str[len])
+	    {
+	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+				   _("Ownership method %s requires value"),
+				   str);
+	      return 1;
+	    }
+	  str += len + 1;
+	  meth->owner.id.uid = strtoul (str, &p, 0);
+	  if (*p)
+	    {
+	      if (*p == ':')
+		{
+		  str = p + 1;
+		  meth->owner.id.gid = strtoul (str, &p, 0);
+		  if (*p)
+		    {
+		      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+					   _("expected gid number, but found %s"),
+					   str);
+		      return 1;
+		    }
+		}
+	      else
+		{
+		  mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+				       _("expected uid number, but found %s"),
+				       str);
+		  return 1;
+		}
+	    }
+	  else
+	    meth->owner.id.gid = (gid_t) -1;
+	  break;
+	  
+	case set_owner_name:
+	  if (!str[len])
+	    {
+	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+				   _("Ownership method %s requires value"),
+				   str);
+	      return 1;
+	    }
+	  meth->owner.name = mu_strdup (str + len + 1);
+	}
+    }
+  return 0;
+}
+
+static int
+cb_mailbox_ownership (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  int i;
+  
+  if (val->type == MU_CFG_STRING)
+    {
+      const char *str = val->v.string;
+      if (!strchr (str, ','))
+	return _cb_mailbox_ownership (debug, str);
+      else
+	{
+	  int argc;
+	  char **argv;
+
+	  if (mu_argcv_get_np (str, strlen (str), ",", NULL, 0,
+			       &argc, &argv, NULL))
+	    {
+	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
+				   _("cannot parse %s"),
+				   str);
+	      return 1;
+	    }
+
+	  for (i = 0; i < argc; i++)
+	    if (_cb_mailbox_ownership (debug, argv[i]))
+	      return 1;
+
+	  mu_argcv_free (argc, argv);
+	  return 0;
+	}
+    }
+		
+  if (mu_cfg_assert_value_type (val, MU_CFG_LIST, debug))
+    return 1;
+
+  for (i = 0; i < val->v.arg.c; i++)
+    {
+      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING, debug))
+	return 1;
+      if (_cb_mailbox_ownership (debug, val->v.arg.v[i].v.string))
+	return 1;
+    }
+  return 0;
+}
+
 struct mu_cfg_param movemail_cfg_param[] = {
   { "preserve", mu_cfg_bool, &preserve_mail, 0, NULL,
     N_("Do not remove messages from the source mailbox.") },
@@ -128,7 +297,16 @@ struct mu_cfg_param movemail_cfg_param[] = {
   { "uidl", mu_cfg_bool, &uidl_option, 0, NULL,
     N_("Use UIDLs to avoid downloading the same message twice.") },
   { "verbose", mu_cfg_int, &verbose_option, 0, NULL,
-    N_("Increase verbosity level.") },
+    N_("Set verbosity level.") },
+  { "mailbox-ownership", mu_cfg_callback, NULL, 0,
+    cb_mailbox_ownership,
+    N_("Define a list of methods for setting mailbox ownership. Valid "
+       "methods are:\n"
+       " copy-id          get owner UID and GID from the source mailbox\n"
+       " copy-name        get owner name from the source mailbox URL\n"
+       " set-id=UID[:GID] set supplied UID and GID\n"
+       " set-name=USER    make destination mailbox owned by USER"),
+    N_("methods: list") },
   { NULL }
 };
 
@@ -300,29 +478,18 @@ close_mailboxes (void)
   mu_mailbox_close (dest);
   mu_mailbox_close (source);
 }  
-
-static void
-set_permissions (mu_mailbox_t mbox)
+
+static int
+get_mbox_owner_id (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
 {
-  mu_url_t url = NULL;
   const char *s;
-  int rc;
-  uid_t uid;
-  gid_t gid;
-  
-  if (getuid () != 0)
-    {
-      mu_error (_("must be root to use --copy-permissions"));
-      exit (1);
-    }
-  mu_mailbox_get_url (mbox, &url);
-  rc = mu_url_sget_scheme  (url, &s);
+  int rc = mu_url_sget_scheme  (url, &s);
   if (rc)
     die (mbox, _("Cannot get scheme"), rc);
-  if (strcmp (s, "/") == 0
-      || strcmp (s, "mbox") == 0
-      || strcmp (s, "mh") == 0
-      || strcmp (s, "maildir") == 0)
+  if ((strcmp (s, "/") == 0
+       || strcmp (s, "mbox") == 0
+       || strcmp (s, "mh") == 0
+       || strcmp (s, "maildir") == 0))
     {
       struct stat st;
       
@@ -335,33 +502,124 @@ set_permissions (mu_mailbox_t mbox)
 		    mu_strerror (errno));
 	  exit (1);
 	}
-      uid = st.st_uid;
-      gid = st.st_gid;
+      id->uid = st.st_uid;
+      id->gid = st.st_gid;
+      return 0;
+    }
+  else if (verbose_option)
+    mu_diag_output (MU_DIAG_WARNING,
+		    _("ignoring copy-name: not a local mailbox"));
+  return 1;
+}
+
+static int
+get_user_id (const char *name, struct user_id *id)
+{
+  struct mu_auth_data *auth = mu_get_auth_by_name (name);
+  
+  if (!auth)
+    {
+      if (verbose_option)
+	mu_diag_output (MU_DIAG_WARNING, _("no such user: %s"), name);
+      return 1;
+    }
+
+  id->uid = auth->uid;
+  id->gid = auth->gid;
+  mu_auth_data_free (auth);
+  return 0;
+}  
+
+static int
+get_mbox_owner_name (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
+{
+  const char *s;
+  int rc = mu_url_sget_user (url, &s);
+  if (rc)
+    /* FIXME */
+    die (mbox, _("Cannot get mailbox owner name"), rc);
+
+  return get_user_id (s, id);
+}
+
+static int
+guess_mbox_owner (mu_mailbox_t mbox, struct user_id *id)
+{
+  mu_url_t url = NULL;
+  int rc;
+  struct set_ownership_method *meth;
+  
+  rc = mu_mailbox_get_url (mbox, &url);
+  if (rc)
+    die (mbox, _("Cannot get url"), rc);
+
+  rc = 1;
+  for (meth = so_methods; rc == 1 && meth < so_methods + so_method_num; meth++)
+    {
+      switch (meth->mode)
+	{
+	case copy_owner_id:
+	  rc = get_mbox_owner_id (mbox, url, id);
+	  break;
+	  
+	case copy_owner_name:
+	  rc = get_mbox_owner_name (mbox, url, id);
+	  break;
+	  
+	case set_owner_id:
+	  id->uid = meth->owner.id.uid;
+	  rc = 0;
+	  if (meth->owner.id.gid == (gid_t)-1)
+	    {
+	      struct passwd *pw = getpwuid (id->uid);
+	      if (pw)
+		id->gid = pw->pw_gid;
+	      else
+		{
+		  if (verbose_option)
+		    mu_diag_output (MU_DIAG_WARNING,
+				    _("no user with uid %lu found"),
+				    (unsigned long) id->uid);
+		  rc = 1;
+		}
+	    }
+	  break;
+	  
+	case set_owner_name:
+	  rc = get_user_id (meth->owner.name, id);
+	  break;
+	}
+    }
+  
+  return rc;
+}
+
+static void
+switch_owner (mu_mailbox_t mbox)
+{
+  struct user_id user_id;
+
+  if (so_method_num == 0)
+    return;
+
+  if (getuid ())
+    {
+      if (verbose_option)
+	mu_diag_output (MU_DIAG_WARNING,
+			_("ignoring mailbox-ownership statement"));
+      return;
+    }
+  
+  if (guess_mbox_owner (mbox, &user_id) == 0)
+    {
+      if (mu_switch_to_privs (user_id.uid, user_id.gid, NULL))
+	exit (1);
     }
   else
     {
-      struct mu_auth_data *auth;
-      
-      rc = mu_url_sget_user (url, &s);
-      if (rc)
-	die (mbox, _("Cannot get user"), rc);
-      
-      auth = mu_get_auth_by_name (s);
-      if (!auth)
-	{
-	  mu_error (_("No such user: %s"), s);
-	  exit (1);
-	}
-      else
-	{
-	  uid = auth->uid;
-	  gid = auth->gid;
-	}
-      mu_auth_data_free (auth);
+      mu_error (_("no suitable method for setting mailbox ownership"));
+      exit (1);
     }
-
-  if (mu_switch_to_privs (uid, gid, NULL))
-    exit (1);
 }
 
 static int
@@ -443,8 +701,7 @@ main (int argc, char **argv)
   else
     open_mailbox (&source, source_name, flags, argv[2]);
 
-  if (copy_meta) 
-    set_permissions (source);
+  switch_owner (source);
   
   open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
 
