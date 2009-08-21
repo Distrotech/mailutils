@@ -184,6 +184,8 @@ class MailboxBase:
     def __len__ (self):
         return self.messages_count ()
 
+    def __str__ (self):
+        return '<Mailbox %s (%d)>' % (self.get_url (), self.messages_count ())
 
 class Mailbox (MailboxBase):
     __owner = False

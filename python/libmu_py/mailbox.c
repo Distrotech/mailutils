@@ -241,7 +241,7 @@ api_mailbox_append_message (PyObject *self, PyObject *args)
     }
 
   status = mu_mailbox_append_message (py_mbox->mbox, py_msg->msg);
-  return status_object (status, PyInt_FromLong (status));
+  return _ro (PyInt_FromLong (status));
 }
 
 static PyObject *

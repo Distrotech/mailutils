@@ -123,6 +123,21 @@ api_header_get_value (PyObject *self, PyObject *args)
 }
 
 static PyObject *
+api_header_get_value_n (PyObject *self, PyObject *args)
+{
+  int status, n;
+  char *name;
+  const char *value = NULL;
+  PyHeader *py_hdr;
+
+  if (!PyArg_ParseTuple (args, "O!si", &PyHeaderType, &py_hdr, &name, &n))
+    return NULL;
+
+  status = mu_header_sget_value_n (py_hdr->hdr, name, n, &value);
+  return status_object (status, PyString_FromString (value ? value : ""));
+}
+
+static PyObject *
 api_header_set_value (PyObject *self, PyObject *args)
 {
   int status, replace = 1;
@@ -190,6 +205,9 @@ static PyMethodDef methods[] = {
 
   { "get_value", (PyCFunction) api_header_get_value, METH_VARARGS,
     "Retrieve header field value." },
+
+  { "get_value_n", (PyCFunction) api_header_get_value_n, METH_VARARGS,
+    "Retrieve Nth header field value." },
 
   { "set_value", (PyCFunction) api_header_set_value, METH_VARARGS,
     "Set header field value." },

@@ -96,6 +96,17 @@ class Header:
             raise HeaderError (status)
         return value
 
+    def get_value_n (self, name, n = 1, default = None):
+        status, value = header.get_value_n (self.hdr, name, n)
+        if status == MU_ERR_NOENT:
+            if default != None:
+                return default
+            else:
+                raise KeyError (name)
+        elif status:
+            raise HeaderError (status)
+        return value
+
     def set_value (self, name, value, replace = True):
         status = header.set_value (self.hdr, name, value, replace)
         if status:

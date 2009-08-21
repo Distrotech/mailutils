@@ -43,6 +43,16 @@ class Message:
             message.destroy (self.msg)
         del self.msg
 
+    def __str__ (self):
+        try:
+            env = self.get_envelope ()
+            envelope = '%s %s' % (env.get_sender ().strip (),
+                                  env.get_date ().strip ())
+        except MessageError:
+            envelope = 'UNKNOWN'
+        return '<Message "%s" %d %d>' % (envelope, self.get_lines (),
+                                         self.get_size ())
+
     def __getattr__ (self, name):
         if name == 'header':
             return self.get_header ()
