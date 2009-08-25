@@ -55,6 +55,7 @@ typedef struct utmp UTMP;
 
 const char *program_version = "comsatd (" PACKAGE_STRING ")";
 static char doc[] = "GNU comsatd";
+static char args_doc[] = N_("\n--test MBOX-URL MSG-QID");
 
 #define OPT_FOREGROUND 256
 
@@ -77,7 +78,7 @@ static error_t comsatd_parse_opt (int key, char *arg,
 static struct argp argp = {
   options,
   comsatd_parse_opt,
-  NULL, 
+  args_doc, 
   doc,
   NULL,
   NULL, NULL

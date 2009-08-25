@@ -46,13 +46,6 @@ static struct attr_tab {
   { NULL }
 };
 
-static char attr_help[] =
-/* TRANSLATORS: Please do *not* translate the words "new", "unread",
-   "old" and "read". They are keywords. */
-N_("select messages with the specific attribute: \
-new, unread, old (same as unread) or read (or any unambiguous \
-abbreviation of these)");
-
 
 /* Attribute table handling */
 
@@ -127,10 +120,16 @@ static struct argp_option options[] = {
   {"field",  'f', N_("NAME"), 0, N_("header field to display"), 0},
   {"to",     'l', NULL,   0, N_("include the To: information"), 0},
   {"number", 'n', NULL,   0, N_("display message numbers"), 0},
-  {"Quiet",  'Q', NULL,   0, N_("very quiet"), 0},
+  {"Quiet",  'Q', NULL,   0, N_("do not display headers"), 0},
   {"query",  'q', NULL,   0, N_("print a message if the mailbox contains some unread mail"), 0},
   {"summary",'S', NULL,   0, N_("print a summary of messages"), 0},
-  {"status", 's', N_("STATUS"), 0, attr_help, 0},
+  {"status", 's', N_("STATUS"), 0,
+   /* TRANSLATORS: Please do *not* translate the words "new", "unread",
+      "old" and "read". They are keywords. */
+   N_("select messages with the specific attribute:"
+      " new, unread, old (same as unread) or read (or any unambiguous"
+      " abbreviation of these)"),
+   0},
   {"align",  't', NULL,   0, N_("tidy mode: align subject lines"), 0},
   {0, 0, 0, 0}
 };

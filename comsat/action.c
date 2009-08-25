@@ -18,6 +18,7 @@
    MA 02110-1301 USA */
 
 #include "comsat.h"
+#include <mailutils/io.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
 #include <obstack.h>
@@ -287,35 +288,32 @@ action_echo (FILE *tty, const char *cr, int omit_newline,
 }
 
 static void
-action_exec (FILE *tty, int line, int argc, char **argv)
+action_exec (FILE *tty, int argc, char **argv)
 {
   pid_t pid;
   struct stat stb;
 
   if (argc == 0)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: no arguments for exec"), username, line);
+      mu_diag_output (MU_DIAG_ERROR, _("no arguments for exec"));
       return;
     }
 
   if (argv[0][0] != '/')
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: not an absolute pathname"),
-	      username, line);
+      mu_diag_output (MU_DIAG_ERROR, _("not an absolute pathname: %s"), argv[0]);
       return;
     }
 
   if (stat (argv[0], &stb))
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: cannot stat %s: %s"),
-	      username, line, argv[0], strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "stat", argv[0], errno);
       return;
     }
 
   if (stb.st_mode & (S_ISUID|S_ISGID))
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: will not execute set[ug]id programs"),
-	      username, line);
+      mu_diag_output (MU_DIAG_ERROR, _("will not execute set[ug]id programs"));
       return;
     }
 
@@ -374,7 +372,15 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
   if (fp)
     {
       unsigned line = 1, n;
+      mu_debug_t debug;
+      char *cwd = mu_getcwd ();
+      char *rcname;
 
+      mu_asprintf (&rcname, "%s/%s", cwd, BIFF_RC);
+      free (cwd);
+      
+      mu_diag_get_debug (&debug);
+      
       while ((n = act_getline (fp, &stmt, &size)))
 	{
 	  int argc;
@@ -384,6 +390,7 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 	      && argc
 	      && argv[0][0] != '#')
 	    {
+	      mu_debug_set_locus (debug, rcname, line);
 	      if (strcmp (argv[0], "beep") == 0)
 		{
 		  /* FIXME: excess arguments are ignored */
@@ -412,15 +419,15 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		    }
 		  else if (strcmp (argv[0], "exec") == 0)
 		    {
-		      action_exec (tty, line, argc - 1, argv + 1);
+		      action_exec (tty, argc - 1, argv + 1);
 		      nact++;
 		    }
 		  else
 		    {
 		      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
 		      fprintf (tty, "\r\n");
-		      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: unknown keyword %s"),
-			      username, line, argv[0]);
+		      mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
+				      argv[0]);
 		      break;
 		    }
 		} 
@@ -429,6 +436,8 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 	  line += n;
 	}
       fclose (fp);
+      mu_debug_set_locus (debug, NULL, 0);
+      free (rcname);
     }
 
   if (nact == 0)
