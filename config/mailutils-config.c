@@ -134,7 +134,7 @@ add_entry (int level, char *ptr)
   int i;
   if (nentry >= sizeof(lib_entry)/sizeof(lib_entry[0]))
     {
-      mu_error (_("Too many arguments"));
+      mu_error (_("too many arguments"));
       exit (1);
     }
   

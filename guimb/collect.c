@@ -33,7 +33,7 @@ collect_open_default ()
       int rc = mu_construct_user_mailbox_url (&default_mailbox, user_name);
       if (rc)
 	{
-	  util_error (_("Cannot construct default mailbox URL: %s"),
+	  util_error (_("cannot construct default mailbox URL: %s"),
                       mu_strerror (rc));
 	  exit (1);
 	}
@@ -41,7 +41,7 @@ collect_open_default ()
   if (mu_mailbox_create (&mbox, default_mailbox) != 0
       || mu_mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
-      util_error (_("Cannot open default mailbox %s: %s"),
+      util_error (_("cannot open default mailbox %s: %s"),
 		  default_mailbox, mu_strerror (errno));
       exit (1);
     }
@@ -85,7 +85,7 @@ collect_append_file (char *name)
       fp = fopen (name, "r");
       if (!fp)
 	{
-	  util_error (_("Cannot open input file %s: %s"), name, strerror (errno));
+	  util_error (_("cannot open input file %s: %s"), name, strerror (errno));
 	  return -1;
 	}
     }
@@ -113,7 +113,7 @@ collect_create_mailbox ()
   if (mu_mailbox_create (&mbox, temp_filename) != 0
       || mu_mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
-      util_error (_("Cannot create temp mailbox %s: %s"),
+      util_error (_("cannot create temp mailbox %s: %s"),
 		  temp_filename, strerror (errno));
       unlink (temp_filename);
       exit (1);
@@ -124,7 +124,7 @@ collect_create_mailbox ()
 
   if (nmesg == 0)
     {
-      util_error (_("Input format not recognized"));
+      util_error (_("input format not recognized"));
       exit (1);
     }
 }
@@ -149,8 +149,8 @@ collect_output ()
       || mu_mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
     {
       mu_mailbox_destroy (&outbox);
-      fprintf (stderr, _("Cannot open output mailbox %s: %s\n"),
-	       default_mailbox, strerror (errno));
+      mu_error (_("cannot open output mailbox %s: %s"),
+		default_mailbox, strerror (errno));
       return 1;
     }
 

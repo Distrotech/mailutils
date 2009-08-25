@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -275,7 +275,7 @@ cb_email (mu_debug_t debug, void *data, mu_config_value_t *val)
     return 1;
   int rc = mu_set_user_email (val->v.string);
   if (rc)
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Invalid email: %s"),
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("invalid email: %s"),
 			 mu_strerror (rc));
   return rc;
 }
@@ -365,19 +365,19 @@ sieve_message (mu_sieve_machine_t mach)
   rc = mu_stdio_stream_create (&instr, stdin, MU_STREAM_SEEKABLE);
   if (rc)
     {
-      mu_error (_("Cannot create stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot create stream: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
   rc = mu_stream_open (instr);
   if (rc)
     {
-      mu_error (_("Cannot open stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot open stream: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
   rc = mu_stream_to_message (instr, &msg);
   if (rc)
     {
-      mu_error (_("Cannot create message from stream: %s"),
+      mu_error (_("cannot create message from stream: %s"),
 		mu_strerror (rc));
       return EX_SOFTWARE;
     }
@@ -401,17 +401,17 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
   if ((rc = mu_mailbox_create_default (&mbox, mbox_url)) != 0)
     {
       if (mbox)
-	mu_error (_("Could not create mailbox `%s': %s"),
+	mu_error (_("could not create mailbox `%s': %s"),
 		  mbox_url, mu_strerror (rc));
       else
-	mu_error (_("Could not create default mailbox: %s"),
+	mu_error (_("could not create default mailbox: %s"),
 		  mu_strerror (rc));
       goto cleanup;
     }
 
   if (debug && (rc = mu_mailbox_set_debug (mbox, debug)))
     {
-      mu_error (_("mu_mailbox_set_debug failed: %s"), mu_strerror (rc));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_set_debug", NULL, rc);
       goto cleanup;
     }
 
@@ -428,11 +428,11 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
 	  mu_url_t url = NULL;
 
 	  mu_mailbox_get_url (mbox, &url);
-	  mu_error (_("Opening mailbox `%s' failed: %s"),
+	  mu_error (_("cannot open mailbox %s: %s"),
 		    mu_url_to_string (url), mu_strerror (rc));
 	}
       else
-	mu_error (_("Opening default mailbox failed: %s"),
+	mu_error (_("cannot open default mailbox: %s"),
 		  mu_strerror (rc));
       mu_mailbox_destroy (&mbox);
       goto cleanup;
@@ -453,10 +453,10 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
       if ((e = mu_mailbox_expunge (mbox)) != 0)
 	{
 	  if (mbox)
-	    mu_error (_("Expunge on mailbox `%s' failed: %s"),
+	    mu_error (_("expunge on mailbox `%s' failed: %s"),
 		      mbox_url, mu_strerror (e));
 	  else
-	    mu_error (_("Expunge on default mailbox failed: %s"),
+	    mu_error (_("expunge on default mailbox failed: %s"),
 		      mu_strerror (e));
 	}
       
@@ -500,7 +500,7 @@ main (int argc, char *argv[])
   rc = mu_sieve_machine_init (&mach, NULL);
   if (rc)
     {
-      mu_error (_("Cannot initialize sieve machine: %s"), mu_strerror (rc));
+      mu_error (_("cannot initialize sieve machine: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
 
@@ -534,13 +534,12 @@ main (int argc, char *argv[])
     {
       if ((rc = mu_debug_create (&debug, mach)))
 	{
-	  mu_error (_("mu_debug_create failed: %s"), mu_strerror (rc));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_debug_create", NULL, rc);
 	  return EX_SOFTWARE;
 	}
       if ((rc = mu_debug_set_level (debug, debug_level)))
 	{
-	  mu_error (_("mu_debug_set_level failed: %s"),
-		    mu_strerror (rc));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_debug_set_level", NULL, rc);
 	  return EX_SOFTWARE;
 	}
       mu_sieve_set_debug_object (mach, debug);

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2005, 
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -62,42 +62,42 @@ pop3d_abquit (int reason)
     case ERR_NO_MEM:
       code = EX_SOFTWARE;
       pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
-      mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
+      mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
       break;
 
     case ERR_SIGNAL:
       code = EX_SOFTWARE;
-      mu_diag_output (MU_DIAG_ERROR, _("Quitting on signal"));
+      mu_diag_output (MU_DIAG_ERROR, _("quitting on signal"));
       break;
 
     case ERR_TERMINATE:
       code = EX_OK;
-      mu_diag_output (MU_DIAG_NOTICE, _("Terminating on request"));
+      mu_diag_output (MU_DIAG_NOTICE, _("terminating on request"));
       break;
 
     case ERR_TIMEOUT:
       code = EX_TEMPFAIL;
       pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
       if (state == TRANSACTION)
-	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"),
+	mu_diag_output (MU_DIAG_INFO, _("session timed out for user: %s"),
 			username);
       else
-	mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
+	mu_diag_output (MU_DIAG_INFO, _("session timed out for no user"));
       break;
 
     case ERR_NO_IFILE:
       code = EX_NOINPUT;
-      mu_diag_output (MU_DIAG_INFO, _("No input stream"));
+      mu_diag_output (MU_DIAG_INFO, _("no input stream"));
       break;
 
     case ERR_NO_OFILE:
       code = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("No socket to send to"));
+      mu_diag_output (MU_DIAG_INFO, _("no socket to send to"));
       break;
 
     case ERR_PROTO:
       code = EX_PROTOCOL;
-      mu_diag_output (MU_DIAG_INFO, _("Remote protocol error"));
+      mu_diag_output (MU_DIAG_INFO, _("remote protocol error"));
       break;
 
     case ERR_IO:
@@ -108,7 +108,7 @@ pop3d_abquit (int reason)
     case ERR_MBOX_SYNC:
       code = EX_OSERR; /* FIXME: This could be EX_SOFTWARE as well? */
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Mailbox was updated by other party: %s"),
+		      _("mailbox was updated by other party: %s"),
 		      username);
       pop3d_outf
 	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
@@ -117,7 +117,7 @@ pop3d_abquit (int reason)
     default:
       code = EX_SOFTWARE;
       pop3d_outf ("-ERR Quitting: %s\r\n", pop3d_error_string (reason));
-      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"),
+      mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"),
 		      reason);
       break;
     }
@@ -233,7 +233,7 @@ pop3d_outf (const char *fmt, ...)
 
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
-      mu_diag_output (MU_DIAG_ERROR, _("Write failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("write failed: %s"), p);
       pop3d_abquit (ERR_IO);
     }
 }
@@ -255,7 +255,7 @@ pop3d_readline (char *buffer, size_t size)
 
       if (mu_stream_strerror (ostream, &p))
 	p = strerror (errno);
-      mu_diag_output (MU_DIAG_ERROR, _("Read failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("read failed: %s"), p);
       pop3d_abquit (ERR_IO);
     }
   else if (nbytes == 0)

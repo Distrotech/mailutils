@@ -178,7 +178,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
       if (mu_kwd_xlat_name_len (method_kwd, str, len, &code))
 	{
 	  mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			       _("Invalid ownership method: %s"),
+			       _("invalid ownership method: %s"),
 			       str);
 	  return 1;
 	}
@@ -347,7 +347,7 @@ lock_mailbox (mu_mailbox_t mbox)
   
   status = mu_mailbox_get_locker (mbox, &lock);
   if (status)
-    die (mbox, _("Cannot retrieve locker"), status);
+    die (mbox, _("cannot retrieve locker"), status);
       
   if (!lock)
     /* Remote mailboxes have no lockers */
@@ -356,7 +356,7 @@ lock_mailbox (mu_mailbox_t mbox)
   status = mu_locker_lock (lock);
 
   if (status)
-    die (mbox, _("Cannot lock"), status);
+    die (mbox, _("cannot lock"), status);
 }
 
 
@@ -400,11 +400,11 @@ open_mailbox (mu_mailbox_t *mbx, char *name, int flags, char *passwd)
   if (status)
     {
       if (name)
-	mu_error (_("Could not create mailbox `%s': %s"),
+	mu_error (_("could not create mailbox `%s': %s"),
 		  name,
 		  mu_strerror (status));
       else
-	mu_error (_("Could not create default mailbox: %s"),
+	mu_error (_("could not create default mailbox: %s"),
 		  mu_strerror (status));
       exit (1);
     }
@@ -413,7 +413,7 @@ open_mailbox (mu_mailbox_t *mbx, char *name, int flags, char *passwd)
     attach_passwd_ticket (*mbx, passwd);
   status = mu_mailbox_open (*mbx, flags);
   if (status)
-    die (*mbx, _("Cannot open"), status);
+    die (*mbx, _("cannot open"), status);
   lock_mailbox (*mbx);
 }
 
@@ -425,13 +425,13 @@ move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
 
   if ((rc = mu_mailbox_get_message (src, msgno, &msg)) != 0)
     {
-      mu_error (_("Cannot read message %lu: %s"),
+      mu_error (_("cannot read message %lu: %s"),
 		(unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
   if ((rc = mu_mailbox_append_message (dst, msg)) != 0)
     {
-      mu_error (_("Cannot append message %lu: %s\n"),
+      mu_error (_("cannot append message %lu: %s\n"),
 		(unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
@@ -462,7 +462,7 @@ compatibility_mode (mu_mailbox_t *mbx, char *source_name, char *password,
     host = getenv ("MAILHOST");
   if (!host)
     {
-      mu_error (_("Hostname of the POP3 server is unknown"));
+      mu_error (_("hostname of the POP3 server is unknown"));
       exit (1);
     }
   asprintf (&tmp, "pop://%s@%s", user_name, host);
@@ -485,7 +485,7 @@ get_mbox_owner_id (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
   const char *s;
   int rc = mu_url_sget_scheme  (url, &s);
   if (rc)
-    die (mbox, _("Cannot get scheme"), rc);
+    die (mbox, _("cannot get scheme"), rc);
   if ((strcmp (s, "/") == 0
        || strcmp (s, "mbox") == 0
        || strcmp (s, "mh") == 0
@@ -495,10 +495,10 @@ get_mbox_owner_id (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
       
       rc = mu_url_sget_path  (url, &s);
       if (rc)
-	die (mbox, _("Cannot get path"), rc);
+	die (mbox, _("cannot get path"), rc);
       if (stat (s, &st))
 	{
-	  mu_error (_("Cannot stat mailbox `%s': %s"), s,
+	  mu_error (_("cannot stat mailbox `%s': %s"), s,
 		    mu_strerror (errno));
 	  exit (1);
 	}
@@ -537,7 +537,7 @@ get_mbox_owner_name (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
   int rc = mu_url_sget_user (url, &s);
   if (rc)
     /* FIXME */
-    die (mbox, _("Cannot get mailbox owner name"), rc);
+    die (mbox, _("cannot get mailbox owner name"), rc);
 
   return get_user_id (s, id);
 }
@@ -551,7 +551,7 @@ guess_mbox_owner (mu_mailbox_t mbox, struct user_id *id)
   
   rc = mu_mailbox_get_url (mbox, &url);
   if (rc)
-    die (mbox, _("Cannot get url"), rc);
+    die (mbox, _("cannot get url"), rc);
 
   rc = 1;
   for (meth = so_methods; rc == 1 && meth < so_methods + so_method_num; meth++)
@@ -685,7 +685,7 @@ main (int argc, char **argv)
 
   if (argc < 2 || argc > 3)
     {
-      mu_error (_("Wrong number of arguments"));
+      mu_error (_("wrong number of arguments"));
       return 1;
     }
 
@@ -708,13 +708,13 @@ main (int argc, char **argv)
   rc = mu_mailbox_messages_count (source, &total);
   if (rc)
     {
-      mu_error(_("Cannot count messages: %s"), mu_strerror (rc));
+      mu_error(_("cannot count messages: %s"), mu_strerror (rc));
       exit (1);
     }
   
   if (verbose_option)
     mu_diag_output (MU_DIAG_INFO,
-		    _("Number of messages in source mailbox: %lu"),
+		    _("number of messages in source mailbox: %lu"),
 		    (unsigned long) total);
 
   if (uidl_option)
@@ -724,10 +724,10 @@ main (int argc, char **argv)
 
       rc = mu_mailbox_get_uidls (source, &src_uidl_list);
       if (rc)
-	die (source, _("Cannot get UIDLs"), rc);
+	die (source, _("cannot get UIDLs"), rc);
       rc = mu_mailbox_get_uidls (dest, &dst_uidl_list);
       if (rc)
-	die (dest, _("Cannot get UIDLs"), rc);
+	die (dest, _("cannot get UIDLs"), rc);
 
       mu_list_set_comparator (src_uidl_list, NULL);
       mu_list_set_comparator (dst_uidl_list, _compare_uidls);
@@ -754,7 +754,7 @@ main (int argc, char **argv)
 	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
 	    {
 	      if (verbose_option > 1)
-		mu_diag_output (MU_DIAG_INFO, _("Ignoring message %lu"),
+		mu_diag_output (MU_DIAG_INFO, _("ignoring message %lu"),
 				(unsigned long) i);
 	      continue;
 	    }
@@ -786,7 +786,7 @@ main (int argc, char **argv)
   
   if (verbose_option)
     mu_diag_output (MU_DIAG_INFO,
-		    _("Number of processed messages: %lu"),
+		    _("number of processed messages: %lu"),
 		    (unsigned long) msg_count);
   
   if (rc)
@@ -796,7 +796,7 @@ main (int argc, char **argv)
   rc = mu_mailbox_close (dest);
   mu_mailbox_destroy (&dest);
   if (rc)
-    mu_error (_("Cannot close destination mailbox: %s"), mu_strerror (rc));
+    mu_error (_("cannot close destination mailbox: %s"), mu_strerror (rc));
   else
     mu_mailbox_flush (source, 1);
 

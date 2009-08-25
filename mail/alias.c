@@ -160,14 +160,14 @@ alias_expand (const char *name)
       int status = mu_list_create (&list);
       if (status)
 	{
-	  mu_error (_("Cannot create list: %s"), mu_strerror (status));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, status);
 	  return NULL;
 	}
       status = mu_list_create (&origlist);
       if (status)
 	{
 	  mu_list_destroy (&origlist);
-	  mu_error (_("Cannot create list: %s"), mu_strerror (status));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, status);
 	  return NULL;
 	}
       mu_list_set_comparator (list, string_comp);

@@ -152,7 +152,8 @@ push_source (const char *name)
   if (!fp)
     {
       mu_sv_compile_error (&mu_sieve_locus, 
-                           _("cannot open `%s': %s"), name, strerror (errno));
+                           _("cannot open file `%s': %s"),
+			   name, strerror (errno));
       return 1;
     }
 
@@ -506,7 +507,7 @@ line_add (char *text, size_t len)
   s = malloc (len + 1);
   if (!s)
     {
-      yyerror (_("Not enough memory"));
+      yyerror (_("not enough memory"));
       exit (1);
     }
   memcpy (s, text, len);
@@ -570,7 +571,7 @@ multiline_begin ()
       multiline_delimiter = strdup (".");
       if (!multiline_delimiter)
 	{
-	  yyerror (_("Not enough memory"));
+	  yyerror (_("not enough memory"));
 	  exit (1);
 	}
     }
@@ -625,7 +626,7 @@ ident (const char *text)
   yylval.string = strdup (text);
   if (!yylval.string)
     {
-      yyerror (_("Not enough memory"));
+      yyerror (_("not enough memory"));
       exit (1);
     }
 }

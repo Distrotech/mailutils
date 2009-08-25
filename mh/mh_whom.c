@@ -35,7 +35,7 @@ addrcp (mu_list_t *list, char *addr, int isbcc)
   p->isbcc = isbcc;
   if (!*list && (rc = mu_list_create (list)))
     {
-      mu_error (_("Cannot create list: %s"), mu_strerror (rc));
+      mu_error (_("cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
   mu_list_append (*list, p);
@@ -212,7 +212,7 @@ mh_whom (const char *filename, int check)
       if (rc == ENOENT)
 	mu_error ("%s: %s", filename, mu_strerror (rc));
       else
-	mu_error ("%s: %s (%s)", filename, _("Malformed message"),
+	mu_error ("%s: %s (%s)", filename, _("malformed message"),
 		  mu_strerror (rc));
       rc = -1;
     }
@@ -238,7 +238,7 @@ mh_whom (const char *filename, int check)
 
       if (count == 0)
 	{
-	  mu_error(_("No recipients"));
+	  mu_error(_("no recipients"));
 	  rc = -1;
 	}
     }

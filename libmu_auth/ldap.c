@@ -101,11 +101,11 @@ _mu_conn_setup (LDAP **pld)
     {
       if (ber_set_option (NULL, LBER_OPT_DEBUG_LEVEL, &ldap_param.debug)
 	  != LBER_OPT_SUCCESS )
-	mu_error (_("Cannot set LBER_OPT_DEBUG_LEVEL %d"), ldap_param.debug);
+	mu_error (_("cannot set LBER_OPT_DEBUG_LEVEL %d"), ldap_param.debug);
 
       if (ldap_set_option (NULL, LDAP_OPT_DEBUG_LEVEL, &ldap_param.debug)
 	  != LDAP_OPT_SUCCESS )
-	mu_error (_("Could not set LDAP_OPT_DEBUG_LEVEL %d"),
+	mu_error (_("could not set LDAP_OPT_DEBUG_LEVEL %d"),
 		  ldap_param.debug);
     }
 
@@ -114,7 +114,7 @@ _mu_conn_setup (LDAP **pld)
       rc = ldap_url_parse (ldap_param.url, &ludlist);
       if (rc != LDAP_URL_SUCCESS)
 	{
-	  mu_error (_("Cannot parse LDAP URL(s)=%s (%d)"),
+	  mu_error (_("cannot parse LDAP URL(s)=%s (%d)"),
 		    ldap_param.url, rc);
 	  return 1;
 	}
@@ -136,7 +136,7 @@ _mu_conn_setup (LDAP **pld)
 	      
 	      if (ldap_dn2domain (lud->lud_dn, &domain) || !domain)
 		{
-		  mu_error (_("DNS SRV: Cannot convert DN=\"%s\" into a domain"),
+		  mu_error (_("DNS SRV: cannot convert DN=\"%s\" into a domain"),
 			    lud->lud_dn );
 		  goto dnssrv_free;
 		}
@@ -144,7 +144,7 @@ _mu_conn_setup (LDAP **pld)
 	      rc = ldap_domain2hostlist (domain, &hostlist);
 	      if (rc)
 		{
-		  mu_error (_("DNS SRV: Cannot convert domain=%s into a hostlist"),
+		  mu_error (_("DNS SRV: cannot convert domain=%s into a hostlist"),
 			    domain);
 		  goto dnssrv_free;
 		}
@@ -152,7 +152,7 @@ _mu_conn_setup (LDAP **pld)
 	      rc = mu_argcv_get (hostlist, " ", NULL, &hostcnt, &hosts);
 	      if (rc)
 		{
-		  mu_error (_("DNS SRV: Could not parse hostlist=\"%s\": %s"),
+		  mu_error (_("DNS SRV: could not parse hostlist=\"%s\": %s"),
 			    hostlist, mu_strerror (rc));
 		  goto dnssrv_free;
 		}
@@ -235,13 +235,14 @@ _mu_conn_setup (LDAP **pld)
       
       ber_memvfree ((void **)urls);
     }
-  
-  mu_error ("INFO: Constructed LDAP URI: %s", ldapuri ? ldapuri : "<DEFAULT>");
+
+  mu_diag_output (MU_DIAG_INFO,
+		  "constructed LDAP URI: %s", ldapuri ? ldapuri : "<DEFAULT>");
 
   rc = ldap_initialize (&ld, ldapuri);
   if (rc != LDAP_SUCCESS)
     {
-      mu_error (_("Cannot create LDAP session handle for URI=%s (%d): %s"),
+      mu_error (_("cannot create LDAP session handle for URI=%s (%d): %s"),
 		ldapuri, rc, ldap_err2string (rc));
 
       free (ldapuri);
@@ -408,7 +409,7 @@ get_quota (mu_off_t *pquota, const char *str)
       break;
 	      
     default:
-      mu_error (_("Invalid value for quota: %s"), str);
+      mu_error (_("invalid value for quota: %s"), str);
     }
 }
 

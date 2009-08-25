@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,14 +51,14 @@ util_get_sender (int msgno)
       if (mu_envelope_sget_sender (env, &buffer)
 	  || mu_address_create (&addr, buffer))
 	{
-	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
+	  util_error (_("cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (mu_address_aget_email (addr, 1, &email))
     {
-      util_error (_("Cannot determine sender name (msg %d)"), msgno);
+      util_error (_("cannot determine sender name (msg %d)"), msgno);
       mu_address_destroy (&addr);
       return NULL;
     }

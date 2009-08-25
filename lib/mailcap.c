@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -442,7 +442,7 @@ create_filter (char *cmd, int outfd, int *infd)
 	dup2 (outfd, 1);
 
       execvp (argv[0], argv);
-      mu_error (_("Cannot execute `%s': %s"), cmd, mu_strerror (errno));
+      mu_error (_("cannot execute `%s': %s"), cmd, mu_strerror (errno));
       _exit (127);
     }
 

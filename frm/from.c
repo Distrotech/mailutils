@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -125,7 +125,7 @@ main (int argc, char **argv)
 
   if (argc - c > 1)
     {
-      mu_error (_("Too many arguments"));
+      mu_error (_("too many arguments"));
       exit (1);
     }
   else if (argc - c > 0)

@@ -309,12 +309,12 @@ main (int argc, char **argv)
   if (status != 0)
     {
       if (mailbox_name)
-	fprintf (stderr, _("Could not create mailbox `%s': %s\n"),
-		 mailbox_name,
-		 mu_strerror(status));
+	mu_error (_("could not create mailbox `%s': %s"),
+		  mailbox_name,
+		  mu_strerror(status));
       else
-	fprintf (stderr, _("Could not create default mailbox: %s\n"),
-		 mu_strerror(status));
+	mu_error (_("could not create default mailbox: %s"),
+		  mu_strerror(status));
       exit (2);
     }
 
@@ -332,7 +332,7 @@ main (int argc, char **argv)
       mu_url_t url = NULL;
 
       mu_mailbox_get_url (mbox, &url);
-      mu_error (_("Could not open mailbox `%s': %s\n"),
+      mu_error (_("could not open mailbox `%s': %s"),
 		mu_url_to_string (url), mu_strerror (status));
       exit (2);
     }
@@ -344,7 +344,7 @@ main (int argc, char **argv)
 			 &weedc, &weedv);
   if (status)
     {
-      mu_error (_("Cannot parse weedlist: %s"), mu_strerror (status));
+      mu_error (_("cannot parse weedlist: %s"), mu_strerror (status));
       exit (2);
     }
 

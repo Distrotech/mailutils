@@ -260,7 +260,7 @@ ident_decrypt (const char *file, const char *name)
   if (size != 24)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Incorrect length of IDENT DES packet"));
+		      _("incorrect length of IDENT DES packet"));
       free (buf);
       return NULL;
     }
@@ -269,7 +269,7 @@ ident_decrypt (const char *file, const char *name)
   if (fd < 0)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Cannot open file %s: %s"),
+		      _("cannot open file %s: %s"),
 		      file, mu_strerror (errno));
       return NULL;
     }
@@ -310,13 +310,13 @@ ident_decrypt (const char *file, const char *name)
       auth_data = mu_get_auth_by_uid (uid);
       if (!auth_data)
 	{
-	  mu_diag_output (MU_DIAG_ERROR, _("No user with UID %u"), uid);
+	  mu_diag_output (MU_DIAG_ERROR, _("no user with UID %u"), uid);
 	  return NULL;
 	}
       return auth_data->name;
     }
   else
-    mu_diag_output (MU_DIAG_ERROR, _("Failed to decrypt IDENT reply"));
+    mu_diag_output (MU_DIAG_ERROR, _("failed to decrypt IDENT reply"));
   return NULL;
 }
 
@@ -334,13 +334,13 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
 
   if (!srv_sa || !clt_sa)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Not enough data for IDENT preauth"));
+      mu_diag_output (MU_DIAG_ERROR, _("not enough data for IDENT preauth"));
       return NULL;
     }
   if (srv_sa->sa_family != AF_INET)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Invalid address family (%d) for IDENT preauth"),
+		      _("invalid address family (%d) for IDENT preauth"),
 		      srv_sa->sa_family);
       return NULL;
     }
@@ -354,7 +354,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
 			     MU_STREAM_RDWR | MU_STREAM_NO_CHECK);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Cannot create TCP stream: %s"),
+      mu_diag_output (MU_DIAG_INFO, _("cannot create TCP stream: %s"),
 		      mu_strerror (rc));
       return NULL;
     }
@@ -362,7 +362,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   rc = mu_stream_open (stream);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Cannot open TCP stream to %s:%d: %s"),
+      mu_diag_output (MU_DIAG_INFO, _("cannot open TCP stream to %s:%d: %s"),
 		      hostaddr, ident_port, mu_strerror (rc));
       return NULL;
     }
@@ -377,7 +377,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   mu_stream_destroy (&stream, NULL);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Cannot read answer from %s:%d: %s"),
+      mu_diag_output (MU_DIAG_INFO, _("cannot read answer from %s:%d: %s"),
 		      hostaddr, ident_port, mu_strerror (rc));
       return NULL;
     }
@@ -386,14 +386,14 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   name = ident_extract_username (buf);
   if (!name)
     mu_diag_output (MU_DIAG_INFO,
-		    _("Malformed IDENT response: `%s', from %s:%d"),
+		    _("malformed IDENT response: `%s', from %s:%d"),
 		    buf, hostaddr, ident_port);
   else if (is_des_p (name))
     {
       if (!ident_keyfile)
 	{
 	  mu_diag_output (MU_DIAG_ERROR,
-			  _("Keyfile not specified in config; "
+			  _("keyfile not specified in config; "
 			    "use `ident-keyfile FILE'"));
 	  name = NULL;
 	}
@@ -403,7 +403,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   else if (ident_encrypt_only)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Refusing unencrypted ident reply from %s:%d"),
+		      _("refusing unencrypted ident reply from %s:%d"),
 		      hostaddr, ident_port);
       name = NULL;
     }
@@ -485,7 +485,7 @@ imap4d_preauth_setup (int fd)
   if (getpeername (fd, (struct sockaddr *) &clt_sa, &clt_len) == -1)
     {
       mu_diag_output (MU_DIAG_ERROR,
-		      _("Cannot obtain IP address of client: %s"),
+		      _("cannot obtain IP address of client: %s"),
 		      strerror (errno));
       pclt_sa = NULL;
       clt_len = 0;

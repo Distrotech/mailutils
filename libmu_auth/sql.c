@@ -175,7 +175,7 @@ get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
   if (rc)
     {
       if (mandatory || rc != MU_ERR_NOENT)
-	mu_error (_("Cannot get SQL field `%s' (`%s'): %s"),
+	mu_error (_("cannot get SQL field `%s' (`%s'): %s"),
 		  id, name ? *name : id, mu_strerror (rc));
     }
   else if (!*ret)
@@ -220,14 +220,14 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
   uid = strtoul (suid, &p, 0);
   if (*p)
     {
-      mu_error (_("Invalid value for uid: %s"), suid);
+      mu_error (_("invalid value for uid: %s"), suid);
       return MU_ERR_FAILURE;
     }
 
   gid = strtoul (sgid, &p, 0);
   if (*p)
     {
-      mu_error (_("Invalid value for gid: %s"), sgid);
+      mu_error (_("invalid value for gid: %s"), sgid);
       return MU_ERR_FAILURE;
     }
   
@@ -271,7 +271,7 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
 	      break;
 	      
 	    default:
-	      mu_error (_("Invalid value for quota: %s"), squota);
+	      mu_error (_("invalid value for quota: %s"), squota);
 	      free (mailbox_name);
 	      return MU_ERR_FAILURE;
 	    }
@@ -373,7 +373,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error (_("Cannot store SQL result: %s"),
+      mu_error (_("cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -457,7 +457,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error (_("Cannot store SQL result: %s"),
+      mu_error (_("cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -533,7 +533,7 @@ mu_sql_getpass (const char *username, char **passwd)
 
   if (status)
     {
-      mu_error (_("Cannot store SQL result: %s"),
+      mu_error (_("cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -543,7 +543,7 @@ mu_sql_getpass (const char *username, char **passwd)
   status = mu_sql_get_column (conn, 0, 0, &sql_pass);
   if (status)
     {
-      mu_error (_("Cannot get password from SQL: %s"),
+      mu_error (_("cannot get password from SQL: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_release_result (conn);
@@ -616,7 +616,7 @@ mu_sql_module_init (enum mu_gocs_op op, void *data)
   mu_sql_module_config.interface = mu_sql_interface_index (cfg->interface);
   if (mu_sql_module_config.interface == 0)
     {
-      mu_error (_("Unknown SQL interface `%s'"), cfg->interface);
+      mu_error (_("unknown SQL interface `%s'"), cfg->interface);
       return 1;
     }
 

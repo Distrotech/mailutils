@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ append_arg (char *arg)
       g_argv = realloc (g_argv, g_size * sizeof (g_argv[0]));
       if (!g_argv)
 	{
-	  util_error (_("Not enough memory"));
+	  util_error (_("not enough memory"));
 	  exit (1);
 	}
     }

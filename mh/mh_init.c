@@ -69,14 +69,14 @@ mh_read_formfile (char *name, char **pformat)
 
   if (stat (name, &st))
     {
-      mu_error (_("Cannot stat format file %s: %s"), name, strerror (errno));
+      mu_error (_("cannot stat format file %s: %s"), name, strerror (errno));
       return -1;
     }
   
   fp = fopen (name, "r");
   if (!fp)
     {
-      mu_error (_("Cannot open format file %s: %s"), name, strerror (errno));
+      mu_error (_("cannot open format file %s: %s"), name, strerror (errno));
       return -1;
     }
 
@@ -111,7 +111,7 @@ mh_read_formfile (char *name, char **pformat)
 void
 mh_err_memory (int fatal)
 {
-  mu_error (_("Not enough memory"));
+  mu_error (_("not enough memory"));
   if (fatal)
     abort ();
 }
@@ -127,7 +127,7 @@ mh_get_my_name (char *name)
       struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  mu_error (_("Cannot determine my username"));
+	  mu_error (_("cannot determine my username"));
 	  return;
 	}
       name = pw->pw_name;
@@ -230,13 +230,13 @@ make_dir_hier (const char *p, mode_t perm)
 	{
 	  if (errno != ENOENT)
 	    {
-	      mu_error (_("Cannot create directory %s: error accessing name component %s: %s"),
+	      mu_error (_("cannot create directory %s: error accessing name component %s: %s"),
 
 			p, dir, strerror (errno));
 	      rc = 1;
 	    }
 	  else if ((rc = mkdir (dir, perm)))
-	    mu_error (_("Cannot create directory %s: error creating name component %s: %s"),
+	    mu_error (_("cannot create directory %s: error creating name component %s: %s"),
 		      p, dir, mu_strerror (rc));
 	}
       *q = '/';
@@ -261,7 +261,7 @@ mh_makedir (const char *p)
     {
       rc = mkdir (p, perm);
       if (rc)
-	mu_error (_("Cannot create directory %s: %s"),
+	mu_error (_("cannot create directory %s: %s"),
 		  p, strerror (errno));
     }
 
@@ -284,14 +284,14 @@ mh_check_folder (const char *pathname, int confirm)
     {
       if (errno == ENOENT)
 	{
-	  if (!confirm || mh_getyn (_("Create folder \"%s\""), p))
+	  if (!confirm || mh_getyn (_("create folder \"%s\""), p))
 	    return mh_makedir (p);
 	  else
 	    return 1;
 	}
       else
 	{
-	  mu_error (_("Cannot stat %s: %s"), p, strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "stat", p, errno);
 	  return 1;
 	}
     }
@@ -382,7 +382,7 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
       asprintf (&p, "%s/%s", mu_folder_directory (), namep);
       if (!p)
 	{
-	  mu_error (_("Not enough memory"));
+	  mu_error (_("not enough memory"));
 	  exit (1);
 	}
       free (namep);
@@ -392,7 +392,7 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
   fp = fopen (namep, "a");
   if (!fp)
     {
-      mu_error (_("Cannot open audit file %s: %s"), namep, strerror (errno));
+      mu_error (_("cannot open audit file %s: %s"), namep, strerror (errno));
       free (namep);
       return NULL;
     }
@@ -435,7 +435,7 @@ mh_open_folder (const char *folder, int create)
     
   if (mu_mailbox_create_default (&mbox, name))
     {
-      mu_error (_("Cannot create mailbox %s: %s"),
+      mu_error (_("cannot create mailbox %s: %s"),
 		name, strerror (errno));
       exit (1);
     }
@@ -445,7 +445,7 @@ mh_open_folder (const char *folder, int create)
   
   if (mu_mailbox_open (mbox, flags))
     {
-      mu_error (_("Cannot open mailbox %s: %s"), name, strerror (errno));
+      mu_error (_("cannot open mailbox %s: %s"), name, strerror (errno));
       exit (1);
     }
 
@@ -523,7 +523,7 @@ mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
       num = msgset->list[i];
       if ((rc = mu_mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mu_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
+	  mu_error (_("cannot get message %d: %s"), num, mu_strerror (rc));
 	  return 1;
 	}
 
@@ -539,9 +539,9 @@ mh_spawnp (const char *prog, const char *file)
   int argc, i, rc, status;
   char **argv, **xargv;
 
-  if (mu_argcv_get (prog, "", "#", &argc, &argv))
+  if ((rc = mu_argcv_get (prog, "", "#", &argc, &argv)) != 0)
     {
-      mu_error (_("Cannot split line %s"), prog);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_get", prog, rc);
       mu_argcv_free (argc, argv);
       return 1;
     }
@@ -593,7 +593,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = mu_file_stream_create (&in, from, MU_STREAM_READ)) != 0
       || (rc = mu_stream_open (in)))
     {
-      mu_error (_("Cannot open input file `%s': %s"),
+      mu_error (_("cannot open input file `%s': %s"),
 		from, mu_strerror (rc));
       free (buffer);
       return 1;
@@ -602,7 +602,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = mu_file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (out)))
     {
-      mu_error (_("Cannot open output file `%s': %s"),
+      mu_error (_("cannot open output file `%s': %s"),
 		to, mu_strerror (rc));
       free (buffer);
       mu_stream_close (in);
@@ -616,7 +616,7 @@ mh_file_copy (const char *from, const char *to)
     {
       if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
-	  mu_error (_("Write error on `%s': %s"),
+	  mu_error (_("write error on `%s': %s"),
 		    to, mu_strerror (rc));
 	  break;
 	}
@@ -642,20 +642,20 @@ _file_to_message (const char *file_name)
 
   if (stat (file_name, &st) < 0)
     {
-      mu_error (_("Cannot stat file %s: %s"), file_name, strerror (errno));
+      mu_error (_("cannot stat file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
   
   if ((rc = mu_file_stream_create (&instream, file_name, MU_STREAM_READ)))
     {
-      mu_error (_("Cannot create input stream (file %s): %s"),
+      mu_error (_("cannot create input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       return NULL;
     }
   
   if ((rc = mu_stream_open (instream)))
     {
-      mu_error (_("Cannot open input stream (file %s): %s"),
+      mu_error (_("cannot open input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       mu_stream_destroy (&instream, mu_stream_get_owner (instream));
       return NULL;
@@ -749,7 +749,7 @@ mh_real_install (char *name, int automode)
   fp = fopen (name, "w");
   if (!fp)
     {
-      mu_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
       exit (1);
     }
   fprintf (fp, "Path: %s\n", mhdir);
@@ -785,7 +785,7 @@ mh_install (char *name, int automode)
 	}
       else
 	{
-	  mu_error(_("Cannot stat %s: %s"), name, mu_strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "stat", name, errno);
 	  exit (1);
 	}
     }
@@ -982,7 +982,7 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
     {
       rc = mu_mailbox_uidnext (mbox, &uid);
       if (rc)
-	mu_error (_("Cannot obtain sequence number for the new message: %s"),
+	mu_error (_("cannot obtain sequence number for the new message: %s"),
 		  mu_strerror (rc));
     }
   else
@@ -994,7 +994,7 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
       argv[1] = NULL;
       rc = mh_msgset_parse (mbox, &msgset, 1, argv, "cur");
       if (rc)
-	mu_error (_("Invalid message number: %s"), msgspec);
+	mu_error (_("invalid message number: %s"), msgspec);
       else if (msgset.count > 1)
 	mu_error (_("only one message at a time!"));
       else

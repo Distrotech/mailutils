@@ -132,13 +132,15 @@ parse_cleartext (locus_t *loc, mu_list_t formlist, char *str)
 static void
 parse_component (locus_t *loc, mu_list_t formlist, char *compname, char *str)
 {
+  int rc;
   mhl_stmt_t *stmt = stmt_alloc (stmt_component);
   stmt->v.component.name = compname;
-  if (mu_list_create (&stmt->v.component.format))
+  if ((rc = mu_list_create (&stmt->v.component.format)) != 0)
     {
-      mu_error (_("%s:%d: cannot create list"),
+      mu_error ("%s:%d: mu_list_create: %s",
 		loc->filename,
-		loc->line);
+		loc->line,
+		mu_strerror (rc));
       exit (1); /* FIXME */
     }
   parse_variable (loc, stmt->v.component.format, str);
@@ -148,17 +150,18 @@ parse_component (locus_t *loc, mu_list_t formlist, char *compname, char *str)
 static void
 parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 {
-  int i;
+  int i, rc;
   int argc;
   char **argv;
   mh_format_t fmt;
   
-  if (mu_argcv_get (str, ",=", NULL, &argc, &argv))
+  if ((rc = mu_argcv_get (str, ",=", NULL, &argc, &argv)) != 0)
     {
-      mu_error (_("%s:%d: cannot split string %s"),
+      mu_error ("%s:%d: mu_argcv_get(%s): %s",
 		loc->filename,
 		loc->line,
-		str);
+		str,
+		mu_strerror (rc));
       exit (1);
     }
 
@@ -257,18 +260,19 @@ mhl_format_compile (char *name)
   char *buf = NULL;
   size_t n = 0;
   locus_t loc;
+  int rc;
   
   fp = fopen (name, "r");
   if (!fp)
     {
-      mu_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
       return NULL;
     }
 
-  if (mu_list_create (&formlist))
+  if ((rc = mu_list_create (&formlist)) != 0)
     {
       fclose (fp);
-      mu_error (_("Cannot create list"));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, rc);
       return NULL;
     }
 

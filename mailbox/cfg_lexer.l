@@ -340,7 +340,7 @@ mu_get_config (const char *file, const char *progname,
     }
 
   if (flags & MU_PARSE_CONFIG_VERBOSE)
-    mu_error (_("Info: parsing file `%s'"), file);
+    mu_diag_output (MU_DIAG_INFO, _("parsing file `%s'"), file);
 
   mu_cfg_set_lex_debug ();
   
@@ -357,7 +357,7 @@ mu_get_config (const char *file, const char *progname,
   mu_cfg_destroy_tree (&parse_tree);
 
   if (flags & MU_PARSE_CONFIG_VERBOSE)
-    mu_error (_("Info: finished parsing file `%s'"), file);
+    mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"), file);
   
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -247,7 +247,7 @@ comsat_process (char *buffer, size_t rdlen)
   p = strchr (buffer, '@');
   if (!p)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Malformed input: %s"), buffer);
+      mu_diag_output (MU_DIAG_ERROR, _("malformed input: %s"), buffer);
       return;
     }
   *p++ = 0;
@@ -321,8 +321,8 @@ comsat_prefork (int fd, void *data, struct sockaddr *s, int size)
 
 	  delay = overflow_delay_time << (overflow_count + 1);
 	  mu_diag_output (MU_DIAG_NOTICE,
-			 ngettext ("Too many requests: pausing for %u second",
-				   "Too many requests: pausing for %u seconds",
+			 ngettext ("too many requests: pausing for %u second",
+				   "too many requests: pausing for %u seconds",
 				    delay),
 			  delay);
 	  /* FIXME: drain the socket? */
@@ -365,8 +365,8 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
     {
       char *p = mu_sockaddr_to_astr (sa, salen);
       mu_diag_output (MU_DIAG_INFO,
-		      ngettext ("Received %d byte from %s",
-				"Received %d bytes from %s", rdlen),
+		      ngettext ("received %d byte from %s",
+				"received %d bytes from %s", rdlen),
 		      rdlen, p);
       mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
       free (p);
@@ -377,7 +377,7 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
       int rc = mu_udp_server_set_bufsize (srv, rdlen + 1);
       if (rc)
 	{
-	  mu_error (_("Cannot resize buffer: %s"), mu_strerror (rc));
+	  mu_error (_("cannot resize buffer: %s"), mu_strerror (rc));
 	  return 0;
 	}
     }
@@ -418,7 +418,7 @@ notify_user (const char *user, const char *device, const char *path,
     return;
   if ((fp = fopen (device, "w")) == NULL)
     {
-      mu_error (_("Cannot open device %s: %m"), device);
+      mu_error (_("cannot open device %s: %s"), device, mu_strerror (errno));
       return;
     }
 
@@ -434,7 +434,7 @@ notify_user (const char *user, const char *device, const char *path,
   if ((status = mu_mailbox_create (&mbox, path)) != 0
       || (status = mu_mailbox_open (mbox, MU_STREAM_READ|MU_STREAM_QACCESS)) != 0)
     {
-      mu_error (_("Cannot open mailbox %s: %s"),
+      mu_error (_("cannot open mailbox %s: %s"),
 	      path, mu_strerror (status));
       return;
     }
@@ -442,7 +442,7 @@ notify_user (const char *user, const char *device, const char *path,
   status = mu_mailbox_quick_get_message (mbox, qid, &msg);
   if (status)
     {
-      mu_error (_("Cannot get message (mailbox %s, qid %s): %s"),
+      mu_error (_("cannot get message (mailbox %s, qid %s): %s"),
 		path, qid, mu_strerror (status));
       return; /* FIXME: Notify the user, anyway */
     }
@@ -484,7 +484,8 @@ find_user (const char *name, char *tty)
 	  if (strncmp (ftty, PATH_TTY_PFX, strlen (PATH_TTY_PFX)))
 	    {
 	      /* An attempt to break security... */
-	      mu_diag_output (MU_DIAG_ALERT, _("Bad line name in utmp record: %s"), ftty);
+	      mu_diag_output (MU_DIAG_ALERT,
+			      _("bad line name in utmp record: %s"), ftty);
 	      return NOT_HERE;
 	    }
 
@@ -492,7 +493,8 @@ find_user (const char *name, char *tty)
 	    {
 	      if (!S_ISCHR (statb.st_mode))
 		{
-		  mu_diag_output (MU_DIAG_ALERT, _("Not a character device: %s"), ftty);
+		  mu_diag_output (MU_DIAG_ALERT,
+				  _("not a character device: %s"), ftty);
 		  return NOT_HERE;
 		}
 
@@ -525,7 +527,7 @@ change_user (const char *user)
   pw = getpwnam (user);
   if (!pw)
     {
-      mu_diag_output (MU_DIAG_CRIT, _("No such user: %s"), user);
+      mu_diag_output (MU_DIAG_CRIT, _("no such user: %s"), user);
       return 1;
     }
 
@@ -546,7 +548,7 @@ mailbox_path (const char *user)
 
   if (!auth)
     {
-      mu_diag_output (MU_DIAG_ALERT, _("User nonexistent: %s"), user);
+      mu_diag_output (MU_DIAG_ALERT, _("user nonexistent: %s"), user);
       return NULL;
     }
 
@@ -592,7 +594,7 @@ main (int argc, char **argv)
   
       if (argc < 2 || argc > 2)
 	{
-	  mu_error (_("Mailbox URL and message QID are required in test mode"));
+	  mu_error (_("mailbox URL and message QID are required in test mode"));
 	  exit (EXIT_FAILURE);
 	}
 
@@ -605,7 +607,7 @@ main (int argc, char **argv)
 	      struct passwd *pw = getpwuid (getuid ());
 	      if (!pw)
 		{
-		  mu_error (_("Cannot determine user name"));
+		  mu_error (_("cannot determine user name"));
 		  exit (EXIT_FAILURE);
 		}
 	      user = pw->pw_name;
@@ -632,7 +634,7 @@ main (int argc, char **argv)
     {
       if (argv[0][0] != '/')
 	mu_diag_output (MU_DIAG_NOTICE,
-			_("Program name is not absolute; reloading will not "
+			_("program name is not absolute; reloading will not "
 			  "be possible"));
       else
 	{
@@ -650,7 +652,7 @@ main (int argc, char **argv)
       mu_m_server_destroy (&server);
       if (reload)
 	{
-	  mu_diag_output (MU_DIAG_NOTICE, _("Restarting"));
+	  mu_diag_output (MU_DIAG_NOTICE, _("restarting"));
 	  execvp (argv[0], argv);
 	}
     }

@@ -400,7 +400,7 @@ mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
 {
   if (salen > sizeof srv->defaddr.s)
     {
-      mu_error (_("Unhandled sockaddr size"));
+      mu_error (_("unhandled sockaddr size"));
       abort ();
     }
   memcpy (&srv->defaddr.s.s_sa, sa, salen);
@@ -522,7 +522,7 @@ mu_m_server_begin (mu_m_server_t msrv)
 	 first three one, in, out, err   */
       if (daemon (0, 0) < 0)
 	{
-	  mu_error (_("Failed to become a daemon: %s"), mu_strerror (errno));
+	  mu_error (_("failed to become a daemon: %s"), mu_strerror (errno));
 	  exit (EXIT_FAILURE);
 	}
     }
@@ -534,7 +534,7 @@ mu_m_server_begin (mu_m_server_t msrv)
 	break;
 	
       case EINVAL:
-	mu_error (_("%s: Invalid name for a pidfile"), msrv->pidfile);
+	mu_error (_("%s: invalid name for a pidfile"), msrv->pidfile);
 	break;
 	
       default:
@@ -614,7 +614,7 @@ _open_conn (void *item, void *data)
     {
       mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
       p = mu_sockaddr_to_astr (&addr.sa, addrlen);
-      mu_error (_("Cannot open connection on %s: %s"), p, mu_strerror (rc));
+      mu_error (_("cannot open connection on %s: %s"), p, mu_strerror (rc));
       free (p);
       return 0;
     }
@@ -626,7 +626,7 @@ _open_conn (void *item, void *data)
     {
       mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
       p = mu_sockaddr_to_astr (&addr.sa, addrlen);
-      mu_error (_("Cannot add connection %s: %s"), p, mu_strerror (rc));
+      mu_error (_("cannot add connection %s: %s"), p, mu_strerror (rc));
       free (p);
       mu_ip_server_shutdown (tcpsrv);
       mu_ip_server_destroy (&tcpsrv);
@@ -646,7 +646,7 @@ mu_m_server_run (mu_m_server_t msrv)
   MU_ASSERT (mu_server_count (msrv->server, &count));
   if (count == 0)
     {
-      mu_error (_("No servers configured: exiting"));
+      mu_error (_("no servers configured: exiting"));
       exit (1);
     }
   if (msrv->ident)
@@ -670,7 +670,7 @@ mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
       if (rc)
 	{
 	  char *p = mu_sockaddr_to_astr (s, salen);
-	  mu_error (_("Access from %s blocked: cannot check ACLs: %s"),
+	  mu_error (_("access from %s blocked: cannot check ACLs: %s"),
 		    p, mu_strerror (rc));
 	  free (p);
 	  return 1;
@@ -693,7 +693,7 @@ mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
 	case mu_acl_result_deny:
 	  {
 	    char *p = mu_sockaddr_to_astr (s, salen);
-	    mu_error (_("Access from %s blocked."), p);
+	    mu_error (_("access from %s blocked"), p);
 	    free (p);
 	    return 1;
 	  }

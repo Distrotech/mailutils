@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ mail_tmp_begin (struct mail_tmp **pmtmp, const char *from)
 				       MU_STREAM_RDWR)))
     {
       free (mtmp);
-      maidag_error (_("Unable to open temporary file: %s"),
+      maidag_error (_("unable to open temporary file: %s"),
 		    mu_strerror (status));
       return status;
     }
@@ -94,7 +94,7 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
 	    }
 	  else
 	    {
-	      maidag_error (_("Cannot determine sender address"));
+	      maidag_error (_("cannot determine sender address"));
 	      return EINVAL;
 	    }
 	  if (auth)
@@ -112,7 +112,7 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
       
   if (status)
     {
-      maidag_error (_("Error writing temporary file: %s"), 
+      maidag_error (_("error writing temporary file: %s"), 
                     mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
     }
@@ -149,7 +149,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
       || (status = mu_mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mu_mailbox_set_stream (*mbox, mtmp->stream)))
     {
-      maidag_error (_("Error opening temporary file: %s"), 
+      maidag_error (_("error opening temporary file: %s"), 
                     mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;
@@ -159,7 +159,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      maidag_error (_("Error creating temporary message: %s"),
+      maidag_error (_("error creating temporary message: %s"),
 		    mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;

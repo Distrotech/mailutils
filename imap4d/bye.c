@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,55 +41,55 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
     {
     case ERR_NO_MEM:
       util_out (RESP_BYE, "Server terminating: no more resources.");
-      mu_diag_output (MU_DIAG_ERROR, _("Out of memory"));
+      mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
       break;
 
     case ERR_TERMINATE:
       status = EX_OK;
       util_out (RESP_BYE, "Server terminating on request.");
-      mu_diag_output (MU_DIAG_NOTICE, _("Terminating on request"));
+      mu_diag_output (MU_DIAG_NOTICE, _("terminating on request"));
       break;
 
     case ERR_SIGNAL:
-      mu_diag_output (MU_DIAG_ERROR, _("Quitting on signal"));
+      mu_diag_output (MU_DIAG_ERROR, _("quitting on signal"));
       exit (status);
 
     case ERR_TIMEOUT:
       status = EX_TEMPFAIL;
       util_out (RESP_BYE, "Session timed out");
       if (state == STATE_NONAUTH)
-        mu_diag_output (MU_DIAG_INFO, _("Session timed out for no user"));
+        mu_diag_output (MU_DIAG_INFO, _("session timed out for no user"));
       else
-	mu_diag_output (MU_DIAG_INFO, _("Session timed out for user: %s"), auth_data->name);
+	mu_diag_output (MU_DIAG_INFO, _("session timed out for user: %s"), auth_data->name);
       break;
 
     case ERR_NO_OFILE:
       status = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("Write error on control stream"));
+      mu_diag_output (MU_DIAG_INFO, _("write error on control stream"));
       break;
 
     case ERR_NO_IFILE:
       status = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("Read error on control stream"));
+      mu_diag_output (MU_DIAG_INFO, _("read error on control stream"));
       break;
 
     case ERR_MAILBOX_CORRUPTED:
       status = EX_OSERR;
-      mu_diag_output (MU_DIAG_ERROR, _("Mailbox modified by third party"));
+      mu_diag_output (MU_DIAG_ERROR, _("mailbox modified by third party"));
       break;
       
     case OK:
       status = EX_OK;
       util_out (RESP_BYE, "Session terminating.");
       if (state == STATE_NONAUTH)
-	mu_diag_output (MU_DIAG_INFO, _("Session terminating"));
+	mu_diag_output (MU_DIAG_INFO, _("session terminating"));
       else
-	mu_diag_output (MU_DIAG_INFO, _("Session terminating for user: %s"), auth_data->name);
+	mu_diag_output (MU_DIAG_INFO, _("session terminating for user: %s"), auth_data->name);
       break;
 
     default:
       util_out (RESP_BYE, "Quitting (reason unknown)");
-      mu_diag_output (MU_DIAG_ERROR, _("Quitting (numeric reason %d)"), reason);
+      mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"), reason);
       break;
     }
 

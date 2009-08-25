@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -188,12 +188,12 @@ open_file (char *name)
   struct stat st;
   if (stat (name, &st))
     {
-      mu_error (_("Cannot stat `%s': %s"), name, mu_strerror (errno));
+      mu_error (_("cannot stat `%s': %s"), name, mu_strerror (errno));
       return -1;
     }
   if (!S_ISREG (st.st_mode) && !S_ISLNK (st.st_mode))
     {
-      mu_error (_("Not a regular file or symbolic link: `%s'"), name);
+      mu_error (_("not a regular file or symbolic link: `%s'"), name);
       return -1;
     }
 
@@ -252,7 +252,7 @@ display_file (const char *type)
       asprintf (&text, "Content-Type: %s\n", type);
       status = mu_header_create (&hdr, text, strlen (text), NULL);
       if (status)
-	mu_error (_("Cannot create header: %s"), mu_strerror (status));
+	mu_error (_("cannot create header: %s"), mu_strerror (status));
       else
 	{
 	  mu_stdio_stream_create (&stream, mimeview_fp,
@@ -287,7 +287,7 @@ main (int argc, char **argv)
 
   if (argc == 0)
     {
-      mu_error (_("No files given"));
+      mu_error (_("no files given"));
       return 1;
     }
 

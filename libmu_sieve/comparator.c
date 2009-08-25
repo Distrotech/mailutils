@@ -169,11 +169,11 @@ _regex_compile (void *item, void *data)
       if (errbuf)
 	{
 	  regerror (rc, preg, errbuf, size);
-	  mu_sv_compile_error (&mu_sieve_locus, _("Regex error: %s"), errbuf);
+	  mu_sv_compile_error (&mu_sieve_locus, _("regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
-	mu_sv_compile_error (&mu_sieve_locus, _("Regex error"));
+	mu_sv_compile_error (&mu_sieve_locus, _("regex error"));
       return rc;
     }
 

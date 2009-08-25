@@ -695,7 +695,7 @@ util_localname ()
 	}
       if (status || name == NULL)
 	{
-	  mu_diag_output (MU_DIAG_CRIT, _("Cannot find out my own hostname"));
+	  mu_diag_output (MU_DIAG_CRIT, _("cannot find out my own hostname"));
 	  exit (EX_OSERR);
 	}
 
@@ -853,8 +853,8 @@ util_wait_input (int timeout)
   status = mu_stream_wait (istream, &wflags, &tv);
   if (status)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Cannot poll input stream: %s"),
-	      mu_strerror(status));
+      mu_diag_output (MU_DIAG_ERROR, _("cannot poll input stream: %s"),
+		      mu_strerror(status));
       return -1;
     }
   return wflags & MU_STREAM_READY_RD;
@@ -887,7 +887,7 @@ imap4d_init_tls_server ()
     {
       const char *p;
       mu_stream_strerror (stream, &p);
-      mu_diag_output (MU_DIAG_ERROR, _("Cannot open TLS stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"), p);
       return 0;
     }
 
@@ -1231,12 +1231,12 @@ check_input_err (int rc, size_t sz)
 	p = mu_strerror (rc);
       
       mu_diag_output (MU_DIAG_INFO,
-		      _("Error reading from input file: %s"), p);
+		      _("error reading from input file: %s"), p);
       imap4d_bye (ERR_NO_IFILE);
     }
   else if (sz == 0)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Unexpected eof on input"));
+      mu_diag_output (MU_DIAG_INFO, _("unexpected eof on input"));
       imap4d_bye (ERR_NO_IFILE);
     }
 }

@@ -69,7 +69,7 @@ get_attribute (int *pattr, char *name)
   grad_dict_attr_t *attr = grad_attr_name_to_dict (name);
   if (!attr)
     {
-      mu_error (_("Radius attribute %s not defined"), name);
+      mu_error (_("RADIUS attribute %s not defined"), name);
       return 1;
     }
   *pattr = attr->value;
@@ -100,7 +100,7 @@ parse_pairlist (grad_avp_t **plist, char *input)
 
   if ((rc = mu_argcv_get (input, ",", NULL, &argc, &argv)))
     {
-      mu_error (_("Cannot parse input `%s': %s"), input, mu_strerror (rc));
+      mu_error (_("cannot parse input `%s': %s"), input, mu_strerror (rc));
       return 1;
     }
 
@@ -214,7 +214,7 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
 
   if (grad_dict_init ())
     {
-      mu_error (_("Cannot read radius dictionaries"));
+      mu_error (_("cannot read radius dictionaries"));
       return 1;
     }
 
@@ -342,7 +342,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
     uid = p->avp_lvalue;
   else
     {
-      mu_error (_("Radius did not return UID for `%s'"),  user_name);
+      mu_error (_("radius server did not return UID for `%s'"),  user_name);
       return -1;
     }
 
@@ -351,7 +351,7 @@ decode_reply (grad_request_t *reply, const char *user_name, char *password,
     gid = p->avp_lvalue;
   else
     {
-      mu_error (_("Radius did not return GID for `%s'"),  user_name);
+      mu_error (_("radius server did not return GID for `%s'"),  user_name);
       return -1;
     }
 

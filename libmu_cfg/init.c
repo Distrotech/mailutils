@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -74,7 +74,7 @@ mu_libcfg_init (char **cnames)
 	{
 	  struct mu_cfg_capa *cp = find_cfg_capa (cnames[i]);
 	  if (!cp)
-	    mu_error (_("Requested unknown configuration group `%s'"),
+	    mu_error (_("unknown configuration group requested `%s'"),
 		      cnames[i]);
 	  else
 	    mu_config_register_section (NULL, cp->name, NULL,
@@ -132,7 +132,7 @@ mu_parse_config_files (struct mu_cfg_param *param, void *target)
 			    flags, target);
       if (rc)
 	{
-	  mu_error (_("Errors parsing file %s: %s"), mu_load_rcfile,
+	  mu_error (_("errors parsing file %s: %s"), mu_load_rcfile,
 		    mu_strerror (rc));
 	  return rc;
 	}

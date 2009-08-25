@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ open_stat_db (DBM_FILE *db, int mode)
   if (rc)
     {
       if (rc == -1)
-	mu_diag_output (MU_DIAG_INFO, _("Bad permissions on statistics db"));
+	mu_diag_output (MU_DIAG_INFO, _("bad permissions on statistics db"));
       else
-	mu_diag_output (MU_DIAG_ERROR, _("Unable to open statistics db: %s"),
+	mu_diag_output (MU_DIAG_ERROR, _("unable to open statistics db: %s"),
 		mu_strerror (rc));
     }
   return rc;
@@ -59,7 +59,7 @@ check_login_delay (char *username)
   rc = mu_dbm_fetch (db, key, &data);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Cannot fetch login delay data: %s"),
+      mu_diag_output (MU_DIAG_ERROR, _("cannot fetch login delay data: %s"),
 	      mu_strerror (rc));
       mu_dbm_close (db);
       return 0;
@@ -67,7 +67,8 @@ check_login_delay (char *username)
 
   if (MU_DATUM_SIZE(data) > sizeof (text) - 1)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Invalid entry for '%s': wrong timestamp size"),
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("invalid entry for '%s': wrong timestamp size"),
 	      username);
       mu_dbm_close (db);
       return 0;
@@ -80,7 +81,8 @@ check_login_delay (char *username)
   prev_time = strtoul (text, &p, 0);
   if (*p)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("Malformed timestamp for '%s': %s"),
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("malformed timestamp for '%s': %s"),
 	      username, text);
       return 0;
     }
@@ -111,7 +113,7 @@ update_login_delay (char *username)
   MU_DATUM_PTR(data) = text;
   MU_DATUM_SIZE(data) = strlen (text);
   if (mu_dbm_insert (db, key, data, 1))
-    mu_error (_("%s: can't store datum %s/%s"),
+    mu_error (_("%s: cannot store datum %s/%s"),
 	      login_stat_file, username, text);
   
   mu_dbm_close (db);

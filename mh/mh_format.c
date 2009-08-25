@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006, 2007 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1814,7 +1814,7 @@ builtin_rcpt (struct mh_machine *mach)
   int rc = mh_decode_rcpt_flag (strobj_ptr (&mach->arg_str));
   if (rc == RCPT_NONE)
     {
-      mu_error (_("Invalid recipient mask"));
+      mu_error (_("invalid recipient mask"));
       /* try to continue anyway */
     }
   mach->arg_num = rc & rcpt_mask;

@@ -223,17 +223,17 @@ check_exit_status (const char *progname, int status)
     {
       if (WEXITSTATUS (status))
 	{
-	  mu_error (_("Command `%s' exited with status %d"),
+	  mu_error (_("command `%s' exited with status %d"),
 		    progname, WEXITSTATUS(status));
 	  return 1;
 	}
       return 0;
     }
   else if (WIFSIGNALED (status))
-    mu_error (_("Command `%s' terminated on signal %d"),
+    mu_error (_("command `%s' terminated on signal %d"),
 	      progname, WTERMSIG (status));
   else
-    mu_error (_("Command `%s' terminated abnormally"), progname);
+    mu_error (_("command `%s' terminated abnormally"), progname);
   return 1;
 }
 

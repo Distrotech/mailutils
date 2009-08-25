@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,7 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
       rc = mu_sieve_machine_inherit (mach, &newmach);
       if (rc)
 	{
-	  mu_sieve_error (mach, _("Cannot initialize sieve machine: %s"),
+	  mu_sieve_error (mach, _("cannot initialize sieve machine: %s"),
 			  mu_strerror (rc));
 	  return 1;
 	}
@@ -234,7 +234,7 @@ moderator_message_get_part (mu_sieve_machine_t mach,
     }
   else
     {
-      mu_sieve_error (mach, _("No Content-Type header found"));
+      mu_sieve_error (mach, _("no Content-Type header found"));
       return 1;
     }
   return 0;

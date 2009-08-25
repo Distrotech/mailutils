@@ -222,7 +222,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'l':
       script_handler = script_lang_handler (arg);
       if (!script_handler)
-	argp_error (state, _("Unknown or unsupported language: %s"),
+	argp_error (state, _("unknown or unsupported language: %s"),
 		    arg);
       break;
       
@@ -291,7 +291,7 @@ cb2_group (mu_debug_t debug, const char *gname, void *data)
     mu_list_create (plist);
   group = getgrnam (gname);
   if (!group)
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Unknown group: %s"), gname);
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown group: %s"), gname);
   else
     mu_list_append (*plist, (void*)group->gr_gid);
   return 0;
@@ -334,7 +334,7 @@ cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
     str = name;
 
   if (mu_kwd_xlat_name_ci (forward_checks, str, &val))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Unknown keyword: %s"),
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown keyword: %s"),
 			 name);
   else
     {
@@ -361,7 +361,7 @@ cb_script_language (mu_debug_t debug, void *data, mu_config_value_t *val)
   if (!script_handler)
     {
       mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("Unsupported language: %s"),
+			   _("unsupported language: %s"),
 			   val->v.string);
       return 1;
     }
@@ -556,7 +556,7 @@ main (int argc, char *argv[])
     {
       if (argc)
 	{
-	  mu_error (_("Too many arguments"));
+	  mu_error (_("too many arguments"));
 	  return EX_USAGE;
 	}
       return maidag_lmtp_server ();
@@ -576,13 +576,13 @@ main (int argc, char *argv[])
 	      
 	      if (!current_uid)
 		{
-		  mu_error (_("Cannot get username"));
+		  mu_error (_("cannot get username"));
 		  return EX_UNAVAILABLE;
 		}
 	      
 	      if (argc > 0 && strcmp (auth->name, argv[0]))
 		{
-		  mu_error (_("Recipients given when running as non-root"));
+		  mu_error (_("recipients given when running as non-root"));
 		  return EX_USAGE;
 		}
 	      s_argv[0] = auth->name;

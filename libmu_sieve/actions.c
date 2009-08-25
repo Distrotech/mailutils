@@ -439,7 +439,7 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   msg = mu_sieve_get_message (mach);
   if (check_redirect_loop (msg))
     {
-      mu_sieve_error (mach, _("%d: Redirection loop detected"),
+      mu_sieve_error (mach, _("%d: redirection loop detected"),
 		   mu_sieve_get_message_num (mach));
       goto end;
     }

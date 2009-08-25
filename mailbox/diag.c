@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005, 2007,
+   2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -125,30 +126,30 @@ mu_diag_level_to_string (mu_log_level_t level)
   switch (level)
     {
     case MU_DIAG_EMERG:
-      return _("Emergency");
+      return _("emergency");
       
     case MU_DIAG_ALERT:
-      return _("Alert");
+      return _("alert");
 	
     case MU_DIAG_CRIT:
-      return _("Critical");
+      return _("critical");
       
     case MU_DIAG_ERROR:
-      return _("Error");
+      return _("error");
       
     case MU_DIAG_WARNING:
-      return _("Warning");
+      return _("warning");
       
     case MU_DIAG_NOTICE:
-      return _("Notice");
+      return _("notice");
       
     case MU_DIAG_INFO:
-      return _("Info");
+      return _("info");
       
     case MU_DIAG_DEBUG:
-      return _("Debug");
+      return _("debug");
     }
-  return _("Unknown");
+  return _("unknown");
 }
 
 int
@@ -160,4 +161,19 @@ mu_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
     fprintf (stderr, "%s: ", mu_diag_level_to_string (level));
   fputs (buf, stderr);
   return 0;
+}
+
+void
+mu_diag_funcall (mu_log_level_t level, const char *func,
+		 const char *arg, int err)
+{
+  if (err)
+    /* TRANSLATORS: First %s stands for function name, second for its
+       arguments, third one for the actual error message. */
+    mu_diag_output (level, _("%s(%s) failed: %s"), func, arg ? arg : "",
+		    mu_strerror (err));
+  else
+    /* TRANSLATORS: First %s stands for function name, second for its
+       arguments. */
+    mu_diag_output (level, _("%s(%s) failed"), func, arg ? arg : "");
 }

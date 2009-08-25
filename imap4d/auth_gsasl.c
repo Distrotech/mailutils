@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2008, 
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -280,14 +281,14 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
       if (mu_gsasl_module_data.anon_user)
 	{
 	  char **username = gsasl_callback_hook_get (ctx);
-	  mu_diag_output (MU_DIAG_INFO, _("Anonymous user %s logged in"),
+	  mu_diag_output (MU_DIAG_INFO, _("anonymous user %s logged in"),
 			  gsasl_property_get (sctx, GSASL_ANONYMOUS_TOKEN));
 	  *username = strdup (mu_gsasl_module_data.anon_user);
 	}
       else
 	{
 	  mu_diag_output (MU_DIAG_ERR,
-			  _("Attempt to log in as anonymous user denied"));
+			  _("attempt to log in as anonymous user denied"));
 	}
       break;
       
@@ -300,7 +301,7 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
       
     default:
 	rc = GSASL_NO_CALLBACK;
-	mu_error (_("Unsupported callback property %d"), prop);
+	mu_error (_("unsupported callback property %d"), prop);
 	break;
     }
 

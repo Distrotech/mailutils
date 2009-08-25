@@ -522,7 +522,7 @@ _file_open (mu_stream_t stream)
 	      || filebuf.st_nlink != 1
 	      || (fdbuf.st_mode & S_IFMT) != S_IFREG))
 	{
-	  mu_error (_("%s must be a plain file with one link\n"), filename);
+	  mu_error (_("%s must be a plain file with one link"), filename);
 	  close (fd);
 	  return EINVAL;
 	}

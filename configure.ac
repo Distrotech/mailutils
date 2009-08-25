@@ -26,7 +26,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Enable silent rules by default:
-test -z "$enable_silent_rules" && AM_DEFAULT_VERBOSITY=0
+AM_SILENT_RULES([yes])
 
 dnl Autobuild stuff
 AB_INIT

@@ -114,7 +114,7 @@ set_db_perms (struct argp_state *astate, char *opt, int *pperm)
       perm = strtoul (opt, &p, 8);
       if (*p)
 	{
-	  argp_error (astate, _("Invalid octal number: %s"), opt);
+	  argp_error (astate, _("invalid octal number: %s"), opt);
 	  exit (EX_USAGE);
 	}
     }
@@ -237,8 +237,8 @@ check_user_perm (int action, struct action_data *ap)
 	  DBM_FILE db;
 	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, permissions))
 	    {
-	      mu_error (_("Cannot create %s: %s"),
-			ap->input_name, mu_strerror (errno));
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_open",
+			       ap->input_name, errno);
 	      exit (EX_SOFTWARE);
 	    }
 	  mu_dbm_close (db);
@@ -246,8 +246,7 @@ check_user_perm (int action, struct action_data *ap)
 	}
       else
 	{
-	  mu_error (_("Cannot stat %s: %s"), ap->input_name, 
-                    mu_strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "stat", ap->input_name, errno);
 	  exit (EX_OSERR);
 	}
     }
@@ -285,7 +284,8 @@ action_list (struct action_data *ap)
   check_user_perm (ACT_LIST, ap);
   if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0))
     {
-      mu_error (_("Cannot open %s: %s"), ap->input_name, mu_strerror (errno));
+      mu_error (_("cannot open file %s: %s"),
+		ap->input_name, mu_strerror (errno));
       return 1;
     }
   
@@ -294,7 +294,7 @@ action_list (struct action_data *ap)
       fp = fopen (ap->output_name, "w");
       if (!fp)
 	{
-	  mu_error (_("Cannot create %s: %s"), ap->output_name, mu_strerror (errno));
+	  mu_error (_("Cannot create file %s: %s"), ap->output_name, mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -309,7 +309,7 @@ action_list (struct action_data *ap)
       MU_DATUM_SIZE (key) = strlen (ap->username);
       if (mu_dbm_fetch (db, key, &contents))
 	{
-	  mu_error (_("No such user: %s"), ap->username);
+	  mu_error (_("no such user: %s"), ap->username);
 	}
       else
 	{
@@ -360,7 +360,8 @@ action_create (struct action_data *ap)
       fp = fopen (ap->input_name, "r");
       if (!fp)
 	{
-	  mu_error (_("Cannot open %s: %s"), ap->input_name, mu_strerror (errno));
+	  mu_error (_("cannot open file %s: %s"),
+		    ap->input_name, mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -434,7 +435,8 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
     *not_owner = rc;
   if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, permissions))
     {
-      mu_error (_("Cannot open %s: %s"), ap->input_name, mu_strerror (errno));
+      mu_error (_("cannot open file %s: %s"),
+		ap->input_name, mu_strerror (errno));
       return 1;
     }
   return 0;
@@ -474,7 +476,7 @@ action_add (struct action_data *ap)
   
   if (!ap->username)
     {
-      mu_error (_("Missing username to add"));
+      mu_error (_("missing username to add"));
       return 1;
     }
 
@@ -492,7 +494,7 @@ action_add (struct action_data *ap)
 
   rc = mu_dbm_insert (db, key, contents, 1);
   if (rc)
-    mu_error (_("Cannot store datum"));
+    mu_error (_("cannot store datum"));
 
   mu_dbm_close (db);
   return rc;
@@ -507,7 +509,7 @@ action_delete (struct action_data *ap)
   
   if (!ap->username)
     {
-      mu_error (_("Missing username to delete"));
+      mu_error (_("missing username to delete"));
       return 1;
     }
 
@@ -519,7 +521,7 @@ action_delete (struct action_data *ap)
 
   rc = mu_dbm_delete (db, key);
   if (rc)
-    mu_error (_("Cannot remove record for %s"), ap->username);
+    mu_error (_("cannot remove record for %s"), ap->username);
 
   mu_dbm_close (db);
   return rc;
@@ -539,7 +541,7 @@ action_chpass (struct action_data *ap)
 
   if (!ap->username)
     {
-      mu_error (_("Missing username"));
+      mu_error (_("missing username"));
       return 1;
     }
 
@@ -550,7 +552,7 @@ action_chpass (struct action_data *ap)
   MU_DATUM_SIZE (key) = strlen (ap->username);
   if (mu_dbm_fetch (db, key, &contents))
     {
-      mu_error (_("No such user: %s"), ap->username);
+      mu_error (_("no such user: %s"), ap->username);
       return 1;
     }
 
@@ -578,7 +580,7 @@ action_chpass (struct action_data *ap)
   MU_DATUM_SIZE (contents) = strlen (ap->passwd);
   rc = mu_dbm_insert (db, key, contents, 1);
   if (rc)
-    mu_error (_("Cannot replace datum"));
+    mu_error (_("cannot replace datum"));
 
   mu_dbm_close (db);
   return rc;

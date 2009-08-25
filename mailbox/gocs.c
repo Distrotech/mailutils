@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,7 @@ mu_gocs_mailbox_init (enum mu_gocs_op op, void *data)
 	{
 	  rc = mu_set_mail_directory (p->mail_spool);
 	  if (rc)
-	    mu_error (_("Cannot set mail directory name to `%s': %s"),
+	    mu_error (_("cannot set mail directory name to `%s': %s"),
 		      p->mail_spool, mu_strerror (rc));
 	  free (p->mail_spool);
 	  p->mail_spool = NULL;
@@ -67,7 +67,7 @@ mu_gocs_mailbox_init (enum mu_gocs_op op, void *data)
 	{
 	  rc = mu_set_mailbox_pattern (p->mailbox_pattern);
 	  if (rc)
-	    mu_error (_("Cannot set mailbox pattern to `%s': %s"),
+	    mu_error (_("cannot set mailbox pattern to `%s': %s"),
 		      p->mailbox_pattern, mu_strerror (rc));
 	  free (p->mailbox_pattern);
 	  p->mailbox_pattern = NULL;
@@ -75,7 +75,7 @@ mu_gocs_mailbox_init (enum mu_gocs_op op, void *data)
       if (p->mailbox_type)
 	{
 	  if (mu_registrar_set_default_scheme (p->mailbox_type))
-	    mu_error (_("Invalid mailbox type: %s"), p->mailbox_type);
+	    mu_error (_("invalid mailbox type: %s"), p->mailbox_type);
 	  free (p->mailbox_type);
 	  p->mailbox_type = NULL;
 	}
@@ -117,7 +117,7 @@ mu_gocs_locking_init (enum mu_gocs_op op, void *data)
 	      break;
 	      
 	    default:
-	      mu_error (_("Invalid lock flag `%c'"), *s);
+	      mu_error (_("invalid lock flag `%c'"), *s);
 	    }
 	}
       mu_locker_set_default_flags (flags, mu_locker_assign);
@@ -168,7 +168,7 @@ mu_gocs_source_email_init (enum mu_gocs_op op, void *data)
   if (p->address)
     {
       if ((rc = mu_set_user_email (p->address)) != 0)
-	mu_error (_("Invalid email address `%s': %s"),
+	mu_error (_("invalid email address `%s': %s"),
 		  p->address, mu_strerror (rc));
       free (p->address);
       p->address = NULL;
@@ -177,7 +177,7 @@ mu_gocs_source_email_init (enum mu_gocs_op op, void *data)
   if (p->domain)
     {
       if ((rc = mu_set_user_email_domain (p->domain)) != 0)
-	mu_error (_("Invalid email domain `%s': %s"),
+	mu_error (_("invalid email domain `%s': %s"),
 		  p->domain, mu_strerror (rc));
 
       free (p->domain);
@@ -198,7 +198,7 @@ mu_gocs_mailer_init (enum mu_gocs_op op, void *data)
   if (p->mailer)
     {
       if ((rc = mu_mailer_set_url_default (p->mailer)) != 0)
-	mu_error (_("Invalid mailer URL `%s': %s"),
+	mu_error (_("invalid mailer URL `%s': %s"),
 		  p->mailer, mu_strerror (rc));
       free (p->mailer);
       p->mailer = NULL;
@@ -268,7 +268,7 @@ mu_gocs_register (const char *capa, mu_gocs_init_fp init)
   for (i = 0; _gocs_table[i].name; i++)
     if (i == MAX_GOCS-1)
       {
-	mu_error (_("Gocs table overflow"));
+	mu_error (_("gocs table overflow"));
 	abort ();
       }
   _gocs_table[i].name = capa;
@@ -385,7 +385,7 @@ _gocs_flush (void *item, void *data)
 
   if (initfun (mu_gocs_op_set, s->data))
     {
-      mu_error (_("Initialization of GOCS `%s' failed"), s->capa);
+      mu_error (_("initialization of GOCS `%s' failed"), s->capa);
       return 1;
     }
   

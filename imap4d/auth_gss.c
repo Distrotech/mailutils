@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -254,7 +254,7 @@ auth_gssapi (struct imap4d_command *command,
   if ((mech & SUPPORTED_P_MECH) == 0)
     {
       mu_diag_output (MU_DIAG_NOTICE,
-	      _("Client requested unsupported protection mechanism (%d)"),
+	      _("client requested unsupported protection mechanism (%d)"),
 	      mech);
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
@@ -267,7 +267,7 @@ auth_gssapi (struct imap4d_command *command,
   *username = malloc (outbuf.length - 4 + 1);
   if (!*username)
     {
-      mu_diag_output (MU_DIAG_NOTICE, _("Not enough memory"));
+      mu_diag_output (MU_DIAG_NOTICE, _("not enough memory"));
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);

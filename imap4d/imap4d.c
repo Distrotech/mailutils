@@ -185,7 +185,7 @@ cb_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
   home_dir_mode = strtoul (val->v.string, &p, 8);
   if (p[0] || (home_dir_mode & ~0777))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-                         _("Invalid mode specification: %s"),
+                         _("invalid mode specification: %s"),
 			 val->v.string);
   return 0;
 }
@@ -257,8 +257,7 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
 
       if (rc)
 	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       _("cannot create URL: %s"), mu_strerror (rc));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_url_create", val->v.string, rc);
 	  return 1;
 	}
       rc = mu_url_parse (url);
@@ -368,9 +367,8 @@ imap4d_session_setup0 ()
       if (rc)
 	{
 	  free (real_homedir);
-	  mu_diag_output (MU_DIAG_ERR,
-			  _("Error expanding %s: %s"),
-			  modify_homedir, mu_strerror (rc));
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_vartab_expand",
+			   modify_homedir, rc);
 	  return 1;
 	}
     }
@@ -392,7 +390,7 @@ imap4d_session_setup0 ()
   util_chdir (imap4d_homedir);
   namespace_init_session (imap4d_homedir);
   mu_diag_output (MU_DIAG_INFO,
-		  _("User `%s' logged in (source: %s)"), auth_data->name,
+		  _("user `%s' logged in (source: %s)"), auth_data->name,
 		  auth_data->source);
   return 0;
 }
@@ -403,7 +401,7 @@ imap4d_session_setup (char *username)
   auth_data = mu_get_auth_by_name (username);
   if (auth_data == NULL)
     {
-      mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), username);
+      mu_diag_output (MU_DIAG_INFO, _("user `%s' nonexistent"), username);
       return 1;
     }
   return imap4d_session_setup0 ();
@@ -416,9 +414,7 @@ get_client_address (int fd, struct sockaddr_in *pcs)
 
   if (getpeername (fd, (struct sockaddr *) pcs, &len) < 0)
     {
-      mu_diag_output (MU_DIAG_ERROR,
-		      _("Cannot obtain IP address of client: %s"),
-		      strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "getpeername", NULL, errno);
       return 1;
     }
   return 0;
@@ -442,7 +438,7 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
     {
       if (debug_mode)
 	{
-	  mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
+	  mu_diag_output (MU_DIAG_INFO, _("started in debugging mode"));
 	  text = "IMAP4rev1 Debugging mode";
 	}
       else
@@ -586,20 +582,19 @@ main (int argc, char **argv)
 	{
 	  if (errno == 0 || errno == ENOENT)
             {
-               mu_error (_("%s: No such group"), "mail");
+               mu_error (_("%s: no such group"), "mail");
                exit (EX_CONFIG);
             }
           else
             {
-	       mu_error (_("Error getting mail group: %s"), 
-                         mu_strerror (errno));
-	       exit (EX_OSERR);
+	      mu_diag_funcall (MU_DIAG_ERROR, "getgrnam", "mail", errno);
+	      exit (EX_OSERR);
             }
 	}
 
       if (setgid (gr->gr_gid) == -1)
 	{
-	  mu_error (_("Error setting mail group: %s"), mu_strerror (errno));
+	  mu_error (_("error setting mail group: %s"), mu_strerror (errno));
 	  exit (EX_OSERR);
 	}
     }
@@ -644,7 +639,7 @@ main (int argc, char **argv)
     }
 
   if (status)
-    mu_error (_("Main loop status: %s"), mu_strerror (status));	  
+    mu_error (_("main loop status: %s"), mu_strerror (status));	  
   /* Close the syslog connection and exit.  */
   closelog ();
 

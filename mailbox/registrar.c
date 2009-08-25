@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2004, 2005, 2006,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -104,7 +104,7 @@ mu_registrar_get_list (mu_list_t *plist)
 
   if (!warned)
     {
-      mu_error (_("Program uses mu_registrar_get_list(), which is deprecated"));
+      mu_error (_("program uses mu_registrar_get_list(), which is deprecated"));
       warned = 1;
     }
   return _registrar_get_list (plist);

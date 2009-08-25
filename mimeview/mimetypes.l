@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ mimetypes_open (const char *name)
   struct stat st;
   if (stat (name, &st))
     {
-      mu_error (_("Cannot stat `%s': %s"), name, mu_strerror (errno));
+      mu_error (_("cannot stat `%s': %s"), name, mu_strerror (errno));
       return -1;
     }
   

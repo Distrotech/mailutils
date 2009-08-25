@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -102,7 +102,7 @@ mu_check_tls_environment (void)
 	}
       if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
 	{
-	  mu_error (_("Wrong permissions on %s. Set 0600"),
+	  mu_error (_("wrong permissions on %s (set 0600)"),
 		    mu_tls_module_config.ssl_key);
 	  return 0;
 	}

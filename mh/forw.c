@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2003, 2005, 2006, 2007, 
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -158,7 +158,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  argp_error (state, _("Invalid width"));
+	  argp_error (state, _("invalid width"));
 	  exit (1);
 	}
       break;
@@ -206,7 +206,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      argp_error (state, _("Option is not yet implemented"));
+      argp_error (state, _("option is not yet implemented"));
       exit (1);
       
     case ARG_LICENSE:
@@ -340,7 +340,7 @@ finish_draft ()
 				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (stream)))
     {
-      mu_error (_("Cannot open output file `%s': %s"),
+      mu_error (_("cannot open output file `%s': %s"),
 		wh_env.file, mu_strerror (rc));
       exit (1);
     }

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
     return 1;
   if (mu_string_to_syslog_priority (val->v.string, &allow_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("Unknown syslog priority `%s'"), 
+			 _("unknown syslog priority `%s'"), 
 			 val->v.string);
   return 0;
 }
@@ -59,7 +59,7 @@ mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data,
     return 1;
   if (mu_string_to_syslog_priority (val->v.string, &deny_severity))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("Unknown syslog priority `%s'"), 
+			 _("unknown syslog priority `%s'"), 
 			 val->v.string);
   return 0;
 }
@@ -138,7 +138,7 @@ mu_tcp_wrapper_prefork (int fd, void *data, struct sockaddr *sa, int salen)
       && !mu_tcpwrapper_access (fd))
     {
       char *p = mu_sockaddr_to_astr (sa, salen);
-      mu_error (_("Access from %s blocked by TCP wrappers."), p);
+      mu_error (_("access from %s blocked by TCP wrappers"), p);
       free (p);
       return 1;
     }

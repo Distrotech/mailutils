@@ -54,6 +54,9 @@ int mu_diag_stderr_printer (void *, mu_log_level_t, const char *);
 
 int mu_diag_level_to_syslog (mu_log_level_t level);
 const char *mu_diag_level_to_string (mu_log_level_t level);
+
+void mu_diag_funcall (mu_log_level_t level, const char *func,
+		      const char *arg, int err);
   
 #ifdef __cplusplus
 }

@@ -2342,7 +2342,7 @@ imap_parse (f_imap_t f_imap)
       if (!tag)
 	{
 	  /* Just in case */
-	  mu_error (_("No tag in response: %s %s"), response, remainder);
+	  mu_error (_("no tag in response: %s %s"), response, remainder);
 	  status = MU_ERR_FAILURE;
 	}
       /* Is the response untagged ?  */
@@ -2482,18 +2482,18 @@ imap_parse (f_imap_t f_imap)
 		{
 		  /* Not sure why we would get an untagged ok...but we do... */
 		  /* Still should we be verbose about is ? */
-		  mu_error (_("Untagged OK: %s"), remainder);
+		  mu_error (_("untagged OK response: %s"), remainder);
 		}
 	    }
 	  else if (mu_c_strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
-	      mu_error (_("Untagged NO: %s"), remainder);
+	      mu_error (_("untagged NO response: %s"), remainder);
 	    }
 	  else if (mu_c_strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
-	      mu_error (_("Untagged BAD: %s"), remainder);
+	      mu_error (_("untagged BAD response: %s"), remainder);
 	    }
 	  else if (mu_c_strcasecmp (response, "PREAUTH") == 0)
 	    {
@@ -2591,7 +2591,7 @@ imap_parse (f_imap_t f_imap)
 	  else /* NO and BAD */
 	    {
 	      status = EINVAL;
-	      mu_error (_("NO/Bad Tagged: %s %s %s"),
+	      mu_error (_("NO or BAD tagged response: %s %s %s"),
 			tag, response, remainder);
 	    }
 	}

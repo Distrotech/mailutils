@@ -45,7 +45,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
   
   if ((status = mu_mailbox_create (&tmbox, bulletin_mbox_name)) != 0)
     {
-      mu_error (_("Cannot create bulletin mailbox `%s': %s"),
+      mu_error (_("cannot create bulletin mailbox `%s': %s"),
 		bulletin_mbox_name, mu_strerror (status));
       return 1;
     }
@@ -53,7 +53,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
   if ((status = mu_mailbox_open (tmbox, MU_STREAM_READ)) != 0)
     {
       mu_mailbox_destroy (&tmbox);
-      mu_error (_("Cannot open bulletin mailbox `%s': %s"),
+      mu_error (_("cannot open bulletin mailbox `%s': %s"),
 		bulletin_mbox_name, mu_strerror (status));
       return 1;
     }
@@ -137,7 +137,7 @@ read_bulletin_db (size_t *pnum)
 	}
       else
 	{
-	  mu_error (_("Unable to open bulletin db for reading: %s"),
+	  mu_error (_("unable to open bulletin db for reading: %s"),
 		    mu_strerror (errno));
 	  return rc;
 	}
@@ -159,7 +159,7 @@ read_bulletin_db (size_t *pnum)
            *pnum = 0;
            return 0;
         }
-      mu_error (_("Cannot fetch bulletin db data: %s"),
+      mu_error (_("cannot fetch bulletin db data: %s"),
 		mu_strerror (ec));
       mu_dbm_close (db);
       return 1;
@@ -207,7 +207,7 @@ read_bulletin_db (size_t *pnum)
       else
 #endif /* QPOPPER_COMPAT */
 	{
-	  mu_error (_("Wrong bulletin database format for `%s'"),
+	  mu_error (_("wrong bulletin database format for `%s'"),
 		    username);
 	}
     }
@@ -227,7 +227,7 @@ write_bulletin_db (size_t num)
   rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_RDWR, 0660);
   if (rc)
     {
-      mu_error (_("Unable to open bulletin db for writing: %s"),
+      mu_error (_("unable to open bulletin db for writing: %s"),
 		mu_strerror (errno));
       return rc;
     }
@@ -243,7 +243,7 @@ write_bulletin_db (size_t num)
 
   rc = mu_dbm_insert (db, key, data, 1);
   if (rc)
-    mu_error (_("Cannot store datum in bulletin db"));
+    mu_error (_("cannot store datum in bulletin db"));
 
   mu_dbm_close (db);
   return rc;
@@ -286,7 +286,7 @@ deliver_pending_bulletins ()
 
   rc = mu_mailbox_messages_count (bull, &total);
   if (rc)
-    mu_error (_("Cannot count bulletins: %s"), mu_strerror (rc));
+    mu_error (_("cannot count bulletins: %s"), mu_strerror (rc));
   else
     {
       mu_diag_output (MU_DIAG_DEBUG,
@@ -311,14 +311,14 @@ deliver_pending_bulletins ()
 	  
 	      if ((rc = mu_mailbox_get_message (bull, i, &msg)) != 0)
 		{
-		  mu_error (_("Cannot read bulletin %lu: %s"),
+		  mu_error (_("cannot read bulletin %lu: %s"),
 			    (unsigned long) i, mu_strerror (rc));
 		  break;
 		}
 	
 	      if ((rc = mu_mailbox_append_message (mbox, msg)) != 0)
 		{
-		  mu_error (_("Cannot append message %lu: %s"),
+		  mu_error (_("cannot append message %lu: %s"),
 			    (unsigned long) i, mu_strerror (rc));
 		  break;
 		}

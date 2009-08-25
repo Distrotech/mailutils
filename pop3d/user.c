@@ -30,7 +30,7 @@ pop3d_begin_session ()
   if (check_login_delay (auth_data->name))
     {
       mu_diag_output (MU_DIAG_INFO,
-	      _("User `%s' tried to log in within the minimum allowed delay"),
+	      _("user `%s' tried to log in within the minimum allowed delay"),
 	      auth_data->name);
       state = AUTHORIZATION;
       mu_auth_data_destroy (&auth_data);
@@ -77,8 +77,8 @@ pop3d_begin_session ()
     mu_mailbox_get_url (mbox, &url);
     mu_mailbox_messages_count (mbox, &total);
     mu_diag_output (MU_DIAG_INFO,
-	    ngettext ("User `%s' logged in with mailbox `%s' (%s message)",
-		      "User `%s' logged in with mailbox `%s' (%s messages)",
+	    ngettext ("user `%s' logged in with mailbox `%s' (%s message)",
+		      "user `%s' logged in with mailbox `%s' (%s messages)",
 		      (unsigned long) total),
 	    username, mu_url_to_string (url), mu_umaxtostr (0, total));
   }
@@ -131,7 +131,7 @@ pop3d_user (char *arg)
 
       if (auth_data == NULL)
 	{
-	  mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), arg);
+	  mu_diag_output (MU_DIAG_INFO, _("user `%s' nonexistent"), arg);
 	  return ERR_BAD_LOGIN;
 	}
 
@@ -140,14 +140,15 @@ pop3d_user (char *arg)
 
       if (rc)
 	{
-	  mu_diag_output (MU_DIAG_INFO, _("User `%s': authentication failed"), arg);
+	  mu_diag_output (MU_DIAG_INFO,
+			  _("user `%s': authentication failed"), arg);
 	  mu_auth_data_destroy (&auth_data);
 	  return ERR_BAD_LOGIN;
 	}
     }
   else if (mu_c_strcasecmp (cmd, "QUIT") == 0)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Possible probe of account `%s'"), arg);
+      mu_diag_output (MU_DIAG_INFO, _("possible probe of account `%s'"), arg);
       return pop3d_quit (pass);
     }
   else

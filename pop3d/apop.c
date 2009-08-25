@@ -52,7 +52,7 @@ pop3d_apopuser (const char *user)
     int rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
     if (rc)
       {
-	mu_diag_output (MU_DIAG_ERROR, _("Unable to open APOP db: %s"),
+	mu_diag_output (MU_DIAG_ERROR, _("unable to open APOP db: %s"),
 		mu_strerror (errno));
 	return NULL;
       }
@@ -70,7 +70,8 @@ pop3d_apopuser (const char *user)
     mu_dbm_close (db);
     if (rc)
       {
-	mu_diag_output (MU_DIAG_ERROR, _("Cannot fetch APOP data: %s"), mu_strerror (errno));
+	mu_diag_output (MU_DIAG_ERROR,
+			_("cannot fetch APOP data: %s"), mu_strerror (errno));
 	return NULL;
       }
     password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));
@@ -92,14 +93,15 @@ pop3d_apopuser (const char *user)
 
     if (mu_check_perm (APOP_PASSFILE, 0600))
       {
-	mu_diag_output (MU_DIAG_INFO, _("Bad permissions on APOP password file"));
+	mu_diag_output (MU_DIAG_INFO,
+			_("bad permissions on APOP password file"));
 	return NULL;
     }
 
     apop_file = fopen (APOP_PASSFILE, "r");
     if (apop_file == NULL)
       {
-	mu_diag_output (MU_DIAG_INFO, _("Unable to open APOP password file %s"),
+	mu_diag_output (MU_DIAG_INFO, _("unable to open APOP password file %s"),
 		strerror (errno));
 	return NULL;
       }
@@ -159,14 +161,15 @@ pop3d_apop (char *arg)
   pop3d_parse_command (arg, &user, &user_digest);
   if (strlen (user) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
-      mu_diag_output (MU_DIAG_INFO, _("User name too long: %s"), user);
+      mu_diag_output (MU_DIAG_INFO, _("user name too long: %s"), user);
       return ERR_BAD_ARGS;
     }
 
   password = pop3d_apopuser (user);
   if (password == NULL)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Password for `%s' not found in the database"),
+      mu_diag_output (MU_DIAG_INFO,
+		      _("password for `%s' not found in the database"),
 	      user);
       return ERR_BAD_LOGIN;
     }

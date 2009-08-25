@@ -146,7 +146,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       split_size = strtoul (arg, &p, 10);
       if (*p)
 	{
-	  argp_error (state, "%s: %s", arg, _("Invalid number"));
+	  argp_error (state, "%s: %s", arg, _("invalid number"));
 	  exit (1);
 	}
       break;
@@ -222,7 +222,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       split_interval = strtoul (arg, &p, 10);
       if (*p)
 	{
-	  argp_error (state, "%s: %s", arg, _("Invalid number"));
+	  argp_error (state, "%s: %s", arg, _("invalid number"));
 	  exit (1);
 	}
       break;
@@ -247,7 +247,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       width = strtoul (arg, &p, 10);
       if (*p)
 	{
-	  argp_error (state, _("Invalid number"));
+	  argp_error (state, _("invalid number"));
 	  exit (1);
 	}
       break;
@@ -299,7 +299,7 @@ check_file (char *name)
   if (!mesg_list && mu_list_create (&mesg_list))
     {
       free (file_name);
-      mu_error (_("Cannot create message list"));
+      mu_error (_("cannot create message list"));
       return 1;
     }
   elt = xmalloc (sizeof *elt);
@@ -332,7 +332,7 @@ read_mts_profile ()
       mu_set_user_email_domain (p);
     }
   else if ((rc = mu_get_host_name (&hostname)))
-    mu_error (_("Cannot get system host name: %s"), mu_strerror (rc));
+    mu_error (_("cannot get system host name: %s"), mu_strerror (rc));
 
   if ((p = mh_context_get_value (mts_profile, "localdomain", NULL)))
     {
@@ -349,7 +349,7 @@ read_mts_profile ()
       free (newdomain);
       if (rc)
 	{
-	  mu_error (_("Cannot set user mail domain: %s"), mu_strerror (rc));
+	  mu_error (_("cannot set user mail domain: %s"), mu_strerror (rc));
 	  exit (1);
 	}
     }
@@ -364,7 +364,7 @@ read_mts_profile ()
       rc = mu_get_user_email_domain (&domain);
       if (rc)
 	{
-	  mu_error (_("Cannot get user email: %s"), mu_strerror (rc));
+	  mu_error (_("cannot get user email: %s"), mu_strerror (rc));
 	  exit (1);
 	}
       len = strlen (p) + 1 + strlen (domain) + 1;
@@ -376,7 +376,7 @@ read_mts_profile ()
       rc = mu_set_user_email (newemail);
       if (rc)
 	{
-	  mu_error (_("Cannot set user email (%s): %s"),
+	  mu_error (_("cannot set user email (%s): %s"),
 		    newemail, mu_strerror (rc));
 	  exit (1);
 	}
@@ -399,7 +399,7 @@ open_mailer ()
   status = mu_mailer_create (&mailer, url);
   if (status)
     {
-      mu_error (_("Cannot create mailer `%s'"), url);
+      mu_error (_("cannot create mailer `%s'"), url);
       return NULL;
     }
 
@@ -414,7 +414,7 @@ open_mailer ()
   status = mu_mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
-      mu_error (_("Cannot open mailer `%s'"), url);
+      mu_error (_("cannot open mailer `%s'"), url);
       return NULL;
     }
   return mailer;
@@ -542,7 +542,7 @@ fix_fcc (mu_message_t msg)
       if (need_fixup)
 	{
 	  mu_header_set_value (hdr, MU_HEADER_FCC, fcc, 1);
-	  WATCH ((_("fixed fcc: %s"), fcc));
+	  WATCH ((_("Fixed fcc: %s"), fcc));
 	}
       free (fcc);
     }	  
@@ -584,7 +584,7 @@ fix_dcc (mu_message_t msg)
       else
 	bcc = dcc;
 
-      WATCH ((_("fixed bcc: %s"), bcc));
+      WATCH ((_("Fixed bcc: %s"), bcc));
       mu_header_set_value (hdr, MU_HEADER_BCC, bcc, 1);
       free (bcc);
     }
@@ -607,12 +607,12 @@ backup_file (const char *file_name)
       new_name[0] = ',';
       strcpy (new_name + 1, file_name);
     }
-  WATCH ((_("renaming %s to %s"), file_name, new_name));
+  WATCH ((_("Renaming %s to %s"), file_name, new_name));
 
   if (unlink (new_name) && errno != ENOENT)
-    mu_error (_("Cannot unlink file `%s': %s"), new_name, mu_strerror (errno));
+    mu_error (_("cannot unlink file `%s': %s"), new_name, mu_strerror (errno));
   else if (rename (file_name, new_name))
-    mu_error (_("Cannot rename `%s' to `%s': %s"),
+    mu_error (_("cannot rename `%s' to `%s': %s"),
 	      file_name, new_name, mu_strerror (errno));
   free (new_name);
 }
@@ -694,7 +694,7 @@ _action_send (void *item, void *data)
     rc = mu_mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
-      mu_error(_("Cannot send message: %s"), mu_strerror (rc));
+      mu_error(_("cannot send message: %s"), mu_strerror (rc));
       return 1;
     }
 
@@ -725,7 +725,7 @@ do_send (int argc, char **argv)
   
   if (background && daemon (0, 0) < 0)
     {
-      mu_error(_("Cannot switch to background: %s"), mu_strerror (errno));
+      mu_error (_("cannot switch to background: %s"), mu_strerror (errno));
       return 1;
     }
 
@@ -764,7 +764,7 @@ main (int argc, char **argv)
 
       if (stat (xargv[0], &st))
 	{
-	  mu_error(_("Cannot stat %s: %s"), xargv[0], mu_strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "stat", xargv[0], errno);
 	  return 1;
 	}
 

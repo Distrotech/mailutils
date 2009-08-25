@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   if (auth_data == NULL)
     {
-      mu_diag_output (MU_DIAG_INFO, _("User `%s': nonexistent"), username);
+      mu_diag_output (MU_DIAG_INFO, _("user `%s' nonexistent"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
@@ -58,7 +58,7 @@ imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
   openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Login failed: %s"), username);
+      mu_diag_output (MU_DIAG_INFO, _("login failed: %s"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -142,10 +142,10 @@ messages_count (const char *box)
   if (status != 0)
     {
       if (box)
-	mu_error (_("Could not create mailbox `%s': %s"),
+	mu_error (_("could not create mailbox `%s': %s"),
 		  box, mu_strerror (status));
       else
-	mu_error (_("Could not create default mailbox: %s"),
+	mu_error (_("could not create default mailbox: %s"),
 		  mu_strerror (status));
       return -1;
     }
@@ -156,7 +156,7 @@ messages_count (const char *box)
   status =  mu_mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      mu_error (_("Could not open mailbox `%s': %s"),
+      mu_error (_("could not open mailbox `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }
@@ -164,7 +164,7 @@ messages_count (const char *box)
   status = mu_mailbox_messages_count (mbox, &count);
   if (status != 0)
     {
-      mu_error (_("Could not count messages in mailbox `%s': %s"),
+      mu_error (_("could not count messages in mailbox `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }
@@ -177,7 +177,7 @@ messages_count (const char *box)
   status = mu_mailbox_close (mbox);
   if (status != 0)
     {
-      mu_error (_("Could not close `%s': %s"),
+      mu_error (_("could not close `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }

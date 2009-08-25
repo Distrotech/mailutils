@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -133,7 +133,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  argp_error (state, _("Invalid width"));
+	  argp_error (state, _("invalid width"));
 	  exit (1);
 	}
       break;
@@ -196,7 +196,7 @@ main (int argc, char **argv)
     {
       if ((rc = mu_mailbox_create_default (&input, NULL)) != 0)
 	{
-	  mu_error (_("Cannot create default mailbox: %s"),
+	  mu_error (_("cannot create default mailbox: %s"),
 		    mu_strerror (rc));
 	  exit (1);
 	}
@@ -205,7 +205,7 @@ main (int argc, char **argv)
     }
   else if ((rc = mu_mailbox_create_default (&input, input_file)) != 0)
     {
-      mu_error (_("Cannot create mailbox %s: %s"),
+      mu_error (_("cannot create mailbox %s: %s"),
 		input_file, mu_strerror (rc));
       exit (1);
     }
@@ -214,7 +214,7 @@ main (int argc, char **argv)
     {
       mu_url_t url;
       mu_mailbox_get_url (input, &url);
-      mu_error (_("Cannot open mailbox %s: %s"),
+      mu_error (_("cannot open mailbox %s: %s"),
 		mu_url_to_string (url),
 		mu_strerror (errno));
       exit (1);
@@ -222,14 +222,14 @@ main (int argc, char **argv)
 
   if ((rc = mu_mailbox_messages_count (input, &total)) != 0)
     {
-      mu_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
+      mu_error (_("cannot read input mailbox: %s"), mu_strerror (errno));
       exit (1);
     }
 
   output = mh_open_folder (append_folder, 1);
   if ((rc = mu_mailbox_messages_count (output, &lastmsg)) != 0)
     {
-      mu_error (_("Cannot read output mailbox: %s"),
+      mu_error (_("cannot read output mailbox: %s"),
 		mu_strerror (errno));
       exit (1);
     }

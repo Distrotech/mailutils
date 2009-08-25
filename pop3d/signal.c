@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2007, 2008
-   Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ pop3d_child_signal (int signo)
 {
   int code;
   
-  mu_diag_output (MU_DIAG_CRIT, _("Got signal `%s'"), strsignal (signo));
+  mu_diag_output (MU_DIAG_CRIT, _("got signal `%s'"), strsignal (signo));
 
   switch (signo)
     {

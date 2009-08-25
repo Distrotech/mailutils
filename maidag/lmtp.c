@@ -48,7 +48,7 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
   
   if (!str)
     {
-      mu_error (_("Not enough memory"));
+      mu_error (_("not enough memory"));
       exit (EX_TEMPFAIL);
     }
 
@@ -176,7 +176,7 @@ add_default_domain (char *str, int len, char **pret)
   *pret = malloc (len + 1 + strlen (lhlo_domain) + 1);
   if (!*pret)
     {
-      mu_error (_("Not enough memory"));
+      mu_error (_("not enough memory"));
       exit (EX_SOFTWARE);
     }
   memcpy (*pret, str, len);
@@ -343,7 +343,7 @@ dot_deliver (void *item, void *cbdata)
   
   if ((status = mu_mailbox_get_message (mbox, 1, &msg)) != 0)
     {
-      mu_error (_("Cannot get message from the temporary mailbox: %s"),
+      mu_error (_("cannot get message from the temporary mailbox: %s"),
 		mu_strerror (status));
       lmtp_reply (out, "450", "4.1.0",
 		  "%s: temporary failure, try again later",
@@ -591,7 +591,7 @@ lmtp_set_privs ()
       gidset = calloc (size, sizeof (gidset[0]));
       if (!gidset)
 	{
-	  mu_error (_("Not enough memory"));
+	  mu_error (_("not enough memory"));
 	  return EX_UNAVAILABLE;
 	}
       if (mu_list_get_iterator (lmtp_groups, &itr) == 0)
@@ -607,7 +607,7 @@ lmtp_set_privs ()
       free (gidset);
       if (rc)
 	{
-	  mu_error(_("setgroups failed: %s"), mu_strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "setgroups", NULL, errno);
 	  return EX_UNAVAILABLE;
 	}
     }
@@ -616,14 +616,14 @@ lmtp_set_privs ()
       struct group *gr = getgrnam ("mail");
       if (gr == NULL)
 	{
-	  mu_error (_("Error getting group `mail'"));
+	  mu_diag_funcall (MU_DIAG_ERROR, "getgrnam", "mail", errno);
 	  return EX_UNAVAILABLE;
 	}
       gid = gr->gr_gid;
     }
   if (setgid (gid) == -1)
     {
-      mu_error (_("Error setting mail group"));
+      mu_diag_funcall (MU_DIAG_ERROR, "setgid", "mail", errno);
       return EX_UNAVAILABLE;
     }
   return 0;

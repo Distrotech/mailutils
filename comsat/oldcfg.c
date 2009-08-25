@@ -45,7 +45,7 @@ convert_config (const char *config_file, FILE *outfile)
   fp = fopen (config_file, "r");
   if (!fp)
     {
-      mu_error (_("Cannot open config file %s: %s"), config_file,
+      mu_error (_("cannot open config file %s: %s"), config_file,
 		mu_strerror (errno));
       return;
     }

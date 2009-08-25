@@ -1,6 +1,6 @@
 %{
 /* cfg_parser.y -- general-purpose configuration file parser 
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -273,7 +273,7 @@ vallist : vlist
 		val.v.arg.v = mu_alloc (n * sizeof (val.v.arg.v[0]));
 		if (!val.v.arg.v)
 		  {
-		    mu_cfg_perror (&mu_cfg_locus, _("Not enough memory"));
+		    mu_cfg_perror (&mu_cfg_locus, _("not enough memory"));
 		    abort();
 		  }
 		
@@ -294,7 +294,7 @@ vlist   : value
 	      int rc = mu_list_create (&$$);
 	      if (rc)
 		{
-		  mu_cfg_perror (&mu_cfg_locus, _("Cannot create list: %s"),
+		  mu_cfg_perror (&mu_cfg_locus, _("cannot create list: %s"),
 				 mu_strerror (rc));
 		  abort ();
 		}

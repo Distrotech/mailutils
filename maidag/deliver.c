@@ -49,7 +49,7 @@ mda (mu_mailbox_t mbx, char *username)
   
   if ((status = mu_mailbox_get_message (mbx, 1, &msg)) != 0)
     {
-      maidag_error (_("Cannot get message from the temporary mailbox: %s"),
+      maidag_error (_("cannot get message from the temporary mailbox: %s"),
 		    mu_strerror (status));
       return EX_TEMPFAIL;
     }
@@ -156,7 +156,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
   status = mu_mailbox_open (mbox, MU_STREAM_APPEND|MU_STREAM_CREAT);
   if (status != 0)
     {
-      maidag_error (_("Cannot open mailbox %s: %s"), 
+      maidag_error (_("cannot open mailbox %s: %s"), 
                     path, mu_strerror (status));
       return EX_TEMPFAIL;
     }
@@ -173,7 +173,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
 
       if (status)
 	{
-	  maidag_error (_("Cannot lock mailbox `%s': %s"), path,
+	  maidag_error (_("cannot lock mailbox `%s': %s"), path,
 		        mu_strerror (status));
 	  exit_code = EX_TEMPFAIL;
 	  return EX_TEMPFAIL;
@@ -189,7 +189,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
       
       if ((status = mu_mailbox_get_size (mbox, &mbsize)))
 	{
-	  maidag_error (_("Cannot get size of mailbox %s: %s"),
+	  maidag_error (_("cannot get size of mailbox %s: %s"),
 			path, mu_strerror (status));
 	  if (status == ENOSYS)
 	    mbsize = 0; /* Try to continue anyway */
@@ -215,7 +215,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
 	default:
 	  if ((status = mu_message_size (msg, &msg_size)))
 	    {
-	      maidag_error (_("Cannot get message size (input message %s): %s"),
+	      maidag_error (_("cannot get message size (input message %s): %s"),
 			    path, mu_strerror (status));
 	      exit_code = EX_UNAVAILABLE;
 	      failed++;
@@ -243,7 +243,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
       status = mu_mailbox_append_message (mbox, msg);
       if (status)
 	{
-	  maidag_error (_("Error writing to mailbox %s: %s"),
+	  maidag_error (_("error writing to mailbox %s: %s"),
 		        path, mu_strerror (status));
 	  failed++;
 	}
@@ -252,7 +252,7 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
 	  status = mu_mailbox_sync (mbox);
 	  if (status)
 	    {
-	      maidag_error (_("Error flushing mailbox %s: %s"),
+	      maidag_error (_("error flushing mailbox %s: %s"),
 			    path, mu_strerror (status));
 	      failed++;
 	    }
@@ -341,14 +341,14 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
       status = mu_url_create (&url, auth->mailbox);
       if (status)
 	{
-	  maidag_error (_("Cannot create URL for %s: %s"),
+	  maidag_error (_("cannot create URL for %s: %s"),
 			auth->mailbox, mu_strerror (status));
 	  return exit_code = EX_UNAVAILABLE;
 	}
       status = mu_url_parse (url);
       if (status)
 	{
-	  maidag_error (_("Error parsing URL %s: %s"),
+	  maidag_error (_("error parsing URL %s: %s"),
 			auth->mailbox, mu_strerror (status));
 	  return exit_code = EX_UNAVAILABLE;
 	}
@@ -358,7 +358,7 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 
   if (status)
     {
-      maidag_error (_("Cannot open mailbox %s: %s"),
+      maidag_error (_("cannot open mailbox %s: %s"),
 		    mu_url_to_string (url),
 		    mu_strerror (status));
       mu_url_destroy (&url);

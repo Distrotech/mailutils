@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  argp_error (state, _("Invalid width"));
+	  argp_error (state, _("invalid width"));
 	  exit (1);
 	}
       break;
@@ -119,7 +119,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       length = strtoul (arg, NULL, 0);
       if (!length)
 	{
-	  argp_error (state, _("Invalid length"));
+	  argp_error (state, _("invalid length"));
 	  exit (1);
 	}
       break;
@@ -163,13 +163,13 @@ open_output ()
 
   if (rc)
     {
-      mu_error (_("Cannot create output stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot create output stream: %s"), mu_strerror (rc));
       exit (1);
     }
 
   if ((rc = mu_stream_open (output)))
     {
-      mu_error (_("Cannot open output stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   return output;
@@ -188,13 +188,13 @@ list_message (char *name, mu_stream_t output)
     rc = mu_file_stream_create (&input, name, MU_STREAM_READ);
   if (rc)
     {
-      mu_error (_("Cannot create input stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
       return;
     }
 
   if ((rc = mu_stream_open (input)))
     {
-      mu_error (_("Cannot open input stream: %s"), mu_strerror (rc));
+      mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
       mu_stream_destroy (&input, mu_stream_get_owner (input));
       return;
     }
@@ -202,7 +202,7 @@ list_message (char *name, mu_stream_t output)
   msg = mh_stream_to_message (input);
   if (!msg)
     {
-      mu_error (_("Input stream %s is not a message (%s)"),
+      mu_error (_("input stream %s is not a message (%s)"),
 		name, mu_strerror (rc));
       mu_stream_close (input);
       mu_stream_destroy (&input, mu_stream_get_owner (input));

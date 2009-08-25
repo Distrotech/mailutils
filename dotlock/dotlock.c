@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_ARG:
       if (file)
-	argp_error (state, _("Only one FILE can be specified"));
+	argp_error (state, _("only one FILE can be specified"));
       file = arg;
       break;
 
@@ -178,7 +178,7 @@ main (int argc, char *argv[])
   if ((err = mu_locker_create (&locker, file, flags)))
     {
       if (debug)
-	fprintf (stderr, _("Creating locker failed: %s\n"), mu_strerror (err));
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_locker_create", NULL, err);
       return MU_DL_EX_ERROR;
     }
 
@@ -201,10 +201,9 @@ main (int argc, char *argv[])
   mu_locker_destroy (&locker);
 
   if (debug && err)
-    fprintf (stderr,
-	     unlock ? _("Unlocking the file %s failed: %s\n") :
-	              _("Locking the file %s failed: %s\n"),
-	     file, mu_strerror (err));
+    mu_error (unlock ? _("unlocking the file %s failed: %s") :
+	      _("locking the file %s failed: %s"),
+	      file, mu_strerror (err));
 
   switch (err)
     {

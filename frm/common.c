@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+   2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -385,7 +385,7 @@ rfc2047_decode_wrapper (const char *buf, size_t buflen)
   if (rc)
     {
       if (frm_debug)
-	mu_error (_("Cannot decode line `%s': %s"),
+	mu_error (_("cannot decode line `%s': %s"),
 		  buf, mu_strerror (rc));
       return strdup (buf);
     }
@@ -528,7 +528,7 @@ frm_abort (mu_mailbox_t *mbox)
     {
       mu_url_t url;
       
-      mu_error (_("Could not close mailbox `%s': %s"),
+      mu_error (_("could not close mailbox `%s': %s"),
 		mu_url_to_string (url), mu_strerror (status));
       exit (3);
     }
@@ -556,10 +556,10 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
   if (status != 0)
     {
       if (mailbox_name)
-	mu_error (_("Could not create mailbox `%s': %s"),
+	mu_error (_("could not create mailbox `%s': %s"),
 		  mailbox_name,  mu_strerror (status));
       else
-	mu_error (_("Could not create default mailbox: %s"),
+	mu_error (_("could not create default mailbox: %s"),
 		  mu_strerror (status));
       exit (3);
     }
@@ -578,7 +578,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
     *total = 0;
   else if (status != 0)
     {
-      mu_error (_("Could not open mailbox `%s': %s"),
+      mu_error (_("could not open mailbox `%s': %s"),
 		mu_url_to_string (url), mu_strerror (status));
       frm_abort (&mbox);
     }
@@ -598,7 +598,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
       status = mu_mailbox_scan (mbox, 1, total);
       if (status != 0)
 	{
-	  mu_error (_("Could not scan mailbox `%s': %s."),
+	  mu_error (_("could not scan mailbox `%s': %s."),
 		    mu_url_to_string (url), mu_strerror (status));
 	  frm_abort (&mbox);
 	}
@@ -608,7 +608,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
       
       if ((status = mu_mailbox_close (mbox)) != 0)
 	{
-	  mu_error (_("Could not close mailbox `%s': %s"),
+	  mu_error (_("could not close mailbox `%s': %s"),
 		    mu_url_to_string (url), mu_strerror (status));
 	  exit (3);
 	}

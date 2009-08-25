@@ -137,7 +137,7 @@ cb_facility (mu_debug_t debug, void *data, mu_config_value_t *val)
   if (mu_string_to_syslog_facility (val->v.string, &logging_settings.facility))
     {
       mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-                           _("Unknown syslog facility `%s'"), 
+                           _("unknown syslog facility `%s'"), 
 			   val->v.string);
       return 1;
     }

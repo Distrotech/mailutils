@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	  char *p;
 	  pack_start = strtoul (arg, &p, 10);
 	  if (*p)
-	    argp_error (state, _("Invalid number"));
+	    argp_error (state, _("invalid number"));
 	}
       break;
       
@@ -327,7 +327,7 @@ _scan (const char *name, size_t depth)
 
   if (!dir)
     {
-      mu_error (_("Cannot scan folder %s: %s"), name, strerror (errno));
+      mu_error (_("cannot scan folder %s: %s"), name, strerror (errno));
       return;
     }
 
@@ -362,7 +362,7 @@ _scan (const char *name, size_t depth)
 	{
 	  asprintf (&p, "%s/%s", name, entry->d_name);
 	  if (stat (p, &st) < 0)
-	    mu_error (_("Cannot stat %s: %s"), p, strerror (errno));
+	    mu_diag_funcall (MU_DIAG_ERROR, "stat", p, errno);
 	  else if (S_ISDIR (st.st_mode))
 	    {
 	      info.others++;
@@ -531,15 +531,16 @@ action_list ()
 static void
 get_stack (int *pc, char ***pv)
 {
+  int status;
   const char *stack = mh_global_context_get ("Folder-Stack", NULL);
   if (!stack)
     {
       *pc = 0;
       *pv = NULL;
     }
-  else if (mu_argcv_get (stack, NULL, "#", pc, pv))
+  else if ((status = mu_argcv_get (stack, NULL, "#", pc, pv)) != 0)
     {
-      mu_error (_("Cannot split line %s"), stack);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_get", stack, status);
       exit (1);
     }
 }
@@ -722,7 +723,7 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
     return;
   
   start = i - 1;
-  mu_error (_("Rolling back changes..."));
+  mu_error (_("rolling back changes..."));
   while (--i >= 0)
     if (pack_rename (pack_tab + i, 1))
       {
@@ -737,7 +738,7 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
 	mu_error (_("You will have to fix it manually."));
 	exit (1);
       }
-  mu_error (_("Folder `%s' restored successfully"), folder_name);
+  mu_error (_("folder `%s' restored successfully"), folder_name);
 }
 
 struct fixup_data
@@ -846,7 +847,7 @@ action_pack ()
   /* Allocate pack table */
   if (mu_mailbox_messages_count (mbox, &count))
     {
-      mu_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
+      mu_error (_("cannot read input mailbox: %s"), mu_strerror (errno));
       return 1;
     }
   pack_tab = xcalloc (count, sizeof pack_tab[0]); /* Never freed. No use to
@@ -968,7 +969,7 @@ main (int argc, char **argv)
     }
   else if (argc - index > 1)
     {
-      mu_error (_("Too many arguments"));
+      mu_error (_("too many arguments"));
       exit (1);
     }
   

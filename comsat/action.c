@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -294,13 +294,13 @@ action_exec (FILE *tty, int line, int argc, char **argv)
 
   if (argc == 0)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: No arguments for exec"), username, line);
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: no arguments for exec"), username, line);
       return;
     }
 
   if (argv[0][0] != '/')
     {
-      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: Not an absolute pathname"),
+      mu_diag_output (MU_DIAG_ERROR, _("%s:.biffrc:%d: not an absolute pathname"),
 	      username, line);
       return;
     }
@@ -328,7 +328,7 @@ action_exec (FILE *tty, int line, int argc, char **argv)
       dup2 (fileno (tty), 2);
       fclose (tty);
       execv (argv[0], argv);
-      mu_diag_output (MU_DIAG_ERROR, _("Cannot execute %s: %s"), argv[0], strerror (errno));
+      mu_diag_output (MU_DIAG_ERROR, _("cannot execute %s: %s"), argv[0], strerror (errno));
       exit (0);
     }
 }

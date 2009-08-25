@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,7 +32,7 @@ _cb2_field_map (mu_debug_t debug, const char *arg, void *data)
   int rc = mutil_parse_field_map (arg, &ldap_settings.field_map, &err);
   if (rc)
     /* FIXME: this message may be misleading */
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("Error near element %d: %s"),
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("error near element %d: %s"),
 			 err, mu_strerror (rc));
   return 0;
 }

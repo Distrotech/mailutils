@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2006, 2007, 2008,
+   2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,7 +69,7 @@ add_sequence (char *name)
 {
   if (!seq_list && mu_list_create (&seq_list))
     {
-      mu_error (_("Cannot create sequence list"));
+      mu_error (_("cannot create sequence list"));
       exit (1);
     }
   mu_list_append (seq_list, name);

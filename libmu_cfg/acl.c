@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -76,7 +76,7 @@ parse_address (mu_debug_t err, const char *str, struct netdef *nd)
     }
   else if (inet_aton (str, &in.sin_addr) == 0)
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("Invalid IPv4: %s"), str);
+      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("invalid IPv4: %s"), str);
       return 1;
     }
   in.sin_port = 0;

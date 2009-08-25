@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002, 2003, 2005, 2006, 2007, 
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  argp_error (state, _("Invalid width"));
+	  argp_error (state, _("invalid width"));
 	  exit (1);
 	}
       break;
@@ -314,7 +314,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
-      mu_error (_("Cannot read message %s: %s"),
+      mu_error (_("cannot read message %s: %s"),
 		mu_umaxtostr (0, msgset.list[0]),
 		mu_strerror (rc));
       exit (1);
@@ -335,14 +335,14 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 			       MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
-	  mu_error (_("Cannot create draft file stream %s: %s"),
+	  mu_error (_("cannot create draft file stream %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}
 
       if ((rc = mu_stream_open (str)))
 	{
-	  mu_error (_("Cannot open draft file %s: %s"),
+	  mu_error (_("cannot open draft file %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}	  

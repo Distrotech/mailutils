@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2004, 
-   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ mu_sv_code (sieve_op_t *op)
 					     sizeof mu_sieve_machine->prog[0]);
       if (!newprog)
 	{
-	  mu_sv_compile_error (&mu_sieve_locus, _("out of memory!"));
+	  mu_sv_compile_error (&mu_sieve_locus, _("not enough memory"));
 	  return 1;
 	}
       mu_sieve_machine->prog = newprog;

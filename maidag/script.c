@@ -126,12 +126,9 @@ apply_script (void *item, void *data)
   if (stat (progfile, &st))
     {
       if (debug_level > 2)
-	mu_diag_output (MU_DIAG_DEBUG, _("cannot stat %s: %s"),
-			progfile, mu_strerror (errno));
+	mu_diag_funcall (MU_DIAG_DEBUG, "stat", progfile, errno);
       else if (errno != ENOENT)
-	mu_diag_output (MU_DIAG_NOTICE, _("cannot stat %s: %s"),
-			progfile, mu_strerror (errno));
-      
+	mu_diag_funcall (MU_DIAG_NOTICE, "stat", progfile, errno);
       free (progfile);
       return 0;
     }

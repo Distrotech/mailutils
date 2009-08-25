@@ -40,7 +40,7 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
 static void
 msgset_abort (const char *arg)
 {
-  mu_error (_("Bad message list `%s'"), arg);
+  mu_error (_("bad message list `%s'"), arg);
   exit (1);
 }
 
@@ -62,7 +62,7 @@ msgset_last (mu_mailbox_t mbox, size_t *pnum)
   rc = mu_mailbox_messages_count (mbox, &count);
   if (rc)
     {
-      mu_error (_("Cannot get last message: %s"), mu_strerror (rc));
+      mu_error (_("cannot get last message: %s"), mu_strerror (rc));
       exit (1);
     }
   *pnum = count;
@@ -162,7 +162,7 @@ msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
 	rc = mu_mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
-	    mu_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
+	    mu_error (_("cannot get message %d: %s"), num, mu_strerror (rc));
 	    exit (1);
 	  }
 	*rest = arg + strlen (p->name);
@@ -603,7 +603,7 @@ mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset)
   list = realloc (list, sizeof (list[0]) * msgno);
   if (!list)
     {
-      mu_error (_("Not enough memory"));
+      mu_error (_("not enough memory"));
       abort ();
     }
   mh_msgset_free (msgset);

@@ -256,12 +256,12 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 int
 pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 {
-  mu_diag_output (MU_DIAG_INFO, _("Incoming connection opened"));
+  mu_diag_output (MU_DIAG_INFO, _("incoming connection opened"));
 
   /* log information on the connecting client. */
   if (debug_mode)
     {
-      mu_diag_output (MU_DIAG_INFO, _("Started in debugging mode"));
+      mu_diag_output (MU_DIAG_INFO, _("started in debugging mode"));
       return 1;
     }
   else
@@ -270,7 +270,7 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
       if (getpeername (fd, (struct sockaddr*) pcs, &len) < 0)
 	{
 	  mu_diag_output (MU_DIAG_ERROR,
-			  _("Cannot obtain IP address of client: %s"),
+			  _("cannot obtain IP address of client: %s"),
 			  strerror (errno));
 	  return 1;
 	}
@@ -454,12 +454,12 @@ main (int argc, char **argv)
 	{
 	  if (errno == 0 || errno == ENOENT)
             {
-               mu_error (_("%s: No such group"), "mail");
+               mu_error (_("%s: no such group"), "mail");
                exit (EX_CONFIG);
             }
           else
             {
-	       mu_error (_("Error getting mail group: %s"), 
+	       mu_error (_("error getting mail group: %s"), 
                          mu_strerror (errno));
 	       exit (EX_OSERR);
             }
@@ -467,7 +467,7 @@ main (int argc, char **argv)
 
       if (setgid (gr->gr_gid) == -1)
 	{
-	  mu_error (_("Error setting mail group: %s"), mu_strerror (errno));
+	  mu_error (_("error setting mail group: %s"), mu_strerror (errno));
 	  exit (EX_OSERR);
 	}
     }
@@ -517,7 +517,7 @@ main (int argc, char **argv)
     }
   
   if (status)
-    mu_error (_("Main loop status: %s"), mu_strerror (status));	  
+    mu_error (_("main loop status: %s"), mu_strerror (status));	  
   /* Close the syslog connection and exit.  */
   closelog ();
   return status ? EX_SOFTWARE : EX_OK;
