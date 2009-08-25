@@ -39,15 +39,15 @@ static error_t readmsg_parse_opt  (int key, char *arg, struct argp_state *astate
 
 static struct argp_option options[] = 
 {
-  { "debug", 'd', 0, 0, N_("Display debugging information"), 1 },
-  { "header", 'h', 0, 0, N_("Display entire header"), 1 },
+  { "debug", 'd', 0, 0, N_("display debugging information"), 1 },
+  { "header", 'h', 0, 0, N_("display entire header"), 1 },
   { "weedlist", 'w', N_("LIST"), 0,
-    N_("List of header names separated by whitespace or commas"), 1 },
-  { "folder", 'f', N_("FOLDER"), 0, N_("Folder to use"), 1 },
-  { "no-header", 'n', 0, 0, N_("Exclude all headers"), 1 },
-  { "form-feeds", 'p', 0, 0, N_("Output formfeeds between messages"), 1 },
+    N_("list of header names separated by whitespace or commas"), 1 },
+  { "folder", 'f', N_("FOLDER"), 0, N_("folder to use"), 1 },
+  { "no-header", 'n', 0, 0, N_("exclude all headers"), 1 },
+  { "form-feeds", 'p', 0, 0, N_("output formfeeds between messages"), 1 },
   { "show-all-match", 'a', NULL, 0,
-    N_("Print all messages matching pattern, not only the first"), 1 },
+    N_("print all messages matching pattern, not only the first"), 1 },
   {0, 0, 0, 0}
 };
 

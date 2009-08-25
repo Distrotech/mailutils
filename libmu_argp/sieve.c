@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,13 +30,13 @@ enum {
 
 static struct argp_option sieve_argp_option[] = {
   { "includedir", 'I', N_("DIR"), 0,
-    N_("Append directory DIR to the list of directories searched for include files"), 0 },
+    N_("append DIR to the list of directories searched for include files"), 0 },
   { "libdir", 'L', N_("DIR"), 0,
-    N_("Append directory DIR to the list of directories searched for library files"), 0 },
+    N_("append DIR to the list of directories searched for library files"), 0 },
   { "clear-include-path", OPT_CLEAR_INCLUDE_PATH, NULL, 0,
-    N_("Clear Sieve include path"), 0 },
+    N_("clear Sieve include path"), 0 },
   { "clear-library-path", OPT_CLEAR_LIBRARY_PATH, NULL, 0,
-    N_("Clear Sieve library path"), 0 },
+    N_("clear Sieve library path"), 0 },
   { "clearpath", 0, NULL, OPTION_ALIAS, NULL },
   { NULL,      0, NULL, 0, NULL, 0 }
 };

@@ -57,21 +57,21 @@ static struct argp_option options[] = {
    */
    N_("The following switches stop argument processing, and pass all\n"
    "remaining arguments as the value of (command-line):"), 1},
-  {"code", 'c', N_("EXPR"), 0, N_("Execute given scheme expression."), 1},
+  {"code", 'c', N_("EXPR"), 0, N_("execute given scheme expression"), 1},
   {"source", 's', N_("PROGFILE"), 0,
-   N_("Load Scheme source code from PROGFILE, and exit"), 1},
+   N_("load Scheme source code from PROGFILE and exit"), 1},
   {NULL, 0, NULL, 0,
    N_("The following options do not change the order of options parsing:"), 2},
-  {"expression", 'e', N_("EXPR"), 0, N_("Execute given scheme expression."), 2},
+  {"expression", 'e', N_("EXPR"), 0, N_("execute given scheme expression"), 2},
   {"file", 'f', N_("PROGFILE"), 0,
-   N_("Load Scheme source code from PROGFILE, and exit"), 2},
+   N_("load Scheme source code from PROGFILE and exit"), 2},
   {NULL, 0, NULL, 0, N_("Other options:"), 3},
-  {"debug", 'd', NULL, 0, N_("Start with debugging evaluator and backtraces."), 3},
+  {"debug", 'd', NULL, 0, N_("start with debugging evaluator and backtraces"), 3},
   {"guile-arg", 'g', N_("ARG"), 0,
-   N_("Append ARG to the command line passed to Guile"), 3},
-  {"mailbox", 'M', N_("NAME"), 0, N_("Set default mailbox name"), 3},
+   N_("append ARG to the command line passed to Guile"), 3},
+  {"mailbox", 'M', N_("NAME"), 0, N_("set default mailbox name"), 3},
   {"user", 'u', N_("NAME"), OPTION_ARG_OPTIONAL,
-   N_("Act as local MDA for user NAME"), 3},
+   N_("act as local MDA for user NAME"), 3},
   {0, 0, 0, 0}
 };
 
@@ -124,7 +124,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 const char *program_version = "guimb (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU guimb -- Process the contents of the specified mailboxes "
+N_("GNU guimb -- process contents of the specified mailboxes "
 "using a Scheme program or expression.");
 static char args_doc[] = N_("[mailbox...]");
 

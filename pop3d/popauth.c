@@ -68,11 +68,11 @@ void (*argp_program_version_hook) (FILE *stream, struct argp_state *state) =
 static struct argp_option options[] = 
 {
   { NULL, 0, NULL, 0, N_("Actions are:"), 1 },
-  { "add", 'a', 0, 0, N_("Add user"), 1 },
-  { "modify", 'm', 0, 0, N_("Modify user's record (change password)"), 1 },
-  { "delete", 'd', 0, 0, N_("Delete user's record"), 1 },
-  { "list", 'l', 0, 0, N_("List the contents of DBM file"), 1 },
-  { "create", 'c', 0, 0, N_("Create the DBM from a plaintext file"), 1 },
+  { "add", 'a', 0, 0, N_("add user"), 1 },
+  { "modify", 'm', 0, 0, N_("modify user's record (change password)"), 1 },
+  { "delete", 'd', 0, 0, N_("delete user's record"), 1 },
+  { "list", 'l', 0, 0, N_("list the contents of DBM file"), 1 },
+  { "create", 'c', 0, 0, N_("create the DBM from a plaintext file"), 1 },
 
   { NULL, 0, NULL, 0,
     N_("Default action is:\n"
@@ -80,11 +80,11 @@ static struct argp_option options[] =
     "  For a user: --modify --username <username>\n"), 2 },
   
   { NULL, 0, NULL, 0, N_("Options are:"), 3 },
-  { "file", 'f', N_("FILE"), 0, N_("Read input from FILE (default stdin)"), 3 },
-  { "output", 'o', N_("FILE"), 0, N_("Direct output to file"), 3 },
-  { "password", 'p', N_("STRING"), 0, N_("Specify user's password"), 3 },
-  { "user", 'u', N_("USERNAME"), 0, N_("Specify user name"), 3 },
-  { "permissions", 'P', N_("PERM"), 0, N_("Force given permissions on the database"), 3 },
+  { "file", 'f', N_("FILE"), 0, N_("read input from FILE (default stdin)"), 3 },
+  { "output", 'o', N_("FILE"), 0, N_("direct output to file"), 3 },
+  { "password", 'p', N_("STRING"), 0, N_("specify user's password"), 3 },
+  { "user", 'u', N_("USERNAME"), 0, N_("specify user name"), 3 },
+  { "permissions", 'P', N_("PERM"), 0, N_("force given permissions on the database"), 3 },
   { NULL, }
 };
 
@@ -294,7 +294,7 @@ action_list (struct action_data *ap)
       fp = fopen (ap->output_name, "w");
       if (!fp)
 	{
-	  mu_error (_("Cannot create file %s: %s"), ap->output_name, mu_strerror (errno));
+	  mu_error (_("cannot create file %s: %s"), ap->output_name, mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -375,7 +375,7 @@ action_create (struct action_data *ap)
     ap->output_name = APOP_PASSFILE;
   if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, permissions))
     {
-      mu_error (_("Cannot create %s: %s"), ap->output_name, mu_strerror (errno));
+      mu_error (_("cannot create database %s: %s"), ap->output_name, mu_strerror (errno));
       return 1;
     }
 

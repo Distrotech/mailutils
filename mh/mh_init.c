@@ -284,7 +284,9 @@ mh_check_folder (const char *pathname, int confirm)
     {
       if (errno == ENOENT)
 	{
-	  if (!confirm || mh_getyn (_("create folder \"%s\""), p))
+	  /* TRANSLATORS: This is a question and will be followed
+	     by question mark on output. */
+	  if (!confirm || mh_getyn (_("Create folder \"%s\""), p))
 	    return mh_makedir (p);
 	  else
 	    return 1;
@@ -642,7 +644,7 @@ _file_to_message (const char *file_name)
 
   if (stat (file_name, &st) < 0)
     {
-      mu_error (_("cannot stat file %s: %s"), file_name, strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "stat", file_name, errno);
       return NULL;
     }
   
@@ -709,14 +711,20 @@ mh_real_install (char *name, int automode)
     {
       size_t n = 0;
       
+      /* TRANSLATORS: This is a question and will be followed
+	 by question mark on output. */
       if (mh_getyn_interactive (_("Do you need help")))
 	mh_install_help (mhdir);
 
+      /* TRANSLATORS: This is a question and will be followed
+	 by question mark on output. */
       if (!mh_getyn_interactive (_("Do you want the standard MH path \"%s\""), mhdir))
 	{
 	  int local;
 	  char *p;
 	  
+	  /* TRANSLATORS: This is a question and will be followed
+	     by question mark on output. */
 	  local = mh_getyn_interactive (_("Do you want a path below your login directory"));
 	  if (local)
 	    printf (_("What is the path? "));

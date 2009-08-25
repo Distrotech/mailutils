@@ -36,26 +36,26 @@ static char args_doc[] = N_("[+folder] [msgs]");
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to scan")},
+   N_("specify folder to scan")},
   {"clear",   ARG_CLEAR, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("Clear screen after displaying the list")},
+   N_("clear screen after displaying the list")},
   {"noclear", ARG_NOCLEAR, NULL, OPTION_HIDDEN, ""},
   {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("Read format from given file")},
+   N_("read format from given file")},
   {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("Use this format string")},
+   N_("use this format string")},
   {"header",  ARG_HEADER, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("Display header")},
+   N_("display header")},
   {"width",   ARG_WIDTH, N_("NUMBER"), 0,
-   N_("Set output width")},
+   N_("set output width")},
   {"reverse", ARG_REVERSE, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("List messages in reverse order")},
+   N_("list messages in reverse order")},
   {"noreverse", ARG_NOREVERSE, NULL, OPTION_HIDDEN, ""},
   {"file",    ARG_FILE, N_("FILE"),   0,
-   N_("[Not yet implemented]")},
+   N_("[not yet implemented]")},
   
   {"license", ARG_LICENSE, 0,        0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
 
   { 0 }
 };

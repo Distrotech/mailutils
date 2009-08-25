@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2003, 2004, 2005, 2006, 2007, 
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,17 +35,17 @@ static char args_doc[] = N_("aliases ...");
 /* GNU options */
 static struct argp_option options[] = {
   {"alias",  ARG_ALIAS, N_("FILE"), 0,
-   N_("Use the additional alias FILE")},
+   N_("use the additional alias FILE")},
   {"noalias", ARG_NOALIAS, NULL, 0,
-   N_("Do not read the system alias file") },
+   N_("do not read the system alias file") },
   {"list", ARG_LIST, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("List each address on a separate line") },
+   N_("list each address on a separate line") },
   {"normalize", ARG_NORMALIZE, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("Try to determine the official hostname for each address") },
+   N_("try to determine the official hostname for each address") },
   {"user", ARG_USER, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("List the aliases that expand to given addresses") },
+   N_("list the aliases that expand to given addresses") },
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 

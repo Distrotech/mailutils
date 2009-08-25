@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -55,23 +55,23 @@ static struct argp_option mu_common_argp_options[] =
 {
   { NULL, 0, NULL, 0, N_("Common options"), 0},
   { "show-config-options", OPT_SHOW_OPTIONS, NULL, 0,
-    N_("Show compilation options"), 0 },
+    N_("show compilation options"), 0 },
   { "config-help", OPT_HELP_CONFIG, NULL, 0,
-    N_("Show configuration file summary"), 0 },
+    N_("show configuration file summary"), 0 },
   { "no-user-config", OPT_NO_USER_RCFILE, NULL, 0,
-    N_("Do not load user configuration file"), 0 },
+    N_("do not load user configuration file"), 0 },
   { "no-user-rcfile", 0, NULL, OPTION_ALIAS, NULL },
   { "no-site-config", OPT_NO_SITE_RCFILE, NULL, 0,
-    N_("Do not load site configuration file"), 0 },
+    N_("do not load site configuration file"), 0 },
   { "no-site-rcfile", 0, NULL, OPTION_ALIAS, NULL },
   { "config-file", OPT_RCFILE, N_("FILE"), 0,
-    N_("Load this configuration file"), 0, },
+    N_("load this configuration file"), 0, },
   { "rcfile", 0, NULL, OPTION_ALIAS, NULL },
   { "config-verbose", OPT_RCFILE_VERBOSE, NULL, 0,
-    N_("Verbosely log parsing of the configuration files"), 0 },
+    N_("verbosely log parsing of the configuration files"), 0 },
   { "rcfile-verbose", 0, NULL, OPTION_ALIAS, NULL },
   { "config-lint", OPT_RCFILE_LINT, NULL, 0,
-    N_("Check configuration file syntax and exit"), 0 },
+    N_("check configuration file syntax and exit"), 0 },
   { "rcfile-lint", 0, NULL, OPTION_ALIAS, NULL },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
@@ -139,7 +139,7 @@ struct mu_cmdline_capa mu_common_cmdline = {
 
 static struct argp_option mu_logging_argp_option[] = {
   {"log-facility", OPT_LOG_FACILITY, N_("FACILITY"), 0,
-   N_("Output logs to syslog FACILITY"), 0},
+   N_("output logs to syslog FACILITY"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -192,7 +192,7 @@ struct mu_cmdline_capa mu_logging_cmdline = {
 
 /* Option to print the license. */
 static struct argp_option mu_license_argp_option[] = {
-  { "license", OPT_LICENSE, NULL, 0, N_("Print license and exit"), -2 },
+  { "license", OPT_LICENSE, NULL, 0, N_("print license and exit"), -2 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -236,13 +236,13 @@ struct mu_cmdline_capa mu_license_cmdline = {
 /* Options used by programs that access mailboxes. */
 static struct argp_option mu_mailbox_argp_option[] = {
   { "mail-spool", 'm', N_("URL"), OPTION_HIDDEN,
-    N_("Use specified URL as a mailspool directory"), 0 },
+    N_("use specified URL as a mailspool directory"), 0 },
   { "mailbox-pattern", OPT_MAILBOX_PATTERN, N_("pat"), OPTION_HIDDEN,
     "", 0 },
   { "mailbox-type", OPT_MAILBOX_TYPE, N_("PROTO"), OPTION_HIDDEN,
-    N_("Default mailbox type to use"), 0 },
+    N_("default mailbox type to use"), 0 },
   { "mail-folder", OPT_MAIL_FOLDER, N_("DIR"), OPTION_HIDDEN,
-    N_("Default user mail folder"), 0 },
+    N_("default user mail folder"), 0 },
   { NULL }
 };
 
@@ -308,16 +308,16 @@ struct mu_cmdline_capa mu_mailbox_cmdline = {
 /* Options used by programs that access mailboxes. */
 static struct argp_option mu_locking_argp_option[] = {
   {"lock-flags", OPT_LOCK_FLAGS, N_("FLAGS"), OPTION_HIDDEN,
-   N_("Default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
+   N_("default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
   {"lock-retry-timeout", OPT_LOCK_RETRY_TIMEOUT, N_("SECONDS"), OPTION_HIDDEN,
-   N_("Set timeout for acquiring the lockfile") },
+   N_("set timeout for acquiring the lockfile") },
   {"lock-retry-count", OPT_LOCK_RETRY_COUNT, N_("NUMBER"), OPTION_HIDDEN,
-   N_("Set the maximum number of times to retry acquiring the lockfile") },
+   N_("set the maximum number of times to retry acquiring the lockfile") },
   {"lock-expire-timeout", OPT_LOCK_EXPIRE_TIMEOUT, N_("SECONDS"),
    OPTION_HIDDEN,
-   N_("Number of seconds after which the lock expires"), },
+   N_("number of seconds after which the lock expires"), },
   {"external-locker", OPT_LOCK_EXTERNAL_PROGRAM, N_("PATH"), OPTION_HIDDEN,
-   N_("Set full path to the external locker program") },
+   N_("set full path to the external locker program") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -386,9 +386,9 @@ struct mu_cmdline_capa mu_locking_cmdline = {
 /* Options used by programs that do address mapping. */
 static struct argp_option mu_address_argp_option[] = {
   {"email-addr", 'E', N_("EMAIL"), OPTION_HIDDEN,
-   N_("Set current user's email address (default is loginname@defaultdomain)"), 0},
+   N_("set current user's email address (default is loginname@defaultdomain)"), 0},
   {"email-domain", 'D', N_("DOMAIN"), OPTION_HIDDEN,
-   N_("Set domain for unqualified user names (default is this host)"), 0},
+   N_("set domain for unqualified user names (default is this host)"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -445,7 +445,7 @@ struct mu_cmdline_capa mu_address_cmdline = {
 /* Options used by programs that send mail. */
 static struct argp_option mu_mailer_argp_option[] = {
   {"mailer", 'M', N_("MAILER"), 0,
-   N_("Use specified URL as the default mailer"), 0},
+   N_("use specified URL as the default mailer"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -495,9 +495,9 @@ struct mu_cmdline_capa mu_mailer_cmdline = {
 static struct argp_option mu_debug_argp_options[] = 
 {
   { "debug-level", OPT_DEBUG_LEVEL, N_("LEVEL"), 0,
-    N_("Set Mailutils debugging level"), 0 },
+    N_("set Mailutils debugging level"), 0 },
   { "debug-line-info", OPT_LINE_INFO, NULL, 0,
-    N_("Show source info with debugging messages"), 0 },
+    N_("show source info with debugging messages"), 0 },
   { NULL }
 };
 

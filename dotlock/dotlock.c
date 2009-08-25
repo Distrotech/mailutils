@@ -44,16 +44,16 @@ static char args_doc[] = N_("FILE");
 
 static struct argp_option options[] = {
   {"unlock", 'u', NULL, 0,
-   N_("Unlock"), 0},
+   N_("unlock"), 0},
 
   {"force", 'f', N_("MINUTES"), OPTION_ARG_OPTIONAL,
-   N_("Forcibly break an existing lock older than a certain time"), 0},
+   N_("forcibly break an existing lock older than a certain time"), 0},
 
   {"retry", 'r', N_("RETRIES"), OPTION_ARG_OPTIONAL,
-   N_("Retry the lock a few times"), 0},
+   N_("retry the lock a few times"), 0},
 
   {"debug", 'd', NULL, 0,
-   N_("Print details of failure reasons to stderr"), 0},
+   N_("print details of failure reasons to stderr"), 0},
 
   {NULL, 0, NULL, 0, NULL, 0}
 };

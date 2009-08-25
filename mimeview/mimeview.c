@@ -43,18 +43,18 @@ N_("\n\nDebug flags are:\n\
 
 static struct argp_option options[] = {
   {"no-ask", 'a', N_("TYPE-LIST"), OPTION_ARG_OPTIONAL,
-   N_("Do not ask for confirmation before displaying files. If TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"), 0},
+   N_("do not ask for confirmation before displaying files, or, if TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"), 0},
   {"no-interactive", 'h', NULL, 0,
-   N_("Disable interactive mode"), 0 },
+   N_("disable interactive mode"), 0 },
   {"print", 0, NULL, OPTION_ALIAS, NULL, 0 },
   {"debug",  'd', N_("FLAGS"),  OPTION_ARG_OPTIONAL,
-   N_("Enable debugging output"), 0},
+   N_("enable debugging output"), 0},
   {"mimetypes", 't', N_("FILE"), 0,
-   N_("Use this mime.types file"), 0},
+   N_("use this mime.types file"), 0},
   {"dry-run", 'n', NULL, 0,
-   N_("Do not do anything, just print what whould be done"), 0},
+   N_("do not do anything, just print what whould be done"), 0},
   {"metamail", OPT_METAMAIL, N_("FILE"), OPTION_ARG_OPTIONAL,
-   N_("Use metamail to display files"), 0},
+   N_("use metamail to display files"), 0},
   {0, 0, 0, 0}
 };
 

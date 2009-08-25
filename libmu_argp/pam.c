@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
 
 static struct argp_option mu_pam_argp_option[] = {
   { "pam-service", OPT_PAM_SERVICE, N_("STRING"), OPTION_HIDDEN,
-    N_("Use STRING as PAM service name"), 0},
+    N_("use STRING as PAM service name"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 

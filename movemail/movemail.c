@@ -40,17 +40,17 @@ static char args_doc[] = N_("inbox-url destfile [POP-password]");
 #define OPT_EMACS 256
 
 static struct argp_option options[] = {
-  { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox") },
+  { "preserve", 'p', NULL, 0, N_("preserve the source mailbox") },
   { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
-  { "reverse",  'r', NULL, 0, N_("Reverse the sorting order") },
+  { "reverse",  'r', NULL, 0, N_("reverse the sorting order") },
   { "emacs", OPT_EMACS, NULL, 0,
-    N_("Output information used by Emacs rmail interface") },
+    N_("output information used by Emacs rmail interface") },
   { "uidl", 'u', NULL, 0,
-    N_("Use UIDLs to avoid downloading the same message twice") },
+    N_("use UIDLs to avoid downloading the same message twice") },
   { "verbose", 'v', NULL, 0,
-    N_("Increase verbosity level") },
+    N_("increase verbosity level") },
   { "owner", 'P', N_("MODELIST"), 0,
-    N_("Control mailbox ownership") },
+    N_("control mailbox ownership") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -431,7 +431,7 @@ move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
     }
   if ((rc = mu_mailbox_append_message (dst, msg)) != 0)
     {
-      mu_error (_("cannot append message %lu: %s\n"),
+      mu_error (_("cannot append message %lu: %s"),
 		(unsigned long) msgno, mu_strerror (rc));
       return rc;
     }
@@ -498,8 +498,7 @@ get_mbox_owner_id (mu_mailbox_t mbox, mu_url_t url, struct user_id *id)
 	die (mbox, _("cannot get path"), rc);
       if (stat (s, &st))
 	{
-	  mu_error (_("cannot stat mailbox `%s': %s"), s,
-		    mu_strerror (errno));
+	  mu_diag_funcall (MU_DIAG_ERROR, "stat", s, errno);
 	  exit (1);
 	}
       id->uid = st.st_uid;
@@ -551,7 +550,10 @@ guess_mbox_owner (mu_mailbox_t mbox, struct user_id *id)
   
   rc = mu_mailbox_get_url (mbox, &url);
   if (rc)
-    die (mbox, _("cannot get url"), rc);
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_url", NULL, rc);
+      exit (1);
+    }
 
   rc = 1;
   for (meth = so_methods; rc == 1 && meth < so_methods + so_method_num; meth++)
@@ -772,7 +774,7 @@ main (int argc, char **argv)
 	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
 	    {
 	      if (verbose_option > 1)
-		mu_diag_output (MU_DIAG_INFO, _("Ignoring message %lu"),
+		mu_diag_output (MU_DIAG_INFO, _("ignoring message %lu"),
 				(unsigned long) i);
 	      continue;
 	    }

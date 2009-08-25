@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -41,15 +41,15 @@ static error_t mu_auth_argp_parser (int key, char *arg,
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
   { "authentication", OPT_AUTHENTICATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("Set the list of modules to be used for authentication"), 0 },
+    N_("set the list of modules to be used for authentication"), 0 },
   { "authorization", OPT_AUTHORIZATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("Set list of modules to be used for authorization"), 0 },
+    N_("set list of modules to be used for authorization"), 0 },
   { "clear-authorization", OPT_CLEAR_AUTHORIZATION, NULL, OPTION_HIDDEN,
-    N_("Clear the list of authorization modules"), 0 },
+    N_("clear the list of authorization modules"), 0 },
   { "clear-authentication", OPT_CLEAR_AUTHENTICATION, NULL, OPTION_HIDDEN,
-    N_("Clear the list of authentication modules"), 0 },
+    N_("clear the list of authentication modules"), 0 },
   { "debug-auth", OPT_DEBUG_AUTH, NULL, 0,
-    N_("Debug authentication functions") },
+    N_("debug authentication functions") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 

@@ -28,11 +28,11 @@ static char args_doc[] = N_("[components]");
 /* GNU options */
 static struct argp_option options[] = {
   {"all",  ARG_ALL, NULL, 0,
-   N_("Display all components from the MH profile. All other arguments are ignored")},
+   N_("display all components from the MH profile. All other arguments are ignored")},
   {"component", ARG_COMPONENT, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("Always display the component name") },
+   N_("always display the component name") },
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 

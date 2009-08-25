@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@ static char args_doc[] = N_("[+folder] [msgs]");
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 

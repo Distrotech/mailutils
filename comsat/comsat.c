@@ -62,12 +62,12 @@ static struct argp_option options[] =
 {
   { "config", 'c', N_("FILE"), OPTION_HIDDEN, "", 0 },
   { "convert-config", 'C', N_("FILE"), 0,
-    N_("Convert the configuration FILE to new format."), 0 },
-  { "test", 't', NULL, 0, N_("Run in test mode"), 0 },
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), 0},
-  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0 },
+    N_("convert the configuration FILE to new format"), 0 },
+  { "test", 't', NULL, 0, N_("run in test mode"), 0 },
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
+  { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0 },
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
+    N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -120,7 +120,7 @@ int test_mode;
 
 struct mu_cfg_param comsat_cfg_param[] = {
   { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
-    N_("Read .biffrc file from the user home directory") },
+    N_("Read .biffrc file from the user home directory.") },
   { "require-tty", mu_cfg_bool, &require_tty, 0, NULL,
     N_("Notify only if the user is logged on one of the ttys.") },
   { "max-lines", mu_cfg_int, &maxlines, 0, NULL,

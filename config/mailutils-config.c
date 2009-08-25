@@ -26,23 +26,21 @@
 #include "mailutils/libargp.h"
 
 const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
+static char doc[] = N_("GNU mailutils-config -- display compiler and loader options needed for building a program with mailutils");
 static char args_doc[] = N_("[arg...]");
 
 static struct argp_option options[] = {
   {"compile", 'c', NULL,   0,
-   N_("Print C compiler flags to compile with"), 0},
+   N_("print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
-   N_("Print libraries to link with. Possible arguments are: auth, guile, "
+   N_("print libraries to link with; possible arguments are: auth, guile, "
       "mbox, mh, maildir, mailer, imap, pop, sieve and all"), 0},
   {"info", 'i', NULL, 0,
-   N_("Print a list of configuration options used to build mailutils. If arguments "
-   "are given, they are interpreted as a list of configuration options to check "
-   "for. In this case the program prints those options from this list that "
-   "have been defined. It exits with zero status if all of the "
-   "specified options are defined. Otherwise, the exit status is 1."), 0},
+   N_("print a list of configuration options used to build mailutils; "
+      "oprional arguments are interpreted as a list of configuration "
+      "options to check for"), 0},
   {"verbose", 'v', NULL, 0,
-   N_("Increase output verbosity"), 0},
+   N_("increase output verbosity"), 0},
   {0, 0, 0, 0}
 };
 

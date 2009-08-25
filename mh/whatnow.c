@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,17 +27,17 @@ static char args_doc[] = N_("[FILE]");
 /* GNU options */
 static struct argp_option options[] = {
   {"draftfolder", ARG_DRAFTFOLDER, N_("FOLDER"), 0,
-   N_("Specify the folder for message drafts")},
+   N_("specify the folder for message drafts")},
   {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
-   N_("Undo the effect of the last --draftfolder option")},
+   N_("undo the effect of the last --draftfolder option")},
   {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
-   N_("Invoke the draftmessage facility")},
-  {"editor",  ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
-  {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
-  {"prompt", ARG_PROMPT, N_("STRING"), 0, N_("Set the prompt")},
+   N_("invoke the draftmessage facility")},
+  {"editor",  ARG_EDITOR, N_("PROG"), 0, N_("set the editor program to use")},
+  {"noedit", ARG_NOEDIT, 0, 0, N_("suppress the initial edit")},
+  {"prompt", ARG_PROMPT, N_("STRING"), 0, N_("set the prompt")},
 
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
 
   { NULL }
 };

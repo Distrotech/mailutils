@@ -64,25 +64,25 @@ static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 #define OPT_FOREGROUND      260
 
 static struct argp_option options[] = {
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), 0},
-  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), 0},
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
+  { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0},
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("Runs in daemon mode with a maximum of NUMBER children"), 0 },
+    N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
 
   {"other-namespace", 'O', N_("PATHLIST"), OPTION_HIDDEN,
-   N_("Set the `other' namespace"), 0},
+   N_("set the `other' namespace"), 0},
   {"shared-namespace", 'S', N_("PATHLIST"), OPTION_HIDDEN,
-   N_("Set the `shared' namespace"), 0},
+   N_("set the `shared' namespace"), 0},
   {"login-disabled", OPT_LOGIN_DISABLED, NULL, OPTION_HIDDEN,
-   N_("Disable LOGIN command")},
+   N_("disable LOGIN command")},
   {"create-home-dir", OPT_CREATE_HOME_DIR, N_("MODE"),
    OPTION_ARG_OPTIONAL|OPTION_HIDDEN,
-   N_("Create home directory, if it does not exist")},
+   N_("create home directory, if it does not exist")},
   {"preauth", OPT_PREAUTH, NULL, 0,
-   N_("Start in preauth mode") },
+   N_("start in preauth mode") },
 #ifdef WITH_TLS
   {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
-   N_("Always require STARTTLS before entering authentication phase")},
+   N_("always require STARTTLS before entering authentication phase")},
 #endif
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -299,7 +299,7 @@ cb_mailbox_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 
 static struct mu_cfg_param imap4d_cfg_param[] = {
   { "homedir", mu_cfg_string, &modify_homedir, 0, NULL,
-    N_("Modify home directory") },
+    N_("Modify home directory.") },
   { "personal-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_PRIVATE],
     0, NULL, 
     N_("Set personal namespace.") },

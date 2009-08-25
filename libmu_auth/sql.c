@@ -362,7 +362,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
   
   if (status)
     {
-      mu_error (_("SQL Query failed: %s"),
+      mu_error (_("SQL query failed: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -446,7 +446,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
   
   if (status)
     {
-      mu_error (_("SQL Query failed: %s"),
+      mu_error (_("SQL query failed: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -522,7 +522,7 @@ mu_sql_getpass (const char *username, char **passwd)
   
   if (status)
     {
-      mu_error (_("SQL Query failed: %s"),
+      mu_error (_("SQL query failed: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);

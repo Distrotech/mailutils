@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,13 +32,13 @@ enum {
 
 static struct argp_option mu_radius_argp_option[] = {
   { "radius-auth-request", OPT_AUTH_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to authenitcate the user"), 0 },
+    N_("radius request to authenitcate the user"), 0 },
   { "radius-getpwnam-request", OPT_GETPWNAM_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to retrieve a passwd entry based on username"), 0 },
+    N_("radius request to retrieve a passwd entry based on username"), 0 },
   { "radius-getpwuid-request", OPT_GETPWUID_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("Radius request to retrieve a passwd entry based on UID"), 0 },
+    N_("radius request to retrieve a passwd entry based on UID"), 0 },
   { "radius-directory", OPT_RADIUS_DIR, N_("DIR"), OPTION_HIDDEN,
-    N_("Set name of the radius configuration directory"), 0 },
+    N_("set name of the radius configuration directory"), 0 },
   { NULL }
 };
 

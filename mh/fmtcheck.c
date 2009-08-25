@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005,
-   2006, 2007, 2008  Free Software Foundation, Inc.
+   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,15 +29,15 @@ static char args_doc[] = "";
 /* GNU options */
 static struct argp_option options[] = {
   {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("Read format from given file")},
+   N_("read format from given file")},
   {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("Use this format string")},
+   N_("use this format string")},
   {"dump",    ARG_DUMP, NULL,     0,
-   N_("Dump the listing of compiled format code")},
+   N_("dump the listing of compiled format code")},
   { "debug",  ARG_DEBUG, NULL,     0,
-    N_("Enable parser debugging output"),},
+    N_("enable parser debugging output"),},
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
 
   { 0 }
 };

@@ -38,15 +38,15 @@ static char args_doc[] = N_("[+folder]");
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify the folder to delete")},
+   N_("specify the folder to delete")},
   {"interactive", ARG_INTERACTIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("Interactive mode: ask for confirmation before removing each folder")},
+    N_("interactive mode: ask for confirmation before removing each folder")},
   {"nointeractive", ARG_NOINTERACTIVE, NULL, OPTION_HIDDEN, ""},
   {"recursive", ARG_RECURSIVE, NULL, 0,
-   N_("Recursively delete all subfolders")},
+   N_("recursively delete all subfolders")},
   {"norecursive", ARG_NORECURSIVE, NULL, OPTION_HIDDEN, ""},
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 
@@ -160,7 +160,7 @@ rmf (const char *name)
 	{
 	  if (unlink (p))
 	    {
-	      mu_error (_("cannot unlink %s: %s"), p, strerror (errno));
+	      mu_diag_funcall (MU_DIAG_ERROR, "unlink", p, errno);
 	      failures++;
 	    }
 	}

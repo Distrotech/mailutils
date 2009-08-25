@@ -26,12 +26,12 @@ const char *program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU from -- display from and subject");
 
 static struct argp_option options[] = {
-  {"count",  'c', NULL,   0, N_("Just print a count of messages and exit")},
+  {"count",  'c', NULL,   0, N_("just print a count of messages and exit")},
   {"sender", 's', N_("ADDRESS"), 0,
-   N_("Print only mail from addresses containing the supplied string") },
+   N_("print only mail from addresses containing the supplied string") },
   {"file",   'f', N_("FILE"), 0,
-   N_("Read mail from FILE") },
-  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
+   N_("read mail from FILE") },
+  {"debug",  'd', NULL,   0, N_("enable debugging output"), 0},
   {0, 0, 0, 0}
 };
 
@@ -132,7 +132,7 @@ main (int argc, char **argv)
     {
       if (mailbox_name)
 	{
-	  mu_error (_("Both --from option and user name are specified"));
+	  mu_error (_("both --from option and user name are specified"));
 	  exit (1);
 	}
 

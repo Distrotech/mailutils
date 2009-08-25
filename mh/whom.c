@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,21 +26,21 @@ static char args_doc[] = "[file]";
 /* GNU options */
 static struct argp_option options[] = {
   {"alias",         ARG_ALIAS,         N_("FILE"), 0,
-   N_("Specify additional alias file") },
+   N_("specify additional alias file") },
   {"draft",         ARG_DRAFT,         NULL, 0,
-   N_("Use prepared draft") },
+   N_("use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
-   N_("Specify the folder for message drafts") },
+   N_("specify the folder for message drafts") },
   {"draftmessage",  ARG_DRAFTMESSAGE,  NULL, 0,
-   N_("Treat the arguments as a list of messages from the draftfolder") },
+   N_("treat the arguments as a list of messages from the draftfolder") },
   {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
-   N_("Undo the effect of the last --draftfolder option") },
+   N_("undo the effect of the last --draftfolder option") },
   {"check",         ARG_CHECK,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Check if addresses are deliverable") },
+   N_("check if addresses are deliverable") },
   {"nocheck",       ARG_NOCHECK,       NULL, OPTION_HIDDEN, "" },
 
   {"license",       ARG_LICENSE,       0,    0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
 
   {NULL}
 };

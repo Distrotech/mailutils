@@ -68,37 +68,37 @@ N_("Debug flags:\n\
 static struct argp_option options[] =
 {
   {"no-actions", 'n', 0, 0,
-   N_("Do not execute any actions, just print what would be done"), 0},
+   N_("do not execute any actions, just print what would be done"), 0},
   {"dry-run", 0, NULL, OPTION_ALIAS, NULL },
   {"keep-going", 'k', 0, 0,
-   N_("Keep on going if execution fails on a message"), 0},
+   N_("keep on going if execution fails on a message"), 0},
 
   {"compile-only", 'c', 0, 0,
-   N_("Compile script and exit"), 0},
+   N_("compile script and exit"), 0},
 
   {"dump", 'D', 0, 0,
-   N_("Compile script, dump disassembled sieve code to terminal and exit"), 0 },
+   N_("compile script, dump disassembled sieve code to terminal and exit"), 0 },
   
   {"mbox-url", 'f', N_("MBOX"), 0,
-   N_("Mailbox to sieve (defaults to user's mail spool)"), 0},
+   N_("mailbox to sieve (defaults to user's mail spool)"), 0},
 
   {"ticket", 't', N_("TICKET"), 0,
-   N_("Ticket file for user authentication"), 0},
+   N_("ticket file for user authentication"), 0},
 
   {"debug", 'd', N_("FLAGS"), OPTION_ARG_OPTIONAL,
-   N_("Debug flags (defaults to \"" D_DEFAULT "\")"), 0},
+   N_("debug flags (defaults to \"" D_DEFAULT "\")"), 0},
 
   {"verbose", 'v', NULL, 0,
-   N_("Log all actions"), 0},
+   N_("log all actions"), 0},
 
   {"line-info", ARG_LINE_INFO, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Print source location along with action logs (default)") },
+   N_("print source location along with action logs (default)") },
    
   {"email", 'e', N_("ADDRESS"), 0,
-   N_("Override user email address"), 0},
+   N_("override user email address"), 0},
 
   {"no-program-name", ARG_NO_PROGRAM_NAME, NULL, 0,
-   N_("Do not prefix diagnostic messages with the program name"), 0},
+   N_("do not prefix diagnostic messages with the program name"), 0},
   
   {0}
 };

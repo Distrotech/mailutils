@@ -67,41 +67,41 @@ static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
 static struct argp_option options[] = {
 #define GRP 0
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("Remain in foreground."), GRP+1},
-  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), GRP+1},
+  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), GRP+1},
+  { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRP+1},
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("Runs in daemon mode with a maximum of NUMBER children"), GRP+1 },
+    N_("runs in daemon mode with a maximum of NUMBER children"), GRP+1 },
 #undef GRP
 
 #define GRP 5
   {"undelete", 'u', NULL, OPTION_HIDDEN,
-   N_("Undelete all messages on startup"), GRP+1},
+   N_("undelete all messages on startup"), GRP+1},
   {"expire", OPT_EXPIRE, N_("DAYS"), OPTION_HIDDEN,
-   N_("Expire read messages after the given number of days"), GRP+1},
+   N_("expire read messages after the given number of days"), GRP+1},
   {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, OPTION_HIDDEN,
-   N_("Delete expired messages upon closing the mailbox"), GRP+1},
+   N_("delete expired messages upon closing the mailbox"), GRP+1},
 #ifdef WITH_TLS
   {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
-   N_("Always require STLS before entering authentication phase")},
+   N_("always require STLS before entering authentication phase")},
 #endif
 #undef GRP
   
 #define GRP 10
 #ifdef ENABLE_LOGIN_DELAY
   {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), OPTION_HIDDEN,
-   N_("Allowed delay between two successive logins"), GRP+1},
+   N_("allowed delay between two successive logins"), GRP+1},
   {"stat-file", OPT_STAT_FILE, N_("FILENAME"), OPTION_HIDDEN,
-   N_("Name of login statistics file"), GRP+1},
+   N_("name of login statistics file"), GRP+1},
 #endif
   
 #undef GRP
 
 #define GRP 20
   { "bulletin-source", OPT_BULLETIN_SOURCE, N_("MBOX"), OPTION_HIDDEN,
-    N_("Set source mailbox to get bulletins from"), GRP+1 },
+    N_("set source mailbox to get bulletins from"), GRP+1 },
 #ifdef USE_DBM
   { "bulletin-db", OPT_BULLETIN_DB, N_("FILE"), OPTION_HIDDEN,
-    N_("Set the bulletin database file name"), GRP+1 },
+    N_("set the bulletin database file name"), GRP+1 },
 #endif
 #undef GRP
   
@@ -459,9 +459,8 @@ main (int argc, char **argv)
             }
           else
             {
-	       mu_error (_("error getting mail group: %s"), 
-                         mu_strerror (errno));
-	       exit (EX_OSERR);
+	      mu_diag_funcall (MU_DIAG_ERROR, "getgrnam", "mail", errno);
+	      exit (EX_OSERR);
             }
 	}
 

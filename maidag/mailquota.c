@@ -194,7 +194,7 @@ sql_retrieve_quota (char *name, mu_off_t *quota)
   
   if (status)
     {
-      mu_error (_("SQL Query failed: %s"),
+      mu_error (_("SQL query failed: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);

@@ -39,8 +39,8 @@ static struct argp_option options[] = {
   { NULL,         0, NULL,  0,
     /* TRANSLATORS: 'messages' is a program name. Do not translate it! */
     N_("messages specific switches:"), 0},
-  {"quiet",	'q',	0,	0,	N_("Only display number of messages")},
-  {"silent",	's',	0,	0,	N_("Same as -q")},
+  {"quiet",	'q',	NULL,	0,	N_("only display number of messages")},
+  {"silent",	's',	NULL,	OPTION_ALIAS, NULL },
   { 0 }
 };
 

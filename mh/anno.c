@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2005, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,19 +29,19 @@ static char args_doc[] = N_("[msg [msg...]]");
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Annotate the message in place")},
+   N_("* annotate the message in place")},
   {"noinplace", ARG_NOINPLACE, NULL, OPTION_HIDDEN,  "" },
   {"date", ARG_DATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Add FIELD: Date header") },
+   N_("add FIELD: date header") },
   {"nodate", ARG_NODATE, NULL, OPTION_HIDDEN, "" },
   {"component", ARG_COMPONENT, N_("FIELD"), 0,
-   N_("Add this FIELD to the message header") },
+   N_("add this FIELD to the message header") },
   {"text", ARG_TEXT, N_("STRING"), 0,
-   N_("Field value for the component") },
+   N_("field value for the component") },
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { NULL }
 };
 

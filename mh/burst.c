@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,23 +32,23 @@ static char args_doc[] = "[msgs]";
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",        ARG_FOLDER,        N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"inplace",      ARG_INPLACE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Replace the source message with the table of contents, insert extracted messages after it") },
+   N_("replace the source message with the table of contents, insert extracted messages after it") },
   {"noinplace",    ARG_NOINPLACE,    0, OPTION_HIDDEN, ""},
   {"quiet",        ARG_QUIET,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Be quiet about the messages that are not in digest format") },
+   N_("be quiet about the messages that are not in digest format") },
   {"noquiet",      ARG_NOQUIET,      0, OPTION_HIDDEN, ""},
   {"verbose",      ARG_VERBOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Verbosely list the actions taken") },
+   N_("verbosely list the actions taken") },
   {"noverbose",    ARG_NOVERBOSE,    0, OPTION_HIDDEN, ""},
   {"recursive",    ARG_RECURSIVE,    N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Recursively expand MIME messages") },
+   N_("recursively expand MIME messages") },
   {"norecursive",  ARG_NORECURSIVE,  0, OPTION_HIDDEN, ""},
   {"length",       ARG_LENGTH,       N_("NUMBER"), 0,
-   N_("Set minimal length of digest encapsulation boundary (default 1)") },
+   N_("set minimal length of digest encapsulation boundary (default 1)") },
   {"license",      ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { NULL }
 };
 

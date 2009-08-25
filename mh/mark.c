@@ -27,23 +27,23 @@ static char args_doc[] = "[msgs...]";
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"sequence", ARG_SEQUENCE, N_("NAME"), 0,
-   N_("Specify sequence name to operate upon")},
+   N_("specify sequence name to operate upon")},
   {"add", ARG_ADD, NULL, 0,
-   N_("Add messages to the sequence")},
+   N_("add messages to the sequence")},
   {"delete", ARG_DELETE, NULL, 0,
-   N_("Delete messages from the sequence")},
+   N_("delete messages from the sequence")},
   {"list", ARG_LIST, NULL, 0,
-   N_("List the sequences")},
+   N_("list the sequences")},
   {"public", ARG_PUBLIC, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Create public sequence")},
+   N_("create public sequence")},
   {"nopublic", ARG_NOPUBLIC, NULL, OPTION_HIDDEN, "" },
   {"zero", ARG_ZERO, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Empty the sequence before adding messages")},
+   N_("empty the sequence before adding messages")},
   {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "" },
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   {NULL}
 };
 

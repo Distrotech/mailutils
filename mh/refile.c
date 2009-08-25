@@ -35,20 +35,20 @@ static char args_doc[] = N_("messages folder [folder...]");
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"draft",   ARG_DRAFT, NULL, 0,
-   N_("Use <mh-dir>/draft as the source message")},
+   N_("use <mh-dir>/draft as the source message")},
   {"copy",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Preserve the source folder copy")},
+   N_("preserve the source folder copy")},
   {"link",    0, NULL, OPTION_ALIAS, NULL},
   {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Try to preserve message sequence numbers")},
+   N_("* try to preserve message sequence numbers")},
   {"source", ARG_SOURCE, N_("FOLDER"), 0,
-   N_("Specify source folder. FOLDER will become the current folder after the program exits")},
+   N_("specify source folder; it will become the current folder after the program exits")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
-  {"file", ARG_FILE, N_("FILE"), 0, N_("Use FILE as the source message")},
+  {"file", ARG_FILE, N_("FILE"), 0, N_("use FILE as the source message")},
   {"license", ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 
@@ -82,6 +82,7 @@ add_folder (const char *folder)
 void
 open_folders ()
 {
+  int rc;
   mu_iterator_t itr;
 
   if (!folder_name_list)
@@ -90,15 +91,15 @@ open_folders ()
       exit (1);
     }
 
-  if (mu_list_create (&folder_mbox_list))
+  if ((rc = mu_list_create (&folder_mbox_list)) != 0)
     {
-      mu_error (_("cannot create folder list"));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, rc);
       exit (1);
     }
 
-  if (mu_list_get_iterator (folder_name_list, &itr))
+  if ((rc = mu_list_get_iterator (folder_name_list, &itr)) != 0)
     {
-      mu_error (_("cannot create iterator"));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_get_iterator", NULL, rc);
       exit (1);
     }
 

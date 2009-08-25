@@ -36,7 +36,7 @@ cb_password_type (mu_debug_t debug, void *data, mu_config_value_t *val)
   
   if (mu_sql_decode_password_type (val->v.string, &sql_settings.password_type))
     mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			 _("Unknown password type `%s'"),
+			 _("unknown password type `%s'"),
 			 val->v.string);
   return 0;
 }

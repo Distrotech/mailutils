@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004, 2005, 2007, 2008 Free Software Foundation, Inc.
+   2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,29 +39,19 @@ static struct attr_tab {
   int code;        /* Corresponding IS_.* flag */
   size_t len;      /* Minimum abbreviation length */
 } attr_tab[] = {
-  /* TRANSLATORS: See comment marked [frm status] below */
-  { N_("new"), IS_NEW, 0 },
-  /* TRANSLATORS: See comment marked [frm status] below */
-  { N_("old"), IS_OLD, 0 },
-  /* TRANSLATORS: See comment marked [frm status] below */
-  { N_("unread"), IS_OLD, 0 },
-  /* TRANSLATORS: See comment marked [frm status] below */
-  { N_("read"), IS_READ, 0 },
+  { "new", IS_NEW, 0 },
+  { "old", IS_OLD, 0 },
+  { "unread", IS_OLD, 0 },
+  { "read", IS_READ, 0 },
   { NULL }
 };
 
 static char attr_help[] =
-/* TRANSLATORS: [frm status]
-   
-   1) Please make sure the words "new", "unread", "old" and
-   "read" are translated exactly as in four preceeding messages.
-   
-   2) If possible, select such translations for these words, that
-   differ by the first letter.
-*/
-N_("Select messages with the specific attribute. STATUS is one \
-of the following: new, unread, old (same as unread) or read. Any unambiguous \
-abbreviation of those is also accepted.");
+/* TRANSLATORS: Please do *not* translate the words "new", "unread",
+   "old" and "read". They are keywords. */
+N_("select messages with the specific attribute: \
+new, unread, old (same as unread) or read (or any unambiguous \
+abbreviation of these)");
 
 
 /* Attribute table handling */
@@ -74,7 +64,7 @@ prepare_attrs (void)
 
   for (p = attr_tab; p->name; p++)
     {
-      const char *name = gettext (p->name);
+      const char *name = p->name;
       size_t len = strlen (name);
       size_t n = 1;
 
@@ -82,7 +72,7 @@ prepare_attrs (void)
 	{
 	  if (p != q)
 	    {
-	      const char *str = gettext (q->name);
+	      const char *str = q->name;
 	      size_t slen = strlen (str);
 
 	      if (memcmp (name, str, n) == 0)
@@ -112,7 +102,7 @@ decode_attr (char *arg)
   
   for (p = attr_tab; p->name; p++)
     {
-      const char *str = gettext (p->name);
+      const char *str = p->name;
       if (str[0] == arg[0])
 	{
 	  if (len < p->len)
@@ -133,15 +123,15 @@ decode_attr (char *arg)
 
 
 static struct argp_option options[] = {
-  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
-  {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
-  {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
-  {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
-  {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
-  {"query",  'q', NULL,   0, N_("Print a message if the mailbox contains some unread mail"), 0},
-  {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
+  {"debug",  'd', NULL,   0, N_("enable debugging output"), 0},
+  {"field",  'f', N_("NAME"), 0, N_("header field to display"), 0},
+  {"to",     'l', NULL,   0, N_("include the To: information"), 0},
+  {"number", 'n', NULL,   0, N_("display message numbers"), 0},
+  {"Quiet",  'Q', NULL,   0, N_("very quiet"), 0},
+  {"query",  'q', NULL,   0, N_("print a message if the mailbox contains some unread mail"), 0},
+  {"summary",'S', NULL,   0, N_("print a summary of messages"), 0},
   {"status", 's', N_("STATUS"), 0, attr_help, 0},
-  {"align",  't', NULL,   0, N_("Tidy mode: align subject lines"), 0},
+  {"align",  't', NULL,   0, N_("tidy mode: align subject lines"), 0},
   {0, 0, 0, 0}
 };
 

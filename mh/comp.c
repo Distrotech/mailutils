@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2003, 2005, 2006, 2007, 
-   2008 Free Software Foundation, Inc.
+   2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,32 +32,32 @@ static char args_doc[] = "[msg]";
 /* GNU options */
 static struct argp_option options[] = {
   {"build",         ARG_BUILD, 0, 0,
-   N_("Build the draft and quit immediately.")},
+   N_("build the draft and quit immediately.")},
   {"draftfolder",   ARG_DRAFTFOLDER, N_("FOLDER"), 0,
-   N_("Specify the folder for message drafts")},
+   N_("specify the folder for message drafts")},
   {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
-   N_("Undo the effect of the last --draftfolder option")},
+   N_("undo the effect of the last --draftfolder option")},
   {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
-   N_("Invoke the draftmessage facility")},
+   N_("invoke the draftmessage facility")},
   {"folder",        ARG_FOLDER, N_("FOLDER"), 0,
-   N_("Specify folder to operate upon")},
+   N_("specify folder to operate upon")},
   {"file",          ARG_FILE, N_("FILE"), 0,
-   N_("Use FILE as the message draft")},
+   N_("use FILE as the message draft")},
   {"editor",        ARG_EDITOR, N_("PROG"), 0,
-   N_("Set the editor program to use")},
+   N_("set the editor program to use")},
   {"noedit",        ARG_NOEDIT, 0, 0,
-   N_("Suppress the initial edit")},
+   N_("suppress the initial edit")},
   {"form",          ARG_FORM, N_("FILE"), 0,
-   N_("Read format from given file")},
+   N_("read format from given file")},
   {"whatnowproc",   ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("* Set the replacement for whatnow program")},
+   N_("* set the replacement for whatnow program")},
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("* Ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
+   N_("* ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
   {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Use draft file preserved after the last session") },
+   N_("use draft file preserved after the last session") },
   {"nouse",         ARG_NOUSE, NULL, OPTION_HIDDEN, ""},
   {"license",       ARG_LICENSE, 0,      0,
-   N_("Display software license"), -1},
+   N_("display software license"), -1},
   { 0 }
 };
 

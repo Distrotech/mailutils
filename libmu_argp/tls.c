@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,13 +31,13 @@ enum {
   
 static struct argp_option _tls_argp_options[] = {
   {"ssl-cert", OPT_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify SSL certificate file"), 0},
+   N_("specify SSL certificate file"), 0},
   {"ssl-key", OPT_SSL_KEY, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify SSL certificate key"), },
+   N_("specify SSL certificate key"), },
   {"ssl-cafile", OPT_SSL_CAFILE, N_("FILE"), OPTION_HIDDEN,
-   N_("Specify trusted CAs file"), 0},
+   N_("specify trusted CAs file"), 0},
   {"tls", OPT_TLS, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Enable TLS support") },
+   N_("enable TLS support") },
   {NULL, 0, NULL, 0, NULL, 0}
 };
 

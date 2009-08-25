@@ -79,21 +79,21 @@ static struct argp_option options[] =
  { NULL, 0, NULL, 0,
    N_("General options"), GRID },
       
-  { "foreground", FOREGROUND_OPTION, 0, 0, N_("Remain in foreground."),
+  { "foreground", FOREGROUND_OPTION, 0, 0, N_("remain in foreground"),
     GRID + 1 },
-  { "inetd",  'i', 0, 0, N_("Run in inetd mode"), GRID + 1 },
+  { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRID + 1 },
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("Runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
-  { "url", URL_OPTION, 0, 0, N_("Deliver to given URLs"), GRID + 1 },
+    N_("runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
+  { "url", URL_OPTION, 0, 0, N_("deliver to given URLs"), GRID + 1 },
   { "from", 'f', N_("EMAIL"), 0,
-    N_("Specify the sender's name"), GRID + 1 },
+    N_("specify the sender's name"), GRID + 1 },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
   { "lmtp", LMTP_OPTION, N_("URL"), OPTION_ARG_OPTIONAL,
-    N_("Operate in LMTP mode"), GRID + 1 },
+    N_("operate in LMTP mode"), GRID + 1 },
   { "debug", 'x', N_("FLAGS"), 0,
-    N_("Enable debugging"), GRID + 1 },
+    N_("enable debugging"), GRID + 1 },
   { "stderr", STDERR_OPTION, NULL, 0,
-    N_("Log to standard error"), GRID + 1 },
+    N_("log to standard error"), GRID + 1 },
 #undef GRID
 
 #define GRID 2
@@ -101,12 +101,12 @@ static struct argp_option options[] =
    N_("Scripting options"), GRID },
  
   { "language", 'l', N_("STRING"), 0,
-    N_("Define scripting language for the next --script option"),
+    N_("define scripting language for the next --script option"),
     GRID + 1 },
   { "script", 's', N_("PATTERN"), 0,
-    N_("Set name pattern for user-defined mail filter"), GRID + 1 },
+    N_("set name pattern for user-defined mail filter"), GRID + 1 },
   { "message-id-header", MESSAGE_ID_HEADER_OPTION, N_("STRING"), 0,
-    N_("Use this header to identify messages when logging Sieve actions"),
+    N_("use this header to identify messages when logging Sieve actions"),
     GRID + 1 },
 #undef GRID
   { NULL,      0, NULL, 0, NULL, 0 }
@@ -215,7 +215,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'r':
     case 'f':
       if (sender_address != NULL)
-	argp_error (state, _("Multiple --from options"));
+	argp_error (state, _("multiple --from options"));
       sender_address = arg;
       break;
       

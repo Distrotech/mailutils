@@ -138,7 +138,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      maidag_error (_("Error writing temporary file: %s"), 
+      maidag_error (_("error writing temporary file: %s"), 
                     mu_strerror (status));
       mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
       return status;
