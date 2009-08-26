@@ -5195,15 +5195,15 @@ node. Thus, @command{maidag} supersedes both @command{mail.local} and
 @command{mail.remote} utilities from GNU Mailutils versions prior to
 2.0.
 
-@command{Maidag} is also able to process incoming messages using Sieve
-or Scheme scripts and, based on results of this processing, to take a decision
-on whether to actually deliver and where to deliver them. Due to its
-extensive scripting facilities, @command{maidag} offers much more
-flexibility than other popular @acronym{MDA}s, such as
-@command{procmail}.
+@command{Maidag} is also able to process incoming messages using
+Sieve, Scheme or Python scripts and, based on results of this
+processing, to take a decision on whether to actually deliver and
+where to deliver them. Due to its extensive scripting facilities,
+@command{maidag} offers much more flexibility than other popular
+@acronym{MDA}s, such as @command{procmail}.
 
 @menu
-* Sendmail-maidag::          Using @command{maidag} with Sendmail.
+* Sendmail-maidag::         Using @command{maidag} with Sendmail.
 * Exim-maidag::             Using @command{maidag} with Exim.
 * MeTA1-maidag::            Using @command{maidag} with MeTA1.
 * Mailbox Quotas::
@@ -5473,19 +5473,11 @@ the following languages:
 @xref{Sieve Language}.
 
 @item Scheme
+@item Python
 @end itemize
 
-@menu
-* Sieve Maidag Filters::
-* Scheme Maidag Filters::
-@end menu
-
-@node Sieve Maidag Filters
-@subsubsection Sieve Maidag Filters
-@kwindex sieve-filter
-The file name of the Sieve filter to use is specified using
-@samp{sieve-filter} configuration statement. The following
-meta-symbols can be used in its argument:
+Mail filters to use are specified using @samp{script} configuration
+statement. The following meta-symbols can be used in its argument:
 
 @table @asis
 @item ~
@@ -5496,10 +5488,30 @@ Expands to the recipient home directory.
 Expands to the recipient user name.
 @end table
 
-For example, the following configuration statement:
+By default, a filename extension decide which scripting language will
+be used. User can alter the choice using @samp{language} configuration
+statement.  For example:
 
 @smallexample
-sieve-filter "~/.maidag.sv"
+language "python"
+script "~/.maidag-py-filter"
+@end smallexample
+
+@menu
+* Sieve Maidag Filters::
+* Scheme Maidag Filters::
+* Python Maidag Filters::
+@end menu
+
+@node Sieve Maidag Filters
+@subsubsection Sieve Maidag Filters
+@kwindex script
+The file name of the Sieve filter to use is specified using
+@samp{script} configuration statement.  For example, the following
+configuration statement:
+
+@smallexample
+script "~/.maidag.sv"
 @end smallexample
 
 @noindent
@@ -5518,14 +5530,66 @@ Sieve code will be visible in the delivered message.
 
 @node Scheme Maidag Filters
 @subsubsection Scheme Maidag Filters
-@kwindex guile-filter
+@kwindex script
 The file name of the Scheme mail filter is specified using
-@samp{guile-filter} configuration statement. This statement is
-processed as described in @ref{Sieve Maidag Filters}.
+@samp{script} configuration statement.  For example, the following
+configuration statement:
 
-Only one of @code{guile-filter} or @code{sieve-filter} may be
-used. The behavior of @command{maidag} if both statements are used is
-undefined.
+@smallexample
+script "~/.maidag.scm"
+@end smallexample
+
+@noindent
+instructs `maidag' to use file `.maidag.scm' in the recipient home
+directory as a Scheme filter.
+
+@node Python Maidag Filters
+@subsubsection Python Maidag Filters
+@kwindex script
+
+The file name of the Python mail filter is specified using
+@samp{script} configuration statement.  For example, the following
+configuration statement:
+
+@smallexample
+script "~/.maidag.py"
+@end smallexample
+
+@noindent
+instructs `maidag' to use file `.maidag.py' in the recipient home
+directory as a Python filter.
+
+@noindent
+A simple example of a mail filter written in Python:
+
+@smallexample
+from mailutils import *
+import maidag
+import re
+
+msg = message.Message (maidag.message)
+hdr = msg.header
+
+try:
+    if 'List-Post' in hdr and 'Received' in hdr \
+       and hdr['Received'].find ('fencepost.gnu.org') != -1:
+
+        # check envelope's sender address
+        m = re.search (r'([\w\-]+)-bounces\+([\w]+)=.*',
+                       msg.envelope.get_sender ())
+        if m:
+            lbox = m.group (1)
+            user = m.group (2)
+            # open destination mailbox and append message
+            dst = mailbox.MailboxDefault ('~/Mail/%s' % lbox)
+            dst.open ('ac')
+            dst.append_message (msg)
+            dst.close ()
+            # set deleted flag so maidag will not deliver msg elsewhere
+            msg.attribute.set_deleted ()
+except Exception:
+    pass
+@end smallexample
 
 @node Forwarding
 @subsection Forwarding
