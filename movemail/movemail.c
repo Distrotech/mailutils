@@ -195,7 +195,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 	  if (!str[len])
 	    {
 	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("Ownership method %s requires value"),
+				   _("ownership method %s requires value"),
 				   str);
 	      return 1;
 	    }
@@ -231,7 +231,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 	  if (!str[len])
 	    {
 	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("Ownership method %s requires value"),
+				   _("ownership method %s requires value"),
 				   str);
 	      return 1;
 	    }

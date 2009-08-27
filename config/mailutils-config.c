@@ -37,7 +37,7 @@ static struct argp_option options[] = {
       "mbox, mh, maildir, mailer, imap, pop, sieve and all"), 0},
   {"info", 'i', NULL, 0,
    N_("print a list of configuration options used to build mailutils; "
-      "oprional arguments are interpreted as a list of configuration "
+      "optional arguments are interpreted as a list of configuration "
       "options to check for"), 0},
   {"verbose", 'v', NULL, 0,
    N_("increase output verbosity"), 0},
