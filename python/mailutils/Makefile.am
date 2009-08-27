@@ -17,7 +17,8 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-pkgpython_PYTHON=\
+pythonsitedir=@PYTHON_SITE_DIR@
+pythonsite_PYTHON=\
  __init__.py \
  error.py \
  address.py \

@@ -63,7 +63,8 @@ libmu_py_la_LIBADD = $(PYTHON_LIBS) @MU_COMMON_LIBRARIES@ \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
-pkgpyexec_LTLIBRARIES = c_api.la
-c_api_la_LDFLAGS = -avoid-version -module -rpath $(pkgpyexecdir)
+pythonexecdir=@PYTHON_EXEC_DIR@
+pythonexec_LTLIBRARIES = c_api.la
+c_api_la_LDFLAGS = -avoid-version -module -rpath $(pythonexecdir)
 c_api_la_LIBADD = $(PYTHON_LIBS) ${MU_LIB_PY}
 c_api_la_SOURCES = c_api.c

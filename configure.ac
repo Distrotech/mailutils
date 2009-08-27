@@ -1136,6 +1136,18 @@ if test "$status_python" = yes; then
     if test "$status_python" = yes; then
       AC_DEFINE(WITH_PYTHON,1,[Enable Python support])
       MU_LIB_PY='${top_builddir}/python/libmu_py/libmu_py.la'
+      AC_SUBST([PYTHON_SITE_DIR])
+      AC_SUBST([PYTHON_EXEC_DIR])
+      AC_ARG_WITH([pythondir],
+           AC_HELP_STRING([--with-pythondir=DIR],
+                          [Specify the directory to install Python modules to]),
+           [case $withval in
+            /*)  PYTHON_SITE_DIR="${withval}/mailutils"
+	         PYTHON_EXEC_DIR="${withval}/mailutils";;
+            *)   AC_MSG_ERROR([Argument to --with-pythondir must be an absolute directory name]);;
+            esac],
+	   [PYTHON_SITE_DIR='$(pkgpythondir)'
+	    PYTHON_EXEC_DIR='$(pkgpyexecdir)'])
     fi
   fi
 fi
