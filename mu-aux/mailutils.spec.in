@@ -138,8 +138,8 @@ The GNU MH (Message Handling System).
 %build
 CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix} \
 			--with-guiledir=%{_datadir}/guile/site \
-			--with-gnutls --with-gsasl --with-gdbm \
-			--with-mysql --enable-mh-utils
+			--with-pythondir=%{python_sitelib} \
+			--with-gsasl --with-gdbm --with-mysql
 make
 
 %check
@@ -176,7 +176,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/movemail
 %{_bindir}/readmsg
 %{_bindir}/sieve
-%{_libexecdir}/*
 %{_libdir}/mailutils/list*
 %{_libdir}/mailutils/moderator*
 %{_libdir}/mailutils/numaddr*
@@ -200,6 +199,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libmu_*.a
 %{_libdir}/libmu_*.so
 %{_includedir}/mailutils/*.h
+%{_includedir}/mailutils/cpp/*.h
 %{_includedir}/mailutils/sys/*.h
 %{_datadir}/aclocal/mailutils.m4
 
