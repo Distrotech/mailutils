@@ -128,10 +128,12 @@ mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
 MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 install-data-hook:
-	@here=`pwd`; \
+	 @here=`pwd`; \
 	 cd $(DESTDIR)$(libdir);\
-	 if test -f libmu_scm.so; then \
-		$(LN_S) -f libmu_scm.so libguile-mailutils-v-$(VERSION).so; \
+	 if test -f libmu_scm.la; then \
+		dlname=`sed -n 's/dlname='\''\(.*\)'\''/\1/p' libmu_scm.la`; \
+		test -z "$dlname" && dlname='libmu_scm.so'; \
+		$(LN_S) -f "$$dlname" libguile-mailutils-v-$(VERSION).so; \
 	 fi; \
 	 cd $$here
 
