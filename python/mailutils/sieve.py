@@ -53,7 +53,7 @@ class Machine:
             raise SieveMachineError (status)
 
     def compile (self, name):
-        """Compile the sieve script from the file NAME."""
+        """Compile the sieve script from the file 'name'."""
         status = sieve.compile (self.mach, name)
         if status:
             raise SieveMachineError (status)
@@ -73,7 +73,7 @@ class Machine:
 
     def message (self, msg):
         """Execute the code from the given instance of sieve machine
-        over the MSG."""
+        over the 'msg'."""
         status = sieve.message (self.mach, msg.msg)
         if status:
             raise SieveMachineError (status)

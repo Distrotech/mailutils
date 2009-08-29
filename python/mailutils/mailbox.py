@@ -28,7 +28,19 @@ from mailutils.error import MailboxError
 
 class MailboxBase:
     def open (self, mode = 0):
-        """Open the connection."""
+        """Open the connection.
+
+        'mode' may be a string, consisting of the characters described
+        below, giving the access mode for the mailbox.
+
+        mode   Meaning
+        -------------------------------------------------------- 
+        r      Open for reading.
+        w      Open for writing.
+        a      Open for appending to the end of the mailbox.
+        c      Create the mailbox if it does not exist.
+
+        """
         if isinstance (mode, types.StringType):
             from mailutils import stream
             flags = 0
@@ -84,14 +96,14 @@ class MailboxBase:
         return unseen
 
     def get_message (self, msgno):
-        """Retrieve message number MSGNO."""
+        """Retrieve message number 'msgno'."""
         status, c_msg = mailbox.get_message (self.mbox, msgno)
         if status:
             raise MailboxError (status)
         return message.Message (c_msg)
 
     def append_message (self, msg):
-        """Append MSG to the mailbox."""
+        """Append 'msg' to the mailbox."""
         status = mailbox.append_message (self.mbox, msg.msg)
         if status:
             raise MailboxError (status)
@@ -135,19 +147,21 @@ class MailboxBase:
         return size
 
     def get_folder (self):
-        """Get the FOLDER."""
+        """Get the Folder object."""
         status, fld = mailbox.get_folder (self.mbox)
         if status:
             raise MailboxError (status)
         return folder.Folder (fld)
 
     def get_debug (self):
+        """Get the Debug object."""
         status, dbg = mailbox.get_debug (self.mbox)
         if status:
             raise MailboxError (status)
         return debug.Debug (dbg)
 
     def get_url (self):
+        """Get the Url object."""
         status, u = mailbox.get_url (self.mbox)
         if status:
             raise MailboxError (status)
@@ -206,6 +220,17 @@ class Mailbox (MailboxBase):
 
 class MailboxDefault (MailboxBase):
     def __init__ (self, name = None):
+        """MailboxDefault creates a Mailbox object for the supplied
+        mailbox 'name'. Before creating, the name is expanded using
+        the rules below:
+
+        %           --> system mailbox for the real uid
+        %user       --> system mailbox for the given user
+        ~/file      --> /home/user/file
+        ~user/file  --> /home/user/file
+        +file       --> /home/user/Mail/file
+        =file       --> /home/user/Mail/file
+        """
         self.mbox = mailbox.MailboxType ()
         status = mailbox.create_default (self.mbox, name)
         if status:

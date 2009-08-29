@@ -22,6 +22,27 @@ import types
 from mailutils.c_api import registrar
 
 def register_format (name = None):
+    """Register desired mailutils 'name' format.
+
+    A list or tuple of strings can be given.
+    Each element must be one of the following strings:
+
+    Argument             Meaning
+    -------------------------------------------------------------- 
+    'mbox'               Regular UNIX mbox format
+    'mh'                 MH mailbox format
+    'maildir'            Maildir mailbox format
+    'pop'                POP mailbox format
+    'pops'               POPS mailbox format
+    'imap'               IMAP mailbox format
+    'imaps'              IMAPS mailbox format
+    'sendmail'           sendmail mailer format
+    'smtp'               SMTP mailer format
+
+    If called without arguments, the function registers all available
+    formats.
+
+    """
     if name == None:
         registrar.register_format ()
     elif isinstance (name, types.TupleType) \

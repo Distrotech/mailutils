@@ -59,7 +59,7 @@ class Mailcap:
         return count
 
     def get_entry (self, item):
-        """Return in MailcapEntry the mailcap entry of ITEM."""
+        """Return in MailcapEntry the mailcap entry of 'item'."""
         status, entry = mailcap.get_entry (self.mc, item)
         if status:
             raise MailcapError (status)
