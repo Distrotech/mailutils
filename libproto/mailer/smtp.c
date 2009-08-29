@@ -59,7 +59,7 @@
 #include <url0.h>
 #include <registrar0.h>
 
-static int _mailer_smtp_init (mu_mailer_t);
+static int      _mailer_smtp_init (mu_mailer_t);
 
 static int
 _url_smtp_init (mu_url_t url)
@@ -77,7 +77,7 @@ _url_smtp_init (mu_url_t url)
 
   if (url->port == 0)
     url->port = MU_SMTP_PORT;
-  
+
   return 0;
 }
 
@@ -85,7 +85,7 @@ static struct _mu_record _smtp_record = {
   MU_SMTP_PRIO,
   MU_SMTP_SCHEME,
   _url_smtp_init,		/* url init.  */
-  _mu_mailer_mailbox_init,      /* Mailbox init.  */
+  _mu_mailer_mailbox_init,	/* Mailbox init.  */
   _mailer_smtp_init,		/* Mailer init.  */
   _mu_mailer_folder_init,	/* Folder init.  */
   NULL,				/* No need for a back pointer.  */
@@ -95,23 +95,24 @@ static struct _mu_record _smtp_record = {
   NULL,				/* _get_mailer method.  */
   NULL				/* _get_folder method.  */
 };
+
 /* We export : url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
-mu_record_t mu_smtp_record = &_smtp_record;
+mu_record_t     mu_smtp_record = &_smtp_record;
 
 struct _smtp
 {
-  mu_mailer_t mailer;
-  char *mailhost;
-  char *localhost;
+  mu_mailer_t     mailer;
+  char           *mailhost;
+  char           *localhost;
 
   /* IO buffering. */
-  char *buffer;			/* Must be freed. */
-  size_t buflen;
+  char           *buffer;	/* Must be freed. */
+  size_t          buflen;
 
-  char *ptr;
-  char *nl;
-  off_t s_offset;
+  char           *ptr;
+  char           *nl;
+  off_t           s_offset;
 
   enum smtp_state
   {
@@ -123,28 +124,28 @@ struct _smtp
   }
   state;
 
-  int extended;
-  unsigned long capa;           /* Server capabilities */
-  size_t max_size;              /* Maximum message size the server is willing
+  int             extended;
+  unsigned long   capa;		/* Server capabilities */
+  size_t          max_size;	/* Maximum message size the server is willing
 				   to accept */
-  unsigned long auth_mechs;     /* Available ESMTP AUTH mechanisms */
-  
-  const char *mail_from;
-  mu_address_t rcpt_to;		/* Destroy this if not the same as argto below. */
-  mu_address_t rcpt_bcc;
-  size_t rcpt_to_count;
-  size_t rcpt_bcc_count;
-  size_t rcpt_index;
-  size_t rcpt_count;
-  int bccing;
-  mu_message_t msg;		/* Destroy this if not same argmsg. */
+  unsigned long   auth_mechs;	/* Available ESMTP AUTH mechanisms */
 
-  off_t offset;
+  const char     *mail_from;
+  mu_address_t    rcpt_to;	/* Destroy this if not the same as argto below. */
+  mu_address_t    rcpt_bcc;
+  size_t          rcpt_to_count;
+  size_t          rcpt_bcc_count;
+  size_t          rcpt_index;
+  size_t          rcpt_count;
+  int             bccing;
+  mu_message_t    msg;		/* Destroy this if not same argmsg. */
+
+  off_t           offset;
 
   /* The mu_mailer_send_message() args. */
-  mu_message_t argmsg;
-  mu_address_t argfrom;
-  mu_address_t argto;
+  mu_message_t    argmsg;
+  mu_address_t    argfrom;
+  mu_address_t    argto;
 };
 
 typedef struct _smtp *smtp_t;
@@ -163,35 +164,36 @@ typedef struct _smtp *smtp_t;
 #define AUTH_GSSAPI          0x00000010
 #define AUTH_EXTERNAL        0x00000020
 
-struct auth_mech_record {
-  unsigned long id;
-  char *name;
+struct auth_mech_record
+{
+  unsigned long   id;
+  char           *name;
 };
 
 static struct auth_mech_record auth_mech_list[] = {
-  { AUTH_LOGIN, "login" },
-  { AUTH_PLAIN, "plain" },
-  { AUTH_CRAM_MD5, "cram-md5" },
-  { AUTH_DIGEST_MD5, "digest-md5" },
-  { AUTH_GSSAPI, "gssapi" },
-  { AUTH_EXTERNAL, "external" },
-  { 0, NULL },
+  {AUTH_LOGIN, "login"},
+  {AUTH_PLAIN, "plain"},
+  {AUTH_CRAM_MD5, "cram-md5"},
+  {AUTH_DIGEST_MD5, "digest-md5"},
+  {AUTH_GSSAPI, "gssapi"},
+  {AUTH_EXTERNAL, "external"},
+  {0, NULL},
 };
 
-static void smtp_destroy (mu_mailer_t);
-static int smtp_open (mu_mailer_t, int);
-static int smtp_close (mu_mailer_t);
-static int smtp_send_message (mu_mailer_t, mu_message_t, mu_address_t,
-			      mu_address_t);
-static int smtp_writeline (smtp_t smtp, const char *format, ...);
-static int smtp_readline (smtp_t);
-static int smtp_read_ack (smtp_t);
-static int smtp_parse_ehlo_ack (smtp_t);
-static int smtp_write (smtp_t);
-static int smtp_starttls (smtp_t);
-static int smtp_auth (smtp_t);
+static void     smtp_destroy (mu_mailer_t);
+static int      smtp_open (mu_mailer_t, int);
+static int      smtp_close (mu_mailer_t);
+static int      smtp_send_message (mu_mailer_t, mu_message_t, mu_address_t,
+				   mu_address_t);
+static int      smtp_writeline (smtp_t smtp, const char *format, ...);
+static int      smtp_readline (smtp_t);
+static int      smtp_read_ack (smtp_t);
+static int      smtp_parse_ehlo_ack (smtp_t);
+static int      smtp_write (smtp_t);
+static int      smtp_starttls (smtp_t);
+static int      smtp_auth (smtp_t);
 
-static int _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
+static int      _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
 
 /* Useful little macros, since these are very repetitive. */
 
@@ -238,7 +240,8 @@ CLEAR_STATE (smtp_t smtp)
    as that which is ongoing. Check this. */
 static int
 smtp_check_send_resumption (smtp_t smtp,
-			    mu_message_t msg, mu_address_t from, mu_address_t to)
+			    mu_message_t msg, mu_address_t from,
+			    mu_address_t to)
 {
   if (smtp->state == SMTP_NO_STATE)
     return 0;
@@ -306,7 +309,7 @@ while (0)
 static int
 _mailer_smtp_init (mu_mailer_t mailer)
 {
-  smtp_t smtp;
+  smtp_t          smtp;
 
   /* Allocate memory specific to smtp mailer.  */
   smtp = mailer->data = calloc (1, sizeof (*smtp));
@@ -323,7 +326,8 @@ _mailer_smtp_init (mu_mailer_t mailer)
 
   /* Set our properties.  */
   {
-    mu_property_t property = NULL;
+    mu_property_t   property = NULL;
+
     mu_mailer_get_property (mailer, &property);
     mu_property_set_value (property, "TYPE", "SMTP", 1);
   }
@@ -334,7 +338,7 @@ _mailer_smtp_init (mu_mailer_t mailer)
 static void
 smtp_destroy (mu_mailer_t mailer)
 {
-  smtp_t smtp = mailer->data;
+  smtp_t          smtp = mailer->data;
 
   CLEAR_STATE (smtp);
 
@@ -360,9 +364,9 @@ An SMTP mailer must be opened before any messages can be sent.
 static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
-  smtp_t smtp = mailer->data;
-  int status;
-  long port;
+  smtp_t          smtp = mailer->data;
+  int             status;
+  long            port;
 
   /* Sanity checks.  */
   if (!smtp)
@@ -371,7 +375,7 @@ smtp_open (mu_mailer_t mailer, int flags)
   mailer->flags = flags;
 
   if ((status = mu_url_get_port (mailer->url, &port)) != 0)
-     return status;
+    return status;
 
   switch (smtp->state)
     {
@@ -384,7 +388,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 
       /* Fetch the mailer server name and the port in the mu_url_t.  */
       if ((status = mu_url_aget_host (mailer->url, &smtp->mailhost)) != 0)
-        return status;
+	return status;
 
       if (smtp->localhost)
 	{
@@ -420,7 +424,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	{
 	  status =
 	    mu_tcp_stream_create (&mailer->stream, smtp->mailhost, port,
-			       mailer->flags);
+				  mailer->flags);
 	  CHECK_ERROR (smtp, status);
 	  mu_stream_setbufsiz (mailer->stream, BUFSIZ);
 	}
@@ -428,9 +432,8 @@ smtp_open (mu_mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MU_DEBUG2 (mailer->debug, MU_DEBUG_PROT, 
-                 "smtp_open (host: %s port: %ld)\n",
-		 smtp->mailhost, port);
+      MU_DEBUG2 (mailer->debug, MU_DEBUG_PROT,
+		 "smtp_open (host: %s port: %ld)\n", smtp->mailhost, port);
       status = mu_stream_open (mailer->stream);
       CHECK_EAGAIN (smtp, status);
       smtp->state = SMTP_GREETINGS;
@@ -446,7 +449,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	  return EACCES;
 	}
 
-ehlo:
+    ehlo:
       status = smtp_writeline (smtp, "EHLO %s\r\n", smtp->localhost);
       CHECK_ERROR (smtp, status);
 
@@ -475,26 +478,29 @@ ehlo:
 
 	  if (smtp->capa & CAPA_STARTTLS)
 	    smtp->state = SMTP_STARTTLS;
-	  else if (smtp->capa & CAPA_AUTH && mailer->url->user) {
-	    smtp->state = SMTP_AUTH;
-	  }
+	  else if (smtp->capa & CAPA_AUTH && mailer->url->user)
+	    {
+	      smtp->state = SMTP_AUTH;
+	    }
 	  else
 	    break;
 	}
 
     case SMTP_STARTTLS:
     case SMTP_STARTTLS_ACK:
-      if (smtp->capa & CAPA_STARTTLS) {
-	smtp_starttls (smtp);
-	goto ehlo;
-      }
+      if (smtp->capa & CAPA_STARTTLS)
+	{
+	  smtp_starttls (smtp);
+	  goto ehlo;
+	}
 
     case SMTP_AUTH:
     case SMTP_AUTH_ACK:
-      if (smtp->capa & CAPA_AUTH) {
-	smtp_auth (smtp);
-	break;
-      }
+      if (smtp->capa & CAPA_AUTH)
+	{
+	  smtp_auth (smtp);
+	  break;
+	}
 
     case SMTP_HELO:
       if (!smtp->extended)	/* FIXME: this will always be false! */
@@ -530,8 +536,9 @@ ehlo:
 static int
 smtp_close (mu_mailer_t mailer)
 {
-  smtp_t smtp = mailer->data;
-  int status;
+  smtp_t          smtp = mailer->data;
+  int             status;
+
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
@@ -563,8 +570,9 @@ smtp_close (mu_mailer_t mailer)
 static int
 smtp_reader (void *iodata)
 {
-  int status = 0;
-  smtp_t iop = iodata;
+  int             status = 0;
+  smtp_t          iop = iodata;
+
   status = smtp_read_ack (iop);
   CHECK_EAGAIN (iop, status);
   return status;
@@ -573,8 +581,9 @@ smtp_reader (void *iodata)
 static int
 smtp_writer (void *iodata, char *buf)
 {
-  smtp_t iop = iodata;
-  int status;
+  smtp_t          iop = iodata;
+  int             status;
+
   if (mu_c_strncasecmp (buf, "EHLO", 4) == 0)
     status = smtp_writeline (iop, "%s %s\r\n", buf, iop->localhost);
   else
@@ -586,9 +595,10 @@ smtp_writer (void *iodata, char *buf)
 }
 
 static void
-smtp_stream_ctl (void *iodata, mu_stream_t *pold, mu_stream_t new)
+smtp_stream_ctl (void *iodata, mu_stream_t * pold, mu_stream_t new)
 {
-  smtp_t iop = iodata;
+  smtp_t          iop = iodata;
+
   if (pold)
     *pold = iop->mailer->stream;
   if (new)
@@ -600,9 +610,9 @@ static int
 smtp_starttls (smtp_t smtp)
 {
 #ifdef WITH_TLS
-  int status;
-  mu_mailer_t mailer = smtp->mailer;
-  char *keywords[] = { "STARTTLS", NULL };
+  int             status;
+  mu_mailer_t     mailer = smtp->mailer;
+  char           *keywords[] = { "STARTTLS", NULL };
 
   if (!mu_tls_enable || !(smtp->capa & CAPA_STARTTLS))
     return -1;
@@ -613,7 +623,7 @@ smtp_starttls (smtp_t smtp)
 			 smtp_stream_ctl, keywords);
 
   MU_DEBUG1 (mailer->debug, MU_DEBUG_PROT, "TLS negotiation %s\n",
-  	     status == 0 ? "succeeded" : "failed");
+	     status == 0 ? "succeeded" : "failed");
 
   return status;
 #else
@@ -625,11 +635,11 @@ static void
 cram_md5 (char *secret, char *challenge, unsigned char *digest)
 {
   struct mu_md5_ctx context;
-  unsigned char ipad[64];
-  unsigned char opad[64];
-  int secret_len;
-  int challenge_len;
-  int i;
+  unsigned char   ipad[64];
+  unsigned char   opad[64];
+  int             secret_len;
+  int             challenge_len;
+  int             i;
 
   if (secret == 0 || challenge == 0)
     return;
@@ -642,7 +652,7 @@ cram_md5 (char *secret, char *challenge, unsigned char *digest)
   if (secret_len > 64)
     {
       mu_md5_init_ctx (&context);
-      mu_md5_process_bytes ((unsigned char *)secret, secret_len, &context);
+      mu_md5_process_bytes ((unsigned char *) secret, secret_len, &context);
       mu_md5_finish_ctx (&context, ipad);
       mu_md5_finish_ctx (&context, opad);
     }
@@ -660,7 +670,7 @@ cram_md5 (char *secret, char *challenge, unsigned char *digest)
 
   mu_md5_init_ctx (&context);
   mu_md5_process_bytes (ipad, sizeof (ipad), &context);
-  mu_md5_process_bytes ((unsigned char *)challenge, challenge_len, &context);
+  mu_md5_process_bytes ((unsigned char *) challenge, challenge_len, &context);
   mu_md5_finish_ctx (&context, digest);
 
   mu_md5_init_ctx (&context);
@@ -672,11 +682,11 @@ cram_md5 (char *secret, char *challenge, unsigned char *digest)
 static int
 smtp_auth (smtp_t smtp)
 {
-  int status;
-  mu_mailer_t mailer = smtp->mailer;
+  int             status;
+  mu_mailer_t     mailer = smtp->mailer;
   struct auth_mech_record *mechs = auth_mech_list;
-  const char *chosen_mech_name = NULL;
-  int chosen_mech_id = 0;
+  const char     *chosen_mech_name = NULL;
+  int             chosen_mech_id = 0;
 
   status = mu_url_sget_auth (mailer->url, &chosen_mech_name);
   if (status != MU_ERR_NOENT)
@@ -716,15 +726,16 @@ smtp_auth (smtp_t smtp)
 
   if (smtp->auth_mechs & AUTH_CRAM_MD5)
     {
-      int i;
-      char *p, *buf = NULL;
-      const char *user = NULL;
-      mu_secret_t secret;
-      unsigned char *chl;
-      size_t chlen, buflen = 0, b64buflen = 0;
-      unsigned char *b64buf = NULL;
-      unsigned char digest[16];
-      static char ascii_digest[33];
+      int             i;
+      char           *p, *buf = NULL;
+      const char     *user = NULL;
+      mu_secret_t     secret;
+      unsigned char  *chl;
+      size_t          chlen, buflen = 0, b64buflen = 0;
+      unsigned char  *b64buf = NULL;
+      unsigned char   digest[16];
+      static char     ascii_digest[33];
+
       memset (digest, 0, 16);
 
       status = mu_url_sget_user (mailer->url, &user);
@@ -757,7 +768,7 @@ smtp_auth (smtp_t smtp)
       mu_rtrim_cset (p, "\r\n");
       mu_base64_decode (p, strlen (p), &chl, &chlen);
 
-      cram_md5 ((char *)mu_secret_password (secret), chl, digest);
+      cram_md5 ((char *) mu_secret_password (secret), chl, digest);
       mu_secret_password_unref (secret);
       free (chl);
 
@@ -780,12 +791,12 @@ smtp_auth (smtp_t smtp)
 
   else if (smtp->auth_mechs & AUTH_PLAIN)
     {
-      int c;
-      char *buf = NULL;
-      unsigned char *b64buf = NULL;
-      size_t buflen = 0, b64buflen = 0;
-      const char *user = NULL;
-      mu_secret_t secret;
+      int             c;
+      char           *buf = NULL;
+      unsigned char  *b64buf = NULL;
+      size_t          buflen = 0, b64buflen = 0;
+      const char     *user = NULL;
+      mu_secret_t     secret;
 
       status = mu_url_sget_user (mailer->url, &user);
       if (status == MU_ERR_NOENT)
@@ -825,10 +836,11 @@ smtp_auth (smtp_t smtp)
 }
 
 static int
-message_set_header_value (mu_message_t msg, const char *field, const char *value)
+message_set_header_value (mu_message_t msg, const char *field,
+			  const char *value)
 {
-  int status = 0;
-  mu_header_t hdr = NULL;
+  int             status = 0;
+  mu_header_t     hdr = NULL;
 
   if ((status = mu_message_get_header (msg, &hdr)))
     return status;
@@ -842,9 +854,9 @@ message_set_header_value (mu_message_t msg, const char *field, const char *value
 static int
 message_has_bcc (mu_message_t msg)
 {
-  int status;
-  mu_header_t header = NULL;
-  size_t bccsz = 0;
+  int             status;
+  mu_header_t     header = NULL;
+  size_t          bccsz = 0;
 
   if ((status = mu_message_get_header (msg, &header)))
     return status;
@@ -895,11 +907,11 @@ The correct algorithm is
 */
 
 static int
-smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom,
-		   mu_address_t argto)
+smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg,
+		   mu_address_t argfrom, mu_address_t argto)
 {
-  smtp_t smtp = NULL;
-  int status;
+  smtp_t          smtp = NULL;
+  int             status;
 
   if (mailer == NULL)
     return EINVAL;
@@ -948,7 +960,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     case SMTP_ENV_FROM:
     ENV_FROM:
       {
-	size_t size;
+	size_t          size;
 
 	if ((smtp->capa & CAPA_SIZE)
 	    && mu_message_size (smtp->msg, &size) == 0)
@@ -983,8 +995,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
     case SMTP_ENV_RCPT:
     ENV_RCPT:
       {
-	mu_address_t addr = smtp->rcpt_to;
-	const char *to = NULL;
+	mu_address_t    addr = smtp->rcpt_to;
+	const char     *to = NULL;
 
 	if (smtp->bccing)
 	  addr = smtp->rcpt_bcc;
@@ -1052,13 +1064,13 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 
     case SMTP_SEND:
       {
-	mu_stream_t stream;
-	size_t n = 0;
-	char data[256] = "";
-	mu_header_t hdr;
-	mu_body_t body;
-	int found_nl;
-	
+	mu_stream_t     stream;
+	size_t          n = 0;
+	char            data[256] = "";
+	mu_header_t     hdr;
+	mu_body_t       body;
+	int             found_nl;
+
 	/* We may be here after an EAGAIN so check if we have something
 	   in the buffer and flush it.  */
 	status = smtp_write (smtp);
@@ -1067,10 +1079,10 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	mu_message_get_header (smtp->msg, &hdr);
 	mu_header_get_stream (hdr, &stream);
 	while ((status = mu_stream_readline (stream, data, sizeof (data),
-					  smtp->offset, &n)) == 0 && n > 0)
+					     smtp->offset, &n)) == 0 && n > 0)
 	  {
-	    int nl;
-	    
+	    int             nl;
+
 	    found_nl = (n == 1 && data[0] == '\n');
 	    if ((nl = (data[n - 1] == '\n')))
 	      data[n - 1] = '\0';
@@ -1089,7 +1101,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	      }
 	    else
 	      nl = 0;
-	    
+
 	    if (nl)
 	      {
 		status = smtp_writeline (smtp, "\r\n");
@@ -1099,7 +1111,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	      }
 	    smtp->offset += n;
 	  }
-	
+
 	if (!found_nl)
 	  {
 	    status = smtp_writeline (smtp, "\r\n");
@@ -1107,12 +1119,12 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	    status = smtp_write (smtp);
 	    CHECK_EAGAIN (smtp, status);
 	  }
-	
+
 	mu_message_get_body (smtp->msg, &body);
 	mu_body_get_stream (body, &stream);
 	smtp->offset = 0;
 	while ((status = mu_stream_readline (stream, data, sizeof (data) - 1,
-					  smtp->offset, &n)) == 0 && n > 0)
+					     smtp->offset, &n)) == 0 && n > 0)
 	  {
 	    if (data[n - 1] == '\n')
 	      data[n - 1] = '\0';
@@ -1125,7 +1137,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 	    CHECK_EAGAIN (smtp, status);
 	    smtp->offset += n;
 	  }
-	
+
 	smtp->offset = 0;
 	status = smtp_writeline (smtp, ".\r\n");
 	CHECK_ERROR (smtp, status);
@@ -1168,10 +1180,10 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg, mu_address_t argfrom
 }
 
 int
-smtp_address_add (mu_address_t *paddr, const char *value)
+smtp_address_add (mu_address_t * paddr, const char *value)
 {
-  mu_address_t addr = NULL;
-  int status;
+  mu_address_t    addr = NULL;
+  int             status;
 
   status = mu_address_create (&addr, value);
   if (status)
@@ -1184,7 +1196,7 @@ smtp_address_add (mu_address_t *paddr, const char *value)
 static int
 _smtp_property_is_set (smtp_t smtp, const char *name)
 {
-  mu_property_t property = NULL;
+  mu_property_t   property = NULL;
 
   mu_mailer_get_property (smtp->mailer, &property);
   return mu_property_is_set (property, name);
@@ -1193,9 +1205,9 @@ _smtp_property_is_set (smtp_t smtp, const char *name)
 static int
 _smtp_set_rcpt (smtp_t smtp, mu_message_t msg, mu_address_t to)
 {
-  int status = 0;
-  mu_header_t header = NULL;
-  char *value;
+  int             status = 0;
+  mu_header_t     header = NULL;
+  char           *value;
 
   /* Get RCPT_TO from TO, or the message. */
 
@@ -1205,7 +1217,7 @@ _smtp_set_rcpt (smtp_t smtp, mu_message_t msg, mu_address_t to)
       if ((status = mu_mailer_check_to (to)) != 0)
 	{
 	  MU_DEBUG (smtp->mailer->debug, MU_DEBUG_ERROR,
-	 	    "mu_mailer_send_message(): explicit to not valid\n");
+		    "mu_mailer_send_message(): explicit to not valid\n");
 	  return status;
 	}
       smtp->rcpt_to = to;
@@ -1256,7 +1268,7 @@ _smtp_set_rcpt (smtp_t smtp, mu_message_t msg, mu_address_t to)
       if (smtp->rcpt_bcc && (status = mu_mailer_check_to (smtp->rcpt_bcc)))
 	goto end;
     }
-  
+
 end:
 
   if (status)
@@ -1287,9 +1299,9 @@ end:
 static int
 smtp_writeline (smtp_t smtp, const char *format, ...)
 {
-  int len;
-  va_list ap;
-  int done = 1;
+  int             len;
+  va_list         ap;
+  int             done = 1;
 
   va_start (ap, format);
   do
@@ -1298,8 +1310,9 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
       if (len < 0 || (len >= (int) smtp->buflen)
 	  || !memchr (smtp->buffer, '\0', len + 1))
 	{
-	  char *buffer = NULL;
-	  size_t buflen = smtp->buflen * 2;
+	  char           *buffer = NULL;
+	  size_t          buflen = smtp->buflen * 2;
+
 	  buffer = realloc (smtp->buffer, buflen);
 	  if (smtp->buffer == NULL)
 	    return ENOMEM;
@@ -1324,20 +1337,21 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
       MU_DEBUG2 (smtp->mailer->debug, MU_DEBUG_PROT, "> %.*s\n", len,
 		 smtp->buffer);
     }
-  
+
   return 0;
 }
 
 static int
 smtp_write (smtp_t smtp)
 {
-  int status = 0;
-  size_t len;
+  int             status = 0;
+  size_t          len;
+
   if (smtp->ptr > smtp->buffer)
     {
       len = smtp->ptr - smtp->buffer;
       status = mu_stream_write (smtp->mailer->stream, smtp->buffer, len,
-			     0, &len);
+				0, &len);
       if (status == 0)
 	{
 	  memmove (smtp->buffer, smtp->buffer + len, len);
@@ -1355,8 +1369,8 @@ smtp_write (smtp_t smtp)
 static int
 smtp_read_ack (smtp_t smtp)
 {
-  int status;
-  int multi;
+  int             status;
+  int             multi;
 
   do
     {
@@ -1377,8 +1391,8 @@ smtp_read_ack (smtp_t smtp)
 static int
 smtp_parse_ehlo_ack (smtp_t smtp)
 {
-  int status;
-  int multi;
+  int             status;
+  int             multi;
 
   do
     {
@@ -1386,48 +1400,52 @@ smtp_parse_ehlo_ack (smtp_t smtp)
       status = smtp_readline (smtp);
       if ((smtp->ptr - smtp->buffer) > 4 && smtp->buffer[3] == '-')
 	multi = 1;
-      if (status == 0) {
-	smtp->ptr = smtp->buffer;
+      if (status == 0)
+	{
+	  smtp->ptr = smtp->buffer;
 
-	if (!mu_c_strncasecmp (smtp->buffer, "250-STARTTLS", 12))
-	  smtp->capa |= CAPA_STARTTLS;
-	else if (!mu_c_strncasecmp (smtp->buffer, "250-SIZE", 8))
-	  {
-	    smtp->capa |= CAPA_SIZE;
-	    if (smtp->buffer[8] == '=')
-	      {
-		char *p;
-		size_t n = strtoul (smtp->buffer + 9, &p, 10);
-		if (*p != '\n')
-		  MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_ERROR,
-			     "suspicious size declaration: %s",
-			     smtp->buffer);
-		else
-		  smtp->max_size = n;
-	      }
-	  }
-	else if (!mu_c_strncasecmp (smtp->buffer, "250-AUTH", 8))
-	  {
-	    char *name, *s;
-	    smtp->capa |= CAPA_AUTH;
+	  if (!mu_c_strncasecmp (smtp->buffer, "250-STARTTLS", 12))
+	    smtp->capa |= CAPA_STARTTLS;
+	  else if (!mu_c_strncasecmp (smtp->buffer, "250-SIZE", 8))
+	    {
+	      smtp->capa |= CAPA_SIZE;
+	      if (smtp->buffer[8] == '=')
+		{
+		  char           *p;
+		  size_t          n = strtoul (smtp->buffer + 9, &p, 10);
 
-	    for (name = strtok_r (smtp->buffer + 8, " ", &s); name;
-		 name = strtok_r (NULL, " ", &s))
-	      {
-		struct auth_mech_record *mechs = auth_mech_list;
-		for (; mechs->name; mechs++)
-		  {
-		    mu_rtrim_cset (name, "\r\n");
-		    if (!mu_c_strcasecmp (mechs->name, name))
-		      {
-			smtp->auth_mechs |= mechs->id;
-			break;
-		      }
-		  }
-	      }
-	  }
+		  if (*p != '\n')
+		    MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_ERROR,
+			       "suspicious size declaration: %s",
+			       smtp->buffer);
+		  else
+		    smtp->max_size = n;
+		}
+	    }
+	  else if (!mu_c_strncasecmp (smtp->buffer, "250-AUTH", 8))
+	    {
+	      char           *name, *s;
 
-      }
+	      smtp->capa |= CAPA_AUTH;
+
+	      for (name = strtok_r (smtp->buffer + 8, " ", &s); name;
+		   name = strtok_r (NULL, " ", &s))
+		{
+		  struct auth_mech_record *mechs = auth_mech_list;
+
+		  for (; mechs->name; mechs++)
+		    {
+		      mu_rtrim_cset (name, "\r\n");
+		      if (!mu_c_strcasecmp (mechs->name, name))
+			{
+			  smtp->auth_mechs |= mechs->id;
+			  break;
+			}
+		    }
+		}
+	    }
+
+	}
     }
   while (multi && status == 0);
 
@@ -1441,15 +1459,15 @@ smtp_parse_ehlo_ack (smtp_t smtp)
 static int
 smtp_readline (smtp_t smtp)
 {
-  size_t n = 0;
-  size_t total = smtp->ptr - smtp->buffer;
-  int status;
+  size_t          n = 0;
+  size_t          total = smtp->ptr - smtp->buffer;
+  int             status;
 
   /* Must get a full line before bailing out.  */
   do
     {
       status = mu_stream_readline (smtp->mailer->stream, smtp->buffer + total,
-				smtp->buflen - total, smtp->s_offset, &n);
+				   smtp->buflen - total, smtp->s_offset, &n);
       if (status != 0)
 	return status;
 
@@ -1491,6 +1509,6 @@ smtp_readline (smtp_t smtp)
 #else
 #include <stdio.h>
 #include <registrar0.h>
-mu_record_t mu_smtp_record = NULL;
-mu_record_t mu_remote_smtp_record = NULL;
+mu_record_t     mu_smtp_record = NULL;
+mu_record_t     mu_remote_smtp_record = NULL;
 #endif
