@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2009-08-30
+GNU mailutils NEWS -- history of user-visible changes. 2009-09-01
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008, 2009 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -31,6 +31,17 @@ output.
 The `--owner' command line option (and the corresponding
 `mailbox-ownership' configuration file statement) instructs movemail
 to copy mailbox ownership, if the utility is run with root privileges.
+
+* Maidag
+
+Improved scripting capability allow to use mail filters written in
+the Python language.
+
+The `--script' command line option set the name pattern for
+user-defined mail filter.
+
+The `--language' command line option define scripting language for
+the next --script option.
 
 * Mail
 
@@ -118,7 +129,7 @@ descriptions before each variable.
 
 * New interfaces
 
-** Pyhton interface
+** Python interface
 
 Mailutils now comes with the Python API. See examples/python/*, for
 examples on how to use it.
@@ -127,7 +138,19 @@ examples on how to use it.
 
 The C++ API is built by default, if a c++ compiler is available.
 
+* Support for Tokyo Cabinet DBM.
+
+Tokyo Cabinet is a modern implementation of DBM, developed as the
+successor of GDBM and QDBM.  It is written in the C language,
+available on platforms which have API conforming to C99 and POSIX.
+Tokyo Cabinet is a free software licensed under the GNU Lesser General
+Public License.
+
 * API
+
+* Renamed libsieve to libmu_sieve.
+
+* Renamed libcfg to libmu_cfg.
 
 * Wicket/Ticket functions
 
