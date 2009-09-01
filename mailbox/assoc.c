@@ -510,7 +510,7 @@ mu_assoc_count (mu_assoc_t assoc, size_t *pcount)
 {
   mu_iterator_t itr;
   int rc;
-  size_t count;
+  size_t count = 0;
   
   if (!assoc || !pcount)
     return EINVAL;

@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2009-08-20
+GNU mailutils NEWS -- history of user-visible changes. 2009-08-30
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008, 2009 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -16,7 +16,8 @@ All MU client utilities make use of the user ticket file,
 * Imap4d
 
 New configuration file entities allow to modify user's personal
-namespace and visible home directory.
+namespace (the `personal-namespace' statement) and visible home
+directory (the `homedir' statement). 
 
 * Movemail
 
@@ -24,12 +25,12 @@ When called with the `--uidl' command line option, the utility tries
 to avoid copying the message if a message with the same UIDL already
 exists in the destination mailbox.
 
-The `--verbose' command line option enables outputting additional
-information.
+The `--verbose' command line option enables additional informational
+output.
 
 The `--owner' command line option (and the corresponding
-`mailbox-ownership' configuration file statement) copy mailbox
-ownership, if the utility is run with root privileges.
+`mailbox-ownership' configuration file statement) instructs movemail
+to copy mailbox ownership, if the utility is run with root privileges.
 
 * Mail
 
@@ -70,8 +71,8 @@ The st[ruct] command lists MIME structures of the message or messages, e.g.:
 
 Diagnostic messages issued while processing `source' command
 include file locations, in compliance with the GNU standards. This
-also includes diagnostics issued during processing of the
-system or user configuration file.
+also includes diagnostics issued while parsing the system or user
+configuration files.
 
 ** envelope command
 
@@ -115,30 +116,68 @@ set an unknown variable and refuses to set read-only variables.
 If this variable is set, the `set' listing prints short
 descriptions before each variable.
 
+* New interfaces
+
+** Pyhton interface
+
+Mailutils now comes with the Python API. See examples/python/*, for
+examples on how to use it.
+
+** C++ interface
+
+The C++ API is built by default, if a c++ compiler is available.
+
 * API
 
 * Wicket/Ticket functions
 
-[FIXME: Describe]
+The wicket/ticket support is rewritten from scratch.
+
+A `wicket' is an object that supplies authentication tickets. The
+following user-level functions are available for manipulating
+wickets:
+
+- int mu_file_wicket_create (mu_wicket_t *pwicket, const char *filename);
+
+Creates a wicket associated with the ticket file `filename'
+
+- int mu_wicket_get_ticket (mu_wicket_t wicket, const char *user,
+	                    mu_ticket_t *pticket);
+
+Obtains authentication ticket for the given user.
+
+- void mu_wicket_destroy (mu_wicket_t *pwicket);
+
+Destroys the wicket and releases any resources associated with it.
+
+A `ticket' is used to obtain user authentication credentials:
+
+- int mu_ticket_get_cred (mu_ticket_t ticket,
+			  mu_url_t url, const char *challenge,
+			  char **pplain, mu_secret_t *psec);
+
+Obtain plaintext and secret credentials for the given URL and
+(optional) authentication challenge. Usually, the plaintext credential
+is a user name, and secret one is the corresponding password.
 
 * New mailbox formats
 
-Three new append-only mailbox formats are introduced.  The URL syntax of
+Three new append-only mailbox formats are introduced. The URL syntax of
 each of them is the same as that of the corresponding mailer.
 
 ** smtp
 
-Send message using the `smtp' mailer.  It is equivalent to
+Send message using the `smtp' mailer. It is equivalent to
 `remote+smtp', introduced in previous version.
 
 ** sendmail.
 
-Send message using the `sendmail' mailer.  It is equivalent to
+Send message using the `sendmail' mailer. It is equivalent to
 `remote+sendmail', introduced in previous version.
 
 ** prog
 
-Send message using the `prog' mailer.  It is equivalent to
+Send message using the `prog' mailer. It is equivalent to
 `remote+prog', introduced in previous version.
 
 * Deprecated mailbox formats.
@@ -160,7 +199,7 @@ correspondingly.
 
 *** mu_message_save_to_mailbox: removed `ticket' argument.
 
-New prototype is:
+The new prototype is:
 
 int mu_message_save_to_mailbox (mu_message_t msg,
                                 mu_debug_t debug,
