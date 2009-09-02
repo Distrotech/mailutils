@@ -47,6 +47,9 @@ def authenticate (auth_data, password):
     if status:
         raise AuthError (status)
 
+def set_pam_service (pam_service):
+    auth.set_pam_service (pam_service)
+
 
 class Authority:
     __owner = False

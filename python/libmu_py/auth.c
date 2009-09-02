@@ -19,6 +19,7 @@
 */
 
 #include "libmu_py.h"
+#include <mailutils/pam.h>
 
 #define PY_MODULE  "auth"
 #define PY_CSNAME1 "AuthorityType"
@@ -621,6 +622,17 @@ api_authenticate (PyObject *self, PyObject *args)
   return _ro (PyInt_FromLong (status));
 }
 
+static PyObject *
+api_set_pam_service (PyObject *self, PyObject *args)
+{
+  char *pam_service;
+
+  if (!PyArg_ParseTuple (args, "s", &pam_service))
+    return NULL;
+
+  mu_pam_service = pam_service;
+  return _ro (Py_None);
+}
 
 static PyMethodDef methods[] = {
   { "authority_create", (PyCFunction) api_authority_create, METH_VARARGS,
@@ -666,6 +678,9 @@ static PyMethodDef methods[] = {
     "" },
 
   { "authenticate", (PyCFunction) api_authenticate, METH_VARARGS,
+    "" },
+
+  { "set_pam_service", (PyCFunction) api_set_pam_service, METH_VARARGS,
     "" },
 
   { NULL, NULL, 0, NULL }
