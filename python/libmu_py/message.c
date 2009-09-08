@@ -354,28 +354,28 @@ static PyMethodDef methods[] = {
     "Create message." },
 
   { "destroy", (PyCFunction) api_message_destroy, METH_VARARGS,
-    "The resources allocate for MSG are freed." },
+    "The resources allocate for 'msg' are freed." },
 
   { "is_multipart", (PyCFunction) api_message_is_multipart, METH_VARARGS,
     "" },
 
   { "size", (PyCFunction) api_message_size, METH_VARARGS,
-    "Retrieve MSG size." },
+    "Retrieve 'msg' size." },
 
   { "lines", (PyCFunction) api_message_lines, METH_VARARGS,
-    "Retrieve MSG number of lines." },
+    "Retrieve 'msg' number of lines." },
 
   { "get_envelope", (PyCFunction) api_message_get_envelope, METH_VARARGS,
-    "Retrieve MSG envelope." },
+    "Retrieve 'msg' envelope." },
 
   { "get_header", (PyCFunction) api_message_get_header, METH_VARARGS,
-    "Retrieve MSG header." },
+    "Retrieve 'msg' header." },
 
   { "get_body", (PyCFunction) api_message_get_body, METH_VARARGS,
-    "Retrieve MSG body." },
+    "Retrieve 'msg' body." },
 
   { "get_attribute", (PyCFunction) api_message_get_attribute, METH_VARARGS,
-    "Retrieve MSG attribute." },
+    "Retrieve 'msg' attribute." },
 
   { "get_num_parts", (PyCFunction) api_message_get_num_parts, METH_VARARGS,
     "" },

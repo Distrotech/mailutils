@@ -37,7 +37,7 @@ api_strerror (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "strerror", (PyCFunction) api_strerror, METH_VARARGS,
-    "Return the error message corresponding to ERR, "
+    "Return the error message corresponding to 'err', "
     "which must be an integer value." },
 
   { NULL, NULL, 0, NULL }

@@ -435,24 +435,24 @@ api_sieve_set_logger (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "machine_init", (PyCFunction) api_sieve_machine_init, METH_VARARGS,
-    "Create and initialize new Sieve MACHine." },
+    "Create and initialize new Sieve 'machine'." },
 
   { "machine_destroy", (PyCFunction) api_sieve_machine_destroy, METH_VARARGS,
-    "Destroy Sieve MACHine." },
+    "Destroy Sieve 'machine'." },
 
   { "compile", (PyCFunction) api_sieve_compile, METH_VARARGS,
-    "Compile the sieve script from the file NAME." },
+    "Compile the sieve script from the file 'name'." },
 
   { "disass", (PyCFunction) api_sieve_disass, METH_VARARGS,
-    "Dump the disassembled code of the sieve machine MACH." },
+    "Dump the disassembled code of the sieve machine 'mach'." },
 
   { "mailbox", (PyCFunction) api_sieve_mailbox, METH_VARARGS,
     "Execute the code from the given instance of sieve machine "
-    "MACH over each message in the mailbox MBOX." },
+    "'mach' over each message in the mailbox 'mbox'." },
 
   { "message", (PyCFunction) api_sieve_message, METH_VARARGS,
     "Execute the code from the given instance of sieve machine "
-    "MACH over the MESSAGE. " },
+    "'mach' over the 'message'. " },
 
   { "set_debug", (PyCFunction) api_sieve_set_debug, METH_VARARGS,
     "" },

@@ -125,10 +125,10 @@ api_body_get_stream (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "size", (PyCFunction) api_body_size, METH_VARARGS,
-    "Retrieve BODY size." },
+    "Retrieve 'body' size." },
 
   { "lines", (PyCFunction) api_body_lines, METH_VARARGS,
-    "Retrieve BODY number of lines." },
+    "Retrieve 'body' number of lines." },
 
   { "get_stream", (PyCFunction) api_body_get_stream, METH_VARARGS,
     "" },

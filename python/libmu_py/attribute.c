@@ -243,7 +243,7 @@ static PyMethodDef methods[] = {
     "" },
 
   { "is_modified", (PyCFunction) api_attribute_is_modified, METH_VARARGS,
-    "Return TRUE or FALSE whether attribute has been modified." },
+    "Return True or False whether attribute has been modified." },
 
   { "clear_modified", (PyCFunction) api_attribute_clear_modified,
     METH_VARARGS, "" },

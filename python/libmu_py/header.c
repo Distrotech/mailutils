@@ -198,10 +198,10 @@ api_header_get_field_value (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "size", (PyCFunction) api_header_size, METH_VARARGS,
-    "Retrieve HEADER size." },
+    "Retrieve 'header' size." },
 
   { "lines", (PyCFunction) api_header_lines, METH_VARARGS,
-    "Retrieve HEADER number of lines." },
+    "Retrieve 'header' number of lines." },
 
   { "get_value", (PyCFunction) api_header_get_value, METH_VARARGS,
     "Retrieve header field value." },
@@ -216,10 +216,10 @@ static PyMethodDef methods[] = {
     "Retrieve the number of header fields." },
 
   { "get_field_name", (PyCFunction) api_header_get_field_name, METH_VARARGS,
-    "Retrieve header field name by field index IDX." },
+    "Retrieve header field name by field index 'idx'." },
 
   { "get_field_value", (PyCFunction) api_header_get_field_value, METH_VARARGS,
-    "Retrieve header field value by field index IDX." },
+    "Retrieve header field value by field index 'idx'." },
 
   { NULL, NULL, 0, NULL }
 };

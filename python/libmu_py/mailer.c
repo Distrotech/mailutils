@@ -192,7 +192,7 @@ static PyMethodDef methods[] = {
     "Create mailer." },
 
   { "destroy", (PyCFunction) api_mailer_destroy, METH_VARARGS,
-    "The resources allocate for MSG are freed." },
+    "The resources allocate for 'msg' are freed." },
 
   { "open", (PyCFunction) api_mailer_open, METH_VARARGS,
     "" },

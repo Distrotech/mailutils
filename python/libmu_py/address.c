@@ -284,14 +284,14 @@ api_address_to_string (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "create", (PyCFunction) api_address_create, METH_VARARGS,
-    "Allocate and initialize ADDR by parsing the RFC822 "
-    "address-list STRING." },
+    "Allocate and initialize 'addr' by parsing the RFC822 "
+    "address-list 'string'." },
 
   { "createv", (PyCFunction) api_address_createv, METH_VARARGS,
-    "Allocate and initialize ADDR by parsing the RFC822 address-list." },
+    "Allocate and initialize 'addr' by parsing the RFC822 address-list." },
 
   { "destroy", (PyCFunction) api_address_destroy, METH_VARARGS,
-    "Destroy ADDR." },
+    "Destroy 'addr'." },
 
   { "is_group", (PyCFunction) api_address_is_group, METH_VARARGS,
     "Return True if address is just the name of a group, False otherwise." },

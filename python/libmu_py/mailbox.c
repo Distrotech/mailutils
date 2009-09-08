@@ -393,8 +393,8 @@ api_mailbox_get_url (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "create", (PyCFunction) api_mailbox_create, METH_VARARGS,
-    "Allocate and initialize MBOX. The concrete mailbox type "
-    "instantiate is based on the scheme of the url NAME." },
+    "Allocate and initialize 'mbox'. The concrete mailbox type "
+    "instantiate is based on the scheme of the url 'name'." },
 
   { "create_default", (PyCFunction) api_mailbox_create_default, METH_VARARGS,
     "Create a mailbox with mu_mailbox_create() based on the "
@@ -402,35 +402,35 @@ static PyMethodDef methods[] = {
     "__PATH_MAILDIR_/USER or LOGNAME if USER is null." },
 
   { "destroy", (PyCFunction) api_mailbox_destroy, METH_VARARGS,
-    "Destroy and release resources held by MBOX." },
+    "Destroy and release resources held by 'mbox'." },
 
   { "open", (PyCFunction) api_mailbox_open, METH_VARARGS,
     "A connection is open, if no stream was provided, a stream is "
-    "created based on the MBOX type. The FLAG can be OR'ed." },
+    "created based on the 'mbox' type. The 'flag' can be OR'ed." },
 
   { "close", (PyCFunction) api_mailbox_close, METH_VARARGS,
-    "The stream attached to MBOX is closed." },
+    "The stream attached to 'mbox' is closed." },
 
   { "flush", (PyCFunction) api_mailbox_flush, METH_VARARGS,
     "" },
 
   { "messages_count", (PyCFunction) api_mailbox_messages_count, METH_VARARGS,
-    "Give the number of messages in MBOX." },
+    "Give the number of messages in 'mbox'." },
 
   { "messages_recent", (PyCFunction) api_mailbox_messages_recent, METH_VARARGS,
-    "Give the number of recent messages in MBOX." },
+    "Give the number of recent messages in 'mbox'." },
 
   { "message_unseen", (PyCFunction) api_mailbox_message_unseen, METH_VARARGS,
     "Give the number of first unseen message in MBOX." },
 
   { "get_message", (PyCFunction) api_mailbox_get_message, METH_VARARGS,
-    "Retrieve message number MSGNO, MESSAGE is allocated and initialized." },
+    "Retrieve message number 'msgno', 'message' is allocated and initialized." },
 
   { "append_message", (PyCFunction) api_mailbox_append_message, METH_VARARGS,
-    "Append MESSAGE to the mailbox MBOX." },
+    "Append 'message' to the mailbox 'mbox'." },
 
   { "expunge", (PyCFunction) api_mailbox_expunge, METH_VARARGS,
-    "Expunge deleted messages from the mailbox MBOX." },
+    "Expunge deleted messages from the mailbox 'mbox'." },
 
   { "sync", (PyCFunction) api_mailbox_sync, METH_VARARGS,
     "" },

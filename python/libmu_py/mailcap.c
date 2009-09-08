@@ -262,7 +262,7 @@ api_mailcap_entry_get_viewcommand (PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
   { "create", (PyCFunction) api_mailcap_create, METH_VARARGS,
-    "Allocate, parse the buffer from the STREAM and initializes MAILCAP." },
+    "Allocate, parse the buffer from the 'stream' and initializes 'mailcap'." },
 
   { "destroy", (PyCFunction) api_mailcap_destroy, METH_VARARGS,
     "Release any resources from the mailcap object." },
@@ -271,7 +271,7 @@ static PyMethodDef methods[] = {
     "Return the number of entries found in the mailcap." },
 
   { "get_entry", (PyCFunction) api_mailcap_get_entry, METH_VARARGS,
-    "Return in ENTRY the mailcap entry of NO." },
+    "Return in 'entry' the mailcap entry of 'no'." },
 
   { "entry_fields_count", (PyCFunction) api_mailcap_entry_fields_count,
     METH_VARARGS,
