@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2009-09-01
+GNU mailutils NEWS -- history of user-visible changes. 2009-09-10
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 
 2008, 2009 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -6,7 +6,14 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.0.90 (Git)
+Version 2.1 "Ten Years Later" - 2009-09-10:
+
+This release marks the 10 years anniversary of GNU Mailutils.
+
+* New distribution tarballs
+
+Mailutils tar archives are distributed in four compressed formats:
+gzip, bzip2, lzma and xz.
 
 * Ticket files
 
@@ -34,14 +41,15 @@ to copy mailbox ownership, if the utility is run with root privileges.
 
 * Maidag
 
-Improved scripting capability allow to use mail filters written in
+Improved scripting capability allows to use mail filters written in
 the Python language.
 
-The `--script' command line option set the name pattern for
-user-defined mail filter.
-
-The `--language' command line option define scripting language for
-the next --script option.
+The `--script' command line option sets the name pattern for
+user-defined mail filters. Maidag uses the script suffix to
+deduce what language it is written in. Supported suffixes are:
+`sv', `siv' and `sieve' for Sieve, `scm' and `scheme' for Scheme,
+`py' and `pyc' for Python. Additionally, the language may be
+defined using the `--language' command line option.
 
 * Mail
 
@@ -148,9 +156,11 @@ Public License.
 
 * API
 
-* Renamed libsieve to libmu_sieve.
+* New library naming scheme
 
-* Renamed libcfg to libmu_cfg.
+The names of all mailutils inferior libraries are prefixed with
+`libmu_', e.g.: libmu_sieve, libmu_imap, etc. In particular,
+`libsieve' is now named `libmu_sieve' and `libcfg' - `libmu_cfg'.
 
 * Wicket/Ticket functions
 
