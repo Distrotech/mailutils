@@ -970,7 +970,7 @@ server_section_parser (enum mu_cfg_section_stage stage,
     {
     case mu_cfg_section_start:
       {
-	if (node->label->type != MU_CFG_STRING)
+	if (node->label == NULL || node->label->type != MU_CFG_STRING)
 	  return 1;
 	/* FIXME: should not modify 2nd arg, or it should not be const */
 	return server_block_begin (tree->debug, node->label->v.string,

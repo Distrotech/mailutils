@@ -1375,19 +1375,17 @@ imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
   if (rc == 0)
     {
       char *s = *pbuf;
-      len = util_trim_nl (s, len);
-      if (imap4d_transcript)
-        {
-          if (len)
-            mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
-          else
-            mu_diag_output (MU_DIAG_DEBUG, "got EOF");
-        }
+
       if (len == 0)
         {
+	  if (imap4d_transcript)
+            mu_diag_output (MU_DIAG_DEBUG, "got EOF");
           imap4d_bye (ERR_NO_IFILE);
           /*FIXME rc = ECONNABORTED;*/
         }
+      len = util_trim_nl (s, len);
+      if (imap4d_transcript)
+	mu_diag_output (MU_DIAG_DEBUG, "recv: %s", s);
       if (pnbytes)
 	*pnbytes = len;
     }
