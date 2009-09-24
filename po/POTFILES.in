@@ -112,6 +112,7 @@ mail/if.c
 mail/inc.c
 mail/mail.c
 mail/mailline.c
+mail/mailvar.c
 mail/msgset.y
 mail/next.c
 mail/previous.c

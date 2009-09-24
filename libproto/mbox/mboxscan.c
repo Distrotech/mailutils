@@ -385,15 +385,15 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	    }
 	}
 
-      newline = nl;
-
+      newline = (inbody && lines) ? nl : 0;
+      
       /* Every 100 mesgs update the lock, it should be every minute.  */
       if ((mud->messages_count % 100) == 0)
 	mu_locker_touchlock (mailbox->locker);
 
       /* Ping them every 1000 lines. Should be tunable.  */
       if (flags & MBOX_SCAN_NOTIFY)
-	if (((lines +1) % 1000) == 0)
+	if (((lines + 1) % 1000) == 0)
 	  DISPATCH_PROGRESS (mailbox, mud);
 
     } /* while */
