@@ -109,10 +109,19 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
       return RESP_NO;
     }
 
-  /* Some SASL mechanisms output data when GSASL_OK is returned */
+  /* Some SASL mechanisms output additional data when GSASL_OK is
+     returned, and clients must respond with an empty response. */
   if (output[0])
-    util_send ("+ %s\r\n", output);
-  
+    {
+      util_send ("+ %s\r\n", output);
+      imap4d_getline (&input_str, &input_size, &input_len);
+      if (input_len != 0)
+	{
+	  mu_diag_output (MU_DIAG_NOTICE, _("non-empty client response"));
+	  return RESP_NO;
+	}
+    }
+
   free (output);
 
   if (*username == NULL)

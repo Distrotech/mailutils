@@ -37,8 +37,7 @@ struct mu_gsasl_module_data mu_gsasl_module_data;
 #include <gsasl.h>
 
 int mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
-			    Gsasl_session_ctx *ctx,
-			    int flags);
+			    Gsasl_session *ctx, int flags);
 
 #endif
 

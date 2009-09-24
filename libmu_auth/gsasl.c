@@ -235,7 +235,7 @@ _gsasl_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
 int
 mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
-		     Gsasl_session *ctx, int flags)
+  		        Gsasl_session *ctx, int flags)
 {
   struct _gsasl_stream *s;
   int rc;
