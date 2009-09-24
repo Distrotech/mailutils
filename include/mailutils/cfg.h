@@ -92,8 +92,10 @@ extern mu_cfg_locus_t mu_cfg_locus;
 
 mu_opool_t mu_cfg_lexer_pool (void);
 
-void mu_cfg_perror (const mu_cfg_locus_t *, const char *, ...);
-void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...);
+void mu_cfg_perror (const mu_cfg_locus_t *, const char *, ...)
+      MU_PRINTFLIKE(2,3);
+void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...)
+      MU_PRINTFLIKE(3,4);
 
 #define MU_CFG_ITER_OK   0
 #define MU_CFG_ITER_SKIP 1

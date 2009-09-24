@@ -476,6 +476,7 @@ extern char **exec_compl (int argc, char **argv, int ws);
 # define alias_compl NULL
 # define var_compl NULL
 # define exec_compl NULL     
+# define mailvar_set_compl NULL
 #endif
 
 #ifdef __cplusplus

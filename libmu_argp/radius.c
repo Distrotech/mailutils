@@ -32,7 +32,7 @@ enum {
 
 static struct argp_option mu_radius_argp_option[] = {
   { "radius-auth-request", OPT_AUTH_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
-    N_("radius request to authenitcate the user"), 0 },
+    N_("radius request to authenticate the user"), 0 },
   { "radius-getpwnam-request", OPT_GETPWNAM_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
     N_("radius request to retrieve a passwd entry based on username"), 0 },
   { "radius-getpwuid-request", OPT_GETPWUID_REQUEST, N_("REQUEST"), OPTION_HIDDEN,
