@@ -156,6 +156,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
 #endif
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
+  { "transcript", mu_cfg_bool, &pop3d_transcript, 0, NULL,
+    N_("Set global transcript mode.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
@@ -379,7 +381,8 @@ pop3d_connection (int fd, struct sockaddr *sa, int salen, void *data,
 		  mu_ip_server_t srv, time_t timeout, int transcript)
 {
   idle_timeout = timeout;
-  pop3d_transcript = transcript;
+  if (pop3d_transcript != transcript)
+    pop3d_transcript = transcript;
   pop3d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
   return 0;
 }

@@ -341,6 +341,8 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("List of fields to return in response to ID command.") },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
+  { "transcript", mu_cfg_bool, &imap4d_transcript, 0, NULL,
+    N_("Set global transcript mode.") },
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
@@ -473,7 +475,8 @@ imap4d_connection (int fd, struct sockaddr *sa, int salen, void *data,
 		   mu_ip_server_t srv, time_t timeout, int transcript)
 {
   idle_timeout = timeout;
-  imap4d_transcript = transcript;
+  if (imap4d_transcript != transcript)
+    imap4d_transcript = transcript;
   imap4d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
   return 0;
 }
