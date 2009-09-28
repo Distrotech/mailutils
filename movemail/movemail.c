@@ -34,7 +34,7 @@
 #include <muaux.h>
 
 const char *program_version = "movemail (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU movemail");
+static char doc[] = N_("GNU movemail -- move messages across mailboxes.");
 static char args_doc[] = N_("inbox-url destfile [POP-password]");
 
 #define OPT_EMACS 256

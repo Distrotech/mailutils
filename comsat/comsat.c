@@ -54,7 +54,7 @@ typedef struct utmp UTMP;
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
 const char *program_version = "comsatd (" PACKAGE_STRING ")";
-static char doc[] = "GNU comsatd";
+static char doc[] = N_("GNU comsatd -- the Comsat daemon.");
 static char args_doc[] = N_("\n--test MBOX-URL MSG-QID");
 
 #define OPT_FOREGROUND 256
