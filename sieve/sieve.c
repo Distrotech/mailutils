@@ -51,7 +51,7 @@
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
-N_("GNU sieve -- a mail filtering tool")
+N_("GNU sieve -- a mail filtering tool.")
 "\v"
 N_("Debug flags:\n\
   g - main parser traces\n\

@@ -34,7 +34,7 @@ static void print_body (mu_message_t);
 static int  string_starts_with (const char * s1, const char *s2);
 
 const char *program_version = "readmsg (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU readmsg -- print messages");
+static char doc[] = N_("GNU readmsg -- print messages.");
 static error_t readmsg_parse_opt  (int key, char *arg, struct argp_state *astate);
 
 static struct argp_option options[] = 

@@ -35,7 +35,7 @@
 
 const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU dotlock -- lock mail spool files")
+N_("GNU dotlock -- lock mail spool files.")
 "\v"
 N_("Returns 0 on success, 3 if locking the file fails because\
  it's already locked, and 1 if some other kind of error occurred.");

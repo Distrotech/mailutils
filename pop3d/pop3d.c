@@ -54,7 +54,7 @@ int expire_on_exit = 0;       /* Delete expired messages on exit */
 static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
 
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU pop3d -- the POP3 daemon");
+static char doc[] = N_("GNU pop3d -- the POP3 daemon.");
 
 #define OPT_LOGIN_DELAY     257
 #define OPT_STAT_FILE       258

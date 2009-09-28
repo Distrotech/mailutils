@@ -26,7 +26,7 @@
 #include "mailutils/libargp.h"
 
 const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mailutils-config -- display compiler and loader options needed for building a program with mailutils");
+static char doc[] = N_("GNU mailutils-config -- display compiler and loader options needed for building a program with mailutils.");
 static char args_doc[] = N_("[arg...]");
 
 static struct argp_option options[] = {

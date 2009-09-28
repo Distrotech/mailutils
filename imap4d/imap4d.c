@@ -55,7 +55,7 @@ char *ident_keyfile;
 int ident_encrypt_only;
 
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
+static char doc[] = N_("GNU imap4d -- the IMAP4D daemon.");
 
 #define OPT_LOGIN_DISABLED  256
 #define OPT_TLS_REQUIRED    257

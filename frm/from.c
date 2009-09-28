@@ -23,7 +23,7 @@ char *sender_option;
 char *mailbox_name;
 
 const char *program_version = "from (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU from -- display from and subject");
+static char doc[] = N_("GNU from -- display from and subject.");
 
 static struct argp_option options[] = {
   {"count",  'c', NULL,   0, N_("just print a count of messages and exit")},

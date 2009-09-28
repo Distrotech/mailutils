@@ -56,7 +56,7 @@ int reuse_lmtp_address = 1;
 
 const char *program_version = "maidag (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU maidag -- the mail delivery agent")
+N_("GNU maidag -- the mail delivery agent.")
 "\v"
 N_("Debug flags are:\n\
   g - guimb stack traces\n\

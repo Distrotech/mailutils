@@ -32,7 +32,7 @@ static int align = 0;      /* Tidy mode. -t option. */
 static int select_attribute;
 
 const char *program_version = "frm (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU frm -- display From: lines");
+static char doc[] = N_("GNU frm -- display From: lines.");
 
 static struct attr_tab {
   char *name;      /* Attribute name */
