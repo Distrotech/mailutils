@@ -31,7 +31,7 @@ struct mu_gsasl_module_data
 
 int mu_gsasl_module_init (enum mu_gocs_op, void *);
 
-struct mu_gsasl_module_data mu_gsasl_module_data;
+extern struct mu_gsasl_module_data mu_gsasl_module_data;
 
 #ifdef WITH_GSASL
 #include <gsasl.h>
