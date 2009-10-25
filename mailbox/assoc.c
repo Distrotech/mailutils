@@ -173,7 +173,9 @@ assoc_remove (mu_assoc_t assoc, struct _mu_assoc_elem *elem)
 	}
       while ((j < r && r <= i) || (i < j && j < r) || (r <= i && i < j));
 
-      *ASSOC_ELEM (assoc, j) = *ASSOC_ELEM (assoc, i);
+      if (j != i)
+	      memcpy (ASSOC_ELEM (assoc, j), ASSOC_ELEM (assoc, i),
+		      assoc->elsize);
     }
   return 0;
 }
