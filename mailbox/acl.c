@@ -766,7 +766,7 @@ int
 mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
 {
   struct sockaddr_in cs;
-  int len = sizeof cs;
+  socklen_t len = sizeof cs;
 
   if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
     {

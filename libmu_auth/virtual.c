@@ -116,7 +116,7 @@ getpwnam_ip_virtual (const char *u)
 {
   struct sockaddr_in addr;
   struct passwd *pw = NULL;
-  int len = sizeof (addr);
+  socklen_t len = sizeof (addr);
   
   if (getsockname (0, (struct sockaddr *)&addr, &len) == 0)
     {

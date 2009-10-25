@@ -19,6 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
 #include "cmdline.h"
 
 static struct mu_cmdline_capa *all_cmdline_capa[] = {

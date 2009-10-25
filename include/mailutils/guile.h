@@ -54,7 +54,7 @@ extern int mu_scm_is_mailbox (SCM scm);
 extern void mu_scm_message_init (void);
 extern SCM mu_scm_message_create (SCM owner, mu_message_t msg);
 extern int mu_scm_is_message (SCM scm);
-extern const mu_message_t mu_scm_message_get (SCM MESG);
+extern mu_message_t mu_scm_message_get (SCM MESG);
 
 extern int mu_scm_is_body (SCM scm);
 extern void mu_scm_body_init (void);

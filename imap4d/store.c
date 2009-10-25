@@ -28,7 +28,7 @@ struct store_parse_closure
   int type;
   int isuid;
   size_t *set;
-  size_t count;
+  int count;
 };
   
 static int

@@ -121,7 +121,8 @@ mu_port_flush (SCM port)
   
   if (wrsize)
     {
-      if (mu_stream_write (mp->stream, pt->write_buf, wrsize, mp->offset, &n))
+      if (mu_stream_write (mp->stream, (char*) pt->write_buf,
+			   wrsize, mp->offset, &n))
 	return;
       mp->offset += n;
     }
@@ -162,7 +163,7 @@ mu_port_fill_input (SCM port)
   size_t nread = 0;
   int status;
   
-  status = mu_stream_read (mp->stream, pt->read_buf, pt->read_buf_size,
+  status = mu_stream_read (mp->stream, (char*) pt->read_buf, pt->read_buf_size,
 			   mp->offset, &nread);
   if (status)
     mu_scm_error ("mu_port_fill_input", status,

@@ -114,7 +114,7 @@ auth_gssapi (struct imap4d_command *command,
 {
   gss_buffer_desc tokbuf, outbuf;
   OM_uint32 maj_stat, min_stat, min_stat2;
-  OM_uint32 cflags;
+  int cflags;
   OM_uint32 sec_level, mech;
   gss_ctx_id_t context;
   gss_cred_id_t cred_handle, server_creds;
@@ -170,8 +170,10 @@ auth_gssapi (struct imap4d_command *command,
 
   for (;;)
     {
+      OM_uint32 ret_flags;
+      
       imap4d_getline (&token_str, &token_size, &token_len);
-      mu_base64_decode (token_str, token_len, &tmp, &size);
+      mu_base64_decode ((unsigned char*) token_str, token_len, &tmp, &size);
       tokbuf.value = tmp;
       tokbuf.length = size;
 
@@ -183,7 +185,7 @@ auth_gssapi (struct imap4d_command *command,
 					 &client,
 					 &mech_type,
 					 &outbuf,
-					 &cflags, NULL, &cred_handle);
+					 &ret_flags, NULL, &cred_handle);
       free (tmp);
       if (maj_stat == GSS_S_CONTINUE_NEEDED)
 	{
@@ -234,7 +236,7 @@ auth_gssapi (struct imap4d_command *command,
   free (tmp);
 
   imap4d_getline (&token_str, &token_size, &token_len);
-  mu_base64_decode (token_str, token_len,
+  mu_base64_decode ((unsigned char *) token_str, token_len,
 		    (unsigned char **) &tokbuf.value, &tokbuf.length);
   free (token_str);
 

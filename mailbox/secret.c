@@ -55,7 +55,7 @@ mu_secret_create (mu_secret_t *psec, const char *value, size_t len)
     return ENOMEM;
   sec->obptr = (unsigned char*)(sec + 1);
   sec->clptr = sec->obptr + len + 1;
-  obfuscate (value, sec->obptr, len);
+  obfuscate ((unsigned char *) value, sec->obptr, len);
   sec->length = len;
   *psec = sec;
   mu_secret_ref (sec);

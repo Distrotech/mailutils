@@ -72,7 +72,7 @@ mu_scm_mime_create (SCM owner, mu_mime_t mime)
   SCM_RETURN_NEWSMOB (mime_tag, mum);
 }
 
-const mu_mime_t
+mu_mime_t
 mu_scm_mime_get (SCM MIME)
 {
   struct mu_mime *mum = (struct mu_mime *) SCM_CDR (MIME);

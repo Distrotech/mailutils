@@ -108,7 +108,7 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_body_read_line
 {
   struct mu_body *mbp;
-  int n, nread;
+  size_t n, nread;
   int status;
   
   SCM_ASSERT (mu_scm_is_body (BODY), BODY, SCM_ARG1, FUNC_NAME);

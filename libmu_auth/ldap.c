@@ -130,7 +130,7 @@ _mu_conn_setup (LDAP **pld)
 	      /* if no host but a DN is provided, try DNS SRV to gather the
 		 host list */
 	      char	*domain = NULL, *hostlist = NULL, **hosts = NULL;
-	      size_t hostcnt;
+	      int hostcnt;
 	      int i;
 	      int len_proto = strlen(lud->lud_scheme);
 	      
@@ -319,8 +319,7 @@ _mu_ldap_bind (LDAP *ld)
       || refs)
     {
       /* FIXME: Use mu_debug_t for that */
-      mu_error ("ldap_bind: %s (%d)%s",
-		ldap_err2string (err), err, msgbuf ? msgbuf : "");
+      mu_error ("ldap_bind: %s (%d)%s", ldap_err2string (err), err, msgbuf);
 
       if (matched && *matched) 
 	mu_error ("matched DN: %s", matched);
@@ -600,7 +599,7 @@ chk_md5 (const char *db_pass, const char *pass)
   mu_stream_open (str);
   mu_stream_sequential_write (str, db_pass, strlen (db_pass));
 
-  mu_stream_read (flt, d1, sizeof d1, 0, NULL);
+  mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
   mu_stream_destroy (&flt, NULL);
   mu_stream_destroy (&str, NULL);
   
@@ -633,7 +632,7 @@ chk_smd5 (const char *db_pass, const char *pass)
       return ENOMEM;
     }
   
-  mu_stream_read (flt, d1, size, 0, &size);
+  mu_stream_read (flt, (char*) d1, size, 0, &size);
   mu_stream_destroy (&flt, NULL);
   mu_stream_destroy (&str, NULL);
 
@@ -672,7 +671,7 @@ chk_sha (const char *db_pass, const char *pass)
   mu_stream_open (str);
   mu_stream_sequential_write (str, db_pass, strlen (db_pass));
 
-  mu_stream_read (flt, d1, sizeof d1, 0, NULL);
+  mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
   mu_stream_destroy (&flt, NULL);
   mu_stream_destroy (&str, NULL);
   
@@ -705,7 +704,7 @@ chk_ssha (const char *db_pass, const char *pass)
       return ENOMEM;
     }
   
-  mu_stream_read (flt, d1, size, 0, &size);
+  mu_stream_read (flt, (char*) d1, size, 0, &size);
   mu_stream_destroy (&flt, NULL);
   mu_stream_destroy (&str, NULL);
 

@@ -632,7 +632,7 @@ smtp_starttls (smtp_t smtp)
 }
 
 static void
-cram_md5 (char *secret, char *challenge, unsigned char *digest)
+cram_md5 (char *secret, unsigned char *challenge, unsigned char *digest)
 {
   struct mu_md5_ctx context;
   unsigned char   ipad[64];
@@ -645,7 +645,7 @@ cram_md5 (char *secret, char *challenge, unsigned char *digest)
     return;
 
   secret_len = strlen (secret);
-  challenge_len = strlen (challenge);
+  challenge_len = strlen ((char*) challenge);
   memset (ipad, 0, sizeof (ipad));
   memset (opad, 0, sizeof (opad));
 
@@ -670,7 +670,7 @@ cram_md5 (char *secret, char *challenge, unsigned char *digest)
 
   mu_md5_init_ctx (&context);
   mu_md5_process_bytes (ipad, sizeof (ipad), &context);
-  mu_md5_process_bytes ((unsigned char *) challenge, challenge_len, &context);
+  mu_md5_process_bytes (challenge, challenge_len, &context);
   mu_md5_finish_ctx (&context, digest);
 
   mu_md5_init_ctx (&context);
@@ -766,7 +766,7 @@ smtp_auth (smtp_t smtp)
 
       p = strchr (smtp->buffer, ' ') + 1;
       mu_rtrim_cset (p, "\r\n");
-      mu_base64_decode (p, strlen (p), &chl, &chlen);
+      mu_base64_decode ((unsigned char*) p, strlen (p), &chl, &chlen);
 
       cram_md5 ((char *) mu_secret_password (secret), chl, digest);
       mu_secret_password_unref (secret);
@@ -777,7 +777,7 @@ smtp_auth (smtp_t smtp)
 
       mu_asnprintf (&buf, &buflen, "%s %s", user, ascii_digest);
       buflen = strlen (buf);
-      mu_base64_encode (buf, buflen, &b64buf, &b64buflen);
+      mu_base64_encode ((unsigned char*) buf, buflen, &b64buf, &b64buflen);
       b64buf[b64buflen] = '\0';
       free (buf);
 
@@ -819,7 +819,7 @@ smtp_auth (smtp_t smtp)
 	  if (buf[c] == '^')
 	    buf[c] = '\0';
 	}
-      mu_base64_encode (buf, buflen, &b64buf, &b64buflen);
+      mu_base64_encode ((unsigned char*) buf, buflen, &b64buf, &b64buflen);
       b64buf[b64buflen] = '\0';
       free (buf);
 

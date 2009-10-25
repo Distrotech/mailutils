@@ -63,7 +63,7 @@ struct fetch_parse_closure
   int isuid;
   mu_list_t fnlist;
   size_t *set;
-  size_t count;
+  int count;
 };
 
 

@@ -269,7 +269,8 @@ api_address_get_route (PyObject *self, PyObject *args)
 static PyObject *
 api_address_to_string (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  size_t n;
   char buf[256];
   PyAddress *py_addr;
 

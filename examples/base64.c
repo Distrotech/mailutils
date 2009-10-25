@@ -94,7 +94,8 @@ main (int argc, char * argv [])
     MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
   MU_ASSERT (mu_stream_open (out));
   
-  while (mu_stream_read (flt, &buffer, sizeof (buffer), total, &size) == 0
+  while (mu_stream_read (flt, (char*) &buffer,
+			 sizeof (buffer), total, &size) == 0
 	 && size > 0)
     {
       if (printable && !ISPRINT (buffer))
@@ -104,7 +105,7 @@ main (int argc, char * argv [])
 	  mu_stream_sequential_write (out, outbuf, strlen (outbuf));
 	} 
       else
-	mu_stream_sequential_write (out, &buffer, size);
+	mu_stream_sequential_write (out, (char*) &buffer, size);
       total += size;
     }
 

@@ -268,7 +268,7 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
     }
   else
     {
-      int len = sizeof *pcs;
+      socklen_t len = sizeof *pcs;
       if (getpeername (fd, (struct sockaddr*) pcs, &len) < 0)
 	{
 	  mu_diag_output (MU_DIAG_ERROR,

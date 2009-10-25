@@ -141,7 +141,7 @@ des_cbc_cksum (gl_des_ctx *ctx, unsigned char *buf, size_t bufsize,
 	  }
 	  bufsize = 0;
 	}
-      gl_des_ecb_crypt (ctx, key, key, 0);
+      gl_des_ecb_crypt (ctx, (char*) key, (char*) key, 0);
     }
 }
 
@@ -194,8 +194,8 @@ des_string_to_key (char *buf, size_t bufsize, unsigned char key[8])
     }
 
   des_fixup_key_parity (key);
-  gl_des_setkey (&context, key);
-  des_cbc_cksum (&context, buf, bufsize, key, key);
+  gl_des_setkey (&context, (char*) key);
+  des_cbc_cksum (&context, (unsigned char*) buf, bufsize, key, key);
   memset (&context, 0, sizeof context);
   des_fixup_key_parity (key);
 }
@@ -215,7 +215,7 @@ decode64_buf (const char *name, unsigned char **pbuf, size_t *psize)
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
   mu_stream_sequential_write (str, name, namelen);
-  mu_stream_read (flt, buf, sizeof buf, 0, &size);
+  mu_stream_read (flt, (char*) buf, sizeof buf, 0, &size);
   mu_stream_destroy (&flt, NULL);
   mu_stream_destroy (&str, NULL);
   *pbuf = malloc (size);
@@ -281,7 +281,7 @@ ident_decrypt (const char *file, const char *name)
       gl_des_ctx ctx;
       
       des_string_to_key (keybuf, sizeof (keybuf), key);
-      gl_des_setkey (&ctx, key);
+      gl_des_setkey (&ctx, (char*) key);
       
       memcpy (id.chars, buf, size);
       
@@ -469,9 +469,9 @@ int
 imap4d_preauth_setup (int fd)
 {
   struct sockaddr clt_sa, *pclt_sa; 
-  int clt_len = sizeof clt_sa;
+  socklen_t clt_len = sizeof clt_sa;
   struct sockaddr srv_sa, *psrv_sa;
-  int srv_len = sizeof srv_sa;
+  socklen_t srv_len = sizeof srv_sa;
   char *username = NULL;
 
   if (getsockname (fd, &srv_sa, &srv_len) == -1)

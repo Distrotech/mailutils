@@ -168,7 +168,7 @@ mu_scm_message_add_owner (SCM MESG, SCM owner)
   mum->mbox = cell;
 }
 
-const mu_message_t
+mu_message_t
 mu_scm_message_get (SCM MESG)
 {
   struct mu_message *mum = (struct mu_message *) SCM_CDR (MESG);
@@ -234,7 +234,7 @@ SCM_DEFINE (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 	 == 0
 	 && n != 0)
     {
-      int wr;
+      size_t wr;
       int rc;
       
       rc = mu_stream_write (out, buffer, n, off, &wr);

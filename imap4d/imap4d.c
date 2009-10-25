@@ -412,7 +412,7 @@ imap4d_session_setup (char *username)
 int
 get_client_address (int fd, struct sockaddr_in *pcs)
 {
-  int len = sizeof *pcs;
+  socklen_t len = sizeof *pcs;
 
   if (getpeername (fd, (struct sockaddr *) pcs, &len) < 0)
     {

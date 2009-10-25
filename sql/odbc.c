@@ -160,7 +160,7 @@ odbc_query (mu_sql_connection_t conn, char *query)
       return MU_ERR_SQL;
     }
 
-  rc = SQLExecDirect (dp->stmt, query, SQL_NTS);   
+  rc = SQLExecDirect (dp->stmt, (SQLCHAR*) query, SQL_NTS);   
   if (rc != SQL_SUCCESS)
     {
       mu_odbc_diag (dp, SQL_HANDLE_STMT, dp->stmt, "SQLExecDirect");
@@ -305,7 +305,7 @@ odbc_get_field_number (mu_sql_connection_t conn, const char *fname,
 	  dp->fnames[i] = name;
 	  ret = SQLDescribeCol (dp->stmt,
 				i + 1,
-				name,
+				(SQLCHAR*) name,
 				namelen + 1,
 				&namelen,
 				NULL,
@@ -340,7 +340,7 @@ static const char *
 odbc_errstr (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;   
-  char state[16];
+  SQLCHAR state[16];
   char nbuf[64];
   SQLINTEGER nerror;
   SQLSMALLINT msglen;
@@ -365,14 +365,14 @@ odbc_errstr (mu_sql_connection_t conn)
   
   snprintf (nbuf, sizeof nbuf, "%d", (int) nerror);
   length = strlen (dp->err.what) + 1
-             + strlen (state) + 1
+             + strlen ((char*) state) + 1
              + strlen (nbuf) + 1
-             + strlen (dp->err.msg) + 1;
+             + strlen ((char*) dp->err.msg) + 1;
   if (dp->err.text)
     free (dp->err.text);
   dp->err.text = malloc (length);
   if (!dp->err.text)
-    return dp->err.msg;
+    return (char*) dp->err.msg;
   
   snprintf (dp->err.text, length, "%s %s %s %s", dp->err.what, state, nbuf,
 	    dp->err.msg);
