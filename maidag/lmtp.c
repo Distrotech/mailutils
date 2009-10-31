@@ -536,7 +536,7 @@ lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
 	  mu_rtrim_cset (sp, "\r\n");
 
 	  if (lmtp_transcript)
-	    mu_diag_output (MU_DIAG_INFO, "LMTP recieve: %s", buf);
+	    mu_diag_output (MU_DIAG_INFO, "LMTP receive: %s", buf);
 	      
 	  if (next_state != state_none)
 	    {

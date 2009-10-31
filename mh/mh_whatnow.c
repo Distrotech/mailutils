@@ -467,7 +467,7 @@ static struct helpdata whatnow_helptab[] = {
     N_("List the message being distributed/replied-to on the terminal.") },
   { "edit [<e <>]",
     N_("Edit the message. If EDITOR is omitted use the one that was used on"
-       " the preceeding round unless the profile entry \"LASTEDITOR-next\""
+       " the preceding round unless the profile entry \"LASTEDITOR-next\""
        " names an alternate editor.") },
   { "list [<>]",
     N_("List the draft on the terminal.") },

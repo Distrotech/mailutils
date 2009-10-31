@@ -297,7 +297,7 @@ Understands @option{--use} option. Disposition shell provides
 Different behaviour if one of the messages in the list does not exist:
 
 Mailutils @command{rmm} does not delete any messages. Standard
-@command{rmm} in this case deletes all messages preceeding the
+@command{rmm} in this case deletes all messages preceding the
 non-existent one. 
 
 @item
