@@ -17,6 +17,7 @@
    Boston, MA 02110-1301 USA */
 
 #include "mu_scm.h"
+#include <setjmp.h>
 
 static SCM
 eval_catch_body (void *list)

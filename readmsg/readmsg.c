@@ -104,11 +104,11 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 
     case 'p':
-      mu_argp_node_list_new (&lst, "form-feeds", arg);
+      mu_argp_node_list_new (&lst, "form-feeds", "yes");
       break;
 	  
     case 'a':
-      mu_argp_node_list_new (&lst, "show-all-match", arg);
+      mu_argp_node_list_new (&lst, "show-all-match", "yes");
       break;
 
     case ARGP_KEY_INIT:
