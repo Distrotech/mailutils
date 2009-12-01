@@ -200,7 +200,7 @@ static int      _smtp_set_rcpt (smtp_t, mu_message_t, mu_address_t);
 static void
 CLEAR_STATE (smtp_t smtp)
 {
-  smtp->ptr = NULL;
+  smtp->ptr = smtp->buffer;
   smtp->nl = NULL;
   smtp->s_offset = 0;
 
@@ -559,6 +559,7 @@ smtp_close (mu_mailer_t mailer)
     default:
       break;
     }
+  smtp->state = SMTP_NO_STATE;
   return mu_stream_close (mailer->stream);
 }
 
