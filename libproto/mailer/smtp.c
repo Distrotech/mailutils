@@ -488,12 +488,9 @@ smtp_open (mu_mailer_t mailer, int flags)
 
     case SMTP_STARTTLS:
     case SMTP_STARTTLS_ACK:
-      if (smtp->capa & CAPA_STARTTLS)
-	{
-	  smtp_starttls (smtp);
-	  goto ehlo;
-	}
-
+      if ((smtp->capa & CAPA_STARTTLS) && smtp_starttls (smtp) == 0)
+	goto ehlo;
+      
     case SMTP_AUTH:
     case SMTP_AUTH_ACK:
       if (smtp->capa & CAPA_AUTH)
