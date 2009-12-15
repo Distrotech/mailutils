@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2006, 2007 Free Software Foundation, Inc.
+   2006, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,26 +33,25 @@ static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
   struct mh_argp_data *data = state->input;
+  error_t ret = ARGP_ERR_UNKNOWN;
+  
   switch (key)
     {
     case ARGP_KEY_ARG:
       if (arg[0] == '+')
-	{
-	  data->handler (ARG_FOLDER, arg + 1, data->closure);
-	  break;
-	}
-      return ARGP_ERR_UNKNOWN;
-
+	ret = data->handler (ARG_FOLDER, arg + 1, state);
+      break;
+      
     default:
-      if (data->handler (key, arg, data->closure, state) == 0)
+      ret = data->handler (key, arg, state);
+      if (ret == 0)
 	{
 	  if (key == ARGP_KEY_ERROR)
 	    data->errind = state->next;
-	  break;
 	}
-      return ARGP_ERR_UNKNOWN;
     }
-  return 0;
+
+  return ret;
 }
 
 static int
@@ -101,13 +100,59 @@ mh_argp_init (const char *vers)
   argp_program_bug_address =  "<" PACKAGE_BUGREPORT ">";
 }
 
+
+enum
+  {
+    OPT_DEBUG_LEVEL = 256,
+    OPT_DEBUG_LINE_INFO,
+  };
+
+static struct argp_option mu_debug_argp_options[] = 
+{
+  { "debug-level", OPT_DEBUG_LEVEL, N_("LEVEL"), 0,
+    N_("set Mailutils debugging level"), 0 },
+  { "debug-line-info", OPT_DEBUG_LINE_INFO, NULL, 0,
+    N_("show source info with debugging messages"), 0 },
+  { NULL }
+};
+
+static error_t
+mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case OPT_DEBUG_LEVEL:
+      mu_global_debug_from_string (arg, "command line");
+      break;
+
+    case OPT_DEBUG_LINE_INFO:
+      mu_debug_line_info = 1;
+      break;
+      
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+struct argp mu_debug_argp = {
+  mu_debug_argp_options,
+  mu_debug_argp_parser,
+};
+
+struct argp_child mh_argp_children[] = {
+  { &mu_debug_argp, 0, N_("Global debugging settings"), 0 },
+  { NULL }
+};
+
 int
 mh_argp_parse (int *pargc, char **pargv[],
 	       int flags,
 	       struct argp_option *option,
 	       struct mh_option *mh_option,
 	       char *argp_doc, char *doc,
-	       int (*handler)(), void *closure, int *pindex)
+	       argp_parser_t handler,
+	       void *closure, int *pindex)
 {
   struct argp argp;
   struct mh_argp_data data;
@@ -123,6 +168,7 @@ mh_argp_parse (int *pargc, char **pargv[],
   argp.parser = parse_opt;
   argp.args_doc = argp_doc;
   argp.doc = doc;
+  argp.children = mh_argp_children;
   data.mh_option = mh_option;
   data.closure = closure;
   data.handler = handler;

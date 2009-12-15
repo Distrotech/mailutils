@@ -87,8 +87,8 @@ void list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data);
 void print_header (mu_mailbox_t mbox);
 void clear_screen (void);
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
@@ -142,7 +142,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

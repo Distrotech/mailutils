@@ -340,7 +340,8 @@ attach_auth_ticket (mu_mailbox_t mbox)
   mu_authority_t auth = NULL;
 
   if (mu_mailbox_get_folder (mbox, &folder) == 0
-      && mu_folder_get_authority (folder, &auth) == 0)
+      && mu_folder_get_authority (folder, &auth) == 0
+      && auth)
     {
       char *filename = mu_tilde_expansion (mu_ticket_file, "/", NULL);
       mu_wicket_t wicket;

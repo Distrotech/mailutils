@@ -64,8 +64,8 @@ static char *cur_folder_path; /* Full pathname of the current folder */
 static char *folder_name;     /* Name of the (topmost) folder to be
 				 deleted */
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
@@ -95,7 +95,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

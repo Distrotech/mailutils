@@ -136,7 +136,7 @@ size_t max_depth = 1;  /* Maximum recursion depth (0 means infinity) */
 #define OPTION_IS_SET(opt) ((opt) == -1 ? show_all : opt)
 
 static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
@@ -234,7 +234,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

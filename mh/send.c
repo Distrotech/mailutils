@@ -131,8 +131,8 @@ static int keep_files;           /* Keep draft files */
     watch_printf c;\
 } while (0)
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   char *p;
   
@@ -257,7 +257,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

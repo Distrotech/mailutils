@@ -34,7 +34,7 @@ struct mh_option
 struct mh_argp_data
 {
   struct mh_option *mh_option;
-  int (*handler)();
+  argp_parser_t handler;
   int errind;
   void *closure;
   char *doc;
@@ -190,7 +190,8 @@ int mh_argp_parse (int *argc, char **argv[],
 		   struct argp_option *option,
 		   struct mh_option *mh_option,
 		   char *argp_doc, char *doc,
-		   int (*handler)(), void *closure, int *index);
+		   argp_parser_t handler,
+		   void *closure, int *index);
 
 void mh_help (struct mh_option *mh_option, const char *doc);
 void mh_license (const char *name);

@@ -57,8 +57,8 @@ struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static char *draftmessage = "cur";
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
@@ -96,7 +96,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

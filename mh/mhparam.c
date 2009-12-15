@@ -46,8 +46,8 @@ struct mh_option mh_option[] = {
 static int display_all;
 static int display_comp_name = -1;
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
@@ -64,7 +64,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }

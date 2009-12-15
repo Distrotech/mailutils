@@ -138,8 +138,8 @@ decode_cc_flag (const char *opt, const char *arg)
   return rc;
 }
 
-static int
-opt_handler (int key, char *arg, void *unused, struct argp_state *state)
+static error_t
+opt_handler (int key, char *arg, struct argp_state *state)
 {
   char *s;
   
@@ -271,7 +271,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
       
     default:
-      return 1;
+      return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }
