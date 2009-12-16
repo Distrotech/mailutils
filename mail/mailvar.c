@@ -285,14 +285,15 @@ find_mailvar_symbol (const char *var)
 }
 
 static void
-print_descr (FILE *out, char *s, int n, int doc_col, int rmargin, char *pfx)
+print_descr (FILE *out, const char *s, int n,
+	     int doc_col, int rmargin, char *pfx)
 {
   if (!s)
     return;
   do
     {
-      char *p;
-      char *space = NULL;
+      const char *p;
+      const char *space = NULL;
 
       if (n == 1 && pfx)
 	n += fprintf (out, "%s", pfx);

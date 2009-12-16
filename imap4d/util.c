@@ -325,7 +325,7 @@ util_send_qstring (const char *buffer)
 int
 util_send_literal (const char *buffer)
 {
-  return util_send ("{%u}\r\n%s", strlen (buffer), buffer);
+  return util_send ("{%lu}\r\n%s", (unsigned long) strlen (buffer), buffer);
 }
 
 /* Send an unsolicited response.  */

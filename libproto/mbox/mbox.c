@@ -1194,8 +1194,8 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
       return 0;
     }
 
-  MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_get_message (%s, %d)\n",
-		  mud->name, msgno);
+  MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_get_message (%s, %lu)\n",
+	     mud->name, (unsigned long) msgno);
 
   return new_message (mailbox, mum, pmsg);
 }

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,7 +96,7 @@ int mu_sv_lex_begin (const char *name);
 int mu_sv_lex_begin_string (const char *buf, int bufsize,
 			    const char *fname, int line);
 void mu_sv_lex_finish (void);
-int mu_sieve_yyerror (char *s);
+int mu_sieve_yyerror (const char *s);
 int mu_sieve_yylex (); 
 
 void mu_sv_register_standard_actions (mu_sieve_machine_t mach);

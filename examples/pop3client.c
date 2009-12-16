@@ -520,7 +520,7 @@ com_list (char *arg)
       unsigned int msgno = strtoul (arg, NULL, 10);
       status = mu_pop3_list (pop3, msgno, &size);
       if (status == 0)
-	printf ("Msg: %d Size: %d\n", msgno, size);
+	printf ("Msg: %u Size: %lu\n", msgno, (unsigned long) size);
     }
   return status;
 }
@@ -597,12 +597,13 @@ com_pass (char *arg)
 int
 com_stat (char *arg MU_ARG_UNUSED)
 {
-  unsigned count, size;
+  unsigned count = 0;
+  size_t size = 0;
   int status = 0;
 
-  count = size = 0;
   status = mu_pop3_stat (pop3, &count, &size);
-  printf ("Mesgs: %d Size %d\n", count, size);
+  printf ("Mesgs: %lu Size %lu\n",
+	  (unsigned long) count, (unsigned long) size);
   return status;
 }
 

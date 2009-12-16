@@ -529,7 +529,8 @@ mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
       num = msgset->list[i];
       if ((rc = mu_mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mu_error (_("cannot get message %d: %s"), num, mu_strerror (rc));
+	  mu_error (_("cannot get message %lu: %s"),
+		    (unsigned long) num, mu_strerror (rc));
 	  return 1;
 	}
 

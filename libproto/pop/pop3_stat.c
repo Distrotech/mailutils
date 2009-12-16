@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,8 @@ int
 mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
 {
   int status;
-
+  unsigned long lv;
+  
   if (pop3 == NULL || msg_count == NULL)
     return EINVAL;
   if (size == NULL)
@@ -57,8 +58,9 @@ mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
 
       /* Parse the answer.  */
       *msg_count = 0;
-      *size = 0;
-      sscanf (pop3->ack.buf, "+OK %d %d", msg_count, size);
+      lv = 0;
+      sscanf (pop3->ack.buf, "+OK %d %lu", msg_count, &lv);
+      *size = lv;
       break;
 
       /* They must deal with the error first by reopening.  */

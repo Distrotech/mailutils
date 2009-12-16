@@ -1783,7 +1783,7 @@ struct tm
 
 int
 mu_parse822_date_time (const char **p, const char *e, struct tm *tm,
-		    struct mu_timezone *tz)
+		       struct mu_timezone *tz)
 {
   /* date-time = [ day "," ] date time */
 
@@ -1852,7 +1852,7 @@ mu_parse822_date_time (const char **p, const char *e, struct tm *tm,
       tm->tm_gmtoff = tzoffset;
 #endif
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-      tm->tm_zone = tz_name;
+      tm->tm_zone = (char*) tz_name;
 #endif
     }
 

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2002, 2003, 2005, 
-   2007 Free Software Foundation, Inc.
+   2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ mail_eq (int argc, char **argv)
       if (n == 0)
         util_error (_("No applicable message"));
       else
-        fprintf (ofile, "%u\n", n);
+        fprintf (ofile, "%lu\n", (unsigned long) n);
       break;
 
     case 2:
@@ -45,7 +45,7 @@ mail_eq (int argc, char **argv)
 	  if (list->msg_part[0] <= total)
 	    {
 	      set_cursor (list->msg_part[0]);
-	      fprintf (ofile, "%u\n", list->msg_part[0]);
+	      fprintf (ofile, "%lu\n", (unsigned long) list->msg_part[0]);
 	    }
 	  else
 	    util_error_range (list->msg_part[0]);

@@ -162,7 +162,8 @@ msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
 	rc = mu_mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
-	    mu_error (_("cannot get message %d: %s"), num, mu_strerror (rc));
+	    mu_error (_("cannot get message %lu: %s"),
+		      (unsigned long) num, mu_strerror (rc));
 	    exit (1);
 	  }
 	*rest = arg + strlen (p->name);
@@ -349,7 +350,8 @@ _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      n = mh_get_message (mbox, start, NULL);
 	      if (!n)
 		{
-		  mu_error (_("message %d does not exist"), start);
+		  mu_error (_("message %lu does not exist"),
+			    (unsigned long) start);
 		  exit (1);
 		}
 	      msglist[msgno++] = n;

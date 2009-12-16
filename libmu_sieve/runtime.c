@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2005,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,11 +44,11 @@ _mu_sv_instr_nop (mu_sieve_machine_t mach)
 void
 _mu_sv_instr_source (mu_sieve_machine_t mach)
 {
-  mach->locus.source_file = SIEVE_ARG (mach, 0, string);
+  mach->locus.source_file = (char*) SIEVE_ARG (mach, 0, string);
   if (INSTR_DEBUG (mach))
     mu_sieve_debug (mach, "%4lu: SOURCE %s\n",
-		 (unsigned long) (mach->pc - 1),
-		 mach->locus.source_file);
+		    (unsigned long) (mach->pc - 1),
+		    mach->locus.source_file);
   SIEVE_ADJUST (mach, 1);
 }
 		 

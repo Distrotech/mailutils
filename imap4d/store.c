@@ -151,7 +151,7 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 	  
 	  if (pclos.ack)
 	    {
-	      util_send ("* %d FETCH (", msgno);
+	      util_send ("* %lu FETCH (", (unsigned long) msgno);
 	      
 	      if (isuid)
 		util_send ("UID %lu ", (unsigned long) msgno);

@@ -30,7 +30,8 @@ print_envelope (msgset_t *mspec, mu_message_t msg, void *data)
   status = mu_message_get_envelope (msg, &env);
   if (status)
     {
-      mu_error (_("%d: Cannot get envelope"), mspec->msg_part[0]);
+      mu_error (_("%lu: Cannot get envelope"),
+		(unsigned long) mspec->msg_part[0]);
     }
   else
     {

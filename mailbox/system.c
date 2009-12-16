@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -118,9 +118,10 @@ mu_authenticate_system (struct mu_auth_data **return_data MU_ARG_UNUSED,
 			void *call_data)
 {
   const struct mu_auth_data *auth_data = key;
-  char *pass = call_data;
 
 #ifdef HAVE_SHADOW_H
+  char *pass = call_data;
+  
   if (auth_data)
     {
       struct spwd *spw;

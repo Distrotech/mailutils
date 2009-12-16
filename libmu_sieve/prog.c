@@ -263,9 +263,9 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		  else
 		    {
 		      mu_sv_compile_error (&mu_sieve_locus, 
-                                      _("type mismatch in argument %d to `%s'"),
-				      exp_arg - reg->req_args + 1,
-				      reg->name);
+                                   _("type mismatch in argument %lu to `%s'"),
+				   (unsigned long) (exp_arg - reg->req_args + 1),
+					   reg->name);
 		      mu_sv_compile_error (&mu_sieve_locus, 
 					   _("expected %s but passed %s"),
 					   mu_sieve_type_str (*exp_arg),

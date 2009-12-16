@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2005, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005, 2007, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -101,7 +101,8 @@ notify_flag (size_t msgno, mu_attribute_t oattr)
 	    add_flag (&abuf, "\\Recent");
 	  }
       if (*abuf)
-	util_out (RESP_NONE, "%d FETCH FLAGS (%s)", msgno, abuf);
+	util_out (RESP_NONE, "%lu FETCH FLAGS (%s)",
+		  (unsigned long) msgno, abuf);
       free (abuf);
     }
 }
@@ -123,7 +124,8 @@ notify_deleted (void)
 	{
 	  if (!(uid_table[i].notify))
 	    {
-	      util_out (RESP_NONE, "%d EXPUNGED", uid_table[i].msgno-decr);
+	      util_out (RESP_NONE, "%lu EXPUNGED",
+			(unsigned long) uid_table[i].msgno-decr);
 	      uid_table[i].notify = 1;
 	      decr++;
 	    }
@@ -237,8 +239,8 @@ notify (void)
       mu_mailbox_messages_recent (mbox, &recent);
     }
 
-  util_out (RESP_NONE, "%d EXISTS", total);
-  util_out (RESP_NONE, "%d RECENT", recent);
+  util_out (RESP_NONE, "%lu EXISTS", (unsigned long) total);
+  util_out (RESP_NONE, "%lu RECENT", (unsigned long) recent);
 
   if (!reset)
     reset_uids ();

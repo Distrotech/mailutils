@@ -111,7 +111,7 @@ _capture_stdout (PyObject *self, PyObject *args)
     return NULL;
   if (_mu_prog_debug_stdout)
     mu_debug_printf (_mu_prog_debug_stdout, MU_DIAG_INFO, "%.*s",
-		     strlen (buf), buf);
+		     (int) strlen (buf), buf);
   return _ro (Py_None);
 }
 
@@ -123,7 +123,7 @@ _capture_stderr (PyObject *self, PyObject *args)
     return NULL;
   if (_mu_prog_debug_stderr)
     mu_debug_printf (_mu_prog_debug_stderr, MU_DIAG_ERROR, "%.*s",
-		     strlen (buf), buf);
+		     (int) strlen (buf), buf);
   return _ro (Py_None);
 }
 

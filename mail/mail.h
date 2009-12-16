@@ -410,8 +410,8 @@ extern int ml_got_interrupt (void);
 extern void ml_clear_interrupt (void);
 extern void ml_readline_init (void);
 extern int ml_reread (const char *prompt, char **text);
-extern char *ml_readline (char *prompt);
-extern char *ml_readline_with_intr (char *prompt);
+extern char *ml_readline (const char *prompt);
+extern char *ml_readline_with_intr (const char *prompt);
 
 extern char *alias_expand (const char *name);
 extern void alias_destroy (const char *name);

@@ -863,7 +863,8 @@ action_pack ()
       status = mu_mailbox_get_message (mbox, i + 1, &msg);
       if (status)
 	{
-	  mu_error (_("%d: cannot get message: %s"), i, mu_strerror (status));
+	  mu_error (_("%lu: cannot get message: %s"),
+		    (unsigned long) i, mu_strerror (status));
 	  return 1;
 	}
       mh_message_number (msg, &pack_tab[i].orig);

@@ -342,7 +342,8 @@ _sieve_action_log (void *unused,
     }
   
   mu_message_get_uid (msg, &uid);
-  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %d"), action, uid);
+  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %lu"),
+		  action, (unsigned long) uid);
   
   if (fmt && strlen (fmt))
     {

@@ -197,7 +197,7 @@ imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
 		util_send ("* ID (");
 	      else
 		util_send (" ");
-	      util_send ("\"%*.*s\" \"%s\"", len, len, p, q);
+	      util_send ("\"%*.*s\" \"%s\"", (int) len, (int) len, p, q);
 	    }
 	}
       mu_iterator_destroy (&itr);

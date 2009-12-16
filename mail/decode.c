@@ -127,9 +127,9 @@ fprint_msgset (FILE *fp, const msgset_t *msgset)
   int i;
   size_t n = 0;
   
-  n = fprintf (fp, "%d", msgset->msg_part[0]);
+  n = fprintf (fp, "%lu", (unsigned long) msgset->msg_part[0]);
   for (i = 1; i < msgset->npart; i++)
-    n += fprintf (fp, "[%d", msgset->msg_part[i]);
+    n += fprintf (fp, "[%lu", (unsigned long) msgset->msg_part[i]);
   for (i = 1; i < msgset->npart; i++)
     n += fprintf (fp, "]");
   return n;

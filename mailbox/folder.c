@@ -181,11 +181,9 @@ mu_folder_destroy (mu_folder_t *pfolder)
       if (folder->ref <= 0)
 	mu_list_remove (known_folder_list, folder);
       /* If the list is empty we can safely remove it.  */
-      if (mu_list_is_empty)
-	{
-	  mu_list_destroy (&known_folder_list);
-	  known_folder_list = NULL;
-	}
+      if (mu_list_is_empty (known_folder_list))
+	mu_list_destroy (&known_folder_list);
+
       mu_monitor_unlock (&folder_lock);
 
       if (folder->ref <= 0)

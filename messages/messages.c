@@ -170,9 +170,9 @@ messages_count (const char *box)
     }
 
   if (silent)
-    printf ("%d\n", count);
+    printf ("%lu\n", (unsigned long) count);
   else
-    printf (_("Number of messages in %s: %d\n"), box, count);
+    printf (_("Number of messages in %s: %lu\n"), box, (unsigned long) count);
 
   status = mu_mailbox_close (mbox);
   if (status != 0)

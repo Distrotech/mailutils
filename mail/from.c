@@ -115,11 +115,11 @@ format_headline (struct header_segm *seg, msgset_t *mspec, mu_message_t msg)
       if (seg->align == ALIGN_RIGHT)
 	{
 	  format_pad (width - len);
-	  fprintf (ofile, "%*.*s", len, len, p);
+	  fprintf (ofile, "%*.*s", (int) len, (int) len, p);
 	}
       else
 	{
-	  fprintf (ofile, "%*.*s", len, len, p);
+	  fprintf (ofile, "%*.*s", (int) len, (int) len, p);
 	  format_pad (width - len);
 	}
       out_cols += width;

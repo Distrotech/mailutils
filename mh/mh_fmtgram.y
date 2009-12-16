@@ -23,7 +23,7 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 
-int yyerror (char *s);
+int yyerror (const char *s);
 int yylex ();
  
 static mh_format_t format;     /* Format structure being built */
@@ -355,7 +355,7 @@ static char *start;
 static char *curp;
 
 int
-yyerror (char *s)
+yyerror (const char *s)
 {
   int len;
   mu_error ("%s: %s", start, s);

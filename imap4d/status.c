@@ -160,7 +160,7 @@ status_messages (mu_mailbox_t smbox)
 {
   size_t total = 0;
   mu_mailbox_messages_count (smbox, &total);
-  util_send ("MESSAGES %u", total);
+  util_send ("MESSAGES %lu", (unsigned long) total);
   return 0;
 }
 
@@ -169,7 +169,7 @@ status_recent (mu_mailbox_t smbox)
 {
   size_t recent = 0;
   mu_mailbox_messages_recent (smbox, &recent);
-  util_send ("RECENT %u", recent);
+  util_send ("RECENT %lu", (unsigned long) recent);
   return 0;
 }
 
@@ -178,7 +178,7 @@ status_uidnext (mu_mailbox_t smbox)
 {
   size_t uidnext = 1;
   mu_mailbox_uidnext (smbox, &uidnext);
-  util_send ("UIDNEXT %u", uidnext);
+  util_send ("UIDNEXT %lu", (unsigned long) uidnext);
   return 0;
 }
 
@@ -214,6 +214,6 @@ status_unseen (mu_mailbox_t smbox)
       if (!mu_attribute_is_read (attr))
 	unseen++;
     }
-  util_send ("UNSEEN %d", unseen);
+  util_send ("UNSEEN %lu", (unsigned long) unseen);
   return 0;
 }

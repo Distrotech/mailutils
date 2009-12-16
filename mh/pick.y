@@ -33,13 +33,16 @@ regex_dup (regex_t *re)
   return rp;
 }
 
+int yyerror (const char *s);
+int yylex (void); 
+ 
 static node_t *parse_tree;
 static int nesting_level;
 static int reg_flags = REG_EXTENDED|REG_ICASE;
 %}
 
 %token <string> T_COMP T_DATEFIELD  T_STRING T_CFLAGS
-%token T_LBRACE T_RBRACE T_BEFORE T_AFTER T_CFLAGS
+%token T_LBRACE T_RBRACE T_BEFORE T_AFTER 
 %left T_OR
 %left T_AND
 %left T_NOT
@@ -215,10 +218,10 @@ tokname (int tok)
 }
 
 int
-yyerror (char *s)
+yyerror (const char *s)
 {
   int tok = yylex ();
-  char *str;
+  const char *str;
   
   if (!tok)
     str = _("end of input");

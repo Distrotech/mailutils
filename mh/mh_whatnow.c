@@ -73,7 +73,7 @@ static int
 print_short (const char *str)
 {
   int n;
-  char *s;
+  const char *s;
   
   for (n = 0; *str; str++, n++)
     {
@@ -113,12 +113,12 @@ print_short (const char *str)
 }
 
 static void
-print_descr (int n, char *s)
+print_descr (int n, const char *s)
 {
   do
     {
-      char *p;
-      char *space = NULL;
+      const char *p;
+      const char *space = NULL;
       
       for (; n < OPT_DOC_COL; n++)
 	putchar (' ');
@@ -562,7 +562,7 @@ mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
     mh_spawnp (wh->editor, wh->file);
 
   if (!wh->prompt)
-    wh->prompt = _("What now?");
+    wh->prompt = (char*) _("What now?");
   
   return _whatnow (wh, whatnow_tab);
 }
@@ -586,7 +586,7 @@ mh_disposition (const char *filename)
   int rc;
   memset (&wh, 0, sizeof (wh));
   wh.file = xstrdup (filename);
-  wh.prompt = _("Disposition?");
+  wh.prompt = (char*) _("Disposition?");
   rc = _whatnow (&wh, disp_tab);
   free (wh.file);
   return rc;

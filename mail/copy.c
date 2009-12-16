@@ -108,7 +108,8 @@ mail_copy0 (int argc, char **argv, int mark)
     }
 
   if (status == 0)
-    fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
+    fprintf (ofile, "\"%s\" %3lu/%-5lu\n", filename,
+	     (unsigned long) total_lines, (unsigned long) total_size);
 
   mu_mailbox_close (mbx);
   mu_mailbox_destroy (&mbx);

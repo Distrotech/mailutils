@@ -276,7 +276,7 @@ int
 comsat_main (int fd)
 {
   int rdlen;
-  int len;
+  socklen_t len;
   struct sockaddr fromaddr;
   char buffer[216]; /*FIXME: Arbitrary size */
 

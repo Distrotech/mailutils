@@ -607,8 +607,8 @@ make_functional_node (char *ident, mu_list_t list)
   {
     char *s;
     asprintf (&s,
-	      _("argument %d has wrong type in call to `%s'"),
-	      i, ident);
+	      _("argument %lu has wrong type in call to `%s'"),
+	      (unsigned long) i, ident);
     yyerror (s);
     free (s);
     return NULL;

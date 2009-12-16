@@ -1064,7 +1064,7 @@ handle_message (mu_message_t msg, msg_part_t part, msg_handler_t fun, void *data
   mu_message_is_multipart (msg, &ismime);
   if (ismime)
     {
-      unsigned int i, nparts;
+      size_t i, nparts;
 
       mu_message_get_num_parts (msg, &nparts);
 
@@ -1391,7 +1391,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       const char *p;
       size_t size = 0;
 
-      str = _("part ");
+      str = (char*) _("part ");
       mu_stream_sequential_write (out, str, strlen (str));
       str = msg_part_format (part);
       mu_stream_sequential_write (out, str, strlen (str));

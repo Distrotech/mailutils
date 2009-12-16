@@ -54,7 +54,7 @@ print_fvpairs (mu_url_t url)
   if (fvc == 0)
     return;
   for (i = 0; i < fvc; i++)
-    printf ("\tparam[%d] <%s>\n", i, fvp[i]);
+    printf ("\tparam[%lu] <%s>\n", (unsigned long) i, fvp[i]);
 }
 
 static void
@@ -71,7 +71,7 @@ print_query (mu_url_t url)
   if (qargc == 0)
     return;
   for (i = 0; i < qargc; i++)
-    printf ("\tquery[%d] <%s>\n", i, qargv[i]);
+    printf ("\tquery[%lu] <%s>\n", (unsigned long) i, qargv[i]);
 }
 
 int

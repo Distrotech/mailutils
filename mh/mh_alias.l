@@ -28,7 +28,8 @@ size_t ali_line_num;
 ino_t ali_source_inode;
 
 void
-va_ali_parse_error_loc (char *name, size_t line, char *fmt, va_list ap)
+va_ali_parse_error_loc (const char *name, size_t line,
+			      const char *fmt, va_list ap)
 {
   char *buf;
 
@@ -41,7 +42,7 @@ va_ali_parse_error_loc (char *name, size_t line, char *fmt, va_list ap)
 }
 
 void
-ali_parse_error_loc (char *name, size_t line, char *fmt, ...)
+ali_parse_error_loc (const char *name, size_t line, const char *fmt, ...)
 {
   va_list ap;
 
@@ -51,7 +52,7 @@ ali_parse_error_loc (char *name, size_t line, char *fmt, ...)
 }
 
 void
-ali_parse_error (char *fmt, ...)
+ali_parse_error (const char *fmt, ...)
 {
   va_list ap;
 

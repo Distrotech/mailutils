@@ -250,15 +250,15 @@ main (int argc, char **argv)
       
       if ((rc = mu_mailbox_get_message (input, n, &imsg)) != 0)
 	{
-	  mu_error (_("%d: cannot get message: %s"),
-		    n, mu_strerror (rc));
+	  mu_error (_("%lu: cannot get message: %s"),
+		    (unsigned long) n, mu_strerror (rc));
 	  continue;
 	}
 
       if ((rc = mu_mailbox_append_message (output, imsg)) != 0)
 	{
-	  mu_error (_("%d: error appending message: %s"),
-		    n, mu_strerror (rc));
+	  mu_error (_("%lu: error appending message: %s"),
+		    (unsigned long) n, mu_strerror (rc));
 	  continue;
 	}
 

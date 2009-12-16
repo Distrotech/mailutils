@@ -202,8 +202,8 @@ regex_comparator (void *item, void *data)
 	       REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE))
     {
       mu_sieve_error (d->mach,
-		      _("%d: cannot compile regular expression \"%s\""),
-		      mu_sieve_get_message_num (d->mach),
+		      _("%lu: cannot compile regular expression \"%s\""),
+		      (unsigned long) mu_sieve_get_message_num (d->mach),
 		      (char*) item);
       return 0;
     }
@@ -293,8 +293,8 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
 
   if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
     {
-      mu_sieve_error (mach, _("%d: cannot build db file name"),
-		      mu_sieve_get_message_num (mach));
+      mu_sieve_error (mach, _("%lu: cannot build db file name"),
+		      (unsigned long) mu_sieve_get_message_num (mach));
       free (home);
       mu_sieve_abort (mach);
     }
@@ -304,8 +304,8 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   if (rc)
     {
       mu_sieve_error (mach,
-		      _("%d: cannot open `%s': %s"),
-		      mu_sieve_get_message_num (mach), file,
+		      _("%lu: cannot open `%s': %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach), file,
 		      mu_strerror (rc));
       free (file);
       mu_sieve_abort (mach);
@@ -375,8 +375,8 @@ re_subject (mu_sieve_machine_t mach, mu_list_t tags, char **psubject)
   if (!subject)
     {
       mu_sieve_error (mach,
-		      _("%d: not enough memory"),
-		      mu_sieve_get_message_num (mach));
+		      _("%lu: not enough memory"),
+		      (unsigned long) mu_sieve_get_message_num (mach));
       return;
     }
   
@@ -433,8 +433,8 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	      mu_sieve_error (mach,
 			      /* TRANSLATORS: 'vacation' is the name of the
 				 Sieve action. Do not translate it! */
-			      _("%d: vacation - cannot compile reply prefix regexp: %s: %s"),
-			      mu_sieve_get_message_num (mach),
+			      _("%lu: vacation - cannot compile reply prefix regexp: %s: %s"),
+			      (unsigned long) mu_sieve_get_message_num (mach),
 			      mu_strerror (rc),
 			      err ? err : "");
 	    }
@@ -483,8 +483,9 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   if (rc)
     {
       mu_sieve_error (mach,
-		      _("%d: cannot create recipient address <%s>: %s"),
-		      mu_sieve_get_message_num (mach), from, mu_strerror (rc));
+		      _("%lu: cannot create recipient address <%s>: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      from, mu_strerror (rc));
     }
   else
     {
@@ -522,8 +523,8 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 	  mu_mailer_get_url (mailer, &url);
       
 	  mu_sieve_error (mach,
-			  _("%d: cannot open mailer %s: %s"),
-			  mu_sieve_get_message_num (mach),
+			  _("%lu: cannot open mailer %s: %s"),
+			  (unsigned long) mu_sieve_get_message_num (mach),
 			  mu_url_to_string (url), mu_strerror (rc));
 	}
       else
@@ -572,8 +573,8 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   else if (mu_sieve_get_message_sender (msg, &from))
     {
       mu_sieve_error (mach,
-		      _("%d: cannot get sender address"),
-		      mu_sieve_get_message_num (mach));
+		      _("%lu: cannot get sender address"),
+		      (unsigned long) mu_sieve_get_message_num (mach));
       mu_sieve_abort (mach);
     }
 

@@ -930,7 +930,7 @@ _frt_size (struct fetch_function_closure *ffc,
   
   mu_message_size (frt->msg, &size);
   mu_message_lines (frt->msg, &lines);
-  util_send ("%s %u", ffc->name, size + lines);
+  util_send ("%s %lu", ffc->name, (unsigned long) (size + lines));
   return RESP_OK;
 }
 
@@ -1312,7 +1312,7 @@ static size_t
 parsebuf_get_number (imap4d_parsebuf_t p)
 {
   char *cp;
-  unsigned n = strtoul (p->token, &cp, 10);
+  unsigned long n = strtoul (p->token, &cp, 10);
 
   if (*cp)
     imap4d_parsebuf_exit (p, "Syntax error: expected number");

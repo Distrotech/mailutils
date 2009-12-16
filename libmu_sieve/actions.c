@@ -317,9 +317,9 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot create recipient address <%s>: %s"),
-		   mu_sieve_get_message_num (mach),
-		   addrtext, mu_strerror (rc));
+		      _("%lu: cannot create recipient address <%s>: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      addrtext, mu_strerror (rc));
       free (addrtext);
       goto end;
     }
@@ -329,8 +329,8 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		      _("%d: cannot create sender address <%s>: %s"),
-		      mu_sieve_get_message_num (mach),
+		      _("%lu: cannot create sender address <%s>: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
 		      mu_sieve_get_daemon_email (mach),
 		      mu_strerror (rc));
       goto end;
@@ -343,8 +343,8 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_mailer_get_url (mailer, &url);
 	
       mu_sieve_error (mach,
-		      _("%d: cannot open mailer %s: %s"),
-		      mu_sieve_get_message_num (mach),
+		      _("%lu: cannot open mailer %s: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
 		      mu_url_to_string (url),
 		      mu_strerror (rc));
       goto end;
@@ -426,9 +426,9 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: parsing recipient address `%s' failed: %s"),
-		   mu_sieve_get_message_num (mach),
-		   val->v.string, mu_strerror (rc));
+		      _("%lu: parsing recipient address `%s' failed: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      val->v.string, mu_strerror (rc));
       return 1;
     }
   
@@ -439,8 +439,8 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   msg = mu_sieve_get_message (mach);
   if (check_redirect_loop (msg))
     {
-      mu_sieve_error (mach, _("%d: redirection loop detected"),
-		   mu_sieve_get_message_num (mach));
+      mu_sieve_error (mach, _("%lu: redirection loop detected"),
+		      (unsigned long) mu_sieve_get_message_num (mach));
       goto end;
     }
 
@@ -448,8 +448,9 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot get envelope sender: %s"),
-		   mu_sieve_get_message_num (mach), mu_strerror (rc));
+		      _("%lu: cannot get envelope sender: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
       goto end;
     }
 
@@ -457,8 +458,8 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		      _("%d: cannot create sender address <%s>: %s"),
-		      mu_sieve_get_message_num (mach),
+		      _("%lu: cannot create sender address <%s>: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
 		      fromaddr, mu_strerror (rc));
       free (fromaddr);
       goto end;
@@ -470,9 +471,9 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (rc)
     {
       mu_sieve_error (mach,
-		   _("%d: cannot copy message: %s"),
-		   mu_sieve_get_message_num (mach),
-		   mu_strerror (rc));
+		      _("%lu: cannot copy message: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
       goto end;
     }
   
@@ -485,8 +486,8 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     }
   else
     {
-      mu_sieve_error (mach, _("%d: cannot get my email address"),
-		   mu_sieve_get_message_num (mach));
+      mu_sieve_error (mach, _("%lu: cannot get my email address"),
+		      (unsigned long) mu_sieve_get_message_num (mach));
       goto end;
     }
   
@@ -497,10 +498,10 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_mailer_get_url (mailer, &url);
 	
       mu_sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s"),
-		   mu_sieve_get_message_num (mach),
-		   mu_url_to_string (url),
-		   mu_strerror (rc));
+		      _("%lu: cannot open mailer %s: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_url_to_string (url),
+		      mu_strerror (rc));
       goto end;
     }
   

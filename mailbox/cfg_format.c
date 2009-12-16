@@ -1,5 +1,5 @@
 /* cfg_print.c -- convert configuration parse tree to human-readable format.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -132,8 +132,9 @@ format_node (const mu_cfg_node_t *node, void *data)
   struct tree_print *tp = data;
 
   if (node->locus.file)
-    mu_stream_sequential_printf (tp->stream, "# %d \"%s\"\n",
-				 node->locus.line, node->locus.file);
+    mu_stream_sequential_printf (tp->stream, "# %lu \"%s\"\n",
+				 (unsigned long) node->locus.line, 
+                                 node->locus.file);
   format_level (tp->stream, tp->level);
   switch (node->type)
     {

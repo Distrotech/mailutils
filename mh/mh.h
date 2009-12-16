@@ -365,6 +365,6 @@ void mh_comp_draft (const char *formfile, const char *defformfile,
 		    const char *draftfile);
 int check_draft_disposition (struct mh_whatnow_env *wh, int use_draft);
 
-void ali_parse_error (char *fmt, ...) MU_PRINTFLIKE(1,2); 
+void ali_parse_error (const char *fmt, ...) MU_PRINTFLIKE(1,2); 
 void ali_verbatim (int enable);
 

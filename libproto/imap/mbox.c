@@ -315,10 +315,10 @@ mailbox_imap_open (mu_mailbox_t mailbox, int flags)
 	      return 0;
 	    else if (status)
 	      return status;
-	    status = imap_writeline (f_imap, "g%u CREATE %s\r\n",
-				     f_imap->seq, path);
-	    MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "g%u CREATE %s\n",
-		       f_imap->seq, path);
+	    status = imap_writeline (f_imap, "g%lu CREATE %s\r\n",
+				     (unsigned long) f_imap->seq, path);
+	    MU_DEBUG2 (folder->debug, MU_DEBUG_PROT, "g%lu CREATE %s\n",
+		       (unsigned long) f_imap->seq, path);
 	    f_imap->seq++;
 	    if (status != 0)
 	      {

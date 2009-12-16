@@ -50,7 +50,7 @@ mail_write (int argc, char **argv)
           util_error (_("No applicable message"));
           return 1;
         }
-      asprintf (&p, "%u", n);
+      asprintf (&p, "%lu", (unsigned long) n);
       filename = util_outfolder_name (p);
       free (p);
     }
@@ -115,7 +115,8 @@ mail_write (int argc, char **argv)
       mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
     }
 
-  fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
+  fprintf (ofile, "\"%s\" %3lu/%-5lu\n", filename,
+	   (unsigned long) total_lines, (unsigned long) total_size);
 
   free (filename);
   fclose (output);

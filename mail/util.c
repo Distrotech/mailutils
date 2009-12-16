@@ -387,7 +387,7 @@ util_screen_lines ()
   if (mailvar_get (&screen, "screen", mailvar_type_number, 0) == 0)
     return screen;
   n = util_getlines();
-  util_do_command ("set screen=%d", n);
+  util_do_command ("set screen=%lu", (unsigned long) n);
   return n;
 }
 
@@ -400,7 +400,7 @@ util_screen_columns ()
   if (mailvar_get (&cols, "columns", mailvar_type_number, 0) == 0)
     return cols;
   n = util_getcols();
-  util_do_command ("set columns=%d", n);
+  util_do_command ("set columns=%lu", (unsigned long) n);
   return n;
 }
 
@@ -794,15 +794,15 @@ util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
       mu_message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
-	  util_error (_("No such (sub)part in the message: %d"),
-		      msgset->msg_part[i]);
+	  util_error (_("No such (sub)part in the message: %lu"),
+		      (unsigned long) msgset->msg_part[i]);
 	  return 1;
 	}
 
       if (mu_message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
-	  util_error (_("Cannot get (sub)part from the message: %d"),
-		      msgset->msg_part[i]);
+	  util_error (_("Cannot get (sub)part from the message: %lu"),
+		      (unsigned long) msgset->msg_part[i]);
 	  return 1;
 	}
 
@@ -1039,7 +1039,7 @@ util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg)
 int
 util_error_range (size_t msgno)
 {
-  util_error (_("%d: invalid message number"), msgno);
+  util_error (_("%lu: invalid message number"), (unsigned long) msgno);
   return 1;
 }
 

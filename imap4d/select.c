@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001, 2003, 2005, 2006,
-   2007, 2008 Free Software Foundation, Inc.
+   2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,9 +110,11 @@ imap4d_select_status ()
   /* This outputs EXISTS and RECENT responses */
   imap4d_sync();
   util_out (RESP_OK, "[UIDVALIDITY %lu] UID valididy status", uidvalidity);
-  util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
+  util_out (RESP_OK, "[UIDNEXT %lu] Predicted next uid",
+	    (unsigned long) uidnext);
   if (unseen)
-    util_out (RESP_OK, "[UNSEEN %d] first unseen messsage ", unseen);
+    util_out (RESP_OK, "[UNSEEN %lu] first unseen messsage ",
+	      (unsigned long) unseen);
   util_out (RESP_NONE, "FLAGS (%s)", mflags);
   /* FIXME:
      - '\*' can be supported if we use the attribute_set userflag()

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -45,13 +45,13 @@
  if (!(expr))                                                                 \
    {                                                                          \
      if (ec)                                                                  \
-       mu_sieve_error (mach, "%d: %s: %s",                                    \
-	 	       mu_sieve_get_message_num (mach),                       \
+       mu_sieve_error (mach, "%lu: %s: %s",                                   \
+	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
 		       diag,                                                  \
 		       mu_strerror (ec));                                     \
      else                                                                     \
-       mu_sieve_error (mach, "%d: %s",                                        \
-	 	       mu_sieve_get_message_num (mach),                       \
+       mu_sieve_error (mach, "%lu: %s",                                       \
+	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
 		       diag);                                                 \
      mu_sieve_abort (mach);                                                   \
    }
@@ -60,14 +60,14 @@
  if (!(expr))                                                                 \
    {                                                                          \
      if (ec)                                                                  \
-       mu_sieve_error (mach, "%d: `%s': %s: %s",                              \
-	 	       mu_sieve_get_message_num (mach),                       \
+       mu_sieve_error (mach, "%lu: `%s': %s: %s",                             \
+	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
 		       arg,                                                   \
 		       diag,                                                  \
 		       mu_strerror (ec));                                     \
      else                                                                     \
-       mu_sieve_error (mach, "%d: `%s': %s",                                  \
-		       mu_sieve_get_message_num (mach),                       \
+       mu_sieve_error (mach, "%lu: `%s': %s",                                 \
+		       (unsigned long) mu_sieve_get_message_num (mach),	      \
 		       arg,                                                   \
 		       diag);                                                 \
      mu_sieve_abort (mach);                                                   \

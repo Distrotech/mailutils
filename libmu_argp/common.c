@@ -20,6 +20,7 @@
 # include <config.h>
 #endif
 #include "cmdline.h"
+#include <unistd.h>
 #include <string.h>
 #include <mailutils/syslog.h>
 #include <mailutils/mailbox.h>

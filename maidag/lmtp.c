@@ -62,7 +62,7 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
 	  fprintf (fp, "%s-", code);
 	  if (enh)
 	    fprintf (fp, "%s ", enh);
-	  fprintf (fp, "%.*s\r\n", len, str);
+	  fprintf (fp, "%.*s\r\n", (int) len, str);
 	  for (str = end; *str && *str == '\n'; str++);
 	}
       else

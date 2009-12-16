@@ -389,12 +389,12 @@ finish_draft ()
       if (msgset.count == 1)
 	{
 	  fd.num = 0;
-	  str = _("Forwarded message\n");
+	  str = (char*) _("Forwarded message\n");
 	}
       else
 	{
 	  fd.num = 1;
-	  str = _("Forwarded messages\n");
+	  str = (char*) _("Forwarded messages\n");
 	}
   
       rc = mu_stream_sequential_write (stream, str, strlen (str));
@@ -406,9 +406,9 @@ finish_draft ()
       rc = mu_stream_sequential_write (stream, str, strlen (str));
       
       if (msgset.count == 1)
-	str = _("End of Forwarded message");
+	str = (char*) _("End of Forwarded message");
       else
-	str = _("End of Forwarded messages");
+	str = (char*) _("End of Forwarded messages");
       
       rc = mu_stream_sequential_write (stream, str, strlen (str));
     }

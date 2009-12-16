@@ -433,7 +433,8 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   size_t n = 0;
   char *prefix = "\t";
   
-  fprintf (stdout, _("Interpolating: %d\n"), mspec->msg_part[0]);
+  fprintf (stdout, _("Interpolating: %lu\n"),
+	   (unsigned long) mspec->msg_part[0]);
 
   mailvar_get (&prefix, "indentprefix", mailvar_type_string, 0);
 

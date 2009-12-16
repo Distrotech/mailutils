@@ -236,8 +236,8 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	    {
 	      free (argvec);
 	      MU_DEBUG2 (mailer->debug, MU_DEBUG_ERROR,
-			 "cannot get email of recipient #%d: %s\n",
-			 i, mu_strerror (status));
+			 "cannot get email of recipient #%lu: %s\n",
+			 (unsigned long) i, mu_strerror (status));
 	      return status;
 	    }
 	  
