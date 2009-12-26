@@ -133,6 +133,14 @@ compress_ws (char *str, size_t *size)
   *size = p - (unsigned char*) str;
 }
 
+#define COMPRESS_WS(mach, str, size)		\
+  do						\
+    {						\
+      if ((mach)->fmtflags & MH_FMT_COMPWS)	\
+	compress_ws (str, size);		\
+    }						\
+  while (0)
+
 static void
 put_string (struct mh_machine *mach, char *str, int len)
 {
@@ -282,7 +290,13 @@ print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
 static void
 reset_fmt_defaults (struct mh_machine *mach)
 {
+  const char *p;
+  
   mach->fmtflags = 0;
+  p = mh_global_profile_get ("Compress-WS", NULL);
+  if (p && (mu_c_strcasecmp (p, "yes") == 0
+	    || mu_c_strcasecmp (p, "true") == 0))
+    mach->fmtflags |= MH_FMT_COMPWS;
 }
 
 static void
@@ -475,7 +489,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	      {
 		size_t len = strlen (value);
 		mach.arg_str.size = len + 1;
-      		compress_ws (value, &len);
+      		COMPRESS_WS (&mach, value, &len);
 		mach.arg_str.ptr = value;
 		mach.arg_num = 1;
 	      }
@@ -511,7 +525,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 		   && str_off < size)
 	      {
 		off += nread;
-       		compress_ws (mach.arg_str.ptr + str_off, &nread);
+                COMPRESS_WS (&mach, mach.arg_str.ptr + str_off, &nread);
 		if (nread)
 		  str_off += nread;
 	      }
@@ -1827,7 +1841,7 @@ builtin_concat (struct mh_machine *mach)
 
   if (size == 0)
     return;
-  compress_ws (strobj_ptr (&mach->arg_str), &size);
+  COMPRESS_WS (mach, strobj_ptr (&mach->arg_str), &size);
   if (strobj_len (&mach->reg_str) == 0)
     strobj_copy (&mach->reg_str, &mach->arg_str);
   else

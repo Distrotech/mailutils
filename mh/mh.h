@@ -63,8 +63,9 @@
 extern char *strchrnul (const char *s, int c_in);
 #endif
 
-#define MH_FMT_RALIGN 0x1000
+#define MH_FMT_RALIGN  0x1000
 #define MH_FMT_ZEROPAD 0x2000
+#define MH_FMT_COMPWS  0x4000
 #define MH_WIDTH_MASK  0x0fff
 
 #define MH_SEQUENCES_FILE ".mh_sequences"
