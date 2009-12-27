@@ -66,7 +66,7 @@ mu_app_init (struct argp *myargp, const char **capa,
   struct argp *argp;
   struct argp argpnull = { 0 };
   char **excapa;
-  int cfgflags = 0;
+  struct mu_cfg_tree *parse_tree = NULL;
   
   mu_set_program_name (argv[0]);
   mu_libargp_init ();
@@ -119,16 +119,22 @@ mu_app_init (struct argp *myargp, const char **capa,
       mu_stream_destroy (&stream, NULL);
       exit (0);
     }
-  else
-    mu_parse_config_files (cfg_param, data);
 
-  if (mu_cfg_parser_verbose)
-    cfgflags |= MU_PARSE_CONFIG_VERBOSE;
-  if (mu_cfg_parser_verbose > 1)
-    cfgflags |= MU_PARSE_CONFIG_DUMP;
-  rc = mu_cfg_tree_reduce (mu_argp_tree, mu_program_name, cfg_param,
-			   cfgflags, data);
+  rc = mu_libcfg_parse_config (&parse_tree);
+  if (rc == 0)
+    {
+      int cfgflags = MU_PARSE_CONFIG_PLAIN;
 
+      if (mu_cfg_parser_verbose)
+	cfgflags |= MU_PARSE_CONFIG_VERBOSE;
+      if (mu_cfg_parser_verbose > 1)
+	cfgflags |= MU_PARSE_CONFIG_DUMP;
+      mu_cfg_tree_postprocess (mu_argp_tree, cfgflags);
+      mu_cfg_tree_union (&parse_tree, &mu_argp_tree);
+      rc = mu_cfg_tree_reduce (parse_tree, mu_program_name, cfg_param,
+			       cfgflags, data);
+    }
+  
   if (mu_rcfile_lint)
     {
       if (rc || mu_cfg_error_count)

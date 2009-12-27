@@ -50,7 +50,9 @@ extern int mu_register_cfg_capa (const char *name,
 
 extern void mu_libcfg_init (char **cnames);
 extern int mu_parse_config_files (struct mu_cfg_param *param,
-				  void *target_ptr);
+				  void *target_ptr) MU_CFG_DEPRECATED;
+int mu_libcfg_parse_config (mu_cfg_tree_t **ptree);
+  
 extern void mu_acl_cfg_init (void);
 
 #define __mu_common_cat2__(a,b) a ## b

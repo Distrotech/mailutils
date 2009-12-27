@@ -28,11 +28,7 @@
 /* ************************************************************************* */
 
 enum {
-  OPT_AUTHORIZATION=256,
-  OPT_AUTHENTICATION,
-  OPT_CLEAR_AUTHORIZATION,
-  OPT_CLEAR_AUTHENTICATION,
-  OPT_DEBUG_AUTH
+  OPT_DEBUG_AUTH=256
 };
 
 static error_t mu_auth_argp_parser (int key, char *arg,
@@ -40,14 +36,6 @@ static error_t mu_auth_argp_parser (int key, char *arg,
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
-  { "authentication", OPT_AUTHENTICATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("set the list of modules to be used for authentication"), 0 },
-  { "authorization", OPT_AUTHORIZATION, N_("MODLIST"), OPTION_HIDDEN,
-    N_("set list of modules to be used for authorization"), 0 },
-  { "clear-authorization", OPT_CLEAR_AUTHORIZATION, NULL, OPTION_HIDDEN,
-    N_("clear the list of authorization modules"), 0 },
-  { "clear-authentication", OPT_CLEAR_AUTHENTICATION, NULL, OPTION_HIDDEN,
-    N_("clear the list of authentication modules"), 0 },
   { "debug-auth", OPT_DEBUG_AUTH, NULL, 0,
     N_("debug authentication functions") },
   { NULL,      0, NULL, 0, NULL, 0 }
@@ -90,22 +78,6 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
       
     case ARGP_KEY_FINI:
       mu_argp_node_list_finish (&lst, "auth", NULL);
-      break;
-
-    case OPT_AUTHORIZATION:
-      mu_argp_node_list_new (&lst, "authorization", arg);
-      break;
-      
-    case OPT_AUTHENTICATION:
-      mu_argp_node_list_new (&lst, "authentication", arg);
-      break;
-      
-    case OPT_CLEAR_AUTHENTICATION:
-      mu_argp_node_list_new (&lst, "authentication", "clear");
-      break;
-      
-    case OPT_CLEAR_AUTHORIZATION:
-      mu_argp_node_list_new (&lst, "authorization", "clear");
       break;
 
     case OPT_DEBUG_AUTH:

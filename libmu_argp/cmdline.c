@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,17 +26,9 @@ static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_common_cmdline,
   &mu_logging_cmdline,
   &mu_license_cmdline,
-  &mu_mailbox_cmdline,
-  &mu_locking_cmdline,
-  &mu_address_cmdline,
   &mu_mailer_cmdline,
   &mu_debug_cmdline,
-  &mu_pam_cmdline,
-  &mu_gsasl_cmdline,
   &mu_tls_cmdline,
-  &mu_radius_cmdline,
-  &mu_sql_cmdline,
-  &mu_virtdomain_cmdline,
   &mu_auth_cmdline,
   &mu_sieve_cmdline,
   NULL
@@ -104,7 +96,7 @@ mu_argp_node_list_finish (struct mu_argp_node_list *lst, char *tag,
     return;
   if (tag)
     node = mu_cfg_tree_create_node (mu_argp_tree,
-				    mu_cfg_node_tag,
+				    mu_cfg_node_statement,
 				    NULL,
 				    tag, label,
 				    lst->head);
@@ -113,3 +105,4 @@ mu_argp_node_list_finish (struct mu_argp_node_list *lst, char *tag,
   mu_cfg_tree_add_node (mu_argp_tree, node);
   mu_argp_node_list_init (lst);
 }
+

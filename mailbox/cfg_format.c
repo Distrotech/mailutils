@@ -29,6 +29,7 @@
 
 struct tree_print
 {
+  int flags;
   unsigned level;
   mu_stream_t stream;
   char *buf;
@@ -131,7 +132,7 @@ format_node (const mu_cfg_node_t *node, void *data)
 {
   struct tree_print *tp = data;
 
-  if (node->locus.file)
+  if ((tp->flags & MU_CFG_FMT_LOCUS) && node->locus.file)
     mu_stream_sequential_printf (tp->stream, "# %lu \"%s\"\n",
 				 (unsigned long) node->locus.line, 
                                  node->locus.file);
@@ -143,7 +144,7 @@ format_node (const mu_cfg_node_t *node, void *data)
 				   _("ERROR: undefined statement"));
       break;
 
-    case mu_cfg_node_tag:
+    case mu_cfg_node_statement:
       {
 	mu_stream_sequential_write (tp->stream, node->tag,
 				    strlen (node->tag));
@@ -183,16 +184,35 @@ format_node_end (const mu_cfg_node_t *node, void *data)
 }
 
 void
-mu_cfg_format_parse_tree (mu_stream_t stream, mu_cfg_tree_t *tree)
+mu_cfg_format_parse_tree (mu_stream_t stream, mu_cfg_tree_t *tree, int flags)
 {
   struct tree_print t;
+  t.flags = flags;
   t.level = 0;
   t.stream = stream;
   t.buf = NULL;
   t.bufsize = 0;
-  mu_cfg_preorder (tree->node, format_node, format_node_end, &t);
+  mu_cfg_preorder (tree->head, format_node, format_node_end, &t);
   free (t.buf);
 }
+
+void
+mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
+{
+  struct tree_print t;
+  t.flags = flags;
+  t.level = 0;
+  t.stream = stream;
+  t.buf = NULL;
+  t.bufsize = 0;
+  format_node (node, &t);
+  if (node->type == mu_cfg_node_statement)
+    {
+      mu_cfg_preorder (node->node, format_node, format_node_end, &t);
+      format_node_end (node, &t);
+    }
+}
+
 
 
 const char *

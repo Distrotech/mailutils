@@ -24,18 +24,9 @@
 
 enum {
   OPT_TLS = 256,         
-  OPT_SSL_CERT,   
-  OPT_SSL_KEY,    
-  OPT_SSL_CAFILE
 };
   
 static struct argp_option _tls_argp_options[] = {
-  {"ssl-cert", OPT_SSL_CERT, N_("FILE"), OPTION_HIDDEN,
-   N_("specify SSL certificate file"), 0},
-  {"ssl-key", OPT_SSL_KEY, N_("FILE"), OPTION_HIDDEN,
-   N_("specify SSL certificate key"), },
-  {"ssl-cafile", OPT_SSL_CAFILE, N_("FILE"), OPTION_HIDDEN,
-   N_("specify trusted CAs file"), 0},
   {"tls", OPT_TLS, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("enable TLS support") },
   {NULL, 0, NULL, 0, NULL, 0}
@@ -52,18 +43,6 @@ _tls_argp_parser (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (&lst, "enable", arg ? arg : "yes");
       break;
       
-    case OPT_SSL_CERT:
-      mu_argp_node_list_new (&lst, "ssl-cert", arg);
-      break;
-
-    case OPT_SSL_KEY:
-      mu_argp_node_list_new (&lst, "ssl-key", arg);
-      break;
-
-    case OPT_SSL_CAFILE:
-      mu_argp_node_list_new (&lst, "ssl-cafile", arg);
-      break;
-
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;

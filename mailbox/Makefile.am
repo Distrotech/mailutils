@@ -98,6 +98,7 @@ libmailutils_la_SOURCES = \
  memory_stream.c\
  message_stream.c\
  mime.c\
+ mkfilename.c\
  monitor.c\
  msrv.c\
  mu_auth.c\

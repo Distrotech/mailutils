@@ -49,21 +49,14 @@ char *login_stat_file = LOGIN_STAT_FILE;
 #endif
 
 unsigned expire = EXPIRE_NEVER; /* Expire messages after this number of days */
-int expire_on_exit = 0;       /* Delete expired messages on exit */
+int expire_on_exit = 0;         /* Delete expired messages on exit */
 
 static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
 
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon.");
 
-#define OPT_LOGIN_DELAY     257
-#define OPT_STAT_FILE       258
-#define OPT_EXPIRE          259
-#define OPT_EXPIRE_ON_EXIT  260
-#define OPT_TLS_REQUIRED    261
-#define OPT_BULLETIN_SOURCE 262
-#define OPT_BULLETIN_DB     263
-#define OPT_FOREGROUND      264
+#define OPT_FOREGROUND      256
 
 static struct argp_option options[] = {
 #define GRP 0
@@ -73,38 +66,6 @@ static struct argp_option options[] = {
     N_("runs in daemon mode with a maximum of NUMBER children"), GRP+1 },
 #undef GRP
 
-#define GRP 5
-  {"undelete", 'u', NULL, OPTION_HIDDEN,
-   N_("undelete all messages on startup"), GRP+1},
-  {"expire", OPT_EXPIRE, N_("DAYS"), OPTION_HIDDEN,
-   N_("expire read messages after the given number of days"), GRP+1},
-  {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, OPTION_HIDDEN,
-   N_("delete expired messages upon closing the mailbox"), GRP+1},
-#ifdef WITH_TLS
-  {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
-   N_("always require STLS before entering authentication phase")},
-#endif
-#undef GRP
-  
-#define GRP 10
-#ifdef ENABLE_LOGIN_DELAY
-  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), OPTION_HIDDEN,
-   N_("allowed delay between two successive logins"), GRP+1},
-  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), OPTION_HIDDEN,
-   N_("name of login statistics file"), GRP+1},
-#endif
-  
-#undef GRP
-
-#define GRP 20
-  { "bulletin-source", OPT_BULLETIN_SOURCE, N_("MBOX"), OPTION_HIDDEN,
-    N_("set source mailbox to get bulletins from"), GRP+1 },
-#ifdef USE_DBM
-  { "bulletin-db", OPT_BULLETIN_DB, N_("FILE"), OPTION_HIDDEN,
-    N_("set the bulletin database file name"), GRP+1 },
-#endif
-#undef GRP
-  
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -202,44 +163,6 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
     case OPT_FOREGROUND:
       mu_argp_node_list_new (&lst, "foreground", "yes");
       break;
-      
-    case 'u':
-      mu_argp_node_list_new (&lst, "undelete", "yes");
-      break;
-
-#ifdef ENABLE_LOGIN_DELAY
-    case OPT_LOGIN_DELAY:
-      mu_argp_node_list_new (&lst, "login-delay", arg);
-      break;
-
-    case OPT_STAT_FILE:
-      mu_argp_node_list_new (&lst, "stat-file", arg);
-      break;
-#endif  
- 
-    case OPT_EXPIRE:
-      mu_argp_node_list_new (&lst, "expire", arg);
-      break;
-
-    case OPT_EXPIRE_ON_EXIT:
-      mu_argp_node_list_new (&lst, "delete-expired", "yes");
-      break;
-
-#ifdef WITH_TLS
-    case OPT_TLS_REQUIRED:
-      mu_argp_node_list_new (&lst, "tls-required", "yes");
-      break;
-#endif
-
-    case OPT_BULLETIN_SOURCE:
-      mu_argp_node_list_new (&lst, "bulletin-source", arg);
-      break;
-      
-#ifdef USE_DBM
-    case OPT_BULLETIN_DB:
-      mu_argp_node_list_new (&lst, "bulletin-db", arg);
-      break;
-#endif
       
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);

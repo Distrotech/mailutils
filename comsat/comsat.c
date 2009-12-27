@@ -18,6 +18,8 @@
    MA 02110-1301 USA */
 
 #include "comsat.h"
+#define MU_CFG_COMPATIBILITY /* This source uses deprecated cfg interfaces */
+#include "mailutils/libcfg.h"
 #include "mailutils/libargp.h"
 
 #ifndef PATH_DEV

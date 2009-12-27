@@ -38,18 +38,11 @@ enum {
   OPT_RCFILE_LINT,
   OPT_RCFILE_VERBOSE,
   OPT_LOG_FACILITY,          
-  OPT_LOCK_FLAGS,            
-  OPT_LOCK_RETRY_COUNT,      
-  OPT_LOCK_RETRY_TIMEOUT,    
-  OPT_LOCK_EXPIRE_TIMEOUT,   
-  OPT_LOCK_EXTERNAL_PROGRAM, 
   OPT_LICENSE,
-  OPT_MAILBOX_PATTERN,
-  OPT_MAILBOX_TYPE,
-  OPT_MAIL_FOLDER,
   OPT_DEBUG_LEVEL,
   OPT_LINE_INFO,
-  OPT_HELP_CONFIG
+  OPT_HELP_CONFIG,
+  OPT_SET
 };
 
 static struct argp_option mu_common_argp_options[] = 
@@ -74,8 +67,20 @@ static struct argp_option mu_common_argp_options[] =
   { "config-lint", OPT_RCFILE_LINT, NULL, 0,
     N_("check configuration file syntax and exit"), 0 },
   { "rcfile-lint", 0, NULL, OPTION_ALIAS, NULL },
+  { "set", OPT_SET, N_("PARAM=VALUE"), 0,
+    N_("set configuration parameter"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
+
+static void
+set_config_param (const char *path, struct argp_state *state)
+{
+  mu_cfg_node_t *node;
+  int rc = mu_cfg_create_subtree (path, &node);
+  if (rc)
+    argp_error (state, "cannot create node: %s", mu_strerror (rc));
+  mu_cfg_tree_add_node (mu_argp_tree, node);
+}
 
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
@@ -110,7 +115,11 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case OPT_HELP_CONFIG:
       mu_help_config_mode = 1;
       break;
-	
+
+    case OPT_SET:
+      set_config_param (arg, state);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -231,215 +240,6 @@ struct mu_cmdline_capa mu_license_cmdline = {
 
 
 /* ************************************************************************* */
-/* Mailbox                                                                   */
-/* ************************************************************************* */
-
-/* Options used by programs that access mailboxes. */
-static struct argp_option mu_mailbox_argp_option[] = {
-  { "mail-spool", 'm', N_("URL"), OPTION_HIDDEN,
-    N_("use specified URL as a mailspool directory"), 0 },
-  { "mailbox-pattern", OPT_MAILBOX_PATTERN, N_("pat"), OPTION_HIDDEN,
-    "", 0 },
-  { "mailbox-type", OPT_MAILBOX_TYPE, N_("PROTO"), OPTION_HIDDEN,
-    N_("default mailbox type to use"), 0 },
-  { "mail-folder", OPT_MAIL_FOLDER, N_("DIR"), OPTION_HIDDEN,
-    N_("default user mail folder"), 0 },
-  { NULL }
-};
-
-static error_t
-mu_mailbox_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  static struct mu_argp_node_list lst;
-  
-  switch (key)
-    {
-      /* mailbox */
-    case 'm':
-      mu_argp_node_list_new (&lst, "mail-spool", arg);
-      break;
-
-    case OPT_MAILBOX_PATTERN:
-      mu_argp_node_list_new (&lst, "mailbox-pattern", arg);
-      break;
-      
-    case OPT_MAILBOX_TYPE:
-      mu_argp_node_list_new (&lst, "mailbox-type", arg);
-      break;
-
-    case OPT_MAIL_FOLDER:
-      mu_argp_node_list_new (&lst, "folder", arg);
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "mailbox", NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-struct argp mu_mailbox_argp = {
-  mu_mailbox_argp_option,
-  mu_mailbox_argp_parser,
-};
-
-struct argp_child mu_mailbox_argp_child = {
-  &mu_mailbox_argp,
-  0,
-  NULL,
-  0
-};
-
-struct mu_cmdline_capa mu_mailbox_cmdline = {
-  "mailbox", &mu_mailbox_argp_child
-};
-
-
-/* ************************************************************************* */
-/* Locking                                                                   */
-/* ************************************************************************* */
-
-/* Options used by programs that access mailboxes. */
-static struct argp_option mu_locking_argp_option[] = {
-  {"lock-flags", OPT_LOCK_FLAGS, N_("FLAGS"), OPTION_HIDDEN,
-   N_("default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
-  {"lock-retry-timeout", OPT_LOCK_RETRY_TIMEOUT, N_("SECONDS"), OPTION_HIDDEN,
-   N_("set timeout for acquiring the lockfile") },
-  {"lock-retry-count", OPT_LOCK_RETRY_COUNT, N_("NUMBER"), OPTION_HIDDEN,
-   N_("set the maximum number of times to retry acquiring the lockfile") },
-  {"lock-expire-timeout", OPT_LOCK_EXPIRE_TIMEOUT, N_("SECONDS"),
-   OPTION_HIDDEN,
-   N_("number of seconds after which the lock expires"), },
-  {"external-locker", OPT_LOCK_EXTERNAL_PROGRAM, N_("PATH"), OPTION_HIDDEN,
-   N_("set full path to the external locker program") },
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-mu_locking_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  static struct mu_argp_node_list lst;
-
-  switch (key)
-    {
-    case OPT_LOCK_FLAGS:
-      mu_argp_node_list_new (&lst, "flags", arg);
-      break;
-
-    case OPT_LOCK_RETRY_COUNT:
-      mu_argp_node_list_new (&lst, "retry-count", arg);
-      break;
-	  
-    case OPT_LOCK_RETRY_TIMEOUT:
-      mu_argp_node_list_new (&lst, "retry-timeout", arg);
-      break;
-
-    case OPT_LOCK_EXPIRE_TIMEOUT:
-      mu_argp_node_list_new (&lst, "expire-timeout", arg);
-      break;
-
-    case OPT_LOCK_EXTERNAL_PROGRAM:
-      mu_argp_node_list_new (&lst, "external-locker", arg);
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "locking", NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-struct argp mu_locking_argp = {
-  mu_locking_argp_option,
-  mu_locking_argp_parser,
-};
-
-struct argp_child mu_locking_argp_child = {
-  &mu_locking_argp,
-  0,
-  NULL,
-  0
-};
-
-struct mu_cmdline_capa mu_locking_cmdline = {
-  "locking", &mu_locking_argp_child
-};
-  
-
-/* ************************************************************************* */
-/* Address                                                                   */
-/* ************************************************************************* */
-
-/* Options used by programs that do address mapping. */
-static struct argp_option mu_address_argp_option[] = {
-  {"email-addr", 'E', N_("EMAIL"), OPTION_HIDDEN,
-   N_("set current user's email address (default is loginname@defaultdomain)"), 0},
-  {"email-domain", 'D', N_("DOMAIN"), OPTION_HIDDEN,
-   N_("set domain for unqualified user names (default is this host)"), 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-mu_address_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  static struct mu_argp_node_list lst;
-
-  switch (key)
-    {
-    case 'E':
-      mu_argp_node_list_new (&lst, "email-addr", arg);
-      break;
-
-    case 'D':
-      mu_argp_node_list_new (&lst, "email-domain", arg);
-      break;
-
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "address", NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-  
-struct argp mu_address_argp = {
-  mu_address_argp_option,
-  mu_address_argp_parser,
-};
-
-struct argp_child mu_address_argp_child = {
-  &mu_address_argp,
-  0,
-  NULL,
-  0
-};
-
-struct mu_cmdline_capa mu_address_cmdline = {
-  "address", &mu_address_argp_child
-};
-
-
-/* ************************************************************************* */
 /* Mailer                                                                    */
 /* ************************************************************************* */
 
@@ -511,7 +311,7 @@ mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
     {
     case OPT_DEBUG_LEVEL:
       mu_global_debug_from_string (arg, "command line");
-      //mu_argp_node_list_new (&lst, "level", arg);
+      /*mu_argp_node_list_new (&lst, "level", arg);*/
       break;
 
     case OPT_LINE_INFO:

@@ -99,6 +99,7 @@ extern int mu_aget_user_email_domain (char **pdomain);
  */
 extern char *mu_get_user_email (const char *name);
 
+extern char *mu_make_file_name (const char *dir, const char *file);  
 extern char *mu_normalize_path (char *path);
 extern int mu_tempfile (const char *tmpdir, char **namep);
 extern char *mu_tempname (const char *tmpdir);
@@ -107,10 +108,6 @@ extern char * mu_get_full_path (const char *file);
 extern char * mu_getcwd (void);
   
 extern int mu_spawnvp(const char *prog, char *av[], int *stat);
-
-typedef void *(*mu_retrieve_fp) (void *);
-extern void mu_register_retriever (mu_list_t *pflist, mu_retrieve_fp fun);
-extern void * mu_retrieve (mu_list_t flist, void *data);
 
 extern int mu_unroll_symlink (char *out, size_t outsz, const char *in);
 

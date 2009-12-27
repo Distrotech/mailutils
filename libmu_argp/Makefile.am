@@ -32,14 +32,9 @@ libmu_argp_a_SOURCES =\
  cmdline.h\
  common.c\
  compat.c\
- gsasl.c\
  mu_argp.h\
  mu_argp.c\
  muinit.c\
- pam.c\
- radius.c\
  sieve.c\
- sql.c\
- tls.c\
- virtdomain.c 
+ tls.c
 

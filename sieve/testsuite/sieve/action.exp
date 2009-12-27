@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ sieve_test discard.sv -pattern\
 "DISCARD on msg uid 2: marking as deleted"\
 "DISCARD on msg uid 3: marking as deleted"
 
-sieve_test --mail-folder='$MU_SPOOL_DIR' fileinto.sv -pattern\
+sieve_test --set "mailbox.folder='$MU_SPOOL_DIR'" fileinto.sv -pattern\
 "FILEINTO on msg uid 1: delivering into +file"\
 "FILEINTO on msg uid 2: delivering into +file"\
 "FILEINTO on msg uid 3: delivering into +file"

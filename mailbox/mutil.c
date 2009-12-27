@@ -291,37 +291,6 @@ mu_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-/* General retrieve stack support: */
-
-void
-mu_register_retriever (mu_list_t *pflist, mu_retrieve_fp fun)
-{
-  if (!*pflist && mu_list_create (pflist))
-    return;
-  mu_list_append (*pflist, fun);
-}
-
-void *
-mu_retrieve (mu_list_t flist, void *data)
-{
-  void *p = NULL;
-  mu_iterator_t itr;
-
-  if (mu_list_get_iterator (flist, &itr) == 0)
-    {
-      mu_retrieve_fp fun;
-      for (mu_iterator_first (itr); !p && !mu_iterator_is_done (itr);
-	   mu_iterator_next (itr))
-	{
-	  mu_iterator_current (itr, (void **)&fun);
-	  p = (*fun) (data);
-	}
-
-      mu_iterator_destroy (&itr);
-    }
-  return p;
-}
-
 int
 mu_get_host_name (char **host)
 {

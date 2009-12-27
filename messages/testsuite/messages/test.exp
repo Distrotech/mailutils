@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ mu_exec -message "messages" \
 mu_exec -message "messages -q" -arg -q "5"
 
 mu_exec -message "messages +teaparty.mbox" \
-     -arg "--mail-folder=$MU_SPOOL_DIR" -arg +teaparty.mbox \
+     -arg "--set mailbox.folder=$MU_SPOOL_DIR" -arg +teaparty.mbox \
 "Number of messages in $MU_SPOOL_DIR/teaparty.mbox: 95"
 
 #end of test.exp

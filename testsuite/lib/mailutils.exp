@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2005, 2007, 2008 Free Software Foundation
+# Copyright (C) 2002, 2005, 2007, 2008, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -152,7 +152,7 @@ proc mu_init {args} {
 	if {[llength $args] == 1 && [lindex $args 0] == "-noflags"} {
 	    set MU_TOOL_FLAGS "--no-site-rcfile --no-user-rcfile"
 	} else {
-	    set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR --no-site-rcfile --no-user-rcfile"
+	    set MU_TOOL_FLAGS "--set mailbox.mail-spool=$MU_SPOOL_DIR --no-site-rcfile --no-user-rcfile"
 	    for {set i 0} {$i < [llength $args]} {incr i} {
 		append MU_TOOL_FLAGS " [lindex $args $i]"
 	    }
@@ -181,7 +181,7 @@ proc mu_start {args} {
     
     if [info exists host_board] {
 	if [board_info $host_board exists top_srcdir] {
-	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+	    append sw " --set mailbox.mail-spool=[board_info $host_board top_srcdir]/mail/testsuite/spool"
 	}
     }
 
@@ -263,7 +263,7 @@ proc mu_exec {args} {
 
     if [info exists host_board] {
 	if [board_info $host_board exists top_srcdir] {
-	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+	    append sw " --set mailbox.mail-spool=[board_info $host_board top_srcdir]/mail/testsuite/spool"
 	}
     }
 

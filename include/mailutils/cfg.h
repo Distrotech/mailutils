@@ -1,5 +1,5 @@
 /* cfg.h -- general-purpose configuration file parser 
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -58,8 +58,7 @@ struct mu_config_value
 enum mu_cfg_node_type
   {
     mu_cfg_node_undefined,
-    mu_cfg_statement,
-    mu_cfg_node_tag=mu_cfg_statement, /* FIXME: remove */
+    mu_cfg_node_statement,
     mu_cfg_node_param
   };
 
@@ -81,19 +80,24 @@ struct mu_cfg_node
 
 struct mu_cfg_tree
 {
-  mu_cfg_node_t *node;
+  mu_cfg_node_t *head, *tail;
   mu_debug_t debug;
   mu_opool_t pool;
 };
 
 int mu_cfg_parse (mu_cfg_tree_t **ptree);
+int mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb);
+int mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags);
 
 extern mu_cfg_locus_t mu_cfg_locus;
 
 mu_opool_t mu_cfg_lexer_pool (void);
 
-void mu_cfg_perror (const mu_cfg_locus_t *, const char *, ...)
-      MU_PRINTFLIKE(2,3);
+void mu_cfg_vperror (mu_debug_t, const mu_cfg_locus_t *,
+		     const char *fmt, va_list ap);
+void mu_cfg_perror (mu_debug_t debug, const mu_cfg_locus_t *,
+		    const char *, ...) MU_PRINTFLIKE(3,4);
+void mu_cfg_parse_error (const char *, ...) MU_PRINTFLIKE(1,2);
 void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...)
       MU_PRINTFLIKE(3,4);
 
@@ -205,6 +209,9 @@ struct mu_cfg_cidr
   unsigned long mask;
 };
 
+#define MU_CFG_PATH_DELIM '.'
+#define MU_CFG_PATH_DELIM_STR "."
+  
 int mu_config_create_container (struct mu_cfg_cont **pcont,
 				enum mu_cfg_cont_type type);
 int mu_config_clone_container (struct mu_cfg_cont *cont);
@@ -240,19 +247,32 @@ mu_debug_t mu_cfg_get_debug (void);
 #define MU_PARSE_CONFIG_GLOBAL  0x1
 #define MU_PARSE_CONFIG_VERBOSE 0x2
 #define MU_PARSE_CONFIG_DUMP    0x4
+#define MU_PARSE_CONFIG_PLAIN   0x8
+
+#ifdef MU_CFG_COMPATIBILITY
+# define MU_CFG_DEPRECATED
+#else
+# define MU_CFG_DEPRECATED __attribute__ ((deprecated))
+#endif
 
 int mu_parse_config (const char *file, const char *progname,
 		     struct mu_cfg_param *progparam, int flags,
-		     void *target_ptr);
+		     void *target_ptr) MU_CFG_DEPRECATED;
 
 int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 extern size_t mu_cfg_error_count;
 
+#define MU_CFG_FMT_LOCUS 0x01
+  
 void mu_cfg_format_docstring (mu_stream_t stream, const char *docstring,
 			      int level);
-void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree);
+void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree,
+			       int flags);
+void mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node,
+			 int flags);
+  
 void mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont);
 void mu_format_config_tree (mu_stream_t stream, const char *progname,
 			    struct mu_cfg_param *progparam, int flags);
@@ -265,14 +285,16 @@ int mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
 			    int (*fun) (mu_debug_t, const char *, void *),
 			    void *data);
 
+int mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file,
+		       int flags);
+  
+  
 int mu_get_config (const char *file, const char *progname,
 		   struct mu_cfg_param *progparam, int flags,
-		   void *target_ptr);
-
+		   void *target_ptr) MU_CFG_DEPRECATED;
 
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
 void mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug);
-void mu_cfg_tree_free (struct mu_cfg_tree *tree, void *mem);
 mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					enum mu_cfg_node_type type,
 					const mu_cfg_locus_t *loc,
@@ -280,6 +302,10 @@ mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					const char *label,
 					mu_cfg_node_t *node);
 void mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node);
+
+int mu_cfg_find_node (mu_cfg_node_t *tree, const char *path,
+		      mu_cfg_node_t **pnode);
+int mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode);
 
 #ifdef __cplusplus
 }

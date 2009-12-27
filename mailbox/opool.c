@@ -1,5 +1,5 @@
 /* String-list functions for GNU Mailutils.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    Based on slist module from GNU Radius.  Written by Sergey Poznyakoff.
    
@@ -254,7 +254,50 @@ mu_opool_finish (mu_opool_t opool, size_t *psize)
   mu_opool_clear (opool);
   return opool->free->buf;
 }
+
+int
+mu_opool_union (mu_opool_t *pdst, mu_opool_t *psrc)
+{
+  mu_opool_t src, dst;
   
+  if (!psrc)
+    return EINVAL;
+  if (!*psrc)
+    return 0;
+  src = *psrc;
+  
+  if (!pdst)
+    return EINVAL;
+  if (!*pdst)
+    {
+      *pdst = src;
+      *psrc = NULL;
+      return 0;
+    }
+  else
+    dst = *pdst;
+
+  if (dst->tail)
+    dst->tail->next = src->head;
+  else
+    dst->head = src->head;
+  dst->tail = src->tail;
+
+  if (src->free)
+    {
+      struct mu_opool_bucket *p;
+
+      for (p = src->free; p->next; p = p->next)
+	;
+      p->next = dst->free;
+      dst->free = src->free;
+    }
+
+  free (src);
+  *psrc = NULL;
+  return 0;
+}
+
 
 /* Iterator support */
 struct opool_iterator

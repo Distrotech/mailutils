@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,10 @@
 int mu_opool_create (mu_opool_t *pret, int memerr);
 int mu_opool_set_bucket_size (mu_opool_t opool, size_t size);
 int mu_opool_get_bucket_size (mu_opool_t opool, size_t *psize);
+
+/* Merge all data from *SRC into *DST.  If the latter is NULL, create
+   it.  On success, free *SRC and initialize it with NULL. */
+int mu_opool_union (mu_opool_t *dst, mu_opool_t *src);
 
 /* Clear all data from the pool, so next mu_opool_append* call will
    begin a new object. */

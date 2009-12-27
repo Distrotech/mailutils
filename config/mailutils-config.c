@@ -39,6 +39,9 @@ static struct argp_option options[] = {
    N_("print a list of configuration options used to build mailutils; "
       "optional arguments are interpreted as a list of configuration "
       "options to check for"), 0},
+  {"query", 'q', N_("FILE"), OPTION_ARG_OPTIONAL,
+   N_("query configuration values from FILE (default mailutils.rc)"),
+   0 },
   {"verbose", 'v', NULL, 0,
    N_("increase output verbosity"), 0},
   {0, 0, 0, 0}
@@ -48,11 +51,13 @@ enum config_mode {
   MODE_VOID,
   MODE_COMPILE,
   MODE_LINK,
-  MODE_INFO
+  MODE_INFO,
+  MODE_QUERY
 };
 
 enum config_mode mode;
 int verbose;
+char *query_config_file;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -71,6 +76,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
       mode = MODE_INFO;
       break;
 
+    case 'q':
+      if (arg)
+	query_config_file = arg;
+      mode = MODE_QUERY;
+      break;
+      
     case 'v':
       verbose++;
       break;
@@ -170,14 +181,29 @@ int
 main (int argc, char **argv)
 {
   int index;
+  int i, rc;
+  struct argp *myargp;
+  char **excapa;
+  mu_cfg_tree_t *tree = NULL;
+  mu_stream_t stream;
+  int fmtflags = 0;
   
   mu_argp_init (program_version, NULL);
-  if (mu_app_init (&argp, argp_capa, NULL, argc, argv, 0, &index, NULL))
+
+  mu_set_program_name (argv[0]);
+  mu_libargp_init ();
+  for (i = 0; argp_capa[i]; i++)
+    mu_gocs_register_std (argp_capa[i]); /*FIXME*/
+  myargp = mu_argp_build (&argp, &excapa);
+  
+  if (argp_parse (myargp, argc, argv, 0, &index, NULL))
     {
-      argp_help (&argp, stdout, ARGP_HELP_SEE, program_invocation_short_name);
+      argp_help (myargp, stdout, ARGP_HELP_SEE, program_invocation_short_name);
       return 1;
     }
-
+  mu_argp_done (myargp);
+  mu_set_program_name (program_invocation_name);
+  
   argc -= index;
   argv += index;
   
@@ -298,6 +324,44 @@ main (int argc, char **argv)
 	  return found == argc ? 0 : 1;
 	}
       return 0;
+
+    case MODE_QUERY:
+      if (argc == 0)
+	{
+	  mu_error (_("not enough arguments"));
+	  return 1;
+	}
+
+      if (query_config_file)
+	{
+	  mu_load_site_rcfile = 0;
+	  mu_load_user_rcfile = 0;
+	  mu_load_rcfile = query_config_file;
+	}
+
+      if (mu_libcfg_parse_config (&tree))
+	exit (1);
+      if (!tree)
+	exit (0);
+      rc = mu_stdio_stream_create (&stream, stdout, 0);
+      if (rc)
+	{
+	  mu_error ("mu_stdio_stream_create: %s", mu_strerror (rc));
+	  exit (1);
+	}
+      if (verbose)
+	fmtflags = MU_CFG_FMT_LOCUS;
+      for ( ; argc > 0; argc--, argv++)
+	{
+	  char *path = *argv;
+	  mu_cfg_node_t *node;
+
+	  if (mu_cfg_find_node (tree->head, path, &node) == 0)
+	    {
+	      mu_cfg_format_node (stream, node, fmtflags);
+	    }
+	}
+      exit (0);
     }
   
   argp_help (&argp, stdout, ARGP_HELP_USAGE, program_invocation_short_name);

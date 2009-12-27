@@ -150,12 +150,10 @@ P [1-9][0-9]*
 \n       { mu_cfg_locus.line++; } 
 [,;{}()] return yytext[0];
 .        { if (mu_isprint (yytext[0]))
-              mu_cfg_perror (&mu_cfg_locus,
-			     _("stray character %c"), yytext[0]);
+              mu_cfg_parse_error (_("stray character %c"), yytext[0]);
            else 
-              mu_cfg_perror (&mu_cfg_locus,
-			     _("stray character \\%03o"),
-			     (unsigned char) yytext[0]);
+              mu_cfg_parse_error (_("stray character \\%03o"),
+				  (unsigned char) yytext[0]);
          }
 %%
 
@@ -172,7 +170,7 @@ unescape_to_line (int c)
     {
       char t = mu_argcv_unquote_char (c);
       if (t == c && t != '\\' && t != '\"')
-	mu_cfg_perror (&mu_cfg_locus, _("unknown escape sequence '\\%c'"), c);
+	mu_cfg_parse_error (_("unknown escape sequence '\\%c'"), c);
       mu_opool_append_char (pool, t);
     }
 }
@@ -317,13 +315,11 @@ multiline_finish ()
 
 
 int
-mu_get_config (const char *file, const char *progname,
-               struct mu_cfg_param *progparam, int flags, void *target_ptr)
+mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
 {
   struct stat st;
   FILE *fp;
   int rc;
-  mu_cfg_tree_t *parse_tree;
   
   if (stat (file, &st))
     {
@@ -348,19 +344,29 @@ mu_get_config (const char *file, const char *progname,
   mu_cfg_locus.file = (char*) file;
   mu_cfg_locus.line = 1;
   yyrestart (fp);
-  rc = mu_cfg_parse (&parse_tree);
+  rc = mu_cfg_parse (return_tree);
   fclose (fp);
+  if (flags & MU_PARSE_CONFIG_VERBOSE)
+    mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"), file);
+  return rc == 0 ? 0 : MU_ERR_FAILURE;
+}
+
+/* FIXME: Deprecated interface */
+int
+mu_get_config (const char *file, const char *progname,
+               struct mu_cfg_param *progparam, int flags, void *target_ptr)
+{
+  mu_cfg_tree_t *parse_tree;
+  int rc = mu_cfg_parse_file (&parse_tree, file, flags);
   if (rc == 0)
     rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
 			     target_ptr);
 
   mu_cfg_destroy_tree (&parse_tree);
 
-  if (flags & MU_PARSE_CONFIG_VERBOSE)
-    mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"), file);
-  
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }
+
 
 mu_opool_t 
 mu_cfg_lexer_pool ()

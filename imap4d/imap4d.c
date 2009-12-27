@@ -57,9 +57,6 @@ int ident_encrypt_only;
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon.");
 
-#define OPT_LOGIN_DISABLED  256
-#define OPT_TLS_REQUIRED    257
-#define OPT_CREATE_HOME_DIR 258
 #define OPT_PREAUTH         259
 #define OPT_FOREGROUND      260
 
@@ -69,21 +66,9 @@ static struct argp_option options[] = {
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
     N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
 
-  {"other-namespace", 'O', N_("PATHLIST"), OPTION_HIDDEN,
-   N_("set the `other' namespace"), 0},
-  {"shared-namespace", 'S', N_("PATHLIST"), OPTION_HIDDEN,
-   N_("set the `shared' namespace"), 0},
-  {"login-disabled", OPT_LOGIN_DISABLED, NULL, OPTION_HIDDEN,
-   N_("disable LOGIN command")},
-  {"create-home-dir", OPT_CREATE_HOME_DIR, N_("MODE"),
-   OPTION_ARG_OPTIONAL|OPTION_HIDDEN,
-   N_("create home directory, if it does not exist")},
   {"preauth", OPT_PREAUTH, NULL, 0,
    N_("start in preauth mode") },
-#ifdef WITH_TLS
-  {"tls-required", OPT_TLS_REQUIRED, NULL, OPTION_HIDDEN,
-   N_("always require STARTTLS before entering authentication phase")},
-#endif
+  
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -134,30 +119,6 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (&lst, "foreground", "yes");
       break;
       
-    case 'O':
-      mu_argp_node_list_new (&lst, "other-namespace", arg);
-      break;
-
-    case 'S':
-      mu_argp_node_list_new (&lst, "shared-namespace", arg);
-      break;
-
-    case OPT_LOGIN_DISABLED:
-      mu_argp_node_list_new (&lst, "login-disabled", "yes");
-      break;
-
-    case OPT_CREATE_HOME_DIR:
-      mu_argp_node_list_new (&lst, "create-home-dir", "yes");
-      if (arg)
-	mu_argp_node_list_new (&lst, "home-dir-mode", arg);
-      break;
-	
-#ifdef WITH_TLS
-    case OPT_TLS_REQUIRED:
-      mu_argp_node_list_new (&lst, "tls-required", "yes");
-      break;
-#endif
-
     case OPT_PREAUTH:
       preauth_mode = preauth_stdio;
       break;

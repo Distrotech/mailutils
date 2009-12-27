@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007 Free Software Foundation
+# Copyright (C) 2002, 2007, 2009 Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ mu_exec -retcode 1 -message "frm -qS" -arg -qS \
 mu_exec -retcode 1 -arg -q -message "frm -q"  \
 "There are messages in that folder."
 
-mu_exec -retcode 1 -arg "--mail-folder=$MU_SPOOL_DIR" -arg +mbox -message "frm +mbox" \
+mu_exec -retcode 1 -arg "--set mailbox.folder=$MU_SPOOL_DIR" -arg +mbox -message "frm +mbox" \
 "Sergey Poznyakoff\tMBOX"
 
 mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" \

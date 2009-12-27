@@ -527,7 +527,7 @@ frm_abort (mu_mailbox_t *mbox)
   if ((status = mu_mailbox_close (*mbox)) != 0)
     {
       mu_url_t url;
-      
+      mu_mailbox_get_url (*mbox, &url);
       mu_error (_("could not close mailbox `%s': %s"),
 		mu_url_to_string (url), mu_strerror (status));
       exit (3);
@@ -580,7 +580,8 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
     {
       mu_error (_("could not open mailbox `%s': %s"),
 		mu_url_to_string (url), mu_strerror (status));
-      frm_abort (&mbox);
+      mu_mailbox_destroy (&mbox);
+      exit (3);
     }
   else
     {

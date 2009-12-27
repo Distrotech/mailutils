@@ -18,12 +18,15 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <netdb.h>
 #include "intprops.h"
+#include <mailutils/argcv.h>
 #include <mailutils/nls.h>
 #include <mailutils/cfg.h>
 #include <mailutils/alloc.h>
@@ -32,9 +35,10 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
+#include <mailutils/mutil.h>  
 
 int mu_cfg_parser_verbose;
-static mu_cfg_node_t *parse_tree;
+static mu_cfg_node_t *parse_head, *parse_tail;
 mu_cfg_locus_t mu_cfg_locus;
 size_t mu_cfg_error_count;
 
@@ -50,7 +54,7 @@ char *_mu_line_finish (void);
 static int
 yyerror (char *s)
 {
-  mu_cfg_perror (&mu_cfg_locus, "%s", s);
+  mu_cfg_parse_error ("%s", s);
   return 0;
 }
 
@@ -89,6 +93,13 @@ mu_cfg_alloc_node (enum mu_cfg_node_type type, mu_cfg_locus_t *loc,
 }
 
 void
+mu_cfg_free_node (mu_cfg_node_t *node)
+{
+  free (node->label);
+  free (node);
+}
+
+void
 mu_cfg_format_error (mu_debug_t debug, size_t level, const char *fmt, ...)
 {
   va_list ap;
@@ -110,8 +121,8 @@ _mu_cfg_debug_set_locus (mu_debug_t debug, const mu_cfg_locus_t *loc)
 		      loc->line);
 }
 
-static void
-_mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
+void
+mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
 		 const char *fmt, va_list ap)
 {
   if (!debug)
@@ -123,28 +134,28 @@ _mu_cfg_vperror (mu_debug_t debug, const mu_cfg_locus_t *loc,
   mu_cfg_error_count++;
 }
 
-static void
-_mu_cfg_perror (mu_debug_t debug, const mu_cfg_locus_t *loc,
-		const char *fmt, ...)
+void
+mu_cfg_perror (mu_debug_t debug, const mu_cfg_locus_t *loc,
+	       const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  _mu_cfg_vperror (debug, loc, fmt, ap);
+  mu_cfg_vperror (debug, loc, fmt, ap);
   va_end (ap);
 }
 
 void
-mu_cfg_perror (const mu_cfg_locus_t *loc, const char *fmt, ...)
+mu_cfg_parse_error (const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  _mu_cfg_vperror (_mu_cfg_debug, loc, fmt, ap);
+  mu_cfg_vperror (_mu_cfg_debug, &mu_cfg_locus, fmt, ap);
   va_end (ap);
 }
 
-#define node_type_str(t) (((t) == mu_cfg_node_tag) ? "tag" : "param")
+#define node_type_str(t) (((t) == mu_cfg_node_statement) ? "stmt" : "param")
 
 static void
 debug_print_node (mu_cfg_node_t *node)
@@ -194,7 +205,8 @@ debug_print_node (mu_cfg_node_t *node)
 
 input   : stmtlist
 	  {
-	    parse_tree = $1.head;
+	    parse_head = $1.head;
+	    parse_tail = $1.tail;
 	  }
 	;
 
@@ -226,14 +238,14 @@ simple  : ident vallist ';'
 
 block   : ident tag '{' '}' opt_sc
 	  {
-	    $$ = mu_cfg_alloc_node (mu_cfg_node_tag, &$1.locus,
+	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
 				    $1.name, $2,
 				    NULL);
 
 	  }
 	| ident tag '{' stmtlist '}' opt_sc
 	  {
-	    $$ = mu_cfg_alloc_node (mu_cfg_node_tag, &$1.locus,
+	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
 				    $1.name, $2,
 				    $4.head);
 
@@ -273,7 +285,7 @@ vallist : vlist
 		val.v.arg.v = mu_alloc (n * sizeof (val.v.arg.v[0]));
 		if (!val.v.arg.v)
 		  {
-		    mu_cfg_perror (&mu_cfg_locus, _("not enough memory"));
+		    mu_cfg_parse_error (_("not enough memory"));
 		    abort();
 		  }
 
@@ -294,8 +306,8 @@ vlist   : value
 	      int rc = mu_list_create (&$$);
 	      if (rc)
 		{
-		  mu_cfg_perror (&mu_cfg_locus, _("cannot create list: %s"),
-				 mu_strerror (rc));
+		  mu_cfg_parse_error (_("cannot create list: %s"),
+				      mu_strerror (rc));
 		  abort ();
 		}
 	      mu_list_append ($$, config_value_dup (&$1)); /* FIXME */
@@ -430,11 +442,182 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
 
   tree = mu_alloc (sizeof (*tree));
   tree->debug = _mu_cfg_debug;
-  tree->node = parse_tree;
+  tree->head = parse_head;
+  tree->tail = parse_tail;
   tree->pool = mu_cfg_lexer_pool ();
-  parse_tree = NULL;
+  parse_head = parse_tail = NULL;
   *ptree = tree;
   return rc;
+}
+
+int
+mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb)
+{
+  mu_cfg_tree_t *a, *b;
+  int rc;
+  
+  if (!pb)
+    return EINVAL;
+  if (!*pb)
+    return 0;
+  b = *pb;
+  if (!pa)
+    return EINVAL;
+  if (!*pa)
+    {
+      *pa = b;
+      *pb = NULL;
+      return 0;
+    }
+  else
+    a = *pa;
+  
+  /* Merge opools */
+  rc = mu_opool_union (&b->pool, &a->pool);
+  if (rc)
+    return rc;
+    
+  /* Link node lists */
+  if (a->tail)
+    a->tail->next = b->head;
+  else
+    a->head = b->head;
+  a->tail = b->tail;
+
+  mu_debug_destroy (&b->debug, mu_debug_get_owner (b->debug));
+  free (b);
+  *pb = NULL;
+  return 0;
+}
+
+static mu_cfg_tree_t *
+do_include (const char *name, int flags, mu_cfg_locus_t *loc)
+{
+  struct stat sb;
+  char *tmpname = NULL;
+  mu_cfg_tree_t *tree = NULL;
+  
+  if (name[0] != '/')
+    {
+      name = tmpname = mu_make_file_name (SYSCONFDIR, name);
+      if (!name)
+        {
+          mu_error ("%s", mu_strerror (errno));
+          return NULL;
+        }
+    }
+  if (stat (name, &sb) == 0)
+    {
+      int rc = 0;
+
+      if (S_ISDIR (sb.st_mode))
+	{
+	  if (flags & MU_PARSE_CONFIG_GLOBAL)
+	    {
+	      char *file = mu_make_file_name (name, mu_program_name);
+	      rc = mu_cfg_parse_file (&tree, file, flags);
+	    }
+	}
+      else
+	rc = mu_cfg_parse_file (&tree, name, flags);
+	      
+      if (rc == 0 && tree)
+	mu_cfg_tree_postprocess (tree, flags & ~MU_PARSE_CONFIG_GLOBAL);
+    }
+  else if (errno == ENOENT)
+    mu_cfg_perror (tree->debug, loc,
+		   _("include file or directory does not exist"));
+  else
+    mu_cfg_perror (tree->debug, loc,
+		   _("cannot stat include file or directory: %s"),
+		   mu_strerror (errno));
+  free (tmpname);
+  return tree;
+}
+    
+int
+mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags)
+{
+  mu_cfg_node_t *prev, *node;
+
+  for (prev = NULL, node = tree->head; node; )
+    {
+      mu_cfg_node_t *next = node->next;
+
+      if (node->type == mu_cfg_node_statement)
+	{
+	  if ((flags & MU_PARSE_CONFIG_GLOBAL) &&
+	      strcmp (node->tag, "program") == 0)
+	    {
+	      if (node->label->type == MU_CFG_STRING)
+		{
+		  if (strcmp (node->label->v.string, mu_program_name) == 0)
+		    {
+		      mu_cfg_node_t *p;
+		      
+		      /* Move all nodes from this block to the topmost
+			 level */
+		      if (prev)
+			prev->next = node->node;
+		      else
+			tree->head = node->node;
+		      p = node->node;
+		      mu_cfg_free_node (node);
+		      for (node = prev->next; node->next; node = node->next)
+			;
+		      node->next = next;
+		    }
+		}
+	      else
+		{
+		  mu_cfg_perror (tree->debug, &node->locus,
+				 _("argument to `program' is not a string"));
+		  if (prev)
+		    prev->next = next;
+		  else
+		    tree->head = next;
+		  mu_cfg_free_node (node);
+		}
+	    }
+	}
+      else if (node->type == mu_cfg_node_param &&
+	       strcmp (node->tag, "include") == 0)
+	{
+	  /* Remove node from the list */
+	  if (prev)
+	    prev->next = next;
+	  else
+	    tree->head = next;
+	      
+	  if (node->label->type == MU_CFG_STRING)
+	    {
+	      mu_cfg_tree_t *t = do_include (node->label->v.string, flags,
+					     &node->locus);
+	      if (t)
+		{
+		  if (prev)
+		    prev->next = t->head;
+		  else
+		    tree->head = t->head;
+		  
+		  t->tail->next = next;
+		  
+		  /* FIXME: check return value */
+		  mu_opool_union (&tree->pool, &t->pool);
+		  mu_debug_destroy (&t->debug, NULL);
+		  free (t);
+		}		      
+	    }
+	  else
+	    mu_cfg_perror (tree->debug, &node->locus,
+			   _("argument to `include' is not a string"));
+	  mu_cfg_free_node (node);
+	}
+	  
+      prev = node;
+      node = next;
+    }
+  return 0;
 }
 
 static int
@@ -447,7 +630,7 @@ _mu_cfg_preorder_recursive (mu_cfg_node_t *node,
     case mu_cfg_node_undefined:
       abort ();
 
-    case mu_cfg_node_tag:
+    case mu_cfg_node_statement:
       switch (beg (node, data))
 	{
 	case MU_CFG_ITER_OK:
@@ -491,7 +674,7 @@ _mu_cfg_postorder_recursive(mu_cfg_node_t *node,
     case mu_cfg_node_undefined:
       abort ();
 
-    case mu_cfg_node_tag:
+    case mu_cfg_node_statement:
       switch (beg (node, data))
 	{
 	case MU_CFG_ITER_OK:
@@ -532,7 +715,7 @@ mu_cfg_postorder (mu_cfg_node_t *node,
 static int
 free_section (const mu_cfg_node_t *node, void *data)
 {
-  if (node->type == mu_cfg_node_tag)
+  if (node->type == mu_cfg_node_statement)
     free ((void *) node);
   return MU_CFG_ITER_OK;
 }
@@ -551,7 +734,7 @@ mu_cfg_destroy_tree (mu_cfg_tree_t **ptree)
   if (ptree && *ptree)
     {
       mu_cfg_tree_t *tree = *ptree;
-      mu_cfg_postorder (tree->node, free_param, free_section, NULL);
+      mu_cfg_postorder (tree->head, free_param, free_section, NULL);
       mu_opool_destroy (&tree->pool);
       *ptree = NULL;
     }
@@ -643,7 +826,7 @@ push_section (struct scan_tree_data *dat, struct mu_cfg_section *sec)
   struct mu_cfg_section_list *p = mu_alloc (sizeof *p);
   if (!p)
     {
-      _mu_cfg_perror (dat->tree->debug, NULL, _("not enough memory"));
+      mu_cfg_perror (dat->tree->debug, NULL, _("not enough memory"));
       return 1;
     }
   p->sec = sec;
@@ -680,12 +863,12 @@ pop_section (struct scan_tree_data *dat)
 	  break;							\
 	if (x <= sum)							\
 	  {								\
-	    _mu_cfg_perror (d, loc, _("numeric overflow"));		\
+	    mu_cfg_perror (d, loc, _("numeric overflow"));		\
 	    return 1;							\
 	  }								\
 	else if (limit && x > limit)					\
 	  {								\
-	    _mu_cfg_perror (d, loc,					\
+	    mu_cfg_perror (d, loc,					\
 			    _("value out of allowed range"));		\
 	    return 1;							\
 	  }								\
@@ -721,9 +904,9 @@ pop_section (struct scan_tree_data *dat)
     STRxTONUM (s, type, tmpres, 0, d, loc);				\
     if (*s)								\
       {									\
-	_mu_cfg_perror (d, loc,						\
-			_("not a number (stopped near `%s')"),		\
-			s);						\
+	mu_cfg_perror (d, loc,						\
+		       _("not a number (stopped near `%s')"),		\
+		       s);						\
 	return 1;							\
       }									\
     res = tmpres;							\
@@ -752,9 +935,9 @@ pop_section (struct scan_tree_data *dat)
     STRxTONUM (s, unsigned type, tmpres, limit, d, loc);		\
     if (*s)								\
       {									\
-	_mu_cfg_perror (d, loc,						\
-			_("not a number (stopped near `%s')"),		\
-			s);						\
+	mu_cfg_perror (d, loc,						\
+		       _("not a number (stopped near `%s')"),		\
+		       s);						\
 	return 1;							\
       }									\
     res = sign ? - tmpres : tmpres;					\
@@ -767,7 +950,7 @@ parse_ipv4 (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
   struct in_addr addr;
   if (inet_aton (str, &addr) == 0)
     {
-      _mu_cfg_perror (sdata->tree->debug, locus, _("not an IPv4"));
+      mu_cfg_perror (sdata->tree->debug, locus, _("not an IPv4"));
       return 1;
     }
   addr.s_addr = ntohl (addr.s_addr);
@@ -787,9 +970,9 @@ parse_host (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
     }
   else if (inet_aton (str, &addr) == 0)
     {
-      _mu_cfg_perror (sdata->tree->debug, locus,
-		      _("cannot resolve hostname `%s'"),
-		      str);
+      mu_cfg_perror (sdata->tree->debug, locus,
+		     _("cannot resolve hostname `%s'"),
+		     str);
       return 1;
     }
   addr.s_addr = ntohl (addr.s_addr);
@@ -811,16 +994,16 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
     {
       int len = p - str;
       if (len > sizeof astr - 1) {
-	_mu_cfg_perror (sdata->tree->debug, locus,
-			_("not a valid IPv4 address in CIDR"));
+	mu_cfg_perror (sdata->tree->debug, locus,
+		       _("not a valid IPv4 address in CIDR"));
 	return 1;
       }
       memcpy (astr, str, len);
       astr[len] = 0;
       if (inet_aton (astr, &addr) == 0)
 	{
-	  _mu_cfg_perror (sdata->tree->debug, locus,
-			  _("not a valid IPv4 address in CIDR"));
+	  mu_cfg_perror (sdata->tree->debug, locus,
+			 _("not a valid IPv4 address in CIDR"));
 	  return 1;
 	}
       addr.s_addr = ntohl (addr.s_addr);
@@ -833,8 +1016,8 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
 	  struct in_addr a;
 	  if (inet_aton (p, &a) == 0)
 	    {
-	      _mu_cfg_perror (sdata->tree->debug, locus,
-			      _("not a valid network in CIDR"));
+	      mu_cfg_perror (sdata->tree->debug, locus,
+			     _("not a valid network in CIDR"));
 	      return 1;
 	    }
 	  a.s_addr = ntohl (a.s_addr);
@@ -847,8 +1030,8 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
 	}
       else if (mask > 32)
 	{
-	  _mu_cfg_perror (sdata->tree->debug, locus,
-			  _("not a valid network mask in CIDR"));
+	  mu_cfg_perror (sdata->tree->debug, locus,
+			 _("not a valid network mask in CIDR"));
 	  return 1;
 	}
     }
@@ -869,9 +1052,9 @@ parse_cidr (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
 
       if (*p)
 	{
-	  _mu_cfg_perror (sdata->tree->debug, locus,
-			  _("not a CIDR (stopped near `%s')"),
-			  p);
+	  mu_cfg_perror (sdata->tree->debug, locus,
+			 _("not a CIDR (stopped near `%s')"),
+			 p);
 	  return 1;
 	}
 
@@ -911,7 +1094,7 @@ parse_bool (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
 {
   if (mu_cfg_parse_boolean (str, res))
     {
-      _mu_cfg_perror (sdata->tree->debug, locus, _("not a boolean"));
+      mu_cfg_perror (sdata->tree->debug, locus, _("not a boolean"));
       return 1;
     }
   return 0;
@@ -924,8 +1107,7 @@ valcvt (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
 {
   if (val->type != MU_CFG_STRING)
     {
-      _mu_cfg_perror (sdata->tree->debug, locus,
-		      _("expected string value"));
+      mu_cfg_perror (sdata->tree->debug, locus, _("expected string value"));
       return 1;
     }
   switch (type)
@@ -972,8 +1154,7 @@ valcvt (struct scan_tree_data *sdata, const mu_cfg_locus_t *locus,
       break;
 
     case mu_cfg_off:
-      _mu_cfg_perror (sdata->tree->debug, locus,
-		      _("not implemented yet"));
+      mu_cfg_perror (sdata->tree->debug, locus, _("not implemented yet"));
       /* GETSNUM(node->tag_label, off_t, *(off_t*)tgt); */
       return 1;
 
@@ -1046,17 +1227,17 @@ _set_fun (void *item, void *data)
   if (clos->type >= MU_ARRAY_SIZE(config_type_size)
       || (size = config_type_size[clos->type]) == 0)
     {
-    _mu_cfg_perror (clos->sdata->tree->debug, clos->locus,
-		    _("INTERNAL ERROR at %s:%d: unhandled data type %d"),
-		    __FILE__, __LINE__, clos->type);
+    mu_cfg_perror (clos->sdata->tree->debug, clos->locus,
+		   _("INTERNAL ERROR at %s:%d: unhandled data type %d"),
+		   __FILE__, __LINE__, clos->type);
     return 1;
     }
 
   tgt = mu_alloc (size);
   if (!tgt)
     {
-      _mu_cfg_perror (clos->sdata->tree->debug, clos->locus,
-		      _("not enough memory"));
+      mu_cfg_perror (clos->sdata->tree->debug, clos->locus,
+		     _("not enough memory"));
       return 1;
     }
 
@@ -1075,9 +1256,9 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 
   if (!param)
     {
-      _mu_cfg_perror (sdata->tree->debug, &node->locus,
-		      _("unknown keyword `%s'"),
-		      node->tag);
+      mu_cfg_perror (sdata->tree->debug, &node->locus,
+		     _("unknown keyword `%s'"),
+		     node->tag);
       return 1;
     }
 
@@ -1091,9 +1272,9 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
     tgt = NULL;
   else
     {
-      _mu_cfg_perror (sdata->tree->debug, &node->locus,
-		      _("INTERNAL ERROR: cannot determine target offset for "
-			"%s"), param->ident);
+      mu_cfg_perror (sdata->tree->debug, &node->locus,
+		     _("INTERNAL ERROR: cannot determine target offset for "
+		       "%s"), param->ident);
       abort ();
     }
 
@@ -1119,8 +1300,8 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 	  break;
 
 	case MU_CFG_ARRAY:
-	  _mu_cfg_perror (sdata->tree->debug, &node->locus,
-			  _("expected list, but found array"));
+	  mu_cfg_perror (sdata->tree->debug, &node->locus,
+			 _("expected list, but found array"));
 	  return 1;
 	}
 
@@ -1134,9 +1315,9 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 			  node->locus.line);
       if (!param->callback)
 	{
-	  _mu_cfg_perror (sdata->tree->debug, &node->locus,
-			  _("INTERNAL ERROR: %s: callback not defined"),
-			  node->tag);
+	  mu_cfg_perror (sdata->tree->debug, &node->locus,
+			 _("INTERNAL ERROR: %s: callback not defined"),
+			 node->tag);
 	  abort ();
 	}
       if (param->callback (sdata->tree->debug, tgt, node->label))
@@ -1161,7 +1342,7 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
     case mu_cfg_node_undefined:
       abort ();
 
-    case mu_cfg_node_tag:
+    case mu_cfg_node_statement:
       sec = find_subsection (sdata->list->sec, node->tag, 0);
       if (!sec)
 	{
@@ -1219,7 +1400,7 @@ _scan_tree_end_helper (const mu_cfg_node_t *node, void *data)
     default:
       abort ();
 
-    case mu_cfg_node_tag:
+    case mu_cfg_node_statement:
       sec = pop_section (sdata);
       if (sec && sec->parser)
 	{
@@ -1253,7 +1434,7 @@ mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
     }
   if (push_section (&dat, sections))
     return 1;
-  mu_cfg_preorder (tree->node, _scan_tree_helper, _scan_tree_end_helper, &dat);
+  mu_cfg_preorder (tree->head, _scan_tree_helper, _scan_tree_end_helper, &dat);
   if (debug)
     {
       mu_debug_set_locus (debug, NULL, 0);
@@ -1273,13 +1454,13 @@ mu_cfg_find_section (struct mu_cfg_section *root_sec,
       size_t len;
       const char *p;
 
-      while (*path == '/')
+      while (*path == MU_CFG_PATH_DELIM)
 	path++;
 
       if (*path == 0)
 	return MU_ERR_NOENT;
 
-      p = strchr (path, '/');
+      p = strchr (path, MU_CFG_PATH_DELIM);
       if (p)
 	len = p - path;
       else
@@ -1354,13 +1535,275 @@ mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 void
 mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node)
 {
-  if (!tree->node)
-    tree->node = node;
+  if (!tree->head)
+    tree->head = node;
   else
     {
       mu_cfg_node_t *p;
-      for (p = tree->node; p->next; p = p->next)
+      for (p = tree->head; p->next; p = p->next)
 	;
       p->next = node;
     }
 }
+
+/* Return 1 if configuration value A equals B */
+int
+mu_cfg_value_eq (mu_config_value_t *a, mu_config_value_t *b)
+{
+  if (a->type != b->type)
+    return 0;
+  switch (a->type)
+    {
+    case MU_CFG_STRING:
+      if (a->v.string == NULL)
+	return b->v.string == NULL;
+      return strcmp (a->v.string, b->v.string) == 0;
+		     
+    case MU_CFG_LIST:
+      {
+	int ret = 1;
+	size_t cnt;
+	size_t i;
+	mu_iterator_t aitr, bitr;
+	
+	mu_list_count (a->v.list, &cnt);
+	mu_list_count (b->v.list, &i);
+	if (i != cnt)
+	  return 1;
+
+	mu_list_get_iterator (a->v.list, &aitr);
+	mu_list_get_iterator (b->v.list, &bitr);
+	for (i = 0,
+	       mu_iterator_first (aitr),
+	       mu_iterator_first (bitr);
+	     !mu_iterator_is_done (aitr) && !mu_iterator_is_done (bitr);
+	     mu_iterator_next (aitr),
+	       mu_iterator_next (bitr),
+	       i++)
+	  {
+	    mu_config_value_t *ap, *bp;
+	    mu_iterator_current (aitr, (void**)&ap);
+	    mu_iterator_current (bitr, (void**)&bp);
+	    ret = mu_cfg_value_eq (ap, bp);
+	    if (!ret)
+	      break;
+	  }
+	mu_iterator_destroy (&aitr);
+	mu_iterator_destroy (&bitr);
+	return ret && i == cnt;
+      }
+	
+    case MU_CFG_ARRAY:
+      if (a->v.arg.c == b->v.arg.c)
+	{
+	  size_t i;
+	  for (i = 0; i < a->v.arg.c; i++)
+	    if (!mu_cfg_value_eq (&a->v.arg.v[i], &b->v.arg.v[i]))
+	      return 0;
+	  return 1;
+	}
+    }
+  return 0;
+}
+
+
+struct find_data
+{
+  int argc;
+  char **argv;
+  int tag;
+  mu_config_value_t *label;
+  const mu_cfg_node_t *node;
+};
+
+static void
+free_value_mem (mu_config_value_t *p)
+{
+  switch (p->type)
+    {
+    case MU_CFG_STRING:
+      free ((char*)p->v.string);
+      break;
+      
+    case MU_CFG_LIST:
+      /* FIXME */
+      break;
+      
+    case MU_CFG_ARRAY:
+      {
+	size_t i;
+	for (i = 0; i < p->v.arg.c; i++)
+	  free_value_mem (&p->v.arg.v[i]);
+      }
+    }
+}
+
+static void
+destroy_value (void *p)
+{
+  mu_config_value_t *val = p;
+  if (val)
+    {
+      free_value_mem (val);
+      free (val);
+    }
+}
+
+static mu_config_value_t *
+parse_label (const char *str)
+{
+  mu_config_value_t *val = NULL;
+  int count, i;
+  char **vect;
+  size_t len = strlen (str);
+  
+  if (len > 1 && str[0] == '(' && str[len-1] == ')')
+    {
+      mu_list_t lst;
+      mu_argcv_get_np (str + 1, len - 2,
+		       ", \t", NULL,
+		       0,
+		       &count, &vect, NULL);
+      mu_list_create (&lst);
+      mu_list_set_destroy_item (lst, destroy_value);
+      for (i = 0; i < count; i++)
+	{
+	  mu_config_value_t *p = mu_alloc (sizeof (*p));
+	  p->type = MU_CFG_STRING;
+	  p->v.string = vect[i];
+	  mu_list_append (lst, p);
+	}
+      free (vect);
+      val = mu_alloc (sizeof (*val));
+      val->type = MU_CFG_LIST;
+      val->v.list = lst;
+    }
+  else
+    {      
+      mu_argcv_get (str, NULL, NULL, &count, &vect);
+      val = mu_alloc (sizeof (*val));
+      if (count == 1)
+	{
+	  val->type = MU_CFG_STRING;
+	  val->v.string = vect[0];
+	  free (vect);
+	}
+      else
+	{
+	  val->type = MU_CFG_ARRAY;
+	  val->v.arg.c = count;
+	  val->v.arg.v = mu_alloc (count * sizeof (val->v.arg.v[0]));
+	  for (i = 0; i < count; i++)
+	    {
+	      val->v.arg.v[i].type = MU_CFG_STRING;
+	      val->v.arg.v[i].v.string = vect[i];
+	    }
+	  free (vect);
+	}
+    }
+  return val;
+}
+
+static void
+parse_tag (struct find_data *fptr)
+{
+  char *p = strchr (fptr->argv[fptr->tag], '=');
+  if (p)
+    {
+      *p++ = 0;
+      fptr->label = parse_label (p);
+    }
+  else
+    fptr->label = NULL;
+}
+
+static int
+node_finder (const mu_cfg_node_t *node, void *data)
+{
+  struct find_data *fdptr = data;
+  if (strcmp (fdptr->argv[fdptr->tag], node->tag) == 0
+      && (!fdptr->label || mu_cfg_value_eq (fdptr->label, node->label)))
+    {
+      fdptr->tag++;
+      if (fdptr->tag == fdptr->argc)
+	{
+	  fdptr->node = node;
+	  return MU_CFG_ITER_STOP;
+	}
+      parse_tag (fdptr);
+      return MU_CFG_ITER_OK;
+    }
+  
+  return node->type == mu_cfg_node_statement ?
+               MU_CFG_ITER_SKIP : MU_CFG_ITER_OK;
+}
+
+int	    
+mu_cfg_find_node (mu_cfg_node_t *tree, const char *path, mu_cfg_node_t **pval)
+{
+  int rc;
+  struct find_data data;
+
+  rc = mu_argcv_get_np (path, strlen (path),
+			MU_CFG_PATH_DELIM_STR, NULL,
+			0, &data.argc, &data.argv, NULL);
+  if (rc)
+    return rc;
+  data.tag = 0;
+  parse_tag (&data);
+  rc = mu_cfg_preorder (tree, node_finder, NULL, &data);
+  destroy_value (data.label);
+  if (rc)
+    {
+      *pval = (mu_cfg_node_t *) data.node;
+      return 0;
+    }
+  return MU_ERR_NOENT;
+}
+
+
+
+int
+mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
+{
+  int rc;
+  int argc, i;
+  char **argv;
+  mu_cfg_locus_t locus;
+  enum mu_cfg_node_type type;
+  mu_cfg_node_t *node = NULL;
+  
+  locus.file = "<int>";
+  locus.line = 0;
+  
+  rc = mu_argcv_get_np (path, strlen (path), MU_CFG_PATH_DELIM_STR, NULL, 0,
+			&argc, &argv, NULL);
+  if (rc)
+    return rc;
+
+  for (i = argc - 1; i >= 0; i--)
+    {
+      char *p = strrchr (argv[i], '=');
+      mu_config_value_t *label = NULL;
+
+      type = mu_cfg_node_statement;
+      if (p)
+	{
+	  *p++ = 0;
+	  label = parse_label (p);
+	  if (i == argc - 1)
+	    type = mu_cfg_node_param;
+	}
+      
+      node = mu_cfg_alloc_node (type, &locus, argv[i], label, node);
+    }
+
+  mu_argcv_free (argc, argv);
+  *pnode = node;
+  return 0;
+}
+
+  
+	  
+        
+  

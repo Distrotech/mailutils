@@ -1,5 +1,5 @@
 /* cfg_driver.c -- Main driver for Mailutils configuration files
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
+#define MU_CFG_COMPATIBILITY /* This source uses deprecated cfg interfaces */
 #include <mailutils/cfg.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -453,23 +454,6 @@ prog_parser (enum mu_cfg_section_stage stage,
   return 0;
 }
 
-static char *
-make_file_name (const char *dir, const char *file)
-{
-  char *tmp;
-  size_t len = strlen (dir) + 1 + strlen (file);
-  tmp = malloc (len + 1);
-  if (!tmp)
-    {
-      mu_error ("%s", mu_strerror (errno));
-      exit (1);
-    }
-  strcpy (tmp, dir);
-  strcat (tmp, "/");
-  strcat (tmp, file);
-  return tmp;
-}
-
 struct include_data
 {
   const char *progname;
@@ -492,13 +476,20 @@ _cb_include (mu_debug_t debug, void *data, mu_config_value_t *val)
 
   dirname = val->v.string;
   if (dirname[0] != '/')
-    dirname = tmp = make_file_name (SYSCONFDIR, dirname);
-  
+    {
+      dirname = tmp = mu_make_file_name (SYSCONFDIR, dirname);
+      if (!dirname)
+        {
+          mu_error ("%s", mu_strerror (errno));
+          return 1;
+        }
+    }
+    
   if (stat (dirname, &sb) == 0)
     {
       if (S_ISDIR (sb.st_mode))
 	{
-	  char *file = make_file_name (dirname, idp->progname);
+	  char *file = mu_make_file_name (dirname, idp->progname);
 	  ret = mu_get_config (file, idp->progname, idp->progparam,
 			       idp->flags & ~MU_PARSE_CONFIG_GLOBAL,
 			       idp->target);
@@ -528,51 +519,61 @@ struct mu_cfg_cont *
 mu_build_container (const char *progname, struct include_data *idp)
 {
   struct mu_cfg_cont *cont = root_container;
-  struct mu_cfg_param mu_include_param[] = {
-    { "include", mu_cfg_callback, NULL, 0, _cb_include,
-      N_("Include contents of the given file.  If a directory is given, "
-	 "include contents of the file <file>/<program>, where <program> is "
-	 "the name of the program.  This latter form is allowed only in "
-	 "the site-wide configuration file."),
-      N_("file-or-directory") },
-    { NULL }
-  };
 
-  mu_include_param[0].data = idp;
   mu_config_clone_container (cont);
-  _mu_config_register_section (&cont, NULL, NULL, NULL,
-			       (void*) progname, mu_include_param, NULL);
-  if (idp->flags & MU_PARSE_CONFIG_GLOBAL)
+  
+  if (idp->flags & MU_PARSE_CONFIG_PLAIN)
     {
-      mu_iterator_t iter;
-      struct mu_cfg_section *prog_sect;
-      struct mu_cfg_cont *old_root = root_container;
-      static struct mu_cfg_param empty_param = { NULL };
+      struct mu_cfg_param mu_include_param[] = {
+	{ "include", mu_cfg_callback, NULL, 0, _cb_include,
+	  N_("Include contents of the given file.  If a directory is given, "
+	     "include contents of the file <file>/<program>, where "
+	     "<program> is the name of the program.  This latter form is "
+	     "allowed only in the site-wide configuration file."),
+	  N_("file-or-directory") },
+	{ NULL }
+      };
+
+      mu_include_param[0].data = idp;
+      _mu_config_register_section (&cont, NULL, NULL, NULL,
+				   (void*) progname, mu_include_param, NULL);
       
-      _mu_config_register_section (&cont, NULL, "program", progname,
-				   prog_parser,
-				   idp->progparam ?
-				     idp->progparam : &empty_param,
-				   &prog_sect);
-      
-      if (old_root->v.section.children)
+      if (idp->flags & MU_PARSE_CONFIG_GLOBAL)
 	{
-	  if (!prog_sect->children)
-	    mu_list_create (&prog_sect->children);
-	  mu_list_get_iterator (old_root->v.section.children, &iter);
-	  for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
-	       mu_iterator_next (iter))
+	  mu_iterator_t iter;
+	  struct mu_cfg_section *prog_sect;
+	  struct mu_cfg_cont *old_root = root_container;
+	  static struct mu_cfg_param empty_param = { NULL };
+	  
+	  _mu_config_register_section (&cont, NULL, "program", progname,
+				       prog_parser,
+				       idp->progparam ?
+				       idp->progparam : &empty_param,
+				       &prog_sect);
+      
+	  if (old_root->v.section.children)
 	    {
-	      struct mu_cfg_cont *c;
-	      mu_iterator_current (iter, (void**)&c);
-	      mu_list_append (prog_sect->children, c);
+	      if (!prog_sect->children)
+		mu_list_create (&prog_sect->children);
+	      mu_list_get_iterator (old_root->v.section.children, &iter);
+	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
+		   mu_iterator_next (iter))
+		{
+		  struct mu_cfg_cont *c;
+		  mu_iterator_current (iter, (void**)&c);
+		  mu_list_append (prog_sect->children, c);
+		}
+	      mu_iterator_destroy (&iter);
 	    }
-	  mu_iterator_destroy (&iter);
 	}
+      else if (idp->progparam)
+	_mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
+				     idp->progparam, NULL);
     }
   else if (idp->progparam)
     _mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
 				 idp->progparam, NULL);
+  
   return cont;
 }
 
@@ -582,14 +583,16 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 		    void *target_ptr)
 {
   int rc = 0;
-  
+
+  if (!parse_tree)
+    return 0;
   if (flags & MU_PARSE_CONFIG_DUMP)
     {
       mu_stream_t stream;
       mu_stdio_stream_create (&stream, stderr,
  			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
       mu_stream_open (stream);
-      mu_cfg_format_parse_tree (stream, parse_tree);
+      mu_cfg_format_parse_tree (stream, parse_tree, MU_CFG_FMT_LOCUS);
       mu_stream_destroy (&stream, NULL);
     }
 
@@ -597,14 +600,14 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
     {
       struct include_data idata;
       struct mu_cfg_cont *cont;
-
+      
       idata.progname = progname;
       idata.progparam = progparam;
       idata.flags = flags;
       idata.target = target_ptr;
-
+      
       cont = mu_build_container (progname, &idata);
-
+      
       rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, target_ptr,
 			     (void*) progname);
       mu_config_destroy_container (&cont);
