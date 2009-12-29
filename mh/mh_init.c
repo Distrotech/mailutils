@@ -870,17 +870,17 @@ mh_set_reply_regex (const char *str)
 	      err ? err : "");
 }
 
-int
-mh_decode_2047 (char *text, char **decoded_text)
+const char *
+mh_charset (const char *dfl)
 {
-  const char *charset = mh_global_profile_get ("Charset", NULL);
+  const char *charset = mh_global_profile_get ("Charset", dfl);
 
   if (!charset)
-    return 1;
+    return NULL;
   if (mu_c_strcasecmp (charset, "auto") == 0)
     {
       /* Try to deduce the charset from LC_ALL variable */
-
+      
       char *lc_all = getenv ("LC_ALL");
       if (lc_all)
 	{
@@ -899,7 +899,13 @@ mh_decode_2047 (char *text, char **decoded_text)
 	  free (tmp);
 	}
     }
+  return charset;
+}
 
+int
+mh_decode_2047 (char *text, char **decoded_text)
+{
+  const char *charset = mh_charset (NULL);
   if (!charset)
     return 1;
   

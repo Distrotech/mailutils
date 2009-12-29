@@ -26,8 +26,14 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <string.h>
+#include "mbiter.h"
+#include "mbchar.h"
+#include "mbswidth.h"
 
 static char *_get_builtin_name (mh_builtin_fp ptr);
+
+#define DFLWIDTH(mach) ((mach)->width - (mach)->ind)
 
 /* Functions for handling string objects. */
 
@@ -106,17 +112,53 @@ strobj_realloc (strobj_t *obj, size_t length)
     }
 }
 
-/* Compress whitespace in a string */
+/* Return the length (number of octets) of a substring of
+   string STR of length LEN, such that it contains NCOL
+   multibyte characters. */
+int
+mbsubstrlen (char *str, size_t len, size_t ncol)
+{
+  int ret = 0;
+  mbi_iterator_t iter;
+
+  if (ncol <= 0)
+    return 0;
+  
+  for (mbi_init (iter, str, len);
+       ncol && mbi_avail (iter);
+       ncol--, mbi_advance (iter))
+    ret += mb_len (mbi_cur (iter));
+  return ret;
+}
+
+/* Return the number of multibyte characters in the first LEN bytes
+   of character string STRING.  */
+size_t
+mbsnlen (char *str, size_t len)
+{
+  int ret = 0;
+  mbi_iterator_t iter;
+
+  for (mbi_init (iter, str, len); mbi_avail (iter); mbi_advance (iter))
+    ret++;
+  return ret;
+}
+
+/* Compress whitespace in a string (multi-byte) */
 static void
-compress_ws (char *str, size_t *size)
+compress_ws (char *str, size_t *psize)
 {
   unsigned char *p, *q;
-  size_t len = *size;
+  size_t size = *psize;
+  mbi_iterator_t iter;
   int space = 0;
-
-  for (p = q = (unsigned char*) str; len; len--, q++)
+  
+  for (p = q = (unsigned char*) str,
+	 mbi_init (iter, str, size);
+       mbi_avail (iter);
+       mbi_advance (iter))
     {
-      if (isspace (*q))
+      if (mb_isspace (mbi_cur (iter)))
 	{
 	  if (!space)
 	    *p++ = ' ';
@@ -126,11 +168,15 @@ compress_ws (char *str, size_t *size)
       else if (space)
 	space = 0;
 
-      if (isprint (*q))
-	*p++ = *q;
+      if (mb_isprint (mbi_cur (iter)))
+	{
+	  size_t len = mb_len (mbi_cur (iter));
+	  memcpy (p, mb_ptr (mbi_cur (iter)), len);
+	  p += len;
+	}
     }
   *p = 0;
-  *size = p - (unsigned char*) str;
+  *psize = p - (unsigned char*) str;
 }
 
 #define COMPRESS_WS(mach, str, size)		\
@@ -145,8 +191,9 @@ static void
 put_string (struct mh_machine *mach, char *str, int len)
 {
   if (len == 0)
-    len = strlen (str);
+    return;
   obstack_grow (&mach->stk, str, len);
+  len = mbsnwidth (str, len, 0);
   mach->ind += len;
 }
 
@@ -156,40 +203,46 @@ print_hdr_segment (struct mh_machine *mach, char *str, size_t len)
   if (!len)
     len = strlen (str);
 
-  if (len < mach->width)
+  if (mbsnlen (str, len) < mach->width)
     put_string (mach, str, len);
   else
     {
-      char *endp = str + len;
-      
-      while (str < endp)
+      while (1)
 	{
-	  size_t rest;
-	  char *p;
-	  size_t size;
+	  mbi_iterator_t iter;
+	  size_t rest = DFLWIDTH (mach);
+	  size_t width = mbsnlen (str, len);
+	  size_t off, size;
 	  
-	  size = endp - str;
-	  rest = mach->width - mach->ind;
-	  if (size < rest)
+	  if (width <= rest)
 	    {
-	      put_string (mach, str, size);
+	      put_string (mach, str, len);
 	      break;
 	    }
-	  
-	  for (p = str + rest - 1; p > str && !isspace (*p); p--)
-	    ;
 
-	  if (p > str)
+	  size = off = 0;
+	  for (mbi_init (iter, str, len);
+	       mbi_avail (iter);
+	       mbi_advance (iter))
 	    {
-	      put_string (mach, str, p - str);
-	      put_string (mach, "\n\t", 0);
+	      if (mb_isspace (mbi_cur (iter)))
+		off = size;
+	      size += mb_len (mbi_cur (iter));
+	    }
+
+	  if (off > 0)
+	    {
+	      put_string (mach, str, off);
+	      put_string (mach, "\n        ", 9);
 	      mach->ind = 8;
-	      str = p;
+	      str += off;
+	      len -= off;
 	    }
 	  else
 	    {
-	      put_string (mach, str, size);
-	      str += len;
+	      size = mbsubstrlen (str, len, rest);
+	      put_string (mach, str, len);
+	      break;
 	    }
 	}
     }
@@ -232,7 +285,7 @@ print_simple_segment (struct mh_machine *mach, size_t width,
   if (!width)
     width = mach->width;
 
-  rest = width - mach->ind;
+  rest = DFLWIDTH (mach);
   if (rest == 0)
     {
       if (len == 1 && str[0] == '\n')
@@ -240,10 +293,7 @@ print_simple_segment (struct mh_machine *mach, size_t width,
       return;
     }
   
-  if (len > rest)
-    len = rest;
-
-  put_string (mach, str, len);
+  put_string (mach, str, mbsubstrlen (str, len, rest));
 }
 
 static void
@@ -274,13 +324,21 @@ static void
 print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
 {
   size_t len = strlen (str);
-  if (len > fmtwidth)
-    len = fmtwidth;
+  size_t width = mbslen (str);
+
+  if (fmtwidth && width > fmtwidth)
+    {
+      len = mbsubstrlen (str, len, fmtwidth);
+      width = fmtwidth;
+    }
+  else
+    len = mbsubstrlen (str, len, DFLWIDTH (mach));
+  
   put_string (mach, str, len);
 
-  if (fmtwidth > len)
+  if (fmtwidth > width)
     {
-      fmtwidth -= len;
+      fmtwidth -= width;
       mach->ind += fmtwidth;
       while (fmtwidth--)
 	obstack_1grow (&mach->stk, ' ');
@@ -293,7 +351,7 @@ reset_fmt_defaults (struct mh_machine *mach)
   const char *p;
   
   mach->fmtflags = 0;
-  p = mh_global_profile_get ("Compress-WS", NULL);
+  p = mh_global_profile_get ("Compress-WS", "yes");
   if (p && (mu_c_strcasecmp (p, "yes") == 0
 	    || mu_c_strcasecmp (p, "true") == 0))
     mach->fmtflags |= MH_FMT_COMPWS;
@@ -409,6 +467,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 {
   struct mh_machine mach;
   char buf[64];
+  const char *charset = mh_global_profile_get ("Charset", NULL);
   
   memset (&mach, 0, sizeof (mach));
   mach.progsize = fmt->progsize;
@@ -421,13 +480,40 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
   mach.pc = 1;
   obstack_init (&mach.stk);
   mu_list_create (&mach.addrlist);
-
-  reset_fmt_defaults (&mach);
   
-  while (!mach.stop)
+  reset_fmt_defaults (&mach);
+
+#if HAVE_SETLOCALE
+  if (charset && strcmp (charset, "auto"))
+    {
+      /* Try to set LC_CTYPE according to the value of Charset variable.
+	 If Charset is `auto', there's no need to do anything, since it
+	 is already set. Otherwise, we need to construct a valid locale
+	 value with Charset as its codeset part. The problem is, what
+	 language and territory to use for that locale.
+
+	 Neither LANG nor any other environment variable is of any use,
+	 because if it were, the user would have set "Charset: auto".
+	 It would be logical to use 'C' or 'POSIX', but these do not
+	 work with '.UTF-8'. So, in the absence of any viable alternative,
+	 'en_US' is selected. This choice may be overridden by setting
+	 the LC_BASE mh_profile variable to the desired base part.
+      */
+      const char *lc_base = mh_global_profile_get ("LC_BASE", "en_US");
+      char *locale = xmalloc (strlen (lc_base) + 1 + strlen (charset) + 1);
+      strcpy (locale, lc_base);
+      strcat (locale, ".");
+      strcat (locale, charset);
+      if (!setlocale (LC_CTYPE, locale))
+        mu_error (_("cannot set LC_CTYPE %s"), locale);
+      free (locale);
+    }
+#endif
+  
+  while (!mach.stop && mach.ind < mach.width)
     {
       mh_opcode_t opcode;
-      switch (opcode = MHI_OPCODE(mach.prog[mach.pc++]))
+      switch (opcode = MHI_OPCODE (mach.prog[mach.pc++]))
 	{
 	case mhop_nop:
 	  break;
@@ -437,7 +523,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	  break;
 
 	case mhop_branch:
-	  mach.pc += MHI_NUM(mach.prog[mach.pc]);
+	  mach.pc += MHI_NUM (mach.prog[mach.pc]);
 	  break;
 
 	case mhop_num_asgn:
@@ -449,27 +535,27 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	  break;
 	  
 	case mhop_num_arg:
-	  mach.arg_num = MHI_NUM(mach.prog[mach.pc++]);
+	  mach.arg_num = MHI_NUM (mach.prog[mach.pc++]);
 	  break;
 	  
 	case mhop_str_arg:
 	  {
-	    size_t skip = MHI_NUM(mach.prog[mach.pc++]);
-	    strobj_set (&mach.arg_str, MHI_STR(mach.prog[mach.pc]));
+	    size_t skip = MHI_NUM (mach.prog[mach.pc++]);
+	    strobj_set (&mach.arg_str, MHI_STR (mach.prog[mach.pc]));
 	    mach.pc += skip;
 	  }
 	  break;
 
 	case mhop_num_branch:
 	  if (!mach.arg_num)
-	    mach.pc += MHI_NUM(mach.prog[mach.pc]);
+	    mach.pc += MHI_NUM (mach.prog[mach.pc]);
 	  else
 	    mach.pc++;
 	  break;
 
 	case mhop_str_branch:
 	  if (!*strobj_ptr (&mach.arg_str))
-	    mach.pc += MHI_NUM(mach.prog[mach.pc]);
+	    mach.pc += MHI_NUM (mach.prog[mach.pc]);
 	  else
 	    mach.pc++;
 	  break;
@@ -503,7 +589,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	    mu_body_t body = NULL;
 	    mu_stream_t stream = NULL;
 	    size_t size = 0, off, str_off, nread;
-	    size_t rest = mach.width - mach.ind;
+	    size_t rest = DFLWIDTH (&mach);
 
 	    strobj_free (&mach.arg_str);
 	    mu_message_get_body (mach.message, &body);
@@ -564,7 +650,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	  break;
 
 	case mhop_fmtspec:
-	  mach.fmtflags = MHI_NUM(mach.prog[mach.pc++]);
+	  mach.fmtflags = MHI_NUM (mach.prog[mach.pc++]);
 	  break;
 
 	default:
@@ -615,7 +701,7 @@ mh_format_dump (mh_format_t *fmt)
       int num;
       
       printf ("% 4.4ld: ", (long) pc);
-      switch (opcode = MHI_OPCODE(prog[pc++]))
+      switch (opcode = MHI_OPCODE (prog[pc++]))
 	{
 	case mhop_nop:
 	  printf ("nop");
@@ -627,7 +713,7 @@ mh_format_dump (mh_format_t *fmt)
 	  break;
 
 	case mhop_branch:
-	  num = MHI_NUM(prog[pc++]);
+	  num = MHI_NUM (prog[pc++]);
 	  printf ("branch %d, %lu",
 		  num, (unsigned long) pc + num - 1);
 	  break;
@@ -641,14 +727,14 @@ mh_format_dump (mh_format_t *fmt)
 	  break;
 	  
 	case mhop_num_arg:
-	  num = MHI_NUM(prog[pc++]);
+	  num = MHI_NUM (prog[pc++]);
 	  printf ("num_arg %d", num);
 	  break;
 	  
 	case mhop_str_arg:
 	  {
-	    size_t skip = MHI_NUM(prog[pc++]);
-	    char *s = MHI_STR(prog[pc]);
+	    size_t skip = MHI_NUM (prog[pc++]);
+	    char *s = MHI_STR (prog[pc]);
 	    printf ("str_arg \"");
 	    for (; *s; s++)
 	      {
@@ -696,13 +782,13 @@ mh_format_dump (mh_format_t *fmt)
 	  break;
 
 	case mhop_num_branch:
-	  num = MHI_NUM(prog[pc++]);
+	  num = MHI_NUM (prog[pc++]);
 	  printf ("num_branch %d, %lu",
 		  num, (unsigned long) (pc + num - 1));
 	  break;
 
 	case mhop_str_branch:
-	  num = MHI_NUM(prog[pc++]);
+	  num = MHI_NUM (prog[pc++]);
 	  printf ("str_branch %d, %lu",
 		  num, (unsigned long) (pc + num - 1));
 	  break;
@@ -753,7 +839,7 @@ mh_format_dump (mh_format_t *fmt)
 	  {
 	    int space = 0;
 	    
-	    num = MHI_NUM(prog[pc++]);
+	    num = MHI_NUM (prog[pc++]);
 	    printf ("fmtspec: %#x, ", num);
 	    if (num & MH_FMT_RALIGN)
 	      {
@@ -840,7 +926,7 @@ builtin_width (struct mh_machine *mach)
 static void
 builtin_charleft (struct mh_machine *mach)
 {
-  mach->arg_num = mach->width - mach->ind;
+  mach->arg_num = DFLWIDTH (mach);
 }
 
 static void
@@ -1961,10 +2047,10 @@ mh_builtin_t builtin_tab[] = {
   { "comp",     builtin_comp,     mhtype_num,  mhtype_str,  MHA_OPTARG },
   { "compval",  builtin_compval,  mhtype_num,  mhtype_str },	   
   { "trim",     builtin_trim,     mhtype_str,  mhtype_str,  MHA_OPTARG },
-  { "putstr",   builtin_putstr,   mhtype_none,  mhtype_str, MHA_OPTARG },
-  { "putstrf",  builtin_putstrf,  mhtype_none,  mhtype_str, MHA_OPTARG },
-  { "putnum",   builtin_putnum,   mhtype_none,  mhtype_num, MHA_OPTARG },
-  { "putnumf",  builtin_putnumf,  mhtype_none,  mhtype_num, MHA_OPTARG },
+  { "putstr",   builtin_putstr,   mhtype_none, mhtype_str,  MHA_OPTARG },
+  { "putstrf",  builtin_putstrf,  mhtype_none, mhtype_str,  MHA_OPTARG },
+  { "putnum",   builtin_putnum,   mhtype_none, mhtype_num,  MHA_OPTARG },
+  { "putnumf",  builtin_putnumf,  mhtype_none, mhtype_num,  MHA_OPTARG },
   { "sec",      builtin_sec,      mhtype_num,  mhtype_str },
   { "min",      builtin_min,      mhtype_num,  mhtype_str },
   { "hour",     builtin_hour,     mhtype_num,  mhtype_str },

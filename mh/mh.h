@@ -334,6 +334,7 @@ char *mh_create_message_id (int);
 int mh_whom (const char *filename, int check);
 void mh_set_reply_regex (const char *str);
 int mh_decode_2047 (char *text, char **decoded_text);
+const char *mh_charset (const char *);
 
 int mh_alias_read (char *name, int fail);
 int mh_alias_get (const char *name, mu_list_t *return_list);
