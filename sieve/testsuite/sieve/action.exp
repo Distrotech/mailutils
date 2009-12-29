@@ -37,7 +37,7 @@ sieve_test discard.sv -pattern\
 "DISCARD on msg uid 2: marking as deleted"\
 "DISCARD on msg uid 3: marking as deleted"
 
-sieve_test --set "mailbox.folder='$MU_SPOOL_DIR'" fileinto.sv -pattern\
+sieve_test --set "mailbox.folder=\"'$MU_SPOOL_DIR'\"" fileinto.sv -pattern\
 "FILEINTO on msg uid 1: delivering into +file"\
 "FILEINTO on msg uid 2: delivering into +file"\
 "FILEINTO on msg uid 3: delivering into +file"

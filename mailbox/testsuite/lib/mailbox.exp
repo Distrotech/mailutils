@@ -31,7 +31,7 @@ proc mailbox_run {args} {
 	if {"$a" == "-mail-spool"} {
 	    if [info exists host_board] {
 		if [board_info $host_board exists top_srcdir] {
-		    append sw "--set mailbox.mail-spool=[board_info $host_board top_srcdir]/mail/testsuite/spool"
+		    append sw "--set mailbox.mail-spool=\"'[board_info $host_board top_srcdir]/mail/testsuite/spool'\""
 		}
 	    }
 	    if {![info exists init_spool]} {

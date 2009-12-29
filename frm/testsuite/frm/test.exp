@@ -51,7 +51,7 @@ mu_exec -retcode 1 -message "frm -qS" -arg -qS \
 mu_exec -retcode 1 -arg -q -message "frm -q"  \
 "There are messages in that folder."
 
-mu_exec -retcode 1 -arg "--set mailbox.folder=$MU_SPOOL_DIR" -arg +mbox -message "frm +mbox" \
+mu_exec -retcode 1 -arg "--set mailbox.folder=\"'$MU_SPOOL_DIR'\"" -arg +mbox -message "frm +mbox" \
 "Sergey Poznyakoff\tMBOX"
 
 mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" \

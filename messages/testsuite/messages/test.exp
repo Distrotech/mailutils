@@ -31,7 +31,7 @@ mu_exec -message "messages" \
 mu_exec -message "messages -q" -arg -q "5"
 
 mu_exec -message "messages +teaparty.mbox" \
-     -arg "--set mailbox.folder=$MU_SPOOL_DIR" -arg +teaparty.mbox \
+     -arg "--set mailbox.folder=\"'$MU_SPOOL_DIR'\"" -arg +teaparty.mbox \
 "Number of messages in $MU_SPOOL_DIR/teaparty.mbox: 95"
 
 #end of test.exp
