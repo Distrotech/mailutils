@@ -1,4 +1,4 @@
-%{
+%top {
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2003, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
@@ -17,6 +17,12 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+}
+
+%{
 #include <mh.h>
 #include <mh_alias.h>
 #include <sys/stat.h>

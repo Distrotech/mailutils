@@ -133,6 +133,8 @@ mu_libcfg_parse_config (mu_cfg_tree_t **ptree)
 	      mu_cfg_tree_postprocess (tmp, flags);
 	      mu_cfg_tree_union (&tree, &tmp);
 	    }
+	  else if (rc == ENOENT)
+	    rc = 0;
 	  free (file_name);
 	}
     }

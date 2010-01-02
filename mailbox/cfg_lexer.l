@@ -1,4 +1,4 @@
-%{
+%top {
 /* cfg_lexer.l -- default lexer for Mailutils configuration files
    Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -18,6 +18,9 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+}
+
+%{
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -359,8 +362,12 @@ mu_get_config (const char *file, const char *progname,
   mu_cfg_tree_t *parse_tree;
   int rc = mu_cfg_parse_file (&parse_tree, file, flags);
   if (rc == 0)
-    rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
-			     target_ptr);
+    {
+      rc = mu_cfg_tree_postprocess (&parse_tree, flags);
+      if (rc == 0)
+	rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
+				 target_ptr);
+    }
 
   mu_cfg_destroy_tree (&parse_tree);
 
