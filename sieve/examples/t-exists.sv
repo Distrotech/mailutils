@@ -1,5 +1,5 @@
 if exists "X"
-{
+  {
     keep;
-}
+  }
 

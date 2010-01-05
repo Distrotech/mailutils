@@ -1,3 +1,4 @@
-  if header :contains ["from"] ["idiot@example.edu"] {
-                discard;
-             }
+if header :contains ["from"] ["idiot@example.edu"]
+  {
+    discard;
+  }

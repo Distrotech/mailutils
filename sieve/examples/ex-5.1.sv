@@ -1,4 +1,5 @@
-if address :is :all "from" "tim@example.com" {
-  discard;
-}
+if address :is :all "from" "tim@example.com"
+  {
+    discard;
+  }
 

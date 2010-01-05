@@ -4,11 +4,11 @@ if allof(
 		size :over 10 ,
 		exists "x-caffeine"
 	)
-{
-	fileinto "jetfuel";
-}
+  {
+    fileinto "jetfuel";
+  }
 else
-{
-	fileinto "decaf";
-}
+  {
+    fileinto "decaf";
+  }
 
