@@ -1,7 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005,
-##   2007 Free Software Foundation, Inc.
+##   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2007, 2010 Free
+##   Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as

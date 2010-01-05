@@ -1,6 +1,6 @@
 divert(-1)
 # This file is part of Mailutils.
-# Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2007, 2010 Free Software Foundation, Inc.
 #
 # Initially written by Sergey Poznyakoff for Mailfromd project.
 #

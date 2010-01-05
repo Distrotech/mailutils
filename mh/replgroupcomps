@@ -1,7 +1,7 @@
 %; This is the default replgroupcomps file for Mailutils MH.
 %;
 %; GNU Mailutils -- a suite of utilities for electronic mail
-%; Copyright (C) 2003 Free Software Foundation, Inc.
+%; Copyright (C) 2003, 2010 Free Software Foundation, Inc.
 %; Distributed under GPL.
 %;
 %(lit)%(formataddr{mail-followup-to})\
