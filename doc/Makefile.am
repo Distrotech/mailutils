@@ -18,5 +18,5 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-SUBDIRS = texinfo rfc man
-EXTRA_DIST = ChangeLog.CVS
+SUBDIRS = texinfo man
+EXTRA_DIST = ChangeLog.CVS rfc/README

@@ -1327,7 +1327,6 @@ AC_CONFIG_FILES([
  config/Makefile
  doc/Makefile
  doc/man/Makefile
- doc/rfc/Makefile
  doc/texinfo/Makefile
  dotlock/Makefile
  examples/Makefile
