@@ -298,6 +298,7 @@ mu_stream_readline (mu_stream_t is, char *buf, size_t count,
       size_t n, nr = 0;
       char c;
       /* Grossly inefficient hopefully they override this */
+      count--;  /* Leave space for the null.  */
       for (n = 0; n < count; )
 	{
 	  status = is->_read (is, &c, 1, offset, &nr);
@@ -419,7 +420,7 @@ mu_stream_getline (mu_stream_t is, char **pbuf, size_t *pbufsize,
       size_t nread;
       int rc;
 
-      if (off + 1 == bufsize)
+      if (off == bufsize)
 	{
 	  char *p;
 	  p = realloc (buf, bufsize + DELTA);
