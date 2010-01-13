@@ -45,11 +45,12 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
     }
   else
     {
+      char *s;
+      
       SCM_VALIDATE_STRING (1, USER);
-      if (scm_is_string (USER))
-	USER = scm_from_locale_stringn (scm_i_string_chars (USER), 
-					scm_i_string_length (USER));
-      entry = mu_get_auth_by_name (scm_i_string_chars (USER));
+      s = scm_to_locale_string (USER);
+      entry = mu_get_auth_by_name (s);
+      free (s);
     }
   if (!entry)
     mu_scm_error (FUNC_NAME, errno,

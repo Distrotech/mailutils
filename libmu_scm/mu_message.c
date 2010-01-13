@@ -153,18 +153,10 @@ mu_scm_message_add_owner (SCM MESG, SCM owner)
       return;
     }
   
-  SCM_NEWCELL (cell);
-  SCM_SETCAR (cell, owner);
   if (SCM_NIMP (mum->mbox) && SCM_CONSP (mum->mbox))
-    SCM_SETCDR (cell, mum->mbox);
+    cell = scm_cons (owner, mum->mbox);
   else
-    {
-      SCM scm;
-      SCM_NEWCELL (scm);
-      SCM_SETCAR (scm, mum->mbox);
-      SCM_SETCDR (scm, SCM_EOL);
-      SCM_SETCDR (cell, scm);
-    }
+    cell = scm_cons (owner, scm_cons (mum->mbox, SCM_EOL));
   mum->mbox = cell;
 }
 
@@ -283,6 +275,7 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
   mu_header_t hdr;
   int replace = 0;
   int status;
+  char *hdr_c, *val_c;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
@@ -302,9 +295,12 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get message headers", SCM_BOOL_F);
 
-  status = mu_header_set_value (hdr, scm_i_string_chars (HEADER),
-				scm_i_string_chars (VALUE),
-				replace);
+  hdr_c = scm_to_locale_string (HEADER);
+  val_c = scm_to_locale_string (VALUE);
+  status = mu_header_set_value (hdr, hdr_c, val_c, replace);
+  free (hdr_c);
+  free (val_c);
+  
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot set header \"~A: ~A\" in message ~A",
@@ -349,6 +345,92 @@ SCM_DEFINE (scm_mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM
+filltime (struct tm *bd_time, int zoff, const char *zname)
+{
+  SCM result = scm_c_make_vector (11, SCM_UNDEFINED);
+
+  SCM_SIMPLE_VECTOR_SET (result,0, scm_from_int (bd_time->tm_sec));
+  SCM_SIMPLE_VECTOR_SET (result,1, scm_from_int (bd_time->tm_min));
+  SCM_SIMPLE_VECTOR_SET (result,2, scm_from_int (bd_time->tm_hour));
+  SCM_SIMPLE_VECTOR_SET (result,3, scm_from_int (bd_time->tm_mday));
+  SCM_SIMPLE_VECTOR_SET (result,4, scm_from_int (bd_time->tm_mon));
+  SCM_SIMPLE_VECTOR_SET (result,5, scm_from_int (bd_time->tm_year));
+  SCM_SIMPLE_VECTOR_SET (result,6, scm_from_int (bd_time->tm_wday));
+  SCM_SIMPLE_VECTOR_SET (result,7, scm_from_int (bd_time->tm_yday));
+  SCM_SIMPLE_VECTOR_SET (result,8, scm_from_int (bd_time->tm_isdst));
+  SCM_SIMPLE_VECTOR_SET (result,9, scm_from_int (zoff));
+  SCM_SIMPLE_VECTOR_SET (result,10, (zname
+				     ? scm_from_locale_string (zname)
+				     : SCM_BOOL_F));
+  return result;
+}
+
+SCM_DEFINE (scm_mu_message_get_envelope, "mu-message-get-envelope", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns envelope date of the message MESG.\n")
+#define FUNC_NAME s_scm_mu_message_get_envelope
+{
+  mu_message_t msg;
+  mu_envelope_t env = NULL;
+  int status;
+  const char *sender;
+  const char *date;
+  size_t dlen;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  status = mu_message_get_envelope (msg, &env);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "cannot get envelope",
+		  scm_list_1 (MESG));
+  status = mu_envelope_sget_sender (env, &sender);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "cannot get envelope sender",
+		  scm_list_1 (MESG));
+  status = mu_envelope_sget_date (env, &date);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "cannot get envelope date",
+		  scm_list_1 (MESG));
+  dlen = strlen (date);
+  if (date[dlen-1] == '\n')
+    dlen--;
+  return scm_string_append (scm_list_3 (scm_from_locale_string (sender),
+					scm_from_locale_string (" "),
+					scm_from_locale_stringn (date, dlen)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_mu_message_get_envelope_date, "mu-message-get-envelope-date", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns envelope date of the message MESG.\n")
+#define FUNC_NAME s_scm_mu_message_get_envelope_date
+{
+  mu_message_t msg;
+  mu_envelope_t env = NULL;
+  int status;
+  const char *sdate;
+  struct tm tm;
+  mu_timezone tz;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  status = mu_message_get_envelope (msg, &env);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "cannot get envelope",
+		  scm_list_1 (MESG));
+  status = mu_envelope_sget_date (env, &sdate);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "cannot get envelope date",
+		  scm_list_1 (MESG));
+  status = mu_parse_ctime_date_time (&sdate, &tm, &tz);
+  if (status)
+    mu_scm_error (FUNC_NAME, status, "invalid envelope date",
+		  scm_list_1 (scm_makfrom0str (sdate)));
+  return filltime (&tm, tz.utc_offset, tz.tz_name);  
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns email address of the sender of the message MESG.\n")
@@ -384,20 +466,21 @@ SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
   mu_message_t msg;
   mu_header_t hdr;
   char *value = NULL;
-  const char *header_string;
+  char *header_string;
   SCM ret;
   int status;
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (scm_is_string (HEADER), HEADER, SCM_ARG2, FUNC_NAME);
-  header_string = scm_i_string_chars (HEADER);
   status = mu_message_get_header (msg, &hdr);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get message headers", SCM_BOOL_F);
 
+  header_string = scm_to_locale_string (HEADER);
   status = mu_header_aget_value (hdr, header_string, &value);
+  free (header_string);
   switch (status)
     {
     case 0:
@@ -426,7 +509,8 @@ string_sloppy_member (SCM lst, char *name)
     {
       SCM car = SCM_CAR (lst);
       if (scm_is_string (car)
-	  && mu_c_strcasecmp (scm_i_string_chars (car), name) == 0)
+	  && mu_c_strncasecmp (scm_i_string_chars (car), name,
+			       scm_i_string_length (car)) == 0)
 	return 1;
     }
   return 0;
@@ -441,7 +525,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
   size_t i, nfields = 0;
   mu_message_t msg;
   mu_header_t hdr = NULL;
-  SCM scm_first = SCM_EOL, scm_last;
+  SCM scm_first = SCM_EOL, scm_last = SCM_EOL;
   SCM headers = SCM_EOL;
   int status;
   
@@ -465,7 +549,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
   
   for (i = 1; i <= nfields; i++)
     {
-      SCM new_cell, scm_name, scm_value;
+      SCM scm_name, scm_value, scm_new;
       char *name, *value;
       
       status = mu_header_aget_field_name (hdr, i, &name);
@@ -485,22 +569,16 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
       scm_name = scm_makfrom0str (name);
       scm_value = scm_makfrom0str (value);
 
-      SCM_NEWCELL(new_cell);
-      SCM_SETCAR(new_cell, scm_cons(scm_name, scm_value));
+      scm_new = scm_cons (scm_cons (scm_name, scm_value), SCM_EOL);
       
       if (scm_first == SCM_EOL)
-	{
-	  scm_first = new_cell;
-	  scm_last = scm_first;
-	}
+	scm_first = scm_last = scm_new;
       else
 	{
-	  SCM_SETCDR(scm_last, new_cell);
-	  scm_last = new_cell;
+	  SCM_SETCDR (scm_last, scm_new);
+	  scm_last = scm_new;
 	}
     }
-  if (scm_first != SCM_EOL)
-    SCM_SETCDR(scm_last, SCM_EOL);
   return scm_first;
 }
 #undef FUNC_NAME
@@ -542,6 +620,7 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
     {
       SCM cell = SCM_CAR (list);
       SCM car, cdr;
+      char *hdr_c, *val_c;
       
       SCM_ASSERT (SCM_NIMP (cell) && SCM_CONSP (cell),
 		  cell, SCM_ARGn, FUNC_NAME);
@@ -549,9 +628,11 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
       cdr = SCM_CDR (cell);
       SCM_ASSERT (scm_is_string (car), car, SCM_ARGn, FUNC_NAME);
       SCM_ASSERT (scm_is_string (cdr), cdr, SCM_ARGn, FUNC_NAME);
-      status = mu_header_set_value (hdr,
-				    scm_i_string_chars (car),
-				    scm_i_string_chars (cdr), replace);
+      hdr_c = scm_to_locale_string (car);
+      val_c = scm_to_locale_string (cdr);
+      status = mu_header_set_value (hdr, hdr_c, val_c, replace);
+      free (hdr_c);
+      free (val_c);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "Cannot set header value: message ~A, header ~A, value ~A",
@@ -831,7 +912,9 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
   mu_message_t msg;
   mu_stream_t stream = NULL;
   int status;
-    
+  char *str;
+  SCM ret;
+  
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
 
@@ -863,9 +946,11 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
 	mu_scm_error (FUNC_NAME, status, "Cannot get message body stream",
 		      SCM_BOOL_F);
     }
-  
-  return mu_port_make_from_stream (MESG, stream,
-			   scm_mode_bits ((char*)scm_i_string_chars (MODE))); 
+
+  str = scm_to_locale_string (MODE);
+  ret = mu_port_make_from_stream (MESG, stream, scm_mode_bits (str));
+  free (str);
+  return ret;
 }
 #undef FUNC_NAME
   
@@ -962,42 +1047,57 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 "in mu-mailer. Optional FROM and TO give sender and recever addresses.\n")
 #define FUNC_NAME s_scm_mu_message_send
 {
-  const char *mailer_name;
+  char *mailer_name;
   mu_address_t from = NULL;
   mu_address_t to = NULL;
   mu_mailer_t mailer = NULL;
   mu_message_t msg;
   int status;
-
+  
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   
   if (!SCM_UNBNDP (MAILER) && MAILER != SCM_BOOL_F)
     {
       SCM_ASSERT (scm_is_string (MAILER), MAILER, SCM_ARG2, FUNC_NAME);
-      mailer_name = scm_i_string_chars (MAILER);
+      mailer_name = scm_to_locale_string (MAILER);
     }
   else
     {
-      SCM val = MU_SCM_SYMBOL_VALUE("mu-mailer");
-      mailer_name = scm_i_string_chars(val);
+      SCM val = MU_SCM_SYMBOL_VALUE ("mu-mailer");
+      mailer_name = scm_to_locale_string (val);
     }
   
   if (!SCM_UNBNDP (FROM) && FROM != SCM_BOOL_F)
     {
-      SCM_ASSERT (scm_is_string (FROM)
-		  && mu_address_create (&from, scm_i_string_chars (FROM)) == 0,
-		  FROM, SCM_ARG3, FUNC_NAME);
+      char *s;
+      int rc;
+      
+      SCM_ASSERT (scm_is_string (FROM), FROM, SCM_ARG3, FUNC_NAME);
+      s = scm_to_locale_string (FROM);
+      rc = mu_address_create (&from, s);
+      free (s);
+      if (rc)
+	mu_scm_error (FUNC_NAME, rc, "cannot create address",
+		      scm_list_1 (FROM));
     }
   
   if (!SCM_UNBNDP (TO) && TO != SCM_BOOL_F)
     {
-      SCM_ASSERT (scm_is_string (TO)
-		  && mu_address_create (&to, scm_i_string_chars (TO)) == 0,
-		  TO, SCM_ARG4, FUNC_NAME);
+      char *s;
+      int rc;
+      
+      SCM_ASSERT (scm_is_string (TO), TO, SCM_ARG4, FUNC_NAME);
+      s = scm_to_locale_string (TO);
+      rc = mu_address_create (&to, s);
+      free (s);
+      if (rc)
+	mu_scm_error (FUNC_NAME, rc, "cannot create address",
+		      scm_list_1 (TO));
     }
 
   status = mu_mailer_create (&mailer, mailer_name);
+  free (mailer_name);
   if (status)
     mu_scm_error (FUNC_NAME, status, "Cannot get create mailer", SCM_BOOL_F);
 

@@ -145,9 +145,12 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
     {
       for (; REST != SCM_EOL; REST = SCM_CDR (REST))
 	{
+	  char *s;
 	  SCM scm = SCM_CAR (REST);
 	  SCM_ASSERT (scm_is_string (scm), scm, SCM_ARGn, FUNC_NAME);
-	  status = register_format (scm_i_string_chars (scm));
+	  s = scm_to_locale_string (scm);
+	  status = register_format (s);
+	  free (scm);
 	  if (status)
 	    mu_scm_error (FUNC_NAME, status,
 			  "Cannot register format ~A",

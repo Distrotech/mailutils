@@ -87,15 +87,15 @@ mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode)
   mp->stream = stream;
   mp->offset = 0;
 
-  SCM_NEWCELL (port);
-  SCM_DEFER_INTS;
+  port = scm_cell (scm_tc16_smuport | mode, 0);
+
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
   pt->rw_random = mu_stream_is_seekable (stream);
-  SCM_SET_CELL_TYPE (port, (scm_tc16_smuport | mode));
+
   SCM_SETSTREAM (port, mp);
   mu_port_alloc_buffer (port, 0, 0);
-  SCM_ALLOW_INTS;
+
   /*  SCM_PTAB_ENTRY (port)->file_name = "name";FIXME*/
   return port;
 }

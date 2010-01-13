@@ -42,12 +42,15 @@ _get_address_part (const char *func_name, address_get_fp fun,
   else
     num = 1;
 
-  length = strlen (scm_i_string_chars (ADDRESS));
-  if (length == 0)
-    mu_scm_error (func_name, 0,
-		  "Empty address", SCM_BOOL_F);
+  str = scm_to_locale_string (ADDRESS);
+  if (!str[0])
+    {
+      free (str);
+      mu_scm_error (func_name, 0, "Empty address", SCM_BOOL_F);
+    }
   
-  status = mu_address_create (&addr, scm_i_string_chars (ADDRESS));
+  status = mu_address_create (&addr, str);
+  free (str);
   if (status)
     mu_scm_error (func_name, status, "Cannot create address", SCM_BOOL_F);
 
@@ -133,10 +136,13 @@ SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
   mu_address_t addr;
   size_t count = 0;
   int status;
+  char *str;
   
   SCM_ASSERT (scm_is_string (ADDRESS), ADDRESS, SCM_ARG1, FUNC_NAME);
 
-  status = mu_address_create (&addr, scm_i_string_chars (ADDRESS));
+  str = scm_to_locale_string (ADDRESS);
+  status = mu_address_create (&addr, str);
+  free (str);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot create address for ~A",
@@ -154,7 +160,7 @@ SCM_DEFINE (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
 "current username is assumed\n")
 #define FUNC_NAME s_scm_mu_username_to_email
 {
-  const char *name;
+  char *name;
   char *email;
   SCM ret;
   
@@ -163,14 +169,15 @@ SCM_DEFINE (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
   else
     {
       SCM_ASSERT (scm_is_string (NAME), NAME, SCM_ARG1, FUNC_NAME);
-      name = scm_i_string_chars (NAME);
+      name = scm_to_locale_string (NAME);
     }
 
   email = mu_get_user_email (name);
+  free (name);
   if (!email)
     mu_scm_error (FUNC_NAME, 0,
 		  "Cannot get user email for ~A",
-		  scm_list_1 (scm_makfrom0str (name)));
+		  scm_list_1 (NAME));
 
   ret = scm_makfrom0str (email);
   free (email);

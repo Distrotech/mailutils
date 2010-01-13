@@ -27,7 +27,7 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 "IDENT, OPTION and FACILITY have the same meaning as in openlog(3)")
 #define FUNC_NAME s_scm_mu_openlog
 {
-  const char *ident;
+  char *ident, *ident_mem = NULL;
   int option, facility;
 
   if (IDENT == SCM_BOOL_F)
@@ -35,7 +35,7 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
   else
     {
       SCM_ASSERT (scm_is_string (IDENT), IDENT, SCM_ARG1, FUNC_NAME);
-      ident = scm_i_string_chars (IDENT);
+      ident = ident_mem = scm_to_locale_string (IDENT);
     }
 	
   if (scm_is_integer (OPTION))
@@ -53,6 +53,7 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
     SCM_ASSERT (0, FACILITY, SCM_ARG3, FUNC_NAME);
 
   openlog (ident, option, facility);
+  free (ident_mem);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -63,6 +64,7 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_logger
 {
   int prio;
+  char *str;
 
   if (PRIO == SCM_BOOL_F) 
     prio = LOG_INFO;
@@ -74,7 +76,8 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
     SCM_ASSERT (0, PRIO, SCM_ARG1, FUNC_NAME);
   
   SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
-  syslog (prio, "%s", scm_i_string_chars (TEXT));
+  str = scm_to_locale_string (TEXT);
+  syslog (prio, "%s", str);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

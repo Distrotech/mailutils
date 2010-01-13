@@ -149,11 +149,13 @@ SCM_DEFINE (scm_mu_user_mailbox_url, "mu-user-mailbox-url", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_user_mailbox_url
 {
   int rc;
-  char *p;
+  char *p, *str;
   SCM ret;
   
   SCM_ASSERT (scm_is_string (USER), USER, SCM_ARG1, FUNC_NAME);
-  rc = mu_construct_user_mailbox_url (&p, scm_i_string_chars (USER));
+  str = scm_to_locale_string (USER);
+  rc = mu_construct_user_mailbox_url (&p, str);
+  free (str);
   if (rc)
     mu_scm_error (FUNC_NAME, rc,
 		  "Cannot construct mailbox URL for ~A",
@@ -172,8 +174,12 @@ SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
 {
   if (!SCM_UNBNDP (URL))
     {
+      char *s;
+      
       SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
-      mu_set_folder_directory (scm_i_string_chars (URL));
+      s = scm_to_locale_string (URL);
+      mu_set_folder_directory (s);
+      free (s);
     }
   return scm_makfrom0str (mu_folder_directory ());
 }
@@ -195,14 +201,19 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_mailbox_open
 {
   mu_mailbox_t mbox = NULL;
-  const char *mode_str;
+  char *mode_str;
   int mode = 0;
   int status;
-
+  SCM ret;
+  
   SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
-
-  for (mode_str = scm_i_string_chars (MODE); *mode_str; mode_str++)
+  
+  scm_dynwind_begin (0);
+  
+  mode_str = scm_to_locale_string (MODE);
+  scm_dynwind_free (mode_str);
+  for (; *mode_str; mode_str++)
     switch (*mode_str)
       {
       case 'r':
@@ -218,11 +229,14 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 	mode |= MU_STREAM_CREAT;
 	break;
       }
-
+  
   if (mode & MU_STREAM_READ && mode & MU_STREAM_WRITE)
     mode = (mode & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
 
-  status = mu_mailbox_create_default (&mbox, scm_i_string_chars (URL));
+  mode_str = scm_to_locale_string (URL);
+  scm_dynwind_free (mode_str);
+  
+  status = mu_mailbox_create_default (&mbox, mode_str);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot create default mailbox ~A",
@@ -237,8 +251,9 @@ SCM_DEFINE (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 		    "Cannot open default mailbox ~A",
 		    scm_list_1 (URL));
     }
-      
-  return mu_scm_mailbox_create (mbox);
+  ret = mu_scm_mailbox_create (mbox);
+  scm_dynwind_end ();
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -288,6 +303,7 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
   struct mu_mailbox *mum;
   mu_stream_t stream;
   int status;
+  char *s;
   
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
@@ -297,8 +313,10 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get mailbox stream",
 		  scm_list_1 (MBOX));
-  return mu_port_make_from_stream (MBOX, stream,
-			   scm_mode_bits ((char*)scm_i_string_chars (MODE))); 
+  s = scm_to_locale_string (MODE);
+  status = mu_port_make_from_stream (MBOX, stream, scm_mode_bits (s));
+  free (s);
+  return status;
 }
 #undef FUNC_NAME
 
