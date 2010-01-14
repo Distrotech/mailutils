@@ -47,7 +47,7 @@ mu_scm_message_free (SCM message_smob)
   if (mum->needs_destroy)
     mu_message_destroy (&mum->msg, NULL);
   free (mum);
-  return sizeof (struct mu_message);
+  return 0;
 }
 
 static char *

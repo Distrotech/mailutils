@@ -304,6 +304,7 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
   mu_stream_t stream;
   int status;
   char *s;
+  SCM ret;
   
   SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
@@ -314,9 +315,9 @@ SCM_DEFINE (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
 		  "Cannot get mailbox stream",
 		  scm_list_1 (MBOX));
   s = scm_to_locale_string (MODE);
-  status = mu_port_make_from_stream (MBOX, stream, scm_mode_bits (s));
+  ret = mu_port_make_from_stream (MBOX, stream, scm_mode_bits (s));
   free (s);
-  return status;
+  return ret;
 }
 #undef FUNC_NAME
 

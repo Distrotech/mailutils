@@ -121,7 +121,7 @@ mu_port_flush (SCM port)
   
   if (wrsize)
     {
-      if (mu_stream_write (mp->stream, (char*) pt->write_buf,
+      if (mu_stream_write (mp->stream, (const char*)pt->write_buf,
 			   wrsize, mp->offset, &n))
 	return;
       mp->offset += n;
@@ -152,7 +152,7 @@ static scm_sizet
 mu_port_free (SCM port)
 {
   mu_port_close (port);
-  return sizeof (struct mu_port); /*FIXME: approximate */
+  return 0;
 }
 
 static int
