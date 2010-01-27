@@ -321,10 +321,10 @@ print_string (struct mh_machine *mach, size_t width, char *str)
 }
   
 static void
-print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
+print_fmt_segment (struct mh_machine *mach, size_t fmtwidth, char *str,
+		   size_t len)
 {
-  size_t len = strlen (str);
-  size_t width = mbslen (str);
+  size_t width = mbsnlen (str, len);
 
   if (fmtwidth && width > fmtwidth)
     {
@@ -343,6 +343,21 @@ print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
       while (fmtwidth--)
 	obstack_1grow (&mach->stk, ' ');
     }
+}
+
+static void
+print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
+{
+  char *p = strchr (str, '\n');
+  while (p)
+    {
+      print_fmt_segment (mach, fmtwidth, str, p - str + 1);
+      mach->ind = 0;
+      str = p + 1;
+      p = strchr (str, '\n');
+    }
+  if (str[0])
+    print_fmt_segment (mach, fmtwidth, str, strlen (str));
 }
 
 static void

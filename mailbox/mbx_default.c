@@ -268,45 +268,30 @@ user_mailbox_name (const char *user, char **mailbox_name)
 static int
 plus_expand (const char *file, char **buf)
 {
-  char *user = NULL;
-  char *path = NULL;
   char *home;
   const char *folder_dir = mu_folder_directory ();
   int status, len;
-  
-  if ((status = split_shortcut (file, "+=", &path, &user)))
-    return status;
 
-  if (!path)
-    {
-      free (user);
-      return ENOENT;
-    }
-  
-  home = get_homedir (user);
+  home = get_homedir (NULL);
   if (!home)
-    {
-      free (user);
-      free (path);
-      return ENOENT;
-    }
-
+    return ENOENT;
+  
+  file++;
+  
   if (folder_dir[0] == '/' || mu_is_proto (folder_dir))
     {
-      len = strlen (folder_dir) + strlen (path) + 2;
+      len = strlen (folder_dir) + strlen (file) + 2;
       *buf = malloc (len);
-      sprintf (*buf, "%s/%s", folder_dir, path);
+      sprintf (*buf, "%s/%s", folder_dir, file);
     }
   else
     {
-      len = strlen (home) + strlen (folder_dir) + strlen (path) + 3;
+      len = strlen (home) + strlen (folder_dir) + strlen (file) + 3;
       *buf = malloc (len);
-      sprintf (*buf, "%s/%s/%s", home, folder_dir, path);
+      sprintf (*buf, "%s/%s/%s", home, folder_dir, file);
     }
   (*buf)[len-1] = 0;
   
-  free (user);
-  free (path);
   free (home);
   return 0;
 }
