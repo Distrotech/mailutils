@@ -27,8 +27,6 @@
 # include <config.h>
 #endif
 
-#ifdef ENABLE_SMTP
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,6 +37,8 @@
 #include <url0.h>
 #include <mailer0.h>
 #include <registrar0.h>
+
+#ifdef ENABLE_SMTP
 
 static int
 _url_remote_init (mu_url_t url, const char *new_scheme)
@@ -88,8 +88,12 @@ static struct _mu_record _mu_remote_smtp_record = {
 };
 
 mu_record_t mu_remote_smtp_record = &_mu_remote_smtp_record;
+#else
+mu_record_t mu_remote_smtp_record = NULL;
+#endif
 
 
+#ifdef ENABLE_SENDMAIL
 static int
 _url_remote_sendmail_init (mu_url_t url)
 {
@@ -140,9 +144,7 @@ static struct _mu_record _mu_remote_prog_record =
 
 mu_record_t mu_remote_prog_record = &_mu_remote_prog_record;
 
-
 #else
-mu_record_t mu_remote_smtp_record = NULL;
 mu_record_t mu_remote_sendmail_record = NULL;
 mu_record_t mu_remote_prog_record = NULL;
 #endif

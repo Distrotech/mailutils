@@ -17,14 +17,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA.
 
-set mtafile "$MU_FOLDER_DIR/mta.diag"
-set env(MTA_DIAG) "$mtafile"
-set env(MTA_APPEND) 1
+mu_version
+if ![mu_check_capability ENABLE_SENDMAIL] {
+    unsupported "Support for sendmail not compiled in"
+} else {
+    set mtafile "$MU_FOLDER_DIR/mta.diag"
+    set env(MTA_DIAG) "$mtafile"
+    set env(MTA_APPEND) 1
 
-set mailer "sendmail:$top_builddir/examples/mta"
+    set mailer "sendmail:$top_builddir/examples/mta"
 
-sieve_driver_test "Reject" "$mailer" "$mtafile"
-
+    sieve_driver_test "Reject" "$mailer" "$mtafile"
+}
 # End of reject.exp	
 
 
