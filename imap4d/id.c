@@ -173,10 +173,10 @@ imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (imap4d_id_list)
     {
       mu_iterator_t itr;
-      mu_list_get_iterator (imap4d_id_list, &itr);
       int i;
       int outcnt = 0;
       
+      mu_list_get_iterator (imap4d_id_list, &itr);
       for (i = 0, mu_iterator_first (itr);
 	   i < 30 && !mu_iterator_is_done (itr);
 	   i++, mu_iterator_next (itr))

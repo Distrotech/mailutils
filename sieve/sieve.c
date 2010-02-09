@@ -271,9 +271,11 @@ cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
 static int
 cb_email (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
+  int rc;
+  
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
     return 1;
-  int rc = mu_set_user_email (val->v.string);
+  rc = mu_set_user_email (val->v.string);
   if (rc)
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("invalid email: %s"),
 			 mu_strerror (rc));

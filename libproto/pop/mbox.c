@@ -729,8 +729,10 @@ static int
 pop_writer (void *iodata, char *buf)
 {
   pop_data_t iop = iodata;
+  int status;
+  
   MU_DEBUG1 (iop->mbox->debug, MU_DEBUG_PROT, "%s\n", buf);
-  int status = pop_writeline (iop, "%s\r\n", buf);
+  status = pop_writeline (iop, "%s\r\n", buf);
   CHECK_ERROR (iop, status);
   status = pop_write (iop);
   CHECK_ERROR (iop, status);

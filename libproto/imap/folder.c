@@ -574,10 +574,12 @@ static int
 imap_writer (void *iodata, char *buf)
 {
   f_imap_t iop = iodata;
+  int status;
+    
   MU_DEBUG2 (iop->folder->debug, MU_DEBUG_PROT, "g%lu %s\n",
              (unsigned long)iop->seq, buf);
-  int status = imap_writeline (iop, "g%lu %s\r\n",
-                               (unsigned long)iop->seq++, buf);
+  status = imap_writeline (iop, "g%lu %s\r\n",
+			   (unsigned long)iop->seq++, buf);
   CHECK_ERROR (iop, status);
   status = imap_send (iop);
   CHECK_ERROR (iop, status);
