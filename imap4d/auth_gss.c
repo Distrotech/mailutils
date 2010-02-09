@@ -192,7 +192,7 @@ auth_gssapi (struct imap4d_command *command,
 	  if (outbuf.length)
 	    {
 	      mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
-	      util_send ("+ %*.*s\r\n", size, size, tmp);
+	      util_send ("+ %s\r\n", tmp);
 	      free (tmp);
 	      gss_release_buffer (&min_stat, &outbuf);
 	    }
@@ -212,7 +212,7 @@ auth_gssapi (struct imap4d_command *command,
   if (outbuf.length)
     {
       mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
-      util_send ("+ %*.*s\r\n", size, size, tmp);
+      util_send ("+ %s\r\n", tmp);
       free (tmp);
       gss_release_buffer (&min_stat, &outbuf);
       imap4d_getline (&token_str, &token_size, &token_len);
@@ -232,7 +232,7 @@ auth_gssapi (struct imap4d_command *command,
     }
   
   mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
-  util_send ("+ %*.*s\r\n", size, size, tmp);
+  util_send ("+ %s\r\n", tmp);
   free (tmp);
 
   imap4d_getline (&token_str, &token_size, &token_len);

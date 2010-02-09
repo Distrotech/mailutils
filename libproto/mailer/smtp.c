@@ -630,13 +630,13 @@ smtp_starttls (smtp_t smtp)
 }
 
 static void
-cram_md5 (char *secret, unsigned char *challenge, unsigned char *digest)
+cram_md5 (char *secret, unsigned char *challenge, size_t challenge_len, 
+          unsigned char *digest)
 {
   struct mu_md5_ctx context;
   unsigned char   ipad[64];
   unsigned char   opad[64];
   int             secret_len;
-  int             challenge_len;
   int             i;
 
   if (secret == 0 || challenge == 0)
@@ -766,7 +766,7 @@ smtp_auth (smtp_t smtp)
       mu_rtrim_cset (p, "\r\n");
       mu_base64_decode ((unsigned char*) p, strlen (p), &chl, &chlen);
 
-      cram_md5 ((char *) mu_secret_password (secret), chl, digest);
+      cram_md5 ((char *) mu_secret_password (secret), chl, chlen, digest);
       mu_secret_password_unref (secret);
       free (chl);
 
@@ -776,7 +776,6 @@ smtp_auth (smtp_t smtp)
       mu_asnprintf (&buf, &buflen, "%s %s", user, ascii_digest);
       buflen = strlen (buf);
       mu_base64_encode ((unsigned char*) buf, buflen, &b64buf, &b64buflen);
-      b64buf[b64buflen] = '\0';
       free (buf);
 
       status = smtp_writeline (smtp, "%s\r\n", b64buf);
@@ -818,7 +817,6 @@ smtp_auth (smtp_t smtp)
 	    buf[c] = '\0';
 	}
       mu_base64_encode ((unsigned char*) buf, buflen, &b64buf, &b64buflen);
-      b64buf[b64buflen] = '\0';
       free (buf);
 
       status = smtp_writeline (smtp, "AUTH PLAIN %s\r\n", b64buf);
@@ -1398,42 +1396,43 @@ smtp_parse_ehlo_ack (smtp_t smtp)
       status = smtp_readline (smtp);
       if ((smtp->ptr - smtp->buffer) > 4 && smtp->buffer[3] == '-')
 	multi = 1;
-      if (status == 0)
+      if (status == 0 && memcmp (smtp->buffer, "250", 3) == 0)
 	{
+	  char *capa_str = smtp->buffer + 4;
+
 	  smtp->ptr = smtp->buffer;
 
-	  if (!mu_c_strncasecmp (smtp->buffer, "250-STARTTLS", 12))
+	  if (!mu_c_strncasecmp (capa_str, "STARTTLS", 8))
 	    smtp->capa |= CAPA_STARTTLS;
-	  else if (!mu_c_strncasecmp (smtp->buffer, "250-SIZE", 8))
+	  else if (!mu_c_strncasecmp (capa_str, "SIZE", 4))
 	    {
+	      char  *p;
+	      size_t n;
+	      
 	      smtp->capa |= CAPA_SIZE;
-	      if (smtp->buffer[8] == '=')
-		{
-		  char           *p;
-		  size_t          n = strtoul (smtp->buffer + 9, &p, 10);
 
-		  if (*p != '\n')
-		    MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_ERROR,
-			       "suspicious size declaration: %s",
-			       smtp->buffer);
-		  else
-		    smtp->max_size = n;
-		}
+	      n = strtoul (capa_str + 5, &p, 10);
+	      if (*p != '\n')
+		MU_DEBUG1 (smtp->mailer->debug, MU_DEBUG_ERROR,
+			   "suspicious size capability: %s",
+			   smtp->buffer);
+	      else
+		smtp->max_size = n;
 	    }
-	  else if (!mu_c_strncasecmp (smtp->buffer, "250-AUTH", 8))
+	  else if (!mu_c_strncasecmp (capa_str, "AUTH", 4))
 	    {
 	      char           *name, *s;
 
 	      smtp->capa |= CAPA_AUTH;
 
-	      for (name = strtok_r (smtp->buffer + 8, " ", &s); name;
+	      for (name = strtok_r (capa_str + 5, " ", &s); name;
 		   name = strtok_r (NULL, " ", &s))
 		{
 		  struct auth_mech_record *mechs = auth_mech_list;
 
+		  mu_rtrim_cset (name, "\r\n");
 		  for (; mechs->name; mechs++)
 		    {
-		      mu_rtrim_cset (name, "\r\n");
 		      if (!mu_c_strcasecmp (mechs->name, name))
 			{
 			  smtp->auth_mechs |= mechs->id;

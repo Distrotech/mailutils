@@ -26,11 +26,11 @@
 
 int
 mu_base64_encode (const unsigned char *input, size_t input_len,
-		  unsigned char **output, size_t * output_len)
+		  unsigned char **output, size_t *output_len)
 {
   static char b64tab[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  size_t olen = 4 * (input_len + 2) / 3;
+  size_t olen = 4 * (input_len + 2) / 3 + 1;
   unsigned char *out = malloc (olen);
 
   if (!out)
@@ -42,7 +42,6 @@ mu_base64_encode (const unsigned char *input, size_t input_len,
       *out++ = b64tab[((input[0] << 4) & 0x30) | (input[1] >> 4)];
       *out++ = b64tab[((input[1] << 2) & 0x3c) | (input[2] >> 6)];
       *out++ = b64tab[input[2] & 0x3f];
-      olen -= 4;
       input_len -= 3;
       input += 3;
     }
@@ -58,12 +57,13 @@ mu_base64_encode (const unsigned char *input, size_t input_len,
       *out++ = '=';
     }
   *output_len = out - *output;
+  *out = 0;
   return 0;
 }
 
 int
 mu_base64_decode (const unsigned char *input, size_t input_len,
-		  unsigned char **output, size_t * output_len)
+		  unsigned char **output, size_t *output_len)
 {
   static int b64val[128] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
