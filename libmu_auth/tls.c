@@ -258,6 +258,8 @@ static void
 _tls_destroy (mu_stream_t stream)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
+  int flags;
+  
   if (x509_cred)
     gnutls_certificate_free_credentials (x509_cred);
   if (s->session && s->state == state_closed)
@@ -266,6 +268,15 @@ _tls_destroy (mu_stream_t stream)
       s->state = state_destroyed;
     }
   _auth_lb_destroy (&s->lb);
+
+  mu_stream_get_flags (stream, &flags);
+  if (!(flags & MU_STREAM_NO_CLOSE))
+    {
+      int same_stream = s->strin == s->strout;
+      mu_stream_destroy (&s->strin, mu_stream_get_owner (s->strin));
+      if (!same_stream)
+	mu_stream_destroy (&s->strout, mu_stream_get_owner (s->strout));
+    }
   free (s);
 }
     
@@ -371,10 +382,20 @@ static int
 _tls_close (mu_stream_t stream)
 {
   struct _tls_stream *s = mu_stream_get_owner (stream);
+  int flags;
+  
   if (s->session && s->state == state_open)
     {
       gnutls_bye (s->session, GNUTLS_SHUT_RDWR);
       s->state = state_closed;
+    }
+  
+  mu_stream_get_flags (stream, &flags);
+  if (!(flags & MU_STREAM_NO_CLOSE))
+    {
+      mu_stream_close (s->strin);
+      if (s->strin != s->strout)
+	mu_stream_close (s->strout);
     }
   return 0;
 }
@@ -578,7 +599,7 @@ _tls_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
    mu_tls_stream_create_client will malfunction */
 int
 mu_tls_stream_create (mu_stream_t *stream,
-		   mu_stream_t strin, mu_stream_t strout, int flags)
+		      mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _tls_stream *s;
   int rc;
@@ -618,7 +639,7 @@ mu_tls_stream_create (mu_stream_t *stream,
 
 int
 mu_tls_stream_create_client (mu_stream_t *stream,
-			  mu_stream_t strin, mu_stream_t strout, int flags)
+			     mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _tls_stream *s;
   int rc;
