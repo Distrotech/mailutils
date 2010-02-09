@@ -270,7 +270,7 @@ plus_expand (const char *file, char **buf)
 {
   char *home;
   const char *folder_dir = mu_folder_directory ();
-  int status, len;
+  int len;
 
   home = get_homedir (NULL);
   if (!home)

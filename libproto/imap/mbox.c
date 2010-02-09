@@ -1081,8 +1081,8 @@ imap_append_message0 (mu_mailbox_t mailbox, mu_message_t msg)
 	  }
 	f_imap->state = IMAP_APPEND_ACK;
       }
-      /* !@#%$ UW-IMAP server hack: insists on the last line.  */
-      imap_writeline (f_imap, "\n");
+      /* !@#%$ UW-IMAP and Gimap server hack: both insist on the last line.  */
+      imap_writeline (f_imap, "\r\n");
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
 

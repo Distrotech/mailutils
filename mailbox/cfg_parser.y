@@ -442,6 +442,7 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
 
   tree = mu_alloc (sizeof (*tree));
   tree->debug = _mu_cfg_debug;
+  _mu_cfg_debug = NULL;
   tree->head = parse_head;
   tree->tail = parse_tail;
   tree->pool = mu_cfg_lexer_pool ();
