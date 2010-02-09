@@ -19,10 +19,9 @@
 
 mu_version
 if ![mu_check_capability HAVE_LIBLTDL] {
-    exit 0
-}
-
-sieve_test --clearpath -L "${top_builddir}/examples" -f ${MU_SPOOL_DIR}/bigto.mbox numaddr.sv -pattern \
+    unsupported "This test requires libltdl"
+} else {
+    sieve_test --clearpath -L "${top_builddir}/examples" -f ${MU_SPOOL_DIR}/bigto.mbox numaddr.sv -pattern \
 	"DISCARD on msg uid 1: marking as deleted"
-
+}
 # End of ext.exp
