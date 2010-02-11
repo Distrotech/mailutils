@@ -643,7 +643,6 @@ cram_md5 (char *secret, unsigned char *challenge, size_t challenge_len,
     return;
 
   secret_len = strlen (secret);
-  challenge_len = strlen ((char*) challenge);
   memset (ipad, 0, sizeof (ipad));
   memset (opad, 0, sizeof (opad));
 
