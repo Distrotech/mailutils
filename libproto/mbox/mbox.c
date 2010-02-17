@@ -1263,7 +1263,7 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 {
   int status = 0;
   mbox_data_t mud = mailbox->data;
-  mu_off_t size;
+  mu_off_t qid;
   
   if (msg == NULL || mud == NULL)
     return EINVAL;
@@ -1284,9 +1284,11 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 
     default:
       {
+	mu_off_t size;
 	/* Move to the end of the file, not necesary if _APPEND mode.  */
 	if ((status = mu_stream_size (mailbox->stream, &size)) != 0
-	    || (status = mbox_append_message0 (mailbox, msg,
+	    || (qid = size,
+	        status = mbox_append_message0 (mailbox, msg,
 					       &size, 0, 0)) != 0)
 	  {
 	    if (status != EAGAIN)
@@ -1300,7 +1302,7 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   if (mailbox->observable)
     {
       char *buf = NULL;
-      mu_asprintf (&buf, "%lu", (unsigned long) size);
+      mu_asprintf (&buf, "%lu", (unsigned long) qid);
       mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND, buf);
       free (buf);
     }
