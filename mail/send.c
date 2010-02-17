@@ -594,30 +594,40 @@ mail_send0 (compose_env_t * env, int save_to)
 		  || compose_header_get (env, MU_HEADER_BCC, NULL))
 		{
 		  char *sendmail;
-		  if (mailvar_get (&sendmail, "sendmail", mailvar_type_string, 0) 
-                       == 0)
+		  if (mailvar_get (&sendmail, "sendmail",
+				   mailvar_type_string, 0) == 0)
 		    {
-		      int status = mu_mailer_create (&mailer, sendmail);
-		      if (status == 0)
+		      if (sendmail[0] == '/')
+			msg_to_pipe (sendmail, msg);
+		      else
 			{
-			  if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0)
-			      == 0)
-			    {
-			      mu_debug_t debug = NULL;
-			      mu_mailer_get_debug (mailer, &debug);
-			      mu_debug_set_level (debug,
-				         MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
-			    }
-			  status = mu_mailer_open (mailer, MU_STREAM_RDWR);
+			  int status = mu_mailer_create (&mailer, sendmail);
 			  if (status == 0)
 			    {
-			      mu_mailer_send_message (mailer, msg, NULL, NULL);
-			      mu_mailer_close (mailer);
+			      if (mailvar_get (NULL, "verbose",
+					       mailvar_type_boolean, 0) == 0)
+				{
+				  mu_debug_t debug = NULL;
+				  mu_mailer_get_debug (mailer, &debug);
+				  mu_debug_set_level (debug,
+						      MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+				}
+			      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
+			      if (status == 0)
+				{
+				  mu_mailer_send_message (mailer, msg,
+							  NULL, NULL);
+				  mu_mailer_close (mailer);
+				}
+			      else
+				util_error (_("Cannot open mailer: %s"),
+					    mu_strerror (status));
+			      mu_mailer_destroy (&mailer);
 			    }
-			  mu_mailer_destroy (&mailer);
+			  else
+			    util_error (_("Cannot create mailer: %s"),
+					mu_strerror (status));
 			}
-		      if (status != 0)
-			msg_to_pipe (sendmail, msg);
 		    }
 		  else
 		    util_error (_("Variable sendmail not set: no mailer"));
