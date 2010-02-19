@@ -256,7 +256,26 @@ if test "x$WITH_GSSAPI" != "xno"; then
     AC_CACHE_SAVE
     AC_MSG_RESULT([GSSAPI libraries not found])
   else
-    SERV_AUTHLIBS="$SERV_AUTHLIBS $GSSAPI_LIBS"
+    # Output produced by `krb5-config --libs' may contain `-Wl,-rpath -Wl,DIR'
+    # options. Once they are added to SERV_AUTHLIBS, libtool, when creating
+    # relink command line in wrapper files for executables, places them at the
+    # beginnig of the option list and adds its own -rpath directives at
+    # the end. Executables created by such command will look for the runtime
+    # libraries first in DIR and then in the local tree subdirectories. Thus,
+    # if DIR contains libraries from a previous installation of Mailutils, the
+    # programs will use old libraries.
+    #
+    # Obviously, libtool should be fixed to place user-added -rpath directives
+    # after the ones added by it. For the time being I work around this bug by
+    # removing any -Wl directives from GSSAPI_LIBS.
+    #
+    for arg in $GSSAPI_LIBS
+    do
+      case $arg in
+      -Wl,*) ;;
+      *)     SERV_AUTHLIBS="$SERV_AUTHLIBS $arg"
+      esac
+    done
     SERV_AUTHINCS="$SERV_AUTHINCS $GSSAPI_CFLAGS"
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gss.o"
     AC_DEFINE(WITH_GSSAPI,1,[Define if mailutils is using GSSAPI])
