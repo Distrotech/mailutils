@@ -86,6 +86,7 @@ libmailutils_la_SOURCES = \
  ipsrv.c\
  kwd.c\
  list.c\
+ listlist.c\
  locale.c\
  locker.c\
  mailbox.c\

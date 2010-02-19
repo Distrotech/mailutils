@@ -41,12 +41,14 @@ extern int mu_list_to_array (mu_list_t list, void **array, size_t count, size_t 
 extern int mu_list_locate   (mu_list_t list, void *item, void **ret_item);
 extern int mu_list_get_iterator (mu_list_t, mu_iterator_t *);
 
-typedef int mu_list_action_t (void* item, void* cbdata);
-  
-extern int mu_list_do       (mu_list_t list, mu_list_action_t * action, void *cbdata);
+typedef int mu_list_action_t (void *item, void *cbdata);
+
+extern int mu_list_do       (mu_list_t list, mu_list_action_t *action, void *cbdata);
 
 typedef int (*mu_list_comparator_t) (const void*, const void*);
 
+extern int _mu_list_ptr_comparator (const void*, const void*);
+  
 extern mu_list_comparator_t mu_list_set_comparator (mu_list_t,
 						    mu_list_comparator_t);
 extern int mu_list_get_comparator (mu_list_t, mu_list_comparator_t *);
@@ -59,6 +61,11 @@ extern int mu_list_intersect_dup (mu_list_t *, mu_list_t, mu_list_t,
 				  int (*dup_item) (void **, void *, void *),
 				  void *);
 extern int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);  
+
+extern int mu_list_insert_list (mu_list_t list, void *item, mu_list_t new_list,
+				int insert_before);
+extern void mu_list_append_list (mu_list_t list, mu_list_t new_list);
+extern void mu_list_prepend_list (mu_list_t list, mu_list_t new_list);
   
 #ifdef __cplusplus
 }

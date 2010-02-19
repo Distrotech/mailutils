@@ -44,13 +44,20 @@ void
 print (mu_list_t list)
 {
   mu_iterator_t itr;
+  size_t count;
   int rc;
   
   rc = mu_list_get_iterator (list, &itr);
   if (rc)
     lperror ("mu_list_get_iterator", rc);
 
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+  rc = mu_list_count (list, &count);
+  if (rc)
+    lperror ("mu_iterator_current", rc);
+
+  printf ("# items: %lu\n", (unsigned long) count);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       char *text;
 
@@ -60,6 +67,19 @@ print (mu_list_t list)
       printf ("%s\n", text);
     }
   mu_iterator_destroy (&itr);
+}
+
+void
+count (mu_list_t list)
+{
+  size_t n;
+  int rc;
+
+  rc = mu_list_count (list, &n);
+  if (rc)
+    lperror ("mu_iterator_current", rc);
+  else
+    printf ("%lu\n", (unsigned long) n);
 }
 
 void
@@ -130,41 +150,75 @@ prep (mu_list_t list, int argc, char **argv)
     }
 }
 
+static int
+read_list (mu_list_t list, int argc, char **argv)
+{
+  int rc;
+  
+  for (; argc; argc--, argv++)
+    {
+      rc = mu_list_append (list, strdup (*argv));
+      if (rc)
+	break;
+    }
+  return rc;
+}
+
 void
 ins (mu_list_t list, int argc, char **argv)
 {
+  int an;
   int rc;
   char *item;
-  char *new_item;
+  int insert_before = 0;
   
-  if (argc < 3 || argc > 4)
+  if (argc < 3)
     {
-      fprintf (stderr, "ins [before] item new_item?\n");
+      fprintf (stderr, "ins [before] item new_item [new_item*]?\n");
       return;
     }
 
-  if (argc == 4)
+  an = 1;
+  if (strcmp (argv[1], "before") == 0)
     {
-      if (strcmp (argv[1], "before"))
-	{
-	  fprintf (stderr, "ins before item new_item?\n");
-	  return;
-	}
-	
-      item = argv[2];
-      new_item = argv[3];
+      an++;
+      insert_before = 1;
     }
+  else if (strcmp (argv[1], "after") == 0)
+    {
+      an++;
+      insert_before = 0;
+    }
+
+  item = argv[an++];
+  
+  if (an + 1 == argc)
+    rc = mu_list_insert (list, item, strdup (argv[an]), insert_before);
   else
     {
-      item = argv[1];
-      new_item = argv[2];
-    }
-  
-  rc = mu_list_insert (list, item, strdup (new_item), argc == 4);
-  if (rc)
-    fprintf (stderr, "mu_list_insert: %s\n", mu_strerror (rc));
-}
+      mu_list_t tmp;
+      
+      rc = mu_list_create (&tmp);
+      if (rc)
+	{
+	  fprintf (stderr, "creating temp list: %s\n", mu_strerror (rc));
+	  return;
+	}
 
+      rc = read_list (tmp, argc - an, argv + an);
+      if (rc)
+	{
+	  fprintf (stderr, "reading temp list: %s\n", mu_strerror (rc));
+	  return;
+	}
+      rc = mu_list_insert_list (list, item, tmp, insert_before);
+      mu_list_destroy (&tmp);
+    }
+
+  if (rc)
+    lperror ("mu_list_insert", rc);
+}
+  
 
 void
 repl (mu_list_t list, int argc, char **argv)
@@ -232,14 +286,15 @@ find (mu_iterator_t itr, char *arg)
 void
 help ()
 {
+  printf ("count\n");
   printf ("next [count]\n");
   printf ("first\n");
   printf ("find item\n");
-  printf ("del item [item...]\n");
-  printf ("add item [item...]\n");
-  printf ("prep item [item...]\n");
+  printf ("del item [item*]\n");
+  printf ("add item [item*]\n");
+  printf ("prep item [item*]\n");
   printf ("repl old_item new_item\n");
-  printf ("ins [before] item new_item\n");
+  printf ("ins [before|after] item new_item [new_item*]\n");
   printf ("print\n");
   printf ("quit\n");
   printf ("iter num\n");
@@ -285,7 +340,9 @@ shell (mu_list_t list)
 
       if (argc > 0)
 	{
-	  if (strcmp (argv[0], "next") == 0)
+	  if (strcmp (argv[0], "count") == 0)
+	    count (list);
+	  else if (strcmp (argv[0], "next") == 0)
 	    next (itr[num], argv[1]);
 	  else if (strcmp (argv[0], "first") == 0)
 	    mu_iterator_first (itr[num]);

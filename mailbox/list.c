@@ -40,14 +40,14 @@ mu_list_create (mu_list_t *plist)
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
-  status = mu_monitor_create (&(list->monitor), 0,  list);
+  status = mu_monitor_create (&list->monitor, 0,  list);
   if (status != 0)
     {
       free (list);
       return status;
     }
-  list->head.next = &(list->head);
-  list->head.prev = &(list->head);
+  list->head.next = &list->head;
+  list->head.prev = &list->head;
   *plist = list;
   return 0;
 }
@@ -62,7 +62,7 @@ mu_list_destroy (mu_list_t *plist)
       struct list_data *previous;
 
       mu_monitor_wrlock (list->monitor);
-      for (current = list->head.next; current != &(list->head);)
+      for (current = list->head.next; current != &list->head;)
 	{
 	  previous = current;
 	  current = current->next;
@@ -71,7 +71,7 @@ mu_list_destroy (mu_list_t *plist)
 	  free (previous);
 	}
       mu_monitor_unlock (list->monitor);
-      mu_monitor_destroy (&(list->monitor), list);
+      mu_monitor_destroy (&list->monitor, list);
       free (list);
       *plist = NULL;
     }
@@ -91,7 +91,7 @@ mu_list_append (mu_list_t list, void *item)
     return ENOMEM;
   ldata->item = item;
   mu_monitor_wrlock (list->monitor);
-  ldata->next = &(list->head);
+  ldata->next = &list->head;
   ldata->prev = list->head.prev;
   last->next = ldata;
   list->head.prev = ldata;
@@ -114,7 +114,7 @@ mu_list_prepend (mu_list_t list, void *item)
     return ENOMEM;
   ldata->item = item;
   mu_monitor_wrlock (list->monitor);
-  ldata->prev = &(list->head);
+  ldata->prev = &list->head;
   ldata->next = list->head.next;
   first->prev = ldata;
   list->head.next = ldata;
@@ -164,8 +164,8 @@ mu_list_get_comparator (mu_list_t list, mu_list_comparator_t *comp)
   return 0;
 }
 
-static int
-def_comp (const void *item, const void *value)
+int
+_mu_list_ptr_comparator (const void *item, const void *value)
 {
   return item != value;
 }
@@ -179,10 +179,10 @@ mu_list_locate (mu_list_t list, void *item, void **ret_item)
 
   if (list == NULL)
     return EINVAL;
-  comp = list->comp ? list->comp : def_comp;
+  comp = list->comp ? list->comp : _mu_list_ptr_comparator;
   mu_monitor_wrlock (list->monitor);
-  for (previous = &(list->head), current = list->head.next;
-       current != &(list->head); previous = current, current = current->next)
+  for (previous = &list->head, current = list->head.next;
+       current != &list->head; previous = current, current = current->next)
     {
       if (comp (current->item, item) == 0)
 	{
@@ -196,43 +196,6 @@ mu_list_locate (mu_list_t list, void *item, void **ret_item)
   return status;
 }
 
-static int
-_insert_item(mu_list_t list, struct list_data *current, void *new_item,
-	     int insert_before)
-{
-  struct list_data *ldata = calloc (sizeof (*ldata), 1);
-  if (ldata == NULL)
-    return ENOMEM;
-
-  ldata->item = new_item;
-  if (insert_before)
-    {
-      ldata->prev = current->prev;
-      ldata->next = current;
-      if (current->prev != &list->head)
-	current->prev->next = ldata;
-      else
-	list->head.next = ldata;
-
-      current->prev = ldata;
-    }
-  else
-    {
-      ldata->next = current->next;
-      ldata->prev = current;
-      
-      if (current->next != &list->head)
-	current->next->prev = ldata;
-      else
-	list->head.prev = ldata;
-
-      current->next = ldata;
-    }
-  
-  list->count++;
-  return 0;
-}
-
 int
 mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
 {
@@ -242,16 +205,27 @@ mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
 
   if (list == NULL)
     return EINVAL;
-  comp = list->comp ? list->comp : def_comp;
+  comp = list->comp ? list->comp : _mu_list_ptr_comparator;
 
   mu_monitor_wrlock (list->monitor);
   for (current = list->head.next;
-       current != &(list->head);
+       current != &list->head;
        current = current->next)
     {
       if (comp (current->item, item) == 0)
 	{
-	  status = _insert_item (list, current, new_item, insert_before);
+	  struct list_data *ldata = calloc (sizeof (*ldata), 1);
+	  if (ldata == NULL)
+	    status = ENOMEM;
+	  else
+	    {
+	      ldata->item = new_item;
+	      _mu_list_insert_sublist (list, current,
+				       ldata, ldata,
+				       1,
+				       insert_before);
+	      status = 0;
+	    }
 	  break;
 	}
     }
@@ -268,10 +242,10 @@ mu_list_remove (mu_list_t list, void *item)
 
   if (list == NULL)
     return EINVAL;
-  comp = list->comp ? list->comp : def_comp;
+  comp = list->comp ? list->comp : _mu_list_ptr_comparator;
   mu_monitor_wrlock (list->monitor);
-  for (previous = &(list->head), current = list->head.next;
-       current != &(list->head); previous = current, current = current->next)
+  for (previous = &list->head, current = list->head.next;
+       current != &list->head; previous = current, current = current->next)
     {
       if (comp (current->item, item) == 0)
 	{
@@ -297,10 +271,10 @@ mu_list_replace (mu_list_t list, void *old_item, void *new_item)
 
   if (list == NULL)
     return EINVAL;
-  comp = list->comp ? list->comp : def_comp;
+  comp = list->comp ? list->comp : _mu_list_ptr_comparator;
   mu_monitor_wrlock (list->monitor);
-  for (previous = &(list->head), current = list->head.next;
-       current != &(list->head); previous = current, current = current->next)
+  for (previous = &list->head, current = list->head.next;
+       current != &list->head; previous = current, current = current->next)
     {
       if (comp (current->item, old_item) == 0)
 	{
@@ -325,7 +299,7 @@ mu_list_get (mu_list_t list, size_t indx, void **pitem)
   if (pitem == NULL)
     return MU_ERR_OUT_PTR_NULL;
   mu_monitor_rdlock (list->monitor);
-  for (current = list->head.next, count = 0; current != &(list->head);
+  for (current = list->head.next, count = 0; current != &list->head;
        current = current->next, count++)
     {
       if (count == indx)
@@ -340,7 +314,7 @@ mu_list_get (mu_list_t list, size_t indx, void **pitem)
 }
 
 int
-mu_list_do (mu_list_t list, mu_list_action_t * action, void *cbdata)
+mu_list_do (mu_list_t list, mu_list_action_t *action, void *cbdata)
 {
   mu_iterator_t itr;
   int status = 0;
@@ -350,7 +324,8 @@ mu_list_do (mu_list_t list, mu_list_action_t * action, void *cbdata)
   status = mu_list_get_iterator(list, &itr);
   if (status)
     return status;
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       void *item;
       mu_iterator_current (itr, &item);
@@ -386,7 +361,7 @@ mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount)
       struct list_data *current;
 
       for (i = 0, current = list->head.next;
-	   i < total && current != &(list->head); current = current->next)
+	   i < total && current != &list->head; current = current->next)
 	array[i++] = current->item;
     }
   if (pcount)
@@ -394,15 +369,15 @@ mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount)
   return 0;
 }
 
-/* Computes an intersection of the two lists. The resulting list,
-   stored into PDEST, contains elements from the list A that are
-   also encountered in the list B, using the comparison function of
-   the latter.
+/* Computes an intersection of two lists and returns it in PDEST.
+   The resulting list contains elements from A that are
+   also encountered in B (as per comparison function of
+   the latter).
 
-   If DUP_ITEM is not NULL, it is used to create copies of the
+   If DUP_ITEM is not NULL, it is used to create copies of
    items to be stored in PDEST.  In this case, the destroy_item
    function of B is also attached to PDEST.  Otherwise, if
-   DUP_ITEM is NULL, the pointers to the elements are stored and
+   DUP_ITEM is NULL, pointers to elements are stored and
    no destroy_item function is assigned. */
 int
 mu_list_intersect_dup (mu_list_t *pdest, mu_list_t a, mu_list_t b,

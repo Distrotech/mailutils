@@ -51,6 +51,12 @@ struct _mu_list
   struct _mu_iterator *itr;
 };
 
+extern void _mu_list_insert_sublist (mu_list_t list,
+				     struct list_data *current,
+				     struct list_data *head,
+				     struct list_data *tail,
+				     size_t count,
+				     int insert_before);
 
 #ifdef __cplusplus
 }

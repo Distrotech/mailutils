@@ -50,6 +50,7 @@ mailbox_prog_start "${top_builddir}/examples/listop"
 
 mailbox_prog_command "add en to tre fire fem"
 mailbox_prog_test "print" \
+        "# items: 5" \
 	"en" \
 	"to" \
 	"tre" \
@@ -78,6 +79,7 @@ prompt_iterator 0
 prompt_text "fem"
 mailbox_prog_test "iter 0"
 mailbox_prog_test "print" \
+        "# items: 3" \
 	"en" \
 	"to" \
 	"fem"
@@ -85,6 +87,7 @@ mailbox_prog_test "print" \
 mailbox_prog_command "prep jeden dwa trzy cztery"
 
 mailbox_prog_test "print" \
+        "# items: 7" \
 	"cztery" \
 	"trzy" \
 	"dwa" \
@@ -110,6 +113,7 @@ mailbox_prog_test "next 2"
 
 mailbox_prog_command "ins jeden un"
 mailbox_prog_test "print" \
+        "# items: 7" \
 	"3" \
 	"dwa" \
 	"jeden" \
@@ -120,6 +124,7 @@ mailbox_prog_test "print" \
 
 mailbox_prog_command "ins before jeden zero"
 mailbox_prog_test "print" \
+        "# items: 8" \
 	"3" \
 	"dwa" \
         "zero" \
@@ -136,6 +141,7 @@ mailbox_prog_command "ins before un cero"
 mailbox_prog_command "ins un dos"
 
 mailbox_prog_test "print" \
+        "# items: 10" \
 	"3" \
 	"dwa" \
         "zero" \
@@ -149,6 +155,7 @@ mailbox_prog_test "print" \
 
 mailbox_prog_command "ins before 3 1"
 mailbox_prog_test "print" \
+        "# items: 11" \
         "1" \
 	"3" \
 	"dwa" \
@@ -163,6 +170,7 @@ mailbox_prog_test "print" \
 
 mailbox_prog_command "ins before 3 2"
 mailbox_prog_test "print" \
+        "# items: 12" \
         "1" \
         "2" \
 	"3" \
@@ -173,9 +181,48 @@ mailbox_prog_test "print" \
         "un" \
         "dos" \
 	"en" \
-	"to" \
+ 	"to" \
 	"fem"
 
+mailbox_prog_command "ins 3 4 5 6"
+mailbox_prog_test "print" \
+    "# items: 15" \
+    "1" \
+    "2" \
+    "3" \
+    "4" \
+    "5" \
+    "6" \
+    "dwa" \
+    "zero" \
+    "jeden" \
+    "cero" \
+    "un" \
+    "dos" \
+    "en" \
+    "to" \
+    "fem"
+
+mailbox_prog_command "ins before dwa zero jeden"
+mailbox_prog_test "print" \
+    "# items: 17" \
+    "1" \
+    "2" \
+    "3" \
+    "4" \
+    "5" \
+    "6" \
+    "zero" \
+    "jeden" \
+    "dwa" \
+    "zero" \
+    "jeden" \
+    "cero" \
+    "un" \
+    "dos" \
+    "en" \
+    "to" \
+    "fem"
 
 mailbox_prog_send "quit"
 mailbox_prog_stop
