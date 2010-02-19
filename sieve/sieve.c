@@ -231,11 +231,6 @@ parser (int key, char *arg, struct argp_state *state)
       script = mu_tilde_expansion (arg, "/", NULL);
       break;
 
-    case ARGP_KEY_NO_ARGS:
-      if (!mu_help_config_mode)
-	argp_error (state, _("SCRIPT must be specified"));
-      return ARGP_ERR_UNKNOWN;
-      
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;
@@ -243,6 +238,7 @@ parser (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_FINI:
       mu_argp_node_list_finish (&lst, NULL, NULL);
       break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -499,6 +495,12 @@ main (int argc, char *argv[])
 		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
     exit (EX_USAGE);
 
+  if (!script)
+    {
+      mu_error (_("script must be specified"));
+      exit (EX_USAGE);
+    }
+  
   /* Sieve interpreter setup. */
   rc = mu_sieve_machine_init (&mach, NULL);
   if (rc)

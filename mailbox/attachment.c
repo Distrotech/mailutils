@@ -45,7 +45,6 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 
-#define MAX_HDR_LEN 256
 #define BUF_SIZE	2048
 
 struct _msg_info
