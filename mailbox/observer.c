@@ -119,6 +119,14 @@ mu_observer_set_flags (mu_observer_t observer, int flags)
   return 0;
 }
 
+static void
+_free_event (void *ptr)
+{
+  event_t event = ptr;
+  mu_observer_destroy (&event->observer, NULL);
+  free (event);
+}
+
 int
 mu_observable_create (mu_observable_t *pobservable, void *owner)
 {
@@ -129,12 +137,13 @@ mu_observable_create (mu_observable_t *pobservable, void *owner)
   observable = calloc (sizeof (*observable), 1);
   if (observable == NULL)
     return ENOMEM;
-  status = mu_list_create (&(observable->list));
+  status = mu_list_create (&observable->list);
   if (status != 0 )
     {
       free (observable);
       return status;
     }
+  mu_list_set_destroy_item (observable->list, _free_event);
   observable->owner = owner;
   *pobservable = observable;
   return 0;
@@ -143,31 +152,13 @@ mu_observable_create (mu_observable_t *pobservable, void *owner)
 void
 mu_observable_destroy (mu_observable_t *pobservable, void *owner)
 {
-  mu_iterator_t iterator;
   if (pobservable && *pobservable)
     {
       mu_observable_t observable = *pobservable;
       if (observable->owner == owner)
 	{
-	  int status = mu_list_get_iterator (observable->list, &iterator);
-	  if (status == 0)
-	    {
-	      event_t event = NULL;
-	      for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
-		   mu_iterator_next (iterator))
-		{
-		  event = NULL;
-		  mu_iterator_current (iterator, (void **)&event);
-		  if (event != NULL)
-		    {
-		      mu_observer_destroy (&(event->observer), NULL);
-		      free (event);
-		    }
-		}
-	      mu_iterator_destroy (&iterator);
-	    }
-	  mu_list_destroy (&((*pobservable)->list));
-	  free (*pobservable);
+	  mu_list_destroy (&observable->list);
+	  free (observable);
 	}
       *pobservable = NULL;
     }
@@ -198,13 +189,14 @@ mu_observable_detach (mu_observable_t observable, mu_observer_t observer)
 {
   mu_iterator_t iterator;
   int status;
-  int found = 0;
   event_t event = NULL;
+
   if (observable == NULL || observer == NULL)
     return EINVAL;
   status = mu_list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
+  status = MU_ERR_NOENT;
   for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
        mu_iterator_next (iterator))
     {
@@ -212,18 +204,12 @@ mu_observable_detach (mu_observable_t observable, mu_observer_t observer)
       mu_iterator_current (iterator, (void **)&event);
       if (event && event->observer == observer)
         {
-          found = 1;
+          mu_iterator_ctl (iterator, mu_itrctl_delete, NULL);
+	  status = 0;
           break;
         }
     }
   mu_iterator_destroy (&iterator);
-  if (found)
-    {
-      status = mu_list_remove (observable->list, event);
-      free (event);
-    }
-  else
-    status = MU_ERR_NOENT;
   return status;
 }
 

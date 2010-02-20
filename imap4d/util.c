@@ -951,7 +951,10 @@ util_register_event (int old_state, int new_state,
   evp->action = action;
   evp->data = data;
   if (!event_list)
-    mu_list_create (&event_list);
+    {
+      mu_list_create (&event_list);
+      mu_list_set_destroy_item (event_list, mu_list_free_item);
+    }
   mu_list_append (event_list, (void*)evp);
 }
 

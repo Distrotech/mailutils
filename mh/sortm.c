@@ -215,10 +215,14 @@ addop (char *field, compfun comp)
 {
   struct comp_op *op = xmalloc (sizeof (*op));
   
-  if (!oplist && mu_list_create (&oplist))
+  if (!oplist)
     {
-      mu_error (_("can't create operation list"));
-      exit (1);
+      if (mu_list_create (&oplist))
+	{
+	  mu_error (_("can't create operation list"));
+	  exit (1);
+	}
+      mu_list_set_destroy_item (oplist, mu_list_free_item);
     }
   op->field = field;
   op->comp = comp;
@@ -248,7 +252,6 @@ remop (compfun comp)
   d.op = NULL;
   mu_list_do (oplist, rem_action, &d);
   mu_list_remove (oplist, d.op);
-  free (d.op);
 }
 
 struct comp_data {

@@ -215,12 +215,10 @@ List :: set_comparator (mu_list_comparator_t comp)
   return mu_list_set_comparator (mu_list, comp);
 }
 
-void
-List :: set_destroy_item (void (*mu_destroy_item) (void *item))
+mu_list_destroy_item_t
+List :: set_destroy_item (mu_list_destroy_item_t mu_destroy_item)
 {
-  int status = mu_list_set_destroy_item (mu_list, mu_destroy_item);
-  if (status)
-    throw Exception ("List::set_destroy_item", status);
+  return mu_list_set_destroy_item (mu_list, mu_destroy_item);
 }
 
 std::list<void*>

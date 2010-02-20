@@ -262,26 +262,6 @@ aliascmp (const char *pattern, const char *name)
   return strcmp (pattern, name);
 }
 
-
-int
-_insert_list (mu_list_t list, void *prev, mu_list_t new_list)
-{
-  mu_iterator_t itr;
-
-  if (mu_list_get_iterator (new_list, &itr))
-    return 1;
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
-    {
-      void *item;
-      
-      mu_iterator_current (itr, &item);
-      mu_list_insert (list, prev, item, 0);
-      prev = item;
-    }
-  mu_iterator_destroy (&itr);
-  return 0;
-}
-
 static int mh_alias_get_internal (const char *name, mu_iterator_t start,
 				  mu_list_t *return_list, int *inclusive);
 
@@ -300,9 +280,11 @@ alias_expand_list (mu_list_t name_list, mu_iterator_t orig_itr, int *inclusive)
       mu_iterator_current (itr, (void **)&name);
       if (mh_alias_get_internal (name, orig_itr, &exlist, inclusive) == 0)
 	{
-	  _insert_list (name_list, name, exlist);
-	  mu_list_remove (name_list, name);
+	  /* Insert exlist after name */
+	  mu_iterator_ctl (itr, mu_itrctl_insert_list, exlist);
 	  mu_list_destroy (&exlist);
+	  /* Remove name */
+	  mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
 	}
     }
   mu_iterator_destroy (&itr);

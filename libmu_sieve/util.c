@@ -96,7 +96,6 @@ mu_sieve_prealloc (mu_list_t *pool, void *ptr, size_t size)
 void
 mu_sieve_pfree (mu_list_t *pool, void *ptr)
 {
-
   if (*pool)
     mu_list_remove (*pool, ptr);
   free (ptr);

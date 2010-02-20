@@ -29,6 +29,14 @@
 #include <iterator0.h>
 #include <mailutils/errno.h>
 
+#define DESTROY_ITEM(list, elt)			\
+  do						\
+    {						\
+       if ((list)->destroy_item)		\
+	 (list)->destroy_item ((elt)->item);	\
+    }						\
+  while (0)
+
 int
 mu_list_create (mu_list_t *plist)
 {
@@ -66,8 +74,7 @@ mu_list_destroy (mu_list_t *plist)
 	{
 	  previous = current;
 	  current = current->next;
-	  if (list->destroy_item)
-	    list->destroy_item (previous->item);
+	  DESTROY_ITEM (list, previous);
 	  free (previous);
 	}
       mu_monitor_unlock (list->monitor);
@@ -263,7 +270,7 @@ mu_list_remove (mu_list_t list, void *item)
 	  mu_iterator_advance (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
-	  /* FIXME: Call destroy_item */
+	  DESTROY_ITEM (list, current);
 	  free (current);
 	  list->count--;
 	  status = 0;
@@ -272,6 +279,15 @@ mu_list_remove (mu_list_t list, void *item)
     }
   mu_monitor_unlock (list->monitor);
   return status;
+}
+
+int
+mu_list_remove_nd (mu_list_t list, void *item)
+{
+  mu_list_destroy_item_t dptr = mu_list_set_destroy_item (list, NULL);
+  int rc = mu_list_remove (list, item);
+  mu_list_set_destroy_item (list, dptr);
+  return rc;
 }
 
 int
@@ -290,7 +306,7 @@ mu_list_replace (mu_list_t list, void *old_item, void *new_item)
     {
       if (comp (current->item, old_item) == 0)
 	{
-	  /* FIXME: Call destroy_item. Perhaps optionally? */
+	  DESTROY_ITEM (list, current);
 	  current->item = new_item;
 	  status = 0;
 	  break;
@@ -298,6 +314,15 @@ mu_list_replace (mu_list_t list, void *old_item, void *new_item)
     }
   mu_monitor_unlock (list->monitor);
   return status;
+}
+
+int
+mu_list_replace_nd (mu_list_t list, void *item, void *new_item)
+{
+  mu_list_destroy_item_t dptr = mu_list_set_destroy_item (list, NULL);
+  int rc = mu_list_replace (list, item, new_item);
+  mu_list_set_destroy_item (list, dptr);
+  return rc;
 }
 
 int
@@ -349,13 +374,12 @@ mu_list_do (mu_list_t list, mu_list_action_t *action, void *cbdata)
   return status;
 }
 
-int
+mu_list_destroy_item_t
 mu_list_set_destroy_item (mu_list_t list, void (*destroy_item)(void *item))
 {
-  if (list == NULL)
-    return EINVAL;
+  mu_list_destroy_item_t ret = list->destroy_item;
   list->destroy_item = destroy_item;
-  return 0;
+  return ret;
 }
 
 int
@@ -545,6 +569,7 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
       }
 	
     case mu_itrctl_delete:
+    case mu_itrctl_delete_nd:
       /* Delete current element */
       {
 	struct list_data *prev;
@@ -555,17 +580,20 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
 	mu_iterator_advance (list->itr, ptr);
 	prev->next = ptr->next;
 	ptr->next->prev = prev;
-	/* FIXME: Call destroy_item */
+	if (req == mu_itrctl_delete)
+	  DESTROY_ITEM (list, ptr);
 	free (ptr);
 	list->count--;
       }
       break;
       
     case mu_itrctl_replace:
+    case mu_itrctl_replace_nd:
       /* Replace current element */
       if (!arg)
 	return EINVAL;
-      /* FIXME: Call destroy_item. Perhaps optionally? */
+      if (req == mu_itrctl_replace)
+	  DESTROY_ITEM (list, ptr);
       ptr = itr->cur;
       ptr->item = arg;
       break;

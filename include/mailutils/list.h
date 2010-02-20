@@ -35,7 +35,9 @@ extern int mu_list_insert   (mu_list_t list, void *item, void *new_item,
 extern int mu_list_is_empty (mu_list_t);
 extern int mu_list_count    (mu_list_t, size_t *pcount);
 extern int mu_list_remove   (mu_list_t, void *item);
+extern int mu_list_remove_nd  (mu_list_t, void *item);
 extern int mu_list_replace  (mu_list_t list, void *old_item, void *new_item);  
+extern int mu_list_replace_nd (mu_list_t list, void *old_item, void *new_item);  
 extern int mu_list_get      (mu_list_t, size_t _index, void **pitem);
 extern int mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount);
 extern int mu_list_locate   (mu_list_t list, void *item, void **ret_item);
@@ -54,9 +56,11 @@ extern mu_list_comparator_t mu_list_set_comparator (mu_list_t,
 extern int mu_list_get_comparator (mu_list_t, mu_list_comparator_t *);
 
 extern void mu_list_free_item (void *item);
+
+typedef void (*mu_list_destroy_item_t) (void *);
   
-extern int mu_list_set_destroy_item (mu_list_t list,
-				     void (*destroy_item) (void *));
+extern mu_list_destroy_item_t mu_list_set_destroy_item
+              (mu_list_t list, mu_list_destroy_item_t destroy_item);
 
 
 extern int mu_list_intersect_dup (mu_list_t *, mu_list_t, mu_list_t,

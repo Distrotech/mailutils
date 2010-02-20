@@ -69,7 +69,7 @@ class List
 
   void apply (mu_list_action_t* action, void* cbdata);
   mu_list_comparator_t set_comparator (mu_list_comparator_t comp);
-  void set_destroy_item (void (*mu_destoy_item) (void *item));
+  mu_list_destroy_item_t set_destroy_item (mu_list_destroy_item_t mu_destroy_item);
 
   bool is_empty ();
   size_t count ();

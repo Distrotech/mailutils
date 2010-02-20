@@ -21,6 +21,7 @@
 #endif
 #include "cmdline.h"
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <mailutils/syslog.h>
 #include <mailutils/mailbox.h>

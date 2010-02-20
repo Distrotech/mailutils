@@ -731,7 +731,6 @@ main (int argc, char **argv)
       if (rc)
 	die (dest, _("cannot get UIDLs"), rc);
 
-      mu_list_set_comparator (src_uidl_list, NULL);
       mu_list_set_comparator (dst_uidl_list, _compare_uidls);
       
       mu_list_get_iterator (src_uidl_list, &itr);
@@ -742,7 +741,7 @@ main (int argc, char **argv)
 	      
 	  mu_iterator_current (itr, (void **)&uidl);
 	  if (mu_list_locate (dst_uidl_list, uidl, NULL) == 0)
-	    mu_list_remove (src_uidl_list, uidl);
+	    mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
 	}
       mu_iterator_destroy (&itr);
       mu_list_destroy (&dst_uidl_list);

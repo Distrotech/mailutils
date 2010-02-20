@@ -47,6 +47,7 @@ auth_add (char *name, imap4d_auth_handler_fp handler)
     {
       mu_list_create (&imap_auth_list);
       mu_list_set_comparator (imap_auth_list, comp);
+      mu_list_set_destroy_item (imap_auth_list, mu_list_free_item);
     }
   mu_list_append (imap_auth_list, (void*)p);
 }

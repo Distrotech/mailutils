@@ -587,55 +587,39 @@ util_slist_lookup (mu_list_t list, const char *str)
   return rc;
 }
 
-void
-util_slist_add (mu_list_t *list, char *value)
+static int
+util_slist_compare (const void *a, const void *b)
 {
-  char *p;
-
-  if (!*list && mu_list_create (list))
-    return;
-
-  if ((p = strdup(value)) == NULL)
-    {
-      util_error(_("Not enough memory"));
-      return;
-    }
-  mu_list_append (*list, p);
+  return mu_c_strcasecmp (a, b);
 }
 
-static int
-comp (const void *item, const void *data)
+void
+util_slist_add (mu_list_t *plist, char *value)
 {
-  return strcmp ((char*)item, (char*)data);
+  mu_list_t list;
+
+  if (!*plist)
+    {
+      if (mu_list_create (&list))
+	return;
+      mu_list_set_destroy_item (list, mu_list_free_item);
+      mu_list_set_comparator (list, util_slist_compare);
+      *plist = list;
+    }
+  else
+    list = *plist;
+  mu_list_append (list, xstrdup (value));
 }
 
 void
 util_slist_remove (mu_list_t *list, char *value)
 {
-  mu_list_comparator_t cp;
-  
-  if (!*list)
-    return;
-  cp = mu_list_set_comparator (*list, comp);
   mu_list_remove (*list, value);
-  mu_list_set_comparator (*list, cp);
 }
 
 void
 util_slist_destroy (mu_list_t *list)
 {
-  mu_iterator_t itr;
-  char *name;
-
-  if (!*list || mu_list_get_iterator (*list, &itr))
-    return;
-
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
-    {
-      mu_iterator_current (itr, (void **)&name);
-      free (name);
-    }
-  mu_iterator_destroy (&itr);
   mu_list_destroy (list);
 }
 
@@ -649,12 +633,13 @@ util_slist_to_string (mu_list_t list, const char *delim)
   if (!list || mu_list_get_iterator (list, &itr))
     return NULL;
 
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
       mu_iterator_current (itr, (void **)&name);
       if (str && delim)
-	util_strcat(&str, delim);
-      util_strcat(&str, name);
+	util_strcat (&str, delim);
+      util_strcat (&str, name);
     }
   mu_iterator_destroy (&itr);
   return str;
