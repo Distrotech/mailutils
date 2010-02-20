@@ -26,16 +26,28 @@
 extern "C" {
 #endif
 
+enum mu_itrctl_req
+  {
+    mu_itrctl_tell,   /* Return current position in the object */
+    mu_itrctl_delete, /* Delete current element */
+    mu_itrctl_replace,/* Replace current element */
+    mu_itrctl_insert, /* Insert new element in the current position */
+    mu_itrctl_insert_list, /* Insert a list of elements */
+  };
+  
 extern int mu_iterator_create   (mu_iterator_t *, void *);
 extern int mu_iterator_dup      (mu_iterator_t *piterator, mu_iterator_t orig);
 extern void mu_iterator_destroy (mu_iterator_t *);
 extern int mu_iterator_first    (mu_iterator_t);
 extern int mu_iterator_next     (mu_iterator_t);
+extern int mu_iterator_skip (mu_iterator_t iterator, ssize_t count);
 extern int mu_iterator_current  (mu_iterator_t, void **pitem);
 extern int mu_iterator_current_kv (mu_iterator_t,
 				   const void **key, void **pitem);  
 extern int mu_iterator_is_done  (mu_iterator_t);
 
+extern int mu_iterator_ctl (mu_iterator_t, enum mu_itrctl_req, void *);
+  
 extern int mu_iterator_attach (mu_iterator_t *root, mu_iterator_t iterator);
 extern int mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator);
 extern void mu_iterator_advance (mu_iterator_t iterator, void *e);
@@ -53,7 +65,10 @@ extern int mu_iterator_set_destroy (mu_iterator_t itr,
 				 int (*destroy) (mu_iterator_t, void *data));
 extern int mu_iterator_set_curitem_p (mu_iterator_t itr,
 				   int (*curitem_p) (void *, void *));
-  
+extern int mu_iterator_set_itrctl (mu_iterator_t itr,
+				   int (*itrctl) (void *,
+						  enum mu_itrctl_req,
+						  void *));
 #ifdef __cplusplus
 }
 #endif

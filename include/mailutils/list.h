@@ -53,6 +53,8 @@ extern mu_list_comparator_t mu_list_set_comparator (mu_list_t,
 						    mu_list_comparator_t);
 extern int mu_list_get_comparator (mu_list_t, mu_list_comparator_t *);
 
+extern void mu_list_free_item (void *item);
+  
 extern int mu_list_set_destroy_item (mu_list_t list,
 				     void (*destroy_item) (void *));
 

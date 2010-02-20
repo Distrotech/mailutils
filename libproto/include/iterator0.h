@@ -43,6 +43,7 @@ struct _mu_iterator
   int (*getitem) (void *owner, void **pret, const void **pkey);
   int (*curitem_p) (void *owner, void *item);
   int (*finished_p) (void *owner);
+  int (*itrctl) (void *owner, enum mu_itrctl_req req, void *arg);
 };
 
 #ifdef __cplusplus

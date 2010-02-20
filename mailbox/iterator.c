@@ -92,6 +92,18 @@ mu_iterator_set_curitem_p (mu_iterator_t itr,
 }
 
 int
+mu_iterator_set_itrctl (mu_iterator_t itr,
+			int (*itrctl) (void *,
+				       enum mu_itrctl_req,
+				       void *))
+{
+  if (!itr)
+    return EINVAL;
+  itr->itrctl = itrctl;
+  return 0;
+}
+
+int
 mu_iterator_set_destroy (mu_iterator_t itr, int (*destroy) (mu_iterator_t, void *))
 {
   if (!itr)
@@ -176,6 +188,18 @@ mu_iterator_next (mu_iterator_t iterator)
 }
 
 int
+mu_iterator_skip (mu_iterator_t iterator, ssize_t count)
+{
+  int status;
+  if (count < 0)
+    return ENOSYS; /* Need prev method */
+  while (count--)
+    if ((status = mu_iterator_next (iterator)))
+      break;
+  return status;
+}
+
+int
 mu_iterator_current (mu_iterator_t iterator, void **pitem)
 {
   return iterator->getitem (iterator->owner, pitem, NULL);
@@ -246,4 +270,14 @@ mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator)
     }
   
   return 0;
+}
+
+int
+mu_iterator_ctl (mu_iterator_t iterator, enum mu_itrctl_req req, void *arg)
+{
+  if (!iterator)
+    return EINVAL;
+  if (!iterator->itrctl)
+    return ENOSYS;
+  return iterator->itrctl (iterator->owner, req, arg);
 }

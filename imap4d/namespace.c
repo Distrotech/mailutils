@@ -261,12 +261,6 @@ normalize_fun (void *item, void *data)
 			 mu_strdup (mu_normalize_path (name)));
 }
 
-static void
-free_item (void *item)
-{
-  free (item);
-}
-  
 void
 namespace_init ()
 {
@@ -278,9 +272,9 @@ namespace_init ()
 	{
 	  mu_list_t list;
 	  mu_list_create (&list);
-	  mu_list_set_destroy_item (list, free_item);
+	  mu_list_set_destroy_item (list, mu_list_free_item);
 	  mu_list_do (namespace[i], normalize_fun, list);
-	  mu_list_set_destroy_item (namespace[i], free_item);
+	  mu_list_set_destroy_item (namespace[i], mu_list_free_item);
 	  mu_list_destroy (&namespace[i]);
 	  namespace[i] = list;
 	}

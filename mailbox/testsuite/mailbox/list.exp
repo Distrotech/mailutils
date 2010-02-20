@@ -224,6 +224,83 @@ mailbox_prog_test "print" \
     "to" \
     "fem"
 
+mailbox_prog_test "ictl tell" "12"
+
+prompt_text "dos"
+mailbox_prog_test "ictl del"
+
+prompt_text "dos"
+mailbox_prog_test "next"
+
+mailbox_prog_test "print" \
+    "# items: 16" \
+    "1" \
+    "2" \
+    "3" \
+    "4" \
+    "5" \
+    "6" \
+    "zero" \
+    "jeden" \
+    "dwa" \
+    "zero" \
+    "jeden" \
+    "cero" \
+    "dos" \
+    "en" \
+    "to" \
+    "fem"
+
+mailbox_prog_test "ictl ins seis"
+
+mailbox_prog_test "print" \
+    "# items: 17" \
+    "1" \
+    "2" \
+    "3" \
+    "4" \
+    "5" \
+    "6" \
+    "zero" \
+    "jeden" \
+    "dwa" \
+    "zero" \
+    "jeden" \
+    "cero" \
+    "dos" \
+    "seis" \
+    "en" \
+    "to" \
+    "fem"
+
+mailbox_prog_test "ictl ins tres quatro cinco"
+
+mailbox_prog_test "print" \
+    "# items: 20" \
+    "1" \
+    "2" \
+    "3" \
+    "4" \
+    "5" \
+    "6" \
+    "zero" \
+    "jeden" \
+    "dwa" \
+    "zero" \
+    "jeden" \
+    "cero" \
+    "dos" \
+    "tres" \
+    "quatro" \
+    "cinco" \
+    "seis" \
+    "en" \
+    "to" \
+    "fem"
+
+prompt_text "tres"
+mailbox_prog_test "next"
+
 mailbox_prog_send "quit"
 mailbox_prog_stop
 

@@ -106,7 +106,7 @@ delete (mu_list_t list, int argc, char **argv)
 
   while (--argc)
     {
-      rc = mu_list_remove (list, strdup (*++argv));
+      rc = mu_list_remove (list, *++argv);
       if (rc)
 	fprintf (stderr, "mu_list_remove(%s): %s\n", *argv, mu_strerror (rc));
     }
@@ -150,18 +150,30 @@ prep (mu_list_t list, int argc, char **argv)
     }
 }
 
-static int
-read_list (mu_list_t list, int argc, char **argv)
+static mu_list_t
+read_list (int argc, char **argv)
 {
   int rc;
+  mu_list_t list;
   
+  rc = mu_list_create (&list);
+  if (rc)
+    {
+      fprintf (stderr, "creating temp list: %s\n", mu_strerror (rc));
+      return NULL;
+    }
+  mu_list_set_destroy_item (list, mu_list_free_item);
   for (; argc; argc--, argv++)
     {
       rc = mu_list_append (list, strdup (*argv));
       if (rc)
-	break;
+	{
+	  mu_list_destroy (&list);
+	  fprintf (stderr, "adding to temp list: %s\n", mu_strerror (rc));
+	  break;
+	}
     }
-  return rc;
+  return list;
 }
 
 void
@@ -196,21 +208,9 @@ ins (mu_list_t list, int argc, char **argv)
     rc = mu_list_insert (list, item, strdup (argv[an]), insert_before);
   else
     {
-      mu_list_t tmp;
-      
-      rc = mu_list_create (&tmp);
-      if (rc)
-	{
-	  fprintf (stderr, "creating temp list: %s\n", mu_strerror (rc));
-	  return;
-	}
-
-      rc = read_list (tmp, argc - an, argv + an);
-      if (rc)
-	{
-	  fprintf (stderr, "reading temp list: %s\n", mu_strerror (rc));
-	  return;
-	}
+      mu_list_t tmp = read_list (argc - an, argv + an);
+      if (!tmp)
+	return;
       rc = mu_list_insert_list (list, item, tmp, insert_before);
       mu_list_destroy (&tmp);
     }
@@ -219,7 +219,6 @@ ins (mu_list_t list, int argc, char **argv)
     lperror ("mu_list_insert", rc);
 }
   
-
 void
 repl (mu_list_t list, int argc, char **argv)
 {
@@ -236,6 +235,99 @@ repl (mu_list_t list, int argc, char **argv)
     fprintf (stderr, "mu_list_replace: %s\n", mu_strerror (rc));
 }
 
+void
+ictl_tell (mu_iterator_t itr, int argc)
+{
+  size_t pos;
+  int rc;
+
+  if (argc)
+    {
+      fprintf (stderr, "ictl tell?\n");
+      return;
+    }
+  
+  rc = mu_iterator_ctl (itr, mu_itrctl_tell, &pos);
+  if (rc)
+    lperror ("mu_iterator_ctl", rc);
+  printf ("%lu\n", (unsigned long) pos);
+}
+
+void
+ictl_del (mu_iterator_t itr, int argc)
+{
+  int rc;
+
+  if (argc)
+    {
+      fprintf (stderr, "ictl del?\n");
+      return;
+    }
+  rc = mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
+  if (rc)
+    lperror ("mu_iterator_ctl", rc);
+}
+
+void
+ictl_repl (mu_iterator_t itr, int argc, char **argv)
+{
+  int rc;
+  
+  if (argc != 1)
+    {
+      fprintf (stderr, "ictl repl item?\n");
+      return;
+    }
+
+  rc = mu_iterator_ctl (itr, mu_itrctl_replace, strdup (argv[0]));
+  if (rc)
+    lperror ("mu_iterator_ctl", rc);
+}
+
+void
+ictl_ins (mu_iterator_t itr, int argc, char **argv)
+{
+  int rc;
+  
+  if (argc < 1)
+    {
+      fprintf (stderr, "ictl ins item [item*]?\n");
+      return;
+    }
+
+  if (argc == 1)
+    rc = mu_iterator_ctl (itr, mu_itrctl_insert, strdup (argv[0]));
+  else
+    {
+      mu_list_t tmp = read_list (argc, argv);
+      if (!tmp)
+	return;
+      rc = mu_iterator_ctl (itr, mu_itrctl_insert_list, tmp);
+      mu_list_destroy (&tmp);
+    }
+}
+
+void
+ictl (mu_iterator_t itr, int argc, char **argv)
+{
+  if (argc == 1)
+    {
+      fprintf (stderr, "ictl tell|del|repl|ins?\n");
+      return;
+    }
+  
+  if (strcmp (argv[1], "tell") == 0)
+    ictl_tell (itr, argc - 2);
+  else if (strcmp (argv[1], "del") == 0)
+    ictl_del (itr, argc - 2);
+  else if (strcmp (argv[1], "repl") == 0)
+    ictl_repl (itr, argc - 2, argv + 2);
+  else if (strcmp (argv[1], "ins") == 0)
+    ictl_ins (itr, argc - 2, argv + 2);
+  else
+    fprintf (stderr, "unknown subcommand\n");
+}
+    
 #define NITR 4
 
 int
@@ -295,6 +387,10 @@ help ()
   printf ("prep item [item*]\n");
   printf ("repl old_item new_item\n");
   printf ("ins [before|after] item new_item [new_item*]\n");
+  printf ("ictl tell\n");
+  printf ("ictl del\n");
+  printf ("ictl repl item\n");
+  printf ("ictl ins item [item*]\n");
   printf ("print\n");
   printf ("quit\n");
   printf ("iter num\n");
@@ -356,6 +452,8 @@ shell (mu_list_t list)
 	    ins (list, argc, argv);
 	  else if (strcmp (argv[0], "repl") == 0)
 	    repl (list, argc, argv);
+	  else if (strcmp (argv[0], "ictl") == 0)
+	    ictl (itr[num], argc, argv);
 	  else if (strcmp (argv[0], "print") == 0)
 	    print (list);
 	  else if (strcmp (argv[0], "quit") == 0)
@@ -437,7 +535,8 @@ main (int argc, char **argv)
   if (rc)
     lperror ("mu_list_create", rc);
   mu_list_set_comparator (list, string_comp);
-
+  mu_list_set_destroy_item (list, mu_list_free_item);
+  
   while (argc--)
     {
       rc = mu_list_append (list, *argv++);

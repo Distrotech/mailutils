@@ -681,12 +681,6 @@ mu_mailbox_unlock (mu_mailbox_t mbox)
   return mu_locker_unlock (lock);
 }
 
-static void
-free_uidl (void *item)
-{
-  free (item);
-}
-
 int
 mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
 {
@@ -700,7 +694,7 @@ mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
   status = mu_list_create (&list);
   if (status)
     return status;
-  mu_list_set_destroy_item (list, free_uidl);
+  mu_list_set_destroy_item (list, mu_list_free_item);
   if (mbox->_get_uidls)
     status = mbox->_get_uidls (mbox, list);
   else
@@ -734,7 +728,7 @@ mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
 	  status = mu_list_append (list, uidl);
 	  if (status)
 	    {
-	      free_uidl (uidl);
+	      free (uidl);
 	      break;
 	    }
 	}

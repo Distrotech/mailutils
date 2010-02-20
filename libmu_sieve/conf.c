@@ -26,12 +26,6 @@
 mu_list_t mu_sieve_include_path = NULL;
 mu_list_t mu_sieve_library_path = NULL;
 
-static void
-destroy_string (void *str)
-{
-  free (str);
-}
-
 static int
 _path_append (void *item, void *data)
 {
@@ -44,7 +38,7 @@ _path_append (void *item, void *data)
 	  mu_error (_("cannot create list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
-      mu_list_set_destroy_item (*plist, destroy_string);
+      mu_list_set_destroy_item (*plist, mu_list_free_item);
     }
   return mu_list_append (*plist, strdup (item));
 }

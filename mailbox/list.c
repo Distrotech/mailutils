@@ -196,6 +196,26 @@ mu_list_locate (mu_list_t list, void *item, void **ret_item)
   return status;
 }
 
+static int
+_insert_item (mu_list_t list, struct list_data *current, void *new_item,
+	      int insert_before)
+{
+  int status;
+  struct list_data *ldata = calloc (sizeof (*ldata), 1);
+  if (ldata == NULL)
+    status = ENOMEM;
+  else
+    {
+      ldata->item = new_item;
+      _mu_list_insert_sublist (list, current,
+			       ldata, ldata,
+			       1,
+			       insert_before);
+      status = 0;
+    }
+  return status;
+}
+
 int
 mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
 {
@@ -214,18 +234,7 @@ mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
     {
       if (comp (current->item, item) == 0)
 	{
-	  struct list_data *ldata = calloc (sizeof (*ldata), 1);
-	  if (ldata == NULL)
-	    status = ENOMEM;
-	  else
-	    {
-	      ldata->item = new_item;
-	      _mu_list_insert_sublist (list, current,
-				       ldata, ldata,
-				       1,
-				       insert_before);
-	      status = 0;
-	    }
+	  status = _insert_item (list, current, new_item, insert_before);
 	  break;
 	}
     }
@@ -236,7 +245,7 @@ mu_list_insert (mu_list_t list, void *item, void *new_item, int insert_before)
 int
 mu_list_remove (mu_list_t list, void *item)
 {
-  struct list_data *current, *previous;
+  struct list_data *current;
   mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
@@ -244,14 +253,17 @@ mu_list_remove (mu_list_t list, void *item)
     return EINVAL;
   comp = list->comp ? list->comp : _mu_list_ptr_comparator;
   mu_monitor_wrlock (list->monitor);
-  for (previous = &list->head, current = list->head.next;
-       current != &list->head; previous = current, current = current->next)
+  for (current = list->head.next;
+       current != &list->head; current = current->next)
     {
       if (comp (current->item, item) == 0)
 	{
+	  struct list_data *previous = current->prev;
+	  
 	  mu_iterator_advance (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
+	  /* FIXME: Call destroy_item */
 	  free (current);
 	  list->count--;
 	  status = 0;
@@ -278,6 +290,7 @@ mu_list_replace (mu_list_t list, void *old_item, void *new_item)
     {
       if (comp (current->item, old_item) == 0)
 	{
+	  /* FIXME: Call destroy_item. Perhaps optionally? */
 	  current->item = new_item;
 	  status = 0;
 	  break;
@@ -503,6 +516,87 @@ list_data_dup (void **ptr, void *owner)
   return 0;
 }
 
+static int
+list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
+{
+  struct list_iterator *itr = owner;
+  mu_list_t list = itr->list;
+  struct list_data *ptr;
+  
+  if (itr->cur == NULL)
+    return MU_ERR_NOENT;
+  switch (req)
+    {
+    case mu_itrctl_tell:
+      /* Return current position in the object */
+      {
+	size_t count;
+
+	for (count = 0, ptr = list->head.next; ptr != &list->head;
+	     ptr = ptr->next, count++)
+	  {
+	    if (ptr == itr->cur)
+	      {
+		*(size_t*)arg = count;
+		return 0;
+	      }
+	  }
+	return MU_ERR_NOENT;
+      }
+	
+    case mu_itrctl_delete:
+      /* Delete current element */
+      {
+	struct list_data *prev;
+	
+	ptr = itr->cur;
+	prev = ptr->prev;
+	
+	mu_iterator_advance (list->itr, ptr);
+	prev->next = ptr->next;
+	ptr->next->prev = prev;
+	/* FIXME: Call destroy_item */
+	free (ptr);
+	list->count--;
+      }
+      break;
+      
+    case mu_itrctl_replace:
+      /* Replace current element */
+      if (!arg)
+	return EINVAL;
+      /* FIXME: Call destroy_item. Perhaps optionally? */
+      ptr = itr->cur;
+      ptr->item = arg;
+      break;
+      
+    case mu_itrctl_insert:
+      /* Insert new element in the current position */
+      if (!arg)
+	return EINVAL;
+      return _insert_item (list, itr->cur, arg, 0);
+
+    case mu_itrctl_insert_list:
+      /* Insert a list of elements */
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  mu_list_t new_list = arg;
+	  _mu_list_insert_sublist (list, itr->cur,
+				   new_list->head.next, new_list->head.prev,
+				   new_list->count,
+				   0);
+	  _mu_list_clear (new_list);
+	}
+      break;
+      
+    default:
+      return ENOSYS;
+    }
+  return 0;
+}
+
 int
 mu_list_get_iterator (mu_list_t list, mu_iterator_t *piterator)
 {
@@ -533,7 +627,8 @@ mu_list_get_iterator (mu_list_t list, mu_iterator_t *piterator)
   mu_iterator_set_curitem_p (iterator, curitem_p);
   mu_iterator_set_destroy (iterator, destroy);
   mu_iterator_set_dup (iterator, list_data_dup);
-
+  mu_iterator_set_itrctl (iterator, list_itrctl);
+  
   mu_iterator_attach (&list->itr, iterator);
 
   *piterator = iterator;

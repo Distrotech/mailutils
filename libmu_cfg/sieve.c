@@ -58,12 +58,6 @@ cb_clear_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
   return 0;
 }
 
-static void
-destroy_string (void *str)
-{
-  free (str);
-}
-
 static int
 _add_path (mu_debug_t debug, const char *arg, void *data)
 {
@@ -79,7 +73,7 @@ _add_path (mu_debug_t debug, const char *arg, void *data)
 			       _("cannot create list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
-      mu_list_set_destroy_item (*plist, destroy_string);
+      mu_list_set_destroy_item (*plist, mu_list_free_item);
     }
   /* FIXME: Use mu_argcv */
   tmp = strdup (arg);

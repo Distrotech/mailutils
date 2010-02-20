@@ -62,8 +62,8 @@ _mu_list_insert_sublist (mu_list_t list,
   list->count += count;
 }
 
-static void
-clear_list (mu_list_t list)
+void
+_mu_list_clear (mu_list_t list)
 {
   list->head.next = list->head.prev = &list->head;
   list->count = 0;
@@ -92,7 +92,7 @@ mu_list_insert_list (mu_list_t list, void *item, mu_list_t new_list,
 				   new_list->head.next, new_list->head.prev,
 				   new_list->count,
 				   insert_before);
-	  clear_list (new_list);
+	  _mu_list_clear (new_list);
 	  status = 0;
 	  break;
 	}
@@ -114,7 +114,7 @@ mu_list_append_list (mu_list_t list, mu_list_t new_list)
 			     new_list->head.next, new_list->head.prev,
 			     new_list->count,
 			     0);
-  clear_list (new_list);
+  _mu_list_clear (new_list);
 }
 
 void
@@ -130,7 +130,7 @@ mu_list_prepend_list (mu_list_t list, mu_list_t new_list)
 			     new_list->head.next, new_list->head.prev,
 			     new_list->count,
 			     1);
-  clear_list (new_list);
+  _mu_list_clear (new_list);
 }
 
 

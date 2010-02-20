@@ -155,12 +155,6 @@ mu_list_t rcpt_list;   /* Recipient addresses */
 struct mail_tmp *mtmp; /* Temporary mail storage */
 mu_mailbox_t mbox;     /* Collected mail body */
 
-static void
-rcpt_to_destroy_item (void *ptr)
-{
-  free (ptr);
-}
-
 
 int
 cfun_unknown (FILE *out, char *arg)
@@ -295,7 +289,7 @@ cfun_rcpt_to (FILE *out, char *arg)
   if (!rcpt_list)
     {
       mu_list_create (&rcpt_list);
-      mu_list_set_destroy_item (rcpt_list, rcpt_to_destroy_item);
+      mu_list_set_destroy_item (rcpt_list, mu_list_free_item);
     }
   mu_list_append (rcpt_list, user);
   lmtp_reply (out, "250", "2.1.5", "Go ahead");

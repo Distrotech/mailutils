@@ -333,12 +333,6 @@ struct mu_gocs_data
 
 static mu_list_t /* of struct mu_gocs_data */ data_list;
 
-static void
-_destroy_data (void *item)
-{
-  free (item);
-}
-
 static int
 _gocs_comp (const void *a, const void *b)
 {
@@ -353,7 +347,7 @@ mu_gocs_store (char *capa, void *data)
   if (!data_list)
     {
       mu_list_create (&data_list);
-      mu_list_set_destroy_item (data_list, _destroy_data);
+      mu_list_set_destroy_item (data_list, mu_list_free_item);
       mu_list_set_comparator (data_list, _gocs_comp);
     }
   s = malloc (sizeof *s);
