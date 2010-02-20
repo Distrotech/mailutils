@@ -145,14 +145,15 @@ mu_iterator_dup (mu_iterator_t *piterator, mu_iterator_t orig)
       return status;
     }
   iterator->is_advanced = orig->is_advanced;   
+  iterator->dup = orig->dup;
+  iterator->destroy = orig->destroy;
   iterator->first = orig->first;
   iterator->next = orig->next;
   iterator->getitem = orig->getitem;
-  iterator->finished_p = orig->finished_p;
   iterator->curitem_p = orig->curitem_p;
-  iterator->dup = orig->dup;
-  iterator->destroy = orig->destroy;
-
+  iterator->finished_p = orig->finished_p;
+  iterator->itrctl = orig->itrctl;
+  
   *piterator = iterator;
   return 0;
 }

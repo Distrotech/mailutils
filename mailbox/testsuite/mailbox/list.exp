@@ -301,6 +301,29 @@ mailbox_prog_test "print" \
 prompt_text "tres"
 mailbox_prog_test "next"
 
+mailbox_prog_test "ictl dir" "forwards"
+
+mailbox_prog_test "ictl dir backwards"
+
+prompt_text "dos"
+mailbox_prog_test "next"
+
+prompt_text "dwa"
+mailbox_prog_test "next 4"
+
+prompt_text "jeden"
+mailbox_prog_test "ictl del"
+
+mailbox_prog_test "next"
+
+prompt_text "zero"
+mailbox_prog_test "next"
+
+mailbox_prog_test "ictl dir forwards"
+
+prompt_text "jeden"
+mailbox_prog_test "next"
+
 mailbox_prog_send "quit"
 mailbox_prog_stop
 

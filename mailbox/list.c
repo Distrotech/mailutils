@@ -479,13 +479,17 @@ struct list_iterator
 {
   mu_list_t list;
   struct list_data *cur;
+  int backwards; /* true if iterating backwards */
 };
 
 static int
 first (void *owner)
 {
   struct list_iterator *itr = owner;
-  itr->cur = itr->list->head.next;
+  if (itr->backwards)
+    itr->cur = itr->list->head.prev;
+  else
+    itr->cur = itr->list->head.next;
   return 0;
 }
 
@@ -493,7 +497,10 @@ static int
 next (void *owner)
 {
   struct list_iterator *itr = owner;
-  itr->cur = itr->cur->next;
+  if (itr->backwards)
+    itr->cur = itr->cur->prev;
+  else
+    itr->cur = itr->cur->next;
   return 0;
 }
 
@@ -617,6 +624,20 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
 				   0);
 	  _mu_list_clear (new_list);
 	}
+      break;
+
+    case mu_itrctl_qry_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	*(int*)arg = itr->backwards;
+      break;
+
+    case mu_itrctl_set_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	itr->backwards = !!*(int*)arg;
       break;
       
     default:

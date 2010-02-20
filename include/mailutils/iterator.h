@@ -28,13 +28,15 @@ extern "C" {
 
 enum mu_itrctl_req
   {
-    mu_itrctl_tell,        /* Return current position in the object */
-    mu_itrctl_delete,      /* Delete current element */
-    mu_itrctl_delete_nd,   /* Delete current element, non-destructive */
-    mu_itrctl_replace,     /* Replace current element */
-    mu_itrctl_replace_nd,  /* Replace current element, non-destructive */
-    mu_itrctl_insert,      /* Insert new element in the current position */
-    mu_itrctl_insert_list, /* Insert a list of elements */
+    mu_itrctl_tell,          /* Return current position in the object */
+    mu_itrctl_delete,        /* Delete current element */
+    mu_itrctl_delete_nd,     /* Delete current element, non-destructive */
+    mu_itrctl_replace,       /* Replace current element */
+    mu_itrctl_replace_nd,    /* Replace current element, non-destructive */
+    mu_itrctl_insert,        /* Insert new element in the current position */
+    mu_itrctl_insert_list,   /* Insert a list of elements */
+    mu_itrctl_qry_direction, /* Query iteration direction */
+    mu_itrctl_set_direction  /* Set iteration direction */
   };
   
 extern int mu_iterator_create   (mu_iterator_t *, void *);

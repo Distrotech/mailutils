@@ -285,6 +285,41 @@ ictl_repl (mu_iterator_t itr, int argc, char **argv)
 }
 
 void
+ictl_dir (mu_iterator_t itr, int argc, char **argv)
+{
+  int rc;
+  int dir;
+  
+  if (argc > 1)
+    {
+      fprintf (stderr, "ictl dir [backwards|forwards]?\n");
+      return;
+    }
+  if (argc == 1)
+    {
+      if (strcmp (argv[0], "backwards") == 0)
+	dir = 1;
+      else if (strcmp (argv[0], "forwards") == 0)
+	dir = 0;
+      else
+	{
+	  fprintf (stderr, "ictl dir [backwards|forwards]?\n");
+	  return;
+	}
+      rc = mu_iterator_ctl (itr, mu_itrctl_set_direction, &dir);
+      if (rc)
+	lperror ("mu_iterator_ctl", rc);
+    }
+  else
+    {
+      rc = mu_iterator_ctl (itr, mu_itrctl_qry_direction, &dir);
+      if (rc)
+	lperror ("mu_iterator_ctl", rc);
+      printf ("%s\n", dir ? "backwards" : "forwards");
+    }
+}
+  
+void
 ictl_ins (mu_iterator_t itr, int argc, char **argv)
 {
   int rc;
@@ -324,6 +359,8 @@ ictl (mu_iterator_t itr, int argc, char **argv)
     ictl_repl (itr, argc - 2, argv + 2);
   else if (strcmp (argv[1], "ins") == 0)
     ictl_ins (itr, argc - 2, argv + 2);
+  else if (strcmp (argv[1], "dir") == 0)
+    ictl_dir (itr, argc - 2, argv + 2);
   else
     fprintf (stderr, "unknown subcommand\n");
 }
@@ -391,6 +428,7 @@ help ()
   printf ("ictl del\n");
   printf ("ictl repl item\n");
   printf ("ictl ins item [item*]\n");
+  printf ("ictl dir [backwards|forwards]\n");
   printf ("print\n");
   printf ("quit\n");
   printf ("iter num\n");
