@@ -107,6 +107,7 @@ mu_list_append_list (mu_list_t list, mu_list_t new_list)
   if (list->count == 0)
     {
       list->head = new_list->head;
+      list->head.next->prev = list->head.prev->next = &list->head;
       list->count = new_list->count;
     }
   else
@@ -123,6 +124,7 @@ mu_list_prepend_list (mu_list_t list, mu_list_t new_list)
   if (list->count == 0)
     {
       list->head = new_list->head;
+      list->head.next->prev = list->head.prev->next = &list->head;
       list->count = new_list->count;
     }
   else

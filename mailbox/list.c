@@ -359,7 +359,7 @@ mu_list_do (mu_list_t list, mu_list_action_t *action, void *cbdata)
 
   if (list == NULL || action == NULL)
     return EINVAL;
-  status = mu_list_get_iterator(list, &itr);
+  status = mu_list_get_iterator (list, &itr);
   if (status)
     return status;
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
