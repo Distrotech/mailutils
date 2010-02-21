@@ -157,13 +157,13 @@ static struct argp_option mu_logging_argp_option[] = {
 static error_t
 mu_logging_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
   
   switch (key)
     {
       /* log */
     case OPT_LOG_FACILITY:
-      mu_argp_node_list_new (&lst, "facility", arg);
+      mu_argp_node_list_new (lst, "facility", arg);
       break;
 	  
     case ARGP_KEY_INIT:
@@ -171,7 +171,7 @@ mu_logging_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "logging", NULL);
+      mu_argp_node_list_finish (lst, "logging", NULL);
       break;
 
     default:
@@ -254,13 +254,13 @@ static struct argp_option mu_mailer_argp_option[] = {
 static error_t
 mu_mailer_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
       /* mailer */
     case 'M':
-      mu_argp_node_list_new (&lst, "url", arg);
+      mu_argp_node_list_new (lst, "url", arg);
       break;
 
     case ARGP_KEY_INIT:
@@ -268,7 +268,7 @@ mu_mailer_argp_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "mailer", NULL);
+      mu_argp_node_list_finish (lst, "mailer", NULL);
       break;
 
     default:
@@ -306,17 +306,17 @@ static struct argp_option mu_debug_argp_options[] =
 static error_t
 mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
     case OPT_DEBUG_LEVEL:
       mu_global_debug_from_string (arg, "command line");
-      /*mu_argp_node_list_new (&lst, "level", arg);*/
+      /*mu_argp_node_list_new (lst, "level", arg);*/
       break;
 
     case OPT_LINE_INFO:
-      mu_argp_node_list_new (&lst, "line-info", "yes");
+      mu_argp_node_list_new (lst, "line-info", "yes");
       break;
       
     case ARGP_KEY_INIT:
@@ -324,7 +324,7 @@ mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "debug", NULL);
+      mu_argp_node_list_finish (lst, "debug", NULL);
       break;
       
     default:

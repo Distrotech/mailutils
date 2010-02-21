@@ -93,7 +93,7 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
@@ -108,7 +108,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_FINI:
       if (dry_run && !debug_level)
 	debug_level = 1;
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
 
     case 'a':
@@ -117,7 +117,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'd':
-      mu_argp_node_list_new (&lst, "debug", arg ? arg : "9");
+      mu_argp_node_list_new (lst, "debug", arg ? arg : "9");
       break;
 
     case 'h':
@@ -129,11 +129,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 't':
-      mu_argp_node_list_new (&lst, "mimetypes", arg);
+      mu_argp_node_list_new (lst, "mimetypes", arg);
       break;
 
     case OPT_METAMAIL:
-      mu_argp_node_list_new (&lst, "metamail", arg ? arg : "metamail");
+      mu_argp_node_list_new (lst, "metamail", arg ? arg : "metamail");
       break;
       
     default: 

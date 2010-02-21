@@ -77,12 +77,12 @@ static int debug;
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
     case 'd':
-      mu_argp_node_list_new (&lst, "debug", "yes");
+      mu_argp_node_list_new (lst, "debug", "yes");
       break;
 
     case 'u':
@@ -91,11 +91,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'r':
       if (arg)
-	mu_argp_node_list_new (&lst, "retry", arg);
+	mu_argp_node_list_new (lst, "retry", arg);
       break;
 
     case 'f':
-      mu_argp_node_list_new (&lst, "force", arg ? arg : "0");
+      mu_argp_node_list_new (lst, "force", arg ? arg : "0");
       break;
 
     case ARGP_KEY_ARG:
@@ -114,7 +114,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     default:

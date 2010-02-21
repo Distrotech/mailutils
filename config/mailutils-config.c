@@ -356,7 +356,7 @@ main (int argc, char **argv)
 	  char *path = *argv;
 	  mu_cfg_node_t *node;
 
-	  if (mu_cfg_find_node (tree->head, path, &node) == 0)
+	  if (mu_cfg_find_node (tree, path, &node) == 0)
 	    {
 	      mu_cfg_format_node (stream, node, fmtflags);
 	    }

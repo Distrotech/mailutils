@@ -172,12 +172,12 @@ mu_compat_printer (void *data, mu_log_level_t level, const char *buf)
 static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
   
   switch (key)
     {
     case 'e':
-      mu_argp_node_list_new (&lst, "email", arg);
+      mu_argp_node_list_new (lst, "email", arg);
       break;
       
     case 'n':
@@ -185,7 +185,7 @@ parser (int key, char *arg, struct argp_state *state)
       break;
 
     case 'k':
-      mu_argp_node_list_new (&lst, "keep-going", "yes");
+      mu_argp_node_list_new (lst, "keep-going", "yes");
       break;
 
     case 'c':
@@ -197,23 +197,23 @@ parser (int key, char *arg, struct argp_state *state)
       break;
       
     case 'f':
-      mu_argp_node_list_new (&lst, "mbox-url", arg);
+      mu_argp_node_list_new (lst, "mbox-url", arg);
       break;
       
     case 't':
-      mu_argp_node_list_new (&lst, "ticket", arg);
+      mu_argp_node_list_new (lst, "ticket", arg);
       break;
       
     case 'd':
-      mu_argp_node_list_new (&lst, "debug", arg ? arg : D_DEFAULT);
+      mu_argp_node_list_new (lst, "debug", arg ? arg : D_DEFAULT);
       break;
 
     case 'v':
-      mu_argp_node_list_new (&lst, "verbose", "yes");
+      mu_argp_node_list_new (lst, "verbose", "yes");
       break;
 
     case ARG_LINE_INFO:
-      mu_argp_node_list_new (&lst, "line-info",
+      mu_argp_node_list_new (lst, "line-info",
 			     is_true_p (arg) ? "yes" : "no");
       break;
 
@@ -236,7 +236,7 @@ parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     default:

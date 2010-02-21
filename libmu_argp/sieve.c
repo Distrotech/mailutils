@@ -44,24 +44,24 @@ static struct argp_option sieve_argp_option[] = {
 static error_t
 sieve_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
   
   switch (key)
     {
     case 'I':
-      mu_argp_node_list_new (&lst, "include-path", arg);
+      mu_argp_node_list_new (lst, "include-path", arg);
       break;
 
     case 'L':
-      mu_argp_node_list_new (&lst, "library-path", arg);
+      mu_argp_node_list_new (lst, "library-path", arg);
       break;
 
     case OPT_CLEAR_INCLUDE_PATH:
-      mu_argp_node_list_new (&lst, "clear-include-path", "yes");
+      mu_argp_node_list_new (lst, "clear-include-path", "yes");
       break;
 
     case OPT_CLEAR_LIBRARY_PATH:
-      mu_argp_node_list_new (&lst, "clear-library-path", "yes");
+      mu_argp_node_list_new (lst, "clear-library-path", "yes");
       break;
       
     case ARGP_KEY_INIT:
@@ -69,7 +69,7 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "sieve", NULL);
+      mu_argp_node_list_finish (lst, "sieve", NULL);
       break;
 			   
     default:

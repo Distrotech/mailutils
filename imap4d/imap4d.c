@@ -101,22 +101,22 @@ static int imap4d_mainloop (int, FILE *, FILE *);
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
     case 'd':
-      mu_argp_node_list_new (&lst, "mode", "daemon");
+      mu_argp_node_list_new (lst, "mode", "daemon");
       if (arg)
-	mu_argp_node_list_new (&lst, "max-children", arg);
+	mu_argp_node_list_new (lst, "max-children", arg);
       break;
 
     case 'i':
-      mu_argp_node_list_new (&lst, "mode", "inetd");
+      mu_argp_node_list_new (lst, "mode", "inetd");
       break;
 
     case OPT_FOREGROUND:
-      mu_argp_node_list_new (&lst, "foreground", "yes");
+      mu_argp_node_list_new (lst, "foreground", "yes");
       break;
       
     case OPT_PREAUTH:
@@ -128,7 +128,7 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     default:

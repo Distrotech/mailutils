@@ -35,12 +35,12 @@ static struct argp_option _tls_argp_options[] = {
 static error_t
 _tls_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
   
   switch (key)
     {
     case OPT_TLS:
-      mu_argp_node_list_new (&lst, "enable", arg ? arg : "yes");
+      mu_argp_node_list_new (lst, "enable", arg ? arg : "yes");
       break;
       
     case ARGP_KEY_INIT:
@@ -48,7 +48,7 @@ _tls_argp_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "tls", NULL);
+      mu_argp_node_list_finish (lst, "tls", NULL);
       break;
       
     default:

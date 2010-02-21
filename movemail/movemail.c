@@ -111,24 +111,24 @@ mu_kwd_t method_kwd[] = {
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
     case 'r':
-      mu_argp_node_list_new (&lst, "reverse", "yes");
+      mu_argp_node_list_new (lst, "reverse", "yes");
       break;
 
     case 'p':
-      mu_argp_node_list_new (&lst, "preserve", "yes");
+      mu_argp_node_list_new (lst, "preserve", "yes");
       break;
 
     case 'P':
-      mu_argp_node_list_new (&lst, "mailbox-ownership", arg);
+      mu_argp_node_list_new (lst, "mailbox-ownership", arg);
       break;
 
     case 'u':
-      mu_argp_node_list_new (&lst, "uidl", "yes");
+      mu_argp_node_list_new (lst, "uidl", "yes");
       break;
 
     case 'v':
@@ -136,7 +136,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case OPT_EMACS:
-      mu_argp_node_list_new (&lst, "emacs", "yes");
+      mu_argp_node_list_new (lst, "emacs", "yes");
       break;
 
     case ARGP_KEY_INIT:
@@ -144,7 +144,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     default:

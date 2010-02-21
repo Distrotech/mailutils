@@ -83,17 +83,10 @@ error_t mu_argp_parse (const struct argp *myargp,
 		       int *arg_index,     
 		       void *input) __attribute__ ((deprecated));
 
-struct mu_argp_node_list
-{
-  int count;
-  mu_cfg_node_t *head, *tail;
-};
-
-void mu_argp_node_list_init (struct mu_argp_node_list *);
-void mu_argp_node_list_add (struct mu_argp_node_list *, mu_cfg_node_t *);
-void mu_argp_node_list_new (struct mu_argp_node_list *, 
-			    const char *, const char *);
-void mu_argp_node_list_finish (struct mu_argp_node_list *, char *, char *);
+void mu_argp_node_list_init (mu_list_t *);
+void mu_argp_node_list_add (mu_list_t, mu_cfg_node_t *);
+void mu_argp_node_list_new (mu_list_t, const char *, const char *);
+void mu_argp_node_list_finish (mu_list_t, char *, char *);
   
 #ifdef __cplusplus
 }

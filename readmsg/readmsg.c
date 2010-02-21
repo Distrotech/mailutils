@@ -79,7 +79,7 @@ int show_all = 0;
 static error_t
 readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
@@ -88,27 +88,27 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 
     case 'h':
-      mu_argp_node_list_new (&lst, "header", "yes");
+      mu_argp_node_list_new (lst, "header", "yes");
       break;
 
     case 'f':
-      mu_argp_node_list_new (&lst, "folder", arg);
+      mu_argp_node_list_new (lst, "folder", arg);
       break;
 
     case 'w':
-      mu_argp_node_list_new (&lst, "weedlist", arg);
+      mu_argp_node_list_new (lst, "weedlist", arg);
       break;
 
     case 'n':
-      mu_argp_node_list_new (&lst, "no-header", "yes");
+      mu_argp_node_list_new (lst, "no-header", "yes");
       break;
 
     case 'p':
-      mu_argp_node_list_new (&lst, "form-feeds", "yes");
+      mu_argp_node_list_new (lst, "form-feeds", "yes");
       break;
 	  
     case 'a':
-      mu_argp_node_list_new (&lst, "show-all-match", "yes");
+      mu_argp_node_list_new (lst, "show-all-match", "yes");
       break;
 
     case ARGP_KEY_INIT:
@@ -117,8 +117,8 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
       
     case ARGP_KEY_FINI:
       if (dbug)
-	mu_argp_node_list_new (&lst, "debug", mu_umaxtostr (0, dbug));
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+	mu_argp_node_list_new (lst, "debug", mu_umaxtostr (0, dbug));
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     default:

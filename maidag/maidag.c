@@ -184,32 +184,32 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
 
   switch (key)
     {
     case 'd':
-      mu_argp_node_list_new (&lst, "mode", "daemon");
+      mu_argp_node_list_new (lst, "mode", "daemon");
       if (arg)
-	mu_argp_node_list_new (&lst, "max-children", arg);
+	mu_argp_node_list_new (lst, "max-children", arg);
       break;
 
     case 'i':
-      mu_argp_node_list_new (&lst, "mode", "inetd");
+      mu_argp_node_list_new (lst, "mode", "inetd");
       break;
 
     case FOREGROUND_OPTION:
-      mu_argp_node_list_new (&lst, "foreground", "yes");
+      mu_argp_node_list_new (lst, "foreground", "yes");
       break;
       
     case MESSAGE_ID_HEADER_OPTION:
-      mu_argp_node_list_new (&lst, "message-id-header", arg);
+      mu_argp_node_list_new (lst, "message-id-header", arg);
       break;
 
     case LMTP_OPTION:
-      mu_argp_node_list_new (&lst, "lmtp", "yes");
+      mu_argp_node_list_new (lst, "lmtp", "yes");
       if (arg)
-	mu_argp_node_list_new (&lst, "listen", arg);
+	mu_argp_node_list_new (lst, "listen", arg);
       break;
 
     case 'r':
@@ -242,11 +242,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'x':
-      mu_argp_node_list_new (&lst, "debug", arg ? arg : D_DEFAULT);
+      mu_argp_node_list_new (lst, "debug", arg ? arg : D_DEFAULT);
       break;
 
     case STDERR_OPTION:
-      mu_argp_node_list_new (&lst, "stderr", "yes");
+      mu_argp_node_list_new (lst, "stderr", "yes");
       break;
 
     case URL_OPTION:
@@ -258,7 +258,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, NULL, NULL);
+      mu_argp_node_list_finish (lst, NULL, NULL);
       break;
       
     case ARGP_KEY_ERROR:

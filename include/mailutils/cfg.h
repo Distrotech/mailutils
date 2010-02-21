@@ -70,17 +70,16 @@ struct mu_cfg_locus
 
 struct mu_cfg_node
 {
-  mu_cfg_node_t *next;
   mu_cfg_locus_t locus;
   enum mu_cfg_node_type type;
   char *tag;
   mu_config_value_t *label;
-  mu_cfg_node_t *node;
+  mu_list_t nodes;   /* a list of mu_cfg_node_t */
 };
 
 struct mu_cfg_tree
 {
-  mu_cfg_node_t *head, *tail;
+  mu_list_t nodes;   /* a list of mu_cfg_node_t */
   mu_debug_t debug;
   mu_opool_t pool;
 };
@@ -107,14 +106,16 @@ void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...)
 
 typedef int (*mu_cfg_iter_func_t) (const mu_cfg_node_t *node, void *data);
 
+struct mu_cfg_iter_closure
+{
+  mu_cfg_iter_func_t beg;
+  mu_cfg_iter_func_t end;
+  void *data;
+};
+
 void mu_cfg_destroy_tree (mu_cfg_tree_t **tree);
 
-int mu_cfg_preorder (mu_cfg_node_t *node,
-		     mu_cfg_iter_func_t fun, mu_cfg_iter_func_t endfun,
-		     void *data);
-int mu_cfg_postorder (mu_cfg_node_t *node,
-		      mu_cfg_iter_func_t fun, mu_cfg_iter_func_t endfun,
-		      void *data);
+int mu_cfg_preorder (mu_list_t nodelist, struct mu_cfg_iter_closure *);
 
 
 /* Table-driven parsing */
@@ -227,6 +228,8 @@ int mu_create_canned_section (char *name, struct mu_cfg_section **psection);
 int mu_create_canned_param (char *name, struct mu_cfg_param **pparam);
 struct mu_cfg_cont *mu_get_canned_container (const char *name);
 
+int mu_cfg_create_node_list (mu_list_t *plist);
+  
 int mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
 		      void *target, void *call_data);
 
@@ -300,10 +303,11 @@ mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					const mu_cfg_locus_t *loc,
 					const char *tag,
 					const char *label,
-					mu_cfg_node_t *node);
+					mu_list_t nodelist);
 void mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node);
+void mu_cfg_tree_add_nodelist (mu_cfg_tree_t *tree, mu_list_t nodelist);
 
-int mu_cfg_find_node (mu_cfg_node_t *tree, const char *path,
+int mu_cfg_find_node (mu_cfg_tree_t *tree, const char *path,
 		      mu_cfg_node_t **pnode);
 int mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode);
 

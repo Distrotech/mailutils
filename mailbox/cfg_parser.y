@@ -38,7 +38,7 @@
 #include <mailutils/mutil.h>  
 
 int mu_cfg_parser_verbose;
-static mu_cfg_node_t *parse_head, *parse_tail;
+static mu_list_t /* of mu_cfg_node_t */ parse_node_list; 
 mu_cfg_locus_t mu_cfg_locus;
 size_t mu_cfg_error_count;
 
@@ -75,7 +75,7 @@ config_value_dup (mu_config_value_t *src)
 static mu_cfg_node_t *
 mu_cfg_alloc_node (enum mu_cfg_node_type type, mu_cfg_locus_t *loc,
 		   const char *tag, mu_config_value_t *label,
-		   mu_cfg_node_t *node)
+		   mu_list_t nodelist)
 {
   char *p;
   mu_cfg_node_t *np;
@@ -87,8 +87,7 @@ mu_cfg_alloc_node (enum mu_cfg_node_type type, mu_cfg_locus_t *loc,
   np->tag = p;
   strcpy (p, tag);
   np->label = label;
-  np->node = node;
-  np->next = NULL;
+  np->nodes = nodelist;
   return np;
 }
 
@@ -179,12 +178,44 @@ debug_print_node (mu_cfg_node_t *node)
     }
 }
 
+static void
+free_node_item (void *item)
+{
+  mu_cfg_node_t *node = item;
+
+  switch (node->type)
+    {
+    case mu_cfg_node_statement:
+      mu_list_destroy (&node->nodes);
+      break;
+      
+    case mu_cfg_node_undefined: /* hmm... */
+    case mu_cfg_node_param:
+      break;
+    }
+  mu_cfg_free_node (node);
+}
+
+int
+mu_cfg_create_node_list (mu_list_t *plist)
+{
+  int rc;
+  mu_list_t list;
+
+  rc = mu_list_create (&list);
+  if (rc)
+    return rc;
+  mu_list_set_destroy_item (list, free_node_item);
+  *plist = list;
+  return 0;
+}
+
 %}
 
 %union {
   mu_cfg_node_t node;
   mu_cfg_node_t *pnode;
-  struct { mu_cfg_node_t *head, *tail; } nodelist;
+  mu_list_t /* of mu_cfg_node_t */ nodelist;
   char *string;
   mu_config_value_t value, *pvalue;
   mu_list_t list;
@@ -205,21 +236,19 @@ debug_print_node (mu_cfg_node_t *node)
 
 input   : stmtlist
 	  {
-	    parse_head = $1.head;
-	    parse_tail = $1.tail;
+	    parse_node_list = $1;
 	  }
 	;
 
 stmtlist: stmt
 	  {
-	    $$.head = $$.tail = $1;
-	    debug_print_node ($1);
+	    mu_cfg_create_node_list (&$$);
+	    mu_list_append ($$, $1);
 	  }
 	| stmtlist stmt
 	  {
+	    mu_list_append ($1, $2);
 	    $$ = $1;
-	    $$.tail->next = $2;
-	    $$.tail = $2;
 	    debug_print_node ($2);
 	  }
 	;
@@ -246,8 +275,7 @@ block   : ident tag '{' '}' opt_sc
 	| ident tag '{' stmtlist '}' opt_sc
 	  {
 	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
-				    $1.name, $2,
-				    $4.head);
+				    $1.name, $2, $4);
 
 	  }
 	;
@@ -443,10 +471,9 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
   tree = mu_alloc (sizeof (*tree));
   tree->debug = _mu_cfg_debug;
   _mu_cfg_debug = NULL;
-  tree->head = parse_head;
-  tree->tail = parse_tail;
+  tree->nodes = parse_node_list;
   tree->pool = mu_cfg_lexer_pool ();
-  parse_head = parse_tail = NULL;
+  parse_node_list = NULL;
   *ptree = tree;
   return rc;
 }
@@ -479,12 +506,9 @@ mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb)
     return rc;
     
   /* Link node lists */
-  if (a->tail)
-    a->tail->next = b->head;
-  else
-    a->head = b->head;
-  a->tail = b->tail;
-
+  mu_list_append_list (a->nodes, b->nodes);
+  mu_list_destroy (&b->nodes);
+  
   mu_debug_destroy (&b->debug, mu_debug_get_owner (b->debug));
   free (b);
   *pb = NULL;
@@ -539,11 +563,20 @@ do_include (const char *name, int flags, mu_cfg_locus_t *loc)
 int
 mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags)
 {
-  mu_cfg_node_t *prev, *node;
+  int rc;
+  mu_iterator_t itr;
 
-  for (prev = NULL, node = tree->head; node; )
+  if (!tree->nodes)
+    return 0;
+  rc = mu_list_get_iterator (tree->nodes, &itr);
+  if (rc)
+    return rc;
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
     {
-      mu_cfg_node_t *next = node->next;
+      mu_cfg_node_t *node;
+
+      mu_iterator_current (itr, (void**) &node);
 
       if (node->type == mu_cfg_node_statement)
 	{
@@ -554,180 +587,90 @@ mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags)
 		{
 		  if (strcmp (node->label->v.string, mu_program_name) == 0)
 		    {
-		      mu_cfg_node_t *p;
-		      
 		      /* Move all nodes from this block to the topmost
 			 level */
-		      if (prev)
-			prev->next = node->node;
-		      else
-			tree->head = node->node;
-		      p = node->node;
-		      mu_cfg_free_node (node);
-		      for (node = prev->next; node->next; node = node->next)
-			;
-		      node->next = next;
+		      mu_iterator_ctl (itr, mu_itrctl_insert_list,
+				       node->nodes);
+		      mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
+		      /*FIXME:mu_cfg_free_node (node);*/
 		    }
 		}
 	      else
 		{
 		  mu_cfg_perror (tree->debug, &node->locus,
 				 _("argument to `program' is not a string"));
-		  if (prev)
-		    prev->next = next;
-		  else
-		    tree->head = next;
-		  mu_cfg_free_node (node);
+		  mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
 		}
 	    }
 	}
       else if (node->type == mu_cfg_node_param &&
 	       strcmp (node->tag, "include") == 0)
 	{
-	  /* Remove node from the list */
-	  if (prev)
-	    prev->next = next;
-	  else
-	    tree->head = next;
-	      
 	  if (node->label->type == MU_CFG_STRING)
 	    {
 	      mu_cfg_tree_t *t = do_include (node->label->v.string, flags,
 					     &node->locus);
 	      if (t)
 		{
-		  if (prev)
-		    prev->next = t->head;
-		  else
-		    tree->head = t->head;
-		  
-		  t->tail->next = next;
-		  
-		  /* FIXME: check return value */
+		  /* Merge the new tree into the current point and
+		     destroy the rest of it */
+		  mu_iterator_ctl (itr, mu_itrctl_insert_list, t->nodes);
 		  mu_opool_union (&tree->pool, &t->pool);
-		  mu_debug_destroy (&t->debug, NULL);
-		  free (t);
+		  mu_cfg_destroy_tree (&t);
 		}		      
 	    }
 	  else
 	    mu_cfg_perror (tree->debug, &node->locus,
 			   _("argument to `include' is not a string"));
-	  mu_cfg_free_node (node);
+	  /* Remove node from the list */
+	  mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
 	}
-	  
-      prev = node;
-      node = next;
     }
   return 0;
 }
 
 static int
-_mu_cfg_preorder_recursive (mu_cfg_node_t *node,
-			    mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end,
-			    void *data)
+_mu_cfg_preorder_recursive (void *item, void *cbdata)
 {
+  mu_cfg_node_t *node = item;
+  struct mu_cfg_iter_closure *clos = cbdata;
+
   switch (node->type)
     {
     case mu_cfg_node_undefined:
       abort ();
 
     case mu_cfg_node_statement:
-      switch (beg (node, data))
+      switch (clos->beg (node, clos->data))
 	{
 	case MU_CFG_ITER_OK:
-	  if (mu_cfg_preorder (node->node, beg, end, data))
-	    return MU_CFG_ITER_STOP;
-	  if (end && end (node, data) == MU_CFG_ITER_STOP)
-	    return MU_CFG_ITER_STOP;
+	  if (mu_cfg_preorder (node->nodes, clos))
+	    return 1;
+	  if (clos->end && clos->end (node, clos->data) == MU_CFG_ITER_STOP)
+	    return 1;
 	  break;
 
 	case MU_CFG_ITER_SKIP:
 	  break;
 
 	case MU_CFG_ITER_STOP:
-	  return MU_CFG_ITER_STOP;
+	  return 1;
 	}
       break;
 
     case mu_cfg_node_param:
-      return beg (node, data);
-    }
-  return MU_CFG_ITER_OK;
-}
-
-int
-mu_cfg_preorder(mu_cfg_node_t *node,
-		mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end, void *data)
-{
-  for (; node; node = node->next)
-    if (_mu_cfg_preorder_recursive(node, beg, end, data)  == MU_CFG_ITER_STOP)
-      return 1;
-  return 0;
-}
-
-static int
-_mu_cfg_postorder_recursive(mu_cfg_node_t *node,
-			    mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end,
-			    void *data)
-{
-  switch (node->type)
-    {
-    case mu_cfg_node_undefined:
-      abort ();
-
-    case mu_cfg_node_statement:
-      switch (beg (node, data))
-	{
-	case MU_CFG_ITER_OK:
-	  if (mu_cfg_postorder (node->node, beg, end, data))
-	    return MU_CFG_ITER_STOP;
-	  if (end && end (node, data) == MU_CFG_ITER_STOP)
-	    return MU_CFG_ITER_STOP;
-	  break;
-
-	case MU_CFG_ITER_SKIP:
-	  break;
-
-	case MU_CFG_ITER_STOP:
-	  return MU_CFG_ITER_STOP;
-	}
-      break;
-
-    case mu_cfg_node_param:
-      return beg (node, data);
+      return clos->beg (node, clos->data) == MU_CFG_ITER_STOP;
     }
   return 0;
 }
 
 int
-mu_cfg_postorder (mu_cfg_node_t *node,
-		  mu_cfg_iter_func_t beg, mu_cfg_iter_func_t end, void *data)
+mu_cfg_preorder (mu_list_t nodelist, struct mu_cfg_iter_closure *clos)
 {
-  if (!node)
-    return 1;
-  if (node->next
-      && mu_cfg_postorder (node->next, beg, end, data) == MU_CFG_ITER_STOP)
-    return 1;
-  return _mu_cfg_postorder_recursive (node, beg, end, data)
-		== MU_CFG_ITER_STOP;
+  return mu_list_do (nodelist, _mu_cfg_preorder_recursive, clos);
 }
 
 
-static int
-free_section (const mu_cfg_node_t *node, void *data)
-{
-  if (node->type == mu_cfg_node_statement)
-    free ((void *) node);
-  return MU_CFG_ITER_OK;
-}
-
-static int
-free_param (const mu_cfg_node_t *node, void *data)
-{
-  if (node->type == mu_cfg_node_param)
-    free ((void*) node);
-  return MU_CFG_ITER_OK;
-}
 
 void
 mu_cfg_destroy_tree (mu_cfg_tree_t **ptree)
@@ -735,7 +678,7 @@ mu_cfg_destroy_tree (mu_cfg_tree_t **ptree)
   if (ptree && *ptree)
     {
       mu_cfg_tree_t *tree = *ptree;
-      mu_cfg_postorder (tree->head, free_param, free_section, NULL);
+      mu_list_destroy (&tree->nodes);
       mu_opool_destroy (&tree->pool);
       *ptree = NULL;
     }
@@ -1423,11 +1366,14 @@ mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
 {
   mu_debug_t debug = NULL;
   struct scan_tree_data dat;
+  struct mu_cfg_iter_closure clos;
+    
   dat.tree = tree;
   dat.list = NULL;
   dat.error = 0;
   dat.call_data = data;
   dat.target = target;
+  
   if (!tree->debug)
     {
       mu_diag_get_debug (&debug);
@@ -1435,7 +1381,10 @@ mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
     }
   if (push_section (&dat, sections))
     return 1;
-  mu_cfg_preorder (tree->head, _scan_tree_helper, _scan_tree_end_helper, &dat);
+  clos.beg = _scan_tree_helper;
+  clos.end = _scan_tree_end_helper;
+  clos.data = &dat;
+  mu_cfg_preorder (tree->nodes, &clos);
   if (debug)
     {
       mu_debug_set_locus (debug, NULL, 0);
@@ -1501,7 +1450,7 @@ mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 			 enum mu_cfg_node_type type,
 			 const mu_cfg_locus_t *loc,
 			 const char *tag, const char *label,
-			 mu_cfg_node_t *node)
+			 mu_list_t nodelist)
 {
   char *p;
   mu_cfg_node_t *np;
@@ -1528,24 +1477,32 @@ mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
     }
   else
     np->label = NULL;
-  np->node = node;
-  np->next = NULL;
+  np->nodes = nodelist;
   return np;
 }
 
 void
 mu_cfg_tree_add_node (mu_cfg_tree_t *tree, mu_cfg_node_t *node)
 {
-  if (!tree->head)
-    tree->head = node;
-  else
-    {
-      mu_cfg_node_t *p;
-      for (p = tree->head; p->next; p = p->next)
-	;
-      p->next = node;
-    }
+  if (!node)
+    return;
+  if (!tree->nodes)
+    /* FIXME: return code? */
+    mu_cfg_create_node_list (&tree->nodes);
+  mu_list_append (tree->nodes, node);
 }
+
+void
+mu_cfg_tree_add_nodelist (mu_cfg_tree_t *tree, mu_list_t nodelist)
+{
+  if (!nodelist)
+    return;
+  if (!tree->nodes)
+    /* FIXME: return code? */
+    mu_cfg_create_node_list (&tree->nodes);
+  mu_list_append_list (tree->nodes, nodelist);
+}
+
 
 /* Return 1 if configuration value A equals B */
 int
@@ -1740,10 +1697,11 @@ node_finder (const mu_cfg_node_t *node, void *data)
 }
 
 int	    
-mu_cfg_find_node (mu_cfg_node_t *tree, const char *path, mu_cfg_node_t **pval)
+mu_cfg_find_node (mu_cfg_tree_t *tree, const char *path, mu_cfg_node_t **pval)
 {
   int rc;
   struct find_data data;
+  struct mu_cfg_iter_closure clos;
 
   rc = mu_argcv_get_np (path, strlen (path),
 			MU_CFG_PATH_DELIM_STR, NULL,
@@ -1752,7 +1710,11 @@ mu_cfg_find_node (mu_cfg_node_t *tree, const char *path, mu_cfg_node_t **pval)
     return rc;
   data.tag = 0;
   parse_tag (&data);
-  rc = mu_cfg_preorder (tree, node_finder, NULL, &data);
+
+  clos.beg = node_finder;
+  clos.end = NULL;
+  clos.data = &data;
+  rc = mu_cfg_preorder (tree->nodes, &clos);
   destroy_value (data.label);
   if (rc)
     {
@@ -1784,6 +1746,7 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
 
   for (i = argc - 1; i >= 0; i--)
     {
+      mu_list_t nodelist = NULL;
       char *p = strrchr (argv[i], '=');
       mu_config_value_t *label = NULL;
 
@@ -1795,8 +1758,13 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
 	  if (i == argc - 1)
 	    type = mu_cfg_node_param;
 	}
-      
-      node = mu_cfg_alloc_node (type, &locus, argv[i], label, node);
+
+      if (node)
+	{
+	  mu_cfg_create_node_list (&nodelist);
+	  mu_list_append (nodelist, node);
+	}
+      node = mu_cfg_alloc_node (type, &locus, argv[i], label, nodelist);
     }
 
   mu_argcv_free (argc, argv);

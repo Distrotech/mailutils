@@ -186,13 +186,18 @@ format_node_end (const mu_cfg_node_t *node, void *data)
 void
 mu_cfg_format_parse_tree (mu_stream_t stream, mu_cfg_tree_t *tree, int flags)
 {
+  struct mu_cfg_iter_closure clos;
   struct tree_print t;
+
   t.flags = flags;
   t.level = 0;
   t.stream = stream;
   t.buf = NULL;
   t.bufsize = 0;
-  mu_cfg_preorder (tree->head, format_node, format_node_end, &t);
+  clos.beg = format_node;
+  clos.end = format_node_end;
+  clos.data = &t;
+  mu_cfg_preorder (tree->nodes, &clos);
   free (t.buf);
 }
 
@@ -200,6 +205,7 @@ void
 mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
 {
   struct tree_print t;
+  
   t.flags = flags;
   t.level = 0;
   t.stream = stream;
@@ -208,7 +214,11 @@ mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
   format_node (node, &t);
   if (node->type == mu_cfg_node_statement)
     {
-      mu_cfg_preorder (node->node, format_node, format_node_end, &t);
+      struct mu_cfg_iter_closure clos;
+      clos.beg = format_node;
+      clos.end = format_node_end;
+      clos.data = &t;
+      mu_cfg_preorder (node->nodes, &clos);
       format_node_end (node, &t);
     }
 }

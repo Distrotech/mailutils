@@ -56,53 +56,57 @@ mu_libargp_init ()
 }
 
 void
-mu_argp_node_list_init (struct mu_argp_node_list *lst)
+mu_argp_node_list_init (mu_list_t *plist)
 {
-  lst->count = 0;
-  lst->head = lst->tail = NULL;
+  int rc = mu_cfg_create_node_list (plist);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_cfg_create_node_list", NULL, rc);
+      abort ();
+    }
 }
 
 void
-mu_argp_node_list_add (struct mu_argp_node_list *lst,  mu_cfg_node_t *node)
+mu_argp_node_list_add (mu_list_t lst, mu_cfg_node_t *node)
 {
-  lst->count++;
-  if (lst->tail)
-    lst->tail->next = node;
-  else
-    lst->head = node;
-  lst->tail = node;
+  int rc = mu_list_append (lst, node);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", NULL, rc);
+      abort ();
+    }
 }
 		   
 void
-mu_argp_node_list_new (struct mu_argp_node_list *lst,
-		       const char *tag, const char *label)
+mu_argp_node_list_new (mu_list_t lst, const char *tag, const char *label)
 {
   mu_cfg_node_t *node;
   mu_cfg_locus_t loc = { "command line", 0 };
 
-  loc.line = lst->count;
+  mu_list_count (lst, &loc.line);
   node = mu_cfg_tree_create_node (mu_argp_tree, mu_cfg_node_param,
 				  &loc, tag, label, NULL);
   mu_argp_node_list_add (lst, node);
 }
 
 void
-mu_argp_node_list_finish (struct mu_argp_node_list *lst, char *tag,
-			  char *label)
+mu_argp_node_list_finish (mu_list_t lst, char *tag, char *label)
 {
-  mu_cfg_node_t *node;
-
-  if (!lst->head)
+  if (mu_list_is_empty (lst))
     return;
   if (tag)
-    node = mu_cfg_tree_create_node (mu_argp_tree,
-				    mu_cfg_node_statement,
-				    NULL,
-				    tag, label,
-				    lst->head);
+    {
+      mu_cfg_node_t *node = mu_cfg_tree_create_node (mu_argp_tree,
+						     mu_cfg_node_statement,
+						     NULL,
+						     tag, label,
+						     lst);
+      mu_cfg_tree_add_node (mu_argp_tree, node);
+    }
   else
-    node = lst->head;
-  mu_cfg_tree_add_node (mu_argp_tree, node);
-  mu_argp_node_list_init (lst);
+    {
+      mu_cfg_tree_add_nodelist (mu_argp_tree, lst);
+      mu_list_destroy (&lst);
+    }
 }
 

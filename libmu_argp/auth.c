@@ -68,7 +68,7 @@ auth_set_debug ()
 static error_t
 mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
 {
-  static struct mu_argp_node_list lst;
+  static mu_list_t lst;
   
   switch (key)
     {
@@ -77,7 +77,7 @@ mu_auth_argp_parser (int key, char *arg, struct argp_state *state)
       break;
       
     case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (&lst, "auth", NULL);
+      mu_argp_node_list_finish (lst, "auth", NULL);
       break;
 
     case OPT_DEBUG_AUTH:
