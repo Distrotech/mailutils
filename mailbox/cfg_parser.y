@@ -506,8 +506,11 @@ mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb)
     return rc;
     
   /* Link node lists */
-  mu_list_append_list (a->nodes, b->nodes);
-  mu_list_destroy (&b->nodes);
+  if (b->nodes)
+    {
+      mu_list_append_list (a->nodes, b->nodes);
+      mu_list_destroy (&b->nodes);
+    }
   
   mu_debug_destroy (&b->debug, mu_debug_get_owner (b->debug));
   free (b);
