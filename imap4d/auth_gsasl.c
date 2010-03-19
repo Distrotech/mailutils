@@ -86,7 +86,7 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
   if (rc != GSASL_OK)
     {
       mu_diag_output (MU_DIAG_NOTICE, _("SASL gsasl_server_start: %s"),
-	      gsasl_strerror(rc));
+ 	              gsasl_strerror (rc));
       return 0;
     }
 
@@ -100,11 +100,11 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
       imap4d_getline (&input_str, &input_size, &input_len);
     }
   
-  free (input_str);
   if (rc != GSASL_OK)
     {
       mu_diag_output (MU_DIAG_NOTICE, _("GSASL error: %s"),
 		      gsasl_strerror (rc));
+      free (input_str);
       free (output);
       return RESP_NO;
     }
@@ -118,10 +118,13 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
       if (input_len != 0)
 	{
 	  mu_diag_output (MU_DIAG_NOTICE, _("non-empty client response"));
+          free (input_str);
+          free (output);
 	  return RESP_NO;
 	}
     }
 
+  free (input_str);
   free (output);
 
   if (*username == NULL)
