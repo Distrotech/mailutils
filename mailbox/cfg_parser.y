@@ -459,22 +459,28 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
 {
   int rc;
   mu_cfg_tree_t *tree;
-
+  mu_opool_t pool;
+  
   mu_cfg_set_debug ();
-
   _mu_cfg_errcnt = 0;
-  rc = yyparse ();
-  if (rc == 0 && _mu_cfg_errcnt)
-    rc = 1;
-  /* FIXME if (rc) free_memory; else */
 
-  tree = mu_alloc (sizeof (*tree));
-  tree->debug = _mu_cfg_debug;
-  _mu_cfg_debug = NULL;
-  tree->nodes = parse_node_list;
-  tree->pool = mu_cfg_lexer_pool ();
-  parse_node_list = NULL;
-  *ptree = tree;
+  rc = yyparse ();
+  pool = mu_cfg_lexer_pool ();
+  if (rc == 0 && _mu_cfg_errcnt)
+    {
+      mu_opool_destroy (&pool);
+      rc = 1;
+    }
+  else
+    {
+      tree = mu_alloc (sizeof (*tree));
+      tree->debug = _mu_cfg_debug;
+      _mu_cfg_debug = NULL;
+      tree->nodes = parse_node_list;
+      tree->pool = pool;
+      parse_node_list = NULL;
+      *ptree = tree;
+    }
   return rc;
 }
 
@@ -544,6 +550,7 @@ do_include (const char *name, int flags, mu_cfg_locus_t *loc)
 	    {
 	      char *file = mu_make_file_name (name, mu_program_name);
 	      rc = mu_cfg_parse_file (&tree, file, flags);
+	      free (file);
 	    }
 	}
       else

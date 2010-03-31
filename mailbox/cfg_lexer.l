@@ -323,34 +323,47 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   struct stat st;
   FILE *fp;
   int rc;
-  
-  if (stat (file, &st))
+  char *full_name = mu_tilde_expansion (file, "/", NULL);
+
+  if (stat (full_name, &st))
     {
       if (errno != ENOENT)
-	mu_error (_("cannot stat `%s': %s"), file, mu_strerror (errno));
+	mu_error (_("cannot stat `%s': %s"), full_name, mu_strerror (errno));
+      free (full_name);
       return ENOENT;
     }
-  fp = fopen (file, "r");
+  fp = fopen (full_name, "r");
   if (!fp)
     {
-      mu_error (_("cannot open config file `%s': %s"), file,
+      mu_error (_("cannot open config file `%s': %s"), full_name,
 		mu_strerror (errno));
+      free (full_name);
       return errno;
     }
 
   if (flags & MU_PARSE_CONFIG_VERBOSE)
-    mu_diag_output (MU_DIAG_INFO, _("parsing file `%s'"), file);
+    mu_diag_output (MU_DIAG_INFO, _("parsing file `%s'"), full_name);
 
   mu_cfg_set_lex_debug ();
+
+  /* Initialize locus: */
+  /* 1. Save file name in the lexer object pool and point `file' member
+     to this copy. Free full_name: it is not used after that. */
+  _mu_line_begin ();
+  _mu_line_add (full_name, strlen (full_name));
+  mu_cfg_locus.file = _mu_line_finish ();
+  free (full_name); 
+  /* 2. Initialize line number */
+  mu_cfg_locus.line = 1;
   
   /* Parse configuration */
-  mu_cfg_locus.file = (char*) file;
-  mu_cfg_locus.line = 1;
   yyrestart (fp);
   rc = mu_cfg_parse (return_tree);
   fclose (fp);
   if (flags & MU_PARSE_CONFIG_VERBOSE)
-    mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"), file);
+    mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"),
+		    mu_cfg_locus.file);
+
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }
 
@@ -367,9 +380,8 @@ mu_get_config (const char *file, const char *progname,
       if (rc == 0)
 	rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
 				 target_ptr);
+      mu_cfg_destroy_tree (&parse_tree);
     }
-
-  mu_cfg_destroy_tree (&parse_tree);
 
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }
