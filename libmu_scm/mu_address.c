@@ -66,7 +66,7 @@ _get_address_part (const char *func_name, address_get_fp fun,
   mu_address_destroy (&addr);
 
   if (status == 0)
-    ret = scm_makfrom0str (str);
+    ret = scm_from_locale_string (str);
   else
     {
       free (str);
@@ -150,7 +150,7 @@ SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 
   mu_address_get_count (addr, &count);
   mu_address_destroy (&addr);
-  return mu_scm_makenum (count);
+  return scm_from_size_t (count);
 }
 #undef FUNC_NAME
 
@@ -179,7 +179,7 @@ SCM_DEFINE (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
 		  "Cannot get user email for ~A",
 		  scm_list_1 (NAME));
 
-  ret = scm_makfrom0str (email);
+  ret = scm_from_locale_string (email);
   free (email);
   return ret;
 }

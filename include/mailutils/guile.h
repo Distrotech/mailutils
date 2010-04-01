@@ -43,8 +43,7 @@ extern "C" {
 
 void mu_scm_error (const char *func_name, int status,
 		   const char *fmt, SCM args);
-extern SCM mu_scm_makenum (unsigned long val);
-extern void mu_set_variable (const char *name, SCM value);
+
 extern void mu_scm_init (void);
 
 extern void mu_scm_mailbox_init (void);

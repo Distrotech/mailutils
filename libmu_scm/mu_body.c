@@ -19,7 +19,7 @@
 
 #include "mu_scm.h"
 
-long body_tag;
+static scm_t_bits body_tag;
 
 struct mu_body
 {
@@ -159,7 +159,7 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
   if (nread == 0)
     return SCM_EOF_VAL;
 
-  return scm_makfrom0str (mbp->buffer);
+  return scm_from_locale_string (mbp->buffer);
 }
 #undef FUNC_NAME
 

@@ -131,7 +131,7 @@ load_path_handler (void *data)
   struct load_closure *lp = data;
 
   scm_set_program_arguments (lp->argc, lp->argv, (char*)lp->filename);
-  scm_primitive_load (scm_makfrom0str (lp->filename));
+  scm_primitive_load (scm_from_locale_string (lp->filename));
   return SCM_UNDEFINED;
 }
 

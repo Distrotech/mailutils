@@ -19,7 +19,7 @@
 
 #include "mu_scm.h"
 
-long mailbox_tag;
+static scm_t_bits mailbox_tag;
 
 /* NOTE: Maybe will have to add some more members. That's why it is a
    struct, not just a typedef mu_mailbox_t */
@@ -160,7 +160,7 @@ SCM_DEFINE (scm_mu_user_mailbox_url, "mu-user-mailbox-url", 1, 0, 0,
     mu_scm_error (FUNC_NAME, rc,
 		  "Cannot construct mailbox URL for ~A",
 		  scm_list_1 (USER));
-  ret = scm_makfrom0str (p);
+  ret = scm_from_locale_string (p);
   free (p);
   return ret;
 }
@@ -175,13 +175,13 @@ SCM_DEFINE (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
   if (!SCM_UNBNDP (URL))
     {
       char *s;
-      
+
       SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
       s = scm_to_locale_string (URL);
       mu_set_folder_directory (s);
       free (s);
     }
-  return scm_makfrom0str (mu_folder_directory ());
+  return scm_from_locale_string (mu_folder_directory ());
 }
 #undef FUNC_NAME 
 
@@ -288,7 +288,7 @@ SCM_DEFINE (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
                   "Cannot get mailbox url",
                   SCM_BOOL_F);
 
-  return scm_makfrom0str (mu_url_to_string (url));
+  return scm_from_locale_string (mu_url_to_string (url));
 }
 #undef FUNC_NAME
 
@@ -364,7 +364,7 @@ SCM_DEFINE (scm_mu_mailbox_messages_count, "mu-mailbox-messages-count", 1, 0, 0,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot count messages in mailbox ~A",
 		  scm_list_1 (MBOX));
-  return mu_scm_makenum (nmesg);
+  return scm_from_size_t (nmesg);
 }
 #undef FUNC_NAME
 

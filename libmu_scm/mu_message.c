@@ -19,7 +19,7 @@
 
 #include "mu_scm.h"
 
-long message_tag;
+static scm_t_bits message_tag;
 
 struct mu_message
 {
@@ -147,13 +147,13 @@ mu_scm_message_add_owner (SCM MESG, SCM owner)
   struct mu_message *mum = (struct mu_message *) SCM_CDR (MESG);
   SCM cell;
 
-  if (SCM_IMP (mum->mbox) && SCM_BOOLP (mum->mbox))
+  if (scm_is_bool (mum->mbox))
     {
       mum->mbox = owner;
       return;
     }
   
-  if (SCM_NIMP (mum->mbox) && SCM_CONSP (mum->mbox))
+  if (scm_is_pair (mum->mbox))
     cell = scm_cons (owner, mum->mbox);
   else
     cell = scm_cons (owner, scm_cons (mum->mbox, SCM_EOL));
@@ -281,7 +281,7 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (scm_is_string (HEADER), HEADER, SCM_ARG2, FUNC_NAME);
 
-  if (SCM_IMP (VALUE) && SCM_BOOLP (VALUE))
+  if (scm_is_bool (VALUE))
     return SCM_UNSPECIFIED;
   
   SCM_ASSERT (scm_is_string (VALUE), VALUE, SCM_ARG2, FUNC_NAME);
@@ -317,10 +317,11 @@ SCM_DEFINE (scm_mu_message_get_size, "mu-message-get-size", 1, 0, 0,
 {
   mu_message_t msg;
   size_t size;
+  
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   mu_message_size (msg, &size);
-  return mu_scm_makenum (size);
+  return scm_from_size_t (size);
 }
 #undef FUNC_NAME
 
@@ -341,7 +342,7 @@ SCM_DEFINE (scm_mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
 		  "Cannot get number of lines in message ~A",
 		  scm_list_1 (MESG));
 
-  return mu_scm_makenum (lines);
+  return scm_from_size_t (lines);
 }
 #undef FUNC_NAME
 
@@ -426,7 +427,7 @@ SCM_DEFINE (scm_mu_message_get_envelope_date, "mu-message-get-envelope-date", 1,
   status = mu_parse_ctime_date_time (&sdate, &tm, &tz);
   if (status)
     mu_scm_error (FUNC_NAME, status, "invalid envelope date",
-		  scm_list_1 (scm_makfrom0str (sdate)));
+		  scm_list_1 (scm_from_locale_string (sdate)));
   return filltime (&tm, tz.utc_offset, tz.tz_name);  
 }
 #undef FUNC_NAME
@@ -447,7 +448,7 @@ SCM_DEFINE (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
   if (status == 0)
     {
       char *p = _get_envelope_sender (env);
-      ret = scm_makfrom0str (p);
+      ret = scm_from_locale_string (p);
       free (p);
     }
   else
@@ -484,7 +485,7 @@ SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
   switch (status)
     {
     case 0:
-      ret = scm_makfrom0str (value);
+      ret = scm_from_locale_string (value);
       free (value);
       break;
       
@@ -533,8 +534,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
   msg = mu_scm_message_get (MESG);
   if (!SCM_UNBNDP (HEADERS))
     {
-      SCM_ASSERT (SCM_NIMP (HEADERS) && SCM_CONSP (HEADERS),
-		  HEADERS, SCM_ARG2, FUNC_NAME);
+      SCM_ASSERT (scm_is_pair (HEADERS), HEADERS, SCM_ARG2, FUNC_NAME);
       headers = HEADERS;
     }
 
@@ -558,7 +558,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
 		      "Cannot get header field ~A, message ~A",
 		      scm_list_2 (scm_from_size_t (i), MESG));
       
-      if (headers != SCM_EOL && string_sloppy_member (headers, name) == 0)
+      if (!scm_is_null (headers) && string_sloppy_member (headers, name) == 0)
 	continue;
       status = mu_header_aget_field_value (hdr, i, &value);
       if (status)
@@ -566,12 +566,12 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
 		      "Cannot get header value ~A, message ~A",
 		      scm_list_2 (scm_from_size_t (i), MESG));
 
-      scm_name = scm_makfrom0str (name);
-      scm_value = scm_makfrom0str (value);
+      scm_name = scm_from_locale_string (name);
+      scm_value = scm_from_locale_string (value);
 
       scm_new = scm_cons (scm_cons (scm_name, scm_value), SCM_EOL);
       
-      if (scm_first == SCM_EOL)
+      if (scm_is_null (scm_first))
 	scm_first = scm_last = scm_new;
       else
 	{
@@ -601,13 +601,11 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
   
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
-  SCM_ASSERT (((SCM_IMP (LIST) && SCM_EOL == LIST) ||
-	       (SCM_NIMP (LIST) && SCM_CONSP (LIST))),
+  SCM_ASSERT (scm_is_null (LIST) || scm_is_pair (LIST),
 	      LIST, SCM_ARG2, FUNC_NAME);
   if (!SCM_UNBNDP (REPLACE))
     {
-      SCM_ASSERT (SCM_IMP (REPLACE) && SCM_BOOLP (REPLACE),
-		  REPLACE, SCM_ARG3, FUNC_NAME);
+      SCM_ASSERT (scm_is_bool (REPLACE), REPLACE, SCM_ARG3, FUNC_NAME);
       replace = REPLACE == SCM_BOOL_T;
     }
 
@@ -616,14 +614,13 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get message headers", SCM_BOOL_F);
 
-  for (list = LIST; list != SCM_EOL; list = SCM_CDR (list))
+  for (list = LIST; !scm_is_null (list); list = SCM_CDR (list))
     {
       SCM cell = SCM_CAR (list);
       SCM car, cdr;
       char *hdr_c, *val_c;
       
-      SCM_ASSERT (SCM_NIMP (cell) && SCM_CONSP (cell),
-		  cell, SCM_ARGn, FUNC_NAME);
+      SCM_ASSERT (scm_is_pair (cell), cell, SCM_ARGn, FUNC_NAME);
       car = SCM_CAR (cell);
       cdr = SCM_CDR (cell);
       SCM_ASSERT (scm_is_string (car), car, SCM_ARGn, FUNC_NAME);
@@ -659,8 +656,7 @@ SCM_DEFINE (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
   msg = mu_scm_message_get (MESG);
   if (!SCM_UNBNDP (FLAG))
     {
-      SCM_ASSERT (SCM_IMP (FLAG) && SCM_BOOLP (FLAG),
-		  FLAG, SCM_ARG2, FUNC_NAME);
+      SCM_ASSERT (scm_is_bool (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
       delete = FLAG == SCM_BOOL_T;
     }
   status = mu_message_get_attribute (msg, &attr);
@@ -759,8 +755,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
 
   if (!SCM_UNBNDP (VALUE))
     {
-      SCM_ASSERT (SCM_IMP (VALUE) && SCM_BOOLP (VALUE),
-		  VALUE, SCM_ARG3, FUNC_NAME);
+      SCM_ASSERT (scm_is_bool (VALUE), VALUE, SCM_ARG3, FUNC_NAME);
       value = VALUE == SCM_BOOL_T;
     }
   
@@ -880,8 +875,7 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 
   if (!SCM_UNBNDP (VALUE))
     {
-      SCM_ASSERT (SCM_IMP (VALUE) && SCM_BOOLP (VALUE),
-		  VALUE, SCM_ARG3, FUNC_NAME);
+      SCM_ASSERT (scm_is_bool (VALUE), VALUE, SCM_ARG3, FUNC_NAME);
       set = VALUE == SCM_BOOL_T;
     }
   
@@ -922,8 +916,7 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
 
   if (!SCM_UNBNDP (FULL))
     {
-      SCM_ASSERT (SCM_IMP (FULL) && SCM_BOOLP (FULL),
-		  FULL, SCM_ARG3, FUNC_NAME);
+      SCM_ASSERT (scm_is_bool (FULL), FULL, SCM_ARG3, FUNC_NAME);
       if (FULL == SCM_BOOL_T)
 	{
 	  status = mu_message_get_stream (msg, &stream);
@@ -1010,7 +1003,7 @@ SCM_DEFINE (scm_mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get number of parts in the message ~A",
 		  scm_list_1 (MESG));
-  return mu_scm_makenum (nparts);
+  return scm_from_size_t (nparts);
 }
 #undef FUNC_NAME
 

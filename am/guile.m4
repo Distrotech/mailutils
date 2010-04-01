@@ -62,7 +62,8 @@ AC_DEFUN([MU_CHECK_GUILE],
     GUILE_VERSION=
     GUILE_VERSION_NUMBER=
     m4_if($3,,[AC_MSG_ERROR(required library libguile not found)], [$3])
-  else    
+  else
+    AC_CHECK_TYPES([scm_t_off],[],[],[#include <libguile.h>])
     AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION",
                        [Guile version number])
     AC_DEFINE_UNQUOTED(GUILE_VERSION_NUMBER, $GUILE_VERSION_NUMBER,

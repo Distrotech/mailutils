@@ -29,34 +29,9 @@ mu_scm_error (const char *func_name, int status,
 {
   scm_error_scm (scm_from_locale_symbol ("mailutils-error"),
 		 func_name ? scm_from_locale_string (func_name) : SCM_BOOL_F,
-		 scm_makfrom0str (fmt),
+		 scm_from_locale_string (fmt),
 		 args,
 		 scm_list_1 (scm_from_int (status)));
-}
-
-SCM
-mu_scm_makenum (unsigned long val)
-#ifndef HAVE_SCM_LONG2NUM
-{
-  if (SCM_FIXABLE ((long) val))
-    return scm_from_int (val);
-
-#ifdef SCM_BIGDIG
-  return scm_long2big (val);
-#else /* SCM_BIGDIG */
-  return scm_make_real ((double) val);
-#endif /* SCM_BIGDIG */
-}
-#else
-{
-  return scm_long2num (val);
-}
-#endif
-
-void
-mu_set_variable (const char *name, SCM value)
-{
-  scm_c_define (name, value);
 }
 
 SCM _mu_scm_package_string; /* STRING: PACKAGE_STRING */
@@ -133,7 +108,7 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 {
   int status;
 
-  if (REST == SCM_EOL)
+  if (scm_is_null (REST))
     {
       status = register_format (NULL);
       if (status)
@@ -143,7 +118,7 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
     }
   else
     {
-      for (; REST != SCM_EOL; REST = SCM_CDR (REST))
+      for (; !scm_is_null (REST); REST = SCM_CDR (REST))
 	{
 	  char *s;
 	  SCM scm = SCM_CAR (REST);
@@ -168,7 +143,7 @@ SCM_DEFINE (scm_mu_strerror, "mu-strerror", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_strerror
 {
   SCM_ASSERT (scm_is_integer (ERR), ERR, SCM_ARG1, FUNC_NAME);
-  return scm_makfrom0str (mu_strerror (scm_to_int (ERR)));
+  return scm_from_locale_string (mu_strerror (scm_to_int (ERR)));
 }
 #undef FUNC_NAME
 
@@ -194,20 +169,20 @@ mu_scm_init ()
 {
   int i;
 
-  _mu_scm_mailer = scm_makfrom0str ("sendmail:" PATH_SENDMAIL);
-  mu_set_variable ("mu-mailer", _mu_scm_mailer);
+  _mu_scm_mailer = scm_from_locale_string ("sendmail:" PATH_SENDMAIL);
+  scm_c_define ("mu-mailer", _mu_scm_mailer);
 
-  _mu_scm_debug = mu_scm_makenum(0);
-  mu_set_variable ("mu-debug", _mu_scm_debug);
+  _mu_scm_debug = scm_from_int (0);
+  scm_c_define ("mu-debug", _mu_scm_debug);
 
-  _mu_scm_package = scm_makfrom0str (PACKAGE);
-  mu_set_variable ("mu-package", _mu_scm_package);
+  _mu_scm_package = scm_from_locale_string (PACKAGE);
+  scm_c_define ("mu-package", _mu_scm_package);
 
-  _mu_scm_version = scm_makfrom0str (VERSION);
-  mu_set_variable ("mu-version", _mu_scm_version);
+  _mu_scm_version = scm_from_locale_string (VERSION);
+  scm_c_define ("mu-version", _mu_scm_version);
 
-  _mu_scm_package_string = scm_makfrom0str (PACKAGE_STRING);
-  mu_set_variable ("mu-package-string", _mu_scm_package_string);
+  _mu_scm_package_string = scm_from_locale_string (PACKAGE_STRING);
+  scm_c_define ("mu-package-string", _mu_scm_package_string);
 
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)

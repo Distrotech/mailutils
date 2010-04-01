@@ -19,7 +19,7 @@
 
 #include "mu_scm.h"
 
-long mime_tag;
+static scm_t_bits mime_tag;
 
 struct mu_mime
 {
@@ -101,7 +101,7 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
   int flags;
   int status;
   
-  if (SCM_IMP (FLAGS) && SCM_BOOLP (FLAGS))
+  if (scm_is_bool (FLAGS))
     {
       /*if (FLAGS == SCM_BOOL_F)*/
       flags = 0;
@@ -152,7 +152,7 @@ SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot count MIME parts", SCM_BOOL_F);
-  return mu_scm_makenum (nparts);
+  return scm_from_size_t (nparts);
 }
 #undef FUNC_NAME
 

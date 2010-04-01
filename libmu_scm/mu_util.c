@@ -56,20 +56,14 @@ SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
     mu_scm_error (FUNC_NAME, errno,
 		  "Cannot get user credentials", SCM_BOOL_F);
 
-  ve[0] = scm_makfrom0str (entry->name);
-  ve[1] = scm_makfrom0str (entry->passwd);
-  ve[2] = scm_ulong2num ((unsigned long) entry->uid);
-  ve[3] = scm_ulong2num ((unsigned long) entry->gid);
-  ve[4] = scm_makfrom0str (entry->gecos);
-  if (!entry->dir)
-    ve[5] = scm_makfrom0str ("");
-  else
-    ve[5] = scm_makfrom0str (entry->dir);
-  if (!entry->shell)
-    ve[6] = scm_makfrom0str ("");
-  else
-    ve[6] = scm_makfrom0str (entry->shell);
-  ve[7] = scm_makfrom0str (entry->mailbox);
+  ve[0] = scm_from_locale_string (entry->name);
+  ve[1] = scm_from_locale_string (entry->passwd);
+  ve[2] = scm_from_ulong ((unsigned long) entry->uid);
+  ve[3] = scm_from_ulong ((unsigned long) entry->gid);
+  ve[4] = scm_from_locale_string (entry->gecos);
+  ve[5] = scm_from_locale_string (entry->dir ? entry->dir : "");
+  ve[6] = scm_from_locale_string (entry->shell ? entry->shell : "");
+  ve[7] = scm_from_locale_string (entry->mailbox);
 
   scm_array_handle_release (&handle);
   
