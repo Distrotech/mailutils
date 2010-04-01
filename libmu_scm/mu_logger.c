@@ -21,39 +21,22 @@
 
 #include <syslog.h>
 
+static char *log_tag;
+
 SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 	   (SCM IDENT, SCM OPTION, SCM FACILITY),
 "Opens a connection to the system logger for Guile program.\n"
 "IDENT, OPTION and FACILITY have the same meaning as in openlog(3)")
 #define FUNC_NAME s_scm_mu_openlog
 {
-  char *ident, *ident_mem = NULL;
-  int option, facility;
-
-  if (IDENT == SCM_BOOL_F)
-    ident = "libmu_scm";
-  else
-    {
-      SCM_ASSERT (scm_is_string (IDENT), IDENT, SCM_ARG1, FUNC_NAME);
-      ident = ident_mem = scm_to_locale_string (IDENT);
-    }
+  SCM_ASSERT (scm_is_string (IDENT), IDENT, SCM_ARG1, FUNC_NAME);
+  if (log_tag)
+    free (log_tag);
+  log_tag = scm_to_locale_string(IDENT);
 	
-  if (scm_is_integer (OPTION))
-    option = scm_to_int32 (OPTION);
-  else if (SCM_BIGP (OPTION)) 
-    option = (int) scm_i_big2dbl (OPTION);
-  else 
-    SCM_ASSERT (0, OPTION, SCM_ARG2, FUNC_NAME);
-
-  if (scm_is_integer (FACILITY)) 
-    facility = scm_to_int32 (FACILITY);
-  else if (SCM_BIGP (FACILITY)) 
-    facility = (int) scm_i_big2dbl (FACILITY);
-  else
-    SCM_ASSERT (0, FACILITY, SCM_ARG3, FUNC_NAME);
-
-  openlog (ident, option, facility);
-  free (ident_mem);
+  SCM_ASSERT (scm_is_integer (OPTION), OPTION, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (FACILITY), FACILITY, SCM_ARG3, FUNC_NAME);
+  openlog (log_tag, scm_to_int (OPTION), scm_to_int (FACILITY));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -66,18 +49,13 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
   int prio;
   char *str;
 
-  if (PRIO == SCM_BOOL_F) 
-    prio = LOG_INFO;
-  else if (scm_is_integer (PRIO)) 
-    prio = scm_to_int32 (PRIO);
-  else if (SCM_BIGP (PRIO)) 
-    prio = (int) scm_i_big2dbl (PRIO);
-  else
-    SCM_ASSERT (0, PRIO, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (PRIO), PRIO, SCM_ARG1, FUNC_NAME);
+  prio = scm_to_int (PRIO);
   
   SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
   str = scm_to_locale_string (TEXT);
   syslog (prio, "%s", str);
+  free (str);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -88,6 +66,11 @@ SCM_DEFINE (scm_mu_closelog, "mu-closelog", 0, 0, 0,
 #define FUNC_NAME s_scm_mu_closelog
 {
   closelog ();
+  if (log_tag)
+    {
+      free (log_tag);
+      log_tag = NULL;
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
