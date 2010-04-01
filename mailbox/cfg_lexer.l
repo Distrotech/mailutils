@@ -37,7 +37,8 @@
 #include <mailutils/nls.h>
 #include <mailutils/cfg.h>
 #include <mailutils/list.h>
-
+#include <mailutils/mutil.h>
+  
 #include "cfg_parser.h"
 
 void _mu_line_begin (void);
