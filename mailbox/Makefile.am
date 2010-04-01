@@ -95,6 +95,7 @@ libmailutils_la_SOURCES = \
  mailer.c\
  mapfile_stream.c\
  mbx_default.c\
+ mbxitr.c\
  md5.c\
  message.c\
  memory_stream.c\

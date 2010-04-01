@@ -29,6 +29,7 @@
 
 #include <mailutils/monitor.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +47,8 @@ struct _mu_mailbox
   int flags;
   mu_folder_t folder;
   mu_monitor_t monitor;
-
+  mu_iterator_t iterator;
+  
   /* Back pointer to the specific mailbox */
   void *data;
 

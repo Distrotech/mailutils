@@ -107,6 +107,9 @@ extern int  mu_mailbox_get_observable  (mu_mailbox_t, mu_observable_t *);
 /* Locking */  
 extern int mu_mailbox_lock (mu_mailbox_t mbox);
 extern int mu_mailbox_unlock (mu_mailbox_t mbox);
+
+extern int mu_mailbox_get_iterator (mu_mailbox_t mbx,
+				    mu_iterator_t *piterator);
   
 #ifdef __cplusplus
 }
