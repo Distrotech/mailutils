@@ -185,11 +185,8 @@ _attachment_free (struct _msg_info *info, int free_message)
   free (info);
 }
 
-#define _ISSPECIAL(c) ( \
-    ((c) == '(') || ((c) == ')') || ((c) == '<') || ((c) == '>') \
-    || ((c) == '@') || ((c) == ',') || ((c) == ';') || ((c) == ':') \
-    || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
-    || ((c) == ']') )
+/* See RFC 2045, 5.1.  Syntax of the Content-Type Header Field */
+#define _ISSPECIAL(c) !!strchr ("()<>@,;:\\\"/[]?=", c)
 
 static char *
 _header_get_param (char *field_body, const char *param, size_t *len)
