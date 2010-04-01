@@ -472,14 +472,15 @@
   (if (not sieve-my-email)
       (set! sieve-my-email (mu-username->email)))
 ;  (DEBUG 1 "Mailbox: " sieve-mailbox)
-  
-  (let ((count (mu-mailbox-messages-count sieve-mailbox)))
-    (do ((n 1 (1+ n)))
-	((> n count) #f)
-	(set! sieve-current-message
-	      (mu-mailbox-get-message sieve-mailbox n))
-	(sieve-run-current-message thunk))
-    (sieve-close-mailboxes)))
+
+  (let msg-loop ((msg (mu-mailbox-first-message sieve-mailbox)))
+    (if (not (eof-object? msg))
+	(begin
+	  (set! sieve-current-message msg)
+	  (sieve-run-current-message thunk)
+	  (msg-loop (mu-mailbox-next-message sieve-mailbox)))))
+
+  (sieve-close-mailboxes))
 
 (define (sieve-command-line)
   (catch #t

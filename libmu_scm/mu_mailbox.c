@@ -18,6 +18,7 @@
    Boston, MA 02110-1301 USA */
 
 #include "mu_scm.h"
+#include <mailutils/iterator.h>
 
 static scm_t_bits mailbox_tag;
 
@@ -26,6 +27,7 @@ static scm_t_bits mailbox_tag;
 struct mu_mailbox
 {
   mu_mailbox_t mbox;       /* Mailbox */
+  mu_iterator_t itr;
   int noclose;
 };
 
@@ -40,6 +42,9 @@ static scm_sizet
 mu_scm_mailbox_free (SCM mailbox_smob)
 {
   struct mu_mailbox *mum = (struct mu_mailbox *) SCM_CDR (mailbox_smob);
+
+  mu_iterator_destroy (&mum->itr);
+  
   if (!mum->noclose)
     {
       mu_mailbox_close (mum->mbox);
@@ -112,6 +117,7 @@ mu_scm_mailbox_create0 (mu_mailbox_t mbox, int noclose)
 
   mum = scm_gc_malloc (sizeof (struct mu_mailbox), "mailbox");
   mum->mbox = mbox;
+  mum->itr = NULL;
   mum->noclose = noclose;
   SCM_RETURN_NEWSMOB (mailbox_tag, mum);
 }
@@ -406,6 +412,109 @@ SCM_DEFINE (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
 		  "Cannot append message ~A to mailbox ~A",
 		  scm_list_2 (MESG, MBOX));
   return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
+/* Iterations */
+#define ITROP(op, descr)			\
+  do						\
+    {						\
+      int status = op;				\
+      if (status == MU_ERR_NOENT)		\
+	return SCM_EOF_VAL;			\
+      if (status)				\
+	mu_scm_error (FUNC_NAME, status,	\
+		      "~A: " descr ": ~A",	\
+		      scm_list_2 (MBOX,		\
+				  scm_from_locale_string (mu_strerror (status)))); \
+    }									\
+  while (0)
+
+SCM_DEFINE (scm_mu_mailbox_first_message, "mu-mailbox-first-message", 1, 0, 0,
+	    (SCM MBOX),
+	    "Returns first message from the mailbox.")
+#define FUNC_NAME s_scm_mu_mailbox_first_message
+{
+  struct mu_mailbox *mum;
+  int status;
+  mu_message_t msg;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  if (!mum->itr)
+    {
+      status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "~A: cannot create iterator: ~A",
+		      scm_list_2 (MBOX,
+				  scm_from_locale_string (mu_strerror (status))));
+    }
+  ITROP (mu_iterator_first (mum->itr), "moving to the first message");
+  ITROP (mu_iterator_current (mum->itr, (void**)&msg),
+	 "getting current message");
+  return mu_scm_message_create (MBOX, msg);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_mu_mailbox_next_message, "mu-mailbox-next-message", 1, 0, 0,
+	    (SCM MBOX),
+	    "Returns next message from the mailbox.")
+#define FUNC_NAME s_scm_mu_mailbox_next_message
+{
+  struct mu_mailbox *mum;
+  int status;
+  mu_message_t msg;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  if (!mum->itr)
+    {
+      status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "~A: cannot create iterator: ~A",
+		      scm_list_2 (MBOX,
+				  scm_from_locale_string (mu_strerror (status))));
+      ITROP (mu_iterator_first (mum->itr), "moving to the first message");
+    }
+  else
+    ITROP (mu_iterator_next (mum->itr), "advancing iterator");
+  
+  ITROP (mu_iterator_current (mum->itr, (void**)&msg),
+	 "getting current message");
+  return mu_scm_message_create (MBOX, msg);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_mu_mailbox_more_messages_p, "mu-mailbox-more-messages?", 1, 0, 0,
+	    (SCM MBOX),
+	    "Returns next message from the mailbox.")
+#define FUNC_NAME s_scm_mu_mailbox_more_messages_p
+{
+  struct mu_mailbox *mum;
+  int status;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  if (!mum->itr)
+    {
+      status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "~A: cannot create iterator: ~A",
+		      scm_list_2 (MBOX,
+				  scm_from_locale_string (mu_strerror (status))));
+      status = mu_iterator_first (mum->itr);
+      if (status == MU_ERR_NOENT)
+	return SCM_BOOL_F;
+      if (status)
+	mu_scm_error (FUNC_NAME, status,
+		      "~A: cannot set iterator to the first message: ~A",
+		      scm_list_2 (MBOX,
+				  scm_from_locale_string (mu_strerror (status))));
+    }
+  return scm_from_bool (!!mu_iterator_is_done (mum->itr));
 }
 #undef FUNC_NAME
 
