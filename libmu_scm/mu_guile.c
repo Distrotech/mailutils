@@ -109,10 +109,12 @@ mu_guile_init (int debug)
 
   if (debug)
     {
+#ifdef GUILE_DEBUG_MACROS
       SCM_DEVAL_P = 1;
       SCM_BACKTRACE_P = 1;
       SCM_RECORD_POSITIONS_P = 1;
       SCM_RESET_DEBUG_MODE;
+#endif
     }
   mu_scm_init ();
 }

@@ -63,6 +63,17 @@ AC_DEFUN([MU_CHECK_GUILE],
     GUILE_VERSION_NUMBER=
     m4_if($3,,[AC_MSG_ERROR(required library libguile not found)], [$3])
   else
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <libguile.h>]],
+                      [SCM_DEVAL_P = 1;
+                       SCM_BACKTRACE_P = 1;
+                       SCM_RECORD_POSITIONS_P = 1;
+                       SCM_RESET_DEBUG_MODE;])],
+                      [mu_cv_guile_debug=yes],
+                      [mu_cv_guile_debug=no])
+    if test $mu_cv_guile_debug = yes; then
+      AC_DEFINE_UNQUOTED(GUILE_DEBUG_MACROS, 1,
+                         [Define to 1 if SCM_DEVAL_P, SCM_BACKTRACE_P, SCM_RECORD_POSITIONS_P and SCM_RESET_DEBUG_MODE are defined])
+    fi
     AC_CHECK_TYPES([scm_t_off],[],[],[#include <libguile.h>])
     AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION",
                        [Guile version number])

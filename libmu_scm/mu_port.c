@@ -20,6 +20,10 @@
 #include "mu_scm.h"
 #include <mailutils/io.h>
 
+#ifndef HAVE_SCM_T_OFF
+typedef off_t scm_t_off;
+#endif
+
 struct mu_port
 {
   mu_stream_t stream;         /* Associated stream */
@@ -87,16 +91,13 @@ mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode)
   mp->stream = stream;
   mp->offset = 0;
 
-  port = scm_cell (scm_tc16_smuport | mode, 0);
-
-  pt = scm_add_to_port_table (port);
-  SCM_SETPTAB_ENTRY (port, pt);
+  port = scm_new_port_table_entry (scm_tc16_smuport | mode);
+  pt = SCM_PTAB_ENTRY (port);
   pt->rw_random = mu_stream_is_seekable (stream);
-
   SCM_SETSTREAM (port, mp);
   mu_port_alloc_buffer (port, 0, 0);
-
-  /*  SCM_PTAB_ENTRY (port)->file_name = "name";FIXME*/
+  /* FIXME:
+     SCM_PTAB_ENTRY (port)->file_name = "name";*/
   return port;
 }
 
