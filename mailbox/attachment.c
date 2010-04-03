@@ -188,78 +188,243 @@ _attachment_free (struct _msg_info *info, int free_message)
 /* See RFC 2045, 5.1.  Syntax of the Content-Type Header Field */
 #define _ISSPECIAL(c) !!strchr ("()<>@,;:\\\"/[]?=", c)
 
-static char *
-_header_get_param (char *field_body, const char *param, size_t *len)
+/* _header_get_param - an auxiliary function to extract values from
+   Content-Type, Content-Disposition and similar headers.
+
+   Arguments:
+   
+   FIELD_BODY    Header value, complying to RFCs 2045, 2183, 2231.3;
+   DISP          Disposition.  Unless it is NULL, the disposition part
+                 of FIELD_BODY is compared with it.  If they differ,
+		 the function returns MU_ERR_NOENT.
+   PARAM         Name of the parameter to extract from FIELD_BODY;
+   BUF           Where to extract the value to;
+   BUFSZ         Size of BUF;
+   PRET          Pointer to the memory location for the return buffer (see
+                 below).
+   PLEN          Pointer to the return size.
+
+   The function parses FIELD_BODY and extracts the value of the parameter
+   PARAM.
+
+   If BUF is not NULL and BUFSZ is not 0, the extracted value is stored into
+   BUF.  At most BUFSZ-1 bytes are copied.
+
+   Otherwise, if PRET is not NULL, the function allocates enough memory to
+   hold the extracted value, copies there the result, and stores the
+   pointer to the allocated memory into the location pointed to by PRET.
+
+   If PLEN is not NULL, the size of the extracted value (without terminating
+   NUL character) is stored there.
+
+   If BUF==NULL *and* PRET==NULL, no memory is allocated, but PLEN is
+   honored anyway, i.e. unless it is NULL it receives size of the result.
+   This can be used to estimate the needed buffer size.
+
+   Return values:
+     0             on success.
+     MU_ERR_NOENT, requested parameter not found, or disposition does
+                   not match DISP.
+     MU_ERR_PARSE, if FIELD_BODY does not comply to any of the abovemntioned
+                   RFCs.
+     ENOMEM      , if unable to allocate memory.
+*/
+   
+int
+_header_get_param (char *field_body,
+		   const char *disp,
+		   const char *param,
+		   char *buf, size_t bufsz,
+		   char **pret, size_t *plen)
 {
-  char *str, *p, *v, *e;
-  int quoted = 0, was_quoted = 0;
+  int res = MU_ERR_NOENT;            /* Return value, pessimistic default */
+  size_t param_len = strlen (param);
+  char *p;
+  char *mem = NULL;                  /* Allocated memory storage */
+  size_t retlen = 0;                 /* Total number of bytes copied */
+  unsigned long cind = 0;            /* Expected continued parameter index.
+					See RFC 2231, Section 3,
+					"Parameter Value Continuations" */
+  
+  if (field_body == NULL)
+    return EINVAL;
 
-  if (len == NULL || (str = field_body) == NULL)
-    return NULL;
-
-  p = strchr (str, ';');
-  while (p)
+  if (bufsz == 0) /* Make sure buf value is meaningful */
+    buf = NULL;
+  
+  p = strchr (field_body, ';');
+  if (!p)
+    return MU_ERR_NOENT;
+  if (disp && mu_c_strncasecmp (field_body, disp, p - field_body))
+    return MU_ERR_NOENT;
+      
+  while (p && *p)
     {
-      p++;
-      while (mu_isspace (*p))	/* walk upto start of param */
-	p++;
+      char *v, *e;
+      size_t len, escaped_chars = 0;
+
+      if (*p != ';')
+	{
+	  res = MU_ERR_PARSE;
+	  break;
+	}
+      
+      /* walk upto start of param */      
+      p = mu_str_skip_class (p + 1, MU_CTYPE_SPACE);
       if ((v = strchr (p, '=')) == NULL)
 	break;
-      *len = 0;
-      v = e = v + 1;
-      while (*e && (quoted || (!_ISSPECIAL (*e) && !mu_isspace (*e))))
-	{			/* skip pass value and calc len */
-	  if (*e == '\"')
-	    quoted = ~quoted, was_quoted = 1;
-	  else
-	    (*len)++;
+      v++;
+      /* Find end of the parameter */
+      if (*v == '"')
+	{
+	  /* Quoted string */
+	  for (e = ++v; *e != '"'; e++)
+	    {
+	      if (*e == 0) /* Malformed header */
+		{
+		  res = MU_ERR_PARSE;
+		  break;
+		}
+	      if (*e == '\\')
+		{
+		  if (*++e == 0)
+		    {
+		      res = MU_ERR_PARSE;
+		      break;
+		    }
+		  escaped_chars++;
+		}
+	    }
+	  if (res == MU_ERR_PARSE)
+	    break;
+	  len = e - v;
 	  e++;
 	}
-      if (mu_c_strncasecmp (p, param, strlen (param)))
-	{			/* no match jump to next */
+      else
+	{
+	  for (e = v + 1; !(_ISSPECIAL (*e) || mu_isspace (*e)); e++)
+	    ;
+	  len = e - v;
+	}
+
+      /* Is it our parameter? */
+      if (mu_c_strncasecmp (p, param, param_len))
+	{			/* nope, jump to next */
 	  p = strchr (e, ';');
 	  continue;
 	}
-      else
-	return was_quoted ? v + 1 : v;	/* return unquoted value */
+	
+      res = 0; /* Indicate success */
+      
+      if (p[param_len] == '*')
+	{
+	  /* Parameter value continuation (RFC 2231, Section 3).
+	     See if the index is OK */
+	  char *end;
+	  unsigned long n = strtoul (p + param_len + 1, &end, 10);
+	  if (*end != '=' || n != cind)
+	    {
+	      res = MU_ERR_PARSE;
+	      break;
+	    }
+	  /* Everything OK, increase the estimation */
+	  cind++; 
+	}
+      
+      /* Prepare P for the next iteration */
+      p = e;
+
+      /* Escape characters that appear in quoted-pairs are
+	 semantically "invisible" (RFC 2822, Section 3.2.2,
+	 "Quoted characters") */
+      len -= escaped_chars;
+
+      /* Adjust len if nearing end of the buffer */
+      if (bufsz && len >= bufsz)
+	len = bufsz - 1;
+
+      if (pret)
+	{
+	  /* The caller wants us to allocate the memory */
+	  if (!buf && !mem)
+	    {
+	      mem = malloc (len + 1);
+	      if (!mem)
+		{
+		  res = ENOMEM;
+		  break;
+		}
+	      buf = mem;
+	    }
+	  else if (mem)
+	    {
+	      /* If we got here, it means we are iterating over
+		 a parameter value continuation, and cind=0 has
+		 already been passed.  Reallocate the memory to
+		 accomodate next chunk of data. */
+	      char *newmem = realloc (mem, retlen + len + 1);
+	      if (!newmem)
+		{
+		  res = ENOMEM;
+		  break;
+		}
+	      mem = newmem;
+	    }
+	}
+
+      if (buf)
+	{
+	  /* Actually copy the data.  Buf is not NULL either because
+	     the user passed it as an argument, or because we allocated
+	     memory for it. */
+	  if (escaped_chars)
+	    {
+	      int i;
+	      for (i = 0; i < len; i++)
+		{
+		  if (*v == '\\')
+		    ++v;
+		  buf[retlen + i] = *v++;
+		}
+	    }
+	  else
+	    memcpy (buf + retlen, v, len);
+	}
+      /* Adjust total result size ... */
+      retlen += len;
+      /* ... and remaining buffer size, if necessary */
+      if (bufsz)
+	{
+	  bufsz -= len;
+	  if (bufsz == 0)
+	    break;
+	}
     }
-  return NULL;
-}
 
-int
-mu_message_aget_attachment_name (mu_message_t msg, char **name)
-{
-  size_t sz = 0;
-  int ret = 0;
-
-  if (name == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  if ((ret = mu_message_get_attachment_name (msg, NULL, 0, &sz)) != 0)
-    return ret;
-
-  *name = malloc (sz + 1);
-  if (!*name)
-    return ENOMEM;
-  
-  if ((ret = mu_message_get_attachment_name (msg, *name, sz + 1, NULL)) != 0)
+  if (res == 0)
     {
-      free (*name);
-      *name = NULL;
+      /* Everything OK, prepare the returned data. */
+      if (buf)
+	buf[retlen] = 0;
+      if (plen)
+	*plen = retlen;
+      if (pret)
+	*pret = mem;
     }
-
-  return ret;
+  else if (mem)
+    free (mem);
+  return res;
 }
 
-int
-mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz,
-				size_t *sz)
+/* Get the attachment name from MSG.  See _header_get_param, for a
+   description of the rest of arguments. */
+static int
+_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz,
+		      char **pbuf, size_t *sz)
 {
   int ret = EINVAL;
   mu_header_t hdr;
   char *value = NULL;
-  char *name = NULL;
-  size_t namesz = 0;
 
   if (!msg)
     return ret;
@@ -276,41 +441,39 @@ mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz,
 
   if (ret == 0 && value != NULL)
     {
-      /* FIXME: this is cheezy, it should check the value of the
-         Content-Disposition field, not strstr it. */
-
-      if (strstr (value, "attachment") != NULL)
-	name = _header_get_param (value, "filename", &namesz);
+      ret = _header_get_param (value, "attachment",
+			       "filename", buf, bufsz, pbuf, sz);
+      free (value);
+      value = NULL;
+      if (ret == 0 || ret != MU_ERR_NOENT)
+	return ret;
     }
 
   /* If we didn't get the name, we fall back on the Content-Type name
      parameter. */
 
-  if (name == NULL)
-    {
-      if (value)
-	free (value);
-
-      ret = mu_header_aget_value (hdr, "Content-Type", &value);
-      name = _header_get_param (value, "name", &namesz);
-    }
-
-  if (name)
-    {
-      ret = 0;
-
-      name[namesz] = '\0';
-
-      if (sz)
-	*sz = namesz;
-
-      if (buf)
-	strncpy (buf, name, bufsz);
-    }
-  else
-    ret = MU_ERR_NOENT;
+  free (value);
+  ret = mu_header_aget_value (hdr, "Content-Type", &value);
+  if (ret == 0)
+    ret = _header_get_param (value, NULL, "name", buf, bufsz, pbuf, sz);
+  free (value);
 
   return ret;
+}
+
+int
+mu_message_aget_attachment_name (mu_message_t msg, char **name)
+{
+  if (name == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  return _get_attachment_name (msg, NULL, 0, name, NULL);
+}
+
+int
+mu_message_get_attachment_name (mu_message_t msg, char *buf, size_t bufsz,
+				size_t *sz)
+{
+  return _get_attachment_name (msg, buf, bufsz, NULL, sz);
 }
 
 int

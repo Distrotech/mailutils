@@ -1588,59 +1588,12 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   
   if (mode_options & OPT_AUTO)
     {
-      mu_header_t hdr;
       char *val;
 
-      if (mu_message_get_header (msg, &hdr) == 0)
+      if (mu_message_aget_attachment_name (msg, &val) == 0)
 	{
-	  int argc;
-	  char **argv;
-
-	  if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
-	    {
-	      if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
-		{
-		  int i;
-
-		  for (i = 0; i < argc; i++)
-		    {
-		      if (strcmp (argv[i], "filename") == 0
-			  && ++i < argc
-			  && argv[i][0] == '='
-			  && ++i < argc)
-			{
-			  name = normalize_path (dir, argv[i]);
-			  break;
-			}
-		    }
-		  mu_argcv_free (argc, argv);
-		}
-	      free (val);
-	    }
-
-	  if (!name
-	      && mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val) == 0)
-	    {
-	      if (mu_argcv_get (val, "=", NULL, &argc, &argv) == 0)
-		{
-		  int i;
-		  
-		  for (i = 0; i < argc; i++)
-		    {
-		      if ((strcmp (argv[i], "filename") == 0
-			   || strcmp (argv[i], "name") == 0)
-			  && ++i < argc
-			  && argv[i][0] == '='
-			  && ++i < argc)
-			{
-			  name = normalize_path (dir, argv[i]);
-			  break;
-			}
-		    }
-		  mu_argcv_free (argc, argv);
-		}
-	      free (val);
-	    }
+	  name = normalize_path (dir, val);
+	  free (val);
 	}
     }
   
