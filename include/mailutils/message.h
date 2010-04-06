@@ -119,9 +119,36 @@ extern int mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg,
 extern int mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
 				     void **data);
 
+/* Bit values for *pflags in functions below */
+#define MU_MIMEHDR_MULTILINE 0x01  /* Parameter was multiline */
+#define MU_MIMEHDR_CSINFO    0x02  /* Parameter contains charset/language
+				      info */
+
+extern int mu_mimehdr_get_disp (const char *str, const char *param,
+				char *buf, size_t bufsz, size_t *retsz);
+extern int mu_mimehdr_aget_disp (const char *str, const char *param,
+				char **pvalue);
+extern int mu_mimehdr_get_param (const char *str, const char *param,
+				 char *buf, size_t bufsz, size_t *retsz,
+				 int *pflags);
+extern int mu_mimehdr_aget_param (const char *str, const char *param,
+				  char **pval, int *pflags);
+extern int mu_mimehdr_decode_param (const char *value, int csinfo,
+				    const char *charset,
+				    char **pval, char **plang);
+extern int mu_mimehdr_aget_decoded_param (const char *str, const char *param,
+					  const char *charset, 
+					  char **pval, char **plang);
+  
 extern int mu_message_get_attachment_name (mu_message_t, char *name,
-					   size_t bufsz, size_t* sz);
-extern int mu_message_aget_attachment_name (mu_message_t, char **name);
+					   size_t bufsz, size_t* sz,
+					   int *pflags);
+extern int mu_message_aget_attachment_name (mu_message_t, char **name,
+					    int *pflags);
+extern int mu_message_aget_decoded_attachment_name (mu_message_t msg,
+						    const char *charset,
+						    char **name,
+						    char **plang);
 
 extern int mu_message_save_to_mailbox (mu_message_t msg, 
 				       mu_debug_t debug, const char *toname,

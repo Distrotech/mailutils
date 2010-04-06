@@ -1590,7 +1590,9 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     {
       char *val;
 
-      if (mu_message_aget_attachment_name (msg, &val) == 0)
+      /* FIXME: Take into account CS/Lang info and recode the value
+	 if necessary */
+      if (mu_message_aget_attachment_name (msg, &val, NULL) == 0)
 	{
 	  name = normalize_path (dir, val);
 	  free (val);

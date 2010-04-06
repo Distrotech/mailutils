@@ -75,10 +75,10 @@ mu_hex2ul (char hex)
    return hex - '0';
 
   if (hex >= 'a' && hex <= 'z')
-    return hex - 'a';
+    return hex - 'a' + 10;
 
   if (hex >= 'A' && hex <= 'Z')
-    return hex - 'A';
+    return hex - 'A' + 10;
 
   return -1;
 }

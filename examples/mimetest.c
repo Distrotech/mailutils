@@ -242,7 +242,8 @@ message_display_parts (mu_message_t msg, int indent)
         {
           /* Save the attachements.  */
           char *fname = NULL;
-          mu_message_aget_attachment_name (part, &fname);
+	  /* FIXME: CS/Lang info is ignored */
+          mu_message_aget_attachment_name (part, &fname, NULL);
           if (fname == NULL)
             fname = mu_tempname (NULL);
 

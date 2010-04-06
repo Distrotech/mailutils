@@ -287,7 +287,8 @@ api_message_get_attachment_name (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PyMessageType, &py_msg))
     return NULL;
 
-  status = mu_message_aget_attachment_name (py_msg->msg, &name);
+  /* FIXME: CS/Lang info is ignored */
+  status = mu_message_aget_attachment_name (py_msg->msg, &name, NULL);
   return status_object (status, PyString_FromString (name ? name : ""));
 }
 

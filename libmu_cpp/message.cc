@@ -224,7 +224,8 @@ Message :: get_attachment_name ()
   char *c_name;
   std::string name;
 
-  int status = mu_message_aget_attachment_name (msg, &c_name);
+  /* FIXME: CS/Lang info is ignored */
+  int status = mu_message_aget_attachment_name (msg, &c_name, NULL);
   if (status)
     throw Exception ("Message::get_attachment_name", status);
   if (c_name) {
