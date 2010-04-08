@@ -276,7 +276,7 @@ _header_get_param (const char *field_body,
 		  res = ENOMEM;
 		  break;
 		}
-	      mem = newmem;
+	      buf = mem = newmem;
 	    }
 	}
 

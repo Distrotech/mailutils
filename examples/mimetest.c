@@ -35,6 +35,7 @@ void message_display_parts(mu_message_t msg, int indent);
 
 const char *from;
 const char *subject;
+const char *charset = "UTF-8";
 int print_attachments;
 int indent_level = 4;
 
@@ -72,7 +73,23 @@ main (int argc, char **argv)
       else if (strcmp (argv[i], "-p") == 0)
         print_attachments = 1;
       else if (strcmp (argv[i], "-i") == 0)
-        indent_level = strtoul (argv[++i], NULL, 0);
+	{
+	  if (++i == argc)
+	    {
+	      mu_error ("-i requires argument");
+	      exit (1);
+	    }
+	  indent_level = strtoul (argv[i], NULL, 0);
+	}
+      else if (strcmp (argv[i], "-c") == 0)
+	{
+	  if (++i == argc)
+	    {
+	      mu_error ("-c requires argument");
+	      exit (1);
+	    }
+	  charset = argv[i];
+	}
       else
         break;
     }
@@ -242,8 +259,9 @@ message_display_parts (mu_message_t msg, int indent)
         {
           /* Save the attachements.  */
           char *fname = NULL;
-	  /* FIXME: CS/Lang info is ignored */
-          mu_message_aget_attachment_name (part, &fname, NULL);
+
+          mu_message_aget_decoded_attachment_name (part, charset,
+						   &fname, NULL);
           if (fname == NULL)
             fname = mu_tempname (NULL);
 
@@ -251,7 +269,7 @@ message_display_parts (mu_message_t msg, int indent)
                   fname);
           printf ("%*.*sBegin\n", indent, indent, "");
           /*FIXME: What is the 'data' argument for? */
-          mu_message_save_attachment (part, NULL, NULL);
+          mu_message_save_attachment (part, fname, NULL);
           if (print_attachments)
             print_file (fname, indent);
           free (fname);
