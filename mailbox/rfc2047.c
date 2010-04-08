@@ -117,7 +117,8 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  const char *filter_type = NULL;
 	  size_t nbytes = 0, size;
 	  const char *sp = fromstr + 2;
-
+	  char tmp[128];
+	  
 	  fromcode = getword (&sp, '?');
 	  encoding_type = getword (&sp, '?');
 	  encoded_text = getword (&sp, '?');
@@ -164,11 +165,14 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  while (mu_stream_sequential_read (filter, buffer + bufpos,
-					 bufsize - bufpos,
-					 &nbytes) == 0
+	  while (mu_stream_sequential_read (filter, tmp, sizeof (tmp),
+					    &nbytes) == 0
 		 && nbytes)
-	    bufpos += nbytes;
+	    {
+	      CHKBUF (nbytes);
+	      memcpy (buffer + bufpos, tmp, nbytes);
+	      bufpos += nbytes;
+	    }
 
 	  mu_stream_close (filter);
 	  mu_stream_destroy (&filter, mu_stream_get_owner (filter));
