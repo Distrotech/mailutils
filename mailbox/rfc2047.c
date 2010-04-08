@@ -92,7 +92,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
      }                                           \
  } while (0) 
   
-  if (!tocode || !input)
+  if (!input)
     return EINVAL;
   if (!ptostr)
     return MU_ERR_OUT_PTR_NULL;

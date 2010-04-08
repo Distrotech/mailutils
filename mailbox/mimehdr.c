@@ -84,7 +84,11 @@
                    RFCs.
      ENOMEM      , if unable to allocate memory.
 */
-   
+
+/* Internal flag used by _header_get_param to delay increasing
+   estimated continuation index. */
+#define _MU_MIMEHDR_INCR_CIND 0x8000
+
 int
 _header_get_param (const char *field_body,
 		   const char *disp,
@@ -117,7 +121,7 @@ _header_get_param (const char *field_body,
       
   while (p && *p)
     {
-      char *v, *e;
+      char *v, *e, *ep, *cp;
       size_t len, escaped_chars = 0;
       
       if (*p != ';')
@@ -128,9 +132,10 @@ _header_get_param (const char *field_body,
       
       /* walk upto start of param */      
       p = mu_str_skip_class (p + 1, MU_CTYPE_SPACE);
-      if ((v = strchr (p, '=')) == NULL)
+      if ((ep = strchr (p, '=')) == NULL)
 	break;
-      v++;
+      /* Allow for optional whitespace after '=' */
+      v = mu_str_skip_class (ep + 1, MU_CTYPE_SPACE);
       /* Find end of the parameter */
       if (*v == '"')
 	{
@@ -171,18 +176,15 @@ _header_get_param (const char *field_body,
 	  continue;
 	}
 
-      res = 0; /* Indicate success */
-      
-      if (p[param_len] == '*')
+      cp = p + param_len;
+
+      if (*cp == '*')
 	{
-	  char *cp = p + param_len + 1;
-	  
+	  cp++;
 	  /* It is a parameter value continuation (RFC 2231, Section 3)
 	     or parameter value character set and language information
 	     (ibid., Section 4). */
-	  if (*cp == '=')
-	    flags |= MU_MIMEHDR_CSINFO;
-	  else if (mu_isdigit (*cp))
+	  if (mu_isdigit (*cp))
 	    {
 	      /* See if the index is OK */
 	  
@@ -194,16 +196,48 @@ _header_get_param (const char *field_body,
 		  flags |= MU_MIMEHDR_CSINFO;
 		  end++;
 		}
-	      if (*end != '=' || n != cind)
+	      if (n != cind)
 		{
 		  res = MU_ERR_PARSE;
 		  break;
 		}
-	      /* Everything OK, increase the estimation */
-	      flags |= MU_MIMEHDR_MULTILINE;
-	      cind++; 
+	      /* Everything OK, mark this as a multiline (continued)
+		 parameter. We also need to increment the estimation,
+		 but it cannot be done right now because its value is
+		 used below to decide whether to do flag cleanup
+		 on error. So we set _MU_MIMEHDR_INCR_CIND flag instead
+		 and increment cind later. */
+	      flags |= (MU_MIMEHDR_MULTILINE|_MU_MIMEHDR_INCR_CIND);
+	      /* And point cp to the last character: there are more
+		 checks ahead. */
+	      cp = end;
 	    }
+	  else
+	    flags |= MU_MIMEHDR_CSINFO;
 	}
+      /* Allow for optional whitespace before '=' */
+      cp = mu_str_skip_class (cp, MU_CTYPE_SPACE);
+      /* cp must now point to the equals sign */
+      if (cp != ep)
+	{
+	  /* Clean up everything, unless we're in the middle of a
+	     parameter continuation. */
+	  if (cind == 0)
+	    flags = 0;
+
+	  /* Try next parameter */
+	  p = strchr (e, ';');
+	  continue;
+	}
+
+      if (flags & _MU_MIMEHDR_INCR_CIND)
+	{
+	  /* Increase the estimation. */
+	  flags &= ~_MU_MIMEHDR_INCR_CIND;
+	  cind++;
+	}
+      
+      res = 0; /* Indicate success */
       
       /* Prepare P for the next iteration */
       p = e;
