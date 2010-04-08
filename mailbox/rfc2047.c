@@ -192,18 +192,18 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	    {
 	      if (--run_count)
 		{
-		  CHKBUF(run_count);
+		  CHKBUF (run_count);
 		  memcpy (buffer + bufpos, fromstr - run_count, run_count);
 		  bufpos += run_count;
 		  run_count = 0;
 		}
-	      CHKBUF(1);
+	      CHKBUF (1);
 	      buffer[bufpos++] = *fromstr++;
 	    }
 	}
       else
 	{
-	  CHKBUF(1);
+	  CHKBUF (1);
 	  buffer[bufpos++] = *fromstr++;
 	}
     }
@@ -211,12 +211,12 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   if (*fromstr)
     {
       size_t len = strlen (fromstr);
-      CHKBUF(len);
-      memcpy (buffer + bufpos, fromstr, strlen (fromstr));
-      bufpos += strlen (fromstr);
+      CHKBUF (len);
+      memcpy (buffer + bufpos, fromstr, len);
+      bufpos += len;
     }
 
-  CHKBUF(1);
+  CHKBUF (1);
   buffer[bufpos++] = 0;
   
   free (fromcode);
