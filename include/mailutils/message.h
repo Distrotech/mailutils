@@ -113,21 +113,35 @@ extern int mu_message_create_attachment (const char *content_type,
 					 const char *filename,
 					 mu_message_t *newmsg);
 extern int mu_message_save_attachment (mu_message_t msg,
-				       const char *filename, void **data);
+				       const char *filename,
+				       mu_mime_io_buffer_t buf);
 extern int mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg,
-				   void **data);
+				   mu_mime_io_buffer_t buf);
 extern int mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
-				     void **data);
+				     mu_mime_io_buffer_t buf);
 
+extern int mu_mime_io_buffer_create (mu_mime_io_buffer_t *pinfo);
+extern void mu_mime_io_buffer_destroy (mu_mime_io_buffer_t *pinfo);
+  
+extern void mu_mime_io_buffer_set_size (mu_mime_io_buffer_t info, size_t size);
+extern void mu_mime_io_buffer_get_size (mu_mime_io_buffer_t info,
+					size_t *psize);
+extern int mu_mime_io_buffer_set_charset (mu_mime_io_buffer_t info,
+					  const char *charset);
+extern void mu_mime_io_buffer_sget_charset (mu_mime_io_buffer_t info,
+					    const char **charset);
+extern int mu_mime_io_buffer_aget_charset (mu_mime_io_buffer_t info,
+					   const char **charset);
+
+  
 /* Bit values for *pflags in functions below */
 #define MU_MIMEHDR_MULTILINE 0x01  /* Parameter was multiline */
 #define MU_MIMEHDR_CSINFO    0x02  /* Parameter contains charset/language
 				      info */
 
-extern int mu_mimehdr_get_disp (const char *str, const char *param,
-				char *buf, size_t bufsz, size_t *retsz);
-extern int mu_mimehdr_aget_disp (const char *str, const char *param,
-				char **pvalue);
+extern int mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz,
+				size_t *retsz);
+extern int mu_mimehdr_aget_disp (const char *str, char **pvalue);
 extern int mu_mimehdr_get_param (const char *str, const char *param,
 				 char *buf, size_t bufsz, size_t *retsz,
 				 int *pflags);

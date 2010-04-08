@@ -332,8 +332,7 @@ _header_get_param (const char *field_body,
    value, and `type/subtype' part, if it is a Content-Type value.
 */
 int
-mu_mimehdr_get_disp (const char *str, const char *param,
-		     char *buf, size_t bufsz, size_t *retsz)
+mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
 {
   char *p = strchr (str, ';');
   size_t size;
@@ -350,7 +349,7 @@ mu_mimehdr_get_disp (const char *str, const char *param,
 
 /* Same as mu_mimehdr_get_disp, but allocates memory */
 int
-mu_mimehdr_aget_disp (const char *str, const char *param, char **pvalue)
+mu_mimehdr_aget_disp (const char *str, char **pvalue)
 {
   char *p = strchr (str, ';');
   size_t size;
@@ -363,6 +362,7 @@ mu_mimehdr_aget_disp (const char *str, const char *param, char **pvalue)
     return ENOMEM;
   memcpy (p, str, size);
   p[size] = 0;
+  *pvalue = p;
   return 0;
 }
 

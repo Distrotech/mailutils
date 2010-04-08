@@ -74,16 +74,18 @@ static struct argp_option options[] = {
   {"auto",         ARG_AUTO,         N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("use filenames from the content headers"), 31},
   {"noauto",       ARG_NOAUTO,       NULL, OPTION_HIDDEN, "", 31 },
-
+  {"charset",      ARG_CHARSET,      N_("NAME"), 0,
+   N_("use this charset to represent attachment file names"), 31},
+  
   {N_("Other options"),    0,  NULL, OPTION_DOC,  NULL, 40},
   {"part",         ARG_PART,         N_("PART"), 0,
    N_("limit the scope of the operation to the given part"), 41},
   {"type",         ARG_TYPE,         N_("CONTENT"), 0,
    N_("operate on message part with given multipart content"), 41 },
-  {"verbose",       ARG_VERBOSE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"verbose",      ARG_VERBOSE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("print additional information"), 41 },
-  {"noverbose",     ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", 41 },
-  {"quiet",         ARG_QUIET, 0, 0,
+  {"noverbose",    ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", 41 },
+  {"quiet",        ARG_QUIET, 0, 0,
    N_("be quiet")},
   {"license", ARG_LICENSE, 0,      0,
    N_("display software license"), -1},
@@ -144,6 +146,8 @@ static char *content_type;
 static char *content_subtype;
 static char *input_file;
 static int width = 80;
+static char *charset;  /* Charset for output file names.  NULL means
+			  no recoding is necessary. */
 
 static mh_msgset_t msgset;
 static mu_mailbox_t mbox;
@@ -397,6 +401,10 @@ opt_handler (int key, char *arg, struct argp_state *state)
       mh_license (argp_program_version);
       break;
 
+    case ARG_CHARSET:
+      charset = arg;
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -1589,13 +1597,20 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   if (mode_options & OPT_AUTO)
     {
       char *val;
-
-      /* FIXME: Take into account CS/Lang info and recode the value
-	 if necessary */
-      if (mu_message_aget_attachment_name (msg, &val, NULL) == 0)
+      int rc = mu_message_aget_decoded_attachment_name (msg, charset,
+							&val, NULL);
+      if (rc == 0)
 	{
 	  name = normalize_path (dir, val);
 	  free (val);
+	}
+      else if (rc != MU_ERR_NOENT)
+	{
+	  char *pstr = msg_part_format (part);
+	  mu_diag_output (MU_DIAG_WARNING,
+			  _("%s: cannot decode attachment name: %s"),
+			  pstr, mu_strerror (rc));
+	  free (pstr);
 	}
     }
   

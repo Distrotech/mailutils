@@ -83,7 +83,7 @@ From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Simple MIME
 Number of parts in message - 2
 Total message size - 1626/42
-Type of part 1 = text/plain; name="msg.1"; charset="us-ascii"
+Type of part 1 = text/plain
 Message part size - 371/13: 141/4, 230/9
 Text Message
 Begin
@@ -98,7 +98,7 @@ And welcome little fishes in
 With gently smiling jaws!
 
 End
-Type of part 2 = application/octet-stream; name="msg.21"
+Type of part 2 = application/octet-stream
 Message part size - 645/11: 183/5, 462/6
 Attachment - saving [msg.21]
 Begin
@@ -119,7 +119,7 @@ From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Nested MIME
 Number of parts in message - 2
 Total message size - 3484/84
-Type of part 1 = text/plain; name="msg.21"; charset="us-ascii"
+Type of part 1 = text/plain
 Message part size - 496/14: 155/4, 341/10
 Text Message
 Begin
@@ -135,11 +135,11 @@ Why, I do it again and again.'
 
 
 End
-Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa1"
+Type of part 2 = multipart/mixed
 Message part size - 2378/52: 114/3, 2264/49
 Encapsulated message : 	
 Begin
-Type of part 1 = application/octet-stream; name="msg.22"
+Type of part 1 = application/octet-stream
 Message part size - 663/12: 184/5, 479/7
 Attachment - saving [msg.22]
 Begin
@@ -154,11 +154,11 @@ By the use of this ointment--one shilling the box--
 Allow me to sell you a couple?'
 
 End
-Type of part 2 = multipart/mixed; boundary="----- =_aaaaaaaaaa2"
+Type of part 2 = multipart/mixed
 Message part size - 1531/32: 114/3, 1417/29
 Encapsulated message : 	
 Begin
-Type of part 1 = application/octet-stream; name="msg.23"
+Type of part 1 = application/octet-stream
 Message part size - 668/12: 185/5, 483/7
 Attachment - saving [msg.23]
 Begin
@@ -173,7 +173,7 @@ And the muscular strength, which it gave to my jaw,
 Has lasted the rest of my life.'
 
 End
-Type of part 2 = application/octet-stream; name="msg.24"
+Type of part 2 = application/octet-stream
 Message part size - 679/12: 184/5, 495/7
 Attachment - saving [msg.24]
 Begin
@@ -197,13 +197,13 @@ From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Empty MIME Parts
 Number of parts in message - 2
 Total message size - 914/27
-Type of part 1 = text/plain; name="empty"; charset="us-ascii"
+Type of part 1 = text/plain
 Message part size - 143/4: 143/4, 0/0
 Text Message
 Begin
 
 End
-Type of part 2 = text/plain; name="single.line"; charset="us-ascii"
+Type of part 2 = text/plain
 Message part size - 156/5: 155/4, 1/1
 Text Message
 Begin

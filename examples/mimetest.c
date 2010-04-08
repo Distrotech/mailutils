@@ -35,7 +35,7 @@ void message_display_parts(mu_message_t msg, int indent);
 
 const char *from;
 const char *subject;
-const char *charset = "UTF-8";
+const char *charset;
 int print_attachments;
 int indent_level = 4;
 
@@ -180,8 +180,6 @@ message_display_parts (mu_message_t msg, int indent)
   size_t nparts, nsubparts;
   mu_message_t part;
   mu_header_t hdr;
-  const char *type;
-  const char *encoding;
   mu_stream_t str;
   mu_body_t body;
   int offset, ismulti;
@@ -200,24 +198,34 @@ message_display_parts (mu_message_t msg, int indent)
   for (j = 1; j <= nparts; j++)
     {
       int status;
+      const char *hvalue;
+      char *type = NULL;
+      const char *encoding = "";
+
       MU_ASSERT (mu_message_get_part (msg, j, &part));
       MU_ASSERT (mu_message_get_header (part, &hdr));
-      status = mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+      status = mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE,
+				     &hvalue);
       if (status == MU_ERR_NOENT)
-	type = "";
+	/* nothing */;
       else if (status != 0)
+	mu_error ("Cannot get header value: %s", mu_strerror (status));
+      else
 	{
-	  type = "";
-	  mu_error ("Cannot get header value: %s", mu_strerror (status));
+	  status = mu_mimehdr_aget_disp (hvalue, &type);
+	  if (status)
+	    mu_error ("Cannot extract content type field: %s",
+		      mu_strerror (status));
 	}
-      printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
+      printf ("%*.*sType of part %d = %s\n", indent, indent, "",
+	      j, type ? type : "");
       print_message_part_sizes (part, indent);
       if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
 				&encoding))
 	encoding = "";
       ismulti = 0;
-      if ((type[0]
-           && mu_c_strncasecmp (type, "message/rfc822", strlen (type)) == 0)
+      if ((type
+           && mu_c_strcasecmp (type, "message/rfc822") == 0)
           || (mu_message_is_multipart (part, &ismulti) == 0 && ismulti))
         {
           if (!ismulti)
@@ -232,23 +240,21 @@ message_display_parts (mu_message_t msg, int indent)
                   indent, indent, "", from, subject);
           printf ("%*.*sBegin\n", indent, indent, "");
           MU_ASSERT (mu_message_get_num_parts (part, &nsubparts));
-          message_display_parts (part, indent+indent_level);
+          message_display_parts (part, indent + indent_level);
           mu_message_destroy (&part, NULL);
         }
-      else if (type[0] == '\0'
-               || (mu_c_strncasecmp (type, "text/plain", strlen ("text/plain")) ==
-                   0)
-               || (mu_c_strncasecmp (type, "text/html", strlen ("text/html")) ==
-                   0))
-        {
-          printf ("%*.*sText Message\n", indent, indent, "");
+      else if (!type
+               || (mu_c_strcasecmp (type, "text/plain") == 0)
+               || (mu_c_strcasecmp (type, "text/html")) == 0)
+	{
+	  printf ("%*.*sText Message\n", indent, indent, "");
           printf ("%*.*sBegin\n", indent, indent, "");
           mu_message_get_body (part, &body);
           mu_body_get_stream (body, &str);
           mu_filter_create (&str, str, encoding, 0, 0);
           offset = 0;
-          while (mu_stream_readline (str, buf, sizeof (buf), offset, &nbytes) ==
-                 0 && nbytes)
+          while (mu_stream_readline (str, buf, sizeof (buf),
+				     offset, &nbytes) == 0 && nbytes)
             {
               printf ("%*.*s%s", indent, indent, "", buf);
               offset += nbytes;
@@ -268,13 +274,22 @@ message_display_parts (mu_message_t msg, int indent)
           printf ("%*.*sAttachment - saving [%s]\n", indent, indent, "",
                   fname);
           printf ("%*.*sBegin\n", indent, indent, "");
-          /*FIXME: What is the 'data' argument for? */
-          mu_message_save_attachment (part, fname, NULL);
+          if (charset)
+	    {
+	      mu_mime_io_buffer_t info;
+	      mu_mime_io_buffer_create (&info);
+	      mu_mime_io_buffer_set_charset (info, charset);
+	      MU_ASSERT (mu_message_save_attachment (part, NULL, info));
+	      mu_mime_io_buffer_destroy (&info);
+	    }
+	  else
+	    MU_ASSERT (mu_message_save_attachment (part, fname, NULL));
           if (print_attachments)
             print_file (fname, indent);
           free (fname);
         }
       printf ("\n%*.*sEnd\n", indent, indent, "");
+      free (type);
     }
 }
 

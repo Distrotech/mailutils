@@ -47,17 +47,17 @@
 
 #define BUF_SIZE	2048
 
-struct _msg_info
+struct _mu_mime_io_buffer
 {
+  unsigned int refcnt;
   char *buf;
+  size_t bufsize;
   size_t nbytes;
-  char *header_buf;
-  int header_len;
-  int mu_header_size;
+  char *charset;
   mu_header_t hdr;
   mu_message_t msg;
-  int ioffset;
-  int ooffset;
+  size_t ioffset;
+  size_t ooffset;
   mu_stream_t stream;	/* output file/decoding stream for saving attachment */
   mu_stream_t fstream;	/* output file stream for saving attachment */
 };
@@ -139,58 +139,131 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
   return ret;
 }
 
-
-static int
-_attachment_setup (struct _msg_info **info, mu_message_t msg,
-		   mu_stream_t *stream, void **data)
+int
+mu_mime_io_buffer_create (mu_mime_io_buffer_t *pinfo)
 {
-  int sfl, ret;
-  mu_body_t body;
-
-  if ((ret = mu_message_get_body (msg, &body)) != 0 ||
-      (ret = mu_body_get_stream (body, stream)) != 0)
-    return ret;
-  mu_stream_get_flags (*stream, &sfl);
-  if (data == NULL && (sfl & MU_STREAM_NONBLOCK))
-    return EINVAL;
-  if (data)
-    *info = *data;
-  if (*info == NULL)
-    {
-      if ((*info = calloc (1, sizeof (struct _msg_info))) == NULL)
-	return ENOMEM;
-    }
-  if (((*info)->buf = malloc (BUF_SIZE)) == NULL)
-    {
-      free (*info);
-      return ENOMEM;
-    }
+  mu_mime_io_buffer_t info;
+  
+  if ((info = calloc (1, sizeof (*info))) == NULL)
+    return ENOMEM;
+  info->refcnt = 1;
+  info->bufsize = BUF_SIZE;
+  *pinfo = info;
   return 0;
 }
 
-static void
-_attachment_free (struct _msg_info *info, int free_message)
+void
+mu_mime_io_buffer_set_size (mu_mime_io_buffer_t info, size_t size)
 {
-  if (info->buf)
-    free (info->buf);
-  if (info->header_buf)
-    free (info->header_buf);
+  info->bufsize = size;
+}
+
+void
+mu_mime_io_buffer_get_size (mu_mime_io_buffer_t info, size_t *psize)
+{
+  *psize = info->bufsize;
+}
+
+int
+mu_mime_io_buffer_set_charset (mu_mime_io_buffer_t info, const char *charset)
+{
+  char *cp = strdup (charset);
+  if (!cp)
+    return ENOMEM;
+  free (info->charset);
+  info->charset = cp;
+  return 0;
+}
+
+void
+mu_mime_io_buffer_sget_charset (mu_mime_io_buffer_t info, const char **charset)
+{
+  *charset = info->charset;
+}
+
+int
+mu_mime_io_buffer_aget_charset (mu_mime_io_buffer_t info, const char **charset)
+{
+  *charset = strdup (info->charset);
+  if (!charset)
+    return ENOMEM;
+  return 0;
+}
+
+void
+mu_mime_io_buffer_destroy (mu_mime_io_buffer_t *pinfo)
+{
+  if (pinfo && *pinfo)
+    {
+      mu_mime_io_buffer_t info = *pinfo;
+      free (info->charset);
+      free (info->buf);
+      free (info);
+      *pinfo = NULL;
+    }
+}
+
+static void
+_attachment_free (struct _mu_mime_io_buffer *info, int free_message)
+{
   if (free_message)
     {
       if (info->msg)
-	mu_message_destroy (&(info->msg), NULL);
+	mu_message_destroy (&info->msg, NULL);
       else if (info->hdr)
-	mu_header_destroy (&(info->hdr), NULL);
+	mu_header_destroy (&info->hdr, NULL);
     }
-  free (info);
+  info->msg = NULL;
+  info->hdr = NULL;
+  info->ioffset = 0;
+  info->ooffset = 0;
+  info->stream = NULL;
+  info->fstream = NULL;
+  if (--info->refcnt == 0)
+    {
+      free (info->charset);
+      free (info->buf);
+      free (info);
+    }
+}
+
+static int
+_attachment_setup (mu_mime_io_buffer_t *pinfo, mu_message_t msg,
+		   mu_stream_t *stream)
+{
+  int ret;
+  mu_body_t body;
+  mu_mime_io_buffer_t info;
+  
+  if ((ret = mu_message_get_body (msg, &body)) != 0 ||
+      (ret = mu_body_get_stream (body, stream)) != 0)
+    return ret;
+  if (*pinfo)
+    {
+      info = *pinfo;
+      info->refcnt++;
+    }
+  else
+    {
+      ret = mu_mime_io_buffer_create (&info);
+      if (ret)
+	return ret;
+    }
+  
+  if (!info->buf && ((info->buf = malloc (info->bufsize)) == NULL))
+    {
+      _attachment_free (info, 0);
+      return ENOMEM;
+    }
+  *pinfo = info;
+  return 0;
 }
 
 int
 mu_message_save_attachment (mu_message_t msg, const char *filename,
-			    void **data)
+			    mu_mime_io_buffer_t info)
 {
   mu_stream_t istream;
-  struct _msg_info *info = NULL;
   int ret;
   size_t size;
   size_t nbytes;
@@ -201,15 +274,15 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
   if (msg == NULL)
     return EINVAL;
 
-  if ((ret = _attachment_setup (&info, msg, &istream, data)) != 0)
+  if ((ret = _attachment_setup (&info, msg, &istream)) != 0)
     return ret;
 
   if (ret == 0 && (ret = mu_message_get_header (msg, &hdr)) == 0)
     {
       if (filename == NULL)
 	{
-	  /* FIXME: Charset info is ignored */
-	  ret = mu_message_aget_attachment_name (msg, &partname, NULL);
+	  ret = mu_message_aget_decoded_attachment_name (msg, info->charset,
+							 &partname, NULL);
 	  if (partname)
 	    fname = partname;
 	}
@@ -248,12 +321,12 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
   if (info->stream && istream)
     {
       if (info->nbytes)
-	memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+	memmove (info->buf, info->buf + (info->bufsize - info->nbytes),
 		 info->nbytes);
       while ((ret == 0 && info->nbytes)
 	     ||
 	     ((ret =
-	       mu_stream_read (info->stream, info->buf, BUF_SIZE,
+	       mu_stream_read (info->stream, info->buf, info->bufsize,
 			       info->ioffset, &info->nbytes)) == 0
 	      && info->nbytes))
 	{
@@ -274,9 +347,10 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
       mu_stream_close (info->fstream);
       mu_stream_destroy (&info->stream, NULL);
       mu_stream_destroy (&info->fstream, NULL);
-      _attachment_free (info, ret);
     }
 
+  _attachment_free (info, ret); /* FIXME: or 0? */
+  
   /* Free fname if we allocated it. */
   if (partname)
     free (partname);
@@ -285,11 +359,11 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
 }
 
 int
-mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg, void **data)
+mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg,
+			mu_mime_io_buffer_t info)
 {
   mu_stream_t istream, ostream;
   const char *header;
-  struct _msg_info *info = NULL;
   int ret = 0;
   size_t nbytes;
   mu_body_t body;
@@ -299,16 +373,16 @@ mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg, void **data)
   if (newmsg == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if ((ret = _attachment_setup (&info, msg, &ostream, data)) != 0)
+  if ((ret = _attachment_setup (&info, msg, &ostream)) != 0)
     return ret;
 
   if (info->msg == NULL
-      && (ret = mu_message_create (&(info->msg), NULL)) == 0)
+      && (ret = mu_message_create (&info->msg, NULL)) == 0)
     {
       header =
 	"Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
       if ((ret =
-	   mu_header_create (&(info->hdr), header, strlen (header),
+	   mu_header_create (&info->hdr, header, strlen (header),
 			     msg)) == 0)
 	ret = mu_message_set_header (info->msg, info->hdr, NULL);
     }
@@ -318,12 +392,12 @@ mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg, void **data)
 	  (ret = mu_body_get_stream (body, &ostream)) == 0)
 	{
 	  if (info->nbytes)
-	    memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+	    memmove (info->buf, info->buf + (info->bufsize - info->nbytes),
 		     info->nbytes);
 	  while ((ret == 0 && info->nbytes)
 		 ||
 		 ((ret =
-		   mu_stream_read (istream, info->buf, BUF_SIZE,
+		   mu_stream_read (istream, info->buf, info->bufsize,
 				   info->ioffset, &info->nbytes)) == 0
 		  && info->nbytes))
 	    {
@@ -342,27 +416,27 @@ mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg, void **data)
     }
   if (ret == 0)
     *newmsg = info->msg;
-  if (ret != EAGAIN && info)
-    _attachment_free (info, ret);
+  _attachment_free (info, ret && ret != EAGAIN);
   return ret;
 }
 
+#define MESSAGE_RFC822_STR "message/rfc822"
+
 int
 mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
-			  void **data)
+			  mu_mime_io_buffer_t info)
 {
   size_t size, nbytes;
   int ret = 0;
   mu_header_t hdr;
   mu_stream_t istream, ostream;
-  struct _msg_info *info = NULL;
 
   if (msg == NULL)
     return EINVAL;
   if (newmsg == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if ((data == NULL || *data == NULL)
+  if (info == NULL /* FIXME: not needed? */
       && (ret = mu_message_get_header (msg, &hdr)) == 0)
     {
       mu_header_get_value (hdr, "Content-Type", NULL, 0, &size);
@@ -373,9 +447,8 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
 	    return ENOMEM;
 	  mu_header_get_value (hdr, "Content-Type", content_type, size + 1,
 			       0);
-	  ret =
-	    mu_c_strncasecmp (content_type, "message/rfc822",
-			      strlen ("message/rfc822"));
+	  ret = mu_c_strncasecmp (content_type, MESSAGE_RFC822_STR,
+				  sizeof (MESSAGE_RFC822_STR) - 1);
 	  free (content_type);
 	  if (ret != 0)
 	    return EINVAL;
@@ -383,20 +456,21 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
       else
 	return EINVAL;
     }
-  if ((ret = _attachment_setup (&info, msg, &istream, data)) != 0)
+  if ((ret = _attachment_setup (&info, msg, &istream)) != 0)
     return ret;
   if (info->msg == NULL)
-    ret = mu_message_create (&(info->msg), NULL);
+    ret = mu_message_create (&info->msg, NULL);
   if (ret == 0)
     {
       mu_message_get_stream (info->msg, &ostream);
       if (info->nbytes)
-	memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+	memmove (info->buf, info->buf + (info->bufsize - info->nbytes),
 		 info->nbytes);
       while ((ret == 0 && info->nbytes)
 	     ||
 	     ((ret =
-	       mu_stream_read (istream, info->buf, BUF_SIZE, info->ioffset,
+	       mu_stream_read (istream, info->buf,
+			       info->bufsize, info->ioffset,
 			       &info->nbytes)) == 0 && info->nbytes))
 	{
 	  info->ioffset += info->nbytes;
@@ -413,7 +487,6 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
     }
   if (ret == 0)
     *newmsg = info->msg;
-  if (ret != EAGAIN && info)
-    _attachment_free (info, ret);
+  _attachment_free (info, ret && ret != EAGAIN);
   return ret;
 }
