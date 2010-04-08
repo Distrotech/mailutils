@@ -224,8 +224,25 @@ Message :: get_attachment_name ()
   char *c_name;
   std::string name;
 
-  /* FIXME: CS/Lang info is ignored */
-  int status = mu_message_aget_attachment_name (msg, &c_name, NULL);
+  int status = mu_message_aget_decoded_attachment_name (msg, NULL, &c_name,
+							NULL);
+  if (status)
+    throw Exception ("Message::get_attachment_name", status);
+  if (c_name) {
+    name = c_name;
+    free (c_name);
+  }
+  return name;
+}
+
+std::string
+Message :: get_attachment_name (const std::string& charset, char *lang)
+{
+  char *c_name;
+  std::string name;
+
+  int status = mu_message_aget_decoded_attachment_name (msg, charset.c_str (),
+							&c_name, &lang);
   if (status)
     throw Exception ("Message::get_attachment_name", status);
   if (c_name) {

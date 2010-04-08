@@ -90,7 +90,7 @@ def message_display_parts (msg, indent):
       else:
           # Save the attachements.
           try:
-              fname = part.get_attachment_name ()
+              fname, lang = part.get_attachment_name ()
 	  except:
               fname = util.tempname ()
 

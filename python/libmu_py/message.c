@@ -282,14 +282,22 @@ api_message_get_attachment_name (PyObject *self, PyObject *args)
 {
   int status;
   char *name = NULL;
+  char *charset = NULL;
+  char *lang = NULL;
+  PyObject *py_ret;
   PyMessage *py_msg;
 
-  if (!PyArg_ParseTuple (args, "O!", &PyMessageType, &py_msg))
+  if (!PyArg_ParseTuple (args, "O!|z", &PyMessageType, &py_msg, &charset))
     return NULL;
 
-  /* FIXME: CS/Lang info is ignored */
-  status = mu_message_aget_attachment_name (py_msg->msg, &name, NULL);
-  return status_object (status, PyString_FromString (name ? name : ""));
+  status = mu_message_aget_decoded_attachment_name (py_msg->msg, charset,
+						    &name, &lang);
+
+  py_ret = PyTuple_New (3);
+  PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
+  PyTuple_SetItem (py_ret, 1, PyString_FromString (name ? name : ""));
+  PyTuple_SetItem (py_ret, 2, lang ? PyString_FromString (lang) : Py_None);
+  return _ro (py_ret);
 }
 
 static PyObject *
@@ -314,12 +322,10 @@ static PyObject *
 api_message_unencapsulate (PyObject *self, PyObject *args)
 {
   int status;
-  char *filename = NULL;
   PyMessage *py_msg;
   PyMessage *py_unen = PyMessage_NEW ();
 
-  if (!PyArg_ParseTuple (args, "O!|s", &PyMessageType, &py_msg,
-			 &filename))
+  if (!PyArg_ParseTuple (args, "O!", &PyMessageType, &py_msg))
     return NULL;
 
   Py_INCREF (py_unen);

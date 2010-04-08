@@ -68,6 +68,8 @@ class Message
   void save_attachment (const std::string& filename);
   Message& unencapsulate ();
   std::string get_attachment_name ();
+  std::string get_attachment_name (const std::string& charset,
+				   char* lang=NULL);
 };
 
 }

@@ -138,11 +138,11 @@ class Message:
             raise MessageError (status)
         return uidl
 
-    def get_attachment_name (self):
-        status, name = message.get_attachment_name (self.msg)
+    def get_attachment_name (self, charset=None):
+        status, name, lang = message.get_attachment_name (self.msg, charset)
         if status:
             raise MessageError (status)
-        return name
+        return name, lang
 
     def save_attachment (self, filename = ''):
         status = message.save_attachment (self.msg, filename)
