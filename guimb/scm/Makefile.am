@@ -37,7 +37,7 @@ sieve.sed: Makefile
 
 CLEANFILES = sieve.scm sieve.sed
 
-sitedir=@MU_GUILE_SITE_DIR@
+sitedir=@GUILE_SITE@/$(PACKAGE)
 site_DATA=sieve-core.scm
 
 MU_GUILE_SIEVE_MOD_DATA_X=\

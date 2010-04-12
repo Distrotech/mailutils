@@ -57,9 +57,10 @@ mu_guile_safe_exec (SCM (*handler) (void *data), void *data, SCM *result)
     return 1;
   ed.handler = handler;
   ed.data = data;
-  scm_internal_lazy_catch (SCM_BOOL_T,
-			   scheme_safe_exec_body, (void*)&ed,
-			   eval_catch_handler, &jmp_env);
+  scm_c_catch (SCM_BOOL_T,
+	       scheme_safe_exec_body, (void*)&ed,
+	       eval_catch_handler, &jmp_env,
+	       NULL, NULL);
   if (result)
     *result = ed.result;
   return 0;
@@ -91,9 +92,10 @@ mu_guile_safe_proc_call (SCM proc, SCM arglist, SCM *presult)
     return 1;
 
   cell = scm_cons (proc, arglist);
-  result = scm_internal_lazy_catch (SCM_BOOL_T,
-				    eval_catch_body, cell,
-				    eval_catch_handler, &jmp_env);
+  result = scm_c_catch (SCM_BOOL_T,
+			eval_catch_body, cell,
+			eval_catch_handler, &jmp_env,
+			NULL, NULL);
   if (presult)
     *presult = result;
   return 0;

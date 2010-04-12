@@ -78,7 +78,7 @@ _get_address_part (const char *func_name, address_get_fp fun,
   return ret;
 }
 
-SCM_DEFINE (scm_mu_address_get_personal, "mu-address-get-personal", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_personal, "mu-address-get-personal", 1, 1, 0,
 	    (SCM ADDRESS, SCM NUM),
 	    "Return personal part of the NUMth email address from ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_personal
@@ -88,7 +88,7 @@ SCM_DEFINE (scm_mu_address_get_personal, "mu-address-get-personal", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_address_get_comments, "mu-address-get-comments", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_comments, "mu-address-get-comments", 1, 1, 0,
 	    (SCM ADDRESS, SCM NUM),
 	    "Return comment part of the NUMth email address from ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_comments
@@ -98,7 +98,7 @@ SCM_DEFINE (scm_mu_address_get_comments, "mu-address-get-comments", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_address_get_email, "mu-address-get-email", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_email, "mu-address-get-email", 1, 1, 0,
 	    (SCM ADDRESS, SCM NUM),
 	    "Return email part of the NUMth email address from ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_email
@@ -108,7 +108,7 @@ SCM_DEFINE (scm_mu_address_get_email, "mu-address-get-email", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_address_get_domain, "mu-address-get-domain", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_domain, "mu-address-get-domain", 1, 1, 0,
 	    (SCM ADDRESS, SCM NUM),
 	    "Return domain part of the NUMth email address from ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_domain
@@ -118,7 +118,7 @@ SCM_DEFINE (scm_mu_address_get_domain, "mu-address-get-domain", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_address_get_local, "mu-address-get-local", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_local, "mu-address-get-local", 1, 1, 0,
 	    (SCM ADDRESS, SCM NUM),
 	    "Return local part of the NUMth email address from ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_local
@@ -128,7 +128,7 @@ SCM_DEFINE (scm_mu_address_get_local, "mu-address-get-local", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 	    (SCM ADDRESS),
 	    "Return number of parts in email address ADDRESS.\n")
 #define FUNC_NAME s_scm_mu_address_get_count
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_username_to_email, "mu-username->email", 0, 1, 0,
 	    (SCM NAME),
 "Deduce user's email address from his username. If NAME is omitted, \n"
 "current username is assumed\n")

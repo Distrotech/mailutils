@@ -19,7 +19,7 @@
 
 #include "mu_scm.h"
 
-SCM_DEFINE (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_getpwuid, "mu-getpwuid", 1, 0, 0,
             (SCM USER),
 "Look up an entry in the user database. USER can be an integer,\n"
 "or a string, giving the behaviour of @code{mu_get_auth_by_uid} or\n"

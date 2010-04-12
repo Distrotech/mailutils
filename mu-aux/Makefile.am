@@ -20,8 +20,6 @@
 
 EXTRA_DIST = \
  debugdef.m4\
- guile-doc-snarf\
- guile-doc-snarf.awk\
  gylwrap\
  mailutils.spec\
  mailutils.spec.in\

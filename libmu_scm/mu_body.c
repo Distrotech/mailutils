@@ -102,7 +102,7 @@ mu_scm_body_create (SCM msg, mu_body_t body)
 /* ************************************************************************* */
 /* Guile primitives */
 
-SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 	    (SCM BODY), 
 	    "Read next line from the BODY.")
 #define FUNC_NAME s_scm_mu_body_read_line
@@ -163,7 +163,7 @@ SCM_DEFINE (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_body_write, "mu-body-write", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 	    (SCM BODY, SCM TEXT),
 	    "Append TEXT to message BODY.")
 #define FUNC_NAME s_scm_mu_body_write

@@ -88,7 +88,7 @@ register_format (const char *name)
 }
     
 
-SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
+SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 	    (SCM REST),
 "Registers desired mailutils formats.  Any number of arguments can be given.\n"
 "Each argument must be one of the following strings:\n\n"
@@ -136,7 +136,7 @@ SCM_DEFINE (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_strerror, "mu-strerror", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_strerror, "mu-strerror", 1, 0, 0,
 	    (SCM ERR),
 "Return the error message corresponding to ERR, which must be\n"
 "an integer value.\n")
@@ -177,16 +177,22 @@ mu_scm_init ()
 
   _mu_scm_package = scm_from_locale_string (PACKAGE);
   scm_c_define ("mu-package", _mu_scm_package);
-
+  scm_c_export ("mu-package", NULL);
+  
   _mu_scm_version = scm_from_locale_string (VERSION);
   scm_c_define ("mu-version", _mu_scm_version);
-
+  scm_c_export ("mu-version", NULL);
+  
   _mu_scm_package_string = scm_from_locale_string (PACKAGE_STRING);
   scm_c_define ("mu-package-string", _mu_scm_package_string);
-
+  scm_c_export ("mu-package-string", NULL);
+  
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
-    scm_c_define(attr_kw[i].name, scm_from_int(attr_kw[i].value));
+    {
+      scm_c_define (attr_kw[i].name, scm_from_int(attr_kw[i].value));
+      scm_c_export (attr_kw[i].name, NULL);
+    }
   
   mu_scm_mutil_init ();
   mu_scm_mailbox_init ();

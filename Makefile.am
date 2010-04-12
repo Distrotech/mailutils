@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-ACLOCAL_AMFLAGS = -I m4 -I am
+ACLOCAL_AMFLAGS = -I m4 -I am -I gint
 
 if MU_COND_PYTHON
   PYTHON_DIR = python
@@ -81,6 +81,7 @@ if MU_COND_MIMEVIEW
 endif
 
 if MU_COND_LIBMU_SCM
+  GINT_DIR = gint
   LIBMU_SCM_DIR = libmu_scm
 endif
 
@@ -101,6 +102,7 @@ SUBDIRS = \
  libmu_argp\
  libmu_cfg\
  $(LIBMU_CPP_DIR)\
+ $(GINT_DIR)\
  $(LIBMU_SCM_DIR)\
  libmu_sieve\
  $(PYTHON_DIR)\

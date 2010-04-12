@@ -18,7 +18,7 @@
 ##   Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = -I. @MU_LIB_COMMON_INCLUDES@ @GUILE_INCLUDES@ 
+INCLUDES = -I. @MU_LIB_COMMON_INCLUDES@
 
 lib_LTLIBRARIES=libmu_scm.la
 
@@ -51,10 +51,7 @@ libmu_scm_la_LIBADD = \
  ${MU_LIB_MAILUTILS}\
  @GUILE_LIBS@
 
-EXTRA_DIST=mailutils.scm mailutils.scm.in guile-procedures.texi guile-procedures.txt
-
-sitedir=@MU_GUILE_SITE_DIR@
-site_DATA=guile-procedures.txt mailutils.scm
+EXTRA_DIST=mailutils.scm mailutils.scm.in
 
 DOT_X_FILES=\
  mu_address.x\
@@ -78,54 +75,15 @@ DOT_DOC_FILES=\
  mu_scm.doc\
  mu_util.doc 
 
-BUILT_SOURCES=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.texi
-
+CLEANFILES=
 DISTCLEANFILES=\
- $(DOT_X_FILES)\
- $(DOT_DOC_FILES)\
- guile-procedures.texi\
- guile-procedures.txt\
  mailutils.scm
 
-CLEANFILES=*.inc
-
-AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
-ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
-   --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
-
-GUILE_DOC_SNARF=$(mu_aux_dir)/guile-doc-snarf
-
-SUFFIXES=.x .doc .inc .in
-
-.c.x:
-	$(AM_V_GEN)AWK=$(AWK) \
-	$(GUILE_DOC_SNARF) -o $@ \
-                           $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
-
-.c.doc:
-	$(AM_V_GEN)AWK=$(AWK) \
-	$(GUILE_DOC_SNARF) -d -o $@ \
-                           $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
-
-.c.inc:
-	$(AM_V_GEN)sed -n 's/SCM_DEFINE *(.[^,]*, *\"\([^"][^"]*\)\".*/[(export \1)]/p' $< > $@
-
-guile-procedures.texi: $(DOT_DOC_FILES)
-	$(AM_V_GEN)cat $(DOT_DOC_FILES) > $@
-
-guile-procedures.txt: guile-procedures.texi
-	$(AM_V_GEN) rm -f $@; \
-	  $(MAKEINFO) --force -o $@ guile-procedures.texi || test -f $@
-
-mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
+mailutils.scm: mailutils.scm.in
 	$(AM_V_GEN)m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
 	   -DSITEDIR=$(sitedir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm \
             $(srcdir)/mailutils.scm.in > $@
-
-
-## Add -MG to make the .x magic work with auto-dep code.
-MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 install-data-hook:
 	 @here=`pwd`; \
@@ -137,3 +95,7 @@ install-data-hook:
 	 fi; \
 	 cd $$here
 
+sitedir   = @GUILE_SITE@/$(PACKAGE)
+site_DATA = mailutils.scm
+SUFFIXES=
+include ../gint/gint.mk

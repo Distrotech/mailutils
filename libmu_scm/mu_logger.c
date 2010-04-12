@@ -23,7 +23,7 @@
 
 static char *log_tag;
 
-SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 	   (SCM IDENT, SCM OPTION, SCM FACILITY),
 "Opens a connection to the system logger for Guile program.\n"
 "IDENT, OPTION and FACILITY have the same meaning as in openlog(3)")
@@ -41,7 +41,7 @@ SCM_DEFINE (scm_mu_openlog, "mu-openlog", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_logger, "mu-logger", 2, 0, 0,
 	   (SCM PRIO, SCM TEXT),
 	   "Distributes TEXT via syslogd priority PRIO.")
 #define FUNC_NAME s_scm_mu_logger
@@ -60,7 +60,7 @@ SCM_DEFINE (scm_mu_logger, "mu-logger", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_closelog, "mu-closelog", 0, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_closelog, "mu-closelog", 0, 0, 0,
 	   (),
 	   "Closes the channel to the system logger opened by @code{mu-openlog}.")
 #define FUNC_NAME s_scm_mu_closelog
@@ -113,6 +113,9 @@ mu_scm_logger_init ()
   int i;
   
   for (i = 0; i < sizeof (syslog_kw)/sizeof (syslog_kw[0]); i++)
-    scm_c_define (syslog_kw[i].name, scm_from_int (syslog_kw[i].facility));
+    {
+      scm_c_define (syslog_kw[i].name, scm_from_int (syslog_kw[i].facility));
+      scm_c_export (syslog_kw[i].name, NULL);
+    }
 #include <mu_logger.x>
 }

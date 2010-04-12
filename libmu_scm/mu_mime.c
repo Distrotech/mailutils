@@ -89,7 +89,7 @@ mu_scm_is_mime (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
-SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 	    (SCM FLAGS, SCM MESG),
 "Creates a new @acronym{MIME} object.  Both arguments are optional.\n"
 "FLAGS specifies the type of the object to create (@samp{0} is a reasonable\n"
@@ -127,7 +127,7 @@ SCM_DEFINE (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 	    (SCM MIME),
 "Returns @code{#t} if MIME is a multipart object.\n")
 #define FUNC_NAME s_scm_mu_mime_multipart_p
@@ -137,7 +137,7 @@ SCM_DEFINE (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 	    (SCM MIME),
 "Returns number of parts in the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_get_num_parts
@@ -156,7 +156,7 @@ SCM_DEFINE (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 	    (SCM MIME, SCM NUM),
 	    "Returns NUMth part from the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_get_part
@@ -178,7 +178,7 @@ SCM_DEFINE (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 	    (SCM MIME, SCM MESG),
 	    "Adds MESG to the @sc{mime} object MIME.")
 #define FUNC_NAME s_scm_mu_mime_add_part
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
 	    (SCM MIME),
 	    "Converts @sc{mime} object MIME to a message.\n")
 #define FUNC_NAME s_scm_mu_mime_get_message

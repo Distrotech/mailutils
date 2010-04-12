@@ -1073,50 +1073,26 @@ if test "$status_dbm" != no; then
 fi
 
 dnl Check for Guile
-AC_SUBST(GUILE_BINDIR)
-AC_SUBST(LIBMU_SCM)
-AC_SUBST(LIBMU_SCM_DEPS)
-AC_SUBST(MU_GUILE_SITE_DIR)
-AC_SUBST(MU_GUILE_SIEVE_MOD_DIR)
-AC_SUBST(MU_GUILE_SIEVE_MOD_DATA)
-
+AC_SUBST([GUILE_BINDIR])
+AC_SUBST([LIBMU_SCM])
+AC_SUBST([LIBMU_SCM_DEPS])
+AC_SUBST([MU_GUILE_SIEVE_MOD_DIR])
+AC_SUBST([MU_GUILE_SIEVE_MOD_DATA])
 if test "$useguile" != "no"; then
-  MU_CHECK_GUILE(1.8,
-         [useguile=yes
-   	  AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
-          GUILE_BINDIR=`guile-config info bindir`
-          LIBMU_SCM=../libmu_scm/libmu_scm.la
-          LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
-          MU_GUILE_SITE_DIR='$(GUILE_SITE)/$(PACKAGE)'
-          MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/sieve-modules'
-          MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
-  ],[useguile=no])
-
- if test "$useguile" = "yes"; then
-  AC_ARG_WITH([guiledir],
-           AC_HELP_STRING([--with-guiledir=DIR],
-                          [Specify the directory to install guile modules to]),
-           [case $withval in
-            /*)  GUILE_SITE=$withval;;
-            yes) GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site;;
-            *)   AC_MSG_ERROR([Argument to --with-guiledir must be an absolute directory name]);;
-            esac],
-            [GUILE_SITE=`$GUILE_CONFIG info pkgdatadir`/site
-             pfx=$prefix
-             test "$pfx" = NONE && pfx=$ac_default_prefix
-             case $GUILE_SITE in
-             $pfx/*) ;; # OK
-             *)  AC_MSG_WARN([guile site directory "$GUILE_SITE" lies outside your current prefix ($pfx).])
-                 GUILE_SITE='$(pkgdatadir)/$(VERSION)/guile'
-                 AC_MSG_WARN([Falling back to ${GUILE_SITE} instead. Use --with-guiledir to force using site directory.])
-                 ;;
-             esac])
- fi 
+  GINT_INIT([gint],[1.8],
+	    [useguile=yes
+   	     AC_DEFINE([WITH_GUILE],1,[Enable Guile support])
+             GUILE_BINDIR=`guile-config info bindir`
+             LIBMU_SCM=../libmu_scm/libmu_scm.la
+             LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
+             MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
+             MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
+             GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
+             GINT_LDADD=../lib/libmuaux.la
+            ],[useguile=no])
 fi
 
 AM_CONDITIONAL([MU_COND_LIBMU_SCM],[test "$useguile" = "yes"])
-
-AC_SUBST(GUILE_SITE)
 
 dnl Check for Emacs site-lisp directory
 AM_PATH_LISPDIR
@@ -1353,6 +1329,7 @@ AC_CONFIG_FILES([
  examples/cpp/Makefile
  examples/python/Makefile
  examples/scheme/Makefile
+ gint/Makefile
  frm/Makefile
  frm/testsuite/Makefile
  guimb/Makefile

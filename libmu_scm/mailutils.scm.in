@@ -20,7 +20,7 @@
 changequote([,])dnl
 
 (define-module (mailutils mailutils)
-               #:use-module (ice-9 documentation))
+  #:use-module (ice-9 documentation))
 
 (set! documentation-files (append documentation-files 
                                   (list "SITEDIR/guile-procedures.txt")))
@@ -38,65 +38,7 @@ changequote([,])dnl
    (lambda (lib)
 	   (dynamic-link (string-append lib-path lib)))
    mu-libs)
-  (cond
-   ((or (string=? (version) "1.4")
-	(string=? (version) "1.4.1"))
-    (dynamic-call "mu_scm_init"
-		  (dynamic-link (string-append
-				 lib-path
-				 "libguile-mailutils-v-VERSION"))))
-   (else
-    (load-extension (string-append
-		     lib-path "libguile-mailutils-v-VERSION") "mu_scm_init"))))
-
-(export mu-package)
-(export mu-package-string)
-(export mu-version)
-(export mu-mailer)
-(export mu-debug)
-(export mu-path-maildir)
-(export mu-path-folder-dir)
-
-(export MU-ATTRIBUTE-ANSWERED)
-(export MU-ATTRIBUTE-FLAGGED)
-(export MU-ATTRIBUTE-DELETED)
-(export MU-ATTRIBUTE-DRAFT)
-(export MU-ATTRIBUTE-SEEN)
-(export MU-ATTRIBUTE-READ)
-(export MU-ATTRIBUTE-MODIFIED)
-(export MU-ATTRIBUTE-RECENT)
-
-(export LOG_USER)   
-(export LOG_DAEMON)
-(export LOG_AUTH)  
-(export LOG_LOCAL0)
-(export LOG_LOCAL1)
-(export LOG_LOCAL2)
-(export LOG_LOCAL3)
-(export LOG_LOCAL4)
-(export LOG_LOCAL5)
-(export LOG_LOCAL6)
-(export LOG_LOCAL7)
-(export LOG_EMERG)    
-(export LOG_ALERT)   
-(export LOG_CRIT)    
-(export LOG_ERR)     
-(export LOG_WARNING) 
-(export LOG_NOTICE)  
-(export LOG_INFO)    
-(export LOG_DEBUG)   
-(export LOG_CONS)   
-(export LOG_NDELAY) 
-(export LOG_PID)
-
-include(BUILDDIR/mu_address.inc)
-include(BUILDDIR/mu_body.inc)
-include(BUILDDIR/mu_mailbox.inc)
-include(BUILDDIR/mu_message.inc)
-include(BUILDDIR/mu_mime.inc)
-include(BUILDDIR/mu_logger.inc)
-include(BUILDDIR/mu_port.inc)
-include(BUILDDIR/mu_scm.inc)
-include(BUILDDIR/mu_util.inc)
+  (load-extension (string-append
+		   lib-path "libguile-mailutils-v-VERSION") "mu_scm_init"))
 
 ;;;; End of mailutils.scm

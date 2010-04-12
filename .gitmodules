@@ -1,0 +1,3 @@
+[submodule "gint"]
+	path = gint
+	url = git://git.gnu.org.ua/gint.git

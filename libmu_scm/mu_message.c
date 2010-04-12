@@ -176,7 +176,7 @@ mu_scm_is_message (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
-SCM_DEFINE (scm_mu_message_create, "mu-message-create", 0, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_create, "mu-message-create", 0, 0, 0,
 	    (),
 	    "Creates an empty message.\n")
 #define FUNC_NAME s_scm_mu_message_create
@@ -188,7 +188,7 @@ SCM_DEFINE (scm_mu_message_create, "mu-message-create", 0, 0, 0,
 #undef FUNC_NAME
 
 /* FIXME: This changes envelope date */
-SCM_DEFINE (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 	    (SCM MESG),
 	    "Creates the copy of the message MESG.\n")
 #define FUNC_NAME s_scm_mu_message_copy
@@ -249,7 +249,7 @@ SCM_DEFINE (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_destroy, "mu-message-destroy", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_destroy, "mu-message-destroy", 1, 0, 0,
 	    (SCM MESG),
 	    "Destroys the message MESG.")
 #define FUNC_NAME s_scm_mu_message_destroy
@@ -263,7 +263,7 @@ SCM_DEFINE (scm_mu_message_destroy, "mu-message-destroy", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 	    (SCM MESG, SCM HEADER, SCM VALUE, SCM REPLACE),
 "Sets new VALUE to the header HEADER of the message MESG.\n"
 "If HEADER is already present in the message its value\n"
@@ -284,7 +284,7 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
   if (scm_is_bool (VALUE))
     return SCM_UNSPECIFIED;
   
-  SCM_ASSERT (scm_is_string (VALUE), VALUE, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (VALUE), VALUE, SCM_ARG3, FUNC_NAME);
   if (!SCM_UNBNDP (REPLACE))
     {
       replace = REPLACE == SCM_BOOL_T;
@@ -310,7 +310,7 @@ SCM_DEFINE (scm_mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_size, "mu-message-get-size", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_size, "mu-message-get-size", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns the size of the message MESG\n.")
 #define FUNC_NAME s_scm_mu_message_get_size
@@ -325,7 +325,7 @@ SCM_DEFINE (scm_mu_message_get_size, "mu-message-get-size", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns number of lines in the given message.\n")
 #define FUNC_NAME s_scm_mu_message_get_lines
@@ -367,7 +367,7 @@ filltime (struct tm *bd_time, int zoff, const char *zname)
   return result;
 }
 
-SCM_DEFINE (scm_mu_message_get_envelope, "mu-message-get-envelope", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_envelope, "mu-message-get-envelope", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns envelope date of the message MESG.\n")
 #define FUNC_NAME s_scm_mu_message_get_envelope
@@ -402,7 +402,7 @@ SCM_DEFINE (scm_mu_message_get_envelope, "mu-message-get-envelope", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_envelope_date, "mu-message-get-envelope-date", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_envelope_date, "mu-message-get-envelope-date", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns envelope date of the message MESG.\n")
 #define FUNC_NAME s_scm_mu_message_get_envelope_date
@@ -432,7 +432,7 @@ SCM_DEFINE (scm_mu_message_get_envelope_date, "mu-message-get-envelope-date", 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns email address of the sender of the message MESG.\n")
 #define FUNC_NAME s_scm_mu_message_get_sender
@@ -459,7 +459,7 @@ SCM_DEFINE (scm_mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
 	    (SCM MESG, SCM HEADER),
 	    "Returns value of the header HEADER from the message MESG.\n")
 #define FUNC_NAME s_scm_mu_message_get_header
@@ -517,7 +517,7 @@ string_sloppy_member (SCM lst, char *name)
   return 0;
 }
 
-SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 0,
 	    (SCM MESG, SCM HEADERS),
 "Returns the list of headers in the message MESG. Optional argument\n" 
 "HEADERS gives a list of header names to restrict return value to.\n")
@@ -583,7 +583,7 @@ SCM_DEFINE (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1,
 }
 #undef FUNC_NAME
   
-SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 0,
 	    (SCM MESG, SCM LIST, SCM REPLACE),
 "Set the headers in the message MESG from LIST\n"
 "LIST is a list of conses (cons HEADER VALUE).  The function sets\n"
@@ -640,7 +640,7 @@ SCM_DEFINE (scm_mu_message_set_header_fields, "mu-message-set-header-fields", 2,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
 	    (SCM MESG, SCM FLAG),
 "Mark the message MESG as deleted. Optional argument FLAG allows to toggle\n"
 "deletion mark. The message is deleted if it is @code{#t} and undeleted if\n"
@@ -677,7 +677,7 @@ SCM_DEFINE (scm_mu_message_delete, "mu-message-delete", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
 	    (SCM MESG, SCM FLAG),
 "Return value of the attribute FLAG of the message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_flag
@@ -738,7 +738,7 @@ SCM_DEFINE (scm_mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
 	    (SCM MESG, SCM FLAG, SCM VALUE),
 "Set the attribute FLAG of the message MESG. If optional VALUE is #f, the\n"
 "attribute is unset.")
@@ -836,7 +836,7 @@ SCM_DEFINE (scm_mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
 	    (SCM MESG, SCM FLAG),
 "Return the value of the user attribute FLAG from the message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_user_flag
@@ -858,7 +858,7 @@ SCM_DEFINE (scm_mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
 #undef FUNC_NAME
   
 
-SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 	    (SCM MESG, SCM FLAG, SCM VALUE),
 "Set the given user attribute FLAG in the message MESG. If optional argumen\n"
 "VALUE is @samp{#f}, the attribute is unset.")
@@ -892,7 +892,7 @@ SCM_DEFINE (scm_mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
 	    (SCM MESG, SCM MODE, SCM FULL),
 "Returns a port associated with the given MESG. MODE is a string\n"
 "defining operation mode of the stream. It may contain any of the\n"
@@ -948,7 +948,7 @@ SCM_DEFINE (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
 #undef FUNC_NAME
   
 
-SCM_DEFINE (scm_mu_message_get_body, "mu-message-get-body", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns the message body for the message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_body
@@ -966,7 +966,7 @@ SCM_DEFINE (scm_mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_multipart_p, "mu-message-multipart?", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_multipart_p, "mu-message-multipart?", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns @code{#t} if MESG is a multipart @acronym{MIME} message.")
 #define FUNC_NAME s_scm_mu_message_multipart_p
@@ -981,7 +981,7 @@ SCM_DEFINE (scm_mu_message_multipart_p, "mu-message-multipart?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
 	    (SCM MESG),
 "Returns number of parts in a multipart @acronym{MIME} message. Returns\n"
 "@code{#f} if the argument is not a multipart message.")
@@ -1007,7 +1007,7 @@ SCM_DEFINE (scm_mu_message_get_num_parts, "mu-message-get-num-parts", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_part, "mu-message-get-part", 2, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_part, "mu-message-get-part", 2, 0, 0,
 	    (SCM MESG, SCM PART),
 "Returns part #PART from a multipart @acronym{MIME} message MESG.")
 #define FUNC_NAME s_scm_mu_message_get_part
@@ -1034,7 +1034,7 @@ SCM_DEFINE (scm_mu_message_get_part, "mu-message-get-part", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 	    (SCM MESG, SCM MAILER, SCM FROM, SCM TO),
 "Sends the message MESG. Optional MAILER overrides default mailer settings\n"
 "in mu-mailer. Optional FROM and TO give sender and recever addresses.\n")
@@ -1118,7 +1118,7 @@ SCM_DEFINE (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mu_message_get_uid, "mu-message-get-uid", 1, 0, 0,
+SCM_DEFINE_PUBLIC (scm_mu_message_get_uid, "mu-message-get-uid", 1, 0, 0,
 	    (SCM MESG),
 	    "Returns uid of the message MESG\n")
 #define FUNC_NAME s_scm_mu_message_get_uid
