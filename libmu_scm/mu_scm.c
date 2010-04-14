@@ -89,7 +89,7 @@ register_format (const char *name)
     
 
 SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
-	    (SCM REST),
+		   (SCM rest),
 "Registers desired mailutils formats.  Any number of arguments can be given.\n"
 "Each argument must be one of the following strings:\n\n"
 "@multitable @columnfractions 0.3 0.6\n"
@@ -108,7 +108,7 @@ SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 {
   int status;
 
-  if (scm_is_null (REST))
+  if (scm_is_null (rest))
     {
       status = register_format (NULL);
       if (status)
@@ -118,10 +118,10 @@ SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
     }
   else
     {
-      for (; !scm_is_null (REST); REST = SCM_CDR (REST))
+      for (; !scm_is_null (rest); rest = SCM_CDR (rest))
 	{
 	  char *s;
-	  SCM scm = SCM_CAR (REST);
+	  SCM scm = SCM_CAR (rest);
 	  SCM_ASSERT (scm_is_string (scm), scm, SCM_ARGn, FUNC_NAME);
 	  s = scm_to_locale_string (scm);
 	  status = register_format (s);
@@ -137,13 +137,13 @@ SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_strerror, "mu-strerror", 1, 0, 0,
-	    (SCM ERR),
-"Return the error message corresponding to ERR, which must be\n"
+		   (SCM err),
+"Return the error message corresponding to @var{err}, which must be\n"
 "an integer value.\n")
 #define FUNC_NAME s_scm_mu_strerror
 {
-  SCM_ASSERT (scm_is_integer (ERR), ERR, SCM_ARG1, FUNC_NAME);
-  return scm_from_locale_string (mu_strerror (scm_to_int (ERR)));
+  SCM_ASSERT (scm_is_integer (err), err, SCM_ARG1, FUNC_NAME);
+  return scm_from_locale_string (mu_strerror (scm_to_int (err)));
 }
 #undef FUNC_NAME
 

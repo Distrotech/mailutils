@@ -138,34 +138,34 @@ mu_scm_is_mailbox (SCM scm)
 /* Guile primitives */
 
 SCM_DEFINE_PUBLIC (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
-	    (SCM URL), 
+		   (SCM url), 
 "Do not use this function. Use mu-user-mailbox-url instead.")
 #define FUNC_NAME s_scm_mu_mail_directory
 {
   mu_scm_error (FUNC_NAME, ENOSYS,
 		"This function is deprecated. Use mu-user-mailbox-url instead.",
-		  scm_list_1 (URL));
+		  scm_list_1 (url));
   return SCM_EOL;
 }
 #undef FUNC_NAME 
 
 SCM_DEFINE_PUBLIC (scm_mu_user_mailbox_url, "mu-user-mailbox-url", 1, 0, 0, 
-	    (SCM USER),
-	    "")
+		   (SCM user),
+		   "Return URL of the default mailbox for user @var{user}.")
 #define FUNC_NAME s_scm_mu_user_mailbox_url
 {
   int rc;
   char *p, *str;
   SCM ret;
   
-  SCM_ASSERT (scm_is_string (USER), USER, SCM_ARG1, FUNC_NAME);
-  str = scm_to_locale_string (USER);
+  SCM_ASSERT (scm_is_string (user), user, SCM_ARG1, FUNC_NAME);
+  str = scm_to_locale_string (user);
   rc = mu_construct_user_mailbox_url (&p, str);
   free (str);
   if (rc)
     mu_scm_error (FUNC_NAME, rc,
 		  "Cannot construct mailbox URL for ~A",
-		  scm_list_1 (USER));
+		  scm_list_1 (user));
   ret = scm_from_locale_string (p);
   free (p);
   return ret;
@@ -173,17 +173,17 @@ SCM_DEFINE_PUBLIC (scm_mu_user_mailbox_url, "mu-user-mailbox-url", 1, 0, 0,
 #undef FUNC_NAME 
 
 SCM_DEFINE_PUBLIC (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
-	    (SCM URL), 
-"If URL is given, sets it as a name of the user's folder directory.\n"
+		   (SCM url), 
+"If @var{url} is given, sets it as a name of the user's folder directory.\n"
 "Returns the current value of the folder directory.")
 #define FUNC_NAME s_scm_mu_folder_directory
 {
-  if (!SCM_UNBNDP (URL))
+  if (!SCM_UNBNDP (url))
     {
       char *s;
 
-      SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
-      s = scm_to_locale_string (URL);
+      SCM_ASSERT (scm_is_string (url), url, SCM_ARG1, FUNC_NAME);
+      s = scm_to_locale_string (url);
       mu_set_folder_directory (s);
       free (s);
     }
@@ -192,12 +192,12 @@ SCM_DEFINE_PUBLIC (scm_mu_folder_directory, "mu-folder-directory", 0, 1, 0,
 #undef FUNC_NAME 
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
-	    (SCM URL, SCM MODE), 
-"Opens the mailbox specified by URL. MODE is a string, consisting of\n"
+	    (SCM url, SCM mode), 
+"Opens the mailbox specified by @var{url}. @var{mode} is a string, consisting of\n"
 "the characters described below, giving the access mode for the mailbox\n"
 "\n"
 "@multitable @columnfractions 0.20 0.70\n"
-"@headitem MODE @tab Meaning\n"
+"@headitem @var{mode} @tab Meaning\n"
 "@item r @tab Open for reading.\n"
 "@item w @tab Open for writing.\n"
 "@item a @tab Open for appending to the end of the mailbox.\n"
@@ -208,54 +208,54 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 {
   mu_mailbox_t mbox = NULL;
   char *mode_str;
-  int mode = 0;
+  int mode_bits = 0;
   int status;
   SCM ret;
   
-  SCM_ASSERT (scm_is_string (URL), URL, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (url), url, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (mode), mode, SCM_ARG2, FUNC_NAME);
   
   scm_dynwind_begin (0);
   
-  mode_str = scm_to_locale_string (MODE);
+  mode_str = scm_to_locale_string (mode);
   scm_dynwind_free (mode_str);
   for (; *mode_str; mode_str++)
     switch (*mode_str)
       {
       case 'r':
-	mode |= MU_STREAM_READ;
+	mode_bits |= MU_STREAM_READ;
 	break;
       case 'w':
-	mode |= MU_STREAM_WRITE;
+	mode_bits |= MU_STREAM_WRITE;
 	break;
       case 'a':
-	mode |= MU_STREAM_APPEND;
+	mode_bits |= MU_STREAM_APPEND;
 	break;
       case 'c':
-	mode |= MU_STREAM_CREAT;
+	mode_bits |= MU_STREAM_CREAT;
 	break;
       }
   
-  if (mode & MU_STREAM_READ && mode & MU_STREAM_WRITE)
-    mode = (mode & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
+  if (mode_bits & MU_STREAM_READ && mode_bits & MU_STREAM_WRITE)
+    mode_bits = (mode_bits & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
 
-  mode_str = scm_to_locale_string (URL);
+  mode_str = scm_to_locale_string (url);
   scm_dynwind_free (mode_str);
   
   status = mu_mailbox_create_default (&mbox, mode_str);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot create default mailbox ~A",
-		  scm_list_1 (URL));
+		  scm_list_1 (url));
 
 
-  status = mu_mailbox_open (mbox, mode);
+  status = mu_mailbox_open (mbox, mode_bits);
   if (status)
     {
       mu_mailbox_destroy (&mbox);
       mu_scm_error (FUNC_NAME, status,
 		    "Cannot open default mailbox ~A",
-		    scm_list_1 (URL));
+		    scm_list_1 (url));
     }
   ret = mu_scm_mailbox_create (mbox);
   scm_dynwind_end ();
@@ -264,13 +264,14 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
-	    (SCM MBOX), "Closes mailbox MBOX.")
+		   (SCM mbox),
+		   "Closes mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_close
 {
   struct mu_mailbox *mum;
 
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   mu_mailbox_close (mum->mbox);
   mu_mailbox_destroy (&mum->mbox);
   return SCM_UNSPECIFIED;
@@ -278,16 +279,16 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
-	    (SCM MBOX), 
-            "Returns url of the mailbox MBOX.")
+		   (SCM mbox), 
+		   "Returns URL of the mailbox @var{MBOX}.")
 #define FUNC_NAME s_scm_mu_mailbox_get_url
 {
   struct mu_mailbox *mum;
   mu_url_t url;
   int status;
  
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   status = mu_mailbox_get_url (mum->mbox, &url);
   if (status)
     mu_scm_error (FUNC_NAME, status,
@@ -299,9 +300,9 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
-	    (SCM MBOX, SCM MODE),
-"Returns a port associated with the contents of the MBOX.\n"
-"MODE is a string defining operation mode of the stream. It may\n"
+		   (SCM mbox, SCM mode),
+"Returns a port associated with the contents of the @var{mbox},\n"
+"which is a string defining operation mode of the stream. It may\n"
 "contain any of the two characters: @samp{r} for reading, @samp{w} for\n"
 "writing.\n")
 #define FUNC_NAME s_scm_mu_mailbox_get_port
@@ -312,105 +313,105 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
   char *s;
   SCM ret;
   
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_string (MODE), MODE, SCM_ARG2, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (mode), mode, SCM_ARG2, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   status = mu_mailbox_get_stream (mum->mbox, &stream);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get mailbox stream",
-		  scm_list_1 (MBOX));
-  s = scm_to_locale_string (MODE);
-  ret = mu_port_make_from_stream (MBOX, stream, scm_mode_bits (s));
+		  scm_list_1 (mbox));
+  s = scm_to_locale_string (mode);
+  ret = mu_port_make_from_stream (mbox, stream, scm_mode_bits (s));
   free (s);
   return ret;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
-            (SCM MBOX, SCM MSGNO), 
-"Retrieve from message #MSGNO from the mailbox MBOX.")
+		   (SCM mbox, SCM msgno), 
+"Retrieve from message #@var{msgno} from the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_get_message
 {
-  size_t msgno;
+  size_t n;
   struct mu_mailbox *mum;
   mu_message_t msg;
   int status;
     
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_integer (MSGNO), MSGNO, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (msgno), msgno, SCM_ARG2, FUNC_NAME);
 
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  msgno = scm_to_int32 (MSGNO);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
+  n = scm_to_size_t (msgno);
 
-  status = mu_mailbox_get_message (mum->mbox, msgno, &msg);
+  status = mu_mailbox_get_message (mum->mbox, n, &msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get message ~A from mailbox ~A",
-		  scm_list_2 (MSGNO, MBOX));
+		  scm_list_2 (msgno, mbox));
     
-  return mu_scm_message_create (MBOX, msg);
+  return mu_scm_message_create (mbox, msg);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_messages_count, "mu-mailbox-messages-count", 1, 0, 0,
-	    (SCM MBOX), 
-"Returns number of messages in the mailbox MBOX.")
+		   (SCM mbox), 
+"Returns number of messages in the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_messages_count
 {
   struct mu_mailbox *mum;
   size_t nmesg;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
 
   status = mu_mailbox_messages_count (mum->mbox, &nmesg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot count messages in mailbox ~A",
-		  scm_list_1 (MBOX));
+		  scm_list_1 (mbox));
   return scm_from_size_t (nmesg);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_expunge, "mu-mailbox-expunge", 1, 0, 0,
-	    (SCM MBOX), 
-"Expunges deleted messages from the mailbox MBOX.")
+		   (SCM mbox), 
+"Expunges deleted messages from the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_expunge
 {
   struct mu_mailbox *mum;
   int status;
     
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   status = mu_mailbox_expunge (mum->mbox);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot expunge messages in mailbox ~A",
-		  scm_list_1 (MBOX));
+		  scm_list_1 (mbox));
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
-	    (SCM MBOX, SCM MESG),
-"Appends message MESG to the mailbox MBOX.")
+		   (SCM mbox, SCM mesg),
+		   "Appends message @var{mesg} to the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_append_message
 {
   struct mu_mailbox *mum;
   mu_message_t msg;
   int status;
     
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
-  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG2, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
+  msg = mu_scm_message_get (mesg);
   status = mu_mailbox_append_message (mum->mbox, msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot append message ~A to mailbox ~A",
-		  scm_list_2 (MESG, MBOX));
+		  scm_list_2 (mesg, mbox));
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
@@ -425,56 +426,56 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2
       if (status)				\
 	mu_scm_error (FUNC_NAME, status,	\
 		      "~A: " descr ": ~A",	\
-		      scm_list_2 (MBOX,		\
+		      scm_list_2 (mbox,		\
 				  scm_from_locale_string (mu_strerror (status)))); \
     }									\
   while (0)
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_first_message, "mu-mailbox-first-message", 1, 0, 0,
-	    (SCM MBOX),
-	    "Returns first message from the mailbox.")
+	    (SCM mbox),
+	    "Returns first message from the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_first_message
 {
   struct mu_mailbox *mum;
   int status;
   mu_message_t msg;
   
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   if (!mum->itr)
     {
       status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "~A: cannot create iterator: ~A",
-		      scm_list_2 (MBOX,
+		      scm_list_2 (mbox,
 				  scm_from_locale_string (mu_strerror (status))));
     }
   ITROP (mu_iterator_first (mum->itr), "moving to the first message");
   ITROP (mu_iterator_current (mum->itr, (void**)&msg),
 	 "getting current message");
-  return mu_scm_message_create (MBOX, msg);
+  return mu_scm_message_create (mbox, msg);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_next_message, "mu-mailbox-next-message", 1, 0, 0,
-	    (SCM MBOX),
-	    "Returns next message from the mailbox.")
+		   (SCM mbox),
+	    "Returns next message from the mailbox @var{mbox}.")
 #define FUNC_NAME s_scm_mu_mailbox_next_message
 {
   struct mu_mailbox *mum;
   int status;
   mu_message_t msg;
   
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   if (!mum->itr)
     {
       status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "~A: cannot create iterator: ~A",
-		      scm_list_2 (MBOX,
+		      scm_list_2 (mbox,
 				  scm_from_locale_string (mu_strerror (status))));
       ITROP (mu_iterator_first (mum->itr), "moving to the first message");
     }
@@ -483,27 +484,31 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_next_message, "mu-mailbox-next-message", 1, 0,
   
   ITROP (mu_iterator_current (mum->itr, (void**)&msg),
 	 "getting current message");
-  return mu_scm_message_create (MBOX, msg);
+  return mu_scm_message_create (mbox, msg);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_more_messages_p, "mu-mailbox-more-messages?", 1, 0, 0,
-	    (SCM MBOX),
-	    "Returns next message from the mailbox.")
+		   (SCM mbox),
+"Returns @samp{#t} if there are more messages in the mailbox @var{mbox}\n"
+"ahead of current iterator position.  Usually this function is used after\n"
+"a call to @samp{mu-mailbox-first-message} or @samp{mu-mailbox-next-message}.\n"
+"If not, it initializes the iterator and points it to the first message inn"
+"the mailbox.")
 #define FUNC_NAME s_scm_mu_mailbox_more_messages_p
 {
   struct mu_mailbox *mum;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
   if (!mum->itr)
     {
       status = mu_mailbox_get_iterator (mum->mbox, &mum->itr);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "~A: cannot create iterator: ~A",
-		      scm_list_2 (MBOX,
+		      scm_list_2 (mbox,
 				  scm_from_locale_string (mu_strerror (status))));
       status = mu_iterator_first (mum->itr);
       if (status == MU_ERR_NOENT)
@@ -511,7 +516,7 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_more_messages_p, "mu-mailbox-more-messages?", 
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "~A: cannot set iterator to the first message: ~A",
-		      scm_list_2 (MBOX,
+		      scm_list_2 (mbox,
 				  scm_from_locale_string (mu_strerror (status))));
     }
   return scm_from_bool (!!mu_iterator_is_done (mum->itr));

@@ -24,37 +24,37 @@
 static char *log_tag;
 
 SCM_DEFINE_PUBLIC (scm_mu_openlog, "mu-openlog", 3, 0, 0,
-	   (SCM IDENT, SCM OPTION, SCM FACILITY),
+	   (SCM ident, SCM option, SCM facility),
 "Opens a connection to the system logger for Guile program.\n"
-"IDENT, OPTION and FACILITY have the same meaning as in openlog(3)")
+"@var{ident}, @var{option} and @var{facility} have the same meaning as in openlog(3)")
 #define FUNC_NAME s_scm_mu_openlog
 {
-  SCM_ASSERT (scm_is_string (IDENT), IDENT, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_string (ident), ident, SCM_ARG1, FUNC_NAME);
   if (log_tag)
     free (log_tag);
-  log_tag = scm_to_locale_string(IDENT);
+  log_tag = scm_to_locale_string (ident);
 	
-  SCM_ASSERT (scm_is_integer (OPTION), OPTION, SCM_ARG2, FUNC_NAME);
-  SCM_ASSERT (scm_is_integer (FACILITY), FACILITY, SCM_ARG3, FUNC_NAME);
-  openlog (log_tag, scm_to_int (OPTION), scm_to_int (FACILITY));
+  SCM_ASSERT (scm_is_integer (option), option, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (facility), facility, SCM_ARG3, FUNC_NAME);
+  openlog (log_tag, scm_to_int (option), scm_to_int (facility));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_logger, "mu-logger", 2, 0, 0,
-	   (SCM PRIO, SCM TEXT),
-	   "Distributes TEXT via syslogd priority PRIO.")
+	   (SCM prio, SCM text),
+	   "Distributes @var{text} via the syslog priority @var{prio}.")
 #define FUNC_NAME s_scm_mu_logger
 {
-  int prio;
+  int nprio;
   char *str;
 
-  SCM_ASSERT (scm_is_integer (PRIO), PRIO, SCM_ARG1, FUNC_NAME);
-  prio = scm_to_int (PRIO);
+  SCM_ASSERT (scm_is_integer (prio), prio, SCM_ARG1, FUNC_NAME);
+  nprio = scm_to_int (prio);
   
-  SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
-  str = scm_to_locale_string (TEXT);
-  syslog (prio, "%s", str);
+  SCM_ASSERT (scm_is_string (text), text, SCM_ARG2, FUNC_NAME);
+  str = scm_to_locale_string (text);
+  syslog (nprio, "%s", str);
   free (str);
   return SCM_UNSPECIFIED;
 }

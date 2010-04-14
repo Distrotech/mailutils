@@ -90,65 +90,66 @@ mu_scm_is_mime (SCM scm)
 /* Guile primitives */
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
-	    (SCM FLAGS, SCM MESG),
+		   (SCM flags, SCM mesg),
 "Creates a new @acronym{MIME} object.  Both arguments are optional.\n"
-"FLAGS specifies the type of the object to create (@samp{0} is a reasonable\n"
-"value).  MESG gives the message to create the @acronym{MIME} object from.")
+"@var{Flags} specifies the type of the object to create (@samp{0} is a\n"
+"reasonable value).  @var{mesg} gives the message to create the\n"
+"@acronym{MIME} object from.")
 #define FUNC_NAME s_scm_mu_mime_create
 {
   mu_message_t msg = NULL;
   mu_mime_t mime;
-  int flags;
+  int fl;
   int status;
   
-  if (scm_is_bool (FLAGS))
+  if (scm_is_bool (flags))
     {
-      /*if (FLAGS == SCM_BOOL_F)*/
-      flags = 0;
+      /*if (flags == SCM_BOOL_F)*/
+      fl = 0;
     }
   else
     {
-      SCM_ASSERT (scm_is_integer (FLAGS), FLAGS, SCM_ARG1, FUNC_NAME);
-      flags = scm_to_int32 (FLAGS);
+      SCM_ASSERT (scm_is_integer (flags), flags, SCM_ARG1, FUNC_NAME);
+      fl = scm_to_int (flags);
     }
   
-  if (!SCM_UNBNDP (MESG))
+  if (!SCM_UNBNDP (mesg))
     {
-      SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
-      msg = mu_scm_message_get (MESG);
+      SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG2, FUNC_NAME);
+      msg = mu_scm_message_get (mesg);
     }
   
-  status = mu_mime_create (&mime, msg, flags);
+  status = mu_mime_create (&mime, msg, fl);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot create MIME object", SCM_BOOL_F);
   
-  return mu_scm_mime_create (MESG, mime);
+  return mu_scm_mime_create (mesg, mime);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_multipart_p, "mu-mime-multipart?", 1, 0, 0,
-	    (SCM MIME),
-"Returns @code{#t} if MIME is a multipart object.\n")
+		   (SCM mime),
+"Returns @code{#t} if @var{mime} is a multipart object.\n")
 #define FUNC_NAME s_scm_mu_mime_multipart_p
 {
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  return mu_mime_is_multipart (mu_scm_mime_get (MIME)) ? SCM_BOOL_T : SCM_BOOL_F;
+  SCM_ASSERT (mu_scm_is_mime (mime), mime, SCM_ARG1, FUNC_NAME);
+  return mu_mime_is_multipart (mu_scm_mime_get (mime)) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
-	    (SCM MIME),
-"Returns number of parts in the @sc{mime} object MIME.")
+		   (SCM mime),
+"Returns number of parts in the @acronym{MIME} object @var{mime}.")
 #define FUNC_NAME s_scm_mu_mime_get_num_parts
 {
-  mu_mime_t mime;
+  mu_mime_t mimeobj;
   size_t nparts;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  mime = mu_scm_mime_get (MIME);
-  status = mu_mime_get_num_parts (mime, &nparts);
+  SCM_ASSERT (mu_scm_is_mime (mime), mime, SCM_ARG1, FUNC_NAME);
+  mimeobj = mu_scm_mime_get (mime);
+  status = mu_mime_get_num_parts (mimeobj, &nparts);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot count MIME parts", SCM_BOOL_F);
@@ -157,71 +158,71 @@ SCM_DEFINE_PUBLIC (scm_mu_mime_get_num_parts, "mu-mime-get-num-parts", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_get_part, "mu-mime-get-part", 2, 0, 0,
-	    (SCM MIME, SCM NUM),
-	    "Returns NUMth part from the @sc{mime} object MIME.")
+		   (SCM mime, SCM num),
+"Returns @var{num}th part from the @acronym{MIME} object @var{mime}.")
 #define FUNC_NAME s_scm_mu_mime_get_part
 {
   mu_message_t msg = NULL;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_integer (NUM), NUM, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (mu_scm_is_mime (mime), mime, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_integer (num), num, SCM_ARG2, FUNC_NAME);
   
-  status = mu_mime_get_part (mu_scm_mime_get (MIME),
-			     scm_to_int32 (NUM), &msg);
+  status = mu_mime_get_part (mu_scm_mime_get (mime),
+			     scm_to_int (num), &msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get part ~A from MIME object ~A",
-		  scm_list_2 (NUM, MIME));
+		  scm_list_2 (num, mime));
   
-  return mu_scm_message_create (MIME, msg);
+  return mu_scm_message_create (mime, msg);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_add_part, "mu-mime-add-part", 2, 0, 0,
-	    (SCM MIME, SCM MESG),
-	    "Adds MESG to the @sc{mime} object MIME.")
+		   (SCM mime, SCM mesg),
+"Adds message @var{mesg} to the @acronym{MIME} object @var{mime}.")
 #define FUNC_NAME s_scm_mu_mime_add_part
 {
-  mu_mime_t mime;
+  mu_mime_t mimeobj;
   mu_message_t msg;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG2, FUNC_NAME);
-  mime = mu_scm_mime_get (MIME);
-  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (mu_scm_is_mime (mime), mime, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG2, FUNC_NAME);
+  mimeobj = mu_scm_mime_get (mime);
+  msg = mu_scm_message_get (mesg);
 
-  status = mu_mime_add_part (mime, msg);
+  status = mu_mime_add_part (mimeobj, msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot add new part to MIME object ~A",
-		  scm_list_1 (MIME));
+		  scm_list_1 (mime));
   
-  mu_scm_message_add_owner (MESG, MIME);
+  mu_scm_message_add_owner (mesg, mime);
   
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_mime_get_message, "mu-mime-get-message", 1, 0, 0,
-	    (SCM MIME),
-	    "Converts @sc{mime} object MIME to a message.\n")
+		   (SCM mime),
+"Converts @acronym{MIME} object @var{mime} to a message.\n")
 #define FUNC_NAME s_scm_mu_mime_get_message
 {
-  mu_mime_t mime;
+  mu_mime_t mimeobj;
   mu_message_t msg;
   int status;
   
-  SCM_ASSERT (mu_scm_is_mime (MIME), MIME, SCM_ARG1, FUNC_NAME);
-  mime = mu_scm_mime_get (MIME);
-  status = mu_mime_get_message (mime, &msg);
+  SCM_ASSERT (mu_scm_is_mime (mime), mime, SCM_ARG1, FUNC_NAME);
+  mimeobj = mu_scm_mime_get (mime);
+  status = mu_mime_get_message (mimeobj, &msg);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get message from MIME object ~A",
-		  scm_list_1 (MIME));
+		  scm_list_1 (mime));
 
-  return mu_scm_message_create (MIME, msg);
+  return mu_scm_message_create (mime, msg);
 }
 #undef FUNC_NAME
 

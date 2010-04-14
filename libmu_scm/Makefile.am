@@ -98,4 +98,5 @@ install-data-hook:
 sitedir   = @GUILE_SITE@/$(PACKAGE)
 site_DATA = mailutils.scm
 SUFFIXES=
+BUILT_SOURCES=
 include ../gint/gint.mk

@@ -103,16 +103,16 @@ mu_scm_body_create (SCM msg, mu_body_t body)
 /* Guile primitives */
 
 SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
-	    (SCM BODY), 
-	    "Read next line from the BODY.")
+	    (SCM body), 
+	    "Read next line from the @var{body}.")
 #define FUNC_NAME s_scm_mu_body_read_line
 {
   struct mu_body *mbp;
   size_t n, nread;
   int status;
   
-  SCM_ASSERT (mu_scm_is_body (BODY), BODY, SCM_ARG1, FUNC_NAME);
-  mbp = (struct mu_body *) SCM_CDR (BODY);
+  SCM_ASSERT (mu_scm_is_body (body), body, SCM_ARG1, FUNC_NAME);
+  mbp = (struct mu_body *) SCM_CDR (body);
 
   if (!mbp->stream)
     {
@@ -164,8 +164,8 @@ SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
-	    (SCM BODY, SCM TEXT),
-	    "Append TEXT to message BODY.")
+	    (SCM body, SCM text),
+	    "Append @var{text} to message @var{body}.")
 #define FUNC_NAME s_scm_mu_body_write
 {
   char *ptr;
@@ -173,9 +173,9 @@ SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
   struct mu_body *mbp;
   int status;
   
-  SCM_ASSERT (mu_scm_is_body (BODY), BODY, SCM_ARG1, FUNC_NAME);
-  mbp = (struct mu_body *) SCM_CDR (BODY);
-  SCM_ASSERT (scm_is_string (TEXT), TEXT, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (mu_scm_is_body (body), body, SCM_ARG1, FUNC_NAME);
+  mbp = (struct mu_body *) SCM_CDR (body);
+  SCM_ASSERT (scm_is_string (text), text, SCM_ARG2, FUNC_NAME);
   
   if (!mbp->stream)
     {
@@ -185,9 +185,10 @@ SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 		      "Cannot get body stream", SCM_BOOL_F);
     }
 
-  ptr = SCM_STRING_CHARS (TEXT);
+  ptr = scm_to_locale_string (text);
   len = strlen (ptr);
   status = mu_stream_write (mbp->stream, ptr, len, mbp->offset, &n);
+  free (ptr);
   mu_scm_error (FUNC_NAME, status,
 		"Error writing to stream", SCM_BOOL_F);
   mbp->offset += n;
