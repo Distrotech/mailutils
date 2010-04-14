@@ -1337,10 +1337,7 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 	    mu_stream_destroy (&cvt, mu_stream_get_owner (cvt));
 	  else
 	    {
-	      int flags;
-	      mu_stream_get_flags (cvt, &flags);
-	      flags &= ~MU_STREAM_NO_CLOSE;
-	      mu_stream_set_flags (cvt, flags);
+	      mu_stream_clr_flags (cvt, MU_STREAM_NO_CLOSE);
 	      filter = cvt;
 	    }
 	}

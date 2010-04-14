@@ -129,6 +129,7 @@ extern void mu_stream_set_owner   (mu_stream_t, void* owner);
 
 extern int mu_stream_get_flags    (mu_stream_t, int *pflags);
 extern int mu_stream_set_flags    (mu_stream_t, int flags);
+extern int mu_stream_clr_flags    (mu_stream_t, int flags);
 
 extern int mu_stream_get_property (mu_stream_t, mu_property_t *);
 extern int mu_stream_set_property (mu_stream_t, mu_property_t, void *);

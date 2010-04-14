@@ -80,7 +80,7 @@ mu_stream_destroy (mu_stream_t *pstream, void *owner)
       mu_stream_t stream = *pstream;
       if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
 	{
-	  mu_stream_close(stream);
+	  mu_stream_close (stream);
 	  if (stream->rbuffer.base)
 	    free (stream->rbuffer.base);
 
@@ -811,6 +811,15 @@ mu_stream_set_flags (mu_stream_t stream, int fl)
   if (stream == NULL)
     return EINVAL;
   stream->flags |= fl;
+  return 0;
+}
+
+int
+mu_stream_clr_flags (mu_stream_t stream, int fl)
+{
+  if (stream == NULL)
+    return EINVAL;
+  stream->flags &= ~fl;
   return 0;
 }
 

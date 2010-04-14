@@ -335,7 +335,7 @@ _mapfile_open (mu_stream_t stream)
   else
     mfs->ptr = NULL;
   mfs->flags = mflag;
-  mu_stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
+  mu_stream_set_flags (stream, MU_STREAM_NO_CHECK);
   return 0;
 }
 
