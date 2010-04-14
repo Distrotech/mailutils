@@ -338,8 +338,9 @@ mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
   size_t size;
   
   if (!p)
-    return MU_ERR_NOENT;
-  size = p - str;
+    size = strlen (str);
+  else
+    size = p - str;
   if (buf)
     size = mu_cpystr (buf, str, size);
   if (retsz)
@@ -355,8 +356,9 @@ mu_mimehdr_aget_disp (const char *str, char **pvalue)
   size_t size;
   
   if (!p)
-    return MU_ERR_NOENT;
-  size = p - str;
+    size = strlen (str);
+  else
+    size = p - str;
   p = malloc (size + 1);
   if (!p)
     return ENOMEM;
