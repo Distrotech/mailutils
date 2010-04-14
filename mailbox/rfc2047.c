@@ -42,23 +42,26 @@ realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)
   return 0;
 }
 
-static char *
-getword (const char **pstr, int delim)
+int
+getword (char **pret, const char **pstr, int delim)
 {
   size_t len;
   char *ret;
   const char *start = *pstr;
   const char *end = strchr (start, delim);
+
+  free (*pret);
   if (!end)
-    return NULL;
+    return MU_ERR_BAD_2047_INPUT;
   len = end - start;
   ret = malloc (len + 1);
   if (!ret)
-    return NULL;
+    return ENOMEM;
   memcpy (ret, start, len);
   ret[len] = 0;
   *pstr = end + 1;
-  return ret;
+  *pret = ret;
+  return 0;
 }
     
 int
@@ -119,23 +122,21 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  const char *sp = fromstr + 2;
 	  char tmp[128];
 	  
-	  fromcode = getword (&sp, '?');
-	  encoding_type = getword (&sp, '?');
-	  encoded_text = getword (&sp, '?');
+	  status = getword (&fromcode, &sp, '?');
+	  if (status)
+	    break;
+	  status = getword (&encoding_type, &sp, '?');
+	  if (status)
+	    break;
+	  status = getword (&encoded_text, &sp, '?');
+	  if (status)
+	    break;
 	  if (sp == NULL || sp[0] != '=')
 	    {
 	      status = MU_ERR_BAD_2047_INPUT;
 	      break;
 	    }
       
-	  if (fromcode == NULL
-	      || encoding_type == NULL
-	      || encoded_text == NULL)
-	    {
-	      status = MU_ERR_BAD_2047_INPUT;
-	      break;
-	    }
-
 	  size = strlen (encoded_text);
 
 	  switch (encoding_type[0])
