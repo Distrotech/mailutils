@@ -46,6 +46,8 @@ static void
 filter_destroy (mu_stream_t stream)
 {
   mu_filter_t filter = mu_stream_get_owner (stream);
+  if (!(stream->flags & MU_STREAM_NO_CLOSE))
+    mu_stream_destroy (&filter->stream, mu_stream_get_owner (filter->stream));
   if (filter->_destroy)
     filter->_destroy (filter);
   if (filter->property)
@@ -165,7 +167,7 @@ mu_filter_get_list (mu_list_t *plist)
 
 int
 mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
-		  int type, int direction)
+		  int type, int flags)
 {
   mu_iterator_t iterator = NULL;
   mu_filter_record_t filter_record = NULL;
@@ -204,14 +206,12 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 
   if (found)
     {
-      int flags = 0;
       mu_filter_t filter;
 
       filter = calloc (1, sizeof (*filter));
       if (filter == NULL)
 	return ENOMEM;
 
-      mu_stream_get_flags (stream, &flags);
       status = mu_stream_create (pstream, flags | MU_STREAM_NO_CHECK, filter);
       if (status != 0)
 	{
@@ -221,7 +221,11 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 
       filter->stream = stream;
       filter->filter_stream = *pstream;
-      filter->direction = (direction == 0) ? MU_STREAM_READ : direction;
+      filter->direction = (flags == 0) ? MU_STREAM_READ
+	                      : (flags
+				 & (MU_STREAM_READ |
+				    MU_STREAM_WRITE |
+				    MU_STREAM_RDWR));
       filter->type = type;
 
       status = mu_property_create (&(filter->property), filter);
@@ -249,8 +253,8 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 	    }
         }
 
-      mu_stream_set_open (*pstream, filter_open, filter );
-      mu_stream_set_close (*pstream, filter_close, filter );
+      mu_stream_set_open (*pstream, filter_open, filter);
+      mu_stream_set_close (*pstream, filter_close, filter);
       mu_stream_set_read (*pstream, filter_read, filter);
       mu_stream_set_readline (*pstream, filter_readline, filter);
       mu_stream_set_write (*pstream, filter_write, filter);

@@ -699,7 +699,8 @@ eval_body (struct eval_env *env)
       if (encoding)
 	{
 	  int rc = mu_filter_create(&dstr, input, encoding,
-				 MU_FILTER_DECODE, MU_STREAM_READ);
+				    MU_FILTER_DECODE, 
+				    MU_STREAM_READ | MU_STREAM_NO_CLOSE);
 	  if (rc == 0)
 	    input = dstr;
 	  free (encoding);

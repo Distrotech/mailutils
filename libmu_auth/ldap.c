@@ -602,7 +602,6 @@ chk_md5 (const char *db_pass, const char *pass)
 
   mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
   mu_stream_destroy (&flt, NULL);
-  mu_stream_destroy (&str, NULL);
   
   return memcmp (md5digest, d1, sizeof md5digest) == 0 ?
                   0 : MU_ERR_AUTH_FAILURE;
@@ -629,13 +628,11 @@ chk_smd5 (const char *db_pass, const char *pass)
   if (!d1)
     {
       mu_stream_destroy (&flt, NULL);
-      mu_stream_destroy (&str, NULL);
       return ENOMEM;
     }
   
   mu_stream_read (flt, (char*) d1, size, 0, &size);
   mu_stream_destroy (&flt, NULL);
-  mu_stream_destroy (&str, NULL);
 
   if (size <= 16)
     {
@@ -674,7 +671,6 @@ chk_sha (const char *db_pass, const char *pass)
 
   mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
   mu_stream_destroy (&flt, NULL);
-  mu_stream_destroy (&str, NULL);
   
   return memcmp (sha1digest, d1, sizeof sha1digest) == 0 ?
                   0 : MU_ERR_AUTH_FAILURE;
@@ -701,7 +697,6 @@ chk_ssha (const char *db_pass, const char *pass)
   if (!d1)
     {
       mu_stream_destroy (&flt, NULL);
-      mu_stream_destroy (&str, NULL);
       return ENOMEM;
     }
   

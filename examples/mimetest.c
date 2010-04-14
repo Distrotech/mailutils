@@ -251,7 +251,10 @@ message_display_parts (mu_message_t msg, int indent)
           printf ("%*.*sBegin\n", indent, indent, "");
           mu_message_get_body (part, &body);
           mu_body_get_stream (body, &str);
-          mu_filter_create (&str, str, encoding, 0, 0);
+          /* Make sure the original body stream is not closed when
+             str gets destroyed */
+          mu_filter_create (&str, str, encoding, MU_FILTER_DECODE,
+			    MU_STREAM_READ | MU_STREAM_NO_CLOSE);
           offset = 0;
           while (mu_stream_readline (str, buf, sizeof (buf),
 				     offset, &nbytes) == 0 && nbytes)

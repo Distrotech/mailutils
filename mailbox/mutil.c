@@ -1329,8 +1329,8 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
     {
       mu_stream_t cvt;
       status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,
-				    MU_STREAM_NO_CLOSE,
-				    mu_default_fallback_mode);
+				       MU_STREAM_NO_CLOSE,
+				       mu_default_fallback_mode);
       if (status == 0)
 	{
 	  if (mu_stream_open (cvt))

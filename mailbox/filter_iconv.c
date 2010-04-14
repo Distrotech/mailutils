@@ -114,6 +114,7 @@ _icvt_destroy (mu_stream_t stream)
   s->buf = NULL;
   if (s->cd != (iconv_t) -1)
     iconv_close (s->cd);
+  free (s);
 }
 
 static int _icvt_read (mu_stream_t stream, char *optr, size_t osize,

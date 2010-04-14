@@ -217,7 +217,6 @@ decode64_buf (const char *name, unsigned char **pbuf, size_t *psize)
   mu_stream_sequential_write (str, name, namelen);
   mu_stream_read (flt, (char*) buf, sizeof buf, 0, &size);
   mu_stream_destroy (&flt, NULL);
-  mu_stream_destroy (&str, NULL);
   *pbuf = malloc (size);
   if (!*pbuf)
     return 1;

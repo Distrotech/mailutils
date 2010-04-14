@@ -313,7 +313,8 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
 		content_encoding = "7bit";
 	      ret =
 		mu_filter_create (&info->stream, istream, content_encoding,
-				  MU_FILTER_DECODE, MU_STREAM_READ);
+				  MU_FILTER_DECODE,
+				  MU_STREAM_READ | MU_STREAM_NO_CLOSE);
 	      free (content_encoding_mem);
 	    }
 	}

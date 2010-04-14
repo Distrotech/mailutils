@@ -1122,8 +1122,9 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 	  mu_message_get_header (msg, &hdr);
 	  _get_content_encoding (hdr, &encoding);
 
-	  rc = mu_filter_create(&dstr, bstr, encoding,
-				MU_FILTER_DECODE, MU_STREAM_READ);
+	  rc = mu_filter_create (&dstr, bstr, encoding,
+			 	 MU_FILTER_DECODE, 
+				 MU_STREAM_READ | MU_STREAM_NO_CLOSE);
 	  free (encoding);
 	  if (rc == 0)
 	    {
@@ -1272,8 +1273,8 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
       return 0;
     }
   mu_body_get_stream (body, &bstr);
-  rc = mu_filter_create(&dstr, bstr, encoding,
-		     MU_FILTER_DECODE, MU_STREAM_READ);
+  rc = mu_filter_create (&dstr, bstr, encoding,
+		         MU_FILTER_DECODE, MU_STREAM_READ | MU_STREAM_NO_CLOSE);
   if (rc == 0)
     bstr = dstr;
   cat_message (out, bstr);
@@ -2052,10 +2053,12 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       mu_message_get_body (*msg, &body);
       mu_body_get_stream (body, &input);
       rc = mu_filter_create (&fstr, input, "quoted-printable",
-			     MU_FILTER_ENCODE, MU_STREAM_READ);
+			     MU_FILTER_ENCODE, 
+			     MU_STREAM_READ | MU_STREAM_NO_CLOSE);
       if (rc == 0)
 	{
 	  cat_message (output, fstr);
+	  mu_stream_destroy (&fstr, NULL);
 	  mu_message_unref (*msg);
 	  *msg = newmsg;
 	}
