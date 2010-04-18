@@ -333,6 +333,14 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
       free (full_name);
       return ENOENT;
     }
+  else if (!S_ISREG (st.st_mode))
+    {
+      if (flags & MU_PARSE_CONFIG_VERBOSE)
+	mu_diag_output (MU_DIAG_INFO, _("%s: not a regular file"), full_name);
+      free (full_name);
+      return ENOENT;
+    } 
+      
   fp = fopen (full_name, "r");
   if (!fp)
     {
