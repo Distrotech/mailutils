@@ -201,11 +201,11 @@ mu_folder_destroy (mu_folder_t *pfolder)
 	    folder->_destroy (folder);
 	  mu_monitor_wrlock (monitor);
 	  if (folder->authority)
-	    mu_authority_destroy (&(folder->authority), folder);
+	    mu_authority_destroy (&folder->authority, folder);
 	  if (folder->stream)
-	    mu_stream_destroy (&(folder->stream), folder);
+	    mu_stream_destroy (&folder->stream);
 	  if (folder->url)
-	    mu_url_destroy (&(folder->url));
+	    mu_url_destroy (&folder->url);
 	  free (folder);
 	}
       mu_monitor_unlock (monitor);
@@ -238,7 +238,7 @@ mu_folder_set_stream (mu_folder_t folder, mu_stream_t stream)
   if (folder == NULL)
     return EINVAL;
   if (folder->stream)
-    mu_stream_destroy (&(folder->stream), folder);
+    mu_stream_destroy (&folder->stream);
   folder->stream = stream;
   return 0;
 }
@@ -246,6 +246,7 @@ mu_folder_set_stream (mu_folder_t folder, mu_stream_t stream)
 int
 mu_folder_get_stream (mu_folder_t folder, mu_stream_t *pstream)
 {
+  /* FIXME: Deprecation warning */
   if (folder == NULL)
     return EINVAL;
   if (pstream == NULL)
@@ -255,12 +256,22 @@ mu_folder_get_stream (mu_folder_t folder, mu_stream_t *pstream)
 }
 
 int
+mu_folder_get_streamref (mu_folder_t folder, mu_stream_t *pstream)
+{
+  if (folder == NULL)
+    return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  return mu_streamref_create (pstream, folder->stream);
+}
+
+int
 mu_folder_set_authority (mu_folder_t folder, mu_authority_t authority)
 {
   if (folder == NULL)
     return EINVAL;
   if (folder->authority)
-    mu_authority_destroy (&(folder->authority), folder);
+    mu_authority_destroy (&folder->authority, folder);
   folder->authority = authority;
   return 0;
 }
@@ -286,7 +297,7 @@ mu_folder_get_observable (mu_folder_t folder, mu_observable_t *pobservable)
 
   if (folder->observable == NULL)
     {
-      int status = mu_observable_create (&(folder->observable), folder);
+      int status = mu_observable_create (&folder->observable, folder);
       if (status != 0)
         return status;
     }
@@ -329,7 +340,7 @@ mu_folder_set_debug (mu_folder_t folder, mu_debug_t debug)
   if (folder == NULL)
     return EINVAL;
   if (folder->debug)
-    mu_debug_destroy (&(folder->debug), folder);
+    mu_debug_destroy (&folder->debug, folder);
   folder->debug = debug;
   return 0;
 }
@@ -343,7 +354,7 @@ mu_folder_get_debug (mu_folder_t folder, mu_debug_t *pdebug)
     return MU_ERR_OUT_PTR_NULL;
   if (folder->debug == NULL)
     {
-      int status = mu_debug_create (&(folder->debug), folder);
+      int status = mu_debug_create (&folder->debug, folder);
       if (status != 0)
         return status;
     }

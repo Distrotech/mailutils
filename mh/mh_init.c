@@ -613,15 +613,15 @@ mh_file_copy (const char *from, const char *to)
 		to, mu_strerror (rc));
       free (buffer);
       mu_stream_close (in);
-      mu_stream_destroy (&in, mu_stream_get_owner (in));
+      mu_stream_destroy (&in);
       return 1;
     }
 
   while (st.st_size > 0
-	 && (rc = mu_stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
+	 && (rc = mu_stream_read (in, buffer, bufsize, &rdsize)) == 0
 	 && rdsize > 0)
     {
-      if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
+      if ((rc = mu_stream_write (out, buffer, rdsize, NULL)) != 0)
 	{
 	  mu_error (_("write error on `%s': %s"),
 		    to, mu_strerror (rc));
@@ -634,8 +634,8 @@ mh_file_copy (const char *from, const char *to)
 
   mu_stream_close (in);
   mu_stream_close (out);
-  mu_stream_destroy (&in, mu_stream_get_owner (in));
-  mu_stream_destroy (&out, mu_stream_get_owner (out));
+  mu_stream_destroy (&in);
+  mu_stream_destroy (&out);
   
   return rc;
 }
@@ -664,7 +664,7 @@ _file_to_message (const char *file_name)
     {
       mu_error (_("cannot open input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
-      mu_stream_destroy (&instream, mu_stream_get_owner (instream));
+      mu_stream_destroy (&instream);
       return NULL;
     }
 

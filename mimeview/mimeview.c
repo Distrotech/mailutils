@@ -25,6 +25,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "mailutils/libargp.h"
 #include "mailutils/argcv.h"
@@ -67,7 +69,7 @@ static char *no_ask_types;  /* List of MIME types for which no questions
 			       should be asked */
 static int interactive = -1; 
 char *mimeview_file;       /* Name of the file to view */
-FILE *mimeview_fp;     /* Its descriptor */
+int mimeview_fd;     /* Its descriptor */
 
 static void
 set_debug_flags (mu_debug_t debug, const char *arg)
@@ -199,8 +201,8 @@ open_file (char *name)
     }
 
   mimeview_file = name;
-  mimeview_fp = fopen (name, "r");
-  if (mimeview_fp == NULL)
+  mimeview_fd = open (name, O_RDONLY);
+  if (mimeview_fd == -1)
     {
       mu_error (_("Cannot open `%s': %s"), name, mu_strerror (errno));
       return -1;
@@ -211,7 +213,7 @@ open_file (char *name)
 void
 close_file ()
 {
-  fclose (mimeview_fp);
+  close (mimeview_fd);
 }
 
 void
@@ -251,13 +253,14 @@ display_file (const char *type)
       char *text;
 
       asprintf (&text, "Content-Type: %s\n", type);
-      status = mu_header_create (&hdr, text, strlen (text), NULL);
+      status = mu_header_create (&hdr, text, strlen (text));
       if (status)
 	mu_error (_("cannot create header: %s"), mu_strerror (status));
       else
 	{
-	  mu_stdio_stream_create (&stream, mimeview_fp,
-			       MU_STREAM_READ|MU_STREAM_SEEKABLE|MU_STREAM_NO_CLOSE);
+	  mu_stdio_stream_create (&stream, mimeview_fd,
+				  MU_STREAM_READ|
+				  MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
 	  mu_stream_open (stream);
 	  
 	  display_stream_mailcap (mimeview_file, stream, hdr,
@@ -265,9 +268,9 @@ display_file (const char *type)
 				  debug_level);
 	  
 	  mu_stream_close (stream);
-	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+	  mu_stream_destroy (&stream);
 
-	  mu_header_destroy (&hdr, mu_header_get_owner (hdr));
+	  mu_header_destroy (&hdr);
 	}
     }
 }

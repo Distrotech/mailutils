@@ -95,7 +95,7 @@ mu_app_init (struct argp *myargp, const char **capa,
       char *comment;
       char *canonical_name = get_canonical_name ();
       mu_stream_t stream;
-      mu_stdio_stream_create (&stream, stdout,
+      mu_stdio_stream_create (&stream, MU_STDOUT_FD,
 			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
       mu_stream_open (stream);
       asprintf (&comment,
@@ -116,7 +116,7 @@ mu_app_init (struct argp *myargp, const char **capa,
       free (comment);
       
       mu_format_config_tree (stream, mu_program_name, cfg_param, 0);
-      mu_stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream);
       exit (0);
     }
 

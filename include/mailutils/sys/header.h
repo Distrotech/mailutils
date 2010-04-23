@@ -17,34 +17,64 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _FILTER0_H
-#define _FILTER0_H
+#ifndef _HEADER0_H
+#define _HEADER0_H
 
-#include <mailutils/filter.h>
-#include <mailutils/list.h>
-#include <mailutils/monitor.h>
-#include <mailutils/property.h>
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
+#include <mailutils/header.h>
+#include <mailutils/assoc.h>
+#include <mailutils/iterator.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _mu_filter
+/* The structure members are offset that point to the begin/end of header
+   fields.  */
+struct mu_hdrent
 {
+  struct mu_hdrent *prev;
+  struct mu_hdrent *next;
+  size_t fn;
+  size_t nlen;
+  size_t fv;
+  size_t vlen;
+  size_t nlines;
+};
+
+struct _mu_header
+{
+  /* Data.  */
+  char *spool;
+  size_t spool_size;
+  size_t spool_used;
+  struct mu_hdrent *head, *tail;
+  int flags;
+
+  size_t numhdr;
+  size_t numlines;
+  size_t size;
+  
+  /* Temporary storage */
+  mu_stream_t mstream;
+  
+  /* Stream.  */
   mu_stream_t stream;
-  mu_stream_t filter_stream;
-  mu_property_t property;
-  int direction;
-  int type;
+
+  /* Iterators */
+  mu_iterator_t itr;
+
+  /* Methods */
+  int (*_fill) (void *data, char **, size_t *);
   void *data;
-  int  (*_read)     (mu_filter_t, char *, size_t, mu_off_t, size_t *);
-  int  (*_readline) (mu_filter_t, char *, size_t, mu_off_t, size_t *);
-  int  (*_write)    (mu_filter_t, const char *, size_t, mu_off_t, size_t *);
-  void (*_destroy)  (mu_filter_t);
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _FILTER0_H */
+#endif /* _HEADER0_H */

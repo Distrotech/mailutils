@@ -260,8 +260,7 @@ get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
       size_t bufsize = 0;
       size_t len;
 
-      while ((rc = mu_stream_sequential_getline (stream,
-						 &buf, &bufsize, &len)) == 0
+      while ((rc = mu_stream_getline (stream, &buf, &bufsize, &len)) == 0
 	     && len > 0)
 	{
 	  char *p;
@@ -316,7 +315,7 @@ get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
       mu_stream_close (stream);
       free (buf);
     }
-  mu_stream_destroy (&stream, NULL);
+  mu_stream_destroy (&stream);
 
   if (rc == 0)
     {

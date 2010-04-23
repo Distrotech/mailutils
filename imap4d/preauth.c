@@ -210,13 +210,13 @@ decode64_buf (const char *name, unsigned char **pbuf, size_t *psize)
   
   name++;
   namelen = strlen (name) - 1;
-  mu_memory_stream_create (&str, NULL, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
-  mu_stream_sequential_write (str, name, namelen);
-  mu_stream_read (flt, (char*) buf, sizeof buf, 0, &size);
-  mu_stream_destroy (&flt, NULL);
+  mu_stream_write (str, name, namelen, NULL);
+  mu_stream_read (flt, buf, sizeof buf, &size);
+  mu_stream_destroy (&flt);
   *pbuf = malloc (size);
   if (!*pbuf)
     return 1;
@@ -366,14 +366,14 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
       return NULL;
     }
 
-  mu_stream_sequential_printf (stream, "%u , %u\r\n",
-			       ntohs (clt_addr->sin_port),
-			       ntohs (srv_addr->sin_port));
+  mu_stream_printf (stream, "%u , %u\r\n",
+		    ntohs (clt_addr->sin_port),
+		    ntohs (srv_addr->sin_port));
   mu_stream_shutdown (stream, MU_STREAM_WRITE);
 
-  rc = mu_stream_sequential_getline (stream, &buf, &size, NULL);
+  rc = mu_stream_getline (stream, &buf, &size, NULL);
   mu_stream_close (stream);
-  mu_stream_destroy (&stream, NULL);
+  mu_stream_destroy (&stream);
   if (rc)
     {
       mu_diag_output (MU_DIAG_INFO, _("cannot read answer from %s:%d: %s"),

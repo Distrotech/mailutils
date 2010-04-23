@@ -36,7 +36,7 @@ mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
     {
       /* Close any old carrier.  */
       mu_pop3_disconnect (pop3);
-      mu_stream_destroy (&pop3->carrier, pop3);
+      mu_stream_destroy (&pop3->carrier);
     }
   pop3->carrier = carrier;
   return 0;

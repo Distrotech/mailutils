@@ -83,7 +83,7 @@ load_file (const char *name)
 
   buf[st.st_size] = '\n';
   buf[st.st_size+1] = 0;
-  status = mu_header_create (&header, buf, st.st_size + 1, NULL);
+  status = mu_header_create (&header, buf, st.st_size + 1);
   free (buf);
   if (status)
     {
@@ -124,7 +124,7 @@ cmd_load (int argc, char **argv)
 {
   if (check_args (argv[0], argc, 2, 2))
     return;
-  mu_header_destroy (&header, NULL);
+  mu_header_destroy (&header);
   load_file (argv[1]);
 }
 
@@ -134,7 +134,7 @@ cmd_free (int argc, char **argv)
   if (check_args (argv[0], argc, 1, 1))
     return;
   mu_iterator_destroy (&iterator);
-  mu_header_destroy (&header, NULL);
+  mu_header_destroy (&header);
 }
 
 void
@@ -180,14 +180,14 @@ cmd_dump (int argc, char **argv)
       return;
     }
 
-  status = mu_stream_seek (stream, off, SEEK_SET);
+  status = mu_stream_seek (stream, off, SEEK_SET, NULL);
   if (status)
     {
       mu_error ("%u: cannot seek: %s", line_num, mu_strerror (status));
       return;
     }
 
-  while (mu_stream_sequential_read (stream, buf, sizeof buf, &n) == 0
+  while (mu_stream_read (stream, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       fwrite (buf, 1, n, stdout);
@@ -279,10 +279,10 @@ cmd_write (int argc, char **argv)
       return;
     }
   printf("[reading headers; end with an empty line]\n");
-  mu_stream_seek (str, 0, SEEK_SET);
+  mu_stream_seek (str, 0, SEEK_SET, NULL);
   while (prompt (1), fgets(buf, sizeof buf, stdin))
     {
-      mu_stream_sequential_write (str, buf, strlen (buf));
+      mu_stream_write (str, buf, strlen (buf), NULL);
       if (buf[0] == '\n')
 	break;
     }
@@ -349,7 +349,7 @@ cmd_readline (int argc, char **argv)
   if (!buf)
     abort ();
   mu_header_get_stream (header, &stream);
-  mu_stream_readline (stream, buf, size, 0, &nbytes);
+  mu_stream_readline (stream, buf, size, &nbytes);
   printf ("\"%*.*s\"", (int) nbytes, (int) nbytes, buf);
   free (buf);
 }
@@ -509,7 +509,7 @@ main (int argc, char **argv)
     }
   else
     {
-      int status = mu_header_create (&header, NULL, 0, NULL);
+      int status = mu_header_create (&header, NULL, 0);
       if (status)
 	{
 	  mu_error ("cannot create header: %s", mu_strerror (status));

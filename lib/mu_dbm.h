@@ -17,8 +17,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301 USA */
 
-#include <mailutils/stream.h>
-
 #if defined(WITH_GDBM)
 
 #include <gdbm.h>

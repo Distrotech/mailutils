@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2007, 2010 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2007, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,5 +19,20 @@
 
 sysincludedir=$(pkgincludedir)/sys
 sysinclude_HEADERS = \
-  nntp.h\
-  pop3.h
+ file_stream.h\
+ filter.h\
+ header_stream.h\
+ header.h\
+ mapfile_stream.h\
+ memory_stream.h\
+ message_stream.h\
+ message.h\
+ mime.h\
+ prog_stream.h\
+ socket_stream.h\
+ stdio_stream.h\
+ streamref.h\
+ streamtrans.h\
+ stream.h\
+ pop3.h\
+ nntp.h

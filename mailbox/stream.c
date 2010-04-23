@@ -1,808 +1,782 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2006, 2007, 2009, 2010
-   Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
 
-   This library is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
-
-
-/* Credits.  Some of the Readline an buffering scheme was taken
-   from 4.4BSDLite2.
-
-   Copyright (c) 1990, 1993
-   The Regents of the University of California.  All rights reserved.
-
-   This code is derived from software contributed to Berkeley by
-   Chris Torek.
- */
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
+#include <stdlib.h>
+#include <limits.h>
+#ifndef SIZE_MAX
+# define SIZE_MAX (~((size_t)0))
+#endif
 
-#include <mailutils/property.h>
+#include <mailutils/types.h>
+#include <mailutils/alloc.h>
+#include <mailutils/error.h>
 #include <mailutils/errno.h>
-#include <mailutils/io.h>
-#include <stream0.h>
+#include <mailutils/nls.h>
+#include <mailutils/stream.h>
+#include <mailutils/sys/stream.h>
 
-static int refill (mu_stream_t, mu_off_t);
-
-/* A stream provides a way for an object to do I/O. It overloads
-   stream read/write functions. Only a minimal buffering is done
-   and that if stream's bufsiz member is set. If the requested
-   offset does not equal the one maintained internally the buffer
-   is flushed and refilled. This buffering scheme is more convenient
-   for networking streams (POP/IMAP).
-   Writes are always unbuffered. */
-int
-mu_stream_create (mu_stream_t *pstream, int flags, void *owner)
+static int
+_stream_seterror (struct _mu_stream *stream, int code, int perm)
 {
-  mu_stream_t stream;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  if (owner == NULL)
-    return EINVAL;
-  stream = calloc (1, sizeof (*stream));
-  if (stream == NULL)
-    return ENOMEM;
-  stream->owner = owner;
-  stream->flags = flags;
-  /* By default unbuffered, the buffering scheme is not for all models, it
-     really makes sense for network streams, where there is no offset.  */
-  /* stream->rbuffer.bufsiz = BUFSIZ; */
-  *pstream = stream;
-  return 0;
+  stream->last_err = code;
+  switch (code)
+    {
+    case 0:
+    case EAGAIN:
+    case EINPROGRESS:
+      break;
+
+    default:
+      if (perm)
+	stream->flags |= _MU_STR_ERR;
+    }
+  return code;
+}
+
+mu_stream_t
+_mu_stream_create (size_t size, int flags)
+{
+  struct _mu_stream *str;
+  if (size < sizeof (str))
+    abort ();
+  str = mu_zalloc (size);
+  str->flags = flags;
+  return str;
 }
 
 void
-mu_stream_destroy (mu_stream_t *pstream, void *owner)
+mu_stream_destroy (mu_stream_t *pstream)
 {
-   if (pstream && *pstream)
+  if (pstream)
     {
-      mu_stream_t stream = *pstream;
-      if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
+      mu_stream_t str = *pstream;
+      if (str && (str->ref_count == 0 || --str->ref_count == 0))
 	{
-	  mu_stream_close (stream);
-	  if (stream->rbuffer.base)
-	    free (stream->rbuffer.base);
-
-	  if (stream->_destroy)
-	    stream->_destroy (stream);
-
-	  free (stream);
+	  if (str->done)
+	    str->done (str);
+	  free (str);
+	  *pstream = NULL;
 	}
-      *pstream = NULL;
     }
 }
 
-void *
-mu_stream_get_owner (mu_stream_t stream)
+void
+mu_stream_get_flags (mu_stream_t str, int *pflags)
 {
-  return (stream) ? stream->owner : NULL;
+  *pflags = str->flags;
+}
+  
+void
+mu_stream_ref (mu_stream_t stream)
+{
+  stream->ref_count++;
+}
+
+void
+mu_stream_unref (mu_stream_t stream)
+{
+  mu_stream_destroy (&stream);
 }
 
 int
 mu_stream_open (mu_stream_t stream)
 {
-  if (stream == NULL)
-    return EINVAL;
-  stream->state = MU_STREAM_STATE_OPEN;
+  int rc;
 
-  if (stream->_open)
-    return stream->_open (stream);
-  return  0;
+  if (stream->open && (rc = stream->open (stream)))
+    return _stream_seterror (stream, rc, 1);
+  stream->bytes_in = stream->bytes_out = 0;
+  return 0;
+}
+
+const char *
+mu_stream_strerror (mu_stream_t stream, int rc)
+{
+  const char *str;
+
+  if (stream->error_string)
+    str = stream->error_string (stream, rc);
+  else
+    str = mu_strerror (rc);
+  return str;
+}
+
+int
+mu_stream_last_error (mu_stream_t stream)
+{
+  return stream->last_err;
+}
+
+void
+mu_stream_clearerr (mu_stream_t stream)
+{
+  stream->last_err = 0;
+  stream->flags &= ~_MU_STR_ERR;
+}
+
+int
+mu_stream_eof (mu_stream_t stream)
+{
+  return stream->flags & _MU_STR_EOF;
+}
+
+#define _stream_cleareof(s) ((s)->flags &= ~_MU_STR_EOF)
+#define _stream_advance_buffer(s,n) ((s)->cur += n, (s)->level -= n)
+#define _stream_buffer_offset(s) ((s)->cur - (s)->buffer)
+#define _stream_orig_level(s) ((s)->level + _stream_buffer_offset(s))
+
+int
+mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
+		mu_off_t *pres)
+{
+  int rc;
+  mu_off_t res;
+  size_t bpos;
+    
+  if (!stream->seek)
+    return _stream_seterror (stream, ENOSYS, 0);
+
+  if (!(stream->flags & MU_STREAM_SEEK))
+    return _stream_seterror (stream, EACCES, 1);
+
+  switch (whence)
+    {
+    case MU_SEEK_SET:
+      break;
+
+    case MU_SEEK_CUR:
+	break;
+
+    case MU_SEEK_END: 
+      bpos = _stream_buffer_offset (stream);
+      if (bpos + offset >= 0 && bpos + offset < _stream_orig_level (stream))
+	{
+	  if ((rc = stream->seek (stream, offset, whence, &res)))
+	    return _stream_seterror (stream, rc, 1);
+	  offset -= bpos;
+	  _stream_advance_buffer (stream, offset);
+	  _stream_cleareof (stream);
+	  if (pres)
+	    *pres = res - stream->level;
+	  return 0;
+	}
+      break;
+
+    default:
+      return _stream_seterror (stream, EINVAL, 1);
+    }
+
+  if (mu_stream_flush (stream))
+    return -1;
+  rc = stream->seek (stream, offset, whence, &res);
+  if (rc)
+    return _stream_seterror (stream, rc, 1);
+  _stream_cleareof (stream);
+  if (pres)
+    *pres = res - stream->level;
+  return 0;
+}
+
+int
+mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
+		      size_t size)
+{
+  if (size == 0)
+    type = mu_buffer_none;
+
+  if (stream->buffer)
+    {
+      mu_stream_flush (stream);
+      free (stream->buffer);
+    }
+
+  stream->buftype = type;
+  if (type == mu_buffer_none)
+    {
+      stream->buffer = NULL;
+      return 0;
+    }
+
+  stream->buffer = mu_alloc (size);
+  if (stream->buffer == NULL)
+    {
+      stream->buftype = mu_buffer_none;
+      return _stream_seterror (stream, ENOMEM, 1);
+    }
+  stream->bufsize = size;
+  stream->cur = stream->buffer;
+  stream->level = 0;
+    
+  return 0;
+}
+
+int
+mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
+			   int full_read,
+			   size_t *pnread)
+{
+  int rc;
+  size_t nread;
+    
+  if (!stream->read) 
+    return _stream_seterror (stream, ENOSYS, 0);
+
+  if (!(stream->flags & MU_STREAM_READ)) 
+    return _stream_seterror (stream, EACCES, 1);
+    
+  if (stream->flags & _MU_STR_ERR)
+    return stream->last_err;
+    
+  if ((stream->flags & _MU_STR_EOF) || size == 0)
+    {
+      if (pnread)
+	{
+	  *pnread = 0;
+	  return 0;
+       }
+      else
+	{
+	  _stream_seterror (stream, EIO, 0);
+	  return EIO;
+	}
+    }
+    
+    if (full_read)
+      {
+	size_t rdbytes;
+
+	nread = 0;
+	while (size > 0
+	       && (rc = stream->read (stream, buf, size, &rdbytes)) == 0)
+	  {
+	    if (rdbytes == 0)
+	      {
+		stream->flags |= _MU_STR_EOF;
+		break;
+	      }
+	    buf += rdbytes;
+	    nread += rdbytes;
+	    size -= rdbytes;
+	    stream->bytes_in += rdbytes;
+	    
+	  }
+	if (size)
+	  rc = _stream_seterror (stream, EIO, 0);
+      }
+    else
+      {
+	rc = stream->read (stream, buf, size, &nread);
+	if (rc == 0)
+	  {
+	    if (nread == 0)
+	      stream->flags |= _MU_STR_EOF;
+	    stream->bytes_in += nread;
+	  }
+	_stream_seterror (stream, rc, rc != 0);
+      }
+    if (pnread)
+      *pnread = nread;
+    
+    return rc;
+}
+
+int
+mu_stream_write_unbuffered (mu_stream_t stream,
+			    const void *buf, size_t size,
+			    int full_write,
+			    size_t *pnwritten)
+{
+  int rc;
+  size_t nwritten;
+  
+  if (!stream->write) 
+    return _stream_seterror (stream, ENOSYS, 0);
+
+  if (!(stream->flags & MU_STREAM_WRITE)) 
+    return _stream_seterror (stream, EACCES, 1);
+
+  if (stream->flags & _MU_STR_ERR)
+    return stream->last_err;
+
+  if (size == 0)
+    {
+      if (pnwritten)
+	*pnwritten = 0;
+      return 0;
+    }
+    
+  if (full_write)
+    {
+      size_t wrbytes;
+      const char *bufp = buf;
+
+      nwritten = 0;
+      while (size > 0
+	     && (rc = stream->write (stream, bufp, size, &wrbytes))
+	             == 0)
+	{
+	  if (wrbytes == 0)
+	    {
+	      rc = EIO;
+	      break;
+	    }
+	  bufp += wrbytes;
+	  nwritten += wrbytes;
+	  size -= wrbytes;
+	  stream->bytes_out += wrbytes;
+	}
+    }
+  else
+    {
+      rc = stream->write (stream, buf, size, &nwritten);
+      if (rc == 0)
+	stream->bytes_out += nwritten;
+    }
+  if (pnwritten)
+    *pnwritten = nwritten;
+  _stream_seterror (stream, rc, rc != 0);
+  return rc;
+}
+
+static int
+_stream_fill_buffer (struct _mu_stream *stream)
+{
+  size_t n;
+  int rc = 0;
+  char c;
+    
+  switch (stream->buftype)
+    {
+    case mu_buffer_none:
+      return 0;
+	
+    case mu_buffer_full:
+      if (mu_stream_read_unbuffered (stream,
+				     stream->buffer, stream->bufsize,
+				     0,
+				     &stream->level))
+	return 1;
+      break;
+	
+    case mu_buffer_line:
+      for (n = 0;
+	   n < stream->bufsize
+	     && (rc = mu_stream_read_unbuffered (stream,
+						 &c, 1, 0, NULL)) == 0; n++)
+	{
+	  stream->buffer[n] = c;
+	  if (c == '\n')
+	    break;
+	}
+      stream->level = n;
+      break;
+    }
+  stream->cur = stream->buffer;
+  return rc;
+}
+
+#define BUFFER_FULL_P(s) \
+  ((s)->cur + (s)->level == (s)->buffer + (s)->bufsize)
+
+static int
+_stream_buffer_full_p (struct _mu_stream *stream)
+{
+    switch (stream->buftype)
+      {
+      case mu_buffer_none:
+	break;
+	
+      case mu_buffer_line:
+	return BUFFER_FULL_P (stream)
+	       || memchr (stream->cur, '\n', stream->level) != NULL;
+
+      case mu_buffer_full:
+	return BUFFER_FULL_P (stream);
+      }
+    return 0;
+}
+
+static int
+_stream_flush_buffer (struct _mu_stream *stream, int all)
+{
+  int rc;
+  char *end;
+		  
+  if (stream->flags & _MU_STR_DIRTY)
+    {
+      if ((stream->flags & MU_STREAM_SEEK)
+	  && (rc = mu_stream_seek (stream,
+				   - _stream_orig_level (stream),
+				   MU_SEEK_CUR, NULL)))
+	return rc;
+
+      switch (stream->buftype)
+	{
+	case mu_buffer_none:
+	    abort(); /* should not happen */
+	    
+	case mu_buffer_full:
+	  if ((rc = mu_stream_write_unbuffered (stream, stream->cur,
+						stream->level, 1, NULL)))
+	    return rc;
+	  break;
+	    
+	case mu_buffer_line:
+	  if (stream->level == 0)
+	    break;
+	  for (end = memchr(stream->cur, '\n', stream->level);
+	       end;
+	       end = memchr(stream->cur, '\n', stream->level))
+	    {
+	      size_t size = end - stream->cur + 1;
+	      rc = mu_stream_write_unbuffered (stream,
+					       stream->cur,
+					       size, 1, NULL);
+	      if (rc)
+		return rc;
+	      _stream_advance_buffer (stream, size);
+	    }
+	  if ((all && stream->level) || BUFFER_FULL_P (stream))
+	    {
+	      rc = mu_stream_write_unbuffered (stream,
+					       stream->cur,
+					       stream->level,
+					       1, NULL);
+	      if (rc)
+		return rc;
+	      _stream_advance_buffer (stream, stream->level);
+	    }
+	}
+    }
+  if (stream->level)
+    {
+      if (stream->cur > stream->buffer)
+	memmove (stream->buffer, stream->cur, stream->level);
+    }
+  else
+    {
+      stream->flags &= ~_MU_STR_DIRTY;
+      stream->level = 0;
+    }
+  stream->cur = stream->buffer;
+  return 0;
+}
+
+int
+mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread)
+{
+  if (stream->buftype == mu_buffer_none)
+    return mu_stream_read_unbuffered (stream, buf, size, !pread, pread);
+  else
+    {
+      char *bufp = buf;
+      size_t nbytes = 0;
+      while (size)
+	{
+	  size_t n;
+	  int rc;
+	  
+	  if (stream->level == 0)
+	    {
+	      if ((rc = _stream_fill_buffer (stream)))
+		{
+		  if (nbytes)
+		    break;
+		  return rc;
+		}
+	      if (stream->level == 0)
+		break;
+	    }
+	  
+	  n = size;
+	  if (n > stream->level)
+	    n = stream->level;
+	  memcpy (bufp, stream->cur, n);
+	  _stream_advance_buffer (stream, n);
+	  nbytes += n;
+	  bufp += n;
+	  size -= n;
+	  if (stream->buftype == mu_buffer_line && bufp[-1] == '\n')
+	    break;
+	}
+      
+      if (pread)
+	*pread = nbytes;
+      else if (size) 
+	return _stream_seterror (stream, EIO, 1);
+    }
+  return 0;
+}
+
+int
+mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread)
+{
+  int rc;
+  char c;
+  size_t n = 0;
+    
+  if (size == 0)
+    return EIO;
+    
+  size--;
+  for (n = 0; n < size && (rc = mu_stream_read (stream, &c, 1, NULL)) == 0;
+       n++)
+    {
+      *buf++ = c;
+      if (c == '\n')
+	break;
+    }
+  *buf = 0;
+  if (pread)
+    *pread = n;
+  return rc;
+}
+
+int
+mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
+		    int delim, size_t *pread)
+{
+  int rc;
+  char *lineptr = *pbuf;
+  size_t n = *psize;
+  size_t cur_len = 0;
+    
+  if (lineptr == NULL || n == 0)
+    {
+      char *new_lineptr;
+      n = 120;
+      new_lineptr = mu_realloc (lineptr, n);
+      if (new_lineptr == NULL) 
+	return ENOMEM;
+      lineptr = new_lineptr;
+    }
+    
+  for (;;)
+    {
+      char c;
+
+      rc = mu_stream_read (stream, &c, 1, NULL);
+      if (rc)
+	break;
+	
+      /* Make enough space for len+1 (for final NUL) bytes.  */
+      if (cur_len + 1 >= n)
+	{
+	  size_t needed_max =
+	    SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
+	  size_t needed = 2 * n + 1;   /* Be generous. */
+	  char *new_lineptr;
+	  
+	  if (needed_max < needed)
+	    needed = needed_max;
+	  if (cur_len + 1 >= needed)
+	    {
+	      rc = EOVERFLOW;
+	      break;
+	    }
+	    
+	  new_lineptr = mu_realloc (lineptr, needed);
+	  if (new_lineptr == NULL)
+	    {
+	      rc = ENOMEM;
+	      break;
+	    }
+	    
+	  lineptr = new_lineptr;
+	  n = needed;
+	}
+
+      lineptr[cur_len] = c;
+      cur_len++;
+      
+      if (c == delim)
+	break;
+    }
+  lineptr[cur_len] = '\0';
+    
+  *pbuf = lineptr;
+  *psize = n;
+  
+  if (pread)
+    *pread = cur_len;
+  return rc;
+}
+
+int
+mu_stream_getline (mu_stream_t stream, char **pbuf, size_t *psize,
+		   size_t *pread)
+{
+    return mu_stream_getdelim (stream, pbuf, psize, '\n', pread);
+}
+
+int
+mu_stream_write (mu_stream_t stream, const void *buf, size_t size,
+		 size_t *pnwritten)
+{
+  int rc = 0;
+  
+  if (stream->buftype == mu_buffer_none)
+    rc = mu_stream_write_unbuffered (stream, buf, size,
+				     !pnwritten, pnwritten);
+  else
+    {
+      size_t nbytes = 0;
+      const char *bufp = buf;
+	
+      while (1)
+	{
+	  size_t n;
+	  
+	  if (_stream_buffer_full_p (stream)
+	      && (rc = _stream_flush_buffer (stream, 0)))
+	    break;
+
+	  if (size == 0)
+	    break;
+	    
+	  n = stream->bufsize - stream->level;
+	  if (n > size)
+	    n = size;
+	  memcpy (stream->cur + stream->level, bufp, n);
+	  stream->level += n;
+	  nbytes += n;
+	  bufp += n;
+	  size -= n;
+	  stream->flags |= _MU_STR_DIRTY;
+	}
+      if (pnwritten)
+	*pnwritten = nbytes;
+    }
+  return rc;
+}
+
+int
+mu_stream_writeline (mu_stream_t stream, const char *buf, size_t size)
+{
+  int rc;
+  if ((rc = mu_stream_write (stream, buf, size, NULL)) == 0)
+    rc = mu_stream_write (stream, "\r\n", 2, NULL);
+  return rc;
+}
+
+int
+mu_stream_flush (mu_stream_t stream)
+{
+  int rc;
+  
+  if (!stream)
+    return EINVAL;
+  rc = _stream_flush_buffer (stream, 1);
+  if (rc)
+    return rc;
+  if (stream->flush)
+    return stream->flush (stream);
+  return 0;
 }
 
 int
 mu_stream_close (mu_stream_t stream)
 {
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->state == MU_STREAM_STATE_CLOSE)
-    return 0;
-
-  stream->state = MU_STREAM_STATE_CLOSE;
-  /* Clear the buffer of any residue left.  */
-  if (stream->rbuffer.base)
-    {
-      stream->rbuffer.ptr = stream->rbuffer.base;
-      stream->rbuffer.count = 0;
-      memset (stream->rbuffer.base, '\0', stream->rbuffer.bufsiz);
-    }
-  if (stream->_close)
-    return stream->_close (stream);
-  return  0;
-}
-
-int
-mu_stream_is_seekable (mu_stream_t stream)
-{
-  return (stream) ? stream->flags & MU_STREAM_SEEKABLE : 0;
-}
-
-int
-mu_stream_setbufsiz (mu_stream_t stream, size_t size)
-{
-  if (stream == NULL)
-    return EINVAL;
-  stream->rbuffer.bufsiz = size;
-  return 0;
-}
-
-/* We have to be clear about the buffering scheme, it is not designed to be
-   used as a full-fledged buffer mechanism.  It is a simple mechanism for
-   networking. Lots of code between POP and IMAP can be shared this way.
-   - First caveat; the code maintains its own offset (rbuffer.offset member)
-   and if it does not match the requested one, the data is flushed
-   and the underlying _read is called. It is up to the latter to return
-   EISPIPE when appropriate.
-   - Again, this is targeting networking stream to make readline()
-   a little bit more efficient, instead of reading a char at a time.  */
-
-int
-mu_stream_read (mu_stream_t is, char *buf, size_t count,
-		mu_off_t offset, size_t *pnread)
-{
-  int status = 0;
-  if (is == NULL || is->_read == NULL)
-    return EINVAL;
-
-  is->state = MU_STREAM_STATE_READ;
-
-  /* Sanity check; noop.  */
-  if (count == 0)
-    {
-      if (pnread)
-	*pnread = 0;
-      return 0;
-    }
-
-  /* If rbuffer.bufsiz == 0.  It means they did not want the buffer
-     mechanism.  Good for them.  */
-  if (is->rbuffer.bufsiz == 0)
-    status = is->_read (is, buf, count, offset, pnread);
-  else
-    {
-      size_t residue = count;
-      size_t r;
-
-      /* If the amount requested is bigger than the buffer cache size,
-	 bypass it.  Do no waste time and let it through.  */
-      if (count > is->rbuffer.bufsiz)
-	{
-	  r = 0;
-	  /* Drain the buffer first.  */
-	  if (is->rbuffer.count > 0 && offset == is->rbuffer.offset)
-	    {
-	      memcpy(buf, is->rbuffer.ptr, is->rbuffer.count);
-	      is->rbuffer.offset += is->rbuffer.count;
-	      residue -= is->rbuffer.count;
-	      buf += is->rbuffer.count;
-	      offset += is->rbuffer.count;
-	    }
-	  is->rbuffer.count = 0;
-	  status = is->_read (is, buf, residue, offset, &r);
-	  is->rbuffer.offset += r;
-	  residue -= r;
-	  if (pnread)
-	    *pnread = count - residue;
-	  return status;
-	}
-
-      /* Fill the buffer, do not want to start empty hand.  */
-      if (is->rbuffer.count <= 0 || offset != is->rbuffer.offset)
-	{
-	  status = refill (is, offset);
-	  if (status != 0)
-	    return status;
-	  /* Reached the end ??  */
-	  if (is->rbuffer.count == 0)
-	    {
-	      if (pnread)
-		*pnread = 0;
-	      return status;
-	    }
-	}
-
-      /* Drain the buffer, if we have less then requested.  */
-      while (residue > (size_t)(r = is->rbuffer.count))
-	{
-	  memcpy (buf, is->rbuffer.ptr, (size_t)r);
-	  /* stream->rbuffer.count = 0 ... done in refill */
-	  is->rbuffer.ptr += r;
-	  is->rbuffer.offset += r;
-	  buf += r;
-	  residue -= r;
-	  status = refill (is, is->rbuffer.offset);
-	  if (status != 0)
-	    {
-	      /* We have something in the buffer return the error on the
-		 next call .  */
-	      if (count != residue)
-		{
-		  if (pnread)
-		    *pnread = count - residue;
-		  status = 0;
-		}
-	      return status;
-	    }
-	  /* Did we reach the end.  */
-	  if (is->rbuffer.count == 0)
-	    {
-	      if (pnread)
-		*pnread = count - residue;
-	      return status;
-	    }
-	}
-      memcpy(buf, is->rbuffer.ptr, residue);
-      is->rbuffer.count -= residue;
-      is->rbuffer.ptr += residue;
-      is->rbuffer.offset += residue;
-      if (pnread)
-	*pnread = count;
-    }
-  return status;
-}
-
-/*
- * Read at most n-1 characters.
- * Stop when a newline has been read, or the count runs out.
- */
-int
-mu_stream_readline (mu_stream_t is, char *buf, size_t count,
-		    mu_off_t offset, size_t *pnread)
-{
-  int status = 0;
-
-  if (is == NULL)
-    return EINVAL;
-
-  is->state = MU_STREAM_STATE_READ;
-
-  switch (count)
-    {
-    case 1:
-      /* why would they do a thing like that?
-	 mu_stream_readline() is __always null terminated.  */
-      if (buf)
-	*buf = '\0';
-    case 0: /* Buffer is empty noop.  */
-      if (pnread)
-	*pnread = 0;
-      return 0;
-    }
-
-  /* Use the provided readline.  */
-  if (is->rbuffer.bufsiz == 0 &&  is->_readline != NULL)
-    status = is->_readline (is, buf, count, offset, pnread);
-  else if (is->rbuffer.bufsiz == 0) /* No Buffering.  */
-    {
-      size_t n, nr = 0;
-      char c;
-      /* Grossly inefficient hopefully they override this */
-      count--;  /* Leave space for the null.  */
-      for (n = 0; n < count; )
-	{
-	  status = is->_read (is, &c, 1, offset, &nr);
-	  if (status != 0) /* Error.  */
-	    return status;
-	  else if (nr == 1)
-	    {
-	      *buf++ = c;
-	      offset++;
-	      n++;
-	      if (c == '\n') /* Newline is stored like fgets().  */
-		break;
-	    }
-	  else if (nr == 0)
-	    break; /* EOF */
-	}
-      *buf = '\0';
-      if (pnread)
-	*pnread = n;
-    }
-  else /* Buffered.  */
-    {
-      char *s = buf;
-      char *p, *nl;
-      size_t len;
-      size_t total = 0;
-
-      count--;  /* Leave space for the null.  */
-
-      /* If out of range refill.  */
-      /*      if ((offset < is->rbuffer.offset */
-      /*	   || offset > (is->rbuffer.offset + is->rbuffer.count))) */
-      if (offset != is->rbuffer.offset)
-	{
-	  status = refill (is, offset);
-	  if (status != 0)
-	    return status;
-	  if (is->rbuffer.count == 0)
-	    {
-	      if (pnread)
-		*pnread = 0;
-	      return 0;
-	    }
-	}
-
-      while (count != 0)
-	{
-	  /* If the buffer is empty refill it.  */
-	  len = is->rbuffer.count;
-	  if (len <= 0)
-	    {
-	      status = refill (is, is->rbuffer.offset);
-	      if (status != 0)
-		{
-		  if (s != buf)
-		    break;
-		}
-	      len = is->rbuffer.count;
-	      if (len == 0)
-		break;
-	    }
-	  p = is->rbuffer.ptr;
-
-	  /* Scan through at most n bytes of the current buffer,
-	     looking for '\n'.  If found, copy up to and including
-	     newline, and stop.  Otherwise, copy entire chunk
-	     and loop.  */
-	  if (len > count)
-	    len = count;
-	  nl = memchr ((void *)p, '\n', len);
-	  if (nl != NULL)
-	    {
-	      len = ++nl - p;
-	      is->rbuffer.count -= len;
-	      is->rbuffer.ptr = nl;
-	      is->rbuffer.offset += len;
-	      memcpy ((void *)s, (void *)p, len);
-	      total += len;
-	      s[len] = 0;
-	      if (pnread)
-		*pnread = total;
-	      return 0;
-	    }
-	  is->rbuffer.count -= len;
-	  is->rbuffer.ptr += len;
-	  is->rbuffer.offset += len;
-	  memcpy((void *)s, (void *)p, len);
-	  total += len;
-	  s += len;
-	  count -= len;
-        }
-      *s = 0;
-      if (pnread)
-	*pnread = s - buf;
-    }
-  return status;
-}
-
-int
-mu_stream_getline (mu_stream_t is, char **pbuf, size_t *pbufsize,
-		   mu_off_t offset, size_t *pnread)
-{
-  char *buf = *pbuf;
-  size_t bufsize = *pbufsize;
-  size_t total = 0, off = 0;
   int rc = 0;
-#define DELTA 128
-  
-  if (buf == NULL)
-    {
-      bufsize = DELTA;
-      buf = malloc (bufsize);
-      if (!buf)
-	return ENOMEM;
-    }
-
-  do
-    {
-      size_t nread;
-      int rc;
-
-      if (off == bufsize)
-	{
-	  char *p;
-	  p = realloc (buf, bufsize + DELTA);
-	  if (!p)
-	    {
-	      rc = ENOMEM;
-	      break;
-	    }
-	  bufsize += DELTA;
-	  buf = p;
-	}
-      
-      rc = mu_stream_readline (is, buf + off, bufsize - off, offset + off,
-			       &nread);
-      if (rc)
-	{
-	  if (*pbuf)
-	    free (buf);
-	  return rc;
-	}
-      if (nread == 0)
-	break;
-      off += nread;
-      total += nread;
-    }
-  while (buf[off - 1] != '\n');
-
-  if (rc && !*pbuf)
-    free (buf);
-  else
-    {
-      *pbuf = buf;
-      *pbufsize = bufsize;
-      if (pnread)
-	*pnread = total;
-    }
-  return rc;
-}
-
-int
-mu_stream_write (mu_stream_t os, const char *buf, size_t count,
-		 mu_off_t offset, size_t *pnwrite)
-{
-  int nleft;
-  int err = 0;
-  size_t nwriten = 0;
-  size_t total = 0;
-
-  if (os == NULL || os->_write == NULL)
-      return EINVAL;
-  os->state = MU_STREAM_STATE_WRITE;
-
-  nleft = count;
-  /* First try to send it all.  */
-  while (nleft > 0)
-    {
-      err = os->_write (os, buf, nleft, offset, &nwriten);
-      if (err != 0 || nwriten == 0)
-        break;
-      nleft -= nwriten;
-      total += nwriten;
-      buf += nwriten;
-    }
-  if (pnwrite)
-    *pnwrite = total;
-  return err;
-}
-
-int
-mu_stream_vprintf (mu_stream_t os, mu_off_t *poff, const char *fmt, va_list ap)
-{
-  char *buf = NULL, *p;
-  size_t buflen = 0;
-  size_t n;
-  int rc;
-
-  rc = mu_vasnprintf (&buf, &buflen, fmt, ap);
-  if (rc)
-    return rc;
-  p = buf;
-  n = strlen (buf);
-  do
-    {
-      size_t wrs;
-
-      rc = mu_stream_write (os, p, n, *poff, &wrs);
-      if (rc || wrs == 0)
-        break;
-      p += wrs;
-      *poff += wrs;
-      n -= wrs;
-    }
-  while (n > 0);
-  free (buf);
-  return rc;
-}
-
-int
-mu_stream_printf (mu_stream_t os, mu_off_t *poff, const char *fmt, ...)
-{ 
-  va_list ap;
-  int rc;
-	
-  va_start (ap, fmt);
-  rc = mu_stream_vprintf (os, poff, fmt, ap);
-  va_end (ap);
-  return rc;
-}
-
-int
-mu_stream_sequential_vprintf (mu_stream_t os, const char *fmt, va_list ap)
-{
-  return mu_stream_vprintf (os, &os->offset, fmt, ap);
-}
-
-int
-mu_stream_sequential_printf (mu_stream_t os, const char *fmt, ...)
-{
-  va_list ap;
-  int rc;
-	
-  va_start (ap, fmt);
-  rc = mu_stream_sequential_vprintf (os, fmt, ap);
-  va_end (ap);
-  return rc;
-}
-
-int
-mu_stream_get_transport2 (mu_stream_t stream,
-			  mu_transport_t *p1, mu_transport_t *p2)
-{
-  if (stream == NULL || stream->_get_transport2 == NULL)
+    
+  if (!stream)
     return EINVAL;
-  return stream->_get_transport2 (stream, p1, p2);
-}
-
-int
-mu_stream_get_transport (mu_stream_t stream, mu_transport_t *pt)
-{
-  return mu_stream_get_transport2 (stream, pt, NULL);
-}
-
-int
-mu_stream_get_flags (mu_stream_t stream, int *pfl)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (pfl == NULL)
-    return MU_ERR_OUT_NULL;
-  *pfl = stream->flags;
-  return 0;
-}
-
-int
-mu_stream_set_property (mu_stream_t stream, mu_property_t property, void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  if (stream->property)
-    mu_property_destroy (&(stream->property), stream);
-  stream->property = property;
-  return 0;
-}
-
-int
-mu_stream_get_property (mu_stream_t stream, mu_property_t *pp)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->property == NULL)
-    {
-      int status = mu_property_create (&(stream->property), stream);
-      if (status != 0)
-	return status;
-    }
-  *pp = stream->property;
-  return 0;
+  mu_stream_flush (stream);
+  if (stream->close)
+    rc = stream->close (stream);
+  return rc;
 }
 
 int
 mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
-  if (stream == NULL || stream->_size == NULL)
-    return EINVAL;
-  return stream->_size (stream, psize);
+  int rc;
+    
+  if (!stream->size)
+    return _stream_seterror (stream, ENOSYS, 0);
+  rc = stream->size (stream, psize);
+  return _stream_seterror (stream, rc, rc != 0);
+}
+
+mu_off_t
+mu_stream_bytes_in (mu_stream_t stream)
+{
+  return stream->bytes_in;
+}
+
+mu_off_t
+mu_stream_bytes_out (mu_stream_t stream)
+{
+  return stream->bytes_out;
 }
 
 int
-mu_stream_truncate (mu_stream_t stream, mu_off_t len)
+mu_stream_ioctl (mu_stream_t stream, int code, void *ptr)
 {
-  if (stream == NULL || stream->_truncate == NULL )
-    return EINVAL;
-
-  return stream->_truncate (stream, len);
+  if (stream->ctl == NULL)
+    return ENOSYS;
+  return stream->ctl (stream, code, ptr);
 }
 
-
 int
-mu_stream_flush (mu_stream_t stream)
+mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
-  if (stream == NULL || stream->_flush == NULL)
-    return EINVAL;
-  return stream->_flush (stream);
-}
-
-
-int
-mu_stream_get_state (mu_stream_t stream, int *pstate)
-{
+  int flg = 0;
   if (stream == NULL)
     return EINVAL;
-  if (pstate == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  *pstate = stream->state;
-  return 0;
+  
+  /* Take to acount if we have any buffering.  */
+  /* FIXME: How about MU_STREAM_READY_WR? */
+  if ((*pflags) & MU_STREAM_READY_RD 
+      && stream->buftype != mu_buffer_none
+      && stream->level > 0)
+    {
+      flg = MU_STREAM_READY_RD;
+      *pflags &= ~MU_STREAM_READY_RD;
+    }
+
+  if (stream->wait)
+    {
+      int rc = stream->wait (stream, pflags, tvp);
+      if (rc == 0)
+	*pflags |= flg;
+      return rc;
+    }
+  
+  return ENOSYS;
+}
+
+int
+mu_stream_truncate (mu_stream_t stream, mu_off_t size)
+{
+  if (stream->truncate)
+    return stream->truncate (stream, size);
+  return ENOSYS;
 }
 
 int
 mu_stream_shutdown (mu_stream_t stream, int how)
 {
-  if (stream == NULL)
-    return EINVAL;
-  if (!stream->_shutdown)
-    return ENOSYS;
-  switch (how)
-    {
-    case MU_STREAM_READ:
-    case MU_STREAM_WRITE:
-      break;
-
-    default:
-      return EINVAL;
-    }
-  return stream->_shutdown (stream, how);
-}
-
-int
-mu_stream_set_destroy (mu_stream_t stream,
-		       void (*_destroy) (mu_stream_t), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-
-  if (stream->owner != owner)
-    return EACCES;
-
-  stream->_destroy = _destroy;
-  return 0;
-}
-
-int
-mu_stream_set_open (mu_stream_t stream,
-		    int (*_open) (mu_stream_t), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_open = _open;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_set_close (mu_stream_t stream,
-		     int (*_close) (mu_stream_t), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_close = _close;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_set_get_transport2 (mu_stream_t stream,
-			      int (*_get_trans) (mu_stream_t,
-						 mu_transport_t *,
-						 mu_transport_t *),
-			      void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_get_transport2 = _get_trans;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_set_read (mu_stream_t stream,
-		    int (*_read) (mu_stream_t, char *, size_t,
-				  mu_off_t, size_t *),
-		    void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_read = _read;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_set_readline (mu_stream_t stream,
-			int (*_readline) (mu_stream_t, char *, size_t,
-					  mu_off_t, size_t *),
-			void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_readline = _readline;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_set_write (mu_stream_t stream,
-		     int (*_write) (mu_stream_t, const char *, size_t,
-				    mu_off_t, size_t *),
-		     void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner == owner)
-    {
-      stream->_write = _write;
-      return 0;
-    }
-  return EACCES;
-}
-
-
-int
-mu_stream_set_size (mu_stream_t stream,
-		    int (*_size) (mu_stream_t, mu_off_t *),
-		    void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->_size = _size;
-  return 0;
-}
-
-int
-mu_stream_set_truncate (mu_stream_t stream,
-			int (*_truncate) (mu_stream_t, mu_off_t),
-			void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->_truncate = _truncate;
-  return 0;
-}
-
-int
-mu_stream_set_flush (mu_stream_t stream,
-		     int (*_flush) (mu_stream_t), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->_flush = _flush;
-  return 0;
+  if (stream->shutdown)
+    return stream->shutdown (stream, how);
+  return ENOSYS;
 }
 
 int
@@ -823,197 +797,8 @@ mu_stream_clr_flags (mu_stream_t stream, int fl)
   return 0;
 }
 
-int
-mu_stream_set_strerror (mu_stream_t stream,
-			int (*fp) (mu_stream_t, const char **), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->_strerror = fp;
-  return 0;
-}
-
-int
-mu_stream_set_wait (mu_stream_t stream,
-		    int (*wait) (mu_stream_t, int *, struct timeval *),
-		    void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->_wait = wait;
-  return 0;
-}
-
-int
-mu_stream_set_shutdown (mu_stream_t stream,
-			int (*_shutdown) (mu_stream_t, int how), void *owner)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (owner == stream->owner)
-    {
-      stream->_shutdown = _shutdown;
-      return 0;
-    }
-  return EACCES;
-}
-
-int
-mu_stream_sequential_read (mu_stream_t stream, char *buf, size_t size,
-			   size_t *nbytes)
-{
-  size_t rdbytes;
-  int rc = mu_stream_read (stream, buf, size, stream->offset, &rdbytes);
-  if (!rc)
-    {
-      stream->offset += rdbytes;
-      if (nbytes)
-	*nbytes = rdbytes;
-    }
-  return rc;
-}
-
-int
-mu_stream_sequential_readline (mu_stream_t stream, char *buf, size_t size,
-			       size_t *nbytes)
-{
-  size_t rdbytes;
-  int rc = mu_stream_readline (stream, buf, size, stream->offset, &rdbytes);
-  if (!rc)
-    {
-      stream->offset += rdbytes;
-      if (nbytes)
-	*nbytes = rdbytes;
-    }
-  return rc;
-}
-
-int
-mu_stream_sequential_getline  (mu_stream_t stream,
-			       char **pbuf, size_t *pbufsize,
-			       size_t *nbytes)
-{
-  size_t rdbytes;
-  int rc = mu_stream_getline (stream, pbuf, pbufsize, stream->offset, &rdbytes);
-  if (!rc)
-    {
-      stream->offset += rdbytes;
-      if (nbytes)
-	*nbytes = rdbytes;
-    }
-  return rc;
-}  
 
 
-int
-mu_stream_sequential_write (mu_stream_t stream, const char *buf, size_t size)
-{
-  if (stream == NULL)
-    return EINVAL;
-  while (size > 0)
-    {
-      size_t sz;
-      int rc = mu_stream_write (stream, buf, size, stream->offset, &sz);
-      if (rc)
-	return rc;
 
-      buf += sz;
-      size -= sz;
-      stream->offset += sz;
-    }
-  return 0;
-}
 
-int
-mu_stream_seek (mu_stream_t stream, mu_off_t off, int whence)
-{
-  mu_off_t size = 0;
-  size_t pos;
-  int rc;
 
-  if ((rc = mu_stream_size (stream, &size)))
-    return rc;
-
-  switch (whence)
-    {
-    case SEEK_SET:
-      pos = off;
-      break;
-
-    case SEEK_CUR:
-      pos = off + stream->offset;
-      break;
-
-    case SEEK_END:
-      pos = size + off;
-      break;
-
-    default:
-      return EINVAL;
-    }
-
-  if (pos > size)
-    return EIO;
-
-  stream->offset = pos;
-  return 0;
-}
-
-int
-mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
-{
-  if (stream == NULL)
-    return EINVAL;
-
-  /* Take to acount if we have any buffering.  */
-  if ((*pflags) & MU_STREAM_READY_RD)
-    {
-      if (stream->rbuffer.count > 0)
-	{
-	  *pflags = 0;
-	  *pflags |= MU_STREAM_READY_RD;
-	  return 0;
-	}
-    }
-
-  if (stream->_wait)
-    return stream->_wait (stream, pflags, tvp);
-  return ENOSYS;
-}
-
-int
-mu_stream_strerror (mu_stream_t stream, const char **p)
-{
-  if (stream == NULL)
-    return EINVAL;
-  if (stream->_strerror)
-    return stream->_strerror (stream, p);
-  return ENOSYS;
-}
-
-static int
-refill (mu_stream_t stream, mu_off_t offset)
-{
-  if (stream->_read)
-    {
-      int status;
-      if (stream->rbuffer.base == NULL)
-	{
-	  stream->rbuffer.base = calloc (1, stream->rbuffer.bufsiz);
-	  if (stream->rbuffer.base == NULL)
-	    return ENOMEM;
-	}
-      stream->rbuffer.ptr = stream->rbuffer.base;
-      stream->rbuffer.offset = offset;
-      stream->rbuffer.count = 0;
-      status = stream->_read (stream, stream->rbuffer.ptr,
-			      stream->rbuffer.bufsiz, offset,
-			      &stream->rbuffer.count);
-      return status;
-    }
-  return ENOSYS;
-}

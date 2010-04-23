@@ -31,8 +31,6 @@
 #include <string.h>
 #include <pwd.h>
 
-#include <message0.h>
-
 #include <mailutils/cctype.h>
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
@@ -52,25 +50,391 @@
 #include <mailutils/md5.h>
 #include <mailutils/io.h>
 
-#define MESSAGE_MODIFIED 0x10000;
+#include <mailutils/sys/message.h>
+#include <mailutils/sys/stream.h>
 
-static int message_read   (mu_stream_t is, char *buf, size_t buflen,
-			   mu_off_t off, size_t *pnread );
-static int message_write  (mu_stream_t os, const char *buf, size_t buflen,
-			   mu_off_t off, size_t *pnwrite);
-static int message_get_transport2 (mu_stream_t stream, mu_transport_t *pin, 
-                                   mu_transport_t *pout);
-static int message_sender (mu_envelope_t envelope, char *buf, size_t len,
-			   size_t *pnwrite);
-static int message_date   (mu_envelope_t envelope, char *buf, size_t len,
-			   size_t *pnwrite);
-static int message_stream_size (mu_stream_t stream, mu_off_t *psize);
-static int message_header_fill (mu_header_t header, char *buffer,
-			        size_t buflen, mu_off_t off,
-				size_t * pnread);
-static int message_body_read (mu_stream_t stream,  char *buffer,
-			      size_t n, mu_off_t off, size_t *pn);
+#define MESSAGE_MODIFIED        0x10000
+#define MESSAGE_INTERNAL_STREAM 0x20000
 
+
+/* Message stream */
+
+enum _message_stream_state
+  {
+    _mss_init,
+    _mss_header,
+    _mss_body,
+    _mss_eof
+  };
+
+struct _mu_message_stream
+{
+  struct _mu_stream stream;
+  mu_message_t msg;
+  enum _message_stream_state state;
+  mu_stream_t transport;
+  mu_off_t limit;
+};
+
+static int
+_check_stream_state (struct _mu_message_stream *str)
+{
+  int rc = 0;
+  
+  if (str->transport && mu_stream_eof (str->transport))
+    mu_stream_destroy (&str->transport);
+  
+  switch (str->state)
+    {
+    case _mss_init:
+      if (!str->transport)
+	{
+	  rc = mu_header_get_streamref (str->msg->header, &str->transport);
+	  if (rc == 0)
+	    {
+	      str->state = _mss_header;
+	      rc = mu_stream_seek (str->transport, 0, MU_SEEK_SET, NULL);
+	    }
+	}
+      break;
+      
+    case _mss_header:
+      if (!str->transport)
+	{
+	  rc = mu_body_get_streamref (str->msg->body, &str->transport);
+	  if (rc == 0)
+	    {
+	      str->state = _mss_header;
+	      rc = mu_stream_seek (str->transport, 0, MU_SEEK_SET, NULL);
+	    }
+	}
+      break;
+      
+    case _mss_body:
+      if (!str->transport)
+	str->state = _mss_eof;
+    case _mss_eof:
+      break;
+    }
+  return rc;
+}
+
+static void
+_message_stream_done (struct _mu_stream *str)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  mu_stream_destroy (&sp->transport);
+}
+
+static int
+_message_stream_flush (struct _mu_stream *str)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  int rc = _check_stream_state (sp);
+  if (rc)
+    return rc;
+  return mu_stream_flush (sp->transport);
+}
+  
+static int
+_message_stream_size (struct _mu_stream *str, mu_off_t *psize)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  size_t hsize, bsize;
+  mu_header_size (sp->msg->header, &hsize);
+  mu_body_size (sp->msg->body, &bsize);
+  if (psize)
+    *psize = hsize + bsize;
+  return 0;
+}
+
+static int
+_message_stream_seek (struct _mu_stream *str, mu_off_t off, int whence,
+		      mu_off_t *ppos)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  size_t hsize, size;
+  int rc;
+  
+  rc = _check_stream_state (sp);
+  if (rc)
+    return rc;
+  mu_header_size (sp->msg->header, &hsize);
+  mu_body_size (sp->msg->body, &size);
+  size += hsize;
+  
+  switch (whence)
+    {
+    case MU_SEEK_SET:
+      break;
+
+    case MU_SEEK_CUR:
+      {
+	mu_off_t cur;
+	rc = mu_stream_seek (sp->transport, 0, MU_SEEK_CUR, &cur);
+	if (rc)
+	  return rc;
+	off += cur;
+      }
+      break;
+
+    case MU_SEEK_END:
+      off += size;
+      break;
+    }
+  if (off < 0 || off >= size)
+    return EINVAL;
+
+  switch (sp->state)
+    {
+    case _mss_eof:
+      sp->state = _mss_init;
+      rc = _check_stream_state (sp);
+      if (rc)
+	return rc;
+      /* fall through */
+    case _mss_header:
+      if (off > hsize)
+	{
+	  mu_stream_destroy (&sp->transport);
+	  rc = _check_stream_state (sp);
+	  if (rc)
+	    return rc;
+	}
+      /* fall through */
+    case _mss_body:
+      off -= hsize;
+      break;
+
+    default:
+      break;
+    }
+  rc = mu_stream_seek (sp->transport, off, MU_SEEK_SET, &off);
+  if (rc == 0)
+    {
+      if (sp->state == _mss_body)
+	off += hsize;
+      *ppos = off;
+    }
+  return rc;
+}
+
+static int
+_message_stream_read (struct _mu_stream *str, char *buf, size_t bufsize,
+		      size_t *pnread)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  int rc = _check_stream_state (sp);
+  if (rc)
+    return rc;
+  if (sp->state == _mss_eof)
+    {
+      *pnread = 0;
+      return 0;
+    }
+  return mu_stream_read (sp->transport, buf, bufsize, pnread);
+}
+
+#if 0
+static int
+_message_stream_write (struct _mu_stream *str,
+		       const char *buf, size_t bufsize,
+		       size_t *pnwritten)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  
+  /* FIXME */
+}
+#endif
+
+static int
+_message_stream_create (mu_stream_t *pmsg, mu_message_t msg, int flags)
+{
+  struct _mu_message_stream *sp;
+
+  sp = (struct _mu_message_stream *) _mu_stream_create (sizeof (*sp), flags);
+  if (!sp)
+    return ENOMEM;
+
+  sp->stream.read = _message_stream_read;
+  /* FIXME: Write is not defined */
+  /*  sp->stream.write = _message_stream_write;*/
+  sp->stream.done = _message_stream_done;
+  sp->stream.flush = _message_stream_flush;
+  sp->stream.seek = _message_stream_seek; 
+  sp->stream.size = _message_stream_size;
+  sp->state = _mss_init;
+  sp->msg = msg;
+  *pmsg = (mu_stream_t) sp;
+  return 0;
+}
+
+
+/* Message header stuff */
+static int
+string_find_eoh (const char *str, size_t len, size_t *ppos)
+{
+  size_t pos;
+  int eoh = 0;
+  
+  for (pos = 0; pos < len-1; pos++)
+    if (str[pos] == '\n' && str[pos+1] == '\n')
+      {
+	eoh = 1;
+	break;
+      }
+  *ppos = pos + 1;
+  return eoh;
+}
+
+#define MIN_HEADER_BUF_SIZE 2048
+
+static int
+_header_fill (mu_stream_t stream, char **pbuf, size_t *plen)
+{
+  int status = 0;
+  char *buffer = NULL;
+  size_t bufsize = 0;
+  char inbuf[MIN_HEADER_BUF_SIZE];
+  size_t nread;
+  
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    return status;
+      
+  while ((status = mu_stream_read (stream, inbuf, sizeof (inbuf), &nread))
+	 == 0 && nread)
+    {
+      char *nbuf;
+      size_t len;
+      int eoh = string_find_eoh (inbuf, nread, &len);
+      
+      nbuf = realloc (buffer, bufsize + len);
+      if (!nbuf)
+	{
+	  status = ENOMEM;
+	  break;
+	}
+      memcpy (nbuf + bufsize, inbuf, len);
+      buffer = nbuf;
+      bufsize += len;
+      if (eoh)
+	break;
+    }
+
+  if (status)
+    free (buffer);
+  else
+    {
+      *pbuf = buffer;
+      *plen = bufsize;
+    }
+  return status;
+}
+    
+static int
+message_header_fill (void *data, char **pbuf, size_t *plen)
+{
+  int status = 0;
+  mu_message_t msg = data;
+  mu_stream_t stream;
+
+  status = mu_message_get_streamref (msg, &stream);
+  if (status == 0)
+    {
+      status = _header_fill (stream, pbuf, plen);
+      mu_stream_destroy (&stream);
+    }
+  return status;
+}
+
+
+/* Message envelope */
+static int
+message_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
+		       size_t *pnwrite)
+{
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  time_t t;
+  size_t n;
+
+  if (msg == NULL)
+    return EINVAL;
+
+  /* FIXME: extract the time from "Date:".  */
+
+  if (buf == NULL || len == 0)
+    {
+      n = MU_ENVELOPE_DATE_LENGTH;
+    }
+  else
+    {
+      char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
+      t = time (NULL);
+      n = mu_strftime (tmpbuf, sizeof tmpbuf, 
+                       MU_ENVELOPE_DATE_FORMAT, localtime (&t));
+      n = mu_cpystr (buf, tmpbuf, len);
+    }
+  if (pnwrite)
+    *pnwrite = n;
+  return 0;
+}
+
+static int
+message_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
+			 size_t *pnwrite)
+{
+  mu_message_t msg = mu_envelope_get_owner (envelope);
+  mu_header_t header = NULL;
+  size_t n = 0;
+  int status;
+
+  if (msg == NULL)
+    return EINVAL;
+
+  /* Can it be extracted from the From:  */
+  mu_message_get_header (msg, &header);
+  status = mu_header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
+  if (status == 0 && n != 0)
+    {
+      char *sender;
+      mu_address_t address = NULL;
+      sender = calloc (1, n + 1);
+      if (sender == NULL)
+	return ENOMEM;
+      mu_header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
+      if (mu_address_create (&address, sender) == 0)
+	mu_address_get_email (address, 1, buf, n + 1, pnwrite);
+      free (sender);
+      mu_address_destroy (&address);
+      return 0;
+    }
+  else if (status == EAGAIN)
+    return status;
+
+  /* oops! We are still here */
+  {
+    struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+    const char *sender = auth ? auth->name : "unknown";
+    n = strlen (sender);
+    if (buf && len > 0)
+      {
+	len--; /* One for the null.  */
+	n = (n < len) ? n : len;
+	memcpy (buf, auth->name, n);
+	buf[n] = '\0';
+      }
+    if (auth)
+      mu_auth_data_free (auth);
+  }
+
+  if (pnwrite)
+    *pnwrite = n;
+  return 0;
+}
+
+
+
 /*  Allocate ressources for the mu_message_t.  */
 int
 mu_message_create (mu_message_t *pmsg, void *owner)
@@ -83,7 +447,7 @@ mu_message_create (mu_message_t *pmsg, void *owner)
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
-  status = mu_monitor_create (&(msg->monitor), 0, msg);
+  status = mu_monitor_create (&msg->monitor, 0, msg);
   if (status != 0)
     {
       free (msg);
@@ -116,48 +480,37 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
 	    {
 	      mu_observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY,
 				    msg);
-	      mu_observable_destroy (&(msg->observable), msg);
+	      mu_observable_destroy (&msg->observable, msg);
 	    }
 
 	  /* Envelope.  */
 	  if (msg->envelope)
-	    mu_envelope_destroy (&(msg->envelope), msg);
+	    mu_envelope_destroy (&msg->envelope, msg);
 
 	  /* Header.  */
 	  if (msg->header)
-	    mu_header_destroy (&(msg->header), msg);
+	    mu_header_destroy (&msg->header);
 
 	  /* Body.  */
 	  if (msg->body)
-	    mu_body_destroy (&(msg->body), msg);
+	    mu_body_destroy (&msg->body, msg);
 
 	  /* Attribute.  */
 	  if (msg->attribute)
-	    mu_attribute_destroy (&(msg->attribute), msg);
+	    mu_attribute_destroy (&msg->attribute, msg);
 
 	  /* Stream.  */
 	  if (msg->stream)
-	    mu_stream_destroy (&(msg->stream), msg);
+	    mu_stream_destroy (&msg->stream);
 
 	  /*  Mime.  */
 	  if (msg->mime)
-	    mu_mime_destroy (&(msg->mime));
+	    mu_mime_destroy (&msg->mime);
 
 	  /* Loose the owner.  */
 	  msg->owner = NULL;
 
-	  /* Mailbox maybe created floating i.e they were created
-	     implicitely by the message when doing something like:
-	     mu_message_create (&msg, "pop://localhost/msgno=2", NULL);
-	     mu_message_create (&msg, "imap://localhost/alain;uid=xxxxx", NULL);
-	     althought the semantics about this is still flaky we our
-	     making some provisions here for it.
-	     if (msg->floating_mailbox && msg->mailbox)
-	     mu_mailbox_destroy (&(msg->mailbox));
-	  */
-
-	  if (msg->ref == 0)
-	    free (msg);
+	  free (msg);
 	}
       mu_monitor_unlock (monitor);
       if (destroy_lock)
@@ -173,7 +526,6 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
   int status = 0;
   mu_stream_t fromstr = NULL;
   mu_stream_t tostr = NULL;
-  mu_off_t off = 0;
   size_t n = 0;
   char buf[512];
 
@@ -182,24 +534,23 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
   if (!from)
     return EINVAL;
 
-  if((status = mu_message_create (to, NULL)))
+  if ((status = mu_message_create (to, NULL)))
     return status;
 
-  mu_message_get_stream (from, &fromstr);
-  mu_message_get_stream (*to, &tostr);
+  mu_message_get_streamref (from, &fromstr);
+  mu_message_get_streamref (*to, &tostr);
 
-  while (
-      (status = mu_stream_readline (fromstr, buf, sizeof(buf), off, &n)) == 0
-	 &&
-      n > 0
-      )
-    {
-      mu_stream_write (tostr, buf, n, off, NULL);
-      off += n;
-    }
+  status = mu_stream_seek (fromstr, 0, MU_SEEK_SET, NULL);
+  if (status == 0)
+    while ((status = mu_stream_readline (fromstr, buf, sizeof (buf), &n)) == 0
+	   && n > 0)
+      mu_stream_write (tostr, buf, n, NULL);
 
-  if(status)
-    mu_message_destroy(to, NULL);
+  mu_stream_destroy (&fromstr);
+  mu_stream_destroy (&tostr);
+  
+  if (status)
+    mu_message_destroy (to, NULL);
   
   return status;
 }
@@ -282,26 +633,21 @@ mu_message_get_header (mu_message_t msg, mu_header_t *phdr)
   if (phdr == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  /* Is it a floating mesg */
   if (msg->header == NULL)
     {
       mu_header_t header;
-      int status = mu_header_create (&header, NULL, 0, msg);
+      int status = mu_header_create (&header, NULL, 0);
       if (status != 0)
 	return status;
       if (msg->stream)
-	{
-	  /* Was it created by us?  */
-	  mu_message_t mesg = mu_stream_get_owner (msg->stream);
-	  if (mesg != msg)
-	    mu_header_set_fill (header, message_header_fill, msg);
-	}
+	mu_header_set_fill (header, message_header_fill, msg);
       msg->header = header;
     }
   *phdr = msg->header;
   return 0;
 }
 
+/* Note: mu_message_set_header steals the reference to hdr */
 int
 mu_message_set_header (mu_message_t msg, mu_header_t hdr, void *owner)
 {
@@ -309,10 +655,8 @@ mu_message_set_header (mu_message_t msg, mu_header_t hdr, void *owner)
     return EINVAL;
   if (msg->owner != owner)
      return EACCES;
-  /* Make sure we destroy the old if it was own by the mesg */
-  /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->header)
-    mu_header_destroy (&(msg->header), msg);
+    mu_header_destroy (&msg->header);
   msg->header = hdr;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -334,24 +678,26 @@ mu_message_get_body (mu_message_t msg, mu_body_t *pbody)
       if (status != 0)
 	return status;
       /* If a stream is already set use it to create the body stream.  */
-      if (msg->stream)
+      /* FIXME: I'm not sure if the second condition is really needed */
+      if (msg->stream && (msg->flags & MESSAGE_INTERNAL_STREAM))
 	{
-	  /* Was it created by us?  */
-	  mu_message_t mesg = mu_stream_get_owner (msg->stream);
-	  if (mesg != msg)
+	  size_t size = 0;
+	  mu_stream_t stream;
+	  int flags = 0;
+	  
+	  status = mu_header_size (msg->header, &size);
+	  if (status)
+	    return status;
+	  
+	  mu_stream_get_flags (msg->stream, &flags);
+	  status = mu_streamref_create_abridged (&stream, msg->stream,
+						 size, 0);
+	  if (status)
 	    {
-	      mu_stream_t stream;
-	      int flags = 0;
-	      mu_stream_get_flags (msg->stream, &flags);
-	      if ((status = mu_stream_create (&stream, flags, body)) != 0)
-		{
-		  mu_body_destroy (&body, msg);
-		  return status;
-		}
-	      mu_stream_set_read (stream, message_body_read, body);
-	      mu_stream_setbufsiz (stream, 128);
-	      mu_body_set_stream (body, stream, msg);
+	      mu_body_destroy (&body, msg);
+	      return status;
 	    }
+	  mu_body_set_stream (body, stream, msg);
 	}
       msg->body = body;
     }
@@ -366,10 +712,10 @@ mu_message_set_body (mu_message_t msg, mu_body_t body, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  /* Make sure we destoy the old if it was own by the mesg.  */
+  /* Make sure we destroy the old if it was owned by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->body)
-    mu_body_destroy (&(msg->body), msg);
+    mu_body_destroy (&msg->body, msg);
   msg->body = body;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -382,17 +728,16 @@ mu_message_set_stream (mu_message_t msg, mu_stream_t stream, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  /* Make sure we destoy the old if it was own by the mesg.  */
-  /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->stream)
-    mu_stream_destroy (&(msg->stream), msg);
+    mu_stream_destroy (&msg->stream);
   msg->stream = stream;
   msg->flags |= MESSAGE_MODIFIED;
+  msg->flags &= ~MESSAGE_INTERNAL_STREAM;
   return 0;
 }
 
-int
-mu_message_get_stream (mu_message_t msg, mu_stream_t *pstream)
+static int
+_message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
 {
   if (msg == NULL)
     return EINVAL;
@@ -401,21 +746,31 @@ mu_message_get_stream (mu_message_t msg, mu_stream_t *pstream)
 
   if (msg->stream == NULL)
     {
-      mu_stream_t stream;
-      int status;
-      status = mu_stream_create (&stream, MU_STREAM_RDWR, msg);
-      if (status != 0)
+      int status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
+      if (status)
 	return status;
-      mu_stream_set_read (stream, message_read, msg);
-      mu_stream_set_write (stream, message_write, msg);
-      mu_stream_set_get_transport2 (stream, message_get_transport2, msg);
-      mu_stream_set_size (stream, message_stream_size, msg);
-      mu_stream_set_flags (stream, MU_STREAM_RDWR);
-      msg->stream = stream;
+      msg->flags |= MESSAGE_INTERNAL_STREAM;
     }
 
-  *pstream = msg->stream;
-  return 0;
+  if (!ref)
+    {
+      *pstream = msg->stream;
+      return 0;
+    }
+  return mu_streamref_create (pstream, msg->stream);
+}
+
+int
+mu_message_get_stream (mu_message_t msg, mu_stream_t *pstream)
+{
+  /* FIXME: Deprecation warning */
+  return _message_get_stream (msg, pstream, 0);
+}
+
+int
+mu_message_get_streamref (mu_message_t msg, mu_stream_t *pstream)
+{
+  return _message_get_stream (msg, pstream, 1);
 }
 
 int
@@ -503,8 +858,8 @@ mu_message_get_envelope (mu_message_t msg, mu_envelope_t *penvelope)
       int status = mu_envelope_create (&envelope, msg);
       if (status != 0)
 	return status;
-      mu_envelope_set_sender (envelope, message_sender, msg);
-      mu_envelope_set_date (envelope, message_date, msg);
+      mu_envelope_set_sender (envelope, message_envelope_sender, msg);
+      mu_envelope_set_date (envelope, message_envelope_date, msg);
       msg->envelope = envelope;
     }
   *penvelope = msg->envelope;
@@ -519,7 +874,7 @@ mu_message_set_envelope (mu_message_t msg, mu_envelope_t envelope, void *owner)
   if (msg->owner != owner)
     return EACCES;
   if (msg->envelope)
-    mu_envelope_destroy (&(msg->envelope), msg);
+    mu_envelope_destroy (&msg->envelope, msg);
   msg->envelope = envelope;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -552,7 +907,7 @@ mu_message_set_attribute (mu_message_t msg, mu_attribute_t attribute, void *owne
   if (msg->owner != owner)
     return EACCES;
   if (msg->attribute)
-    mu_attribute_destroy (&(msg->attribute), owner);
+    mu_attribute_destroy (&msg->attribute, owner);
   msg->attribute = attribute;
   msg->flags |= MESSAGE_MODIFIED;
   return 0;
@@ -599,32 +954,32 @@ mu_message_get_uidl (mu_message_t msg, char *buffer, size_t buflen,
       struct mu_md5_ctx md5context;
       mu_stream_t stream = NULL;
       char buf[1024];
-      mu_off_t offset = 0;
       unsigned char md5digest[16];
       char *tmp;
       n = 0;
       mu_message_get_uid (msg, &uid);
-      mu_message_get_stream (msg, &stream);
+      mu_message_get_streamref (msg, &stream);
       mu_md5_init_ctx (&md5context);
-      while (mu_stream_read (stream, buf, sizeof (buf), offset, &n) == 0
-	     && n > 0)
+      status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      if (status == 0)
 	{
-	  mu_md5_process_bytes (buf, n, &md5context);
-	  offset += n;
-	}
-      mu_md5_finish_ctx (&md5context, md5digest);
-      tmp = buf;
-      for (n = 0; n < 16; n++, tmp += 2)
-	sprintf (tmp, "%02x", md5digest[n]);
-      *tmp = '\0';
-      /* POP3 rfc says that an UID should not be longer than 70.  */
-      snprintf (buf + 32, 70, ".%lu.%lu", (unsigned long)time (NULL), 
-                (unsigned long) uid);
+	  while (mu_stream_read (stream, buf, sizeof (buf), &n) == 0
+		 && n > 0)
+	    mu_md5_process_bytes (buf, n, &md5context);
+	  mu_md5_finish_ctx (&md5context, md5digest);
+	  tmp = buf;
+	  for (n = 0; n < 16; n++, tmp += 2)
+	    sprintf (tmp, "%02x", md5digest[n]);
+	  *tmp = '\0';
+	  /* POP3 rfc says that an UID should not be longer than 70.  */
+	  snprintf (buf + 32, 70, ".%lu.%lu", (unsigned long)time (NULL), 
+		    (unsigned long) uid);
 
-      mu_header_set_value (header, "X-UIDL", buf, 1);
-      buflen--; /* leave space for the NULL.  */
-      strncpy (buffer, buf, buflen)[buflen] = '\0';
-      status = 0;
+	  mu_header_set_value (header, "X-UIDL", buf, 1);
+	  buflen--; /* leave space for the NULL.  */
+	  strncpy (buffer, buf, buflen)[buflen] = '\0';
+	}
+      mu_stream_destroy (&stream);
     }
   return status;
 }
@@ -699,7 +1054,7 @@ mu_message_is_multipart (mu_message_t msg, int *pmulti)
 	return msg->_is_multipart (msg, pmulti);
       if (msg->mime == NULL)
 	{
-	  int status = mu_mime_create (&(msg->mime), msg, 0);
+	  int status = mu_mime_create (&msg->mime, msg, 0);
 	  if (status != 0)
 	    return 0;
 	}
@@ -719,7 +1074,7 @@ mu_message_get_num_parts (mu_message_t msg, size_t *pparts)
 
   if (msg->mime == NULL)
     {
-      int status = mu_mime_create (&(msg->mime), msg, 0);
+      int status = mu_mime_create (&msg->mime, msg, 0);
       if (status != 0)
 	return status;
     }
@@ -751,7 +1106,7 @@ mu_message_get_part (mu_message_t msg, size_t part, mu_message_t *pmsg)
 
   if (msg->mime == NULL)
     {
-      int status = mu_mime_create (&(msg->mime), msg, 0);
+      int status = mu_mime_create (&msg->mime, msg, 0);
       if (status != 0)
 	return status;
     }
@@ -779,315 +1134,12 @@ mu_message_get_observable (mu_message_t msg, mu_observable_t *pobservable)
 
   if (msg->observable == NULL)
     {
-      int status = mu_observable_create (&(msg->observable), msg);
+      int status = mu_observable_create (&msg->observable, msg);
       if (status != 0)
 	return status;
     }
   *pobservable = msg->observable;
   return 0;
-}
-
-/* Implements the mu_stream_read () on the message stream.  */
-static int
-message_read (mu_stream_t is, char *buf, size_t buflen,
-	      mu_off_t off, size_t *pnread )
-{
-  mu_message_t msg =  mu_stream_get_owner (is);
-  mu_stream_t his, bis;
-  size_t hread, hsize, bread, bsize;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  bsize = hsize = bread = hread = 0;
-  his = bis = NULL;
-
-  mu_header_size (msg->header, &hsize);
-  mu_body_size (msg->body, &bsize);
-
-  /* On some remote sever (POP) the size of the header and body is not known
-     until you start reading them.  So by checking hsize == bsize == 0,
-     this kludge is a way of detecting the anomalie and start by the
-     header.  */
-  if ((size_t)off < hsize || (hsize == 0 && bsize == 0))
-    {
-      mu_header_get_stream (msg->header, &his);
-      mu_stream_read (his, buf, buflen, off, &hread);
-    }
-  else
-    {
-      mu_body_get_stream (msg->body, &bis);
-      mu_stream_read (bis, buf, buflen, off - hsize, &bread);
-    }
-
-  if (pnread)
-    *pnread = hread + bread;
-  return 0;
-}
-
-/* Implements the mu_stream_write () on the message stream.  */
-static int
-message_write (mu_stream_t os, const char *buf, size_t buflen,
-	       mu_off_t off, size_t *pnwrite)
-{
-  mu_message_t msg = mu_stream_get_owner (os);
-  int status = 0;
-  size_t bufsize = buflen;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  /* Skip the obvious.  */
-  if (buf == NULL || buflen == 0)
-    {
-      if (pnwrite)
-	*pnwrite = 0;
-      return 0;
-    }
-
-  if (!msg->hdr_done)
-    {
-      size_t len;
-      char *nl;
-      mu_header_t header = NULL;
-      mu_stream_t hstream = NULL;
-      mu_message_get_header (msg, &header);
-      mu_header_get_stream (header, &hstream);
-      while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
-	{
-	  len = nl - buf + 1;
-	  status = mu_stream_write (hstream, buf, len, msg->hdr_buflen, NULL);
-	  if (status != 0)
-	    return status;
-	  msg->hdr_buflen += len;
-	  /* We detect an empty line .i.e "^\n$" this signal the end of the
-	     header.  */
-	  if (buf == nl)
-	    msg->hdr_done = 1;
-	  buf = nl + 1;
-	  buflen -= len;
-	}
-    }
-
-  /* Message header is not complete but was not a full line.  */
-  if (!msg->hdr_done && buflen > 0)
-    {
-      mu_header_t header = NULL;
-      mu_stream_t hstream = NULL;
-      mu_message_get_header (msg, &header);
-      mu_header_get_stream (header, &hstream);
-      status = mu_stream_write (hstream, buf, buflen, msg->hdr_buflen, NULL);
-      if (status != 0)
-	return status;
-      msg->hdr_buflen += buflen;
-      buflen = 0;
-    }
-  else if (buflen > 0) /* In the body.  */
-    {
-      mu_stream_t bs;
-      mu_body_t body;
-      size_t written = 0;
-      if ((status = mu_message_get_body (msg, &body)) != 0 ||
-	  (status = mu_body_get_stream (msg->body, &bs)) != 0)
-	{
-	  msg->hdr_buflen = msg->hdr_done = 0;
-	  return status;
-	}
-      if (off < (mu_off_t)msg->hdr_buflen)
-	off = 0;
-      else
-	off -= msg->hdr_buflen;
-      status = mu_stream_write (bs, buf, buflen, off, &written);
-      buflen -= written;
-    }
-  if (pnwrite)
-    *pnwrite = bufsize - buflen;
-  return status;
-}
-
-static int
-message_get_transport2 (mu_stream_t stream, mu_transport_t *pin,
-			mu_transport_t *pout)
-{
-  mu_message_t msg = mu_stream_get_owner (stream);
-  mu_body_t body;
-  mu_stream_t is;
-
-  if (msg == NULL)
-    return EINVAL;
-  if (pout)
-    *pout = NULL;
-
-  /* Probably being lazy, then create a body for the stream.  */
-  if (msg->body == NULL)
-    {
-      int status = mu_body_create (&body, msg);
-      if (status != 0 )
-	return status;
-      msg->body = body;
-    }
-  else
-      body = msg->body;
-
-  mu_body_get_stream (body, &is);
-  return mu_stream_get_transport2 (is, pin, pout);
-}
-
-/* Implements the stream_stream_size () on the message stream.  */
-static int
-message_stream_size (mu_stream_t stream, mu_off_t *psize)
-{
-  mu_message_t msg = mu_stream_get_owner (stream);
-  size_t size;
-  int rc = mu_message_size (msg, &size); /* FIXME: should it get mu_off_t as
-                                            its 2nd argument */
-  if (rc == 0)
-    *psize = size;
-  return rc;
-}
-
-static int
-message_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
-{
-  mu_message_t msg = mu_envelope_get_owner (envelope);
-  time_t t;
-  size_t n;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  /* FIXME: extract the time from "Date:".  */
-
-  if (buf == NULL || len == 0)
-    {
-      n = MU_ENVELOPE_DATE_LENGTH;
-    }
-  else
-    {
-      char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
-      t = time (NULL);
-      n = mu_strftime (tmpbuf, sizeof tmpbuf, 
-                       MU_ENVELOPE_DATE_FORMAT, localtime (&t));
-      n = mu_cpystr (buf, tmpbuf, len);
-    }
-  if (pnwrite)
-    *pnwrite = n;
-  return 0;
-}
-
-static int
-message_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
-{
-  mu_message_t msg = mu_envelope_get_owner (envelope);
-  mu_header_t header = NULL;
-  size_t n = 0;
-  int status;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  /* Can it be extracted from the From:  */
-  mu_message_get_header (msg, &header);
-  status = mu_header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
-  if (status == 0 && n != 0)
-    {
-      char *sender;
-      mu_address_t address = NULL;
-      sender = calloc (1, n + 1);
-      if (sender == NULL)
-	return ENOMEM;
-      mu_header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
-      if (mu_address_create (&address, sender) == 0)
-	mu_address_get_email (address, 1, buf, n + 1, pnwrite);
-      free (sender);
-      mu_address_destroy (&address);
-      return 0;
-    }
-  else if (status == EAGAIN)
-    return status;
-
-  /* oops! We are still here */
-  {
-    struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
-    const char *sender = auth ? auth->name : "unknown";
-    n = strlen (sender);
-    if (buf && len > 0)
-      {
-	len--; /* One for the null.  */
-	n = (n < len) ? n : len;
-	memcpy (buf, auth->name, n);
-	buf[n] = '\0';
-      }
-    if (auth)
-      mu_auth_data_free (auth);
-  }
-
-  if (pnwrite)
-    *pnwrite = n;
-  return 0;
-}
-
-static int
-message_header_fill (mu_header_t header, char *buffer, size_t buflen,
-		     mu_off_t off, size_t * pnread)
-{
-  int status = 0;
-  mu_message_t msg = mu_header_get_owner (header);
-  mu_stream_t stream = NULL;
-  size_t nread = 0;
-
-  /* Noop.  */
-  if (buffer == NULL || buflen == 0)
-    {
-      if (pnread)
-        *pnread = nread;
-      return 0;
-    }
-
-  if (!msg->hdr_done)
-    {
-      status = mu_message_get_stream (msg, &stream);
-      if (status == 0)
-	{
-	  /* Position the file pointer and the buffer.  */
-	  status = mu_stream_readline (stream, buffer, buflen, off, &nread);
-	  /* Detect the end of the headers. */
-	  if (nread  && buffer[0] == '\n' && buffer[1] == '\0')
-	    {
-	      msg->hdr_done = 1;
-	    }
-	  msg->hdr_buflen += nread;
-	}
-    }
-
-  if (pnread)
-    *pnread = nread;
-
-  return status;
-}
-
-static int
-message_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off,
-		   size_t *pn)
-{
-  mu_body_t body = mu_stream_get_owner (stream);
-  mu_message_t msg = mu_body_get_owner (body);
-  size_t nread = 0;
-  mu_header_t header = NULL;
-  mu_stream_t bstream = NULL;
-  size_t size = 0;
-  int status;
-
-  mu_message_get_header (msg, &header);
-  status = mu_header_size (msg->header, &size);
-  if (status == 0)
-    {
-      mu_message_get_stream (msg, &bstream);
-      status = mu_stream_read (bstream, buffer, n, size + off, &nread);
-    }
-  if (pn)
-    *pn = nread;
-  return status;
 }
 
 int

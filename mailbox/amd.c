@@ -68,6 +68,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
+#include <mailutils/sys/stream.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <url0.h>
@@ -91,15 +92,10 @@ static int amd_scan (mu_mailbox_t, size_t, size_t *);
 static int amd_is_updated (mu_mailbox_t);
 static int amd_get_size (mu_mailbox_t, mu_off_t *);
 
-static int amd_body_read (mu_stream_t, char *, size_t, mu_off_t, size_t *);
-static int amd_body_readline (mu_stream_t, char *, size_t, mu_off_t, size_t *);
-static int amd_stream_size (mu_stream_t stream, mu_off_t *psize);
-
 static int amd_body_size (mu_body_t body, size_t *psize);
 static int amd_body_lines (mu_body_t body, size_t *plines);
 
-static int amd_header_fill (mu_header_t header, char *buffer, size_t len,
-			    mu_off_t off, size_t *pnread);
+static int amd_header_fill (void *data, char **pbuf, size_t *plen);
 
 static int amd_get_attr_flags (mu_attribute_t attr, int *pflags);
 static int amd_set_attr_flags (mu_attribute_t attr, int flags);
@@ -116,6 +112,22 @@ static int amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 			      size_t *psize);
 static int amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 			        size_t *psize);
+
+
+static int amd_body_stream_read (mu_stream_t str, char *buffer,
+				 size_t buflen,
+				 size_t *pnread);
+static int amd_body_stream_size (mu_stream_t str, mu_off_t *psize);
+static int amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
+				 mu_off_t *presult);
+
+struct _amd_body_stream
+{
+  struct _mu_stream stream;
+  mu_body_t body;
+  mu_off_t off;
+};
+
 
 /* Operations on message array */
 
@@ -429,7 +441,7 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
   /* Set the header.  */
   {
     mu_header_t header = NULL;
-    status = mu_header_create (&header, NULL, 0, msg);
+    status = mu_header_create (&header, NULL, 0);
     if (status != 0)
       {
 	mu_message_destroy (&msg, mhm);
@@ -460,21 +472,24 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
   /* Prepare the body.  */
   {
     mu_body_t body = NULL;
-    mu_stream_t stream = NULL;
-    if ((status = mu_body_create (&body, msg)) != 0
-	|| (status = mu_stream_create (&stream,
-				    mailbox->flags | MU_STREAM_SEEKABLE,
-				    body)) != 0)
+    struct _amd_body_stream *str;
+    
+    if ((status = mu_body_create (&body, msg)) != 0)
+      return status;
+
+    str = (struct _amd_body_stream *)
+              _mu_stream_create (sizeof (*str),
+				 mailbox->flags | MU_STREAM_SEEK);
+    if (!str)
       {
 	mu_body_destroy (&body, msg);
-	mu_stream_destroy (&stream, body);
 	mu_message_destroy (&msg, mhm);
-	return status;
+	return ENOMEM;
       }
-    mu_stream_set_read (stream, amd_body_read, body);
-    mu_stream_set_readline (stream, amd_body_readline, body);
-    mu_stream_set_size (stream, amd_stream_size, body);
-    mu_body_set_stream (body, stream, msg);
+    str->stream.read = amd_body_stream_read;
+    str->stream.size = amd_body_stream_size;
+    str->stream.seek = amd_body_stream_seek;
+    mu_body_set_stream (body, (mu_stream_t) str, msg);
     mu_body_clear_modified (body);
     mu_body_set_size (body, amd_body_size, msg);
     mu_body_set_lines (body, amd_body_lines, msg);
@@ -602,7 +617,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
 {
   mu_stream_t stream = NULL;
   char *name = NULL, *buf = NULL, *msg_name, *old_name;
-  size_t n, off = 0;
+  size_t n;
   size_t bsize;
   size_t nlines, nbytes;
   size_t new_body_start, new_header_lines;
@@ -657,10 +672,21 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
 
   /* Copy flags */
   mu_message_get_header (msg, &hdr);
-  mu_header_get_stream (hdr, &stream);
-  off = 0;
+  mu_header_get_streamref (hdr, &stream);
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    {
+      /* FIXME: Provide a common exit point for all error
+	 cases */
+      unlink (name);
+      free (name);
+      free (msg_name);
+      mu_stream_destroy (&stream);
+      return status;
+    }
+      
   nlines = nbytes = 0;
-  while ((status = mu_stream_readline (stream, buf, bsize, off, &n)) == 0
+  while ((status = mu_stream_readline (stream, buf, bsize, &n)) == 0
 	 && n != 0)
     {
       if (_amd_delim (buf))
@@ -677,10 +703,9 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
 	  nlines++;
 	  nbytes += fprintf (fp, "%s", buf);
 	}
-      
-      off += n;
     }
-
+  mu_stream_destroy (&stream);
+  
   /* Add imapbase */
   if (!(amd->mailbox->flags & MU_STREAM_APPEND)
       && amd->next_uid
@@ -729,20 +754,29 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   /* Copy message body */
 
   mu_message_get_body (msg, &body);
-  mu_body_get_stream (body, &stream);
-  off = 0;
+  mu_body_get_streamref (body, &stream);
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    {
+      unlink (name);
+      free (name);
+      free (msg_name);
+      mu_stream_destroy (&stream);
+      return status;
+    }
+    
   nlines = 0;
-  while (mu_stream_read (stream, buf, bsize, off, &n) == 0 && n != 0)
+  while (mu_stream_read (stream, buf, bsize, &n) == 0 && n != 0)
     {
       char *p;
       for (p = buf; p < buf + n; p++)
 	if (*p == '\n')
 	  nlines++;
       fwrite (buf, 1, n, fp);
-      off += n;
       nbytes += n;
     }
-
+  mu_stream_destroy (&stream);
+  
   mhm->header_lines = new_header_lines;
   mhm->body_start = new_body_start;
   mhm->body_lines = nlines;
@@ -1300,7 +1334,7 @@ amd_scan_message (struct _amd_message *mhm)
 {
   mu_stream_t stream = mhm->stream;
   char buf[1024];
-  mu_off_t off = 0;
+  size_t off;
   size_t n;
   int status;
   int in_header = 1;
@@ -1327,48 +1361,54 @@ amd_scan_message (struct _amd_message *mhm)
       free (msg_name);
     }
 
-  while ((status = mu_stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
-	 && n != 0)
+  off = 0;
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status == 0)
+    while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n) == 0)
+	   && n != 0)
+      {
+	if (in_header)
+	  {
+	    if (buf[0] == '\n')
+	      {
+		in_header = 0;
+		body_start = off + 1;
+	      }
+	    if (buf[n - 1] == '\n')
+	      hlines++;
+	    
+	    /* Process particular attributes */
+	    if (mu_c_strncasecmp (buf, "status:", 7) == 0)
+	      {
+		int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
+		mu_string_to_flags (buf, &mhm->attr_flags);
+		mhm->attr_flags |= deleted;
+	      }
+	    else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
+	      {
+		char *p;
+		mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);
+		/* second number is next uid. Ignored */
+	      }
+	  }
+	else
+	  {
+	    if (buf[n - 1] == '\n')
+	      blines++;
+	  }
+	off += n;
+      }
+
+  if (status == 0)
     {
-      if (in_header)
-	{
-	  if (buf[0] == '\n')
-	    {
-	      in_header = 0;
-	      body_start = off+1;
-	    }
-	  if (buf[n - 1] == '\n')
-	    hlines++;
-
-	  /* Process particular attributes */
-	  if (mu_c_strncasecmp (buf, "status:", 7) == 0)
-	    {
-	      int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
-	      mu_string_to_flags (buf, &mhm->attr_flags);
-	      mhm->attr_flags |= deleted;
-	    }
-	  else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
-	    {
-	      char *p;
-	      mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);
-	      /* second number is next uid. Ignored */
-	    }
-	}
-      else
-	{
-	  if (buf[n - 1] == '\n')
-	    blines++;
-	}
-      off += n;
+      if (!body_start)
+	body_start = off;
+      mhm->header_lines = hlines;
+      mhm->body_lines = blines;
+      mhm->body_start = body_start;
+      mhm->body_end = off;
     }
-
-  if (!body_start)
-    body_start = off;
-  mhm->header_lines = hlines;
-  mhm->body_lines = blines;
-  mhm->body_start = body_start;
-  mhm->body_end = off;
-  return 0;
+  return status;
 }
 
 static int
@@ -1515,7 +1555,7 @@ amd_message_stream_open (struct _amd_message *mhm)
   status = mu_stream_open (mhm->stream);
 
   if (status != 0)
-    mu_stream_destroy (&mhm->stream, NULL);
+    mu_stream_destroy (&mhm->stream);
 
   if (status == 0)
     status = amd_scan_message (mhm);
@@ -1542,15 +1582,19 @@ amd_check_message (struct _amd_message *mhm)
 }
 
 /* Reading functions */
-
 static int
-amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
-	       mu_off_t off, size_t *pnread, int isreadline,
-	       mu_off_t start, mu_off_t end)
+amd_body_stream_read (mu_stream_t is, char *buffer, size_t buflen,
+		      size_t *pnread)
 {
+  struct _amd_body_stream *amdstr = (struct _amd_body_stream *)is;
+  mu_body_t body = amdstr->body;
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _amd_message *mhm = mu_message_get_owner (msg);
   size_t nread = 0;
   int status = 0;
   mu_off_t ln;
+
+  amd_pool_open (mhm);
 
   if (buffer == NULL || buflen == 0)
     {
@@ -1566,17 +1610,13 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
   pthread_cleanup_push (amd_cleanup, (void *)mhm->amd->mailbox);
 #endif
 
-  ln = end - (start + off);
+  ln = mhm->body_end - (mhm->body_start + amdstr->off);
   if (ln > 0)
     {
-      /* Position the file pointer and the buffer.  */
       nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
-      if (isreadline)
-	status = mu_stream_readline (mhm->stream, buffer, buflen,
-				  start + off, &nread);
-      else
-	status = mu_stream_read (mhm->stream, buffer, nread,
-			      start + off, &nread);
+      status = mu_stream_read (mhm->stream, buffer, nread, pnread);
+      if (status == 0)
+	amdstr->off += pnread ? *pnread : nread;
     }
 
   mu_monitor_unlock (mhm->amd->mailbox->monitor);
@@ -1584,42 +1624,57 @@ amd_readstream (struct _amd_message *mhm, char *buffer, size_t buflen,
   pthread_cleanup_pop (0);
 #endif
 
-  if (pnread)
-    *pnread = nread;
   return status;
 }
 
 static int
-amd_body_read (mu_stream_t is, char *buffer, size_t buflen, mu_off_t off,
-	      size_t *pnread)
+amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
+		      mu_off_t *presult)
 {
-  mu_body_t body = mu_stream_get_owner (is);
-  mu_message_t msg = mu_body_get_owner (body);
+  int rc;
+  size_t size;
+  struct _amd_body_stream *amdstr = (struct _amd_body_stream *)str;
+  mu_message_t msg = mu_body_get_owner (amdstr->body);
   struct _amd_message *mhm = mu_message_get_owner (msg);
-  amd_pool_open (mhm);
-  return amd_readstream (mhm, buffer, buflen, off, pnread, 0,
-			mhm->body_start, mhm->body_end);
-}
+  
+  amd_body_size (amdstr->body, &size);
+  switch (whence)
+    {
+    case MU_SEEK_SET:
+      break;
 
-static int
-amd_body_readline (mu_stream_t is, char *buffer, size_t buflen,
-		  mu_off_t off, size_t *pnread)
-{
-  mu_body_t body = mu_stream_get_owner (is);
-  mu_message_t msg = mu_body_get_owner (body);
-  struct _amd_message *mhm = mu_message_get_owner (msg);
-  amd_pool_open (mhm);
-  return amd_readstream (mhm, buffer, buflen, off, pnread, 1,
-			mhm->body_start, mhm->body_end);
+    case MU_SEEK_CUR:
+      off += amdstr->off;
+      break;
+
+    case MU_SEEK_END:
+      off += size;
+      break;
+    }
+
+  if (off < 0 || off > size)
+    return EINVAL;
+
+  rc = mu_stream_seek (mhm->stream, mhm->body_start + off, MU_SEEK_SET, NULL);
+  if (rc)
+    return rc;
+  amdstr->off = off;
+  if (presult)
+    *presult = off;
+  return 0;
 }
 
 /* Return corresponding sizes */
 
 static int
-amd_stream_size (mu_stream_t stream, mu_off_t *psize)
+amd_body_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
-  return amd_body_size (body, (size_t*) psize);
+  mu_body_t body = ((struct _amd_body_stream *)stream)->body;
+  size_t size;
+  int rc = amd_body_size (body, &size);
+  if (rc == 0)
+    *psize = size;
+  return rc;
 }
 
 static int
@@ -1650,16 +1705,46 @@ amd_body_lines (mu_body_t body, size_t *plines)
 
 /* Headers */
 static int
-amd_header_fill (mu_header_t header, char *buffer, size_t len,
-		mu_off_t off, size_t *pnread)
+amd_header_fill (void *data, char **pbuf, size_t *plen)
 {
-  mu_message_t msg = mu_header_get_owner (header);
+  char *buffer;
+  size_t len;
+  mu_message_t msg = data;
   struct _amd_message *mhm = mu_message_get_owner (msg);
-  int status = amd_pool_open (mhm);
+  int status, rc;
+  mu_off_t pos;
+  
+  status = amd_pool_open (mhm);
   if (status)
     return status;
-  return amd_readstream (mhm, buffer, len, off, pnread, 0,
-			 0, mhm->body_start);
+
+  len = mhm->body_start;
+  buffer = malloc (len);
+  if (!buffer)
+    return ENOMEM;
+  
+  status = mu_stream_seek (mhm->stream, 0, MU_SEEK_CUR, &pos);
+  if (status)
+    return status;
+  status = mu_stream_seek (mhm->stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    return status;
+
+  status = mu_stream_read (mhm->stream, buffer, len, NULL);
+  rc = mu_stream_seek (mhm->stream, pos, MU_SEEK_SET, NULL);
+
+  if (!status)
+    status = rc;
+  
+  if (status)
+    {
+      free (buffer);
+      return status;
+    }
+
+  *plen = len;
+  *pbuf = buffer;
+  return 0;
 }
 
 /* Attributes */

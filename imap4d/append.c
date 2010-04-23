@@ -66,7 +66,6 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
 {
   mu_stream_t stream;
   int rc = 0;
-  size_t len = 0;
   mu_message_t msg = 0;
   struct tm *tm;
   time_t t;
@@ -75,7 +74,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   if (mu_message_create (&msg, &tm))
     return 1;
   
-  if (mu_memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+  if (mu_memory_stream_create (&stream, MU_STREAM_RDWR)
       || mu_stream_open (stream))
     {
       mu_message_destroy (&msg, &tm);
@@ -101,7 +100,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   while (*text && mu_isblank (*text))
     text++;
 
-  mu_stream_write (stream, text, strlen (text), len, &len);
+  mu_stream_write (stream, text, strlen (text), NULL);
   mu_message_set_stream (msg, stream, &tm);
   mu_message_set_size (msg, _append_size, &tm);
 

@@ -272,7 +272,7 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 int
 util_send_bytes (const char *buf, size_t size)
 {
-  return mu_stream_sequential_write (ostream, buf, size);
+  return mu_stream_write (ostream, buf, size, NULL);
 }
 
 int
@@ -293,7 +293,7 @@ util_send (const char *format, ...)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 #endif
 
-  status = mu_stream_sequential_write (ostream, buf, strlen (buf));
+  status = mu_stream_write (ostream, buf, strlen (buf), NULL);
   free (buf);
 
   return status;
@@ -350,7 +350,7 @@ util_out (int rc, const char *format, ...)
       mu_diag_output (MU_DIAG_DEBUG, "sent: %*.*s", len, len, buf);
     }
 
-  status = mu_stream_sequential_write (ostream, buf, strlen (buf));
+  status = mu_stream_write (ostream, buf, strlen (buf), NULL);
   free (buf);
   free (tempbuf);
   return status;
@@ -391,9 +391,9 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   if (imap4d_transcript)
     mu_diag_output (MU_DIAG_DEBUG, "sent: %s", buf);
 
-  mu_stream_sequential_write (ostream, buf, strlen (buf));
+  mu_stream_write (ostream, buf, strlen (buf), NULL);
   free (buf);
-  mu_stream_sequential_write (ostream, "\r\n", 2);
+  mu_stream_write (ostream, "\r\n", 2, NULL);
 
   /* Reset the state.  */
   if (rc == RESP_OK)
@@ -805,12 +805,12 @@ util_setio (FILE *in, FILE *out)
   if (!out)
     imap4d_bye (ERR_NO_OFILE);
 
-  setvbuf (in, NULL, _IOLBF, 0);
-  setvbuf (out, NULL, _IOLBF, 0);
-  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, fileno (in), MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_IFILE);
-  if (mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&ostream, fileno (out), MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_OFILE);
+  mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
 
 void
@@ -883,11 +883,11 @@ imap4d_init_tls_server ()
   if (rc)
     return 0;
 
-  if (mu_stream_open (stream))
+  rc = mu_stream_open (stream);
+  if (rc)
     {
-      const char *p;
-      mu_stream_strerror (stream, &p);
-      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Cannot open TLS stream: %s"),
+ 		      mu_stream_strerror (stream, rc));
       return 0;
     }
 
@@ -919,12 +919,12 @@ util_bye ()
   int rc = istream != ostream;
   
   mu_stream_close (istream);
-  mu_stream_destroy (&istream, mu_stream_get_owner (istream));
+  mu_stream_destroy (&istream);
 
   if (rc)
     {
       mu_stream_close (ostream);
-      mu_stream_destroy (&ostream, mu_stream_get_owner (ostream));
+      mu_stream_destroy (&ostream);
     }
       
   mu_list_do (atexit_list, atexit_run, 0);
@@ -1229,8 +1229,8 @@ check_input_err (int rc, size_t sz)
 {
   if (rc)
     {
-      const char *p;
-      if (mu_stream_strerror (istream, &p))
+      const char *p = mu_stream_strerror (istream, rc);
+      if (!p)
 	p = mu_strerror (rc);
       
       mu_diag_output (MU_DIAG_INFO,
@@ -1255,8 +1255,7 @@ imap4d_tokbuf_getline (struct imap4d_tokbuf *tok)
       size_t len;
       int rc;
       
-      rc = mu_stream_sequential_readline (istream,
-					  buffer, sizeof (buffer), &len);
+      rc = mu_stream_readline (istream, buffer, sizeof (buffer), &len);
       check_input_err (rc, len);
       imap4d_tokbuf_expand (tok, len);
       
@@ -1329,8 +1328,7 @@ imap4d_readline (struct imap4d_tokbuf *tok)
           while (len < number)
             {
                size_t sz;
-	       rc = mu_stream_sequential_read (istream, 
-                                               buf + len, number - len, &sz);
+	       rc = mu_stream_read (istream, buf + len, number - len, &sz);
                if (rc || sz == 0)
                  break;
                len += sz;
@@ -1374,7 +1372,7 @@ int
 imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes)
 {
   size_t len;
-  int rc = mu_stream_sequential_getline (istream, pbuf, psize, &len);
+  int rc = mu_stream_getline (istream, pbuf, psize, &len);
   if (rc == 0)
     {
       char *s = *pbuf;

@@ -40,7 +40,7 @@ static void
 format_level (mu_stream_t stream, int level)
 {
   while (level--)
-    mu_stream_sequential_write (stream, "  ", 2);
+    mu_stream_write (stream, "  ", 2, NULL);
 }
 
 static void
@@ -70,7 +70,7 @@ format_string_value (struct tree_print *tp, const char *str)
     }
   tp->buf[size-1] = 0;
   mu_argcv_quote_copy (p, str);
-  mu_stream_sequential_write (tp->stream, tp->buf, size - 1);
+  mu_stream_write (tp->stream, tp->buf, size - 1, NULL);
 }
 
 static void format_value (struct tree_print *tp, mu_config_value_t *val);
@@ -80,7 +80,7 @@ format_list_value (struct tree_print *tp, mu_config_value_t *val)
 {
   int i;
   mu_iterator_t itr;
-  mu_stream_sequential_write (tp->stream, "(", 1);
+  mu_stream_write (tp->stream, "(", 1, NULL);
   mu_list_get_iterator (val->v.list, &itr);
   
   for (mu_iterator_first (itr), i = 0;
@@ -89,11 +89,11 @@ format_list_value (struct tree_print *tp, mu_config_value_t *val)
       mu_config_value_t *p;
       mu_iterator_current (itr, (void**)&p);
       if (i)
-	mu_stream_sequential_write (tp->stream, ", ", 2);
+	mu_stream_write (tp->stream, ", ", 2, NULL);
       format_value (tp, p);
     }
   mu_iterator_destroy (&itr);
-  mu_stream_sequential_write (tp->stream, ")", 1);
+  mu_stream_write (tp->stream, ")", 1, NULL);
 }
 
 static void
@@ -104,7 +104,7 @@ format_array_value (struct tree_print *tp, mu_config_value_t *val)
   for (i = 0; i < val->v.arg.c; i++)
     {
       if (i)
-	mu_stream_sequential_write (tp->stream, " ", 1);
+	mu_stream_write (tp->stream, " ", 1, NULL);
       format_value (tp, &val->v.arg.v[i]);
     }
 }
@@ -133,43 +133,41 @@ format_node (const mu_cfg_node_t *node, void *data)
   struct tree_print *tp = data;
 
   if ((tp->flags & MU_CFG_FMT_LOCUS) && node->locus.file)
-    mu_stream_sequential_printf (tp->stream, "# %lu \"%s\"\n",
-				 (unsigned long) node->locus.line, 
-                                 node->locus.file);
+    mu_stream_printf (tp->stream, "# %lu \"%s\"\n",
+		      (unsigned long) node->locus.line, 
+		      node->locus.file);
   format_level (tp->stream, tp->level);
   switch (node->type)
     {
     case mu_cfg_node_undefined:
-      mu_stream_sequential_printf (tp->stream, "%s",
-				   _("ERROR: undefined statement"));
+      mu_stream_printf (tp->stream, "%s",
+			_("ERROR: undefined statement"));
       break;
 
     case mu_cfg_node_statement:
       {
-	mu_stream_sequential_write (tp->stream, node->tag,
-				    strlen (node->tag));
+	mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
 	if (node->label)
 	  {
-	    mu_stream_sequential_write (tp->stream, " ", 1);
+	    mu_stream_write (tp->stream, " ", 1, NULL);
 	    format_value (tp, node->label);
 	  }
-	mu_stream_sequential_write (tp->stream, " {", 2);
+	mu_stream_write (tp->stream, " {", 2, NULL);
 	tp->level++;
       }
       break;
 
     case mu_cfg_node_param:
-      mu_stream_sequential_write (tp->stream, node->tag,
-				  strlen (node->tag));
+      mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
       if (node->label)
 	{
-	  mu_stream_sequential_write (tp->stream, " ", 1);
+	  mu_stream_write (tp->stream, " ", 1, NULL);
 	  format_value (tp, node->label);
-	  mu_stream_sequential_write (tp->stream, ";", 1);
+	  mu_stream_write (tp->stream, ";", 1, NULL);
 	}
       break;
     }
-  mu_stream_sequential_write (tp->stream, "\n", 1);
+  mu_stream_write (tp->stream, "\n", 1, NULL);
   return MU_CFG_ITER_OK;
 }
 
@@ -179,7 +177,7 @@ format_node_end (const mu_cfg_node_t *node, void *data)
   struct tree_print *tp = data;
   tp->level--;
   format_level (tp->stream, tp->level);
-  mu_stream_sequential_write (tp->stream, "};\n", 3);
+  mu_stream_write (tp->stream, "};\n", 3, NULL);
   return MU_CFG_ITER_OK;
 }
 
@@ -290,9 +288,9 @@ mu_cfg_format_docstring (mu_stream_t stream, const char *docstring, int level)
 	seglen = p - docstring;
 
       format_level (stream, level);
-      mu_stream_sequential_write (stream, "# ", 2);
-      mu_stream_sequential_write (stream, docstring, seglen);
-      mu_stream_sequential_write (stream, "\n", 1);
+      mu_stream_write (stream, "# ", 2, NULL);
+      mu_stream_write (stream, docstring, seglen, NULL);
+      mu_stream_write (stream, "\n", 1, NULL);
       len -= seglen;
       docstring += seglen;
       if (*docstring == '\n')
@@ -316,23 +314,21 @@ format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
     mu_cfg_format_docstring (stream, gettext (param->docstring), level);
   format_level (stream, level);
   if (param->argname && strchr (param->argname, ':'))
-    mu_stream_sequential_printf (stream, "%s <%s>;\n",
-				 param->ident,
-				 gettext (param->argname));
+    mu_stream_printf (stream, "%s <%s>;\n",
+		      param->ident,
+		      gettext (param->argname));
   else if (MU_CFG_IS_LIST (param->type))
-    mu_stream_sequential_printf
-       (stream, "%s <%s: list of %s>;\n",
-	param->ident,
-	gettext (param->argname ?
-		 param->argname : N_("arg")),
+    mu_stream_printf (stream, "%s <%s: list of %s>;\n",
+		      param->ident,
+		      gettext (param->argname ?
+			       param->argname : N_("arg")),
 	gettext (mu_cfg_data_type_string (MU_CFG_TYPE (param->type))));
   else
-    mu_stream_sequential_printf
-      (stream, "%s <%s: %s>;\n",
-       param->ident,
-       gettext (param->argname ?
-		param->argname : N_("arg")),
-       gettext (mu_cfg_data_type_string (param->type)));
+    mu_stream_printf (stream, "%s <%s: %s>;\n",
+		      param->ident,
+		      gettext (param->argname ?
+			       param->argname : N_("arg")),
+		      gettext (mu_cfg_data_type_string (param->type)));
 }
 
 static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,
@@ -356,19 +352,18 @@ format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
   format_level (stream, level);
   if (sect->ident)
     {
-      mu_stream_sequential_write (stream, sect->ident, strlen (sect->ident));
+      mu_stream_write (stream, sect->ident, strlen (sect->ident), NULL);
       if (sect->label)
 	{
-	  mu_stream_sequential_write (stream, " ", 1);
-	  mu_stream_sequential_write (stream, sect->label,
-				      strlen (sect->label));
+	  mu_stream_write (stream, " ", 1, NULL);
+	  mu_stream_write (stream, sect->label, strlen (sect->label), NULL);
 	}
-      mu_stream_sequential_write (stream, " {\n", 3);
+      mu_stream_write (stream, " {\n", 3, NULL);
       c.stream = stream;
       c.level = level + 1; 
       mu_list_do (sect->children, _f_helper, &c);
       format_level (stream, level);
-      mu_stream_sequential_write (stream, "};\n\n", 4);
+      mu_stream_write (stream, "};\n\n", 4, NULL);
     }
   else
     {

@@ -87,9 +87,9 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
 	      
 	      time (&t);
 	      asprintf (&envs, "From %s %s", from, ctime (&t));
-	      status = mu_stream_sequential_write (mtmp->stream, 
-						   envs,
-						   strlen (envs));
+	      status = mu_stream_write (mtmp->stream, 
+					envs,
+					strlen (envs), NULL);
 	      free (envs);
 	    }
 	  else
@@ -104,17 +104,17 @@ mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen)
   else if (buflen >= 5 && !memcmp (buf, "From ", 5))
     {
       static char *escape = ">";
-      status = mu_stream_sequential_write (mtmp->stream, escape, 1);
+      status = mu_stream_write (mtmp->stream, escape, 1, NULL);
     }
 
   if (!status)
-    status = mu_stream_sequential_write (mtmp->stream, buf, buflen);
+    status = mu_stream_write (mtmp->stream, buf, buflen, NULL);
       
   if (status)
     {
       maidag_error (_("error writing temporary file: %s"), 
                     mu_strerror (status));
-      mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
+      mu_stream_destroy (&mtmp->stream);
     }
   mtmp->had_nl = buf[buflen-1] == '\n';
   return status;
@@ -128,9 +128,9 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
   size_t n;
   
   if (!mtmp->had_nl)
-    status = mu_stream_sequential_write (mtmp->stream, newline, 1);
+    status = mu_stream_write (mtmp->stream, newline, 1, NULL);
 
-  status = mu_stream_sequential_write (mtmp->stream, newline, 1);
+  status = mu_stream_write (mtmp->stream, newline, 1, NULL);
   unlink (mtmp->tempfile);
   free (mtmp->tempfile);
   mtmp->tempfile = NULL;
@@ -140,7 +140,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
       errno = status;
       maidag_error (_("error writing temporary file: %s"), 
                     mu_strerror (status));
-      mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
+      mu_stream_destroy (&mtmp->stream);
       return status;
     }
 
@@ -151,7 +151,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
     {
       maidag_error (_("error opening temporary file: %s"), 
                     mu_strerror (status));
-      mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
+      mu_stream_destroy (&mtmp->stream);
       return status;
     }
 
@@ -161,7 +161,7 @@ mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox)
       errno = status;
       maidag_error (_("error creating temporary message: %s"),
 		    mu_strerror (status));
-      mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
+      mu_stream_destroy (&mtmp->stream);
       return status;
     }
 
@@ -184,7 +184,7 @@ mail_tmp_destroy (struct mail_tmp **pmtmp)
 	  unlink (mtmp->tempfile);
 	  free (mtmp->tempfile);
 	}
-      mu_stream_destroy (&mtmp->stream, mu_stream_get_owner (mtmp->stream));
+      mu_stream_destroy (&mtmp->stream);
       free (*pmtmp);
       *pmtmp = NULL;
     }

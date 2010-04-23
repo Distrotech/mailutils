@@ -108,7 +108,7 @@ main (int argc, char *argv[])
       MU_ASSERT (mu_address_createv (&to, (const char **) av, -1));
     }
 
-  MU_ASSERT (mu_stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
+  MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_SEEK));
   MU_ASSERT (mu_stream_open (in));
   MU_ASSERT (mu_message_create (&msg, NULL));
   MU_ASSERT (mu_message_set_stream (msg, in, NULL));

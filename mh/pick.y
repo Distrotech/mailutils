@@ -325,8 +325,8 @@ match_message (mu_message_t msg, regex_t *regex)
   size_t n;
   
   mu_message_get_stream (msg, &str);
-  mu_stream_seek (str, 0, SEEK_SET);
-  while (mu_stream_sequential_readline (str, buf, sizeof buf, &n) == 0
+  mu_stream_seek (str, 0, SEEK_SET, NULL);
+  while (mu_stream_readline (str, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       buf[n] = 0;

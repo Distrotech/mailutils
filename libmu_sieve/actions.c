@@ -145,7 +145,6 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
   time_t t;
   struct tm *tm;
   char *sender;
-  mu_off_t off = 0;
   mu_body_t body;
   mu_header_t hdr;
   char datestr[80];
@@ -163,16 +162,16 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
 
   mu_sieve_get_message_sender (msg, &sender);
 
-  mu_stream_printf (stream, &off,
+  mu_stream_printf (stream, 
 		    "The original message was received at %s from %s.\n",
 		    datestr, sender);
   free (sender);
-  mu_stream_printf (stream, &off,
+  mu_stream_printf (stream,
 		    "Message was refused by recipient's mail filtering program.\n");
-  mu_stream_printf (stream, &off, "Reason given was as follows:\n\n");
-  mu_stream_printf (stream, &off, "%s", text);
+  mu_stream_printf (stream, "Reason given was as follows:\n\n");
+  mu_stream_printf (stream, "%s", text);
   mu_stream_close (stream);
-  mu_header_create (&hdr, content_header, strlen (content_header), newmsg);
+  mu_header_create (&hdr, content_header, strlen (content_header));
   mu_message_set_header (newmsg, hdr, NULL);
   mu_mime_add_part (mime, newmsg);
   mu_message_unref (newmsg);
@@ -184,7 +183,6 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_message_t newmsg;
   mu_stream_t stream;
   mu_header_t hdr;
-  mu_off_t off = 0;
   mu_body_t body;
   char *email;
   char datestr[80];
@@ -199,7 +197,7 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_header_set_value (hdr, "Content-Type", "message/delivery-status", 1);
   mu_message_get_body (newmsg, &body);
   mu_body_get_stream (body, &stream);
-  mu_stream_printf (stream, &off, "Reporting-UA: sieve; %s\n", PACKAGE_STRING);
+  mu_stream_printf (stream, "Reporting-UA: sieve; %s\n", PACKAGE_STRING);
 
   mu_message_get_envelope (orig, &env);
   if (mu_envelope_sget_date (env, &p) == 0
@@ -212,20 +210,20 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
       
   /* FIXME: timezone info is lost */
   mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tmp);
-  mu_stream_printf (stream, &off, "Arrival-Date: %s\n", datestr);
+  mu_stream_printf (stream, "Arrival-Date: %s\n", datestr);
 
   email = mu_get_user_email (NULL);
-  mu_stream_printf (stream, &off, "Final-Recipient: RFC822; %s\n",
+  mu_stream_printf (stream, "Final-Recipient: RFC822; %s\n",
 		    email ? email : "unknown");
   free (email);
-  mu_stream_printf (stream, &off, "Action: deleted\n");
-  mu_stream_printf (stream, &off, 
+  mu_stream_printf (stream, "Action: deleted\n");
+  mu_stream_printf (stream,  
 		    "Disposition: automatic-action/MDN-sent-automatically;deleted\n");
 
   t = time (NULL);
   tmp = localtime (&t);
   mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tmp);
-  mu_stream_printf (stream, &off, "Last-Attempt-Date: %s\n", datestr);
+  mu_stream_printf (stream, "Last-Attempt-Date: %s\n", datestr);
 
   mu_stream_close (stream);
   mu_mime_add_part(mime, newmsg);
@@ -240,7 +238,7 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   mu_message_t newmsg;
   mu_stream_t istream, ostream;
   mu_header_t hdr;
-  size_t ioff = 0, ooff = 0, n;
+  size_t n;
   char buffer[512];
   mu_body_t body;
     
@@ -251,15 +249,12 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   mu_body_get_stream (body, &ostream);
   mu_message_get_stream (msg, &istream);
   
-  while (mu_stream_read (istream, buffer, sizeof buffer - 1, ioff, &n) == 0
+  while (mu_stream_read (istream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
-      size_t sz;
-      mu_stream_write (ostream, buffer, n, ooff, &sz);
-      if (sz != n)
+      int rc = mu_stream_write (ostream, buffer, n, NULL);
+      if (rc)
 	return EIO;
-      ooff += n;
-      ioff += n;
     }
   mu_stream_close (ostream);
   mu_mime_add_part (mime, newmsg);

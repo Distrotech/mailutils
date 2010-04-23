@@ -594,14 +594,14 @@ chk_md5 (const char *db_pass, const char *pass)
   mu_md5_process_bytes (pass, strlen (pass), &md5context);
   mu_md5_finish_ctx (&md5context, md5digest);
 
-  mu_memory_stream_create (&str, NULL, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
-  mu_stream_sequential_write (str, db_pass, strlen (db_pass));
+  mu_stream_write (str, db_pass, strlen (db_pass), NULL);
 
-  mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
-  mu_stream_destroy (&flt, NULL);
+  mu_stream_read (flt, (char*) d1, sizeof d1, NULL);
+  mu_stream_destroy (&flt);
   
   return memcmp (md5digest, d1, sizeof md5digest) == 0 ?
                   0 : MU_ERR_AUTH_FAILURE;
@@ -617,22 +617,22 @@ chk_smd5 (const char *db_pass, const char *pass)
   mu_stream_t str = NULL, flt = NULL;
   size_t size;
   
-  mu_memory_stream_create (&str, NULL, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
   size = strlen (db_pass);
-  mu_stream_sequential_write (str, db_pass, size);
+  mu_stream_write (str, db_pass, size, NULL);
 
   d1 = malloc (size);
   if (!d1)
     {
-      mu_stream_destroy (&flt, NULL);
+      mu_stream_destroy (&flt);
       return ENOMEM;
     }
   
-  mu_stream_read (flt, (char*) d1, size, 0, &size);
-  mu_stream_destroy (&flt, NULL);
+  mu_stream_read (flt, (char*) d1, size, &size);
+  mu_stream_destroy (&flt);
 
   if (size <= 16)
     {
@@ -663,14 +663,14 @@ chk_sha (const char *db_pass, const char *pass)
   mu_sha1_process_bytes (pass, strlen (pass), &sha1context);
   mu_sha1_finish_ctx (&sha1context, sha1digest);
 
-  mu_memory_stream_create (&str, NULL, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
-  mu_stream_sequential_write (str, db_pass, strlen (db_pass));
+  mu_stream_write (str, db_pass, strlen (db_pass), NULL);
 
-  mu_stream_read (flt, (char*) d1, sizeof d1, 0, NULL);
-  mu_stream_destroy (&flt, NULL);
+  mu_stream_read (flt, (char*) d1, sizeof d1, NULL);
+  mu_stream_destroy (&flt);
   
   return memcmp (sha1digest, d1, sizeof sha1digest) == 0 ?
                   0 : MU_ERR_AUTH_FAILURE;
@@ -686,23 +686,22 @@ chk_ssha (const char *db_pass, const char *pass)
   mu_stream_t str = NULL, flt = NULL;
   size_t size;
   
-  mu_memory_stream_create (&str, NULL, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
   mu_stream_open (str);
   size = strlen (db_pass);
-  mu_stream_sequential_write (str, db_pass, size);
+  mu_stream_write (str, db_pass, size, NULL);
 
   d1 = malloc (size);
   if (!d1)
     {
-      mu_stream_destroy (&flt, NULL);
+      mu_stream_destroy (&flt);
       return ENOMEM;
     }
   
-  mu_stream_read (flt, (char*) d1, size, 0, &size);
-  mu_stream_destroy (&flt, NULL);
-  mu_stream_destroy (&str, NULL);
+  mu_stream_read (flt, (char*) d1, size, &size);
+  mu_stream_destroy (&flt);
 
   if (size <= 16)
     {

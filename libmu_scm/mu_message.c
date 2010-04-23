@@ -196,7 +196,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
   mu_message_t msg, newmsg;
   mu_stream_t in = NULL, out = NULL;
   char buffer[512];
-  size_t off, n;
+  size_t n;
   int status;
   
   SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG1, FUNC_NAME);
@@ -221,27 +221,17 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 		    "Cannot get output stream", SCM_BOOL_F);
     }
 
-  off = 0;
-  while ((status = mu_stream_read (in, buffer, sizeof (buffer) - 1, off, &n))
+  mu_stream_seek (in, 0, MU_SEEK_SET, NULL);
+  while ((status = mu_stream_read (in, buffer, sizeof (buffer) - 1, &n))
 	 == 0
 	 && n != 0)
     {
-      size_t wr;
-      int rc;
-      
-      rc = mu_stream_write (out, buffer, n, off, &wr);
-      if (rc)
+      status = mu_stream_write (out, buffer, n, NULL);
+      if (status)
 	{
 	  mu_message_destroy (&newmsg, NULL);
-	  mu_scm_error (FUNC_NAME, rc, "Error writing to stream", SCM_BOOL_F);
-	}
-      
-      off += n;
-      if (wr != n)
-	{
-	  mu_message_destroy (&newmsg, NULL);
-	  mu_scm_error (FUNC_NAME, rc, "Error writing to stream: Short write",
-			SCM_BOOL_F);
+	  mu_scm_error (FUNC_NAME, status,
+			"Error writing to stream", SCM_BOOL_F);
 	}
     }
   

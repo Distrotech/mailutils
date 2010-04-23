@@ -46,8 +46,8 @@
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
 #include <mailutils/cstr.h>
-
-#include <header0.h>
+#include <mailutils/sys/header_stream.h>
+#include <mailutils/sys/header.h>
 
 #define HEADER_MODIFIED   0x01
 #define HEADER_INVALIDATE 0x02
@@ -413,11 +413,8 @@ static int
 mu_header_fill (mu_header_t header)
 {
   int status;
-  char buf[1024];
-  size_t nread;
-  mu_stream_t mstream;
-  size_t stream_len;
-  char *blurb;
+  size_t blurb_len = 0;
+  char *blurb = NULL;
   
   if (header->spool_used)
     return 0;
@@ -425,59 +422,19 @@ mu_header_fill (mu_header_t header)
   if (header->_fill == NULL)
     return 0; /* FIXME: Really? */
 
-  status = mu_memory_stream_create (&mstream, NULL, MU_STREAM_RDWR);
-  if (status != 0)
-    return status;
-  mu_stream_open (mstream);
-  stream_len = 0;
-
   /* Bring in the entire header.  */
-  do
-    {
-      nread = 0;
-      status = header->_fill (header, buf, sizeof buf,
-			      stream_len, &nread);
-      if (status)
-	{
-	  if (status != EAGAIN && status != EINTR)
-	    mu_stream_destroy (&mstream, NULL);
-	  return status;
-	}
-      if (nread > 0)
-	{
-	  status = mu_stream_write (mstream, buf, nread, stream_len, NULL);
-	  if (status)
-	    {
-	      mu_stream_destroy (&mstream, NULL);
-	      return status;
-	    }
-	  stream_len += nread;
-	}
-    }
-  while (nread > 0);
-
-  /* parse it. */
-  blurb = calloc (1, stream_len + 1);
-  if (blurb)
-    {
-      size_t len;
-      
-      status = mu_stream_read (mstream, blurb, stream_len, 0, &len);
-      if (status == 0)
-	status = header_parse (header, blurb, len);
-      free (blurb);
-    }
-  else
-    status = ENOMEM;
-  
-  mu_stream_destroy (&mstream, NULL);
+  status = header->_fill (header->data, &blurb, &blurb_len);
+  if (status)
+    return status;
+  status = header_parse (header, blurb, blurb_len);
+  free (blurb);
   return status;
 }
 
 
 
 int
-mu_header_create (mu_header_t *ph, const char *blurb, size_t len, void *owner)
+mu_header_create (mu_header_t *ph, const char *blurb, size_t len)
 {
   mu_header_t header;
   int status = 0;
@@ -486,8 +443,6 @@ mu_header_create (mu_header_t *ph, const char *blurb, size_t len, void *owner)
   if (header == NULL)
     return ENOMEM;
   
-  header->owner = owner;
-
   status = header_parse (header, blurb, len);
 
   *ph = header;
@@ -495,21 +450,17 @@ mu_header_create (mu_header_t *ph, const char *blurb, size_t len, void *owner)
 }
 
 void
-mu_header_destroy (mu_header_t *ph, void *owner)
+mu_header_destroy (mu_header_t *ph)
 {
   if (ph && *ph)
     {  
       mu_header_t header = *ph;
 
-      if (header->owner == owner)
-	{
-	  mu_stream_destroy (&header->stream, header);
-	  mu_hdrent_free_list (header);
-	  free (header->spool);
-
-	  free (header);
-	  *ph = NULL;
-	}
+      mu_stream_destroy (&header->stream);
+      mu_hdrent_free_list (header);
+      free (header->spool);
+      free (header);
+      *ph = NULL;
     }
 }
 
@@ -706,7 +657,7 @@ mu_header_aget_value_n (mu_header_t header,
 
 int
 mu_header_get_value_n (mu_header_t header, const char *name, int n,
-		     char *buffer, size_t buflen, size_t *pn)
+		       char *buffer, size_t buflen, size_t *pn)
 {
   const char *s;
   int status = mu_header_sget_value_n (header, name, n, &s);
@@ -986,10 +937,35 @@ mu_hdrent_unroll_fixup (mu_header_t hdr, struct mu_hdrent *ent)
   s[ent->vlen] = 0;
 }
 
+int
+header_seek (mu_stream_t str, mu_off_t off, int whence, mu_off_t *presult)
+{ 
+  struct _mu_header_stream *hstr = (struct _mu_header_stream *) str;
+
+  switch (whence)
+    {
+    case MU_SEEK_SET:
+      break;
+
+    case MU_SEEK_CUR:
+      off += hstr->off;
+      break;
+
+    case MU_SEEK_END:
+      off += hstr->hdr->size;
+      break;
+    }
+
+  if (off < 0 || off > hstr->hdr->size)
+    return EINVAL;
+  hstr->off = off;
+  return 0;
+}
+
 static int
-header_read (mu_stream_t is, char *buffer, size_t buflen,
-	     mu_off_t off, size_t *pnread)
+header_read (mu_stream_t is, char *buffer, size_t buflen, size_t *pnread)
 {
+  struct _mu_header_stream *hstr = (struct _mu_header_stream *) is;
   mu_header_t header;
   struct mu_hdrent *ent;
   size_t ent_off;
@@ -999,12 +975,12 @@ header_read (mu_stream_t is, char *buffer, size_t buflen,
   if (is == NULL)
     return EINVAL;
 
-  header = mu_stream_get_owner (is);
+  header = hstr->hdr;
   status = mu_header_fill (header);
   if (status)
     return status;
   
-  if (mu_hdrent_find_stream_pos (header, off, &ent, &ent_off))
+  if (mu_hdrent_find_stream_pos (header, hstr->off, &ent, &ent_off))
     {
       if (pnread)
 	*pnread = 0;
@@ -1021,7 +997,7 @@ header_read (mu_stream_t is, char *buffer, size_t buflen,
       memcpy (buffer + nread, MU_HDRENT_NAME (header, ent) + ent_off, rest);
       mu_hdrent_unroll_fixup (header, ent);
       nread += rest;
-      off += rest;
+      hstr->off += rest;
       ent_off = 0;
     }
   if (pnread)
@@ -1030,70 +1006,23 @@ header_read (mu_stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-header_readline (mu_stream_t is, char *buffer, size_t buflen,
-		 mu_off_t off, size_t *pnread)
+header_write (mu_stream_t os, const char *buf, size_t buflen, size_t *pnwrite)
 {
+  struct _mu_header_stream *hstr;
   mu_header_t header;
-  struct mu_hdrent *ent;
-  size_t ent_off;
   int status;
-  size_t strsize;
-  char *start, *end;
+  mu_off_t mstream_size;
   
-  if (is == NULL || buflen == 0)
+  if (!os || !buf)
     return EINVAL;
 
-  header = mu_stream_get_owner (is);
-  status = mu_header_fill (header);
-  if (status)
-    return status;
-  if (mu_hdrent_find_stream_pos (header, off, &ent, &ent_off))
-    {
-      if (pnread)
-	*pnread = 0;
-      return 0;
-    }
-
-  buflen--; /* Account for the terminating nul */
-
-  mu_hdrent_fixup (header, ent);
-  strsize = MU_STR_SIZE (ent->nlen, ent->vlen) - ent_off;
-  start = MU_HDRENT_NAME (header, ent) + ent_off;
-  end = strchr (start, '\n');
-  if (end)
-    {
-      size_t len = end - start + 1;
-      if (len < strsize)
-	strsize = len;
-    }
-
-  if (strsize < buflen)
-    buflen = strsize;
-  
-  memcpy (buffer, start, buflen);
-  buffer[buflen] = 0;
-  mu_hdrent_unroll_fixup (header, ent);
-  if (pnread)
-    *pnread = buflen;
-  return 0;
-}
-
-static int
-header_write (mu_stream_t os, const char *buf, size_t buflen,
-	      mu_off_t off, size_t *pnwrite)
-{
-  size_t wrsize = 0;
-  mu_header_t header = mu_stream_get_owner (os);
-  int status;
-  
+  hstr = (struct _mu_header_stream *) os;
+  header = hstr->hdr;
   if (header == NULL)
     return EINVAL;
-
-  if ((size_t)off != header->mstream_size)
-    return ESPIPE;
-
+  
   /* Skip the obvious.  */
-  if (buf == NULL || *buf == '\0' || buflen == 0)
+  if (*buf == '\0' || buflen == 0)
     {
       if (pnwrite)
         *pnwrite = 0;
@@ -1102,63 +1031,51 @@ header_write (mu_stream_t os, const char *buf, size_t buflen,
 
   if (!header->mstream)
     {
-      status = mu_memory_stream_create (&header->mstream, NULL,
-					MU_STREAM_RDWR);
+      status = mu_memory_stream_create (&header->mstream, MU_STREAM_RDWR);
       if (status)
 	return status;
       status = mu_stream_open (header->mstream);
       if (status)
 	{
-	  mu_stream_destroy (&header->mstream, NULL);
+	  mu_stream_destroy (&header->mstream);
 	  return status;
 	}
-      header->mstream_size = 0;
     }
 
-  do
+  status = mu_stream_write (header->mstream, buf, buflen, NULL);
+  if (status)
     {
-      size_t nbytes;
-      status = mu_stream_write (header->mstream, buf + wrsize, buflen - wrsize,
-				header->mstream_size, &nbytes);
-      if (status)
-	{
-	  mu_stream_destroy (&header->mstream, NULL);
-	  header->mstream_size = 0;
-	  return status;
-	}
-      if (nbytes == 0)
-	break;
-      wrsize += nbytes;
-      header->mstream_size += nbytes;
+      mu_stream_destroy (&header->mstream);
+      return status;
     }
-  while (buflen);
 
-  if (header->mstream_size > 1)
+  status = mu_stream_size (header->mstream, &mstream_size);
+  if (status == 0 && mstream_size > 1)
     {
       char nlbuf[2];
-      size_t len;
-      status = mu_stream_read (header->mstream, nlbuf, 2,
-			       header->mstream_size - 2, &len);
-      if (status == 0 && len == 2 && memcmp (nlbuf, "\n\n", 2) == 0)
+
+      status = mu_stream_seek (header->mstream, -2, MU_SEEK_END, NULL);
+      if (status == 0)
+	status = mu_stream_read (header->mstream, nlbuf, 2, NULL);
+      if (status == 0 && memcmp (nlbuf, "\n\n", 2) == 0)
 	{
 	  char *blurb;
-	  size_t len = header->mstream_size;
-	  blurb = calloc (1, len + 1);
+
+	  blurb = calloc (1, mstream_size + 1);
 	  if (blurb)
 	    {
-	      mu_stream_read (header->mstream, blurb, len, 0, &len);
-	      status = header_parse (header, blurb, len);
+	      mu_stream_read (header->mstream, blurb, mstream_size, NULL);
+	      status = header_parse (header, blurb, mstream_size);
 	    }
 	  free (blurb);
-	  mu_stream_destroy (&header->mstream, NULL);
-	  header->mstream_size = 0;
+	  mu_stream_destroy (&header->mstream);
 	}
     }
   
   if (pnwrite)
-    *pnwrite = wrsize;
+    *pnwrite = buflen;
   
-  return 0;
+  return status;
 }
 
 static int
@@ -1173,7 +1090,7 @@ header_size (mu_stream_t str, mu_off_t *psize)
   if (psize == NULL)
     return MU_ERR_OUT_PTR_NULL;
   
-  header = mu_stream_get_owner (str);
+  header = ((struct _mu_header_stream *) str)->hdr;
   status = mu_header_fill (header);
   if (status)
     return status;
@@ -1183,8 +1100,8 @@ header_size (mu_stream_t str, mu_off_t *psize)
   return status;
 }
 
-int
-mu_header_get_stream (mu_header_t header, mu_stream_t *pstream)
+static int
+_header_get_stream (mu_header_t header, mu_stream_t *pstream, int ref)
 {
   if (header == NULL)
     return EINVAL;
@@ -1194,44 +1111,58 @@ mu_header_get_stream (mu_header_t header, mu_stream_t *pstream)
 
   if (header->stream == NULL)
     {
-      int status = mu_stream_create (&header->stream, MU_STREAM_RDWR, header);
-      if (status != 0)
-	return status;
-      mu_stream_set_read (header->stream, header_read, header);
-      mu_stream_set_readline (header->stream, header_readline, header);
-      mu_stream_set_write (header->stream, header_write, header);
-      mu_stream_set_size (header->stream, header_size, header);
+      struct _mu_header_stream *str = 
+	(struct _mu_header_stream *) _mu_stream_create (sizeof (*str),
+							MU_STREAM_RDWR|MU_STREAM_SEEK);
+      if (!str)
+	return ENOMEM;
+      str->stream.read = header_read;
+      /*str->stream.rdelim? */
+      str->stream.write = header_write;
+      str->stream.seek = header_seek;
+      str->stream.size = header_size;
+      str->hdr = header;
+      header->stream = (mu_stream_t) str;
     }
-  *pstream = header->stream;
-  return 0;
+  if (!ref)
+    {
+      *pstream = header->stream;
+      return 0;
+    }
+  return mu_streamref_create (pstream, header->stream);
 }
 
+int
+mu_header_get_stream (mu_header_t header, mu_stream_t *pstream)
+{
+  /* FIXME: Deprecation warning */
+  return _header_get_stream (header, pstream, 0);
+}
+
+int
+mu_header_get_streamref (mu_header_t header, mu_stream_t *pstream)
+{
+  return _header_get_stream (header, pstream, 1);
+}
 
 
 int
 mu_header_set_fill (mu_header_t header, int
-		    (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *),
-		    void *owner)
+		    (*_fill) (void *data, char **, size_t *),
+		    void *data)
 {
   if (header == NULL)
     return EINVAL;
-  if (header->owner != owner)
-    return EACCES;
   header->_fill = _fill;
+  header->data = data;
   return 0;
 }
 
 
-void *
-mu_header_get_owner (mu_header_t header)
-{
-  return (header) ? header->owner : NULL;
-}
-
 int
 mu_header_is_modified (mu_header_t header)
 {
-  return (header) ? (header->flags & HEADER_MODIFIED) : 0;
+  return header ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
 int

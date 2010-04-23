@@ -12,10 +12,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
+
+#include <mailutils/types.h>
 
 #include <mailutils/acl.h>
 #include <mailutils/address.h>
@@ -56,7 +56,6 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/tls.h>
-#include <mailutils/types.h>
 #include <mailutils/url.h>
 #include <mailutils/gocs.h>
 #include <mailutils/version.h>

@@ -62,11 +62,11 @@ mh_comp_draft (const char *formfile, const char *defformfile,
 	      exit (1);
 	    }
 	  
-	  rc = mu_stream_sequential_write (stream, 
-					default_format_str,
-					strlen (default_format_str));
+	  rc = mu_stream_write (stream, 
+				default_format_str,
+				strlen (default_format_str), NULL);
 	  mu_stream_close (stream);
-	  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+	  mu_stream_destroy (&stream);
 
 	  if (rc)
 	    {

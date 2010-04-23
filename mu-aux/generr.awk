@@ -67,6 +67,7 @@ ARGIND == 2 && $1 == "$MESSAGE_DEFS" {
   for (i = 0; i < defno; i++) {
     print "#define " def[i] " (MU_ERR_BASE+" i ")"
   }
+  print "#define MU_ERR_LAST (MU_ERR_BASE+" defno ")"
   total += defno;
   next
 }

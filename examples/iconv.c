@@ -33,7 +33,7 @@ main (int argc, char **argv)
   int rc;
   mu_stream_t in, out;
   mu_stream_t cvt;
-  size_t total = 0, size;
+  size_t  size;
   char buffer[80];
   
   if (argc != 3)
@@ -42,27 +42,26 @@ main (int argc, char **argv)
       return 1;
     }
 
-  MU_ASSERT (mu_stdio_stream_create (&in, stdin, 0));
+  MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
   MU_ASSERT (mu_stream_open (in));
   MU_ASSERT (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 
                                      0, mu_fallback_none));
   MU_ASSERT (mu_stream_open (cvt));
   
-  MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
+  MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
   MU_ASSERT (mu_stream_open (out));
 
-  while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), total, &size)) == 0
+  while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), &size)) == 0
 	 && size > 0)
     {
-      mu_stream_sequential_write (out, buffer, size);
-      total += size;
+      mu_stream_write (out, buffer, size, NULL);
     }
   mu_stream_flush (out);
   if (rc)
     {
-      const char *p;
-      mu_stream_strerror (cvt, &p);
-      fprintf (stderr, "error: %s / %s\n", mu_strerror (rc), p);
+      fprintf (stderr, "error: %s / %s\n",
+	       mu_stream_strerror (cvt, rc),
+	       mu_strerror (rc));
     }
   return 0;
 }

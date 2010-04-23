@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <mailutils/types.h>
+#include <mailutils/stream.h>
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
 #include <mu_umaxtostr.h>

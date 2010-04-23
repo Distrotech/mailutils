@@ -463,14 +463,14 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		  size_t total = 0, pos;
 		  size_t nbytes;
 
-		  rc = mu_memory_stream_create (&instr, 0, 0);
+		  rc = mu_memory_stream_create (&instr, 0);
 		  if (rc)
 		    break;
-		  rc = mu_stream_write (instr, data, strlen (data), 0, NULL);
+		  rc = mu_stream_write (instr, data, strlen (data), NULL);
 		  if (rc)
 		    break;
 
-		  rc = mu_memory_stream_create (&outstr, 0, 0);
+		  rc = mu_memory_stream_create (&outstr, 0);
 		  if (rc)
 		    break;
 		  
@@ -484,11 +484,11 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		  if (rc)
 		    break;
 
-		  while (mu_stream_sequential_read (cvt, iobuf, sizeof (iobuf),
-						    &nbytes) == 0
+		  while (mu_stream_read (cvt, iobuf, sizeof (iobuf),
+					 &nbytes) == 0
 			 && nbytes)
 		    {
-		      rc = mu_stream_sequential_write (outstr, iobuf, nbytes);
+		      rc = mu_stream_write (outstr, iobuf, nbytes, NULL);
 		      if (rc)
 			break;
 		      total += nbytes;
@@ -504,10 +504,10 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		      break;
 		    }
 
-		  mu_stream_seek (outstr, 0, SEEK_SET);
+		  mu_stream_seek (outstr, 0, MU_SEEK_SET, NULL);
 		  pos = 0;
-		  while (mu_stream_sequential_read (outstr, outval + pos,
-						    total - pos, &nbytes) == 0
+		  while (mu_stream_read (outstr, outval + pos,
+					 total - pos, &nbytes) == 0
 			 && nbytes)
 		    pos += nbytes;
 		  outval[pos] = 0;
@@ -515,11 +515,11 @@ mu_mimehdr_decode_param (const char *value, int flags,
 	      while (0);
 	      
 	      mu_stream_close (cvt);
-	      mu_stream_destroy (&cvt, mu_stream_get_owner (cvt));
+	      mu_stream_destroy (&cvt);
 	      mu_stream_close (instr);
-	      mu_stream_destroy (&instr, mu_stream_get_owner (instr));
+	      mu_stream_destroy (&instr);
 	      mu_stream_close (outstr);
-	      mu_stream_destroy (&outstr, mu_stream_get_owner (outstr));
+	      mu_stream_destroy (&outstr);
 	      
 	      free (decoded);
 	  

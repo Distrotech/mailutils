@@ -25,10 +25,9 @@ struct mu_body
 {
   mu_body_t body;             /* Message body */
   mu_stream_t stream;         /* Associated stream */
-  int offset;              /* Current offset in the stream */
-  char *buffer;            /* I/O buffer */
-  int bufsize;             /* Size of allocated buffer */
-  SCM msg;                 /* Message the body belongs to */		
+  char *buffer;               /* I/O buffer */
+  size_t bufsize;             /* Size of allocated buffer */
+  SCM msg;                    /* Message the body belongs to */		
 };
 
 /* Initial buffer size */
@@ -93,7 +92,6 @@ mu_scm_body_create (SCM msg, mu_body_t body)
   mbp->msg = msg;
   mbp->body = body;
   mbp->stream = NULL;
-  mbp->offset = 0;
   mbp->buffer = NULL;
   mbp->bufsize = 0;
   SCM_RETURN_NEWSMOB (body_tag, mbp);
@@ -108,7 +106,7 @@ SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 #define FUNC_NAME s_scm_mu_body_read_line
 {
   struct mu_body *mbp;
-  size_t n, nread;
+  size_t nread;
   int status;
   
   SCM_ASSERT (mu_scm_is_body (body), body, SCM_ARG1, FUNC_NAME);
@@ -131,30 +129,11 @@ SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 	mu_scm_error (FUNC_NAME, ENOMEM, "Cannot allocate memory", SCM_BOOL_F);
     }
 
-  nread = 0;
-  while (1)
-    {
-      status = mu_stream_readline (mbp->stream, mbp->buffer + nread,
-				   mbp->bufsize - nread,
-				   mbp->offset, &n);
-      if (status)
-	mu_scm_error (FUNC_NAME, status,
-		      "Error reading from stream", SCM_BOOL_F);
-      if (n == 0)
-	break;
-      nread += n;
-      mbp->offset += n;
-      if (mbp->buffer[n - 1] != '\n' && n == mbp->bufsize)
-	{
-	  char *p = realloc (mbp->buffer, mbp->bufsize + BUF_SIZE);
-	  if (!p)
-	    break;
-	  mbp->buffer = p;
-	  mbp->bufsize += BUF_SIZE;
-	}
-      else
-	break;
-    }
+  status = mu_stream_getline (mbp->stream, (char**)&mbp->buffer, &mbp->bufsize,
+			      &nread);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Error reading from stream", SCM_BOOL_F);
 
   if (nread == 0)
     return SCM_EOF_VAL;
@@ -169,7 +148,7 @@ SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 #define FUNC_NAME s_scm_mu_body_write
 {
   char *ptr;
-  size_t len, n;
+  size_t len;
   struct mu_body *mbp;
   int status;
   
@@ -187,11 +166,11 @@ SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
 
   ptr = scm_to_locale_string (text);
   len = strlen (ptr);
-  status = mu_stream_write (mbp->stream, ptr, len, mbp->offset, &n);
+  status = mu_stream_write (mbp->stream, ptr, len, NULL);
   free (ptr);
-  mu_scm_error (FUNC_NAME, status,
-		"Error writing to stream", SCM_BOOL_F);
-  mbp->offset += n;
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Error writing to stream", SCM_BOOL_F);
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME

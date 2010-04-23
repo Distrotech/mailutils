@@ -186,11 +186,12 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
       return 1;
     }
 
+  mu_stream_seek (in, 0, MU_SEEK_SET, NULL);
   while (size > 0
-	 && (rc = mu_stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
+	 && (rc = mu_stream_read (in, buffer, bufsize, &rdsize)) == 0
 	 && rdsize > 0)
     {
-      if ((rc = mu_stream_sequential_write (out, buffer, rdsize)) != 0)
+      if ((rc = mu_stream_write (out, buffer, rdsize, NULL)) != 0)
 	{
 	  mu_error (_("error writing to \"%s\": %s"),
 		    file, mu_strerror (rc));
@@ -200,7 +201,7 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
     }
 
   mu_stream_close (out);
-  mu_stream_destroy (&out, mu_stream_get_owner (out));
+  mu_stream_destroy (&out);
   
   return rc;
 }

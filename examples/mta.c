@@ -312,7 +312,7 @@ mta_send (mu_message_t msg)
   size_t n;
   char buffer[512];    
   mu_stream_t stream = NULL;
-  size_t off = 0, line;
+  size_t line;
   char *value;
 
   value = from_address ();
@@ -329,7 +329,7 @@ mta_send (mu_message_t msg)
   mu_message_get_stream (msg, &stream);
   line = 0;
   fprintf (diag, "%4lu: ", (unsigned long) line);
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       size_t i;
@@ -343,7 +343,6 @@ mta_send (mu_message_t msg)
 	      fprintf (diag, "%4lu: ", (unsigned long) line);
 	    }
 	}
-      off += n;
     }
   fprintf (diag, "\nEND OF MESSAGE\n");
   fflush (diag);

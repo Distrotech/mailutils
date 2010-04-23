@@ -332,7 +332,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       char *buf;
       
       rc = mu_file_stream_create (&str, wh->file,
-			       MU_STREAM_WRITE|MU_STREAM_CREAT);
+				  MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
 	  mu_error (_("cannot create draft file stream %s: %s"),
@@ -363,7 +363,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       else
 	mh_format (&format, msg, msgset.list[0], width, &buf);
       
-      mu_stream_sequential_write (str, buf, strlen (buf));
+      mu_stream_write (str, buf, strlen (buf), NULL);
 
       if (mhl_filter)
 	{
@@ -374,7 +374,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  mhl_format_destroy (&filter);
 	}
 
-      mu_stream_destroy (&str, mu_stream_get_owner (str));
+      mu_stream_destroy (&str);
       free (buf);
     }
 

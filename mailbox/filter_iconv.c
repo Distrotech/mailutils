@@ -20,11 +20,12 @@
 # include <config.h>
 #endif
 
-#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <ctype.h>
 #include <mailutils/stream.h>
+#include <mailutils/sys/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
@@ -61,21 +62,22 @@ enum _icvt_state
 
 struct icvt_stream
 {
-  mu_stream_t stream;   /* I/O stream */
+  struct _mu_stream stream;
+  mu_stream_t transport;/* I/O stream */
   int fallback_mode;
-  iconv_t cd;        /* Conversion descriptor */
-  char *buf;         /* Conversion buffer */
-  size_t bufsize;    /* Size of buf */
-  size_t bufpos;     /* Current position in buf */
+  iconv_t cd;           /* Conversion descriptor */
+  char *buf;            /* Conversion buffer */
+  size_t bufsize;       /* Size of buf */
+  size_t bufpos;        /* Current position in buf */
   enum _icvt_state state;
-  int ec;            /* Error code */
-  char errbuf[128];  /* Error message buffer */
+  int ec;               /* Error code */
+  char errbuf[128];     /* Error message buffer */
 };
 
 static int
 _icvt_open (mu_stream_t stream)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
   if (s->cd == (iconv_t) -1)
     return EINVAL;
   s->state = state_open;
@@ -85,13 +87,11 @@ _icvt_open (mu_stream_t stream)
 static int
 _icvt_close (mu_stream_t stream)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
   if (s->state != state_closed)
     {
-      int flags;
-      mu_stream_get_flags (stream, &flags);
-      if (!(flags & MU_STREAM_NO_CLOSE))
-	mu_stream_close (s->stream);
+      if (!(stream->flags & MU_STREAM_NO_CLOSE))
+	mu_stream_close (s->transport);
       iconv_close (s->cd);
       s->cd = (iconv_t) -1;
       s->state = state_closed;
@@ -100,30 +100,25 @@ _icvt_close (mu_stream_t stream)
 }
 
 static void
-_icvt_destroy (mu_stream_t stream)
+_icvt_done (mu_stream_t stream)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
-  int flags;
+  struct icvt_stream *s = (struct icvt_stream *)stream;
 
   if (s->state != state_closed)
     _icvt_close (stream);
-  mu_stream_get_flags (stream, &flags);
-  if (!(flags & MU_STREAM_NO_CLOSE))
-    mu_stream_destroy (&s->stream, mu_stream_get_owner (s->stream));
+  if (!(stream->flags & MU_STREAM_NO_CLOSE))
+    mu_stream_destroy (&s->transport);
   free (s->buf);
-  s->buf = NULL;
-  if (s->cd != (iconv_t) -1)
-    iconv_close (s->cd);
-  free (s);
 }
 
 static int _icvt_read (mu_stream_t stream, char *optr, size_t osize,
-		       mu_off_t offset, size_t *pnbytes);
+		       size_t *pnbytes);
 
 static int
-internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbytes)
+internal_icvt_read (mu_stream_t stream, char *optr, size_t osize,
+		    size_t *pnbytes)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
   size_t nbytes = 0;
   int rc, status = 0;
   char *ob = optr;
@@ -131,7 +126,7 @@ internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbyte
 
   if (s->bufpos == 0)
     {
-      status = mu_stream_sequential_read (s->stream, s->buf, s->bufsize, &nbytes);
+      status = mu_stream_read (s->transport, s->buf, s->bufsize, &nbytes);
       if (status)
 	{
 	  s->state = state_transport_error;
@@ -174,8 +169,6 @@ internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbyte
 	    }
 	  else if (errno == EILSEQ)
 	    {
-	      int flags = 0; 
-	      mu_stream_get_flags (stream, &flags);
 	      switch (s->fallback_mode)
 		{
 		case mu_fallback_none:
@@ -188,13 +181,13 @@ internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbyte
 		case mu_fallback_copy_pass:
 		  s->state = state_copy_pass;
 		  if (ob == optr)
-		    return _icvt_read (stream, optr, osize, 0, pnbytes);
+		    return _icvt_read (stream, optr, osize, pnbytes);
 		  break;
 		  
 		case mu_fallback_copy_octal:
 		  s->state = state_copy_octal;
 		  if (ob == optr)
-		    return _icvt_read (stream, optr, osize, 0, pnbytes);
+		    return _icvt_read (stream, optr, osize, pnbytes);
 		  break;
 		}
 	    }
@@ -220,10 +213,10 @@ internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbyte
 	}
     }
   while (olen > 0 
-	 && (status = mu_stream_sequential_read (s->stream,
-					      s->buf + s->bufpos,
-					      s->bufsize - s->bufpos,
-					      &nbytes)) == 0
+	 && (status = mu_stream_read (s->transport,
+				      s->buf + s->bufpos,
+				      s->bufsize - s->bufpos,
+				      &nbytes)) == 0
 	 && nbytes);
 
   if (status)
@@ -239,7 +232,7 @@ internal_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbyte
   return 0;
 }
 
-#define ISPRINT(c) (((c)>=' '&&(c)<127)||c=='\n')
+#define ISPRINT(c) (((c)>=' '&&(c)<127)||(c)=='\n')
 
 static int
 copy_octal (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
@@ -266,10 +259,10 @@ copy_octal (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 	    rdcount = s->bufsize;
 	}
 
-      status = mu_stream_sequential_read (s->stream,
-				       s->buf + s->bufpos,
-				       rdcount - s->bufpos,
-				       &rdcount);
+      status = mu_stream_read (s->transport,
+			       s->buf + s->bufpos,
+			       rdcount - s->bufpos,
+			       &rdcount);
       if (status)
 	{
 	  s->state = state_transport_error;
@@ -318,7 +311,7 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
       return 0;
     }
 
-  status = mu_stream_sequential_read (s->stream, optr, osize, &nbytes);
+  status = mu_stream_read (s->transport, optr, osize, &nbytes);
   if (status)
     {
       s->state = state_transport_error;
@@ -332,10 +325,9 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 }
 
 static int
-_icvt_read (mu_stream_t stream, char *optr, size_t osize,
-	    mu_off_t offset MU_ARG_UNUSED, size_t *pnbytes)
+_icvt_read (mu_stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
 
   switch (s->state)
     {
@@ -357,16 +349,16 @@ _icvt_read (mu_stream_t stream, char *optr, size_t osize,
   return MU_ERR_FAILURE;
 }
 
-int
-_icvt_strerror (mu_stream_t stream, const char **pstr)
+const char *
+_icvt_strerror (mu_stream_t stream, int rc)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
+
   switch (s->state)
     {
     case state_transport_error:
       snprintf (s->errbuf, sizeof s->errbuf,
 		_("Transport error: %s"), mu_strerror (s->ec));
-      *pstr = s->errbuf;
       break;
 
     case state_iconv_error:
@@ -382,56 +374,74 @@ _icvt_strerror (mu_stream_t stream, const char **pstr)
 	  snprintf (s->errbuf, sizeof s->errbuf,
 		    _("Iconv error: %s"), mu_strerror (s->ec));
 	}
-      *pstr = s->errbuf;
       break;
 
     case state_closed:
-      *pstr = _("Stream is closed"); 
-      break;
+      return _("Stream is closed"); 
       
     default:
-      *pstr = mu_strerror (s->ec);
+      return mu_strerror (s->ec);
     }
   
-  return 0;
+  return s->errbuf;
 }
 
-int
-_icvt_get_transport2 (mu_stream_t stream,
-		     mu_transport_t *pt, mu_transport_t *pt2)
+static int
+_icvt_ioctl (mu_stream_t stream, int code, void *ptr)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
-  if (pt)
-    *pt = s->stream;
-  if (*pt2)
-    *pt2 = NULL;
+  struct icvt_stream *s = (struct icvt_stream *)stream;
+  mu_transport_t (*ptrans)[2];
+  
+  switch (code)
+    {
+    case MU_IOCTL_GET_TRANSPORT:
+      if (!ptr)
+	return EINVAL;
+      ptrans = ptr;
+      (*ptrans)[0] = (mu_transport_t) s->transport;
+      (*ptrans)[1] = NULL;
+      break;
+
+    default:
+      return EINVAL;
+    }
   return 0;
 }
 
 int
 _icvt_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 {
-  struct icvt_stream *s = mu_stream_get_owner (stream);
-  return mu_stream_wait (s->stream, pflags, tvp);
+  struct icvt_stream *s = (struct icvt_stream *)stream;
+  return mu_stream_wait (s->transport, pflags, tvp);
+}
+
+int
+_icvt_seek (mu_stream_t stream, mu_off_t off, int whence, mu_off_t *presult)
+{
+  struct icvt_stream *s = (struct icvt_stream *)stream;
+  return mu_stream_seek (s->transport, off, whence, presult);
 }
 
 int
 mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
-		     const char *fromcode, const char *tocode, int flags,
-		     enum mu_iconv_fallback_mode fallback_mode)
+			const char *fromcode, const char *tocode, int flags,
+			enum mu_iconv_fallback_mode fallback_mode)
 {
   struct icvt_stream *iptr;
   iconv_t cd;
-  int rc;
   
   cd = iconv_open (tocode, fromcode);
   if (cd == (iconv_t) -1)
     return MU_ERR_FAILURE;
-  
-  iptr = malloc (sizeof *iptr);
+
+  iptr = (struct icvt_stream *) _mu_stream_create (sizeof (*iptr), flags);
   if (!iptr)
-    return ENOMEM;
-  iptr->stream = transport;
+    {
+      iconv_close (cd);
+      return ENOMEM;
+    }
+  
+  iptr->transport = transport;
   iptr->fallback_mode = fallback_mode;
   iptr->cd = cd;
   iptr->state = state_closed;
@@ -444,18 +454,13 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
     }
   iptr->bufpos = 0;
   
-  rc = mu_stream_create (s, flags, iptr);
-  if (rc)
-    {
-      free (iptr);
-      return rc;
-    }
-  mu_stream_set_open (*s, _icvt_open, iptr);
-  mu_stream_set_close (*s, _icvt_close, iptr);
-  mu_stream_set_read (*s, _icvt_read, iptr);
-  mu_stream_set_destroy (*s, _icvt_destroy, iptr);
-  mu_stream_set_strerror (*s, _icvt_strerror, iptr);
-  mu_stream_set_get_transport2 (*s, _icvt_get_transport2, iptr);
-  mu_stream_set_wait (*s, _icvt_wait, iptr);
+  iptr->stream.open = _icvt_open;
+  iptr->stream.close = _icvt_close;
+  iptr->stream.read = _icvt_read;
+  iptr->stream.done = _icvt_done;
+  iptr->stream.error_string = _icvt_strerror;
+  iptr->stream.ctl = _icvt_ioctl;
+  iptr->stream.wait = _icvt_wait;
+  iptr->stream.seek = _icvt_seek;
   return 0;
 }

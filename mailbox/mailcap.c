@@ -506,7 +506,6 @@ application/pgp; gpg < %s | metamail; needsterminal; \
 static int
 mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
 {
-  off_t off;
   int status;
   size_t n;
   char *previous;
@@ -529,10 +528,11 @@ mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
    * The old continuation line is saved in the "previous" pointer and
    * prepended to the buffer.
    */
-  for (previous = NULL, off = n = 0;
-       (status = mu_stream_readline (stream, buffer, buflen, off, &n)) == 0
-	 && n > 0;
-       off += n)
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    return status;
+  previous = NULL;
+  while ((status = mu_stream_readline (stream, buffer, buflen, &n)) == 0)
     {
       int len;
 
@@ -667,10 +667,11 @@ int main()
   mu_stream_t stream = NULL;
   int status = 0;
 
-  status = mu_file_stream_create (&stream, "/home/alain/mailcap", MU_STREAM_READ);
+  status = mu_file_stream_create (&stream, "/home/alain/mailcap",
+				  MU_STREAM_READ);
   if (status == 0)
     {
-      status = mu_stream_open(stream);
+      status = mu_stream_open (stream);
       if (status == 0)
 	{
 	  mu_mailcap_t mailcap;

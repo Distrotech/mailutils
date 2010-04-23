@@ -98,7 +98,7 @@ mu_vartab_destroy (mu_vartab_t *pvar)
   mu_iterator_destroy (&itr);
 
   mu_assoc_destroy (&var->assoc);
-  mu_stream_destroy (&var->stream, NULL);
+  mu_stream_destroy (&var->stream);
   free (var->buf);
   free (var);
   *pvar = NULL;
@@ -224,14 +224,14 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
     return EINVAL;
   if (!vt->stream)
     {
-      rc = mu_memory_stream_create (&vt->stream, NULL, MU_STREAM_NO_CHECK);
+      rc = mu_memory_stream_create (&vt->stream, MU_STREAM_NO_CHECK);
       if (rc)
 	return rc;
       rc = mu_stream_open (vt->stream);
     }
   else
     mu_stream_truncate (vt->stream, 0);
-  mu_stream_seek (vt->stream, 0, SEEK_SET);
+  mu_stream_seek (vt->stream, 0, MU_SEEK_SET, NULL);
 
   for (p = str; *p; )
     {
@@ -240,7 +240,7 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 	  switch (*++p)
 	    {
 	    case '$':
-	      mu_stream_sequential_write (vt->stream, str, p - str);
+	      mu_stream_write (vt->stream, str, p - str, NULL);
 	      str = p + 1;
 	      p = str + 1;
 	      break;
@@ -256,10 +256,9 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 		    rc = mu_vartab_getvar (vt, name, &pvalue);
 		    if (rc == 0)
 		      {
-			mu_stream_sequential_write (vt->stream, str,
-						    p - str - 1);
-			mu_stream_sequential_write (vt->stream, pvalue,
-						    strlen (pvalue));
+			mu_stream_write (vt->stream, str, p - str - 1, NULL);
+			mu_stream_write (vt->stream, pvalue, strlen (pvalue),
+					 NULL);
 			str = e + 1;
 			p = str + 1;
 		      }
@@ -280,10 +279,9 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 		rc = mu_vartab_getvar (vt, name, &pvalue);
 		if (rc == 0)
 		  {
-		    mu_stream_sequential_write (vt->stream, str,
-						p - str - 1);
-		    mu_stream_sequential_write (vt->stream, pvalue,
-						strlen (pvalue));
+		    mu_stream_write (vt->stream, str, p - str - 1, NULL);
+		    mu_stream_write (vt->stream, pvalue, strlen (pvalue),
+				     NULL);
 		    str = p + 1;
 		    p = str + 1;
 		  }
@@ -301,7 +299,7 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 	     compatibility with v. prior to 1.2.91 */
 	  if (*++p == '%')
 	    {
-	      mu_stream_sequential_write (vt->stream, str, p - str);
+	      mu_stream_write (vt->stream, str, p - str, NULL);
 	      str = p + 1;
 	      p = str + 1;
 	    }
@@ -312,10 +310,9 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
 	      rc = mu_vartab_getvar (vt, name, &pvalue);
 	      if (rc == 0)
 		{
-		  mu_stream_sequential_write (vt->stream, str,
-					      p - str - 1);
-		  mu_stream_sequential_write (vt->stream, pvalue,
-					      strlen (pvalue));
+		  mu_stream_write (vt->stream, str, p - str - 1, NULL);
+		  mu_stream_write (vt->stream, pvalue, strlen (pvalue),
+				   NULL);
 		  str = p + 1;
 		  p = str + 1;
 		}
@@ -330,13 +327,14 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
     }
   
   if (p > str)
-    mu_stream_sequential_write (vt->stream, str, p - str);
+    mu_stream_write (vt->stream, str, p - str, NULL);
 
   mu_stream_size (vt->stream, &size);
   *pres = malloc (size + 1);
   if (!*pres)
     return ENOMEM;
-  mu_stream_read (vt->stream, *pres, size, 0, NULL);
+  mu_stream_seek (vt->stream, 0, MU_SEEK_SET, NULL);
+  mu_stream_read (vt->stream, *pres, size, NULL);
   (*pres)[size] = 0;
   return 0;
 }

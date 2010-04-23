@@ -690,7 +690,6 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 {
   mu_stream_t rfc = NULL;
   size_t n = 0;
-  mu_off_t offset;
 
   mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE,
 		    MU_STREAM_READ|MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
@@ -699,21 +698,24 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
     {
       char *buffer;
       size_t bufsize;
-
+      int rc;
+      
       for (bufsize = max; (buffer = malloc (bufsize)) == NULL; bufsize /= 2)
 	if (bufsize < 512)
   	  imap4d_bye (ERR_NO_MEM);
 
-      offset = 0;
+      rc = mu_stream_seek (rfc, 0, MU_SEEK_SET, NULL);
+      if (rc)
+	{
+	  mu_error ("seek error: %s", mu_stream_strerror (rfc, rc));
+	  return RESP_BAD;
+	}
       if (max)
 	{
 	  util_send (" {%lu}\r\n", (unsigned long) max);
-	  while (mu_stream_read (rfc, buffer, bufsize, offset,
-				 &n) == 0 && n > 0)
-	    {
-	      util_send_bytes (buffer, n);
-	      offset += n;
-	    }
+	  while (mu_stream_read (rfc, buffer, bufsize, &n) == 0 && n > 0)
+	    util_send_bytes (buffer, n);
+
 	  /* FIXME: Make sure exactly max bytes were sent */
           free (buffer); 
 	}
@@ -722,23 +724,31 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
     }
   else if (size + 2 < size) /* Check for integer overflow */
     {
-      mu_stream_destroy (&rfc, NULL);
+      mu_stream_destroy (&rfc);
       return RESP_BAD;
     }
   else
     {
+      int rc;
       char *buffer, *p;
       size_t total = 0;
-      offset = start;
+
       p = buffer = malloc (size + 1);
       if (!p)
 	imap4d_bye (ERR_NO_MEM);
-      
+
+      rc = mu_stream_seek (stream, start, MU_SEEK_SET, NULL);
+      if (rc)
+	{
+	  mu_error ("seek error: %s", mu_stream_strerror (rfc, rc));
+	  free (buffer);
+	  return RESP_BAD;
+	}
+
       while (total < size
-	     && mu_stream_read (rfc, p, size - total + 1, offset, &n) == 0
+	     && mu_stream_read (rfc, p, size - total + 1, &n) == 0
 	     && n > 0)
 	{
-	  offset += n;
 	  total += n;
 	  p += n;
 	}
@@ -753,7 +763,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 	util_send (" \"\"");
       free (buffer);
     }
-  mu_stream_destroy (&rfc, NULL);
+  mu_stream_destroy (&rfc);
   return RESP_OK;
 }
 
@@ -1035,7 +1045,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
       return RESP_OK;
     }
 
-  status = mu_memory_stream_create (&stream, NULL, MU_STREAM_NO_CHECK);
+  status = mu_memory_stream_create (&stream, MU_STREAM_NO_CHECK);
   if (status != 0)
     imap4d_bye (ERR_NO_MEM);
 
@@ -1056,17 +1066,18 @@ _frt_header_fields (struct fetch_function_closure *ffc,
       
       if (status)
 	{
-	  mu_stream_sequential_printf (stream, "%s: %s\n", item, hv);
+	  mu_stream_printf (stream, "%s: %s\n", item, hv);
 	  lines += 1 + count_nl (hv);
 	}
     }
-  mu_stream_sequential_write (stream, "\n", 1);
+  mu_iterator_destroy (&itr);
+  mu_stream_write (stream, "\n", 1, NULL);
   lines++;
   
   /* Output collected data */
   mu_stream_size (stream, &size);
   status = fetch_io (stream, ffc->start, ffc->size, size + lines);
-  mu_stream_destroy (&stream, NULL);
+  mu_stream_destroy (&stream);
   
   return status;
 }

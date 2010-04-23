@@ -162,7 +162,7 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
 
 	  if (!buf)
 	    break;
- 	  if (mu_stream_read (stream, buf, size, 0, &nread) == 0)
+ 	  if (mu_stream_read (stream, buf, size, &nread) == 0)
 	    {
 	      char *q;
 

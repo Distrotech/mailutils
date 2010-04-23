@@ -343,7 +343,7 @@ main (int argc, char **argv)
 	exit (1);
       if (!tree)
 	exit (0);
-      rc = mu_stdio_stream_create (&stream, stdout, 0);
+      rc = mu_stdio_stream_create (&stream, MU_STDOUT_FD, 0);
       if (rc)
 	{
 	  mu_error ("mu_stdio_stream_create: %s", mu_strerror (rc));

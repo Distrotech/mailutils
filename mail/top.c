@@ -29,7 +29,6 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
   mu_stream_t stream;
   char buf[512];
   size_t n;
-  off_t off;
   int lines;
   
   if (mailvar_get (&lines, "toplines", mailvar_type_number, 1)
@@ -37,9 +36,10 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
     return 1;
 
   mu_message_get_stream (msg, &stream);
-  for (n = 0, off = 0; lines > 0; lines--, off += n)
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  for (; lines > 0; lines--)
     {
-      int status = mu_stream_readline (stream, buf, sizeof (buf), off, &n);
+      int status = mu_stream_readline (stream, buf, sizeof (buf), &n);
       if (status != 0 || n == 0)
 	break;
       fprintf (ofile, "%s", buf);

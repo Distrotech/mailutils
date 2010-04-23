@@ -51,19 +51,20 @@ http_stream_wait (mu_stream_t stream, int flags, size_t *attempt)
       tv.tv_sec = io_timeout;
       tv.tv_usec = 0;
       rc = mu_stream_wait (stream, &oflags, &tv);
-      switch (rc) {
-      case 0:
-	if (flags & oflags)
-	  return 0;
-	/* FALLTHROUGH */
-      case EAGAIN:
-      case EINPROGRESS:
-	++*attempt;
-	continue;
-	
-      default:
-	return rc;
-      }
+      switch (rc)
+	{
+	case 0:
+	  if (flags & oflags)
+	    return 0;
+	  /* FALLTHROUGH */
+	case EAGAIN:
+	case EINPROGRESS:
+	  ++*attempt;
+	  continue;
+	  
+	default:
+	  return rc;
+	}
     }
   return ETIMEDOUT;
 }
@@ -71,7 +72,7 @@ http_stream_wait (mu_stream_t stream, int flags, size_t *attempt)
 int
 main (int argc, char **argv)
 {
-  int ret, off = 0;
+  int ret;
   mu_stream_t stream;
   size_t nb, size;
   size_t attempt;
@@ -108,19 +109,11 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  for (attempt = 0, size = strlen (wbuf); size > 0; )
+  for (attempt = 0, size = strlen (wbuf);; )
     {
-      ret = mu_stream_write (stream, wbuf + off, strlen (wbuf), 0, &nb);
+      ret = mu_stream_write (stream, wbuf, strlen (wbuf), NULL);
       if (ret == 0)
-	{
-	  if (nb == 0)
-	    {
-	      mu_error("mu_stream_write: wrote 0 bytes");
-	      exit (EXIT_FAILURE);
-	    }
-	  off += nb;
-	  size -= nb;
-	}
+	break;
       else if (ret == EAGAIN)
         {
 	  if (attempt < io_attempts)
@@ -149,7 +142,7 @@ main (int argc, char **argv)
   attempt = 0;
   for (;;)
     {
-      ret = mu_stream_read (stream, rbuf, sizeof (rbuf), 0, &nb);
+      ret = mu_stream_read (stream, rbuf, sizeof (rbuf), &nb);
       if (ret == 0)
 	{
 	  if (nb == 0)
@@ -182,6 +175,6 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  mu_stream_destroy (&stream, NULL);
+  mu_stream_destroy (&stream);
   exit (EXIT_SUCCESS);
 }

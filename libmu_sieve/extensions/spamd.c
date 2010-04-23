@@ -54,7 +54,7 @@ spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
   if (rc)
     {
       mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
-      mu_stream_destroy (stream, NULL);
+      mu_stream_destroy (stream);
     }
   return rc;
 }
@@ -72,7 +72,7 @@ spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
   if (rc)
     {
       mu_sieve_error (mach, "opening socket stream: %s", mu_strerror (rc));
-      mu_stream_destroy (stream, NULL);
+      mu_stream_destroy (stream);
     }
 
   return rc;
@@ -82,7 +82,7 @@ static void
 spamd_destroy (mu_stream_t *stream)
 {
   mu_stream_close (*stream);
-  mu_stream_destroy (stream, mu_stream_get_owner (*stream));
+  mu_stream_destroy (stream);
 }
 
 static void
@@ -95,8 +95,7 @@ spamd_send_command (mu_stream_t stream, const char *fmt, ...)
   va_start (ap, fmt);
   n = vsnprintf (buf, sizeof buf, fmt, ap);
   va_end (ap);
-  mu_stream_sequential_write (stream, buf, n);
-  mu_stream_sequential_write (stream, "\r\n", 2);
+  mu_stream_writeline (stream, buf, n);
 }
 
 static void
@@ -107,8 +106,8 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
   mu_stream_t mstr;
 
   mu_message_get_stream (msg, &mstr);
-  mu_stream_seek (mstr, 0, SEEK_SET);
-  while (mu_stream_sequential_readline (mstr, buf, sizeof (buf), &size) == 0
+  mu_stream_seek (mstr, 0, SEEK_SET, NULL);
+  while (mu_stream_readline (mstr, buf, sizeof (buf), &size) == 0
 	 && size > 0)
     {
       char *nl = NULL;
@@ -118,9 +117,9 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
 	  size--;
 	  nl = "\r\n";
 	}
-      mu_stream_sequential_write (stream, buf, size);
+      mu_stream_write (stream, buf, size, NULL);
       if (nl)
-	mu_stream_sequential_write (stream, nl, 2);
+	mu_stream_write (stream, nl, 2, NULL);
     }
 }
 
@@ -129,7 +128,7 @@ spamd_read_line (mu_sieve_machine_t mach, mu_stream_t stream,
 		 char *buffer, size_t size, size_t *pn)
 {
   size_t n = 0;
-  int rc = mu_stream_sequential_readline (stream, buffer, size, &n);
+  int rc = mu_stream_readline (stream, buffer, size, &n);
   if (rc == 0)
     {
       if (pn)

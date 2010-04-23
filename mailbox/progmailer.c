@@ -180,7 +180,6 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
   char buffer[512];
   size_t len = 0;
   int rc;
-  size_t offset = 0;
   mu_header_t hdr;
   mu_body_t body;
   int found_nl = 0;
@@ -189,11 +188,12 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
   if (!pm || !msg)
     return EINVAL;
   mu_message_get_header (msg, &hdr);
-  mu_header_get_stream (hdr, &stream);
+  mu_header_get_streamref (hdr, &stream);
 
   MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending headers...\n");
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
-				       offset, &len)) == 0
+				       &len)) == 0
 	 && len != 0)
     {
       if (mu_c_strncasecmp (buffer, MU_HEADER_FCC, sizeof (MU_HEADER_FCC) - 1))
@@ -209,8 +209,6 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 	    }
 	}
       found_nl = (len == 1 && buffer[0] == '\n');
-	      
-      offset += len;
     }
 
   if (!found_nl)
@@ -223,14 +221,15 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 		     "write failed: %s\n", strerror (status));
 	}
     }
-	
-  mu_message_get_body (msg, &body);
-  mu_body_get_stream (body, &stream);
-
+  mu_stream_destroy (&stream);
+  
   MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending body...\n");
-  offset = 0;
+  mu_message_get_body (msg, &body);
+  mu_body_get_streamref (body, &stream);
+
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while ((status = mu_stream_read (stream, buffer, sizeof (buffer),
-				   offset, &len)) == 0
+				   &len)) == 0
 	 && len != 0)
     {
       if (write (pm->fd, buffer, len) == -1)
@@ -241,8 +240,8 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 		     "write failed: %s\n", strerror (status));
 	  break;
 	}
-      offset += len;
     }
+  mu_body_get_streamref (body, &stream);
 
   close (pm->fd);
 

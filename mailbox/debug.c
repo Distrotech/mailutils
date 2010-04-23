@@ -61,8 +61,7 @@ mu_debug_destroy (mu_debug_t *pdebug, void *owner)
 	    /* Flush leftover data */
 	    mu_debug_printf (debug, 0, "\n");
 
-	  mu_stream_destroy (&debug->stream,
-			     mu_stream_get_owner (debug->stream));
+	  mu_stream_destroy (&debug->stream);
 	  if (debug->destroy)
 	    debug->destroy (debug->data);
 	  free (*pdebug);
@@ -126,20 +125,19 @@ debug_format_prefix (mu_debug_t debug)
   int need_space = 0;
   if (debug->locus.file)
     {
-      mu_stream_sequential_printf (debug->stream, "%s:%d:",
-				   debug->locus.file, debug->locus.line);
+      mu_stream_printf (debug->stream, "%s:%d:",
+			debug->locus.file, debug->locus.line);
       need_space = 1;
     }
   
   if (debug->function)
     {
-      mu_stream_sequential_printf (debug->stream, "%s:",
-				   debug->function);
+      mu_stream_printf (debug->stream, "%s:", debug->function);
       need_space = 1;
     }
   
   if (need_space)
-    mu_stream_sequential_write (debug->stream, " ", 1);
+    mu_stream_write (debug->stream, " ", 1, NULL);
 }
 
 int
@@ -155,13 +153,13 @@ mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
   if (printer)
     {
       mu_off_t len;
-      mu_transport_t tbuf;
+      mu_transport_t tbuf[2];
       char *ptr, *start, *p;
       size_t nseg;
       
       if (debug->stream == NULL)
 	{
-	  int rc = mu_memory_stream_create (&debug->stream, NULL, 0);
+	  int rc = mu_memory_stream_create (&debug->stream, 0);
 	  if (rc)
 	    {
 	      fprintf (stderr,
@@ -176,10 +174,10 @@ mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
       if (mu_stream_size (debug->stream, &len) == 0 && len == 0)
 	debug_format_prefix (debug);
       
-      mu_stream_sequential_vprintf (debug->stream, format, ap);
-      
-      mu_stream_get_transport (debug->stream, &tbuf);
-      start = (char*) tbuf;
+      mu_stream_vprintf (debug->stream, format, ap);
+
+      mu_stream_ioctl (debug->stream, MU_IOCTL_GET_TRANSPORT, tbuf);
+      start = (char*) tbuf[0];
       mu_stream_size (debug->stream, &len);
       ptr = start;
       nseg = 0;
@@ -207,7 +205,7 @@ mu_debug_vprintf (mu_debug_t debug, mu_log_level_t level,
 	    len = 0;
 
 	  mu_stream_truncate (debug->stream, len);
-	  mu_stream_seek (debug->stream, len, SEEK_SET);
+	  mu_stream_seek (debug->stream, len, SEEK_SET, NULL);
 	}
     }
   else

@@ -603,7 +603,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	  {
 	    mu_body_t body = NULL;
 	    mu_stream_t stream = NULL;
-	    size_t size = 0, off, str_off, nread;
+	    size_t size = 0, str_off, nread;
 	    size_t rest = DFLWIDTH (&mach);
 
 	    strobj_free (&mach.arg_str);
@@ -618,14 +618,13 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	    mach.arg_str.ptr = xmalloc (size+1);
 	    mach.arg_str.size = size;
 	    
-	    off = 0;
 	    str_off = 0;
+	    mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
 	    while (!mu_stream_read (stream, mach.arg_str.ptr + str_off,
-				 mach.arg_str.size - str_off, off, &nread)
+				    mach.arg_str.size - str_off, &nread)
 		   && nread != 0
 		   && str_off < size)
 	      {
-		off += nread;
                 COMPRESS_WS (&mach, mach.arg_str.ptr + str_off, &nread);
 		if (nread)
 		  str_off += nread;

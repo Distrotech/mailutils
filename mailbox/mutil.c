@@ -1334,7 +1334,7 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
       if (status == 0)
 	{
 	  if (mu_stream_open (cvt))
-	    mu_stream_destroy (&cvt, mu_stream_get_owner (cvt));
+	    mu_stream_destroy (&cvt);
 	  else
 	    {
 	      mu_stream_clr_flags (cvt, MU_STREAM_NO_CLOSE);

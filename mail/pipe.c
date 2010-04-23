@@ -33,7 +33,6 @@ mail_pipe (int argc, char **argv)
   FILE *tube;
   msgset_t *list, *mp;
   char buffer[512];
-  off_t off = 0;
   size_t n = 0;
 
   if (argc > 2)
@@ -51,13 +50,12 @@ mail_pipe (int argc, char **argv)
       if (util_get_message (mbox, mp->msg_part[0], &msg) == 0)
 	{
 	  mu_message_get_stream (msg, &stream);
-	  off = 0;
-	  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, off,
-			      &n) == 0 && n != 0)
+	  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
+		 && n != 0)
 	    {
 	      buffer[n] = '\0';
 	      fprintf (tube, "%s", buffer);
-	      off += n;
 	    }
 	  if (mailvar_get (NULL, "page", mailvar_type_boolean, 0) == 0)
 	    fprintf (tube, "\f\n");

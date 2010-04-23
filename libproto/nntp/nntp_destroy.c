@@ -41,7 +41,7 @@ mu_nntp_destroy (mu_nntp_t *pnntp)
 
       /* Release the carrier.  */
       if (nntp->carrier)
-	mu_stream_destroy (&nntp->carrier, nntp);
+	mu_stream_destroy (&nntp->carrier);
 
       /* Any posting residue.  */
       if (nntp->post.buf)
