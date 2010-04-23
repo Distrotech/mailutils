@@ -54,17 +54,17 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
   mu_header_t hdr;
   mu_body_t body;
   char buf[512];
-  size_t n;
   char *header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
  	       "Content-Transfer-Encoding: 8bit\n\n";
   int rc;
+  size_t n;
   
   mu_mime_create (&mime, NULL, 0);
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
   mu_body_get_stream (body, &stream);
 
-  if ((rc = mu_memory_stream_create (&input, 0, MU_STREAM_RDWR)))
+  if ((rc = mu_memory_stream_create (&input, MU_STREAM_RDWR)))
     {
       mu_sieve_error (mach,
 		      _("cannot create temporary stream: %s"),
@@ -80,7 +80,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       return 1;
     }
   
-  mu_stream_write (input, text, strlen (text), 0, &n);
+  mu_stream_write (input, text, strlen (text), NULL);
 
   if (mu_sieve_tag_lookup (tags, "mime", NULL))
     {
@@ -97,15 +97,15 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
     }
 
   while (rc == 0
-	 && mu_stream_sequential_read (input, buf, sizeof buf, &n) == 0
+	 && mu_stream_read (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
-    rc = mu_stream_sequential_write (stream, buf, n);
+    rc = mu_stream_write (stream, buf, n, NULL);
 
-  mu_stream_destroy (&input, mu_stream_get_owner (input));
+  mu_stream_destroy (&input);
   if (save_input)
-    mu_stream_destroy (&save_input, mu_stream_get_owner (save_input));
+    mu_stream_destroy (&save_input);
   
-  mu_header_create (&hdr, header, strlen (header), newmsg);
+  mu_header_create (&hdr, header, strlen (header));
   mu_message_set_header (newmsg, hdr, NULL);
 
   mu_mime_add_part (mime, newmsg);

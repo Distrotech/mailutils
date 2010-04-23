@@ -17,12 +17,8 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MIME0_H
-#define _MIME0_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+#ifndef _MAILUTILS_SYS_MIME_H
+#define _MAILUTILS_SYS_MIME_H
 
 #include <sys/types.h>
 #include <mailutils/mime.h>
@@ -87,10 +83,10 @@ struct _mime_part
 {
   mu_mime_t          mime;
   mu_message_t       msg;
-  int             body_created;
-  int             offset;
-  size_t          len;
-  size_t          lines;
+  int                body_created;
+  size_t             offset;
+  size_t             len;
+  size_t             lines;
 };
 
 #ifdef __cplusplus

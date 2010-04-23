@@ -56,12 +56,14 @@ libmailutils_la_SOURCES = \
  attribute.c\
  auth.c\
  base64.c\
+ binflt.c\
  body.c\
  cstrcasecmp.c\
  cfg_driver.c\
  cfg_format.c\
  cfg_lexer.c\
  cfg_parser.c\
+ crlfflt.c\
  cstrlower.c\
  cstrupper.c\
  daemon.c\
@@ -75,8 +77,7 @@ libmailutils_la_SOURCES = \
  file_stream.c\
  filter.c\
  filter_iconv.c\
- filter_rfc822.c\
- filter_trans.c\
+ fltstream.c\
  folder.c\
  freeitem.c\
  gdebug.c\
@@ -86,6 +87,7 @@ libmailutils_la_SOURCES = \
  iterator.c\
  ipsrv.c\
  kwd.c\
+ linelenflt.c\
  list.c\
  listlist.c\
  locale.c\
@@ -118,7 +120,9 @@ libmailutils_la_SOURCES = \
  parsedate.c\
  permstr.c\
  progmailer.c\
+ prog_stream.c\
  property.c\
+ qpflt.c\
  registrar.c\
  refcount.c\
  rfc2047.c\
@@ -126,13 +130,19 @@ libmailutils_la_SOURCES = \
  secret.c\
  server.c\
  socket_stream.c\
+ stdio_stream.c\
  stream.c\
+ stream_printf.c\
+ stream_vprintf.c\
+ streamcpy.c\
+ streamref.c\
  strltrim.c\
  strskip.c\
  stripws.c\
  strrtrim.c\
  syslog.c\
  system.c\
+ temp_file_stream.c\
  ticket.c\
  tcp.c\
  url.c\

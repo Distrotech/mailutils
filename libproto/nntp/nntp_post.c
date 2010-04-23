@@ -70,7 +70,8 @@ mu_nntp_post (mu_nntp_t nntp, mu_stream_t stream)
 
     post_loop:
     case MU_NNTP_POST_0:
-      status = mu_stream_readline (stream, nntp->post.buf, nntp->post.len, nntp->post.offset, &(nntp->post.nread));
+      status = mu_stream_readline (stream, nntp->post.buf, nntp->post.len,
+				   &nntp->post.nread);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->post.offset += nntp->post.nread;
       if  (nntp->post.nread > 0)

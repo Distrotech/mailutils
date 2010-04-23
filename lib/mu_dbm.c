@@ -32,6 +32,7 @@
 #endif
 #include <errno.h>
 #include <mailutils/errno.h>
+#include <mailutils/stream.h>
 #include <mu_dbm.h>
 #include <xalloc.h>
 

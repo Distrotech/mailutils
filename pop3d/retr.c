@@ -27,7 +27,6 @@ pop3d_retr (char *arg)
   mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
   mu_stream_t stream = NULL;
-  mu_off_t off;
   int prev_nl;
   
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
@@ -48,10 +47,8 @@ pop3d_retr (char *arg)
   mu_message_get_stream (msg, &stream);
   pop3d_outf ("+OK\r\n");
 
-  off = n = 0;
-
   prev_nl = 1;
-  while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
+  while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
 	 && n > 0)
     {
       if (prev_nl && buf[0] == '.')
@@ -68,7 +65,6 @@ pop3d_retr (char *arg)
 	  pop3d_outf ("%s", buf);
 	  prev_nl = 0;
 	}
-      off += n;
     }
 
   if (!prev_nl)

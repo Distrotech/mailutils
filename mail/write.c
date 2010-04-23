@@ -86,7 +86,6 @@ mail_write (int argc, char **argv)
     {
       mu_attribute_t attr;
       char buffer[512];
-      off_t off = 0;
       size_t n = 0;
 
       if (util_get_message (mbox, mp->msg_part[0], &msg))
@@ -100,13 +99,13 @@ mail_write (int argc, char **argv)
       total_lines += size;
 
       mu_body_get_stream (bod, &stream);
+      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
       /* should there be a separator? */
-      while (mu_stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+      while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  fprintf (output, "%s", buffer);
-	  off += n;
 	}
 
       /* mark as saved. */

@@ -32,7 +32,6 @@ pop3d_top (char *arg)
   char *mesgc, *linesc;
   char buf[BUFFERSIZE];
   size_t n;
-  off_t off;
 
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
@@ -61,8 +60,8 @@ pop3d_top (char *arg)
   /* Header.  */
   mu_message_get_header (msg, &hdr);
   mu_header_get_stream (hdr, &stream);
-  off = n = 0;
-  while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
+  n = 0;
+  while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
 	 && n > 0)
     {
       /* Nuke the trainline newline.  */
@@ -73,7 +72,6 @@ pop3d_top (char *arg)
 	}
       else
 	pop3d_outf ("%s", buf);
-      off += n;
     }
 
   /* Lines of body.  */
@@ -83,8 +81,8 @@ pop3d_top (char *arg)
 
       mu_message_get_body (msg, &body);
       mu_body_get_stream (body, &stream);
-      n = off = 0;
-      while (mu_stream_readline (stream, buf, sizeof(buf), off, &n) == 0
+      n = 0;
+      while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
 	     && n > 0 && lines > 0)
 	{
 	  if (prev_nl && buf[0] == '.')
@@ -102,7 +100,6 @@ pop3d_top (char *arg)
 	      pop3d_outf ("%s", buf);
 	      prev_nl = 0;
 	    }
-	  off += n;
 	}
       if (!prev_nl)
 	pop3d_outf ("\r\n");

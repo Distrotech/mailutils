@@ -189,7 +189,6 @@ display_file (const char *name)
     {
       mu_stream_t stream;
       int rc;
-      size_t off = 0;
       size_t n;
       char buffer[512];
       
@@ -205,15 +204,15 @@ display_file (const char *name)
 	  mu_error ("mu_stream_open: %s", mu_strerror (rc));
 	  return;
 	} 
-      
-      while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+
+      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  printf ("%s", buffer);
-	  off += n;
 	}
-      mu_stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream);
     }
 }      
 

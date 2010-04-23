@@ -837,7 +837,6 @@ _scan_body (struct parsebuf *pb, char *text)
   size_t size = 0, lines = 0;
   char buffer[128];
   size_t n = 0;
-  off_t offset = 0;
   int rc;
   
   mu_message_get_body (pb->msg, &body);
@@ -846,11 +845,10 @@ _scan_body (struct parsebuf *pb, char *text)
   mu_body_get_stream (body, &stream);
   rc = 0;
   while (rc == 0
-	 && mu_stream_read (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
+	 && mu_stream_read (stream, buffer, sizeof(buffer)-1, &n) == 0
 	 && n > 0)
     {
       buffer[n] = 0;
-      offset += n;
       rc = util_strcasestr (buffer, text) != NULL;
     }
   return rc;

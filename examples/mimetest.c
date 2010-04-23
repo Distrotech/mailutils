@@ -182,7 +182,7 @@ message_display_parts (mu_message_t msg, int indent)
   mu_header_t hdr;
   mu_stream_t str;
   mu_body_t body;
-  int offset, ismulti;
+  int ismulti;
   size_t nbytes;
 
   /* How many parts does the message has? */
@@ -254,14 +254,13 @@ message_display_parts (mu_message_t msg, int indent)
              str gets destroyed */
           mu_filter_create (&str, str, encoding, MU_FILTER_DECODE,
 			    MU_STREAM_READ | MU_STREAM_NO_CLOSE);
-          offset = 0;
-          while (mu_stream_readline (str, buf, sizeof (buf),
-				     offset, &nbytes) == 0 && nbytes)
+
+	  while (mu_stream_readline (str, buf, sizeof (buf), &nbytes) == 0
+		 && nbytes)
             {
               printf ("%*.*s%s", indent, indent, "", buf);
-              offset += nbytes;
             }
-          mu_stream_destroy (&str, NULL);
+          mu_stream_destroy (&str);
         }
       else
         {

@@ -73,7 +73,9 @@ mu_pop3_getline (mu_pop3_t pop3)
 	    return ETIMEDOUT;
 	}
 
-      status = mu_stream_sequential_readline (pop3->carrier, pop3->io.buf + total, pop3->io.len - total, &n);
+      status = mu_stream_readline (pop3->carrier,
+				   pop3->io.buf + total,
+				   pop3->io.len - total, &n);
       if (status != 0)
 	return status;
 

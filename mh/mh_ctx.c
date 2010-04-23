@@ -49,7 +49,7 @@ mh_context_destroy (mh_context_t **pctx)
   
   free ((char*) ctx->name);
   if (ctx->header)
-    mu_header_destroy (&ctx->header, mu_header_get_owner (ctx->header));
+    mu_header_destroy (&ctx->header);
   free (ctx);
   *pctx = NULL;
 }
@@ -121,7 +121,7 @@ mh_context_read (mh_context_t *ctx)
     }
   fclose (fp);
 
-  status = mu_header_create (&ctx->header, blurb, p - blurb, NULL);
+  status = mu_header_create (&ctx->header, blurb, p - blurb);
   free (blurb);
 
   return status;
@@ -132,7 +132,7 @@ mh_context_write (mh_context_t *ctx)
 {
   mu_stream_t stream;
   char buffer[512];
-  size_t off = 0, n;
+  size_t n;
   FILE *fp;
   
   if (!ctx)
@@ -148,12 +148,12 @@ mh_context_write (mh_context_t *ctx)
   
   mu_header_get_stream (ctx->header, &stream);
 
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';
       fprintf (fp, "%s", buffer);
-      off += n;
     }
 
   fclose (fp);
@@ -178,7 +178,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
   if (!ctx->header)
     {
       int rc;
-      if ((rc = mu_header_create (&ctx->header, NULL, 0, NULL)) != 0)
+      if ((rc = mu_header_create (&ctx->header, NULL, 0)) != 0)
 	{
 	  mu_error (_("cannot create context %s: %s"),
 		    ctx->name,

@@ -33,17 +33,19 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
+#include <mailutils/sys/stream.h>
 #include <body0.h>
 
 #define BODY_MODIFIED 0x10000
 
 static int _body_flush    (mu_stream_t);
-static int _body_get_transport2 (mu_stream_t, mu_transport_t *, mu_transport_t *);
-static int _body_read     (mu_stream_t, char *, size_t, mu_off_t, size_t *);
-static int _body_readline (mu_stream_t, char *, size_t, mu_off_t, size_t *);
+static int _body_read     (mu_stream_t, char *, size_t, size_t *);
 static int _body_truncate (mu_stream_t, mu_off_t);
 static int _body_size     (mu_stream_t, mu_off_t *);
-static int _body_write    (mu_stream_t, const char *, size_t, mu_off_t, size_t *);
+static int _body_write    (mu_stream_t, const char *, size_t, size_t *);
+static int _body_ioctl    (mu_stream_t, int, void *);
+static int _body_seek     (mu_stream_t, mu_off_t, int, mu_off_t *);
+static const char *_body_error_string (mu_stream_t, int);
 
 /* Our own defaults for the body.  */
 static int _body_get_size   (mu_body_t, size_t *);
@@ -86,12 +88,12 @@ mu_body_destroy (mu_body_t *pbody, void *owner)
 	    }
 
 	  if (body->stream)
-	    mu_stream_destroy (&(body->stream), body);
+	    mu_stream_destroy (&body->stream);
 
 	  if (body->fstream)
 	    {
 	      mu_stream_close (body->fstream);
-	      mu_stream_destroy (&(body->fstream), NULL);
+	      mu_stream_destroy (&body->fstream);
 	    }
 
 	  free (body);
@@ -142,8 +144,15 @@ mu_body_get_filename (mu_body_t body, char *filename, size_t len, size_t *pn)
   return 0;
 }
 
-int
-mu_body_get_stream (mu_body_t body, mu_stream_t *pstream)
+
+struct _mu_body_stream
+{
+  struct _mu_stream stream;
+  mu_body_t body;
+};
+
+static int
+_body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 {
   if (body == NULL)
     return EINVAL;
@@ -152,31 +161,55 @@ mu_body_get_stream (mu_body_t body, mu_stream_t *pstream)
 
   if (body->stream == NULL)
     {
-      int status = mu_stream_create (&body->stream, MU_STREAM_RDWR, body);
-      if (status != 0)
-	return status;
+      int status;
+      struct _mu_body_stream *str =
+	(struct _mu_body_stream *)
+	   _mu_stream_create (sizeof (*str),
+			      MU_STREAM_RDWR|MU_STREAM_SEEK);
+      if (!str)
+	return ENOMEM;
+      
       /* Create the temporary file.  */
       body->filename = mu_tempname (NULL);
       status = mu_file_stream_create (&body->fstream, 
-                                   body->filename, MU_STREAM_RDWR);
+				      body->filename, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
       status = mu_stream_open (body->fstream);
       if (status != 0)
 	return status;
-      mu_stream_set_get_transport2 (body->stream, _body_get_transport2, body);
-      mu_stream_set_read (body->stream, _body_read, body);
-      mu_stream_set_readline (body->stream, _body_readline, body);
-      mu_stream_set_write (body->stream, _body_write, body);
-      mu_stream_set_truncate (body->stream, _body_truncate, body);
-      mu_stream_set_size (body->stream, _body_size, body);
-      mu_stream_set_flush (body->stream, _body_flush, body);
+      str->stream.ctl = _body_ioctl;
+      str->stream.read = _body_read;
+      str->stream.write = _body_write;
+      str->stream.truncate = _body_truncate;
+      str->stream.size = _body_size;
+      str->stream.seek = _body_seek;
+      str->stream.flush = _body_flush;
+      str->body = body;
+      body->stream = (mu_stream_t) str;
       /* Override the defaults.  */
       body->_lines = _body_get_lines;
       body->_size = _body_get_size;
     }
-  *pstream = body->stream;
-  return 0;
+  if (!ref)
+    {
+      *pstream = body->stream;
+      return 0;
+    }
+  return mu_streamref_create (pstream, body->stream);
+}
+
+int
+mu_body_get_stream (mu_body_t body, mu_stream_t *pstream)
+{
+  /* FIXME: Deprecation warning */
+  return _body_get_stream (body, pstream, 0);
+}
+
+int
+mu_body_get_streamref (mu_body_t body, mu_stream_t *pstream)
+{
+  return _body_get_stream (body, pstream, 1);
 }
 
 int
@@ -186,8 +219,8 @@ mu_body_set_stream (mu_body_t body, mu_stream_t stream, void *owner)
    return EINVAL;
   if (body->owner != owner)
     return EACCES;
-  /* make sure we destroy the old one if it is own by the body */
-  mu_stream_destroy (&(body->stream), body);
+  /* make sure we destroy the old one if it is owned by the body */
+  mu_stream_destroy (&body->stream);
   body->stream = stream;
   body->flags |= BODY_MODIFIED;
   return 0;
@@ -248,51 +281,65 @@ mu_body_set_size (mu_body_t body, int (*_size)(mu_body_t, size_t*) , void *owner
 /* Stub function for the body stream.  */
 
 static int
-_body_get_transport2 (mu_stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
+_body_seek (mu_stream_t stream, mu_off_t off, int whence, mu_off_t *presult)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
-  return mu_stream_get_transport2 (body->fstream, pin, pout);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
+  return mu_stream_seek (body->stream, off, whence, presult);
+}
+
+static const char *
+_body_error_string (mu_stream_t stream, int rc)
+{
+  /* FIXME: How to know if rc was returned by a body->stream? */
+  return NULL;
 }
 
 static int
-_body_read (mu_stream_t stream,  char *buffer, size_t n, mu_off_t off, size_t *pn)
+_body_ioctl (mu_stream_t stream, int code, void *ptr)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
-  return mu_stream_read (body->fstream, buffer, n, off, pn);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
+  return mu_stream_ioctl (body->fstream, code, ptr);
 }
 
 static int
-_body_readline (mu_stream_t stream, char *buffer, size_t n, mu_off_t off, size_t *pn)
+_body_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
-  return mu_stream_readline (body->fstream, buffer, n, off, pn);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
+  return mu_stream_read (body->fstream, buf, size, pret);
 }
 
 static int
-_body_write (mu_stream_t stream, const char *buf, size_t n, mu_off_t off, size_t *pn)
+_body_write (mu_stream_t stream, const char *buf, size_t size, size_t *pret)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
-  return mu_stream_write (body->fstream, buf, n, off, pn);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
+  return mu_stream_write (body->fstream, buf, size, pret);
 }
 
 static int
 _body_truncate (mu_stream_t stream, mu_off_t n)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
   return mu_stream_truncate (body->fstream, n);
 }
 
 static int
 _body_size (mu_stream_t stream, mu_off_t *size)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
   return mu_stream_size (body->fstream, size);
 }
 
 static int
 _body_flush (mu_stream_t stream)
 {
-  mu_body_t body = mu_stream_get_owner (stream);
+  struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
+  mu_body_t body = str->body;
   return mu_stream_flush (body->fstream);
 }
 
@@ -324,17 +371,20 @@ _body_get_lines0 (mu_stream_t stream, size_t *plines)
 {
   int status =  mu_stream_flush (stream);
   size_t lines = 0;
+  
   if (status == 0)
     {
       char buf[128];
       size_t n = 0;
-      mu_off_t off = 0;
+
+      status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      if (status)
+	return status;
       while ((status = mu_stream_readline (stream, buf, sizeof buf,
-					   off, &n)) == 0 && n > 0)
+					   &n)) == 0 && n > 0)
 	{
 	  if (buf[n - 1] == '\n')
 	    lines++;
-	  off += n;
 	}
     }
   if (plines)

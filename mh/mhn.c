@@ -973,10 +973,10 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	
   mu_message_get_body (msg, &body);
   mu_body_get_stream (body, &stream);
-  mu_stream_seek (stream, 0, SEEK_SET);
+  mu_stream_seek (stream, 0, SEEK_SET, NULL);
 
   while (rc == 0
-	 && mu_stream_sequential_readline (stream, buf, sizeof buf, &n) == 0
+	 && mu_stream_readline (stream, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       char *p;
@@ -1131,12 +1131,13 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 	    {
 	      char buf[512];
 	      size_t n;
-	      
-	      while (mu_stream_sequential_read (dstr, buf, sizeof buf, &n) == 0
+
+	      mu_stream_seek (dstr, 0, MU_SEEK_SET, NULL);
+	      while (mu_stream_read (dstr, buf, sizeof buf, &n) == 0
 		     && n > 0)
 		size += n;
 
-	      mu_stream_destroy (&dstr, NULL);
+	      mu_stream_destroy (&dstr);
 	      *psize = size;
 	      return 0;
 	    }
@@ -1252,11 +1253,11 @@ cat_message (mu_stream_t out, mu_stream_t in)
   char buf[512];
   size_t n;
 
-  mu_stream_seek (in, 0, SEEK_SET);
+  mu_stream_seek (in, 0, SEEK_SET, NULL);
   while (rc == 0
-	 && mu_stream_sequential_read (in, buf, sizeof buf, &n) == 0
+	 && mu_stream_read (in, buf, sizeof buf, &n) == 0
 	 && n > 0)
-    rc = mu_stream_sequential_write (out, buf, n);
+    rc = mu_stream_write (out, buf, n, NULL);
 }
 
 int
@@ -1280,7 +1281,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
     bstr = dstr;
   cat_message (out, bstr);
   if (dstr)
-    mu_stream_destroy (&dstr, mu_stream_get_owner (dstr));
+    mu_stream_destroy (&dstr);
   return 0;
 }
   
@@ -1313,7 +1314,7 @@ exec_internal (mu_message_t msg, msg_part_t part, char *encoding,
   if ((rc = mhn_exec (&tmp, cmd, flags)))
     return rc;
   show_internal (msg, part, encoding, tmp);      
-  mu_stream_destroy (&tmp, mu_stream_get_owner (tmp));
+  mu_stream_destroy (&tmp);
   return rc;
 }
 
@@ -1355,12 +1356,12 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
 	{
 	  mu_error (_("cannot open temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
-	  mu_stream_destroy (&tmp, mu_stream_get_owner (tmp));
+	  mu_stream_destroy (&tmp);
 	  mu_argcv_free (argc, argv);
 	  return rc;
 	}
       show_internal (msg, part, encoding, tmp);      
-      mu_stream_destroy (&tmp, mu_stream_get_owner (tmp));
+      mu_stream_destroy (&tmp);
       rc = mu_spawnvp (argv[0], argv, &status);
       if (status)
 	rc = status;
@@ -1382,13 +1383,13 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   int fd = 1;
   char *tempfile = NULL;
   int ismime;
-  mu_transport_t trans;
+  mu_transport_t trans[2];
  
   if (mu_message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
 
-  mu_stream_get_transport (out, &trans);
-  fd = (int) trans; /* FIXME */
+  mu_stream_ioctl (out, MU_IOCTL_GET_TRANSPORT, trans);
+  fd = (int) trans[0]; /* FIXME */
 
   if (mode_options & OPT_PAUSE)
     flags |= MHN_CONFIRM;
@@ -1402,16 +1403,16 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       size_t size = 0;
 
       str = (char*) _("part ");
-      mu_stream_sequential_write (out, str, strlen (str));
+      mu_stream_write (out, str, strlen (str), NULL);
       str = msg_part_format (part);
-      mu_stream_sequential_write (out, str, strlen (str));
+      mu_stream_write (out, str, strlen (str), NULL);
       free (str);
-      mu_stream_sequential_write (out, " ", 1);
-      mu_stream_sequential_write (out, type, strlen (type));
+      mu_stream_write (out, " ", 1, NULL);
+      mu_stream_write (out, type, strlen (type), NULL);
       mhn_message_size (msg, &size);
       p = mu_umaxtostr (0, size);
-      mu_stream_sequential_write (out, p, strlen (p));
-      mu_stream_sequential_write (out, "\n", 1);
+      mu_stream_write (out, p, strlen (p), NULL);
+      mu_stream_write (out, "\n", 1, NULL);
       mu_stream_flush (out);
     }
 
@@ -1476,7 +1477,7 @@ mhn_show ()
   int rc;
   mu_stream_t ostr;
   
-  rc = mu_stdio_stream_create (&ostr, stdout, 0);
+  rc = mu_stdio_stream_create (&ostr, MU_STDOUT_FD, 0);
   if (rc)
     {
       mu_error (_("cannot create output stream: %s"), mu_strerror (rc));
@@ -1668,12 +1669,12 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       mu_error (_("cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
-      mu_stream_destroy (&out, mu_stream_get_owner (out));
+      mu_stream_destroy (&out);
       return rc;
     }
   show_internal (msg, part, encoding, out);      
 
-  mu_stream_destroy (&out, mu_stream_get_owner (out));
+  mu_stream_destroy (&out);
   free (name);
   
   return 0;
@@ -1718,39 +1719,6 @@ mhn_store ()
 
 
 /* ***************************** Compose Mode **************************** */
-
-int
-stream_getline (mu_stream_t str, char **buf, size_t *bufsize, size_t *pnum)
-{
-  int rc;
-  size_t numread, n;
-
-  if (!*buf)
-    {
-      *bufsize = 128;
-      *buf = xmalloc (*bufsize);
-    }
-  numread = 0;
-  while ((rc = mu_stream_sequential_readline (str, *buf + numread,
-					   *bufsize - numread, &n)) == 0
-	 && n > 0)
-    {
-      numread += n;
-      if ((*buf)[numread - 1] != '\n')
-	{
-	  if (numread + 1 == *bufsize)
-	    {
-	      *bufsize += 128;
-	      *buf = xrealloc (*buf, *bufsize);
-	    }
-	  continue;
-	}
-      break;
-    }
-  if (pnum)
-    *pnum = numread;
-  return rc;
-}
 
 struct compose_env {
   mu_stream_t input;
@@ -1998,12 +1966,12 @@ copy_header_to_stream (mu_message_t msg, mu_stream_t stream)
   
   mu_message_get_header (msg, &hdr);
   mu_header_get_stream (hdr, &in);
-  mu_stream_seek (in, 0, SEEK_SET);
-  while (stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
+  mu_stream_seek (in, 0, SEEK_SET, NULL);
+  while (mu_stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
     {
       if (n == 1 && buf[0] == '\n')
 	break;
-      mu_stream_sequential_write (stream, buf, n);
+      mu_stream_write (stream, buf, n, NULL);
     }
   free (buf);
 }
@@ -2049,7 +2017,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       
       mu_message_get_body (newmsg, &body);
       mu_body_get_stream (body, &output);
-      mu_stream_seek (output, 0, SEEK_SET);
+      mu_stream_seek (output, 0, SEEK_SET, NULL);
 
       mu_message_get_body (*msg, &body);
       mu_body_get_stream (body, &input);
@@ -2059,7 +2027,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       if (rc == 0)
 	{
 	  cat_message (output, fstr);
-	  mu_stream_destroy (&fstr, NULL);
+	  mu_stream_destroy (&fstr);
 	  mu_message_unref (*msg);
 	  *msg = newmsg;
 	}
@@ -2085,7 +2053,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   if (!*msg)
     mu_message_create (msg, NULL);
   
-  if ((rc = mu_header_create (&hdr2, NULL, 0, NULL)) != 0)
+  if ((rc = mu_header_create (&hdr2, NULL, 0)) != 0)
     {
       mu_error (_("cannot create header: %s"),
 		mu_strerror (rc));
@@ -2109,7 +2077,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_message_get_body (*msg, &body);
   mu_body_get_stream (body, &out);
-  mu_stream_seek (out, 0, SEEK_SET);
+  mu_stream_seek (out, 0, SEEK_SET, NULL);
 
   if (!id)
     id = mh_create_message_id (env->subpart);
@@ -2117,10 +2085,10 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   free (id);
 
   mu_header_get_stream (hdr2, &in);
-  mu_stream_seek (in, 0, SEEK_SET);
+  mu_stream_seek (in, 0, SEEK_SET, NULL);
   cat_message (out, in);
   mu_stream_close (out);
-  mu_header_destroy (&hdr2, mu_header_get_owner (hdr2));
+  mu_header_destroy (&hdr2);
 
   finish_msg (env, msg);
   return 0;
@@ -2302,7 +2270,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 	{
 	  mu_error (_("cannot open input stream (file %s): %s"),
 		    cmd, mu_strerror (rc));
-	  mu_stream_destroy (&in, mu_stream_get_owner (in));
+	  mu_stream_destroy (&in);
 	  return rc;
 	}
     }
@@ -2349,7 +2317,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_stream_close (out);
   
-  mu_stream_destroy (&fstr, mu_stream_get_owner (fstr));
+  mu_stream_destroy (&fstr);
   finish_msg (env, msg);
   return rc;
 }
@@ -2377,7 +2345,7 @@ mhn_edit (struct compose_env *env, int level)
   int ascii_buf;
   
   while (status == 0
-	 && stream_getline (env->input, &buf, &bufsize, &n) == 0 && n > 0)
+	 && mu_stream_getline (env->input, &buf, &bufsize, &n) == 0 && n > 0)
     {
       env->line++;
       if (!msg)
@@ -2388,7 +2356,7 @@ mhn_edit (struct compose_env *env, int level)
 	  mu_message_get_header (msg, &hdr);
 	  mu_message_get_body (msg, &body);
 	  mu_body_get_stream (body, &output);
-	  mu_stream_seek (output, 0, SEEK_SET);
+	  mu_stream_seek (output, 0, SEEK_SET, NULL);
 	  line_count = 0;
 	  ascii_buf = 1; /* Suppose it is ascii */
 	  env->subpart++;
@@ -2397,7 +2365,7 @@ mhn_edit (struct compose_env *env, int level)
       if (buf[0] == '#')
 	{
 	  if (buf[1] == '#')
-	    mu_stream_sequential_write (output, buf+1, n-1);
+	    mu_stream_write (output, buf+1, n-1, NULL);
 	  else
 	    {
 	      char *b2 = NULL;
@@ -2407,7 +2375,7 @@ mhn_edit (struct compose_env *env, int level)
 	      /* Collect the whole line */
 	      while (n > 2 && buf[n-2] == '\\')
 		{
-		  int rc = stream_getline (env->input, &b2, &bs, &n2);
+		  int rc = mu_stream_getline (env->input, &b2, &bs, &n2);
 		  env->line++;
 		  if (rc == 0 && n2 > 0)
 		    {
@@ -2491,7 +2459,7 @@ mhn_edit (struct compose_env *env, int level)
 	{
 	  if (ascii_buf && has_nonascii (buf, n))
 	    ascii_buf = 0;
-	  mu_stream_sequential_write (output, buf, n);
+	  mu_stream_write (output, buf, n, NULL);
 	  line_count++;
 	}
     }
@@ -2654,7 +2622,7 @@ mhn_compose ()
 
   mu_message_get_body (message, &body);
   mu_body_get_stream (body, &stream);
-  mu_stream_seek (stream, 0, SEEK_SET);
+  mu_stream_seek (stream, 0, SEEK_SET, NULL);
 
   env.mime = mime;
   env.input = stream;
@@ -2697,7 +2665,7 @@ mhn_compose ()
       mu_error (_("cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
-      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+      mu_stream_destroy (&stream);
       return rc;
     }
 
@@ -2705,7 +2673,7 @@ mhn_compose ()
   copy_header_to_stream (message, stream);
   mu_message_get_stream (msg, &in);
   cat_message (stream, in);
-  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+  mu_stream_destroy (&stream);
 
   /* Preserve the backup copy and replace the draft */
   unlink (backup);

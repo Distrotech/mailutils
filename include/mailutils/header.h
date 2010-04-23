@@ -76,9 +76,8 @@ extern "C" {
 #define MU_HEADER_REPLACE 0x01
 #define MU_HEADER_BEFORE  0x02
 
-extern int mu_header_create (mu_header_t *, const char *, size_t, void *);
-extern void mu_header_destroy (mu_header_t *, void *);
-extern void *mu_header_get_owner (mu_header_t);
+extern int mu_header_create (mu_header_t *, const char *, size_t);
+extern void mu_header_destroy (mu_header_t *);
 
 extern int mu_header_is_modified (mu_header_t);
 extern int mu_header_clear_modified (mu_header_t);
@@ -149,7 +148,10 @@ extern int mu_header_get_field_value_unfold (mu_header_t header, size_t num,
 extern int mu_header_aget_field_value_unfold (mu_header_t header, size_t num,
 					      char **pvalue);
 
-extern int mu_header_get_stream (mu_header_t, mu_stream_t *);
+extern int mu_header_get_stream (mu_header_t, mu_stream_t *)
+                                  __attribute__ ((deprecated));
+extern int mu_header_get_streamref (mu_header_t, mu_stream_t *);
+  
 /* FIXME: This function does not exist:
    extern int mu_header_set_stream (mu_header_t, mu_stream_t, void *);
 */
@@ -160,7 +162,8 @@ extern int mu_header_get_iterator (mu_header_t, mu_iterator_t *);
   
 
 extern int mu_header_set_fill (mu_header_t,
-      int (*_fill) (mu_header_t, char *, size_t, mu_off_t, size_t *), void *owner);
+			       int (*_fill) (void *data, char **, size_t *),
+			       void *data);
 
   
 #ifdef __cplusplus

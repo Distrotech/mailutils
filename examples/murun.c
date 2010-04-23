@@ -34,10 +34,10 @@ read_and_print (mu_stream_t in, mu_stream_t out)
   size_t size;
   char buffer[128];
   
-  while (mu_stream_sequential_readline (in, buffer, sizeof (buffer), &size) == 0
+  while (mu_stream_readline (in, buffer, sizeof (buffer), &size) == 0
 	 && size > 0)
     {
-      mu_stream_sequential_write (out, buffer, size);
+      mu_stream_write (out, buffer, size, NULL);
     }
 }
 
@@ -68,7 +68,7 @@ main (int argc, char *argv[])
   if (read_stdin)
     {
       mu_stream_t in;
-      MU_ASSERT (mu_stdio_stream_create (&in, stdin, 0));
+      MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
       MU_ASSERT (mu_stream_open (in));
       rc = mu_filter_prog_stream_create (&stream, cmdline, in);
     }
@@ -89,13 +89,13 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  MU_ASSERT (mu_stdio_stream_create (&out, stdout, 0));
+  MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
   MU_ASSERT (mu_stream_open (out));
   
   read_and_print (stream, out);
   mu_stream_close (stream);
-  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+  mu_stream_destroy (&stream);
   mu_stream_close (out);
-  mu_stream_destroy (&out, mu_stream_get_owner (stream));
+  mu_stream_destroy (&out);
   return 0;
 }

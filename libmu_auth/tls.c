@@ -410,7 +410,7 @@ _tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
   int rc;
   size_t rdbytes;
 	
-  while ((rc = mu_stream_sequential_read (stream, buf, size, &rdbytes)) == EAGAIN)
+  while ((rc = mu_stream_read (stream, buf, size, &rdbytes)) == EAGAIN)
     ;
 
   if (rc)
@@ -424,7 +424,7 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
   mu_stream_t stream = fd;
   int rc;
 
-  rc = mu_stream_sequential_write (stream, buf, size);
+  rc = mu_stream_write (stream, buf, size);
   if (rc)
     {
       mu_error ("_tls_stream_push: %s", mu_strerror (rc)); /* FIXME */

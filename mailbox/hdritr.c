@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <header0.h>
+#include <mailutils/sys/header.h>
 #include <mailutils/errno.h>
 
 struct header_iterator

@@ -44,10 +44,9 @@ create_gsasl_stream (mu_stream_t *newstr, mu_stream_t transport, int flags)
 
   if ((rc = mu_stream_open (*newstr)) != 0)
     {
-      const char *p;
-      if (mu_stream_strerror (*newstr, &p))
-	p = mu_strerror (rc);
-      mu_diag_output (MU_DIAG_ERROR, _("cannot open SASL input stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("cannot open SASL input stream: %s"),
+		      mu_stream_strerror (*newstr, rc));
       return RESP_NO;
     }
 
@@ -144,7 +143,7 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
       util_get_output (&tmp);
       if (create_gsasl_stream (&new_out, tmp, MU_STREAM_WRITE))
 	{
-	  mu_stream_destroy (&new_in, mu_stream_get_owner (new_in));
+	  mu_stream_destroy (&new_in);
 	  return RESP_NO;
 	}
 

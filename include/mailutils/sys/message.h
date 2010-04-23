@@ -17,68 +17,52 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _HEADER0_H
-#define _HEADER0_H
+#ifndef _MESSAGE0_H
+#define _MESSAGE0_H
 
-#ifdef DMALLOC
-# include <dmalloc.h>
-#endif
+#include <mailutils/message.h>
+#include <mailutils/mime.h>
+#include <mailutils/monitor.h>
 
-#include <mailutils/header.h>
-#include <mailutils/assoc.h>
-#include <mailutils/iterator.h>
 #include <sys/types.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* The structure members are offset that point to the begin/end of header
-   fields.  */
-struct mu_hdrent
+struct _mu_message
 {
-  struct mu_hdrent *prev;
-  struct mu_hdrent *next;
-  size_t fn;
-  size_t nlen;
-  size_t fv;
-  size_t vlen;
-  size_t nlines;
-};
-
-struct _mu_header
-{
-  /* Owner.  */
+  /* Who is the owner.  */
   void *owner;
 
-  /* Data.  */
-  char *spool;
-  size_t spool_size;
-  size_t spool_used;
-  struct mu_hdrent *head, *tail;
+  mu_envelope_t envelope;
+  mu_header_t header;
+  mu_body_t body;
+
   int flags;
-
-  size_t numhdr;
-  size_t numlines;
-  size_t size;
-  
-  /* Temporary storage */
-  mu_stream_t mstream;
-  size_t mstream_size;
-  
-  /* Stream.  */
   mu_stream_t stream;
-  size_t strpos;
+  mu_attribute_t attribute;
+  mu_monitor_t monitor;
+  mu_mime_t mime;
+  mu_observable_t observable;
+  mu_mailbox_t mailbox;
 
-  /* Iterators */
-  mu_iterator_t itr;
+  /* Reference count.  */
+  int ref;
 
-  /* Methods */
-  int (*_fill)      (mu_header_t, char *, size_t, mu_off_t, size_t *);
+  int (*_get_uidl)       (mu_message_t, char *, size_t, size_t *);
+  int (*_get_uid)        (mu_message_t, size_t *);
+  int (*_get_qid)        (mu_message_t,	mu_message_qid_t *);
+  int (*_get_num_parts)  (mu_message_t, size_t *);
+  int (*_get_part)       (mu_message_t, size_t, mu_message_t *);
+  int (*_is_multipart)   (mu_message_t, int *);
+  int (*_lines)          (mu_message_t, size_t *);
+  int (*_size)           (mu_message_t, size_t *);
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _HEADER0_H */
+#endif /* _MESSAGE0_H */

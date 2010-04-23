@@ -62,7 +62,10 @@ extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
 				      mu_list_t *);
 
 /* Stream settings.  */
-extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *);
+extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *)
+                                       __attribute__ ((deprecated));
+extern int  mu_folder_get_streamref  (mu_folder_t, mu_stream_t *);
+  
 extern int  mu_folder_set_stream     (mu_folder_t, mu_stream_t);
 
   /* Match function */

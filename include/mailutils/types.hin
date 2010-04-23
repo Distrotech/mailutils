@@ -38,6 +38,9 @@
 extern "C" {
 #endif
 
+struct mu_core_class;  
+struct mu_core_object;
+  
 struct mu_address;
 struct _mu_attribute;
 struct _mu_authority;
@@ -72,7 +75,7 @@ struct _mu_server;
 struct _mu_tcp_server;
   
 typedef _MU_OFF_TYPE_ mu_off_t;
-  
+
 typedef struct mu_address *mu_address_t;
 typedef struct _mu_attribute *mu_attribute_t;
 typedef struct _mu_authority *mu_authority_t;

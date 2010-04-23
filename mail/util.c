@@ -911,7 +911,7 @@ util_header_expand (mu_header_t *phdr)
   mu_header_t hdr;
   int errcnt = 0, rc;
   
-  rc = mu_header_create (&hdr, "", 0, NULL);
+  rc = mu_header_create (&hdr, "", 0);
   if (rc)
     {
       util_error (_("Cannot create temporary header: %s"), mu_strerror (rc));
@@ -990,11 +990,11 @@ util_header_expand (mu_header_t *phdr)
 
   if (errcnt == 0)
     {
-      mu_header_destroy (phdr, NULL);
+      mu_header_destroy (phdr);
       *phdr = hdr;
     }
   else
-    mu_header_destroy (&hdr, NULL);
+    mu_header_destroy (&hdr);
 
   return errcnt;
 }

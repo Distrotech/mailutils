@@ -252,9 +252,9 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
   rc = mu_message_get_stream (msg, &istream);
   if (rc)
     return rc;
-  mu_stream_seek (istream, 0, SEEK_SET);
+  mu_stream_seek (istream, 0, SEEK_SET, NULL);
   while (rc == 0
-	 && mu_stream_sequential_read (istream, buf, sizeof buf, &n) == 0
+	 && mu_stream_read (istream, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       size_t start, i;
@@ -265,11 +265,11 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
 	  case S1:
 	    if (buf[i] == '-')
 	      {
-		rc = mu_stream_sequential_write (ostream, buf + start,
-						 i - start + 1);
+		rc = mu_stream_write (ostream, buf + start,
+				      i - start + 1, NULL);
 		if (rc)
 		  return rc;
-		rc = mu_stream_sequential_write (ostream, " -", 2);
+		rc = mu_stream_write (ostream, " -", 2, NULL);
 		if (rc)
 		  return rc;
 		start = i + 1;
@@ -284,7 +284,7 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
 	      state = S1;
 	  }
       if (i > start)
-	rc = mu_stream_sequential_write (ostream, buf + start, i  - start);
+	rc = mu_stream_write (ostream, buf + start, i  - start, NULL);
     }
   return rc;
 }
@@ -302,7 +302,7 @@ format_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   if (fp->num)
     {
       asprintf (&s, "\n------- Message %d\n", fp->num++);
-      rc = mu_stream_sequential_write (fp->stream, s, strlen (s));
+      rc = mu_stream_write (fp->stream, s, strlen (s), NULL);
       free (s);
     }
 
@@ -348,7 +348,7 @@ finish_draft ()
       exit (1);
     }
 
-  mu_stream_seek (stream, 0, SEEK_END);
+  mu_stream_seek (stream, 0, SEEK_END, NULL);
 
   if (annotate)
     {
@@ -369,7 +369,7 @@ finish_draft ()
       if (memcmp (mbox_path, "mh:", 3) == 0)
 	mbox_path += 3;
       asprintf (&str, "#forw [] +%s", mbox_path);
-      rc = mu_stream_sequential_write (stream, str, strlen (str));
+      rc = mu_stream_write (stream, str, strlen (str), NULL);
       free (str);
       for (i = 0; rc == 0 && i < msgset.count; i++)
 	{
@@ -381,13 +381,13 @@ finish_draft ()
 	    mu_list_append (wh_env.anno_list, msg);
 	  mh_message_number (msg, &num);
           p = mu_umaxtostr (0, num);
-          rc = mu_stream_sequential_write (stream, p, strlen (p));
+          rc = mu_stream_write (stream, p, strlen (p), NULL);
 	}
     }
   else
     {
       str = "\n------- ";
-      rc = mu_stream_sequential_write (stream, str, strlen (str));
+      rc = mu_stream_write (stream, str, strlen (str), NULL);
 
       if (msgset.count == 1)
 	{
@@ -400,25 +400,25 @@ finish_draft ()
 	  str = (char*) _("Forwarded messages\n");
 	}
   
-      rc = mu_stream_sequential_write (stream, str, strlen (str));
+      rc = mu_stream_write (stream, str, strlen (str), NULL);
       fd.stream = stream;
       fd.format = format;
       rc = mh_iterate (mbox, &msgset, format_message, &fd);
       
       str = "\n------- ";
-      rc = mu_stream_sequential_write (stream, str, strlen (str));
+      rc = mu_stream_write (stream, str, strlen (str), NULL);
       
       if (msgset.count == 1)
 	str = (char*) _("End of Forwarded message");
       else
 	str = (char*) _("End of Forwarded messages");
       
-      rc = mu_stream_sequential_write (stream, str, strlen (str));
+      rc = mu_stream_write (stream, str, strlen (str), NULL);
     }
   
-  rc = mu_stream_sequential_write (stream, "\n\n", 2);
+  rc = mu_stream_write (stream, "\n\n", 2, NULL);
   mu_stream_close (stream);
-  mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+  mu_stream_destroy (&stream);
 }
 
 int

@@ -230,13 +230,13 @@ static void
 finish_stream (mu_stream_t *pstr)
 {
   mu_message_t msg;
-  mu_stream_seek (*pstr, 0, SEEK_SET);
+  mu_stream_seek (*pstr, 0, SEEK_SET, NULL);
   msg = mh_stream_to_message (*pstr);
   if (!map.first)
     mu_mailbox_uidnext (tmpbox, &map.first);
   burst_or_copy (msg, recursive, 1);
   mu_stream_close (*pstr);
-  mu_stream_destroy (pstr, mu_stream_get_owner (*pstr));
+  mu_stream_destroy (pstr);
 }  
 
 static void
@@ -254,7 +254,7 @@ flush_stream (mu_stream_t *pstr, char *buf, size_t size)
 		mu_strerror (rc));
       exit (1);
     }
-  rc = mu_stream_sequential_write (*pstr, buf, size);
+  rc = mu_stream_write (*pstr, buf, size, NULL);
   if (rc)
     {
       mu_error (_("error writing temporary stream: %s"),
@@ -287,8 +287,8 @@ burst_digest (mu_message_t msg)
     }
 
   mu_message_get_stream (msg, &is);
-
-  while (mu_stream_sequential_read (is, buf, bufsize, &n) == 0
+  mu_stream_seek (is, 0, MU_SEEK_SET, NULL);
+  while (mu_stream_read (is, buf, bufsize, &n) == 0
 	 && n > 0)
     {
       size_t start, i;
@@ -348,7 +348,7 @@ burst_digest (mu_message_t msg)
       else
 	{
 	  mu_stream_close (os);
-	  mu_stream_destroy (&os, mu_stream_get_owner (os));
+	  mu_stream_destroy (&os);
 	}
     }
   return count > 0;
@@ -502,15 +502,15 @@ msg_copy (size_t num, const char *file)
 
   mu_mailbox_get_message (tmpbox, num, &msg);
   mu_message_get_stream (msg, &istream);
-
+  mu_stream_seek (istream, 0, MU_SEEK_SET, NULL);
   while (rc == 0
-	 && mu_stream_sequential_read (istream, buf, sizeof buf, &n) == 0
+	 && mu_stream_read (istream, buf, sizeof buf, &n) == 0
 	 && n > 0)
     /* FIXME: Implement RFC 934 FSA? */
-    rc = mu_stream_sequential_write (ostream, buf, n);
+    rc = mu_stream_write (ostream, buf, n, NULL);
   
   mu_stream_close (ostream);
-  mu_stream_destroy (&ostream, mu_stream_get_owner (ostream));
+  mu_stream_destroy (&ostream);
 
   /* Mark message as deleted */
   mu_message_get_attribute (msg, &attr);

@@ -208,8 +208,10 @@ mime_context_write_input (struct mime_context *ctx, int fd)
   int status;
   
   mime_context_get_input (ctx, &input);
-  mu_stream_seek (input, 0, SEEK_SET);
-  while ((status = mu_stream_sequential_read (input, buf, sizeof buf, &n)) == 0
+  status = mu_stream_seek (input, 0, SEEK_SET, NULL);
+  if (status)
+    abort (); /* FIXME */
+  while ((status = mu_stream_read (input, buf, sizeof buf, &n)) == 0
 	 && n)
     write (fd, buf, n);
 }
@@ -603,7 +605,7 @@ find_entry (const char *file, struct mime_context *ctx)
   status = mu_stream_open (stream);
   if (status)
     {
-      mu_stream_destroy (&stream, mu_stream_get_owner (stream));
+      mu_stream_destroy (&stream);
       if (status != ENOENT)
 	mu_error ("cannot open file stream %s: %s",
 		  file, mu_strerror (status));

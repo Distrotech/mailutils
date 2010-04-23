@@ -532,8 +532,8 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	  if (env->svar[S_OVERFLOWTEXT])
 	    {
 	      int l = strlen (env->svar[S_OVERFLOWTEXT]);
-	      mu_stream_sequential_write (env->output,
-				       env->svar[S_OVERFLOWTEXT], l);
+	      mu_stream_write (env->output,
+			       env->svar[S_OVERFLOWTEXT], l, NULL);
 	      env->pos += l;
 	    }
 	}
@@ -543,8 +543,8 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	    {
 	      goto_offset (env, env->ivar[I_OFFSET]);
 	      
-	      mu_stream_sequential_write (env->output, env->prefix,
-				       strlen (env->prefix));
+	      mu_stream_write (env->output, env->prefix,
+			       strlen (env->prefix), NULL);
 	      env->pos += strlen (env->prefix);
 	      
 	      goto_offset (env, nloff);
@@ -557,7 +557,7 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	  len = env->ivar[I_WIDTH] - env->pos;
 	}
       
-      mu_stream_sequential_write (env->output, str, len);
+      mu_stream_write (env->output, str, len, NULL);
       env->pos += len;
       if (env->pos >= env->ivar[I_WIDTH])
 	newline (env);
@@ -595,15 +595,15 @@ print (struct eval_env *env, char *str, int nloff)
 static void
 newline (struct eval_env *env)
 {
-  mu_stream_sequential_write (env->output, "\n", 1);
+  mu_stream_write (env->output, "\n", 1, NULL);
   env->pos = 0;
   if (env->ivar[I_LENGTH] && ++env->nlines >= env->ivar[I_LENGTH])
     {
       /* FIXME: Better to write it directly on the terminal */
       if (env->bvar[B_BELL])
-	mu_stream_sequential_write (env->output, "\a", 1);
+	mu_stream_write (env->output, "\a", 1, NULL);
       if (env->bvar[B_CLEARSCREEN])
-	mu_stream_sequential_write (env->output, "\f", 1);
+	mu_stream_write (env->output, "\f", 1, NULL);
       env->nlines = 0;
     }
 }
@@ -612,7 +612,7 @@ static void
 goto_offset (struct eval_env *env, int count)
 {
   for (; env->pos < count; env->pos++)
-    mu_stream_sequential_write (env->output, " ", 1);
+    mu_stream_write (env->output, " ", 1, NULL);
 }
 
 int
@@ -707,15 +707,15 @@ eval_body (struct eval_env *env)
 	}
     }
   
-  mu_stream_seek (input, 0, SEEK_SET);
-  while (mu_stream_sequential_readline (input, buf, sizeof buf, &n) == 0
+  mu_stream_seek (input, 0, SEEK_SET, NULL);
+  while (mu_stream_readline (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       buf[n] = 0;
       print (env, buf, 0);
     }
   if (dstr)
-    mu_stream_destroy (&dstr, mu_stream_get_owner (dstr));
+    mu_stream_destroy (&dstr);
   return 0;
 }
 

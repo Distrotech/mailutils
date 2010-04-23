@@ -1,94 +1,57 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2007, 2010 Free Software
-   Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004, 
+   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   This library is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   You should have received a copy of the GNU Lesser General Public License
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include <errno.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <fcntl.h>
 
-#include <sys/types.h>
-
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
+#include <mailutils/alloc.h>
+#include <mailutils/error.h>
 #include <mailutils/errno.h>
-
-#undef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
-
-#define MU_STREAM_MEMORY_BLOCKSIZE 128
-
-struct _memory_stream
-{
-  char *filename;
-  char *ptr;
-  size_t size;
-  size_t capacity;
-};
+#include <mailutils/nls.h>
+#include <mailutils/stream.h>
+#include <mailutils/sys/memory_stream.h>
+#include <mailutils/mutil.h>
 
 static void
-_memory_destroy (mu_stream_t stream)
+_memory_done (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   if (mfs && mfs->ptr != NULL)
     free (mfs->ptr);
-  if (mfs->filename)
-    free (mfs->filename);
   free (mfs);
 }
 
 static int
-_memory_read (mu_stream_t stream, char *optr, size_t osize,
-	      mu_off_t offset, size_t *nbytes)
+_memory_read (mu_stream_t stream, char *optr, size_t osize, size_t *nbytes)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   size_t n = 0;
-  if (mfs->ptr != NULL && ((size_t)offset <= mfs->size))
+  if (mfs->ptr != NULL && ((size_t)mfs->offset <= mfs->size))
     {
-      n = ((offset + osize) > mfs->size) ? mfs->size - offset :  osize;
-      memcpy (optr, mfs->ptr + offset, n);
-    }
-  if (nbytes)
-    *nbytes = n;
-  return 0;
-}
-
-static int
-_memory_readline (mu_stream_t stream, char *optr, size_t osize,
-		  mu_off_t offset, size_t *nbytes)
-{
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
-  char *nl;
-  size_t n = 0;
-  if (mfs->ptr && ((size_t)offset < mfs->size))
-    {
-      /* Save space for the null byte.  */
-      osize--;
-      nl = memchr (mfs->ptr + offset, '\n', mfs->size - offset);
-      n = (nl) ? (size_t)(nl - (mfs->ptr + offset) + 1) : mfs->size - offset;
-      n = min (n, osize);
-      memcpy (optr, mfs->ptr + offset, n);
-      optr[n] = '\0';
+      n = ((mfs->offset + osize) > mfs->size) ?
+	    mfs->size - mfs->offset :  osize;
+      memcpy (optr, mfs->ptr + mfs->offset, n);
+      mfs->offset += n;
     }
   if (nbytes)
     *nbytes = n;
@@ -97,25 +60,29 @@ _memory_readline (mu_stream_t stream, char *optr, size_t osize,
 
 static int
 _memory_write (mu_stream_t stream, const char *iptr, size_t isize,
-	       mu_off_t offset, size_t *nbytes)
+	       size_t *nbytes)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
-
-  /* Bigger we have to realloc.  */
-  if (mfs->capacity < ((size_t)offset + isize))
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
+  
+  if (mfs->capacity < mfs->offset + isize)
     {
-      /* Realloc by fixed blocks of 128.  */
+      /* Realloc by fixed blocks of MU_STREAM_MEMORY_BLOCKSIZE. */
       size_t newsize = MU_STREAM_MEMORY_BLOCKSIZE *
-	(((offset + isize)/MU_STREAM_MEMORY_BLOCKSIZE) + 1);
-      char *tmp =  realloc (mfs->ptr, newsize);
+	(((mfs->offset + isize) / MU_STREAM_MEMORY_BLOCKSIZE) + 1);
+      char *tmp = mu_realloc (mfs->ptr, newsize);
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
       mfs->capacity = newsize;
     }
 
-  mfs->size = offset + isize;
-  memcpy (mfs->ptr + offset, iptr, isize);
+  memcpy (mfs->ptr + mfs->offset, iptr, isize);
+  
+  mfs->offset += isize;
+
+  if (mfs->offset > mfs->size)
+    mfs->size = mfs->offset;
+
   if (nbytes)
     *nbytes = isize;
   return 0;
@@ -124,24 +91,26 @@ _memory_write (mu_stream_t stream, const char *iptr, size_t isize,
 static int
 _memory_truncate (mu_stream_t stream, mu_off_t len)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
 
-  if (len > (mu_off_t)mfs->size)
+  if (len > (mu_off_t) mfs->size)
     {
-      char *tmp = realloc (mfs->ptr, len);
+      char *tmp = mu_realloc (mfs->ptr, len);
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
       mfs->capacity = len;
     }
   mfs->size = len;
+  if (mfs->offset > mfs->size)
+    mfs->offset = mfs->size;
   return 0;
 }
 
 static int
 _memory_size (mu_stream_t stream, mu_off_t *psize)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   if (psize)
     *psize = mfs->size;
   return 0;
@@ -150,7 +119,7 @@ _memory_size (mu_stream_t stream, mu_off_t *psize)
 static int
 _memory_close (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   if (mfs->ptr)
     free (mfs->ptr);
   mfs->ptr = NULL;
@@ -162,111 +131,98 @@ _memory_close (mu_stream_t stream)
 static int
 _memory_open (mu_stream_t stream)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   int status = 0;
 
-  /* Close any previous file.  */
+  /* Close any previous stream. */
   if (mfs->ptr)
     free (mfs->ptr);
   mfs->ptr = NULL;
   mfs->size = 0;
   mfs->capacity = 0;
 
-  /* Initialize the data with file contents, if a filename was provided. */
-  if (mfs->filename)
-    {
-      struct stat statbuf;
-      if (stat (mfs->filename, &statbuf) == 0)
-        {
-          mfs->ptr = calloc (statbuf.st_size, 1);
-          if (mfs->ptr)
-            {
-              FILE *fp;
-              mfs->capacity = statbuf.st_size;
-              mfs->size = statbuf.st_size;
-              fp = fopen (mfs->filename, "r");
-              if (fp)
-                {
-                  size_t r = fread (mfs->ptr, mfs->size, 1, fp);
-                  if (r != mfs->size)
-                    status = EIO;
-                  fclose (fp);
-                }
-              else
-                status = errno;
-              if (status != 0)
-                {
-                  free (mfs->ptr);
-                  mfs->ptr = NULL;
-                  mfs->capacity = 0;
-                  mfs->size = 0;
-                }
-            }
-          else
-            status = ENOMEM;
-        }
-      else
-        status = EIO;
-    }
   return status;
 }
 
 static int
-_memory_get_transport2 (mu_stream_t stream,
-			mu_transport_t *pin, mu_transport_t *pout)
+_memory_ioctl (struct _mu_stream *stream, int code, void *ptr)
 {
-  struct _memory_stream *mfs = mu_stream_get_owner (stream);
-  *pin = mfs->ptr;
-  if (pout)
-    *pout = mfs->ptr;
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
+  mu_transport_t (*ptrans)[2];
+  
+  switch (code)
+    {
+    case MU_IOCTL_GET_TRANSPORT:
+      if (!ptr)
+	return EINVAL;
+      ptrans = ptr;
+      (*ptrans)[0] = (mu_transport_t) mfs->ptr;
+      (*ptrans)[1] = NULL;
+      break;
+
+    default:
+      return EINVAL;
+    }
+  return 0;
+}
+
+static int
+_memory_seek (struct _mu_stream *stream, mu_off_t off, int whence,
+	      mu_off_t *presult)
+{ 
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
+  
+  switch (whence)
+    {
+    case MU_SEEK_SET:
+      break;
+
+    case MU_SEEK_CUR:
+      off += mfs->offset;
+      break;
+
+    case MU_SEEK_END:
+      off += mfs->size;
+      break;
+    }
+
+  if (off < 0 || off > mfs->size)
+    return EINVAL;
+  mfs->offset = off;
+  
   return 0;
 }
 
 int
-mu_memory_stream_create (mu_stream_t * stream, const char *filename, int flags)
+mu_memory_stream_create (mu_stream_t *pstream, int flags)
 {
-  struct _memory_stream *mfs;
-  int ret;
+  struct _mu_memory_stream *str;
 
-  if (stream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  mfs = calloc (1, sizeof (*mfs));
-
-  if (mfs == NULL)
+  if (!flags)
+    flags = MU_STREAM_RDWR;
+  str = (struct _mu_memory_stream *) _mu_stream_create (sizeof (*str),
+							flags | MU_STREAM_SEEK);
+  
+  if (!str)
     return ENOMEM;
 
-  if (filename)
-    {
-      mfs->filename = strdup (filename);
-      if (!mfs->filename)
-	{
-	  free (mfs);
-	  return ENOMEM;
-	}
-    }
+  str->ptr = NULL;
+  str->size = 0;
+  str->offset = 0;
+  str->capacity = 0;
 
-  mfs->ptr = NULL;
-  mfs->size = 0;
+  str->stream.open = _memory_open;
+  str->stream.close = _memory_close;
+  str->stream.read = _memory_read;
+  str->stream.write = _memory_write;
+  str->stream.truncate = _memory_truncate;
+  str->stream.size = _memory_size;
+  str->stream.done = _memory_done;
+  str->stream.ctl = _memory_ioctl;
+  str->stream.seek = _memory_seek;
 
-  ret = mu_stream_create (stream, flags | MU_STREAM_NO_CHECK, mfs);
-  if (ret != 0)
-    {
-      free (mfs->filename);
-      free (mfs);
+  *pstream = (mu_stream_t) str;
 
-      return ret;
-    }
-
-  mu_stream_set_open (*stream, _memory_open, mfs);
-  mu_stream_set_close (*stream, _memory_close, mfs);
-  mu_stream_set_read (*stream, _memory_read, mfs);
-  mu_stream_set_readline (*stream, _memory_readline, mfs);
-  mu_stream_set_write (*stream, _memory_write, mfs);
-  mu_stream_set_truncate (*stream, _memory_truncate, mfs);
-  mu_stream_set_size (*stream, _memory_size, mfs);
-  mu_stream_set_destroy (*stream, _memory_destroy, mfs);
-  mu_stream_set_get_transport2 (*stream, _memory_get_transport2, mfs);
-  
   return 0;
 }
+  

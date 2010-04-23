@@ -65,28 +65,24 @@
 struct _mbox_message;
 struct _mbox_data;
 
-typedef struct _mbox_data* mbox_data_t;
-typedef struct _mbox_message* mbox_message_t;
+typedef struct _mbox_data *mbox_data_t;
+typedef struct _mbox_message *mbox_message_t;
 
-/* Keep the file positions of where the headers and bodies start and end.
-   attr_flags is the "Status:" message.  */
 struct _mbox_message
 {
   /* Offset of the messages in the mailbox.  */
-  off_t header_from;
-  off_t header_from_end;
-  off_t body;
-  off_t body_end;
+  mu_off_t header_from;        /* Start of envelope (^From ) */
+  mu_off_t header_from_end;    /* End of envelope (terminating \n) */
+  mu_off_t body;               /* Start of body */
+  mu_off_t body_end;           /* End of body */
 
-  size_t uid; /* IMAP uid.  */
+  size_t header_lines;         /* Number of lines in header */
+  size_t body_lines;           /* Number of lines in message body */
+  size_t uid;                  /* IMAP-style uid.  */
+  int attr_flags;              /* Packed "Status:" attribute flags */
 
-  int attr_flags; /* The attr_flags contains the "Status:" attribute  */
-
-  size_t header_lines;
-  size_t body_lines;
-
-  mu_message_t message; /* A message attach to it.  */
-  mbox_data_t mud; /* Back pointer.  */
+  mu_message_t message;        /* A message attached to it.  */
+  mbox_data_t mud;             /* Reference to the containing UNIX mailbox */
 };
 
 /* The umessages is an array of pointers that contains umessages_count of
@@ -96,25 +92,14 @@ struct _mbox_message
    messages_count is the count number of messages parsed so far.  */
 struct _mbox_data
 {
-  mbox_message_t *umessages; /* Array.  */
-  size_t umessages_count; /* How big is the umessages[].  */
-  size_t messages_count; /* How many valid entry in umessages[].  */
-  off_t size; /* Size of the mailbox.  */
+  mbox_message_t *umessages;   /* Array.  */
+  size_t umessages_count;      /* Number of slots in umessages. */
+  size_t messages_count;       /* Number of used slots in umessages. */
+  mu_off_t size;               /* Size of the mailbox.  */
   unsigned long uidvalidity;
-  size_t uidnext;
-  char *name;
+  size_t uidnext;              /* Expected next UID value */
+  char *name;                  /* Disk file name */
 
-  /* The variables below are use to hold the state when appending messages.  */
-  enum mbox_state
-  {
-    MBOX_NO_STATE = 0,
-    MBOX_STATE_APPEND_SENDER, MBOX_STATE_APPEND_DATE, MBOX_STATE_APPEND_HEADER,
-    MBOX_STATE_APPEND_ATTRIBUTE, MBOX_STATE_APPEND_UID, MBOX_STATE_APPEND_BODY,
-    MBOX_STATE_APPEND_MESSAGE
-  } state ;
-  char *sender;
-  char *date;
-  off_t off;
   mu_mailbox_t mailbox; /* Back pointer. */
 };
 

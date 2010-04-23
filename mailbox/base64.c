@@ -11,10 +11,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   You should have received a copy of the GNU Lesser General Public License
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -23,13 +21,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
+#include <mailutils/filter.h>
+
+static char b64tab[] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static int b64val[128] = {
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+  52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+  -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+  15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+  -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+  41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
+};
 
 int
 mu_base64_encode (const unsigned char *input, size_t input_len,
 		  unsigned char **output, size_t *output_len)
 {
-  static char b64tab[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   size_t olen = 4 * (input_len + 2) / 3 + 1;
   unsigned char *out = malloc (olen);
 
@@ -65,16 +75,6 @@ int
 mu_base64_decode (const unsigned char *input, size_t input_len,
 		  unsigned char **output, size_t *output_len)
 {
-  static int b64val[128] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
-    -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-  };
   int olen = input_len;
   unsigned char *out = malloc (olen);
 
@@ -104,3 +104,158 @@ mu_base64_decode (const unsigned char *input, size_t input_len,
   return 0;
 }
 
+
+static enum mu_filter_result
+_base64_decoder (void *xd MU_ARG_UNUSED,
+		 enum mu_filter_command cmd,
+		 struct mu_filter_io *iobuf)
+{
+  int i = 0, tmp = 0, pad = 0;
+  size_t consumed = 0;
+  unsigned char data[4];
+  size_t nbytes = 0;
+  const char *iptr = iobuf->input;
+  size_t isize = iobuf->isize;
+  char *optr = iobuf->output;
+  size_t osize = iobuf->osize;
+
+  switch (cmd)
+    {
+    case mu_filter_init:
+    case mu_filter_done:
+      return mu_filter_ok;
+    default:
+      break;
+    }
+  
+  if (osize <= 3)
+    {
+      iobuf->osize = 3;
+      return mu_filter_moreoutput;
+    }
+  
+  while (consumed < isize && nbytes + 3 < osize)
+    {
+      while (i < 4 && consumed < isize)
+	{
+	  tmp = b64val[*(const unsigned char*)iptr++];
+	  consumed++;
+	  if (tmp != -1)
+	    data[i++] = tmp;
+	  else if (*(iptr-1) == '=')
+	    {
+	      data[i++] = 0;
+	      pad++;
+	    }
+	}
+
+      /* I have a entire block of data 32 bits get the output data.  */
+      if (i == 4)
+	{
+	  *optr++ = (data[0] << 2) | ((data[1] & 0x30) >> 4);
+	  *optr++ = ((data[1] & 0xf) << 4) | ((data[2] & 0x3c) >> 2);
+	  *optr++ = ((data[2] & 0x3) << 6) | data[3];
+	  nbytes += 3 - pad;
+	}
+      else
+	{
+	  /* I did not get all the data.  */
+	  consumed -= i;
+	  break;
+	}
+      i = 0;
+    }
+  iobuf->isize = consumed;
+  iobuf->osize = nbytes;
+  return mu_filter_ok;
+}
+
+static enum mu_filter_result
+_base64_encoder (void *xd MU_ARG_UNUSED,
+		 enum mu_filter_command cmd,
+		 struct mu_filter_io *iobuf)
+{
+  size_t consumed = 0;
+  int pad = 0;
+  const unsigned char *ptr = (const unsigned char*) iobuf->input;
+  size_t nbytes = 0;
+  size_t isize = iobuf->isize;
+  char *optr = iobuf->output;
+  size_t osize = iobuf->osize;
+  
+  switch (cmd)
+    {
+    case mu_filter_init:
+    case mu_filter_done:
+      return mu_filter_ok;
+    default:
+      break;
+    }
+  
+  if (isize <= 3)
+    {
+      if (cmd == mu_filter_lastbuf)
+	pad = 1;
+      else
+	{
+	  iobuf->isize = 4;
+	  return mu_filter_moreinput;
+	}
+    }
+  if (osize < 4)
+    {
+      iobuf->osize = 4;
+      return mu_filter_moreoutput;
+    }
+      
+  while ((consumed + 3 <= isize && nbytes + 4 <= osize) || pad)
+    {
+      unsigned char c1 = 0, c2 = 0, x = '=', y = '=';
+	
+      *optr++ = b64tab[ptr[0] >> 2];
+      consumed++;
+      switch (isize - consumed)
+	{
+	default:
+	  consumed++;
+	  y = b64tab[ptr[2] & 0x3f];
+	  c2 = ptr[2] >> 6;
+	case 1:
+	  consumed++;
+	  x = b64tab[((ptr[1] << 2) + c2) & 0x3f];
+	  c1 = (ptr[1] >> 4);
+	case 0:
+	  *optr++ = b64tab[((ptr[0] << 4) + c1) & 0x3f];
+	  *optr++ = x;
+	  *optr++ = y;
+	}
+      
+      ptr += 3;
+      nbytes += 4;
+      pad = 0;
+    }
+
+  iobuf->isize = consumed;
+  iobuf->osize = nbytes;
+  return mu_filter_ok;
+}
+
+static struct _mu_filter_record _base64_filter = {
+  "base64",
+  76,
+  NULL,
+  _base64_encoder,
+  _base64_decoder
+};
+
+mu_filter_record_t mu_base64_filter = &_base64_filter;
+
+static struct _mu_filter_record _B_filter = {
+  "B",
+  0,
+  NULL,
+  _base64_encoder,
+  _base64_decoder
+};
+
+mu_filter_record_t mu_rfc_2047_B_filter = &_B_filter;

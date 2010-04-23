@@ -73,7 +73,9 @@ mu_nntp_getline (mu_nntp_t nntp)
 	    return ETIMEDOUT;
 	}
 
-      status = mu_stream_sequential_readline (nntp->carrier, nntp->io.buf + total, nntp->io.len - total, &n);
+      status = mu_stream_readline (nntp->carrier,
+				   nntp->io.buf + total,
+				   nntp->io.len - total, &n);
       if (status != 0)
 	return status;
 

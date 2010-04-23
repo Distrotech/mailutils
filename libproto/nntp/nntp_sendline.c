@@ -55,7 +55,7 @@ mu_nntp_send (mu_nntp_t nntp)
 	    return ETIMEDOUT;
 	}
 
-      status = mu_stream_write (nntp->carrier, nntp->io.buf, len, 0, &n);
+      status = mu_stream_write (nntp->carrier, nntp->io.buf, len, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */

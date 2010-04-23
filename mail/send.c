@@ -223,7 +223,7 @@ compose_header_set (compose_env_t * env, const char *name,
     return EINVAL;
 
   if (!env->header
-      && (status = mu_header_create (&env->header, NULL, 0, NULL)) != 0)
+      && (status = mu_header_create (&env->header, NULL, 0)) != 0)
     {
       util_error (_("Cannot create header: %s"), mu_strerror (status));
       return status;
@@ -295,7 +295,7 @@ compose_header_get (compose_env_t * env, char *name, char *defval)
 void
 compose_destroy (compose_env_t * env)
 {
-  mu_header_destroy (&env->header, NULL);
+  mu_header_destroy (&env->header);
   free (env->outfiles);
 }
 
@@ -310,10 +310,12 @@ fill_body (mu_message_t msg, FILE *file)
   mu_message_get_body (msg, &body);
   mu_body_get_stream (body, &stream);
 
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  offset = 0;
   while (getline (&buf, &n, file) >= 0)
     {
       size_t len = strlen (buf);
-      mu_stream_write (stream, buf, len, offset, &n);
+      mu_stream_write (stream, buf, len, NULL);
       offset += len;
     }
 	    
@@ -666,15 +668,14 @@ msg_to_pipe (const char *cmd, mu_message_t msg)
     {
       mu_stream_t stream = NULL;
       char buffer[512];
-      off_t off = 0;
       size_t n = 0;
       mu_message_get_stream (msg, &stream);
-      while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  fprintf (fp, "%s", buffer);
-	  off += n;
 	}
       pclose (fp);
     }

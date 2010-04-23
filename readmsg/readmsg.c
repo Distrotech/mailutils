@@ -208,17 +208,16 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
   if (weedc == 0)
     {
       mu_stream_t stream = NULL;
-      off_t offset = 0;
       size_t len = 0;
       char buf[128];
 
       mu_header_get_stream (header, &stream);
-      while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
 	     && len != 0)
 	{
 	  buf[len] = '\0';
 	  printf ("%s", buf);
-	  offset += len;
 	}
     }
   else
@@ -263,17 +262,15 @@ print_body (mu_message_t message)
   char buf[128];
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
-  off_t offset = 0;
   size_t len = 0;
   mu_message_get_body (message, &body);
   mu_body_get_stream (body, &stream);
 
-  while (mu_stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+  while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
 	 && len != 0)
     {
       buf[len] = '\0';
       printf ("%s", buf);
-      offset += len;
     }
 }
 

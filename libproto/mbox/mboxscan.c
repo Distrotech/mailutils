@@ -43,7 +43,7 @@
    ************************************                                       
    This is a classic case of premature optimisation being the root of all
    Evil(Donald E. Knuth).  But I'm under "pressure" ;-) to come with
-   something "faster".  I think it's wastefull * to spend time to gain a few
+   something "faster".  I think it's wastefull to spend time to gain a few
    seconds on 30Megs mailboxes ... but then again ... in computer time, 60
    seconds, is eternity.  If they use the event notification stuff to get
    some headers/messages early ... it's like pissing in the wind(sorry don't
@@ -303,15 +303,14 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
   errno = lines = inheader = inbody = 0;
 
   stream = mailbox->stream;
-  while ((status = mu_stream_readline (stream, buf, sizeof (buf),
-				       total, &n)) == 0 && n != 0)
+  while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n)) == 0
+	 && n != 0)
     {
       int nl;
       total += n;
 
       nl = (*buf == '\n') ? 1 : 0;
       VALID (buf, temp, isfrom, zn);
-      isfrom = (isfrom) ? 1 : 0;
 
       if ((flags & MBOX_SCAN_ONEMSG) && mum == NULL)
 	{
@@ -321,8 +320,8 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	}
       
       /* Which part of the message are we in ?  */
-      inheader = isfrom | ((!nl) & inheader);
-      inbody = (!isfrom) & (!inheader);
+      inheader = isfrom || ((!nl) & inheader);
+      inbody = !isfrom & !inheader;
 
       if (buf[n - 1] == '\n')
 	lines++;
@@ -527,7 +526,7 @@ mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif)
       return status;
     }
 
-  status = mu_stream_seek (mailbox->stream, offset, SEEK_SET);
+  status = mu_stream_seek (mailbox->stream, offset, SEEK_SET, NULL);
   if (status)
     {
       mu_monitor_unlock (mailbox->monitor);

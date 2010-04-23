@@ -27,15 +27,21 @@ dump_headers (FILE *fp, compose_env_t *env)
 {
   char buffer[512];
   mu_stream_t stream = NULL;
-  size_t off = 0, n;
+  size_t n;
+  int rc;
   
   mu_header_get_stream (env->header, &stream);
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (rc)
+    {
+      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
+      return;
+    }
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = 0;
       fprintf (fp, "%s", buffer);
-      off += n;
     }
 }
 
@@ -55,7 +61,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   size_t n = 0;
   int errcnt = 0, line = 0;
   
-  if ((status = mu_header_create (&header, NULL, 0, NULL)) != 0)
+  if ((status = mu_header_create (&header, NULL, 0)) != 0)
     {
       util_error (_("Cannot create header: %s"), mu_strerror (status));
       return 1;
@@ -139,7 +145,7 @@ parse_headers (FILE *fp, compose_env_t *env)
     {
       char *p;
       
-      mu_header_destroy (&header, NULL);
+      mu_header_destroy (&header);
       p = ml_readline (_("Edit again?"));
       if (mu_true_answer_p (p) == 1)
 	return -1;
@@ -147,7 +153,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	return 1;
     }
 
-  mu_header_destroy (&env->header, NULL);
+  mu_header_destroy (&env->header);
   env->header = header;
   return 0;
 }
@@ -425,11 +431,11 @@ escape_insert (int argc, char **argv, compose_env_t *send_env MU_ARG_UNUSED)
 int
 quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 {
+  int rc;
   mu_header_t hdr;
   mu_body_t body;
   mu_stream_t stream;
   char buffer[512];
-  off_t off = 0;
   size_t n = 0;
   char *prefix = "\t";
   
@@ -477,12 +483,18 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   else
     mu_message_get_stream (mesg, &stream);
 
-  while (mu_stream_readline (stream, buffer, sizeof buffer - 1, off, &n) == 0
+  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (rc)
+    {
+      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
+      return rc;
+    }
+  
+  while (mu_stream_readline (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';
       fprintf (ofile, "%s%s", prefix, buffer);
-      off += n;
     }
   return 0;
 }

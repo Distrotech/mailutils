@@ -22,6 +22,7 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
@@ -160,15 +161,14 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  mu_memory_stream_create (&in_stream, 0, 0);
-	  mu_stream_write (in_stream, encoded_text, size, 0, NULL);
+	  mu_memory_stream_create (&in_stream, 0);
+	  mu_stream_write (in_stream, encoded_text, size, NULL);
 	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
 				     tocode);
 	  if (status != 0)
 	    break;
 
-	  while (mu_stream_sequential_read (filter, tmp, sizeof (tmp),
-					    &nbytes) == 0
+	  while (mu_stream_read (filter, tmp, sizeof (tmp), &nbytes) == 0
 		 && nbytes)
 	    {
 	      CHKBUF (nbytes);
@@ -177,7 +177,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	    }
 
 	  mu_stream_close (filter);
-	  mu_stream_destroy (&filter, mu_stream_get_owner (filter));
+	  mu_stream_destroy (&filter);
 	  
 	  fromstr = sp + 1;
 	  run_count = 1;
@@ -265,11 +265,11 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
   else if (encoding[1] || !strchr ("BQ", encoding[0]))
     return MU_ERR_BAD_2047_ENCODING;
 
-  rc = mu_memory_stream_create (&input_stream, 0, 0);
+  rc = mu_memory_stream_create (&input_stream, 0);
   if (rc)
     return rc;
   
-  mu_stream_sequential_write (input_stream, text, strlen (text));
+  mu_stream_write (input_stream, text, strlen (text), NULL);
 
   rc = mu_filter_create (&output_stream, input_stream,
 			 encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
@@ -294,18 +294,18 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
 	  
 	  p += sprintf (p, "=?%s?%s?", charset, encoding);
 	  
-	  rc = mu_stream_sequential_read (output_stream,
-				       p,
-				       strlen (text) * 3, &s);
+	  rc = mu_stream_read (output_stream,
+			       p,
+			       strlen (text) * 3, &s);
 
 	  strcpy (p + s, "?=");
 	}
       else
 	rc = ENOMEM;
-      mu_stream_destroy (&output_stream, NULL);
+      mu_stream_destroy (&output_stream);
     }
   else
-    mu_stream_destroy (&input_stream, NULL);
+    mu_stream_destroy (&input_stream);
 
   return rc;
 }

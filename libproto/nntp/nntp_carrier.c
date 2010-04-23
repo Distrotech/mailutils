@@ -36,7 +36,7 @@ mu_nntp_set_carrier (mu_nntp_t nntp, mu_stream_t carrier)
     {
       /* Close any old carrier.  */
       mu_nntp_disconnect (nntp);
-      mu_stream_destroy (&nntp->carrier, nntp);
+      mu_stream_destroy (&nntp->carrier);
     }
   nntp->carrier = carrier;
   return 0;

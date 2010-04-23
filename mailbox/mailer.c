@@ -201,7 +201,7 @@ mu_mailer_destroy (mu_mailer_t * pmailer)
 	{
 	  /* FIXME: Should be the client responsability to close this?  */
 	  /* mu_stream_close (mailer->stream); */
-	  mu_stream_destroy (&(mailer->stream), mailer);
+	  mu_stream_destroy (&mailer->stream);
 	}
 
       if (mailer->url)
@@ -422,24 +422,26 @@ create_part (mu_mime_t mime, mu_stream_t istr,
   free (str);
   
   mu_message_get_body (newmsg, &body);
-  mu_body_get_stream (body, &ostr);
+  mu_body_get_streamref (body, &ostr);
 
-  mu_stream_seek (ostr, 0, SEEK_SET);
-
-  while (fragsize)
-    {
-      size_t rds = fragsize;
-      if (rds > sizeof buffer)
-	rds = sizeof buffer;
-      
-      status = mu_stream_sequential_read (istr, buffer, rds, &rds);
-      if (status || rds == 0)
-	break;
-      status = mu_stream_sequential_write (ostr, buffer, rds);
-      if (status)
-	break;
-      fragsize -= rds;
-    }
+  status = mu_stream_seek (ostr, 0, SEEK_SET, NULL);
+  if (status == 0)
+    while (fragsize)
+      {
+	size_t rds = fragsize;
+	if (rds > sizeof buffer)
+	  rds = sizeof buffer;
+	
+	status = mu_stream_read (istr, buffer, rds, &rds);
+	if (status || rds == 0)
+	  break;
+	status = mu_stream_write (ostr, buffer, rds, NULL);
+	if (status)
+	  break;
+	fragsize -= rds;
+      }
+  mu_stream_destroy (&ostr);
+  
   if (status == 0)
     {
       mu_mime_add_part (mime, newmsg);
@@ -570,10 +572,13 @@ mu_mailer_send_fragments (mu_mailer_t mailer,
 	  else
 	    {
 	      mu_stream_t str;
-	      mu_body_get_stream (body, &str);
-	      
-	      status = send_fragments (mailer, hdr, str, nparts, fragsize,
-				       delay, from, to);
+	      status = mu_body_get_streamref (body, &str);
+	      if (status)
+		{
+		  status = send_fragments (mailer, hdr, str, nparts,
+					   fragsize, delay, from, to);
+		  mu_stream_destroy (&str);
+		}
 	    }
 	}
     }
@@ -600,12 +605,23 @@ mu_mailer_set_stream (mu_mailer_t mailer, mu_stream_t stream)
 int
 mu_mailer_get_stream (mu_mailer_t mailer, mu_stream_t * pstream)
 {
+  /* FIXME: Deprecation warning */
   if (mailer == NULL)
     return EINVAL;
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
   *pstream = mailer->stream;
   return 0;
+}
+
+int
+mu_mailer_get_streamref (mu_mailer_t mailer, mu_stream_t * pstream)
+{
+  if (mailer == NULL)
+    return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  return mu_streamref_create (pstream, mailer->stream);
 }
 
 int

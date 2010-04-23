@@ -120,29 +120,29 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
       rc = mu_envelope_aget_sender (env, &p);
       ASSERT (rc == 0, _("cannot get envelope sender"), rc);
-      rc = mu_stream_sequential_write (pstr, "From ", 5);
+      rc = mu_stream_write (pstr, "From ", 5, NULL);
       ASSERT (rc == 0, _("stream write failed"), rc);
-      mu_stream_sequential_write (pstr, p, strlen (p));
+      mu_stream_write (pstr, p, strlen (p), NULL);
       free (p);
-      rc = mu_stream_sequential_write (pstr, " ", 1);
+      rc = mu_stream_write (pstr, " ", 1, NULL);
       ASSERT (rc == 0, _("stream write failed"), rc);
       rc = mu_envelope_aget_date (env, &p);
       ASSERT (rc == 0, _("cannot get envelope date"), rc);
-      rc = mu_stream_sequential_write (pstr, p, strlen (p));
+      rc = mu_stream_write (pstr, p, strlen (p), NULL);
       ASSERT (rc == 0, _("stream write failed"), rc);
       free (p);
-      rc = mu_stream_sequential_write (pstr, "\n", 1);
+      rc = mu_stream_write (pstr, "\n", 1, NULL);
       ASSERT (rc == 0, _("stream write failed"), rc);
     }
   
-  mu_stream_seek (mstr, 0, SEEK_SET);
+  rc = mu_stream_seek (mstr, 0, SEEK_SET, NULL);
   while (rc == 0
-	 && mu_stream_sequential_read (mstr, buf, sizeof buf, &n) == 0
+	 && mu_stream_read (mstr, buf, sizeof buf, &n) == 0
 	 && n > 0)
-    rc = mu_stream_sequential_write (pstr, buf, n);
+    rc = mu_stream_write (pstr, buf, n, NULL);
 
   mu_stream_close (pstr);
-  mu_stream_destroy (&pstr, mu_stream_get_owner (pstr));
+  mu_stream_destroy (&pstr);
 
 
   ASSERT2 (rc == 0, _("command failed"), cmd, rc);

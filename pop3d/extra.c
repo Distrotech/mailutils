@@ -134,12 +134,12 @@ pop3d_setio (FILE *in, FILE *out)
   if (!out)
     pop3d_abquit (ERR_NO_OFILE);
 
-  setvbuf (in, NULL, _IOLBF, 0);
-  setvbuf (out, NULL, _IOLBF, 0);
-  if (mu_stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, fileno (in), MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
-  if (mu_stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&ostream, fileno (out), MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_OFILE);
+  mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
 
 #ifdef WITH_TLS
@@ -153,11 +153,11 @@ pop3d_init_tls_server ()
   if (rc)
     return 0;
 
-  if (mu_stream_open (stream))
+  rc = mu_stream_open (stream);
+  if (rc)
     {
-      const char *p;
-      mu_stream_strerror (stream, &p);
-      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"),
+		      mu_stream_strerror (stream, rc));
       return 0;
     }
   
@@ -172,7 +172,7 @@ pop3d_bye ()
   if (istream == ostream)
     {
       mu_stream_close (istream);
-      mu_stream_destroy (&istream, mu_stream_get_owner (istream));
+      mu_stream_destroy (&istream);
     }
   /* There's no reason closing in/out streams otherwise */
 #ifdef WITH_TLS
@@ -225,15 +225,12 @@ pop3d_outf (const char *fmt, ...)
   
   transcript ("sent", buf);
 
-  rc = mu_stream_sequential_write (ostream, buf, strlen (buf));
+  rc = mu_stream_write (ostream, buf, strlen (buf), NULL);
   free (buf);
   if (rc)
     {
-      const char *p;
-
-      if (mu_stream_strerror (ostream, &p))
-	p = strerror (errno);
-      mu_diag_output (MU_DIAG_ERROR, _("write failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Write failed: %s"),
+ 		      mu_stream_strerror (ostream, rc));
       pop3d_abquit (ERR_IO);
     }
 }
@@ -246,16 +243,13 @@ pop3d_readline (char *buffer, size_t size)
   size_t nbytes;
   
   alarm (idle_timeout);
-  rc = mu_stream_sequential_readline (istream, buffer, size, &nbytes);
+  rc = mu_stream_readline (istream, buffer, size, &nbytes);
   alarm (0);
 
   if (rc)
     {
-      const char *p;
-
-      if (mu_stream_strerror (ostream, &p))
-	p = strerror (errno);
-      mu_diag_output (MU_DIAG_ERROR, _("read failed: %s"), p);
+      mu_diag_output (MU_DIAG_ERROR, _("Read failed: %s"),
+ 		      mu_stream_strerror (ostream, rc));
       pop3d_abquit (ERR_IO);
     }
   else if (nbytes == 0)

@@ -395,9 +395,10 @@ com_head (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      /* FIXME: mu_stream_seek (stream, 0, MU_SEEK_SET); ? */
+      while ((mu_stream_readline (stream, buf, sizeof buf, &n) == 0) && n)
         printf ("%s", buf);
-      mu_stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream);
     }
    return status;
 }
@@ -424,9 +425,9 @@ com_body (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((mu_stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+      while (mu_stream_readline (stream, buf, sizeof buf, 0) == 0)
         printf ("%s", buf);
-      mu_stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream);
     }
    return status;
 }

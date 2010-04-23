@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-/* Type.  */
+/* Mode */
 #define MU_FILTER_DECODE 0
 #define MU_FILTER_ENCODE 1
 
@@ -35,22 +35,59 @@ extern "C" {
 #define MU_FILTER_WRITE MU_STREAM_WRITE
 #define MU_FILTER_RDWR  MU_STREAM_RDWR
 
+struct mu_filter_io
+{
+  const char *input;
+  size_t isize;
+  char *output;
+  size_t osize;
+  int errcode;
+};
+
+enum mu_filter_command
+  {
+    mu_filter_init,
+    mu_filter_done,
+    mu_filter_xcode,
+    mu_filter_lastbuf
+  };
+  
+enum mu_filter_result
+  {
+    mu_filter_ok,
+    mu_filter_falure,
+    mu_filter_moreinput,
+    mu_filter_moreoutput,
+  };
+  
+typedef void *(*mu_filter_new_data_t) (void *);
+typedef enum mu_filter_result (*mu_filter_xcode_t) (void *data,
+						    enum mu_filter_command cmd,
+						    struct mu_filter_io *iobuf);
+
+int mu_filter_stream_create (mu_stream_t *pflt,
+			     mu_stream_t str,
+			     int mode, 
+			     mu_filter_xcode_t xcode,
+			     void *xdata, 
+			     int flags);
+
+
 struct _mu_filter_record
 {
   const char *name;
-  int  (*_mu_filter)     (mu_filter_t);
-  void *data;
-
-  /* Stub function return the fields.  */
-  int (*_is_filter)  (mu_filter_record_t, const char *);
-  int (*_get_filter) (mu_filter_record_t, int (*(*_mu_filter)) (mu_filter_t));
+  size_t max_line_length;
+  mu_filter_new_data_t newdata;
+  mu_filter_xcode_t encoder;
+  mu_filter_xcode_t decoder;
 };
-
-
-extern int mu_filter_create   (mu_stream_t *, mu_stream_t, const char*, int, int);
+  
+extern int mu_filter_create (mu_stream_t *, mu_stream_t, const char*,
+			     int, int);
 extern int mu_filter_get_list (mu_list_t *);
 
 /* List of defaults.  */
+extern mu_filter_record_t mu_crlf_filter;
 extern mu_filter_record_t mu_rfc822_filter;
 extern mu_filter_record_t mu_qp_filter; /* quoted-printable.  */
 extern mu_filter_record_t mu_base64_filter;
@@ -60,16 +97,21 @@ extern mu_filter_record_t mu_bit7_filter;
 extern mu_filter_record_t mu_rfc_2047_Q_filter;
 extern mu_filter_record_t mu_rfc_2047_B_filter;
   
-enum mu_iconv_fallback_mode {
-  mu_fallback_none,
-  mu_fallback_copy_pass,
-  mu_fallback_copy_octal
-};
+enum mu_iconv_fallback_mode
+  {
+    mu_fallback_none,
+    mu_fallback_copy_pass,
+    mu_fallback_copy_octal
+  };
 
 extern int mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
-				const char *fromcode, const char *tocode,
-				int flags,
-				enum mu_iconv_fallback_mode fallback_mode);
+				   const char *fromcode, const char *tocode,
+				   int flags,
+				   enum mu_iconv_fallback_mode fallback_mode);
+
+
+extern int mu_linelen_filter_create (mu_stream_t *pstream, mu_stream_t stream,
+				     size_t limit, int flags);
 
   
 #ifdef __cplusplus

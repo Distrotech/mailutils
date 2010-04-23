@@ -589,11 +589,11 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
   if (flags & MU_PARSE_CONFIG_DUMP)
     {
       mu_stream_t stream;
-      mu_stdio_stream_create (&stream, stderr,
+      mu_stdio_stream_create (&stream, MU_STDERR_FD,
  			      MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
       mu_stream_open (stream);
       mu_cfg_format_parse_tree (stream, parse_tree, MU_CFG_FMT_LOCUS);
-      mu_stream_destroy (&stream, NULL);
+      mu_stream_destroy (&stream);
     }
 
   if (root_container)

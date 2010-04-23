@@ -620,7 +620,6 @@ select_body (mu_message_t msg, void *closure)
   size_t size = 0, lines = 0;
   char buffer[128];
   size_t n = 0;
-  off_t offset = 0;
 
   if (noregex)
     mu_strupper (expr);
@@ -631,12 +630,11 @@ select_body (mu_message_t msg, void *closure)
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
   mu_body_get_stream (body, &stream);
-  status = 0;
+  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while (status == 0
-	 && mu_stream_readline (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
+	 && mu_stream_readline (stream, buffer, sizeof(buffer)-1, &n) == 0
 	 && n > 0)
     {
-      offset += n;
       if (noregex)
 	{
 	  mu_strupper (buffer);

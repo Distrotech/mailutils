@@ -160,7 +160,7 @@ open_output ()
   if (moreproc)
     rc = mu_prog_stream_create (&output, moreproc, MU_STREAM_WRITE);
   else
-    rc = mu_stdio_stream_create (&output, stdout, MU_STREAM_WRITE);
+    rc = mu_stdio_stream_create (&output, MU_STDOUT_FD, MU_STREAM_WRITE);
 
   if (rc)
     {
@@ -184,7 +184,7 @@ list_message (char *name, mu_stream_t output)
   mu_message_t msg;
 
   if (!name)
-    rc = mu_stdio_stream_create (&input, stdin, MU_STREAM_SEEKABLE);
+    rc = mu_stdio_stream_create (&input, MU_STDIN_FD, MU_STREAM_SEEK);
   else
     rc = mu_file_stream_create (&input, name, MU_STREAM_READ);
   if (rc)
@@ -196,7 +196,7 @@ list_message (char *name, mu_stream_t output)
   if ((rc = mu_stream_open (input)))
     {
       mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
-      mu_stream_destroy (&input, mu_stream_get_owner (input));
+      mu_stream_destroy (&input);
       return;
     }
 
@@ -206,7 +206,7 @@ list_message (char *name, mu_stream_t output)
       mu_error (_("input stream %s is not a message (%s)"),
 		name, mu_strerror (rc));
       mu_stream_close (input);
-      mu_stream_destroy (&input, mu_stream_get_owner (input));
+      mu_stream_destroy (&input);
     }
   else
     {

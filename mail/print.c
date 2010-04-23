@@ -33,7 +33,6 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   mu_body_t body;
   mu_stream_t stream;
   char buffer[512];
-  off_t off = 0;
   size_t n = 0, lines = 0;
   FILE *out = ofile;
   int pagelines = util_get_crt ();
@@ -94,8 +93,9 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
     }
   else
     mu_message_get_stream (mesg, &stream);
-  
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       if (ml_got_interrupt())
@@ -105,7 +105,6 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 	}
       buffer[n] = '\0';
       fprintf (out, "%s", buffer);
-      off += n;
     }
   if (out != ofile)
     pclose (out);

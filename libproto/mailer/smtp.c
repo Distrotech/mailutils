@@ -20,7 +20,7 @@
 /** @file smtp.c
 @brief an SMTP mailer
 */
-
+/* FIXME: Bufferization stuff is spurious. Remove it */
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -112,7 +112,6 @@ struct _smtp
 
   char           *ptr;
   char           *nl;
-  off_t           s_offset;
 
   enum smtp_state
   {
@@ -139,8 +138,6 @@ struct _smtp
   size_t          rcpt_count;
   int             bccing;
   mu_message_t    msg;		/* Destroy this if not same argmsg. */
-
-  off_t           offset;
 
   /* The mu_mailer_send_message() args. */
   mu_message_t    argmsg;
@@ -202,7 +199,6 @@ CLEAR_STATE (smtp_t smtp)
 {
   smtp->ptr = smtp->buffer;
   smtp->nl = NULL;
-  smtp->s_offset = 0;
 
   smtp->state = SMTP_NO_STATE;
 
@@ -228,8 +224,6 @@ CLEAR_STATE (smtp_t smtp)
     mu_message_destroy (&smtp->msg, NULL);
 
   smtp->msg = NULL;
-
-  smtp->offset = 0;
 
   smtp->argmsg = NULL;
   smtp->argfrom = NULL;
@@ -426,7 +420,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	    mu_tcp_stream_create (&mailer->stream, smtp->mailhost, port,
 				  mailer->flags);
 	  CHECK_ERROR (smtp, status);
-	  mu_stream_setbufsiz (mailer->stream, BUFSIZ);
+	  mu_stream_set_buffer (mailer->stream, mu_buffer_line, BUFSIZ);
 	}
       CHECK_ERROR (smtp, status);
       smtp->state = SMTP_OPEN;
@@ -862,6 +856,84 @@ message_has_bcc (mu_message_t msg)
   return status == MU_ERR_NOENT ? 0 : 1;
 }
 
+static int
+send_header (smtp_t smtp, mu_stream_t stream)
+{
+  int status;
+  int found_nl;
+  char data[256] = "";
+  size_t          n = 0;
+
+  while ((status = mu_stream_readline (stream, data, sizeof (data),
+				       &n)) == 0 && n > 0)
+    {
+      int             nl;
+
+      found_nl = (n == 1 && data[0] == '\n');
+      if ((nl = (data[n - 1] == '\n')))
+	data[n - 1] = '\0';
+      if (data[0] == '.')
+	{
+	  status = smtp_writeline (smtp, ".%s", data);
+	  CHECK_ERROR (smtp, status);
+	}
+      else if (mu_c_strncasecmp (data, MU_HEADER_FCC,
+				 sizeof (MU_HEADER_FCC) - 1))
+	{
+	  status = smtp_writeline (smtp, "%s", data);
+	  CHECK_ERROR (smtp, status);
+	  status = smtp_write (smtp);
+	  CHECK_EAGAIN (smtp, status);
+	}
+      else
+	nl = 0;
+
+      if (nl)
+	{
+	  status = smtp_writeline (smtp, "\r\n");
+	  CHECK_ERROR (smtp, status);
+	  status = smtp_write (smtp);
+	  CHECK_EAGAIN (smtp, status);
+	}
+    }
+
+  if (!found_nl)
+    {
+      status = smtp_writeline (smtp, "\r\n");
+      CHECK_ERROR (smtp, status);
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+    }
+  return 0;
+}
+
+static int
+send_body (smtp_t smtp, mu_stream_t stream)
+{
+  int status;
+  char data[256] = "";
+  size_t          n = 0;
+
+  while ((status = mu_stream_readline (stream, data, sizeof (data) - 1,
+				       &n)) == 0 && n > 0)
+    {
+      if (data[n - 1] == '\n')
+	data[n - 1] = '\0';
+      if (data[0] == '.')
+	status = smtp_writeline (smtp, ".%s\r\n", data);
+      else
+	status = smtp_writeline (smtp, "%s\r\n", data);
+      CHECK_ERROR (smtp, status);
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+    }
+
+  status = smtp_writeline (smtp, ".\r\n");
+  CHECK_ERROR (smtp, status);
+  smtp->state = SMTP_SEND_DOT;
+  return 0;
+}
+  
 /*
 
 The smtp mailer doesn't deal with mail like:
@@ -1051,7 +1123,6 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg,
 	  CLEAR_STATE (smtp);
 	  return EACCES;
 	}
-      smtp->offset = 0;
       smtp->state = SMTP_SEND;
 
       if ((smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA) == 0)
@@ -1060,11 +1131,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg,
     case SMTP_SEND:
       {
 	mu_stream_t     stream;
-	size_t          n = 0;
-	char            data[256] = "";
 	mu_header_t     hdr;
 	mu_body_t       body;
-	int             found_nl;
 
 	/* We may be here after an EAGAIN so check if we have something
 	   in the buffer and flush it.  */
@@ -1072,73 +1140,19 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t argmsg,
 	CHECK_EAGAIN (smtp, status);
 
 	mu_message_get_header (smtp->msg, &hdr);
-	mu_header_get_stream (hdr, &stream);
-	while ((status = mu_stream_readline (stream, data, sizeof (data),
-					     smtp->offset, &n)) == 0 && n > 0)
-	  {
-	    int             nl;
-
-	    found_nl = (n == 1 && data[0] == '\n');
-	    if ((nl = (data[n - 1] == '\n')))
-	      data[n - 1] = '\0';
-	    if (data[0] == '.')
-	      {
-		status = smtp_writeline (smtp, ".%s", data);
-		CHECK_ERROR (smtp, status);
-	      }
-	    else if (mu_c_strncasecmp (data, MU_HEADER_FCC,
-				       sizeof (MU_HEADER_FCC) - 1))
-	      {
-		status = smtp_writeline (smtp, "%s", data);
-		CHECK_ERROR (smtp, status);
-		status = smtp_write (smtp);
-		CHECK_EAGAIN (smtp, status);
-	      }
-	    else
-	      nl = 0;
-
-	    if (nl)
-	      {
-		status = smtp_writeline (smtp, "\r\n");
-		CHECK_ERROR (smtp, status);
-		status = smtp_write (smtp);
-		CHECK_EAGAIN (smtp, status);
-	      }
-	    smtp->offset += n;
-	  }
-
-	if (!found_nl)
-	  {
-	    status = smtp_writeline (smtp, "\r\n");
-	    CHECK_ERROR (smtp, status);
-	    status = smtp_write (smtp);
-	    CHECK_EAGAIN (smtp, status);
-	  }
-
+	mu_header_get_streamref (hdr, &stream);
+	mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	status = send_header (smtp, stream);
+	mu_stream_destroy (&stream);
+	if (status)
+	  return status;
+	
 	mu_message_get_body (smtp->msg, &body);
-	mu_body_get_stream (body, &stream);
-	smtp->offset = 0;
-	while ((status = mu_stream_readline (stream, data, sizeof (data) - 1,
-					     smtp->offset, &n)) == 0 && n > 0)
-	  {
-	    if (data[n - 1] == '\n')
-	      data[n - 1] = '\0';
-	    if (data[0] == '.')
-	      status = smtp_writeline (smtp, ".%s\r\n", data);
-	    else
-	      status = smtp_writeline (smtp, "%s\r\n", data);
-	    CHECK_ERROR (smtp, status);
-	    status = smtp_write (smtp);
-	    CHECK_EAGAIN (smtp, status);
-	    smtp->offset += n;
-	  }
-
-	smtp->offset = 0;
-	status = smtp_writeline (smtp, ".\r\n");
-	CHECK_ERROR (smtp, status);
-	smtp->state = SMTP_SEND_DOT;
-      }
-
+	mu_body_get_streamref (body, &stream);
+	mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	status = send_body (smtp, stream);
+	mu_stream_destroy (&stream);
+      }	  
     case SMTP_SEND_DOT:
       status = smtp_write (smtp);
       CHECK_EAGAIN (smtp, status);
@@ -1345,13 +1359,9 @@ smtp_write (smtp_t smtp)
   if (smtp->ptr > smtp->buffer)
     {
       len = smtp->ptr - smtp->buffer;
-      status = mu_stream_write (smtp->mailer->stream, smtp->buffer, len,
-				0, &len);
+      status = mu_stream_write (smtp->mailer->stream, smtp->buffer, len, NULL);
       if (status == 0)
-	{
-	  memmove (smtp->buffer, smtp->buffer + len, len);
-	  smtp->ptr -= len;
-	}
+	memmove (smtp->buffer, smtp->buffer + len, len);
     }
   else
     {
@@ -1463,7 +1473,7 @@ smtp_readline (smtp_t smtp)
   do
     {
       status = mu_stream_readline (smtp->mailer->stream, smtp->buffer + total,
-				   smtp->buflen - total, smtp->s_offset, &n);
+				   smtp->buflen - total, &n);
       if (status != 0)
 	return status;
 
@@ -1472,7 +1482,6 @@ smtp_readline (smtp_t smtp)
 	return EIO;
 
       total += n;
-      smtp->s_offset += n;
       smtp->nl = memchr (smtp->buffer, '\n', total);
       if (smtp->nl == NULL)	/* Do we have a full line.  */
 	{

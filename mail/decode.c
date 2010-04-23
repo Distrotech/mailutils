@@ -304,7 +304,7 @@ display_submessage (struct mime_descend_closure *closure, void *data)
 	    pclose (out);
 	}
       if (d_stream)
-	mu_stream_destroy (&d_stream, NULL);
+	mu_stream_destroy (&d_stream);
     }
   
   return 0;
@@ -314,10 +314,16 @@ static int
 print_stream (mu_stream_t stream, FILE *out)
 {
   char buffer[512];
-  off_t off = 0;
   size_t n = 0;
-
-  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+  int rc;
+  
+  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (rc)
+    {
+      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
+      return rc;
+    }
+  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 	 && n != 0)
     {
       if (ml_got_interrupt())
@@ -327,7 +333,6 @@ print_stream (mu_stream_t stream, FILE *out)
 	}
       buffer[n] = '\0';
       fprintf (out, "%s", buffer);
-      off += n;
     }
   return 0;
 }
@@ -425,15 +430,14 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	      mu_error ("mu_stream_open: %s", mu_strerror (status));
 	      break;
 	    }
-	  
-	  while (mu_stream_sequential_read (stream,
-					 buffer, sizeof buffer - 1,
-					 &n) == 0
+	  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	  while (mu_stream_read (stream, buffer, sizeof buffer - 1,
+				 &n) == 0
 		 && n > 0)
-	    mu_stream_sequential_write (pstr, buffer, n);
+	    mu_stream_write (pstr, buffer, n, NULL);
 
 	  mu_stream_close (pstr);
-	  mu_stream_destroy (&pstr, mu_stream_get_owner (pstr));
+	  mu_stream_destroy (&pstr);
 	  exit (0);
 	}
       while (0);

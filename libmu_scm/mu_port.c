@@ -26,8 +26,7 @@ typedef off_t scm_t_off;
 
 struct mu_port
 {
-  mu_stream_t stream;         /* Associated stream */
-  int offset;              /* Current offset in the stream */
+  mu_stream_t stream;      /* Associated stream */
   SCM msg;                 /* Message the port belongs to */		
 };
 
@@ -85,15 +84,16 @@ mu_port_make_from_stream (SCM msg, mu_stream_t stream, long mode)
   struct mu_port *mp;
   SCM port;
   scm_port *pt;
+  int flags;
   
   mp = scm_gc_malloc (sizeof (struct mu_port), "mu-port");
   mp->msg = msg;
   mp->stream = stream;
-  mp->offset = 0;
 
   port = scm_new_port_table_entry (scm_tc16_smuport | mode);
   pt = SCM_PTAB_ENTRY (port);
-  pt->rw_random = mu_stream_is_seekable (stream);
+  mu_stream_get_flags (stream, &flags);
+  pt->rw_random = flags & MU_STREAM_SEEK;
   SCM_SETSTREAM (port, mp);
   mu_port_alloc_buffer (port, 0, 0);
   /* FIXME:
@@ -118,14 +118,13 @@ mu_port_flush (SCM port)
   struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   int wrsize = pt->write_pos - pt->write_buf;
-  size_t n;
   
   if (wrsize)
     {
-      if (mu_stream_write (mp->stream, (const char*)pt->write_buf,
-			   wrsize, mp->offset, &n))
-	return;
-      mp->offset += n;
+      int status = mu_stream_write (mp->stream, pt->write_buf, wrsize, NULL);
+      if (status)
+ 	mu_scm_error ("mu_port_flush", status,
+ 		      "Error writing to stream", SCM_BOOL_F);
     }
   pt->write_pos = pt->write_buf;
   pt->rw_active = SCM_PORT_NEITHER;
@@ -165,7 +164,7 @@ mu_port_fill_input (SCM port)
   int status;
   
   status = mu_stream_read (mp->stream, (char*) pt->read_buf, pt->read_buf_size,
-			   mp->offset, &nread);
+			   &nread);
   if (status)
     mu_scm_error ("mu_port_fill_input", status,
 		  "Error reading from stream", SCM_BOOL_F);
@@ -173,7 +172,6 @@ mu_port_fill_input (SCM port)
   if (nread == 0)
     return EOF;
 
-  mp->offset += nread;
   pt->read_pos = pt->read_buf;
   pt->read_end = pt->read_buf + nread;
   return *pt->read_buf;
@@ -215,21 +213,20 @@ mu_port_end_input (SCM port, int offset)
   if (offset > 0)
     {
       pt->read_pos = pt->read_end;
-      mp->offset -= delta;
+      mu_stream_seek (mp->stream, - delta, MU_SEEK_CUR, NULL);
     }
   pt->rw_active = SCM_PORT_NEITHER;
 }
 
-static mu_off_t
-mu_port_seek (SCM port, mu_off_t offset, int whence)
+static scm_t_off
+mu_port_seek (SCM port, scm_t_off offset, int whence)
 {
   struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  mu_off_t size = 0;
+  int mwhence;
+  mu_off_t pos;
+  int status;
   
-  if (whence == SEEK_CUR && offset == 0)
-    return mp->offset;
-
   if (pt->rw_active == SCM_PORT_WRITE)
     {
       mu_port_flush (port);
@@ -239,22 +236,22 @@ mu_port_seek (SCM port, mu_off_t offset, int whence)
       scm_end_input (port);
     }
 
-  mu_stream_size (mp->stream, &size);
   switch (whence)
     {
     case SEEK_SET:
+      mwhence = MU_SEEK_SET;
       break;
     case SEEK_CUR:
-      offset += mp->offset;
+      mwhence = MU_SEEK_CUR;
       break;
     case SEEK_END:
-      offset += size;
+      mwhence = MU_SEEK_END;
     }
 
-  if (offset > size)
-    return -1;
-  mp->offset = offset;
-  return offset;
+  status = mu_stream_seek (mp->stream, offset, mwhence, &pos);
+  if (status)
+    pos = -1;
+  return (scm_t_off) pos;
 }
 
 static void

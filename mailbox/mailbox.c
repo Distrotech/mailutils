@@ -230,7 +230,7 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 	  /* FIXME: Is this right, should the client be responsible
 	     for closing the stream?  */
 	  /* mu_stream_close (mbox->stream); */
-	  mu_stream_destroy (&mbox->stream, mbox);
+	  mu_stream_destroy (&mbox->stream);
 	}
 
       if (mbox->url)
@@ -522,7 +522,7 @@ mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
   if (mbox->flags & MU_STREAM_QACCESS)
     return MU_ERR_BADOP;
   if (mbox->stream)
-    mu_stream_destroy (&mbox->stream, mbox);
+    mu_stream_destroy (&mbox->stream);
   mbox->stream = stream;
   return 0;
 }
@@ -538,6 +538,7 @@ mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
 int
 mu_mailbox_get_stream (mu_mailbox_t mbox, mu_stream_t *pstream)
 {
+  /* FIXME: Deprecation warning */
   if (mbox == NULL)
     return MU_ERR_MBX_NULL;
   if (pstream == NULL)
@@ -553,6 +554,25 @@ mu_mailbox_get_stream (mu_mailbox_t mbox, mu_stream_t *pstream)
     }
   *pstream = mbox->stream;
   return 0;
+}
+
+int
+mu_mailbox_get_streamref (mu_mailbox_t mbox, mu_stream_t *pstream)
+{
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+
+  /* If null two cases:
+     - it is no open yet.
+     - it a remote stream and the socket stream is on the folder.  */
+  if (mbox->stream == NULL)
+    {
+      if (mbox->folder)
+	return mu_folder_get_streamref (mbox->folder, pstream);
+    }
+  return mu_streamref_create (pstream, mbox->stream);
 }
 
 int

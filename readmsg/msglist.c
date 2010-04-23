@@ -120,14 +120,14 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv,
 	    {
 	      char buf[128];
 	      size_t len = 0;
-	      mu_off_t offset = 0;
 	      mu_message_t msg = NULL;
 	      mu_stream_t stream = NULL;
 
 	      mu_mailbox_get_message (mbox, j, &msg);
 	      mu_message_get_stream (msg, &stream);
-	      while (mu_stream_readline (stream, buf, sizeof buf,
-					 offset, &len) == 0 && len > 0)
+	      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	      while (mu_stream_readline (stream, buf, sizeof buf, &len) == 0
+		     && len > 0)
 		{
 		  if (strstr (buf, argv[i]) != NULL)
 		    {
@@ -135,9 +135,8 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv,
 		      found = 1;
 		      break;
 		    }
-		  offset += len;
 		}
-	      mu_stream_destroy (&stream, NULL);
+	      mu_stream_destroy (&stream);
 	      if (found && !show_all)
 		break;
 	    }

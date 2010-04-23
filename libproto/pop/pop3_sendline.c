@@ -55,7 +55,7 @@ mu_pop3_send (mu_pop3_t pop3)
 	    return ETIMEDOUT;
 	}
 
-      status = mu_stream_write (pop3->carrier, pop3->io.buf, len, 0, &n);
+      status = mu_stream_write (pop3->carrier, pop3->io.buf, len, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */
