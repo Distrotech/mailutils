@@ -100,6 +100,7 @@ _header_get_param (const char *field_body,
   int res = MU_ERR_NOENT;            /* Return value, pessimistic default */
   size_t param_len = strlen (param);
   char *p;
+  size_t size;
   char *mem = NULL;                  /* Allocated memory storage */
   size_t retlen = 0;                 /* Total number of bytes copied */
   unsigned long cind = 0;            /* Expected continued parameter index.
@@ -116,7 +117,18 @@ _header_get_param (const char *field_body,
   p = strchr (field_body, ';');
   if (!p)
     return MU_ERR_NOENT;
-  if (disp && mu_c_strncasecmp (field_body, disp, p - field_body))
+  /* Allow for possible whitespace before the semicolon */
+  for (size = p - field_body;
+       size > 0 && mu_isblank (field_body[size-1]); size--)
+    ;
+  /* Remove surrounding quotes.
+     FIXME: unescape the quoted contents. */
+  if (field_body[0] == '"' && field_body[size-1] == '"')
+    {
+      field_body++;
+      size -= 2;
+    }
+  if (disp && mu_c_strncasecmp (field_body, disp, size))
     return MU_ERR_NOENT;
       
   while (p && *p)
@@ -326,13 +338,8 @@ _header_get_param (const char *field_body,
   return res;
 }
 
-/* STR is a value of a structured MIME header, e.g. Content-Type.
-   This function returns the `disposition part' of it.  In other
-   words, it returns disposition, if STR is a Content-Disposition
-   value, and `type/subtype' part, if it is a Content-Type value.
-*/
-int
-mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
+static size_t
+disp_segment_len (const char *str)
 {
   char *p = strchr (str, ';');
   size_t size;
@@ -341,6 +348,28 @@ mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
     size = strlen (str);
   else
     size = p - str;
+  while (size > 0 && mu_isblank (str[size-1]))
+    size--;
+  return size;
+}
+
+/* STR is a value of a structured MIME header, e.g. Content-Type.
+   This function returns the `disposition part' of it.  In other
+   words, it returns disposition, if STR is a Content-Disposition
+   value, and `type/subtype' part, if it is a Content-Type value.
+*/
+int
+mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
+{
+  size_t size;
+
+  str = mu_str_skip_class (str, MU_CTYPE_BLANK);
+  size = disp_segment_len (str);
+  if (size > 2 && str[0] == '"' && str[size-1] == '"')
+    {
+      str++;
+      size -= 2;
+    }
   if (buf)
     size = mu_cpystr (buf, str, size);
   if (retsz)
@@ -352,13 +381,17 @@ mu_mimehdr_get_disp (const char *str, char *buf, size_t bufsz, size_t *retsz)
 int
 mu_mimehdr_aget_disp (const char *str, char **pvalue)
 {
-  char *p = strchr (str, ';');
+  char *p;
   size_t size;
   
-  if (!p)
-    size = strlen (str);
-  else
-    size = p - str;
+  str = mu_str_skip_class (str, MU_CTYPE_BLANK);
+  size = disp_segment_len (str);
+  if (size > 2 && str[0] == '"' && str[size-1] == '"')
+    {
+      str++;
+      size -= 2;
+    }
+
   p = malloc (size + 1);
   if (!p)
     return ENOMEM;
