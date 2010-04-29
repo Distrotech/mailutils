@@ -1652,8 +1652,8 @@ amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
       break;
     }
 
-  if (off < 0 || off > size)
-    return EINVAL;
+  if (off < 0 || off >= size)
+    return ESPIPE;
 
   rc = mu_stream_seek (mhm->stream, mhm->body_start + off, MU_SEEK_SET, NULL);
   if (rc)

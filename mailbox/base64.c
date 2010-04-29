@@ -114,10 +114,10 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
   size_t consumed = 0;
   unsigned char data[4];
   size_t nbytes = 0;
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -133,7 +133,12 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
       iobuf->osize = 3;
       return mu_filter_moreoutput;
     }
-  
+
+  iptr = iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+ 
   while (consumed < isize && nbytes + 3 < osize)
     {
       while (i < 4 && consumed < isize)
@@ -179,9 +184,9 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
   int pad = 0;
   const unsigned char *ptr = (const unsigned char*) iobuf->input;
   size_t nbytes = 0;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  size_t isize;
+  char *optr;
+  size_t osize;
   
   switch (cmd)
     {
@@ -208,6 +213,10 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
       return mu_filter_moreoutput;
     }
       
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   while ((consumed + 3 <= isize && nbytes + 4 <= osize) || pad)
     {
       unsigned char c1 = 0, c2 = 0, x = '=', y = '=';

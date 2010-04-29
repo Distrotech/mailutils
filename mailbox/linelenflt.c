@@ -34,10 +34,10 @@ _ll_encoder (void *xd,
 	     struct mu_filter_io *iobuf)
 {
   struct _mu_linelen_filter *flt = xd;
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
   size_t consumed, written;
   
   switch (cmd)
@@ -49,6 +49,11 @@ _ll_encoder (void *xd,
     default:
       break;
     }
+
+  iptr = iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
 
   for (consumed = written = 0; consumed < isize && written < osize; )
     {

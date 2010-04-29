@@ -325,7 +325,7 @@ _message_seek (struct _mu_stream *stream, mu_off_t off, int whence,
     }
 
   if (off < 0 || off >= size)
-    return s->stream.last_err = EINVAL;
+    return ESPIPE;
   s->offset = off;
   *presult = off;
   return 0;

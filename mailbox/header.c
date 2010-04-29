@@ -956,8 +956,8 @@ header_seek (mu_stream_t str, mu_off_t off, int whence, mu_off_t *presult)
       break;
     }
 
-  if (off < 0 || off > hstr->hdr->size)
-    return EINVAL;
+  if (off < 0 || off >= hstr->hdr->size)
+    return ESPIPE;
   hstr->off = off;
   return 0;
 }

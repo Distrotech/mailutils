@@ -147,7 +147,7 @@ stdio_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
     }
 
   if (off < 0)
-    return EINVAL;
+    return ESPIPE;
 
   fs->offset = off;
   *presult = fs->offset;

@@ -266,7 +266,7 @@ _mapfile_open (mu_stream_t stream)
       mfs->fd = -1;
     }
   /* Map the flags to the system equivalent */
-  if (flags & MU_STREAM_RDWR)
+  if ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR)
     {
       mflag = PROT_READ | PROT_WRITE;
       flg = O_RDWR;
@@ -331,8 +331,8 @@ _mapfile_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presu
       break;
     }
 
-  if (off < 0 || off > mfs->size)
-    return EINVAL;
+  if (off < 0 || off >= mfs->size)
+    return ESPIPE;
   mfs->offset = off;
   *presult = off;
   return 0;

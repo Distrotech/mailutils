@@ -41,15 +41,29 @@ _streamref_read (struct _mu_stream *str, char *buf, size_t bufsize,
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
   int rc;
   size_t nread;
-  rc = mu_stream_seek (sp->transport, sp->offset, MU_SEEK_SET, NULL);
+  mu_off_t off;
+  
+  rc = mu_stream_seek (sp->transport, sp->offset, MU_SEEK_SET, &off);
   if (rc == 0)
     {
+      if (sp->end)
+	{
+	  size_t size = sp->end - off + 1;
+	  if (size < bufsize)
+	    bufsize = size;
+	}
       rc = mu_stream_read (sp->transport, buf, bufsize, &nread);
       if (rc == 0)
 	{
 	  sp->offset += nread;
 	  *pnread = nread;
 	}
+    }
+  else if (rc == ESPIPE)
+    {
+      *pnread = 0;
+      str->flags |= _MU_STR_EOF;
+      return 0;
     }
   return streamref_return (sp, rc);
 }
@@ -143,7 +157,7 @@ _streamref_seek (struct _mu_stream *str, mu_off_t off, int whence,
     }
 
   if (off < 0 || off >= size)
-    return sp->stream.last_err = EINVAL;
+    return sp->stream.last_err = ESPIPE;
   rc = mu_stream_seek (sp->transport, sp->start + off, MU_SEEK_SET,
 		       &sp->offset);
   if (rc)

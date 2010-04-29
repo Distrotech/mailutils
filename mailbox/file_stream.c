@@ -75,13 +75,13 @@ fd_open (struct _mu_stream *str)
   int oflg;
   int fd;
   
-  if (fstr->filename)
+  if (!fstr->filename)
     return EINVAL;
   if (fstr->fd != -1)
     fd_close (str);
 
   /* Map the flags to the system equivalent.  */
-  if (fstr->stream.flags & MU_STREAM_RDWR)
+  if ((fstr->stream.flags & MU_STREAM_RDWR) == MU_STREAM_RDWR)
     oflg = O_RDWR;
   else if (fstr->stream.flags & (MU_STREAM_WRITE|MU_STREAM_APPEND))
     oflg = O_WRONLY;
@@ -109,6 +109,9 @@ fd_open (struct _mu_stream *str)
   else
     fd = open (fstr->filename, oflg);
 
+  if (fd == -1)
+    return errno;
+  
   if (!(fstr->stream.flags & MU_STREAM_ALLOW_LINKS)
       && (fstr->stream.flags & (MU_STREAM_CREAT | MU_STREAM_RDWR |
 				MU_STREAM_APPEND)))
@@ -149,7 +152,7 @@ fd_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
 { 
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
   off = lseek (fstr->fd, off, whence);
-  if (off <= 0)
+  if (off < 0)
     return errno;
   *presult = off;
   return 0;

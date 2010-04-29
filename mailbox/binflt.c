@@ -27,10 +27,7 @@ _copy_codec (void *xd MU_ARG_UNUSED,
 	     enum mu_filter_command cmd,
 	     struct mu_filter_io *iobuf)
 {
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  size_t osize;
 
   switch (cmd)
     {
@@ -41,9 +38,10 @@ _copy_codec (void *xd MU_ARG_UNUSED,
       break;
     }
   
-  if (osize > isize)
-    osize = isize;
-  memcpy (optr, iptr, osize);
+  osize = iobuf->osize;
+  if (osize > iobuf->isize)
+    osize = iobuf->isize;
+  memcpy (iobuf->output, iobuf->input, osize);
   iobuf->isize = osize;
   iobuf->osize = osize;
   return mu_filter_ok;
@@ -55,10 +53,10 @@ _bit7_coder (void *xd MU_ARG_UNUSED,
 	     struct mu_filter_io *iobuf)
 {
   size_t i;
-  const unsigned char *iptr = (const unsigned char *) iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const unsigned char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -69,6 +67,11 @@ _bit7_coder (void *xd MU_ARG_UNUSED,
       break;
     }
   
+  iptr = (const unsigned char *) iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   if (osize > isize)
     osize = isize;
   for (i = 0; i < osize; i++)
