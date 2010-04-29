@@ -302,7 +302,12 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
   newline = 1;
   errno = lines = inheader = inbody = 0;
 
-  stream = mailbox->stream;
+  status = mu_streamref_create (&stream, mailbox->stream);
+  if (status)
+    return status;
+  status = mu_stream_seek (stream, total, MU_SEEK_SET, NULL);
+  if (status)
+    return status;
   while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n)) == 0
 	 && n != 0)
     {
@@ -396,7 +401,8 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	  DISPATCH_PROGRESS (mailbox, mud);
 
     } /* while */
-
+  mu_stream_destroy (&stream);
+  
   if (mum)
     {
       mum->body_end = total - newline;

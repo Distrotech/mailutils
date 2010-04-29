@@ -53,7 +53,12 @@ main (int argc, const char **argv)
       exit (EXIT_FAILURE);
     }
 
-  mu_mailbox_messages_count (mbox, &total);
+  status = mu_mailbox_messages_count (mbox, &total);
+  if (status != 0)
+    {
+      mu_error ("mu_mailbox_messages_count: %s", mu_strerror (status));
+      exit (EXIT_FAILURE);
+    }
 
   for (msgno = 1; msgno <= total; msgno++)
     {

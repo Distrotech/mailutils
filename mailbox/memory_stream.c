@@ -38,7 +38,6 @@ _memory_done (mu_stream_t stream)
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
   if (mfs && mfs->ptr != NULL)
     free (mfs->ptr);
-  free (mfs);
 }
 
 static int
@@ -189,7 +188,7 @@ _memory_seek (struct _mu_stream *stream, mu_off_t off, int whence,
   if (off < 0 || off > mfs->size)
     return EINVAL;
   mfs->offset = off;
-  
+  *presult = off;
   return 0;
 }
 
