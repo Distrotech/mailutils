@@ -176,7 +176,7 @@ _header_get_param (const char *field_body,
 	}
       else
 	{
-	  for (e = v + 1; !(_ISSPECIAL (*e) || mu_isspace (*e)); e++)
+	  for (e = v + 1; *e && !(*e == ';' || mu_isspace (*e)); e++)
 	    ;
 	  len = e - v;
 	}
