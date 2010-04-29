@@ -185,8 +185,8 @@ _memory_seek (struct _mu_stream *stream, mu_off_t off, int whence,
       break;
     }
 
-  if (off < 0 || off > mfs->size)
-    return EINVAL;
+  if (off < 0)
+    return ESPIPE;
   mfs->offset = off;
   *presult = off;
   return 0;

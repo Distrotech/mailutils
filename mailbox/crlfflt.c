@@ -31,10 +31,10 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
 	       struct mu_filter_io *iobuf)
 {
   size_t i, j;
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const unsigned char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -45,9 +45,14 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
       break;
     }
   
+  iptr = (const unsigned char *) iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   for (i = j = 0; i < isize && j < osize; i++)
     {
-      unsigned char c = *(unsigned char*)iptr++;
+      unsigned char c = *iptr++;
       if (c == '\n')
 	{
 	  if (j + 1 == osize)
@@ -80,10 +85,10 @@ _crlf_decoder (void *xd MU_ARG_UNUSED,
 	       struct mu_filter_io *iobuf)
 {
   size_t i, j;
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const unsigned char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -94,14 +99,19 @@ _crlf_decoder (void *xd MU_ARG_UNUSED,
       break;
     }
   
+  iptr = (const unsigned char *) iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   for (i = j = 0; i < isize && j < osize; i++)
     {
-      unsigned char c = *(unsigned char*)iptr++;
+      unsigned char c = *iptr++;
       if (c == '\r')
 	{
 	  if (i + 1 == isize)
 	    break;
-	  if (*(unsigned char*)iptr == '\n')
+	  if (*iptr == '\n')
 	    continue;
 	}
       optr[j++] = c;

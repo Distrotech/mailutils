@@ -183,7 +183,7 @@ _message_stream_seek (struct _mu_stream *str, mu_off_t off, int whence,
       break;
     }
   if (off < 0 || off >= size)
-    return EINVAL;
+    return ESPIPE;
 
   switch (sp->state)
     {

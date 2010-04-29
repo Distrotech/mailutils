@@ -510,9 +510,9 @@ mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
   size_t n;
   char *previous;
   char *buffer;
-  int buflen = 512;
+  size_t buflen = 512;
 
-  buffer = malloc (buflen * sizeof (*buffer));
+  buffer = malloc (buflen);
   if (buffer == NULL)
     {
       return ENOMEM;
@@ -532,7 +532,8 @@ mu_mailcap_parse (mu_mailcap_t mailcap, mu_stream_t stream)
   if (status)
     return status;
   previous = NULL;
-  while ((status = mu_stream_readline (stream, buffer, buflen, &n)) == 0)
+  while ((status = mu_stream_readline (stream, buffer, buflen, &n)) == 0
+	 && n > 0)
     {
       int len;
 

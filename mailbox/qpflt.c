@@ -33,10 +33,10 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
   size_t consumed = 0;
   size_t wscount = 0;
   size_t nbytes = 0;
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -47,6 +47,11 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
       break;
     }
   
+  iptr = iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   while (consumed < isize && nbytes < osize)
     {
       c = *iptr++;
@@ -159,10 +164,10 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
   size_t consumed = 0;
   size_t nbytes = 0;
   static const char _hexdigits[] = "0123456789ABCDEF";
-  const char *iptr = iobuf->input;
-  size_t isize = iobuf->isize;
-  char *optr = iobuf->output;
-  size_t osize = iobuf->osize;
+  const char *iptr;
+  size_t isize;
+  char *optr;
+  size_t osize;
 
   switch (cmd)
     {
@@ -173,6 +178,10 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
       break;
     }
 
+  iptr = iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
   nbytes = 0;
 
   /* Strategy: check if we have enough room in the output buffer only
