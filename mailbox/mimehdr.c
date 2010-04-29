@@ -144,6 +144,18 @@ _header_get_param (const char *field_body,
       
       /* walk upto start of param */      
       p = mu_str_skip_class (p + 1, MU_CTYPE_SPACE);
+
+      /* Reportedly, some MUAs insert several semicolons */
+      if (*p == ';')
+	continue;
+
+      /* Ignore stray characters */
+      if (_ISSPECIAL (*p))
+	{
+	  p = strchr (p, ';');
+	  continue;
+	}
+	
       if ((ep = strchr (p, '=')) == NULL)
 	break;
       /* Allow for optional whitespace after '=' */
