@@ -58,28 +58,28 @@ struct _mu_mime
   int             flags;
   char           *content_type;
 
-  int             tparts;
-  int             nmtp_parts;
+  size_t          tparts;
+  size_t          nmtp_parts;
   struct _mime_part **mtp_parts;      /* list of parts in the msg */
   char           *boundary;
-  int             cur_offset;
-  int             cur_part;
-  int             part_offset;
-  int             boundary_len;
-  int             preamble;
-  int             postamble;
+  size_t          cur_offset;
+  size_t          cur_part;
+  size_t          part_offset;
+  size_t          boundary_len;
+  size_t          preamble;
+  size_t          postamble;
   /* parser state */
   char           *cur_line;
-  int             line_ndx;
+  ssize_t         line_ndx;
   size_t          line_size;
   char           *cur_buf;
-  int             buf_size;
+  size_t          buf_size;
   char           *header_buf;
-  int             header_buf_size;
-  int             header_length;
-  int             body_offset;
-  int             body_length;
-  int             body_lines;
+  size_t          header_buf_size;
+  size_t          header_length;
+  size_t          body_offset;
+  size_t          body_length;
+  size_t          body_lines;
   int             parser_state;
 };
 
