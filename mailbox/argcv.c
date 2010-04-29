@@ -447,6 +447,8 @@ argcv_get (const char *command, const char *delim, const char *cmnt,
 void
 argcv_free (int argc, char **argv)
 {
+  if (argc <= 0)
+    return;
   while (--argc >= 0)
     if (argv[argc])
       free (argv[argc]);

@@ -128,7 +128,7 @@ stdio_size (struct _mu_stream *str, off_t *psize)
 }
 
 static int
-stdio_seek (struct _mu_stream *str, off_t off, int whence, off_t *presult)
+stdio_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
 { 
   struct _mu_stdio_stream *fs = (struct _mu_stdio_stream *) str;
   /* FIXME */
@@ -150,8 +150,7 @@ stdio_seek (struct _mu_stream *str, off_t off, int whence, off_t *presult)
     return EINVAL;
 
   fs->offset = off;
-  if (presult)
-    *presult = fs->offset;
+  *presult = fs->offset;
   return 0;
 }
 

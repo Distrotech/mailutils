@@ -334,6 +334,7 @@ _mapfile_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presu
   if (off < 0 || off > mfs->size)
     return EINVAL;
   mfs->offset = off;
+  *presult = off;
   return 0;
 }
 

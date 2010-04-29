@@ -303,8 +303,8 @@ _message_done (mu_stream_t stream)
 }
 
 static int
-_message_seek (struct _mu_stream *stream, off_t off, int whence,
-	       off_t *presult)
+_message_seek (struct _mu_stream *stream, mu_off_t off, int whence,
+	       mu_off_t *presult)
 { 
   struct _mu_message_stream *s = (struct _mu_message_stream*) stream;
   mu_off_t size;
@@ -327,6 +327,7 @@ _message_seek (struct _mu_stream *stream, off_t off, int whence,
   if (off < 0 || off >= size)
     return s->stream.last_err = EINVAL;
   s->offset = off;
+  *presult = off;
   return 0;
 }
 

@@ -297,7 +297,7 @@ _msg_stream_setup (mu_message_t msg, mbox_message_t mum)
   
   status = mu_streamref_create_abridged (&stream,
 					 mum->mud->mailbox->stream,
-					 mum->header_from_end,
+					 mum->header_from_end + 1,
 					 mum->body);
   if (status == 0)
     status = mu_message_set_stream (msg, stream, mum);

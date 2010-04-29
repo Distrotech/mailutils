@@ -129,6 +129,11 @@ _streamref_seek (struct _mu_stream *str, mu_off_t off, int whence,
       break;
 
     case MU_SEEK_CUR:
+      if (off == 0)
+	{
+	  *ppos = sp->offset - sp->start;
+	  return 0;
+	}
       off += cur;
       break;
 
@@ -139,10 +144,12 @@ _streamref_seek (struct _mu_stream *str, mu_off_t off, int whence,
 
   if (off < 0 || off >= size)
     return sp->stream.last_err = EINVAL;
-  return streamref_return (sp,
-			   mu_stream_seek (sp->transport,
-					   sp->start + off, MU_SEEK_SET,
-					   &sp->offset));
+  rc = mu_stream_seek (sp->transport, sp->start + off, MU_SEEK_SET,
+		       &sp->offset);
+  if (rc)
+    return streamref_return (sp, rc);
+  *ppos = sp->offset - sp->start;
+  return 0;
 }
 
 static int
@@ -223,7 +230,8 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   if (rc)
     return rc;
   mu_stream_get_flags (str, &flags);
-  sp = (struct _mu_streamref *) _mu_stream_create (sizeof (*sp), flags);
+  sp = (struct _mu_streamref *) _mu_stream_create (sizeof (*sp),
+						   flags | MU_STREAM_NO_CLOSE);
   if (!sp)
     return ENOMEM;
   mu_stream_ref (str);
