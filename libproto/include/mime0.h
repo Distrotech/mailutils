@@ -71,6 +71,7 @@ struct _mu_mime
   /* parser state */
   char           *cur_line;
   int             line_ndx;
+  size_t          line_size;
   char           *cur_buf;
   int             buf_size;
   char           *header_buf;

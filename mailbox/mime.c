@@ -224,7 +224,7 @@ _mime_setup_buffers (mu_mime_t mime)
       return ENOMEM;
     }
   if (mime->cur_line == NULL
-      && (mime->cur_line = calloc (MIME_MAX_HDR_LEN, 1)) == NULL)
+      && (mime->cur_line = calloc (mime->line_size, 1)) == NULL)
     {
       free (mime->cur_buf);
       return ENOMEM;
@@ -380,10 +380,17 @@ _mime_parse_mpart_message (mu_mime_t mime)
 		}
 	    }
 	  mime->line_ndx++;
-	  if (mime->line_ndx >= MIME_MAX_HDR_LEN)
+	  if (mime->line_ndx >= mime->line_size)
 	    {
-	      mime->line_ndx = 0;
-	      mime->parser_state = MIME_STATE_BEGIN_LINE;
+	      size_t newsize = mime->line_size + MIME_MAX_HDR_LEN;
+	      char *p = realloc (mime->cur_line, newsize);
+	      if (!p)
+		{
+		  ret = ENOMEM;
+		  break;
+		}
+	      mime->cur_line = p;
+	      mime->line_size = newsize;
 	    }
 	  mime->cur_offset++;
 	  nbytes--;
@@ -806,6 +813,7 @@ mu_mime_create (mu_mime_t *pmime, mu_message_t msg, int flags)
 	    {
 	      mime->msg = msg;
 	      mime->buf_size = MIME_DFLT_BUF_SIZE;
+	      mime->line_size = MIME_MAX_HDR_LEN;
 	      mu_message_get_body (msg, &body);
 	      mu_body_get_stream (body, &(mime->stream));
 	    }
