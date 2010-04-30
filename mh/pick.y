@@ -324,8 +324,7 @@ match_message (mu_message_t msg, regex_t *regex)
   char buf[128];
   size_t n;
   
-  mu_message_get_stream (msg, &str);
-  mu_stream_seek (str, 0, SEEK_SET, NULL);
+  mu_message_get_streamref (msg, &str);
   while (mu_stream_readline (str, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
@@ -333,6 +332,7 @@ match_message (mu_message_t msg, regex_t *regex)
       if (regexec (regex, buf, 0, NULL, 0) == 0)
 	return 1;
     }
+  mu_stream_destroy (&str);
   return 0;
 }
 

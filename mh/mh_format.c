@@ -609,8 +609,10 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	    strobj_free (&mach.arg_str);
 	    mu_message_get_body (mach.message, &body);
 	    mu_body_size (body, &size);
-	    mu_body_get_stream (body, &stream);
-	    if (size == 0 || !stream)
+	    if (size == 0)
+	      break;
+	    mu_body_get_streamref (body, &stream);
+	    if (!stream)
 	      break;
 	    if (size > rest)
 	      size = rest;
@@ -619,7 +621,6 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	    mach.arg_str.size = size;
 	    
 	    str_off = 0;
-	    mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
 	    while (!mu_stream_read (stream, mach.arg_str.ptr + str_off,
 				    mach.arg_str.size - str_off, &nread)
 		   && nread != 0
@@ -629,6 +630,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 		if (nread)
 		  str_off += nread;
 	      }
+	    mu_stream_destroy (&stream);
 	    mach.arg_str.ptr[str_off] = 0;
 	  }
 	  break;

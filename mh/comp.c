@@ -160,49 +160,30 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
   mu_stream_t in;
   mu_stream_t out;
   int rc;
-  size_t size;
-  char *buffer;
-  size_t bufsize, rdsize;
   
   mu_mailbox_get_message (mbox, n, &msg);
-  mu_message_size (msg, &size);
-
-  for (bufsize = size; bufsize > 0 && (buffer = malloc (bufsize)) == 0;
-       bufsize /= 2)
-    ;
-
-  if (!bufsize)
-    mh_err_memory (1);
-
-  mu_message_get_stream (msg, &in);
+  mu_message_get_streamref (msg, &in);
   
   if ((rc = mu_file_stream_create (&out,
-				file, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
+				   file, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
       || (rc = mu_stream_open (out)))
     {
       mu_error (_("cannot open output file \"%s\": %s"),
 		file, mu_strerror (rc));
-      free (buffer);
-      return 1;
+      mu_stream_destroy (&in);
+      return rc;
     }
 
-  mu_stream_seek (in, 0, MU_SEEK_SET, NULL);
-  while (size > 0
-	 && (rc = mu_stream_read (in, buffer, bufsize, &rdsize)) == 0
-	 && rdsize > 0)
-    {
-      if ((rc = mu_stream_write (out, buffer, rdsize, NULL)) != 0)
-	{
-	  mu_error (_("error writing to \"%s\": %s"),
-		    file, mu_strerror (rc));
-	  break;
-	}
-      size -= rdsize;
-    }
-
+  rc = mu_stream_copy (out, in, 0);
+  mu_stream_destroy (&in);
   mu_stream_close (out);
   mu_stream_destroy (&out);
   
+  if (rc)
+    {
+      mu_error (_("error copying to \"%s\": %s"),
+		file, mu_strerror (rc));
+    }
   return rc;
 }
 

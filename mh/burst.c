@@ -286,8 +286,7 @@ burst_digest (mu_message_t msg)
       exit (1);
     }
 
-  mu_message_get_stream (msg, &is);
-  mu_stream_seek (is, 0, MU_SEEK_SET, NULL);
+  mu_message_get_streamref (msg, &is);
   while (mu_stream_read (is, buf, bufsize, &n) == 0
 	 && n > 0)
     {
@@ -339,7 +338,8 @@ burst_digest (mu_message_t msg)
 
       flush_stream (&os, buf + start, i - start);
     }
-
+  mu_stream_destroy (&is);
+  
   free (buf);
   if (os)
     {
@@ -390,8 +390,10 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
 	      mu_body_t body;
 	      
 	      mu_message_get_body (msg, &body);
-	      mu_body_get_stream (body, &str);
-
+	      mu_body_get_streamref (body, &str);
+	      /* FIXME: Check if str is actually destroyed.
+		 See mailbox/message_stream.c
+	      */
 	      msg = mh_stream_to_message (str);
 	    }
 	  free (value);
@@ -487,8 +489,6 @@ msg_copy (size_t num, const char *file)
   mu_attribute_t attr = NULL;
   mu_stream_t istream, ostream;
   int rc;
-  size_t n;
-  char buf[512];
   
   if ((rc = mu_file_stream_create (&ostream,
 				   file,
@@ -501,13 +501,16 @@ msg_copy (size_t num, const char *file)
     }
 
   mu_mailbox_get_message (tmpbox, num, &msg);
-  mu_message_get_stream (msg, &istream);
-  mu_stream_seek (istream, 0, MU_SEEK_SET, NULL);
-  while (rc == 0
-	 && mu_stream_read (istream, buf, sizeof buf, &n) == 0
-	 && n > 0)
-    /* FIXME: Implement RFC 934 FSA? */
-    rc = mu_stream_write (ostream, buf, n, NULL);
+  mu_message_get_streamref (msg, &istream);
+  /* FIXME: Implement RFC 934 FSA? */
+  rc = mu_stream_copy (ostream, istream, 0);
+  if (rc)
+    {
+      mu_error (_("copy stream error: %s"), mu_strerror (rc));
+      exit (1);
+    }
+  
+  mu_stream_destroy (&istream);
   
   mu_stream_close (ostream);
   mu_stream_destroy (&ostream);

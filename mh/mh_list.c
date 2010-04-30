@@ -687,7 +687,7 @@ eval_body (struct eval_env *env)
   env->prefix = env->svar[S_COMPONENT];
 
   mu_message_get_body (env->msg, &body);
-  mu_body_get_stream (body, &input);
+  mu_body_get_streamref (body, &input);
 
   if (env->bvar[B_DECODE])
     {
@@ -707,15 +707,13 @@ eval_body (struct eval_env *env)
 	}
     }
   
-  mu_stream_seek (input, 0, SEEK_SET, NULL);
   while (mu_stream_readline (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
       buf[n] = 0;
       print (env, buf, 0);
     }
-  if (dstr)
-    mu_stream_destroy (&dstr);
+  mu_stream_destroy (&input);
   return 0;
 }
 
