@@ -36,6 +36,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   size_t n = 0, lines = 0;
   FILE *out = ofile;
   int pagelines = util_get_crt ();
+  int status;
   
   mu_message_lines (mesg, &lines);
   if (mailvar_get (NULL, "showenvelope", mailvar_type_boolean, 0) == 0)
@@ -89,12 +90,18 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 	}
       fprintf (out, "\n");
       mu_message_get_body (mesg, &body);
-      mu_body_get_stream (body, &stream);
+      status = mu_body_get_streamref (body, &stream);
     }
   else
-    mu_message_get_stream (mesg, &stream);
+    status = mu_message_get_streamref (mesg, &stream);
 
-  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  if (status)
+    {
+      mu_error (_("get_stream error: %s"), mu_strerror (status));
+      return 0;
+    }
+
+  /* FIXME: Use mu_stream_copy instead? */
   while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
@@ -106,6 +113,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
       buffer[n] = '\0';
       fprintf (out, "%s", buffer);
     }
+  mu_stream_destroy (&stream);
   if (out != ofile)
     pclose (out);
   

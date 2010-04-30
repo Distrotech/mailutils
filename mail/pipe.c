@@ -49,14 +49,15 @@ mail_pipe (int argc, char **argv)
     {
       if (util_get_message (mbox, mp->msg_part[0], &msg) == 0)
 	{
-	  mu_message_get_stream (msg, &stream);
-	  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	  mu_message_get_streamref (msg, &stream);
+	  /* FIXME: Use mu_stream_copy */
 	  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 		 && n != 0)
 	    {
 	      buffer[n] = '\0';
 	      fprintf (tube, "%s", buffer);
 	    }
+	  mu_stream_destroy (&stream);
 	  if (mailvar_get (NULL, "page", mailvar_type_boolean, 0) == 0)
 	    fprintf (tube, "\f\n");
 	}

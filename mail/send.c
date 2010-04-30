@@ -293,36 +293,37 @@ compose_header_get (compose_env_t * env, char *name, char *defval)
 }
 
 void
-compose_destroy (compose_env_t * env)
+compose_destroy (compose_env_t *env)
 {
   mu_header_destroy (&env->header);
   free (env->outfiles);
 }
 
+/* FIXME: Can we use mu_stream_t instead of FILE? If so,
+   replace the loop with a call to mu_stream_copy. */
 static int
 fill_body (mu_message_t msg, FILE *file)
 {
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
-  off_t offset = 0;
   char *buf = NULL;
   size_t n = 0;
   mu_message_get_body (msg, &body);
-  mu_body_get_stream (body, &stream);
-
-  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
-  offset = 0;
+  mu_body_get_streamref (body, &stream);
+  int nullbody = 1;
+  
   while (getline (&buf, &n, file) >= 0)
     {
       size_t len = strlen (buf);
+      if (len)
+	nullbody = 0;
       mu_stream_write (stream, buf, len, NULL);
-      offset += len;
     }
-	    
+  mu_stream_destroy (&stream);
   if (buf)
     free (buf);
 
-  if (offset == 0)
+  if (nullbody)
     {
       if (mailvar_get (NULL, "nullbody", mailvar_type_boolean, 0) == 0)
 	{
@@ -525,7 +526,6 @@ mail_send0 (compose_env_t * env, int save_to)
 	  int rc;
 	  
 	  mu_message_create (&msg, NULL);
-	  mu_message_set_header (msg, env->header, NULL);
 
 	  /* Fill the body.  */
 	  rc = fill_body (msg, file);
@@ -599,6 +599,8 @@ mail_send0 (compose_env_t * env, int save_to)
 		  if (mailvar_get (&sendmail, "sendmail",
 				   mailvar_type_string, 0) == 0)
 		    {
+		      mu_message_set_header (msg, env->header, NULL);
+		      env->header = NULL;
 		      if (sendmail[0] == '/')
 			msg_to_pipe (sendmail, msg);
 		      else
@@ -669,14 +671,15 @@ msg_to_pipe (const char *cmd, mu_message_t msg)
       mu_stream_t stream = NULL;
       char buffer[512];
       size_t n = 0;
-      mu_message_get_stream (msg, &stream);
-      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      /* FIXME: Use mu_stream_copy */
+      mu_message_get_streamref (msg, &stream);
       while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  fprintf (fp, "%s", buffer);
 	}
+      mu_stream_destroy (&stream);
       pclose (fp);
     }
   else

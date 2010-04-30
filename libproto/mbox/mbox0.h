@@ -71,8 +71,8 @@ typedef struct _mbox_message *mbox_message_t;
 struct _mbox_message
 {
   /* Offset of the messages in the mailbox.  */
-  mu_off_t header_from;        /* Start of envelope (^From ) */
-  mu_off_t header_from_end;    /* End of envelope (terminating \n) */
+  mu_off_t envel_from;         /* Start of envelope (^From ) */
+  mu_off_t envel_from_end;     /* End of envelope (terminating \n) */
   mu_off_t body;               /* Start of body */
   mu_off_t body_end;           /* End of body */
 

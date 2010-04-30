@@ -329,7 +329,7 @@ header_parse (mu_header_t header, const char *blurb, int len)
        *[ (' ' | '\t') field-value '\r' '\n' ]
   */
   /* First loop goes through the blurb */
-  for (header_start = blurb;  ; header_start = ++header_end)
+  for (header_start = blurb; len > 0; header_start = ++header_end)
     {
       const char *fn, *fn_end, *fv, *fv_end;
       struct mu_hdrent *ent;
@@ -340,7 +340,7 @@ header_parse (mu_header_t header, const char *blurb, int len)
 	break;
 
       /* Second loop extract one header field. */
-      for (header_start2 = header_start;  ;header_start2 = ++header_end)
+      for (header_start2 = header_start; len; header_start2 = ++header_end)
 	{
 	  header_end = memchr (header_start2, '\n', len);
 	  if (header_end == NULL)
@@ -348,21 +348,14 @@ header_parse (mu_header_t header, const char *blurb, int len)
 	  else
 	    {
 	      len -= (header_end - header_start2 + 1);
-	      if (len < 0)
-		{
-		  header_end = NULL;
-		  break;
-		}
-	      if (header_end[1] != ' '
-		  && header_end[1] != '\t')
+	      if (!len
+		  || (header_end[1] != ' '
+		      && header_end[1] != '\t'))
 		break; /* New header break the inner for. */
 	    }
 	  /* *header_end = ' ';  smash LF ? NO */
 	}
 
-      if (header_end == NULL)
-	break; /* FIXME: Bail out.  */
-      
       /* Now save the header in the data structure.  */
 
       /* Treats unix "From " specially.  FIXME: Should we? */
@@ -956,9 +949,10 @@ header_seek (mu_stream_t str, mu_off_t off, int whence, mu_off_t *presult)
       break;
     }
 
-  if (off < 0 || off >= hstr->hdr->size)
+  if (off < 0 || off > hstr->hdr->size)
     return ESPIPE;
   hstr->off = off;
+  *presult = off;
   return 0;
 }
 

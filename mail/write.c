@@ -98,8 +98,8 @@ mail_write (int argc, char **argv)
       mu_body_lines (bod, &size);
       total_lines += size;
 
-      mu_body_get_stream (bod, &stream);
-      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      /* FIXME: Use mu_stream_copy */
+      mu_body_get_streamref (bod, &stream);
       /* should there be a separator? */
       while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 	     && n != 0)
@@ -107,7 +107,8 @@ mail_write (int argc, char **argv)
 	  buffer[n] = '\0';
 	  fprintf (output, "%s", buffer);
 	}
-
+      mu_stream_destroy (&stream);
+      
       /* mark as saved. */
 
       mu_message_get_attribute (msg, &attr);

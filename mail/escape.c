@@ -30,19 +30,21 @@ dump_headers (FILE *fp, compose_env_t *env)
   size_t n;
   int rc;
   
-  mu_header_get_stream (env->header, &stream);
-  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  rc = mu_header_get_streamref (env->header, &stream);
   if (rc)
     {
-      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
+      util_error ("mu_header_get_streamref: %s",
+		  mu_stream_strerror (stream, rc));
       return;
     }
+  /* FIXME: Use mu_stream_copy */
   while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = 0;
       fprintf (fp, "%s", buffer);
     }
+  mu_stream_destroy (&stream);
 }
 
 #define STATE_INIT 0
@@ -478,24 +480,25 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 	}
       fprintf (ofile, "%s\n", prefix);
       mu_message_get_body (mesg, &body);
-      mu_body_get_stream (body, &stream);
+      rc = mu_body_get_streamref (body, &stream);
     }
   else
-    mu_message_get_stream (mesg, &stream);
+    rc = mu_message_get_streamref (mesg, &stream);
 
-  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   if (rc)
     {
-      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
+      util_error (_("get_streamref error: %s"), mu_strerror (rc));
       return rc;
     }
-  
+
+  /* FIXME: Use mu_stream_copy? */
   while (mu_stream_readline (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';
       fprintf (ofile, "%s%s", prefix, buffer);
     }
+  mu_stream_destroy (&stream);
   return 0;
 }
 

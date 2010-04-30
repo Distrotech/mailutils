@@ -65,6 +65,7 @@ void mu_stream_unref (mu_stream_t stream);
 void mu_stream_destroy (mu_stream_t *pstream);
 int mu_stream_open (mu_stream_t stream);
 const char *mu_stream_strerror (mu_stream_t stream, int rc);
+int mu_stream_err (mu_stream_t stream);
 int mu_stream_last_error (mu_stream_t stream);
 void mu_stream_clearerr (mu_stream_t stream);
 int mu_stream_eof (mu_stream_t stream);

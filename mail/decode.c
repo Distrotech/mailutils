@@ -116,8 +116,11 @@ display_headers (FILE *out, mu_message_t mesg,
     {
       mu_stream_t stream = NULL;
       if (mu_message_get_header (mesg, &hdr) == 0
-	  && mu_header_get_stream (hdr, &stream) == 0)
-	print_stream (stream, out);
+	  && mu_header_get_streamref (hdr, &stream) == 0)
+	{
+	  print_stream (stream, out);
+	  mu_stream_destroy (&stream);
+	}
     }
 }
 
@@ -254,12 +257,12 @@ display_submessage (struct mime_descend_closure *closure, void *data)
       
       mu_message_get_body (closure->message, &body);
       mu_message_get_header (closure->message, &hdr);
-      mu_body_get_stream (body, &b_stream);
+      mu_body_get_streamref (body, &b_stream);
 
       /* Can we decode.  */
-      if (mu_filter_create(&d_stream, b_stream, closure->encoding,
-			   MU_FILTER_DECODE, 
-			   MU_STREAM_READ|MU_STREAM_NO_CLOSE) == 0)
+      if (mu_filter_create (&d_stream, b_stream, closure->encoding,
+			    MU_FILTER_DECODE, 
+			    MU_STREAM_READ|MU_STREAM_NO_CLOSE) == 0)
 	stream = d_stream;
       else
 	stream = b_stream;
@@ -303,13 +306,13 @@ display_submessage (struct mime_descend_closure *closure, void *data)
 	  if (out != ofile)
 	    pclose (out);
 	}
-      if (d_stream)
-	mu_stream_destroy (&d_stream);
+      mu_stream_destroy (&stream);
     }
   
   return 0;
 }
 
+/* FIXME: Try to use mu_stream_copy instead */
 static int
 print_stream (mu_stream_t stream, FILE *out)
 {
@@ -317,12 +320,6 @@ print_stream (mu_stream_t stream, FILE *out)
   size_t n = 0;
   int rc;
   
-  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
-  if (rc)
-    {
-      util_error (_("seek error: %s"), mu_stream_strerror (stream, rc));
-      return rc;
-    }
   while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 	 && n != 0)
     {
@@ -397,20 +394,18 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
     {
       /* Child process */
       int status;
-      mu_stream_t stream;
+      mu_stream_t stream = NULL;
 
       do /* Fake loop to avoid gotos */
 	{
 	  mu_stream_t pstr;
-	  char buffer[512];
-	  size_t n;
 	  char *no_ask;
 	  
 	  setenv ("METAMAIL_PAGER", getenv ("PAGER"), 0);
 	  if (mailvar_get (&no_ask, "mimenoask", mailvar_type_string, 0))
 	    setenv ("MM_NOASK", no_ask, 1);
 	  
-	  status = mu_message_get_stream (mesg, &stream);
+	  status = mu_message_get_streamref (mesg, &stream);
 	  if (status)
 	    {
 	      mu_error ("mu_message_get_stream: %s", mu_strerror (status));
@@ -430,12 +425,7 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	      mu_error ("mu_stream_open: %s", mu_strerror (status));
 	      break;
 	    }
-	  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
-	  while (mu_stream_read (stream, buffer, sizeof buffer - 1,
-				 &n) == 0
-		 && n > 0)
-	    mu_stream_write (pstr, buffer, n, NULL);
-
+	  mu_stream_copy (pstr, stream, 0);
 	  mu_stream_close (pstr);
 	  mu_stream_destroy (&pstr);
 	  exit (0);

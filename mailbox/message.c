@@ -270,21 +270,35 @@ _message_stream_create (mu_stream_t *pmsg, mu_message_t msg, int flags)
 }
 
 
+enum eoh_state
+  {
+    eoh_no,
+    eoh_maybe,
+    eoh_yes
+  };
+
 /* Message header stuff */
-static int
-string_find_eoh (const char *str, size_t len, size_t *ppos)
+static enum eoh_state
+string_find_eoh (enum eoh_state eoh, const char *str, size_t len,
+		 size_t *ppos)
 {
   size_t pos;
-  int eoh = 0;
+
+  if (eoh == eoh_maybe && *str == '\n')
+    {
+      *ppos = 0;
+      return eoh_yes;
+    }
   
-  for (pos = 0; pos < len-1; pos++)
-    if (str[pos] == '\n' && str[pos+1] == '\n')
+  for (pos = 0; pos < len - 1; pos++)
+    if (str[pos] == '\n' && str[pos + 1] == '\n')
       {
-	eoh = 1;
-	break;
+	*ppos = pos + 1;
+	return eoh_yes;
       }
+  
   *ppos = pos + 1;
-  return eoh;
+  return str[pos] == '\n' ? eoh_maybe : eoh_no;
 }
 
 #define MIN_HEADER_BUF_SIZE 2048
@@ -297,17 +311,21 @@ _header_fill (mu_stream_t stream, char **pbuf, size_t *plen)
   size_t bufsize = 0;
   char inbuf[MIN_HEADER_BUF_SIZE];
   size_t nread;
+  enum eoh_state eoh = eoh_no;
   
   status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   if (status)
     return status;
       
-  while ((status = mu_stream_read (stream, inbuf, sizeof (inbuf), &nread))
-	 == 0 && nread)
+  while (eoh != eoh_yes
+	 && (status = mu_stream_read (stream, inbuf, sizeof (inbuf), &nread))
+	    == 0
+	 && nread)
     {
       char *nbuf;
       size_t len;
-      int eoh = string_find_eoh (inbuf, nread, &len);
+
+      eoh = string_find_eoh (eoh, inbuf, nread, &len);
       
       nbuf = realloc (buffer, bufsize + len);
       if (!nbuf)
@@ -318,8 +336,6 @@ _header_fill (mu_stream_t stream, char **pbuf, size_t *plen)
       memcpy (nbuf + bufsize, inbuf, len);
       buffer = nbuf;
       bufsize += len;
-      if (eoh)
-	break;
     }
 
   if (status)
